@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+
+  <title>Markify</title>
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Markify" />
+  <meta property="og:site_name" content="Markify" />
+  <meta property="og:url" content="https://markify.exotek.co" />
+  <meta property="og:description" content="Share and collaborate on documents across the classroom with Markify." />
+  <meta property="og:image" content="https://markify.exotek.co/images/favicon.png" />
+
+  <meta name="description" content="Share and collaborate on documents across the classroom with Markify." />
+  <meta name="author" content="Exotek LLC (https://exotek.co)" />
+  <link rel="shortcut icon" href="./images/favicon.png" type="image/x-icon" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="theme-color" content="#0084FF" />
+
+  <link rel="icon" href="./images/favicon.png" />
+  <link rel="apple-touch-icon" href="./images/favicon.png" />
+
+  <link rel="manifest" href="./manifest.json" />
+
+  <meta http-equiv="Cache-control" content="public, max-age=1800" />
+  <meta http-equiv="Content-Type" content="text/html; charset= ISO-8859-1" />
+</head>
+<style>
+  /* Font Start */
+  @import url('https://fonts.googleapis.com/css?family=Montserrat:400,500,600,700,800&display=swap');
+  @import url('https://fonts.googleapis.com/css?family=Roboto:400,500,600,700,800&display=swap');
+  /* Font End */
+</style>
+
+<body>
+  <noscript>Please enable JavaScript to use this app.</noscript>
+  <div class="app"></div>
+
+  <script async>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("serviceworker.js");
+      });
+    }
+  </script>
+
+  <script src="https://simplesocket.net/static/v2/simplesocket.js"></script>
+  <script src="crucial.js"></script>
+</body>
+</html>

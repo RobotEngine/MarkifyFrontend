@@ -1,0 +1,26 @@
+{
+  "name": "Markify",
+  "short_name": "Markify",
+  "start_url": "?source=pwa",
+  "theme_color": "#0084FF",
+  "background_color": "#0084FF",
+  "description": "Share and collaborate on documents across the classroom with Markify.",
+  "orientation": "portrait",
+  "display": "standalone",
+  "categories": [
+    "editor",
+    "realtime",
+    "collaborate",
+    "pdf"
+  ],
+  "icons": [
+    {
+      "src": "https://markify.exotek.co/images/favicon.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [],
+  "scope": "/"
+}

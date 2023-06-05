@@ -11,7 +11,9 @@ let modules = {};
 
 let body = document.body;
 let app = findC("app");
-let stylesheet = document.createElement("style");
+let stylesheet = document.querySelector("style").sheet;
+
+let loadingAnim = app.innerHTML;
 
 let account = {};
 let userID;
@@ -61,12 +63,22 @@ async function setFrame(path, frame, extra) {
   if (modules[path] == null) {
     await loadModule(path);
   }
-  let setFrame = frame || body;
+  let setFrame = frame || app;
+  if (setFrame.querySelector(".loading") == null) {
+    setFrame.insertAdjacentHTML("beforeend", loadingAnim);
+  }
   if (modules[path] == null) {
     setFrame.innerHTML = "Couldn't load module. Please try again later."
     return;
   }
-  setFrame.innerHTML = modules[path].html;
+  setFrame.insertAdjacentHTML("beforeend", modules[path].html);
+  if (setFrame.querySelector(".loading")) {
+    (async function () {
+      setFrame.querySelector(".loading").style.opacity = 0;
+      await sleep(500);
+      setFrame.querySelector(".loading").remove();
+    })();
+  }
   modules[path].js();
 }
 function goBack() {

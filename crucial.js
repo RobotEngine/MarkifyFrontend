@@ -60,15 +60,15 @@ async function loadModule(path) {
   }
 }
 async function setFrame(path, frame, extra) {
-  if (modules[path] == null) {
-    await loadModule(path);
-  }
   let setFrame = frame || app;
   if (setFrame.querySelector(".loading") == null) {
     setFrame.insertAdjacentHTML("beforeend", loadingAnim);
   }
   if (modules[path] == null) {
-    setFrame.innerHTML = "Couldn't load module. Please try again later."
+    await loadModule(path);
+  }
+  if (modules[path] == null) {
+    setFrame.innerHTML = `<span style="color: var(--error)">Couldn't load module, please try again later.</span>`;
     return;
   }
   setFrame.insertAdjacentHTML("beforeend", modules[path].html);

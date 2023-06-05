@@ -1,4 +1,5 @@
 modules["pages/dashboard"] = {
+  title: "Dashboard",
   html: `
   <div class="dPage">
     Markify goes here...

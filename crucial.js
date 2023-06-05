@@ -79,6 +79,9 @@ async function setFrame(path, frame, extra) {
       setFrame.querySelector(".loading").remove();
     })();
   }
+  if (setFrame == app) {
+    document.title = modules[path].title + " | Markify";
+  }
   modules[path].js();
 }
 function goBack() {

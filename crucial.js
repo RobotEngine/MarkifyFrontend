@@ -54,15 +54,20 @@ async function loadModule(path) {
       let newRules = modules[path].css;
       let ruleKeys = Object.keys(newRules);
       for (let i = 0; i < ruleKeys.length; i++) {
-        stylesheet.addRule(ruleKeys[i], newRules[ruleKeys[i]]);
+        stylesheet.insertRule(ruleKeys[i] + "{" + newRules[ruleKeys[i]] + "}", stylesheet.cssRules.length);
       }
     }
   }
 }
+let currentlyLoadingFrames = {};
 async function setFrame(path, frame, extra) {
   let setFrame = frame || app;
-  if (setFrame.querySelector(".loading") == null) {
-    setFrame.insertAdjacentHTML("beforeend", loadingAnim);
+  if (currentlyLoadingFrames[setFrame.className] == "") {
+    return;
+  }
+  currentlyLoadingFrames[setFrame.className] = "";
+  if (setFrame.querySelector(".loading:not([done])") == null) {
+    setFrame.innerHTML = loadingAnim;
   }
   if (modules[path] == null) {
     await loadModule(path);
@@ -72,7 +77,8 @@ async function setFrame(path, frame, extra) {
     return;
   }
   setFrame.insertAdjacentHTML("beforeend", modules[path].html);
-  if (setFrame.querySelector(".loading")) {
+  if (setFrame.querySelector(".loading:not([done])")) {
+    setFrame.querySelector(".loading:not([done])").setAttribute("done", "");
     (async function () {
       setFrame.querySelector(".loading").style.opacity = 0;
       await sleep(500);
@@ -83,6 +89,7 @@ async function setFrame(path, frame, extra) {
     document.title = modules[path].title + " | Markify";
   }
   modules[path].js();
+  delete currentlyLoadingFrames[setFrame.className];
 }
 function goBack() {
   history.back();

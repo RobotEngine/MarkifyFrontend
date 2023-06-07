@@ -9,13 +9,12 @@
   <meta property="og:title" content="Markify" />
   <meta property="og:site_name" content="Markify" />
   <meta property="og:url" content="https://markify.exotek.co" />
-  <meta property="og:description" content="Share and collaborate on documents across the classroom with Markify." />
+  <meta property="og:description" content="Share and collaborate on documents across the classroom with Markify" />
   <meta property="og:image" content="https://markify.exotek.co/images/favicon.png" />
 
   <meta name="description" content="Share and collaborate on documents across the classroom with Markify." />
   <meta name="author" content="Exotek LLC (https://exotek.co)" />
   <link rel="shortcut icon" href="./images/favicon.png" type="image/x-icon" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="theme-color" content="#0084FF" />
 
@@ -36,23 +35,58 @@
   :root {
     --theme: #0084FF;
     --secondary: #48A7FF;
-    --gray: #ccc;
+    --hover: #B4DAFD;
+    --gray: #CCC;
     --textColor: #000;
-    --background: #fff;
-    --shadow: 0px 0px 8px #aaa;
-    --error: #ff3d64;
+    --background: 255, 255, 255;
+    --shadow: 0px 0px 8px #AAA;
+    --error: #FF3D64;
     --font: "Montserrat", sans-serif;
   }
 
   body {
     margin: 0px;
     padding: 0px;
-    background: var(--background);
+    background: rgb(var(--background));
 
     font-family: var(--font);
     font-size: 18px;
     text-align: center;
     overflow-wrap: anywhere;
+    overflow-x: hidden;
+  }
+
+  button {
+    border: none;
+    background: none;
+    font-family: var(--font);
+    cursor: pointer;
+  }
+
+  .buttonAnim {
+    outline: solid 0px var(--hover);
+    transition: .1s;
+  }
+  .buttonAnim:hover {
+    background: var(--hover);
+  }
+  .buttonAnim:active {
+    background: unset; outline: solid 4px var(--hover);
+  }
+
+  .largeButton {
+    padding: 6px 14px;
+    border-radius: 20.25px;
+    outline: solid 4px var(--secondary);
+    font-size: 20px;
+    font-weight: 700;
+    transition: .1s;
+  }
+  .largeButton:hover {
+    outline: solid 4px var(--hover);
+  }
+  .largeButton:active {
+    outline: solid 8px var(--hover);
   }
 
   .app {
@@ -62,7 +96,6 @@
     top: 0px;
     height: 0px;
     justify-content: center;
-    align-items: center;
   }
 
   .loading {
@@ -72,7 +105,7 @@
     height: 100%;
     left: 0px;
     top: 0px;
-    background: var(--background);
+    background: rgb(var(--background));
     justify-content: center;
     align-items: center;
     transition: .5s;
@@ -81,7 +114,7 @@
   .loadsvg {
     width: min(100%, 120px);
     height: min(100%, 120px);
-    margin: 12px;
+    margin: 32px;
   }
 </style>
 

@@ -15,6 +15,8 @@ let stylesheet = document.querySelector("style").sheet;
 
 let loadingAnim = app.innerHTML;
 
+let currentPage = "";
+
 let account = {};
 let userID;
 
@@ -86,16 +88,22 @@ async function setFrame(path, frame, extra) {
     })();
   }
   if (setFrame == app) {
+    currentPage = path;
     document.title = modules[path].title + " | Markify";
+    window.location.hash = "#" +  path.substring(path.lastIndexOf("/") + 1);
   }
-  modules[path].js();
+  modules[path].js(setFrame);
   delete currentlyLoadingFrames[setFrame.className];
 }
 function goBack() {
   history.back();
 }
 window.addEventListener("hashchange", function () {
-  setFrame(window.location.hash.substring(1));
+  let setPage = "pages/" + window.location.hash.substring(1);
+  if (currentPage == setPage) {
+    return;
+  }
+  setFrame(setPage);
 });
 
 async function sleep(ms) {
@@ -105,7 +113,7 @@ async function sleep(ms) {
 function getScript(url) {
   return document.querySelector("[src='" + url + "'");
 }
-async function loadScript(url) {
+function loadScript(url) {
   return new Promise(function (resolve) {
     let loaded = getScript(url);
     if (loaded != null) {
@@ -347,7 +355,7 @@ socket.onopen = async function () {
   if (window.location.hash == "") {
     setFrame("pages/dashboard");
   } else {
-    setFrame(window.location.hash.substring(1));
+    setFrame("pages/" + window.location.hash.substring(1));
   }
 };
 socket.onclose = async function () {

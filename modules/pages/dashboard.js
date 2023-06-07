@@ -25,9 +25,7 @@ modules["pages/dashboard"] = {
         <div>Recent Lessons</div>
         <button class="buttonAnim">View More<img src="./images/tooltips/drop.svg"></button>
       </div>
-      <div class="dSectionTiles">
-        You have no documents! Create one!
-      </div>
+      <div class="dSectionTiles"></div>
     </div>
     <div class="dSection dMineSec">
       <div class="dSectionTop">
@@ -76,19 +74,26 @@ modules["pages/dashboard"] = {
     ".dHeaderTxAnim": `position: absolute; width: max-content; top: 20px; left: 0px; font-size: 40px; color: var(--theme); text-shadow: 0px 0px 12px rgba(72, 167, 255, 0.5)`,
     ".dHeaderUnderline": `position: absolute; width: 0px; height: 5px; bottom: 0px; background: var(--theme); border-radius: 2.5px; transition: .5s`,
     ".dHeaderActions": `gap: 24px; margin: 0 30px 0 8%`,
-    ".dCreateDoc": `background: var(--theme); color: #fff`,
-    ".dSearch": `background: #fff; color: var(--secondary)`,
+    ".dCreateDoc": `background: var(--theme); border-radius: 20.25px; color: #fff`,
+    ".dSearch": `background: #fff; border-radius: 20.25px; color: var(--secondary)`,
     ".dBackdrop": `position: absolute; width: 100%; height: 300px; top: -50px; left: 0px; top: -50px; z-index: 0`,
     ".dBackdropImage": `position: absolute; height: 100%; left: 0px`,
     ".dIconImage": `position: absolute; height: 100%; left: max(70%, 450px)`,
 
-    //".dSection": `height: 999px`,
-    ".dSectionTop": `position: sticky; box-sizing: border-box; display: flex; width: 100%; top: 0px; padding: 16px; align-items: center; background: rgba(var(--background), .7); backdrop-filter: blur(4px)`,
+    ".dSection": `margin-bottom: 30px`,
+    ".dSectionTop": `position: sticky; box-sizing: border-box; display: flex; width: 100%; top: 0px; padding: 16px; align-items: center; background: rgba(var(--background), .7); backdrop-filter: blur(4px); z-index: 1`,
     ".dSectionTop div": `flex: 1; font-size: 30px; font-weight: 600; text-align: left; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
     ".dSectionTop button": `display: flex; padding: 8px; overflow: hidden; align-items: center; border-radius: 22px; font-size: 18px; font-weight: 600`,
-    ".dSectionTop img": `width: 26px; margin-left: 6px`,
+    ".dSectionTop img": `width: 22px; margin-left: 6px`,
     ".dSectionTiles": "display: flex; flex-wrap: wrap; min-height: 200px; justify-content: center; align-items: center",
-    ".dRecentSec .dSectionTiles": `min-height: 400px`
+    ".dTile": `position: relative; width: calc(20% - 52px); min-width: 148px; height: 200px; margin: 12px; overflow: hidden; border-radius: 18px`,
+    ".dTileDocImage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover`,
+    ".dTileInfo": `position: absolute; box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; left: 0px; bottom: 0px; padding: 6px; background: rgba(var(--background), .7)`,
+    ".dTileName": `width: 100%; font-size: 18px; font-weight: 600; color: var(--theme)`,
+    ".dTileStats": `display: flex; width: 100%; padding: 0 6px; font-size: 16px; font-weight: 700; overflow: hidden`,
+    ".dTileDate": `flex: 1; color: var(--darkGray); text-align: left`,
+    ".dTileMemberCount": "display: flex; color: var(--theme); justify-content: right; align-items: center",
+    ".dTileMemberCount img": "width: 16px; height: 16px; margin-right: 2px"
   },
   js: function(page) {
     if (userID == null) {
@@ -123,5 +128,18 @@ modules["pages/dashboard"] = {
       await sleep(500);
       page.querySelector(".dHeaderUnderline").style.width = "100%";
     })();
+
+    for (let i = 0; i < 10; i++) {
+      page.querySelector(".dRecentSec").querySelector(".dSectionTiles").insertAdjacentHTML("beforeend", `<div class="dTile largeButton">
+        <img class="dTileDocImage" src="./images/dashboard/exampledoc.png">
+        <div class="dTileInfo">
+          <div class="dTileName">New Lesson</div>
+          <div class="dTileStats">
+            <div class="dTileDate">3m</div>
+            <div class="dTileMemberCount"><img src="./images/profiles/default.svg"><span>6</span></div>
+          </div>
+        </div>
+      </div>`);
+    }
   }
 }

@@ -78,7 +78,7 @@ modules["pages/dashboard"] = {
     ".dSearch": `background: #fff; border-radius: 20.25px; color: var(--secondary)`,
     ".dBackdrop": `position: absolute; width: 100%; height: 300px; top: -50px; left: 0px; top: -50px; z-index: 0`,
     ".dBackdropImage": `position: absolute; height: 100%; left: 0px`,
-    ".dIconImage": `position: absolute; height: 100%; left: max(70%, 450px)`,
+    ".dIconImage": `position: absolute; height: 100%; left: max(70%, 570px)`,
 
     ".dSection": `margin-bottom: 30px`,
     ".dSectionTop": `position: sticky; box-sizing: border-box; display: flex; width: 100%; top: 0px; padding: 16px; align-items: center; background: rgba(var(--background), .7); backdrop-filter: blur(4px); z-index: 1`,

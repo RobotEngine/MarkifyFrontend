@@ -78,6 +78,11 @@ async function setFrame(path, frame, extra) {
     setFrame.innerHTML = `<span style="color: var(--error)">Couldn't load module, please try again later.</span>`;
     return;
   }
+  if (modules[path].preJs) {
+    if (await (modules[path].preJs()) == false) {
+      return;
+    }
+  }
   if (setFrame.querySelector(".loading:not([done])")) {
     setFrame.querySelector(".loading:not([done])").style.width = setFrame.querySelector(".loading:not([done])").clientWidth + "px";
   }

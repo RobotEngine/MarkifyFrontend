@@ -1,5 +1,11 @@
 modules["pages/dashboard"] = {
   title: "Dashboard",
+  preJs: function() {
+    if (userID == null) {
+      promptLogin();
+      return false;
+    }
+  },
   html: `
   <div class="dPage">
     <div class="dTopBar">
@@ -96,10 +102,6 @@ modules["pages/dashboard"] = {
     ".dTileMemberCount img": "width: 21px; height: 21px; margin-right: 2px"
   },
   js: function(page) {
-    if (userID == null) {
-      promptLogin();
-      return;
-    }
     if (account.image) {
       page.querySelector(".dAccount img").src = account.image;
     }

@@ -86,14 +86,14 @@ modules["pages/dashboard"] = {
     ".dSectionTop button": `display: flex; padding: 8px; overflow: hidden; align-items: center; border-radius: 22px; font-size: 18px; font-weight: 600`,
     ".dSectionTop img": `width: 22px; margin-left: 6px`,
     ".dSectionTiles": "display: flex; flex-wrap: wrap; min-height: 200px; justify-content: center; align-items: center",
-    ".dTile": `position: relative; width: calc(20% - 52px); min-width: 148px; height: 200px; margin: 12px; overflow: hidden; border-radius: 18px`,
+    ".dTile": `position: relative; width: calc(20% - 24px); min-width: 176px; height: 200px; margin: 12px; overflow: hidden; border-radius: 12px`,
     ".dTileDocImage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover`,
     ".dTileInfo": `position: absolute; box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; left: 0px; bottom: 0px; padding: 6px; background: rgba(var(--background), .7)`,
-    ".dTileName": `width: 100%; font-size: 18px; font-weight: 600; color: var(--theme)`,
-    ".dTileStats": `display: flex; width: 100%; padding: 0 6px; font-size: 16px; font-weight: 700; overflow: hidden`,
-    ".dTileDate": `flex: 1; color: var(--darkGray); text-align: left`,
+    ".dTileName": `width: 100%; font-size: 18px; font-weight: 600; color: var(--theme); text-align: left`,
+    ".dTileStats": `display: flex; width: 100%; padding: 0 6px; font-size: 16px; font-weight: 700; overflow: hidden; white-space: nowrap`,
+    ".dTileDate": `flex: 1; margin-right: 8px; color: var(--darkGray); text-align: left`,
     ".dTileMemberCount": "display: flex; color: var(--theme); justify-content: right; align-items: center",
-    ".dTileMemberCount img": "width: 16px; height: 16px; margin-right: 2px"
+    ".dTileMemberCount img": "width: 21px; height: 21px; margin-right: 2px"
   },
   js: function(page) {
     if (userID == null) {
@@ -130,7 +130,7 @@ modules["pages/dashboard"] = {
     })();
 
     for (let i = 0; i < 10; i++) {
-      page.querySelector(".dRecentSec").querySelector(".dSectionTiles").insertAdjacentHTML("beforeend", `<div class="dTile largeButton">
+      page.querySelector(".dRecentSec").querySelector(".dSectionTiles").insertAdjacentHTML("beforeend", `<button class="dTile largeButton">
         <img class="dTileDocImage" src="./images/dashboard/exampledoc.png">
         <div class="dTileInfo">
           <div class="dTileName">New Lesson</div>
@@ -139,7 +139,7 @@ modules["pages/dashboard"] = {
             <div class="dTileMemberCount"><img src="./images/profiles/default.svg"><span>6</span></div>
           </div>
         </div>
-      </div>`);
+      </button>`);
     }
   }
 }

@@ -87,6 +87,7 @@ modules["pages/dashboard"] = {
     ".dSectionTop img": `width: 22px; margin-left: 6px`,
     ".dSectionTiles": "display: flex; flex-wrap: wrap; min-height: 200px; justify-content: center; align-items: center",
     ".dTile": `position: relative; width: calc(20% - 24px); min-width: 176px; height: 200px; margin: 12px; overflow: hidden; border-radius: 12px`,
+    //".dTile:active": `transform: scale(.9)`,
     ".dTileDocImage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover`,
     ".dTileInfo": `position: absolute; box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; left: 0px; bottom: 0px; padding: 6px; background: rgba(var(--background), .7)`,
     ".dTileName": `width: 100%; font-size: 18px; font-weight: 600; color: var(--theme); text-align: left`,

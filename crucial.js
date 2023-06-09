@@ -11,6 +11,7 @@ let modules = {};
 
 let body = document.body;
 let app = findC("app");
+let fixed = findC("fixed");
 let stylesheet = document.querySelector("style").sheet;
 
 let loadingAnim = app.innerHTML;
@@ -44,7 +45,7 @@ function findI(name) {
 }
 
 let currentlyLoadingModules = {};
-async function loadModule(path) {
+async function getModule(path) {
   if (modules[path] == null) {
     if (currentlyLoadingModules[path] != null) {
       return;
@@ -60,48 +61,52 @@ async function loadModule(path) {
       }
     }
   }
+  return modules[path];
 }
 let currentlyLoadingFrames = {};
 async function setFrame(path, frame, extra) {
-  let setFrame = frame || app;
-  if (currentlyLoadingFrames[setFrame.className] == "") {
+  let frameSet = frame || app;
+  if (currentlyLoadingFrames[frameSet.className] == "") {
     return;
   }
-  currentlyLoadingFrames[setFrame.className] = "";
-  if (setFrame.querySelector(".loading:not([done])") == null) {
-    setFrame.innerHTML = loadingAnim;
+  currentlyLoadingFrames[frameSet.className] = "";
+  if (modules[path] == null && frameSet.querySelector(".loading:not([done])") == null) {
+    frameSet.innerHTML = loadingAnim;
+    runLoadingAnim(frameSet);
   }
-  if (modules[path] == null) {
-    await loadModule(path);
-  }
-  if (modules[path] == null) {
-    setFrame.innerHTML = `<span style="color: var(--error)">Couldn't load module, please try again later.</span>`;
+  let module = await getModule(path);
+  if (module == null) {
+    frameSet.style.display = "flex";
+    frameSet.style.alignItems = "center";
+    frameSet.innerHTML = `<span style="max-width: 300px; color: var(--error)">Couldn't load module, please try again later.</span>`;
+    delete currentlyLoadingFrames[frameSet.className];
     return;
   }
-  if (modules[path].preJs) {
-    if (await (modules[path].preJs()) == false) {
+  if (module.preJs) {
+    if (await (module.preJs()) == false) {
       return;
     }
   }
-  if (setFrame.querySelector(".loading:not([done])")) {
-    setFrame.querySelector(".loading:not([done])").style.width = setFrame.querySelector(".loading:not([done])").clientWidth + "px";
+  if (frameSet.querySelector(".loading:not([done])")) {
+    frameSet.querySelector(".loading:not([done])").style.width = frameSet.querySelector(".loading:not([done])").clientWidth + "px";
   }
-  setFrame.insertAdjacentHTML("beforeend", modules[path].html);
-  if (setFrame.querySelector(".loading:not([done])")) {
-    setFrame.querySelector(".loading:not([done])").setAttribute("done", "");
+  frameSet.insertAdjacentHTML("beforeend", module.html);
+  if (frameSet.querySelector(".loading:not([done])")) {
+    frameSet.querySelector(".loading:not([done])").setAttribute("done", "");
     (async function () {
-      setFrame.querySelector(".loading").style.opacity = 0;
+      frameSet.querySelector(".loading").style.opacity = 0;
       await sleep(500);
-      setFrame.querySelector(".loading").remove();
+      frameSet.querySelector(".loading").remove();
     })();
   }
-  if (setFrame == app) {
+  if (frameSet == app) {
     currentPage = path;
-    document.title = modules[path].title + " | Markify";
+    document.title = module.title + " | Markify";
     window.location.hash = "#" +  path.substring(path.lastIndexOf("/") + 1);
   }
-  modules[path].js(setFrame);
-  delete currentlyLoadingFrames[setFrame.className];
+  module.js(frameSet);
+  delete currentlyLoadingFrames[frameSet.className];
+  return module;
 }
 function goBack() {
   history.back();
@@ -130,6 +135,9 @@ function loadScript(url) {
     let newScript = document.createElement("script");
     newScript.addEventListener("load", function () {
       resolve(newScript);
+    });
+    newScript.addEventListener("error", function () {
+      resolve();
     });
     newScript.src = url;
     document.body.appendChild(newScript);
@@ -369,3 +377,46 @@ socket.onopen = async function () {
 socket.onclose = async function () {
   // 
 };
+
+
+// STANDARD MODULES //
+
+modules["dropdown"] = {
+  open: async function(button, frameName, extra) {
+    console.log(button, frameName);
+    this.close();
+    fixed.insertAdjacentHTML("beforeend", `<div class="dropdown" new><div class="dropdownContent"></div></div>`);
+    let dropdown = fixed.querySelector(".dropdown[new]");
+    let content = dropdown.querySelector(".dropdownContent");
+    dropdown.removeAttribute("new");
+    dropdown.offsetHeight;
+    window.dropdown = { drop: dropdown, button: button, dropdownInterval: setInterval(function() {
+      content.style.maxWidth = body.clientWidth - 16 + "px";
+      content.style.maxHeight = body.clientHeight - 16 + "px";
+      content.style.minWidth = Math.min(body.clientWidth - 16, 200) + "px";
+      content.style.minHeight = Math.min(body.clientHeight - 16, 200) + "px";
+
+      dropdown.style.width = content.clientWidth + "px";
+      dropdown.style.height = content.clientHeight + "px";
+      let buttonRect = button.getBoundingClientRect();
+      dropdown.style.top = buttonRect.top + "px";
+      dropdown.style.left = buttonRect.left + (button.clientWidth / 2) - (dropdown.clientWidth / 2) + "px";
+    }, 1) };
+    button.style.opacity = 0;
+    dropdown.style.opacity = 1;
+    await setFrame(frameName, content);
+  },
+  close: function() {
+    console.log("CLOSE DROPDOWN CODE HERE!");
+  },
+}
+body.addEventListener("click", async function(event) {
+  let element = event.target;
+  if (element == null) {
+    return;
+  }
+  let dropdown = element.closest("[dropdown]");
+  if (dropdown) {
+    (await getModule("dropdown")).open(dropdown, dropdown.getAttribute("dropdown"));
+  }
+});

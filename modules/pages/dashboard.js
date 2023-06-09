@@ -6,11 +6,10 @@ modules["pages/dashboard"] = {
       return false;
     }
   },
-  html: `
-  <div class="dPage">
+  html: `<div class="dPage">
     <div class="dTopBar">
       <img class="dLogo" src="./images/logo.svg">
-      <button class="dAccount buttonAnim dropdown">
+      <button class="dAccount buttonAnim" dropdown="pages/dashboard/account">
         <img src="./images/profiles/default.svg">
         <div>Robot Engine</div>
       </button>
@@ -18,7 +17,7 @@ modules["pages/dashboard"] = {
     <div class="dHeader">
       <div class="dHeaderSection dHeaderTx">Ready to <div class="dHeaderTxAnimHolder"><div class="dHeaderTxAnim"></div><div class="dHeaderUnderline"></div></div></div>
       <div class="dHeaderSection dHeaderActions">
-        <button class="dCreateDoc largeButton dropdown">New Lesson</button>
+        <button class="dCreateDoc largeButton" dropdown="pages/dashboard/lesson">New Lesson</button>
         <button class="dSearch largeButton">Search</button>
       </div>
       <div class="dBackdrop">
@@ -92,7 +91,7 @@ modules["pages/dashboard"] = {
     ".dSectionTop button": `display: flex; padding: 8px; overflow: hidden; align-items: center; border-radius: 22px; font-size: 18px; font-weight: 600`,
     ".dSectionTop img": `width: 22px; margin-left: 6px`,
     ".dSectionTiles": "display: flex; flex-wrap: wrap; min-height: 200px; justify-content: center; align-items: center",
-    ".dTile": `position: relative; width: calc(20% - 24px); min-width: 176px; height: 200px; margin: 12px; overflow: hidden; border-radius: 12px`,
+    ".dTile": `position: relative; width: calc(20% - 24px); min-width: min(176px, calc(100% - 24px)); height: 200px; margin: 12px; overflow: hidden; border-radius: 12px`,
     ".dTileDocImage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover`,
     ".dTileInfo": `position: absolute; box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; left: 0px; bottom: 0px; padding: 6px; background: rgba(var(--background), .7)`,
     ".dTileName": `width: 100%; font-size: 18px; font-weight: 600; color: var(--theme); text-align: left`,
@@ -102,6 +101,17 @@ modules["pages/dashboard"] = {
     ".dTileMemberCount img": "width: 21px; height: 21px; margin-right: 2px"
   },
   js: function(page) {
+    // MODULES
+    modules["pages/dashboard/account"] = {
+      html: `This is a dropdown!`,
+      css: {
+        
+      },
+      js: function(page) {
+        
+      }
+    }
+
     if (account.image) {
       page.querySelector(".dAccount img").src = account.image;
     }

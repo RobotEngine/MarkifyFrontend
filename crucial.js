@@ -53,12 +53,13 @@ async function getModule(path) {
     currentlyLoadingModules[path] = "";
     await loadScript("./modules/" + path + ".js");
     delete currentlyLoadingModules[path];
-    if (modules[path] && modules[path].css) {
-      let newRules = modules[path].css;
-      let ruleKeys = Object.keys(newRules);
-      for (let i = 0; i < ruleKeys.length; i++) {
-        stylesheet.insertRule(ruleKeys[i] + "{" + newRules[ruleKeys[i]] + "}", stylesheet.cssRules.length);
-      }
+  }
+  if (modules[path] && modules[path].css && modules[path].loaded != true) {
+    modules[path].loaded = true;
+    let newRules = modules[path].css;
+    let ruleKeys = Object.keys(newRules);
+    for (let i = 0; i < ruleKeys.length; i++) {
+      stylesheet.insertRule(ruleKeys[i] + "{" + newRules[ruleKeys[i]] + "}", stylesheet.cssRules.length);
     }
   }
   return modules[path];
@@ -70,9 +71,13 @@ async function setFrame(path, frame, extra) {
     return;
   }
   currentlyLoadingFrames[frameSet.className] = "";
-  if (modules[path] == null && frameSet.querySelector(".loading:not([done])") == null) {
-    frameSet.innerHTML = loadingAnim;
-    runLoadingAnim(frameSet);
+  if (modules[path] == null) {
+    if (frameSet.querySelector(".loading:not([done])") == null) {
+      frameSet.innerHTML = loadingAnim;
+      runLoadingAnim(frameSet);
+    }
+  } else {
+    frameSet.innerHTML = "";
   }
   let module = await getModule(path);
   if (module == null) {
@@ -382,32 +387,79 @@ socket.onclose = async function () {
 // STANDARD MODULES //
 
 modules["dropdown"] = {
+  css: {
+    ".dropdown": `position: sticky; box-sizing: border-box; width: 40px; height: 40px; max-width: calc(100% - 16px); max-height: calc(100% - 16px); right: 0px; bottom: 0px; margin: 8px; opacity: 0; transform-origin: center top; border-radius: 12px; background: rgb(var(--background)); box-shadow: var(--shadow); overflow: hidden; pointer-events: all`,
+    ".dropdownContent": `position: absolute; width: max-content; height: max-content; padding: 6px; left: 50%; transform: translateX(-50%); top: 0px; overflow: auto`,
+    ".dropdownHeader": `display: flex; gap: 6px; margin-bottom: 8px; justify-content: space-between; align-items: center`,
+    ".dropdownHeader button": `position: relative; width: 28px; height: 28px; margin: 3px; outline: solid 3px var(--secondary); border-radius: 14px`,
+    ".dropdownHeader button img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
+    ".dropdownTitle": `box-sizing: border-box; display: flex; padding: 4px; flex: 1; max-width: fit-content; border: solid 3px var(--hover); border-radius: 22px; justify-content: center; align-items: center; overflow: hidden; font-size: 16px; font-weight: 500; transition: .2s`,
+    ".dropdownTitle div": `flex: 1; margin: 0 4px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
+    ".dropdownTitle img": `width: 28px; height: 28px; object-fit: cover; border-radius: 14px`
+  },
   open: async function(button, frameName, extra) {
-    console.log(button, frameName);
     this.close();
-    fixed.insertAdjacentHTML("beforeend", `<div class="dropdown" new><div class="dropdownContent"></div></div>`);
+    fixed.insertAdjacentHTML("beforeend", `<div class="fixedItemHolder">
+      <div class="dropdown" new>
+        <div class="dropdownContent">
+          <div class="dropdownHeader">
+            <button class="dropdownBack" style="display: none"><img src="./images/tooltips/back.svg"></button>
+            <div class="dropdownTitle"></div>
+            <button class="dropdownClose buttonAnim" close><img src="./images/tooltips/close.svg"></button>
+          </div>
+          <div class="dropdownFrame"></div>
+        </div>
+      </div>
+    </div>`);
     let dropdown = fixed.querySelector(".dropdown[new]");
-    let content = dropdown.querySelector(".dropdownContent");
     dropdown.removeAttribute("new");
+    let content = dropdown.querySelector(".dropdownContent");
+    let frame = content.querySelector(".dropdownFrame");
+    dropdown.style.width = button.clientWidth + "px";
+    dropdown.style.height = button.clientHeight + "px";
+    frame.style.minHeight = "200px";
+    let setTitleHTML = button.innerHTML;
+    if (button.innerHTML == button.textContent) {
+      setTitleHTML = "<div>" + button.innerHTML + "</div>";
+    }
+    content.querySelector(".dropdownTitle").innerHTML = setTitleHTML;
+    dropdown.style.transition = "width .3s, height .3s, opacity .3s";
     dropdown.offsetHeight;
-    window.dropdown = { drop: dropdown, button: button, dropdownInterval: setInterval(function() {
-      content.style.maxWidth = body.clientWidth - 16 + "px";
-      content.style.maxHeight = body.clientHeight - 16 + "px";
-      content.style.minWidth = Math.min(body.clientWidth - 16, 200) + "px";
-      content.style.minHeight = Math.min(body.clientHeight - 16, 200) + "px";
+    window.dropdown = { dropdown: dropdown, button: button, interval: setInterval(function() {
+      content.style.maxWidth = body.offsetWidth - 32 + "px";
+      content.style.maxHeight = body.offsetHeight - 32 + "px";
+      content.style.minWidth = Math.min(body.offsetWidth - 32, 200) + "px";
 
-      dropdown.style.width = content.clientWidth + "px";
-      dropdown.style.height = content.clientHeight + "px";
+      if (dropdown.hasAttribute("closing") == false) {
+        dropdown.style.width = content.offsetWidth + "px";
+        dropdown.style.height = content.offsetHeight + "px";
+      } else {
+        dropdown.style.width = button.offsetWidth + "px";
+        dropdown.style.height = button.offsetHeight + "px";
+      }
+
       let buttonRect = button.getBoundingClientRect();
       dropdown.style.top = buttonRect.top + "px";
-      dropdown.style.left = buttonRect.left + (button.clientWidth / 2) - (dropdown.clientWidth / 2) + "px";
+      dropdown.style.left = buttonRect.left + (button.offsetWidth / 2) - (dropdown.offsetWidth / 2) + "px";
     }, 1) };
     button.style.opacity = 0;
     dropdown.style.opacity = 1;
-    await setFrame(frameName, content);
+    await setFrame(frameName, frame);
+    frame.style.removeProperty("min-height");
   },
-  close: function() {
-    console.log("CLOSE DROPDOWN CODE HERE!");
+  close: async function() {
+    if (window.dropdown == null) {
+      return;
+    }
+    let remDropdown = window.dropdown;
+    delete window.dropdown;
+    remDropdown.dropdown.setAttribute("closing", "");
+    remDropdown.button.style.opacity = 1;
+    remDropdown.dropdown.style.opacity = 0;
+    remDropdown.dropdown.querySelector(".dropdownTitle").style.transform = "scale(0)";
+    await sleep(350);
+    clearInterval(remDropdown.interval);
+    remDropdown.dropdown.parentElement.remove();
   },
 }
 body.addEventListener("click", async function(event) {
@@ -418,5 +470,10 @@ body.addEventListener("click", async function(event) {
   let dropdown = element.closest("[dropdown]");
   if (dropdown) {
     (await getModule("dropdown")).open(dropdown, dropdown.getAttribute("dropdown"));
+  } else if (element.closest(".dropdown") == null || element.closest("[close]")) {
+    (await getModule("dropdown")).close();
   }
+});
+window.addEventListener("scroll", async function() {
+  (await getModule("dropdown")).close();
 });

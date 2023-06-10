@@ -17,7 +17,7 @@ modules["pages/dashboard"] = {
     <div class="dHeader">
       <div class="dHeaderSection dHeaderTx">Ready to <div class="dHeaderTxAnimHolder"><div class="dHeaderTxAnim"></div><div class="dHeaderUnderline"></div></div></div>
       <div class="dHeaderSection dHeaderActions">
-        <button class="dCreateDoc largeButton" dropdown="pages/dashboard/lesson">New Lesson</button>
+        <button class="dCreateDoc largeButton" dropdown="pages/dashboards">New Lesson</button>
         <button class="dSearch largeButton">Search</button>
       </div>
       <div class="dBackdrop">
@@ -76,7 +76,7 @@ modules["pages/dashboard"] = {
     ".dHeaderSection": `position: relative; display: flex; flex-wrap: wrap; padding: 20px 8px 20px 0; margin-left: 5%; align-items: center; z-index: 1`,
     ".dHeaderTx": `overflow: hidden; font-size: 30px; font-weight: 700`,
     ".dHeaderTxAnimHolder": `position: relative; margin-left: 8px`,
-    ".dHeaderTxAnim": `position: absolute; width: max-content; top: 20px; left: 0px; font-size: 40px; color: var(--theme); text-shadow: 0px 0px 12px rgba(72, 167, 255, 0.5)`,
+    ".dHeaderTxAnim": `position: absolute; width: max-content; height: 49px; top: 20px; left: 0px; font-size: 40px; color: var(--theme); text-shadow: 0px 0px 12px rgba(72, 167, 255, 0.5)`,
     ".dHeaderUnderline": `position: absolute; width: 0px; height: 5px; bottom: 0px; background: var(--theme); border-radius: 2.5px; transition: .5s`,
     ".dHeaderActions": `gap: 24px; margin: 0 30px 0 8%`,
     ".dCreateDoc": `background: var(--theme); border-radius: 20.25px; color: #fff`,
@@ -103,12 +103,37 @@ modules["pages/dashboard"] = {
   js: function(page) {
     // MODULES
     modules["pages/dashboard/account"] = {
-      html: `This is a dropdown!`,
+      html: `
+      <button class="accountDrop accountManage"><div>Account</div><img src="./images/tooltips/account/settings.svg"></button>
+      <button class="accountDrop" dropdown="pages/dashboard/account/preferences"><div>Preferences</div><img src="./images/tooltips/account/preferences.svg"></button>
+      <button class="accountDrop accountLogout" style="--setBackground: var(--error)"><div>Logout</div><img src="./images/tooltips/account/logout.svg"></button>
+      `,
       css: {
-        
+        ".accountDrop": `display: flex; width: 100%; padding: 6px; border-radius: 8px; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s; --setBackground: var(--theme)`,
+        ".accountDrop:not(:last-child)": `margin-bottom: 4px`,
+        ".accountDrop div": `flex: 1; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
+        ".accountDrop img": `width: 24px; height: 24px; margin-left: 6px; object-fit: cover; transition: .15s`,
+        ".accountDrop:hover": `background: var(--setBackground); color: #fff`,
+        ".accountDrop:hover img": `filter: brightness(0) invert(1)`
       },
-      js: function(page) {
-        
+      js: function() {
+        findC("accountManage").addEventListener("click", function() {
+          window.open("https://exotek.co/account?userid=" + account.account, location.host + "_social_link_authenticate", "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=1000, height=650, top=" + ((screen.height / 2) - (650 / 2) - 100) + ", left=" + ((screen.width / 2) - (1000 / 2)));
+        });
+        findC("accountLogout").addEventListener("click", async function() {
+          let token = getLocalStore("token");
+          if (token == null) {
+            return;
+          }
+          let [code] = await sendRequest("POST", "auth/logout", {
+            refresh: JSON.parse(token).refresh
+          });
+          if (code == 200) {
+            removeLocalStore("userID");
+            removeLocalStore("token");
+            promptLogin();
+          }
+        });
       }
     }
 

@@ -9,7 +9,7 @@ modules["pages/dashboard"] = {
   html: `<div class="dPage">
     <div class="dTopBar">
       <img class="dLogo" src="./images/logo.svg">
-      <button class="dAccount buttonAnim" dropdown="pages/dashboard/account">
+      <button class="dAccount buttonAnim" dropdown="dropdowns/account">
         <img src="./images/profiles/default.svg">
         <div>Robot Engine</div>
       </button>
@@ -17,7 +17,7 @@ modules["pages/dashboard"] = {
     <div class="dHeader">
       <div class="dHeaderSection dHeaderTx">Ready to <div class="dHeaderTxAnimHolder"><div class="dHeaderTxAnim"></div><div class="dHeaderUnderline"></div></div></div>
       <div class="dHeaderSection dHeaderActions">
-        <button class="dCreateDoc largeButton" dropdown="pages/dashboards">New Lesson</button>
+        <button class="dCreateDoc largeButton" dropdown="pages/dashboard/newlesson">New Lesson</button>
         <button class="dSearch largeButton">Search</button>
       </div>
       <div class="dBackdrop">
@@ -102,38 +102,32 @@ modules["pages/dashboard"] = {
   },
   js: function(page) {
     // MODULES
-    modules["pages/dashboard/account"] = {
+    modules["pages/dashboard/newlesson"] = {
       html: `
-      <button class="accountDrop accountManage"><div>Account</div><img src="./images/tooltips/account/settings.svg"></button>
-      <button class="accountDrop" dropdown="pages/dashboard/account/preferences"><div>Preferences</div><img src="./images/tooltips/account/preferences.svg"></button>
-      <button class="accountDrop accountLogout" style="--setBackground: var(--error)"><div>Logout</div><img src="./images/tooltips/account/logout.svg"></button>
+      <div class="lessonCreationHolder">
+        <div class="lessonBlankHolder">
+          <button class="lessonBlank"><img src="./images/dashboard/lesson/blank.svg"><div>Blank</div></button>
+          <button class="lessonFreeboard"><img src="./images/dashboard/lesson/freeboard.svg"><div>Freeboard</div></button>
+        </div>
+        <button class="lessonUpload"><img src="./images/dashboard/lesson/upload.svg"><div>Upload</div></button>
+      </div>
       `,
       css: {
-        ".accountDrop": `display: flex; width: 100%; padding: 6px; border-radius: 8px; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s; --setBackground: var(--theme)`,
-        ".accountDrop:not(:last-child)": `margin-bottom: 4px`,
-        ".accountDrop div": `flex: 1; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
-        ".accountDrop img": `width: 24px; height: 24px; margin-left: 6px; object-fit: cover; transition: .15s`,
-        ".accountDrop:hover": `background: var(--setBackground); color: #fff`,
-        ".accountDrop:hover img": `filter: brightness(0) invert(1)`
+        ".lessonCreationHolder": `display: flex; flex-wrap: wrap; max-width: 426px`,
+        ".lessonCreationHolder button": `display: flex; flex-direction: column; max-width: 100%; padding: 8px; margin: 11px; outline: solid 3px var(--secondary); border-radius: 12px; align-items: center; justify-content: space-around; color: var(--darkGray); font-size: 16px; font-weight: 600`,
+        ".lessonCreationHolder button:hover": `background: var(--theme); color: #fff; transform: scale(1.05)`,
+        ".lessonCreationHolder button:hover img": `filter: brightness(0) invert(1)`,
+        ".lessonCreationHolder button:active": `outline: solid 6px var(--secondary); transform: scale(.95)`,
+        ".lessonBlankHolder": `flex: 1 1 131px`,
+        ".lessonBlankHolder button": `width: calc(100% - 22px); height: 120px`,
+        ".lessonBlankHolder .lessonFreeboard": `margin-top: 22px`,
+        ".lessonBlankHolder button img": `width: min(65px, 100%); height: 65px; margin-bottom: 8px`,
+        ".lessonUpload": `width: 262px; height: 262px; flex: 1 1 120px`,
+        ".lessonUpload img": `width: min(140px, 100%); height: 140px; margin-bottom: 8px`,
+        ".lessonUpload div": `font-size: 22px`,
       },
       js: function() {
-        findC("accountManage").addEventListener("click", function() {
-          window.open("https://exotek.co/account?userid=" + account.account, location.host + "_social_link_authenticate", "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=1000, height=650, top=" + ((screen.height / 2) - (650 / 2) - 100) + ", left=" + ((screen.width / 2) - (1000 / 2)));
-        });
-        findC("accountLogout").addEventListener("click", async function() {
-          let token = getLocalStore("token");
-          if (token == null) {
-            return;
-          }
-          let [code] = await sendRequest("POST", "auth/logout", {
-            refresh: JSON.parse(token).refresh
-          });
-          if (code == 200) {
-            removeLocalStore("userID");
-            removeLocalStore("token");
-            promptLogin();
-          }
-        });
+        
       }
     }
 

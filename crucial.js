@@ -288,6 +288,13 @@ async function sendRequest(method, path, body, noFileType) {
     }
   } catch (err) {
     console.log("FETCH ERROR: " + err);
+    if (path = "me") { // Show error connecting
+      setFrame = function() { }
+      app.style.display = "flex";
+      app.style.flexDirection = "column";
+      app.style.alignItems = "center";
+      app.innerHTML = `<div style="max-width: 300px; color: var(--error)">Failed to connect to server, please try again later.</div><button style="margin-top: 18px; font-size: 18px; text-decoration: underline" onclick="location.reload()">Retry</button>`;
+    }
     return [0, "Fetch Error"];
   }
 }
@@ -388,14 +395,14 @@ socket.onclose = async function () {
 
 modules["dropdown"] = {
   css: {
-    ".dropdown": `position: sticky; box-sizing: border-box; width: 40px; height: 40px; max-width: calc(100% - 16px); max-height: calc(100% - 16px); right: 0px; bottom: 0px; margin: 8px; opacity: 0; transform-origin: center top; border-radius: 12px; background: rgb(var(--background)); box-shadow: var(--shadow); overflow: hidden; pointer-events: all`,
-    ".dropdownContent": `position: absolute; width: max-content; height: max-content; padding: 6px; left: 50%; transform: translateX(-50%); top: 0px; overflow: auto`,
-    ".dropdownHeader": `display: flex; gap: 6px; margin-bottom: 8px; justify-content: space-between; align-items: center`,
-    ".dropdownHeader button": `position: relative; width: 28px; height: 28px; margin: 3px; outline: solid 3px var(--secondary); border-radius: 14px`,
+    ".dropdown": `position: sticky; box-sizing: border-box; width: 40px; height: 40px; max-width: calc(100% - 16px); max-height: calc(100% - 16px); right: 0px; bottom: 0px; margin: 8px; opacity: 0; transform-origin: center top; border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; pointer-events: all`,
+    ".dropdownContent": `position: absolute; width: max-content; height: max-content; padding: 6px; left: 50%; transform: translateX(-50%); top: 0px; background: rgb(var(--background)); overflow: auto`,
+    ".dropdownHeader": `display: flex; gap: 6px; margin-bottom: 6px; justify-content: space-between`,
+    ".dropdownHeader button": `position: relative; width: 22px; height: 22px; margin: 3px; outline: solid 3px var(--secondary); border-radius: 14px`,
     ".dropdownHeader button img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
-    ".dropdownTitle": `box-sizing: border-box; display: flex; padding: 4px; flex: 1; max-width: fit-content; border: solid 3px var(--hover); border-radius: 22px; justify-content: center; align-items: center; overflow: hidden; font-size: 16px; font-weight: 500; transition: .2s`,
+    ".dropdownTitle": `box-sizing: border-box; display: flex; padding: 3px; flex: 1; max-width: fit-content; justify-content: center; align-items: center; overflow: hidden; font-size: 18px; font-weight: 500; transition: .2s`,
     ".dropdownTitle div": `flex: 1; margin: 0 4px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
-    ".dropdownTitle img": `width: 28px; height: 28px; object-fit: cover; border-radius: 14px`
+    ".dropdownTitle img": `width: 26px; height: 26px; object-fit: cover; border-radius: 13px`
   },
   open: async function(button, frameName, extra) {
     this.close();
@@ -403,7 +410,7 @@ modules["dropdown"] = {
       <div class="dropdown" new>
         <div class="dropdownContent">
           <div class="dropdownHeader">
-            <button class="dropdownBack" style="display: none"><img src="./images/tooltips/back.svg"></button>
+            <button class="dropdownBack buttonAnim" style="display: none"><img src="./images/tooltips/back.svg"></button>
             <div class="dropdownTitle"></div>
             <button class="dropdownClose buttonAnim" close><img src="./images/tooltips/close.svg"></button>
           </div>
@@ -426,9 +433,9 @@ modules["dropdown"] = {
     dropdown.style.transition = "width .3s, height .3s, opacity .3s";
     dropdown.offsetHeight;
     window.dropdown = { dropdown: dropdown, button: button, interval: setInterval(function() {
-      content.style.maxWidth = body.offsetWidth - 32 + "px";
-      content.style.maxHeight = body.offsetHeight - 32 + "px";
-      content.style.minWidth = Math.min(body.offsetWidth - 32, 200) + "px";
+      content.style.maxWidth = body.offsetWidth - 28 + "px";
+      content.style.maxHeight = body.offsetHeight - 28 + "px";
+      content.style.minWidth = Math.min(body.offsetWidth - 28, 200) + "px";
 
       if (dropdown.hasAttribute("closing") == false) {
         dropdown.style.width = content.offsetWidth + "px";
@@ -477,3 +484,38 @@ body.addEventListener("click", async function(event) {
 window.addEventListener("scroll", async function() {
   (await getModule("dropdown")).close();
 });
+
+modules["dropdowns/account"] = {
+  html: `
+  <button class="accountDrop accountManage"><div>Settings</div><img src="./images/tooltips/account/settings.svg"></button>
+  <!--<button class="accountDrop" dropdown="dropdowns/account/preferences"><div>Preferences</div><img src="./images/tooltips/account/preferences.svg"></button>-->
+  <button class="accountDrop accountLogout" style="--setBackground: var(--error)"><div>Logout</div><img src="./images/tooltips/account/logout.svg"></button>
+  `,
+  css: {
+    ".accountDrop": `display: flex; width: 100%; padding: 6px; border-radius: 8px; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s; --setBackground: var(--theme)`,
+    ".accountDrop:not(:last-child)": `margin-bottom: 4px`,
+    ".accountDrop div": `flex: 1; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
+    ".accountDrop img": `width: 24px; height: 24px; margin-left: 6px; object-fit: cover; transition: .15s`,
+    ".accountDrop:hover": `background: var(--setBackground); color: #fff`,
+    ".accountDrop:hover img": `filter: brightness(0) invert(1)`
+  },
+  js: function() {
+    findC("accountManage").addEventListener("click", function() {
+      window.open("https://exotek.co/account?userid=" + account.account, location.host + "_social_link_authenticate", "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=1000, height=650, top=" + ((screen.height / 2) - (650 / 2) - 100) + ", left=" + ((screen.width / 2) - (1000 / 2)));
+    });
+    findC("accountLogout").addEventListener("click", async function() {
+      let token = getLocalStore("token");
+      if (token == null) {
+        return;
+      }
+      let [code] = await sendRequest("POST", "auth/logout", {
+        refresh: JSON.parse(token).refresh
+      });
+      if (code == 200) {
+        removeLocalStore("userID");
+        removeLocalStore("token");
+        promptLogin();
+      }
+    });
+  }
+}

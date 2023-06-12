@@ -468,16 +468,15 @@ modules["dropdown"] = {
       }
       window.dropdown.frameHistory.push([frameName, setTitleHTML]);
       content.style.opacity = 0;
-      content.style.transform = "scale(.85)";
+      //content.style.transform = "scale(.85)";
       content.style.zIndex = 1;
       content.style.pointerEvents = "none";
       content.style.transition = ".4s";
       content.offsetHeight;
       content.style.opacity = 1;
-      content.style.transform = "scale(1)";
+      //content.style.transform = "scale(1)";
       frame.style.minHeight = "200px";
       oldContent.style.zIndex = 0;
-      oldContent.style.transform = "unset";
       oldContent.style.pointerEvents = "none";
       oldContent.style.transition = ".4s";
       oldContent.offsetHeight;
@@ -489,7 +488,7 @@ modules["dropdown"] = {
         content.style.right = "0%";
       }
       oldContent.style.opacity = 0;
-      oldContent.style.transform = "scale(.85)";
+      //oldContent.style.transform = "scale(.85)";
       clearInterval(window.dropdown.interval);
       window.dropdown.interval = this.setResizeLoop(dropdown, content, header, window.dropdown.button);
       await setFrame(frameName, frame);

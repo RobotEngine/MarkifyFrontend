@@ -93,12 +93,13 @@ async function setFrame(path, frame, extra) {
     }
   }
   if (frameSet.querySelector(".loading:not([done])")) {
-    frameSet.querySelector(".loading:not([done])").style.width = frameSet.querySelector(".loading:not([done])").clientWidth + "px";
+    frameSet.querySelector(".loading:not([done])").style.width = "max(" + frameSet.querySelector(".loading:not([done])").clientWidth + "px, 100%)";
   }
   frameSet.insertAdjacentHTML("beforeend", module.html);
   if (frameSet.querySelector(".loading:not([done])")) {
     frameSet.querySelector(".loading:not([done])").setAttribute("done", "");
     (async function () {
+      frameSet.querySelector(".loading").style.pointerEvents = "none";
       frameSet.querySelector(".loading").style.opacity = 0;
       await sleep(500);
       frameSet.querySelector(".loading").remove();
@@ -379,6 +380,7 @@ async function init() {
   }
 }
 socket.onopen = async function () {
+  (await getModule("dropdown")).close();
   await init();
   if (window.location.hash == "") {
     setFrame("pages/dashboard");
@@ -395,51 +397,25 @@ socket.onclose = async function () {
 
 modules["dropdown"] = {
   css: {
-    ".dropdown": `position: sticky; box-sizing: border-box; width: 40px; height: 40px; max-width: calc(100% - 16px); max-height: calc(100% - 16px); right: 0px; bottom: 0px; margin: 8px; opacity: 0; transform-origin: center top; border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; pointer-events: all`,
-    ".dropdownContent": `position: absolute; width: max-content; height: max-content; padding: 6px; left: 50%; transform: translateX(-50%); top: 0px; background: rgb(var(--background)); overflow: auto`,
-    ".dropdownHeader": `display: flex; gap: 6px; margin-bottom: 6px; justify-content: space-between`,
+    ".dropdown": `position: sticky; box-sizing: border-box; max-width: calc(100% - 16px); max-height: calc(100% - 16px); right: 0px; bottom: 0px; margin: 8px; opacity: 0; transform-origin: center top; background: rgb(var(--background)); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; pointer-events: all`,
+    ".dropdownContent": `position: absolute; width: max-content; height: max-content; padding: 6px; background: rgb(var(--background))`,
+    ".dropdownHeader": `display: flex; gap: 6px; padding: 6px 6px 0 6px; justify-content: space-between; transition: .3s`,
     ".dropdownHeader button": `position: relative; width: 22px; height: 22px; margin: 3px; outline: solid 3px var(--secondary); border-radius: 14px`,
     ".dropdownHeader button img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
-    ".dropdownTitle": `box-sizing: border-box; display: flex; padding: 3px; flex: 1; max-width: fit-content; justify-content: center; align-items: center; overflow: hidden; font-size: 18px; font-weight: 500; transition: .2s`,
-    ".dropdownTitle div": `flex: 1; margin: 0 4px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
+    ".dropdownTitle": `box-sizing: border-box; display: flex; padding: 3px; flex: 1; max-width: fit-content; justify-content: center; align-items: center; overflow: hidden; font-size: 18px; font-weight: 500`,
+    ".dropdownTitle div": `flex: 1; margin: 0 4px; white-space: nowrap; overflow: hidden`,
     ".dropdownTitle img": `width: 26px; height: 26px; object-fit: cover; border-radius: 13px`
   },
-  open: async function(button, frameName, extra) {
-    this.close();
-    fixed.insertAdjacentHTML("beforeend", `<div class="fixedItemHolder">
-      <div class="dropdown" new>
-        <div class="dropdownContent">
-          <div class="dropdownHeader">
-            <button class="dropdownBack buttonAnim" style="display: none"><img src="./images/tooltips/back.svg"></button>
-            <div class="dropdownTitle"></div>
-            <button class="dropdownClose buttonAnim" close><img src="./images/tooltips/close.svg"></button>
-          </div>
-          <div class="dropdownFrame"></div>
-        </div>
-      </div>
-    </div>`);
-    let dropdown = fixed.querySelector(".dropdown[new]");
-    dropdown.removeAttribute("new");
-    let content = dropdown.querySelector(".dropdownContent");
-    let frame = content.querySelector(".dropdownFrame");
-    dropdown.style.width = button.clientWidth + "px";
-    dropdown.style.height = button.clientHeight + "px";
-    frame.style.minHeight = "200px";
-    let setTitleHTML = button.innerHTML;
-    if (button.innerHTML == button.textContent) {
-      setTitleHTML = "<div>" + button.innerHTML + "</div>";
-    }
-    content.querySelector(".dropdownTitle").innerHTML = setTitleHTML;
-    dropdown.style.transition = "width .3s, height .3s, opacity .3s";
-    dropdown.offsetHeight;
-    window.dropdown = { dropdown: dropdown, button: button, interval: setInterval(function() {
+  setResizeLoop: function(dropdown, content, header, button) {
+    return setInterval(function() {
+      content.style.top = header.offsetHeight + "px";
       content.style.maxWidth = body.offsetWidth - 28 + "px";
-      content.style.maxHeight = body.offsetHeight - 28 + "px";
+      content.style.maxHeight = body.offsetHeight - header.offsetHeight - 28 + "px";
       content.style.minWidth = Math.min(body.offsetWidth - 28, 200) + "px";
 
       if (dropdown.hasAttribute("closing") == false) {
         dropdown.style.width = content.offsetWidth + "px";
-        dropdown.style.height = content.offsetHeight + "px";
+        dropdown.style.height = content.offsetHeight + header.offsetHeight + "px";
       } else {
         dropdown.style.width = button.offsetWidth + "px";
         dropdown.style.height = button.offsetHeight + "px";
@@ -448,11 +424,118 @@ modules["dropdown"] = {
       let buttonRect = button.getBoundingClientRect();
       dropdown.style.top = buttonRect.top + "px";
       dropdown.style.left = buttonRect.left + (button.offsetWidth / 2) - (dropdown.offsetWidth / 2) + "px";
-    }, 1) };
+    }, 1);
+  },
+  open: async function(button, frameName, extra) {
+    if (window.dropdown && button.closest(".dropdown")) { // Clicked inside the dropdown
+      let dropdown = window.dropdown.dropdown;
+      let header = dropdown.querySelector(".dropdownHeader");
+      let oldContent = dropdown.querySelector(".dropdownContent:not([old])");
+      oldContent.setAttribute("old", "");
+      dropdown.insertAdjacentHTML("beforeend", `<div class="dropdownContent" new><div class="dropdownFrame"></div></div>`);
+      let content = dropdown.querySelector(".dropdownContent[new]");
+      content.removeAttribute("new");
+      window.dropdown.content = content;
+      let frame = content.querySelector(".dropdownFrame");
+      let setTitleHTML = button.innerHTML;
+      if (button.closest(".dropdownBack") == null) {
+        if (button.innerHTML == button.textContent) {
+          setTitleHTML = "<div>" + button.innerHTML + "</div>";
+        }
+
+        oldContent.style.removeProperty("left");
+        oldContent.style.right = "0%";
+        content.style.left = "50%";
+      } else {
+        window.dropdown.frameHistory.pop();
+        setTitleHTML = window.dropdown.frameHistory.pop()[1];
+
+        oldContent.style.removeProperty("right");
+        oldContent.style.left = "0%";
+        content.style.right = "50%";
+      }
+      header.querySelector(".dropdownTitle").innerHTML = setTitleHTML;
+      let back = header.querySelector(".dropdownBack");
+      if (window.dropdown.frameHistory.length > 0) {
+        back.setAttribute("dropdown", window.dropdown.frameHistory[window.dropdown.frameHistory.length - 1][0]);
+        back.style.display = "flex";
+      } else {
+        back.style.display = "none";
+      }
+      window.dropdown.frameHistory.push([frameName, setTitleHTML]);
+      content.style.opacity = 0;
+      content.style.transform = "scale(.85)";
+      content.style.zIndex = 1;
+      content.style.pointerEvents = "none";
+      content.style.transition = ".4s";
+      content.offsetHeight;
+      content.style.opacity = 1;
+      content.style.transform = "scale(1)";
+      frame.style.minHeight = "200px";
+      oldContent.style.zIndex = 0;
+      oldContent.style.transform = "unset";
+      oldContent.style.pointerEvents = "none";
+      oldContent.style.transition = ".4s";
+      oldContent.offsetHeight;
+      if (button.closest(".dropdownBack") == null) {
+        oldContent.style.right = "50%";
+        content.style.left = "0%";
+      } else {
+        oldContent.style.left = "50%";
+        content.style.right = "0%";
+      }
+      oldContent.style.opacity = 0;
+      oldContent.style.transform = "scale(.85)";
+      clearInterval(window.dropdown.interval);
+      window.dropdown.interval = this.setResizeLoop(dropdown, content, header, window.dropdown.button);
+      await setFrame(frameName, frame);
+      frame.style.removeProperty("min-height");
+      await sleep(400);
+      oldContent.remove();
+      content.style.removeProperty("transition");
+      header.querySelector(".dropdownTitle div").style.textOverflow = "ellipsis";
+      content.style.pointerEvents = "all";
+      await sleep(100);
+      content.style.overflow = "auto";
+      return;
+    }
+    this.close();
+    fixed.insertAdjacentHTML("beforeend", `<div class="fixedItemHolder">
+      <div class="dropdown" new>
+        <div class="dropdownHeader">
+          <button class="dropdownBack buttonAnim" style="display: none"><img src="./images/tooltips/back.svg"></button>
+          <div class="dropdownTitle"></div>
+          <button class="dropdownClose buttonAnim" close><img src="./images/tooltips/close.svg"></button>
+        </div>
+        <div class="dropdownContent">
+          <div class="dropdownFrame"></div>
+        </div>
+      </div>
+    </div>`);
+    let dropdown = fixed.querySelector(".dropdown[new]");
+    dropdown.removeAttribute("new");
+    let header = dropdown.querySelector(".dropdownHeader");
+    let content = dropdown.querySelector(".dropdownContent");
+    let frame = content.querySelector(".dropdownFrame");
+    dropdown.style.width = button.offsetWidth + "px";
+    dropdown.style.height = button.offsetHeight + "px";
+    frame.style.minHeight = "200px";
+    let setTitleHTML = button.innerHTML;
+    if (button.innerHTML == button.textContent) {
+      setTitleHTML = "<div>" + button.innerHTML + "</div>";
+    }
+    header.querySelector(".dropdownTitle").innerHTML = setTitleHTML;
+    dropdown.style.transition = "width .3s, height .3s, opacity .3s";
+    dropdown.offsetHeight;
+    window.dropdown = { dropdown: dropdown, button: button, frameHistory: [[frameName, setTitleHTML]], interval: this.setResizeLoop(dropdown, content, header, button) };
     button.style.opacity = 0;
     dropdown.style.opacity = 1;
     await setFrame(frameName, frame);
     frame.style.removeProperty("min-height");
+    await sleep(300);
+    header.querySelector(".dropdownTitle div").style.textOverflow = "ellipsis";
+    await sleep(200);
+    content.style.overflow = "auto";
   },
   close: async function() {
     if (window.dropdown == null) {
@@ -463,7 +546,7 @@ modules["dropdown"] = {
     remDropdown.dropdown.setAttribute("closing", "");
     remDropdown.button.style.opacity = 1;
     remDropdown.dropdown.style.opacity = 0;
-    remDropdown.dropdown.querySelector(".dropdownTitle").style.transform = "scale(0)";
+    remDropdown.dropdown.querySelector(".dropdownHeader").style.transform = "scale(0)";
     await sleep(350);
     clearInterval(remDropdown.interval);
     remDropdown.dropdown.parentElement.remove();
@@ -487,9 +570,9 @@ window.addEventListener("scroll", async function() {
 
 modules["dropdowns/account"] = {
   html: `
-  <button class="accountDrop accountManage"><div>Settings</div><img src="./images/tooltips/account/settings.svg"></button>
+  <button class="accountDrop accountManage" close><div>Settings</div><img src="./images/tooltips/account/settings.svg"></button>
   <!--<button class="accountDrop" dropdown="dropdowns/account/preferences"><div>Preferences</div><img src="./images/tooltips/account/preferences.svg"></button>-->
-  <button class="accountDrop accountLogout" style="--setBackground: var(--error)"><div>Logout</div><img src="./images/tooltips/account/logout.svg"></button>
+  <button class="accountDrop accountLogout" style="--setBackground: var(--error)" close><div>Logout</div><img src="./images/tooltips/account/logout.svg"></button>
   `,
   css: {
     ".accountDrop": `display: flex; width: 100%; padding: 6px; border-radius: 8px; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s; --setBackground: var(--theme)`,
@@ -499,11 +582,11 @@ modules["dropdowns/account"] = {
     ".accountDrop:hover": `background: var(--setBackground); color: #fff`,
     ".accountDrop:hover img": `filter: brightness(0) invert(1)`
   },
-  js: function() {
-    findC("accountManage").addEventListener("click", function() {
+  js: function(frame) {
+    frame.querySelector(".accountManage").addEventListener("click", function() {
       window.open("https://exotek.co/account?userid=" + account.account, location.host + "_social_link_authenticate", "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=1000, height=650, top=" + ((screen.height / 2) - (650 / 2) - 100) + ", left=" + ((screen.width / 2) - (1000 / 2)));
     });
-    findC("accountLogout").addEventListener("click", async function() {
+    frame.querySelector(".accountLogout").addEventListener("click", async function() {
       let token = getLocalStore("token");
       if (token == null) {
         return;

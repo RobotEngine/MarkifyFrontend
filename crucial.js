@@ -71,10 +71,14 @@ async function setFrame(path, frame, extra) {
     return;
   }
   currentlyLoadingFrames[frameSet.className] = "";
+  let loadingPlacement = frameSet.closest(".dropdown") || frameSet;
   if (modules[path] == null) {
-    if (frameSet.querySelector(".loading:not([done])") == null) {
-      frameSet.innerHTML = loadingAnim;
-      runLoadingAnim(frameSet);
+    if (loadingPlacement.querySelector(".loading:not([done])") == null) {
+      if (frameSet.closest(".dropdown") == null) {
+        frameSet.innerHTML = "";
+      }
+      loadingPlacement.insertAdjacentHTML("beforeend", loadingAnim);
+      runLoadingAnim(loadingPlacement);
     }
   } else {
     frameSet.innerHTML = "";
@@ -92,17 +96,17 @@ async function setFrame(path, frame, extra) {
       return;
     }
   }
-  if (frameSet.querySelector(".loading:not([done])")) {
-    frameSet.querySelector(".loading:not([done])").style.width = "max(" + frameSet.querySelector(".loading:not([done])").clientWidth + "px, 100%)";
+  if (loadingPlacement.querySelector(".loading:not([done])")) {
+    loadingPlacement.querySelector(".loading:not([done])").style.width = "max(" + loadingPlacement.querySelector(".loading:not([done])").clientWidth + "px, 100%)";
   }
   frameSet.insertAdjacentHTML("beforeend", module.html);
-  if (frameSet.querySelector(".loading:not([done])")) {
-    frameSet.querySelector(".loading:not([done])").setAttribute("done", "");
+  if (loadingPlacement.querySelector(".loading:not([done])")) {
+    loadingPlacement.querySelector(".loading:not([done])").setAttribute("done", "");
     (async function () {
-      frameSet.querySelector(".loading").style.pointerEvents = "none";
-      frameSet.querySelector(".loading").style.opacity = 0;
+      loadingPlacement.querySelector(".loading").style.pointerEvents = "none";
+      loadingPlacement.querySelector(".loading").style.opacity = 0;
       await sleep(500);
-      frameSet.querySelector(".loading").remove();
+      loadingPlacement.querySelector(".loading").remove();
     })();
   }
   if (frameSet == app) {
@@ -443,15 +447,15 @@ modules["dropdown"] = {
           setTitleHTML = "<div>" + button.innerHTML + "</div>";
         }
 
-        oldContent.style.removeProperty("left");
-        oldContent.style.right = "0%";
+        oldContent.style.removeProperty("right");
+        oldContent.style.left = "0%";
         content.style.left = "50%";
       } else {
         window.dropdown.frameHistory.pop();
         setTitleHTML = window.dropdown.frameHistory.pop()[1];
 
-        oldContent.style.removeProperty("right");
-        oldContent.style.left = "0%";
+        oldContent.style.removeProperty("left");
+        oldContent.style.right = "0%";
         content.style.right = "50%";
       }
       header.querySelector(".dropdownTitle").innerHTML = setTitleHTML;
@@ -478,10 +482,10 @@ modules["dropdown"] = {
       oldContent.style.transition = ".4s";
       oldContent.offsetHeight;
       if (button.closest(".dropdownBack") == null) {
-        oldContent.style.right = "50%";
+        oldContent.style.left = "-50%";
         content.style.left = "0%";
       } else {
-        oldContent.style.left = "50%";
+        oldContent.style.right = "-50%";
         content.style.right = "0%";
       }
       oldContent.style.opacity = 0;
@@ -584,7 +588,12 @@ modules["dropdowns/account"] = {
   },
   js: function(frame) {
     frame.querySelector(".accountManage").addEventListener("click", function() {
-      window.open("https://exotek.co/account?userid=" + account.account, location.host + "_social_link_authenticate", "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=1000, height=650, top=" + ((screen.height / 2) - (650 / 2) - 100) + ", left=" + ((screen.width / 2) - (1000 / 2)));
+      let a = typeof window.screenX != 'undefined' ? window.screenX : window.screenLeft;
+      let i = typeof window.screenY != 'undefined' ? window.screenY : window.screenTop;
+      let g = typeof window.outerWidth!='undefined' ? window.outerWidth : document.documentElement.clientWidth;
+      let f = typeof window.outerHeight != 'undefined' ? window.outerHeight: (document.documentElement.clientHeight - 22);
+      let h = (a < 0) ? window.screen.width + a : a;
+      window.open("https://exotek.co/account?userid=" + account.account, "exotek_window_prompt", "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=" + 1000 + ", height=" + 650 + ", top=" + parseInt(i + ((f - 650) / 2.5), 10) + ", left=" + parseInt(h + ((g - 1000) / 2), 10));
     });
     frame.querySelector(".accountLogout").addEventListener("click", async function() {
       let token = getLocalStore("token");

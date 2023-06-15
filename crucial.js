@@ -620,7 +620,7 @@ modules["alert"] = {
     alert.style.padding = "8px";
     alert.style.marginTop = "8px";
     alert.style.opacity = 1;
-    await sleep(data.time || 4000);
+    await sleep((data.time || 5) * 1000);
     this.close(alert);
   },
   close: async function (alert) {

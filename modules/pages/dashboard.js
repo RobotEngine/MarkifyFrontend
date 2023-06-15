@@ -104,13 +104,13 @@ modules["pages/dashboard"] = {
   js: function (page) {
     // MODULES
     modules["dropdowns/new/lesson"] = {
-      html: `
+      html: `<input type="file" accept="application/pdf" multiple="true" hidden="true">
       <div class="lessonCreationHolder">
         <div class="lessonBlankHolder">
-          <button class="lessonBlank" style="--themeColor: var(--gray)" dropdown="dropdowns/new/blank"><img src="./images/dashboard/lesson/blank.svg"><div>Blank Page</div></button>
-          <button class="lessonFreeboard" style="--themeColor: var(--purple)" dropdown="dropdowns/account"><img src="./images/dashboard/lesson/freeboard.svg"><div>Freeboard</div></button>
+          <button class="lessonBlank" style="--themeColor: var(--gray)" dropdown="dropdowns/new/blank"><img src="./images/dashboard/lesson/blank.svg" draggable="false"><div>Blank Page</div></button>
+          <button class="lessonFreeboard" style="--themeColor: var(--purple)" dropdown="dropdowns/account"><img src="./images/dashboard/lesson/freeboard.svg" draggable="false"><div>Freeboard</div></button>
         </div>
-        <button class="lessonUpload" style="--themeColor: var(--secondary)" dropdown="dropdowns/new/lesson"><img src="./images/dashboard/lesson/upload.svg"><div>Upload PDF</div></button>
+        <button class="lessonUpload" style="--themeColor: var(--secondary)"><img src="./images/dashboard/lesson/upload.svg" draggable="false"><div>Upload PDF</div></button>
       </div>
       `,
       css: {
@@ -127,8 +127,75 @@ modules["pages/dashboard"] = {
         ".lessonUpload img": `width: min(140px, 100%); height: 140px; margin-bottom: 8px`,
         ".lessonUpload div": `font-size: 22px`
       },
-      js: function () {
+      maxFileSize: (50 * 1024 * 1024) + 1, // 50 MB File Limit
+      js: function (frame) {
+        let dropdown = frame.closest(".dropdown");
+        let input = frame.querySelector("input");
+        let uploadButton = frame.querySelector(".lessonUpload");
+        let uploadBImg = uploadButton.querySelector("img");
+        let the = this;
+        let sendFormData = new FormData();
+        let passedFile = false;
+        async function processUpload(files, event) {
+          event.preventDefault();
 
+          if (files == null) {
+            return;
+          }
+          for (let i = 0; i < Math.min(files.length, 50); i++) {
+            let file = files[i];
+            if (file.kind == "file") {
+              file = file.getAsFile();
+            }
+            if (file.kind != "string") {
+              if (file.type == "application/pdf") {
+                if (file.size < the.maxFileSize) {
+                  sendFormData.append("file" + i, file);
+                  passedFile = true;
+                } else {
+                  (await getModule("alert")).open("warning", "<b>" + file.name + " Failed to Upload</b>Files are limited to a max size of 50 MB", { time: 10 });
+                }
+              } else {
+                (await getModule("alert")).open("warning", "<b>" + file.name + " Failed to Upload</b>Only PDF files are currently supported", { time: 10 });
+              }
+            }
+          }
+          if (files.length > 50) {
+            (await getModule("alert")).open("warning", "<b>File Overload</b>Woah their! Markify only supports bulk uploads up to 50 files, you can upload more pages in the editor", { time: 10 });
+          }
+          if (passedFile) {
+            console.log("FILE PASSED");
+            (await getModule("dropdown")).close();
+          }
+
+          resetUI();
+        }
+        frame.addEventListener("drop", function (event) {
+          processUpload(event.dataTransfer.items, event)
+        });
+        frame.addEventListener("dragover", function (event) {
+          dropdown.style.outline = "dashed 4px var(--theme)";
+          uploadButton.style.background = "var(--themeColor)";
+          uploadButton.style.color = "#fff";
+          uploadButton.style.transform = "scale(1.05)";
+          uploadBImg.style.filter = "brightness(0) invert(1)";
+          event.preventDefault();
+        });
+        function resetUI() {
+          input.value = null;
+          dropdown.style.outline = "unset";
+          uploadButton.style.removeProperty("background");
+          uploadButton.style.removeProperty("color");
+          uploadButton.style.removeProperty("transform");
+          uploadBImg.style.removeProperty("filter");
+        }
+        frame.addEventListener("dragleave", resetUI);
+        uploadButton.addEventListener("click", function () {
+          input.click();
+        });
+        input.addEventListener("change", function (event) {
+          processUpload(event.target.files, event)
+        });
       }
     }
 

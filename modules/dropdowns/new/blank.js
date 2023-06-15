@@ -85,11 +85,13 @@ modules["dropdowns/new/blank"] = {
             textBox.textContent = "";
         });
         async function textBoxError(box, error) {
+            (await getModule("alert")).open("error", "<b>Invalid Input</b>" + error);
+
             box.style.outlineColor = "var(--error)";
             box.style.color = "var(--error)";
             await sleep(200);
             box.style.outlineColor = "var(--secondary)";
-            box.style.color = "var(--secondary)";
+            box.style.color = "var(--theme)";
         }
         frameCreationHolder.addEventListener("keydown", function(event) {
             let textBox = event.target.closest(".blankNumberHolder div");
@@ -100,13 +102,13 @@ modules["dropdowns/new/blank"] = {
                 let textInt = parseFloat(textBox.textContent + event.key);
                 if (parseInt(event.key) != event.key && (event.keyCode != 190 || textBox.hasAttribute("nodecimal"))) {
                     event.preventDefault();
-                    textBoxError(textBox, "Input must be a number.");
+                    textBoxError(textBox, "Must be a number");
                 } else if (textInt > parseFloat(textBox.getAttribute("max"))) {
                     event.preventDefault();
-                    textBoxError(textBox, "Input must be under " + textBox.getAttribute("max"));
+                    textBoxError(textBox, "Must be less than " + textBox.getAttribute("max"));
                 } else if (textInt < 1) {
                     event.preventDefault();
-                    textBoxError(textBox, "Input must be greater than 1");
+                    textBoxError(textBox, "Must be greater than 1");
                 }
             }
         });
@@ -121,6 +123,10 @@ modules["dropdowns/new/blank"] = {
             } else if (textInt < 1) {
                 textBox.textContent = 1;
             }
+        });
+        frame.querySelector(".blankCreate").addEventListener("click", async function(event) {
+            // Create the doc!
+            // (await getModule("alert")).open("worked", "<b>Creating Lesson</b>Your lesson is being created. One momment please.");
         });
     }
 }

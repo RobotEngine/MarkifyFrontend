@@ -44,6 +44,7 @@
     --textColor: #000;
     --background: 255, 255, 255;
     --shadow: 0px 0px 8px #AAA;
+    --bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
     --error: #FF3D64;
     --font: "Montserrat", sans-serif;
   }
@@ -85,8 +86,11 @@
   }
 
   .largeButton {
+    display: flex;
     padding: 6px 14px;
     outline: solid 4px var(--secondary);
+    align-items: center;
+    overflow: hidden;
     font-size: 20px;
     font-weight: 700;
     transition: .1s;
@@ -125,7 +129,6 @@
     height: 100%;
     top: 0px;
     left: 0px;
-    z-index: 999;
   }
 
   .loading {

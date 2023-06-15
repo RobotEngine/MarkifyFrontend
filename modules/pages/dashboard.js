@@ -18,7 +18,7 @@ modules["pages/dashboard"] = {
       <div class="dHeaderSection dHeaderTx">Ready to <div class="dHeaderTxAnimHolder"><div class="dHeaderTxAnim"></div><div class="dHeaderUnderline"></div></div></div>
       <div class="dHeaderSection dHeaderActions">
         <button class="dCreateDoc largeButton" dropdown="dropdowns/new/lesson">New Lesson</button>
-        <button class="dSearch largeButton">Search</button>
+        <button class="dJoin largeButton">Join<img src="./images/tooltips/link.svg"></button>
       </div>
       <div class="dBackdrop">
         <img class="dBackdropImage" src="./images/dashboard/background.svg">
@@ -80,7 +80,8 @@ modules["pages/dashboard"] = {
     ".dHeaderUnderline": `position: absolute; width: 0px; height: 5px; bottom: 0px; background: var(--theme); border-radius: 2.5px; transition: .5s`,
     ".dHeaderActions": `gap: 24px; margin: 0 30px 0 8%`,
     ".dCreateDoc": `background: var(--theme); border-radius: 20.25px; color: #fff`,
-    ".dSearch": `background: #fff; border-radius: 20.25px; color: var(--secondary)`,
+    ".dJoin": `background: #fff; border-radius: 20.25px; color: var(--secondary)`,
+    ".dJoin img": `width: 26px; height: 26px; margin-left: 8px`,
     ".dBackdrop": `position: absolute; width: 100%; height: 300px; top: -50px; left: 0px; top: -50px; z-index: 0`,
     ".dBackdropImage": `position: absolute; height: 100%; left: 0px`,
     ".dIconImage": `position: absolute; height: 100%; left: max(70%, 570px)`,
@@ -109,7 +110,7 @@ modules["pages/dashboard"] = {
           <button class="lessonBlank" style="--themeColor: var(--gray)" dropdown="dropdowns/new/blank"><img src="./images/dashboard/lesson/blank.svg"><div>Blank Page</div></button>
           <button class="lessonFreeboard" style="--themeColor: var(--purple)" dropdown="dropdowns/account"><img src="./images/dashboard/lesson/freeboard.svg"><div>Freeboard</div></button>
         </div>
-        <button class="lessonUpload" style="--themeColor: var(--secondary)" dropdown="dropdowns/new/lesson"><img src="./images/dashboard/lesson/upload.svg"><div>Upload</div></button>
+        <button class="lessonUpload" style="--themeColor: var(--secondary)" dropdown="dropdowns/new/lesson"><img src="./images/dashboard/lesson/upload.svg"><div>Upload PDF</div></button>
       </div>
       `,
       css: {

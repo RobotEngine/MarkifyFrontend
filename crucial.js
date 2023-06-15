@@ -378,6 +378,7 @@ async function init() {
       setLocalStore("userID", data.user.id);
       setLocalStore("token", JSON.stringify(data.token));
       updateToSignedIn(data.user);
+      //(await getModule("alert")).open("worked", "<b>Welcome " + account.user + "</b>Welcome to Markify, ready to start a lesson?");
     }
   } else if (getLocalStore("token") != null) {
     await auth();
@@ -553,13 +554,19 @@ modules["dropdown"] = {
     await sleep(350);
     clearInterval(remDropdown.interval);
     remDropdown.dropdown.parentElement.remove();
-  },
+  }
 }
 body.addEventListener("click", async function(event) {
   let element = event.target;
   if (element == null) {
     return;
   }
+  let alertClose = element.closest(".alertClose");
+  if (alertClose) {
+    (await getModule("alert")).close(alertClose.parentElement);
+    return;
+  }
+
   let dropdown = element.closest("[dropdown]");
   if (dropdown) {
     (await getModule("dropdown")).open(dropdown, dropdown.getAttribute("dropdown"));
@@ -570,6 +577,65 @@ body.addEventListener("click", async function(event) {
 window.addEventListener("scroll", async function() {
   (await getModule("dropdown")).close();
 });
+
+modules["alert"] = {
+  css: {
+    ".alertHolder": `position: relative; box-sizing: border-box; display: flex; flex-direction: column; width: 600px; max-width: 100%; height: fit-content; margin: 60px 8px 8px 8px; align-items: center; z-index: 9999`,
+    ".alert": `box-sizing: border-box; display: flex; max-width: 100%; transform: scale(0); opacity: 0; background: rgb(var(--background)); border-radius: 12px; box-shadow: var(--shadow); pointer-events: all; overflow: hidden`,
+    ".alert img": `width: 32px; height: 32px; object-fit: cover; margin-right: 6px`,
+    ".alertText": `display: flex; flex-wrap: wrap; flex: 1; align-items: center; text-align: left; font-size: 16px`,
+    ".alertText b": `margin-right: 6px; color: var(--themeColor); font-size: 18px`,
+    ".alertClose": `position: relative; width: 22px; height: 22px; margin: 5px 5px 5px 12px; outline: solid 3px var(--secondary); border-radius: 14px`,
+    ".alertClose img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`
+  },
+  colors: {
+    info: "var(--theme)",
+    worked: "#34C172",
+    warning: "#FFB938",
+    error: "var(--error)"
+  },
+  open: async function(type, message, data) {
+    data = data || {};
+    if (fixed.querySelector(".alertHolder") == null) {
+      fixed.insertAdjacentHTML("beforeend", `<div class="fixedItemHolder">
+        <div class="alertHolder"></div>
+      </div>`);
+    }
+    let alertHolder = fixed.querySelector(".alertHolder");
+    alertHolder.parentElement.style.display = "flex";
+    alertHolder.parentElement.style.justifyContent = "center";
+    alertHolder.insertAdjacentHTML("afterbegin", `<div class="alert" new>
+      <img src="./images/tooltips/alert/info.svg">
+      <div class="alertText"></div>
+      <button class="alertClose buttonAnim" close><img src="./images/tooltips/close.svg"></button>
+    </div>`);
+    let alert = fixed.querySelector(".alert[new]");
+    alert.style.setProperty("--themeColor", this.colors[type]);
+    alert.removeAttribute("new");
+    alert.querySelector("img").src = "./images/tooltips/alert/" + type + ".svg";
+    alert.querySelector(".alertText").innerHTML = message;
+    alert.style.transition = "transform .25s var(--bounce), opacity .25s, padding .25s, margin .25s";
+    alert.offsetHeight;
+    alert.style.transform = "scale(1)";
+    alert.style.padding = "8px";
+    alert.style.marginTop = "8px";
+    alert.style.opacity = 1;
+    await sleep(data.time || 4000);
+    this.close(alert);
+  },
+  close: async function(alert) {
+    alert.style.maxHeight = alert.clientHeight + "px";
+    alert.offsetHeight;
+    alert.style.transition = ".4s";
+    alert.style.transform = "scale(0)";
+    alert.style.maxHeight = "0px";
+    alert.style.padding = "0px 8px";
+    alert.style.marginTop = "0px";
+    alert.style.opacity = 0;
+    await sleep(400);
+    alert.remove();
+  }
+}
 
 modules["dropdowns/account"] = {
   html: `

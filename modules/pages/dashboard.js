@@ -1,6 +1,6 @@
 modules["pages/dashboard"] = {
   title: "Dashboard",
-  preJs: function() {
+  preJs: function () {
     if (userID == null) {
       promptLogin();
       return false;
@@ -63,7 +63,7 @@ modules["pages/dashboard"] = {
   `,
   css: {
     ".dPage": `display: flex; flex-direction: column; width: 100%; height: fit-content; max-width: 1000px`,
-    
+
     ".dTopBar": `display: flex; justify-content: space-between; box-sizing: border-box; width: 100%; padding: 8px; background: rgba(var(--background), .7); backdrop-filter: blur(4px); overflow: hidden; z-index: 10`,
     ".dLogo": `height: 44px; margin-right: 8px`,
     ".dAccount": `flex: 1; max-width: fit-content; padding: 6px; overflow: hidden; border-radius: 22px`,
@@ -101,7 +101,7 @@ modules["pages/dashboard"] = {
     ".dTileMemberCount": "display: flex; color: var(--theme); justify-content: right; align-items: center",
     ".dTileMemberCount img": "width: 21px; height: 21px; margin-right: 2px"
   },
-  js: function(page) {
+  js: function (page) {
     // MODULES
     modules["dropdowns/new/lesson"] = {
       html: `
@@ -127,8 +127,8 @@ modules["pages/dashboard"] = {
         ".lessonUpload img": `width: min(140px, 100%); height: 140px; margin-bottom: 8px`,
         ".lessonUpload div": `font-size: 22px`
       },
-      js: function() {
-        
+      js: function () {
+
       }
     }
 

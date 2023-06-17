@@ -6,7 +6,7 @@ modules["pages/dashboard"] = {
       return false;
     }
   },
-  html: `<div class="dPage">
+  html: `<div class="dPage" page>
     <div class="dTopBar">
       <img class="dLogo" src="./images/logo.svg">
       <button class="dAccount buttonAnim" dropdown="dropdowns/account">

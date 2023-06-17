@@ -114,7 +114,7 @@ async function setFrame(path, frame, extra) {
     document.title = module.title + " | Markify";
     window.location.hash = "#" + path.substring(path.lastIndexOf("/") + 1);
   }
-  module.js(frameSet);
+  module.js(frameSet.querySelector("div[page]"));
   delete currentlyLoadingFrames[frameSet.className];
   return module;
 }
@@ -378,13 +378,17 @@ async function init() {
       setLocalStore("userID", data.user.id);
       setLocalStore("token", JSON.stringify(data.token));
       updateToSignedIn(data.user);
-      //(await getModule("alert")).open("worked", "<b>Welcome " + account.user + "</b>Welcome to Markify, ready to start a lesson?");
     }
   } else if (getLocalStore("token") != null) {
     await auth();
   }
 }
+let wasConnected = false;
 socket.onopen = async function () {
+  let bLostConnection = body.querySelector("b[lostconnection]");
+  if (bLostConnection) {
+    (await getModule("alert")).close(bLostConnection.closest(".alert"));
+  }
   (await getModule("dropdown")).close();
   await init();
   if (window.location.hash == "") {
@@ -392,9 +396,13 @@ socket.onopen = async function () {
   } else {
     setFrame("pages/" + window.location.hash.substring(1));
   }
+  if (wasConnected == true) {
+    (await getModule("alert")).open("worked", '<b>Connected</b>Reconnected to Markify');
+  }
+  wasConnected = true;
 };
 socket.onclose = async function () {
-  // 
+  (await getModule("alert")).open("warning", '<b lostconnection>Lost Connection</b>Lost connection to Markify. Reconnecting...', { time: "never" });
 };
 
 
@@ -620,8 +628,10 @@ modules["alert"] = {
     alert.style.padding = "8px";
     alert.style.marginTop = "8px";
     alert.style.opacity = 1;
-    await sleep((data.time || 5) * 1000);
-    this.close(alert);
+    if (data.time != "never") {
+      await sleep((data.time || 5) * 1000);
+      this.close(alert);
+    }
   },
   close: async function (alert) {
     alert.style.maxHeight = alert.clientHeight + "px";

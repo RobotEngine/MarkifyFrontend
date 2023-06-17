@@ -6,7 +6,7 @@ modules["pages/dashboard"] = {
       return false;
     }
   },
-  html: `<div class="dPage" page>
+  html: `<div class="dPage">
     <div class="dTopBar">
       <img class="dLogo" src="./images/logo.svg">
       <button class="dAccount buttonAnim" dropdown="dropdowns/account">
@@ -102,6 +102,9 @@ modules["pages/dashboard"] = {
     ".dTileMemberCount img": "width: 21px; height: 21px; margin-right: 2px"
   },
   js: function (page) {
+    page.style.display = "flex";
+    page.style.justifyContent = "center";
+
     // MODULES
     modules["dropdowns/new/lesson"] = {
       html: `<input type="file" accept="application/pdf" multiple="true" hidden="true">

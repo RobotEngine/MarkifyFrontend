@@ -86,6 +86,7 @@ async function setFrame(path, frame, extra) {
   let module = await getModule(path);
   if (module == null) {
     frameSet.style.display = "flex";
+    frameSet.style.justifyContent = "center";
     frameSet.style.alignItems = "center";
     frameSet.innerHTML = `<span style="max-width: 300px; color: var(--error)">Couldn't load module, please try again later.</span>`;
     delete currentlyLoadingFrames[frameSet.className];
@@ -99,7 +100,7 @@ async function setFrame(path, frame, extra) {
   if (loadingPlacement.querySelector(".loading:not([done])")) {
     loadingPlacement.querySelector(".loading:not([done])").style.width = "max(" + loadingPlacement.querySelector(".loading:not([done])").clientWidth + "px, 100%)";
   }
-  frameSet.insertAdjacentHTML("beforeend", module.html);
+  frameSet.insertAdjacentHTML("beforeend", `<div class="content">${module.html}</div>`);
   if (loadingPlacement.querySelector(".loading:not([done])")) {
     loadingPlacement.querySelector(".loading:not([done])").setAttribute("done", "");
     (async function () {
@@ -114,7 +115,7 @@ async function setFrame(path, frame, extra) {
     document.title = module.title + " | Markify";
     window.location.hash = "#" + path.substring(path.lastIndexOf("/") + 1);
   }
-  module.js(frameSet.querySelector("div[page]"));
+  module.js(frameSet.querySelector(".content"));
   delete currentlyLoadingFrames[frameSet.className];
   return module;
 }
@@ -298,6 +299,7 @@ async function sendRequest(method, path, body, noFileType) {
       app.style.display = "flex";
       app.style.flexDirection = "column";
       app.style.alignItems = "center";
+      app.style.justifyContent = "center";
       app.innerHTML = `<div style="max-width: 300px; color: var(--error)">Failed to connect to server, please try again later.</div><button style="margin-top: 18px; font-size: 18px; text-decoration: underline" onclick="location.reload()">Retry</button>`;
     }
     return [0, "Fetch Error"];

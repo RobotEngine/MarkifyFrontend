@@ -240,7 +240,7 @@ async function renewToken() {
     })
   });
   if (refreshToken.status == 200) {
-    let refreshData = JSON.parse(await refreshToken.text());
+    let refreshData = await refreshToken.json();
     setLocalStore("token", JSON.stringify(refreshData.token));
     account.realtime = refreshData.realtime;
     return refreshData.token;
@@ -286,11 +286,23 @@ async function sendRequest(method, path, body, noFileType) {
       case 401:
         await renewToken();
         break;
-      case 429:
-        // Show Rate Limit
-        break;
       default:
-        return [response.status, await response.text()];
+        let body = await response.json();
+        if (body.errors && body.errors.length > 0) {
+          for (let i = 0; i < body.errors.length; i++) {
+            let message = body.errors[i];
+            if (message.includes("<b>") == false) {
+              message = "<b>Oops! Something Broke</b>" + message;
+            }
+            (await getModule("alert")).open("error", message);
+          }
+        }
+        if (body.warnings && body.warnings.length > 0) {
+          for (let i = 0; i < body.warnings.length; i++) {
+            (await getModule("alert")).open("warning", body.warnings[i]);
+          }
+        }
+        return [response.status, body];
     }
   } catch (err) {
     console.log("FETCH ERROR: " + err);
@@ -301,6 +313,8 @@ async function sendRequest(method, path, body, noFileType) {
       app.style.alignItems = "center";
       app.style.justifyContent = "center";
       app.innerHTML = `<div style="max-width: 300px; color: var(--error)">Failed to connect to server, please try again later.</div><button style="margin-top: 18px; font-size: 18px; text-decoration: underline" onclick="location.reload()">Retry</button>`;
+    } else {
+      (await getModule("alert")).open("error", "<b>Whoops! Something Unexpected Happened</b>Please try again later...");
     }
     return [0, "Fetch Error"];
   }
@@ -356,11 +370,11 @@ function updateToSignedIn(data) {
   accountSub();
 }
 async function auth() {
-  let [code, response] = await sendRequest("GET", "me");
+  let [code, body] = await sendRequest("GET", "me");
   if (code != 200) {
     return;
   }
-  updateToSignedIn(JSON.parse(response));
+  updateToSignedIn(body);
 }
 async function init() {
   let paramAuthCode = getParam("code");
@@ -371,15 +385,14 @@ async function init() {
     }
     removeLocalStore("state");
     modifyParams("state");
-    let [code, response] = await sendRequest("POST", "auth", {
+    let [code, body] = await sendRequest("POST", "auth", {
       code: paramAuthCode
     });
     modifyParams("code");
     if (code === 200) {
-      let data = JSON.parse(response);
-      setLocalStore("userID", data.user.id);
-      setLocalStore("token", JSON.stringify(data.token));
-      updateToSignedIn(data.user);
+      setLocalStore("userID", body.user.id);
+      setLocalStore("token", JSON.stringify(body.token));
+      updateToSignedIn(body.user);
     }
   } else if (getLocalStore("token") != null) {
     await auth();

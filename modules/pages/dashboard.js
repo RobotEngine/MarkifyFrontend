@@ -130,7 +130,7 @@ modules["pages/dashboard"] = {
         ".lessonUpload img": `width: min(140px, 100%); height: 140px; margin-bottom: 8px`,
         ".lessonUpload div": `font-size: 22px`
       },
-      maxFileSize: (50 * 1024 * 1024) + 1, // 50 MB File Limit
+      maxFileSize: (500 * 1024 * 1024) + 1, // 500 MB File Limit // Will be 1 MB per page
       js: function (frame) {
         let dropdown = frame.closest(".dropdown");
         let input = frame.querySelector("input");
@@ -167,7 +167,10 @@ modules["pages/dashboard"] = {
             (await getModule("alert")).open("warning", "<b>File Overload</b>Woah their! Markify only supports bulk uploads up to 50 files, you can upload more pages in the editor", { time: 10 });
           }
           if (passedFile) {
-            console.log("FILE PASSED");
+            let [code, body] = await sendRequest("POST", "lessons/add", sendFormData, true);
+            if (body) {
+              console.log(body);
+            }
             (await getModule("dropdown")).close();
           }
 

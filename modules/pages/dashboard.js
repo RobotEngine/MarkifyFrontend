@@ -168,7 +168,9 @@ modules["pages/dashboard"] = {
           }
           if (passedFile) {
             let [code, body] = await sendRequest("POST", "lessons/add", sendFormData, true);
-            if (body) {
+            if (code == 200) {
+              //modifyParams("id", body.id);
+              setFrame("pages/editor");
               console.log(body);
             }
             (await getModule("dropdown")).close();

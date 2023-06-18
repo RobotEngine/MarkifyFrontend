@@ -81,7 +81,7 @@ modules["pages/dashboard"] = {
     ".dHeaderActions": `gap: 24px; margin: 0 30px 0 8%`,
     ".dCreateDoc": `background: var(--theme); border-radius: 20.25px; color: #fff`,
     ".dJoin": `background: #fff; border-radius: 20.25px; color: var(--secondary)`,
-    ".dJoin img": `width: 26px; height: 26px; margin-left: 8px`,
+    ".dJoin img": `width: 24px; height: 24px; margin-left: 8px`,
     ".dBackdrop": `position: absolute; width: 100%; height: 300px; top: -50px; left: 0px; top: -50px; z-index: 0`,
     ".dBackdropImage": `position: absolute; height: 100%; left: 0px`,
     ".dIconImage": `position: absolute; height: 100%; left: max(70%, 570px)`,

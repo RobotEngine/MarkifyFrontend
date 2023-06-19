@@ -145,6 +145,7 @@ modules["pages/dashboard"] = {
           if (files == null) {
             return;
           }
+          let fileSize = 0;
           for (let i = 0; i < Math.min(files.length, 50); i++) {
             let file = files[i];
             if (file.kind == "file") {
@@ -152,12 +153,22 @@ modules["pages/dashboard"] = {
             }
             if (file.kind != "string") {
               if (file.type == "application/pdf") {
+                fileSize += file.size;
+                if (fileSize > the.maxFileSize) {
+                  (await getModule("alert")).open("error", "<b>Exceeded Size Limit</b><div>Lessons are limited to a max size of <u>500 MB</u> total</div>", { time: 10 });
+                  passedFile = false;
+                  break;
+                }
+                sendFormData.append("file" + i, file);
+                passedFile = true;
+                /*
                 if (file.size < the.maxFileSize) {
                   sendFormData.append("file" + i, file);
                   passedFile = true;
                 } else {
                   (await getModule("alert")).open("warning", "<b>" + file.name + " Failed to Upload</b>Files are limited to a max size of 50 MB", { time: 10 });
                 }
+                */
               } else {
                 (await getModule("alert")).open("warning", "<b>" + file.name + " Failed to Upload</b>Only PDF files are currently supported", { time: 10 });
               }

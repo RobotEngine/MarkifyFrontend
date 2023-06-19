@@ -306,7 +306,7 @@ async function sendRequest(method, path, body, noFileType) {
     }
   } catch (err) {
     console.log("FETCH ERROR: " + err);
-    if (path = "me") { // Show error connecting
+    if (path == "me") { // Show error connecting
       setFrame = function () { }
       app.style.display = "flex";
       app.style.flexDirection = "column";

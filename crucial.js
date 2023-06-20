@@ -111,6 +111,11 @@ async function setFrame(path, frame, extra) {
     })();
   }
   if (frameSet == app) {
+    for (let i = 0; i < subscribes.length; i++) {
+      subscribes[i].close();
+    }
+    subscribes = [];
+    
     currentPage = path;
     document.title = module.title + " | Markify";
     window.location.hash = "#" + path.substring(path.lastIndexOf("/") + 1);

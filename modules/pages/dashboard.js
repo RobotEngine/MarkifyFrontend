@@ -259,5 +259,9 @@ modules["pages/dashboard"] = {
         </div>
       </button>`);
     }
+
+    subscribes.push(socket.subscribe({ type: "dash", id: userID, token: account.realtime }, function (data) {
+      console.log(data);
+    }));
   }
 }

@@ -1,6 +1,6 @@
 //let serverURL = "https://markify.exotek.co/api/";
 let serverURL = "http://localhost:3000/api/";
-//let assetURL = "https://markify.s3.amazonaws.com/";
+let assetURL = "https://markifyapp.s3.amazonaws.com/";
 
 const socket = new SimpleSocket({
   project_id: "62088fbdfc22489578e94822",
@@ -72,7 +72,7 @@ async function setFrame(path, frame, extra) {
   }
   currentlyLoadingFrames[frameSet.className] = "";
   let loadingPlacement = frameSet.closest(".dropdown") || frameSet;
-  if (modules[path] == null) {
+  if (modules[path] == null || modules[path].loading) {
     if (loadingPlacement.querySelector(".loading:not([done])") == null) {
       if (frameSet.closest(".dropdown") == null) {
         frameSet.innerHTML = "";
@@ -100,7 +100,26 @@ async function setFrame(path, frame, extra) {
   if (loadingPlacement.querySelector(".loading:not([done])")) {
     loadingPlacement.querySelector(".loading:not([done])").style.width = "max(" + loadingPlacement.querySelector(".loading:not([done])").clientWidth + "px, 100%)";
   }
-  frameSet.insertAdjacentHTML("beforeend", `<div class="content">${module.html}</div>`);
+  if (loadingPlacement.querySelector(".loading:not([done])")) {
+    loadingPlacement.querySelector(".loadingSvgHolder").style.height = loadingPlacement.querySelector(".loading:not([done])").clientHeight + "px";
+  }
+  frameSet.insertAdjacentHTML("beforeend", `<div class="content" style="display: none; opacity: 0; transition: .5s">${module.html}</div>`);
+  if (frameSet == app) {
+    for (let i = 0; i < subscribes.length; i++) {
+      subscribes[i].close();
+    }
+    subscribes = [];
+
+    currentPage = path;
+    document.title = module.title + " | Markify";
+    window.location.hash = "#" + path.substring(path.lastIndexOf("/") + 1);
+  }
+  let frameContent = frameSet.querySelector(".content");
+  await module.js(frameContent);
+  frameContent.style.opacity = 1;
+  if (frameContent.style.display == "none") {
+    frameContent.style.removeProperty("display");
+  }
   if (loadingPlacement.querySelector(".loading:not([done])")) {
     loadingPlacement.querySelector(".loading:not([done])").setAttribute("done", "");
     (async function () {
@@ -110,17 +129,6 @@ async function setFrame(path, frame, extra) {
       loadingPlacement.querySelector(".loading").remove();
     })();
   }
-  if (frameSet == app) {
-    for (let i = 0; i < subscribes.length; i++) {
-      subscribes[i].close();
-    }
-    subscribes = [];
-    
-    currentPage = path;
-    document.title = module.title + " | Markify";
-    window.location.hash = "#" + path.substring(path.lastIndexOf("/") + 1);
-  }
-  module.js(frameSet.querySelector(".content"));
   delete currentlyLoadingFrames[frameSet.className];
   return module;
 }
@@ -173,6 +181,55 @@ function modifyParams(key, value) {
     Url.searchParams.delete(key);
   }
   window.history.pushState({}, "", Url);
+}
+
+function getObject(arr, field) {
+  if (arr == null) {
+    return {};
+  }
+  let returnObj = {};
+  for (let i = 0; i < arr.length; i++) {
+    let setObject = arr[i];
+    returnObj[setObject[field]] = setObject;
+  }
+  return returnObj;
+}
+
+function timeSince(time, long) {
+  let calcTimestamp = Math.floor((Date.now() - time) / 1000);
+  if (calcTimestamp < 1) {
+    calcTimestamp = 1;
+  }
+  let amountDivide = 1;
+  let end = (long ? 'Second' : 's');
+  if (calcTimestamp > 31536000 - 1) {
+    amountDivide = 31536000;
+    end = (long ? 'Year' : 'y');
+  } else if (calcTimestamp > 2592000 - 1) {
+    amountDivide = 2592000;
+    end = (long ? 'Month' : 'mo');
+  } else if (calcTimestamp > 604800 - 1) {
+    amountDivide = 604800;
+    end = (long ? 'Week' : 'w');
+  } else if (calcTimestamp > 86400 - 1) {
+    amountDivide = 86400;
+    end = (long ? 'Day' : 'd');
+  } else if (calcTimestamp > 3600 - 1) {
+    amountDivide = 3600;
+    end = (long ? 'Hour' : 'h');
+  } else if (calcTimestamp > 60 - 1) {
+    amountDivide = 60;
+    end = (long ? 'Minute' : 'm');
+  }
+  let timeToSet = Math.floor(calcTimestamp / amountDivide);
+  if (timeToSet > 1 && long) {
+    end += 's';
+  }
+  if (long == true) {
+    return timeToSet + " " + end + " Ago";
+  } else {
+    return timeToSet + end;
+  }
 }
 
 let localDataStore = {};
@@ -431,7 +488,7 @@ socket.onclose = async function () {
 modules["dropdown"] = {
   css: {
     ".dropdown": `position: sticky; box-sizing: border-box; max-width: calc(100% - 16px); max-height: calc(100% - 16px); right: 0px; bottom: 0px; margin: 8px; opacity: 0; transform-origin: center top; background: rgb(var(--background)); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; pointer-events: all`,
-    ".dropdownContent": `position: absolute; width: max-content; height: max-content; padding: 6px; background: rgb(var(--background))`,
+    ".dropdownContent": `position: absolute; box-sizing: border-box; width: max-content; height: max-content; padding: 6px; overflow: auto; background: rgb(var(--background))`,
     ".dropdownHeader": `display: flex; gap: 6px; padding: 6px 6px 0 6px; justify-content: space-between; transition: .3s`,
     ".dropdownHeader button": `position: relative; width: 22px; height: 22px; margin: 3px; outline: solid 3px var(--secondary); border-radius: 14px`,
     ".dropdownHeader button img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
@@ -442,9 +499,9 @@ modules["dropdown"] = {
   setResizeLoop: function (dropdown, content, header, button) {
     return setInterval(function () {
       content.style.top = header.offsetHeight + "px";
-      content.style.maxWidth = body.offsetWidth - 28 + "px";
-      content.style.maxHeight = body.offsetHeight - header.offsetHeight - 28 + "px";
-      content.style.minWidth = Math.min(body.offsetWidth - 28, 200) + "px";
+      content.style.maxWidth = window.innerWidth - 32 + "px";
+      content.style.maxHeight = window.innerHeight - header.offsetHeight - 16 + "px";
+      content.style.minWidth = Math.min(window.innerWidth - 32, 200) + "px";
 
       if (dropdown.hasAttribute("closing") == false) {
         dropdown.style.width = content.offsetWidth + "px";
@@ -500,9 +557,8 @@ modules["dropdown"] = {
       //content.style.transform = "scale(.85)";
       content.style.zIndex = 1;
       content.style.pointerEvents = "none";
-      content.style.transition = ".4s";
+      content.style.transition = ".4s all, .5s opacity";
       content.offsetHeight;
-      content.style.opacity = 1;
       //content.style.transform = "scale(1)";
       frame.style.minHeight = "200px";
       oldContent.style.zIndex = 0;
@@ -521,14 +577,15 @@ modules["dropdown"] = {
       clearInterval(window.dropdown.interval);
       window.dropdown.interval = this.setResizeLoop(dropdown, content, header, window.dropdown.button);
       await setFrame(frameName, frame);
+      content.style.opacity = 1;
       frame.style.removeProperty("min-height");
-      await sleep(400);
+      await sleep(500);
       oldContent.remove();
       content.style.removeProperty("transition");
       header.querySelector(".dropdownTitle div").style.textOverflow = "ellipsis";
       content.style.pointerEvents = "all";
-      await sleep(100);
-      content.style.overflow = "auto";
+      //await sleep(100);
+      //content.style.overflow = "auto";
       return;
     }
     this.close();
@@ -566,8 +623,8 @@ modules["dropdown"] = {
     frame.style.removeProperty("min-height");
     await sleep(300);
     header.querySelector(".dropdownTitle div").style.textOverflow = "ellipsis";
-    await sleep(200);
-    content.style.overflow = "auto";
+    //await sleep(200);
+    //content.style.overflow = "auto";
   },
   close: async function () {
     if (window.dropdown == null) {
@@ -638,8 +695,8 @@ modules["alert"] = {
       <button class="alertClose buttonAnim" close><img src="./images/tooltips/close.svg"></button>
     </div>`);
     let alert = fixed.querySelector(".alert[new]");
-    alert.style.setProperty("--themeColor", this.colors[type]);
     alert.removeAttribute("new");
+    alert.style.setProperty("--themeColor", this.colors[type]);
     alert.querySelector("img").src = "./images/tooltips/alert/" + type + ".svg";
     alert.querySelector(".alertText").innerHTML = message;
     alert.style.transition = "transform .25s var(--bounce), opacity .25s, padding .25s, margin .25s";

@@ -132,18 +132,22 @@
 
   .loading {
     position: absolute;
-    display: flex;
     width: max(100%, 200px);
     max-width: 100vw;
     height: max(100%, 200px);
-    max-height: 100vh;
     left: 0px;
     top: 0px;
-    background: rgb(var(--background));
-    justify-content: center;
-    align-items: center;
+    /* background: rgb(var(--background)); */
     transition: opacity .5s;
     z-index: 999;
+  }
+
+  .loadingSvgHolder {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
   }
 
   .loadsvg {
@@ -157,22 +161,24 @@
   <noscript>Please enable JavaScript to use this app.</noscript>
   <div class="app">
     <div class="loading">
-      <svg class="loadsvg" id="eTN2ec1SvHy1" xmlns="http://www.w3.org/2000/svg"
-        xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 234 234" shape-rendering="geometricPrecision"
-        text-rendering="geometricPrecision">
-        <path id="PATHA"
-          d="M13.2695,179.062c0-22.837,18.6631-41.5,41.5-41.5s41.5,18.663,41.5,41.5c0,22.836-18.663,41.5-41.5,41.5s-41.5-18.664-41.5-41.5Z"
-          transform="translate(.296854-.29649)" fill="none" stroke="#0084ff" stroke-width="26" />
-        <path id="PATHB"
-          d="M13.4941,54.5586c0,22.8378,18.5138,41.3516,41.3516,41.3516h25.5782c8.7119,0,15.7743-7.0625,15.7743-15.7744v-25.5767c0-22.838-18.5141-41.3521-41.3523-41.3521-22.8379,0-41.3518,18.5138-41.3518,41.3516Z"
-          transform="translate(.072254 0)" fill="none" stroke="#0084ff" stroke-width="26" />
-        <path id="PATHC"
-          d="M220.902,179.262c0-22.838-18.513-41.352-41.351-41.352h-25.578c-8.712,0-15.775,7.063-15.775,15.775v25.576c0,22.838,18.514,41.352,41.353,41.352c22.837,0,41.351-18.514,41.351-41.351Z"
-          transform="translate(-.000853 0.00049)" fill="none" stroke="#0084ff" stroke-width="26" />
-        <path id="PATHD"
-          d="M220.902,54.5586c0,22.8368-18.515,41.3516-41.352,41.3516s-41.352-18.5148-41.352-41.3516s18.515-41.3516,41.352-41.3516s41.352,18.5148,41.352,41.3516Z"
-          transform="translate(-.000853 0)" fill="none" stroke="#0084ff" stroke-width="26" />
-      </svg>
+      <div class="loadingSvgHolder">
+        <svg class="loadsvg" id="eTN2ec1SvHy1" xmlns="http://www.w3.org/2000/svg"
+          xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 234 234" shape-rendering="geometricPrecision"
+          text-rendering="geometricPrecision">
+          <path id="PATHA"
+            d="M13.2695,179.062c0-22.837,18.6631-41.5,41.5-41.5s41.5,18.663,41.5,41.5c0,22.836-18.663,41.5-41.5,41.5s-41.5-18.664-41.5-41.5Z"
+            transform="translate(.296854-.29649)" fill="none" stroke="#0084ff" stroke-width="26" />
+          <path id="PATHB"
+            d="M13.4941,54.5586c0,22.8378,18.5138,41.3516,41.3516,41.3516h25.5782c8.7119,0,15.7743-7.0625,15.7743-15.7744v-25.5767c0-22.838-18.5141-41.3521-41.3523-41.3521-22.8379,0-41.3518,18.5138-41.3518,41.3516Z"
+            transform="translate(.072254 0)" fill="none" stroke="#0084ff" stroke-width="26" />
+          <path id="PATHC"
+            d="M220.902,179.262c0-22.838-18.513-41.352-41.351-41.352h-25.578c-8.712,0-15.775,7.063-15.775,15.775v25.576c0,22.838,18.514,41.352,41.353,41.352c22.837,0,41.351-18.514,41.351-41.351Z"
+            transform="translate(-.000853 0.00049)" fill="none" stroke="#0084ff" stroke-width="26" />
+          <path id="PATHD"
+            d="M220.902,54.5586c0,22.8368-18.515,41.3516-41.352,41.3516s-41.352-18.5148-41.352-41.3516s18.515-41.3516,41.352-41.3516s41.352,18.5148,41.352,41.3516Z"
+            transform="translate(-.000853 0)" fill="none" stroke="#0084ff" stroke-width="26" />
+        </svg>
+      </div>
     </div>
   </div>
   <div class="fixed"></div>

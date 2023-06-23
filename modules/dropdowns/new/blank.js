@@ -3,22 +3,22 @@ modules["dropdowns/new/blank"] = {
   <div class="blackCreationHolder">
     <div class="blankSizeHolder" selection>
       <div class="blankTitle">Document Size</div>
-      <button><div class="blankSizeTitle">A5</div><div class="blankSizeInfo">5.8" x 8.3"</div></button>
-      <button selected><div class="blankSizeTitle">A4</div><div class="blankSizeInfo">8.3" x 11.7"</div></button>
-      <button><div class="blankSizeTitle">A3</div><div class="blankSizeInfo">11.7" x 16.5"</div></button>
-      <button><div class="blankSizeTitle">B5</div><div class="blankSizeInfo">6.9" x 9.8"</div></button>
-      <button><div class="blankSizeTitle">B4</div><div class="blankSizeInfo">9.8" x 13.9"</div></button>
-      <button><div class="blankSizeTitle">B3</div><div class="blankSizeInfo">13.9" x 19.7"</div></button>
-      <button><div class="blankSizeTitle">Letter</div><div class="blankSizeInfo">8.5" x 11"</div></button>
-      <button><div class="blankSizeTitle">16:9</div><div class="blankSizeInfo">5.625" x 10"</div></button>
-      <button><div class="blankSizeTitle">4:3</div><div class="blankSizeInfo">7.5" x 10"</div></button>
-      <button><div class="blankSizeTitle">Custom</div></button>
+      <button width="816" height="1056" selected><div class="blankSizeTitle">Letter</div><div class="blankSizeInfo">8.5" x 11"</div></button>
+      <button width="1056" height="1632"><div class="blankSizeTitle">Tabloid</div><div class="blankSizeInfo">11" x 17"</div></button>
+      <button width="559.68" height="793.92"><div class="blankSizeTitle">A5</div><div class="blankSizeInfo">5.8" x 8.3"</div></button>
+      <button width="793.92" height="1122.24"><div class="blankSizeTitle">A4</div><div class="blankSizeInfo">8.3" x 11.7"</div></button>
+      <button width="1122.24" height="1587.84"><div class="blankSizeTitle">A3</div><div class="blankSizeInfo">11.7" x 16.5"</div></button>
+      <button width="665.28" height="944.64"><div class="blankSizeTitle">B5</div><div class="blankSizeInfo">6.9" x 9.8"</div></button>
+      <button width="944.64" height="1334.4"><div class="blankSizeTitle">B4</div><div class="blankSizeInfo">9.8" x 13.9"</div></button>
+      <button width="960" height="720"><div class="blankSizeTitle">4:3</div><div class="blankSizeInfo">7.5" x 10"</div></button>
+      <button width="960" height="540"><div class="blankSizeTitle">16:9</div><div class="blankSizeInfo">5.625" x 10"</div></button>
+      <button custom><div class="blankSizeTitle">Custom</div></button>
     </div>
     <div class="blankOptionHolder">
       <div class="blankCustomSizeHolder">
         <div class="blankTitle">Page Size</div>
-        <div class="blankNumberHolder"><b>Width</b><div default="8.3" max="50" contenteditable>8.3</div>in</div>
-        <div class="blankNumberHolder"><b>Height</b><div default="11.7" max="50" contenteditable>11.7</div>in</div>
+        <div class="blankNumberHolder" width><b>Width</b><div default="8.5" max="50" contenteditable>8.5</div>in</div>
+        <div class="blankNumberHolder" height><b>Height</b><div default="11" max="50" contenteditable>11</div>in</div>
       </div>
       <div class="blankTitle">Orientation</div>
       <div class="blankSelection" selection>
@@ -26,8 +26,8 @@ modules["dropdowns/new/blank"] = {
         <button>Landscape</button>
       </div>
       <div class="blankTitle">Page Amount</div>
-      <div class="blankNumberHolder"><div default="1" max="500" nodecimal contenteditable>1</div> pages</div>
-      <button class="blankCreate largeButton" close>Create Lesson</button>
+      <div class="blankNumberHolder blankPage"><div default="1" max="500" nodecimal contenteditable>1</div> pages</div>
+      <button class="blankCreate largeButton">Create Lesson</button>
     </div>
   </div>
   `,
@@ -51,7 +51,7 @@ modules["dropdowns/new/blank"] = {
     ".blankOptionHolder div[contenteditable]": `width: fit-content; max-width: 60px; padding: 4px 6px; margin: 6px 10px; outline: solid 3px var(--secondary); border-radius: 16px; color: var(--theme); font-size: 20px; font-weight: 600; white-space: nowrap; overflow: hidden; transition: .2s`,
     ".blankCreate": `margin: auto 0 22px 0; background: var(--theme); border-radius: 18px; color: #fff`
   },
-  js: function (frame) {
+  js: function (frame, extra) {
     let frameCreationHolder = frame.querySelector(".blackCreationHolder");
     let customSizeHolder = frame.querySelector(".blankCustomSizeHolder");
     frameCreationHolder.addEventListener("click", function (event) {
@@ -124,9 +124,42 @@ modules["dropdowns/new/blank"] = {
         textBox.textContent = 1;
       }
     });
-    frame.querySelector(".blankCreate").addEventListener("click", async function (event) {
-      // Create the doc!
-      // (await getModule("alert")).open("worked", "<b>Creating Lesson</b>Your lesson is being created. One momment please.");
+    let ppi = 96;
+    frame.querySelector(".blankCreate").addEventListener("click", async function () {
+      let selectedSize = frame.querySelector(".blankSizeHolder button[selected]");
+      let width;
+      let height;
+      if (selectedSize.hasAttribute("custom") == false) {
+        width = parseFloat(selectedSize.getAttribute("width"));
+        height = parseFloat(selectedSize.getAttribute("height"));
+      } else {
+        width = parseFloat(customSizeHolder.querySelector(".blankNumberHolder[width] div").textContent)*ppi;
+        height = parseFloat(customSizeHolder.querySelector(".blankNumberHolder[height] div").textContent)*ppi;
+      }
+      let selectedOri = frame.querySelector(".blankSelection button[selected]");
+      if (selectedOri.textContent == "Landscape") {
+        let oldWidth = width;
+        width = height;
+        height = oldWidth;
+      }
+      let sendData = {
+        width: Math.round(width * 100) / 100,
+        height: Math.round(height * 100) / 100,
+        pages: Math.round(frame.querySelector(".blankPage div").textContent)
+      }
+      frame.setAttribute("disabled", "");
+      extra.button.setAttribute("disabled", "");
+      let alertModule = await getModule("alert");
+      let createAlert = await alertModule.open("info", `<b>Creating Lesson</b>Setting up your lesson!`, { time: "never" });
+      let [code, body] = await sendRequest("POST", "lessons/add", sendData);
+      alertModule.close(createAlert);
+      frame.removeAttribute("disabled");
+      extra.button.removeAttribute("disabled");
+      if (code == 200) {
+        (await getModule("dropdown")).close();
+        modifyParams("lesson", body.lesson);
+        setFrame("pages/editor");
+      }
     });
   }
 }

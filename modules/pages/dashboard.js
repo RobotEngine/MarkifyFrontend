@@ -98,7 +98,7 @@ modules["dropdowns/new/lesson"] = {
   <div class="lessonCreationHolder">
     <div class="lessonBlankHolder">
       <button class="lessonBlank" style="--themeColor: var(--gray)" dropdown="dropdowns/new/blank"><img src="./images/dashboard/lesson/blank.svg" draggable="false"><div>Blank Page</div></button>
-      <button class="lessonFreeboard" style="--themeColor: var(--purple)" dropdown="dropdowns/account"><img src="./images/dashboard/lesson/freeboard.svg" draggable="false"><div>Freeboard</div></button>
+      <button class="lessonFreeboard" style="--themeColor: var(--purple)"><img src="./images/dashboard/lesson/freeboard.svg" draggable="false"><div>Freeboard</div></button>
     </div>
     <button class="lessonUpload" style="--themeColor: var(--secondary)"><img src="./images/dashboard/lesson/upload.svg" draggable="false"><div>Upload PDF</div></button>
   </div>
@@ -168,17 +168,15 @@ modules["dropdowns/new/lesson"] = {
         frame.setAttribute("disabled", "");
         extra.button.setAttribute("disabled", "");
         let alertModule = await getModule("alert");
-        let uploadAlert = await alertModule.open("info", `<b>Uploading Document</b>Uploading your PDF and creating the lesson!`, { time: "never" });
+        let uploadAlert = await alertModule.open("info", `<b>Uploading Lesson</b>Uploading your PDF${addS(passedFiles)} and creating the lesson!`, { time: "never" });
         let [code, body] = await sendRequest("POST", "lessons/add", sendFormData, true);
-        console.log(uploadAlert);
         alertModule.close(uploadAlert);
         frame.removeAttribute("disabled");
         extra.button.removeAttribute("disabled");
         if (code == 200) {
-          //modifyParams("id", body.id);
-          setFrame("pages/editor");
-          console.log(body);
           (await getModule("dropdown")).close();
+          modifyParams("lesson", body.lesson);
+          setFrame("pages/editor");
         }
       }
 
@@ -209,6 +207,21 @@ modules["dropdowns/new/lesson"] = {
     });
     input.addEventListener("change", function (event) {
       processUpload(event.target.files, event)
+    });
+    frame.querySelector(".lessonFreeboard").addEventListener("click", async function () {
+      frame.setAttribute("disabled", "");
+      extra.button.setAttribute("disabled", "");
+      let alertModule = await getModule("alert");
+      let createAlert = await alertModule.open("info", `<b>Creating Lesson</b>Setting up freeboard, an unlimited whiteboard space!`, { time: "never" });
+      let [code, body] = await sendRequest("POST", "lessons/add", { type: "freeboard" });
+      alertModule.close(createAlert);
+      frame.removeAttribute("disabled");
+      extra.button.removeAttribute("disabled");
+      if (code == 200) {
+        (await getModule("dropdown")).close();
+        modifyParams("lesson", body.lesson);
+        setFrame("pages/editor");
+      }
     });
   }
 }
@@ -254,6 +267,9 @@ modules["pages/dashboard/lessons"] = {
     ".dSectionTop img": `width: 22px; margin-left: 6px`,
     ".dSectionTiles": "display: flex; flex-wrap: wrap; min-height: 200px; justify-content: center; align-items: center",
     ".dTile": `position: relative; width: calc(20% - 24px); min-width: min(176px, calc(100% - 24px)); height: 200px; margin: 12px; overflow: hidden; border-radius: 12px`,
+    '.dTile[type="freeboard"]': `outline: solid 4px var(--purple)`,
+    '.dTile[type="freeboard"]:hover': `outline: solid 4px var(--lightPurple)`,
+    '.dTile[type="freeboard"]:active': `outline: solid 8px var(--lightPurple)`,
     ".dTileDocImage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; object-position: top center`,
     ".dTileInfo": `position: absolute; box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; left: 0px; bottom: 0px; padding: 6px; background: rgba(var(--background), .85)`,
     ".dTileName": `width: 100%; font-size: 18px; font-weight: 600; color: var(--theme); text-align: left`,
@@ -272,7 +288,7 @@ modules["pages/dashboard/lessons"] = {
         insertAdj = "afterbegin";
       }
       tileHolder.insertAdjacentHTML(insertAdj, `<button class="dTile largeButton" new>
-        <img class="dTileDocImage">
+        <img class="dTileDocImage" src="./images/dashboard/missing.svg">
         <div class="dTileInfo">
           <div class="dTileName">Untitled Lesson</div>
           <div class="dTileStats">
@@ -285,9 +301,11 @@ modules["pages/dashboard/lessons"] = {
       tile.setAttribute("lesson", lessonRec.lesson);
       tile.removeAttribute("new");
       if (lesson.type == "freeboard") {
-        tile.style.outline = "solid 4px var(--purple)";
+        tile.setAttribute("type", "freeboard");
       }
-      tile.querySelector(".dTileDocImage").src = assetURL + lesson.thumbnail;
+      if (lesson.thumbnail) {
+        tile.querySelector(".dTileDocImage").src = assetURL + lesson.thumbnail;
+      }
       tile.querySelector(".dTileName").textContent = lesson.name || "Untitled Lesson";
       tile.querySelector(".dTileName").title = lesson.name || "Untitled Lesson";
       tile.querySelector(".dTileDate").textContent = timeSince(lessonRec.opened || lessonRec.created || lessonRec.added);
@@ -339,6 +357,19 @@ modules["pages/dashboard/lessons"] = {
           removeTiles(frame.querySelectorAll('.dTile[lesson="' + data.lesson + '"]'));
       }
     }));
+
+    frame.addEventListener("click", async function (event) {
+      let element = event.target;
+      if (element == null) {
+        return;
+      }
+      let lessonOpen = element.closest(".dTile");
+      if (lessonOpen) {
+        modifyParams("lesson", lessonOpen.getAttribute("lesson"));
+        setFrame("pages/editor");
+        return;
+      }
+    });
 
     frame.parentElement.style.zIndex = 1;
   }

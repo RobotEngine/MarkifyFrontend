@@ -79,6 +79,12 @@ async function setFrame(path, frame, extra) {
       }
       loadingPlacement.insertAdjacentHTML("beforeend", loadingAnim);
       runLoadingAnim(loadingPlacement);
+      if (app.querySelector(".loading[appload]")) {
+        loadingPlacement.querySelector(".loading:not([done])").style.opacity = 0;
+      }
+      if (frameSet == app) {
+        loadingPlacement.querySelector(".loading:not([done])").setAttribute("appload", "");
+      }
     }
   } else {
     frameSet.innerHTML = "";
@@ -128,6 +134,10 @@ async function setFrame(path, frame, extra) {
       loadingPlacement.querySelector(".loading").style.opacity = 0;
       await sleep(500);
       loadingPlacement.querySelector(".loading").remove();
+      let revealLoading = frameSet.querySelectorAll(".loading:not([done])");
+      for (let i = 0; i < revealLoading.length; i++) {
+        revealLoading[i].style.opacity = 1;
+      }
     })();
   }
   delete currentlyLoadingFrames[frameSet.className];

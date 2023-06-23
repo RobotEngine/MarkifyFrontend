@@ -685,6 +685,7 @@ modules["alert"] = {
   },
   open: async function (type, message, data) {
     data = data || {};
+    let the = this;
     if (fixed.querySelector(".alertHolder") == null) {
       fixed.insertAdjacentHTML("beforeend", `<div class="fixedItemHolder">
         <div class="alertHolder"></div>
@@ -700,28 +701,31 @@ modules["alert"] = {
     </div>`);
     let alert = fixed.querySelector(".alert[new]");
     alert.removeAttribute("new");
-    if (data.id) {
-      (await getModule("alert")).finished("connection");
-      alert.setAttribute("alert", data.id + "_ALERT");
-    }
-    alert.style.setProperty("--themeColor", this.colors[type]);
-    alert.querySelector("img").src = "./images/tooltips/alert/" + type + ".svg";
-    alert.querySelector(".alertText").innerHTML = message;
-    alert.style.transition = "transform .25s var(--bounce), opacity .25s, padding .25s, margin .25s";
-    alert.offsetHeight;
-    alert.style.transform = "scale(1)";
-    alert.style.padding = "8px";
-    alert.style.marginTop = "8px";
-    alert.style.opacity = 1;
-    if (data.time != "never") {
-      await sleep((data.time || 5) * 1000);
-      this.close(alert);
-    } else {
-      alert.querySelector(".alertClose").remove();
-    }
+    (async function () {
+      if (data.id) {
+        (await getModule("alert")).finished("connection");
+        alert.setAttribute("alert", data.id + "_ALERT");
+      }
+      alert.style.setProperty("--themeColor", the.colors[type]);
+      alert.querySelector("img").src = "./images/tooltips/alert/" + type + ".svg";
+      alert.querySelector(".alertText").innerHTML = message;
+      alert.style.transition = "transform .25s var(--bounce), opacity .25s, padding .25s, margin .25s";
+      alert.offsetHeight;
+      alert.style.transform = "scale(1)";
+      alert.style.padding = "8px";
+      alert.style.marginTop = "8px";
+      alert.style.opacity = 1;
+      if (data.time != "never") {
+        await sleep((data.time || 5) * 1000);
+        the.close(alert);
+      } else {
+        alert.querySelector(".alertClose").remove();
+      }
+    })();
+    return alert;
   },
   close: async function (alert) {
-    if (alert == null) {
+    if (alert == null || alert.style == null) {
       return;
     }
     alert.style.maxHeight = alert.clientHeight + "px";

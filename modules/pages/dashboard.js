@@ -124,7 +124,6 @@ modules["dropdowns/new/lesson"] = {
     let uploadButton = frame.querySelector(".lessonUpload");
     let uploadBImg = uploadButton.querySelector("img");
     let the = this;
-    let sendFormData = new FormData();
     let passedFiles = 0;
     async function processUpload(files, event) {
       event.preventDefault();
@@ -132,6 +131,7 @@ modules["dropdowns/new/lesson"] = {
       if (files == null) {
         return;
       }
+      let sendFormData = new FormData();
       let fileSize = 0;
       for (let i = 0; i < Math.min(files.length, 50); i++) {
         let file = files[i];
@@ -167,17 +167,19 @@ modules["dropdowns/new/lesson"] = {
       if (passedFiles > 0) {
         frame.setAttribute("disabled", "");
         extra.button.setAttribute("disabled", "");
-        (await getModule("alert")).open("info", `<b>Uploading Document</b>Uploading your PDF and creating the lesson!`, { id: "docupload", time: "never" });
+        let alertModule = await getModule("alert");
+        let uploadAlert = await alertModule.open("info", `<b>Uploading Document</b>Uploading your PDF and creating the lesson!`, { time: "never" });
         let [code, body] = await sendRequest("POST", "lessons/add", sendFormData, true);
-        (await getModule("alert")).finished("docupload");
+        console.log(uploadAlert);
+        alertModule.close(uploadAlert);
         frame.removeAttribute("disabled");
         extra.button.removeAttribute("disabled");
         if (code == 200) {
           //modifyParams("id", body.id);
           setFrame("pages/editor");
           console.log(body);
+          (await getModule("dropdown")).close();
         }
-        (await getModule("dropdown")).close();
       }
 
       resetUI();
@@ -329,7 +331,6 @@ modules["pages/dashboard/lessons"] = {
           removeTiles(frame.querySelectorAll('.dTile[lesson="' + data.record.lesson + '"]'));
           for (let i = 0; i < data.sections.length; i++) {
             let tileSection = frame.querySelector(".dSection[" + data.sections[i] + "]");
-            console.log(tileSection);
             tileSection.style.removeProperty("display");
             addTile(tileSection.querySelector(".dSectionTiles"), data.record, data.lesson, true);
           }

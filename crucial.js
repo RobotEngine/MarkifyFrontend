@@ -72,18 +72,17 @@ async function setFrame(path, frame, extra) {
   }
   currentlyLoadingFrames[frameSet.className] = "";
   let loadingPlacement = frameSet.closest(".dropdown") || frameSet;
-  if (modules[path] == null || modules[path].loading) {
+  if (modules[path] == null || frameSet == app || frameSet.closest(".dropdown") == null) {
     if (loadingPlacement.querySelector(".loading:not([done])") == null) {
       if (frameSet.closest(".dropdown") == null) {
         frameSet.innerHTML = "";
       }
       loadingPlacement.insertAdjacentHTML("beforeend", loadingAnim);
       runLoadingAnim(loadingPlacement);
-      if (app.querySelector(".loading[appload]")) {
-        loadingPlacement.querySelector(".loading:not([done])").style.opacity = 0;
-      }
       if (frameSet == app) {
         loadingPlacement.querySelector(".loading:not([done])").setAttribute("appload", "");
+      } else if (app.querySelector(".loading[appload]")) {
+        loadingPlacement.querySelector(".loading:not([done])").style.opacity = 0;
       }
     }
   } else {
@@ -134,9 +133,11 @@ async function setFrame(path, frame, extra) {
       loadingPlacement.querySelector(".loading").style.opacity = 0;
       await sleep(500);
       loadingPlacement.querySelector(".loading").remove();
-      let revealLoading = frameSet.querySelectorAll(".loading:not([done])");
-      for (let i = 0; i < revealLoading.length; i++) {
-        revealLoading[i].style.opacity = 1;
+      if (frameSet == app) {
+        let revealLoading = frameSet.querySelectorAll(".loading:not([done])");
+        for (let i = 0; i < revealLoading.length; i++) {
+          revealLoading[i].style.opacity = 1;
+        }
       }
     })();
   }

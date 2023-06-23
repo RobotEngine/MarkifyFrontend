@@ -59,6 +59,8 @@ modules["pages/dashboard"] = {
     page.style.display = "flex";
     page.style.justifyContent = "center";
 
+    modifyParams("lesson");
+    
     if (account.image) {
       page.querySelector(".dAccount img").src = account.image;
     }

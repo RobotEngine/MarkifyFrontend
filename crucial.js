@@ -115,11 +115,12 @@ async function setFrame(path, frame, extra) {
     window.location.hash = "#" + path.substring(path.lastIndexOf("/") + 1);
   }
   let frameContent = frameSet.querySelector(".content");
-  await module.js(frameContent);
-  frameContent.style.opacity = 1;
+  await module.js(frameContent, extra);
   if (frameContent.style.display == "none") {
     frameContent.style.removeProperty("display");
   }
+  frameContent.offsetHeight;
+  frameContent.style.opacity = 1;
   if (loadingPlacement.querySelector(".loading:not([done])")) {
     loadingPlacement.querySelector(".loading:not([done])").setAttribute("done", "");
     (async function () {
@@ -230,6 +231,13 @@ function timeSince(time, long) {
   } else {
     return timeToSet + end;
   }
+}
+
+function addS(num) {
+  if (num > 1) {
+    return "s";
+  }
+  return "";
 }
 
 let localDataStore = {};
@@ -462,10 +470,6 @@ async function init() {
 }
 let wasConnected = false;
 socket.onopen = async function () {
-  let bLostConnection = body.querySelector("b[lostconnection]");
-  if (bLostConnection) {
-    (await getModule("alert")).close(bLostConnection.closest(".alert"));
-  }
   (await getModule("dropdown")).close();
   await init();
   if (window.location.hash == "") {
@@ -474,12 +478,12 @@ socket.onopen = async function () {
     setFrame("pages/" + window.location.hash.substring(1));
   }
   if (wasConnected == true) {
-    (await getModule("alert")).open("worked", '<b>Connected</b>Reconnected to Markify');
+    (await getModule("alert")).open("worked", `<b>Connected</b>Reconnected to Markify`, { id: "connection" });
   }
   wasConnected = true;
 };
 socket.onclose = async function () {
-  (await getModule("alert")).open("warning", '<b lostconnection>Lost Connection</b>Lost connection to Markify. Reconnecting...', { time: "never" });
+  (await getModule("alert")).open("warning", `<b>Lost Connection</b>Lost connection to Markify. Reconnecting...`, { id: "connection", time: "never" });
 };
 
 
@@ -576,7 +580,7 @@ modules["dropdown"] = {
       //oldContent.style.transform = "scale(.85)";
       clearInterval(window.dropdown.interval);
       window.dropdown.interval = this.setResizeLoop(dropdown, content, header, window.dropdown.button);
-      await setFrame(frameName, frame);
+      await setFrame(frameName, frame, { button: button });
       content.style.opacity = 1;
       frame.style.removeProperty("min-height");
       await sleep(500);
@@ -619,7 +623,7 @@ modules["dropdown"] = {
     window.dropdown = { dropdown: dropdown, button: button, frameHistory: [[frameName, setTitleHTML]], interval: this.setResizeLoop(dropdown, content, header, button) };
     button.style.opacity = 0;
     dropdown.style.opacity = 1;
-    await setFrame(frameName, frame);
+    await setFrame(frameName, frame, { button: button });
     frame.style.removeProperty("min-height");
     await sleep(300);
     header.querySelector(".dropdownTitle div").style.textOverflow = "ellipsis";
@@ -696,6 +700,10 @@ modules["alert"] = {
     </div>`);
     let alert = fixed.querySelector(".alert[new]");
     alert.removeAttribute("new");
+    if (data.id) {
+      (await getModule("alert")).finished("connection");
+      alert.setAttribute("alert", data.id + "_ALERT");
+    }
     alert.style.setProperty("--themeColor", this.colors[type]);
     alert.querySelector("img").src = "./images/tooltips/alert/" + type + ".svg";
     alert.querySelector(".alertText").innerHTML = message;
@@ -708,9 +716,14 @@ modules["alert"] = {
     if (data.time != "never") {
       await sleep((data.time || 5) * 1000);
       this.close(alert);
+    } else {
+      alert.querySelector(".alertClose").remove();
     }
   },
   close: async function (alert) {
+    if (alert == null) {
+      return;
+    }
     alert.style.maxHeight = alert.clientHeight + "px";
     alert.offsetHeight;
     alert.style.transition = ".4s";
@@ -721,6 +734,12 @@ modules["alert"] = {
     alert.style.opacity = 0;
     await sleep(400);
     alert.remove();
+  },
+  finished: function(id) {
+    let gottenAlerts = fixed.querySelectorAll('.alert[alert="' + id + '_ALERT"]');
+    for (let i = 0; i < gottenAlerts.length; i++) {
+      this.close(gottenAlerts[i]);
+    }
   }
 }
 

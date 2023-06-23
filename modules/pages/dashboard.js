@@ -118,14 +118,14 @@ modules["dropdowns/new/lesson"] = {
     ".lessonUpload div": `font-size: 22px`
   },
   maxFileSize: (500 * 1024 * 1024) + 1, // 500 MB File Limit // Will be 1 MB per page
-  js: function (frame) {
+  js: function (frame, extra) {
     let dropdown = frame.closest(".dropdown");
     let input = frame.querySelector("input");
     let uploadButton = frame.querySelector(".lessonUpload");
     let uploadBImg = uploadButton.querySelector("img");
     let the = this;
     let sendFormData = new FormData();
-    let passedFile = false;
+    let passedFiles = 0;
     async function processUpload(files, event) {
       event.preventDefault();
 
@@ -147,7 +147,7 @@ modules["dropdowns/new/lesson"] = {
               break;
             }
             sendFormData.append("file" + i, file);
-            passedFile = true;
+            passedFiles++;
             /*
             if (file.size < the.maxFileSize) {
               sendFormData.append("file" + i, file);
@@ -164,8 +164,14 @@ modules["dropdowns/new/lesson"] = {
       if (files.length > 50) {
         (await getModule("alert")).open("warning", "<b>File Overload</b>Woah their! Markify only supports bulk uploads up to 50 files, you can upload more pages in the editor", { time: 10 });
       }
-      if (passedFile) {
+      if (passedFiles > 0) {
+        frame.setAttribute("disabled", "");
+        extra.button.setAttribute("disabled", "");
+        (await getModule("alert")).open("info", `<b>Uploading Document</b>Uploading your PDF and creating the lesson!`, { id: "docupload", time: "never" });
         let [code, body] = await sendRequest("POST", "lessons/add", sendFormData, true);
+        (await getModule("alert")).finished("docupload");
+        frame.removeAttribute("disabled");
+        extra.button.removeAttribute("disabled");
         if (code == 200) {
           //modifyParams("id", body.id);
           setFrame("pages/editor");
@@ -246,8 +252,8 @@ modules["pages/dashboard/lessons"] = {
     ".dSectionTop img": `width: 22px; margin-left: 6px`,
     ".dSectionTiles": "display: flex; flex-wrap: wrap; min-height: 200px; justify-content: center; align-items: center",
     ".dTile": `position: relative; width: calc(20% - 24px); min-width: min(176px, calc(100% - 24px)); height: 200px; margin: 12px; overflow: hidden; border-radius: 12px`,
-    ".dTileDocImage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover`,
-    ".dTileInfo": `position: absolute; box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; left: 0px; bottom: 0px; padding: 6px; background: rgba(var(--background), .7)`,
+    ".dTileDocImage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; object-position: top center`,
+    ".dTileInfo": `position: absolute; box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; left: 0px; bottom: 0px; padding: 6px; background: rgba(var(--background), .85)`,
     ".dTileName": `width: 100%; font-size: 18px; font-weight: 600; color: var(--theme); text-align: left`,
     ".dTileStats": `display: flex; width: 100%; padding: 0 6px; font-size: 16px; font-weight: 700; overflow: hidden; white-space: nowrap`,
     ".dTileDate": `flex: 1; margin-right: 8px; color: var(--darkGray); text-align: left`,
@@ -257,48 +263,80 @@ modules["pages/dashboard/lessons"] = {
   js: async function (frame) {
     let [code, body] = await sendRequest("GET", "lessons");
     
-    if (body.lessons.length > 0) {
-      let lessons = getObject(body.lessons, "_id");
-      function addLessonTiles(type) {
-        let lessonRecs = body[type];
-        let tileSection = frame.querySelector(".dSection[" + type + "]");
-        let tileHolder = tileSection.querySelector(".dSectionTiles");
-        if (lessonRecs == null || lessonRecs.length < 1) {
-          tileSection.remove();
-          return;
-        }
-        for (let i = 0; i < lessonRecs.length; i++) {
-          let lessonRec = lessonRecs[i];
-          let lesson = lessons[lessonRec.lesson];
-          tileHolder.insertAdjacentHTML("beforeend", `<button class="dTile largeButton" new>
-            <img class="dTileDocImage">
-            <div class="dTileInfo">
-              <div class="dTileName">Untitled Lesson</div>
-              <div class="dTileStats">
-                <div class="dTileDate" title="Last Opened"></div>
-                <div class="dTileMemberCount" title="Active Members"><img src="./images/profiles/default.svg"><span>0</span></div>
-              </div>
-            </div>
-          </button>`);
-          let tile = tileHolder.querySelector(".dTile[new]");
-          tile.removeAttribute("new");
-          tile.querySelector(".dTileDocImage").src = assetURL + lesson.thumbnail;
-          tile.querySelector(".dTileName").textContent = lesson.name || "Untitled Lesson";
-          tile.querySelector(".dTileName").title = lesson.name || "Untitled Lesson";
-          tile.querySelector(".dTileDate").textContent = timeSince(lessonRec.opened || lessonRec.created || lessonRec.added);
-          tile.querySelector(".dTileMemberCount span").textContent = lesson.members || 0;
+    let lessons = getObject(body.lessons, "_id");
+    function addTile(tileHolder, lessonRec, lesson, insertFirst) {
+      let insertAdj = "beforeend";
+      if (insertFirst) {
+        insertAdj = "afterbegin";
+      }
+      tileHolder.insertAdjacentHTML(insertAdj, `<button class="dTile largeButton" new>
+        <img class="dTileDocImage">
+        <div class="dTileInfo">
+          <div class="dTileName">Untitled Lesson</div>
+          <div class="dTileStats">
+            <div class="dTileDate" title="Last Opened"></div>
+            <div class="dTileMemberCount" title="Active Members"><img src="./images/profiles/default.svg"><span>0</span></div>
+          </div>
+        </div>
+      </button>`);
+      let tile = tileHolder.querySelector(".dTile[new]");
+      tile.setAttribute("lesson", lessonRec.lesson);
+      tile.removeAttribute("new");
+      if (lesson.type == "freeboard") {
+        tile.style.outline = "solid 4px var(--purple)";
+      }
+      tile.querySelector(".dTileDocImage").src = assetURL + lesson.thumbnail;
+      tile.querySelector(".dTileName").textContent = lesson.name || "Untitled Lesson";
+      tile.querySelector(".dTileName").title = lesson.name || "Untitled Lesson";
+      tile.querySelector(".dTileDate").textContent = timeSince(lessonRec.opened || lessonRec.created || lessonRec.added);
+      tile.querySelector(".dTileMemberCount span").textContent = lesson.members || 0;
+    }
+    function addLessonTiles(type) {
+      let lessonRecs = body[type];
+      let tileSection = frame.querySelector(".dSection[" + type + "]");
+      let tileHolder = tileSection.querySelector(".dSectionTiles");
+      if (lessonRecs == null || lessonRecs.length < 1) {
+        tileSection.style.display = "none";
+        return;
+      }
+      for (let i = 0; i < lessonRecs.length; i++) {
+        let lessonRec = lessonRecs[i];
+        addTile(tileHolder, lessonRec, lessons[lessonRec.lesson]);
+      }
+    }
+    addLessonTiles("recent");
+    addLessonTiles("shared");
+    addLessonTiles("mine");
+    addLessonTiles("newest");
+    
+    if (body.lessons.length < 1) {
+      frame.insertAdjacentHTML("beforeend", `<div class="dNoLessons">You have no lessons, start the learning above!</div>`);
+    }
+
+    function removeTiles(tiles) {
+      for (let i = 0; i < tiles.length; i++) {
+        let parent = tiles[i].parentElement;
+        tiles[i].remove();
+        if (parent.childElementCount < 1) {
+          parent.parentElement.style.display = "none";
         }
       }
-      addLessonTiles("recent");
-      addLessonTiles("shared");
-      addLessonTiles("mine");
-      addLessonTiles("newest");
-    } else {
-      frame.innerHTML = `<div class="dNoLessons">You have no lessons, start the learning above!</div>`;
     }
 
     subscribes.push(socket.subscribe({ type: "dash", id: userID, token: account.realtime }, function (data) {
-      console.log(data);
+      switch (data.task) {
+        case "newdoc":
+          removeTiles(frame.querySelectorAll('.dTile[lesson="' + data.record.lesson + '"]'));
+          for (let i = 0; i < data.sections.length; i++) {
+            let tileSection = frame.querySelector(".dSection[" + data.sections[i] + "]");
+            console.log(tileSection);
+            tileSection.style.removeProperty("display");
+            addTile(tileSection.querySelector(".dSectionTiles"), data.record, data.lesson, true);
+          }
+          break;
+        case "remdoc":
+          removeTiles(frame.querySelectorAll('.dTile[lesson="' + data.lesson + '"]'));
+      }
     }));
 
     frame.parentElement.style.zIndex = 1;

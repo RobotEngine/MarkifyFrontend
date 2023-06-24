@@ -269,12 +269,9 @@ modules["pages/dashboard/lessons"] = {
     ".dSectionTop img": `width: 22px; margin-left: 6px`,
     ".dSectionTiles": "display: flex; flex-wrap: wrap; min-height: 200px; justify-content: center; align-items: center",
     ".dTile": `position: relative; width: calc(20% - 24px); min-width: min(176px, calc(100% - 24px)); height: 200px; margin: 12px; overflow: hidden; border-radius: 12px`,
-    '.dTile[type="freeboard"]': `outline: solid 4px var(--purple)`,
-    '.dTile[type="freeboard"]:hover': `outline: solid 4px var(--lightPurple)`,
-    '.dTile[type="freeboard"]:active': `outline: solid 8px var(--lightPurple)`,
     ".dTileDocImage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; object-position: top center`,
     ".dTileInfo": `position: absolute; box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; left: 0px; bottom: 0px; padding: 6px; background: rgba(var(--background), .85)`,
-    ".dTileName": `width: 100%; font-size: 18px; font-weight: 600; color: var(--theme); text-align: left`,
+    ".dTileName": `width: 100%; font-size: 18px; font-weight: 600; color: var(--themeColor); text-align: left`,
     ".dTileStats": `display: flex; width: 100%; padding: 0 6px; font-size: 16px; font-weight: 700; overflow: hidden; white-space: nowrap`,
     ".dTileDate": `flex: 1; margin-right: 8px; color: var(--darkGray); text-align: left`,
     ".dTileMemberCount": "display: flex; color: var(--theme); justify-content: right; align-items: center",
@@ -303,7 +300,8 @@ modules["pages/dashboard/lessons"] = {
       tile.setAttribute("lesson", lessonRec.lesson);
       tile.removeAttribute("new");
       if (lesson.type == "freeboard") {
-        tile.setAttribute("type", "freeboard");
+        tile.style.setProperty("--themeColor", "var(--purple)");
+        tile.style.setProperty("--themeColor2", "#ECB7FF");
       }
       if (lesson.thumbnail) {
         tile.querySelector(".dTileDocImage").src = assetURL + lesson.thumbnail;

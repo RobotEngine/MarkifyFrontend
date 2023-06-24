@@ -38,7 +38,6 @@
     --secondary: #48A7FF;
     --hover: #B4DAFD;
     --purple: #DF84FF;
-    --lightPurple: #ECB7FF;
     --lightGray: #DDD;
     --gray: #CCC;
     --darkGray: #666;
@@ -94,9 +93,11 @@
   }
 
   .largeButton {
+    --themeColor: var(--secondary);
+    --themeColor2: var(--hover);
     display: flex;
     padding: 6px 14px;
-    outline: solid 4px var(--secondary);
+    outline: solid 4px var(--themeColor);
     align-items: center;
     overflow: hidden;
     font-size: 20px;
@@ -105,11 +106,11 @@
   }
 
   .largeButton:hover {
-    outline: solid 4px var(--hover);
+    outline: solid 4px var(--themeColor2);
   }
 
   .largeButton:active {
-    outline: solid 8px var(--hover);
+    outline: solid 8px var(--themeColor2);
   }
 
   .app {

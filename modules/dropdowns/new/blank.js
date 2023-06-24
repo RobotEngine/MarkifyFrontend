@@ -11,7 +11,7 @@ modules["dropdowns/new/blank"] = {
       <button width="665.28" height="944.64"><div class="blankSizeTitle">B5</div><div class="blankSizeInfo">6.9" x 9.8"</div></button>
       <button width="944.64" height="1334.4"><div class="blankSizeTitle">B4</div><div class="blankSizeInfo">9.8" x 13.9"</div></button>
       <button width="960" height="720"><div class="blankSizeTitle">4:3</div><div class="blankSizeInfo">7.5" x 10"</div></button>
-      <button width="960" height="540"><div class="blankSizeTitle">16:9</div><div class="blankSizeInfo">5.625" x 10"</div></button>
+      <button width="960" height="540"><div class="blankSizeTitle">16:9</div><div class="blankSizeInfo">5.6" x 10"</div></button>
       <button custom><div class="blankSizeTitle">Custom</div></button>
     </div>
     <div class="blankOptionHolder">

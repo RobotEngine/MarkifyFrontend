@@ -43,7 +43,9 @@
     --darkGray: #666;
     --textColor: #000;
     --background: 255, 255, 255;
+    --pageColor: rgb(var(--background));
     --shadow: 0px 0px 8px #AAA;
+    --lightShadow: 0px 0px 8px 0px #E1E1E1;
     --bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
     --error: #FF3D64;
     --font: "Montserrat", sans-serif;
@@ -52,7 +54,7 @@
   body {
     margin: 0px;
     padding: 0px;
-    background: rgb(var(--background));
+    background: var(--pageColor);
 
     color: var(--textColor);
     font-family: var(--font);
@@ -144,7 +146,7 @@
     height: max(100%, 200px);
     left: 0px;
     top: 0px;
-    /* background: rgb(var(--background)); */
+    /* background: var(--pageColor); */
     transition: opacity .5s;
     z-index: 999;
   }
@@ -167,7 +169,7 @@
 <body>
   <noscript>Please enable JavaScript to use this app.</noscript>
   <div class="app">
-    <div class="loading" appload>
+    <div class="loading" appload new>
       <div class="loadingSvgHolder">
         <svg class="loadsvg" id="eTN2ec1SvHy1" xmlns="http://www.w3.org/2000/svg"
           xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 234 234" shape-rendering="geometricPrecision"

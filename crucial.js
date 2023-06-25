@@ -83,21 +83,36 @@ async function setFrame(path, frame, extra) {
   }
   currentlyLoadingFrames[frameSet.className] = "";
   let loadingPlacement = frameSet.closest(".dropdown") || frameSet;
+  let oldContent = frameSet.querySelector(".content:not([old])");
+  if (oldContent) {
+    (async function () {
+      oldContent.setAttribute("old", "");
+      oldContent.style.zIndex = 0;
+      await sleep(500);
+      oldContent.remove();
+    })();
+  }
   if (modules[path] == null || frameSet == app || frameSet.closest(".dropdown") == null) {
     if (loadingPlacement.querySelector(".loading:not([done])") == null) {
-      if (frameSet.closest(".dropdown") == null) {
-        frameSet.innerHTML = "";
+      if (frameSet.closest(".dropdown") == null && oldContent) {
+        oldContent.style.opacity = 0;
+        //frameSet.innerHTML = "";
       }
       loadingPlacement.insertAdjacentHTML("beforeend", loadingAnim);
       runLoadingAnim(loadingPlacement);
       if (frameSet == app) {
-        loadingPlacement.querySelector(".loading:not([done])").setAttribute("appload", "");
+        loadingPlacement.querySelector(".loading[new]").setAttribute("appload", "");
       } else if (app.querySelector(".loading[appload]")) {
-        loadingPlacement.querySelector(".loading:not([done])").style.opacity = 0;
+        loadingPlacement.querySelector(".loading[new]").style.opacity = 0;
       }
     }
-  } else {
-    frameSet.innerHTML = "";
+  } else if (oldContent) {
+    oldContent.style.opacity = 0;
+    //frameSet.innerHTML = "";
+  }
+  let loading = loadingPlacement.querySelector(".loading[new]");
+  if (loading) {
+    loading.removeAttribute("new");
   }
   let module = await getModule(path);
   if (module == null) {
@@ -113,14 +128,16 @@ async function setFrame(path, frame, extra) {
       return;
     }
   }
-  if (loadingPlacement.querySelector(".loading:not([done])")) {
-    loadingPlacement.querySelector(".loading:not([done])").style.width = "max(" + loadingPlacement.querySelector(".loading:not([done])").clientWidth + "px, 100%)";
+  if (loading) {
+    loading.style.width = "max(" + loading.clientWidth + "px, 100%)";
+    loading.querySelector(".loadingSvgHolder").style.height = loading.clientHeight + "px";
   }
-  if (loadingPlacement.querySelector(".loading:not([done])")) {
-    loadingPlacement.querySelector(".loadingSvgHolder").style.height = loadingPlacement.querySelector(".loading:not([done])").clientHeight + "px";
-  }
-  frameSet.insertAdjacentHTML("beforeend", `<div class="content" style="display: none; opacity: 0; transition: .5s">${module.html}</div>`);
+  frameSet.insertAdjacentHTML("beforeend", `<div class="content" style="display: none; opacity: 0; transition: .5s" new>${module.html}</div>`);
+  let frameContent = frameSet.querySelector(".content[new]");
+  frameContent.removeAttribute("new");
   if (frameSet == app) {
+    frameContent.style.position = "absolute";
+    frameContent.style.width = "100%";
     for (let i = 0; i < subscribes.length; i++) {
       subscribes[i].close();
     }
@@ -130,20 +147,19 @@ async function setFrame(path, frame, extra) {
     document.title = module.title + " | Markify";
     window.location.hash = "#" + path.substring(path.lastIndexOf("/") + 1);
   }
-  let frameContent = frameSet.querySelector(".content");
   await module.js(frameContent, extra);
   if (frameContent.style.display == "none") {
     frameContent.style.removeProperty("display");
   }
   frameContent.offsetHeight;
   frameContent.style.opacity = 1;
-  if (loadingPlacement.querySelector(".loading:not([done])")) {
-    loadingPlacement.querySelector(".loading:not([done])").setAttribute("done", "");
+  if (loading) {
+    loading.setAttribute("done", "");
     (async function () {
-      loadingPlacement.querySelector(".loading").style.pointerEvents = "none";
-      loadingPlacement.querySelector(".loading").style.opacity = 0;
+      loading.style.pointerEvents = "none";
+      loading.style.opacity = 0;
       await sleep(500);
-      loadingPlacement.querySelector(".loading").remove();
+      loading.remove();
       if (frameSet == app) {
         let revealLoading = frameSet.querySelectorAll(".loading:not([done])");
         for (let i = 0; i < revealLoading.length; i++) {
@@ -513,8 +529,9 @@ socket.onclose = async function () {
 
 modules["dropdown"] = {
   css: {
-    ".dropdown": `position: sticky; box-sizing: border-box; max-width: calc(100% - 16px); max-height: calc(100% - 16px); right: 0px; bottom: 0px; margin: 8px; opacity: 0; transform-origin: center top; background: rgb(var(--background)); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; pointer-events: all`,
-    ".dropdownContent": `position: absolute; box-sizing: border-box; width: max-content; height: max-content; padding: 6px; overflow: auto; background: rgb(var(--background))`,
+    ".dropdown": `position: sticky; box-sizing: border-box; max-width: calc(100% - 16px); max-height: calc(100% - 16px); right: 0px; bottom: 0px; margin: 8px; opacity: 0; transform-origin: center top; background: var(--pageColor); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; pointer-events: all`,
+    ".dropdownContent": `position: absolute; box-sizing: border-box; width: max-content; height: max-content; padding: 6px; overflow: auto; background: var(--pageColor)`,
+    ".dropdownFrame": `position: relative`,
     ".dropdownHeader": `display: flex; gap: 6px; padding: 6px 6px 0 6px; justify-content: space-between; transition: .3s`,
     ".dropdownHeader button": `position: relative; width: 22px; height: 22px; margin: 3px; outline: solid 3px var(--secondary); border-radius: 14px`,
     ".dropdownHeader button img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
@@ -692,7 +709,7 @@ window.addEventListener("scroll", async function () {
 modules["alert"] = {
   css: {
     ".alertHolder": `position: relative; box-sizing: border-box; display: flex; flex-direction: column; width: 600px; max-width: 100%; height: fit-content; margin: 60px 8px 8px 8px; align-items: center; z-index: 9999`,
-    ".alert": `box-sizing: border-box; display: flex; max-width: 100%; transform: scale(0); opacity: 0; background: rgb(var(--background)); border-radius: 12px; box-shadow: var(--shadow); pointer-events: all; overflow: hidden`,
+    ".alert": `box-sizing: border-box; display: flex; max-width: 100%; transform: scale(0); opacity: 0; background: var(--pageColor); border-radius: 12px; box-shadow: var(--shadow); pointer-events: all; overflow: hidden`,
     ".alert img": `width: 32px; height: 32px; object-fit: cover; margin-right: 6px`,
     ".alertText": `display: flex; flex-wrap: wrap; flex: 1; align-items: center; text-align: left; font-size: 16px`,
     ".alertText b": `margin-right: 6px; color: var(--themeColor); font-size: 18px`,

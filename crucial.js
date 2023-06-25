@@ -37,6 +37,17 @@ function removeTempListeners() {
   }
 }
 
+function subscribe(filter, callback, config) {
+  for (let i = 0; i < socket.operations.length; i++) {
+    if (socket.operations[i][2] == callback) {
+      return;
+    }
+  }
+  let sub = socket.subscribe(filter, callback, config);
+  subscribes.push(sub);
+  return sub;
+}
+
 function findC(name) {
   return document.getElementsByClassName(name)[0];
 }

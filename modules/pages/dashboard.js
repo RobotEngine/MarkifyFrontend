@@ -99,12 +99,11 @@ modules["dropdowns/new/lesson"] = {
   html: `<input type="file" accept="application/pdf" multiple="true" hidden="true">
   <div class="lessonCreationHolder">
     <div class="lessonBlankHolder">
-      <button class="lessonBlank" style="--themeColor: var(--gray)" dropdown="dropdowns/new/blank"><img src="./images/dashboard/lesson/blank.svg" draggable="false"><div>Blank Page</div></button>
-      <button class="lessonFreeboard" style="--themeColor: var(--purple)"><img src="./images/dashboard/lesson/freeboard.svg" draggable="false"><div>Freeboard</div></button>
+      <button class="lessonBlank" style="--themeColor: var(--gray)" dropdown="dropdowns/new/blank" title="Create a fresh blank page"><img src="./images/dashboard/lesson/blank.svg" draggable="false"><div>Blank Page</div></button>
+      <button class="lessonFreeboard" style="--themeColor: var(--purple)" title="Create an unlimited canvas for whiteboarding"><img src="./images/dashboard/lesson/freeboard.svg" draggable="false"><div>Freeboard</div></button>
     </div>
-    <button class="lessonUpload" style="--themeColor: var(--secondary)"><img src="./images/dashboard/lesson/upload.svg" draggable="false"><div>Upload PDF</div></button>
-  </div>
-  `,
+    <button class="lessonUpload" style="--themeColor: var(--secondary)" title="Upload an existing PDF to markup"><img src="./images/dashboard/lesson/upload.svg" draggable="false"><div>Upload PDF</div></button>
+  </div>`,
   css: {
     ".lessonCreationHolder": `display: flex; flex-wrap: wrap; max-width: 426px`,
     ".lessonCreationHolder button": `display: flex; flex-direction: column; max-width: 100%; padding: 8px; margin: 11px; outline: solid 3px var(--themeColor); border-radius: 12px; align-items: center; justify-content: space-around; color: var(--darkGray); font-size: 16px; font-weight: 600`,
@@ -343,7 +342,7 @@ modules["pages/dashboard/lessons"] = {
       }
     }
 
-    subscribes.push(socket.subscribe({ type: "dash", id: userID, token: account.realtime }, function (data) {
+    subscribe({ type: "dash", id: userID, token: account.realtime }, function (data) {
       switch (data.task) {
         case "newdoc":
           removeTiles(frame.querySelectorAll('.dTile[lesson="' + data.record.lesson + '"]'));
@@ -356,7 +355,7 @@ modules["pages/dashboard/lessons"] = {
         case "remdoc":
           removeTiles(frame.querySelectorAll('.dTile[lesson="' + data.lesson + '"]'));
       }
-    }));
+    });
 
     frame.addEventListener("click", async function (event) {
       let element = event.target;

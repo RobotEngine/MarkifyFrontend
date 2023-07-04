@@ -5,6 +5,7 @@ modules["pages/dashboard"] = {
       promptLogin();
       return false;
     }
+    modifyParams("lesson");
   },
   html: `<div class="dPage">
     <div class="dTopBar">
@@ -58,8 +59,7 @@ modules["pages/dashboard"] = {
   js: async function (page) {
     page.style.display = "flex";
     page.style.justifyContent = "center";
-
-    modifyParams("lesson");
+    page.style.overflowX = "hidden";
     
     if (account.image) {
       page.querySelector(".dAccount img").src = account.image;
@@ -261,13 +261,13 @@ modules["pages/dashboard/lessons"] = {
   `,
   css: {
     ".dNoLessons": `padding: 8px; margin-top: 15vh`,
-    ".dSection": `margin-bottom: 30px`,
+    ".dSection": `display: none; margin-bottom: 30px`,
     ".dSectionTop": `position: sticky; box-sizing: border-box; display: flex; width: 100%; top: 0px; padding: 16px; align-items: center; background: rgba(var(--background), .7); backdrop-filter: blur(4px); z-index: 1`,
     ".dSectionTop div": `flex: 1; font-size: 30px; font-weight: 600; text-align: left; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
     ".dSectionTop button": `display: flex; padding: 8px; overflow: hidden; align-items: center; border-radius: 22px; font-size: 18px; font-weight: 600`,
     ".dSectionTop img": `width: 22px; margin-left: 6px`,
     ".dSectionTiles": "display: flex; flex-wrap: wrap; min-height: 200px; justify-content: center; align-items: center",
-    ".dTile": `position: relative; width: calc(20% - 24px); min-width: min(176px, calc(100% - 24px)); height: 200px; margin: 12px; overflow: hidden; border-radius: 12px`,
+    ".dTile": `position: relative; width: calc(20% - 52px); min-width: min(148px, calc(100% - 52px)); height: 200px; margin: 12px; overflow: hidden; border-radius: 12px`,
     ".dTileDocImage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; object-position: top center`,
     ".dTileInfo": `position: absolute; box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; left: 0px; bottom: 0px; padding: 6px; background: rgba(var(--background), .85)`,
     ".dTileName": `width: 100%; font-size: 18px; font-weight: 600; color: var(--themeColor); text-align: left`,
@@ -278,26 +278,29 @@ modules["pages/dashboard/lessons"] = {
   },
   js: async function (frame) {
     let [code, body] = await sendRequest("GET", "lessons");
-    
+    if (code != 200) {
+      return;
+    }
+
     let lessons = getObject(body.lessons, "_id");
     function addTile(tileHolder, lessonRec, lesson, insertFirst) {
       let insertAdj = "beforeend";
       if (insertFirst) {
         insertAdj = "afterbegin";
       }
-      tileHolder.insertAdjacentHTML(insertAdj, `<button class="dTile largeButton" new>
+      tileHolder.insertAdjacentHTML(insertAdj, `<a class="dTile largeButton" new>
         <img class="dTileDocImage" src="./images/dashboard/missing.svg">
         <div class="dTileInfo">
           <div class="dTileName">Untitled Lesson</div>
           <div class="dTileStats">
-            <div class="dTileDate" title="Last Opened"></div>
+            <div class="dTileDate"></div>
             <div class="dTileMemberCount" title="Active Members"><img src="./images/profiles/default.svg"><span>0</span></div>
           </div>
         </div>
-      </button>`);
+      </a>`);
       let tile = tileHolder.querySelector(".dTile[new]");
-      tile.setAttribute("lesson", lessonRec.lesson);
       tile.removeAttribute("new");
+      tile.href = "?lesson=" + lessonRec.lesson + "#editor";
       if (lesson.type == "freeboard") {
         tile.style.setProperty("--themeColor", "var(--purple)");
         tile.style.setProperty("--themeColor2", "#ECB7FF");
@@ -308,6 +311,7 @@ modules["pages/dashboard/lessons"] = {
       tile.querySelector(".dTileName").textContent = lesson.name || "Untitled Lesson";
       tile.querySelector(".dTileName").title = lesson.name || "Untitled Lesson";
       tile.querySelector(".dTileDate").textContent = timeSince(lessonRec.opened || lessonRec.created || lessonRec.added);
+      tile.querySelector(".dTileDate").title = formatFullDate(lessonRec.opened || lessonRec.created || lessonRec.added);
       tile.querySelector(".dTileMemberCount span").textContent = lesson.members || 0;
     }
     function addLessonTiles(type) {
@@ -317,6 +321,8 @@ modules["pages/dashboard/lessons"] = {
       if (lessonRecs == null || lessonRecs.length < 1) {
         tileSection.style.display = "none";
         return;
+      } else {
+        tileSection.style.display = "block";
       }
       for (let i = 0; i < lessonRecs.length; i++) {
         let lessonRec = lessonRecs[i];

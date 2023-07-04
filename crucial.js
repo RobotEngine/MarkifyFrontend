@@ -1,11 +1,14 @@
 //let serverURL = "https://markify.exotek.co/api/";
-let serverURL = "http://localhost:3000/api/";
+let serverURL = "http://localhost:3001/api/";
 let assetURL = "https://markifyapp.s3.amazonaws.com/";
 
 const socket = new SimpleSocket({
   project_id: "62088fbdfc22489578e94822",
   project_token: "client_129dbf2cf03edc6fba2aac135fd5ae119af"
 });
+
+let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+let week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 let modules = {};
 
@@ -78,7 +81,7 @@ async function getModule(path) {
 let currentlyLoadingFrames = {};
 async function setFrame(path, frame, extra) {
   let frameSet = frame || app;
-  if (currentlyLoadingFrames[frameSet.className] == "") {
+  if (currentlyLoadingFrames[frameSet.className] == "" && extra.override != true) {
     return;
   }
   currentlyLoadingFrames[frameSet.className] = "";
@@ -123,36 +126,38 @@ async function setFrame(path, frame, extra) {
     delete currentlyLoadingFrames[frameSet.className];
     return;
   }
+  let continueLoading = true;
   if (module.preJs) {
-    if (await (module.preJs()) == false) {
-      return;
-    }
+    continueLoading = (await (module.preJs())) != false;
   }
   if (loading) {
-    loading.style.width = "max(" + loading.clientWidth + "px, 100%)";
-    loading.querySelector(".loadingSvgHolder").style.height = loading.clientHeight + "px";
+    let svgHolder = loading.querySelector(".loadingSvgHolder");
+    svgHolder.style.width = "max(" + loading.clientWidth + "px, 100%)";
+    svgHolder.style.height = loading.clientHeight + "px";
   }
-  frameSet.insertAdjacentHTML("beforeend", `<div class="content" style="display: none; opacity: 0; transition: .5s" new>${module.html}</div>`);
-  let frameContent = frameSet.querySelector(".content[new]");
-  frameContent.removeAttribute("new");
-  if (frameSet == app) {
-    frameContent.style.position = "absolute";
-    frameContent.style.width = "100%";
-    for (let i = 0; i < subscribes.length; i++) {
-      subscribes[i].close();
-    }
-    subscribes = [];
+  if (continueLoading) {
+    frameSet.insertAdjacentHTML("beforeend", `<div class="content" style="display: none; opacity: 0; transition: .5s" new>${module.html}</div>`);
+    let frameContent = frameSet.querySelector(".content[new]");
+    frameContent.removeAttribute("new");
+    if (frameSet == app) {
+      frameContent.style.position = "absolute";
+      frameContent.style.width = "100%";
+      for (let i = 0; i < subscribes.length; i++) {
+        subscribes[i].close();
+      }
+      subscribes = [];
 
-    currentPage = path;
-    document.title = module.title + " | Markify";
-    window.location.hash = "#" + path.substring(path.lastIndexOf("/") + 1);
+      currentPage = path;
+      document.title = module.title + " | Markify";
+      window.location.hash = "#" + path.substring(path.lastIndexOf("/") + 1);
+    }
+    await module.js(frameContent, extra);
+    if (frameContent.style.display == "none") {
+      frameContent.style.removeProperty("display");
+    }
+    frameContent.offsetHeight;
+    frameContent.style.opacity = 1;
   }
-  await module.js(frameContent, extra);
-  if (frameContent.style.display == "none") {
-    frameContent.style.removeProperty("display");
-  }
-  frameContent.offsetHeight;
-  frameContent.style.opacity = 1;
   if (loading) {
     loading.setAttribute("done", "");
     (async function () {
@@ -216,7 +221,7 @@ function modifyParams(key, value) {
   const Url = new URL(window.location);
   if (value != null) {
     Url.searchParams.set(key, value);
-  } else {
+  } else if (getParam(key)) {
     Url.searchParams.delete(key);
   }
   window.history.pushState({}, "", Url);
@@ -269,6 +274,21 @@ function timeSince(time, long) {
   } else {
     return timeToSet + end;
   }
+}
+function formatAMPM(date) {
+  let hours = date.getHours();
+  let minutes = date.getMinutes();
+  let ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  minutes = minutes.toString().padStart(2, '0');
+  let strTime = hours + ':' + minutes + ' ' + ampm;
+  return strTime;
+}
+function formatFullDate(time) {
+  let date = new Date(time + epochOffset);
+  let splitDate = date.toLocaleDateString().split("/");
+  return week[date.getDay()] + ", " + months[splitDate[0] - 1] + " " + splitDate[1] + ", " + splitDate[2] + " at " + formatAMPM(date);
 }
 
 function addS(num) {
@@ -428,57 +448,39 @@ async function sendRequest(method, path, body, noFileType) {
   }
 }
 
-let accountSocket;
-function accountSub() {
-  if (accountSocket) {
-    accountSocket.edit({
-      type: "account",
-      id: userID,
-      token: account.realtime
-    });
-  } else {
-    accountSocket = socket.subscribe(
-      { type: "account", id: userID, token: account.realtime },
-      function (data) {
-        console.log(data);
-        if (data.task === "set") {
-          function recUpdate(obj, passData) {
-            let keys = Object.keys(obj);
-            for (let i = 0; i < keys.length; i++) {
-              let key = keys[i];
-              if (
-                typeof obj[key] !== "object" ||
-                Array.isArray(obj[key]) === true ||
-                obj[key] === null
-              ) {
-                passData[key] = obj[key];
-              } else {
-                passData[key] = passData[key] || {};
-                recUpdate(obj[key], passData[key] || {});
-              }
-            }
-          }
-          recUpdate(data.data, account);
-
-          if (data.data.realtime) {
-            accountSub();
-          }
-          if (data.data.user || data.data.hasOwnProperty("image")) {
-            //
-          }
+socket.remotes.account = function (data) {
+  console.log(data);
+  if (data.task === "set") {
+    function recUpdate(obj, passData) {
+      let keys = Object.keys(obj);
+      for (let i = 0; i < keys.length; i++) {
+        let key = keys[i];
+        if (
+          typeof obj[key] !== "object" ||
+          Array.isArray(obj[key]) === true ||
+          obj[key] === null
+        ) {
+          passData[key] = obj[key];
+        } else {
+          passData[key] = passData[key] || {};
+          recUpdate(obj[key], passData[key] || {});
         }
       }
-    );
+    }
+    recUpdate(data.data, account);
+
+    if (data.data.user || data.data.hasOwnProperty("image")) {
+      //
+    }
   }
 }
 
 function updateToSignedIn(data) {
   account = data;
   userID = account.id;
-  accountSub();
 }
 async function auth() {
-  let [code, body] = await sendRequest("GET", "me");
+  let [code, body] = await sendRequest("GET", "me?ss=" + socket.secureID);
   if (code != 200) {
     return;
   }
@@ -493,7 +495,7 @@ async function init() {
     }
     removeLocalStore("state");
     modifyParams("state");
-    let [code, body] = await sendRequest("POST", "auth", {
+    let [code, body] = await sendRequest("POST", "auth?ss=" + socket.secureID, {
       code: paramAuthCode
     });
     modifyParams("code");
@@ -708,7 +710,7 @@ window.addEventListener("scroll", async function () {
 
 modules["alert"] = {
   css: {
-    ".alertHolder": `position: relative; box-sizing: border-box; display: flex; flex-direction: column; width: 600px; max-width: 100%; height: fit-content; margin: 60px 8px 8px 8px; align-items: center; z-index: 9999`,
+    ".alertHolder": `position: relative; box-sizing: border-box; display: flex; flex-direction: column; width: 600px; max-width: 100%; height: fit-content; margin: 58px 8px 8px 8px; align-items: center; z-index: 9999`,
     ".alert": `box-sizing: border-box; display: flex; max-width: 100%; transform: scale(0); opacity: 0; background: var(--pageColor); border-radius: 12px; box-shadow: var(--shadow); pointer-events: all; overflow: hidden`,
     ".alert img": `width: 32px; height: 32px; object-fit: cover; margin-right: 6px`,
     ".alertText": `display: flex; flex-wrap: wrap; flex: 1; align-items: center; text-align: left; font-size: 16px`,

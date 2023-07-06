@@ -153,10 +153,10 @@ modules["pages/editor"] = {
       }
     }
     eTopScrollLeft.addEventListener("click", function() {
-      eTop.scrollTo({ left: eTop.scrollLeft - 300, behavior: "smooth" });
+      eTop.scrollTo({ left: eTop.scrollLeft - 200, behavior: "smooth" });
     });
     eTopScrollRight.addEventListener("click", function() {
-      eTop.scrollTo({ left: eTop.scrollLeft + 300, behavior: "smooth" });
+      eTop.scrollTo({ left: eTop.scrollLeft + 200, behavior: "smooth" });
     });
     enableScrollTop();
     tempListen(window, "resize", enableScrollTop);

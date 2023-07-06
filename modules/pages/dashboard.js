@@ -10,10 +10,7 @@ modules["pages/dashboard"] = {
   html: `<div class="dPage">
     <div class="dTopBar">
       <img class="dLogo" src="./images/logo.svg">
-      <button class="dAccount buttonAnim" dropdown="dropdowns/account">
-        <img src="./images/profiles/default.svg">
-        <div>Robot Engine</div>
-      </button>
+      <button class="dAccount buttonAnim" dropdown="dropdowns/account"><img src="./images/profiles/default.svg"><div></div></button>
     </div>
     <div class="dHeader">
       <div class="dHeaderSection dHeaderTx">Ready to <div class="dHeaderTxAnimHolder"><div class="dHeaderTxAnim"></div><div class="dHeaderUnderline"></div></div></div>
@@ -300,6 +297,7 @@ modules["pages/dashboard/lessons"] = {
       </a>`);
       let tile = tileHolder.querySelector(".dTile[new]");
       tile.removeAttribute("new");
+      tile.setAttribute("lesson", lessonRec.lesson);
       tile.href = "?lesson=" + lessonRec.lesson + "#editor";
       if (lesson.type == "freeboard") {
         tile.style.setProperty("--themeColor", "var(--purple)");
@@ -370,6 +368,7 @@ modules["pages/dashboard/lessons"] = {
       }
       let lessonOpen = element.closest(".dTile");
       if (lessonOpen) {
+        event.preventDefault();
         modifyParams("lesson", lessonOpen.getAttribute("lesson"));
         setFrame("pages/editor");
         return;

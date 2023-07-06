@@ -116,6 +116,11 @@ async function setFrame(path, frame, extra) {
   let loading = loadingPlacement.querySelector(".loading[new]");
   if (loading) {
     loading.removeAttribute("new");
+    if (frameSet == app) {
+      let svgHolder = loading.querySelector(".loadingSvgHolder");
+      svgHolder.style.width = "100vw";
+      svgHolder.style.height = "100vh";
+    }
   }
   let module = await getModule(path);
   if (module == null) {
@@ -124,6 +129,9 @@ async function setFrame(path, frame, extra) {
     frameSet.style.alignItems = "center";
     frameSet.innerHTML = `<span style="max-width: 300px; color: var(--error)">Couldn't load module, please try again later.</span>`;
     delete currentlyLoadingFrames[frameSet.className];
+    if (loading) {
+      loading.remove();
+    }
     return;
   }
   let continueLoading = true;
@@ -132,8 +140,8 @@ async function setFrame(path, frame, extra) {
   }
   if (loading) {
     let svgHolder = loading.querySelector(".loadingSvgHolder");
-    svgHolder.style.width = "max(" + loading.clientWidth + "px, 100%)";
-    svgHolder.style.height = loading.clientHeight + "px";
+    svgHolder.style.width = "max(" + svgHolder.clientWidth + "px, 100%)";
+    svgHolder.style.height = svgHolder.clientHeight + "px";
   }
   if (continueLoading) {
     frameSet.insertAdjacentHTML("beforeend", `<div class="content" style="display: none; opacity: 0; transition: .5s" new>${module.html}</div>`);
@@ -142,6 +150,7 @@ async function setFrame(path, frame, extra) {
     if (frameSet == app) {
       frameContent.style.position = "absolute";
       frameContent.style.width = "100%";
+      removeTempListeners();
       for (let i = 0; i < subscribes.length; i++) {
         subscribes[i].close();
       }
@@ -339,9 +348,11 @@ function randomString(l) {
 function promptLogin() {
   let randomStr = randomString(20);
   setLocalStore("state", randomStr);
+  modifyParams("state");
+  modifyParams("code");
   window.location =
     "https://exotek.co/login?client_id=631056064efd34591c5a8e05&redirect_uri=" +
-    encodeURIComponent(window.location.protocol + "//" + window.location.host + window.location.pathname) +
+    encodeURIComponent(window.location.href) +
     "&response_type=code&scope=userinfo&state=" +
     randomStr;
 }
@@ -537,7 +548,7 @@ modules["dropdown"] = {
     ".dropdownHeader": `display: flex; gap: 6px; padding: 6px 6px 0 6px; justify-content: space-between; transition: .3s`,
     ".dropdownHeader button": `position: relative; width: 22px; height: 22px; margin: 3px; outline: solid 3px var(--secondary); border-radius: 14px`,
     ".dropdownHeader button img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
-    ".dropdownTitle": `box-sizing: border-box; display: flex; padding: 3px; flex: 1; max-width: fit-content; justify-content: center; align-items: center; overflow: hidden; font-size: 18px; font-weight: 500`,
+    ".dropdownTitle": `box-sizing: border-box; display: flex; padding: 3px; flex: 1; max-width: fit-content; justify-content: center; align-items: center; white-space: nowrap; overflow: hidden; font-size: 18px; font-weight: 500`,
     ".dropdownTitle div": `flex: 1; margin: 0 4px; white-space: nowrap; overflow: hidden`,
     ".dropdownTitle img": `width: 26px; height: 26px; object-fit: cover; border-radius: 13px`
   },
@@ -667,7 +678,10 @@ modules["dropdown"] = {
     await setFrame(frameName, frame, { button: button });
     frame.style.removeProperty("min-height");
     await sleep(300);
-    header.querySelector(".dropdownTitle div").style.textOverflow = "ellipsis";
+    let dropTitle = header.querySelector(".dropdownTitle div");
+    if (dropTitle) {
+      dropTitle.style.textOverflow = "ellipsis";
+    }
     //await sleep(200);
     //content.style.overflow = "auto";
   },

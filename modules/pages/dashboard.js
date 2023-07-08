@@ -167,7 +167,7 @@ modules["dropdowns/new/lesson"] = {
         extra.button.setAttribute("disabled", "");
         let alertModule = await getModule("alert");
         let uploadAlert = await alertModule.open("info", `<b>Uploading Lesson</b>Uploading your PDF${addS(passedFiles)} and creating the lesson!`, { time: "never" });
-        let [code, body] = await sendRequest("POST", "lessons/add", sendFormData, true);
+        let [code, body] = await sendRequest("POST", "lessons/add", sendFormData, { noFileType: true });
         alertModule.close(uploadAlert);
         frame.removeAttribute("disabled");
         extra.button.removeAttribute("disabled");

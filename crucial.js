@@ -1,5 +1,5 @@
 //let serverURL = "https://markify.exotek.co/api/";
-let serverURL = "http://localhost:3001/api/";
+let serverURL = "http://localhost:3000/api/";
 let assetURL = "https://markifyapp.s3.amazonaws.com/";
 
 const socket = new SimpleSocket({
@@ -29,13 +29,17 @@ let subscribes = [];
 let tempListeners = [];
 function tempListen(parent, listen, runFunc, extra) {
   parent.addEventListener(listen, runFunc, extra);
-  tempListeners.push({ parent: parent, name: listen, listener: runFunc });
+  tempListeners.push({ type: "event", parent: parent, name: listen, listener: runFunc });
 }
 function removeTempListeners() {
   for (let i = 0; i < tempListeners.length; i++) {
     let remEvent = tempListeners[i];
-    if (remEvent.parent != null) {
-      remEvent.parent.removeEventListener(remEvent.name, remEvent.listener);
+    if (remEvent.type == "event") {
+      if (remEvent.parent != null) {
+        remEvent.parent.removeEventListener(remEvent.name, remEvent.listener);
+      }
+    } else if (remEvent.type == "interval") {
+      clearInterval(remEvent.interval);
     }
   }
 }
@@ -389,7 +393,7 @@ async function renewToken() {
     promptLogin();
   }
 }
-async function sendRequest(method, path, body, noFileType) {
+async function sendRequest(method, path, body, extra) {
   try {
     let sendData = {
       method: method,
@@ -397,8 +401,12 @@ async function sendRequest(method, path, body, noFileType) {
         cache: "no-cache"
       }
     };
-    if (noFileType != true) {
+    extra = extra || {};
+    if (extra.noFileType != true) {
       sendData.headers["Content-Type"] = "text/plain";
+    }
+    if (extra.session) {
+      sendData.headers.session = extra.session;
     }
     if (body != null) {
       if (typeof body == "object" && body instanceof FormData == false) {

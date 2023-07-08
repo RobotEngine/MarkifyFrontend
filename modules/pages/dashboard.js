@@ -348,6 +348,14 @@ modules["pages/dashboard/lessons"] = {
 
     subscribe({ type: "dash", id: userID, token: account.realtime }, function (data) {
       switch (data.task) {
+        case "order":
+          for (let i = 0; i < data.sections.length; i++) {
+            let tile = frame.querySelector(".dSection[" + data.sections[i] + "]").querySelector('.dTile[lesson="' + data.lesson + '"]');
+            if (tile && tile.parentElement.firstChild) {
+              tile.parentElement.insertBefore(tile, tile.parentElement.firstChild);
+            }
+          }
+          break;
         case "newdoc":
           removeTiles(frame.querySelectorAll('.dTile[lesson="' + data.record.lesson + '"]'));
           for (let i = 0; i < data.sections.length; i++) {

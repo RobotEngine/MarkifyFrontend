@@ -62,15 +62,15 @@ function findI(name) {
   return document.getElementById(name);
 }
 
-let currentlyLoadingModules = {};
+//let currentlyLoadingModules = {};
 async function getModule(path) {
   if (modules[path] == null) {
-    if (currentlyLoadingModules[path] != null) {
+    /*if (currentlyLoadingModules[path] != null) {
       return;
     }
-    currentlyLoadingModules[path] = "";
+    currentlyLoadingModules[path] = "";*/
     await loadScript("./modules/" + path + ".js");
-    delete currentlyLoadingModules[path];
+    //delete currentlyLoadingModules[path];
   }
   if (modules[path] && modules[path].css && modules[path].loaded != true) {
     modules[path].loaded = true;
@@ -211,7 +211,8 @@ function loadScript(url) {
   return new Promise(function (resolve) {
     let loaded = getScript(url);
     if (loaded != null) {
-      loaded.remove();
+      resolve(loaded);
+      return;
     }
     let newScript = document.createElement("script");
     newScript.addEventListener("load", function () {

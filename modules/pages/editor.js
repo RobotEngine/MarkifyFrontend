@@ -96,21 +96,37 @@ modules["pages/editor"] = {
     ".ePageNav": `display: flex; width: 31px; height: 31px; margin: 0 4px; justify-content: center; align-items: center; background: var(--lightGray); border-radius: 16px`,
     ".eCurrentPage": `margin: 0 6px; font-size: 20px`,
 
-    ".eContent": `display: flex; width: fit-content; min-width: 100%; min-height: 100vh; justify-content: center; background-image: url(./images/editor/background.svg); background-position: center`,
+    ".eContent": `position: relative; display: flex; width: fit-content; min-width: 100%; min-height: 100vh; z-index: 0; justify-content: center; background-image: url(./images/editor/background.svg); background-position: center`,
     ".ePageHolder": `width: fit-content; height: fit-content; margin: 66px; border-radius: 16px`,
-    ".ePage": `position: relative; background: var(--pageColor)`,
+    ".ePage": `position: relative; background: var(--pageColor); pointer-events: none`,
     ".ePage::after": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: -1; content: ""; box-shadow: 0px 0px 8px 0px var(--shadowColor); border-radius: inherit`,
     ".ePage:first-child": `border-top-left-radius: 16px; border-top-right-radius: 16px`,
-    ".ePage:not(:first-child)": `border-top: dashed var(--darkGray) 4px; border-image: url("./images/editor/border.svg") 10 / 1.5 / 0 space`,
-    ".ePage:last-child": `border-bottom-left-radius: 16px; border-bottom-right-radius: 16px`
+    ".ePage:not(:first-child)": `border-top: dashed var(--darkGray) 4px; border-image: url("./images/editor/border.svg") 10 / 1.2 / 0 space`,
+    ".ePage:last-child": `border-bottom-left-radius: 16px; border-bottom-right-radius: 16px`,
+    ".ePageContent": "border-radius: inherit",
+    ".ePageTextHolder": "--scale-factor: 1; position: absolute; left: 0; top: 0; font-family: sans-serif",
+    ".ePageTextHolder span": "position: absolute; color: transparent; pointer-events: all",
+    ".ePageTextHolder br": `user-select: none`
   },
   js: async function (page) {
-    loadScript("../libraries/pdfjs/pdf.js");
+    //loadScript("../libraries/pdfjs/pdf.js");
 
     page.style.removeProperty("display");
 
     setFrame("editor/toolbar", page.querySelector(".eToolbar"));
 
+    let loginButton = page.querySelector(".eLogin");
+    if (userID) {
+      page.querySelector(".eAccount div").textContent = account.user;
+      if (account.image) {
+        page.querySelector(".eAccount img").src = account.image;
+      }
+    } else {
+      page.querySelector(".eAccount").remove();
+      loginButton.style.display = "block";
+      loginButton.addEventListener("click", promptLogin);
+    }
+    
     let lessonID = getParam("lesson") || "";
     let [code, body] = await sendRequest("POST", "lessons/join?lesson=" + lessonID, { ss: socket.secureID }, { session: this.session });
     if (code != 200) {
@@ -132,18 +148,6 @@ modules["pages/editor"] = {
       setFrame("pages/dashboard");
     });
     page.querySelector(".eFileName").textContent = lesson.name || "Untitled Lesson";
-
-    let loginButton = page.querySelector(".eLogin");
-    if (account.user) {
-      page.querySelector(".eAccount div").textContent = account.user;
-      if (account.image) {
-        page.querySelector(".eAccount img").src = account.image;
-      }
-    } else {
-      page.querySelector(".eAccount").remove();
-      loginButton.style.display = "block";
-    }
-    loginButton.addEventListener("click", promptLogin);
 
     let eTop = page.querySelector(".eTop");
     let eTopScrollLeft = page.querySelector(".eTopScrollLeft");
@@ -200,11 +204,11 @@ modules["pages/editor"] = {
     }
     switch (lesson.type) {
       case "standard":
-        let pages = getObject(body.pages, "_id");
-        let sources = getObject(body.sources, "_id");
+        let pages = getObject(body.pages || [], "_id");
+        let sources = getObject(body.sources || [], "_id");
 
-        await loadScript("../libraries/pdfjs/pdf.js");
-        pdfjsLib.GlobalWorkerOptions.workerSrc = "../libraries/pdfjs/pdf.worker.js";
+        //await loadScript("../libraries/pdfjs/pdf.js");
+        //pdfjsLib.GlobalWorkerOptions.workerSrc = "../libraries/pdfjs/pdf.worker.js";
 
         let visiblePages = [];
         let currentPage = 1;
@@ -230,8 +234,172 @@ modules["pages/editor"] = {
             break;
           }
         }
-        function renderPages() {
-          console.log(visiblePages);
+        async function loadPage(pageElem) {
+          let pageID = pageElem.getAttribute("pageid");
+          let pageData = pages[pageID];
+          await Promise.all([
+            new Promise(async (resolve) => {
+              // Get page
+              let sourceData = sources[pageData.source];
+              if (sourceData) {
+                sourceData.pdf.getPage(pageData.page).then(async function(pageRender) {
+                  if (pageElem.hasAttribute("loading") == false) {
+                    return;
+                  }
+                  let viewport = pageRender.getViewport({ scale: 1 });
+                  
+                  pageElem.insertAdjacentHTML("beforeend", `<canvas class="ePageContent" new></canvas>`);
+                  let canvas = pageElem.querySelector(".ePageContent[new]");
+                  canvas.removeAttribute("new");
+
+                  let context = canvas.getContext('2d');
+                  
+                  canvas.width = viewport.width;
+                  canvas.height = viewport.height;
+                  //canvas.style.width = viewport.width + "px";
+                  //canvas.style.height = viewport.height + "px";
+                  
+                  let renderContext = {
+                    canvasContext: context,
+                    viewport: viewport
+                  };
+                  pageRender.render(renderContext);
+
+                  pageElem.setAttribute("loaded", "");
+
+                  pageElem.insertAdjacentHTML("beforeend", `<div class="ePageTextHolder" new></div>`);
+                  let textHolder = pageElem.querySelector(".ePageTextHolder[new]");
+                  textHolder.removeAttribute("new");
+
+                  pageRender.getTextContent().then(function (textContent) {
+                    if (pageElem.hasAttribute("loading") == false) {
+                      return;
+                    }
+                    pdfjsLib.renderTextLayer({
+                      enhanceTextSelection: true,
+                      textContentSource: textContent,
+                      container: textHolder,
+                      viewport: viewport,
+                      textDivs: []
+                    });
+                    pageElem.setAttribute("loaded", "");
+                  });
+
+                  /*
+                  pageRender.getTextContent({ includeMarkedContent: true }).then(async function(textContent) {
+                    if (textContent.items.length > 0) {
+                      pageElem.insertAdjacentHTML("beforeend", `<div class="ePageTextHolder" new></div>`);
+                      let textHolder = pageElem.querySelector(".ePageTextHolder[new]");
+                      textHolder.removeAttribute("new");
+                      pdfjsLib.renderTextLayer({
+                        enhanceTextSelection: true,
+                        textContent: textContent,
+                        container: textHolder,
+                        viewport: viewport,
+                        textDivs: []
+                      });
+                    }
+                  });
+                  */
+
+                  resolve();
+                });
+              } else {
+                resolve();
+              }
+            }),
+            new Promise(async (resolve) => {
+              // Get markup
+              resolve();
+            })
+          ]);
+          // Remove loading
+          let loading = pageElem.querySelector(".loading");
+          if (loading) {
+            loading.setAttribute("done", "");
+            loading.style.opacity = 0;
+            await sleep(500);
+            loading.remove();
+          }
+        }
+        async function renderPages() {
+          let loadedIn = [];
+          for (let i = -3; i < visiblePages.length + 3; i++) {
+            let pageNum = 1;
+            if (i < 0) {
+              pageNum = visiblePages[0] + i;
+            } else if (i > visiblePages.length - 1) {
+              pageNum = visiblePages[visiblePages.length - 1] + i - (visiblePages.length - 1);
+            } else {
+              pageNum = visiblePages[i];
+            }
+            if (pageNum < 1) {
+              continue;
+            } else if (pageNum > pageHolder.children.length) {
+              break;
+            }
+            let pageElem = pageHolder.children[pageNum - 1];
+            let pageID = pageElem.getAttribute("pageid");
+            loadedIn.push(pageID);
+            if (pageElem.hasAttribute("loading") == false) {
+              let pageData = pages[pageID];
+              let sourceData = sources[pageData.source];
+              pageElem.insertAdjacentHTML("beforeend", loadingAnim);
+              let loading = pageElem.querySelector(".loading[new]");
+              loading.removeAttribute("appload");
+              runLoadingAnim(loading);
+              loading.style.transition = "unset";
+              loading.style.opacity = 0;
+              loading.offsetHeight;
+              loading.style.transition = "opacity .5s";
+              if (page.querySelector(".loading[appload]") == null) {
+                (async function () { // Only show loading after a tiny period of time:
+                  await sleep(500);
+                  if (loading && loading.hasAttribute("done") == false) {
+                    loading.style.opacity = 1;
+                  }
+                })();
+              }
+              loading.removeAttribute("new");
+              pageElem.setAttribute("loading", "");
+              if (sourceData == null || sourceData.loaded) {
+                loadPage(pageElem);
+              } else if (sourceData.loading != true) {
+                sourceData.loading = true;
+
+                // Load PDFJS
+                await loadScript("../libraries/pdfjs/pdf.js");
+                pdfjsLib.GlobalWorkerOptions.workerSrc = "../libraries/pdfjs/pdf.worker.js";
+
+                let loadingTask = pdfjsLib.getDocument(assetURL + sourceData.source);
+                loadingTask.promise.then(function(pdf) {
+                  sourceData.pdf = pdf;
+                  let loadInPages = pageHolder.querySelectorAll('.ePage[sourceid="' + pageData.source + '"][loading]');
+                  for (let i = 0; i < loadInPages.length; i++) {
+                    loadPage(loadInPages[i]);
+                  }
+                  sourceData.loaded = true;
+                });
+              }
+            }
+          }
+          let loadedPages = pageHolder.querySelectorAll(".ePage[loading], .ePage[loaded]");
+          for (let i = 0; i < loadedPages.length; i++) {
+            let page = loadedPages[i];
+            if (loadedIn.includes(page.getAttribute("pageid")) == false) {
+              if (page.querySelector(".loading")) {
+                page.querySelector(".loading").remove();
+              }
+              if (page.querySelector(".ePageContent")) {
+                page.querySelector(".ePageContent").remove();
+              }
+              if (page.querySelector(".ePageTextHolder")) {
+                page.querySelector(".ePageTextHolder").remove();
+              }
+              page.removeAttribute("loading");
+              page.removeAttribute("loaded");
+            }
+          }
         }
         function updatePages() {
           // Can go off current page to see which pages are visible or not
@@ -282,7 +450,11 @@ modules["pages/editor"] = {
         // Load pages:
         for (let i = 0; i < body.pages.length; i++) {
           let page = body.pages[i];
-          pageHolder.insertAdjacentHTML("beforeend", `<div class="ePage" pageid="${page._id}" style="width: ${page.width}px; height: ${page.height}px">PAGE: ${i + 1}</div>`);
+          let includeSource = "";
+          if (page.source) {
+            includeSource = ` sourceid="${page.source}"`;
+          }
+          pageHolder.insertAdjacentHTML("beforeend", `<div class="ePage" pageid="${page._id}"${includeSource} style="width: ${page.width}px; height: ${page.height}px"></div>`);
         }
         updatePages();
         break;

@@ -84,15 +84,6 @@ modules["dropdowns/new/blank"] = {
       }
       textBox.textContent = "";
     });
-    async function textBoxError(box, error) {
-      (await getModule("alert")).open("error", "<b>Invalid Input</b>" + error);
-
-      box.style.outlineColor = "var(--error)";
-      box.style.color = "var(--error)";
-      await sleep(200);
-      box.style.outlineColor = "var(--secondary)";
-      box.style.color = "var(--theme)";
-    }
     frameCreationHolder.addEventListener("keydown", function (event) {
       let textBox = event.target.closest(".blankNumberHolder div");
       if (textBox == null) {

@@ -27,7 +27,7 @@ modules["pages/editor"] = {
           <button class="eShare" dropdown="dropdowns/account">Share</button>
         </div>
         <div class="eTopSection">
-          <button class="eZoom" dropdown="dropdowns/account">100%</button>
+          <button class="eZoom" dropdown="dropdowns/editor/zoom"><span class="eZoomBox">100</span>%</button>
           <button class="eAccount" dropdown="dropdowns/account"><img src="./images/profiles/default.svg"><div></div></button>
           <button class="eLogin">Login</button>
         </div>
@@ -42,7 +42,9 @@ modules["pages/editor"] = {
       <button class="ePageNav" up><img src="./images/editor/bottom/uparrow.svg"></button>
     </div>
     <div class="eContent">
-      <div class="ePageHolder"></div>
+      <div class="eContentHolder">
+        <div class="ePageHolder"></div>
+        </div>
     </div>
   </div>`,
   /*
@@ -96,17 +98,23 @@ modules["pages/editor"] = {
     ".ePageNav": `display: flex; width: 31px; height: 31px; margin: 0 4px; justify-content: center; align-items: center; background: var(--lightGray); border-radius: 16px`,
     ".eCurrentPage": `margin: 0 6px; font-size: 20px`,
 
-    ".eContent": `position: relative; display: flex; width: fit-content; min-width: 100%; min-height: 100vh; z-index: 0; justify-content: center; background-image: url(./images/editor/background.svg); background-position: center`,
-    ".ePageHolder": `width: fit-content; height: fit-content; margin: 66px; border-radius: 16px`,
+    ".eContent": `position: relative; display: flex; width: fit-content; min-width: calc(100% - 132px); min-height: calc(100vh - 132px); padding: 66px; justify-content: center; z-index: 0; background: var(--pageColor); background-image: url(./images/editor/background.svg); background-position: center`,
+    ".eContentHolder": ``,
+    ".ePageHolder": `width: fit-content; height: fit-content; border-radius: 16px; transform-origin: 0 0`,
     ".ePage": `position: relative; background: var(--pageColor); pointer-events: none`,
     ".ePage::after": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: -1; content: ""; box-shadow: 0px 0px 8px 0px var(--shadowColor); border-radius: inherit`,
     ".ePage:first-child": `border-top-left-radius: 16px; border-top-right-radius: 16px`,
     ".ePage:not(:first-child)": `border-top: dashed var(--darkGray) 4px; border-image: url("./images/editor/border.svg") 10 / 1.2 / 0 space`,
     ".ePage:last-child": `border-bottom-left-radius: 16px; border-bottom-right-radius: 16px`,
-    ".ePageContent": "border-radius: inherit",
+    ".ePageContent": "width: 100%; height: 100%; border-radius: inherit",
     ".ePageTextHolder": "--scale-factor: 1; position: absolute; left: 0; top: 0; font-family: sans-serif",
     ".ePageTextHolder span": "position: absolute; color: transparent; pointer-events: all",
     ".ePageTextHolder br": `user-select: none`
+  },
+  options: {
+    cursors: true,
+    comments: true,
+    fullscreen: false
   },
   js: async function (page) {
     //loadScript("../libraries/pdfjs/pdf.js");
@@ -181,7 +189,8 @@ modules["pages/editor"] = {
 
     // EDITOR
     let contentHolder = page.querySelector(".eContent");
-    let pageHolder = contentHolder.querySelector(".ePageHolder");
+    let content = contentHolder.querySelector(".eContentHolder");
+    let pageHolder = content.querySelector(".ePageHolder");
     let bottomHolder = page.querySelector(".eBottom");
     function inViewport(element, onlyHeight) {
       let rect = element.getBoundingClientRect();
@@ -215,13 +224,13 @@ modules["pages/editor"] = {
 
         bottomHolder.querySelector(".eCurrentPage").innerHTML = '<b>1</b> / ' + body.pages.length;
         bottomHolder.querySelector(".ePageNav[down]").addEventListener("click", function() {
-          let nextPage = pageHolder.children[currentPage];
+          let nextPage = pageHolder.children[currentPage + 1] || pageHolder.children[pageHolder.children.length - 1];
           if (nextPage) {
             window.scrollTo({ top: window.scrollY + nextPage.getBoundingClientRect().top - 66, behavior: "smooth" });
           }
         });
         bottomHolder.querySelector(".ePageNav[up]").addEventListener("click", function() {
-          let nextPage = pageHolder.children[currentPage - 2];
+          let nextPage = pageHolder.children[currentPage - 1] || pageHolder.children[0];
           if (nextPage) {
             window.scrollTo({ top: window.scrollY + nextPage.getBoundingClientRect().top - 66, behavior: "smooth" });
           }
@@ -246,13 +255,13 @@ modules["pages/editor"] = {
                   if (pageElem.hasAttribute("loading") == false) {
                     return;
                   }
-                  let viewport = pageRender.getViewport({ scale: 1 });
+                  let viewport = pageRender.getViewport({ scale: 1.5 });
                   
                   pageElem.insertAdjacentHTML("beforeend", `<canvas class="ePageContent" new></canvas>`);
                   let canvas = pageElem.querySelector(".ePageContent[new]");
                   canvas.removeAttribute("new");
 
-                  let context = canvas.getContext('2d');
+                  let context = canvas.getContext("2d");
                   
                   canvas.width = viewport.width;
                   canvas.height = viewport.height;
@@ -279,7 +288,7 @@ modules["pages/editor"] = {
                       enhanceTextSelection: true,
                       textContentSource: textContent,
                       container: textHolder,
-                      viewport: viewport,
+                      viewport: pageRender.getViewport({ scale: 1 }),
                       textDivs: []
                     });
                     pageElem.setAttribute("loaded", "");
@@ -401,7 +410,7 @@ modules["pages/editor"] = {
             }
           }
         }
-        function updatePages() {
+        this.updatePages = () => {
           // Can go off current page to see which pages are visible or not
           visiblePages = [];
           let checkInt = 1;
@@ -429,7 +438,7 @@ modules["pages/editor"] = {
             }
           }
           if (visiblePages.length > 0) {
-            currentPage = visiblePages[Math.floor(visiblePages.length / 2)];
+            currentPage = visiblePages[Math.floor((visiblePages.length - 1) / 2)];
           }
           bottomHolder.querySelector(".eCurrentPage b").textContent = currentPage;
           if (currentPage > pageHolder.childElementCount - 1) {
@@ -444,8 +453,8 @@ modules["pages/editor"] = {
           }
           renderPages();
         }
-        tempListen(window, "scroll", updatePages);
-        tempListen(window, "resize", updatePages);
+        tempListen(window, "scroll", this.updatePages);
+        tempListen(window, "resize", this.updatePages);
 
         // Load pages:
         for (let i = 0; i < body.pages.length; i++) {
@@ -456,24 +465,228 @@ modules["pages/editor"] = {
           }
           pageHolder.insertAdjacentHTML("beforeend", `<div class="ePage" pageid="${page._id}"${includeSource} style="width: ${page.width}px; height: ${page.height}px"></div>`);
         }
-        updatePages();
+        this.updatePages();
         break;
       case "freeboard":
-        pageHolder.remove();
+        //pageHolder.remove();
         bottomHolder.remove();
     }
 
+    // Zoom
+    this.zoom = 1;
+    this.setZoom = (set) => {
+      set = set || 0;
+
+      let pageScrollX = window.scrollX;
+      let pageScrollY = window.scrollY;
+
+      let prevWidth = pageHolder.clientWidth * this.zoom;
+      let prevHeight = pageHolder.clientHeight * this.zoom;
+
+      this.zoom += set;
+
+      if (this.zoom > 2.5) {
+        this.zoom = 2.5;
+      } else if (this.zoom < .2) {
+        this.zoom = .2;
+      }
+
+      //pageHolder.style.zoom = zoom;
+      pageHolder.style.transform = `scale(${this.zoom})`; // translate(${(pageHolder.clientWidth * zoom) / 2}px, ${(pageHolder.clientHeight * zoom) / 2}px)
+      //pageHolder.style.margin = `${(pageHolder.clientHeight - (pageHolder.clientHeight * zoom)) / 2}px ${(pageHolder.clientWidth - (pageHolder.clientWidth * zoom)) / 2}px`;
+      //pageHolder.style.transformOrigin = mousePositionX + "px " + mousePositionY + "px";
+
+      let newWidth = pageHolder.clientWidth * this.zoom;
+      let newHeight = pageHolder.clientHeight * this.zoom;
+
+      content.style.width = newWidth + "px";
+      content.style.height = newHeight + "px";
+
+      window.scrollTo(pageScrollX * (newWidth / prevWidth), pageScrollY * (newHeight / prevHeight));
+      
+      let updateZoomPercentBoxes = document.querySelectorAll(".eZoomBox");
+      for (let i = 0; i < updateZoomPercentBoxes.length; i++) {
+        updateZoomPercentBoxes[i].textContent = Math.round(this.zoom * 100);
+      }
+      if (fixed.querySelector(".eZoomHolder")) {
+        if (this.zoom >= 2.5) {
+          fixed.querySelector(".eZoomButton[add]").setAttribute("disabled", "");
+        } else {
+          fixed.querySelector(".eZoomButton[add]").removeAttribute("disabled");
+        }
+        if (this.zoom <= .2) {
+          fixed.querySelector(".eZoomButton[sub]").setAttribute("disabled", "");
+        } else {
+          fixed.querySelector(".eZoomButton[sub]").removeAttribute("disabled");
+        }
+      }
+
+      if (this.updatePages) {
+        this.updatePages();
+      }
+    }
+    let scrollMouseWheel = (event) => {
+      if (event.ctrlKey || event.metaKey) {
+        if (event.wheelDelta > 0) {
+          this.setZoom(0.1, { x: event.clientX, y: event.clientY });
+        } else if (event.wheelDelta < 0) {
+          this.setZoom(-0.1, { x: event.clientX, y: event.clientY });
+        }
+        event.preventDefault();
+      }
+    }
+    tempListen(window, "DOMMouseScroll", scrollMouseWheel, { passive: false });
+    tempListen(window, "mousewheel", scrollMouseWheel, { passive: false });
+
+    // Fullscreen
+    let pageUpdateInterval;
+    tempListen(document, "fullscreenchange", () => {
+      this.options.fullscreen = document.fullscreenElement != null;
+      let fullscreenToggle = fixed.querySelector('.eZoomAction[option="fullscreen"]');
+      if (this.options.fullscreen) {
+        fullscreenToggle.setAttribute("on", "");
+        fullscreenToggle.removeAttribute("off");
+        pageUpdateInterval = setInterval(this.updatePages, 10);
+      } else {
+        fullscreenToggle.setAttribute("off", "");
+        fullscreenToggle.removeAttribute("on");
+        clearInterval(pageUpdateInterval);
+      }
+    });
   }
 }
 
-modules["editor/page"] = {
+modules["dropdowns/editor/zoom"] = {
   html: `
-  
+  <div class="eZoomHolder">
+    <button class="eZoomButton buttonAnim" sub change="-.1">-</button>
+    <div class="eZoomLevel"><div class="eZoomBox" contenteditable>100</div>%</div>
+    <button class="eZoomButton buttonAnim" add change=".1">+</button>
+  </div>
+  <div class="eZoomLine"></div>
+  <button class="eZoomAction" option="cursors"><div label>Cursors</div><div class="eZoomToggle"><div></div></div></button>
+  <button class="eZoomAction" option="comments"><div label>Comments</div><div class="eZoomToggle"><div></div></div></button>
+  <div class="eZoomLine"></div>
+  <button class="eZoomAction" option="fullscreen"><div label>Fullscreen</div><div class="eZoomToggle"><div></div></div></button>
   `,
   css: {
+    ".eZoomHolder": `display: flex; justify-content: center; align-items: center`,
+    ".eZoomButton": `position: relative; display: flex; width: 22px; height: 22px; margin: 3px; outline: solid 3px var(--secondary); justify-content: center; align-items: center; border-radius: 14px; color: var(--theme); font-size: 24px; font-weight: 600; line-height: 0`,
+    ".eZoomLevel": `display: flex; padding: 3px; margin: 12px; outline: solid 3px var(--secondary); justify-content: center; align-items: center; border-radius: 19px; color: var(--theme); font-size: 20px; font-weight: 600`,
+    ".eZoomLevel div": `max-width: 50px; padding: 3px 6px; margin-right: 3px; border: none; border-radius: 16px; text-align: center; white-space: nowrap; overflow: hidden`,
     
+    ".eZoomLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`,
+    
+    ".eZoomAction": `display: flex; width: 100%; padding: 6px; border-radius: 8px; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
+    ".eZoomAction:not(:last-child)": `margin-bottom: 4px`,
+    ".eZoomAction div[label]": `flex: 1; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
+    ".eZoomAction[on]": `--themeColor: var(--theme)`,
+    ".eZoomAction[off]": `--themeColor: var(--error)`,
+    ".eZoomToggle": `position: relative; width: 36px; height: 20px; padding: 2px; margin-left: 12px; background: var(--themeColor); border-radius: 12px; transition: .2s`,
+    ".eZoomToggle div": `position: absolute; width: 20px; height: 20px; background: #fff; border-radius: 10px; transition: .2s`,
+    ".eZoomAction[on] .eZoomToggle div": `right: 2px`,
+    ".eZoomAction[off] .eZoomToggle div": `right: calc(100% - 22px)`,
+    ".eZoomAction:hover": `background: var(--themeColor); color: #fff`,
+    ".eZoomAction:hover .eZoomToggle": `background: #fff`,
+    ".eZoomAction:hover .eZoomToggle div": `background: var(--themeColor)`,
+
+    "body:fullscreen": `overflow: auto !important;`
   },
-  js: function (frame) {
-    
+  js: async function (frame) {
+    let editor = await getModule("pages/editor");
+    let zoomPercentage = frame.querySelector(".eZoomLevel div");
+    function setZoomText() {
+      zoomPercentage.textContent = Math.round(editor.zoom * 100);
+    }
+    setZoomText();
+    editor.setZoom();
+    let setButtonOptions = frame.querySelectorAll(".eZoomAction");
+    for (let i = 0; i < setButtonOptions.length; i++) {
+      let buttonToggle = setButtonOptions[i];
+      if (editor.options[buttonToggle.getAttribute("option")] == true) {
+        buttonToggle.setAttribute("on", "");
+      } else {
+        buttonToggle.setAttribute("off", "");
+      }
+    }
+    function forceSetZoom() {
+      editor.zoom = parseInt(zoomPercentage.textContent) / 100;
+      editor.setZoom();
+    }
+    zoomPercentage.addEventListener("keydown", function (event) {
+      let textBox = event.target.closest("div");
+      if (textBox == null) {
+        return;
+      }
+      if (event.keyCode == 13) {
+        event.preventDefault();
+        forceSetZoom();
+        return;
+      }
+      if (String.fromCharCode(event.keyCode).match(/(\w|\s)/g) || event.key.length == 1) {
+        let textInt = parseInt(textBox.textContent + event.key);
+        if (parseInt(event.key) != event.key) {
+          event.preventDefault();
+          textBoxError(textBox, "Must be a number");
+        } else if (textInt > 250) {
+          event.preventDefault();
+          textBoxError(textBox, "Must be less than 250%");
+        }
+      }
+    });
+    zoomPercentage.addEventListener("focusout", function (event) {
+      let textBox = event.target.closest("div");
+      if (textBox == null) {
+        return;
+      }
+      let textInt = parseInt(textBox.textContent) || 0;
+      if (textInt == "") {
+        setZoomText();
+      } else if (textInt > 250) {
+        textBox.textContent = "250";
+      } else if (textInt < 20) {
+        textBox.textContent = "20";
+      }
+      forceSetZoom();
+    });
+    frame.addEventListener("click", function(event) {
+      let element = event.target;
+      if (element == null) {
+        return;
+      }
+      let textBox = event.target.closest(".eZoomLevel div");
+      if (textBox) {
+        textBox.textContent = "";
+        return;
+      }
+      let zoomChange = element.closest(".eZoomButton");
+      if (zoomChange) {
+        editor.setZoom(parseFloat(zoomChange.getAttribute("change")));
+        return;
+      }
+      let toggle = element.closest(".eZoomAction");
+      if (toggle) {
+        if (toggle.hasAttribute("on")) {
+          toggle.setAttribute("off", "");
+          toggle.removeAttribute("on");
+          editor.options[toggle.getAttribute("option")] = false;
+        } else {
+          toggle.setAttribute("on", "");
+          toggle.removeAttribute("off");
+          editor.options[toggle.getAttribute("option")] = true;
+        }
+        if (toggle.getAttribute("option") == "fullscreen") {
+          if (toggle.hasAttribute("on")) {
+            if (body.requestFullscreen) {
+              body.requestFullscreen();
+            }
+          } else {
+            if (document.exitFullscreen) {
+              document.exitFullscreen();
+            }
+          }
+        }
+      }
+    });
   }
 }

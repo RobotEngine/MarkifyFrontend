@@ -103,6 +103,7 @@ async function setFrame(path, frame, extra) {
     if (loadingPlacement.querySelector(".loading:not([done])") == null) {
       if (frameSet.closest(".dropdown") == null && oldContent) {
         oldContent.style.opacity = 0;
+        oldContent.style.position = "absolute";
         //frameSet.innerHTML = "";
       }
       loadingPlacement.insertAdjacentHTML("beforeend", loadingAnim);
@@ -152,7 +153,7 @@ async function setFrame(path, frame, extra) {
     let frameContent = frameSet.querySelector(".content[new]");
     frameContent.removeAttribute("new");
     if (frameSet == app) {
-      frameContent.style.position = "absolute";
+      //frameContent.style.position = "absolute";
       frameContent.style.width = "100%";
       removeTempListeners();
       for (let i = 0; i < subscribes.length; i++) {
@@ -730,6 +731,17 @@ body.addEventListener("click", async function (event) {
 window.addEventListener("scroll", async function () {
   (await getModule("dropdown")).close();
 });
+
+async function textBoxError(box, error) {
+  (await getModule("alert")).open("error", "<b>Invalid Input</b>" + error);
+  if (box) {
+    box.style.outlineColor = "var(--error)";
+    box.style.color = "var(--error)";
+    await sleep(200);
+    box.style.outlineColor = "var(--secondary)";
+    box.style.color = "var(--theme)";
+  }
+}
 
 modules["alert"] = {
   css: {

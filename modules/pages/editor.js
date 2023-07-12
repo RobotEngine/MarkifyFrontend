@@ -233,6 +233,9 @@ modules["pages/editor"] = {
         nameBox.textContent = this.lesson.name;
         return;
       }
+      if (nameBox.textContent == this.lesson.name) {
+        return;
+      }
       nameBox.textContent = name;
       let [code] = await sendRequest("POST", "lessons/name", { name: name }, { session: this.session });
       if (code != 200) {

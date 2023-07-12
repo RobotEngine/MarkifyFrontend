@@ -310,6 +310,9 @@ modules["pages/dashboard/lessons"] = {
       tile.querySelector(".dTileName").title = lesson.name || "Untitled Lesson";
       tile.querySelector(".dTileDate").textContent = timeSince(lessonRec.opened || lessonRec.created || lessonRec.added);
       tile.querySelector(".dTileDate").title = formatFullDate(lessonRec.opened || lessonRec.created || lessonRec.added);
+      if (lesson.membersUpdate && lesson.membersUpdate < getEpoch() - 300000) {
+        lesson.members = null;
+      }
       tile.querySelector(".dTileMemberCount span").textContent = lesson.members || 0;
     }
     function addLessonTiles(type) {

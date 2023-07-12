@@ -89,7 +89,7 @@ modules["dropdowns/new/blank"] = {
       if (textBox == null) {
         return;
       }
-      if (String.fromCharCode(event.keyCode).match(/(\w|\s)/g) || event.key.length == 1) {
+      if (String.fromCharCode(event.keyCode).match(/(\w|\s)/g) && event.key.length == 1) {
         let textInt = parseFloat(textBox.textContent + event.key);
         if (parseInt(event.key) != event.key && (event.keyCode != 190 || textBox.hasAttribute("nodecimal"))) {
           event.preventDefault();

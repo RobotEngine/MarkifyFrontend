@@ -711,7 +711,7 @@ modules["dropdowns/editor/zoom"] = {
         forceSetZoom();
         return;
       }
-      if (String.fromCharCode(event.keyCode).match(/(\w|\s)/g) || event.key.length == 1) {
+      if (String.fromCharCode(event.keyCode).match(/(\w|\s)/g) && event.key.length == 1) {
         let textInt = parseInt(textBox.textContent + event.key);
         if (parseInt(event.key) != event.key) {
           event.preventDefault();

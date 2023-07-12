@@ -184,6 +184,9 @@ modules["pages/editor"] = {
     if (this.active == false) {
       sendBody.active = false;
     }
+    if (this.lesson && this.lesson._id != lessonID) {
+      delete this.session;
+    }
     let [code, body, extra] = await sendRequest("POST", "lessons/join?lesson=" + lessonID, sendBody, { session: this.session });
     if (code != 200) {
       return;

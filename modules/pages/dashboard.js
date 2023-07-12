@@ -266,7 +266,7 @@ modules["pages/dashboard/lessons"] = {
     ".dSectionTiles": "display: flex; flex-wrap: wrap; min-height: 200px; justify-content: center; align-items: center",
     ".dTile": `position: relative; width: calc(20% - 52px); min-width: min(148px, calc(100% - 52px)); height: 200px; margin: 12px; overflow: hidden; border-radius: 12px`,
     ".dTileDocImage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; object-position: top center`,
-    ".dTileInfo": `position: absolute; box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; left: 0px; bottom: 0px; padding: 6px; background: rgba(var(--background), .85)`,
+    ".dTileInfo": `position: absolute; box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; left: 0px; bottom: 0px; padding: 6px; background: rgba(var(--background), .95)`,
     ".dTileName": `width: 100%; font-size: 18px; font-weight: 600; color: var(--themeColor); text-align: left`,
     ".dTileStats": `display: flex; width: 100%; padding: 0 6px; font-size: 16px; font-weight: 700; overflow: hidden; white-space: nowrap`,
     ".dTileDate": `flex: 1; margin-right: 8px; color: var(--darkGray); text-align: left`,
@@ -336,6 +336,67 @@ modules["pages/dashboard/lessons"] = {
       frame.insertAdjacentHTML("beforeend", `<div class="dNoLessons">You have no lessons, start the learning above!</div>`);
     }
 
+    let dashSubscribe;
+    function updateDashSub() {
+      let visibleTiles = frame.querySelectorAll(".dTile");
+      let tileIDs = {};
+      for (let i = 0; i < visibleTiles.length; i++) {
+        tileIDs[visibleTiles[i].getAttribute("lesson")] = "";
+      }
+      let filter = { type: "lesson", id: Object.keys(tileIDs), _id: userID };
+      if (dashSubscribe) {
+        dashSubscribe.edit(filter);
+      } else {
+        subscribe(filter, function(data) {
+          let body = data.data || data.body;
+          let updTiles = frame.querySelectorAll('.dTile[lesson="' + (body.lesson || body._id) + '"]');
+          switch (data.task) {
+            case "join":
+              for (let i = 0; i < updTiles.length; i++) {
+                let tile = updTiles[i];
+                let memberCountTx = tile.querySelector(".dTileMemberCount span");
+                memberCountTx.textContent = parseInt(memberCountTx.textContent) + 1;
+              }
+              if (body.user == userID) {
+                if (updTiles.length > 0) {
+                  let tile = frame.querySelector(".dSection[recent]").querySelector('.dTile[lesson="' + body.lesson + '"]');
+                  tile.querySelector(".dTileDate").textContent = timeSince(body.joined);
+                  tile.querySelector(".dTileDate").title = formatFullDate(body.joined);
+                  if (tile && tile.parentElement.firstChild) {
+                    tile.parentElement.insertBefore(tile, tile.parentElement.firstChild);
+                  }
+                }
+              }
+              break;
+            case "leave":
+              for (let i = 0; i < updTiles.length; i++) {
+                let tile = updTiles[i];
+                let memberCountTx = tile.querySelector(".dTileMemberCount span");
+                memberCountTx.textContent = parseInt(memberCountTx.textContent) - 1;
+              }
+              break;
+            case "set":
+              for (let i = 0; i < updTiles.length; i++) {
+                let tile = updTiles[i];
+                tile.querySelector(".dTileName").textContent = body.name || "Untitled Lesson";
+                if (body.thumbnail) {
+                  tile.querySelector(".dTileDocImage").src = assetURL + body.thumbnail;
+                }
+              }
+              if (updTiles.length < 1) {
+                for (let i = 0; i < body.sections.length; i++) {
+                  let tileSection = frame.querySelector(".dSection[" + body.sections[i] + "]");
+                  tileSection.style.removeProperty("display");
+                  addTile(tileSection.querySelector(".dSectionTiles"), body.record, body.lesson, true);
+                }
+                updateDashSub();
+              }
+          }
+        });
+      }
+    }
+    updateDashSub();
+    /*
     function removeTiles(tiles) {
       for (let i = 0; i < tiles.length; i++) {
         let parent = tiles[i].parentElement;
@@ -345,12 +406,16 @@ modules["pages/dashboard/lessons"] = {
         }
       }
     }
+    socket.remotes.dashboard = (data) => {
 
+    }
     subscribe({ type: "dash", id: userID, token: account.realtime }, function (data) {
       switch (data.task) {
         case "order":
           for (let i = 0; i < data.sections.length; i++) {
-            let tile = frame.querySelector(".dSection[" + data.sections[i] + "]").querySelector('.dTile[lesson="' + data.lesson + '"]');
+            let tile = frame.querySelector(".dSection[" + data.sections[i] + "]").querySelector('.dTile[lesson="' + data.record._id + '"]');
+            tile.querySelector(".dTileDate").textContent = timeSince(data.record.opened);
+            tile.querySelector(".dTileDate").title = formatFullDate(data.record.opened);
             if (tile && tile.parentElement.firstChild) {
               tile.parentElement.insertBefore(tile, tile.parentElement.firstChild);
             }
@@ -368,6 +433,7 @@ modules["pages/dashboard/lessons"] = {
           removeTiles(frame.querySelectorAll('.dTile[lesson="' + data.lesson + '"]'));
       }
     });
+    */
 
     frame.addEventListener("click", async function (event) {
       let element = event.target;

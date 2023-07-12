@@ -13,14 +13,14 @@ modules["pages/editor"] = {
       <div class="eTop">
         <div class="eTopSection">
           <a class="eLogo" href="/#dashboard"><img src="./images/logo.svg"></a>
-          <div class="eFileName" contenteditable spellcheck="false"></div>
+          <div class="eFileName" contenteditable spellcheck="false" onpaste="clipBoardRead(event)"></div>
           <button class="eFileDropdown" dropdown="dropdowns/account">File</button>
         </div>
         <div class="eTopSection">
           <button class="eSaveProgress eUndo" style="margin: 0 2px 0 4px; justify-content: end; border-radius: 16px 0 0 16px"><img src="./images/tooltips/progress/undo.svg"></button>
           <button class="eSaveProgress eRedo" style="margin: 0 4px 0 2px; justify-content: start; border-radius: 0 16px 16px 0"><img src="./images/tooltips/progress/redo.svg"></button>
-          <img class="eConnection" src="./images/editor/top/connection.svg" style="object-position: -60px -4px" title="Strong Connection | All features synced to cloud.">
-          <div class="eStatus">Saved</div>
+          <img class="eConnection" src="./images/editor/top/connection.svg" style="object-position: -60px -4px" disabled>
+          <div class="eStatus">Loading...</div>
         </div>
         <div class="eTopSection eTopMargin">
           <button class="eMembers" dropdown="dropdowns/account"><span class="eMemberCount">25</span>Members</button>
@@ -72,7 +72,7 @@ modules["pages/editor"] = {
 
     ".eLogo": `height: 100%; padding: 0`,
     ".eLogo img": `height: 100%`,
-    ".eFileName": `padding: 3px; margin: 0 4px; border-radius: 6px; font-size: 20px; white-space: nowrap; transition: .05s`,
+    ".eFileName": `max-width: 360px; padding: 3px; margin: 0 4px; border-radius: 6px; font-size: 20px; white-space: nowrap; overflow: hidden; transition: .05s`,
     ".eFileName:focus": `outline: solid 4px var(--secondary)`,
     ".eFileDropdown": `padding: 6px 10px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
 
@@ -99,14 +99,13 @@ modules["pages/editor"] = {
     ".eCurrentPage": `margin: 0 6px; font-size: 20px`,
 
     ".eContent": `position: relative; display: flex; width: fit-content; min-width: calc(100% - 132px); min-height: calc(100vh - 132px); padding: 66px; justify-content: center; z-index: 0; background: var(--pageColor); background-image: url(./images/editor/background.svg); background-position: center`,
-    ".eContentHolder": ``,
     ".ePageHolder": `width: fit-content; height: fit-content; border-radius: 16px; transform-origin: 0 0`,
-    ".ePage": `position: relative; background: var(--pageColor); pointer-events: none`,
+    ".ePage": `position: relative; background: var(--pageColor); pointer-events: none; transition: .5s`,
     ".ePage::after": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: -1; content: ""; box-shadow: 0px 0px 8px 0px var(--shadowColor); border-radius: inherit`,
     ".ePage:first-child": `border-top-left-radius: 16px; border-top-right-radius: 16px`,
-    ".ePage:not(:first-child)": `border-top: dashed var(--darkGray) 4px; border-image: url("./images/editor/border.svg") 10 / 1.2 / 0 space`,
+    ".ePage:not(:first-child)": `border-top: dashed var(--darkGray) 4px; border-image: url("./images/editor/border.svg") 10 / 1 / 0 space`,
     ".ePage:last-child": `border-bottom-left-radius: 16px; border-bottom-right-radius: 16px`,
-    ".ePageContent": "width: 100%; height: 100%; border-radius: inherit",
+    ".ePageContent": "width: 100%; height: 100%; background: var(--pageColor); opacity: 0; border-radius: inherit",
     ".ePageTextHolder": "--scale-factor: 1; position: absolute; left: 0; top: 0; font-family: sans-serif",
     ".ePageTextHolder span": "position: absolute; color: transparent; pointer-events: all",
     ".ePageTextHolder br": `user-select: none`
@@ -116,12 +115,34 @@ modules["pages/editor"] = {
     comments: true,
     fullscreen: false
   },
+  realtime: {
+    strenth: 0
+  },
+  members: {},
+  active: document.visibilityState == "visible",
+  syncMembers: async function(memberUpd) {
+    for (let i = 0; i < memberUpd.length; i++) {
+      let memSet = memberUpd[i];
+      this.members[memSet._id] = memSet;
+    }
+  },
   js: async function (page) {
     //loadScript("../libraries/pdfjs/pdf.js");
 
     page.style.removeProperty("display");
 
+    if (connected) {
+      this.realtime.strenth = 1;
+    }
+    closeCallback = () => {
+      this.realtime.strenth = 1;
+      if (this.realtime.module) {
+        this.realtime.module.connectUpdate();
+      }
+    }
+
     setFrame("editor/toolbar", page.querySelector(".eToolbar"));
+    getModule("editor/realtime");
 
     let loginButton = page.querySelector(".eLogin");
     if (userID) {
@@ -136,38 +157,97 @@ modules["pages/editor"] = {
     }
     
     let lessonID = getParam("lesson") || "";
-    let [code, body] = await sendRequest("POST", "lessons/join?lesson=" + lessonID, { ss: socket.secureID }, { session: this.session });
+    this.id = lessonID;
+
+    socket.remotes["lesson_" + lessonID] = (data) => {
+      let body = data.data;
+      switch (data.task) {
+        case "join":
+          this.members[body._id] = body;
+          break;
+        case "leave":
+          if (this.members[body._id]) {
+            delete this.members[body._id];
+          }
+          break;
+        case "set":
+          let bodyKeys = Object.keys(body);
+          for (let i = 0; i < bodyKeys.length; i++) {
+            let key = bodyKeys[i];
+            this.lesson[key] = body[key];
+          }
+          page.querySelector(".eFileName").textContent = this.lesson.name || "Untitled Lesson";
+    }
+    }; // Subscribe before to make sure no members are lost in request time.
+
+    let sendBody = { ss: socket.secureID };
+    if (this.active == false) {
+      sendBody.active = false;
+    }
+    let [code, body, extra] = await sendRequest("POST", "lessons/join?lesson=" + lessonID, sendBody, { session: this.session });
     if (code != 200) {
       return;
     }
 
+    this.lesson = body.lesson;
+
+    if (extra.took < 1000) {
+      this.realtime.strenth = 3;
+    } else {
+      this.realtime.strenth = 2;
+    }
+
     this.session = body.session._id + ";" + body.session.token;
     tempListeners.push({ type: "interval", interval: setInterval(async () => {
-      let [code, body] = await sendRequest("GET", "lessons/ping", null, { session: this.session });
-      if (code == 403) {
-        setFrame("pages/editor");
+      if (connected) {
+        let [code] = await sendRequest("GET", "lessons/ping", null, { session: this.session });
+        if (code == 200) {
+          if (this.realtime) {
+            this.realtime.ping();
+          }
+        } else if (code == 403) {
+          setFrame("pages/editor");
+        }
       }
     }, 60000)}); // PING every minute
 
-    let lesson = body.lesson;
+    this.syncMembers(body.members);
+
+    (async () => {
+      (await getModule("editor/realtime")).js(this, page);
+    })();
 
     page.querySelector(".eLogo").addEventListener("click", function(event) {
       event.preventDefault();
       setFrame("pages/dashboard");
     });
-    page.querySelector(".eFileName").textContent = lesson.name || "Untitled Lesson";
+    let nameBox = page.querySelector(".eFileName");
+    nameBox.textContent = this.lesson.name || "Untitled Lesson";
+    nameBox.addEventListener("keydown", enableScrollTop);
+    nameBox.addEventListener("focusout", async () => {
+      let name = nameBox.textContent.substring(0, 30).replace(/[^A-Za-z0-9.,_|\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
+      if (name.replace(/ /g, "").length < 1) {
+        nameBox.textContent = this.lesson.name;
+        return;
+      }
+      nameBox.textContent = name;
+      let [code] = await sendRequest("POST", "lessons/name", { name: name }, { session: this.session });
+      if (code != 200) {
+        nameBox.textContent = this.lesson.name;
+      }
+    });
 
     let eTop = page.querySelector(".eTop");
     let eTopScrollLeft = page.querySelector(".eTopScrollLeft");
     let eTopScrollRight = page.querySelector(".eTopScrollRight");
     function enableScrollTop() {
-      if (eTop.scrollWidth > eTop.clientWidth) {
+      if (eTop.scrollWidth > eTop.clientWidth - 1) {
         if (eTop.scrollLeft > 0) {
           eTopScrollLeft.style.display = "flex";
         } else {
           eTopScrollLeft.style.display = "none";
         }
-        if (eTop.scrollWidth - eTop.scrollLeft > eTop.clientWidth) {
+        if (eTop.scrollWidth - eTop.scrollLeft - 1 > eTop.clientWidth) {
           eTopScrollRight.style.display = "flex";
         } else {
           eTopScrollRight.style.display = "none";
@@ -211,7 +291,7 @@ modules["pages/editor"] = {
         );
       }
     }
-    switch (lesson.type) {
+    switch (this.lesson.type) {
       case "standard":
         let pages = getObject(body.pages || [], "_id");
         let sources = getObject(body.sources || [], "_id");
@@ -219,18 +299,18 @@ modules["pages/editor"] = {
         //await loadScript("../libraries/pdfjs/pdf.js");
         //pdfjsLib.GlobalWorkerOptions.workerSrc = "../libraries/pdfjs/pdf.worker.js";
 
-        let visiblePages = [];
+        this.visiblePages = [];
         let currentPage = 1;
 
         bottomHolder.querySelector(".eCurrentPage").innerHTML = '<b>1</b> / ' + body.pages.length;
         bottomHolder.querySelector(".ePageNav[down]").addEventListener("click", function() {
-          let nextPage = pageHolder.children[currentPage + 1] || pageHolder.children[pageHolder.children.length - 1];
+          let nextPage = pageHolder.children[currentPage] || pageHolder.children[pageHolder.children.length - 1];
           if (nextPage) {
             window.scrollTo({ top: window.scrollY + nextPage.getBoundingClientRect().top - 66, behavior: "smooth" });
           }
         });
         bottomHolder.querySelector(".ePageNav[up]").addEventListener("click", function() {
-          let nextPage = pageHolder.children[currentPage - 1] || pageHolder.children[0];
+          let nextPage = pageHolder.children[currentPage - 2] || pageHolder.children[0];
           if (nextPage) {
             window.scrollTo({ top: window.scrollY + nextPage.getBoundingClientRect().top - 66, behavior: "smooth" });
           }
@@ -246,6 +326,7 @@ modules["pages/editor"] = {
         async function loadPage(pageElem) {
           let pageID = pageElem.getAttribute("pageid");
           let pageData = pages[pageID];
+          let canvas;
           await Promise.all([
             new Promise(async (resolve) => {
               // Get page
@@ -258,7 +339,7 @@ modules["pages/editor"] = {
                   let viewport = pageRender.getViewport({ scale: 1.5 });
                   
                   pageElem.insertAdjacentHTML("beforeend", `<canvas class="ePageContent" new></canvas>`);
-                  let canvas = pageElem.querySelector(".ePageContent[new]");
+                  canvas = pageElem.querySelector(".ePageContent[new]");
                   canvas.removeAttribute("new");
 
                   let context = canvas.getContext("2d");
@@ -272,7 +353,10 @@ modules["pages/editor"] = {
                     canvasContext: context,
                     viewport: viewport
                   };
-                  pageRender.render(renderContext);
+
+                  pageRender.render(renderContext).promise.then(function () {
+                    resolve();
+                  });
 
                   pageElem.setAttribute("loaded", "");
 
@@ -293,25 +377,6 @@ modules["pages/editor"] = {
                     });
                     pageElem.setAttribute("loaded", "");
                   });
-
-                  /*
-                  pageRender.getTextContent({ includeMarkedContent: true }).then(async function(textContent) {
-                    if (textContent.items.length > 0) {
-                      pageElem.insertAdjacentHTML("beforeend", `<div class="ePageTextHolder" new></div>`);
-                      let textHolder = pageElem.querySelector(".ePageTextHolder[new]");
-                      textHolder.removeAttribute("new");
-                      pdfjsLib.renderTextLayer({
-                        enhanceTextSelection: true,
-                        textContent: textContent,
-                        container: textHolder,
-                        viewport: viewport,
-                        textDivs: []
-                      });
-                    }
-                  });
-                  */
-
-                  resolve();
                 });
               } else {
                 resolve();
@@ -323,6 +388,11 @@ modules["pages/editor"] = {
             })
           ]);
           // Remove loading
+          if (canvas) {
+            canvas.style.transition = ".5s";
+            canvas.offsetHeight;
+            canvas.style.opacity = 1;
+          }
           let loading = pageElem.querySelector(".loading");
           if (loading) {
             loading.setAttribute("done", "");
@@ -331,16 +401,16 @@ modules["pages/editor"] = {
             loading.remove();
           }
         }
-        async function renderPages() {
+        let renderPages = async () => {
           let loadedIn = [];
-          for (let i = -3; i < visiblePages.length + 3; i++) {
+          for (let i = -3; i < this.visiblePages.length + 3; i++) {
             let pageNum = 1;
             if (i < 0) {
-              pageNum = visiblePages[0] + i;
-            } else if (i > visiblePages.length - 1) {
-              pageNum = visiblePages[visiblePages.length - 1] + i - (visiblePages.length - 1);
+              pageNum = this.visiblePages[0] + i;
+            } else if (i > this.visiblePages.length - 1) {
+              pageNum = this.visiblePages[this.visiblePages.length - 1] + i - (this.visiblePages.length - 1);
             } else {
-              pageNum = visiblePages[i];
+              pageNum = this.visiblePages[i];
             }
             if (pageNum < 1) {
               continue;
@@ -410,35 +480,42 @@ modules["pages/editor"] = {
             }
           }
         }
+        let scrollSubTimeout;
         this.updatePages = () => {
           // Can go off current page to see which pages are visible or not
-          visiblePages = [];
+          this.visiblePages = [];
           let checkInt = 1;
           if (inViewport(pageHolder.children[currentPage - 1], true)) {
-            visiblePages.unshift(currentPage);
+            this.visiblePages.unshift(currentPage);
           }
           while (true) {
             let beforeNoRun = true;
             let afterNoRun = true;
             if (currentPage - checkInt > 0) { // Check page before
               if (inViewport(pageHolder.children[currentPage - checkInt - 1], true)) {
-                visiblePages.unshift(currentPage - checkInt);
+                this.visiblePages.unshift(currentPage - checkInt);
                 beforeNoRun = false;
               }
             }
             if (currentPage + checkInt < pageHolder.childElementCount + 1) { // Check page after
               if (inViewport(pageHolder.children[currentPage + checkInt - 1], true)) {
-                visiblePages.push(currentPage + checkInt);
+                this.visiblePages.push(currentPage + checkInt);
                 afterNoRun = false;
               }
             }
             checkInt++;
-            if ((visiblePages.length > 0 && beforeNoRun && afterNoRun) || checkInt > 500) {
+            if ((this.visiblePages.length > 0 && beforeNoRun && afterNoRun) || checkInt > 500) {
               break;
             }
           }
-          if (visiblePages.length > 0) {
-            currentPage = visiblePages[Math.floor((visiblePages.length - 1) / 2)];
+          if (this.visiblePages.length > 0) {
+            currentPage = this.visiblePages[Math.floor(this.visiblePages.length / 2)];
+          }
+          if (this.realtime.module) {
+            clearTimeout(scrollSubTimeout);
+            scrollSubTimeout = setTimeout(() => {
+              this.realtime.module.setShortSub(this.visiblePages);
+            }, 750);
           }
           bottomHolder.querySelector(".eCurrentPage b").textContent = currentPage;
           if (currentPage > pageHolder.childElementCount - 1) {
@@ -553,6 +630,11 @@ modules["pages/editor"] = {
         clearInterval(pageUpdateInterval);
       }
     });
+
+    // On page:
+    tempListen(document, "visibilitychange", () => {
+      this.active = document.visibilityState == "visible";
+    });
   }
 }
 
@@ -572,8 +654,8 @@ modules["dropdowns/editor/zoom"] = {
   css: {
     ".eZoomHolder": `display: flex; justify-content: center; align-items: center`,
     ".eZoomButton": `position: relative; display: flex; width: 22px; height: 22px; margin: 3px; outline: solid 3px var(--secondary); justify-content: center; align-items: center; border-radius: 14px; color: var(--theme); font-size: 24px; font-weight: 600; line-height: 0`,
-    ".eZoomLevel": `display: flex; padding: 3px; margin: 12px; outline: solid 3px var(--secondary); justify-content: center; align-items: center; border-radius: 19px; color: var(--theme); font-size: 20px; font-weight: 600`,
-    ".eZoomLevel div": `max-width: 50px; padding: 3px 6px; margin-right: 3px; border: none; border-radius: 16px; text-align: center; white-space: nowrap; overflow: hidden`,
+    ".eZoomLevel": `display: flex; padding: 3px 6px 3px 3px; margin: 12px; outline: solid 3px var(--secondary); justify-content: center; align-items: center; border-radius: 19px; color: var(--theme); font-size: 20px; font-weight: 600`,
+    ".eZoomLevel div": `max-width: 50px; min-width: 25px; padding: 3px 6px; margin-right: 3px; border: none; border-radius: 16px; text-align: center; white-space: nowrap; overflow: hidden`,
     
     ".eZoomLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`,
     

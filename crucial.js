@@ -160,7 +160,7 @@ async function setFrame(path, frame, extra) {
         subscribes[i].close();
       }
       subscribes = [];
-
+      window.scrollTo(window.scrollX, 0);
       currentPage = path;
       document.title = module.title + " | Markify";
       window.location.hash = "#" + path.substring(path.lastIndexOf("/") + 1);
@@ -313,6 +313,11 @@ function addS(num) {
   return "";
 }
 
+function clipBoardRead(event) {
+  event.preventDefault();
+  document.execCommand('inserttext', false, event.clipboardData.getData("text/plain"));
+}
+
 let localDataStore = {};
 function setLocalStore(key, data) {
   localDataStore[key] = data;
@@ -427,7 +432,9 @@ async function sendRequest(method, path, body, extra) {
         sendData.headers.auth = sendUserID + ";" + token.session;
       }
     }
+    let reqTimeStart = getEpoch();
     let response = await fetch(serverURL + path, sendData);
+    let reqTime = getEpoch() - reqTimeStart;
     let serverTimeMillisGMT = new Date(response.headers.get("Date")).getTime();
     let localMillisUTC = new Date().getTime();
     epochOffset = serverTimeMillisGMT - localMillisUTC;
@@ -451,7 +458,7 @@ async function sendRequest(method, path, body, extra) {
             (await getModule("alert")).open("warning", body.warnings[i]);
           }
         }
-        return [response.status, body];
+        return [response.status, body, { took: reqTime }];
     }
   } catch (err) {
     console.log("FETCH ERROR: " + err);
@@ -530,7 +537,9 @@ async function init() {
   }
 }
 let wasConnected = false;
+let connected = false;
 socket.onopen = async function () {
+  connected = true;
   (await getModule("dropdown")).close();
   await init();
   if (window.location.hash == "") {
@@ -543,7 +552,12 @@ socket.onopen = async function () {
   }
   wasConnected = true;
 };
+let closeCallback;
 socket.onclose = async function () {
+  connected = false;
+  if (closeCallback) {
+    closeCallback();
+  }
   (await getModule("alert")).open("warning", `<b>Lost Connection</b>Lost connection to Markify. Reconnecting...`, { id: "connection", time: "never" });
 };
 

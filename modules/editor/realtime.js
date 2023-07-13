@@ -3,17 +3,14 @@ modules["editor/realtime"] = {
 
   },
   css: {
-    
-  },
-  setShortSub: function(pages) {
-    let filter = { c: "short_" + this.editor.id, p: pages };
-    if (this.shortSub) {
-      this.shortSub.edit(filter);
-    } else {
-      this.shortSub = subscribe(filter, (data) => {
-        console.log(data);
-      });
-    }
+    ".eCursor": `--outlineColor: #fff; --themeColor: var(--theme); position: absolute; display: flex; z-index: 20; transition: 0.3s; pointer-events: all`,
+    ".eCursor .pointer": `width: 22px; height: 22px; background: var(--themeColor); outline: solid 3px var(--outlineColor); overflow: hidden; border-radius: 6px 14px 14px 14px; box-shadow: 0 0 6px rgb(0 0 0 / 50%); transition: 0.3s`,
+    ".eCursor [name]": `box-sizing: border-box; display: flex; width: fit-content; height: 100%; padding: 0px 6px; border-radius: 14px; overflow: hidden; opacity: 0; white-space: nowrap; color: #fff; font-size: 14px; font-weight: 700; white-space: nowrap; align-items: center; transition: 0.15s`,
+    ".eCursor:hover [color]": `width: var(--fullyExtended)`,
+    ".eCursor:hover [name]": `width: unset; opacity: 1`,
+
+    ".eSelection": `opacity: 0; z-index: 10; transition: .3s`,
+    ".eSelection div": `position: absolute; background: var(--themeColor); opacity: .4; border-radius: 3px`
   },
   js: async function (editor, page) {
     this.editor = editor;
@@ -47,8 +44,18 @@ modules["editor/realtime"] = {
       statusIcon.style.objectPosition = imgPos + "px -4px";
       statusIcon.title = status;
       statusIcon.removeAttribute("disabled");
+
+      let zCursorAction = fixed.querySelector('.eZoomAction[option="cursors"]');
+      if (zCursorAction) {
+        if (editor.realtime.strenth < 3) {
+          zCursorAction.style.opacity = 0.5;
+          zCursorAction.title = "Cursors disabled due to weak connection.";
+        } else {
+          zCursorAction.style.opacity = 1;
+          zCursorAction.title = "Display the cursors of other editors.";
+        }
+      }
     }
-    this.connectUpdate();
 
     // PING / PONG for measuring internet speed:
     let pingFilter = { c: "short_" + this.editor.id, p: editor.session };
@@ -97,5 +104,198 @@ modules["editor/realtime"] = {
       }, timeoutTime);
       socket.publish(pingFilter, pingID, { publishToSelf: true });
     }
+
+    // CURSORS
+    let realtimeHolder = page.querySelector(".eRealtime");
+    let pageHolder = page.querySelector(".ePageHolder");
+    let lastCursorPublish = 0;
+    let lastCursorPage;
+
+    this.findPage = (y) => {
+      for (let i = 0; i < editor.visiblePages.length; i++) {
+        let rect = pageHolder.children[editor.visiblePages[i] - 1].getBoundingClientRect();
+        if (rect.bottom > y) {
+          return editor.visiblePages[i];
+        }
+      }
+      return 0;
+    }
+    this.publishShort = () => {
+      if (editor.realtime.strenth < 3) { // If weak don't send!
+        return;
+      }
+      if (editor.options.cursors == false) {
+        return;
+      }
+      if (lastCursorPublish < getEpoch() - 80) { // One event every 80 ms
+        lastCursorPublish = getEpoch();
+
+        let filter = { c: "short_" + editor.id, p: 0 };
+
+        // Figure out where the cursor is:
+        let sendX = event.x;
+        let sendY = event.y;
+        let pageRect;
+        if (editor.visiblePages) {
+          filter.p = this.findPage(sendY);
+          if (filter.p > 0) {
+            pageRect = pageHolder.children[filter.p - 1].getBoundingClientRect();
+            sendX -= pageRect.left;
+            sendY -= pageRect.top;
+          } else {
+            return;
+          }
+        }
+
+        if (filter.p != (lastCursorPage || filter.p)) {
+          socket.publish({ c: "short_" + editor.id, p: lastCursorPage }, [ editor.sessionID, filter.p ]); // When leaving a page, tell everyone!
+        }
+
+        let scaleZoom = 1 / editor.zoom;
+
+        // [ memberID, page, tool, time, mouseX, mouseY, extra (anno), selection ]
+        let pubData = [ editor.sessionID, filter.p, 0, getEpoch(), Math.floor(sendX * scaleZoom), Math.floor(sendY * scaleZoom)];
+
+        let addTextSelect = [];
+        if (window.getSelection != null) {
+          let select = window.getSelection();
+          if (select.rangeCount > 0) {
+            let range = select.getRangeAt(0);
+            if (range.toString().length > 0 && range.endContainer.parentNode.getAttribute("role") == "presentation") {
+              let selections = range.getClientRects();
+              let alreadyInsert = {};
+              for (let i = 0; i < Math.min(selections.length, 100); i++) {
+                let selRect = selections[i];
+                let checkInsert = (selRect.width * selRect.height) + selRect.left + selRect.top;
+                if (alreadyInsert[checkInsert] != null) {
+                  continue;
+                }
+                let selX = selRect.x;
+                let selY = selRect.y;
+                let page = this.findPage(selY);
+                if (editor.visiblePages && pageHolder.children[page - 1]) {
+                  let selPageRect = pageHolder.children[page - 1].getBoundingClientRect();
+                  selX -= selPageRect.left;
+                  selY -= selPageRect.top;
+                }
+                if (selRect.width > 0 && selRect.height > 0) {
+                  alreadyInsert[checkInsert] = "";
+                  // [ PAGE, WIDTH, HEIGHT, X, Y ]
+                  addTextSelect.push([ page, Math.floor(selRect.width*scaleZoom), Math.floor(selRect.height*scaleZoom), Math.floor(selX * scaleZoom), Math.floor(selY * scaleZoom)]);
+                }
+              }
+            }
+          }
+        }
+        if (addTextSelect.length > 0) {
+          if (pubData[6] == null) {
+            pubData.push(null);
+          }
+          pubData.push(addTextSelect);
+        }
+
+        // PUBLISH the event:
+        socket.publish(filter, pubData);
+        lastCursorPage = filter.p;
+      }
+    }
+    page.addEventListener("mousemove", this.publishShort);
+    page.addEventListener("mousedown", this.publishShort);
+    page.addEventListener("mouseup", this.publishShort);
+
+    this.setShortSub = (pages) => {
+      let filter = { c: "short_" + editor.id, p: pages };
+      if (this.shortSub) {
+        this.shortSub.edit(filter);
+      } else {
+        this.shortSub = subscribe(filter, (data) => {
+          console.log(data);
+          let [ memberID, page, tool, time, x, y, extra, selection ] = data;
+          let member = editor.members[memberID];
+          if (member == null) {
+            return;
+          }
+          if (member.lastShort > time) {
+            return;
+          }
+          member.lastShort == time
+          let cursorHolder = realtimeHolder.querySelector('.eCursor[member="' + memberID + '"]');
+          if (cursorHolder == null) {
+            realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCursor" member="${memberID}"></div>`);
+            cursorHolder = realtimeHolder.querySelector('.eCursor[member="' + memberID + '"]');
+          }
+          if (tool == null) {
+            // Must be for a page leave event:
+            if (editor.visiblePages.includes(page)) {
+              return;
+            }
+            cursorHolder.style.opacity = 0;
+            return;
+          } else {
+            cursorHolder.style.opacity = 1;
+          }
+          if (parseInt(cursorHolder.getAttribute("mode") || -1) != tool) {
+            switch (tool) {
+              case 0: // Normal cursor:
+                cursorHolder.innerHTML = `<div class="pointer" color><div name></div></div>`;
+            }
+            cursorHolder.querySelector("[name]").textContent = member.name;
+            cursorHolder.style.setProperty("--themeColor", member.color);
+            let colorMain = cursorHolder.querySelector("[color]");
+            colorMain.style.width = "fit-content";
+            cursorHolder.style.setProperty( "--fullyExtended", cursorHolder.clientWidth + "px");
+            colorMain.style.removeProperty("width");
+            cursorHolder.setAttribute("mode", tool);
+          }
+          // Set x and y:
+          x = x * editor.zoom;
+          y = y * editor.zoom;
+          if (page > 0) {
+            let pageRect = pageHolder.children[page - 1].getBoundingClientRect();
+            x += pageRect.left;
+            y += pageRect.top;
+          }
+          cursorHolder.style.left = x + window.scrollX + "px";
+          cursorHolder.style.top = y + window.scrollY + "px";
+          // Handle selection:
+          let selectionHolder = realtimeHolder.querySelector('.eSelection[member="' + memberID + '"]:not([old])');
+          if (selection) {
+            if (selectionHolder == null) {
+              realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eSelection" member="${memberID}"></div>`);
+              selectionHolder = realtimeHolder.querySelector('.eSelection[member="' + memberID + '"]:not([old])');
+              selectionHolder.style.setProperty("--themeColor", member.color);
+            }
+            selectionHolder.innerHTML = "";
+            for (let i = 0; i < Math.min(selection.length, 100); i++) {
+              let selectData = selection[i];
+              selectionHolder.insertAdjacentHTML("beforeend", `<div new></div>`);
+              let select = selectionHolder.querySelector('.eSelection div[new]');
+              select.removeAttribute("new");
+              select.style.width = (selectData[1] * editor.zoom) + "px";
+              select.style.height = (selectData[2] * editor.zoom) + "px";
+              let selX = selectData[3] * editor.zoom;
+              let selY = selectData[4] * editor.zoom;
+              if (selectData[0] > 0) {
+                let pageRect = pageHolder.children[selectData[0] - 1].getBoundingClientRect();
+                selX += pageRect.left;
+                selY += pageRect.top;
+              }
+              select.style.left = selX + window.scrollX + "px";
+              select.style.top = selY + window.scrollY + "px";
+            }
+            selectionHolder.style.opacity = 1;
+          } else if (selectionHolder != null) {
+            (async function () {
+              selectionHolder.setAttribute("old", "");
+              selectionHolder.style.opacity = 0;
+              await sleep(300);
+              selectionHolder.remove();
+            })();
+          }
+        });
+      }
+    }
+
+    this.connectUpdate();
   }
 }

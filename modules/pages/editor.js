@@ -6,7 +6,7 @@ modules["pages/editor"] = {
       return false;
     }
   },
-  html: `<div class="eNav">
+  html: `<div class="eMain">
     <div class="eTopHolder">
       <button class="eTopScroll eTopScrollLeft" style="left: 8px"><img src="./images/editor/top/leftarrow.svg"></button>
       <button class="eTopScroll eTopScrollRight" style="right: 8px"><img src="./images/editor/top/rightarrow.svg"></button>
@@ -41,12 +41,14 @@ modules["pages/editor"] = {
       <div class="eCurrentPage"></div>
       <button class="ePageNav" up><img src="./images/editor/bottom/uparrow.svg"></button>
     </div>
+    <div class="eRealtime"></div>
     <div class="eContent">
       <div class="eContentHolder">
         <div class="ePageHolder"></div>
-        </div>
+      </div>
     </div>
-  </div>`,
+  </div>
+  `,
   /*
     <div class="ePage">
       <div class="ePageContent" style="width: 816px; height: 1059px"></div>
@@ -59,15 +61,15 @@ modules["pages/editor"] = {
     </div>
   */
   css: {
-    ".eNav": `position: relative`,
+    ".eMain": `position: relative; pointer-events: none`,
 
     ".eTopHolder": `position: fixed; width: 100%; z-index: 500`,
     ".eTop": `display: flex; box-sizing: border-box; gap: 8px; width: 100%; padding: 8px; overflow-x: auto`,
     ".eTop::-webkit-scrollbar": `display: none`,
-    ".eTopScroll": `position: absolute; display: none; width: 36px; height: 36px; top: 50%; transform: translateY(-50%); background: rgba(180, 218, 253, .75); backdrop-filter: blur(2px); border-radius: 18px; justify-content: center; align-items: center`,
+    ".eTopScroll": `position: absolute; display: flex; width: 36px; height: 36px; top: 50%; transform: translateY(-50%); background: rgba(180, 218, 253, .75); backdrop-filter: blur(2px); opacity: 0; pointer-events: none; border-radius: 18px; justify-content: center; align-items: center`,
     ".eTopScroll img": `width: 22px`,
     ".eTopScroll:active": `transform: translateY(-50%) scale(.85)`,
-    ".eTopSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px`,
+    ".eTopSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; border-radius: 16px`,
     ".eTopMargin": `margin-left: auto`,
 
     ".eLogo": `height: 100%; padding: 0`,
@@ -90,17 +92,19 @@ modules["pages/editor"] = {
     ".eAccount img": `width: 100%; height: 100%; object-fit: cover`,
     ".eLogin": `display: none; padding: 6px 10px; margin: 0 4px; background: var(--secondary); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
 
-    ".eSide": `position: fixed; display: flex; gap: 8px; height: calc(100% - 132px); top: 58px; padding: 8px; z-index: 500; overflow-y: auto`,
+    ".eSide": `position: fixed; display: flex; gap: 8px; height: calc(100% - 132px); top: 58px; padding: 8px; z-index: 500; overflow-y: auto; pointer-events: all`,
     ".eSide::-webkit-scrollbar": `display: none`,
     ".eToolbar": `display: flex; box-sizing: border-box; width: 50px; margin: auto 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px`,
 
-    ".eBottom": `position: fixed; right: 8px; bottom: 8px; display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px; z-index: 500`,
+    ".eBottom": `position: fixed; right: 8px; bottom: 8px; display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px; z-index: 500; pointer-events: all`,
     ".ePageNav": `display: flex; width: 31px; height: 31px; margin: 0 4px; justify-content: center; align-items: center; background: var(--lightGray); border-radius: 16px`,
     ".eCurrentPage": `margin: 0 6px; font-size: 20px`,
 
+    ".eRealtime": `position: absolute; width: 100%; height: 100%; z-index: 100; overflow: hidden`,
+
     ".eContent": `position: relative; display: flex; width: fit-content; min-width: calc(100% - 132px); min-height: calc(100vh - 132px); padding: 66px; justify-content: center; z-index: 0; background: var(--pageColor); background-image: url(./images/editor/background.svg); background-position: center`,
     ".ePageHolder": `width: fit-content; height: fit-content; border-radius: 16px; transform-origin: 0 0`,
-    ".ePage": `position: relative; background: var(--pageColor); pointer-events: none; transition: .5s`,
+    ".ePage": `position: relative; background: var(--pageColor); transition: .5s`,
     ".ePage::after": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: -1; content: ""; box-shadow: 0px 0px 8px 0px var(--shadowColor); border-radius: inherit`,
     ".ePage:first-child": `border-top-left-radius: 16px; border-top-right-radius: 16px`,
     ".ePage:not(:first-child)": `border-top: dashed var(--darkGray) 4px; border-image: url("./images/editor/border.svg") 10 / 1 / 0 space`,
@@ -126,6 +130,9 @@ modules["pages/editor"] = {
       this.members[memSet._id] = memSet;
     }
   },
+  getSelf: async function() {
+    return this.members[this.sessionID];
+  },
   js: async function (page) {
     //loadScript("../libraries/pdfjs/pdf.js");
 
@@ -142,7 +149,7 @@ modules["pages/editor"] = {
     }
 
     setFrame("editor/toolbar", page.querySelector(".eToolbar"));
-    getModule("editor/realtime");
+    //getModule("editor/realtime");
 
     let loginButton = page.querySelector(".eLogin");
     if (userID) {
@@ -184,7 +191,7 @@ modules["pages/editor"] = {
     if (this.active == false) {
       sendBody.active = false;
     }
-    if (this.lesson && this.lesson._id != lessonID) {
+    if (this.lesson && this.lessonID != lessonID) {
       delete this.session;
     }
     let [code, body, extra] = await sendRequest("POST", "lessons/join?lesson=" + lessonID, sendBody, { session: this.session });
@@ -194,12 +201,13 @@ modules["pages/editor"] = {
 
     this.lesson = body.lesson;
 
-    if (extra.took < 1000) {
+    if (extra.took < 5000) {
       this.realtime.strenth = 3;
     } else {
       this.realtime.strenth = 2;
     }
 
+    this.sessionID = body.session._id;
     this.session = body.session._id + ";" + body.session.token;
     tempListeners.push({ type: "interval", interval: setInterval(async () => {
       if (connected) {
@@ -249,18 +257,24 @@ modules["pages/editor"] = {
     function enableScrollTop() {
       if (eTop.scrollWidth > eTop.clientWidth - 1) {
         if (eTop.scrollLeft > 0) {
-          eTopScrollLeft.style.display = "flex";
+          eTopScrollLeft.style.opacity = 1;
+          eTopScrollLeft.style.pointerEvents = "all";
         } else {
-          eTopScrollLeft.style.display = "none";
+          eTopScrollLeft.style.opacity = 0;
+          eTopScrollLeft.style.pointerEvents = "none";
         }
         if (eTop.scrollWidth - eTop.scrollLeft - 1 > eTop.clientWidth) {
-          eTopScrollRight.style.display = "flex";
+          eTopScrollRight.style.opacity = 1;
+          eTopScrollRight.style.pointerEvents = "all";
         } else {
-          eTopScrollRight.style.display = "none";
+          eTopScrollRight.style.opacity = 0;
+          eTopScrollRight.style.pointerEvents = "none";
         }
       } else {
-        eTopScrollLeft.style.display = "none";
-        eTopScrollRight.style.display = "none";
+        eTopScrollLeft.style.opacity = 0;
+        eTopScrollLeft.style.pointerEvents = "none";
+        eTopScrollRight.style.opacity = 0;
+        eTopScrollRight.style.pointerEvents = "none";
       }
     }
     eTopScrollLeft.addEventListener("click", function() {
@@ -278,25 +292,6 @@ modules["pages/editor"] = {
     let content = contentHolder.querySelector(".eContentHolder");
     let pageHolder = content.querySelector(".ePageHolder");
     let bottomHolder = page.querySelector(".eBottom");
-    function inViewport(element, onlyHeight) {
-      let rect = element.getBoundingClientRect();
-      let viewportWidth = window.innerWidth || document.documentElement.clientWidth;
-      let viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-
-      if (onlyHeight != true) {
-        return (
-          rect.right >= 0 &&
-          rect.left <= viewportWidth &&
-          rect.bottom >= 0 &&
-          rect.top <= viewportHeight
-        );
-      } else {
-        return (
-          rect.bottom >= 0 &&
-          rect.top <= viewportHeight
-        );
-      }
-    }
     switch (this.lesson.type) {
       case "standard":
         let pages = getObject(body.pages || [], "_id");
@@ -330,6 +325,9 @@ modules["pages/editor"] = {
           }
         }
         async function loadPage(pageElem) {
+          if (pageElem == null) {
+            return;
+          }
           let pageID = pageElem.getAttribute("pageid");
           let pageData = pages[pageID];
           let canvas;
@@ -340,6 +338,7 @@ modules["pages/editor"] = {
               if (sourceData) {
                 sourceData.pdf.getPage(pageData.page).then(async function(pageRender) {
                   if (pageElem.hasAttribute("loading") == false) {
+                    resolve();
                     return;
                   }
                   let viewport = pageRender.getViewport({ scale: 1.5 });
@@ -354,13 +353,11 @@ modules["pages/editor"] = {
                   canvas.height = viewport.height;
                   //canvas.style.width = viewport.width + "px";
                   //canvas.style.height = viewport.height + "px";
-                  
-                  let renderContext = {
+
+                  pageRender.render({
                     canvasContext: context,
                     viewport: viewport
-                  };
-
-                  pageRender.render(renderContext).promise.then(function () {
+                  }).promise.then(function () {
                     resolve();
                   });
 
@@ -447,14 +444,16 @@ modules["pages/editor"] = {
               }
               loading.removeAttribute("new");
               pageElem.setAttribute("loading", "");
-              if (sourceData == null || sourceData.loaded) {
+              if (sourceData == null || sourceData.pdf) {
                 loadPage(pageElem);
               } else if (sourceData.loading != true) {
                 sourceData.loading = true;
 
                 // Load PDFJS
-                await loadScript("../libraries/pdfjs/pdf.js");
-                pdfjsLib.GlobalWorkerOptions.workerSrc = "../libraries/pdfjs/pdf.worker.js";
+                if (window.pdfjsLib == null) {
+                  await loadScript("../libraries/pdfjs/pdf.js");
+                  pdfjsLib.GlobalWorkerOptions.workerSrc = "../libraries/pdfjs/pdf.worker.js";
+                }
 
                 let loadingTask = pdfjsLib.getDocument(assetURL + sourceData.source);
                 loadingTask.promise.then(function(pdf) {
@@ -463,7 +462,6 @@ modules["pages/editor"] = {
                   for (let i = 0; i < loadInPages.length; i++) {
                     loadPage(loadInPages[i]);
                   }
-                  sourceData.loaded = true;
                 });
               }
             }
@@ -566,7 +564,7 @@ modules["pages/editor"] = {
       let prevWidth = pageHolder.clientWidth * this.zoom;
       let prevHeight = pageHolder.clientHeight * this.zoom;
 
-      this.zoom += set;
+      this.zoom = set || this.zoom;
 
       if (this.zoom > 2.5) {
         this.zoom = 2.5;
@@ -578,7 +576,7 @@ modules["pages/editor"] = {
       pageHolder.style.transform = `scale(${this.zoom})`; // translate(${(pageHolder.clientWidth * zoom) / 2}px, ${(pageHolder.clientHeight * zoom) / 2}px)
       //pageHolder.style.margin = `${(pageHolder.clientHeight - (pageHolder.clientHeight * zoom)) / 2}px ${(pageHolder.clientWidth - (pageHolder.clientWidth * zoom)) / 2}px`;
       //pageHolder.style.transformOrigin = mousePositionX + "px " + mousePositionY + "px";
-
+      
       let newWidth = pageHolder.clientWidth * this.zoom;
       let newHeight = pageHolder.clientHeight * this.zoom;
 
@@ -611,9 +609,9 @@ modules["pages/editor"] = {
     let scrollMouseWheel = (event) => {
       if (event.ctrlKey || event.metaKey) {
         if (event.wheelDelta > 0) {
-          this.setZoom(0.1, { x: event.clientX, y: event.clientY });
+          this.setZoom(this.zoom + 0.1, { x: event.clientX, y: event.clientY });
         } else if (event.wheelDelta < 0) {
-          this.setZoom(-0.1, { x: event.clientX, y: event.clientY });
+          this.setZoom(this.zoom - 0.1, { x: event.clientX, y: event.clientY });
         }
         event.preventDefault();
       }
@@ -652,10 +650,10 @@ modules["dropdowns/editor/zoom"] = {
     <button class="eZoomButton buttonAnim" add change=".1">+</button>
   </div>
   <div class="eZoomLine"></div>
-  <button class="eZoomAction" option="cursors"><div label>Cursors</div><div class="eZoomToggle"><div></div></div></button>
-  <button class="eZoomAction" option="comments"><div label>Comments</div><div class="eZoomToggle"><div></div></div></button>
+  <button class="eZoomAction" option="cursors" title="Display the cursors of other editors."><div label>Cursors</div><div class="eZoomToggle"><div></div></div></button>
+  <button class="eZoomAction" option="comments" title="Show comments on the document."><div label>Comments</div><div class="eZoomToggle"><div></div></div></button>
   <div class="eZoomLine"></div>
-  <button class="eZoomAction" option="fullscreen"><div label>Fullscreen</div><div class="eZoomToggle"><div></div></div></button>
+  <button class="eZoomAction" option="fullscreen" title="Fullscreen allows increased accessibility."><div label>Fullscreen</div><div class="eZoomToggle"><div></div></div></button>
   `,
   css: {
     ".eZoomHolder": `display: flex; justify-content: center; align-items: center`,
@@ -698,10 +696,9 @@ modules["dropdowns/editor/zoom"] = {
       }
     }
     function forceSetZoom() {
-      editor.zoom = parseInt(zoomPercentage.textContent) / 100;
-      editor.setZoom();
+      editor.setZoom(parseInt(zoomPercentage.textContent) / 100);
     }
-    zoomPercentage.addEventListener("keydown", function (event) {
+    zoomPercentage.addEventListener("keydown", (event) => {
       let textBox = event.target.closest("div");
       if (textBox == null) {
         return;
@@ -722,7 +719,7 @@ modules["dropdowns/editor/zoom"] = {
         }
       }
     });
-    zoomPercentage.addEventListener("focusout", function (event) {
+    zoomPercentage.addEventListener("focusout", (event) => {
       let textBox = event.target.closest("div");
       if (textBox == null) {
         return;
@@ -737,7 +734,12 @@ modules["dropdowns/editor/zoom"] = {
       }
       forceSetZoom();
     });
-    frame.addEventListener("click", function(event) {
+    if (editor.realtime.strenth < 3) {
+      let zoomAction = fixed.querySelector('.eZoomAction[option="cursors"]');
+      zoomAction.style.opacity = 0.5;
+      zoomAction.title = "Cursors disabled due to weak connection.";
+    }
+    frame.addEventListener("click", (event) => {
       let element = event.target;
       if (element == null) {
         return;
@@ -749,7 +751,7 @@ modules["dropdowns/editor/zoom"] = {
       }
       let zoomChange = element.closest(".eZoomButton");
       if (zoomChange) {
-        editor.setZoom(parseFloat(zoomChange.getAttribute("change")));
+        editor.setZoom(editor.zoom + parseFloat(zoomChange.getAttribute("change")));
         return;
       }
       let toggle = element.closest(".eZoomAction");

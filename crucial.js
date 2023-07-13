@@ -154,6 +154,7 @@ async function setFrame(path, frame, extra) {
     frameContent.removeAttribute("new");
     if (frameSet == app) {
       //frameContent.style.position = "absolute";
+      (await getModule("dropdown")).close();
       frameContent.style.width = "100%";
       removeTempListeners();
       for (let i = 0; i < subscribes.length; i++) {
@@ -254,6 +255,10 @@ function getObject(arr, field) {
   return returnObj;
 }
 
+function cleanString(str) {
+  return str.replace(/\>/g, "&#62;").replace(/\</g, "&#60;");
+}
+
 function timeSince(time, long) {
   let calcTimestamp = Math.floor((Date.now() - time) / 1000);
   if (calcTimestamp < 1) {
@@ -316,6 +321,26 @@ function addS(num) {
 function clipBoardRead(event) {
   event.preventDefault();
   document.execCommand('inserttext', false, event.clipboardData.getData("text/plain"));
+}
+
+function inViewport(element, onlyHeight) {
+  let rect = element.getBoundingClientRect();
+  let viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+  let viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+
+  if (onlyHeight != true) {
+    return (
+      rect.right >= 0 &&
+      rect.left <= viewportWidth &&
+      rect.bottom >= 0 &&
+      rect.top <= viewportHeight
+    );
+  } else {
+    return (
+      rect.bottom >= 0 &&
+      rect.top <= viewportHeight
+    );
+  }
 }
 
 let localDataStore = {};

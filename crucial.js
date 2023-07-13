@@ -45,11 +45,13 @@ function removeTempListeners() {
 }
 
 function subscribe(filter, callback, config) {
+  /*
   for (let i = 0; i < socket.operations.length; i++) {
     if (socket.operations[i][2] == callback) {
       return;
     }
   }
+  */
   let sub = socket.subscribe(filter, callback, config);
   subscribes.push(sub);
   return sub;
@@ -343,6 +345,21 @@ function inViewport(element, onlyHeight) {
   }
 }
 
+let mouseDown = 0;
+let mouseEvent;
+window.onmousedown = (e) => {
+  mouseDown++;
+  if (mouseEvent) {
+    mouseEvent(e);
+  }
+}
+window.onmouseup = (e) => {
+  mouseDown--;
+  if (mouseEvent) {
+    mouseEvent(e);
+  }
+}
+
 let localDataStore = {};
 function setLocalStore(key, data) {
   localDataStore[key] = data;
@@ -568,9 +585,9 @@ socket.onopen = async function () {
   (await getModule("dropdown")).close();
   await init();
   if (window.location.hash == "") {
-    setFrame("pages/dashboard");
+    setFrame("pages/dashboard", null, { unsub: false });
   } else {
-    setFrame("pages/" + window.location.hash.substring(1));
+    setFrame("pages/" + window.location.hash.substring(1), null, { unsub: false });
   }
   if (wasConnected == true) {
     (await getModule("alert")).open("worked", `<b>Connected</b>Reconnected to Markify`, { id: "connection" });

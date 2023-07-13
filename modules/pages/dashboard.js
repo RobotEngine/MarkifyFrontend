@@ -339,7 +339,7 @@ modules["pages/dashboard/lessons"] = {
       frame.insertAdjacentHTML("beforeend", `<div class="dNoLessons">You have no lessons, start the learning above!</div>`);
     }
 
-    let dashSubscribe;
+    this.dashSubscribe = null;
     function updateDashSub() {
       let visibleTiles = frame.querySelectorAll(".dTile");
       let tileIDs = {};
@@ -347,8 +347,8 @@ modules["pages/dashboard/lessons"] = {
         tileIDs[visibleTiles[i].getAttribute("lesson")] = "";
       }
       let filter = { type: "lesson", id: Object.keys(tileIDs), _id: userID };
-      if (dashSubscribe) {
-        dashSubscribe.edit(filter);
+      if (this.dashSubscribe) {
+        this.dashSubscribe.edit(filter);
       } else {
         subscribe(filter, function(data) {
           let body = data.data || data.body;

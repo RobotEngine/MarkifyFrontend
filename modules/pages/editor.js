@@ -41,8 +41,8 @@ modules["pages/editor"] = {
       <div class="eCurrentPage"></div>
       <button class="ePageNav" up><img src="./images/editor/bottom/uparrow.svg"></button>
     </div>
-    <div class="eRealtime"></div>
     <div class="eContent">
+      <div class="eRealtime"></div>
       <div class="eContentHolder">
         <div class="ePageHolder"></div>
       </div>
@@ -92,15 +92,13 @@ modules["pages/editor"] = {
     ".eAccount img": `width: 100%; height: 100%; object-fit: cover`,
     ".eLogin": `display: none; padding: 6px 10px; margin: 0 4px; background: var(--secondary); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
 
-    ".eSide": `position: fixed; display: flex; gap: 8px; height: calc(100% - 132px); top: 58px; padding: 8px; z-index: 500; overflow-y: auto; pointer-events: all`,
+    ".eSide": `position: fixed; display: flex; gap: 8px; height: calc(100% - 132px); top: 58px; padding: 8px; z-index: 500; overflow-y: auto`,
     ".eSide::-webkit-scrollbar": `display: none`,
-    ".eToolbar": `display: flex; box-sizing: border-box; width: 50px; margin: auto 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px`,
+    ".eToolbar": `display: flex; box-sizing: border-box; width: 50px; margin: auto 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px; pointer-events: all`,
 
     ".eBottom": `position: fixed; right: 8px; bottom: 8px; display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px; z-index: 500; pointer-events: all`,
     ".ePageNav": `display: flex; width: 31px; height: 31px; margin: 0 4px; justify-content: center; align-items: center; background: var(--lightGray); border-radius: 16px`,
     ".eCurrentPage": `margin: 0 6px; font-size: 20px`,
-
-    ".eRealtime": `position: absolute; width: 100%; height: 100%; z-index: 100; overflow: hidden`,
 
     ".eContent": `position: relative; display: flex; width: fit-content; min-width: calc(100% - 132px); min-height: calc(100vh - 132px); padding: 66px; justify-content: center; z-index: 0; background: var(--pageColor); background-image: url(./images/editor/background.svg); background-position: center`,
     ".ePageHolder": `width: fit-content; height: fit-content; border-radius: 16px; transform-origin: 0 0`,
@@ -112,7 +110,9 @@ modules["pages/editor"] = {
     ".ePageContent": "width: 100%; height: 100%; background: var(--pageColor); opacity: 0; border-radius: inherit",
     ".ePageTextHolder": "--scale-factor: 1; position: absolute; left: 0; top: 0; font-family: sans-serif",
     ".ePageTextHolder span": "position: absolute; color: transparent; pointer-events: all",
-    ".ePageTextHolder br": `user-select: none`
+    ".ePageTextHolder br": `user-select: none`,
+
+    ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 100; overflow: hidden`
   },
   options: {
     cursors: true,
@@ -137,6 +137,8 @@ modules["pages/editor"] = {
     //loadScript("../libraries/pdfjs/pdf.js");
 
     page.style.removeProperty("display");
+    page.style.width = "fit-content";
+    page.style.minWidth = "100%";
 
     if (connected) {
       this.realtime.strenth = 1;
@@ -201,7 +203,7 @@ modules["pages/editor"] = {
 
     this.lesson = body.lesson;
 
-    if (extra.took < 5000) {
+    if (extra.took < 2500) {
       this.realtime.strenth = 3;
     } else {
       this.realtime.strenth = 2;

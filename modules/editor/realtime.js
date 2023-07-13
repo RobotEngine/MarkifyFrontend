@@ -3,14 +3,15 @@ modules["editor/realtime"] = {
 
   },
   css: {
-    ".eCursor": `--outlineColor: #fff; --themeColor: var(--theme); position: absolute; display: flex; z-index: 20; transition: 0.3s; pointer-events: all`,
-    ".eCursor .pointer": `width: 22px; height: 22px; background: var(--themeColor); outline: solid 3px var(--outlineColor); overflow: hidden; border-radius: 6px 14px 14px 14px; box-shadow: 0 0 6px rgb(0 0 0 / 50%); transition: 0.3s`,
-    ".eCursor [name]": `box-sizing: border-box; display: flex; width: fit-content; height: 100%; padding: 0px 6px; border-radius: 14px; overflow: hidden; opacity: 0; white-space: nowrap; color: #fff; font-size: 14px; font-weight: 700; white-space: nowrap; align-items: center; transition: 0.15s`,
+    ".eCursor": `--backgroundColor: var(--themeColor); --borderColor: #fff; --textColor: #fff; position: absolute; display: flex; z-index: 20; transition: 0.3s; pointer-events: all; transform-origin: top left`,
+    ".eCursor[pressed]": `--backgroundColor: #fff; --borderColor: var(--themeColor); --textColor: #000; transform: scale(.9)`,
+    ".eCursor .pointer": `width: 20px; height: 20px; background: var(--backgroundColor); border: solid 3px var(--borderColor); overflow: hidden; border-radius: 6px 14px 14px 14px; box-shadow: 0 0 6px rgb(0 0 0 / 50%); transition: 0.3s`,
+    ".eCursor [name]": `box-sizing: border-box; display: flex; width: fit-content; height: 100%; padding: 0px 6px; border-radius: 14px; overflow: hidden; opacity: 0; white-space: nowrap; color: var(--textColor); font-size: 14px; font-weight: 700; white-space: nowrap; align-items: center; transition: 0.15s`,
     ".eCursor:hover [color]": `width: var(--fullyExtended)`,
     ".eCursor:hover [name]": `width: unset; opacity: 1`,
 
     ".eSelection": `opacity: 0; z-index: 10; transition: .3s`,
-    ".eSelection div": `position: absolute; background: var(--themeColor); opacity: .4; border-radius: 3px`
+    ".eSelection div": `position: absolute; background: var(--themeColor); opacity: .4; border-radius: 4px`
   },
   js: async function (editor, page) {
     this.editor = editor;
@@ -30,12 +31,10 @@ modules["editor/realtime"] = {
         case 3: // Full Connection:
           imgPos = -60;
           status = "Strong Connection | All features seamlessly synced to the cloud.";
-          this.setShortSub(editor.visiblePages);
           break;
         case 2: // Weak Connection
           imgPos = -30;
           status = "Weak Connection | Cloud-saved annotations, limited real-time features.";
-          this.setShortSub(null);
           break;
         case 1: // No Connection
           imgPos = 0;
@@ -44,6 +43,8 @@ modules["editor/realtime"] = {
       statusIcon.style.objectPosition = imgPos + "px -4px";
       statusIcon.title = status;
       statusIcon.removeAttribute("disabled");
+
+      this.setShortSub(editor.visiblePages);
 
       let zCursorAction = fixed.querySelector('.eZoomAction[option="cursors"]');
       if (zCursorAction) {
@@ -109,6 +110,7 @@ modules["editor/realtime"] = {
     let realtimeHolder = page.querySelector(".eRealtime");
     let pageHolder = page.querySelector(".ePageHolder");
     let lastCursorPublish = 0;
+    let lastCursorContent = "";
     let lastCursorPage;
 
     this.findPage = (y) => {
@@ -120,7 +122,7 @@ modules["editor/realtime"] = {
       }
       return 0;
     }
-    this.publishShort = () => {
+    this.publishShort = (event) => {
       if (editor.realtime.strenth < 3) { // If weak don't send!
         return;
       }
@@ -128,13 +130,11 @@ modules["editor/realtime"] = {
         return;
       }
       if (lastCursorPublish < getEpoch() - 80) { // One event every 80 ms
-        lastCursorPublish = getEpoch();
-
         let filter = { c: "short_" + editor.id, p: 0 };
 
         // Figure out where the cursor is:
-        let sendX = event.x;
-        let sendY = event.y;
+        let sendX = event.x || 0;
+        let sendY = event.y || 0;
         let pageRect;
         if (editor.visiblePages) {
           filter.p = this.findPage(sendY);
@@ -153,8 +153,8 @@ modules["editor/realtime"] = {
 
         let scaleZoom = 1 / editor.zoom;
 
-        // [ memberID, page, tool, time, mouseX, mouseY, extra (anno), selection ]
-        let pubData = [ editor.sessionID, filter.p, 0, getEpoch(), Math.floor(sendX * scaleZoom), Math.floor(sendY * scaleZoom)];
+        // [ memberID, page, tool, time, mouseX, mouseY, extra (anno) ]
+        let pubData = [ editor.sessionID, filter.p, 0, 0, Math.floor(sendX * scaleZoom), Math.floor(sendY * scaleZoom)];
 
         let addTextSelect = [];
         if (window.getSelection != null) {
@@ -189,28 +189,46 @@ modules["editor/realtime"] = {
         }
         if (addTextSelect.length > 0) {
           if (pubData[6] == null) {
-            pubData.push(null);
+            pubData.push({});
           }
-          pubData.push(addTextSelect);
+          pubData[6].selection = addTextSelect;
         }
+        if (mouseDown) {
+          if (pubData[6] == null) {
+            pubData.push({});
+          }
+          pubData[6].press = true;
+        }
+        
+        let updJSONContent = JSON.stringify([filter, pubData]);
+        if (updJSONContent == lastCursorContent) {
+          return;
+        }
+        pubData[3] = getEpoch();
 
         // PUBLISH the event:
         socket.publish(filter, pubData);
+        lastCursorPublish = getEpoch();
         lastCursorPage = filter.p;
+        lastCursorContent = updJSONContent;
       }
     }
     page.addEventListener("mousemove", this.publishShort);
-    page.addEventListener("mousedown", this.publishShort);
-    page.addEventListener("mouseup", this.publishShort);
+    mouseEvent = this.publishShort;
+    page.addEventListener("click", this.publishShort);
 
+    this.shortSub = null;
     this.setShortSub = (pages) => {
+      if (editor.realtime.strenth < 3) {
+        pages = null;
+      }
       let filter = { c: "short_" + editor.id, p: pages };
       if (this.shortSub) {
         this.shortSub.edit(filter);
       } else {
         this.shortSub = subscribe(filter, (data) => {
           console.log(data);
-          let [ memberID, page, tool, time, x, y, extra, selection ] = data;
+          let [ memberID, page, tool, time, x, y, extra ] = data;
           let member = editor.members[memberID];
           if (member == null) {
             return;
@@ -229,7 +247,11 @@ modules["editor/realtime"] = {
             if (editor.visiblePages.includes(page)) {
               return;
             }
-            cursorHolder.style.opacity = 0;
+            (async function () {
+              cursorHolder.style.opacity = 0;
+              await sleep(300);
+              cursorHolder.remove();
+            })();
             return;
           } else {
             cursorHolder.style.opacity = 1;
@@ -243,9 +265,14 @@ modules["editor/realtime"] = {
             cursorHolder.style.setProperty("--themeColor", member.color);
             let colorMain = cursorHolder.querySelector("[color]");
             colorMain.style.width = "fit-content";
-            cursorHolder.style.setProperty( "--fullyExtended", cursorHolder.clientWidth + "px");
+            cursorHolder.style.setProperty( "--fullyExtended", (cursorHolder.clientWidth - 6) + "px");
             colorMain.style.removeProperty("width");
             cursorHolder.setAttribute("mode", tool);
+          }
+          if (extra && extra.press) {
+            cursorHolder.setAttribute("pressed", "");
+          } else {
+            cursorHolder.removeAttribute("pressed");
           }
           // Set x and y:
           x = x * editor.zoom;
@@ -259,7 +286,8 @@ modules["editor/realtime"] = {
           cursorHolder.style.top = y + window.scrollY + "px";
           // Handle selection:
           let selectionHolder = realtimeHolder.querySelector('.eSelection[member="' + memberID + '"]:not([old])');
-          if (selection) {
+          if (extra && extra.selection) {
+            let selection = extra.selection;
             if (selectionHolder == null) {
               realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eSelection" member="${memberID}"></div>`);
               selectionHolder = realtimeHolder.querySelector('.eSelection[member="' + memberID + '"]:not([old])');

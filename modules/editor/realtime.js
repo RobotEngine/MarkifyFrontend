@@ -3,7 +3,7 @@ modules["editor/realtime"] = {
 
   },
   css: {
-    ".eCursor": `--backgroundColor: var(--themeColor); --borderColor: #fff; --textColor: #fff; position: absolute; display: flex; z-index: 20; transition: 0.3s; pointer-events: all; transform-origin: top left`,
+    ".eCursor": `--backgroundColor: var(--themeColor); --borderColor: #fff; --textColor: #fff; position: absolute; display: flex; z-index: 20; opacity: 0; transition: .25s; pointer-events: all; transform-origin: top left`,
     ".eCursor[pressed]": `--backgroundColor: #fff; --borderColor: var(--themeColor); --textColor: #000; transform: scale(.9)`,
     ".eCursor .pointer": `width: 20px; height: 20px; background: var(--backgroundColor); border: solid 3px var(--borderColor); overflow: hidden; border-radius: 8px 14px 14px 14px; box-shadow: 0 0 6px rgb(0 0 0 / 50%); transition: 0.3s`,
     ".eCursor [name]": `box-sizing: border-box; display: flex; width: fit-content; height: 100%; padding: 0px 6px; border-radius: 14px; overflow: hidden; opacity: 0; white-space: nowrap; color: var(--textColor); font-size: 14px; font-weight: 700; white-space: nowrap; align-items: center; transition: 0.15s`,
@@ -291,7 +291,22 @@ modules["editor/realtime"] = {
           if (cursorHolder == null) {
             realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCursor" member="${memberID}" scale></div>`);
             cursorHolder = realtimeHolder.querySelector('.eCursor[member="' + memberID + '"]');
+            cursorHolder.offsetHeight;
+            cursorHolder.style.opacity = 1;
           }
+          // Set x and y:
+          cursorHolder.setAttribute("x", x);
+          cursorHolder.setAttribute("y", y);
+          x = x * editor.zoom;
+          y = y * editor.zoom;
+          if (page > 0) {
+            let pageRect = pageHolder.children[page - 1].getBoundingClientRect();
+            cursorHolder.setAttribute("page", page);
+            x += pageRect.left;
+            y += pageRect.top;
+          }
+          cursorHolder.style.left = x + window.scrollX + "px";
+          cursorHolder.style.top = y + window.scrollY + "px";
           if (tool == null) {
             // Must be for a page leave event:
             if (editor.visiblePages.includes(page)) {
@@ -324,19 +339,6 @@ modules["editor/realtime"] = {
           } else {
             cursorHolder.removeAttribute("pressed");
           }
-          // Set x and y:
-          cursorHolder.setAttribute("x", x);
-          cursorHolder.setAttribute("y", y);
-          x = x * editor.zoom;
-          y = y * editor.zoom;
-          if (page > 0) {
-            let pageRect = pageHolder.children[page - 1].getBoundingClientRect();
-            cursorHolder.setAttribute("page", page);
-            x += pageRect.left;
-            y += pageRect.top;
-          }
-          cursorHolder.style.left = x + window.scrollX + "px";
-          cursorHolder.style.top = y + window.scrollY + "px";
           // Handle selection:
           let selectionHolder = realtimeHolder.querySelector('.eSelection[member="' + memberID + '"]:not([old])');
           if (extra && extra.selection) {

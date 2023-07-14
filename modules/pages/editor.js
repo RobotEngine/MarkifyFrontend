@@ -134,6 +134,7 @@ modules["pages/editor"] = {
     return this.members[this.sessionID];
   },
   js: async function (page) {
+    this.page = page;
     //loadScript("../libraries/pdfjs/pdf.js");
 
     page.style.removeProperty("display");
@@ -522,6 +523,9 @@ modules["pages/editor"] = {
             scrollSubTimeout = setTimeout(() => {
               this.realtime.module.setShortSub(this.visiblePages);
             }, 750);
+            if (this.scrollEvent) {
+              this.scrollEvent();
+            }
           }
           bottomHolder.querySelector(".eCurrentPage b").textContent = currentPage;
           if (currentPage > pageHolder.childElementCount - 1) {
@@ -554,6 +558,10 @@ modules["pages/editor"] = {
         //pageHolder.remove();
         bottomHolder.remove();
     }
+
+    tempListen(window, "resize", () => {
+      this.realtime.module.adjustRealtimeHolder();
+    });
 
     // Zoom
     this.zoom = 1;
@@ -607,6 +615,8 @@ modules["pages/editor"] = {
       if (this.updatePages) {
         this.updatePages();
       }
+
+      this.realtime.module.adjustRealtimeHolder();
     }
     let scrollMouseWheel = (event) => {
       if (event.ctrlKey || event.metaKey) {
@@ -766,6 +776,14 @@ modules["dropdowns/editor/zoom"] = {
           toggle.setAttribute("on", "");
           toggle.removeAttribute("off");
           editor.options[toggle.getAttribute("option")] = true;
+        }
+        if (toggle.getAttribute("option") == "cursors") {
+          if (editor.realtime.module) {
+            editor.realtime.module.setShortSub(editor.visiblePages);
+          }
+          if (toggle.hasAttribute("off")) {
+            editor.page.querySelector(".eRealtime").innerHTML = "";
+          }
         }
         if (toggle.getAttribute("option") == "fullscreen") {
           if (toggle.hasAttribute("on")) {

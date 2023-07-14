@@ -5,7 +5,7 @@ modules["editor/realtime"] = {
   css: {
     ".eCursor": `--backgroundColor: var(--themeColor); --borderColor: #fff; --textColor: #fff; position: absolute; display: flex; z-index: 20; transition: 0.3s; pointer-events: all; transform-origin: top left`,
     ".eCursor[pressed]": `--backgroundColor: #fff; --borderColor: var(--themeColor); --textColor: #000; transform: scale(.9)`,
-    ".eCursor .pointer": `width: 20px; height: 20px; background: var(--backgroundColor); border: solid 3px var(--borderColor); overflow: hidden; border-radius: 6px 14px 14px 14px; box-shadow: 0 0 6px rgb(0 0 0 / 50%); transition: 0.3s`,
+    ".eCursor .pointer": `width: 20px; height: 20px; background: var(--backgroundColor); border: solid 3px var(--borderColor); overflow: hidden; border-radius: 8px 14px 14px 14px; box-shadow: 0 0 6px rgb(0 0 0 / 50%); transition: 0.3s`,
     ".eCursor [name]": `box-sizing: border-box; display: flex; width: fit-content; height: 100%; padding: 0px 6px; border-radius: 14px; overflow: hidden; opacity: 0; white-space: nowrap; color: var(--textColor); font-size: 14px; font-weight: 700; white-space: nowrap; align-items: center; transition: 0.15s`,
     ".eCursor:hover [color]": `width: var(--fullyExtended)`,
     ".eCursor:hover [name]": `width: unset; opacity: 1`,
@@ -122,7 +122,13 @@ modules["editor/realtime"] = {
       }
       return 0;
     }
+    let mouseX = 0;
+    let mouseY = 0;
     this.publishShort = (event) => {
+      if (event && event.x) {
+        mouseX = event.x;
+        mouseY = event.y;
+      }
       if (editor.realtime.strenth < 3) { // If weak don't send!
         return;
       }
@@ -133,8 +139,8 @@ modules["editor/realtime"] = {
         let filter = { c: "short_" + editor.id, p: 0 };
 
         // Figure out where the cursor is:
-        let sendX = event.x || 0;
-        let sendY = event.y || 0;
+        let sendX = mouseX;
+        let sendY = mouseY;
         let pageRect;
         if (editor.visiblePages) {
           filter.p = this.findPage(sendY);
@@ -215,11 +221,43 @@ modules["editor/realtime"] = {
     }
     page.addEventListener("mousemove", this.publishShort);
     mouseEvent = this.publishShort;
+    editor.scrollEvent = this.publishShort;
     page.addEventListener("click", this.publishShort);
+
+    this.adjustRealtimeHolder = () => { // Scale realtime elements when zoom or resize:
+      let adjustElements = realtimeHolder.querySelectorAll("[scale]");
+      for (let i = 0; i < adjustElements.length; i++) {
+        let element = adjustElements[i];
+        if (element.hasAttribute("width")) {
+          element.style.width = parseFloat(element.getAttribute("width")) * editor.zoom + "px";
+        }
+        if (element.hasAttribute("height")) {
+          element.style.height = parseFloat(element.getAttribute("height")) * editor.zoom + "px";
+        }
+        let pageRect;
+        if (element.hasAttribute("page")) {
+          pageRect = pageHolder.children[parseInt(element.getAttribute("page")) - 1].getBoundingClientRect();
+        }
+        if (element.hasAttribute("x")) {
+          let x = parseFloat(element.getAttribute("x")) * editor.zoom;
+          if (pageRect) {
+            x += pageRect.left;
+          }
+          element.style.left = x + window.scrollX + "px";
+        }
+        if (element.hasAttribute("y")) {
+          let y = parseFloat(element.getAttribute("y")) * editor.zoom;
+          if (pageRect) {
+            y += pageRect.top;
+          }
+          element.style.top = y + window.scrollY + "px";
+        }
+      }
+    }
 
     this.shortSub = null;
     this.setShortSub = (pages) => {
-      if (editor.realtime.strenth < 3) {
+      if (editor.realtime.strenth < 3 || editor.options.cursors == false) {
         pages = null;
       }
       let filter = { c: "short_" + editor.id, p: pages };
@@ -236,10 +274,22 @@ modules["editor/realtime"] = {
           if (member.lastShort > time) {
             return;
           }
-          member.lastShort == time
+          member.lastShort == time;
+          clearInterval(member.interval);
+          member.interval = setInterval(() => { // Remove member elements if too inactive:
+            let remMemberElem = realtimeHolder.querySelectorAll('[member="' + memberID + '"]');
+            for (let i = 0; i < remMemberElem.length; i++) {
+              let elem = remMemberElem[i];
+              (async function () {
+                elem.style.opacity = 0;
+                await sleep(300);
+                elem.remove();
+              })();
+            }
+          }, 120000); // 2 Minutes
           let cursorHolder = realtimeHolder.querySelector('.eCursor[member="' + memberID + '"]');
           if (cursorHolder == null) {
-            realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCursor" member="${memberID}"></div>`);
+            realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCursor" member="${memberID}" scale></div>`);
             cursorHolder = realtimeHolder.querySelector('.eCursor[member="' + memberID + '"]');
           }
           if (tool == null) {
@@ -275,10 +325,13 @@ modules["editor/realtime"] = {
             cursorHolder.removeAttribute("pressed");
           }
           // Set x and y:
+          cursorHolder.setAttribute("x", x);
+          cursorHolder.setAttribute("y", y);
           x = x * editor.zoom;
           y = y * editor.zoom;
           if (page > 0) {
             let pageRect = pageHolder.children[page - 1].getBoundingClientRect();
+            cursorHolder.setAttribute("page", page);
             x += pageRect.left;
             y += pageRect.top;
           }
@@ -296,15 +349,20 @@ modules["editor/realtime"] = {
             selectionHolder.innerHTML = "";
             for (let i = 0; i < Math.min(selection.length, 100); i++) {
               let selectData = selection[i];
-              selectionHolder.insertAdjacentHTML("beforeend", `<div new></div>`);
+              selectionHolder.insertAdjacentHTML("beforeend", `<div scale new></div>`);
               let select = selectionHolder.querySelector('.eSelection div[new]');
               select.removeAttribute("new");
+              select.setAttribute("width", selectData[1]);
+              select.setAttribute("height", selectData[2]);
+              select.setAttribute("x", selectData[3]);
+              select.setAttribute("y", selectData[4]);
               select.style.width = (selectData[1] * editor.zoom) + "px";
               select.style.height = (selectData[2] * editor.zoom) + "px";
               let selX = selectData[3] * editor.zoom;
               let selY = selectData[4] * editor.zoom;
               if (selectData[0] > 0) {
                 let pageRect = pageHolder.children[selectData[0] - 1].getBoundingClientRect();
+                select.setAttribute("page", selectData[0]);
                 selX += pageRect.left;
                 selY += pageRect.top;
               }

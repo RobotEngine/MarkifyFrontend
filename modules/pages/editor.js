@@ -23,8 +23,8 @@ modules["pages/editor"] = {
           <div class="eStatus">Loading...</div>
         </div>
         <div class="eTopSection eTopMargin">
-          <button class="eMembers" dropdown="dropdowns/account"><span class="eMemberCount">25</span>Members</button>
-          <button class="eShare" dropdown="dropdowns/account">Share</button>
+          <button class="eMembers" dropdown="dropdowns/editor/members" disabled><span class="eMemberCount">25</span>Members</button>
+          <button class="eShare" dropdown="dropdowns/editor/share" disabled>Share</button>
         </div>
         <div class="eTopSection">
           <button class="eZoom" dropdown="dropdowns/editor/zoom"><span class="eZoomBox">100</span>%</button>
@@ -80,7 +80,7 @@ modules["pages/editor"] = {
 
     ".eSaveProgress": `display: flex; width: 31px; height: 31px; padding: 0; align-items: center; overflow: hidden; background: var(--lightGray)`,
     ".eSaveProgress img": `width: 24px`,
-    ".eConnection": `width: 30px; height: 30px; margin: 0 4px; object-fit: cover`,
+    ".eConnection": `width: 30px; height: 30px; margin: 0 4px; object-fit: cover; transition: .3s`,
     ".eStatus": `margin: 0px 4px; color: var(--secondary); font-size: 16px; font-weight: 500`,
 
     ".eMembers": `display: flex; padding: 4px 10px 4px 4px; margin: 0 4px; background: var(--hover); border-radius: 16px; align-items: center; font-size: 16px; font-weight: 600`,
@@ -425,6 +425,9 @@ modules["pages/editor"] = {
             }
             let pageElem = pageHolder.children[pageNum - 1];
             let pageID = pageElem.getAttribute("pageid");
+            if (pageID == null) {
+              return;
+            }
             loadedIn.push(pageID);
             if (pageElem.hasAttribute("loading") == false) {
               let pageData = pages[pageID];
@@ -688,7 +691,7 @@ modules["dropdowns/editor/zoom"] = {
     ".eZoomAction:hover .eZoomToggle": `background: #fff`,
     ".eZoomAction:hover .eZoomToggle div": `background: var(--themeColor)`,
 
-    "body:fullscreen": `overflow: auto !important;`
+    "body:fullscreen": `overflow: auto !important`
   },
   js: async function (frame) {
     let editor = await getModule("pages/editor");

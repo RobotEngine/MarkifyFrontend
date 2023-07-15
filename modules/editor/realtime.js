@@ -18,6 +18,9 @@ modules["editor/realtime"] = {
     editor.realtime.module = this;
     console.log(editor);
 
+    page.querySelector(".eMembers").removeAttribute("disabled");
+    page.querySelector(".eShare").removeAttribute("disabled");
+
     let alert = await getModule("alert");
 
     // Update connectivity:
@@ -385,5 +388,29 @@ modules["editor/realtime"] = {
     }
 
     this.connectUpdate();
+  }
+}
+
+modules["dropdowns/editor/share"] = {
+  html: `
+  <button class="eShareOption" dropdown="dropdowns/editor/zoom" title="Invite members through a pin."><img src="./images/editor/share/pin.svg"><div class="eShareInfo"><div class="eShareTitle">Present with <b>Pin</b></div><div class="eShareDesc">Allow members to join as a viewer through a 6-digit pin code.</div></div></button>
+  <button class="eShareOption" dropdown="dropdowns/account" title="Invite members through a link."><img src="./images/editor/share/link.svg"><div class="eShareInfo"><div class="eShareTitle">Share with <b>Link</b></div><div class="eShareDesc">Allow members to join as a viewer or editor through a sendable link.</div></div></button>
+  <button class="eShareOption" dropdown="dropdowns/editor/zoom" title="Invite members through email."><img src="./images/editor/share/email.svg"><div class="eShareInfo"><div class="eShareTitle">Invite with <b>Email</b></div><div class="eShareDesc">Invite members as a viewer or editor with their email.</div></div></button>
+  `,
+  css: {
+    ".eShareOption": `display: flex; flex-wrap: wrap; padding: 0; border-radius: 8px; justify-content: center; align-items: center; transition: .15s`,
+    ".eShareOption:not(:first-child)": `margin-top: 6px`,
+    ".eShareOption:hover": `background: var(--theme); color: #fff`,
+    ".eShareOption:hover img": `filter: brightness(0) invert(1)`,
+    ".eShareOption:hover b": `color: #fff`,
+    ".eShareOption:active": `transform: scale(.95)`,
+    ".eShareOption img": `height: 32px; margin: 6px; transition: .15s`,
+    ".eShareOption .eShareInfo": `margin: 6px; text-align: left`,
+    ".eShareOption .eShareTitle": `font-size: 18px; font-weight: 600`,
+    ".eShareOption b": `color: var(--theme); font-weight: 800; transition: .15s`,
+    ".eShareOption .eShareDesc": `max-width: 250px; font-size: 14px`
+  },
+  js: async function (frame) {
+    //let editor = await getModule("pages/editor");
   }
 }

@@ -37,7 +37,7 @@ modules["pages/dashboard"] = {
     ".dAccount img": `float: left; width: 32px; height: 32px; margin-right: 6px; object-fit: cover; background: #fff; border-radius: 22px`,
     ".dAccount div": `float: right; max-width: calc(100% - 38px); height: 100%; line-height: 32px; font-size: 18px; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
 
-    ".dHeader": `position: relative; width: 100%; margin-bottom: 25px`,
+    ".dHeader": `position: relative; width: 100%; margin-bottom: 25px; overflow: hidden`,
     ".dHeaderSection": `position: relative; display: flex; flex-wrap: wrap; padding: 20px 8px 20px 0; margin-left: 5%; align-items: center; z-index: 2`,
     ".dHeaderTx": `overflow: hidden; font-size: 30px; font-weight: 700`,
     ".dHeaderTxAnimHolder": `position: relative; margin-left: 8px`,
@@ -56,7 +56,6 @@ modules["pages/dashboard"] = {
   js: async function (page) {
     page.style.display = "flex";
     page.style.justifyContent = "center";
-    page.style.overflowX = "hidden";
     
     if (account.image) {
       page.querySelector(".dAccount img").src = account.image;
@@ -227,33 +226,33 @@ modules["dropdowns/new/lesson"] = {
 modules["pages/dashboard/lessons"] = {
   loading: true,
   html: `
-  <div class="dSection" recent>
+  <div class="dSection" section="recent">
     <div class="dSectionTop">
       <div>Recent Lessons</div>
-      <button class="buttonAnim">View More<img src="./images/tooltips/drop.svg"></button>
+      <button class="dSectionLoadMore buttonAnim"><span>View More</span><img src="./images/tooltips/drop.svg"></button>
     </div>
-    <div class="dSectionTiles"></div>
+    <div class="dSectionTiles" default="10"></div>
   </div>
-  <div class="dSection" shared>
+  <div class="dSection" section="shared">
     <div class="dSectionTop">
       <div>Shared Lessons</div>
-      <button class="buttonAnim">View More<img src="./images/tooltips/drop.svg"></button>
+      <button class="dSectionLoadMore buttonAnim"><span>View More</span><img src="./images/tooltips/drop.svg"></button>
     </div>
-    <div class="dSectionTiles"></div>
+    <div class="dSectionTiles" default="5"></div>
   </div>
-  <div class="dSection" mine>
+  <div class="dSection" section="mine">
     <div class="dSectionTop">
       <div>My Lessons</div>
-      <button class="buttonAnim">View More<img src="./images/tooltips/drop.svg"></button>
+      <button class="dSectionLoadMore buttonAnim"><span>View More</span><img src="./images/tooltips/drop.svg"></button>
     </div>
-    <div class="dSectionTiles"></div>
+    <div class="dSectionTiles" default="5"></div>
   </div>
-  <div class="dSection" newest>
+  <div class="dSection" section="newest">
     <div class="dSectionTop">
       <div>Newest Lessons</div>
-      <button class="buttonAnim">View More<img src="./images/tooltips/drop.svg"></button>
+      <button class="dSectionLoadMore buttonAnim"><span>View More</span><img src="./images/tooltips/drop.svg"></button>
     </div>
-    <div class="dSectionTiles"></div>
+    <div class="dSectionTiles" default="5"></div>
   </div>
   `,
   css: {
@@ -262,7 +261,9 @@ modules["pages/dashboard/lessons"] = {
     ".dSectionTop": `position: sticky; box-sizing: border-box; display: flex; width: 100%; top: 0px; padding: 16px; align-items: center; background: rgba(var(--background), .7); backdrop-filter: blur(4px); z-index: 1`,
     ".dSectionTop div": `flex: 1; font-size: 30px; font-weight: 600; text-align: left; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
     ".dSectionTop button": `display: flex; padding: 8px; overflow: hidden; align-items: center; border-radius: 22px; font-size: 18px; font-weight: 600`,
-    ".dSectionTop img": `width: 22px; margin-left: 6px`,
+    ".dSectionTop img": `width: 22px; margin-left: 6px; transform: rotate(0deg); transition: .2s`,
+    ".dSectionContinueLoad": `overflow: hidden; border-radius: 22px; color: var(--theme); font-size: 18px; font-weight: 700`,
+    ".dSectionLoad": `padding: 8px 12px; margin-top: 28px`,
     ".dSectionTiles": "display: flex; flex-wrap: wrap; min-height: 200px; justify-content: center; align-items: center",
     ".dTile": `position: relative; width: calc(20% - 52px); min-width: min(148px, calc(100% - 52px)); height: 200px; margin: 12px; overflow: hidden; border-radius: 12px`,
     ".dTileDocImage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; object-position: top center`,
@@ -298,6 +299,7 @@ modules["pages/dashboard/lessons"] = {
       let tile = tileHolder.querySelector(".dTile[new]");
       tile.removeAttribute("new");
       tile.setAttribute("lesson", lessonRec.lesson);
+      tile.setAttribute("time", lessonRec.opened || lessonRec.created || lessonRec.added);
       tile.href = "?lesson=" + lessonRec.lesson + "#editor";
       if (lesson.type == "freeboard") {
         tile.style.setProperty("--themeColor", "var(--purple)");
@@ -315,9 +317,10 @@ modules["pages/dashboard/lessons"] = {
       }
       tile.querySelector(".dTileMemberCount span").textContent = lesson.members || 0;
     }
-    function addLessonTiles(type) {
-      let lessonRecs = body[type];
-      let tileSection = frame.querySelector(".dSection[" + type + "]");
+    function addLessonTiles(type, data) {
+      data = data || body;
+      let lessonRecs = data[type];
+      let tileSection = frame.querySelector('.dSection[section="' + type + '"]');
       let tileHolder = tileSection.querySelector(".dSectionTiles");
       if (lessonRecs == null || lessonRecs.length < 1) {
         tileSection.style.display = "none";
@@ -362,7 +365,7 @@ modules["pages/dashboard/lessons"] = {
               }
               if (body.user == userID) {
                 if (updTiles.length > 0) {
-                  let tile = frame.querySelector(".dSection[recent]").querySelector('.dTile[lesson="' + body.lesson + '"]');
+                  let tile = frame.querySelector('.dSection[section="recent"]').querySelector('.dTile[lesson="' + body.lesson + '"]');
                   tile.querySelector(".dTileDate").textContent = timeSince(body.joined);
                   tile.querySelector(".dTileDate").title = formatFullDate(body.joined);
                   if (tile && tile.parentElement.firstChild) {
@@ -388,7 +391,7 @@ modules["pages/dashboard/lessons"] = {
               }
               if (updTiles.length < 1) {
                 for (let i = 0; i < body.sections.length; i++) {
-                  let tileSection = frame.querySelector(".dSection[" + body.sections[i] + "]");
+                  let tileSection = frame.querySelector('.dSection[section="' + body.sections[i] + '"]');
                   tileSection.style.removeProperty("display");
                   addTile(tileSection.querySelector(".dSectionTiles"), body.record, body.lesson, true);
                 }
@@ -438,6 +441,7 @@ modules["pages/dashboard/lessons"] = {
     });
     */
 
+    let loadMoreGetAmount = 10;
     frame.addEventListener("click", async function (event) {
       let element = event.target;
       if (element == null) {
@@ -448,6 +452,51 @@ modules["pages/dashboard/lessons"] = {
         event.preventDefault();
         modifyParams("lesson", lessonOpen.getAttribute("lesson"));
         setFrame("pages/editor");
+        return;
+      }
+      let loadMore = element.closest(".dSectionLoadMore, .dSectionContinueLoad");
+      if (loadMore) {
+        let section = loadMore.closest(".dSection");
+        let getSection = section.getAttribute("section");
+        let tileSection = section.querySelector(".dSectionTiles");
+        if (loadMore.hasAttribute("showless") == false) {
+          loadMore.setAttribute("disabled", "");
+          let [code, body] = await sendRequest("GET", "lessons?section=" + getSection + "&before=" + tileSection.lastChild.getAttribute("time") + "&amount=" + loadMoreGetAmount);
+          if (code != 200) {
+            return;
+          }
+          if (body[getSection].length > 0) {
+            lessons = { ...lessons, ...getObject(body.lessons, "_id") };
+            addLessonTiles(getSection, body);
+            if (section.querySelector(".dSectionContinueLoad") == null) {
+              section.insertAdjacentHTML("beforeend", `<button class="dSectionContinueLoad dSectionLoad buttonAnim">Show More</button>`);
+            }
+            loadMore.removeAttribute("disabled");
+            if (loadMore.classList[0] == "dSectionLoadMore") {
+              loadMore.setAttribute("showless", "");
+              loadMore.querySelector("span").textContent = "Show Less";
+              loadMore.querySelector("img").style.transform = "rotate(-180deg)";
+            }
+          }
+          if (body[getSection].length < loadMoreGetAmount) {
+            if (section.querySelector(".dSectionContinueLoad")) {
+              section.querySelector(".dSectionContinueLoad").remove();
+            }
+            section.insertAdjacentHTML("beforeend", `<div class="dSectionLoad">That's all of your lessons! Make a new one above.</div>`);
+          }
+        } else {
+          for (let i = parseInt(tileSection.getAttribute("default")); i < tileSection.children.length; i++) {
+            tileSection.children[i].remove();
+            i--;
+          }
+          if (section.querySelector(".dSectionLoad")) {
+            section.querySelector(".dSectionLoad").remove();
+          }
+          loadMore.removeAttribute("showless");
+          loadMore.querySelector("span").textContent = "Show More";
+          loadMore.querySelector("img").style.transform = "rotate(0deg)";
+        }
+        updateDashSub();
         return;
       }
     });

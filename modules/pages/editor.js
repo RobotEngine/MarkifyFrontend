@@ -290,6 +290,8 @@ modules["pages/editor"] = {
     tempListen(window, "resize", enableScrollTop);
     eTop.addEventListener("scroll", enableScrollTop);
 
+    this.visiblePages = [];
+
     // EDITOR
     let contentHolder = page.querySelector(".eContent");
     let content = contentHolder.querySelector(".eContentHolder");
@@ -303,7 +305,6 @@ modules["pages/editor"] = {
         //await loadScript("../libraries/pdfjs/pdf.js");
         //pdfjsLib.GlobalWorkerOptions.workerSrc = "../libraries/pdfjs/pdf.worker.js";
 
-        this.visiblePages = [];
         let currentPage = 1;
 
         bottomHolder.querySelector(".eCurrentPage").innerHTML = '<b>1</b> / ' + body.pages.length;

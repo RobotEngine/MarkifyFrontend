@@ -118,7 +118,11 @@ modules["editor/realtime"] = {
 
     this.findPage = (y) => {
       for (let i = 0; i < editor.visiblePages.length; i++) {
-        let rect = pageHolder.children[editor.visiblePages[i] - 1].getBoundingClientRect();
+        let pageElem = pageHolder.children[editor.visiblePages[i] - 1];
+        if (pageElem == null) {
+          continue;
+        }
+        let rect = pageElem.getBoundingClientRect();
         if (rect.bottom > y) {
           return editor.visiblePages[i];
         }
@@ -139,7 +143,7 @@ modules["editor/realtime"] = {
         return;
       }
       if (lastCursorPublish < getEpoch() - 80) { // One event every 80 ms
-        let filter = { c: "short_" + editor.id, p: 0 };
+        let filter = { c: "short_" + editor.id };
 
         // Figure out where the cursor is:
         let sendX = mouseX;
@@ -151,8 +155,6 @@ modules["editor/realtime"] = {
             pageRect = pageHolder.children[filter.p - 1].getBoundingClientRect();
             sendX -= pageRect.left;
             sendY -= pageRect.top;
-          } else {
-            return;
           }
         }
 
@@ -202,7 +204,7 @@ modules["editor/realtime"] = {
           }
           pubData[6].selection = addTextSelect;
         }
-        if (mouseDown) {
+        if (mouseDown()) {
           if (pubData[6] == null) {
             pubData.push({});
           }
@@ -262,6 +264,9 @@ modules["editor/realtime"] = {
     this.setShortSub = (pages) => {
       if (editor.realtime.strenth < 3 || editor.options.cursors == false) {
         pages = null;
+      }
+      if (pages != null && pages.length < 1) {
+        pages.push(0);
       }
       let filter = { c: "short_" + editor.id, p: pages };
       if (this.shortSub) {
@@ -403,7 +408,7 @@ modules["dropdowns/editor/share"] = {
     ".eShareOption:hover": `background: var(--theme); color: #fff`,
     ".eShareOption:hover img": `filter: brightness(0) invert(1)`,
     ".eShareOption:hover b": `color: #fff`,
-    ".eShareOption:active": `transform: scale(.95)`,
+    ".eShareOption:active": `transform: scale(.95); border-radius: 14px`,
     ".eShareOption img": `height: 32px; margin: 6px; transition: .15s`,
     ".eShareOption .eShareInfo": `margin: 6px; text-align: left`,
     ".eShareOption .eShareTitle": `font-size: 18px; font-weight: 600`,

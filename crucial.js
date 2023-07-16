@@ -345,6 +345,7 @@ function inViewport(element, onlyHeight) {
   }
 }
 
+/*
 let mouseDown = 0;
 let mouseEvent;
 window.onmousedown = (e) => {
@@ -358,6 +359,10 @@ window.onmouseup = (e) => {
   if (mouseEvent) {
     mouseEvent(e);
   }
+}
+*/
+function mouseDown() {
+  return body.matches(":active");
 }
 
 let localDataStore = {};

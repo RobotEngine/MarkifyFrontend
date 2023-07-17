@@ -320,6 +320,13 @@ function addS(num) {
   return "";
 }
 
+function copyClipboardText(text, type) {
+  navigator.clipboard.writeText(text).then(async () => {
+    (await getModule("alert")).open("worked", `<b>Copied to Clipboard</b>The ${type || "text"} was copied to your clipboard.`);
+  }, function(err) {
+    console.error('Async: Could not copy text: ', err);
+  });
+}
 function clipBoardRead(event) {
   event.preventDefault();
   document.execCommand('inserttext', false, event.clipboardData.getData("text/plain"));
@@ -624,7 +631,7 @@ modules["dropdown"] = {
     ".dropdownTitle img": `width: 26px; height: 26px; object-fit: cover; border-radius: 13px`
   },
   setResizeLoop: function (dropdown, content, header, button) {
-    return setInterval(function () {
+    return setInterval(() => {
       content.style.top = header.offsetHeight + "px";
       content.style.maxWidth = window.innerWidth - 32 + "px";
       content.style.maxHeight = window.innerHeight - header.offsetHeight - 16 + "px";
@@ -638,9 +645,13 @@ modules["dropdown"] = {
         dropdown.style.height = button.offsetHeight + "px";
       }
 
-      let buttonRect = button.getBoundingClientRect();
-      dropdown.style.top = buttonRect.top + "px";
-      dropdown.style.left = buttonRect.left + (button.offsetWidth / 2) - (dropdown.offsetWidth / 2) + "px";
+      if (button != null) {
+        let buttonRect = button.getBoundingClientRect();
+        if (buttonRect.top > 0) {
+          dropdown.style.top = buttonRect.top + "px";
+          dropdown.style.left = buttonRect.left + (button.offsetWidth / 2) - (dropdown.offsetWidth / 2) + "px";
+        }
+      }
     }, 1);
   },
   open: async function (button, frameName, extra) {
@@ -654,7 +665,7 @@ modules["dropdown"] = {
       content.removeAttribute("new");
       window.dropdown.content = content;
       let frame = content.querySelector(".dropdownFrame");
-      let setTitleHTML = button.innerHTML;
+      let setTitleHTML = (modules[frameName] || {}).title || button.innerHTML;
       if (button.closest(".dropdownBack") == null) {
         if (button.innerHTML == button.textContent) {
           setTitleHTML = "<div>" + button.innerHTML + "</div>";
@@ -736,8 +747,9 @@ modules["dropdown"] = {
     dropdown.style.width = button.offsetWidth + "px";
     dropdown.style.height = button.offsetHeight + "px";
     frame.style.minHeight = "200px";
-    let setTitleHTML = button.innerHTML;
-    if (button.innerHTML == button.textContent) {
+    let existingTitle = (modules[frameName] || {}).title;
+    let setTitleHTML = existingTitle || button.innerHTML;
+    if (button.innerHTML == button.textContent && existingTitle == null) {
       setTitleHTML = "<div>" + button.innerHTML + "</div>";
     }
     header.querySelector(".dropdownTitle").innerHTML = setTitleHTML;
@@ -822,7 +834,6 @@ modules["alert"] = {
   },
   open: async function (type, message, data) {
     data = data || {};
-    let the = this;
     if (fixed.querySelector(".alertHolder") == null) {
       fixed.insertAdjacentHTML("beforeend", `<div class="fixedItemHolder">
         <div class="alertHolder"></div>
@@ -838,12 +849,12 @@ modules["alert"] = {
     </div>`);
     let alert = fixed.querySelector(".alert[new]");
     alert.removeAttribute("new");
-    (async function () {
+    (async () => {
       if (data.id) {
         (await getModule("alert")).finished("connection");
         alert.setAttribute("alert", data.id + "_ALERT");
       }
-      alert.style.setProperty("--themeColor", the.colors[type]);
+      alert.style.setProperty("--themeColor", this.colors[type]);
       alert.querySelector("img").src = "./images/tooltips/alert/" + type + ".svg";
       alert.querySelector(".alertText").innerHTML = message;
       alert.style.transition = "transform .25s var(--bounce), opacity .25s, padding .25s, margin .25s";
@@ -854,7 +865,7 @@ modules["alert"] = {
       alert.style.opacity = 1;
       if (data.time != "never") {
         await sleep((data.time || 5) * 1000);
-        the.close(alert);
+        this.close(alert);
       } else {
         alert.querySelector(".alertClose").remove();
       }

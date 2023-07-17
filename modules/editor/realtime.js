@@ -23,6 +23,8 @@ modules["editor/realtime"] = {
 
     let alert = await getModule("alert");
 
+    editor.codeTextButton.setAttribute("dropdown", "dropdowns/editor/share/pin");
+
     // Update connectivity:
     let statusIcon = page.querySelector(".eConnection");
     let statusTx = page.querySelector(".eStatus");
@@ -139,9 +141,11 @@ modules["editor/realtime"] = {
       if (editor.realtime.strenth < 3) { // If weak don't send!
         return;
       }
+      /* // Disabled as others should still see your cursor!
       if (editor.options.cursors == false) {
         return;
       }
+      */
       if (lastCursorPublish < getEpoch() - 80) { // One event every 80 ms
         let filter = { c: "short_" + editor.id };
 
@@ -398,7 +402,7 @@ modules["editor/realtime"] = {
 
 modules["dropdowns/editor/share"] = {
   html: `
-  <button class="eShareOption" dropdown="dropdowns/editor/zoom" title="Invite members through a pin."><img src="./images/editor/share/pin.svg"><div class="eShareInfo"><div class="eShareTitle">Present with <b>Pin</b></div><div class="eShareDesc">Allow members to join as a viewer through a 6-digit pin code.</div></div></button>
+  <button class="eShareOption" dropdown="dropdowns/editor/share/pin" title="Invite members through a pin."><img src="./images/editor/share/pin.svg"><div class="eShareInfo"><div class="eShareTitle">Present with <b>Pin</b></div><div class="eShareDesc">Allow members to join as a viewer through a 6-digit pin code.</div></div></button>
   <button class="eShareOption" dropdown="dropdowns/account" title="Invite members through a link."><img src="./images/editor/share/link.svg"><div class="eShareInfo"><div class="eShareTitle">Share with <b>Link</b></div><div class="eShareDesc">Allow members to join as a viewer or editor through a sendable link.</div></div></button>
   <button class="eShareOption" dropdown="dropdowns/editor/zoom" title="Invite members through email."><img src="./images/editor/share/email.svg"><div class="eShareInfo"><div class="eShareTitle">Invite with <b>Email</b></div><div class="eShareDesc">Invite members as a viewer or editor with their email.</div></div></button>
   `,
@@ -417,5 +421,92 @@ modules["dropdowns/editor/share"] = {
   },
   js: async function (frame) {
     //let editor = await getModule("pages/editor");
+  }
+}
+
+modules["dropdowns/editor/share/pin"] = {
+  title: '<div>Present with <b style="color: var(--theme); font-weight: 800">Pin</b></div>',
+  html: `
+  <div class="eSharePinCreate">
+    <button class="largeButton">Generate Pin</button>
+  </div>
+  <div class="eSharePinLink">Join with this <b>pin</b> at <a href="${location.origin}/join" target="_blank">${location.host}/join</a></div>
+  <div class="eSharePinDisplay"><span section left></span><div></div><span section right></span></div>
+  <div class="eSharePinOptions">
+    <button class="eSharePinRemove" title="Invalidate the pin.">Remove</button>
+    <button class="eSharePinCopy" title="Copy the pin code."><img src="./images/tooltips/copy.svg"></button>
+  </div>
+  `,
+  css: {
+    ".eSharePinCreate": "position: absolute; display: flex; width: 100%; height: 100%; justify-content: center; align-items: center; z-index: 1; background: rgba(var(--background), .7); transition: .3s",
+    ".eSharePinCreate button": `background: var(--theme); border-radius: 20.25px; color: #fff`,
+    ".eSharePinLink": "margin-top: 8p; transition: .3s",
+    ".eSharePinLink a": `color: var(--theme); font-weight: 700; text-decoration: none`,
+    ".eSharePinHolder": `display: flex`,
+    ".eSharePinDisplay": `display: flex; flex-wrap: wrap; justify-content: center; align-items: center; color: var(--theme); font-size: 60px; font-weight: 700; letter-width: 8px; transition: .3s`,
+    ".eSharePinDisplay span[section]": `display: block; height: 81px; padding: 0 16px; margin: 10px; border: solid 4px var(--hover); border-radius: 20px; letter-spacing: 10px`,
+    ".eSharePinDisplay div": `width: 12px; height: 12px; background: var(--hover); border-radius: 12px`,
+    ".eSharePinOptions": `display: none; flex-wrap: wrap; width: calc(100% - 16px); margin: 0 8px 8px 8px; justify-content: space-between`,
+    ".eSharePinOptions button": `display: flex; justify-content: center; align-items: center; border-radius: 16px; font-size: 16px; font-weight: 700`,
+    ".eSharePinRemove": `height: 32px; padding: 6px 10px; margin: 4px; background: var(--error); color: #fff`,
+    ".eSharePinCopy": `width: 26px; height: 26px; padding: 0; margin: 7px; outline: solid 3px var(--hover)`,
+    ".eSharePinCopy img": `width: 22px`
+  },
+  js: async function (frame) {
+    let editor = await getModule("pages/editor");
+    let createHolder = frame.querySelector(".eSharePinCreate");
+    let createButton = createHolder.querySelector("button");
+    let pinTx = frame.querySelector(".eSharePinDisplay");
+    editor.updatePin = () => {
+      let currentPin = (editor.lesson.pin || "123456").split("");
+      let left = "";
+      let right = "";
+      for (let i = 0; i < currentPin.length; i++) {
+        let char = currentPin[i];
+        let charHTML = char;
+        if (parseInt(char) < 10) {
+          charHTML = `<span style="color: var(--secondary)">${char}</span>`;
+        }
+        if (i < 3) {
+          left += charHTML;
+        } else {
+          right += charHTML;
+        }
+      }
+      pinTx.querySelector("span[left]").innerHTML = left;
+      pinTx.querySelector("span[right]").innerHTML = right;
+      if (editor.lesson.pin != null) {
+        frame.querySelector(".eSharePinOptions").style.display = "flex";
+        createHolder.style.opacity = 0;
+        createHolder.style.pointerEvents = "none";
+      } else {
+        frame.querySelector(".eSharePinOptions").style.display = "none";
+        createHolder.style.opacity = 1;
+        createHolder.style.pointerEvents = "all";
+      }
+    }
+    editor.updatePin();
+    createButton.addEventListener("click", async () => {
+      createButton.setAttribute("disabled", "");
+      let [code, body] = await sendRequest("PUT", "lessons/share/pin/generate", null, { session: editor.session });
+      if (code == 200) {
+        editor.lesson.pin = body.pin;
+        editor.updatePin();
+      }
+      createButton.removeAttribute("disabled");
+    });
+    let removeButton = frame.querySelector(".eSharePinRemove");
+    removeButton.addEventListener("click", async () => {
+      removeButton.setAttribute("disabled", "");
+      let [code] = await sendRequest("DELETE", "lessons/share/pin/remove", null, { session: editor.session });
+      if (code == 200) {
+        editor.lesson.pin = null;
+        editor.updatePin();
+      }
+      removeButton.removeAttribute("disabled");
+    });
+    frame.querySelector(".eSharePinCopy").addEventListener("click", async () => {
+      copyClipboardText(editor.lesson.pin, "pin");
+    });
   }
 }

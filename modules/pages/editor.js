@@ -25,6 +25,7 @@ modules["pages/editor"] = {
         <div class="eTopSection eTopMargin">
           <button class="eMembers" dropdown="dropdowns/editor/members" disabled><span class="eMemberCount">25</span>Members</button>
           <button class="eShare" dropdown="dropdowns/editor/share" disabled>Share</button>
+          <button class="eSharePin"></button>
         </div>
         <div class="eTopSection">
           <button class="eZoom" dropdown="dropdowns/editor/zoom"><span class="eZoomBox">100</span>%</button>
@@ -86,6 +87,7 @@ modules["pages/editor"] = {
     ".eMembers": `display: flex; padding: 4px 10px 4px 4px; margin: 0 4px; background: var(--hover); border-radius: 16px; align-items: center; font-size: 16px; font-weight: 600`,
     ".eMemberCount": `padding: 2px 6px; margin-right: 5px; background: #fff; border-radius: 12px; color: var(--theme); font-weight: 700`,
     ".eShare": "padding: 6px 10px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600",
+    ".eSharePin": "display: none; padding: 6px 10px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600",
 
     ".eZoom": `padding: 6px 10px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
     ".eAccount": `padding: 0; width: 31px; height: 31px; margin: 0 4px; border-radius: 16px; overflow: hidden`,
@@ -169,6 +171,8 @@ modules["pages/editor"] = {
     let lessonID = getParam("lesson") || "";
     this.id = lessonID;
 
+    this.codeTextButton = page.querySelector(".eSharePin");
+
     socket.remotes["lesson_" + lessonID] = (data) => {
       let body = data.data;
       switch (data.task) {
@@ -187,6 +191,14 @@ modules["pages/editor"] = {
             this.lesson[key] = body[key];
           }
           page.querySelector(".eFileName").textContent = this.lesson.name || "Untitled Lesson";
+          if (body.pin && this.updatePin) {
+            this.updatePin();
+            this.codeTextButton.style.display = "unset";
+            this.codeTextButton.textContent = body.pin;
+          } else {
+            this.codeTextButton.style.display = "none";
+          }
+          enableScrollTop();
     }
     }; // Subscribe before to make sure no members are lost in request time.
 
@@ -203,6 +215,11 @@ modules["pages/editor"] = {
     }
 
     this.lesson = body.lesson;
+
+    if (this.lesson.pin) {
+      this.codeTextButton.style.display = "unset";
+      this.codeTextButton.textContent = this.lesson.pin;
+    }
 
     if (extra.took < 2500) {
       this.realtime.strenth = 3;

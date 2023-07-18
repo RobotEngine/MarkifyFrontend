@@ -434,6 +434,7 @@ modules["dropdowns/editor/share/pin"] = {
   <div class="eSharePinDisplay"><span section left></span><div></div><span section right></span></div>
   <div class="eSharePinOptions">
     <button class="eSharePinRemove" title="Invalidate the pin.">Remove</button>
+    <button class="eSharePinSettings" title="Modify join options.">Options</button>
     <button class="eSharePinCopy" title="Copy the pin code."><img src="./images/tooltips/copy.svg"></button>
   </div>
   `,
@@ -444,11 +445,12 @@ modules["dropdowns/editor/share/pin"] = {
     ".eSharePinLink a": `color: var(--theme); font-weight: 700; text-decoration: none`,
     ".eSharePinHolder": `display: flex`,
     ".eSharePinDisplay": `display: flex; flex-wrap: wrap; justify-content: center; align-items: center; color: var(--theme); font-size: 60px; font-weight: 700; letter-width: 8px; transition: .3s`,
-    ".eSharePinDisplay span[section]": `display: block; height: 81px; padding: 0 16px; margin: 10px; border: solid 4px var(--hover); border-radius: 20px; letter-spacing: 10px`,
+    ".eSharePinDisplay span[section]": `display: block; min-height: 81px; padding: 0 16px; margin: 10px; border: solid 4px var(--hover); border-radius: 20px; letter-spacing: 10px`,
     ".eSharePinDisplay div": `width: 12px; height: 12px; background: var(--hover); border-radius: 12px`,
-    ".eSharePinOptions": `display: none; flex-wrap: wrap; width: calc(100% - 16px); margin: 0 8px 8px 8px; justify-content: space-between`,
+    ".eSharePinOptions": `display: none; flex-wrap: wrap; width: calc(100% - 16px); margin: 0 8px 8px 8px; justify-content: center`,
     ".eSharePinOptions button": `display: flex; justify-content: center; align-items: center; border-radius: 16px; font-size: 16px; font-weight: 700`,
     ".eSharePinRemove": `height: 32px; padding: 6px 10px; margin: 4px; background: var(--error); color: #fff`,
+    ".eSharePinSettings": `height: 32px; padding: 6px 10px; margin: 4px 4px 4px auto; background: var(--hover); color: var(--theme)`,
     ".eSharePinCopy": `width: 26px; height: 26px; padding: 0; margin: 7px; outline: solid 3px var(--hover)`,
     ".eSharePinCopy img": `width: 22px`
   },

@@ -16,7 +16,7 @@ modules["pages/dashboard"] = {
       <div class="dHeaderSection dHeaderTx">Ready to <div class="dHeaderTxAnimHolder"><div class="dHeaderTxAnim"></div><div class="dHeaderUnderline"></div></div></div>
       <div class="dHeaderSection dHeaderActions">
         <button class="dCreateDoc largeButton" dropdown="dropdowns/new/lesson">New Lesson</button>
-        <button class="dJoin largeButton">Join<img src="./images/tooltips/link.svg"></button>
+        <button class="dJoin largeButton" page="join">Join<img src="./images/tooltips/link.svg"></button>
       </div>
       <div class="dBackdrop">
         <img class="dBackdropImage" src="./images/dashboard/background.svg">

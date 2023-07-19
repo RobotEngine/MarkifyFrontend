@@ -800,6 +800,10 @@ body.addEventListener("click", async function (event) {
   } else if (element.closest(".dropdown") == null || element.closest("[close]")) {
     (await getModule("dropdown")).close();
   }
+  let page = element.closest("[page]");
+  if (page) {
+    setFrame("pages/" + page.getAttribute("page"));
+  }
 });
 window.addEventListener("scroll", async function () {
   (await getModule("dropdown")).close();

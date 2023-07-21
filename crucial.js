@@ -1,5 +1,5 @@
-//let serverURL = "https://markify.exotek.co/api/";
-let serverURL = "http://localhost:3000/api/";
+let serverURL = "https://markifydev.exotek.co/api/";
+//let serverURL = "http://localhost:3000/api/";
 let assetURL = "https://markifyapp.s3.amazonaws.com/";
 
 const socket = new SimpleSocket({
@@ -87,29 +87,39 @@ async function getModule(path) {
 let currentlyLoadingFrames = {};
 async function setFrame(path, frame, extra) {
   let frameSet = frame || app;
+  extra = extra || {};
   if (currentlyLoadingFrames[frameSet.className] == "" && extra.override != true) {
-    return;
+    await getModule(path);
   }
   currentlyLoadingFrames[frameSet.className] = "";
   let loadingPlacement = frameSet.closest(".dropdown") || frameSet;
-  let oldContent = frameSet.querySelector(".content:not([old])");
-  if (oldContent) {
+  let oldContent = frameSet.querySelectorAll(".content:not([old])");
+  for (let i = 0; i < oldContent.length; i++) {
+    let remContent = oldContent[i];
+    if (remContent.parentElement != frameSet) {
+      continue;
+    }
     (async function () {
-      oldContent.setAttribute("old", "");
-      oldContent.style.zIndex = 0;
+      remContent.setAttribute("old", "");
+      remContent.style.zIndex = 0;
       await sleep(500);
-      oldContent.remove();
+      remContent.remove();
     })();
   }
   if (modules[path] == null || frameSet == app || frameSet.closest(".dropdown") == null) {
     if (loadingPlacement.querySelector(".loading:not([done])") == null) {
-      if (frameSet.closest(".dropdown") == null && oldContent) {
-        oldContent.style.opacity = 0;
-        oldContent.style.position = "absolute";
+      if (frameSet.closest(".dropdown") == null && oldContent.length > 0) {
+        for (let i = 0; i < oldContent.length; i++) {
+          let remContent = oldContent[i];
+          if (remContent.parentElement != frameSet) {
+            continue;
+          }
+          remContent.style.opacity = 0;
+          remContent.style.position = "absolute";
+        }
         //frameSet.innerHTML = "";
       }
       loadingPlacement.insertAdjacentHTML("beforeend", loadingAnim);
-      runLoadingAnim(loadingPlacement);
       if (frameSet == app) {
         loadingPlacement.querySelector(".loading[new]").setAttribute("appload", "");
       } else if (app.querySelector(".loading[appload]")) {
@@ -117,12 +127,18 @@ async function setFrame(path, frame, extra) {
       }
     }
   } else if (oldContent) {
-    oldContent.style.opacity = 0;
+    for (let i = 0; i < oldContent.length; i++) {
+      if (oldContent[i].parentElement != frameSet) {
+        continue;
+      }
+      oldContent[i].style.opacity = 0;
+    }
     //frameSet.innerHTML = "";
   }
   let loading = loadingPlacement.querySelector(".loading[new]");
   if (loading) {
     loading.removeAttribute("new");
+    runLoadingAnim(loading);
     if (frameSet == app) {
       let svgHolder = loading.querySelector(".loadingSvgHolder");
       svgHolder.style.width = "100vw";
@@ -145,7 +161,7 @@ async function setFrame(path, frame, extra) {
   if (module.preJs) {
     continueLoading = (await (module.preJs())) != false;
   }
-  if (loading) {
+  if (loading && frameSet == app) {
     let svgHolder = loading.querySelector(".loadingSvgHolder");
     svgHolder.style.width = "max(" + svgHolder.clientWidth + "px, 100%)";
     svgHolder.style.height = svgHolder.clientHeight + "px";
@@ -498,18 +514,20 @@ async function sendRequest(method, path, body, extra) {
         break;
       default:
         let body = await response.json();
-        if (body.errors && body.errors.length > 0) {
-          for (let i = 0; i < body.errors.length; i++) {
-            let message = body.errors[i];
-            if (message.includes("<b>") == false) {
-              message = "<b>Oops! Something Broke</b>" + message;
+        if ((extra.allowError || []).includes(response.status) == false) {
+          if (body.errors && body.errors.length > 0) {
+            for (let i = 0; i < body.errors.length; i++) {
+              let message = body.errors[i];
+              if (message.includes("<b>") == false) {
+                message = "<b>Oops! Something Broke</b>" + message;
+              }
+              (await getModule("alert")).open("error", message);
             }
-            (await getModule("alert")).open("error", message);
           }
-        }
-        if (body.warnings && body.warnings.length > 0) {
-          for (let i = 0; i < body.warnings.length; i++) {
-            (await getModule("alert")).open("warning", body.warnings[i]);
+          if (body.warnings && body.warnings.length > 0) {
+            for (let i = 0; i < body.warnings.length; i++) {
+              (await getModule("alert")).open("warning", body.warnings[i]);
+            }
           }
         }
         return [response.status, body, { took: reqTime }];
@@ -623,7 +641,7 @@ modules["dropdown"] = {
     ".dropdown": `position: sticky; box-sizing: border-box; max-width: calc(100% - 16px); max-height: calc(100% - 16px); right: 0px; bottom: 0px; margin: 8px; opacity: 0; transform-origin: center top; background: var(--pageColor); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; pointer-events: all`,
     ".dropdownContent": `position: absolute; box-sizing: border-box; width: max-content; height: max-content; padding: 6px; overflow: auto; background: var(--pageColor)`,
     ".dropdownFrame": `position: relative`,
-    ".dropdownHeader": `display: flex; gap: 6px; padding: 6px 6px 0 6px; justify-content: space-between; transition: .3s`,
+    ".dropdownHeader": `display: flex; gap: 6px; padding: 6px 6px 0 6px; justify-content: space-between; transition: .4s`,
     ".dropdownHeader button": `position: relative; width: 22px; height: 22px; margin: 3px; outline: solid 3px var(--secondary); border-radius: 14px`,
     ".dropdownHeader button img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
     ".dropdownTitle": `box-sizing: border-box; display: flex; padding: 3px; flex: 1; max-width: fit-content; justify-content: center; align-items: center; white-space: nowrap; overflow: hidden; font-size: 18px; font-weight: 500`,
@@ -753,7 +771,7 @@ modules["dropdown"] = {
       setTitleHTML = "<div>" + button.innerHTML + "</div>";
     }
     header.querySelector(".dropdownTitle").innerHTML = setTitleHTML;
-    dropdown.style.transition = "width .3s, height .3s, opacity .3s";
+    dropdown.style.transition = "width .4s, height .4s, opacity .3s";
     dropdown.offsetHeight;
     window.dropdown = { dropdown: dropdown, button: button, frameHistory: [[frameName, setTitleHTML]], interval: this.setResizeLoop(dropdown, content, header, button) };
     button.style.opacity = 0;
@@ -800,9 +818,9 @@ body.addEventListener("click", async function (event) {
   } else if (element.closest(".dropdown") == null || element.closest("[close]")) {
     (await getModule("dropdown")).close();
   }
-  let page = element.closest("[page]");
+  let page = element.closest("[openpage]");
   if (page) {
-    setFrame("pages/" + page.getAttribute("page"));
+    setFrame("pages/" + page.getAttribute("openpage"));
   }
 });
 window.addEventListener("scroll", async function () {

@@ -32,5 +32,7 @@ modules["editor/toolbar"] = {
       }
       element.setAttribute("selected", "");
     });
+
+    //frame.closest(".eSide").style.opacity = 1;
   }
 }

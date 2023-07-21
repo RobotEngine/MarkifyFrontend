@@ -14,13 +14,13 @@ modules["pages/editor"] = {
         <div class="eTopSection">
           <a class="eLogo" href="/#dashboard"><img src="./images/logo.svg"></a>
           <div class="eFileName" contenteditable spellcheck="false" onpaste="clipBoardRead(event)"></div>
-          <button class="eFileDropdown" dropdown="dropdowns/account">File</button>
+          <button class="eFileDropdown" dropdown="dropdowns/editor/file">File</button>
         </div>
         <div class="eTopSection">
           <button class="eSaveProgress eUndo" style="margin: 0 2px 0 4px; justify-content: end; border-radius: 16px 0 0 16px"><img src="./images/tooltips/progress/undo.svg"></button>
           <button class="eSaveProgress eRedo" style="margin: 0 4px 0 2px; justify-content: start; border-radius: 0 16px 16px 0"><img src="./images/tooltips/progress/redo.svg"></button>
           <img class="eConnection" src="./images/editor/top/connection.svg" style="object-position: -60px -4px" disabled>
-          <div class="eStatus">Loading...</div>
+          <div class="eStatus">Saved</div>
         </div>
         <div class="eTopSection eTopMargin">
           <button class="eMembers" dropdown="dropdowns/editor/members" disabled><span class="eMemberCount">25</span>Members</button>
@@ -132,10 +132,26 @@ modules["pages/editor"] = {
       this.members[memSet._id] = memSet;
     }
   },
-  getSelf: async function() {
+  getSelf: function() {
     return this.members[this.sessionID];
   },
-  js: async function (page) {
+  async updateInterface(page) {
+    let side = page.querySelector(".eSide");
+    let name = page.querySelector(".eFileName");
+    let access = this.getSelf().access;
+    if (access == 0) {
+      // Side Bar
+      side.setAttribute("hidden", "");
+      side.offsetHeight;
+      side.style.transition = ".3s";
+      name.removeAttribute("contenteditable");
+    } else {
+      side.removeAttribute("hidden");
+      name.setAttribute("contenteditable", "");
+    }
+    (await getModule("dropdown")).close();
+  },
+  js: async function (page, joinData) {
     this.page = page;
     //loadScript("../libraries/pdfjs/pdf.js");
 
@@ -173,15 +189,38 @@ modules["pages/editor"] = {
 
     this.codeTextButton = page.querySelector(".eSharePin");
 
+    let updateMemberCount = () => {
+      let counts = document.querySelectorAll(".eMemberCount");
+      let setCount = Object.keys(this.members).length;
+      for (let i = 0; i < counts.length; i++) {
+        counts[i].textContent = setCount;
+      }
+    }
+
     socket.remotes["lesson_" + lessonID] = (data) => {
       let body = data.data;
       switch (data.task) {
         case "join":
           this.members[body._id] = body;
+          updateMemberCount();
           break;
         case "leave":
           if (this.members[body._id]) {
             delete this.members[body._id];
+          }
+          updateMemberCount();
+          break;
+        case "update":
+          let memberKeys = Object.keys(body);
+          let member = this.members[body._id];
+          for (let i = 0; i < memberKeys.length; i++) {
+            let key = memberKeys[i];
+            member[key] = body[key];
+          }
+          if (member._id == this.sessionID) { // Self
+            if (body.access != null) {
+              this.updateInterface(page);
+            }
           }
           break;
         case "set":
@@ -191,12 +230,14 @@ modules["pages/editor"] = {
             this.lesson[key] = body[key];
           }
           page.querySelector(".eFileName").textContent = this.lesson.name || "Untitled Lesson";
-          if (body.pin && this.updatePin) {
+          if (body.hasOwnProperty("pin") && this.updatePin) {
             this.updatePin();
-            this.codeTextButton.style.display = "unset";
-            this.codeTextButton.textContent = body.pin;
-          } else {
-            this.codeTextButton.style.display = "none";
+            if (body.pin != null) {
+              this.codeTextButton.textContent = body.pin;
+              this.codeTextButton.style.display = "unset";
+            } else {
+              this.codeTextButton.style.display = "none";
+            }
           }
           enableScrollTop();
     }
@@ -206,10 +247,27 @@ modules["pages/editor"] = {
     if (this.active == false) {
       sendBody.active = false;
     }
-    if (this.lesson && this.lessonID != lessonID) {
+    if (this.id != lessonID) {
       delete this.session;
     }
-    let [code, body, extra] = await sendRequest("POST", "lessons/join?lesson=" + lessonID, sendBody, { session: this.session });
+    this.joinData = this.joinData || {};
+    if (joinData.pin) {
+      this.joinData.pin = joinData.pin;
+    }
+    if (joinData.name) {
+      this.joinData.name = joinData.name;
+    }
+    if (this.joinData.pin) {
+      sendBody.pin = this.joinData.pin;
+    }
+    if (this.joinData.name) {
+      sendBody.name = this.joinData.name;
+    }
+    let [code, body, extra] = await sendRequest("POST", "lessons/join?lesson=" + lessonID, sendBody, { session: this.session, allowError: [403, 406] });
+    if (code == 403 || code == 406) {
+      page.innerHTML = "";
+      setFrame("pages/join");
+    }
     if (code != 200) {
       return;
     }
@@ -243,6 +301,8 @@ modules["pages/editor"] = {
     }, 60000)}); // PING every minute
 
     this.syncMembers(body.members);
+
+    this.updateInterface(page);
 
     (async () => {
       (await getModule("editor/realtime")).js(this, page);
@@ -442,6 +502,9 @@ modules["pages/editor"] = {
               break;
             }
             let pageElem = pageHolder.children[pageNum - 1];
+            if (pageElem == null) {
+              continue;
+            }
             let pageID = pageElem.getAttribute("pageid");
             if (pageID == null) {
               return;

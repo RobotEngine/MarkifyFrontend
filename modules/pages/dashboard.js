@@ -6,6 +6,7 @@ modules["pages/dashboard"] = {
       return false;
     }
     modifyParams("lesson");
+    modifyParams("pin");
   },
   html: `<div class="dPage">
     <div class="dTopBar">
@@ -16,7 +17,7 @@ modules["pages/dashboard"] = {
       <div class="dHeaderSection dHeaderTx">Ready to <div class="dHeaderTxAnimHolder"><div class="dHeaderTxAnim"></div><div class="dHeaderUnderline"></div></div></div>
       <div class="dHeaderSection dHeaderActions">
         <button class="dCreateDoc largeButton" dropdown="dropdowns/new/lesson">New Lesson</button>
-        <button class="dJoin largeButton" page="join">Join<img src="./images/tooltips/link.svg"></button>
+        <button class="dJoin largeButton" openpage="join">Join<img src="./images/tooltips/link.svg"></button>
       </div>
       <div class="dBackdrop">
         <img class="dBackdropImage" src="./images/dashboard/background.svg">
@@ -56,7 +57,7 @@ modules["pages/dashboard"] = {
   js: async function (page) {
     page.style.display = "flex";
     page.style.justifyContent = "center";
-    
+
     if (account.image) {
       page.querySelector(".dAccount img").src = account.image;
     }
@@ -231,28 +232,28 @@ modules["pages/dashboard/lessons"] = {
       <div>Recent Lessons</div>
       <button class="dSectionLoadMore buttonAnim"><span>View More</span><img src="./images/tooltips/drop.svg"></button>
     </div>
-    <div class="dSectionTiles" default="10"></div>
+    <div class="dSectionTiles" default="10" timefield="opened"></div>
   </div>
   <div class="dSection" section="shared">
     <div class="dSectionTop">
       <div>Shared Lessons</div>
       <button class="dSectionLoadMore buttonAnim"><span>View More</span><img src="./images/tooltips/drop.svg"></button>
     </div>
-    <div class="dSectionTiles" default="5"></div>
+    <div class="dSectionTiles" default="5" timefield="shared"></div>
   </div>
   <div class="dSection" section="mine">
     <div class="dSectionTop">
       <div>My Lessons</div>
       <button class="dSectionLoadMore buttonAnim"><span>View More</span><img src="./images/tooltips/drop.svg"></button>
     </div>
-    <div class="dSectionTiles" default="5"></div>
+    <div class="dSectionTiles" default="5" timefield="added"></div>
   </div>
   <div class="dSection" section="newest">
     <div class="dSectionTop">
       <div>Newest Lessons</div>
       <button class="dSectionLoadMore buttonAnim"><span>View More</span><img src="./images/tooltips/drop.svg"></button>
     </div>
-    <div class="dSectionTiles" default="5"></div>
+    <div class="dSectionTiles" default="5" timefield="added"></div>
   </div>
   `,
   css: {
@@ -286,6 +287,11 @@ modules["pages/dashboard/lessons"] = {
       if (insertFirst) {
         insertAdj = "afterbegin";
       }
+      let existingTile = tileHolder.querySelector('.dTile[lesson="' + lessonRec.lesson + '"');
+      if (existingTile) {
+        existingTile.remove();
+      }
+      let timeField = tileHolder.getAttribute("timefield");
       tileHolder.insertAdjacentHTML(insertAdj, `<a class="dTile largeButton" new>
         <img class="dTileDocImage" src="./images/dashboard/missing.svg">
         <div class="dTileInfo">
@@ -299,8 +305,7 @@ modules["pages/dashboard/lessons"] = {
       let tile = tileHolder.querySelector(".dTile[new]");
       tile.removeAttribute("new");
       tile.setAttribute("lesson", lessonRec.lesson);
-      tile.setAttribute("time", lessonRec.opened || lessonRec.created || lessonRec.added);
-      tile.href = "?lesson=" + lessonRec.lesson + "#editor";
+      tile.setAttribute("time", lessonRec[timeField]);
       if (lesson.type == "freeboard") {
         tile.style.setProperty("--themeColor", "var(--purple)");
         tile.style.setProperty("--themeColor2", "#ECB7FF");
@@ -310,12 +315,24 @@ modules["pages/dashboard/lessons"] = {
       }
       tile.querySelector(".dTileName").textContent = lesson.name || "Untitled Lesson";
       tile.querySelector(".dTileName").title = lesson.name || "Untitled Lesson";
-      tile.querySelector(".dTileDate").textContent = timeSince(lessonRec.opened || lessonRec.created || lessonRec.added);
-      tile.querySelector(".dTileDate").title = formatFullDate(lessonRec.opened || lessonRec.created || lessonRec.added);
+      tile.querySelector(".dTileDate").textContent = timeSince(lessonRec[timeField]);
+      tile.querySelector(".dTileDate").title = formatFullDate(lessonRec[timeField]);
       if (lesson.membersUpdate && lesson.membersUpdate < getEpoch() - 300000) {
         lesson.members = null;
       }
       tile.querySelector(".dTileMemberCount span").textContent = lesson.members || 0;
+      if (lessonRec.join == null) {
+        tile.href = "?lesson=" + lessonRec.lesson + "#editor";
+      } else {
+        tile.setAttribute("join", lessonRec.join);
+        if (lessonRec.join.startsWith("pin_")) {
+          tile.href = "?pin=" + lessonRec.join.substring(4) + "#join";
+        } else if (lessonRec.join == "link") {
+          tile.href = "?lesson=" + lessonRec.lesson + "#join";
+        }
+      }
+
+      return tile;
     }
     function addLessonTiles(type, data) {
       data = data || body;
@@ -337,13 +354,13 @@ modules["pages/dashboard/lessons"] = {
     addLessonTiles("shared");
     addLessonTiles("mine");
     addLessonTiles("newest");
-    
+
     if (body.lessons.length < 1) {
       frame.insertAdjacentHTML("beforeend", `<div class="dNoLessons">You have no lessons, start the learning above!</div>`);
     }
 
     this.dashSubscribe = null;
-    function updateDashSub() {
+    let updateDashSub = () => {
       let visibleTiles = frame.querySelectorAll(".dTile");
       let tileIDs = {};
       for (let i = 0; i < visibleTiles.length; i++) {
@@ -353,7 +370,7 @@ modules["pages/dashboard/lessons"] = {
       if (this.dashSubscribe) {
         this.dashSubscribe.edit(filter);
       } else {
-        subscribe(filter, function(data) {
+        this.dashSubscribe = subscribe(filter, function (data) {
           let body = data.data || data.body;
           let updTiles = frame.querySelectorAll('.dTile[lesson="' + (body.lesson || body._id) + '"]');
           switch (data.task) {
@@ -392,8 +409,20 @@ modules["pages/dashboard/lessons"] = {
               if (updTiles.length < 1) {
                 for (let i = 0; i < body.sections.length; i++) {
                   let tileSection = frame.querySelector('.dSection[section="' + body.sections[i] + '"]');
-                  tileSection.style.removeProperty("display");
-                  addTile(tileSection.querySelector(".dSectionTiles"), body.record, body.lesson, true);
+                  tileSection.style.display = "unset";
+                  let tileHolder = tileSection.querySelector(".dSectionTiles");
+                  let tile = addTile(tileHolder, body.record, body.lesson, true);
+                  let tileTime = parseInt(tile.getAttribute("time"));
+                  for (let t = 0; t < tileHolder.children.length ; t++) {
+                    let child = tileHolder.children[t];
+                    if (child.getAttribute("lesson") == body.lesson.lesson) {
+                      continue;
+                    }
+                    if (parseInt(child.getAttribute("time")) < tileTime) {
+                      tileHolder.insertBefore(tile, child);
+                      break;
+                    }
+                  }
                 }
                 updateDashSub();
               }
@@ -450,6 +479,18 @@ modules["pages/dashboard/lessons"] = {
       let lessonOpen = element.closest(".dTile");
       if (lessonOpen) {
         event.preventDefault();
+        if (lessonOpen.hasAttribute("join")) {
+          let method = lessonOpen.getAttribute("join");
+          if (method.startsWith("pin_")) {
+            modifyParams("pin", method.substring(4));
+            setFrame("pages/join");
+            return;
+          } else if (method == "link") {
+            modifyParams("lesson", lessonOpen.getAttribute("lesson"));
+            setFrame("pages/join");
+            return;
+          }
+        }
         modifyParams("lesson", lessonOpen.getAttribute("lesson"));
         setFrame("pages/editor");
         return;

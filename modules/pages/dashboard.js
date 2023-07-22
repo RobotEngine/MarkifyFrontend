@@ -11,7 +11,7 @@ modules["pages/dashboard"] = {
   html: `<div class="dPage">
     <div class="dTopBar">
       <img class="dLogo" src="./images/logo.svg">
-      <button class="dAccount buttonAnim" dropdown="dropdowns/account"><img src="./images/profiles/default.svg"><div></div></button>
+      <button class="dAccount buttonAnim border" dropdown="dropdowns/account"><img src="./images/profiles/default.svg"><div></div></button>
     </div>
     <div class="dHeader">
       <div class="dHeaderSection dHeaderTx">Ready to <div class="dHeaderTxAnimHolder"><div class="dHeaderTxAnim"></div><div class="dHeaderUnderline"></div></div></div>
@@ -28,14 +28,14 @@ modules["pages/dashboard"] = {
   </div>
   `,
   css: {
-    ".dPage": `display: flex; flex-direction: column; width: 100%; height: fit-content; max-width: 1000px`,
+    ".dPage": `display: flex; flex-direction: column; width: 100%; height: fit-content; max-width: 1000px; overflow: hidden`,
 
     ".dTopBar": `display: flex; justify-content: space-between; box-sizing: border-box; width: 100%; padding: 8px; background: rgba(var(--background), .7); backdrop-filter: blur(4px); overflow: hidden; z-index: 10`,
     ".dLogo": `height: 44px; margin-right: 8px`,
-    ".dAccount": `flex: 1; max-width: fit-content; padding: 6px; overflow: hidden; border-radius: 22px`,
+    ".dAccount": `display: flex; max-width: calc(100% - 168px); width: fit-content; padding: 6px; --borderRadius: 22px`,
     ".dAccount:hover": `background: var(--hover)`,
-    ".dAccount:active": `background: unset; outline: solid 4px var(--hover)`,
-    ".dAccount img": `float: left; width: 32px; height: 32px; margin-right: 6px; object-fit: cover; background: #fff; border-radius: 22px`,
+    ".dAccount:active": `background: unset; --borderWidth: 4px; --borderColor: var(--hover)`,
+    ".dAccount img": `float: left; width: 32px; min-width: 32px; height: 32px; margin-right: 6px; object-fit: cover; background: #fff; border-radius: 22px`,
     ".dAccount div": `float: right; max-width: calc(100% - 38px); height: 100%; line-height: 32px; font-size: 18px; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
 
     ".dHeader": `position: relative; width: 100%; margin-bottom: 25px; overflow: hidden`,
@@ -96,14 +96,14 @@ modules["dropdowns/new/lesson"] = {
   html: `<input type="file" accept="application/pdf" multiple="true" hidden="true">
   <div class="lessonCreationHolder">
     <div class="lessonBlankHolder">
-      <button class="lessonBlank" style="--themeColor: var(--gray)" dropdown="dropdowns/new/blank" title="Create a fresh blank page"><img src="./images/dashboard/lesson/blank.svg" draggable="false"><div>Blank Page</div></button>
-      <button class="lessonFreeboard" style="--themeColor: var(--purple)" title="Create an unlimited canvas for whiteboarding"><img src="./images/dashboard/lesson/freeboard.svg" draggable="false"><div>Freeboard</div></button>
+      <button class="lessonBlank border" style="--themeColor: var(--gray)" dropdown="dropdowns/new/blank" title="Create a fresh blank page"><img src="./images/dashboard/lesson/blank.svg" draggable="false"><div>Blank Page</div></button>
+      <button class="lessonFreeboard border" style="--themeColor: var(--purple)" title="Create an unlimited canvas for whiteboarding"><img src="./images/dashboard/lesson/freeboard.svg" draggable="false"><div>Freeboard</div></button>
     </div>
-    <button class="lessonUpload" style="--themeColor: var(--secondary)" title="Upload an existing PDF to markup"><img src="./images/dashboard/lesson/upload.svg" draggable="false"><div>Upload PDF</div></button>
+    <button class="lessonUpload border" style="--themeColor: var(--secondary)" title="Upload an existing PDF to markup"><img src="./images/dashboard/lesson/upload.svg" draggable="false"><div>Upload PDF</div></button>
   </div>`,
   css: {
     ".lessonCreationHolder": `display: flex; flex-wrap: wrap; max-width: 426px`,
-    ".lessonCreationHolder button": `display: flex; flex-direction: column; max-width: 100%; padding: 8px; margin: 11px; outline: solid 3px var(--themeColor); border-radius: 12px; align-items: center; justify-content: space-around; color: var(--darkGray); font-size: 16px; font-weight: 600`,
+    ".lessonCreationHolder button": `display: flex; flex-direction: column; max-width: 100%; padding: 8px; margin: 11px; --borderWidth: 3px; --borderColor: var(--themeColor); --borderRadius: 12px; align-items: center; justify-content: space-around; color: var(--darkGray); font-size: 16px; font-weight: 600`,
     ".lessonCreationHolder button:hover": `background: var(--themeColor); color: #fff; transform: scale(1.05)`,
     ".lessonCreationHolder button:hover img": `filter: brightness(0) invert(1)`,
     ".lessonCreationHolder button:active": `transform: scale(.95)`,
@@ -230,28 +230,28 @@ modules["pages/dashboard/lessons"] = {
   <div class="dSection" section="recent">
     <div class="dSectionTop">
       <div>Recent Lessons</div>
-      <button class="dSectionLoadMore buttonAnim"><span>View More</span><img src="./images/tooltips/drop.svg"></button>
+      <button class="dSectionLoadMore buttonAnim border"><span>View More</span><img src="./images/tooltips/drop.svg"></button>
     </div>
     <div class="dSectionTiles" default="10" timefield="opened"></div>
   </div>
   <div class="dSection" section="shared">
     <div class="dSectionTop">
       <div>Shared Lessons</div>
-      <button class="dSectionLoadMore buttonAnim"><span>View More</span><img src="./images/tooltips/drop.svg"></button>
+      <button class="dSectionLoadMore buttonAnim border"><span>View More</span><img src="./images/tooltips/drop.svg"></button>
     </div>
     <div class="dSectionTiles" default="5" timefield="shared"></div>
   </div>
   <div class="dSection" section="mine">
     <div class="dSectionTop">
       <div>My Lessons</div>
-      <button class="dSectionLoadMore buttonAnim"><span>View More</span><img src="./images/tooltips/drop.svg"></button>
+      <button class="dSectionLoadMore buttonAnim border"><span>View More</span><img src="./images/tooltips/drop.svg"></button>
     </div>
     <div class="dSectionTiles" default="5" timefield="added"></div>
   </div>
   <div class="dSection" section="newest">
     <div class="dSectionTop">
       <div>Newest Lessons</div>
-      <button class="dSectionLoadMore buttonAnim"><span>View More</span><img src="./images/tooltips/drop.svg"></button>
+      <button class="dSectionLoadMore buttonAnim border"><span>View More</span><img src="./images/tooltips/drop.svg"></button>
     </div>
     <div class="dSectionTiles" default="5" timefield="added"></div>
   </div>
@@ -261,13 +261,13 @@ modules["pages/dashboard/lessons"] = {
     ".dSection": `display: none; margin-bottom: 30px`,
     ".dSectionTop": `position: sticky; box-sizing: border-box; display: flex; width: 100%; top: 0px; padding: 16px; align-items: center; background: rgba(var(--background), .7); backdrop-filter: blur(4px); z-index: 1`,
     ".dSectionTop div": `flex: 1; font-size: 30px; font-weight: 600; text-align: left; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
-    ".dSectionTop button": `display: flex; padding: 8px; overflow: hidden; align-items: center; border-radius: 22px; font-size: 18px; font-weight: 600`,
+    ".dSectionTop button": `display: flex; padding: 8px; align-items: center; --borderRadius: 22px; font-size: 18px; font-weight: 600`,
     ".dSectionTop img": `width: 22px; margin-left: 6px; transform: rotate(0deg); transition: .2s`,
-    ".dSectionContinueLoad": `overflow: hidden; border-radius: 22px; color: var(--theme); font-size: 18px; font-weight: 700`,
+    ".dSectionContinueLoad": `--borderRadius: 22px; color: var(--theme); font-size: 18px; font-weight: 700`,
     ".dSectionLoad": `padding: 8px 12px; margin-top: 28px`,
     ".dSectionTiles": "display: flex; flex-wrap: wrap; min-height: 200px; justify-content: center; align-items: center",
     ".dTile": `position: relative; width: calc(20% - 52px); min-width: min(148px, calc(100% - 52px)); height: 200px; margin: 12px; --borderRadius: 12px`,
-    ".dTileDocImage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; object-position: top center`,
+    ".dTileDocImage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: var(--borderRadius); object-fit: cover; object-position: top center`,
     ".dTileInfo": `position: absolute; box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; left: 0px; bottom: 0px; padding: 6px; background: rgba(var(--background), .95)`,
     ".dTileName": `width: 100%; font-size: 18px; font-weight: 600; color: var(--themeColor); text-align: left`,
     ".dTileStats": `display: flex; width: 100%; padding: 0 6px; font-size: 16px; font-weight: 700; overflow: hidden; white-space: nowrap`,
@@ -510,7 +510,7 @@ modules["pages/dashboard/lessons"] = {
             lessons = { ...lessons, ...getObject(body.lessons, "_id") };
             addLessonTiles(getSection, body);
             if (section.querySelector(".dSectionContinueLoad") == null) {
-              section.insertAdjacentHTML("beforeend", `<button class="dSectionContinueLoad dSectionLoad buttonAnim">Show More</button>`);
+              section.insertAdjacentHTML("beforeend", `<button class="dSectionContinueLoad dSectionLoad buttonAnim border">Show More</button>`);
             }
             loadMore.removeAttribute("disabled");
             if (loadMore.classList[0] == "dSectionLoadMore") {

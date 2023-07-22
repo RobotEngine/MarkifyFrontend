@@ -642,7 +642,7 @@ modules["dropdown"] = {
     ".dropdownContent": `position: absolute; box-sizing: border-box; width: max-content; height: max-content; padding: 6px; overflow: auto; background: var(--pageColor)`,
     ".dropdownFrame": `position: relative`,
     ".dropdownHeader": `display: flex; gap: 6px; padding: 6px 6px 0 6px; justify-content: space-between; transition: .4s`,
-    ".dropdownHeader button": `position: relative; width: 22px; height: 22px; margin: 3px; outline: solid 3px var(--secondary); border-radius: 14px`,
+    ".dropdownHeader button": `position: relative; width: 22px; height: 22px; margin: 3px; --borderWidth: 3px; --borderRadius: 14px`,
     ".dropdownHeader button img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
     ".dropdownTitle": `box-sizing: border-box; display: flex; padding: 3px; flex: 1; max-width: fit-content; justify-content: center; align-items: center; white-space: nowrap; overflow: hidden; font-size: 18px; font-weight: 500`,
     ".dropdownTitle div": `flex: 1; margin: 0 4px; white-space: nowrap; overflow: hidden`,
@@ -683,7 +683,7 @@ modules["dropdown"] = {
       content.removeAttribute("new");
       window.dropdown.content = content;
       let frame = content.querySelector(".dropdownFrame");
-      let setTitleHTML = (modules[frameName] || {}).title || button.innerHTML;
+      let setTitleHTML = button.getAttribute("dropdowntitle") || button.innerHTML;
       if (button.closest(".dropdownBack") == null) {
         if (button.innerHTML == button.textContent) {
           setTitleHTML = "<div>" + button.innerHTML + "</div>";
@@ -748,9 +748,9 @@ modules["dropdown"] = {
     fixed.insertAdjacentHTML("beforeend", `<div class="fixedItemHolder">
       <div class="dropdown" new>
         <div class="dropdownHeader">
-          <button class="dropdownBack buttonAnim" style="display: none"><img src="./images/tooltips/back.svg"></button>
+          <button class="dropdownBack buttonAnim border" style="display: none"><img src="./images/tooltips/back.svg"></button>
           <div class="dropdownTitle"></div>
-          <button class="dropdownClose buttonAnim" close><img src="./images/tooltips/close.svg"></button>
+          <button class="dropdownClose buttonAnim border" close><img src="./images/tooltips/close.svg"></button>
         </div>
         <div class="dropdownContent">
           <div class="dropdownFrame"></div>
@@ -765,7 +765,7 @@ modules["dropdown"] = {
     dropdown.style.width = button.offsetWidth + "px";
     dropdown.style.height = button.offsetHeight + "px";
     frame.style.minHeight = "200px";
-    let existingTitle = (modules[frameName] || {}).title;
+    let existingTitle = button.getAttribute("dropdowntitle");
     let setTitleHTML = existingTitle || button.innerHTML;
     if (button.innerHTML == button.textContent && existingTitle == null) {
       setTitleHTML = "<div>" + button.innerHTML + "</div>";
@@ -845,7 +845,7 @@ modules["alert"] = {
     ".alert img": `width: 32px; height: 32px; object-fit: cover; margin-right: 6px`,
     ".alertText": `display: flex; flex-wrap: wrap; flex: 1; align-items: center; text-align: left; font-size: 16px`,
     ".alertText b": `margin-right: 6px; color: var(--themeColor); font-size: 18px`,
-    ".alertClose": `position: relative; width: 22px; height: 22px; margin: 5px 5px 5px 12px; outline: solid 3px var(--secondary); border-radius: 14px`,
+    ".alertClose": `position: relative; width: 22px; height: 22px; margin: 5px 5px 5px 12px; --borderWidth: 3px; --borderRadius: 14px`,
     ".alertClose img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`
   },
   colors: {
@@ -867,7 +867,7 @@ modules["alert"] = {
     alertHolder.insertAdjacentHTML("afterbegin", `<div class="alert" new>
       <img src="./images/tooltips/alert/info.svg">
       <div class="alertText"></div>
-      <button class="alertClose buttonAnim" close><img src="./images/tooltips/close.svg"></button>
+      <button class="alertClose buttonAnim border" close><img src="./images/tooltips/close.svg"></button>
     </div>`);
     let alert = fixed.querySelector(".alert[new]");
     alert.removeAttribute("new");
@@ -888,8 +888,8 @@ modules["alert"] = {
       if (data.time != "never") {
         await sleep((data.time || 5) * 1000);
         this.close(alert);
-      } else {
-        alert.querySelector(".alertClose").remove();
+      //} else {
+      //  alert.querySelector(".alertClose").remove();
       }
     })();
     return alert;

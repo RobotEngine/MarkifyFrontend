@@ -1,5 +1,4 @@
 modules["dropdowns/editor/share/pin"] = {
-  title: '<div>Present with <b style="color: var(--theme); font-weight: 800">Pin</b></div>',
   html: `
   <div class="eSharePinCreate">
     <button class="largeButton">Generate Pin</button>
@@ -27,7 +26,7 @@ modules["dropdowns/editor/share/pin"] = {
     ".eSharePinOptions": `display: none; flex-wrap: wrap; width: calc(100% - 16px); margin: 0 8px 8px 8px; justify-content: center`,
     ".eSharePinOptions button": `display: flex; border-radius: 18px; justify-content: center; align-items: center; font-weight: 700`,
     
-    ".eSharePinCopy": `width: 36px; height: 36px; padding: 0; margin: 7px;  outline: solid 3px var(--hover)`,
+    ".eSharePinCopy": `width: 36px; height: 36px; padding: 0; margin: 7px; outline: solid 3px var(--hover)`,
     ".eSharePinCopy img": `width: 30px`,
 
     ".eSharePinRemove": `height: fit-content; min-height: 36px; padding: 0 12px; margin: 7px 14px 7px 7px; outline: solid 3px var(--hover); border-radius: 16px; color: var(--error); font-size: 18px`,

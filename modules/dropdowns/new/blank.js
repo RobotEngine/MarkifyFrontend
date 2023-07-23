@@ -48,7 +48,7 @@ modules["dropdowns/new/blank"] = {
     ".blankSelection button:hover:not([selected])": `--borderColor: var(--hover)`,
     ".blankNumberHolder": `display: flex; flex-wrap: wrap; width: 100%; margin-bottom: 8px; justify-content: center; align-items: center`,
     ".blankNumberHolder b": `margin-right: auto`,
-    ".blankOptionHolder div[contenteditable]": `width: fit-content; max-width: 60px; padding: 4px 6px; margin: 6px 10px; border: solid 3px var(--secondary); border-radius: 16px; color: var(--theme); font-size: 20px; font-weight: 600; white-space: nowrap; overflow: hidden; transition: .2s`,
+    ".blankOptionHolder div[contenteditable]": `width: fit-content; max-width: 60px; padding: 4px 6px; margin: 6px 10px; --borderColor: var(--secondary); border: solid 3px var(--borderColor); border-radius: 16px; color: var(--theme); font-size: 20px; font-weight: 600; white-space: nowrap; overflow: hidden; transition: .2s`,
     ".blankCreate": `margin: auto 0 22px 0; background: var(--theme); --borderRadius: 18px; color: #fff`
   },
   js: function (frame, extra) {

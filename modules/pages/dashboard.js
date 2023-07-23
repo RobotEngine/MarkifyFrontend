@@ -38,7 +38,7 @@ modules["pages/dashboard"] = {
     ".dAccount img": `float: left; width: 32px; min-width: 32px; height: 32px; margin-right: 6px; object-fit: cover; background: #fff; border-radius: 22px`,
     ".dAccount div": `float: right; max-width: calc(100% - 38px); height: 100%; line-height: 32px; font-size: 18px; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
 
-    ".dHeader": `position: relative; width: 100%; margin-bottom: 25px; overflow: hidden`,
+    ".dHeader": `position: relative; width: 100%; margin-bottom: 25px`,
     ".dHeaderSection": `position: relative; display: flex; flex-wrap: wrap; padding: 20px 8px 20px 0; margin-left: 5%; align-items: center; z-index: 2`,
     ".dHeaderTx": `overflow: hidden; font-size: 30px; font-weight: 700`,
     ".dHeaderTxAnimHolder": `position: relative; margin-left: 8px`,
@@ -246,7 +246,7 @@ modules["pages/dashboard/lessons"] = {
       <div>My Lessons</div>
       <button class="dSectionLoadMore buttonAnim border"><span>View More</span><img src="./images/tooltips/drop.svg"></button>
     </div>
-    <div class="dSectionTiles" default="5" timefield="added"></div>
+    <div class="dSectionTiles" default="5" timefield="created"></div>
   </div>
   <div class="dSection" section="newest">
     <div class="dSectionTop">

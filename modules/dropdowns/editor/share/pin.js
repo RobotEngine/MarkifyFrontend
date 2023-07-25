@@ -1,7 +1,7 @@
 modules["dropdowns/editor/share/pin"] = {
   html: `
   <div class="eSharePinCreate">
-    <button class="largeButton">Generate Pin</button>
+    <button class="largeButton border">Generate Pin</button>
   </div>
   <div class="eSharePinLink">Join with this <b>pin</b> at <a href="${location.origin}/join" target="_blank">${location.host}/join</a></div>
   <div class="eSharePinDisplay"><span section left></span><div></div><span section right></span></div>
@@ -13,7 +13,7 @@ modules["dropdowns/editor/share/pin"] = {
   `,
   css: {
     ".eSharePinCreate": "position: absolute; display: flex; width: 100%; height: 100%; justify-content: center; align-items: center; z-index: 1; background: rgba(var(--background), .7); transition: .3s",
-    ".eSharePinCreate button": `background: var(--theme); border-radius: 20.25px; color: #fff`,
+    ".eSharePinCreate button": `background: var(--theme); --borderRadius: 20.25px; color: #fff`,
     
     ".eSharePinLink": "margin-top: 8p; transition: .3s",
     ".eSharePinLink a": `color: var(--theme); font-weight: 700; text-decoration: none`,

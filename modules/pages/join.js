@@ -12,27 +12,27 @@ modules["pages/join"] = {
         <div class="jTitleDesc">Enter a pin to join</div>
         <div class="jInputHolder">
           <div class="jInputPart">
-            <input placeholder="0"></input>
-            <input placeholder="0"></input>
-            <input placeholder="0"></input>
+            <div><input placeholder="0"></input></div>
+            <div><input placeholder="0"></input></div>
+            <div><input placeholder="0"></input></div>
           </div>
           <div class="jInputDot"></div>
           <div class="jInputPart">
-            <input placeholder="0"></input>
-            <input placeholder="0"></input>
-            <input placeholder="0"></input>
+            <div><input placeholder="0"></input></div>
+            <div><input placeholder="0"></input></div>
+            <div><input placeholder="0"></input></div>
           </div>
         </div>
-        <button class="largeButton" continue>Continue</button>
+        <button class="largeButton border" continue>Continue</button>
         <div class="jUserInfo">
-          <input placeholder="Screen Name"></input>
-          <div>
+          <div class="jNameInput"><input placeholder="Screen Name"></input></div>
+          <div class="jAuthHolder">
             <img src="./images/profiles/default.svg" profile>
             <span>Robot Engine</span>
-            <button class="buttonAnim" title="Logout and switch account."><img src="./images/tooltips/close.svg"></button>
+            <button class="buttonAnim border" title="Logout and switch account."><img src="./images/tooltips/close.svg"></button>
           </div>
         </div>
-        <button class="largeButton" join>Join Lesson</button>
+        <button class="largeButton border" join>Join Lesson</button>
         <div class="jPromo">Create your lesson at <a href="${location.origin}#dashboard" target="_blank">${location.host}</a></div>
         <div class="jPolicies">
           <a href="https://exotek.co/tos" target="_blank">Terms</a>
@@ -59,21 +59,23 @@ modules["pages/join"] = {
 
     ".jInputHolder": `display: flex; flex-wrap: wrap; margin-top: 16px; justify-content: center; align-items: center; --themeColor: var(--hover); --fontColor: var(--theme)`,
     ".jInputPart": `display: flex; flex-wrap: wrap; margin: 12px; justify-content: center`,
-    ".jInputHolder input": "width: 50px; height: 50px; border: hidden; outline: solid 4px var(--themeColor); border-radius: 0px; color: var(--fontColor); font-size: 34px; font-weight: 800; font-family: var(--font); text-align: center; transition: .3s, outline-width .1s",
-    ".jInputHolder input:focus": `outline-color: var(--theme); outline-width: 6px; border-radius: 12px !important; z-index: 1`,
-    ".jInputHolder input:first-child": "border-radius: 12px 0 0 12px",
-    ".jInputHolder input:last-child": "border-radius: 0 12px 12px 0",
+    ".jInputPart div": "display: flex; width: 58px; height: 58px; justify-content: center; align-items: center",
+    ".jInputHolder input": "width: 50px; height: 50px; outline: unset; border: solid 4px var(--themeColor); border-radius: 0px; color: var(--fontColor); font-size: 34px; font-weight: 800; font-family: var(--font); text-align: center; transition: .3s, border-width .1s",
+    ".jInputPart input:focus": `border-color: var(--theme); border-width: 8px; border-radius: 16px !important; z-index: 1`,
+    ".jInputPart div:first-child input": "border-radius: 16px 0 0 16px",
+    ".jInputPart div:last-child input": "border-radius: 0 16px 16px 0",
     ".jInputDot": `width: 12px; height: 12px; background: var(--themeColor); border-radius: 12px; transition: .3s`,
     
-    ".jModal .largeButton": `margin: 16px 0; background: var(--theme); border-radius: 18.25px; color: #fff`,
+    ".jModal .largeButton": `margin: 16px 0; background: var(--theme); --borderRadius: 18.25px; color: #fff`,
     
-    ".jUserInfo input": `display: none; width: calc(100% - 60px); max-width: 300px; height: 40px; padding: 3px 6px; margin: 24px; border: hidden; outline: solid 4px var(--hover); border-radius: 12px; color: var(--secondary); font-size: 24px; font-weight: 700; font-family: var(--font); text-align: center; transition: .1s`,
-    ".jUserInfo input:focus": `outline: solid 6px var(--secondary)`,
-    ".jUserInfo div": `display: none; padding: 6px 12px 6px 6px; margin: 24px; justify-content: center; align-items: center; outline: solid 4px var(--hover); border-radius: 26px;`,
-    ".jUserInfo div img[profile]": `width: 40px; height: 40px; object-fit: cover; border-radius: 20px`,
-    ".jUserInfo div span": `margin-left: 6px; color: var(--secondary); font-size: 20px; font-weight: 600`,
-    ".jUserInfo div button": `position: relative; width: 22px; height: 22px; margin: 0 3px 0 12px; outline: solid 3px var(--secondary); border-radius: 14px`,
-    ".jUserInfo div button img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
+    ".jNameInput": `display: none; height: 94px; justify-content: center; align-items: center`,
+    ".jNameInput input": `width: calc(100% - 60px); max-width: 300px; height: 40px; padding: 3px 6px; margin: 24px; outline: unset; border: solid 4px var(--hover); border-radius: 12px; color: var(--secondary); font-size: 24px; font-weight: 700; font-family: var(--font); text-align: center; transition: .1s`,
+    ".jNameInput input:focus": `border: solid 6px var(--secondary)`,
+    ".jUserInfo .jAuthHolder": `display: none; padding: 6px 12px 6px 6px; margin: 24px; justify-content: center; align-items: center; border: solid 4px var(--hover); border-radius: 30px`,
+    ".jUserInfo .jAuthHolder img[profile]": `width: 40px; height: 40px; object-fit: cover; border-radius: 20px`,
+    ".jUserInfo .jAuthHolder span": `margin-left: 6px; color: var(--secondary); font-size: 20px; font-weight: 600`,
+    ".jUserInfo .jAuthHolder button": `position: relative; width: 22px; height: 22px; margin: 0 3px 0 12px; --borderWidth: 3px; --borderRadius: 14px`,
+    ".jUserInfo .jAuthHolder button img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
     ".jModal .largeButton[join]": `display: none; margin: 12px 0`,
 
     ".jPromo": `margin-top: 24px`,
@@ -94,8 +96,8 @@ modules["pages/join"] = {
     let inputHolder = page.querySelector(".jInputHolder");
     let joinTxBoxes = inputHolder.querySelectorAll("input");
     let continueButton = page.querySelector(".jModal .largeButton[continue]");
-    let joinNickname = page.querySelector(".jUserInfo input");
-    let joinAccount = page.querySelector(".jUserInfo div");
+    let joinNickname = page.querySelector(".jNameInput input");
+    let joinAccount = page.querySelector(".jUserInfo .jAuthHolder");
     let joinButton = page.querySelector(".jModal .largeButton[join]");
 
     page.querySelector(".jLogo").addEventListener("click", function(e) {
@@ -216,8 +218,9 @@ modules["pages/join"] = {
         if (body.name != null) {
           joinNickname.value = body.name;
         }
-        joinNickname.style.display = "unset";
+        joinNickname.parentElement.style.display = "flex";
         joinNickname.focus();
+        joinAccount.style.display = "none";
       } else {
         if (userID == null) {
           promptLogin();
@@ -243,6 +246,7 @@ modules["pages/join"] = {
           }
         });
         joinAccount.style.display = "flex";
+        joinNickname.parentElement.style.display = "none";
       }
       joinButton.style.display = "unset";
       lesson = body;

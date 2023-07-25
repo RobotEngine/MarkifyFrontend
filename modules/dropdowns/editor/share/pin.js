@@ -6,9 +6,9 @@ modules["dropdowns/editor/share/pin"] = {
   <div class="eSharePinLink">Join with this <b>pin</b> at <a href="${location.origin}/join" target="_blank">${location.host}/join</a></div>
   <div class="eSharePinDisplay"><span section left></span><div></div><span section right></span></div>
   <div class="eSharePinOptions">
-    <button class="eSharePinCopy" title="Copy the pin code."><img src="./images/tooltips/copy.svg"></button>
-    <button class="eSharePinRemove" title="Invalidate the pin.">Remove</button>
-    <button class="eShareAction" option="forceLogin" title="Require those joining to login for verified identites." off><div label>Require Login</div><div class="eShareToggle"><div></div></div></button>
+    <button class="eSharePinCopy border" title="Copy the pin code."><img src="./images/tooltips/copy.svg"></button>
+    <button class="eSharePinRemove border" title="Invalidate the pin.">Remove</button>
+    <button class="eShareAction border" option="forceLogin" title="Require those joining to login for verified identites." off><div label>Require Login</div><div class="eShareToggle"><div></div></div></button>
   </div>
   `,
   css: {
@@ -24,16 +24,16 @@ modules["dropdowns/editor/share/pin"] = {
     ".eSharePinDisplay div": `width: 12px; height: 12px; background: var(--hover); border-radius: 12px`,
     
     ".eSharePinOptions": `display: none; flex-wrap: wrap; width: calc(100% - 16px); margin: 0 8px 8px 8px; justify-content: center`,
-    ".eSharePinOptions button": `display: flex; border-radius: 18px; justify-content: center; align-items: center; font-weight: 700`,
+    ".eSharePinOptions button": `display: flex; --borderColor: var(--hover); --borderRadius: 18px; justify-content: center; align-items: center; font-weight: 700`,
     
-    ".eSharePinCopy": `width: 36px; height: 36px; padding: 0; margin: 7px; outline: solid 3px var(--hover)`,
+    ".eSharePinCopy": `width: 36px; height: 36px; padding: 0; margin: 7px; --borderWidth: 3px`,
     ".eSharePinCopy img": `width: 30px`,
 
-    ".eSharePinRemove": `height: fit-content; min-height: 36px; padding: 0 12px; margin: 7px 14px 7px 7px; outline: solid 3px var(--hover); border-radius: 16px; color: var(--error); font-size: 18px`,
-    ".eSharePinRemove:hover": `background: var(--error); outline-width: 0px; color: #fff`,
+    ".eSharePinRemove": `height: fit-content; min-height: 36px; padding: 0 12px; margin: 7px 14px 7px 7px; --borderWidth: 3px; --borderRadius: 18px; color: var(--error); font-size: 18px`,
+    ".eSharePinRemove:hover": `background: var(--error); --borderWidth: 0px; color: #fff`,
     //".eSharePinRemove:active": `transform: scale(.95);`,
 
-    ".eShareAction": `display: flex; max-width: 100%; padding: 6px; margin: 7px 7px 7px auto; align-items: center; outline: solid 3px var(--hover); font-size: 16px`,
+    ".eShareAction": `display: flex; max-width: 100%; padding: 6px; margin: 7px 7px 7px auto; align-items: center; --borderWidth: 3px; font-size: 16px`,
     ".eShareAction div[label]": `flex: 1; margin: 0 8px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
     ".eShareAction[on]": `--themeColor: var(--theme); --color: #fff`,
     ".eShareAction[off]": `--themeColor: var(--gray); --color: #000`,
@@ -41,7 +41,7 @@ modules["dropdowns/editor/share/pin"] = {
     ".eShareToggle div": `position: absolute; width: 20px; height: 20px; background: #fff; border-radius: 10px; transition: .2s`,
     ".eShareAction[on] .eShareToggle div": `right: 2px`,
     ".eShareAction[off] .eShareToggle div": `right: calc(100% - 22px)`,
-    ".eShareAction:hover": `background: var(--themeColor); outline-width: 0px; color: var(--color)`,
+    ".eShareAction:hover": `background: var(--themeColor); --borderWidth: 0px; color: var(--color)`,
     ".eShareAction:hover .eShareToggle": `background: #fff`,
     ".eShareAction:hover .eShareToggle div": `background: var(--themeColor)`
   },

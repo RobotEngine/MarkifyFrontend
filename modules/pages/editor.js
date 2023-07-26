@@ -636,7 +636,6 @@ modules["pages/editor"] = {
           }
           pageHolder.insertAdjacentHTML("beforeend", `<div class="ePage" pageid="${page._id}"${includeSource} style="width: ${page.width}px; height: ${page.height}px"></div>`);
         }
-        this.updatePages();
         break;
       case "freeboard":
         //pageHolder.remove();
@@ -735,6 +734,11 @@ modules["pages/editor"] = {
     tempListen(document, "visibilitychange", () => {
       this.active = document.visibilityState == "visible";
     });
+
+    // LOAD IN:
+    if (this.updatePages) {
+      this.updatePages();
+    }
   }
 }
 

@@ -29,7 +29,7 @@ modules["dropdowns/editor/share/pin"] = {
     ".eSharePinCopy": `width: 36px; height: 36px; padding: 0; margin: 7px; --borderWidth: 3px`,
     ".eSharePinCopy img": `width: 30px; transition: .1s`,
     ".eSharePinCopy:hover": `background: var(--theme); --borderWidth: 0px; transform: scale(1.1)`,
-    ".eSharePinCopy:hover img": `width: 26px; filter: brightness(0) invert(1)`,
+    ".eSharePinCopy:hover img": `filter: brightness(0) invert(1)`,
 
     ".eSharePinRemove": `height: fit-content; min-height: 36px; padding: 0 12px; margin: 7px 14px 7px 7px; --borderWidth: 3px; --borderRadius: 18px; color: var(--error); font-size: 18px`,
     ".eSharePinRemove:hover": `background: var(--error); --borderWidth: 0px; transform: scale(1.1); color: #fff`,

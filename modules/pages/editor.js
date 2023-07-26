@@ -13,7 +13,7 @@ modules["pages/editor"] = {
       <div class="eTop">
         <div class="eTopSection">
           <a class="eLogo" href="/#dashboard"><img src="./images/logo.svg"></a>
-          <div class="eFileName" contenteditable spellcheck="false" onpaste="clipBoardRead(event)"></div>
+          <div class="eFileName border" contenteditable spellcheck="false" onpaste="clipBoardRead(event)"></div>
           <button class="eFileDropdown" dropdown="dropdowns/editor/file">File</button>
         </div>
         <div class="eTopSection">
@@ -67,16 +67,16 @@ modules["pages/editor"] = {
     ".eTopHolder": `position: fixed; width: 100%; z-index: 500`,
     ".eTop": `display: flex; box-sizing: border-box; gap: 8px; width: 100%; padding: 8px; overflow-x: auto`,
     ".eTop::-webkit-scrollbar": `display: none`,
-    ".eTopScroll": `position: absolute; display: flex; width: 36px; height: 36px; top: 50%; transform: translateY(-50%); background: rgba(180, 218, 253, .75); backdrop-filter: blur(2px); opacity: 0; pointer-events: none; border-radius: 18px; justify-content: center; align-items: center`,
+    ".eTopScroll": `position: absolute; display: flex; width: 36px; height: 36px; top: 50%; transform: translateY(-50%); background: rgba(180, 218, 253, .75); backdrop-filter: blur(2px); opacity: 0; pointer-events: none; border-radius: 18px; justify-content: center; align-items: center; z-index: 200`,
     ".eTopScroll img": `width: 22px`,
-    ".eTopScroll:active": `transform: translateY(-50%) scale(.85)`,
+    ".eTopScroll:active": `transform: translateY(-50%) scale(.85) !important`,
     ".eTopSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; border-radius: 16px`,
     ".eTopMargin": `margin-left: auto`,
 
     ".eLogo": `height: 100%; padding: 0`,
     ".eLogo img": `height: 100%`,
-    ".eFileName": `max-width: 360px; padding: 3px; margin: 0 4px; border-radius: 6px; font-size: 20px; white-space: nowrap; overflow: hidden; transition: .05s`,
-    ".eFileName:focus": `outline: solid 4px var(--secondary)`,
+    ".eFileName": `max-width: 360px; padding: 3px; margin: 0 4px; outline: unset; --borderRadius: 4px; --borderColor: var(--secondary); font-size: 20px; white-space: nowrap; --transition: .05s`,
+    ".eFileName:focus": `--borderWidth: 4px`,
     ".eFileDropdown": `padding: 6px 10px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
 
     ".eSaveProgress": `display: flex; width: 31px; height: 31px; padding: 0; align-items: center; overflow: hidden; background: var(--lightGray)`,
@@ -741,9 +741,9 @@ modules["pages/editor"] = {
 modules["dropdowns/editor/zoom"] = {
   html: `
   <div class="eZoomHolder">
-    <button class="eZoomButton buttonAnim" sub change="-.1">-</button>
-    <div class="eZoomLevel"><div class="eZoomBox" contenteditable>100</div>%</div>
-    <button class="eZoomButton buttonAnim" add change=".1">+</button>
+    <button class="eZoomButton buttonAnim border" sub change="-.1">-</button>
+    <div class="eZoomLevel border"><div class="eZoomBox" contenteditable>100</div>%</div>
+    <button class="eZoomButton buttonAnim border" add change=".1">+</button>
   </div>
   <div class="eZoomLine"></div>
   <button class="eZoomAction" option="cursors" title="Display the cursors of other editors."><div label>Cursors</div><div class="eZoomToggle"><div></div></div></button>
@@ -752,9 +752,9 @@ modules["dropdowns/editor/zoom"] = {
   <button class="eZoomAction" option="fullscreen" title="Fullscreen allows increased accessibility."><div label>Fullscreen</div><div class="eZoomToggle"><div></div></div></button>
   `,
   css: {
-    ".eZoomHolder": `display: flex; justify-content: center; align-items: center`,
-    ".eZoomButton": `position: relative; display: flex; width: 22px; height: 22px; margin: 3px; outline: solid 3px var(--secondary); justify-content: center; align-items: center; border-radius: 14px; color: var(--theme); font-size: 24px; font-weight: 600; line-height: 0`,
-    ".eZoomLevel": `display: flex; padding: 3px 6px 3px 3px; margin: 12px; outline: solid 3px var(--secondary); justify-content: center; align-items: center; border-radius: 19px; color: var(--theme); font-size: 20px; font-weight: 600`,
+    ".eZoomHolder": `display: flex; flex-wrap: wrap; justify-content: center; align-items: center`,
+    ".eZoomButton": `position: relative; display: flex; width: 22px; height: 22px; margin: 20px 3px; justify-content: center; align-items: center; --borderRadius: 8px; color: var(--theme); font-size: 24px; font-weight: 600; line-height: 0`,
+    ".eZoomLevel": `display: flex; padding: 3px 6px 3px 3px; margin: 0 12px; --borderWidth: 3px; --borderColor: var(--secondary); justify-content: center; align-items: center; --borderRadius: 15px; color: var(--theme); font-size: 20px; font-weight: 600`,
     ".eZoomLevel div": `max-width: 50px; min-width: 25px; padding: 3px 6px; margin-right: 3px; border: none; border-radius: 16px; text-align: center; white-space: nowrap; overflow: hidden`,
     
     ".eZoomLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`,

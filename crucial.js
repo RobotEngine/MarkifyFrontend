@@ -962,15 +962,15 @@ modules["dropdowns/account"] = {
 // Add CORE CSS:
 addCSS({
   "button, a": `border: none; background: none; color: var(--textColor); font-family: var(--font); cursor: pointer; transition: .1s`,
-  "button:active, a:active": `transform: scale(.9)`,
+  "button:active, a:active": `transform: scale(.9) !important`,
   "[disabled]": `pointer-events: none !important; opacity: .5 !important`,
   "[hidden]": `pointer-events: none !important; opacity: 0 !important`,
-  ".buttonAnim": `--outlineWidth: 0px`,
+  ".largeButton, .border": `--themeColor: var(--secondary); --themeColor2: var(--hover); --borderRadius: 0px; --borderColor: var(--themeColor); --borderWidth: 0px; --outline: solid var(--borderWidth) var(--borderColor); --transition: .1s; position: relative; border-radius: var(--borderRadius)`,
+  ".largeButton": `display: flex; padding: 6px 14px; --borderWidth: 4px; align-items: center; font-size: 20px; font-weight: 700; transition: .1s`,
+  ".largeButton::after, .border:after": `position: absolute; display: inline-block; width: 100%; height: 100%; left: 50%; top: 50%; transform: translate(-50%, -50%); border-radius: calc(var(--borderRadius) + var(--borderWidth)*2); content: ""; pointer-events: none; border: var(--outline); transition: var(--transition)`,
+  ".buttonAnim": `--borderWidth: 3px`,
   ".buttonAnim:hover": `background: var(--hover)`,
   ".buttonAnim:active": `background: unset; --borderWidth: 4px; --borderColor: var(--hover)`,
-  ".largeButton, .border": `--themeColor: var(--secondary); --themeColor2: var(--hover); --borderRadius: 0px; --borderColor: var(--themeColor); --borderWidth: 0px; --outline: solid var(--borderWidth) var(--borderColor); position: relative; border-radius: var(--borderRadius)`,
-  ".largeButton": `display: flex; padding: 6px 14px; --borderWidth: 4px; align-items: center; font-size: 20px; font-weight: 700; transition: .1s`,
-  ".largeButton::after, .border:after": `position: absolute; display: inline-block; width: 100%; height: 100%; left: 50%; top: 50%; transform: translate(-50%, -50%); border-radius: calc(var(--borderRadius) + var(--borderWidth)*2); content: ""; border: var(--outline); transition: .1s`,
   ".largeButton:hover": `--borderColor: var(--themeColor2)`,
   ".largeButton:active": `--borderWidth: 8px`,
   ".fixedItemHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px`

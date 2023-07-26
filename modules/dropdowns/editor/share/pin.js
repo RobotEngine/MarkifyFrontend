@@ -27,11 +27,12 @@ modules["dropdowns/editor/share/pin"] = {
     ".eSharePinOptions button": `display: flex; --borderColor: var(--hover); --borderRadius: 18px; justify-content: center; align-items: center; font-weight: 700`,
     
     ".eSharePinCopy": `width: 36px; height: 36px; padding: 0; margin: 7px; --borderWidth: 3px`,
-    ".eSharePinCopy img": `width: 30px`,
+    ".eSharePinCopy img": `width: 30px; transition: .1s`,
+    ".eSharePinCopy:hover": `background: var(--theme); --borderWidth: 0px; transform: scale(1.1)`,
+    ".eSharePinCopy:hover img": `width: 26px; filter: brightness(0) invert(1)`,
 
     ".eSharePinRemove": `height: fit-content; min-height: 36px; padding: 0 12px; margin: 7px 14px 7px 7px; --borderWidth: 3px; --borderRadius: 18px; color: var(--error); font-size: 18px`,
-    ".eSharePinRemove:hover": `background: var(--error); --borderWidth: 0px; color: #fff`,
-    //".eSharePinRemove:active": `transform: scale(.95);`,
+    ".eSharePinRemove:hover": `background: var(--error); --borderWidth: 0px; transform: scale(1.1); color: #fff`,
 
     ".eShareAction": `display: flex; max-width: 100%; padding: 6px; margin: 7px 7px 7px auto; align-items: center; --borderWidth: 3px; font-size: 16px`,
     ".eShareAction div[label]": `flex: 1; margin: 0 8px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
@@ -41,7 +42,7 @@ modules["dropdowns/editor/share/pin"] = {
     ".eShareToggle div": `position: absolute; width: 20px; height: 20px; background: #fff; border-radius: 10px; transition: .2s`,
     ".eShareAction[on] .eShareToggle div": `right: 2px`,
     ".eShareAction[off] .eShareToggle div": `right: calc(100% - 22px)`,
-    ".eShareAction:hover": `background: var(--themeColor); --borderWidth: 0px; color: var(--color)`,
+    ".eShareAction:hover": `background: var(--themeColor); --borderWidth: 0px; transform: scale(1.1); color: var(--color)`,
     ".eShareAction:hover .eShareToggle": `background: #fff`,
     ".eShareAction:hover .eShareToggle div": `background: var(--themeColor)`
   },

@@ -735,6 +735,7 @@ modules["pages/editor"] = {
         initialDistance = currentDistance;
       } else {
         let distanceChange = currentDistance - initialDistance;
+        document.title = distanceChange;
 
         this.setZoom(this.zoom + Math.floor(distanceChange * 0.1));
       }
@@ -793,7 +794,7 @@ modules["dropdowns/editor/zoom"] = {
   `,
   css: {
     ".eZoomHolder": `display: flex; flex-wrap: wrap; justify-content: center; align-items: center`,
-    ".eZoomButton": `position: relative; display: flex; width: 22px; height: 22px; margin: 20px 3px; justify-content: center; align-items: center; --borderRadius: 8px; color: var(--theme); font-size: 24px; font-weight: 600; line-height: 0`,
+    ".eZoomButton": `position: relative; display: flex; width: 22px; height: 22px; margin: 20px 3px; justify-content: center; align-items: center; --borderWidth: 3px; --borderRadius: 8px; color: var(--theme); font-size: 24px; font-weight: 600; line-height: 0`,
     ".eZoomLevel": `display: flex; padding: 3px 6px 3px 3px; margin: 0 12px; --borderWidth: 3px; --borderColor: var(--secondary); justify-content: center; align-items: center; --borderRadius: 15px; color: var(--theme); font-size: 20px; font-weight: 600`,
     ".eZoomLevel div": `max-width: 50px; min-width: 25px; padding: 3px 6px; margin-right: 3px; border: none; border-radius: 16px; text-align: center; white-space: nowrap; overflow: hidden`,
 

@@ -826,7 +826,9 @@ body.addEventListener("click", async function (event) {
   }
 });
 window.addEventListener("scroll", async function () {
-  (await getModule("dropdown")).close();
+  if (window.dropdown && window.dropdown.button && window.dropdown.button.closest("[noscrollclose]") == null) {
+    (await getModule("dropdown")).close();
+  }
 });
 
 async function textBoxError(box, error) {

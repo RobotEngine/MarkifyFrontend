@@ -235,6 +235,8 @@ modules["editor/realtime"] = {
     mouseEvent = this.publishShort;
     editor.scrollEvent = this.publishShort;
     page.addEventListener("click", this.publishShort);
+    page.addEventListener("touchmove", this.publishShort);
+    page.addEventListener("touchend", this.publishShort);
 
     this.adjustRealtimeHolder = () => { // Scale realtime elements when zoom or resize:
       let adjustElements = realtimeHolder.querySelectorAll("[scale]");

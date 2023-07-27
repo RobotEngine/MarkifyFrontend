@@ -10,7 +10,7 @@ modules["pages/editor"] = {
     <div class="eTopHolder">
       <button class="eTopScroll eTopScrollLeft" style="left: 8px"><img src="./images/editor/top/leftarrow.svg"></button>
       <button class="eTopScroll eTopScrollRight" style="right: 8px"><img src="./images/editor/top/rightarrow.svg"></button>
-      <div class="eTop">
+      <div class="eTop" noscrollclose>
         <div class="eTopSection">
           <a class="eLogo" href="/#dashboard"><img src="./images/logo.svg"></a>
           <div class="eFileName border" contenteditable spellcheck="false" onpaste="clipBoardRead(event)"></div>

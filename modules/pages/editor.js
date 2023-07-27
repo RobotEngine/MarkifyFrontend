@@ -126,13 +126,13 @@ modules["pages/editor"] = {
   },
   members: {},
   active: document.visibilityState == "visible",
-  syncMembers: async function(memberUpd) {
+  syncMembers: async function (memberUpd) {
     for (let i = 0; i < memberUpd.length; i++) {
       let memSet = memberUpd[i];
       this.members[memSet._id] = memSet;
     }
   },
-  getSelf: function() {
+  getSelf: function () {
     return this.members[this.sessionID];
   },
   async updateInterface(page) {
@@ -183,7 +183,7 @@ modules["pages/editor"] = {
       loginButton.style.display = "block";
       loginButton.addEventListener("click", promptLogin);
     }
-    
+
     let lessonID = getParam("lesson") || "";
     this.id = lessonID;
 
@@ -240,7 +240,7 @@ modules["pages/editor"] = {
             }
           }
           enableScrollTop();
-    }
+      }
     }; // Subscribe before to make sure no members are lost in request time.
 
     let sendBody = { ss: socket.secureID };
@@ -287,18 +287,20 @@ modules["pages/editor"] = {
 
     this.sessionID = body.session._id;
     this.session = body.session._id + ";" + body.session.token;
-    tempListeners.push({ type: "interval", interval: setInterval(async () => {
-      if (connected) {
-        let [code] = await sendRequest("GET", "lessons/ping", null, { session: this.session });
-        if (code == 200) {
-          if (this.realtime) {
-            this.realtime.ping();
+    tempListeners.push({
+      type: "interval", interval: setInterval(async () => {
+        if (connected) {
+          let [code] = await sendRequest("GET", "lessons/ping", null, { session: this.session });
+          if (code == 200) {
+            if (this.realtime) {
+              this.realtime.ping();
+            }
+          } else if (code == 403) {
+            setFrame("pages/editor");
           }
-        } else if (code == 403) {
-          setFrame("pages/editor");
         }
-      }
-    }, 60000)}); // PING every minute
+      }, 60000)
+    }); // PING every minute
 
     this.syncMembers(body.members);
 
@@ -308,7 +310,7 @@ modules["pages/editor"] = {
       (await getModule("editor/realtime")).js(this, page);
     })();
 
-    page.querySelector(".eLogo").addEventListener("click", function(event) {
+    page.querySelector(".eLogo").addEventListener("click", function (event) {
       event.preventDefault();
       setFrame("pages/dashboard");
     });
@@ -357,10 +359,10 @@ modules["pages/editor"] = {
         eTopScrollRight.style.pointerEvents = "none";
       }
     }
-    eTopScrollLeft.addEventListener("click", function() {
+    eTopScrollLeft.addEventListener("click", function () {
       eTop.scrollTo({ left: eTop.scrollLeft - 200, behavior: "smooth" });
     });
-    eTopScrollRight.addEventListener("click", function() {
+    eTopScrollRight.addEventListener("click", function () {
       eTop.scrollTo({ left: eTop.scrollLeft + 200, behavior: "smooth" });
     });
     enableScrollTop();
@@ -385,13 +387,13 @@ modules["pages/editor"] = {
         let currentPage = 1;
 
         bottomHolder.querySelector(".eCurrentPage").innerHTML = '<b>1</b> / ' + body.pages.length;
-        bottomHolder.querySelector(".ePageNav[down]").addEventListener("click", function() {
+        bottomHolder.querySelector(".ePageNav[down]").addEventListener("click", function () {
           let nextPage = pageHolder.children[currentPage] || pageHolder.children[pageHolder.children.length - 1];
           if (nextPage) {
             window.scrollTo({ top: window.scrollY + nextPage.getBoundingClientRect().top - 66, behavior: "smooth" });
           }
         });
-        bottomHolder.querySelector(".ePageNav[up]").addEventListener("click", function() {
+        bottomHolder.querySelector(".ePageNav[up]").addEventListener("click", function () {
           let nextPage = pageHolder.children[currentPage - 2] || pageHolder.children[0];
           if (nextPage) {
             window.scrollTo({ top: window.scrollY + nextPage.getBoundingClientRect().top - 66, behavior: "smooth" });
@@ -417,19 +419,19 @@ modules["pages/editor"] = {
               // Get page
               let sourceData = sources[pageData.source];
               if (sourceData) {
-                sourceData.pdf.getPage(pageData.page).then(async function(pageRender) {
+                sourceData.pdf.getPage(pageData.page).then(async function (pageRender) {
                   if (pageElem.hasAttribute("loading") == false) {
                     resolve();
                     return;
                   }
                   let viewport = pageRender.getViewport({ scale: 1.5 });
-                  
+
                   pageElem.insertAdjacentHTML("beforeend", `<canvas class="ePageContent" new></canvas>`);
                   canvas = pageElem.querySelector(".ePageContent[new]");
                   canvas.removeAttribute("new");
 
                   let context = canvas.getContext("2d");
-                  
+
                   canvas.width = viewport.width;
                   canvas.height = viewport.height;
                   //canvas.style.width = viewport.width + "px";
@@ -543,7 +545,7 @@ modules["pages/editor"] = {
                 }
 
                 let loadingTask = pdfjsLib.getDocument(assetURL + sourceData.source);
-                loadingTask.promise.then(function(pdf) {
+                loadingTask.promise.then(function (pdf) {
                   sourceData.pdf = pdf;
                   let loadInPages = pageHolder.querySelectorAll('.ePage[sourceid="' + pageData.source + '"][loading]');
                   for (let i = 0; i < loadInPages.length; i++) {
@@ -669,7 +671,7 @@ modules["pages/editor"] = {
       pageHolder.style.transform = `scale(${this.zoom})`; // translate(${(pageHolder.clientWidth * zoom) / 2}px, ${(pageHolder.clientHeight * zoom) / 2}px)
       //pageHolder.style.margin = `${(pageHolder.clientHeight - (pageHolder.clientHeight * zoom)) / 2}px ${(pageHolder.clientWidth - (pageHolder.clientWidth * zoom)) / 2}px`;
       //pageHolder.style.transformOrigin = mousePositionX + "px " + mousePositionY + "px";
-      
+
       let newWidth = pageHolder.clientWidth * this.zoom;
       let newHeight = pageHolder.clientHeight * this.zoom;
 
@@ -677,7 +679,7 @@ modules["pages/editor"] = {
       content.style.height = newHeight + "px";
 
       window.scrollTo(pageScrollX * (newWidth / prevWidth), pageScrollY * (newHeight / prevHeight));
-      
+
       let updateZoomPercentBoxes = document.querySelectorAll(".eZoomBox");
       for (let i = 0; i < updateZoomPercentBoxes.length; i++) {
         updateZoomPercentBoxes[i].textContent = Math.round(this.zoom * 100);
@@ -713,6 +715,40 @@ modules["pages/editor"] = {
     }
     tempListen(window, "DOMMouseScroll", scrollMouseWheel, { passive: false });
     tempListen(window, "mousewheel", scrollMouseWheel, { passive: false });
+    
+    // Handle MOBILE
+    let initialDistance = null;
+
+    function calculateDistance(touches) {
+      let [x1, y1] = [touches[0].pageX, touches[0].pageY];
+      let [x2, y2] = [touches[1].pageX, touches[1].pageY];
+      return Math.hypot(x2 - x1, y2 - y1);
+    }
+
+    function handlePinchZoom(event) {
+      let touches = event.touches;
+      if (touches.length !== 2) return;
+
+      let currentDistance = calculateDistance(touches);
+
+      if (initialDistance === null) {
+        initialDistance = currentDistance;
+      } else {
+        let distanceChange = currentDistance - initialDistance;
+
+        this.setZoom(this.zoom + Math.floor(distanceChange * 0.1));
+      }
+
+      event.preventDefault();
+    }
+
+    function handleTouchEnd() {
+      initialDistance = null;
+    }
+
+    tempListen(window, "touchmove", handlePinchZoom, { passive: false });
+    tempListen(window, "touchend", handleTouchEnd, { passive: false });
+
 
     // Fullscreen
     let pageUpdateInterval;
@@ -760,9 +796,9 @@ modules["dropdowns/editor/zoom"] = {
     ".eZoomButton": `position: relative; display: flex; width: 22px; height: 22px; margin: 20px 3px; justify-content: center; align-items: center; --borderRadius: 8px; color: var(--theme); font-size: 24px; font-weight: 600; line-height: 0`,
     ".eZoomLevel": `display: flex; padding: 3px 6px 3px 3px; margin: 0 12px; --borderWidth: 3px; --borderColor: var(--secondary); justify-content: center; align-items: center; --borderRadius: 15px; color: var(--theme); font-size: 20px; font-weight: 600`,
     ".eZoomLevel div": `max-width: 50px; min-width: 25px; padding: 3px 6px; margin-right: 3px; border: none; border-radius: 16px; text-align: center; white-space: nowrap; overflow: hidden`,
-    
+
     ".eZoomLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`,
-    
+
     ".eZoomAction": `display: flex; width: 100%; padding: 6px; border-radius: 8px; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
     ".eZoomAction:not(:last-child)": `margin-bottom: 4px`,
     ".eZoomAction div[label]": `flex: 1; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,

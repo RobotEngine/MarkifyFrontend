@@ -370,12 +370,15 @@ modules["pages/dashboard/lessons"] = {
       for (let i = 0; i < visibleTiles.length; i++) {
         tileIDs[visibleTiles[i].getAttribute("lesson")] = "";
       }
-      let filter = { type: "lesson", id: Object.keys(tileIDs), _id: userID };
+      let filter = { type: ["dash", "lesson"], id: Object.keys(tileIDs), _id: userID };
       if (this.dashSubscribe) {
         this.dashSubscribe.edit(filter);
       } else {
         this.dashSubscribe = subscribe(filter, function (data) {
           let body = data.data || data.body;
+          if (data.task == "join" && body.user == userID) {
+            return;
+          }
           let updTiles = frame.querySelectorAll('.dTile[lesson="' + (body.lesson || body._id) + '"]');
           switch (data.task) {
             case "join":
@@ -384,6 +387,7 @@ modules["pages/dashboard/lessons"] = {
                 let memberCountTx = tile.querySelector(".dTileMemberCount span");
                 memberCountTx.textContent = parseInt(memberCountTx.textContent) + 1;
               }
+              /*
               if (body.user == userID) {
                 if (updTiles.length > 0) {
                   let tile = frame.querySelector('.dSection[section="recent"]').querySelector('.dTile[lesson="' + body.lesson + '"]');
@@ -394,6 +398,7 @@ modules["pages/dashboard/lessons"] = {
                   }
                 }
               }
+              */
               break;
             case "leave":
               for (let i = 0; i < updTiles.length; i++) {

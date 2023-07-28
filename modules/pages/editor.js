@@ -196,9 +196,14 @@ modules["pages/editor"] = {
         counts[i].textContent = setCount;
       }
     }
+    
+    this.members = {};
 
     socket.remotes["lesson_" + lessonID] = (data) => {
       let body = data.data;
+      if (body.lesson != lessonID) {
+        return;
+      }
       switch (data.task) {
         case "join":
           this.members[body._id] = body;
@@ -717,6 +722,7 @@ modules["pages/editor"] = {
     tempListen(window, "mousewheel", scrollMouseWheel, { passive: false });
     
     // Handle MOBILE
+    /*
     let initialDistance = null;
 
     function calculateDistance(touches) {
@@ -749,7 +755,7 @@ modules["pages/editor"] = {
 
     tempListen(window, "touchmove", handlePinchZoom, { passive: false });
     tempListen(window, "touchend", handleTouchEnd, { passive: false });
-
+    */
 
     // Fullscreen
     let pageUpdateInterval;

@@ -231,11 +231,14 @@ modules["editor/realtime"] = {
         lastCursorContent = updJSONContent;
       }
     }
-    page.addEventListener("mousemove", this.publishShort);
-    mouseEvent = this.publishShort;
     editor.scrollEvent = this.publishShort;
-    page.addEventListener("click", this.publishShort);
+
+    page.addEventListener("mousemove", this.publishShort);
+    page.addEventListener("mousedown", this.publishShort);
+    page.addEventListener("mouseup", this.publishShort);
+
     page.addEventListener("touchmove", this.publishShort);
+    page.addEventListener("touchstart", this.publishShort);
     page.addEventListener("touchend", this.publishShort);
 
     this.adjustRealtimeHolder = () => { // Scale realtime elements when zoom or resize:

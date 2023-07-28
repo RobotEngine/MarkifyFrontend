@@ -276,7 +276,11 @@ modules["pages/dashboard/lessons"] = {
     ".dTileMemberCount img": "width: 21px; height: 21px; margin-right: 2px"
   },
   js: async function (frame) {
-    let [code, body] = await sendRequest("GET", "lessons");
+    let path = "lessons";
+    if (modules["pages/editor"] && modules["pages/editor"].session) {
+      path += "?leave=" + modules["pages/editor"].session;
+    }
+    let [code, body] = await sendRequest("GET", path);
     if (code != 200) {
       return;
     }

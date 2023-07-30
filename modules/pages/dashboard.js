@@ -6,6 +6,7 @@ modules["pages/dashboard"] = {
       return false;
     }
     modifyParams("lesson");
+    modifyParams("page");
     modifyParams("pin");
   },
   html: `<div class="dPage">

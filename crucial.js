@@ -1,5 +1,5 @@
-//let serverURL = "https://markifydev.exotek.co/api/";
-let serverURL = "http://localhost:3000/api/";
+let serverURL = "https://markifydev.exotek.co/api/";
+//let serverURL = "http://localhost:3000/api/";
 let assetURL = "https://markifyapp.s3.amazonaws.com/";
 
 const socket = new SimpleSocket({
@@ -142,6 +142,7 @@ async function setFrame(path, frame, extra) {
     loading.removeAttribute("new");
     runLoadingAnim(loading);
     if (frameSet == app) {
+      loading.style.position = "fixed";
       let svgHolder = loading.querySelector(".loadingSvgHolder");
       svgHolder.style.width = "100vw";
       svgHolder.style.height = "100vh";
@@ -233,18 +234,28 @@ function loadScript(url) {
   return new Promise(function (resolve) {
     let loaded = getScript(url);
     if (loaded != null) {
-      resolve(loaded);
-      return;
+      if (loaded.hasAttribute("loaded")) {
+        resolve(loaded);
+      } else {
+        loaded.addEventListener("load", function () {
+          resolve(loaded);
+        });
+        loaded.addEventListener("error", function () {
+          resolve();
+        });
+      }
+    } else {
+      let newScript = document.createElement("script");
+      newScript.addEventListener("load", function () {
+        newScript.setAttribute("loaded", "");
+        resolve(newScript);
+      });
+      newScript.addEventListener("error", function () {
+        resolve();
+      });
+      newScript.src = url;
+      document.body.appendChild(newScript);
     }
-    let newScript = document.createElement("script");
-    newScript.addEventListener("load", function () {
-      resolve(newScript);
-    });
-    newScript.addEventListener("error", function () {
-      resolve();
-    });
-    newScript.src = url;
-    document.body.appendChild(newScript);
   });
 }
 

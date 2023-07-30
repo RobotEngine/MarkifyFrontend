@@ -155,8 +155,10 @@ modules["pages/editor"] = {
       return this.members[this.sessionID];
     };
 
-    //loadScript("../libraries/pdfjs/pdf.js");
-
+    // PRELOAD ASSETS
+    loadScript("../libraries/pdfjs/pdf.js");
+    loadScript("../modules/editor/realtime.js");
+    
     page.style.removeProperty("display");
     page.style.width = "fit-content";
     page.style.minWidth = "100%";
@@ -172,7 +174,6 @@ modules["pages/editor"] = {
     }
 
     setFrame("editor/toolbar", page.querySelector(".eToolbar"));
-    //getModule("editor/realtime");
 
     let loginButton = page.querySelector(".eLogin");
     if (userID) {
@@ -304,7 +305,7 @@ modules["pages/editor"] = {
             if (this.realtime) {
               this.realtime.ping();
             }
-          } else if (code == 403) {
+          } else { // if (code == 403)
             setFrame("pages/editor");
           }
         }
@@ -396,22 +397,24 @@ modules["pages/editor"] = {
         let pages = getObject(body.pages || [], "_id");
         let sources = getObject(body.sources || [], "_id");
 
-        //await loadScript("../libraries/pdfjs/pdf.js");
-        //pdfjsLib.GlobalWorkerOptions.workerSrc = "../libraries/pdfjs/pdf.worker.js";
+        await loadScript("../libraries/pdfjs/pdf.js");
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "../libraries/pdfjs/pdf.worker.js";
 
         let currentPage = 1;
+
+        let scrollOffset = 66;
 
         bottomHolder.querySelector(".eCurrentPage").innerHTML = '<b>1</b> / ' + body.pages.length;
         bottomHolder.querySelector(".ePageNav[down]").addEventListener("click", function () {
           let nextPage = pageHolder.children[currentPage] || pageHolder.children[pageHolder.children.length - 1];
           if (nextPage) {
-            window.scrollTo({ top: window.scrollY + nextPage.getBoundingClientRect().top - 66, behavior: "smooth" });
+            window.scrollTo({ top: window.scrollY + nextPage.getBoundingClientRect().top - scrollOffset, behavior: "smooth" });
           }
         });
         bottomHolder.querySelector(".ePageNav[up]").addEventListener("click", function () {
           let nextPage = pageHolder.children[currentPage - 2] || pageHolder.children[0];
           if (nextPage) {
-            window.scrollTo({ top: window.scrollY + nextPage.getBoundingClientRect().top - 66, behavior: "smooth" });
+            window.scrollTo({ top: window.scrollY + nextPage.getBoundingClientRect().top - scrollOffset, behavior: "smooth" });
           }
         });
 
@@ -624,6 +627,7 @@ modules["pages/editor"] = {
             clearTimeout(scrollSubTimeout);
             scrollSubTimeout = setTimeout(() => {
               this.realtime.module.setShortSub(this.visiblePages);
+              modifyParams("page", currentPage);
             }, 750);
             if (this.scrollEvent) {
               this.scrollEvent();
@@ -654,6 +658,9 @@ modules["pages/editor"] = {
           }
           pageHolder.insertAdjacentHTML("beforeend", `<div class="ePage" pageid="${page._id}"${includeSource} style="width: ${page.width}px; height: ${page.height}px"></div>`);
         }
+
+        let scrollPage = getParam("page") || 1;
+        window.scrollTo({ top: window.scrollY + pageHolder.children[scrollPage - 1].getBoundingClientRect().top - scrollOffset });
         break;
       case "freeboard":
         //pageHolder.remove();

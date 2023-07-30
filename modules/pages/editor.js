@@ -117,22 +117,6 @@ modules["pages/editor"] = {
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 100; overflow: hidden`
   },
   loadedPDFs: [], // Keep track of loaded PDFs for releasing memory
-  async updateInterface(page) {
-    let side = page.querySelector(".eSide");
-    let name = page.querySelector(".eFileName");
-    let access = this.getSelf().access;
-    if (access == 0) {
-      // Side Bar
-      side.setAttribute("hidden", "");
-      side.offsetHeight;
-      side.style.transition = ".3s";
-      name.removeAttribute("contenteditable");
-    } else {
-      side.removeAttribute("hidden");
-      name.setAttribute("contenteditable", "");
-    }
-    (await getModule("dropdown")).close();
-  },
   js: async function (page, joinData) {
     this.page = page;
     this.options = {
@@ -153,6 +137,28 @@ modules["pages/editor"] = {
     };
     this.getSelf = function () {
       return this.members[this.sessionID];
+    };
+    this.updateInterface = async function (page) {
+      let side = page.querySelector(".eSide");
+      let name = page.querySelector(".eFileName");
+      let share = page.querySelector(".eShare");
+      let access = this.getSelf().access;
+      if (access == 0) {
+        // Side Bar
+        side.setAttribute("hidden", "");
+        side.offsetHeight;
+        side.style.transition = ".3s";
+        name.removeAttribute("contenteditable");
+      } else {
+        side.removeAttribute("hidden");
+        name.setAttribute("contenteditable", "");
+      }
+      if (access < 2) {
+        share.style.display = "none";
+      } else {
+        share.style.display = "flex";
+      }
+      (await getModule("dropdown")).close();
     };
 
     // PRELOAD ASSETS
@@ -240,8 +246,10 @@ modules["pages/editor"] = {
             this.lesson[key] = body[key];
           }
           page.querySelector(".eFileName").textContent = this.lesson.name || "Untitled Lesson";
-          if (body.hasOwnProperty("pin") && this.updatePin) {
-            this.updatePin();
+          if (body.hasOwnProperty("pin")) {
+            if (this.updatePin) {
+              this.updatePin();
+            }
             if (body.pin != null) {
               this.codeTextButton.textContent = body.pin;
               this.codeTextButton.style.display = "unset";
@@ -250,6 +258,9 @@ modules["pages/editor"] = {
             }
           }
           enableScrollTop();
+          break;
+        case "kick":
+          setFrame("pages/join");
       }
     }; // Subscribe before to make sure no members are lost in request time.
 
@@ -272,6 +283,9 @@ modules["pages/editor"] = {
     }
     if (this.joinData.name) {
       sendBody.name = this.joinData.name;
+    }
+    if (this.session != null && joinData != null) {
+      delete this.session;
     }
     let [code, body, extra] = await sendRequest("POST", "lessons/join?lesson=" + lessonID, sendBody, { session: this.session, allowError: [403, 406] });
     if (code == 403 || code == 406) {

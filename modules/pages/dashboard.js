@@ -354,6 +354,9 @@ modules["pages/dashboard/lessons"] = {
         let lessonRec = lessonRecs[i];
         addTile(tileHolder, lessonRec, lessons[lessonRec.lesson]);
       }
+      if (lessonRecs.length < parseInt(tileHolder.getAttribute("default"))) {
+        tileSection.querySelector(".dSectionLoadMore").style.display = "none";
+      }
     }
     addLessonTiles("recent");
     addLessonTiles("shared");
@@ -380,7 +383,7 @@ modules["pages/dashboard/lessons"] = {
           if (data.task == "join" && body.user == userID) {
             return;
           }
-          let updTiles = frame.querySelectorAll('.dTile[lesson="' + (body.lesson || body._id) + '"]');
+          let updTiles = frame.querySelectorAll('.dTile[lesson="' + body.lesson + '"]');
           switch (data.task) {
             case "join":
               for (let i = 0; i < updTiles.length; i++) {
@@ -435,6 +438,15 @@ modules["pages/dashboard/lessons"] = {
                   }
                 }
                 updateDashSub();
+              }
+              break;
+            case "remove":
+              for (let i = 0; i < updTiles.length; i++) {
+                let parent = updTiles[i].parentElement;
+                updTiles[i].remove();
+                if (parent.childElementCount < 1) {
+                  parent.parentElement.style.display = "none";
+                }
               }
           }
         });

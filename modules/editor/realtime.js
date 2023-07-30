@@ -428,6 +428,7 @@ modules["dropdowns/editor/share"] = {
     ".eShareOption .eShareDesc": `max-width: 250px; font-size: 14px`
   },
   js: async function (frame) {
+    /*
     let editor = await getModule("pages/editor");
     if (editor.getSelf().access < 2) {
       frame.querySelector(`.eShareOption[dropdown="dropdowns/editor/share/link"]`).remove();
@@ -436,5 +437,6 @@ modules["dropdowns/editor/share"] = {
         shareDesc[i].remove();
       }
     }
+    */
   }
 }

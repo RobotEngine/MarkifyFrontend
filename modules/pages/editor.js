@@ -227,7 +227,7 @@ modules["pages/editor"] = {
             this.realtime.module.removeRealtime(body._id);
           }
           updateMemberCount();
-          if (body._id == this.sessionID) { // Self
+          if (body._id == this.sessionID && currentPage == "editor") { // Self
             setFrame("pages/join");
           }
           break;
@@ -689,7 +689,10 @@ modules["pages/editor"] = {
         }
 
         let scrollPage = getParam("page") || 1;
-        window.scrollTo({ top: window.scrollY + pageHolder.children[scrollPage - 1].getBoundingClientRect().top - scrollOffset });
+        let scrollElem = pageHolder.children[scrollPage - 1];
+        if (scrollElem != null) {
+          window.scrollTo({ top: window.scrollY + scrollElem.getBoundingClientRect().top - scrollOffset });
+        }
         break;
       case "freeboard":
         //pageHolder.remove();

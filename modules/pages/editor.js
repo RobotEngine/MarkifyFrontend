@@ -29,7 +29,7 @@ modules["pages/editor"] = {
         </div>
         <div class="eTopSection">
           <button class="eZoom" dropdown="dropdowns/editor/zoom"><span class="eZoomBox">100</span>%</button>
-          <button class="eAccount" dropdown="dropdowns/account"><img src="./images/profiles/default.svg"><div></div></button>
+          <button class="eAccount" dropdown="dropdowns/account"><img src="./images/profiles/default.svg" accountimage><div accountuser></div></button>
           <button class="eLogin">Login</button>
         </div>
       </div>
@@ -196,7 +196,7 @@ modules["pages/editor"] = {
         counts[i].textContent = setCount;
       }
     }
-    
+
     this.members = {};
 
     socket.remotes["lesson_" + lessonID] = (data) => {
@@ -216,15 +216,17 @@ modules["pages/editor"] = {
           updateMemberCount();
           break;
         case "update":
-          let memberKeys = Object.keys(body);
-          let member = this.members[body._id];
-          for (let i = 0; i < memberKeys.length; i++) {
-            let key = memberKeys[i];
-            member[key] = body[key];
-          }
-          if (member._id == this.sessionID) { // Self
-            if (body.access != null) {
-              this.updateInterface(page);
+          if (this.members[body._id]) {
+            let memberKeys = Object.keys(body);
+            let member = this.members[body._id];
+            for (let i = 0; i < memberKeys.length; i++) {
+              let key = memberKeys[i];
+              member[key] = body[key];
+            }
+            if (member._id == this.sessionID) { // Self
+              if (body.access != null) {
+                this.updateInterface(page);
+              }
             }
           }
           break;

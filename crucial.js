@@ -1,5 +1,5 @@
-let serverURL = "https://markifydev.exotek.co/api/";
-//let serverURL = "http://localhost:3000/api/";
+//let serverURL = "https://markifydev.exotek.co/api/";
+let serverURL = "http://localhost:3000/api/";
 let assetURL = "https://markifyapp.s3.amazonaws.com/";
 
 const socket = new SimpleSocket({
@@ -464,7 +464,7 @@ async function renewToken() {
   if (refreshToken.status == 200) {
     let refreshData = await refreshToken.json();
     setLocalStore("token", JSON.stringify(refreshData.token));
-    account.realtime = refreshData.realtime;
+    //account.realtime = refreshData.realtime;
     return refreshData.token;
   } else {
     removeLocalStore("userID");
@@ -571,8 +571,15 @@ socket.remotes.account = function (data) {
     }
     recUpdate(data.data, account);
 
-    if (data.data.user || data.data.hasOwnProperty("image")) {
-      //
+    let updateElements = body.querySelectorAll("[accountuser], [accountimage]");
+    for (let i = 0; i < updateElements.length; i++) {
+      let elem = updateElements[i];
+      if (elem.hasAttribute("accountuser")) {
+        elem.textContent = account.user;
+      }
+      if (elem.hasAttribute("accountimage")) {
+        elem.src = account.image || "./images/profiles/default.svg";
+      }
     }
   }
 }

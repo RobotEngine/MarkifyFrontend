@@ -27,8 +27,8 @@ modules["pages/join"] = {
         <div class="jUserInfo">
           <div class="jNameInput"><input placeholder="Screen Name"></input></div>
           <div class="jAuthHolder">
-            <img src="./images/profiles/default.svg" profile>
-            <span>Robot Engine</span>
+            <img src="./images/profiles/default.svg" profile accountimage>
+            <span accountuser>Robot Engine</span>
             <button class="buttonAnim border" title="Logout and switch account."><img src="./images/tooltips/close.svg"></button>
           </div>
         </div>

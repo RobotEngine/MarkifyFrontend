@@ -11,7 +11,7 @@ modules["pages/dashboard"] = {
   html: `<div class="dPage">
     <div class="dTopBar">
       <img class="dLogo" src="./images/logo.svg">
-      <button class="dAccount buttonAnim border" dropdown="dropdowns/account"><img src="./images/profiles/default.svg"><div></div></button>
+      <button class="dAccount buttonAnim border" dropdown="dropdowns/account"><img src="./images/profiles/default.svg" accountimage><div accountuser></div></button>
     </div>
     <div class="dHeader">
       <div class="dHeaderSection dHeaderTx">Ready to <div class="dHeaderTxAnimHolder"><div class="dHeaderTxAnim"></div><div class="dHeaderUnderline"></div></div></div>

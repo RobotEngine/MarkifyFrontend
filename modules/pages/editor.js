@@ -116,6 +116,7 @@ modules["pages/editor"] = {
 
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 100; overflow: hidden`
   },
+  loadedPDFs: [], // Keep track of loaded PDFs for releasing memory
   async updateInterface(page) {
     let side = page.querySelector(".eSide");
     let name = page.querySelector(".eFileName");
@@ -153,7 +154,7 @@ modules["pages/editor"] = {
     this.getSelf = function () {
       return this.members[this.sessionID];
     };
-    
+
     //loadScript("../libraries/pdfjs/pdf.js");
 
     page.style.removeProperty("display");
@@ -379,6 +380,12 @@ modules["pages/editor"] = {
 
     this.visiblePages = [];
 
+    // RELEASE OLD MEMORY
+    for (let i = 0; i < this.loadedPDFs.length; i++) {
+      this.loadedPDFs[i].destroy();
+    }
+    this.loadedPDFs = [];
+
     // EDITOR
     let contentHolder = page.querySelector(".eContent");
     let content = contentHolder.querySelector(".eContentHolder");
@@ -553,6 +560,7 @@ modules["pages/editor"] = {
                 }
 
                 let loadingTask = pdfjsLib.getDocument(assetURL + sourceData.source);
+                this.loadedPDFs.push(loadingTask);
                 loadingTask.promise.then(function (pdf) {
                   sourceData.pdf = pdf;
                   let loadInPages = pageHolder.querySelectorAll('.ePage[sourceid="' + pageData.source + '"][loading]');

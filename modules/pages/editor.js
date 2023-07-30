@@ -223,6 +223,9 @@ modules["pages/editor"] = {
             delete this.members[body._id];
           }
           updateMemberCount();
+          if (body._id == this.sessionID) { // Self
+            setFrame("pages/join");
+          }
           break;
         case "update":
           if (this.members[body._id]) {
@@ -258,9 +261,6 @@ modules["pages/editor"] = {
             }
           }
           enableScrollTop();
-          break;
-        case "kick":
-          setFrame("pages/join");
       }
     }; // Subscribe before to make sure no members are lost in request time.
 
@@ -271,8 +271,10 @@ modules["pages/editor"] = {
     if (this.id != lessonID) {
       delete this.session;
     }
+    joinData = joinData || {};
     this.joinData = this.joinData || {};
     if (joinData.pin) {
+      delete this.session;
       this.joinData.pin = joinData.pin;
     }
     if (joinData.name) {
@@ -283,9 +285,6 @@ modules["pages/editor"] = {
     }
     if (this.joinData.name) {
       sendBody.name = this.joinData.name;
-    }
-    if (this.session != null && joinData != null) {
-      delete this.session;
     }
     let [code, body, extra] = await sendRequest("POST", "lessons/join?lesson=" + lessonID, sendBody, { session: this.session, allowError: [403, 406] });
     if (code == 403 || code == 406) {

@@ -116,25 +116,6 @@ modules["pages/editor"] = {
 
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 100; overflow: hidden`
   },
-  options: {
-    cursors: true,
-    comments: true,
-    fullscreen: false
-  },
-  realtime: {
-    strenth: 0
-  },
-  members: {},
-  active: document.visibilityState == "visible",
-  syncMembers: async function (memberUpd) {
-    for (let i = 0; i < memberUpd.length; i++) {
-      let memSet = memberUpd[i];
-      this.members[memSet._id] = memSet;
-    }
-  },
-  getSelf: function () {
-    return this.members[this.sessionID];
-  },
   async updateInterface(page) {
     let side = page.querySelector(".eSide");
     let name = page.querySelector(".eFileName");
@@ -153,6 +134,26 @@ modules["pages/editor"] = {
   },
   js: async function (page, joinData) {
     this.page = page;
+    this.options = {
+      cursors: true,
+      comments: true,
+      fullscreen: false
+    };
+    this.realtime = {
+      strenth: 0
+    };
+    this.members = {};
+    this.active = document.visibilityState == "visible";
+    this.syncMembers = async function (memberUpd) {
+      for (let i = 0; i < memberUpd.length; i++) {
+        let memSet = memberUpd[i];
+        this.members[memSet._id] = memSet;
+      }
+    };
+    this.getSelf = function () {
+      return this.members[this.sessionID];
+    };
+    
     //loadScript("../libraries/pdfjs/pdf.js");
 
     page.style.removeProperty("display");

@@ -91,6 +91,9 @@ modules["dropdowns/editor/share/pin"] = {
       }
       createButton.removeAttribute("disabled");
     });
+    frame.querySelector(".eSharePinCopy").addEventListener("click", async () => {
+      copyClipboardText(editor.lesson.pin, "pin");
+    });
     let removeButton = frame.querySelector(".eSharePinRemove");
     removeButton.addEventListener("click", async () => {
       removeButton.setAttribute("disabled", "");
@@ -101,8 +104,31 @@ modules["dropdowns/editor/share/pin"] = {
       }
       removeButton.removeAttribute("disabled");
     });
-    frame.querySelector(".eSharePinCopy").addEventListener("click", async () => {
-      copyClipboardText(editor.lesson.pin, "pin");
+    let actionButton = frame.querySelector(".eShareAction");
+    function updateAction() {
+      if ((editor.lesson.settings || {}).forceLogin == true) {
+        actionButton.setAttribute("on", "");
+        actionButton.removeAttribute("off");
+      } else {
+        actionButton.setAttribute("off", "");
+        actionButton.removeAttribute("on");
+      }
+    }
+    updateAction();
+    actionButton.addEventListener("click", async () => {
+      actionButton.setAttribute("disabled", "");
+      if ((editor.lesson.settings || {}).forceLogin == true) {
+        actionButton.setAttribute("off", "");
+        actionButton.removeAttribute("on");
+      } else {
+        actionButton.setAttribute("on", "");
+        actionButton.removeAttribute("off");
+      }
+      let [code] = await sendRequest("PUT", "lessons/setting", { set: "forceLogin", value: actionButton.hasAttribute("on") }, { session: editor.session });
+      if (code != 200) {
+        updateAction();
+      }
+      actionButton.removeAttribute("disabled");
     });
 
     if (editor.getSelf().access < 2) {

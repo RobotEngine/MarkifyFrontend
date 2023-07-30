@@ -139,18 +139,19 @@ modules["pages/editor"] = {
       return this.members[this.sessionID];
     };
     this.updateInterface = async function (page) {
-      let side = page.querySelector(".eSide");
+      let toolbar = page.querySelector(".eToolbar");
       let name = page.querySelector(".eFileName");
       let share = page.querySelector(".eShare");
       let access = this.getSelf().access;
       if (access == 0) {
-        // Side Bar
-        side.setAttribute("hidden", "");
-        side.offsetHeight;
-        side.style.transition = ".3s";
+        toolbar.setAttribute("hidden", "");
+        toolbar.offsetHeight;
+        toolbar.style.transition = ".3s";
+
         name.removeAttribute("contenteditable");
       } else {
-        side.removeAttribute("hidden");
+        toolbar.removeAttribute("hidden");
+
         name.setAttribute("contenteditable", "");
       }
       if (access < 2) {
@@ -222,6 +223,9 @@ modules["pages/editor"] = {
           if (this.members[body._id]) {
             delete this.members[body._id];
           }
+          if (this.realtime != null && this.realtime.module.removeRealtime != null) {
+            this.realtime.module.removeRealtime(body._id);
+          }
           updateMemberCount();
           if (body._id == this.sessionID) { // Self
             setFrame("pages/join");
@@ -258,6 +262,18 @@ modules["pages/editor"] = {
               this.codeTextButton.style.display = "unset";
             } else {
               this.codeTextButton.style.display = "none";
+            }
+          }
+          if (body.settings && body.settings.hasOwnProperty("forceLogin")) {
+            let actionButton = fixed.querySelector(".eShareAction");
+            if (actionButton != null) {
+              if (body.settings.forceLogin == true) {
+                actionButton.setAttribute("on", "");
+                actionButton.removeAttribute("off");
+              } else {
+                actionButton.setAttribute("off", "");
+                actionButton.removeAttribute("on");
+              }
             }
           }
           enableScrollTop();

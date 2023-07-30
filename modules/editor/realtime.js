@@ -272,6 +272,17 @@ modules["editor/realtime"] = {
       }
     }
 
+    this.removeRealtime = (memberID) => {
+      let remMemberElem = realtimeHolder.querySelectorAll('[member="' + memberID + '"]');
+      for (let i = 0; i < remMemberElem.length; i++) {
+        let elem = remMemberElem[i];
+        (async function () {
+          elem.style.opacity = 0;
+          await sleep(300);
+          elem.remove();
+        })();
+      }
+    }
     this.shortSub = null;
     this.setShortSub = (pages) => {
       if (editor.realtime.strenth < 3 || editor.options.cursors == false) {
@@ -296,17 +307,9 @@ modules["editor/realtime"] = {
           }
           member.lastShort == time;
           clearInterval(member.interval);
-          member.interval = setInterval(() => { // Remove member elements if too inactive:
-            let remMemberElem = realtimeHolder.querySelectorAll('[member="' + memberID + '"]');
-            for (let i = 0; i < remMemberElem.length; i++) {
-              let elem = remMemberElem[i];
-              (async function () {
-                elem.style.opacity = 0;
-                await sleep(300);
-                elem.remove();
-              })();
-            }
-          }, 120000); // 2 Minutes
+          member.interval = setInterval(() => {
+            this.removeRealtime(memberID);
+          }, 120000); // Remove member elements if inactive for 2 minutes
           let cursorHolder = realtimeHolder.querySelector('.eCursor[member="' + memberID + '"]');
           if (cursorHolder == null) {
             realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCursor" member="${memberID}" scale></div>`);

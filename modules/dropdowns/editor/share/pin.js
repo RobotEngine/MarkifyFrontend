@@ -82,11 +82,7 @@ modules["dropdowns/editor/share/pin"] = {
         createHolder.style.pointerEvents = "all";
       }
       if (titleTx.querySelector("b") == null) {
-        if (editor.lesson.pin) {
-          titleTx.innerHTML = editor.lesson.pin;
-        } else {
-          (await getModule("dropdown")).close();
-        }
+        titleTx.innerHTML = editor.lesson.pin || "";
       }
     }
     editor.updatePin();

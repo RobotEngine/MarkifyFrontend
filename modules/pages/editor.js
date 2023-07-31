@@ -300,19 +300,12 @@ modules["pages/editor"] = {
       delete this.session;
     }
     joinData = joinData || {};
-    this.joinData = this.joinData || {};
     if (joinData.pin) {
       delete this.session;
-      this.joinData.pin = joinData.pin;
+      sendBody.pin = joinData.pin;
     }
     if (joinData.name) {
-      this.joinData.name = joinData.name;
-    }
-    if (this.joinData.pin) {
-      sendBody.pin = this.joinData.pin;
-    }
-    if (this.joinData.name) {
-      sendBody.name = this.joinData.name;
+      sendBody.name = joinData.name;
     }
     let [code, body, extra] = await sendRequest("POST", "lessons/join?lesson=" + lessonID, sendBody, { session: this.session, allowError: [403, 406] });
     if (code == 403 || code == 406) {

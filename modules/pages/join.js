@@ -255,7 +255,7 @@ modules["pages/join"] = {
 
     function processJoin() {
       let transferData = { pin: lesson.pin };
-      if (lesson.forceLogin != true) {
+      if (lesson.settings == null || lesson.settings.forceLogin != true) {
         let nickname = joinNickname.value;
         if (nickname.length < 1) {
           alert.open("error", "<b>Invalid Screen Name</b>The screen name can't be empty.");
@@ -268,7 +268,7 @@ modules["pages/join"] = {
           return;
         }
         setLocalStore("nickname", nickname);
-        transferData.name = nickname ;
+        transferData.name = nickname;
       }
       modifyParams("lesson", lesson.id);
       setFrame("pages/editor", null, transferData);

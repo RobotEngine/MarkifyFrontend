@@ -209,6 +209,16 @@ modules["pages/editor"] = {
 
     this.members = {};
 
+    socket.remotes["member_" + lessonID] = (data) => {
+      let body = data.data;
+      if (body.lesson != lessonID) {
+        return;
+      }
+      switch (data.task) {
+        case "kick":
+          setFrame("pages/join");
+      }
+    };
     socket.remotes["lesson_" + lessonID] = (data) => {
       let body = data.data;
       if (body.lesson != lessonID) {
@@ -227,9 +237,11 @@ modules["pages/editor"] = {
             this.realtime.module.removeRealtime(body._id);
           }
           updateMemberCount();
+          /*
           if (body._id == this.sessionID && currentPage == "editor") { // Self
             setFrame("pages/join");
           }
+          */
           break;
         case "update":
           if (this.members[body._id]) {
@@ -334,7 +346,9 @@ modules["pages/editor"] = {
             if (this.realtime) {
               this.realtime.ping();
             }
-          } else { // if (code == 403)
+          } else if (code == 403) {
+            setFrame("pages/join");
+          } else {
             setFrame("pages/editor");
           }
         }

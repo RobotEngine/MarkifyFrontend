@@ -329,7 +329,7 @@ modules["pages/editor"] = {
     tempListeners.push({
       type: "interval", interval: setInterval(async () => {
         if (connected) {
-          let [code] = await sendRequest("GET", "lessons/ping", null, { session: this.session });
+          let [code] = await sendRequest("GET", "lessons/ping", null, { session: this.session, allowError: [403] });
           if (code == 200) {
             if (this.realtime) {
               this.realtime.ping();

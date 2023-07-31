@@ -251,6 +251,7 @@ function loadScript(url) {
         resolve(newScript);
       });
       newScript.addEventListener("error", function () {
+        newScript.remove();
         resolve();
       });
       newScript.src = url;

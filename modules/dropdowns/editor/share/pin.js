@@ -52,8 +52,9 @@ modules["dropdowns/editor/share/pin"] = {
     let createButton = createHolder.querySelector("button");
     let pinTx = frame.querySelector(".eSharePinDisplay");
     let optionHolder = frame.querySelector(".eSharePinOptions");
+    let titleTx = frame.closest(".dropdown").querySelector(".dropdownTitle div");
 
-    editor.updatePin = () => {
+    editor.updatePin = async () => {
       let currentPin = (editor.lesson.pin || "123456").split("");
       let left = "";
       let right = "";
@@ -79,6 +80,13 @@ modules["dropdowns/editor/share/pin"] = {
         optionHolder.style.display = "none";
         createHolder.style.opacity = 1;
         createHolder.style.pointerEvents = "all";
+      }
+      if (titleTx.querySelector("b") == null) {
+        if (editor.lesson.pin) {
+          titleTx.innerHTML = editor.lesson.pin;
+        } else {
+          (await getModule("dropdown")).close();
+        }
       }
     }
     editor.updatePin();

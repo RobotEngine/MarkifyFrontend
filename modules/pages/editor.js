@@ -200,11 +200,20 @@ modules["pages/editor"] = {
 
     this.codeTextButton = page.querySelector(".eSharePin");
 
+    let memberCount = page.querySelector(".eMembers");
+    let memberCountNum = memberCount.querySelector(".eMemberCount");
     let updateMemberCount = () => {
       let counts = document.querySelectorAll(".eMemberCount");
       this.memberCount = Object.keys(this.members).length;
       for (let i = 0; i < counts.length; i++) {
         counts[i].textContent = this.memberCount;
+      }
+      if (this.memberCount > 1) {
+        memberCountNum.style.display = "unset";
+        memberCount.style.padding = "4px 10px 4px 4px";
+      } else {
+        memberCountNum.style.display = "none";
+        memberCount.style.padding = "6px 10px";
       }
     }
 

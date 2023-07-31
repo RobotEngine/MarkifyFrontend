@@ -128,6 +128,7 @@ modules["pages/editor"] = {
       strenth: 0
     };
     this.members = {};
+    this.memberCount = 0;
     this.active = document.visibilityState == "visible";
     this.syncMembers = async function (memberUpd) {
       for (let i = 0; i < memberUpd.length; i++) {
@@ -201,9 +202,9 @@ modules["pages/editor"] = {
 
     let updateMemberCount = () => {
       let counts = document.querySelectorAll(".eMemberCount");
-      let setCount = Object.keys(this.members).length;
+      this.memberCount = Object.keys(this.members).length;
       for (let i = 0; i < counts.length; i++) {
-        counts[i].textContent = setCount;
+        counts[i].textContent = this.memberCount;
       }
     }
 

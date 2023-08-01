@@ -341,10 +341,18 @@ modules["pages/editor"] = {
 
     this.sessionID = body.session._id;
     this.session = body.session._id + ";" + body.session.token;
+
+    let sendPing = () => {
+      let path = "lessons/ping";
+      if (this.active == false) {
+        path += "?idle";
+      }
+      return sendRequest("GET", path, null, { session: this.session, allowError: [403] });
+    }
     tempListeners.push({
       type: "interval", interval: setInterval(async () => {
         if (connected) {
-          let [code] = await sendRequest("GET", "lessons/ping", null, { session: this.session, allowError: [403] });
+          let [code] = await sendPing();
           if (code == 200) {
             if (this.realtime) {
               this.realtime.ping();
@@ -845,6 +853,7 @@ modules["pages/editor"] = {
     // On page:
     tempListen(document, "visibilitychange", () => {
       this.active = document.visibilityState == "visible";
+      sendPing();
     });
 
     // LOAD IN:

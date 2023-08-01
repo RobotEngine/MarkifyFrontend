@@ -342,25 +342,31 @@ modules["pages/editor"] = {
     this.sessionID = body.session._id;
     this.session = body.session._id + ";" + body.session.token;
 
+    let sentPing = false;
     let sendPing = () => {
       let path = "lessons/ping";
       if (this.active == false) {
         path += "?idle";
       }
+      sentPing = true;
       return sendRequest("GET", path, null, { session: this.session, allowError: [403] });
     }
     tempListeners.push({
       type: "interval", interval: setInterval(async () => {
         if (connected) {
-          let [code] = await sendPing();
-          if (code == 200) {
-            if (this.realtime) {
-              this.realtime.ping();
+          if (sentPing == false) {
+            let [code] = await sendPing();
+            if (code == 403) {
+              setFrame("pages/join");
+              return;
+            } else if (code != 200) {
+              setFrame("pages/editor");
+              return;
             }
-          } else if (code == 403) {
-            setFrame("pages/join");
-          } else {
-            setFrame("pages/editor");
+          }
+          sentPing = false;
+          if (this.realtime) {
+            this.realtime.ping();
           }
         }
       }, 60000)

@@ -280,11 +280,7 @@ modules["pages/editor"] = {
           }
           break;
         case "set":
-          let bodyKeys = Object.keys(body);
-          for (let i = 0; i < bodyKeys.length; i++) {
-            let key = bodyKeys[i];
-            this.lesson[key] = body[key];
-          }
+          objectUpdate(body, this.lesson);
           page.querySelector(".eFileName").textContent = this.lesson.name || "Untitled Lesson";
           if (body.hasOwnProperty("pin")) {
             if (this.updatePin) {

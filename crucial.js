@@ -562,26 +562,27 @@ async function sendRequest(method, path, body, extra) {
   }
 }
 
+function objectUpdate(obj, passData) {
+  let keys = Object.keys(obj);
+  for (let i = 0; i < keys.length; i++) {
+    let key = keys[i];
+    if (
+      typeof obj[key] !== "object" ||
+      Array.isArray(obj[key]) === true ||
+      obj[key] === null
+    ) {
+      passData[key] = obj[key];
+    } else {
+      passData[key] = passData[key] || {};
+      objectUpdate(obj[key], passData[key] || {});
+    }
+  }
+}
+
 socket.remotes.account = function (data) {
   console.log(data);
   if (data.task === "set") {
-    function recUpdate(obj, passData) {
-      let keys = Object.keys(obj);
-      for (let i = 0; i < keys.length; i++) {
-        let key = keys[i];
-        if (
-          typeof obj[key] !== "object" ||
-          Array.isArray(obj[key]) === true ||
-          obj[key] === null
-        ) {
-          passData[key] = obj[key];
-        } else {
-          passData[key] = passData[key] || {};
-          recUpdate(obj[key], passData[key] || {});
-        }
-      }
-    }
-    recUpdate(data.data, account);
+    objectUpdate(data.data, account);
 
     let updateElements = body.querySelectorAll("[accountuser], [accountimage]");
     for (let i = 0; i < updateElements.length; i++) {

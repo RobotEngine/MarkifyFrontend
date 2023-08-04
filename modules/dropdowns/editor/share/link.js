@@ -146,7 +146,6 @@ modules["dropdowns/editor/share/link"] = {
         actionButton.setAttribute("on", "");
         actionButton.removeAttribute("off");
       }
-      editor.lesson.settings.forceLogin = !editor.lesson.settings.forceLogin;
       let [code] = await sendRequest("PUT", "lessons/setting", { set: "forceLogin", value: actionButton.hasAttribute("on") }, { session: editor.session });
       if (code != 200) {
         updateAction();

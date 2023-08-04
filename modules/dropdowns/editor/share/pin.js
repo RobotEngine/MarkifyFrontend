@@ -26,7 +26,7 @@ modules["dropdowns/editor/share/pin"] = {
     ".eSharePinOptions": `display: none; flex-wrap: wrap; width: calc(100% - 16px); margin: 0 8px 8px 8px; justify-content: center`,
     ".eSharePinOptions button": `display: flex; --borderColor: var(--hover); --borderRadius: 18px; justify-content: center; align-items: center; font-weight: 700`,
     
-    ".eSharePinCopy": `width: 36px; height: 36px; padding: 0; margin: 7px; --borderWidth: 3px`,
+    ".eSharePinCopy": `width: 36px; height: 36px; padding: 0; margin: 7px; --borderWidth: 3px; cursor: copy`,
     ".eSharePinCopy img": `width: 30px; transition: .1s`,
     ".eSharePinCopy:hover": `background: var(--theme); --borderWidth: 0px; transform: scale(1.1)`,
     ".eSharePinCopy:hover img": `filter: brightness(0) invert(1)`,

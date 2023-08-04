@@ -11,7 +11,7 @@ modules["editor/toolbar"] = {
   css: {
     ".eTool": `display: flex; width: 50px; height: 50px; padding: 0; margin-bottom: 6px; justify-content: center; align-items: center`,
     ".eTool:hover": `background: var(--hover)`,
-    ".eTool:active": `transform: scale(.9); background: var(--secondary); border-radius: 12px`,
+    ".eTool:active": `transform: scale(.9); background: var(--secondary); border-radius: 10px`,
     ".eTool[selected]": `background: var(--theme)`,
     ".eTool:first-child": `border-top-left-radius: 16px; border-top-right-radius: 16px`,
     ".eTool:last-child": `margin-bottom: 0px; border-bottom-left-radius: 16px; border-bottom-right-radius: 16px`

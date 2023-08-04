@@ -1,5 +1,5 @@
-let serverURL = "https://markifydev.exotek.co/api/";
-//let serverURL = "http://localhost:3000/api/";
+//let serverURL = "https://markifydev.exotek.co/api/";
+let serverURL = "http://localhost:3000/api/";
 let assetURL = "https://markifyapp.s3.amazonaws.com/";
 
 const socket = new SimpleSocket({
@@ -983,7 +983,7 @@ modules["dropdowns/account"] = {
 // Add CORE CSS:
 addCSS({
   "button, a": `border: none; background: none; color: var(--textColor); font-family: var(--font); cursor: pointer; transition: .1s`,
-  "button:active, a:active": `transform: scale(.9) !important`,
+  "button:active, a:active": `transform: scale(.95) !important`,
   "[disabled]": `pointer-events: none !important; opacity: .5 !important`,
   "[hidden]": `pointer-events: none !important; opacity: 0 !important`,
   ".largeButton, .border": `--themeColor: var(--secondary); --themeColor2: var(--hover); --borderRadius: 0px; --borderColor: var(--themeColor); --borderWidth: 0px; --outline: solid var(--borderWidth) var(--borderColor); --transition: .1s; position: relative; border-radius: var(--borderRadius)`,

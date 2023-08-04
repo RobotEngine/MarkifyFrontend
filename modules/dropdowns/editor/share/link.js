@@ -1,52 +1,159 @@
 modules["dropdowns/editor/share/link"] = {
   html: `
-  <div class="eSharePinCreate">
-    <button class="largeButton border">Generate Pin</button>
+  <div class="eShareLinkCreate">
+    <button class="largeButton border">Enable Link</button>
   </div>
-  <div class="eSharePinLink">Join with this <b>pin</b> at <a href="${location.origin}/join" target="_blank">${location.host}/join</a></div>
-  <div class="eSharePinDisplay"><span section left></span><div></div><span section right></span></div>
-  <div class="eSharePinOptions">
-    <button class="eSharePinCopy border" title="Copy the pin code."><img src="./images/tooltips/copy.svg"></button>
-    <button class="eSharePinRemove border" title="Invalidate the pin.">Remove</button>
-    <button class="eShareAction border" option="forceLogin" title="Require those joining to login for verified identites." off><div label>Require Login</div><div class="eShareToggle"><div></div></div></button>
+  <div class="eShareLinkRow" style="margin-top: 0px">
+    <input class="eShareLinkSection" readonly></input>
+    <button class="eShareLinkCopy border" title="Copy the link."><img src="./images/tooltips/copy.svg"></button>
+  </div>
+  <button class="eShareLinkRow eShareLinkPerm buttonAnim">
+    <img class="eShareLinkIcon">
+    <div class="eShareDetailsHolder">
+      <div class="eShareDetailTitle"></div>
+      <div class="eShareDetailDesc"></div>
+    </div>
+  </button>
+  <div class="eShareLinkRow">
+    <button class="eShareLinkRemove border" title="Invalidate the link.">Private Link</button>
+    <button class="eShareActionLink border" option="forceLogin" title="Require those joining to login for verified identites." off><div label>Require Login</div><div class="eLinkToggle"><div></div></div></button>
   </div>
   `,
   css: {
-    ".eSharePinCreate": "position: absolute; display: flex; width: 100%; height: 100%; justify-content: center; align-items: center; z-index: 1; background: rgba(var(--background), .7); transition: .3s",
-    ".eSharePinCreate button": `background: var(--theme); --borderRadius: 20.25px; color: #fff`,
-    
-    ".eSharePinLink": "margin-top: 8p; transition: .3s",
-    ".eSharePinLink a": `color: var(--theme); font-weight: 700; text-decoration: none`,
-    
-    ".eSharePinHolder": `display: flex`,
-    ".eSharePinDisplay": `display: flex; flex-wrap: wrap; justify-content: center; align-items: center; color: var(--theme); font-size: 60px; font-weight: 700; letter-width: 8px; transition: .3s`,
-    ".eSharePinDisplay span[section]": `display: block; min-height: 81px; padding: 0 16px; margin: 10px; border: solid 4px var(--hover); border-radius: 20px; letter-spacing: 10px`,
-    ".eSharePinDisplay div": `width: 12px; height: 12px; background: var(--hover); border-radius: 12px`,
-    
-    ".eSharePinOptions": `display: none; flex-wrap: wrap; width: calc(100% - 16px); margin: 0 8px 8px 8px; justify-content: center`,
-    ".eSharePinOptions button": `display: flex; --borderColor: var(--hover); --borderRadius: 18px; justify-content: center; align-items: center; font-weight: 700`,
-    
-    ".eSharePinCopy": `width: 36px; height: 36px; padding: 0; margin: 7px; --borderWidth: 3px`,
-    ".eSharePinCopy img": `width: 30px; transition: .1s`,
-    ".eSharePinCopy:hover": `background: var(--theme); --borderWidth: 0px; transform: scale(1.1)`,
-    ".eSharePinCopy:hover img": `filter: brightness(0) invert(1)`,
+    ".eShareLinkCreate": "position: absolute; display: flex; width: calc(100% - 16px); height: calc(100% - 16px); justify-content: center; align-items: center; z-index: 1; background: rgba(var(--background), .7); transition: .3s",
+    ".eShareLinkCreate button": `background: var(--theme); --borderRadius: 20.25px; color: #fff`,
 
-    ".eSharePinRemove": `height: fit-content; min-height: 36px; padding: 0 12px; margin: 7px 14px 7px 7px; --borderWidth: 3px; --borderRadius: 18px; color: var(--error); font-size: 18px`,
-    ".eSharePinRemove:hover": `background: var(--error); --borderWidth: 0px; transform: scale(1.1); color: #fff`,
+    ".eShareLinkRow": `display: flex; flex-wrap: wrap; width: 100%; margin-top: 16px; justify-content: center; align-items: center`,
+    ".eShareLinkRow button": `display: flex; --borderColor: var(--hover); --borderRadius: 18px; justify-content: center; align-items: center; font-weight: 700`,
 
-    ".eShareAction": `display: flex; max-width: 100%; padding: 6px; margin: 7px 7px 7px auto; align-items: center; --borderWidth: 3px; font-size: 16px`,
-    ".eShareAction div[label]": `flex: 1; margin: 0 8px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
-    ".eShareAction[on]": `--themeColor: var(--theme); --color: #fff`,
-    ".eShareAction[off]": `--themeColor: var(--gray); --color: #000`,
-    ".eShareToggle": `position: relative; width: 36px; height: 20px; padding: 2px; background: var(--themeColor); border-radius: 12px; transition: .2s`,
-    ".eShareToggle div": `position: absolute; width: 20px; height: 20px; background: #fff; border-radius: 10px; transition: .2s`,
-    ".eShareAction[on] .eShareToggle div": `right: 2px`,
-    ".eShareAction[off] .eShareToggle div": `right: calc(100% - 22px)`,
-    ".eShareAction:hover": `background: var(--themeColor); --borderWidth: 0px; transform: scale(1.1); color: var(--color)`,
-    ".eShareAction:hover .eShareToggle": `background: #fff`,
-    ".eShareAction:hover .eShareToggle div": `background: var(--themeColor)`
+    ".eShareLinkSection": `box-sizing: border-box; width: calc(100% - 50px); height: 42px; margin-right: 8px; border: solid 3px var(--hover); outline: unset; border-radius: 21px; padding: 8px; color: var(--theme); font-size: 18px; font-weight: 700; font-family: var(--theme)`,
+    ".eShareLinkCopy": `width: 36px; height: 36px; padding: 0; margin: 3px; --borderWidth: 3px`,
+    ".eShareLinkCopy img": `width: 30px; transition: .1s`,
+    ".eShareLinkCopy:hover": `background: var(--theme); --borderWidth: 0px; transform: scale(1.1)`,
+    ".eShareLinkCopy:hover img": `filter: brightness(0) invert(1)`,
+
+    ".eShareLinkPerm": `box-sizing: border-box; max-width: 360px; padding: 6px; align-items: flex-start; border-radius: 24px`,
+    ".eShareLinkIcon": `width: 36px; height: 36px`,
+    ".eShareDetailsHolder": `flex: 1; margin-left: 8px; text-align: left`,
+    ".eShareDetailTitle": `color: var(--theme); font-size: 16px; font-weight: 600`,
+
+    ".eShareLinkRemove": `height: fit-content; min-height: 36px; padding: 0 12px; margin: 7px 14px 7px 7px; --borderWidth: 3px; --borderRadius: 18px; color: var(--error); font-size: 18px`,
+    ".eShareLinkRemove:hover": `background: var(--error); --borderWidth: 0px; transform: scale(1.1); color: #fff`,
+
+    ".eShareActionLink": `display: flex; max-width: 100%; padding: 6px; margin: 7px 7px 7px auto; align-items: center; --borderWidth: 3px; font-size: 16px`,
+    ".eShareActionLink div[label]": `flex: 1; margin: 0 8px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
+    ".eShareActionLink[on]": `--themeColor: var(--theme); --color: #fff`,
+    ".eShareActionLink[off]": `--themeColor: var(--gray); --color: #000`,
+    ".eLinkToggle": `position: relative; width: 36px; height: 20px; padding: 2px; background: var(--themeColor); border-radius: 12px; transition: .2s`,
+    ".eLinkToggle div": `position: absolute; width: 20px; height: 20px; background: #fff; border-radius: 10px; transition: .2s`,
+    ".eShareActionLink[on] .eLinkToggle div": `right: 2px`,
+    ".eShareActionLink[off] .eLinkToggle div": `right: calc(100% - 22px)`,
+    ".eShareActionLink:hover": `background: var(--themeColor); --borderWidth: 0px; transform: scale(1.1); color: var(--color)`,
+    ".eShareActionLink:hover .eLinkToggle": `background: #fff`,
+    ".eShareActionLink:hover .eLinkToggle div": `background: var(--themeColor)`
   },
   js: async function (frame) {
+    frame.style.padding = "8px";
+
+    let editor = await getModule("pages/editor");
+    let createHolder = frame.querySelector(".eShareLinkCreate");
+    let createButton = createHolder.querySelector("button");
+    let linkTx = frame.querySelector(".eShareLinkSection");
+    let accessButton = frame.querySelector(".eShareLinkPerm");
+    let accessIcon = accessButton.querySelector(".eShareLinkIcon");
+    let accessTitle = accessButton.querySelector(".eShareDetailTitle");
+    let accessDesc = accessButton.querySelector(".eShareDetailDesc");
+
+    linkTx.value = location.origin + "/join?lesson=" + editor.id;
+    frame.querySelector(".eShareLinkCopy").addEventListener("click", async () => {
+      copyClipboardText(linkTx.value, "link");
+    });
+
+    editor.updateLink = async () => {
+      if (editor.lesson.access != null && editor.lesson.access > -1) {
+        createHolder.style.opacity = 0;
+        createHolder.style.pointerEvents = "none";
+      } else {
+        createHolder.style.opacity = 1;
+        createHolder.style.pointerEvents = "all";
+      }
+      if (editor.lesson.access != 1) {
+        // Viewer:
+        accessIcon.src = "./images/editor/share/viewer.svg";
+        accessTitle.textContent = "Public View Access";
+        accessDesc.textContent = "Anyone with this link will be able to view the document, but not make any edits.";
+      } else {
+        // Editor:
+        accessIcon.src = "./images/editor/share/editor.svg";
+        accessTitle.textContent = "Public Edit Access";
+        accessDesc.textContent = "Anyone with this link will be able to view the document and create annotations.";
+      }
+    }
+    editor.updateLink();
+    createButton.addEventListener("click", async () => {
+      createButton.setAttribute("disabled", "");
+      let [code, body] = await sendRequest("PUT", "lessons/share/link/enable", null, { session: editor.session });
+      if (code == 200) {
+        editor.lesson.access = body.access;
+        editor.updateLink();
+      }
+      createButton.removeAttribute("disabled");
+    });
+    accessButton.addEventListener("click", async () => {
+      accessButton.setAttribute("disabled", "");
+      let newValue = 1;
+      let existingValue = editor.lesson.access;
+      if (existingValue == 1) {
+        newValue = 0;
+      }
+      editor.lesson.access = newValue;
+      editor.updateLink();
+      let [code] = await sendRequest("PUT", "lessons/setting", { set: "publicAccess", value: newValue }, { session: editor.session });
+      if (code != 200) {
+        editor.lesson.access = existingValue;
+        editor.updateLink();
+      }
+      editor.updateLink();
+      accessButton.removeAttribute("disabled");
+    });
+    let removeButton = frame.querySelector(".eShareLinkRemove");
+    removeButton.addEventListener("click", async () => {
+      removeButton.setAttribute("disabled", "");
+      let [code] = await sendRequest("DELETE", "lessons/share/link/remove", null, { session: editor.session });
+      if (code == 200) {
+        delete editor.lesson.access;
+        editor.updateLink();
+      }
+      removeButton.removeAttribute("disabled");
+    });
+    let actionButton = frame.querySelector(".eShareActionLink");
+    function updateAction() {
+      if ((editor.lesson.settings || {}).forceLogin == true) {
+        actionButton.setAttribute("on", "");
+        actionButton.removeAttribute("off");
+      } else {
+        actionButton.setAttribute("off", "");
+        actionButton.removeAttribute("on");
+      }
+    }
+    updateAction();
+    actionButton.addEventListener("click", async () => {
+      actionButton.setAttribute("disabled", "");
+      if ((editor.lesson.settings || {}).forceLogin == true) {
+        actionButton.setAttribute("off", "");
+        actionButton.removeAttribute("on");
+      } else {
+        actionButton.setAttribute("on", "");
+        actionButton.removeAttribute("off");
+      }
+      let [code] = await sendRequest("PUT", "lessons/setting", { set: "forceLogin", value: actionButton.hasAttribute("on") }, { session: editor.session });
+      if (code != 200) {
+        updateAction();
+      }
+      actionButton.removeAttribute("disabled");
+    });
+
+    /*
     let editor = await getModule("pages/editor");
     let createHolder = frame.querySelector(".eSharePinCreate");
     let createButton = createHolder.querySelector("button");
@@ -108,7 +215,7 @@ modules["dropdowns/editor/share/link"] = {
       }
       removeButton.removeAttribute("disabled");
     });
-    let actionButton = frame.querySelector(".eShareAction");
+    let actionButton = frame.querySelector(".eShareActionLink");
     function updateAction() {
       if ((editor.lesson.settings || {}).forceLogin == true) {
         actionButton.setAttribute("on", "");
@@ -139,5 +246,6 @@ modules["dropdowns/editor/share/link"] = {
       createButton.setAttribute("disabled", "");
       optionHolder.remove();
     }
+    */
   }
 }

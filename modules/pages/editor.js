@@ -84,8 +84,8 @@ modules["pages/editor"] = {
     ".eConnection": `width: 30px; height: 30px; margin: 0 4px; object-fit: cover; transition: .3s`,
     ".eStatus": `margin: 0px 4px; color: var(--secondary); font-size: 16px; font-weight: 500`,
 
-    ".eMembers": `display: flex; padding: 4px 10px 4px 4px; margin: 0 4px; background: var(--hover); border-radius: 16px; align-items: center; font-size: 16px; font-weight: 600`,
-    ".eMemberCount": `padding: 2px 6px; margin-right: 5px; background: #fff; border-radius: 12px; color: var(--theme); font-weight: 700`,
+    ".eMembers": `display: flex; padding: 6px 10px; margin: 0 4px; background: var(--hover); border-radius: 16px; align-items: center; font-size: 16px; font-weight: 600`,
+    ".eMemberCount": `display: none; padding: 2px 6px; margin-right: 5px; background: #fff; border-radius: 12px; color: var(--theme); font-weight: 700`,
     ".eShare": "padding: 6px 10px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600",
     ".eSharePin": "display: none; padding: 6px 10px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600",
 
@@ -219,11 +219,19 @@ modules["pages/editor"] = {
 
     this.members = {};
 
+    let removeRealtimeElem = (userid) => {
+      if (this.realtime != null && this.realtime.module.removeRealtime != null) {
+        this.realtime.module.removeRealtime(userid);
+      }
+    }
+
     socket.remotes["member_" + lessonID] = (data) => {
       let body = data.data;
+      /*
       if (body.lesson != lessonID) {
         return;
       }
+      */
       switch (data.task) {
         case "kick":
           setFrame("pages/join");
@@ -231,9 +239,11 @@ modules["pages/editor"] = {
     };
     socket.remotes["lesson_" + lessonID] = (data) => {
       let body = data.data;
+      /*
       if (body.lesson != lessonID) {
         return;
       }
+      */
       switch (data.task) {
         case "join":
           this.members[body._id] = body;
@@ -243,9 +253,7 @@ modules["pages/editor"] = {
           if (this.members[body._id]) {
             delete this.members[body._id];
           }
-          if (this.realtime != null && this.realtime.module.removeRealtime != null) {
-            this.realtime.module.removeRealtime(body._id);
-          }
+          removeRealtimeElem(body._id);
           updateMemberCount();
           /*
           if (body._id == this.sessionID && currentPage == "editor") { // Self
@@ -257,6 +265,9 @@ modules["pages/editor"] = {
           if (this.members[body._id]) {
             let memberKeys = Object.keys(body);
             let member = this.members[body._id];
+            if (body.access != null && member.access != body.access) { // Must update their access:
+              removeRealtimeElem(body._id);
+            }
             for (let i = 0; i < memberKeys.length; i++) {
               let key = memberKeys[i];
               member[key] = body[key];
@@ -286,8 +297,13 @@ modules["pages/editor"] = {
               this.codeTextButton.style.display = "none";
             }
           }
+          if (body.hasOwnProperty("access")) {
+            if (this.updateLink) {
+              this.updateLink();
+            }
+          }
           if (body.settings && body.settings.hasOwnProperty("forceLogin")) {
-            let actionButton = fixed.querySelector(".eShareAction");
+            let actionButton = fixed.querySelector(".eShareActionPin, .eShareActionLink");
             if (actionButton != null) {
               if (body.settings.forceLogin == true) {
                 actionButton.setAttribute("on", "");
@@ -327,6 +343,7 @@ modules["pages/editor"] = {
     }
 
     this.lesson = body.lesson;
+    this.lesson.settings = this.lesson.settings || {};
 
     if (this.lesson.pin) {
       this.codeTextButton.style.display = "unset";

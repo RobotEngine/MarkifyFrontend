@@ -8,7 +8,7 @@ modules["dropdowns/editor/share/pin"] = {
   <div class="eSharePinOptions">
     <button class="eSharePinCopy border" title="Copy the pin code."><img src="./images/tooltips/copy.svg"></button>
     <button class="eSharePinRemove border" title="Invalidate the pin.">Remove</button>
-    <button class="eShareAction border" option="forceLogin" title="Require those joining to login for verified identites." off><div label>Require Login</div><div class="eShareToggle"><div></div></div></button>
+    <button class="eShareActionPin border" option="forceLogin" title="Require those joining to login for verified identites." off><div label>Require Login</div><div class="ePinToggle"><div></div></div></button>
   </div>
   `,
   css: {
@@ -34,17 +34,17 @@ modules["dropdowns/editor/share/pin"] = {
     ".eSharePinRemove": `height: fit-content; min-height: 36px; padding: 0 12px; margin: 7px 14px 7px 7px; --borderWidth: 3px; --borderRadius: 18px; color: var(--error); font-size: 18px`,
     ".eSharePinRemove:hover": `background: var(--error); --borderWidth: 0px; transform: scale(1.1); color: #fff`,
 
-    ".eShareAction": `display: flex; max-width: 100%; padding: 6px; margin: 7px 7px 7px auto; align-items: center; --borderWidth: 3px; font-size: 16px`,
-    ".eShareAction div[label]": `flex: 1; margin: 0 8px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
-    ".eShareAction[on]": `--themeColor: var(--theme); --color: #fff`,
-    ".eShareAction[off]": `--themeColor: var(--gray); --color: #000`,
-    ".eShareToggle": `position: relative; width: 36px; height: 20px; padding: 2px; background: var(--themeColor); border-radius: 12px; transition: .2s`,
-    ".eShareToggle div": `position: absolute; width: 20px; height: 20px; background: #fff; border-radius: 10px; transition: .2s`,
-    ".eShareAction[on] .eShareToggle div": `right: 2px`,
-    ".eShareAction[off] .eShareToggle div": `right: calc(100% - 22px)`,
-    ".eShareAction:hover": `background: var(--themeColor); --borderWidth: 0px; transform: scale(1.1); color: var(--color)`,
-    ".eShareAction:hover .eShareToggle": `background: #fff`,
-    ".eShareAction:hover .eShareToggle div": `background: var(--themeColor)`
+    ".eShareActionPin": `display: flex; max-width: 100%; padding: 6px; margin: 7px 7px 7px auto; align-items: center; --borderWidth: 3px; font-size: 16px`,
+    ".eShareActionPin div[label]": `flex: 1; margin: 0 8px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
+    ".eShareActionPin[on]": `--themeColor: var(--theme); --color: #fff`,
+    ".eShareActionPin[off]": `--themeColor: var(--gray); --color: #000`,
+    ".ePinToggle": `position: relative; width: 36px; height: 20px; padding: 2px; background: var(--themeColor); border-radius: 12px; transition: .2s`,
+    ".ePinToggle div": `position: absolute; width: 20px; height: 20px; background: #fff; border-radius: 10px; transition: .2s`,
+    ".eShareActionPin[on] .ePinToggle div": `right: 2px`,
+    ".eShareActionPin[off] .ePinToggle div": `right: calc(100% - 22px)`,
+    ".eShareActionPin:hover": `background: var(--themeColor); --borderWidth: 0px; transform: scale(1.1); color: var(--color)`,
+    ".eShareActionPin:hover .ePinToggle": `background: #fff`,
+    ".eShareActionPin:hover .ePinToggle div": `background: var(--themeColor)`
   },
   js: async function (frame) {
     let editor = await getModule("pages/editor");
@@ -108,9 +108,9 @@ modules["dropdowns/editor/share/pin"] = {
       }
       removeButton.removeAttribute("disabled");
     });
-    let actionButton = frame.querySelector(".eShareAction");
+    let actionButton = frame.querySelector(".eShareActionPin");
     function updateAction() {
-      if ((editor.lesson.settings || {}).forceLogin == true) {
+      if (editor.lesson.settings.forceLogin == true) {
         actionButton.setAttribute("on", "");
         actionButton.removeAttribute("off");
       } else {
@@ -121,7 +121,7 @@ modules["dropdowns/editor/share/pin"] = {
     updateAction();
     actionButton.addEventListener("click", async () => {
       actionButton.setAttribute("disabled", "");
-      if ((editor.lesson.settings || {}).forceLogin == true) {
+      if (editor.lesson.settings.forceLogin == true) {
         actionButton.setAttribute("off", "");
         actionButton.removeAttribute("on");
       } else {

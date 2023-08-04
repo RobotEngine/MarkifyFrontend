@@ -46,7 +46,7 @@ modules["pages/join"] = {
     ".jBackdrop": `position: fixed; min-width: 100%; min-height: 100vh; z-index: 0; background: var(--pageColor); background-image: url(./images/editor/background.svg); background-position: center`,
     ".jSplash": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; opacity: .8`,
     
-    ".jModalHolder": `display: flex; width: 100%; min-height: 100vh; left: 0px; top: 0px; justify-content: center; align-items: center; overflow-x: hidden`,
+    ".jModalHolder": `display: flex; width: 100%; min-height: 100vh; left: 0px; top: 0px; justify-content: center; align-items: center; overflow: hidden`,
     ".jModalContainer": `position: relative`,
     ".jModal": `position: relative; display: flex; flex-direction: column; width: fit-content; max-width: 100%; height: fit-content; padding: 16px; margin: 8px; background: var(--pageColor); transform: scale(.9); opacity: 0; align-items: center; border-radius: 16px; box-shadow: var(--lightShadow); transition: .3s`,
     ".jBack": `position: absolute; width: 150%; left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: .1`,

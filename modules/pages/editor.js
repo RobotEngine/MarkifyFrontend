@@ -313,7 +313,9 @@ modules["pages/editor"] = {
           enableScrollTop();
           break;
         case "invite":
-          this.emailInvite(data.subTask, body);
+          if (this.emailInvite != null) {
+            this.emailInvite(data.subTask, body);
+          }
       }
     }; // Subscribe before to make sure no members are lost in request time.
 

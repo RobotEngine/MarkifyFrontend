@@ -69,6 +69,9 @@ modules["dropdowns/editor/share/email"] = {
     });
 
     let addNewTile = (data, insertFirst) => {
+      if (emailHolder.querySelector('.eShareTile[userid="' + data._id + '"]') != null) {
+        return;
+      }
       let insertLoc = "afterbegin";
       if (insertFirst == false) {
         insertLoc = "beforeend"
@@ -100,9 +103,7 @@ modules["dropdowns/editor/share/email"] = {
       let tile = emailHolder.querySelector('.eShareTile[userid="' + body._id + '"]');
       switch (task) {
         case "new":
-          if (tile == null) {
-            addNewTile(body);
-          }
+          addNewTile(body);
           break;
         case "update":
           if (tile != null) {

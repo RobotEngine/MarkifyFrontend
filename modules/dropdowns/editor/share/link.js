@@ -26,8 +26,8 @@ modules["dropdowns/editor/share/link"] = {
     ".eShareLinkRow": `display: flex; flex-wrap: wrap; width: 100%; margin-top: 16px; justify-content: center; align-items: center`,
     ".eShareLinkRow button": `display: flex; --borderColor: var(--hover); --borderRadius: 18px; justify-content: center; align-items: center; font-weight: 700`,
 
-    ".eShareLinkSection": `box-sizing: border-box; width: calc(100% - 50px); height: 42px; margin-right: 8px; border: solid 3px var(--hover); outline: unset; border-radius: 21px; padding: 8px; color: var(--theme); font-size: 18px; font-weight: 700; font-family: var(--theme)`,
-    ".eShareLinkCopy": `width: 36px; height: 36px; padding: 0; margin: 3px; --borderWidth: 3px; cursor: copy`,
+    ".eShareLinkSection": `box-sizing: border-box; width: calc(100% - 50px); height: 42px; margin-right: 8px; border: solid 3px var(--hover); outline: unset; border-radius: 21px; padding: 8px; color: var(--theme); font-size: 18px; font-weight: 700; font-family: var(--theme); cursor: copy`,
+    ".eShareLinkCopy": `width: 36px; height: 36px; padding: 0; margin: 3px; --borderWidth: 3px`,
     ".eShareLinkCopy img": `width: 30px; transition: .1s`,
     ".eShareLinkCopy:hover": `background: var(--theme); --borderWidth: 0px; transform: scale(1.1)`,
     ".eShareLinkCopy:hover img": `filter: brightness(0) invert(1)`,
@@ -152,100 +152,5 @@ modules["dropdowns/editor/share/link"] = {
       }
       actionButton.removeAttribute("disabled");
     });
-
-    /*
-    let editor = await getModule("pages/editor");
-    let createHolder = frame.querySelector(".eSharePinCreate");
-    let createButton = createHolder.querySelector("button");
-    let pinTx = frame.querySelector(".eSharePinDisplay");
-    let optionHolder = frame.querySelector(".eSharePinOptions");
-    let titleTx = frame.closest(".dropdown").querySelector(".dropdownTitle div");
-
-    editor.updatePin = async () => {
-      let currentPin = (editor.lesson.pin || "123456").split("");
-      let left = "";
-      let right = "";
-      for (let i = 0; i < currentPin.length; i++) {
-        let char = currentPin[i];
-        let charHTML = char;
-        if (parseInt(char) < 10) {
-          charHTML = `<span style="color: var(--secondary)">${char}</span>`;
-        }
-        if (i < 3) {
-          left += charHTML;
-        } else {
-          right += charHTML;
-        }
-      }
-      pinTx.querySelector("span[left]").innerHTML = left;
-      pinTx.querySelector("span[right]").innerHTML = right;
-      if (editor.lesson.pin != null) {
-        optionHolder.style.display = "flex";
-        createHolder.style.opacity = 0;
-        createHolder.style.pointerEvents = "none";
-      } else {
-        optionHolder.style.display = "none";
-        createHolder.style.opacity = 1;
-        createHolder.style.pointerEvents = "all";
-      }
-      if (titleTx.querySelector("b") == null) {
-        titleTx.innerHTML = editor.lesson.pin || "";
-      }
-    }
-    editor.updatePin();
-    createButton.addEventListener("click", async () => {
-      createButton.setAttribute("disabled", "");
-      let [code, body] = await sendRequest("PUT", "lessons/share/pin/generate", null, { session: editor.session });
-      if (code == 200) {
-        editor.lesson.pin = body.pin;
-        editor.updatePin();
-      }
-      createButton.removeAttribute("disabled");
-    });
-    frame.querySelector(".eSharePinCopy").addEventListener("click", async () => {
-      copyClipboardText(editor.lesson.pin, "pin");
-    });
-    let removeButton = frame.querySelector(".eSharePinRemove");
-    removeButton.addEventListener("click", async () => {
-      removeButton.setAttribute("disabled", "");
-      let [code] = await sendRequest("DELETE", "lessons/share/pin/remove", null, { session: editor.session });
-      if (code == 200) {
-        editor.lesson.pin = null;
-        editor.updatePin();
-      }
-      removeButton.removeAttribute("disabled");
-    });
-    let actionButton = frame.querySelector(".eShareActionLink");
-    function updateAction() {
-      if ((editor.lesson.settings || {}).forceLogin == true) {
-        actionButton.setAttribute("on", "");
-        actionButton.removeAttribute("off");
-      } else {
-        actionButton.setAttribute("off", "");
-        actionButton.removeAttribute("on");
-      }
-    }
-    updateAction();
-    actionButton.addEventListener("click", async () => {
-      actionButton.setAttribute("disabled", "");
-      if ((editor.lesson.settings || {}).forceLogin == true) {
-        actionButton.setAttribute("off", "");
-        actionButton.removeAttribute("on");
-      } else {
-        actionButton.setAttribute("on", "");
-        actionButton.removeAttribute("off");
-      }
-      let [code] = await sendRequest("PUT", "lessons/setting", { set: "forceLogin", value: actionButton.hasAttribute("on") }, { session: editor.session });
-      if (code != 200) {
-        updateAction();
-      }
-      actionButton.removeAttribute("disabled");
-    });
-
-    if (editor.getSelf().access < 2) {
-      createButton.setAttribute("disabled", "");
-      optionHolder.remove();
-    }
-    */
   }
 }

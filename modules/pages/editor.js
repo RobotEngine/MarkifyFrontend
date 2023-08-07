@@ -226,8 +226,8 @@ modules["pages/editor"] = {
     }
 
     socket.remotes["member_" + lessonID] = (data) => {
-      let body = data.data;
       /*
+      let body = data.data;
       if (body.lesson != lessonID) {
         return;
       }
@@ -311,6 +311,9 @@ modules["pages/editor"] = {
             }
           }
           enableScrollTop();
+          break;
+        case "invite":
+          this.emailInvite(data.subTask, body);
       }
     }; // Subscribe before to make sure no members are lost in request time.
 
@@ -399,7 +402,13 @@ modules["pages/editor"] = {
     });
     let nameBox = page.querySelector(".eFileName");
     nameBox.textContent = this.lesson.name || "Untitled Lesson";
-    nameBox.addEventListener("keydown", enableScrollTop);
+    nameBox.addEventListener("keydown", function(event) {
+      if (event.keyCode == 13) {
+        event.preventDefault();
+        return;
+      }
+      enableScrollTop();
+    });
     nameBox.addEventListener("focusout", async () => {
       let name = nameBox.textContent.substring(0, 30).replace(/[^A-Za-z0-9.,_|\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
       if (name.replace(/ /g, "").length < 1) {

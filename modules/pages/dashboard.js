@@ -240,7 +240,7 @@ modules["pages/dashboard/lessons"] = {
       <div>Shared Lessons</div>
       <button class="dSectionLoadMore buttonAnim border"><span>View More</span><img src="./images/tooltips/drop.svg"></button>
     </div>
-    <div class="dSectionTiles" default="5" timefield="shared"></div>
+    <div class="dSectionTiles" default="5" timefield="added"></div>
   </div>
   <div class="dSection" section="mine">
     <div class="dSectionTop">

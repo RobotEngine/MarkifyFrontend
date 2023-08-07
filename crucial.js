@@ -673,7 +673,7 @@ modules["dropdown"] = {
   setResizeLoop: function (dropdown, content, header, button) {
     return setInterval(() => {
       content.style.top = header.offsetHeight + "px";
-      content.style.maxWidth = window.innerWidth - 32 + "px";
+      content.style.maxWidth = window.innerWidth - 16 + "px";
       content.style.maxHeight = window.innerHeight - header.offsetHeight - 16 + "px";
       content.style.minWidth = Math.min(window.innerWidth - 32, 200) + "px";
 

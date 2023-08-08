@@ -68,8 +68,8 @@ modules["dropdowns/editor/share/email"] = {
       }
     });
 
-    let addNewTile = (data, insertFirst) => {
-      if (emailHolder.querySelector('.eShareTile[userid="' + data._id + '"]') != null) {
+    let addNewTile = (data, insertFirst, ignoreExisting) => {
+      if (ignoreExisting != true && emailHolder.querySelector('.eShareTile[userid="' + data._id + '"]') != null) {
         return;
       }
       let insertLoc = "afterbegin";
@@ -92,12 +92,13 @@ modules["dropdowns/editor/share/email"] = {
       tile.setAttribute("userid", data._id);
       tile.querySelector(".eShareImage").src = data.image || "./images/profiles/default.svg";
       let nameTx = tile.querySelector(".eShareName");
-      nameTx.textContent = data.user;
-      nameTx.title = data.user;
+      nameTx.innerHTML = data.user || "<i>Pending</i>";
+      nameTx.title = data.user || "Awaiting for the user to open the document...";
       let emailTx = tile.querySelector(".eShareEmail");
       emailTx.textContent = data.email;
       emailTx.title = data.email;
       updatePermButton(tile.querySelector(".eSharePerm"), data.access || 0);
+      return tile;
     }
     editor.emailInvite = (task, body) => {
       let tile = emailHolder.querySelector('.eShareTile[userid="' + body._id + '"]');
@@ -108,6 +109,12 @@ modules["dropdowns/editor/share/email"] = {
         case "update":
           if (tile != null) {
             updatePermButton(tile.querySelector(".eSharePerm"), body.access);
+          }
+          break;
+        case "join":
+          if (tile != null) {
+            emailHolder.insertBefore(addNewTile(body, null, true), tile);
+            tile.remove();
           }
           break;
         case "remove":

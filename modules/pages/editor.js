@@ -225,9 +225,8 @@ modules["pages/editor"] = {
       }
     }
 
-    socket.remotes["member_" + lessonID] = (data) => {
-      let body = data.data;
-      if (body.lesson != lessonID) {
+    socket.remotes["member"] = (data) => {
+      if (data.lesson != lessonID) {
         return;
       }
       switch (data.task) {
@@ -246,6 +245,9 @@ modules["pages/editor"] = {
         case "join":
           this.members[body._id] = body;
           updateMemberCount();
+          if (body.method == "shared" && this.emailInvite != null) {
+            this.emailInvite("join", { _id: body.user, email: body.email, user: body.name, image: body.image });
+          }
           break;
         case "leave":
           if (this.members[body._id]) {

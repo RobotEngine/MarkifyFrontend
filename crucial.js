@@ -673,9 +673,10 @@ modules["dropdown"] = {
   setResizeLoop: function (dropdown, content, header, button) {
     return setInterval(() => {
       content.style.top = header.offsetHeight + "px";
-      content.style.maxWidth = window.innerWidth - 16 + "px";
-      content.style.maxHeight = window.innerHeight - header.offsetHeight - 16 + "px";
-      content.style.minWidth = Math.min(window.innerWidth - 32, 200) + "px";
+      // We use fixed, not window, so that scrollbars are accounted for:
+      content.style.maxWidth = fixed.clientWidth - 16 + "px";
+      content.style.maxHeight = fixed.clientHeight - header.offsetHeight - 16 + "px";
+      content.style.minWidth = Math.min(fixed.clientWidth - 16, 200) + "px";
 
       if (dropdown.hasAttribute("closing") == false) {
         dropdown.style.width = content.offsetWidth + "px";

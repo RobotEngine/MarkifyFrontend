@@ -161,6 +161,9 @@ async function setFrame(path, frame, extra) {
     return;
   }
   let continueLoading = true;
+  if (frameSet == app) {
+    extra.from = currentPage;
+  }
   if (module.preJs) {
     continueLoading = (await (module.preJs())) != false;
   }

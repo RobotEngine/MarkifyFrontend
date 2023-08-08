@@ -226,12 +226,10 @@ modules["pages/editor"] = {
     }
 
     socket.remotes["member_" + lessonID] = (data) => {
-      /*
       let body = data.data;
       if (body.lesson != lessonID) {
         return;
       }
-      */
       switch (data.task) {
         case "kick":
           setFrame("pages/join");
@@ -328,11 +326,13 @@ modules["pages/editor"] = {
     }
     joinData = joinData || {};
     if (joinData.pin) {
-      delete this.session;
       sendBody.pin = joinData.pin;
     }
     if (joinData.name) {
       sendBody.name = joinData.name;
+    }
+    if (joinData.from == "pages/join") {
+      delete this.session;
     }
     let [code, body, extra] = await sendRequest("POST", "lessons/join?lesson=" + lessonID, sendBody, { session: this.session, allowError: [403, 406] });
     if (code == 403 || code == 406) {

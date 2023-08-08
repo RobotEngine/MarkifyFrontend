@@ -664,9 +664,9 @@ socket.onclose = async function () {
 modules["dropdown"] = {
   css: {
     ".dropdown": `position: sticky; box-sizing: border-box; max-width: calc(100% - 16px); max-height: calc(100% - 16px); right: 0px; bottom: 0px; margin: 8px; opacity: 0; transform-origin: center top; background: var(--pageColor); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; pointer-events: all`,
-    ".dropdownContent": `position: absolute; box-sizing: border-box; width: max-content; height: max-content; padding: 6px; overflow: auto; background: var(--pageColor)`,
+    ".dropdownContent": `position: absolute; box-sizing: border-box; width: max-content; height: max-content; padding: 6px; overflow: auto`, //background: var(--pageColor)
     ".dropdownFrame": `position: relative`,
-    ".dropdownHeader": `display: flex; gap: 6px; padding: 6px 6px 0 6px; justify-content: space-between; transition: .4s`,
+    ".dropdownHeader": `position: relative; display: flex; gap: 6px; padding: 6px 6px 0 6px; justify-content: space-between; transition: .4s; z-index: 2`,
     ".dropdownHeader button": `position: relative; width: 22px; height: 22px; margin: 3px; --borderWidth: 3px; --borderRadius: 14px`,
     ".dropdownHeader button img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
     ".dropdownTitle": `box-sizing: border-box; display: flex; padding: 3px; flex: 1; max-width: fit-content; justify-content: center; align-items: center; white-space: nowrap; overflow: hidden; font-size: 18px; font-weight: 500`,

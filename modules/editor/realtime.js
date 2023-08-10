@@ -133,6 +133,7 @@ modules["editor/realtime"] = {
     }
     let mouseX = 0;
     let mouseY = 0;
+    let endSyncTimeout;
     this.publishShort = (event) => {
       if (event && event.x) {
         mouseX = event.x;
@@ -152,6 +153,7 @@ modules["editor/realtime"] = {
         return;
       }
       */
+      clearTimeout(endSyncTimeout);
       if (lastCursorPublish < getEpoch() - 80) { // One event every 80 ms
         let filter = { c: "short_" + editor.id };
 
@@ -232,6 +234,10 @@ modules["editor/realtime"] = {
         lastCursorPublish = getEpoch();
         lastCursorPage = filter.p;
         lastCursorContent = updJSONContent;
+      } else {
+        endSyncTimeout = setTimeout(() => {
+          this.publishShort(event);
+        }, 100); // If after 100 MS, send the last event to ensure proper sync.
       }
     }
     editor.scrollEvent = this.publishShort;
@@ -442,7 +448,7 @@ modules["dropdowns/editor/members"] = {
     ".eShareSearchHolder input::placeholder": `color: var(--secondary)`,
 
     //".eShareMemberHolder": `padding: 0px 8px 8px 8px`,
-    ".eShareAccessHolder:not(:last-child)": `margin-bottom: 8px; border-bottom: solid 2px var(--hover); height: 500px`,
+    ".eShareAccessHolder:not(:last-child)": `margin-bottom: 4px; border-bottom: solid 2px var(--hover); height: 500px`,
     ".eShareAccessTitle": `position: sticky; width: 100%; padding: 8px; top: 0px; background: rgba(var(--background), .7); backdrop-filter: blur(4px); border-radius: 19px 19px 0 0; z-index: 1; text-align: left; font-weight: 600; font-size: 18px`,
     ".eShareAccessTitle:hover": `background: var(--hover)`,
     ".eShareAccessTitle:active": `border-radius: 19px`

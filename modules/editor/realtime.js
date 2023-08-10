@@ -423,31 +423,44 @@ modules["dropdowns/editor/members"] = {
     </div>
     <div class="eShareMemberHolder">
       <div class="eShareAccessHolder" type="owner">
-        <div class="eShareAccessTitle">Owner</div>
+        <button class="eShareAccessTitle">Owner</button>
       </div>
       <div class="eShareAccessHolder" type="editor">
-        <div class="eShareAccessTitle">Editors</div>
+        <button class="eShareAccessTitle">Editors</button>
       </div>
       <div class="eShareAccessHolder" type="viewer">
-        <div class="eShareAccessTitle">Viewers</div>
+        <button class="eShareAccessTitle">Viewers</button>
       </div>
     </div>
   </div>
   `,
   css: {
     ".eShareHolder": `width: 275px; max-width: 100%`,
-    ".eShareSearchHolder": `display: flex; padding: 8px; align-items: center`,
+    ".eShareSearchHolder": `display: flex; padding: 8px 8px 4px 8px; align-items: center`,
     ".eShareSearchHolder img": `width: 28px; height: 28px`,
     ".eShareSearchHolder input": `width: 100%; padding: 4px 8px; margin-left: 6px; border: solid 2px var(--secondary); outline: unset; border-radius: 17px; font-family: var(--font); font-size: 16px; font-weight: 600`,
     ".eShareSearchHolder input::placeholder": `color: var(--secondary)`,
 
     //".eShareMemberHolder": `padding: 0px 8px 8px 8px`,
     ".eShareAccessHolder:not(:last-child)": `margin-bottom: 8px; border-bottom: solid 2px var(--hover); height: 500px`,
-    ".eShareAccessTitle": `position: sticky; padding: 0px 10px 10px 10px; top: 0px; background: rgba(var(--background), .7); backdrop-filter: blur(4px); z-index: 1; text-align: left; font-weight: 600; font-size: 18px`
+    ".eShareAccessTitle": `position: sticky; width: 100%; padding: 8px; top: 0px; background: rgba(var(--background), .7); backdrop-filter: blur(4px); border-radius: 19px 19px 0 0; z-index: 1; text-align: left; font-weight: 600; font-size: 18px`,
+    ".eShareAccessTitle:hover": `background: var(--hover)`,
+    ".eShareAccessTitle:active": `border-radius: 19px`
   },
   js: async function (frame) {
     frame.closest(".dropdownContent").style.padding = "0px";
 
+    let accessHolders = frame.querySelectorAll(".eShareAccessHolder");
+    for (let i = 0; i < accessHolders.length; i++) {
+      let holder = accessHolders[i];
+      let title = holder.querySelector(".eShareAccessTitle");
+      title.addEventListener("mouseenter", function() {
+        holder.setAttribute("active", "");
+      });
+      title.addEventListener("mouseleave", function() {
+        holder.removeAttribute("active");
+      });
+    }
   }
 }
 modules["dropdowns/editor/share"] = {

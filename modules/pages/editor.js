@@ -393,6 +393,7 @@ modules["pages/editor"] = {
     }); // PING every minute
 
     this.syncMembers(body.members);
+    updateMemberCount();
 
     this.updateInterface(page);
 

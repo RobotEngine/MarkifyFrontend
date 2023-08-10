@@ -436,6 +436,9 @@ modules["pages/dashboard/lessons"] = {
                       break;
                     }
                   }
+                  if (tileHolder.childElementCount < parseInt(tileHolder.getAttribute("default"))) {
+                    tileSection.querySelector(".dSectionLoadMore").style.display = "none";
+                  }
                 }
                 updateDashSub();
               }

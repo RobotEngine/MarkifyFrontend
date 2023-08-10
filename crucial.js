@@ -146,6 +146,8 @@ async function setFrame(path, frame, extra) {
       let svgHolder = loading.querySelector(".loadingSvgHolder");
       svgHolder.style.width = "100vw";
       svgHolder.style.height = "100vh";
+    } else {
+      loading.style.maxWidth = "75px";
     }
   }
   let module = await getModule(path);
@@ -173,10 +175,11 @@ async function setFrame(path, frame, extra) {
     svgHolder.style.height = svgHolder.clientHeight + "px";
   }
   if (continueLoading) {
-    frameSet.insertAdjacentHTML("beforeend", `<div class="content" style="display: none; opacity: 0; transition: .5s" new>${module.html}</div>`);
+    frameSet.insertAdjacentHTML("beforeend", `<div class="content" style="opacity: 0; transition: .5s" new>${module.html}</div>`);
     let frameContent = frameSet.querySelector(".content[new]");
     frameContent.removeAttribute("new");
     if (frameSet == app) {
+      frameContent.style.display = "none";
       //frameContent.style.position = "absolute";
       (await getModule("dropdown")).close();
       frameContent.style.width = "100%";

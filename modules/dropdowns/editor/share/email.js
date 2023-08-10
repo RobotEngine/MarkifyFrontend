@@ -30,7 +30,7 @@ modules["dropdowns/editor/share/email"] = {
   },
   js: async function (frame) {
     frame.closest(".dropdownContent").style.padding = "0px";
-    
+
     //frame.style.padding = "8px";
 
     let editor = await getModule("pages/editor");

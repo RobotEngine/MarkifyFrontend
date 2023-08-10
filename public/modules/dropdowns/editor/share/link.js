@@ -64,7 +64,7 @@ modules["dropdowns/editor/share/link"] = {
     let accessTitle = accessButton.querySelector(".eShareDetailTitle");
     let accessDesc = accessButton.querySelector(".eShareDetailDesc");
 
-    linkTx.value = location.origin + "/join?lesson=" + editor.id;
+    linkTx.value = "markify.link/join?lesson=" + editor.id;
     frame.querySelector(".eShareLinkCopy").addEventListener("click", async () => {
       copyClipboardText(linkTx.value, "link");
     });

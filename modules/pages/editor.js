@@ -414,7 +414,7 @@ modules["pages/editor"] = {
       enableScrollTop();
     });
     nameBox.addEventListener("focusout", async () => {
-      let name = nameBox.textContent.substring(0, 30).replace(/[^A-Za-z0-9.,_|\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
+      let name = nameBox.textContent.substring(0, 30).replace(/[^A-Za-z0-9.,_|/\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
       if (name.replace(/ /g, "").length < 1) {
         nameBox.textContent = this.lesson.name;
         return;

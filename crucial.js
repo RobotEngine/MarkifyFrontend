@@ -685,7 +685,6 @@ modules["dropdown"] = {
       if (dropdown.hasAttribute("closing") == false) {
         //if (content.querySelector(".dropdownFrame").hasAttribute("loaded")) {
         if (content.offsetWidth > 0 && content.offsetHeight > 0) {
-          console.log(content.offsetWidth, content.offsetHeight)
           dropdown.style.width = content.offsetWidth + "px";
           dropdown.style.height = content.offsetHeight + header.offsetHeight + "px";
         }

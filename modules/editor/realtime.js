@@ -414,6 +414,42 @@ modules["editor/realtime"] = {
   }
 }
 
+modules["dropdowns/editor/members"] = {
+  html: `
+  <div class="eShareHolder">
+    <div class="eShareSearchHolder">
+      <img src="./images/editor/glass.svg">
+      <input placeholder="Search..."></input>
+    </div>
+    <div class="eShareMemberHolder">
+      <div class="eShareAccessHolder" type="owner">
+        <div class="eShareAccessTitle">Owner</div>
+      </div>
+      <div class="eShareAccessHolder" type="editor">
+        <div class="eShareAccessTitle">Editors</div>
+      </div>
+      <div class="eShareAccessHolder" type="viewer">
+        <div class="eShareAccessTitle">Viewers</div>
+      </div>
+    </div>
+  </div>
+  `,
+  css: {
+    ".eShareHolder": `width: 275px; max-width: 100%`,
+    ".eShareSearchHolder": `display: flex; padding: 8px; align-items: center`,
+    ".eShareSearchHolder img": `width: 28px; height: 28px`,
+    ".eShareSearchHolder input": `width: 100%; padding: 4px 8px; margin-left: 6px; border: solid 2px var(--secondary); outline: unset; border-radius: 17px; font-family: var(--font); font-size: 16px; font-weight: 600`,
+    ".eShareSearchHolder input::placeholder": `color: var(--secondary)`,
+
+    //".eShareMemberHolder": `padding: 0px 8px 8px 8px`,
+    ".eShareAccessHolder:not(:last-child)": `margin-bottom: 8px; border-bottom: solid 2px var(--hover); height: 500px`,
+    ".eShareAccessTitle": `position: sticky; padding: 0px 10px 10px 10px; top: 0px; background: rgba(var(--background), .7); backdrop-filter: blur(4px); z-index: 1; text-align: left; font-weight: 600; font-size: 18px`
+  },
+  js: async function (frame) {
+    frame.closest(".dropdownContent").style.padding = "0px";
+
+  }
+}
 modules["dropdowns/editor/share"] = {
   html: `
   <button class="eShareOption" dropdown="dropdowns/editor/share/pin" dropdowntitle="<div>Present with <b style='color: var(--theme); font-weight: 800'>Pin</b></div>" title="Invite members through a pin."><img src="./images/editor/share/pin.svg"><div class="eShareInfo"><div class="eShareTitle">Present with <b>Pin</b></div><div class="eShareDesc">Allow members to join as a viewer through a 6-digit pin code.</div></div></button>

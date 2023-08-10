@@ -190,6 +190,7 @@ async function setFrame(path, frame, extra) {
       document.title = module.title + " | Markify";
       window.location.hash = "#" + path.substring(path.lastIndexOf("/") + 1);
     }
+    //frameSet.setAttribute("loaded", "");
     await module.js(frameContent, extra);
     if (frameContent.style.display == "none") {
       frameContent.style.removeProperty("display");
@@ -682,8 +683,12 @@ modules["dropdown"] = {
       content.style.minWidth = Math.min(fixed.clientWidth - 16, 200) + "px";
 
       if (dropdown.hasAttribute("closing") == false) {
-        dropdown.style.width = content.offsetWidth + "px";
-        dropdown.style.height = content.offsetHeight + header.offsetHeight + "px";
+        //if (content.querySelector(".dropdownFrame").hasAttribute("loaded")) {
+        if (content.offsetWidth > 0 && content.offsetHeight > 0) {
+          console.log(content.offsetWidth, content.offsetHeight)
+          dropdown.style.width = content.offsetWidth + "px";
+          dropdown.style.height = content.offsetHeight + header.offsetHeight + "px";
+        }
       } else {
         dropdown.style.width = button.offsetWidth + "px";
         dropdown.style.height = button.offsetHeight + "px";
@@ -699,6 +704,7 @@ modules["dropdown"] = {
     }, 1);
   },
   open: async function (button, frameName, extra) {
+    let loaded = modules[frameName] != null;
     if (window.dropdown && button.closest(".dropdown")) { // Clicked inside the dropdown
       let dropdown = window.dropdown.dropdown;
       let header = dropdown.querySelector(".dropdownHeader");
@@ -739,10 +745,12 @@ modules["dropdown"] = {
       //content.style.transform = "scale(.85)";
       content.style.zIndex = 1;
       content.style.pointerEvents = "none";
-      content.style.transition = ".4s all, .5s opacity";
+      content.style.transition = ".4s left, .4s right, .5s opacity";
       content.offsetHeight;
       //content.style.transform = "scale(1)";
-      frame.style.minHeight = "200px";
+      if (loaded == false) {
+        frame.style.minHeight = "200px";
+      }
       oldContent.style.zIndex = 0;
       oldContent.style.pointerEvents = "none";
       oldContent.style.transition = ".4s";
@@ -790,7 +798,9 @@ modules["dropdown"] = {
     let frame = content.querySelector(".dropdownFrame");
     dropdown.style.width = button.offsetWidth + "px";
     dropdown.style.height = button.offsetHeight + "px";
-    frame.style.minHeight = "200px";
+    if (loaded == false) {
+      frame.style.minHeight = "200px";
+    }
     let existingTitle = button.getAttribute("dropdowntitle");
     let setTitleHTML = existingTitle || button.innerHTML;
     if (button.innerHTML == button.textContent && existingTitle == null) {

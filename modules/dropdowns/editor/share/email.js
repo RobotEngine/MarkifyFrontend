@@ -30,18 +30,27 @@ modules["dropdowns/editor/share/email"] = {
   },
   js: async function (frame) {
     frame.closest(".dropdownContent").style.padding = "0px";
-
+    
     //frame.style.padding = "8px";
 
     let editor = await getModule("pages/editor");
     let inputField = frame.querySelector(".eShareEmailInput");
     let sendButton = frame.querySelector(".eShareEmailButton");
     let emailHolder = frame.querySelector(".eShareEmailHolder");
-    
+
     let alert = await getModule("alert");
 
     let verifyEmailRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
+    function updateEmptyTx() {
+      if (emailHolder.querySelectorAll(".eShareTile").length > 0) {
+        if (emailHolder.querySelector(".eShareEmailEmpty") != null) {
+          emailHolder.querySelector(".eShareEmailEmpty").remove();
+        }
+      } else {
+        emailHolder.insertAdjacentHTML("beforeend", `<div class="eShareEmailEmpty">Nobody invited... Add someone above!</div>`);
+      }
+    }
     async function sendInvite() {
       let email = inputField.value;
       if (verifyEmailRegex.test(email) == false) {
@@ -122,6 +131,7 @@ modules["dropdowns/editor/share/email"] = {
             tile.remove();
           }
       }
+      updateEmptyTx();
     };
 
     let updatePermButton = (button, access) => {
@@ -178,6 +188,7 @@ modules["dropdowns/editor/share/email"] = {
       for (let i = 0; i < records.length; i++) {
         addNewTile({ ...users[records[i].user], access: records[i].access }, false);
       }
+      updateEmptyTx();
     }
   }
 }

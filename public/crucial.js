@@ -1,4 +1,4 @@
-let serverURL = "https://markifydev.exotek.co/api/";
+let serverURL = "https://markify.exotek.co/api/";
 //let serverURL = "http://localhost:3000/api/";
 let assetURL = "https://markifyapp.s3.amazonaws.com/";
 

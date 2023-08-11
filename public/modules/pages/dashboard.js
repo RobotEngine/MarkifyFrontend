@@ -29,7 +29,7 @@ modules["pages/dashboard"] = {
   </div>
   `,
   css: {
-    ".dPage": `display: flex; flex-direction: column; width: 100%; height: fit-content; max-width: 1000px; overflow: hidden`,
+    ".dPage": `display: flex; flex-direction: column; width: 100%; height: fit-content; max-width: 1000px`,
 
     ".dTopBar": `display: flex; justify-content: space-between; box-sizing: border-box; width: 100%; padding: 8px; background: rgba(var(--background), .7); backdrop-filter: blur(4px); overflow: hidden; z-index: 10`,
     ".dLogo": `height: 44px; margin-right: 8px`,
@@ -49,7 +49,7 @@ modules["pages/dashboard"] = {
     ".dCreateDoc": `background: var(--theme); --borderRadius: 20.25px; color: #fff`,
     ".dJoin": `background: #fff; --borderRadius: 20.25px; color: var(--secondary)`,
     ".dJoin img": `width: 24px; height: 24px; margin-left: 8px`,
-    ".dBackdrop": `position: absolute; width: 100%; height: 300px; top: -50px; left: 0px; top: -50px; z-index: 1`,
+    ".dBackdrop": `position: absolute; width: 100%; height: 300px; top: -50px; left: 0px; top: -50px; z-index: 1; overflow: hidden`,
     ".dBackdropImage": `position: absolute; height: 100%; left: 0px`,
     ".dIconImage": `position: absolute; height: 100%; left: max(70%, 570px)`,
 
@@ -354,7 +354,7 @@ modules["pages/dashboard/lessons"] = {
         let lessonRec = lessonRecs[i];
         addTile(tileHolder, lessonRec, lessons[lessonRec.lesson]);
       }
-      if (lessonRecs.length < parseInt(tileHolder.getAttribute("default"))) {
+      if (tileHolder.childElementCount < parseInt(tileHolder.getAttribute("default"))) {
         tileSection.querySelector(".dSectionLoadMore").style.display = "none";
       }
     }

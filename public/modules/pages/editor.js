@@ -486,8 +486,8 @@ modules["pages/editor"] = {
         let pages = getObject(body.pages || [], "_id");
         let sources = getObject(body.sources || [], "_id");
 
-        await loadScript("../libraries/pdfjs/pdf.js");
-        pdfjsLib.GlobalWorkerOptions.workerSrc = "../libraries/pdfjs/pdf.worker.js";
+        await loadScript("./libraries/pdfjs/pdf.js");
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "./libraries/pdfjs/pdf.worker.js";
 
         let currentPage = 1;
 

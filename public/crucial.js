@@ -147,7 +147,7 @@ async function setFrame(path, frame, extra) {
       svgHolder.style.width = "100vw";
       svgHolder.style.height = "100vh";
     } else {
-      loading.style.maxWidth = "75px";
+      loading.querySelector(".loadsvg").style.maxWidth = "75px";
     }
   }
   let module = await getModule(path);

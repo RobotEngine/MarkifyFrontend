@@ -422,48 +422,77 @@ modules["editor/realtime"] = {
 
 modules["dropdowns/editor/members"] = {
   html: `
-  <div class="eShareHolder">
-    <div class="eShareSearchHolder">
+  <div class="eMemberHolder">
+    <div class="eMemberSearchHolder">
       <img src="./images/editor/glass.svg">
       <input placeholder="Search..."></input>
     </div>
-    <div class="eShareMemberHolder">
-      <div class="eShareAccessHolder" type="owner">
-        <button class="eShareAccessTitle">Owner</button>
+    <div class="eMemberMemberHolder">
+      <div class="eMemberAccessHolder" type="owner">
+        <button class="eMemberAccessTitle"><div>Owner</div><div count>0</div></button>
+        <button class="eMemberTile">
+          <div class="eMemberCursor"></div>
+          <div class="eMemberName">Robot Engine</div>
+          <div class="eMemberEvents">
+            <div class="eMemberEvent">Idle</div>
+          </div>
+        </button>
       </div>
-      <div class="eShareAccessHolder" type="editor">
-        <button class="eShareAccessTitle">Editors</button>
+      <div class="eMemberAccessHolder" type="editor">
+      <button class="eMemberAccessTitle"><div>Editors</div><div count>0</div></button>
       </div>
-      <div class="eShareAccessHolder" type="viewer">
-        <button class="eShareAccessTitle">Viewers</button>
+      <div class="eMemberAccessHolder" type="viewer">
+        <button class="eMemberAccessTitle"><div>Viewers</div><div count>0</div></button>
       </div>
     </div>
   </div>
   `,
   css: {
-    ".eShareHolder": `width: 275px; max-width: 100%`,
-    ".eShareSearchHolder": `display: flex; padding: 8px 8px 4px 8px; align-items: center`,
-    ".eShareSearchHolder img": `width: 28px; height: 28px`,
-    ".eShareSearchHolder input": `width: 100%; padding: 4px 8px; margin-left: 6px; border: solid 2px var(--secondary); outline: unset; border-radius: 17px; font-family: var(--font); font-size: 16px; font-weight: 600`,
-    ".eShareSearchHolder input::placeholder": `color: var(--secondary)`,
+    ".eMemberHolder": `width: 275px; max-width: 100%`,
+    ".eMemberSearchHolder": `display: flex; padding: 8px 8px 4px 8px; align-items: center`,
+    ".eMemberSearchHolder img": `width: 28px; height: 28px`,
+    ".eMemberSearchHolder input": `width: 100%; padding: 4px 8px; margin-left: 6px; border: solid 2px var(--secondary); outline: unset; border-radius: 17px; font-family: var(--font); font-size: 16px; font-weight: 600`,
+    ".eMemberSearchHolder input::placeholder": `color: var(--secondary)`,
 
-    //".eShareMemberHolder": `padding: 0px 8px 8px 8px`,
-    ".eShareAccessHolder:not(:last-child)": `margin-bottom: 4px; border-bottom: solid 2px var(--hover); height: 500px`,
-    ".eShareAccessTitle": `position: sticky; width: 100%; padding: 8px; top: 0px; background: rgba(var(--background), .7); backdrop-filter: blur(4px); border-radius: 19px 19px 0 0; z-index: 1; text-align: left; font-weight: 600; font-size: 18px`,
-    ".eShareAccessTitle:hover": `background: var(--hover)`,
-    ".eShareAccessTitle:active": `border-radius: 19px`
+    ".eMemberAccessHolder": `display: none`,
+    '.eMemberAccessHolder:not([type="viewer"])': `margin-bottom: 12px; border-bottom: solid 2px var(--hover)`,
+    ".eMemberAccessTitle": `position: sticky; display: flex; width: 100%; padding: 4px 8px; top: 0px; justify-content: space-between; background: rgba(var(--background), .7); backdrop-filter: blur(4px); z-index: 1; text-align: left; font-weight: 700; font-size: 18px`,
+    ".eMemberAccessTitle div[count]": `margin-left: 6px; font-weight: 500`,
+    ".eMemberAccessTitle:hover": `background: var(--hover)`,
+    ".eMemberAccessTitle:active": `background: var(--secondary); color: #fff; border-radius: 15px`,
+
+    ".eMemberTile": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px; margin: 4px 0; align-items: center`,
+    ".eMemberTile:hover": `background: var(--hover)`,
+    ".eMemberTile:hover .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor); transform: translateX(-3px) scale(1.15)`,
+    ".eMemberTile:active": `background: var(--themeColor); color: #fff; border-radius: 18px`,
+    ".eMemberTile:active .eMemberCursor": `transform: scale(1.15)`,
+    ".eMemberAccessHolder[hover] .eMemberTile": `background: var(--hover)`,
+    ".eMemberAccessHolder[hover] .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor); transform: translateX(-3px) scale(1.15)`,
+    ".eMemberAccessHolder[active] .eMemberTile": `background: var(--themeColor); color: #fff; border-radius: 18px; transform: scale(.95)`,
+    ".eMemberAccessHolder[active] .eMemberCursor": `transform: scale(1.15)`,
+    ".eMemberCursor": `width: 22px; height: 22px; flex-shrink: 0; margin: 0 6px; background: var(--pageColor); border: solid 3px var(--themeColor); overflow: hidden; border-radius: 8px 14px 14px 14px; transition: 0.2s`, //box-shadow: 0 0 6px rgb(0 0 0 / 50%);
+    ".eMemberName": `width: 100%; font-size: 18px; font-weight: 600; text-align: left; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
+    ".eMemberEvents": `display: flex; margin-left: auto`,
+    ".eMemberEvent": `background: red; padding: 4px 8px; margin-left: 6px; border-radius: 14px; color: #fff; font-size: 15px; font-weight: 700; white-space: nowrap`
   },
   js: async function (frame) {
     frame.closest(".dropdownContent").style.padding = "0px";
 
-    let accessHolders = frame.querySelectorAll(".eShareAccessHolder");
+    let accessHolders = frame.querySelectorAll(".eMemberAccessHolder");
     for (let i = 0; i < accessHolders.length; i++) {
       let holder = accessHolders[i];
-      let title = holder.querySelector(".eShareAccessTitle");
+      let title = holder.querySelector(".eMemberAccessTitle");
       title.addEventListener("mouseenter", function() {
-        holder.setAttribute("active", "");
+        holder.setAttribute("hover", "");
       });
       title.addEventListener("mouseleave", function() {
+        holder.removeAttribute("hover");
+        holder.removeAttribute("active");
+      });
+      title.addEventListener("mousedown", function() {
+        holder.setAttribute("active", "");
+      });
+      title.addEventListener("mouseup", function() {
         holder.removeAttribute("active");
       });
     }

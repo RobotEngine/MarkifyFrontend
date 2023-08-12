@@ -47,10 +47,11 @@ modules["dropdowns/editor/share/email"] = {
         if (emailHolder.querySelector(".eShareEmailEmpty") != null) {
           emailHolder.querySelector(".eShareEmailEmpty").remove();
         }
-      } else {
+      } else if (emailHolder.querySelector(".eShareEmailEmpty") == null) {
         emailHolder.insertAdjacentHTML("beforeend", `<div class="eShareEmailEmpty">Nobody invited... Add someone above!</div>`);
       }
     }
+    updateEmptyTx();
     async function sendInvite() {
       let email = inputField.value;
       if (verifyEmailRegex.test(email) == false) {
@@ -190,5 +191,7 @@ modules["dropdowns/editor/share/email"] = {
       }
       updateEmptyTx();
     }
+
+    inputField.focus();
   }
 }

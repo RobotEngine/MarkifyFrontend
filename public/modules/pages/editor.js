@@ -206,14 +206,15 @@ modules["pages/editor"] = {
       let counts = document.querySelectorAll(".eMemberCount");
       this.memberCount = Object.keys(this.members).length;
       for (let i = 0; i < counts.length; i++) {
-        counts[i].textContent = this.memberCount;
-      }
-      if (this.memberCount > 1) {
-        memberCountNum.style.display = "unset";
-        memberCount.style.padding = "4px 10px 4px 4px";
-      } else {
-        memberCountNum.style.display = "none";
-        memberCount.style.padding = "6px 10px";
+        let count = counts[i];
+        count.textContent = this.memberCount;
+        if (this.memberCount > 1) {
+          count.style.display = "unset";
+          count.parentElement.style.padding = "4px 10px 4px 4px";
+        } else {
+          count.style.display = "none";
+          count.parentElement.style.padding = "6px 10px";
+        }
       }
     }
 

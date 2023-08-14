@@ -891,7 +891,7 @@ modules["alert"] = {
   colors: {
     info: "var(--theme)",
     worked: "#34C172",
-    warning: "#FFB938",
+    warning: "var(--yellow",
     error: "var(--error)"
   },
   open: async function (type, message, data) {

@@ -430,16 +430,9 @@ modules["dropdowns/editor/members"] = {
     <div class="eMemberMemberHolder">
       <div class="eMemberAccessHolder" type="owner">
         <button class="eMemberAccessTitle"><div>Owner</div><div count>0</div></button>
-        <button class="eMemberTile">
-          <div class="eMemberCursor"></div>
-          <div class="eMemberName">Robot Engine</div>
-          <div class="eMemberEvents">
-            <div class="eMemberEvent">Idle</div>
-          </div>
-        </button>
       </div>
       <div class="eMemberAccessHolder" type="editor">
-      <button class="eMemberAccessTitle"><div>Editors</div><div count>0</div></button>
+        <button class="eMemberAccessTitle"><div>Editors</div><div count>0</div></button>
       </div>
       <div class="eMemberAccessHolder" type="viewer">
         <button class="eMemberAccessTitle"><div>Viewers</div><div count>0</div></button>
@@ -454,31 +447,184 @@ modules["dropdowns/editor/members"] = {
     ".eMemberSearchHolder input": `width: 100%; padding: 4px 8px; margin-left: 6px; border: solid 2px var(--secondary); outline: unset; border-radius: 17px; font-family: var(--font); font-size: 16px; font-weight: 600`,
     ".eMemberSearchHolder input::placeholder": `color: var(--secondary)`,
 
-    ".eMemberAccessHolder": `display: none`,
-    '.eMemberAccessHolder:not([type="viewer"])': `margin-bottom: 12px; border-bottom: solid 2px var(--hover)`,
+    ".eMemberAccessHolder": `display: none; margin-bottom: 12px`,
     ".eMemberAccessTitle": `position: sticky; display: flex; width: 100%; padding: 4px 8px; top: 0px; justify-content: space-between; background: rgba(var(--background), .7); backdrop-filter: blur(4px); z-index: 1; text-align: left; font-weight: 700; font-size: 18px`,
     ".eMemberAccessTitle div[count]": `margin-left: 6px; font-weight: 500`,
     ".eMemberAccessTitle:hover": `background: var(--hover)`,
     ".eMemberAccessTitle:active": `background: var(--secondary); color: #fff; border-radius: 15px`,
 
-    ".eMemberTile": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px; margin: 4px 0; align-items: center`,
-    ".eMemberTile:hover": `background: var(--hover)`,
+    ".eMemberTile": `--opacity: 0; position: relative; display: flex; width: 100%; padding: 4px; align-items: center; overflow: hidden`, //; margin: 4px 0
+    ".eMemberBackground": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--themeColor); opacity: var(--opacity); transition: .1s; z-index: -1`,
+    ".eMemberTile:hover": `--opacity: .35`,
     ".eMemberTile:hover .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor); transform: translateX(-3px) scale(1.15)`,
-    ".eMemberTile:active": `background: var(--themeColor); color: #fff; border-radius: 18px`,
+    ".eMemberTile:active": `--opacity: 1; color: #fff; border-radius: 18px`,
     ".eMemberTile:active .eMemberCursor": `transform: scale(1.15)`,
-    ".eMemberAccessHolder[hover] .eMemberTile": `background: var(--hover)`,
+    ".eMemberAccessHolder[hover] .eMemberTile": `--opacity: .35`,
     ".eMemberAccessHolder[hover] .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor); transform: translateX(-3px) scale(1.15)`,
-    ".eMemberAccessHolder[active] .eMemberTile": `background: var(--themeColor); color: #fff; border-radius: 18px; transform: scale(.95)`,
+    ".eMemberAccessHolder[active] .eMemberTile": `--opacity: 1; color: #fff; border-radius: 18px; transform: scale(.95)`,
     ".eMemberAccessHolder[active] .eMemberCursor": `transform: scale(1.15)`,
-    ".eMemberCursor": `width: 22px; height: 22px; flex-shrink: 0; margin: 0 6px; background: var(--pageColor); border: solid 3px var(--themeColor); overflow: hidden; border-radius: 8px 14px 14px 14px; transition: 0.2s`, //box-shadow: 0 0 6px rgb(0 0 0 / 50%);
-    ".eMemberName": `width: 100%; font-size: 18px; font-weight: 600; text-align: left; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
+    ".eMemberCursor": `width: 20px; height: 20px;  flex-shrink: 0; margin: 0 6px; background: var(--pageColor); border: solid 3px var(--themeColor); overflow: hidden; border-radius: 8px 14px 14px 14px; transition: 0.2s`, //box-shadow: 0 0 6px rgb(0 0 0 / 50%);
+    ".eMemberName": `width: 100%; font-size: 16px; font-weight: 600; text-align: left; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
     ".eMemberEvents": `display: flex; margin-left: auto`,
-    ".eMemberEvent": `background: red; padding: 4px 8px; margin-left: 6px; border-radius: 14px; color: #fff; font-size: 15px; font-weight: 700; white-space: nowrap`
+    ".eMemberEvent": `background: var(--yellow); padding: 3px 6px; margin: 0 1px 0 6px; border-radius: 12px; color: #fff; font-size: 14px; font-weight: 700; white-space: nowrap`
   },
   js: async function (frame) {
+    let editor = await getModule("pages/editor");
+
     frame.closest(".dropdownContent").style.padding = "0px";
 
+    let searchField = frame.querySelector(".eMemberSearchHolder input");
     let accessHolders = frame.querySelectorAll(".eMemberAccessHolder");
+
+    let getSection = (access) => {
+      let sectionType = "viewer";
+      if (access > 4) {
+        sectionType = "owner";
+      } else if (access > 0) {
+        sectionType = "editor";
+      }
+      return frame.querySelector('.eMemberAccessHolder[type="' + sectionType + '"]');
+    }
+    let addMemberTile = (member, top) => {
+      console.log(member)
+      if (member.name.toLowerCase().includes(searchField.value.toLowerCase()) == false) {
+        return;
+      }
+      let section = getSection(member.access);
+      let title = section.querySelector(".eMemberAccessTitle");
+      section.insertAdjacentHTML("beforeend", `<button class="eMemberTile" new>
+        <div class="eMemberBackground"></div>
+        <div class="eMemberCursor"></div>
+        <div class="eMemberName"></div>
+        <div class="eMemberEvents"></div>
+      </button>`);
+      let tile = section.querySelector(".eMemberTile[new]");
+      tile.removeAttribute("new");
+      tile.setAttribute("member", member._id);
+      tile.setAttribute("joined", member.joined);
+      tile.style.setProperty("--themeColor", member.color);
+      tile.querySelector(".eMemberName").textContent = member.name;
+      tile.querySelector(".eMemberName").title = member.name;
+      let eventsHolder = tile.querySelector(".eMemberEvents");
+      if (member.active == false) {
+        eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" idle title="This member is currently viewing a different window.">Idle</div>`);
+      }
+      if (member.observe == true) {
+        eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" observe title="This member is observing you on the document.">Observe</div>`);
+      }
+      if (top == true) {
+        section.insertBefore(tile, section.children[1]);
+      }
+      title.querySelector("div[count]").textContent = section.childElementCount - 1; // -1 for title
+      section.style.display = "block";
+    }
+    let createMemberList = (search) => {
+      let keys = Object.keys(editor.members);
+      keys = keys.filter((value) => {
+        if (editor.members[value].name.toLowerCase().includes((search || "").toLowerCase())) {
+          return -1;
+        }
+        return false;
+      });
+      keys.sort((a, b) => {
+        if (editor.members[a].joined > editor.members[b].joined) {
+          return -1;
+        }
+        return 1;
+      });
+      for (let i = 0; i < keys.length; i++) {
+        addMemberTile(editor.members[keys[i]]);
+      }
+    }
+    createMemberList();
+
+    editor.updateMembersList = (data) => {
+      let body = data.data;
+      let member = editor.members[body._id];
+
+      switch (data.task) {
+        case "join":
+          addMemberTile(member, true);
+          break;
+        case "leave":
+          let removeTile = frame.querySelector('.eMemberTile[member="' + body._id + '"');
+          if (removeTile != null) {
+            let title = removeTile.parentElement.querySelector("div[count]");
+            let newCount = removeTile.parentElement.childElementCount - 2; // -2 for title and tile
+            title.textContent = newCount;
+            if (newCount < 1) {
+              removeTile.parentElement.style.display = "none";
+            }
+            removeTile.remove();
+          }
+          break;
+        case "update":
+          let updateTile = frame.querySelector('.eMemberTile[member="' + body._id + '"');
+          if (updateTile != null) {
+            // Handle User / Color Updates:
+            updateTile.style.setProperty("--themeColor", member.color);
+            updateTile.querySelector(".eMemberName").textContent = member.name;
+            updateTile.querySelector(".eMemberName").title = member.name;
+
+            // Handle access changes:
+            let section = getSection(member.access);
+            if (section != updateTile.parentElement) {
+              let oldSection = updateTile.parentElement;
+              section.appendChild(updateTile);
+              for (let i = 1; i < section.children.length; i++) { // 1 to skip title
+                let child = section.children[i];
+                if (parseInt(child.getAttribute("joined")) < member.joined) {
+                  section.insertBefore(updateTile, child);
+                  break;
+                }
+              }
+              // Update new section:
+              section.querySelector("div[count]").textContent = section.childElementCount - 1; // -1 for title
+              section.style.display = "block";
+              // Update old section:
+              let newOldCount = oldSection.childElementCount - 2; // -2 for title and tile
+              oldSection.querySelector("div[count]").textContent = newOldCount;
+              if (newOldCount < 1) {
+                oldSection.style.display = "none";
+              }
+            }
+
+            // Handle event state:
+            let eventsHolder = updateTile.querySelector(".eMemberEvents");
+            let existingIdle = eventsHolder.querySelector(".eMemberEvent[idle]");
+            if (member.active == false) {
+              if (existingIdle == null) {
+                eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" idle title="This member is currently viewing a different window.">Idle</div>`);
+              }
+            } else if (existingIdle != null) {
+              existingIdle.remove();
+            }
+            let existingObserve = eventsHolder.querySelector(".eMemberEvent[observe]");
+            if (member.observe == true) {
+              if (existingObserve == null) {
+                eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" observe title="This member is observing you on the document.">Observe</div>`);
+              }
+            } else if (existingObserve != null) {
+              existingObserve.remove();
+            }
+            //if (top == true) {
+            //  section.insertBefore(tile, section.children[1]);
+            //}
+          }
+      }
+    }
+
+    /*
+    let updateHolders = () => {
+      for (let i = 0; i < accessHolders.length; i++) {
+        let holder = accessHolders[i];
+        if (holder.childElementCount < 2) { // Have 1 for title
+
+        }
+      }
+    }
+    */
+
     for (let i = 0; i < accessHolders.length; i++) {
       let holder = accessHolders[i];
       let title = holder.querySelector(".eMemberAccessTitle");
@@ -496,6 +642,22 @@ modules["dropdowns/editor/members"] = {
         holder.removeAttribute("active");
       });
     }
+    
+    searchField.addEventListener("input", () => {
+      let clearTiles = frame.querySelectorAll(".eMemberTile");
+      for (let i = 0; i < clearTiles.length; i++) {
+        if (clearTiles[i].parentElement.childElementCount < 3) { // 3 to account for title and removed tile
+          clearTiles[i].parentElement.style.display = "none";
+        }
+        clearTiles[i].remove();
+      }
+
+      createMemberList(searchField.value);
+    });
+    (async function () {
+      await sleep(300);
+      searchField.focus();
+    })();
   }
 }
 modules["dropdowns/editor/share"] = {

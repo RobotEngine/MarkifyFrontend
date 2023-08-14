@@ -317,6 +317,10 @@ modules["pages/editor"] = {
             this.emailInvite(data.subTask, body);
           }
       }
+
+      if (this.updateMembersList != null) {
+        this.updateMembersList(data);
+      }
     }; // Subscribe before to make sure no members are lost in request time.
 
     let sendBody = { ss: socket.secureID };

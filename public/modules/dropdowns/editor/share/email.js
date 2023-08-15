@@ -192,6 +192,9 @@ modules["dropdowns/editor/share/email"] = {
       updateEmptyTx();
     }
 
-    inputField.focus();
+    (async function () {
+      await sleep(400);
+      inputField.focus();
+    })();
   }
 }

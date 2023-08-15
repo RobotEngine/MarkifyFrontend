@@ -447,26 +447,36 @@ modules["dropdowns/editor/members"] = {
     ".eMemberSearchHolder input": `width: 100%; padding: 4px 8px; margin-left: 6px; border: solid 2px var(--secondary); outline: unset; border-radius: 17px; font-family: var(--font); font-size: 16px; font-weight: 600`,
     ".eMemberSearchHolder input::placeholder": `color: var(--secondary)`,
 
-    ".eMemberAccessHolder": `display: none; margin-bottom: 12px`,
+    ".eMemberAccessHolder": `display: none; margin-bottom: 12px; background: var(--pageColor)`,
     ".eMemberAccessTitle": `position: sticky; display: flex; width: 100%; padding: 4px 8px; top: 0px; justify-content: space-between; background: rgba(var(--background), .7); backdrop-filter: blur(4px); z-index: 1; text-align: left; font-weight: 700; font-size: 18px`,
     ".eMemberAccessTitle div[count]": `margin-left: 6px; font-weight: 500`,
     ".eMemberAccessTitle:hover": `background: var(--hover)`,
     ".eMemberAccessTitle:active": `background: var(--secondary); color: #fff; border-radius: 15px`,
 
-    ".eMemberTile": `--opacity: 0; position: relative; display: flex; width: 100%; padding: 4px; align-items: center; overflow: hidden`, //; margin: 4px 0
+    ".eMemberTile": `--opacity: 0; position: relative; display: flex; width: 100%; justify-content: center; align-items: center; z-index: 1`, //; margin: 4px 0
+    ".eMemberTile button": `position: relative; display: flex; width: 100%; padding: 4px; overflow: hidden; align-items: center`, //; margin: 4px 0
     ".eMemberBackground": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--themeColor); opacity: var(--opacity); transition: .1s; z-index: -1`,
-    ".eMemberTile:hover": `--opacity: .35`,
-    ".eMemberTile:hover .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor); transform: translateX(-3px) scale(1.15)`,
-    ".eMemberTile:active": `--opacity: 1; color: #fff; border-radius: 18px`,
-    ".eMemberTile:active .eMemberCursor": `transform: scale(1.15)`,
-    ".eMemberAccessHolder[hover] .eMemberTile": `--opacity: .35`,
+    ".eMemberTile button:hover": `--opacity: .35`,
+    ".eMemberTile button:hover .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor); transform: translateX(-3px) scale(1.15)`,
+    ".eMemberTile button:active": `--opacity: 1; color: #fff; border-radius: 18px`,
+    ".eMemberTile button:active .eMemberCursor": `transform: scale(1.15)`,
+    ".eMemberTile[selected] button": `--opacity: 1; color: #fff`,
+    ".eMemberTile[selected] .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor)`,
+    ".eMemberAccessHolder[hover] button": `--opacity: .35; color: var(--textColor)`,
     ".eMemberAccessHolder[hover] .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor); transform: translateX(-3px) scale(1.15)`,
-    ".eMemberAccessHolder[active] .eMemberTile": `--opacity: 1; color: #fff; border-radius: 18px; transform: scale(.95)`,
+    ".eMemberAccessHolder[active] button": `--opacity: 1; color: #fff; border-radius: 18px; transform: scale(.95)`,
     ".eMemberAccessHolder[active] .eMemberCursor": `transform: scale(1.15)`,
+    ".eMemberAccessHolder[selected] button": `--opacity: 1; color: #fff`,
+    ".eMemberAccessHolder[selected] .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor)`,
     ".eMemberCursor": `width: 20px; height: 20px;  flex-shrink: 0; margin: 0 6px; background: var(--pageColor); border: solid 3px var(--themeColor); overflow: hidden; border-radius: 8px 14px 14px 14px; transition: 0.2s`, //box-shadow: 0 0 6px rgb(0 0 0 / 50%);
     ".eMemberName": `width: 100%; font-size: 16px; font-weight: 600; text-align: left; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
     ".eMemberEvents": `display: flex; margin-left: auto`,
-    ".eMemberEvent": `background: var(--yellow); padding: 3px 6px; margin: 0 1px 0 6px; border-radius: 12px; color: #fff; font-size: 14px; font-weight: 700; white-space: nowrap`
+    ".eMemberEvent": `background: var(--yellow); padding: 3px 6px; margin: 0 1px 0 6px; border-radius: 12px; color: #fff; font-size: 14px; font-weight: 700; white-space: nowrap`,
+
+    ".eMemberFrameHolder": `position: absolute; width: 200%; height: fit-content; right: 0px; pointer-events: none; z-index: 0; opacity: 0; transition: .3s`,
+    ".eMemberFrame": `--themeColor: var(--theme); position: sticky; width: 275px; max-width: calc(100vw - 20px); max-height: calc(100vh - 16px); left: 12px; top: 8px; pointer-events: all; background: var(--pageColor); border-right: solid 4px var(--themeColor); border-radius: 12px 0 0 12px; transition: .3s`,
+    ".eMemberFrameShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 0 16px 16px; right: 0px; top: -16px; border-radius: inherit; overflow: hidden; z-index: -1`,
+    ".eMemberFrameShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); right: 0px; top: 16px; content: ""; box-shadow: var(--shadow); border-radius: inherit`,
   },
   js: async function (frame) {
     let editor = await getModule("pages/editor");
@@ -492,12 +502,12 @@ modules["dropdowns/editor/members"] = {
       }
       let section = getSection(member.access);
       let title = section.querySelector(".eMemberAccessTitle");
-      section.insertAdjacentHTML("beforeend", `<button class="eMemberTile" new>
+      section.insertAdjacentHTML("beforeend", `<div class="eMemberTile" new><button>
         <div class="eMemberBackground"></div>
         <div class="eMemberCursor"></div>
         <div class="eMemberName"></div>
         <div class="eMemberEvents"></div>
-      </button>`);
+      </button></div>`);
       let tile = section.querySelector(".eMemberTile[new]");
       tile.removeAttribute("new");
       tile.setAttribute("member", member._id);
@@ -613,6 +623,57 @@ modules["dropdowns/editor/members"] = {
           }
       }
     }
+
+    let dropdown;
+    let memberFrameHolder;
+    let dropdownButton;
+    let updateDropdownPosition = () => {
+      if (memberFrameHolder == null) {
+        return;
+      }
+      let dropdownRect = dropdown.getBoundingClientRect();
+      let buttonRect = dropdownButton.getBoundingClientRect();
+      memberFrameHolder.style.top = buttonRect.top - dropdownRect.top + "px";
+      console.log(buttonRect.top);
+    }
+    let openDropdown = (tile) => {
+      let member = editor.members[tile.getAttribute("member")];
+      if (member == null) {
+        tile.remove();
+        return;
+      }
+      if (dropdownButton != null) {
+        dropdownButton.removeAttribute("selected");
+      }
+      dropdownButton = tile;
+      dropdownButton.setAttribute("selected", "");
+      dropdown = frame.closest(".dropdown");
+      memberFrameHolder = dropdown.querySelector(".eMemberFrameHolder");
+      if (memberFrameHolder == null) {
+        dropdown.insertAdjacentHTML("beforeend", `<div class="eMemberFrameHolder">
+        <div class="eMemberFrame" style="height: 400px">
+          <div class="eMemberFrameShadow"></div>
+        </div></div>`);
+        memberFrameHolder = dropdown.querySelector(".eMemberFrameHolder");
+        memberFrameHolder.offsetHeight;
+        memberFrameHolder.style.opacity = 1;
+      }
+      let memberFrame = memberFrameHolder.querySelector(".eMemberFrame");
+      memberFrame.style.setProperty("--themeColor", member.color);
+      updateDropdownPosition();
+      console.log(tile, memberFrame);
+    }
+    frame.addEventListener("click", async function (event) {
+      let element = event.target;
+      if (element == null) {
+        return;
+      }
+      let memberTile = element.closest(".eMemberTile");
+      if (memberTile) {
+        openDropdown(memberTile);
+        return;
+      }
+    });
 
     /*
     let updateHolders = () => {

@@ -196,6 +196,7 @@ modules["pages/editor"] = {
     }
 
     let lessonID = getParam("lesson") || "";
+    delete socket.remotes["lesson_" + this.id];
     this.id = lessonID;
 
     this.codeTextButton = page.querySelector(".eSharePin");

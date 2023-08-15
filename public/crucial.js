@@ -667,7 +667,8 @@ socket.onclose = async function () {
 
 modules["dropdown"] = {
   css: {
-    ".dropdown": `position: sticky; box-sizing: border-box; max-width: calc(100% - 16px); max-height: calc(100% - 16px); right: 0px; bottom: 0px; margin: 8px; opacity: 0; transform-origin: center top; background: var(--pageColor); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; pointer-events: all`,
+    ".dropdown": `position: sticky; box-sizing: border-box; max-width: calc(100% - 16px); max-height: calc(100% - 16px); right: 0px; bottom: 0px; margin: 8px; opacity: 0; box-shadow: var(--shadow); border-radius: 12px; transform-origin: center top; pointer-events: all`,
+    ".dropdownOverflow": `position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--pageColor); border-radius: inherit; z-index: 0`,
     ".dropdownContent": `position: absolute; box-sizing: border-box; width: max-content; height: max-content; padding: 6px; overflow: auto`, //background: var(--pageColor)
     ".dropdownFrame": `position: relative`,
     ".dropdownHeader": `position: relative; display: flex; gap: 6px; padding: 6px 6px 0 6px; justify-content: space-between; transition: .4s; z-index: 2`,
@@ -783,13 +784,15 @@ modules["dropdown"] = {
     this.close();
     fixed.insertAdjacentHTML("beforeend", `<div class="fixedItemHolder">
       <div class="dropdown" new>
-        <div class="dropdownHeader">
-          <button class="dropdownBack buttonAnim border" style="display: none"><img src="./images/tooltips/back.svg"></button>
-          <div class="dropdownTitle"></div>
-          <button class="dropdownClose buttonAnim border" close><img src="./images/tooltips/close.svg"></button>
-        </div>
-        <div class="dropdownContent">
-          <div class="dropdownFrame"></div>
+        <div class="dropdownOverflow">
+          <div class="dropdownHeader">
+            <button class="dropdownBack buttonAnim border" style="display: none"><img src="./images/tooltips/back.svg"></button>
+            <div class="dropdownTitle"></div>
+            <button class="dropdownClose buttonAnim border" close><img src="./images/tooltips/close.svg"></button>
+          </div>
+          <div class="dropdownContent">
+            <div class="dropdownFrame"></div>
+          </div>
         </div>
       </div>
     </div>`);
@@ -1005,7 +1008,7 @@ addCSS({
   "[hidden]": `pointer-events: none !important; opacity: 0 !important`,
   ".largeButton, .border": `--themeColor: var(--secondary); --themeColor2: var(--hover); --borderRadius: 0px; --borderColor: var(--themeColor); --borderWidth: 0px; --outline: solid var(--borderWidth) var(--borderColor); --transition: .1s; position: relative; border-radius: var(--borderRadius)`,
   ".largeButton": `display: flex; padding: 6px 14px; --borderWidth: 4px; align-items: center; font-size: 20px; font-weight: 700; transition: .1s`,
-  ".largeButton::after, .border:after": `position: absolute; display: inline-block; width: 100%; height: 100%; left: 50%; top: 50%; transform: translate(-50%, -50%); border-radius: calc(var(--borderRadius) + var(--borderWidth)*2); content: ""; pointer-events: none; border: var(--outline); transition: var(--transition)`,
+  ".largeButton:after, .border:after": `position: absolute; display: inline-block; width: 100%; height: 100%; left: 50%; top: 50%; transform: translate(-50%, -50%); border-radius: calc(var(--borderRadius) + var(--borderWidth)*2); content: ""; pointer-events: none; border: var(--outline); transition: var(--transition)`,
   ".buttonAnim": `--borderWidth: 0px`,
   ".buttonAnim:hover": `background: var(--hover)`,
   ".buttonAnim:active": `background: unset; --borderWidth: 4px; --borderColor: var(--hover)`,

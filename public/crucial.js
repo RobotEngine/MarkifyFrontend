@@ -713,7 +713,7 @@ modules["dropdown"] = {
       let header = dropdown.querySelector(".dropdownHeader");
       let oldContent = dropdown.querySelector(".dropdownContent:not([old])");
       oldContent.setAttribute("old", "");
-      dropdown.insertAdjacentHTML("beforeend", `<div class="dropdownContent" new><div class="dropdownFrame"></div></div>`);
+      dropdown.querySelector(".dropdownOverflow").insertAdjacentHTML("beforeend", `<div class="dropdownContent" new><div class="dropdownFrame"></div></div>`);
       let content = dropdown.querySelector(".dropdownContent[new]");
       content.removeAttribute("new");
       window.dropdown.content = content;

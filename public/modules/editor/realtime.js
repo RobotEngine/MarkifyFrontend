@@ -704,7 +704,9 @@ modules["dropdowns/editor/members"] = {
         <div class="eMemberFrame">
           <div class="eMemberFrameShadow"></div>
           <div class="eMemberFrameContentHolder">
-            <div class="eMemberFrameContent" style="height: 300px">Hey lol how are you?</div>
+            <div class="eMemberFrameContent" style="height: 300px">
+              
+            </div>
           </div>
         </div></div>`);
         memberFrameHolder = dropdown.querySelector(".eMemberFrameHolder");

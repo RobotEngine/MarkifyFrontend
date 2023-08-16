@@ -650,8 +650,10 @@ modules["dropdowns/editor/members"] = {
         setTop = dropdownRect.top - 8;
       }
       memberFrameHolder.style.top = setTop + "px";
+      let frame = memberFrameHolder.querySelector(".eMemberFrame");
+      frame.style.height = "unset";
       if (memberFrameHolder.clientHeight > dropdown.clientHeight) { // Larger than dropdown
-        memberFrameHolder.querySelector(".eMemberFrame").style.height = dropdown.clientHeight + "px";
+        frame.style.height = dropdown.clientHeight + "px";
       }
       if (setTop < dropdownRect.top) { // Top border radius:
         dropdown.style.borderTopLeftRadius = "0px";
@@ -694,8 +696,9 @@ modules["dropdowns/editor/members"] = {
       memberFrameHolder = dropdown.querySelector(".eMemberFrameHolder");
       if (memberFrameHolder == null) {
         dropdown.insertAdjacentHTML("beforeend", `<div class="eMemberFrameHolder">
-        <div class="eMemberFrame" style="height: 200px">
+        <div class="eMemberFrame">
           <div class="eMemberFrameShadow"></div>
+          <div style="height: 200px"></div>
         </div></div>`);
         memberFrameHolder = dropdown.querySelector(".eMemberFrameHolder");
         memberFrameHolder.offsetHeight;

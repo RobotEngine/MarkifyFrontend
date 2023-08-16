@@ -649,11 +649,14 @@ modules["dropdowns/editor/members"] = {
       contentFrame.style.maxHeight = Math.min(fixed.clientHeight - dropdownRect.top, contentHeight + 8) - 8 + "px";
 
       let setTop = buttonRect.top - dropdownRect.top;
-      if (buttonRect.top + contentHeight > fixed.clientHeight + 16) { // Below dropdown:
-        setTop = fixed.clientHeight - memberFrameHolder.clientHeight - dropdownRect.top - 8;
+      if (buttonRect.top < dropdownRect.top) {
+        setTop = 0;
       }
       if (setTop < dropdownRect.top) { // Above dropdown:
         setTop = 0;
+      }
+      if (buttonRect.top + contentHeight > fixed.clientHeight - dropdownRect.top - 8) { // Below dropdown:
+        setTop = fixed.clientHeight - memberFrameHolder.clientHeight - dropdownRect.top - 8;
       }
       memberFrameHolder.style.top = setTop + "px";
       
@@ -701,7 +704,7 @@ modules["dropdowns/editor/members"] = {
         <div class="eMemberFrame">
           <div class="eMemberFrameShadow"></div>
           <div class="eMemberFrameContentHolder">
-            <div class="eMemberFrameContent" style="height: 300px"></div>
+            <div class="eMemberFrameContent" style="height: 300px">Hey lol how are you?</div>
           </div>
         </div></div>`);
         memberFrameHolder = dropdown.querySelector(".eMemberFrameHolder");

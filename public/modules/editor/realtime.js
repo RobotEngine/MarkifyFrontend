@@ -519,7 +519,6 @@ modules["dropdowns/editor/members"] = {
       let tile = section.querySelector(".eMemberTile[new]");
       tile.removeAttribute("new");
       tile.setAttribute("member", member._id);
-      tile.setAttribute("joined", member.joined);
       updateOrder(section, tile, member);
       tile.style.setProperty("--themeColor", member.color);
       tile.querySelector(".eMemberName").textContent = member.name;

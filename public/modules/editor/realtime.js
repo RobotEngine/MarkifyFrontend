@@ -652,8 +652,8 @@ modules["dropdowns/editor/members"] = {
       memberFrameHolder.style.top = setTop + "px";
       let frame = memberFrameHolder.querySelector(".eMemberFrame");
       frame.style.height = "unset";
-      if (memberFrameHolder.clientHeight > dropdown.clientHeight) { // Larger than dropdown
-        frame.style.height = dropdown.clientHeight + "px";
+      if (memberFrameHolder.clientHeight > fixed.clientHeight - 16) { // Larger than dropdown
+        frame.style.height = fixed.clientHeight - 16 + "px";
       }
       if (setTop < dropdownRect.top) { // Top border radius:
         dropdown.style.borderTopLeftRadius = "0px";

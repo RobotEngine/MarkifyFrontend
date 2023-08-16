@@ -812,7 +812,7 @@ modules["dropdown"] = {
       setTitleHTML = "<div>" + button.innerHTML + "</div>";
     }
     header.querySelector(".dropdownTitle").innerHTML = setTitleHTML;
-    dropdown.style.transition = "width .4s, height .4s, opacity .3s";
+    dropdown.style.transition = "width .4s, height .4s, opacity .3s, border-radius .3s";
     dropdown.offsetHeight;
     window.dropdown = { dropdown: dropdown, button: button, frameHistory: [[frameName, setTitleHTML]], interval: this.setResizeLoop(dropdown, content, header, button) };
     button.style.opacity = 0;

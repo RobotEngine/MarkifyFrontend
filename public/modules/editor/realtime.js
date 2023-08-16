@@ -448,12 +448,12 @@ modules["dropdowns/editor/members"] = {
     ".eMemberSearchHolder input::placeholder": `color: var(--secondary)`,
 
     ".eMemberAccessHolder": `display: none; margin-bottom: 12px; background: var(--pageColor)`,
-    ".eMemberAccessTitle": `position: sticky; display: flex; width: 100%; padding: 4px 8px; top: 0px; justify-content: space-between; background: rgba(var(--background), .7); backdrop-filter: blur(4px); z-index: 1; text-align: left; font-weight: 700; font-size: 18px`,
+    ".eMemberAccessTitle": `position: sticky; display: flex; width: 100%; padding: 4px 8px; top: 0px; justify-content: space-between; background: rgba(var(--background), .7); backdrop-filter: blur(4px); z-index: 2; text-align: left; font-weight: 700; font-size: 18px`,
     ".eMemberAccessTitle div[count]": `margin-left: 6px; font-weight: 500`,
     ".eMemberAccessTitle:hover": `background: var(--hover)`,
     ".eMemberAccessTitle:active": `background: var(--secondary); color: #fff; border-radius: 15px`,
 
-    ".eMemberTile": `--opacity: 0; position: relative; display: flex; width: 100%; justify-content: center; align-items: center; z-index: 1`, //; margin: 4px 0
+    ".eMemberTile": `--opacity: 0; position: relative; display: flex; width: 100%; height: 34px; justify-content: center; align-items: center; z-index: 1`, //; margin: 4px 0
     ".eMemberTile button": `position: relative; display: flex; width: 100%; padding: 4px; overflow: hidden; align-items: center`, //; margin: 4px 0
     ".eMemberBackground": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--themeColor); opacity: var(--opacity); transition: .1s; z-index: -1`,
     ".eMemberTile button:hover": `--opacity: .35`,
@@ -474,8 +474,8 @@ modules["dropdowns/editor/members"] = {
     ".eMemberEvent": `background: var(--yellow); padding: 3px 6px; margin: 0 1px 0 6px; border-radius: 12px; color: #fff; font-size: 14px; font-weight: 700; white-space: nowrap`,
 
     ".eMemberFrameHolder": `position: absolute; width: 200%; height: fit-content; right: 0px; pointer-events: none; z-index: 0; opacity: 0; transition: .3s`,
-    ".eMemberFrame": `--themeColor: var(--theme); position: sticky; width: 275px; max-width: calc(100vw - 20px); max-height: calc(100vh - 16px); left: 12px; top: 8px; pointer-events: all; background: var(--pageColor); border-right: solid 4px var(--themeColor); border-radius: 12px 0 0 12px; transition: .3s`,
-    ".eMemberFrameShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 0 16px 16px; right: 0px; top: -16px; border-radius: inherit; overflow: hidden; z-index: -1`,
+    ".eMemberFrame": `--themeColor: var(--theme); position: sticky; width: 50%; max-width: calc(100vw - 35px); max-height: calc(100vh - 16px); left: 8px; top: 8px; pointer-events: all; background: var(--pageColor); border-right: solid 4px var(--themeColor); border-radius: 12px 0 0 12px; transform-origin: top right; transform: scale(.15); transition: .3s`,
+    ".eMemberFrameShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 0 16px 16px; right: 0px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
     ".eMemberFrameShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); right: 0px; top: 16px; content: ""; box-shadow: var(--shadow); border-radius: inherit`,
   },
   js: async function (frame) {
@@ -495,8 +495,16 @@ modules["dropdowns/editor/members"] = {
       }
       return frame.querySelector('.eMemberAccessHolder[type="' + sectionType + '"]');
     }
-    let addMemberTile = (member, top) => {
-      console.log(member)
+    let updateOrder = (section, updateTile, member) => {
+      for (let i = 1; i < section.children.length; i++) { // 1 to skip title
+        let child = section.children[i];
+        if (child != updateTile && member.name < editor.members[child.getAttribute("member")].name) {
+          section.insertBefore(updateTile, child);
+          break;
+        }
+      }
+    }
+    let addMemberTile = (member) => {
       if (member.name.toLowerCase().includes(searchField.value.toLowerCase()) == false) {
         return;
       }
@@ -512,6 +520,7 @@ modules["dropdowns/editor/members"] = {
       tile.removeAttribute("new");
       tile.setAttribute("member", member._id);
       tile.setAttribute("joined", member.joined);
+      updateOrder(section, tile, member);
       tile.style.setProperty("--themeColor", member.color);
       tile.querySelector(".eMemberName").textContent = member.name;
       tile.querySelector(".eMemberName").title = member.name;
@@ -521,9 +530,6 @@ modules["dropdowns/editor/members"] = {
       }
       if (member.observe == true) {
         eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" observe title="This member is observing you on the document.">Observe</div>`);
-      }
-      if (top == true) {
-        section.insertBefore(tile, section.children[1]);
       }
       title.querySelector("div[count]").textContent = section.childElementCount - 1; // -1 for title
       section.style.display = "block";
@@ -535,12 +541,6 @@ modules["dropdowns/editor/members"] = {
           return -1;
         }
         return false;
-      });
-      keys.sort((a, b) => {
-        if (editor.members[a].joined > editor.members[b].joined) {
-          return -1;
-        }
-        return 1;
       });
       for (let i = 0; i < keys.length; i++) {
         addMemberTile(editor.members[keys[i]]);
@@ -554,7 +554,7 @@ modules["dropdowns/editor/members"] = {
 
       switch (data.task) {
         case "join":
-          addMemberTile(member, true);
+          addMemberTile(member);
           break;
         case "leave":
           let removeTile = frame.querySelector('.eMemberTile[member="' + body._id + '"');
@@ -581,6 +581,7 @@ modules["dropdowns/editor/members"] = {
             if (section != updateTile.parentElement) {
               let oldSection = updateTile.parentElement;
               section.appendChild(updateTile);
+              /*
               for (let i = 1; i < section.children.length; i++) { // 1 to skip title
                 let child = section.children[i];
                 if (parseInt(child.getAttribute("joined")) < member.joined) {
@@ -588,16 +589,20 @@ modules["dropdowns/editor/members"] = {
                   break;
                 }
               }
+              */
               // Update new section:
               section.querySelector("div[count]").textContent = section.childElementCount - 1; // -1 for title
               section.style.display = "block";
               // Update old section:
-              let newOldCount = oldSection.childElementCount - 2; // -2 for title and tile
+              let newOldCount = oldSection.childElementCount - 1; // -1 for title
               oldSection.querySelector("div[count]").textContent = newOldCount;
               if (newOldCount < 1) {
                 oldSection.style.display = "none";
               }
             }
+
+            // Update order:
+            updateOrder(section, updateTile, member);
 
             // Handle event state:
             let eventsHolder = updateTile.querySelector(".eMemberEvents");
@@ -631,10 +636,45 @@ modules["dropdowns/editor/members"] = {
       if (memberFrameHolder == null) {
         return;
       }
+      if (dropdownButton == null) {
+        dropdown.style.borderTopLeftRadius = "12px";
+        dropdown.style.borderBottomLeftRadius = "12px";
+        return;
+      }
       let dropdownRect = dropdown.getBoundingClientRect();
       let buttonRect = dropdownButton.getBoundingClientRect();
-      memberFrameHolder.style.top = buttonRect.top - dropdownRect.top + "px";
-      console.log(buttonRect.top);
+      let setTop = buttonRect.top - dropdownRect.top;
+      if (buttonRect.top + memberFrameHolder.clientHeight > fixed.clientHeight - dropdownRect.top - 8) { // Below dropdown:
+        setTop = fixed.clientHeight - memberFrameHolder.clientHeight - dropdownRect.top - 8;
+      }
+      if (buttonRect.top < dropdownRect.top) { // Above dropdown:
+        setTop = dropdownRect.top - 8;
+      }
+      memberFrameHolder.style.top = setTop + "px";
+      if (memberFrameHolder.clientHeight > dropdown.clientHeight) { // Larger than dropdown
+        memberFrameHolder.querySelector(".eMemberFrame").style.height = dropdown.clientHeight + "px";
+      }
+      if (setTop < dropdownRect.top) { // Top border radius:
+        dropdown.style.borderTopLeftRadius = "0px";
+      } else {
+        dropdown.style.borderTopLeftRadius = "12px";
+      }
+      if (setTop + memberFrameHolder.clientHeight > dropdownRect.top + dropdown.clientHeight - 20) { // Bottom border radius:
+        dropdown.style.borderBottomLeftRadius = "0px";
+      } else {
+        dropdown.style.borderBottomLeftRadius = "12px";
+      }
+    }
+    tempListen(window, "resize", updateDropdownPosition);
+    frame.closest(".dropdownContent").addEventListener("scroll", updateDropdownPosition);
+    let closeDropdown = async () => {
+      if (memberFrameHolder == null) {
+        return;
+      }
+      dropdownButton = null;
+      memberFrameHolder.style.opacity = 0;
+      memberFrameHolder.querySelector(".eMemberFrame").style.transform = "scale(.15)";
+      updateDropdownPosition();
     }
     let openDropdown = (tile) => {
       let member = editor.members[tile.getAttribute("member")];
@@ -644,6 +684,10 @@ modules["dropdowns/editor/members"] = {
       }
       if (dropdownButton != null) {
         dropdownButton.removeAttribute("selected");
+        if (dropdownButton == tile) {
+          closeDropdown();
+          return;
+        }
       }
       dropdownButton = tile;
       dropdownButton.setAttribute("selected", "");
@@ -651,17 +695,17 @@ modules["dropdowns/editor/members"] = {
       memberFrameHolder = dropdown.querySelector(".eMemberFrameHolder");
       if (memberFrameHolder == null) {
         dropdown.insertAdjacentHTML("beforeend", `<div class="eMemberFrameHolder">
-        <div class="eMemberFrame" style="height: 400px">
+        <div class="eMemberFrame" style="height: 200px">
           <div class="eMemberFrameShadow"></div>
         </div></div>`);
         memberFrameHolder = dropdown.querySelector(".eMemberFrameHolder");
         memberFrameHolder.offsetHeight;
-        memberFrameHolder.style.opacity = 1;
       }
       let memberFrame = memberFrameHolder.querySelector(".eMemberFrame");
       memberFrame.style.setProperty("--themeColor", member.color);
+      memberFrameHolder.style.opacity = 1;
+      memberFrame.style.transform = "scale(1)";
       updateDropdownPosition();
-      console.log(tile, memberFrame);
     }
     frame.addEventListener("click", async function (event) {
       let element = event.target;

@@ -474,7 +474,7 @@ modules["dropdowns/editor/members"] = {
     ".eMemberEvent": `background: var(--yellow); padding: 3px 6px; margin: 0 1px 0 6px; border-radius: 12px; color: #fff; font-size: 14px; font-weight: 700; white-space: nowrap`,
 
     ".eMemberFrameHolder": `position: absolute; width: 200%; height: fit-content; right: 0px; pointer-events: none; z-index: 0; opacity: 0; transition: .3s`,
-    ".eMemberFrame": `--themeColor: var(--theme); position: sticky; width: 50%; max-width: calc(100vw - 35px); max-height: calc(100vh - 16px); left: 8px; top: 8px; pointer-events: all; background: var(--pageColor); border-right: solid 4px var(--themeColor); border-radius: 12px 0 0 12px; transform-origin: top right; transform: scale(.15); transition: .3s`,
+    ".eMemberFrame": `--themeColor: var(--theme); position: sticky; width: 50%; max-width: calc(100vw - 35px); max-height: calc(100vh - 20px); left: 8px; top: 8px; pointer-events: all; background: var(--pageColor); border-right: solid 4px var(--themeColor); border-radius: 12px 0 0 12px; transform-origin: top right; transform: scale(.15); transition: .3s`,
     ".eMemberFrameShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 0 16px 16px; right: 0px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
     ".eMemberFrameShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); right: 0px; top: 16px; content: ""; box-shadow: var(--shadow); border-radius: inherit`,
   },

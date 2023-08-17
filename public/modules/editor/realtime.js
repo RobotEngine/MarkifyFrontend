@@ -471,7 +471,10 @@ modules["dropdowns/editor/members"] = {
     ".eMemberCursor": `width: 20px; height: 20px;  flex-shrink: 0; margin: 0 6px; background: var(--pageColor); border: solid 3px var(--themeColor); overflow: hidden; border-radius: 8px 14px 14px 14px; transition: 0.2s`, //box-shadow: 0 0 6px rgb(0 0 0 / 50%);
     ".eMemberName": `width: 100%; font-size: 16px; font-weight: 600; text-align: left; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
     ".eMemberEvents": `display: flex; margin-left: auto`,
-    ".eMemberEvent": `background: var(--yellow); padding: 3px 6px; margin: 0 1px 0 6px; border-radius: 12px; color: #fff; font-size: 14px; font-weight: 700; white-space: nowrap`,
+    ".eMemberEvent": `padding: 3px 6px; margin: 0 1px 0 6px; border-radius: 12px; color: #fff; font-size: 14px; font-weight: 700; white-space: nowrap`,
+    ".eMemberEvent[self]": `background: var(--theme)`,
+    ".eMemberEvent[idle]": `background: var(--yellow)`,
+    ".eMemberEvent[observe]": `background: var(--purple)`,
 
     ".eMemberFrameHolder": `position: absolute; width: 200%; height: fit-content; right: 0px; pointer-events: none; z-index: 0; opacity: 0; transition: top .3s, opacity .3s`,
     ".eMemberFrame": `--themeColor: var(--theme); position: sticky; width: calc(50% - 4px); max-width: calc(100vw - 20px); left: 8px; top: 8px; margin-left: 4px; pointer-events: all; background: var(--pageColor); border-right: solid 4px var(--themeColor); border-radius: 12px 0 0 12px; overflow: hidden; transform-origin: top right; transform: scale(.15); transition: transform .3s`,
@@ -544,11 +547,14 @@ modules["dropdowns/editor/members"] = {
       tile.querySelector(".eMemberName").textContent = member.name;
       tile.querySelector(".eMemberName").title = member.name;
       let eventsHolder = tile.querySelector(".eMemberEvents");
+      if (member._id == editor.sessionID) {
+        eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" self title="This member is you.">YOU</div>`);
+      }
       if (member.active == false) {
-        eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" idle title="This member is currently viewing a different window.">Idle</div>`);
+        eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" idle title="This member is currently viewing a different window.">IDLE</div>`);
       }
       if (member.observe == true) {
-        eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" observe title="This member is observing you on the document.">Observe</div>`);
+        eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" observe title="This member is observing you on the document.">OBSERVE</div>`);
       }
       title.querySelector("div[count]").textContent = section.childElementCount - 1; // -1 for title
       section.style.display = "block";
@@ -628,7 +634,7 @@ modules["dropdowns/editor/members"] = {
             let existingIdle = eventsHolder.querySelector(".eMemberEvent[idle]");
             if (member.active == false) {
               if (existingIdle == null) {
-                eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" idle title="This member is currently viewing a different window.">Idle</div>`);
+                eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" idle title="This member is currently viewing a different window.">IDLE</div>`);
               }
             } else if (existingIdle != null) {
               existingIdle.remove();
@@ -636,7 +642,7 @@ modules["dropdowns/editor/members"] = {
             let existingObserve = eventsHolder.querySelector(".eMemberEvent[observe]");
             if (member.observe == true) {
               if (existingObserve == null) {
-                eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" observe title="This member is observing you on the document.">Observe</div>`);
+                eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" observe title="This member is observing you on the document.">OBSERVE</div>`);
               }
             } else if (existingObserve != null) {
               existingObserve.remove();

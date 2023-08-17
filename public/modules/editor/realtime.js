@@ -458,15 +458,15 @@ modules["dropdowns/editor/members"] = {
     ".eMemberBackground": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--themeColor); opacity: var(--opacity); transition: .1s; z-index: -1`,
     ".eMemberTile button:hover": `--opacity: .35`,
     ".eMemberTile button:hover .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor); transform: translateX(-3px) scale(1.15)`,
-    ".eMemberTile button:active": `--opacity: 1; color: #fff; border-radius: 18px`,
+    ".eMemberTile button:active": `--opacity: 1; color: var(--hoverTextColor); border-radius: 18px`,
     ".eMemberTile button:active .eMemberCursor": `transform: scale(1.15)`,
-    ".eMemberTile[selected] button": `--opacity: 1; color: #fff`,
+    ".eMemberTile[selected] button": `--opacity: 1; color: var(--hoverTextColor)`,
     ".eMemberTile[selected] .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor)`,
     ".eMemberAccessHolder[hover] button": `--opacity: .35; color: var(--textColor)`,
     ".eMemberAccessHolder[hover] .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor); transform: translateX(-3px) scale(1.15)`,
-    ".eMemberAccessHolder[active] button": `--opacity: 1; color: #fff; border-radius: 18px; transform: scale(.95)`,
+    ".eMemberAccessHolder[active] button": `--opacity: 1; color: var(--hoverTextColor); border-radius: 18px; transform: scale(.95)`,
     ".eMemberAccessHolder[active] .eMemberCursor": `transform: scale(1.15)`,
-    ".eMemberAccessHolder[selected] button": `--opacity: 1; color: #fff`,
+    ".eMemberAccessHolder[selected] button": `--opacity: 1; color: var(--hoverTextColor)`,
     ".eMemberAccessHolder[selected] .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor)`,
     ".eMemberCursor": `width: 20px; height: 20px;  flex-shrink: 0; margin: 0 6px; background: var(--pageColor); border: solid 3px var(--themeColor); overflow: hidden; border-radius: 8px 14px 14px 14px; transition: 0.2s`, //box-shadow: 0 0 6px rgb(0 0 0 / 50%);
     ".eMemberName": `width: 100%; font-size: 16px; font-weight: 600; text-align: left; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
@@ -474,10 +474,13 @@ modules["dropdowns/editor/members"] = {
     ".eMemberEvent": `background: var(--yellow); padding: 3px 6px; margin: 0 1px 0 6px; border-radius: 12px; color: #fff; font-size: 14px; font-weight: 700; white-space: nowrap`,
 
     ".eMemberFrameHolder": `position: absolute; width: 200%; height: fit-content; right: 0px; pointer-events: none; z-index: 0; opacity: 0; transition: top .3s, opacity .3s`,
-    ".eMemberFrame": `--themeColor: var(--theme); position: sticky; width: 50%; max-width: calc(100vw - 20px); left: 8px; top: 8px; pointer-events: all; background: var(--pageColor); border-right: solid 4px var(--themeColor); border-radius: 12px 0 0 12px; transform-origin: top right; transform: scale(.15); transition: transform .3s`,
+    ".eMemberFrame": `--themeColor: var(--theme); position: sticky; width: calc(50% - 4px); max-width: calc(100vw - 20px); left: 8px; top: 8px; margin-left: 4px; pointer-events: all; background: var(--pageColor); border-right: solid 4px var(--themeColor); border-radius: 12px 0 0 12px; overflow: hidden; transform-origin: top right; transform: scale(.15); transition: transform .3s`,
     ".eMemberFrameContentHolder": `width: 100%; max-height: inherit; overflow: auto`,
     ".eMemberFrameShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 0 16px 16px; right: 0px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
     ".eMemberFrameShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); right: 0px; top: 16px; content: ""; box-shadow: var(--shadow); border-radius: inherit`,
+    ".eMemberSection": `position: relative; display: flex; width: 100%; overflow: hidden`,
+    ".eMemberBackdrop": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; background: var(--themeColor); transition: .3s`,
+    ".eMemberBackdrop div": `width: 300%; height: 300%; flex-shrink: 0; transform: rotate(27deg); opacity: .6; background-image: url(./images/editor/background.svg)`
   },
   js: async function (frame) {
     let editor = await getModule("pages/editor");
@@ -505,6 +508,21 @@ modules["dropdowns/editor/members"] = {
         }
       }
     }
+    let textColorBackground = (bgColor) => {
+      let color = (bgColor.charAt(0) === '#') ? bgColor.substring(1, 7) : bgColor;
+      let r = parseInt(color.substring(0, 2), 16); // hexToR
+      let g = parseInt(color.substring(2, 4), 16); // hexToG
+      let b = parseInt(color.substring(4, 6), 16); // hexToB
+      let uicolors = [r / 255, g / 255, b / 255];
+      let c = uicolors.map((col) => {
+        if (col <= 0.03928) {
+          return col / 12.92;
+        }
+        return Math.pow((col + 0.055) / 1.055, 2.4);
+      });
+      let L = (0.2126 * c[0]) + (0.7152 * c[1]) + (0.0722 * c[2]);
+      return (L > 0.179) ? "#000" : "#fff";
+    }
     let addMemberTile = (member) => {
       if (member.name.toLowerCase().includes(searchField.value.toLowerCase()) == false) {
         return;
@@ -522,6 +540,7 @@ modules["dropdowns/editor/members"] = {
       tile.setAttribute("member", member._id);
       updateOrder(section, tile, member);
       tile.style.setProperty("--themeColor", member.color);
+      tile.style.setProperty("--hoverTextColor", textColorBackground(member.color));
       tile.querySelector(".eMemberName").textContent = member.name;
       tile.querySelector(".eMemberName").title = member.name;
       let eventsHolder = tile.querySelector(".eMemberEvents");
@@ -655,7 +674,7 @@ modules["dropdowns/editor/members"] = {
       if (setTop < dropdownRect.top) { // Above dropdown:
         setTop = 0;
       }
-      if (buttonRect.top + contentHeight > fixed.clientHeight - dropdownRect.top - 8) { // Below dropdown:
+      if (buttonRect.top + contentHeight > fixed.clientHeight - dropdownRect.top + 8) { // Below dropdown:
         setTop = fixed.clientHeight - memberFrameHolder.clientHeight - dropdownRect.top - 8;
       }
       memberFrameHolder.style.top = setTop + "px";
@@ -705,7 +724,9 @@ modules["dropdowns/editor/members"] = {
           <div class="eMemberFrameShadow"></div>
           <div class="eMemberFrameContentHolder">
             <div class="eMemberFrameContent" style="height: 300px">
-
+              <div class="eMemberSection" style="height: 100px">
+                <div class="eMemberBackdrop"><div></div></div>
+              </div>
             </div>
           </div>
         </div></div>`);
@@ -714,6 +735,7 @@ modules["dropdowns/editor/members"] = {
       }
       let memberFrame = memberFrameHolder.querySelector(".eMemberFrame");
       memberFrame.style.setProperty("--themeColor", member.color);
+      memberFrame.style.setProperty("--textColor", textColorBackground(member.color));
       memberFrameHolder.style.opacity = 1;
       memberFrame.style.transform = "scale(1)";
       updateDropdownPosition();

@@ -910,7 +910,7 @@ modules["alert"] = {
     alertHolder.insertAdjacentHTML("afterbegin", `<div class="alert" new>
       <img src="./images/tooltips/alert/info.svg">
       <div class="alertText"></div>
-      <button class="alertClose buttonAnim border" close><img src="./images/tooltips/close.svg"></button>
+      <button class="alertClose buttonAnim border"><img src="./images/tooltips/close.svg"></button>
     </div>`);
     let alert = fixed.querySelector(".alert[new]");
     alert.removeAttribute("new");
@@ -1011,7 +1011,7 @@ addCSS({
   ".largeButton:after, .border:after": `position: absolute; display: inline-block; width: 100%; height: 100%; left: 50%; top: 50%; transform: translate(-50%, -50%); border-radius: calc(var(--borderRadius) + var(--borderWidth)*2); content: ""; pointer-events: none; border: var(--outline); transition: var(--transition)`,
   ".buttonAnim": `--borderWidth: 0px`,
   ".buttonAnim:hover": `background: var(--hover)`,
-  ".buttonAnim:active": `background: unset; --borderWidth: 4px; --borderColor: var(--hover)`,
+  ".buttonAnim:active": `background: var(--pageColor); --borderWidth: 4px; --borderColor: var(--hover)`,
   ".largeButton:hover": `--borderColor: var(--themeColor2)`,
   ".largeButton:active": `--borderWidth: 8px`,
   ".fixedItemHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px`

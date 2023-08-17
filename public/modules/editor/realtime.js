@@ -468,7 +468,7 @@ modules["dropdowns/editor/members"] = {
     ".eMemberAccessHolder[active] .eMemberCursor": `transform: scale(1.15)`,
     ".eMemberAccessHolder[selected] button": `--opacity: 1; color: var(--hoverTextColor)`,
     ".eMemberAccessHolder[selected] .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor)`,
-    ".eMemberCursor": `width: 20px; height: 20px;  flex-shrink: 0; margin: 0 6px; background: var(--pageColor); border: solid 3px var(--themeColor); overflow: hidden; border-radius: 8px 14px 14px 14px; transition: 0.2s`, //box-shadow: 0 0 6px rgb(0 0 0 / 50%);
+    ".eMemberCursor": `width: 20px; height: 20px; flex-shrink: 0; margin: 0 6px; background: var(--pageColor); border: solid 3px var(--themeColor); overflow: hidden; border-radius: 8px 14px 14px; transition: 0.2s`, //box-shadow: 0 0 6px rgb(0 0 0 / 50%);
     ".eMemberName": `width: 100%; font-size: 16px; font-weight: 600; text-align: left; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
     ".eMemberEvents": `display: flex; margin-left: auto`,
     ".eMemberEvent": `padding: 3px 6px; margin: 0 1px 0 6px; border-radius: 12px; color: #fff; font-size: 14px; font-weight: 700; white-space: nowrap`,
@@ -481,9 +481,17 @@ modules["dropdowns/editor/members"] = {
     ".eMemberFrameContentHolder": `width: 100%; max-height: inherit; overflow: auto`,
     ".eMemberFrameShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 0 16px 16px; right: 0px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
     ".eMemberFrameShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); right: 0px; top: 16px; content: ""; box-shadow: var(--shadow); border-radius: inherit`,
-    ".eMemberSection": `position: relative; display: flex; width: 100%; overflow: hidden`,
-    ".eMemberBackdrop": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; background: var(--themeColor); transition: .3s`,
-    ".eMemberBackdrop div": `width: 300%; height: 300%; flex-shrink: 0; transform: rotate(27deg); opacity: .6; background-image: url(./images/editor/background.svg)`
+    ".eMemberSection": `position: relative; display: flex; width: 100%; justify-content: center; align-items: center`,
+    ".eMemberBackdrop": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; background: var(--themeColor); transition: .2s; z-index: -1`,
+    ".eMemberBackdrop div": `width: 100%; height: 100%; flex-shrink: 0; opacity: .3; background-image: url(./images/editor/background.svg); background-position: center`, //transform: rotate(12deg);
+    ".eMemberFrameCursor": `width: 40px; height: 40px; flex-shrink: 0; margin: 12px; background: var(--themeColor); border: solid 6px var(--pageColor); border-radius: 16px 28px 28px; transition: 0.2s`,
+    ".eMemberFramePicture": `width: 44px; height: 44px; flex-shrink: 0; margin: 12px; border: solid 4px var(--pageColor); object-fit: cover; border-radius: 28px; transition: 0.2s`,
+    ".eMemberFrameInfoHolder": `display: flex; flex-direction: column; width: calc(100% - 76px); height: calc(100% - 12px); color: var(--textColor); text-align: left`,
+    ".eMemberFrameInfoHolder div[name]": `width: calc(100% - 30px); font-size: 20px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
+    ".eMemberFrameInfoHolder div[email]": `width: 100%; font-size: 15px; font-weight: 500; margin-top: 3px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
+    ".eMemberFrameInfoHolder div[joined]": `font-size: 14px; font-weight: 500; text-align: right; margin: auto 6px 2px 0; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
+    ".eMemberClose": `position: absolute; width: 22px; height: 22px; top: 4px; right: 0px; margin: 5px 5px 5px 12px; background: var(--pageColor); --borderWidth: 3px; --borderRadius: 14px`,
+    ".eMemberClose img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`
   },
   js: async function (frame) {
     let editor = await getModule("pages/editor");
@@ -524,7 +532,7 @@ modules["dropdowns/editor/members"] = {
         return Math.pow((col + 0.055) / 1.055, 2.4);
       });
       let L = (0.2126 * c[0]) + (0.7152 * c[1]) + (0.0722 * c[2]);
-      return (L > 0.179) ? "#000" : "#fff";
+      return (L > 0.3) ? "#000" : "#fff"; // 0.179
     }
     let addMemberTile = (member) => {
       if (member.name.toLowerCase().includes(searchField.value.toLowerCase()) == false) {
@@ -702,6 +710,7 @@ modules["dropdowns/editor/members"] = {
       if (memberFrameHolder == null) {
         return;
       }
+      dropdownButton.removeAttribute("selected");
       dropdownButton = null;
       memberFrameHolder.style.opacity = 0;
       memberFrameHolder.querySelector(".eMemberFrame").style.transform = "scale(.15)";
@@ -714,10 +723,11 @@ modules["dropdowns/editor/members"] = {
         return;
       }
       if (dropdownButton != null) {
-        dropdownButton.removeAttribute("selected");
         if (dropdownButton == tile) {
           closeDropdown();
           return;
+        } else {
+          dropdownButton.removeAttribute("selected");
         }
       }
       dropdownButton = tile;
@@ -729,19 +739,49 @@ modules["dropdowns/editor/members"] = {
         <div class="eMemberFrame">
           <div class="eMemberFrameShadow"></div>
           <div class="eMemberFrameContentHolder">
-            <div class="eMemberFrameContent" style="height: 300px">
-              <div class="eMemberSection" style="height: 100px">
+            <div class="eMemberFrameContent">
+              <div class="eMemberSection">
                 <div class="eMemberBackdrop"><div></div></div>
+                <div class="eMemberFrameCursor"></div>
+                <img class="eMemberFramePicture"></img>
+                <div class="eMemberFrameInfoHolder">
+                  <div name></div>
+                  <div email></div>
+                </div>
+                <button class="eMemberClose buttonAnim border"><img src="./images/tooltips/close.svg"></button>
               </div>
             </div>
           </div>
         </div></div>`);
         memberFrameHolder = dropdown.querySelector(".eMemberFrameHolder");
+        memberFrameHolder.querySelector(".eMemberClose").addEventListener("click", closeDropdown);
         memberFrameHolder.offsetHeight;
       }
+      //<div joined></div>
       let memberFrame = memberFrameHolder.querySelector(".eMemberFrame");
       memberFrame.style.setProperty("--themeColor", member.color);
       memberFrame.style.setProperty("--textColor", textColorBackground(member.color));
+      let cursor = memberFrameHolder.querySelector(".eMemberFrameCursor");
+      let picture = memberFrameHolder.querySelector(".eMemberFramePicture");
+      if (member.image == null) {
+        picture.style.display = "none";
+        cursor.style.display = "unset";
+      } else {
+        cursor.style.display = "none";
+        picture.src = member.image;
+        picture.style.display = "unset";
+      }
+      let name = memberFrameHolder.querySelector(".eMemberFrameInfoHolder div[name]");
+      name.textContent = member.name;
+      name.title = member.name;
+      let email = memberFrameHolder.querySelector(".eMemberFrameInfoHolder div[email]");
+      if (member.email) {
+        email.textContent = member.email;
+        email.title = member.email;
+        email.style.display = "unset";
+      } else {
+        email.style.display = "none";
+      }
       memberFrameHolder.style.opacity = 1;
       memberFrame.style.transform = "scale(1)";
       updateDropdownPosition();

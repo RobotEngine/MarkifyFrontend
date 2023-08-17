@@ -499,7 +499,7 @@ modules["dropdowns/editor/members"] = {
     let updateOrder = (section, updateTile, member) => {
       for (let i = 1; i < section.children.length; i++) { // 1 to skip title
         let child = section.children[i];
-        if (child != updateTile && member.name < editor.members[child.getAttribute("member")].name) {
+        if (child != updateTile && member.name < (editor.members[child.getAttribute("member")] || {}).name) {
           section.insertBefore(updateTile, child);
           break;
         }
@@ -705,7 +705,7 @@ modules["dropdowns/editor/members"] = {
           <div class="eMemberFrameShadow"></div>
           <div class="eMemberFrameContentHolder">
             <div class="eMemberFrameContent" style="height: 300px">
-              
+
             </div>
           </div>
         </div></div>`);

@@ -482,7 +482,7 @@ modules["dropdowns/editor/members"] = {
     ".eMemberFrameShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 0 16px 16px; right: 0px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
     ".eMemberFrameShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); right: 0px; top: 16px; content: ""; box-shadow: var(--shadow); border-radius: inherit`,
     ".eMemberSection": `position: relative; display: flex; width: 100%; justify-content: center; align-items: center`,
-    ".eMemberBackdrop": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; background: var(--themeColor); transition: .2s; z-index: -1`,
+    ".eMemberBackdrop": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; background: var(--themeColor); filter: blur(1px); transition: .2s; z-index: -1`,
     ".eMemberBackdrop div": `width: 100%; height: 100%; flex-shrink: 0; opacity: .3; background-image: url(./images/editor/background.svg); background-position: center`, //transform: rotate(12deg);
     ".eMemberFrameCursor": `width: 40px; height: 40px; flex-shrink: 0; margin: 12px; background: var(--themeColor); border: solid 6px var(--pageColor); border-radius: 16px 28px 28px; transition: 0.2s`,
     ".eMemberFramePicture": `width: 44px; height: 44px; flex-shrink: 0; margin: 12px; border: solid 4px var(--pageColor); object-fit: cover; border-radius: 28px; transition: 0.2s`,
@@ -557,12 +557,13 @@ modules["dropdowns/editor/members"] = {
       let eventsHolder = tile.querySelector(".eMemberEvents");
       if (member._id == editor.sessionID) {
         eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" self title="This member is you.">YOU</div>`);
-      }
-      if (member.active == false) {
-        eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" idle title="This member is currently viewing a different window.">IDLE</div>`);
-      }
-      if (member.observe == true) {
-        eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" observe title="This member is observing you on the document.">OBSERVE</div>`);
+      } else { // Don't show if self:
+        if (member.active == false) {
+          eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" idle title="This member is currently viewing a different window.">IDLE</div>`);
+        }
+        if (member.observe == true) {
+          eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" observe title="This member is observing you on the document.">OBSERVE</div>`);
+        }
       }
       title.querySelector("div[count]").textContent = section.childElementCount - 1; // -1 for title
       section.style.display = "block";
@@ -638,22 +639,24 @@ modules["dropdowns/editor/members"] = {
             updateOrder(section, updateTile, member);
 
             // Handle event state:
-            let eventsHolder = updateTile.querySelector(".eMemberEvents");
-            let existingIdle = eventsHolder.querySelector(".eMemberEvent[idle]");
-            if (member.active == false) {
-              if (existingIdle == null) {
-                eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" idle title="This member is currently viewing a different window.">IDLE</div>`);
+            if (member._id != editor.sessionID) {
+              let eventsHolder = updateTile.querySelector(".eMemberEvents");
+              let existingIdle = eventsHolder.querySelector(".eMemberEvent[idle]");
+              if (member.active == false) {
+                if (existingIdle == null) {
+                  eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" idle title="This member is currently viewing a different window.">IDLE</div>`);
+                }
+              } else if (existingIdle != null) {
+                existingIdle.remove();
               }
-            } else if (existingIdle != null) {
-              existingIdle.remove();
-            }
-            let existingObserve = eventsHolder.querySelector(".eMemberEvent[observe]");
-            if (member.observe == true) {
-              if (existingObserve == null) {
-                eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" observe title="This member is observing you on the document.">OBSERVE</div>`);
+              let existingObserve = eventsHolder.querySelector(".eMemberEvent[observe]");
+              if (member.observe == true) {
+                if (existingObserve == null) {
+                  eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" observe title="This member is observing you on the document.">OBSERVE</div>`);
+                }
+              } else if (existingObserve != null) {
+                existingObserve.remove();
               }
-            } else if (existingObserve != null) {
-              existingObserve.remove();
             }
             //if (top == true) {
             //  section.insertBefore(tile, section.children[1]);

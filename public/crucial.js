@@ -831,6 +831,9 @@ modules["dropdown"] = {
     if (window.dropdown == null) {
       return;
     }
+    if (window.closeDropdown != null) {
+      window.closeDropdown();
+    }
     let remDropdown = window.dropdown;
     delete window.dropdown;
     remDropdown.dropdown.setAttribute("closing", "");

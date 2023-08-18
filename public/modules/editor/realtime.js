@@ -478,7 +478,7 @@ modules["dropdowns/editor/members"] = {
 
     ".eMemberFrameHolder": `position: absolute; width: 200%; height: fit-content; right: 0px; pointer-events: none; z-index: 0; opacity: 0; transition: top .3s, opacity .3s`,
     ".eMemberFrame": `--themeColor: var(--theme); position: sticky; width: calc(50% - 4px); max-width: calc(100vw - 20px); left: 8px; top: 8px; margin-left: 4px; pointer-events: all; background: var(--pageColor); border-right: solid 4px var(--themeColor); border-radius: 38px 0 0 12px; transform-origin: top right; transform: scale(.15); transition: transform .3s`,
-    ".eMemberFrameContentHolder": `width: 100%; max-height: inherit; overflow: auto`,
+    ".eMemberFrameContentHolder": `width: 100%; max-height: inherit; border-radius: 38px 0 0 12px; overflow: auto`,
     ".eMemberFrameShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 0 16px 16px; right: 0px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
     ".eMemberFrameShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); right: 0px; top: 16px; content: ""; box-shadow: var(--shadow); border-radius: inherit`,
     ".eMemberSection": `position: relative; display: flex; width: 100%; justify-content: center; align-items: center`,
@@ -487,7 +487,7 @@ modules["dropdowns/editor/members"] = {
     ".eMemberBackdrop div": `width: 100%; height: 100%; flex-shrink: 0; opacity: .3; background-image: url(./images/editor/background.svg); background-position: center`, //transform: rotate(12deg);
     ".eMemberFrameCursor": `width: 40px; height: 40px; flex-shrink: 0; margin: 12px; background: var(--themeColor); border: solid 6px var(--pageColor); border-radius: 16px 28px 28px; transition: 0.2s`,
     ".eMemberFramePicture": `width: 44px; height: 44px; flex-shrink: 0; margin: 12px; border: solid 4px var(--pageColor); object-fit: cover; border-radius: 28px; transition: 0.2s`,
-    ".eMemberFrameInfoHolder": `display: flex; flex-direction: column; width: calc(100% - 76px); height: calc(100% - 12px); color: var(--textColor); text-align: left`,
+    ".eMemberFrameInfoHolder": `display: flex; flex-direction: column; width: calc(100% - 76px); height: calc(100% - 12px); color: var(--adaptColor); text-align: left`,
     ".eMemberFrameInfoHolder div[name]": `width: calc(100% - 30px); font-size: 20px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
     ".eMemberFrameInfoHolder div[email]": `width: 100%; font-size: 15px; font-weight: 500; margin-top: 3px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
     ".eMemberFrameInfoHolder div[joined]": `font-size: 14px; font-weight: 500; text-align: right; margin: auto 6px 2px 0; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
@@ -497,7 +497,12 @@ modules["dropdowns/editor/members"] = {
     ".eMemberEventHolder": `display: none; width: calc(100% - 24px); margin: 12px 12px 0px; justify-content: space-between; align-items: center`,
     ".eMemberEventHolder .eMemberEvent": `margin: 0px 8px 0 0`,
     ".eMemberEventDesc": `font-size: 14px; text-align: right`,
-    ".eMemberSectionActions": `flex-wrap: wrap; width: calc(100% - 12px); padding: 6px`
+    ".eMemberSectionActions": `flex-wrap: wrap; width: calc(100% - 12px); padding: 6px; gap: 8px; margin-top: 6px; justify-content: space-around`,
+    ".eMemberSectionActions button": `display: flex; flex-direction: column; padding: 6px 12px; align-items: center; border-radius: 14px; color: var(--themeColor); overflow: visible`,
+    ".eMemberSectionActions button img": `width: 55px; height: 55px; transition: .15s`,
+    ".eMemberSectionActions button div": `margin-top: 6px; font-size: 14px; font-weight: 600`,
+    ".eMemberSectionActions button:hover": `background: var(--themeColor); color: #fff`,
+    ".eMemberSectionActions button:hover img": `filter: brightness(0) invert(1); transform: scale(1.1)`
   },
   js: async function (frame) {
     let editor = await getModule("pages/editor");
@@ -730,9 +735,12 @@ modules["dropdowns/editor/members"] = {
       dropdownButton.removeAttribute("selected");
       dropdownButton = null;
       memberFrameHolder.style.opacity = 0;
-      memberFrameHolder.querySelector(".eMemberFrame").style.transform = "scale(.15)";
+      let frame = memberFrameHolder.querySelector(".eMemberFrame");
+      frame.style.width = frame.clientWidth + "px";
+      frame.style.transform = "scale(.15)";
       updateDropdownPosition();
     }
+    window.closeDropdown = closeDropdown;
     let openDropdown = (tile, update) => {
       let member = editor.members[tile.getAttribute("member")];
       if (member == null) {
@@ -782,7 +790,18 @@ modules["dropdowns/editor/members"] = {
                 </div>
               </div>
               <div class="eMemberSection eMemberSectionActions">
-                
+                <button editor style="--themeColor: var(--theme)">
+                  <img>
+                  <div></div>
+                </button>
+                <button observe style="--themeColor: var(--purple)">
+                  <img src="./images/editor/members/observe.svg">
+                  <div>Observe</div>
+                </button>
+                <button kick style="--themeColor: var(--error)">
+                  <img src="./images/editor/members/kick.svg">
+                  <div>Kick</div>
+                </button>
               </div>
             </div>
           </div>
@@ -794,7 +813,7 @@ modules["dropdowns/editor/members"] = {
       //<div joined></div>
       let memberFrame = memberFrameHolder.querySelector(".eMemberFrame");
       memberFrame.style.setProperty("--themeColor", member.color);
-      memberFrame.style.setProperty("--textColor", textColorBackground(member.color));
+      memberFrame.style.setProperty("--adaptColor", textColorBackground(member.color));
       let cursor = memberFrameHolder.querySelector(".eMemberFrameCursor");
       let picture = memberFrameHolder.querySelector(".eMemberFramePicture");
       if (member.image == null) {
@@ -834,6 +853,36 @@ modules["dropdowns/editor/members"] = {
         observe.style.display = "flex";
       } else {
         observe.style.display = "none";
+      }
+      let editorButton = memberFrameHolder.querySelector(".eMemberSectionActions button[editor]");
+      let observeButton = memberFrameHolder.querySelector(".eMemberSectionActions button[observe]");
+      let kickButton = memberFrameHolder.querySelector(".eMemberSectionActions button[kick]");
+      let myself = editor.getSelf();
+      if (!isSelf && myself.access > 2 && member.access < 2) {
+        let image = "./images/editor/share/editor.svg";
+        let text = "Editor";
+        let desc = "Make this member a temporary editor.";
+        if (member.access == 1) {
+          image = "./images/editor/share/viewer.svg";
+          text = "Viewer";
+          desc = "Revoke edit access making this member a viewer.";
+        }
+        editorButton.title = desc;
+        editorButton.querySelector("img").src = image;
+        editorButton.querySelector("div").textContent = text;
+        editorButton.style.display = "flex";
+      } else {
+        editorButton.style.display = "none";
+      }
+      if (!isSelf && myself.access > 3 && member.access < 4) {
+        kickButton.style.display = "flex";
+      } else {
+        kickButton.style.display = "none";
+      }
+      if (!isSelf) {
+        observeButton.style.display = "flex";
+      } else {
+        observeButton.style.display = "none";
       }
       memberFrameHolder.style.opacity = 1;
       memberFrame.style.transform = "scale(1)";

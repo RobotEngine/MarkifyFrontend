@@ -494,9 +494,10 @@ modules["dropdowns/editor/members"] = {
     ".eMemberClose": `position: absolute; width: 22px; height: 22px; top: 4px; right: 0px; margin: 5px 5px 5px 12px; background: var(--pageColor); --borderWidth: 3px; --borderRadius: 14px`,
     ".eMemberClose img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
     ".eMemberSectionEvents": `flex-direction: column`,
-    ".eMemberEventHolder": `display: none; width: calc(100% - 24px); margin: 12px 12px 0px; justify-content: space-between`,
+    ".eMemberEventHolder": `display: none; width: calc(100% - 24px); margin: 12px 12px 0px; justify-content: space-between; align-items: center`,
     ".eMemberEventHolder .eMemberEvent": `margin: 0px 8px 0 0`,
-    ".eMemberEventDesc": `font-size: 14px; text-align: right`
+    ".eMemberEventDesc": `font-size: 14px; text-align: right`,
+    ".eMemberSectionActions": `flex-wrap: wrap; width: calc(100% - 12px); padding: 6px`
   },
   js: async function (frame) {
     let editor = await getModule("pages/editor");
@@ -769,7 +770,7 @@ modules["dropdowns/editor/members"] = {
               <div class="eMemberSection eMemberSectionEvents">
                 <div class="eMemberEventHolder" self>
                   <div class="eMemberEvent" self>YOU</div>
-                  <div class="eMemberEventDesc">This is your member.</div>
+                  <div class="eMemberEventDesc">This is your profile.</div>
                 </div>
                 <div class="eMemberEventHolder" idle>
                   <div class="eMemberEvent" idle>IDLE</div>
@@ -779,6 +780,9 @@ modules["dropdowns/editor/members"] = {
                   <div class="eMemberEvent" observe>OBSERVE</div>
                   <div class="eMemberEventDesc">They're following you around the lesson.</div>
                 </div>
+              </div>
+              <div class="eMemberSection eMemberSectionActions">
+                
               </div>
             </div>
           </div>

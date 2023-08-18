@@ -471,17 +471,18 @@ modules["dropdowns/editor/members"] = {
     ".eMemberCursor": `width: 20px; height: 20px; flex-shrink: 0; margin: 0 6px; background: var(--pageColor); border: solid 3px var(--themeColor); overflow: hidden; border-radius: 8px 14px 14px; transition: 0.2s`, //box-shadow: 0 0 6px rgb(0 0 0 / 50%);
     ".eMemberName": `width: 100%; font-size: 16px; font-weight: 600; text-align: left; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
     ".eMemberEvents": `display: flex; margin-left: auto`,
-    ".eMemberEvent": `padding: 3px 6px; margin: 0 1px 0 6px; border-radius: 12px; color: #fff; font-size: 14px; font-weight: 700; white-space: nowrap`,
+    ".eMemberEvent": `height: fit-content; padding: 3px 6px; margin: 0 1px 0 6px; border-radius: 12px; color: #fff; font-size: 14px; font-weight: 700; white-space: nowrap`,
     ".eMemberEvent[self]": `background: var(--theme)`,
     ".eMemberEvent[idle]": `background: var(--yellow)`,
     ".eMemberEvent[observe]": `background: var(--purple)`,
 
     ".eMemberFrameHolder": `position: absolute; width: 200%; height: fit-content; right: 0px; pointer-events: none; z-index: 0; opacity: 0; transition: top .3s, opacity .3s`,
-    ".eMemberFrame": `--themeColor: var(--theme); position: sticky; width: calc(50% - 4px); max-width: calc(100vw - 20px); left: 8px; top: 8px; margin-left: 4px; pointer-events: all; background: var(--pageColor); border-right: solid 4px var(--themeColor); border-radius: 12px 0 0 12px; overflow: hidden; transform-origin: top right; transform: scale(.15); transition: transform .3s`,
+    ".eMemberFrame": `--themeColor: var(--theme); position: sticky; width: calc(50% - 4px); max-width: calc(100vw - 20px); left: 8px; top: 8px; margin-left: 4px; pointer-events: all; background: var(--pageColor); border-right: solid 4px var(--themeColor); border-radius: 38px 0 0 12px; transform-origin: top right; transform: scale(.15); transition: transform .3s`,
     ".eMemberFrameContentHolder": `width: 100%; max-height: inherit; overflow: auto`,
     ".eMemberFrameShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 0 16px 16px; right: 0px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
     ".eMemberFrameShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); right: 0px; top: 16px; content: ""; box-shadow: var(--shadow); border-radius: inherit`,
     ".eMemberSection": `position: relative; display: flex; width: 100%; justify-content: center; align-items: center`,
+    ".eMemberSectionInfo": `border-radius: 38px 0 0 38px; overflow: hidden`,
     ".eMemberBackdrop": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; background: var(--themeColor); filter: blur(1px); transition: .2s; z-index: -1`,
     ".eMemberBackdrop div": `width: 100%; height: 100%; flex-shrink: 0; opacity: .3; background-image: url(./images/editor/background.svg); background-position: center`, //transform: rotate(12deg);
     ".eMemberFrameCursor": `width: 40px; height: 40px; flex-shrink: 0; margin: 12px; background: var(--themeColor); border: solid 6px var(--pageColor); border-radius: 16px 28px 28px; transition: 0.2s`,
@@ -491,7 +492,11 @@ modules["dropdowns/editor/members"] = {
     ".eMemberFrameInfoHolder div[email]": `width: 100%; font-size: 15px; font-weight: 500; margin-top: 3px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
     ".eMemberFrameInfoHolder div[joined]": `font-size: 14px; font-weight: 500; text-align: right; margin: auto 6px 2px 0; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
     ".eMemberClose": `position: absolute; width: 22px; height: 22px; top: 4px; right: 0px; margin: 5px 5px 5px 12px; background: var(--pageColor); --borderWidth: 3px; --borderRadius: 14px`,
-    ".eMemberClose img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`
+    ".eMemberClose img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
+    ".eMemberSectionEvents": `flex-direction: column`,
+    ".eMemberEventHolder": `display: none; width: calc(100% - 24px); margin: 12px 12px 0px; justify-content: space-between`,
+    ".eMemberEventHolder .eMemberEvent": `margin: 0px 8px 0 0`,
+    ".eMemberEventDesc": `font-size: 14px; text-align: right`
   },
   js: async function (frame) {
     let editor = await getModule("pages/editor");
@@ -582,6 +587,10 @@ modules["dropdowns/editor/members"] = {
     }
     createMemberList();
 
+    let dropdown;
+    let memberFrameHolder;
+    let dropdownButton;
+
     editor.updateMembersList = (data) => {
       let body = data.data;
       let member = editor.members[body._id];
@@ -598,6 +607,9 @@ modules["dropdowns/editor/members"] = {
             title.textContent = newCount;
             if (newCount < 1) {
               removeTile.parentElement.style.display = "none";
+            }
+            if (dropdownButton != null && dropdownButton.getAttribute("member") == body._id) {
+              closeDropdown();
             }
             removeTile.remove();
           }
@@ -661,13 +673,14 @@ modules["dropdowns/editor/members"] = {
             //if (top == true) {
             //  section.insertBefore(tile, section.children[1]);
             //}
+
+            if (dropdownButton != null && dropdownButton.getAttribute("member") == member._id) {
+              openDropdown(updateTile, true);
+            }
           }
       }
     }
 
-    let dropdown;
-    let memberFrameHolder;
-    let dropdownButton;
     let updateDropdownPosition = () => {
       if (memberFrameHolder == null) {
         return;
@@ -719,14 +732,14 @@ modules["dropdowns/editor/members"] = {
       memberFrameHolder.querySelector(".eMemberFrame").style.transform = "scale(.15)";
       updateDropdownPosition();
     }
-    let openDropdown = (tile) => {
+    let openDropdown = (tile, update) => {
       let member = editor.members[tile.getAttribute("member")];
       if (member == null) {
         tile.remove();
         return;
       }
       if (dropdownButton != null) {
-        if (dropdownButton == tile) {
+        if (dropdownButton == tile && update != true) {
           closeDropdown();
           return;
         } else {
@@ -743,7 +756,7 @@ modules["dropdowns/editor/members"] = {
           <div class="eMemberFrameShadow"></div>
           <div class="eMemberFrameContentHolder">
             <div class="eMemberFrameContent">
-              <div class="eMemberSection">
+              <div class="eMemberSection eMemberSectionInfo">
                 <div class="eMemberBackdrop"><div></div></div>
                 <div class="eMemberFrameCursor"></div>
                 <img class="eMemberFramePicture"></img>
@@ -752,6 +765,20 @@ modules["dropdowns/editor/members"] = {
                   <div email></div>
                 </div>
                 <button class="eMemberClose buttonAnim border"><img src="./images/tooltips/close.svg"></button>
+              </div>
+              <div class="eMemberSection eMemberSectionEvents">
+                <div class="eMemberEventHolder" self>
+                  <div class="eMemberEvent" self>YOU</div>
+                  <div class="eMemberEventDesc">This is your member.</div>
+                </div>
+                <div class="eMemberEventHolder" idle>
+                  <div class="eMemberEvent" idle>IDLE</div>
+                  <div class="eMemberEventDesc">They're currently viewing another window.</div>
+                </div>
+                <div class="eMemberEventHolder" observe>
+                  <div class="eMemberEvent" observe>OBSERVE</div>
+                  <div class="eMemberEventDesc">They're following you around the lesson.</div>
+                </div>
               </div>
             </div>
           </div>
@@ -784,6 +811,25 @@ modules["dropdowns/editor/members"] = {
         email.style.display = "unset";
       } else {
         email.style.display = "none";
+      }
+      let isSelf = member._id == editor.sessionID;
+      let self = memberFrameHolder.querySelector(".eMemberEventHolder[self]");
+      let idle = memberFrameHolder.querySelector(".eMemberEventHolder[idle]");
+      let observe = memberFrameHolder.querySelector(".eMemberEventHolder[observe]");
+      if (isSelf) {
+        self.style.display = "flex";
+      } else {
+        self.style.display = "none";
+      }
+      if (member.active == false && !isSelf) {
+        idle.style.display = "flex";
+      } else {
+        idle.style.display = "none";
+      }
+      if (member.observe == true && !isSelf) {
+        observe.style.display = "flex";
+      } else {
+        observe.style.display = "none";
       }
       memberFrameHolder.style.opacity = 1;
       memberFrame.style.transform = "scale(1)";

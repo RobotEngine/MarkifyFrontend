@@ -794,7 +794,7 @@ modules["dropdowns/editor/members"] = {
                   <img>
                   <div></div>
                 </button>
-                <button observe style="--themeColor: var(--purple)">
+                <button observe style="--themeColor: var(--purple)" title"Watch this member's screen">
                   <img src="./images/editor/members/observe.svg">
                   <div>Observe</div>
                 </button>
@@ -814,6 +814,7 @@ modules["dropdowns/editor/members"] = {
       let memberFrame = memberFrameHolder.querySelector(".eMemberFrame");
       memberFrame.style.setProperty("--themeColor", member.color);
       memberFrame.style.setProperty("--adaptColor", textColorBackground(member.color));
+      memberFrame.style.removeProperty("width");
       let cursor = memberFrameHolder.querySelector(".eMemberFrameCursor");
       let picture = memberFrameHolder.querySelector(".eMemberFramePicture");
       if (member.image == null) {

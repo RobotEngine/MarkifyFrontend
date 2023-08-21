@@ -794,11 +794,11 @@ modules["dropdowns/editor/members"] = {
                   <img>
                   <div></div>
                 </button>
-                <button observe style="--themeColor: var(--purple)" title"Watch this member's screen">
+                <button observe style="--themeColor: var(--purple)" title="Watch this member's screen.">
                   <img src="./images/editor/members/observe.svg">
                   <div>Observe</div>
                 </button>
-                <button kick style="--themeColor: var(--error)">
+                <button kick style="--themeColor: var(--error)" title="Kick this member from the current session.">
                   <img src="./images/editor/members/kick.svg">
                   <div>Kick</div>
                 </button>

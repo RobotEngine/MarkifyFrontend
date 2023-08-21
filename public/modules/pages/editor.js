@@ -12,7 +12,7 @@ modules["pages/editor"] = {
       <button class="eTopScroll eTopScrollRight" style="right: 8px"><img src="./images/editor/top/rightarrow.svg"></button>
       <div class="eTop" noscrollclose>
         <div class="eTopSection">
-          <a class="eLogo" href="/#dashboard"><img src="./images/logo.svg"></a>
+          <a class="eLogo" href="#dashboard"><img src="./images/logo.svg"></a>
           <div class="eFileName border" contenteditable spellcheck="false" onpaste="clipBoardRead(event)"></div>
           <button class="eFileDropdown" dropdown="dropdowns/editor/file">File</button>
         </div>

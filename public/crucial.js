@@ -644,7 +644,7 @@ socket.onopen = async function () {
   (await getModule("dropdown")).close();
   await init();
   if (window.location.hash == "") {
-    setFrame("pages/dashboard", null, { unsub: false });
+    setFrame("pages/launch", null, { unsub: false });
   } else {
     setFrame("pages/" + window.location.hash.substring(1), null, { unsub: false });
   }

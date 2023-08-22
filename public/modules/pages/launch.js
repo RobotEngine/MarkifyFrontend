@@ -29,7 +29,7 @@ modules["pages/launch"] = {
     <div class="lHistoryStuck">
       <div class="lTitle">First... some brief <b>History</b></div>
       <div class="lHistoryContent">
-        <div class="lHistoryContentPart" style="flex: 1 0 400px; flex-basis: 400px">
+        <div class="lHistoryContentPart" style="flex: 1 1 400px; flex-basis: 400px">
           <div class="lHistoryTitle"></div>
           <div class="lHistoryDesc"></div>
         </div>
@@ -69,12 +69,12 @@ modules["pages/launch"] = {
     ".lHeaderSplash": `width: 100%; margin-top: 40px; max-width: 1000px`,
 
     ".lSection[history]": `width: 100%; height: 200vh`,
-    ".lHistoryStuck": `position: sticky; display: flex; flex-direction: column; width: 100%; height: 100vh; top: 0px; align-items: center; overflow: hidden`,
+    ".lHistoryStuck": `position: sticky; display: flex; flex-direction: column; max-width: 100%; height: 100vh; top: 0px; align-items: center; overflow: hidden`,
     ".lTitle": `margin: 36px; font-size: 35px; line-height: 55px; text-align: left`,
     ".lTitle b": `color: var(--theme); font-size: 45px; font-weight: 700`,
     ".lHistoryContent": `display: flex; flex-wrap: wrap; gap: 0px 30px; margin: auto 0; max-width: 1000px; align-items: center`,
     ".lHistoryContentPart": `margin: 16px`,
-    ".lHistoryContentPart img": `width: 100%; max-height: 400px; border-radius: 20px; box-shadow: var(--blueShadow); object-fit: cover`,
+    ".lHistoryContentPart img": `width: calc(100% - 18px); max-width: 600px; max-height: 400px; border-radius: 20px; box-shadow: var(--blueShadow); object-fit: cover`,
     ".lHistoryTitle": `max-width: 250px; font-size: 24px; line-height: 40px; text-align: left`,
     ".lHistoryTitle b": `color: var(--theme); font-size: 35px; font-weight: 700`,
     ".lHistoryDesc": `margin-top: 24px; text-align: left`,
@@ -107,7 +107,7 @@ modules["pages/launch"] = {
         rotate: -3
       },
       {
-        percent: .3,
+        percent: 0,
         name: "markify",
         title: "Introducing <b>Markify</b>",
         desc: "Markify aims to solve these shortcomings by not just being a digital whiteboard tool, but a real-time platform where anything written gets streamed to students.</br></br>Students can see the document up close and see any point they may have missed.",
@@ -119,7 +119,6 @@ modules["pages/launch"] = {
       let sectionTop = historySection.getBoundingClientRect().bottom;
       let stickyPercent = sectionTop / historySection.clientHeight;
       if (stickyPercent > 0) {
-        //console.log(stickyPercent)
         for (let i = 0; i < sections.length; i++) {
           let section = sections[i];
           let sectionName = section.name;
@@ -142,10 +141,16 @@ modules["pages/launch"] = {
             } else if (stickyPercent < section.percent + .1) {
               historyContent.style.transform = "scale(" + ((section.percent + .1) / stickyPercent) + ")";
               historyContent.style.opacity = (stickyPercent - section.percent) * 10;
+            } else {
+              historyContent.style.transform = "scale(1)";
+              historyContent.style.opacity = 1;
             }
             break;
           }
         }
+      } else {
+        historyContent.style.transform = "scale(1)";
+        historyContent.style.opacity = 1;
       }
     }
     dotButtons.addEventListener("click", function(event) {

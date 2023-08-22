@@ -1019,3 +1019,9 @@ addCSS({
   ".largeButton:active": `--borderWidth: 8px`,
   ".fixedItemHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px`
 });
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("serviceworker.js");
+  });
+}

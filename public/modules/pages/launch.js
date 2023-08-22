@@ -110,7 +110,7 @@ modules["pages/launch"] = {
         percent: .3,
         name: "markify",
         title: "Introducing <b>Markify</b>",
-        desc: "Markify aims to solve these shortcomings by not just being a digital whiteboard PDF tool, but a real-time platform where anything written gets streamed to students.</br></br>Students can see the document up close and see any point they may have missed.",
+        desc: "Markify aims to solve these shortcomings by not just being a digital whiteboard tool, but a real-time platform where anything written gets streamed to students.</br></br>Students can see the document up close and see any point they may have missed.",
         image: "./images/launch/history/markify.jpg",
         rotate: 3
       }

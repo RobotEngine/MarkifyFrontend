@@ -29,7 +29,7 @@ modules["pages/launch"] = {
     <div class="lHistoryStuck">
       <div class="lTitle">First... some <b>Brief History</b></div>
       <div class="lHistoryContent">
-        <div class="lHistoryContentPart" style="flex: 1 0 300px; flex-basis: 300px">
+        <div class="lHistoryContentPart" style="flex: 1 0 400px; flex-basis: 400px">
           <div class="lHistoryTitle"></div>
           <div class="lHistoryDesc"></div>
         </div>
@@ -72,7 +72,7 @@ modules["pages/launch"] = {
     ".lHistoryStuck": `position: sticky; display: flex; flex-direction: column; width: 100%; height: 100vh; top: 0px; align-items: center; overflow: hidden`,
     ".lTitle": `margin: 36px; font-size: 35px; line-height: 55px; text-align: left`,
     ".lTitle b": `color: var(--theme); font-size: 45px; font-weight: 700`,
-    ".lHistoryContent": `display: flex; flex-wrap: wrap; gap: 0px 80px; margin: auto 0; max-width: 1000px; align-items: center`,
+    ".lHistoryContent": `display: flex; flex-wrap: wrap; gap: 0px 30px; margin: auto 0; max-width: 1000px; align-items: center`,
     ".lHistoryContentPart": `margin: 16px`,
     ".lHistoryContentPart img": `width: 100%; max-height: 400px; border-radius: 20px; box-shadow: var(--blueShadow); object-fit: cover`,
     ".lHistoryTitle": `max-width: 250px; font-size: 24px; line-height: 40px; text-align: left`,

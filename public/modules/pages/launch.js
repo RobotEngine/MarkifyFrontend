@@ -27,7 +27,7 @@ modules["pages/launch"] = {
   </div>
   <div class="lSection" history backdrop="side">
     <div class="lHistoryStuck">
-      <div class="lTitle">First... some <b>Brief History</b></div>
+      <div class="lTitle">First... some brief <b>History</b></div>
       <div class="lHistoryContent">
         <div class="lHistoryContentPart" style="flex: 1 0 400px; flex-basis: 400px">
           <div class="lHistoryTitle"></div>

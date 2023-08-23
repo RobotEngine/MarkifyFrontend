@@ -51,8 +51,8 @@ modules["pages/launch"] = {
     <div class="lUsecaseToolbar">
       <button selected style="--themeColor: var(--theme)">English</button>
       <button style="--themeColor: var(--error)">Math</button>
-      <button style="--themeColor: var(--yellow)">History</button>
       <button style="--themeColor: var(--green)">Science</button>
+      <button style="--themeColor: var(--yellow)">History</button>
     </div>
   </div>
   `,

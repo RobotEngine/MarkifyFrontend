@@ -92,9 +92,9 @@ modules["pages/launch"] = {
     ".lHistoryDots button[selected]": `width: 32px; background: var(--theme)`,
     ".lHistoryStuck .lSpacer": `height: 130.5px`,
 
-    ".lUsecaseToolbar": `position: sticky; box-sizing: border-box; display: flex; flex-wrap: wrap; top: 24px; margin: 24px 0; width: calc(100% - 24px); max-width: 600px; padding: 6px; background: rgba(var(--background), .7); backdrop-filter: blur(4px); border-radius: 37px`,
+    ".lUsecaseToolbar": `position: sticky; box-sizing: border-box; display: flex; flex-wrap: wrap; top: 24px; margin: 24px 0; width: calc(100% - 24px); max-width: 600px; padding: 6px; background: rgba(var(--background), .7); backdrop-filter: blur(4px); box-shadow: var(--blueShadow); border-radius: 37px`,
     ".lUsecaseToolbar button": `background: rgba(red(var(--themeColor)), green(var(--themeColor)), blue(var(--themeColor)), .6); flex: 1 1 130px; padding: 8px 16px; margin: 6px; border-radius: 25px; color: var(--themeColor); font-size: 20px; font-weight: 700; transition: .2s`,
-    ".lUsecaseToolbar button:hover": `background: var(--hover); color: var(--textColor); transform: scale(1.1)`,
+    ".lUsecaseToolbar button:hover": `background: var(--hover); color: var(--textColor); transform: scale(1.03)`,
     ".lUsecaseToolbar button[selected]": `background: var(--themeColor); color: #fff`
   },
   js: async function (page) {
@@ -188,7 +188,7 @@ modules["pages/launch"] = {
         let element = sectionElements[i];
         if (inViewport(element, true)) {
           let back = element.getAttribute("backdrop");
-          let maxOpacity = element.getAttribute("maxopacity") || .5;
+          let maxOpacity = element.getAttribute("maxopacity") || .3;
           let rect = element.getBoundingClientRect();
           let percent = Math.min(((fixed.clientHeight - rect.top) / fixed.clientHeight) * maxOpacity, maxOpacity);
           if (rect.bottom < fixed.clientHeight) {

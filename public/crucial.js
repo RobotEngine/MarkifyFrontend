@@ -896,7 +896,7 @@ modules["alert"] = {
   },
   colors: {
     info: "var(--theme)",
-    worked: "#34C172",
+    worked: "var(--green)",
     warning: "var(--yellow",
     error: "var(--error)"
   },

@@ -1,9 +1,10 @@
 modules["pages/launch"] = {
   title: "Collaboration across the Classroom",
   html: `
-  <div class="lSection" header>
-    <img class="lHeaderBackdrop" src="./images/launch/backdrop.png" center visible>
-    <img class="lHeaderBackdrop" src="./images/launch/backdropside.png" side style="opacity: 0">
+  <div class="lBackdrop" dots style="background-image: url(./images/editor/background.svg); background-position: center"></div>
+  <img class="lBackdrop" src="./images/launch/backdropside.png" side>
+  <img class="lBackdrop" src="./images/launch/backdrop.png" center>
+  <div class="lSection" header backdrop="center">
     <div class="lHeaderContent">
       <div class="lHeaderRow">
         <div>
@@ -45,12 +46,20 @@ modules["pages/launch"] = {
       <div class="lSpacer"></div>
     </div>
   </div>
+  <div class="lSection" usecase backdrop="dots" maxopacity="1">
+    <div class="lTitle">How <b>Markify</b> revolutionizes the <b>Classroom</b></div>
+    <div class="lUsecaseToolbar">
+      <button selected style="--themeColor: var(--theme)">English</button>
+      <button style="--themeColor: var(--error)">Math</button>
+      <button style="--themeColor: var(--yellow)">History</button>
+      <button style="--themeColor: var(--green)">Science</button>
+    </div>
+  </div>
   `,
   css: {
     ".lSection": `display: flex; flex-direction: column; margin: 5vh 0; align-items: center; --blueShadow: 0px 0px 24px var(--hover)`,
-    //".lSection[header]": `min-height: 100vh; justify-content: center; align-items: center`,
-    ".lHeaderBackdrop": `position: fixed; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; opacity: 0; z-index: -1`,
-    ".lHeaderContent": `display: flex; flex-direction: column; box-sizing: border-box; max-width: 100%; padding: 26px; align-items: center; overflow: hidden`,
+    ".lBackdrop": `position: fixed; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; opacity: 0; z-index: -1; transition: .3s`,
+    ".lHeaderContent": `display: flex; flex-direction: column; box-sizing: border-box; max-width: 100%; min-height: 1000px; padding: 26px; align-items: center; overflow: hidden`,
     ".lHeaderRow": `display: flex; width: 100%; justify-content: center`,
     ".lHeaderRow div": `display: flex; flex: 1; min-width: 300px; max-width: 500px; justify-content: space-around; align-items: center`,
     ".lHeaderRow div img": `width: 60px; height: 60px; flex-shrink: 0`,
@@ -69,7 +78,7 @@ modules["pages/launch"] = {
     ".lHeaderSplash": `width: 100%; margin-top: 40px; max-width: 1000px`,
 
     ".lSection[history]": `width: 100%; height: 200vh`,
-    ".lHistoryStuck": `position: sticky; display: flex; flex-direction: column; max-width: 100%; height: 100vh; top: 0px; align-items: center; overflow: hidden`,
+    ".lHistoryStuck": `position: sticky; display: flex; flex-direction: column; width: 100%; height: 100vh; top: 0px; align-items: center; overflow: hidden`,
     ".lTitle": `margin: 36px; font-size: 35px; line-height: 55px; text-align: left`,
     ".lTitle b": `color: var(--theme); font-size: 45px; font-weight: 700`,
     ".lHistoryContent": `display: flex; flex-wrap: wrap; gap: 0px 30px; margin: auto 0; max-width: 1000px; align-items: center`,
@@ -81,10 +90,14 @@ modules["pages/launch"] = {
     ".lHistoryDots": `position: absolute; display: flex; padding: 4px; left: 50%; bottom: 5%; transform: translate(-50%, 50%); background: rgba(var(--background), .7); backdrop-filter: blur(4px); border-radius: 16px`,
     ".lHistoryDots button": `width: 16px; height: 16px; margin: 4px; background: var(--secondary); border-radius: 8px`,
     ".lHistoryDots button[selected]": `width: 32px; background: var(--theme)`,
-    ".lHistoryStuck .lSpacer": `height: 130.5px`
+    ".lHistoryStuck .lSpacer": `height: 130.5px`,
+
+    ".lUsecaseToolbar": `position: sticky; box-sizing: border-box; display: flex; flex-wrap: wrap; top: 24px; margin: 24px 0; width: calc(100% - 24px); max-width: 600px; padding: 6px; background: rgba(var(--background), .7); backdrop-filter: blur(4px); border-radius: 37px`,
+    ".lUsecaseToolbar button": `background: rgba(red(var(--themeColor)), green(var(--themeColor)), blue(var(--themeColor)), .6); flex: 1 1 130px; padding: 8px 16px; margin: 6px; border-radius: 25px; color: var(--themeColor); font-size: 20px; font-weight: 700; transition: .2s`,
+    ".lUsecaseToolbar button:hover": `background: var(--hover); color: var(--textColor); transform: scale(1.1)`,
+    ".lUsecaseToolbar button[selected]": `background: var(--themeColor); color: #fff`
   },
   js: async function (page) {
-    
     // SECTION 2 | History
     let historySection = page.querySelector(".lSection[history]");
     let historyContent = historySection.querySelector(".lHistoryContent");
@@ -108,9 +121,10 @@ modules["pages/launch"] = {
       },
       {
         percent: 0,
+        scroll: .4,
         name: "markify",
         title: "Introducing <b>Markify</b>",
-        desc: "Markify aims to solve these shortcomings by not just being a digital whiteboard tool, but a real-time platform where anything written gets streamed to students.</br></br>Students can see the document up close and see any point they may have missed.",
+        desc: "Markify aims to solve these shortcomings by not just being a digital whiteboard tool, but a real-time platform where anything written gets streamed to students.</br></br>Students can see the document up close and see any notes they may have missed.",
         image: "./images/launch/history/markify.jpg",
         rotate: 3
       }
@@ -118,7 +132,7 @@ modules["pages/launch"] = {
     function updateHistory() {
       let sectionTop = historySection.getBoundingClientRect().bottom;
       let stickyPercent = sectionTop / historySection.clientHeight;
-      if (stickyPercent > 0) {
+      if (stickyPercent > 0 && stickyPercent > .3) {
         for (let i = 0; i < sections.length; i++) {
           let section = sections[i];
           let sectionName = section.name;
@@ -159,33 +173,39 @@ modules["pages/launch"] = {
         return;
       }
       console.log(historySection.getBoundingClientRect().bottom - (sections[[...dotButtons.children].indexOf(target)].percent * historySection.clientHeight))
-      window.scrollTo({ top: window.scrollY + historySection.getBoundingClientRect().bottom - ((sections[[...dotButtons.children].indexOf(target)].percent + .1) * historySection.clientHeight), behavior: "smooth" });
+      let section = sections[[...dotButtons.children].indexOf(target)];
+      window.scrollTo({ top: window.scrollY + historySection.getBoundingClientRect().bottom - (((section.scroll || section.percent) + .1) * historySection.clientHeight), behavior: "smooth" });
     });
 
     // Handle Events:
     let sectionElements = page.querySelectorAll(".lSection");
-    let backdrops = page.querySelectorAll(".lHeaderBackdrop");
     function updateSections() {
       updateHistory();
 
       // Handle Backdrop:
+      let setBackdrops = {};
       for (let i = 0; i < sectionElements.length; i++) {
         let element = sectionElements[i];
-        let top = element.getBoundingClientRect().top;
-        if (top >= 0 && top < fixed.clientHeight) {
-          let back = page.querySelector(".lHeaderBackdrop[" + (element.getAttribute("backdrop") || "center") + "]");
-          for (let b = 0; b < backdrops.length; b++) {
-            if (backdrops[b] != back) {
-              backdrops[b].style.opacity = (top / fixed.clientHeight) * .5;
-            }
+        if (inViewport(element, true)) {
+          let back = element.getAttribute("backdrop");
+          let maxOpacity = element.getAttribute("maxopacity") || .5;
+          let rect = element.getBoundingClientRect();
+          let percent = Math.min(((fixed.clientHeight - rect.top) / fixed.clientHeight) * maxOpacity, maxOpacity);
+          if (rect.bottom < fixed.clientHeight) {
+            percent = maxOpacity - Math.min(((fixed.clientHeight - rect.bottom) / fixed.clientHeight) * maxOpacity, maxOpacity);
           }
-          back.style.opacity = ((fixed.clientHeight - top) / fixed.clientHeight) * .5;
-          break;
+          setBackdrops[back] = Math.max(percent, setBackdrops[back] || 0);
         }
+      }
+      let backdropKeys = Object.keys(setBackdrops);
+      for (let i = 0; i < backdropKeys.length; i++) {
+        let key = backdropKeys[i];
+        page.querySelector(".lBackdrop[" + key + "]").style.opacity = setBackdrops[key];
       }
     }
     tempListen(window, "scroll", updateSections);
     tempListen(window, "resize", updateSections);
-    updateSections();
+    setTimeout(updateSections, 1);
+    page.querySelector(".lHeaderContent").style.minHeight = "0px";
   }
 }

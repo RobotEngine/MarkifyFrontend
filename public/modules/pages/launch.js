@@ -92,11 +92,11 @@ modules["pages/launch"] = {
     ".lHistoryDots button": `width: 16px; height: 16px; margin: 4px; background: var(--secondary); border-radius: 8px`,
     ".lHistoryDots button[selected]": `width: 32px; background: var(--theme)`,
     ".lHistoryStuck .lSpacer": `height: 130.5px`,
-    ".lUsecaseToolbar": `position: sticky; box-sizing: border-box; display: flex; flex-wrap: wrap; top: 24px; margin: 24px 0; width: calc(100% - 48px); max-width: 600px; padding: 6px; background: rgba(var(--background), .9); backdrop-filter: blur(4px); box-shadow: var(--blueShadow); border-radius: 37px; z-index: 10`,
+    ".lUsecaseToolbar": `--themeColor: var(--theme); position: sticky; box-sizing: border-box; display: flex; flex-wrap: wrap; top: 24px; margin: 24px 0; width: calc(100% - 48px); max-width: 600px; padding: 6px; background: rgba(var(--background), .9); backdrop-filter: blur(4px); box-shadow: 0px 0px 12px rgba(var(--themeColor), .4); border-radius: 37px; z-index: 10`,
     ".lUsecaseToolbar button": `flex: 1 1 130px; padding: 8px 16px; margin: 6px; border-radius: 25px; color: rgb(var(--themeColor)); font-size: 20px; font-weight: 700; transition: .2s`,
     ".lUsecaseToolbar button:hover": `background: rgba(var(--themeColor), .3); transform: scale(1.03)`,
     ".lUsecaseToolbar button[selected]": `background: rgba(var(--themeColor), 1); color: #fff`,
-    ".lUsecaseTiles": `display: flex; flex-wrap: wrap; width: calc(100% - 32px); max-width: 748px; margin: 12px; justify-content: center`,
+    ".lUsecaseTiles": `display: flex; flex-wrap: wrap; width: calc(100% - 24px); max-width: 748px; margin: 12px; justify-content: center`,
     ".lUsecaseTile": `display: flex; width: 350px; max-width: calc(100% - 24px); height: 350px; padding: 8px; margin: 12px; background: #fff; box-shadow: 0px 0px 8px rgba(var(--themeColor), .4); border-radius: 20px; overflow: hidden; justify-content: center; align-items: center; transform: scale(.8); opacity: 0; transition: cubic-bezier(0.175, 0.885, 0.32, 1.275) .3s`,
     ".lUsecaseTile[column]": `flex-direction: column`,
     ".lUsecaseTile[row]": `width: 724px; height: fit-content; min-height: 350px; flex-wrap: wrap`,
@@ -279,9 +279,11 @@ modules["pages/launch"] = {
       ]
     };
     let sectionHolder = page.querySelector(".lUsecaseTiles");
+    let usecaseToolbar = page.querySelector(".lUsecaseToolbar");
     function setUseCaseTiles(section, color) {
       sectionHolder.innerHTML = "";
       sectionHolder.style.setProperty("--themeColor", color);
+      usecaseToolbar.style.setProperty("--themeColor", color);
       let gottenSection = usecases[section];
       for (let i = 0; i < gottenSection.length; i++) {
         let addUse = gottenSection[i];
@@ -325,7 +327,6 @@ modules["pages/launch"] = {
         newTile.style.opacity = 1;
       }
     }
-    let usecaseToolbar = page.querySelector(".lUsecaseToolbar");
     usecaseToolbar.addEventListener("click", function(event) {
       let button = event.target.closest("button");
       if (button == null) {

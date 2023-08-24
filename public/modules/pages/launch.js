@@ -18,7 +18,7 @@ modules["pages/launch"] = {
         </div>
       </div>
       <div class="lHeaderSlogan"><b>Collaboration</b> across the <b>Classroom</b></div>
-      <div class="lHeaderSummary">Stream a shared whiteboard to student's devices to see up close and review. All with effective tools which aren't overwhelming or confusing to students.</div>
+      <div class="lHeaderSummary">Stream a shared whiteboard to student's devices to see up close and review. All with effective tools that aren't overwhelming or confusing to use.</div>
       <div class="lHeaderActions">
         <button class="lOpen largeButton" openpage="editor" disabled>Coming Soon</button>
         <button class="lJoin largeButton" openpage="join">Join Lesson<img src="./images/tooltips/link.svg"></button>
@@ -155,7 +155,7 @@ modules["pages/launch"] = {
         scroll: .4,
         name: "markify",
         title: "Introducing <b>Markify</b>",
-        desc: "Markify aims to solve these shortcomings by not just being a digital whiteboard tool, but a real-time platform where anything written gets streamed to students.</br></br>Students can see the document up close and see any notes they may have missed.",
+        desc: "Markify aims to solve these shortcomings by not just being a digital whiteboard tool, but a real-time platform where anything written gets streamed to student's devices.</br></br>Students can see the document up close and see any notes they may have missed.",
         image: "./images/launch/history/markify.png",
         rotate: 3
       }

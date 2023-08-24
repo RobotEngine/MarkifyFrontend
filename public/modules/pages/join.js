@@ -7,7 +7,7 @@ modules["pages/join"] = {
     <div class="jModalContainer">
       <img class="jBack" src="./images/icon.svg">
       <div class="jModal">
-        <a class="jLogo" href="#dashboard"><img src="./images/logo.svg"></a>
+        <a class="jLogo" href="#launch"><img src="./images/logo.svg"></a>
         <div class="jTitle">Join the Lesson!</div>
         <div class="jTitleDesc">Enter a pin to join</div>
         <div class="jInputHolder">
@@ -101,7 +101,7 @@ modules["pages/join"] = {
     let joinButton = page.querySelector(".jModal .largeButton[join]");
 
     page.querySelector(".jLogo").addEventListener("click", function(e) {
-      setFrame("pages/dashboard");
+      setFrame("pages/launch");
       e.preventDefault();
     });
 

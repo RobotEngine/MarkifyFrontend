@@ -54,127 +54,7 @@ modules["pages/launch"] = {
       <button style="--themeColor: 52, 193, 114">Science</button>
       <button style="--themeColor: 255, 185, 56">History</button>
     </div>
-    <div class="lUsecaseTiles">
-      <button class="lUsecaseTile" column>
-        <div class="lTileTitle">Classwide Reading & Annotating</div>
-        <div class="lTileImageHolder">
-          <img src="./images/launch/usecases/reading.png">
-        </div>
-      </button>
-      <button class="lUsecaseTile" column>
-        <div class="lTileTitle">Study & Review Sessions</div>
-        <div class="lTileImageHolder">
-          <img src="./images/launch/usecases/study.png">
-        </div>
-      </button>
-      <button class="lUsecaseTile" row>
-        <div class="lUsecaseTileInfo">
-          <div class="lTileTitle">Socratic Seminar</div>
-          <div class="lTileDesc">Empower students to contribute not just through speech, but with annotations streamed to everyone around the room.</div>
-        </div>
-        <div class="lTileImageHolder">
-          <img src="./images/launch/usecases/socratic.png">
-        </div>
-      </button>
-      <button class="lUsecaseTile" column>
-        <div class="lTileTitle">Essay & Project Presenting</div>
-        <div class="lTileImageHolder">
-          <img src="./images/launch/usecases/present.png">
-        </div>
-      </button>
-      <div class="lUsecaseMiniTiles">
-        <button class="lUsecaseTile" column>
-          <div class="lTileTitle">Flexible Mobility</div>
-        </button>
-        <button class="lUsecaseTile" column>
-          <div class="lTileTitle">Group Collaboration</div>
-        </button>
-      </div>
-
-      <button class="lUsecaseTile" row>
-        <div class="lUsecaseTileInfo">
-          <div class="lTileTitle">Lectures & Note-taking</div>
-          <div class="lTileDesc">Give students the flexibility to see the notes and materials on their own device where they can review missed content.</div>
-        </div>
-        <div class="lTileImageHolder">
-          <img src="./images/launch/usecases/notetaking.png">
-        </div>
-      </button>
-      <button class="lUsecaseTile" column>
-        <div class="lTileTitle">Study & Review Problems</div>
-        <div class="lTileImageHolder">
-          <img src="./images/launch/usecases/study.png">
-        </div>
-      </button>
-      <button class="lUsecaseTile" column>
-        <div class="lTileTitle">Unlimited Canvas</div>
-        <div class="lTileImageHolder">
-          <img src="./images/launch/usecases/whiteboarding.png">
-        </div>
-      </button>
-      <button class="lUsecaseTile" column>
-        <div class="lTileTitle">Teaching Mobility</div>
-        <div class="lTileImageHolder">
-          <img src="./images/launch/usecases/mobility.png">
-        </div>
-      </button>
-      <button class="lUsecaseTile" column>
-        <div class="lTileTitle">Group Collaboration</div>
-        <div class="lTileImageHolder">
-          <img src="./images/launch/usecases/group.png">
-        </div>
-      </button>
-
-      <button class="lUsecaseTile" column>
-        <div class="lTileTitle">Shared Whiteboarding</div>
-        <div class="lTileImageHolder">
-          <img src="./images/launch/usecases/shared.png">
-        </div>
-      </button>
-      <button class="lUsecaseTile" column>
-        <div class="lTileTitle">Lectures & Note-taking</div>
-        <div class="lTileImageHolder">
-          <img src="./images/launch/usecases/notetaking.png">
-        </div>
-      </button>
-      <button class="lUsecaseTile" column>
-        <div class="lTileTitle">Shared Lab Reports</div>
-        <div class="lTileImageHolder">
-          <img src="./images/launch/usecases/report.png">
-        </div>
-      </button>
-      <button class="lUsecaseTile" column>
-        <div class="lTileTitle">Station Materials</div>
-        <div class="lTileImageHolder">
-          <img src="./images/launch/usecases/stations.png">
-        </div>
-      </button>
-
-      <button class="lUsecaseTile" column>
-        <div class="lTileTitle">Lectures & Note-taking</div>
-        <div class="lTileImageHolder">
-          <img src="./images/launch/usecases/notetaking.png">
-        </div>
-      </button>
-      <button class="lUsecaseTile" column>
-        <div class="lTileTitle">Primary Source Annotating</div>
-        <div class="lTileImageHolder">
-          <img src="./images/launch/usecases/source.png">
-        </div>
-      </button>
-      <button class="lUsecaseTile" column>
-        <div class="lTileTitle">Classroom Activities</div>
-        <div class="lTileImageHolder">
-          <img src="./images/launch/usecases/activity.png">
-        </div>
-      </button>
-      <button class="lUsecaseTile" column>
-        <div class="lTileTitle">Group Project Creation</div>
-        <div class="lTileImageHolder">
-          <img src="./images/launch/usecases/group.png">
-        </div>
-      </button>
-    </div>
+    <div class="lUsecaseTiles"></div>
   </div>
   `,
   css: {
@@ -212,13 +92,13 @@ modules["pages/launch"] = {
     ".lHistoryDots button": `width: 16px; height: 16px; margin: 4px; background: var(--secondary); border-radius: 8px`,
     ".lHistoryDots button[selected]": `width: 32px; background: var(--theme)`,
     ".lHistoryStuck .lSpacer": `height: 130.5px`,
-    ".lUsecaseToolbar": `position: sticky; box-sizing: border-box; display: none; flex-wrap: wrap; top: 24px; margin: 24px 0; width: calc(100% - 48px); max-width: 600px; padding: 6px; background: rgba(var(--background), .9); backdrop-filter: blur(4px); box-shadow: var(--blueShadow); border-radius: 37px; z-index: 10`,
+    ".lUsecaseToolbar": `position: sticky; box-sizing: border-box; display: flex; flex-wrap: wrap; top: 24px; margin: 24px 0; width: calc(100% - 48px); max-width: 600px; padding: 6px; background: rgba(var(--background), .9); backdrop-filter: blur(4px); box-shadow: var(--blueShadow); border-radius: 37px; z-index: 10`,
     ".lUsecaseToolbar button": `flex: 1 1 130px; padding: 8px 16px; margin: 6px; border-radius: 25px; color: rgb(var(--themeColor)); font-size: 20px; font-weight: 700; transition: .2s`,
     ".lUsecaseToolbar button:hover": `background: rgba(var(--themeColor), .3); transform: scale(1.03)`,
     ".lUsecaseToolbar button[selected]": `background: rgba(var(--themeColor), 1); color: #fff`,
     
-    ".lUsecaseTiles": `--themeColor: 0, 132, 255; display: flex; flex-wrap: wrap; width: calc(100% - 32px); max-width: 748px; margin: 12px; justify-content: center`,
-    ".lUsecaseTile": `display: flex; width: 350px; max-width: calc(100% - 24px); height: 350px; padding: 8px; margin: 12px; background: #fff; box-shadow: 0px 0px 8px rgba(var(--themeColor), .4); border-radius: 20px; overflow: hidden; justify-content: center; align-items: center`,
+    ".lUsecaseTiles": `display: flex; flex-wrap: wrap; width: calc(100% - 32px); max-width: 748px; margin: 12px; justify-content: center`,
+    ".lUsecaseTile": `display: flex; width: 350px; max-width: calc(100% - 24px); height: 350px; padding: 8px; margin: 12px; background: #fff; box-shadow: 0px 0px 8px rgba(var(--themeColor), .4); border-radius: 20px; overflow: hidden; justify-content: center; align-items: center; transform: scale(.8); opacity: 0; transition: cubic-bezier(0.175, 0.885, 0.32, 1.275) .3s`,
     ".lUsecaseTile[column]": `flex-direction: column`,
     ".lUsecaseTile[row]": `width: 724px; height: fit-content; min-height: 350px; flex-wrap: wrap`,
     ".lUsecaseTileInfo": `box-sizing: border-box; flex: 1 1 350px; height: 100%; padding: 0 24px 0 12px; text-align: left`,
@@ -309,6 +189,155 @@ modules["pages/launch"] = {
       let section = sections[[...dotButtons.children].indexOf(target)];
       window.scrollTo({ top: window.scrollY + historySection.getBoundingClientRect().bottom - (((section.scroll || section.percent) + .1) * historySection.clientHeight), behavior: "smooth" });
     });
+
+    // SECTION 3 | Use Cases
+    let usecases = {
+      english: [
+        {
+          name: "Classwide Reading & Annotating",
+          image: "./images/launch/usecases/reading.png"
+        },
+        {
+          name: "Study & Review Sessions",
+          image: "./images/launch/usecases/study.png"
+        },
+        {
+          name: "Socratic Seminar",
+          desc: "Empower students to contribute not just through speech, but with annotations streamed to everyone around the room.",
+          image: "./images/launch/usecases/socratic.png"
+        },
+        {
+          name: "Essay & Project Presenting",
+          image: "./images/launch/usecases/present.png"
+        },
+        {
+          name: "Flexible Mobility",
+          half: true
+        },
+        {
+          name: "Group Collaboration",
+          half: true
+        }
+      ],
+      math: [
+        {
+          name: "Lectures & Note-taking",
+          desc: "Give students the flexibility to see the notes and materials on their own device where they can review missed content.",
+          image: "./images/launch/usecases/reading.png"
+        },
+        {
+          name: "Study & Review Sessions",
+          image: "./images/launch/usecases/study.png"
+        },
+        {
+          name: "Unlimited Canvas",
+          image: "./images/launch/usecases/whiteboarding.png"
+        },
+        {
+          name: "Teaching Mobility",
+          image: "./images/launch/usecases/mobility.png"
+        },
+        {
+          name: "Group Collaboration",
+          image: "./images/launch/usecases/group.png"
+        }
+      ],
+      science: [
+        {
+          name: "Shared Whiteboarding",
+          image: "./images/launch/usecases/shared.png"
+        },
+        {
+          name: "Lectures & Note-taking",
+          image: "./images/launch/usecases/notetaking.png"
+        },
+        {
+          name: "Shared Lab Reports",
+          image: "./images/launch/usecases/report.png"
+        },
+        {
+          name: "Station Materials",
+          image: "./images/launch/usecases/stations.png"
+        }
+      ],
+      history: [
+        {
+          name: "Lectures & Note-taking",
+          image: "./images/launch/usecases/notetaking.png"
+        },
+        {
+          name: "Primary Source Annotating",
+          image: "./images/launch/usecases/source.png"
+        },
+        {
+          name: "Classroom Activities",
+          image: "./images/launch/usecases/activity.png"
+        },
+        {
+          name: "Group Projects",
+          image: "./images/launch/usecases/group.png"
+        }
+      ]
+    };
+    let sectionHolder = page.querySelector(".lUsecaseTiles");
+    function setUseCaseTiles(section, color) {
+      sectionHolder.innerHTML = "";
+      sectionHolder.style.setProperty("--themeColor", color);
+      let gottenSection = usecases[section];
+      for (let i = 0; i < gottenSection.length; i++) {
+        let addUse = gottenSection[i];
+        let addTileHTML = `<button class="lUsecaseTile" column new>
+          <div class="lTileTitle"></div>
+          <div class="lTileImageHolder">
+            <img>
+          </div>
+        </button>`;
+        let parent = sectionHolder;
+        if (addUse.desc != null) {
+          addTileHTML = `<button class="lUsecaseTile" row new>
+            <div class="lUsecaseTileInfo">
+              <div class="lTileTitle"></div>
+              <div class="lTileDesc"></div>
+            </div>
+            <div class="lTileImageHolder">
+              <img>
+            </div>
+          </button>`;
+        } else if (addUse.half == true) {
+          if (sectionHolder.querySelector(".lUsecaseMiniTiles") == null) {
+            parent.insertAdjacentHTML("beforeend", `<div class="lUsecaseMiniTiles"></div>`);
+          }
+          parent = sectionHolder.querySelector(".lUsecaseMiniTiles");
+        }
+        parent.insertAdjacentHTML("beforeend", addTileHTML);
+        let newTile = sectionHolder.querySelector(".lUsecaseTile[new]");
+        newTile.removeAttribute("new");
+        newTile.querySelector(".lTileTitle").textContent = addUse.name;
+        if (addUse.desc != null) {
+          newTile.querySelector(".lTileDesc").textContent = addUse.desc;
+        }
+        if (addUse.half != true) {
+          newTile.querySelector(".lTileImageHolder img").src = addUse.image;
+        } else {
+          newTile.querySelector(".lTileImageHolder").remove();
+        }
+        newTile.offsetHeight;
+        newTile.style.transform = "scale(1)";
+        newTile.style.opacity = 1;
+      }
+    }
+    let usecaseToolbar = page.querySelector(".lUsecaseToolbar");
+    usecaseToolbar.addEventListener("click", function(event) {
+      let button = event.target.closest("button");
+      if (button == null) {
+        return;
+      }
+      usecaseToolbar.querySelector("button[selected]").removeAttribute("selected");
+      setUseCaseTiles(button.textContent.toLowerCase(), window.getComputedStyle(button).getPropertyValue("--themeColor"));
+      button.setAttribute("selected", "");
+      window.scrollTo({ top: window.scrollY + sectionHolder.getBoundingClientRect().top - usecaseToolbar.clientHeight - 60, behavior: "smooth" });
+    });
+    setUseCaseTiles("english", "0, 132, 255");
 
     // Handle Events:
     let sectionElements = page.querySelectorAll(".lSection");

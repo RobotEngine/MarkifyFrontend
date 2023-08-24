@@ -222,7 +222,7 @@ modules["pages/launch"] = {
       math: [
         {
           name: "Lectures & Note-taking",
-          desc: "Give students the flexibility to see the notes and materials on their own device where they can review missed content.",
+          desc: "Give students the flexibility to see the notes and materials on their own device, where they can review missed content.",
           image: "./images/launch/usecases/reading.png"
         },
         {

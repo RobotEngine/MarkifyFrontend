@@ -117,6 +117,8 @@ async function setFrame(path, frame, extra) {
             continue;
           }
           remContent.style.opacity = 0;
+          remContent.style.left = "0px";
+          remContent.style.top = "0px";
           remContent.style.position = "absolute";
         }
         //frameSet.innerHTML = "";

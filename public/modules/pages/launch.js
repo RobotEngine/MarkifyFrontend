@@ -18,9 +18,9 @@ modules["pages/launch"] = {
         </div>
       </div>
       <div class="lHeaderSlogan"><b>Collaboration</b> across the <b>Classroom</b></div>
-      <div class="lHeaderSummary">Bring your classroom's whiteboard around the room with Markify! Stream annotations to student's devices to see up close and review.</div>
+      <div class="lHeaderSummary">Stream a shared whiteboard to student's devices to see up close and review. All with effective tools which aren't overwhelming or confusing to students.</div>
       <div class="lHeaderActions">
-        <button class="lOpen largeButton" openpage="editor">Open Markify</button>
+        <button class="lOpen largeButton" openpage="editor" disabled>Coming Soon</button>
         <button class="lJoin largeButton" openpage="join">Join Lesson<img src="./images/tooltips/link.svg"></button>
       </div>
       <img class="lHeaderSplash" src="./images/launch/showcase.png">
@@ -49,10 +49,33 @@ modules["pages/launch"] = {
   <div class="lSection" usecase backdrop="dots" maxopacity="1">
     <div class="lTitle">How <b>Markify</b> revolutionizes the <b>Classroom</b></div>
     <div class="lUsecaseToolbar">
-      <button selected style="--themeColor: var(--theme)">English</button>
-      <button style="--themeColor: var(--error)">Math</button>
-      <button style="--themeColor: var(--green)">Science</button>
-      <button style="--themeColor: var(--yellow)">History</button>
+      <button selected style="--themeColor: 0, 132, 255">English</button>
+      <button style="--themeColor: 255, 61, 100">Math</button>
+      <button style="--themeColor: 52, 193, 114">Science</button>
+      <button style="--themeColor: 255, 185, 56">History</button>
+    </div>
+    <div class="lUsecaseTiles">
+      <button class="lUsecaseTile" style="grid-column: auto/span 1; grid-row: auto/span 2" column>
+        <div class="lTileTitle">Classwide Reading</div>
+        <div class="lTileDesc">Read and annotate with your class!</div>
+        <div class="lTileImageHolder">
+          <img src="./images/launch/history/markify.jpg">
+        </div>
+      </button>
+      <button class="lUsecaseTile" style="grid-column: auto/span 1; grid-row: auto/span 2" column>
+        <div class="lTileTitle">Essay & Project Sharing</div>
+        <div class="lTileDesc">Read and annotate with your class!</div>
+        <div class="lTileImageHolder">
+          <img src="./images/launch/history/markify.jpg">
+        </div>
+      </button>
+      <button class="lUsecaseTile" style="grid-column: auto/span 2; grid-row: auto/span 2" column>
+        <div class="lTileTitle">Essay & Project Sharing</div>
+        <div class="lTileDesc">Read and annotate with your class!</div>
+        <div class="lTileImageHolder">
+          <img src="./images/launch/history/markify.jpg">
+        </div>
+      </button>
     </div>
   </div>
   `,
@@ -70,7 +93,7 @@ modules["pages/launch"] = {
     ".lHeaderLogo": `box-sizing: border-box; width: 100%; max-width: 350px; padding: 24px`,
     ".lHeaderSlogan": `margin-top: 16px; font-size: 35px; line-height: 55px`,
     ".lHeaderSlogan b": `color: var(--theme); font-size: 45px; font-weight: 700`,
-    ".lHeaderSummary": `max-width: 650px; margin-top: 24px`,
+    ".lHeaderSummary": `max-width: 700px; margin-top: 24px`,
     ".lHeaderActions": `display: flex; flex-wrap: wrap; gap: 24px; margin-top: 40px; justify-content: center`,
     ".lOpen": `background: var(--theme); --borderRadius: 20.25px; color: #fff`,
     ".lJoin": `background: #fff; --borderRadius: 20.25px; color: var(--secondary)`,
@@ -92,10 +115,18 @@ modules["pages/launch"] = {
     ".lHistoryDots button[selected]": `width: 32px; background: var(--theme)`,
     ".lHistoryStuck .lSpacer": `height: 130.5px`,
 
-    ".lUsecaseToolbar": `position: sticky; box-sizing: border-box; display: flex; flex-wrap: wrap; top: 24px; margin: 24px 0; width: calc(100% - 24px); max-width: 600px; padding: 6px; background: rgba(var(--background), .7); backdrop-filter: blur(4px); box-shadow: var(--blueShadow); border-radius: 37px`,
-    ".lUsecaseToolbar button": `background: rgba(red(var(--themeColor)), green(var(--themeColor)), blue(var(--themeColor)), .6); flex: 1 1 130px; padding: 8px 16px; margin: 6px; border-radius: 25px; color: var(--themeColor); font-size: 20px; font-weight: 700; transition: .2s`,
-    ".lUsecaseToolbar button:hover": `background: var(--hover); color: var(--textColor); transform: scale(1.03)`,
-    ".lUsecaseToolbar button[selected]": `background: var(--themeColor); color: #fff`
+    ".lUsecaseToolbar": `position: sticky; box-sizing: border-box; display: flex; flex-wrap: wrap; top: 24px; margin: 24px 0; width: calc(100% - 48px); max-width: 600px; padding: 6px; background: rgba(var(--background), .7); backdrop-filter: blur(4px); box-shadow: var(--blueShadow); border-radius: 37px; z-index: 10`,
+    ".lUsecaseToolbar button": `flex: 1 1 130px; padding: 8px 16px; margin: 6px; border-radius: 25px; color: rgb(var(--themeColor)); font-size: 20px; font-weight: 700; transition: .2s`,
+    ".lUsecaseToolbar button:hover": `background: rgba(var(--themeColor), .3); transform: scale(1.03)`,
+    ".lUsecaseToolbar button[selected]": `background: rgba(var(--themeColor), 1); color: #fff`,
+    ".lUsecaseTiles": `--themeColor: 52, 193, 114; display: grid; width: calc(100% - 32px); max-width: 820px; margin: 24px; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); grid-auto-rows: 175px; grid-column-gap: 24px; column-gap: 24px; grid-row-gap: 24px; row-gap: 24px; justify-content: center`,
+    ".lUsecaseTile": `display: flex; padding: 8px; background: #fff; box-shadow: 0px 0px 8px rgba(var(--themeColor), .4); border-radius: 20px; overflow: hidden; justify-content: center; align-items: center`,
+    ".lUsecaseTile[column]": `flex-direction: column`,
+    ".lUsecaseTile:hover": `box-shadow: 0px 0px 24px rgba(var(--themeColor), .4)`,
+    ".lTileTitle": `width: 100%; margin-top: 16px; color: rgb(var(--themeColor)); font-size: 26px; font-weight: 700`,
+    ".lTileDesc": `width: 100%; margin: 6px 0 12px; font-size: 16px; font-weight: 500`,
+    ".lTileImageHolder": `position: relative; width: 100%; height: 100%`,
+    ".lTileImageHolder img": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; border-radius: 12px`
   },
   js: async function (page) {
     // SECTION 2 | History
@@ -125,7 +156,7 @@ modules["pages/launch"] = {
         name: "markify",
         title: "Introducing <b>Markify</b>",
         desc: "Markify aims to solve these shortcomings by not just being a digital whiteboard tool, but a real-time platform where anything written gets streamed to students.</br></br>Students can see the document up close and see any notes they may have missed.",
-        image: "./images/launch/history/markify.jpg",
+        image: "./images/launch/history/markify.png",
         rotate: 3
       }
     ];
@@ -177,10 +208,23 @@ modules["pages/launch"] = {
       window.scrollTo({ top: window.scrollY + historySection.getBoundingClientRect().bottom - (((section.scroll || section.percent) + .1) * historySection.clientHeight), behavior: "smooth" });
     });
 
+    // Do Grid Tiles:
+    let gridHolder = page.querySelector(".lUsecaseTiles");
+    function updateGrid() {
+      return;
+      console.log(gridHolder.clientWidth)
+      if (gridHolder.clientWidth < 772) {
+        gridHolder.style.gridTemplateColumns = "1fr";
+      } else {
+        gridHolder.style.gridTemplateColumns = "unset";
+      }
+    }
+
     // Handle Events:
     let sectionElements = page.querySelectorAll(".lSection");
     function updateSections() {
       updateHistory();
+      updateGrid();
 
       // Handle Backdrop:
       let setBackdrops = {};

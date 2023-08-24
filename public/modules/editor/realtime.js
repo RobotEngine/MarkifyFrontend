@@ -729,7 +729,7 @@ modules["dropdowns/editor/members"] = {
     tempListen(window, "resize", updateDropdownPosition);
     frame.closest(".dropdownContent").addEventListener("scroll", updateDropdownPosition);
     let closeDropdown = async () => {
-      if (memberFrameHolder == null) {
+      if (memberFrameHolder == null || dropdownButton == null) {
         return;
       }
       dropdownButton.removeAttribute("selected");

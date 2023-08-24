@@ -96,7 +96,6 @@ modules["pages/launch"] = {
     ".lUsecaseToolbar button": `flex: 1 1 130px; padding: 8px 16px; margin: 6px; border-radius: 25px; color: rgb(var(--themeColor)); font-size: 20px; font-weight: 700; transition: .2s`,
     ".lUsecaseToolbar button:hover": `background: rgba(var(--themeColor), .3); transform: scale(1.03)`,
     ".lUsecaseToolbar button[selected]": `background: rgba(var(--themeColor), 1); color: #fff`,
-    
     ".lUsecaseTiles": `display: flex; flex-wrap: wrap; width: calc(100% - 32px); max-width: 748px; margin: 12px; justify-content: center`,
     ".lUsecaseTile": `display: flex; width: 350px; max-width: calc(100% - 24px); height: 350px; padding: 8px; margin: 12px; background: #fff; box-shadow: 0px 0px 8px rgba(var(--themeColor), .4); border-radius: 20px; overflow: hidden; justify-content: center; align-items: center; transform: scale(.8); opacity: 0; transition: cubic-bezier(0.175, 0.885, 0.32, 1.275) .3s`,
     ".lUsecaseTile[column]": `flex-direction: column`,
@@ -338,6 +337,14 @@ modules["pages/launch"] = {
       window.scrollTo({ top: window.scrollY + sectionHolder.getBoundingClientRect().top - usecaseToolbar.clientHeight - 60, behavior: "smooth" });
     });
     setUseCaseTiles("english", "0, 132, 255");
+    let usecaseModal = page.querySelector(".lUsecaseModal");
+    sectionHolder.addEventListener("click", function(event) {
+      let button = event.target.closest(".lUsecaseTile");
+      if (button == null) {
+        return;
+      }
+      
+    });
 
     // Handle Events:
     let sectionElements = page.querySelectorAll(".lSection");

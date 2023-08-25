@@ -133,6 +133,29 @@ modules["pages/launch"] = {
       </div>
     </div>
   </div>
+  <div class="lSection" footer backdrop="center">
+    <div class="lFooterPromote">
+      <img class="lFooterBackdrop" left src="./images/launch/lighticon.svg">
+      <img class="lFooterBackdrop" right src="./images/launch/lighticon.svg">
+      <div class="dFooterHolder" style="min-height: 300px">
+        <div div class="lFooterTitle">Modernize the whiteboard,</br><b>with Markify</b></div>
+        <div div class="lFooterFree">Get started for <b>FREE</b></div>
+      </div>
+      <div class="dFooterHolder" style="min-height: 125px">
+        <button class="lOpen largeButton" openpage="editor" disabled>Create a Lesson</button>
+      </div>
+    </div>
+    <div class="lFooterFooter">
+      <div class="lFooterCompany">
+        <img class="lFooterLogo" src="./images/logowhite.svg">
+        <a class="lFooterCopyright" href="https://exotek.co" target="_blank">©2023 Exotek LLC</a>
+      </div>
+      <div class="lFooterPolicies">
+        <a href="https://exotek.co/tos">Terms of Use</a>
+        <a href="https://exotek.co/privacy">Privacy Policy</a>
+      </div>
+    </div>
+  </div>
   `,
   css: {
     ".lSection": `display: flex; flex-direction: column; margin: 5vh 0; align-items: center; --blueShadow: 0px 0px 24px var(--hover)`,
@@ -207,7 +230,24 @@ modules["pages/launch"] = {
     ".lFeature": `display: flex; flex-direction: column; width: 340px; max-width: calc(100% - 16px); margin: 8px 8px 60px 8px; align-items: center`,
     ".lFeature img": `width: 80px; height: 80px`,
     ".lFeature div[title]": `margin-top: 12px; color: var(--theme); font-size: 26px; font-weight: 700`,
-    ".lFeature div[desc]": `margin-top: 8px; line-height: 24px`
+    ".lFeature div[desc]": `margin-top: 8px; line-height: 24px`,
+
+    ".lFooterPromote": `position: relative; box-sizing: border-box; display: flex; flex-wrap: wrap; width: calc(100% - 24px); max-width: 700px; padding: 12px; margin-top: 60px; overflow: hidden; background: var(--theme); border-radius: 24px`,
+    ".lFooterBackdrop": `position: absolute; width: 400px; height: 400px`,
+    ".lFooterBackdrop[left]": `left: -100px; top: -70px; transform: rotate(-15deg)`,
+    ".lFooterBackdrop[right]": `left: 384px; bottom: -125px; transform: rotate(-70deg)`,
+    ".dFooterHolder": `display: flex; flex-direction: column; flex: 1 1 338px; z-index: 1; align-items: center; justify-content: center`,
+    ".lFooterTitle": `margin: 12px; color: #fff; font-size: 32px; font-weight: 700; line-height: 50px; text-align: left`,
+    ".lFooterTitle b": `font-size: 46px; font-weight: 800; line-height: 70px`,
+    ".lFooterFree": `margin-top: 24px; color: #fff; font-size: 18px; font-weight: 600`,
+    ".lFooterFree b": `font-weight: 700`,
+    ".dFooterHolder button": `box-shadow: 0px 0px 24px rgb(0, 0, 0, .4);`,
+    ".lFooterFooter": `position: relative; box-sizing: border-box; display: flex; flex-wrap: wrap; width: calc(100% - 24px); max-width: 700px; padding: 12px; margin-top: 200px; background: #000; border-radius: 24px`,
+    ".lFooterCompany": `display: flex; flex-direction: column; flex: 1; align-items: center; justify-content: center`,
+    ".lFooterLogo": `height: 70px`,
+    ".lFooterCopyright": `color: var(--secondary); text-decoration: none`,
+    ".lFooterPolicies": `display: flex; flex-wrap: wrap; flex: 1 1 300px; justify-content: space-around; align-items: center`,
+    ".lFooterPolicies a": `margin: 16px 24px; color: #fff; font-size: 20px; font-weight: 700; text-decoration: none`
   },
   js: async function (page) {
     // SECTION 2 | History

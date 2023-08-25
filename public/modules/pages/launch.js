@@ -151,8 +151,13 @@ modules["pages/launch"] = {
         <a class="lFooterCopyright" href="https://exotek.co" target="_blank">©2023 Exotek LLC</a>
       </div>
       <div class="lFooterPolicies">
-        <a href="https://exotek.co/tos">Terms of Use</a>
-        <a href="https://exotek.co/privacy">Privacy Policy</a>
+        <a href="https://exotek.co/tos" target="_blank">Terms</a>
+        <a href="https://exotek.co/privacy" target="_blank">Privacy</a>
+      </div>
+      <div class="lFooterSocials">
+        <a href="https://twitter.com/exotekco" target="_blank"><img src="./images/launch/socials/twitter.svg"></a>
+        <a href="https://www.linkedin.com/company/exotekco" target="_blank"><img src="./images/launch/socials/linkedin.svg"></a>
+        <a href="https://www.youtube.com/@exotekco" target="_blank"><img src="./images/launch/socials/youtube.svg"></a>
       </div>
     </div>
   </div>
@@ -242,12 +247,15 @@ modules["pages/launch"] = {
     ".lFooterFree": `margin-top: 24px; color: #fff; font-size: 18px; font-weight: 600`,
     ".lFooterFree b": `font-weight: 700`,
     ".dFooterHolder button": `box-shadow: 0px 0px 24px rgb(0, 0, 0, .4);`,
-    ".lFooterFooter": `position: relative; box-sizing: border-box; display: flex; flex-wrap: wrap; width: calc(100% - 24px); max-width: 700px; padding: 12px; margin-top: 200px; background: #000; border-radius: 24px`,
+    ".lFooterFooter": `position: relative; box-sizing: border-box; display: flex; flex-wrap: wrap; width: calc(100% - 24px); max-width: 700px; padding: 12px; margin-top: 24px; background: #000; border-radius: 24px; align-items: center`,
     ".lFooterCompany": `display: flex; flex-direction: column; flex: 1; align-items: center; justify-content: center`,
     ".lFooterLogo": `height: 70px`,
     ".lFooterCopyright": `color: var(--secondary); text-decoration: none`,
-    ".lFooterPolicies": `display: flex; flex-wrap: wrap; flex: 1 1 300px; justify-content: space-around; align-items: center`,
-    ".lFooterPolicies a": `margin: 16px 24px; color: #fff; font-size: 20px; font-weight: 700; text-decoration: none`
+    ".lFooterPolicies": `display: flex; flex-wrap: wrap; flex: 1 1 300px; justify-content: center; align-items: center`,
+    ".lFooterPolicies a": `margin: 16px; color: #fff; font-size: 20px; font-weight: 700; text-decoration: none`,
+    ".lFooterSocials": `display: flex; flex-wrap: wrap; height: fit-content; padding: 3px; background: #fff; border-radius: 12px`,
+    ".lFooterSocials a": `width: 30px; height: 30px; margin: 3px`,
+    ".lFooterSocials a img": `width: 100%; height: 100%`
   },
   js: async function (page) {
     // SECTION 2 | History

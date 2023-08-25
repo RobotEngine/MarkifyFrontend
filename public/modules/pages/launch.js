@@ -55,6 +55,18 @@ modules["pages/launch"] = {
       <button style="--themeColor: 255, 185, 56">History</button>
     </div>
     <div class="lUsecaseTiles"></div>
+    <div class="lUsecaseBackdrop"></div>
+    <div class="lUsecaseModal">
+      <img class="lModalBackdrop">
+      <div class="lUsecaseModalContent">
+        <div class="lUsecaseModalTop">
+          <div class="lUsecaseModalTitle"></div>
+          <button class="lUsecaseModalClose border"><img></button>
+        </div>
+        <div class="lUsecaseModalHTML"></div>
+        <img class="lUsecaseModalImage">
+      </div>
+    </div>
   </div>
   `,
   css: {
@@ -92,7 +104,7 @@ modules["pages/launch"] = {
     ".lHistoryDots button": `width: 16px; height: 16px; margin: 4px; background: var(--secondary); border-radius: 8px`,
     ".lHistoryDots button[selected]": `width: 32px; background: var(--theme)`,
     ".lHistoryStuck .lSpacer": `height: 130.5px`,
-    ".lUsecaseToolbar": `--themeColor: var(--theme); position: sticky; box-sizing: border-box; display: flex; flex-wrap: wrap; top: 24px; margin: 24px 0; width: calc(100% - 48px); max-width: 600px; padding: 6px; background: rgba(var(--background), .9); backdrop-filter: blur(4px); box-shadow: 0px 0px 12px rgba(var(--themeColor), .4); border-radius: 37px; z-index: 10`,
+    ".lUsecaseToolbar": `position: sticky; box-sizing: border-box; display: flex; flex-wrap: wrap; top: 24px; margin: 24px 0; width: calc(100% - 48px); max-width: 600px; padding: 6px; background: rgba(var(--background), .9); backdrop-filter: blur(4px); box-shadow: 0px 0px 12px rgba(var(--themeColor), .4); border-radius: 37px; z-index: 10`,
     ".lUsecaseToolbar button": `flex: 1 1 130px; padding: 8px 16px; margin: 6px; border-radius: 25px; color: rgb(var(--themeColor)); font-size: 20px; font-weight: 700; transition: .2s`,
     ".lUsecaseToolbar button:hover": `background: rgba(var(--themeColor), .3); transform: scale(1.03)`,
     ".lUsecaseToolbar button[selected]": `background: rgba(var(--themeColor), 1); color: #fff`,
@@ -108,7 +120,23 @@ modules["pages/launch"] = {
     ".lTileDesc": `width: 100%; margin-bottom: 16px; font-size: 16px; font-weight: 500`,
     ".lTileImageHolder": `position: relative; width: 100%; height: 100%`,
     ".lUsecaseTile[row] .lTileImageHolder": `width: unset; height: 334px; flex: 1 1 350px`,
-    ".lTileImageHolder img": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; border-radius: 12px`
+    ".lTileImageHolder img": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; border-radius: 12px`,
+
+    ".lUsecaseBackdrop": `position: fixed; width: 100%; height: 100%; left: 0px; top: 0px; background: rgba(var(--background), .5); backdrop-filter: blur(10px); z-index: 500; opacity: 0; pointer-events: none; transition: .5s`,
+    ".lUsecaseModal": `position: fixed; display: flex; overflow: hidden; border-radius: 20px; background: var(--pageColor); box-shadow: 0px 0px 8px rgba(var(--themeColor), .4); z-index: 501; justify-content: center; align-items: center`,
+    ".lUsecaseModalContent": `position: relative; box-sizing: border-box; width: calc(100vw - 24px); max-width: 500px; max-height: calc(100vh - 24px); padding: 16px; flex-shrink: 0; flex-grow: 0; overflow: auto`,
+    ".lModalBackdrop": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; opacity: .15`,
+    ".lUsecaseModalTop": `display: flex; justify-content: space-between`,
+    ".lUsecaseModalTitle": `flex: 1; margin-right: 16px; text-align: left; color: rgb(var(--themeColor)); font-size: 26px; font-weight: 700`,
+    ".lUsecaseModalClose": `position: relative; width: 28px; height: 28px; --borderWidth: 3px; --borderRadius: 12px; --borderColor: rgb(var(--themeColor))`,
+    ".lUsecaseModalClose:hover": `background: rgba(var(--themeColor), .2)`,
+    ".lUsecaseModalClose:active": `background: rgba(var(--themeColor), 0); --borderWidth: 4px; --borderColor: rgba(var(--themeColor), .35)`,
+    ".lUsecaseModalClose img": `position: absolute; width: calc(100% - 14px); height: calc(100% - 14px); left: 7px; top: 7px; opacity: .8`,
+    ".lUsecaseModalHTML": `margin-top: 16px; font-size: 16px; text-align: left; line-height: 22px`,
+    ".lUsecaseModalHTML u": `text-decoration: underline; font-weight: 500; text-decoration-color: rgb(var(--themeColor))`,
+    ".lUsecaseModalHTML a": `color: rgb(var(--themeColor)); font-weight: 700`,
+    ".lUsecaseModalHTML li": `margin: 8px 0px`,
+    ".lUsecaseModalImage": `margin-top: 16px; width: 100%; height: 200px; object-fit: cover; border-radius: 16px 16px 8px 8px`
   },
   js: async function (page) {
     // SECTION 2 | History
@@ -194,87 +222,213 @@ modules["pages/launch"] = {
       english: [
         {
           name: "Classwide Reading & Annotating",
-          image: "./images/launch/usecases/reading.png"
+          image: "./images/launch/usecases/reading.png",
+          html: `Change how your class goes over new material in class! With Markify, you can <u>read and annotate as a class</u>, discussing key elements and <u>annotating together</u> rather than individually.
+          <ul>
+            <li>For instance, open a text by <u>uploading it as a PDF</u>.</li>
+            <li>Start a class by <u>presenting with a pin</u> and sharing it. Everyone in the class can then <u>join and see the text</u>!</li>
+            <li>Start the reading session, selecting students to read or letting them decide on their own.</li>
+            <li>As students read or discuss, you can optionally grant different students <u>temporary editing privileges</u> to annotate notes for <u>everyone to see</u>.</li>
+          </ul>`
         },
         {
           name: "Study & Review Sessions",
-          image: "./images/launch/usecases/study.png"
+          image: "./images/launch/usecases/study.png",
+          html: `Reviewing for quizzes and tests with individual study guides is so <i>old school!</i> Do it <u>collaboratively</u> across the class with Markify!
+          <ul>
+            <li>Create a study guide or series of questions and <u>import it into Markify</u>.</li>
+            <li>Start a class by <u>presenting with a pin</u> and sharing it. Everyone in the class can then join and see the material!</li>
+            <li>Work through the questions, letting students answer but also <u>annotate for everyone to see</u>.</li>
+            <li>Keep the pin active or <u>post the shared link</u>, allowing students to return to the lesson anytime! Students can review the material at home and <u>in their own style</u>.</li>
+          </ul>`
         },
         {
           name: "Socratic Seminar",
           desc: "Empower students to contribute not just through speech, but with annotations streamed to everyone around the room.",
-          image: "./images/launch/usecases/socratic.png"
+          image: "./images/launch/usecases/socratic.png",
+          html: `Socratic seminars are almost unanimous in English classes. However, why keep it fixed to Socrates's time period? With Markify, you can <u>bolster the conversation</u> with modern <u>real-time collaboration</u>!
+          <ul>
+            <li>Open your text by <u>uploading it as a PDF</u>.</li>
+            <li><u>Present with a pin</u> to share the lesson. Everyone in the class can then join to see the text!</li>
+            <li>Grant <u>temporary editing access</u> to all students who will be <u>discussing</u>.</li>
+            <li>Students can now not just talk, but engage with the document by <u>highlighting key elements</u>, <u>leaving comments</u>, and more.</li>
+            <li>Everyone in the class, regardless of being an editor, can see the document <u>including all of the changes made</u>.</li>
+          </ul>`
         },
         {
           name: "Essay & Project Presenting",
-          image: "./images/launch/usecases/present.png"
+          image: "./images/launch/usecases/present.png",
+          html: `Students can often understand and empathize more with an author when they can see their <u>writing up close</u>. Let students create essays or projects and <u>upload them into Markify</u>!
+          <ul>
+            <li>Create a Markify lesson and <u>share a generated pin or link</u> with the class.</li>
+            <li>Let students join and <u>grant them temporary editing access</u> to upload their essay. Alternatively, you could also upload essays or project PDFs yourself.</li>
+            <li>Remove student editing access afterward. When students are presenting or reading their work, the whole class (and you!) can <u>see their writing up close</u>.</li>
+          </ul>`
         },
         {
           name: "Flexible Mobility",
-          half: true
+          half: true,
+          html: `It's often limiting being bound to the front of the class lecturing. Use Markify to <u>break away and freely roam the classroom</u>!
+          <ul>
+            <li>Upon uploading and sharing a lesson with the class. You can open the lesson on a <u>portable laptop or tablet</u>.</li>
+            <li>If you want to preserve the front screen for students to look up at, you can <u>observe your portable's member</u> in the members list.</li>
+            <li>Freely <u>markup and annotate</u> the document for the <u>class to see</u>!</li>
+          </ul>`
         },
         {
           name: "Group Collaboration",
-          half: true
+          half: true,
+          html: `Improve <u>group collaboration</u> with an easy-to-share solution like Markify. Allow students to sign up and <u>create Markify lessons on their own</u>!
+          <ul>
+            <li>Have <u>group leaders</u> go to <a href="./" target="_blank">markifyapp.com</a> to sign up.</li>
+            <li>These students can then <u>upload a PDF</u>, such as a worksheet or text, or just create a <u>blank file</u>.</li>
+            <li>Group leaders can <u>share their lesson</u> to other members with <u>editing</u>, allowing for the <u>whole group to markup and create together</u>!</li>
+          </ul>`
         }
       ],
       math: [
         {
           name: "Lectures & Note-taking",
           desc: "Give students the flexibility to see the notes and materials on their own device, where they can review missed content.",
-          image: "./images/launch/usecases/reading.png"
+          image: "./images/launch/usecases/notetaking.png",
+          html: `Take classic note-taking lectures to the <u>21st century</u>! With Markify, fill out notes <u>digitally</u> and have them <i>magically sync</i> across the room for <u>students to see up close</u>.
+          <ul>
+            <li>To start, open your note sheet by <u>uploading it as a PDF</u>.</li>
+            <li>Start a class by <u>presenting with a pin</u> and sharing it. Everyone in the class can then join and <u>see the notes on their device</u>!</li>
+            <li>Begin the lecture, filling out notes on a <u>computer, tablet, or even smartboard</u>. Anything written gets shown <u>real-time to students on their device</u>, even your <u>mouse cursor</u>!</li>
+            <li>Optionally, let students <u>answer problems</u> by granting them <u>temporary editing access</u>.</li>
+            <li>Students can <u>navigate to any part of the notes</u>, so say goodbye to wasted time from a student <u>unable to write fast enough</u>!</li>
+          </ul>`
         },
         {
           name: "Study & Review Sessions",
-          image: "./images/launch/usecases/study.png"
+          image: "./images/launch/usecases/study.png",
+          html: `Reviewing for quizzes and tests with individual study guides is so <i>old school!</i> Do it <u>collaboratively</u> across the class with Markify!
+          <ul>
+            <li>Create a study guide or series of questions and <u>import it into Markify</u>.</li>
+            <li>Start a class by <u>presenting with a pin</u> and sharing it. Everyone in the class can then join and see the material!</li>
+            <li>Work through the questions, letting students <u>answer for everyone to see</u>.</li>
+            <li>Keep the pin active or <u>post the shared link</u>, allowing students to return to the lesson anytime! Students can review the material at home and <u>in their own style</u>.</li>
+          </ul>`
         },
         {
           name: "Unlimited Canvas",
-          image: "./images/launch/usecases/whiteboarding.png"
+          image: "./images/launch/usecases/whiteboarding.png",
+          html: `Classic whiteboards are limited with space; however, using Markify's <u>freeboard lesson type</u>, documents can be <u>endless</u>!
+          <ul>
+            <li>Create a <u>freeboard lesson</u> to have an endless <u>whiteboard</u>, but <u>digital</u>!</li>
+            <li>Write out long equations and concepts for students to see up close on <u>their device</u>. Students can <u>scroll and zoom</u> to navigate during <u>learning and reviewing</u>.</li>
+            <li>Optionally, allow students to <u>edit</u>, such as by having various students write out their homework problems for everyone to check with.</li>
+          </ul>`
         },
         {
           name: "Teaching Mobility",
-          image: "./images/launch/usecases/mobility.png"
+          image: "./images/launch/usecases/mobility.png",
+          html: `It's often limiting being bound to the front of the class lecturing. Use Markify to <u>break away and freely roam the classroom</u>!
+          <ul>
+            <li>Upon uploading and sharing a lesson with the class. You can open the lesson on a <u>portable laptop or tablet</u>.</li>
+            <li>If you want to preserve the front screen for students to look up at, you can <u>observe your portable's member</u> in the members list.</li>
+            <li>Freely <u>markup</u> the document for the <u>class to see</u>!</li>
+          </ul>`
         },
         {
           name: "Group Collaboration",
-          image: "./images/launch/usecases/group.png"
+          image: "./images/launch/usecases/group.png",
+          html: `Improve <u>group collaboration</u> with an easy-to-share solution like Markify. Allow students to sign up and <u>create Markify lessons on their own</u>!
+          <ul>
+            <li>Have <u>group leaders</u> go to <a href="./" target="_blank">markifyapp.com</a> to sign up.</li>
+            <li>These students can then <u>upload a PDF</u>, such as a worksheet, or just create a <u>blank file</u>.</li>
+            <li>Group leaders can <u>share their lesson</u> to other members with <u>editing</u>, allowing for the <u>whole group to markup and create together</u>!</li>
+          </ul>`
         }
       ],
       science: [
         {
           name: "Shared Whiteboarding",
-          image: "./images/launch/usecases/shared.png"
+          image: "./images/launch/usecases/shared.png",
+          html: `Classic whiteboards are limited with space; however, using Markify's <u>freeboard lesson type</u>, documents can be <u>endless</u>!
+          <ul>
+            <li>Create a <u>freeboard lesson</u> to have an endless <u>whiteboard</u>, but <u>digital</u>!</li>
+            <li>Write out long equations and concepts for students to see up close on <u>their device</u>. Students can <u>scroll and zoom</u> to navigate.</li>
+            <li><u>Preserve the content</u> by keeping the pin active or <u>posting the shared link</u> for students to return and review later on.</li>
+          </ul>`
         },
         {
           name: "Lectures & Note-taking",
-          image: "./images/launch/usecases/notetaking.png"
+          image: "./images/launch/usecases/notetaking.png",
+          html: `Take classic note-taking lectures to the <u>21st century</u>! With Markify, fill out notes <u>digitally</u> and have them <i>magically sync</i> across the room for <u>students to see up close</u>.
+          <ul>
+            <li>To start, open your note sheet by <u>uploading it as a PDF</u>.</li>
+            <li>Start a class by <u>presenting with a pin</u> and sharing it. Everyone in the class can then join and <u>see the notes on their device</u>!</li>
+            <li>Begin the lecture, filling out notes on a <u>computer, tablet, or even smartboard</u>. Anything written gets shown <u>real-time to students on their device</u>, even your <u>mouse cursor</u>!</li>
+            <li>Optionally, let students <u>answer problems</u> by granting them <u>temporary editing access</u>.</li>
+            <li>Students can <u>navigate to any part of the notes</u>, so say goodbye to wasted time from a student <u>unable to write fast enough</u>!</li>
+          </ul>`
         },
         {
           name: "Shared Lab Reports",
-          image: "./images/launch/usecases/report.png"
+          image: "./images/launch/usecases/report.png",
+          html: `Allow students to better <u>collaborate during experiments</u> with Markify!
+          <ul>
+            <li>Have students go to <a href="./" target="_blank">markifyapp.com</a> to sign up.</li>
+            <li>Students can then <u>upload a PDF</u>, such as a lab report packet, or just create a blank file.</li>
+            <li>Have students <u>share their file with lab partners</u>, allowing everyone to <u>work together on the same document</u>!</li>
+          </ul>`
         },
         {
           name: "Station Materials",
-          image: "./images/launch/usecases/stations.png"
+          image: "./images/launch/usecases/stations.png",
+          html: `Easily <u>distribute materials</u> to stations around the classroom for students to look at and review with.
+          <ul>
+            <li>Create a <u>PDF containing the resources</u> for the stations, such as instructions, examples, and labs.</li>
+            <li>Open this <u>PDF in Markify</u> and <u>share it with a computer placed at each station</u>, allowing students to easily look through it without the hassle of printing paper.</li>
+            <li>Share the lesson through a <u>pin or link</u>, allowing students to <u>review or catch up</u> if they missed the stations.</li>
+          </ul>`
         }
       ],
       history: [
         {
           name: "Lectures & Note-taking",
-          image: "./images/launch/usecases/notetaking.png"
+          image: "./images/launch/usecases/notetaking.png",
+          html: `Take classic note-taking lectures to the <u>21st century</u>! With Markify, fill out notes <u>digitally</u> and have them <i>magically sync</i> across the room for <u>students to see up close</u>.
+          <ul>
+            <li>To start, open your note sheet by <u>uploading it as a PDF</u>.</li>
+            <li>Start a class by <u>presenting with a pin</u> and sharing it. Everyone in the class can then join and <u>see the notes on their device</u>!</li>
+            <li>Begin the lecture, filling out notes on a <u>computer, tablet, or even smartboard</u>. Anything written gets shown <u>real-time to students on their device</u>, even your <u>mouse cursor</u>!</li>
+            <li>Optionally, let students <u>answer questions</u> by granting them <u>temporary editing access</u>.</li>
+            <li>Students can <u>navigate to any part of the notes</u>, so say goodbye to wasted time from a student <u>unable to write fast enough</u>!</li>
+          </ul>`
         },
         {
           name: "Primary Source Annotating",
-          image: "./images/launch/usecases/source.png"
+          image: "./images/launch/usecases/source.png",
+          html: `Change how your class goes over material in class! With Markify, you can <u>read and annotate as a class</u>, discussing key elements and <u>annotating together</u> rather than individually.
+          <ul>
+            <li>For instance, open a text by <u>uploading it as a PDF</u>.</li>
+            <li>Start a class by <u>presenting with a pin</u> and sharing it. Everyone in the class can then <u>join and see the text</u>!</li>
+            <li>Start the reading session, selecting students to read or letting them decide on their own.</li>
+            <li>As students read or discuss, you can optionally grant different students <u>temporary editing privileges</u> to annotate notes for <u>everyone to see</u>.</li>
+          </ul>`
         },
         {
           name: "Classroom Activities",
-          image: "./images/launch/usecases/activity.png"
+          image: "./images/launch/usecases/activity.png",
+          html: `Easily <u>distribute materials</u> to activities around the classroom for students to look at and review with.
+          <ul>
+            <li>Create a <u>PDF containing the resources</u> for the activities, such as instructions and primary sources.</li>
+            <li>Open this <u>PDF in Markify</u> and <u>share it with a computer placed at each activity</u>, allowing students to easily look through it without the hassle of printing paper.</li>
+            <li>Share the lesson through a <u>pin or link</u>, allowing students to <u>review or catch up</u> if they missed the activity.</li>
+          </ul>`
         },
         {
           name: "Group Projects",
-          image: "./images/launch/usecases/group.png"
+          image: "./images/launch/usecases/group.png",
+          html: `Improve <u>group collaboration</u> with an easy-to-share solution like Markify. Allow students to sign up and <u>create Markify lessons on their own</u>!
+          <ul>
+            <li>Have <u>group leaders</u> go to <a href="./" target="_blank">markifyapp.com</a> to sign up.</li>
+            <li>These students can then <u>upload a PDF</u>, such as a worksheet, or just create a <u>blank file</u>.</li>
+            <li>Group leaders can <u>share their lesson</u> to other members with <u>editing</u>, allowing for the <u>whole group to markup and create together</u>!</li>
+          </ul>`
         }
       ]
     };
@@ -313,6 +467,8 @@ modules["pages/launch"] = {
         parent.insertAdjacentHTML("beforeend", addTileHTML);
         let newTile = sectionHolder.querySelector(".lUsecaseTile[new]");
         newTile.removeAttribute("new");
+        newTile.setAttribute("section", section);
+        newTile.setAttribute("index", i);
         newTile.querySelector(".lTileTitle").textContent = addUse.name;
         if (addUse.desc != null) {
           newTile.querySelector(".lTileDesc").textContent = addUse.desc;
@@ -338,14 +494,93 @@ modules["pages/launch"] = {
       window.scrollTo({ top: window.scrollY + sectionHolder.getBoundingClientRect().top - usecaseToolbar.clientHeight - 60, behavior: "smooth" });
     });
     setUseCaseTiles("english", "0, 132, 255");
+    let usecaseBackdrop = page.querySelector(".lUsecaseBackdrop");
     let usecaseModal = page.querySelector(".lUsecaseModal");
-    sectionHolder.addEventListener("click", function(event) {
+    let usecaseModalContent = usecaseModal.querySelector(".lUsecaseModalContent");
+    let modalClose = usecaseModalContent.querySelector(".lUsecaseModalClose");
+    let modalImg = usecaseModal.querySelector(".lUsecaseModalImage");
+    let lastClickedButton;
+    let modalOpen = false;
+    sectionHolder.addEventListener("click", async function(event) {
       let button = event.target.closest(".lUsecaseTile");
       if (button == null) {
         return;
       }
+      let clickTime = getEpoch().toString();
+      usecaseModal.setAttribute("clicked", clickTime);
+      usecaseModal.style.removeProperty("transition");
+      usecaseModal.style.transform = "translate(0%, 0%)";
+      usecaseModal.style.opacity = 0;
+      usecaseModal.style.width = button.clientWidth + "px";
+      usecaseModal.style.height = button.clientHeight + "px";
+      let buttonRect = button.getBoundingClientRect();
+      usecaseModal.style.left = buttonRect.left + "px";
+      usecaseModal.style.top = buttonRect.top + "px";
+      let themeColor = window.getComputedStyle(button).getPropertyValue("--themeColor");
+      usecaseModal.style.setProperty("--themeColor", themeColor);
       
+      let section = button.getAttribute("section");
+      let index = button.getAttribute("index");
+      lastClickedButton = section + "_" + index;
+      let info = usecases[section][parseInt(index)];
+      usecaseModal.querySelector(".lModalBackdrop").src = "./images/launch/usecases/backdrops/" + section + ".png";
+      usecaseModal.querySelector(".lUsecaseModalTitle").textContent = info.name;
+      modalClose.style.setProperty("--themeColor", themeColor);
+      modalClose.querySelector("img").src = "./images/launch/usecases/close/" + section + ".svg";
+      usecaseModal.querySelector(".lUsecaseModalHTML").innerHTML = info.html;
+      if (info.image != null) {
+        modalImg.src = info.image;
+        modalImg.style.display = "block";
+      } else {
+        modalImg.style.display = "none";
+      }
+
+      usecaseModal.offsetHeight;
+      usecaseModal.style.transition = ".5s";
+      usecaseModal.style.width = usecaseModalContent.clientWidth + "px";
+      usecaseModal.style.height = usecaseModalContent.clientHeight + "px";
+      usecaseModal.style.left = "50%";
+      usecaseModal.style.top = "50%";
+      usecaseModal.style.transform = "translate(-50%, -50%)";
+      usecaseModal.style.pointerEvents = "all";
+      usecaseModal.style.opacity = 1;
+      usecaseBackdrop.style.pointerEvents = "all";
+      usecaseBackdrop.style.opacity = 1;
+      if (usecaseModal.getAttribute("clicked") == clickTime) {
+        await sleep(500);
+        usecaseModal.style.width = "unset";
+        usecaseModal.style.height = "unset";
+        modalOpen = true;
+      }
     });
+    function closeModal() {
+      if (modalOpen == false) {
+        return;
+      }
+      modalOpen = false;
+      usecaseModal.style.pointerEvents = "none";
+      usecaseModal.style.opacity = 0;
+      usecaseBackdrop.style.pointerEvents = "none";
+      usecaseBackdrop.style.opacity = 0;
+      if (lastClickedButton != null) {
+        let split = lastClickedButton.split("_");
+        let button = sectionHolder.querySelector('.lUsecaseTile[section="' + split[0] + '"][index="' + split[1] + '"]');
+        if (button != null) {
+          usecaseModal.style.width = usecaseModal.clientWidth + "px";
+          usecaseModal.style.height = usecaseModal.clientHeight + "px";
+          usecaseModal.style.transform = "translate(0%, 0%)";
+          usecaseModal.style.width = button.clientWidth + "px";
+          usecaseModal.style.height = button.clientHeight + "px";
+          let buttonRect = button.getBoundingClientRect();
+          usecaseModal.style.left = buttonRect.left + "px";
+          usecaseModal.style.top = buttonRect.top + "px";
+          return;
+        }
+      }
+      usecaseModal.style.transform = "translate(-50%, -50%) scale(.4)";
+    }
+    usecaseBackdrop.addEventListener("mousedown", closeModal);
+    modalClose.addEventListener("click", closeModal);
 
     // Handle Events:
     let sectionElements = page.querySelectorAll(".lSection");

@@ -893,7 +893,7 @@ modules["alert"] = {
     ".alert img": `width: 32px; height: 32px; object-fit: cover; margin-right: 6px`,
     ".alertText": `display: flex; flex-wrap: wrap; flex: 1; align-items: center; text-align: left; font-size: 16px`,
     ".alertText b": `margin-right: 6px; color: var(--themeColor); font-size: 18px`,
-    ".alertClose": `position: relative; width: 22px; height: 22px; margin: 5px 5px 5px 12px; --borderWidth: 3px; --borderRadius: 14px`,
+    ".alertClose": `position: relative; width: 22px; height: 22px; margin: 5px 5px 5px 12px; --borderWidth: 3px; --borderRadius: 11px`,
     ".alertClose img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`
   },
   colors: {

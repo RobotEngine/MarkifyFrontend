@@ -181,7 +181,7 @@ modules["pages/launch"] = {
     ".lUsecaseTileInfo": `box-sizing: border-box; flex: 1 1 350px; height: 100%; padding: 0 24px 0 12px; text-align: left`,
     ".lUsecaseMiniTiles": `display: flex; flex-direction: column; max-width: 100%`,
     ".lUsecaseMiniTiles .lUsecaseTile": `height: 162px`,
-    ".lUsecaseTile:hover": `box-shadow: 0px 0px 24px rgba(var(--themeColor), .4)`,
+    ".lUsecaseTile:hover": `box-shadow: 0px 0px 24px rgba(var(--themeColor), .6)`,
     ".lTileTitle": `width: 100%; margin: 16px 0 12px; color: rgb(var(--themeColor)); font-size: 26px; font-weight: 700`,
     ".lTileDesc": `width: 100%; margin-bottom: 16px; font-size: 16px; font-weight: 500`,
     ".lTileImageHolder": `position: relative; width: 100%; height: 100%`,

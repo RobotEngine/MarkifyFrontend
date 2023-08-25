@@ -68,6 +68,71 @@ modules["pages/launch"] = {
       </div>
     </div>
   </div>
+  <div class="lSection" features backdrop="dots" maxopacity="1">
+    <div class="lTitle">Powerful <b>Features</b>, exceedingly <b>Simple</b></div>
+    <div class="lFeatures">
+      <div class="lFeature">
+        <img src="./images/launch/features/upload.svg">
+        <div title>Upload PDFs</div>
+        <div desc>Unlike a traditional whiteboard, upload your worksheets and more—strait into Markify!</div>
+      </div>
+      <div class="lFeature">
+        <img src="./images/launch/features/freeboard.svg">
+        <div title style="color: var(--purple)">Freeboard</div>
+        <div desc>Alternatively, you can create an infinite canvas with Freeboard! Never run out of space with this digital solution.</div>
+      </div>
+      <div class="lFeature">
+        <img src="./images/launch/features/pin.svg">
+        <div title>Share with Pin</div>
+        <div desc>Unlike most editors, there is no need to logon to Markify as a student. You can share lessons with a short pin code.</div>
+      </div>
+      <div class="lFeature">
+        <img src="./images/launch/features/share.svg">
+        <div title>Collaboration</div>
+        <div desc>Markify has unparalleled real-time capabilities, with everything from annotations to member status synced!</div>
+      </div>
+      <div class="lFeature">
+        <img src="./images/launch/features/tools.svg">
+        <div title>Minimalistic Tools</div>
+        <div desc>Get a full suite of tools—completely for free—when marking up your lesson that our simple but effective.</div>
+      </div>
+      <div class="lFeature">
+        <img src="./images/launch/features/cursors.svg">
+        <div title style="color: var(--error)">Real-time Cursors</div>
+        <div desc>Go more in depth during your lessons by pointing to things utilizing your mouse cursor. It all gets synced!</div>
+      </div>
+      <div class="lFeature">
+        <img src="./images/launch/features/members.svg">
+        <div title>Members List</div>
+        <div desc>Easily view and search all members in the lesson. View their identity and manage their access.</div>
+      </div>
+      <div class="lFeature">
+        <img src="./images/launch/features/editor.svg">
+        <div title>Temporary Editor</div>
+        <div desc>Grant temporary edit access to anyone in the lesson, allowing them to markup the lesson.</div>
+      </div>
+      <div class="lFeature">
+        <img src="./images/launch/features/observe.svg">
+        <div title style="color: var(--purple)">Observe Mode</div>
+        <div desc>Observe any member's screen position, watching them navigate and markup the lesson.</div>
+      </div>
+      <div class="lFeature">
+        <img src="./images/launch/features/idle.svg">
+        <div title style="color: var(--yellow)">Idle Indicator</div>
+        <div desc>Worried students might abuse the device they are using? Worry not! See if they're idle viewing another window.</div>
+      </div>
+      <div class="lFeature">
+        <img src="./images/launch/features/save.svg">
+        <div title>Local Save</div>
+        <div desc>In the event internet connection is lost, all edits are saved locally automatically, allowing for the lesson to continue.</div>
+      </div>
+      <div class="lFeature">
+        <img src="./images/launch/features/download.svg">
+        <div title>Download</div>
+        <div desc>Anyone with access (including students) can download the lesson as a PDF to review later.</div>
+      </div>
+    </div>
+  </div>
   `,
   css: {
     ".lSection": `display: flex; flex-direction: column; margin: 5vh 0; align-items: center; --blueShadow: 0px 0px 24px var(--hover)`,
@@ -104,11 +169,12 @@ modules["pages/launch"] = {
     ".lHistoryDots button": `width: 16px; height: 16px; margin: 4px; background: var(--secondary); border-radius: 8px`,
     ".lHistoryDots button[selected]": `width: 32px; background: var(--theme)`,
     ".lHistoryStuck .lSpacer": `height: 130.5px`,
+
     ".lUsecaseToolbar": `position: sticky; box-sizing: border-box; display: flex; flex-wrap: wrap; top: 24px; margin: 24px 0; width: calc(100% - 48px); max-width: 600px; padding: 6px; background: rgba(var(--background), .9); backdrop-filter: blur(4px); box-shadow: 0px 0px 12px rgba(var(--themeColor), .4); border-radius: 37px; z-index: 10`,
     ".lUsecaseToolbar button": `flex: 1 1 130px; padding: 8px 16px; margin: 6px; border-radius: 25px; color: rgb(var(--themeColor)); font-size: 20px; font-weight: 700; transition: .2s`,
     ".lUsecaseToolbar button:hover": `background: rgba(var(--themeColor), .3); transform: scale(1.03)`,
     ".lUsecaseToolbar button[selected]": `background: rgba(var(--themeColor), 1); color: #fff`,
-    ".lUsecaseTiles": `display: flex; flex-wrap: wrap; width: calc(100% - 24px); max-width: 748px; margin: 12px; justify-content: center`,
+    ".lUsecaseTiles": `display: flex; flex-wrap: wrap; width: calc(100% - 24px); max-width: 748px; padding-bottom: 34px; margin: 12px; justify-content: center`,
     ".lUsecaseTile": `display: flex; width: 350px; max-width: calc(100% - 24px); height: 350px; padding: 8px; margin: 12px; background: #fff; box-shadow: 0px 0px 8px rgba(var(--themeColor), .4); border-radius: 20px; overflow: hidden; justify-content: center; align-items: center; transform: scale(.8); opacity: 0; transition: cubic-bezier(0.175, 0.885, 0.32, 1.275) .3s`,
     ".lUsecaseTile[column]": `flex-direction: column`,
     ".lUsecaseTile[row]": `width: 724px; height: fit-content; min-height: 350px; flex-wrap: wrap`,
@@ -121,7 +187,6 @@ modules["pages/launch"] = {
     ".lTileImageHolder": `position: relative; width: 100%; height: 100%`,
     ".lUsecaseTile[row] .lTileImageHolder": `width: unset; height: 334px; flex: 1 1 350px`,
     ".lTileImageHolder img": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; border-radius: 12px`,
-
     ".lUsecaseBackdrop": `position: fixed; width: 100%; height: 100%; left: 0px; top: 0px; background: rgba(var(--background), .5); backdrop-filter: blur(10px); z-index: 500; opacity: 0; pointer-events: none; transition: .5s`,
     ".lUsecaseModal": `position: fixed; display: flex; overflow: hidden; border-radius: 20px; background: var(--pageColor); box-shadow: 0px 0px 8px rgba(var(--themeColor), .4); z-index: 501; justify-content: center; align-items: center`,
     ".lUsecaseModalContent": `position: relative; box-sizing: border-box; width: calc(100vw - 24px); max-width: 500px; max-height: calc(100vh - 24px); padding: 16px; flex-shrink: 0; flex-grow: 0; overflow: auto`,
@@ -136,7 +201,13 @@ modules["pages/launch"] = {
     ".lUsecaseModalHTML u": `text-decoration: underline; font-weight: 500; text-decoration-color: rgb(var(--themeColor))`,
     ".lUsecaseModalHTML a": `color: rgb(var(--themeColor)); font-weight: 700`,
     ".lUsecaseModalHTML li": `margin: 8px 0px`,
-    ".lUsecaseModalImage": `margin-top: 16px; width: 100%; height: 200px; object-fit: cover; border-radius: 16px 16px 8px 8px`
+    ".lUsecaseModalImage": `margin-top: 16px; width: 100%; height: 200px; object-fit: cover; border-radius: 16px 16px 8px 8px`,
+
+    ".lFeatures": `display: flex; flex-wrap: wrap; width: calc(100% - 16px); max-width: 1100px; margin: 8px; justify-content: center`,
+    ".lFeature": `display: flex; flex-direction: column; width: 340px; max-width: calc(100% - 16px); margin: 8px 8px 60px 8px; align-items: center`,
+    ".lFeature img": `width: 80px; height: 80px`,
+    ".lFeature div[title]": `margin-top: 12px; color: var(--theme); font-size: 26px; font-weight: 700`,
+    ".lFeature div[desc]": `margin-top: 8px; line-height: 24px`
   },
   js: async function (page) {
     // SECTION 2 | History

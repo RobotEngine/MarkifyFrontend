@@ -71,7 +71,7 @@ modules["pages/launch"] = {
     </div>
   </div>
   <div class="lSection" features backdrop="dots" maxopacity="1">
-    <div class="lTitle">Powerful <b>Features</b>, exceedingly <b>Simple</b></div>
+    <div class="lTitle">Powerful <b>Features</b>, exceeding <b>Simplicity</b></div>
     <div class="lFeatures">
       <div class="lFeature">
         <img src="./images/launch/features/upload.svg">

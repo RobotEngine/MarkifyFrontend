@@ -37,7 +37,7 @@ modules["pages/launch"] = {
         <div class="lHistoryContentPart" style="flex: 1; flex-basis: 500px">
           <img whiteboard src="./images/launch/history/whiteboard.jpg">
           <img smartboard src="./images/launch/history/smartboard.jpg">
-          <img markify src="./images/launch/history/markify.jpg">
+          <img markify src="./images/launch/history/markify.png">
         </div>
       </div>
       <div class="lHistoryDots">

@@ -86,7 +86,7 @@ modules["pages/launch"] = {
       <div class="lFeature">
         <img src="./images/launch/features/pin.svg">
         <div title>Share with Pin</div>
-        <div desc>Unlike most editors, there is no need to logon to Markify as a student. You can share lessons with a short pin code.</div>
+        <div desc>Unlike most editors, their is no need to logon to Markify as a student. You can share lessons with a short pin code.</div>
       </div>
       <div class="lFeature">
         <img src="./images/launch/features/share.svg">

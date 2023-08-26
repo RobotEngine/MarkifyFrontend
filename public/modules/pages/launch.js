@@ -140,7 +140,7 @@ modules["pages/launch"] = {
       <img class="lFooterBackdrop" left src="./images/launch/lighticon.svg">
       <img class="lFooterBackdrop" right src="./images/launch/lighticon.svg">
       <div class="dFooterHolder" style="min-height: 300px">
-        <div div class="lFooterTitle">Modernize the whiteboard,</br><b>with Markify</b></div>
+        <div div class="lFooterTitle">Modernize the whiteboard</br><b>with Markify</b></div>
         <div div class="lFooterFree">Get started for <b>FREE</b></div>
       </div>
       <div class="dFooterHolder" style="min-height: 125px">

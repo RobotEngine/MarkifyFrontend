@@ -35,7 +35,9 @@ modules["pages/launch"] = {
           <div class="lHistoryDesc"></div>
         </div>
         <div class="lHistoryContentPart" style="flex: 1; flex-basis: 500px">
-          <img src="">
+          <img whiteboard src="./images/launch/history/whiteboard.jpg">
+          <img smartboard src="./images/launch/history/smartboard.jpg">
+          <img markify src="./images/launch/history/markify.jpg">
         </div>
       </div>
       <div class="lHistoryDots">
@@ -189,7 +191,7 @@ modules["pages/launch"] = {
     ".lTitle b": `color: var(--theme); font-size: 45px; font-weight: 700`,
     ".lHistoryContent": `display: flex; flex-wrap: wrap; gap: 0px 30px; margin: auto 0; max-width: 1000px; align-items: center`,
     ".lHistoryContentPart": `margin: 16px`,
-    ".lHistoryContentPart img": `width: calc(100% - 18px); max-width: 600px; max-height: 400px; border-radius: 20px; box-shadow: var(--blueShadow); object-fit: cover`,
+    ".lHistoryContentPart img": `display: none; width: calc(100% - 18px); max-width: 600px; max-height: 400px; border-radius: 20px; box-shadow: var(--blueShadow); object-fit: cover`,
     ".lHistoryTitle": `max-width: 250px; font-size: 24px; line-height: 40px; text-align: left`,
     ".lHistoryTitle b": `color: var(--theme); font-size: 35px; font-weight: 700`,
     ".lHistoryDesc": `margin-top: 24px; text-align: left`,
@@ -268,7 +270,7 @@ modules["pages/launch"] = {
         name: "whiteboard",
         title: "First, was the <b>Whiteboard</b>",
         desc: "Innovating on the chalkboard, the whiteboard is still the most widely-used lecture tool today!</br></br>While it allows endless content to be written, many marks can be hard to see or must be erased after running out of space.",
-        image: "./images/launch/history/whiteboard.jpg",
+        image: "whiteboard",
         rotate: 3
       },
       {
@@ -276,7 +278,7 @@ modules["pages/launch"] = {
         name: "smartboard",
         title: "Then came the <b>Smartboard</b>",
         desc: "With the advent of technology in the classroom, whiteboards began moving digital with the smartboard.</br></br>However, many smartboards dissapointed with less-than-ideal performence and the same problems that plauged traditional whiteboards.",
-        image: "./images/launch/history/smartboard.jpg",
+        image: "smartboard",
         rotate: -3
       },
       {
@@ -285,7 +287,7 @@ modules["pages/launch"] = {
         name: "markify",
         title: "Introducing <b>Markify</b>",
         desc: "Markify aims to solve these shortcomings by not just being a digital whiteboard tool, but a real-time platform where anything written gets streamed to student's devices.</br></br>Students can see the document up close and see any notes they may have missed.",
-        image: "./images/launch/history/markify.png",
+        image: "markify",
         rotate: 3
       }
     ];
@@ -299,9 +301,15 @@ modules["pages/launch"] = {
           if (stickyPercent > section.percent) {
             historySection.querySelector(".lHistoryTitle").innerHTML = section.title;
             historySection.querySelector(".lHistoryDesc").innerHTML = section.desc;
-            let image = historySection.querySelector(".lHistoryContentPart img");
-            image.src = section.image;
+            let hideOldImage = historySection.querySelector(".lHistoryContentPart img[visible]");
+            if (hideOldImage != null) {
+              hideOldImage.removeAttribute("visible");
+              hideOldImage.style.display = "none";
+            }
+            let image = historySection.querySelector(".lHistoryContentPart img[" + section.image + "]");
+            image.setAttribute("visible", "");
             image.style.transform = "rotate(" + section.rotate + "deg)";
+            image.style.display = "unset";
             let removeAttr = dotButtons.querySelector("button[selected]");
             if (removeAttr != null) {
               removeAttr.removeAttribute("selected");

@@ -664,19 +664,22 @@ modules["pages/launch"] = {
 
       usecaseModal.offsetHeight;
       usecaseModal.style.transition = ".5s";
-      usecaseModal.style.width = usecaseModalContent.clientWidth + "px";
-      usecaseModal.style.height = usecaseModalContent.clientHeight + "px";
-      usecaseModal.style.left = "50%";
-      usecaseModal.style.top = "50%";
-      usecaseModal.style.transform = "translate(-50%, -50%)";
+      usecaseModal.style.width = usecaseModalContent.offsetWidth + "px";
+      usecaseModal.style.height = usecaseModalContent.offsetHeight + "px";
+      usecaseModal.style.left = "calc(50% - " + (usecaseModalContent.offsetWidth / 2) + "px";
+      usecaseModal.style.top = "calc(50% - " + (usecaseModalContent.offsetHeight / 2) + "px";
       usecaseModal.style.pointerEvents = "all";
       usecaseModal.style.opacity = 1;
       usecaseBackdrop.style.pointerEvents = "all";
       usecaseBackdrop.style.opacity = 1;
       if (usecaseModal.getAttribute("clicked") == clickTime) {
         await sleep(500);
+        usecaseModal.style.removeProperty("transition");
         usecaseModal.style.width = "unset";
         usecaseModal.style.height = "unset";
+        usecaseModal.style.left = "50%";
+        usecaseModal.style.top = "50%";
+        usecaseModal.style.transform = "translate(-50%, -50%)";
         modalOpen = true;
       }
     });
@@ -685,6 +688,11 @@ modules["pages/launch"] = {
         return;
       }
       modalOpen = false;
+      usecaseModal.style.transform = "translate(0%, 0%)";
+      usecaseModal.style.left = "calc(50% - " + (usecaseModalContent.offsetWidth / 2) + "px";
+      usecaseModal.style.top = "calc(50% - " + (usecaseModalContent.offsetHeight / 2) + "px";
+      usecaseModal.offsetHeight;
+      usecaseModal.style.transition = ".5s";
       usecaseModal.style.pointerEvents = "none";
       usecaseModal.style.opacity = 0;
       usecaseBackdrop.style.pointerEvents = "none";
@@ -695,7 +703,6 @@ modules["pages/launch"] = {
         if (button != null) {
           usecaseModal.style.width = usecaseModal.clientWidth + "px";
           usecaseModal.style.height = usecaseModal.clientHeight + "px";
-          usecaseModal.style.transform = "translate(0%, 0%)";
           usecaseModal.style.width = button.clientWidth + "px";
           usecaseModal.style.height = button.clientHeight + "px";
           let buttonRect = button.getBoundingClientRect();

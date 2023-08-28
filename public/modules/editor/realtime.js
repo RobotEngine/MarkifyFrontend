@@ -809,9 +809,22 @@ modules["dropdowns/editor/members"] = {
         memberFrameHolder = dropdown.querySelector(".eMemberFrameHolder");
         memberFrameHolder.querySelector(".eMemberClose").addEventListener("click", closeDropdown);
         memberFrameHolder.offsetHeight;
+
+        let editorButton = memberFrameHolder.querySelector(".eMemberSectionActions button[editor]");
+        editorButton.addEventListener("click", async function(event) {
+          let member = editor.members[event.target.closest(".eMemberFrame").getAttribute("userid")];
+          editorButton.setAttribute("disabled", "");
+          let sendAccess = 1;
+          if (member.access == 1) {
+            sendAccess = 0;
+          }
+          await sendRequest("PUT", "lessons/members/access?memberid=" + member._id, { access: sendAccess }, { session: editor.session });
+          editorButton.removeAttribute("disabled");
+        });
       }
       //<div joined></div>
       let memberFrame = memberFrameHolder.querySelector(".eMemberFrame");
+      memberFrame.setAttribute("userid", member._id);
       memberFrame.style.setProperty("--themeColor", member.color);
       memberFrame.style.setProperty("--adaptColor", textColorBackground(member.color));
       memberFrame.style.removeProperty("width");

@@ -821,6 +821,18 @@ modules["dropdowns/editor/members"] = {
           await sendRequest("PUT", "lessons/members/access?memberid=" + member._id, { access: sendAccess }, { session: editor.session });
           editorButton.removeAttribute("disabled");
         });
+        // Observe button HERE
+        let kickButton = memberFrameHolder.querySelector(".eMemberSectionActions button[kick]");
+        kickButton.addEventListener("click", async function(event) {
+          let member = editor.members[event.target.closest(".eMemberFrame").getAttribute("userid")];
+          kickButton.setAttribute("disabled", "");
+          let sendAccess = 1;
+          let [code] = await sendRequest("DELETE", "lessons/members/kick?memberid=" + member._id, null, { session: editor.session });
+          if (code == 200) {
+            closeDropdown();
+          }
+          kickButton.removeAttribute("disabled");
+        });
       }
       //<div joined></div>
       let memberFrame = memberFrameHolder.querySelector(".eMemberFrame");

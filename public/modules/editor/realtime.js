@@ -494,7 +494,7 @@ modules["dropdowns/editor/members"] = {
     ".eMemberFrameInfoHolder div[joined]": `font-size: 14px; font-weight: 500; text-align: right; margin: auto 6px 2px 0; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
     ".eMemberClose": `position: absolute; width: 22px; height: 22px; top: 4px; right: 0px; margin: 5px 5px 5px 12px; background: var(--pageColor); --borderWidth: 3px; --borderRadius: 14px`,
     ".eMemberClose img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
-    ".eMemberSectionDesc": `box-sizing: border-box; padding: 12px; font-size: 14px`,
+    ".eMemberSectionDesc": `box-sizing: border-box; padding: 12px 12px 0; font-size: 14px`,
     ".eMemberSectionEvents": `flex-direction: column`,
     ".eMemberEventHolder": `display: none; width: calc(100% - 24px); margin: 12px 12px 0px; justify-content: space-between; align-items: center`,
     ".eMemberEventHolder .eMemberEvent": `margin: 0px 8px 0 0`,

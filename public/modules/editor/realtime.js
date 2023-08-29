@@ -428,13 +428,13 @@ modules["dropdowns/editor/members"] = {
       <input placeholder="Search..."></input>
     </div>
     <div class="eMemberMemberHolder">
-      <div class="eMemberAccessHolder" type="owner">
+      <div class="eMemberAccessHolder" access="5">
         <button class="eMemberAccessTitle"><div>Owner</div><div count>0</div></button>
       </div>
-      <div class="eMemberAccessHolder" type="editor">
+      <div class="eMemberAccessHolder" access="1">
         <button class="eMemberAccessTitle"><div>Editors</div><div count>0</div></button>
       </div>
-      <div class="eMemberAccessHolder" type="viewer">
+      <div class="eMemberAccessHolder" access="0">
         <button class="eMemberAccessTitle"><div>Viewers</div><div count>0</div></button>
       </div>
     </div>
@@ -451,7 +451,8 @@ modules["dropdowns/editor/members"] = {
     ".eMemberAccessTitle": `position: sticky; display: flex; width: 100%; padding: 4px 8px; top: 0px; justify-content: space-between; background: rgba(var(--background), .7); backdrop-filter: blur(4px); z-index: 2; text-align: left; font-weight: 700; font-size: 18px`,
     ".eMemberAccessTitle div[count]": `margin-left: 6px; font-weight: 500`,
     ".eMemberAccessTitle:hover": `background: var(--hover)`,
-    ".eMemberAccessTitle:active": `background: var(--secondary); color: #fff; border-radius: 15px`,
+    ".eMemberAccessTitle:active": `background: var(--secondary); border-radius: 15px`,
+    ".eMemberAccessHolder[selected] .eMemberAccessTitle": `background: var(--secondary); color: #fff`,
 
     ".eMemberTile": `--opacity: 0; position: relative; display: flex; width: 100%; height: 34px; justify-content: center; align-items: center; z-index: 1`, //; margin: 4px 0
     ".eMemberTile button": `position: relative; display: flex; width: 100%; padding: 4px; overflow: hidden; align-items: center`, //; margin: 4px 0
@@ -462,11 +463,11 @@ modules["dropdowns/editor/members"] = {
     ".eMemberTile button:active .eMemberCursor": `transform: scale(1.15)`,
     ".eMemberTile[selected] button": `--opacity: 1; color: var(--hoverTextColor)`,
     ".eMemberTile[selected] .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor)`,
-    ".eMemberAccessHolder[hover] button": `--opacity: .35; color: var(--textColor)`,
+    ".eMemberAccessHolder[hover] button": `--themeColor: var(--secondary); --opacity: .35; color: var(--textColor)`,
     ".eMemberAccessHolder[hover] .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor); transform: translateX(-3px) scale(1.15)`,
-    ".eMemberAccessHolder[active] button": `--opacity: 1; color: var(--hoverTextColor); border-radius: 18px; transform: scale(.95)`,
+    ".eMemberAccessHolder[active] button": `--opacity: 1; background: var(--secondary); border-radius: 18px; transform: scale(.95); color: #fff`,
     ".eMemberAccessHolder[active] .eMemberCursor": `transform: scale(1.15)`,
-    ".eMemberAccessHolder[selected] button": `--opacity: 1; color: var(--hoverTextColor)`,
+    ".eMemberAccessHolder[selected] button": `--themeColor: var(--secondary); --opacity: 1; color: #fff`,
     ".eMemberAccessHolder[selected] .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor)`,
     ".eMemberCursor": `width: 20px; height: 20px; flex-shrink: 0; margin: 0 6px; background: var(--pageColor); border: solid 3px var(--themeColor); overflow: hidden; border-radius: 8px 14px 14px; transition: 0.2s`, //box-shadow: 0 0 6px rgb(0 0 0 / 50%);
     ".eMemberName": `width: 100%; font-size: 16px; font-weight: 600; text-align: left; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
@@ -493,12 +494,13 @@ modules["dropdowns/editor/members"] = {
     ".eMemberFrameInfoHolder div[joined]": `font-size: 14px; font-weight: 500; text-align: right; margin: auto 6px 2px 0; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
     ".eMemberClose": `position: absolute; width: 22px; height: 22px; top: 4px; right: 0px; margin: 5px 5px 5px 12px; background: var(--pageColor); --borderWidth: 3px; --borderRadius: 14px`,
     ".eMemberClose img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
+    ".eMemberSectionDesc": `box-sizing: border-box; padding: 12px; font-size: 14px`,
     ".eMemberSectionEvents": `flex-direction: column`,
     ".eMemberEventHolder": `display: none; width: calc(100% - 24px); margin: 12px 12px 0px; justify-content: space-between; align-items: center`,
     ".eMemberEventHolder .eMemberEvent": `margin: 0px 8px 0 0`,
     ".eMemberEventDesc": `font-size: 14px; text-align: right`,
-    ".eMemberSectionActions": `flex-wrap: wrap; width: calc(100% - 12px); padding: 6px; gap: 8px; margin-top: 6px; justify-content: space-around`,
-    ".eMemberSectionActions button": `display: flex; flex-direction: column; padding: 6px 12px; align-items: center; border-radius: 14px; color: var(--themeColor); overflow: visible`,
+    ".eMemberSectionActions": `flex-wrap: wrap; width: calc(100% - 12px); padding: 6px; margin-top: 6px; justify-content: space-around`,
+    ".eMemberSectionActions button": `display: flex; flex-direction: column; width: 86.33px; padding: 6px 12px; align-items: center; border-radius: 14px; color: var(--themeColor); overflow: visible`,
     ".eMemberSectionActions button img": `width: 55px; height: 55px; transition: .15s`,
     ".eMemberSectionActions button div": `margin-top: 6px; font-size: 14px; font-weight: 600`,
     ".eMemberSectionActions button:hover": `background: var(--themeColor); color: #fff`,
@@ -513,6 +515,7 @@ modules["dropdowns/editor/members"] = {
     let accessHolders = frame.querySelectorAll(".eMemberAccessHolder");
 
     let getSection = (access) => {
+      /*
       let sectionType = "viewer";
       if (access > 4) {
         sectionType = "owner";
@@ -520,6 +523,8 @@ modules["dropdowns/editor/members"] = {
         sectionType = "editor";
       }
       return frame.querySelector('.eMemberAccessHolder[type="' + sectionType + '"]');
+      */
+      return frame.querySelector('.eMemberAccessHolder[access="' + access + '"]');
     }
     let updateOrder = (section, updateTile, member) => {
       for (let i = 1; i < section.children.length; i++) { // 1 to skip title
@@ -733,6 +738,7 @@ modules["dropdowns/editor/members"] = {
         return;
       }
       dropdownButton.removeAttribute("selected");
+      dropdownButton.parentElement.removeAttribute("selected");
       dropdownButton = null;
       memberFrameHolder.style.opacity = 0;
       let frame = memberFrameHolder.querySelector(".eMemberFrame");
@@ -742,10 +748,14 @@ modules["dropdowns/editor/members"] = {
     }
     window.closeDropdown = closeDropdown;
     let openDropdown = (tile, update) => {
-      let member = editor.members[tile.getAttribute("member")];
-      if (member == null) {
-        tile.remove();
-        return;
+      if (tile.className == "eMemberTile") {
+        member = editor.members[tile.getAttribute("member")];
+        if (member == null) {
+          tile.remove();
+          return;
+        }
+      } else {
+        member = { title: true, name: tile.querySelector("div:not([count])").textContent, access: parseInt(tile.parentElement.getAttribute("access")), color: "var(--secondary)" };
       }
       if (dropdownButton != null) {
         if (dropdownButton == tile && update != true) {
@@ -753,10 +763,15 @@ modules["dropdowns/editor/members"] = {
           return;
         } else {
           dropdownButton.removeAttribute("selected");
+          dropdownButton.parentElement.removeAttribute("selected");
         }
       }
       dropdownButton = tile;
-      dropdownButton.setAttribute("selected", "");
+      if (member.title == null) {
+        dropdownButton.setAttribute("selected", "");
+      } else {
+        dropdownButton.parentElement.setAttribute("selected", "");
+      }
       dropdown = frame.closest(".dropdown");
       memberFrameHolder = dropdown.querySelector(".eMemberFrameHolder");
       if (memberFrameHolder == null) {
@@ -775,6 +790,7 @@ modules["dropdowns/editor/members"] = {
                 </div>
                 <button class="eMemberClose buttonAnim border"><img src="./images/tooltips/close.svg"></button>
               </div>
+              <div class="eMemberSection eMemberSectionDesc"></div>
               <div class="eMemberSection eMemberSectionEvents">
                 <div class="eMemberEventHolder" self>
                   <div class="eMemberEvent" self>YOU</div>
@@ -798,7 +814,7 @@ modules["dropdowns/editor/members"] = {
                   <img src="./images/editor/members/observe.svg">
                   <div>Observe</div>
                 </button>
-                <button kick style="--themeColor: var(--error)" title="Kick this member from the current session.">
+                <button kick style="--themeColor: var(--error)" title="Revoke all viewing and editing privileges.">
                   <img src="./images/editor/members/kick.svg">
                   <div>Kick</div>
                 </button>
@@ -812,33 +828,66 @@ modules["dropdowns/editor/members"] = {
 
         let editorButton = memberFrameHolder.querySelector(".eMemberSectionActions button[editor]");
         editorButton.addEventListener("click", async function(event) {
-          let member = editor.members[event.target.closest(".eMemberFrame").getAttribute("userid")];
           editorButton.setAttribute("disabled", "");
+          let frame = event.target.closest(".eMemberFrame");
+          let memberid = frame.getAttribute("memberid");
+          let frameAccess = frame.getAttribute("access");
+          let url = "lessons/members/access";
           let sendAccess = 1;
-          if (member.access == 1) {
-            sendAccess = 0;
+          if (memberid != null) {
+            let member = editor.members[memberid];
+            if (member.access == 1) {
+              sendAccess = 0;
+            }
+            url += "?memberid=" + member._id;
+          } else if (frameAccess != null) {
+            url += "?permaccess=" + frameAccess;
+            if (parseInt(frameAccess) == 1) {
+              sendAccess = 0;
+            }
           }
-          await sendRequest("PUT", "lessons/members/access?memberid=" + member._id, { access: sendAccess }, { session: editor.session });
+          let [code] = await sendRequest("PUT", url, { access: sendAccess }, { session: editor.session });
+          if (code == 200) {
+            if (frameAccess != null) {
+              getSection(frameAccess).style.display = "none";
+              let changeSection = getSection(sendAccess);
+              changeSection.style.display = "block";
+              openDropdown(changeSection.querySelector(".eMemberAccessTitle"));
+            }
+          }
           editorButton.removeAttribute("disabled");
         });
         // Observe button HERE
         let kickButton = memberFrameHolder.querySelector(".eMemberSectionActions button[kick]");
         kickButton.addEventListener("click", async function(event) {
-          let member = editor.members[event.target.closest(".eMemberFrame").getAttribute("userid")];
           kickButton.setAttribute("disabled", "");
+          let frame = event.target.closest(".eMemberFrame");
+          let memberid = frame.getAttribute("memberid");
+          let url = "lessons/members/kick";
           let sendAccess = 1;
-          let [code] = await sendRequest("DELETE", "lessons/members/kick?memberid=" + member._id, null, { session: editor.session });
+          if (memberid != null) {
+            url += "?memberid=" + editor.members[memberid]._id;
+          } else {
+            url += "?permaccess=" + frame.getAttribute("access");
+          }
+          let [code] = await sendRequest("DELETE", url, { access: sendAccess }, { session: editor.session });
           if (code == 200) {
             closeDropdown();
           }
           kickButton.removeAttribute("disabled");
         });
       }
-      //<div joined></div>
       let memberFrame = memberFrameHolder.querySelector(".eMemberFrame");
-      memberFrame.setAttribute("userid", member._id);
+      if (member.title == null) {
+        memberFrame.setAttribute("memberid", member._id);
+        memberFrame.removeAttribute("access");
+        memberFrame.style.setProperty("--adaptColor", textColorBackground(member.color));
+      } else {
+        memberFrame.setAttribute("access", member.access);
+        memberFrame.removeAttribute("memberid");
+        memberFrame.style.setProperty("--adaptColor", "#fff");
+      }
       memberFrame.style.setProperty("--themeColor", member.color);
-      memberFrame.style.setProperty("--adaptColor", textColorBackground(member.color));
       memberFrame.style.removeProperty("width");
       let cursor = memberFrameHolder.querySelector(".eMemberFrameCursor");
       let picture = memberFrameHolder.querySelector(".eMemberFramePicture");
@@ -860,6 +909,22 @@ modules["dropdowns/editor/members"] = {
         email.style.display = "unset";
       } else {
         email.style.display = "none";
+      }
+      let frameDesc = memberFrameHolder.querySelector(".eMemberSectionDesc");
+      if (member.title) {
+        switch (member.access) {
+          case 0:
+            frameDesc.textContent = "Viewers can see all pages and annotations in this lesson.";
+            break;
+          case 1:
+            frameDesc.textContent = "Editors can create annotations but cannot grant permisions or change settings.";
+            break;
+          case 5:
+            frameDesc.textContent = "Owners have full access to all aspects of the lesson.";
+        }
+        frameDesc.style.display = "block";
+      } else {
+        frameDesc.style.display = "none";
       }
       let isSelf = member._id == editor.sessionID;
       let self = memberFrameHolder.querySelector(".eMemberEventHolder[self]");
@@ -887,11 +952,11 @@ modules["dropdowns/editor/members"] = {
       if (!isSelf && myself.access > 2 && member.access < 2) {
         let image = "./images/editor/share/editor.svg";
         let text = "Editor";
-        let desc = "Make this member a temporary editor.";
+        let desc = "Grant temporary editing privileges.";
         if (member.access == 1) {
           image = "./images/editor/share/viewer.svg";
           text = "Viewer";
-          desc = "Revoke edit access making this member a viewer.";
+          desc = "Revoke temporary editing privileges, granting viewer.";
         }
         editorButton.title = desc;
         editorButton.querySelector("img").src = image;
@@ -905,7 +970,7 @@ modules["dropdowns/editor/members"] = {
       } else {
         kickButton.style.display = "none";
       }
-      if (!isSelf) {
+      if (!isSelf && member.title == null) {
         observeButton.style.display = "flex";
       } else {
         observeButton.style.display = "none";
@@ -919,7 +984,7 @@ modules["dropdowns/editor/members"] = {
       if (element == null) {
         return;
       }
-      let memberTile = element.closest(".eMemberTile");
+      let memberTile = element.closest(".eMemberTile") || element.closest(".eMemberAccessTitle");
       if (memberTile) {
         openDropdown(memberTile);
         return;

@@ -619,7 +619,7 @@ modules["dropdowns/editor/members"] = {
             if (newCount < 1) {
               removeTile.parentElement.style.display = "none";
             }
-            if (dropdownButton != null && dropdownButton.getAttribute("member") == body._id) {
+            if ((dropdownButton != null && dropdownButton.getAttribute("member") == body._id) || (newCount < 1 && removeTile.parentElement.hasAttribute("selected"))) {
               closeDropdown();
             }
             removeTile.remove();

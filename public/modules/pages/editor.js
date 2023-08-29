@@ -283,7 +283,9 @@ modules["pages/editor"] = {
           break;
         case "set":
           objectUpdate(body, this.lesson);
-          page.querySelector(".eFileName").textContent = this.lesson.name || "Untitled Lesson";
+          let setName = this.lesson.name || "Untitled Lesson";
+          page.querySelector(".eFileName").textContent = setName;
+          document.title = setName + " | Markify";
           if (body.hasOwnProperty("pin")) {
             if (this.updatePin) {
               this.updatePin();
@@ -413,6 +415,7 @@ modules["pages/editor"] = {
     });
     let nameBox = page.querySelector(".eFileName");
     nameBox.textContent = this.lesson.name || "Untitled Lesson";
+    document.title = nameBox.textContent + " | Markify";
     nameBox.addEventListener("keydown", function(event) {
       if (event.keyCode == 13) {
         event.preventDefault();

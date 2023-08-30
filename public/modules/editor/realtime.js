@@ -89,6 +89,7 @@ modules["editor/realtime"] = {
             } else {
               // Enable the stuff:
               editor.realtime.strenth = 3;
+              editor.sendPing();
               this.connectUpdate();
               alert.open("info", "<b>Connection Restored</b>A strong connection has been established, all features enabled.");
             }
@@ -102,6 +103,7 @@ modules["editor/realtime"] = {
             } else {
               // Disable the stuff:
               editor.realtime.strenth = 2;
+              editor.sendPing();
               this.connectUpdate();
               alert.open("info", "<b>Weak Connection</b>While you're still connected, real-time collaboration is disabled to save bandwidth.");
             }
@@ -839,7 +841,7 @@ modules["dropdowns/editor/members"] = {
             if (member.access == 1) {
               sendAccess = 0;
             }
-            url += "?memberid=" + member._id;
+            url += "?member=" + member._id;
           } else if (frameAccess != null) {
             url += "?permaccess=" + frameAccess;
             if (parseInt(frameAccess) == 1) {
@@ -857,7 +859,16 @@ modules["dropdowns/editor/members"] = {
           }
           editorButton.removeAttribute("disabled");
         });
-        // Observe button HERE
+        let observeButton = memberFrameHolder.querySelector(".eMemberSectionActions button[kick]");
+        observeButton.addEventListener("click", async function(event) {
+          observeButton.setAttribute("disabled", "");
+          let [code, data] = await sendRequest("GET", "lessons/members/observe?member=" + event.target.closest(".eMemberFrame").getAttribute("memberid"), null, { session: editor.session });
+          if (code == 200) {
+            console.log(data);
+            closeDropdown();
+          }
+          observeButton.removeAttribute("disabled");
+        });
         let kickButton = memberFrameHolder.querySelector(".eMemberSectionActions button[kick]");
         kickButton.addEventListener("click", async function(event) {
           kickButton.setAttribute("disabled", "");
@@ -866,7 +877,7 @@ modules["dropdowns/editor/members"] = {
           let url = "lessons/members/kick";
           let sendAccess = 1;
           if (memberid != null) {
-            url += "?memberid=" + editor.members[memberid]._id;
+            url += "?member=" + editor.members[memberid]._id;
           } else {
             url += "?permaccess=" + frame.getAttribute("access");
           }

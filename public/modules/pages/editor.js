@@ -201,8 +201,6 @@ modules["pages/editor"] = {
 
     this.codeTextButton = page.querySelector(".eSharePin");
 
-    let memberCount = page.querySelector(".eMembers");
-    let memberCountNum = memberCount.querySelector(".eMemberCount");
     let updateMemberCount = () => {
       let counts = document.querySelectorAll(".eMemberCount");
       this.memberCount = Object.keys(this.members).length;
@@ -361,27 +359,42 @@ modules["pages/editor"] = {
       this.codeTextButton.textContent = this.lesson.pin;
     }
 
-    if (extra.took < 2500) {
-      this.realtime.strenth = 3;
-    } else {
-      this.realtime.strenth = 2;
-    }
-
     this.sessionID = body.session._id;
     this.session = body.session._id + ";" + body.session.token;
 
     let sentPing = false;
     let sendPing = () => {
-      let path = "lessons/ping";
+      let params = [];
       if (this.active == false) {
-        path += "?idle";
+        params.push("idle");
+      }
+      if (this.realtime.strenth == 2) {
+        params.push("weak");
+      }
+      let path = "lessons/ping";
+      if (params.length > 0) {
+        path += "?";
+        path += params.join("&");
       }
       sentPing = true;
       return sendRequest("GET", path, null, { session: this.session, allowError: [403] });
     }
+    this.sendPing = sendPing;
+
+    if (extra.took < 2500) {
+      this.realtime.strenth = 3;
+    } else {
+      this.realtime.strenth = 2;
+      sendPing();
+    }
+
     tempListeners.push({
       type: "interval", interval: setInterval(async () => {
         if (connected) {
+          if (this.realtime) {
+            this.realtime.ping();
+          }
+          await sleep(30000);
           if (sentPing == false) {
             let [code] = await sendPing();
             if (code == 403) {
@@ -393,11 +406,8 @@ modules["pages/editor"] = {
             }
           }
           sentPing = false;
-          if (this.realtime) {
-            this.realtime.ping();
-          }
         }
-      }, 60000)
+      }, 30000)
     }); // PING every minute
 
     this.syncMembers(body.members);

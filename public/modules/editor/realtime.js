@@ -859,7 +859,7 @@ modules["dropdowns/editor/members"] = {
           }
           editorButton.removeAttribute("disabled");
         });
-        let observeButton = memberFrameHolder.querySelector(".eMemberSectionActions button[kick]");
+        let observeButton = memberFrameHolder.querySelector(".eMemberSectionActions button[observe]");
         observeButton.addEventListener("click", async function(event) {
           observeButton.setAttribute("disabled", "");
           let [code, data] = await sendRequest("GET", "lessons/members/observe?member=" + event.target.closest(".eMemberFrame").getAttribute("memberid"), null, { session: editor.session });

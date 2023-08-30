@@ -577,7 +577,7 @@ modules["dropdowns/editor/members"] = {
         if (member.active == false) {
           eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" idle title="This member is currently viewing a different window.">IDLE</div>`);
         }
-        if (member.observe == true) {
+        if (member.observe == editor.sessionID) {
           eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" observe title="This member is observing you on the document.">OBSERVE</div>`);
         }
       }
@@ -673,7 +673,7 @@ modules["dropdowns/editor/members"] = {
                 existingIdle.remove();
               }
               let existingObserve = eventsHolder.querySelector(".eMemberEvent[observe]");
-              if (member.observe == true) {
+              if (member.observe == editor.sessionID) {
                 if (existingObserve == null) {
                   eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" observe title="This member is observing you on the document.">OBSERVE</div>`);
                 }
@@ -940,7 +940,7 @@ modules["dropdowns/editor/members"] = {
       } else {
         idle.style.display = "none";
       }
-      if (member.observe == true && !isSelf) {
+      if (member.observe == editor.sessionID && !isSelf) {
         observe.style.display = "flex";
       } else {
         observe.style.display = "none";

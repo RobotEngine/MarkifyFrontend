@@ -6,7 +6,7 @@ modules["editor/realtime"] = {
     ".eCursor": `--backgroundColor: var(--themeColor); --borderColor: #fff; --textColor: #fff; position: absolute; display: flex; z-index: 20; opacity: 0; transition: .25s; pointer-events: all; transform-origin: top left`,
     ".eCursor[pressed]": `--backgroundColor: #fff; --borderColor: var(--themeColor); --textColor: #000; transform: scale(.9)`,
     ".eCursor .pointer": `width: 20px; height: 20px; background: var(--backgroundColor); border: solid 3px var(--borderColor); overflow: hidden; border-radius: 8px 14px 14px 14px; box-shadow: 0 0 6px rgb(0 0 0 / 50%); transition: 0.3s`,
-    ".eCursor [name]": `box-sizing: border-box; display: flex; width: fit-content; height: 100%; padding: 0px 6px; border-radius: 14px; overflow: hidden; opacity: 0; white-space: nowrap; color: var(--textColor); font-size: 14px; font-weight: 700; white-space: nowrap; align-items: center; transition: 0.15s`,
+    ".eCursor [name]": `box-sizing: border-box; display: flex; width: fit-content; height: 100%; padding: 0px 6px; border-radius: 14px; overflow: hidden; opacity: 0; white-space: nowrap; font-size: 14px; font-weight: 700; white-space: nowrap; align-items: center; transition: 0.15s`,
     ".eCursor:hover [color]": `width: var(--fullyExtended)`,
     ".eCursor:hover [name]": `width: unset; opacity: 1`,
 
@@ -23,6 +23,22 @@ modules["editor/realtime"] = {
     let alert = await getModule("alert");
 
     editor.codeTextButton.setAttribute("dropdown", "dropdowns/editor/share/pin");
+
+    this.textColorBackground = (bgColor) => {
+      let color = (bgColor.charAt(0) === '#') ? bgColor.substring(1, 7) : bgColor;
+      let r = parseInt(color.substring(0, 2), 16); // hexToR
+      let g = parseInt(color.substring(2, 4), 16); // hexToG
+      let b = parseInt(color.substring(4, 6), 16); // hexToB
+      let uicolors = [r / 255, g / 255, b / 255];
+      let c = uicolors.map((col) => {
+        if (col <= 0.03928) {
+          return col / 12.92;
+        }
+        return Math.pow((col + 0.055) / 1.055, 2.4);
+      });
+      let L = (0.2126 * c[0]) + (0.7152 * c[1]) + (0.0722 * c[2]);
+      return (L > 0.3) ? "#000" : "#fff"; // 0.179
+    }
 
     // Update connectivity:
     let statusIcon = page.querySelector(".eConnection");
@@ -261,9 +277,9 @@ modules["editor/realtime"] = {
         clearTimeout(endSyncObserveTimeout);
         if (lastObservePublish < getEpoch() - 250) { // One event every 250 ms
           let filter = { c: "short_" + editor.id, o: editor.sessionID };
-          
+
           // [ memberID, zoom, centerx, centery, time ]
-          let pubData = [ editor.sessionID, Math.floor(editor.zoom * 100) / 100, Math.floor(window.scrollX + (fixed.offsetWidth / 2)), Math.floor(window.scrollY + (fixed.offsetHeight / 2)) ];
+          let pubData = [ editor.sessionID, Math.floor(editor.zoom * 100) / 100, Math.floor(window.scrollX + (fixed.offsetWidth / 2) - pageHolder.offsetLeft), Math.floor(window.scrollY + (fixed.offsetHeight / 2) - pageHolder.offsetTop) ];
 
           let updJSONContent = JSON.stringify([filter, pubData]);
           if (updJSONContent == lastObserveContent) {
@@ -302,6 +318,10 @@ modules["editor/realtime"] = {
     page.addEventListener("touchstart", this.publishShort);
     page.addEventListener("touchend", this.publishShort);
 
+    tempListen(window, "wheel", () => {
+      this.exitObserve();
+    });
+
     this.adjustRealtimeHolder = () => { // Scale realtime elements when zoom or resize:
       let adjustElements = realtimeHolder.querySelectorAll("[scale]");
       for (let i = 0; i < adjustElements.length; i++) {
@@ -332,6 +352,38 @@ modules["editor/realtime"] = {
         }
       }
     }
+
+    let observeHolder = editor.page.querySelector(".eObserveHolder");
+    let observeTag = observeHolder.querySelector(".eObserve");
+    let observeBorder = editor.page.querySelector(".eObserveBorder");
+    this.enableObserve = async (member) => {
+      (await getModule("alert")).close(editor.realtime.observeLoading);
+      editor.realtime.observeLoading = null;
+
+      clearTimeout(editor.realtime.observeTimeout);
+      
+      observeTag.style.background = member.color;
+      observeTag.style.color = this.textColorBackground(member.color);
+      observeTag.querySelector("b").textContent = member.name;
+      observeHolder.style.display = "flex";
+      observeBorder.style.border = "solid 3px " + member.color;
+
+      editor.updateInterface();
+    }
+    this.exitObserve = () => {
+      if (editor.realtime.observing == null) {
+        return;
+      }
+      sendRequest("DELETE", "lessons/members/observe/exit?member=" + editor.realtime.observing, null, { session: editor.session });
+      editor.realtime.observing = null;
+      observeHolder.style.display = "none";
+      observeBorder.style.border = "unset";
+      cancelAnimationFrame(animationFrameId);
+      editor.updateInterface();
+    }
+    observeTag.querySelector("button").addEventListener("click", () => {
+      this.exitObserve();
+    });
 
     this.removeRealtime = (memberID) => {
       let remMemberElem = realtimeHolder.querySelectorAll('[member="' + memberID + '"]');
@@ -444,6 +496,7 @@ modules["editor/realtime"] = {
                   cursorHolder.innerHTML = `<div class="pointer" color><div name></div></div>`;
               }
               cursorHolder.querySelector("[name]").textContent = member.name;
+              cursorHolder.style.color = this.textColorBackground(member.color);
               cursorHolder.style.setProperty("--themeColor", member.color);
               let colorMain = cursorHolder.querySelector("[color]");
               colorMain.style.width = "fit-content";
@@ -506,12 +559,11 @@ modules["editor/realtime"] = {
               return;
             }
             if (editor.realtime.observeLoading != null) {
-              (await getModule("alert")).close(editor.realtime.observeLoading);
-              editor.realtime.observeLoading = null;
+              this.enableObserve(member);
             }
             editor.lastZoom = editor.zoom;
-            editor.setZoom(zoom);
-            startScroll(scrollX - (fixed.offsetWidth / 2), scrollY - (fixed.offsetHeight / 2));
+            editor.setZoom(zoom, true);
+            startScroll(scrollX - (fixed.offsetWidth / 2) + pageHolder.offsetTop, scrollY - (fixed.offsetHeight / 2) + pageHolder.offsetTop);
             //smoothScrollTo(scrollX - (fixed.offsetWidth / 2), (scrollY - (fixed.offsetHeight / 2)) * scrollRate, 100);
             //window.scrollTo({ left: scrollX - (fixed.offsetWidth / 2), top: scrollY - (fixed.offsetHeight / 2), behavior: "smooth" });
           }
@@ -638,21 +690,6 @@ modules["dropdowns/editor/members"] = {
         }
       }
     }
-    let textColorBackground = (bgColor) => {
-      let color = (bgColor.charAt(0) === '#') ? bgColor.substring(1, 7) : bgColor;
-      let r = parseInt(color.substring(0, 2), 16); // hexToR
-      let g = parseInt(color.substring(2, 4), 16); // hexToG
-      let b = parseInt(color.substring(4, 6), 16); // hexToB
-      let uicolors = [r / 255, g / 255, b / 255];
-      let c = uicolors.map((col) => {
-        if (col <= 0.03928) {
-          return col / 12.92;
-        }
-        return Math.pow((col + 0.055) / 1.055, 2.4);
-      });
-      let L = (0.2126 * c[0]) + (0.7152 * c[1]) + (0.0722 * c[2]);
-      return (L > 0.3) ? "#000" : "#fff"; // 0.179
-    }
     let addMemberTile = (member) => {
       if (member.name.toLowerCase().includes(searchField.value.toLowerCase()) == false) {
         return;
@@ -670,7 +707,7 @@ modules["dropdowns/editor/members"] = {
       tile.setAttribute("member", member._id);
       updateOrder(section, tile, member);
       tile.style.setProperty("--themeColor", member.color);
-      tile.style.setProperty("--hoverTextColor", textColorBackground(member.color));
+      tile.style.setProperty("--hoverTextColor", editor.realtime.module.textColorBackground(member.color));
       tile.querySelector(".eMemberName").textContent = member.name;
       tile.querySelector(".eMemberName").title = member.name;
       let eventsHolder = tile.querySelector(".eMemberEvents");
@@ -788,6 +825,7 @@ modules["dropdowns/editor/members"] = {
             //  section.insertBefore(tile, section.children[1]);
             //}
 
+            // Update member dropdown:
             if (dropdownButton != null && dropdownButton.getAttribute("member") == member._id) {
               openDropdown(updateTile, true);
             }
@@ -850,6 +888,7 @@ modules["dropdowns/editor/members"] = {
       updateDropdownPosition();
     }
     window.closeDropdown = closeDropdown;
+
     let openDropdown = (tile, update) => {
       if (tile.className == "eMemberTile") {
         member = editor.members[tile.getAttribute("member")];
@@ -962,24 +1001,40 @@ modules["dropdowns/editor/members"] = {
         });
         let observeButton = memberFrameHolder.querySelector(".eMemberSectionActions button[observe]");
         observeButton.addEventListener("click", async function(event) {
-          observeButton.setAttribute("disabled", "");
           let memberid = event.target.closest(".eMemberFrame").getAttribute("memberid");
+          if (editor.realtime.observing == memberid) {
+            editor.realtime.module.exitObserve();
+            return;
+          }
           let member = editor.members[memberid];
           if (member == null) {
             (await getModule("dropdown")).close();
             return;
           }
           let alertModule = await getModule("alert");
-          if (member.weak == true) {
-            alertModule.open("error", `<b>Unable to Connect</b>${member.name} has too weak of a connection to watch their screen.`);
-            observeButton.removeAttribute("disabled");
+          if (editor.realtime.strenth < 3) {
+            alertModule.open("error", `<b>Unable to Connect</b>Your connection is too weak to watch their screen.`);
             return;
           }
+          if (member.observe != null) {
+            alertModule.open("error", `<b>Unable to Connect</b>This member is observing someone else.`);
+            return;
+          }
+          if (member.weak == true) {
+            alertModule.open("error", `<b>Unable to Connect</b>${member.name} has too weak of a connection to watch their screen.`);
+            return;
+          }
+          observeButton.setAttribute("disabled", "");
           editor.realtime.observing = memberid;
           editor.realtime.module.setShortSub(editor.visiblePages);
-          let [code, data] = await sendRequest("GET", "lessons/members/observe?member=" + memberid, null, { session: editor.session });
+          let [code] = await sendRequest("GET", "lessons/members/observe?member=" + memberid, null, { session: editor.session });
           if (code == 200) {
             editor.realtime.observeLoading = await alertModule.open("info", `<b>Connecting to Member</b>Connecting to ${member.name}'s screen to observe!`, { time: "never" });
+            editor.realtime.observeTimeout = setTimeout(() => {
+              alertModule.close(editor.realtime.observeLoading);
+              alertModule.open("error", `<b>Observe Timeout</b>Failed to connect to their screen, please try again later...`);
+              editor.realtime.module.exitObserve();
+            }, 10000);
             closeDropdown();
           } else {
             editor.realtime.observing = null;
@@ -1010,7 +1065,7 @@ modules["dropdowns/editor/members"] = {
       if (member.title == null) {
         memberFrame.setAttribute("memberid", member._id);
         memberFrame.removeAttribute("access");
-        memberFrame.style.setProperty("--adaptColor", textColorBackground(member.color));
+        memberFrame.style.setProperty("--adaptColor", editor.realtime.module.textColorBackground(member.color));
       } else {
         memberFrame.setAttribute("access", member.access);
         memberFrame.removeAttribute("memberid");
@@ -1103,6 +1158,11 @@ modules["dropdowns/editor/members"] = {
         observeButton.style.display = "flex";
       } else {
         observeButton.style.display = "none";
+      }
+      if (member.weak != true && editor.realtime.strenth > 2 && member.observe == null) {
+        observeButton.style.opacity = 1;
+      } else {
+        observeButton.style.opacity = .5;
       }
       memberFrameHolder.style.opacity = 1;
       memberFrame.style.transform = "scale(1)";

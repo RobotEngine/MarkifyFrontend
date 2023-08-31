@@ -37,10 +37,18 @@ modules["pages/editor"] = {
     <div class="eSide">
       <div class="eToolbar"></div>
     </div>
-    <div class="eBottom">
-      <button class="ePageNav" down><img src="./images/editor/bottom/downarrow.svg"></button>
-      <div class="eCurrentPage"></div>
-      <button class="ePageNav" up><img src="./images/editor/bottom/uparrow.svg"></button>
+    <div class="eBottomHolder">
+      <div class="eObserveHolder">
+        <div class="eObserve">
+          <div>Observing <b></b></div>
+          <button><img src="./images/tooltips/exit.svg"></button>
+        </div>
+      </div>
+      <div class="eBottom">
+        <button class="ePageNav" down><img src="./images/editor/bottom/downarrow.svg"></button>
+        <div class="eCurrentPage"></div>
+        <button class="ePageNav" up><img src="./images/editor/bottom/uparrow.svg"></button>
+      </div>
     </div>
     <div class="eContent">
       <div class="eRealtime"></div>
@@ -48,6 +56,7 @@ modules["pages/editor"] = {
         <div class="ePageHolder"></div>
       </div>
     </div>
+    <div class="eObserveBorder"></div>
   </div>
   `,
   /*
@@ -98,9 +107,16 @@ modules["pages/editor"] = {
     ".eSide::-webkit-scrollbar": `display: none`,
     ".eToolbar": `display: flex; box-sizing: border-box; width: 50px; margin: auto 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px; pointer-events: all`,
 
-    ".eBottom": `position: fixed; right: 8px; bottom: 8px; display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px; z-index: 500; pointer-events: all`,
+    ".eBottomHolder": `position: fixed; box-sizing: border-box; display: flex; width: 100%; bottom: 0px; gap: 8px; padding: 8px; justify-content: flex-end; z-index: 500`,
+    ".eBottom": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px; pointer-events: all`,
     ".ePageNav": `display: flex; width: 31px; height: 31px; margin: 0 4px; justify-content: center; align-items: center; background: var(--lightGray); border-radius: 16px`,
     ".eCurrentPage": `margin: 0 6px; font-size: 20px`,
+    ".eObserveHolder": `position: relative; display: none; flex: 1`,
+    ".eObserve": `position: absolute; display: flex; box-sizing: border-box; max-width: 100%; height: 50px; padding: 6px; align-items: center; background: var(--purple); box-shadow: var(--lightShadow); border-radius: 16px; overflow: hidden; pointer-events: all`,
+    ".eObserve div": `margin: 0 6px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
+    ".eObserve button": `width: 38px; height: 38px; flex-shrink: 0`,
+    ".eObserve button img": `width: 100%; height: 100%`,
+    ".eObserveBorder": `position: fixed; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 501`,
 
     ".eContent": `position: relative; display: flex; width: fit-content; min-width: calc(100% - 132px); min-height: calc(100vh - 132px); padding: 66px; justify-content: center; z-index: 0; background: var(--pageColor); background-image: url(./images/editor/background.svg); background-position: center`,
     ".ePageHolder": `width: fit-content; height: fit-content; border-radius: 16px; transform-origin: 0 0`,
@@ -139,7 +155,7 @@ modules["pages/editor"] = {
     this.getSelf = function () {
       return this.members[this.sessionID];
     };
-    this.updateInterface = async function (page) {
+    this.updateInterface = async function () {
       let toolbar = page.querySelector(".eToolbar");
       let name = page.querySelector(".eFileName");
       let share = page.querySelector(".eShare");
@@ -154,6 +170,11 @@ modules["pages/editor"] = {
         toolbar.removeAttribute("hidden");
 
         name.setAttribute("contenteditable", "");
+      }
+      if (this.realtime.observing != null) {
+        toolbar.setAttribute("hidden", "");
+        toolbar.offsetHeight;
+        toolbar.style.transition = ".3s";
       }
       if (access < 2) {
         share.style.display = "none";
@@ -170,6 +191,11 @@ modules["pages/editor"] = {
     page.style.removeProperty("display");
     page.style.width = "fit-content";
     page.style.minWidth = "100%";
+
+    let realtimeHolder = page.querySelector(".eRealtime");
+    let observeHolder = page.querySelector(".eObserveHolder");
+    let observeTag = observeHolder.querySelector(".eObserve");
+    let observeBorder = page.querySelector(".eObserveBorder");
 
     if (connected) {
       this.realtime.strenth = 1;
@@ -234,7 +260,7 @@ modules["pages/editor"] = {
           setFrame("pages/join");
       }
     };
-    socket.remotes["lesson_" + lessonID] = (data) => {
+    socket.remotes["lesson_" + lessonID] = async (data) => {
       let body = data.data;
       /*
       if (body.lesson != lessonID) {
@@ -282,10 +308,30 @@ modules["pages/editor"] = {
                 if (this.realtime.observed != true) {
                   this.realtime.observed = true;
                   this.realtime.module.setPingSub();
-                  this.realtime.module.publishShort(null, "observe")
+                  this.realtime.module.publishShort(null, "observe");
                 }
-              } else { // Not observed:
-                this.realtime.observed = false;
+              }
+            }
+
+            // Remove elements is weak:
+            if (body.weak == true) {
+              removeRealtimeElem(body._id);
+            }
+
+            // Update observe:
+            if (this.realtime.observing == body._id && this.realtime.module != null) {
+              observeTag.style.background = member.color;
+              observeTag.style.color = this.realtime.module.textColorBackground(member.color);
+              observeTag.querySelector("b").textContent = member.name;
+              observeHolder.style.display = "flex";
+              observeBorder.style.border = "solid 3px " + member.color;
+            }
+
+            // Update cursor by removing it:
+            if (body.name != null || body.color != null) {
+              let cursor = realtimeHolder.querySelector('.eCursor[member="' + body._id + '"]');
+              if (cursor != null) {
+                cursor.remove();
               }
             }
           }
@@ -333,6 +379,31 @@ modules["pages/editor"] = {
 
       if (this.updateMembersList != null) {
         this.updateMembersList(data);
+      }
+
+      // Check to exit observe:
+      if (this.realtime.observed == true) {
+        let memberKeys = Object.keys(this.members);
+        let observed = false;
+        for (let i = 0; i < memberKeys.length; i++) {
+          if (this.members[memberKeys[i]].observe == this.sessionID) {
+            observed = true;
+            break;
+          }
+        }
+        console.log(observed);
+        if (observed == false) {
+          this.realtime.observeTime = data.time;
+          this.realtime.observed = null;
+          this.realtime.module.setPingSub();
+        }
+      }
+      // Check to update status of observe:
+      if (this.realtime.observing == body._id) {
+        if (this.members[body._id] == null) {
+          this.realtime.module.exitObserve();
+          (await getModule("alert")).open("warning", "<b>Member Left</b><div>The member you where observing left.");
+        }
       }
     }; // Subscribe before to make sure no members are lost in request time.
 
@@ -406,7 +477,7 @@ modules["pages/editor"] = {
             this.realtime.ping();
           }
           await sleep(30000);
-          if (sentPing == false) {
+          if (sentPing == false && connected) {
             let [code] = await sendPing();
             if (code == 403) {
               setFrame("pages/join");
@@ -524,16 +595,22 @@ modules["pages/editor"] = {
         let scrollOffset = 66;
 
         bottomHolder.querySelector(".eCurrentPage").innerHTML = '<b>1</b> / ' + body.pages.length;
-        bottomHolder.querySelector(".ePageNav[down]").addEventListener("click", function () {
+        bottomHolder.querySelector(".ePageNav[down]").addEventListener("click", () => {
           let nextPage = pageHolder.children[currentPage] || pageHolder.children[pageHolder.children.length - 1];
           if (nextPage) {
             window.scrollTo({ top: window.scrollY + nextPage.getBoundingClientRect().top - scrollOffset, behavior: "smooth" });
           }
+          if (this.realtime.observing != null && this.realtime.module != null) {
+            this.realtime.module.exitObserve();
+          }
         });
-        bottomHolder.querySelector(".ePageNav[up]").addEventListener("click", function () {
+        bottomHolder.querySelector(".ePageNav[up]").addEventListener("click", () => {
           let nextPage = pageHolder.children[currentPage - 2] || pageHolder.children[0];
           if (nextPage) {
             window.scrollTo({ top: window.scrollY + nextPage.getBoundingClientRect().top - scrollOffset, behavior: "smooth" });
+          }
+          if (this.realtime.observing != null && this.realtime.module != null) {
+            this.realtime.module.exitObserve();
           }
         });
 
@@ -795,7 +872,11 @@ modules["pages/editor"] = {
 
     // Zoom
     this.zoom = 1;
-    this.setZoom = (set) => {
+    this.setZoom = (set, observe) => {
+      if (observe != true && this.realtime.observing != null && this.realtime.module != null) {
+        this.realtime.module.exitObserve();
+      }
+
       set = set || 0;
 
       let pageScrollX = window.scrollX;

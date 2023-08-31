@@ -14,7 +14,6 @@ modules["editor/realtime"] = {
     ".eSelection div": `position: absolute; background: var(--themeColor); opacity: .4; border-radius: 4px`
   },
   js: async function (editor, page) {
-    this.editor = editor;
     editor.realtime.module = this;
     console.log(editor);
 
@@ -27,7 +26,6 @@ modules["editor/realtime"] = {
 
     // Update connectivity:
     let statusIcon = page.querySelector(".eConnection");
-    let statusTx = page.querySelector(".eStatus");
     this.connectUpdate = () => {
       //object-position: -60px -4px;
       let imgPos = 0;
@@ -64,14 +62,27 @@ modules["editor/realtime"] = {
     }
 
     // PING / PONG for measuring internet speed:
-    let pingFilter = { c: "short_" + this.editor.id, p: editor.session };
+    let pingFilter = {};
     let awaiting = {};
     let timeoutTime = 500; // ms
-    subscribe(pingFilter, (pingID) => {
-      if (getEpoch() - pingID < timeoutTime) {
-        awaiting[pingID] = "";
+    this.setPingSub = () => {
+      pingFilter = { c: "short_" + editor.id };
+      if (editor.realtime.observed != true) {
+        pingFilter.p = editor.session;
+      } else {
+        pingFilter.o = editor.session;
       }
-    });
+      if (this.pingSub) {
+        this.pingSub.edit(pingFilter);
+      } else {
+        this.pingSub = subscribe(pingFilter, (pingID) => {
+          if (getEpoch() - pingID < timeoutTime) {
+            awaiting[pingID] = "";
+          }
+        });
+      }
+    }
+    this.setPingSub();
     editor.realtime.ping = (attempt) => {
       if (editor.active == false) {
         return;
@@ -117,7 +128,9 @@ modules["editor/realtime"] = {
     let realtimeHolder = page.querySelector(".eRealtime");
     let pageHolder = page.querySelector(".ePageHolder");
     let lastCursorPublish = 0;
+    let lastObservePublish = 0;
     let lastCursorContent = "";
+    let lastObserveContent = "";
     let lastCursorPage;
 
     this.findPage = (y) => {
@@ -136,7 +149,9 @@ modules["editor/realtime"] = {
     let mouseX = 0;
     let mouseY = 0;
     let endSyncTimeout;
-    this.publishShort = (event) => {
+    let endSyncObserveTimeout;
+    this.publishShort = (event, type) => {
+      type = type || "cursor";
       if (event && event.x) {
         mouseX = event.x;
         mouseY = event.y;
@@ -155,94 +170,129 @@ modules["editor/realtime"] = {
         return;
       }
       */
-      clearTimeout(endSyncTimeout);
-      if (lastCursorPublish < getEpoch() - 80) { // One event every 80 ms
-        let filter = { c: "short_" + editor.id };
-
-        // Figure out where the cursor is:
-        let sendX = mouseX;
-        let sendY = mouseY;
-        let pageRect;
-        if (editor.visiblePages) {
-          filter.p = this.findPage(sendY);
-          if (filter.p > 0) {
-            pageRect = pageHolder.children[filter.p - 1].getBoundingClientRect();
-            sendX -= pageRect.left;
-            sendY -= pageRect.top;
+      if (type == "cursor") {
+        clearTimeout(endSyncTimeout);
+        if (lastCursorPublish < getEpoch() - 80) { // One event every 80 ms
+          let filter = { c: "short_" + editor.id };
+  
+          // Figure out where the cursor is:
+          let sendX = mouseX;
+          let sendY = mouseY;
+          let pageRect;
+          if (editor.visiblePages) {
+            filter.p = this.findPage(sendY);
+            if (filter.p > 0) {
+              pageRect = pageHolder.children[filter.p - 1].getBoundingClientRect();
+              sendX -= pageRect.left;
+              sendY -= pageRect.top;
+            }
           }
-        }
-
-        if (filter.p != (lastCursorPage || filter.p)) {
-          socket.publish({ c: "short_" + editor.id, p: lastCursorPage }, [ editor.sessionID, filter.p ]); // When leaving a page, tell everyone!
-        }
-
-        let scaleZoom = 1 / editor.zoom;
-
-        // [ memberID, page, tool, time, mouseX, mouseY, extra (anno) ]
-        let pubData = [ editor.sessionID, filter.p, 0, 0, Math.floor(sendX * scaleZoom), Math.floor(sendY * scaleZoom)];
-
-        let addTextSelect = [];
-        if (window.getSelection != null) {
-          let select = window.getSelection();
-          if (select.rangeCount > 0) {
-            let range = select.getRangeAt(0);
-            if (range.toString().length > 0 && range.endContainer.parentNode.getAttribute("role") == "presentation") {
-              let selections = range.getClientRects();
-              let alreadyInsert = {};
-              for (let i = 0; i < Math.min(selections.length, 100); i++) {
-                let selRect = selections[i];
-                let checkInsert = (selRect.width * selRect.height) + selRect.left + selRect.top;
-                if (alreadyInsert[checkInsert] != null) {
-                  continue;
-                }
-                let selX = selRect.x;
-                let selY = selRect.y;
-                let page = this.findPage(selY);
-                if (editor.visiblePages && pageHolder.children[page - 1]) {
-                  let selPageRect = pageHolder.children[page - 1].getBoundingClientRect();
-                  selX -= selPageRect.left;
-                  selY -= selPageRect.top;
-                }
-                if (selRect.width > 0 && selRect.height > 0) {
-                  alreadyInsert[checkInsert] = "";
-                  // [ PAGE, WIDTH, HEIGHT, X, Y ]
-                  addTextSelect.push([ page, Math.floor(selRect.width*scaleZoom), Math.floor(selRect.height*scaleZoom), Math.floor(selX * scaleZoom), Math.floor(selY * scaleZoom)]);
+  
+          if (filter.p != (lastCursorPage || filter.p)) {
+            socket.publish({ c: "short_" + editor.id, p: lastCursorPage }, [ editor.sessionID, filter.p ]); // When leaving a page, tell everyone!
+          }
+  
+          let scaleZoom = 1 / editor.zoom;
+  
+          // [ memberID, page, tool, time, mouseX, mouseY, extra (anno) ]
+          let pubData = [ editor.sessionID, filter.p, 0, 0, Math.floor(sendX * scaleZoom), Math.floor(sendY * scaleZoom)];
+  
+          let addTextSelect = [];
+          if (window.getSelection != null) {
+            let select = window.getSelection();
+            if (select.rangeCount > 0) {
+              let range = select.getRangeAt(0);
+              if (range.toString().length > 0 && range.endContainer.parentNode.getAttribute("role") == "presentation") {
+                let selections = range.getClientRects();
+                let alreadyInsert = {};
+                for (let i = 0; i < Math.min(selections.length, 100); i++) {
+                  let selRect = selections[i];
+                  let checkInsert = (selRect.width * selRect.height) + selRect.left + selRect.top;
+                  if (alreadyInsert[checkInsert] != null) {
+                    continue;
+                  }
+                  let selX = selRect.x;
+                  let selY = selRect.y;
+                  let page = this.findPage(selY);
+                  if (editor.visiblePages && pageHolder.children[page - 1]) {
+                    let selPageRect = pageHolder.children[page - 1].getBoundingClientRect();
+                    selX -= selPageRect.left;
+                    selY -= selPageRect.top;
+                  }
+                  if (selRect.width > 0 && selRect.height > 0) {
+                    alreadyInsert[checkInsert] = "";
+                    // [ PAGE, WIDTH, HEIGHT, X, Y ]
+                    addTextSelect.push([ page, Math.floor(selRect.width*scaleZoom), Math.floor(selRect.height*scaleZoom), Math.floor(selX * scaleZoom), Math.floor(selY * scaleZoom)]);
+                  }
                 }
               }
             }
           }
-        }
-        if (addTextSelect.length > 0) {
-          if (pubData[6] == null) {
-            pubData.push({});
+          if (addTextSelect.length > 0) {
+            if (pubData[6] == null) {
+              pubData.push({});
+            }
+            pubData[6].selection = addTextSelect;
           }
-          pubData[6].selection = addTextSelect;
-        }
-        if (mouseDown()) {
-          if (pubData[6] == null) {
-            pubData.push({});
+          if (mouseDown()) {
+            if (pubData[6] == null) {
+              pubData.push({});
+            }
+            pubData[6].press = true;
           }
-          pubData[6].press = true;
+          
+          let updJSONContent = JSON.stringify([filter, pubData]);
+          if (updJSONContent == lastCursorContent) {
+            return;
+          }
+          pubData[3] = getEpoch();
+  
+          // PUBLISH the event:
+          socket.publish(filter, pubData);
+          lastCursorPublish = getEpoch();
+          lastCursorPage = filter.p;
+          lastCursorContent = updJSONContent;
+        } else {
+          endSyncTimeout = setTimeout(() => {
+            this.publishShort(event, type);
+          }, 100); // If after 100 MS, send the last event to ensure proper sync.
         }
-        
-        let updJSONContent = JSON.stringify([filter, pubData]);
-        if (updJSONContent == lastCursorContent) {
-          return;
-        }
-        pubData[3] = getEpoch();
+      } else if (type == "observe") {
+        clearTimeout(endSyncObserveTimeout);
+        if (lastObservePublish < getEpoch() - 250) { // One event every 250 ms
+          let filter = { c: "short_" + editor.id, o: editor.sessionID };
+          
+          // [ memberID, zoom, centerx, centery, time ]
+          let pubData = [ editor.sessionID, Math.floor(editor.zoom * 100) / 100, Math.floor(window.scrollX + (fixed.offsetWidth / 2)), Math.floor(window.scrollY + (fixed.offsetHeight / 2)) ];
 
-        // PUBLISH the event:
-        socket.publish(filter, pubData);
-        lastCursorPublish = getEpoch();
-        lastCursorPage = filter.p;
-        lastCursorContent = updJSONContent;
-      } else {
-        endSyncTimeout = setTimeout(() => {
-          this.publishShort(event);
-        }, 100); // If after 100 MS, send the last event to ensure proper sync.
+          let updJSONContent = JSON.stringify([filter, pubData]);
+          if (updJSONContent == lastObserveContent) {
+            return;
+          }
+          pubData[4] = getEpoch();
+
+          // PUBLISH the event:
+          socket.publish(filter, pubData);
+          lastObservePublish = getEpoch();
+          lastObserveContent = updJSONContent;
+        } else {
+          endSyncObserveTimeout = setTimeout(() => {
+            this.publishShort(event, type);
+          }, 300); // If after 300 MS, send the last event to ensure proper sync.
+        }
       }
     }
-    editor.scrollEvent = this.publishShort;
+    editor.scrollEvent = () => {
+      this.publishShort();
+      if (editor.realtime.observed == true) {
+        this.publishShort(null, "observe");
+      }
+    }
+    tempListen(window, "resize", () => {
+      if (editor.realtime.observed == true) {
+        this.publishShort(null, "observe");
+      }
+    });
 
     page.addEventListener("mousemove", this.publishShort);
     page.addEventListener("mousedown", this.publishShort);
@@ -295,6 +345,35 @@ modules["editor/realtime"] = {
       }
     }
     this.shortSub = null;
+    let targetScrollPositionX = 0;
+    let targetScrollPositionY = 0;
+    let animationFrameId;
+    function smoothScroll() {
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+      }
+
+      const distanceX = (targetScrollPositionX - window.scrollX) / 10; // Divide the distance into steps
+      const distanceY = (targetScrollPositionY - window.scrollY) / 10; // Divide the distance into steps
+      
+      let changeX = Math.min(distanceX, 50);
+      if (distanceX < 0) {
+        changeX = Math.max(distanceX, -50);
+      }
+      let changeY = Math.min(distanceY, 50);
+      if (distanceY < 0) {
+        changeY = Math.max(distanceY, -50);
+      }
+      if (Math.abs(distanceY) > 1 || Math.abs(distanceX) > 1) {
+        window.scrollTo({ left: window.scrollX + changeX, top: window.scrollY + changeY });
+        animationFrameId = requestAnimationFrame(smoothScroll);
+      }
+    }
+    function startScroll(targetX, targetY) {
+      targetScrollPositionX = targetX;
+      targetScrollPositionY = targetY;
+      smoothScroll();
+    }
     this.setShortSub = (pages) => {
       if (editor.realtime.strenth < 3 || editor.options.cursors == false) {
         pages = null;
@@ -303,116 +382,138 @@ modules["editor/realtime"] = {
         pages.push(0);
       }
       let filter = { c: "short_" + editor.id, p: pages };
+      if (editor.realtime.observing != null) {
+        filter.o = editor.realtime.observing;
+      }
       if (this.shortSub) {
         this.shortSub.edit(filter);
       } else {
-        this.shortSub = subscribe(filter, (data) => {
+        this.shortSub = subscribe(filter, async (data) => {
           console.log(data);
-          let [ memberID, page, tool, time, x, y, extra ] = data;
-          let member = editor.members[memberID];
+          let member = editor.members[data[0]];
           if (member == null) {
             return;
           }
-          if (member.lastShort > time) {
-            return;
-          }
-          member.lastShort == time;
-          clearInterval(member.interval);
-          member.interval = setInterval(() => {
-            this.removeRealtime(memberID);
-          }, 120000); // Remove member elements if inactive for 2 minutes
-          let cursorHolder = realtimeHolder.querySelector('.eCursor[member="' + memberID + '"]');
-          if (cursorHolder == null) {
-            realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCursor" member="${memberID}" scale></div>`);
-            cursorHolder = realtimeHolder.querySelector('.eCursor[member="' + memberID + '"]');
-            cursorHolder.offsetHeight;
-            cursorHolder.style.opacity = 1;
-          }
-          // Set x and y:
-          cursorHolder.setAttribute("x", x);
-          cursorHolder.setAttribute("y", y);
-          x = x * editor.zoom;
-          y = y * editor.zoom;
-          if (page > 0) {
-            let pageRect = pageHolder.children[page - 1].getBoundingClientRect();
-            cursorHolder.setAttribute("page", page);
-            x += pageRect.left;
-            y += pageRect.top;
-          }
-          cursorHolder.style.left = x + window.scrollX + "px";
-          cursorHolder.style.top = y + window.scrollY + "px";
-          if (tool == null) {
-            // Must be for a page leave event:
-            if (editor.visiblePages.includes(page)) {
+          if (data[2] == null || data[5] != null) { // CURSOR
+            let [ memberID, page, tool, time, x, y, extra ] = data;
+            if (member.lastShort > time) {
               return;
             }
-            (async function () {
-              cursorHolder.style.opacity = 0;
-              await sleep(300);
-              cursorHolder.remove();
-            })();
-            return;
-          } else {
-            cursorHolder.style.opacity = 1;
-          }
-          if (parseInt(cursorHolder.getAttribute("mode") || -1) != tool) {
-            switch (tool) {
-              case 0: // Normal cursor:
-                cursorHolder.innerHTML = `<div class="pointer" color><div name></div></div>`;
+            member.lastShort = time;
+            clearInterval(member.interval);
+            member.interval = setInterval(() => {
+              this.removeRealtime(memberID);
+            }, 120000); // Remove member elements if inactive for 2 minutes
+            let cursorHolder = realtimeHolder.querySelector('.eCursor[member="' + memberID + '"]');
+            if (cursorHolder == null) {
+              realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCursor" member="${memberID}" scale></div>`);
+              cursorHolder = realtimeHolder.querySelector('.eCursor[member="' + memberID + '"]');
+              cursorHolder.offsetHeight;
+              cursorHolder.style.opacity = 1;
             }
-            cursorHolder.querySelector("[name]").textContent = member.name;
-            cursorHolder.style.setProperty("--themeColor", member.color);
-            let colorMain = cursorHolder.querySelector("[color]");
-            colorMain.style.width = "fit-content";
-            cursorHolder.style.setProperty( "--fullyExtended", (cursorHolder.clientWidth - 6) + "px");
-            colorMain.style.removeProperty("width");
-            cursorHolder.setAttribute("mode", tool);
-          }
-          if (extra && extra.press) {
-            cursorHolder.setAttribute("pressed", "");
-          } else {
-            cursorHolder.removeAttribute("pressed");
-          }
-          // Handle selection:
-          let selectionHolder = realtimeHolder.querySelector('.eSelection[member="' + memberID + '"]:not([old])');
-          if (extra && extra.selection) {
-            let selection = extra.selection;
-            if (selectionHolder == null) {
-              realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eSelection" member="${memberID}"></div>`);
-              selectionHolder = realtimeHolder.querySelector('.eSelection[member="' + memberID + '"]:not([old])');
-              selectionHolder.style.setProperty("--themeColor", member.color);
+            // Set x and y:
+            cursorHolder.setAttribute("x", x);
+            cursorHolder.setAttribute("y", y);
+            x = x * editor.zoom;
+            y = y * editor.zoom;
+            if (page > 0) {
+              let pageRect = pageHolder.children[page - 1].getBoundingClientRect();
+              cursorHolder.setAttribute("page", page);
+              x += pageRect.left;
+              y += pageRect.top;
             }
-            selectionHolder.innerHTML = "";
-            for (let i = 0; i < Math.min(selection.length, 100); i++) {
-              let selectData = selection[i];
-              selectionHolder.insertAdjacentHTML("beforeend", `<div scale new></div>`);
-              let select = selectionHolder.querySelector('.eSelection div[new]');
-              select.removeAttribute("new");
-              select.setAttribute("width", selectData[1]);
-              select.setAttribute("height", selectData[2]);
-              select.setAttribute("x", selectData[3]);
-              select.setAttribute("y", selectData[4]);
-              select.style.width = (selectData[1] * editor.zoom) + "px";
-              select.style.height = (selectData[2] * editor.zoom) + "px";
-              let selX = selectData[3] * editor.zoom;
-              let selY = selectData[4] * editor.zoom;
-              if (selectData[0] > 0) {
-                let pageRect = pageHolder.children[selectData[0] - 1].getBoundingClientRect();
-                select.setAttribute("page", selectData[0]);
-                selX += pageRect.left;
-                selY += pageRect.top;
+            cursorHolder.style.left = x + window.scrollX + "px";
+            cursorHolder.style.top = y + window.scrollY + "px";
+            if (tool == null) {
+              // Must be for a page leave event:
+              if (editor.visiblePages.includes(page)) {
+                return;
               }
-              select.style.left = selX + window.scrollX + "px";
-              select.style.top = selY + window.scrollY + "px";
+              (async function () {
+                cursorHolder.style.opacity = 0;
+                await sleep(300);
+                cursorHolder.remove();
+              })();
+              return;
+            } else {
+              cursorHolder.style.opacity = 1;
             }
-            selectionHolder.style.opacity = 1;
-          } else if (selectionHolder != null) {
-            (async function () {
-              selectionHolder.setAttribute("old", "");
-              selectionHolder.style.opacity = 0;
-              await sleep(300);
-              selectionHolder.remove();
-            })();
+            if (parseInt(cursorHolder.getAttribute("mode") || -1) != tool) {
+              switch (tool) {
+                case 0: // Normal cursor:
+                  cursorHolder.innerHTML = `<div class="pointer" color><div name></div></div>`;
+              }
+              cursorHolder.querySelector("[name]").textContent = member.name;
+              cursorHolder.style.setProperty("--themeColor", member.color);
+              let colorMain = cursorHolder.querySelector("[color]");
+              colorMain.style.width = "fit-content";
+              cursorHolder.style.setProperty( "--fullyExtended", (cursorHolder.clientWidth - 6) + "px");
+              colorMain.style.removeProperty("width");
+              cursorHolder.setAttribute("mode", tool);
+            }
+            if (extra && extra.press) {
+              cursorHolder.setAttribute("pressed", "");
+            } else {
+              cursorHolder.removeAttribute("pressed");
+            }
+            // Handle selection:
+            let selectionHolder = realtimeHolder.querySelector('.eSelection[member="' + memberID + '"]:not([old])');
+            if (extra && extra.selection) {
+              let selection = extra.selection;
+              if (selectionHolder == null) {
+                realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eSelection" member="${memberID}"></div>`);
+                selectionHolder = realtimeHolder.querySelector('.eSelection[member="' + memberID + '"]:not([old])');
+                selectionHolder.style.setProperty("--themeColor", member.color);
+              }
+              selectionHolder.innerHTML = "";
+              for (let i = 0; i < Math.min(selection.length, 100); i++) {
+                let selectData = selection[i];
+                selectionHolder.insertAdjacentHTML("beforeend", `<div scale new></div>`);
+                let select = selectionHolder.querySelector('.eSelection div[new]');
+                select.removeAttribute("new");
+                select.setAttribute("width", selectData[1]);
+                select.setAttribute("height", selectData[2]);
+                select.setAttribute("x", selectData[3]);
+                select.setAttribute("y", selectData[4]);
+                select.style.width = (selectData[1] * editor.zoom) + "px";
+                select.style.height = (selectData[2] * editor.zoom) + "px";
+                let selX = selectData[3] * editor.zoom;
+                let selY = selectData[4] * editor.zoom;
+                if (selectData[0] > 0) {
+                  let pageRect = pageHolder.children[selectData[0] - 1].getBoundingClientRect();
+                  select.setAttribute("page", selectData[0]);
+                  selX += pageRect.left;
+                  selY += pageRect.top;
+                }
+                select.style.left = selX + window.scrollX + "px";
+                select.style.top = selY + window.scrollY + "px";
+              }
+              selectionHolder.style.opacity = 1;
+            } else if (selectionHolder != null) {
+              (async function () {
+                selectionHolder.setAttribute("old", "");
+                selectionHolder.style.opacity = 0;
+                await sleep(300);
+                selectionHolder.remove();
+              })();
+            }
+          } else { // OBSERVE
+            let [ memberID, zoom, scrollX, scrollY, time ] = data;
+            if (memberID != editor.realtime.observing) {
+              return;
+            }
+            if (member.lastObserveShort > time) {
+              return;
+            }
+            if (editor.realtime.observeLoading != null) {
+              (await getModule("alert")).close(editor.realtime.observeLoading);
+              editor.realtime.observeLoading = null;
+            }
+            editor.lastZoom = editor.zoom;
+            editor.setZoom(zoom);
+            startScroll(scrollX - (fixed.offsetWidth / 2), scrollY - (fixed.offsetHeight / 2));
+            //smoothScrollTo(scrollX - (fixed.offsetWidth / 2), (scrollY - (fixed.offsetHeight / 2)) * scrollRate, 100);
+            //window.scrollTo({ left: scrollX - (fixed.offsetWidth / 2), top: scrollY - (fixed.offsetHeight / 2), behavior: "smooth" });
           }
         });
       }
@@ -862,10 +963,27 @@ modules["dropdowns/editor/members"] = {
         let observeButton = memberFrameHolder.querySelector(".eMemberSectionActions button[observe]");
         observeButton.addEventListener("click", async function(event) {
           observeButton.setAttribute("disabled", "");
-          let [code, data] = await sendRequest("GET", "lessons/members/observe?member=" + event.target.closest(".eMemberFrame").getAttribute("memberid"), null, { session: editor.session });
+          let memberid = event.target.closest(".eMemberFrame").getAttribute("memberid");
+          let member = editor.members[memberid];
+          if (member == null) {
+            (await getModule("dropdown")).close();
+            return;
+          }
+          let alertModule = await getModule("alert");
+          if (member.weak == true) {
+            alertModule.open("error", `<b>Unable to Connect</b>${member.name} has too weak of a connection to watch their screen.`);
+            observeButton.removeAttribute("disabled");
+            return;
+          }
+          editor.realtime.observing = memberid;
+          editor.realtime.module.setShortSub(editor.visiblePages);
+          let [code, data] = await sendRequest("GET", "lessons/members/observe?member=" + memberid, null, { session: editor.session });
           if (code == 200) {
-            console.log(data);
+            editor.realtime.observeLoading = await alertModule.open("info", `<b>Connecting to Member</b>Connecting to ${member.name}'s screen to observe!`, { time: "never" });
             closeDropdown();
+          } else {
+            editor.realtime.observing = null;
+            editor.realtime.module.setShortSub(editor.visiblePages);
           }
           observeButton.removeAttribute("disabled");
         });

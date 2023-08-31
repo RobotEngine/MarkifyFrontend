@@ -277,6 +277,17 @@ modules["pages/editor"] = {
                 this.updateInterface(page);
               }
             }
+            if (body.observe != null && this.realtime.module != null) {
+              if (body.observe == this.sessionID) { // Being observed:
+                if (this.realtime.observed != true) {
+                  this.realtime.observed = true;
+                  this.realtime.module.setPingSub();
+                  this.realtime.module.publishShort(null, "observe")
+                }
+              } else { // Not observed:
+                this.realtime.observed = false;
+              }
+            }
           }
           break;
         case "set":

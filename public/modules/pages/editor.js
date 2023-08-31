@@ -141,7 +141,7 @@ modules["pages/editor"] = {
       fullscreen: false
     };
     this.realtime = {
-      strenth: 0
+      strength: 0
     };
     this.members = {};
     this.memberCount = 0;
@@ -198,10 +198,10 @@ modules["pages/editor"] = {
     let observeBorder = page.querySelector(".eObserveBorder");
 
     if (connected) {
-      this.realtime.strenth = 1;
+      this.realtime.strength = 1;
     }
     closeCallback = () => {
-      this.realtime.strenth = 1;
+      this.realtime.strength = 1;
       if (this.realtime.module) {
         this.realtime.module.connectUpdate();
       }
@@ -393,7 +393,6 @@ modules["pages/editor"] = {
         }
         console.log(observed);
         if (observed == false) {
-          this.realtime.observeTime = data.time;
           this.realtime.observed = null;
           this.realtime.module.setPingSub();
         }
@@ -450,7 +449,7 @@ modules["pages/editor"] = {
       if (this.active == false) {
         params.push("idle");
       }
-      if (this.realtime.strenth == 2) {
+      if (this.realtime.strength == 2) {
         params.push("weak");
       }
       let path = "lessons/ping";
@@ -464,9 +463,9 @@ modules["pages/editor"] = {
     this.sendPing = sendPing;
 
     if (extra.took < 2500) {
-      this.realtime.strenth = 3;
+      this.realtime.strength = 3;
     } else {
-      this.realtime.strenth = 2;
+      this.realtime.strength = 2;
       sendPing();
     }
 
@@ -1101,7 +1100,7 @@ modules["dropdowns/editor/zoom"] = {
       }
       forceSetZoom();
     });
-    if (editor.realtime.strenth < 3) {
+    if (editor.realtime.strength < 3) {
       let zoomAction = fixed.querySelector('.eZoomAction[option="cursors"]');
       zoomAction.style.opacity = 0.5;
       zoomAction.title = "Cursors disabled due to weak connection.";

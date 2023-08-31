@@ -46,7 +46,7 @@ modules["editor/realtime"] = {
       //object-position: -60px -4px;
       let imgPos = 0;
       let status = "";
-      switch (editor.realtime.strenth) {
+      switch (editor.realtime.strength) {
         case 3: // Full Connection:
           imgPos = -60;
           status = "Strong Connection | All features seamlessly synced to the cloud.";
@@ -67,7 +67,7 @@ modules["editor/realtime"] = {
 
       let zCursorAction = fixed.querySelector('.eZoomAction[option="cursors"]');
       if (zCursorAction) {
-        if (editor.realtime.strenth < 3) {
+        if (editor.realtime.strength < 3) {
           zCursorAction.style.opacity = 0.5;
           zCursorAction.title = "Cursors disabled due to weak connection.";
         } else {
@@ -109,13 +109,13 @@ modules["editor/realtime"] = {
         if (awaiting[pingID] == "") {
           delete awaiting[pingID];
           // STRONG INTERNET
-          if (editor.realtime.strenth != 3) {
+          if (editor.realtime.strength != 3) {
             if (attempt < 3) {
               // Try 2 more times to make sure:
               editor.realtime.ping(attempt + 1);
             } else {
               // Enable the stuff:
-              editor.realtime.strenth = 3;
+              editor.realtime.strength = 3;
               editor.sendPing();
               this.connectUpdate();
               alert.open("info", "<b>Connection Restored</b>A strong connection has been established, all features enabled.");
@@ -123,16 +123,21 @@ modules["editor/realtime"] = {
           }
         } else {
           // WEAK INTERNET
-          if (editor.realtime.strenth != 2) {
+          if (editor.realtime.strength != 2) {
             if (attempt < 3) {
               // Try 2 more times to make sure:
               editor.realtime.ping(attempt + 1);
             } else {
               // Disable the stuff:
-              editor.realtime.strenth = 2;
+              editor.realtime.strength = 2;
               editor.sendPing();
               this.connectUpdate();
               alert.open("info", "<b>Weak Connection</b>While you're still connected, real-time collaboration is disabled to save bandwidth.");
+              this.exitObserve();
+              if (editor.realtime.observed == true) {
+                editor.realtime.observed = null;
+                this.setPingSub();
+              }
             }
           }
         }
@@ -178,7 +183,7 @@ modules["editor/realtime"] = {
       if (editor.memberCount < 2) { // No one to send cursor events too!
         return;
       }
-      if (editor.realtime.strenth < 3) { // If weak don't send!
+      if (editor.realtime.strength < 3) { // If weak don't send!
         return;
       }
       /* // Disabled as others should still see your cursor!
@@ -427,7 +432,7 @@ modules["editor/realtime"] = {
       smoothScroll();
     }
     this.setShortSub = (pages) => {
-      if (editor.realtime.strenth < 3 || editor.options.cursors == false) {
+      if (editor.realtime.strength < 3 || editor.options.cursors == false) {
         pages = null;
       }
       if (pages != null && pages.length < 1) {
@@ -1012,7 +1017,7 @@ modules["dropdowns/editor/members"] = {
             return;
           }
           let alertModule = await getModule("alert");
-          if (editor.realtime.strenth < 3) {
+          if (editor.realtime.strength < 3) {
             alertModule.open("error", `<b>Unable to Connect</b>Your connection is too weak to watch their screen.`);
             return;
           }
@@ -1159,7 +1164,7 @@ modules["dropdowns/editor/members"] = {
       } else {
         observeButton.style.display = "none";
       }
-      if (member.weak != true && editor.realtime.strenth > 2 && member.observe == null) {
+      if (member.weak != true && editor.realtime.strength > 2 && member.observe == null) {
         observeButton.style.opacity = 1;
       } else {
         observeButton.style.opacity = .5;

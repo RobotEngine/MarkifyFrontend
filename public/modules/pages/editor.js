@@ -185,8 +185,8 @@ modules["pages/editor"] = {
     };
 
     // PRELOAD ASSETS
-    loadScript("../libraries/pdfjs/pdf.js");
-    loadScript("../modules/editor/realtime.js");
+    loadScript("./libraries/pdfjs/pdf.js");
+    loadScript("./modules/editor/realtime.js");
     
     page.style.removeProperty("display");
     page.style.width = "fit-content";
@@ -307,7 +307,6 @@ modules["pages/editor"] = {
               if (body.observe == this.sessionID) { // Being observed:
                 if (this.realtime.observed != true) {
                   this.realtime.observed = true;
-                  this.realtime.module.setPingSub();
                   this.realtime.module.publishShort(null, "observe");
                 }
               }
@@ -318,8 +317,12 @@ modules["pages/editor"] = {
               removeRealtimeElem(body._id);
               if (this.realtime.observing == body._id) {
                 this.realtime.module.exitObserve();
-                (await getModule("alert")).open("warning", "<b>Member's Connection Too Weak</b>This member's connection has become too weak, try again later...");
+                (await getModule("alert")).open("warning", "<b>Observing Ended</b>The member you where observing has too weak a connection, try again later...");
               }
+            }
+            if (body.observe != null && this.realtime.observing == body._id) {
+              this.realtime.module.exitObserve();
+              (await getModule("alert")).open("warning", "<b>Observing Ended</b>The member your observing started watching someone.");
             }
 
             // Update observe:
@@ -397,7 +400,6 @@ modules["pages/editor"] = {
         }
         if (observed == false) {
           this.realtime.observed = null;
-          this.realtime.module.setPingSub();
         }
       }
       // Check to update status of observe:
@@ -444,6 +446,7 @@ modules["pages/editor"] = {
     }
 
     this.sessionID = body.session._id;
+    this.sessionToken = body.session.token;
     this.session = body.session._id + ";" + body.session.token;
 
     let sentPing = false;
@@ -454,6 +457,9 @@ modules["pages/editor"] = {
       }
       if (this.realtime.strength == 2) {
         params.push("weak");
+      }
+      if (this.realtime.observing != null) {
+        params.push("observe=" + this.realtime.observing);
       }
       let path = "lessons/ping";
       if (params.length > 0) {

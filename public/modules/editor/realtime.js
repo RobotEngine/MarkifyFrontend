@@ -78,27 +78,14 @@ modules["editor/realtime"] = {
     }
 
     // PING / PONG for measuring internet speed:
-    let pingFilter = {};
+    let pingFilter = { c: "short_" + editor.id, o: editor.sessionID, t: editor.sessionToken };
     let awaiting = {};
     let timeoutTime = 500; // ms
-    this.setPingSub = () => {
-      pingFilter = { c: "short_" + editor.id };
-      if (editor.realtime.observed != true) {
-        pingFilter.p = editor.session;
-      } else {
-        pingFilter.o = editor.session;
+    subscribe(pingFilter, (pingID) => {
+      if (getEpoch() - pingID < timeoutTime) {
+        awaiting[pingID] = "";
       }
-      if (this.pingSub) {
-        this.pingSub.edit(pingFilter);
-      } else {
-        this.pingSub = subscribe(pingFilter, (pingID) => {
-          if (getEpoch() - pingID < timeoutTime) {
-            awaiting[pingID] = "";
-          }
-        });
-      }
-    }
-    this.setPingSub();
+    });
     editor.realtime.ping = (attempt) => {
       if (editor.active == false) {
         return;
@@ -136,7 +123,6 @@ modules["editor/realtime"] = {
               this.exitObserve();
               if (editor.realtime.observed == true) {
                 editor.realtime.observed = null;
-                this.setPingSub();
               }
             }
           }
@@ -405,6 +391,8 @@ modules["editor/realtime"] = {
     let targetScrollPositionX = 0;
     let targetScrollPositionY = 0;
     let animationFrameId;
+    let tempListenAnimation = { type: "animation" }
+    tempListeners.push(tempListenAnimation);
     function smoothScroll() {
       if (animationFrameId !== null) {
         cancelAnimationFrame(animationFrameId);
@@ -424,6 +412,7 @@ modules["editor/realtime"] = {
       if (Math.abs(distanceY) > 1 || Math.abs(distanceX) > 1) {
         window.scrollTo({ left: window.scrollX + changeX, top: window.scrollY + changeY });
         animationFrameId = requestAnimationFrame(smoothScroll);
+        tempListenAnimation.frame = animationFrameId;
       }
     }
     function startScroll(targetX, targetY) {
@@ -700,6 +689,9 @@ modules["dropdowns/editor/members"] = {
         return;
       }
       let section = getSection(member.access);
+      if (section == null) {
+        return;
+      }
       let title = section.querySelector(".eMemberAccessTitle");
       section.insertAdjacentHTML("beforeend", `<div class="eMemberTile" new><button>
         <div class="eMemberBackground"></div>

@@ -1,5 +1,5 @@
-let serverURL = "https://markify.exotek.co/api/";
-//let serverURL = "http://localhost:3000/api/";
+//let serverURL = "https://markify.exotek.co/api/";
+let serverURL = "http://localhost:3000/api/";
 let assetURL = "https://markifyapp.s3.amazonaws.com/";
 
 const socket = new SimpleSocket({
@@ -40,6 +40,8 @@ function removeTempListeners() {
       }
     } else if (remEvent.type == "interval") {
       clearInterval(remEvent.interval);
+    } else if (remEvent.type == "animation") {
+      cancelAnimationFrame(remEvent.frame);
     }
   }
 }

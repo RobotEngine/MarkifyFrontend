@@ -313,9 +313,13 @@ modules["pages/editor"] = {
               }
             }
 
-            // Remove elements is weak:
+            // Remove elements if weak:
             if (body.weak == true) {
               removeRealtimeElem(body._id);
+              if (this.realtime.observing == body._id) {
+                this.realtime.module.exitObserve();
+                (await getModule("alert")).open("warning", "<b>Member's Connection Too Weak</b>This member's connection has become too weak, try again later...");
+              }
             }
 
             // Update observe:
@@ -391,7 +395,6 @@ modules["pages/editor"] = {
             break;
           }
         }
-        console.log(observed);
         if (observed == false) {
           this.realtime.observed = null;
           this.realtime.module.setPingSub();
@@ -401,7 +404,7 @@ modules["pages/editor"] = {
       if (this.realtime.observing == body._id) {
         if (this.members[body._id] == null) {
           this.realtime.module.exitObserve();
-          (await getModule("alert")).open("warning", "<b>Member Left</b><div>The member you where observing left.");
+          (await getModule("alert")).open("warning", "<b>Member Left</b>The member you where observing left.");
         }
       }
     }; // Subscribe before to make sure no members are lost in request time.

@@ -305,7 +305,10 @@ modules["editor/realtime"] = {
     page.addEventListener("mousedown", this.publishShort);
     page.addEventListener("mouseup", this.publishShort);
 
-    page.addEventListener("touchmove", this.publishShort);
+    page.addEventListener("touchmove", (e) => {
+      this.exitObserve();
+      this.publishShort(e);
+    });
     page.addEventListener("touchstart", this.publishShort);
     page.addEventListener("touchend", this.publishShort);
 

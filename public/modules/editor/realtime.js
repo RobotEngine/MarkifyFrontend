@@ -368,7 +368,9 @@ modules["editor/realtime"] = {
 
       editor.updateInterface();
     }
-    this.exitObserve = () => {
+    this.exitObserve = async () => {
+      (await getModule("alert")).close(editor.realtime.observeLoading);
+
       if (editor.realtime.observing == null) {
         return;
       }

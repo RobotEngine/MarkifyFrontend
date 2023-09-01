@@ -147,6 +147,13 @@ modules["pages/launch"] = {
         <button class="lOpen largeButton" openpage="editor" disabled>Create a Lesson</button>
       </div>
     </div>
+    <div class="lFooterCompliance">
+      <div class="footerBadges">
+        <img src="./images/launch/badges/coppa.svg">
+        <img src="./images/launch/badges/ferpa.svg">
+      </div>
+      <div class="footerStatement">Markify is complaint under all <b>COPPA</b> and <b>FERPA</b> rules and regulations.</div>
+    </div>
     <div class="lFooterFooter">
       <div class="lFooterCompany">
         <img class="lFooterLogo" src="./images/logowhite.svg">
@@ -248,9 +255,13 @@ modules["pages/launch"] = {
     ".lFooterTitle b": `font-size: 46px; font-weight: 800; line-height: 70px`,
     ".lFooterFree": `margin-top: 24px; color: #fff; font-size: 18px; font-weight: 600`,
     ".lFooterFree b": `font-weight: 700`,
-    ".dFooterHolder button": `box-shadow: 0px 0px 24px rgb(0, 0, 0, .4);`,
-    ".lFooterFooter": `position: relative; box-sizing: border-box; display: flex; flex-wrap: wrap; width: calc(100% - 24px); max-width: 700px; padding: 12px; margin-top: 24px; background: #000; border-radius: 24px; justify-content: center; align-items: center`,
-    ".lFooterCompany": `display: flex; flex-direction: column; flex: 1; align-items: center; justify-content: center`,
+    ".dFooterHolder button": `box-shadow: 0px 0px 24px rgb(0, 0, 0, .4)`,
+    ".lFooterCompliance": `position: relative; box-sizing: border-box; padding: 24px; margin: 60px 0`,
+    ".footerBadges": `display: flex; flex-wrap: wrap; width: 100%; justify-content: space-around`,
+    ".footerBadges img": `max-width: 100%; max-height: 100px; margin: 16px`,
+    ".footerStatement": `width: 100%; margin-top: 16px`,
+    ".lFooterFooter": `position: relative; box-sizing: border-box; display: flex; flex-wrap: wrap; width: calc(100% - 24px); max-width: 700px; padding: 12px; margin-top: 24px; background: #000; border-radius: 24px; justify-content: center; align-items: center; overflow: hidden`,
+    ".lFooterCompany": `display: flex; flex-direction: column; max-width: 100%; flex: 1; align-items: center; justify-content: center`,
     ".lFooterLogo": `height: 70px`,
     ".lFooterCopyright": `color: var(--secondary); text-decoration: none`,
     ".lFooterPolicies": `display: flex; flex-wrap: wrap; flex: 1 1 300px; justify-content: center; align-items: center`,

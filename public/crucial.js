@@ -1009,7 +1009,7 @@ modules["dropdowns/account"] = {
 
 // Add CORE CSS:
 addCSS({
-  "button, a": `border: none; background: none; color: var(--textColor); font-family: var(--font); cursor: pointer; transition: .1s`,
+  "button, a": `border: none; background: none; color: var(--textColor); font-family: var(--font); white-space: pre-wrap; cursor: pointer; transition: .1s`,
   "button:active, a:active": `transform: scale(.95) !important`,
   "[disabled]": `pointer-events: none !important; opacity: .5 !important`,
   "[hidden]": `pointer-events: none !important; opacity: 0 !important`,

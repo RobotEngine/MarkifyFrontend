@@ -163,24 +163,28 @@ modules["editor/realtime"] = {
         mouseX = event.x;
         mouseY = event.y;
       }
-      if (editor.getSelf().access < 1) { // Not an editor!
-        return;
-      }
       if (editor.memberCount < 2) { // No one to send cursor events too!
         return;
       }
       if (editor.realtime.strength < 3) { // If weak don't send!
         return;
       }
-      /* // Disabled as others should still see your cursor!
-      if (editor.options.cursors == false) {
+      if (editor.getSelf().access < 1 && editor.realtime.observed != true) { // Not an editor!
         return;
       }
-      */
       if (type == "cursor") {
+        /* // Disabled as others should still see your cursor!
+        if (editor.options.cursors == false) {
+          return;
+        }
+        */
         clearTimeout(endSyncTimeout);
         if (lastCursorPublish < getEpoch() - 80) { // One event every 80 ms
-          let filter = { c: "short_" + editor.id };
+          let standardFilter = { c: "short_" + editor.id };
+          if (editor.realtime.observed) {
+            standardFilter.o = editor.sessionID;
+          }
+          let filter = { ...standardFilter };
   
           // Figure out where the cursor is:
           let sendX = mouseX;
@@ -196,7 +200,7 @@ modules["editor/realtime"] = {
           }
   
           if (filter.p != (lastCursorPage || filter.p)) {
-            socket.publish({ c: "short_" + editor.id, p: lastCursorPage }, [ editor.sessionID, filter.p ]); // When leaving a page, tell everyone!
+            socket.publish({ ...standardFilter, p: lastCursorPage }, [ editor.sessionID, filter.p ]); // When leaving a page, tell everyone!
           }
   
           let scaleZoom = 1 / editor.zoom;
@@ -368,7 +372,14 @@ modules["editor/realtime"] = {
       if (editor.realtime.observing == null) {
         return;
       }
-      sendRequest("DELETE", "lessons/members/observe/exit?member=" + editor.realtime.observing, null, { session: editor.session });
+      let member = editor.members[editor.realtime.observing];
+      if (member == null) {
+        return;
+      }
+      if (member.access < 1) {
+        this.removeRealtime(member._id);
+      }
+      sendRequest("DELETE", "lessons/members/observe/exit?member=" + member._id, null, { session: editor.session });
       editor.realtime.observing = null;
       observeHolder.style.display = "none";
       observeBorder.style.border = "unset";

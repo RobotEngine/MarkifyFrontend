@@ -366,15 +366,19 @@ modules["editor/realtime"] = {
       observeHolder.style.display = "flex";
       observeBorder.style.border = "solid 3px " + member.color;
 
-      editor.updateInterface();
+      editor.updateInterface(true);
     }
     this.exitObserve = async () => {
+      let prevObservID = editor.realtime.observing;
+      editor.realtime.observing = null;
+      
       (await getModule("alert")).close(editor.realtime.observeLoading);
+      clearTimeout(editor.realtime.observeTimeout);
 
-      if (editor.realtime.observing == null) {
+      if (prevObservID == null) {
         return;
       }
-      let member = editor.members[editor.realtime.observing];
+      let member = editor.members[prevObservID];
       if (member == null) {
         return;
       }
@@ -382,11 +386,11 @@ modules["editor/realtime"] = {
         this.removeRealtime(member._id);
       }
       sendRequest("DELETE", "lessons/members/observe/exit?member=" + member._id, null, { session: editor.session });
-      editor.realtime.observing = null;
       observeHolder.style.display = "none";
       observeBorder.style.border = "unset";
       cancelAnimationFrame(animationFrameId);
-      editor.updateInterface();
+      editor.updateInterface(true);
+      editor.realtime.module.observeButtonUpdate();
     }
     observeTag.querySelector("button").addEventListener("click", () => {
       this.exitObserve();
@@ -668,8 +672,9 @@ modules["dropdowns/editor/members"] = {
     ".eMemberSectionActions button": `display: flex; flex-direction: column; width: 86.33px; padding: 6px 12px; align-items: center; border-radius: 14px; color: var(--themeColor); overflow: visible`,
     ".eMemberSectionActions button img": `width: 55px; height: 55px; transition: .15s`,
     ".eMemberSectionActions button div": `margin-top: 6px; font-size: 14px; font-weight: 600`,
-    ".eMemberSectionActions button:hover": `background: var(--themeColor); color: #fff`,
-    ".eMemberSectionActions button:hover img": `filter: brightness(0) invert(1); transform: scale(1.1)`
+    ".eMemberSectionActions button:hover img": `transform: scale(1.15) translateY(-2px)`,
+    ".eMemberSectionActions button:active": `background: var(--themeColor); color: #fff`,
+    ".eMemberSectionActions button:active img": `filter: brightness(0) invert(1); transform: scale(1)`
   },
   js: async function (frame) {
     let editor = await getModule("pages/editor");
@@ -929,6 +934,21 @@ modules["dropdowns/editor/members"] = {
       }
       dropdown = frame.closest(".dropdown");
       memberFrameHolder = dropdown.querySelector(".eMemberFrameHolder");
+      editor.realtime.module.observeButtonUpdate = () => {
+        let memberFrame = memberFrameHolder.querySelector(".eMemberFrame");
+        let button = memberFrame.querySelector(".eMemberSectionActions button[observe]");
+        let obvImg = "./images/editor/members/observe.svg";
+        let obvText = "Observe";
+        let obvDesc = "Watch this member's screen.";
+        if (editor.realtime.observing == memberFrame.getAttribute("memberid")) {
+          obvImg = "./images/editor/members/observeexit.svg";
+          obvText = "Exit";
+          obvDesc = "Stop watching this member's screen."
+        }
+        button.querySelector("img").src = obvImg;
+        button.querySelector("div").textContent = obvText;
+        button.title = obvDesc;
+      }
       if (memberFrameHolder == null) {
         dropdown.insertAdjacentHTML("beforeend", `<div class="eMemberFrameHolder">
         <div class="eMemberFrame">
@@ -965,8 +985,8 @@ modules["dropdowns/editor/members"] = {
                   <img>
                   <div></div>
                 </button>
-                <button observe style="--themeColor: var(--purple)" title="Watch this member's screen.">
-                  <img src="./images/editor/members/observe.svg">
+                <button observe style="--themeColor: var(--purple)">
+                  <img>
                   <div>Observe</div>
                 </button>
                 <button kick style="--themeColor: var(--error)" title="Revoke all viewing and editing privileges.">
@@ -1040,6 +1060,9 @@ modules["dropdowns/editor/members"] = {
           observeButton.setAttribute("disabled", "");
           editor.realtime.observing = memberid;
           editor.realtime.module.setShortSub(editor.visiblePages);
+          editor.realtime.module.observeButtonUpdate();
+          alertModule.close(editor.realtime.observeLoading);
+          clearTimeout(editor.realtime.observeTimeout);
           let [code] = await sendRequest("GET", "lessons/members/observe?member=" + memberid, null, { session: editor.session });
           if (code == 200) {
             editor.realtime.observeLoading = await alertModule.open("info", `<b>Connecting to Member</b>Connecting to ${member.name}'s screen to observe!`, { time: "never" });
@@ -1048,7 +1071,6 @@ modules["dropdowns/editor/members"] = {
               alertModule.open("error", `<b>Observe Timeout</b>Failed to connect to their screen, please try again later...`);
               editor.realtime.module.exitObserve();
             }, 10000);
-            closeDropdown();
           } else {
             editor.realtime.observing = null;
             editor.realtime.module.setShortSub(editor.visiblePages);
@@ -1155,9 +1177,9 @@ modules["dropdowns/editor/members"] = {
           text = "Viewer";
           desc = "Revoke temporary editing privileges, granting viewer.";
         }
-        editorButton.title = desc;
         editorButton.querySelector("img").src = image;
         editorButton.querySelector("div").textContent = text;
+        editorButton.title = desc;
         editorButton.style.display = "flex";
       } else {
         editorButton.style.display = "none";
@@ -1167,6 +1189,7 @@ modules["dropdowns/editor/members"] = {
       } else {
         kickButton.style.display = "none";
       }
+      editor.realtime.module.observeButtonUpdate();
       if (!isSelf && member.title == null) {
         observeButton.style.display = "flex";
       } else {

@@ -155,7 +155,7 @@ modules["pages/editor"] = {
     this.getSelf = function () {
       return this.members[this.sessionID];
     };
-    this.updateInterface = async function () {
+    this.updateInterface = async function (keepDropdowns) {
       let toolbar = page.querySelector(".eToolbar");
       let name = page.querySelector(".eFileName");
       let share = page.querySelector(".eShare");
@@ -181,7 +181,9 @@ modules["pages/editor"] = {
       } else {
         share.style.display = "flex";
       }
-      (await getModule("dropdown")).close();
+      if (keepDropdowns != true) {
+        (await getModule("dropdown")).close();
+      }
     };
 
     // PRELOAD ASSETS

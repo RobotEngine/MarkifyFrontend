@@ -181,7 +181,7 @@ modules["editor/realtime"] = {
         clearTimeout(endSyncTimeout);
         if (lastCursorPublish < getEpoch() - 80) { // One event every 80 ms
           let standardFilter = { c: "short_" + editor.id };
-          if (editor.realtime.observed) {
+          if (editor.realtime.observed && editor.getSelf().access < 1) {
             standardFilter.o = editor.sessionID;
           }
           let filter = { ...standardFilter };
@@ -378,6 +378,12 @@ modules["editor/realtime"] = {
       if (prevObservID == null) {
         return;
       }
+
+      observeHolder.style.display = "none";
+      observeBorder.style.border = "unset";
+      cancelAnimationFrame(animationFrameId);
+      editor.updateInterface(true);
+
       let member = editor.members[prevObservID];
       if (member == null) {
         return;
@@ -386,10 +392,6 @@ modules["editor/realtime"] = {
         this.removeRealtime(member._id);
       }
       sendRequest("DELETE", "lessons/members/observe/exit?member=" + member._id, null, { session: editor.session });
-      observeHolder.style.display = "none";
-      observeBorder.style.border = "unset";
-      cancelAnimationFrame(animationFrameId);
-      editor.updateInterface(true);
       editor.realtime.module.observeButtonUpdate();
     }
     observeTag.querySelector("button").addEventListener("click", () => {

@@ -307,10 +307,8 @@ modules["pages/editor"] = {
             }
             if (body.observe != null && this.realtime.module != null) {
               if (body.observe == this.sessionID) { // Being observed:
-                if (this.realtime.observed != true) {
-                  this.realtime.observed = true;
-                  this.realtime.module.publishShort(null, "observe");
-                }
+                this.realtime.observed = true;
+                this.realtime.module.publishShort(null, "observe");
               }
             }
 

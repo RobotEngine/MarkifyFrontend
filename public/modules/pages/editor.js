@@ -308,7 +308,7 @@ modules["pages/editor"] = {
             if (body.observe != null && this.realtime.module != null) {
               if (body.observe == this.sessionID) { // Being observed:
                 this.realtime.observed = true;
-                this.realtime.module.publishShort(null, "observe");
+                this.realtime.module.publishShort(null, "observe", true);
               }
             }
 
@@ -403,7 +403,7 @@ modules["pages/editor"] = {
         }
       }
       // Check to update status of observe:
-      if (this.realtime.observing == body._id) {
+      if (body._id != null && this.realtime.observing == body._id) {
         if (this.members[body._id] == null) {
           this.realtime.module.exitObserve();
           (await getModule("alert")).open("warning", "<b>Member Left</b>The member you where observing left.");

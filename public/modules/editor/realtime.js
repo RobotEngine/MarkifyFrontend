@@ -157,7 +157,7 @@ modules["editor/realtime"] = {
     let mouseY = 0;
     let endSyncTimeout;
     let endSyncObserveTimeout;
-    this.publishShort = (event, type) => {
+    this.publishShort = (event, type, ignoreSame) => {
       type = type || "cursor";
       if (event && event.x) {
         mouseX = event.x;
@@ -253,7 +253,7 @@ modules["editor/realtime"] = {
           }
           
           let updJSONContent = JSON.stringify([filter, pubData]);
-          if (updJSONContent == lastCursorContent) {
+          if (updJSONContent == lastCursorContent && ignoreSame != true) {
             return;
           }
           pubData[3] = getEpoch();
@@ -277,7 +277,7 @@ modules["editor/realtime"] = {
           let pubData = [ editor.sessionID, Math.floor(editor.zoom * 100) / 100, Math.floor(window.scrollX + (fixed.offsetWidth / 2) - pageHolder.offsetLeft), Math.floor(window.scrollY + (fixed.offsetHeight / 2) - pageHolder.offsetTop) ];
 
           let updJSONContent = JSON.stringify([filter, pubData]);
-          if (updJSONContent == lastObserveContent) {
+          if (updJSONContent == lastObserveContent && ignoreSame != true) {
             return;
           }
           pubData[4] = getEpoch();

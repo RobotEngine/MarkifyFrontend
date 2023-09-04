@@ -86,7 +86,7 @@ modules["editor/realtime"] = {
         awaiting[pingID] = "";
       }
     });
-    editor.realtime.ping = (attempt) => {
+    let ping = (attempt) => {
       if (editor.active == false) {
         return;
       }
@@ -130,6 +130,13 @@ modules["editor/realtime"] = {
       }, timeoutTime);
       socket.publish(pingFilter, pingID, { publishToSelf: true });
     }
+    tempListeners.push({
+      type: "interval", interval: setInterval(async () => {
+        if (connected) {
+          ping();
+        }
+      }, 45000)
+    }); // PING every 45 seconds
 
     // CURSORS
     let realtimeHolder = page.querySelector(".eRealtime");

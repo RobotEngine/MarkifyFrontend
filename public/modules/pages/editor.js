@@ -481,10 +481,6 @@ modules["pages/editor"] = {
     tempListeners.push({
       type: "interval", interval: setInterval(async () => {
         if (connected) {
-          if (this.realtime) {
-            this.realtime.ping();
-          }
-          await sleep(30000);
           if (sentPing == false && connected) {
             let [code] = await sendPing();
             if (code == 403) {
@@ -497,7 +493,7 @@ modules["pages/editor"] = {
           }
           sentPing = false;
         }
-      }, 30000)
+      }, 60000)
     }); // PING every minute
 
     this.syncMembers(body.members);

@@ -450,7 +450,10 @@ modules["pages/editor"] = {
     this.session = body.session._id + ";" + body.session.token;
 
     let sentPing = false;
-    let sendPing = () => {
+    let sendPing = async () => {
+      if (connected == false) {
+        return;
+      }
       let params = [];
       if (this.active == false) {
         params.push("idle");
@@ -467,7 +470,12 @@ modules["pages/editor"] = {
         path += params.join("&");
       }
       sentPing = true;
-      return sendRequest("GET", path, null, { session: this.session, allowError: [403] });
+      let [code] = await sendRequest("GET", path, null, { session: this.session, allowError: [403] });
+      if (code == 403) {
+        setFrame("pages/join");
+      } else if (code != 200 && code != null) {
+        setFrame("pages/editor");
+      }
     }
     this.sendPing = sendPing;
 
@@ -480,19 +488,10 @@ modules["pages/editor"] = {
 
     tempListeners.push({
       type: "interval", interval: setInterval(async () => {
-        if (connected) {
-          if (sentPing == false && connected) {
-            let [code] = await sendPing();
-            if (code == 403) {
-              setFrame("pages/join");
-              return;
-            } else if (code != 200) {
-              setFrame("pages/editor");
-              return;
-            }
-          }
-          sentPing = false;
+        if (sentPing == false) {
+          sendPing();
         }
+        sentPing = false;
       }, 60000)
     }); // PING every minute
 

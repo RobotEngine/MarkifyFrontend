@@ -99,7 +99,7 @@ modules["editor/realtime"] = {
           if (editor.realtime.strength != 3) {
             if (attempt < 3) {
               // Try 2 more times to make sure:
-              editor.realtime.ping(attempt + 1);
+              ping(attempt + 1);
             } else {
               // Enable the stuff:
               editor.realtime.strength = 3;
@@ -113,7 +113,7 @@ modules["editor/realtime"] = {
           if (editor.realtime.strength != 2) {
             if (attempt < 3) {
               // Try 2 more times to make sure:
-              editor.realtime.ping(attempt + 1);
+              ping(attempt + 1);
             } else {
               // Disable the stuff:
               editor.realtime.strength = 2;

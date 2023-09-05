@@ -1083,6 +1083,7 @@ modules["dropdowns/editor/members"] = {
           } else {
             editor.realtime.observing = null;
             editor.realtime.module.setShortSub(editor.visiblePages);
+            editor.realtime.module.observeButtonUpdate();
           }
           observeButton.removeAttribute("disabled");
         });

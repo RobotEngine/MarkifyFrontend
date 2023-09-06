@@ -262,6 +262,7 @@ modules["pages/editor"] = {
           setFrame("pages/join");
       }
     };
+    let alertModule = await getModule("alert");
     socket.remotes["lesson_" + lessonID] = async (data) => {
       let body = data.data;
       /*
@@ -302,6 +303,9 @@ modules["pages/editor"] = {
             }
             if (member._id == this.sessionID) { // Self
               if (body.access != null) {
+                if (body.access == 1) { // Alert editor
+                  alertModule.open("info", "<b>You're Now an Editor</b>You've been granted editing access to markup the lesson!");
+                }
                 this.updateInterface(page);
               }
             }
@@ -406,7 +410,7 @@ modules["pages/editor"] = {
       if (body._id != null && this.realtime.observing == body._id) {
         if (this.members[body._id] == null) {
           this.realtime.module.exitObserve();
-          (await getModule("alert")).open("warning", "<b>Member Left</b>The member you where observing left.");
+          alertModule.open("warning", "<b>Member Left</b>The member you where observing left.");
         }
       }
     }; // Subscribe before to make sure no members are lost in request time.

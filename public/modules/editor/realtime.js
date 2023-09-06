@@ -391,6 +391,11 @@ modules["editor/realtime"] = {
       cancelAnimationFrame(animationFrameId);
       editor.updateInterface(true);
 
+      if (editor.lastZoom != null) {
+        editor.setZoom(editor.lastZoom, true);
+        editor.lastZoom = null;
+      }
+
       let member = editor.members[prevObservID];
       if (member == null) {
         return;
@@ -581,12 +586,17 @@ modules["editor/realtime"] = {
             if (member.lastObserveShort > time) {
               return;
             }
+            let scrollToX = scrollX - (fixed.offsetWidth / 2) + pageHolder.offsetLeft;
+            let scrollToY = scrollY - (fixed.offsetHeight / 2) + pageHolder.offsetTop;
             if (editor.realtime.observeLoading != null) {
+              editor.lastZoom = editor.zoom;
               this.enableObserve(member);
+              editor.setZoom(zoom, true);
+              window.scrollTo({ left: scrollToX, top: scrollToY });
+            } else {
+              editor.setZoom(zoom, true);
+              startScroll(scrollToX, scrollToY);
             }
-            editor.lastZoom = editor.zoom;
-            editor.setZoom(zoom, true);
-            startScroll(scrollX - (fixed.offsetWidth / 2) + pageHolder.offsetTop, scrollY - (fixed.offsetHeight / 2) + pageHolder.offsetTop);
             //smoothScrollTo(scrollX - (fixed.offsetWidth / 2), (scrollY - (fixed.offsetHeight / 2)) * scrollRate, 100);
             //window.scrollTo({ left: scrollX - (fixed.offsetWidth / 2), top: scrollY - (fixed.offsetHeight / 2), behavior: "smooth" });
           }

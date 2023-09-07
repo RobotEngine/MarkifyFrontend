@@ -916,7 +916,9 @@ modules["dropdowns/editor/members"] = {
         return;
       }
       dropdownButton.removeAttribute("selected");
-      dropdownButton.parentElement.removeAttribute("selected");
+      if (dropdownButton.parentElement != null) {
+        dropdownButton.parentElement.removeAttribute("selected");
+      }
       dropdownButton = null;
       memberFrameHolder.style.opacity = 0;
       let frame = memberFrameHolder.querySelector(".eMemberFrame");
@@ -942,7 +944,9 @@ modules["dropdowns/editor/members"] = {
           return;
         } else {
           dropdownButton.removeAttribute("selected");
-          dropdownButton.parentElement.removeAttribute("selected");
+          if (dropdownButton.parentElement != null) {
+            dropdownButton.parentElement.removeAttribute("selected");
+          }
         }
       }
       dropdownButton = tile;
@@ -1266,6 +1270,8 @@ modules["dropdowns/editor/members"] = {
     }
     
     searchField.addEventListener("input", () => {
+      closeDropdown();
+      
       let clearTiles = frame.querySelectorAll(".eMemberTile");
       for (let i = 0; i < clearTiles.length; i++) {
         if (clearTiles[i].parentElement.childElementCount < 3) { // 3 to account for title and removed tile

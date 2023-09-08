@@ -260,6 +260,9 @@ modules["pages/editor"] = {
       switch (data.task) {
         case "kick":
           if (userID == null) {
+            modifyParams("lesson");
+            modifyParams("page");
+            modifyParams("pin");
             setFrame("pages/join");
           } else {
             setFrame("pages/dashboard");

@@ -617,13 +617,13 @@ modules["dropdowns/editor/members"] = {
     </div>
     <div class="eMemberMemberHolder">
       <div class="eMemberAccessHolder" access="5">
-        <button class="eMemberAccessTitle"><div>Owner</div><div count>0</div></button>
+        <button class="eMemberAccessTitle"><div holder><div title>Owner</div><div count>0</div></div></button>
       </div>
       <div class="eMemberAccessHolder" access="1">
-        <button class="eMemberAccessTitle"><div>Editors</div><div count>0</div></button>
+        <button class="eMemberAccessTitle"><div holder><div title>Editors</div><div count>0</div></div></button>
       </div>
       <div class="eMemberAccessHolder" access="0">
-        <button class="eMemberAccessTitle"><div>Viewers</div><div count>0</div></button>
+        <button class="eMemberAccessTitle"><div holder><div title>Viewers</div><div count>0</div></div></button>
       </div>
     </div>
   </div>
@@ -636,26 +636,29 @@ modules["dropdowns/editor/members"] = {
     ".eMemberSearchHolder input::placeholder": `color: var(--secondary)`,
 
     ".eMemberAccessHolder": `display: none; margin-bottom: 12px; background: var(--pageColor)`,
-    ".eMemberAccessTitle": `position: sticky; display: flex; width: 100%; padding: 4px 8px; top: 0px; justify-content: space-between; background: rgba(var(--background), .7); backdrop-filter: blur(4px); z-index: 2; text-align: left; font-weight: 700; font-size: 18px`,
+    ".eMemberAccessTitle": `position: sticky; display: flex; width: 100%; padding: 0; justify-content: center; align-items: center; background: rgba(var(--background), .7); backdrop-filter: blur(4px); z-index: 2; text-align: left; font-weight: 700; font-size: 18px`,
+    ".eMemberAccessTitle div[holder]": `display: flex; width: 100%; padding: 4px 8px; top: 0px; justify-content: space-between; transition: .1s`,
     ".eMemberAccessTitle div[count]": `margin-left: 6px; font-weight: 500`,
-    ".eMemberAccessTitle:hover": `background: var(--hover)`,
-    ".eMemberAccessTitle:active": `background: var(--secondary); border-radius: 15px`,
-    ".eMemberAccessHolder[selected] .eMemberAccessTitle": `background: var(--secondary); color: #fff`,
+    ".eMemberAccessTitle:hover div[holder]": `background: var(--hover)`,
+    ".eMemberAccessTitle:active": `transform: scale(1) !important`,
+    ".eMemberAccessTitle:active div[holder]": `background: var(--secondary); color: #fff !important`,
+    ".eMemberAccessHolder[selected] .eMemberAccessTitle div[holder]": `background: var(--secondary); color: #fff`,
 
-    ".eMemberTile": `--opacity: 0; position: relative; display: flex; width: 100%; height: 34px; justify-content: center; align-items: center; z-index: 1`, //; margin: 4px 0
-    ".eMemberTile button": `position: relative; display: flex; width: 100%; padding: 4px; overflow: hidden; align-items: center`, //; margin: 4px 0
+    ".eMemberTile": `position: relative; display: flex; width: 100%; height: 34px; padding: 0px; justify-content: center; align-items: center; z-index: 1`, //; margin: 4px 0
+    ".eMemberTile div[holder]": `--opacity: 0; position: relative; display: flex; width: 100%; padding: 4px; overflow: hidden; align-items: center; transition: .1s`, //; margin: 4px 0
     ".eMemberBackground": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--themeColor); opacity: var(--opacity); transition: .1s; z-index: -1`,
-    ".eMemberTile button:hover": `--opacity: .35`,
-    ".eMemberTile button:hover .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor); transform: translateX(-3px) scale(1.15)`,
-    ".eMemberTile button:active": `--opacity: 1; color: var(--hoverTextColor); border-radius: 18px`,
-    ".eMemberTile button:active .eMemberCursor": `transform: scale(1.15)`,
-    ".eMemberTile[selected] button": `--opacity: 1; color: var(--hoverTextColor)`,
-    ".eMemberTile[selected] .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor)`,
-    ".eMemberAccessHolder[hover] button": `--themeColor: var(--secondary); --opacity: .35; color: var(--textColor)`,
+    ".eMemberAccessHolder button:hover div[holder]": `--opacity: .35`,
+    ".eMemberAccessHolder button:hover .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor); transform: translateX(-3px) scale(1.15)`,
+    ".eMemberAccessHolder button:active": `transform: scale(1) !important`,
+    ".eMemberAccessHolder button:active div[holder]": `--opacity: 1; color: var(--hoverTextColor); border-radius: 18px; transform: scale(.95)`,
+    ".eMemberAccessHolder button:active .eMemberCursor": `transform: scale(1.15)`,
+    ".eMemberTile div[holder][selected]": `--opacity: 1 !important; color: var(--hoverTextColor)`,
+    ".eMemberTile div[holder][selected] .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor)`,
+    ".eMemberAccessHolder[hover] div[holder]": `--themeColor: var(--secondary) !important; --opacity: .35 !important; color: var(--textColor)`,
     ".eMemberAccessHolder[hover] .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor); transform: translateX(-3px) scale(1.15)`,
-    ".eMemberAccessHolder[active] button": `--opacity: 1; background: var(--secondary); border-radius: 18px; transform: scale(.95); color: #fff`,
+    ".eMemberAccessHolder[active] div[holder]": `--opacity: 1 !important; border-radius: 18px; transform: scale(.95); color: #fff`,
     ".eMemberAccessHolder[active] .eMemberCursor": `transform: scale(1.15)`,
-    ".eMemberAccessHolder[selected] button": `--themeColor: var(--secondary); --opacity: 1; color: #fff`,
+    ".eMemberAccessHolder[selected] div[holder]": `--themeColor: var(--secondary) !important; --opacity: 1 !important; color: #fff`,
     ".eMemberAccessHolder[selected] .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor)`,
     ".eMemberCursor": `width: 20px; height: 20px; flex-shrink: 0; margin: 0 6px; background: var(--pageColor); border: solid 3px var(--themeColor); overflow: hidden; border-radius: 8px 14px 14px; transition: 0.2s`, //box-shadow: 0 0 6px rgb(0 0 0 / 50%);
     ".eMemberName": `width: 100%; font-size: 16px; font-weight: 600; text-align: left; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
@@ -719,7 +722,7 @@ modules["dropdowns/editor/members"] = {
     let updateOrder = (section, updateTile, member) => {
       for (let i = 1; i < section.children.length; i++) { // 1 to skip title
         let child = section.children[i];
-        if (child != updateTile && member.name < (editor.members[child.getAttribute("member")] || {}).name) {
+        if (child != updateTile && member.name < (editor.members[child.querySelector("div[holder]").getAttribute("member")] || {}).name) {
           section.insertBefore(updateTile, child);
           break;
         }
@@ -734,13 +737,13 @@ modules["dropdowns/editor/members"] = {
         return;
       }
       let title = section.querySelector(".eMemberAccessTitle");
-      section.insertAdjacentHTML("beforeend", `<div class="eMemberTile" new><button>
+      section.insertAdjacentHTML("beforeend", `<button class="eMemberTile"><div holder new>
         <div class="eMemberBackground"></div>
         <div class="eMemberCursor"></div>
         <div class="eMemberName"></div>
         <div class="eMemberEvents"></div>
-      </button></div>`);
-      let tile = section.querySelector(".eMemberTile[new]");
+      </div></button>`);
+      let tile = section.querySelector(".eMemberTile div[holder][new]");
       tile.removeAttribute("new");
       tile.setAttribute("member", member._id);
       updateOrder(section, tile, member);
@@ -789,7 +792,7 @@ modules["dropdowns/editor/members"] = {
           addMemberTile(member);
           break;
         case "leave":
-          let removeTile = frame.querySelector('.eMemberTile[member="' + body._id + '"');
+          let removeTile = frame.querySelector('.eMemberTile div[holder][member="' + body._id + '"]').parentElement;
           if (removeTile != null) {
             let title = removeTile.parentElement.querySelector("div[count]");
             let newCount = removeTile.parentElement.childElementCount - 2; // -2 for title and tile
@@ -804,7 +807,7 @@ modules["dropdowns/editor/members"] = {
           }
           break;
         case "update":
-          let updateTile = frame.querySelector('.eMemberTile[member="' + body._id + '"');
+          let updateTile = frame.querySelector('.eMemberTile div[holder][member="' + body._id + '"]');
           if (updateTile != null) {
             // Handle User / Color Updates:
             updateTile.style.setProperty("--themeColor", member.color);
@@ -813,9 +816,9 @@ modules["dropdowns/editor/members"] = {
 
             // Handle access changes:
             let section = getSection(member.access);
-            if (section != updateTile.parentElement) {
-              let oldSection = updateTile.parentElement;
-              section.appendChild(updateTile);
+            let oldSection = updateTile.parentElement.parentElement;
+            if (section != oldSection) {
+              section.appendChild(updateTile.parentElement);
               /*
               for (let i = 1; i < section.children.length; i++) { // 1 to skip title
                 let child = section.children[i];
@@ -826,11 +829,11 @@ modules["dropdowns/editor/members"] = {
               }
               */
               // Update new section:
-              section.querySelector("div[count]").textContent = section.childElementCount - 1; // -1 for title
+              section.querySelector(".eMemberAccessTitle div[count]").textContent = section.childElementCount - 1; // -1 for title
               section.style.display = "block";
               // Update old section:
               let newOldCount = oldSection.childElementCount - 1; // -1 for title
-              oldSection.querySelector("div[count]").textContent = newOldCount;
+              oldSection.querySelector(".eMemberAccessTitle div[count]").textContent = newOldCount;
               if (newOldCount < 1) {
                 oldSection.style.display = "none";
               }
@@ -881,7 +884,7 @@ modules["dropdowns/editor/members"] = {
         return;
       }
       let dropdownRect = dropdown.getBoundingClientRect();
-      let buttonRect = dropdownButton.getBoundingClientRect();
+      let buttonRect = dropdownButton.closest("button").getBoundingClientRect();
       
       let contentFrame = memberFrameHolder.querySelector(".eMemberFrame");
       let contentHolderFrameHolder = contentFrame.querySelector(".eMemberFrameContentHolder");
@@ -942,14 +945,15 @@ modules["dropdowns/editor/members"] = {
     window.closeDropdown = closeDropdown;
 
     let openDropdown = (tile, update) => {
-      if (tile.className == "eMemberTile") {
+      let member = {};
+      if (tile.parentElement.className == "eMemberTile") {
         member = editor.members[tile.getAttribute("member")];
         if (member == null) {
           tile.remove();
           return;
         }
       } else {
-        member = { title: true, name: tile.querySelector("div:not([count])").textContent, access: parseInt(tile.parentElement.getAttribute("access")), color: "var(--secondary)" };
+        member = { title: true, name: tile.querySelector("div[title]").textContent, access: parseInt(tile.closest(".eMemberAccessHolder").getAttribute("access")), color: "var(--secondary)" };
       }
       if (dropdownButton != null) {
         if (dropdownButton == tile && update != true) {
@@ -1255,6 +1259,9 @@ modules["dropdowns/editor/members"] = {
       }
       let memberTile = element.closest(".eMemberTile") || element.closest(".eMemberAccessTitle");
       if (memberTile) {
+        if (memberTile.className == "eMemberTile") {
+          memberTile = memberTile.querySelector("div[holder]");
+        }
         openDropdown(memberTile);
         return;
       }

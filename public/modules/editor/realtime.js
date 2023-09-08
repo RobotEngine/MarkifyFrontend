@@ -117,10 +117,10 @@ modules["editor/realtime"] = {
             } else {
               // Disable the stuff:
               editor.realtime.strength = 2;
+              this.exitObserve();
               editor.sendPing();
               this.connectUpdate();
               alert.open("info", "<b>Weak Connection</b>While you're still connected, real-time collaboration is disabled to save bandwidth.");
-              this.exitObserve();
               if (editor.realtime.observed == true) {
                 editor.realtime.observed = null;
               }
@@ -960,10 +960,15 @@ modules["dropdowns/editor/members"] = {
       editor.realtime.module.observeButtonUpdate = () => {
         let memberFrame = memberFrameHolder.querySelector(".eMemberFrame");
         let button = memberFrame.querySelector(".eMemberSectionActions button[observe]");
+        let member = editor.members[memberFrame.getAttribute("memberid")];
+        if (member == null) {
+          closeDropdown()
+          return;
+        }
         let obvImg = "./images/editor/members/observe.svg";
         let obvText = "Observe";
         let obvDesc = "Watch this member's screen.";
-        if (editor.realtime.observing == memberFrame.getAttribute("memberid")) {
+        if (editor.realtime.observing == member._id) {
           obvImg = "./images/editor/members/observeexit.svg";
           obvText = "Exit";
           obvDesc = "Stop watching this member's screen."
@@ -971,6 +976,11 @@ modules["dropdowns/editor/members"] = {
         button.querySelector("img").src = obvImg;
         button.querySelector("div").textContent = obvText;
         button.title = obvDesc;
+        if (member.weak != true && editor.realtime.strength > 2 && member.observe == null) {
+          observeButton.style.opacity = 1;
+        } else {
+          observeButton.style.opacity = .5;
+        }
       }
       if (memberFrameHolder == null) {
         dropdown.insertAdjacentHTML("beforeend", `<div class="eMemberFrameHolder">
@@ -1218,11 +1228,6 @@ modules["dropdowns/editor/members"] = {
         observeButton.style.display = "flex";
       } else {
         observeButton.style.display = "none";
-      }
-      if (member.weak != true && editor.realtime.strength > 2 && member.observe == null) {
-        observeButton.style.opacity = 1;
-      } else {
-        observeButton.style.opacity = .5;
       }
       memberFrameHolder.style.opacity = 1;
       memberFrame.style.transform = "scale(1)";

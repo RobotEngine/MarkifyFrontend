@@ -103,9 +103,9 @@ modules["pages/editor"] = {
     ".eAccount img": `width: 100%; height: 100%; object-fit: cover`,
     ".eLogin": `display: none; padding: 6px 10px; margin: 0 4px; background: var(--secondary); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
 
-    ".eSide": `position: fixed; display: flex; gap: 8px; height: calc(100% - 132px); top: 58px; padding: 8px; z-index: 500; overflow-y: auto`,
+    ".eSide": `position: fixed; display: flex; gap: 8px; height: calc(100% - 132px); top: 58px; padding: 8px; z-index: 500`,
     ".eSide::-webkit-scrollbar": `display: none`,
-    ".eToolbar": `display: flex; box-sizing: border-box; width: 50px; margin: auto 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px; pointer-events: all`,
+    ".eToolbar": `position: relative; display: flex; box-sizing: border-box; width: 50px; margin: auto 0; align-items: center; pointer-events: all`,
 
     ".eBottomHolder": `position: fixed; box-sizing: border-box; display: flex; width: 100%; bottom: 0px; gap: 8px; padding: 8px; justify-content: flex-end; z-index: 500`,
     ".eBottom": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px; pointer-events: all`,
@@ -259,7 +259,7 @@ modules["pages/editor"] = {
       }
       switch (data.task) {
         case "kick":
-          setFrame("pages/join");
+          setFrame(data.page || "pages/join");
       }
     };
     let alertModule = await getModule("alert");

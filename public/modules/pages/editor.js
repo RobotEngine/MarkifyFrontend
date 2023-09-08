@@ -259,7 +259,11 @@ modules["pages/editor"] = {
       }
       switch (data.task) {
         case "kick":
-          setFrame(data.page || "pages/join");
+          if (userID == null) {
+            setFrame("pages/join");
+          } else {
+            setFrame("pages/dashboard");
+          }
       }
     };
     let alertModule = await getModule("alert");

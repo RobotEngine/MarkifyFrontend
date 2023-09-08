@@ -1201,6 +1201,9 @@ modules["dropdowns/editor/members"] = {
       let editorButton = memberFrameHolder.querySelector(".eMemberSectionActions button[editor]");
       let observeButton = memberFrameHolder.querySelector(".eMemberSectionActions button[observe]");
       let kickButton = memberFrameHolder.querySelector(".eMemberSectionActions button[kick]");
+      editorButton.removeAttribute("disabled");
+      observeButton.removeAttribute("disabled");
+      kickButton.removeAttribute("disabled");
       let myself = editor.getSelf();
       if (!isSelf && myself.access > 2 && member.access < 2) {
         let image = "./images/editor/share/editor.svg";

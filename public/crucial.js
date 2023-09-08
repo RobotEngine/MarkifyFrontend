@@ -496,6 +496,9 @@ async function renewToken() {
   }
 }
 async function sendRequest(method, path, body, extra) {
+  if (connected == false) {
+    return;
+  }
   try {
     let sendData = {
       method: method,

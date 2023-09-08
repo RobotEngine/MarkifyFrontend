@@ -667,9 +667,10 @@ modules["dropdowns/editor/members"] = {
 
     ".eMemberFrameHolder": `position: absolute; width: 200%; height: fit-content; right: 0px; pointer-events: none; z-index: 0; opacity: 0; transition: top .3s, opacity .3s`,
     ".eMemberFrame": `--themeColor: var(--theme); position: sticky; width: calc(50% - 4px); max-width: calc(100vw - 20px); left: 8px; top: 8px; margin-left: 4px; pointer-events: all; background: var(--pageColor); border-right: solid 4px var(--themeColor); border-radius: 38px 0 0 12px; transform-origin: top right; transform: scale(.15); transition: transform .3s`,
-    ".eMemberFrameContentHolder": `width: 100%; max-height: inherit; border-radius: 38px 0 0 12px; overflow: auto`,
+    ".eMemberFrameContentHolder": `width: 100%; height: 0px; border-radius: 38px 0 0 12px; overflow: hidden`,
     ".eMemberFrameShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 0 16px 16px; right: 0px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
     ".eMemberFrameShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); right: 0px; top: 16px; content: ""; box-shadow: var(--shadow); border-radius: inherit`,
+    ".eMemberFrameContent": `overflow: auto`,
     ".eMemberSection": `position: relative; display: flex; width: 100%; justify-content: center; align-items: center`,
     ".eMemberSectionInfo": `border-radius: 38px 0 0 38px; overflow: hidden`,
     ".eMemberBackdrop": `position: absolute; display: flex; width: calc(100% + 2px); height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; background: var(--themeColor); filter: blur(1px); transition: .2s; z-index: -1`,
@@ -881,10 +882,19 @@ modules["dropdowns/editor/members"] = {
       }
       let dropdownRect = dropdown.getBoundingClientRect();
       let buttonRect = dropdownButton.getBoundingClientRect();
-
+      
       let contentFrame = memberFrameHolder.querySelector(".eMemberFrame");
-      let contentHeight = contentFrame.querySelector(".eMemberFrameContent").clientHeight;
-      contentFrame.style.maxHeight = Math.min(fixed.clientHeight - dropdownRect.top, contentHeight + 8) - 8 + "px";
+      let contentHolderFrameHolder = contentFrame.querySelector(".eMemberFrameContentHolder");
+      let contentFrameHolder = contentFrame.querySelector(".eMemberFrameContent");
+
+      let contentHeight = contentFrameHolder.scrollHeight;
+      //contentFrame.style.maxHeight = Math.min(fixed.offsetHeight - dropdownRect.top, contentHeight + 8) - 8 + "px";
+
+      contentFrameHolder.style.maxHeight = fixed.offsetHeight - dropdownRect.top - 8 + "px";
+      
+      contentHolderFrameHolder.style.height = contentFrameHolder.offsetHeight + "px";
+      contentHolderFrameHolder.offsetHeight;
+      contentHolderFrameHolder.style.transition = "height .3s";
 
       let setTop = buttonRect.top - dropdownRect.top;
       if (buttonRect.top < dropdownRect.top) {
@@ -893,8 +903,8 @@ modules["dropdowns/editor/members"] = {
       if (setTop < dropdownRect.top) { // Above dropdown:
         setTop = 0;
       }
-      if (buttonRect.top + contentHeight > fixed.clientHeight - dropdownRect.top + 8) { // Below dropdown:
-        setTop = fixed.clientHeight - memberFrameHolder.clientHeight - dropdownRect.top - 8;
+      if (buttonRect.top + contentHeight > fixed.offsetHeight - dropdownRect.top + 8) { // Below dropdown:
+        setTop = fixed.offsetHeight - memberFrameHolder.offsetHeight - dropdownRect.top - 8;
       }
       memberFrameHolder.style.top = setTop + "px";
       
@@ -903,7 +913,7 @@ modules["dropdowns/editor/members"] = {
       } else {
         dropdown.style.borderTopLeftRadius = "12px";
       }
-      if (setTop + memberFrameHolder.clientHeight > dropdownRect.top + dropdown.clientHeight - 20) { // Bottom border radius:
+      if (setTop + memberFrameHolder.offsetHeight > dropdownRect.top + dropdown.offsetHeight - 20) { // Bottom border radius:
         dropdown.style.borderBottomLeftRadius = "0px";
       } else {
         dropdown.style.borderBottomLeftRadius = "12px";
@@ -912,16 +922,19 @@ modules["dropdowns/editor/members"] = {
     tempListen(window, "resize", updateDropdownPosition);
     frame.closest(".dropdownContent").addEventListener("scroll", updateDropdownPosition);
     let closeDropdown = async () => {
-      if (memberFrameHolder == null || dropdownButton == null) {
+      if (memberFrameHolder == null) {
         return;
       }
-      dropdownButton.removeAttribute("selected");
-      if (dropdownButton.parentElement != null) {
-        dropdownButton.parentElement.removeAttribute("selected");
+      if (dropdownButton != null) {
+        dropdownButton.removeAttribute("selected");
+        if (dropdownButton.parentElement != null) {
+          dropdownButton.parentElement.removeAttribute("selected");
+        }
+        dropdownButton = null;
       }
-      dropdownButton = null;
       memberFrameHolder.style.opacity = 0;
       let frame = memberFrameHolder.querySelector(".eMemberFrame");
+      frame.querySelector(".eMemberFrameContentHolder").style.removeProperty("transition");
       frame.style.width = frame.clientWidth + "px";
       frame.style.transform = "scale(.15)";
       updateDropdownPosition();
@@ -962,7 +975,6 @@ modules["dropdowns/editor/members"] = {
         let button = memberFrame.querySelector(".eMemberSectionActions button[observe]");
         let member = editor.members[memberFrame.getAttribute("memberid")];
         if (member == null) {
-          closeDropdown()
           return;
         }
         let obvImg = "./images/editor/members/observe.svg";

@@ -208,7 +208,7 @@ modules["pages/join"] = {
       continueButton.removeAttribute("disabled");
     }
     function secondStepInit(body) {
-      if (body.owner == true){ 
+      if (body.skip == true){ 
         modifyParams("lesson", body.id);
         setFrame("pages/editor", null);
         return;

@@ -792,8 +792,9 @@ modules["dropdowns/editor/members"] = {
           addMemberTile(member);
           break;
         case "leave":
-          let removeTile = frame.querySelector('.eMemberTile div[holder][member="' + body._id + '"]').parentElement;
-          if (removeTile != null) {
+          let removeTileContent = frame.querySelector('.eMemberTile div[holder][member="' + body._id + '"]');
+          if (removeTileContent != null) {
+            let removeTile = removeTileContent.parentElement;
             let title = removeTile.parentElement.querySelector("div[count]");
             let newCount = removeTile.parentElement.childElementCount - 2; // -2 for title and tile
             title.textContent = newCount;

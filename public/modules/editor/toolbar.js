@@ -21,7 +21,7 @@ modules["editor/toolbar"] = {
     '.eTool[tool="media"]': `margin-bottom: 0px`,
 
     ".eSubToolHolder": `position: absolute; width: 50px; height: 200px; max-height: 100%; left: 100%; top: 0px; background: var(--pageColor); border-radius: 0 16px 16px 0; border-left: solid 4px var(--theme); transition: .3`,
-    ".eSubToolShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 16px 16px 0; left: 0px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
+    ".eSubToolShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 20px 16px 0; left: -4px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
     ".eSubToolShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); left: 0px; top: 16px; content: ""; box-shadow: var(--lightShadow); border-radius: inherit`
   },
   js: function (frame) {

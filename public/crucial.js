@@ -532,6 +532,9 @@ async function sendRequest(method, path, body, extra) {
     }
     let reqTimeStart = getEpoch();
     let response = await fetch(serverURL + path, sendData);
+    if (response.status == null) {
+      return [0, "Fetch Error", { took: reqTime }];
+    }
     let reqTime = getEpoch() - reqTimeStart;
     let serverTimeMillisGMT = new Date(response.headers.get("Date")).getTime();
     let localMillisUTC = new Date().getTime();
@@ -562,6 +565,9 @@ async function sendRequest(method, path, body, extra) {
     }
   } catch (err) {
     console.log("FETCH ERROR: " + err);
+    if (connected == false) {
+      return [0, "Fetch Error", { took: reqTime }];
+    }
     if (path == "me") { // Show error connecting
       setFrame = function () { }
       app.style.display = "flex";

@@ -923,6 +923,7 @@ modules["dropdowns/editor/members"] = {
         dropdown.style.borderBottomLeftRadius = "12px";
       }
     }
+    window.removeEventListener("resize", updateDropdownPosition); // Prevent duplicates
     tempListen(window, "resize", updateDropdownPosition);
     frame.closest(".dropdownContent").addEventListener("scroll", updateDropdownPosition);
     let closeDropdown = async () => {

@@ -17,8 +17,8 @@ modules["editor/toolbar"] = {
     ".eTool div": `display: flex; width: 100%; height: 100%; justify-content: center; align-items: center; transition: .2s`,
     ".eTool:hover div": `background: var(--hover)`,
     ".eTool:active": `transform: unset !important`,
-    ".eTool:active div": `transform: scale(.95); background: var(--secondary); border-radius: 16px`,
-    '.eTool[selected]:active div': `border-radius: 16px !important`,
+    ".eTool:active div": `transform: scale(.95); background: var(--secondary); border-radius: 15.5px`,
+    '.eTool[selected]:active div': `border-radius: 15.5px !important`,
     ".eTool[selected] div": `background: var(--theme); border-top-right-radius: 0px !important; border-bottom-right-radius: 0px !important`,
     '.eTool[tool="media"]': `margin-bottom: 0px`,
 

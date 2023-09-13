@@ -10,7 +10,9 @@ modules["editor/toolbar"] = {
 
   <div class="eSubToolHolder">
     <div class="eSubToolShadow"></div>
-    <div class="eSubToolContent"></div>
+    <div class="eSubToolContentHolder">
+      <div class="eSubToolContent"></div>
+    </div>
   </div>
   `,
   css: {
@@ -24,10 +26,11 @@ modules["editor/toolbar"] = {
 
     ".eDivider": `width: 100%; height: 4px; background: var(--theme)`,
 
-    ".eSubToolHolder": `position: absolute; width: 50px; height: 0px; max-height: 100%; left: 100%; top: 0px; background: var(--pageColor); border-radius: 0 16px 16px 0; border-left: solid 4px var(--theme); transform: scale(0); transform-origin: top left`,
+    ".eSubToolHolder": `position: absolute; max-height: 100%; left: 100%; top: 0px; background: var(--pageColor); border-radius: 0 16px 16px 0; border-left: solid 4px var(--theme); transform: scale(0); transform-origin: top left; transition: opacity .3s, transform: .3s`,
     ".eSubToolShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 20px 16px 0; left: -4px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
     ".eSubToolShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); left: 0px; top: 16px; content: ""; box-shadow: var(--lightShadow); border-radius: inherit`,
-    ".eSubToolContent": `display: flex; flex-wrap: wrap; gap: 6px; overflow: auto; border-radius: inherit`
+    ".eSubToolContentHolder": `overflow: hidden; border-radius: inherit`,
+    ".eSubToolContent": `display: flex; flex-wrap: wrap; gap: 6px; overflow: auto`
   },
   tools: {
     "select": [
@@ -53,11 +56,13 @@ modules["editor/toolbar"] = {
         type: "tool",
         image: "drag.svg"
       },
+      /*
       {
         name: "Tape",
         type: "tool",
         image: "tape.svg"
       },
+      */
       {
         type: "divider"
       },
@@ -170,20 +175,74 @@ modules["editor/toolbar"] = {
     frame.style.gap = "6px";
 
     let subTools = frame.querySelector(".eSubToolHolder");
-    let subToolContent = subTools.querySelector(".eSubToolContent");
+    let subToolContentHolder = subTools.querySelector(".eSubToolContentHolder");
+    let subToolContent = subToolContentHolder.querySelector(".eSubToolContent");
     let mainSubtoolButton;
-    let closeSubtoolUI = () => {
-      
-    }
-    let updateSubtoolUI = async (button) => {
-      mainSubtoolButton = button || mainSubtoolButton;
+    let updateSubtoolUI = async () => {
+      if (mainSubtoolButton == null) {
+        return;
+      }
       let toolsRect = frame.getBoundingClientRect();
-      if (mainSubtoolButton != null) {
-        let buttonRect = mainSubtoolButton.getBoundingClientRect();
+      let buttonRect = mainSubtoolButton.getBoundingClientRect();
 
-        // SUBTOOL UI
+      if (subToolContent.childElementCount < 8) {
+        subToolContent.style.width = "50px";
+      } else {
+        subToolContent.style.width = "106px";
+      }
+
+      subToolContent.style.maxHeight = frame.clientHeight + "px";
+
+      let subtoolHeight = subToolContent.offsetHeight;
+      let setSubToolTop = buttonRect.top - toolsRect.top;
+      if (setSubToolTop + subtoolHeight > frame.offsetHeight) {
+        setSubToolTop = frame.offsetHeight - subtoolHeight;
+      } else if (setSubToolTop < 0) {
+        setSubToolTop = 0;
+      }
+      subTools.style.top = setSubToolTop + "px";
+      
+      if (setSubToolTop < 17) {
+        frame.style.borderTopRightRadius = "0px";
+      } else {
+        frame.style.borderTopRightRadius = "16px";
+      }
+      if (setSubToolTop + subtoolHeight > frame.offsetHeight - 16) {
+        frame.style.borderBottomRightRadius = "0px";
+      } else {
+        frame.style.borderBottomRightRadius = "16px";
+      }
+      subTools.style.transition = "top .3s, opacity .3s, transform .3s";
+
+      subToolContentHolder.style.width = subToolContent.offsetWidth + "px";
+      subToolContentHolder.style.height = subToolContent.offsetHeight + "px";
+
+      subTools.style.opacity = 1;
+      subTools.style.transform = "scale(1)";
+
+      subToolContentHolder.style.transition = ".3s";
+    }
+    let closeSubtoolUI = async () => {
+      subDropdownOpen = false;
+      subTools.style.top = mainSubtoolButton.getBoundingClientRect().top - frame.getBoundingClientRect().top + "px";
+      subToolContentHolder.style.transition = "unset";
+      subTools.style.transform = "scale(0)";
+      subTools.style.opacity = 0;
+      frame.style.borderTopRightRadius = "16px";
+      frame.style.borderBottomRightRadius = "16px";
+      await sleep(300);
+      subToolContent.innerHTML = "";
+      subToolContentHolder.style.removeProperty("width");
+      subToolContentHolder.style.removeProperty("height");
+      subTools.style.transition = "opacity .3s, transform .3s";
+    }
+    let showSubtoolUI = async (button) => {
+      mainSubtoolButton = button || mainSubtoolButton;
+      
+      if (mainSubtoolButton != null) { // SUBTOOL UI
         let loadTools = this.tools[mainSubtoolButton.getAttribute("tool")];
         if (Array.isArray(loadTools) == true) {
+          subDropdownOpen = true;
           subToolContent.innerHTML = "";
           for (let i = 0; i < loadTools.length; i++) {
             let toolData = loadTools[i];
@@ -197,42 +256,16 @@ modules["editor/toolbar"] = {
             let newSubItem = subToolContent.querySelector("[new]");
             newSubItem.removeAttribute("new");
           }
+
+          updateSubtoolUI();
         } else { // No need as the main tool is the subtool
           closeSubtoolUI();
         }
-
-        subToolContent.style.maxHeight = frame.clientHeight + "px";
-        let subtoolHeight = subToolContent.offsetHeight;
-
-        let setSubToolTop = buttonRect.top - toolsRect.top;
-        if (setSubToolTop + subtoolHeight > frame.offsetHeight) {
-          setSubToolTop = frame.offsetHeight - subtoolHeight;
-        } else if (setSubToolTop < 0) {
-          setSubToolTop = 0;
-        }
-        subTools.style.top = setSubToolTop + "px";
-
-        subTools.style.height = subtoolHeight + "px";
-
-        if (setSubToolTop < 17) {
-          frame.style.borderTopRightRadius = "0px";
-        } else {
-          frame.style.borderTopRightRadius = "16px";
-        }
-        if (setSubToolTop + subtoolHeight > frame.offsetHeight - 16) {
-          frame.style.borderBottomRightRadius = "0px";
-        } else {
-          frame.style.borderBottomRightRadius = "16px";
-        }
-
-        subTools.style.transition = ".3s";
-        subTools.offsetHeight;
-        subTools.style.transform = "scale(1)";
       }
     }
-    tempListen(window, "resize", () => { updateSubtoolUI(); });
-    frame.addEventListener("scroll", () => { updateSubtoolUI(); });
-    updateSubtoolUI(frame.querySelector('[tool="select"]'));
+    tempListen(window, "resize", updateSubtoolUI);
+    frame.addEventListener("scroll", updateSubtoolUI);
+    showSubtoolUI(frame.querySelector('[tool="select"]'));
     frame.addEventListener("click", function (event) {
       let element = event.target;
       if (element == null) {
@@ -247,7 +280,7 @@ modules["editor/toolbar"] = {
         lastSelected.removeAttribute("selected");
       }
       element.setAttribute("selected", "");
-      updateSubtoolUI(element);
+      showSubtoolUI(element);
     });
 
     //frame.closest(".eSide").style.opacity = 1;

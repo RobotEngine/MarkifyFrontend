@@ -179,7 +179,7 @@ async function setFrame(path, frame, extra) {
     svgHolder.style.height = svgHolder.clientHeight + "px";
   }
   if (continueLoading) {
-    frameSet.insertAdjacentHTML("beforeend", `<div class="content" style="opacity: 0; transition: .5s" new>${module.html}</div>`);
+    frameSet.insertAdjacentHTML("beforeend", `<div class="content" style="opacity: 0; transition: max-height: 0s, .5s" new>${module.html}</div>`);
     let frameContent = frameSet.querySelector(".content[new]");
     frameContent.removeAttribute("new");
     if (frameSet == app) {

@@ -565,7 +565,7 @@ async function sendRequest(method, path, body, extra) {
     }
   } catch (err) {
     console.log("FETCH ERROR: " + err);
-    if (connected == false) {
+    if (response.status == null) {
       return [0, "Fetch Error", { took: reqTime }];
     }
     if (path == "me") { // Show error connecting

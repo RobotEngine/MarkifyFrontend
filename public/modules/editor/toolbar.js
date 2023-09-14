@@ -11,7 +11,9 @@ modules["editor/toolbar"] = {
   <div class="eSubToolHolder">
     <div class="eSubToolShadow"></div>
     <div class="eSubToolContentHolder">
-      <div class="eSubToolContent"></div>
+      <div class="eSubToolContentScroll">
+        <div class="eSubToolContent"></div>
+      </div>
     </div>
   </div>
   `,
@@ -30,35 +32,36 @@ modules["editor/toolbar"] = {
     ".eSubToolShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 20px 16px 0; left: -4px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
     ".eSubToolShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); left: 0px; top: 16px; content: ""; box-shadow: var(--lightShadow); border-radius: inherit`,
     ".eSubToolContentHolder": `overflow: hidden; border-radius: inherit`,
-    ".eSubToolContent": `display: flex; flex-wrap: wrap; gap: 6px; overflow: auto`
+    ".eSubToolContentScroll": `width: fit-content; overflow: auto`,
+    ".eSubToolContent": `display: flex; flex-wrap: wrap; gap: 6px`
   },
   tools: {
     "select": [
       {
-        name: "Select",
+        id: "select",
         type: "tool",
         image: "cursor.svg"
       },
       {
-        name: "Drag",
+        id: "drag",
         type: "tool",
         image: "drag.svg"
       }
     ],
     "markup": [
       {
-        name: "Highlighter",
+        id: "highlighter",
         type: "tool",
         image: "highlight.svg"
       },
       {
-        name: "Underline",
+        id: "underline",
         type: "tool",
         image: "drag.svg"
       },
       /*
       {
-        name: "Tape",
+        id: "tape",
         type: "tool",
         image: "tape.svg"
       },
@@ -67,27 +70,27 @@ modules["editor/toolbar"] = {
         type: "divider"
       },
       {
-        name: "Color",
+        id: "color",
         type: "option"
       },
       {
-        name: "Thickness",
+        id: "thickness",
         type: "option"
       },
       {
-        name: "Opacity",
+        id: "opacity",
         type: "option"
       }
     ],
-    "text": { name: "Textbox", type: "tool" },
+    "text": { id: "text", type: "tool" },
     "draw": [
       {
-        name: "Pen",
+        id: "pen",
         type: "tool",
         image: "pen.svg"
       },
       {
-        name: "Erase",
+        id: "erase",
         type: "tool",
         image: "erase.svg"
       },
@@ -95,69 +98,69 @@ modules["editor/toolbar"] = {
         type: "divider"
       },
       {
-        name: "Color",
+        id: "color",
         type: "option"
       },
       {
-        name: "Thickness",
+        id: "thickness",
         type: "option"
       },
       {
-        name: "Opacity",
+        id: "opacity",
         type: "option"
       }
     ],
     "shape": [
       {
-        name: "Square",
+        id: "square",
         type: "tool",
         image: "square.svg"
       },
       {
-        name: "Circle",
+        id: "circle",
         type: "tool",
         image: "circle.svg"
       },
       {
-        name: "Triangle",
+        id: "triangle",
         type: "tool",
         image: "triangle.svg"
       },
       {
-        name: "Parallelogram",
+        id: "parallelogram",
         type: "tool",
         image: "parallelogram.svg"
       },
       {
-        name: "Trapezoid",
+        id: "trapezoid",
         type: "tool",
         image: "trapezoid.svg"
       },
       {
-        name: "Rhombus",
+        id: "rhombus",
         type: "tool",
         image: "rhombus.svg"
       },
       {
-        name: "Line",
+        id: "line",
         type: "tool",
         image: "line.svg"
       },
       {
-        name: "Polygone",
+        id: "polygone",
         type: "tool",
         image: "polygone.svg"
       }
     ],
-    "comment": { name: "Comment", type: "tool" },
+    "comment": { id: "comment", type: "tool" },
     "media": [
       {
-        name: "Upload Image",
+        id: "upload",
         type: "tool",
         image: "image.svg"
       },
       {
-        name: "Embed Weblink",
+        id: "weblink",
         type: "tool",
         image: "embed.svg"
       }
@@ -171,12 +174,13 @@ modules["editor/toolbar"] = {
     frame.style.borderRadius = "16px";
     frame.style.borderTopRightRadius = "0px";
     frame.style.display = "flex";
-    frame.style.flexWrap = "wrap";
+    frame.style.flexDirection = "column";
     frame.style.gap = "6px";
 
     let subTools = frame.querySelector(".eSubToolHolder");
     let subToolContentHolder = subTools.querySelector(".eSubToolContentHolder");
-    let subToolContent = subToolContentHolder.querySelector(".eSubToolContent");
+    let subToolContentScroll = subTools.querySelector(".eSubToolContentScroll");
+    let subToolContent = subToolContentScroll.querySelector(".eSubToolContent");
     let mainSubtoolButton;
     let updateSubtoolUI = async () => {
       if (mainSubtoolButton == null) {
@@ -191,9 +195,9 @@ modules["editor/toolbar"] = {
         subToolContent.style.width = "106px";
       }
 
-      subToolContent.style.maxHeight = frame.clientHeight + "px";
+      subToolContentScroll.style.maxHeight = frame.clientHeight + "px";
 
-      let subtoolHeight = subToolContent.offsetHeight;
+      let subtoolHeight = subToolContentScroll.offsetHeight;
       let setSubToolTop = buttonRect.top - toolsRect.top;
       if (setSubToolTop + subtoolHeight > frame.offsetHeight) {
         setSubToolTop = frame.offsetHeight - subtoolHeight;
@@ -214,8 +218,8 @@ modules["editor/toolbar"] = {
       }
       subTools.style.transition = "top .3s, opacity .3s, transform .3s";
 
-      subToolContentHolder.style.width = subToolContent.offsetWidth + "px";
-      subToolContentHolder.style.height = subToolContent.offsetHeight + "px";
+      subToolContentHolder.style.width = subToolContentScroll.offsetWidth + "px";
+      subToolContentHolder.style.height = subToolContentScroll.offsetHeight + "px";
 
       subTools.style.opacity = 1;
       subTools.style.transform = "scale(1)";
@@ -240,7 +244,8 @@ modules["editor/toolbar"] = {
       mainSubtoolButton = button || mainSubtoolButton;
       
       if (mainSubtoolButton != null) { // SUBTOOL UI
-        let loadTools = this.tools[mainSubtoolButton.getAttribute("tool")];
+        let toolTag = mainSubtoolButton.getAttribute("tool");
+        let loadTools = this.tools[toolTag];
         if (Array.isArray(loadTools) == true) {
           subDropdownOpen = true;
           subToolContent.innerHTML = "";
@@ -255,6 +260,9 @@ modules["editor/toolbar"] = {
             subToolContent.insertAdjacentHTML("beforeend", insertHTML);
             let newSubItem = subToolContent.querySelector("[new]");
             newSubItem.removeAttribute("new");
+            if (toolData.type == "tool") {
+              newSubItem.querySelector("img").src = "./images/editor/tools/" + toolTag + "/" + toolData.id + ".svg";
+            }
           }
 
           updateSubtoolUI();

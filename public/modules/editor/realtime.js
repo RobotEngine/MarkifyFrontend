@@ -120,6 +120,7 @@ modules["editor/realtime"] = {
               this.exitObserve();
               editor.sendPing();
               this.connectUpdate();
+              this.removeRealtime();
               alert.open("info", "<b>Weak Connection</b>While you're still connected, real-time collaboration is disabled to save bandwidth.");
               if (editor.realtime.observed == true) {
                 editor.realtime.observed = null;
@@ -411,7 +412,10 @@ modules["editor/realtime"] = {
     });
 
     this.removeRealtime = (memberID) => {
-      let remMemberElem = realtimeHolder.querySelectorAll('[member="' + memberID + '"]');
+      let remMemberElem = realtimeHolder.children;
+      if (memberID != null) {
+        remMemberElem = realtimeHolder.querySelectorAll('[member="' + memberID + '"]');
+      }
       for (let i = 0; i < remMemberElem.length; i++) {
         let elem = remMemberElem[i];
         (async function () {

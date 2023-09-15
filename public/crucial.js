@@ -499,6 +499,8 @@ async function sendRequest(method, path, body, extra) {
   if (connected == false) {
     return;
   }
+  let response;
+  let reqTime;
   try {
     let sendData = {
       method: method,
@@ -531,11 +533,11 @@ async function sendRequest(method, path, body, extra) {
       }
     }
     let reqTimeStart = getEpoch();
-    let response = await fetch(serverURL + path, sendData);
+    response = await fetch(serverURL + path, sendData);
     if (response.status == null) {
       return [0, "Fetch Error", { took: reqTime }];
     }
-    let reqTime = getEpoch() - reqTimeStart;
+    reqTime = getEpoch() - reqTimeStart;
     let serverTimeMillisGMT = new Date(response.headers.get("Date")).getTime();
     let localMillisUTC = new Date().getTime();
     epochOffset = serverTimeMillisGMT - localMillisUTC;
@@ -565,7 +567,7 @@ async function sendRequest(method, path, body, extra) {
     }
   } catch (err) {
     console.log("FETCH ERROR: " + err);
-    if (response.status == null) {
+    if (response == null || response.status == null) {
       return [0, "Fetch Error", { took: reqTime }];
     }
     if (path == "me") { // Show error connecting

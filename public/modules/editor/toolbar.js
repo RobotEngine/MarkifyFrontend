@@ -227,7 +227,7 @@ modules["editor/toolbar"] = {
     }
     let closeSubtoolUI = async () => {
       subDropdownOpen = false;
-      subTools.style.top = mainSubtoolButton.getBoundingClientRect().top - frame.getBoundingClientRect().top + "px";
+      subTools.style.top = mainSubtoolButton.getBoundingClientRect().top + (mainSubtoolButton.offsetHeight / 2) - frame.getBoundingClientRect().top + "px";
       mainSubtoolButton = null;
       subToolContentHolder.style.transition = "unset";
       subTools.style.transform = "scale(0)";

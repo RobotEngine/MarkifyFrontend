@@ -172,7 +172,6 @@ modules["editor/toolbar"] = {
     frame.style.background = "var(--pageColor)";
     frame.style.boxShadow = "var(--lightShadow)";
     frame.style.borderRadius = "16px";
-    frame.style.borderTopRightRadius = "0px";
     frame.style.display = "flex";
     frame.style.flexDirection = "column";
     frame.style.gap = "6px";
@@ -229,6 +228,7 @@ modules["editor/toolbar"] = {
     let closeSubtoolUI = async () => {
       subDropdownOpen = false;
       subTools.style.top = mainSubtoolButton.getBoundingClientRect().top - frame.getBoundingClientRect().top + "px";
+      mainSubtoolButton = null;
       subToolContentHolder.style.transition = "unset";
       subTools.style.transform = "scale(0)";
       subTools.style.opacity = 0;
@@ -241,39 +241,41 @@ modules["editor/toolbar"] = {
       subTools.style.transition = "opacity .3s, transform .3s";
     }
     let showSubtoolUI = async (button) => {
-      mainSubtoolButton = button || mainSubtoolButton;
+      if (mainSubtoolButton == button) {
+        closeSubtoolUI();
+        return;
+      }
+      mainSubtoolButton = button;
       
-      if (mainSubtoolButton != null) { // SUBTOOL UI
-        let toolTag = mainSubtoolButton.getAttribute("tool");
-        let loadTools = this.tools[toolTag];
-        if (Array.isArray(loadTools) == true) {
-          subDropdownOpen = true;
-          subToolContent.innerHTML = "";
-          for (let i = 0; i < loadTools.length; i++) {
-            let toolData = loadTools[i];
-            let insertHTML = `<button class="eTool" new><div></div></button>`;
-            if (toolData.type == "option") {
+      let toolTag = mainSubtoolButton.getAttribute("tool");
+      let loadTools = this.tools[toolTag];
+      if (Array.isArray(loadTools) == true) {
+        subDropdownOpen = true;
+        subToolContent.innerHTML = "";
+        for (let i = 0; i < loadTools.length; i++) {
+          let toolData = loadTools[i];
+          let insertHTML = `<button class="eTool" new><div></div></button>`;
+          if (toolData.type == "option") {
 
-            } else if (toolData.type == "divider") {
-              insertHTML = `<div class="eDivider" new></div>`;
-            }
-            subToolContent.insertAdjacentHTML("beforeend", insertHTML);
-            let newSubItem = subToolContent.querySelector("[new]");
-            newSubItem.removeAttribute("new");
-            if (toolData.type == "tool") {
-              newSubItem.querySelector("div").innerHTML = toolData.image;
-            }
+          } else if (toolData.type == "divider") {
+            insertHTML = `<div class="eDivider" new></div>`;
           }
-
-          updateSubtoolUI();
-        } else { // No need as the main tool is the subtool
-          closeSubtoolUI();
+          subToolContent.insertAdjacentHTML("beforeend", insertHTML);
+          let newSubItem = subToolContent.querySelector("[new]");
+          newSubItem.removeAttribute("new");
+          if (toolData.type == "tool") {
+            newSubItem.querySelector("div").innerHTML = toolData.image;
+          }
         }
+
+        updateSubtoolUI();
+      } else { // No need as the main tool is the subtool
+        closeSubtoolUI();
       }
     }
     tempListen(window, "resize", updateSubtoolUI);
     frame.addEventListener("scroll", updateSubtoolUI);
-    showSubtoolUI(frame.querySelector('[tool="select"]'));
+    //showSubtoolUI(frame.querySelector('[tool="select"]'));
     frame.addEventListener("click", function (event) {
       let element = event.target;
       if (element == null) {

@@ -18,13 +18,14 @@ modules["editor/toolbar"] = {
   </div>
   `,
   css: {
-    ".eTool": `min-width: 50px; height: 50px; flex-shrink: 0; padding: 0; transition: unset`,
-    ".eTool div": `display: flex; width: 100%; height: 100%; justify-content: center; align-items: center; transition: .2s`,
-    ".eTool:hover div": `background: var(--hover)`,
+    ".eTool": `width: 50px; height: 50px; flex-shrink: 0; padding: 0; transition: unset`,
+    ".eTool > div": `display: flex; width: 100%; height: 100%; justify-content: center; align-items: center; transition: .2s; overflow: hidden`,
+    ".eTool:hover > div": `background: var(--hover)`,
     ".eTool:active": `transform: unset !important`,
-    ".eTool:active div": `transform: scale(.95); background: var(--secondary); border-radius: 15.5px`,
-    '.eTool[selected]:active div': `border-radius: 15.5px !important`,
-    ".eTool[selected] div": `background: var(--theme); border-top-right-radius: 0px !important; border-bottom-right-radius: 0px !important`,
+    ".eTool:active > div": `transform: scale(.95); background: var(--secondary); border-radius: 15.5px`,
+    ".eTool[option]:active > div": `border-radius: 25px`,
+    '.eTool[selected]:active > div': `border-radius: 15.5px !important`,
+    ".eTool[selected] > div": `background: var(--theme); border-top-right-radius: 0px !important; border-bottom-right-radius: 0px !important`,
 
     ".eDivider": `width: 100%; height: 4px; background: var(--theme)`,
 
@@ -71,15 +72,18 @@ modules["editor/toolbar"] = {
       },
       {
         id: "color",
-        type: "option"
+        type: "option",
+        module: "pages/editor/toolbar/color"
       },
       {
         id: "thickness",
-        type: "option"
+        type: "option",
+        module: "pages/editor/toolbar/thickness"
       },
       {
         id: "opacity",
-        type: "option"
+        type: "option",
+        module: "pages/editor/toolbar/opacity"
       }
     ],
     "text": { id: "text", type: "tool" },
@@ -99,15 +103,18 @@ modules["editor/toolbar"] = {
       },
       {
         id: "color",
-        type: "option"
+        type: "option",
+        module: "pages/editor/toolbar/color"
       },
       {
         id: "thickness",
-        type: "option"
+        type: "option",
+        module: "pages/editor/toolbar/thickness"
       },
       {
         id: "opacity",
-        type: "option"
+        type: "option",
+        module: "pages/editor/toolbar/opacity"
       }
     ],
     "shape": [
@@ -265,6 +272,10 @@ modules["editor/toolbar"] = {
           newSubItem.removeAttribute("new");
           if (toolData.type == "tool") {
             newSubItem.querySelector("div").innerHTML = toolData.image;
+          } else if (toolData.module != null) {
+            let module = await getModule(toolData.module);
+            newSubItem.querySelector("div").innerHTML = module.button;
+            newSubItem.setAttribute("option", "");
           }
         }
 
@@ -296,3 +307,46 @@ modules["editor/toolbar"] = {
     //frame.closest(".eSide").style.opacity = 1;
   }
 }
+
+modules["pages/editor/toolbar/color"] = {
+  button: `<div class="eSubToolColor" picked></div>`,
+  html: `
+  
+  `,
+  css: {
+    ".eSubToolColor": `width: 34px; height: 34px; background: red; border: solid 2.5px var(--pageColor); border-radius: 20px`
+  },
+  js: async function (frame) {
+    let editor = await getModule("pages/editor");
+
+
+  }
+};
+modules["pages/editor/toolbar/thickness"] = {
+  button: `<div class="eSubToolThickness" picked></div>`,
+  html: `
+  
+  `,
+  css: {
+    ".eSubToolThickness": `width: 60px; height: 12px; background: var(--darkGray); border: solid 2.5px var(--pageColor); border-radius: 11px; transform: translateX(-12px)`
+  },
+  js: async function (frame) {
+    let editor = await getModule("pages/editor");
+
+
+  }
+};
+modules["pages/editor/toolbar/opacity"] = {
+  button: `<svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_138_110" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_138_110)"> <circle cx="143.851" cy="143.354" r="65.7026" transform="rotate(-45 143.851 143.354)" stroke="white" stroke-width="24"/> <mask id="path-3-outside-1_138_110" maskUnits="userSpaceOnUse" x="24" y="24" width="133" height="134" fill="black"> <rect fill="white" x="24" y="24" width="133" height="134"/> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z"/> </mask> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z" fill="#2F2F2F"/> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z" stroke="white" stroke-width="24" mask="url(#path-3-outside-1_138_110)"/> <circle cx="90" cy="90" r="54" fill="#2F2F2F"/> <circle cx="143.851" cy="143.354" r="59.7026" transform="rotate(-45 143.851 143.354)" stroke="#2F2F2F" stroke-width="12"/> <line x1="151.001" y1="202.026" x2="84.547" y2="135.572" stroke="#2F2F2F" stroke-width="12"/> <line x1="201.632" y1="151.394" x2="135.178" y2="84.9404" stroke="#2F2F2F" stroke-width="12"/> <line x1="186.442" y1="186.835" x2="99.7359" y2="100.129" stroke="#2F2F2F" stroke-width="12"/> </g> </svg>`,
+  html: `
+  
+  `,
+  css: {
+    ".eSubToolThickness": `width: 60px; height: 12px; background: var(--darkGray); border: solid 2.5px var(--pageColor); border-radius: 11px; transform: translateX(-12px)`
+  },
+  js: async function (frame) {
+    let editor = await getModule("pages/editor");
+
+
+  }
+};

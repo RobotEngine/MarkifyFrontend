@@ -483,7 +483,11 @@ modules["pages/editor"] = {
       sentPing = true;
       let [code] = await sendRequest("GET", path, null, { session: this.session, allowError: [403] });
       if (code == 403) {
-        setFrame("pages/join");
+        if (sendBody.pin != null) {
+          setFrame("pages/join"); // Send back to join page
+        } else {
+          setFrame("pages/editor"); // Refresh to rejoin
+        }
       } else if (code != 200 && code != null) {
         setFrame("pages/editor");
       }

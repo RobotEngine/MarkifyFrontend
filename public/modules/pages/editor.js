@@ -187,7 +187,7 @@ modules["pages/editor"] = {
     };
 
     // PRELOAD ASSETS
-    loadScript("./libraries/pdfjslegacy/pdf.js");
+    loadScript("./libraries/pdfjs/pdf.js");
     loadScript("./modules/editor/realtime.js");
     
     page.style.removeProperty("display");
@@ -605,8 +605,8 @@ modules["pages/editor"] = {
         let pages = getObject(body.pages || [], "_id");
         let sources = getObject(body.sources || [], "_id");
 
-        await loadScript("./libraries/pdfjslegacy/pdf.js");
-        pdfjsLib.GlobalWorkerOptions.workerSrc = "./libraries/pdfjslegacy/pdf.worker.js";
+        await loadScript("./libraries/pdfjs/pdf.js");
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "./libraries/pdfjs/pdf.worker.js";
 
         let currentPage = 1;
 
@@ -772,8 +772,8 @@ modules["pages/editor"] = {
 
                 // Load PDFJS
                 if (window.pdfjsLib == null) {
-                  await loadScript("../libraries/pdfjslegacy/pdf.js");
-                  pdfjsLib.GlobalWorkerOptions.workerSrc = "../libraries/pdfjslegacy/pdf.worker.js";
+                  await loadScript("../libraries/pdfjs/pdf.js");
+                  pdfjsLib.GlobalWorkerOptions.workerSrc = "../libraries/pdfjs/pdf.worker.js";
                 }
 
                 let loadingTask = pdfjsLib.getDocument(assetURL + sourceData.source);

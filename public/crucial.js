@@ -26,6 +26,17 @@ let userID;
 
 let subscribes = [];
 
+window.addEventListener("error", function(e) {
+  let stacktrace = e.stack;
+  if (!stacktrace && e.error) {
+    stacktrace = e.error.stack;
+  }
+  
+  if (stacktrace) {
+    prompt('Stacktrace: ' + stacktrace);
+  }
+});
+
 let tempListeners = [];
 function tempListen(parent, listen, runFunc, extra) {
   parent.addEventListener(listen, runFunc, extra);

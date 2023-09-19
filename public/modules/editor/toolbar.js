@@ -332,7 +332,7 @@ modules["pages/editor/toolbar/thickness"] = {
   },
   js: async function (frame) {
     let editor = await getModule("pages/editor");
-
+    
 
   }
 };

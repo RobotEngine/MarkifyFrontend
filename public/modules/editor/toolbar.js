@@ -188,6 +188,7 @@ modules["editor/toolbar"] = {
     let subToolContentScroll = subTools.querySelector(".eSubToolContentScroll");
     let subToolContent = subToolContentScroll.querySelector(".eSubToolContent");
     let mainSubtoolButton;
+    let mainSubSubtoolButton;
     let updateSubtoolUI = async () => {
       if (mainSubtoolButton == null) {
         return;
@@ -248,40 +249,46 @@ modules["editor/toolbar"] = {
       subTools.style.transition = "opacity .3s, transform .3s";
     }
     let showSubtoolUI = async (button) => {
-      if (mainSubtoolButton == button) {
-        closeSubtoolUI();
-        return;
-      }
-      mainSubtoolButton = button;
-      
-      let toolTag = mainSubtoolButton.getAttribute("tool");
-      let loadTools = this.tools[toolTag];
-      if (Array.isArray(loadTools) == true) {
-        subDropdownOpen = true;
-        subToolContent.innerHTML = "";
-        for (let i = 0; i < loadTools.length; i++) {
-          let toolData = loadTools[i];
-          let insertHTML = `<button class="eTool" new><div></div></button>`;
-          if (toolData.type == "option") {
-
-          } else if (toolData.type == "divider") {
-            insertHTML = `<div class="eDivider" new></div>`;
-          }
-          subToolContent.insertAdjacentHTML("beforeend", insertHTML);
-          let newSubItem = subToolContent.querySelector("[new]");
-          newSubItem.removeAttribute("new");
-          if (toolData.type == "tool") {
-            newSubItem.querySelector("div").innerHTML = toolData.image;
-          } else if (toolData.module != null) {
-            let module = await getModule(toolData.module);
-            newSubItem.querySelector("div").innerHTML = module.button;
-            newSubItem.setAttribute("option", "");
-          }
+      if (button.hasAttribute("tool") == true) {
+        if (mainSubtoolButton == button) {
+          closeSubtoolUI();
+          return;
         }
+        mainSubtoolButton = button;
+        
+        let loadTools = this.tools[mainSubtoolButton.getAttribute("tool")];
+        if (Array.isArray(loadTools) == true) {
+          subDropdownOpen = true;
+          subToolContent.innerHTML = "";
+          for (let i = 0; i < loadTools.length; i++) {
+            let toolData = loadTools[i];
+            let insertHTML = `<button class="eTool" new><div></div></button>`;
+            if (toolData.type == "option") {
+  
+            } else if (toolData.type == "divider") {
+              insertHTML = `<div class="eDivider" new></div>`;
+            }
+            subToolContent.insertAdjacentHTML("beforeend", insertHTML);
+            let newSubItem = subToolContent.querySelector("[new]");
+            newSubItem.removeAttribute("new");
+            if (toolData.type == "tool") {
+              newSubItem.setAttribute("subtool", toolData.id);
+              newSubItem.querySelector("div").innerHTML = toolData.image;
+            } else if (toolData.module != null) {
+              let module = await getModule(toolData.module);
+              newSubItem.setAttribute("option", toolData.module);
+              newSubItem.querySelector("div").innerHTML = module.button;
+            }
+          }
+  
+          updateSubtoolUI();
+        } else { // No need as the main tool is the subtool
+          closeSubtoolUI();
+        }
+      } else if (button.hasAttribute("subtool") == true) {
+        
+      } else if (button.hasAttribute("option") == true) {
 
-        updateSubtoolUI();
-      } else { // No need as the main tool is the subtool
-        closeSubtoolUI();
       }
     }
     tempListen(window, "resize", updateSubtoolUI);
@@ -332,7 +339,7 @@ modules["pages/editor/toolbar/thickness"] = {
   },
   js: async function (frame) {
     let editor = await getModule("pages/editor");
-    
+
 
   }
 };

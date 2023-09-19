@@ -31,9 +31,8 @@ window.addEventListener("error", function(e) {
   if (!stacktrace && e.error) {
     stacktrace = e.error.stack;
   }
-  
   if (stacktrace) {
-    prompt('Stacktrace: ' + stacktrace);
+    prompt(e.message + ', ' + e.filename + ', ' + e.lineno + ':' + e.colno);
   }
 });
 

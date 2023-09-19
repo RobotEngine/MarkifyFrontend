@@ -314,7 +314,7 @@ modules["pages/editor/toolbar/color"] = {
   
   `,
   css: {
-    ".eSubToolColor": `width: 34px; height: 34px; background: red; border: solid 2.5px var(--pageColor); border-radius: 20px`
+    ".eSubToolColor": `width: 34px; height: 34px; background: var(--purple); border: solid 2.5px var(--pageColor); border-radius: 20px`
   },
   js: async function (frame) {
     let editor = await getModule("pages/editor");

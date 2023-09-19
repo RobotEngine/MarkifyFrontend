@@ -1113,6 +1113,7 @@ modules["dropdowns/editor/members"] = {
             return;
           }
           observeButton.setAttribute("disabled", "");
+          let prevObserve = editor.realtime.observing;
           editor.realtime.observing = memberid;
           editor.realtime.module.setShortSub(editor.visiblePages);
           editor.realtime.module.observeButtonUpdate();
@@ -1127,6 +1128,10 @@ modules["dropdowns/editor/members"] = {
               editor.realtime.module.exitObserve();
             }, 10000);
           } else {
+            if (prevObserve != null) {
+              editor.realtime.observing = prevObserve;
+              editor.realtime.module.exitObserve();
+            }
             editor.realtime.observing = null;
             editor.realtime.module.setShortSub(editor.visiblePages);
             editor.realtime.module.observeButtonUpdate();

@@ -418,7 +418,9 @@ modules["editor/toolbar"] = {
         showSubtoolUI(element);
       } else if (element.hasAttribute("subtool") == true) {
         selectedSubtoolToolID = element.getAttribute("subtool");
-        preferences[selectedToolID].subtool = selectedSubtoolToolID
+        if (preferences[selectedToolID].subtool != null) {
+          preferences[selectedToolID].subtool = selectedSubtoolToolID
+        }
         closeSubSubtoolUI();
       } else if (element.hasAttribute("option") == true) {
         showSubSubtoolUI(element);

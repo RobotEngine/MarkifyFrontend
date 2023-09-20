@@ -135,6 +135,31 @@ modules["pages/editor"] = {
   loadedPDFs: [], // Keep track of loaded PDFs for releasing memory
   js: async function (page, joinData) {
     this.page = page;
+    this.preferences = {
+      tools: {
+        select: {
+          subtool: "select"
+        },
+        markup: {
+          subtool: "highlighter"
+        },
+        text: {
+
+        },
+        draw: {
+          subtool: "pen"
+        },
+        shape: {
+          subtool: "square"
+        },
+        comment: {
+          
+        },
+        media: {
+
+        }
+      }
+    };
     this.options = {
       cursors: true,
       comments: true,

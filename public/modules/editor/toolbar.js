@@ -185,7 +185,10 @@ modules["editor/toolbar"] = {
       }
     ]
   },
-  js: function (frame) {
+  js: async function (frame) {
+    let editor = await getModule("pages/editor");
+    editor.toolbar = this;
+
     frame.style.maxHeight = "calc(100vh - 132px)";
     frame.style.overflow = "auto";
     frame.style.background = "var(--pageColor)";
@@ -227,6 +230,8 @@ modules["editor/toolbar"] = {
         } else if (setSubToolTop < 0) {
           setSubToolTop = 0;
         }
+        subTools.style.transition = "top .3s, opacity .3s, transform .3s, border-radius .5s";
+        subTools.offsetHeight;
         subTools.style.top = setSubToolTop + "px";
         
         if (setSubToolTop < 17) {
@@ -239,7 +244,6 @@ modules["editor/toolbar"] = {
         } else {
           frame.style.borderBottomRightRadius = "16px";
         }
-        subTools.style.transition = "top .3s, opacity .3s, transform .3s, border-radius .5s";
 
         subToolContentHolder.style.width = subToolContentScroll.offsetWidth + "px";
         subToolContentHolder.style.height = subToolContentScroll.offsetHeight + "px";
@@ -262,6 +266,8 @@ modules["editor/toolbar"] = {
         } else if (setSubSubToolTop < 0) {
           setSubSubToolTop = 0;
         }
+        subSubTools.style.transition = "top .3s, opacity .3s, transform .3s, border-radius .5s";
+        subTools.offsetHeight;
         subSubTools.style.top = setSubSubToolTop + "px";
         
         if (setSubSubToolTop < 17) {
@@ -274,7 +280,6 @@ modules["editor/toolbar"] = {
         } else {
           subTools.style.borderBottomRightRadius = "16px";
         }
-        subSubTools.style.transition = "top .3s, opacity .3s, transform .3s";
 
         subSubToolContentHolder.style.width = subSubToolContentScroll.offsetWidth + "px";
         subSubToolContentHolder.style.height = subSubToolContentScroll.offsetHeight + "px";
@@ -288,6 +293,8 @@ modules["editor/toolbar"] = {
     tempListen(window, "resize", updateSubtoolUI);
     frame.addEventListener("scroll", updateSubtoolUI);
     subToolContentScroll.addEventListener("scroll", updateSubtoolUI);
+
+    let preferences = editor.preferences.tools;
 
     let closeSubtoolUI = async () => {
       if (mainSubtoolButton != null) {
@@ -315,7 +322,8 @@ modules["editor/toolbar"] = {
         }
         mainSubtoolButton = button;
         
-        let loadTools = this.tools[mainSubtoolButton.getAttribute("tool")];
+        let toolID = mainSubtoolButton.getAttribute("tool");
+        let loadTools = this.tools[toolID];
         if (Array.isArray(loadTools) == true) {
           subToolContent.innerHTML = "";
           for (let i = 0; i < loadTools.length; i++) {
@@ -338,7 +346,15 @@ modules["editor/toolbar"] = {
               newSubItem.querySelector("div").innerHTML = module.button;
             }
           }
+
+          if (preferences[toolID] != null && preferences[toolID].subtool) {
+            let selectSubtool = subToolContent.querySelector('.eTool[subtool="' + preferences[toolID].subtool + '"]');
+            if (selectSubtool != null) {
+              selectSubtool.setAttribute("selected", "");
+            }
+          }
   
+          subTools.style.top = mainSubtoolButton.getBoundingClientRect().top + (mainSubtoolButton.offsetHeight / 2) - frame.getBoundingClientRect().top + "px";
           updateSubtoolUI();
         } else { // No need as the main tool is the subtool
           closeSubtoolUI();
@@ -372,10 +388,13 @@ modules["editor/toolbar"] = {
 
       subSubToolContent.innerHTML = `<div style="width: 250px; height: 106px"></div>`;
 
+      subSubTools.style.top = mainSubSubtoolButton.getBoundingClientRect().top + (mainSubSubtoolButton.offsetHeight / 2) - subTools.getBoundingClientRect().top + "px";
       updateSubtoolUI();
     }
 
     //showSubtoolUI(frame.querySelector('[tool="select"]'));
+    let selectedToolID = "select";
+    let selectedSubtoolToolID = "select";
     frame.addEventListener("click", function (event) {
       let element = event.target;
       if (element == null) {
@@ -395,8 +414,11 @@ modules["editor/toolbar"] = {
       }
       element.setAttribute("selected", "");
       if (element.hasAttribute("tool") == true) {
+        selectedToolID = element.getAttribute("tool");
         showSubtoolUI(element);
       } else if (element.hasAttribute("subtool") == true) {
+        selectedSubtoolToolID = element.getAttribute("subtool");
+        preferences[selectedToolID].subtool = selectedSubtoolToolID
         closeSubSubtoolUI();
       } else if (element.hasAttribute("option") == true) {
         showSubSubtoolUI(element);

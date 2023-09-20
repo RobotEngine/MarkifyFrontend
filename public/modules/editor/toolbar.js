@@ -14,6 +14,15 @@ modules["editor/toolbar"] = {
       <div class="eSubToolContentScroll">
         <div class="eSubToolContent"></div>
       </div>
+      <div class="eSubToolHolder" option>
+        <div class="eSubToolShadow"></div>
+          <div class="eSubToolContentHolder">
+            <div class="eSubToolContentScroll">
+              <div class="eSubToolContent"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
   `,
@@ -32,6 +41,7 @@ modules["editor/toolbar"] = {
     ".eDivider": `width: 100%; height: 4px; background: var(--theme)`,
 
     ".eSubToolHolder": `position: absolute; max-height: 100%; left: 100%; top: 0px; background: var(--pageColor); border-radius: 0 16px 16px 0; border-left: solid 4px var(--theme); transform: scale(0); transform-origin: top left; transition: opacity .3s, transform: .3s`,
+    ".eSubToolHolder[option]": `border-left-color: var(--secondary)`,
     ".eSubToolShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 20px 16px 0; left: -4px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
     ".eSubToolShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); left: 0px; top: 16px; content: ""; box-shadow: var(--lightShadow); border-radius: inherit`,
     ".eSubToolContentHolder": `overflow: hidden; border-radius: inherit`,
@@ -190,55 +200,100 @@ modules["editor/toolbar"] = {
     let subToolContentScroll = subTools.querySelector(".eSubToolContentScroll");
     let subToolContent = subToolContentScroll.querySelector(".eSubToolContent");
     let mainSubtoolButton;
+
+    let subSubTools = frame.querySelector(".eSubToolHolder[option]");
+    let subSubToolContentHolder = subSubTools.querySelector(".eSubToolContentHolder");
+    let subSubToolContentScroll = subSubTools.querySelector(".eSubToolContentScroll");
+    let subSubToolContent = subSubToolContentScroll.querySelector(".eSubToolContent");
     let mainSubSubtoolButton;
+
     let updateSubtoolUI = async () => {
-      if (mainSubtoolButton == null) {
-        return;
+      if (mainSubtoolButton != null) {
+        let toolsRect = frame.getBoundingClientRect();
+        let buttonRect = mainSubtoolButton.getBoundingClientRect();
+
+        if (subToolContent.childElementCount < 8) {
+          subToolContent.style.width = "50px";
+        } else {
+          subToolContent.style.width = "106px";
+        }
+
+        subToolContentScroll.style.maxHeight = frame.clientHeight + "px";
+
+        let subtoolHeight = subToolContentScroll.offsetHeight;
+        let setSubToolTop = buttonRect.top - toolsRect.top;
+        if (setSubToolTop + subtoolHeight > frame.offsetHeight) {
+          setSubToolTop = frame.offsetHeight - subtoolHeight;
+        } else if (setSubToolTop < 0) {
+          setSubToolTop = 0;
+        }
+        subTools.style.top = setSubToolTop + "px";
+        
+        if (setSubToolTop < 17) {
+          frame.style.borderTopRightRadius = "0px";
+        } else {
+          frame.style.borderTopRightRadius = "16px";
+        }
+        if (setSubToolTop + subtoolHeight > frame.offsetHeight - 16) {
+          frame.style.borderBottomRightRadius = "0px";
+        } else {
+          frame.style.borderBottomRightRadius = "16px";
+        }
+        subTools.style.transition = "top .3s, opacity .3s, transform .3s, border-radius .5s";
+
+        subToolContentHolder.style.width = subToolContentScroll.offsetWidth + "px";
+        subToolContentHolder.style.height = subToolContentScroll.offsetHeight + "px";
+
+        subTools.style.opacity = 1;
+        subTools.style.transform = "scale(1)";
+
+        subToolContentHolder.style.transition = ".3s";
       }
-      let toolsRect = frame.getBoundingClientRect();
-      let buttonRect = mainSubtoolButton.getBoundingClientRect();
+      if (mainSubSubtoolButton != null) {
+        let toolsRect = subTools.getBoundingClientRect();
+        let buttonRect = mainSubSubtoolButton.getBoundingClientRect();
 
-      if (subToolContent.childElementCount < 8) {
-        subToolContent.style.width = "50px";
-      } else {
-        subToolContent.style.width = "106px";
+        subSubToolContentScroll.style.maxHeight = subTools.clientHeight + "px";
+
+        let subSubtoolHeight = subSubToolContentScroll.offsetHeight;
+        let setSubSubToolTop = buttonRect.top - toolsRect.top;
+        if (setSubSubToolTop + subSubtoolHeight > subTools.offsetHeight) {
+          setSubSubToolTop = subTools.offsetHeight - subSubtoolHeight;
+        } else if (setSubSubToolTop < 0) {
+          setSubSubToolTop = 0;
+        }
+        subSubTools.style.top = setSubSubToolTop + "px";
+        
+        if (setSubSubToolTop < 17) {
+          subTools.style.borderTopRightRadius = "0px";
+        } else {
+          subTools.style.borderTopRightRadius = "16px";
+        }
+        if (setSubSubToolTop + subSubtoolHeight > subTools.offsetHeight - 16) {
+          subTools.style.borderBottomRightRadius = "0px";
+        } else {
+          subTools.style.borderBottomRightRadius = "16px";
+        }
+        subSubTools.style.transition = "top .3s, opacity .3s, transform .3s";
+
+        subSubToolContentHolder.style.width = subSubToolContentScroll.offsetWidth + "px";
+        subSubToolContentHolder.style.height = subSubToolContentScroll.offsetHeight + "px";
+
+        subSubTools.style.opacity = 1;
+        subSubTools.style.transform = "scale(1)";
+
+        subSubToolContentHolder.style.transition = ".3s";
       }
-
-      subToolContentScroll.style.maxHeight = frame.clientHeight + "px";
-
-      let subtoolHeight = subToolContentScroll.offsetHeight;
-      let setSubToolTop = buttonRect.top - toolsRect.top;
-      if (setSubToolTop + subtoolHeight > frame.offsetHeight) {
-        setSubToolTop = frame.offsetHeight - subtoolHeight;
-      } else if (setSubToolTop < 0) {
-        setSubToolTop = 0;
-      }
-      subTools.style.top = setSubToolTop + "px";
-      
-      if (setSubToolTop < 17) {
-        frame.style.borderTopRightRadius = "0px";
-      } else {
-        frame.style.borderTopRightRadius = "16px";
-      }
-      if (setSubToolTop + subtoolHeight > frame.offsetHeight - 16) {
-        frame.style.borderBottomRightRadius = "0px";
-      } else {
-        frame.style.borderBottomRightRadius = "16px";
-      }
-      subTools.style.transition = "top .3s, opacity .3s, transform .3s";
-
-      subToolContentHolder.style.width = subToolContentScroll.offsetWidth + "px";
-      subToolContentHolder.style.height = subToolContentScroll.offsetHeight + "px";
-
-      subTools.style.opacity = 1;
-      subTools.style.transform = "scale(1)";
-
-      subToolContentHolder.style.transition = ".3s";
     }
+    tempListen(window, "resize", updateSubtoolUI);
+    frame.addEventListener("scroll", updateSubtoolUI);
+    subToolContentScroll.addEventListener("scroll", updateSubtoolUI);
+
     let closeSubtoolUI = async () => {
-      subDropdownOpen = false;
-      subTools.style.top = mainSubtoolButton.getBoundingClientRect().top + (mainSubtoolButton.offsetHeight / 2) - frame.getBoundingClientRect().top + "px";
-      mainSubtoolButton = null;
+      if (mainSubtoolButton != null) {
+        subTools.style.top = mainSubtoolButton.getBoundingClientRect().top + (mainSubtoolButton.offsetHeight / 2) - frame.getBoundingClientRect().top + "px";
+        mainSubtoolButton = null;
+      }
       subToolContentHolder.style.transition = "unset";
       subTools.style.transform = "scale(0)";
       subTools.style.opacity = 0;
@@ -251,6 +306,8 @@ modules["editor/toolbar"] = {
       subTools.style.transition = "opacity .3s, transform .3s";
     }
     let showSubtoolUI = async (button) => {
+      closeSubSubtoolUI();
+
       if (button.hasAttribute("tool") == true) {
         if (mainSubtoolButton == button) {
           closeSubtoolUI();
@@ -260,13 +317,12 @@ modules["editor/toolbar"] = {
         
         let loadTools = this.tools[mainSubtoolButton.getAttribute("tool")];
         if (Array.isArray(loadTools) == true) {
-          subDropdownOpen = true;
           subToolContent.innerHTML = "";
           for (let i = 0; i < loadTools.length; i++) {
             let toolData = loadTools[i];
             let insertHTML = `<button class="eTool" new><div></div></button>`;
             if (toolData.type == "option") {
-  
+              
             } else if (toolData.type == "divider") {
               insertHTML = `<div class="eDivider" new></div>`;
             }
@@ -287,14 +343,38 @@ modules["editor/toolbar"] = {
         } else { // No need as the main tool is the subtool
           closeSubtoolUI();
         }
-      } else if (button.hasAttribute("subtool") == true) {
-        
-      } else if (button.hasAttribute("option") == true) {
-
       }
     }
-    tempListen(window, "resize", updateSubtoolUI);
-    frame.addEventListener("scroll", updateSubtoolUI);
+    
+    let closeSubSubtoolUI = async () => {
+      if (mainSubSubtoolButton != null) {
+        subSubTools.style.top = mainSubSubtoolButton.getBoundingClientRect().top + (mainSubSubtoolButton.offsetHeight / 2) - subTools.getBoundingClientRect().top + "px";
+        mainSubSubtoolButton = null;
+      }
+      subSubToolContentHolder.style.transition = "unset";
+      subSubTools.style.transform = "scale(0)";
+      subSubTools.style.opacity = 0;
+      subTools.style.borderTopRightRadius = "16px";
+      subTools.style.borderBottomRightRadius = "16px";
+      await sleep(300);
+      subSubToolContent.innerHTML = "";
+      subSubToolContentHolder.style.removeProperty("width");
+      subSubToolContentHolder.style.removeProperty("height");
+      subSubTools.style.transition = "opacity .3s, transform .3s";
+    }
+    let showSubSubtoolUI = async (button) => {
+      if (mainSubSubtoolButton == button) {
+        closeSubSubtoolUI();
+        button.removeAttribute("selected");
+        return;
+      }
+      mainSubSubtoolButton = button;
+
+      subSubToolContent.innerHTML = `<div style="width: 250px; height: 106px"></div>`;
+
+      updateSubtoolUI();
+    }
+
     //showSubtoolUI(frame.querySelector('[tool="select"]'));
     frame.addEventListener("click", function (event) {
       let element = event.target;
@@ -305,12 +385,22 @@ modules["editor/toolbar"] = {
       if (element == null) {
         return;
       }
-      let lastSelected = element.parentElement.querySelector("button[selected]");
-      if (lastSelected) {
-        lastSelected.removeAttribute("selected");
+      let lastSelectedQuery = "button[selected]";
+      if (element.hasAttribute("option") == true) {
+        lastSelectedQuery += "[option]";
+      }
+      let lastSelected = element.parentElement.querySelectorAll(lastSelectedQuery);
+      for (let i = 0; i < lastSelected.length; i++) {
+        lastSelected[i].removeAttribute("selected");
       }
       element.setAttribute("selected", "");
-      showSubtoolUI(element);
+      if (element.hasAttribute("tool") == true) {
+        showSubtoolUI(element);
+      } else if (element.hasAttribute("subtool") == true) {
+        closeSubSubtoolUI();
+      } else if (element.hasAttribute("option") == true) {
+        showSubSubtoolUI(element);
+      }
     });
 
     //frame.closest(".eSide").style.opacity = 1;

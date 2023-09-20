@@ -22,10 +22,12 @@ modules["editor/toolbar"] = {
     ".eTool > div": `display: flex; width: 100%; height: 100%; justify-content: center; align-items: center; transition: .2s; overflow: hidden`,
     ".eTool:hover > div": `background: var(--hover)`,
     ".eTool:active": `transform: unset !important`,
-    ".eTool:active > div": `transform: scale(.95); background: var(--secondary); border-radius: 15.5px`,
-    ".eTool[option]:active > div": `border-radius: 25px`,
+    ".eTool:active > div": `transform: scale(.95); background: var(--theme); border-radius: 15.5px`,
+    ".eTool[option]:active > div": `background: var(--secondary); border-radius: 25px`,
     '.eTool[selected]:active > div': `border-radius: 15.5px !important`,
+    ".eTool[selected][option]:active > div": `border-radius: 25px !important`,
     ".eTool[selected] > div": `background: var(--theme); border-top-right-radius: 0px !important; border-bottom-right-radius: 0px !important`,
+    ".eTool[selected][option] > div": `background: var(--secondary)`,
 
     ".eDivider": `width: 100%; height: 4px; background: var(--theme)`,
 

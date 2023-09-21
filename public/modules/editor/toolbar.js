@@ -251,7 +251,7 @@ modules["editor/toolbar"] = {
         subTools.style.opacity = 1;
         subTools.style.transform = "scale(1)";
 
-        subToolContentHolder.style.transition = ".3s";
+        subToolContentHolder.style.transition = "width .3s, height .3s";
       }
       if (mainSubSubtoolButton != null) {
         let toolsRect = subTools.getBoundingClientRect();
@@ -287,7 +287,7 @@ modules["editor/toolbar"] = {
         subSubTools.style.opacity = 1;
         subSubTools.style.transform = "scale(1)";
 
-        subSubToolContentHolder.style.transition = ".3s";
+        subSubToolContentHolder.style.transition = "width .3s, height .3s";
       }
     }
     tempListen(window, "resize", updateSubtoolUI);
@@ -386,7 +386,7 @@ modules["editor/toolbar"] = {
       }
       mainSubSubtoolButton = button;
 
-      subSubToolContent.innerHTML = `<div style="width: 250px; height: 106px"></div>`;
+      subSubToolContent.innerHTML = `<div style="width: 218px; height: 106px"></div>`;
 
       subSubTools.style.top = mainSubSubtoolButton.getBoundingClientRect().top + (mainSubSubtoolButton.offsetHeight / 2) - subTools.getBoundingClientRect().top + "px";
       updateSubtoolUI();

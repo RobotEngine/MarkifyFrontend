@@ -407,6 +407,9 @@ modules["editor/toolbar"] = {
       if (element == null) {
         return;
       }
+      if (element.hasAttribute("noselct") == true) {
+        return;
+      }
       let lastSelectedQuery = "button[selected]";
       if (element.hasAttribute("option") == true) {
         lastSelectedQuery += "[option]";
@@ -439,19 +442,20 @@ modules["pages/editor/toolbar/color"] = {
   html: `
     <div class="eSubToolColorHolder">
       <div class="eSubToolColorSelector">
-        <button class="eTool" option><div><div class="eSubToolColor"></div></div></button>
-        <button class="eTool" option><div><div class="eSubToolColor"></div></div></button>
-        <button class="eTool" option><div><div class="eSubToolColor"></div></div></button>
-        <button class="eTool" option><div><div class="eSubToolColor"></div></div></button>
-        <button class="eTool" option><div><div class="eSubToolColor"></div></div></button>
-        <button class="eTool" option><div><div class="eSubToolColor"></div></div></button>
-        <button class="eTool" option><div><div class="eSubToolColor"></div></div></button>
-        <button class="eTool" option><div><div class="eSubToolColor"></div></div></button>
+        <button class="eTool"><div><div class="eSubToolColor"></div></div></button>
+        <button class="eTool"><div><div class="eSubToolColor"></div></div></button>
+        <button class="eTool"><div><div class="eSubToolColor"></div></div></button>
+        <button class="eTool"><div><div class="eSubToolColor"></div></div></button>
+        <button class="eTool"><div><div class="eSubToolColor"></div></div></button>
+        <button class="eTool"><div><div class="eSubToolColor"></div></div></button>
+        <button class="eTool"><div><div class="eSubToolColor"></div></div></button>
+        <button class="eTool" noselct><div><img class="eSubToolImage" src="./images/editor/picker.svg"></div></button>
       </div>
     </div>
   `,
   css: {
     ".eSubToolColor": `width: 34px; height: 34px; background: var(--purple); border: solid 2.5px var(--pageColor); border-radius: 20px`,
+    ".eSubToolImage": `width: 40px; height: 40px`,
 
     ".eSubToolColorHolder": `width: 212px; height: 106px`,
     ".eSubToolColorSelector": `display: flex; flex-wrap: wrap`,
@@ -462,7 +466,14 @@ modules["pages/editor/toolbar/color"] = {
   js: async function (frame) {
     let editor = await getModule("pages/editor");
 
-    
+    let defaultColors = ["#0084FF", "#FF4C6C", "#FFC24A", "#DF84FF", "#34C172", "#FF008A", "#000"];
+    let colorButtons = frame.querySelector(".eSubToolColorSelector").children;
+    for (let i = 0; i < defaultColors.length; i++) {
+      let button = colorButtons[i];
+      let setColor = defaultColors[i];
+      button.setAttribute("color", setColor);
+      button.querySelector(".eSubToolColor").style.background = setColor;
+    }
   }
 };
 modules["pages/editor/toolbar/thickness"] = {

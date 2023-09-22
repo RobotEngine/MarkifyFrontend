@@ -462,7 +462,7 @@ modules["pages/editor/toolbar/color"] = {
   js: async function (frame) {
     let editor = await getModule("pages/editor");
 
-
+    
   }
 };
 modules["pages/editor/toolbar/thickness"] = {

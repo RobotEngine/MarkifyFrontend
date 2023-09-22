@@ -20,7 +20,7 @@ modules["pages/launch"] = {
       <div class="lHeaderSlogan"><b>Collaboration</b> across the <b>Classroom</b></div>
       <div class="lHeaderSummary">Stream a shared whiteboard to student's devices to see up close and review. All with effective tools that aren't overwhelming or confusing to use.</div>
       <div class="lHeaderActions">
-        <button class="lOpen largeButton" openpage="editor" disabled>Coming Soon</button>
+        <button class="lOpen largeButton">Join Waitlist</button>
         <button class="lJoin largeButton" openpage="join">Join Lesson<img src="./images/tooltips/link.svg"></button>
       </div>
       <img class="lHeaderSplash" src="./images/launch/showcase.png">
@@ -144,7 +144,7 @@ modules["pages/launch"] = {
         <div div class="lFooterFree">Get started for <b>FREE</b></div>
       </div>
       <div class="dFooterHolder" style="min-height: 125px">
-        <button class="lOpen largeButton" openpage="editor" disabled>Create a Lesson</button>
+        <button class="lOpen largeButton">Join Waitlist</button>
       </div>
     </div>
     <div class="lFooterCompliance">
@@ -164,7 +164,7 @@ modules["pages/launch"] = {
         <a href="https://exotek.co/privacy" target="_blank">Privacy</a>
       </div>
       <div class="lFooterSocials">
-        <a href="https://twitter.com/exotekco" target="_blank"><img src="./images/launch/socials/twitter.svg"></a>
+        <a href="https://twitter.com/markifytool" target="_blank"><img src="./images/launch/socials/twitter.svg"></a>
         <a href="https://www.linkedin.com/company/exotekco" target="_blank"><img src="./images/launch/socials/linkedin.svg"></a>
         <a href="https://www.youtube.com/@exotekco" target="_blank"><img src="./images/launch/socials/youtube.svg"></a>
       </div>
@@ -757,5 +757,13 @@ modules["pages/launch"] = {
     tempListen(window, "resize", updateSections);
     setTimeout(updateSections, 1);
     page.querySelector(".lHeaderContent").style.minHeight = "0px";
+
+    // Waitlist Buttons:
+    page.querySelector(".lHeaderActions .lOpen").addEventListener("click", function() {
+      promptLogin("waitlist");
+    });
+    page.querySelector(".dFooterHolder .lOpen").addEventListener("click", function() {
+      promptLogin("waitlist");
+    });
   }
 }

@@ -33,7 +33,7 @@ modules["pages/join"] = {
           </div>
         </div>
         <button class="largeButton border" join>Join Lesson</button>
-        <div class="jPromo">Create your lesson at <a href="${location.origin}#dashboard" target="_blank">${location.host}</a></div>
+        <div class="jPromo">Create your lesson at <a href="#launch" target="_blank">${location.host}</a></div>
         <div class="jPolicies">
           <a href="https://exotek.co/tos" target="_blank">Terms</a>
           <a href="https://exotek.co/privacy" target="_blank">Privacy</a>

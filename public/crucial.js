@@ -461,14 +461,18 @@ function randomString(l) {
   while (s.length < l) s += randomchar();
   return s;
 }
-function promptLogin() {
+function promptLogin(page) {
   let randomStr = randomString(20);
   setLocalStore("state", randomStr);
   modifyParams("state");
   modifyParams("code");
+  let redirectURL = new URL(window.location.href);
+  if (page != null) {
+    redirectURL.hash = "#" + page;
+  }
   window.location =
     "https://exotek.co/login?client_id=631056064efd34591c5a8e05&redirect_uri=" +
-    encodeURIComponent(window.location.href) +
+    encodeURIComponent(redirectURL) +
     "&response_type=code&scope=userinfo&state=" +
     randomStr;
 }
@@ -650,7 +654,8 @@ async function init() {
     removeLocalStore("state");
     modifyParams("state");
     let [code, body] = await sendRequest("POST", "auth?ss=" + socket.secureID, {
-      code: paramAuthCode
+      code: paramAuthCode,
+      page: window.location.hash.substring(1)
     });
     modifyParams("code");
     if (code === 200) {
@@ -890,6 +895,7 @@ body.addEventListener("click", async function (event) {
   let page = element.closest("[openpage]");
   if (page) {
     setFrame("pages/" + page.getAttribute("openpage"));
+    event.preventDefault();
   }
 });
 window.addEventListener("scroll", async function () {

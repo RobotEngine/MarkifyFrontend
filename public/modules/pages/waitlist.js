@@ -14,7 +14,7 @@ modules["pages/waitlist"] = {
         <img class="waitLogo" src="./images/logo.svg">
         <div class="waitHeader"><b>You're</b> on the <b>Waitlist</b></div>
         <div class="waitNumber">#<b>Loading...</b> on the list!</div>
-        <div class="waitText">Thank you for joining the waitlist, we'll send an email to <b>Loading...</b> once Markify is released! 😊</div>
+        <div class="waitText">Thank you for joining the waitlist, we'll send an email to <b>Loading...</b> once Markify is ready to test! 😊</div>
         <div class="waitText">Return to the <a openpage="launch" href="#launch">Launch Page</a></div>
         <div class="waitSocials">
           <a href="https://twitter.com/markifytool" target="_blank"><img src="./images/launch/socials/twitter.svg"></a>

@@ -457,7 +457,7 @@ modules["pages/editor/toolbar/color"] = {
     ".eSubToolColorSelector": `display: flex; flex-wrap: wrap`,
     ".eSubToolColorSelector .eTool": `width: 47px; height: 47px; margin: 3px`,
     ".eSubToolColorSelector .eTool > div": `border-radius: 25px !important`,
-    ".eSubToolColorSelector .eSubToolColor": `width: 32px; height: 32px`
+    ".eSubToolColorSelector .eSubToolColor": `width: 33px; height: 33px`
   },
   js: async function (frame) {
     let editor = await getModule("pages/editor");

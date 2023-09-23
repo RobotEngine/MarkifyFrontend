@@ -31,7 +31,7 @@ modules["editor/toolbar"] = {
     ".eTool > div": `display: flex; width: 100%; height: 100%; justify-content: center; align-items: center; transition: .2s; overflow: hidden`,
     ".eTool:hover > div": `background: var(--hover)`,
     ".eTool:active": `transform: unset !important`,
-    ".eTool:active > div": `transform: scale(.95); background: var(--theme); border-radius: 15.5px`,
+    ".eTool:active > div": `transform: scale(.95); border-radius: 15.5px`,
     ".eTool[option]:active > div": `background: var(--secondary); border-radius: 25px`,
     '.eTool[selected]:active > div': `border-radius: 15.5px !important`,
     ".eTool[selected][option]:active > div": `border-radius: 25px !important`,
@@ -407,7 +407,7 @@ modules["editor/toolbar"] = {
       if (element == null) {
         return;
       }
-      if (element.hasAttribute("noselct") == true) {
+      if (element.hasAttribute("noselect") == true) {
         return;
       }
       let lastSelectedQuery = "button[selected]";
@@ -438,26 +438,27 @@ modules["editor/toolbar"] = {
 }
 
 modules["pages/editor/toolbar/color"] = {
-  button: `<div class="eSubToolColor" picked></div>`,
+  button: `<div class="eSubToolColorHolder"><div class="eSubToolColor" picked></div></div>`,
   html: `
-    <div class="eSubToolColorHolder">
+    <div class="eSubToolColorFrame">
       <div class="eSubToolColorSelector">
-        <button class="eTool"><div><div class="eSubToolColor"></div></div></button>
-        <button class="eTool"><div><div class="eSubToolColor"></div></div></button>
-        <button class="eTool"><div><div class="eSubToolColor"></div></div></button>
-        <button class="eTool"><div><div class="eSubToolColor"></div></div></button>
-        <button class="eTool"><div><div class="eSubToolColor"></div></div></button>
-        <button class="eTool"><div><div class="eSubToolColor"></div></div></button>
-        <button class="eTool"><div><div class="eSubToolColor"></div></div></button>
-        <button class="eTool" noselct><div><img class="eSubToolImage" src="./images/editor/picker.svg"></div></button>
+        <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+        <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+        <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+        <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+        <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+        <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+        <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+        <button class="eTool" option noselect><div><img class="eSubToolImage" src="./images/editor/picker.svg"></div></button>
       </div>
     </div>
   `,
   css: {
-    ".eSubToolColor": `width: 34px; height: 34px; background: var(--purple); border: solid 2.5px var(--pageColor); border-radius: 20px`,
+    ".eSubToolColorHolder": `display: flex; width: 34px; height: 34px; background: #fff; border: solid 2.5px var(--pageColor); border-radius: 20px; justify-content: center; align-items: center`,
+    ".eSubToolColor": `width: 100%; height: 100%; background: var(--purple); border-radius: 20px`,
     ".eSubToolImage": `width: 40px; height: 40px`,
 
-    ".eSubToolColorHolder": `width: 212px; height: 106px`,
+    ".eSubToolColorFrame": `width: 212px; height: 106px`,
     ".eSubToolColorSelector": `display: flex; flex-wrap: wrap`,
     ".eSubToolColorSelector .eTool": `width: 47px; height: 47px; margin: 3px`,
     ".eSubToolColorSelector .eTool > div": `border-radius: 25px !important`,
@@ -479,12 +480,18 @@ modules["pages/editor/toolbar/color"] = {
 modules["pages/editor/toolbar/thickness"] = {
   button: `<div class="eSubToolThickness" picked></div>`,
   html: `
-    <div class="eSubToolThicknessHolder">thickness</div>
+    <div class="eSubToolThicknessHolder">
+      <input class="eSubToolThicknessInput" value="16" placeholder="16" min="1" max="45">
+      <div class="eSubToolThicknessSlider"><button></button></div>
+    </div>
   `,
   css: {
-    ".eSubToolThickness": `width: 60px; height: 12px; background: var(--darkGray); border: solid 2.5px var(--pageColor); border-radius: 11px; transform: translateX(-12px)`,
+    ".eSubToolThickness": `width: 60px; height: 16px; background: var(--darkGray); border: solid 2.5px var(--pageColor); outline: 0px; border-radius: 11px; transform: translateX(-12px)`,
 
-    ".eSubToolThicknessHolder": `width: 212px; height: 50px`
+    ".eSubToolThicknessHolder": `box-sizing: border-box; display: flex; width: 212px; height: 50px; padding: 6px; align-items: center`,
+    ".eSubToolThicknessInput": `width: 40px; height: 26px; border: solid 3px var(--secondary); border-radius: 17px; font-family: var(--font); font-size: 20px; font-weight: 700; color: var(--theme); text-align: center`,
+    ".eSubToolThicknessSlider": `position: relative; flex: 1; height: 10px; margin: 0 12px; background: var(--hover); border-radius: 5px`,
+    ".eSubToolThicknessSlider button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; left: calc(35% - 5px); top: -5px; background: var(--theme); border: solid 5px var(--secondary); border-radius: 10px; transition: .2s`
   },
   js: async function (frame) {
     let editor = await getModule("pages/editor");
@@ -495,12 +502,18 @@ modules["pages/editor/toolbar/thickness"] = {
 modules["pages/editor/toolbar/opacity"] = {
   button: `<svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_138_110" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_138_110)"> <circle cx="143.851" cy="143.354" r="65.7026" transform="rotate(-45 143.851 143.354)" stroke="white" stroke-width="24"/> <mask id="path-3-outside-1_138_110" maskUnits="userSpaceOnUse" x="24" y="24" width="133" height="134" fill="black"> <rect fill="white" x="24" y="24" width="133" height="134"/> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z"/> </mask> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z" fill="#2F2F2F"/> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z" stroke="white" stroke-width="24" mask="url(#path-3-outside-1_138_110)"/> <circle cx="90" cy="90" r="54" fill="#2F2F2F"/> <circle cx="143.851" cy="143.354" r="59.7026" transform="rotate(-45 143.851 143.354)" stroke="#2F2F2F" stroke-width="12"/> <line x1="151.001" y1="202.026" x2="84.547" y2="135.572" stroke="#2F2F2F" stroke-width="12"/> <line x1="201.632" y1="151.394" x2="135.178" y2="84.9404" stroke="#2F2F2F" stroke-width="12"/> <line x1="186.442" y1="186.835" x2="99.7359" y2="100.129" stroke="#2F2F2F" stroke-width="12"/> </g> </svg>`,
   html: `
-    <div class="eSubToolOpacityHolder">opacity</div>
+    <div class="eSubToolOpacityHolder">
+      <input class="eSubToolOpacityInput" value="100" placeholder="100" min="10" max="100">
+      <div class="eSubToolOpacitySlider"><button></button></div>
+    </div>
   `,
   css: {
-    ".eSubToolThickness": `width: 60px; height: 12px; background: var(--darkGray); border: solid 2.5px var(--pageColor); border-radius: 11px; transform: translateX(-12px)`,
+    ".eSubToolOpacity": `width: 60px; height: 16px; background: var(--darkGray); border: solid 2.5px var(--pageColor); outline: 0px; border-radius: 11px; transform: translateX(-12px)`,
 
-    ".eSubToolOpacityHolder": `width: 212px; height: 50px`
+    ".eSubToolOpacityHolder": `box-sizing: border-box; display: flex; width: 212px; height: 50px; padding: 6px; align-items: center`,
+    ".eSubToolOpacityInput": `width: 40px; height: 26px; border: solid 3px var(--secondary); border-radius: 17px; font-family: var(--font); font-size: 20px; font-weight: 700; color: var(--theme); text-align: center`,
+    ".eSubToolOpacitySlider": `position: relative; flex: 1; height: 10px; margin: 0 12px; background: var(--hover); border-radius: 5px`,
+    ".eSubToolOpacitySlider button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; left: calc(100% - 15px); top: -5px; background: var(--theme); border: solid 5px var(--secondary); border-radius: 10px; transition: .2s`
   },
   js: async function (frame) {
     let editor = await getModule("pages/editor");

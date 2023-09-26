@@ -295,7 +295,7 @@ modules["editor/toolbar"] = {
     subToolContentScroll.addEventListener("scroll", updateSubtoolUI);
 
     let preferences = editor.preferences.tools;
-
+    
     let closeSubtoolUI = async () => {
       if (mainSubtoolButton != null) {
         subTools.style.top = mainSubtoolButton.getBoundingClientRect().top + (mainSubtoolButton.offsetHeight / 2) - frame.getBoundingClientRect().top + "px";
@@ -323,6 +323,7 @@ modules["editor/toolbar"] = {
         mainSubtoolButton = button;
         
         let toolID = mainSubtoolButton.getAttribute("tool");
+        subToolContent.setAttribute("toolid", toolID);
         let loadTools = this.tools[toolID];
         if (Array.isArray(loadTools) == true) {
           subToolContent.innerHTML = "";
@@ -342,7 +343,12 @@ modules["editor/toolbar"] = {
               newSubItem.querySelector("div").innerHTML = toolData.image;
             } else if (toolData.module != null) {
               newSubItem.setAttribute("option", toolData.module);
-              newSubItem.querySelector("div").innerHTML = (await getModule(toolData.module)).button;
+              let module = await getModule(toolData.module);
+              let buttonHolder = newSubItem.querySelector("div");
+              buttonHolder.innerHTML = module.button;
+              if (module.buttonJS != null) {
+                module.buttonJS(buttonHolder, toolID);
+              }
             }
           }
 
@@ -388,7 +394,7 @@ modules["editor/toolbar"] = {
       let module = await getModule(button.getAttribute("option"));
       if (module.html) {
         subSubToolContent.innerHTML = module.html;
-        module.js(subSubToolContent);
+        module.js(subSubToolContent, button, subToolContent.getAttribute("toolid"));
       }
 
       subSubTools.style.top = mainSubSubtoolButton.getBoundingClientRect().top + (mainSubSubtoolButton.offsetHeight / 2) - subTools.getBoundingClientRect().top + "px";
@@ -460,21 +466,52 @@ modules["pages/editor/toolbar/color"] = {
 
     ".eSubToolColorFrame": `width: 212px; height: 106px`,
     ".eSubToolColorSelector": `display: flex; flex-wrap: wrap`,
-    ".eSubToolColorSelector .eTool": `width: 47px; height: 47px; margin: 3px`,
+    ".eSubToolColorSelector .eTool": `width: 46px; height: 46px; margin: 3px`,
     ".eSubToolColorSelector .eTool > div": `border-radius: 25px !important`,
-    ".eSubToolColorSelector .eSubToolColor": `width: 33px; height: 33px`
+    ".eSubToolColorSelector .eSubToolColor": `width: 32px; height: 32px`
   },
-  js: async function (frame) {
+  buttonJS: async function (frame, toolID) {
     let editor = await getModule("pages/editor");
-
-    let defaultColors = ["#0084FF", "#FF4C6C", "#FFC24A", "#DF84FF", "#34C172", "#FF008A", "#000"];
-    let colorButtons = frame.querySelector(".eSubToolColorSelector").children;
-    for (let i = 0; i < defaultColors.length; i++) {
-      let button = colorButtons[i];
-      let setColor = defaultColors[i];
-      button.setAttribute("color", setColor);
-      button.querySelector(".eSubToolColor").style.background = setColor;
+    let preferences = editor.preferences.tools;
+    if (preferences[toolID] == null) {
+      return;
     }
+    let toolPref = preferences[toolID];
+    frame.querySelector(".eSubToolColor").style.background = editor.hexToRGB(toolPref.color.selected, toolPref.opacity);
+  },
+  js: async function (frame, button, toolID) {
+    let editor = await getModule("pages/editor");
+    let preferences = editor.preferences.tools;
+    if (preferences[toolID] == null) {
+      return;
+    }
+    let toolPref = preferences[toolID];
+
+    let colorButtons = frame.querySelector(".eSubToolColorSelector").children;
+    for (let i = 0; i < toolPref.color.options.length; i++) {
+      let button = colorButtons[i];
+      let setColor = toolPref.color.options[i];
+      button.setAttribute("int", i);
+      button.querySelector(".eSubToolColor").style.background = editor.hexToRGB(setColor, toolPref.opacity);;
+      if (setColor == toolPref.color.selected) {
+        button.setAttribute("selected", "");
+      }
+    }
+
+    frame.addEventListener("click", (event) => {
+      let element = event.target;
+      if (element == null) {
+        return;
+      }
+      element = element.closest(".eTool");
+      if (element == null) {
+        return;
+      }
+      if (element.hasAttribute("int") == true) {
+        toolPref.color.selected = toolPref.color.options[parseInt(element.getAttribute("int"))];
+        button.querySelector(".eSubToolColor").style.background = editor.hexToRGB(toolPref.color.selected, toolPref.opacity);
+      }
+    });
   }
 };
 modules["pages/editor/toolbar/thickness"] = {
@@ -495,8 +532,6 @@ modules["pages/editor/toolbar/thickness"] = {
   },
   js: async function (frame) {
     let editor = await getModule("pages/editor");
-
-
   }
 };
 modules["pages/editor/toolbar/opacity"] = {
@@ -515,7 +550,5 @@ modules["pages/editor/toolbar/opacity"] = {
   },
   js: async function (frame) {
     let editor = await getModule("pages/editor");
-
-
   }
 };

@@ -141,16 +141,35 @@ modules["pages/editor"] = {
           subtool: "select"
         },
         markup: {
-          subtool: "highlighter"
+          subtool: "highlighter",
+          color: {
+            selected: "FFC24A",
+            options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "000"]
+          },
+          opacity: .75
         },
         text: {
-
+          color: {
+            selected: "0084FF",
+            options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "000"]
+          },
+          opacity: 1
         },
         draw: {
-          subtool: "pen"
+          subtool: "pen",
+          color: {
+            selected: "DF84FF",
+            options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "000"]
+          },
+          opacity: 1
         },
         shape: {
-          subtool: "square"
+          subtool: "square",
+          color: {
+            selected: "FF4C6C",
+            options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "000"]
+          },
+          opacity: 1
         },
         comment: {
           
@@ -210,6 +229,17 @@ modules["pages/editor"] = {
         (await getModule("dropdown")).close();
       }
     };
+    this.hexToRGB = (hex, alpha) => {
+      let bigint = parseInt(hex, 16);
+      let r = (bigint >> 16) & 255;
+      let g = (bigint >> 8) & 255;
+      let b = bigint & 255;
+      if (alpha) {
+        return "rgba(" + r + ", " + g + ", " + b + ", " + alpha + ")";
+      } else {
+        return "rgb(" + r + ", " + g + ", " + b + ")";
+      }
+    }
 
     // PRELOAD ASSETS
     loadScript("./libraries/pdfjs/pdf.js");

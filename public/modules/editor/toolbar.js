@@ -1,10 +1,10 @@
 modules["editor/toolbar"] = {
   html: `
   <button class="eTool" tool="select" selected><div><svg width="26" viewBox="0 0 36 52" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="path-1-outside-1_306_4" maskUnits="userSpaceOnUse" x="0.192818" y="4.08914" width="36" height="44" fill="black"> <rect fill="white" x="0.192818" y="4.08914" width="36" height="44"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7602 8.2371C8.79786 5.37292 3.25704 8.19611 3.24522 13.0852L3.19284 34.7545C3.18199 39.2411 7.9192 42.1519 11.9168 40.1151L15.9383 38.066L18.0344 42.1798C19.288 44.6402 22.2989 45.6185 24.7593 44.3649L26.0925 43.6856C28.5529 42.4319 29.5312 39.4211 28.2776 36.9606L26.1815 32.8468L29.5308 31.1403C33.5284 29.1034 33.9579 23.56 30.3218 20.9316L12.7602 8.2371Z"/> </mask> <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7602 8.2371C8.79786 5.37292 3.25704 8.19611 3.24522 13.0852L3.19284 34.7545C3.18199 39.2411 7.9192 42.1519 11.9168 40.1151L15.9383 38.066L18.0344 42.1798C19.288 44.6402 22.2989 45.6185 24.7593 44.3649L26.0925 43.6856C28.5529 42.4319 29.5312 39.4211 28.2776 36.9606L26.1815 32.8468L29.5308 31.1403C33.5284 29.1034 33.9579 23.56 30.3218 20.9316L12.7602 8.2371Z" fill="#2F2F2F"/> <path d="M3.24522 13.0852L0.74523 13.0792L3.24522 13.0852ZM12.7602 8.2371L14.2247 6.21101L14.2247 6.21101L12.7602 8.2371ZM3.19284 34.7545L5.69283 34.7606L3.19284 34.7545ZM11.9168 40.1151L10.7818 37.8876L10.7818 37.8876L11.9168 40.1151ZM15.9383 38.066L18.1658 36.931L17.0308 34.7035L14.8033 35.8385L15.9383 38.066ZM18.0344 42.1798L15.8068 43.3147L15.8068 43.3147L18.0344 42.1798ZM24.7593 44.3649L23.6244 42.1373L23.6244 42.1373L24.7593 44.3649ZM26.0925 43.6856L27.2274 45.9131L27.2274 45.9131L26.0925 43.6856ZM28.2776 36.9606L30.5051 35.8256L30.5051 35.8256L28.2776 36.9606ZM26.1815 32.8468L25.0465 30.6193L22.819 31.7543L23.954 33.9818L26.1815 32.8468ZM29.5308 31.1403L30.6658 33.3678L29.5308 31.1403ZM30.3218 20.9316L31.7864 18.9055L31.7864 18.9055L30.3218 20.9316ZM5.74522 13.0913C5.75211 10.2393 8.98425 8.59242 11.2956 10.2632L14.2247 6.21101C8.61146 2.15342 0.761974 6.15294 0.74523 13.0792L5.74522 13.0913ZM5.69283 34.7606L5.74522 13.0913L0.74523 13.0792L0.692844 34.7485L5.69283 34.7606ZM10.7818 37.8876C8.44987 39.0757 5.6865 37.3777 5.69283 34.7606L0.692844 34.7485C0.677478 41.1044 7.38852 45.2281 13.0517 42.3426L10.7818 37.8876ZM14.8033 35.8385L10.7818 37.8876L13.0517 42.3426L17.0733 40.2935L14.8033 35.8385ZM20.2619 41.0448L18.1658 36.931L13.7108 39.201L15.8068 43.3147L20.2619 41.0448ZM23.6244 42.1373C22.3941 42.7642 20.8887 42.275 20.2619 41.0448L15.8068 43.3147C17.6873 47.0054 22.2036 48.4729 25.8943 46.5924L23.6244 42.1373ZM24.9575 41.4581L23.6244 42.1373L25.8943 46.5924L27.2274 45.9131L24.9575 41.4581ZM26.05 38.0956C26.6769 39.3258 26.1877 40.8312 24.9575 41.4581L27.2274 45.9131C30.9181 44.0326 32.3856 39.5163 30.5051 35.8256L26.05 38.0956ZM23.954 33.9818L26.05 38.0956L30.5051 35.8256L28.409 31.7119L23.954 33.9818ZM28.3958 28.9128L25.0465 30.6193L27.3165 35.0744L30.6658 33.3678L28.3958 28.9128ZM28.8572 22.9577C30.9783 24.4909 30.7277 27.7246 28.3958 28.9128L30.6658 33.3678C36.329 30.4822 36.9375 22.629 31.7864 18.9055L28.8572 22.9577ZM11.2956 10.2632L28.8572 22.9577L31.7864 18.9055L14.2247 6.21101L11.2956 10.2632Z" fill="white" mask="url(#path-1-outside-1_306_4)"/> </svg></div></button>
-  <button class="eTool" tool="markup"><div><svg width="26" viewBox="0 0 30 42" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M22.1358 20.1389L23.3104 19.7113L23.7379 20.8859L27.5001 31.2226C28.4918 33.9472 27.087 36.9599 24.3624 37.9516L18.7242 40.0037C15.9996 40.9954 12.9869 39.5905 11.9952 36.8659L8.23298 26.5293L7.80546 25.3547L8.98008 24.9271L22.1358 20.1389Z" fill="#FFED46" stroke="white" stroke-width="2.5"/> <path d="M11.9685 33.1377L10.7938 33.5652L10.3663 32.3906L2.49986 10.7776C1.50817 8.053 2.913 5.04033 5.63764 4.04864L11.2758 1.99652C14.0004 1.00484 17.0131 2.40967 18.0048 5.1343L25.8712 26.7472L26.2988 27.9219L25.1242 28.3494L11.9685 33.1377Z" fill="#2F2F2F" stroke="white" stroke-width="2.5"/> </svg></div></button>
-  <button class="eTool" tool="text"><div><svg width="44" viewBox="0 0 52 32" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M3 7V3H25.5V7H17V29.5H12V7H3Z" fill="#2F2F2F"/> <path d="M34 19L26.5 9H31.5L36.5 15.5L42 9H47L39.5 19L47 29.5H42L36.5 22.5L31.5 29.5H26L34 19Z" fill="#0084FF"/> <mask id="path-3-outside-1_925_51" maskUnits="userSpaceOnUse" x="0" y="0" width="52" height="32" fill="black"> <rect fill="white" width="52" height="32"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M3 3V7H12V29.5H17V7H25.5V3H3ZM26.5 9L34 19L26 29.5H31.5L36.5 22.5L42 29.5H47L39.5 19L47 9H42L36.5 15.5L31.5 9H26.5Z"/> </mask> <path d="M3 7H0.5V9.5H3V7ZM3 3V0.5H0.5V3H3ZM12 7H14.5V4.5H12V7ZM12 29.5H9.5V32H12V29.5ZM17 29.5V32H19.5V29.5H17ZM17 7V4.5H14.5V7H17ZM25.5 7V9.5H28V7H25.5ZM25.5 3H28V0.5H25.5V3ZM34 19L35.9886 20.5151L37.1339 19.0119L36 17.5L34 19ZM26.5 9V6.5H21.5L24.5 10.5L26.5 9ZM26 29.5L24.0114 27.9849L20.9523 32H26V29.5ZM31.5 29.5V32H32.7865L33.5343 30.9531L31.5 29.5ZM36.5 22.5L38.4658 20.9554L36.4047 18.3322L34.4657 21.0469L36.5 22.5ZM42 29.5L40.0342 31.0446L40.7849 32H42V29.5ZM47 29.5V32H51.858L49.0343 28.0469L47 29.5ZM39.5 19L37.5 17.5L36.402 18.964L37.4657 20.4531L39.5 19ZM47 9L49 10.5L52 6.5H47V9ZM42 9V6.5H40.8405L40.0915 7.38514L42 9ZM36.5 15.5L34.5184 17.0243L36.4073 19.4798L38.4085 17.1149L36.5 15.5ZM31.5 9L33.4816 7.47572L32.731 6.5H31.5V9ZM5.5 7V3H0.5V7H5.5ZM12 4.5H3V9.5H12V4.5ZM14.5 29.5V7H9.5V29.5H14.5ZM17 27H12V32H17V27ZM14.5 7V29.5H19.5V7H14.5ZM25.5 4.5H17V9.5H25.5V4.5ZM23 3V7H28V3H23ZM3 5.5H25.5V0.5H3V5.5ZM36 17.5L28.5 7.5L24.5 10.5L32 20.5L36 17.5ZM27.9886 31.0151L35.9886 20.5151L32.0114 17.4849L24.0114 27.9849L27.9886 31.0151ZM31.5 27H26V32H31.5V27ZM34.4657 21.0469L29.4657 28.0469L33.5343 30.9531L38.5343 23.9531L34.4657 21.0469ZM43.9658 27.9554L38.4658 20.9554L34.5342 24.0446L40.0342 31.0446L43.9658 27.9554ZM47 27H42V32H47V27ZM37.4657 20.4531L44.9657 30.9531L49.0343 28.0469L41.5343 17.5469L37.4657 20.4531ZM45 7.5L37.5 17.5L41.5 20.5L49 10.5L45 7.5ZM42 11.5H47V6.5H42V11.5ZM38.4085 17.1149L43.9085 10.6149L40.0915 7.38514L34.5915 13.8851L38.4085 17.1149ZM29.5184 10.5243L34.5184 17.0243L38.4816 13.9757L33.4816 7.47572L29.5184 10.5243ZM26.5 11.5H31.5V6.5H26.5V11.5Z" fill="white" mask="url(#path-3-outside-1_925_51)"/> </svg></div></button>
-  <button class="eTool" tool="draw"><div><svg width="22" viewBox="0 0 27 44" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M18.5551 17.1002L19.7297 16.6726L20.1572 17.8472L24.7549 30.4794C25.7254 33.1458 25.4184 36.1102 23.922 38.5211L22.5982 40.654C21.9291 41.732 20.6094 42.2123 19.404 41.8166L17.0188 41.0337C14.3228 40.1486 12.1822 38.0752 11.2117 35.4088L6.61393 22.7766L6.18641 21.602L7.36103 21.1745L18.5551 17.1002Z" fill="#DF84FF" stroke="white" stroke-width="2.5"/> <path d="M11.4928 32.5264L10.3182 32.9539L9.89068 31.7793L2.35127 11.065C0.990064 7.32509 2.91836 3.18985 6.65823 1.82865C10.3981 0.467446 14.5333 2.39574 15.8945 6.13561L23.434 26.85L23.8615 28.0246L22.6869 28.4521L11.4928 32.5264Z" fill="#2F2F2F" stroke="white" stroke-width="2.5"/> </svg></div></button>
-  <button class="eTool" tool="shape"><div><svg width="38" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"> <rect x="1.97104" y="1.47107" width="22.6493" height="22.6493" rx="5.25" fill="#2F2F2F" stroke="white" stroke-width="2.5"/> <circle cx="32.7043" cy="33.2043" r="11.3246" fill="#FF4C6C" stroke="white" stroke-width="2.5"/> </svg></div></button>
+  <button class="eTool" tool="markup"><div><svg width="26" viewBox="0 0 30 42" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M22.1358 20.1389L23.3104 19.7113L23.7379 20.8859L27.5001 31.2226C28.4918 33.9472 27.087 36.9599 24.3624 37.9516L18.7242 40.0037C15.9996 40.9954 12.9869 39.5905 11.9952 36.8659L8.23298 26.5293L7.80546 25.3547L8.98008 24.9271L22.1358 20.1389Z" fillcoloropacity stroke="white" stroke-width="2.5"/> <path d="M11.9685 33.1377L10.7938 33.5652L10.3663 32.3906L2.49986 10.7776C1.50817 8.053 2.913 5.04033 5.63764 4.04864L11.2758 1.99652C14.0004 1.00484 17.0131 2.40967 18.0048 5.1343L25.8712 26.7472L26.2988 27.9219L25.1242 28.3494L11.9685 33.1377Z" fill="#2F2F2F" stroke="white" stroke-width="2.5"/> </svg></div></button>
+  <button class="eTool" tool="text"><div><svg width="44" viewBox="0 0 52 32" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M3 7V3H25.5V7H17V29.5H12V7H3Z" fill="#2F2F2F"/> <path d="M34 19L26.5 9H31.5L36.5 15.5L42 9H47L39.5 19L47 29.5H42L36.5 22.5L31.5 29.5H26L34 19Z" fillcoloropacity/> <mask id="path-3-outside-1_925_51" maskUnits="userSpaceOnUse" x="0" y="0" width="52" height="32" fill="black"> <rect fill="white" width="52" height="32"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M3 3V7H12V29.5H17V7H25.5V3H3ZM26.5 9L34 19L26 29.5H31.5L36.5 22.5L42 29.5H47L39.5 19L47 9H42L36.5 15.5L31.5 9H26.5Z"/> </mask> <path d="M3 7H0.5V9.5H3V7ZM3 3V0.5H0.5V3H3ZM12 7H14.5V4.5H12V7ZM12 29.5H9.5V32H12V29.5ZM17 29.5V32H19.5V29.5H17ZM17 7V4.5H14.5V7H17ZM25.5 7V9.5H28V7H25.5ZM25.5 3H28V0.5H25.5V3ZM34 19L35.9886 20.5151L37.1339 19.0119L36 17.5L34 19ZM26.5 9V6.5H21.5L24.5 10.5L26.5 9ZM26 29.5L24.0114 27.9849L20.9523 32H26V29.5ZM31.5 29.5V32H32.7865L33.5343 30.9531L31.5 29.5ZM36.5 22.5L38.4658 20.9554L36.4047 18.3322L34.4657 21.0469L36.5 22.5ZM42 29.5L40.0342 31.0446L40.7849 32H42V29.5ZM47 29.5V32H51.858L49.0343 28.0469L47 29.5ZM39.5 19L37.5 17.5L36.402 18.964L37.4657 20.4531L39.5 19ZM47 9L49 10.5L52 6.5H47V9ZM42 9V6.5H40.8405L40.0915 7.38514L42 9ZM36.5 15.5L34.5184 17.0243L36.4073 19.4798L38.4085 17.1149L36.5 15.5ZM31.5 9L33.4816 7.47572L32.731 6.5H31.5V9ZM5.5 7V3H0.5V7H5.5ZM12 4.5H3V9.5H12V4.5ZM14.5 29.5V7H9.5V29.5H14.5ZM17 27H12V32H17V27ZM14.5 7V29.5H19.5V7H14.5ZM25.5 4.5H17V9.5H25.5V4.5ZM23 3V7H28V3H23ZM3 5.5H25.5V0.5H3V5.5ZM36 17.5L28.5 7.5L24.5 10.5L32 20.5L36 17.5ZM27.9886 31.0151L35.9886 20.5151L32.0114 17.4849L24.0114 27.9849L27.9886 31.0151ZM31.5 27H26V32H31.5V27ZM34.4657 21.0469L29.4657 28.0469L33.5343 30.9531L38.5343 23.9531L34.4657 21.0469ZM43.9658 27.9554L38.4658 20.9554L34.5342 24.0446L40.0342 31.0446L43.9658 27.9554ZM47 27H42V32H47V27ZM37.4657 20.4531L44.9657 30.9531L49.0343 28.0469L41.5343 17.5469L37.4657 20.4531ZM45 7.5L37.5 17.5L41.5 20.5L49 10.5L45 7.5ZM42 11.5H47V6.5H42V11.5ZM38.4085 17.1149L43.9085 10.6149L40.0915 7.38514L34.5915 13.8851L38.4085 17.1149ZM29.5184 10.5243L34.5184 17.0243L38.4816 13.9757L33.4816 7.47572L29.5184 10.5243ZM26.5 11.5H31.5V6.5H26.5V11.5Z" fill="white" mask="url(#path-3-outside-1_925_51)"/> </svg></div></button>
+  <button class="eTool" tool="draw"><div><svg width="22" viewBox="0 0 27 44" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M18.5551 17.1002L19.7297 16.6726L20.1572 17.8472L24.7549 30.4794C25.7254 33.1458 25.4184 36.1102 23.922 38.5211L22.5982 40.654C21.9291 41.732 20.6094 42.2123 19.404 41.8166L17.0188 41.0337C14.3228 40.1486 12.1822 38.0752 11.2117 35.4088L6.61393 22.7766L6.18641 21.602L7.36103 21.1745L18.5551 17.1002Z" fillcoloropacity stroke="white" stroke-width="2.5"/> <path d="M11.4928 32.5264L10.3182 32.9539L9.89068 31.7793L2.35127 11.065C0.990064 7.32509 2.91836 3.18985 6.65823 1.82865C10.3981 0.467446 14.5333 2.39574 15.8945 6.13561L23.434 26.85L23.8615 28.0246L22.6869 28.4521L11.4928 32.5264Z" fill="#2F2F2F" stroke="white" stroke-width="2.5"/> </svg></div></button>
+  <button class="eTool" tool="shape"><div><svg width="38" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"> <rect x="1.97104" y="1.47107" width="22.6493" height="22.6493" rx="5.25" fill="#2F2F2F" stroke="white" stroke-width="2.5"/> <circle cx="32.7043" cy="33.2043" r="11.3246" fillcoloropacity stroke="white" stroke-width="2.5"/> </svg></div></button>
   <button class="eTool" tool="comment"><div><svg width="40" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="path-1-outside-1_233_9" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="32" fill="black"> <rect fill="white" width="48" height="32"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M6 3C4.34315 3 3 4.34315 3 6V23C3 26.3137 5.68629 29 9 29H39C42.3137 29 45 26.3137 45 23V9C45 5.68629 42.3137 3 39 3H6ZM13 6C12.4477 6 12 6.44772 12 7V8C12 8.55228 12.4477 9 13 9H41C41.5523 9 42 8.55228 42 8V7C42 6.44772 41.5523 6 41 6H13ZM7 11C6.44772 11 6 11.4477 6 12V13C6 13.5523 6.44772 14 7 14H41C41.5523 14 42 13.5523 42 13V12C42 11.4477 41.5523 11 41 11H7ZM6 17C6 16.4477 6.44772 16 7 16H41C41.5523 16 42 16.4477 42 17V18C42 18.5523 41.5523 19 41 19H7C6.44772 19 6 18.5523 6 18V17Z"/> </mask> <path fill-rule="evenodd" clip-rule="evenodd" d="M6 3C4.34315 3 3 4.34315 3 6V23C3 26.3137 5.68629 29 9 29H39C42.3137 29 45 26.3137 45 23V9C45 5.68629 42.3137 3 39 3H6ZM13 6C12.4477 6 12 6.44772 12 7V8C12 8.55228 12.4477 9 13 9H41C41.5523 9 42 8.55228 42 8V7C42 6.44772 41.5523 6 41 6H13ZM7 11C6.44772 11 6 11.4477 6 12V13C6 13.5523 6.44772 14 7 14H41C41.5523 14 42 13.5523 42 13V12C42 11.4477 41.5523 11 41 11H7ZM6 17C6 16.4477 6.44772 16 7 16H41C41.5523 16 42 16.4477 42 17V18C42 18.5523 41.5523 19 41 19H7C6.44772 19 6 18.5523 6 18V17Z" fill="#2F2F2F"/> <path d="M5.5 6C5.5 5.72386 5.72386 5.5 6 5.5V0.5C2.96243 0.5 0.5 2.96244 0.5 6H5.5ZM5.5 23V6H0.5V23H5.5ZM9 26.5C7.067 26.5 5.5 24.933 5.5 23H0.5C0.5 27.6944 4.30558 31.5 9 31.5V26.5ZM39 26.5H9V31.5H39V26.5ZM42.5 23C42.5 24.933 40.933 26.5 39 26.5V31.5C43.6944 31.5 47.5 27.6944 47.5 23H42.5ZM42.5 9V23H47.5V9H42.5ZM39 5.5C40.933 5.5 42.5 7.067 42.5 9H47.5C47.5 4.30558 43.6944 0.5 39 0.5V5.5ZM6 5.5H39V0.5H6V5.5ZM14.5 7C14.5 7.82843 13.8284 8.5 13 8.5V3.5C11.067 3.5 9.5 5.067 9.5 7H14.5ZM14.5 8V7H9.5V8H14.5ZM13 6.5C13.8284 6.5 14.5 7.17157 14.5 8H9.5C9.5 9.933 11.067 11.5 13 11.5V6.5ZM41 6.5H13V11.5H41V6.5ZM39.5 8C39.5 7.17157 40.1716 6.5 41 6.5V11.5C42.933 11.5 44.5 9.933 44.5 8H39.5ZM39.5 7V8H44.5V7H39.5ZM41 8.5C40.1716 8.5 39.5 7.82843 39.5 7H44.5C44.5 5.067 42.933 3.5 41 3.5V8.5ZM13 8.5H41V3.5H13V8.5ZM8.5 12C8.5 12.8284 7.82843 13.5 7 13.5V8.5C5.067 8.5 3.5 10.067 3.5 12H8.5ZM8.5 13V12H3.5V13H8.5ZM7 11.5C7.82843 11.5 8.5 12.1716 8.5 13H3.5C3.5 14.933 5.067 16.5 7 16.5V11.5ZM41 11.5H7V16.5H41V11.5ZM39.5 13C39.5 12.1716 40.1716 11.5 41 11.5V16.5C42.933 16.5 44.5 14.933 44.5 13H39.5ZM39.5 12V13H44.5V12H39.5ZM41 13.5C40.1716 13.5 39.5 12.8284 39.5 12H44.5C44.5 10.067 42.933 8.5 41 8.5V13.5ZM7 13.5H41V8.5H7V13.5ZM7 13.5C5.067 13.5 3.5 15.067 3.5 17H8.5C8.5 17.8284 7.82843 18.5 7 18.5V13.5ZM41 13.5H7V18.5H41V13.5ZM44.5 17C44.5 15.067 42.933 13.5 41 13.5V18.5C40.1716 18.5 39.5 17.8284 39.5 17H44.5ZM44.5 18V17H39.5V18H44.5ZM41 21.5C42.933 21.5 44.5 19.933 44.5 18H39.5C39.5 17.1716 40.1716 16.5 41 16.5V21.5ZM7 21.5H41V16.5H7V21.5ZM3.5 18C3.5 19.933 5.067 21.5 7 21.5V16.5C7.82843 16.5 8.5 17.1716 8.5 18H3.5ZM3.5 17V18H8.5V17H3.5Z" fill="white" mask="url(#path-1-outside-1_233_9)"/> </svg></div></button>
   <button class="eTool" tool="media"><div><svg width="40" viewBox="0 0 50 42" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="path-1-outside-1_233_21" maskUnits="userSpaceOnUse" x="-0.459759" y="-0.0484619" width="51" height="42" fill="black"> <rect fill="white" x="-0.459759" y="-0.0484619" width="51" height="42"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M40.8324 12.3729C43.434 12.3729 45.5431 10.2638 45.5431 7.66221C45.5431 5.06058 43.434 2.95154 40.8324 2.95154C38.2308 2.95154 36.1217 5.06058 36.1217 7.66221C36.1217 10.2638 38.2308 12.3729 40.8324 12.3729ZM15.7765 12.2718C16.9312 10.2718 19.8179 10.2718 20.9726 12.2718L28.5261 25.3549L32.5377 18.4066C33.6924 16.4066 36.5792 16.4066 37.7339 18.4066L47.0534 34.5485C48.2081 36.5485 46.7647 39.0485 44.4553 39.0485H25.8163C25.6154 39.0485 25.4211 39.0296 25.2345 38.9937H5.54471C3.23531 38.9937 1.79194 36.4937 2.94664 34.4937L15.7765 12.2718Z"/> </mask> <path fill-rule="evenodd" clip-rule="evenodd" d="M40.8324 12.3729C43.434 12.3729 45.5431 10.2638 45.5431 7.66221C45.5431 5.06058 43.434 2.95154 40.8324 2.95154C38.2308 2.95154 36.1217 5.06058 36.1217 7.66221C36.1217 10.2638 38.2308 12.3729 40.8324 12.3729ZM15.7765 12.2718C16.9312 10.2718 19.8179 10.2718 20.9726 12.2718L28.5261 25.3549L32.5377 18.4066C33.6924 16.4066 36.5792 16.4066 37.7339 18.4066L47.0534 34.5485C48.2081 36.5485 46.7647 39.0485 44.4553 39.0485H25.8163C25.6154 39.0485 25.4211 39.0296 25.2345 38.9937H5.54471C3.23531 38.9937 1.79194 36.4937 2.94664 34.4937L15.7765 12.2718Z" fill="#2F2F2F"/> <path d="M20.9726 12.2718L23.1377 11.0218V11.0218L20.9726 12.2718ZM15.7765 12.2718L17.9415 13.5218L15.7765 12.2718ZM28.5261 25.3549L26.3611 26.6049L28.5261 30.3549L30.6912 26.6049L28.5261 25.3549ZM32.5377 18.4066L30.3726 17.1566V17.1566L32.5377 18.4066ZM37.7339 18.4066L35.5688 19.6566L35.5688 19.6566L37.7339 18.4066ZM47.0534 34.5485L49.2184 33.2985L47.0534 34.5485ZM25.2345 38.9937L25.7061 36.5386L25.4724 36.4937H25.2345V38.9937ZM2.94664 34.4937L0.781578 33.2437L2.94664 34.4937ZM43.0431 7.66221C43.0431 8.88313 42.0533 9.87289 40.8324 9.87289V14.8729C44.8148 14.8729 48.0431 11.6446 48.0431 7.66221H43.0431ZM40.8324 5.45154C42.0533 5.45154 43.0431 6.44129 43.0431 7.66221H48.0431C48.0431 3.67987 44.8148 0.451538 40.8324 0.451538V5.45154ZM38.6217 7.66221C38.6217 6.44129 39.6115 5.45154 40.8324 5.45154V0.451538C36.8501 0.451538 33.6217 3.67987 33.6217 7.66221H38.6217ZM40.8324 9.87289C39.6115 9.87289 38.6217 8.88313 38.6217 7.66221H33.6217C33.6217 11.6446 36.8501 14.8729 40.8324 14.8729V9.87289ZM23.1377 11.0218C21.0207 7.35513 15.7284 7.35511 13.6114 11.0218L17.9415 13.5218C18.134 13.1885 18.6151 13.1885 18.8076 13.5218L23.1377 11.0218ZM30.6912 24.1049L23.1377 11.0218L18.8076 13.5218L26.3611 26.6049L30.6912 24.1049ZM30.3726 17.1566L26.3611 24.1049L30.6912 26.6049L34.7028 19.6566L30.3726 17.1566ZM39.8989 17.1566C37.782 13.4899 32.4896 13.49 30.3726 17.1566L34.7028 19.6566C34.8952 19.3233 35.3763 19.3233 35.5688 19.6566L39.8989 17.1566ZM49.2184 33.2985L39.8989 17.1566L35.5688 19.6566L44.8883 35.7985L49.2184 33.2985ZM44.4553 41.5485C48.6892 41.5485 51.3354 36.9651 49.2184 33.2985L44.8883 35.7985C45.0807 36.1318 44.8402 36.5485 44.4553 36.5485V41.5485ZM25.8163 41.5485H44.4553V36.5485H25.8163V41.5485ZM24.7628 41.4488C25.1057 41.5147 25.458 41.5485 25.8163 41.5485V36.5485C25.7728 36.5485 25.7365 36.5444 25.7061 36.5386L24.7628 41.4488ZM5.54471 41.4937H25.2345V36.4937H5.54471V41.4937ZM0.781578 33.2437C-1.33537 36.9104 1.3108 41.4937 5.54471 41.4937V36.4937C5.15982 36.4937 4.91925 36.077 5.11171 35.7437L0.781578 33.2437ZM13.6114 11.0218L0.781578 33.2437L5.11171 35.7437L17.9415 13.5218L13.6114 11.0218Z" fill="white" mask="url(#path-1-outside-1_233_21)"/> </svg></div></button>
 
@@ -65,12 +65,12 @@ modules["editor/toolbar"] = {
       {
         id: "highlighter",
         type: "tool",
-        image: `<svg width="26" viewBox="0 0 30 42" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M22.1358 20.1389L23.3104 19.7113L23.7379 20.8859L27.5001 31.2226C28.4918 33.9472 27.087 36.9599 24.3624 37.9516L18.7242 40.0037C15.9996 40.9954 12.9869 39.5905 11.9952 36.8659L8.23298 26.5293L7.80546 25.3547L8.98008 24.9271L22.1358 20.1389Z" fill="#FFED46" stroke="white" stroke-width="2.5"/> <path d="M11.9685 33.1377L10.7938 33.5652L10.3663 32.3906L2.49986 10.7776C1.50817 8.053 2.913 5.04033 5.63764 4.04864L11.2758 1.99652C14.0004 1.00484 17.0131 2.40967 18.0048 5.1343L25.8712 26.7472L26.2988 27.9219L25.1242 28.3494L11.9685 33.1377Z" fill="#2F2F2F" stroke="white" stroke-width="2.5"/> </svg>`
+        image: `<svg width="26" viewBox="0 0 30 42" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M22.1358 20.1389L23.3104 19.7113L23.7379 20.8859L27.5001 31.2226C28.4918 33.9472 27.087 36.9599 24.3624 37.9516L18.7242 40.0037C15.9996 40.9954 12.9869 39.5905 11.9952 36.8659L8.23298 26.5293L7.80546 25.3547L8.98008 24.9271L22.1358 20.1389Z" fillcoloropacity stroke="white" stroke-width="2.5"/> <path d="M11.9685 33.1377L10.7938 33.5652L10.3663 32.3906L2.49986 10.7776C1.50817 8.053 2.913 5.04033 5.63764 4.04864L11.2758 1.99652C14.0004 1.00484 17.0131 2.40967 18.0048 5.1343L25.8712 26.7472L26.2988 27.9219L25.1242 28.3494L11.9685 33.1377Z" fill="#2F2F2F" stroke="white" stroke-width="2.5"/> </svg>`
       },
       {
         id: "underline",
         type: "tool",
-        image: `<svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_125_40" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_125_40)"> <path d="M33 128H79.1974H109.403C113.002 128 116.562 128.747 119.857 130.194L126.891 133.283C136.209 137.375 147.058 135.655 154.652 128.881L156.548 127.189C164.183 120.379 175.102 118.68 184.445 122.847L190.945 125.746C194.278 127.232 197.886 128 201.535 128H223" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M128.991 202.4C109.125 202.4 93.5914 196.867 82.3914 185.8C71.1914 174.733 65.5914 158.933 65.5914 138.4V60H97.9914V137.2C97.9914 150.533 100.725 160.133 106.191 166C111.658 171.867 119.325 174.8 129.191 174.8C139.058 174.8 146.725 171.867 152.191 166C157.658 160.133 160.391 150.533 160.391 137.2V60H192.391V138.4C192.391 158.933 186.791 174.733 175.591 185.8C164.391 196.867 148.858 202.4 128.991 202.4Z" fill="white"/> <path d="M82.3914 185.8L90.8257 177.264L82.3914 185.8ZM65.5914 60V48H53.5914V60H65.5914ZM97.9914 60H109.991V48H97.9914V60ZM106.191 166L97.4121 174.181H97.4121L106.191 166ZM152.191 166L160.971 174.181L160.971 174.181L152.191 166ZM160.391 60V48H148.391V60H160.391ZM192.391 60H204.391V48H192.391V60ZM175.591 185.8L184.026 194.336H184.026L175.591 185.8ZM128.991 190.4C111.414 190.4 99.2292 185.567 90.8257 177.264L73.9571 194.336C87.9536 208.166 106.836 214.4 128.991 214.4V190.4ZM90.8257 177.264C82.5415 169.078 77.5914 156.743 77.5914 138.4H53.5914C53.5914 161.123 59.8413 180.388 73.9571 194.336L90.8257 177.264ZM77.5914 138.4V60H53.5914V138.4H77.5914ZM65.5914 72H97.9914V48H65.5914V72ZM85.9914 60V137.2H109.991V60H85.9914ZM85.9914 137.2C85.9914 151.684 88.8744 165.018 97.4121 174.181L114.971 157.819C112.575 155.248 109.991 149.382 109.991 137.2H85.9914ZM97.4121 174.181C105.655 183.027 116.819 186.8 129.191 186.8V162.8C121.83 162.8 117.661 160.706 114.971 157.819L97.4121 174.181ZM129.191 186.8C141.564 186.8 152.728 183.027 160.971 174.181L143.412 157.819C140.722 160.706 136.552 162.8 129.191 162.8V186.8ZM160.971 174.181C169.508 165.018 172.391 151.684 172.391 137.2H148.391C148.391 149.382 145.808 155.248 143.412 157.819L160.971 174.181ZM172.391 137.2V60H148.391V137.2H172.391ZM160.391 72H192.391V48H160.391V72ZM180.391 60V138.4H204.391V60H180.391ZM180.391 138.4C180.391 156.743 175.441 169.078 167.157 177.264L184.026 194.336C198.142 180.388 204.391 161.123 204.391 138.4H180.391ZM167.157 177.264C158.754 185.567 146.569 190.4 128.991 190.4V214.4C151.147 214.4 170.029 208.166 184.026 194.336L167.157 177.264Z" fill="white"/> <path d="M128.991 202.4C109.125 202.4 93.5914 196.867 82.3914 185.8C71.1914 174.733 65.5914 158.933 65.5914 138.4V60H97.9914V137.2C97.9914 150.533 100.725 160.133 106.191 166C111.658 171.867 119.325 174.8 129.191 174.8C139.058 174.8 146.725 171.867 152.191 166C157.658 160.133 160.391 150.533 160.391 137.2V60H192.391V138.4C192.391 158.933 186.791 174.733 175.591 185.8C164.391 196.867 148.858 202.4 128.991 202.4Z" fill="#2F2F2F"/> <path d="M33 128H79.1974H109.403C113.002 128 116.562 128.747 119.857 130.194L126.891 133.283C136.209 137.375 147.058 135.655 154.652 128.881L156.548 127.189C164.183 120.379 175.102 118.68 184.445 122.847L190.945 125.746C194.278 127.232 197.886 128 201.535 128H223" stroke="#FCEE66" stroke-width="20" stroke-linecap="round"/> </g> </svg>`
+        image: `<svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_125_40" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_125_40)"> <path d="M33 128H79.1974H109.403C113.002 128 116.562 128.747 119.857 130.194L126.891 133.283C136.209 137.375 147.058 135.655 154.652 128.881L156.548 127.189C164.183 120.379 175.102 118.68 184.445 122.847L190.945 125.746C194.278 127.232 197.886 128 201.535 128H223" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M128.991 202.4C109.125 202.4 93.5914 196.867 82.3914 185.8C71.1914 174.733 65.5914 158.933 65.5914 138.4V60H97.9914V137.2C97.9914 150.533 100.725 160.133 106.191 166C111.658 171.867 119.325 174.8 129.191 174.8C139.058 174.8 146.725 171.867 152.191 166C157.658 160.133 160.391 150.533 160.391 137.2V60H192.391V138.4C192.391 158.933 186.791 174.733 175.591 185.8C164.391 196.867 148.858 202.4 128.991 202.4Z" fill="white"/> <path d="M82.3914 185.8L90.8257 177.264L82.3914 185.8ZM65.5914 60V48H53.5914V60H65.5914ZM97.9914 60H109.991V48H97.9914V60ZM106.191 166L97.4121 174.181H97.4121L106.191 166ZM152.191 166L160.971 174.181L160.971 174.181L152.191 166ZM160.391 60V48H148.391V60H160.391ZM192.391 60H204.391V48H192.391V60ZM175.591 185.8L184.026 194.336H184.026L175.591 185.8ZM128.991 190.4C111.414 190.4 99.2292 185.567 90.8257 177.264L73.9571 194.336C87.9536 208.166 106.836 214.4 128.991 214.4V190.4ZM90.8257 177.264C82.5415 169.078 77.5914 156.743 77.5914 138.4H53.5914C53.5914 161.123 59.8413 180.388 73.9571 194.336L90.8257 177.264ZM77.5914 138.4V60H53.5914V138.4H77.5914ZM65.5914 72H97.9914V48H65.5914V72ZM85.9914 60V137.2H109.991V60H85.9914ZM85.9914 137.2C85.9914 151.684 88.8744 165.018 97.4121 174.181L114.971 157.819C112.575 155.248 109.991 149.382 109.991 137.2H85.9914ZM97.4121 174.181C105.655 183.027 116.819 186.8 129.191 186.8V162.8C121.83 162.8 117.661 160.706 114.971 157.819L97.4121 174.181ZM129.191 186.8C141.564 186.8 152.728 183.027 160.971 174.181L143.412 157.819C140.722 160.706 136.552 162.8 129.191 162.8V186.8ZM160.971 174.181C169.508 165.018 172.391 151.684 172.391 137.2H148.391C148.391 149.382 145.808 155.248 143.412 157.819L160.971 174.181ZM172.391 137.2V60H148.391V137.2H172.391ZM160.391 72H192.391V48H160.391V72ZM180.391 60V138.4H204.391V60H180.391ZM180.391 138.4C180.391 156.743 175.441 169.078 167.157 177.264L184.026 194.336C198.142 180.388 204.391 161.123 204.391 138.4H180.391ZM167.157 177.264C158.754 185.567 146.569 190.4 128.991 190.4V214.4C151.147 214.4 170.029 208.166 184.026 194.336L167.157 177.264Z" fill="white"/> <path d="M128.991 202.4C109.125 202.4 93.5914 196.867 82.3914 185.8C71.1914 174.733 65.5914 158.933 65.5914 138.4V60H97.9914V137.2C97.9914 150.533 100.725 160.133 106.191 166C111.658 171.867 119.325 174.8 129.191 174.8C139.058 174.8 146.725 171.867 152.191 166C157.658 160.133 160.391 150.533 160.391 137.2V60H192.391V138.4C192.391 158.933 186.791 174.733 175.591 185.8C164.391 196.867 148.858 202.4 128.991 202.4Z" fill="#2F2F2F"/> <path d="M33 128H79.1974H109.403C113.002 128 116.562 128.747 119.857 130.194L126.891 133.283C136.209 137.375 147.058 135.655 154.652 128.881L156.548 127.189C164.183 120.379 175.102 118.68 184.445 122.847L190.945 125.746C194.278 127.232 197.886 128 201.535 128H223" strokecolor stroke-width="20" stroke-linecap="round"/> </g> </svg>`
       },
       /*
       {
@@ -103,7 +103,7 @@ modules["editor/toolbar"] = {
       {
         id: "pen",
         type: "tool",
-        image: `<svg width="22" viewBox="0 0 27 44" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M18.5551 17.1002L19.7297 16.6726L20.1572 17.8472L24.7549 30.4794C25.7254 33.1458 25.4184 36.1102 23.922 38.5211L22.5982 40.654C21.9291 41.732 20.6094 42.2123 19.404 41.8166L17.0188 41.0337C14.3228 40.1486 12.1822 38.0752 11.2117 35.4088L6.61393 22.7766L6.18641 21.602L7.36103 21.1745L18.5551 17.1002Z" fill="#DF84FF" stroke="white" stroke-width="2.5"/> <path d="M11.4928 32.5264L10.3182 32.9539L9.89068 31.7793L2.35127 11.065C0.990064 7.32509 2.91836 3.18985 6.65823 1.82865C10.3981 0.467446 14.5333 2.39574 15.8945 6.13561L23.434 26.85L23.8615 28.0246L22.6869 28.4521L11.4928 32.5264Z" fill="#2F2F2F" stroke="white" stroke-width="2.5"/> </svg>`
+        image: `<svg width="22" viewBox="0 0 27 44" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M18.5551 17.1002L19.7297 16.6726L20.1572 17.8472L24.7549 30.4794C25.7254 33.1458 25.4184 36.1102 23.922 38.5211L22.5982 40.654C21.9291 41.732 20.6094 42.2123 19.404 41.8166L17.0188 41.0337C14.3228 40.1486 12.1822 38.0752 11.2117 35.4088L6.61393 22.7766L6.18641 21.602L7.36103 21.1745L18.5551 17.1002Z" fillcoloropacity stroke="white" stroke-width="2.5"/> <path d="M11.4928 32.5264L10.3182 32.9539L9.89068 31.7793L2.35127 11.065C0.990064 7.32509 2.91836 3.18985 6.65823 1.82865C10.3981 0.467446 14.5333 2.39574 15.8945 6.13561L23.434 26.85L23.8615 28.0246L22.6869 28.4521L11.4928 32.5264Z" fill="#2F2F2F" stroke="white" stroke-width="2.5"/> </svg>`
       },
       {
         id: "erase",
@@ -323,7 +323,7 @@ modules["editor/toolbar"] = {
         mainSubtoolButton = button;
         
         let toolID = mainSubtoolButton.getAttribute("tool");
-        subToolContent.setAttribute("toolid", toolID);
+        subToolContent.setAttribute("tool", toolID);
         let loadTools = this.tools[toolID];
         if (Array.isArray(loadTools) == true) {
           subToolContent.innerHTML = "";
@@ -346,9 +346,6 @@ modules["editor/toolbar"] = {
               let module = await getModule(toolData.module);
               let buttonHolder = newSubItem.querySelector("div");
               buttonHolder.innerHTML = module.button;
-              if (module.buttonJS != null) {
-                module.buttonJS(buttonHolder, toolID);
-              }
             }
           }
 
@@ -360,6 +357,7 @@ modules["editor/toolbar"] = {
           }
   
           subTools.style.top = mainSubtoolButton.getBoundingClientRect().top + (mainSubtoolButton.offsetHeight / 2) - frame.getBoundingClientRect().top + "px";
+          editor.updateToolbar();
           updateSubtoolUI();
         } else { // No need as the main tool is the subtool
           closeSubtoolUI();
@@ -394,7 +392,7 @@ modules["editor/toolbar"] = {
       let module = await getModule(button.getAttribute("option"));
       if (module.html) {
         subSubToolContent.innerHTML = module.html;
-        module.js(subSubToolContent, button, subToolContent.getAttribute("toolid"));
+        module.js(subSubToolContent, subToolContent.getAttribute("tool"));
       }
 
       subSubTools.style.top = mainSubSubtoolButton.getBoundingClientRect().top + (mainSubSubtoolButton.offsetHeight / 2) - subTools.getBoundingClientRect().top + "px";
@@ -438,13 +436,36 @@ modules["editor/toolbar"] = {
         showSubSubtoolUI(element);
       }
     });
+    
+    editor.updateToolbar = () => {
+      let updateColors = frame.querySelectorAll("[fillcoloropacity], [strokecolor], [backcolor], [thickness], [opacity]");
+      for (let i = 0; i < updateColors.length; i++) {
+        let updateTip = updateColors[i];
+        let parent = updateTip.closest("[tool]");
+        let toolPref = preferences[parent.getAttribute("tool")];
+        if (toolPref != null) {
+          if (updateTip.hasAttribute("fillcoloropacity") == true) {
+            updateTip.setAttribute("fill", editor.hexToRGB(toolPref.color.selected, toolPref.opacity / 100));
+          } else if (updateTip.hasAttribute("strokecolor") == true) {
+            updateTip.setAttribute("stroke", editor.hexToRGB(toolPref.color.selected));
+          } else if (updateTip.hasAttribute("backcolor") == true) {
+            updateTip.style.background = editor.hexToRGB(toolPref.color.selected);
+          } else if (updateTip.hasAttribute("thickness") == true) {
+            updateTip.style.height = toolPref.color.thickness + "px";
+          } else if (updateTip.hasAttribute("opacity") == true) {
+            updateTip.style.opacity = toolPref.opacity / 100;
+          }
+        }
+      }
+    }
+    editor.updateToolbar();
 
     //frame.closest(".eSide").style.opacity = 1;
   }
 }
 
 modules["pages/editor/toolbar/color"] = {
-  button: `<div class="eSubToolColorHolder"><div class="eSubToolColor" picked></div></div>`,
+  button: `<div class="eSubToolColorHolder"><div class="eSubToolColor" backcolor picked></div></div>`,
   html: `
     <div class="eSubToolColorFrame">
       <div class="eSubToolColorSelector">
@@ -470,16 +491,7 @@ modules["pages/editor/toolbar/color"] = {
     ".eSubToolColorSelector .eTool > div": `border-radius: 25px !important`,
     ".eSubToolColorSelector .eSubToolColor": `width: 32px; height: 32px`
   },
-  buttonJS: async function (frame, toolID) {
-    let editor = await getModule("pages/editor");
-    let preferences = editor.preferences.tools;
-    if (preferences[toolID] == null) {
-      return;
-    }
-    let toolPref = preferences[toolID];
-    frame.querySelector(".eSubToolColor").style.background = editor.hexToRGB(toolPref.color.selected, toolPref.opacity);
-  },
-  js: async function (frame, button, toolID) {
+  js: async function (frame, toolID) {
     let editor = await getModule("pages/editor");
     let preferences = editor.preferences.tools;
     if (preferences[toolID] == null) {
@@ -492,13 +504,13 @@ modules["pages/editor/toolbar/color"] = {
       let button = colorButtons[i];
       let setColor = toolPref.color.options[i];
       button.setAttribute("int", i);
-      button.querySelector(".eSubToolColor").style.background = editor.hexToRGB(setColor, toolPref.opacity);;
+      button.querySelector(".eSubToolColor").style.background = editor.hexToRGB(setColor);
       if (setColor == toolPref.color.selected) {
         button.setAttribute("selected", "");
       }
     }
-
-    frame.addEventListener("click", (event) => {
+    
+    frame.querySelector(".eSubToolColorSelector").addEventListener("click", (event) => {
       let element = event.target;
       if (element == null) {
         return;
@@ -509,16 +521,16 @@ modules["pages/editor/toolbar/color"] = {
       }
       if (element.hasAttribute("int") == true) {
         toolPref.color.selected = toolPref.color.options[parseInt(element.getAttribute("int"))];
-        button.querySelector(".eSubToolColor").style.background = editor.hexToRGB(toolPref.color.selected, toolPref.opacity);
+        editor.updateToolbar();
       }
     });
   }
 };
 modules["pages/editor/toolbar/thickness"] = {
-  button: `<div class="eSubToolThickness" picked></div>`,
+  button: `<div class="eSubToolThickness" thickness picked></div>`,
   html: `
     <div class="eSubToolThicknessHolder">
-      <input class="eSubToolThicknessInput" value="16" placeholder="16" min="1" max="45">
+      <input class="eSubToolThicknessInput">
       <div class="eSubToolThicknessSlider"><button></button></div>
     </div>
   `,
@@ -527,18 +539,72 @@ modules["pages/editor/toolbar/thickness"] = {
 
     ".eSubToolThicknessHolder": `box-sizing: border-box; display: flex; width: 212px; height: 50px; padding: 6px; align-items: center`,
     ".eSubToolThicknessInput": `width: 40px; height: 26px; border: solid 3px var(--secondary); outline: none; border-radius: 17px; font-family: var(--font); font-size: 20px; font-weight: 700; color: var(--theme); text-align: center`,
+    ".eSubToolThicknessInput::placeholder": `color: var(--hover)`,
     ".eSubToolThicknessSlider": `position: relative; flex: 1; height: 10px; margin: 0 12px; background: var(--hover); border-radius: 5px`,
-    ".eSubToolThicknessSlider button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; left: calc(35% - 5px); top: -5px; background: var(--theme); border: solid 5px var(--secondary); border-radius: 10px; transition: .2s`
+    ".eSubToolThicknessSlider button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; left: calc(35% - 5px); top: -5px; background: var(--theme); border: solid 5px var(--secondary); border-radius: 10px; transition: unset`
   },
-  js: async function (frame) {
+  minValue: 1,
+  maxValue: 45,
+  js: async function (frame, toolID) {
     let editor = await getModule("pages/editor");
+    let preferences = editor.preferences.tools;
+    if (preferences[toolID] == null) {
+      return;
+    }
+    let toolPref = preferences[toolID];
+
+    let slider = frame.querySelector(".eSubToolThicknessSlider");
+    let pointer = slider.querySelector("button");
+    let input = frame.querySelector(".eSubToolThicknessInput");
+    let sliderEnabled = false;
+    let updateUI = (updateVal) => {
+      let percentage = (toolPref.thickness - this.minValue) / (this.maxValue - this.minValue);
+      pointer.style.left = ((slider.offsetWidth - 10)*percentage) - 6 + "px";
+      if (updateVal != false) {
+        input.value = toolPref.thickness;
+      }
+      editor.updateToolbar();
+    }
+    let eventBarUpdate = (event) => {
+      if (sliderEnabled == false) {
+        return;
+      }
+      if (mouseDown() == false) {
+        sliderEnabled = false;
+        return;
+      }
+      let barRect = slider.getBoundingClientRect();
+      toolPref.thickness = Math.ceil((Math.max(Math.min((event.x - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0) * (this.maxValue - this.minValue)) + this.minValue);
+      updateUI();
+    }
+    frame.addEventListener("mousemove", eventBarUpdate);
+    slider.addEventListener("mousedown", (event) => {
+      sliderEnabled = true;
+      eventBarUpdate(event);
+    });
+    input.addEventListener("focus", () => {
+      input.value = "";
+      input.placeholder = toolPref.thickness;
+    });
+    input.addEventListener("blur", () => {
+      input.value = toolPref.thickness;
+    });
+    input.addEventListener("input", () => {
+      toolPref.thickness = Math.max(Math.min(input.value, this.maxValue), this.minValue);
+      updateUI(false);
+    });
+    input.addEventListener("change", () => {
+      toolPref.thickness = Math.max(Math.min(input.value, this.maxValue), this.minValue);
+      updateUI();
+    });
+    updateUI();
   }
 };
 modules["pages/editor/toolbar/opacity"] = {
-  button: `<svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_138_110" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_138_110)"> <circle cx="143.851" cy="143.354" r="65.7026" transform="rotate(-45 143.851 143.354)" stroke="white" stroke-width="24"/> <mask id="path-3-outside-1_138_110" maskUnits="userSpaceOnUse" x="24" y="24" width="133" height="134" fill="black"> <rect fill="white" x="24" y="24" width="133" height="134"/> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z"/> </mask> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z" fill="#2F2F2F"/> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z" stroke="white" stroke-width="24" mask="url(#path-3-outside-1_138_110)"/> <circle cx="90" cy="90" r="54" fill="#2F2F2F"/> <circle cx="143.851" cy="143.354" r="59.7026" transform="rotate(-45 143.851 143.354)" stroke="#2F2F2F" stroke-width="12"/> <line x1="151.001" y1="202.026" x2="84.547" y2="135.572" stroke="#2F2F2F" stroke-width="12"/> <line x1="201.632" y1="151.394" x2="135.178" y2="84.9404" stroke="#2F2F2F" stroke-width="12"/> <line x1="186.442" y1="186.835" x2="99.7359" y2="100.129" stroke="#2F2F2F" stroke-width="12"/> </g> </svg>`,
+  button: `<svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" opacity> <mask id="mask0_138_110" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_138_110)"> <circle cx="143.851" cy="143.354" r="65.7026" transform="rotate(-45 143.851 143.354)" stroke="white" stroke-width="24"/> <mask id="path-3-outside-1_138_110" maskUnits="userSpaceOnUse" x="24" y="24" width="133" height="134" fill="black"> <rect fill="white" x="24" y="24" width="133" height="134"/> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z"/> </mask> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z" fill="#2F2F2F"/> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z" stroke="white" stroke-width="24" mask="url(#path-3-outside-1_138_110)"/> <circle cx="90" cy="90" r="54" fill="#2F2F2F"/> <circle cx="143.851" cy="143.354" r="59.7026" transform="rotate(-45 143.851 143.354)" stroke="#2F2F2F" stroke-width="12"/> <line x1="151.001" y1="202.026" x2="84.547" y2="135.572" stroke="#2F2F2F" stroke-width="12"/> <line x1="201.632" y1="151.394" x2="135.178" y2="84.9404" stroke="#2F2F2F" stroke-width="12"/> <line x1="186.442" y1="186.835" x2="99.7359" y2="100.129" stroke="#2F2F2F" stroke-width="12"/> </g> </svg>`,
   html: `
     <div class="eSubToolOpacityHolder">
-      <input class="eSubToolOpacityInput" value="100" placeholder="100" min="10" max="100">
+      <input class="eSubToolOpacityInput">
       <div class="eSubToolOpacitySlider"><button></button></div>
     </div>
   `,
@@ -546,9 +612,62 @@ modules["pages/editor/toolbar/opacity"] = {
     ".eSubToolOpacityHolder": `box-sizing: border-box; display: flex; width: 212px; height: 50px; padding: 6px; align-items: center`,
     ".eSubToolOpacityInput": `width: 40px; height: 26px; border: solid 3px var(--secondary); outline: none; border-radius: 17px; font-family: var(--font); font-size: 20px; font-weight: 700; color: var(--theme); text-align: center`,
     ".eSubToolOpacitySlider": `position: relative; flex: 1; height: 10px; margin: 0 12px; background: var(--hover); border-radius: 5px`,
-    ".eSubToolOpacitySlider button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; left: calc(100% - 15px); top: -5px; background: var(--theme); border: solid 5px var(--secondary); border-radius: 10px; transition: .2s`
+    ".eSubToolOpacitySlider button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; left: calc(100% - 15px); top: -5px; background: var(--theme); border: solid 5px var(--secondary); border-radius: 10px; transition: unset`
   },
-  js: async function (frame) {
+  minValue: 10,
+  maxValue: 100,
+  js: async function (frame, toolID) {
     let editor = await getModule("pages/editor");
+    let preferences = editor.preferences.tools;
+    if (preferences[toolID] == null) {
+      return;
+    }
+    let toolPref = preferences[toolID];
+
+    let slider = frame.querySelector(".eSubToolOpacitySlider");
+    let pointer = slider.querySelector("button");
+    let input = frame.querySelector(".eSubToolOpacityInput");
+    let sliderEnabled = false;
+    let updateUI = (updateVal) => {
+      let percentage = (toolPref.opacity - this.minValue) / (this.maxValue - this.minValue);
+      pointer.style.left = ((slider.offsetWidth - 10)*percentage) - 6 + "px";
+      if (updateVal != false) {
+        input.value = toolPref.opacity;
+      }
+      editor.updateToolbar();
+    }
+    let eventBarUpdate = (event) => {
+      if (sliderEnabled == false) {
+        return;
+      }
+      if (mouseDown() == false) {
+        sliderEnabled = false;
+        return;
+      }
+      let barRect = slider.getBoundingClientRect();
+      toolPref.opacity = Math.ceil((Math.max(Math.min((event.x - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0) * (this.maxValue - this.minValue)) + this.minValue);
+      updateUI();
+    }
+    frame.addEventListener("mousemove", eventBarUpdate);
+    slider.addEventListener("mousedown", (event) => {
+      sliderEnabled = true;
+      eventBarUpdate(event);
+    });
+    input.addEventListener("focus", () => {
+      input.value = "";
+      input.placeholder = toolPref.opacity;
+    });
+    input.addEventListener("blur", () => {
+      input.value = toolPref.opacity;
+    });
+    input.addEventListener("input", () => {
+      toolPref.opacity = Math.max(Math.min(input.value, this.maxValue), this.minValue);
+      updateUI(false);
+    });
+    input.addEventListener("change", () => {
+      toolPref.opacity = Math.max(Math.min(input.value, this.maxValue), this.minValue);
+      updateUI();
+    });
+    updateUI();
   }
 };

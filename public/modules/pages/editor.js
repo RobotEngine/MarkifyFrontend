@@ -146,14 +146,15 @@ modules["pages/editor"] = {
             selected: "FFC24A",
             options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "000"]
           },
-          opacity: .75
+          thickness: 24,
+          opacity: 75
         },
         text: {
           color: {
             selected: "0084FF",
             options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "000"]
           },
-          opacity: 1
+          opacity: 100
         },
         draw: {
           subtool: "pen",
@@ -161,7 +162,8 @@ modules["pages/editor"] = {
             selected: "DF84FF",
             options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "000"]
           },
-          opacity: 1
+          thickness: 12,
+          opacity: 100
         },
         shape: {
           subtool: "square",
@@ -169,7 +171,8 @@ modules["pages/editor"] = {
             selected: "FF4C6C",
             options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "000"]
           },
-          opacity: 1
+          thickness: 8,
+          opacity: 100
         },
         comment: {
           

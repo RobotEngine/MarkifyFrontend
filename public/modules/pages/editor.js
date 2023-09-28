@@ -247,6 +247,9 @@ modules["pages/editor"] = {
     let lastSavePref = JSON.parse(JSON.stringify(this.preferences));
     let saveTimeout;
     this.savePreferences = () => {
+      if (userID == null) {
+        return; // Can't save if not a user!
+      }
       clearTimeout(saveTimeout);
       saveTimeout = setTimeout(async () => {
         let tempRevert = JSON.parse(JSON.stringify(lastSavePref));
@@ -534,10 +537,12 @@ modules["pages/editor"] = {
     this.sessionToken = body.session.token;
     this.session = body.session._id + ";" + body.session.token;
 
-    objectUpdate(body.preferences, this.preferences);
-    lastSavePref = JSON.parse(JSON.stringify(this.preferences));
-    if (this.updateToolbar != null) {
-      this.updateToolbar();
+    if (body.preferences != null) {
+      objectUpdate(body.preferences, this.preferences);
+      lastSavePref = JSON.parse(JSON.stringify(this.preferences));
+      if (this.updateToolbar != null) {
+        this.updateToolbar();
+      }
     }
 
     let sentPing = false;

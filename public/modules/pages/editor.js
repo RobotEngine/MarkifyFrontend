@@ -162,7 +162,7 @@ modules["pages/editor"] = {
             selected: "DF84FF",
             options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "000"]
           },
-          thickness: 6,
+          thickness: 4,
           opacity: 100
         },
         shape: {

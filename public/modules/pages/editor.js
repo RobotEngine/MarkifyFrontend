@@ -146,7 +146,7 @@ modules["pages/editor"] = {
             selected: "FFC24A",
             options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "000"]
           },
-          thickness: 24,
+          thickness: 16,
           opacity: 75
         },
         text: {
@@ -162,7 +162,7 @@ modules["pages/editor"] = {
             selected: "DF84FF",
             options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "000"]
           },
-          thickness: 12,
+          thickness: 6,
           opacity: 100
         },
         shape: {
@@ -190,6 +190,7 @@ modules["pages/editor"] = {
     this.realtime = {
       strength: 0
     };
+    this.events = {};
     this.members = {};
     this.memberCount = 0;
     this.active = document.visibilityState == "visible";

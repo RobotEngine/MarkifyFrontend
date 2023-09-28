@@ -431,6 +431,7 @@ modules["editor/toolbar"] = {
         if (preferences[selectedToolID].subtool != null) {
           preferences[selectedToolID].subtool = selectedSubtoolToolID
         }
+        editor.updateToolbar();
         closeSubSubtoolUI();
       } else if (element.hasAttribute("option") == true && element.getAttribute("option").length > 0) {
         showSubSubtoolUI(element);
@@ -444,16 +445,33 @@ modules["editor/toolbar"] = {
         let parent = updateTip.closest("[tool]");
         let toolPref = preferences[parent.getAttribute("tool")];
         if (toolPref != null) {
+          let setOpacity = toolPref.opacity / 100;
+          if (updateTip.closest(".eTool[selected]") != null) {
+            setOpacity = 1;
+          }
           if (updateTip.hasAttribute("fillcoloropacity") == true) {
-            updateTip.setAttribute("fill", editor.hexToRGB(toolPref.color.selected, toolPref.opacity / 100));
+            updateTip.setAttribute("fill", editor.hexToRGB(toolPref.color.selected, setOpacity));
           } else if (updateTip.hasAttribute("strokecolor") == true) {
             updateTip.setAttribute("stroke", editor.hexToRGB(toolPref.color.selected));
           } else if (updateTip.hasAttribute("backcolor") == true) {
-            updateTip.style.background = editor.hexToRGB(toolPref.color.selected);
+            updateTip.style.background = editor.hexToRGB(toolPref.color.selected, setOpacity);
           } else if (updateTip.hasAttribute("thickness") == true) {
-            updateTip.style.height = toolPref.color.thickness + "px";
+            updateTip.style.height = toolPref.thickness + "px";
+            updateTip.style.background = editor.hexToRGB(toolPref.color.selected, setOpacity);
           } else if (updateTip.hasAttribute("opacity") == true) {
-            updateTip.style.opacity = toolPref.opacity / 100;
+            updateTip.style.opacity = setOpacity;
+            let updateSVGFill = updateTip.querySelectorAll("[fill]");
+            for (let f = 0; f < updateSVGFill.length; f++) {
+              if (updateSVGFill[f].getAttribute("fill") != "white") {
+                updateSVGFill[f].setAttribute("fill", editor.hexToRGB(toolPref.color.selected));
+              }
+            }
+            let updateSVGStroke = updateTip.querySelectorAll("[stroke]");
+            for (let f = 0; f < updateSVGStroke.length; f++) {
+              if (updateSVGStroke[f].getAttribute("stroke") != "white") {
+                updateSVGStroke[f].setAttribute("stroke", editor.hexToRGB(toolPref.color.selected));
+              }
+            }
           }
         }
       }
@@ -482,7 +500,8 @@ modules["pages/editor/toolbar/color"] = {
   `,
   css: {
     ".eSubToolColorHolder": `display: flex; width: 34px; height: 34px; background: #fff; border: solid 2.5px var(--pageColor); border-radius: 20px; justify-content: center; align-items: center`,
-    ".eSubToolColor": `width: 100%; height: 100%; background: var(--purple); border-radius: 20px`,
+    '.eTool[option="pages/editor/toolbar/color"] .eSubToolColorHolder': `background: unset`,
+    ".eSubToolColor": `width: 100%; height: 100%; border-radius: 20px`,
     ".eSubToolImage": `width: 40px; height: 40px`,
 
     ".eSubToolColorFrame": `width: 212px; height: 106px`,
@@ -504,7 +523,7 @@ modules["pages/editor/toolbar/color"] = {
       let button = colorButtons[i];
       let setColor = toolPref.color.options[i];
       button.setAttribute("int", i);
-      button.querySelector(".eSubToolColor").style.background = editor.hexToRGB(setColor);
+      button.querySelector(".eSubToolColor").style.background = editor.hexToRGB(setColor, toolPref.opacity / 100);
       if (setColor == toolPref.color.selected) {
         button.setAttribute("selected", "");
       }
@@ -524,6 +543,7 @@ modules["pages/editor/toolbar/color"] = {
         editor.updateToolbar();
       }
     });
+    editor.updateToolbar();
   }
 };
 modules["pages/editor/toolbar/thickness"] = {
@@ -544,7 +564,7 @@ modules["pages/editor/toolbar/thickness"] = {
     ".eSubToolThicknessSlider button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; left: calc(35% - 5px); top: -5px; background: var(--theme); border: solid 5px var(--secondary); border-radius: 10px; transition: unset`
   },
   minValue: 1,
-  maxValue: 45,
+  maxValue: 46,
   js: async function (frame, toolID) {
     let editor = await getModule("pages/editor");
     let preferences = editor.preferences.tools;
@@ -577,7 +597,7 @@ modules["pages/editor/toolbar/thickness"] = {
       toolPref.thickness = Math.ceil((Math.max(Math.min((event.x - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0) * (this.maxValue - this.minValue)) + this.minValue);
       updateUI();
     }
-    frame.addEventListener("mousemove", eventBarUpdate);
+    editor.events.mouseMove = eventBarUpdate;
     slider.addEventListener("mousedown", (event) => {
       sliderEnabled = true;
       eventBarUpdate(event);
@@ -648,7 +668,7 @@ modules["pages/editor/toolbar/opacity"] = {
       toolPref.opacity = Math.ceil((Math.max(Math.min((event.x - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0) * (this.maxValue - this.minValue)) + this.minValue);
       updateUI();
     }
-    frame.addEventListener("mousemove", eventBarUpdate);
+    editor.events.mouseMove = eventBarUpdate;
     slider.addEventListener("mousedown", (event) => {
       sliderEnabled = true;
       eventBarUpdate(event);

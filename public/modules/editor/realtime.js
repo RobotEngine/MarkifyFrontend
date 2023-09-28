@@ -313,7 +313,12 @@ modules["editor/realtime"] = {
       }
     });
 
-    page.addEventListener("mousemove", this.publishShort);
+    page.addEventListener("mousemove", (event) => {
+      if (editor.events.mouseMove != null) {
+        editor.events.mouseMove(event);
+      }
+      this.publishShort(event);
+    });
     page.addEventListener("mousedown", this.publishShort);
     page.addEventListener("mouseup", this.publishShort);
 

@@ -460,6 +460,7 @@ modules["editor/toolbar"] = {
           }
         }
       }
+      editor.savePreferences();
     }
     editor.updateToolbar();
 
@@ -549,7 +550,7 @@ modules["pages/editor/toolbar/thickness"] = {
     ".eSubToolThicknessSlider button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; left: calc(35% - 5px); top: -5px; background: var(--theme); border: solid 5px var(--secondary); border-radius: 10px; transition: unset`
   },
   minValue: 1,
-  maxValue: 46,
+  maxValue: 50,
   js: async function (frame, toolID) {
     let editor = await getModule("pages/editor");
     let preferences = editor.preferences.tools;

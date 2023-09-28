@@ -1,5 +1,5 @@
-let serverURL = "https://markify.exotek.co/api/";
-//let serverURL = "http://localhost:3000/api/";
+//let serverURL = "https://markify.exotek.co/api/";
+let serverURL = "http://localhost:3000/api/";
 let assetURL = "https://markifyapp.s3.amazonaws.com/";
 
 const socket = new SimpleSocket({
@@ -598,8 +598,13 @@ async function sendRequest(method, path, body, extra) {
   }
 }
 
-function objectUpdate(obj, passData) {
+function objectUpdate(obj, passData, path) {
+  path = path || "";
+  if (path.length > 0) {
+    path += ".";
+  }
   let keys = Object.keys(obj);
+  let changes = {};
   for (let i = 0; i < keys.length; i++) {
     let key = keys[i];
     if (
@@ -607,12 +612,30 @@ function objectUpdate(obj, passData) {
       Array.isArray(obj[key]) === true ||
       obj[key] === null
     ) {
-      passData[key] = obj[key];
+      let checkKey = passData[key];
+      if (Array.isArray(checkKey)) {
+        checkKey = JSON.stringify(checkKey);
+      }
+      let checkNewKey = obj[key];
+      if (Array.isArray(checkNewKey)) {
+        checkNewKey = JSON.stringify(checkNewKey);
+      }
+      if (checkKey != checkNewKey) {
+        passData[key] = obj[key];
+        changes[path + key] = passData[key];
+      }
     } else {
+      /*
+      if (passData[key] != passData[key] || {}) {
+        passData[key] = passData[key] || {};
+        changes[path + key] = passData[key];
+      }
+      */
       passData[key] = passData[key] || {};
-      objectUpdate(obj[key], passData[key] || {});
+      changes = { ...changes, ...objectUpdate(obj[key], passData[key] || {}, path + key) };
     }
   }
+  return changes;
 }
 
 socket.remotes.account = function (data) {

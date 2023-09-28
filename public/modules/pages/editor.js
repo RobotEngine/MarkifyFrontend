@@ -244,6 +244,21 @@ modules["pages/editor"] = {
         return "rgb(" + r + ", " + g + ", " + b + ")";
       }
     }
+    let lastSavePref = JSON.parse(JSON.stringify(this.preferences));
+    let saveTimeout;
+    this.savePreferences = () => {
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(async () => {
+        let tempRevert = JSON.parse(JSON.stringify(lastSavePref));
+        let changes = objectUpdate(this.preferences, lastSavePref);
+        if (Object.keys(changes).length > 0) {
+          let [code] = await sendRequest("POST", "lessons/save/preferences", { save: changes });
+          if (code != 200) {
+            lastSavePref = tempRevert;
+          }
+        }
+      }, 1000); // Save after 1 second of no changes
+    }
 
     // PRELOAD ASSETS
     loadScript("./libraries/pdfjs/pdf.js");
@@ -518,6 +533,12 @@ modules["pages/editor"] = {
     this.sessionID = body.session._id;
     this.sessionToken = body.session.token;
     this.session = body.session._id + ";" + body.session.token;
+
+    objectUpdate(body.preferences, this.preferences);
+    lastSavePref = JSON.parse(JSON.stringify(this.preferences));
+    if (this.updateToolbar != null) {
+      this.updateToolbar();
+    }
 
     let sentPing = false;
     let sendPing = async () => {

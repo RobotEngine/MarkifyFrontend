@@ -446,9 +446,6 @@ modules["editor/toolbar"] = {
         let toolPref = preferences[parent.getAttribute("tool")];
         if (toolPref != null) {
           let setOpacity = toolPref.opacity / 100;
-          if (updateTip.closest(".eTool[selected]") != null) {
-            setOpacity = 1;
-          }
           if (updateTip.hasAttribute("fillcoloropacity") == true) {
             updateTip.setAttribute("fill", editor.hexToRGB(toolPref.color.selected, setOpacity));
           } else if (updateTip.hasAttribute("strokecolor") == true) {
@@ -459,19 +456,7 @@ modules["editor/toolbar"] = {
             updateTip.style.height = toolPref.thickness + "px";
             updateTip.style.background = editor.hexToRGB(toolPref.color.selected, setOpacity);
           } else if (updateTip.hasAttribute("opacity") == true) {
-            updateTip.style.opacity = setOpacity;
-            let updateSVGFill = updateTip.querySelectorAll("[fill]");
-            for (let f = 0; f < updateSVGFill.length; f++) {
-              if (updateSVGFill[f].getAttribute("fill") != "white") {
-                updateSVGFill[f].setAttribute("fill", editor.hexToRGB(toolPref.color.selected));
-              }
-            }
-            let updateSVGStroke = updateTip.querySelectorAll("[stroke]");
-            for (let f = 0; f < updateSVGStroke.length; f++) {
-              if (updateSVGStroke[f].getAttribute("stroke") != "white") {
-                updateSVGStroke[f].setAttribute("stroke", editor.hexToRGB(toolPref.color.selected));
-              }
-            }
+            updateTip.setAttribute("fill", editor.hexToRGB(toolPref.color.selected, setOpacity));
           }
         }
       }
@@ -500,7 +485,6 @@ modules["pages/editor/toolbar/color"] = {
   `,
   css: {
     ".eSubToolColorHolder": `display: flex; width: 34px; height: 34px; background: #fff; border: solid 2.5px var(--pageColor); border-radius: 20px; justify-content: center; align-items: center`,
-    '.eTool[option="pages/editor/toolbar/color"] .eSubToolColorHolder': `background: unset`,
     ".eSubToolColor": `width: 100%; height: 100%; border-radius: 20px`,
     ".eSubToolImage": `width: 40px; height: 40px`,
 
@@ -547,7 +531,7 @@ modules["pages/editor/toolbar/color"] = {
   }
 };
 modules["pages/editor/toolbar/thickness"] = {
-  button: `<div class="eSubToolThickness" thickness picked></div>`,
+  button: `<div class="eSubToolThicknessButtonHolder"><div class="eSubToolThickness" thickness picked></div></div>`,
   html: `
     <div class="eSubToolThicknessHolder">
       <input class="eSubToolThicknessInput">
@@ -555,7 +539,8 @@ modules["pages/editor/toolbar/thickness"] = {
     </div>
   `,
   css: {
-    ".eSubToolThickness": `width: 60px; height: 16px; background: var(--darkGray); border: solid 2.5px var(--pageColor); outline: 0px; border-radius: 11px; transform: translateX(-12px)`,
+    ".eSubToolThicknessButtonHolder": `display: flex; background: #fff; padding: 2.5px; transform: translateX(-12px); border-radius: 12px`,
+    ".eSubToolThickness": `width: 60px; height: 16px; background: var(--darkGray); border-radius: 9.5px`,
 
     ".eSubToolThicknessHolder": `box-sizing: border-box; display: flex; width: 212px; height: 50px; padding: 6px; align-items: center`,
     ".eSubToolThicknessInput": `width: 40px; height: 26px; border: solid 3px var(--secondary); outline: none; border-radius: 17px; font-family: var(--font); font-size: 20px; font-weight: 700; color: var(--theme); text-align: center`,
@@ -621,7 +606,7 @@ modules["pages/editor/toolbar/thickness"] = {
   }
 };
 modules["pages/editor/toolbar/opacity"] = {
-  button: `<svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" opacity> <mask id="mask0_138_110" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_138_110)"> <circle cx="143.851" cy="143.354" r="65.7026" transform="rotate(-45 143.851 143.354)" stroke="white" stroke-width="24"/> <mask id="path-3-outside-1_138_110" maskUnits="userSpaceOnUse" x="24" y="24" width="133" height="134" fill="black"> <rect fill="white" x="24" y="24" width="133" height="134"/> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z"/> </mask> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z" fill="#2F2F2F"/> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z" stroke="white" stroke-width="24" mask="url(#path-3-outside-1_138_110)"/> <circle cx="90" cy="90" r="54" fill="#2F2F2F"/> <circle cx="143.851" cy="143.354" r="59.7026" transform="rotate(-45 143.851 143.354)" stroke="#2F2F2F" stroke-width="12"/> <line x1="151.001" y1="202.026" x2="84.547" y2="135.572" stroke="#2F2F2F" stroke-width="12"/> <line x1="201.632" y1="151.394" x2="135.178" y2="84.9404" stroke="#2F2F2F" stroke-width="12"/> <line x1="186.442" y1="186.835" x2="99.7359" y2="100.129" stroke="#2F2F2F" stroke-width="12"/> </g> </svg>`,
+  button: `<svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_138_110" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_138_110)"> <circle cx="143.851" cy="143.354" r="65.7026" transform="rotate(-45 143.851 143.354)" stroke="white" stroke-width="24"/> <mask id="path-3-outside-1_138_110" maskUnits="userSpaceOnUse" x="24" y="24" width="133" height="134" fill="black"> <rect fill="white" x="24" y="24" width="133" height="134"/> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z"/> </mask> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z" fill="white"/> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z" stroke="white" stroke-width="24" mask="url(#path-3-outside-1_138_110)"/> <circle cx="143.851" cy="143.354" r="53.7026" transform="rotate(-45 143.851 143.354)" fill="white"/> <path opacity fill-rule="evenodd" clip-rule="evenodd" d="M100.45 142.99L153.625 196.165C161.903 194.641 169.892 191.162 176.85 185.729L123.487 132.366C116.884 137.592 109.031 141.307 100.45 142.99ZM132.016 123.924L185.434 177.343C190.985 170.568 194.629 162.754 196.366 154.614L142.857 101.104C141.077 109.62 137.291 117.399 132.016 123.924ZM181.824 105.381C191.106 114.662 196.279 126.496 197.346 138.623L148.583 89.8595C160.709 90.9258 172.543 96.0996 181.824 105.381ZM137.126 196.637L90.5683 150.079C92.002 161.504 97.105 172.556 105.877 181.328C114.65 190.1 125.702 195.203 137.126 196.637ZM90 36C115.579 36 137.005 53.7851 142.585 77.664C159.819 77.3339 177.158 83.7445 190.309 96.8957C215.968 122.554 215.968 164.155 190.309 189.813C164.651 215.472 123.05 215.472 97.392 189.813C84.3953 176.817 77.9818 159.73 78.1514 142.696C54.0275 137.295 36 115.753 36 90C36 60.1766 60.1766 36 90 36Z" fill="#2F2F2F"/> </g> </svg>`,
   html: `
     <div class="eSubToolOpacityHolder">
       <input class="eSubToolOpacityInput">

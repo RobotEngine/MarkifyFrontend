@@ -217,6 +217,7 @@ modules["editor/toolbar"] = {
     frame.style.display = "flex";
     frame.style.flexDirection = "column";
     frame.style.gap = "6px";
+    frame.setAttribute("toolbarcontent", "");
 
     let subTools = frame.querySelector(".eSubToolHolder");
     let subToolContentHolder = subTools.querySelector(".eSubToolContentHolder");
@@ -271,23 +272,25 @@ modules["editor/toolbar"] = {
         tooltipText.style.transition = "unset";
       }
     }
-    let closeTimeout;
+    //let closeTimeout;
     editor.page.addEventListener("mousemove", (event) => {
-      let element = event.target;
-      if (element == null) {
+      let hoverElem = event.target;
+      if (hoverElem == null) {
         return;
       }
-      element = element.closest("button[tool], button[subtool], button[option]");
-      if (element == null || element.hasAttribute("tooltip") == false) {
+      element = hoverElem.closest("button[tool], button[subtool], button[option]");
+      if ((element == null || element.hasAttribute("tooltip") == false) && hoverElem.closest("[toolbarcontent]") == null) {
         tooltipElement = null;
-        closeTimeout = setTimeout(() => {
+        //closeTimeout = setTimeout(() => {
           if (tooltipElement == null) {
             closeTooltipHover();
           }
-        }, 250);
+        //}, 250);
+        return;
+      } else if (element == null) {
         return;
       }
-      clearTimeout(closeTimeout);
+      //clearTimeout(closeTimeout);
       if (element.hasAttribute("selected") == true && element.hasAttribute("option") == true) {
         closeTooltipHover();
         return;
@@ -641,7 +644,7 @@ modules["pages/editor/toolbar/thickness"] = {
   tooltip: "Thickness",
   html: `
     <div class="eSubToolThicknessHolder">
-      <input class="eSubToolThicknessInput">
+      <input class="eSubToolThicknessInput" name="Thickness">
       <div class="eSubToolThicknessSlider"><button></button></div>
     </div>
   `,
@@ -717,7 +720,7 @@ modules["pages/editor/toolbar/opacity"] = {
   tooltip: "Opacity",
   html: `
     <div class="eSubToolOpacityHolder">
-      <input class="eSubToolOpacityInput">
+      <input class="eSubToolOpacityInput" name="Thickness">
       <div class="eSubToolOpacitySlider"><button></button></div>
     </div>
   `,

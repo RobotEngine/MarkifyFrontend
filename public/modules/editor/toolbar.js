@@ -12,7 +12,7 @@ modules["editor/toolbar"] = {
     <div class="eSubToolShadow"></div>
     <div class="eSubToolContentHolder">
       <div class="eSubToolContentScroll">
-        <div class="eSubToolContent"></div>
+        <div class="eSubToolContent" toolbarcontent></div>
       </div>
       <div class="eSubToolHolder" option>
         <div class="eSubToolShadow"></div>
@@ -279,7 +279,7 @@ modules["editor/toolbar"] = {
         return;
       }
       element = hoverElem.closest("button[tool], button[subtool], button[option]");
-      if ((element == null || element.hasAttribute("tooltip") == false) && hoverElem.closest("[toolbarcontent]") == null) {
+      if ((element == null || element.hasAttribute("tooltip") == false) && hoverElem.hasAttribute("toolbarcontent") == false) {
         tooltipElement = null;
         //closeTimeout = setTimeout(() => {
           if (tooltipElement == null) {
@@ -287,7 +287,7 @@ modules["editor/toolbar"] = {
           }
         //}, 250);
         return;
-      } else if (element == null || element.hasAttribute("tooltip") == false) {
+      } else if (element == null) {
         return;
       }
       //clearTimeout(closeTimeout);

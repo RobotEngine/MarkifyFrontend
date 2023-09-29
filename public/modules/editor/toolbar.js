@@ -432,7 +432,7 @@ modules["editor/toolbar"] = {
             if (toolData.type == "option") {
               
             } else if (toolData.type == "divider") {
-              insertHTML = `<div class="eDivider" new></div>`;
+              insertHTML = `<div class="eDivider" toolbarcontent new></div>`;
             }
             subToolContent.insertAdjacentHTML("beforeend", insertHTML);
             let newSubItem = subToolContent.querySelector("[new]");

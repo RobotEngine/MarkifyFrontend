@@ -287,7 +287,7 @@ modules["editor/toolbar"] = {
           }
         //}, 250);
         return;
-      } else if (element == null) {
+      } else if (element == null || element.hasAttribute("tooltip") == false) {
         return;
       }
       //clearTimeout(closeTimeout);

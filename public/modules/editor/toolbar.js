@@ -685,7 +685,7 @@ modules["pages/editor/toolbar/thickness"] = {
         return;
       }
       if (mouseDown() == false) {
-        app.style.userSelect = "all";
+        app.style.userSelect = "unset";
         sliderEnabled = false;
         return;
       }
@@ -759,7 +759,7 @@ modules["pages/editor/toolbar/opacity"] = {
         return;
       }
       if (mouseDown() == false) {
-        app.style.userSelect = "all";
+        app.style.userSelect = "unset";
         sliderEnabled = false;
         return;
       }

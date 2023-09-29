@@ -284,7 +284,7 @@ modules["editor/toolbar"] = {
           if (tooltipElement == null) {
             closeTooltipHover();
           }
-        }, 500);
+        }, 250);
         return;
       }
       clearTimeout(closeTimeout);

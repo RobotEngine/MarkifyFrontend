@@ -82,7 +82,7 @@ modules["pages/editor"] = {
     ".eTopSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; border-radius: 16px`,
     ".eTopMargin": `margin-left: auto`,
 
-    ".eLogo": `height: 100%; padding: 0`,
+    ".eLogo": `height: 100%; padding: 0; user-select: none`,
     ".eLogo img": `height: 100%`,
     ".eFileName": `max-width: 360px; padding: 3px; margin: 0 4px; outline: unset; --borderRadius: 4px; --borderColor: var(--secondary); font-size: 20px; white-space: nowrap; --transition: .05s`,
     ".eFileName:focus": `--borderWidth: 4px`,

@@ -626,10 +626,14 @@ modules["pages/editor/toolbar/color"] = {
     ".eSubToolColorPickerTopBack img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
     ".eSubToolColorPickerShade": `position: relative; width: calc(100% - 20px); height: 120px; margin: 0px 10px 10px 10px`,
     ".eSubToolColorPickerShadeCanvas": `width: 100%; height: 100%; background: red; border-radius: 10px`,
-    ".eSubToolColorPickerShade button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; left: -10px; top: -10px; background: var(--theme); border: solid 3px var(--pageColor); border-radius: 10px; transition: unset`,
+    ".eSubToolColorPickerShade button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; left: -10px; top: -10px; background: var(--theme); border: solid 3px var(--pageColor); border-radius: 10px; transition: transform .2s`,
+    ".eSubToolColorPickerShade button:hover": `transform: scale(1.2) !important`,
+    ".eSubToolColorPickerShade button:active": `transform: scale(1.1) !important`,
     ".eSubToolColorPickerGradient": `position: relative; width: calc(100% - 20px); height: 10px; margin: 10px`,
     ".eSubToolColorPickerGradientSlider": `width: 100%; height: 100%; background: -webkit-linear-gradient(left, rgb(255, 0, 0), rgb(255, 255, 0), rgb(0, 255, 0), rgb(0, 255, 255), rgb(0, 0, 255), rgb(255, 0, 255), rgb(255, 0, 0)); border-radius: 5px`,
-    ".eSubToolColorPickerGradient button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; left: -10px; top: -5px; background: var(--theme); border: solid 3px var(--pageColor); border-radius: 10px; transition: unset`
+    ".eSubToolColorPickerGradient button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; left: -10px; top: -5px; background: var(--theme); border: solid 3px var(--pageColor); border-radius: 10px; transition: transform .2s`,
+    ".eSubToolColorPickerGradient button:hover": `transform: scale(1.2) !important`,
+    ".eSubToolColorPickerGradient button:active": `transform: scale(1.1) !important`,
   },
   js: async function (frame, toolID) {
     let editor = await getModule("pages/editor");
@@ -709,7 +713,9 @@ modules["pages/editor/toolbar/thickness"] = {
     ".eSubToolThicknessInput": `width: 40px; height: 26px; border: solid 3px var(--secondary); outline: none; border-radius: 17px; font-family: var(--font); font-size: 20px; font-weight: 700; color: var(--theme); text-align: center`,
     ".eSubToolThicknessInput::placeholder": `color: var(--hover)`,
     ".eSubToolThicknessSlider": `position: relative; flex: 1; height: 10px; margin: 0 12px; background: var(--hover); border-radius: 5px`,
-    ".eSubToolThicknessSlider button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; top: -5px; background: var(--theme); border: solid 5px var(--secondary); border-radius: 10px; transition: unset`
+    ".eSubToolThicknessSlider button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; top: -5px; background: var(--theme); border: solid 5px var(--secondary); border-radius: 10px; transition: transform .2s`,
+    ".eSubToolThicknessSlider button:hover": `transform: scale(1.2) !important`,
+    ".eSubToolThicknessSlider button:active": `transform: scale(1.1) !important`
   },
   minValue: 1,
   maxValue: 50,
@@ -783,7 +789,9 @@ modules["pages/editor/toolbar/opacity"] = {
     ".eSubToolOpacityHolder": `box-sizing: border-box; display: flex; width: 212px; height: 50px; padding: 6px; align-items: center`,
     ".eSubToolOpacityInput": `width: 40px; height: 26px; border: solid 3px var(--secondary); outline: none; border-radius: 17px; font-family: var(--font); font-size: 20px; font-weight: 700; color: var(--theme); text-align: center`,
     ".eSubToolOpacitySlider": `position: relative; flex: 1; height: 10px; margin: 0 12px; background: var(--hover); border-radius: 5px`,
-    ".eSubToolOpacitySlider button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; top: -5px; background: var(--theme); border: solid 5px var(--secondary); border-radius: 10px; transition: unset`
+    ".eSubToolOpacitySlider button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; top: -5px; background: var(--theme); border: solid 5px var(--secondary); border-radius: 10px; transition: transform .2s`,
+    ".eSubToolOpacitySlider button:hover": `transform: scale(1.2) !important`,
+    ".eSubToolOpacitySlider button:active": `transform: scale(1.1) !important`
   },
   minValue: 10,
   maxValue: 100,

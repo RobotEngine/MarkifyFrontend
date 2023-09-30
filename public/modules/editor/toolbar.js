@@ -595,7 +595,7 @@ modules["pages/editor/toolbar/color"] = {
       <div class="eSubToolColorPicker">
         <div class="eSubToolColorPickerTop">
           <div class="eSubToolColorPickerTopSelected"></div>
-          <button class="eSubToolColorPickerTopBack"><img class="eSubToolImage" src="./images/editor/uparrow.svg"></button>
+          <button class="eSubToolColorPickerTopBack buttonAnim border"><img src="./images/tooltips/close.svg"></button>
         </div>
         <div class="eSubToolColorPickerShade">
           <canvas class="eSubToolColorPickerShadeCanvas"></canvas>
@@ -622,10 +622,8 @@ modules["pages/editor/toolbar/color"] = {
     ".eSubToolColorPicker": `width: 212px; position: absolute; top: 0px; transform: scale(.9); opacity: 0; transition: .5s; pointer-events: none`,
     ".eSubToolColorPickerTop": `position: relative; display: flex; box-sizing: border-box; justify-content: space-between; width: 100%; height: 50px; padding: 10px`,
     ".eSubToolColorPickerTopSelected": `width: 30px; height: 30px; background: red; border-radius: 10px`,
-    ".eSubToolColorPickerTopBack": `width: 30px; height: 30px; padding: 3px; border-radius: 10px`,
-    ".eSubToolColorPickerTopBack img": `width: 100%; height: 100%`,
-    ".eSubToolColorPickerTopBack:hover": `background: var(--hover)`,
-    ".eSubToolColorPickerTopBack:active": `transform: scale(.95)`,
+    ".eSubToolColorPickerTopBack": `position: relative; width: 22px; height: 22px; margin: 3px 3px 3px 13px; --borderWidth: 3px; --borderRadius: 11px`,
+    ".eSubToolColorPickerTopBack img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
     ".eSubToolColorPickerShade": `position: relative; width: calc(100% - 20px); height: 120px; margin: 0px 10px 10px 10px`,
     ".eSubToolColorPickerShadeCanvas": `width: 100%; height: 100%; background: red; border-radius: 10px`,
     ".eSubToolColorPickerShade button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; left: -10px; top: -10px; background: var(--theme); border: solid 3px var(--pageColor); border-radius: 10px; transition: unset`,

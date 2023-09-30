@@ -47,6 +47,7 @@ modules["editor/toolbar"] = {
     ".eSubToolShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); left: 0px; top: 16px; content: ""; box-shadow: var(--lightShadow); border-radius: inherit`,
     ".eSubToolContentHolder": `overflow: hidden; border-radius: inherit`,
     ".eSubToolContentScroll": `width: fit-content; overflow: auto`,
+    ".eSubToolHolder[option] .eSubToolContentScroll": `overflow: visible`,
     ".eSubToolContent": `display: flex; flex-wrap: wrap; gap: 6px`,
 
     ".eToolHoverTooltip": `position: absolute; padding: 3px 6px; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; font-size: 16px; font-weight: 600; color: var(--theme); text-wrap: nowrap; transform: scale(0); transform-origin: center left; opacity: 0`
@@ -608,7 +609,7 @@ modules["pages/editor/toolbar/color"] = {
     </div>
   `,
   css: {
-    ".eSubToolColorHolder": `display: flex; width: 34px; height: 34px; background: #fff; border: solid 2.5px var(--pageColor); border-radius: 20px; justify-content: center; align-items: center`,
+    ".eSubToolColorHolder": `display: flex; width: 34px; height: 34px; background: #fff; border: solid 3px var(--pageColor); border-radius: 20px; justify-content: center; align-items: center`,
     ".eSubToolColor": `width: 100%; height: 100%; border-radius: 20px`,
     ".eSubToolImage": `width: 40px; height: 40px`,
 
@@ -651,7 +652,6 @@ modules["pages/editor/toolbar/color"] = {
       }
     }
 
-    let holder = frame.parentElement;
     let selector = frame.querySelector(".eSubToolColorSelector");
     let picker = frame.querySelector(".eSubToolColorPicker");
     
@@ -676,9 +676,6 @@ modules["pages/editor/toolbar/color"] = {
         selector.style.opacity = 0;
         picker.style.pointerEvents = "all";
         editor.updateSubtoolUI();
-        holder.style.overflow = "visible";
-        await sleep(500);
-        holder.style.overflow = "auto";
       }
     });
 
@@ -692,9 +689,6 @@ modules["pages/editor/toolbar/color"] = {
       selector.style.pointerEvents = "all";
       picker.style.pointerEvents = "none";
       editor.updateSubtoolUI();
-      holder.style.overflow = "visible";
-      await sleep(500);
-      holder.style.overflow = "auto";
     });
 
     editor.updateToolbar();
@@ -710,7 +704,7 @@ modules["pages/editor/toolbar/thickness"] = {
     </div>
   `,
   css: {
-    ".eSubToolThicknessButtonHolder": `display: flex; background: #fff; padding: 2.5px; transform: translateX(-12px); border-radius: 12px`,
+    ".eSubToolThicknessButtonHolder": `display: flex; background: #fff; padding: 3px; transform: translateX(-12px); border-radius: 12px`,
     ".eSubToolThickness": `width: 60px; height: 16px; background: var(--darkGray); border-radius: 9.5px`,
 
     ".eSubToolThicknessHolder": `box-sizing: border-box; display: flex; width: 212px; height: 50px; padding: 6px; align-items: center`,

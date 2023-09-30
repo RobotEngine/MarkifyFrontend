@@ -50,7 +50,7 @@ modules["editor/toolbar"] = {
     ".eSubToolHolder[option] .eSubToolContentScroll": `overflow: visible`,
     ".eSubToolContent": `display: flex; flex-wrap: wrap; gap: 6px`,
 
-    ".eToolHoverTooltip": `position: absolute; padding: 3px 6px; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; font-size: 16px; font-weight: 600; color: var(--theme); text-wrap: nowrap; transform: scale(0); transform-origin: center left; opacity: 0`
+    ".eToolHoverTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; color: var(--theme); transform: scale(0); transform-origin: center left; opacity: 0`
   },
   tools: {
     "select": [

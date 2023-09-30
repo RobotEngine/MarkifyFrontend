@@ -609,8 +609,8 @@ modules["pages/editor/toolbar/color"] = {
     </div>
   `,
   css: {
-    ".eSubToolColorHolder": `display: flex; width: 34px; height: 34px; background: #fff; border: solid 3px var(--pageColor); border-radius: 20px; justify-content: center; align-items: center`,
-    ".eSubToolColor": `width: 100%; height: 100%; border-radius: 20px`,
+    ".eSubToolColorHolder": `display: flex; width: 32px; height: 32px; background: #fff; border: solid 3px var(--pageColor); border-radius: 19px; justify-content: center; align-items: center`,
+    ".eSubToolColor": `width: 100%; height: 100%; border-radius: 16px`,
     ".eSubToolImage": `width: 40px; height: 40px`,
 
     ".eSubToolColorFrame": `position: relative; width: 212px; min-height: 106px`,

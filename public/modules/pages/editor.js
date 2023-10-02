@@ -118,7 +118,8 @@ modules["pages/editor"] = {
     ".eObserve button img": `width: 100%; height: 100%`,
     ".eObserveBorder": `position: fixed; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 501`,
 
-    ".eContent": `position: relative; display: flex; width: fit-content; min-width: calc(100% - 132px); min-height: calc(100vh - 132px); padding: 66px; justify-content: center; z-index: 0; background: var(--pageColor); background-image: url(./images/editor/background.svg); background-position: center`,
+    ".eContent": `position: relative; display: flex; width: fit-content; min-width: calc(100% - 132px); min-height: calc(100vh - 132px); padding: 66px; justify-content: center; z-index: 0; background: var(--pageColor); background-image: url(./images/editor/background.svg); background-position: center; pointer-events: all`,
+    ".eContentHolder": `pointer-events: none`,
     ".ePageHolder": `width: fit-content; height: fit-content; border-radius: 16px; transform-origin: 0 0`,
     ".ePage": `position: relative; background: var(--pageColor); transition: .5s`,
     ".ePage::after": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: -1; content: ""; box-shadow: 0px 0px 8px 0px var(--shadowColor); border-radius: inherit`,
@@ -130,7 +131,7 @@ modules["pages/editor"] = {
     ".ePageTextHolder span": "position: absolute; color: transparent; pointer-events: all",
     ".ePageTextHolder br": `user-select: none`,
 
-    ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 100; overflow: hidden`
+    ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 100; overflow: hidden; pointer-events: none`
   },
   loadedPDFs: [], // Keep track of loaded PDFs for releasing memory
   js: async function (page, joinData) {

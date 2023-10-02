@@ -54,6 +54,7 @@ function removeTempListeners() {
       cancelAnimationFrame(remEvent.frame);
     }
   }
+  tempListeners = [];
 }
 
 function subscribe(filter, callback, config) {

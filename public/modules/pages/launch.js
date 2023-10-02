@@ -96,7 +96,7 @@ modules["pages/launch"] = {
       <div class="lFeature">
         <img src="./images/launch/features/tools.svg">
         <div title>Minimalistic Tools</div>
-        <div desc>Get a full suite of tools—completely for free—when marking up your lesson that our simple but effective.</div>
+        <div desc>Get a full suite of tools—completely for free—for marking up your lesson that are simple and effective.</div>
       </div>
       <div class="lFeature">
         <img src="./images/launch/features/cursors.svg">

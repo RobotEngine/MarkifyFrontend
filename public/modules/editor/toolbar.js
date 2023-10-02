@@ -72,12 +72,14 @@ modules["editor/toolbar"] = {
         id: "highlighter",
         tooltip: "Highlighter",
         type: "tool",
+        module: "pages/editor/toolbar/highlighter",
         image: `<svg width="26" viewBox="0 0 30 42" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M13.1698 36.4384C13.9254 38.5143 16.2208 39.5846 18.2967 38.8291L23.9348 36.7769C26.0107 36.0214 27.0811 33.726 26.3255 31.6501L22.5633 21.3135L9.4076 26.1018L13.1698 36.4384Z" fill="white"/> <path d="M22.1358 20.1389L23.3104 19.7113L23.7379 20.8859L27.5001 31.2226C28.4918 33.9472 27.087 36.9599 24.3624 37.9516L18.7242 40.0037C15.9996 40.9954 12.9869 39.5905 11.9952 36.8659L8.23298 26.5293L7.80546 25.3547L8.98008 24.9271L22.1358 20.1389Z" fillcoloropacity stroke="white" stroke-width="2.5"/> <path d="M11.9685 33.1377L10.7938 33.5652L10.3663 32.3906L2.49986 10.7776C1.50817 8.053 2.913 5.04033 5.63764 4.04864L11.2758 1.99652C14.0004 1.00484 17.0131 2.40967 18.0048 5.1343L25.8712 26.7472L26.2988 27.9219L25.1242 28.3494L11.9685 33.1377Z" fill="#2F2F2F" stroke="white" stroke-width="2.5"/> </svg>`
       },
       {
         id: "underline",
         tooltip: "Underline",
         type: "tool",
+        module: "pages/editor/toolbar/underline",
         image: `<svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_125_40" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_125_40)"> <path d="M33 128H79.1974H109.403C113.002 128 116.562 128.747 119.857 130.194L126.891 133.283C136.209 137.375 147.058 135.655 154.652 128.881L156.548 127.189C164.183 120.379 175.102 118.68 184.445 122.847L190.945 125.746C194.278 127.232 197.886 128 201.535 128H223" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M128.991 202.4C109.125 202.4 93.5914 196.867 82.3914 185.8C71.1914 174.733 65.5914 158.933 65.5914 138.4V60H97.9914V137.2C97.9914 150.533 100.725 160.133 106.191 166C111.658 171.867 119.325 174.8 129.191 174.8C139.058 174.8 146.725 171.867 152.191 166C157.658 160.133 160.391 150.533 160.391 137.2V60H192.391V138.4C192.391 158.933 186.791 174.733 175.591 185.8C164.391 196.867 148.858 202.4 128.991 202.4Z" fill="white"/> <path d="M82.3914 185.8L90.8257 177.264L82.3914 185.8ZM65.5914 60V48H53.5914V60H65.5914ZM97.9914 60H109.991V48H97.9914V60ZM106.191 166L97.4121 174.181H97.4121L106.191 166ZM152.191 166L160.971 174.181L160.971 174.181L152.191 166ZM160.391 60V48H148.391V60H160.391ZM192.391 60H204.391V48H192.391V60ZM175.591 185.8L184.026 194.336H184.026L175.591 185.8ZM128.991 190.4C111.414 190.4 99.2292 185.567 90.8257 177.264L73.9571 194.336C87.9536 208.166 106.836 214.4 128.991 214.4V190.4ZM90.8257 177.264C82.5415 169.078 77.5914 156.743 77.5914 138.4H53.5914C53.5914 161.123 59.8413 180.388 73.9571 194.336L90.8257 177.264ZM77.5914 138.4V60H53.5914V138.4H77.5914ZM65.5914 72H97.9914V48H65.5914V72ZM85.9914 60V137.2H109.991V60H85.9914ZM85.9914 137.2C85.9914 151.684 88.8744 165.018 97.4121 174.181L114.971 157.819C112.575 155.248 109.991 149.382 109.991 137.2H85.9914ZM97.4121 174.181C105.655 183.027 116.819 186.8 129.191 186.8V162.8C121.83 162.8 117.661 160.706 114.971 157.819L97.4121 174.181ZM129.191 186.8C141.564 186.8 152.728 183.027 160.971 174.181L143.412 157.819C140.722 160.706 136.552 162.8 129.191 162.8V186.8ZM160.971 174.181C169.508 165.018 172.391 151.684 172.391 137.2H148.391C148.391 149.382 145.808 155.248 143.412 157.819L160.971 174.181ZM172.391 137.2V60H148.391V137.2H172.391ZM160.391 72H192.391V48H160.391V72ZM180.391 60V138.4H204.391V60H180.391ZM180.391 138.4C180.391 156.743 175.441 169.078 167.157 177.264L184.026 194.336C198.142 180.388 204.391 161.123 204.391 138.4H180.391ZM167.157 177.264C158.754 185.567 146.569 190.4 128.991 190.4V214.4C151.147 214.4 170.029 208.166 184.026 194.336L167.157 177.264Z" fill="white"/> <path d="M128.991 202.4C109.125 202.4 93.5914 196.867 82.3914 185.8C71.1914 174.733 65.5914 158.933 65.5914 138.4V60H97.9914V137.2C97.9914 150.533 100.725 160.133 106.191 166C111.658 171.867 119.325 174.8 129.191 174.8C139.058 174.8 146.725 171.867 152.191 166C157.658 160.133 160.391 150.533 160.391 137.2V60H192.391V138.4C192.391 158.933 186.791 174.733 175.591 185.8C164.391 196.867 148.858 202.4 128.991 202.4Z" fill="#2F2F2F"/> <path d="M33 128H79.1974H109.403C113.002 128 116.562 128.747 119.857 130.194L126.891 133.283C136.209 137.375 147.058 135.655 154.652 128.881L156.548 127.189C164.183 120.379 175.102 118.68 184.445 122.847L190.945 125.746C194.278 127.232 197.886 128 201.535 128H223" strokecolor stroke-width="20" stroke-linecap="round"/> </g> </svg>`
       },
       /*
@@ -113,12 +115,14 @@ modules["editor/toolbar"] = {
         id: "pen",
         tooltip: "Pen",
         type: "tool",
+        module: "pages/editor/toolbar/pen",
         image: `<svg width="22" viewBox="0 0 27 44" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M12.3863 34.9812C13.2256 37.2873 15.077 39.0806 17.4087 39.846L19.7938 40.629C20.4513 40.8448 21.1712 40.5828 21.5361 39.9948L22.86 37.8619C24.1541 35.7768 24.4197 33.213 23.5803 30.9069L18.9826 18.2748L7.78855 22.3491L12.3863 34.9812Z" fill="white"/> <path d="M18.5551 17.1002L19.7297 16.6726L20.1572 17.8472L24.7549 30.4794C25.7254 33.1458 25.4184 36.1102 23.922 38.5211L22.5982 40.654C21.9291 41.732 20.6094 42.2123 19.404 41.8166L17.0188 41.0337C14.3228 40.1486 12.1822 38.0752 11.2117 35.4088L6.61393 22.7766L6.18641 21.602L7.36103 21.1745L18.5551 17.1002Z" fillcoloropacity stroke="white" stroke-width="2.5"/> <path d="M11.4928 32.5264L10.3182 32.9539L9.89068 31.7793L2.35127 11.065C0.990064 7.32509 2.91836 3.18985 6.65823 1.82865C10.3981 0.467446 14.5333 2.39574 15.8945 6.13561L23.434 26.85L23.8615 28.0246L22.6869 28.4521L11.4928 32.5264Z" fill="#2F2F2F" stroke="white" stroke-width="2.5"/> </svg>`
       },
       {
         id: "erase",
         tooltip: "Eraser",
         type: "tool",
+        module: "pages/editor/toolbar/eraser",
         image: `<svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_130_2" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_130_2)"> <path d="M176.938 149.353L182.576 147.301L180.524 141.662L151.219 61.1479C146.308 47.6544 131.388 40.6972 117.894 45.6084L83.4034 58.1621C69.9099 63.0733 62.9527 77.9932 67.8639 91.4866L97.1688 172.001L99.2209 177.639L104.859 175.587L176.938 149.353Z" fill="#2F2F2F" stroke="white" stroke-width="12"/> <path d="M104.253 173.921L98.6144 175.974L100.667 181.612L105.486 194.853C110.397 208.346 125.317 215.304 138.81 210.392L173.301 197.839C186.795 192.927 193.752 178.007 188.841 164.514L184.022 151.273L181.969 145.635L176.331 147.687L104.253 173.921Z" fill="#2F2F2F" stroke="white" stroke-width="12"/> </g> </svg>`
       },
       {
@@ -273,7 +277,6 @@ modules["editor/toolbar"] = {
         tooltipText.style.transition = "unset";
       }
     }
-    //let closeTimeout;
     editor.page.addEventListener("mousemove", (event) => {
       let hoverElem = event.target;
       if (hoverElem == null) {
@@ -282,11 +285,9 @@ modules["editor/toolbar"] = {
       element = hoverElem.closest("button[tool], button[subtool], button[option]");
       if ((element == null || element.hasAttribute("tooltip") == false) && hoverElem.hasAttribute("keeptooltip") == false) {
         tooltipElement = null;
-        //closeTimeout = setTimeout(() => {
-          if (tooltipElement == null) {
-            closeTooltipHover();
-          }
-        //}, 250);
+        if (tooltipElement == null) {
+          closeTooltipHover();
+        }
         return;
       } else if (element == null) {
         return;
@@ -305,6 +306,40 @@ modules["editor/toolbar"] = {
       tooltipText.style.transform = "scale(1)";
       tooltipText.style.opacity = 1;
     });
+
+    let toolEvents = [];
+    let disableTool = () => {
+      for (let i = 0; i < toolEvents.length; i++) {
+        let remEvent = toolEvents[i];
+        remEvent.parent.removeEventListener(remEvent.name, remEvent.listener);
+      }
+      toolEvents = [];
+    }
+    let utils = await getModule("pages/editor/toolbar/utils");
+    let mouseBlob;
+    let mouseSVG;
+    let currentToolModule = "";
+    let enableTool = async (modulePath) => {
+      currentToolModule = modulePath;
+      disableTool();
+      let module;
+      if (modulePath != null) {
+        module = await getModule(modulePath);
+      }
+      if (module != null) {
+        module.js(editor, utils, toolEvents);
+      }
+      module = module || {};
+      URL.revokeObjectURL(mouseBlob);
+      let setSVG = module.mouse || `<svg width="56" height="56" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"> <g filter="url(#filter0_d_231_14)"> <mask id="path-1-outside-1_231_14" maskUnits="userSpaceOnUse" x="28" y="27" width="21" height="28" fill="black"> <rect fill="white" x="28" y="27" width="21" height="28"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M34.7886 30.574C32.8075 29.1419 30.0371 30.5535 30.0312 32.998L30 45.8878C29.9946 48.1311 32.3632 49.5865 34.362 48.5681L36.9809 47.2337L38.5573 50.3275C39.3465 51.8764 41.2418 52.4922 42.7907 51.703C44.3396 50.9138 44.9554 49.0185 44.1662 47.4696L42.5899 44.3757L44.8395 43.2295C46.8383 42.2111 47.053 39.4394 45.235 38.1252L34.7886 30.574Z"/> </mask> <path fill-rule="evenodd" clip-rule="evenodd" d="M34.7886 30.574C32.8075 29.1419 30.0371 30.5535 30.0312 32.998L30 45.8878C29.9946 48.1311 32.3632 49.5865 34.362 48.5681L36.9809 47.2337L38.5573 50.3275C39.3465 51.8764 41.2418 52.4922 42.7907 51.703C44.3396 50.9138 44.9554 49.0185 44.1662 47.4696L42.5899 44.3757L44.8395 43.2295C46.8383 42.2111 47.053 39.4394 45.235 38.1252L34.7886 30.574Z" fill="#2F2F2F"/> <path d="M30.0312 32.998L28.0312 32.9932L30.0312 32.998ZM34.7886 30.574L33.617 32.1949L33.617 32.1949L34.7886 30.574ZM30 45.8878L28 45.883L30 45.8878ZM34.362 48.5681L33.454 46.786L33.454 46.786L34.362 48.5681ZM36.9809 47.2337L38.7629 46.3257L37.8549 44.5437L36.0729 45.4516L36.9809 47.2337ZM38.5573 50.3275L40.3393 49.4195L40.3393 49.4195L38.5573 50.3275ZM42.7907 51.703L43.6987 53.485L43.6987 53.485L42.7907 51.703ZM44.1662 47.4696L45.9483 46.5616L45.9483 46.5616L44.1662 47.4696ZM42.5899 44.3757L41.6819 42.5937L39.8999 43.5017L40.8078 45.2837L42.5899 44.3757ZM44.8395 43.2295L45.7475 45.0115L44.8395 43.2295ZM45.235 38.1252L46.4067 36.5043L46.4067 36.5043L45.235 38.1252ZM32.0312 33.0029C32.0331 32.188 32.9566 31.7175 33.617 32.1949L35.9603 28.9531C32.6584 26.5663 28.041 28.9189 28.0312 32.9932L32.0312 33.0029ZM32 45.8926L32.0312 33.0029L28.0312 32.9932L28 45.883L32 45.8926ZM33.454 46.786C32.7877 47.1255 31.9982 46.6404 32 45.8926L28 45.883C27.991 49.6218 31.9387 52.0475 35.27 50.3501L33.454 46.786ZM36.0729 45.4516L33.454 46.786L35.27 50.3501L37.8889 49.0157L36.0729 45.4516ZM40.3393 49.4195L38.7629 46.3257L35.1989 48.1416L36.7753 51.2355L40.3393 49.4195ZM41.8827 49.921C41.318 50.2087 40.627 49.9842 40.3393 49.4195L36.7753 51.2355C38.0659 53.7685 41.1657 54.7757 43.6987 53.485L41.8827 49.921ZM42.3842 48.3776C42.672 48.9423 42.4474 49.6333 41.8827 49.921L43.6987 53.485C46.2318 52.1944 47.2389 49.0947 45.9483 46.5616L42.3842 48.3776ZM40.8078 45.2837L42.3842 48.3776L45.9483 46.5616L44.3719 43.4678L40.8078 45.2837ZM43.9315 41.4475L41.6819 42.5937L43.4978 46.1578L45.7475 45.0115L43.9315 41.4475ZM44.0633 39.7461C44.6693 40.1841 44.5978 41.108 43.9315 41.4475L45.7475 45.0115C49.0788 43.3141 49.4367 38.6946 46.4067 36.5043L44.0633 39.7461ZM33.617 32.1949L44.0633 39.7461L46.4067 36.5043L35.9603 28.9531L33.617 32.1949Z" fill="white" mask="url(#path-1-outside-1_231_14)"/> </g> <defs> <filter id="filter0_d_231_14" x="24" y="23.9961" width="28.4775" height="34.0508" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"> <feFlood flood-opacity="0" result="BackgroundImageFix"/> <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/> <feOffset/> <feGaussianBlur stdDeviation="2"/> <feComposite in2="hardAlpha" operator="out"/> <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/> <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_231_14"/> <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_231_14" result="shape"/> </filter> </defs> </svg>`;
+      setSVG = setSVG.replace(/COLOR_REPLACE/g, "#" + module.color).replace(/OPACITY_REPLACE/g, module.opacity / 100);
+      if (setSVG != mouseSVG) {
+        mouseSVG = setSVG;
+        let blob = new Blob([setSVG], { type: "image/svg+xml" });
+        mouseBlob = URL.createObjectURL(blob);
+        editor.page.querySelector(".eContent").style.cursor = "url('" + mouseBlob + "') 28 28, auto";
+      }
+    }
 
     let updateSubtoolUI = async () => {
       if (mainSubtoolButton != null) {
@@ -444,6 +479,9 @@ modules["editor/toolbar"] = {
               if (toolData.tooltip != null) {
                 newSubItem.setAttribute("tooltip", toolData.tooltip);
               }
+              if (toolData.module != null) {
+                newSubItem.setAttribute("module", toolData.module);
+              }
               newSubItem.querySelector("div").innerHTML = toolData.image;
             } else if (toolData.module != null) {
               newSubItem.setAttribute("option", toolData.module);
@@ -459,6 +497,7 @@ modules["editor/toolbar"] = {
           if (preferences[toolID] != null && preferences[toolID].subtool) {
             let selectSubtool = subToolContent.querySelector('.eTool[subtool="' + preferences[toolID].subtool + '"]');
             if (selectSubtool != null) {
+              currentToolModule = selectSubtool.getAttribute("module");
               selectSubtool.setAttribute("selected", "");
             }
           }
@@ -511,7 +550,7 @@ modules["editor/toolbar"] = {
     //showSubtoolUI(frame.querySelector('[tool="select"]'));
     let selectedToolID = "select";
     let selectedSubtoolToolID = "select";
-    frame.addEventListener("click", function (event) {
+    frame.addEventListener("click", async function (event) {
       let element = event.target;
       if (element == null) {
         return;
@@ -535,11 +574,13 @@ modules["editor/toolbar"] = {
       if (element.hasAttribute("tool") == true) {
         selectedToolID = element.getAttribute("tool");
         showSubtoolUI(element);
+        currentToolModule = element.getAttribute("module");
       } else if (element.hasAttribute("subtool") == true) {
         selectedSubtoolToolID = element.getAttribute("subtool");
         if (preferences[selectedToolID].subtool != null) {
           preferences[selectedToolID].subtool = selectedSubtoolToolID
         }
+        currentToolModule = element.getAttribute("module");
         editor.updateToolbar();
         closeSubSubtoolUI();
       } else if (element.hasAttribute("option") == true && element.getAttribute("option").length > 0) {
@@ -569,6 +610,7 @@ modules["editor/toolbar"] = {
           }
         }
       }
+      enableTool(currentToolModule);
       editor.savePreferences();
     }
     editor.updateToolbar();
@@ -576,6 +618,47 @@ modules["editor/toolbar"] = {
     //frame.closest(".eSide").style.opacity = 1;
   }
 }
+
+// UTILS
+modules["pages/editor/toolbar/utils"] = {
+  begin: async function () {
+    console.log("ACTIVE")
+  }
+};
+
+// HIGHLIGHT TOOL
+modules["pages/editor/toolbar/highlighter"] = {
+  mouse: `<svg width="56" height="56" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"> <g filter="url(#filter0_d_235_2)"> <path d="M31.3781 20.4071L30.4384 20.0651L30.0964 21.0048L27.0871 29.2728C26.3315 31.3487 27.4019 33.644 29.4778 34.3996L34.1875 36.1138C36.2634 36.8694 38.5588 35.799 39.3144 33.7231L42.3237 25.4551L42.6657 24.5155L41.726 24.1734L31.3781 20.4071Z" fill="COLOR_REPLACE" fill-opacity="OPACITY_REPLACE" stroke="white" stroke-width="2"/> <path d="M39.3631 30.6623L40.3028 31.0044L40.6448 30.0647L46.8824 12.927C47.6379 10.8511 46.5676 8.55575 44.4917 7.80018L39.7819 6.08596C37.706 5.33039 35.4106 6.40074 34.655 8.47665L28.4175 25.6143L28.0754 26.554L29.0151 26.896L39.3631 30.6623Z" fill="#2F2F2F" stroke="white" stroke-width="2"/> </g> <defs> <filter id="filter0_d_235_2" x="21.8447" y="0.84375" width="30.2803" height="40.5127" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"> <feFlood flood-opacity="0" result="BackgroundImageFix"/> <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/> <feOffset/> <feGaussianBlur stdDeviation="2"/> <feComposite in2="hardAlpha" operator="out"/> <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/> <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_235_2"/> <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_235_2" result="shape"/> </filter> </defs> </svg>`,
+  js: async function (editor, events) {
+    this.color = editor.preferences.tools.markup.color.selected;
+    this.opacity = editor.preferences.tools.markup.opacity;
+  }
+};
+// UNDERLINE TOOL
+modules["pages/editor/toolbar/underline"] = {
+  mouse: `<svg width="56" height="56" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"> <g filter="url(#filter0_d_235_2)"> <path d="M31.3781 20.4071L30.4384 20.0651L30.0964 21.0048L27.0871 29.2728C26.3315 31.3487 27.4019 33.644 29.4778 34.3996L34.1875 36.1138C36.2634 36.8694 38.5588 35.799 39.3144 33.7231L42.3237 25.4551L42.6657 24.5155L41.726 24.1734L31.3781 20.4071Z" fill="COLOR_REPLACE" stroke="white" stroke-width="2"/> <path d="M39.3631 30.6623L40.3028 31.0044L40.6448 30.0647L46.8824 12.927C47.6379 10.8511 46.5676 8.55575 44.4917 7.80018L39.7819 6.08596C37.706 5.33039 35.4106 6.40074 34.655 8.47665L28.4175 25.6143L28.0754 26.554L29.0151 26.896L39.3631 30.6623Z" fill="#2F2F2F" stroke="white" stroke-width="2"/> </g> <defs> <filter id="filter0_d_235_2" x="21.8447" y="0.84375" width="30.2803" height="40.5127" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"> <feFlood flood-opacity="0" result="BackgroundImageFix"/> <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/> <feOffset/> <feGaussianBlur stdDeviation="2"/> <feComposite in2="hardAlpha" operator="out"/> <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/> <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_235_2"/> <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_235_2" result="shape"/> </filter> </defs> </svg>`,
+  js: async function (editor, events) {
+    this.color = editor.preferences.tools.markup.color.selected;
+    this.opacity = editor.preferences.tools.markup.opacity;
+  }
+};
+
+// PEN TOOL
+modules["pages/editor/toolbar/pen"] = {
+  mouse: `<svg width="56" height="56" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"> <g filter="url(#filter0_d_230_9)"> <path d="M34.1403 16.8592L33.2006 16.5172L32.8586 17.4569L30.0243 25.2438C29.0801 27.8382 29.3788 30.7224 30.8347 33.0682L31.1771 33.6198C31.6637 34.4037 32.6235 34.7531 33.5002 34.4653L34.117 34.2628C36.7401 33.4017 38.8229 31.3843 39.7672 28.7899L42.6014 21.003L42.9434 20.0633L42.0037 19.7213L34.1403 16.8592Z" fill="COLOR_REPLACE" fill-opacity="OPACITY_REPLACE" stroke="white" stroke-width="2"/> <path d="M39.0164 27.925L39.9561 28.2671L40.2981 27.3274L45.5943 12.7762C46.5735 10.0858 45.1863 7.11099 42.4959 6.13176C39.8055 5.15253 36.8307 6.53971 35.8514 9.23012L30.5553 23.7813L30.2132 24.721L31.1529 25.063L39.0164 27.925Z" fill="#2F2F2F" stroke="white" stroke-width="2"/> </g> <defs> <filter id="filter0_d_230_9" x="24.4814" y="0.817383" width="26.4268" height="38.748" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"> <feFlood flood-opacity="0" result="BackgroundImageFix"/> <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/> <feOffset/> <feGaussianBlur stdDeviation="2"/> <feComposite in2="hardAlpha" operator="out"/> <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/> <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_230_9"/> <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_230_9" result="shape"/> </filter> </defs> </svg>`,
+  js: async function (editor, events) {
+    this.color = editor.preferences.tools.draw.color.selected;
+    this.opacity = editor.preferences.tools.draw.opacity;
+    console.log("ACTIVE")
+  }
+};
+// ERASER TOOL
+modules["pages/editor/toolbar/eraser"] = {
+  mouse: `<svg width="56" height="56" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"> <g filter="url(#filter0_d_236_14)"> <path d="M32 25V24H33H43C45.2091 24 47 25.7909 47 28V36C47 38.2091 45.2091 40 43 40H33H32V39V25Z" fill="#2F2F2F" stroke="white" stroke-width="2"/> <path d="M32 39V40H31H21C18.7909 40 17 38.2091 17 36V28C17 25.7909 18.7909 24 21 24H31H32V25V39Z" fill="#2F2F2F" stroke="white" stroke-width="2"/> </g> <defs> <filter id="filter0_d_236_14" x="12" y="19" width="40" height="26" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"> <feFlood flood-opacity="0" result="BackgroundImageFix"/> <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/> <feOffset/> <feGaussianBlur stdDeviation="2"/> <feComposite in2="hardAlpha" operator="out"/> <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/> <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_236_14"/> <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_236_14" result="shape"/> </filter> </defs> </svg>`,
+  js: async function (editor, events) {
+    
+  }
+};
 
 modules["pages/editor/toolbar/color"] = {
   button: `<div class="eSubToolColorHolder"><div class="eSubToolColor" backcolor picked></div></div>`,

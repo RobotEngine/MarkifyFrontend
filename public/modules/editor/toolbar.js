@@ -831,15 +831,15 @@ modules["pages/editor/toolbar/color"] = {
           }
       }
     });
-    let updatePickerUI = (updateVal) => {
+    let updatePickerUI = () => {
       // Update Colors Shown:
       let hue = "#" + this.hsvToHex(h, 100, 100);
       colorShowBox.style.background = "#" + toolPref.color.selected;
       shadePointer.style.background = "#" + toolPref.color.selected;
       colorPointer.style.background = hue;
       // Update Pointer Positions:
-      shadePointer.style.left = (shadeSliderHolder.offsetWidth*(s / 100)) - 12 + "px";
-      shadePointer.style.top = (shadeSliderHolder.offsetHeight - (shadeSliderHolder.offsetHeight*(v / 100))) - 8 + "px";
+      shadePointer.style.left = (shadeSliderHolder.offsetWidth*(s / 100)) - 10 + "px";
+      shadePointer.style.top = (shadeSliderHolder.offsetHeight - (shadeSliderHolder.offsetHeight*(v / 100))) - 10 + "px";
       colorPointer.style.left = (colorSliderHolder.offsetWidth*(h / 360)) - 10 + "px";
       // Update Gradient:
       canvas.width = canvas.offsetWidth;
@@ -901,8 +901,8 @@ modules["pages/editor/toolbar/color"] = {
         return;
       }
       let barRect = shadeSliderHolder.getBoundingClientRect();
-      s = Math.ceil(Math.max(Math.min((event.x - barRect.x) / shadeSliderHolder.offsetWidth, 1), 0) * 100);
-      v = Math.ceil(Math.max(Math.min((shadeSliderHolder.offsetHeight - (event.y - barRect.y)) / shadeSliderHolder.offsetHeight, 1), 0) * 100);
+      s = Math.ceil(Math.max(Math.min((event.x - barRect.x - 2) / shadeSliderHolder.offsetWidth, 1), 0) * 100);
+      v = Math.ceil(Math.max(Math.min((shadeSliderHolder.offsetHeight - (event.y - barRect.y + 2)) / shadeSliderHolder.offsetHeight, 1), 0) * 100);
       updateStoredValues();
     }
     shadeSliderHolder.addEventListener("mousedown", (event) => {

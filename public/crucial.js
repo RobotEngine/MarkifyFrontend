@@ -617,11 +617,13 @@ function objectUpdate(obj, passData, path) {
         checkKey = JSON.stringify(checkKey);
       }
       let checkNewKey = obj[key];
+      let setValue = obj[key];
       if (Array.isArray(checkNewKey)) {
         checkNewKey = JSON.stringify(checkNewKey);
+        setValue = JSON.parse(checkNewKey);
       }
       if (checkKey != checkNewKey) {
-        passData[key] = obj[key];
+        passData[key] = setValue;
         changes[path + key] = passData[key];
       }
     } else {
@@ -1059,7 +1061,7 @@ modules["dropdowns/account"] = {
 
 // Add CORE CSS:
 addCSS({
-  "button, a": `border: none; background: none; color: var(--textColor); font-family: var(--font); cursor: pointer; transition: .1s`,
+  "button, a": `border: none; background: none; user-select: none; color: var(--textColor); font-family: var(--font); cursor: pointer; transition: .1s`,
   "button:active, a:active": `transform: scale(.95) !important`,
   "[disabled]": `pointer-events: none !important; opacity: .5 !important`,
   "[hidden]": `pointer-events: none !important; opacity: 0 !important`,

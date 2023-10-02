@@ -595,15 +595,20 @@ modules["pages/editor/toolbar/color"] = {
       <div class="eSubToolColorPicker">
         <div class="eSubToolColorPickerTop">
           <div class="eSubToolColorPickerTopSelected"></div>
+          <button class="eSubToolColorPickerEyedroper" title="Eyedropper"><img src="./images/editor/eyedropper.svg"></button>
           <button class="eSubToolColorPickerTopBack buttonAnim border"><img src="./images/tooltips/close.svg"></button>
         </div>
         <div class="eSubToolColorPickerShade">
-          <canvas class="eSubToolColorPickerShadeCanvas"></canvas>
+          <div><canvas></canvas></div>
           <button></button>
         </div>
         <div class="eSubToolColorPickerGradient">
           <div class="eSubToolColorPickerGradientSlider"></div>
           <button></button>
+        </div>
+        <div class="eSubToolColorPickerInput">
+          <button class="largeButton border" title="Change Color Scale"></button>
+          <input name="Color Input">
         </div>
       </div>
     </div>
@@ -620,20 +625,88 @@ modules["pages/editor/toolbar/color"] = {
     ".eSubToolColorSelector .eSubToolColor": `width: 32px; height: 32px`,
 
     ".eSubToolColorPicker": `width: 212px; position: absolute; top: 0px; transform: scale(.9); opacity: 0; transition: .5s; pointer-events: none`,
-    ".eSubToolColorPickerTop": `position: relative; display: flex; box-sizing: border-box; justify-content: space-between; width: 100%; height: 50px; padding: 10px`,
-    ".eSubToolColorPickerTopSelected": `width: 30px; height: 30px; background: red; border-radius: 10px`,
-    ".eSubToolColorPickerTopBack": `position: relative; width: 22px; height: 22px; margin: 3px 3px 3px 13px; --borderWidth: 3px; --borderRadius: 11px`,
+    ".eSubToolColorPickerTop": `position: relative; display: flex; box-sizing: border-box; width: 100%; height: 50px; padding: 10px`,
+    ".eSubToolColorPickerTopSelected": `width: 30px; height: 30px; border-radius: 10px`,
+    ".eSubToolColorPickerEyedroper": `width: 30px; height: 30px; padding: 0px; margin: 0 13px 0 6px; border-radius: 10px`,
+    ".eSubToolColorPickerEyedroper img": `width: 100%; height: 100%`,
+    ".eSubToolColorPickerEyedroper:hover": `background: var(--hover)`,
+    ".eSubToolColorPickerEyedroper:active": `transform: scale(.95)`,
+    ".eSubToolColorPickerTopBack": `position: relative; width: 22px; height: 22px; margin: 3px 3px 3px auto; --borderWidth: 3px; --borderRadius: 11px`,
     ".eSubToolColorPickerTopBack img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
-    ".eSubToolColorPickerShade": `position: relative; width: calc(100% - 20px); height: 120px; margin: 0px 10px 10px 10px`,
-    ".eSubToolColorPickerShadeCanvas": `width: 100%; height: 100%; background: red; border-radius: 10px`,
-    ".eSubToolColorPickerShade button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; left: -10px; top: -10px; background: var(--theme); border: solid 3px var(--pageColor); border-radius: 10px; transition: transform .2s`,
+    ".eSubToolColorPickerShade": `position: relative; width: calc(100% - 20px); height: 120px; margin: 0px 10px 10px`,
+    ".eSubToolColorPickerShade div": `width: 100%; height: 100%; border-radius: 10px; overflow: hidden`,
+    ".eSubToolColorPickerShade canvas": `width: 100%; height: 100%; background: #000`,
+    ".eSubToolColorPickerShade button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; background: var(--theme); box-shadow: var(--lightShadow); border: solid 3px var(--pageColor); border-radius: 10px; transition: transform .2s`,
     ".eSubToolColorPickerShade button:hover": `transform: scale(1.2) !important`,
     ".eSubToolColorPickerShade button:active": `transform: scale(1.1) !important`,
-    ".eSubToolColorPickerGradient": `position: relative; width: calc(100% - 20px); height: 10px; margin: 10px`,
+    ".eSubToolColorPickerGradient": `position: relative; width: calc(100% - 20px); height: 10px; margin: 14px 10px 10px 10px`,
     ".eSubToolColorPickerGradientSlider": `width: 100%; height: 100%; background: -webkit-linear-gradient(left, rgb(255, 0, 0), rgb(255, 255, 0), rgb(0, 255, 0), rgb(0, 255, 255), rgb(0, 0, 255), rgb(255, 0, 255), rgb(255, 0, 0)); border-radius: 5px`,
-    ".eSubToolColorPickerGradient button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; left: -10px; top: -5px; background: var(--theme); border: solid 3px var(--pageColor); border-radius: 10px; transition: transform .2s`,
+    ".eSubToolColorPickerGradient button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; top: -5px; background: var(--theme); box-shadow: var(--lightShadow); border: solid 3px var(--pageColor); border-radius: 10px; transition: transform .2s`,
     ".eSubToolColorPickerGradient button:hover": `transform: scale(1.2) !important`,
     ".eSubToolColorPickerGradient button:active": `transform: scale(1.1) !important`,
+    ".eSubToolColorPickerInput": `display: flex; width: calc(100% - 20px); margin: 14px 10px 10px`,
+    ".eSubToolColorPickerInput button": `height: 22px; padding: 3px 6px; margin: 3px; --borderWidth: 3px; --borderRadius: 7px; font-size: 16px; font-weight: 700; color: var(--theme)`,
+    ".eSubToolColorPickerInput input": `flex: 1; min-width: 0px; height: 19px; margin-left: 6px; border: solid 3px var(--secondary); outline: none; border-radius: 14px; font-family: var(--font); font-size: 18px; font-weight: 700; color: var(--theme); text-align: center`,
+    ".eSubToolColorPickerInput input::placeholder": `color: var(--hover)`
+  },
+  hslToHex: function(h, s, l) {
+    l /= 100;
+    let a = s * Math.min(l, 1 - l) / 100;
+    let f = n => {
+      let k = (n + h / 30) % 12;
+      let color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+      return Math.round(255 * color).toString(16).padStart(2, "0");
+    }
+    return `${f(0)}${f(8)}${f(4)}`;
+  },
+  hsvToHex: function(h, s, b) {
+    // HSV to HSL
+    let x = (200 - s) * b / 100;
+    s = x === 0 || x === 200 ? 0 : Math.round(s * b / (x <= 100 ? x : 200 - x));
+    let l = Math.round(x / 2);
+    // HSL to HEX
+    return this.hslToHex(h, s, l);
+  },
+  hexToRGB: function(hex) {
+    if (hex.length < 4) {
+      hex = hex.split("").map((hexVal) => { return hexVal + hexVal }).join("");
+    }
+    let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+
+    return [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)];
+  },
+  hexToHSL: function(hex) {
+    let [r, g, b] = this.hexToRGB(hex);
+
+    r /= 255, g /= 255, b /= 255;
+    let max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+
+    if(max == min){
+      h = s = 0;
+    } else {
+      let d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch(max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h /= 6;
+    }
+    
+    return [Math.round(360*h), Math.round(s*100), Math.round(l*100)];
+  },
+  hexToHSV: function(hex) {
+    // HEX to HSL
+    let [h, s, l] = this.hexToHSL(hex);
+    // HSL to HSV
+    let x = s * (l < 50 ? l : 100 - l);
+    b = l + (x / 100);
+    return [h, l === 0 ? s : 2 * x / b, l + (x / 100)];
+  },
+  rgbToHex: function(r, g, b) {
+    return (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1);
   },
   js: async function (frame, toolID) {
     let editor = await getModule("pages/editor");
@@ -644,19 +717,21 @@ modules["pages/editor/toolbar/color"] = {
     let toolPref = preferences[toolID];
 
     let colorButtons = frame.querySelector(".eSubToolColorSelector").children;
+    let selected = false;
     for (let i = 0; i < toolPref.color.options.length; i++) {
       let button = colorButtons[i];
       let setColor = toolPref.color.options[i];
       button.setAttribute("int", i);
       button.querySelector(".eSubToolColor").style.background = editor.hexToRGB(setColor, toolPref.opacity / 100);
-      if (setColor == toolPref.color.selected) {
+      if (setColor == toolPref.color.selected || (i > toolPref.color.options.length - 2 && selected == false)) {
         button.setAttribute("selected", "");
+        selected = true;
       }
     }
 
     let selector = frame.querySelector(".eSubToolColorSelector");
     let picker = frame.querySelector(".eSubToolColorPicker");
-    
+    let [h, s, v] = [];
     selector.addEventListener("click", async (event) => {
       let element = event.target;
       if (element == null) {
@@ -670,6 +745,8 @@ modules["pages/editor/toolbar/color"] = {
         toolPref.color.selected = toolPref.color.options[parseInt(element.getAttribute("int"))];
         editor.updateToolbar();
       } else if (element.hasAttribute("enablepicker") == true) {
+        [h, s, v] = this.hexToHSV(toolPref.color.selected);
+        updatePickerUI();
         picker.style.position = "relative";
         selector.style.position = "absolute";
         picker.style.transform = "scale(1)";
@@ -693,6 +770,180 @@ modules["pages/editor/toolbar/color"] = {
       editor.updateSubtoolUI();
     });
 
+    // CUSTOM COLOR PICKER:
+    let colorShowBox = frame.querySelector(".eSubToolColorPickerTopSelected");
+    let colorSliderHolder = frame.querySelector(".eSubToolColorPickerGradient");
+    let colorPointer = colorSliderHolder.querySelector("button");
+    let shadeSliderHolder = frame.querySelector(".eSubToolColorPickerShade");
+    let canvas = shadeSliderHolder.querySelector("canvas");
+    let ctx = canvas.getContext("2d");
+    let shadePointer = shadeSliderHolder.querySelector("button");
+    let modeButton = frame.querySelector(".eSubToolColorPickerInput button");
+    let modeInput = frame.querySelector(".eSubToolColorPickerInput input");
+    let colorGradientEnabled = false;
+    let colorSliderEnabled = false;
+    let modes = ["HEX", "RGB", "HSL", "HSB"];
+    modeButton.addEventListener("click", () => {
+      editor.preferences.colorpicker.mode++;
+      if (editor.preferences.colorpicker.mode > modes.length - 1) {
+        editor.preferences.colorpicker.mode = 0;
+      }
+      modeButton.textContent = modes[editor.preferences.colorpicker.mode];
+      editor.savePreferences();
+      updatePickerUI();
+    });
+    modeButton.textContent = modes[editor.preferences.colorpicker.mode];
+    modeInput.addEventListener("input", () => {
+      switch (modes[editor.preferences.colorpicker.mode]) {
+        case "HEX":
+          modeInput.value = modeInput.value.replace(/[^0-9a-z]/gi, "");
+          if ((/^([0-9a-f]{3}){1,2}$/i).test(modeInput.value) == true) {
+            updateStoredValues(modeInput.value);
+          } else {
+            modeInput.style.borderColor = "var(--error)";
+          }
+          break;
+        case "RGB":
+          modeInput.value = modeInput.value.replace(/[^0-9a-z, ]/gi, "");
+          let rgbVals = modeInput.value.match(/\d+/g);
+          if (rgbVals[0] > 0 && rgbVals[0] < 256 && rgbVals[1] > 0 && rgbVals[1] < 256 && rgbVals[2] > 0 && rgbVals[2] < 256) {
+            updateStoredValues(this.rgbToHex(rgbVals[0], rgbVals[1], rgbVals[2]));
+          } else {
+            modeInput.style.borderColor = "var(--error)";
+          }
+          break;
+        case "HSL":
+          modeInput.value = modeInput.value.replace(/[^0-9a-z, ]/gi, "");
+          let hslVals = modeInput.value.match(/\d+/g);
+          if (hslVals[0] > 0 && hslVals[0] < 361 && hslVals[1] > 0 && hslVals[1] < 101 && hslVals[2] > 0 && hslVals[2] < 101) {
+            updateStoredValues(this.hslToHex(hslVals[0], hslVals[1], hslVals[2]));
+          } else {
+            modeInput.style.borderColor = "var(--error)";
+          }
+          break;
+        case "HSB":
+          modeInput.value = modeInput.value.replace(/[^0-9a-z, ]/gi, "");
+          let hsvVals = modeInput.value.match(/\d+/g);
+          if (hsvVals[0] > 0 && hsvVals[0] < 361 && hsvVals[1] > 0 && hsvVals[1] < 101 && hsvVals[2] > 0 && hsvVals[2] < 101) {
+            updateStoredValues(this.hsvToHex(hsvVals[0], hsvVals[1], hsvVals[2]));
+          } else {
+            modeInput.style.borderColor = "var(--error)";
+          }
+      }
+    });
+    let updatePickerUI = (updateVal) => {
+      // Update Colors Shown:
+      let hue = "#" + this.hsvToHex(h, 100, 100);
+      colorShowBox.style.background = "#" + toolPref.color.selected;
+      shadePointer.style.background = "#" + toolPref.color.selected;
+      colorPointer.style.background = hue;
+      // Update Pointer Positions:
+      shadePointer.style.left = (shadeSliderHolder.offsetWidth*(s / 100)) - 12 + "px";
+      shadePointer.style.top = (shadeSliderHolder.offsetHeight - (shadeSliderHolder.offsetHeight*(v / 100))) - 8 + "px";
+      colorPointer.style.left = (colorSliderHolder.offsetWidth*(h / 360)) - 10 + "px";
+      // Update Gradient:
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      let colorscale = ctx.createLinearGradient(0, 0, canvas.width, 0);
+      colorscale.addColorStop(0, "white");
+      colorscale.addColorStop(1, hue);
+      ctx.fillStyle = colorscale;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      let grayscale = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      grayscale.addColorStop(0, "rgba(0, 0, 0, 0)");
+      grayscale.addColorStop(1, "black");
+      ctx.fillStyle = grayscale;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Update Input:
+      switch (modes[editor.preferences.colorpicker.mode]) {
+        case "HEX":
+          modeInput.value = toolPref.color.selected.toUpperCase();
+          break;
+        case "RGB":
+          let rgbVal = this.hexToRGB(toolPref.color.selected);
+          modeInput.value = rgbVal[0] + ", " + rgbVal[1] + ", " + rgbVal[2];
+          break;
+        case "HSL":
+          let hslVal = this.hexToHSL(toolPref.color.selected);
+          modeInput.value = hslVal[0] + ", " + hslVal[1] + ", " + hslVal[2];
+          break;
+        case "HSB":
+          let hsbVal = this.hexToHSV(toolPref.color.selected);
+          modeInput.value = Math.floor(hsbVal[0]) + ", " + Math.floor(hsbVal[1]) + ", " + Math.floor(hsbVal[2]);
+      }
+      modeInput.placeholder = modeInput.value;
+      modeInput.style.borderColor = "var(--secondary)";
+      // Update Toolbar Colors:
+      editor.updateToolbar();
+    }
+    let updateStoredValues = (hex) => {
+      toolPref.color.selected = hex || this.hsvToHex(h, s, v);
+      let selectedButton = frame.querySelector('.eTool[selected]');
+      let int = parseInt(selectedButton.getAttribute("int"));
+      if (int == null || int < 0 || int > 6) {
+        return;
+      }
+      toolPref.color.options[int] = toolPref.color.selected;
+      selectedButton.querySelector(".eSubToolColor").style.background = editor.hexToRGB(toolPref.color.selected, toolPref.opacity / 100);
+      if (hex != null) {
+        [h, s, v] = this.hexToHSV(toolPref.color.selected);
+      }
+      updatePickerUI();
+    }
+    let eventGradientUpdate = (event) => {
+      if (colorGradientEnabled == false) {
+        return;
+      }
+      if (mouseDown() == false) {
+        app.style.userSelect = "unset";
+        colorGradientEnabled = false;
+        return;
+      }
+      let barRect = shadeSliderHolder.getBoundingClientRect();
+      s = Math.ceil(Math.max(Math.min((event.x - barRect.x) / shadeSliderHolder.offsetWidth, 1), 0) * 100);
+      v = Math.ceil(Math.max(Math.min((shadeSliderHolder.offsetHeight - (event.y - barRect.y)) / shadeSliderHolder.offsetHeight, 1), 0) * 100);
+      updateStoredValues();
+    }
+    shadeSliderHolder.addEventListener("mousedown", (event) => {
+      editor.events.mouseMove = eventGradientUpdate;
+      colorGradientEnabled = true;
+      app.style.userSelect = "none";
+      eventGradientUpdate(event);
+    });
+    let eventColorUpdate = (event) => {
+      if (colorSliderEnabled == false) {
+        return;
+      }
+      if (mouseDown() == false) {
+        app.style.userSelect = "unset";
+        colorSliderEnabled = false;
+        return;
+      }
+      let barRect = colorSliderHolder.getBoundingClientRect();
+      h = Math.ceil(Math.max(Math.min((event.x - barRect.x) / colorSliderHolder.offsetWidth, 1), 0) * 360);
+      updateStoredValues();
+    }
+    colorSliderHolder.addEventListener("mousedown", (event) => {
+      editor.events.mouseMove = eventColorUpdate;
+      colorSliderEnabled = true;
+      app.style.userSelect = "none";
+      eventColorUpdate(event);
+    });
+    editor.events.mouseMove = null;
+    let eyeDropper = frame.querySelector(".eSubToolColorPickerEyedroper");
+    if (window.EyeDropper == null) {
+      eyeDropper.style.display = "none";
+    }
+    eyeDropper.addEventListener("click", () => {
+      (new EyeDropper())
+      .open()
+      .then((result) => {
+        updateStoredValues(result.sRGBHex.substring(1));
+      })
+      .catch(() => {});
+    });
+
     editor.updateToolbar();
   }
 };
@@ -713,7 +964,7 @@ modules["pages/editor/toolbar/thickness"] = {
     ".eSubToolThicknessInput": `width: 40px; height: 26px; border: solid 3px var(--secondary); outline: none; border-radius: 17px; font-family: var(--font); font-size: 20px; font-weight: 700; color: var(--theme); text-align: center`,
     ".eSubToolThicknessInput::placeholder": `color: var(--hover)`,
     ".eSubToolThicknessSlider": `position: relative; flex: 1; height: 10px; margin: 0 12px; background: var(--hover); border-radius: 5px`,
-    ".eSubToolThicknessSlider button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; top: -5px; background: var(--theme); border: solid 5px var(--secondary); border-radius: 10px; transition: transform .2s`,
+    ".eSubToolThicknessSlider button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; top: -5px; background: var(--theme); box-shadow: var(--lightShadow); border: solid 5px var(--secondary); border-radius: 10px; transition: transform .2s`,
     ".eSubToolThicknessSlider button:hover": `transform: scale(1.2) !important`,
     ".eSubToolThicknessSlider button:active": `transform: scale(1.1) !important`
   },
@@ -789,7 +1040,7 @@ modules["pages/editor/toolbar/opacity"] = {
     ".eSubToolOpacityHolder": `box-sizing: border-box; display: flex; width: 212px; height: 50px; padding: 6px; align-items: center`,
     ".eSubToolOpacityInput": `width: 40px; height: 26px; border: solid 3px var(--secondary); outline: none; border-radius: 17px; font-family: var(--font); font-size: 20px; font-weight: 700; color: var(--theme); text-align: center`,
     ".eSubToolOpacitySlider": `position: relative; flex: 1; height: 10px; margin: 0 12px; background: var(--hover); border-radius: 5px`,
-    ".eSubToolOpacitySlider button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; top: -5px; background: var(--theme); border: solid 5px var(--secondary); border-radius: 10px; transition: transform .2s`,
+    ".eSubToolOpacitySlider button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; top: -5px; background: var(--theme); box-shadow: var(--lightShadow); border: solid 5px var(--secondary); border-radius: 10px; transition: transform .2s`,
     ".eSubToolOpacitySlider button:hover": `transform: scale(1.2) !important`,
     ".eSubToolOpacitySlider button:active": `transform: scale(1.1) !important`
   },

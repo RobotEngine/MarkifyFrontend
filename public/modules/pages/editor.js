@@ -175,11 +175,14 @@ modules["pages/editor"] = {
           opacity: 100
         },
         comment: {
-          
+
         },
         media: {
 
         }
+      },
+      colorpicker: {
+        mode: 0
       }
     };
     this.options = {
@@ -266,7 +269,7 @@ modules["pages/editor"] = {
     // PRELOAD ASSETS
     loadScript("./libraries/pdfjs/pdf.js");
     loadScript("./modules/editor/realtime.js");
-    
+
     page.style.removeProperty("display");
     page.style.width = "fit-content";
     page.style.minWidth = "100%";
@@ -611,7 +614,7 @@ modules["pages/editor"] = {
     let nameBox = page.querySelector(".eFileName");
     nameBox.textContent = this.lesson.name || "Untitled Lesson";
     document.title = nameBox.textContent + " | Markify";
-    nameBox.addEventListener("keydown", function(event) {
+    nameBox.addEventListener("keydown", function (event) {
       if (event.keyCode == 13) {
         event.preventDefault();
         return;
@@ -1044,7 +1047,7 @@ modules["pages/editor"] = {
     }
     tempListen(window, "DOMMouseScroll", scrollMouseWheel, { passive: false });
     tempListen(window, "mousewheel", scrollMouseWheel, { passive: false });
-    
+
     // Handle MOBILE
     /*
     let initialDistance = null;

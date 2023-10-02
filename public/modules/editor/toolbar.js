@@ -784,17 +784,17 @@ modules["pages/editor/toolbar/color"] = {
     let colorSliderEnabled = false;
     let modes = ["HEX", "RGB", "HSL", "HSB"];
     modeButton.addEventListener("click", () => {
-      editor.preferences.colorpicker.mode++;
-      if (editor.preferences.colorpicker.mode > modes.length - 1) {
-        editor.preferences.colorpicker.mode = 0;
+      editor.preferences.tools.options.colorpicker.scale++;
+      if (editor.preferences.tools.options.colorpicker.scale > modes.length - 1) {
+        editor.preferences.tools.options.colorpicker.scale = 0;
       }
-      modeButton.textContent = modes[editor.preferences.colorpicker.mode];
+      modeButton.textContent = modes[editor.preferences.tools.options.colorpicker.scale];
       editor.savePreferences();
       updatePickerUI();
     });
-    modeButton.textContent = modes[editor.preferences.colorpicker.mode];
+    modeButton.textContent = modes[editor.preferences.tools.options.colorpicker.scale];
     modeInput.addEventListener("input", () => {
-      switch (modes[editor.preferences.colorpicker.mode]) {
+      switch (modes[editor.preferences.tools.options.colorpicker.scale]) {
         case "HEX":
           modeInput.value = modeInput.value.replace(/[^0-9a-z]/gi, "");
           if ((/^([0-9a-f]{3}){1,2}$/i).test(modeInput.value) == true) {
@@ -856,7 +856,7 @@ modules["pages/editor/toolbar/color"] = {
       ctx.fillStyle = grayscale;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       // Update Input:
-      switch (modes[editor.preferences.colorpicker.mode]) {
+      switch (modes[editor.preferences.tools.options.colorpicker.scale]) {
         case "HEX":
           modeInput.value = toolPref.color.selected.toUpperCase();
           break;

@@ -179,10 +179,12 @@ modules["pages/editor"] = {
         },
         media: {
 
+        },
+        options: {
+          colorpicker: {
+            scale: 0
+          }
         }
-      },
-      colorpicker: {
-        mode: 0
       }
     };
     this.options = {

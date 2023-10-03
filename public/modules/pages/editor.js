@@ -303,7 +303,7 @@ modules["pages/editor"] = {
     } else {
       page.querySelector(".eAccount").remove();
       loginButton.style.display = "block";
-      loginButton.addEventListener("click", promptLogin);
+      loginButton.addEventListener("click", () => { promptLogin(); });
     }
 
     let lessonID = getParam("lesson") || "";

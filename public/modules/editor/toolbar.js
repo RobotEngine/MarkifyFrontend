@@ -889,7 +889,7 @@ modules["pages/editor/toolbar/color"] = {
         case "RGB":
           modeInput.value = modeInput.value.replace(/[^0-9a-z, ]/gi, "");
           let rgbVals = modeInput.value.match(/\d+/g);
-          if (rgbVals[0] > 0 && rgbVals[0] < 256 && rgbVals[1] > 0 && rgbVals[1] < 256 && rgbVals[2] > 0 && rgbVals[2] < 256) {
+          if (rgbVals[0] >= 0 && rgbVals[0] <= 255 && rgbVals[1] >= 0 && rgbVals[1] <= 255 && rgbVals[2] >= 0 && rgbVals[2] <= 255) {
             updateStoredValues(this.rgbToHex(rgbVals[0], rgbVals[1], rgbVals[2]));
           } else {
             modeInput.style.borderColor = "var(--error)";
@@ -898,7 +898,7 @@ modules["pages/editor/toolbar/color"] = {
         case "HSL":
           modeInput.value = modeInput.value.replace(/[^0-9a-z, ]/gi, "");
           let hslVals = modeInput.value.match(/\d+/g);
-          if (hslVals[0] > 0 && hslVals[0] < 361 && hslVals[1] > 0 && hslVals[1] < 101 && hslVals[2] > 0 && hslVals[2] < 101) {
+          if (hslVals[0] >= 0 && hslVals[0] <= 360 && hslVals[1] >= 0 && hslVals[1] <= 100 && hslVals[2] >= 0 && hslVals[2] <= 100) {
             updateStoredValues(this.hslToHex(hslVals[0], hslVals[1], hslVals[2]));
           } else {
             modeInput.style.borderColor = "var(--error)";
@@ -907,7 +907,7 @@ modules["pages/editor/toolbar/color"] = {
         case "HSB":
           modeInput.value = modeInput.value.replace(/[^0-9a-z, ]/gi, "");
           let hsvVals = modeInput.value.match(/\d+/g);
-          if (hsvVals[0] > 0 && hsvVals[0] < 361 && hsvVals[1] > 0 && hsvVals[1] < 101 && hsvVals[2] > 0 && hsvVals[2] < 101) {
+          if (hsvVals[0] >= 0 && hsvVals[0] <= 360 && hsvVals[1] >= 0 && hsvVals[1] <= 100 && hsvVals[2] >= 0 && hsvVals[2] <= 100) {
             updateStoredValues(this.hsvToHex(hsvVals[0], hsvVals[1], hsvVals[2]));
           } else {
             modeInput.style.borderColor = "var(--error)";

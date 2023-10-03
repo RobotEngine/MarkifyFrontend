@@ -155,7 +155,6 @@ async function setFrame(path, frame, extra) {
   let loading = loadingPlacement.querySelector(".loading[new]");
   if (loading) {
     loading.removeAttribute("new");
-    runLoadingAnim(loading);
     if (frameSet == app) {
       loading.style.position = "fixed";
       let svgHolder = loading.querySelector(".loadingSvgHolder");

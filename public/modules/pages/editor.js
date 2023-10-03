@@ -841,7 +841,6 @@ modules["pages/editor"] = {
               pageElem.insertAdjacentHTML("beforeend", loadingAnim);
               let loading = pageElem.querySelector(".loading[new]");
               loading.removeAttribute("appload");
-              runLoadingAnim(loading);
               loading.style.transition = "unset";
               loading.style.opacity = 0;
               loading.offsetHeight;

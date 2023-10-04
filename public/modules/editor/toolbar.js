@@ -58,6 +58,7 @@ modules["editor/toolbar"] = {
         id: "select",
         tooltip: "Select",
         type: "tool",
+        module: "pages/editor/toolbar/cursor",
         image: `<svg width="26" viewBox="0 0 36 52" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="path-1-outside-1_306_4" maskUnits="userSpaceOnUse" x="0.192818" y="4.08914" width="36" height="44" fill="black"> <rect fill="white" x="0.192818" y="4.08914" width="36" height="44"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7602 8.2371C8.79786 5.37292 3.25704 8.19611 3.24522 13.0852L3.19284 34.7545C3.18199 39.2411 7.9192 42.1519 11.9168 40.1151L15.9383 38.066L18.0344 42.1798C19.288 44.6402 22.2989 45.6185 24.7593 44.3649L26.0925 43.6856C28.5529 42.4319 29.5312 39.4211 28.2776 36.9606L26.1815 32.8468L29.5308 31.1403C33.5284 29.1034 33.9579 23.56 30.3218 20.9316L12.7602 8.2371Z"/> </mask> <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7602 8.2371C8.79786 5.37292 3.25704 8.19611 3.24522 13.0852L3.19284 34.7545C3.18199 39.2411 7.9192 42.1519 11.9168 40.1151L15.9383 38.066L18.0344 42.1798C19.288 44.6402 22.2989 45.6185 24.7593 44.3649L26.0925 43.6856C28.5529 42.4319 29.5312 39.4211 28.2776 36.9606L26.1815 32.8468L29.5308 31.1403C33.5284 29.1034 33.9579 23.56 30.3218 20.9316L12.7602 8.2371Z" fill="#2F2F2F"/> <path d="M3.24522 13.0852L0.74523 13.0792L3.24522 13.0852ZM12.7602 8.2371L14.2247 6.21101L14.2247 6.21101L12.7602 8.2371ZM3.19284 34.7545L5.69283 34.7606L3.19284 34.7545ZM11.9168 40.1151L10.7818 37.8876L10.7818 37.8876L11.9168 40.1151ZM15.9383 38.066L18.1658 36.931L17.0308 34.7035L14.8033 35.8385L15.9383 38.066ZM18.0344 42.1798L15.8068 43.3147L15.8068 43.3147L18.0344 42.1798ZM24.7593 44.3649L23.6244 42.1373L23.6244 42.1373L24.7593 44.3649ZM26.0925 43.6856L27.2274 45.9131L27.2274 45.9131L26.0925 43.6856ZM28.2776 36.9606L30.5051 35.8256L30.5051 35.8256L28.2776 36.9606ZM26.1815 32.8468L25.0465 30.6193L22.819 31.7543L23.954 33.9818L26.1815 32.8468ZM29.5308 31.1403L30.6658 33.3678L29.5308 31.1403ZM30.3218 20.9316L31.7864 18.9055L31.7864 18.9055L30.3218 20.9316ZM5.74522 13.0913C5.75211 10.2393 8.98425 8.59242 11.2956 10.2632L14.2247 6.21101C8.61146 2.15342 0.761974 6.15294 0.74523 13.0792L5.74522 13.0913ZM5.69283 34.7606L5.74522 13.0913L0.74523 13.0792L0.692844 34.7485L5.69283 34.7606ZM10.7818 37.8876C8.44987 39.0757 5.6865 37.3777 5.69283 34.7606L0.692844 34.7485C0.677478 41.1044 7.38852 45.2281 13.0517 42.3426L10.7818 37.8876ZM14.8033 35.8385L10.7818 37.8876L13.0517 42.3426L17.0733 40.2935L14.8033 35.8385ZM20.2619 41.0448L18.1658 36.931L13.7108 39.201L15.8068 43.3147L20.2619 41.0448ZM23.6244 42.1373C22.3941 42.7642 20.8887 42.275 20.2619 41.0448L15.8068 43.3147C17.6873 47.0054 22.2036 48.4729 25.8943 46.5924L23.6244 42.1373ZM24.9575 41.4581L23.6244 42.1373L25.8943 46.5924L27.2274 45.9131L24.9575 41.4581ZM26.05 38.0956C26.6769 39.3258 26.1877 40.8312 24.9575 41.4581L27.2274 45.9131C30.9181 44.0326 32.3856 39.5163 30.5051 35.8256L26.05 38.0956ZM23.954 33.9818L26.05 38.0956L30.5051 35.8256L28.409 31.7119L23.954 33.9818ZM28.3958 28.9128L25.0465 30.6193L27.3165 35.0744L30.6658 33.3678L28.3958 28.9128ZM28.8572 22.9577C30.9783 24.4909 30.7277 27.7246 28.3958 28.9128L30.6658 33.3678C36.329 30.4822 36.9375 22.629 31.7864 18.9055L28.8572 22.9577ZM11.2956 10.2632L28.8572 22.9577L31.7864 18.9055L14.2247 6.21101L11.2956 10.2632Z" fill="white" mask="url(#path-1-outside-1_306_4)"/> </svg>`
       },
       {
@@ -317,7 +318,8 @@ modules["editor/toolbar"] = {
     }
     let utils = await getModule("pages/editor/toolbar/utils");
     let mouseSVG;
-    let currentToolModule;
+    let currentToolModule = "pages/editor/toolbar/cursor";
+    let pageContent = editor.page.querySelector(".eContent");
     let enableTool = async () => {
       disableTool();
       let module;
@@ -328,15 +330,19 @@ modules["editor/toolbar"] = {
         module.js(editor, utils, toolEvents);
       }
       module = module || {};
-      let setSVG = module.mouse || `<svg width="56" height="56" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"> <g filter="url(#filter0_d_231_14)"> <mask id="path-1-outside-1_231_14" maskUnits="userSpaceOnUse" x="28" y="27" width="21" height="28" fill="black"> <rect fill="white" x="28" y="27" width="21" height="28"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M34.7886 30.574C32.8075 29.1419 30.0371 30.5535 30.0312 32.998L30 45.8878C29.9946 48.1311 32.3632 49.5865 34.362 48.5681L36.9809 47.2337L38.5573 50.3275C39.3465 51.8764 41.2418 52.4922 42.7907 51.703C44.3396 50.9138 44.9554 49.0185 44.1662 47.4696L42.5899 44.3757L44.8395 43.2295C46.8383 42.2111 47.053 39.4394 45.235 38.1252L34.7886 30.574Z"/> </mask> <path fill-rule="evenodd" clip-rule="evenodd" d="M34.7886 30.574C32.8075 29.1419 30.0371 30.5535 30.0312 32.998L30 45.8878C29.9946 48.1311 32.3632 49.5865 34.362 48.5681L36.9809 47.2337L38.5573 50.3275C39.3465 51.8764 41.2418 52.4922 42.7907 51.703C44.3396 50.9138 44.9554 49.0185 44.1662 47.4696L42.5899 44.3757L44.8395 43.2295C46.8383 42.2111 47.053 39.4394 45.235 38.1252L34.7886 30.574Z" fill="#2F2F2F"/> <path d="M30.0312 32.998L28.0312 32.9932L30.0312 32.998ZM34.7886 30.574L33.617 32.1949L33.617 32.1949L34.7886 30.574ZM30 45.8878L28 45.883L30 45.8878ZM34.362 48.5681L33.454 46.786L33.454 46.786L34.362 48.5681ZM36.9809 47.2337L38.7629 46.3257L37.8549 44.5437L36.0729 45.4516L36.9809 47.2337ZM38.5573 50.3275L40.3393 49.4195L40.3393 49.4195L38.5573 50.3275ZM42.7907 51.703L43.6987 53.485L43.6987 53.485L42.7907 51.703ZM44.1662 47.4696L45.9483 46.5616L45.9483 46.5616L44.1662 47.4696ZM42.5899 44.3757L41.6819 42.5937L39.8999 43.5017L40.8078 45.2837L42.5899 44.3757ZM44.8395 43.2295L45.7475 45.0115L44.8395 43.2295ZM45.235 38.1252L46.4067 36.5043L46.4067 36.5043L45.235 38.1252ZM32.0312 33.0029C32.0331 32.188 32.9566 31.7175 33.617 32.1949L35.9603 28.9531C32.6584 26.5663 28.041 28.9189 28.0312 32.9932L32.0312 33.0029ZM32 45.8926L32.0312 33.0029L28.0312 32.9932L28 45.883L32 45.8926ZM33.454 46.786C32.7877 47.1255 31.9982 46.6404 32 45.8926L28 45.883C27.991 49.6218 31.9387 52.0475 35.27 50.3501L33.454 46.786ZM36.0729 45.4516L33.454 46.786L35.27 50.3501L37.8889 49.0157L36.0729 45.4516ZM40.3393 49.4195L38.7629 46.3257L35.1989 48.1416L36.7753 51.2355L40.3393 49.4195ZM41.8827 49.921C41.318 50.2087 40.627 49.9842 40.3393 49.4195L36.7753 51.2355C38.0659 53.7685 41.1657 54.7757 43.6987 53.485L41.8827 49.921ZM42.3842 48.3776C42.672 48.9423 42.4474 49.6333 41.8827 49.921L43.6987 53.485C46.2318 52.1944 47.2389 49.0947 45.9483 46.5616L42.3842 48.3776ZM40.8078 45.2837L42.3842 48.3776L45.9483 46.5616L44.3719 43.4678L40.8078 45.2837ZM43.9315 41.4475L41.6819 42.5937L43.4978 46.1578L45.7475 45.0115L43.9315 41.4475ZM44.0633 39.7461C44.6693 40.1841 44.5978 41.108 43.9315 41.4475L45.7475 45.0115C49.0788 43.3141 49.4367 38.6946 46.4067 36.5043L44.0633 39.7461ZM33.617 32.1949L44.0633 39.7461L46.4067 36.5043L35.9603 28.9531L33.617 32.1949Z" fill="white" mask="url(#path-1-outside-1_231_14)"/> </g> <defs> <filter id="filter0_d_231_14" x="24" y="23.9961" width="28.4775" height="34.0508" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"> <feFlood flood-opacity="0" result="BackgroundImageFix"/> <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/> <feOffset/> <feGaussianBlur stdDeviation="2"/> <feComposite in2="hardAlpha" operator="out"/> <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/> <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_231_14"/> <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_231_14" result="shape"/> </filter> </defs> </svg>`;
-      setSVG = setSVG.replace(/COLOR_REPLACE/g, "#" + module.color).replace(/OPACITY_REPLACE/g, module.opacity / 100);
-      if (setSVG != mouseSVG) {
-        mouseSVG = setSVG;
-        let reader = new FileReader();
-        reader.readAsDataURL(new Blob([setSVG], { type: "image/svg+xml" }));
-        reader.onload = () => {
-          editor.page.querySelector(".eContent").style.cursor = "url('" + reader.result + "') 28 28, auto";
+      if (module.cursor != "default") {
+        let setSVG = module.mouse || `<svg width="56" height="56" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"> <g filter="url(#filter0_d_231_14)"> <mask id="path-1-outside-1_231_14" maskUnits="userSpaceOnUse" x="28" y="27" width="21" height="28" fill="black"> <rect fill="white" x="28" y="27" width="21" height="28"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M34.7886 30.574C32.8075 29.1419 30.0371 30.5535 30.0312 32.998L30 45.8878C29.9946 48.1311 32.3632 49.5865 34.362 48.5681L36.9809 47.2337L38.5573 50.3275C39.3465 51.8764 41.2418 52.4922 42.7907 51.703C44.3396 50.9138 44.9554 49.0185 44.1662 47.4696L42.5899 44.3757L44.8395 43.2295C46.8383 42.2111 47.053 39.4394 45.235 38.1252L34.7886 30.574Z"/> </mask> <path fill-rule="evenodd" clip-rule="evenodd" d="M34.7886 30.574C32.8075 29.1419 30.0371 30.5535 30.0312 32.998L30 45.8878C29.9946 48.1311 32.3632 49.5865 34.362 48.5681L36.9809 47.2337L38.5573 50.3275C39.3465 51.8764 41.2418 52.4922 42.7907 51.703C44.3396 50.9138 44.9554 49.0185 44.1662 47.4696L42.5899 44.3757L44.8395 43.2295C46.8383 42.2111 47.053 39.4394 45.235 38.1252L34.7886 30.574Z" fill="#2F2F2F"/> <path d="M30.0312 32.998L28.0312 32.9932L30.0312 32.998ZM34.7886 30.574L33.617 32.1949L33.617 32.1949L34.7886 30.574ZM30 45.8878L28 45.883L30 45.8878ZM34.362 48.5681L33.454 46.786L33.454 46.786L34.362 48.5681ZM36.9809 47.2337L38.7629 46.3257L37.8549 44.5437L36.0729 45.4516L36.9809 47.2337ZM38.5573 50.3275L40.3393 49.4195L40.3393 49.4195L38.5573 50.3275ZM42.7907 51.703L43.6987 53.485L43.6987 53.485L42.7907 51.703ZM44.1662 47.4696L45.9483 46.5616L45.9483 46.5616L44.1662 47.4696ZM42.5899 44.3757L41.6819 42.5937L39.8999 43.5017L40.8078 45.2837L42.5899 44.3757ZM44.8395 43.2295L45.7475 45.0115L44.8395 43.2295ZM45.235 38.1252L46.4067 36.5043L46.4067 36.5043L45.235 38.1252ZM32.0312 33.0029C32.0331 32.188 32.9566 31.7175 33.617 32.1949L35.9603 28.9531C32.6584 26.5663 28.041 28.9189 28.0312 32.9932L32.0312 33.0029ZM32 45.8926L32.0312 33.0029L28.0312 32.9932L28 45.883L32 45.8926ZM33.454 46.786C32.7877 47.1255 31.9982 46.6404 32 45.8926L28 45.883C27.991 49.6218 31.9387 52.0475 35.27 50.3501L33.454 46.786ZM36.0729 45.4516L33.454 46.786L35.27 50.3501L37.8889 49.0157L36.0729 45.4516ZM40.3393 49.4195L38.7629 46.3257L35.1989 48.1416L36.7753 51.2355L40.3393 49.4195ZM41.8827 49.921C41.318 50.2087 40.627 49.9842 40.3393 49.4195L36.7753 51.2355C38.0659 53.7685 41.1657 54.7757 43.6987 53.485L41.8827 49.921ZM42.3842 48.3776C42.672 48.9423 42.4474 49.6333 41.8827 49.921L43.6987 53.485C46.2318 52.1944 47.2389 49.0947 45.9483 46.5616L42.3842 48.3776ZM40.8078 45.2837L42.3842 48.3776L45.9483 46.5616L44.3719 43.4678L40.8078 45.2837ZM43.9315 41.4475L41.6819 42.5937L43.4978 46.1578L45.7475 45.0115L43.9315 41.4475ZM44.0633 39.7461C44.6693 40.1841 44.5978 41.108 43.9315 41.4475L45.7475 45.0115C49.0788 43.3141 49.4367 38.6946 46.4067 36.5043L44.0633 39.7461ZM33.617 32.1949L44.0633 39.7461L46.4067 36.5043L35.9603 28.9531L33.617 32.1949Z" fill="white" mask="url(#path-1-outside-1_231_14)"/> </g> <defs> <filter id="filter0_d_231_14" x="24" y="23.9961" width="28.4775" height="34.0508" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"> <feFlood flood-opacity="0" result="BackgroundImageFix"/> <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/> <feOffset/> <feGaussianBlur stdDeviation="2"/> <feComposite in2="hardAlpha" operator="out"/> <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/> <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_231_14"/> <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_231_14" result="shape"/> </filter> </defs> </svg>`;
+        setSVG = setSVG.replace(/COLOR_REPLACE/g, "#" + module.color).replace(/OPACITY_REPLACE/g, module.opacity / 100);
+        if (setSVG != mouseSVG) {
+          mouseSVG = setSVG;
+          let reader = new FileReader();
+          reader.readAsDataURL(new Blob([setSVG], { type: "image/svg+xml" }));
+          reader.onload = () => {
+            pageContent.style.cursor = "url('" + reader.result + "') 28 28, auto";
+          }
         }
+      } else {
+        pageContent.style.removeProperty("cursor");
       }
     }
 
@@ -596,17 +602,17 @@ modules["editor/toolbar"] = {
         let parent = updateTip.closest("[tool]");
         let toolPref = preferences[parent.getAttribute("tool")];
         if (toolPref != null) {
-          let setOpacity = toolPref.opacity / 100;
-          if (updateTip.hasAttribute("fillcoloropacity") == true) {
+          let setOpacity = (toolPref.opacity || 0) / 100;
+          if (updateTip.hasAttribute("fillcoloropacity") == true && toolPref.color != null) {
             updateTip.setAttribute("fill", editor.hexToRGB(toolPref.color.selected, setOpacity));
-          } else if (updateTip.hasAttribute("strokecolor") == true) {
+          } else if (updateTip.hasAttribute("strokecolor") == true && toolPref.color != null) {
             updateTip.setAttribute("stroke", editor.hexToRGB(toolPref.color.selected));
-          } else if (updateTip.hasAttribute("backcolor") == true) {
+          } else if (updateTip.hasAttribute("backcolor") == true && toolPref.color != null) {
             updateTip.style.background = editor.hexToRGB(toolPref.color.selected, setOpacity);
-          } else if (updateTip.hasAttribute("thickness") == true) {
+          } else if (updateTip.hasAttribute("thickness") == true && toolPref.color != null) {
             updateTip.style.height = toolPref.thickness + "px";
             updateTip.style.background = editor.hexToRGB(toolPref.color.selected, setOpacity);
-          } else if (updateTip.hasAttribute("opacity") == true) {
+          } else if (updateTip.hasAttribute("opacity") == true && toolPref.color != null) {
             updateTip.setAttribute("fill", editor.hexToRGB(toolPref.color.selected, setOpacity));
           }
         }
@@ -624,6 +630,14 @@ modules["editor/toolbar"] = {
 modules["pages/editor/toolbar/utils"] = {
   begin: async function () {
     console.log("ACTIVE")
+  }
+};
+
+// CURSOR TOOL
+modules["pages/editor/toolbar/cursor"] = {
+  mouse: "default",
+  js: async function (editor, events) {
+    
   }
 };
 

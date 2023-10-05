@@ -7,6 +7,7 @@ modules["editor/realtime"] = {
   css: {
     ".eCursor": `--backgroundColor: var(--themeColor); --borderColor: #fff; --textColor: #fff; position: absolute; display: flex; z-index: 20; opacity: 0; align-items: center; transition: .25s; pointer-events: all; transform-origin: var(--origin)`,
     ".eCursor[pressed]": `--backgroundColor: #fff; --borderColor: var(--themeColor); --textColor: #000; transform: scale(.9)`,
+    ".eCursor[changing]": `opacity: 0 !important; transform: scale(0) !important`,
     ".eCursor .pointer": `width: 20px; height: 20px; background: var(--backgroundColor); border: solid 3px var(--borderColor); overflow: hidden; border-radius: 8px 14px 14px 14px; box-shadow: 0 0 6px rgb(0 0 0 / 50%); transition: .3s`,
     ".eCursor .pointer[none]": `border-radius: 14px; opacity: 0; width: 0px`,
     ".eCursor [name]": `box-sizing: border-box; display: flex; width: fit-content; height: 100%; padding: 0px 6px; border-radius: 14px; overflow: hidden; opacity: 0; white-space: nowrap; font-size: 14px; font-weight: 700; white-space: nowrap; align-items: center; transition: 0.15s`,
@@ -251,20 +252,18 @@ modules["editor/realtime"] = {
               }
             }
           }
+          let sendExtra = {};
           if (addTextSelect.length > 0) {
-            if (pubData[6] == null) {
-              pubData.push({});
-            }
-            pubData[6].selection = addTextSelect;
+            sendExtra.selection = addTextSelect;
           }
           if (mouseDown()) {
-            if (pubData[6] == null) {
-              pubData.push({});
-            }
-            pubData[6].press = true;
+            sendExtra.press = true;
           }
           if (editor.realtime.passthrough != null) {
-            pubData[6] = { ...pubData[6], ...editor.realtime.passthrough };
+            sendExtra = { ...sendExtra, ...editor.realtime.passthrough };
+          }
+          if (Object.keys(sendExtra).length > 0) {
+            pubData[6] = sendExtra;
           }
           
           let updJSONContent = JSON.stringify([filter, pubData]);
@@ -470,6 +469,7 @@ modules["editor/realtime"] = {
       targetScrollPositionY = targetY;
       smoothScroll();
     }
+    let transformTimeout;
     this.setShortSub = (pages) => {
       if (editor.realtime.strength < 3 || editor.options.cursors == false) {
         pages = null;
@@ -532,61 +532,71 @@ modules["editor/realtime"] = {
             } else {
               cursorHolder.style.opacity = 1;
             }
-            if (parseInt(cursorHolder.getAttribute("mode") || -1) != tool) {
-              let html = "";
-              let offsetx = 0;
-              let offsety = 0;
-              let origin = "top left";
-              switch (tool) {
-                case 0: // Normal cursor:
-                  html = `<div class="pointer" color><div name></div></div>`;
-                  break;
-                case 1: // Highlighter 
-                  html = `${this.icons.highlighter}<div class="pointer" color none><div name></div></div>`;
-                  offsetx = -14;
-                  offsety = -30;
-                  origin = "bottom center";
-                  break;
-                case 2: // Pen 
-                  html = `${this.icons.pen}<div class="pointer" color none><div name></div></div>`;
-                  offsetx = -14;
-                  offsety = -30;
-                  origin = "bottom center";
-                  break;
-                case 3: // Eraser
-                  html = `${this.icons.eraser}<div class="pointer" color none><div name></div></div>`;
-                  offsetx = -20;
-                  offsety = -20;
-                  origin = "center center";
-              }
-              cursorHolder.innerHTML = html.replace(/MEMBER_COLOR_REPLACE/g, member.color);
-              cursorHolder.setAttribute("offsetx", offsetx);
-              cursorHolder.setAttribute("offsety", offsety);
-              cursorHolder.style.setProperty("--origin", origin);
-              cursorHolder.querySelector("[name]").textContent = member.name;
-              cursorHolder.style.color = this.textColorBackground(member.color);
-              cursorHolder.style.setProperty("--themeColor", member.color);
-              let colorMain = cursorHolder.querySelector("[color]");
-              colorMain.style.width = "fit-content";
-              cursorHolder.style.setProperty( "--fullyExtended", colorMain.clientWidth + "px");
-              colorMain.style.removeProperty("width");
-              cursorHolder.setAttribute("mode", tool);
-            }
-            if (extra != null) {
-              if (extra.c != null) {
-                let setColor = cursorHolder.querySelector("[toolcoloropacity]");
-                if (setColor != null) {
-                  setColor.setAttribute("fill", "#" + extra.c || "000");
-                  setColor.setAttribute("fill-opacity", (extra.o || 100) / 100);
+            let updateCursorProps = () => {
+              if (extra != null) {
+                if (extra.c != null) {
+                  let setColor = cursorHolder.querySelector("[toolcoloropacity]");
+                  if (setColor != null) {
+                    setColor.setAttribute("fill", "#" + extra.c || "000");
+                    setColor.setAttribute("fill-opacity", (extra.o || 100) / 100);
+                  }
                 }
               }
+              if (extra != null && extra.press == true) {
+                cursorHolder.setAttribute("pressed", "");
+              } else {
+                cursorHolder.removeAttribute("pressed");
+              }
+              cursorHolder.style.left = x + (parseInt(cursorHolder.getAttribute("offsetx") || "0")) + window.scrollX + "px";
+              cursorHolder.style.top = y + (parseInt(cursorHolder.getAttribute("offsety") || "0")) + window.scrollY + "px";
             }
-            cursorHolder.style.left = x + (parseInt(cursorHolder.getAttribute("offsetx") || "0")) + window.scrollX + "px";
-            cursorHolder.style.top = y + (parseInt(cursorHolder.getAttribute("offsety") || "0")) + window.scrollY + "px";
-            if (extra && extra.press) {
-              cursorHolder.setAttribute("pressed", "");
+            if (parseInt(cursorHolder.getAttribute("mode") || -1) != tool) {
+              cursorHolder.setAttribute("changing", "");
+              cursorHolder.setAttribute("mode", tool);
+              clearTimeout(transformTimeout);
+              transformTimeout = setTimeout(async () => {
+                let html = "";
+                let offsetx = 0;
+                let offsety = 0;
+                let origin = "top left";
+                switch (tool) {
+                  case 0: // Normal cursor:
+                    html = `<div class="pointer" color><div name></div></div>`;
+                    break;
+                  case 1: // Highlighter 
+                    html = `${this.icons.highlighter}<div class="pointer" color none><div name></div></div>`;
+                    offsetx = -14;
+                    offsety = -30;
+                    origin = "bottom center";
+                    break;
+                  case 2: // Pen 
+                    html = `${this.icons.pen}<div class="pointer" color none><div name></div></div>`;
+                    offsetx = -14;
+                    offsety = -30;
+                    origin = "bottom center";
+                    break;
+                  case 3: // Eraser
+                    html = `${this.icons.eraser}<div class="pointer" color none><div name></div></div>`;
+                    offsetx = -20;
+                    offsety = -20;
+                    origin = "center center";
+                }
+                cursorHolder.innerHTML = html.replace(/MEMBER_COLOR_REPLACE/g, member.color);
+                cursorHolder.setAttribute("offsetx", offsetx);
+                cursorHolder.setAttribute("offsety", offsety);
+                cursorHolder.style.setProperty("--origin", origin);
+                cursorHolder.querySelector("[name]").textContent = member.name;
+                cursorHolder.style.color = this.textColorBackground(member.color);
+                cursorHolder.style.setProperty("--themeColor", member.color);
+                let colorMain = cursorHolder.querySelector("[color]");
+                colorMain.style.width = "fit-content";
+                cursorHolder.style.setProperty( "--fullyExtended", colorMain.clientWidth + "px");
+                colorMain.style.removeProperty("width");
+                updateCursorProps();
+                cursorHolder.removeAttribute("changing");
+              }, 100);
             } else {
-              cursorHolder.removeAttribute("pressed");
+              updateCursorProps();
             }
             // Handle selection:
             let selectionHolder = realtimeHolder.querySelector('.eSelection[member="' + memberID + '"]:not([old])');

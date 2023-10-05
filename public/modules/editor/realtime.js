@@ -720,7 +720,7 @@ modules["dropdowns/editor/members"] = {
     ".eMemberEvent[observe]": `background: var(--purple)`,
 
     ".eMemberFrameHolder": `position: absolute; width: 200%; height: fit-content; right: 0px; pointer-events: none; z-index: 0; opacity: 0; transition: top .3s, opacity .3s`,
-    ".eMemberFrame": `--themeColor: var(--theme); position: sticky; width: calc(50% - 4px); max-width: calc(100vw - 20px); left: 8px; top: 8px; margin-left: 4px; pointer-events: all; background: var(--pageColor); border-right: solid 4px var(--themeColor); border-radius: 38px 0 0 12px; transform-origin: top right; transform: scale(.15); transition: transform .3s`,
+    ".eMemberFrame": `--themeColor: var(--theme); position: sticky; width: calc(50% - 4px); max-width: calc(100vw - 20px); left: 8px; top: 8px; margin-left: 4px; pointer-events: all; background: var(--pageColor); border-right: solid 4px var(--themeColor); border-radius: 38px 0 0 12px; transform-origin: top right; transform: scale(0); transition: transform .3s`,
     ".eMemberFrameContentHolder": `width: 100%; height: 0px; border-radius: 38px 0 0 12px; overflow: hidden`,
     ".eMemberFrameShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 0 16px 16px; right: 0px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
     ".eMemberFrameShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); right: 0px; top: 16px; content: ""; box-shadow: var(--shadow); border-radius: inherit`,
@@ -992,7 +992,7 @@ modules["dropdowns/editor/members"] = {
       let frame = memberFrameHolder.querySelector(".eMemberFrame");
       frame.querySelector(".eMemberFrameContentHolder").style.removeProperty("transition");
       frame.style.width = frame.clientWidth + "px";
-      frame.style.transform = "scale(.15)";
+      frame.style.transform = "scale(0)";
       updateDropdownPosition();
     }
     window.closeDropdown = closeDropdown;

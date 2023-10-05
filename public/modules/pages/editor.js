@@ -194,7 +194,8 @@ modules["pages/editor"] = {
       fullscreen: false
     };
     this.realtime = {
-      strength: 0
+      strength: 0,
+      tool: 0 // 0: Pointer; 1: Markup; 2: Pen; 3: Erase
     };
     this.events = {};
     this.members = {};

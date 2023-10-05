@@ -1,14 +1,18 @@
 modules["editor/realtime"] = {
   icons: {
-
+    highlighter: `<svg width="40" height="40" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg"> <g filter="url(#filter0_d_254_26)"> <path d="M16.3781 22.4071L15.4384 22.0651L15.0964 23.0048L12.0871 31.2728C11.3315 33.3487 12.4019 35.644 14.4778 36.3996L19.1875 38.1138C21.2634 38.8694 23.5588 37.799 24.3144 35.7231L27.3237 27.4551L27.6657 26.5155L26.726 26.1734L16.3781 22.4071Z" toolcoloropacity stroke="white" stroke-width="2"/> <path d="M24.3631 32.6623L25.3028 33.0044L25.6448 32.0647L31.8824 14.927C32.6379 12.8511 31.5676 10.5557 29.4917 9.80018L24.7819 8.08596C22.706 7.33039 20.4106 8.40074 19.655 10.4767L13.4175 27.6143L13.0754 28.554L14.0151 28.896L24.3631 32.6623Z" fill="MEMBER_COLOR_REPLACE" stroke="white" stroke-width="2"/> </g> <defs> <filter id="filter0_d_254_26" x="6.84473" y="2.84375" width="30.2803" height="40.5127" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"> <feFlood flood-opacity="0" result="BackgroundImageFix"/> <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/> <feOffset/> <feGaussianBlur stdDeviation="2"/> <feComposite in2="hardAlpha" operator="out"/> <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/> <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_254_26"/> <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_254_26" result="shape"/> </filter> </defs> </svg>`,
+    pen: `<svg width="40" height="40" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg"> <g filter="url(#filter0_d_257_2)"> <path d="M18.6315 19.2186L17.6918 18.8766L17.3498 19.8163L14.5155 27.6032C13.5713 30.1976 13.87 33.0818 15.3259 35.4275L15.6683 35.9791C16.1549 36.7631 17.1147 37.1125 17.9914 36.8247L18.6082 36.6222C21.2313 35.7611 23.3141 33.7437 24.2584 31.1493L27.0926 23.3624L27.4346 22.4227L26.4949 22.0807L18.6315 19.2186Z" toolcoloropacity stroke="white" stroke-width="2"/> <path d="M23.5076 30.2844L24.4473 30.6264L24.7893 29.6867L30.0855 15.1356C31.0647 12.4452 29.6775 9.47036 26.9871 8.49113C24.2967 7.51191 21.3219 8.89909 20.3427 11.5895L15.0465 26.1406L14.7045 27.0803L15.6441 27.4224L23.5076 30.2844Z" fill="MEMBER_COLOR_REPLACE" stroke="white" stroke-width="2"/> </g> <defs> <filter id="filter0_d_257_2" x="8.97266" y="3.17676" width="26.4268" height="38.748" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"> <feFlood flood-opacity="0" result="BackgroundImageFix"/> <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/> <feOffset/> <feGaussianBlur stdDeviation="2"/> <feComposite in2="hardAlpha" operator="out"/> <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/> <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_257_2"/> <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_257_2" result="shape"/> </filter> </defs> </svg>`,
+    eraser: `<svg width="40" height="40" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg"> <g filter="url(#filter0_d_257_10)"> <path d="M36 19V27C36 29.2091 34.2091 31 32 31L12 31C9.79086 31 8 29.2091 8 27V19C8 16.7909 9.79086 15 12 15L32 15C34.2091 15 36 16.7909 36 19Z" fill="white" stroke="white" stroke-width="2"/> <path d="M36 19V27C36 29.2091 34.2091 31 32 31L12 31C9.79086 31 8 29.2091 8 27V19C8 16.7909 9.79086 15 12 15L32 15C34.2091 15 36 16.7909 36 19Z" fill="MEMBER_COLOR_REPLACE" stroke="white" stroke-width="2"/> <rect x="20.5557" y="16" width="2.88889" height="14" fill="white"/> </g> <defs> <filter id="filter0_d_257_10" x="3" y="10" width="38" height="26" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"> <feFlood flood-opacity="0" result="BackgroundImageFix"/> <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/> <feOffset/> <feGaussianBlur stdDeviation="2"/> <feComposite in2="hardAlpha" operator="out"/> <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/> <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_257_10"/> <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_257_10" result="shape"/> </filter> </defs> </svg>`
   },
   css: {
-    ".eCursor": `--backgroundColor: var(--themeColor); --borderColor: #fff; --textColor: #fff; position: absolute; display: flex; z-index: 20; opacity: 0; transition: .25s; pointer-events: all; transform-origin: top left`,
+    ".eCursor": `--backgroundColor: var(--themeColor); --borderColor: #fff; --textColor: #fff; position: absolute; display: flex; z-index: 20; opacity: 0; align-items: center; transition: .25s; pointer-events: all; transform-origin: var(--origin)`,
     ".eCursor[pressed]": `--backgroundColor: #fff; --borderColor: var(--themeColor); --textColor: #000; transform: scale(.9)`,
-    ".eCursor .pointer": `width: 20px; height: 20px; background: var(--backgroundColor); border: solid 3px var(--borderColor); overflow: hidden; border-radius: 8px 14px 14px 14px; box-shadow: 0 0 6px rgb(0 0 0 / 50%); transition: 0.3s`,
+    ".eCursor .pointer": `width: 20px; height: 20px; background: var(--backgroundColor); border: solid 3px var(--borderColor); overflow: hidden; border-radius: 8px 14px 14px 14px; box-shadow: 0 0 6px rgb(0 0 0 / 50%); transition: .3s`,
+    ".eCursor .pointer[none]": `border-radius: 14px; opacity: 0; width: 0px`,
     ".eCursor [name]": `box-sizing: border-box; display: flex; width: fit-content; height: 100%; padding: 0px 6px; border-radius: 14px; overflow: hidden; opacity: 0; white-space: nowrap; font-size: 14px; font-weight: 700; white-space: nowrap; align-items: center; transition: 0.15s`,
     ".eCursor:hover [color]": `width: var(--fullyExtended)`,
     ".eCursor:hover [name]": `width: unset; opacity: 1`,
+    ".eCursor:hover .pointer[none]": `opacity: 1`,
 
     ".eSelection": `opacity: 0; z-index: 10; transition: .3s`,
     ".eSelection div": `position: absolute; background: var(--themeColor); opacity: .4; border-radius: 4px`
@@ -214,8 +218,8 @@ modules["editor/realtime"] = {
           let scaleZoom = 1 / editor.zoom;
   
           // [ memberID, page, tool, time, mouseX, mouseY, extra (anno) ]
-          let pubData = [ editor.sessionID, filter.p, 0, 0, Math.floor(sendX * scaleZoom), Math.floor(sendY * scaleZoom)];
-  
+          let pubData = [ editor.sessionID, filter.p, editor.realtime.tool, 0, Math.floor(sendX * scaleZoom), Math.floor(sendY * scaleZoom)];
+
           let addTextSelect = [];
           if (window.getSelection != null) {
             let select = window.getSelection();
@@ -258,6 +262,9 @@ modules["editor/realtime"] = {
               pubData.push({});
             }
             pubData[6].press = true;
+          }
+          if (editor.realtime.passthrough != null) {
+            pubData[6] = { ...pubData[6], ...editor.realtime.passthrough };
           }
           
           let updJSONContent = JSON.stringify([filter, pubData]);
@@ -352,14 +359,14 @@ modules["editor/realtime"] = {
           if (pageRect) {
             x += pageRect.left;
           }
-          element.style.left = x + window.scrollX + "px";
+          element.style.left = x + (parseInt(element.getAttribute("offsetx") || "0")) + window.scrollX + "px";
         }
         if (element.hasAttribute("y")) {
           let y = parseFloat(element.getAttribute("y")) * editor.zoom;
           if (pageRect) {
             y += pageRect.top;
           }
-          element.style.top = y + window.scrollY + "px";
+          element.style.top = y + (parseInt(element.getAttribute("offsety") || "0")) + window.scrollY + "px";
         }
       }
     }
@@ -511,8 +518,6 @@ modules["editor/realtime"] = {
               x += pageRect.left;
               y += pageRect.top;
             }
-            cursorHolder.style.left = x + window.scrollX + "px";
-            cursorHolder.style.top = y + window.scrollY + "px";
             if (tool == null) {
               // Must be for a page leave event:
               if (editor.visiblePages.includes(page)) {
@@ -528,19 +533,56 @@ modules["editor/realtime"] = {
               cursorHolder.style.opacity = 1;
             }
             if (parseInt(cursorHolder.getAttribute("mode") || -1) != tool) {
+              let html = "";
+              let offsetx = 0;
+              let offsety = 0;
+              let origin = "top left";
               switch (tool) {
                 case 0: // Normal cursor:
-                  cursorHolder.innerHTML = `<div class="pointer" color><div name></div></div>`;
+                  html = `<div class="pointer" color><div name></div></div>`;
+                  break;
+                case 1: // Highlighter 
+                  html = `${this.icons.highlighter}<div class="pointer" color none><div name></div></div>`;
+                  offsetx = -14;
+                  offsety = -30;
+                  origin = "bottom center";
+                  break;
+                case 2: // Pen 
+                  html = `${this.icons.pen}<div class="pointer" color none><div name></div></div>`;
+                  offsetx = -14;
+                  offsety = -30;
+                  origin = "bottom center";
+                  break;
+                case 3: // Eraser
+                  html = `${this.icons.eraser}<div class="pointer" color none><div name></div></div>`;
+                  offsetx = -20;
+                  offsety = -20;
+                  origin = "center center";
               }
+              cursorHolder.innerHTML = html.replace(/MEMBER_COLOR_REPLACE/g, member.color);
+              cursorHolder.setAttribute("offsetx", offsetx);
+              cursorHolder.setAttribute("offsety", offsety);
+              cursorHolder.style.setProperty("--origin", origin);
               cursorHolder.querySelector("[name]").textContent = member.name;
               cursorHolder.style.color = this.textColorBackground(member.color);
               cursorHolder.style.setProperty("--themeColor", member.color);
               let colorMain = cursorHolder.querySelector("[color]");
               colorMain.style.width = "fit-content";
-              cursorHolder.style.setProperty( "--fullyExtended", (cursorHolder.clientWidth - 6) + "px");
+              cursorHolder.style.setProperty( "--fullyExtended", colorMain.clientWidth + "px");
               colorMain.style.removeProperty("width");
               cursorHolder.setAttribute("mode", tool);
             }
+            if (extra != null) {
+              if (extra.c != null) {
+                let setColor = cursorHolder.querySelector("[toolcoloropacity]");
+                if (setColor != null) {
+                  setColor.setAttribute("fill", "#" + extra.c || "000");
+                  setColor.setAttribute("fill-opacity", (extra.o || 100) / 100);
+                }
+              }
+            }
+            cursorHolder.style.left = x + (parseInt(cursorHolder.getAttribute("offsetx") || "0")) + window.scrollX + "px";
+            cursorHolder.style.top = y + (parseInt(cursorHolder.getAttribute("offsety") || "0")) + window.scrollY + "px";
             if (extra && extra.press) {
               cursorHolder.setAttribute("pressed", "");
             } else {

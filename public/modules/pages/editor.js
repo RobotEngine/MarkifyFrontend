@@ -1070,7 +1070,7 @@ modules["pages/editor"] = {
     // Handle MOBILE
     let lastDistance = 0;
     let getDistance = (touches) => {
-      return Math.sqrt((touches[0].pageX - touches[1].pageX)^2 + (touches[0].pageY - touches[1].pageY)^2);
+      return Math.sqrt((touches[1].pageX - touches[0].pageX)^2 + (touches[1].pageY - touches[0].pageY)^2);
     }
     let getCenter = (touches) => {
       return { x: (touches[0].pageX + touches[1].pageX) / 2, y: (touches[0].pageY + touches[1].pageY) / 2 };
@@ -1079,17 +1079,18 @@ modules["pages/editor"] = {
       if (event.touches.length >= 2) {
         let currentDistance = getDistance(event.touches);
         let currentCenter = getCenter(event.touches);
-        let pinchDelta = currentDistance - lastDistance;
-        lastDistance = currentDistance;
 
-        let setDelta = 0;
-        if (pinchDelta > 0) {
-          setDelta = 1;
-        } else if (pinchDelta < 0) {
-          setDelta = -1;
+        /*
+        let delta = 0;
+        if (currentDistance > lastDistance) {
+          delta = 1;
+        } else if (lastDistance < currentDistance) {
+          delta = -1;
         }
-        nameBox.textContent = setDelta + "; " + currentCenter.x + "; " + currentCenter.y;
-        this.setZoom(null, null, { wheelDelta: setDelta, clientX: currentCenter.x, clientY: currentCenter.y });
+        */
+        nameBox.textContent = (currentDistance / lastDistance) + "; " + currentCenter.x + "; " + currentCenter.y;
+        this.setZoom(null, null, { wheelDelta: (currentDistance / lastDistance), clientX: currentCenter.x, clientY: currentCenter.y });
+        lastDistance = currentDistance;
       }
     }
     tempListen(document, "touchstart", handlePinch, { passive: false });

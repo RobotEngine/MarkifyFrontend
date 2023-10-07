@@ -1070,14 +1070,10 @@ modules["pages/editor"] = {
     // Handle MOBILE
     let lastDistance = 0;
     let getDistance = (touches) => {
-      const dx = touches[0].pageX - touches[1].pageX;
-      const dy = touches[0].pageY - touches[1].pageY;
-      return Math.sqrt(dx * dx + dy * dy);
+      return Math.sqrt((touches[0].pageX - touches[1].pageX)^2 + (touches[0].pageY - touches[1].pageY)^2);
     }
     let getCenter = (touches) => {
-      const centerX = (touches[0].pageX + touches[1].pageX) / 2;
-      const centerY = (touches[0].pageY + touches[1].pageY) / 2;
-      return { x: centerX, y: centerY };
+      return { x: (touches[0].pageX + touches[1].pageX) / 2, y: (touches[0].pageY + touches[1].pageY) / 2 };
     }
     let handlePinch = (event) => {
       if (event.touches.length >= 2) {

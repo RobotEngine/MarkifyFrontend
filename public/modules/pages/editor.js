@@ -1092,6 +1092,7 @@ modules["pages/editor"] = {
         } else if (pinchDelta < 0) {
           setDelta = -1;
         }
+        nameBox.textContent = setDelta + "; " + currentCenter.x + "; " + currentCenter.y;
         this.setZoom(null, null, { wheelDelta: setDelta, clientX: currentCenter.x, clientY: currentCenter.y });
       }
     }

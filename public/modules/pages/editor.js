@@ -993,7 +993,7 @@ modules["pages/editor"] = {
       let prevWidth = pageHolder.clientWidth * this.zoom;
       let prevHeight = pageHolder.clientHeight * this.zoom;
 
-      let delta = Math.max(-1, Math.min(1, (mouse.wheelDelta || -(mouse.detail || 0))));
+      let delta = mouse.scale || Math.max(-1, Math.min(1, (mouse.wheelDelta || -(mouse.detail || 0))));
       this.zoom = set || (this.zoom + (delta / 10));
 
       let mouseX = mouse.clientX || 0;

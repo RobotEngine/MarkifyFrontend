@@ -981,12 +981,11 @@ modules["pages/editor"] = {
 
     // Zoom
     this.zoom = 1;
-    this.setZoom = (set, observe) => {
+    this.setZoom = (set, observe, mouse) => {
+      mouse = mouse || {};
       if (observe != true && this.realtime.observing != null && this.realtime.module != null) {
         this.realtime.module.exitObserve();
       }
-
-      set = set || 0;
 
       let pageScrollX = window.scrollX;
       let pageScrollY = window.scrollY;
@@ -994,10 +993,14 @@ modules["pages/editor"] = {
       let prevWidth = pageHolder.clientWidth * this.zoom;
       let prevHeight = pageHolder.clientHeight * this.zoom;
 
-      this.zoom = set || this.zoom;
+      let delta = Math.max(-1, Math.min(1, (mouse.wheelDelta || -(mouse.detail || 0))));
+      this.zoom = set || (this.zoom + (delta / 10));
 
-      if (this.zoom > 2.5) {
-        this.zoom = 2.5;
+      let mouseX = mouse.clientX || 0;
+      let mouseY = mouse.clientY || 0;
+
+      if (this.zoom > 5) {
+        this.zoom = 5;
       } else if (this.zoom < .2) {
         this.zoom = .2;
       }
@@ -1013,14 +1016,30 @@ modules["pages/editor"] = {
       content.style.width = newWidth + "px";
       content.style.height = newHeight + "px";
 
-      window.scrollTo(pageScrollX * (newWidth / prevWidth), pageScrollY * (newHeight / prevHeight));
+      /*
+      let appSizeHalfX = (app.offsetWidth / 2);
+      let appSizeHalfY = (app.offsetHeight / 2);
+      let mouseScaleX = pageScrollX + (mouseX || appSizeHalfX);
+      let mouseScaleY = pageScrollY + (mouseY || appSizeHalfY);
+      console.log(mouseScaleX, mouseScaleY);
+      */
+
+      // Calculate the new scroll position based on the mouse cursor position and zoom level
+      let newScrollX = (mouseX + pageScrollX) * (newWidth / prevWidth) - mouseX; // + rect.left;
+      let newScrollY = (mouseY + pageScrollY) * (newHeight / prevHeight) - mouseY; // + rect.top;
+
+      // Set the new scroll position
+      window.scrollTo(newScrollX, newScrollY);
+
+      //window.scrollTo(pageScrollX * (newWidth / prevWidth), pageScrollY * (newHeight / prevHeight));
+      //window.scrollTo((mouseX + pageScrollX) * (newWidth / prevWidth), (mouseY + pageScrollY) * (newWidth / prevWidth));
 
       let updateZoomPercentBoxes = document.querySelectorAll(".eZoomBox");
       for (let i = 0; i < updateZoomPercentBoxes.length; i++) {
         updateZoomPercentBoxes[i].textContent = Math.round(this.zoom * 100);
       }
       if (fixed.querySelector(".eZoomHolder")) {
-        if (this.zoom >= 2.5) {
+        if (this.zoom >= 5) {
           fixed.querySelector(".eZoomButton[add]").setAttribute("disabled", "");
         } else {
           fixed.querySelector(".eZoomButton[add]").removeAttribute("disabled");
@@ -1041,15 +1060,16 @@ modules["pages/editor"] = {
     let scrollMouseWheel = (event) => {
       if (event.ctrlKey || event.metaKey) {
         if (event.wheelDelta > 0) {
-          this.setZoom(this.zoom + 0.1, { x: event.clientX, y: event.clientY });
+          this.setZoom(null, null, event);
         } else if (event.wheelDelta < 0) {
-          this.setZoom(this.zoom - 0.1, { x: event.clientX, y: event.clientY });
+          this.setZoom(null, null, event);
         }
         event.preventDefault();
       }
     }
     tempListen(window, "DOMMouseScroll", scrollMouseWheel, { passive: false });
     tempListen(window, "mousewheel", scrollMouseWheel, { passive: false });
+    tempListen(window, "wheel", scrollMouseWheel, { passive: false });
 
     // Handle MOBILE
     /*
@@ -1119,9 +1139,9 @@ modules["pages/editor"] = {
 modules["dropdowns/editor/zoom"] = {
   html: `
   <div class="eZoomHolder">
-    <button class="eZoomButton buttonAnim border" sub change="-.1">-</button>
+    <button class="eZoomButton buttonAnim border" sub change="-.25">-</button>
     <div class="eZoomLevel border"><div class="eZoomBox" contenteditable>100</div>%</div>
-    <button class="eZoomButton buttonAnim border" add change=".1">+</button>
+    <button class="eZoomButton buttonAnim border" add change=".25">+</button>
   </div>
   <div class="eZoomLine"></div>
   <button class="eZoomAction" option="cursors" title="Display the cursors of other editors."><div label>Cursors</div><div class="eZoomToggle"><div></div></div></button>

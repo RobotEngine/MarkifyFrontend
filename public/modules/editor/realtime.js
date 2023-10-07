@@ -518,6 +518,8 @@ modules["editor/realtime"] = {
               x += pageRect.left;
               y += pageRect.top;
             }
+            member.x = x;
+            member.y = y;
             if (tool == null) {
               // Must be for a page leave event:
               if (editor.visiblePages.includes(page)) {
@@ -547,8 +549,8 @@ modules["editor/realtime"] = {
               } else {
                 cursorHolder.removeAttribute("pressed");
               }
-              cursorHolder.style.left = x + (parseInt(cursorHolder.getAttribute("offsetx") || "0")) + window.scrollX + "px";
-              cursorHolder.style.top = y + (parseInt(cursorHolder.getAttribute("offsety") || "0")) + window.scrollY + "px";
+              cursorHolder.style.left = member.x + (parseInt(cursorHolder.getAttribute("offsetx") || "0")) + window.scrollX + "px";
+              cursorHolder.style.top = member.y + (parseInt(cursorHolder.getAttribute("offsety") || "0")) + window.scrollY + "px";
             }
             if (parseInt(cursorHolder.getAttribute("mode") || -1) != tool) {
               cursorHolder.setAttribute("changing", "");

@@ -1070,8 +1070,8 @@ modules["pages/editor"] = {
     tempListen(window, "DOMMouseScroll", scrollMouseWheel, { passive: false });
     tempListen(window, "mousewheel", scrollMouseWheel, { passive: false });
     tempListen(window, "wheel", scrollMouseWheel, { passive: false });
-    tempListen(document, "gesturestart", scrollMouseWheel, { passive: true });
-    tempListen(document, "gesturechange", scrollMouseWheel, { passive: true });
+    tempListen(document, "gesturestart", scrollMouseWheel, { passive: false });
+    tempListen(document, "gesturechange", scrollMouseWheel, { passive: false });
 
     // Handle MOBILE
     /*

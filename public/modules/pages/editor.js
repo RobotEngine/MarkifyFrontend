@@ -1070,10 +1070,47 @@ modules["pages/editor"] = {
     tempListen(window, "DOMMouseScroll", scrollMouseWheel, { passive: false });
     tempListen(window, "mousewheel", scrollMouseWheel, { passive: false });
     tempListen(window, "wheel", scrollMouseWheel, { passive: false });
-    tempListen(document, "gesturestart", scrollMouseWheel, { passive: false });
-    tempListen(document, "gesturechange", scrollMouseWheel, { passive: false });
 
     // Handle MOBILE
+    let initialDistance = 0;
+    let initialCenterX = 0;
+    let initialCenterY = 0;
+    let getDistance = (touches) => {
+      const dx = touches[0].pageX - touches[1].pageX;
+      const dy = touches[0].pageY - touches[1].pageY;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+    let getCenter = (touches) => {
+      const centerX = (touches[0].pageX + touches[1].pageX) / 2;
+      const centerY = (touches[0].pageY + touches[1].pageY) / 2;
+      return { x: centerX, y: centerY };
+    }
+    let handlePinch = (event) => {
+      if (event.touches.length >= 2) {
+        const currentDistance = getDistance(event.touches);
+        const currentCenter = getCenter(event.touches);
+        if (initialDistance === 0) {
+          initialDistance = currentDistance;
+          initialCenterX = currentCenter.x;
+          initialCenterY = currentCenter.y;
+        } else {
+          const pinchDelta = currentDistance - initialDistance;
+          const centerDeltaX = currentCenter.x - initialCenterX;
+          const centerDeltaY = currentCenter.y - initialCenterY;
+
+          // Handle pinch gesture using pinchDelta, centerDeltaX, and centerDeltaY
+          this.setZoom(null, null, { wheelDelta: pinchDelta, clientX: centerDeltaX, clientY: centerDeltaY });
+        }
+      }
+    }
+    tempListen(document, "touchstart", handlePinch, { passive: false });
+    tempListen(document, "touchmove", handlePinch, { passive: false });
+    tempListen(document, "toucheend", () => {
+      initialDistance = 0;
+      initialCenterX = 0;
+      initialCenterY = 0;
+    }, { passive: false });
+
     /*
     let initialDistance = null;
 
@@ -1286,3 +1323,12 @@ modules["dropdowns/editor/zoom"] = {
     });
   }
 }
+
+modules["pages/editor/annotation"] = {
+  updatePageContent: async function (editor) {
+
+  },
+  createHolder: async function (editor, anno) {
+
+  }
+};

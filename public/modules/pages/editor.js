@@ -1087,19 +1087,25 @@ modules["pages/editor"] = {
     }
     let handlePinch = (event) => {
       if (event.touches.length >= 2) {
-        const currentDistance = getDistance(event.touches);
-        const currentCenter = getCenter(event.touches);
+        let currentDistance = getDistance(event.touches);
+        let currentCenter = getCenter(event.touches);
         if (initialDistance === 0) {
           initialDistance = currentDistance;
           initialCenterX = currentCenter.x;
           initialCenterY = currentCenter.y;
         } else {
-          const pinchDelta = currentDistance - initialDistance;
-          const centerDeltaX = currentCenter.x - initialCenterX;
-          const centerDeltaY = currentCenter.y - initialCenterY;
+          let pinchDelta = currentDistance - initialDistance;
+          let centerDeltaX = currentCenter.x - initialCenterX;
+          let centerDeltaY = currentCenter.y - initialCenterY;
 
+          let setDelta = 0;
+          if (pinchDelta > 0) {
+            setDelta = 1;
+          } else if (pinchDelta < 0) {
+            setDelta = -1;
+          }
           // Handle pinch gesture using pinchDelta, centerDeltaX, and centerDeltaY
-          this.setZoom(null, null, { wheelDelta: pinchDelta, clientX: centerDeltaX, clientY: centerDeltaY });
+          this.setZoom(null, null, { wheelDelta: setDelta, clientX: centerDeltaX, clientY: centerDeltaY });
         }
       }
     }

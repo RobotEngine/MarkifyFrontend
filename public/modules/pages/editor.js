@@ -1059,19 +1059,17 @@ modules["pages/editor"] = {
     }
     let scrollMouseWheel = (event) => {
       if (event.ctrlKey || event.metaKey) {
-        if (event.wheelDelta > 0) {
-          this.setZoom(null, null, event);
-        } else if (event.wheelDelta < 0) {
-          this.setZoom(null, null, event);
-        }
+        this.setZoom(null, null, event);
         event.preventDefault();
       }
     }
     tempListen(window, "DOMMouseScroll", scrollMouseWheel, { passive: false });
     tempListen(window, "mousewheel", scrollMouseWheel, { passive: false });
     tempListen(window, "wheel", scrollMouseWheel, { passive: false });
+    tempListen(document, "gesturechange", scrollMouseWheel, { passive: false });
 
     // Handle MOBILE
+    /*
     let initialDistance = 0;
     let initialCenterX = 0;
     let initialCenterY = 0;
@@ -1116,6 +1114,7 @@ modules["pages/editor"] = {
       initialCenterX = 0;
       initialCenterY = 0;
     }, { passive: false });
+    */
 
     /*
     let initialDistance = null;

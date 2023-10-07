@@ -993,7 +993,7 @@ modules["pages/editor"] = {
       let prevWidth = pageHolder.clientWidth * this.zoom;
       let prevHeight = pageHolder.clientHeight * this.zoom;
 
-      let delta = mouse.scale || Math.max(-1, Math.min(1, (mouse.wheelDelta || -(mouse.detail || 0))));
+      let delta = Math.max(-1, Math.min(1, (mouse.wheelDelta || -(mouse.detail || 0))));
       this.zoom = set || (this.zoom + (delta / 10));
 
       let mouseX = mouse.clientX || 0;
@@ -1066,13 +1066,9 @@ modules["pages/editor"] = {
     tempListen(window, "DOMMouseScroll", scrollMouseWheel, { passive: false });
     tempListen(window, "mousewheel", scrollMouseWheel, { passive: false });
     tempListen(window, "wheel", scrollMouseWheel, { passive: false });
-    tempListen(document, "gesturechange", scrollMouseWheel, { passive: false });
 
     // Handle MOBILE
-    /*
-    let initialDistance = 0;
-    let initialCenterX = 0;
-    let initialCenterY = 0;
+    let lastDistance = 0;
     let getDistance = (touches) => {
       const dx = touches[0].pageX - touches[1].pageX;
       const dy = touches[0].pageY - touches[1].pageY;
@@ -1087,34 +1083,23 @@ modules["pages/editor"] = {
       if (event.touches.length >= 2) {
         let currentDistance = getDistance(event.touches);
         let currentCenter = getCenter(event.touches);
-        if (initialDistance === 0) {
-          initialDistance = currentDistance;
-          initialCenterX = currentCenter.x;
-          initialCenterY = currentCenter.y;
-        } else {
-          let pinchDelta = currentDistance - initialDistance;
-          let centerDeltaX = currentCenter.x - initialCenterX;
-          let centerDeltaY = currentCenter.y - initialCenterY;
+        let pinchDelta = currentDistance - lastDistance;
+        lastDistance = currentDistance;
 
-          let setDelta = 0;
-          if (pinchDelta > 0) {
-            setDelta = 1;
-          } else if (pinchDelta < 0) {
-            setDelta = -1;
-          }
-          // Handle pinch gesture using pinchDelta, centerDeltaX, and centerDeltaY
-          this.setZoom(null, null, { wheelDelta: setDelta, clientX: centerDeltaX, clientY: centerDeltaY });
+        let setDelta = 0;
+        if (pinchDelta > 0) {
+          setDelta = 1;
+        } else if (pinchDelta < 0) {
+          setDelta = -1;
         }
+        this.setZoom(null, null, { wheelDelta: setDelta, clientX: currentCenter.x, clientY: currentCenter.y });
       }
     }
     tempListen(document, "touchstart", handlePinch, { passive: false });
     tempListen(document, "touchmove", handlePinch, { passive: false });
     tempListen(document, "toucheend", () => {
-      initialDistance = 0;
-      initialCenterX = 0;
-      initialCenterY = 0;
+      lastDistance = 0;
     }, { passive: false });
-    */
 
     /*
     let initialDistance = null;

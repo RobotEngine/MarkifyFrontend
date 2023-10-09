@@ -1166,9 +1166,9 @@ modules["pages/editor"] = {
 modules["dropdowns/editor/zoom"] = {
   html: `
   <div class="eZoomHolder">
-    <button class="eZoomButton buttonAnim border" sub change="-.25">-</button>
+    <button class="eZoomButton buttonAnim border" sub change="-.3">-</button>
     <div class="eZoomLevel border"><div class="eZoomBox" contenteditable>100</div>%</div>
-    <button class="eZoomButton buttonAnim border" add change=".25">+</button>
+    <button class="eZoomButton buttonAnim border" add change=".3">+</button>
   </div>
   <div class="eZoomLine"></div>
   <button class="eZoomAction" option="cursors" title="Display the cursors of other editors."><div label>Cursors</div><div class="eZoomToggle"><div></div></div></button>

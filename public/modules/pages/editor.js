@@ -990,8 +990,10 @@ modules["pages/editor"] = {
       let pageScrollX = window.scrollX;
       let pageScrollY = window.scrollY;
 
-      let prevWidth = pageHolder.clientWidth * this.zoom;
-      let prevHeight = pageHolder.clientHeight * this.zoom;
+      let prevZoom = this.zoom;
+
+      let prevWidth = pageHolder.clientWidth * prevZoom;
+      let prevHeight = pageHolder.clientHeight * prevZoom;
 
       let delta = Math.max(-1, Math.min(1, (mouse.wheelDelta || -(mouse.detail || 0))));
       this.zoom = set || (this.zoom + (delta / 10));
@@ -1025,8 +1027,8 @@ modules["pages/editor"] = {
       */
 
       // Calculate the new scroll position based on the mouse cursor position and zoom level
-      let newScrollX = (mouseX + pageScrollX) * (newWidth / prevWidth) - mouseX; // + rect.left;
-      let newScrollY = (mouseY + pageScrollY) * (newHeight / prevHeight) - mouseY; // + rect.top;
+      let newScrollX = ((mouseX + pageScrollX) * (newWidth / prevWidth)) - mouseX; // + rect.left;
+      let newScrollY = ((mouseY + pageScrollY) * (newHeight / prevHeight)) - mouseY; // + rect.top;
 
       // Set the new scroll position
       window.scrollTo(newScrollX, newScrollY);
@@ -1070,7 +1072,7 @@ modules["pages/editor"] = {
     // Handle MOBILE
     let lastDistance = 0;
     let getDistance = (touches) => {
-      return Math.sqrt((touches[1].pageX - touches[0].pageX)^2 + (touches[1].pageY - touches[0].pageY)^2);
+      return Math.hypot(touches[0].pageX - touches[1].pageX, touches[0].pageY - touches[1].pageY);
     }
     let getCenter = (touches) => {
       return { x: (touches[0].pageX + touches[1].pageX) / 2, y: (touches[0].pageY + touches[1].pageY) / 2 };
@@ -1080,16 +1082,14 @@ modules["pages/editor"] = {
         let currentDistance = getDistance(event.touches);
         let currentCenter = getCenter(event.touches);
 
-        /*
         let delta = 0;
         if (currentDistance > lastDistance) {
           delta = 1;
         } else if (lastDistance < currentDistance) {
           delta = -1;
         }
-        */
-        nameBox.textContent = (currentDistance / lastDistance) + "; " + currentCenter.x + "; " + currentCenter.y;
-        this.setZoom(null, null, { wheelDelta: (currentDistance / lastDistance), clientX: currentCenter.x, clientY: currentCenter.y });
+        nameBox.textContent = delta + "; " + currentCenter.x + "; " + currentCenter.y;
+        this.setZoom(null, null, { wheelDelta: delta, clientX: currentCenter.x, clientY: currentCenter.y });
         lastDistance = currentDistance;
       }
     }

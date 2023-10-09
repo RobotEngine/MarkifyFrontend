@@ -1072,10 +1072,10 @@ modules["pages/editor"] = {
     // Handle MOBILE
     let lastDistance = 0;
     let getDistance = (touches) => {
-      return Math.hypot(touches[0].pageX - touches[1].pageX, touches[0].pageY - touches[1].pageY);
+      return Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
     }
     let getCenter = (touches) => {
-      return { x: (touches[0].pageX + touches[1].pageX) / 2, y: (touches[0].pageY + touches[1].pageY) / 2 };
+      return { x: (touches[0].clientX + touches[1].clientX) / 2, y: (touches[0].clientY + touches[1].clientY) / 2 };
     }
     let handlePinch = (event) => {
       if (event.touches.length >= 2) {

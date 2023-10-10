@@ -66,7 +66,7 @@ modules["dropdowns/editor/share/link"] = {
 
     linkTx.value = "markify.link/join?lesson=" + editor.id;
     frame.querySelector(".eShareLinkCopy").addEventListener("click", async () => {
-      copyClipboardText(linkTx.value, "link");
+      copyClipboardText("https://markify.link/join?lesson=" + editor.id, "link");
     });
 
     editor.updateLink = async () => {

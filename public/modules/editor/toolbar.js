@@ -687,13 +687,14 @@ modules["pages/editor/toolbar/pen"] = {
       let clientY = event.clientY || event.changedTouches[0].clientY;
       let page = await utils.findPage(clientY);
       let { x, y } = await utils.scaleToDoc(clientX, clientY, page);
-      console.log(x, y, page)
+      let halfThickness = this.thickness / 2;
       draw = await utils.render({
         f: "draw",
-        p: [x, y, page],
+        p: [await utils.round((x - halfThickness) / 2), await utils.round((y - halfThickness) / 2), page],
+        s: [this.thickness, this.thickness],
         c: this.color,
-        t: this.thickness || 4,
-        o: this.opacity || 100
+        t: this.thickness,
+        o: this.opacity
       });
       this.publish.a = draw;
     }

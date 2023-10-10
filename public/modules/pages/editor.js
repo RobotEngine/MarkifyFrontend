@@ -1328,12 +1328,6 @@ modules["pages/editor/annotation"] = {
     }
     return 0;
   },
-  updatePageContent: async function (editor) {
-
-  },
-  createHolder: async function (editor, anno) {
-
-  },
   scaleToDoc: async function (x, y, p) {
     let editor = await getModule("pages/editor");
     let pageHolder = editor.page.querySelector(".ePageHolder");
@@ -1350,10 +1344,15 @@ modules["pages/editor/annotation"] = {
       y: Math.floor(y * scaleZoom)
     }
   },
+  round: async function (num, places) {
+    let pow = Math.pow(10, places || 2);
+    return Math.ceil(num * pow) / pow;
+  },
   render: async function (data) {
   /*
     f - FUNCTION - The type of tool to render
     p - POSITION - Position of annotation - [ X, Y, PAGE ]
+    s - SIZE - Size of annotation - [ WIDTH, HEIGHT ]
     c - COLOR - Color of annotation
     t - THICKNESS - Thickness of annotation
     o - OPACITY - Opacity of annotation
@@ -1362,10 +1361,10 @@ modules["pages/editor/annotation"] = {
     if (data == null) {
       return;
     }
-    let { f, p, c, t, o, d } = data;
+    let { f, p, s, c, t, o, d } = data;
     switch (f) {
       case "draw":
-        console.log("draw");
+        console.log(f, p, s, c, t, o, d);
         break;
     }
     return data;

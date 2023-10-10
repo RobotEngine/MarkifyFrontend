@@ -1313,10 +1313,61 @@ modules["dropdowns/editor/zoom"] = {
 }
 
 modules["pages/editor/annotation"] = {
+  findPage: async function (y) {
+    let editor = await getModule("pages/editor");
+    let pageHolder = editor.page.querySelector(".ePageHolder");
+    for (let i = 0; i < editor.visiblePages.length; i++) {
+      let pageElem = pageHolder.children[editor.visiblePages[i] - 1];
+      if (pageElem == null) {
+        continue;
+      }
+      let rect = pageElem.getBoundingClientRect();
+      if (rect.bottom > y) {
+        return editor.visiblePages[i];
+      }
+    }
+    return 0;
+  },
   updatePageContent: async function (editor) {
 
   },
   createHolder: async function (editor, anno) {
 
+  },
+  scaleToDoc: async function (x, y, p) {
+    let editor = await getModule("pages/editor");
+    let pageHolder = editor.page.querySelector(".ePageHolder");
+    if (editor.visiblePages) {
+      if (p > 0) {
+        let pageRect = pageHolder.children[p - 1].getBoundingClientRect();
+        x -= pageRect.left;
+        y -= pageRect.top;
+      }
+    }
+    let scaleZoom = 1 / editor.zoom;
+    return {
+      x: Math.floor(x * scaleZoom),
+      y: Math.floor(y * scaleZoom)
+    }
+  },
+  render: async function (data) {
+  /*
+    f - FUNCTION - The type of tool to render
+    p - POSITION - Position of annotation - [ X, Y, PAGE ]
+    c - COLOR - Color of annotation
+    t - THICKNESS - Thickness of annotation
+    o - OPACITY - Opacity of annotation
+    d - DATA - Data, can change based on annotation, path of pen for example
+  */
+    if (data == null) {
+      return;
+    }
+    let { f, p, c, t, o, d } = data;
+    switch (f) {
+      case "draw":
+        console.log("draw");
+        break;
+    }
+    return data;
   }
 };

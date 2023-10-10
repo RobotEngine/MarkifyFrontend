@@ -153,24 +153,13 @@ modules["editor/realtime"] = {
     let lastObserveContent = "";
     let lastCursorPage;
 
-    this.findPage = (y) => {
-      for (let i = 0; i < editor.visiblePages.length; i++) {
-        let pageElem = pageHolder.children[editor.visiblePages[i] - 1];
-        if (pageElem == null) {
-          continue;
-        }
-        let rect = pageElem.getBoundingClientRect();
-        if (rect.bottom > y) {
-          return editor.visiblePages[i];
-        }
-      }
-      return 0;
-    }
+    let utils = await getModule("pages/editor/annotation");
+    
     let mouseX = 0;
     let mouseY = 0;
     let endSyncTimeout;
     let endSyncObserveTimeout;
-    this.publishShort = (event, type, ignoreSame) => {
+    this.publishShort = async (event, type, ignoreSame) => {
       type = type || "cursor";
       if (event && event.x) {
         mouseX = event.x;
@@ -204,7 +193,7 @@ modules["editor/realtime"] = {
           let sendY = mouseY;
           let pageRect;
           if (editor.visiblePages) {
-            filter.p = this.findPage(sendY);
+            filter.p = await utils.findPage(sendY);
             if (filter.p > 0) {
               pageRect = pageHolder.children[filter.p - 1].getBoundingClientRect();
               sendX -= pageRect.left;
@@ -237,7 +226,7 @@ modules["editor/realtime"] = {
                   }
                   let selX = selRect.x;
                   let selY = selRect.y;
-                  let page = this.findPage(selY);
+                  let page = await utils.findPage(selY);
                   if (editor.visiblePages && pageHolder.children[page - 1]) {
                     let selPageRect = pageHolder.children[page - 1].getBoundingClientRect();
                     selX -= selPageRect.left;

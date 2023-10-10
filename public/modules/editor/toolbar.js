@@ -307,6 +307,7 @@ modules["editor/toolbar"] = {
       tooltipText.style.transform = "scale(1)";
       tooltipText.style.opacity = 1;
     });
+    editor.page.addEventListener("mouseleave", closeTooltipHover);
 
     let toolEvents = [];
     let disableTool = () => {
@@ -315,8 +316,13 @@ modules["editor/toolbar"] = {
         remEvent.parent.removeEventListener(remEvent.name, remEvent.listener);
       }
       toolEvents = [];
+      editor.page.style.userSelect = "all";
     }
-    let utils = await getModule("pages/editor/toolbar/utils");
+    let tempToolListen = (parent, listen, runFunc, extra) => {
+      parent.addEventListener(listen, runFunc, extra);
+      toolEvents.push({ type: "event", parent: parent, name: listen, listener: runFunc });
+    }
+    let utils = await getModule("pages/editor/annotation");
     let mouseSVG;
     let currentToolModule = "pages/editor/toolbar/cursor";
     let pageContent = editor.page.querySelector(".eContent");
@@ -327,7 +333,7 @@ modules["editor/toolbar"] = {
         module = await getModule(currentToolModule);
       }
       if (module != null) {
-        module.js(editor, utils, toolEvents);
+        module.js(editor, utils, tempToolListen);
       }
       module = module || {};
       editor.realtime.tool = module.realtimeTool || 0;
@@ -510,6 +516,8 @@ modules["editor/toolbar"] = {
               currentToolModule = selectSubtool.getAttribute("module");
               selectSubtool.setAttribute("selected", "");
             }
+          } else {
+            currentToolModule = null;
           }
   
           subTools.style.top = mainSubtoolButton.getBoundingClientRect().top + (mainSubtoolButton.offsetHeight / 2) - frame.getBoundingClientRect().top + "px";
@@ -631,13 +639,6 @@ modules["editor/toolbar"] = {
   }
 }
 
-// UTILS
-modules["pages/editor/toolbar/utils"] = {
-  begin: async function () {
-    console.log("ACTIVE")
-  }
-};
-
 // CURSOR TOOL
 modules["pages/editor/toolbar/cursor"] = {
   mouse: "default",
@@ -671,11 +672,53 @@ modules["pages/editor/toolbar/underline"] = {
 modules["pages/editor/toolbar/pen"] = {
   mouse: `<svg width="56" height="56" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"> <g filter="url(#filter0_d_230_9)"> <path d="M34.1403 16.8592L33.2006 16.5172L32.8586 17.4569L30.0243 25.2438C29.0801 27.8382 29.3788 30.7224 30.8347 33.0682L31.1771 33.6198C31.6637 34.4037 32.6235 34.7531 33.5002 34.4653L34.117 34.2628C36.7401 33.4017 38.8229 31.3843 39.7672 28.7899L42.6014 21.003L42.9434 20.0633L42.0037 19.7213L34.1403 16.8592Z" fill="COLOR_REPLACE" fill-opacity="OPACITY_REPLACE" stroke="white" stroke-width="2"/> <path d="M39.0164 27.925L39.9561 28.2671L40.2981 27.3274L45.5943 12.7762C46.5735 10.0858 45.1863 7.11099 42.4959 6.13176C39.8055 5.15253 36.8307 6.53971 35.8514 9.23012L30.5553 23.7813L30.2132 24.721L31.1529 25.063L39.0164 27.925Z" fill="#2F2F2F" stroke="white" stroke-width="2"/> </g> <defs> <filter id="filter0_d_230_9" x="24.4814" y="0.817383" width="26.4268" height="38.748" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"> <feFlood flood-opacity="0" result="BackgroundImageFix"/> <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/> <feOffset/> <feGaussianBlur stdDeviation="2"/> <feComposite in2="hardAlpha" operator="out"/> <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/> <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_230_9"/> <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_230_9" result="shape"/> </filter> </defs> </svg>`,
   realtimeTool: 2,
-  js: async function (editor, events) {
+  js: async function (editor, utils, addEvent) {
     this.color = editor.preferences.tools.draw.color.selected;
+    this.thickness = editor.preferences.tools.draw.thickness;
     this.opacity = editor.preferences.tools.draw.opacity;
     this.publish = { c: this.color, o: this.opacity };
-    console.log("ACTIVE")
+    console.log("ACTIVE");
+
+    editor.page.style.userSelect = "none";
+
+    let draw;
+    let enableDraw = async (event) => {
+      let clientX = event.clientX || event.changedTouches[0].clientX;
+      let clientY = event.clientY || event.changedTouches[0].clientY;
+      let page = await utils.findPage(clientY);
+      let { x, y } = await utils.scaleToDoc(clientX, clientY, page);
+      console.log(x, y, page)
+      draw = await utils.render({
+        f: "draw",
+        p: [x, y, page],
+        c: this.color,
+        t: this.thickness || 4,
+        o: this.opacity || 100
+      });
+      this.publish.a = draw;
+    }
+    let moveDraw = (event) => {
+      if (draw == null) {
+        return;
+      }
+      if (mouseDown() == false) {
+        disableDraw();
+        return;
+      }
+      console.log("BBB");
+    }
+    let disableDraw = (event) => {
+      console.log("CCC");
+      draw = null;
+      delete this.publish.a;
+    }
+    let content = editor.page.querySelector(".eContent");
+    addEvent(content, "mousedown", enableDraw);
+    addEvent(content, "touchstart", enableDraw);
+    addEvent(content, "mousemove", moveDraw);
+    addEvent(content, "touchmove", moveDraw);
+    addEvent(content, "mouseup", disableDraw);
+    addEvent(content, "touchend", disableDraw);
   }
 };
 // ERASER TOOL

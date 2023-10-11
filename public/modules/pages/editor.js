@@ -130,6 +130,9 @@ modules["pages/editor"] = {
     ".ePageTextHolder": "--scale-factor: 1; position: absolute; left: 0; top: 0; font-family: sans-serif",
     ".ePageTextHolder span": "position: absolute; color: transparent; pointer-events: all",
     ".ePageTextHolder br": `user-select: none`,
+    ".ePageAnnotations": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 1`,
+    ".annotation": `position: absolute`,
+    ".annotation svg": `position: absolute; width: calc(100% + 200px); height: calc(100% + 200px); left: -100px; top: -100px; pointer-events: all`,
 
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 100; overflow: hidden; pointer-events: none`
   },
@@ -1344,12 +1347,45 @@ modules["pages/editor/annotation"] = {
       y: Math.floor(y * scaleZoom)
     }
   },
-  round: async function (num, places) {
+  scaleToZoom: async function (x, y, p) {
+    let editor = await getModule("pages/editor");
+    let pageHolder = editor.page.querySelector(".ePageHolder");
+    x *= editor.zoom;
+    y *= editor.zoom;
+    if (p > 0) {
+      let pageRect = pageHolder.children[p - 1].getBoundingClientRect();
+      x += pageRect.left;
+      y += pageRect.top;
+    }
+    return { x, y };
+  },
+  round: function (num, places) {
     let pow = Math.pow(10, places || 2);
     return Math.ceil(num * pow) / pow;
   },
-  render: async function (data) {
+  annoHolder: async function (pageNum) {
+    let editor = await getModule("pages/editor");
+    let pageHolder = editor.page.querySelector(".ePageHolder");
+    let page = pageHolder.children[pageNum - 1];
+    if (page == null) {
+      return pageHolder;
+    }
+    let holder = page.querySelector(".ePageAnnotations");
+    if (holder == null) {
+      page.insertAdjacentHTML("beforeend", `<div class="ePageAnnotations"></div>`);
+      holder = page.querySelector(".ePageAnnotations");
+    }
+    return holder;
+  },
+  createSVG: function(parent, type) {
+    let newSVG = document.createElementNS("http://www.w3.org/2000/svg", type);
+    parent.appendChild(newSVG);
+    return newSVG;
+  },
+  SVG_PADDING: 100, // How much padding svgs should have to ensure clean render
+  render: async function (data, anno) {
   /*
+    _id - ID - The unique ID of the annotation
     f - FUNCTION - The type of tool to render
     p - POSITION - Position of annotation - [ X, Y, PAGE ]
     s - SIZE - Size of annotation - [ WIDTH, HEIGHT ]
@@ -1361,10 +1397,51 @@ modules["pages/editor/annotation"] = {
     if (data == null) {
       return;
     }
-    let { f, p, s, c, t, o, d } = data;
+    let { _id, f, p, s, c, t, o, d } = data;
+    let [x, y, page] = p;
+    let [width, height] = s;
+    let annoHolder = await this.annoHolder(page);
+    if (anno == null) {
+      anno = annoHolder.querySelector('.annotation[anno="' + _id + '"]');
+    }
+    let svg;
+    let path;
     switch (f) {
       case "draw":
-        console.log(f, p, s, c, t, o, d);
+        if (anno == null) {
+          annoHolder.insertAdjacentHTML("beforeend", `<div class="annotation" new>
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <polyline/>
+            </svg>
+          </div>`);
+          anno = annoHolder.querySelector(".annotation[new]");
+          anno.removeAttribute("new");
+          let line = anno.querySelector("polyline");
+          line.setAttribute("fill", "none");
+          line.setAttribute("stroke-linecap", "round");
+          line.setAttribute("stroke-linejoin", "round");
+        }
+        anno.style.width = width + "px";
+        anno.style.height = height + "px";
+        anno.style.left = x + "px";
+        anno.style.top = y + "px";
+        svg = anno.querySelector("svg");
+        path = svg.querySelector("polyline");
+        svg.viewBox = "0 0 " + (width + (this.SVG_PADDING*2)) + " " + (height + (this.SVG_PADDING*2));
+        let drawSetPoints = "";
+        if (d.length == 2) {
+          //let dividedT = t / 2;
+          //drawSetPoints = (d[0] - dividedT + this.SVG_PADDING) + "," + (d[1] - dividedT + this.SVG_PADDING) + " " + (d[0] + dividedT + this.SVG_PADDING) + "," + (d[1] + dividedT + this.SVG_PADDING);
+          drawSetPoints = (d[0] + this.SVG_PADDING) + "," + (d[1] + this.SVG_PADDING) + " " + (d[0] + 0.1 + this.SVG_PADDING) + "," + (d[1] + 0.1 + this.SVG_PADDING);
+        } else {
+          for (let i = 0; i < d.length; i += 2) {
+            drawSetPoints += (d[i] + this.SVG_PADDING) + "," + (d[i+1] + this.SVG_PADDING) + " ";
+          }
+        }
+        path.setAttribute("points", drawSetPoints);
+        path.setAttribute("stroke", "#" + c);
+        path.setAttribute("stroke-width", t);
+        path.setAttribute("opacity", o / 100);
         break;
     }
     return data;

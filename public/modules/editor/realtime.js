@@ -499,8 +499,8 @@ modules["editor/realtime"] = {
             // Set x and y:
             cursorHolder.setAttribute("x", x);
             cursorHolder.setAttribute("y", y);
-            x = x * editor.zoom;
-            y = y * editor.zoom;
+            x *= editor.zoom;
+            y *= editor.zoom;
             if (page > 0) {
               let pageRect = pageHolder.children[page - 1].getBoundingClientRect();
               cursorHolder.setAttribute("page", page);

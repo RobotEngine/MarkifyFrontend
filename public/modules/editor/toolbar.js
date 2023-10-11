@@ -690,11 +690,12 @@ modules["pages/editor/toolbar/pen"] = {
       let halfThickness = this.thickness / 2;
       draw = await utils.render({
         f: "draw",
-        p: [await utils.round((x - halfThickness) / 2), await utils.round((y - halfThickness) / 2), page],
+        p: [utils.round(x - halfThickness), utils.round(y - halfThickness), page],
         s: [this.thickness, this.thickness],
         c: this.color,
         t: this.thickness,
-        o: this.opacity
+        o: this.opacity,
+        d: [halfThickness, halfThickness]
       });
       this.publish.a = draw;
     }

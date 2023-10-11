@@ -511,7 +511,7 @@ async function renewToken() {
 }
 async function sendRequest(method, path, body, extra) {
   if (connected == false) {
-    return;
+    return [0, "Not Connected", { took: 0 }];
   }
   let response;
   let reqTime;
@@ -594,7 +594,7 @@ async function sendRequest(method, path, body, extra) {
     } else {
       (await getModule("alert")).open("error", "<b>Whoops! Something Unexpected Happened</b>Please try again later...");
     }
-    return [0, "Fetch Error"];
+    return [0, "Fetch Error", { took: reqTime }];
   }
 }
 

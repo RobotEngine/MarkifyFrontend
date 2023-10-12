@@ -719,28 +719,30 @@ modules["pages/editor/toolbar/pen"] = {
       if (y + halfThickness > draw.s[1]) {
         draw.s[1] = y + halfThickness;
       }
-      if (x < 0) {
+      let sizeIncX = x - halfThickness;
+      if (sizeIncX < 0) {
         for (let i = 0; i < draw.d.length; i += 2) {
-          draw.d[i] -= x;
+          draw.d[i] -= sizeIncX;
         }
-        draw.s[0] -= x;
-        draw.p[0] += x;
-        x = 0;
+        draw.s[0] -= sizeIncX;
+        draw.p[0] += sizeIncX;
+        x = halfThickness;
       }
-      if (y < 0) {
+      let sizeIncY = y - halfThickness;
+      if (sizeIncY < 0) {
         for (let i = 1; i < draw.d.length; i += 2) {
-          draw.d[i] -= y;
+          draw.d[i] -= sizeIncY;
         }
-        draw.s[1] -= y;
-        draw.p[1] += y;
-        y = 0;
+        draw.s[1] -= sizeIncY;
+        draw.p[1] += sizeIncY;
+        y = halfThickness;
       }
       draw.d.push(utils.round(x));
       draw.d.push(utils.round(y));
       utils.render(draw, anno);
     }
     let disableDraw = (event) => {
-      console.log("CCC");
+      console.log("DONE");
       draw = null;
       delete this.publish.a;
     }

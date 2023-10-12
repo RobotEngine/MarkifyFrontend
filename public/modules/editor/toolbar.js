@@ -682,24 +682,27 @@ modules["pages/editor/toolbar/pen"] = {
     editor.page.style.userSelect = "none";
 
     let draw;
+    let anno;
     let enableDraw = async (event) => {
-      let clientX = event.clientX || event.changedTouches[0].clientX;
       let clientY = event.clientY || event.changedTouches[0].clientY;
       let page = await utils.findPage(clientY);
-      let { x, y } = await utils.scaleToDoc(clientX, clientY, page);
+      let { x, y } = await utils.scaleToDoc(event.clientX || event.changedTouches[0].clientX, clientY, page);
       let halfThickness = this.thickness / 2;
-      draw = await utils.render({
+      if (page > 1) {
+        y -= 4; // Remove border-pixel width
+      }
+      [draw, anno] = await utils.render({
         f: "draw",
         p: [utils.round(x - halfThickness), utils.round(y - halfThickness), page],
         s: [this.thickness, this.thickness],
         c: this.color,
         t: this.thickness,
         o: this.opacity,
-        d: [halfThickness, halfThickness]
+        d: [utils.round(halfThickness), utils.round(halfThickness)]
       });
       this.publish.a = draw;
     }
-    let moveDraw = (event) => {
+    let moveDraw = async (event) => {
       if (draw == null) {
         return;
       }
@@ -707,7 +710,34 @@ modules["pages/editor/toolbar/pen"] = {
         disableDraw();
         return;
       }
-      console.log("BBB");
+      let rect = anno.getBoundingClientRect();
+      let { x, y } = await utils.scaleToDoc((event.clientX || event.changedTouches[0].clientX) - rect.left, (event.clientY || event.changedTouches[0].clientY) - rect.top, 0);
+      let halfThickness = draw.t / 2;
+      if (x + halfThickness > draw.s[0]) {
+        draw.s[0] = x + halfThickness;
+      }
+      if (y + halfThickness > draw.s[1]) {
+        draw.s[1] = y + halfThickness;
+      }
+      if (x < 0) {
+        for (let i = 0; i < draw.d.length; i += 2) {
+          draw.d[i] -= x;
+        }
+        draw.s[0] -= x;
+        draw.p[0] += x;
+        x = 0;
+      }
+      if (y < 0) {
+        for (let i = 1; i < draw.d.length; i += 2) {
+          draw.d[i] -= y;
+        }
+        draw.s[1] -= y;
+        draw.p[1] += y;
+        y = 0;
+      }
+      draw.d.push(utils.round(x));
+      draw.d.push(utils.round(y));
+      utils.render(draw, anno);
     }
     let disableDraw = (event) => {
       console.log("CCC");

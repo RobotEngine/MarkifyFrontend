@@ -1329,7 +1329,7 @@ modules["pages/editor/annotation"] = {
         return editor.visiblePages[i];
       }
     }
-    return 0;
+    return editor.visiblePages[editor.visiblePages.length - 1];
   },
   scaleToDoc: async function (x, y, p) {
     let editor = await getModule("pages/editor");
@@ -1444,6 +1444,6 @@ modules["pages/editor/annotation"] = {
         path.setAttribute("opacity", o / 100);
         break;
     }
-    return data;
+    return [data, anno];
   }
 };

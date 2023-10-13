@@ -317,9 +317,12 @@ modules["editor/realtime"] = {
     page.addEventListener("mousedown", this.publishShort);
     page.addEventListener("mouseup", this.publishShort);
 
-    page.addEventListener("touchmove", (e) => {
+    page.addEventListener("touchmove", (event) => {
+      if (editor.events.mouseMove != null) {
+        editor.events.mouseMove(event);
+      }
       this.exitObserve();
-      this.publishShort(e);
+      this.publishShort(event);
     }, { passive: true });
     page.addEventListener("touchstart", this.publishShort, { passive: true });
     page.addEventListener("touchend", this.publishShort, { passive: true });

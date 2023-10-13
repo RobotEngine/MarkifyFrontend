@@ -1163,6 +1163,15 @@ modules["pages/editor"] = {
     if (this.updatePages) {
       this.updatePages();
     }
+
+    // Events:
+    let sendMove = (event) => {
+      if (this.events.mouseMove != null) {
+        this.events.mouseMove(event);
+      }
+    }
+    page.addEventListener("mousemove", sendMove, { passive: true });
+    page.addEventListener("touchmove", sendMove, { passive: true });
   }
 }
 

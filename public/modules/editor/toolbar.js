@@ -852,7 +852,7 @@ modules["pages/editor/toolbar/color"] = {
     ".eSubToolColorSelector .eTool > div": `border-radius: 25px !important`,
     ".eSubToolColorSelector .eSubToolColor": `width: 32px; height: 32px`,
 
-    ".eSubToolColorPicker": `width: 212px; position: absolute; top: 0px; transform: scale(.9); opacity: 0; transition: .5s; pointer-events: none`,
+    ".eSubToolColorPicker": `width: 212px; position: absolute; top: 0px; transform: scale(.9); opacity: 0; transition: .5s; pointer-events: none; touch-action: none`,
     ".eSubToolColorPickerTop": `position: relative; display: flex; box-sizing: border-box; width: 100%; height: 50px; padding: 10px`,
     ".eSubToolColorPickerTopSelected": `width: 30px; height: 30px; border-radius: 10px`,
     ".eSubToolColorPickerEyedroper": `width: 30px; height: 30px; padding: 0px; margin: 0 13px 0 6px; border-radius: 10px`,
@@ -997,7 +997,7 @@ modules["pages/editor/toolbar/color"] = {
       picker.style.pointerEvents = "none";
       editor.updateSubtoolUI();
     });
-
+    
     // CUSTOM COLOR PICKER:
     let colorShowBox = frame.querySelector(".eSubToolColorPickerTopSelected");
     let colorSliderHolder = frame.querySelector(".eSubToolColorPickerGradient");
@@ -1123,41 +1123,51 @@ modules["pages/editor/toolbar/color"] = {
       if (colorGradientEnabled == false) {
         return;
       }
-      if (mouseDown() == false) {
+      if (mouseDown() == false || event.target.closest(".eSubToolColorPickerShade") == null) {
         app.style.userSelect = "unset";
         colorGradientEnabled = false;
         return;
       }
       let barRect = shadeSliderHolder.getBoundingClientRect();
-      s = Math.ceil(Math.max(Math.min((event.x - barRect.x - 2) / shadeSliderHolder.offsetWidth, 1), 0) * 100);
-      v = Math.ceil(Math.max(Math.min((shadeSliderHolder.offsetHeight - (event.y - barRect.y + 2)) / shadeSliderHolder.offsetHeight, 1), 0) * 100);
+      s = Math.ceil(Math.max(Math.min(((event.clientX || event.changedTouches[0].clientX) - barRect.x - 2) / shadeSliderHolder.offsetWidth, 1), 0) * 100);
+      v = Math.ceil(Math.max(Math.min((shadeSliderHolder.offsetHeight - ((event.clientY || event.changedTouches[0].clientY) - barRect.y + 2)) / shadeSliderHolder.offsetHeight, 1), 0) * 100);
       updateStoredValues();
     }
-    shadeSliderHolder.addEventListener("mousedown", (event) => {
+    let gradientDown = (event) => {
       editor.events.mouseMove = eventGradientUpdate;
       colorGradientEnabled = true;
       app.style.userSelect = "none";
       eventGradientUpdate(event);
-    });
+    }
+    shadeSliderHolder.addEventListener("mousedown", gradientDown);
+    shadeSliderHolder.addEventListener("touchstart", (e) => {
+      screenPressed = true;
+      gradientDown(e);
+    }, { passive: true });
     let eventColorUpdate = (event) => {
       if (colorSliderEnabled == false) {
         return;
       }
-      if (mouseDown() == false) {
+      if (mouseDown() == false || event.target.closest(".eSubToolColorPickerGradient") == null) {
         app.style.userSelect = "unset";
         colorSliderEnabled = false;
         return;
       }
       let barRect = colorSliderHolder.getBoundingClientRect();
-      h = Math.ceil(Math.max(Math.min((event.x - barRect.x) / colorSliderHolder.offsetWidth, 1), 0) * 360);
+      h = Math.ceil(Math.max(Math.min(((event.clientX || event.changedTouches[0].clientX) - barRect.x) / colorSliderHolder.offsetWidth, 1), 0) * 360);
       updateStoredValues();
     }
-    colorSliderHolder.addEventListener("mousedown", (event) => {
+    let colorSliderDown = (event) => {
       editor.events.mouseMove = eventColorUpdate;
       colorSliderEnabled = true;
       app.style.userSelect = "none";
       eventColorUpdate(event);
-    });
+    }
+    colorSliderHolder.addEventListener("mousedown", colorSliderDown);
+    colorSliderHolder.addEventListener("touchstart", (e) => {
+      screenPressed = true;
+      colorSliderDown(e);
+    }, { passive: true });
     editor.events.mouseMove = null;
     let eyeDropper = frame.querySelector(".eSubToolColorPickerEyedroper");
     if (window.EyeDropper == null) {
@@ -1191,7 +1201,7 @@ modules["pages/editor/toolbar/thickness"] = {
     ".eSubToolThicknessHolder": `box-sizing: border-box; display: flex; width: 212px; height: 50px; padding: 6px; align-items: center`,
     ".eSubToolThicknessInput": `width: 40px; height: 26px; border: solid 3px var(--secondary); outline: none; border-radius: 17px; font-family: var(--font); font-size: 20px; font-weight: 700; color: var(--theme); text-align: center`,
     ".eSubToolThicknessInput::placeholder": `color: var(--hover)`,
-    ".eSubToolThicknessSlider": `position: relative; flex: 1; height: 10px; margin: 0 12px; background: var(--hover); border-radius: 5px`,
+    ".eSubToolThicknessSlider": `position: relative; flex: 1; height: 10px; margin: 0 12px; background: var(--hover); border-radius: 5px; touch-action: none`,
     ".eSubToolThicknessSlider button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; top: -5px; background: var(--theme); box-shadow: var(--lightShadow); border: solid 5px var(--secondary); border-radius: 10px; transition: transform .2s`,
     ".eSubToolThicknessSlider button:hover": `transform: scale(1.2) !important`,
     ".eSubToolThicknessSlider button:active": `transform: scale(1.1) !important`
@@ -1222,21 +1232,26 @@ modules["pages/editor/toolbar/thickness"] = {
       if (sliderEnabled == false) {
         return;
       }
-      if (mouseDown() == false) {
+      if (mouseDown() == false || event.target.closest(".eSubToolThicknessSlider") == null) {
         app.style.userSelect = "unset";
         sliderEnabled = false;
         return;
       }
       let barRect = slider.getBoundingClientRect();
-      toolPref.thickness = Math.ceil((Math.max(Math.min((event.x - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0) * (this.maxValue - this.minValue)) + this.minValue);
+      toolPref.thickness = Math.ceil((Math.max(Math.min(((event.clientX || event.changedTouches[0].clientX) - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0) * (this.maxValue - this.minValue)) + this.minValue);
       updateUI();
     }
     editor.events.mouseMove = eventBarUpdate;
-    slider.addEventListener("mousedown", (event) => {
+    let enableSlider = (event) => {
       sliderEnabled = true;
       app.style.userSelect = "none";
       eventBarUpdate(event);
-    });
+    }
+    slider.addEventListener("mousedown", enableSlider);
+    slider.addEventListener("touchstart", (e) => {
+      screenPressed = true;
+      enableSlider(e);
+    }, { passive: true });
     input.addEventListener("focus", () => {
       input.value = "";
       input.placeholder = toolPref.thickness;
@@ -1267,7 +1282,7 @@ modules["pages/editor/toolbar/opacity"] = {
   css: {
     ".eSubToolOpacityHolder": `box-sizing: border-box; display: flex; width: 212px; height: 50px; padding: 6px; align-items: center`,
     ".eSubToolOpacityInput": `width: 40px; height: 26px; border: solid 3px var(--secondary); outline: none; border-radius: 17px; font-family: var(--font); font-size: 20px; font-weight: 700; color: var(--theme); text-align: center`,
-    ".eSubToolOpacitySlider": `position: relative; flex: 1; height: 10px; margin: 0 12px; background: var(--hover); border-radius: 5px`,
+    ".eSubToolOpacitySlider": `position: relative; flex: 1; height: 10px; margin: 0 12px; background: var(--hover); border-radius: 5px; touch-action: none`,
     ".eSubToolOpacitySlider button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; top: -5px; background: var(--theme); box-shadow: var(--lightShadow); border: solid 5px var(--secondary); border-radius: 10px; transition: transform .2s`,
     ".eSubToolOpacitySlider button:hover": `transform: scale(1.2) !important`,
     ".eSubToolOpacitySlider button:active": `transform: scale(1.1) !important`
@@ -1298,21 +1313,26 @@ modules["pages/editor/toolbar/opacity"] = {
       if (sliderEnabled == false) {
         return;
       }
-      if (mouseDown() == false) {
+      if (mouseDown() == false || event.target.closest(".eSubToolOpacitySlider") == null) {
         app.style.userSelect = "unset";
         sliderEnabled = false;
         return;
       }
       let barRect = slider.getBoundingClientRect();
-      toolPref.opacity = Math.ceil((Math.max(Math.min((event.x - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0) * (this.maxValue - this.minValue)) + this.minValue);
+      toolPref.opacity = Math.ceil((Math.max(Math.min(((event.clientX || event.changedTouches[0].clientX) - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0) * (this.maxValue - this.minValue)) + this.minValue);
       updateUI();
     }
     editor.events.mouseMove = eventBarUpdate;
-    slider.addEventListener("mousedown", (event) => {
+    let enableSlider = (event) => {
       sliderEnabled = true;
       app.style.userSelect = "none";
       eventBarUpdate(event);
-    });
+    }
+    slider.addEventListener("mousedown", enableSlider);
+    slider.addEventListener("touchstart", (e) => {
+      screenPressed = true;
+      enableSlider(e);
+    }, { passive: true });
     input.addEventListener("focus", () => {
       input.value = "";
       input.placeholder = toolPref.opacity;

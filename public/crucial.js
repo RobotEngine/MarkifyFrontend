@@ -419,8 +419,22 @@ window.onmouseup = (e) => {
   }
 }
 */
+let screenPressed = false;
+app.ontouchstart = () => {
+  screenPressed = true;
+}
+app.ontouchend = () => {
+  screenPressed = false;
+}
 function mouseDown() {
-  return body.matches(":active");
+  if (hasTouchScreen() == false) {
+    return body.matches(":active");
+  } else {
+    return screenPressed;
+  }
+}
+function hasTouchScreen() {
+  return "maxTouchPoints" in navigator && navigator.maxTouchPoints > 0;
 }
 
 let localDataStore = {};

@@ -424,12 +424,20 @@ modules["editor/realtime"] = {
           elem.remove();
         })();
       }
+      let member = editor.members[memberID];
+      if (member == null) {
+        return;
+      }
+      if (member.activeAnno != null) {
+        member.activeAnno.remove();
+        member.activeAnno = null;
+      }
     }
     this.shortSub = null;
     let targetScrollPositionX = 0;
     let targetScrollPositionY = 0;
     let animationFrameId;
-    let tempListenAnimation = { type: "animation" }
+    let tempListenAnimation = { type: "animation" };
     tempListeners.push(tempListenAnimation);
     function smoothScroll() {
       if (animationFrameId !== null) {
@@ -480,6 +488,9 @@ modules["editor/realtime"] = {
             return;
           }
           if (data[2] == null || data[5] != null) { // CURSOR
+            if (editor.options.cursors == false) {
+              return;
+            }
             let [ memberID, page, tool, time, x, y, extra ] = data;
             if (member.lastShort > time) {
               return;
@@ -523,7 +534,7 @@ modules["editor/realtime"] = {
             } else {
               cursorHolder.style.opacity = 1;
             }
-            let updateCursorProps = () => {
+            let updateCursorProps = async () => {
               if (extra != null) {
                 if (extra.c != null) {
                   let setColor = cursorHolder.querySelector("[toolcoloropacity]");
@@ -531,6 +542,12 @@ modules["editor/realtime"] = {
                     setColor.setAttribute("fill", "#" + extra.c || "000");
                     setColor.setAttribute("fill-opacity", (extra.o || 100) / 100);
                   }
+                }
+                if (extra.a != null) {
+                  member.activeAnno = (await utils.render(extra.a, member.activeAnno))[1];
+                } else if (member.activeAnno != null) {
+                  member.activeAnno.remove();
+                  member.activeAnno = null;
                 }
               }
               if (extra != null && extra.press == true) {

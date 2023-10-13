@@ -249,7 +249,7 @@ modules["editor/toolbar"] = {
 
         let toolsRect = frame.getBoundingClientRect();
         let buttonRect = tooltipElement.getBoundingClientRect();
-        
+
         let setLeft = frame.offsetWidth;
         let setTop = buttonRect.top - toolsRect.top + (tooltipElement.offsetHeight / 2) - (tooltipText.offsetHeight / 2);
         let subToolWidth = parseInt(subTools.getAttribute("setwidth")) + 4;
@@ -261,7 +261,7 @@ modules["editor/toolbar"] = {
             setLeft += subToolWidth;
           }
         }
-  
+
         tooltipText.style.top = setTop + "px";
         tooltipText.style.left = setLeft + 6 + "px";
       }
@@ -381,7 +381,7 @@ modules["editor/toolbar"] = {
         subTools.offsetHeight;
         subTools.style.top = setSubToolTop + "px";
         subTools.setAttribute("settop", setSubToolTop);
-        
+
         if (setSubToolTop < 17) {
           frame.style.borderTopRightRadius = "0px";
         } else {
@@ -419,7 +419,7 @@ modules["editor/toolbar"] = {
         subSubTools.style.transition = "top .3s, opacity .3s, transform .3s, border-radius .5s";
         subTools.offsetHeight;
         subSubTools.style.top = setSubSubToolTop + "px";
-        
+
         if (setSubSubToolTop < 17) {
           subTools.style.borderTopRightRadius = "0px";
         } else {
@@ -446,7 +446,7 @@ modules["editor/toolbar"] = {
     subToolContentScroll.addEventListener("scroll", updateSubtoolUI);
 
     let preferences = editor.preferences.tools;
-    
+
     let closeSubtoolUI = async () => {
       if (mainSubtoolButton != null) {
         subTools.style.top = mainSubtoolButton.getBoundingClientRect().top + (mainSubtoolButton.offsetHeight / 2) - frame.getBoundingClientRect().top + "px";
@@ -473,7 +473,7 @@ modules["editor/toolbar"] = {
           return;
         }
         mainSubtoolButton = button;
-        
+
         let toolID = mainSubtoolButton.getAttribute("tool");
         subToolContent.setAttribute("tool", toolID);
         let loadTools = this.tools[toolID];
@@ -483,7 +483,7 @@ modules["editor/toolbar"] = {
             let toolData = loadTools[i];
             let insertHTML = `<button class="eTool" new><div></div></button>`;
             if (toolData.type == "option") {
-              
+
             } else if (toolData.type == "divider") {
               insertHTML = `<div class="eDivider" keeptooltip new></div>`;
             }
@@ -519,7 +519,7 @@ modules["editor/toolbar"] = {
           } else {
             currentToolModule = null;
           }
-  
+
           subTools.style.top = mainSubtoolButton.getBoundingClientRect().top + (mainSubtoolButton.offsetHeight / 2) - frame.getBoundingClientRect().top + "px";
           editor.updateToolbar();
           updateSubtoolUI();
@@ -531,7 +531,7 @@ modules["editor/toolbar"] = {
         }
       }
     }
-    
+
     let closeSubSubtoolUI = async () => {
       if (mainSubSubtoolButton != null) {
         subSubTools.style.top = mainSubSubtoolButton.getBoundingClientRect().top + (mainSubSubtoolButton.offsetHeight / 2) - subTools.getBoundingClientRect().top + "px";
@@ -607,7 +607,7 @@ modules["editor/toolbar"] = {
         showSubSubtoolUI(element);
       }
     });
-    
+
     editor.updateToolbar = () => {
       let updateColors = frame.querySelectorAll("[fillcoloropacity], [strokecolor], [backcolor], [thickness], [opacity]");
       for (let i = 0; i < updateColors.length; i++) {
@@ -643,7 +643,7 @@ modules["editor/toolbar"] = {
 modules["pages/editor/toolbar/cursor"] = {
   mouse: "default",
   js: async function (editor, events) {
-    
+
   }
 };
 
@@ -740,19 +740,55 @@ modules["pages/editor/toolbar/pen"] = {
       draw.d.push(utils.round(x));
       draw.d.push(utils.round(y));
       utils.render(draw, anno);
+      if (draw.d.length > 6150) { // Start new annotation when path too long
+        disableDraw();
+        enableDraw(event);
+      }
     }
-    let disableDraw = (event) => {
+    let disableDraw = () => {
       console.log("DONE");
+      function simplifyPath(points, epsilon) {
+        if (points.length <= 2) {
+          return points;
+        }
+
+        let dmax = 0;
+        let index = 0;
+
+        for (let i = 2; i < points.length - 2; i += 2) {
+          const d = perpendicularDistance(points.slice(i, i + 2), points.slice(0, 2), points.slice(-2));
+          if (d > dmax) {
+            index = i;
+            dmax = d;
+          }
+        }
+
+        if (dmax > epsilon) {
+          const left = simplifyPath(points.slice(0, index + 2), epsilon);
+          const right = simplifyPath(points.slice(index), epsilon);
+          return left.slice(0, left.length - 2).concat(right);
+        } else {
+          return [points[0], points[1], points[points.length - 2], points[points.length - 1]];
+        }
+      }
+      function perpendicularDistance(point, lineStart, lineEnd) {
+        return Math.abs((lineEnd[1] - lineStart[1]) * point[0] - (lineEnd[0] - lineStart[0]) * point[1] +
+          lineEnd[0] * lineStart[1] - lineEnd[1] * lineStart[0]) /
+          Math.sqrt(Math.pow(lineEnd[1] - lineStart[1], 2) + Math.pow(lineEnd[0] - lineStart[0], 2));
+      }
+      draw.d = simplifyPath(draw.d, .75);
+      utils.render(draw, anno);
+
       draw = null;
       delete this.publish.a;
     }
     let content = editor.page.querySelector(".eContent");
-    addEvent(content, "mousedown", enableDraw);
-    addEvent(content, "touchstart", enableDraw);
-    addEvent(content, "mousemove", moveDraw);
-    addEvent(content, "touchmove", moveDraw);
-    addEvent(content, "mouseup", disableDraw);
-    addEvent(content, "touchend", disableDraw);
+    addEvent(content, "mousedown", enableDraw, { passive: false });
+    addEvent(content, "touchstart", enableDraw, { passive: false });
+    addEvent(content, "mousemove", moveDraw, { passive: false });
+    addEvent(content, "touchmove", moveDraw, { passive: false });
+    addEvent(content, "mouseup", disableDraw, { passive: false });
+    addEvent(content, "touchend", disableDraw, { passive: false });
   }
 };
 // ERASER TOOL
@@ -760,7 +796,7 @@ modules["pages/editor/toolbar/eraser"] = {
   mouse: `<svg width="56" height="56" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"> <g filter="url(#filter0_d_236_14)"> <path d="M32 25V24H33H43C45.2091 24 47 25.7909 47 28V36C47 38.2091 45.2091 40 43 40H33H32V39V25Z" fill="#2F2F2F" stroke="white" stroke-width="2"/> <path d="M32 39V40H31H21C18.7909 40 17 38.2091 17 36V28C17 25.7909 18.7909 24 21 24H31H32V25V39Z" fill="#2F2F2F" stroke="white" stroke-width="2"/> </g> <defs> <filter id="filter0_d_236_14" x="12" y="19" width="40" height="26" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"> <feFlood flood-opacity="0" result="BackgroundImageFix"/> <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/> <feOffset/> <feGaussianBlur stdDeviation="2"/> <feComposite in2="hardAlpha" operator="out"/> <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/> <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_236_14"/> <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_236_14" result="shape"/> </filter> </defs> </svg>`,
   realtimeTool: 3,
   js: async function (editor, events) {
-    
+
   }
 };
 
@@ -836,7 +872,7 @@ modules["pages/editor/toolbar/color"] = {
     ".eSubToolColorPickerInput input": `flex: 1; min-width: 0px; height: 19px; margin-left: 6px; border: solid 3px var(--secondary); outline: none; border-radius: 14px; font-family: var(--font); font-size: 18px; font-weight: 700; color: var(--theme); text-align: center`,
     ".eSubToolColorPickerInput input::placeholder": `color: var(--hover)`
   },
-  hslToHex: function(h, s, l) {
+  hslToHex: function (h, s, l) {
     l /= 100;
     let a = s * Math.min(l, 1 - l) / 100;
     let f = n => {
@@ -846,7 +882,7 @@ modules["pages/editor/toolbar/color"] = {
     }
     return `${f(0)}${f(8)}${f(4)}`;
   },
-  hsvToHex: function(h, s, b) {
+  hsvToHex: function (h, s, b) {
     // HSV to HSL
     let x = (200 - s) * b / 100;
     s = x === 0 || x === 200 ? 0 : Math.round(s * b / (x <= 100 ? x : 200 - x));
@@ -854,7 +890,7 @@ modules["pages/editor/toolbar/color"] = {
     // HSL to HEX
     return this.hslToHex(h, s, l);
   },
-  hexToRGB: function(hex) {
+  hexToRGB: function (hex) {
     if (hex.length < 4) {
       hex = hex.split("").map((hexVal) => { return hexVal + hexVal }).join("");
     }
@@ -862,29 +898,29 @@ modules["pages/editor/toolbar/color"] = {
 
     return [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)];
   },
-  hexToHSL: function(hex) {
+  hexToHSL: function (hex) {
     let [r, g, b] = this.hexToRGB(hex);
 
     r /= 255, g /= 255, b /= 255;
     let max = Math.max(r, g, b), min = Math.min(r, g, b);
     let h, s, l = (max + min) / 2;
 
-    if(max == min){
+    if (max == min) {
       h = s = 0;
     } else {
       let d = max - min;
       s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-      switch(max) {
+      switch (max) {
         case r: h = (g - b) / d + (g < b ? 6 : 0); break;
         case g: h = (b - r) / d + 2; break;
         case b: h = (r - g) / d + 4; break;
       }
       h /= 6;
     }
-    
-    return [Math.round(360*h), Math.round(s*100), Math.round(l*100)];
+
+    return [Math.round(360 * h), Math.round(s * 100), Math.round(l * 100)];
   },
-  hexToHSV: function(hex) {
+  hexToHSV: function (hex) {
     // HEX to HSL
     let [h, s, l] = this.hexToHSL(hex);
     // HSL to HSV
@@ -892,7 +928,7 @@ modules["pages/editor/toolbar/color"] = {
     b = l + (x / 100);
     return [h, l === 0 ? s : 2 * x / b, l + (x / 100)];
   },
-  rgbToHex: function(r, g, b) {
+  rgbToHex: function (r, g, b) {
     return (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1);
   },
   js: async function (frame, toolID) {
@@ -1025,9 +1061,9 @@ modules["pages/editor/toolbar/color"] = {
       shadePointer.style.background = "#" + toolPref.color.selected;
       colorPointer.style.background = hue;
       // Update Pointer Positions:
-      shadePointer.style.left = (shadeSliderHolder.offsetWidth*(s / 100)) - 10 + "px";
-      shadePointer.style.top = (shadeSliderHolder.offsetHeight - (shadeSliderHolder.offsetHeight*(v / 100))) - 10 + "px";
-      colorPointer.style.left = (colorSliderHolder.offsetWidth*(h / 360)) - 10 + "px";
+      shadePointer.style.left = (shadeSliderHolder.offsetWidth * (s / 100)) - 10 + "px";
+      shadePointer.style.top = (shadeSliderHolder.offsetHeight - (shadeSliderHolder.offsetHeight * (v / 100))) - 10 + "px";
+      colorPointer.style.left = (colorSliderHolder.offsetWidth * (h / 360)) - 10 + "px";
       // Update Gradient:
       canvas.width = canvas.offsetWidth;
       canvas.height = canvas.offsetHeight;
@@ -1124,11 +1160,11 @@ modules["pages/editor/toolbar/color"] = {
     }
     eyeDropper.addEventListener("click", () => {
       (new EyeDropper())
-      .open()
-      .then((result) => {
-        updateStoredValues(result.sRGBHex.substring(1));
-      })
-      .catch(() => {});
+        .open()
+        .then((result) => {
+          updateStoredValues(result.sRGBHex.substring(1));
+        })
+        .catch(() => { });
     });
 
     editor.updateToolbar();
@@ -1171,7 +1207,7 @@ modules["pages/editor/toolbar/thickness"] = {
     let sliderEnabled = false;
     let updateUI = (updateVal) => {
       let percentage = (toolPref.thickness - this.minValue) / (this.maxValue - this.minValue);
-      pointer.style.left = ((slider.offsetWidth - 10)*percentage) - 6 + "px";
+      pointer.style.left = ((slider.offsetWidth - 10) * percentage) - 6 + "px";
       if (updateVal != false) {
         input.value = toolPref.thickness;
       }
@@ -1247,7 +1283,7 @@ modules["pages/editor/toolbar/opacity"] = {
     let sliderEnabled = false;
     let updateUI = (updateVal) => {
       let percentage = (toolPref.opacity - this.minValue) / (this.maxValue - this.minValue);
-      pointer.style.left = ((slider.offsetWidth - 10)*percentage) - 6 + "px";
+      pointer.style.left = ((slider.offsetWidth - 10) * percentage) - 6 + "px";
       if (updateVal != false) {
         input.value = toolPref.opacity;
       }

@@ -320,9 +320,9 @@ modules["editor/realtime"] = {
     page.addEventListener("touchmove", (e) => {
       this.exitObserve();
       this.publishShort(e);
-    });
-    page.addEventListener("touchstart", this.publishShort);
-    page.addEventListener("touchend", this.publishShort);
+    }, { passive: true });
+    page.addEventListener("touchstart", this.publishShort, { passive: true });
+    page.addEventListener("touchend", this.publishShort, { passive: true });
 
     tempListen(window, "wheel", () => {
       this.exitObserve();

@@ -316,7 +316,8 @@ modules["editor/toolbar"] = {
         remEvent.parent.removeEventListener(remEvent.name, remEvent.listener);
       }
       toolEvents = [];
-      editor.page.style.userSelect = "all";
+      editor.page.style.removeProperty("user-select");
+      editor.page.style.removeProperty("touch-action");
     }
     let tempToolListen = (parent, listen, runFunc, extra) => {
       parent.addEventListener(listen, runFunc, extra);
@@ -680,6 +681,7 @@ modules["pages/editor/toolbar/pen"] = {
     console.log("ACTIVE");
 
     editor.page.style.userSelect = "none";
+    editor.page.style.touchAction = "pinch-zoom";
 
     let draw;
     let anno;
@@ -747,6 +749,9 @@ modules["pages/editor/toolbar/pen"] = {
     }
     let disableDraw = () => {
       console.log("DONE");
+      if (draw == null) {
+        return;
+      }
       function simplifyPath(points, epsilon) {
         if (points.length <= 2) {
           return points;

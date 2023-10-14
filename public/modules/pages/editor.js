@@ -202,6 +202,7 @@ modules["pages/editor"] = {
     };
     this.events = {};
     this.members = {};
+    this.annotations = {};
     this.memberCount = 0;
     this.active = document.visibilityState == "visible";
     this.syncMembers = async function (memberUpd) {
@@ -1012,6 +1013,7 @@ modules["pages/editor"] = {
 
       //pageHolder.style.zoom = zoom;
       pageHolder.style.transform = `scale(${this.zoom})`; // translate(${(pageHolder.clientWidth * zoom) / 2}px, ${(pageHolder.clientHeight * zoom) / 2}px)
+      //pageHolder.style.transformOrigin = mouseX + "px " + mouseY + "px";
       //pageHolder.style.margin = `${(pageHolder.clientHeight - (pageHolder.clientHeight * zoom)) / 2}px ${(pageHolder.clientWidth - (pageHolder.clientWidth * zoom)) / 2}px`;
       //pageHolder.style.transformOrigin = mousePositionX + "px " + mousePositionY + "px";
 
@@ -1430,6 +1432,9 @@ modules["pages/editor/annotation"] = {
           line.setAttribute("stroke-linecap", "round");
           line.setAttribute("stroke-linejoin", "round");
         }
+        if (_id != null) {
+          anno.setAttribute("anno", _id);
+        }
         anno.style.width = width + "px";
         anno.style.height = height + "px";
         anno.style.left = x + "px";
@@ -1454,5 +1459,36 @@ modules["pages/editor/annotation"] = {
         break;
     }
     return [data, anno];
+  },
+  save: async function(data, anno) {
+    let editor = await getModule("pages/editor");
+    if (data._id == null) { // New annotation
+      data._id = "pending_" + randomString(10) + Date.now(); // Assign temporary ID
+    }
+    let existingAnno = editor.annotations[data._id] || {};
+    //existingAnno = data; // Add to anno data
+    let mutations = objectUpdate(data, existingAnno);
+    if (Object.keys(mutations).length < 1) {
+      return; // No changes, so no need to do anything
+    }
+    this.render(data, anno);
+    
+    /*
+    let storeID = "mutations_" + lessonID;
+    if (data == null) {
+      return;
+    }
+    let saveID = "pending_" + randomString(10) + Date.now();
+    let storage = JSON.parse(getLocalStore(storeID) || "{}");
+    storage[saveID] = JSON.stringify(data);
+    setLocalStore(storeID, JSON.stringify(storage));
+    */
+  },
+  forceShort: async function (data, page) {
+    let editor = await getModule("pages/editor");
+    if (editor.realtime == null) {
+      return;
+    }
+    editor.realtime.module.forceShort(0, data, page);
   }
 };

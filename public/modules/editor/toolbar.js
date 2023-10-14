@@ -678,7 +678,6 @@ modules["pages/editor/toolbar/pen"] = {
     this.thickness = editor.preferences.tools.draw.thickness;
     this.opacity = editor.preferences.tools.draw.opacity;
     this.publish = { c: this.color, o: this.opacity };
-    console.log("ACTIVE");
 
     editor.page.style.userSelect = "none";
     editor.page.style.touchAction = "pinch-zoom";
@@ -782,7 +781,9 @@ modules["pages/editor/toolbar/pen"] = {
           Math.sqrt(Math.pow(lineEnd[1] - lineStart[1], 2) + Math.pow(lineEnd[0] - lineStart[0], 2));
       }
       draw.d = simplifyPath(draw.d, .75);
-      utils.render(draw, anno);
+
+      utils.save(draw, anno);
+      utils.forceShort(draw, draw.p[2]);
 
       draw = null;
       delete this.publish.a;

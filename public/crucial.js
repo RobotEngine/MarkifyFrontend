@@ -612,7 +612,7 @@ async function sendRequest(method, path, body, extra) {
   }
 }
 
-function objectUpdate(obj, passData, path) {
+function objectUpdate(obj, passData, path) { // obj = Object to apply changes; passData = Object to edit
   path = path || "";
   if (path.length > 0) {
     path += ".";

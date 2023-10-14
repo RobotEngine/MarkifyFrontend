@@ -296,6 +296,19 @@ modules["editor/realtime"] = {
         }
       }
     }
+    this.forceShort = (task, data, page) => {
+      if (editor.memberCount < 2) { // No one to send cursor events too!
+        return;
+      }
+      if (editor.realtime.strength < 3) { // If weak don't send!
+        return;
+      }
+      if (editor.getSelf().access < 1) { // Not an editor!
+        return;
+      }
+      // [ memberID, task, data ] // 0 - Annotation Edit
+      socket.publish({ c: "short_" + editor.id, p: page }, [ editor.sessionID, task, data ]);
+    }
     editor.scrollEvent = () => {
       this.publishShort();
       if (editor.realtime.observed == true) {
@@ -307,6 +320,7 @@ modules["editor/realtime"] = {
         this.publishShort(null, "observe");
       }
     });
+
 
     page.addEventListener("mousemove", (event) => {
       if (editor.events.mouseMove != null) {
@@ -650,7 +664,7 @@ modules["editor/realtime"] = {
                 selectionHolder.remove();
               })();
             }
-          } else { // OBSERVE
+          } else if (data[3] != null) { // OBSERVE
             let [ memberID, zoom, scrollX, scrollY, time ] = data;
             if (memberID != editor.realtime.observing) {
               return;
@@ -671,6 +685,17 @@ modules["editor/realtime"] = {
             }
             //smoothScrollTo(scrollX - (fixed.offsetWidth / 2), (scrollY - (fixed.offsetHeight / 2)) * scrollRate, 100);
             //window.scrollTo({ left: scrollX - (fixed.offsetWidth / 2), top: scrollY - (fixed.offsetHeight / 2), behavior: "smooth" });
+          } else { // FORCED PUBLISH (New/Edit Annotation)
+            switch (data[1]) {
+              case 0: // Annotation
+                let anno = data[2];
+                if (anno._id == null) {
+                  return;
+                }
+                editor.annotations[anno._id] = anno;
+                utils.render(anno, member.activeAnno);
+                member.activeAnno = null;
+            }
           }
         });
       }

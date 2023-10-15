@@ -842,7 +842,6 @@ modules["pages/editor/toolbar/eraser"] = {
       return distance <= tolerance;
     }
 
-
     let x0;
     let y0;
     let erase = async (event) => {

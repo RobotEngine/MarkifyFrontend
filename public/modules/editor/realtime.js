@@ -555,7 +555,11 @@ modules["editor/realtime"] = {
                   for (let i = 0; i < keys.length; i++) {
                     let annoID = keys[i];
                     let anno = extra.select[annoID];
-                    utils.render(anno);
+                    if (anno.done != true) {
+                      utils.render(anno);
+                    } else {
+                      utils.save(anno);
+                    }
                   }
                   member.selecting = keys;
                 } else if (member.selecting != null) {
@@ -566,6 +570,9 @@ modules["editor/realtime"] = {
                     }
                   }
                   delete member.selecting;
+                }
+                if (extra.u != null) { // Update Annotation
+                  utils.save(extra.u);
                 }
               }
               if (extra != null && extra.press == true) {
@@ -686,17 +693,7 @@ modules["editor/realtime"] = {
             }
             //smoothScrollTo(scrollX - (fixed.offsetWidth / 2), (scrollY - (fixed.offsetHeight / 2)) * scrollRate, 100);
             //window.scrollTo({ left: scrollX - (fixed.offsetWidth / 2), top: scrollY - (fixed.offsetHeight / 2), behavior: "smooth" });
-          } else { // FORCED PUBLISH (New/Edit Annotation)
-            switch (data[1]) {
-              case 0: // Annotation
-                let anno = data[2];
-                if (anno._id == null) {
-                  return;
-                }
-                editor.annotations[anno._id] = anno;
-                utils.render(anno, member.activeAnno);
-                member.activeAnno = null;
-            }
+
           }
         });
       }

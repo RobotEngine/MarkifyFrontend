@@ -804,8 +804,116 @@ modules["pages/editor/toolbar/pen"] = {
 modules["pages/editor/toolbar/eraser"] = {
   mouse: `<svg width="56" height="56" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"> <g filter="url(#filter0_d_236_14)"> <path d="M32 25V24H33H43C45.2091 24 47 25.7909 47 28V36C47 38.2091 45.2091 40 43 40H33H32V39V25Z" fill="#2F2F2F" stroke="white" stroke-width="2"/> <path d="M32 39V40H31H21C18.7909 40 17 38.2091 17 36V28C17 25.7909 18.7909 24 21 24H31H32V25V39Z" fill="#2F2F2F" stroke="white" stroke-width="2"/> </g> <defs> <filter id="filter0_d_236_14" x="12" y="19" width="40" height="26" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"> <feFlood flood-opacity="0" result="BackgroundImageFix"/> <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/> <feOffset/> <feGaussianBlur stdDeviation="2"/> <feComposite in2="hardAlpha" operator="out"/> <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/> <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_236_14"/> <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_236_14" result="shape"/> </filter> </defs> </svg>`,
   realtimeTool: 3,
-  js: async function (editor, events) {
+  js: async function (editor, utils, addEvent) {
+    this.publish = {};
 
+    editor.page.style.userSelect = "none";
+    editor.page.style.touchAction = "pinch-zoom";
+
+    function isPointOnLine(x, y, x1, y1, x2, y2, tolerance) {
+      // Calculate the distance from the point to the line segment
+      let A = x - x1;
+      let B = y - y1;
+      let C = x2 - x1;
+      let D = y2 - y1;
+
+      let dot = A * C + B * D;
+      let lenSq = C * C + D * D;
+      let param = dot / lenSq;
+
+      let closestX, closestY;
+
+      if (param < 0 || (x1 == x2 && y1 == y2)) {
+        closestX = x1;
+        closestY = y1;
+      } else if (param > 1) {
+        closestX = x2;
+        closestY = y2;
+      } else {
+        closestX = x1 + param * C;
+        closestY = y1 + param * D;
+      }
+
+      let dx = x - closestX;
+      let dy = y - closestY;
+      let distance = Math.sqrt(dx * dx + dy * dy);
+
+      // Check if the distance is within the specified tolerance
+      return distance <= tolerance;
+    }
+
+
+    let x0;
+    let y0;
+    let erase = async (event) => {
+      if (mouseDown() == false) {
+        return;
+      }
+      let x1 = event.clientX || event.changedTouches[0].clientX;
+      let y1 = event.clientY || event.changedTouches[0].clientY;
+
+      x0 = x0 || x1;
+      y0 = y0 || y1;
+
+      // To fix cursor move, a line is drawn between mouse points and elements between are removed:
+      let dx = Math.abs(x1 - x0);
+      let dy = Math.abs(y1 - y0);
+      let sx = (x0 < x1) ? 1 : -1;
+      let sy = (y0 < y1) ? 1 : -1;
+      let err = dx - dy;
+
+      while (true) {
+        // Handle Erase:
+        let annos = document.elementsFromPoint(x0, y0);
+        let anno;
+        for (let i = 0; i < annos.length; i++) {
+          if (annos[i].hasAttribute("hidden") == false && annos[i].querySelector("polyline") != null) {
+            anno = annos[i].closest(".annotation");
+            break;
+          }
+        }
+        if (anno != null) {
+          // This along isn't enough, the actual points MUST be checked:
+          let drawing = anno.querySelector("polyline");
+          if (drawing != null && drawing.hasAttribute("points") == true) {
+            let rect = anno.getBoundingClientRect();
+            let { x, y } = await utils.scaleToDoc(x0 - rect.left, y0 - rect.top, 0);
+            let points = drawing.points;
+            for (let i = 1; i < points.numberOfItems; i++) {
+              if (isPointOnLine(x + 100, y + 100, points.getItem(i - 1).x, points.getItem(i - 1).y, points.getItem(i).x, points.getItem(i).y, parseInt(drawing.getAttribute("stroke-width")))) {
+                console.log("ERASE")
+                let updateAnno = { _id: anno.getAttribute("anno"), remove: true };
+                utils.save(updateAnno, anno);
+                this.publish.u = updateAnno;
+                await utils.forceShort();
+                delete this.publish.u;
+                break;
+              }
+            }
+          }
+        }
+
+        if (x0 === x1 && y0 === y1) {
+          break;
+        }
+
+        let e2 = 2 * err;
+        if (e2 > -dy) {
+          err -= dy;
+          x0 += sx;
+        }
+        if (e2 < dx) {
+          err += dx;
+          y0 += sy;
+        }
+      }
+
+      x0 = x1;
+      y0 = y1;
+    }
+    let content = editor.page.querySelector(".eContent");
+    addEvent(content, "mousemove", erase, { passive: false });
+    addEvent(content, "touchmove", erase, { passive: false });
   }
 };
 
@@ -1001,7 +1109,7 @@ modules["pages/editor/toolbar/color"] = {
       picker.style.pointerEvents = "none";
       editor.updateSubtoolUI();
     });
-    
+
     // CUSTOM COLOR PICKER:
     let colorShowBox = frame.querySelector(".eSubToolColorPickerTopSelected");
     let colorSliderHolder = frame.querySelector(".eSubToolColorPickerGradient");

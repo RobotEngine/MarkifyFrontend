@@ -1425,19 +1425,12 @@ modules["pages/editor/annotation"] = {
     if (data == null) {
       return;
     }
-    let { _id, f, p, s, c, t, o, d, done } = data;
+    let { _id, f, p, s, c, t, o, d, done, remove } = data;
     let [x, y, page] = p;
     let [width, height] = s;
     let annoHolder = await this.annoHolder(page);
     if (anno == null) {
       anno = annoHolder.querySelector('.annotation[anno="' + _id + '"]');
-    }
-    if (anno != null) {
-      if (done != true) {
-        anno.removeAttribute("done");
-      } else {
-        anno.setAttribute("done", "");
-      }
     }
     let svg;
     let path;
@@ -1464,6 +1457,11 @@ modules["pages/editor/annotation"] = {
         anno.style.left = x + "px";
         anno.style.top = y + "px";
         svg = anno.querySelector("svg");
+        if (remove != true) {
+          svg.removeAttribute("hidden");
+        } else {
+          svg.setAttribute("hidden", "");
+        }
         path = svg.querySelector("polyline");
         svg.viewBox = "0 0 " + (width + (this.SVG_PADDING*2)) + " " + (height + (this.SVG_PADDING*2));
         let drawSetPoints = "";
@@ -1482,6 +1480,18 @@ modules["pages/editor/annotation"] = {
         path.setAttribute("opacity", o / 100);
         break;
     }
+    if (anno != null) {
+      if (done != true) {
+        anno.removeAttribute("done");
+      } else {
+        anno.setAttribute("done", "");
+      }
+      if (remove != true) {
+        anno.removeAttribute("hidden");
+      } else {
+        anno.setAttribute("hidden", "");
+      }
+    }
     return [data, anno];
   },
   removeAnnotation: async function(annoID) {
@@ -1493,17 +1503,16 @@ modules["pages/editor/annotation"] = {
   },
   save: async function(data, anno) {
     let editor = await getModule("pages/editor");
-    if (data._id == null) { // New annotation
-      data._id = "pending_" + randomString(10) + Date.now(); // Assign temporary ID
-    }
     let existingAnno = editor.annotations[data._id] || {};
     //existingAnno = data; // Add to anno data
     let mutations = objectUpdate(data, existingAnno);
     if (Object.keys(mutations).length < 1) {
       return; // No changes, so no need to do anything
     }
-    this.render(data, anno);
+    this.render(existingAnno, anno);
     
+    editor.annotations[data._id] = existingAnno;
+
     /*
     let storeID = "mutations_" + lessonID;
     if (data == null) {

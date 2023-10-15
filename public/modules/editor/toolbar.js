@@ -189,8 +189,8 @@ modules["editor/toolbar"] = {
         image: `<svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_135_84" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_135_84)"> <path d="M68 188L188 68" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M68 188L188 68" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> </g> </svg>`
       },
       {
-        id: "polygone",
-        tooltip: "Custom Polygone",
+        id: "polygon",
+        tooltip: "Custom Polygon",
         type: "tool",
         image: `<svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_135_91" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_135_91)"> <path d="M197.929 88.0294L149.16 52.5967C136.543 43.4296 119.457 43.4296 106.84 52.5968L58.0708 88.0294C45.4533 97.1966 40.1736 113.446 44.9931 128.279L63.6211 185.61C68.4406 200.443 82.2631 210.485 97.8592 210.485H158.141C173.737 210.485 187.559 200.443 192.379 185.61L211.007 128.279C215.826 113.446 210.547 97.1966 197.929 88.0294Z" stroke="white" stroke-width="32"/> <path d="M136.229 70.3951L184.998 105.828C189.905 109.393 191.958 115.712 190.084 121.48L171.456 178.812C169.581 184.58 164.206 188.485 158.141 188.485H97.8592C91.794 188.485 86.4186 184.58 84.5444 178.812L65.9163 121.48C64.0421 115.712 66.0953 109.393 71.0021 105.828L119.771 70.3951C124.678 66.8301 131.322 66.8301 136.229 70.3951Z" stroke="white" stroke-width="12"/> <path d="M194.402 92.8835L145.634 57.4508C135.119 49.8115 120.881 49.8115 110.366 57.4509L61.5976 92.8835C51.0829 100.523 46.6832 114.064 50.6994 126.425L69.3275 183.756C73.3437 196.116 84.8624 204.485 97.8592 204.485H158.141C171.138 204.485 182.656 196.116 186.673 183.756L205.301 126.425C209.317 114.064 204.917 100.523 194.402 92.8835Z" stroke="#2F2F2F" stroke-width="20"/> </g> </svg>`
       }

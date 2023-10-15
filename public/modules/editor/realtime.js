@@ -844,7 +844,7 @@ modules["dropdowns/editor/members"] = {
       let tile = section.querySelector(".eMemberTile div[holder][new]");
       tile.removeAttribute("new");
       tile.setAttribute("member", member._id);
-      updateOrder(section, tile, member);
+      updateOrder(section, tile.parentElement, member);
       tile.style.setProperty("--themeColor", member.color);
       tile.style.setProperty("--hoverTextColor", editor.realtime.module.textColorBackground(member.color));
       tile.querySelector(".eMemberName").textContent = member.name;
@@ -939,7 +939,7 @@ modules["dropdowns/editor/members"] = {
             }
 
             // Update order:
-            updateOrder(section, updateTile, member);
+            updateOrder(section, updateTile.parentElement, member);
 
             // Handle event state:
             if (member._id != editor.sessionID) {

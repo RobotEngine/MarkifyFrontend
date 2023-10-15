@@ -1197,7 +1197,7 @@ modules["dropdowns/editor/zoom"] = {
     '.eZoomButton[change="-.1"]': `cursor: zoom-out`,
     '.eZoomButton[change=".1"]': `cursor: zoom-in`,
     ".eZoomLevel": `display: flex; padding: 3px 6px 3px 3px; margin: 0 12px; --borderWidth: 3px; --borderColor: var(--secondary); justify-content: center; align-items: center; --borderRadius: 15px; color: var(--theme); font-size: 20px; font-weight: 600`,
-    ".eZoomLevel div": `max-width: 50px; min-width: 25px; padding: 3px 6px; margin-right: 3px; border: none; border-radius: 16px; text-align: center; white-space: nowrap; overflow: hidden`,
+    ".eZoomLevel div": `max-width: 50px; min-width: 25px; padding: 3px 6px; margin-right: 3px; border: none; outline: none; border-radius: 16px; text-align: center; white-space: nowrap; overflow: hidden`,
 
     ".eZoomLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`,
 

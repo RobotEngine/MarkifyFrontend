@@ -206,17 +206,17 @@ modules["pages/editor"] = {
     this.selecting = {};
     this.memberCount = 0;
     this.active = document.visibilityState == "visible";
-    this.syncMembers = async function (memberUpd) {
+    this.syncMembers = async (memberUpd) => {
       for (let i = 0; i < memberUpd.length; i++) {
         let memSet = memberUpd[i];
         this.members[memSet._id] = memSet;
       }
     };
-    this.getSelf = function () {
+    this.getSelf = () => {
       return this.members[this.sessionID];
     };
     let lastAccess;
-    this.updateInterface = async function (keepDropdowns) {
+    this.updateInterface = async (keepDropdowns) => {
       let toolbar = page.querySelector(".eToolbar");
       let name = page.querySelector(".eFileName");
       let share = page.querySelector(".eShare");
@@ -227,7 +227,7 @@ modules["pages/editor"] = {
           if (access == 0) {
             this.toolbar.lastActiveToolbarModule = this.toolbar.currentToolModule;
             this.toolbar.currentToolModule = "pages/editor/toolbar/cursor";
-          } else {
+          } else if (this.toolbar.lastActiveToolbarModule != null) {
             this.toolbar.currentToolModule = this.toolbar.lastActiveToolbarModule;
           }
           this.toolbar.updateToolbar();

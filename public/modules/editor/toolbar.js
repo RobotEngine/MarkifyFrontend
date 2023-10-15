@@ -572,7 +572,7 @@ modules["editor/toolbar"] = {
     //showSubtoolUI(frame.querySelector('[tool="select"]'));
     let selectedToolID = "select";
     let selectedSubtoolToolID = "select";
-    frame.addEventListener("click", async function (event) {
+    frame.addEventListener("click", async (event) => {
       let element = event.target;
       if (element == null) {
         return;

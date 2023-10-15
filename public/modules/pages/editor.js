@@ -215,11 +215,24 @@ modules["pages/editor"] = {
     this.getSelf = function () {
       return this.members[this.sessionID];
     };
+    let lastAccess;
     this.updateInterface = async function (keepDropdowns) {
       let toolbar = page.querySelector(".eToolbar");
       let name = page.querySelector(".eFileName");
       let share = page.querySelector(".eShare");
       let access = this.getSelf().access;
+      if (access != lastAccess) {
+        lastAccess = access;
+        if (this.toolbar != null) {
+          if (access == 0) {
+            this.toolbar.lastActiveToolbarModule = this.toolbar.currentToolModule;
+            this.toolbar.currentToolModule = "pages/editor/toolbar/cursor";
+          } else {
+            this.toolbar.currentToolModule = this.toolbar.lastActiveToolbarModule;
+          }
+          this.toolbar.updateToolbar();
+        }
+      }
       if (access == 0) {
         toolbar.setAttribute("hidden", "");
         toolbar.offsetHeight;

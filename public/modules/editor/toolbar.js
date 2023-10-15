@@ -325,13 +325,13 @@ modules["editor/toolbar"] = {
     }
     let utils = await getModule("pages/editor/annotation");
     let mouseSVG;
-    let currentToolModule = "pages/editor/toolbar/cursor";
+    this.currentToolModule = "pages/editor/toolbar/cursor";
     let pageContent = editor.page.querySelector(".eContent");
     let enableTool = async () => {
       disableTool();
       let module;
-      if (currentToolModule != null) {
-        module = await getModule(currentToolModule);
+      if (this.currentToolModule != null) {
+        module = await getModule(this.currentToolModule);
       }
       if (module != null) {
         module.js(editor, utils, tempToolListen);
@@ -515,20 +515,20 @@ modules["editor/toolbar"] = {
           if (preferences[toolID] != null && preferences[toolID].subtool) {
             let selectSubtool = subToolContent.querySelector('.eTool[subtool="' + preferences[toolID].subtool + '"]');
             if (selectSubtool != null) {
-              currentToolModule = selectSubtool.getAttribute("module");
+              this.currentToolModule = selectSubtool.getAttribute("module");
               selectSubtool.setAttribute("selected", "");
             }
           } else {
-            currentToolModule = null;
+            this.currentToolModule = null;
           }
 
           subTools.style.top = mainSubtoolButton.getBoundingClientRect().top + (mainSubtoolButton.offsetHeight / 2) - frame.getBoundingClientRect().top + "px";
-          editor.updateToolbar();
+          this.updateToolbar();
           updateSubtoolUI();
           updateTooltipHover();
         } else { // No need as the main tool is the subtool
-          currentToolModule = button.getAttribute("module");
-          editor.updateToolbar();
+          this.currentToolModule = button.getAttribute("module");
+          this.updateToolbar();
           closeSubtoolUI();
         }
       }
@@ -596,21 +596,21 @@ modules["editor/toolbar"] = {
       if (element.hasAttribute("tool") == true) {
         selectedToolID = element.getAttribute("tool");
         showSubtoolUI(element);
-        currentToolModule = element.getAttribute("module");
+        this.currentToolModule = element.getAttribute("module");
       } else if (element.hasAttribute("subtool") == true) {
         selectedSubtoolToolID = element.getAttribute("subtool");
         if (preferences[selectedToolID].subtool != null) {
           preferences[selectedToolID].subtool = selectedSubtoolToolID
         }
-        currentToolModule = element.getAttribute("module");
-        editor.updateToolbar();
+        this.currentToolModule = element.getAttribute("module");
+        this.updateToolbar();
         closeSubSubtoolUI();
       } else if (element.hasAttribute("option") == true && element.getAttribute("option").length > 0) {
         showSubSubtoolUI(element);
       }
     });
 
-    editor.updateToolbar = () => {
+    this.updateToolbar = () => {
       let updateColors = frame.querySelectorAll("[fillcoloropacity], [strokecolor], [backcolor], [thickness], [opacity]");
       for (let i = 0; i < updateColors.length; i++) {
         let updateTip = updateColors[i];
@@ -632,10 +632,10 @@ modules["editor/toolbar"] = {
           }
         }
       }
-      enableTool(currentToolModule);
+      enableTool(this.currentToolModule);
       editor.savePreferences();
     }
-    editor.updateToolbar();
+    this.updateToolbar();
 
     //frame.closest(".eSide").style.opacity = 1;
   }
@@ -975,7 +975,7 @@ modules["pages/editor/toolbar/color"] = {
       }
       if (element.hasAttribute("int") == true) {
         toolPref.color.selected = toolPref.color.options[parseInt(element.getAttribute("int"))];
-        editor.updateToolbar();
+        editor.toolbar.updateToolbar();
       } else if (element.hasAttribute("enablepicker") == true) {
         [h, s, v] = this.hexToHSV(toolPref.color.selected);
         updatePickerUI();
@@ -1107,7 +1107,7 @@ modules["pages/editor/toolbar/color"] = {
       modeInput.placeholder = modeInput.value;
       modeInput.style.borderColor = "var(--secondary)";
       // Update Toolbar Colors:
-      editor.updateToolbar();
+      editor.toolbar.updateToolbar();
     }
     let updateStoredValues = (hex) => {
       toolPref.color.selected = hex || this.hsvToHex(h, s, v);
@@ -1186,7 +1186,7 @@ modules["pages/editor/toolbar/color"] = {
         .catch(() => { });
     });
 
-    editor.updateToolbar();
+    editor.toolbar.updateToolbar();
   }
 };
 modules["pages/editor/toolbar/thickness"] = {
@@ -1230,7 +1230,7 @@ modules["pages/editor/toolbar/thickness"] = {
       if (updateVal != false) {
         input.value = toolPref.thickness;
       }
-      editor.updateToolbar();
+      editor.toolbar.updateToolbar();
     }
     let eventBarUpdate = (event) => {
       if (sliderEnabled == false) {
@@ -1311,7 +1311,7 @@ modules["pages/editor/toolbar/opacity"] = {
       if (updateVal != false) {
         input.value = toolPref.opacity;
       }
-      editor.updateToolbar();
+      editor.toolbar.updateToolbar();
     }
     let eventBarUpdate = (event) => {
       if (sliderEnabled == false) {

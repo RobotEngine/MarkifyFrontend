@@ -203,6 +203,7 @@ async function setFrame(path, frame, extra) {
       }
       subscribes = [];
       window.scrollTo(window.scrollX, 0);
+      body.style.removeProperty("user-select");
       currentPage = path;
       document.title = module.title + " | Markify";
       window.location.hash = "#" + path.substring(path.lastIndexOf("/") + 1);

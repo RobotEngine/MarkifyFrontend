@@ -316,7 +316,7 @@ modules["editor/toolbar"] = {
         remEvent.parent.removeEventListener(remEvent.name, remEvent.listener);
       }
       toolEvents = [];
-      editor.page.style.removeProperty("user-select");
+      body.style.removeProperty("user-select");
       editor.page.style.removeProperty("touch-action");
     }
     let tempToolListen = (parent, listen, runFunc, extra) => {
@@ -680,7 +680,7 @@ modules["pages/editor/toolbar/pen"] = {
     this.opacity = editor.preferences.tools.draw.opacity;
     this.publish = { c: this.color, o: this.opacity };
 
-    editor.page.style.userSelect = "none";
+    body.style.userSelect = "none";
     editor.page.style.touchAction = "pinch-zoom";
 
     let draw;
@@ -807,7 +807,7 @@ modules["pages/editor/toolbar/eraser"] = {
   js: async function (editor, utils, addEvent) {
     this.publish = {};
 
-    editor.page.style.userSelect = "none";
+    body.style.userSelect = "none";
     editor.page.style.touchAction = "pinch-zoom";
 
     function isPointOnLine(x, y, x1, y1, x2, y2, tolerance) {

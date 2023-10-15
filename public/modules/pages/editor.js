@@ -203,6 +203,7 @@ modules["pages/editor"] = {
     this.events = {};
     this.members = {};
     this.annotations = {};
+    this.selecting = {};
     this.memberCount = 0;
     this.active = document.visibilityState == "visible";
     this.syncMembers = async function (memberUpd) {
@@ -1374,6 +1375,9 @@ modules["pages/editor/annotation"] = {
     let pow = Math.pow(10, places || 2);
     return Math.ceil(num * pow) / pow;
   },
+  tempID: function () {
+    return "pending_" + randomString(10) + Date.now();
+  },
   annoHolder: async function (pageNum) {
     let editor = await getModule("pages/editor");
     let pageHolder = editor.page.querySelector(".ePageHolder");
@@ -1408,12 +1412,19 @@ modules["pages/editor/annotation"] = {
     if (data == null) {
       return;
     }
-    let { _id, f, p, s, c, t, o, d } = data;
+    let { _id, f, p, s, c, t, o, d, done } = data;
     let [x, y, page] = p;
     let [width, height] = s;
     let annoHolder = await this.annoHolder(page);
     if (anno == null) {
       anno = annoHolder.querySelector('.annotation[anno="' + _id + '"]');
+    }
+    if (anno != null) {
+      if (done != true) {
+        anno.removeAttribute("done");
+      } else {
+        anno.setAttribute("done", "");
+      }
     }
     let svg;
     let path;
@@ -1460,6 +1471,13 @@ modules["pages/editor/annotation"] = {
     }
     return [data, anno];
   },
+  removeAnnotation: async function(annoID) {
+    let editor = await getModule("pages/editor");
+    let anno = editor.page.querySelector('.annotation[anno="' + annoID + '"]');
+    if (anno != null && anno.hasAttribute("done") == false) {
+      anno.remove();
+    }
+  },
   save: async function(data, anno) {
     let editor = await getModule("pages/editor");
     if (data._id == null) { // New annotation
@@ -1484,11 +1502,11 @@ modules["pages/editor/annotation"] = {
     setLocalStore(storeID, JSON.stringify(storage));
     */
   },
-  forceShort: async function (data, page) {
+  forceShort: async function () {
     let editor = await getModule("pages/editor");
-    if (editor.realtime == null) {
+    if (editor.realtime.module == null) {
       return;
     }
-    editor.realtime.module.forceShort(0, data, page);
+    await editor.realtime.module.publishShort(null, null, true);
   }
 };

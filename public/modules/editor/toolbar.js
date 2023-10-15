@@ -338,6 +338,7 @@ modules["editor/toolbar"] = {
       }
       module = module || {};
       editor.realtime.tool = module.realtimeTool || 0;
+      editor.selecting = {};
       editor.realtime.passthrough = module.publish;
       if (editor.realtime.module != null) {
         editor.realtime.module.publishShort();
@@ -692,7 +693,9 @@ modules["pages/editor/toolbar/pen"] = {
       if (page > 1) {
         y -= 4; // Remove border-pixel width
       }
+      let tempID = utils.tempID();
       [draw, anno] = await utils.render({
+        _id: tempID,
         f: "draw",
         p: [utils.round(x - halfThickness), utils.round(y - halfThickness), page],
         s: [this.thickness, this.thickness],
@@ -701,7 +704,7 @@ modules["pages/editor/toolbar/pen"] = {
         o: this.opacity,
         d: [utils.round(halfThickness), utils.round(halfThickness)]
       });
-      this.publish.a = draw;
+      editor.selecting[tempID] = draw;
     }
     let moveDraw = async (event) => {
       if (draw == null) {
@@ -746,7 +749,7 @@ modules["pages/editor/toolbar/pen"] = {
         enableDraw(event);
       }
     }
-    let disableDraw = () => {
+    let disableDraw = async () => {
       console.log("DONE");
       if (draw == null) {
         return;
@@ -783,10 +786,10 @@ modules["pages/editor/toolbar/pen"] = {
       draw.d = simplifyPath(draw.d, .75);
 
       utils.save(draw, anno);
-      utils.forceShort(draw, draw.p[2]);
-
+      draw.done = true; // Alert other clients that this annotation is done
+      await utils.forceShort();
+      delete editor.selecting[draw._id];
       draw = null;
-      delete this.publish.a;
     }
     let content = editor.page.querySelector(".eContent");
     addEvent(content, "mousedown", enableDraw, { passive: false });

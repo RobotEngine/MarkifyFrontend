@@ -181,7 +181,7 @@ modules["editor/realtime"] = {
         }
         */
         clearTimeout(endSyncTimeout);
-        if (lastCursorPublish < getEpoch() - 80) { // One event every 80 ms
+        if (lastCursorPublish < getEpoch() - 80 || ignoreSame == true) { // One event every 80 ms
           let standardFilter = { c: "short_" + editor.id };
           if (editor.realtime.observed && editor.getSelf().access < 1) {
             standardFilter.o = editor.sessionID;
@@ -248,6 +248,9 @@ modules["editor/realtime"] = {
           if (mouseDown()) {
             sendExtra.press = true;
           }
+          if (Object.keys(editor.selecting).length > 0) {
+            sendExtra.select = editor.selecting;
+          }
           if (editor.realtime.passthrough != null) {
             sendExtra = { ...sendExtra, ...editor.realtime.passthrough };
           }
@@ -295,19 +298,6 @@ modules["editor/realtime"] = {
           }, 300); // If after 300 MS, send the last event to ensure proper sync.
         }
       }
-    }
-    this.forceShort = (task, data, page) => {
-      if (editor.memberCount < 2) { // No one to send cursor events too!
-        return;
-      }
-      if (editor.realtime.strength < 3) { // If weak don't send!
-        return;
-      }
-      if (editor.getSelf().access < 1) { // Not an editor!
-        return;
-      }
-      // [ memberID, task, data ] // 0 - Annotation Edit
-      socket.publish({ c: "short_" + editor.id, p: page }, [ editor.sessionID, task, data ]);
     }
     editor.scrollEvent = () => {
       this.publishShort();
@@ -560,11 +550,22 @@ modules["editor/realtime"] = {
                     setColor.setAttribute("fill-opacity", (extra.o || 100) / 100);
                   }
                 }
-                if (extra.a != null) {
-                  member.activeAnno = (await utils.render(extra.a, member.activeAnno))[1];
-                } else if (member.activeAnno != null) {
-                  member.activeAnno.remove();
-                  member.activeAnno = null;
+                if (extra.select != null) {
+                  let keys = Object.keys(extra.select);
+                  for (let i = 0; i < keys.length; i++) {
+                    let annoID = keys[i];
+                    let anno = extra.select[annoID];
+                    utils.render(anno);
+                  }
+                  member.selecting = keys;
+                } else if (member.selecting != null) {
+                  for (let i = 0; i < member.selecting.length; i++) {
+                    let annoID = member.selecting[i];
+                    if (annoID.startsWith("pending_") == true) {
+                      utils.removeAnnotation(annoID);
+                    }
+                  }
+                  delete member.selecting;
                 }
               }
               if (extra != null && extra.press == true) {

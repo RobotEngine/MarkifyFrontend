@@ -844,8 +844,13 @@ modules["pages/editor/toolbar/eraser"] = {
 
     let x0;
     let y0;
+    let enderase = () => {
+      x0 = 0;
+      y0 = 0;
+    }
     let erase = async (event) => {
       if (mouseDown() == false) {
+        enderase();
         return;
       }
       let x1 = event.clientX || event.changedTouches[0].clientX;
@@ -911,6 +916,8 @@ modules["pages/editor/toolbar/eraser"] = {
     let content = editor.page.querySelector(".eContent");
     addEvent(content, "mousemove", erase, { passive: false });
     addEvent(content, "touchmove", erase, { passive: false });
+    addEvent(content, "mouseup", enderase, { passive: false });
+    addEvent(content, "touchend", enderase, { passive: false });
   }
 };
 

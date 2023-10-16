@@ -844,9 +844,9 @@ modules["pages/editor/toolbar/eraser"] = {
     }
 
     let erasing = false;
-    let starterase = () => {
+    let starterase = (event) => {
       erasing = true;
-      erase();
+      erase(event);
     }
     let x0;
     let y0;

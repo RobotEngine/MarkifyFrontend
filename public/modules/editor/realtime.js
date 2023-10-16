@@ -8,7 +8,7 @@ modules["editor/realtime"] = {
     ".eCursor": `--backgroundColor: var(--themeColor); --borderColor: #fff; position: absolute; display: flex; z-index: 20; opacity: 0; align-items: center; transition: .25s; pointer-events: all; transform-origin: var(--origin)`,
     ".eCursor[pressed]": `--backgroundColor: #fff; --borderColor: var(--themeColor); color: var(--themeColor) !important; transform: scale(.9)`,
     ".eCursor[changing]": `opacity: 0 !important; transform: scale(0) !important`,
-    ".eCursor .pointer": `width: 20px; height: 20px; background: var(--backgroundColor); border: solid 3px var(--borderColor); overflow: hidden; border-radius: 8px 14px 14px 14px; box-shadow: 0 0 6px rgb(0 0 0 / 50%); transition: all .15s, width .3s`,
+    ".eCursor .pointer": `width: 20px; height: 20px; background: var(--backgroundColor); border: solid 3px var(--borderColor); overflow: hidden; border-radius: 8px 14px 14px 14px; box-shadow: 0 0 6px rgb(0 0 0 / 50%); transition: all .3s, color .15s`,
     ".eCursor .pointer[none]": `border-radius: 14px; opacity: 0; width: 0px`,
     ".eCursor [name]": `box-sizing: border-box; display: flex; width: fit-content; height: 100%; padding: 0px 6px; border-radius: 14px; overflow: hidden; opacity: 0; white-space: nowrap; font-size: 14px; font-weight: 700; white-space: nowrap; align-items: center; transition: .15s`,
     ".eCursor:hover [color]": `width: var(--fullyExtended)`,

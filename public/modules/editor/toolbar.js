@@ -467,7 +467,7 @@ modules["editor/toolbar"] = {
       subTools.style.transition = "opacity .3s, transform .3s";
     }
     let showSubtoolUI = async (button) => {
-      closeSubSubtoolUI();
+      this.closeSubSubtoolUI();
 
       if (button.hasAttribute("tool") == true) {
         if (mainSubtoolButton == button) {
@@ -534,7 +534,7 @@ modules["editor/toolbar"] = {
       }
     }
 
-    let closeSubSubtoolUI = async () => {
+    this.closeSubSubtoolUI = async () => {
       if (mainSubSubtoolButton != null) {
         subSubTools.style.top = mainSubSubtoolButton.getBoundingClientRect().top + (mainSubSubtoolButton.offsetHeight / 2) - subTools.getBoundingClientRect().top + "px";
         mainSubSubtoolButton = null;
@@ -552,7 +552,7 @@ modules["editor/toolbar"] = {
     }
     let showSubSubtoolUI = async (button) => {
       if (mainSubSubtoolButton == button) {
-        closeSubSubtoolUI();
+        this.closeSubSubtoolUI();
         button.removeAttribute("selected");
         return;
       }
@@ -604,7 +604,7 @@ modules["editor/toolbar"] = {
         }
         this.currentToolModule = element.getAttribute("module");
         this.updateToolbar();
-        closeSubSubtoolUI();
+        this.closeSubSubtoolUI();
       } else if (element.hasAttribute("option") == true && element.getAttribute("option").length > 0) {
         showSubSubtoolUI(element);
       }
@@ -686,6 +686,7 @@ modules["pages/editor/toolbar/pen"] = {
     let draw;
     let anno;
     let enableDraw = async (event) => {
+      editor.toolbar.closeSubSubtoolUI();
       let clientY = event.clientY || event.changedTouches[0].clientY;
       let page = await utils.findPage(clientY);
       let { x, y } = await utils.scaleToDoc(event.clientX || event.changedTouches[0].clientX, clientY, page);
@@ -853,6 +854,8 @@ modules["pages/editor/toolbar/eraser"] = {
         enderase();
         return;
       }
+      editor.toolbar.closeSubSubtoolUI();
+
       let x1 = event.clientX || event.changedTouches[0].clientX;
       let y1 = event.clientY || event.changedTouches[0].clientY;
 
@@ -1091,6 +1094,7 @@ modules["pages/editor/toolbar/color"] = {
       if (element.hasAttribute("int") == true) {
         toolPref.color.selected = toolPref.color.options[parseInt(element.getAttribute("int"))];
         editor.toolbar.updateToolbar();
+        editor.toolbar.closeSubSubtoolUI();
       } else if (element.hasAttribute("enablepicker") == true) {
         [h, s, v] = this.hexToHSV(toolPref.color.selected);
         updatePickerUI();

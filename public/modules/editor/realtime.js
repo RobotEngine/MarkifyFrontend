@@ -161,7 +161,7 @@ modules["editor/realtime"] = {
     let endSyncObserveTimeout;
     this.publishShort = async (event, type, ignoreSame) => {
       type = type || "cursor";
-      if (event != null && (event.clientX != null || (event.changedTouches != null && event.changedTouches[0] != null))) {
+      if (event != null && (event.clientX != null || (event.changedTouches != null && event.changedTouches[0] != null && event.changedTouches[0].clientX != null))) {
         mouseX = event.clientX || event.changedTouches[0].clientX;
         mouseY = event.clientY || event.changedTouches[0].clientY;
       }

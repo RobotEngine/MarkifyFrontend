@@ -891,7 +891,7 @@ modules["pages/editor/toolbar/eraser"] = {
                   let { x, y } = await utils.scaleToDoc(x0 - rect.left, y0 - rect.top, 0);
                   let points = drawing.points;
                   for (let i = 1; i < points.numberOfItems; i++) {
-                    if (isPointOnLine(x + 100, y + 100, points.getItem(i - 1).x, points.getItem(i - 1).y, points.getItem(i).x, points.getItem(i).y, Math.max(parseInt(drawing.getAttribute("stroke-width")) / 2, 10))) {
+                    if (isPointOnLine(x + 100, y + 100, points.getItem(i - 1).x, points.getItem(i - 1).y, points.getItem(i).x, points.getItem(i).y, (parseInt(drawing.getAttribute("stroke-width")) / 2) + 10)) {
                       console.log("ERASE")
                       let updateAnno = { _id: annoID, remove: true };
                       utils.save(updateAnno, anno);

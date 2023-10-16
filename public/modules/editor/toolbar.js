@@ -873,21 +873,24 @@ modules["pages/editor/toolbar/eraser"] = {
           if (annos[i].hasAttribute("hidden") == false && annos[i].querySelector("polyline") != null) {
             let anno = annos[i].closest(".annotation");
             if (anno != null) {
-              // This along isn't enough, the actual points MUST be checked:
-              let drawing = anno.querySelector("polyline");
-              if (drawing != null && drawing.hasAttribute("points") == true) {
-                let rect = anno.getBoundingClientRect();
-                let { x, y } = await utils.scaleToDoc(x0 - rect.left, y0 - rect.top, 0);
-                let points = drawing.points;
-                for (let i = 1; i < points.numberOfItems; i++) {
-                  if (isPointOnLine(x + 100, y + 100, points.getItem(i - 1).x, points.getItem(i - 1).y, points.getItem(i).x, points.getItem(i).y, parseInt(drawing.getAttribute("stroke-width")))) {
-                    console.log("ERASE")
-                    let updateAnno = { _id: anno.getAttribute("anno"), remove: true };
-                    utils.save(updateAnno, anno);
-                    this.publish.u = updateAnno;
-                    await utils.forceShort();
-                    delete this.publish.u;
-                    break;
+              let annoID = anno.getAttribute("anno");
+              if (editor.annotations[annoID] != null) {
+                // This alone isn't enough, the actual points MUST be checked:
+                let drawing = anno.querySelector("polyline");
+                if (drawing != null && drawing.hasAttribute("points") == true) {
+                  let rect = anno.getBoundingClientRect();
+                  let { x, y } = await utils.scaleToDoc(x0 - rect.left, y0 - rect.top, 0);
+                  let points = drawing.points;
+                  for (let i = 1; i < points.numberOfItems; i++) {
+                    if (isPointOnLine(x + 100, y + 100, points.getItem(i - 1).x, points.getItem(i - 1).y, points.getItem(i).x, points.getItem(i).y, parseInt(drawing.getAttribute("stroke-width")))) {
+                      console.log("ERASE")
+                      let updateAnno = { _id: annoID, remove: true };
+                      utils.save(updateAnno, anno);
+                      this.publish.u = updateAnno;
+                      await utils.forceShort();
+                      delete this.publish.u;
+                      break;
+                    }
                   }
                 }
               }

@@ -254,6 +254,9 @@ modules["editor/realtime"] = {
           if (editor.realtime.passthrough != null) {
             sendExtra = { ...sendExtra, ...editor.realtime.passthrough };
           }
+          if (ignoreSame == true) {
+            sendExtra.force = true;
+          }
           if (Object.keys(sendExtra).length > 0) {
             pubData[6] = sendExtra;
           }
@@ -499,7 +502,8 @@ modules["editor/realtime"] = {
               return;
             }
             let [ memberID, page, tool, time, x, y, extra ] = data;
-            if (member.lastShort > time) {
+            let forced = extra != null && extra.force == true;
+            if (member.lastShort > time && forced == false) {
               return;
             }
             member.lastShort = time;
@@ -512,33 +516,6 @@ modules["editor/realtime"] = {
               realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCursor" member="${memberID}" scale></div>`);
               cursorHolder = realtimeHolder.querySelector('.eCursor[member="' + memberID + '"]');
               cursorHolder.offsetHeight;
-              cursorHolder.style.opacity = 1;
-            }
-            // Set x and y:
-            cursorHolder.setAttribute("x", x);
-            cursorHolder.setAttribute("y", y);
-            x *= editor.zoom;
-            y *= editor.zoom;
-            if (page > 0) {
-              let pageRect = pageHolder.children[page - 1].getBoundingClientRect();
-              cursorHolder.setAttribute("page", page);
-              x += pageRect.left;
-              y += pageRect.top;
-            }
-            member.x = x;
-            member.y = y;
-            if (tool == null) {
-              // Must be for a page leave event:
-              if (editor.visiblePages.includes(page)) {
-                return;
-              }
-              (async function () {
-                cursorHolder.style.opacity = 0;
-                await sleep(300);
-                cursorHolder.remove();
-              })();
-              return;
-            } else {
               cursorHolder.style.opacity = 1;
             }
             let updateCursorProps = async () => {
@@ -582,6 +559,36 @@ modules["editor/realtime"] = {
               }
               cursorHolder.style.left = member.x + (parseInt(cursorHolder.getAttribute("offsetx") || "0")) + window.scrollX + "px";
               cursorHolder.style.top = member.y + (parseInt(cursorHolder.getAttribute("offsety") || "0")) + window.scrollY + "px";
+            }
+            if (member.lastShort > time) {
+              return;
+            }
+            // Set x and y:
+            cursorHolder.setAttribute("x", x);
+            cursorHolder.setAttribute("y", y);
+            x *= editor.zoom;
+            y *= editor.zoom;
+            if (page > 0) {
+              let pageRect = pageHolder.children[page - 1].getBoundingClientRect();
+              cursorHolder.setAttribute("page", page);
+              x += pageRect.left;
+              y += pageRect.top;
+            }
+            member.x = x;
+            member.y = y;
+            if (tool == null) {
+              // Must be for a page leave event:
+              if (editor.visiblePages.includes(page)) {
+                return;
+              }
+              (async function () {
+                cursorHolder.style.opacity = 0;
+                await sleep(300);
+                cursorHolder.remove();
+              })();
+              return;
+            } else {
+              cursorHolder.style.opacity = 1;
             }
             if (parseInt(cursorHolder.getAttribute("mode") || -1) != tool) {
               cursorHolder.setAttribute("changing", "");

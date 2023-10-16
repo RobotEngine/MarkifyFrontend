@@ -843,14 +843,20 @@ modules["pages/editor/toolbar/eraser"] = {
       return distance <= tolerance;
     }
 
+    let erasing = false;
+    let starterase = () => {
+      erasing = true;
+      erase();
+    }
     let x0;
     let y0;
     let enderase = () => {
       x0 = 0;
       y0 = 0;
+      erasing = false;
     }
     let erase = async (event) => {
-      if (mouseDown() == false) {
+      if (mouseDown() == false || erasing == false) {
         enderase();
         return;
       }
@@ -885,7 +891,7 @@ modules["pages/editor/toolbar/eraser"] = {
                   let { x, y } = await utils.scaleToDoc(x0 - rect.left, y0 - rect.top, 0);
                   let points = drawing.points;
                   for (let i = 1; i < points.numberOfItems; i++) {
-                    if (isPointOnLine(x + 100, y + 100, points.getItem(i - 1).x, points.getItem(i - 1).y, points.getItem(i).x, points.getItem(i).y, parseInt(drawing.getAttribute("stroke-width")) / 2)) {
+                    if (isPointOnLine(x + 100, y + 100, points.getItem(i - 1).x, points.getItem(i - 1).y, points.getItem(i).x, points.getItem(i).y, Math.max(parseInt(drawing.getAttribute("stroke-width")) / 2, 10))) {
                       console.log("ERASE")
                       let updateAnno = { _id: annoID, remove: true };
                       utils.save(updateAnno, anno);
@@ -920,8 +926,8 @@ modules["pages/editor/toolbar/eraser"] = {
       y0 = y1;
     }
     let content = editor.page.querySelector(".eContent");
-    addEvent(content, "mousedown", erase, { passive: false });
-    addEvent(content, "touchstart", erase, { passive: false });
+    addEvent(content, "mousedown", starterase, { passive: false });
+    addEvent(content, "touchstart", starterase, { passive: false });
     addEvent(content, "mousemove", erase, { passive: false });
     addEvent(content, "touchmove", erase, { passive: false });
     addEvent(content, "mouseup", enderase, { passive: false });

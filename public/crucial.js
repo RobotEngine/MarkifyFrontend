@@ -32,7 +32,7 @@ window.addEventListener("error", function(e) {
     stacktrace = e.error.stack;
   }
   if (stacktrace) {
-    //prompt(e.message + ", " + e.filename + ", " + e.lineno + ":" + e.colno);
+    prompt(e.message + ", " + e.filename + ", " + e.lineno + ":" + e.colno);
   }
 });
 

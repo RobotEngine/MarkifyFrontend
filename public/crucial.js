@@ -55,10 +55,10 @@ window.onmouseup = (e) => {
 let screenPressed = false;
 app.addEventListener("touchstart", function() {
   screenPressed = true;
-}, true);
+}, { capture: true, passive: true });
 app.addEventListener("touchend", function() {
   screenPressed = false;
-}, true);
+}, { capture: true, passive: true });
 let primaryButtonDown = false;
 function mouseDown() {
   return primaryButtonDown || screenPressed;
@@ -67,9 +67,9 @@ function setPrimaryButtonState(event) {
   let flags = event.buttons !== undefined ? event.buttons : event.which;
   primaryButtonDown = (flags & 1) === 1;
 }
-app.addEventListener("mousedown", setPrimaryButtonState, true);
-app.addEventListener("mousemove", setPrimaryButtonState, true);
-app.addEventListener("mouseup", setPrimaryButtonState, true);
+app.addEventListener("mousedown", setPrimaryButtonState, { capture: true, passive: true });
+app.addEventListener("mousemove", setPrimaryButtonState, { capture: true, passive: true });
+app.addEventListener("mouseup", setPrimaryButtonState, { capture: true, passive: true });
 
 let tempListeners = [];
 function tempListen(parent, listen, runFunc, extra) {

@@ -118,7 +118,7 @@ modules["pages/editor"] = {
     ".eObserve button img": `width: 100%; height: 100%`,
     ".eObserveBorder": `position: fixed; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 501`,
 
-    ".eContent": `position: relative; display: flex; width: fit-content; min-width: calc(100% - 132px); min-height: calc(100vh - 132px); padding: 66px; justify-content: center; z-index: 0; background: var(--pageColor); background-image: url(./images/editor/background.svg); background-position: center; pointer-events: all`,
+    ".eContent": `position: relative; display: flex; width: fit-content; min-width: calc(100% - 132px); min-height: calc(100vh - 132px); padding: 66px; justify-content: center; z-index: 0; background-image: url(./images/editor/background.svg); background-position: center; pointer-events: all`,
     ".eContentHolder": `pointer-events: none`,
     ".ePageHolder": `width: fit-content; height: fit-content; border-radius: 16px; transform-origin: 0 0`,
     ".ePage": `position: relative; background: var(--pageColor); transition: .5s`,

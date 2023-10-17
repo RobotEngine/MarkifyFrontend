@@ -36,6 +36,44 @@ window.addEventListener("error", function(e) {
   }
 });
 
+/*
+let mouseDown = 0;
+let mouseEvent;
+window.onmousedown = (e) => {
+  mouseDown++;
+  if (mouseEvent) {
+    mouseEvent(e);
+  }
+}
+window.onmouseup = (e) => {
+  mouseDown--;
+  if (mouseEvent) {
+    mouseEvent(e);
+  }
+}
+*/
+let screenPressed = false;
+app.addEventListener("touchstart", function() {
+  screenPressed = true;
+}, true);
+app.addEventListener("touchend", function() {
+  screenPressed = false;
+}, true);
+let primaryButtonDown = false;
+function mouseDown() {
+  return primaryButtonDown || screenPressed;
+}
+function hasTouchScreen() {
+  return "maxTouchPoints" in navigator && navigator.maxTouchPoints > 0;
+}
+function setPrimaryButtonState(event) {
+  let flags = event.buttons !== undefined ? event.buttons : event.which;
+  primaryButtonDown = (flags & 1) === 1;
+}
+app.addEventListener("mousedown", setPrimaryButtonState, true);
+app.addEventListener("mousemove", setPrimaryButtonState, true);
+app.addEventListener("mouseup", setPrimaryButtonState, true);
+
 let tempListeners = [];
 function tempListen(parent, listen, runFunc, extra) {
   parent.addEventListener(listen, runFunc, extra);
@@ -402,45 +440,6 @@ function inViewport(element, onlyHeight) {
       rect.top <= viewportHeight
     );
   }
-}
-
-/*
-let mouseDown = 0;
-let mouseEvent;
-window.onmousedown = (e) => {
-  mouseDown++;
-  if (mouseEvent) {
-    mouseEvent(e);
-  }
-}
-window.onmouseup = (e) => {
-  mouseDown--;
-  if (mouseEvent) {
-    mouseEvent(e);
-  }
-}
-*/
-let screenPressed = false;
-app.ontouchstart = () => {
-  screenPressed = true;
-}
-app.ontouchend = () => {
-  screenPressed = false;
-}
-let primaryButtonDown = false;
-function setPrimaryButtonState(event) {
-  let flags = event.buttons !== undefined ? event.buttons : event.which;
-  primaryButtonDown = (flags & 1) === 1;
-}
-app.onmousedown = setPrimaryButtonState;
-app.onmousemove = setPrimaryButtonState;
-app.onmouseup = setPrimaryButtonState;
-
-function mouseDown() {
-  return primaryButtonDown || screenPressed;
-}
-function hasTouchScreen() {
-  return "maxTouchPoints" in navigator && navigator.maxTouchPoints > 0;
 }
 
 let localDataStore = {};

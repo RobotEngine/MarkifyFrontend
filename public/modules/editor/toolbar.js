@@ -862,8 +862,8 @@ modules["pages/editor/toolbar/eraser"] = {
       }
       editor.toolbar.closeSubSubtoolUI();
 
-      let x1 = event.clientX || event.changedTouches[0].clientX;
-      let y1 = event.clientY || event.changedTouches[0].clientY;
+      let x1 = event.clientX || event.changedTouches[0].clientX || 0;
+      let y1 = event.clientY || event.changedTouches[0].clientY || 0;
 
       x0 = x0 || x1;
       y0 = y0 || y1;
@@ -906,7 +906,7 @@ modules["pages/editor/toolbar/eraser"] = {
             }
           }
         }
-
+        
         if (x0 === x1 && y0 === y1) {
           break;
         }

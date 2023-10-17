@@ -63,9 +63,6 @@ let primaryButtonDown = false;
 function mouseDown() {
   return primaryButtonDown || screenPressed;
 }
-function hasTouchScreen() {
-  return "maxTouchPoints" in navigator && navigator.maxTouchPoints > 0;
-}
 function setPrimaryButtonState(event) {
   let flags = event.buttons !== undefined ? event.buttons : event.which;
   primaryButtonDown = (flags & 1) === 1;

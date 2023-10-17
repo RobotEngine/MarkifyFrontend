@@ -437,13 +437,7 @@ app.onmousemove = setPrimaryButtonState;
 app.onmouseup = setPrimaryButtonState;
 
 function mouseDown() {
-  if (hasTouchScreen() == false) {
-    //return body.matches(":active");
-    return primaryButtonDown;
-  } else {
-    //return screenPressed;
-    return primaryButtonDown || screenPressed;
-  }
+  return primaryButtonDown || screenPressed;
 }
 function hasTouchScreen() {
   return "maxTouchPoints" in navigator && navigator.maxTouchPoints > 0;

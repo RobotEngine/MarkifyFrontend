@@ -906,7 +906,8 @@ modules["pages/editor/toolbar/eraser"] = {
             }
           }
         }
-        
+
+        prompt(x0 + "; " + y0 + "; " + x1 + "; " + y1)
         if (x0 === x1 && y0 === y1) {
           break;
         }

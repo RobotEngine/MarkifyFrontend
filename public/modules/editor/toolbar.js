@@ -687,9 +687,9 @@ modules["pages/editor/toolbar/pen"] = {
     let anno;
     let enableDraw = async (event) => {
       editor.toolbar.closeSubSubtoolUI();
-      let clientY = event.clientY || event.changedTouches[0].clientY;
+      let clientY = Math.floor(event.clientY || event.changedTouches[0].clientY || 0);
       let page = await utils.findPage(clientY);
-      let { x, y } = await utils.scaleToDoc(event.clientX || event.changedTouches[0].clientX, clientY, page);
+      let { x, y } = await utils.scaleToDoc(Math.floor(event.clientX || event.changedTouches[0].clientX || 0), clientY, page);
       let halfThickness = this.thickness / 2;
       if (page > 1) {
         y -= 4; // Remove border-pixel width
@@ -862,8 +862,8 @@ modules["pages/editor/toolbar/eraser"] = {
       }
       editor.toolbar.closeSubSubtoolUI();
 
-      let x1 = event.clientX || event.changedTouches[0].clientX || 0;
-      let y1 = event.clientY || event.changedTouches[0].clientY || 0;
+      let x1 = Math.floor(event.clientX || event.changedTouches[0].clientX || 0);
+      let y1 = Math.floor(event.clientY || event.changedTouches[0].clientY || 0);
 
       x0 = x0 || x1;
       y0 = y0 || y1;
@@ -907,7 +907,6 @@ modules["pages/editor/toolbar/eraser"] = {
           }
         }
 
-        prompt(x0 + "; " + y0 + "; " + x1 + "; " + y1)
         if (x0 === x1 && y0 === y1) {
           break;
         }

@@ -427,11 +427,22 @@ app.ontouchstart = () => {
 app.ontouchend = () => {
   screenPressed = false;
 }
+let primaryButtonDown = false;
+function setPrimaryButtonState(event) {
+  let flags = event.buttons !== undefined ? event.buttons : event.which;
+  primaryButtonDown = (flags & 1) === 1;
+}
+app.onmousedown = setPrimaryButtonState;
+app.onmousemove = setPrimaryButtonState;
+app.onmouseup = setPrimaryButtonState;
+
 function mouseDown() {
   if (hasTouchScreen() == false) {
-    return body.matches(":active");
+    //return body.matches(":active");
+    return primaryButtonDown;
   } else {
-    return screenPressed;
+    //return screenPressed;
+    return primaryButtonDown || screenPressed;
   }
 }
 function hasTouchScreen() {

@@ -25,9 +25,9 @@ modules["pages/waitlist"] = {
     </div>
   `,
   css: {
-    ".waitBackdrop": `position: fixed; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; z-index: -1; transition: .3s`,
+    ".waitBackdrop": `position: fixed; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; transition: .3s`,
     ".waitModalHolder": `display: flex; width: 100%; height: fit-content; min-height: 100vh; justify-content: center; align-items: center`,
-    ".waitModal": `display: flex; flex-direction: column; width: 100%; max-width: 400px; padding: 16px; margin: 24px; background: var(--pageColor); box-shadow: 0px 0px 8px rgba(0, 132, 255, .4); border-radius: 20px; align-items: center`,
+    ".waitModal": `display: flex; flex-direction: column; width: 100%; max-width: 400px; padding: 16px; margin: 24px; z-index: 1; background: var(--pageColor); box-shadow: 0px 0px 8px rgba(0, 132, 255, .4); border-radius: 20px; align-items: center`,
     ".waitLogo": `box-sizing: border-box; width: 100%; max-width: 225px`,
     ".waitHeader": `margin-top: 25px; font-size: 25px; line-height: 45px`,
     ".waitHeader b": `color: var(--theme); font-size: 35px; font-weight: 700`,

@@ -173,7 +173,7 @@ modules["pages/launch"] = {
   `,
   css: {
     ".lSection": `position: relative; display: flex; flex-direction: column; margin: 5vh 0; z-index: 1; align-items: center; --blueShadow: 0px 0px 24px var(--hover)`,
-    ".lBackdrop": `position: fixed; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; opacity: 0; z-index: 0; transition: .3s`,
+    ".lBackdrop": `position: fixed; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; opacity: 0; transition: .3s`,
     ".lHeaderContent": `display: flex; flex-direction: column; box-sizing: border-box; max-width: 100%; min-height: 1000px; padding: 26px; align-items: center; overflow: hidden`,
     ".lHeaderRow": `display: flex; width: 100%; justify-content: center`,
     ".lHeaderRow div": `display: flex; flex: 1; min-width: 300px; max-width: 500px; justify-content: space-around; align-items: center`,

@@ -151,7 +151,7 @@ modules["pages/editor"] = {
             options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "000"]
           },
           thickness: 16,
-          opacity: 75
+          opacity: 50
         },
         text: {
           color: {
@@ -524,6 +524,38 @@ modules["pages/editor"] = {
       }
     }; // Subscribe before to make sure no members are lost in request time.
 
+    let utils = await getModule("pages/editor/annotation");
+    socket.remotes["long_" + lessonID] = async (data) => {
+      console.log("LONG:", data);
+      for (let i = 0; i < data.length; i++) {
+        let anno = data[i];
+        let existingAnno = this.annotations[anno._id] || this.annotations[anno.pending];
+        if (existingAnno != null) {
+          if (this.annotations[anno.pending] != null) {
+            utils.removeAnnotation(anno.pending);
+            delete this.annotations[anno.pending];
+            this.annotations[anno._id] = anno;
+            existingAnno = this.annotations[anno._id];
+          }
+          if (existingAnno.sync > anno.sync) {
+            continue;
+          }
+          clearTimeout(existingAnno.expire);
+          existingAnno.sync = anno.sync;
+          objectUpdate(existingAnno, anno);
+          if (anno.remove == true) {
+            utils.removeAnnotation(anno._id);
+            delete this.annotations[anno._id];
+            continue;
+          }
+          utils.render(existingAnno);
+        } else {
+          this.annotations[anno._id] = anno;
+          utils.render(anno);
+        }
+      }
+    }; // Subscribe to long, server updates.
+
     let sendBody = { ss: socket.secureID };
     if (this.active == false) {
       sendBody.active = false;
@@ -551,6 +583,7 @@ modules["pages/editor"] = {
     }
 
     this.lesson = body.lesson;
+    this.annotations = body.annotations;
     this.lesson.settings = this.lesson.settings || {};
 
     if (this.lesson.pin) {
@@ -1494,24 +1527,103 @@ modules["pages/editor/annotation"] = {
     }
     return [data, anno];
   },
-  removeAnnotation: async function(annoID) {
+  removeAnnotation: async function(annoID, checkDone) {
     let editor = await getModule("pages/editor");
     let anno = editor.page.querySelector('.annotation[anno="' + annoID + '"]');
-    if (anno != null && anno.hasAttribute("done") == false) {
+    if (anno != null && (checkDone != true || anno.hasAttribute("done") == false)) {
       anno.remove();
     }
   },
-  save: async function(data, anno) {
+  setTimeout: async function(annoID, anno, render) {
     let editor = await getModule("pages/editor");
-    let existingAnno = editor.annotations[data._id] || {};
-    //existingAnno = data; // Add to anno data
-    let mutations = objectUpdate(data, existingAnno);
+    clearTimeout(anno.expire);
+    anno.expire = setTimeout(() => {
+      if (connected == false) {
+        return;
+      }
+      if (anno.save == true) {
+        return; // This anno is being saved locally, and should stick around
+      }
+      if (anno.done != true) { // Means its a new anno
+        editor.annotations[annoID] = anno.revert;
+        this.render(anno.revert, render);
+      } else {
+        this.removeAnnotation(annoID);
+        delete editor.annotations[annoID];
+      }
+    }, 10000); // Revert if no long update confirms save
+  },
+  saveEdit: async function(annoData, render) {
+    let editor = await getModule("pages/editor");
+    let annoID = annoData._id;
+    if (annoID == null) {
+      return;
+    }
+    let anno = editor.annotations[annoID] || {};
+    let syncAnno = JSON.stringify(anno);
+    let mutations = objectUpdate(annoData, anno);
     if (Object.keys(mutations).length < 1) {
       return; // No changes, so no need to do anything
     }
-    this.render(existingAnno, anno);
+    anno.revert = anno.revert || JSON.parse(syncAnno);
+    if (anno.save != true) {
+      this.setTimeout(annoID, anno, render);
+    }
+    editor.annotations[annoID] = anno;
+    this.render(anno, render);
+    return mutations;
+  },
+  pendingSaves: [],
+  debounce: false,
+  syncSave: async function() {
+    if (this.debounce == true) {
+      return;
+    }
+    let editor = await getModule("pages/editor");
+    this.debounce = true;
+    while (this.pendingSaves.length > 0) {
+      let setPendingSave = [];
+      for (let i = 0; i < this.pendingSaves.length; i++) {
+        let anno = editor.annotations[this.pendingSaves[i]._id];
+        if (anno != null) {
+          delete anno.save;
+          delete this.pendingSaves[i].save;
+          this.setTimeout(anno._id, anno);
+        } else {
+          this.pendingSaves.splice(i, 1);
+          i--;
+        }
+        if (anno.f == null && anno._id.startsWith("pending_") == true) {
+          setPendingSave.push(this.pendingSaves[i]);
+        }
+      }
+      sendRequest("POST", "lessons/save", { mutations: this.pendingSaves }, { session: editor.session });
+      this.pendingSaves = setPendingSave;
+      await sleep(3500); // 1 save per 3.5 seconds
+    }
+    this.debounce = false;
+  },
+  save: async function(data, anno) {
+    let editor = await getModule("pages/editor");
+    let annoID = data._id;
+    let mutations = await this.saveEdit(data, anno);
+    if (mutations == null) {
+      return; // Nothing new to send!
+    }
+
+    let annotation = editor.annotations[annoID];
+    annotation.save = true; // Alert the system it's time to save
+    annotation.sync = getEpoch();
+    mutations.sync = annotation.sync;
     
-    editor.annotations[data._id] = existingAnno;
+    if (connected == true) {
+      this.pendingSaves.push({ _id: annoID, ...mutations });
+      this.syncSave();
+    } else {
+      this.pendingSaves = [];
+    }
+
+    return mutations;
 
     /*
     let storeID = "mutations_" + lessonID;

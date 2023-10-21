@@ -161,11 +161,9 @@ modules["editor/realtime"] = {
     let endSyncObserveTimeout;
     this.publishShort = async (event, type, ignoreSame) => {
       type = type || "cursor";
-      if (event != null && (event.clientX != null || (event.changedTouches != null && event.changedTouches[0] != null && event.changedTouches[0].clientX != null))) {
-        mouseX = Math.floor(event.clientX || event.changedTouches[0].clientX || 0);
-      }
-      if (event != null && (event.clientY != null || (event.changedTouches != null && event.changedTouches[0] != null && event.changedTouches[0].clientY != null))) {
-        mouseY = Math.floor(event.clientY || event.changedTouches[0].clientY || 0);
+      if (event != null) {
+        mouseX = Math.floor(event.clientX || ((event.changedTouches || [])[0] || {}).clientX || 0);
+        mouseY = Math.floor(event.clientY || ((event.changedTouches || [])[0] || {}).clientY || 0);
       }
       if (editor.memberCount < 2) { // No one to send cursor events too!
         return;
@@ -537,7 +535,7 @@ modules["editor/realtime"] = {
                     if (anno.done != true) {
                       utils.render(anno);
                     } else {
-                      utils.save(anno);
+                      utils.saveEdit(anno);
                     }
                   }
                   member.selecting = keys;
@@ -545,13 +543,13 @@ modules["editor/realtime"] = {
                   for (let i = 0; i < member.selecting.length; i++) {
                     let annoID = member.selecting[i];
                     if (annoID.startsWith("pending_") == true) {
-                      utils.removeAnnotation(annoID);
+                      utils.removeAnnotation(annoID, true);
                     }
                   }
                   delete member.selecting;
                 }
                 if (extra.u != null) { // Update Annotation
-                  utils.save(extra.u);
+                  utils.saveEdit(extra.u);
                 }
               }
               if (extra != null && extra.press == true) {

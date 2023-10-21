@@ -687,6 +687,7 @@ modules["pages/editor/toolbar/pen"] = {
     let anno;
     let enableDraw = async (event) => {
       editor.toolbar.closeSubSubtoolUI();
+      event.preventDefault();
       let clientY = Math.floor(event.clientY || event.changedTouches[0].clientY || 0);
       let page = await utils.findPage(clientY);
       let { x, y } = await utils.scaleToDoc(Math.floor(event.clientX || event.changedTouches[0].clientX || 0), clientY, page);
@@ -715,6 +716,7 @@ modules["pages/editor/toolbar/pen"] = {
         disableDraw();
         return;
       }
+      event.preventDefault();
       let rect = anno.getBoundingClientRect();
       let { x, y } = await utils.scaleToDoc((event.clientX || event.changedTouches[0].clientX) - rect.left, (event.clientY || event.changedTouches[0].clientY) - rect.top, 0);
       let halfThickness = draw.t / 2;
@@ -751,7 +753,6 @@ modules["pages/editor/toolbar/pen"] = {
       }
     }
     let disableDraw = async () => {
-      console.log("DONE");
       if (draw == null) {
         return;
       }
@@ -787,6 +788,7 @@ modules["pages/editor/toolbar/pen"] = {
       draw.d = simplifyPath(draw.d, .75);
 
       utils.save(draw, anno);
+
       draw.done = true; // Alert other clients that this annotation is done
       await utils.forceShort();
       delete editor.selecting[draw._id];
@@ -864,6 +866,8 @@ modules["pages/editor/toolbar/eraser"] = {
 
       let x1 = Math.floor(event.clientX || event.changedTouches[0].clientX || 0);
       let y1 = Math.floor(event.clientY || event.changedTouches[0].clientY || 0);
+
+      event.preventDefault();
 
       x0 = x0 || x1;
       y0 = y0 || y1;

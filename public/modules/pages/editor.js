@@ -532,6 +532,7 @@ modules["pages/editor"] = {
         if (existingAnno != null) {
           if (anno.remove == true) {
             utils.removeAnnotation(anno._id);
+            clearTimeout(existingAnno.expire);
             delete this.annotations[anno._id];
             continue;
           }

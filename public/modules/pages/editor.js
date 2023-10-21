@@ -1416,7 +1416,7 @@ modules["pages/editor/annotation"] = {
       }
       let rect = pageElem.getBoundingClientRect();
       if (rect.bottom > y) {
-        return [pageElem, i + 1];
+        return [pageElem, editor.visiblePages[i]];
       }
     }
     let pageNum = editor.visiblePages[editor.visiblePages.length - 1];

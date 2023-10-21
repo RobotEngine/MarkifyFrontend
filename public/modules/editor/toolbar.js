@@ -692,7 +692,7 @@ modules["pages/editor/toolbar/pen"] = {
       let [page, number] = await utils.findPage(clientY);
       let { x, y } = await utils.scaleToDoc(Math.floor(event.clientX || event.changedTouches[0].clientX || 0), clientY, number);
       let halfThickness = this.thickness / 2;
-      if (page > 1) {
+      if (number > 1) {
         y -= 4; // Remove border-pixel width
       }
       let tempID = utils.tempID();

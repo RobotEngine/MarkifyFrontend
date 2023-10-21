@@ -750,9 +750,19 @@ modules["pages/editor"] = {
     let loadedIn = [];
     let alreadyLoaded = [];
     let viewAnnotations = () => {
-      
+      let annoKeys = Object.keys(this.annotations);
+      for (let i = 0; i < annoKeys.length; i++) {
+        let anno = this.annotations[annoKeys[i]];
+        if (loadedIn.includes(anno.page) == true) {
+          utils.render(anno);
+        }
+      }
     }
     let getAnnotations = async () => {
+      viewAnnotations();
+      if (connected == false) {
+        return;
+      }
       let fetchPageIDs = [];
       for (let i = 0; i < loadedIn.length; i++) {
         if (alreadyLoaded.includes(loadedIn[i]) == false) {
@@ -765,8 +775,23 @@ modules["pages/editor"] = {
       }
       // Send Load Request:
       console.log("LOAD", fetchPageIDs);
-      let [code, body] = await sendRequest("GET", "lessons/annotations?pages=" + fetchPageIDs.join(","), null, { session: this.session });
-      
+      let [code, body] = await sendRequest("GET", "lessons/join/annotations?pages=" + fetchPageIDs.join(","), null, { session: this.session }, { allowError: true });
+      if (code != 200) {
+        (await getModule("alert")).open("error", `<b>Error Loading Annotations</b>Failed to load some annotations, will try again later...`);
+        // Remove IDs if load fails, so it can try again!
+        for (let i = 0; i < alreadyLoaded.length; i++) {
+          if (fetchPageIDs.includes(alreadyLoaded[i]) == true) {
+            alreadyLoaded.splice(i, 1);
+            i--;
+          }
+        }
+        return;
+      }
+      for (let i = 0; i < body.length; i++) {
+        let addAnno = body[i];
+        this.annotations[addAnno._id] = addAnno;
+      }
+      viewAnnotations();
       /*
       let fullPageWidth = app.offsetWidth;
       let minX = window.scrollX - fullPageWidth;
@@ -976,6 +1001,9 @@ modules["pages/editor"] = {
               }
               if (page.querySelector(".ePageTextHolder")) {
                 page.querySelector(".ePageTextHolder").remove();
+              }
+              if (page.querySelector(".ePageAnnotations")) {
+                page.querySelector(".ePageAnnotations").remove();
               }
               page.removeAttribute("loading");
               page.removeAttribute("loaded");

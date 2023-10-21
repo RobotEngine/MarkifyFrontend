@@ -745,6 +745,38 @@ modules["pages/editor"] = {
     let content = contentHolder.querySelector(".eContentHolder");
     let pageHolder = content.querySelector(".ePageHolder");
     let bottomHolder = page.querySelector(".eBottom");
+
+    // Load Annotations:
+    let loadedIn = [];
+    let alreadyLoaded = [];
+    let viewAnnotations = () => {
+      
+    }
+    let getAnnotations = async () => {
+      let fetchPageIDs = [];
+      for (let i = 0; i < loadedIn.length; i++) {
+        if (alreadyLoaded.includes(loadedIn[i]) == false) {
+          fetchPageIDs.push(loadedIn[i]);
+          alreadyLoaded.push(loadedIn[i]);
+        }
+      }
+      if (fetchPageIDs.length < 1) {
+        return;
+      }
+      // Send Load Request:
+      console.log("LOAD", fetchPageIDs);
+      let [code, body] = await sendRequest("GET", "lessons/annotations?pages=" + fetchPageIDs.join(","), null, { session: this.session });
+      
+      /*
+      let fullPageWidth = app.offsetWidth;
+      let minX = window.scrollX - fullPageWidth;
+      let maxX = window.scrollX + (fullPageWidth * 2);
+      let fullPageHeight = app.offsetHeight;
+      let minY = window.scrollY - fullPageHeight;
+      let maxY = window.scrollY + (fullPageHeight * 2);
+      */
+    }
+
     switch (this.lesson.type) {
       case "standard":
         let pages = getObject(body.pages || [], "_id");
@@ -865,7 +897,7 @@ modules["pages/editor"] = {
           }
         }
         let renderPages = async () => {
-          let loadedIn = [];
+          loadedIn = [];
           for (let i = -3; i < this.visiblePages.length + 3; i++) {
             let pageNum = 1;
             if (i < 0) {
@@ -949,6 +981,7 @@ modules["pages/editor"] = {
               page.removeAttribute("loaded");
             }
           }
+          getAnnotations();
         }
         let scrollSubTimeout;
         this.updatePages = () => {
@@ -1026,24 +1059,8 @@ modules["pages/editor"] = {
       case "freeboard":
         //pageHolder.remove();
         bottomHolder.remove();
+        getAnnotations();
     }
-
-    // Load Annotations:
-    function getAnnotations() {
-      let fullPageWidth = app.offsetWidth;
-      let minX = window.scrollX - fullPageWidth;
-      let maxX = window.scrollX + (fullPageWidth * 2);
-      let fullPageHeight = app.offsetHeight;
-      let minY = window.scrollY - fullPageHeight;
-      let maxY = window.scrollY + (fullPageHeight * 2);
-      console.log(minX, maxX, minY, maxY);
-    }
-    tempListen(window, "scroll", getAnnotations);
-    tempListen(window, "resize", () => {
-      this.realtime.module.adjustRealtimeHolder();
-      getAnnotations();
-    });
-    getAnnotations();
 
     // Zoom
     this.zoom = 1;
@@ -1399,10 +1416,11 @@ modules["pages/editor/annotation"] = {
       }
       let rect = pageElem.getBoundingClientRect();
       if (rect.bottom > y) {
-        return editor.visiblePages[i];
+        return [pageElem, i + 1];
       }
     }
-    return editor.visiblePages[editor.visiblePages.length - 1];
+    let pageNum = editor.visiblePages[editor.visiblePages.length - 1];
+    return [pageHolder.children[pageNum - 1], pageNum];
   },
   scaleToDoc: async function (x, y, p) {
     let editor = await getModule("pages/editor");
@@ -1439,10 +1457,10 @@ modules["pages/editor/annotation"] = {
   tempID: function () {
     return "pending_" + randomString(10) + Date.now();
   },
-  annoHolder: async function (pageNum) {
+  annoHolder: async function (pageID) {
     let editor = await getModule("pages/editor");
     let pageHolder = editor.page.querySelector(".ePageHolder");
-    let page = pageHolder.children[pageNum - 1];
+    let page = pageHolder.querySelector('.ePage[pageid="' + pageID + '"');
     if (page == null) {
       return pageHolder;
     }
@@ -1473,8 +1491,8 @@ modules["pages/editor/annotation"] = {
     if (data == null) {
       return;
     }
-    let { _id, f, p, s, c, t, o, d, done, remove } = data;
-    let [x, y, page] = p;
+    let { _id, f, page, p, s, c, t, o, d, done, remove } = data;
+    let [x, y] = p;
     let [width, height] = s;
     let annoHolder = await this.annoHolder(page);
     if (anno == null) {

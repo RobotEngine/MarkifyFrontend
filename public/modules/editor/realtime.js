@@ -193,7 +193,7 @@ modules["editor/realtime"] = {
           let sendY = mouseY;
           let pageRect;
           if (editor.visiblePages) {
-            filter.p = await utils.findPage(sendY);
+            filter.p = (await utils.findPage(sendY))[1];
             if (filter.p > 0) {
               pageRect = pageHolder.children[filter.p - 1].getBoundingClientRect();
               sendX -= pageRect.left;
@@ -226,7 +226,7 @@ modules["editor/realtime"] = {
                   }
                   let selX = selRect.x;
                   let selY = selRect.y;
-                  let page = await utils.findPage(selY);
+                  let page = (await utils.findPage(selY))[1];
                   if (editor.visiblePages && pageHolder.children[page - 1]) {
                     let selPageRect = pageHolder.children[page - 1].getBoundingClientRect();
                     selX -= selPageRect.left;

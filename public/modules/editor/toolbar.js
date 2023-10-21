@@ -689,8 +689,8 @@ modules["pages/editor/toolbar/pen"] = {
       editor.toolbar.closeSubSubtoolUI();
       event.preventDefault();
       let clientY = Math.floor(event.clientY || event.changedTouches[0].clientY || 0);
-      let page = await utils.findPage(clientY);
-      let { x, y } = await utils.scaleToDoc(Math.floor(event.clientX || event.changedTouches[0].clientX || 0), clientY, page);
+      let [page, number] = await utils.findPage(clientY);
+      let { x, y } = await utils.scaleToDoc(Math.floor(event.clientX || event.changedTouches[0].clientX || 0), clientY, number);
       let halfThickness = this.thickness / 2;
       if (page > 1) {
         y -= 4; // Remove border-pixel width
@@ -699,7 +699,8 @@ modules["pages/editor/toolbar/pen"] = {
       [draw, anno] = await utils.render({
         _id: tempID,
         f: "draw",
-        p: [utils.round(x - halfThickness), utils.round(y - halfThickness), page],
+        page: page.getAttribute("pageid"),
+        p: [utils.round(x - halfThickness), utils.round(y - halfThickness)],
         s: [this.thickness, this.thickness],
         c: this.color,
         t: this.thickness,

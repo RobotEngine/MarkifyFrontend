@@ -202,7 +202,6 @@ modules["pages/editor"] = {
     };
     this.events = {};
     this.members = {};
-    this.annotations = {};
     this.selecting = {};
     this.memberCount = 0;
     this.active = document.visibilityState == "visible";
@@ -531,24 +530,26 @@ modules["pages/editor"] = {
         let anno = data[i];
         let existingAnno = this.annotations[anno._id] || this.annotations[anno.pending];
         if (existingAnno != null) {
-          if (this.annotations[anno.pending] != null) {
-            utils.removeAnnotation(anno.pending);
-            delete this.annotations[anno.pending];
-            this.annotations[anno._id] = anno;
-            existingAnno = this.annotations[anno._id];
-          }
-          if (existingAnno.sync > anno.sync) {
-            continue;
-          }
-          clearTimeout(existingAnno.expire);
-          existingAnno.sync = anno.sync;
-          objectUpdate(existingAnno, anno);
           if (anno.remove == true) {
             utils.removeAnnotation(anno._id);
             delete this.annotations[anno._id];
             continue;
           }
-          utils.render(existingAnno);
+          if (existingAnno.sync > anno.sync) {
+            continue;
+          }
+          let gottenRender;
+          if (this.annotations[anno.pending] != null) {
+            gottenRender = page.querySelector('.annotation[anno="' + anno.pending + '"]');
+            console.log(gottenRender);
+            delete this.annotations[anno.pending];
+            this.annotations[anno._id] = anno;
+            existingAnno = this.annotations[anno._id];
+          }
+          clearTimeout(existingAnno.expire);
+          existingAnno.sync = anno.sync;
+          objectUpdate(existingAnno, anno);
+          utils.render(existingAnno, gottenRender);
         } else {
           this.annotations[anno._id] = anno;
           utils.render(anno);
@@ -583,7 +584,7 @@ modules["pages/editor"] = {
     }
 
     this.lesson = body.lesson;
-    this.annotations = body.annotations;
+    this.annotations = body.annotations || {};
     this.lesson.settings = this.lesson.settings || {};
 
     if (this.lesson.pin) {
@@ -1026,9 +1027,22 @@ modules["pages/editor"] = {
         bottomHolder.remove();
     }
 
+    // Load Annotations:
+    function getAnnotations() {
+      let fullPageWidth = app.offsetWidth;
+      let minX = window.scrollX - fullPageWidth;
+      let maxX = window.scrollX + (fullPageWidth * 2);
+      let fullPageHeight = app.offsetHeight;
+      let minY = window.scrollY - fullPageHeight;
+      let maxY = window.scrollY + (fullPageHeight * 2);
+      console.log(minX, maxX, minY, maxY);
+    }
+    tempListen(window, "scroll", getAnnotations);
     tempListen(window, "resize", () => {
       this.realtime.module.adjustRealtimeHolder();
+      getAnnotations();
     });
+    getAnnotations();
 
     // Zoom
     this.zoom = 1;

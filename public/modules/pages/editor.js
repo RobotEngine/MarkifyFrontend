@@ -1649,6 +1649,7 @@ modules["pages/editor/annotation"] = {
   },
   enableTimeout: async function(annoID, anno, render) {
     let editor = await getModule("pages/editor");
+    let page = editor.page;
     clearTimeout(anno.expire);
     anno.expire = setTimeout(() => {
       if (connected == false) {
@@ -1657,6 +1658,9 @@ modules["pages/editor/annotation"] = {
       }
       if (anno.save == true) {
         return; // This anno is being saved locally, and should stick around
+      }
+      if (editor.page != page) {
+        return;
       }
       if (anno.done != true) { // Means its a new anno
         editor.annotations[annoID] = anno.revert;

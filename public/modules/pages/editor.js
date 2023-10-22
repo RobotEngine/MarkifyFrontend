@@ -139,6 +139,7 @@ modules["pages/editor"] = {
   loadedPDFs: [], // Keep track of loaded PDFs for releasing memory
   js: async function (page, joinData) {
     this.page = page;
+    this.annotations = {};
     this.preferences = {
       tools: {
         select: {
@@ -651,7 +652,6 @@ modules["pages/editor"] = {
     }
 
     this.lesson = body.lesson;
-    this.annotations = body.annotations || {};
     this.lesson.settings = this.lesson.settings || {};
 
     if (this.lesson.pin) {
@@ -662,6 +662,20 @@ modules["pages/editor"] = {
     this.sessionID = body.session._id;
     this.sessionToken = body.session.token;
     this.session = body.session._id + ";" + body.session.token;
+
+    // Resync unsaved annotations:
+    if (window.resync != null && window.resync.lesson == lessonID) {
+      let resyncKeys = Object.keys(window.resync.annotations);
+      for (let i = 0; i < resyncKeys.length; i++) {
+        let anno = window.resync.annotations[resyncKeys[i]];
+        if (anno.save == true) {
+          this.annotations[anno._id] = anno;
+          utils.pendingSaves.push(anno);
+          utils.syncSave();
+        }
+      }
+    }
+    window.resync = { lesson: lessonID, annotations: this.annotations };
 
     if (body.preferences != null) {
       objectUpdate(body.preferences, this.preferences);

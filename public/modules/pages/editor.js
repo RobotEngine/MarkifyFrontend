@@ -20,7 +20,7 @@ modules["pages/editor"] = {
           <button class="eSaveProgress eUndo" style="margin: 0 2px 0 4px; justify-content: end; border-radius: 16px 0 0 16px"><img src="./images/tooltips/progress/undo.svg"></button>
           <button class="eSaveProgress eRedo" style="margin: 0 4px 0 2px; justify-content: start; border-radius: 0 16px 16px 0"><img src="./images/tooltips/progress/redo.svg"></button>
           <img class="eConnection" src="./images/editor/top/connection.svg" style="object-position: -60px -4px" disabled>
-          <div class="eStatus">Saved</div>
+          <div class="eStatus"></div>
         </div>
         <div class="eTopSection eTopMargin">
           <button class="eMembers" dropdown="dropdowns/editor/members" disabled><span class="eMemberCount">25</span>Members</button>
@@ -91,7 +91,7 @@ modules["pages/editor"] = {
     ".eSaveProgress": `display: flex; width: 31px; height: 31px; padding: 0; align-items: center; overflow: hidden; background: var(--lightGray)`,
     ".eSaveProgress img": `width: 24px`,
     ".eConnection": `width: 30px; height: 30px; margin: 0 4px; object-fit: cover; transition: .3s`,
-    ".eStatus": `margin: 0px 4px; color: var(--secondary); font-size: 16px; font-weight: 500`,
+    ".eStatus": `color: var(--secondary); font-size: 16px; font-weight: 500`,
 
     ".eMembers": `display: flex; padding: 6px 10px; margin: 0 4px; background: var(--hover); border-radius: 16px; align-items: center; font-size: 16px; font-weight: 600`,
     ".eMemberCount": `display: none; padding: 2px 6px; margin-right: 5px; background: #fff; border-radius: 12px; color: var(--theme); font-weight: 700`,
@@ -295,19 +295,83 @@ modules["pages/editor"] = {
     page.style.width = "fit-content";
     page.style.minWidth = "100%";
 
+    // EDITOR
+    let contentHolder = page.querySelector(".eContent");
+    let content = contentHolder.querySelector(".eContentHolder");
+    let pageHolder = content.querySelector(".ePageHolder");
+    let bottomHolder = page.querySelector(".eBottom");
+
+    let saveStatus = page.querySelector(".eStatus");
     let realtimeHolder = page.querySelector(".eRealtime");
     let observeHolder = page.querySelector(".eObserveHolder");
     let observeTag = observeHolder.querySelector(".eObserve");
     let observeBorder = page.querySelector(".eObserveBorder");
 
+    let eTop = page.querySelector(".eTop");
+    let eTopScrollLeft = page.querySelector(".eTopScrollLeft");
+    let eTopScrollRight = page.querySelector(".eTopScrollRight");
+    function enableScrollTop() {
+      if (eTop.scrollWidth > eTop.clientWidth - 1) {
+        if (eTop.scrollLeft > 0) {
+          eTopScrollLeft.style.opacity = 1;
+          eTopScrollLeft.style.pointerEvents = "all";
+        } else {
+          eTopScrollLeft.style.opacity = 0;
+          eTopScrollLeft.style.pointerEvents = "none";
+        }
+        if (eTop.scrollWidth - eTop.scrollLeft - 1 > eTop.clientWidth) {
+          eTopScrollRight.style.opacity = 1;
+          eTopScrollRight.style.pointerEvents = "all";
+        } else {
+          eTopScrollRight.style.opacity = 0;
+          eTopScrollRight.style.pointerEvents = "none";
+        }
+      } else {
+        eTopScrollLeft.style.opacity = 0;
+        eTopScrollLeft.style.pointerEvents = "none";
+        eTopScrollRight.style.opacity = 0;
+        eTopScrollRight.style.pointerEvents = "none";
+      }
+    }
+    eTopScrollLeft.addEventListener("click", function () {
+      eTop.scrollTo({ left: eTop.scrollLeft - 200, behavior: "smooth" });
+      enableScrollTop();
+    });
+    eTopScrollRight.addEventListener("click", function () {
+      eTop.scrollTo({ left: eTop.scrollLeft + 200, behavior: "smooth" });
+      enableScrollTop();
+    });
+    tempListen(window, "resize", enableScrollTop);
+    eTop.addEventListener("scroll", enableScrollTop);
+    
     if (connected) {
       this.realtime.strength = 1;
     }
+    this.updateSaveStatus = (status) => {
+      saveStatus.textContent = status;
+      saveStatus.style.margin = "0 4px";
+      enableScrollTop();
+    }
+    tempListen(window, "beforeunload", (event) => {
+      let saved = true;
+      let annoKeys = Object.keys(this.annotations);
+      for (let i = 0; i < annoKeys.length; i++) {
+        let anno = this.annotations[annoKeys[i]];
+        if (anno.save == true) {
+          saved = false;
+        }
+      }
+      if (saved == false) {
+        event.preventDefault();
+        event.returnValue = "";
+      }
+    });
     closeCallback = () => {
       this.realtime.strength = 1;
       if (this.realtime.module) {
         this.realtime.module.connectUpdate();
       }
+      this.updateSaveStatus("Reconnecting...");
     }
 
     setFrame("editor/toolbar", page.querySelector(".eToolbar"));
@@ -549,6 +613,8 @@ modules["pages/editor"] = {
           }
           clearTimeout(existingAnno.expire);
           existingAnno.sync = anno.sync;
+          delete existingAnno.done;
+          delete existingAnno.retry;
           objectUpdate(existingAnno, anno);
           utils.render(existingAnno, gottenRender);
         } else {
@@ -694,44 +760,6 @@ modules["pages/editor"] = {
       }
     });
 
-    let eTop = page.querySelector(".eTop");
-    let eTopScrollLeft = page.querySelector(".eTopScrollLeft");
-    let eTopScrollRight = page.querySelector(".eTopScrollRight");
-    function enableScrollTop() {
-      if (eTop.scrollWidth > eTop.clientWidth - 1) {
-        if (eTop.scrollLeft > 0) {
-          eTopScrollLeft.style.opacity = 1;
-          eTopScrollLeft.style.pointerEvents = "all";
-        } else {
-          eTopScrollLeft.style.opacity = 0;
-          eTopScrollLeft.style.pointerEvents = "none";
-        }
-        if (eTop.scrollWidth - eTop.scrollLeft - 1 > eTop.clientWidth) {
-          eTopScrollRight.style.opacity = 1;
-          eTopScrollRight.style.pointerEvents = "all";
-        } else {
-          eTopScrollRight.style.opacity = 0;
-          eTopScrollRight.style.pointerEvents = "none";
-        }
-      } else {
-        eTopScrollLeft.style.opacity = 0;
-        eTopScrollLeft.style.pointerEvents = "none";
-        eTopScrollRight.style.opacity = 0;
-        eTopScrollRight.style.pointerEvents = "none";
-      }
-    }
-    eTopScrollLeft.addEventListener("click", function () {
-      eTop.scrollTo({ left: eTop.scrollLeft - 200, behavior: "smooth" });
-      enableScrollTop();
-    });
-    eTopScrollRight.addEventListener("click", function () {
-      eTop.scrollTo({ left: eTop.scrollLeft + 200, behavior: "smooth" });
-      enableScrollTop();
-    });
-    enableScrollTop();
-    tempListen(window, "resize", enableScrollTop);
-    eTop.addEventListener("scroll", enableScrollTop);
-
     this.visiblePages = [];
 
     // RELEASE OLD MEMORY
@@ -739,12 +767,6 @@ modules["pages/editor"] = {
       this.loadedPDFs[i].destroy();
     }
     this.loadedPDFs = [];
-
-    // EDITOR
-    let contentHolder = page.querySelector(".eContent");
-    let content = contentHolder.querySelector(".eContentHolder");
-    let pageHolder = content.querySelector(".ePageHolder");
-    let bottomHolder = page.querySelector(".eBottom");
 
     // Load Annotations:
     this.loadedIn = [];
@@ -1291,6 +1313,8 @@ modules["pages/editor"] = {
     }
     page.addEventListener("mousemove", sendMove, { passive: true });
     page.addEventListener("touchmove", sendMove, { passive: true });
+
+    enableScrollTop();
   }
 }
 
@@ -1609,11 +1633,12 @@ modules["pages/editor/annotation"] = {
       anno.remove();
     }
   },
-  setTimeout: async function(annoID, anno, render) {
+  enableTimeout: async function(annoID, anno, render) {
     let editor = await getModule("pages/editor");
     clearTimeout(anno.expire);
     anno.expire = setTimeout(() => {
       if (connected == false) {
+        anno.save = true;
         return;
       }
       if (anno.save == true) {
@@ -1642,7 +1667,7 @@ modules["pages/editor/annotation"] = {
     }
     anno.revert = anno.revert || JSON.parse(syncAnno);
     if (anno.save != true) {
-      this.setTimeout(annoID, anno, render);
+      this.enableTimeout(annoID, anno, render);
     }
     editor.annotations[annoID] = anno;
     this.render(anno, render);
@@ -1651,28 +1676,51 @@ modules["pages/editor/annotation"] = {
   pendingSaves: [],
   debounce: false,
   syncSave: async function() {
+    let editor = await getModule("pages/editor");
+    editor.updateSaveStatus("Saving...");
     if (this.debounce == true) {
       return;
     }
-    let editor = await getModule("pages/editor");
     this.debounce = true;
     while (this.pendingSaves.length > 0) {
+      if (connected == false) {
+        break;
+      }
       let setPendingSave = [];
       for (let i = 0; i < this.pendingSaves.length; i++) {
         let anno = editor.annotations[this.pendingSaves[i]._id];
         if (anno != null) {
           delete anno.save;
+          this.pendingSaves[i]._id = anno._id;
           delete this.pendingSaves[i].save;
-          this.setTimeout(anno._id, anno);
+          delete this.pendingSaves[i].done;
+          delete this.pendingSaves[i].retry;
+          if (anno.retry != true) {
+            this.enableTimeout(anno._id, anno);
+          }
+          if (anno.f == null && anno._id.startsWith("pending_") == true) {
+            anno.retry = true;
+            setPendingSave.push(this.pendingSaves[i]);
+            this.pendingSaves.splice(i, 1);
+            i--;
+          }
         } else {
           this.pendingSaves.splice(i, 1);
           i--;
         }
-        if (anno.f == null && anno._id.startsWith("pending_") == true) {
-          setPendingSave.push(this.pendingSaves[i]);
-        }
       }
-      sendRequest("POST", "lessons/save", { mutations: this.pendingSaves }, { session: editor.session });
+      let [result] = await sendRequest("POST", "lessons/save", { mutations: this.pendingSaves }, { session: editor.session });
+      if (result != 200) { // If not saved, set to try again
+        for (let i = 0; i < this.pendingSaves.length; i++) {
+          let anno = editor.annotations[this.pendingSaves[i]._id];
+          if (anno != null) {
+            anno.retry = true;
+            setPendingSave.push(this.pendingSaves[i]);
+          }
+        }
+      } else {
+        editor.updateSaveStatus("Saved");
+      }
       this.pendingSaves = setPendingSave;
       await sleep(3500); // 1 save per 3.5 seconds
     }

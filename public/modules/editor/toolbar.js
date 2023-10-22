@@ -865,8 +865,8 @@ modules["pages/editor/toolbar/eraser"] = {
       }
       editor.toolbar.closeSubSubtoolUI();
 
-      let x1 = Math.floor(event.clientX || event.changedTouches[0].clientX || 0);
-      let y1 = Math.floor(event.clientY || event.changedTouches[0].clientY || 0);
+      let x1 = Math.floor(event.clientX || ((event.changedTouches || [])[0] || {}).clientX || 0);
+      let y1 = Math.floor(event.clientY || ((event.changedTouches || [])[0] || {}).clientY || 0);
 
       event.preventDefault();
 

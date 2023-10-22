@@ -608,7 +608,7 @@ async function sendRequest(method, path, body, extra) {
       app.style.justifyContent = "center";
       app.innerHTML = `<div style="max-width: 300px; color: var(--error)">Failed to connect to server, please try again later.</div><button style="margin-top: 18px; font-size: 18px; text-decoration: underline" onclick="location.reload()">Retry</button>`;
     } else {
-      (await getModule("alert")).open("error", "<b>Whoops! Something Unexpected Happened</b>Please try again later...");
+      //(await getModule("alert")).open("error", "<b>Whoops! Something Unexpected Happened</b>Please try again later...");
     }
     return [0, "Fetch Error", { took: reqTime }];
   }

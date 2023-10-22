@@ -747,13 +747,24 @@ modules["pages/editor"] = {
     let bottomHolder = page.querySelector(".eBottom");
 
     // Load Annotations:
-    let loadedIn = [];
+    this.loadedIn = [];
     let alreadyLoaded = [];
     let viewAnnotations = () => {
+      let unloadedPages = [];
+      for (let i = 0; i < this.loadedIn.length; i++) {
+        let pageid = this.loadedIn[i];
+        let editorPage = this.page.querySelector('.ePage[pageid="' + pageid + '"');
+        if (editorPage.querySelector(".ePageAnnotations") == null && alreadyLoaded.includes(pageid) == true) {
+          unloadedPages.push(pageid);
+        }
+      }
+      if (unloadedPages.length < 1) {
+        return;
+      }
       let annoKeys = Object.keys(this.annotations);
       for (let i = 0; i < annoKeys.length; i++) {
         let anno = this.annotations[annoKeys[i]];
-        if (loadedIn.includes(anno.page) == true) {
+        if (unloadedPages.includes(anno.page) == true) {
           utils.render(anno);
         }
       }
@@ -764,19 +775,18 @@ modules["pages/editor"] = {
         return;
       }
       let fetchPageIDs = [];
-      for (let i = 0; i < loadedIn.length; i++) {
-        if (alreadyLoaded.includes(loadedIn[i]) == false) {
-          fetchPageIDs.push(loadedIn[i]);
-          alreadyLoaded.push(loadedIn[i]);
+      for (let i = 0; i < this.loadedIn.length; i++) {
+        if (alreadyLoaded.includes(this.loadedIn[i]) == false) {
+          fetchPageIDs.push(this.loadedIn[i]);
+          alreadyLoaded.push(this.loadedIn[i]);
         }
       }
       if (fetchPageIDs.length < 1) {
         return;
       }
       // Send Load Request:
-      console.log("LOAD", fetchPageIDs);
       let [code, body] = await sendRequest("GET", "lessons/join/annotations?pages=" + fetchPageIDs.join(","), null, { session: this.session }, { allowError: true });
-      if (code != 200) {
+      if (code != 200 && connected == true) {
         (await getModule("alert")).open("error", `<b>Error Loading Annotations</b>Failed to load some annotations, will try again later...`);
         // Remove IDs if load fails, so it can try again!
         for (let i = 0; i < alreadyLoaded.length; i++) {
@@ -922,7 +932,7 @@ modules["pages/editor"] = {
           }
         }
         let renderPages = async () => {
-          loadedIn = [];
+          this.loadedIn = [];
           for (let i = -3; i < this.visiblePages.length + 3; i++) {
             let pageNum = 1;
             if (i < 0) {
@@ -945,7 +955,7 @@ modules["pages/editor"] = {
             if (pageID == null) {
               return;
             }
-            loadedIn.push(pageID);
+            this.loadedIn.push(pageID);
             if (pageElem.hasAttribute("loading") == false) {
               let pageData = pages[pageID];
               let sourceData = sources[pageData.source];
@@ -992,7 +1002,7 @@ modules["pages/editor"] = {
           let loadedPages = pageHolder.querySelectorAll(".ePage[loading], .ePage[loaded]");
           for (let i = 0; i < loadedPages.length; i++) {
             let page = loadedPages[i];
-            if (loadedIn.includes(page.getAttribute("pageid")) == false) {
+            if (this.loadedIn.includes(page.getAttribute("pageid")) == false) {
               if (page.querySelector(".loading")) {
                 page.querySelector(".loading").remove();
               }
@@ -1497,7 +1507,7 @@ modules["pages/editor/annotation"] = {
       page.insertAdjacentHTML("beforeend", `<div class="ePageAnnotations"></div>`);
       holder = page.querySelector(".ePageAnnotations");
     }
-    return holder;
+    return page.querySelector(".ePageAnnotations");
   },
   createSVG: function(parent, type) {
     let newSVG = document.createElementNS("http://www.w3.org/2000/svg", type);
@@ -1519,9 +1529,13 @@ modules["pages/editor/annotation"] = {
     if (data == null) {
       return;
     }
+    let editor = await getModule("pages/editor");
     let { _id, f, page, p, s, c, t, o, d, done, remove } = data;
     let [x, y] = p;
     let [width, height] = s;
+    if (editor.loadedIn.includes(page) == false) {
+      return;
+    }
     let annoHolder = await this.annoHolder(page);
     if (anno == null) {
       anno = annoHolder.querySelector('.annotation[anno="' + _id + '"]');

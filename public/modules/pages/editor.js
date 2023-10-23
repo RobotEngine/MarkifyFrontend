@@ -601,6 +601,11 @@ modules["pages/editor"] = {
             delete this.annotations[anno._id];
             continue;
           }
+          if (existingAnno.lastSync < anno.sync) {
+            existingAnno.lastSync = anno.sync;
+            existingAnno.revert = anno;
+            continue;
+          }
           if (existingAnno.sync > anno.sync) {
             continue;
           }
@@ -1743,7 +1748,10 @@ modules["pages/editor/annotation"] = {
         editor.updateSaveStatus("Saved");
       }
       this.pendingSaves = setPendingSave;
-      await sleep(3500); // 1 save per 3.5 seconds
+      await sleep(2500); // 1 save per 2.5 seconds
+    }
+    if (connected == true) {
+      editor.updateSaveStatus("Saved");
     }
     this.debounce = false;
   },

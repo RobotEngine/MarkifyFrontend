@@ -681,6 +681,11 @@ function updateToSignedIn(data) {
 }
 async function auth() {
   let [code, body] = await sendRequest("GET", "me?ss=" + socket.secureID);
+  if (code == 0) {
+    await sleep(500);
+    auth();
+    return;
+  }
   if (code != 200) {
     return;
   }

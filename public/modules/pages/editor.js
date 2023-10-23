@@ -1713,41 +1713,41 @@ modules["pages/editor/annotation"] = {
         break;
       }
       let setPendingSave = [];
+      let mutations = [];
       for (let i = 0; i < this.pendingSaves.length; i++) {
-        let anno = editor.annotations[this.pendingSaves[i]._id];
+        let mutt = this.pendingSaves[i];
+        let anno = editor.annotations[mutt._id];
         if (anno != null) {
           delete anno.save;
-          this.pendingSaves[i]._id = anno._id;
-          delete this.pendingSaves[i].save;
-          delete this.pendingSaves[i].done;
-          delete this.pendingSaves[i].retry;
+          mutt._id = anno._id;
+          delete mutt.save;
+          delete mutt.done;
+          delete mutt.retry;
           if (anno.retry != true) {
             this.enableTimeout(anno._id, anno);
           }
           if (anno.f == null && anno._id.startsWith("pending_") == true) {
             anno.retry = true;
-            setPendingSave.push(this.pendingSaves[i]);
-            this.pendingSaves.splice(i, 1);
-            i--;
+            setPendingSave.push(mutt);
+            continue;
           }
-        } else {
-          this.pendingSaves.splice(i, 1);
-          i--;
+          mutations.push(mutt);
         }
       }
-      let [result] = await sendRequest("POST", "lessons/save", { mutations: this.pendingSaves }, { session: editor.session });
+      this.pendingSaves = [];
+      let [result] = await sendRequest("POST", "lessons/save", { mutations: mutations }, { session: editor.session });
       if (result != 200) { // If not saved, set to try again
-        for (let i = 0; i < this.pendingSaves.length; i++) {
-          let anno = editor.annotations[this.pendingSaves[i]._id];
+        for (let i = 0; i < mutations.length; i++) {
+          let anno = editor.annotations[mutations[i]._id];
           if (anno != null) {
             anno.retry = true;
-            setPendingSave.push(this.pendingSaves[i]);
+            setPendingSave.push(mutations[i]);
           }
         }
       } else {
         editor.updateSaveStatus("Saved");
       }
-      this.pendingSaves = setPendingSave;
+      this.pendingSaves = [...this.pendingSaves, ...setPendingSave];
       await sleep(2500); // 1 save per 2.5 seconds
     }
     if (connected == true) {

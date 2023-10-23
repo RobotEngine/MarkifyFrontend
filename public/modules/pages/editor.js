@@ -668,13 +668,16 @@ modules["pages/editor"] = {
       let resyncKeys = Object.keys(window.resync.annotations);
       for (let i = 0; i < resyncKeys.length; i++) {
         let anno = window.resync.annotations[resyncKeys[i]];
-        if (anno.save == true) {
+        if (anno.save == true && (anno._id.includes("pending_") == false || anno.remove != true)) {
+          clearTimeout(anno.expire);
+          delete anno.done;
+          delete anno.retry;
           this.annotations[anno._id] = anno;
           utils.pendingSaves.push(anno);
-          utils.syncSave();
         }
       }
     }
+    utils.syncSave();
     window.resync = { lesson: lessonID, annotations: this.annotations };
 
     if (body.preferences != null) {
@@ -1569,8 +1572,8 @@ modules["pages/editor/annotation"] = {
     }
     let editor = await getModule("pages/editor");
     let { _id, f, page, p, s, c, t, o, d, done, remove } = data;
-    let [x, y] = p;
-    let [width, height] = s;
+    let [x, y] = p || [];
+    let [width, height] = s || [];
     if (editor.loadedIn.includes(page) == false) {
       return;
     }

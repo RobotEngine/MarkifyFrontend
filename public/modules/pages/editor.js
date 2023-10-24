@@ -614,7 +614,6 @@ modules["pages/editor"] = {
           let gottenRender;
           if (this.annotations[anno.pending] != null) {
             gottenRender = page.querySelector('.annotation[anno="' + anno.pending + '"]');
-            console.log(gottenRender);
             delete this.annotations[anno.pending];
             this.annotations[anno._id] = anno;
             existingAnno = this.annotations[anno._id];
@@ -624,10 +623,10 @@ modules["pages/editor"] = {
           delete existingAnno.done;
           delete existingAnno.retry;
           objectUpdate(existingAnno, anno);
-          utils.render(existingAnno, gottenRender);
+          utils.render(existingAnno, gottenRender, true);
         } else {
           this.annotations[anno._id] = anno;
-          utils.render(anno);
+          utils.render(anno, null, true);
         }
       }
     }; // Subscribe to long, server updates.
@@ -1563,7 +1562,7 @@ modules["pages/editor/annotation"] = {
     return newSVG;
   },
   SVG_PADDING: 100, // How much padding svgs should have to ensure clean render
-  render: async function (data, anno) {
+  render: async function (data, anno, long) {
   /*
     _id - ID - The unique ID of the annotation
     f - FUNCTION - The type of tool to render
@@ -1646,6 +1645,10 @@ modules["pages/editor/annotation"] = {
         anno.removeAttribute("hidden");
       } else {
         anno.setAttribute("hidden", "");
+       if (long == true) {
+          anno.remove();
+          delete editor.annotations[_id];
+        } 
       }
     }
     return [data, anno];

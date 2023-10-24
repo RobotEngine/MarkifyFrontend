@@ -595,12 +595,14 @@ modules["pages/editor"] = {
         let anno = data[i];
         let existingAnno = this.annotations[anno._id] || this.annotations[anno.pending];
         if (existingAnno != null) {
+          /*
           if (anno.remove == true) {
             utils.removeAnnotation(anno._id);
             clearTimeout(existingAnno.expire);
             delete this.annotations[anno._id];
             continue;
           }
+          */
           if (existingAnno.lastSync < anno.sync) {
             existingAnno.lastSync = anno.sync;
             existingAnno.revert = anno;

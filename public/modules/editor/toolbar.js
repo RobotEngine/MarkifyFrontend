@@ -50,7 +50,9 @@ modules["editor/toolbar"] = {
     ".eSubToolHolder[option] .eSubToolContentScroll": `overflow: visible`,
     ".eSubToolContent": `display: flex; flex-wrap: wrap; gap: 6px`,
 
-    ".eToolHoverTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; color: var(--theme); transform: scale(0); transform-origin: center left; opacity: 0`
+    ".eToolHoverTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; color: var(--theme); transform: scale(0); transform-origin: center left; opacity: 0`,
+
+    ".eSelection": `position: absolute; width: 100%; height: 100%; left: -2px; top: -2px; border: solid 4px var(--theme)`
   },
   tools: {
     "select": [
@@ -645,8 +647,24 @@ modules["editor/toolbar"] = {
 // CURSOR TOOL
 modules["pages/editor/toolbar/cursor"] = {
   mouse: "default",
-  js: async function (editor, events) {
-
+  js: async function (editor, utils, addEvent) {
+    let enableSelect = (event) => {
+      let target = event.target;
+      if (target == null) {
+        return;
+      }
+      let anno = target.closest(".eAnnotation");
+      if (anno == null) {
+        return;
+      }
+      console.log(anno)
+      anno.insertAdjacentHTML("beforeend", `<div class="eSelection">
+        
+      </div>`);
+    }
+    let content = editor.page.querySelector(".eContent");
+    addEvent(content, "mousedown", enableSelect, { passive: false });
+    addEvent(content, "touchstart", enableSelect, { passive: false });
   }
 };
 
@@ -894,7 +912,7 @@ modules["pages/editor/toolbar/eraser"] = {
         let annos = document.elementsFromPoint(x0, y0);
         for (let i = 0; i < annos.length; i++) {
           if (annos[i].hasAttribute("hidden") == false && annos[i].querySelector("polyline") != null) {
-            let anno = annos[i].closest(".annotation");
+            let anno = annos[i].closest(".eAnnotation");
             if (anno != null) {
               let annoID = anno.getAttribute("anno");
               if (editor.annotations[annoID] != null) {

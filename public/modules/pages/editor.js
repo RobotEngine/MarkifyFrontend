@@ -132,10 +132,10 @@ modules["pages/editor"] = {
     ".ePageTextHolder br": `user-select: none`,
     ".ePageAnnotations": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 1; pointer-events: none`,
     ".content[enabled] .ePageAnnotations": `pointer-events: all`,
-    ".annotation": `position: absolute`,
-    ".annotation svg": `position: absolute; width: calc(100% + 200px); height: calc(100% + 200px); left: -100px; top: -100px`,
-    ".annotation svg polyline": `pointer-events: visible`,
-
+    ".eAnnotation": `position: absolute`,
+    ".eAnnotation svg": `position: absolute; width: calc(100% + 200px); height: calc(100% + 200px); left: -100px; top: -100px`,
+    ".eAnnotation svg polyline": `pointer-events: stroke`,
+    
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 100; overflow: hidden; pointer-events: none`
   },
   loadedPDFs: [], // Keep track of loaded PDFs for releasing memory
@@ -1627,19 +1627,19 @@ modules["pages/editor/annotation"] = {
     }
     let annoHolder = await this.annoHolder(page);
     if (anno == null) {
-      anno = annoHolder.querySelector('.annotation[anno="' + _id + '"]');
+      anno = annoHolder.querySelector('.eAnnotation[anno="' + _id + '"]');
     }
     let svg;
     let path;
     switch (f) {
       case "draw":
         if (anno == null) {
-          annoHolder.insertAdjacentHTML("beforeend", `<div class="annotation" new>
+          annoHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
             <svg xmlns="http://www.w3.org/2000/svg">
               <polyline/>
             </svg>
           </div>`);
-          anno = annoHolder.querySelector(".annotation[new]");
+          anno = annoHolder.querySelector(".eAnnotation[new]");
           anno.removeAttribute("new");
           let line = anno.querySelector("polyline");
           line.setAttribute("fill", "none");
@@ -1697,7 +1697,7 @@ modules["pages/editor/annotation"] = {
   },
   removeAnnotation: async function(annoID, checkDone) {
     let editor = await getModule("pages/editor");
-    let anno = editor.page.querySelector('.annotation[anno="' + annoID + '"]');
+    let anno = editor.page.querySelector('.eAnnotation[anno="' + annoID + '"]');
     if (anno != null && (checkDone != true || anno.hasAttribute("done") == false)) {
       anno.remove();
     }

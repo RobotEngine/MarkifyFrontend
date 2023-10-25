@@ -52,7 +52,7 @@ modules["editor/toolbar"] = {
 
     ".eToolHoverTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; color: var(--theme); transform: scale(0); transform-origin: center left; opacity: 0`,
 
-    ".eSelect": `position: absolute; z-index: 10; border-radius: 9px`,
+    ".eSelect": `position: absolute; z-index: 10; border-radius: 9px; cursor: move`,
     ".eSelect .eSelectTopLeft": `position: absolute; left: -10px; top: -10px; cursor: nwse-resize`,
     ".eSelect .eSelectTopRight": `position: absolute; right: -10px; top: -10px; cursor: nesw-resize`,
     ".eSelect .eSelectBottomLeft": `position: absolute; left: -10px; bottom: -10px; cursor: nesw-resize`,

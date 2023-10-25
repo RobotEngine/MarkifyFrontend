@@ -794,7 +794,7 @@ modules["pages/editor"] = {
     // Load Annotations:
     this.loadedIn = [];
     let alreadyLoaded = [];
-    let viewAnnotations = () => {
+    let viewAnnotations = async (request) => {
       let unloadedPages = [];
       for (let i = 0; i < this.loadedIn.length; i++) {
         let pageid = this.loadedIn[i];
@@ -807,12 +807,17 @@ modules["pages/editor"] = {
         return;
       }
       let annoKeys = Object.keys(this.annotations);
+      let firstLoad = true;
       for (let i = 0; i < annoKeys.length; i++) {
         let anno = this.annotations[annoKeys[i]];
         if (unloadedPages.includes(anno.page) == true) {
-          utils.render(anno);
+          await utils.render(anno);
         }
-        utils.checkAnnotationSize(anno);
+        await utils.checkAnnotationSize(anno);
+      }
+      if (request == true && firstLoad == true) {
+        firstLoad = false;
+        window.scrollTo((app.scrollWidth / 2) - (fixed.offsetWidth / 2), window.pageY); // Center page
       }
     }
     let getAnnotations = async () => {
@@ -847,7 +852,7 @@ modules["pages/editor"] = {
         let addAnno = body[i];
         this.annotations[addAnno._id] = addAnno;
       }
-      viewAnnotations();
+      viewAnnotations(true);
       /*
       let fullPageWidth = app.offsetWidth;
       let minX = window.scrollX - fullPageWidth;
@@ -1562,11 +1567,14 @@ modules["pages/editor/annotation"] = {
     parent.appendChild(newSVG);
     return newSVG;
   },
+  SOFT_PIXEL_RESIZE: 250,
   marginLeft: 250,
   marginRight: 250,
-  SOFT_PIXEL_RESIZE: 250,
   checkAnnotationSize: async function(anno) {
     if (anno == null || anno.p == null || anno.s == null) {
+      return;
+    }
+    if (anno.hidden == true) {
       return;
     }
     let editor = await getModule("pages/editor");

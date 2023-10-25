@@ -56,7 +56,11 @@ modules["editor/toolbar"] = {
     ".eSelect .eSelectTopLeft": `position: absolute; left: -10px; top: -10px; cursor: nw-resize`,
     ".eSelect .eSelectTopRight": `position: absolute; right: -10px; top: -10px; cursor: ne-resize`,
     ".eSelect .eSelectBottomLeft": `position: absolute; left: -10px; bottom: -10px; cursor: sw-resize`,
-    ".eSelect .eSelectBottomRight": `position: absolute; right: -10px; bottom: -10px; cursor: se-resize`
+    ".eSelect .eSelectBottomRight": `position: absolute; right: -10px; bottom: -10px; cursor: se-resize`,
+    ".eSelect .eSelectLeft": `position: absolute; left: -10px; top: 50%; transform: translateY(-50%); cursor: w-resize`,
+    ".eSelect .eSelectRight": `position: absolute; right: -10px; top: 50%; transform: translateY(-50%); cursor: e-resize`,
+    ".eSelect .eSelectTop": `position: absolute; left: 50%; top: -10px; transform: translateX(-50%); cursor: n-resize`,
+    ".eSelect .eSelectBottom": `position: absolute; left: 50%; bottom: -10px; transform: translateX(-50%); cursor: s-resize`,
   },
   tools: {
     "select": [
@@ -695,6 +699,10 @@ modules["pages/editor/toolbar/cursor"] = {
         <svg class="eSelectTopRight" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M14 14V14C14 7.37258 8.62742 2 2 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
         <svg class="eSelectBottomLeft" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M2 2V2C2 8.62742 7.37258 14 14 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
         <svg class="eSelectBottomRight" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M14 2V2C14 8.62742 8.62742 14 2 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+        <svg class="eSelectLeft" width="4" height="20" viewBox="0 0 4 20" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M2 2V18" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+        <svg class="eSelectRight" right="4" height="20" viewBox="0 0 4 20" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M2 2V18" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+        <svg class="eSelectTop" width="20" height="4" viewBox="0 0 20 4" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M18 2H2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+        <svg class="eSelectBottom" width="20" height="4" viewBox="0 0 20 4" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M18 2H2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
       </div>`);
       select = content.querySelector(".eSelect[new]");
       select.removeAttribute("new");

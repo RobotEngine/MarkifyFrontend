@@ -812,6 +812,7 @@ modules["pages/editor"] = {
         if (unloadedPages.includes(anno.page) == true) {
           utils.render(anno);
         }
+        utils.checkAnnotationSize(anno);
       }
     }
     let getAnnotations = async () => {
@@ -1561,6 +1562,30 @@ modules["pages/editor/annotation"] = {
     parent.appendChild(newSVG);
     return newSVG;
   },
+  marginLeft: 250,
+  marginRight: 250,
+  SOFT_PIXEL_RESIZE: 250,
+  checkAnnotationSize: async function(anno) {
+    if (anno == null || anno.p == null || anno.s == null) {
+      return;
+    }
+    let editor = await getModule("pages/editor");
+    let content = editor.page.querySelector(".eContentHolder");
+    let right = (anno.p[0] + anno.s[0]) - content.offsetWidth;
+    let marginRight = (Math.ceil(right / this.SOFT_PIXEL_RESIZE) * this.SOFT_PIXEL_RESIZE) + this.SOFT_PIXEL_RESIZE - 100;
+    if (marginRight > this.marginRight) {
+      content.style.marginRight = marginRight + "px";
+      this.marginRight = marginRight;
+    }
+    let marginLeft = (Math.ceil(-anno.p[0] / this.SOFT_PIXEL_RESIZE) * this.SOFT_PIXEL_RESIZE) + this.SOFT_PIXEL_RESIZE - 100;
+    if (marginLeft > this.marginLeft) {
+      //let priorLeft = content.getBoundingClientRect().left;
+      content.style.marginLeft = marginLeft + "px";
+      //let afterLeft = content.getBoundingClientRect().left;
+      //window.scrollTo(afterLeft - priorLeft, window.scrollY);
+      this.marginLeft = marginLeft;
+    }
+  },
   SVG_PADDING: 100, // How much padding svgs should have to ensure clean render
   render: async function (data, anno, long) {
   /*
@@ -1702,6 +1727,7 @@ modules["pages/editor/annotation"] = {
     }
     editor.annotations[annoID] = anno;
     this.render(anno, render);
+    this.checkAnnotationSize(anno);
     return mutations;
   },
   pendingSaves: [],

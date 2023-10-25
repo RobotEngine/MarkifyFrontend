@@ -688,9 +688,9 @@ modules["pages/editor/toolbar/pen"] = {
     let enableDraw = async (event) => {
       editor.toolbar.closeSubSubtoolUI();
       event.preventDefault();
-      let clientY = Math.floor(event.clientY || event.changedTouches[0].clientY || 0);
+      let clientY = Math.floor(event.clientY || ((event.changedTouches || [])[0] || {}).clientY || 0);
       let [page, number] = await utils.findPage(clientY);
-      let { x, y } = await utils.scaleToDoc(Math.floor(event.clientX || event.changedTouches[0].clientX || 0), clientY, number);
+      let { x, y } = await utils.scaleToDoc(Math.floor(event.clientX || ((event.changedTouches || [])[0] || {}).clientX || 0), clientY, number);
       let halfThickness = this.thickness / 2;
       if (number > 1) {
         y -= 4; // Remove border-pixel width
@@ -719,7 +719,7 @@ modules["pages/editor/toolbar/pen"] = {
       }
       event.preventDefault();
       let rect = anno.getBoundingClientRect();
-      let { x, y } = await utils.scaleToDoc((event.clientX || event.changedTouches[0].clientX) - rect.left, (event.clientY || event.changedTouches[0].clientY) - rect.top, 0);
+      let { x, y } = await utils.scaleToDoc(Math.floor(event.clientX || ((event.changedTouches || [])[0] || {}).clientX || 0) - rect.left, Math.floor(event.clientY || ((event.changedTouches || [])[0] || {}).clientY || 0) - rect.top, 0);
       let halfThickness = draw.t / 2;
       if (x + halfThickness > draw.s[0]) {
         draw.s[0] = x + halfThickness;

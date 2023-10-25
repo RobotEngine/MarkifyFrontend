@@ -318,6 +318,7 @@ modules["editor/toolbar"] = {
       toolEvents = [];
       body.style.removeProperty("user-select");
       editor.page.style.removeProperty("touch-action");
+      editor.page.removeAttribute("enabled");
     }
     let tempToolListen = (parent, listen, runFunc, extra) => {
       parent.addEventListener(listen, runFunc, extra);
@@ -696,17 +697,20 @@ modules["pages/editor/toolbar/pen"] = {
         y -= 4; // Remove border-pixel width
       }
       let tempID = utils.tempID();
-      [draw, anno] = await utils.render({
+      let newAnno = {
         _id: tempID,
         f: "draw",
-        page: page.getAttribute("pageid"),
         p: [utils.round(x - halfThickness), utils.round(y - halfThickness)],
         s: [this.thickness, this.thickness],
         c: this.color,
         t: this.thickness,
         o: this.opacity,
         d: [utils.round(halfThickness), utils.round(halfThickness)]
-      });
+      };
+      if (page != null) {
+        newAnno.page = page.getAttribute("pageid");
+      }
+      [draw, anno] = await utils.render(newAnno);
       editor.selecting[tempID] = draw;
     }
     let moveDraw = async (event) => {
@@ -817,6 +821,7 @@ modules["pages/editor/toolbar/eraser"] = {
 
     body.style.userSelect = "none";
     editor.page.style.touchAction = "pinch-zoom";
+    editor.page.setAttribute("enabled", "");
 
     function isPointOnLine(x, y, x1, y1, x2, y2, tolerance) {
       // Calculate the distance from the point to the line segment

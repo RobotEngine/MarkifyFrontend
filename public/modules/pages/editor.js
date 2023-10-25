@@ -127,12 +127,14 @@ modules["pages/editor"] = {
     ".ePage:not(:first-child)": `border-top: dashed var(--darkGray) 4px; border-image: url("./images/editor/border.svg") 10 / 1 / 0 space`,
     ".ePage:last-child": `border-bottom-left-radius: 16px; border-bottom-right-radius: 16px`,
     ".ePageContent": "width: 100%; height: 100%; background: var(--pageColor); opacity: 0; border-radius: inherit",
-    ".ePageTextHolder": "--scale-factor: 1; position: absolute; left: 0; top: 0; z-index: 2; font-family: sans-serif",
+    ".ePageTextHolder": "--scale-factor: 1; position: absolute; left: 0; top: 0; font-family: sans-serif",
     ".ePageTextHolder span": "position: absolute; color: transparent; pointer-events: all",
     ".ePageTextHolder br": `user-select: none`,
-    ".ePageAnnotations": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 1`,
+    ".ePageAnnotations": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 1; pointer-events: none`,
+    ".content[enabled] .ePageAnnotations": `pointer-events: all`,
     ".annotation": `position: absolute`,
-    ".annotation svg": `position: absolute; width: calc(100% + 200px); height: calc(100% + 200px); left: -100px; top: -100px; pointer-events: all`,
+    ".annotation svg": `position: absolute; width: calc(100% + 200px); height: calc(100% + 200px); left: -100px; top: -100px`,
+    ".annotation svg polyline": `pointer-events: visible`,
 
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 100; overflow: hidden; pointer-events: none`
   },
@@ -794,23 +796,25 @@ modules["pages/editor"] = {
     // Load Annotations:
     this.loadedIn = [];
     let alreadyLoaded = [];
+    let firstLoad = true;
     let viewAnnotations = async (request) => {
       let unloadedPages = [];
-      for (let i = 0; i < this.loadedIn.length; i++) {
-        let pageid = this.loadedIn[i];
-        let editorPage = this.page.querySelector('.ePage[pageid="' + pageid + '"');
-        if (editorPage.querySelector(".ePageAnnotations") == null && alreadyLoaded.includes(pageid) == true) {
-          unloadedPages.push(pageid);
+      if (this.lesson.type != "freeboard") {
+        for (let i = 0; i < this.loadedIn.length; i++) {
+          let pageid = this.loadedIn[i];
+          let editorPage = this.page.querySelector('.ePage[pageid="' + pageid + '"');
+          if (editorPage != null && editorPage.querySelector(".ePageAnnotations") == null && alreadyLoaded.includes(pageid) == true) {
+            unloadedPages.push(pageid);
+          }
+        }
+        if (unloadedPages.length < 1) {
+          return;
         }
       }
-      if (unloadedPages.length < 1) {
-        return;
-      }
       let annoKeys = Object.keys(this.annotations);
-      let firstLoad = true;
       for (let i = 0; i < annoKeys.length; i++) {
         let anno = this.annotations[annoKeys[i]];
-        if (unloadedPages.includes(anno.page) == true) {
+        if (unloadedPages.includes(anno.page) == true || this.lesson.type == "freeboard") {
           await utils.render(anno);
         }
         await utils.checkAnnotationSize(anno);
@@ -825,18 +829,23 @@ modules["pages/editor"] = {
       if (connected == false) {
         return;
       }
-      let fetchPageIDs = [];
-      for (let i = 0; i < this.loadedIn.length; i++) {
-        if (alreadyLoaded.includes(this.loadedIn[i]) == false) {
-          fetchPageIDs.push(this.loadedIn[i]);
-          alreadyLoaded.push(this.loadedIn[i]);
+      let endpoint = "lessons/join/annotations";
+      if (this.lesson.type != "freeboard") {
+        let fetchPageIDs = [];
+        for (let i = 0; i < this.loadedIn.length; i++) {
+          if (alreadyLoaded.includes(this.loadedIn[i]) == false) {
+            fetchPageIDs.push(this.loadedIn[i]);
+            alreadyLoaded.push(this.loadedIn[i]);
+          }
         }
+        if (fetchPageIDs.length < 1) {
+          return;
+        }
+        endpoint += "?pages=" + fetchPageIDs.join(",");
       }
-      if (fetchPageIDs.length < 1) {
-        return;
-      }
+      
       // Send Load Request:
-      let [code, body] = await sendRequest("GET", "lessons/join/annotations?pages=" + fetchPageIDs.join(","), null, { session: this.session }, { allowError: true });
+      let [code, body] = await sendRequest("GET", endpoint, null, { session: this.session }, { allowError: true });
       if (code != 200 && connected == true) {
         (await getModule("alert")).open("error", `<b>Error Loading Annotations</b>Failed to load some annotations, will try again later...`);
         // Remove IDs if load fails, so it can try again!
@@ -1146,7 +1155,7 @@ modules["pages/editor"] = {
         }
         break;
       case "freeboard":
-        //pageHolder.remove();
+        pageHolder.remove();
         bottomHolder.remove();
         getAnnotations();
     }
@@ -1613,7 +1622,7 @@ modules["pages/editor/annotation"] = {
     let { _id, f, page, p, s, c, t, o, d, done, remove } = data;
     let [x, y] = p || [];
     let [width, height] = s || [];
-    if (editor.loadedIn.includes(page) == false) {
+    if (page != null && editor.loadedIn.includes(page) == false) {
       return;
     }
     let annoHolder = await this.annoHolder(page);

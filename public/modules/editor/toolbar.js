@@ -52,7 +52,11 @@ modules["editor/toolbar"] = {
 
     ".eToolHoverTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; color: var(--theme); transform: scale(0); transform-origin: center left; opacity: 0`,
 
-    ".eSelection": `position: absolute; width: 100%; height: 100%; left: -2px; top: -2px; border: solid 4px var(--theme)`
+    ".eSelect": `position: absolute; z-index: 10; border-radius: 9px`,
+    ".eSelect .eSelectTopLeft": `position: absolute; left: -10px; top: -10px; cursor: nw-resize`,
+    ".eSelect .eSelectTopRight": `position: absolute; right: -10px; top: -10px; cursor: ne-resize`,
+    ".eSelect .eSelectBottomLeft": `position: absolute; left: -10px; bottom: -10px; cursor: sw-resize`,
+    ".eSelect .eSelectBottomRight": `position: absolute; right: -10px; bottom: -10px; cursor: se-resize`
   },
   tools: {
     "select": [
@@ -648,21 +652,54 @@ modules["editor/toolbar"] = {
 modules["pages/editor/toolbar/cursor"] = {
   mouse: "default",
   js: async function (editor, utils, addEvent) {
-    let enableSelect = (event) => {
+    let content = editor.page.querySelector(".eContent");
+    let select;
+    let anno;
+    let updateBox = () => {
+      if (select == null || anno == null) {
+        return;
+      }
+      let rect = anno.getBoundingClientRect();
+      select.style.width = (anno.offsetWidth * editor.zoom) - 4 + "px";
+      select.style.height = (anno.offsetHeight * editor.zoom) - 4 + "px";
+      select.style.left = rect.left + window.scrollX - 2 + "px";
+      select.style.top = rect.top + window.scrollY - 2 + "px";
+      select.style.border = "solid 4px var(--theme)";
+    }
+    let removeBox = () => {
+      if (select == null) {
+        return;
+      }
+      select.remove();
+      select = null;
+    }
+    editor.updateZoom = updateBox;
+    let enableSelect = async (event) => {
       let target = event.target;
       if (target == null) {
         return;
       }
-      let anno = target.closest(".eAnnotation");
-      if (anno == null) {
+      if (target.closest(".eSelect") != null) {
         return;
       }
-      console.log(anno)
-      anno.insertAdjacentHTML("beforeend", `<div class="eSelection">
-        
+      anno = target.closest(".eAnnotation");
+      if (anno == null) {
+        removeBox();
+        return;
+      }
+      if (select != null) {
+        select.remove();
+      }
+      content.insertAdjacentHTML("beforeend", `<div class="eSelect" new>
+        <svg class="eSelectTopLeft" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M2 14V14C2 7.37258 7.37258 2 14 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+        <svg class="eSelectTopRight" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M14 14V14C14 7.37258 8.62742 2 2 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+        <svg class="eSelectBottomLeft" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M2 2V2C2 8.62742 7.37258 14 14 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+        <svg class="eSelectBottomRight" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M14 2V2C14 8.62742 8.62742 14 2 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
       </div>`);
+      select = content.querySelector(".eSelect[new]");
+      select.removeAttribute("new");
+      updateBox();
     }
-    let content = editor.page.querySelector(".eContent");
     addEvent(content, "mousedown", enableSelect, { passive: false });
     addEvent(content, "touchstart", enableSelect, { passive: false });
   }

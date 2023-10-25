@@ -135,7 +135,7 @@ modules["pages/editor"] = {
     ".eAnnotation": `position: absolute`,
     ".eAnnotation svg": `position: absolute; width: calc(100% + 200px); height: calc(100% + 200px); left: -100px; top: -100px`,
     ".eAnnotation svg polyline": `pointer-events: stroke`,
-    
+
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 100; overflow: hidden; pointer-events: none`
   },
   loadedPDFs: [], // Keep track of loaded PDFs for releasing memory
@@ -615,7 +615,7 @@ modules["pages/editor"] = {
           }
           let gottenRender;
           if (this.annotations[anno.pending] != null) {
-            gottenRender = page.querySelector('.annotation[anno="' + anno.pending + '"]');
+            gottenRender = page.querySelector('.eAnnotation[anno="' + anno.pending + '"]');
             delete this.annotations[anno.pending];
             this.annotations[anno._id] = anno;
             existingAnno = this.annotations[anno._id];
@@ -1237,6 +1237,9 @@ modules["pages/editor"] = {
 
       if (this.updatePages) {
         this.updatePages();
+      }
+      if (this.updateZoom) {
+        this.updateZoom();
       }
 
       this.realtime.module.adjustRealtimeHolder();

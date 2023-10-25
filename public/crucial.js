@@ -598,7 +598,9 @@ async function sendRequest(method, path, body, extra) {
   } catch (err) {
     console.log("FETCH ERROR: " + err);
     if (response == null || response.status == null) {
-      socket.onclose(); // Set to disable connection
+      if (connected == true) {
+        socket.onclose(); // Set to disable connection
+      }
       return [0, "Fetch Error", { took: reqTime }];
     }
     if (path == "me") { // Show error connecting

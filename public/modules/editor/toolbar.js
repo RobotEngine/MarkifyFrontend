@@ -1085,16 +1085,22 @@ modules["pages/editor/toolbar/color"] = {
 
     let colorButtons = frame.querySelector(".eSubToolColorSelector").children;
     let selected = false;
-    for (let i = 0; i < toolPref.color.options.length; i++) {
-      let button = colorButtons[i];
-      let setColor = toolPref.color.options[i];
-      button.setAttribute("int", i);
-      button.querySelector(".eSubToolColor").style.background = editor.hexToRGB(setColor, toolPref.opacity / 100);
-      if (setColor == toolPref.color.selected || (i > toolPref.color.options.length - 2 && selected == false)) {
-        button.setAttribute("selected", "");
-        selected = true;
+    function runColorSelections() {
+      selected = false;
+      for (let i = 0; i < toolPref.color.options.length; i++) {
+        let button = colorButtons[i];
+        let setColor = toolPref.color.options[i];
+        button.setAttribute("int", i);
+        button.querySelector(".eSubToolColor").style.background = editor.hexToRGB(setColor, toolPref.opacity / 100);
+        if (setColor == toolPref.color.selected || (i > toolPref.color.options.length - 2 && selected == false)) {
+          button.setAttribute("selected", "");
+          selected = true;
+        } else {
+          button.removeAttribute("selected", "");
+        }
       }
     }
+    runColorSelections();
 
     let selector = frame.querySelector(".eSubToolColorSelector");
     let picker = frame.querySelector(".eSubToolColorPicker");
@@ -1247,6 +1253,7 @@ modules["pages/editor/toolbar/color"] = {
     }
     let updateStoredValues = (hex) => {
       toolPref.color.selected = hex || this.hsvToHex(h, s, v);
+      runColorSelections();
       let selectedButton = frame.querySelector('.eTool[selected]');
       let int = parseInt(selectedButton.getAttribute("int"));
       if (int == null || int < 0 || int > 6) {

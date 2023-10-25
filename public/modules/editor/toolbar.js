@@ -53,14 +53,14 @@ modules["editor/toolbar"] = {
     ".eToolHoverTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; color: var(--theme); transform: scale(0); transform-origin: center left; opacity: 0`,
 
     ".eSelect": `position: absolute; z-index: 10; border-radius: 9px`,
-    ".eSelect .eSelectTopLeft": `position: absolute; left: -10px; top: -10px; cursor: nw-resize`,
-    ".eSelect .eSelectTopRight": `position: absolute; right: -10px; top: -10px; cursor: ne-resize`,
-    ".eSelect .eSelectBottomLeft": `position: absolute; left: -10px; bottom: -10px; cursor: sw-resize`,
-    ".eSelect .eSelectBottomRight": `position: absolute; right: -10px; bottom: -10px; cursor: se-resize`,
-    ".eSelect .eSelectLeft": `position: absolute; left: -10px; top: 50%; transform: translateY(-50%); cursor: w-resize`,
-    ".eSelect .eSelectRight": `position: absolute; right: -10px; top: 50%; transform: translateY(-50%); cursor: e-resize`,
-    ".eSelect .eSelectTop": `position: absolute; left: 50%; top: -10px; transform: translateX(-50%); cursor: n-resize`,
-    ".eSelect .eSelectBottom": `position: absolute; left: 50%; bottom: -10px; transform: translateX(-50%); cursor: s-resize`,
+    ".eSelect .eSelectTopLeft": `position: absolute; left: -10px; top: -10px; cursor: nwse-resize`,
+    ".eSelect .eSelectTopRight": `position: absolute; right: -10px; top: -10px; cursor: nesw-resize`,
+    ".eSelect .eSelectBottomLeft": `position: absolute; left: -10px; bottom: -10px; cursor: nesw-resize`,
+    ".eSelect .eSelectBottomRight": `position: absolute; right: -10px; bottom: -10px; cursor: nwse-resize`,
+    ".eSelect .eSelectLeft": `position: absolute; left: -10px; top: 50%; transform: translateY(-50%); cursor: ew-resize`,
+    ".eSelect .eSelectRight": `position: absolute; right: -10px; top: 50%; transform: translateY(-50%); cursor: ew-resize`,
+    ".eSelect .eSelectTop": `position: absolute; left: 50%; top: -10px; transform: translateX(-50%); cursor: ns-resize`,
+    ".eSelect .eSelectBottom": `position: absolute; left: 50%; bottom: -10px; transform: translateX(-50%); cursor: ns-resize`,
   },
   tools: {
     "select": [

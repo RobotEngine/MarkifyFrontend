@@ -766,7 +766,7 @@ modules["pages/editor/toolbar/pen"] = {
         let index = 0;
 
         for (let i = 2; i < points.length - 2; i += 2) {
-          const d = perpendicularDistance(points.slice(i, i + 2), points.slice(0, 2), points.slice(-2));
+          let d = perpendicularDistance(points.slice(i, i + 2), points.slice(0, 2), points.slice(-2));
           if (d > dmax) {
             index = i;
             dmax = d;
@@ -774,11 +774,15 @@ modules["pages/editor/toolbar/pen"] = {
         }
 
         if (dmax > epsilon) {
-          const left = simplifyPath(points.slice(0, index + 2), epsilon);
-          const right = simplifyPath(points.slice(index), epsilon);
+          let left = simplifyPath(points.slice(0, index + 2), epsilon);
+          let right = simplifyPath(points.slice(index), epsilon);
           return left.slice(0, left.length - 2).concat(right);
         } else {
-          return [points[0], points[1], points[points.length - 2], points[points.length - 1]];
+          if (points[0] !== points[points.length - 2] || points[1] !== points[points.length - 1]) {
+            return [points[0], points[1], points[points.length - 2], points[points.length - 1]];
+          } else {
+            return [points[0], points[1]];
+          }
         }
       }
       function perpendicularDistance(point, lineStart, lineEnd) {

@@ -1591,7 +1591,7 @@ modules["pages/editor/annotation"] = {
     }
     let editor = await getModule("pages/editor");
     let content = editor.page.querySelector(".eContentHolder");
-    let right = (anno.p[0] + anno.s[0]) - content.offsetWidth;
+    let right = (anno.p[0] + anno.s[0]) - (this.annoHolder(anno.page)).offsetWidth;
     let marginRight = (Math.ceil(right / this.SOFT_PIXEL_RESIZE) * this.SOFT_PIXEL_RESIZE) + this.SOFT_PIXEL_RESIZE - 100;
     if (marginRight > this.marginRight) {
       content.style.marginRight = marginRight + "px";

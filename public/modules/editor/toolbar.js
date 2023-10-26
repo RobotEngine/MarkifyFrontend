@@ -52,7 +52,7 @@ modules["editor/toolbar"] = {
 
     ".eToolHoverTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; color: var(--theme); transform: scale(0); transform-origin: center left; opacity: 0`,
 
-    ".eSelect": `position: absolute; z-index: 10; border-radius: 9px; cursor: move`,
+    ".eSelect": `position: absolute; opacity: 0; z-index: 10; border-radius: 9px; cursor: move; transition: opacity .15s`,
     ".eSelect .eSelectTopLeft": `position: absolute; left: -10px; top: -10px; cursor: nwse-resize`,
     ".eSelect .eSelectTopRight": `position: absolute; right: -10px; top: -10px; cursor: nesw-resize`,
     ".eSelect .eSelectBottomLeft": `position: absolute; left: -10px; bottom: -10px; cursor: nesw-resize`,
@@ -670,12 +670,13 @@ modules["pages/editor/toolbar/cursor"] = {
       select.style.top = rect.top + window.scrollY - 2 + "px";
       select.style.border = "solid 4px var(--theme)";
     }
-    let removeBox = () => {
+    let removeBox = async (select) => {
       if (select == null) {
         return;
       }
+      select.style.opacity = 0;
+      await sleep(150);
       select.remove();
-      select = null;
     }
     editor.updateZoom = updateBox;
     let enableSelect = async (event) => {
@@ -688,11 +689,12 @@ modules["pages/editor/toolbar/cursor"] = {
       }
       anno = target.closest(".eAnnotation");
       if (anno == null) {
-        removeBox();
+        removeBox(select);
+        select = null;
         return;
       }
       if (select != null) {
-        select.remove();
+        removeBox(select);
       }
       content.insertAdjacentHTML("beforeend", `<div class="eSelect" new>
         <svg class="eSelectTopLeft" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M2 14V14C2 7.37258 7.37258 2 14 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
@@ -706,6 +708,8 @@ modules["pages/editor/toolbar/cursor"] = {
       </div>`);
       select = content.querySelector(".eSelect[new]");
       select.removeAttribute("new");
+      select.offsetHeight;
+      select.style.opacity = 1;
       updateBox();
     }
     addEvent(content, "mousedown", enableSelect, { passive: false });

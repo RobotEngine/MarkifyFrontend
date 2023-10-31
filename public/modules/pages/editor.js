@@ -821,8 +821,8 @@ modules["pages/editor"] = {
         let anno = this.annotations[annoKeys[i]];
         if (unloadedPages.includes(anno.render.page) == true || this.lesson.type == "freeboard") {
           await utils.render(anno.render);
+          await utils.checkAnnotationSize(anno.render);
         }
-        await utils.checkAnnotationSize(anno.render);
       }
       if (request == true && firstLoad == true) {
         firstLoad = false;

@@ -718,6 +718,7 @@ async function init() {
 }
 let wasConnected = false;
 let connected = false;
+let preloadedFiles = false;
 socket.onopen = async function () {
   connected = true;
   (await getModule("dropdown")).close();
@@ -974,11 +975,11 @@ modules["alert"] = {
     ".alertClose": `position: relative; width: 22px; height: 22px; margin: 5px 5px 5px 12px; --borderWidth: 3px; --borderRadius: 11px`,
     ".alertClose img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`
   },
-  colors: {
-    info: "var(--theme)",
-    worked: "var(--green)",
-    warning: "var(--yellow",
-    error: "var(--error)"
+  themes: {
+    info: ["var(--theme)", 1],
+    worked: ["var(--green)", 3],
+    warning: ["var(--yellow", 2],
+    error: ["var(--error)", 0]
   },
   open: async function (type, message, data) {
     data = data || {};
@@ -991,7 +992,7 @@ modules["alert"] = {
     alertHolder.parentElement.style.display = "flex";
     alertHolder.parentElement.style.justifyContent = "center";
     alertHolder.insertAdjacentHTML("afterbegin", `<div class="alert" new>
-      <img src="./images/tooltips/alert/info.svg">
+      <img src="./images/tooltips/alerts.svg">
       <div class="alertText"></div>
       <button class="alertClose buttonAnim border"><img src="./images/tooltips/close.svg"></button>
     </div>`);
@@ -1002,8 +1003,8 @@ modules["alert"] = {
         (await getModule("alert")).finished("connection");
         alert.setAttribute("alert", data.id + "_ALERT");
       }
-      alert.style.setProperty("--themeColor", this.colors[type]);
-      alert.querySelector("img").src = "./images/tooltips/alert/" + type + ".svg";
+      alert.style.setProperty("--themeColor", this.themes[type][0]);
+      alert.querySelector("img").style.objectPosition = -this.themes[type][1]*32 + "px 0px";
       alert.querySelector(".alertText").innerHTML = message;
       alert.style.transition = "transform .25s var(--bounce), opacity .25s, padding .25s, margin .25s";
       alert.offsetHeight;

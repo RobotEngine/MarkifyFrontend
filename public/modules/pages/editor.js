@@ -1742,7 +1742,6 @@ modules["pages/editor/annotation"] = {
     }
     let anno = editor.annotations[annoID] || { render: {} };
     let syncAnno = JSON.stringify(anno.render);
-    delete annoData.done;
     let mutations = objectUpdate(annoData, anno.render);
     if (Object.keys(mutations).length < 1) {
       return; // No changes, so no need to do anything
@@ -1775,6 +1774,7 @@ modules["pages/editor/annotation"] = {
         let anno = editor.annotations[mutt._id];
         if (anno != null) {
           delete anno.save;
+          delete mutt.done;
           mutt._id = anno.render._id;
           if (anno.retry != true) {
             this.enableTimeout(anno.render._id, anno);

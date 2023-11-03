@@ -207,6 +207,7 @@ modules["pages/launch"] = {
     ".lHistoryDots button[selected]": `width: 32px; background: var(--theme)`,
     ".lHistoryStuck .lSpacer": `height: 130.5px`,
 
+    ".lSection[usecase]": `z-index: 2`,
     ".lUsecaseToolbar": `position: sticky; box-sizing: border-box; display: flex; flex-wrap: wrap; top: 24px; margin: 24px 0; width: calc(100% - 48px); max-width: 600px; padding: 6px; background: rgba(var(--background), .9); backdrop-filter: blur(4px); box-shadow: 0px 0px 12px rgba(var(--themeColor), .4); border-radius: 37px; z-index: 10`,
     ".lUsecaseToolbar button": `flex: 1 1 130px; padding: 8px 16px; margin: 6px; border-radius: 25px; color: rgb(var(--themeColor)); font-size: 20px; font-weight: 700; transition: .2s`,
     ".lUsecaseToolbar button:hover": `background: rgba(var(--themeColor), .3); transform: scale(1.03)`,

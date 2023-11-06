@@ -140,7 +140,6 @@ modules["dropdowns/new/lesson"] = {
         if (file.kind != "string") {
           if (file.type == "application/pdf") {
             fileSize += file.size;
-            console.log(fileSize)
             if (fileSize > the.maxFileSize) {
               (await getModule("alert")).open("error", "<b>Exceeded Size Limit</b><div>Lessons are limited to a max size of <u>1.5 GB</u> total</div>", { time: 10 });
               passedFile = false;

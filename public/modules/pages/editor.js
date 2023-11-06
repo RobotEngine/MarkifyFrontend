@@ -653,6 +653,8 @@ modules["pages/editor"] = {
     }
     if (joinData.name) {
       sendBody.name = joinData.name;
+    } else {
+      sendBody.name = getParam("name");
     }
     if (joinData.from == "pages/join") {
       delete this.session;

@@ -89,6 +89,7 @@ modules["pages/join"] = {
   js: async function (page) {
     let code = getParam("pin") || "";
     let lessonID = getParam("lesson") || "";
+    let name = getParam("name");
 
     //modifyParams("lesson");
 
@@ -289,6 +290,9 @@ modules["pages/join"] = {
           // Valid LINK
           page.querySelector(".jTitleDesc").textContent = "Set a name to join";
           inputHolder.style.display = "none";
+          if (name != null) {
+            body.name = name;
+          }
           secondStepInit(body);
         }
       }

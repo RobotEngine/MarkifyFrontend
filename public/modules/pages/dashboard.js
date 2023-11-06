@@ -116,7 +116,7 @@ modules["dropdowns/new/lesson"] = {
     ".lessonUpload img": `width: min(140px, 100%); height: 140px; margin-bottom: 8px`,
     ".lessonUpload div": `font-size: 22px`
   },
-  maxFileSize: (500 * 1024 * 1024) + 1, // 500 MB File Limit // Will be 1 MB per page
+  maxFileSize: (500 * 3 * 1024 * 1024) + 1, // 1.5 GB File Limit // Will be 2 MB per page
   js: function (frame, extra) {
     let dropdown = frame.closest(".dropdown");
     let input = frame.querySelector("input");
@@ -140,8 +140,9 @@ modules["dropdowns/new/lesson"] = {
         if (file.kind != "string") {
           if (file.type == "application/pdf") {
             fileSize += file.size;
+            console.log(fileSize)
             if (fileSize > the.maxFileSize) {
-              (await getModule("alert")).open("error", "<b>Exceeded Size Limit</b><div>Lessons are limited to a max size of <u>500 MB</u> total</div>", { time: 10 });
+              (await getModule("alert")).open("error", "<b>Exceeded Size Limit</b><div>Lessons are limited to a max size of <u>1.5 GB</u> total</div>", { time: 10 });
               passedFile = false;
               break;
             }

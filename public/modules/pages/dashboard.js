@@ -36,7 +36,7 @@ modules["pages/dashboard"] = {
     ".dAccount": `display: flex; max-width: calc(100% - 168px); width: fit-content; padding: 6px; --borderRadius: 22px`,
     ".dAccount:hover": `background: var(--hover)`,
     ".dAccount:active": `background: unset; --borderWidth: 4px; --borderColor: var(--hover)`,
-    ".dAccount img": `float: left; width: 32px; min-width: 32px; height: 32px; margin-right: 6px; object-fit: cover; background: #fff; border-radius: 22px`,
+    ".dAccount img": `float: left; width: 32px; min-width: 32px; height: 32px; margin-right: 6px; object-fit: cover; border-radius: 22px`,
     ".dAccount div": `float: right; max-width: calc(100% - 38px); height: 100%; line-height: 32px; font-size: 18px; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
 
     ".dHeader": `position: relative; width: 100%; margin-bottom: 25px`,

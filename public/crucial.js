@@ -722,14 +722,18 @@ async function init() {
 let endStartup = false;
 let authService = getParam("auth");
 if (authService != null) {
-  modifyParams("auth");
-  let randomStr = randomString(20);
-  setLocalStore("state", randomStr);
-  modifyParams("state", randomStr);
-  switch (authService) {
-    case "classlink":
-      endStartup = true;
-      window.location = "https://launchpad.classlink.com/oauth2/v2/auth?scope=full,profile,openid&redirect_uri=https%3A%2F%2Fexotek.co%2Flogin%3Fclient_id%3D631056064efd34591c5a8e05%26redirect_uri%3D" + encodeURIComponent(encodeURIComponent(window.location.href)) + "%26response_type%3Dcode%26scope%3Duserinfo%26method%3Dclasslink&client_id=c1693431815669c9e8fa52973e526ee4da0d1a1141cc&response_type=code";
+  if (self === top) { 
+    modifyParams("auth");
+    let randomStr = randomString(20);
+    setLocalStore("state", randomStr);
+    modifyParams("state", randomStr);
+    switch (authService) {
+      case "classlink":
+        endStartup = true;
+        window.location = "https://launchpad.classlink.com/oauth2/v2/auth?scope=full,profile,openid&redirect_uri=https%3A%2F%2Fexotek.co%2Flogin%3Fclient_id%3D631056064efd34591c5a8e05%26redirect_uri%3D" + encodeURIComponent(encodeURIComponent(window.location.href)) + "%26response_type%3Dcode%26scope%3Duserinfo%26method%3Dclasslink&client_id=c1693431815669c9e8fa52973e526ee4da0d1a1141cc&response_type=code";
+    }
+  } else {
+    throw new Error("IFrames are disabled for secure windows.");
   }
 }
 

@@ -1615,7 +1615,6 @@ modules["pages/editor/annotation"] = {
         this.setLeftMargin = Math.ceil(left / 350) * 350;
         this.farLeft = left - 350;
       }
-      console.log(right)
       if (right > this.farRight) {
         this.setRightMargin = Math.ceil(right / 350) * 350;
         this.farRight = right - 350;

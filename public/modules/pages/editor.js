@@ -1774,7 +1774,7 @@ modules["pages/editor/annotation"] = {
       for (let i = 0; i < this.pendingSaves.length; i++) {
         let mutt = this.pendingSaves[i];
         let anno = editor.annotations[mutt._id];
-        if (anno != null) {
+        if (anno != null && anno.render != null) {
           delete anno.save;
           delete mutt.done;
           mutt._id = anno.render._id;

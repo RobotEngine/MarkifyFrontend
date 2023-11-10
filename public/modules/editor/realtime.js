@@ -492,7 +492,7 @@ modules["editor/realtime"] = {
         this.shortSub.edit(filter);
       } else {
         this.shortSub = subscribe(filter, async (data) => {
-          console.log(data);
+          //console.log(data);
           let member = editor.members[data[0]];
           if (member == null) {
             return;

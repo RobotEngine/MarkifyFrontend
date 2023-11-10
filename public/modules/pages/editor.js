@@ -800,6 +800,11 @@ modules["pages/editor"] = {
     }
     this.loadedPDFs = [];
 
+    utils.farLeft = 0;
+    utils.farRight = 0;
+    utils.setLeftMargin = 0;
+    utils.setRightMargin = 0;
+
     // Load Annotations:
     this.loadedIn = [];
     let alreadyLoaded = [];
@@ -823,7 +828,6 @@ modules["pages/editor"] = {
         let anno = this.annotations[annoKeys[i]];
         if (unloadedPages.includes(anno.render.page) == true || this.lesson.type == "freeboard") {
           await utils.render(anno.render);
-          await utils.checkAnnotationSize(anno.render);
         }
       }
       if (request == true && firstLoad == true) {
@@ -1253,6 +1257,7 @@ modules["pages/editor"] = {
       }
 
       this.realtime.module.adjustRealtimeHolder();
+      utils.checkAnnotationSize();
     }
     let scrollMouseWheel = (event) => {
       if (event.ctrlKey || event.metaKey) {
@@ -1589,15 +1594,35 @@ modules["pages/editor/annotation"] = {
     parent.appendChild(newSVG);
     return newSVG;
   },
-  SOFT_PIXEL_RESIZE: 250,
-  marginLeft: 250,
-  marginRight: 250,
+  //SOFT_PIXEL_RESIZE: 250,
+  //marginLeft: 250,
+  //marginRight: 250,
   checkAnnotationSize: async function(anno) {
-    if (anno.hasAttribute("hidden") == true) {
-      return;
+    let editor = await getModule("pages/editor");
+    let content = editor.page.querySelector(".eContentHolder");
+    if (anno != null) {
+      if ((anno.getAttribute("anno") || "").startsWith("pending_") == true && anno.hasAttribute("done") == false) {
+        return;
+      }
+      if (anno.hasAttribute("hidden") == true) {
+        return;
+      }
+      let rect = anno.getBoundingClientRect();
+      let parentRect = anno.parentElement.getBoundingClientRect();
+      let left = -(rect.left - parentRect.left);
+      let right = ((rect.left + anno.offsetWidth) - (parentRect.left + anno.parentElement.offsetWidth))
+      if (left > this.farLeft) {
+        this.setLeftMargin = Math.ceil(left / 350) * 350;
+        this.farLeft = left - 350;
+      }
+      console.log(right)
+      if (right > this.farRight) {
+        this.setRightMargin = Math.ceil(right / 350) * 350;
+        this.farRight = right - 350;
+      }
     }
-    let rect = anno.getBoundingClientRect();
-
+    content.style.marginLeft = (this.setLeftMargin * editor.zoom) + 100 + "px";
+    content.style.marginRight = (this.setRightMargin * editor.zoom) + 100 + "px";
     /*
     if (anno == null || anno.p == null || anno.s == null) {
       return;
@@ -1713,6 +1738,7 @@ modules["pages/editor/annotation"] = {
         } 
       }
     }
+    this.checkAnnotationSize(anno);
     return [data, anno];
   },
   removeAnnotation: async function(annoID, checkDone) {
@@ -1760,7 +1786,6 @@ modules["pages/editor/annotation"] = {
     this.enableTimeout(annoID, anno, render);
     editor.annotations[annoID] = anno;
     this.render(anno.render, render);
-    this.checkAnnotationSize(anno.render);
     return mutations;
   },
   pendingSaves: [],

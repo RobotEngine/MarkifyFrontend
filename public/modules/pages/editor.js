@@ -1774,20 +1774,24 @@ modules["pages/editor/annotation"] = {
       for (let i = 0; i < this.pendingSaves.length; i++) {
         let mutt = this.pendingSaves[i];
         let anno = editor.annotations[mutt._id];
-        if (anno != null && anno.render != null) {
-          delete anno.save;
-          delete mutt.done;
-          mutt._id = anno.render._id;
-          if (anno.retry != true) {
-            this.enableTimeout(anno.render._id, anno);
+        if (anno != null) {
+          if (anno.render != null) {
+            delete anno.save;
+            delete mutt.done;
+            mutt._id = anno.render._id;
+            if (anno.retry != true) {
+              this.enableTimeout(anno.render._id, anno);
+            }
+            delete anno.retry;
+            if (anno.render.f == null && anno.render._id.startsWith("pending_") == true) {
+              anno.retry = true;
+              setPendingSave.push(mutt);
+              continue;
+            }
+            mutations.push(mutt);
+          } else {
+            delete editor.annotations[mutt._id];
           }
-          delete anno.retry;
-          if (anno.render.f == null && anno.render._id.startsWith("pending_") == true) {
-            anno.retry = true;
-            setPendingSave.push(mutt);
-            continue;
-          }
-          mutations.push(mutt);
         }
       }
       this.pendingSaves = [];

@@ -828,7 +828,7 @@ modules["pages/editor"] = {
       }
       if (request == true && firstLoad == true) {
         firstLoad = false;
-        window.scrollTo((app.scrollWidth / 2) - (fixed.offsetWidth / 2), window.pageY); // Center page
+        window.scrollTo((app.scrollWidth / 2) - (fixed.offsetWidth / 2), window.scrollY); // Center page
       }
     }
     let getAnnotations = async () => {
@@ -1593,6 +1593,12 @@ modules["pages/editor/annotation"] = {
   marginLeft: 250,
   marginRight: 250,
   checkAnnotationSize: async function(anno) {
+    if (anno.hasAttribute("hidden") == true) {
+      return;
+    }
+    let rect = anno.getBoundingClientRect();
+
+    /*
     if (anno == null || anno.p == null || anno.s == null) {
       return;
     }
@@ -1615,6 +1621,7 @@ modules["pages/editor/annotation"] = {
       //window.scrollTo(afterLeft - priorLeft, window.scrollY);
       this.marginLeft = marginLeft;
     }
+    */
   },
   SVG_PADDING: 100, // How much padding svgs should have to ensure clean render
   render: async function (data, anno, long) {

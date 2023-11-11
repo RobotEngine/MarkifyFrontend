@@ -1600,6 +1600,7 @@ modules["pages/editor/annotation"] = {
   checkAnnotationSize: async function(anno) {
     let editor = await getModule("pages/editor");
     let content = editor.page.querySelector(".eContentHolder");
+    let setRightScroll = false;
     if (anno != null) {
       if ((anno.getAttribute("anno") || "").startsWith("pending_") == true && anno.hasAttribute("done") == false) {
         return;
@@ -1618,10 +1619,14 @@ modules["pages/editor/annotation"] = {
       if (right > this.farRight) {
         this.setRightMargin = Math.ceil(right / 350) * 350;
         this.farRight = right - 350;
+        setRightScroll = true;
       }
     }
     content.style.marginLeft = (this.setLeftMargin * editor.zoom) + 100 + "px";
     content.style.marginRight = (this.setRightMargin * editor.zoom) + 100 + "px";
+    if (setRightScroll == true) {
+      window.scrollTo(editor.page.querySelector(".eContent").offsetWidth, window.scrollY);
+    }
     /*
     if (anno == null || anno.p == null || anno.s == null) {
       return;

@@ -1604,6 +1604,7 @@ modules["pages/editor/annotation"] = {
     for (let i = 0; i < annoKeys.length; i++) {
       this.checkAnnotationSize(editor.annotations[annoKeys[i]].render);
     }
+    this.checkAnnotationSize();
   },
   checkAnnotationSize: async function(anno, scrollable) {
     let editor = await getModule("pages/editor");

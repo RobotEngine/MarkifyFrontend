@@ -656,6 +656,7 @@ modules["editor/toolbar"] = {
 modules["pages/editor/toolbar/cursor"] = {
   mouse: "default",
   js: async function (editor, utils, addEvent) {
+    return;
     let content = editor.page.querySelector(".eContent");
     let select;
     let anno;

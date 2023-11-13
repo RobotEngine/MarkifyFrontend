@@ -802,6 +802,10 @@ modules["pages/editor"] = {
 
     utils.resetAnnotationSize();
 
+    function centerWindowWithPage() {
+      window.scrollTo(window.scrollX + pageHolder.getBoundingClientRect().left + (pageHolder.offsetWidth / 2) - (fixed.offsetWidth / 2), window.scrollY);
+    }
+
     // Load Annotations:
     this.loadedIn = [];
     let alreadyLoaded = [];
@@ -829,9 +833,10 @@ modules["pages/editor"] = {
       }
       if (request == true && firstLoad == true) {
         firstLoad = false;
-        window.scrollTo((app.scrollWidth / 2) - (fixed.offsetWidth / 2), window.scrollY); // Center page
+        centerWindowWithPage();
       }
     }
+    centerWindowWithPage();
     let getAnnotations = async () => {
       viewAnnotations();
       if (connected == false) {
@@ -1602,14 +1607,14 @@ modules["pages/editor/annotation"] = {
     let editor = await getModule("pages/editor");
     let annoKeys = Object.keys(editor.annotations);
     for (let i = 0; i < annoKeys.length; i++) {
-      this.checkAnnotationSize(editor.annotations[annoKeys[i]].render);
+      this.checkAnnotationSize(editor.annotations[annoKeys[i]].render, true);
     }
     this.checkAnnotationSize();
   },
-  checkAnnotationSize: async function(anno, scrollable) {
+  checkAnnotationSize: async function(anno, cancelScroll) {
     let editor = await getModule("pages/editor");
     let content = editor.page.querySelector(".eContentHolder");
-    let setRightScroll = false;
+    let changeRightScroll = 0;
     if (anno != null) {
       /*
       if ((anno.getAttribute("anno") || "").startsWith("pending_") == true && anno.hasAttribute("done") == false) {
@@ -1634,17 +1639,18 @@ modules["pages/editor/annotation"] = {
       if (left > this.farLeft) {
         this.setLeftMargin = Math.ceil(left / 350) * 350;
         this.farLeft = this.setLeftMargin - 100;
+        changeRightScroll = content.getBoundingClientRect().left;
       }
       if (right > this.farRight) {
         this.setRightMargin = Math.ceil(right / 350) * 350;
         this.farRight = this.setRightMargin - 100;
-        setRightScroll = true;
+        changeRightScroll = content.getBoundingClientRect().left;
       }
     }
     content.style.marginLeft = (this.setLeftMargin * editor.zoom) + 100 + "px";
     content.style.marginRight = (this.setRightMargin * editor.zoom) + 100 + "px";
-    if (scrollable == true && setRightScroll == true) {
-      window.scrollTo(editor.page.querySelector(".eContent").offsetWidth, window.scrollY);
+    if (changeRightScroll > 0 && cancelScroll != true) {
+      window.scrollTo(content.getBoundingClientRect().left - changeRightScroll + window.scrollX, window.scrollY);
     }
     /*
     if (anno == null || anno.p == null || anno.s == null) {
@@ -1762,7 +1768,7 @@ modules["pages/editor/annotation"] = {
         this.resetAnnotationSize();
       }
     }
-    this.checkAnnotationSize(data, true);
+    this.checkAnnotationSize(data);
     return [data, anno];
   },
   removeAnnotation: async function(annoID, checkDone) {

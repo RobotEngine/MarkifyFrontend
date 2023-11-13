@@ -461,7 +461,6 @@ modules["editor/toolbar"] = {
     let preferences = editor.preferences.tools;
 
     let closeSubtoolUI = async () => {
-      console.log("AAA")
       if (mainSubtoolButton != null) {
         subTools.style.top = mainSubtoolButton.getBoundingClientRect().top + (mainSubtoolButton.offsetHeight / 2) - frame.getBoundingClientRect().top + "px";
         mainSubtoolButton = null;

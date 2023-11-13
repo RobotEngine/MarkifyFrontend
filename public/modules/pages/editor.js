@@ -1259,7 +1259,7 @@ modules["pages/editor"] = {
       }
 
       this.realtime.module.adjustRealtimeHolder();
-      utils.checkAnnotationSize();
+      utils.checkAnnotationSize(null);
     }
     let scrollMouseWheel = (event) => {
       if (event.ctrlKey || event.metaKey) {
@@ -1607,14 +1607,14 @@ modules["pages/editor/annotation"] = {
     let editor = await getModule("pages/editor");
     let annoKeys = Object.keys(editor.annotations);
     for (let i = 0; i < annoKeys.length; i++) {
-      this.checkAnnotationSize(editor.annotations[annoKeys[i]].render, true);
+      await this.checkAnnotationSize(editor.annotations[annoKeys[i]].render, true);
     }
     this.checkAnnotationSize();
   },
-  checkAnnotationSize: async function(anno, cancelScroll) {
+  checkAnnotationSize: async function(anno, notUpdate) {
     let editor = await getModule("pages/editor");
     let content = editor.page.querySelector(".eContentHolder");
-    let changeRightScroll = 0;
+    console.log("AAA")
     if (anno != null) {
       /*
       if ((anno.getAttribute("anno") || "").startsWith("pending_") == true && anno.hasAttribute("done") == false) {
@@ -1628,30 +1628,32 @@ modules["pages/editor/annotation"] = {
       let left = -(rect.left - parentRect.left);
       let right = ((rect.left + anno.offsetWidth) - (parentRect.left + anno.parentElement.offsetWidth));
       */
-      if ((anno._id || "").startsWith("pending_") == true && anno.done != true) {
-        return;
-      }
-      if (anno.remove == true) {
-        return;
-      }
-      let left = -anno.p[0];
-      let right = anno.p[0] + anno.s[0] - (await this.annoHolder(anno.page)).offsetWidth;
-      if (left > this.farLeft) {
-        this.setLeftMargin = Math.ceil(left / 350) * 350;
-        this.farLeft = this.setLeftMargin - 100;
-        changeRightScroll = content.getBoundingClientRect().left;
-      }
-      if (right > this.farRight) {
-        this.setRightMargin = Math.ceil(right / 350) * 350;
-        this.farRight = this.setRightMargin - 100;
-        changeRightScroll = content.getBoundingClientRect().left;
+      if ((anno._id || "").startsWith("pending_") != true || anno.done == true) {
+        if (anno.remove != true) {
+          let left = -anno.p[0];
+          let right = anno.p[0] + anno.s[0] - (await this.annoHolder(anno.page)).offsetWidth;
+          if (left > this.farLeft) {
+            this.setLeftMargin = Math.ceil(left / 350) * 350;
+            this.farLeft = this.setLeftMargin - 100;
+          }
+          if (right > this.farRight) {
+            this.setRightMargin = Math.ceil(right / 350) * 350;
+            this.farRight = this.setRightMargin - 100;
+          }
+        }
       }
     }
-    content.style.marginLeft = (this.setLeftMargin * editor.zoom) + 100 + "px";
+    if (notUpdate == true) {
+      return;
+    }
+    //let pageHolder = editor.page.querySelector(".ePageHolder");
+    let scrollPos = window.scrollX;
+    //let contentLeft = pageHolder.getBoundingClientRect().left;
+    let contentLeft = this.marginLeft || 0;
+    this.marginLeft = (this.setLeftMargin * editor.zoom) + 100;
+    content.style.marginLeft = this.marginLeft + "px";
     content.style.marginRight = (this.setRightMargin * editor.zoom) + 100 + "px";
-    if (changeRightScroll > 0 && cancelScroll != true) {
-      window.scrollTo(content.getBoundingClientRect().left - changeRightScroll + window.scrollX, window.scrollY);
-    }
+    window.scrollTo(scrollPos + (this.marginLeft - contentLeft), window.scrollY);
     /*
     if (anno == null || anno.p == null || anno.s == null) {
       return;
@@ -1751,6 +1753,7 @@ modules["pages/editor/annotation"] = {
         path.setAttribute("opacity", o / 100);
         break;
     }
+    let resetSize = false;
     if (anno != null) {
       if (done != true) {
         anno.removeAttribute("done");
@@ -1765,10 +1768,13 @@ modules["pages/editor/annotation"] = {
           anno.remove();
           delete editor.annotations[_id];
         }
+        resetSize = true;
         this.resetAnnotationSize();
       }
     }
-    this.checkAnnotationSize(data);
+    if (resetSize == false) {
+      this.checkAnnotationSize(data);
+    }
     return [data, anno];
   },
   removeAnnotation: async function(annoID, checkDone) {

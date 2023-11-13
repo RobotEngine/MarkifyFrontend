@@ -461,6 +461,7 @@ modules["editor/toolbar"] = {
     let preferences = editor.preferences.tools;
 
     let closeSubtoolUI = async () => {
+      console.log("AAA")
       if (mainSubtoolButton != null) {
         subTools.style.top = mainSubtoolButton.getBoundingClientRect().top + (mainSubtoolButton.offsetHeight / 2) - frame.getBoundingClientRect().top + "px";
         mainSubtoolButton = null;
@@ -548,6 +549,7 @@ modules["editor/toolbar"] = {
     this.closeSubSubtoolUI = async () => {
       if (mainSubSubtoolButton != null) {
         subSubTools.style.top = mainSubSubtoolButton.getBoundingClientRect().top + (mainSubSubtoolButton.offsetHeight / 2) - subTools.getBoundingClientRect().top + "px";
+        mainSubSubtoolButton.removeAttribute("selected");
         mainSubSubtoolButton = null;
       }
       subSubToolContentHolder.style.transition = "unset";

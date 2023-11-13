@@ -1614,7 +1614,6 @@ modules["pages/editor/annotation"] = {
   checkAnnotationSize: async function(anno, notUpdate) {
     let editor = await getModule("pages/editor");
     let content = editor.page.querySelector(".eContentHolder");
-    console.log("AAA")
     if (anno != null) {
       /*
       if ((anno.getAttribute("anno") || "").startsWith("pending_") == true && anno.hasAttribute("done") == false) {

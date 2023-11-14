@@ -792,8 +792,6 @@ modules["pages/editor"] = {
       }
     });
 
-    this.visiblePages = [];
-
     // RELEASE OLD MEMORY
     for (let i = 0; i < this.loadedPDFs.length; i++) {
       this.loadedPDFs[i].destroy();
@@ -887,6 +885,9 @@ modules["pages/editor"] = {
       let maxY = window.scrollY + (fullPageHeight * 2);
       */
     }
+
+    this.visiblePages = [];
+    this.updatePages = null;
 
     switch (this.lesson.type) {
       case "standard":
@@ -1172,8 +1173,15 @@ modules["pages/editor"] = {
         break;
       case "freeboard":
         //pageHolder.remove();
-        pageHolder.style.width = fixed.offsetWidth - 332 + "px";
-        pageHolder.style.height = fixed.offsetHeight - 332 + "px";
+        let updatePageSize = () => {
+          pageHolder.style.width = fixed.offsetWidth - 332 + "px";
+          pageHolder.style.height = fixed.offsetHeight - 332 + "px";
+        }
+        tempListen(window, "resize", () => {
+          updatePageSize();
+          utils.resetAnnotationSize();
+        });
+        updatePageSize();
         bottomHolder.remove();
         getAnnotations();
     }
@@ -1624,7 +1632,6 @@ modules["pages/editor/annotation"] = {
     }
     this.checkAnnotationSize();
   },
-  //this.lesson.type
   checkAnnotationSize: async function(anno, notUpdate) {
     let editor = await getModule("pages/editor");
     let content = editor.page.querySelector(".eContentHolder");
@@ -1656,13 +1663,15 @@ modules["pages/editor/annotation"] = {
             this.setRightMargin = Math.ceil(right / 350) * 350;
             this.farRight = this.setRightMargin - 100;
           }
-          if (top > this.farTop) {
-            this.setTopMargin = Math.ceil(top / 350) * 350;
-            this.farTop = this.setTopMargin - 100;
-          }
-          if (bottom > this.farBottom) {
-            this.setBottomMargin = Math.ceil(bottom / 350) * 350;
-            this.farBottom = this.setBottomMargin - 100;
+          if (editor.lesson.type == "freeboard") {
+            if (top > this.farTop) {
+              this.setTopMargin = Math.ceil(top / 350) * 350;
+              this.farTop = this.setTopMargin - 100;
+            }
+            if (bottom > this.farBottom) {
+              this.setBottomMargin = Math.ceil(bottom / 350) * 350;
+              this.farBottom = this.setBottomMargin - 100;
+            }
           }
         }
       }
@@ -1680,8 +1689,10 @@ modules["pages/editor/annotation"] = {
     this.marginTop = (this.setTopMargin * editor.zoom) + 100;
     content.style.marginLeft = this.marginLeft + "px";
     content.style.marginRight = (this.setRightMargin * editor.zoom) + 100 + "px";
-    content.style.marginTop = this.marginTop + "px";
-    content.style.marginBottom = (this.setBottomMargin * editor.zoom) + 100 + "px";
+    if (editor.lesson.type == "freeboard") {
+      content.style.marginTop = this.marginTop + "px";
+      content.style.marginBottom = (this.setBottomMargin * editor.zoom) + 100 + "px";
+    }
     window.scrollTo(scrollPosX + (this.marginLeft - contentLeft), scrollPosY + (this.marginTop - contentTop));
     /*
     if (anno == null || anno.p == null || anno.s == null) {

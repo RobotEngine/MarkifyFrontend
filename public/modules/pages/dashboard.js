@@ -419,7 +419,7 @@ modules["pages/dashboard/lessons"] = {
                   tile.querySelector(".dTileDocImage").src = assetURL + body.thumbnail;
                 }
               }
-              if (updTiles.length < 1) {
+              if (updTiles.length < 1 && body.sections != null) {
                 for (let i = 0; i < body.sections.length; i++) {
                   let tileSection = frame.querySelector('.dSection[section="' + body.sections[i] + '"]');
                   tileSection.style.display = "unset";

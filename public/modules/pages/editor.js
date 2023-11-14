@@ -1177,9 +1177,13 @@ modules["pages/editor"] = {
           pageHolder.style.width = fixed.offsetWidth - 332 + "px";
           pageHolder.style.height = fixed.offsetHeight - 332 + "px";
         }
+        let resetTimeout;
         tempListen(window, "resize", () => {
-          updatePageSize();
-          utils.resetAnnotationSize();
+          clearTimeout(resetTimeout);
+          resetTimeout = setTimeout(() => {
+            updatePageSize();
+            utils.resetAnnotationSize();
+          }, 500);
         });
         updatePageSize();
         bottomHolder.remove();

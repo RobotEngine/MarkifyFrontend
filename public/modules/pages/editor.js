@@ -1172,9 +1172,8 @@ modules["pages/editor"] = {
         break;
       case "freeboard":
         //pageHolder.remove();
-        console.log("AAA")
-        pageHolder.style.width = fixed.offsetWidth - 200 + "px";
-        pageHolder.style.height = fixed.offsetHeight - 200 + "px";
+        pageHolder.style.width = fixed.offsetWidth - 332 + "px";
+        pageHolder.style.height = fixed.offsetHeight - 332 + "px";
         bottomHolder.remove();
         getAnnotations();
     }

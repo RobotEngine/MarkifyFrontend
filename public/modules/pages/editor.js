@@ -120,7 +120,7 @@ modules["pages/editor"] = {
 
     ".eContent": `position: relative; display: flex; width: fit-content; min-width: calc(100% - 132px); min-height: calc(100vh - 132px); padding: 66px; overflow: hidden; justify-content: center; z-index: 0; background-image: url(./images/editor/background.svg); background-position: center; pointer-events: all`,
     ".eContentHolder": `pointer-events: none`,
-    ".ePageHolder": `width: fit-content; height: fit-content; border-radius: 16px; transform-origin: 0 0`,
+    ".ePageHolder": `position: relative; width: fit-content; height: fit-content; border-radius: 16px; transform-origin: 0 0`,
     ".ePage": `position: relative; background: var(--pageColor); transition: .5s`,
     ".ePage::after": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: -1; content: ""; box-shadow: 0px 0px 8px 0px var(--shadowColor); border-radius: inherit`,
     ".ePage:first-child": `border-top-left-radius: 16px; border-top-right-radius: 16px`,
@@ -1171,7 +1171,10 @@ modules["pages/editor"] = {
         }
         break;
       case "freeboard":
-        pageHolder.remove();
+        //pageHolder.remove();
+        console.log("AAA")
+        pageHolder.style.width = fixed.offsetWidth - 200 + "px";
+        pageHolder.style.height = fixed.offsetHeight - 200 + "px";
         bottomHolder.remove();
         getAnnotations();
     }
@@ -1540,17 +1543,22 @@ modules["pages/editor/annotation"] = {
       }
     }
     let pageNum = editor.visiblePages[editor.visiblePages.length - 1];
+    if (pageNum == 0) {
+      return [pageHolder, 0];
+    }
     return [pageHolder.children[pageNum - 1], pageNum];
   },
   scaleToDoc: async function (x, y, p) {
     let editor = await getModule("pages/editor");
     let pageHolder = editor.page.querySelector(".ePageHolder");
-    if (editor.visiblePages) {
+    if (p != null) {
+      let pageElem = pageHolder;
       if (p > 0) {
-        let pageRect = pageHolder.children[p - 1].getBoundingClientRect();
-        x -= pageRect.left;
-        y -= pageRect.top;
+        pageElem = pageHolder.children[p - 1];
       }
+      let pageRect = pageElem.getBoundingClientRect();
+      x -= pageRect.left;
+      y -= pageRect.top;
     }
     let scaleZoom = 1 / editor.zoom;
     return {
@@ -1563,11 +1571,13 @@ modules["pages/editor/annotation"] = {
     let pageHolder = editor.page.querySelector(".ePageHolder");
     x *= editor.zoom;
     y *= editor.zoom;
+    let pageElem = pageHolder;
     if (p > 0) {
-      let pageRect = pageHolder.children[p - 1].getBoundingClientRect();
-      x += pageRect.left;
-      y += pageRect.top;
+      pageElem = pageHolder.children[p - 1];
     }
+    let pageRect = pageElem.getBoundingClientRect();
+    x += pageRect.left;
+    y += pageRect.top;
     return { x, y };
   },
   round: function (num, places) {

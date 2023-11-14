@@ -776,7 +776,7 @@ modules["pages/editor/toolbar/pen"] = {
         o: this.opacity,
         d: [utils.round(halfThickness), utils.round(halfThickness)]
       };
-      if (page != null) {
+      if (page != null && page.hasAttribute("pageid") == true) {
         newAnno.page = page.getAttribute("pageid");
       }
       [draw, anno] = await utils.render(newAnno);
@@ -792,7 +792,7 @@ modules["pages/editor/toolbar/pen"] = {
       }
       event.preventDefault();
       let rect = anno.getBoundingClientRect();
-      let { x, y } = await utils.scaleToDoc(Math.floor(event.clientX || ((event.changedTouches || [])[0] || {}).clientX || 0) - rect.left, Math.floor(event.clientY || ((event.changedTouches || [])[0] || {}).clientY || 0) - rect.top, 0);
+      let { x, y } = await utils.scaleToDoc(Math.floor(event.clientX || ((event.changedTouches || [])[0] || {}).clientX || 0) - rect.left, Math.floor(event.clientY || ((event.changedTouches || [])[0] || {}).clientY || 0) - rect.top);
       let halfThickness = draw.t / 2;
       if (x + halfThickness > draw.s[0]) {
         draw.s[0] = x + halfThickness;

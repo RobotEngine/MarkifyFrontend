@@ -803,7 +803,7 @@ modules["pages/editor"] = {
     utils.resetAnnotationSize();
 
     function centerWindowWithPage() {
-      window.scrollTo(window.scrollX + pageHolder.getBoundingClientRect().left + (pageHolder.offsetWidth / 2) - (fixed.offsetWidth / 2), window.scrollY);
+      window.scrollTo(window.scrollX + pageHolder.getBoundingClientRect().left - ((fixed.offsetWidth - pageHolder.offsetWidth) / 2), window.scrollY);
     }
 
     // Load Annotations:
@@ -1768,11 +1768,11 @@ modules["pages/editor/annotation"] = {
           delete editor.annotations[_id];
         }
         resetSize = true;
-        this.resetAnnotationSize();
+        await this.resetAnnotationSize();
       }
     }
     if (resetSize == false) {
-      this.checkAnnotationSize(data);
+      await this.checkAnnotationSize(data);
     }
     return [data, anno];
   },

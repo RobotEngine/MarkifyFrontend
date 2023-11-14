@@ -1613,6 +1613,10 @@ modules["pages/editor/annotation"] = {
     this.farRight = 0;
     this.setLeftMargin = 0;
     this.setRightMargin = 0;
+    this.farTop = 0;
+    this.farBottom = 0;
+    this.setTopMargin = 0;
+    this.setBottomMargin = 0;
     let editor = await getModule("pages/editor");
     let annoKeys = Object.keys(editor.annotations);
     for (let i = 0; i < annoKeys.length; i++) {
@@ -1620,6 +1624,7 @@ modules["pages/editor/annotation"] = {
     }
     this.checkAnnotationSize();
   },
+  //this.lesson.type
   checkAnnotationSize: async function(anno, notUpdate) {
     let editor = await getModule("pages/editor");
     let content = editor.page.querySelector(".eContentHolder");
@@ -1638,8 +1643,11 @@ modules["pages/editor/annotation"] = {
       */
       if ((anno._id || "").startsWith("pending_") != true || anno.done == true) {
         if (anno.remove != true) {
+          let annoHolder = await this.annoHolder(anno.page);
           let left = -anno.p[0];
-          let right = anno.p[0] + anno.s[0] - (await this.annoHolder(anno.page)).offsetWidth;
+          let right = anno.p[0] + anno.s[0] - annoHolder.offsetWidth;
+          let top = -anno.p[1];
+          let bottom = anno.p[1] + anno.s[0] - annoHolder.offsetHeight;
           if (left > this.farLeft) {
             this.setLeftMargin = Math.ceil(left / 350) * 350;
             this.farLeft = this.setLeftMargin - 100;
@@ -1648,6 +1656,14 @@ modules["pages/editor/annotation"] = {
             this.setRightMargin = Math.ceil(right / 350) * 350;
             this.farRight = this.setRightMargin - 100;
           }
+          if (top > this.farTop) {
+            this.setTopMargin = Math.ceil(top / 350) * 350;
+            this.farTop = this.setTopMargin - 100;
+          }
+          if (bottom > this.farBottom) {
+            this.setBottomMargin = Math.ceil(bottom / 350) * 350;
+            this.farBottom = this.setBottomMargin - 100;
+          }
         }
       }
     }
@@ -1655,13 +1671,18 @@ modules["pages/editor/annotation"] = {
       return;
     }
     //let pageHolder = editor.page.querySelector(".ePageHolder");
-    let scrollPos = window.scrollX;
+    let scrollPosX = window.scrollX;
+    let scrollPosY = window.scrollY;
     //let contentLeft = pageHolder.getBoundingClientRect().left;
     let contentLeft = this.marginLeft || 0;
+    let contentTop = this.marginTop || 0;
     this.marginLeft = (this.setLeftMargin * editor.zoom) + 100;
+    this.marginTop = (this.setTopMargin * editor.zoom) + 100;
     content.style.marginLeft = this.marginLeft + "px";
     content.style.marginRight = (this.setRightMargin * editor.zoom) + 100 + "px";
-    window.scrollTo(scrollPos + (this.marginLeft - contentLeft), window.scrollY);
+    content.style.marginTop = this.marginTop + "px";
+    content.style.marginBottom = (this.setBottomMargin * editor.zoom) + 100 + "px";
+    window.scrollTo(scrollPosX + (this.marginLeft - contentLeft), scrollPosY + (this.marginTop - contentTop));
     /*
     if (anno == null || anno.p == null || anno.s == null) {
       return;

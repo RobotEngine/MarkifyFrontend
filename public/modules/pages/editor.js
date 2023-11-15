@@ -1209,8 +1209,8 @@ modules["pages/editor"] = {
       let delta = Math.max(-1, Math.min(1, (mouse.wheelDelta || -(mouse.detail || 0))));
       this.zoom = set || (this.zoom + (delta / 10));
 
-      let mouseX = mouse.clientX || 0;
-      let mouseY = mouse.clientY || 0;
+      let mouseX = mouse.clientX || ((mouse.changedTouches || [])[0] || {}).clientX || 0;
+      let mouseY = mouse.clientY || ((mouse.changedTouches || [])[0] || {}).clientY || 0;
 
       if (this.zoom > 5) {
         this.zoom = 5;

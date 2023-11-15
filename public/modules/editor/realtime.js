@@ -191,15 +191,16 @@ modules["editor/realtime"] = {
           // Figure out where the cursor is:
           let sendX = mouseX;
           let sendY = mouseY;
-          let pageRect;
+          let pageElem = pageHolder;
           if (editor.visiblePages) {
             filter.p = (await utils.findPage(sendY))[1];
             if (filter.p > 0) {
-              pageRect = pageHolder.children[filter.p - 1].getBoundingClientRect();
-              sendX -= pageRect.left;
-              sendY -= pageRect.top;
+              pageElem = pageHolder.children[filter.p - 1];
             }
           }
+          let pageRect = pageElem.getBoundingClientRect();
+          sendX -= pageRect.left;
+          sendY -= pageRect.top;
   
           if (filter.p != (lastCursorPage || filter.p)) {
             socket.publish({ ...standardFilter, p: lastCursorPage }, [ editor.sessionID, filter.p ]); // When leaving a page, tell everyone!
@@ -568,12 +569,14 @@ modules["editor/realtime"] = {
             cursorHolder.setAttribute("y", y);
             x *= editor.zoom;
             y *= editor.zoom;
+            let pageElem = pageHolder;
             if (page > 0) {
-              let pageRect = pageHolder.children[page - 1].getBoundingClientRect();
+              pageElem = pageHolder.children[page - 1];
               cursorHolder.setAttribute("page", page);
-              x += pageRect.left;
-              y += pageRect.top;
             }
+            let pageRect = pageElem.getBoundingClientRect();
+            x += pageRect.left;
+            y += pageRect.top;
             member.x = x;
             member.y = y;
             if (tool == null) {

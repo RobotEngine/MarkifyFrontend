@@ -1862,7 +1862,6 @@ modules["pages/editor/annotation"] = {
       return; // No changes, so no need to do anything
     }
     anno.revert = anno.revert || JSON.parse(syncAnno);
-    anno.save = true;
     this.enableTimeout(annoID, anno, render);
     editor.annotations[annoID] = anno;
     this.render(anno.render, render);

@@ -1705,6 +1705,7 @@ modules["pages/editor/annotation"] = {
       content.style.marginBottom = (this.setBottomMargin * editor.zoom) + 120 + "px";
     }
     window.scrollTo(scrollPosX + (this.marginLeft - contentLeft), scrollPosY + (this.marginTop - contentTop));
+    editor.realtime.module.adjustRealtimeHolder();
     /*
     if (anno == null || anno.p == null || anno.s == null) {
       return;

@@ -349,10 +349,11 @@ modules["editor/realtime"] = {
         if (element.hasAttribute("height")) {
           element.style.height = parseFloat(element.getAttribute("height")) * editor.zoom + "px";
         }
-        let pageRect;
+        let pageElem = pageHolder;
         if (element.hasAttribute("page")) {
-          pageRect = pageHolder.children[parseInt(element.getAttribute("page")) - 1].getBoundingClientRect();
+          pageElem = pageHolder.children[parseInt(element.getAttribute("page")) - 1];
         }
+        let pageRect = pageElem.getBoundingClientRect();
         if (element.hasAttribute("x")) {
           let x = parseFloat(element.getAttribute("x")) * editor.zoom;
           if (pageRect) {

@@ -1185,6 +1185,13 @@ modules["pages/editor"] = {
             utils.resetAnnotationSize();
           }, 500);
         });
+        let updateScroll = () => {
+          if (this.scrollEvent) {
+            this.scrollEvent();
+          }
+        }
+        tempListen(window, "scroll", updateScroll);
+        tempListen(window, "resize", updateScroll);
         updatePageSize();
         bottomHolder.remove();
         getAnnotations();

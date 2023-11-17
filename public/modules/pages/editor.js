@@ -1840,9 +1840,12 @@ modules["pages/editor/annotation"] = {
         return;
       }
       if (anno.render._id.includes("pending_") == false) { // Means its a new anno
-        anno.render = anno.revert;
-        delete anno.revert;
-        this.render(anno.render, render);
+        delete anno.retry;
+        if (anno.revert != null) {
+          anno.render = anno.revert;
+          delete anno.revert;
+          this.render(anno.render, render);
+        }
       } else {
         this.removeAnnotation(annoID);
         delete editor.annotations[annoID];
@@ -1887,14 +1890,14 @@ modules["pages/editor/annotation"] = {
         let anno = editor.annotations[mutt._id];
         if (anno != null) {
           if (anno.render != null) {
+            let wasDone = mutt.done == true;
             delete anno.save;
             delete mutt.done;
             mutt._id = anno.render._id;
             if (anno.retry != true) {
               this.enableTimeout(anno.render._id, anno);
             }
-            delete anno.retry;
-            if (anno.render.f == null && anno.render._id.startsWith("pending_") == true) {
+            if (wasDone != true && anno.render._id.startsWith("pending_") == true) {
               anno.retry = true;
               setPendingSave.push(mutt);
               continue;
@@ -1906,17 +1909,21 @@ modules["pages/editor/annotation"] = {
         }
       }
       this.pendingSaves = [];
-      let [result] = await sendRequest("POST", "lessons/save", { mutations: mutations }, { session: editor.session });
-      if (result != 200) { // If not saved, set to try again
-        for (let i = 0; i < mutations.length; i++) {
-          let anno = editor.annotations[mutations[i]._id];
-          if (anno != null) {
-            anno.retry = true;
-            setPendingSave.push(mutations[i]);
+      try {
+        let [result] = await sendRequest("POST", "lessons/save", { mutations: mutations }, { session: editor.session });
+        if (result != 200) { // If not saved, set to try again
+          for (let i = 0; i < mutations.length; i++) {
+            let anno = editor.annotations[mutations[i]._id];
+            if (anno != null && anno.retry != true) {
+              anno.retry = true;
+              setPendingSave.push(mutations[i]);
+            }
           }
+        } else {
+          editor.updateSaveStatus("Saved");
         }
-      } else {
-        editor.updateSaveStatus("Saved");
+      } catch (err) {
+        console.log("SAVE ERROR:", err);
       }
       this.pendingSaves = [...this.pendingSaves, ...setPendingSave];
       await sleep(2500); // 1 save per 2.5 seconds

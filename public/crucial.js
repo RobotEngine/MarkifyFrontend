@@ -237,7 +237,7 @@ async function setFrame(path, frame, extra) {
         subscribes[i].close();
       }
       subscribes = [];
-      window.scrollTo(window.scrollX, 0);
+      window.scrollTo(0, 0);
       body.style.removeProperty("user-select");
       currentPage = path;
       document.title = module.title + " | Markify";

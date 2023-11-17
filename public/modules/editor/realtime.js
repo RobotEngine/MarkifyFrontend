@@ -228,11 +228,13 @@ modules["editor/realtime"] = {
                   let selX = selRect.x;
                   let selY = selRect.y;
                   let page = (await utils.findPage(selY))[1];
+                  let selPageElem = pageHolder;
                   if (editor.visiblePages && pageHolder.children[page - 1]) {
-                    let selPageRect = pageHolder.children[page - 1].getBoundingClientRect();
-                    selX -= selPageRect.left;
-                    selY -= selPageRect.top;
+                    selPageElem = pageHolder.children[page - 1];
                   }
+                  let selPageRect = selPageElem.getBoundingClientRect();
+                  selX -= selPageRect.left;
+                  selY -= selPageRect.top;
                   if (selRect.width > 0 && selRect.height > 0) {
                     alreadyInsert[checkInsert] = "";
                     // [ PAGE, WIDTH, HEIGHT, X, Y ]
@@ -356,16 +358,12 @@ modules["editor/realtime"] = {
         let pageRect = pageElem.getBoundingClientRect();
         if (element.hasAttribute("x")) {
           let x = parseFloat(element.getAttribute("x")) * editor.zoom;
-          if (pageRect) {
-            x += pageRect.left;
-          }
+          x += pageRect.left;
           element.style.left = x + (parseInt(element.getAttribute("offsetx") || "0")) + window.scrollX + "px";
         }
         if (element.hasAttribute("y")) {
           let y = parseFloat(element.getAttribute("y")) * editor.zoom;
-          if (pageRect) {
-            y += pageRect.top;
-          }
+          y += pageRect.top;
           element.style.top = y + (parseInt(element.getAttribute("offsety") || "0")) + window.scrollY + "px";
         }
       }
@@ -665,14 +663,14 @@ modules["editor/realtime"] = {
                 select.style.height = (selectData[2] * editor.zoom) + "px";
                 let selX = selectData[3] * editor.zoom;
                 let selY = selectData[4] * editor.zoom;
+                let pageElem = pageHolder;
                 if (selectData[0] > 0) {
-                  let pageRect = pageHolder.children[selectData[0] - 1].getBoundingClientRect();
+                  pageElem = pageHolder.children[selectData[0] - 1];
                   select.setAttribute("page", selectData[0]);
-                  selX += pageRect.left;
-                  selY += pageRect.top;
                 }
-                select.style.left = selX + window.scrollX + "px";
-                select.style.top = selY + window.scrollY + "px";
+                let pageRect = pageElem.getBoundingClientRect();
+                select.style.left = (selX + pageRect.left) + window.scrollX + "px";
+                select.style.top = (selY + pageRect.top) + window.scrollY + "px";
               }
               selectionHolder.style.opacity = 1;
             } else if (selectionHolder != null) {

@@ -1227,7 +1227,7 @@ modules["pages/editor"] = {
 
       //pageHolder.style.zoom = zoom;
       pageHolder.style.transform = `scale(${this.zoom})`; // translate(${(pageHolder.clientWidth * zoom) / 2}px, ${(pageHolder.clientHeight * zoom) / 2}px)
-      //pageHolder.style.transformOrigin = mouseX + "px " + mouseY + "px";
+      pageHolder.style.transformOrigin = mouseX + "px " + mouseY + "px";
       //pageHolder.style.margin = `${(pageHolder.clientHeight - (pageHolder.clientHeight * zoom)) / 2}px ${(pageHolder.clientWidth - (pageHolder.clientWidth * zoom)) / 2}px`;
       //pageHolder.style.transformOrigin = mousePositionX + "px " + mousePositionY + "px";
 

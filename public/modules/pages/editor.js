@@ -1667,21 +1667,21 @@ modules["pages/editor/annotation"] = {
           let top = -anno.p[1];
           let bottom = anno.p[1] + anno.s[0] - annoHolder.offsetHeight;
           if (left > this.farLeft) {
-            this.setLeftMargin = Math.ceil(left / 350) * 350;
-            this.farLeft = this.setLeftMargin - 100;
+            this.setLeftMargin = Math.ceil(left / 400) * 400;
+            this.farLeft = this.setLeftMargin - 120;
           }
           if (right > this.farRight) {
-            this.setRightMargin = Math.ceil(right / 350) * 350;
-            this.farRight = this.setRightMargin - 100;
+            this.setRightMargin = Math.ceil(right / 400) * 400;
+            this.farRight = this.setRightMargin - 120;
           }
           if (editor.lesson.type == "freeboard") {
             if (top > this.farTop) {
-              this.setTopMargin = Math.ceil(top / 350) * 350;
-              this.farTop = this.setTopMargin - 100;
+              this.setTopMargin = Math.ceil(top / 400) * 400;
+              this.farTop = this.setTopMargin - 120;
             }
             if (bottom > this.farBottom) {
-              this.setBottomMargin = Math.ceil(bottom / 350) * 350;
-              this.farBottom = this.setBottomMargin - 100;
+              this.setBottomMargin = Math.ceil(bottom / 400) * 400;
+              this.farBottom = this.setBottomMargin - 120;
             }
           }
         }
@@ -1696,13 +1696,13 @@ modules["pages/editor/annotation"] = {
     //let contentLeft = pageHolder.getBoundingClientRect().left;
     let contentLeft = this.marginLeft || 0;
     let contentTop = this.marginTop || 0;
-    this.marginLeft = (this.setLeftMargin * editor.zoom) + 100;
-    this.marginTop = (this.setTopMargin * editor.zoom) + 100;
+    this.marginLeft = (this.setLeftMargin * editor.zoom) + 120;
+    this.marginTop = (this.setTopMargin * editor.zoom) + 120;
     content.style.marginLeft = this.marginLeft + "px";
-    content.style.marginRight = (this.setRightMargin * editor.zoom) + 100 + "px";
+    content.style.marginRight = (this.setRightMargin * editor.zoom) + 120 + "px";
     if (editor.lesson.type == "freeboard") {
       content.style.marginTop = this.marginTop + "px";
-      content.style.marginBottom = (this.setBottomMargin * editor.zoom) + 100 + "px";
+      content.style.marginBottom = (this.setBottomMargin * editor.zoom) + 120 + "px";
     }
     window.scrollTo(scrollPosX + (this.marginLeft - contentLeft), scrollPosY + (this.marginTop - contentTop));
     /*

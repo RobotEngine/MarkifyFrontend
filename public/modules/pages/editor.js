@@ -632,7 +632,7 @@ modules["pages/editor"] = {
           delete existingAnno.expire;
           delete existingAnno.revert;
           objectUpdate(existingAnno.render, anno);
-          utils.render(existingAnno.render, gottenRender, true);
+          utils.render(anno, gottenRender, true);
         } else {
           this.annotations[anno._id] = { render: anno };
           utils.render(anno, null, true);
@@ -1742,7 +1742,7 @@ modules["pages/editor/annotation"] = {
     let { _id, f, page, p, s, c, t, o, d, done, remove } = data;
     let [x, y] = p || [];
     let [width, height] = s || [];
-    if (page != null && editor.loadedIn.includes(page) == false) {
+    if (page != null && editor.loadedIn.includes(page) == false && long != true) {
       return;
     }
     let annoHolder = await this.annoHolder(page);

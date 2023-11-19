@@ -1464,7 +1464,7 @@ modules["dropdowns/editor/zoom"] = {
       }
     }
     function forceSetZoom() {
-      editor.setZoom(parseInt(zoomPercentage.textContent) / 100);
+      editor.setZoom(parseInt(zoomPercentage.textContent) / 100, null, { clientX: fixed.offsetWidth / 2, clientY: fixed.offsetHeight / 2 });
     }
     zoomPercentage.addEventListener("keydown", (event) => {
       let textBox = event.target.closest("div");

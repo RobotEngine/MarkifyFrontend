@@ -1519,7 +1519,7 @@ modules["dropdowns/editor/zoom"] = {
       }
       let zoomChange = element.closest(".eZoomButton");
       if (zoomChange) {
-        editor.setZoom(editor.zoom + parseFloat(zoomChange.getAttribute("change")));
+        editor.setZoom(editor.zoom + parseFloat(zoomChange.getAttribute("change")), null, { clientX: fixed.offsetWidth / 2, clientY: fixed.offsetHeight / 2 });
         return;
       }
       let toggle = element.closest(".eZoomAction");

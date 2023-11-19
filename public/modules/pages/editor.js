@@ -1241,6 +1241,7 @@ modules["pages/editor"] = {
       */
       
       await utils.checkAnnotationSize();
+      
       /*
       let pixels_difference_w = prevWidth - document.body.scrollWidth;
       let side_ratio_x = mouseX / fixed.offsetWidth; // (mouseX - (fixed.offsetWidth / 2)) / fixed.offsetWidth;
@@ -1253,7 +1254,15 @@ modules["pages/editor"] = {
       console.log(pixels_difference_w)
       */
       
-      window.scrollTo((pageScrollX * (document.body.scrollWidth / prevWidth)) + 0, (pageScrollY * (document.body.scrollHeight / prevHeight)) + 0);
+      // Calculate the new scroll position based on the mouse cursor position and zoom level
+      let newScrollX = ((mouseX + pageScrollX) * (document.body.scrollWidth / prevWidth)) - mouseX; // + rect.left;
+      let newScrollY = ((mouseY + pageScrollY) * (document.body.scrollHeight / prevHeight)) - mouseY; // + rect.top;
+
+      // Set the new scroll position
+      window.scrollTo(newScrollX, newScrollY);
+
+      //window.scrollTo((pageScrollX * (document.body.scrollWidth / prevWidth)) + 0, (pageScrollY * (document.body.scrollHeight / prevHeight)) + 0);
+      //window.scrollTo((mouseX + pageScrollX) * (document.body.scrollWidth / prevWidth), (mouseY + pageScrollY) * (document.body.scrollHeight / prevHeight));
 
       //window.scrollTo(pageScrollX * (newWidth / prevWidth), pageScrollY * (newHeight / prevHeight));
       //window.scrollTo((mouseX + pageScrollX) * (newWidth / prevWidth), (mouseY + pageScrollY) * (newWidth / prevWidth));

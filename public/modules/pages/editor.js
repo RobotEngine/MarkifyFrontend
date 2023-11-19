@@ -1199,7 +1199,7 @@ modules["pages/editor"] = {
 
     // Zoom
     this.zoom = 1;
-    this.setZoom = (set, observe, mouse) => {
+    this.setZoom = async (set, observe, mouse) => {
       mouse = mouse || {};
       if (observe != true && this.realtime.observing != null && this.realtime.module != null) {
         this.realtime.module.exitObserve();
@@ -1208,10 +1208,8 @@ modules["pages/editor"] = {
       let pageScrollX = window.scrollX;
       let pageScrollY = window.scrollY;
 
-      let prevZoom = this.zoom;
-
-      let prevWidth = pageHolder.clientWidth * prevZoom;
-      let prevHeight = pageHolder.clientHeight * prevZoom;
+      let prevWidth = document.body.scrollWidth;
+      let prevHeight = document.body.scrollHeight;
 
       let delta = Math.max(-1, Math.min(1, (mouse.wheelDelta || -(mouse.detail || 0))));
       this.zoom = set || (this.zoom + (delta / 10));
@@ -1227,15 +1225,12 @@ modules["pages/editor"] = {
 
       //pageHolder.style.zoom = zoom;
       pageHolder.style.transform = `scale(${this.zoom})`; // translate(${(pageHolder.clientWidth * zoom) / 2}px, ${(pageHolder.clientHeight * zoom) / 2}px)
-      pageHolder.style.transformOrigin = mouseX + "px " + mouseY + "px";
+      //pageHolder.style.transformOrigin = mouseX + "px " + mouseY + "px";
       //pageHolder.style.margin = `${(pageHolder.clientHeight - (pageHolder.clientHeight * zoom)) / 2}px ${(pageHolder.clientWidth - (pageHolder.clientWidth * zoom)) / 2}px`;
       //pageHolder.style.transformOrigin = mousePositionX + "px " + mousePositionY + "px";
-
-      let newWidth = pageHolder.clientWidth * this.zoom;
-      let newHeight = pageHolder.clientHeight * this.zoom;
-
-      content.style.width = newWidth + "px";
-      content.style.height = newHeight + "px";
+      
+      content.style.width = pageHolder.clientWidth * this.zoom + "px";
+      content.style.height = pageHolder.clientHeight * this.zoom + "px";
 
       /*
       let appSizeHalfX = (app.offsetWidth / 2);
@@ -1244,13 +1239,21 @@ modules["pages/editor"] = {
       let mouseScaleY = pageScrollY + (mouseY || appSizeHalfY);
       console.log(mouseScaleX, mouseScaleY);
       */
+      
+      await utils.checkAnnotationSize();
+      /*
+      let pixels_difference_w = prevWidth - document.body.scrollWidth;
+      let side_ratio_x = mouseX / fixed.offsetWidth; // (mouseX - (fixed.offsetWidth / 2)) / fixed.offsetWidth;
+      let scrollAddX = pixels_difference_w * side_ratio_x;
 
-      // Calculate the new scroll position based on the mouse cursor position and zoom level
-      let newScrollX = ((mouseX + pageScrollX) * (newWidth / prevWidth)) - mouseX; // + rect.left;
-      let newScrollY = ((mouseY + pageScrollY) * (newHeight / prevHeight)) - mouseY; // + rect.top;
-
-      // Set the new scroll position
-      window.scrollTo(newScrollX, newScrollY);
+      let pixels_difference_h = prevHeight - document.body.scrollHeight;
+      let side_ratio_h = mouseY / fixed.offsetHeight; // (mouseY - (fixed.offsetHeight / 2)) / fixed.offsetHeight;
+      let scrollAddY = pixels_difference_h * side_ratio_h;
+      
+      console.log(pixels_difference_w)
+      */
+      
+      window.scrollTo((pageScrollX * (document.body.scrollWidth / prevWidth)) + 0, (pageScrollY * (document.body.scrollHeight / prevHeight)) + 0);
 
       //window.scrollTo(pageScrollX * (newWidth / prevWidth), pageScrollY * (newHeight / prevHeight));
       //window.scrollTo((mouseX + pageScrollX) * (newWidth / prevWidth), (mouseY + pageScrollY) * (newWidth / prevWidth));
@@ -1280,7 +1283,6 @@ modules["pages/editor"] = {
       }
 
       this.realtime.module.adjustRealtimeHolder();
-      utils.checkAnnotationSize(null);
     }
     let scrollMouseWheel = (event) => {
       if (event.ctrlKey || event.metaKey) {
@@ -1705,7 +1707,9 @@ modules["pages/editor/annotation"] = {
       content.style.marginBottom = (this.setBottomMargin * editor.zoom) + 120 + "px";
     }
     window.scrollTo(scrollPosX + (this.marginLeft - contentLeft), scrollPosY + (this.marginTop - contentTop));
-    editor.realtime.module.adjustRealtimeHolder();
+    if (editor.realtime.module && editor.realtime.module.adjustRealtimeHolder) {
+      editor.realtime.module.adjustRealtimeHolder();
+    }
     /*
     if (anno == null || anno.p == null || anno.s == null) {
       return;

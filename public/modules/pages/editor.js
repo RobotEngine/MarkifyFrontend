@@ -1314,15 +1314,16 @@ modules["pages/editor"] = {
     let handlePinch = (event) => {
       if (event.touches.length >= 2) {
         let currentDistance = getDistance(event.touches);
-        let currentCenter = getCenter(event.touches);
-
+        if (lastDistance == currentDistance) {
+          return;
+        }
         let delta = 0;
         if (currentDistance > lastDistance) {
           delta = 1;
         } else if (lastDistance < currentDistance) {
           delta = -1;
         }
-        nameBox.textContent = delta + "; " + currentCenter.x + "; " + currentCenter.y;
+        let currentCenter = getCenter(event.touches);
         this.setZoom(null, null, { wheelDelta: delta, clientX: currentCenter.x, clientY: currentCenter.y });
         lastDistance = currentDistance;
       }

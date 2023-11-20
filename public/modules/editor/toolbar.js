@@ -235,6 +235,8 @@ modules["editor/toolbar"] = {
     frame.style.gap = "6px";
     frame.setAttribute("keeptooltip", "");
 
+    let content = editor.page.querySelector(".eContent");
+
     let subTools = frame.querySelector(".eSubToolHolder");
     let subToolContentHolder = subTools.querySelector(".eSubToolContentHolder");
     let subToolContentScroll = subTools.querySelector(".eSubToolContentScroll");
@@ -329,6 +331,18 @@ modules["editor/toolbar"] = {
       body.style.removeProperty("user-select");
       editor.page.style.removeProperty("touch-action");
       editor.page.removeAttribute("enabled");
+      let editorTools = content.querySelectorAll("[tooleditor]");
+      for (let i = 0; i < editorTools.length; i++) {
+        (async function () {
+          let tool = editorTools[i];
+          tool.removeAttribute("tooleditor");
+          tool.style.opacity = 0;
+          await sleep(150);
+          if (tool != null) {
+            tool.remove();
+          }
+        })();
+      }
     }
     let tempToolListen = (parent, listen, runFunc, extra) => {
       parent.addEventListener(listen, runFunc, extra);
@@ -657,7 +671,6 @@ modules["editor/toolbar"] = {
 modules["pages/editor/toolbar/cursor"] = {
   mouse: "default",
   js: async function (editor, utils, addEvent) {
-    return;
     let content = editor.page.querySelector(".eContent");
     let select;
     let anno;
@@ -698,7 +711,7 @@ modules["pages/editor/toolbar/cursor"] = {
       if (select != null) {
         removeBox(select);
       }
-      content.insertAdjacentHTML("beforeend", `<div class="eSelect" new>
+      content.insertAdjacentHTML("beforeend", `<div class="eSelect" tooleditor new>
         <svg class="eSelectTopLeft" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M2 14V14C2 7.37258 7.37258 2 14 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
         <svg class="eSelectTopRight" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M14 14V14C14 7.37258 8.62742 2 2 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
         <svg class="eSelectBottomLeft" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M2 2V2C2 8.62742 7.37258 14 14 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>

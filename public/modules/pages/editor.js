@@ -133,7 +133,7 @@ modules["pages/editor"] = {
     ".ePageAnnotations": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 1; pointer-events: none`,
     ".content[enabled] .ePageAnnotations": `pointer-events: all`,
     ".eAnnotation": `position: absolute`,
-    ".eAnnotation svg": `position: absolute; width: calc(100% + 200px); height: calc(100% + 200px); left: -100px; top: -100px`,
+    ".eAnnotation svg": `position: absolute; width: calc(100% + 200px); height: calc(100% + 200px); left: -100px; top: -100px; pointer-events: none`,
     ".eAnnotation svg polyline": `pointer-events: stroke`,
 
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 100; overflow: hidden; pointer-events: none`
@@ -1761,7 +1761,7 @@ modules["pages/editor/annotation"] = {
       return;
     }
     let editor = await getModule("pages/editor");
-    let { _id, f, page, p, s, c, t, o, d, done, remove } = data;
+    let { _id, f, page, p, s, c, t, o, d, done, remove, sync } = data;
     let [x, y] = p || [];
     let [width, height] = s || [];
     if (page != null && editor.loadedIn.includes(page) == false && long != true) {
@@ -1795,6 +1795,7 @@ modules["pages/editor/annotation"] = {
         anno.style.height = height + "px";
         anno.style.left = x + "px";
         anno.style.top = y + "px";
+        anno.style.zIndex = sync || getEpoch();
         svg = anno.querySelector("svg");
         if (remove != true) {
           svg.removeAttribute("hidden");

@@ -52,8 +52,8 @@ modules["editor/toolbar"] = {
 
     ".eToolHoverTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; color: var(--theme); transform: scale(0); transform-origin: center left; opacity: 0`,
 
-    ".eSelect": `position: absolute; opacity: 0; z-index: 10; border-radius: 9px; cursor: move; transition: opacity .15s`,
-    ".eSelectTooltip": `position: absolute; transition: .1s`,
+    ".eSelect": `position: absolute; opacity: 0; z-index: 10; border-radius: 9px; transition: opacity .15s; pointer-events: none`,
+    ".eSelectTooltip": `position: absolute; transition: .1s; pointer-events: all`,
     ".eSelect[hidetips] .eSelectTooltip": `opacity: 0; pointer-events: none`,
     '.eSelectTooltip[tooltip="topleft"]': `left: -10px; top: -10px; cursor: nwse-resize`,
     '.eSelectTooltip[tooltip="topright"]': `right: -10px; top: -10px; cursor: nesw-resize`,
@@ -679,8 +679,13 @@ modules["pages/editor/toolbar/cursor"] = {
     let checkRemSelections = content.querySelectorAll(".eSelect");
     for (let i = 0; i < checkRemSelections.length; i++) {
       let selection = checkRemSelections[i];
-      if (selectionIDs.includes(selection.getAttribute("anno")) == false) {
+      let annoID = selection.getAttribute("anno");
+      if (selectionIDs.includes(annoID) == false) {
         (async function () {
+          let anno = content.querySelector('.eAnnotation[anno="' + annoID + '"]');
+          anno.style.zIndex = (editor.annotations[annoID] || { render: {} }).render.sync;
+          anno.style.pointerEvents = "unset";
+          anno.style.cursor = "unset";
           selection.removeAttribute("tooleditor");
           selection.style.opacity = 0;
           await sleep(150);
@@ -702,9 +707,12 @@ modules["pages/editor/toolbar/cursor"] = {
       if (anno == null) {
         continue;
       }
+      anno.style.zIndex = 0;
+      anno.style.pointerEvents = "all";
+      anno.style.cursor = "move";
       let select = content.querySelector('.eSelect[anno="' + annoID + '"]');
       if (select == null) {
-        content.insertAdjacentHTML("beforeend", `<div class="eSelect" tooleditor new></div>`);
+        content.insertAdjacentHTML("beforeend", `<div class="eSelect" tooleditor new><div class="eSelectActive"></div></div>`);
         select = content.querySelector(".eSelect[new]");
         select.removeAttribute("new");
         select.setAttribute("anno", annoID);
@@ -712,19 +720,19 @@ modules["pages/editor/toolbar/cursor"] = {
         select.style.opacity = 1;
       }
       if (selectionIDs.length == 1) {
-        select.removeAttribute("hidetips");
         if (select.querySelector('.eSelectTooltip[tooltip="topright"]') == null) {
-          select.innerHTML = `
-            <svg class="eSelectTooltip" tooltip="topleft" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M2 14V14C2 7.37258 7.37258 2 14 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+          select.insertAdjacentHTML("beforeend", `
+            <svg class="eSelectTooltip" tooltip="topleft" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M2 14V14C2 7.37258 7.37258 2 14 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
             <svg class="eSelectTooltip" tooltip="topright" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M14 14V14C14 7.37258 8.62742 2 2 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
             <svg class="eSelectTooltip" tooltip="bottomleft" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M2 2V2C2 8.62742 7.37258 14 14 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-            <svg class="eSelectTooltip" tooltip="bottomright" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M14 2V2C14 8.62742 8.62742 14 2 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectTooltip" tooltip="bottomright" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M14 2V2C14 8.62742 8.62742 14 2 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
             <svg class="eSelectTooltip" tooltip="left" width="4" height="20" viewBox="0 0 4 20" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M2 2V18" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
             <svg class="eSelectTooltip" tooltip="right" right="4" height="20" viewBox="0 0 4 20" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M2 2V18" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
             <svg class="eSelectTooltip" tooltip="top" width="20" height="4" viewBox="0 0 20 4" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M18 2H2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
             <svg class="eSelectTooltip" tooltip="bottom" width="20" height="4" viewBox="0 0 20 4" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M18 2H2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-          `;
+          `);
         }
+        select.removeAttribute("hidetips");
       } else {
         (async function () {
           select.setAttribute("hidetips", "");
@@ -745,11 +753,13 @@ modules["pages/editor/toolbar/cursor"] = {
       select.style.left = rect.left + window.scrollX - 2 + "px";
       select.style.top = rect.top + window.scrollY - 2 + "px";
       select.style.border = "solid 4px var(--theme)";
-      //let eSelectTopLeft = select.querySelector('.eSelectTooltip[tooltip="topleft"]');
-      let eSelectTopRight = select.querySelector('.eSelectTooltip[tooltip="topright"]');
-      if (eSelectTopRight != null) {
+      let eSelectTopLeft = select.querySelector('.eSelectTooltip[tooltip="topleft"]');
+      if (eSelectTopLeft != null) {
+        eSelectTopLeft.removeAttribute("hidden");
+        let eSelectTopRight = select.querySelector('.eSelectTooltip[tooltip="topright"]');
         let eSelectBottomLeft = select.querySelector('.eSelectTooltip[tooltip="bottomleft"]');
-        //let eSelectBottomRight = select.querySelector('.eSelectTooltip[tooltip="bottomright"]');
+        let eSelectBottomRight = select.querySelector('.eSelectTooltip[tooltip="bottomright"]');
+        eSelectBottomRight.removeAttribute("hidden");
         let eSelectLeft = select.querySelector('.eSelectTooltip[tooltip="left"]');
         let eSelectRight = select.querySelector('.eSelectTooltip[tooltip="right"]');
         let eSelectTop = select.querySelector('.eSelectTooltip[tooltip="top"]');
@@ -786,10 +796,7 @@ modules["pages/editor/toolbar/cursor"] = {
       if (target == null) {
         return;
       }
-      if (target.closest(".eSelect") != null) {
-        return;
-      }
-      anno = target.closest(".eAnnotation");
+      anno = target.closest(".eAnnotation, .eSelect");
       if (editor.getSelf().access < 1) {
         editor.selecting = {};
         this.updateBox();
@@ -806,7 +813,11 @@ modules["pages/editor/toolbar/cursor"] = {
         return;
       }
       let annoID = anno.getAttribute("anno");
-      editor.selecting[annoID] = {};
+      if (editor.selecting[annoID] == null) {
+        editor.selecting[annoID] = {};
+      } else {
+        delete editor.selecting[annoID];
+      }
       this.updateBox();
     }
     addEvent(content, "mousedown", enableSelect, { passive: false });

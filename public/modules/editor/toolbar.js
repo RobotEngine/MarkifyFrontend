@@ -53,15 +53,16 @@ modules["editor/toolbar"] = {
     ".eToolHoverTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; color: var(--theme); transform: scale(0); transform-origin: center left; opacity: 0`,
 
     ".eSelect": `position: absolute; opacity: 0; z-index: 10; border-radius: 9px; cursor: move; transition: opacity .15s`,
-    ".eSelect svg": `position: absolute; transition: .1s`,
-    ".eSelect .eSelectTopLeft": `left: -10px; top: -10px; cursor: nwse-resize`,
-    ".eSelect .eSelectTopRight": `right: -10px; top: -10px; cursor: nesw-resize`,
-    ".eSelect .eSelectBottomLeft": `left: -10px; bottom: -10px; cursor: nesw-resize`,
-    ".eSelect .eSelectBottomRight": `right: -10px; bottom: -10px; cursor: nwse-resize`,
-    ".eSelect .eSelectLeft": `left: -10px; top: 50%; transform: translateY(-50%); cursor: ew-resize`,
-    ".eSelect .eSelectRight": `right: -10px; top: 50%; transform: translateY(-50%); cursor: ew-resize`,
-    ".eSelect .eSelectTop": `left: 50%; top: -10px; transform: translateX(-50%); cursor: ns-resize`,
-    ".eSelect .eSelectBottom": `left: 50%; bottom: -10px; transform: translateX(-50%); cursor: ns-resize`,
+    ".eSelectTooltip": `position: absolute; transition: .1s`,
+    ".eSelect[hidetips] .eSelectTooltip": `opacity: 0; pointer-events: none`,
+    '.eSelectTooltip[tooltip="topleft"]': `left: -10px; top: -10px; cursor: nwse-resize`,
+    '.eSelectTooltip[tooltip="topright"]': `right: -10px; top: -10px; cursor: nesw-resize`,
+    '.eSelectTooltip[tooltip="bottomleft"]': `left: -10px; bottom: -10px; cursor: nesw-resize`,
+    '.eSelectTooltip[tooltip="bottomright"]': `right: -10px; bottom: -10px; cursor: nwse-resize`,
+    '.eSelectTooltip[tooltip="left"]': `left: -10px; top: 50%; transform: translateY(-50%); cursor: ew-resize`,
+    '.eSelectTooltip[tooltip="right"]': `right: -10px; top: 50%; transform: translateY(-50%); cursor: ew-resize`,
+    '.eSelectTooltip[tooltip="top"]': `left: 50%; top: -10px; transform: translateX(-50%); cursor: ns-resize`,
+    '.eSelectTooltip[tooltip="bottom"]': `left: 50%; bottom: -10px; transform: translateX(-50%); cursor: ns-resize`,
   },
   tools: {
     "select": [
@@ -671,13 +672,70 @@ modules["editor/toolbar"] = {
 // CURSOR TOOL
 modules["pages/editor/toolbar/cursor"] = {
   mouse: "default",
-  js: async function (editor, utils, addEvent) {
+  updateBox: async function() {
+    let editor = await getModule("pages/editor");
     let content = editor.page.querySelector(".eContent");
-    let select;
-    let anno;
-    let updateBox = () => {
-      if (select == null || anno == null) {
-        return;
+    let selectionIDs = Object.keys(editor.selecting);
+    let checkRemSelections = content.querySelectorAll(".eSelect");
+    for (let i = 0; i < checkRemSelections.length; i++) {
+      let selection = checkRemSelections[i];
+      if (selectionIDs.includes(selection.getAttribute("anno")) == false) {
+        (async function () {
+          selection.removeAttribute("tooleditor");
+          selection.style.opacity = 0;
+          await sleep(150);
+          if (selection != null) {
+            selection.remove();
+          }
+        })();
+      }
+    }
+    if (selectionIDs.length > 0) {
+      body.style.userSelect = "none";
+    } else {
+      body.style.userSelect = "unset";
+    }
+    for (let i = 0; i < selectionIDs.length; i++) {
+      let annoID = selectionIDs[i];
+      let selection = editor.selecting[annoID];
+      let anno = content.querySelector('.eAnnotation[anno="' + annoID + '"]');
+      if (anno == null) {
+        continue;
+      }
+      let select = content.querySelector('.eSelect[anno="' + annoID + '"]');
+      if (select == null) {
+        content.insertAdjacentHTML("beforeend", `<div class="eSelect" tooleditor new></div>`);
+        select = content.querySelector(".eSelect[new]");
+        select.removeAttribute("new");
+        select.setAttribute("anno", annoID);
+        select.offsetHeight;
+        select.style.opacity = 1;
+      }
+      if (selectionIDs.length == 1) {
+        select.removeAttribute("hidetips");
+        if (select.querySelector('.eSelectTooltip[tooltip="topright"]') == null) {
+          select.innerHTML = `
+            <svg class="eSelectTooltip" tooltip="topleft" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M2 14V14C2 7.37258 7.37258 2 14 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectTooltip" tooltip="topright" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M14 14V14C14 7.37258 8.62742 2 2 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectTooltip" tooltip="bottomleft" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M2 2V2C2 8.62742 7.37258 14 14 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectTooltip" tooltip="bottomright" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M14 2V2C14 8.62742 8.62742 14 2 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectTooltip" tooltip="left" width="4" height="20" viewBox="0 0 4 20" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M2 2V18" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectTooltip" tooltip="right" right="4" height="20" viewBox="0 0 4 20" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M2 2V18" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectTooltip" tooltip="top" width="20" height="4" viewBox="0 0 20 4" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M18 2H2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectTooltip" tooltip="bottom" width="20" height="4" viewBox="0 0 20 4" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M18 2H2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+          `;
+        }
+      } else {
+        (async function () {
+          select.setAttribute("hidetips", "");
+          await sleep(150);
+          if (select.hasAttribute("hidetips") == true) {
+            let tooltips = select.querySelectorAll(".eSelectTooltip");
+            for (let r = 0; r < tooltips.length; r++) {
+              tooltips[r].remove();
+            }
+          }
+        })();
       }
       let rect = anno.getBoundingClientRect();
       let boxWidth = (anno.offsetWidth * editor.zoom) - 4;
@@ -687,45 +745,42 @@ modules["pages/editor/toolbar/cursor"] = {
       select.style.left = rect.left + window.scrollX - 2 + "px";
       select.style.top = rect.top + window.scrollY - 2 + "px";
       select.style.border = "solid 4px var(--theme)";
-      //let eSelectTopLeft = select.querySelector(".eSelectTopLeft");
-      let eSelectTopRight = select.querySelector(".eSelectTopRight");
-      let eSelectBottomLeft = select.querySelector(".eSelectBottomLeft");
-      //let eSelectBottomRight = select.querySelector(".eSelectBottomRight");
-      let eSelectLeft = select.querySelector(".eSelectLeft");
-      let eSelectRight = select.querySelector(".eSelectRight");
-      let eSelectTop = select.querySelector(".eSelectTop");
-      let eSelectBottom = select.querySelector(".eSelectBottom");
-      if (boxWidth < 40) {
-        eSelectTop.setAttribute("hidden", "");
-        eSelectBottom.setAttribute("hidden", "");
-      } else {
-        eSelectTop.removeAttribute("hidden");
-        eSelectBottom.removeAttribute("hidden");
-      }
-      if (boxHeight < 40) {
-        eSelectLeft.setAttribute("hidden", "");
-        eSelectRight.setAttribute("hidden", "");
-      } else {
-        eSelectLeft.removeAttribute("hidden");
-        eSelectRight.removeAttribute("hidden");
-      }
-      if (boxWidth < 20 || boxHeight < 20) {
-        eSelectTopRight.setAttribute("hidden", "");
-        eSelectBottomLeft.setAttribute("hidden", "");
-      } else {
-        eSelectTopRight.removeAttribute("hidden");
-        eSelectBottomLeft.removeAttribute("hidden");
+      //let eSelectTopLeft = select.querySelector('.eSelectTooltip[tooltip="topleft"]');
+      let eSelectTopRight = select.querySelector('.eSelectTooltip[tooltip="topright"]');
+      if (eSelectTopRight != null) {
+        let eSelectBottomLeft = select.querySelector('.eSelectTooltip[tooltip="bottomleft"]');
+        //let eSelectBottomRight = select.querySelector('.eSelectTooltip[tooltip="bottomright"]');
+        let eSelectLeft = select.querySelector('.eSelectTooltip[tooltip="left"]');
+        let eSelectRight = select.querySelector('.eSelectTooltip[tooltip="right"]');
+        let eSelectTop = select.querySelector('.eSelectTooltip[tooltip="top"]');
+        let eSelectBottom = select.querySelector('.eSelectTooltip[tooltip="bottom"]');
+        if (boxWidth < 40) {
+          eSelectTop.setAttribute("hidden", "");
+          eSelectBottom.setAttribute("hidden", "");
+        } else {
+          eSelectTop.removeAttribute("hidden");
+          eSelectBottom.removeAttribute("hidden");
+        }
+        if (boxHeight < 40) {
+          eSelectLeft.setAttribute("hidden", "");
+          eSelectRight.setAttribute("hidden", "");
+        } else {
+          eSelectLeft.removeAttribute("hidden");
+          eSelectRight.removeAttribute("hidden");
+        }
+        if (boxWidth < 20 || boxHeight < 20) {
+          eSelectTopRight.setAttribute("hidden", "");
+          eSelectBottomLeft.setAttribute("hidden", "");
+        } else {
+          eSelectTopRight.removeAttribute("hidden");
+          eSelectBottomLeft.removeAttribute("hidden");
+        }
       }
     }
-    let removeBox = async (select) => {
-      if (select == null) {
-        return;
-      }
-      select.style.opacity = 0;
-      await sleep(150);
-      select.remove();
-    }
-    editor.updateZoom = updateBox;
+  },
+  js: async function (editor, utils, addEvent) {
+    let content = editor.page.querySelector(".eContent");
+    editor.updateZoom = this.updateBox;
     let enableSelect = async (event) => {
       let target = event.target;
       if (target == null) {
@@ -735,29 +790,24 @@ modules["pages/editor/toolbar/cursor"] = {
         return;
       }
       anno = target.closest(".eAnnotation");
-      if (anno == null) {
-        removeBox(select);
-        select = null;
+      if (editor.getSelf().access < 1) {
+        editor.selecting = {};
+        this.updateBox();
         return;
       }
-      if (select != null) {
-        removeBox(select);
+      if (event.shiftKey == false) {
+        editor.selecting = {};
+        if (anno == null) {
+          this.updateBox();
+          return;
+        }
       }
-      content.insertAdjacentHTML("beforeend", `<div class="eSelect" tooleditor new>
-        <svg class="eSelectTopLeft" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M2 14V14C2 7.37258 7.37258 2 14 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-        <svg class="eSelectTopRight" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M14 14V14C14 7.37258 8.62742 2 2 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-        <svg class="eSelectBottomLeft" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M2 2V2C2 8.62742 7.37258 14 14 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-        <svg class="eSelectBottomRight" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M14 2V2C14 8.62742 8.62742 14 2 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-        <svg class="eSelectLeft" width="4" height="20" viewBox="0 0 4 20" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M2 2V18" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-        <svg class="eSelectRight" right="4" height="20" viewBox="0 0 4 20" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M2 2V18" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-        <svg class="eSelectTop" width="20" height="4" viewBox="0 0 20 4" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M18 2H2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-        <svg class="eSelectBottom" width="20" height="4" viewBox="0 0 20 4" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M18 2H2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-      </div>`);
-      select = content.querySelector(".eSelect[new]");
-      select.removeAttribute("new");
-      select.offsetHeight;
-      select.style.opacity = 1;
-      updateBox();
+      if (anno == null) {
+        return;
+      }
+      let annoID = anno.getAttribute("anno");
+      editor.selecting[annoID] = {};
+      this.updateBox();
     }
     addEvent(content, "mousedown", enableSelect, { passive: false });
     addEvent(content, "touchstart", enableSelect, { passive: false });

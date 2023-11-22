@@ -120,7 +120,7 @@ modules["pages/editor"] = {
 
     ".eContent": `position: relative; display: flex; width: fit-content; min-width: calc(100% - 132px); min-height: calc(100vh - 132px); padding: 66px; overflow: hidden; justify-content: center; z-index: 0; background-image: url(./images/editor/background.svg); background-position: center; pointer-events: all`,
     ".eContentHolder": `pointer-events: none`,
-    ".ePageHolder": `position: relative; width: fit-content; height: fit-content; border-radius: 16px; transform-origin: 0 0`,
+    ".ePageHolder": `position: relative; width: fit-content; height: fit-content; border-radius: 16px; transform-origin: 0 0; z-index: 1`,
     ".ePage": `position: relative; background: var(--pageColor); transition: .5s`,
     ".ePage::after": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: -1; content: ""; box-shadow: 0px 0px 8px 0px var(--shadowColor); border-radius: inherit`,
     ".ePage:first-child": `border-top-left-radius: 16px; border-top-right-radius: 16px`,

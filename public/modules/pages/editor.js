@@ -1708,13 +1708,13 @@ modules["pages/editor/annotation"] = {
     //let contentLeft = pageHolder.getBoundingClientRect().left;
     let contentLeft = this.marginLeft || 0;
     let contentTop = this.marginTop || 0;
-    this.marginLeft = (this.setLeftMargin * editor.zoom) + 120;
-    this.marginTop = (this.setTopMargin * editor.zoom) + 120;
+    this.marginLeft = (this.setLeftMargin * editor.zoom) + 100;
+    this.marginTop = (this.setTopMargin * editor.zoom) + 100;
     content.style.marginLeft = this.marginLeft + "px";
-    content.style.marginRight = (this.setRightMargin * editor.zoom) + 120 + "px";
+    content.style.marginRight = (this.setRightMargin * editor.zoom) + 100 + "px";
     if (editor.lesson.type == "freeboard") {
       content.style.marginTop = this.marginTop + "px";
-      content.style.marginBottom = (this.setBottomMargin * editor.zoom) + 120 + "px";
+      content.style.marginBottom = (this.setBottomMargin * editor.zoom) + 100 + "px";
     }
     window.scrollTo(scrollPosX + (this.marginLeft - contentLeft), scrollPosY + (this.marginTop - contentTop));
     if (editor.realtime.module && editor.realtime.module.adjustRealtimeHolder) {

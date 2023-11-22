@@ -712,7 +712,7 @@ modules["pages/editor/toolbar/cursor"] = {
       anno.style.cursor = "move";
       let select = content.querySelector('.eSelect[anno="' + annoID + '"]');
       if (select == null) {
-        content.insertAdjacentHTML("beforeend", `<div class="eSelect" tooleditor new><div class="eSelectActive"></div></div>`);
+        content.insertAdjacentHTML("beforeend", `<div class="eSelect" tooleditor new></div>`);
         select = content.querySelector(".eSelect[new]");
         select.removeAttribute("new");
         select.setAttribute("anno", annoID);

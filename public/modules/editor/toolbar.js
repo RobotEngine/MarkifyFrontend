@@ -53,6 +53,8 @@ modules["editor/toolbar"] = {
     ".eToolHoverTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; color: var(--theme); transform: scale(0); transform-origin: center left; opacity: 0`,
 
     ".eSelect": `position: absolute; opacity: 0; z-index: 10; border-radius: 9px; transition: opacity .15s; pointer-events: none`,
+    ".eSelectActive": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: all !important; cursor: move`,
+    ".eAnnotation[selected] *": `pointer-events: none`,
     ".eSelectTooltip": `position: absolute; transition: .1s; pointer-events: all`,
     ".eSelect[hidetips] .eSelectTooltip": `opacity: 0; pointer-events: none`,
     '.eSelectTooltip[tooltip="topleft"]': `left: -10px; top: -10px; cursor: nwse-resize`,
@@ -323,6 +325,8 @@ modules["editor/toolbar"] = {
     });
     editor.page.addEventListener("mouseleave", closeTooltipHover);
 
+    let cursorModule = await getModule("pages/editor/toolbar/cursor");
+
     let toolEvents = [];
     let disableTool = () => {
       for (let i = 0; i < toolEvents.length; i++) {
@@ -345,6 +349,8 @@ modules["editor/toolbar"] = {
           }
         })();
       }
+      editor.selecting = {};
+      cursorModule.updateBox();
     }
     let tempToolListen = (parent, listen, runFunc, extra) => {
       parent.addEventListener(listen, runFunc, extra);
@@ -683,10 +689,14 @@ modules["pages/editor/toolbar/cursor"] = {
       if (selectionIDs.includes(annoID) == false) {
         (async function () {
           let anno = content.querySelector('.eAnnotation[anno="' + annoID + '"]');
-          anno.style.zIndex = (editor.annotations[annoID] || { render: {} }).render.sync;
-          anno.style.pointerEvents = "unset";
-          anno.style.cursor = "unset";
-          selection.removeAttribute("tooleditor");
+          anno.removeAttribute("selected");
+          //anno.style.zIndex = (editor.annotations[annoID] || { render: {} }).render.sync;
+          //anno.style.pointerEvents = "unset";
+          //anno.style.cursor = "unset";
+          let activeLayer = anno.querySelector(".eSelectActive");
+          if (activeLayer != null) {
+            activeLayer.remove();
+          }
           selection.style.opacity = 0;
           await sleep(150);
           if (selection != null) {
@@ -702,17 +712,22 @@ modules["pages/editor/toolbar/cursor"] = {
     }
     for (let i = 0; i < selectionIDs.length; i++) {
       let annoID = selectionIDs[i];
+      let annoData = editor.annotations[annoID] || { render: {} };
       let selection = editor.selecting[annoID];
       let anno = content.querySelector('.eAnnotation[anno="' + annoID + '"]');
       if (anno == null) {
         continue;
       }
-      anno.style.zIndex = 0;
-      anno.style.pointerEvents = "all";
-      anno.style.cursor = "move";
+      anno.setAttribute("selected", "");
+      let activeLayer = anno.querySelector(".eSelectActive");
+      if (activeLayer == null) {
+        anno.insertAdjacentHTML("beforeend", `<div class="eSelectActive"></div>`);
+        activeLayer = anno.querySelector(".eSelectActive");
+      }
+      activeLayer.style.zIndex = i;
       let select = content.querySelector('.eSelect[anno="' + annoID + '"]');
       if (select == null) {
-        content.insertAdjacentHTML("beforeend", `<div class="eSelect" tooleditor new></div>`);
+        content.insertAdjacentHTML("beforeend", `<div class="eSelect" new></div>`);
         select = content.querySelector(".eSelect[new]");
         select.removeAttribute("new");
         select.setAttribute("anno", annoID);
@@ -791,6 +806,8 @@ modules["pages/editor/toolbar/cursor"] = {
   js: async function (editor, utils, addEvent) {
     let content = editor.page.querySelector(".eContent");
     editor.updateZoom = this.updateBox;
+    let startX;
+    let startY;
     let enableSelect = async (event) => {
       let target = event.target;
       if (target == null) {
@@ -802,6 +819,8 @@ modules["pages/editor/toolbar/cursor"] = {
         this.updateBox();
         return;
       }
+      startX = clientPosition(event, "x");
+      startY = clientPosition(event, "y");
       if (event.shiftKey == false) {
         editor.selecting = {};
         if (anno == null) {
@@ -864,9 +883,9 @@ modules["pages/editor/toolbar/pen"] = {
     let enableDraw = async (event) => {
       editor.toolbar.closeSubSubtoolUI();
       event.preventDefault();
-      let clientY = Math.floor(event.clientY || ((event.changedTouches || [])[0] || {}).clientY || 0);
+      let clientY = clientPosition(event, "y");
       let [page, number] = await utils.findPage(clientY);
-      let { x, y } = await utils.scaleToDoc(Math.floor(event.clientX || ((event.changedTouches || [])[0] || {}).clientX || 0), clientY, number);
+      let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientY, number);
       let halfThickness = this.thickness / 2;
       if (number > 1) {
         y -= 4; // Remove border-pixel width
@@ -898,7 +917,7 @@ modules["pages/editor/toolbar/pen"] = {
       }
       event.preventDefault();
       let rect = anno.getBoundingClientRect();
-      let { x, y } = await utils.scaleToDoc(Math.floor(event.clientX || ((event.changedTouches || [])[0] || {}).clientX || 0) - rect.left, Math.floor(event.clientY || ((event.changedTouches || [])[0] || {}).clientY || 0) - rect.top);
+      let { x, y } = await utils.scaleToDoc(clientPosition(event, "x") - rect.left, Math.floor(event.clientY || ((event.changedTouches || [])[0] || {}).clientY || 0) - rect.top);
       let halfThickness = draw.t / 2;
       if (x + halfThickness > draw.s[0]) {
         draw.s[0] = x + halfThickness;
@@ -1049,8 +1068,8 @@ modules["pages/editor/toolbar/eraser"] = {
       }
       editor.toolbar.closeSubSubtoolUI();
 
-      let x1 = Math.floor(event.clientX || ((event.changedTouches || [])[0] || {}).clientX || 0);
-      let y1 = Math.floor(event.clientY || ((event.changedTouches || [])[0] || {}).clientY || 0);
+      let x1 = clientPosition(event, "x");
+      let y1 = clientPosition(event, "y");
 
       event.preventDefault();
 
@@ -1448,7 +1467,7 @@ modules["pages/editor/toolbar/color"] = {
       if (colorGradientEnabled == false) {
         return;
       }
-      if (mouseDown() == false || event.target.closest(".eSubToolColorPickerShade") == null) {
+      if (mouseDown() == false || event.target.closest(".eSubToolColorPicker") == null) {
         app.style.userSelect = "unset";
         colorGradientEnabled = false;
         return;
@@ -1473,7 +1492,7 @@ modules["pages/editor/toolbar/color"] = {
       if (colorSliderEnabled == false) {
         return;
       }
-      if (mouseDown() == false || event.target.closest(".eSubToolColorPickerGradient") == null) {
+      if (mouseDown() == false || event.target.closest(".eSubToolColorPicker") == null) {
         app.style.userSelect = "unset";
         colorSliderEnabled = false;
         return;
@@ -1557,7 +1576,7 @@ modules["pages/editor/toolbar/thickness"] = {
       if (sliderEnabled == false) {
         return;
       }
-      if (mouseDown() == false || event.target.closest(".eSubToolThicknessSlider") == null) {
+      if (mouseDown() == false || event.target.closest(".eSubToolThicknessHolder") == null) {
         app.style.userSelect = "unset";
         sliderEnabled = false;
         return;
@@ -1638,7 +1657,7 @@ modules["pages/editor/toolbar/opacity"] = {
       if (sliderEnabled == false) {
         return;
       }
-      if (mouseDown() == false || event.target.closest(".eSubToolOpacitySlider") == null) {
+      if (mouseDown() == false || event.target.closest(".eSubToolOpacityHolder") == null) {
         app.style.userSelect = "unset";
         sliderEnabled = false;
         return;

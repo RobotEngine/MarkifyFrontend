@@ -344,6 +344,15 @@ function getObject(arr, field) {
   return returnObj;
 }
 
+function clientPosition(event, type) {
+  switch (type) {
+    case "x":
+      return Math.floor(event.clientX || ((event.changedTouches || [])[0] || {}).clientX || 0);
+    case "y":
+      return Math.floor(event.clientY || ((event.changedTouches || [])[0] || {}).clientY || 0);
+  }
+}
+
 function cleanString(str) {
   return str.replace(/\>/g, "&#62;").replace(/\</g, "&#60;");
 }

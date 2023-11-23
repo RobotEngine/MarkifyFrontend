@@ -162,8 +162,8 @@ modules["editor/realtime"] = {
     this.publishShort = async (event, type, ignoreSame) => {
       type = type || "cursor";
       if (event != null) {
-        mouseX = Math.floor(event.clientX || ((event.changedTouches || [])[0] || {}).clientX || 0);
-        mouseY = Math.floor(event.clientY || ((event.changedTouches || [])[0] || {}).clientY || 0);
+        mouseX = clientPosition(event, "x");
+        mouseY = clientPosition(event, "y");
       }
       if (editor.memberCount < 2) { // No one to send cursor events too!
         return;

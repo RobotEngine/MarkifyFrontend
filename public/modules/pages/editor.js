@@ -1795,8 +1795,8 @@ modules["pages/editor/annotation"] = {
         anno.style.height = height + "px";
         anno.style.left = x + "px";
         anno.style.top = y + "px";
-        anno.style.zIndex = sync || getEpoch();
         svg = anno.querySelector("svg");
+        svg.style.zIndex = sync || getEpoch();
         if (remove != true) {
           svg.removeAttribute("hidden");
         } else {

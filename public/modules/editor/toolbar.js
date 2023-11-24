@@ -907,32 +907,63 @@ modules["pages/editor/toolbar/highlighter"] = {
       let rect = anno.getBoundingClientRect();
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x") - rect.left, Math.floor(event.clientY || ((event.changedTouches || [])[0] || {}).clientY || 0) - rect.top);
       let halfThickness = markup.t / 2;
-      if (x + halfThickness > markup.s[0]) {
-        markup.s[0] = x + halfThickness;
-      }
-      if (y + halfThickness > markup.s[1]) {
-        markup.s[1] = y + halfThickness;
-      }
-      let sizeIncX = x - halfThickness;
-      if (sizeIncX < 0) {
-        for (let i = 0; i < markup.d.length; i += 2) {
-          markup.d[i] -= sizeIncX;
+      if (event.shiftKey == false) {
+        if (x + halfThickness > markup.s[0]) {
+          markup.s[0] = x + halfThickness;
         }
-        markup.s[0] -= sizeIncX;
-        markup.p[0] += sizeIncX;
-        x = halfThickness;
-      }
-      let sizeIncY = y - halfThickness;
-      if (sizeIncY < 0) {
-        for (let i = 1; i < markup.d.length; i += 2) {
-          markup.d[i] -= sizeIncY;
+        if (y + halfThickness > markup.s[1]) {
+          markup.s[1] = y + halfThickness;
         }
-        markup.s[1] -= sizeIncY;
-        markup.p[1] += sizeIncY;
-        y = halfThickness;
+        let sizeIncX = x - halfThickness;
+        if (sizeIncX < 0) {
+          for (let i = 0; i < markup.d.length; i += 2) {
+            markup.d[i] -= sizeIncX;
+          }
+          markup.s[0] -= sizeIncX;
+          markup.p[0] += sizeIncX;
+          x = halfThickness;
+        }
+        let sizeIncY = y - halfThickness;
+        if (sizeIncY < 0) {
+          for (let i = 1; i < markup.d.length; i += 2) {
+            markup.d[i] -= sizeIncY;
+          }
+          markup.s[1] -= sizeIncY;
+          markup.p[1] += sizeIncY;
+          y = halfThickness;
+        }
+        markup.d.push(utils.round(x));
+        markup.d.push(utils.round(y));
+      } else {
+        markup.d = [markup.d[0], markup.d[1]];
+        let sizeIncX = x - halfThickness;
+        if (sizeIncX < markup.d[0]) {
+          markup.d[0] -= sizeIncX;
+          markup.s[0] -= sizeIncX;
+          markup.p[0] += sizeIncX;
+          x = halfThickness;
+        } else {
+          markup.s[0] = x + halfThickness;
+        }
+        let sizeIncY = y - halfThickness;
+        if (sizeIncY < markup.d[1]) {
+          markup.d[1] -= sizeIncY;
+          markup.s[1] -= sizeIncY;
+          markup.p[1] += sizeIncY;
+          y = halfThickness;
+        } else {
+          markup.s[1] = y + halfThickness;
+        }
+        markup.d[2] = x;
+        markup.d[3] = y;
+        if (drawModule.horizontalLine(markup.d) == true) {
+          markup.d[3] = markup.d[1];
+          markup.s[1] = markup.t;
+          markup.p[1] += markup.d[1] - halfThickness;
+          markup.d[1] = halfThickness;
+          markup.d[3] = halfThickness;
+        }
       }
-      markup.d.push(utils.round(x));
-      markup.d.push(utils.round(y));
       utils.render(markup, anno);
       if (markup.d.length > 6150) { // Start new annotation when path too long
         disableMarkup();
@@ -945,7 +976,7 @@ modules["pages/editor/toolbar/highlighter"] = {
         return;
       }
       markup.d = drawModule.simplifyPath(markup.d, 1);
-      if (drawModule.relativelyStraight(markup.d, 1) == true) {
+      if (drawModule.relativelyStraight(markup.d, 5) == true) {
         markup.d = [markup.d[0], markup.d[1], markup.d[markup.d.length - 2], markup.d[markup.d.length - 1]]; // Strait line
         if (drawModule.horizontalLine(markup.d) == true) {
           markup.d[3] = markup.d[1];
@@ -1191,32 +1222,56 @@ modules["pages/editor/toolbar/pen"] = {
       let rect = anno.getBoundingClientRect();
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x") - rect.left, Math.floor(event.clientY || ((event.changedTouches || [])[0] || {}).clientY || 0) - rect.top);
       let halfThickness = draw.t / 2;
-      if (x + halfThickness > draw.s[0]) {
-        draw.s[0] = x + halfThickness;
-      }
-      if (y + halfThickness > draw.s[1]) {
-        draw.s[1] = y + halfThickness;
-      }
-      let sizeIncX = x - halfThickness;
-      if (sizeIncX < 0) {
-        for (let i = 0; i < draw.d.length; i += 2) {
-          draw.d[i] -= sizeIncX;
+      if (event.shiftKey == false) {
+        if (x + halfThickness > draw.s[0]) {
+          draw.s[0] = x + halfThickness;
         }
-        draw.s[0] -= sizeIncX;
-        draw.p[0] += sizeIncX;
-        x = halfThickness;
-      }
-      let sizeIncY = y - halfThickness;
-      if (sizeIncY < 0) {
-        for (let i = 1; i < draw.d.length; i += 2) {
-          draw.d[i] -= sizeIncY;
+        if (y + halfThickness > draw.s[1]) {
+          draw.s[1] = y + halfThickness;
         }
-        draw.s[1] -= sizeIncY;
-        draw.p[1] += sizeIncY;
-        y = halfThickness;
+        let sizeIncX = x - halfThickness;
+        if (sizeIncX < 0) {
+          for (let i = 0; i < draw.d.length; i += 2) {
+            draw.d[i] -= sizeIncX;
+          }
+          draw.s[0] -= sizeIncX;
+          draw.p[0] += sizeIncX;
+          x = halfThickness;
+        }
+        let sizeIncY = y - halfThickness;
+        if (sizeIncY < 0) {
+          for (let i = 1; i < draw.d.length; i += 2) {
+            draw.d[i] -= sizeIncY;
+          }
+          draw.s[1] -= sizeIncY;
+          draw.p[1] += sizeIncY;
+          y = halfThickness;
+        }
+        draw.d.push(utils.round(x));
+        draw.d.push(utils.round(y));
+      } else {
+        draw.d = [draw.d[0], draw.d[1]];
+        let sizeIncX = x - halfThickness;
+        if (sizeIncX < draw.d[0]) {
+          draw.d[0] -= sizeIncX;
+          draw.s[0] -= sizeIncX;
+          draw.p[0] += sizeIncX;
+          x = halfThickness;
+        } else {
+          draw.s[0] = x + halfThickness;
+        }
+        let sizeIncY = y - halfThickness;
+        if (sizeIncY < draw.d[1]) {
+          draw.d[1] -= sizeIncY;
+          draw.s[1] -= sizeIncY;
+          draw.p[1] += sizeIncY;
+          y = halfThickness;
+        } else {
+          draw.s[1] = y + halfThickness;
+        }
+        draw.d[2] = x;
+        draw.d[3] = y;
       }
-      draw.d.push(utils.round(x));
-      draw.d.push(utils.round(y));
       utils.render(draw, anno);
       if (draw.d.length > 6150) { // Start new annotation when path too long
         disableDraw();

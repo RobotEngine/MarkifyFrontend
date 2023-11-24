@@ -246,11 +246,13 @@ modules["pages/editor"] = {
 
         name.setAttribute("contenteditable", "");
       }
+      /*
       if (this.realtime.observing != null) {
         toolbar.setAttribute("hidden", "");
         toolbar.offsetHeight;
         toolbar.style.transition = ".3s";
       }
+      */
       if (access < 2) {
         share.style.display = "none";
       } else {

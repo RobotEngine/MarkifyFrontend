@@ -678,7 +678,7 @@ modules["editor/toolbar"] = {
 // CURSOR TOOL
 modules["pages/editor/toolbar/cursor"] = {
   mouse: "default",
-  updateBox: async function() {
+  updateBox: async function () {
     let editor = await getModule("pages/editor");
     let content = editor.page.querySelector(".eContent");
     let selectionIDs = Object.keys(editor.selecting);
@@ -939,44 +939,18 @@ modules["pages/editor/toolbar/highlighter"] = {
         enableMarkup(event);
       }
     }
+    let drawModule = await getModule("pages/editor/toolbar/pen");
     let disableMarkup = async () => {
       if (markup == null) {
         return;
       }
-      function simplifyPath(points, epsilon) {
-        if (points.length <= 2) {
-          return points;
-        }
-
-        let dmax = 0;
-        let index = 0;
-
-        for (let i = 2; i < points.length - 2; i += 2) {
-          let d = perpendicularDistance(points.slice(i, i + 2), points.slice(0, 2), points.slice(-2));
-          if (d > dmax) {
-            index = i;
-            dmax = d;
-          }
-        }
-
-        if (dmax > epsilon) {
-          let left = simplifyPath(points.slice(0, index + 2), epsilon);
-          let right = simplifyPath(points.slice(index), epsilon);
-          return left.slice(0, left.length - 2).concat(right);
-        } else {
-          if (points[0] !== points[points.length - 2] || points[1] !== points[points.length - 1]) {
-            return [points[0], points[1], points[points.length - 2], points[points.length - 1]];
-          } else {
-            return [points[0], points[1]];
-          }
+      markup.d = drawModule.simplifyPath(markup.d, 1);
+      if (drawModule.relativelyStraight(markup.d, 1) == true) {
+        markup.d = [markup.d[0], markup.d[1], markup.d[markup.d.length - 2], markup.d[markup.d.length - 1]]; // Strait line
+        if (drawModule.horizontalLine(markup.d) == true) {
+          markup.d[3] = markup.d[1];
         }
       }
-      function perpendicularDistance(point, lineStart, lineEnd) {
-        return Math.abs((lineEnd[1] - lineStart[1]) * point[0] - (lineEnd[0] - lineStart[0]) * point[1] +
-          lineEnd[0] * lineStart[1] - lineEnd[1] * lineStart[0]) /
-          Math.sqrt(Math.pow(lineEnd[1] - lineStart[1], 2) + Math.pow(lineEnd[0] - lineStart[0], 2));
-      }
-      markup.d = simplifyPath(markup.d, 1); // 999
 
       utils.save(markup, anno);
 
@@ -1010,6 +984,69 @@ modules["pages/editor/toolbar/underline"] = {
 modules["pages/editor/toolbar/pen"] = {
   mouse: `<svg width="56" height="56" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"> <g filter="url(#filter0_d_230_9)"> <path d="M34.1403 16.8592L33.2006 16.5172L32.8586 17.4569L30.0243 25.2438C29.0801 27.8382 29.3788 30.7224 30.8347 33.0682L31.1771 33.6198C31.6637 34.4037 32.6235 34.7531 33.5002 34.4653L34.117 34.2628C36.7401 33.4017 38.8229 31.3843 39.7672 28.7899L42.6014 21.003L42.9434 20.0633L42.0037 19.7213L34.1403 16.8592Z" fill="COLOR_REPLACE" fill-opacity="OPACITY_REPLACE" stroke="white" stroke-width="2"/> <path d="M39.0164 27.925L39.9561 28.2671L40.2981 27.3274L45.5943 12.7762C46.5735 10.0858 45.1863 7.11099 42.4959 6.13176C39.8055 5.15253 36.8307 6.53971 35.8514 9.23012L30.5553 23.7813L30.2132 24.721L31.1529 25.063L39.0164 27.925Z" fill="#2F2F2F" stroke="white" stroke-width="2"/> </g> <defs> <filter id="filter0_d_230_9" x="24.4814" y="0.817383" width="26.4268" height="38.748" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"> <feFlood flood-opacity="0" result="BackgroundImageFix"/> <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/> <feOffset/> <feGaussianBlur stdDeviation="2"/> <feComposite in2="hardAlpha" operator="out"/> <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/> <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_230_9"/> <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_230_9" result="shape"/> </filter> </defs> </svg>`,
   realtimeTool: 2,
+  simplifyPath: function (points, epsilon) {
+    if (points.length <= 2) {
+      return points;
+    }
+
+    let dmax = 0;
+    let index = 0;
+
+    for (let i = 2; i < points.length - 2; i += 2) {
+      let d = this.perpendicularDistance(points.slice(i, i + 2), points.slice(0, 2), points.slice(-2));
+      if (d > dmax) {
+        index = i;
+        dmax = d;
+      }
+    }
+
+    if (dmax > epsilon) {
+      let left = this.simplifyPath(points.slice(0, index + 2), epsilon);
+      let right = this.simplifyPath(points.slice(index), epsilon);
+      return left.slice(0, left.length - 2).concat(right);
+    } else {
+      if (points[0] !== points[points.length - 2] || points[1] !== points[points.length - 1]) {
+        return [points[0], points[1], points[points.length - 2], points[points.length - 1]];
+      } else {
+        return [points[0], points[1]];
+      }
+    }
+  },
+  perpendicularDistance: function (point, lineStart, lineEnd) {
+    return Math.abs((lineEnd[1] - lineStart[1]) * point[0] - (lineEnd[0] - lineStart[0]) * point[1] +
+      lineEnd[0] * lineStart[1] - lineEnd[1] * lineStart[0]) /
+      Math.sqrt(Math.pow(lineEnd[1] - lineStart[1], 2) + Math.pow(lineEnd[0] - lineStart[0], 2));
+  },
+  relativelyStraight: function (coordinates, tolerance) {
+    // Extract pairs of points from the coordinates array
+    const points = [];
+    for (let i = 0; i < coordinates.length; i += 2) {
+      points.push([coordinates[i], coordinates[i + 1]]);
+    }
+
+    // Calculate the slope between consecutive pairs of points
+    let slope = null;
+    for (let i = 0; i < points.length - 1; i++) {
+      const [x1, y1] = points[i];
+      const [x2, y2] = points[i + 1];
+
+      const newSlope = (y2 - y1) / (x2 - x1);
+
+      if (isFinite(newSlope) && Math.abs(slope - newSlope) > tolerance) {
+        return false; // Slopes differ significantly
+      }
+
+      slope = newSlope;
+    }
+
+    return true; // All slopes are consistent
+  },
+  horizontalLine: function (points) {
+    if (Math.abs(points[1] - points[3]) < 15) {
+      return true;
+    }
+    return false;
+  },
   js: async function (editor, utils, addEvent) {
     this.color = editor.preferences.tools.draw.color.selected;
     this.thickness = editor.preferences.tools.draw.thickness;
@@ -1096,40 +1133,7 @@ modules["pages/editor/toolbar/pen"] = {
       if (draw == null) {
         return;
       }
-      function simplifyPath(points, epsilon) {
-        if (points.length <= 2) {
-          return points;
-        }
-
-        let dmax = 0;
-        let index = 0;
-
-        for (let i = 2; i < points.length - 2; i += 2) {
-          let d = perpendicularDistance(points.slice(i, i + 2), points.slice(0, 2), points.slice(-2));
-          if (d > dmax) {
-            index = i;
-            dmax = d;
-          }
-        }
-
-        if (dmax > epsilon) {
-          let left = simplifyPath(points.slice(0, index + 2), epsilon);
-          let right = simplifyPath(points.slice(index), epsilon);
-          return left.slice(0, left.length - 2).concat(right);
-        } else {
-          if (points[0] !== points[points.length - 2] || points[1] !== points[points.length - 1]) {
-            return [points[0], points[1], points[points.length - 2], points[points.length - 1]];
-          } else {
-            return [points[0], points[1]];
-          }
-        }
-      }
-      function perpendicularDistance(point, lineStart, lineEnd) {
-        return Math.abs((lineEnd[1] - lineStart[1]) * point[0] - (lineEnd[0] - lineStart[0]) * point[1] +
-          lineEnd[0] * lineStart[1] - lineEnd[1] * lineStart[0]) /
-          Math.sqrt(Math.pow(lineEnd[1] - lineStart[1], 2) + Math.pow(lineEnd[0] - lineStart[0], 2));
-      }
-      draw.d = simplifyPath(draw.d, .75);
+      draw.d = this.simplifyPath(draw.d, .75);
 
       utils.save(draw, anno);
 
@@ -1664,7 +1668,7 @@ modules["pages/editor/toolbar/color"] = {
         .then((result) => {
           updateStoredValues(result.sRGBHex.substring(1));
         })
-        .catch(() => {});
+        .catch(() => { });
     });
 
     editor.toolbar.updateToolbar();

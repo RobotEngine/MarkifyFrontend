@@ -686,23 +686,28 @@ modules["pages/editor/toolbar/cursor"] = {
     for (let i = 0; i < checkRemSelections.length; i++) {
       let selection = checkRemSelections[i];
       let annoID = selection.getAttribute("anno");
-      if (selectionIDs.includes(annoID) == false) {
-        (async function () {
-          let anno = content.querySelector('.eAnnotation[anno="' + annoID + '"]');
-          anno.removeAttribute("selected");
-          //anno.style.zIndex = (editor.annotations[annoID] || { render: {} }).render.sync;
-          //anno.style.pointerEvents = "unset";
-          //anno.style.cursor = "unset";
-          let activeLayer = anno.querySelector(".eSelectActive");
-          if (activeLayer != null) {
-            activeLayer.remove();
-          }
-          selection.style.opacity = 0;
-          await sleep(150);
-          if (selection != null) {
-            selection.remove();
-          }
-        })();
+      let anno = content.querySelector('.eAnnotation[anno="' + annoID + '"]');
+      if (selectionIDs.includes(annoID) == false || anno == null) {
+        if (anno != null) {
+          (async function () {
+            anno.removeAttribute("selected");
+            //anno.style.zIndex = (editor.annotations[annoID] || { render: {} }).render.sync;
+            //anno.style.pointerEvents = "unset";
+            //anno.style.cursor = "unset";
+            let activeLayer = anno.querySelector(".eSelectActive");
+            if (activeLayer != null) {
+              activeLayer.remove();
+            }
+            selection.style.opacity = 0;
+            await sleep(150);
+            if (selection != null) {
+              selection.remove();
+            }
+          })();
+        } else {
+          delete editor.selecting[annoID];
+          selection.remove();
+        }
       }
     }
     if (selectionIDs.length > 0) {
@@ -715,7 +720,12 @@ modules["pages/editor/toolbar/cursor"] = {
       let annoData = editor.annotations[annoID] || { render: {} };
       let selection = editor.selecting[annoID];
       let anno = content.querySelector('.eAnnotation[anno="' + annoID + '"]');
+      let select = content.querySelector('.eSelect[anno="' + annoID + '"]');
       if (anno == null) {
+        delete editor.selecting[annoID];
+        if (select != null) {
+          select.remove();
+        }
         continue;
       }
       anno.setAttribute("selected", "");
@@ -725,7 +735,6 @@ modules["pages/editor/toolbar/cursor"] = {
         activeLayer = anno.querySelector(".eSelectActive");
       }
       activeLayer.style.zIndex = i;
-      let select = content.querySelector('.eSelect[anno="' + annoID + '"]');
       if (select == null) {
         content.insertAdjacentHTML("beforeend", `<div class="eSelect" new></div>`);
         select = content.querySelector(".eSelect[new]");
@@ -848,10 +857,141 @@ modules["pages/editor/toolbar/cursor"] = {
 modules["pages/editor/toolbar/highlighter"] = {
   mouse: `<svg width="56" height="56" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"> <g filter="url(#filter0_d_235_2)"> <path d="M31.3781 20.4071L30.4384 20.0651L30.0964 21.0048L27.0871 29.2728C26.3315 31.3487 27.4019 33.644 29.4778 34.3996L34.1875 36.1138C36.2634 36.8694 38.5588 35.799 39.3144 33.7231L42.3237 25.4551L42.6657 24.5155L41.726 24.1734L31.3781 20.4071Z" fill="COLOR_REPLACE" fill-opacity="OPACITY_REPLACE" stroke="white" stroke-width="2"/> <path d="M39.3631 30.6623L40.3028 31.0044L40.6448 30.0647L46.8824 12.927C47.6379 10.8511 46.5676 8.55575 44.4917 7.80018L39.7819 6.08596C37.706 5.33039 35.4106 6.40074 34.655 8.47665L28.4175 25.6143L28.0754 26.554L29.0151 26.896L39.3631 30.6623Z" fill="#2F2F2F" stroke="white" stroke-width="2"/> </g> <defs> <filter id="filter0_d_235_2" x="21.8447" y="0.84375" width="30.2803" height="40.5127" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"> <feFlood flood-opacity="0" result="BackgroundImageFix"/> <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/> <feOffset/> <feGaussianBlur stdDeviation="2"/> <feComposite in2="hardAlpha" operator="out"/> <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/> <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_235_2"/> <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_235_2" result="shape"/> </filter> </defs> </svg>`,
   realtimeTool: 1,
-  js: async function (editor, events) {
+  js: async function (editor, utils, addEvent) {
     this.color = editor.preferences.tools.markup.color.selected;
+    this.thickness = editor.preferences.tools.markup.thickness;
     this.opacity = editor.preferences.tools.markup.opacity;
     this.publish = { c: this.color, o: this.opacity };
+
+    body.style.userSelect = "none";
+    editor.page.style.touchAction = "pinch-zoom";
+
+    let markup;
+    let anno;
+    let enableMarkup = async (event) => {
+      editor.toolbar.closeSubSubtoolUI();
+      event.preventDefault();
+      let clientY = clientPosition(event, "y");
+      let [page, number] = await utils.findPage(clientY);
+      let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientY, number);
+      let halfThickness = this.thickness / 2;
+      if (number > 1) {
+        y -= 4; // Remove border-pixel width
+      }
+      let tempID = utils.tempID();
+      let newAnno = {
+        _id: tempID,
+        f: "markup",
+        p: [utils.round(x - halfThickness), utils.round(y - halfThickness)],
+        s: [this.thickness, this.thickness],
+        c: this.color,
+        t: this.thickness,
+        o: this.opacity,
+        d: [utils.round(halfThickness), utils.round(halfThickness)]
+      };
+      if (page != null && page.hasAttribute("pageid") == true) {
+        newAnno.page = page.getAttribute("pageid");
+      }
+      [markup, anno] = await utils.render(newAnno);
+      editor.selecting[tempID] = markup;
+    }
+    let moveMarkup = async (event) => {
+      if (markup == null) {
+        return;
+      }
+      if (mouseDown() == false) {
+        disableMarkup();
+        return;
+      }
+      event.preventDefault();
+      let rect = anno.getBoundingClientRect();
+      let { x, y } = await utils.scaleToDoc(clientPosition(event, "x") - rect.left, Math.floor(event.clientY || ((event.changedTouches || [])[0] || {}).clientY || 0) - rect.top);
+      let halfThickness = markup.t / 2;
+      if (x + halfThickness > markup.s[0]) {
+        markup.s[0] = x + halfThickness;
+      }
+      if (y + halfThickness > markup.s[1]) {
+        markup.s[1] = y + halfThickness;
+      }
+      let sizeIncX = x - halfThickness;
+      if (sizeIncX < 0) {
+        for (let i = 0; i < markup.d.length; i += 2) {
+          markup.d[i] -= sizeIncX;
+        }
+        markup.s[0] -= sizeIncX;
+        markup.p[0] += sizeIncX;
+        x = halfThickness;
+      }
+      let sizeIncY = y - halfThickness;
+      if (sizeIncY < 0) {
+        for (let i = 1; i < markup.d.length; i += 2) {
+          markup.d[i] -= sizeIncY;
+        }
+        markup.s[1] -= sizeIncY;
+        markup.p[1] += sizeIncY;
+        y = halfThickness;
+      }
+      markup.d.push(utils.round(x));
+      markup.d.push(utils.round(y));
+      utils.render(markup, anno);
+      if (markup.d.length > 6150) { // Start new annotation when path too long
+        disableMarkup();
+        enableMarkup(event);
+      }
+    }
+    let disableMarkup = async () => {
+      if (markup == null) {
+        return;
+      }
+      function simplifyPath(points, epsilon) {
+        if (points.length <= 2) {
+          return points;
+        }
+
+        let dmax = 0;
+        let index = 0;
+
+        for (let i = 2; i < points.length - 2; i += 2) {
+          let d = perpendicularDistance(points.slice(i, i + 2), points.slice(0, 2), points.slice(-2));
+          if (d > dmax) {
+            index = i;
+            dmax = d;
+          }
+        }
+
+        if (dmax > epsilon) {
+          let left = simplifyPath(points.slice(0, index + 2), epsilon);
+          let right = simplifyPath(points.slice(index), epsilon);
+          return left.slice(0, left.length - 2).concat(right);
+        } else {
+          if (points[0] !== points[points.length - 2] || points[1] !== points[points.length - 1]) {
+            return [points[0], points[1], points[points.length - 2], points[points.length - 1]];
+          } else {
+            return [points[0], points[1]];
+          }
+        }
+      }
+      function perpendicularDistance(point, lineStart, lineEnd) {
+        return Math.abs((lineEnd[1] - lineStart[1]) * point[0] - (lineEnd[0] - lineStart[0]) * point[1] +
+          lineEnd[0] * lineStart[1] - lineEnd[1] * lineStart[0]) /
+          Math.sqrt(Math.pow(lineEnd[1] - lineStart[1], 2) + Math.pow(lineEnd[0] - lineStart[0], 2));
+      }
+      markup.d = simplifyPath(markup.d, 1); // 999
+
+      utils.save(markup, anno);
+
+      markup.done = true; // Alert other clients that this annotation is done
+      await utils.forceShort();
+      delete editor.selecting[markup._id];
+      markup = null;
+    }
+    let content = editor.page.querySelector(".eContent");
+    addEvent(content, "mousedown", enableMarkup, { passive: false });
+    addEvent(content, "touchstart", enableMarkup, { passive: false });
+    addEvent(content, "mousemove", moveMarkup, { passive: false });
+    addEvent(content, "touchmove", moveMarkup, { passive: false });
+    addEvent(content, "mouseup", disableMarkup, { passive: false });
+    addEvent(content, "touchend", disableMarkup, { passive: false });
   }
 };
 // UNDERLINE TOOL
@@ -860,6 +1000,7 @@ modules["pages/editor/toolbar/underline"] = {
   realtimeTool: 1,
   js: async function (editor, events) {
     this.color = editor.preferences.tools.markup.color.selected;
+    this.thickness = editor.preferences.tools.markup.thickness;
     this.opacity = editor.preferences.tools.markup.opacity;
     this.publish = { c: this.color };
   }
@@ -1523,7 +1664,7 @@ modules["pages/editor/toolbar/color"] = {
         .then((result) => {
           updateStoredValues(result.sRGBHex.substring(1));
         })
-        .catch(() => { });
+        .catch(() => {});
     });
 
     editor.toolbar.updateToolbar();

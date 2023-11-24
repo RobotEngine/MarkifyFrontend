@@ -1773,7 +1773,50 @@ modules["pages/editor/annotation"] = {
     }
     let svg;
     let path;
+    let drawSetPoints = "";
     switch (f) {
+      case "markup":
+        if (anno == null) {
+          annoHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <polyline/>
+            </svg>
+          </div>`);
+          anno = annoHolder.querySelector(".eAnnotation[new]");
+          anno.removeAttribute("new");
+          let line = anno.querySelector("polyline");
+          line.setAttribute("fill", "none");
+        }
+        if (_id != null) {
+          anno.setAttribute("anno", _id);
+        }
+        anno.style.width = width + "px";
+        anno.style.height = height + "px";
+        anno.style.left = x + "px";
+        anno.style.top = y + "px";
+        svg = anno.querySelector("svg");
+        svg.style.zIndex = sync || getEpoch();
+        if (remove != true) {
+          svg.removeAttribute("hidden");
+        } else {
+          svg.setAttribute("hidden", "");
+        }
+        path = svg.querySelector("polyline");
+        svg.viewBox = "0 0 " + (width + (this.SVG_PADDING*2)) + " " + (height + (this.SVG_PADDING*2));
+        if (d.length == 2) {
+          //let dividedT = t / 2;
+          //drawSetPoints = (d[0] - dividedT + this.SVG_PADDING) + "," + (d[1] - dividedT + this.SVG_PADDING) + " " + (d[0] + dividedT + this.SVG_PADDING) + "," + (d[1] + dividedT + this.SVG_PADDING);
+          drawSetPoints = (d[0] + this.SVG_PADDING) + "," + (d[1] + this.SVG_PADDING) + " " + (d[0] + 0.1 + this.SVG_PADDING) + "," + (d[1] + 0.1 + this.SVG_PADDING);
+        } else {
+          for (let i = 0; i < d.length; i += 2) {
+            drawSetPoints += (d[i] + this.SVG_PADDING) + "," + (d[i+1] + this.SVG_PADDING) + " ";
+          }
+        }
+        path.setAttribute("points", drawSetPoints);
+        path.setAttribute("stroke", "#" + c);
+        path.setAttribute("stroke-width", t);
+        path.setAttribute("opacity", o / 100);
+        break;
       case "draw":
         if (anno == null) {
           annoHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
@@ -1804,7 +1847,6 @@ modules["pages/editor/annotation"] = {
         }
         path = svg.querySelector("polyline");
         svg.viewBox = "0 0 " + (width + (this.SVG_PADDING*2)) + " " + (height + (this.SVG_PADDING*2));
-        let drawSetPoints = "";
         if (d.length == 2) {
           //let dividedT = t / 2;
           //drawSetPoints = (d[0] - dividedT + this.SVG_PADDING) + "," + (d[1] - dividedT + this.SVG_PADDING) + " " + (d[0] + dividedT + this.SVG_PADDING) + "," + (d[1] + dividedT + this.SVG_PADDING);
@@ -1913,14 +1955,12 @@ modules["pages/editor/annotation"] = {
         let anno = editor.annotations[mutt._id];
         if (anno != null) {
           if (anno.render != null) {
-            let wasDone = mutt.done == true;
             delete anno.save;
-            delete mutt.done;
             mutt._id = anno.render._id;
             if (anno.retry != true) {
               this.enableTimeout(anno.render._id, anno);
             }
-            if (wasDone != true && anno.render._id.startsWith("pending_") == true) {
+            if (mutt.f == null && anno.render._id.startsWith("pending_") == true) {
               anno.retry = true;
               setPendingSave.push(mutt);
               continue;

@@ -903,9 +903,13 @@ modules["pages/editor"] = {
 
         let pageTextBox = bottomHolder.querySelector(".eCurrentPage");
         pageTextBox.innerHTML = "<b>1</b> / " + body.pages.length;
-        let updatePageScroll = (nextPage) => {
+        let updatePageScroll = (nextPage, animation) => {
           if (nextPage) {
-            window.scrollTo({ top: window.scrollY + nextPage.getBoundingClientRect().top - scrollOffset });
+            let options = { top: window.scrollY + nextPage.getBoundingClientRect().top - scrollOffset };
+            if (animation != false) {
+              options.behavior = "smooth";
+            }
+            window.scrollTo(options);
           }
           if (this.realtime.observing != null && this.realtime.module != null) {
             this.realtime.module.exitObserve();
@@ -955,7 +959,7 @@ modules["pages/editor"] = {
           }
           let setPage = parseInt(pageTextBox.textContent) || 1;
           pageTextBox.innerHTML = "<b>" + setPage + "</b> / " + body.pages.length;
-          updatePageScroll(pageHolder.children[setPage - 1]);
+          updatePageScroll(pageHolder.children[setPage - 1], false);
         });
 
         // Must loop through all pages checking if they are on-screen

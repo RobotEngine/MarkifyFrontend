@@ -937,65 +937,59 @@ modules["pages/editor"] = {
           let pageID = pageElem.getAttribute("pageid");
           let pageData = pages[pageID];
           let canvas;
-          await Promise.all([
-            new Promise(async (resolve) => {
-              // Get page
-              let sourceData = sources[pageData.source];
-              if (sourceData) {
-                sourceData.pdf.getPage(pageData.page).then(async function (pageRender) {
+          await new Promise(async (resolve) => {
+            // Get page
+            let sourceData = sources[pageData.source];
+            if (sourceData) {
+              sourceData.pdf.getPage(pageData.page).then(async function (pageRender) {
+                if (pageElem.hasAttribute("loading") == false) {
+                  resolve();
+                  return;
+                }
+                let viewport = pageRender.getViewport({ scale: 1.5 });
+
+                pageElem.insertAdjacentHTML("beforeend", `<canvas class="ePageContent" new></canvas>`);
+                canvas = pageElem.querySelector(".ePageContent[new]");
+                canvas.removeAttribute("new");
+
+                let context = canvas.getContext("2d");
+
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                //canvas.style.width = viewport.width + "px";
+                //canvas.style.height = viewport.height + "px";
+
+                pageRender.render({
+                  canvasContext: context,
+                  viewport: viewport
+                }).promise.then(function () {
+                  resolve();
+                });
+
+                pageElem.setAttribute("loaded", "");
+
+                pageElem.insertAdjacentHTML("beforeend", `<div class="ePageTextHolder" new></div>`);
+                let textHolder = pageElem.querySelector(".ePageTextHolder[new]");
+                textHolder.removeAttribute("new");
+
+                pageRender.getTextContent().then(function (textContent) {
                   if (pageElem.hasAttribute("loading") == false) {
-                    resolve();
                     return;
                   }
-                  let viewport = pageRender.getViewport({ scale: 1.5 });
-
-                  pageElem.insertAdjacentHTML("beforeend", `<canvas class="ePageContent" new></canvas>`);
-                  canvas = pageElem.querySelector(".ePageContent[new]");
-                  canvas.removeAttribute("new");
-
-                  let context = canvas.getContext("2d");
-
-                  canvas.width = viewport.width;
-                  canvas.height = viewport.height;
-                  //canvas.style.width = viewport.width + "px";
-                  //canvas.style.height = viewport.height + "px";
-
-                  pageRender.render({
-                    canvasContext: context,
-                    viewport: viewport
-                  }).promise.then(function () {
-                    resolve();
+                  pdfjsLib.renderTextLayer({
+                    enhanceTextSelection: true,
+                    textContentSource: textContent,
+                    container: textHolder,
+                    viewport: pageRender.getViewport({ scale: 1 }),
+                    textDivs: []
                   });
-
                   pageElem.setAttribute("loaded", "");
-
-                  pageElem.insertAdjacentHTML("beforeend", `<div class="ePageTextHolder" new></div>`);
-                  let textHolder = pageElem.querySelector(".ePageTextHolder[new]");
-                  textHolder.removeAttribute("new");
-
-                  pageRender.getTextContent().then(function (textContent) {
-                    if (pageElem.hasAttribute("loading") == false) {
-                      return;
-                    }
-                    pdfjsLib.renderTextLayer({
-                      enhanceTextSelection: true,
-                      textContentSource: textContent,
-                      container: textHolder,
-                      viewport: pageRender.getViewport({ scale: 1 }),
-                      textDivs: []
-                    });
-                    pageElem.setAttribute("loaded", "");
-                  });
                 });
-              } else {
-                resolve();
-              }
-            }),
-            new Promise(async (resolve) => {
-              // Get markup
+              });
+            } else {
               resolve();
-            })
-          ]);
+            }
+          });
           // Remove loading
           if (canvas) {
             canvas.style.transition = ".5s";

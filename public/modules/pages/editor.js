@@ -46,7 +46,7 @@ modules["pages/editor"] = {
       </div>
       <div class="eBottom">
         <button class="ePageNav" down><img src="./images/editor/bottom/downarrow.svg"></button>
-        <div class="eCurrentPage"></div>
+        <div class="eCurrentPage border" contenteditable></div>
         <button class="ePageNav" up><img src="./images/editor/bottom/uparrow.svg"></button>
       </div>
     </div>
@@ -110,7 +110,8 @@ modules["pages/editor"] = {
     ".eBottomHolder": `position: fixed; box-sizing: border-box; display: flex; width: 100%; bottom: 0px; gap: 8px; padding: 8px; justify-content: flex-end; z-index: 500`,
     ".eBottom": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px; pointer-events: all`,
     ".ePageNav": `display: flex; width: 31px; height: 31px; margin: 0 4px; justify-content: center; align-items: center; background: var(--lightGray); border-radius: 16px`,
-    ".eCurrentPage": `margin: 0 6px; font-size: 20px`,
+    ".eCurrentPage": `margin: 0 6px; font-size: 20px; outline: unset`,
+    ".eCurrentPage:focus": `padding: 4px 12px; --borderWidth: 3px; --borderColor: var(--secondary); --borderRadius: 19px`,
     ".eObserveHolder": `position: relative; display: none; flex: 1; height: 50px`,
     ".eObserve": `position: absolute; display: flex; box-sizing: border-box; max-width: 100%; height: 50px; padding: 6px; align-items: center; background: var(--purple); box-shadow: var(--lightShadow); border-radius: 16px; overflow: hidden; pointer-events: all`,
     ".eObserve div": `margin: 0 6px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
@@ -900,24 +901,59 @@ modules["pages/editor"] = {
 
         let scrollOffset = 66;
 
-        bottomHolder.querySelector(".eCurrentPage").innerHTML = '<b>1</b> / ' + body.pages.length;
-        bottomHolder.querySelector(".ePageNav[down]").addEventListener("click", () => {
-          let nextPage = pageHolder.children[currentPage] || pageHolder.children[pageHolder.children.length - 1];
+        let pageTextBox = bottomHolder.querySelector(".eCurrentPage");
+        pageTextBox.innerHTML = "<b>1</b> / " + body.pages.length;
+        let updatePageScroll = (nextPage) => {
           if (nextPage) {
             window.scrollTo({ top: window.scrollY + nextPage.getBoundingClientRect().top - scrollOffset, behavior: "smooth" });
           }
           if (this.realtime.observing != null && this.realtime.module != null) {
             this.realtime.module.exitObserve();
           }
+        }
+        bottomHolder.querySelector(".ePageNav[down]").addEventListener("click", () => {
+          updatePageScroll(pageHolder.children[currentPage] || pageHolder.children[pageHolder.children.length - 1]);
         });
         bottomHolder.querySelector(".ePageNav[up]").addEventListener("click", () => {
-          let nextPage = pageHolder.children[currentPage - 2] || pageHolder.children[0];
-          if (nextPage) {
-            window.scrollTo({ top: window.scrollY + nextPage.getBoundingClientRect().top - scrollOffset, behavior: "smooth" });
+          updatePageScroll(pageHolder.children[currentPage - 2] || pageHolder.children[0]);
+        });
+        let pageBoxFocus = false;
+        pageTextBox.addEventListener("focus", async () => {
+          if (pageBoxFocus == true) {
+            return;
           }
-          if (this.realtime.observing != null && this.realtime.module != null) {
-            this.realtime.module.exitObserve();
+          pageTextBox.blur();
+          pageTextBox.textContent = "";
+          pageBoxFocus = true;
+          pageTextBox.focus();
+        });
+        pageTextBox.addEventListener("keydown", (event) => {
+          if (event.keyCode == 13) {
+            event.preventDefault();
+            pageTextBox.blur();
+            return;
           }
+          if (String.fromCharCode(event.keyCode).match(/(\w|\s)/g) && event.key.length == 1) {
+            let textInt = parseInt(pageTextBox.textContent + event.key);
+            if (parseInt(event.key) != event.key) {
+              event.preventDefault();
+              textBoxError(pageTextBox, "Must be a number");
+            } else if (textInt > body.pages.length) {
+              event.preventDefault();
+              textBoxError(pageTextBox, "Maximum of page number " + body.pages.length);
+            } else if (textInt < 1) {
+              event.preventDefault();
+              textBoxError(pageTextBox, "Minimum of the first page");
+            }
+          }
+        });
+        pageTextBox.addEventListener("focusout", (event) => {
+          pageBoxFocus = false;
+          if (pageTextBox.textContent == "") {
+            pageTextBox.innerHTML = "<b>" + currentPage + "</b> / " + body.pages.length;
+            return;
+          }
+          updatePageScroll(pageHolder.children[(parseInt(pageTextBox.textContent) || 1) - 1]);
         });
 
         // Must loop through all pages checking if they are on-screen
@@ -1114,7 +1150,9 @@ modules["pages/editor"] = {
               this.scrollEvent();
             }
           }
-          bottomHolder.querySelector(".eCurrentPage b").textContent = currentPage;
+          if (pageBoxFocus == false) {
+            pageTextBox.innerHTML = "<b>" + currentPage + "</b> / " + body.pages.length;
+          }
           if (currentPage > pageHolder.childElementCount - 1) {
             bottomHolder.querySelector(".ePageNav[down]").setAttribute("disabled", "");
           } else {
@@ -1143,8 +1181,8 @@ modules["pages/editor"] = {
         // Load PDFJS
         if (window.pdfjsLib == null) {
           await loadScript("../libraries/pdfjs/pdf.js");
-          pdfjsLib.GlobalWorkerOptions.workerSrc = "../libraries/pdfjs/pdf.worker.js";
         }
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "./libraries/pdfjs/pdf.worker.js";
         
         // Load sources:
         for (let i = 0; i < body.sources.length; i++) {

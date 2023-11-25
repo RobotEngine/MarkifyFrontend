@@ -896,9 +896,6 @@ modules["pages/editor"] = {
         let pages = getObject(body.pages || [], "_id");
         let sources = getObject(body.sources || [], "_id");
 
-        await loadScript("./libraries/pdfjs/pdf.js");
-        pdfjsLib.GlobalWorkerOptions.workerSrc = "./libraries/pdfjs/pdf.worker.js";
-
         let currentPage = 1;
 
         let scrollOffset = 66;
@@ -1051,24 +1048,6 @@ modules["pages/editor"] = {
               pageElem.setAttribute("loading", "");
               if (sourceData == null || sourceData.pdf) {
                 loadPage(pageElem);
-              } else if (sourceData.loading != true) {
-                sourceData.loading = true;
-
-                // Load PDFJS
-                if (window.pdfjsLib == null) {
-                  await loadScript("../libraries/pdfjs/pdf.js");
-                  pdfjsLib.GlobalWorkerOptions.workerSrc = "../libraries/pdfjs/pdf.worker.js";
-                }
-
-                let loadingTask = pdfjsLib.getDocument(assetURL + sourceData.source);
-                this.loadedPDFs.push(loadingTask);
-                loadingTask.promise.then(function (pdf) {
-                  sourceData.pdf = pdf;
-                  let loadInPages = pageHolder.querySelectorAll('.ePage[sourceid="' + pageData.source + '"][loading]');
-                  for (let i = 0; i < loadInPages.length; i++) {
-                    loadPage(loadInPages[i]);
-                  }
-                });
               }
             }
           }
@@ -1159,6 +1138,26 @@ modules["pages/editor"] = {
             includeSource = ` sourceid="${page.source}"`;
           }
           pageHolder.insertAdjacentHTML("beforeend", `<div class="ePage" pageid="${page._id}"${includeSource} style="width: ${page.width}px; height: ${page.height}px"></div>`);
+        }
+        
+        // Load PDFJS
+        if (window.pdfjsLib == null) {
+          await loadScript("../libraries/pdfjs/pdf.js");
+          pdfjsLib.GlobalWorkerOptions.workerSrc = "../libraries/pdfjs/pdf.worker.js";
+        }
+        
+        // Load sources:
+        for (let i = 0; i < body.sources.length; i++) {
+          let sourceData = body.sources[i];
+          let loadingTask = pdfjsLib.getDocument(assetURL + sourceData.source);
+          this.loadedPDFs.push(loadingTask);
+          loadingTask.promise.then((pdf) => {
+            sourceData.pdf = pdf;
+            let loadInPages = pageHolder.querySelectorAll('.ePage[sourceid="' + sourceData._id + '"][loading]');
+            for (let i = 0; i < loadInPages.length; i++) {
+              loadPage(loadInPages[i]);
+            }
+          });
         }
 
         let scrollPage = getParam("page") || 1;

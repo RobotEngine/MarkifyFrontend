@@ -303,6 +303,9 @@ function loadScript(url) {
       }
     } else {
       let newScript = document.createElement("script");
+      if (url.endsWith(".mjs") == true) {
+        newScript.setAttribute("type", "module");
+      }
       newScript.addEventListener("load", function () {
         newScript.setAttribute("loaded", "");
         resolve(newScript);

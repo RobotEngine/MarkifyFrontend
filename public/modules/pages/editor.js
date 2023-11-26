@@ -294,8 +294,8 @@ modules["pages/editor"] = {
     }
 
     // PRELOAD ASSETS
-    loadScript("./libraries/pdfjs/pdf.js");
-    loadScript("./modules/editor/realtime.js");
+    loadScript("./libraries/pdfjs/pdf.mjs");
+    loadScript("./modules/editor/realtime.mjs");
 
     page.style.removeProperty("display");
     page.style.width = "fit-content";
@@ -1186,9 +1186,9 @@ modules["pages/editor"] = {
         
         // Load PDFJS
         if (window.pdfjsLib == null) {
-          await loadScript("../libraries/pdfjs/pdf.js");
+          await loadScript("./libraries/pdfjs/pdf.mjs");
         }
-        pdfjsLib.GlobalWorkerOptions.workerSrc = "./libraries/pdfjs/pdf.worker.js";
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "./libraries/pdfjs/pdf.worker.mjs";
         
         // Load sources:
         for (let i = 0; i < body.sources.length; i++) {

@@ -1597,6 +1597,49 @@ modules["dropdowns/editor/zoom"] = {
   }
 }
 
+modules["dropdowns/editor/file"] = {
+  html: `
+  <button class="eFileAction" option="dashboard" title="Return to the Dashboard" style="--themeColor: var(--secondary)"><img src="./images/tooltips/back.svg">Dashboard</button>
+  <div class="eFileLine"></div>
+  <button class="eFileAction" option="export" title="Export the lesson into a PDF."><img src="./images/editor/file/export.svg">Export PDF</button>
+  <button class="eFileAction" option="print" title="Export the lesson and print."><img src="./images/editor/file/print.svg">Print</button>
+  <button class="eFileAction" option="copy" title="Create a copy of the lesson."><img src="./images/editor/file/copy.svg">Create Copy</button>
+  <div class="eFileLine"></div>
+  <button class="eFileAction" option="find" title="Find text on the PDF." style="--themeColor: var(--secondary)"><img src="./images/editor/file/search.svg">Find</button>
+  <button class="eFileAction" option="jumptop" title="Jump to the first page." style="--themeColor: var(--secondary)"><img src="./images/editor/bottom/uparrow.svg">Jump to Top</button>
+  <button class="eFileAction" option="jump" title="Jump to page number." style="--themeColor: var(--secondary)"><img src="./images/editor/file/jump.svg">Jump to Page</button>
+  <button class="eFileAction" option="jumpend" title="Jump to the last page." style="--themeColor: var(--secondary)"><img src="./images/editor/bottom/downarrow.svg">Jump to End</button>
+  <div class="eFileLine"></div>
+  <button class="eFileAction" option="properties" title="View lesson properties." style="--themeColor: var(--secondary)"><img src="./images/editor/file/info.svg">Properties</button>
+  <button class="eFileAction" option="ocr" title="Run optical character recognition (OCR)."><img src="./images/editor/file/text.svg">Recognize Text</button>
+  <div class="eFileLine"></div>
+  <button class="eFileAction" option="deletelesson" title="Remove this lesson from your dashboard." style="--themeColor: var(--error)"><img src="./images/editor/file/delete.svg">Delete Lesson</button>
+  <button class="eFileAction" option="deleteannotations" title="Remove all annotations from the lesson." style="--themeColor: var(--error)"><img src="./images/editor/file/delete.svg">Delete Annotations</button>
+  `,
+  css: {
+    ".eFileAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
+    ".eFileAction:not(:last-child)": `margin-bottom: 4px`,
+    ".eFileAction img": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: #fff; border-radius: 4px`,
+    ".eFileAction:hover": `background: var(--themeColor); color: #fff`,
+    ".eFileLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`
+  },
+  js: async function (frame) {
+    let editor = await getModule("pages/editor");
+    frame.querySelector('.eFileAction[option="dashboard"]').addEventListener("click", () => {
+      setFrame("pages/dashboard");
+    });
+    frame.querySelector('.eFileAction[option="jumptop"]').addEventListener("click", () => {
+      window.scrollTo({ top: 0 });
+    });
+    frame.querySelector('.eFileAction[option="jump"]').addEventListener("click", () => {
+      editor.page.querySelector(".eCurrentPage").focus();
+    });
+    frame.querySelector('.eFileAction[option="jumpend"]').addEventListener("click", () => {
+      window.scrollTo({ top: document.body.scrollHeight });
+    });
+  }
+}
+
 modules["pages/editor/annotation"] = {
   findPage: async function (y) {
     let editor = await getModule("pages/editor");

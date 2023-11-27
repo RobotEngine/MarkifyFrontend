@@ -821,7 +821,7 @@ modules["dropdown"] = {
       }
     }, 1);
   },
-  open: async function (button, frameName, extra) {
+  open: async function (button, frameName) {
     let loaded = modules[frameName] != null;
     if (window.dropdown && button.closest(".dropdown")) { // Clicked inside the dropdown
       let dropdown = window.dropdown.dropdown;
@@ -890,7 +890,10 @@ modules["dropdown"] = {
       await sleep(500);
       oldContent.remove();
       content.style.removeProperty("transition");
-      header.querySelector(".dropdownTitle div").style.textOverflow = "ellipsis";
+      let titleDiv = header.querySelector(".dropdownTitle div");
+      if (titleDiv != null) {
+        titleDiv.style.textOverflow = "ellipsis";
+      }
       content.style.pointerEvents = "all";
       //await sleep(100);
       //content.style.overflow = "auto";

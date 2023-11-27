@@ -564,6 +564,16 @@ modules["pages/editor"] = {
           if (this.emailInvite != null) {
             this.emailInvite(data.subTask, body);
           }
+          break;
+        case "removeannotations":
+          let annoKeys = Object.keys(this.annotations);
+          for (let i = 0; i < annoKeys.length; i++) {
+            let anno = this.annotations[annoKeys[i]];
+            if ((anno.revert || anno.render).sync < data.data.sync) {
+              anno.render.remove = true;
+              await utils.render(anno.render);
+            }
+          }
       }
 
       if (this.updateMembersList != null) {
@@ -1612,9 +1622,9 @@ modules["dropdowns/editor/file"] = {
   <div class="eFileLine"></div>
   <button class="eFileAction" option="properties" title="View lesson properties." style="--themeColor: var(--secondary)"><img src="./images/editor/file/info.svg">Properties</button>
   <button class="eFileAction" option="ocr" title="Run optical character recognition (OCR)."><img src="./images/editor/file/text.svg">Recognize Text</button>
-  <div class="eFileLine"></div>
-  <button class="eFileAction" option="deletelesson" title="Remove this lesson from your dashboard." style="--themeColor: var(--error)"><img src="./images/editor/file/delete.svg">Delete Lesson</button>
-  <button class="eFileAction" option="deleteannotations" title="Remove all annotations from the lesson." style="--themeColor: var(--error)"><img src="./images/editor/file/delete.svg">Delete Annotations</button>
+  <div class="eFileLine" option="delete"></div>
+  <button class="eFileAction" option="deletelesson" dropdown="dropdowns/editor/file/delete" title="Remove this lesson from your dashboard." style="--themeColor: var(--error)"><img src="./images/editor/file/delete.svg">Delete Lesson</button>
+  <button class="eFileAction" option="deleteannotations" dropdown="dropdowns/editor/file/delete" title="Remove all annotations from the lesson." style="--themeColor: var(--error)"><img src="./images/editor/file/delete.svg">Delete Annotations</button>
   `,
   css: {
     ".eFileAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
@@ -1627,6 +1637,15 @@ modules["dropdowns/editor/file"] = {
     let editor = await getModule("pages/editor");
     let dropdown = await getModule("dropdown");
     let alert = await getModule("alert");
+    let access = editor.getSelf().access;
+    if (access < 5) {
+      frame.querySelector('.eFileAction[option="deletelesson"]').remove();
+      frame.querySelector('.eFileAction[option="deleteannotations"]').remove();
+      frame.querySelector('.eFileLine[option="delete"]').remove();
+    }
+    if (access < 1) {
+      frame.querySelector('.eFileAction[option="ocr"]').remove();
+    }
     frame.querySelector('.eFileAction[option="dashboard"]').addEventListener("click", () => {
       setFrame("pages/dashboard");
     });
@@ -1637,7 +1656,7 @@ modules["dropdowns/editor/file"] = {
         return;
       }
       copyButton.setAttribute("disabled", "");
-      let copyAlert = alert.open("info", "<b>Creating Copy</b><div>Creating a copy of this lesson's pages and annotations.");
+      let copyAlert = await alert.open("info", "<b>Creating Copy</b><div>Creating a copy of this lesson's pages and annotations.", { time: "never" });
       let [code, body] = await sendRequest("POST", "lessons/copy", null, { session: editor.session });
       copyButton.removeAttribute("disabled");
       alert.close(copyAlert);
@@ -1658,6 +1677,69 @@ modules["dropdowns/editor/file"] = {
     });
   }
 }
+
+modules["dropdowns/editor/file/delete"] = {
+  html: `
+  <div class="eFileDeleteHolder">
+    <img src="./images/editor/file/trash.svg">
+    <div class="eFileDeleteContent">
+      <div class="eFileDeleteTitle"></div>
+      <div class="eFileDeleteDesc"></div>
+    </div>
+  </div>
+  <div class="eFileDeleteOptions">
+    <button class="eFileDeleteConfirm border" style="color: var(--error)">Delete</button>
+    <button class="eFileDeleteCancel border">Cancel</button>
+  </div>
+  `,
+  css: {
+    ".eFileDeleteHolder": `display: flex; flex-wrap: wrap; gap: 6px; justify-content: center`,
+    ".eFileDeleteHolder img": `width: 64px; height: 64px`,
+    ".eFileDeleteTitle": `color: var(--error); font-size: 20px; font-weight: 700; text-align: left`,
+    ".eFileDeleteDesc": `max-width: 240px; font-size: 14px; text-align: left`,
+    ".eFileDeleteOptions": `display: flex; flex-wrap: wrap; width: calc(100% - 16px); margin-top: 12px; justify-content: space-around`,
+    ".eFileDeleteOptions button": `display: flex; height: fit-content; min-height: 36px; padding: 0 12px; margin: 6px; --borderColor: var(--hover); --borderWidth: 3px; --borderRadius: 18px; color: var(--theme); justify-content: center; align-items: center; font-size: 18px; font-weight: 700`,
+    ".eFileDeleteConfirm:hover": `background: var(--error); --borderWidth: 0px; transform: scale(1.1); color: #fff !important`,
+    ".eFileDeleteCancel:hover": `background: var(--theme); --borderWidth: 0px; transform: scale(1.1); color: #fff !important`
+  },
+  js: async function (frame, extra) {
+    let editor = await getModule("pages/editor");
+    let dropdown = await getModule("dropdown");
+    let alert = await getModule("alert");
+    console.log(extra.button)
+    let option = extra.button.getAttribute("option");
+    let title = frame.querySelector(".eFileDeleteTitle");
+    let desc = frame.querySelector(".eFileDeleteDesc");
+    switch (option) {
+      case "deletelesson":
+        title.textContent = "Delete Lesson?";
+        desc.innerHTML = "Are you sure you want to permanently delete this lesson? <b>This cannot be undone!</b>";
+        break;
+      case "deleteannotations":
+          title.textContent = "Delete Annotations?";
+          desc.innerHTML = "Are you sure you want to permanently delete all annotations? <b>This cannot be undone!</b>";
+    }
+    let deleteConfirm = frame.querySelector(".eFileDeleteConfirm");
+    deleteConfirm.addEventListener("click", async () => {
+      deleteConfirm.setAttribute("disabled", "");
+      let deleteAlert = await alert.open("info", "<b>Deleting</b><div>Processing delete request...", { time: "never" });
+      let annotationDelete = "";
+      if (option == "deleteannotations") {
+        annotationDelete = "/annotations";
+      }
+      let [code, body] = await sendRequest("POST", "lessons/delete/" + annotationDelete, null, { session: editor.session });
+      deleteConfirm.removeAttribute("disabled");
+      alert.close(deleteAlert);
+      if (code == 200) {
+        dropdown.close();
+      }
+    });
+    frame.querySelector(".eFileDeleteCancel").addEventListener("click", () => {
+      dropdown.close();
+    });
+  }
+}
+
 
 modules["pages/editor/annotation"] = {
   findPage: async function (y) {

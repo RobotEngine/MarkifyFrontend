@@ -1727,11 +1727,14 @@ modules["dropdowns/editor/file/delete"] = {
       if (option == "deleteannotations") {
         annotationDelete = "/annotations";
       }
-      let [code, body] = await sendRequest("POST", "lessons/delete/" + annotationDelete, null, { session: editor.session });
+      let [code, body] = await sendRequest("POST", "lessons/delete" + annotationDelete, null, { session: editor.session });
       deleteConfirm.removeAttribute("disabled");
       alert.close(deleteAlert);
       if (code == 200) {
         dropdown.close();
+        if (annotationDelete == "") {
+          setFrame("pages/dashboard");
+        }
       }
     });
     frame.querySelector(".eFileDeleteCancel").addEventListener("click", () => {

@@ -979,9 +979,9 @@ modules["pages/editor/toolbar/highlighter"] = {
         markup.d = [markup.d[0], markup.d[1], markup.d[markup.d.length - 2], markup.d[markup.d.length - 1]]; // Strait line
         if (drawModule.horizontalLine(markup.d) == true) {
           let halfThickness = markup.t / 2;
-          markup.d[3] = markup.d[1];
+          let averageY = (markup.d[1] + markup.d[3]) / 2;
           markup.s[1] = markup.t;
-          markup.p[1] += markup.d[1] - halfThickness;
+          markup.p[1] += averageY - halfThickness;
           markup.d[1] = halfThickness;
           markup.d[3] = halfThickness;
         }

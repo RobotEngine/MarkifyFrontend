@@ -1625,8 +1625,27 @@ modules["dropdowns/editor/file"] = {
   },
   js: async function (frame) {
     let editor = await getModule("pages/editor");
+    let dropdown = await getModule("dropdown");
+    let alert = await getModule("alert");
     frame.querySelector('.eFileAction[option="dashboard"]').addEventListener("click", () => {
       setFrame("pages/dashboard");
+    });
+    let copyButton = frame.querySelector('.eFileAction[option="copy"]');
+    copyButton.addEventListener("click", async () => {
+      if (userID == null) {
+        promptLogin();
+        return;
+      }
+      copyButton.setAttribute("disabled", "");
+      let copyAlert = alert.open("info", "<b>Creating Copy</b><div>Creating a copy of this lesson's pages and annotations.");
+      let [code, body] = await sendRequest("POST", "lessons/copy", null, { session: editor.session });
+      copyButton.removeAttribute("disabled");
+      alert.close(copyAlert);
+      if (code == 200) {
+        dropdown.close();
+        modifyParams("lesson", body.lesson);
+        setFrame("pages/editor");
+      }
     });
     frame.querySelector('.eFileAction[option="jumptop"]').addEventListener("click", () => {
       window.scrollTo({ top: 0 });

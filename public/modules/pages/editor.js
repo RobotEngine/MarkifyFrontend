@@ -55,6 +55,9 @@ modules["pages/editor"] = {
       <div class="eContentHolder">
         <div class="ePageHolder"></div>
       </div>
+      <div class="eAddPagesHolder">
+        <button class="eAddPagesButton largeButton" dropdown="dropdowns/new/lesson">Add Pages</button>
+      </div>
     </div>
     <div class="eObserveBorder"></div>
   </div>
@@ -119,7 +122,7 @@ modules["pages/editor"] = {
     ".eObserve button img": `width: 100%; height: 100%`,
     ".eObserveBorder": `position: fixed; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 501`,
 
-    ".eContent": `position: relative; display: flex; width: fit-content; min-width: calc(100% - 132px); min-height: calc(100vh - 132px); padding: 66px; overflow: hidden; justify-content: center; z-index: 0; background-image: url(./images/editor/background.svg); background-position: center; pointer-events: all`,
+    ".eContent": `position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - 132px); min-height: calc(100vh - 132px); padding: 66px; align-items: center; z-index: 0; background-image: url(./images/editor/background.svg); background-position: center; pointer-events: all`,
     ".eContentHolder": `pointer-events: none`,
     ".ePageHolder": `position: relative; width: fit-content; height: fit-content; border-radius: 16px; transform-origin: 0 0; z-index: 1`,
     ".ePage": `position: relative; background: var(--pageColor); transition: .5s`,
@@ -133,6 +136,10 @@ modules["pages/editor"] = {
     ".ePageTextHolder br": `user-select: none`,
     ".ePageAnnotations": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 1; pointer-events: none`,
     ".content[enabled] .ePageAnnotations": `pointer-events: all`,
+    ".eAddPagesHolder": `min-width: 100%; margin-top: 20px`,
+    ".eAddPagesButton": `position: sticky; left: 50%; transform: translateX(-50%); margin: 8px; background: var(--theme); --borderRadius: 20.25px; color: #fff; pointer-events: all`,
+    ".eAddPagesButton:active": `transform: scale(.95) translateX(calc(-50% - 4px)) !important`,
+    
     ".eAnnotation": `position: absolute`,
     ".eAnnotation svg": `position: absolute; width: calc(100% + 200px); height: calc(100% + 200px); left: -100px; top: -100px; pointer-events: none`,
     ".eAnnotation svg polyline": `pointer-events: stroke`,
@@ -440,6 +447,10 @@ modules["pages/editor"] = {
           }
       }
     };
+
+    let pages = {};
+    let sources = {};
+
     let alertModule = await getModule("alert");
     socket.remotes["lesson_" + lessonID] = async (data) => {
       let body = data.data;
@@ -559,6 +570,13 @@ modules["pages/editor"] = {
             }
           }
           enableScrollTop();
+          break;
+        case "addpages":
+          pages = { ...pages, ...getObject(body.pages || [], "_id") };
+          sources = { ...sources, ...getObject(body.sources || [], "_id") };
+          await this.addSources(data.data.sources || []);
+          await this.addPages(data.data.pages || []);
+          this.updatePages();
           break;
         case "invite":
           if (this.emailInvite != null) {
@@ -904,8 +922,8 @@ modules["pages/editor"] = {
 
     switch (this.lesson.type) {
       case "standard":
-        let pages = getObject(body.pages || [], "_id");
-        let sources = getObject(body.sources || [], "_id");
+        pages = { ...pages, ...getObject(body.pages || [], "_id") };
+        sources = { ...sources, ...getObject(body.sources || [], "_id") };
 
         let currentPage = 1;
 
@@ -1185,14 +1203,26 @@ modules["pages/editor"] = {
         tempListen(window, "resize", this.updatePages);
 
         // Load pages:
-        for (let i = 0; i < body.pages.length; i++) {
-          let page = body.pages[i];
-          let includeSource = "";
-          if (page.source) {
-            includeSource = ` sourceid="${page.source}"`;
+        this.addPages = (pages) => {
+          for (let i = 0; i < pages.length; i++) {
+            let page = pages[i];
+            let includeSource = "";
+            if (page.source) {
+              includeSource = ` sourceid="${page.source}"`;
+            }
+            pageHolder.insertAdjacentHTML("beforeend", `<div class="ePage" pageid="${page._id}"${includeSource} order="${page.order}" style="width: ${page.width}px; height: ${page.height}px" new></div>`);
+            let newPage = pageHolder.querySelector(".ePage[new]");
+            newPage.removeAttribute("new");
+            function properSort() {
+              if (newPage.previousElementSibling != null && parseInt(newPage.previousElementSibling.getAttribute("order")) > page.order) {
+                pageHolder.insertBefore(newPage, newPage.previousElementSibling);
+                properSort();
+              }
+            }
+            properSort();
           }
-          pageHolder.insertAdjacentHTML("beforeend", `<div class="ePage" pageid="${page._id}"${includeSource} style="width: ${page.width}px; height: ${page.height}px"></div>`);
         }
+        this.addPages(body.pages);
         
         // Load PDFJS
         if (window.pdfjsLib == null) {
@@ -1201,18 +1231,21 @@ modules["pages/editor"] = {
         pdfjsLib.GlobalWorkerOptions.workerSrc = "./libraries/pdfjs/pdf.worker.mjs";
         
         // Load sources:
-        for (let i = 0; i < body.sources.length; i++) {
-          let sourceData = body.sources[i];
-          let loadingTask = pdfjsLib.getDocument(assetURL + sourceData.source);
-          this.loadedPDFs.push(loadingTask);
-          loadingTask.promise.then((pdf) => {
-            sourceData.pdf = pdf;
-            let loadInPages = pageHolder.querySelectorAll('.ePage[sourceid="' + sourceData._id + '"][loading]');
-            for (let i = 0; i < loadInPages.length; i++) {
-              loadPage(loadInPages[i]);
-            }
-          });
+        this.addSources = (sources) => {
+          for (let i = 0; i < sources.length; i++) {
+            let sourceData = sources[i];
+            let loadingTask = pdfjsLib.getDocument(assetURL + sourceData.source);
+            this.loadedPDFs.push(loadingTask);
+            loadingTask.promise.then((pdf) => {
+              sourceData.pdf = pdf;
+              let loadInPages = pageHolder.querySelectorAll('.ePage[sourceid="' + sourceData._id + '"][loading]');
+              for (let i = 0; i < loadInPages.length; i++) {
+                loadPage(loadInPages[i]);
+              }
+            });
+          }
         }
+        this.addSources(body.sources);
 
         let scrollPage = getParam("page") || 1;
         let scrollElem = pageHolder.children[scrollPage - 1];

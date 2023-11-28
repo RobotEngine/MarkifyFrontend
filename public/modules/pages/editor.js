@@ -571,7 +571,7 @@ modules["pages/editor"] = {
             let anno = this.annotations[annoKeys[i]];
             if ((anno.revert || anno.render).sync < data.data.sync) {
               anno.render.remove = true;
-              await utils.render(anno.render);
+              await utils.render(anno.render, null, true);
             }
           }
       }
@@ -1706,7 +1706,6 @@ modules["dropdowns/editor/file/delete"] = {
     let editor = await getModule("pages/editor");
     let dropdown = await getModule("dropdown");
     let alert = await getModule("alert");
-    console.log(extra.button)
     let option = extra.button.getAttribute("option");
     let title = frame.querySelector(".eFileDeleteTitle");
     let desc = frame.querySelector(".eFileDeleteDesc");

@@ -288,6 +288,9 @@ modules["pages/dashboard/lessons"] = {
 
     let lessons = getObject(body.lessons, "_id");
     function addTile(tileHolder, lessonRec, lesson, insertFirst) {
+      if (lesson == null) {
+        return;
+      }
       let insertAdj = "beforeend";
       if (insertFirst) {
         insertAdj = "afterbegin";

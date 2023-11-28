@@ -1639,9 +1639,14 @@ modules["dropdowns/editor/file"] = {
     let alert = await getModule("alert");
     let access = editor.getSelf().access;
     if (access < 5) {
-      frame.querySelector('.eFileAction[option="deletelesson"]').remove();
       frame.querySelector('.eFileAction[option="deleteannotations"]').remove();
-      frame.querySelector('.eFileLine[option="delete"]').remove();
+      let deleteLesson = frame.querySelector('.eFileAction[option="deletelesson"]');
+      if (userID == null) {
+        deleteLesson.remove();
+        frame.querySelector('.eFileLine[option="delete"]').remove();
+      } else {
+        deleteLesson.innerHTML = `<img src="./images/editor/file/delete.svg">Remove Lesson`;
+      }
     }
     if (access < 1) {
       frame.querySelector('.eFileAction[option="ocr"]').remove();
@@ -1707,12 +1712,18 @@ modules["dropdowns/editor/file/delete"] = {
     let dropdown = await getModule("dropdown");
     let alert = await getModule("alert");
     let option = extra.button.getAttribute("option");
+    let access = editor.getSelf().access;
     let title = frame.querySelector(".eFileDeleteTitle");
     let desc = frame.querySelector(".eFileDeleteDesc");
     switch (option) {
       case "deletelesson":
-        title.textContent = "Delete Lesson?";
-        desc.innerHTML = "Are you sure you want to permanently delete this lesson? <b>This cannot be undone!</b>";
+        if (access < 5) {
+          title.textContent = "Remove Lesson?";
+          desc.innerHTML = "Are you sure you want to remove this lesson from your dashboard? <b>You will need to be invited back to regain access.</b>";
+        } else {
+          title.textContent = "Delete Lesson?";
+          desc.innerHTML = "Are you sure you want to permanently delete this lesson? <b>This cannot be undone!</b>";
+        }
         break;
       case "deleteannotations":
           title.textContent = "Delete Annotations?";

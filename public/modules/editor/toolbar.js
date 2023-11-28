@@ -489,6 +489,9 @@ modules["editor/toolbar"] = {
       frame.style.borderTopRightRadius = "16px";
       frame.style.borderBottomRightRadius = "16px";
       await sleep(300);
+      if (subTools.style.opacity != 0) {
+        return;
+      }
       subToolContent.innerHTML = "";
       subToolContentHolder.style.removeProperty("width");
       subToolContentHolder.style.removeProperty("height");
@@ -574,6 +577,9 @@ modules["editor/toolbar"] = {
       subTools.style.borderTopRightRadius = "16px";
       subTools.style.borderBottomRightRadius = "16px";
       await sleep(300);
+      if (subSubTools.style.opacity != 0) {
+        return;
+      }
       subSubToolContent.innerHTML = "";
       subSubToolContentHolder.style.removeProperty("width");
       subSubToolContentHolder.style.removeProperty("height");

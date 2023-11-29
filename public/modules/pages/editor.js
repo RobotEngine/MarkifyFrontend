@@ -1393,7 +1393,7 @@ modules["pages/editor"] = {
       // Percent Based Distance:
       let pageWidth = fixed.offsetWidth;
       let pageHeight = fixed.offsetHeight;
-      return Math.sqrt((touches[1].clientX - touches[0].clientX)^2 + (touches[1].clientY - touches[0].clientY)^2);
+      return Math.sqrt(((touches[1].clientX / pageWidth) - (touches[0].clientX / pageWidth))^2 + ((touches[1].clientY / pageHeight) - (touches[0].clientY / pageHeight))^2);
     }
     let getCenter = (touches) => {
       return { x: (touches[0].clientX + touches[1].clientX) / 2, y: (touches[0].clientY + touches[1].clientY) / 2 };
@@ -1416,6 +1416,7 @@ modules["pages/editor"] = {
         }
         */
         let currentCenter = getCenter(event.touches);
+        socket.publish({ c: "short_6564e59b467fa3ea92589d30" }, { distance: currentDistance, center: currentCenter, touches: event.touches });
         this.setZoom(startZoom * (currentDistance / startDistance), null, { clientX: currentCenter.x, clientY: currentCenter.y });
       }
     }

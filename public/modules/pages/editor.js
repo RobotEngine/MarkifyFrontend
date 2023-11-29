@@ -1393,13 +1393,13 @@ modules["pages/editor"] = {
       // Percent Based Distance:
       let pageWidth = fixed.offsetWidth;
       let pageHeight = fixed.offsetHeight;
-      return Math.hypot((touches[0].clientX / pageWidth) - (touches[1].clientX / pageWidth), (touches[0].clientY / pageHeight) - (touches[1].clientY / pageHeight));
+      return Math.sqrt(((touches[0].clientX / pageWidth) - (touches[1].clientX / pageWidth))^2 + ((touches[0].clientY / pageHeight) - (touches[1].clientY / pageHeight))^2);
     }
     let getCenter = (touches) => {
       return { x: (touches[0].clientX + touches[1].clientX) / 2, y: (touches[0].clientY + touches[1].clientY) / 2 };
     }
     let handlePinch = (event) => {
-      if (event.touches.length >= 2) {
+      if (event.touches.length > 1) {
         let currentDistance = getDistance(event.touches);
         if (startDistance == null) {
           startDistance = currentDistance;

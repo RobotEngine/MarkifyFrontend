@@ -929,7 +929,7 @@ modules["pages/editor"] = {
         let scrollOffset = 66;
 
         let pageTextBox = bottomHolder.querySelector(".eCurrentPage");
-        pageTextBox.innerHTML = "<b>1</b> / " + body.pages.length;
+        pageTextBox.innerHTML = "<b>1</b> / " + Object.keys(pages).length;
         let updatePageScroll = (nextPage, animation) => {
           if (nextPage) {
             let options = { top: window.scrollY + nextPage.getBoundingClientRect().top - scrollOffset };
@@ -1184,7 +1184,7 @@ modules["pages/editor"] = {
             }
           }
           if (pageBoxFocus == false) {
-            pageTextBox.innerHTML = "<b>" + currentPage + "</b> / " + body.pages.length;
+            pageTextBox.innerHTML = "<b>" + currentPage + "</b> / " + Object.keys(pages).length;
           }
           if (currentPage > pageHolder.childElementCount - 1) {
             bottomHolder.querySelector(".ePageNav[down]").setAttribute("disabled", "");

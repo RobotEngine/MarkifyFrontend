@@ -1393,7 +1393,7 @@ modules["pages/editor"] = {
       // Percent Based Distance:
       let pageWidth = fixed.offsetWidth;
       let pageHeight = fixed.offsetHeight;
-      return Math.sqrt(((touches[1].clientX / pageWidth) - (touches[0].clientX / pageWidth))^2 + ((touches[1].clientY / pageHeight) - (touches[0].clientY / pageHeight))^2);
+      return Math.sqrt((((touches[1].clientX / pageWidth) - (touches[0].clientX / pageWidth))^2) + (((touches[1].clientY / pageHeight) - (touches[0].clientY / pageHeight))^2));
     }
     let getCenter = (touches) => {
       return { x: (touches[0].clientX + touches[1].clientX) / 2, y: (touches[0].clientY + touches[1].clientY) / 2 };

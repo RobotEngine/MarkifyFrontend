@@ -222,7 +222,7 @@ modules["pages/editor"] = {
       }
     };
     this.getSelf = () => {
-      return this.members[this.sessionID];
+      return this.members[this.sessionID] || {};
     };
     let lastAccess;
     this.updateInterface = async (keepDropdowns) => {
@@ -996,7 +996,7 @@ modules["pages/editor"] = {
             break;
           }
         }
-        async function loadPage(pageElem) {
+        let loadPage = async (pageElem) => {
           if (pageElem == null) {
             return;
           }
@@ -1007,7 +1007,7 @@ modules["pages/editor"] = {
             // Get page
             let sourceData = sources[pageData.source];
             if (sourceData) {
-              sourceData.pdf.getPage(pageData.page).then(async function (pageRender) {
+              sourceData.pdf.getPage(pageData.page).then(async (pageRender) => {
                 if (pageElem.hasAttribute("loading") == false) {
                   resolve();
                   return;
@@ -1051,6 +1051,10 @@ modules["pages/editor"] = {
                   });
                   pageElem.setAttribute("loaded", "");
                 });
+                
+                if (this.getSelf().access > 3) { // Only owner(s) can rearrange pages:
+                  //pageElem.insertAdjacentHTML("beforeend", `<button class="ePageRearrange"></button>`);
+                }
               });
             } else {
               resolve();
@@ -1135,6 +1139,9 @@ modules["pages/editor"] = {
               }
               if (page.querySelector(".ePageAnnotations")) {
                 page.querySelector(".ePageAnnotations").remove();
+              }
+              if (page.querySelector(".ePageRearrange")) {
+                page.querySelector(".ePageRearrange").remove();
               }
               page.removeAttribute("loading");
               page.removeAttribute("loaded");

@@ -1386,9 +1386,14 @@ modules["pages/editor"] = {
     tempListen(window, "wheel", scrollMouseWheel, { passive: false });
 
     // Handle MOBILE
-    let lastDistance = 0;
+    let startDistance;
+    let startZoom;
     let getDistance = (touches) => {
-      return Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
+      //return Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
+      // Percent Based Distance:
+      let pageWidth = fixed.offsetWidth;
+      let pageHeight = fixed.offsetHeight;
+      return Math.hypot((touches[0].clientX / pageWidth) - (touches[1].clientX / pageWidth), (touches[0].clientY / pageHeight) - (touches[1].clientY / pageHeight));
     }
     let getCenter = (touches) => {
       return { x: (touches[0].clientX + touches[1].clientX) / 2, y: (touches[0].clientY + touches[1].clientY) / 2 };
@@ -1396,24 +1401,29 @@ modules["pages/editor"] = {
     let handlePinch = (event) => {
       if (event.touches.length >= 2) {
         let currentDistance = getDistance(event.touches);
-        if (lastDistance == currentDistance) {
-          return;
+        if (startDistance == null) {
+          startDistance = currentDistance;
         }
+        if (startZoom == null) {
+          startZoom = this.zoom;
+        }
+        /*
         let delta = 0;
         if (currentDistance > lastDistance) {
           delta = 1;
         } else if (lastDistance < currentDistance) {
           delta = -1;
         }
+        */
         let currentCenter = getCenter(event.touches);
-        this.setZoom(null, null, { wheelDelta: delta, clientX: currentCenter.x, clientY: currentCenter.y });
-        lastDistance = currentDistance;
+        this.setZoom(startZoom * (currentDistance / startDistance), null, { clientX: currentCenter.x, clientY: currentCenter.y });
       }
     }
     tempListen(document, "touchstart", handlePinch, { passive: false });
     tempListen(document, "touchmove", handlePinch, { passive: false });
     tempListen(document, "toucheend", () => {
-      lastDistance = 0;
+      startDistance = null;
+      startZoom = null;
     }, { passive: false });
 
     /*

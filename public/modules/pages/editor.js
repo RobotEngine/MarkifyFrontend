@@ -1366,14 +1366,16 @@ modules["pages/editor"] = {
         }
       }
 
-      if (this.updatePages) {
-        this.updatePages();
-      }
-      if (this.updateZoom) {
-        this.updateZoom();
-      }
+      if (mouse.updatePages != false) {
+        if (this.updatePages) {
+          this.updatePages();
+        }
+        if (this.updateZoom) {
+          this.updateZoom();
+        }
 
-      this.realtime.module.adjustRealtimeHolder();
+        this.realtime.module.adjustRealtimeHolder();
+      }
     }
     let scrollMouseWheel = (event) => {
       if (event.ctrlKey || event.metaKey) {
@@ -1400,6 +1402,7 @@ modules["pages/editor"] = {
     let getCenter = (touches) => {
       return { x: (touches[0].clientX + touches[1].clientX) / 2, y: (touches[0].clientY + touches[1].clientY) / 2 };
     }
+    let finishTimeout;
     let handlePinch = (event) => {
       if (event.touches.length > 1) {
         let currentDistance = getDistance(event.touches);
@@ -1418,7 +1421,18 @@ modules["pages/editor"] = {
         }
         */
         let currentCenter = getCenter(event.touches);
-        this.setZoom(startZoom * (currentDistance / startDistance), null, { clientX: currentCenter.x, clientY: currentCenter.y });
+        this.setZoom(startZoom * (currentDistance / startDistance), null, { clientX: currentCenter.x, clientY: currentCenter.y, updatePages: false });
+        clearTimeout(finishTimeout);
+        finishTimeout = setTimeout(() => {
+          if (this.updatePages) {
+            this.updatePages();
+          }
+          if (this.updateZoom) {
+            this.updateZoom();
+          }
+  
+          this.realtime.module.adjustRealtimeHolder();
+        }, 2000);
       }
     }
     tempListen(document, "touchstart", handlePinch, { passive: false });

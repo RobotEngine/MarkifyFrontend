@@ -136,7 +136,7 @@ modules["pages/editor"] = {
     ".ePageTextHolder br": `user-select: none`,
     ".ePageAnnotations": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 1; pointer-events: none`,
     ".content[enabled] .ePageAnnotations": `pointer-events: all`,
-    ".eAddPagesHolder": `display: flex; min-width: 100%; margin-top: 20px; justify-content: center`,
+    ".eAddPagesHolder": `display: flex; min-width: 100%; margin-top: 20px; z-index: 1; justify-content: center`,
     ".eAddPagesButton": `margin: 8px; background: var(--theme); --borderRadius: 20.25px; color: #fff; pointer-events: all`,
     
     ".eAnnotation": `position: absolute`,

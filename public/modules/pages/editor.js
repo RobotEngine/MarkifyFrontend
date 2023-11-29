@@ -1416,7 +1416,7 @@ modules["pages/editor"] = {
         }
         */
         let currentCenter = getCenter(event.touches);
-        socket.publish({ c: "short_6564e59b467fa3ea92589d30" }, { distance: currentDistance, center: currentCenter, touches: event.touches });
+        socket.publish({ c: "short_6564e59b467fa3ea92589d30" }, { distance: currentDistance, center: currentCenter, touches: JSON.stringify(event.touches) });
         this.setZoom(startZoom * (currentDistance / startDistance), null, { clientX: currentCenter.x, clientY: currentCenter.y });
       }
     }

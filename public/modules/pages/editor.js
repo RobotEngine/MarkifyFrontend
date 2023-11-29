@@ -1647,7 +1647,7 @@ modules["dropdowns/editor/file"] = {
   <button class="eFileAction" option="export" title="Export the lesson into a PDF."><img src="./images/editor/file/export.svg">Export PDF</button>
   <button class="eFileAction" option="print" title="Export the lesson and print."><img src="./images/editor/file/print.svg">Print</button>
   <button class="eFileAction" option="copy" title="Create a copy of the lesson."><img src="./images/editor/file/copy.svg">Create Copy</button>
-  <div class="eFileLine"></div>
+  <div class="eFileLine" option="findjump"></div>
   <button class="eFileAction" option="find" title="Find text on the PDF." style="--themeColor: var(--secondary)"><img src="./images/editor/file/search.svg">Find</button>
   <button class="eFileAction" option="jumptop" title="Jump to the first page." style="--themeColor: var(--secondary)"><img src="./images/editor/bottom/uparrow.svg">Jump to Top</button>
   <button class="eFileAction" option="jump" title="Jump to page number." style="--themeColor: var(--secondary)"><img src="./images/editor/file/jump.svg">Jump to Page</button>
@@ -1671,19 +1671,6 @@ modules["dropdowns/editor/file"] = {
     let dropdown = await getModule("dropdown");
     let alert = await getModule("alert");
     let access = editor.getSelf().access;
-    if (access < 5) {
-      frame.querySelector('.eFileAction[option="deleteannotations"]').remove();
-      let deleteLesson = frame.querySelector('.eFileAction[option="deletelesson"]');
-      if (userID == null) {
-        deleteLesson.remove();
-        frame.querySelector('.eFileLine[option="delete"]').remove();
-      } else {
-        deleteLesson.innerHTML = `<img src="./images/editor/file/delete.svg">Remove Lesson`;
-      }
-    }
-    if (access < 1) {
-      frame.querySelector('.eFileAction[option="ocr"]').remove();
-    }
     frame.querySelector('.eFileAction[option="dashboard"]').addEventListener("click", () => {
       setFrame("pages/dashboard");
     });
@@ -1704,15 +1691,39 @@ modules["dropdowns/editor/file"] = {
         setFrame("pages/editor");
       }
     });
-    frame.querySelector('.eFileAction[option="jumptop"]').addEventListener("click", () => {
+    let find = frame.querySelector('.eFileAction[option="find"]');
+    let jumptop = frame.querySelector('.eFileAction[option="jumptop"]');
+    jumptop.addEventListener("click", () => {
       window.scrollTo({ top: 0 });
     });
-    frame.querySelector('.eFileAction[option="jump"]').addEventListener("click", () => {
+    let jump = frame.querySelector('.eFileAction[option="jump"]');
+    jump.addEventListener("click", () => {
       editor.page.querySelector(".eCurrentPage").focus();
     });
-    frame.querySelector('.eFileAction[option="jumpend"]').addEventListener("click", () => {
+    let jumpend = frame.querySelector('.eFileAction[option="jumpend"]');
+    jumpend.addEventListener("click", () => {
       window.scrollTo({ top: document.body.scrollHeight });
     });
+    if (access < 5) {
+      frame.querySelector('.eFileAction[option="deleteannotations"]').remove();
+      let deleteLesson = frame.querySelector('.eFileAction[option="deletelesson"]');
+      if (userID == null) {
+        deleteLesson.remove();
+        frame.querySelector('.eFileLine[option="delete"]').remove();
+      } else {
+        deleteLesson.innerHTML = `<img src="./images/editor/file/delete.svg">Remove Lesson`;
+      }
+    }
+    if (access < 1) {
+      frame.querySelector('.eFileAction[option="ocr"]').remove();
+    }
+    if (editor.lesson.type == "freeboard") {
+      find.remove();
+      jumptop.remove();
+      jump.remove();
+      jumpend.remove();
+      frame.querySelector('.eFileLine[option="findjump"]').remove();
+    }
   }
 }
 

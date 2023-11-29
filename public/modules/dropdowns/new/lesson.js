@@ -134,7 +134,7 @@ modules["dropdowns/new/lesson"] = {
       frame.removeAttribute("disabled");
       extra.button.removeAttribute("disabled");
       if (code == 200) {
-        dropdown.close();
+        dropdownModule.close();
         modifyParams("lesson", body.lesson);
         setFrame("pages/editor");
       }

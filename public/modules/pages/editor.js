@@ -1255,6 +1255,7 @@ modules["pages/editor"] = {
         break;
       case "freeboard":
         //pageHolder.remove();
+        contentHolder.querySelector(".eAddPagesHolder").remove();
         let updatePageSize = () => {
           pageHolder.style.width = fixed.offsetWidth - 332 + "px";
           pageHolder.style.height = fixed.offsetHeight - 332 + "px";

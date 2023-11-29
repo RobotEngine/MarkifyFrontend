@@ -122,7 +122,7 @@ modules["pages/editor"] = {
     ".eObserve button img": `width: 100%; height: 100%`,
     ".eObserveBorder": `position: fixed; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 501`,
 
-    ".eContent": `position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - 132px); min-height: calc(100vh - 132px); padding: 66px; align-items: center; z-index: 0; background-image: url(./images/editor/background.svg); background-position: center; pointer-events: all`,
+    ".eContent": `position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - 132px); min-height: calc(100vh - 132px); padding: 66px; overflow: hidden; align-items: center; z-index: 0; background-image: url(./images/editor/background.svg); background-position: center; pointer-events: all`,
     ".eContentHolder": `pointer-events: none`,
     ".ePageHolder": `position: relative; width: fit-content; height: fit-content; border-radius: 16px; transform-origin: 0 0; z-index: 1`,
     ".ePage": `position: relative; background: var(--pageColor); transition: .5s`,
@@ -136,9 +136,8 @@ modules["pages/editor"] = {
     ".ePageTextHolder br": `user-select: none`,
     ".ePageAnnotations": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 1; pointer-events: none`,
     ".content[enabled] .ePageAnnotations": `pointer-events: all`,
-    ".eAddPagesHolder": `min-width: 100%; margin-top: 20px`,
-    ".eAddPagesButton": `position: sticky; left: 50%; transform: translateX(-50%); margin: 8px; background: var(--theme); --borderRadius: 20.25px; color: #fff; pointer-events: all`,
-    ".eAddPagesButton:active": `transform: scale(.95) translateX(calc(-50% - 4px)) !important`,
+    ".eAddPagesHolder": `display: flex; min-width: 100%; margin-top: 20px; justify-content: center`,
+    ".eAddPagesButton": `margin: 8px; background: var(--theme); --borderRadius: 20.25px; color: #fff; pointer-events: all`,
     
     ".eAnnotation": `position: absolute`,
     ".eAnnotation svg": `position: absolute; width: calc(100% + 200px); height: calc(100% + 200px); left: -100px; top: -100px; pointer-events: none`,

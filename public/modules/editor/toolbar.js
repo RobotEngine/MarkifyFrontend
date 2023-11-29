@@ -874,6 +874,7 @@ modules["pages/editor/toolbar/highlighter"] = {
     let markup;
     let anno;
     let enableMarkup = async (event) => {
+      disableMarkup();
       editor.toolbar.closeSubSubtoolUI();
       event.preventDefault();
       let clientY = clientPosition(event, "y");
@@ -1024,6 +1025,7 @@ modules["pages/editor/toolbar/underline"] = {
     let markup;
     let anno;
     let enableMarkup = async (event) => {
+      disableMarkup();
       editor.toolbar.closeSubSubtoolUI();
       event.preventDefault();
       let clientY = clientPosition(event, "y");
@@ -1194,6 +1196,7 @@ modules["pages/editor/toolbar/pen"] = {
     let draw;
     let anno;
     let enableDraw = async (event) => {
+      disableDraw();
       editor.toolbar.closeSubSubtoolUI();
       event.preventDefault();
       let clientY = clientPosition(event, "y");

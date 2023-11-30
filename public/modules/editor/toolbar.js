@@ -29,6 +29,9 @@ modules["editor/toolbar"] = {
   </div>
   `,
   css: {
+    ".eToolbar .content": `scrollbar-width: none`,
+    ".eToolbar .content::-webkit-scrollbar": `display: none`,
+
     ".eTool": `width: 50px; height: 50px; flex-shrink: 0; padding: 0; transition: unset`,
     ".eTool > div": `display: flex; width: 100%; height: 100%; justify-content: center; align-items: center; transition: .2s; overflow: hidden`,
     ".eTool:hover > div": `background: var(--hover)`,

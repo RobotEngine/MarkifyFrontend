@@ -432,6 +432,9 @@ function clipBoardRead(event) {
 }
 
 function inViewport(element, onlyHeight) {
+  if (element == null) {
+    return false;
+  }
   let rect = element.getBoundingClientRect();
   let viewportWidth = window.innerWidth || document.documentElement.clientWidth;
   let viewportHeight = window.innerHeight || document.documentElement.clientHeight;

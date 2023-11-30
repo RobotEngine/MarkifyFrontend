@@ -107,7 +107,6 @@ modules["pages/editor"] = {
     ".eLogin": `display: none; padding: 6px 10px; margin: 0 4px; background: var(--secondary); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
 
     ".eSide": `position: fixed; display: flex; gap: 8px; height: calc(100% - 132px); top: 58px; padding: 8px; z-index: 500`,
-    ".eSide::-webkit-scrollbar": `display: none`,
     ".eToolbar": `position: relative; display: flex; box-sizing: border-box; margin: auto 0; align-items: center; pointer-events: all`,
 
     ".eBottomHolder": `position: fixed; box-sizing: border-box; display: flex; width: 100%; bottom: 0px; gap: 8px; padding: 8px; justify-content: flex-end; z-index: 500`,
@@ -122,8 +121,7 @@ modules["pages/editor"] = {
     ".eObserve button img": `width: 100%; height: 100%`,
     ".eObserveBorder": `position: fixed; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 501`,
 
-    ".eContent": `position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - 132px); min-height: calc(100vh - 132px); padding: 66px; overflow: hidden; align-items: center; z-index: 0; background-image: url(./images/editor/background.svg); background-position: center; pointer-events: all`,
-    ".eContentHolder": `pointer-events: none`,
+    ".eContent": `position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - 132px); min-height: calc(100vh - 132px); padding: 66px; align-items: center; z-index: 0; overflow: hidden; pointer-events: all; background-image: url(./images/editor/background.svg); background-position: center`,
     ".ePageHolder": `position: relative; width: fit-content; height: fit-content; border-radius: 16px; transform-origin: 0 0; z-index: 1`,
     ".ePage": `position: relative; background: var(--pageColor); transition: .5s`,
     ".ePage::after": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: -1; content: ""; box-shadow: 0px 0px 8px 0px var(--shadowColor); border-radius: inherit`,
@@ -136,9 +134,10 @@ modules["pages/editor"] = {
     ".ePageTextHolder br": `user-select: none`,
     ".ePageAnnotations": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 1; pointer-events: none`,
     ".content[enabled] .ePageAnnotations": `pointer-events: all`,
-    ".eAddPagesHolder": `display: flex; min-width: 100%; margin-top: 20px; z-index: 1; justify-content: center`,
-    ".eAddPagesButton": `margin: 8px; background: var(--theme); --borderRadius: 20.25px; color: #fff; pointer-events: all`,
-    
+    ".eAddPagesHolder": `display: flex; width: 100% justify-content: center; padding-top: 20px`,
+    ".eAddPagesButton": `display: flex; margin: 8px; z-index: 1; background: var(--theme); --borderRadius: 20.25px; color: #fff; pointer-events: all`,
+    ".ePageRearrange": `position: absolute; display: flex; width: 28px; height: 28px; padding: 4px; right: 8px; bottom: 8px; pointer-events: all; z-index: 2; background: rgba(180, 218, 253, 0.75); backdrop-filter: blur(2px); border-radius: 18px; overflow: hidden`, //transform: scale(var(--fixedUIScale));
+    ".ePageRearrange div": `margin-left: 6px`,
     ".eAnnotation": `position: absolute`,
     ".eAnnotation svg": `position: absolute; width: calc(100% + 200px); height: calc(100% + 200px); left: -100px; top: -100px; pointer-events: none`,
     ".eAnnotation svg polyline": `pointer-events: stroke`,
@@ -591,6 +590,92 @@ modules["pages/editor"] = {
               await utils.render(anno.render, null, true);
             }
           }
+          break;
+        case "removepage":
+          let page = pageHolder.querySelector('.ePage[pageid="' + data.data.page + '"]');
+          if (page != null) {
+            let order = pages[data.data.page].order;
+            delete pages[data.data.page];
+            page.remove();
+            for (let i = 0; i < pageHolder.children.length; i++) {
+              let page = pageHolder.children[i];
+              if (parseInt(page.getAttribute("order")) > order) {
+                page.setAttribute("order", parseInt(page.getAttribute("order")) - 1);
+                pages[page.getAttribute("pageid")].order -= 1;
+              }
+            }
+            let annoKeys = Object.keys(this.annotations);
+            for (let i = 0; i < annoKeys.length; i++) {
+              let anno = this.annotations[annoKeys[i]];
+              if ((anno.revert || anno.render).page == data.data.page) {
+                delete this.annotations[annoKeys[i]];
+              }
+            }
+            this.updatePages();
+          }
+          break;
+        case "pageswap":
+          let pageone = pageHolder.querySelector('.ePage[pageid="' + data.data.pageone + '"]');
+          let pagetwo = pageHolder.querySelector('.ePage[pageid="' + data.data.pagetwo + '"]');
+          let pageoneOrder = pages[data.data.pageone].order;
+          let pagetwoOrder = pages[data.data.pagetwo].order;
+          pages[data.data.pageone].order = pagetwoOrder;
+          pages[data.data.pagetwo].order = pageoneOrder;
+          if (pageoneOrder < pagetwoOrder) {
+            let pagetwoNextChild = pagetwo.nextElementSibling;
+            pageHolder.insertBefore(pagetwo, pageone);
+            if (pagetwoNextChild != null) {
+              pageHolder.insertBefore(pageone, pagetwoNextChild);
+            } else {
+              pageHolder.appendChild(pageone); // Add to end
+            }
+          } else if (pageoneOrder > pagetwoOrder) {
+            let pageoneNextChild = pageone.nextElementSibling;
+            pageHolder.insertBefore(pageone, pagetwo);
+            if (pageoneNextChild != null) {
+              pageHolder.insertBefore(pagetwo, pageoneNextChild);
+            } else {
+              pageHolder.appendChild(pagetwo); // Add to end
+            }
+          }
+          pageone.setAttribute("order", pagetwoOrder);
+          pagetwo.setAttribute("order", pageoneOrder);
+          this.updatePages();
+          break;
+        case "pagetop":
+          let pagetop = pageHolder.querySelector('.ePage[pageid="' + data.data.page + '"]');
+          if (pagetop != null) {
+            let order = pages[data.data.page].order;
+            for (let i = 0; i < pageHolder.children.length; i++) {
+              let page = pageHolder.children[i];
+              if (parseInt(page.getAttribute("order")) < order) {
+                page.setAttribute("order", parseInt(page.getAttribute("order")) + 1);
+                pages[page.getAttribute("pageid")].order += 1;
+              }
+            }
+            pageHolder.insertBefore(pagetop, pageHolder.firstElementChild);
+            pagetop.setAttribute("order", 1);
+            pages[data.data.page].order = 1;
+            this.updatePages();
+          }
+          break;
+        case "pagebottom":
+          let pagebottom = pageHolder.querySelector('.ePage[pageid="' + data.data.page + '"]');
+          if (pagebottom != null) {
+            let order = pages[data.data.page].order;
+            for (let i = 0; i < pageHolder.children.length; i++) {
+              let page = pageHolder.children[i];
+              if (parseInt(page.getAttribute("order")) > order) {
+                page.setAttribute("order", parseInt(page.getAttribute("order")) - 1);
+                pages[page.getAttribute("pageid")].order -= 1;
+              }
+            }
+            pageHolder.appendChild(pagebottom);
+            let newOrder = Object.keys(pages).length;
+            pagebottom.setAttribute("order", newOrder);
+            pages[data.data.page].order = newOrder;
+            this.updatePages();
+          }
       }
 
       if (this.updateMembersList != null) {
@@ -919,6 +1004,8 @@ modules["pages/editor"] = {
     this.visiblePages = [];
     this.updatePages = null;
 
+    let addPagesHolder = contentHolder.querySelector(".eAddPagesHolder");
+
     switch (this.lesson.type) {
       case "standard":
         pages = { ...pages, ...getObject(body.pages || [], "_id") };
@@ -1051,13 +1138,12 @@ modules["pages/editor"] = {
                   });
                   pageElem.setAttribute("loaded", "");
                 });
-                
-                if (this.getSelf().access > 3) { // Only owner(s) can rearrange pages:
-                  //pageElem.insertAdjacentHTML("beforeend", `<button class="ePageRearrange"></button>`);
-                }
               });
             } else {
               resolve();
+            }
+            if (this.getSelf().access > 3) { // Only owner(s) can rearrange pages:
+              pageElem.insertAdjacentHTML("beforeend", `<button class="ePageRearrange" dropdown="dropdowns/editor/rearrange"><img src="./images/editor/dots.svg"><div>Rearrange</div></button>`);
             }
           });
           // Remove loading
@@ -1204,6 +1290,9 @@ modules["pages/editor"] = {
             bottomHolder.querySelector(".ePageNav[up]").removeAttribute("disabled");
           }
           renderPages();
+
+          //addPagesHolder.style.width = (pageHolder.lastElementChild.offsetWidth * this.zoom) + "px";
+          //addPagesHolder.style.marginLeft = utils.marginLeft + "px";
         }
         tempListen(window, "scroll", this.updatePages);
         tempListen(window, "resize", this.updatePages);
@@ -1258,10 +1347,24 @@ modules["pages/editor"] = {
         if (scrollElem != null) {
           window.scrollTo({ top: window.scrollY + scrollElem.getBoundingClientRect().top - scrollOffset });
         }
+
+        /*
+        pageHolder.addEventListener("click", (event) => {
+          let element = event.target;
+          if (element == null) {
+            return;
+          }
+          let editPageOption = event.target.closest(".editPageOption");
+          if (editPageOption == null) {
+            return;
+          }
+
+        });
+        */
         break;
       case "freeboard":
         //pageHolder.remove();
-        contentHolder.querySelector(".eAddPagesHolder").remove();
+        addPagesHolder.remove();
         let updatePageSize = () => {
           pageHolder.style.width = fixed.offsetWidth - 332 + "px";
           pageHolder.style.height = fixed.offsetHeight - 332 + "px";
@@ -1314,6 +1417,7 @@ modules["pages/editor"] = {
 
       //pageHolder.style.zoom = zoom;
       pageHolder.style.transform = `scale(${this.zoom})`; // translate(${(pageHolder.clientWidth * zoom) / 2}px, ${(pageHolder.clientHeight * zoom) / 2}px)
+      //pageHolder.style.setProperty("--fixedUIScale", 1 / this.zoom);
       //pageHolder.style.transformOrigin = mouseX + "px " + mouseY + "px";
       //pageHolder.style.margin = `${(pageHolder.clientHeight - (pageHolder.clientHeight * zoom)) / 2}px ${(pageHolder.clientWidth - (pageHolder.clientWidth * zoom)) / 2}px`;
       //pageHolder.style.transformOrigin = mousePositionX + "px " + mousePositionY + "px";
@@ -1800,23 +1904,29 @@ modules["dropdowns/editor/file/delete"] = {
         }
         break;
       case "deleteannotations":
-          title.textContent = "Delete Annotations?";
-          desc.innerHTML = "Are you sure you want to permanently delete all annotations? <b>This cannot be undone!</b>";
+        title.textContent = "Delete Annotations?";
+        desc.innerHTML = "Are you sure you want to permanently delete all annotations? <b>This cannot be undone!</b>";
+        break;
+      case "deletepage":
+        title.textContent = "Delete Page?";
+        desc.innerHTML = "Are you sure you want to permanently delete this page? <b>This cannot be undone!</b>";
     }
     let deleteConfirm = frame.querySelector(".eFileDeleteConfirm");
     deleteConfirm.addEventListener("click", async () => {
       deleteConfirm.setAttribute("disabled", "");
       let deleteAlert = await alert.open("info", "<b>Deleting</b><div>Processing delete request...", { time: "never" });
-      let annotationDelete = "";
+      let pathAdd = "";
       if (option == "deleteannotations") {
-        annotationDelete = "/annotations";
+        pathAdd = "/annotations";
+      } else if (option == "deletepage") {
+        pathAdd = "/page?page=" + extra.button.getAttribute("pageid");
       }
-      let [code, body] = await sendRequest("DELETE", "lessons/delete" + annotationDelete, null, { session: editor.session });
+      let [code] = await sendRequest("DELETE", "lessons/delete" + pathAdd, null, { session: editor.session });
       deleteConfirm.removeAttribute("disabled");
       alert.close(deleteAlert);
       if (code == 200) {
         dropdown.close();
-        if (annotationDelete == "") {
+        if (pathAdd == "") {
           setFrame("pages/dashboard");
         }
       }
@@ -1827,6 +1937,96 @@ modules["dropdowns/editor/file/delete"] = {
   }
 }
 
+modules["dropdowns/editor/rearrange"] = {
+  html: `
+  <button class="eRearrangeAction" option="movetotop" title="Move this page to the top."><img src="./images/editor/rearrange/uparrow.svg">Move to Top</button>
+  <button class="eRearrangeAction" option="moveup" title="Move this page up one page."><img src="./images/editor/rearrange/up.svg">Move Up</button>
+  <button class="eRearrangeAction" option="movedown" title="Move this page down one page."><img src="./images/editor/rearrange/down.svg">Move Down</button>
+  <button class="eRearrangeAction" option="movetobottom" title="Move this page to the bottom."><img src="./images/editor/rearrange/downarrow.svg">Move to Bottom</button>
+  <div class="eRearrangeLine"></div>
+  <button class="eRearrangeAction" option="deletepage" dropdown="dropdowns/editor/file/delete" title="Remove this page from the lesson." style="--themeColor: var(--error)"><img src="./images/editor/file/delete.svg">Delete Page</button>
+  `,
+  css: {
+    ".eRearrangeAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
+    ".eRearrangeAction:not(:last-child)": `margin-bottom: 4px`,
+    ".eRearrangeAction img": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: #fff; border-radius: 4px`,
+    ".eRearrangeAction:hover": `background: var(--themeColor); color: #fff`,
+    ".eRearrangeLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`
+  },
+  js: async function (frame, extra) {
+    let editor = await getModule("pages/editor");
+    let dropdown = await getModule("dropdown");
+    let alert = await getModule("alert");
+    let page = extra.button.parentElement;
+    let movetotop = frame.querySelector('.eRearrangeAction[option="movetotop"]');
+    let moveup = frame.querySelector('.eRearrangeAction[option="moveup"]');
+    let movedown = frame.querySelector('.eRearrangeAction[option="movedown"]');
+    let movetobottom = frame.querySelector('.eRearrangeAction[option="movetobottom"]');
+    frame.querySelector('.eRearrangeAction[option="deletepage"]').setAttribute("pageid", page.getAttribute("pageid"));
+    let hideButtons = () => {
+      movetotop.setAttribute("disabled", "");
+      moveup.setAttribute("disabled", "");
+      movedown.setAttribute("disabled", "");
+      movetobottom.setAttribute("disabled", "");
+    }
+    let showButtons = () => {
+      movetotop.removeAttribute("disabled");
+      moveup.removeAttribute("disabled");
+      movedown.removeAttribute("disabled");
+      movetobottom.removeAttribute("disabled");
+    }
+    let swapPages = async (pageOne, pageTwo) => {
+      if (pageTwo == null || pageOne == null) {
+        dropdown.close();
+        return;
+      }
+      hideButtons();
+      let moveAlert = await alert.open("info", "<b>Moving Pages</b><div>Processing page swap...", { time: "never" });
+      let [code] = await sendRequest("PUT", "lessons/rearrange/swap?pageone=" + pageOne.getAttribute("pageid") + "&pagetwo=" + pageTwo.getAttribute("pageid"), null, { session: editor.session });
+      showButtons();
+      alert.close(moveAlert);
+      if (code == 200) {
+        dropdown.close();
+      }
+    }
+    movetotop.addEventListener("click", async () => {
+      hideButtons();
+      let moveAlert = await alert.open("info", "<b>Moving Page</b><div>Moving page to the top...", { time: "never" });
+      let [code] = await sendRequest("PUT", "lessons/rearrange/top?page=" + page.getAttribute("pageid"), null, { session: editor.session });
+      showButtons();
+      alert.close(moveAlert);
+      if (code == 200) {
+        dropdown.close();
+        window.scrollTo({ top: 0 });
+      }
+    });
+    moveup.addEventListener("click", async () => {
+      swapPages(page, page.previousElementSibling);
+    });
+    movedown.addEventListener("click", async () => {
+      swapPages(page, page.nextElementSibling);
+    });
+    movetobottom.addEventListener("click", async () => {
+      hideButtons();
+      let moveAlert = await alert.open("info", "<b>Moving Page</b><div>Moving page to the bottom...", { time: "never" });
+      let [code] = await sendRequest("PUT", "lessons/rearrange/bottom?page=" + page.getAttribute("pageid"), null, { session: editor.session });
+      showButtons();
+      alert.close(moveAlert);
+      if (code == 200) {
+        dropdown.close();
+        window.scrollTo({ top: document.body.scrollHeight });
+      }
+    });
+    if (page.previousElementSibling == null) {
+      movetotop.remove();
+      moveup.remove();
+    }
+    if (page.nextElementSibling == null) {
+      movedown.remove();
+      movetobottom.remove();
+    }
+  }
+}
 
 modules["pages/editor/annotation"] = {
   findPage: async function (y) {

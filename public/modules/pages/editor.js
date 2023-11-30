@@ -240,7 +240,7 @@ modules["pages/editor"] = {
     let eTop = page.querySelector(".eTop");
     let eTopScrollLeft = page.querySelector(".eTopScrollLeft");
     let eTopScrollRight = page.querySelector(".eTopScrollRight");
-    
+
     let addPagesHolder = contentHolder.querySelector(".eAddPagesHolder");
 
     this.updateInterface = async (keepDropdowns) => {
@@ -547,7 +547,8 @@ modules["pages/editor"] = {
         case "set":
           objectUpdate(body, this.lesson);
           let setName = this.lesson.name || "Untitled Lesson";
-          page.querySelector(".eFileName").textContent = setName;
+          console.log(page);
+          this.page.querySelector(".eFileName").textContent = setName;
           document.title = setName + " | Markify";
           if (body.hasOwnProperty("pin")) {
             if (this.updatePin) {

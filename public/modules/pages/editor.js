@@ -493,7 +493,7 @@ modules["pages/editor"] = {
                 if (body.access == 1) { // Alert editor
                   alertModule.open("info", "<b>You're Now an Editor</b>You've been granted editing access to markup the lesson!");
                 }
-                this.updateInterface(page);
+                this.updateInterface();
               }
             }
             if (body.observe != null && this.realtime.module != null) {
@@ -871,7 +871,7 @@ modules["pages/editor"] = {
     this.syncMembers(body.members);
     updateMemberCount();
 
-    this.updateInterface(page);
+    this.updateInterface();
 
     (async () => {
       (await getModule("editor/realtime")).js(this, page);

@@ -224,6 +224,25 @@ modules["pages/editor"] = {
       return this.members[this.sessionID] || {};
     };
     let lastAccess;
+
+    // EDITOR
+    let contentHolder = page.querySelector(".eContent");
+    let content = contentHolder.querySelector(".eContentHolder");
+    let pageHolder = content.querySelector(".ePageHolder");
+    let bottomHolder = page.querySelector(".eBottom");
+
+    let saveStatus = page.querySelector(".eStatus");
+    let realtimeHolder = page.querySelector(".eRealtime");
+    let observeHolder = page.querySelector(".eObserveHolder");
+    let observeTag = observeHolder.querySelector(".eObserve");
+    let observeBorder = page.querySelector(".eObserveBorder");
+
+    let eTop = page.querySelector(".eTop");
+    let eTopScrollLeft = page.querySelector(".eTopScrollLeft");
+    let eTopScrollRight = page.querySelector(".eTopScrollRight");
+    
+    let addPagesHolder = contentHolder.querySelector(".eAddPagesHolder");
+
     this.updateInterface = async (keepDropdowns) => {
       let toolbar = page.querySelector(".eToolbar");
       let name = page.querySelector(".eFileName");
@@ -245,10 +264,16 @@ modules["pages/editor"] = {
         toolbar.setAttribute("hidden", "");
         toolbar.offsetHeight;
         toolbar.style.transition = ".3s";
+        if (addPagesHolder != null) {
+          addPagesHolder.setAttribute("hidden", "");
+        }
 
         name.removeAttribute("contenteditable");
       } else {
         toolbar.removeAttribute("hidden");
+        if (addPagesHolder != null) {
+          addPagesHolder.removeAttribute("hidden");
+        }
 
         name.setAttribute("contenteditable", "");
       }
@@ -306,21 +331,6 @@ modules["pages/editor"] = {
     page.style.width = "fit-content";
     page.style.minWidth = "100%";
 
-    // EDITOR
-    let contentHolder = page.querySelector(".eContent");
-    let content = contentHolder.querySelector(".eContentHolder");
-    let pageHolder = content.querySelector(".ePageHolder");
-    let bottomHolder = page.querySelector(".eBottom");
-
-    let saveStatus = page.querySelector(".eStatus");
-    let realtimeHolder = page.querySelector(".eRealtime");
-    let observeHolder = page.querySelector(".eObserveHolder");
-    let observeTag = observeHolder.querySelector(".eObserve");
-    let observeBorder = page.querySelector(".eObserveBorder");
-
-    let eTop = page.querySelector(".eTop");
-    let eTopScrollLeft = page.querySelector(".eTopScrollLeft");
-    let eTopScrollRight = page.querySelector(".eTopScrollRight");
     function enableScrollTop() {
       if (eTop.scrollWidth > eTop.clientWidth - 1) {
         if (eTop.scrollLeft > 0) {
@@ -592,11 +602,11 @@ modules["pages/editor"] = {
           }
           break;
         case "removepage":
-          let page = pageHolder.querySelector('.ePage[pageid="' + data.data.page + '"]');
-          if (page != null) {
+          let pageremove = pageHolder.querySelector('.ePage[pageid="' + data.data.page + '"]');
+          if (pageremove != null) {
             let order = pages[data.data.page].order;
             delete pages[data.data.page];
-            page.remove();
+            pageremove.remove();
             for (let i = 0; i < pageHolder.children.length; i++) {
               let page = pageHolder.children[i];
               if (parseInt(page.getAttribute("order")) > order) {
@@ -1003,8 +1013,6 @@ modules["pages/editor"] = {
 
     this.visiblePages = [];
     this.updatePages = null;
-
-    let addPagesHolder = contentHolder.querySelector(".eAddPagesHolder");
 
     switch (this.lesson.type) {
       case "standard":

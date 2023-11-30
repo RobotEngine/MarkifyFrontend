@@ -916,7 +916,7 @@ modules["pages/editor"] = {
     utils.resetAnnotationSize();
 
     function centerWindowWithPage() {
-      window.scrollTo(window.scrollX + pageHolder.getBoundingClientRect().left - ((fixed.offsetWidth - pageHolder.offsetWidth) / 2), window.scrollY);
+      window.scrollTo(window.scrollX + (pageHolder.firstElementChild || pageHolder).getBoundingClientRect().left - ((fixed.offsetWidth - (pageHolder.firstElementChild || pageHolder).offsetWidth) / 2), window.scrollY);
     }
 
     // Load Annotations:

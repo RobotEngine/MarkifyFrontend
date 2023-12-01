@@ -30,6 +30,9 @@ modules["editor/realtime"] = {
     editor.codeTextButton.setAttribute("dropdown", "dropdowns/editor/share/pin");
 
     this.textColorBackground = (bgColor) => {
+      if (bgColor == null) {
+        return;
+      }
       let color = (bgColor.charAt(0) === '#') ? bgColor.substring(1, 7) : bgColor;
       let r = parseInt(color.substring(0, 2), 16); // hexToR
       let g = parseInt(color.substring(2, 4), 16); // hexToG

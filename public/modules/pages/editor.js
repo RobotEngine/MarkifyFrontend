@@ -548,7 +548,7 @@ modules["pages/editor"] = {
           objectUpdate(body, this.lesson);
           let setName = this.lesson.name || "Untitled Lesson";
           console.log(page);
-          this.page.querySelector(".eFileName").textContent = setName;
+          page.querySelector(".eFileName").textContent = setName;
           document.title = setName + " | Markify";
           if (body.hasOwnProperty("pin")) {
             if (this.updatePin) {

@@ -1049,8 +1049,8 @@ modules["pages/editor"] = {
           if (pageBoxFocus == true) {
             return;
           }
-          pageTextBox.blur();
-          pageTextBox.textContent = "";
+          //pageTextBox.blur();
+          pageTextBox.innerHTML = "";
           pageBoxFocus = true;
           pageTextBox.focus();
         });
@@ -1287,6 +1287,9 @@ modules["pages/editor"] = {
           }
           if (pageBoxFocus == false) {
             pageTextBox.innerHTML = "<b>" + currentPage + "</b> / " + Object.keys(pages).length;
+          } else {
+            pageBoxFocus = false;
+            pageTextBox.blur();
           }
           if (currentPage > pageHolder.childElementCount - 1) {
             bottomHolder.querySelector(".ePageNav[down]").setAttribute("disabled", "");

@@ -77,7 +77,7 @@ modules["pages/editor"] = {
     ".eMain": `position: relative; pointer-events: none`,
 
     ".eTopHolder": `position: fixed; width: 100%; z-index: 500`,
-    ".eTop": `display: flex; box-sizing: border-box; gap: 8px; width: 100%; padding: 8px; overflow-x: auto`,
+    ".eTop": `display: flex; box-sizing: border-box; gap: 8px; width: 100%; padding: 8px; overflow-x: auto; scrollbar-width: none`,
     ".eTop::-webkit-scrollbar": `display: none`,
     ".eTopScroll": `position: absolute; display: flex; width: 36px; height: 36px; top: 50%; transform: translateY(-50%); background: rgba(180, 218, 253, .75); backdrop-filter: blur(2px); opacity: 0; pointer-events: none; border-radius: 18px; justify-content: center; align-items: center; z-index: 200`,
     ".eTopScroll img": `width: 22px`,

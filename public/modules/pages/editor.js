@@ -284,6 +284,11 @@ modules["pages/editor"] = {
         toolbar.style.transition = ".3s";
       }
       */
+      if (this.realtime.observing != null) {
+        toolbar.setAttribute("disabled", "");
+      } else {
+        toolbar.removeAttribute("disabled");
+      }
       if (access < 2) {
         share.style.display = "none";
       } else {

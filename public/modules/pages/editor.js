@@ -1416,15 +1416,18 @@ modules["pages/editor"] = {
       let prevHeight = document.body.scrollHeight;
 
       let delta = Math.max(-1, Math.min(1, (mouse.wheelDelta || -(mouse.detail || 0))));
-      this.zoom = set || (this.zoom + (delta / 10));
+      if (set == null) {
+        set = this.zoom + (delta / 10);
+      }
+      this.zoom = set;
 
       let mouseX = mouse.clientX || ((mouse.changedTouches || [])[0] || {}).clientX || 0;
       let mouseY = mouse.clientY || ((mouse.changedTouches || [])[0] || {}).clientY || 0;
 
       if (this.zoom > 5) {
         this.zoom = 5;
-      } else if (this.zoom < .2) {
-        this.zoom = .2;
+      } else if (this.zoom < .25) {
+        this.zoom = .25;
       }
 
       //pageHolder.style.zoom = zoom;
@@ -1482,7 +1485,7 @@ modules["pages/editor"] = {
         } else {
           fixed.querySelector(".eZoomButton[add]").removeAttribute("disabled");
         }
-        if (this.zoom <= .2) {
+        if (this.zoom <= .25) {
           fixed.querySelector(".eZoomButton[sub]").setAttribute("disabled", "");
         } else {
           fixed.querySelector(".eZoomButton[sub]").removeAttribute("disabled");
@@ -1710,9 +1713,9 @@ modules["dropdowns/editor/zoom"] = {
         if (parseInt(event.key) != event.key) {
           event.preventDefault();
           textBoxError(textBox, "Must be a number");
-        } else if (textInt > 250) {
+        } else if (textInt > 500) {
           event.preventDefault();
-          textBoxError(textBox, "Must be less than 250%");
+          textBoxError(textBox, "Must be less than 500%");
         }
       }
     });
@@ -1724,9 +1727,9 @@ modules["dropdowns/editor/zoom"] = {
       let textInt = parseInt(textBox.textContent) || 0;
       if (textInt == "") {
         setZoomText();
-      } else if (textInt > 250) {
-        textBox.textContent = "250";
-      } else if (textInt < 20) {
+      } else if (textInt > 500) {
+        textBox.textContent = "500";
+      } else if (textInt < 25) {
         textBox.textContent = "20";
       }
       forceSetZoom();

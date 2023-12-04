@@ -1798,17 +1798,17 @@ modules["dropdowns/editor/file"] = {
   html: `
   <button class="eFileAction" option="dashboard" title="Return to the Dashboard" style="--themeColor: var(--secondary)"><img src="./images/tooltips/back.svg">Dashboard</button>
   <div class="eFileLine"></div>
-  <button class="eFileAction" option="export" title="Export the lesson into a PDF."><img src="./images/editor/file/export.svg">Export PDF</button>
-  <button class="eFileAction" option="print" title="Export the lesson and print."><img src="./images/editor/file/print.svg">Print</button>
+  <button class="eFileAction" disabled option="export" title="Export the lesson into a PDF."><img src="./images/editor/file/export.svg">Export PDF</button>
+  <button class="eFileAction" disabled option="print" title="Export the lesson and print."><img src="./images/editor/file/print.svg">Print</button>
   <button class="eFileAction" option="copy" title="Create a copy of the lesson."><img src="./images/editor/file/copy.svg">Create Copy</button>
   <div class="eFileLine" option="findjump"></div>
-  <button class="eFileAction" option="find" title="Find text on the PDF." style="--themeColor: var(--secondary)"><img src="./images/editor/file/search.svg">Find</button>
+  <button class="eFileAction" disabled option="find" title="Find text on the PDF." style="--themeColor: var(--secondary)"><img src="./images/editor/file/search.svg">Find</button>
   <button class="eFileAction" option="jumptop" title="Jump to the first page." style="--themeColor: var(--secondary)"><img src="./images/editor/bottom/uparrow.svg">Jump to Top</button>
   <button class="eFileAction" option="jump" title="Jump to page number." style="--themeColor: var(--secondary)"><img src="./images/editor/file/jump.svg">Jump to Page</button>
   <button class="eFileAction" option="jumpend" title="Jump to the last page." style="--themeColor: var(--secondary)"><img src="./images/editor/bottom/downarrow.svg">Jump to End</button>
   <div class="eFileLine"></div>
-  <button class="eFileAction" option="properties" title="View lesson properties." style="--themeColor: var(--secondary)"><img src="./images/editor/file/info.svg">Properties</button>
-  <button class="eFileAction" option="ocr" title="Run optical character recognition (OCR)."><img src="./images/editor/file/text.svg">Recognize Text</button>
+  <button class="eFileAction" disabled option="properties" title="View lesson properties." style="--themeColor: var(--secondary)"><img src="./images/editor/file/info.svg">Properties</button>
+  <button class="eFileAction" disabled option="ocr" title="Run optical character recognition (OCR)."><img src="./images/editor/file/text.svg">Recognize Text</button>
   <div class="eFileLine" option="delete"></div>
   <button class="eFileAction" option="deletelesson" dropdown="dropdowns/editor/file/delete" title="Remove this lesson from your dashboard." style="--themeColor: var(--error)"><img src="./images/editor/file/delete.svg">Delete Lesson</button>
   <button class="eFileAction" option="deleteannotations" dropdown="dropdowns/editor/file/delete" title="Remove all annotations from the lesson." style="--themeColor: var(--error)"><img src="./images/editor/file/delete.svg">Delete Annotations</button>
@@ -1827,6 +1827,21 @@ modules["dropdowns/editor/file"] = {
     let access = editor.getSelf().access;
     frame.querySelector('.eFileAction[option="dashboard"]').addEventListener("click", () => {
       setFrame("pages/dashboard");
+    });
+    let exportButton = frame.querySelector('.eFileAction[option="export"]');
+    exportButton.addEventListener("click", async () => {
+      if (userID == null) {
+        promptLogin();
+        return;
+      }
+      exportButton.setAttribute("disabled", "");
+      let exportAlert = await alert.open("info", "<b>Exporting Lesson</b><div>Creating PDF document and downloading...", { time: "never" });
+      let [code, body] = await sendRequest("POST", "lessons/export", null, { session: editor.session });
+      exportButton.removeAttribute("disabled");
+      alert.close(exportAlert);
+      if (code == 200) {
+        dropdown.close();
+      }
     });
     let copyButton = frame.querySelector('.eFileAction[option="copy"]');
     copyButton.addEventListener("click", async () => {
@@ -2037,13 +2052,21 @@ modules["dropdowns/editor/rearrange"] = {
         window.scrollTo({ top: document.body.scrollHeight });
       }
     });
-    if (page.previousElementSibling == null) {
+    if (page.previousElementSibling == null && page.nextElementSibling == null) {
+      frame.querySelector(".eRearrangeLine").remove();
       movetotop.remove();
       moveup.remove();
-    }
-    if (page.nextElementSibling == null) {
       movedown.remove();
       movetobottom.remove();
+    } else {
+      if (page.previousElementSibling == null) {
+        movetotop.remove();
+        moveup.remove();
+      }
+      if (page.nextElementSibling == null) {
+        movedown.remove();
+        movetobottom.remove();
+      }
     }
   }
 }

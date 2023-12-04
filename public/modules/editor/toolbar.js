@@ -883,7 +883,7 @@ modules["pages/editor/toolbar/highlighter"] = {
       let clientY = clientPosition(event, "y");
       let [page, number] = await utils.findPage(clientY);
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientY, number);
-      let halfThickness = this.thickness / 2;
+      let halfThickness = utils.round(this.thickness / 2);
       if (number > 1) {
         y -= 4; // Remove border-pixel width
       }
@@ -915,7 +915,7 @@ modules["pages/editor/toolbar/highlighter"] = {
       event.preventDefault();
       let rect = anno.getBoundingClientRect();
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x") - rect.left, clientPosition(event, "y") - rect.top);
-      let halfThickness = markup.t / 2;
+      let halfThickness = utils.round(markup.t / 2);
       if (event.shiftKey == false) {
         if (x + halfThickness > markup.s[0]) {
           markup.s[0] = Math.ceil(x + halfThickness);
@@ -988,7 +988,7 @@ modules["pages/editor/toolbar/highlighter"] = {
       if (drawModule.relativelyStraight(markup.d, 5 * editor.zoom) == true) {
         markup.d = [markup.d[0], markup.d[1], markup.d[markup.d.length - 2], markup.d[markup.d.length - 1]]; // Strait line
         if (drawModule.horizontalLine(markup.d) == true) {
-          let halfThickness = markup.t / 2;
+          let halfThickness = utils.round(markup.t / 2);
           let averageY = (markup.d[1] + markup.d[3]) / 2;
           markup.s[1] = markup.t;
           markup.p[1] = utils.round(markup.p[1] + averageY - halfThickness);
@@ -1034,8 +1034,8 @@ modules["pages/editor/toolbar/underline"] = {
       let clientY = clientPosition(event, "y");
       let [page, number] = await utils.findPage(clientY);
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientY, number);
-      let thickness = Math.max(this.thickness / 4, 1);
-      let halfThickness = thickness / 2;
+      let thickness = utils.round(Math.max(this.thickness / 4, 1));
+      let halfThickness = utils.round(thickness / 2);
       if (number > 1) {
         y -= 4; // Remove border-pixel width
       }
@@ -1068,7 +1068,7 @@ modules["pages/editor/toolbar/underline"] = {
       event.preventDefault();
       let rect = anno.getBoundingClientRect();
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x") - rect.left, clientPosition(event, "y") - rect.top);
-      let halfThickness = markup.t / 2;
+      let halfThickness = utils.round(markup.t / 2);
       let sizeIncX = Math.ceil(x - halfThickness);
       if (sizeIncX < markup.d[0]) {
         markup.d[0] = utils.round(markup.d[0] - sizeIncX);
@@ -1205,7 +1205,7 @@ modules["pages/editor/toolbar/pen"] = {
       let clientY = clientPosition(event, "y");
       let [page, number] = await utils.findPage(clientY);
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientY, number);
-      let halfThickness = this.thickness / 2;
+      let halfThickness = utils.round(this.thickness / 2);
       if (number > 1) {
         y -= 4; // Remove border-pixel width
       }
@@ -1237,7 +1237,7 @@ modules["pages/editor/toolbar/pen"] = {
       event.preventDefault();
       let rect = anno.getBoundingClientRect();
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x") - rect.left, clientPosition(event, "y") - rect.top);
-      let halfThickness = draw.t / 2;
+      let halfThickness = utils.round(draw.t / 2);
       if (event.shiftKey == false) {
         if (x + halfThickness > draw.s[0]) {
           draw.s[0] = Math.ceil(x + halfThickness);

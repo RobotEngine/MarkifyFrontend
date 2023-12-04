@@ -1892,7 +1892,7 @@ modules["pages/editor/toolbar/thickness"] = {
         return;
       }
       let barRect = slider.getBoundingClientRect();
-      toolPref.thickness = Math.ceil((Math.max(Math.min(((event.clientX || event.changedTouches[0].clientX) - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0) * (this.maxValue - this.minValue)) + this.minValue);
+      toolPref.thickness = Math.ceil((Math.max(Math.min((clientPosition(event, "x") - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0) * (this.maxValue - this.minValue)) + this.minValue);
       updateUI();
     }
     editor.events.mouseMove = eventBarUpdate;

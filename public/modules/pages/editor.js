@@ -2105,8 +2105,8 @@ modules["pages/editor/annotation"] = {
     }
     let scaleZoom = 1 / editor.zoom;
     return {
-      x: Math.floor(x * scaleZoom),
-      y: Math.floor(y * scaleZoom)
+      x: this.round(x * scaleZoom),
+      y: this.round(y * scaleZoom)
     }
   },
   scaleToZoom: async function (x, y, p) {

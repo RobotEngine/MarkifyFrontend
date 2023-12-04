@@ -914,61 +914,61 @@ modules["pages/editor/toolbar/highlighter"] = {
       }
       event.preventDefault();
       let rect = anno.getBoundingClientRect();
-      let { x, y } = await utils.scaleToDoc(clientPosition(event, "x") - rect.left, Math.floor(event.clientY || ((event.changedTouches || [])[0] || {}).clientY || 0) - rect.top);
+      let { x, y } = await utils.scaleToDoc(clientPosition(event, "x") - rect.left, clientPosition(event, "y") - rect.top);
       let halfThickness = markup.t / 2;
       if (event.shiftKey == false) {
         if (x + halfThickness > markup.s[0]) {
-          markup.s[0] = x + halfThickness;
+          markup.s[0] = Math.ceil(x + halfThickness);
         }
         if (y + halfThickness > markup.s[1]) {
-          markup.s[1] = y + halfThickness;
+          markup.s[1] = Math.ceil(y + halfThickness);
         }
-        let sizeIncX = x - halfThickness;
+        let sizeIncX = Math.ceil(x - halfThickness);
         if (sizeIncX < 0) {
           for (let i = 0; i < markup.d.length; i += 2) {
-            markup.d[i] -= sizeIncX;
+            markup.d[i] = utils.round(markup.d[i] - sizeIncX);
           }
-          markup.s[0] -= sizeIncX;
-          markup.p[0] += sizeIncX;
+          markup.s[0] = utils.round(markup.s[0] - sizeIncX);
+          markup.p[0] = utils.round(markup.p[0] + sizeIncX);
           x = halfThickness;
         }
-        let sizeIncY = y - halfThickness;
+        let sizeIncY = Math.ceil(y - halfThickness);
         if (sizeIncY < 0) {
           for (let i = 1; i < markup.d.length; i += 2) {
-            markup.d[i] -= sizeIncY;
+            markup.d[i] = utils.round(markup.d[i] - sizeIncY);
           }
-          markup.s[1] -= sizeIncY;
-          markup.p[1] += sizeIncY;
+          markup.s[1] = utils.round(markup.s[1] - sizeIncY);
+          markup.p[1] = utils.round(markup.p[1] + sizeIncY);
           y = halfThickness;
         }
         markup.d.push(utils.round(x));
         markup.d.push(utils.round(y));
       } else {
         markup.d = [markup.d[0], markup.d[1]];
-        let sizeIncX = x - halfThickness;
+        let sizeIncX = Math.ceil(x - halfThickness);
         if (sizeIncX < markup.d[0]) {
-          markup.d[0] -= sizeIncX;
-          markup.s[0] -= sizeIncX;
-          markup.p[0] += sizeIncX;
+          markup.d[0] = utils.round(markup.d[0] - sizeIncX);
+          markup.s[0] = markup.s[0] - sizeIncX;
+          markup.p[0] = utils.round(markup.p[0] + sizeIncX);
           x = halfThickness;
         } else {
-          markup.s[0] = x + halfThickness;
+          markup.s[0] = Math.ceil(x + halfThickness);
         }
-        let sizeIncY = y - halfThickness;
+        let sizeIncY = Math.ceil(y - halfThickness);
         if (sizeIncY < markup.d[1]) {
-          markup.d[1] -= sizeIncY;
-          markup.s[1] -= sizeIncY;
-          markup.p[1] += sizeIncY;
+          markup.d[1] = utils.round(markup.d[1] - sizeIncY);
+          markup.s[1] = markup.s[1] - sizeIncY;
+          markup.p[1] = utils.round(markup.p[1] + sizeIncY);
           y = halfThickness;
         } else {
-          markup.s[1] = y + halfThickness;
+          markup.s[1] = Math.ceil(y + halfThickness);
         }
         markup.d[2] = x;
         markup.d[3] = y;
         if (drawModule.horizontalLine(markup.d) == true) {
           markup.d[3] = markup.d[1];
           markup.s[1] = markup.t;
-          markup.p[1] += markup.d[1] - halfThickness;
+          markup.p[1] = utils.round(markup.p[1] + markup.d[1] - halfThickness);
           markup.d[1] = halfThickness;
           markup.d[3] = halfThickness;
         }
@@ -984,14 +984,14 @@ modules["pages/editor/toolbar/highlighter"] = {
       if (markup == null) {
         return;
       }
-      markup.d = drawModule.simplifyPath(markup.d, 1);
-      if (drawModule.relativelyStraight(markup.d, 5) == true) {
+      markup.d = drawModule.simplifyPath(markup.d, .75 / editor.zoom);
+      if (drawModule.relativelyStraight(markup.d, 5 * editor.zoom) == true) {
         markup.d = [markup.d[0], markup.d[1], markup.d[markup.d.length - 2], markup.d[markup.d.length - 1]]; // Strait line
         if (drawModule.horizontalLine(markup.d) == true) {
           let halfThickness = markup.t / 2;
           let averageY = (markup.d[1] + markup.d[3]) / 2;
           markup.s[1] = markup.t;
-          markup.p[1] += averageY - halfThickness;
+          markup.p[1] = utils.round(markup.p[1] + averageY - halfThickness);
           markup.d[1] = halfThickness;
           markup.d[3] = halfThickness;
         }
@@ -1067,32 +1067,32 @@ modules["pages/editor/toolbar/underline"] = {
       }
       event.preventDefault();
       let rect = anno.getBoundingClientRect();
-      let { x, y } = await utils.scaleToDoc(clientPosition(event, "x") - rect.left, Math.floor(event.clientY || ((event.changedTouches || [])[0] || {}).clientY || 0) - rect.top);
+      let { x, y } = await utils.scaleToDoc(clientPosition(event, "x") - rect.left, clientPosition(event, "y") - rect.top);
       let halfThickness = markup.t / 2;
-      let sizeIncX = x - halfThickness;
+      let sizeIncX = Math.ceil(x - halfThickness);
       if (sizeIncX < markup.d[0]) {
-        markup.d[0] -= sizeIncX;
-        markup.s[0] -= sizeIncX;
-        markup.p[0] += sizeIncX;
+        markup.d[0] = utils.round(markup.d[0] - sizeIncX);
+        markup.s[0] = utils.round(markup.s[0] - sizeIncX);
+        markup.p[0] = utils.round(markup.p[0] + sizeIncX);
         x = halfThickness;
       } else {
-        markup.s[0] = x + halfThickness;
+        markup.s[0] = Math.ceil(x + halfThickness);
       }
-      let sizeIncY = y - halfThickness;
+      let sizeIncY = Math.ceil(y - halfThickness);
       if (sizeIncY < markup.d[1]) {
-        markup.d[1] -= sizeIncY;
-        markup.s[1] -= sizeIncY;
-        markup.p[1] += sizeIncY;
+        markup.d[1] = utils.round(markup.d[1] - sizeIncY);
+        markup.s[1] = utils.round(markup.s[1] - sizeIncY);
+        markup.p[1] = utils.round(markup.p[1] + sizeIncY);
         y = halfThickness;
       } else {
-        markup.s[1] = y + halfThickness;
+        markup.s[1] = Math.ceil(y + halfThickness);
       }
       markup.d[2] = x;
       markup.d[3] = y;
       if (drawModule.horizontalLine(markup.d) == true) {
         markup.d[3] = markup.d[1];
         markup.s[1] = markup.t;
-        markup.p[1] += markup.d[1] - halfThickness;
+        markup.p[1] = utils.round(markup.p[1] + markup.d[1] - halfThickness);
         markup.d[1] = halfThickness;
         markup.d[3] = halfThickness;
       }
@@ -1236,54 +1236,54 @@ modules["pages/editor/toolbar/pen"] = {
       }
       event.preventDefault();
       let rect = anno.getBoundingClientRect();
-      let { x, y } = await utils.scaleToDoc(clientPosition(event, "x") - rect.left, Math.floor(event.clientY || ((event.changedTouches || [])[0] || {}).clientY || 0) - rect.top);
+      let { x, y } = await utils.scaleToDoc(clientPosition(event, "x") - rect.left, clientPosition(event, "y") - rect.top);
       let halfThickness = draw.t / 2;
       if (event.shiftKey == false) {
         if (x + halfThickness > draw.s[0]) {
-          draw.s[0] = x + halfThickness;
+          draw.s[0] = Math.ceil(x + halfThickness);
         }
         if (y + halfThickness > draw.s[1]) {
-          draw.s[1] = y + halfThickness;
+          draw.s[1] = Math.ceil(y + halfThickness);
         }
-        let sizeIncX = x - halfThickness;
+        let sizeIncX = Math.ceil(x - halfThickness);
         if (sizeIncX < 0) {
           for (let i = 0; i < draw.d.length; i += 2) {
-            draw.d[i] -= sizeIncX;
+            draw.d[i] = utils.round(draw.d[i] - sizeIncX);
           }
-          draw.s[0] -= sizeIncX;
-          draw.p[0] += sizeIncX;
+          draw.s[0] = utils.round(draw.s[0] - sizeIncX);
+          draw.p[0] = utils.round(draw.p[0] + sizeIncX);
           x = halfThickness;
         }
-        let sizeIncY = y - halfThickness;
+        let sizeIncY = Math.ceil(y - halfThickness);
         if (sizeIncY < 0) {
           for (let i = 1; i < draw.d.length; i += 2) {
-            draw.d[i] -= sizeIncY;
+            draw.d[i] = utils.round(draw.d[i] - sizeIncY);
           }
-          draw.s[1] -= sizeIncY;
-          draw.p[1] += sizeIncY;
+          draw.s[1] = utils.round(draw.s[1] - sizeIncY);
+          draw.p[1] = utils.round(draw.p[1] + sizeIncY);
           y = halfThickness;
         }
         draw.d.push(utils.round(x));
         draw.d.push(utils.round(y));
       } else {
         draw.d = [draw.d[0], draw.d[1]];
-        let sizeIncX = x - halfThickness;
+        let sizeIncX = Math.ceil(x - halfThickness);
         if (sizeIncX < draw.d[0]) {
-          draw.d[0] -= sizeIncX;
-          draw.s[0] -= sizeIncX;
-          draw.p[0] += sizeIncX;
+          draw.d[0] = utils.round(draw.d[0] - sizeIncX);
+          draw.s[0] = utils.round(draw.s[0] - sizeIncX);
+          draw.p[0] = utils.round(draw.p[0] + sizeIncX);
           x = halfThickness;
         } else {
-          draw.s[0] = x + halfThickness;
+          draw.s[0] = Math.ceil(x + halfThickness);
         }
-        let sizeIncY = y - halfThickness;
+        let sizeIncY = Math.ceil(y - halfThickness);
         if (sizeIncY < draw.d[1]) {
-          draw.d[1] -= sizeIncY;
-          draw.s[1] -= sizeIncY;
-          draw.p[1] += sizeIncY;
+          draw.d[1] = utils.round(draw.d[1] - sizeIncY);
+          draw.s[1] = utils.round(draw.s[1] - sizeIncY);
+          draw.p[1] = utils.round(draw.p[1] + sizeIncY);
           y = halfThickness;
         } else {
-          draw.s[1] = y + halfThickness;
+          draw.s[1] = Math.ceil(y + halfThickness);
         }
         draw.d[2] = x;
         draw.d[3] = y;
@@ -1298,7 +1298,7 @@ modules["pages/editor/toolbar/pen"] = {
       if (draw == null) {
         return;
       }
-      draw.d = this.simplifyPath(draw.d, .75);
+      draw.d = this.simplifyPath(draw.d, .75 / editor.zoom);
 
       utils.save(draw, anno);
 
@@ -1507,7 +1507,7 @@ modules["pages/editor/toolbar/color"] = {
     ".eSubToolColorPickerEyedroper:active": `transform: scale(.95)`,
     ".eSubToolColorPickerTopBack": `position: relative; width: 22px; height: 22px; margin: 3px 3px 3px auto; --borderWidth: 3px; --borderRadius: 11px`,
     ".eSubToolColorPickerTopBack img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
-    ".eSubToolColorPickerShade": `position: relative; width: calc(100% - 20px); height: 120px; margin: 0px 10px 10px`,
+    ".eSubToolColorPickerShade": `position: relative; width: calc(100% - 20px); height: 102px; margin: 0px 10px 10px`,
     ".eSubToolColorPickerShade div": `width: 100%; height: 100%; border-radius: 10px; overflow: hidden`,
     ".eSubToolColorPickerShade canvas": `width: 100%; height: 100%; background: #000`,
     ".eSubToolColorPickerShade button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; background: var(--theme); box-shadow: var(--lightShadow); border: solid 3px var(--pageColor); border-radius: 10px; transition: transform .2s`,
@@ -1783,8 +1783,8 @@ modules["pages/editor/toolbar/color"] = {
         return;
       }
       let barRect = shadeSliderHolder.getBoundingClientRect();
-      s = Math.ceil(Math.max(Math.min(((event.clientX || event.changedTouches[0].clientX) - barRect.x - 2) / shadeSliderHolder.offsetWidth, 1), 0) * 100);
-      v = Math.ceil(Math.max(Math.min((shadeSliderHolder.offsetHeight - ((event.clientY || event.changedTouches[0].clientY) - barRect.y + 2)) / shadeSliderHolder.offsetHeight, 1), 0) * 100);
+      s = Math.ceil(Math.max(Math.min((clientPosition(event, "x") - barRect.x - 2) / shadeSliderHolder.offsetWidth, 1), 0) * 100);
+      v = Math.ceil(Math.max(Math.min((shadeSliderHolder.offsetHeight - (clientPosition(event, "y") - barRect.y + 2)) / shadeSliderHolder.offsetHeight, 1), 0) * 100);
       updateStoredValues();
     }
     let gradientDown = (event) => {

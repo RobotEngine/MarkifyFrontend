@@ -931,8 +931,10 @@ modules["pages/editor"] = {
 
     utils.resetAnnotationSize();
 
+    let currentPage = 1;
     function centerWindowWithPage() {
-      window.scrollTo(window.scrollX + (pageHolder.firstElementChild || pageHolder).getBoundingClientRect().left - ((fixed.offsetWidth - (pageHolder.firstElementChild || pageHolder).offsetWidth) / 2), window.scrollY);
+      let pageChild = pageHolder.children[currentPage - 1] || pageHolder;
+      window.scrollTo(window.scrollX + pageChild.getBoundingClientRect().left - ((fixed.offsetWidth - pageChild.offsetWidth) / 2), window.scrollY);
     }
 
     // Load Annotations:
@@ -1024,8 +1026,6 @@ modules["pages/editor"] = {
       case "standard":
         pages = { ...pages, ...getObject(body.pages || [], "_id") };
         sources = { ...sources, ...getObject(body.sources || [], "_id") };
-
-        let currentPage = 1;
 
         let scrollOffset = 66;
 

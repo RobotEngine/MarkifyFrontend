@@ -1815,7 +1815,7 @@ modules["dropdowns/editor/file"] = {
   <button class="eFileAction" option="dashboard" title="Return to the Dashboard" style="--themeColor: var(--secondary)"><img src="./images/tooltips/back.svg">Dashboard</button>
   <div class="eFileLine"></div>
   <button class="eFileAction" option="export" title="Export the lesson into a PDF."><img src="./images/editor/file/export.svg">Export PDF</button>
-  <button class="eFileAction" disabled option="print" title="Export the lesson and print."><img src="./images/editor/file/print.svg">Print</button>
+  <button class="eFileAction" option="print" title="Export the lesson and print."><img src="./images/editor/file/print.svg">Print</button>
   <button class="eFileAction" option="copy" title="Create a copy of the lesson."><img src="./images/editor/file/copy.svg">Create Copy</button>
   <div class="eFileLine" option="findjump"></div>
   <button class="eFileAction" disabled option="find" title="Find text on the PDF." style="--themeColor: var(--secondary)"><img src="./images/editor/file/search.svg">Find</button>
@@ -1846,16 +1846,35 @@ modules["dropdowns/editor/file"] = {
     });
     let exportButton = frame.querySelector('.eFileAction[option="export"]');
     exportButton.addEventListener("click", async () => {
-      if (userID == null) {
-        promptLogin();
-        return;
-      }
       exportButton.setAttribute("disabled", "");
       let exportAlert = await alert.open("info", "<b>Exporting Lesson</b><div>Creating PDF document and downloading...", { time: "never" });
       let [code, body] = await sendRequest("POST", "lessons/export", null, { session: editor.session });
       exportButton.removeAttribute("disabled");
       alert.close(exportAlert);
       if (code == 200) {
+        window.open(assetURL + body.export);
+        dropdown.close();
+      }
+    });
+    let printButton = frame.querySelector('.eFileAction[option="print"]');
+    printButton.addEventListener("click", async () => {
+      printButton.setAttribute("disabled", "");
+      let exportAlert = await alert.open("info", "<b>Exporting Lesson</b><div>Creating PDF document and downloading...", { time: "never" });
+      let [code, body] = await sendRequest("POST", "lessons/export?type=print", null, { session: editor.session });
+      printButton.removeAttribute("disabled");
+      alert.close(exportAlert);
+      if (code == 200) {
+        document.body.insertAdjacentHTML("beforeend", `<object class="eFileActionPrint" type="application/pdf" data="${assetURL + body.export}" width="100%" height="100%" name="${editor.lesson.name}"><param name="src" value=${assetURL + body.export}/></object>`);
+        document.body.querySelector(".eFileActionPrint").printWithDialog();
+        /*
+        frame.insertAdjacentHTML("beforeend", `<iframe class="eFileActionPrintFrame" style="display: none"></iframe>`);
+        let iframe = frame.querySelector(".eFileActionPrintFrame");
+        iframe.addEventListener("load", () => {
+          iframe.focus();
+          iframe.contentWindow.print();
+        });
+        iframe.src = assetURL + body.export;
+        */
         dropdown.close();
       }
     });

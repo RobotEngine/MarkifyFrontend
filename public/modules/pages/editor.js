@@ -795,6 +795,10 @@ modules["pages/editor"] = {
     if (joinData.from == "pages/join") {
       delete this.session;
     }
+    let paramSession = getParam("member_session") || "";
+    if (paramSession != "" && getParam("export_browser") == "true") {
+      this.session = paramSession;
+    }
     let [code, body, extra] = await sendRequest("POST", "lessons/join?lesson=" + lessonID, sendBody, { session: this.session, allowError: [403, 406] });
     if (code == 403 || code == 406) {
       page.innerHTML = "";

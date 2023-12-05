@@ -634,12 +634,6 @@ async function sendRequest(method, path, body, extra) {
     return [0, "Fetch Error", { took: reqTime }];
   }
 }
-let paramSession = getParam("user_session") || "";
-if (paramSession != "") {
-  let authSplit = paramSession.split(";");
-  setLocalStore("userID", authSplit[0]);
-  setLocalStore("token", JSON.stringify({ session: authSplit[1] }));
-}
 
 function objectUpdate(obj, passData, path) { // obj = Object to apply changes; passData = Object to edit
   path = path || "";

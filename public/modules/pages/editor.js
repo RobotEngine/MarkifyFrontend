@@ -469,6 +469,8 @@ modules["pages/editor"] = {
     let pages = {};
     let sources = {};
 
+    let exportSync;
+
     let alertModule = await getModule("alert");
     socket.remotes["lesson_" + lessonID] = async (data) => {
       let body = data.data;
@@ -697,6 +699,18 @@ modules["pages/editor"] = {
             pages[data.data.page].order = newOrder;
             this.updatePages();
           }
+          break;
+        case "exportstatus":
+          if (this.exportAlert != null) {
+            let alertText = this.exportAlert.querySelector(".alertText div");
+            if (alertText != null) {
+              if (data.data.sync < exportSync) {
+                return;
+              }
+              exportSync = data.data.sync;
+              alertText.textContent = data.data.status;
+            }
+          }
       }
 
       if (this.updateMembersList != null) {
@@ -849,7 +863,7 @@ modules["pages/editor"] = {
         return;
       }
       let params = [];
-      if (this.active == false) {
+      if (this.active == false && this.exporting != true) {
         params.push("idle");
       }
       if (this.realtime.strength == 2) {
@@ -1847,7 +1861,8 @@ modules["dropdowns/editor/file"] = {
     let exportButton = frame.querySelector('.eFileAction[option="export"]');
     exportButton.addEventListener("click", async () => {
       exportButton.setAttribute("disabled", "");
-      let exportAlert = await alert.open("info", "<b>Exporting Lesson</b><div>Creating PDF document and downloading...", { time: "never" });
+      let exportAlert = await alert.open("info", "<b>Exporting Lesson</b><div>Preparing export...</div>", { time: "never" });
+      editor.exportAlert = exportAlert;
       let [code, body] = await sendRequest("POST", "lessons/export", null, { session: editor.session });
       exportButton.removeAttribute("disabled");
       alert.close(exportAlert);
@@ -1859,7 +1874,8 @@ modules["dropdowns/editor/file"] = {
     let printButton = frame.querySelector('.eFileAction[option="print"]');
     printButton.addEventListener("click", async () => {
       printButton.setAttribute("disabled", "");
-      let exportAlert = await alert.open("info", "<b>Exporting Lesson</b><div>Creating PDF document and downloading...", { time: "never" });
+      let exportAlert = await alert.open("info", "<b>Exporting Lesson</b><div>Preparing export...</div>", { time: "never" });
+      editor.exportAlert = exportAlert;
       let [code, body] = await sendRequest("POST", "lessons/export?type=print", null, { session: editor.session });
       printButton.removeAttribute("disabled");
       alert.close(exportAlert);

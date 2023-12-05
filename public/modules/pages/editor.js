@@ -1864,17 +1864,26 @@ modules["dropdowns/editor/file"] = {
       printButton.removeAttribute("disabled");
       alert.close(exportAlert);
       if (code == 200) {
-        document.body.insertAdjacentHTML("beforeend", `<object class="eFileActionPrint" type="application/pdf" data="${assetURL + body.export}" width="100%" height="100%" name="${editor.lesson.name}"><param name="src" value=${assetURL + body.export}/></object>`);
-        document.body.querySelector(".eFileActionPrint").printWithDialog();
-        /*
-        frame.insertAdjacentHTML("beforeend", `<iframe class="eFileActionPrintFrame" style="display: none"></iframe>`);
-        let iframe = frame.querySelector(".eFileActionPrintFrame");
-        iframe.addEventListener("load", () => {
-          iframe.focus();
-          iframe.contentWindow.print();
+        //document.body.insertAdjacentHTML("beforeend", `<object class="eFileActionPrint" type="application/pdf" data="${assetURL + body.export}" width="100%" height="100%" name="${editor.lesson.name}"><param name="src" value=${assetURL + body.export}/></object>`);
+        //document.body.querySelector(".eFileActionPrint").printWithDialog();
+        let blob;
+        await fetch(assetURL + body.export).then(async function(file) {
+          blob = URL.createObjectURL(await file.blob());
         });
-        iframe.src = assetURL + body.export;
-        */
+        if (blob != null) {
+          let oldframe = fixed.querySelector(".eFileActionPrintFrame");
+          if (oldframe != null) {
+            oldframe.remove();
+          }
+          fixed.insertAdjacentHTML("beforeend", `<iframe class="eFileActionPrintFrame" style="display: none"></iframe>`);
+          let iframe = fixed.querySelector(".eFileActionPrintFrame");
+          iframe.addEventListener("load", () => {
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+            URL.revokeObjectURL(blob);
+          });
+          iframe.src = blob;
+        }
         dropdown.close();
       }
     });

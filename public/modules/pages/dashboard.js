@@ -284,7 +284,9 @@ modules["pages/dashboard/lessons"] = {
             case "set":
               for (let i = 0; i < updTiles.length; i++) {
                 let tile = updTiles[i];
-                tile.querySelector(".dTileName").textContent = body.name || "Untitled Lesson";
+                if (body.hasOwnProperty("name")) {
+                  tile.querySelector(".dTileName").textContent = body.name || "Untitled Lesson";
+                }
                 if (body.thumbnail) {
                   tile.querySelector(".dTileDocImage").src = assetURL + body.thumbnail;
                 }

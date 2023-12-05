@@ -148,6 +148,7 @@ modules["pages/editor"] = {
   js: async function (page, joinData) {
     this.page = page;
     this.annotations = {};
+    this.addMargin = 100;
     this.preferences = {
       tools: {
         select: {
@@ -330,11 +331,15 @@ modules["pages/editor"] = {
 
     // PRELOAD ASSETS
     loadScript("./libraries/pdfjs/pdf.mjs");
-    loadScript("./modules/editor/realtime.mjs");
+    loadScript("./modules/editor/realtime.js");
 
     page.style.removeProperty("display");
     page.style.width = "fit-content";
     page.style.minWidth = "100%";
+
+    if (getParam("export_browser") == "true") {
+      loadScript("./modules/editor/export.js");
+    }
 
     function enableScrollTop() {
       if (eTop.scrollWidth > eTop.clientWidth - 1) {
@@ -809,7 +814,7 @@ modules["pages/editor"] = {
 
     this.sessionID = body.session._id;
     this.sessionToken = body.session.token;
-    this.session = body.session._id + ";" + body.session.token;
+    this.session = (this.sessionID + ";" + this.sessionToken);
 
     // Resync unsaved annotations:
     if (window.resync != null && window.resync.lesson == lessonID) {
@@ -889,10 +894,6 @@ modules["pages/editor"] = {
 
     this.updateInterface();
 
-    (async () => {
-      (await getModule("editor/realtime")).js(this, page);
-    })();
-
     page.querySelector(".eLogo").addEventListener("click", function (event) {
       event.preventDefault();
       setFrame("pages/dashboard");
@@ -941,9 +942,9 @@ modules["pages/editor"] = {
     this.loadedIn = [];
     let alreadyLoaded = [];
     let firstLoad = true;
-    let viewAnnotations = async (request) => {
+    this.viewAnnotations = async (request) => {
       let unloadedPages = [];
-      if (this.lesson.type != "freeboard") {
+      if (this.lesson.type != "freeboard" && this.exporting != true) {
         for (let i = 0; i < this.loadedIn.length; i++) {
           let pageid = this.loadedIn[i];
           let editorPage = this.page.querySelector('.ePage[pageid="' + pageid + '"');
@@ -958,7 +959,7 @@ modules["pages/editor"] = {
       let annoKeys = Object.keys(this.annotations);
       for (let i = 0; i < annoKeys.length; i++) {
         let anno = this.annotations[annoKeys[i]];
-        if (unloadedPages.includes(anno.render.page) == true || this.lesson.type == "freeboard") {
+        if (unloadedPages.includes(anno.render.page) == true || this.lesson.type == "freeboard" || this.exporting == true) {
           await utils.render(anno.render);
         }
       }
@@ -969,12 +970,12 @@ modules["pages/editor"] = {
     }
     centerWindowWithPage();
     let getAnnotations = async () => {
-      viewAnnotations();
+      this.viewAnnotations();
       if (connected == false) {
         return;
       }
       let endpoint = "lessons/join/annotations";
-      if (this.lesson.type != "freeboard") {
+      if (this.lesson.type != "freeboard" && getParam("load_all") != "true") {
         let fetchPageIDs = [];
         for (let i = 0; i < this.loadedIn.length; i++) {
           if (alreadyLoaded.includes(this.loadedIn[i]) == false) {
@@ -1008,7 +1009,7 @@ modules["pages/editor"] = {
           this.annotations[addAnno._id] = { render: addAnno};
         }
       }
-      viewAnnotations(true);
+      this.viewAnnotations(true);
       /*
       let fullPageWidth = app.offsetWidth;
       let minX = window.scrollX - fullPageWidth;
@@ -1017,6 +1018,17 @@ modules["pages/editor"] = {
       let minY = window.scrollY - fullPageHeight;
       let maxY = window.scrollY + (fullPageHeight * 2);
       */
+    }
+
+    if (getParam("export_browser") != "true") {
+      (async () => {
+        (await getModule("editor/realtime")).js(this, page);
+      })();
+    } else {
+      (async () => {
+        (await getModule("editor/export")).js(this, page);
+      })();
+      await getAnnotations();
     }
 
     this.visiblePages = [];
@@ -1798,7 +1810,7 @@ modules["dropdowns/editor/file"] = {
   html: `
   <button class="eFileAction" option="dashboard" title="Return to the Dashboard" style="--themeColor: var(--secondary)"><img src="./images/tooltips/back.svg">Dashboard</button>
   <div class="eFileLine"></div>
-  <button class="eFileAction" disabled option="export" title="Export the lesson into a PDF."><img src="./images/editor/file/export.svg">Export PDF</button>
+  <button class="eFileAction" option="export" title="Export the lesson into a PDF."><img src="./images/editor/file/export.svg">Export PDF</button>
   <button class="eFileAction" disabled option="print" title="Export the lesson and print."><img src="./images/editor/file/print.svg">Print</button>
   <button class="eFileAction" option="copy" title="Create a copy of the lesson."><img src="./images/editor/file/copy.svg">Create Copy</button>
   <div class="eFileLine" option="findjump"></div>
@@ -2133,7 +2145,7 @@ modules["pages/editor/annotation"] = {
   annoHolder: async function (pageID) {
     let editor = await getModule("pages/editor");
     let pageHolder = editor.page.querySelector(".ePageHolder");
-    let page = pageHolder.querySelector('.ePage[pageid="' + pageID + '"');
+    let page = pageHolder.querySelector('.ePage[pageid="' + pageID + '"]');
     if (page == null) {
       return pageHolder;
     }
@@ -2164,7 +2176,10 @@ modules["pages/editor/annotation"] = {
     let editor = await getModule("pages/editor");
     let annoKeys = Object.keys(editor.annotations);
     for (let i = 0; i < annoKeys.length; i++) {
-      await this.checkAnnotationSize(editor.annotations[annoKeys[i]].render, true);
+      let anno = editor.annotations[annoKeys[i]].render;
+      if (anno != null) {
+        await this.checkAnnotationSize(anno, true);
+      }
     }
     this.checkAnnotationSize();
   },
@@ -2184,6 +2199,17 @@ modules["pages/editor/annotation"] = {
       let left = -(rect.left - parentRect.left);
       let right = ((rect.left + anno.offsetWidth) - (parentRect.left + anno.parentElement.offsetWidth));
       */
+      
+      if (editor.exporting == true) {
+        let page = editor.page.querySelector('.ePage[pageid="' + (anno.page || "") + '"]');
+        if (page != null && page.hasAttribute("exporting") == false) {
+          return;
+        }
+        if (getParam("no_expand") == "true") {
+          return;
+        }
+      }
+
       if ((anno._id || "").startsWith("pending_") != true || anno.done == true) {
         if (anno.remove != true) {
           let annoHolder = await this.annoHolder(anno.page);
@@ -2221,13 +2247,13 @@ modules["pages/editor/annotation"] = {
     //let contentLeft = pageHolder.getBoundingClientRect().left;
     let contentLeft = this.marginLeft || 0;
     let contentTop = this.marginTop || 0;
-    this.marginLeft = (this.setLeftMargin * editor.zoom) + 100;
-    this.marginTop = (this.setTopMargin * editor.zoom) + 100;
+    this.marginLeft = (this.setLeftMargin * editor.zoom) + editor.addMargin;
+    this.marginTop = (this.setTopMargin * editor.zoom) + editor.addMargin;
     content.style.marginLeft = this.marginLeft + "px";
-    content.style.marginRight = (this.setRightMargin * editor.zoom) + 100 + "px";
+    content.style.marginRight = (this.setRightMargin * editor.zoom) + editor.addMargin + "px";
     if (editor.lesson.type == "freeboard") {
       content.style.marginTop = this.marginTop + "px";
-      content.style.marginBottom = (this.setBottomMargin * editor.zoom) + 100 + "px";
+      content.style.marginBottom = (this.setBottomMargin * editor.zoom) + editor.addMargin + "px";
     }
     window.scrollTo(scrollPosX + (this.marginLeft - contentLeft), scrollPosY + (this.marginTop - contentTop));
     if (editor.realtime.module && editor.realtime.module.adjustRealtimeHolder) {

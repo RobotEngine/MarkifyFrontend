@@ -1143,6 +1143,9 @@ modules["pages/editor"] = {
                   resolve();
                   return;
                 }
+                if (this.exporting == true && pageElem.hasAttribute("exporting") == false) {
+                  return;
+                }
                 let viewport = pageRender.getViewport({ scale: 1.5 });
 
                 pageElem.insertAdjacentHTML("beforeend", `<canvas class="ePageContent" new></canvas>`);

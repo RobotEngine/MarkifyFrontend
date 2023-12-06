@@ -7,6 +7,8 @@ modules["editor/export"] = {
   js: async function (editor, page) {
     editor.exporting = true;
 
+    fixed.style.display = "none";
+
     page.querySelector(".eContent").style.padding = "0px";
     page.querySelector(".eTopHolder").style.display = "none";
     page.querySelector(".eSide").style.display = "none";

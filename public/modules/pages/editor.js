@@ -1027,7 +1027,7 @@ modules["pages/editor"] = {
           this.annotations[addAnno._id] = { render: addAnno};
         }
       }
-      this.viewAnnotations(true);
+      await this.viewAnnotations(true);
       /*
       let fullPageWidth = app.offsetWidth;
       let minX = window.scrollX - fullPageWidth;
@@ -1198,6 +1198,10 @@ modules["pages/editor"] = {
           }
           let loading = pageElem.querySelector(".loading");
           if (loading) {
+            if (this.exporting == true) {
+              loading.remove();
+              return;
+            }
             loading.setAttribute("done", "");
             loading.style.opacity = 0;
             await sleep(500);
@@ -1250,7 +1254,11 @@ modules["pages/editor"] = {
               loading.removeAttribute("new");
               pageElem.setAttribute("loading", "");
               if (sourceData == null || sourceData.pdf) {
-                loadPage(pageElem);
+                if (this.exporting != true) {
+                  loadPage(pageElem);
+                } else {
+                  await loadPage(pageElem);
+                }
               }
             }
           }
@@ -1277,27 +1285,37 @@ modules["pages/editor"] = {
               page.removeAttribute("loaded");
             }
           }
-          getAnnotations();
+          await getAnnotations();
         }
         let scrollSubTimeout;
-        this.updatePages = () => {
+        this.updatePages = async () => {
           // Can go off current page to see which pages are visible or not
           this.visiblePages = [];
           let checkInt = 1;
           if (inViewport(pageHolder.children[currentPage - 1], true)) {
-            this.visiblePages.unshift(currentPage);
+            //if (this.exporting != true || afterPageElem.hasAttribute("exporting") == true) {
+              this.visiblePages.unshift(currentPage);
+            //}
           }
           while (true) {
             let beforeNoRun = true;
             let afterNoRun = true;
             if (currentPage - checkInt > 0) { // Check page before
-              if (inViewport(pageHolder.children[currentPage - checkInt - 1], true)) {
+              let beforePageElem = pageHolder.children[currentPage - checkInt - 1];
+              if (inViewport(beforePageElem, true)) {
+                /* if (this.exporting == true && beforePageElem.hasAttribute("exporting") == false) {
+                  continue;
+                } */
                 this.visiblePages.unshift(currentPage - checkInt);
                 beforeNoRun = false;
               }
             }
             if (currentPage + checkInt < pageHolder.childElementCount + 1) { // Check page after
-              if (inViewport(pageHolder.children[currentPage + checkInt - 1], true)) {
+              let afterPageElem = pageHolder.children[currentPage + checkInt - 1];
+              if (inViewport(afterPageElem, true)) {
+                /* if (this.exporting == true && afterPageElem.hasAttribute("exporting") == false) {
+                  continue;
+                } */
                 this.visiblePages.push(currentPage + checkInt);
                 afterNoRun = false;
               }
@@ -1336,7 +1354,7 @@ modules["pages/editor"] = {
           } else {
             bottomHolder.querySelector(".ePageNav[up]").removeAttribute("disabled");
           }
-          renderPages();
+          await renderPages();
 
           //addPagesHolder.style.width = (pageHolder.lastElementChild.offsetWidth * this.zoom) + "px";
           //addPagesHolder.style.marginLeft = utils.marginLeft + "px";
@@ -1373,16 +1391,25 @@ modules["pages/editor"] = {
         pdfjsLib.GlobalWorkerOptions.workerSrc = "./libraries/pdfjs/pdf.worker.mjs";
         
         // Load sources:
+        let loadedSourceCount = 0;
         this.addSources = (sources) => {
           for (let i = 0; i < sources.length; i++) {
             let sourceData = sources[i];
             let loadingTask = pdfjsLib.getDocument(assetURL + sourceData.source);
             this.loadedPDFs.push(loadingTask);
-            loadingTask.promise.then((pdf) => {
+            loadingTask.promise.then(async (pdf) => {
+              loadedSourceCount++;
               sourceData.pdf = pdf;
               let loadInPages = pageHolder.querySelectorAll('.ePage[sourceid="' + sourceData._id + '"][loading]');
               for (let i = 0; i < loadInPages.length; i++) {
-                loadPage(loadInPages[i]);
+                if (this.exporting != true) {
+                  loadPage(loadInPages[i]);
+                } else {
+                  await loadPage(loadInPages[i]);
+                }
+              }
+              if (window.exportReady && loadedSourceCount >= sources.length) {
+                window.exportReady();
               }
             });
           }
@@ -1395,6 +1422,9 @@ modules["pages/editor"] = {
           window.scrollTo({ top: window.scrollY + scrollElem.getBoundingClientRect().top - scrollOffset });
         }
 
+        if (window.exportReady && body.sources.length < 1) {
+          window.exportReady();
+        }
         /*
         pageHolder.addEventListener("click", (event) => {
           let element = event.target;
@@ -1433,7 +1463,10 @@ modules["pages/editor"] = {
         tempListen(window, "resize", updateScroll);
         updatePageSize();
         bottomHolder.remove();
-        getAnnotations();
+        await getAnnotations();
+        if (window.exportReady) {
+          window.exportReady();
+        }
     }
 
     // Zoom

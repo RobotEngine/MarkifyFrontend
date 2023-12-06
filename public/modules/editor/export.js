@@ -25,10 +25,9 @@ modules["editor/export"] = {
     let pageHolder = page.querySelector(".ePageHolder");
     
     //window.messageA = (event) => {
-    window.addEventListener("message", (event) => {
+    window.addEventListener("message", async (event) => {
       if (event.data && event.data.type === "FROM_NODE") {
         let data = event.data.message;
-        
         switch (data.task) {
           case "setpage":
             let prevExport = pageHolder.querySelector(".ePage[exporting]");
@@ -36,12 +35,16 @@ modules["editor/export"] = {
               prevExport.removeAttribute("exporting");
             }
             pageHolder.children[data.page - 1].setAttribute("exporting", "");
-            utils.resetAnnotationSize();
-            editor.viewAnnotations();
+            await editor.updatePages();
+            await utils.resetAnnotationSize();
+            await editor.viewAnnotations();
             break;
           case "freeboard":
-            utils.resetAnnotationSize();
-            editor.viewAnnotations();
+            await utils.resetAnnotationSize();
+            await editor.viewAnnotations();
+        }
+        if (window.navigationReady) {
+          window.navigationReady();
         }
       }
     });

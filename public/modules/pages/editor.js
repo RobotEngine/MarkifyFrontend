@@ -1400,6 +1400,11 @@ modules["pages/editor"] = {
         this.addSources = (sources) => {
           for (let i = 0; i < sources.length; i++) {
             let sourceData = sources[i];
+            if (getParam("only_thumbnail") == "true" && getParam("export_browser") == "true") {
+              if (pageHolder.firstElementChild == null || pageHolder.firstElementChild.getAttribute("sourceid") != sourceData._id) {
+                continue;
+              }
+            }
             let loadingTask = pdfjsLib.getDocument(assetURL + sourceData.source);
             this.loadedPDFs.push(loadingTask);
             loadingTask.promise.then(async (pdf) => {

@@ -1164,7 +1164,7 @@ modules["pages/editor"] = {
                 pageRender.render({
                   canvasContext: context,
                   viewport: viewport
-                }).promise.then(function () {
+                }).promise.then(() => {
                   resolve();
                 });
 
@@ -1205,13 +1205,11 @@ modules["pages/editor"] = {
           }
           let loading = pageElem.querySelector(".loading");
           if (loading) {
-            if (this.exporting == true) {
-              loading.remove();
-              return;
+            if (this.exporting != true) {
+              loading.setAttribute("done", "");
+              loading.style.opacity = 0;
+              await sleep(500);
             }
-            loading.setAttribute("done", "");
-            loading.style.opacity = 0;
-            await sleep(500);
             loading.remove();
           }
         }
@@ -1240,25 +1238,27 @@ modules["pages/editor"] = {
               return;
             }
             this.loadedIn.push(pageID);
-            if (pageElem.hasAttribute("loading") == false && this.exporting != true) {
+            if (pageElem.hasAttribute("loading") == false) {
               let pageData = pages[pageID];
               let sourceData = sources[pageData.source];
-              pageElem.insertAdjacentHTML("beforeend", loadingAnim);
-              let loading = pageElem.querySelector(".loading[new]");
-              loading.removeAttribute("appload");
-              loading.style.transition = "unset";
-              loading.style.opacity = 0;
-              loading.offsetHeight;
-              loading.style.transition = "opacity .5s";
-              if (page.querySelector(".loading[appload]") == null) {
-                (async function () { // Only show loading after a tiny period of time:
-                  await sleep(500);
-                  if (loading && loading.hasAttribute("done") == false) {
-                    loading.style.opacity = 1;
-                  }
-                })();
+              if (this.exporting != true) {
+                pageElem.insertAdjacentHTML("beforeend", loadingAnim);
+                let loading = pageElem.querySelector(".loading[new]");
+                loading.removeAttribute("appload");
+                loading.style.transition = "unset";
+                loading.style.opacity = 0;
+                loading.offsetHeight;
+                loading.style.transition = "opacity .5s";
+                if (page.querySelector(".loading[appload]") == null) {
+                  (async function () { // Only show loading after a tiny period of time:
+                    await sleep(500);
+                    if (loading && loading.hasAttribute("done") == false) {
+                      loading.style.opacity = 1;
+                    }
+                  })();
+                }
+                loading.removeAttribute("new");
               }
-              loading.removeAttribute("new");
               pageElem.setAttribute("loading", "");
               if (sourceData == null || sourceData.pdf) {
                 if (this.exporting != true) {

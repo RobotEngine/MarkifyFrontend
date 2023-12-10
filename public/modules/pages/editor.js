@@ -1418,7 +1418,7 @@ modules["pages/editor"] = {
                   await loadPage(loadInPages[i]);
                 }
               }
-              if (window.exportReady && loadedSourceCount >= sources.length) {
+              if (window.exportReady && (loadedSourceCount >= sources.length || getParam("only_thumbnail") == "true")) {
                 window.exportReady();
               }
             });
@@ -1474,6 +1474,7 @@ modules["pages/editor"] = {
         updatePageSize();
         bottomHolder.remove();
         await getAnnotations();
+        utils.resetAnnotationSize();
         if (window.exportReady) {
           window.exportReady();
         }

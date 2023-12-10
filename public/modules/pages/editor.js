@@ -1238,7 +1238,7 @@ modules["pages/editor"] = {
               return;
             }
             this.loadedIn.push(pageID);
-            if (pageElem.hasAttribute("loading") == false) {
+            if (pageElem.hasAttribute("loading") == false && this.exporting != true) {
               let pageData = pages[pageID];
               let sourceData = sources[pageData.source];
               pageElem.insertAdjacentHTML("beforeend", loadingAnim);

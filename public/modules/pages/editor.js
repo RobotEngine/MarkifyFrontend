@@ -472,6 +472,7 @@ modules["pages/editor"] = {
     let exportSync;
 
     let alertModule = await getModule("alert");
+    let dropdownModule = await getModule("dropdown");
     socket.remotes["lesson_" + lessonID] = async (data) => {
       let body = data.data;
       /*
@@ -709,6 +710,37 @@ modules["pages/editor"] = {
               }
               exportSync = data.data.sync;
               alertText.textContent = data.data.status;
+              clearTimeout(this.exportAlertTimeout);
+              this.exportAlertTimeout = setTimeout(() => {
+                alertModule.close(this.exportAlert);
+              }, 30000);
+              if (data.data.type != null) {
+                alertModule.close(this.exportAlert);
+                if (data.data.type == "download") {
+                  window.open(assetURL + data.data.export);
+                  dropdownModule.close();
+                } else if (data.data.type == "print") {
+                  let blob;
+                  await fetch(assetURL + data.data.export).then(async function(file) {
+                    blob = URL.createObjectURL(await file.blob());
+                  });
+                  if (blob != null) {
+                    let oldframe = fixed.querySelector(".eFileActionPrintFrame");
+                    if (oldframe != null) {
+                      oldframe.remove();
+                    }
+                    fixed.insertAdjacentHTML("beforeend", `<iframe class="eFileActionPrintFrame" style="display: none"></iframe>`);
+                    let iframe = fixed.querySelector(".eFileActionPrintFrame");
+                    iframe.addEventListener("load", () => {
+                      iframe.contentWindow.focus();
+                      iframe.contentWindow.print();
+                      URL.revokeObjectURL(blob);
+                    });
+                    iframe.src = blob;
+                  }
+                  dropdownModule.close();
+                }
+              }
             }
           }
       }
@@ -1908,11 +1940,22 @@ modules["dropdowns/editor/file"] = {
     exportButton.addEventListener("click", async () => {
       exportButton.setAttribute("disabled", "");
       let exportAlert = await alert.open("info", "<b>Exporting Lesson</b><div>Preparing export...</div>", { time: "never" });
+      if (editor.exportAlert) {
+        clearTimeout(editor.exportAlertTimeout);
+        alert.close(editor.exportAlert);
+      }
       editor.exportAlert = exportAlert;
+      editor.exportAlertTimeout = setTimeout(() => {
+        alert.close(editor.exportAlert);
+      }, 30000);
       let [code, body] = await sendRequest("POST", "lessons/export", null, { session: editor.session });
-      exportButton.removeAttribute("disabled");
-      alert.close(exportAlert);
-      if (code == 200) {
+      if (exportButton != null) {
+        exportButton.removeAttribute("disabled");
+      }
+      if ([504, 524, 0].includes(code) == false) { // Gateway timeout
+        alert.close(exportAlert);
+      }
+      if (code == 200 && exportAlert != null) {
         window.open(assetURL + body.export);
         dropdown.close();
       }
@@ -1921,11 +1964,22 @@ modules["dropdowns/editor/file"] = {
     printButton.addEventListener("click", async () => {
       printButton.setAttribute("disabled", "");
       let exportAlert = await alert.open("info", "<b>Exporting Lesson</b><div>Preparing export...</div>", { time: "never" });
+      if (editor.exportAlert) {
+        clearTimeout(editor.exportAlertTimeout);
+        alert.close(editor.exportAlert);
+      }
       editor.exportAlert = exportAlert;
+      editor.exportAlertTimeout = setTimeout(() => {
+        alert.close(editor.exportAlert);
+      }, 30000);
       let [code, body] = await sendRequest("POST", "lessons/export?type=print", null, { session: editor.session });
-      printButton.removeAttribute("disabled");
-      alert.close(exportAlert);
-      if (code == 200) {
+      if (printButton != null) {
+        printButton.removeAttribute("disabled");
+      }
+      if ([504, 524, 0].includes(code) == false) { // Gateway timeout
+        alert.close(exportAlert);
+      }
+      if (code == 200 && exportAlert != null) {
         //document.body.insertAdjacentHTML("beforeend", `<object class="eFileActionPrint" type="application/pdf" data="${assetURL + body.export}" width="100%" height="100%" name="${editor.lesson.name}"><param name="src" value=${assetURL + body.export}/></object>`);
         //document.body.querySelector(".eFileActionPrint").printWithDialog();
         let blob;

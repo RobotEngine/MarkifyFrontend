@@ -1197,8 +1197,10 @@ modules["pages/editor"] = {
           });
           // Remove loading
           if (canvas) {
-            canvas.style.transition = ".5s";
-            canvas.offsetHeight;
+            if (this.exporting != true) {
+              canvas.style.transition = ".5s";
+              canvas.offsetHeight;
+            }
             canvas.style.opacity = 1;
           }
           let loading = pageElem.querySelector(".loading");

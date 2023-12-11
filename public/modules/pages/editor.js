@@ -714,7 +714,8 @@ modules["pages/editor"] = {
               this.exportAlertTimeout = setTimeout(() => {
                 alertModule.close(this.exportAlert);
               }, 30000);
-              if (data.data.type != null) {
+              if (data.data.type != null && this.exportAlert != null && this.exportAlert.hasAttribute("complete") == false) {
+                exportAlert.setAttribute("complete", "");
                 alertModule.close(this.exportAlert);
                 if (data.data.type == "download") {
                   window.open(assetURL + data.data.export);
@@ -1955,7 +1956,8 @@ modules["dropdowns/editor/file"] = {
       if ([504, 524, 0].includes(code) == false) { // Gateway timeout
         alert.close(exportAlert);
       }
-      if (code == 200 && exportAlert != null) {
+      if (code == 200 && exportAlert != null && exportAlert.hasAttribute("complete") == false) {
+        exportAlert.setAttribute("complete", "");
         window.open(assetURL + body.export);
         dropdown.close();
       }
@@ -1979,7 +1981,8 @@ modules["dropdowns/editor/file"] = {
       if ([504, 524, 0].includes(code) == false) { // Gateway timeout
         alert.close(exportAlert);
       }
-      if (code == 200 && exportAlert != null) {
+      if (code == 200 && exportAlert != null && exportAlert.hasAttribute("complete") == false) {
+        exportAlert.setAttribute("complete", "");
         //document.body.insertAdjacentHTML("beforeend", `<object class="eFileActionPrint" type="application/pdf" data="${assetURL + body.export}" width="100%" height="100%" name="${editor.lesson.name}"><param name="src" value=${assetURL + body.export}/></object>`);
         //document.body.querySelector(".eFileActionPrint").printWithDialog();
         let blob;

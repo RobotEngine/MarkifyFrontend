@@ -715,7 +715,7 @@ modules["pages/editor"] = {
                 alertModule.close(this.exportAlert);
               }, 30000);
               if (data.data.type != null && this.exportAlert != null && this.exportAlert.hasAttribute("complete") == false) {
-                exportAlert.setAttribute("complete", "");
+                this.exportAlert.setAttribute("complete", "");
                 alertModule.close(this.exportAlert);
                 if (data.data.type == "download") {
                   window.open(assetURL + data.data.export);

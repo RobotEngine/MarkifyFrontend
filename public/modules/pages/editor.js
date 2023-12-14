@@ -2327,7 +2327,7 @@ modules["pages/editor/annotation"] = {
     let editor = await getModule("pages/editor");
     let annoKeys = Object.keys(editor.annotations);
     for (let i = 0; i < annoKeys.length; i++) {
-      let anno = editor.annotations[annoKeys[i]].render;
+      let anno = (editor.annotations[annoKeys[i]] || {}).render;
       if (anno != null) {
         await this.checkAnnotationSize(anno, true);
       }

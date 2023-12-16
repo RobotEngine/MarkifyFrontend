@@ -1673,7 +1673,7 @@ modules["pages/editor"] = {
     }
     tempListen(document, "touchstart", handlePinch, { passive: false });
     tempListen(document, "touchmove", handlePinch, { passive: false });
-    tempListen(document, "toucheend", () => {
+    tempListen(document, "touchend", () => {
       startDistance = null;
       startZoom = null;
       currentCenter = null;

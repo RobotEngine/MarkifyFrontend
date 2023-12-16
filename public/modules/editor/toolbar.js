@@ -985,7 +985,7 @@ modules["pages/editor/toolbar/highlighter"] = {
         return;
       }
       markup.d = drawModule.simplifyPath(markup.d, .75 / editor.zoom);
-      if (drawModule.relativelyStraight(markup.d, 5 * editor.zoom) == true) {
+      if (drawModule.relativelyStraight(markup.d, 10 * editor.zoom) == true) {
         markup.d = [markup.d[0], markup.d[1], markup.d[markup.d.length - 2], markup.d[markup.d.length - 1]]; // Strait line
         if (drawModule.horizontalLine(markup.d) == true) {
           let halfThickness = utils.round(markup.t / 2);

@@ -1423,10 +1423,12 @@ modules["dropdowns/editor/members"] = {
 
       createMemberList(searchField.value);
     });
+    /*
     (async function () {
       await sleep(400);
       searchField.focus();
     })();
+    */
   }
 }
 modules["dropdowns/editor/share"] = {

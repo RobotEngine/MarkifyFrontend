@@ -912,6 +912,9 @@ modules["pages/editor/toolbar/highlighter"] = {
         disableMarkup();
         return;
       }
+      if (event.touches != null && event.touches.length > 1) {
+        return;
+      }
       event.preventDefault();
       let rect = anno.getBoundingClientRect();
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x") - rect.left, clientPosition(event, "y") - rect.top);
@@ -985,7 +988,7 @@ modules["pages/editor/toolbar/highlighter"] = {
         return;
       }
       markup.d = drawModule.simplifyPath(markup.d, .75 / editor.zoom);
-      if (drawModule.relativelyStraight(markup.d, 10 * editor.zoom) == true) {
+      if (drawModule.relativelyStraight(markup.d, 5 * editor.zoom) == true) {
         markup.d = [markup.d[0], markup.d[1], markup.d[markup.d.length - 2], markup.d[markup.d.length - 1]]; // Strait line
         if (drawModule.horizontalLine(markup.d) == true) {
           let halfThickness = utils.round(markup.t / 2);
@@ -1063,6 +1066,9 @@ modules["pages/editor/toolbar/underline"] = {
       }
       if (mouseDown() == false) {
         disableMarkup();
+        return;
+      }
+      if (event.touches != null && event.touches.length > 1) {
         return;
       }
       event.preventDefault();
@@ -1171,12 +1177,14 @@ modules["pages/editor/toolbar/pen"] = {
       const [x2, y2] = points[i + 1];
 
       const newSlope = (y2 - y1) / (x2 - x1);
+      
+      if (isFinite(newSlope)) {
+        if (Math.abs(slope - newSlope) > tolerance) {
+          return false; // Slopes differ significantly
+        }
 
-      if (isFinite(newSlope) && Math.abs(slope - newSlope) > tolerance) {
-        return false; // Slopes differ significantly
+        slope = newSlope;
       }
-
-      slope = newSlope;
     }
 
     return true; // All slopes are consistent
@@ -1232,6 +1240,9 @@ modules["pages/editor/toolbar/pen"] = {
       }
       if (mouseDown() == false) {
         disableDraw();
+        return;
+      }
+      if (event.touches != null && event.touches.length > 1) {
         return;
       }
       event.preventDefault();
@@ -1374,6 +1385,9 @@ modules["pages/editor/toolbar/eraser"] = {
     let erase = async (event) => {
       if (mouseDown() == false || erasing == false) {
         enderase();
+        return;
+      }
+      if (event.touches != null && event.touches.length > 1) {
         return;
       }
       editor.toolbar.closeSubSubtoolUI();

@@ -2316,6 +2316,19 @@ modules["pages/editor/annotation"] = {
   //marginLeft: 250,
   //marginRight: 250,
   resetAnnotationSize: async function() {
+    if (mouseDown() == true) {
+      this.runResetEventReset = () => {
+        this.resetAnnotationSize()
+      };
+      app.addEventListener("mouseup", this.runResetEventReset, { passive: false });
+      app.addEventListener("touchend", this.runResetEventReset, { passive: false });
+      return;
+    }
+    if (this.runResetEventReset == true) {
+      app.removeEventListener("mouseup", this.runResetEventReset);
+      app.removeEventListener("touchend", this.runResetEventReset);
+      this.runResetEventReset = null;
+    }
     this.farLeft = 0;
     this.farRight = 0;
     this.setLeftMargin = 0;

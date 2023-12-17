@@ -865,34 +865,27 @@ modules["pages/editor/toolbar/cursor"] = {
 
 // DRAG TOOL
 modules["pages/editor/toolbar/drag"] = {
+  getElementsInRect: function (selectBoxRect, children) {
+    return Array.from(children)
+      .filter(element => {
+        const elementRect = element.getBoundingClientRect();
+        return (
+          elementRect.top <= selectBoxRect.bottom &&
+          elementRect.bottom >= selectBoxRect.top &&
+          elementRect.left <= selectBoxRect.right &&
+          elementRect.right >= selectBoxRect.left
+        );
+      });
+  },
   js: async function (editor, utils, addEvent) {
     let content = editor.page.querySelector(".eContent");
 
     body.style.userSelect = "none";
     editor.page.style.touchAction = "pinch-zoom";
 
-    let selection;
-    let selectX;
-    let selectY;
-    let enableSelect = async (event) => {
-      disableSelect();
-      editor.toolbar.closeSubSubtoolUI();
-      event.preventDefault();
-      content.insertAdjacentHTML("beforeend", `<div class="eSelectDrag" tooleditor new></div>`);
-      selection = content.querySelector(".eSelectDrag");
-      selection.removeAttribute("new");
-      selectX = clientPosition(event, "x") + window.scrollX;
-      selectY = clientPosition(event, "y") + window.scrollY;
-    }
-    let moveSelect = async (event) => {
-      if (selection == null) {
-        return;
-      }
-      if (mouseDown() == false) {
-        disableSelect();
-        return;
-      }
-      selection.style.opacity = .4;
+    let cursorModule = await getModule("pages/editor/toolbar/cursor");
+
+    let updateSelectedBounds = (event) => {
       let newX = clientPosition(event, "x") + window.scrollX;
       let newY = clientPosition(event, "y") + window.scrollY;
       if (newX > selectX) {
@@ -920,6 +913,46 @@ modules["pages/editor/toolbar/drag"] = {
           selection.style.borderRadius = "0px 10px 10px 10px";
         }
       }
+
+      let selected = this.getElementsInRect(selection.getBoundingClientRect(), content.querySelectorAll(".eAnnotation"));
+      for (let i = 0; i < selected.length; i++) {
+        editor.selecting[selected[i].getAttribute("anno")] = {};
+      }
+      cursorModule.updateBox();
+    }
+
+    let selection;
+    let selectX;
+    let selectY;
+    let prevSelecting;
+    let enableSelect = async (event) => {
+      disableSelect();
+      editor.toolbar.closeSubSubtoolUI();
+      event.preventDefault();
+      content.insertAdjacentHTML("beforeend", `<div class="eSelectDrag" tooleditor new></div>`);
+      selection = content.querySelector(".eSelectDrag");
+      selection.removeAttribute("new");
+      selectX = clientPosition(event, "x") + window.scrollX;
+      selectY = clientPosition(event, "y") + window.scrollY;
+
+      if (event.shiftKey == false) {
+        editor.selecting = {};
+      }
+      prevSelecting = JSON.parse(JSON.stringify(editor.selecting));
+      updateSelectedBounds(event);
+    }
+    let moveSelect = async (event) => {
+      if (selection == null) {
+        return;
+      }
+      if (mouseDown() == false) {
+        disableSelect();
+        return;
+      }
+      selection.style.opacity = .4;
+
+      editor.selecting = JSON.parse(JSON.stringify(prevSelecting));
+      updateSelectedBounds(event);
     }
     let disableSelect = async () => {
       if (selection == null) {

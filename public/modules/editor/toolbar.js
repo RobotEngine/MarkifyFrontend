@@ -69,6 +69,7 @@ modules["editor/toolbar"] = {
     '.eSelectTooltip[tooltip="right"]': `right: -10px; top: 50%; transform: translateY(-50%); cursor: ew-resize`,
     '.eSelectTooltip[tooltip="top"]': `left: 50%; top: -10px; transform: translateX(-50%); cursor: ns-resize`,
     '.eSelectTooltip[tooltip="bottom"]': `left: 50%; bottom: -10px; transform: translateX(-50%); cursor: ns-resize`,
+    ".eSelectDrag": `position: absolute; box-sizing: border-box; pointer-events: none; z-index: 99; opacity: 0; background: var(--secondary); border: solid 2px var(--theme); border-radius: 10px; transition: opacity .1s`
   },
   tools: {
     "select": [
@@ -83,6 +84,7 @@ modules["editor/toolbar"] = {
         id: "drag",
         tooltip: "Multi-Select",
         type: "tool",
+        module: "pages/editor/toolbar/drag",
         image: `<svg width="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_117_6" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_117_6)"> <rect x="6" y="-6" width="76" height="76" rx="16" transform="matrix(-1 0 0 1 222 86)" fill="#2F2F2F" stroke="white" stroke-width="12"/> <rect x="6" y="-6" width="72" height="72" rx="36" transform="matrix(-1 0 0 1 118 48)" fill="#2F2F2F" stroke="white" stroke-width="12"/> <path d="M57.1628 194L83.1436 149C89.302 138.333 104.698 138.333 110.856 149L136.837 194C142.996 204.667 135.298 218 122.981 218H71.0192C58.7024 218 51.0044 204.667 57.1628 194Z" fill="#2F2F2F" stroke="white" stroke-width="12"/> </g> </svg>`
       }
     ],
@@ -861,6 +863,83 @@ modules["pages/editor/toolbar/cursor"] = {
   }
 };
 
+// DRAG TOOL
+modules["pages/editor/toolbar/drag"] = {
+  js: async function (editor, utils, addEvent) {
+    let content = editor.page.querySelector(".eContent");
+
+    body.style.userSelect = "none";
+    editor.page.style.touchAction = "pinch-zoom";
+
+    let selection;
+    let selectX;
+    let selectY;
+    let enableSelect = async (event) => {
+      disableSelect();
+      editor.toolbar.closeSubSubtoolUI();
+      event.preventDefault();
+      content.insertAdjacentHTML("beforeend", `<div class="eSelectDrag" tooleditor new></div>`);
+      selection = content.querySelector(".eSelectDrag");
+      selection.removeAttribute("new");
+      selectX = clientPosition(event, "x") + window.scrollX;
+      selectY = clientPosition(event, "y") + window.scrollY;
+    }
+    let moveSelect = async (event) => {
+      if (selection == null) {
+        return;
+      }
+      if (mouseDown() == false) {
+        disableSelect();
+        return;
+      }
+      selection.style.opacity = .4;
+      let newX = clientPosition(event, "x") + window.scrollX;
+      let newY = clientPosition(event, "y") + window.scrollY;
+      if (newX > selectX) {
+        selection.style.width = newX - selectX + "px";
+        selection.style.left = selectX + "px";
+        if (newY > selectY) {
+          selection.style.height = newY - selectY + "px";
+          selection.style.top = selectY + "px";
+          selection.style.borderRadius = "10px 10px 0px 10px";
+        } else {
+          selection.style.height = selectY - newY + "px";
+          selection.style.top = newY + "px";
+          selection.style.borderRadius = "10px 0px 10px 10px";
+        }
+      } else {
+        selection.style.width = selectX - newX + "px";
+        selection.style.left = newX + "px";
+        if (newY > selectY) {
+          selection.style.height = newY - selectY + "px";
+          selection.style.top = selectY + "px";
+          selection.style.borderRadius = "10px 10px 10px 0px";
+        } else {
+          selection.style.height = selectY - newY + "px";
+          selection.style.top = newY + "px";
+          selection.style.borderRadius = "0px 10px 10px 10px";
+        }
+      }
+    }
+    let disableSelect = async () => {
+      if (selection == null) {
+        return;
+      }
+      let remSelect = selection;
+      selection = null;
+      remSelect.style.opacity = 0;
+      await sleep(150);
+      remSelect.remove();
+    }
+    addEvent(content, "mousedown", enableSelect, { passive: false });
+    addEvent(content, "touchstart", enableSelect, { passive: false });
+    addEvent(content, "mousemove", moveSelect, { passive: false });
+    addEvent(content, "touchmove", moveSelect, { passive: false });
+    addEvent(content, "mouseup", disableSelect, { passive: false });
+    addEvent(content, "touchend", disableSelect, { passive: false });
+  }
+};
+
 // HIGHLIGHT TOOL
 modules["pages/editor/toolbar/highlighter"] = {
   mouse: `<svg width="56" height="56" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"> <g filter="url(#filter0_d_235_2)"> <path d="M31.3781 20.4071L30.4384 20.0651L30.0964 21.0048L27.0871 29.2728C26.3315 31.3487 27.4019 33.644 29.4778 34.3996L34.1875 36.1138C36.2634 36.8694 38.5588 35.799 39.3144 33.7231L42.3237 25.4551L42.6657 24.5155L41.726 24.1734L31.3781 20.4071Z" fill="COLOR_REPLACE" fill-opacity="OPACITY_REPLACE" stroke="white" stroke-width="2"/> <path d="M39.3631 30.6623L40.3028 31.0044L40.6448 30.0647L46.8824 12.927C47.6379 10.8511 46.5676 8.55575 44.4917 7.80018L39.7819 6.08596C37.706 5.33039 35.4106 6.40074 34.655 8.47665L28.4175 25.6143L28.0754 26.554L29.0151 26.896L39.3631 30.6623Z" fill="#2F2F2F" stroke="white" stroke-width="2"/> </g> <defs> <filter id="filter0_d_235_2" x="21.8447" y="0.84375" width="30.2803" height="40.5127" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"> <feFlood flood-opacity="0" result="BackgroundImageFix"/> <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/> <feOffset/> <feGaussianBlur stdDeviation="2"/> <feComposite in2="hardAlpha" operator="out"/> <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/> <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_235_2"/> <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_235_2" result="shape"/> </filter> </defs> </svg>`,
@@ -1108,7 +1187,7 @@ modules["pages/editor/toolbar/underline"] = {
       if (markup == null) {
         return;
       }
-      
+
       utils.save(markup, anno);
 
       markup.done = true; // Alert other clients that this annotation is done
@@ -1177,7 +1256,7 @@ modules["pages/editor/toolbar/pen"] = {
       const [x2, y2] = points[i + 1];
 
       const newSlope = (y2 - y1) / (x2 - x1);
-      
+
       if (isFinite(newSlope)) {
         if (Math.abs(slope - newSlope) > tolerance) {
           return false; // Slopes differ significantly
@@ -1876,6 +1955,7 @@ modules["pages/editor/toolbar/thickness"] = {
   },
   minValue: 1,
   maxValue: 50,
+  exponentFactor: 1.4,
   js: async function (frame, toolID) {
     let editor = await getModule("pages/editor");
     let preferences = editor.preferences.tools;
@@ -1889,8 +1969,9 @@ modules["pages/editor/toolbar/thickness"] = {
     let input = frame.querySelector(".eSubToolThicknessInput");
     let sliderEnabled = false;
     let updateUI = (updateVal) => {
-      let percentage = (toolPref.thickness - this.minValue) / (this.maxValue - this.minValue);
+      let percentage = Math.pow(((toolPref.thickness - this.minValue) / (this.maxValue - this.minValue)), 1 / this.exponentFactor);
       pointer.style.left = ((slider.offsetWidth - 10) * percentage) - 6 + "px";
+      //pointer.style.left = ((slider.offsetWidth - 10) * ((toolPref.thickness - this.minValue) / (this.maxValue - this.minValue))) - 6 + "px";
       if (updateVal != false) {
         input.value = toolPref.thickness;
       }
@@ -1906,7 +1987,8 @@ modules["pages/editor/toolbar/thickness"] = {
         return;
       }
       let barRect = slider.getBoundingClientRect();
-      toolPref.thickness = Math.ceil((Math.max(Math.min((clientPosition(event, "x") - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0) * (this.maxValue - this.minValue)) + this.minValue);
+      toolPref.thickness = Math.ceil(Math.pow((Math.max(Math.min((clientPosition(event, "x") - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0)), this.exponentFactor) * (this.maxValue - this.minValue) + this.minValue);
+      //Math.ceil((Math.max(Math.min((clientPosition(event, "x") - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0) * (this.maxValue - this.minValue)) + this.minValue);
       updateUI();
     }
     editor.events.mouseMove = eventBarUpdate;

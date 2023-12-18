@@ -827,6 +827,7 @@ modules["pages/editor/toolbar/cursor"] = {
     editor.updateZoom = this.updateBox;
     let startX;
     let startY;
+    let wasSelected;
     let enableSelect = async (event) => {
       let target = event.target;
       if (target == null) {
@@ -838,9 +839,9 @@ modules["pages/editor/toolbar/cursor"] = {
         this.updateBox();
         return;
       }
-      startX = clientPosition(event, "x");
-      startY = clientPosition(event, "y");
-      if (event.shiftKey == false) {
+      startX = clientPosition(event, "x") + window.scrollX;
+      startY = clientPosition(event, "y") + window.scrollY;
+      if ((anno == null || editor.selecting[anno.getAttribute("anno")] == null) && event.shiftKey == false) {
         editor.selecting = {};
         if (anno == null) {
           this.updateBox();
@@ -852,14 +853,46 @@ modules["pages/editor/toolbar/cursor"] = {
       }
       let annoID = anno.getAttribute("anno");
       if (editor.selecting[annoID] == null) {
+        wasSelected = annoID;
         editor.selecting[annoID] = {};
-      } else {
-        delete editor.selecting[annoID];
       }
       this.updateBox();
     }
+    let disableSelect = async (event) => {
+      let target = event.target;
+      if (target == null) {
+        return;
+      }
+      anno = target.closest(".eAnnotation, .eSelect");
+      if (editor.getSelf().access < 1) {
+        editor.selecting = {};
+        this.updateBox();
+        return;
+      }
+      let endX = clientPosition(event, "x") + window.scrollX;
+      let endY = clientPosition(event, "y") + window.scrollY;
+      if (Math.floor(endX - startX) == 0 && Math.floor(endY - startY) == 0) {
+        if (anno == null) {
+          return;
+        }
+        let annoID = anno.getAttribute("anno");
+        if (event.shiftKey == true) {
+          // Unselect
+          if (wasSelected != annoID && editor.selecting[annoID] != null) {
+            delete editor.selecting[annoID];
+          }
+        } else {
+          editor.selecting = {};
+          editor.selecting[annoID] = {};
+        }
+        this.updateBox();
+      }
+      wasSelected = null;
+    }
     addEvent(content, "mousedown", enableSelect, { passive: false });
     addEvent(content, "touchstart", enableSelect, { passive: false });
+    addEvent(content, "mouseup", disableSelect, { passive: false });
+    addEvent(content, "touchend", disableSelect, { passive: false });
   }
 };
 
@@ -924,20 +957,37 @@ modules["pages/editor/toolbar/drag"] = {
     let selection;
     let selectX;
     let selectY;
+    let wasSelected;
     let prevSelecting;
     let enableSelect = async (event) => {
+      let target = event.target;
+      if (target == null) {
+        return;
+      }
+
+      anno = target.closest(".eAnnotation, .eSelect");
+      
+      selectX = clientPosition(event, "x") + window.scrollX;
+      selectY = clientPosition(event, "y") + window.scrollY;
+      if (anno != null) {
+        let annoID = anno.getAttribute("anno");
+        if (editor.selecting[annoID] != null) {
+          disableSelect();
+          return;
+        }
+        wasSelected = annoID;
+      }
+      if ((anno == null || editor.selecting[anno.getAttribute("anno")] == null) && event.shiftKey == false) {
+        editor.selecting = {};
+      }
+
       disableSelect();
       editor.toolbar.closeSubSubtoolUI();
       event.preventDefault();
       content.insertAdjacentHTML("beforeend", `<div class="eSelectDrag" tooleditor new></div>`);
       selection = content.querySelector(".eSelectDrag");
       selection.removeAttribute("new");
-      selectX = clientPosition(event, "x") + window.scrollX;
-      selectY = clientPosition(event, "y") + window.scrollY;
-
-      if (event.shiftKey == false) {
-        editor.selecting = {};
-      }
+      
       prevSelecting = JSON.parse(JSON.stringify(editor.selecting));
       updateSelectedBounds(event);
     }
@@ -954,7 +1004,26 @@ modules["pages/editor/toolbar/drag"] = {
       editor.selecting = JSON.parse(JSON.stringify(prevSelecting));
       updateSelectedBounds(event);
     }
-    let disableSelect = async () => {
+    let disableSelect = async (event) => {
+      if (event != null) {
+        let target = event.target;
+        if (target == null) {
+          return;
+        }
+        anno = target.closest(".eAnnotation, .eSelect");
+
+        if (Math.floor((clientPosition(event, "x") + window.scrollX) - selectX) == 0 && Math.floor((clientPosition(event, "y") + window.scrollY) - selectY) == 0) {
+          if (anno == null) {
+            return;
+          }
+          let annoID = anno.getAttribute("anno");
+          if (wasSelected != annoID && editor.selecting[annoID] != null) {
+            delete editor.selecting[annoID];
+          }
+          cursorModule.updateBox();
+        }
+        wasSelected = null;
+      }
       if (selection == null) {
         return;
       }

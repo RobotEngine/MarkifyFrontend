@@ -1491,6 +1491,7 @@ modules["pages/editor"] = {
           pageHolder.style.width = fixed.offsetWidth - 332 + "px";
           pageHolder.style.height = fixed.offsetHeight - 332 + "px";
         }
+        pageHolder.style.pointerEvents = "none";
         let resetTimeout;
         tempListen(window, "resize", () => {
           clearTimeout(resetTimeout);

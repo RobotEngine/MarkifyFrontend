@@ -847,6 +847,9 @@ modules["pages/editor/toolbar/cursor"] = {
       let inverse = 1 / editor.zoom;
       this.startX = (clientPosition(event, "x") + window.scrollX) * inverse;
       this.startY = (clientPosition(event, "y") + window.scrollY) * inverse;
+      body.style.userSelect = "none";
+      editor.page.style.touchAction = "pinch-zoom";
+      event.preventDefault();
       return;
     }
   },
@@ -865,9 +868,6 @@ modules["pages/editor/toolbar/cursor"] = {
     }
     */
     if (this.action == "move") {
-      body.style.userSelect = "none";
-      editor.page.style.touchAction = "pinch-zoom";
-      
       let keys = Object.keys(editor.selecting);
       for (let i = 0; i < keys.length; i++) {
         let annoid = keys[i];
@@ -892,7 +892,7 @@ modules["pages/editor/toolbar/cursor"] = {
             }
           }
         }
-        utils.render(anno);
+        await utils.render(anno);
         select.p = anno.p;
       }
       this.startX = this.endX;
@@ -904,8 +904,11 @@ modules["pages/editor/toolbar/cursor"] = {
     if (this.action == null) {
       return;
     }
+    let editor = await getModule("pages/editor");
     this.action = null;
-    body.style.userSelect = "unset";
+    body.style.removeProperty("user-select");
+    editor.page.style.removeProperty("touch-action");
+    editor.page.removeAttribute("enabled");
   },
   js: async function (editor, utils, addEvent) {
     let content = editor.page.querySelector(".eContent");

@@ -2454,7 +2454,8 @@ modules["pages/editor/annotation"] = {
   /*
     _id - ID - The unique ID of the annotation
     f - FUNCTION - The type of tool to render
-    p - POSITION - Position of annotation - [ X, Y, PAGE ]
+    p - POSITION - Position of annotation - [ X, Y ]
+    page - PAGE - Page of annotation
     s - SIZE - Size of annotation - [ WIDTH, HEIGHT ]
     c - COLOR - Color of annotation
     t - THICKNESS - Thickness of annotation
@@ -2473,7 +2474,10 @@ modules["pages/editor/annotation"] = {
     }
     let annoHolder = await this.annoHolder(page);
     if (anno == null) {
-      anno = annoHolder.querySelector('.eAnnotation[anno="' + _id + '"]');
+      anno = editor.page.querySelector('.eAnnotation[anno="' + _id + '"]');
+      if (anno != null && anno.parentElement != annoHolder) {
+        annoHolder.appendChild(anno);
+      }
     }
     let svg;
     let path;

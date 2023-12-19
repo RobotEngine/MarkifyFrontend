@@ -822,6 +822,91 @@ modules["pages/editor/toolbar/cursor"] = {
       }
     }
   },
+  enableAction: async function (event) {
+    let target = event.target;
+    if (target == null) {
+      return;
+    }
+    let editor = await getModule("pages/editor");
+    this.annotationElem = target.closest(".eAnnotation");
+    this.selectElem = target.closest(".eSelect");
+    /*
+    let anno = this.annotationElem || this.selectElem;
+    if (anno == null) {
+      return;
+    }
+    let annoID = anno.getAttribute("anno");
+    this.annotation = (editor.annotations[annoID] || {}).render;
+    if (this.annotation == null) {
+      return;
+    }
+    */
+    if (this.annotationElem != null && this.annotationElem.hasAttribute("selected") == true) {
+      // Drag/Move Element
+      this.action = "move";
+      let inverse = 1 / editor.zoom;
+      this.startX = (clientPosition(event, "x") + window.scrollX) * inverse;
+      this.startY = (clientPosition(event, "y") + window.scrollY) * inverse;
+      return;
+    }
+  },
+  moveAction: async function (event) {
+    if (this.action == null) {
+      return;
+    }
+    let editor = await getModule("pages/editor");
+    let utils = await getModule("pages/editor/annotation");
+    let inverse = 1 / editor.zoom;
+    this.endX = (clientPosition(event, "x") + window.scrollX) * inverse;
+    this.endY = (clientPosition(event, "y") + window.scrollY) * inverse;
+    /*
+    if (Math.floor(this.endX - this.startX) == 0 && Math.floor(this.endY - this.startY) == 0) {
+      this.action = null;
+    }
+    */
+    if (this.action == "move") {
+      body.style.userSelect = "none";
+      editor.page.style.touchAction = "pinch-zoom";
+      
+      let keys = Object.keys(editor.selecting);
+      for (let i = 0; i < keys.length; i++) {
+        let annoid = keys[i];
+        let select = editor.selecting[annoid];
+        let anno = (editor.annotations[annoid] || {}).render;
+        if (anno == null) {
+          continue;
+        }
+        anno.p[0] += utils.round(this.endX - this.startX);
+        anno.p[1] += utils.round(this.endY - this.startY);
+        if (anno.page != null) {
+          let currentPage = editor.page.querySelector('.ePage[pageid="' + anno.page + '"]');
+          if (currentPage != null) {
+            let page = (await utils.findPage((anno.p[1] * editor.zoom) + currentPage.getBoundingClientRect().top))[0];
+            if (page != currentPage) {
+              anno.page = page.getAttribute("pageid");
+              if (parseInt(currentPage.getAttribute("order")) < parseInt(page.getAttribute("order"))) {
+                anno.p[1] -= currentPage.offsetHeight;
+              } else {
+                anno.p[1] += page.offsetHeight;
+              }
+            }
+          }
+        }
+        utils.render(anno);
+        select.p = anno.p;
+      }
+      this.startX = this.endX;
+      this.startY = this.endY;
+    }
+    this.updateBox();
+  },
+  endAction: async function (event) {
+    if (this.action == null) {
+      return;
+    }
+    this.action = null;
+    body.style.userSelect = "unset";
+  },
   js: async function (editor, utils, addEvent) {
     let content = editor.page.querySelector(".eContent");
     editor.updateZoom = this.updateBox;
@@ -856,9 +941,12 @@ modules["pages/editor/toolbar/cursor"] = {
         wasSelected = annoID;
         editor.selecting[annoID] = {};
       }
-      this.updateBox();
+      await this.updateBox();
+      this.enableAction(event);
     }
     let disableSelect = async (event) => {
+      this.endAction(event);
+
       let target = event.target;
       if (target == null) {
         return;
@@ -893,6 +981,9 @@ modules["pages/editor/toolbar/cursor"] = {
     addEvent(content, "touchstart", enableSelect, { passive: false });
     addEvent(content, "mouseup", disableSelect, { passive: false });
     addEvent(content, "touchend", disableSelect, { passive: false });
+
+    addEvent(content, "mousemove", (event) => { this.moveAction(event) }, { passive: false });
+    addEvent(content, "touchmove", (event) => { this.moveAction(event) }, { passive: false });
   }
 };
 
@@ -960,6 +1051,8 @@ modules["pages/editor/toolbar/drag"] = {
     let wasSelected;
     let prevSelecting;
     let enableSelect = async (event) => {
+      cursorModule.enableAction(event);
+
       let target = event.target;
       if (target == null) {
         return;
@@ -992,6 +1085,8 @@ modules["pages/editor/toolbar/drag"] = {
       updateSelectedBounds(event);
     }
     let moveSelect = async (event) => {
+      cursorModule.moveAction(event);
+
       if (selection == null) {
         return;
       }
@@ -1006,6 +1101,8 @@ modules["pages/editor/toolbar/drag"] = {
     }
     let disableSelect = async (event) => {
       if (event != null) {
+        cursorModule.endAction(event);
+
         let target = event.target;
         if (target == null) {
           return;

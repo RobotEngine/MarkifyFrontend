@@ -883,31 +883,31 @@ modules["pages/editor/toolbar/cursor"] = {
       if (original == null) {
         continue;
       }
-      let anno = original.render;
+      let anno = JSON.parse(JSON.stringify(original.render));
       if (original.revert == null) {
         original.revert = JSON.parse(JSON.stringify(original.render));
       }
       if (this.action == "move") {
-        anno.p[0] += utils.round(this.endX - this.startX);
-        anno.p[1] += utils.round(this.endY - this.startY);
+        select.p = select.p || anno.p;
+        select.p[0] += utils.round(this.endX - this.startX);
+        select.p[1] += utils.round(this.endY - this.startY);
       }
       if (anno.page != null) {
-        let currentPage = editor.page.querySelector('.ePage[pageid="' + anno.page + '"]');
+        select.page = select.page || anno.page;
+        let currentPage = editor.page.querySelector('.ePage[pageid="' + select.page + '"]');
         if (currentPage != null) {
-          let page = (await utils.findPage((anno.p[1] * editor.zoom) + currentPage.getBoundingClientRect().top))[0];
+          let page = (await utils.findPage((select.p[1] * editor.zoom) + currentPage.getBoundingClientRect().top))[0];
           if (page != currentPage) {
-            anno.page = page.getAttribute("pageid");
+            select.page = page.getAttribute("pageid");
             if (parseInt(currentPage.getAttribute("order")) < parseInt(page.getAttribute("order"))) {
-              anno.p[1] -= currentPage.offsetHeight + 4;
+              select.p[1] -= currentPage.offsetHeight + 4;
             } else {
-              anno.p[1] += page.offsetHeight + 4;
+              select.p[1] += page.offsetHeight + 4;
             }
-            select.page = anno.page;
           }
         }
       }
-      await utils.render(anno);
-      select.p = anno.p;
+      await utils.render({ ...anno, ...select });
     }
     this.startX = this.endX;
     this.startY = this.endY;
@@ -933,7 +933,8 @@ modules["pages/editor/toolbar/cursor"] = {
       if (original == null) {
         continue;
       }
-      utils.enableTimeout(annoid, original);
+      delete select.done;
+      await utils.save({ _id: annoid, ...select });
       select.done = true;
     }
     await utils.forceShort();

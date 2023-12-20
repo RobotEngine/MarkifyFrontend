@@ -534,8 +534,13 @@ modules["editor/realtime"] = {
                   let keys = Object.keys(extra.select);
                   for (let i = 0; i < keys.length; i++) {
                     let annoID = keys[i];
-                    let anno = extra.select[annoID];
+                    let original = editor.annotations[annoID] || {};
+                    let anno = { ...(original.render || {}), ...extra.select[annoID] };
                     if (anno.done != true) {
+                      if (original.revert == null) {
+                        original.revert = original.render || {};
+                      }
+                      utils.enableTimeout(annoID, original);
                       utils.render(anno);
                     } else {
                       utils.saveEdit(anno);

@@ -2605,7 +2605,9 @@ modules["pages/editor/annotation"] = {
     let editor = await getModule("pages/editor");
     let page = editor.page;
     clearTimeout(anno.expire);
+    console.log("AMAA")
     anno.expire = setTimeout(() => {
+      console.log("ADAWEDA")
       if (connected == false) {
         return;
       }

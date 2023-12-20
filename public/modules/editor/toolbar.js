@@ -889,6 +889,7 @@ modules["pages/editor/toolbar/cursor"] = {
               } else {
                 anno.p[1] += page.offsetHeight;
               }
+              select.page = anno.page;
             }
           }
         }
@@ -905,10 +906,43 @@ modules["pages/editor/toolbar/cursor"] = {
       return;
     }
     let editor = await getModule("pages/editor");
+    let utils = await getModule("pages/editor/annotation");
     this.action = null;
     body.style.removeProperty("user-select");
     editor.page.style.removeProperty("touch-action");
     editor.page.removeAttribute("enabled");
+
+    // Save Revert
+    /*
+    for (let i = 0; i < keys.length; i++) {
+      let annoid = keys[i];
+      let select = editor.selecting[annoid];
+      let anno = (editor.annotations[annoid] || {}).render;
+      if (anno == null) {
+        continue;
+      }
+      anno.p[0] += utils.round(this.endX - this.startX);
+      anno.p[1] += utils.round(this.endY - this.startY);
+      if (anno.page != null) {
+        let currentPage = editor.page.querySelector('.ePage[pageid="' + anno.page + '"]');
+        if (currentPage != null) {
+          let page = (await utils.findPage((anno.p[1] * editor.zoom) + currentPage.getBoundingClientRect().top))[0];
+          if (page != currentPage) {
+            anno.page = page.getAttribute("pageid");
+            if (parseInt(currentPage.getAttribute("order")) < parseInt(page.getAttribute("order"))) {
+              anno.p[1] -= currentPage.offsetHeight;
+            } else {
+              anno.p[1] += page.offsetHeight;
+            }
+            select.page = anno.page;
+          }
+        }
+      }
+    if (original.revert == null) {
+      original.revert = original.render || {};
+    }
+    utils.enableTimeout(annoID, original);
+    */
   },
   js: async function (editor, utils, addEvent) {
     let content = editor.page.querySelector(".eContent");

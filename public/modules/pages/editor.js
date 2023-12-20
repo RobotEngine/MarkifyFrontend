@@ -2245,7 +2245,7 @@ modules["pages/editor/annotation"] = {
         continue;
       }
       let rect = pageElem.getBoundingClientRect();
-      if (rect.bottom > y) {
+      if (rect.bottom + (4 * editor.zoom) > y) {
         return [pageElem, editor.visiblePages[i]];
       }
     }
@@ -2605,9 +2605,7 @@ modules["pages/editor/annotation"] = {
     let editor = await getModule("pages/editor");
     let page = editor.page;
     clearTimeout(anno.expire);
-    console.log("AMAA")
     anno.expire = setTimeout(() => {
-      console.log("ADAWEDA")
       if (connected == false) {
         return;
       }

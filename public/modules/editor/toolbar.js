@@ -847,6 +847,14 @@ modules["pages/editor/toolbar/cursor"] = {
       let inverse = 1 / editor.zoom;
       this.startX = (clientPosition(event, "x") + window.scrollX) * inverse;
       this.startY = (clientPosition(event, "y") + window.scrollY) * inverse;
+      let keys = Object.keys(editor.selecting);
+      for (let i = 0; i < keys.length; i++) {
+        let annoid = keys[i];
+        let original = editor.annotations[annoid];
+        if (original.expire != null) {
+          clearTimeout(original.expire);
+        }
+      }
       body.style.userSelect = "none";
       editor.page.style.touchAction = "pinch-zoom";
       event.preventDefault();
@@ -867,38 +875,42 @@ modules["pages/editor/toolbar/cursor"] = {
       this.action = null;
     }
     */
-    if (this.action == "move") {
-      let keys = Object.keys(editor.selecting);
-      for (let i = 0; i < keys.length; i++) {
-        let annoid = keys[i];
-        let select = editor.selecting[annoid];
-        let anno = (editor.annotations[annoid] || {}).render;
-        if (anno == null) {
-          continue;
-        }
+    let keys = Object.keys(editor.selecting);
+    for (let i = 0; i < keys.length; i++) {
+      let annoid = keys[i];
+      let select = editor.selecting[annoid];
+      let original = editor.annotations[annoid];
+      if (original == null) {
+        continue;
+      }
+      let anno = original.render;
+      if (original.revert == null) {
+        original.revert = JSON.parse(JSON.stringify(original.render));
+      }
+      if (this.action == "move") {
         anno.p[0] += utils.round(this.endX - this.startX);
         anno.p[1] += utils.round(this.endY - this.startY);
-        if (anno.page != null) {
-          let currentPage = editor.page.querySelector('.ePage[pageid="' + anno.page + '"]');
-          if (currentPage != null) {
-            let page = (await utils.findPage((anno.p[1] * editor.zoom) + currentPage.getBoundingClientRect().top))[0];
-            if (page != currentPage) {
-              anno.page = page.getAttribute("pageid");
-              if (parseInt(currentPage.getAttribute("order")) < parseInt(page.getAttribute("order"))) {
-                anno.p[1] -= currentPage.offsetHeight;
-              } else {
-                anno.p[1] += page.offsetHeight;
-              }
-              select.page = anno.page;
+      }
+      if (anno.page != null) {
+        let currentPage = editor.page.querySelector('.ePage[pageid="' + anno.page + '"]');
+        if (currentPage != null) {
+          let page = (await utils.findPage((anno.p[1] * editor.zoom) + currentPage.getBoundingClientRect().top))[0];
+          if (page != currentPage) {
+            anno.page = page.getAttribute("pageid");
+            if (parseInt(currentPage.getAttribute("order")) < parseInt(page.getAttribute("order"))) {
+              anno.p[1] -= currentPage.offsetHeight + 4;
+            } else {
+              anno.p[1] += page.offsetHeight + 4;
             }
+            select.page = anno.page;
           }
         }
-        await utils.render(anno);
-        select.p = anno.p;
       }
-      this.startX = this.endX;
-      this.startY = this.endY;
+      await utils.render(anno);
+      select.p = anno.p;
     }
+    this.startX = this.endX;
+    this.startY = this.endY;
     this.updateBox();
   },
   endAction: async function (event) {
@@ -913,36 +925,18 @@ modules["pages/editor/toolbar/cursor"] = {
     editor.page.removeAttribute("enabled");
 
     // Save Revert
-    /*
+    let keys = Object.keys(editor.selecting);
     for (let i = 0; i < keys.length; i++) {
       let annoid = keys[i];
       let select = editor.selecting[annoid];
-      let anno = (editor.annotations[annoid] || {}).render;
-      if (anno == null) {
+      let original = editor.annotations[annoid];
+      if (original == null) {
         continue;
       }
-      anno.p[0] += utils.round(this.endX - this.startX);
-      anno.p[1] += utils.round(this.endY - this.startY);
-      if (anno.page != null) {
-        let currentPage = editor.page.querySelector('.ePage[pageid="' + anno.page + '"]');
-        if (currentPage != null) {
-          let page = (await utils.findPage((anno.p[1] * editor.zoom) + currentPage.getBoundingClientRect().top))[0];
-          if (page != currentPage) {
-            anno.page = page.getAttribute("pageid");
-            if (parseInt(currentPage.getAttribute("order")) < parseInt(page.getAttribute("order"))) {
-              anno.p[1] -= currentPage.offsetHeight;
-            } else {
-              anno.p[1] += page.offsetHeight;
-            }
-            select.page = anno.page;
-          }
-        }
-      }
-    if (original.revert == null) {
-      original.revert = original.render || {};
+      utils.enableTimeout(annoid, original);
+      select.done = true;
     }
-    utils.enableTimeout(annoID, original);
-    */
+    await utils.forceShort();
   },
   js: async function (editor, utils, addEvent) {
     let content = editor.page.querySelector(".eContent");

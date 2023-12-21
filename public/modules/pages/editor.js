@@ -775,7 +775,6 @@ modules["pages/editor"] = {
 
     let utils = await getModule("pages/editor/annotation");
     socket.remotes["long_" + lessonID] = async (data) => {
-      console.log("LONG:", data);
       for (let i = 0; i < data.length; i++) {
         let anno = data[i];
         let existingAnno = this.annotations[anno._id] || this.annotations[anno.pending];
@@ -810,11 +809,11 @@ modules["pages/editor"] = {
             continue;
           }
           // IF AFTER, GOES AHEAD AND UPDATES THE ANNOTATION AND REMOVES REVERT CLOCK
-          existingAnno.render.sync = anno.sync;
+          existingAnno.render = anno;
           clearTimeout(existingAnno.expire);
           delete existingAnno.expire;
           delete existingAnno.revert;
-          objectUpdate(existingAnno.render, anno);
+          //objectUpdate(existingAnno.render, anno);
           utils.render(anno, gottenRender, true);
         } else {
           this.annotations[anno._id] = { render: anno };

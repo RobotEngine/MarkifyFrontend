@@ -775,6 +775,7 @@ modules["pages/editor"] = {
 
     let utils = await getModule("pages/editor/annotation");
     socket.remotes["long_" + lessonID] = async (data) => {
+      console.log("LONG");
       for (let i = 0; i < data.length; i++) {
         let anno = data[i];
         let existingAnno = this.annotations[anno._id] || this.annotations[anno.pending];
@@ -798,7 +799,6 @@ modules["pages/editor"] = {
           if (this.annotations[anno.pending] != null) {
             gottenRender = page.querySelector('.eAnnotation[anno="' + anno.pending + '"]');
             existingAnno.render._id = anno._id;
-            clearTimeout(existingAnno.expire);
             delete this.annotations[anno.pending];
             this.annotations[anno._id] = existingAnno;
             existingAnno = this.annotations[anno._id];
@@ -808,13 +808,18 @@ modules["pages/editor"] = {
           if (existingAnno.render.sync > anno.sync) {
             continue;
           }
+          // IF SELECTING, DO NOT UPDATE THOSE FIELDS
+          let renderObj = anno;
+          if (this.selecting[anno._id] != null) {
+            renderObj = { ...anno, ...this.selecting[anno._id] };
+          }
           // IF AFTER, GOES AHEAD AND UPDATES THE ANNOTATION AND REMOVES REVERT CLOCK
           existingAnno.render = anno;
           clearTimeout(existingAnno.expire);
           delete existingAnno.expire;
           delete existingAnno.revert;
           //objectUpdate(existingAnno.render, anno);
-          utils.render(anno, gottenRender, true);
+          utils.render(renderObj, gottenRender, true);
         } else {
           this.annotations[anno._id] = { render: anno };
           utils.render(anno, null, true);
@@ -2611,6 +2616,9 @@ modules["pages/editor/annotation"] = {
       if (editor.page != page) {
         return;
       }
+      if (editor.selecting[anno.render._id] != null) {
+        return;
+      }
       if (anno.render._id.includes("pending_") == false) { // Means its a new anno
         delete anno.retry;
         if (anno.revert != null) {
@@ -2633,6 +2641,7 @@ modules["pages/editor/annotation"] = {
     let anno = editor.annotations[annoID] || { render: {} };
     let syncAnno = JSON.stringify(anno.render);
     let mutations = objectUpdate(annoData, anno.render);
+    console.log(mutations);
     if (Object.keys(mutations).length < 1) {
       return; // No changes, so no need to do anything
     }
@@ -2642,7 +2651,7 @@ modules["pages/editor/annotation"] = {
     this.render(anno.render, render);
     return mutations;
   },
-  pendingSaves: [],
+  pendingSaves: {},
   debounce: false,
   syncSave: async function() {
     let editor = await getModule("pages/editor");
@@ -2651,14 +2660,15 @@ modules["pages/editor/annotation"] = {
       return;
     }
     this.debounce = true;
-    while (this.pendingSaves.length > 0) {
+    let keys = Object.keys(this.pendingSaves);
+    while (keys.length > 0) {
       if (connected == false) {
         break;
       }
-      let setPendingSave = [];
+      let setPendingSave = {};
       let mutations = [];
-      for (let i = 0; i < this.pendingSaves.length; i++) {
-        let mutt = this.pendingSaves[i];
+      for (let i = 0; i < keys.length; i++) {
+        let mutt = this.pendingSaves[keys[i]];
         if (mutt.annoRefresh != null && mutt.annoRefresh.render != null) {
           mutt._id = mutt.annoRefresh.render._id;
           delete mutt.annoRefresh;
@@ -2674,7 +2684,7 @@ modules["pages/editor/annotation"] = {
             if (mutt.f == null && mutt._id.startsWith("pending_") == true) {
               //anno.retry = true;
               mutt.annoRefresh = anno;
-              setPendingSave.push(mutt);
+              setPendingSave[mutt._id] = mutt;
               continue;
             }
             mutations.push(mutt);
@@ -2683,7 +2693,7 @@ modules["pages/editor/annotation"] = {
           }
         }
       }
-      this.pendingSaves = [];
+      this.pendingSaves = {};
       let saveSuccess = false;
       try {
         let [result] = await sendRequest("POST", "lessons/save", { mutations: mutations }, { session: editor.session });
@@ -2699,12 +2709,13 @@ modules["pages/editor/annotation"] = {
           let anno = editor.annotations[mutations[i]._id];
           if (anno != null && anno.retry != true) {
             anno.retry = true;
-            setPendingSave.push(mutations[i]);
+            setPendingSave[mutations[i]._id] = mutations[i];
           }
         }
       }
-      this.pendingSaves = [...this.pendingSaves, ...setPendingSave];
+      this.pendingSaves = { ...this.pendingSaves, ...setPendingSave };
       await sleep(2500); // 1 save per 2.5 seconds
+      keys = Object.keys(this.pendingSaves);
     }
     if (connected == true) {
       editor.updateSaveStatus("Saved");
@@ -2712,6 +2723,7 @@ modules["pages/editor/annotation"] = {
     this.debounce = false;
   },
   save: async function(data, anno) {
+    data = JSON.parse(JSON.stringify(data));
     let editor = await getModule("pages/editor");
     let annoID = data._id;
     let mutations = await this.saveEdit(data, anno);
@@ -2725,10 +2737,10 @@ modules["pages/editor/annotation"] = {
     mutations.sync = annotation.render.sync;
     
     if (connected == true) {
-      this.pendingSaves.push({ _id: annoID, ...mutations });
+      this.pendingSaves[annoID] = { _id: annoID, ...(this.pendingSaves[annoID] || {}), ...mutations };
       this.syncSave();
     } else {
-      this.pendingSaves = [];
+      this.pendingSaves = {};
     }
 
     return mutations;

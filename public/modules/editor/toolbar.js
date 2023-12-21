@@ -847,14 +847,6 @@ modules["pages/editor/toolbar/cursor"] = {
       let inverse = 1 / editor.zoom;
       this.startX = (clientPosition(event, "x") + window.scrollX) * inverse;
       this.startY = (clientPosition(event, "y") + window.scrollY) * inverse;
-      let keys = Object.keys(editor.selecting);
-      for (let i = 0; i < keys.length; i++) {
-        let annoid = keys[i];
-        let original = editor.annotations[annoid];
-        if (original.expire != null) {
-          clearTimeout(original.expire);
-        }
-      }
       body.style.userSelect = "none";
       editor.page.style.touchAction = "pinch-zoom";
       event.preventDefault();
@@ -863,6 +855,10 @@ modules["pages/editor/toolbar/cursor"] = {
   },
   moveAction: async function (event) {
     if (this.action == null) {
+      return;
+    }
+    if (mouseDown() == false) {
+      this.endAction();
       return;
     }
     let editor = await getModule("pages/editor");
@@ -913,7 +909,7 @@ modules["pages/editor/toolbar/cursor"] = {
     this.startY = this.endY;
     this.updateBox();
   },
-  endAction: async function (event) {
+  endAction: async function () {
     if (this.action == null) {
       return;
     }
@@ -929,10 +925,12 @@ modules["pages/editor/toolbar/cursor"] = {
     for (let i = 0; i < keys.length; i++) {
       let annoid = keys[i];
       let select = editor.selecting[annoid];
+      /*
       let original = editor.annotations[annoid];
       if (original == null) {
         continue;
       }
+      */
       delete select.done;
       await utils.save({ _id: annoid, ...select });
       select.done = true;

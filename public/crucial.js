@@ -649,17 +649,16 @@ function objectUpdate(obj, passData, path) { // obj = Object to apply changes; p
       Array.isArray(obj[key]) === true ||
       obj[key] === null
     ) {
-      let checkKey = passData[key];
-      if (Array.isArray(checkKey)) {
-        checkKey = JSON.stringify(checkKey);
+      let checkValue = passData[key];
+      if (Array.isArray(checkValue)) {
+        checkValue = JSON.stringify(checkValue);
       }
-      let checkNewKey = obj[key];
       let setValue = obj[key];
-      if (Array.isArray(checkNewKey)) {
-        checkNewKey = JSON.stringify(checkNewKey);
-        setValue = JSON.parse(checkNewKey);
+      let checkNewValue = obj[key];
+      if (Array.isArray(checkNewValue)) {
+        checkNewValue = JSON.stringify(checkNewValue);
       }
-      if (checkKey != checkNewKey) {
+      if (checkValue != checkNewValue) {
         passData[key] = setValue;
         changes[path + key] = passData[key];
       }

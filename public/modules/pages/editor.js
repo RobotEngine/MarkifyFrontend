@@ -2249,7 +2249,11 @@ modules["pages/editor/annotation"] = {
         continue;
       }
       let rect = pageElem.getBoundingClientRect();
-      if (rect.bottom + (4 * editor.zoom) > y) {
+      let margin = 4 * editor.zoom;
+      if (editor.visiblePages[i] == 1) {
+        //margin = 0;
+      }
+      if (rect.bottom - margin > y) {
         return [pageElem, editor.visiblePages[i]];
       }
     }
@@ -2323,13 +2327,13 @@ modules["pages/editor/annotation"] = {
   resetAnnotationSize: async function() {
     if (mouseDown() == true) {
       this.runResetEventReset = () => {
-        this.resetAnnotationSize()
+        this.resetAnnotationSize();
       };
       app.addEventListener("mouseup", this.runResetEventReset, { passive: false });
       app.addEventListener("touchend", this.runResetEventReset, { passive: false });
       return;
     }
-    if (this.runResetEventReset == true) {
+    if (this.runResetEventReset != null) {
       app.removeEventListener("mouseup", this.runResetEventReset);
       app.removeEventListener("touchend", this.runResetEventReset);
       this.runResetEventReset = null;
@@ -2410,6 +2414,19 @@ modules["pages/editor/annotation"] = {
     if (notUpdate == true) {
       return;
     }
+    if (mouseDown() == true) {
+      this.runCheckSizeReset = () => {
+        this.checkAnnotationSize(anno);
+      };
+      app.addEventListener("mouseup", this.runCheckSizeReset, { passive: false });
+      app.addEventListener("touchend", this.runCheckSizeReset, { passive: false });
+      return;
+    }
+    if (this.runCheckSizeReset != null) {
+      app.removeEventListener("mouseup", this.runCheckSizeReset);
+      app.removeEventListener("touchend", this.runCheckSizeReset);
+      this.runCheckSizeReset = null;
+    }
     //let pageHolder = editor.page.querySelector(".ePageHolder");
     let scrollPosX = window.scrollX;
     let scrollPosY = window.scrollY;
@@ -2428,30 +2445,9 @@ modules["pages/editor/annotation"] = {
     if (editor.realtime.module && editor.realtime.module.adjustRealtimeHolder) {
       editor.realtime.module.adjustRealtimeHolder();
     }
-    /*
-    if (anno == null || anno.p == null || anno.s == null) {
-      return;
+    if (editor.updateZoom != null) {
+      editor.updateZoom();
     }
-    if (anno.hidden == true) {
-      return;
-    }
-    let editor = await getModule("pages/editor");
-    let content = editor.page.querySelector(".eContentHolder");
-    let right = (anno.p[0] + anno.s[0]) - (this.annoHolder(anno.page)).offsetWidth;
-    let marginRight = (Math.ceil(right / this.SOFT_PIXEL_RESIZE) * this.SOFT_PIXEL_RESIZE) + this.SOFT_PIXEL_RESIZE - 100;
-    if (marginRight > this.marginRight) {
-      content.style.marginRight = marginRight + "px";
-      this.marginRight = marginRight;
-    }
-    let marginLeft = (Math.ceil(-anno.p[0] / this.SOFT_PIXEL_RESIZE) * this.SOFT_PIXEL_RESIZE) + this.SOFT_PIXEL_RESIZE - 100;
-    if (marginLeft > this.marginLeft) {
-      //let priorLeft = content.getBoundingClientRect().left;
-      content.style.marginLeft = marginLeft + "px";
-      //let afterLeft = content.getBoundingClientRect().left;
-      //window.scrollTo(afterLeft - priorLeft, window.scrollY);
-      this.marginLeft = marginLeft;
-    }
-    */
   },
   SVG_PADDING: 100, // How much padding svgs should have to ensure clean render
   render: async function (data, anno, long) {
@@ -2482,6 +2478,9 @@ modules["pages/editor/annotation"] = {
       if (anno != null && anno.parentElement != annoHolder) {
         annoHolder.appendChild(anno);
       }
+    }
+    if (annoHolder.parentElement.parentElement.firstElementChild != annoHolder.parentElement) {
+      y -= 4;
     }
     let svg;
     let path;
@@ -2590,11 +2589,13 @@ modules["pages/editor/annotation"] = {
           delete editor.annotations[_id];
         }
         resetSize = true;
-        await this.resetAnnotationSize();
       }
     }
     if (resetSize == false) {
       await this.checkAnnotationSize(data);
+    }
+    if (long == true) {
+      await this.resetAnnotationSize();
     }
     return [data, anno];
   },
@@ -2641,7 +2642,6 @@ modules["pages/editor/annotation"] = {
     let anno = editor.annotations[annoID] || { render: {} };
     let syncAnno = JSON.stringify(anno.render);
     let mutations = objectUpdate(annoData, anno.render);
-    console.log(mutations);
     if (Object.keys(mutations).length < 1) {
       return; // No changes, so no need to do anything
     }

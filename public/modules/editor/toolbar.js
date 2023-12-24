@@ -892,13 +892,13 @@ modules["pages/editor/toolbar/cursor"] = {
         select.page = select.page || anno.page;
         let currentPage = editor.page.querySelector('.ePage[pageid="' + select.page + '"]');
         if (currentPage != null) {
-          let page = (await utils.findPage((select.p[1] * editor.zoom) + currentPage.getBoundingClientRect().top))[0];
+          let [page] = (await utils.findPage((select.p[1] * editor.zoom) + currentPage.getBoundingClientRect().top));
           if (page != currentPage) {
             select.page = page.getAttribute("pageid");
             if (parseInt(currentPage.getAttribute("order")) < parseInt(page.getAttribute("order"))) {
-              select.p[1] -= currentPage.offsetHeight + 4;
+              select.p[1] -= currentPage.offsetHeight;
             } else {
-              select.p[1] += page.offsetHeight + 4;
+              select.p[1] += page.offsetHeight;
             }
           }
         }
@@ -936,6 +936,8 @@ modules["pages/editor/toolbar/cursor"] = {
       select.done = true;
     }
     await utils.forceShort();
+
+    utils.resetAnnotationSize();
   },
   js: async function (editor, utils, addEvent) {
     let content = editor.page.querySelector(".eContent");
@@ -1192,9 +1194,6 @@ modules["pages/editor/toolbar/highlighter"] = {
       let [page, number] = await utils.findPage(clientY);
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientY, number);
       let halfThickness = utils.round(this.thickness / 2);
-      if (number > 1) {
-        y -= 4; // Remove border-pixel width
-      }
       let tempID = utils.tempID();
       let newAnno = {
         _id: tempID,
@@ -1347,9 +1346,6 @@ modules["pages/editor/toolbar/underline"] = {
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientY, number);
       let thickness = utils.round(Math.max(this.thickness / 4, 1));
       let halfThickness = utils.round(thickness / 2);
-      if (number > 1) {
-        y -= 4; // Remove border-pixel width
-      }
       let tempID = utils.tempID();
       let newAnno = {
         _id: tempID,
@@ -1522,9 +1518,6 @@ modules["pages/editor/toolbar/pen"] = {
       let [page, number] = await utils.findPage(clientY);
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientY, number);
       let halfThickness = utils.round(this.thickness / 2);
-      if (number > 1) {
-        y -= 4; // Remove border-pixel width
-      }
       let tempID = utils.tempID();
       let newAnno = {
         _id: tempID,

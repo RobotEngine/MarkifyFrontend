@@ -885,8 +885,8 @@ modules["pages/editor/toolbar/cursor"] = {
       }
       if (this.action == "move") {
         select.p = select.p || anno.p;
-        select.p[0] += utils.round(this.endX - this.startX);
-        select.p[1] += utils.round(this.endY - this.startY);
+        select.p[0] = utils.round(select.p[0] + (this.endX - this.startX));
+        select.p[1] = utils.round(select.p[1] + (this.endY - this.startY));
       }
       if (anno.page != null) {
         select.page = select.page || anno.page;
@@ -896,9 +896,9 @@ modules["pages/editor/toolbar/cursor"] = {
           if (page != currentPage) {
             select.page = page.getAttribute("pageid");
             if (parseInt(currentPage.getAttribute("order")) < parseInt(page.getAttribute("order"))) {
-              select.p[1] -= currentPage.offsetHeight;
+              select.p[1] = utils.round(select.p[1] - currentPage.offsetHeight);
             } else {
-              select.p[1] += page.offsetHeight;
+              select.p[1] = utils.round(select.p[1] + page.offsetHeight);
             }
           }
         }

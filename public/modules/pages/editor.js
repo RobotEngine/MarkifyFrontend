@@ -139,6 +139,7 @@ modules["pages/editor"] = {
     ".ePageRearrange": `position: absolute; display: flex; width: 28px; height: 28px; padding: 4px; right: 8px; bottom: 8px; pointer-events: all; z-index: 2; background: rgba(180, 218, 253, 0.75); backdrop-filter: blur(2px); border-radius: 18px; overflow: hidden`, //transform: scale(var(--fixedUIScale));
     ".ePageRearrange div": `margin-left: 6px`,
     ".eAnnotation": `position: absolute`,
+    '.eAnnotation:not([selected]):not([anno^="pending_"])': `transition: .25s`,
     ".eAnnotation svg": `position: absolute; width: calc(100% + 200px); height: calc(100% + 200px); left: -100px; top: -100px; pointer-events: none`,
     ".eAnnotation svg polyline": `pointer-events: stroke`,
 
@@ -2326,6 +2327,9 @@ modules["pages/editor/annotation"] = {
   //marginRight: 250,
   resetAnnotationSize: async function() {
     if (mouseDown() == true) {
+      if (this.runResetEventReset != null) {
+        return;
+      }
       this.runResetEventReset = () => {
         this.resetAnnotationSize();
       };
@@ -2415,6 +2419,9 @@ modules["pages/editor/annotation"] = {
       return;
     }
     if (mouseDown() == true) {
+      if (this.runCheckSizeReset != null) {
+        return;
+      }
       this.runCheckSizeReset = () => {
         this.checkAnnotationSize(anno);
       };
@@ -2573,7 +2580,6 @@ modules["pages/editor/annotation"] = {
         path.setAttribute("opacity", o / 100);
         break;
     }
-    let resetSize = false;
     if (anno != null) {
       if (done != true) {
         anno.removeAttribute("done");
@@ -2588,14 +2594,12 @@ modules["pages/editor/annotation"] = {
           anno.remove();
           delete editor.annotations[_id];
         }
-        resetSize = true;
       }
-    }
-    if (resetSize == false) {
-      await this.checkAnnotationSize(data);
     }
     if (long == true) {
       await this.resetAnnotationSize();
+    } else {
+      await this.checkAnnotationSize(data);
     }
     return [data, anno];
   },

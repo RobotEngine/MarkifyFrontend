@@ -534,15 +534,28 @@ modules["editor/realtime"] = {
                   let keys = Object.keys(extra.select);
                   for (let i = 0; i < keys.length; i++) {
                     let annoID = keys[i];
+                    let anno = extra.select[annoID] || {};
                     let original = editor.annotations[annoID] || {};
-                    let anno = { ...(original.render || {}), ...extra.select[annoID] };
+                    // If the user is also selecting, we must update their fields accordingly:
+                    let selecting = editor.selecting[annoID];
+                    if (selecting != null) {
+                      let annoKeys = Object.keys(anno);
+                      for (let f = 0; f < annoKeys.length; f++) {
+                        if (selecting[annoKeys[f]] != null) {
+                          selecting[annoKeys[f]] = anno[annoKeys[f]];
+                        }
+                      }
+                    }
                     if (anno.done != true) {
                       if (original.revert == null) {
-                        original.revert = original.render || {};
+                        original.revert = JSON.parse(JSON.stringify(original.render));
                       }
+                      original.render = { ...(original.render || {}), ...anno };
                       utils.enableTimeout(annoID, original);
-                      utils.render(anno);
+                      utils.render(original.render);
                     } else {
+                      original.render = { ...(original.render || {}), ...anno };
+                      delete original.render.done;
                       utils.saveEdit(anno);
                     }
                   }
@@ -710,7 +723,6 @@ modules["editor/realtime"] = {
             }
             //smoothScrollTo(scrollX - (fixed.offsetWidth / 2), (scrollY - (fixed.offsetHeight / 2)) * scrollRate, 100);
             //window.scrollTo({ left: scrollX - (fixed.offsetWidth / 2), top: scrollY - (fixed.offsetHeight / 2), behavior: "smooth" });
-
           }
         });
       }

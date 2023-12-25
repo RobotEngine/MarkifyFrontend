@@ -2643,17 +2643,21 @@ modules["pages/editor/annotation"] = {
     if (annoID == null) {
       return;
     }
+    if (Object.keys(annoData).length < 2) {
+      return; // Only the _id field, no changes
+    }
     let anno = editor.annotations[annoID] || { render: {} };
-    let syncAnno = JSON.stringify(anno.render);
-    let mutations = objectUpdate(annoData, anno.render);
+    anno.revert = anno.revert || JSON.parse(JSON.stringify(anno.render));
+    objectUpdate(annoData, anno.render);
+    /*
     if (Object.keys(mutations).length < 1) {
       return; // No changes, so no need to do anything
     }
-    anno.revert = anno.revert || JSON.parse(syncAnno);
+    */
     this.enableTimeout(annoID, anno, render);
     editor.annotations[annoID] = anno;
     this.render(anno.render, render);
-    return mutations;
+    return annoData; //mutations;
   },
   pendingSaves: {},
   debounce: false,

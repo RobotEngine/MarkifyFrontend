@@ -875,6 +875,7 @@ modules["pages/editor/toolbar/cursor"] = {
     for (let i = 0; i < keys.length; i++) {
       let annoid = keys[i];
       let select = editor.selecting[annoid];
+      delete select.done;
       let original = editor.annotations[annoid];
       if (original == null) {
         continue;
@@ -889,8 +890,8 @@ modules["pages/editor/toolbar/cursor"] = {
         select.p[1] = utils.round(select.p[1] + (this.endY - this.startY));
       }
       if (anno.page != null) {
-        select.page = select.page || anno.page;
-        let currentPage = editor.page.querySelector('.ePage[pageid="' + select.page + '"]');
+        let page = select.page || anno.page;
+        let currentPage = editor.page.querySelector('.ePage[pageid="' + page + '"]');
         if (currentPage != null) {
           let [page] = (await utils.findPage((select.p[1] * editor.zoom) + currentPage.getBoundingClientRect().top));
           if (page != currentPage) {

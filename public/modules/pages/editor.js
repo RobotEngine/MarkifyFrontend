@@ -2362,7 +2362,8 @@ modules["pages/editor/annotation"] = {
   },
   checkAnnotationSize: async function(anno, notUpdate) {
     let editor = await getModule("pages/editor");
-    let content = editor.page.querySelector(".eContentHolder");
+    let contentFrame = editor.page.querySelector(".eContent");
+    let content = contentFrame.querySelector(".eContentHolder");
     if (anno != null) {
       /*
       if ((anno.getAttribute("anno") || "").startsWith("pending_") == true && anno.hasAttribute("done") == false) {
@@ -2448,13 +2449,17 @@ modules["pages/editor/annotation"] = {
       content.style.marginTop = this.marginTop + "px";
       content.style.marginBottom = (this.setBottomMargin * editor.zoom) + editor.addMargin + "px";
     }
-    window.scrollTo(scrollPosX + (this.marginLeft - contentLeft), scrollPosY + (this.marginTop - contentTop));
-    if (editor.realtime.module && editor.realtime.module.adjustRealtimeHolder) {
-      editor.realtime.module.adjustRealtimeHolder();
+    if (contentFrame.offsetWidth != this.lastOffsetWidth || contentFrame.offsetHeight != this.lastOffsetHeight) {
+      window.scrollTo(scrollPosX + (this.marginLeft - contentLeft), scrollPosY + (this.marginTop - contentTop));
+      if (editor.realtime.module && editor.realtime.module.adjustRealtimeHolder) {
+        editor.realtime.module.adjustRealtimeHolder();
+      }
+      if (editor.updateZoom != null) {
+        editor.updateZoom();
+      }
     }
-    if (editor.updateZoom != null) {
-      editor.updateZoom();
-    }
+    this.lastOffsetWidth = contentFrame.offsetWidth;
+    this.lastOffsetHeight = contentFrame.offsetHeight;
   },
   SVG_PADDING: 100, // How much padding svgs should have to ensure clean render
   render: async function (data, anno, long) {

@@ -56,7 +56,7 @@ modules["editor/toolbar"] = {
 
     ".eToolHoverTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; color: var(--theme); transform: scale(0); transform-origin: center left; opacity: 0`,
 
-    ".eSelect": `position: absolute; opacity: 0; z-index: 10; border-radius: 9px; transition: opacity .15s; pointer-events: none`,
+    ".eSelect": `position: absolute; opacity: 0; z-index: 101; border-radius: 9px; transition: opacity .15s; pointer-events: none`,
     ".eSelectActive": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: all !important; cursor: move`,
     ".eAnnotation[selected] *": `pointer-events: none`,
     ".eSelectTooltip": `position: absolute; transition: .1s; pointer-events: all`,
@@ -686,6 +686,7 @@ modules["pages/editor/toolbar/cursor"] = {
   mouse: "default",
   updateBox: async function () {
     let editor = await getModule("pages/editor");
+    let utils = await getModule("pages/editor/annotation");
     let content = editor.page.querySelector(".eContent");
     let selectionIDs = Object.keys(editor.selecting);
     let checkRemSelections = content.querySelectorAll(".eSelect");
@@ -727,6 +728,7 @@ modules["pages/editor/toolbar/cursor"] = {
       let annoID = selectionIDs[i];
       let annoData = editor.annotations[annoID] || { render: {} };
       let selection = editor.selecting[annoID];
+      let merged = { ...annoData.render, ...selection };
       let anno = content.querySelector('.eAnnotation[anno="' + annoID + '"]');
       let select = content.querySelector('.eSelect[anno="' + annoID + '"]');
       if (anno == null) {
@@ -779,6 +781,7 @@ modules["pages/editor/toolbar/cursor"] = {
           }
         })();
       }
+      /*
       let rect = anno.getBoundingClientRect();
       let boxWidth = (anno.offsetWidth * editor.zoom) - 4;
       let boxHeight = (anno.offsetHeight * editor.zoom) - 4;
@@ -786,6 +789,14 @@ modules["pages/editor/toolbar/cursor"] = {
       select.style.height = boxHeight + "px";
       select.style.left = rect.left + window.scrollX - 2 + "px";
       select.style.top = rect.top + window.scrollY - 2 + "px";
+      */
+      let pageRect = (await utils.annoHolder(merged.page)).getBoundingClientRect();
+      let boxWidth = (merged.s[0] * editor.zoom) + 4;  // +8 for width, -4 for border
+      let boxHeight = (merged.s[1] * editor.zoom) + 4;
+      select.style.width = boxWidth + "px";
+      select.style.height = boxHeight + "px";
+      select.style.left = pageRect.x + (merged.p[0] * editor.zoom) + window.scrollX - 6 + "px"; // -2 for border, -4 for width
+      select.style.top = pageRect.y + ((merged.p[1] - 4) * editor.zoom) + window.scrollY - 6 + "px";
       select.style.border = "solid 4px var(--theme)";
       let eSelectTopLeft = select.querySelector('.eSelectTooltip[tooltip="topleft"]');
       if (eSelectTopLeft != null) {
@@ -821,6 +832,27 @@ modules["pages/editor/toolbar/cursor"] = {
         }
       }
     }
+    
+    if (this.lastEditorZoom != editor.zoom) {
+      // Realtime Selections:
+      let allSelections = editor.page.querySelector(".eRealtime").querySelectorAll(".eCollabSelect");
+      for (let i = 0; i < allSelections.length; i++) {
+        let selection = allSelections[i];
+        selection.setAttribute("notransition", "");
+        let annoID = selection.getAttribute("anno");
+        let anno = { ...((editor.annotations[annoID] || {}).render || {}), ...(editor.selecting[annoID] || {}) };
+        let pageRect = (await utils.annoHolder(anno.page)).getBoundingClientRect();
+        let boxWidth = (anno.s[0] * editor.zoom) + 5; // +8 for width, -3 for border
+        let boxHeight = (anno.s[1] * editor.zoom) + 5;
+        selection.style.width = boxWidth + "px";
+        selection.style.height = boxHeight + "px";
+        selection.style.left = pageRect.x + (anno.p[0] * editor.zoom) + window.scrollX - 5.5 + "px"; // -1.5 for border, -4 for width
+        selection.style.top = pageRect.y + ((anno.p[1] - 4) * editor.zoom) + window.scrollY - 5.5 + "px";
+        selection.offsetHeight;
+        selection.removeAttribute("notransition");
+      }
+    }
+    this.lastEditorZoom = editor.zoom;
   },
   enableAction: async function (event) {
     let target = event.target;

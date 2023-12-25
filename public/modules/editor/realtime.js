@@ -5,18 +5,23 @@ modules["editor/realtime"] = {
     eraser: `<svg width="40" height="40" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg"> <g filter="url(#filter0_d_257_10)"> <path d="M36 19V27C36 29.2091 34.2091 31 32 31L12 31C9.79086 31 8 29.2091 8 27V19C8 16.7909 9.79086 15 12 15L32 15C34.2091 15 36 16.7909 36 19Z" fill="white" stroke="white" stroke-width="2"/> <path d="M36 19V27C36 29.2091 34.2091 31 32 31L12 31C9.79086 31 8 29.2091 8 27V19C8 16.7909 9.79086 15 12 15L32 15C34.2091 15 36 16.7909 36 19Z" fill="MEMBER_COLOR_REPLACE" stroke="white" stroke-width="2"/> <rect x="20.5557" y="16" width="2.88889" height="14" fill="white"/> </g> <defs> <filter id="filter0_d_257_10" x="3" y="10" width="38" height="26" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"> <feFlood flood-opacity="0" result="BackgroundImageFix"/> <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/> <feOffset/> <feGaussianBlur stdDeviation="2"/> <feComposite in2="hardAlpha" operator="out"/> <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/> <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_257_10"/> <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_257_10" result="shape"/> </filter> </defs> </svg>`
   },
   css: {
-    ".eCursor": `--backgroundColor: var(--themeColor); --borderColor: #fff; position: absolute; display: flex; z-index: 20; opacity: 0; align-items: center; transition: .25s; pointer-events: all; transform-origin: var(--origin)`,
-    ".eCursor[pressed]": `--backgroundColor: #fff; --borderColor: var(--themeColor); color: var(--themeColor) !important; transform: scale(.9)`,
+    ".eCursor": `--backgroundColor: var(--themeColor); --textColor: var(--themeColor); --borderColor: #fff; position: absolute; display: flex; z-index: 20; opacity: 0; align-items: center; transition: .25s; pointer-events: all; transform-origin: var(--origin)`,
+    ".eCursor[pressed]": `--backgroundColor: #fff; --borderColor: var(--themeColor); color: var(--textColor) !important; transform: scale(.9)`,
     ".eCursor[changing]": `opacity: 0 !important; transform: scale(0) !important`,
-    ".eCursor .pointer": `width: 20px; height: 20px; background: var(--backgroundColor); border: solid 3px var(--borderColor); overflow: hidden; border-radius: 8px 14px 14px 14px; box-shadow: 0 0 6px rgb(0 0 0 / 50%); transition: all .3s, color .15s`,
+    ".eCursor .pointer": `width: 20px; height: 20px; background: var(--backgroundColor); border: solid 3px var(--borderColor); overflow: hidden; border-radius: 8px 14px 14px 14px; box-shadow: 0 0 6px rgb(0 0 0 / 50%); transition: all .3s, color 0s`,
     ".eCursor .pointer[none]": `border-radius: 14px; opacity: 0; width: 0px`,
-    ".eCursor [name]": `box-sizing: border-box; display: flex; width: fit-content; height: 100%; padding: 0px 6px; border-radius: 14px; overflow: hidden; opacity: 0; white-space: nowrap; font-size: 14px; font-weight: 700; white-space: nowrap; align-items: center; transition: .15s`,
+    ".eCursor [name]": `box-sizing: border-box; display: flex; width: fit-content; height: 100%; padding: 0px 6px; border-radius: 14px; overflow: hidden; opacity: 0; white-space: nowrap; font-size: 14px; font-weight: 700; white-space: nowrap; align-items: center`,
     ".eCursor:hover [color]": `width: var(--fullyExtended)`,
     ".eCursor:hover [name]": `width: unset; opacity: 1`,
     ".eCursor:hover .pointer[none]": `opacity: 1`,
+    ".eCursor[extend] [color]": `width: var(--fullyExtended)`,
+    ".eCursor[extend] [name]": `width: unset; opacity: 1`,
+    ".eCursor[extend] .pointer[none]": `opacity: 1`,
 
     ".eSelection": `opacity: 0; z-index: 10; transition: .3s`,
-    ".eSelection div": `position: absolute; background: var(--themeColor); opacity: .4; border-radius: 4px`
+    ".eSelection div": `position: absolute; background: var(--themeColor); opacity: .4; border-radius: 4px`,
+
+    ".eCollabSelect": `position: absolute; opacity: 0; z-index: 9; border-radius: 9px; transition: .25s, opacity .15s; pointer-events: none`
   },
   js: async function (editor, page) {
     editor.realtime.module = this;
@@ -348,6 +353,7 @@ modules["editor/realtime"] = {
       let adjustElements = realtimeHolder.querySelectorAll("[scale]");
       for (let i = 0; i < adjustElements.length; i++) {
         let element = adjustElements[i];
+        element.setAttribute("notransition", "");
         if (element.hasAttribute("width")) {
           element.style.width = parseFloat(element.getAttribute("width")) * editor.zoom + "px";
         }
@@ -369,6 +375,8 @@ modules["editor/realtime"] = {
           y += pageRect.top;
           element.style.top = y + (parseInt(element.getAttribute("offsety") || "0")) + window.scrollY + "px";
         }
+        element.offsetHeight;
+        element.removeAttribute("notransition");
       }
     }
 
@@ -522,6 +530,24 @@ modules["editor/realtime"] = {
               cursorHolder.style.opacity = 1;
             }
             let updateCursorProps = async () => {
+              let selectKeys = Object.keys((extra || {}).select || {});
+              let allSelections = realtimeHolder.querySelectorAll('.eCollabSelect[member="' + memberID + '"]');
+              for (let i = 0; i < allSelections.length; i++) {
+                let select = allSelections[i];
+                if (selectKeys.includes(select.getAttribute("anno")) == false) {
+                  (async function () {
+                    select.setAttribute("old", "");
+                    select.style.opacity = 0;
+                    await sleep(150);
+                    select.remove();
+                  })();
+                }
+              }
+              if (selectKeys.length > 0) {
+                cursorHolder.setAttribute("extend", "");
+              } else {
+                cursorHolder.removeAttribute("extend");
+              }
               if (extra != null) {
                 if (extra.c != null) {
                   let setColor = cursorHolder.querySelector("[toolcoloropacity]");
@@ -530,10 +556,9 @@ modules["editor/realtime"] = {
                     setColor.setAttribute("fill-opacity", (extra.o || 100) / 100);
                   }
                 }
-                if (extra.select != null) {
-                  let keys = Object.keys(extra.select);
-                  for (let i = 0; i < keys.length; i++) {
-                    let annoID = keys[i];
+                if (selectKeys.length > 0) {
+                  for (let i = 0; i < selectKeys.length; i++) {
+                    let annoID = selectKeys[i];
                     let anno = extra.select[annoID] || {};
                     let original = editor.annotations[annoID] || {};
                     // If the user is also selecting, we must update their fields accordingly:
@@ -558,8 +583,28 @@ modules["editor/realtime"] = {
                       delete original.render.done;
                       utils.saveEdit(anno);
                     }
+                    let annotation = editor.page.querySelector('.eAnnotation[anno="' + annoID + '"]');
+                    if (annotation != null) {
+                      let selection = realtimeHolder.querySelector('.eCollabSelect[member="' + memberID + '"][anno="' + annoID + '"]:not([old])');
+                      if (selection == null) {
+                        realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCollabSelect" member="${memberID}" new></div>`);
+                        selection = realtimeHolder.querySelector('.eCollabSelect[member="' + memberID + '"][new]');
+                        selection.removeAttribute("new");
+                        selection.setAttribute("anno", annoID);
+                        selection.style.border = "solid 3px " + member.color;
+                        selection.offsetHeight;
+                        selection.style.opacity = 1;
+                      }
+                      let pageRect = (await utils.annoHolder(original.render.page)).getBoundingClientRect();
+                      let boxWidth = (original.render.s[0] * editor.zoom) + 5; // +8 for width, -3 for border
+                      let boxHeight = (original.render.s[1] * editor.zoom) + 5;
+                      selection.style.width = boxWidth + "px";
+                      selection.style.height = boxHeight + "px";
+                      selection.style.left = pageRect.x + (original.render.p[0] * editor.zoom) + window.scrollX - 5.5 + "px"; // -1.5 for border, -4 for width
+                      selection.style.top = pageRect.y + ((original.render.p[1] - 4) * editor.zoom) + window.scrollY - 5.5 + "px";
+                    }
                   }
-                  member.selecting = keys;
+                  member.selecting = selectKeys;
                 } else if (member.selecting != null) {
                   for (let i = 0; i < member.selecting.length; i++) {
                     let annoID = member.selecting[i];
@@ -649,7 +694,11 @@ modules["editor/realtime"] = {
                 cursorHolder.setAttribute("offsety", offsety);
                 cursorHolder.style.setProperty("--origin", origin);
                 cursorHolder.querySelector("[name]").textContent = member.name;
-                cursorHolder.style.color = this.textColorBackground(member.color);
+                let setTextColor = this.textColorBackground(member.color);
+                cursorHolder.style.color = setTextColor;
+                if (setTextColor == "#000") {
+                  cursorHolder.style.setProperty("--textColor", "#000");
+                }
                 cursorHolder.style.setProperty("--themeColor", member.color);
                 let colorMain = cursorHolder.querySelector("[color]");
                 colorMain.style.width = "fit-content";

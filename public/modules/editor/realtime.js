@@ -594,23 +594,25 @@ modules["editor/realtime"] = {
                       selection.style.transition = "all .25s, opacity .15s";
                       selection.style.opacity = 1;
                     }
-
+                    
+                    let merge;
                     if (editor.selecting[annoID] == null) {
-                      utils.render(original.render);
+                      merge = original.render;
+                      utils.render(merge);
                       selection.removeAttribute("notransition");
                     } else {
-                      utils.render({ ...original.render, ...(editor.selecting[annoID] || {}) });
-                      selection.setAttribute("notransition", "");
+                      merge = { ...original.render, ...(editor.selecting[annoID] || {}) };
+                      utils.render(merge);
                     }
                     selection.offsetHeight;
 
-                    let pageRect = (await utils.annoHolder(original.render.page)).getBoundingClientRect();
-                    let boxWidth = (original.render.s[0] * editor.zoom) + 5; // +8 for width, -3 for border
-                    let boxHeight = (original.render.s[1] * editor.zoom) + 5;
+                    let pageRect = (await utils.annoHolder(merge.page)).getBoundingClientRect();
+                    let boxWidth = (merge.s[0] * editor.zoom) + 5; // +8 for width, -3 for border
+                    let boxHeight = (merge.s[1] * editor.zoom) + 5;
                     selection.style.width = boxWidth + "px";
                     selection.style.height = boxHeight + "px";
-                    selection.style.left = pageRect.x + (original.render.p[0] * editor.zoom) + window.scrollX - 5.5 + "px"; // -1.5 for border, -4 for width
-                    selection.style.top = pageRect.y + ((original.render.p[1] - 4) * editor.zoom) + window.scrollY - 5.5 + "px";
+                    selection.style.left = pageRect.x + (merge.p[0] * editor.zoom) + window.scrollX - 5.5 + "px"; // -1.5 for border, -4 for width
+                    selection.style.top = pageRect.y + ((merge.p[1] - 4) * editor.zoom) + window.scrollY - 5.5 + "px";
                   }
                   member.selecting = selectKeys;
                   editor.updateZoom();

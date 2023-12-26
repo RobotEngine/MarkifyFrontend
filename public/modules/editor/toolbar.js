@@ -983,17 +983,21 @@ modules["pages/editor/toolbar/cursor"] = {
     let keys = Object.keys(editor.selecting);
     for (let i = 0; i < keys.length; i++) {
       let annoid = keys[i];
+      let selecting = editor.selecting[annoid];
       /*
       let original = editor.annotations[annoid];
       if (original == null) {
         continue;
       }
       */
-
-      await utils.save({ _id: annoid, ...editor.selecting[annoid], done: true });
-      editor.selecting[annoid] = {};
+     delete selecting.done;
+      await utils.save({ _id: annoid, ...selecting });
+      selecting.done = true;
     }
     await utils.forceShort();
+    for (let i = 0; i < keys.length; i++) {
+      editor.selecting[keys[i]] = {};
+    }
 
     utils.resetAnnotationSize();
   },

@@ -81,6 +81,13 @@ modules["editor/toolbar"] = {
         image: `<svg width="26" viewBox="0 0 36 52" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="path-1-outside-1_306_4" maskUnits="userSpaceOnUse" x="0.192818" y="4.08914" width="36" height="44" fill="black"> <rect fill="white" x="0.192818" y="4.08914" width="36" height="44"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7602 8.2371C8.79786 5.37292 3.25704 8.19611 3.24522 13.0852L3.19284 34.7545C3.18199 39.2411 7.9192 42.1519 11.9168 40.1151L15.9383 38.066L18.0344 42.1798C19.288 44.6402 22.2989 45.6185 24.7593 44.3649L26.0925 43.6856C28.5529 42.4319 29.5312 39.4211 28.2776 36.9606L26.1815 32.8468L29.5308 31.1403C33.5284 29.1034 33.9579 23.56 30.3218 20.9316L12.7602 8.2371Z"/> </mask> <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7602 8.2371C8.79786 5.37292 3.25704 8.19611 3.24522 13.0852L3.19284 34.7545C3.18199 39.2411 7.9192 42.1519 11.9168 40.1151L15.9383 38.066L18.0344 42.1798C19.288 44.6402 22.2989 45.6185 24.7593 44.3649L26.0925 43.6856C28.5529 42.4319 29.5312 39.4211 28.2776 36.9606L26.1815 32.8468L29.5308 31.1403C33.5284 29.1034 33.9579 23.56 30.3218 20.9316L12.7602 8.2371Z" fill="#2F2F2F"/> <path d="M3.24522 13.0852L0.74523 13.0792L3.24522 13.0852ZM12.7602 8.2371L14.2247 6.21101L14.2247 6.21101L12.7602 8.2371ZM3.19284 34.7545L5.69283 34.7606L3.19284 34.7545ZM11.9168 40.1151L10.7818 37.8876L10.7818 37.8876L11.9168 40.1151ZM15.9383 38.066L18.1658 36.931L17.0308 34.7035L14.8033 35.8385L15.9383 38.066ZM18.0344 42.1798L15.8068 43.3147L15.8068 43.3147L18.0344 42.1798ZM24.7593 44.3649L23.6244 42.1373L23.6244 42.1373L24.7593 44.3649ZM26.0925 43.6856L27.2274 45.9131L27.2274 45.9131L26.0925 43.6856ZM28.2776 36.9606L30.5051 35.8256L30.5051 35.8256L28.2776 36.9606ZM26.1815 32.8468L25.0465 30.6193L22.819 31.7543L23.954 33.9818L26.1815 32.8468ZM29.5308 31.1403L30.6658 33.3678L29.5308 31.1403ZM30.3218 20.9316L31.7864 18.9055L31.7864 18.9055L30.3218 20.9316ZM5.74522 13.0913C5.75211 10.2393 8.98425 8.59242 11.2956 10.2632L14.2247 6.21101C8.61146 2.15342 0.761974 6.15294 0.74523 13.0792L5.74522 13.0913ZM5.69283 34.7606L5.74522 13.0913L0.74523 13.0792L0.692844 34.7485L5.69283 34.7606ZM10.7818 37.8876C8.44987 39.0757 5.6865 37.3777 5.69283 34.7606L0.692844 34.7485C0.677478 41.1044 7.38852 45.2281 13.0517 42.3426L10.7818 37.8876ZM14.8033 35.8385L10.7818 37.8876L13.0517 42.3426L17.0733 40.2935L14.8033 35.8385ZM20.2619 41.0448L18.1658 36.931L13.7108 39.201L15.8068 43.3147L20.2619 41.0448ZM23.6244 42.1373C22.3941 42.7642 20.8887 42.275 20.2619 41.0448L15.8068 43.3147C17.6873 47.0054 22.2036 48.4729 25.8943 46.5924L23.6244 42.1373ZM24.9575 41.4581L23.6244 42.1373L25.8943 46.5924L27.2274 45.9131L24.9575 41.4581ZM26.05 38.0956C26.6769 39.3258 26.1877 40.8312 24.9575 41.4581L27.2274 45.9131C30.9181 44.0326 32.3856 39.5163 30.5051 35.8256L26.05 38.0956ZM23.954 33.9818L26.05 38.0956L30.5051 35.8256L28.409 31.7119L23.954 33.9818ZM28.3958 28.9128L25.0465 30.6193L27.3165 35.0744L30.6658 33.3678L28.3958 28.9128ZM28.8572 22.9577C30.9783 24.4909 30.7277 27.7246 28.3958 28.9128L30.6658 33.3678C36.329 30.4822 36.9375 22.629 31.7864 18.9055L28.8572 22.9577ZM11.2956 10.2632L28.8572 22.9577L31.7864 18.9055L14.2247 6.21101L11.2956 10.2632Z" fill="white" mask="url(#path-1-outside-1_306_4)"/> </svg>`
       },
       {
+        id: "pan",
+        tooltip: "Pan",
+        type: "tool",
+        module: "pages/editor/toolbar/pan",
+        image: `<svg width="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_597_4" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_597_4)"> <path d="M123.411 222H164.774C169.33 222 173.716 220.273 177.048 217.166L199.274 196.447C202.926 193.043 205 188.274 205 183.281V90.4706C205 85.6967 203.104 81.1183 199.728 77.7426L197.314 75.3284C194.862 72.8771 191.538 71.5 188.071 71.5C183.407 71.5 179.313 73.943 177 77.6192V60.5C177 52.2157 170.284 45.5 162 45.5C156.443 45.5 151.592 48.5217 149 53.0117V49C149 40.7157 142.284 34 134 34C125.716 34 119 40.7157 119 49V60.5117C116.408 56.0217 111.557 53 106 53C97.7157 53 91 59.7157 91 68V119.937C91 124.977 85.1636 127.771 81.2379 124.611L75.8412 120.268C65.4495 111.904 50 119.301 50 132.64C50 136.142 51.1569 139.545 53.2907 142.32L109.141 214.97C112.548 219.403 117.821 222 123.411 222Z" fill="white" stroke="white" stroke-width="12"/> <path d="M164.774 216H123.411C119.684 216 116.169 214.268 113.897 211.314L58.0476 138.664C56.7198 136.936 56 134.819 56 132.64C56 124.34 65.6131 119.737 72.0791 124.942L77.4759 129.285C85.3273 135.605 97 130.016 97 119.937V68C97 63.0294 101.029 59 106 59C110.971 59 115 63.0294 115 68V107C115 109.761 117.239 112 120 112C122.761 112 125 109.761 125 107V49C125 44.0294 129.029 40 134 40C138.971 40 143 44.0294 143 49V107C143 109.761 145.239 112 148 112C150.761 112 153 109.761 153 107V60.5C153 55.5294 157.029 51.5 162 51.5C166.971 51.5 171 55.5294 171 60.5V107C171 109.761 173.239 112 176 112C178.761 112 181 109.761 181 107V84.5711C181 80.6658 184.166 77.5 188.071 77.5C189.946 77.5 191.745 78.245 193.071 79.5711L195.485 81.9853C197.736 84.2357 199 87.288 199 90.4706V183.281C199 186.61 197.617 189.789 195.183 192.059L172.957 212.778C170.735 214.848 167.811 216 164.774 216Z" fill="#2F2F2F"/> </g> </svg>`
+      },
+      {
         id: "drag",
         tooltip: "Multi-Select",
         type: "tool",
@@ -376,7 +383,11 @@ modules["editor/toolbar"] = {
       if (editor.realtime.module != null) {
         editor.realtime.module.publishShort();
       }
-      if (module.cursor != "default") {
+      if (module.mouse == "default") {
+        pageContent.style.removeProperty("cursor");
+      } else if (module.mouse == "grab") {
+        pageContent.style.cursor = "grab";
+      } else {
         let setSVG = module.mouse || `<svg width="56" height="56" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"> <g filter="url(#filter0_d_231_14)"> <mask id="path-1-outside-1_231_14" maskUnits="userSpaceOnUse" x="28" y="27" width="21" height="28" fill="black"> <rect fill="white" x="28" y="27" width="21" height="28"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M34.7886 30.574C32.8075 29.1419 30.0371 30.5535 30.0312 32.998L30 45.8878C29.9946 48.1311 32.3632 49.5865 34.362 48.5681L36.9809 47.2337L38.5573 50.3275C39.3465 51.8764 41.2418 52.4922 42.7907 51.703C44.3396 50.9138 44.9554 49.0185 44.1662 47.4696L42.5899 44.3757L44.8395 43.2295C46.8383 42.2111 47.053 39.4394 45.235 38.1252L34.7886 30.574Z"/> </mask> <path fill-rule="evenodd" clip-rule="evenodd" d="M34.7886 30.574C32.8075 29.1419 30.0371 30.5535 30.0312 32.998L30 45.8878C29.9946 48.1311 32.3632 49.5865 34.362 48.5681L36.9809 47.2337L38.5573 50.3275C39.3465 51.8764 41.2418 52.4922 42.7907 51.703C44.3396 50.9138 44.9554 49.0185 44.1662 47.4696L42.5899 44.3757L44.8395 43.2295C46.8383 42.2111 47.053 39.4394 45.235 38.1252L34.7886 30.574Z" fill="#2F2F2F"/> <path d="M30.0312 32.998L28.0312 32.9932L30.0312 32.998ZM34.7886 30.574L33.617 32.1949L33.617 32.1949L34.7886 30.574ZM30 45.8878L28 45.883L30 45.8878ZM34.362 48.5681L33.454 46.786L33.454 46.786L34.362 48.5681ZM36.9809 47.2337L38.7629 46.3257L37.8549 44.5437L36.0729 45.4516L36.9809 47.2337ZM38.5573 50.3275L40.3393 49.4195L40.3393 49.4195L38.5573 50.3275ZM42.7907 51.703L43.6987 53.485L43.6987 53.485L42.7907 51.703ZM44.1662 47.4696L45.9483 46.5616L45.9483 46.5616L44.1662 47.4696ZM42.5899 44.3757L41.6819 42.5937L39.8999 43.5017L40.8078 45.2837L42.5899 44.3757ZM44.8395 43.2295L45.7475 45.0115L44.8395 43.2295ZM45.235 38.1252L46.4067 36.5043L46.4067 36.5043L45.235 38.1252ZM32.0312 33.0029C32.0331 32.188 32.9566 31.7175 33.617 32.1949L35.9603 28.9531C32.6584 26.5663 28.041 28.9189 28.0312 32.9932L32.0312 33.0029ZM32 45.8926L32.0312 33.0029L28.0312 32.9932L28 45.883L32 45.8926ZM33.454 46.786C32.7877 47.1255 31.9982 46.6404 32 45.8926L28 45.883C27.991 49.6218 31.9387 52.0475 35.27 50.3501L33.454 46.786ZM36.0729 45.4516L33.454 46.786L35.27 50.3501L37.8889 49.0157L36.0729 45.4516ZM40.3393 49.4195L38.7629 46.3257L35.1989 48.1416L36.7753 51.2355L40.3393 49.4195ZM41.8827 49.921C41.318 50.2087 40.627 49.9842 40.3393 49.4195L36.7753 51.2355C38.0659 53.7685 41.1657 54.7757 43.6987 53.485L41.8827 49.921ZM42.3842 48.3776C42.672 48.9423 42.4474 49.6333 41.8827 49.921L43.6987 53.485C46.2318 52.1944 47.2389 49.0947 45.9483 46.5616L42.3842 48.3776ZM40.8078 45.2837L42.3842 48.3776L45.9483 46.5616L44.3719 43.4678L40.8078 45.2837ZM43.9315 41.4475L41.6819 42.5937L43.4978 46.1578L45.7475 45.0115L43.9315 41.4475ZM44.0633 39.7461C44.6693 40.1841 44.5978 41.108 43.9315 41.4475L45.7475 45.0115C49.0788 43.3141 49.4367 38.6946 46.4067 36.5043L44.0633 39.7461ZM33.617 32.1949L44.0633 39.7461L46.4067 36.5043L35.9603 28.9531L33.617 32.1949Z" fill="white" mask="url(#path-1-outside-1_231_14)"/> </g> <defs> <filter id="filter0_d_231_14" x="24" y="23.9961" width="28.4775" height="34.0508" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"> <feFlood flood-opacity="0" result="BackgroundImageFix"/> <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/> <feOffset/> <feGaussianBlur stdDeviation="2"/> <feComposite in2="hardAlpha" operator="out"/> <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/> <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_231_14"/> <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_231_14" result="shape"/> </filter> </defs> </svg>`;
         setSVG = setSVG.replace(/COLOR_REPLACE/g, "#" + module.color).replace(/OPACITY_REPLACE/g, module.opacity / 100);
         if (setSVG != mouseSVG) {
@@ -387,8 +398,6 @@ modules["editor/toolbar"] = {
             pageContent.style.cursor = "url('" + reader.result + "') 28 28, auto";
           }
         }
-      } else {
-        pageContent.style.removeProperty("cursor");
       }
     }
 
@@ -1230,6 +1239,53 @@ modules["pages/editor/toolbar/drag"] = {
     addEvent(content, "touchmove", moveSelect, { passive: false });
     addEvent(content, "mouseup", disableSelect, { passive: false });
     addEvent(content, "touchend", disableSelect, { passive: false });
+  }
+};
+
+// PAN TOOL
+modules["pages/editor/toolbar/pan"] = {
+  mouse: "grab",
+  js: async function (editor, utils, addEvent) {
+    let content = editor.page.querySelector(".eContent");
+
+    body.style.userSelect = "none";
+    editor.page.style.touchAction = "pinch-zoom";
+
+    let dragging = false;
+    let startScrollX;
+    let startScrollY;
+    let selectX;
+    let selectY;
+    let enableDrag = async (event) => {
+      dragging = true;
+      startScrollX = window.scrollX;
+      startScrollY = window.scrollY;
+      selectX = clientPosition(event, "x");
+      selectY = clientPosition(event, "y");
+      content.style.cursor = "grabbing";
+    }
+    let moveDrag = async (event) => {
+      if (dragging != true) {
+        return;
+      }
+      if (mouseDown() == false) {
+        disableDrag();
+        return;
+      }
+      let newX = clientPosition(event, "x");
+      let newY = clientPosition(event, "y");
+      window.scrollTo({ left: startScrollX - (newX - selectX), top: startScrollY - (newY - selectY) });
+    }
+    let disableDrag = async () => {
+      dragging = false;
+      content.style.cursor = "grab";
+    }
+    addEvent(content, "mousedown", enableDrag, { passive: false });
+    addEvent(content, "touchstart", enableDrag, { passive: false });
+    addEvent(content, "mousemove", moveDrag, { passive: false });
+    addEvent(content, "touchmove", moveDrag, { passive: false });
+    addEvent(content, "mouseup", disableDrag, { passive: false });
+    addEvent(content, "touchend", disableDrag, { passive: false });
   }
 };
 

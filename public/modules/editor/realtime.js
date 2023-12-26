@@ -657,9 +657,11 @@ modules["editor/realtime"] = {
               pageElem = pageHolder.children[page - 1];
               cursorHolder.setAttribute("page", page);
             }
-            let pageRect = pageElem.getBoundingClientRect();
-            x += pageRect.left;
-            y += pageRect.top;
+            if (pageElem != null) {
+              let pageRect = pageElem.getBoundingClientRect();
+              x += pageRect.left;
+              y += pageRect.top;
+            }
             member.x = x;
             member.y = y;
             if (tool == null) {
@@ -756,9 +758,11 @@ modules["editor/realtime"] = {
                   pageElem = pageHolder.children[selectData[0] - 1];
                   select.setAttribute("page", selectData[0]);
                 }
-                let pageRect = pageElem.getBoundingClientRect();
-                select.style.left = (selX + pageRect.left) + window.scrollX + "px";
-                select.style.top = (selY + pageRect.top) + window.scrollY + "px";
+                if (pageElem != null) {
+                  let pageRect = pageElem.getBoundingClientRect();
+                  select.style.left = (selX + pageRect.left) + window.scrollX + "px";
+                  select.style.top = (selY + pageRect.top) + window.scrollY + "px";
+                }
               }
               selectionHolder.style.opacity = 1;
             } else if (selectionHolder != null) {

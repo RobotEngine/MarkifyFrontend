@@ -1269,6 +1269,8 @@ modules["pages/editor/toolbar/pan"] = {
       selectX = clientPosition(event, "x");
       selectY = clientPosition(event, "y");
       content.style.cursor = "grabbing";
+      body.style.userSelect = "none";
+      editor.page.style.touchAction = "pinch-zoom";
     }
     let moveDrag = async (event) => {
       if (dragging != true) {

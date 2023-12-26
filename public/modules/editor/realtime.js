@@ -573,7 +573,7 @@ modules["editor/realtime"] = {
                     }
                     */
                     if (anno.done != true) {
-                      if (original.revert == null) {
+                      if (original.revert != null) {
                         original.revert = JSON.parse(JSON.stringify(original.render));
                       }
                       original.render = { ...(original.render || {}), ...anno };

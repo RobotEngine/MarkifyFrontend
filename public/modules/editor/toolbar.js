@@ -684,7 +684,7 @@ modules["editor/toolbar"] = {
 // CURSOR TOOL
 modules["pages/editor/toolbar/cursor"] = {
   mouse: "default",
-  updateBox: async function () {
+  updateBox: async function (forceNoTransition) {
     let editor = await getModule("pages/editor");
     let utils = await getModule("pages/editor/annotation");
     let content = editor.page.querySelector(".eContent");
@@ -698,6 +698,7 @@ modules["pages/editor/toolbar/cursor"] = {
         if (anno != null) {
           (async function () {
             anno.removeAttribute("selected");
+            anno.removeAttribute("notransition");
             //anno.style.zIndex = (editor.annotations[annoID] || { render: {} }).render.sync;
             //anno.style.pointerEvents = "unset";
             //anno.style.cursor = "unset";
@@ -731,6 +732,7 @@ modules["pages/editor/toolbar/cursor"] = {
       let merged = { ...annoData.render, ...selection };
       let anno = content.querySelector('.eAnnotation[anno="' + annoID + '"]');
       let select = content.querySelector('.eSelect[anno="' + annoID + '"]');
+      let collabSelect = content.querySelector('.eCollabSelect[anno="' + annoID + '"]');
       if (anno == null) {
         delete editor.selecting[annoID];
         if (select != null) {
@@ -752,9 +754,25 @@ modules["pages/editor/toolbar/cursor"] = {
         select = content.querySelector(".eSelect[new]");
         select.removeAttribute("new");
         select.setAttribute("anno", annoID);
-        select.offsetHeight;
+        select.style.border = "solid 4px var(--theme)";
         select.style.opacity = 1;
+        select.offsetHeight;
+        select.style.transition = "all .25s, opacity .15s";
       }
+      if (this.action != null || forceNoTransition == true) {
+        select.setAttribute("notransition", "");
+        anno.setAttribute("notransition", "");
+        if (collabSelect != null) {
+          collabSelect.setAttribute("notransition", "");
+        }
+      } else {
+        select.removeAttribute("notransition");
+        anno.removeAttribute("notransition");
+        if (collabSelect != null) {
+          collabSelect.removeAttribute("notransition");
+        }
+      }
+      
       if (selectionIDs.length == 1) {
         if (select.querySelector('.eSelectTooltip[tooltip="topright"]') == null) {
           select.insertAdjacentHTML("beforeend", `
@@ -797,7 +815,6 @@ modules["pages/editor/toolbar/cursor"] = {
       select.style.height = boxHeight + "px";
       select.style.left = pageRect.x + (merged.p[0] * editor.zoom) + window.scrollX - 6 + "px"; // -2 for border, -4 for width
       select.style.top = pageRect.y + ((merged.p[1] - 4) * editor.zoom) + window.scrollY - 6 + "px";
-      select.style.border = "solid 4px var(--theme)";
       let eSelectTopLeft = select.querySelector('.eSelectTooltip[tooltip="topleft"]');
       if (eSelectTopLeft != null) {
         eSelectTopLeft.removeAttribute("hidden");
@@ -831,11 +848,20 @@ modules["pages/editor/toolbar/cursor"] = {
           eSelectBottomLeft.removeAttribute("hidden");
         }
       }
+
+      if (collabSelect != null) {
+        collabSelect.offsetWidth;
+        let collWidth = (merged.s[0] * editor.zoom) + 5; // +8 for width, -3 for border
+        let collHeight = (merged.s[1] * editor.zoom) + 5;
+        collabSelect.style.width = collWidth + "px";
+        collabSelect.style.height = collHeight + "px";
+        collabSelect.style.left = pageRect.x + (merged.p[0] * editor.zoom) + window.scrollX - 5.5 + "px"; // -1.5 for border, -4 for width
+        collabSelect.style.top = pageRect.y + ((merged.p[1] - 4) * editor.zoom) + window.scrollY - 5.5 + "px";
+      }
     }
     
-    if (this.lastEditorZoom != editor.zoom) {
-      // Realtime Selections:
-      let allSelections = editor.page.querySelector(".eRealtime").querySelectorAll(".eCollabSelect");
+    if (this.lastEditorZoom != editor.zoom || forceNoTransition == true) {
+      let allSelections = editor.page.querySelector(".eRealtime").querySelectorAll('.eCollabSelect');
       for (let i = 0; i < allSelections.length; i++) {
         let selection = allSelections[i];
         selection.setAttribute("notransition", "");
@@ -957,16 +983,15 @@ modules["pages/editor/toolbar/cursor"] = {
     let keys = Object.keys(editor.selecting);
     for (let i = 0; i < keys.length; i++) {
       let annoid = keys[i];
-      let select = editor.selecting[annoid];
       /*
       let original = editor.annotations[annoid];
       if (original == null) {
         continue;
       }
       */
-      delete select.done;
-      await utils.save({ _id: annoid, ...select });
-      select.done = true;
+
+      await utils.save({ _id: annoid, ...editor.selecting[annoid], done: true });
+      editor.selecting[annoid] = {};
     }
     await utils.forceShort();
 

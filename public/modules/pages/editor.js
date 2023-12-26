@@ -139,7 +139,8 @@ modules["pages/editor"] = {
     ".ePageRearrange": `position: absolute; display: flex; width: 28px; height: 28px; padding: 4px; right: 8px; bottom: 8px; pointer-events: all; z-index: 2; background: rgba(180, 218, 253, 0.75); backdrop-filter: blur(2px); border-radius: 18px; overflow: hidden`, //transform: scale(var(--fixedUIScale));
     ".ePageRearrange div": `margin-left: 6px`,
     ".eAnnotation": `position: absolute`,
-    '.eAnnotation:not([selected]):not([anno^="pending_"])': `transition: .25s`,
+    '.eAnnotation:not([anno^="pending_"])': `transition: .25s`,
+    //'.eAnnotation:not([selected]):not([anno^="pending_"])': `transition: .25s`,
     ".eAnnotation svg": `position: absolute; width: calc(100% + 200px); height: calc(100% + 200px); left: -100px; top: -100px; pointer-events: none`,
     ".eAnnotation svg polyline": `pointer-events: stroke`,
 
@@ -2455,7 +2456,7 @@ modules["pages/editor/annotation"] = {
         editor.realtime.module.adjustRealtimeHolder();
       }
       if (editor.updateZoom != null) {
-        editor.updateZoom();
+        editor.updateZoom(true);
       }
     }
     this.lastOffsetWidth = contentFrame.offsetWidth;

@@ -21,7 +21,7 @@ modules["editor/realtime"] = {
     ".eSelection": `opacity: 0; z-index: 10; transition: .3s`,
     ".eSelection div": `position: absolute; background: var(--themeColor); opacity: .4; border-radius: 4px`,
 
-    ".eCollabSelect": `position: absolute; opacity: 0; z-index: 9; border-radius: 9px; transition: .25s, opacity .15s; pointer-events: none`
+    ".eCollabSelect": `position: absolute; opacity: 0; z-index: 9; border-radius: 9px; opacity .15s; pointer-events: none`
   },
   js: async function (editor, page) {
     editor.realtime.module = this;
@@ -562,7 +562,7 @@ modules["editor/realtime"] = {
                     let anno = extra.select[annoID] || {};
                     let original = editor.annotations[annoID] || {};
                     // If the user is also selecting, we must update their fields accordingly:
-                    let selecting = editor.selecting[annoID];
+                    /*
                     if (selecting != null) {
                       let annoKeys = Object.keys(anno);
                       for (let f = 0; f < annoKeys.length; f++) {
@@ -571,40 +571,49 @@ modules["editor/realtime"] = {
                         }
                       }
                     }
+                    */
                     if (anno.done != true) {
                       if (original.revert == null) {
                         original.revert = JSON.parse(JSON.stringify(original.render));
                       }
                       original.render = { ...(original.render || {}), ...anno };
                       utils.enableTimeout(annoID, original);
-                      utils.render(original.render);
                     } else {
                       original.render = { ...(original.render || {}), ...anno };
                       delete original.render.done;
                       utils.saveEdit(anno);
                     }
-                    let annotation = editor.page.querySelector('.eAnnotation[anno="' + annoID + '"]');
-                    if (annotation != null) {
-                      let selection = realtimeHolder.querySelector('.eCollabSelect[member="' + memberID + '"][anno="' + annoID + '"]:not([old])');
-                      if (selection == null) {
-                        realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCollabSelect" member="${memberID}" new></div>`);
-                        selection = realtimeHolder.querySelector('.eCollabSelect[member="' + memberID + '"][new]');
-                        selection.removeAttribute("new");
-                        selection.setAttribute("anno", annoID);
-                        selection.style.border = "solid 3px " + member.color;
-                        selection.offsetHeight;
-                        selection.style.opacity = 1;
-                      }
-                      let pageRect = (await utils.annoHolder(original.render.page)).getBoundingClientRect();
-                      let boxWidth = (original.render.s[0] * editor.zoom) + 5; // +8 for width, -3 for border
-                      let boxHeight = (original.render.s[1] * editor.zoom) + 5;
-                      selection.style.width = boxWidth + "px";
-                      selection.style.height = boxHeight + "px";
-                      selection.style.left = pageRect.x + (original.render.p[0] * editor.zoom) + window.scrollX - 5.5 + "px"; // -1.5 for border, -4 for width
-                      selection.style.top = pageRect.y + ((original.render.p[1] - 4) * editor.zoom) + window.scrollY - 5.5 + "px";
+                    let selection = realtimeHolder.querySelector('.eCollabSelect[member="' + memberID + '"][anno="' + annoID + '"]:not([old])');
+                    if (selection == null) {
+                      realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCollabSelect" member="${memberID}" new></div>`);
+                      selection = realtimeHolder.querySelector('.eCollabSelect[member="' + memberID + '"][new]');
+                      selection.removeAttribute("new");
+                      selection.setAttribute("anno", annoID);
+                      selection.style.border = "solid 3px " + member.color;
+                      selection.offsetHeight;
+                      selection.style.transition = "all .25s, opacity .15s";
+                      selection.style.opacity = 1;
                     }
+
+                    if (editor.selecting[annoID] == null) {
+                      utils.render(original.render);
+                      selection.removeAttribute("notransition");
+                    } else {
+                      utils.render({ ...original.render, ...(editor.selecting[annoID] || {}) });
+                      selection.setAttribute("notransition", "");
+                    }
+                    selection.offsetHeight;
+
+                    let pageRect = (await utils.annoHolder(original.render.page)).getBoundingClientRect();
+                    let boxWidth = (original.render.s[0] * editor.zoom) + 5; // +8 for width, -3 for border
+                    let boxHeight = (original.render.s[1] * editor.zoom) + 5;
+                    selection.style.width = boxWidth + "px";
+                    selection.style.height = boxHeight + "px";
+                    selection.style.left = pageRect.x + (original.render.p[0] * editor.zoom) + window.scrollX - 5.5 + "px"; // -1.5 for border, -4 for width
+                    selection.style.top = pageRect.y + ((original.render.p[1] - 4) * editor.zoom) + window.scrollY - 5.5 + "px";
                   }
                   member.selecting = selectKeys;
+                  editor.updateZoom();
                 } else if (member.selecting != null) {
                   for (let i = 0; i < member.selecting.length; i++) {
                     let annoID = member.selecting[i];

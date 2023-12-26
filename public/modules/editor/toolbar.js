@@ -736,6 +736,9 @@ modules["pages/editor/toolbar/cursor"] = {
     }
     for (let i = 0; i < selectionIDs.length; i++) {
       let annoID = selectionIDs[i];
+      if (annoID == null || annoID.startsWith("pending_")) {
+        continue;
+      }
       let annoData = editor.annotations[annoID] || { render: {} };
       let selection = editor.selecting[annoID];
       let merged = { ...annoData.render, ...selection };

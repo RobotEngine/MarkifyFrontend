@@ -875,7 +875,10 @@ modules["pages/editor/toolbar/cursor"] = {
         let selection = allSelections[i];
         selection.setAttribute("notransition", "");
         let annoID = selection.getAttribute("anno");
-        let anno = { ...((editor.annotations[annoID] || {}).render || {}), ...(editor.selecting[annoID] || {}) };
+        if (editor.annotations[annoID] == null) {
+          continue;
+        }
+        let anno = { ...((editor.annotations[annoID]).render || {}), ...(editor.selecting[annoID] || {}) };
         let pageRect = (await utils.annoHolder(anno.page)).getBoundingClientRect();
         let boxWidth = (anno.s[0] * editor.zoom) + 5; // +8 for width, -3 for border
         let boxHeight = (anno.s[1] * editor.zoom) + 5;

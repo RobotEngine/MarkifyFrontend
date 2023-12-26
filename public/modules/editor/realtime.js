@@ -583,36 +583,43 @@ modules["editor/realtime"] = {
                       delete original.render.done;
                       utils.saveEdit(anno);
                     }
-                    let selection = realtimeHolder.querySelector('.eCollabSelect[member="' + memberID + '"][anno="' + annoID + '"]:not([old])');
-                    if (selection == null) {
-                      realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCollabSelect" member="${memberID}" new></div>`);
-                      selection = realtimeHolder.querySelector('.eCollabSelect[member="' + memberID + '"][new]');
-                      selection.removeAttribute("new");
-                      selection.setAttribute("anno", annoID);
-                      selection.style.border = "solid 3px " + member.color;
-                      selection.offsetHeight;
-                      selection.style.transition = "all .25s, opacity .15s";
-                      selection.style.opacity = 1;
+                    let selection;
+                    if (original.render._id.startsWith("pending_") == false) {
+                      selection = realtimeHolder.querySelector('.eCollabSelect[member="' + memberID + '"][anno="' + annoID + '"]:not([old])');
+                      if (selection == null) {
+                        realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCollabSelect" member="${memberID}" new></div>`);
+                        selection = realtimeHolder.querySelector('.eCollabSelect[member="' + memberID + '"][new]');
+                        selection.removeAttribute("new");
+                        selection.setAttribute("anno", annoID);
+                        selection.style.border = "solid 3px " + member.color;
+                        selection.offsetHeight;
+                        selection.style.transition = "all .25s, opacity .15s";
+                        selection.style.opacity = 1;
+                      }
                     }
                     
                     let merge;
                     if (editor.selecting[annoID] == null) {
                       merge = original.render;
                       utils.render(merge);
-                      selection.removeAttribute("notransition");
+                      if (selection != null) {
+                        selection.removeAttribute("notransition");
+                      }
                     } else {
                       merge = { ...original.render, ...(editor.selecting[annoID] || {}) };
                       utils.render(merge);
                     }
-                    selection.offsetHeight;
 
-                    let pageRect = (await utils.annoHolder(merge.page)).getBoundingClientRect();
-                    let boxWidth = (merge.s[0] * editor.zoom) + 5; // +8 for width, -3 for border
-                    let boxHeight = (merge.s[1] * editor.zoom) + 5;
-                    selection.style.width = boxWidth + "px";
-                    selection.style.height = boxHeight + "px";
-                    selection.style.left = pageRect.x + (merge.p[0] * editor.zoom) + window.scrollX - 5.5 + "px"; // -1.5 for border, -4 for width
-                    selection.style.top = pageRect.y + ((merge.p[1] - 4) * editor.zoom) + window.scrollY - 5.5 + "px";
+                    if (selection != null) {
+                      selection.offsetHeight;
+                      let pageRect = (await utils.annoHolder(merge.page)).getBoundingClientRect();
+                      let boxWidth = (merge.s[0] * editor.zoom) + 5; // +8 for width, -3 for border
+                      let boxHeight = (merge.s[1] * editor.zoom) + 5;
+                      selection.style.width = boxWidth + "px";
+                      selection.style.height = boxHeight + "px";
+                      selection.style.left = pageRect.x + (merge.p[0] * editor.zoom) + window.scrollX - 5.5 + "px"; // -1.5 for border, -4 for width
+                      selection.style.top = pageRect.y + ((merge.p[1] - 4) * editor.zoom) + window.scrollY - 5.5 + "px";
+                    }
                   }
                   member.selecting = selectKeys;
                   editor.updateZoom();

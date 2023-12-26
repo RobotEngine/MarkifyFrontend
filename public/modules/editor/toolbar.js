@@ -820,13 +820,18 @@ modules["pages/editor/toolbar/cursor"] = {
       select.style.left = rect.left + window.scrollX - 2 + "px";
       select.style.top = rect.top + window.scrollY - 2 + "px";
       */
-      let pageRect = (await utils.annoHolder(merged.page)).getBoundingClientRect();
-      let boxWidth = (merged.s[0] * editor.zoom) + 4;  // +8 for width, -4 for border
-      let boxHeight = (merged.s[1] * editor.zoom) + 4;
+      let annoHold = await utils.annoHolder(merged.page);
+      let border = 0;
+      if (annoHold.parentElement.parentElement.firstElementChild != annoHold.parentElement) {
+        border = 4;
+      }
+      let pageRect = annoHold.getBoundingClientRect();
+      let boxWidth = (merged.s[0] * editor.zoom) - 4;  // +0 for width, -4 for border
+      let boxHeight = (merged.s[1] * editor.zoom) - 4;
       select.style.width = boxWidth + "px";
       select.style.height = boxHeight + "px";
-      select.style.left = pageRect.x + (merged.p[0] * editor.zoom) + window.scrollX - 6 + "px"; // -2 for border, -4 for width
-      select.style.top = pageRect.y + ((merged.p[1] - 4) * editor.zoom) + window.scrollY - 6 + "px";
+      select.style.left = pageRect.x + (merged.p[0] * editor.zoom) + window.scrollX - 2 + "px"; // -2 for border, -0 for width
+      select.style.top = pageRect.y + ((merged.p[1] - border) * editor.zoom) + window.scrollY - 2 + "px";
       let eSelectTopLeft = select.querySelector('.eSelectTooltip[tooltip="topleft"]');
       if (eSelectTopLeft != null) {
         eSelectTopLeft.removeAttribute("hidden");
@@ -863,12 +868,12 @@ modules["pages/editor/toolbar/cursor"] = {
 
       if (collabSelect != null) {
         collabSelect.offsetWidth;
-        let collWidth = (merged.s[0] * editor.zoom) + 5; // +8 for width, -3 for border
-        let collHeight = (merged.s[1] * editor.zoom) + 5;
+        let collWidth = (merged.s[0] * editor.zoom) - 3; // +0 for width, -3 for border
+        let collHeight = (merged.s[1] * editor.zoom) - 3;
         collabSelect.style.width = collWidth + "px";
         collabSelect.style.height = collHeight + "px";
-        collabSelect.style.left = pageRect.x + (merged.p[0] * editor.zoom) + window.scrollX - 5.5 + "px"; // -1.5 for border, -4 for width
-        collabSelect.style.top = pageRect.y + ((merged.p[1] - 4) * editor.zoom) + window.scrollY - 5.5 + "px";
+        collabSelect.style.left = pageRect.x + (merged.p[0] * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
+        collabSelect.style.top = pageRect.y + ((merged.p[1] - border) * editor.zoom) + window.scrollY - 1.5 + "px";
       }
     }
     
@@ -882,13 +887,18 @@ modules["pages/editor/toolbar/cursor"] = {
           continue;
         }
         let anno = { ...((editor.annotations[annoID]).render || {}), ...(editor.selecting[annoID] || {}) };
-        let pageRect = (await utils.annoHolder(anno.page)).getBoundingClientRect();
-        let boxWidth = (anno.s[0] * editor.zoom) + 5; // +8 for width, -3 for border
-        let boxHeight = (anno.s[1] * editor.zoom) + 5;
+        let annoHold = await utils.annoHolder(anno.page);
+        let border = 0;
+        if (annoHold.parentElement.parentElement.firstElementChild != annoHold.parentElement) {
+          border = 4;
+        }
+        let pageRect = annoHold.getBoundingClientRect();
+        let boxWidth = (anno.s[0] * editor.zoom) - 3; // +0 for width, -3 for border
+        let boxHeight = (anno.s[1] * editor.zoom) - 3;
         selection.style.width = boxWidth + "px";
         selection.style.height = boxHeight + "px";
-        selection.style.left = pageRect.x + (anno.p[0] * editor.zoom) + window.scrollX - 5.5 + "px"; // -1.5 for border, -4 for width
-        selection.style.top = pageRect.y + ((anno.p[1] - 4) * editor.zoom) + window.scrollY - 5.5 + "px";
+        selection.style.left = pageRect.x + (anno.p[0] * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
+        selection.style.top = pageRect.y + ((anno.p[1] - border) * editor.zoom) + window.scrollY - 1.5 + "px";
         selection.offsetHeight;
         selection.removeAttribute("notransition");
       }

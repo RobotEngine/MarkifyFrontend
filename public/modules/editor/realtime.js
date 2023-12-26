@@ -612,13 +612,18 @@ modules["editor/realtime"] = {
 
                     if (selection != null) {
                       selection.offsetHeight;
-                      let pageRect = (await utils.annoHolder(merge.page)).getBoundingClientRect();
-                      let boxWidth = (merge.s[0] * editor.zoom) + 5; // +8 for width, -3 for border
-                      let boxHeight = (merge.s[1] * editor.zoom) + 5;
+                      let annoHold = await utils.annoHolder(merge.page);
+                      let border = 0;
+                      if (annoHold.parentElement.parentElement.firstElementChild != annoHold.parentElement) {
+                        border = 4;
+                      }
+                      let pageRect = (annoHold).getBoundingClientRect();
+                      let boxWidth = (merge.s[0] * editor.zoom) - 3; // +0 for width, -3 for border
+                      let boxHeight = (merge.s[1] * editor.zoom) - 3;
                       selection.style.width = boxWidth + "px";
                       selection.style.height = boxHeight + "px";
-                      selection.style.left = pageRect.x + (merge.p[0] * editor.zoom) + window.scrollX - 5.5 + "px"; // -1.5 for border, -4 for width
-                      selection.style.top = pageRect.y + ((merge.p[1] - 4) * editor.zoom) + window.scrollY - 5.5 + "px";
+                      selection.style.left = pageRect.x + (merge.p[0] * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
+                      selection.style.top = pageRect.y + ((merge.p[1] - border) * editor.zoom) + window.scrollY - 1.5 + "px";
                     }
                   }
                   member.selecting = selectKeys;

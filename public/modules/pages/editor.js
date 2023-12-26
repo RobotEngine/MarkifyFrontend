@@ -1617,7 +1617,7 @@ modules["pages/editor"] = {
         this.updatePages();
       }
       if (this.updateZoom) {
-        this.updateZoom();
+        this.updateZoom(true);
       }
 
       this.realtime.module.adjustRealtimeHolder();

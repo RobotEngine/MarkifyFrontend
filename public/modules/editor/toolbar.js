@@ -1265,7 +1265,7 @@ modules["pages/editor/toolbar/pan"] = {
     let content = editor.page.querySelector(".eContent");
 
     body.style.userSelect = "none";
-    editor.page.style.touchAction = "pinch-zoom";
+    editor.page.style.touchAction = "none";
 
     let dragging = false;
     let startScrollX;
@@ -1280,7 +1280,7 @@ modules["pages/editor/toolbar/pan"] = {
       selectY = clientPosition(event, "y");
       content.style.cursor = "grabbing";
       body.style.userSelect = "none";
-      editor.page.style.touchAction = "pinch-zoom";
+      editor.page.style.touchAction = "none";
     }
     let moveDrag = async (event) => {
       if (dragging != true) {

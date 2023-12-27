@@ -976,16 +976,53 @@ modules["pages/editor/toolbar/cursor"] = {
       if (original.revert == null) {
         original.revert = JSON.parse(JSON.stringify(original.render));
       }
+      let changeX = this.endX - this.startX;
+      let changeY = this.endY - this.startY;
       if (this.action == "move") {
         select.p = select.p || anno.p;
-        select.p[0] = utils.round(select.p[0] + (this.endX - this.startX));
-        select.p[1] = utils.round(select.p[1] + (this.endY - this.startY));
+        select.p[0] = utils.round(select.p[0] + changeX);
+        select.p[1] = utils.round(select.p[1] + changeY);
       } else if (this.action == "resize") {
         select.s = select.s || anno.s;
         switch (this.resizeElem.getAttribute("tooltip")) {
           case "bottomright":
-            select.s[0] = utils.round(select.s[0] + (this.endX - this.startX));
-            select.s[1] = utils.round(select.s[1] + (this.endY - this.startY));
+            select.s[0] = utils.round(select.s[0] + changeX);
+            select.s[1] = utils.round(select.s[1] + changeY);
+            break;
+          case "topleft":
+            select.s[0] = utils.round(select.s[0] - changeX);
+            select.s[1] = utils.round(select.s[1] - changeY);
+            select.p = select.p || anno.p;
+            select.p[0] = utils.round(select.p[0] + changeX);
+            select.p[1] = utils.round(select.p[1] + changeY);
+            break;
+          case "topright":
+            select.s[0] = utils.round(select.s[0] + changeX);
+            select.s[1] = utils.round(select.s[1] - changeY);
+            select.p = select.p || anno.p;
+            select.p[1] = utils.round(select.p[1] + changeY);
+            break;
+          case "bottomleft":
+            select.s[0] = utils.round(select.s[0] - changeX);
+            select.s[1] = utils.round(select.s[1] + changeY);
+            select.p = select.p || anno.p;
+            select.p[0] = utils.round(select.p[0] + changeX);
+            break;
+          case "right":
+            select.s[0] = utils.round(select.s[0] + changeX);
+            break;
+          case "bottom":
+            select.s[1] = utils.round(select.s[1] + changeY);
+            break;
+          case "left":
+            select.s[0] = utils.round(select.s[0] - changeX);
+            select.p = select.p || anno.p;
+            select.p[0] = utils.round(select.p[0] + changeX);
+            break;
+          case "top":
+            select.s[1] = utils.round(select.s[1] - changeY);
+            select.p = select.p || anno.p;
+            select.p[1] = utils.round(select.p[1] + changeY);
         }
       }
       if (anno.page != null) {

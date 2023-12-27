@@ -1004,8 +1004,8 @@ modules["pages/editor"] = {
       if (this.lesson.type != "freeboard" && this.exporting != true) {
         for (let i = 0; i < this.loadedIn.length; i++) {
           let pageid = this.loadedIn[i];
-          let editorPage = this.page.querySelector('.ePage[pageid="' + pageid + '"');
-          if (editorPage != null && editorPage.querySelector(".ePageAnnotations") == null && alreadyLoaded.includes(pageid) == true) {
+          let editorPage = this.page.querySelector('.ePage[pageid="' + pageid + '"]');
+          if (editorPage != null && (editorPage.querySelector(".ePageAnnotations") == null || editorPage.querySelector(".ePageAnnotations").hasAttribute("loaded") == false) && alreadyLoaded.includes(pageid) == true) {
             unloadedPages.push(pageid);
           }
         }
@@ -1018,6 +1018,12 @@ modules["pages/editor"] = {
         let anno = this.annotations[annoKeys[i]];
         if (unloadedPages.includes(anno.render.page) == true || this.lesson.type == "freeboard" || this.exporting == true) {
           await utils.render(anno.render);
+          if (this.lesson.type != "freeboard") {
+            let editorPageAnnotations = this.page.querySelector('.ePage[pageid="' + anno.render.page + '"] .ePageAnnotations');
+            if (editorPageAnnotations != null) {
+              editorPageAnnotations.setAttribute("loaded", "");
+            }
+          }
         }
       }
       if (request == true && firstLoad == true) {

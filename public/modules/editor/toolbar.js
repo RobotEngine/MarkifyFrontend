@@ -825,13 +825,23 @@ modules["pages/editor/toolbar/cursor"] = {
       if (annoHold.parentElement.parentElement.firstElementChild != annoHold.parentElement) {
         border = 4;
       }
+      let [width, height] = merged.s;
+      let [x, y] = merged.p;
+      if (width < 0) {
+        width = -width;
+        x -= width;
+      }
+      if (height < 0) {
+        height = -height;
+        y -= height;
+      }
       let pageRect = annoHold.getBoundingClientRect();
-      let boxWidth = (merged.s[0] * editor.zoom) - 4;  // +0 for width, -4 for border
-      let boxHeight = (merged.s[1] * editor.zoom) - 4;
+      let boxWidth = (width * editor.zoom) - 4;  // +0 for width, -4 for border
+      let boxHeight = (height * editor.zoom) - 4;
       select.style.width = boxWidth + "px";
       select.style.height = boxHeight + "px";
-      select.style.left = pageRect.x + (merged.p[0] * editor.zoom) + window.scrollX - 2 + "px"; // -2 for border, -0 for width
-      select.style.top = pageRect.y + ((merged.p[1] - border) * editor.zoom) + window.scrollY - 2 + "px";
+      select.style.left = pageRect.x + (x * editor.zoom) + window.scrollX - 2 + "px"; // -2 for border, -0 for width
+      select.style.top = pageRect.y + ((y - border) * editor.zoom) + window.scrollY - 2 + "px";
       let eSelectTopLeft = select.querySelector('.eSelectTooltip[tooltip="topleft"]');
       if (eSelectTopLeft != null) {
         eSelectTopLeft.removeAttribute("hidden");
@@ -868,12 +878,12 @@ modules["pages/editor/toolbar/cursor"] = {
 
       if (collabSelect != null) {
         collabSelect.offsetWidth;
-        let collWidth = (merged.s[0] * editor.zoom) - 3; // +0 for width, -3 for border
-        let collHeight = (merged.s[1] * editor.zoom) - 3;
+        let collWidth = (width * editor.zoom) - 3; // +0 for width, -3 for border
+        let collHeight = (height * editor.zoom) - 3;
         collabSelect.style.width = collWidth + "px";
         collabSelect.style.height = collHeight + "px";
-        collabSelect.style.left = pageRect.x + (merged.p[0] * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
-        collabSelect.style.top = pageRect.y + ((merged.p[1] - border) * editor.zoom) + window.scrollY - 1.5 + "px";
+        collabSelect.style.left = pageRect.x + (x * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
+        collabSelect.style.top = pageRect.y + ((y - border) * editor.zoom) + window.scrollY - 1.5 + "px";
       }
     }
     
@@ -945,6 +955,16 @@ modules["pages/editor/toolbar/cursor"] = {
       event.preventDefault();
     }
   },
+  oppositeResize: {
+    bottomright: ["topleft", "bottomleft", "topright"],
+    topleft: ["bottomright", "topright", "bottomleft"],
+    topright: ["bottomleft", "topleft", "bottomright"],
+    bottomleft: ["topright", "bottomright", "topleft"],
+    right: ["left", "left", "right"],
+    bottom: ["top", "bottom", "top"],
+    left: ["right", "right", "left"],
+    top: ["bottom", "top", "bottom"]
+  },
   moveAction: async function (event) {
     if (this.action == null) {
       return;
@@ -956,8 +976,10 @@ modules["pages/editor/toolbar/cursor"] = {
     let editor = await getModule("pages/editor");
     let utils = await getModule("pages/editor/annotation");
     let inverse = 1 / editor.zoom;
-    this.endX = (clientPosition(event, "x") + window.scrollX) * inverse;
-    this.endY = (clientPosition(event, "y") + window.scrollY) * inverse;
+    let mouseX = clientPosition(event, "x");
+    let mouseY = clientPosition(event, "y");
+    this.endX = (mouseX + window.scrollX) * inverse;
+    this.endY = (mouseY + window.scrollY) * inverse;
     /*
     if (Math.floor(this.endX - this.startX) == 0 && Math.floor(this.endY - this.startY) == 0) {
       this.action = null;
@@ -984,67 +1006,138 @@ modules["pages/editor/toolbar/cursor"] = {
         select.p[1] = utils.round(select.p[1] + changeY);
       } else if (this.action == "resize") {
         select.s = select.s || anno.s;
-        switch (this.resizeElem.getAttribute("tooltip")) {
+        if (this.size == null) {
+          this.size = JSON.parse(JSON.stringify(select.s || anno.s));
+        }
+        if (this.position == null) {
+          this.position = JSON.parse(JSON.stringify(select.p || anno.p));
+        }
+        if (this.tooltip == null) {
+          this.tooltip = this.resizeElem.getAttribute("tooltip");
+          if (select.s[0] < 0 && select.s[1] < 0) {
+            this.tooltip = this.oppositeResize[this.tooltip][0];
+          } else if (select.s[0] < 0) {
+            this.tooltip = this.oppositeResize[this.tooltip][1];
+          } else if (select.s[1] < 0) {
+            this.tooltip = this.oppositeResize[this.tooltip][2];
+          }
+        }
+        let preserveAspect = event.shiftKey || false;
+        if (["markup", "draw"].includes(select.f || anno.f) == true) {
+          preserveAspect = true; // All drawings keep aspect
+          
+          // Handle lines:
+          let points = select.d || anno.d;
+          if (points.length == 4) {
+            if (points[0] == points[2]) { // Horizontal Line
+              changeX = 0;
+            }
+            if (points[1] == points[3]) { // Vertical Line
+              changeY = 0;
+            }
+            preserveAspect = false;
+          }
+        }
+        let tooltipRect = this.resizeElem.getBoundingClientRect();
+        let tooltipLeft = tooltipRect.x + (this.resizeElem.clientWidth / 2);
+        let tooltipTop = tooltipRect.y + (this.resizeElem.clientHeight / 2);
+        let [page, number] = await utils.findPage(mouseY);
+        let scaleMouse = await utils.scaleToDoc(mouseX, mouseY, number);
+        switch (this.tooltip) {
           case "bottomright":
-            select.s[0] = utils.round(select.s[0] + changeX);
-            select.s[1] = utils.round(select.s[1] + changeY);
+            if (preserveAspect == true) {
+              if (scaleMouse.x - (this.position[0] + this.size[0]) > scaleMouse.y - (this.position[1] + this.size[1])) {
+                changeY = changeX;
+              } else {
+                changeX = changeY;
+              }
+            }
+            select.s[0] = utils.round(this.size[0] + changeX);
+            select.s[1] = utils.round(this.size[1] + changeY);
             break;
           case "topleft":
-            select.s[0] = utils.round(select.s[0] - changeX);
-            select.s[1] = utils.round(select.s[1] - changeY);
+            if (preserveAspect == true) {
+              if (this.position[0] - scaleMouse.x > this.position[1] - scaleMouse.y) {
+                changeY = changeX;
+              } else {
+                changeX = changeY;
+              }
+            }
+            select.s[0] = utils.round(this.size[0] - changeX);
+            select.s[1] = utils.round(this.size[1] - changeY);
             select.p = select.p || anno.p;
-            select.p[0] = utils.round(select.p[0] + changeX);
-            select.p[1] = utils.round(select.p[1] + changeY);
+            select.p[0] = utils.round(this.position[0] + changeX);
+            select.p[1] = utils.round(this.position[1] + changeY);
             break;
           case "topright":
-            select.s[0] = utils.round(select.s[0] + changeX);
-            select.s[1] = utils.round(select.s[1] - changeY);
+            if (preserveAspect == true) {
+              if (scaleMouse.x - (this.position[0] + this.size[0]) > this.position[1] - scaleMouse.y) {
+                changeY = -changeX;
+              } else {
+                changeX = -changeY;
+              }
+            }
+            select.s[0] = utils.round(this.size[0] + changeX);
+            select.s[1] = utils.round(this.size[1] - changeY);
             select.p = select.p || anno.p;
-            select.p[1] = utils.round(select.p[1] + changeY);
+            select.p[1] = utils.round(this.position[1] + changeY);
             break;
           case "bottomleft":
-            select.s[0] = utils.round(select.s[0] - changeX);
-            select.s[1] = utils.round(select.s[1] + changeY);
+            if (preserveAspect == true) {
+              if (this.position[0] - scaleMouse.x > scaleMouse.y - (this.position[1] + this.size[1])) {
+                changeY = -changeX;
+              } else {
+                changeX = -changeY;
+              }
+            }
+            select.s[0] = utils.round(this.size[0] - changeX);
+            select.s[1] = utils.round(this.size[1] + changeY);
             select.p = select.p || anno.p;
-            select.p[0] = utils.round(select.p[0] + changeX);
+            select.p[0] = utils.round(this.position[0] + changeX);
             break;
           case "right":
-            select.s[0] = utils.round(select.s[0] + changeX);
+            if (preserveAspect == true) {
+              select.s[1] = utils.round(this.size[1] + changeX);
+              select.p = select.p || anno.p;
+              select.p[1] = utils.round(this.position[1] - (changeX / 2));
+            }
+            select.s[0] = utils.round(this.size[0] + changeX);
             break;
           case "bottom":
-            select.s[1] = utils.round(select.s[1] + changeY);
+            if (preserveAspect == true) {
+              select.s[0] = utils.round(this.size[0] + changeY);
+              select.p = select.p || anno.p;
+              select.p[0] = utils.round(this.position[0] - (changeY / 2));
+            }
+            select.s[1] = utils.round(this.size[1] + changeY);
             break;
           case "left":
-            select.s[0] = utils.round(select.s[0] - changeX);
+            if (preserveAspect == true) {
+              select.s[1] = utils.round(this.size[1] - changeX);
+              select.p = select.p || anno.p;
+              select.p[1] = utils.round(this.position[1] + (changeX / 2));
+            }
+            select.s[0] = utils.round(this.size[0] - changeX);
             select.p = select.p || anno.p;
-            select.p[0] = utils.round(select.p[0] + changeX);
+            select.p[0] = utils.round(this.position[0] + changeX);
             break;
           case "top":
-            select.s[1] = utils.round(select.s[1] - changeY);
-            select.p = select.p || anno.p;
-            select.p[1] = utils.round(select.p[1] + changeY);
-        }
-      }
-      if (anno.page != null) {
-        let page = select.page || anno.page;
-        let pos = select.p || anno.p;
-        let currentPage = editor.page.querySelector('.ePage[pageid="' + page + '"]');
-        if (currentPage != null) {
-          let [page] = (await utils.findPage((pos[1] * editor.zoom) + currentPage.getBoundingClientRect().top));
-          if (page != currentPage) {
-            select.page = page.getAttribute("pageid");
-            if (parseInt(currentPage.getAttribute("order")) < parseInt(page.getAttribute("order"))) {
-              pos[1] = utils.round(pos[1] - currentPage.offsetHeight);
-            } else {
-              pos[1] = utils.round(pos[1] + page.offsetHeight);
+            if (preserveAspect == true) {
+              select.s[0] = utils.round(this.size[0] - changeY);
+              select.p = select.p || anno.p;
+              select.p[0] = utils.round(this.position[0] + (changeY / 2));
             }
-          }
+            select.s[1] = utils.round(this.size[1] - changeY);
+            select.p = select.p || anno.p;
+            select.p[1] = utils.round(this.position[1] + changeY);
         }
       }
       await utils.render({ ...anno, ...select });
     }
-    this.startX = this.endX;
-    this.startY = this.endY;
+    if (this.action == "move") {
+      this.startX = this.endX;
+      this.startY = this.endY;
+    }
     this.updateBox();
   },
   endAction: async function () {
@@ -1054,6 +1147,9 @@ modules["pages/editor/toolbar/cursor"] = {
     let editor = await getModule("pages/editor");
     let utils = await getModule("pages/editor/annotation");
     this.action = null;
+    this.tooltip = null;
+    this.position = null;
+    this.size = null;
     body.style.removeProperty("user-select");
     editor.page.style.removeProperty("touch-action");
     editor.page.removeAttribute("enabled");
@@ -1063,13 +1159,32 @@ modules["pages/editor/toolbar/cursor"] = {
     for (let i = 0; i < keys.length; i++) {
       let annoid = keys[i];
       let selecting = editor.selecting[annoid];
-      /*
       let original = editor.annotations[annoid];
       if (original == null) {
         continue;
       }
-      */
-     delete selecting.done;
+
+      if (original.render != null && original.render.page != null) {
+        let page = selecting.page || original.render.page;
+        let pos = selecting.p || original.render.p;
+        let currentPage = editor.page.querySelector('.ePage[pageid="' + page + '"]');
+        if (currentPage != null) {
+          let [page] = (await utils.findPage((pos[1] * editor.zoom) + currentPage.getBoundingClientRect().top));
+          if (page != currentPage) {
+            selecting.page = page.getAttribute("pageid");
+            let change = 0;
+            if (parseInt(currentPage.getAttribute("order")) < parseInt(page.getAttribute("order"))) {
+              change = -currentPage.offsetHeight;
+            } else {
+              change = page.offsetHeight;
+            }
+            selecting.p[1] = utils.round(pos[1] + change);
+          }
+        }
+      }
+      console.log(selecting)
+
+      delete selecting.done;
       await utils.save({ _id: annoid, ...selecting });
       selecting.done = true;
     }
@@ -1447,8 +1562,8 @@ modules["pages/editor/toolbar/highlighter"] = {
         markup.d.push(utils.round(y));
       } else {
         markup.d = [markup.d[0], markup.d[1]];
-        let sizeIncX = Math.ceil(x - halfThickness);
-        if (sizeIncX < markup.d[0]) {
+        let sizeIncX = x - halfThickness;
+        if (sizeIncX < markup.d[0] - halfThickness) {
           markup.d[0] = utils.round(markup.d[0] - sizeIncX);
           markup.s[0] = markup.s[0] - sizeIncX;
           markup.p[0] = utils.round(markup.p[0] + sizeIncX);
@@ -1456,8 +1571,8 @@ modules["pages/editor/toolbar/highlighter"] = {
         } else {
           markup.s[0] = Math.ceil(x + halfThickness);
         }
-        let sizeIncY = Math.ceil(y - halfThickness);
-        if (sizeIncY < markup.d[1]) {
+        let sizeIncY = y - halfThickness;
+        if (sizeIncY < markup.d[1] - halfThickness) {
           markup.d[1] = utils.round(markup.d[1] - sizeIncY);
           markup.s[1] = markup.s[1] - sizeIncY;
           markup.p[1] = utils.round(markup.p[1] + sizeIncY);
@@ -1571,8 +1686,8 @@ modules["pages/editor/toolbar/underline"] = {
       let rect = anno.getBoundingClientRect();
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x") - rect.left, clientPosition(event, "y") - rect.top);
       let halfThickness = utils.round(markup.t / 2);
-      let sizeIncX = Math.ceil(x - halfThickness);
-      if (sizeIncX < markup.d[0]) {
+      let sizeIncX = x - halfThickness;
+      if (sizeIncX < markup.d[0] - halfThickness) {
         markup.d[0] = utils.round(markup.d[0] - sizeIncX);
         markup.s[0] = utils.round(markup.s[0] - sizeIncX);
         markup.p[0] = utils.round(markup.p[0] + sizeIncX);
@@ -1580,8 +1695,8 @@ modules["pages/editor/toolbar/underline"] = {
       } else {
         markup.s[0] = Math.ceil(x + halfThickness);
       }
-      let sizeIncY = Math.ceil(y - halfThickness);
-      if (sizeIncY < markup.d[1]) {
+      let sizeIncY = y - halfThickness;
+      if (sizeIncY < markup.d[1] - halfThickness) {
         markup.d[1] = utils.round(markup.d[1] - sizeIncY);
         markup.s[1] = utils.round(markup.s[1] - sizeIncY);
         markup.p[1] = utils.round(markup.p[1] + sizeIncY);
@@ -1719,7 +1834,7 @@ modules["pages/editor/toolbar/pen"] = {
         c: this.color,
         t: this.thickness,
         o: this.opacity,
-        d: [utils.round(halfThickness), utils.round(halfThickness)]
+        d: [halfThickness, halfThickness]
       };
       if (page != null && page.hasAttribute("pageid") == true) {
         newAnno.page = page.getAttribute("pageid");
@@ -1771,8 +1886,8 @@ modules["pages/editor/toolbar/pen"] = {
         draw.d.push(utils.round(y));
       } else {
         draw.d = [draw.d[0], draw.d[1]];
-        let sizeIncX = Math.ceil(x - halfThickness);
-        if (sizeIncX < draw.d[0]) {
+        let sizeIncX = x - halfThickness;
+        if (sizeIncX < draw.d[0] - halfThickness) {
           draw.d[0] = utils.round(draw.d[0] - sizeIncX);
           draw.s[0] = utils.round(draw.s[0] - sizeIncX);
           draw.p[0] = utils.round(draw.p[0] + sizeIncX);
@@ -1780,8 +1895,8 @@ modules["pages/editor/toolbar/pen"] = {
         } else {
           draw.s[0] = Math.ceil(x + halfThickness);
         }
-        let sizeIncY = Math.ceil(y - halfThickness);
-        if (sizeIncY < draw.d[1]) {
+        let sizeIncY = y - halfThickness;
+        if (sizeIncY < draw.d[1] - halfThickness) {
           draw.d[1] = utils.round(draw.d[1] - sizeIncY);
           draw.s[1] = utils.round(draw.s[1] - sizeIncY);
           draw.p[1] = utils.round(draw.p[1] + sizeIncY);

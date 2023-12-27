@@ -560,7 +560,11 @@ modules["editor/realtime"] = {
                   for (let i = 0; i < selectKeys.length; i++) {
                     let annoID = selectKeys[i];
                     let anno = extra.select[annoID] || {};
-                    let original = editor.annotations[annoID] || {};
+                    let original = editor.annotations[annoID];
+                    if (original == null && annoID.startsWith("pending_") == true) {
+                      editor.annotations[annoID] = {};
+                      original = editor.annotations[annoID];
+                    }
                     // If the user is also selecting, we must update their fields accordingly:
                     /*
                     if (selecting != null) {
@@ -617,13 +621,23 @@ modules["editor/realtime"] = {
                       if (annoHold.parentElement.parentElement.firstElementChild != annoHold.parentElement) {
                         border = 4;
                       }
+                      let [width, height] = merge.s;
+                      let [x, y] = merge.p;
+                      if (width < 0) {
+                        width = -width;
+                        x -= width;
+                      }
+                      if (height < 0) {
+                        height = -height;
+                        y -= height;
+                      }
                       let pageRect = (annoHold).getBoundingClientRect();
-                      let boxWidth = (merge.s[0] * editor.zoom) - 3; // +0 for width, -3 for border
-                      let boxHeight = (merge.s[1] * editor.zoom) - 3;
+                      let boxWidth = (width * editor.zoom) - 3; // +0 for width, -3 for border
+                      let boxHeight = (height * editor.zoom) - 3;
                       selection.style.width = boxWidth + "px";
                       selection.style.height = boxHeight + "px";
-                      selection.style.left = pageRect.x + (merge.p[0] * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
-                      selection.style.top = pageRect.y + ((merge.p[1] - border) * editor.zoom) + window.scrollY - 1.5 + "px";
+                      selection.style.left = pageRect.x + (x * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
+                      selection.style.top = pageRect.y + ((y - border) * editor.zoom) + window.scrollY - 1.5 + "px";
                     }
                   }
                   member.selecting = selectKeys;
@@ -674,11 +688,14 @@ modules["editor/realtime"] = {
               if (editor.visiblePages.includes(page)) {
                 return;
               }
+              this.removeRealtime(memberID);
+              /*
               (async function () {
                 cursorHolder.style.opacity = 0;
                 await sleep(300);
                 cursorHolder.remove();
               })();
+              */
               return;
             } else {
               cursorHolder.style.opacity = 1;

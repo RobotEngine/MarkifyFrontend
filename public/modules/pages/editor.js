@@ -2365,7 +2365,7 @@ modules["pages/editor/annotation"] = {
     let editor = await getModule("pages/editor");
     let contentFrame = editor.page.querySelector(".eContent");
     let content = contentFrame.querySelector(".eContentHolder");
-    if (anno != null) {
+    if (anno != null && anno.p != null) {
       /*
       if ((anno.getAttribute("anno") || "").startsWith("pending_") == true && anno.hasAttribute("done") == false) {
         return;
@@ -2544,7 +2544,7 @@ modules["pages/editor/annotation"] = {
       case "draw":
         if (anno == null) {
           annoHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
-            <svg xmlns="http://www.w3.org/2000/svg">
+            <svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
               <polyline/>
             </svg>
           </div>`);
@@ -2570,20 +2570,38 @@ modules["pages/editor/annotation"] = {
           svg.setAttribute("hidden", "");
         }
         path = svg.querySelector("polyline");
-        svg.viewBox = "0 0 " + (width + (this.SVG_PADDING*2)) + " " + (height + (this.SVG_PADDING*2));
+        let largestX = d[0];
+        let largestY = d[1];
+        for (let i = 0; i < d.length; i += 2) {
+          largestX = Math.max(largestX, d[i]);
+          largestY = Math.max(largestY, d[i+1]);
+        }
         if (d.length == 2) {
           //let dividedT = t / 2;
           //drawSetPoints = (d[0] - dividedT + this.SVG_PADDING) + "," + (d[1] - dividedT + this.SVG_PADDING) + " " + (d[0] + dividedT + this.SVG_PADDING) + "," + (d[1] + dividedT + this.SVG_PADDING);
-          drawSetPoints = (d[0] + this.SVG_PADDING) + "," + (d[1] + this.SVG_PADDING) + " " + (d[0] + 0.1 + this.SVG_PADDING) + "," + (d[1] + 0.1 + this.SVG_PADDING);
+          drawSetPoints = ((width / 2) + this.SVG_PADDING) + "," + ((height / 2) + this.SVG_PADDING) + " " + ((width / 2) + .1 + this.SVG_PADDING) + "," + ((height / 2) + .1 + this.SVG_PADDING);
+          path.setAttribute("stroke-width", width);
         } else {
+          let halfT = t / 2;
+          let scaleW = ((width - t) / (largestX - halfT)) || 1;
+          let scaleH = ((height - t) / (largestY - halfT)) || 1;
           for (let i = 0; i < d.length; i += 2) {
-            drawSetPoints += (d[i] + this.SVG_PADDING) + "," + (d[i+1] + this.SVG_PADDING) + " ";
+            drawSetPoints += (halfT + ((d[i] - halfT) * scaleW) + this.SVG_PADDING) + "," + (halfT + ((d[i+1] - halfT) * scaleH) + this.SVG_PADDING) + " ";
           }
+          path.setAttribute("stroke-width", t);
         }
         path.setAttribute("points", drawSetPoints);
         path.setAttribute("stroke", "#" + c);
-        path.setAttribute("stroke-width", t);
         path.setAttribute("opacity", o / 100);
+        //let bBox = path.getBBox();
+        //let padding = this.SVG_PADDING * 2;
+        //let svgWidth = bBox.width + padding;
+        //let svgHeight = bBox.height + padding;
+        //svg.setAttribute("viewBox", "0 0 " + svgWidth + " " + svgHeight);
+        //svg.setAttribute("width", width + padding);
+        //svg.setAttribute("height", height + padding);
+        //svg.setAttribute("viewbox", "0 0 " + (bBox.width + (this.SVG_PADDING*2)) + " " + (bBox.height + (this.SVG_PADDING*2)));
+        //svg.setAttribute("transform", "scale(" + ((width + padding) / svgWidth) + "," + ((height + padding) / svgHeight) + ")");
         break;
     }
     if (anno != null) {

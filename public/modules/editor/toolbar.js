@@ -913,6 +913,7 @@ modules["pages/editor/toolbar/cursor"] = {
     let editor = await getModule("pages/editor");
     this.annotationElem = target.closest(".eAnnotation");
     this.selectElem = target.closest(".eSelect");
+    this.resizeElem = target.closest(".eSelectTooltip");
     /*
     let anno = this.annotationElem || this.selectElem;
     if (anno == null) {
@@ -933,7 +934,15 @@ modules["pages/editor/toolbar/cursor"] = {
       body.style.userSelect = "none";
       editor.page.style.touchAction = "pinch-zoom";
       event.preventDefault();
-      return;
+    } else if (this.resizeElem != null) {
+      // Resize Element
+      this.action = "resize";
+      let inverse = 1 / editor.zoom;
+      this.startX = (clientPosition(event, "x") + window.scrollX) * inverse;
+      this.startY = (clientPosition(event, "y") + window.scrollY) * inverse;
+      body.style.userSelect = "none";
+      editor.page.style.touchAction = "pinch-zoom";
+      event.preventDefault();
     }
   },
   moveAction: async function (event) {
@@ -971,18 +980,26 @@ modules["pages/editor/toolbar/cursor"] = {
         select.p = select.p || anno.p;
         select.p[0] = utils.round(select.p[0] + (this.endX - this.startX));
         select.p[1] = utils.round(select.p[1] + (this.endY - this.startY));
+      } else if (this.action == "resize") {
+        select.s = select.s || anno.s;
+        switch (this.resizeElem.getAttribute("tooltip")) {
+          case "bottomright":
+            select.s[0] = utils.round(select.s[0] + (this.endX - this.startX));
+            select.s[1] = utils.round(select.s[1] + (this.endY - this.startY));
+        }
       }
       if (anno.page != null) {
         let page = select.page || anno.page;
+        let pos = select.p || anno.p;
         let currentPage = editor.page.querySelector('.ePage[pageid="' + page + '"]');
         if (currentPage != null) {
-          let [page] = (await utils.findPage((select.p[1] * editor.zoom) + currentPage.getBoundingClientRect().top));
+          let [page] = (await utils.findPage((pos[1] * editor.zoom) + currentPage.getBoundingClientRect().top));
           if (page != currentPage) {
             select.page = page.getAttribute("pageid");
             if (parseInt(currentPage.getAttribute("order")) < parseInt(page.getAttribute("order"))) {
-              select.p[1] = utils.round(select.p[1] - currentPage.offsetHeight);
+              pos[1] = utils.round(pos[1] - currentPage.offsetHeight);
             } else {
-              select.p[1] = utils.round(select.p[1] + page.offsetHeight);
+              pos[1] = utils.round(pos[1] + page.offsetHeight);
             }
           }
         }

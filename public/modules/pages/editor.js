@@ -1062,7 +1062,7 @@ modules["pages/editor"] = {
       }
       
       // Send Load Request:
-      let [code, body] = await sendRequest("GET", endpoint, null, { session: this.session }, { allowError: true });
+      let [code, annoBody] = await sendRequest("GET", endpoint, null, { session: this.session }, { allowError: true });
       if (code != 200 && connected == true) {
         (await getModule("alert")).open("error", `<b>Error Loading Annotations</b>Failed to load some annotations, will try again later...`);
         // Remove IDs if load fails, so it can try again!
@@ -1074,8 +1074,8 @@ modules["pages/editor"] = {
         }
         return;
       }
-      for (let i = 0; i < body.length; i++) {
-        let addAnno = body[i];
+      for (let i = 0; i < annoBody.length; i++) {
+        let addAnno = annoBody[i];
         let existingAnno = this.annotations[addAnno._id];
         if (existingAnno == null || existingAnno.render.sync < addAnno.sync) {
           this.annotations[addAnno._id] = { render: addAnno};

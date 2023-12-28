@@ -1475,6 +1475,11 @@ modules["pages/editor"] = {
           }
         }
         this.addSources(body.sources);
+        if (getParam("export_browser") == "true" && (body.sources.length < 1 || getParam("only_thumbnail") == "true")) {
+          if (pageHolder.firstElementChild != null || pageHolder.firstElementChild.hasAttribute("sourceid") == false) {
+            window.exportReady();
+          }
+        }
 
         let scrollPage = getParam("page") || 1;
         let scrollElem = pageHolder.children[scrollPage - 1];

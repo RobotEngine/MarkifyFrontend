@@ -1097,9 +1097,7 @@ modules["pages/editor"] = {
         (await getModule("editor/realtime")).js(this, page);
       })();
     } else {
-      (async () => {
-        (await getModule("editor/export")).js(this, page);
-      })();
+      (await getModule("editor/export")).js(this, page);
       await getAnnotations();
     }
 

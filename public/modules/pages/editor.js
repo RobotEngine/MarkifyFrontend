@@ -1506,7 +1506,9 @@ modules["pages/editor"] = {
 
         });
         */
-        addPagesHolder.style.display = "flex";
+        if (this.exporting != true) {
+          addPagesHolder.style.display = "flex";
+        }
         break;
       case "freeboard":
         //pageHolder.remove();

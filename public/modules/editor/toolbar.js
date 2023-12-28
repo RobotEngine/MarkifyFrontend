@@ -897,8 +897,8 @@ modules["pages/editor/toolbar/cursor"] = {
           continue;
         }
         let anno = { ...((editor.annotations[annoID]).render || {}), ...(editor.selecting[annoID] || {}) };
-        let annoHold = await utils.annoHolder(anno.page);
         let border = 0;
+        let annoHold = await utils.annoHolder(anno.page);
         if (annoHold.parentElement.parentElement.firstElementChild != annoHold.parentElement) {
           border = 4;
         }
@@ -1043,9 +1043,6 @@ modules["pages/editor/toolbar/cursor"] = {
             preserveAspect = false;
           }
         }
-        let tooltipRect = this.resizeElem.getBoundingClientRect();
-        let tooltipLeft = tooltipRect.x + (this.resizeElem.clientWidth / 2);
-        let tooltipTop = tooltipRect.y + (this.resizeElem.clientHeight / 2);
         let number;
         let pageElem = editor.page.querySelector('.ePage[pageid="' + (select.page || anno.page) + '"]');
         if (pageElem != null) {

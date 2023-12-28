@@ -1439,7 +1439,7 @@ modules["pages/editor"] = {
             properSort();
           }
         }
-        this.addPages(body.pages);
+        await this.addPages(body.pages);
         
         // Load PDFJS
         if (window.pdfjsLib == null) {
@@ -1485,6 +1485,7 @@ modules["pages/editor"] = {
         }
 
         if (getParam("export_browser") == "true") {
+
           await getAnnotations();
           if (window.exportReady && body.sources.length < 1) {
             window.exportReady();

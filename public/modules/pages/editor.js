@@ -134,7 +134,7 @@ modules["pages/editor"] = {
     ".ePageTextHolder br": `user-select: none`,
     ".ePageAnnotations": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 1; pointer-events: none`,
     ".content[enabled] .ePageAnnotations": `pointer-events: all`,
-    ".eAddPagesHolder": `display: flex; width: 100% justify-content: center; padding-top: 20px`,
+    ".eAddPagesHolder": `display: none; width: 100% justify-content: center; padding-top: 20px`,
     ".eAddPagesButton": `display: flex; margin: 8px; z-index: 1; background: var(--theme); --borderRadius: 20.25px; color: #fff; pointer-events: all`,
     ".ePageRearrange": `position: absolute; display: flex; width: 28px; height: 28px; padding: 4px; right: 8px; bottom: 8px; pointer-events: all; z-index: 2; background: rgba(180, 218, 253, 0.75); backdrop-filter: blur(2px); border-radius: 18px; overflow: hidden`, //transform: scale(var(--fixedUIScale));
     ".ePageRearrange div": `margin-left: 6px`,
@@ -340,6 +340,9 @@ modules["pages/editor"] = {
     page.style.minWidth = "100%";
 
     if (getParam("export_browser") == "true") {
+      page.style.transition = "unset";
+      page.style.opacity = 1;
+      addCSS({ ".loading": `display: none` });
       loadScript("./modules/editor/export.js");
     }
 
@@ -1503,6 +1506,7 @@ modules["pages/editor"] = {
 
         });
         */
+        addPagesHolder.style.display = "flex";
         break;
       case "freeboard":
         //pageHolder.remove();

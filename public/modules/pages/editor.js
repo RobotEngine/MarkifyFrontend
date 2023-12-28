@@ -1100,6 +1100,7 @@ modules["pages/editor"] = {
       (async () => {
         (await getModule("editor/export")).js(this, page);
       })();
+      await getAnnotations();
     }
 
     this.visiblePages = [];
@@ -1486,15 +1487,10 @@ modules["pages/editor"] = {
         if (scrollElem != null) {
           window.scrollTo({ top: window.scrollY + scrollElem.getBoundingClientRect().top - scrollOffset });
         }
-
+        
         if (getParam("export_browser") == "true") {
-          await getAnnotations();
-          if (window.exportReady && body.sources.length < 1) {
+          if (window.exportReady && (body.sources.length < 1 || (getParam("only_thumbnail") == "true" && pageHolder.firstElementChild != null && pageHolder.firstElementChild.hasAttribute("sourceid") == false))) {
             window.exportReady();
-          } else if (getParam("only_thumbnail") == "true") {
-            if (pageHolder.firstElementChild != null || pageHolder.firstElementChild.hasAttribute("sourceid") == false) {
-              window.exportReady();
-            }
           }
         }
 

@@ -1025,7 +1025,7 @@ modules["pages/editor/toolbar/cursor"] = {
         let preserveAspect = event.shiftKey || false;
         if (["markup", "draw"].includes(select.f || anno.f) == true) {
           preserveAspect = true; // All drawings keep aspect
-          
+
           // Handle lines:
           let points = select.d || anno.d;
           if (points.length == 4) {
@@ -1041,95 +1041,119 @@ modules["pages/editor/toolbar/cursor"] = {
         let tooltipRect = this.resizeElem.getBoundingClientRect();
         let tooltipLeft = tooltipRect.x + (this.resizeElem.clientWidth / 2);
         let tooltipTop = tooltipRect.y + (this.resizeElem.clientHeight / 2);
-        let [page, number] = await utils.findPage(mouseY);
+        let number;
+        let pageElem = editor.page.querySelector('.ePage[pageid="' + (select.page || anno.page) + '"]');
+        if (pageElem != null) {
+          number = parseInt(pageElem.getAttribute("order"));
+        }
         let scaleMouse = await utils.scaleToDoc(mouseX, mouseY, number);
         switch (this.tooltip) {
           case "bottomright":
             if (preserveAspect == true) {
-              if (scaleMouse.x - (this.position[0] + this.size[0]) > scaleMouse.y - (this.position[1] + this.size[1])) {
-                changeY = changeX;
+              if (scaleMouse.x - (this.position[0] + select.s[0]) > scaleMouse.y - (this.position[1] + select.s[1])) {
+                select.s[0] = utils.round(this.size[0] + changeX);
+                select.s[1] = utils.round(this.size[1] * ((this.size[0] + changeX) / this.size[0]));
               } else {
-                changeX = changeY;
+                select.s[0] = utils.round(this.size[0] * ((this.size[1] + changeY) / this.size[1]));
+                select.s[1] = utils.round(this.size[1] + changeY);
               }
+            } else {
+              select.s[0] = utils.round(this.size[0] + changeX);
+              select.s[1] = utils.round(this.size[1] + changeY);
             }
-            select.s[0] = utils.round(this.size[0] + changeX);
-            select.s[1] = utils.round(this.size[1] + changeY);
             break;
           case "topleft":
-            if (preserveAspect == true) {
-              if (this.position[0] - scaleMouse.x > this.position[1] - scaleMouse.y) {
-                changeY = changeX;
-              } else {
-                changeX = changeY;
-              }
-            }
-            select.s[0] = utils.round(this.size[0] - changeX);
-            select.s[1] = utils.round(this.size[1] - changeY);
             select.p = select.p || anno.p;
-            select.p[0] = utils.round(this.position[0] + changeX);
-            select.p[1] = utils.round(this.position[1] + changeY);
+            if (preserveAspect == true) {
+              if (select.p[0] - scaleMouse.x > select.p[1] - scaleMouse.y) {
+                select.s[0] = utils.round(this.size[0] - changeX);
+                select.s[1] = utils.round(this.size[1] * ((this.size[0] - changeX) / this.size[0]));
+              } else {
+                select.s[0] = utils.round(this.size[0] * ((this.size[1] - changeY) / this.size[1]));
+                select.s[1] = utils.round(this.size[1] - changeY);
+              }
+            } else {
+              select.s[0] = utils.round(this.size[0] - changeX);
+              select.s[1] = utils.round(this.size[1] - changeY);
+            }
+            select.p[0] = utils.round(this.position[0] + (this.size[0] - select.s[0]));
+            select.p[1] = utils.round(this.position[1] + (this.size[1] - select.s[1]));
             break;
           case "topright":
-            if (preserveAspect == true) {
-              if (scaleMouse.x - (this.position[0] + this.size[0]) > this.position[1] - scaleMouse.y) {
-                changeY = -changeX;
-              } else {
-                changeX = -changeY;
-              }
-            }
-            select.s[0] = utils.round(this.size[0] + changeX);
-            select.s[1] = utils.round(this.size[1] - changeY);
             select.p = select.p || anno.p;
-            select.p[1] = utils.round(this.position[1] + changeY);
+            if (preserveAspect == true) {
+              if (scaleMouse.x - (select.p[0] + select.s[0]) > select.p[1] - scaleMouse.y) {
+                select.s[0] = utils.round(this.size[0] + changeX);
+                select.s[1] = utils.round(this.size[1] * ((this.size[0] + changeX) / this.size[0]));
+              } else {
+                select.s[0] = utils.round(this.size[0] * ((this.size[1] - changeY) / this.size[1]));
+                select.s[1] = utils.round(this.size[1] - changeY);
+              }
+            } else {
+              select.s[0] = utils.round(this.size[0] + changeX);
+              select.s[1] = utils.round(this.size[1] - changeY);
+            }
+            select.p[1] = utils.round(this.position[1] + (this.size[1] - select.s[1]));
             break;
           case "bottomleft":
-            if (preserveAspect == true) {
-              if (this.position[0] - scaleMouse.x > scaleMouse.y - (this.position[1] + this.size[1])) {
-                changeY = -changeX;
-              } else {
-                changeX = -changeY;
-              }
-            }
-            select.s[0] = utils.round(this.size[0] - changeX);
-            select.s[1] = utils.round(this.size[1] + changeY);
             select.p = select.p || anno.p;
-            select.p[0] = utils.round(this.position[0] + changeX);
+            if (preserveAspect == true) {
+              if (select.p[0] - scaleMouse.x > scaleMouse.y - (select.p[1] + select.s[1])) {
+                select.s[0] = utils.round(this.size[0] - changeX);
+                select.s[1] = utils.round(this.size[1] * ((this.size[0] - changeX) / this.size[0]));
+              } else {
+                select.s[0] = utils.round(this.size[0] * ((this.size[1] + changeY) / this.size[1]));
+                select.s[1] = utils.round(this.size[1] + changeY);
+              }
+            } else {
+              select.s[0] = utils.round(this.size[0] - changeX);
+              select.s[1] = utils.round(this.size[1] + changeY);
+            }
+            select.p[0] = utils.round(this.position[0] + (this.size[0] - select.s[0]));
             break;
           case "right":
             if (preserveAspect == true) {
-              select.s[1] = utils.round(this.size[1] + changeX);
+              select.s[0] = utils.round(this.size[0] + changeX);
+              select.s[1] = utils.round(this.size[1] * ((this.size[0] + changeX) / this.size[0]));
               select.p = select.p || anno.p;
-              select.p[1] = utils.round(this.position[1] - (changeX / 2));
+              select.p[1] = utils.round(this.position[1] + ((this.size[1] - select.s[1]) / 2));
+            } else {
+              select.s[0] = utils.round(this.size[0] + changeX);
             }
-            select.s[0] = utils.round(this.size[0] + changeX);
             break;
           case "bottom":
             if (preserveAspect == true) {
-              select.s[0] = utils.round(this.size[0] + changeY);
+              select.s[0] = utils.round(this.size[0] * ((this.size[1] + changeY) / this.size[1]));
+              select.s[1] = utils.round(this.size[1] + changeY);
               select.p = select.p || anno.p;
-              select.p[0] = utils.round(this.position[0] - (changeY / 2));
+              select.p[0] = utils.round(this.position[0] + ((this.size[0] - select.s[0]) / 2));
+            } else {
+              select.s[1] = utils.round(this.size[1] + changeY);
             }
-            select.s[1] = utils.round(this.size[1] + changeY);
             break;
           case "left":
-            if (preserveAspect == true) {
-              select.s[1] = utils.round(this.size[1] - changeX);
-              select.p = select.p || anno.p;
-              select.p[1] = utils.round(this.position[1] + (changeX / 2));
-            }
-            select.s[0] = utils.round(this.size[0] - changeX);
             select.p = select.p || anno.p;
-            select.p[0] = utils.round(this.position[0] + changeX);
+            if (preserveAspect == true) {
+              select.s[0] = utils.round(this.size[0] - changeX);
+              select.s[1] = utils.round(this.size[1] * ((this.size[0] - changeX) / this.size[0]));
+              select.p[0] = utils.round(this.position[0] + (this.size[0] - select.s[0]));
+              select.p[1] = utils.round(this.position[1] + ((this.size[1] - select.s[1]) / 2));
+            } else {
+              select.s[0] = utils.round(this.size[0] - changeX);
+              select.p[0] = utils.round(this.position[0] + changeX);
+            }
             break;
           case "top":
-            if (preserveAspect == true) {
-              select.s[0] = utils.round(this.size[0] - changeY);
-              select.p = select.p || anno.p;
-              select.p[0] = utils.round(this.position[0] + (changeY / 2));
-            }
-            select.s[1] = utils.round(this.size[1] - changeY);
             select.p = select.p || anno.p;
-            select.p[1] = utils.round(this.position[1] + changeY);
+            if (preserveAspect == true) {
+              select.s[0] = utils.round(this.size[0] * ((this.size[1] - changeY) / this.size[1]));
+              select.s[1] = utils.round(this.size[1] - changeY);
+              select.p[0] = utils.round(this.position[0] + ((this.size[0] - select.s[0]) / 2));
+              select.p[1] = utils.round(this.position[1] + (this.size[1] - select.s[1]));
+            } else {
+              select.s[1] = utils.round(this.size[1] - changeY);
+              select.p[1] = utils.round(this.position[1] + changeY);
+            }
         }
       }
       await utils.render({ ...anno, ...select });
@@ -1182,7 +1206,6 @@ modules["pages/editor/toolbar/cursor"] = {
           }
         }
       }
-      console.log(selecting)
 
       delete selecting.done;
       await utils.save({ _id: annoid, ...selecting });

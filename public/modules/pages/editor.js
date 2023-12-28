@@ -794,7 +794,7 @@ modules["pages/editor"] = {
           // CHECKS FOR IF SERVER VERSION IS AFTER LAST RECIEVED VERSION
           if (existingAnno.serverSync == null || existingAnno.serverSync < anno.sync) {
             existingAnno.serverSync = anno.sync;
-            //existingAnno.revert = anno;
+            existingAnno.revert = anno;
           }
           let gottenRender;
           // UPDATES _id IF IT WAS PENDING

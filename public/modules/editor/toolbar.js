@@ -948,8 +948,13 @@ modules["pages/editor/toolbar/cursor"] = {
       // Resize Element
       this.action = "resize";
       let inverse = 1 / editor.zoom;
-      this.startX = (clientPosition(event, "x") + window.scrollX) * inverse;
-      this.startY = (clientPosition(event, "y") + window.scrollY) * inverse;
+      let clientX = clientPosition(event, "x");
+      let clientY = clientPosition(event, "y");
+      this.startX = (clientX + window.scrollX) * inverse;
+      this.startY = (clientY + window.scrollY) * inverse;
+      let handleRect = this.resizeElem.getBoundingClientRect();
+      this.offsetX = (handleRect.left + (this.resizeElem.clientWidth / 2)) - clientX;
+      this.offsetY = (handleRect.top + (this.resizeElem.clientHeight / 2)) - clientY;
       body.style.userSelect = "none";
       editor.page.style.touchAction = "pinch-zoom";
       event.preventDefault();
@@ -1046,11 +1051,18 @@ modules["pages/editor/toolbar/cursor"] = {
         if (pageElem != null) {
           number = parseInt(pageElem.getAttribute("order"));
         }
-        let scaleMouse = await utils.scaleToDoc(mouseX, mouseY, number);
+        let scaleMouse = await utils.scaleToDoc(mouseX + this.offsetX, mouseY + this.offsetY, number);
+        let sizeCompare = (a, b) => {
+          if (select.s[0] < 0 || select.s[1] < 0) {
+            return a < b;
+          } else {
+            return a > b;
+          }
+        }
         switch (this.tooltip) {
           case "bottomright":
             if (preserveAspect == true) {
-              if (scaleMouse.x - (this.position[0] + select.s[0]) > scaleMouse.y - (this.position[1] + select.s[1])) {
+              if (sizeCompare(scaleMouse.x - (this.position[0] + select.s[0]), scaleMouse.y - (this.position[1] + select.s[1]))) {
                 select.s[0] = utils.round(this.size[0] + changeX);
                 select.s[1] = utils.round(this.size[1] * ((this.size[0] + changeX) / this.size[0]));
               } else {
@@ -1065,7 +1077,7 @@ modules["pages/editor/toolbar/cursor"] = {
           case "topleft":
             select.p = select.p || anno.p;
             if (preserveAspect == true) {
-              if (select.p[0] - scaleMouse.x > select.p[1] - scaleMouse.y) {
+              if (sizeCompare(select.p[0] - scaleMouse.x, select.p[1] - scaleMouse.y)) {
                 select.s[0] = utils.round(this.size[0] - changeX);
                 select.s[1] = utils.round(this.size[1] * ((this.size[0] - changeX) / this.size[0]));
               } else {
@@ -1082,7 +1094,7 @@ modules["pages/editor/toolbar/cursor"] = {
           case "topright":
             select.p = select.p || anno.p;
             if (preserveAspect == true) {
-              if (scaleMouse.x - (select.p[0] + select.s[0]) > select.p[1] - scaleMouse.y) {
+              if (sizeCompare(scaleMouse.x - (select.p[0] + select.s[0]), select.p[1] - scaleMouse.y)) {
                 select.s[0] = utils.round(this.size[0] + changeX);
                 select.s[1] = utils.round(this.size[1] * ((this.size[0] + changeX) / this.size[0]));
               } else {
@@ -1098,7 +1110,7 @@ modules["pages/editor/toolbar/cursor"] = {
           case "bottomleft":
             select.p = select.p || anno.p;
             if (preserveAspect == true) {
-              if (select.p[0] - scaleMouse.x > scaleMouse.y - (select.p[1] + select.s[1])) {
+              if (sizeCompare(select.p[0] - scaleMouse.x, scaleMouse.y - (select.p[1] + select.s[1]))) {
                 select.s[0] = utils.round(this.size[0] - changeX);
                 select.s[1] = utils.round(this.size[1] * ((this.size[0] - changeX) / this.size[0]));
               } else {

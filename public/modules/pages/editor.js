@@ -1097,7 +1097,6 @@ modules["pages/editor"] = {
       (async () => {
         (await getModule("editor/export")).js(this, page);
       })();
-      await getAnnotations();
     }
 
     this.visiblePages = [];
@@ -1478,11 +1477,6 @@ modules["pages/editor"] = {
           }
         }
         this.addSources(body.sources);
-        if (getParam("export_browser") == "true" && (body.sources.length < 1 || getParam("only_thumbnail") == "true")) {
-          if (pageHolder.firstElementChild != null || pageHolder.firstElementChild.hasAttribute("sourceid") == false) {
-            window.exportReady();
-          }
-        }
 
         let scrollPage = getParam("page") || 1;
         let scrollElem = pageHolder.children[scrollPage - 1];
@@ -1490,9 +1484,17 @@ modules["pages/editor"] = {
           window.scrollTo({ top: window.scrollY + scrollElem.getBoundingClientRect().top - scrollOffset });
         }
 
-        if (window.exportReady && body.sources.length < 1) {
-          window.exportReady();
+        if (getParam("export_browser") == "true") {
+          await getAnnotations();
+          if (window.exportReady && body.sources.length < 1) {
+            window.exportReady();
+          } else if (getParam("only_thumbnail") == "true") {
+            if (pageHolder.firstElementChild != null || pageHolder.firstElementChild.hasAttribute("sourceid") == false) {
+              window.exportReady();
+            }
+          }
         }
+
         /*
         pageHolder.addEventListener("click", (event) => {
           let element = event.target;

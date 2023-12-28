@@ -1053,7 +1053,7 @@ modules["pages/editor"] = {
             alreadyLoaded.push(this.loadedIn[i]);
           }
         }
-        if (fetchPageIDs.length < 1) {
+        if (fetchPageIDs.length < 1 && this.exporting != true) {
           return;
         }
         endpoint += "?pages=" + fetchPageIDs.join(",");

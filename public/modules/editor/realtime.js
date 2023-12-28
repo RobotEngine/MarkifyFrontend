@@ -565,6 +565,7 @@ modules["editor/realtime"] = {
                       editor.annotations[annoID] = {};
                       original = editor.annotations[annoID];
                     }
+                    original.revert = original.revert || JSON.parse(JSON.stringify(original.render || {}));
                     // If the user is also selecting, we must update their fields accordingly:
                     /*
                     if (selecting != null) {
@@ -577,16 +578,15 @@ modules["editor/realtime"] = {
                     }
                     */
                     if (anno.done != true) {
-                      if (original.revert != null) {
-                        original.revert = JSON.parse(JSON.stringify(original.render));
-                      }
                       original.render = { ...(original.render || {}), ...anno };
-                      utils.enableTimeout(annoID, original);
                     } else {
                       original.render = { ...(original.render || {}), ...anno };
                       delete original.render.done;
                       utils.saveEdit(anno);
                     }
+                    original.render.sync = time;
+                    utils.enableTimeout(annoID, original, null, true);
+
                     let selection;
                     if (original.render._id.startsWith("pending_") == false) {
                       selection = realtimeHolder.querySelector('.eCollabSelect[member="' + memberID + '"][anno="' + annoID + '"]:not([old])');

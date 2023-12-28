@@ -777,7 +777,7 @@ modules["pages/editor"] = {
 
     let utils = await getModule("pages/editor/annotation");
     socket.remotes["long_" + lessonID] = async (data) => {
-      console.log("LONG");
+      console.log("LONG", data);
       for (let i = 0; i < data.length; i++) {
         let anno = data[i];
         let existingAnno = this.annotations[anno._id] || this.annotations[anno.pending];
@@ -794,7 +794,7 @@ modules["pages/editor"] = {
           // CHECKS FOR IF SERVER VERSION IS AFTER LAST RECIEVED VERSION
           if (existingAnno.serverSync == null || existingAnno.serverSync < anno.sync) {
             existingAnno.serverSync = anno.sync;
-            existingAnno.revert = anno;
+            //existingAnno.revert = anno;
           }
           let gottenRender;
           // UPDATES _id IF IT WAS PENDING
@@ -2684,12 +2684,12 @@ modules["pages/editor/annotation"] = {
       anno.remove();
     }
   },
-  enableTimeout: async function(annoID, anno, render) {
+  enableTimeout: async function(annoID, anno, render, collab) {
     let editor = await getModule("pages/editor");
     let page = editor.page;
     clearTimeout(anno.expire);
     anno.expire = setTimeout(() => {
-      if (connected == false) {
+      if (connected == false && collab != true) {
         return;
       }
       if (editor.page != page) {
@@ -2708,6 +2708,9 @@ modules["pages/editor/annotation"] = {
       } else {
         this.removeAnnotation(annoID);
         delete editor.annotations[annoID];
+      }
+      if (editor.updateZoom) {
+        editor.updateZoom(false, true);
       }
     }, 10000); // Revert if no long update confirms save
   },

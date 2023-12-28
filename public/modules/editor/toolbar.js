@@ -693,7 +693,7 @@ modules["editor/toolbar"] = {
 // CURSOR TOOL
 modules["pages/editor/toolbar/cursor"] = {
   mouse: "default",
-  updateBox: async function (forceNoTransition) {
+  updateBox: async function (forceNoTransition, forceUpdate) {
     let editor = await getModule("pages/editor");
     let utils = await getModule("pages/editor/annotation");
     let content = editor.page.querySelector(".eContent");
@@ -887,13 +887,16 @@ modules["pages/editor/toolbar/cursor"] = {
       }
     }
     
-    if (this.lastEditorZoom != editor.zoom || forceNoTransition == true) {
+    if (this.lastEditorZoom != editor.zoom || forceNoTransition == true || forceUpdate == true) {
       let allSelections = editor.page.querySelector(".eRealtime").querySelectorAll('.eCollabSelect');
       for (let i = 0; i < allSelections.length; i++) {
         let selection = allSelections[i];
-        selection.setAttribute("notransition", "");
+        if (forceNoTransition == true) {
+          selection.setAttribute("notransition", "");
+        }
         let annoID = selection.getAttribute("anno");
         if (editor.annotations[annoID] == null) {
+          selection.remove();
           continue;
         }
         let anno = { ...((editor.annotations[annoID]).render || {}), ...(editor.selecting[annoID] || {}) };

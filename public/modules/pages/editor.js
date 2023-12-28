@@ -340,6 +340,7 @@ modules["pages/editor"] = {
     page.style.minWidth = "100%";
 
     if (getParam("export_browser") == "true") {
+      this.exporting = true;
       page.style.transition = "unset";
       page.style.opacity = 1;
       addCSS({ ".loading": `display: none` });
@@ -855,7 +856,7 @@ modules["pages/editor"] = {
       delete this.session;
     }
     let paramSession = getParam("member_session") || "";
-    if (paramSession != "" && getParam("export_browser") == "true") {
+    if (paramSession != "" && this.exporting == true) {
       this.session = paramSession;
     }
     let [code, body, extra] = await sendRequest("POST", "lessons/join?lesson=" + lessonID, sendBody, { session: this.session, allowError: [403, 406] });
@@ -1092,13 +1093,13 @@ modules["pages/editor"] = {
       */
     }
 
-    if (getParam("export_browser") != "true") {
+    if (this.exporting == true) {
       (async () => {
         (await getModule("editor/realtime")).js(this, page);
       })();
     } else {
-      (await getModule("editor/export")).js(this, page);
       await getAnnotations();
+      (await getModule("editor/export")).js(this, page);
     }
 
     this.visiblePages = [];
@@ -1454,7 +1455,7 @@ modules["pages/editor"] = {
         this.addSources = (sources) => {
           for (let i = 0; i < sources.length; i++) {
             let sourceData = sources[i];
-            if (getParam("only_thumbnail") == "true" && getParam("export_browser") == "true") {
+            if (getParam("only_thumbnail") == "true" && this.exporting == true) {
               if (pageHolder.firstElementChild == null || pageHolder.firstElementChild.getAttribute("sourceid") != sourceData._id) {
                 continue;
               }
@@ -1486,7 +1487,7 @@ modules["pages/editor"] = {
           window.scrollTo({ top: window.scrollY + scrollElem.getBoundingClientRect().top - scrollOffset });
         }
         
-        if (getParam("export_browser") == "true") {
+        if (this.exporting == true) {
           if (window.exportReady && (body.sources.length < 1 || (getParam("only_thumbnail") == "true" && pageHolder.firstElementChild != null && pageHolder.firstElementChild.hasAttribute("sourceid") == false))) {
             window.exportReady();
           }

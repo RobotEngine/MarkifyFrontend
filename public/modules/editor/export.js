@@ -5,8 +5,6 @@ modules["editor/export"] = {
     ".ePageRearrange": `display: none`
   },
   js: async function (editor, page) {
-    editor.exporting = true;
-
     fixed.style.display = "none";
 
     page.querySelector(".eContent").style.padding = "0px";

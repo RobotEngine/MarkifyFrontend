@@ -1099,7 +1099,7 @@ modules["pages/editor"] = {
       })();
     } else {
       await getAnnotations();
-      (await getModule("editor/export")).js(this, page);
+      await (await getModule("editor/export")).js(this, page);
     }
 
     this.visiblePages = [];

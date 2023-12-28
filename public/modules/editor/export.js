@@ -22,7 +22,7 @@ modules["editor/export"] = {
 
     let pageHolder = page.querySelector(".ePageHolder");
     
-    //window.messageA = (event) => {
+    //window.messageA = async (event) => {
     window.addEventListener("message", async (event) => {
       if (event.data && event.data.type === "FROM_NODE") {
         let data = event.data.message;
@@ -48,3 +48,9 @@ modules["editor/export"] = {
     });
   }
 }
+
+/*
+window.exportReady = () => {
+  window.messageA({ data: { type: "FROM_NODE", message: { task: "setpage", page: 1 } } });
+}
+*/

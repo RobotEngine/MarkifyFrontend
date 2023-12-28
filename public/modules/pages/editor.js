@@ -1057,6 +1057,9 @@ modules["pages/editor"] = {
         }
         endpoint += "?pages=" + fetchPageIDs.join(",");
       }
+      if (this.exporting == true && getParam("only_thumbnail") == "true" && body.pages != null) {
+        endpoint = "lessons/join/annotations?pages=" + body.pages[0]._id;
+      }
       
       // Send Load Request:
       let [code, body] = await sendRequest("GET", endpoint, null, { session: this.session }, { allowError: true });
@@ -1439,7 +1442,7 @@ modules["pages/editor"] = {
             properSort();
           }
         }
-        await this.addPages(body.pages);
+        this.addPages(body.pages);
         
         // Load PDFJS
         if (window.pdfjsLib == null) {
@@ -1485,7 +1488,6 @@ modules["pages/editor"] = {
         }
 
         if (getParam("export_browser") == "true") {
-
           await getAnnotations();
           if (window.exportReady && body.sources.length < 1) {
             window.exportReady();

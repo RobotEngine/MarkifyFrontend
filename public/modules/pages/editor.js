@@ -1093,7 +1093,7 @@ modules["pages/editor"] = {
       */
     }
 
-    if (this.exporting == true) {
+    if (this.exporting != true) {
       (async () => {
         (await getModule("editor/realtime")).js(this, page);
       })();

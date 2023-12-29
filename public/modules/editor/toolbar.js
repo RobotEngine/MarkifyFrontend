@@ -713,7 +713,7 @@ modules["pages/editor/toolbar/cursor"] = {
             //anno.style.cursor = "unset";
             anno.style.removeProperty("overflow");
             anno.style.removeProperty("border-radius");
-            let activeLayer = anno.querySelector(".eSelectActive");
+            let activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
             if (activeLayer != null) {
               activeLayer.remove();
             }
@@ -753,10 +753,10 @@ modules["pages/editor/toolbar/cursor"] = {
         continue;
       }
       anno.setAttribute("selected", "");
-      let activeLayer = anno.querySelector(".eSelectActive");
+      let activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
       if (activeLayer == null) {
-        anno.insertAdjacentHTML("beforeend", `<div class="eSelectActive"></div>`);
-        activeLayer = anno.querySelector(".eSelectActive");
+        anno.parentElement.insertAdjacentHTML("beforeend", `<div class="eSelectActive" anno="${annoID}"></div>`);
+        activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
       }
       activeLayer.style.zIndex = i;
       anno.style.overflow = "hidden";
@@ -876,6 +876,11 @@ modules["pages/editor/toolbar/cursor"] = {
         }
       }
 
+      activeLayer.style.width = width + "px";
+      activeLayer.style.height = height + "px";
+      activeLayer.style.left = x + "px";
+      activeLayer.style.top = y + "px";
+
       if (collabSelect != null) {
         collabSelect.offsetWidth;
         let collWidth = (width * editor.zoom) - 3; // +0 for width, -3 for border
@@ -924,6 +929,7 @@ modules["pages/editor/toolbar/cursor"] = {
       return;
     }
     let editor = await getModule("pages/editor");
+    this.activeElem = target.closest(".eSelectActive");
     this.annotationElem = target.closest(".eAnnotation");
     this.selectElem = target.closest(".eSelect");
     this.resizeElem = target.closest(".eSelectTooltip");
@@ -938,7 +944,7 @@ modules["pages/editor/toolbar/cursor"] = {
       return;
     }
     */
-    if (this.annotationElem != null && this.annotationElem.hasAttribute("selected") == true) {
+    if (this.activeElem != null || (this.annotationElem != null && this.annotationElem.hasAttribute("selected"))) {
       // Drag/Move Element
       this.action = "move";
       let inverse = 1 / editor.zoom;
@@ -993,6 +999,8 @@ modules["pages/editor/toolbar/cursor"] = {
       this.action = null;
     }
     */
+    let setTempSync = getEpoch();
+
     let keys = Object.keys(editor.selecting);
     for (let i = 0; i < keys.length; i++) {
       let annoid = keys[i];
@@ -1168,7 +1176,7 @@ modules["pages/editor/toolbar/cursor"] = {
             }
         }
       }
-      await utils.render({ ...anno, ...select });
+      await utils.render({ ...anno, ...select, sync: setTempSync });
     }
     if (this.action == "move") {
       this.startX = this.endX;
@@ -1189,6 +1197,8 @@ modules["pages/editor/toolbar/cursor"] = {
     body.style.removeProperty("user-select");
     editor.page.style.removeProperty("touch-action");
     editor.page.removeAttribute("enabled");
+
+    let setTempSync = getEpoch();
 
     // Save Revert
     let keys = Object.keys(editor.selecting);
@@ -1220,7 +1230,7 @@ modules["pages/editor/toolbar/cursor"] = {
       }
 
       delete selecting.done;
-      await utils.save({ _id: annoid, ...selecting });
+      await utils.save({ _id: annoid, ...selecting }, null, setTempSync);
       selecting.done = true;
     }
     await utils.forceShort();
@@ -1241,7 +1251,7 @@ modules["pages/editor/toolbar/cursor"] = {
       if (target == null) {
         return;
       }
-      anno = target.closest(".eAnnotation, .eSelect");
+      anno = target.closest(".eAnnotation, .eSelect, .eSelectActive");
       if (editor.getSelf().access < 1) {
         editor.selecting = {};
         this.updateBox();
@@ -1381,7 +1391,7 @@ modules["pages/editor/toolbar/drag"] = {
         return;
       }
 
-      anno = target.closest(".eAnnotation, .eSelect");
+      anno = target.closest(".eAnnotation, .eSelect, .eSelectActive");
       
       selectX = clientPosition(event, "x") + window.scrollX;
       selectY = clientPosition(event, "y") + window.scrollY;

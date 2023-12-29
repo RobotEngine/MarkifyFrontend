@@ -2565,7 +2565,6 @@ modules["pages/editor/annotation"] = {
         anno.style.left = x + "px";
         anno.style.top = y + "px";
         svg = anno.querySelector("svg");
-        svg.style.zIndex = sync || getEpoch();
         if (remove != true) {
           svg.removeAttribute("hidden");
         } else {
@@ -2629,7 +2628,6 @@ modules["pages/editor/annotation"] = {
         anno.style.left = x + "px";
         anno.style.top = y + "px";
         svg = anno.querySelector("svg");
-        svg.style.zIndex = sync || getEpoch();
         if (remove != true) {
           svg.removeAttribute("hidden");
         } else {
@@ -2675,6 +2673,7 @@ modules["pages/editor/annotation"] = {
         break;
     }
     if (anno != null) {
+      anno.style.zIndex = (sync || getEpoch()) % 1000000000;
       if (s[0] < 0 && s[1] < 0) {
         anno.style.transform = "scale(-1)";
       } else if (s[0] < 0) {
@@ -2743,7 +2742,7 @@ modules["pages/editor/annotation"] = {
       }
     }, 10000); // Revert if no long update confirms save
   },
-  saveEdit: async function(annoData, render) {
+  saveEdit: async function(annoData, render, sync) {
     let editor = await getModule("pages/editor");
     let annoID = annoData._id;
     if (annoID == null) {
@@ -2762,7 +2761,7 @@ modules["pages/editor/annotation"] = {
     */
     this.enableTimeout(annoID, anno, render);
     editor.annotations[annoID] = anno;
-    this.render(anno.render, render);
+    this.render({ ...anno.render, sync: sync }, render);
     return annoData; //mutations;
   },
   pendingSaves: {},
@@ -2836,11 +2835,11 @@ modules["pages/editor/annotation"] = {
     }
     this.debounce = false;
   },
-  save: async function(data, anno) {
+  save: async function(data, anno, sync) {
     data = JSON.parse(JSON.stringify(data));
     let editor = await getModule("pages/editor");
     let annoID = data._id;
-    let mutations = await this.saveEdit(data, anno);
+    let mutations = await this.saveEdit(data, anno, sync);
     if (mutations == null) {
       return; // Nothing new to send!
     }

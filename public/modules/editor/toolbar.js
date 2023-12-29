@@ -1252,6 +1252,13 @@ modules["pages/editor/toolbar/cursor"] = {
         return;
       }
       anno = target.closest(".eAnnotation, .eSelect, .eSelectActive");
+      /*
+      let selectActive = target.closest(".eSelectActive");
+      if (anno == null && selectActive != null) {
+        anno = content.querySelector('.eAnnotation[anno="' + selectActive.getAttribute("anno") + '"]');
+        console.log(anno)
+      }
+      */
       if (editor.getSelf().access < 1) {
         editor.selecting = {};
         this.updateBox();
@@ -1284,7 +1291,7 @@ modules["pages/editor/toolbar/cursor"] = {
       if (target == null) {
         return;
       }
-      anno = target.closest(".eAnnotation, .eSelect");
+      anno = target.closest(".eAnnotation, .eSelect, .eSelectActive");
       if (editor.getSelf().access < 1) {
         editor.selecting = {};
         this.updateBox();
@@ -1440,7 +1447,7 @@ modules["pages/editor/toolbar/drag"] = {
         if (target == null) {
           return;
         }
-        anno = target.closest(".eAnnotation, .eSelect");
+        anno = target.closest(".eAnnotation, .eSelect, .eSelectActive");
 
         if (Math.floor((clientPosition(event, "x") + window.scrollX) - selectX) == 0 && Math.floor((clientPosition(event, "y") + window.scrollY) - selectY) == 0) {
           if (anno == null) {

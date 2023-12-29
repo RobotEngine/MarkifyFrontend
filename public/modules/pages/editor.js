@@ -1506,6 +1506,21 @@ modules["pages/editor"] = {
 
         });
         */
+
+        this.updatePageSize = () => {
+          let pageChild = pageHolder.children[currentPage - 1] || pageHolder;
+          this.addMargin = (fixed.offsetWidth - pageChild.offsetWidth) / 2;
+        }
+        let resetResizeTimeout;
+        tempListen(window, "resize", () => {
+          clearTimeout(resetResizeTimeout);
+          resetResizeTimeout = setTimeout(() => {
+            this.updatePageSize();
+            utils.resetAnnotationSize();
+          }, 500);
+        });
+        this.updatePageSize();
+
         if (this.exporting != true) {
           addPagesHolder.style.display = "flex";
         }
@@ -1513,7 +1528,7 @@ modules["pages/editor"] = {
       case "freeboard":
         //pageHolder.remove();
         addPagesHolder.remove();
-        let updatePageSize = () => {
+        this.updatePageSize = () => {
           pageHolder.style.width = fixed.offsetWidth - 332 + "px";
           pageHolder.style.height = fixed.offsetHeight - 332 + "px";
         }
@@ -1522,7 +1537,7 @@ modules["pages/editor"] = {
         tempListen(window, "resize", () => {
           clearTimeout(resetTimeout);
           resetTimeout = setTimeout(() => {
-            updatePageSize();
+            this.updatePageSize();
             utils.resetAnnotationSize();
           }, 500);
         });
@@ -1533,7 +1548,7 @@ modules["pages/editor"] = {
         }
         tempListen(window, "scroll", updateScroll);
         tempListen(window, "resize", updateScroll);
-        updatePageSize();
+        this.updatePageSize();
         bottomHolder.remove();
         await getAnnotations();
         utils.resetAnnotationSize();
@@ -1589,6 +1604,8 @@ modules["pages/editor"] = {
       console.log(mouseScaleX, mouseScaleY);
       */
       
+      this.updatePageSize();
+
       await utils.checkAnnotationSize();
       
       /*

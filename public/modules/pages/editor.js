@@ -1510,9 +1510,8 @@ modules["pages/editor"] = {
         */
 
         this.updatePageSize = () => {
-          let pageChild = pageHolder.children[currentPage - 1] || pageHolder;
-          this.addMargin = Math.max((fixed.offsetWidth - (pageChild.offsetWidth * this.zoom)) / 2, 100);
-          console.log(this.addMargin);
+          //let pageChild = pageHolder.children[currentPage - 1] || pageHolder;
+          this.addMargin = Math.max((fixed.offsetWidth - (pageHolder.offsetWidth * this.zoom)) / 2, 100);
         }
         let resetResizeTimeout;
         tempListen(window, "resize", () => {

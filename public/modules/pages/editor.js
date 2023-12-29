@@ -1105,6 +1105,8 @@ modules["pages/editor"] = {
     this.visiblePages = [];
     this.updatePages = null;
 
+    this.zoom = 1;
+
     switch (this.lesson.type) {
       case "standard":
         pages = { ...pages, ...getObject(body.pages || [], "_id") };
@@ -1509,7 +1511,8 @@ modules["pages/editor"] = {
 
         this.updatePageSize = () => {
           let pageChild = pageHolder.children[currentPage - 1] || pageHolder;
-          this.addMargin = (fixed.offsetWidth - pageChild.offsetWidth) / 2;
+          this.addMargin = Math.max((fixed.offsetWidth - (pageChild.offsetWidth * this.zoom)) / 2, 100);
+          console.log(this.addMargin);
         }
         let resetResizeTimeout;
         tempListen(window, "resize", () => {
@@ -1558,7 +1561,6 @@ modules["pages/editor"] = {
     }
 
     // Zoom
-    this.zoom = 1;
     this.setZoom = async (set, observe, mouse) => {
       mouse = mouse || {};
       if (observe != true && this.realtime.observing != null && this.realtime.module != null) {

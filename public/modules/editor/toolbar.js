@@ -2074,7 +2074,7 @@ modules["pages/editor/toolbar/eraser"] = {
           let anno = annos[i].closest(".eAnnotation");
           if (anno != null && anno.hasAttribute("hidden") == false && anno.querySelector("polyline") != null) {
             let annoID = anno.getAttribute("anno");
-            if (editor.annotations[annoID] != null) {
+            if (annoID.startsWith("pending_") == false && editor.annotations[annoID] != null) {
               // This alone isn't enough, the actual points MUST be checked:
               let drawing = anno.querySelector("polyline");
               if (drawing != null && drawing.hasAttribute("points") == true) {

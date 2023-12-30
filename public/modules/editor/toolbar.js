@@ -69,7 +69,8 @@ modules["editor/toolbar"] = {
     '.eSelectTooltip[tooltip="right"]': `right: -10px; top: 50%; transform: translateY(-50%); cursor: ew-resize`,
     '.eSelectTooltip[tooltip="top"]': `left: 50%; top: -10px; transform: translateX(-50%); cursor: ns-resize`,
     '.eSelectTooltip[tooltip="bottom"]': `left: 50%; bottom: -10px; transform: translateX(-50%); cursor: ns-resize`,
-    ".eSelectDrag": `position: absolute; box-sizing: border-box; pointer-events: none; z-index: 99; opacity: 0; background: var(--secondary); border: solid 2px var(--theme); border-radius: 10px; transition: opacity .1s`
+    ".eSelectDrag": `position: absolute; box-sizing: border-box; pointer-events: none; z-index: 99; opacity: 0; background: var(--secondary); border: solid 2px var(--theme); border-radius: 10px; transition: opacity .1s`,
+    ".eSelectBar": `position: absolute; display: flex; gap: 6px; max-width: calc(100vw - 88px); height: 50px; width: 300px; background: var(--pageColor); box-shadow: var(--lightShadow); z-index: 102; border-radius: 16px; transform: translateY(-10%); opacity: 0; transition: transform .2s, opacity .2s`
   },
   tools: {
     "select": [
@@ -696,9 +697,17 @@ modules["pages/editor/toolbar/cursor"] = {
   updateBox: async function (forceNoTransition, forceUpdate) {
     let editor = await getModule("pages/editor");
     let utils = await getModule("pages/editor/annotation");
+    let cursor = await getModule("pages/editor/toolbar/cursor");
     let content = editor.page.querySelector(".eContent");
+    let pageHolderRect = content.querySelector(".ePageHolder").getBoundingClientRect();
     let selectionIDs = Object.keys(editor.selecting);
     let checkRemSelections = content.querySelectorAll(".eSelect");
+
+    this.minX = null;
+    this.maxX = null;
+    this.minY = null;
+    this.maxY = null;
+
     for (let i = 0; i < checkRemSelections.length; i++) {
       let selection = checkRemSelections[i];
       let annoID = selection.getAttribute("anno");
@@ -881,6 +890,17 @@ modules["pages/editor/toolbar/cursor"] = {
       activeLayer.style.left = x + "px";
       activeLayer.style.top = y + "px";
 
+      let inverse = 1 / editor.zoom;
+      let pageY = pageRect.y - pageHolderRect.y;
+      let setMinX = x;
+      this.minX = Math.min(this.minX || setMinX, setMinX);
+      let setMaxX = x + width;
+      this.maxX = Math.max(this.maxX || setMaxX, setMaxX);
+      let setMinY = (pageY * inverse) + y - border;
+      this.minY = Math.min(this.minY || setMinY, setMinY);
+      let setMaxY = (pageY * inverse) + (y - border) + height;
+      this.maxY = Math.max(this.maxY || setMaxY, setMaxY);
+
       if (collabSelect != null) {
         collabSelect.offsetWidth;
         let collWidth = (width * editor.zoom) - 3; // +0 for width, -3 for border
@@ -891,6 +911,8 @@ modules["pages/editor/toolbar/cursor"] = {
         collabSelect.style.top = pageRect.y + ((y - border) * editor.zoom) + window.scrollY - 1.5 + "px";
       }
     }
+
+    cursor.updateActionUI();
     
     if (this.lastEditorZoom != editor.zoom || forceNoTransition == true || forceUpdate == true) {
       let allSelections = editor.page.querySelector(".eRealtime").querySelectorAll('.eCollabSelect');
@@ -922,6 +944,70 @@ modules["pages/editor/toolbar/cursor"] = {
       }
     }
     this.lastEditorZoom = editor.zoom;
+  },
+  updateActionUI: async function () {
+    let editor = await getModule("pages/editor");
+    let utils = await getModule("pages/editor/annotation");
+    let content = editor.page.querySelector(".eContent");
+    let selectionIDs = Object.keys(editor.selecting);
+
+    let actionUI = content.querySelector(".eSelectBar:not([remove])");
+    if (selectionIDs.length > 0 && this.action == null && content.querySelector(".eSelectDrag:not([remove])") == null) {
+      if (this.minX == null || this.maxX == null || this.minY == null || this.maxY == null) {
+        return;
+      }
+
+      let unscaledPxLeft = this.minX + ((this.maxX - this.minX) / 2);
+      let unscaledPxTop = this.minY + ((this.maxY - this.minY) / 2);
+      if (this.lastPxLeft != unscaledPxLeft || this.lastPxTop != unscaledPxTop) {
+        this.removeActionUI(actionUI);
+        actionUI = null;
+      }
+      this.lastPxLeft = unscaledPxLeft;
+      this.lastPxTop = unscaledPxTop;
+
+      // Create Action UI
+      if (actionUI == null) {
+        content.insertAdjacentHTML("beforeend", `<div class="eSelectBar" new></div>`);
+        actionUI = content.querySelector(".eSelectBar[new]");
+        actionUI.removeAttribute("new");
+      }
+
+      // Update Action UI
+      let pageHolderRect = editor.page.querySelector(".ePageHolder").getBoundingClientRect();
+      let pxLeft = pageHolderRect.x + (unscaledPxLeft * editor.zoom) - (actionUI.clientWidth / 2);
+      //console.log(unscaledPxLeft);
+      if (pxLeft + actionUI.clientWidth + 8 > fixed.offsetWidth) {
+        pxLeft -= (pxLeft + actionUI.clientWidth + 8) - fixed.offsetWidth;
+      }
+      actionUI.style.left = Math.max(pxLeft, 66) + window.scrollX + "px";
+      let yPos = pageHolderRect.y + (this.minY * editor.zoom) - actionUI.clientHeight - 16;
+      if (yPos < 66) {
+        yPos = pageHolderRect.y + (this.maxY * editor.zoom) + 16;
+      }
+      if (yPos + actionUI.clientHeight + 8 > fixed.offsetHeight) {
+        yPos -= (yPos + actionUI.clientHeight + 8) - fixed.offsetHeight;
+      }
+      actionUI.style.top = yPos + window.scrollY + "px";
+
+      actionUI.style.transform = "translateY(0%)";
+      actionUI.style.opacity = 1;
+    } else if (actionUI != null) {
+      this.removeActionUI(actionUI);
+      actionUI = null;
+    }
+  },
+  removeActionUI: async function (actionUI) {
+    if (actionUI == null) {
+      return;
+    }
+    actionUI.setAttribute("remove", "");
+    actionUI.style.transform = "translateY(-10%)";
+    actionUI.style.opacity = 0;
+    await sleep(200);
+    if (actionUI != null) {
+      actionUI.remove();
+    }
   },
   enableAction: async function (event) {
     let target = event.target;
@@ -1198,6 +1284,8 @@ modules["pages/editor/toolbar/cursor"] = {
     editor.page.style.removeProperty("touch-action");
     editor.page.removeAttribute("enabled");
 
+    this.updateActionUI();
+
     let setTempSync = getEpoch();
 
     // Save Revert
@@ -1324,6 +1412,9 @@ modules["pages/editor/toolbar/cursor"] = {
 
     addEvent(content, "mousemove", (event) => { this.moveAction(event) }, { passive: false });
     addEvent(content, "touchmove", (event) => { this.moveAction(event) }, { passive: false });
+
+    addEvent(window, "scroll", () => { this.updateActionUI(); }, { passive: true });
+    addEvent(window, "resize", () => { this.updateActionUI(); }, { passive: true });
   }
 };
 
@@ -1466,6 +1557,8 @@ modules["pages/editor/toolbar/drag"] = {
       }
       let remSelect = selection;
       selection = null;
+      remSelect.setAttribute("remove", "");
+      cursorModule.updateActionUI();
       remSelect.style.opacity = 0;
       await sleep(150);
       remSelect.remove();
@@ -1476,6 +1569,9 @@ modules["pages/editor/toolbar/drag"] = {
     addEvent(content, "touchmove", moveSelect, { passive: false });
     addEvent(content, "mouseup", disableSelect, { passive: false });
     addEvent(content, "touchend", disableSelect, { passive: false });
+
+    addEvent(window, "scroll", () => { cursorModule.updateActionUI(); }, { passive: true });
+    addEvent(window, "resize", () => { this.updateActionUI(); }, { passive: true });
   }
 };
 
@@ -2074,7 +2170,7 @@ modules["pages/editor/toolbar/eraser"] = {
           let anno = annos[i].closest(".eAnnotation");
           if (anno != null && anno.hasAttribute("hidden") == false && anno.querySelector("polyline") != null) {
             let annoID = anno.getAttribute("anno");
-            if (annoID.startsWith("pending_") == false && editor.annotations[annoID] != null) {
+            if (editor.annotations[annoID] != null) {
               // This alone isn't enough, the actual points MUST be checked:
               let drawing = anno.querySelector("polyline");
               if (drawing != null && drawing.hasAttribute("points") == true) {

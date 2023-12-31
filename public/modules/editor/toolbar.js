@@ -984,6 +984,9 @@ modules["pages/editor/toolbar/cursor"] = {
       let yPos = pageHolderRect.y + (this.minY * editor.zoom) - actionUI.clientHeight - 16;
       if (yPos < 66) {
         yPos = pageHolderRect.y + (this.maxY * editor.zoom) + 16;
+        if (yPos + actionUI.clientHeight + 8 > fixed.offsetHeight) {
+          yPos -= (yPos + actionUI.clientHeight + 8) - fixed.offsetHeight;
+        }
       }
       //if (yPos + actionUI.clientHeight + 8 > fixed.offsetHeight) {
       //  yPos -= (yPos + actionUI.clientHeight + 8) - fixed.offsetHeight;

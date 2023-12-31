@@ -984,8 +984,8 @@ modules["pages/editor/toolbar/cursor"] = {
       let yPos = pageHolderRect.y + (this.minY * editor.zoom) - actionUI.clientHeight - 16;
       if (yPos < 66) {
         yPos = pageHolderRect.y + (this.maxY * editor.zoom) + 16;
-        if (yPos + actionUI.clientHeight + 8 > fixed.offsetHeight) {
-          yPos -= (yPos + actionUI.clientHeight + 8) - fixed.offsetHeight;
+        if (yPos + actionUI.clientHeight + 66 > fixed.offsetHeight) {
+          yPos -= (yPos + actionUI.clientHeight + 66) - fixed.offsetHeight;
         }
       }
       //if (yPos + actionUI.clientHeight + 8 > fixed.offsetHeight) {
@@ -1534,6 +1534,18 @@ modules["pages/editor/toolbar/drag"] = {
       updateSelectedBounds(event);
     }
     let disableSelect = async (event) => {
+      (async () => {
+        if (selection == null) {
+          return;
+        }
+        let remSelect = selection;
+        selection = null;
+        remSelect.setAttribute("remove", "");
+        cursorModule.updateActionUI();
+        remSelect.style.opacity = 0;
+        await sleep(150);
+        remSelect.remove();
+      })();
       if (event != null) {
         cursorModule.endAction(event);
 
@@ -1555,16 +1567,6 @@ modules["pages/editor/toolbar/drag"] = {
         }
         wasSelected = null;
       }
-      if (selection == null) {
-        return;
-      }
-      let remSelect = selection;
-      selection = null;
-      remSelect.setAttribute("remove", "");
-      cursorModule.updateActionUI();
-      remSelect.style.opacity = 0;
-      await sleep(150);
-      remSelect.remove();
     }
     addEvent(content, "mousedown", enableSelect, { passive: false });
     addEvent(content, "touchstart", enableSelect, { passive: false });

@@ -1338,6 +1338,9 @@ modules["pages/editor/toolbar/cursor"] = {
     let startY;
     let wasSelected;
     let enableSelect = async (event) => {
+      if (event.which === 3 || event.button === 2) {
+        return;
+      }
       let target = event.target;
       if (target == null) {
         return;
@@ -1485,6 +1488,10 @@ modules["pages/editor/toolbar/drag"] = {
     let wasSelected;
     let prevSelecting;
     let enableSelect = async (event) => {
+      if (event.which === 3 || event.button === 2) {
+        return;
+      }
+      
       cursorModule.enableAction(event);
 
       let target = event.target;

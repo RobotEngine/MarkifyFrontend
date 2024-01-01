@@ -362,7 +362,7 @@ modules["editor/realtime"] = {
         }
         let pageElem = pageHolder;
         if (element.hasAttribute("page")) {
-          pageElem = pageHolder.children[parseInt(element.getAttribute("page")) - 1];
+          pageElem = pageHolder.children[parseInt(element.getAttribute("page")) - 1] || pageElem;
         }
         let pageRect = pageElem.getBoundingClientRect();
         if (element.hasAttribute("x")) {

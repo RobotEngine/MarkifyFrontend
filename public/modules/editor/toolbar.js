@@ -1341,7 +1341,6 @@ modules["pages/editor/toolbar/cursor"] = {
       if (original.render != null && original.render.page != null) {
         let page = selecting.page || original.render.page;
         let pos = selecting.p || original.render.p;
-        selecting.p = selecting.p || JSON.parse(JSON.stringify(pos));
         let currentPage = editor.page.querySelector('.ePage[pageid="' + page + '"]');
         if (currentPage != null) {
           let [page] = (await utils.findPage((pos[1] * editor.zoom) + currentPage.getBoundingClientRect().top));
@@ -1353,6 +1352,7 @@ modules["pages/editor/toolbar/cursor"] = {
             } else {
               change = page.offsetHeight;
             }
+            selecting.p = selecting.p || JSON.parse(JSON.stringify(pos));
             selecting.p[1] = utils.round(pos[1] + change);
           }
         }

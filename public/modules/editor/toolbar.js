@@ -983,9 +983,12 @@ modules["pages/editor/toolbar/cursor"] = {
       actionUI.style.left = Math.max(pxLeft, 66) + window.scrollX + "px";
       let yPos = pageHolderRect.y + (this.minY * editor.zoom) - actionUI.clientHeight - 16;
       if (yPos < 66) {
-        yPos = pageHolderRect.y + (this.maxY * editor.zoom) + 16;
-        if (yPos + actionUI.clientHeight + 66 > fixed.offsetHeight) {
-          yPos -= (yPos + actionUI.clientHeight + 66) - fixed.offsetHeight;
+        let modifiedY = pageHolderRect.y + (this.maxY * editor.zoom) + 16;
+        if (modifiedY + actionUI.clientHeight + 66 > fixed.offsetHeight) {
+          //yPos = (modifiedY + actionUI.clientHeight + 66) - fixed.offsetHeight;
+          yPos = 66;
+        } else {
+          yPos = modifiedY;
         }
       }
       //if (yPos + actionUI.clientHeight + 8 > fixed.offsetHeight) {
@@ -1491,7 +1494,7 @@ modules["pages/editor/toolbar/drag"] = {
       if (event.which === 3 || event.button === 2) {
         return;
       }
-      
+
       cursorModule.enableAction(event);
 
       let target = event.target;

@@ -32,9 +32,9 @@ modules["editor/toolbar"] = {
     ".eToolbar .content": `scrollbar-width: none`,
     ".eToolbar .content::-webkit-scrollbar": `display: none`,
 
-    ".eTool": `width: 50px; height: 50px; flex-shrink: 0; padding: 0; transition: unset`,
+    ".eTool": `--hoverColor: var(--hover); width: 50px; height: 50px; flex-shrink: 0; padding: 0; transition: unset`,
     ".eTool > div": `display: flex; width: 100%; height: 100%; justify-content: center; align-items: center; transition: .2s; overflow: hidden`,
-    ".eTool:hover > div": `background: var(--hover)`,
+    ".eTool:hover > div": `background: var(--hoverColor)`,
     ".eTool:active": `transform: unset !important`,
     ".eTool:active > div": `transform: scale(.95); border-radius: 15.5px`,
     ".eTool[option]:active > div": `background: var(--secondary); border-radius: 25px`,
@@ -44,6 +44,7 @@ modules["editor/toolbar"] = {
     ".eTool[selected][option] > div": `background: var(--secondary)`,
 
     ".eDivider": `width: 100%; height: 4px; background: var(--theme)`,
+    ".eVerticalDivider": `width: 4px; height: 100%; background: var(--theme)`,
 
     ".eSubToolHolder": `position: absolute; max-height: 100%; left: 100%; top: 0px; background: var(--pageColor); border-radius: 0 16px 16px 0; border-left: solid 4px var(--theme); transform: scale(0); transform-origin: top left; transition: opacity .3s, transform: .3s`,
     ".eSubToolHolder[option]": `border-left-color: var(--secondary)`,
@@ -70,7 +71,7 @@ modules["editor/toolbar"] = {
     '.eSelectTooltip[tooltip="top"]': `left: 50%; top: -10px; transform: translateX(-50%); cursor: ns-resize`,
     '.eSelectTooltip[tooltip="bottom"]': `left: 50%; bottom: -10px; transform: translateX(-50%); cursor: ns-resize`,
     ".eSelectDrag": `position: absolute; box-sizing: border-box; pointer-events: none; z-index: 99; opacity: 0; background: var(--secondary); border: solid 2px var(--theme); border-radius: 10px; transition: opacity .1s`,
-    ".eSelectBar": `position: absolute; display: flex; gap: 6px; max-width: calc(100vw - 88px); height: 50px; width: 300px; overflow: auto; background: var(--pageColor); box-shadow: var(--lightShadow); z-index: 102; border-radius: 16px; transform: translateY(-10%); opacity: 0; transition: transform .2s, opacity .2s`,
+    ".eSelectBar": `position: absolute; display: flex; gap: 6px; max-width: calc(100vw - 88px); height: 50px; overflow: auto; background: var(--pageColor); box-shadow: var(--shadow); z-index: 102; border-radius: 16px; transform: translateY(-10%); opacity: 0; transition: transform .2s, opacity .2s`,
     ".eSelectBar::-webkit-scrollbar": `display: none`
   },
   tools: {
@@ -531,9 +532,7 @@ modules["editor/toolbar"] = {
           for (let i = 0; i < loadTools.length; i++) {
             let toolData = loadTools[i];
             let insertHTML = `<button class="eTool" new><div></div></button>`;
-            if (toolData.type == "option") {
-
-            } else if (toolData.type == "divider") {
+            if (toolData.type == "divider") {
               insertHTML = `<div class="eDivider" keeptooltip new></div>`;
             }
             subToolContent.insertAdjacentHTML("beforeend", insertHTML);
@@ -948,7 +947,7 @@ modules["pages/editor/toolbar/cursor"] = {
   },
   actionBarTools: {
     "draw": ["pages/editor/toolbar/color", "pages/editor/toolbar/thickness", "pages/editor/toolbar/opacity", "pages/editor/toolbar/duplicate", "pages/editor/toolbar/delete"],
-    "markup": ["pages/editor/toolbar/color"]
+    "markup": ["pages/editor/toolbar/color", "pages/editor/toolbar/duplicate", "pages/editor/toolbar/delete"]
   },
   updateActionUI: async function () {
     let editor = await getModule("pages/editor");
@@ -964,19 +963,21 @@ modules["pages/editor/toolbar/cursor"] = {
 
       let unscaledPxLeft = this.minX + ((this.maxX - this.minX) / 2);
       let unscaledPxTop = this.minY + ((this.maxY - this.minY) / 2);
-      if (this.lastPxLeft != unscaledPxLeft || this.lastPxTop != unscaledPxTop) {
+      if (this.lastSelectCount != selectionIDs.length || this.lastPxLeft != unscaledPxLeft || this.lastPxTop != unscaledPxTop) {
         this.removeActionUI(actionUI);
         actionUI = null;
       }
       this.lastPxLeft = unscaledPxLeft;
       this.lastPxTop = unscaledPxTop;
+      this.lastSelectCount = selectionIDs.length;
 
       // Create Action UI
       if (actionUI == null) {
         // Figure out Actions
         let combineTools;
+        let anno;
         for (let i = 0; i < selectionIDs.length; i++) {
-          let anno = (editor.annotations[selectionIDs[i]] || {}).render || {};
+          anno = (editor.annotations[selectionIDs[i]] || {}).render || {};
           if (anno != null) {
             let tools = this.actionBarTools[anno.f];
             if (combineTools != null) {
@@ -1002,8 +1003,28 @@ modules["pages/editor/toolbar/cursor"] = {
 
         // Add Buttons
         for (let i = 0; i < combineTools.length; i++) {
-          let module = await getModule(combineTools[i]);
+          let actionRef = combineTools[i];
+          let module = await getModule(actionRef);
           console.log(module);
+          if (module.divideBefore == true) {
+            actionUI.insertAdjacentHTML("beforeend", `<div class="eVerticalDivider" keeptooltip></div>`);
+          }
+          let insertHTML = `<button class="eTool" new><div></div></button>`;
+          actionUI.insertAdjacentHTML("beforeend", insertHTML);
+          let newAction = actionUI.querySelector("[new]");
+          if (module.divideAfter == true) {
+            actionUI.insertAdjacentHTML("beforeend", `<div class="eVerticalDivider" keeptooltip></div>`);
+          }
+          newAction.removeAttribute("new");
+          newAction.setAttribute("action", actionRef);
+          let buttonHolder = newAction.querySelector("div");
+          buttonHolder.innerHTML = module.button;
+          if (module.setButton != null) {
+            module.setButton(editor, buttonHolder, anno);
+          }
+          if (module.tooltip != null) {
+            //newAction.setAttribute("tooltip", module.tooltip);
+          }
         }
       }
 
@@ -1380,7 +1401,7 @@ modules["pages/editor/toolbar/cursor"] = {
         return;
       }
       let target = event.target;
-      if (target == null) {
+      if (target == null || target.closest(".eContent") == null || target.closest(".eSelectBar") != null) {
         return;
       }
       anno = target.closest(".eAnnotation, .eSelect, .eSelectActive");
@@ -1533,7 +1554,7 @@ modules["pages/editor/toolbar/drag"] = {
       cursorModule.enableAction(event);
 
       let target = event.target;
-      if (target == null) {
+      if (target == null || target.closest(".eContent") == null || target.closest(".eSelectBar") != null) {
         return;
       }
 
@@ -2274,6 +2295,9 @@ modules["pages/editor/toolbar/eraser"] = {
 modules["pages/editor/toolbar/color"] = {
   button: `<div class="eSubToolColorHolder"><div class="eSubToolColor" backcolor picked></div></div>`,
   tooltip: "Colors",
+  setButton: function (editor, button, data) {
+    button.querySelector(".eSubToolColor").style.background = editor.hexToRGB(data.c, (data.o || 0) / 100);
+  },
   html: `
     <div class="eSubToolColorFrame">
       <div class="eSubToolColorSelector">
@@ -2662,6 +2686,11 @@ modules["pages/editor/toolbar/color"] = {
 modules["pages/editor/toolbar/thickness"] = {
   button: `<div class="eSubToolThicknessButtonHolder"><div class="eSubToolThickness" thickness picked></div></div>`,
   tooltip: "Thickness",
+  setButton: function (editor, button, data) {
+    let tip = button.querySelector(".eSubToolThickness");
+    tip.style.width = data.t + "px";
+    tip.style.background = editor.hexToRGB(data.c, (data.o || 0) / 100);
+  },
   html: `
     <div class="eSubToolThicknessHolder">
       <input class="eSubToolThicknessInput" name="Thickness">
@@ -2671,6 +2700,8 @@ modules["pages/editor/toolbar/thickness"] = {
   css: {
     ".eSubToolThicknessButtonHolder": `display: flex; background: #fff; padding: 3px; transform: translateX(-12px); border-radius: 12px`,
     ".eSubToolThickness": `width: 60px; height: 16px; background: var(--darkGray); border-radius: 9.5px`,
+    ".eSelectBar .eSubToolThicknessButtonHolder": `transform: translateY(12px) !important`,
+    ".eSelectBar .eSubToolThickness": `height: 60px !important; width: 16px`,
 
     ".eSubToolThicknessHolder": `box-sizing: border-box; display: flex; width: 212px; height: 50px; padding: 6px; align-items: center`,
     ".eSubToolThicknessInput": `width: 40px; height: 26px; border: solid 3px var(--secondary); outline: none; border-radius: 17px; font-family: var(--font); font-size: 20px; font-weight: 700; color: var(--theme); text-align: center`,
@@ -2750,6 +2781,9 @@ modules["pages/editor/toolbar/thickness"] = {
 modules["pages/editor/toolbar/opacity"] = {
   button: `<svg width="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_138_110" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_138_110)"> <circle cx="143.851" cy="143.354" r="65.7026" transform="rotate(-45 143.851 143.354)" stroke="white" stroke-width="24"/> <mask id="path-3-outside-1_138_110" maskUnits="userSpaceOnUse" x="24" y="24" width="133" height="134" fill="black"> <rect fill="white" x="24" y="24" width="133" height="134"/> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z"/> </mask> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z" fill="white"/> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z" stroke="white" stroke-width="24" mask="url(#path-3-outside-1_138_110)"/> <circle cx="143.851" cy="143.354" r="53.7026" transform="rotate(-45 143.851 143.354)" fill="white"/> <path opacity fill-rule="evenodd" clip-rule="evenodd" d="M100.45 142.99L153.625 196.165C161.903 194.641 169.892 191.162 176.85 185.729L123.487 132.366C116.884 137.592 109.031 141.307 100.45 142.99ZM132.016 123.924L185.434 177.343C190.985 170.568 194.629 162.754 196.366 154.614L142.857 101.104C141.077 109.62 137.291 117.399 132.016 123.924ZM181.824 105.381C191.106 114.662 196.279 126.496 197.346 138.623L148.583 89.8595C160.709 90.9258 172.543 96.0996 181.824 105.381ZM137.126 196.637L90.5683 150.079C92.002 161.504 97.105 172.556 105.877 181.328C114.65 190.1 125.702 195.203 137.126 196.637ZM90 36C115.579 36 137.005 53.7851 142.585 77.664C159.819 77.3339 177.158 83.7445 190.309 96.8957C215.968 122.554 215.968 164.155 190.309 189.813C164.651 215.472 123.05 215.472 97.392 189.813C84.3953 176.817 77.9818 159.73 78.1514 142.696C54.0275 137.295 36 115.753 36 90C36 60.1766 60.1766 36 90 36Z" fill="#2F2F2F"/> </g> </svg>`,
   tooltip: "Opacity",
+  setButton: function (editor, button, data) {
+    button.querySelector("[opacity]").setAttribute("fill", editor.hexToRGB(data.c, (data.o || 0) / 100));
+  },
   html: `
     <div class="eSubToolOpacityHolder">
       <input class="eSubToolOpacityInput" name="Thickness">
@@ -2830,15 +2864,19 @@ modules["pages/editor/toolbar/opacity"] = {
 };
 
 modules["pages/editor/toolbar/duplicate"] = {
-  button: `<svg width="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_138_110" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_138_110)"> <circle cx="143.851" cy="143.354" r="65.7026" transform="rotate(-45 143.851 143.354)" stroke="white" stroke-width="24"/> <mask id="path-3-outside-1_138_110" maskUnits="userSpaceOnUse" x="24" y="24" width="133" height="134" fill="black"> <rect fill="white" x="24" y="24" width="133" height="134"/> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z"/> </mask> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z" fill="white"/> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z" stroke="white" stroke-width="24" mask="url(#path-3-outside-1_138_110)"/> <circle cx="143.851" cy="143.354" r="53.7026" transform="rotate(-45 143.851 143.354)" fill="white"/> <path opacity fill-rule="evenodd" clip-rule="evenodd" d="M100.45 142.99L153.625 196.165C161.903 194.641 169.892 191.162 176.85 185.729L123.487 132.366C116.884 137.592 109.031 141.307 100.45 142.99ZM132.016 123.924L185.434 177.343C190.985 170.568 194.629 162.754 196.366 154.614L142.857 101.104C141.077 109.62 137.291 117.399 132.016 123.924ZM181.824 105.381C191.106 114.662 196.279 126.496 197.346 138.623L148.583 89.8595C160.709 90.9258 172.543 96.0996 181.824 105.381ZM137.126 196.637L90.5683 150.079C92.002 161.504 97.105 172.556 105.877 181.328C114.65 190.1 125.702 195.203 137.126 196.637ZM90 36C115.579 36 137.005 53.7851 142.585 77.664C159.819 77.3339 177.158 83.7445 190.309 96.8957C215.968 122.554 215.968 164.155 190.309 189.813C164.651 215.472 123.05 215.472 97.392 189.813C84.3953 176.817 77.9818 159.73 78.1514 142.696C54.0275 137.295 36 115.753 36 90C36 60.1766 60.1766 36 90 36Z" fill="#2F2F2F"/> </g> </svg>`,
+  button: `<svg width="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_673_41" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_673_41)"> <rect x="87" y="87" width="132" height="132" rx="36" stroke="white" stroke-width="32"/> <rect x="109" y="109" width="88" height="88" rx="14" stroke="white" stroke-width="12"/> <rect x="37" y="37" width="132" height="132" rx="36" stroke="white" stroke-width="32"/> <rect x="59" y="59" width="88" height="88" rx="14" stroke="white" stroke-width="12"/> <rect x="93" y="93" width="120" height="120" rx="30" stroke="#2F2F2F" stroke-width="20"/> <rect x="43" y="43" width="120" height="120" rx="30" stroke="#2F2F2F" stroke-width="20"/> </g> </svg>`,
   tooltip: "Duplicate",
+  divideBefore: true,
   js: async function (frame, toolID) {
     
   }
 };
 modules["pages/editor/toolbar/delete"] = {
-  button: `<svg width="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_138_110" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_138_110)"> <circle cx="143.851" cy="143.354" r="65.7026" transform="rotate(-45 143.851 143.354)" stroke="white" stroke-width="24"/> <mask id="path-3-outside-1_138_110" maskUnits="userSpaceOnUse" x="24" y="24" width="133" height="134" fill="black"> <rect fill="white" x="24" y="24" width="133" height="134"/> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z"/> </mask> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z" fill="white"/> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z" stroke="white" stroke-width="24" mask="url(#path-3-outside-1_138_110)"/> <circle cx="143.851" cy="143.354" r="53.7026" transform="rotate(-45 143.851 143.354)" fill="white"/> <path opacity fill-rule="evenodd" clip-rule="evenodd" d="M100.45 142.99L153.625 196.165C161.903 194.641 169.892 191.162 176.85 185.729L123.487 132.366C116.884 137.592 109.031 141.307 100.45 142.99ZM132.016 123.924L185.434 177.343C190.985 170.568 194.629 162.754 196.366 154.614L142.857 101.104C141.077 109.62 137.291 117.399 132.016 123.924ZM181.824 105.381C191.106 114.662 196.279 126.496 197.346 138.623L148.583 89.8595C160.709 90.9258 172.543 96.0996 181.824 105.381ZM137.126 196.637L90.5683 150.079C92.002 161.504 97.105 172.556 105.877 181.328C114.65 190.1 125.702 195.203 137.126 196.637ZM90 36C115.579 36 137.005 53.7851 142.585 77.664C159.819 77.3339 177.158 83.7445 190.309 96.8957C215.968 122.554 215.968 164.155 190.309 189.813C164.651 215.472 123.05 215.472 97.392 189.813C84.3953 176.817 77.9818 159.73 78.1514 142.696C54.0275 137.295 36 115.753 36 90C36 60.1766 60.1766 36 90 36Z" fill="#2F2F2F"/> </g> </svg>`,
+  button: `<svg width="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_673_23" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_673_23)"> <path d="M170.895 45H85.3463C67.613 45 53.7495 60.2992 55.4914 77.9467L65.9071 183.474C67.4224 198.827 80.3347 210.528 95.762 210.528H160.479C175.906 210.528 188.819 198.827 190.334 183.474L200.75 77.9467C202.492 60.2992 188.628 45 170.895 45Z" fill="white" stroke="white" stroke-width="34"/> <path d="M128.811 171.731L128.811 83.0442" stroke="#FF3D64" stroke-width="14" stroke-linecap="round"/> <path d="M100.615 172.88L95.0507 83.8926" stroke="#FF3D64" stroke-width="14" stroke-linecap="round"/> <path d="M156.256 172.88L161.82 83.8926" stroke="#FF3D64" stroke-width="14" stroke-linecap="round"/> <path d="M170.895 51H85.3463C71.1597 51 60.0689 63.2393 61.4623 77.3574L71.8781 182.885C73.0903 195.167 83.4201 204.528 95.762 204.528H160.479C172.821 204.528 183.151 195.167 184.363 182.885L194.779 77.3574C196.172 63.2394 185.082 51 170.895 51Z" stroke="#FF3D64" stroke-width="22"/> </g> </svg>`,
   tooltip: "Delete",
+  css: {
+    '.eTool[action="pages/editor/toolbar/delete"]': `--hoverColor: var(--error)`
+  },
   js: async function (frame, toolID) {
     
   }

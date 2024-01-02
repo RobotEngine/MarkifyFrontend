@@ -44,7 +44,7 @@ modules["editor/toolbar"] = {
     ".eTool[selected][option] > div": `background: var(--secondary)`,
 
     ".eDivider": `width: 100%; height: 4px; background: var(--theme)`,
-    ".eVerticalDivider": `width: 4px; height: 100%; background: var(--theme)`,
+    ".eVerticalDivider": `flex-shrink: 0; width: 4px; height: 100%; background: var(--theme)`,
 
     ".eSubToolHolder": `position: absolute; max-height: 100%; left: 100%; top: 0px; background: var(--pageColor); border-radius: 0 16px 16px 0; border-left: solid 4px var(--theme); transform: scale(0); transform-origin: top left; transition: opacity .3s, transform: .3s`,
     ".eSubToolHolder[option]": `border-left-color: var(--secondary)`,

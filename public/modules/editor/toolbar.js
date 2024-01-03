@@ -1329,6 +1329,7 @@ modules["pages/editor/toolbar/cursor"] = {
     if (actionUI == null) {
       return;
     }
+    (await getModule("pages/editor")).savePreferences();
     actionUI.setAttribute("remove", "");
     actionUI.style.transform = "translateY(-10%)";
     actionUI.style.opacity = 0;
@@ -2933,7 +2934,6 @@ modules["pages/editor/toolbar/color"] = {
         toolPref.color.selected = selectedColor;
       }
       updatePickerUI();
-      editor.savePreferences();
       if (isModify == true) {
         await extra.saveSelecting({ c: selectedColor });
         extra.updateToolActions(extra.frame);
@@ -3063,8 +3063,8 @@ modules["pages/editor/toolbar/thickness"] = {
     let pointer = slider.querySelector("button");
     let input = frame.querySelector(".eSubToolThicknessInput");
     let sliderEnabled = false;
-    let updateUI = async (updateVal) => {
-      if (updatePref) {
+    let updateUI = async (updateVal, noPref) => {
+      if (updatePref && noPref != true) {
         toolPref.thickness = selectedThickness;
       }
       let percentage = Math.pow(((selectedThickness - this.minValue) / (this.maxValue - this.minValue)), 1 / this.exponentFactor);
@@ -3120,7 +3120,7 @@ modules["pages/editor/toolbar/thickness"] = {
       selectedThickness = Math.max(Math.min(input.value, this.maxValue), this.minValue);
       updateUI();
     });
-    updateUI();
+    updateUI(null, true);
   }
 };
 modules["pages/editor/toolbar/opacity"] = {
@@ -3172,8 +3172,8 @@ modules["pages/editor/toolbar/opacity"] = {
     let pointer = slider.querySelector("button");
     let input = frame.querySelector(".eSubToolOpacityInput");
     let sliderEnabled = false;
-    let updateUI = async (updateVal) => {
-      if (updatePref) {
+    let updateUI = async (updateVal, noPref) => {
+      if (updatePref && noPref != true) {
         toolPref.opacity = selectedOpacity;
       }
       let percentage = (selectedOpacity - this.minValue) / (this.maxValue - this.minValue);
@@ -3226,7 +3226,7 @@ modules["pages/editor/toolbar/opacity"] = {
       selectedOpacity = Math.max(Math.min(input.value, this.maxValue), this.minValue);
       updateUI();
     });
-    updateUI();
+    updateUI(null, true);
   }
 };
 

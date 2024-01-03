@@ -1874,6 +1874,8 @@ modules["pages/editor/toolbar/drag"] = {
 
     addEvent(window, "scroll", () => { cursorModule.updateActionUI(); }, { passive: true });
     addEvent(window, "resize", () => { this.updateActionUI(); }, { passive: true });
+
+    addEvent(content, "click", (event) => { cursorModule.clickAction(event); }, { passive: true });
   }
 };
 

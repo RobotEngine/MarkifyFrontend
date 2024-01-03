@@ -675,7 +675,7 @@ modules["editor/toolbar"] = {
       }
     });
 
-    this.updateToolbar = () => {
+    this.updateToolbar = (noUpdateTool) => {
       let updateColors = frame.querySelectorAll("[fillcoloropacity], [strokecolor], [backcolor], [thickness], [opacity]");
       for (let i = 0; i < updateColors.length; i++) {
         let updateTip = updateColors[i];
@@ -697,7 +697,9 @@ modules["editor/toolbar"] = {
           }
         }
       }
-      enableTool(this.currentToolModule);
+      if (noUpdateTool != true) {
+        enableTool(this.currentToolModule);
+      }
       editor.savePreferences();
     }
     this.updateToolbar();
@@ -1063,7 +1065,7 @@ modules["pages/editor/toolbar/cursor"] = {
           let buttonHolder = newAction.querySelector("div");
           buttonHolder.innerHTML = module.button;
           if (module.setButton != null) {
-            module.setButton(editor, buttonHolder, anno);
+            module.setButton(editor, actionUI);
           }
           if (module.tooltip != null) {
             //newAction.setAttribute("tooltip", module.tooltip);
@@ -1283,7 +1285,30 @@ modules["pages/editor/toolbar/cursor"] = {
       })();
     }
     await module.js(holder, preferenceTool, {
-      updateActionUI: () => { this.updateActionUI(); }
+      frame: holder,
+      updateActionUI: () => { this.updateActionUI(); },
+      saveSelecting: async (set) => {
+        let editor = await getModule("pages/editor");
+        let utils = await getModule("pages/editor/annotation");
+        let selectKeys = Object.keys(editor.selecting);
+        let sync = Date.now();
+        for (let i = 0; i < selectKeys.length; i++) {
+          let select = editor.selecting[selectKeys[i]];
+          editor.selecting[selectKeys[i]] = { ...select, ...set };
+          utils.save({ _id: selectKeys[i], ...select, ...set }, null, sync);
+        }
+        //await utils.forceShort();
+      },
+      updateToolActions: async (frame) => {
+        let editor = await getModule("pages/editor");
+        let toolButtons = frame.querySelectorAll(".eTool[action]");
+        for (let i = 0; i < toolButtons.length; i++) {
+          let module = await getModule(toolButtons[i].getAttribute("action"));
+          if (module != null && module.setButton != null) {
+            module.setButton(editor, toolButtons[i]);
+          }
+        }
+      }
     });
     this.updateActionUI();
   },
@@ -2528,8 +2553,10 @@ modules["pages/editor/toolbar/eraser"] = {
 modules["pages/editor/toolbar/color"] = {
   button: `<div class="eSubToolColorHolder"><div class="eSubToolColor" backcolor picked></div></div>`,
   tooltip: "Colors",
-  setButton: function (editor, button, data) {
-    button.querySelector(".eSubToolColor").style.background = editor.hexToRGB(data.c, (data.o || 0) / 100);
+  setButton: function (editor, button) {
+    let selectKeys = Object.keys(editor.selecting);
+    let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
+    button.querySelector(".eSubToolColor").style.background = editor.hexToRGB(preferenceTool.c, (preferenceTool.o || 0) / 100);
   },
   html: `
     <div class="eSubToolColorFrame">
@@ -2659,10 +2686,15 @@ modules["pages/editor/toolbar/color"] = {
   rgbToHex: function (r, g, b) {
     return (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1);
   },
+  setPreferenceTool: function (editor) {
+    let selectKeys = Object.keys(editor.selecting);
+    this.preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
+  },
   js: async function (frame, toolID, extra) {
     let editor = await getModule("pages/editor");
     let selecting = editor.selecting;
     let selectKeys = Object.keys(selecting);
+    this.setPreferenceTool(editor);
     let isModify = selectKeys.length > 0;
     let updatePref = isModify == false || selectKeys.length == 1;
     let preferences = editor.preferences.tools;
@@ -2670,17 +2702,25 @@ modules["pages/editor/toolbar/color"] = {
       return;
     }
     let toolPref = preferences[toolID];
+    let selectedColor = toolPref.color.selected;
 
     let colorButtons = frame.querySelector(".eSubToolColorSelector").children;
     let selected = false;
-    function runColorSelections() {
+    let runColorSelections = () => {
       selected = false;
+      this.setPreferenceTool(editor);
       for (let i = 0; i < toolPref.color.options.length; i++) {
         let button = colorButtons[i];
         let setColor = toolPref.color.options[i];
         button.setAttribute("int", i);
         button.querySelector(".eSubToolColor").style.background = editor.hexToRGB(setColor, toolPref.opacity / 100);
-        if (setColor == toolPref.color.selected || (i > toolPref.color.options.length - 2 && selected == false)) {
+        let isSelected = false;
+        if (isModify == false) {
+          isSelected = setColor == toolPref.color.selected;
+        } else {
+          isSelected = setColor == this.preferenceTool.c;
+        }
+        if (isSelected || (i > toolPref.color.options.length - 2 && selected == false)) {
           button.setAttribute("selected", "");
           selected = true;
         } else {
@@ -2703,11 +2743,24 @@ modules["pages/editor/toolbar/color"] = {
         return;
       }
       if (element.hasAttribute("int") == true) {
-        toolPref.color.selected = toolPref.color.options[parseInt(element.getAttribute("int"))];
-        editor.toolbar.updateToolbar();
-        editor.toolbar.closeSubSubtoolUI();
+        let setColor = toolPref.color.options[parseInt(element.getAttribute("int"))];
+        selectedColor = setColor;
+        if (updatePref) {
+          toolPref.color.selected = selectedColor;
+        }
+        if (isModify == false) {
+          editor.toolbar.closeSubSubtoolUI();
+        } else {
+          await extra.saveSelecting({ c: setColor });
+          extra.updateToolActions(extra.frame);
+          runColorSelections();
+        }
+        editor.toolbar.updateToolbar(true);
       } else if (element.hasAttribute("enablepicker") == true) {
-        [h, s, v] = this.hexToHSV(toolPref.color.selected);
+        if (updatePref) {
+          selectedColor = toolPref.color.selected;
+        }
+        [h, s, v] = this.hexToHSV(selectedColor);
         updatePickerUI();
         picker.style.position = "relative";
         selector.style.position = "absolute";
@@ -2804,8 +2857,11 @@ modules["pages/editor/toolbar/color"] = {
     let updatePickerUI = () => {
       // Update Colors Shown:
       let hue = "#" + this.hsvToHex(h, 100, 100);
-      colorShowBox.style.background = "#" + toolPref.color.selected;
-      shadePointer.style.background = "#" + toolPref.color.selected;
+      if (updatePref) {
+        selectedColor = toolPref.color.selected;
+      }
+      colorShowBox.style.background = "#" + selectedColor;
+      shadePointer.style.background = "#" + selectedColor;
       colorPointer.style.background = hue;
       // Update Pointer Positions:
       shadePointer.style.left = (shadeSliderHolder.offsetWidth * (s / 100)) - 10 + "px";
@@ -2828,41 +2884,47 @@ modules["pages/editor/toolbar/color"] = {
       // Update Input:
       switch (modes[editor.preferences.tools.options.colorpicker.scale]) {
         case "HEX":
-          modeInput.value = toolPref.color.selected.toUpperCase();
+          modeInput.value = selectedColor.toUpperCase();
           break;
         case "RGB":
-          let rgbVal = this.hexToRGB(toolPref.color.selected);
+          let rgbVal = this.hexToRGB(selectedColor);
           modeInput.value = rgbVal[0] + ", " + rgbVal[1] + ", " + rgbVal[2];
           break;
         case "HSL":
-          let hslVal = this.hexToHSL(toolPref.color.selected);
+          let hslVal = this.hexToHSL(selectedColor);
           modeInput.value = hslVal[0] + ", " + hslVal[1] + ", " + hslVal[2];
           break;
         case "HSB":
-          let hsbVal = this.hexToHSV(toolPref.color.selected);
+          let hsbVal = this.hexToHSV(selectedColor);
           modeInput.value = Math.floor(hsbVal[0]) + ", " + Math.floor(hsbVal[1]) + ", " + Math.floor(hsbVal[2]);
       }
       modeInput.placeholder = modeInput.value;
       modeInput.style.borderColor = "var(--secondary)";
-      if (isModify == false) {
-        // Update Toolbar Colors:
-        editor.toolbar.updateToolbar();
-      }
+      // Update Toolbar Colors:
+      editor.toolbar.updateToolbar(true);
     }
-    let updateStoredValues = (hex) => {
-      toolPref.color.selected = hex || this.hsvToHex(h, s, v);
+    let updateStoredValues = async (hex) => {
+      selectedColor = hex || this.hsvToHex(h, s, v);
       runColorSelections();
-      let selectedButton = frame.querySelector('.eTool[selected]');
+      let selectedButton = selector.querySelector('.eTool[selected]');
       let int = parseInt(selectedButton.getAttribute("int"));
       if (int == null || int < 0 || int > 6) {
         return;
       }
-      toolPref.color.options[int] = toolPref.color.selected;
-      selectedButton.querySelector(".eSubToolColor").style.background = editor.hexToRGB(toolPref.color.selected, toolPref.opacity / 100);
+      toolPref.color.options[int] = selectedColor;
+      selectedButton.querySelector(".eSubToolColor").style.background = editor.hexToRGB(selectedColor, toolPref.opacity / 100);
       if (hex != null) {
-        [h, s, v] = this.hexToHSV(toolPref.color.selected);
+        [h, s, v] = this.hexToHSV(selectedColor);
+      }
+      if (updatePref) {
+        toolPref.color.selected = selectedColor;
       }
       updatePickerUI();
+      editor.savePreferences();
+      if (isModify == true) {
+        await extra.saveSelecting({ c: selectedColor });
+        extra.updateToolActions(extra.frame);
+      }
     }
     let eventGradientUpdate = (event) => {
       if (colorGradientEnabled == false) {
@@ -2927,18 +2989,18 @@ modules["pages/editor/toolbar/color"] = {
         .catch(() => { });
     });
 
-    if (isModify == false) {
-      editor.toolbar.updateToolbar();
-    }
+    editor.toolbar.updateToolbar(true);
   }
 };
 modules["pages/editor/toolbar/thickness"] = {
   button: `<div class="eSubToolThicknessButtonHolder"><div class="eSubToolThickness" thickness picked></div></div>`,
   tooltip: "Thickness",
-  setButton: function (editor, button, data) {
+  setButton: function (editor, button) {
+    let selectKeys = Object.keys(editor.selecting);
+    let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
     let tip = button.querySelector(".eSubToolThickness");
-    tip.style.width = data.t + "px";
-    tip.style.background = editor.hexToRGB(data.c, (data.o || 0) / 100);
+    tip.style.width = preferenceTool.t + "px";
+    tip.style.background = editor.hexToRGB(preferenceTool.c, (preferenceTool.o || 0) / 100);
   },
   html: `
     <div class="eSubToolThicknessHolder">
@@ -2960,13 +3022,18 @@ modules["pages/editor/toolbar/thickness"] = {
     ".eSubToolThicknessSlider button:hover": `transform: scale(1.2) !important`,
     ".eSubToolThicknessSlider button:active": `transform: scale(1.1) !important`
   },
+  setPreferenceTool: function (editor) {
+    let selectKeys = Object.keys(editor.selecting);
+    this.preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
+  },
   minValue: 1,
   maxValue: 50,
   exponentFactor: 1.4,
-  js: async function (frame, toolID) {
+  js: async function (frame, toolID, extra) {
     let editor = await getModule("pages/editor");
     let selecting = editor.selecting;
     let selectKeys = Object.keys(selecting);
+    this.setPreferenceTool(editor);
     let isModify = selectKeys.length > 0;
     let updatePref = isModify == false || selectKeys.length == 1;
     let preferences = editor.preferences.tools;
@@ -2974,20 +3041,30 @@ modules["pages/editor/toolbar/thickness"] = {
       return;
     }
     let toolPref = preferences[toolID];
-
+    let selectedThickness = toolPref.thickness;
+    if (isModify) {
+      selectedThickness = this.preferenceTool.t;
+    }
+    
     let slider = frame.querySelector(".eSubToolThicknessSlider");
     let pointer = slider.querySelector("button");
     let input = frame.querySelector(".eSubToolThicknessInput");
     let sliderEnabled = false;
-    let updateUI = (updateVal) => {
-      let percentage = Math.pow(((toolPref.thickness - this.minValue) / (this.maxValue - this.minValue)), 1 / this.exponentFactor);
+    let updateUI = async (updateVal) => {
+      if (updatePref) {
+        toolPref.thickness = selectedThickness;
+      }
+      let percentage = Math.pow(((selectedThickness - this.minValue) / (this.maxValue - this.minValue)), 1 / this.exponentFactor);
       pointer.style.left = ((slider.offsetWidth - 10) * percentage) - 6 + "px";
-      //pointer.style.left = ((slider.offsetWidth - 10) * ((toolPref.thickness - this.minValue) / (this.maxValue - this.minValue))) - 6 + "px";
+      //pointer.style.left = ((slider.offsetWidth - 10) * ((selectedThickness - this.minValue) / (this.maxValue - this.minValue))) - 6 + "px";
       if (updateVal != false) {
-        input.value = toolPref.thickness;
+        input.value = selectedThickness;
       }
       if (isModify == false) {
         editor.toolbar.updateToolbar();
+      } else {
+        await extra.saveSelecting({ t: selectedThickness });
+        extra.updateToolActions(extra.frame);
       }
     }
     let eventBarUpdate = (event) => {
@@ -3000,7 +3077,7 @@ modules["pages/editor/toolbar/thickness"] = {
         return;
       }
       let barRect = slider.getBoundingClientRect();
-      toolPref.thickness = Math.ceil(Math.pow((Math.max(Math.min((clientPosition(event, "x") - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0)), this.exponentFactor) * (this.maxValue - this.minValue) + this.minValue);
+      selectedThickness = Math.ceil(Math.pow((Math.max(Math.min((clientPosition(event, "x") - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0)), this.exponentFactor) * (this.maxValue - this.minValue) + this.minValue);
       //Math.ceil((Math.max(Math.min((clientPosition(event, "x") - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0) * (this.maxValue - this.minValue)) + this.minValue);
       updateUI();
     }
@@ -3017,17 +3094,17 @@ modules["pages/editor/toolbar/thickness"] = {
     }, { passive: true });
     input.addEventListener("focus", () => {
       input.value = "";
-      input.placeholder = toolPref.thickness;
+      input.placeholder = selectedThickness;
     });
     input.addEventListener("blur", () => {
-      input.value = toolPref.thickness;
+      input.value = selectedThickness;
     });
     input.addEventListener("input", () => {
-      toolPref.thickness = Math.max(Math.min(input.value, this.maxValue), this.minValue);
+      selectedThickness = Math.max(Math.min(input.value, this.maxValue), this.minValue);
       updateUI(false);
     });
     input.addEventListener("change", () => {
-      toolPref.thickness = Math.max(Math.min(input.value, this.maxValue), this.minValue);
+      selectedThickness = Math.max(Math.min(input.value, this.maxValue), this.minValue);
       updateUI();
     });
     updateUI();
@@ -3036,8 +3113,10 @@ modules["pages/editor/toolbar/thickness"] = {
 modules["pages/editor/toolbar/opacity"] = {
   button: `<svg width="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_138_110" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_138_110)"> <circle cx="143.851" cy="143.354" r="65.7026" transform="rotate(-45 143.851 143.354)" stroke="white" stroke-width="24"/> <mask id="path-3-outside-1_138_110" maskUnits="userSpaceOnUse" x="24" y="24" width="133" height="134" fill="black"> <rect fill="white" x="24" y="24" width="133" height="134"/> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z"/> </mask> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z" fill="white"/> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z" stroke="white" stroke-width="24" mask="url(#path-3-outside-1_138_110)"/> <circle cx="143.851" cy="143.354" r="53.7026" transform="rotate(-45 143.851 143.354)" fill="white"/> <path opacity fill-rule="evenodd" clip-rule="evenodd" d="M100.45 142.99L153.625 196.165C161.903 194.641 169.892 191.162 176.85 185.729L123.487 132.366C116.884 137.592 109.031 141.307 100.45 142.99ZM132.016 123.924L185.434 177.343C190.985 170.568 194.629 162.754 196.366 154.614L142.857 101.104C141.077 109.62 137.291 117.399 132.016 123.924ZM181.824 105.381C191.106 114.662 196.279 126.496 197.346 138.623L148.583 89.8595C160.709 90.9258 172.543 96.0996 181.824 105.381ZM137.126 196.637L90.5683 150.079C92.002 161.504 97.105 172.556 105.877 181.328C114.65 190.1 125.702 195.203 137.126 196.637ZM90 36C115.579 36 137.005 53.7851 142.585 77.664C159.819 77.3339 177.158 83.7445 190.309 96.8957C215.968 122.554 215.968 164.155 190.309 189.813C164.651 215.472 123.05 215.472 97.392 189.813C84.3953 176.817 77.9818 159.73 78.1514 142.696C54.0275 137.295 36 115.753 36 90C36 60.1766 60.1766 36 90 36Z" fill="#2F2F2F"/> </g> </svg>`,
   tooltip: "Opacity",
-  setButton: function (editor, button, data) {
-    button.querySelector("[opacity]").setAttribute("fill", editor.hexToRGB(data.c, (data.o || 0) / 100));
+  setButton: function (editor, button) {
+    let selectKeys = Object.keys(editor.selecting);
+    let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
+    button.querySelector("[opacity]").setAttribute("fill", editor.hexToRGB(preferenceTool.c, (preferenceTool.o || 0) / 100));
   },
   html: `
     <div class="eSubToolOpacityHolder">
@@ -3053,12 +3132,17 @@ modules["pages/editor/toolbar/opacity"] = {
     ".eSubToolOpacitySlider button:hover": `transform: scale(1.2) !important`,
     ".eSubToolOpacitySlider button:active": `transform: scale(1.1) !important`
   },
+  setPreferenceTool: function (editor) {
+    let selectKeys = Object.keys(editor.selecting);
+    this.preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
+  },
   minValue: 10,
   maxValue: 100,
-  js: async function (frame, toolID) {
+  js: async function (frame, toolID, extra) {
     let editor = await getModule("pages/editor");
     let selecting = editor.selecting;
     let selectKeys = Object.keys(selecting);
+    this.setPreferenceTool(editor);
     let isModify = selectKeys.length > 0;
     let updatePref = isModify == false || selectKeys.length == 1;
     let preferences = editor.preferences.tools;
@@ -3066,20 +3150,29 @@ modules["pages/editor/toolbar/opacity"] = {
       return;
     }
     let toolPref = preferences[toolID];
+    let selectedOpacity = toolPref.opacity;
+    if (isModify) {
+      selectedOpacity = this.preferenceTool.o;
+    }
 
     let slider = frame.querySelector(".eSubToolOpacitySlider");
     let pointer = slider.querySelector("button");
     let input = frame.querySelector(".eSubToolOpacityInput");
     let sliderEnabled = false;
-    let updateUI = (updateVal) => {
-      let percentage = (toolPref.opacity - this.minValue) / (this.maxValue - this.minValue);
+    let updateUI = async (updateVal) => {
+      if (updatePref) {
+        toolPref.opacity = selectedOpacity;
+      }
+      let percentage = (selectedOpacity - this.minValue) / (this.maxValue - this.minValue);
       pointer.style.left = ((slider.offsetWidth - 10) * percentage) - 6 + "px";
       if (updateVal != false) {
-        input.value = toolPref.opacity;
+        input.value = selectedOpacity;
       }
-      if (isModify == false) {
-        editor.toolbar.updateToolbar();
+      if (isModify == true) {
+        await extra.saveSelecting({ o: selectedOpacity });
+        extra.updateToolActions(extra.frame);
       }
+      editor.toolbar.updateToolbar(true);
     }
     let eventBarUpdate = (event) => {
       if (sliderEnabled == false) {
@@ -3091,7 +3184,7 @@ modules["pages/editor/toolbar/opacity"] = {
         return;
       }
       let barRect = slider.getBoundingClientRect();
-      toolPref.opacity = Math.ceil((Math.max(Math.min(((event.clientX || event.changedTouches[0].clientX) - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0) * (this.maxValue - this.minValue)) + this.minValue);
+      selectedOpacity = Math.ceil((Math.max(Math.min(((event.clientX || event.changedTouches[0].clientX) - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0) * (this.maxValue - this.minValue)) + this.minValue);
       updateUI();
     }
     editor.events.mouseMove = eventBarUpdate;
@@ -3107,17 +3200,17 @@ modules["pages/editor/toolbar/opacity"] = {
     }, { passive: true });
     input.addEventListener("focus", () => {
       input.value = "";
-      input.placeholder = toolPref.opacity;
+      input.placeholder = selectedOpacity;
     });
     input.addEventListener("blur", () => {
-      input.value = toolPref.opacity;
+      input.value = selectedOpacity;
     });
     input.addEventListener("input", () => {
-      toolPref.opacity = Math.max(Math.min(input.value, this.maxValue), this.minValue);
+      selectedOpacity = Math.max(Math.min(input.value, this.maxValue), this.minValue);
       updateUI(false);
     });
     input.addEventListener("change", () => {
-      toolPref.opacity = Math.max(Math.min(input.value, this.maxValue), this.minValue);
+      selectedOpacity = Math.max(Math.min(input.value, this.maxValue), this.minValue);
       updateUI();
     });
     updateUI();

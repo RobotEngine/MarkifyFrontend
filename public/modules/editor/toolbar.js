@@ -1291,11 +1291,24 @@ modules["pages/editor/toolbar/cursor"] = {
         let editor = await getModule("pages/editor");
         let utils = await getModule("pages/editor/annotation");
         let selectKeys = Object.keys(editor.selecting);
+        let setKeys = Object.keys(set);
         let sync = Date.now();
         for (let i = 0; i < selectKeys.length; i++) {
-          let select = editor.selecting[selectKeys[i]];
-          editor.selecting[selectKeys[i]] = { ...select, ...set };
-          utils.save({ _id: selectKeys[i], ...select, ...set }, null, sync);
+          let annoID = selectKeys[i];
+          let select = editor.selecting[annoID];
+          let anno = (editor.annotations[annoID] || {}).render || {};
+          let changes = false;
+          for (let c = 0; c < setKeys.length; c++) {
+            if (set[setKeys[c]] != anno[setKeys[c]]) {
+              changes = true;
+              break;
+            }
+          }
+          if (changes == false) {
+            continue;
+          }
+          editor.selecting[annoID] = { ...select, ...set };
+          utils.save({ _id: annoID, ...select, ...set }, null, sync);
         }
         //await utils.forceShort();
       },

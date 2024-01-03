@@ -71,8 +71,18 @@ modules["editor/toolbar"] = {
     '.eSelectTooltip[tooltip="top"]': `left: 50%; top: -10px; transform: translateX(-50%); cursor: ns-resize`,
     '.eSelectTooltip[tooltip="bottom"]': `left: 50%; bottom: -10px; transform: translateX(-50%); cursor: ns-resize`,
     ".eSelectDrag": `position: absolute; box-sizing: border-box; pointer-events: none; z-index: 99; opacity: 0; background: var(--secondary); border: solid 2px var(--theme); border-radius: 10px; transition: opacity .1s`,
-    ".eSelectBar": `position: absolute; display: flex; gap: 6px; max-width: calc(100vw - 88px); height: 50px; overflow: auto; background: var(--pageColor); box-shadow: var(--shadow); z-index: 102; border-radius: 16px; transform: translateY(-10%); opacity: 0; transition: transform .2s, opacity .2s`,
-    ".eSelectBar::-webkit-scrollbar": `display: none`
+    
+    ".eSelectBar": `position: absolute; display: flex; max-width: calc(100vw - 88px); height: 50px; background: var(--pageColor); box-shadow: var(--shadow); z-index: 102; border-radius: 16px; transform: translateY(-10%); opacity: 0; transition: transform .2s, opacity .2s`,
+    ".eSelectHolder": `display: flex; width: 100%; height: 100%; gap: 6px; overflow: auto; border-radius: inherit`,
+    ".eSelectHolder::-webkit-scrollbar": `display: none`,
+    ".eActionContainer": `position: absolute; max-width: 100%; left: 0px; background: var(--pageColor); transform: scale(1); transform-origin: bottom center; transition: opacity .3s, transform: .3s`,
+    ".eActionContainer[top]": `--shadowPadding: 20px 16px 0; --shadowBottom: -4px; --shadowTop: 16px; bottom: 100%; border-radius: 16px 16px 0 0; border-bottom: solid 4px var(--theme)`,
+    ".eActionContainer[bottom]": `--shadowPadding: 0 16px 20px; --shadowBottom: -16px; --shadowTop: 0px; top: 100%; border-radius: 0 0 16px 16px; border-top: solid 4px var(--theme)`,
+    ".eActionShadow": `position: absolute; width: 100%; height: 100%; padding: var(--shadowPadding); bottom: var(--shadowBottom); left: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
+    ".eActionShadow:after": `position: absolute; width: calc(100% - 32px); height: calc(100% - 16px); left: 16px; top: var(--shadowTop); content: ""; box-shadow: var(--shadow); border-radius: inherit`,
+    ".eActionContainerHolder": `overflow: hidden; border-radius: inherit`,
+    ".eActionContainerScroll": `width: fit-content; overflow: auto`,
+    ".eActionContainerContent": `width: 200px; height: 100px; display: flex; flex-wrap: wrap; gap: 6px`
   },
   tools: {
     "select": [
@@ -349,13 +359,18 @@ modules["editor/toolbar"] = {
       editor.page.removeAttribute("enabled");
       let editorTools = content.querySelectorAll("[tooleditor]");
       for (let i = 0; i < editorTools.length; i++) {
+        let tool = editorTools[i];
+        tool.removeAttribute("tooleditor");
+        tool.style.opacity = 0;
+      }
+      if (editorTools.length > 0) {
         (async function () {
-          let tool = editorTools[i];
-          tool.removeAttribute("tooleditor");
-          tool.style.opacity = 0;
           await sleep(150);
-          if (tool != null) {
-            tool.remove();
+          for (let i = 0; i < editorTools.length; i++) {
+            let tool = editorTools[i];
+            if (tool != null) {
+              tool.remove();
+            }
           }
         })();
       }
@@ -708,41 +723,52 @@ modules["pages/editor/toolbar/cursor"] = {
     this.minY = null;
     this.maxY = null;
 
+    let removeSelections = [];
     for (let i = 0; i < checkRemSelections.length; i++) {
       let selection = checkRemSelections[i];
       let annoID = selection.getAttribute("anno");
       let anno = content.querySelector('.eAnnotation[anno="' + annoID + '"]');
       if (selectionIDs.includes(annoID) == false || anno == null) {
         if (anno != null) {
-          (async function () {
-            anno.removeAttribute("selected");
-            anno.removeAttribute("notransition");
-            //anno.style.zIndex = (editor.annotations[annoID] || { render: {} }).render.sync;
-            //anno.style.pointerEvents = "unset";
-            //anno.style.cursor = "unset";
-            anno.style.removeProperty("overflow");
-            anno.style.removeProperty("border-radius");
-            let activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
-            if (activeLayer != null) {
-              activeLayer.remove();
-            }
-            selection.style.opacity = 0;
-            await sleep(150);
-            if (selection != null) {
-              selection.remove();
-            }
-          })();
+          anno.removeAttribute("selected");
+          anno.removeAttribute("notransition");
+          //anno.style.zIndex = (editor.annotations[annoID] || { render: {} }).render.sync;
+          //anno.style.pointerEvents = "unset";
+          //anno.style.cursor = "unset";
+          anno.style.removeProperty("overflow");
+          anno.style.removeProperty("border-radius");
+          let activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
+          if (activeLayer != null) {
+            activeLayer.remove();
+          }
+          selection.style.opacity = 0;
+          if (selection.hasAttribute("remove") == false) {
+            selection.setAttribute("remove", "");
+            removeSelections.push(selection);
+          }
         } else {
           delete editor.selecting[annoID];
           selection.remove();
         }
       }
     }
+    if (removeSelections.length > 0) {
+      (async function () {
+        await sleep(150);
+        for (let i = 0; i < removeSelections.length; i++) {
+          let selection = removeSelections[i];
+          if (selection != null) {
+            selection.remove();
+          }
+        }
+      })();
+    }
     if (selectionIDs.length > 0) {
       body.style.userSelect = "none";
     } else {
       body.style.userSelect = "unset";
     }
+    let hideTooltipWait = [];
     for (let i = 0; i < selectionIDs.length; i++) {
       let annoID = selectionIDs[i];
       if (annoID == null || annoID.startsWith("pending_")) {
@@ -808,17 +834,9 @@ modules["pages/editor/toolbar/cursor"] = {
           `);
         }
         select.removeAttribute("hidetips");
-      } else {
-        (async function () {
-          select.setAttribute("hidetips", "");
-          await sleep(150);
-          if (select.hasAttribute("hidetips") == true) {
-            let tooltips = select.querySelectorAll(".eSelectTooltip");
-            for (let r = 0; r < tooltips.length; r++) {
-              tooltips[r].remove();
-            }
-          }
-        })();
+      } else if (select.hasAttribute("hidetips") == false) {
+        select.setAttribute("hidetips", "");
+        hideTooltipWait.push(select);
       }
       /*
       let rect = anno.getBoundingClientRect();
@@ -911,6 +929,20 @@ modules["pages/editor/toolbar/cursor"] = {
         collabSelect.style.top = pageRect.y + ((y - border) * editor.zoom) + window.scrollY - 1.5 + "px";
       }
     }
+    if (hideTooltipWait.length > 0) {
+      (async function () {
+        await sleep(150);
+        for (let i = 0; i < hideTooltipWait.length; i++) {
+          let select = hideTooltipWait[i];
+          if (select != null && select.hasAttribute("hidetips") == true) {
+            let tooltips = select.querySelectorAll(".eSelectTooltip");
+            for (let r = 0; r < tooltips.length; r++) {
+              tooltips[r].remove();
+            }
+          }
+        }
+      })();
+    }
 
     cursor.updateActionUI();
     
@@ -997,23 +1029,34 @@ modules["pages/editor/toolbar/cursor"] = {
         }
 
         // Create UI
-        content.insertAdjacentHTML("beforeend", `<div class="eSelectBar" new></div>`);
+        content.insertAdjacentHTML("beforeend", `<div class="eSelectBar" new>
+          <div class="eSelectHolder"></div>
+          <div class="eActionContainer" option>
+            <div class="eActionShadow"></div>
+              <div class="eActionContainerHolder">
+                <div class="eActionContainerScroll">
+                  <div class="eActionContainerContent"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>`);
         actionUI = content.querySelector(".eSelectBar[new]");
         actionUI.removeAttribute("new");
 
         // Add Buttons
+        let actionButtonHolder = actionUI.querySelector(".eSelectHolder");
         for (let i = 0; i < combineTools.length; i++) {
           let actionRef = combineTools[i];
           let module = await getModule(actionRef);
-          console.log(module);
           if (module.divideBefore == true) {
-            actionUI.insertAdjacentHTML("beforeend", `<div class="eVerticalDivider" keeptooltip></div>`);
+            actionButtonHolder.insertAdjacentHTML("beforeend", `<div class="eVerticalDivider" keeptooltip></div>`);
           }
           let insertHTML = `<button class="eTool" new><div></div></button>`;
-          actionUI.insertAdjacentHTML("beforeend", insertHTML);
-          let newAction = actionUI.querySelector("[new]");
+          actionButtonHolder.insertAdjacentHTML("beforeend", insertHTML);
+          let newAction = actionButtonHolder.querySelector("[new]");
           if (module.divideAfter == true) {
-            actionUI.insertAdjacentHTML("beforeend", `<div class="eVerticalDivider" keeptooltip></div>`);
+            actionButtonHolder.insertAdjacentHTML("beforeend", `<div class="eVerticalDivider" keeptooltip></div>`);
           }
           newAction.removeAttribute("new");
           newAction.setAttribute("action", actionRef);
@@ -1037,6 +1080,7 @@ modules["pages/editor/toolbar/cursor"] = {
       }
       actionUI.style.left = Math.max(pxLeft, 66) + window.scrollX + "px";
       let yPos = pageHolderRect.y + (this.minY * editor.zoom) - actionUI.clientHeight - 16;
+      let isBottom = false;
       if (yPos < 66) {
         let modifiedY = pageHolderRect.y + (this.maxY * editor.zoom) + 16;
         if (modifiedY + actionUI.clientHeight + 66 > fixed.offsetHeight) {
@@ -1044,12 +1088,36 @@ modules["pages/editor/toolbar/cursor"] = {
           yPos = 66;
         } else {
           yPos = modifiedY;
+          isBottom = true;
         }
       }
       //if (yPos + actionUI.clientHeight + 8 > fixed.offsetHeight) {
       //  yPos -= (yPos + actionUI.clientHeight + 8) - fixed.offsetHeight;
       //}
       actionUI.style.top = yPos + window.scrollY + "px";
+
+      // Update Action Frame UI
+      let actionFrame = actionUI.querySelector(".eActionContainer");
+      let actionContent = actionUI.querySelector(".eActionContainerContent");
+      let alignTop;
+      if (isBottom == false) {
+        alignTop = true;
+        if (yPos - actionContent.clientHeight - 4 < 66) {
+          alignTop = false;
+        }
+      } else {
+        alignTop = false;
+        if (fixed.offsetHeight - yPos - actionUI.clientHeight - actionContent.clientHeight - 4 < 66) {
+          alignTop = true;
+        }
+      }
+      if (alignTop) {
+        actionFrame.setAttribute("top", "");
+        actionFrame.removeAttribute("bottom");
+      } else {
+        actionFrame.setAttribute("bottom", "");
+        actionFrame.removeAttribute("top");
+      }
 
       actionUI.style.transform = "translateY(0%)";
       actionUI.style.opacity = 1;

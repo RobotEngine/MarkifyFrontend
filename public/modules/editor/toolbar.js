@@ -1205,7 +1205,7 @@ modules["pages/editor/toolbar/cursor"] = {
   clickAction: async function(event) {
     let editor = await getModule("pages/editor");
     let action = event.target.closest(".eTool");
-    if (action == null) {
+    if (action == null || action.closest(".eSelectHolder") == null) {
       return;
     }
     let holder = action.closest(".eSelectBar");
@@ -1232,6 +1232,7 @@ modules["pages/editor/toolbar/cursor"] = {
           if (actionHolder.hasAttribute("module") == false) {
             actionHolder.removeAttribute("changetop");
             actionHolder.removeAttribute("changebottom");
+            actionHolder.style.left = "unset";
             actionHolder.style.transition = "unset";
           }
         })();
@@ -1241,11 +1242,8 @@ modules["pages/editor/toolbar/cursor"] = {
     }
     let moduleID = action.getAttribute("action");
     let module = await getModule(moduleID);
-    let preferenceTool;
     let selectKeys = Object.keys(editor.selecting);
-    if (selectKeys.length < 1) {
-      preferenceTool = (editor.selecting[selectKeys[0]] || {}).f;
-    }
+    let preferenceTool = ((editor.annotations[selectKeys[0]] || {}).render || {}).f;
     if (module.html != null) {
       contentFrame.innerHTML = module.html;
       action.setAttribute("selected", "");
@@ -1279,11 +1277,14 @@ modules["pages/editor/toolbar/cursor"] = {
         if (actionHolder.hasAttribute("module") == false) {
           actionHolder.removeAttribute("changetop");
           actionHolder.removeAttribute("changebottom");
+          actionHolder.style.left = "unset";
           actionHolder.style.transition = "unset";
         }
       })();
     }
-    await module.js(holder, preferenceTool);
+    await module.js(holder, preferenceTool, {
+      updateActionUI: () => { this.updateActionUI(); }
+    });
     this.updateActionUI();
   },
   removeActionUI: async function (actionUI) {
@@ -2656,8 +2657,12 @@ modules["pages/editor/toolbar/color"] = {
   rgbToHex: function (r, g, b) {
     return (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1);
   },
-  js: async function (frame, toolID) {
+  js: async function (frame, toolID, extra) {
     let editor = await getModule("pages/editor");
+    let selecting = editor.selecting;
+    let selectKeys = Object.keys(selecting);
+    let isModify = selectKeys.length > 0;
+    let updatePref = isModify == false || selectKeys.length == 1;
     let preferences = editor.preferences.tools;
     if (preferences[toolID] == null) {
       return;
@@ -2709,7 +2714,11 @@ modules["pages/editor/toolbar/color"] = {
         picker.style.opacity = 1;
         selector.style.opacity = 0;
         picker.style.pointerEvents = "all";
-        editor.updateSubtoolUI();
+        if (isModify == false) {
+          editor.updateSubtoolUI();
+        } else {
+          extra.updateActionUI();
+        }
       }
     });
 
@@ -2722,7 +2731,11 @@ modules["pages/editor/toolbar/color"] = {
       picker.style.opacity = 0;
       selector.style.pointerEvents = "all";
       picker.style.pointerEvents = "none";
-      editor.updateSubtoolUI();
+      if (isModify == false) {
+        editor.updateSubtoolUI();
+      } else {
+        extra.updateActionUI();
+      }
     });
 
     // CUSTOM COLOR PICKER:
@@ -2829,8 +2842,10 @@ modules["pages/editor/toolbar/color"] = {
       }
       modeInput.placeholder = modeInput.value;
       modeInput.style.borderColor = "var(--secondary)";
-      // Update Toolbar Colors:
-      editor.toolbar.updateToolbar();
+      if (isModify == false) {
+        // Update Toolbar Colors:
+        editor.toolbar.updateToolbar();
+      }
     }
     let updateStoredValues = (hex) => {
       toolPref.color.selected = hex || this.hsvToHex(h, s, v);
@@ -2910,7 +2925,9 @@ modules["pages/editor/toolbar/color"] = {
         .catch(() => { });
     });
 
-    editor.toolbar.updateToolbar();
+    if (isModify == false) {
+      editor.toolbar.updateToolbar();
+    }
   }
 };
 modules["pages/editor/toolbar/thickness"] = {
@@ -2946,6 +2963,10 @@ modules["pages/editor/toolbar/thickness"] = {
   exponentFactor: 1.4,
   js: async function (frame, toolID) {
     let editor = await getModule("pages/editor");
+    let selecting = editor.selecting;
+    let selectKeys = Object.keys(selecting);
+    let isModify = selectKeys.length > 0;
+    let updatePref = isModify == false || selectKeys.length == 1;
     let preferences = editor.preferences.tools;
     if (preferences[toolID] == null) {
       return;
@@ -2963,7 +2984,9 @@ modules["pages/editor/toolbar/thickness"] = {
       if (updateVal != false) {
         input.value = toolPref.thickness;
       }
-      editor.toolbar.updateToolbar();
+      if (isModify == false) {
+        editor.toolbar.updateToolbar();
+      }
     }
     let eventBarUpdate = (event) => {
       if (sliderEnabled == false) {
@@ -3032,6 +3055,10 @@ modules["pages/editor/toolbar/opacity"] = {
   maxValue: 100,
   js: async function (frame, toolID) {
     let editor = await getModule("pages/editor");
+    let selecting = editor.selecting;
+    let selectKeys = Object.keys(selecting);
+    let isModify = selectKeys.length > 0;
+    let updatePref = isModify == false || selectKeys.length == 1;
     let preferences = editor.preferences.tools;
     if (preferences[toolID] == null) {
       return;
@@ -3048,7 +3075,9 @@ modules["pages/editor/toolbar/opacity"] = {
       if (updateVal != false) {
         input.value = toolPref.opacity;
       }
-      editor.toolbar.updateToolbar();
+      if (isModify == false) {
+        editor.toolbar.updateToolbar();
+      }
     }
     let eventBarUpdate = (event) => {
       if (sliderEnabled == false) {

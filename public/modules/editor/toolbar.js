@@ -72,17 +72,17 @@ modules["editor/toolbar"] = {
     '.eSelectTooltip[tooltip="bottom"]': `left: 50%; bottom: -10px; transform: translateX(-50%); cursor: ns-resize`,
     ".eSelectDrag": `position: absolute; box-sizing: border-box; pointer-events: none; z-index: 99; opacity: 0; background: var(--secondary); border: solid 2px var(--theme); border-radius: 10px; transition: opacity .1s`,
     
-    ".eSelectBar": `position: absolute; display: flex; max-width: calc(100vw - 88px); height: 50px; background: var(--pageColor); box-shadow: var(--shadow); z-index: 102; border-radius: 16px; transform: translateY(-10%); opacity: 0; transition: transform .2s, opacity .2s`,
+    ".eSelectBar": `position: absolute; display: flex; max-width: calc(100vw - 88px); height: 50px; background: var(--pageColor); box-shadow: var(--shadow); z-index: 102; border-radius: 16px; transform: translateY(-10%); opacity: 0; transition: transform .2s, opacity .2s, border-radius .2s`,
     ".eSelectHolder": `display: flex; width: 100%; height: 100%; gap: 6px; overflow: auto; border-radius: inherit`,
     ".eSelectHolder::-webkit-scrollbar": `display: none`,
-    ".eActionContainer": `position: absolute; max-width: 100%; left: 0px; background: var(--pageColor); transform: scale(1); transform-origin: bottom center; transition: opacity .3s, transform: .3s`,
-    ".eActionContainer[top]": `--shadowPadding: 20px 16px 0; --shadowBottom: -4px; --shadowTop: 16px; bottom: 100%; border-radius: 16px 16px 0 0; border-bottom: solid 4px var(--theme)`,
-    ".eActionContainer[bottom]": `--shadowPadding: 0 16px 20px; --shadowBottom: -16px; --shadowTop: 0px; top: 100%; border-radius: 0 0 16px 16px; border-top: solid 4px var(--theme)`,
+    ".eActionContainer": `position: absolute; max-width: 100%; background: var(--pageColor)`,
+    ".eActionContainer[top]": `--shadowPadding: 20px 16px 0; --shadowBottom: -4px; --shadowTop: 16px; bottom: 100%; border-radius: 16px 16px 0 0; border-bottom: solid 4px var(--theme); transform-origin: bottom center`,
+    ".eActionContainer[bottom]": `--shadowPadding: 0 16px 20px; --shadowBottom: -16px; --shadowTop: 0px; top: 100%; border-radius: 0 0 16px 16px; border-top: solid 4px var(--theme); transform-origin: top center`,
     ".eActionShadow": `position: absolute; width: 100%; height: 100%; padding: var(--shadowPadding); bottom: var(--shadowBottom); left: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
     ".eActionShadow:after": `position: absolute; width: calc(100% - 32px); height: calc(100% - 16px); left: 16px; top: var(--shadowTop); content: ""; box-shadow: var(--shadow); border-radius: inherit`,
-    ".eActionContainerHolder": `overflow: hidden; border-radius: inherit`,
-    ".eActionContainerScroll": `width: fit-content; overflow: auto`,
-    ".eActionContainerContent": `width: 200px; height: 100px; display: flex; flex-wrap: wrap; gap: 6px`
+    ".eActionContainerHolder": `width: 100%; height: 100%; overflow: hidden; border-radius: inherit`,
+    ".eActionContainerScroll": `width: fit-content`, //; overflow: auto
+    ".eActionContainerContent": `display: flex; flex-wrap: wrap; gap: 6px`
   },
   tools: {
     "select": [
@@ -1031,7 +1031,7 @@ modules["pages/editor/toolbar/cursor"] = {
         // Create UI
         content.insertAdjacentHTML("beforeend", `<div class="eSelectBar" new>
           <div class="eSelectHolder"></div>
-          <div class="eActionContainer" option>
+          <div class="eActionContainer">
             <div class="eActionShadow"></div>
               <div class="eActionContainerHolder">
                 <div class="eActionContainerScroll">
@@ -1097,26 +1097,102 @@ modules["pages/editor/toolbar/cursor"] = {
       actionUI.style.top = yPos + window.scrollY + "px";
 
       // Update Action Frame UI
-      let actionFrame = actionUI.querySelector(".eActionContainer");
-      let actionContent = actionUI.querySelector(".eActionContainerContent");
-      let alignTop;
-      if (isBottom == false) {
-        alignTop = true;
-        if (yPos - actionContent.clientHeight - 4 < 66) {
-          alignTop = false;
-        }
-      } else {
-        alignTop = false;
-        if (fixed.offsetHeight - yPos - actionUI.clientHeight - actionContent.clientHeight - 4 < 66) {
+      let actionFrame = actionUI.querySelector(".eActionContainer[module]");
+      if (actionFrame != null) {
+        let actionContent = actionFrame.querySelector(".eActionContainerContent");
+        let alignTop;
+        if (isBottom == false) {
           alignTop = true;
+          if (yPos - actionContent.clientHeight - 4 < 66) {
+            alignTop = false;
+          }
+        } else {
+          alignTop = false;
+          if (fixed.offsetHeight - yPos - actionUI.clientHeight - actionContent.clientHeight - 4 < 66) {
+            alignTop = true;
+          }
         }
-      }
-      if (alignTop) {
-        actionFrame.setAttribute("top", "");
-        actionFrame.removeAttribute("bottom");
-      } else {
-        actionFrame.setAttribute("bottom", "");
-        actionFrame.removeAttribute("top");
+
+        let button = actionUI.querySelector('.eTool[action="' + actionFrame.getAttribute("module") + '"');
+        let frameLeft;
+        if (button != null) {
+          frameLeft = (button.getBoundingClientRect().left - actionUI.getBoundingClientRect().left) + (button.clientWidth / 2) - (actionContent.clientWidth / 2);
+          if (frameLeft + actionContent.clientWidth > actionUI.clientWidth) {
+            frameLeft = actionUI.clientWidth - actionContent.clientWidth;
+          }
+          if (frameLeft < 0) {
+            frameLeft = 0;
+          }
+          actionFrame.style.left = frameLeft + "px";
+          actionFrame.style.width = actionContent.clientWidth + "px";
+          actionFrame.style.height = actionContent.clientHeight + "px";
+        }
+
+        if (alignTop) {
+          if (frameLeft < 16) {
+            actionUI.style.borderTopLeftRadius = "0px";
+          } else {
+            actionUI.style.removeProperty("border-top-left-radius");
+          }
+          if (frameLeft + actionContent.clientWidth > actionUI.clientWidth - 16) {
+            actionUI.style.borderTopRightRadius = "0px";
+          } else {
+            actionUI.style.removeProperty("border-top-right-radius");
+          }
+          actionUI.style.removeProperty("border-bottom-left-radius");
+          actionUI.style.removeProperty("border-bottom-right-radius");
+
+          if (actionFrame.hasAttribute("changetop") == false) {
+            (async function () {
+              actionFrame.setAttribute("changetop", "");
+              actionFrame.style.transform = "scale(0)";
+              actionFrame.style.opacity = 0;
+              if (actionFrame.hasAttribute("changebottom")) {
+                actionFrame.removeAttribute("changebottom");
+                await sleep(300);
+              }
+              if (actionFrame.hasAttribute("changetop")) {
+                actionFrame.setAttribute("top", "");
+                actionFrame.removeAttribute("bottom");
+                actionFrame.offsetHeight;
+                actionFrame.style.transform = "scale(1)";
+                actionFrame.style.opacity = 1;
+              }
+            })();
+          }
+        } else {
+          if (frameLeft < 16) {
+            actionUI.style.borderBottomLeftRadius = "0px";
+          } else {
+            actionUI.style.removeProperty("border-bottom-left-radius");
+          }
+          if (frameLeft + actionContent.clientWidth > actionUI.clientWidth - 16) {
+            actionUI.style.borderBottomRightRadius = "0px";
+          } else {
+            actionUI.style.removeProperty("border-bottom-right-radius");
+          }
+          actionUI.style.removeProperty("border-top-left-radius");
+          actionUI.style.removeProperty("border-top-right-radius");
+
+          if (actionFrame.hasAttribute("changebottom") == false) {
+            (async function () {
+              actionFrame.setAttribute("changebottom", "");
+              actionFrame.style.transform = "scale(0)";
+              actionFrame.style.opacity = 0;
+              if (actionFrame.hasAttribute("changetop")) {
+                actionFrame.removeAttribute("changetop");
+                await sleep(300);
+              }
+              if (actionFrame.hasAttribute("changebottom")) {
+                actionFrame.setAttribute("bottom", "");
+                actionFrame.removeAttribute("top");
+                actionFrame.offsetHeight;
+                actionFrame.style.transform = "scale(1)";
+                actionFrame.style.opacity = 1;
+              }
+            })();
+          }
+        }
       }
 
       actionUI.style.transform = "translateY(0%)";
@@ -1125,6 +1201,90 @@ modules["pages/editor/toolbar/cursor"] = {
       this.removeActionUI(actionUI);
       actionUI = null;
     }
+  },
+  clickAction: async function(event) {
+    let editor = await getModule("pages/editor");
+    let action = event.target.closest(".eTool");
+    if (action == null) {
+      return;
+    }
+    let holder = action.closest(".eSelectBar");
+    if (holder == null) {
+      return;
+    }
+    let actionHolder = holder.querySelector(".eActionContainer");
+    let contentFrame = actionHolder.querySelector(".eActionContainerContent");
+    let otherSelected = holder.querySelector(".eTool[selected]");
+    if (otherSelected != null) {
+      otherSelected.removeAttribute("selected");
+      if (otherSelected == action) {
+        actionHolder.removeAttribute("module");
+        // Close frame:
+        actionHolder.style.left = (action.getBoundingClientRect().left - holder.getBoundingClientRect().left) + (action.clientWidth / 2) - (contentFrame.clientWidth / 2) + "px";
+        actionHolder.style.transform = "scale(0)";
+        actionHolder.style.opacity = 0;
+        holder.style.removeProperty("border-top-left-radius");
+        holder.style.removeProperty("border-top-right-radius");
+        holder.style.removeProperty("border-bottom-left-radius");
+        holder.style.removeProperty("border-bottom-right-radius");
+        (async function () {
+          await sleep(300);
+          if (actionHolder.hasAttribute("module") == false) {
+            actionHolder.removeAttribute("changetop");
+            actionHolder.removeAttribute("changebottom");
+            actionHolder.style.transition = "unset";
+          }
+        })();
+        this.updateActionUI();
+        return;
+      }
+    }
+    let moduleID = action.getAttribute("action");
+    let module = await getModule(moduleID);
+    let preferenceTool;
+    let selectKeys = Object.keys(editor.selecting);
+    if (selectKeys.length < 1) {
+      preferenceTool = (editor.selecting[selectKeys[0]] || {}).f;
+    }
+    if (module.html != null) {
+      contentFrame.innerHTML = module.html;
+      action.setAttribute("selected", "");
+      if (actionHolder.hasAttribute("module") == false) {
+        // Open frame:
+        actionHolder.style.transform = "scale(0)";
+        actionHolder.style.opacity = 0;
+        actionHolder.style.width = contentFrame.clientWidth + "px";
+        actionHolder.style.height = contentFrame.clientHeight + "px";
+        actionHolder.style.left = (action.getBoundingClientRect().left - holder.getBoundingClientRect().left) + (action.clientWidth / 2) - (contentFrame.clientWidth / 2) + "px";
+        actionHolder.style.transition = "opacity .3s, transform .3s, width .3s, height .3s, left .3s";
+        actionHolder.offsetHeight;
+        actionHolder.style.transform = "scale(1)";
+        actionHolder.style.opacity = 1;
+      }
+      actionHolder.setAttribute("module", moduleID);
+    } else {
+      actionHolder.removeAttribute("module");
+      // Close frame:
+      if (otherSelected != null) {
+        actionHolder.style.left = (otherSelected.getBoundingClientRect().left - holder.getBoundingClientRect().left) + (otherSelected.clientWidth / 2) - (contentFrame.clientWidth / 2) + "px";
+      }
+      actionHolder.style.transform = "scale(0)";
+      actionHolder.style.opacity = 0;
+      holder.style.removeProperty("border-top-left-radius");
+      holder.style.removeProperty("border-top-right-radius");
+      holder.style.removeProperty("border-bottom-left-radius");
+      holder.style.removeProperty("border-bottom-right-radius");
+      (async function () {
+        await sleep(300);
+        if (actionHolder.hasAttribute("module") == false) {
+          actionHolder.removeAttribute("changetop");
+          actionHolder.removeAttribute("changebottom");
+          actionHolder.style.transition = "unset";
+        }
+      })();
+    }
+    await module.js(holder, preferenceTool);
+    this.updateActionUI();
   },
   removeActionUI: async function (actionUI) {
     if (actionUI == null) {
@@ -1543,11 +1703,13 @@ modules["pages/editor/toolbar/cursor"] = {
     addEvent(content, "mouseup", disableSelect, { passive: false });
     addEvent(content, "touchend", disableSelect, { passive: false });
 
-    addEvent(content, "mousemove", (event) => { this.moveAction(event) }, { passive: false });
-    addEvent(content, "touchmove", (event) => { this.moveAction(event) }, { passive: false });
+    addEvent(content, "mousemove", (event) => { this.moveAction(event); }, { passive: false });
+    addEvent(content, "touchmove", (event) => { this.moveAction(event); }, { passive: false });
 
     addEvent(window, "scroll", () => { this.updateActionUI(); }, { passive: true });
     addEvent(window, "resize", () => { this.updateActionUI(); }, { passive: true });
+
+    addEvent(content, "click", (event) => { this.clickAction(event); }, { passive: true });
   }
 };
 
@@ -2405,7 +2567,7 @@ modules["pages/editor/toolbar/color"] = {
     ".eSubToolImage": `width: 40px; height: 40px`,
 
     ".eSubToolColorFrame": `position: relative; width: 212px; min-height: 106px`,
-    ".eSubToolColorSelector": `display: flex; flex-wrap: wrap; top: 0px; transform: scale(1); opacity: 1; transition: .5s`,
+    ".eSubToolColorSelector": `display: flex; flex-wrap: wrap; top: 0px; justify-content: center; align-items: center; transform: scale(1); opacity: 1; transition: .5s`,
     ".eSubToolColorSelector .eTool": `width: 46px; height: 46px; margin: 3px`,
     ".eSubToolColorSelector .eTool > div": `border-radius: 25px !important`,
     ".eSubToolColorSelector .eSubToolColor": `width: 32px; height: 32px`,

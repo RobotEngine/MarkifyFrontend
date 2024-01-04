@@ -865,12 +865,13 @@ modules["pages/editor/toolbar/cursor"] = {
         y -= height;
       }
       let pageRect = annoHold.getBoundingClientRect();
-      let boxWidth = (width * editor.zoom) - 4;  // +0 for width, -4 for border
-      let boxHeight = (height * editor.zoom) - 4;
+      let boxWidth = ((width + ((merged.t) || 0)) * editor.zoom) - 4;  // +0 for width, -4 for border
+      let boxHeight = ((height + ((merged.t) || 0)) * editor.zoom) - 4;
       select.style.width = boxWidth + "px";
       select.style.height = boxHeight + "px";
-      select.style.left = pageRect.x + (x * editor.zoom) + window.scrollX - 2 + "px"; // -2 for border, -0 for width
-      select.style.top = pageRect.y + ((y - border) * editor.zoom) + window.scrollY - 2 + "px";
+      let halfT = ((merged.t) || 0) / 2;
+      select.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 2 + "px"; // -2 for border, -0 for width
+      select.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 2 + "px";
       let eSelectTopLeft = select.querySelector('.eSelectTooltip[tooltip="topleft"]');
       if (eSelectTopLeft != null) {
         eSelectTopLeft.removeAttribute("hidden");
@@ -905,30 +906,35 @@ modules["pages/editor/toolbar/cursor"] = {
         }
       }
 
-      activeLayer.style.width = width + "px";
-      activeLayer.style.height = height + "px";
-      activeLayer.style.left = x + "px";
-      activeLayer.style.top = y + "px";
+      activeLayer.style.width = (width + ((merged.t) || 0)) + 8 + "px";
+      activeLayer.style.height = (height + ((merged.t) || 0)) + 8 + "px";
+      activeLayer.style.left = x + halfT - 4 + "px";
+      activeLayer.style.top = y + halfT - border - 4 + "px";
 
       let inverse = 1 / editor.zoom;
       let pageY = pageRect.y - pageHolderRect.y;
-      let setMinX = x;
+      let setMinX = x + halfT;
       this.minX = Math.min(this.minX || setMinX, setMinX);
-      let setMaxX = x + width;
+      let setMaxX = x + width + ((merged.t) || 0) + halfT;
       this.maxX = Math.max(this.maxX || setMaxX, setMaxX);
-      let setMinY = (pageY * inverse) + y - border;
+      let setMinY = (pageY * inverse) + y + halfT - border;
       this.minY = Math.min(this.minY || setMinY, setMinY);
-      let setMaxY = (pageY * inverse) + (y - border) + height;
+      let setMaxY = (pageY * inverse) + y + ((merged.t) || 0) - border + height + halfT;
       this.maxY = Math.max(this.maxY || setMaxY, setMaxY);
+
+      let setCheckX = x + width;
+      this.checkX = Math.min(this.checkX || setCheckX, setCheckX);
+      let setCheckY = (pageY * inverse) + y - border + height;
+      this.checkY = Math.min(this.checkX || setCheckY, setCheckY);
 
       if (collabSelect != null) {
         collabSelect.offsetWidth;
-        let collWidth = (width * editor.zoom) - 3; // +0 for width, -3 for border
-        let collHeight = (height * editor.zoom) - 3;
+        let collWidth = ((width + ((merged.t) || 0)) * editor.zoom) - 3; // +0 for width, -3 for border
+        let collHeight = ((height + ((merged.t) || 0)) * editor.zoom) - 3;
         collabSelect.style.width = collWidth + "px";
         collabSelect.style.height = collHeight + "px";
-        collabSelect.style.left = pageRect.x + (x * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
-        collabSelect.style.top = pageRect.y + ((y - border) * editor.zoom) + window.scrollY - 1.5 + "px";
+        collabSelect.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
+        collabSelect.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
       }
     }
     if (hideTooltipWait.length > 0) {
@@ -967,12 +973,13 @@ modules["pages/editor/toolbar/cursor"] = {
           border = 4;
         }
         let pageRect = annoHold.getBoundingClientRect();
-        let boxWidth = (anno.s[0] * editor.zoom) - 3; // +0 for width, -3 for border
-        let boxHeight = (anno.s[1] * editor.zoom) - 3;
+        let boxWidth = ((anno.s[0] + ((anno.t) || 0)) * editor.zoom) - 3; // +0 for width, -3 for border
+        let boxHeight = ((anno.s[1] + ((anno.t) || 0)) * editor.zoom) - 3;
         selection.style.width = boxWidth + "px";
         selection.style.height = boxHeight + "px";
-        selection.style.left = pageRect.x + (anno.p[0] * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
-        selection.style.top = pageRect.y + ((anno.p[1] - border) * editor.zoom) + window.scrollY - 1.5 + "px";
+        let halfT = ((anno.t) || 0) / 2;
+        selection.style.left = pageRect.x + ((anno.p[0] + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
+        selection.style.top = pageRect.y + ((anno.p[1] + halfT - border) * editor.zoom) + window.scrollY - 1.5 + "px";
         selection.offsetHeight;
         selection.removeAttribute("notransition");
       }
@@ -981,7 +988,7 @@ modules["pages/editor/toolbar/cursor"] = {
   },
   actionBarTools: {
     "draw": ["pages/editor/toolbar/color", "pages/editor/toolbar/thickness", "pages/editor/toolbar/opacity", "pages/editor/toolbar/duplicate", "pages/editor/toolbar/delete"],
-    "markup": ["pages/editor/toolbar/color", "pages/editor/toolbar/duplicate", "pages/editor/toolbar/delete"]
+    "markup": ["pages/editor/toolbar/color", "pages/editor/toolbar/thickness", "pages/editor/toolbar/duplicate", "pages/editor/toolbar/delete"]
   },
   updateActionUI: async function () {
     let editor = await getModule("pages/editor");
@@ -991,18 +998,16 @@ modules["pages/editor/toolbar/cursor"] = {
 
     let actionUI = content.querySelector(".eSelectBar:not([remove])");
     if (selectionIDs.length > 0 && this.action == null && content.querySelector(".eSelectDrag:not([remove])") == null) {
-      if (this.minX == null || this.maxX == null || this.minY == null || this.maxY == null) {
+      if (this.checkX == null || this.checkY == null) {
         return;
       }
-
-      let unscaledPxLeft = this.minX + ((this.maxX - this.minX) / 2);
-      let unscaledPxTop = this.minY + ((this.maxY - this.minY) / 2);
-      if (this.lastSelectCount != selectionIDs.length || this.lastPxLeft != unscaledPxLeft || this.lastPxTop != unscaledPxTop) {
+      
+      if (this.lastSelectCount != selectionIDs.length || this.lastPxCheckX != this.checkX || this.lastPxCheckY != this.checkY) {
         this.removeActionUI(actionUI);
         actionUI = null;
       }
-      this.lastPxLeft = unscaledPxLeft;
-      this.lastPxTop = unscaledPxTop;
+      this.lastPxCheckX = this.checkX;
+      this.lastPxCheckY = this.checkY;
       this.lastSelectCount = selectionIDs.length;
 
       // Create Action UI
@@ -1074,6 +1079,8 @@ modules["pages/editor/toolbar/cursor"] = {
       }
 
       // Update Action UI
+      let unscaledPxLeft = this.minX + ((this.maxX - this.minX) / 2);
+      //let unscaledPxTop = this.minY + ((this.maxY - this.minY) / 2);
       let pageHolderRect = editor.page.querySelector(".ePageHolder").getBoundingClientRect();
       let pxLeft = pageHolderRect.x + (unscaledPxLeft * editor.zoom) - (actionUI.clientWidth / 2);
       //console.log(unscaledPxLeft);
@@ -1468,6 +1475,9 @@ modules["pages/editor/toolbar/cursor"] = {
             }
             preserveAspect = false;
           }
+        }
+        if (this.size[0] == 0 || this.size[1] == 0) {
+          continue;
         }
         let number;
         let pageElem = editor.page.querySelector('.ePage[pageid="' + (select.page || anno.page) + '"]');
@@ -1991,17 +2001,16 @@ modules["pages/editor/toolbar/highlighter"] = {
       let clientY = clientPosition(event, "y");
       let [page, number] = await utils.findPage(clientY);
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientY, number);
-      let halfThickness = utils.round(this.thickness / 2);
       let tempID = utils.tempID();
       let newAnno = {
         _id: tempID,
         f: "markup",
-        p: [utils.round(x - halfThickness), utils.round(y - halfThickness)],
-        s: [this.thickness, this.thickness],
+        p: [utils.round(x - this.thickness), utils.round(y - this.thickness)],
+        s: [0, 0],
         c: this.color,
         t: this.thickness,
         o: this.opacity,
-        d: [utils.round(halfThickness), utils.round(halfThickness)]
+        d: [0, 0]
       };
       if (page != null && page.hasAttribute("pageid") == true) {
         newAnno.page = page.getAttribute("pageid");
@@ -2023,62 +2032,64 @@ modules["pages/editor/toolbar/highlighter"] = {
       event.preventDefault();
       let rect = anno.getBoundingClientRect();
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x") - rect.left, clientPosition(event, "y") - rect.top);
-      let halfThickness = utils.round(markup.t / 2);
+      let halfT = utils.round(markup.t / 2);
+      x -= halfT;
+      y -= halfT;
       if (event.shiftKey == false) {
-        if (x + halfThickness > markup.s[0]) {
-          markup.s[0] = Math.ceil(x + halfThickness);
+        if (x > markup.s[0]) {
+          markup.s[0] = Math.ceil(x);
         }
-        if (y + halfThickness > markup.s[1]) {
-          markup.s[1] = Math.ceil(y + halfThickness);
+        if (y > markup.s[1]) {
+          markup.s[1] = Math.ceil(y);
         }
-        let sizeIncX = Math.ceil(x - halfThickness);
+        let sizeIncX = Math.ceil(x);
         if (sizeIncX < 0) {
           for (let i = 0; i < markup.d.length; i += 2) {
             markup.d[i] = utils.round(markup.d[i] - sizeIncX);
           }
           markup.s[0] = utils.round(markup.s[0] - sizeIncX);
           markup.p[0] = utils.round(markup.p[0] + sizeIncX);
-          x = halfThickness;
+          x = 0;
         }
-        let sizeIncY = Math.ceil(y - halfThickness);
+        let sizeIncY = Math.ceil(y);
         if (sizeIncY < 0) {
           for (let i = 1; i < markup.d.length; i += 2) {
             markup.d[i] = utils.round(markup.d[i] - sizeIncY);
           }
           markup.s[1] = utils.round(markup.s[1] - sizeIncY);
           markup.p[1] = utils.round(markup.p[1] + sizeIncY);
-          y = halfThickness;
+          y = 0;
         }
         markup.d.push(utils.round(x));
         markup.d.push(utils.round(y));
       } else {
         markup.d = [markup.d[0], markup.d[1]];
-        let sizeIncX = x - halfThickness;
-        if (sizeIncX < markup.d[0] - halfThickness) {
+        let sizeIncX = x;
+        if (sizeIncX < markup.d[0]) {
           markup.d[0] = utils.round(markup.d[0] - sizeIncX);
           markup.s[0] = markup.s[0] - sizeIncX;
           markup.p[0] = utils.round(markup.p[0] + sizeIncX);
-          x = halfThickness;
+          x = 0;
         } else {
-          markup.s[0] = Math.ceil(x + halfThickness);
+          markup.s[0] = Math.ceil(x);
         }
-        let sizeIncY = y - halfThickness;
-        if (sizeIncY < markup.d[1] - halfThickness) {
+        let sizeIncY = y;
+        if (sizeIncY < markup.d[1]) {
           markup.d[1] = utils.round(markup.d[1] - sizeIncY);
           markup.s[1] = markup.s[1] - sizeIncY;
           markup.p[1] = utils.round(markup.p[1] + sizeIncY);
-          y = halfThickness;
+          y = 0;
         } else {
-          markup.s[1] = Math.ceil(y + halfThickness);
+          markup.s[1] = Math.ceil(y);
         }
         markup.d[2] = x;
         markup.d[3] = y;
         if (drawModule.horizontalLine(markup.d) == true) {
           markup.d[3] = markup.d[1];
           markup.s[1] = markup.t;
-          markup.p[1] = utils.round(markup.p[1] + markup.d[1] - halfThickness);
-          markup.d[1] = halfThickness;
-          markup.d[3] = halfThickness;
+          markup.p[1] = utils.round(markup.p[1] + markup.d[1]);
+          markup.d[1] = 0;
+          markup.d[3] = 0;
         }
       }
       utils.render(markup, anno);
@@ -2096,12 +2107,11 @@ modules["pages/editor/toolbar/highlighter"] = {
       if (drawModule.relativelyStraight(markup.d, 5 * editor.zoom) == true) {
         markup.d = [markup.d[0], markup.d[1], markup.d[markup.d.length - 2], markup.d[markup.d.length - 1]]; // Strait line
         if (drawModule.horizontalLine(markup.d) == true) {
-          let halfThickness = utils.round(markup.t / 2);
           let averageY = (markup.d[1] + markup.d[3]) / 2;
           markup.s[1] = markup.t;
-          markup.p[1] = utils.round(markup.p[1] + averageY - halfThickness);
-          markup.d[1] = halfThickness;
-          markup.d[3] = halfThickness;
+          markup.p[1] = utils.round(markup.p[1] + averageY);
+          markup.d[1] = 0;
+          markup.d[3] = 0;
         }
       }
 
@@ -2143,17 +2153,16 @@ modules["pages/editor/toolbar/underline"] = {
       let [page, number] = await utils.findPage(clientY);
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientY, number);
       let thickness = utils.round(Math.max(this.thickness / 4, 1));
-      let halfThickness = utils.round(thickness / 2);
       let tempID = utils.tempID();
       let newAnno = {
         _id: tempID,
         f: "draw",
-        p: [utils.round(x - halfThickness), utils.round(y - halfThickness)],
-        s: [thickness, thickness],
+        p: [utils.round(x - thickness), utils.round(y - thickness)],
+        s: [0, 0],
         c: this.color,
         t: thickness,
         o: 100,
-        d: [utils.round(halfThickness), utils.round(halfThickness)]
+        d: [0, 0]
       };
       if (page != null && page.hasAttribute("pageid") == true) {
         newAnno.page = page.getAttribute("pageid");
@@ -2176,33 +2185,35 @@ modules["pages/editor/toolbar/underline"] = {
       event.preventDefault();
       let rect = anno.getBoundingClientRect();
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x") - rect.left, clientPosition(event, "y") - rect.top);
-      let halfThickness = utils.round(markup.t / 2);
-      let sizeIncX = x - halfThickness;
-      if (sizeIncX < markup.d[0] - halfThickness) {
+      let halfT = utils.round(Math.max(this.thickness / 4, 1)) / 2;
+      x -= halfT;
+      y -= halfT;
+      let sizeIncX = x;
+      if (sizeIncX < markup.d[0]) {
         markup.d[0] = utils.round(markup.d[0] - sizeIncX);
         markup.s[0] = utils.round(markup.s[0] - sizeIncX);
         markup.p[0] = utils.round(markup.p[0] + sizeIncX);
-        x = halfThickness;
+        x = 0;
       } else {
-        markup.s[0] = Math.ceil(x + halfThickness);
+        markup.s[0] = Math.ceil(x);
       }
-      let sizeIncY = y - halfThickness;
-      if (sizeIncY < markup.d[1] - halfThickness) {
+      let sizeIncY = y;
+      if (sizeIncY < markup.d[1]) {
         markup.d[1] = utils.round(markup.d[1] - sizeIncY);
         markup.s[1] = utils.round(markup.s[1] - sizeIncY);
         markup.p[1] = utils.round(markup.p[1] + sizeIncY);
-        y = halfThickness;
+        y = 0;
       } else {
-        markup.s[1] = Math.ceil(y + halfThickness);
+        markup.s[1] = Math.ceil(y);
       }
       markup.d[2] = x;
       markup.d[3] = y;
       if (drawModule.horizontalLine(markup.d) == true) {
         markup.d[3] = markup.d[1];
         markup.s[1] = markup.t;
-        markup.p[1] = utils.round(markup.p[1] + markup.d[1] - halfThickness);
-        markup.d[1] = halfThickness;
-        markup.d[3] = halfThickness;
+        markup.p[1] = utils.round(markup.p[1] + markup.d[1]);
+        markup.d[1] = 0;
+        markup.d[3] = 0;
       }
       utils.render(markup, anno);
     }
@@ -2315,17 +2326,16 @@ modules["pages/editor/toolbar/pen"] = {
       let clientY = clientPosition(event, "y");
       let [page, number] = await utils.findPage(clientY);
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientY, number);
-      let halfThickness = utils.round(this.thickness / 2);
       let tempID = utils.tempID();
       let newAnno = {
         _id: tempID,
         f: "draw",
-        p: [utils.round(x - halfThickness), utils.round(y - halfThickness)],
-        s: [this.thickness, this.thickness],
+        p: [utils.round(x - this.thickness), utils.round(y - this.thickness)],
+        s: [0, 0], //[this.thickness, this.thickness],
         c: this.color,
         t: this.thickness,
         o: this.opacity,
-        d: [halfThickness, halfThickness]
+        d: [0, 0]
       };
       if (page != null && page.hasAttribute("pageid") == true) {
         newAnno.page = page.getAttribute("pageid");
@@ -2347,53 +2357,55 @@ modules["pages/editor/toolbar/pen"] = {
       event.preventDefault();
       let rect = anno.getBoundingClientRect();
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x") - rect.left, clientPosition(event, "y") - rect.top);
-      let halfThickness = utils.round(draw.t / 2);
+      let halfT = utils.round(draw.t / 2);
+      x -= halfT;
+      y -= halfT;
       if (event.shiftKey == false) {
-        if (x + halfThickness > draw.s[0]) {
-          draw.s[0] = Math.ceil(x + halfThickness);
+        if (x > draw.s[0]) {
+          draw.s[0] = Math.ceil(x);
         }
-        if (y + halfThickness > draw.s[1]) {
-          draw.s[1] = Math.ceil(y + halfThickness);
+        if (y > draw.s[1]) {
+          draw.s[1] = Math.ceil(y);
         }
-        let sizeIncX = Math.ceil(x - halfThickness);
+        let sizeIncX = Math.ceil(x);
         if (sizeIncX < 0) {
           for (let i = 0; i < draw.d.length; i += 2) {
             draw.d[i] = utils.round(draw.d[i] - sizeIncX);
           }
           draw.s[0] = utils.round(draw.s[0] - sizeIncX);
           draw.p[0] = utils.round(draw.p[0] + sizeIncX);
-          x = halfThickness;
+          x = 0;
         }
-        let sizeIncY = Math.ceil(y - halfThickness);
+        let sizeIncY = Math.ceil(y);
         if (sizeIncY < 0) {
           for (let i = 1; i < draw.d.length; i += 2) {
             draw.d[i] = utils.round(draw.d[i] - sizeIncY);
           }
           draw.s[1] = utils.round(draw.s[1] - sizeIncY);
           draw.p[1] = utils.round(draw.p[1] + sizeIncY);
-          y = halfThickness;
+          y = 0;
         }
         draw.d.push(utils.round(x));
         draw.d.push(utils.round(y));
       } else {
         draw.d = [draw.d[0], draw.d[1]];
-        let sizeIncX = x - halfThickness;
-        if (sizeIncX < draw.d[0] - halfThickness) {
+        let sizeIncX = x;
+        if (sizeIncX < draw.d[0]) {
           draw.d[0] = utils.round(draw.d[0] - sizeIncX);
           draw.s[0] = utils.round(draw.s[0] - sizeIncX);
           draw.p[0] = utils.round(draw.p[0] + sizeIncX);
-          x = halfThickness;
+          x = 0;
         } else {
-          draw.s[0] = Math.ceil(x + halfThickness);
+          draw.s[0] = Math.ceil(x);
         }
-        let sizeIncY = y - halfThickness;
-        if (sizeIncY < draw.d[1] - halfThickness) {
+        let sizeIncY = y;
+        if (sizeIncY < draw.d[1]) {
           draw.d[1] = utils.round(draw.d[1] - sizeIncY);
           draw.s[1] = utils.round(draw.s[1] - sizeIncY);
           draw.p[1] = utils.round(draw.p[1] + sizeIncY);
-          y = halfThickness;
+          y = 0;
         } else {
-          draw.s[1] = Math.ceil(y + halfThickness);
+          draw.s[1] = Math.ceil(y);
         }
         draw.d[2] = x;
         draw.d[3] = y;
@@ -3044,6 +3056,7 @@ modules["pages/editor/toolbar/thickness"] = {
   exponentFactor: 1.4,
   js: async function (frame, toolID, extra) {
     let editor = await getModule("pages/editor");
+    let cursorModule = await getModule("pages/editor/toolbar/cursor");
     let selecting = editor.selecting;
     let selectKeys = Object.keys(selecting);
     this.setPreferenceTool(editor);
@@ -3075,8 +3088,9 @@ modules["pages/editor/toolbar/thickness"] = {
       }
       if (isModify == false) {
         editor.toolbar.updateToolbar();
-      } else {
+      } else if (updateVal != null || noPref != true) {
         await extra.saveSelecting({ t: selectedThickness });
+        cursorModule.updateBox();
         extra.updateToolActions(extra.frame);
       }
     }
@@ -3181,7 +3195,7 @@ modules["pages/editor/toolbar/opacity"] = {
       if (updateVal != false) {
         input.value = selectedOpacity;
       }
-      if (isModify == true) {
+      if (isModify == true && (updateVal != null || noPref != true)) {
         await extra.saveSelecting({ o: selectedOpacity });
         extra.updateToolActions(extra.frame);
       }

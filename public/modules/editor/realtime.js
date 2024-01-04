@@ -632,12 +632,13 @@ modules["editor/realtime"] = {
                         y -= height;
                       }
                       let pageRect = (annoHold).getBoundingClientRect();
-                      let boxWidth = (width * editor.zoom) - 3; // +0 for width, -3 for border
-                      let boxHeight = (height * editor.zoom) - 3;
+                      let boxWidth = ((width + ((merge.t) || 0)) * editor.zoom) - 3; // +0 for width, -3 for border
+                      let boxHeight = ((height + ((merge.t) || 0)) * editor.zoom) - 3;
                       selection.style.width = boxWidth + "px";
                       selection.style.height = boxHeight + "px";
-                      selection.style.left = pageRect.x + (x * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
-                      selection.style.top = pageRect.y + ((y - border) * editor.zoom) + window.scrollY - 1.5 + "px";
+                      let halfT = ((merge.t) || 0) / 2;
+                      selection.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
+                      selection.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
                     }
                   }
                   member.selecting = selectKeys;

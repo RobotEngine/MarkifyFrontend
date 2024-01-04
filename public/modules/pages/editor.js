@@ -2548,6 +2548,7 @@ modules["pages/editor/annotation"] = {
     let svg;
     let path;
     let drawSetPoints = "";
+    let halfT = t / 2;
     switch (f) {
       case "markup":
         if (anno == null) {
@@ -2564,6 +2565,10 @@ modules["pages/editor/annotation"] = {
         if (_id != null) {
           anno.setAttribute("anno", _id);
         }
+        width += t;
+        height += t;
+        x += halfT;
+        y += halfT;
         anno.style.width = width + "px";
         anno.style.height = height + "px";
         anno.style.left = x + "px";
@@ -2582,27 +2587,30 @@ modules["pages/editor/annotation"] = {
           drawSetPoints = ((width / 2) + this.SVG_PADDING) + "," + ((height / 2) + this.SVG_PADDING) + " " + ((width / 2) + .1 + this.SVG_PADDING) + "," + ((height / 2) + .1 + this.SVG_PADDING);
           path.setAttribute("stroke-width", width);
         } else {
-          let largestX = d[0];
-          let largestY = d[1];
-          for (let i = 2; i < d.length; i += 2) {
-            largestX = Math.max(largestX, d[i]);
-            largestY = Math.max(largestY, d[i+1]);
-          }
-          let halfT = t / 2;
-          let scaleW;
-          if (largestX - halfT > 0) {
-            scaleW = (width - t) / (largestX - halfT);
-          } else {
-            scaleW = width - t;
-          }
-          let scaleH;
-          if (largestY - halfT > 0) {
-            scaleH = (height - t) / (largestY - halfT);
-          } else {
-            scaleH = height - t;
+          let scaleW = 1;
+          let scaleH = 1;
+          if (_id.startsWith("pending_") == false) {
+            // Allows for greater precision when zoomed in:
+            let largestX = d[0];
+            let largestY = d[1];
+            for (let i = 2; i < d.length; i += 2) {
+              largestX = Math.max(largestX, d[i]);
+              largestY = Math.max(largestY, d[i+1]);
+            }
+            let halfT = 0;//t / 2;
+            if (largestX - halfT > 0) {
+              scaleW = (width - t) / (largestX - halfT);
+            } else {
+              scaleW = width - t;
+            }
+            if (largestY - halfT > 0) {
+              scaleH = (height - t) / (largestY - halfT);
+            } else {
+              scaleH = height - t;
+            }
           }
           for (let i = 0; i < d.length; i += 2) {
-            drawSetPoints += (halfT + ((d[i] - halfT) * scaleW) + this.SVG_PADDING) + "," + (halfT + ((d[i+1] - halfT) * scaleH) + this.SVG_PADDING) + " ";
+            drawSetPoints += (halfT + ((d[i]) * scaleW) + this.SVG_PADDING) + "," + (halfT + ((d[i+1]) * scaleH) + this.SVG_PADDING) + " ";
           }
           path.setAttribute("stroke-width", t);
         }
@@ -2627,6 +2635,10 @@ modules["pages/editor/annotation"] = {
         if (_id != null) {
           anno.setAttribute("anno", _id);
         }
+        width += t;
+        height += t;
+        x += halfT;
+        y += halfT;
         anno.style.width = width + "px";
         anno.style.height = height + "px";
         anno.style.left = x + "px";
@@ -2642,19 +2654,21 @@ modules["pages/editor/annotation"] = {
         if (d.length == 2) {
           //let dividedT = t / 2;
           //drawSetPoints = (d[0] - dividedT + this.SVG_PADDING) + "," + (d[1] - dividedT + this.SVG_PADDING) + " " + (d[0] + dividedT + this.SVG_PADDING) + "," + (d[1] + dividedT + this.SVG_PADDING);
+          console.log(width);
           drawSetPoints = ((width / 2) + this.SVG_PADDING) + "," + ((height / 2) + this.SVG_PADDING) + " " + ((width / 2) + .1 + this.SVG_PADDING) + "," + ((height / 2) + .1 + this.SVG_PADDING);
           path.setAttribute("stroke-width", width);
         } else {
-          let halfT = t / 2;
           let scaleW = 1;
           let scaleH = 1;
           if (_id.startsWith("pending_") == false) {
+            // Allows for greater precision when zoomed in:
             let largestX = d[0];
             let largestY = d[1];
             for (let i = 2; i < d.length; i += 2) {
               largestX = Math.max(largestX, d[i]);
               largestY = Math.max(largestY, d[i+1]);
             }
+            let halfT = 0;//t / 2;
             if (largestX - halfT > 0) {
               scaleW = (width - t) / (largestX - halfT);
             } else {
@@ -2667,7 +2681,7 @@ modules["pages/editor/annotation"] = {
             }
           }
           for (let i = 0; i < d.length; i += 2) {
-            drawSetPoints += (halfT + ((d[i] - halfT) * scaleW) + this.SVG_PADDING) + "," + (halfT + ((d[i+1] - halfT) * scaleH) + this.SVG_PADDING) + " ";
+            drawSetPoints += (halfT + ((d[i]) * scaleW) + this.SVG_PADDING) + "," + (halfT + ((d[i+1]) * scaleH) + this.SVG_PADDING) + " ";
           }
           path.setAttribute("stroke-width", t);
         }

@@ -715,6 +715,7 @@ modules["pages/editor/toolbar/cursor"] = {
     let editor = await getModule("pages/editor");
     let utils = await getModule("pages/editor/annotation");
     let cursor = await getModule("pages/editor/toolbar/cursor");
+    let toolbarModule = await getModule("editor/toolbar");
     let content = editor.page.querySelector(".eContent");
     let pageHolderRect = content.querySelector(".ePageHolder").getBoundingClientRect();
     let selectionIDs = Object.keys(editor.selecting);
@@ -771,170 +772,172 @@ modules["pages/editor/toolbar/cursor"] = {
       body.style.userSelect = "unset";
     }
     let hideTooltipWait = [];
-    for (let i = 0; i < selectionIDs.length; i++) {
-      let annoID = selectionIDs[i];
-      //if (annoID == null || annoID.startsWith("pending_")) {
-      //  continue;
-      //}
-      let annoData = editor.annotations[annoID] || { render: {} };
-      let selection = editor.selecting[annoID];
-      let merged = { ...annoData.render, ...selection };
-      let anno = content.querySelector('.eAnnotation[anno="' + annoID + '"]');
-      let select = content.querySelector('.eSelect[anno="' + annoID + '"]');
-      let collabSelect = content.querySelector('.eCollabSelect[anno="' + annoID + '"]');
-      if (anno == null) {
-        delete editor.selecting[annoID];
-        if (select != null) {
-          select.remove();
+    if (["pages/editor/toolbar/cursor", "pages/editor/toolbar/drag"].includes(toolbarModule.currentToolModule)) { // Prevent selections from other tools
+      for (let i = 0; i < selectionIDs.length; i++) {
+        let annoID = selectionIDs[i];
+        //if (annoID == null || annoID.startsWith("pending_")) {
+        //  continue;
+        //}
+        let annoData = editor.annotations[annoID] || { render: {} };
+        let selection = editor.selecting[annoID];
+        let merged = { ...annoData.render, ...selection };
+        let anno = content.querySelector('.eAnnotation[anno="' + annoID + '"]');
+        let select = content.querySelector('.eSelect[anno="' + annoID + '"]');
+        let collabSelect = content.querySelector('.eCollabSelect[anno="' + annoID + '"]');
+        if (anno == null) {
+          delete editor.selecting[annoID];
+          if (select != null) {
+            select.remove();
+          }
+          continue;
         }
-        continue;
-      }
-      anno.setAttribute("selected", "");
-      let activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
-      if (activeLayer == null) {
-        anno.parentElement.insertAdjacentHTML("beforeend", `<div class="eSelectActive" anno="${annoID}"></div>`);
-        activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
-      }
-      activeLayer.style.zIndex = i;
-      anno.style.overflow = "hidden";
-      anno.style.borderRadius = "2px";
-      if (select == null) {
-        content.insertAdjacentHTML("beforeend", `<div class="eSelect" new></div>`);
-        select = content.querySelector(".eSelect[new]");
-        select.removeAttribute("new");
-        select.setAttribute("anno", annoID);
-        select.style.border = "solid 4px var(--theme)";
-        select.style.opacity = 1;
-        select.offsetHeight;
-        select.style.transition = "all .25s, opacity .15s";
-      }
-      if (this.action != null || forceNoTransition == true) {
-        select.setAttribute("notransition", "");
-        anno.setAttribute("notransition", "");
+        anno.setAttribute("selected", "");
+        let activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
+        if (activeLayer == null) {
+          anno.parentElement.insertAdjacentHTML("beforeend", `<div class="eSelectActive" anno="${annoID}"></div>`);
+          activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
+        }
+        activeLayer.style.zIndex = i;
+        anno.style.overflow = "hidden";
+        anno.style.borderRadius = "2px";
+        if (select == null) {
+          content.insertAdjacentHTML("beforeend", `<div class="eSelect" new></div>`);
+          select = content.querySelector(".eSelect[new]");
+          select.removeAttribute("new");
+          select.setAttribute("anno", annoID);
+          select.style.border = "solid 4px var(--theme)";
+          select.style.opacity = 1;
+          select.offsetHeight;
+          select.style.transition = "all .25s, opacity .15s";
+        }
+        if (this.action != null || forceNoTransition == true) {
+          select.setAttribute("notransition", "");
+          anno.setAttribute("notransition", "");
+          if (collabSelect != null) {
+            collabSelect.setAttribute("notransition", "");
+          }
+        } else {
+          select.removeAttribute("notransition");
+          anno.removeAttribute("notransition");
+          if (collabSelect != null) {
+            collabSelect.removeAttribute("notransition");
+          }
+        }
+        
+        if (selectionIDs.length == 1) {
+          if (select.querySelector('.eSelectTooltip[tooltip="topright"]') == null) {
+            select.insertAdjacentHTML("beforeend", `
+              <svg class="eSelectTooltip" tooltip="topleft" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M2 14V14C2 7.37258 7.37258 2 14 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+              <svg class="eSelectTooltip" tooltip="topright" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M14 14V14C14 7.37258 8.62742 2 2 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+              <svg class="eSelectTooltip" tooltip="bottomleft" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M2 2V2C2 8.62742 7.37258 14 14 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+              <svg class="eSelectTooltip" tooltip="bottomright" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M14 2V2C14 8.62742 8.62742 14 2 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+              <svg class="eSelectTooltip" tooltip="left" width="4" height="20" viewBox="0 0 4 20" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M2 2V18" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+              <svg class="eSelectTooltip" tooltip="right" right="4" height="20" viewBox="0 0 4 20" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M2 2V18" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+              <svg class="eSelectTooltip" tooltip="top" width="20" height="4" viewBox="0 0 20 4" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M18 2H2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+              <svg class="eSelectTooltip" tooltip="bottom" width="20" height="4" viewBox="0 0 20 4" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M18 2H2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            `);
+          }
+          select.removeAttribute("hidetips");
+        } else if (select.hasAttribute("hidetips") == false) {
+          select.setAttribute("hidetips", "");
+          hideTooltipWait.push(select);
+        }
+        /*
+        let rect = anno.getBoundingClientRect();
+        let boxWidth = (anno.offsetWidth * editor.zoom) - 4;
+        let boxHeight = (anno.offsetHeight * editor.zoom) - 4;
+        select.style.width = boxWidth + "px";
+        select.style.height = boxHeight + "px";
+        select.style.left = rect.left + window.scrollX - 2 + "px";
+        select.style.top = rect.top + window.scrollY - 2 + "px";
+        */
+        let annoHold = await utils.annoHolder(merged.page);
+        let border = 0;
+        if (annoHold.parentElement.parentElement.firstElementChild != annoHold.parentElement) {
+          border = 4;
+        }
+        let [width, height] = merged.s;
+        let [x, y] = merged.p;
+        if (width < 0) {
+          width = -width;
+          x -= width;
+        }
+        if (height < 0) {
+          height = -height;
+          y -= height;
+        }
+        let pageRect = annoHold.getBoundingClientRect();
+        let boxWidth = ((width + ((merged.t) || 0)) * editor.zoom) - 4;  // +0 for width, -4 for border
+        let boxHeight = ((height + ((merged.t) || 0)) * editor.zoom) - 4;
+        select.style.width = boxWidth + "px";
+        select.style.height = boxHeight + "px";
+        let halfT = ((merged.t) || 0) / 2;
+        select.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 2 + "px"; // -2 for border, -0 for width
+        select.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 2 + "px";
+        let eSelectTopLeft = select.querySelector('.eSelectTooltip[tooltip="topleft"]');
+        if (eSelectTopLeft != null) {
+          eSelectTopLeft.removeAttribute("hidden");
+          let eSelectTopRight = select.querySelector('.eSelectTooltip[tooltip="topright"]');
+          let eSelectBottomLeft = select.querySelector('.eSelectTooltip[tooltip="bottomleft"]');
+          let eSelectBottomRight = select.querySelector('.eSelectTooltip[tooltip="bottomright"]');
+          eSelectBottomRight.removeAttribute("hidden");
+          let eSelectLeft = select.querySelector('.eSelectTooltip[tooltip="left"]');
+          let eSelectRight = select.querySelector('.eSelectTooltip[tooltip="right"]');
+          let eSelectTop = select.querySelector('.eSelectTooltip[tooltip="top"]');
+          let eSelectBottom = select.querySelector('.eSelectTooltip[tooltip="bottom"]');
+          if (boxWidth < 40) {
+            eSelectTop.setAttribute("hidden", "");
+            eSelectBottom.setAttribute("hidden", "");
+          } else {
+            eSelectTop.removeAttribute("hidden");
+            eSelectBottom.removeAttribute("hidden");
+          }
+          if (boxHeight < 40) {
+            eSelectLeft.setAttribute("hidden", "");
+            eSelectRight.setAttribute("hidden", "");
+          } else {
+            eSelectLeft.removeAttribute("hidden");
+            eSelectRight.removeAttribute("hidden");
+          }
+          if (boxWidth < 20 || boxHeight < 20) {
+            eSelectTopRight.setAttribute("hidden", "");
+            eSelectBottomLeft.setAttribute("hidden", "");
+          } else {
+            eSelectTopRight.removeAttribute("hidden");
+            eSelectBottomLeft.removeAttribute("hidden");
+          }
+        }
+
+        activeLayer.style.width = (width + ((merged.t) || 0)) + 8 + "px";
+        activeLayer.style.height = (height + ((merged.t) || 0)) + 8 + "px";
+        activeLayer.style.left = x + halfT - 4 + "px";
+        activeLayer.style.top = y + halfT - border - 4 + "px";
+
+        let inverse = 1 / editor.zoom;
+        let pageY = pageRect.y - pageHolderRect.y;
+        let setMinX = x + halfT;
+        this.minX = Math.min(this.minX || setMinX, setMinX);
+        let setMaxX = x + width + ((merged.t) || 0) + halfT;
+        this.maxX = Math.max(this.maxX || setMaxX, setMaxX);
+        let setMinY = (pageY * inverse) + y + halfT - border;
+        this.minY = Math.min(this.minY || setMinY, setMinY);
+        let setMaxY = (pageY * inverse) + y + ((merged.t) || 0) - border + height + halfT;
+        this.maxY = Math.max(this.maxY || setMaxY, setMaxY);
+
+        let setCheckX = x + width;
+        this.checkX = Math.min(this.checkX || setCheckX, setCheckX);
+        let setCheckY = (pageY * inverse) + y - border + height;
+        this.checkY = Math.min(this.checkX || setCheckY, setCheckY);
+
         if (collabSelect != null) {
-          collabSelect.setAttribute("notransition", "");
+          collabSelect.offsetWidth;
+          let collWidth = ((width + ((merged.t) || 0)) * editor.zoom) - 3; // +0 for width, -3 for border
+          let collHeight = ((height + ((merged.t) || 0)) * editor.zoom) - 3;
+          collabSelect.style.width = collWidth + "px";
+          collabSelect.style.height = collHeight + "px";
+          collabSelect.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
+          collabSelect.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
         }
-      } else {
-        select.removeAttribute("notransition");
-        anno.removeAttribute("notransition");
-        if (collabSelect != null) {
-          collabSelect.removeAttribute("notransition");
-        }
-      }
-      
-      if (selectionIDs.length == 1) {
-        if (select.querySelector('.eSelectTooltip[tooltip="topright"]') == null) {
-          select.insertAdjacentHTML("beforeend", `
-            <svg class="eSelectTooltip" tooltip="topleft" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M2 14V14C2 7.37258 7.37258 2 14 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-            <svg class="eSelectTooltip" tooltip="topright" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M14 14V14C14 7.37258 8.62742 2 2 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-            <svg class="eSelectTooltip" tooltip="bottomleft" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M2 2V2C2 8.62742 7.37258 14 14 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-            <svg class="eSelectTooltip" tooltip="bottomright" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M14 2V2C14 8.62742 8.62742 14 2 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-            <svg class="eSelectTooltip" tooltip="left" width="4" height="20" viewBox="0 0 4 20" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M2 2V18" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-            <svg class="eSelectTooltip" tooltip="right" right="4" height="20" viewBox="0 0 4 20" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M2 2V18" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-            <svg class="eSelectTooltip" tooltip="top" width="20" height="4" viewBox="0 0 20 4" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M18 2H2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-            <svg class="eSelectTooltip" tooltip="bottom" width="20" height="4" viewBox="0 0 20 4" fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M18 2H2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-          `);
-        }
-        select.removeAttribute("hidetips");
-      } else if (select.hasAttribute("hidetips") == false) {
-        select.setAttribute("hidetips", "");
-        hideTooltipWait.push(select);
-      }
-      /*
-      let rect = anno.getBoundingClientRect();
-      let boxWidth = (anno.offsetWidth * editor.zoom) - 4;
-      let boxHeight = (anno.offsetHeight * editor.zoom) - 4;
-      select.style.width = boxWidth + "px";
-      select.style.height = boxHeight + "px";
-      select.style.left = rect.left + window.scrollX - 2 + "px";
-      select.style.top = rect.top + window.scrollY - 2 + "px";
-      */
-      let annoHold = await utils.annoHolder(merged.page);
-      let border = 0;
-      if (annoHold.parentElement.parentElement.firstElementChild != annoHold.parentElement) {
-        border = 4;
-      }
-      let [width, height] = merged.s;
-      let [x, y] = merged.p;
-      if (width < 0) {
-        width = -width;
-        x -= width;
-      }
-      if (height < 0) {
-        height = -height;
-        y -= height;
-      }
-      let pageRect = annoHold.getBoundingClientRect();
-      let boxWidth = ((width + ((merged.t) || 0)) * editor.zoom) - 4;  // +0 for width, -4 for border
-      let boxHeight = ((height + ((merged.t) || 0)) * editor.zoom) - 4;
-      select.style.width = boxWidth + "px";
-      select.style.height = boxHeight + "px";
-      let halfT = ((merged.t) || 0) / 2;
-      select.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 2 + "px"; // -2 for border, -0 for width
-      select.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 2 + "px";
-      let eSelectTopLeft = select.querySelector('.eSelectTooltip[tooltip="topleft"]');
-      if (eSelectTopLeft != null) {
-        eSelectTopLeft.removeAttribute("hidden");
-        let eSelectTopRight = select.querySelector('.eSelectTooltip[tooltip="topright"]');
-        let eSelectBottomLeft = select.querySelector('.eSelectTooltip[tooltip="bottomleft"]');
-        let eSelectBottomRight = select.querySelector('.eSelectTooltip[tooltip="bottomright"]');
-        eSelectBottomRight.removeAttribute("hidden");
-        let eSelectLeft = select.querySelector('.eSelectTooltip[tooltip="left"]');
-        let eSelectRight = select.querySelector('.eSelectTooltip[tooltip="right"]');
-        let eSelectTop = select.querySelector('.eSelectTooltip[tooltip="top"]');
-        let eSelectBottom = select.querySelector('.eSelectTooltip[tooltip="bottom"]');
-        if (boxWidth < 40) {
-          eSelectTop.setAttribute("hidden", "");
-          eSelectBottom.setAttribute("hidden", "");
-        } else {
-          eSelectTop.removeAttribute("hidden");
-          eSelectBottom.removeAttribute("hidden");
-        }
-        if (boxHeight < 40) {
-          eSelectLeft.setAttribute("hidden", "");
-          eSelectRight.setAttribute("hidden", "");
-        } else {
-          eSelectLeft.removeAttribute("hidden");
-          eSelectRight.removeAttribute("hidden");
-        }
-        if (boxWidth < 20 || boxHeight < 20) {
-          eSelectTopRight.setAttribute("hidden", "");
-          eSelectBottomLeft.setAttribute("hidden", "");
-        } else {
-          eSelectTopRight.removeAttribute("hidden");
-          eSelectBottomLeft.removeAttribute("hidden");
-        }
-      }
-
-      activeLayer.style.width = (width + ((merged.t) || 0)) + 8 + "px";
-      activeLayer.style.height = (height + ((merged.t) || 0)) + 8 + "px";
-      activeLayer.style.left = x + halfT - 4 + "px";
-      activeLayer.style.top = y + halfT - border - 4 + "px";
-
-      let inverse = 1 / editor.zoom;
-      let pageY = pageRect.y - pageHolderRect.y;
-      let setMinX = x + halfT;
-      this.minX = Math.min(this.minX || setMinX, setMinX);
-      let setMaxX = x + width + ((merged.t) || 0) + halfT;
-      this.maxX = Math.max(this.maxX || setMaxX, setMaxX);
-      let setMinY = (pageY * inverse) + y + halfT - border;
-      this.minY = Math.min(this.minY || setMinY, setMinY);
-      let setMaxY = (pageY * inverse) + y + ((merged.t) || 0) - border + height + halfT;
-      this.maxY = Math.max(this.maxY || setMaxY, setMaxY);
-
-      let setCheckX = x + width;
-      this.checkX = Math.min(this.checkX || setCheckX, setCheckX);
-      let setCheckY = (pageY * inverse) + y - border + height;
-      this.checkY = Math.min(this.checkX || setCheckY, setCheckY);
-
-      if (collabSelect != null) {
-        collabSelect.offsetWidth;
-        let collWidth = ((width + ((merged.t) || 0)) * editor.zoom) - 3; // +0 for width, -3 for border
-        let collHeight = ((height + ((merged.t) || 0)) * editor.zoom) - 3;
-        collabSelect.style.width = collWidth + "px";
-        collabSelect.style.height = collHeight + "px";
-        collabSelect.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
-        collabSelect.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
       }
     }
     if (hideTooltipWait.length > 0) {

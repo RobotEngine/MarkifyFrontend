@@ -561,6 +561,10 @@ modules["editor/realtime"] = {
                     let annoID = selectKeys[i];
                     let anno = extra.select[annoID] || {};
                     let original = editor.annotations[annoID];
+                    if (original != null && original.pointer != null) {
+                      annoID = original.pointer;
+                      original = editor.annotations[annoID];
+                    }
                     if (original == null && annoID.startsWith("pending_") == true) {
                       editor.annotations[annoID] = {};
                       original = editor.annotations[annoID];
@@ -588,7 +592,7 @@ modules["editor/realtime"] = {
                     utils.enableTimeout(annoID, original, null, true);
 
                     let selection;
-                    if (original.render._id.startsWith("pending_") == false) {
+                    //if (original.render._id.startsWith("pending_") == false) {
                       selection = realtimeHolder.querySelector('.eCollabSelect[member="' + memberID + '"][anno="' + annoID + '"]:not([old])');
                       if (selection == null) {
                         realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCollabSelect" member="${memberID}" new></div>`);
@@ -600,7 +604,7 @@ modules["editor/realtime"] = {
                         selection.style.transition = "all .25s, opacity .15s";
                         selection.style.opacity = 1;
                       }
-                    }
+                    //}
                     
                     let merge;
                     if (editor.selecting[annoID] == null) {
@@ -612,6 +616,19 @@ modules["editor/realtime"] = {
                     } else {
                       merge = { ...original.render, ...(editor.selecting[annoID] || {}) };
                       utils.render(merge);
+                    }
+
+                    if (selection != null && original.render.remove == true && selection.hasAttribute("remove") == false) {
+                      selection.setAttribute("remove", "");
+                      (async function () {
+                        selection.setAttribute("old", "");
+                        selection.style.opacity = 0;
+                        await sleep(150);
+                        if (selection != null) {
+                          selection.remove();
+                        }
+                      })();
+                      selection = null;
                     }
 
                     if (selection != null) {

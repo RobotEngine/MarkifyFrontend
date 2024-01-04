@@ -3263,13 +3263,18 @@ modules["pages/editor/toolbar/duplicate"] = {
       newAnno.p = newAnno.p || [0, 0];
       newAnno.p[0] += 50;
       newAnno.p[1] += 50;
-      editor.annotations[tempID] = { render: newAnno};
+      await utils.render(newAnno);
+      editor.annotations[tempID] = { render: newAnno };
       newSelect[tempID] = newAnno;
-      await utils.save(newAnno);
+      //await utils.save(newAnno);
     }
+    cursor.action = "save";
+    cursor.endAction();
 
     editor.selecting = newSelect;
     cursor.updateBox();
+
+    //utils.forceShort();
   }
 };
 modules["pages/editor/toolbar/delete"] = {
@@ -3280,9 +3285,17 @@ modules["pages/editor/toolbar/delete"] = {
   },
   js: async function (frame, toolID, extra) {
     let editor = await getModule("pages/editor");
+    let utils = await getModule("pages/editor/annotation");
     let cursor = await getModule("pages/editor/toolbar/cursor");
     await extra.saveSelecting({ remove: true });
+    let selectKeys = Object.keys(editor.selecting);
+    for (let i = 0; i < selectKeys.length; i++) {
+      editor.selecting[selectKeys[i]].remove = true;
+      editor.selecting[selectKeys[i]].done = true;
+    }
+    await utils.forceShort();
     editor.selecting = {};
     cursor.updateBox();
+
   }
 };

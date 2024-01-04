@@ -805,9 +805,12 @@ modules["pages/editor"] = {
           if (this.annotations[anno.pending] != null) {
             gottenRender = page.querySelector('.eAnnotation[anno="' + anno.pending + '"]');
             existingAnno.render._id = anno._id;
-            delete this.annotations[anno.pending];
+            gottenRender.setAttribute("anno", anno._id);
+            //delete this.annotations[anno.pending];
             this.annotations[anno._id] = existingAnno;
+            this.annotations[anno.pending] = { pointer: anno._id };
             existingAnno = this.annotations[anno._id];
+            existingAnno.pending = anno.pending;
             await utils.enableTimeout(anno._id, existingAnno, gottenRender);
           }
           if (this.selecting[anno.pending] != null) {
@@ -1027,6 +1030,9 @@ modules["pages/editor"] = {
       let annoKeys = Object.keys(this.annotations);
       for (let i = 0; i < annoKeys.length; i++) {
         let anno = this.annotations[annoKeys[i]];
+        if (anno.render == null) {
+          continue;
+        }
         if (unloadedPages.includes(anno.render.page) == true || this.lesson.type == "freeboard" || this.exporting == true) {
           await utils.render(anno.render);
           if (this.lesson.type != "freeboard") {
@@ -2734,10 +2740,17 @@ modules["pages/editor/annotation"] = {
     }
   },
   enableTimeout: async function(annoID, anno, render, collab) {
+    if (anno == null) {
+      return;
+    }
     let editor = await getModule("pages/editor");
     let page = editor.page;
     clearTimeout(anno.expire);
     anno.expire = setTimeout(() => {
+      if (anno.pending != null) {
+        delete editor.annotations[anno.pending];
+        delete anno.pending;
+      }
       if (connected == false && collab != true) {
         return;
       }

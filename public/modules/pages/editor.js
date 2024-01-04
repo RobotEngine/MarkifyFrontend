@@ -810,6 +810,10 @@ modules["pages/editor"] = {
             existingAnno = this.annotations[anno._id];
             await utils.enableTimeout(anno._id, existingAnno, gottenRender);
           }
+          if (this.selecting[anno.pending] != null) {
+            this.selecting[anno._id] = JSON.parse(JSON.stringify(this.selecting[anno.pending]));
+            delete this.selecting[anno.pending];
+          }
           // CHECKS IF SERVER IS AFTER LAST SHORT EDIT SYNC
           if (existingAnno.render.sync > anno.sync) {
             continue;

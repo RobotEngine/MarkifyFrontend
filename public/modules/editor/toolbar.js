@@ -773,9 +773,9 @@ modules["pages/editor/toolbar/cursor"] = {
     let hideTooltipWait = [];
     for (let i = 0; i < selectionIDs.length; i++) {
       let annoID = selectionIDs[i];
-      if (annoID == null || annoID.startsWith("pending_")) {
-        continue;
-      }
+      //if (annoID == null || annoID.startsWith("pending_")) {
+      //  continue;
+      //}
       let annoData = editor.annotations[annoID] || { render: {} };
       let selection = editor.selecting[annoID];
       let merged = { ...annoData.render, ...selection };
@@ -3248,8 +3248,28 @@ modules["pages/editor/toolbar/duplicate"] = {
   button: `<svg width="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_673_41" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_673_41)"> <rect x="87" y="87" width="132" height="132" rx="36" stroke="white" stroke-width="32"/> <rect x="109" y="109" width="88" height="88" rx="14" stroke="white" stroke-width="12"/> <rect x="37" y="37" width="132" height="132" rx="36" stroke="white" stroke-width="32"/> <rect x="59" y="59" width="88" height="88" rx="14" stroke="white" stroke-width="12"/> <rect x="93" y="93" width="120" height="120" rx="30" stroke="#2F2F2F" stroke-width="20"/> <rect x="43" y="43" width="120" height="120" rx="30" stroke="#2F2F2F" stroke-width="20"/> </g> </svg>`,
   tooltip: "Duplicate",
   divideBefore: true,
-  js: async function (frame, toolID) {
-    
+  js: async function (frame, toolID, extra) {
+    let editor = await getModule("pages/editor");
+    let utils = await getModule("pages/editor/annotation");
+    let cursor = await getModule("pages/editor/toolbar/cursor");
+    let selectKeys = Object.keys(editor.selecting);
+
+    let newSelect = {};
+    for (let i = 0; i < selectKeys.length; i++) {
+      let selectID = selectKeys[i];
+      let tempID = utils.tempID();
+      let newAnno = JSON.parse(JSON.stringify(({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {}));
+      newAnno._id = tempID;
+      newAnno.p = newAnno.p || [0, 0];
+      newAnno.p[0] += 50;
+      newAnno.p[1] += 50;
+      editor.annotations[tempID] = { render: newAnno};
+      newSelect[tempID] = newAnno;
+      await utils.save(newAnno);
+    }
+
+    editor.selecting = newSelect;
+    cursor.updateBox();
   }
 };
 modules["pages/editor/toolbar/delete"] = {
@@ -3258,7 +3278,11 @@ modules["pages/editor/toolbar/delete"] = {
   css: {
     '.eTool[action="pages/editor/toolbar/delete"]': `--hoverColor: var(--error)`
   },
-  js: async function (frame, toolID) {
-    
+  js: async function (frame, toolID, extra) {
+    let editor = await getModule("pages/editor");
+    let cursor = await getModule("pages/editor/toolbar/cursor");
+    await extra.saveSelecting({ remove: true });
+    editor.selecting = {};
+    cursor.updateBox();
   }
 };

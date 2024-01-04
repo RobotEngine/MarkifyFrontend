@@ -521,7 +521,7 @@ modules["editor/realtime"] = {
             clearInterval(member.interval);
             member.interval = setInterval(() => {
               this.removeRealtime(memberID);
-            }, 120000); // Remove member elements if inactive for 2 minutes
+            }, 120000); // Remove realtime member elements if inactive for 2 minutes
             let cursorHolder = realtimeHolder.querySelector('.eCursor[member="' + memberID + '"]');
             if (cursorHolder == null) {
               realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCursor" member="${memberID}" scale></div>`);

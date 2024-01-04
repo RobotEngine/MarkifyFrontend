@@ -2654,7 +2654,6 @@ modules["pages/editor/annotation"] = {
         if (d.length == 2) {
           //let dividedT = t / 2;
           //drawSetPoints = (d[0] - dividedT + this.SVG_PADDING) + "," + (d[1] - dividedT + this.SVG_PADDING) + " " + (d[0] + dividedT + this.SVG_PADDING) + "," + (d[1] + dividedT + this.SVG_PADDING);
-          console.log(width);
           drawSetPoints = ((width / 2) + this.SVG_PADDING) + "," + ((height / 2) + this.SVG_PADDING) + " " + ((width / 2) + .1 + this.SVG_PADDING) + "," + ((height / 2) + .1 + this.SVG_PADDING);
           path.setAttribute("stroke-width", width);
         } else {

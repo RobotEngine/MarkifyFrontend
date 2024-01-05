@@ -988,8 +988,10 @@ modules["pages/editor/toolbar/cursor"] = {
         }
       })();
     }
-
-    cursor.updateActionUI();
+    
+    if (forceNoTransition != true) {
+      cursor.updateActionUI();
+    }
 
     if (this.lastEditorZoom != editor.zoom || forceNoTransition == true || forceUpdate == true) {
       let allSelections = editor.page.querySelector(".eRealtime").querySelectorAll('.eCollabSelect');
@@ -1039,13 +1041,17 @@ modules["pages/editor/toolbar/cursor"] = {
         return;
       }
 
-      if (this.lastSelectCount != selectionIDs.length || this.lastPxCheckX != this.checkX || this.lastPxCheckY != this.checkY) {
+      let testSelections = "";
+      for (let i = 0; i < selectionIDs.length; i++) {
+        testSelections += selectionIDs[i];
+      }
+      if (this.lastSelections != testSelections || this.lastPxCheckX != this.checkX || this.lastPxCheckY != this.checkY) {
         this.removeActionUI(actionUI);
         actionUI = null;
       }
       this.lastPxCheckX = this.checkX;
       this.lastPxCheckY = this.checkY;
-      this.lastSelectCount = selectionIDs.length;
+      this.lastSelections = testSelections;
 
       // Create Action UI
       if (actionUI == null) {

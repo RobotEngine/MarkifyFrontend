@@ -808,6 +808,10 @@ modules["pages/editor"] = {
             if (selectActive != null) {
               selectActive.setAttribute("anno", anno._id);
             }
+            let selectBox = page.querySelector('.eSelect[anno="' + anno.pending + '"]');
+            if (selectBox != null) {
+              selectBox.setAttribute("anno", anno._id);
+            }
             existingAnno.render._id = anno._id;
             gottenRender.setAttribute("anno", anno._id);
             //delete this.annotations[anno.pending];

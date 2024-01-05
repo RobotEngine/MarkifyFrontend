@@ -661,7 +661,7 @@ modules["editor/toolbar"] = {
       if (element.hasAttribute("tool") == true) {
         selectedToolID = element.getAttribute("tool");
         showSubtoolUI(element);
-        this.currentToolModule = element.getAttribute("module");
+        //this.currentToolModule = element.getAttribute("module");
       } else if (element.hasAttribute("subtool") == true) {
         selectedSubtoolToolID = element.getAttribute("subtool");
         if (preferences[selectedToolID].subtool != null) {
@@ -1030,7 +1030,7 @@ modules["pages/editor/toolbar/cursor"] = {
                 }
               }
             } else {
-              combineTools = JSON.parse(JSON.stringify(tools));
+              combineTools = JSON.parse(JSON.stringify(tools || {}));
             }
           }
         }
@@ -1076,7 +1076,7 @@ modules["pages/editor/toolbar/cursor"] = {
             module.setButton(editor, actionUI);
           }
           if (module.tooltip != null) {
-            //newAction.setAttribute("tooltip", module.tooltip);
+            newAction.setAttribute("tooltip", module.tooltip);
           }
         }
       }
@@ -1433,6 +1433,10 @@ modules["pages/editor/toolbar/cursor"] = {
       delete select.done;
       let original = editor.annotations[annoid];
       if (original == null) {
+        continue;
+      }
+      if (original.render == null && original.pointer == null) {
+        delete editor.annotations[annoid];
         continue;
       }
       let anno = JSON.parse(JSON.stringify(original.render));
@@ -2330,6 +2334,7 @@ modules["pages/editor/toolbar/pen"] = {
       let [page, number] = await utils.findPage(clientY);
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientY, number);
       let tempID = utils.tempID();
+      console.log(this.color, editor.preferences.tools.draw.color.selected)
       let newAnno = {
         _id: tempID,
         f: "draw",
@@ -2723,9 +2728,13 @@ modules["pages/editor/toolbar/color"] = {
     let editor = await getModule("pages/editor");
     let selecting = editor.selecting;
     let selectKeys = Object.keys(selecting);
-    this.setPreferenceTool(editor);
-    let isModify = selectKeys.length > 0;
+    let isModify = extra != null && selectKeys.length > 0;
     let updatePref = isModify == false || selectKeys.length == 1;
+    if (isModify != true) {
+      this.preferenceTool = {};
+    } else {
+      this.setPreferenceTool(editor);
+    }
     let preferences = editor.preferences.tools;
     if (preferences[toolID] == null) {
       return;
@@ -2773,10 +2782,10 @@ modules["pages/editor/toolbar/color"] = {
       }
       if (element.hasAttribute("int") == true) {
         let setColor = toolPref.color.options[parseInt(element.getAttribute("int"))];
-        selectedColor = setColor;
         if (updatePref) {
-          toolPref.color.selected = selectedColor;
+          toolPref.color.selected = setColor;
         }
+        selectedColor = setColor;
         if (isModify == false) {
           editor.toolbar.closeSubSubtoolUI();
         } else {
@@ -2784,11 +2793,11 @@ modules["pages/editor/toolbar/color"] = {
           extra.updateToolActions(extra.frame);
           runColorSelections();
         }
-        editor.toolbar.updateToolbar(true);
+        editor.toolbar.updateToolbar(isModify);
       } else if (element.hasAttribute("enablepicker") == true) {
-        if (updatePref) {
-          selectedColor = toolPref.color.selected;
-        }
+        //if (updatePref) {
+        //  selectedColor = toolPref.color.selected;
+        //}
         [h, s, v] = this.hexToHSV(selectedColor);
         updatePickerUI();
         picker.style.position = "relative";
@@ -2886,9 +2895,6 @@ modules["pages/editor/toolbar/color"] = {
     let updatePickerUI = () => {
       // Update Colors Shown:
       let hue = "#" + this.hsvToHex(h, 100, 100);
-      if (updatePref) {
-        selectedColor = toolPref.color.selected;
-      }
       colorShowBox.style.background = "#" + selectedColor;
       shadePointer.style.background = "#" + selectedColor;
       colorPointer.style.background = hue;
@@ -2930,7 +2936,7 @@ modules["pages/editor/toolbar/color"] = {
       modeInput.placeholder = modeInput.value;
       modeInput.style.borderColor = "var(--secondary)";
       // Update Toolbar Colors:
-      editor.toolbar.updateToolbar(true);
+      editor.toolbar.updateToolbar(isModify);
     }
     let updateStoredValues = async (hex) => {
       selectedColor = hex || this.hsvToHex(h, s, v);
@@ -3017,7 +3023,7 @@ modules["pages/editor/toolbar/color"] = {
         .catch(() => { });
     });
 
-    editor.toolbar.updateToolbar(true);
+    editor.toolbar.updateToolbar(isModify);
   }
 };
 modules["pages/editor/toolbar/thickness"] = {
@@ -3090,7 +3096,7 @@ modules["pages/editor/toolbar/thickness"] = {
         input.value = selectedThickness;
       }
       if (isModify == false) {
-        editor.toolbar.updateToolbar();
+        editor.toolbar.updateToolbar(isModify);
       } else if (updateVal != null || noPref != true) {
         await extra.saveSelecting({ t: selectedThickness });
         cursorModule.updateBox();
@@ -3202,7 +3208,7 @@ modules["pages/editor/toolbar/opacity"] = {
         await extra.saveSelecting({ o: selectedOpacity });
         extra.updateToolActions(extra.frame);
       }
-      editor.toolbar.updateToolbar(true);
+      editor.toolbar.updateToolbar(isModify);
     }
     let eventBarUpdate = (event) => {
       if (sliderEnabled == false) {

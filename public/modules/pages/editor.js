@@ -804,6 +804,10 @@ modules["pages/editor"] = {
           // UPDATES _id IF IT WAS PENDING
           if (this.annotations[anno.pending] != null) {
             gottenRender = page.querySelector('.eAnnotation[anno="' + anno.pending + '"]');
+            let selectActive = page.querySelector('.eSelectActive[anno="' + anno.pending + '"]');
+            if (selectActive != null) {
+              selectActive.setAttribute("anno", anno._id);
+            }
             existingAnno.render._id = anno._id;
             gottenRender.setAttribute("anno", anno._id);
             //delete this.annotations[anno.pending];

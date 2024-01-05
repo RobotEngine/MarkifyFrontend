@@ -276,9 +276,9 @@ modules["editor/toolbar"] = {
     let tooltipText = frame.querySelector(".eToolHoverTooltip");
     let tooltipElement;
     let tooltipOpen = false;
-    let updateTooltipHover = () => {
+    this.updateTooltipHover = () => {
       if (tooltipElement != null) {
-        if (tooltipElement.hasAttribute("selected") == true && tooltipElement.hasAttribute("option") == true) {
+        if (tooltipElement.hasAttribute("selected") == true && (tooltipElement.hasAttribute("option") == true || tooltipElement.hasAttribute("action") == true)) {
           closeTooltipHover();
           return;
         }
@@ -356,7 +356,7 @@ modules["editor/toolbar"] = {
         return;
       }
       //clearTimeout(closeTimeout);
-      if (element.hasAttribute("selected") == true && element.hasAttribute("option") == true) {
+      if (element.hasAttribute("selected") == true && (element.hasAttribute("option") == true || element.hasAttribute("action") == true)) {
         closeTooltipHover();
         return;
       }
@@ -370,7 +370,7 @@ modules["editor/toolbar"] = {
       }
       tooltipElement = element;
       tooltipText.textContent = element.getAttribute("tooltip");
-      updateTooltipHover();
+      this.updateTooltipHover();
       tooltipOpen = true;
       tooltipText.offsetHeight;
       tooltipText.style.transition = ".3s";
@@ -548,7 +548,7 @@ modules["editor/toolbar"] = {
         subTools.style.top = mainSubtoolButton.getBoundingClientRect().top + (mainSubtoolButton.offsetHeight / 2) - frame.getBoundingClientRect().top + "px";
         mainSubtoolButton = null;
       }
-      updateTooltipHover();
+      this.updateTooltipHover();
       subToolContentHolder.style.transition = "unset";
       subTools.style.transform = "scale(0)";
       subTools.style.opacity = 0;
@@ -620,7 +620,7 @@ modules["editor/toolbar"] = {
           subTools.style.top = mainSubtoolButton.getBoundingClientRect().top + (mainSubtoolButton.offsetHeight / 2) - frame.getBoundingClientRect().top + "px";
           this.updateToolbar();
           updateSubtoolUI();
-          updateTooltipHover();
+          this.updateTooltipHover();
         } else { // No need as the main tool is the subtool
           this.currentToolModule = loadTools.module;
           this.updateToolbar();
@@ -665,7 +665,7 @@ modules["editor/toolbar"] = {
 
       subSubTools.style.top = mainSubSubtoolButton.getBoundingClientRect().top + (mainSubSubtoolButton.offsetHeight / 2) - subTools.getBoundingClientRect().top + "px";
       updateSubtoolUI();
-      updateTooltipHover();
+      this.updateTooltipHover();
     }
 
     //showSubtoolUI(frame.querySelector('[tool="select"]'));
@@ -1269,6 +1269,7 @@ modules["pages/editor/toolbar/cursor"] = {
   },
   clickAction: async function (event) {
     let editor = await getModule("pages/editor");
+    let toolbarModule = await getModule("editor/toolbar");
     let action = event.target.closest(".eTool");
     if (action == null || action.closest(".eSelectHolder") == null) {
       return;
@@ -1347,6 +1348,7 @@ modules["pages/editor/toolbar/cursor"] = {
         }
       })();
     }
+    toolbarModule.updateTooltipHover();
     await module.js(holder, preferenceTool, {
       frame: holder,
       updateActionUI: () => { this.updateActionUI(); },

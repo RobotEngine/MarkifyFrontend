@@ -1236,8 +1236,8 @@ modules["pages/editor"] = {
 
                 canvas.width = viewport.width;
                 canvas.height = viewport.height;
-                pageElem.style.width = viewport.width + "px";
-                pageElem.style.height = viewport.height + "px";
+                //pageElem.style.width = viewport.width + "px";
+                //pageElem.style.height = viewport.height + "px";
 
                 pageRender.render({
                   canvasContext: context,

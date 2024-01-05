@@ -2603,7 +2603,7 @@ modules["pages/editor/annotation"] = {
         } else {
           let scaleW = 1;
           let scaleH = 1;
-          if (_id.startsWith("pending_") == false) {
+          if (sync != null) {
             // Allows for greater precision when zoomed in:
             let largestX = d[0];
             let largestY = d[1];
@@ -2673,7 +2673,7 @@ modules["pages/editor/annotation"] = {
         } else {
           let scaleW = 1;
           let scaleH = 1;
-          if (_id.startsWith("pending_") == false) {
+          if (sync != null) {
             // Allows for greater precision when zoomed in:
             let largestX = d[0];
             let largestY = d[1];

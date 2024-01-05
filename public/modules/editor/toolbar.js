@@ -55,7 +55,7 @@ modules["editor/toolbar"] = {
     ".eSubToolHolder[option] .eSubToolContentScroll": `overflow: visible`,
     ".eSubToolContent": `display: flex; flex-wrap: wrap; gap: 6px`,
 
-    ".eToolHoverTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; color: var(--theme); transform: scale(0); transform-origin: center left; opacity: 0`,
+    ".eToolHoverTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; transform: scale(0); opacity: 0`,
 
     ".eSelect": `position: absolute; opacity: 0; z-index: 101; border-radius: 9px; transition: opacity .15s; pointer-events: none`,
     ".eSelectActive": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: all !important; cursor: move`,
@@ -71,7 +71,7 @@ modules["editor/toolbar"] = {
     '.eSelectTooltip[tooltip="top"]': `left: 50%; top: -10px; transform: translateX(-50%); cursor: ns-resize`,
     '.eSelectTooltip[tooltip="bottom"]': `left: 50%; bottom: -10px; transform: translateX(-50%); cursor: ns-resize`,
     ".eSelectDrag": `position: absolute; box-sizing: border-box; pointer-events: none; z-index: 99; opacity: 0; background: var(--secondary); border: solid 2px var(--theme); border-radius: 10px; transition: opacity .1s`,
-    
+
     ".eSelectBar": `position: absolute; display: flex; max-width: calc(100vw - 88px); height: 50px; background: var(--pageColor); box-shadow: var(--shadow); z-index: 102; border-radius: 16px; transform: translateY(-10%); opacity: 0; transition: transform .2s, opacity .2s, border-radius .2s`,
     ".eSelectHolder": `display: flex; width: 100%; height: 100%; gap: 6px; overflow: auto; border-radius: inherit`,
     ".eSelectHolder::-webkit-scrollbar": `display: none`,
@@ -283,23 +283,49 @@ modules["editor/toolbar"] = {
           return;
         }
 
-        let toolsRect = frame.getBoundingClientRect();
-        let buttonRect = tooltipElement.getBoundingClientRect();
-
-        let setLeft = frame.offsetWidth;
-        let setTop = buttonRect.top - toolsRect.top + (tooltipElement.offsetHeight / 2) - (tooltipText.offsetHeight / 2);
-        let subToolWidth = parseInt(subTools.getAttribute("setwidth")) + 4;
-        let subToolTop = parseInt(subTools.getAttribute("settop"));
-        if (tooltipElement.hasAttribute("tool") == false) {
-          setLeft += subToolWidth;
-        } else if (mainSubtoolButton != null) {
-          if (setTop > subToolTop && setTop < subToolTop + parseInt(subTools.getAttribute("setheight"))) {
-            setLeft += subToolWidth;
-          }
+        let themeColor = getComputedStyle(tooltipElement).getPropertyValue("--hoverTooltip");
+        if (themeColor != "" && themeColor != null) {
+          tooltipText.style.color = themeColor;
+        } else {
+          tooltipText.style.color = "var(--theme)";
         }
 
-        tooltipText.style.top = setTop + "px";
-        tooltipText.style.left = setLeft + 6 + "px";
+        if (tooltipText.parentElement.closest(".eToolbar .content") != null) {
+          tooltipText.style.transformOrigin = "center left";
+
+          let toolsRect = frame.getBoundingClientRect();
+          let buttonRect = tooltipElement.getBoundingClientRect();
+
+          let setLeft = frame.offsetWidth;
+          let setTop = buttonRect.top - toolsRect.top + (tooltipElement.offsetHeight / 2) - (tooltipText.offsetHeight / 2);
+          let subToolWidth = parseInt(subTools.getAttribute("setwidth")) + 4;
+          let subToolTop = parseInt(subTools.getAttribute("settop"));
+          if (tooltipElement.hasAttribute("tool") == false) {
+            setLeft += subToolWidth;
+          } else if (mainSubtoolButton != null) {
+            if (setTop > subToolTop && setTop < subToolTop + parseInt(subTools.getAttribute("setheight"))) {
+              setLeft += subToolWidth;
+            }
+          }
+
+          tooltipText.style.top = setTop + "px";
+          tooltipText.style.left = setLeft + 6 + "px";
+        } else {
+          let barRect = tooltipText.parentElement.getBoundingClientRect();
+          let buttonRect = tooltipElement.getBoundingClientRect();
+
+          tooltipText.style.left = (buttonRect.left - barRect.left) + (tooltipElement.clientWidth / 2) - (tooltipText.clientWidth / 2) + "px";
+
+          if (tooltipText.parentElement.hasAttribute("tooltipbottom") == false) {
+            // Show tooltip on the top
+            tooltipText.style.transformOrigin = "center bottom";
+            tooltipText.style.top = -tooltipText.clientHeight - 6 + "px";
+          } else {
+            // Show tooltip on the bottom
+            tooltipText.style.transformOrigin = "center top";
+            tooltipText.style.top = tooltipText.parentElement.clientHeight + 6 + "px";
+          }
+        }
       }
     }
     let closeTooltipHover = async () => {
@@ -319,8 +345,8 @@ modules["editor/toolbar"] = {
       if (hoverElem == null) {
         return;
       }
-      element = hoverElem.closest("button[tool], button[subtool], button[option]");
-      if ((element == null || element.hasAttribute("tooltip") == false) && hoverElem.hasAttribute("keeptooltip") == false) {
+      element = hoverElem.closest("button[tool], button[subtool], button[option], button[action]");
+      if ((element == null || element.hasAttribute("tooltip") == false) && (hoverElem.closest("[keeptooltip]") == null || (element != null && element.hasAttribute("option") == true))) {
         tooltipElement = null;
         if (tooltipElement == null) {
           closeTooltipHover();
@@ -333,6 +359,14 @@ modules["editor/toolbar"] = {
       if (element.hasAttribute("selected") == true && element.hasAttribute("option") == true) {
         closeTooltipHover();
         return;
+      }
+      let toolbar = hoverElem.closest(".eToolbar .content");
+      if (toolbar != null && tooltipText.parentElement != toolbar) {
+        toolbar.appendChild(tooltipText);
+      }
+      toolbar = hoverElem.closest(".eSelectBar");
+      if (toolbar != null && tooltipText.parentElement != toolbar) {
+        toolbar.appendChild(tooltipText);
       }
       tooltipElement = element;
       tooltipText.textContent = element.getAttribute("tooltip");
@@ -823,7 +857,7 @@ modules["pages/editor/toolbar/cursor"] = {
             collabSelect.removeAttribute("notransition");
           }
         }
-        
+
         if (selectionIDs.length == 1) {
           if (select.querySelector('.eSelectTooltip[tooltip="topright"]') == null) {
             select.insertAdjacentHTML("beforeend", `
@@ -956,7 +990,7 @@ modules["pages/editor/toolbar/cursor"] = {
     }
 
     cursor.updateActionUI();
-    
+
     if (this.lastEditorZoom != editor.zoom || forceNoTransition == true || forceUpdate == true) {
       let allSelections = editor.page.querySelector(".eRealtime").querySelectorAll('.eCollabSelect');
       for (let i = 0; i < allSelections.length; i++) {
@@ -995,7 +1029,7 @@ modules["pages/editor/toolbar/cursor"] = {
   },
   updateActionUI: async function () {
     let editor = await getModule("pages/editor");
-    let utils = await getModule("pages/editor/annotation");
+    //let utils = await getModule("pages/editor/annotation");
     let content = editor.page.querySelector(".eContent");
     let selectionIDs = Object.keys(editor.selecting);
 
@@ -1004,7 +1038,7 @@ modules["pages/editor/toolbar/cursor"] = {
       if (this.checkX == null || this.checkY == null) {
         return;
       }
-      
+
       if (this.lastSelectCount != selectionIDs.length || this.lastPxCheckX != this.checkX || this.lastPxCheckY != this.checkY) {
         this.removeActionUI(actionUI);
         actionUI = null;
@@ -1040,7 +1074,7 @@ modules["pages/editor/toolbar/cursor"] = {
 
         // Create UI
         content.insertAdjacentHTML("beforeend", `<div class="eSelectBar" new>
-          <div class="eSelectHolder"></div>
+          <div class="eSelectHolder" keeptooltip></div>
           <div class="eActionContainer">
             <div class="eActionShadow"></div>
               <div class="eActionContainerHolder">
@@ -1107,6 +1141,21 @@ modules["pages/editor/toolbar/cursor"] = {
       //  yPos -= (yPos + actionUI.clientHeight + 8) - fixed.offsetHeight;
       //}
       actionUI.style.top = yPos + window.scrollY + "px";
+      
+      // Update Tooltip Position
+      if (isBottom == false) {
+        if (yPos - 38 - 4 < 66) {
+          actionUI.setAttribute("tooltipbottom", "");
+        } else {
+          actionUI.removeAttribute("tooltipbottom");
+        }
+      } else {
+        if (fixed.offsetHeight - yPos - actionUI.clientHeight - 38 - 4 < 66) {
+          actionUI.removeAttribute("tooltipbottom");
+        } else {
+          actionUI.setAttribute("tooltipbottom", "");
+        }
+      }
 
       // Update Action Frame UI
       let actionFrame = actionUI.querySelector(".eActionContainer[module]");
@@ -1141,18 +1190,20 @@ modules["pages/editor/toolbar/cursor"] = {
         }
 
         if (alignTop) {
-          if (frameLeft < 16) {
-            actionUI.style.borderTopLeftRadius = "0px";
-          } else {
-            actionUI.style.removeProperty("border-top-left-radius");
+          if (button != null) {
+            if (frameLeft < 16) {
+              actionUI.style.borderTopLeftRadius = "0px";
+            } else {
+              actionUI.style.removeProperty("border-top-left-radius");
+            }
+            if (frameLeft + actionContent.clientWidth > actionUI.clientWidth - 16) {
+              actionUI.style.borderTopRightRadius = "0px";
+            } else {
+              actionUI.style.removeProperty("border-top-right-radius");
+            }
+            actionUI.style.removeProperty("border-bottom-left-radius");
+            actionUI.style.removeProperty("border-bottom-right-radius");
           }
-          if (frameLeft + actionContent.clientWidth > actionUI.clientWidth - 16) {
-            actionUI.style.borderTopRightRadius = "0px";
-          } else {
-            actionUI.style.removeProperty("border-top-right-radius");
-          }
-          actionUI.style.removeProperty("border-bottom-left-radius");
-          actionUI.style.removeProperty("border-bottom-right-radius");
 
           if (actionFrame.hasAttribute("changetop") == false) {
             (async function () {
@@ -1173,18 +1224,20 @@ modules["pages/editor/toolbar/cursor"] = {
             })();
           }
         } else {
-          if (frameLeft < 16) {
-            actionUI.style.borderBottomLeftRadius = "0px";
-          } else {
-            actionUI.style.removeProperty("border-bottom-left-radius");
+          if (button != null) {
+            if (frameLeft < 16) {
+              actionUI.style.borderBottomLeftRadius = "0px";
+            } else {
+              actionUI.style.removeProperty("border-bottom-left-radius");
+            }
+            if (frameLeft + actionContent.clientWidth > actionUI.clientWidth - 16) {
+              actionUI.style.borderBottomRightRadius = "0px";
+            } else {
+              actionUI.style.removeProperty("border-bottom-right-radius");
+            }
+            actionUI.style.removeProperty("border-top-left-radius");
+            actionUI.style.removeProperty("border-top-right-radius");
           }
-          if (frameLeft + actionContent.clientWidth > actionUI.clientWidth - 16) {
-            actionUI.style.borderBottomRightRadius = "0px";
-          } else {
-            actionUI.style.removeProperty("border-bottom-right-radius");
-          }
-          actionUI.style.removeProperty("border-top-left-radius");
-          actionUI.style.removeProperty("border-top-right-radius");
 
           if (actionFrame.hasAttribute("changebottom") == false) {
             (async function () {
@@ -1214,7 +1267,7 @@ modules["pages/editor/toolbar/cursor"] = {
       actionUI = null;
     }
   },
-  clickAction: async function(event) {
+  clickAction: async function (event) {
     let editor = await getModule("pages/editor");
     let action = event.target.closest(".eTool");
     if (action == null || action.closest(".eSelectHolder") == null) {
@@ -1846,7 +1899,7 @@ modules["pages/editor/toolbar/drag"] = {
       }
 
       anno = target.closest(".eAnnotation, .eSelect, .eSelectActive");
-      
+
       selectX = clientPosition(event, "x") + window.scrollX;
       selectY = clientPosition(event, "y") + window.scrollY;
       if (anno != null) {
@@ -1867,7 +1920,7 @@ modules["pages/editor/toolbar/drag"] = {
       content.insertAdjacentHTML("beforeend", `<div class="eSelectDrag" tooleditor new></div>`);
       selection = content.querySelector(".eSelectDrag");
       selection.removeAttribute("new");
-      
+
       prevSelecting = JSON.parse(JSON.stringify(editor.selecting));
       updateSelectedBounds(event);
     }
@@ -2334,7 +2387,6 @@ modules["pages/editor/toolbar/pen"] = {
       let [page, number] = await utils.findPage(clientY);
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientY, number);
       let tempID = utils.tempID();
-      console.log(this.color, editor.preferences.tools.draw.color.selected)
       let newAnno = {
         _id: tempID,
         f: "draw",
@@ -3080,7 +3132,7 @@ modules["pages/editor/toolbar/thickness"] = {
     if (isModify) {
       selectedThickness = this.preferenceTool.t;
     }
-    
+
     let slider = frame.querySelector(".eSubToolThicknessSlider");
     let pointer = slider.querySelector("button");
     let input = frame.querySelector(".eSubToolThicknessInput");
@@ -3290,7 +3342,7 @@ modules["pages/editor/toolbar/delete"] = {
   button: `<svg width="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_673_23" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_673_23)"> <path d="M170.895 45H85.3463C67.613 45 53.7495 60.2992 55.4914 77.9467L65.9071 183.474C67.4224 198.827 80.3347 210.528 95.762 210.528H160.479C175.906 210.528 188.819 198.827 190.334 183.474L200.75 77.9467C202.492 60.2992 188.628 45 170.895 45Z" fill="white" stroke="white" stroke-width="34"/> <path d="M128.811 171.731L128.811 83.0442" stroke="#2F2F2F" stroke-width="14" stroke-linecap="round"/> <path d="M100.615 172.88L95.0507 83.8926" stroke="#2F2F2F" stroke-width="14" stroke-linecap="round"/> <path d="M156.256 172.88L161.82 83.8926" stroke="#2F2F2F" stroke-width="14" stroke-linecap="round"/> <path d="M170.895 51H85.3463C71.1597 51 60.0689 63.2393 61.4623 77.3574L71.8781 182.885C73.0903 195.167 83.4201 204.528 95.762 204.528H160.479C172.821 204.528 183.151 195.167 184.363 182.885L194.779 77.3574C196.172 63.2394 185.082 51 170.895 51Z" stroke="#2F2F2F" stroke-width="22"/> </g> </svg>`,
   tooltip: "Delete",
   css: {
-    '.eTool[action="pages/editor/toolbar/delete"]': `--hoverColor: var(--error)`
+    '.eTool[action="pages/editor/toolbar/delete"]': `--hoverColor: var(--error); --hoverTooltip: var(--error)`
   },
   js: async function (frame, toolID, extra) {
     let editor = await getModule("pages/editor");

@@ -586,13 +586,14 @@ modules["editor/realtime"] = {
                     } else {
                       original.render = { ...(original.render || {}), ...anno };
                       delete original.render.done;
-                      utils.saveEdit(anno);
+                      utils.saveEdit(anno, null, time);
                     }
                     original.render.sync = time;
                     utils.enableTimeout(annoID, original, null, true);
 
                     let selection;
                     //if (original.render._id.startsWith("pending_") == false) {
+                    if (anno.f == null || anno.sync != null) {
                       selection = realtimeHolder.querySelector('.eCollabSelect[member="' + memberID + '"][anno="' + annoID + '"]:not([old])');
                       if (selection == null) {
                         realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCollabSelect" member="${memberID}" new></div>`);
@@ -604,19 +605,18 @@ modules["editor/realtime"] = {
                         selection.style.transition = "all .25s, opacity .15s";
                         selection.style.opacity = 1;
                       }
-                    //}
+                    }
                     
                     let merge;
                     if (editor.selecting[annoID] == null) {
                       merge = original.render;
-                      utils.render(merge);
                       if (selection != null) {
                         selection.removeAttribute("notransition");
                       }
                     } else {
                       merge = { ...original.render, ...(editor.selecting[annoID] || {}) };
-                      utils.render(merge);
                     }
+                    utils.render(merge);
 
                     if (selection != null && original.render.remove == true && selection.hasAttribute("remove") == false) {
                       selection.setAttribute("remove", "");

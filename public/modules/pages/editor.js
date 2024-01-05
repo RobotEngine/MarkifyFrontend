@@ -812,6 +812,11 @@ modules["pages/editor"] = {
             if (selectBox != null) {
               selectBox.setAttribute("anno", anno._id);
             }
+            let allSelections = realtimeHolder.querySelectorAll('.eCollabSelect[anno="' + anno.pending + '"]');
+            for (let i = 0; i < allSelections.length; i++) {
+              allSelections[i].setAttribute("anno", anno._id);
+            }
+            
             existingAnno.render._id = anno._id;
             gottenRender.setAttribute("anno", anno._id);
             //delete this.annotations[anno.pending];
@@ -2745,6 +2750,10 @@ modules["pages/editor/annotation"] = {
     let anno = editor.page.querySelector('.eAnnotation[anno="' + annoID + '"]');
     if (anno != null && (checkDone != true || anno.hasAttribute("done") == false)) {
       anno.remove();
+    }
+    let allSelections = [...editor.page.querySelectorAll('.eSelect[anno="' + annoID + '"]'), ...editor.page.querySelectorAll('.eSelectActive[anno="' + annoID + '"]')];
+    for (let i = 0; i < allSelections.length; i++) {
+      allSelections[i].remove();
     }
   },
   enableTimeout: async function(annoID, anno, render, collab) {

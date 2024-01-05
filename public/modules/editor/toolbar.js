@@ -994,7 +994,7 @@ modules["pages/editor/toolbar/cursor"] = {
     }
 
     if (this.lastEditorZoom != editor.zoom || forceNoTransition == true || forceUpdate == true) {
-      let allSelections = editor.page.querySelector(".eRealtime").querySelectorAll('.eCollabSelect');
+      let allSelections = editor.page.querySelector(".eRealtime").querySelectorAll(".eCollabSelect");
       for (let i = 0; i < allSelections.length; i++) {
         let selection = allSelections[i];
         if (forceNoTransition == true) {
@@ -1006,6 +1006,9 @@ modules["pages/editor/toolbar/cursor"] = {
           continue;
         }
         let anno = { ...((editor.annotations[annoID]).render || {}), ...(editor.selecting[annoID] || {}) };
+        if (anno.f == null) {
+          continue;
+        }
         let border = 0;
         let annoHold = await utils.annoHolder(anno.page);
         if (annoHold.parentElement.parentElement.firstElementChild != annoHold.parentElement) {
@@ -1363,7 +1366,7 @@ modules["pages/editor/toolbar/cursor"] = {
         let utils = await getModule("pages/editor/annotation");
         let selectKeys = Object.keys(editor.selecting);
         let setKeys = Object.keys(set);
-        let sync = Date.now();
+        let sync = getEpoch();
         for (let i = 0; i < selectKeys.length; i++) {
           let annoID = selectKeys[i];
           let select = editor.selecting[annoID];
@@ -1701,13 +1704,18 @@ modules["pages/editor/toolbar/cursor"] = {
       let annoid = keys[i];
       let selecting = editor.selecting[annoid];
       let original = editor.annotations[annoid];
-      if (original == null || selecting == null) {
+      if (original != null && original.pointer != null) {
+        annoid = original.pointer;
+        original = editor.annotations[annoid];
+      }
+      if (original == null && selecting == null) {
         continue;
       }
 
-      if (original.render != null && original.render.page != null) {
-        let page = selecting.page || original.render.page;
-        let pos = selecting.p || original.render.p;
+      let originalRender = (original.render || {}) || selecting;
+      if (originalRender != null && originalRender.page != null) {
+        let page = selecting.page || originalRender.page;
+        let pos = selecting.p || originalRender.p;
         let currentPage = editor.page.querySelector('.ePage[pageid="' + page + '"]');
         if (currentPage != null) {
           let [page] = (await utils.findPage((pos[1] * editor.zoom) + currentPage.getBoundingClientRect().top));
@@ -3324,6 +3332,7 @@ modules["pages/editor/toolbar/duplicate"] = {
     let selectKeys = Object.keys(editor.selecting);
 
     let newSelect = {};
+    let setTempSync = getEpoch();
     for (let i = 0; i < selectKeys.length; i++) {
       let selectID = selectKeys[i];
       let tempID = utils.tempID();
@@ -3332,15 +3341,18 @@ modules["pages/editor/toolbar/duplicate"] = {
       newAnno.p = newAnno.p || [0, 0];
       newAnno.p[0] += 50;
       newAnno.p[1] += 50;
+      newAnno.sync = setTempSync;
       await utils.render(newAnno);
       editor.annotations[tempID] = { render: newAnno };
       newSelect[tempID] = newAnno;
       //await utils.save(newAnno);
     }
-    cursor.action = "save";
-    cursor.endAction();
 
     editor.selecting = newSelect;
+
+    cursor.action = "save";
+    await cursor.endAction();
+
     cursor.updateBox();
 
     //utils.forceShort();

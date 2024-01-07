@@ -17,8 +17,8 @@ modules["pages/editor"] = {
           <button class="eFileDropdown" dropdown="dropdowns/editor/file">File</button>
         </div>
         <div class="eTopSection">
-          <button class="eSaveProgress eUndo" disabled style="margin: 0 2px 0 4px; justify-content: end; border-radius: 16px 0 0 16px"><img src="./images/tooltips/progress/undo.svg"></button>
-          <button class="eSaveProgress eRedo" disabled style="margin: 0 4px 0 2px; justify-content: start; border-radius: 0 16px 16px 0"><img src="./images/tooltips/progress/redo.svg"></button>
+          <button class="eSaveProgress eUndo" disabled style="margin: 0 2px 0 4px; justify-content: end; border-radius: 16px 0 0 16px"><img draggable="false" src="./images/tooltips/progress/undo.svg"></button>
+          <button class="eSaveProgress eRedo" disabled style="margin: 0 4px 0 2px; justify-content: start; border-radius: 0 16px 16px 0"><img draggable="false" src="./images/tooltips/progress/redo.svg"></button>
           <img class="eConnection" src="./images/editor/top/connection.svg" style="object-position: -60px -4px" disabled>
           <div class="eStatus"></div>
         </div>

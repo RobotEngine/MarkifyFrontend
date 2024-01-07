@@ -30,6 +30,7 @@ modules["editor/realtime"] = {
     page.querySelector(".eMembers").removeAttribute("disabled");
     page.querySelector(".eShare").removeAttribute("disabled");
 
+    let cursorModule = await getModule("pages/editor/toolbar/cursor");
     let alert = await getModule("alert");
 
     editor.codeTextButton.setAttribute("dropdown", "dropdowns/editor/share/pin");
@@ -259,8 +260,9 @@ modules["editor/realtime"] = {
           if (mouseDown()) {
             sendExtra.press = true;
           }
-          if (Object.keys(editor.selecting).length > 0) {
-            sendExtra.select = editor.selecting;
+          let mergedSelect = { ...editor.selecting, ...editor.realtimeSelect };
+          if (Object.keys(mergedSelect).length > 0) {
+            sendExtra.select = mergedSelect;
           }
           if (editor.realtime.passthrough != null) {
             sendExtra = { ...sendExtra, ...editor.realtime.passthrough };
@@ -614,7 +616,8 @@ modules["editor/realtime"] = {
                         selection.removeAttribute("notransition");
                       }
                     } else {
-                      merge = { ...original.render, ...(editor.selecting[annoID] || {}) };
+                      merge = { ...(editor.selecting[annoID] || {}), ...original.render };
+                      cursorModule.updateActionUI(true);
                     }
                     utils.render(merge);
 

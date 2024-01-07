@@ -215,6 +215,7 @@ modules["pages/editor"] = {
     this.events = {};
     this.members = {};
     this.selecting = {};
+    this.realtimeSelect = {};
     this.memberCount = 0;
     this.active = document.visibilityState == "visible";
     this.syncMembers = async (memberUpd) => {
@@ -796,10 +797,14 @@ modules["pages/editor"] = {
           }
           */
           // CHECKS FOR IF SERVER VERSION IS AFTER LAST RECIEVED VERSION
-          if (existingAnno.serverSync == null || existingAnno.serverSync < anno.sync) {
+          if (existingAnno.serverSync == null) {
             existingAnno.serverSync = anno.sync;
             existingAnno.revert = anno;
           }
+          if (existingAnno.serverSync > anno.sync) {
+            return; // Discard event as it's old
+          }
+
           let gottenRender;
           // UPDATES _id IF IT WAS PENDING
           if (this.annotations[anno.pending] != null) {
@@ -815,6 +820,20 @@ modules["pages/editor"] = {
             let allSelections = realtimeHolder.querySelectorAll('.eCollabSelect[anno="' + anno.pending + '"]');
             for (let i = 0; i < allSelections.length; i++) {
               allSelections[i].setAttribute("anno", anno._id);
+            }
+            // Update Hisotry IDs:
+            for (let i = 0; i < utils.history.length; i++) {
+              let event = utils.history[i];
+              for (let c = 0; c < event.changes.length; c++) {
+                if (event.changes[c]._id == anno.pending) {
+                  event.changes[c]._id = anno._id;
+                }
+              }
+              for (let c = 0; c < event.redo.length; c++) {
+                if (event.redo[c]._id == anno.pending) {
+                  event.redo[c]._id = anno._id;
+                }
+              }
             }
             
             existingAnno.render._id = anno._id;
@@ -2553,8 +2572,15 @@ modules["pages/editor/annotation"] = {
     let annoHolder = await this.annoHolder(page);
     if (anno == null) {
       anno = editor.page.querySelector('.eAnnotation[anno="' + _id + '"]');
-      if (anno != null && anno.parentElement != annoHolder) {
-        annoHolder.appendChild(anno);
+      if (anno != null) {
+        let annotation = editor.annotations[anno.getAttribute("anno")] || {};
+        if (annotation.pointer != null) {
+          _id = annotation.pointer;
+          annotation.setAttribute("anno", _id);
+        }
+        if (anno.parentElement != annoHolder) {
+          annoHolder.appendChild(anno);
+        }
       }
     }
     if (editor.lesson.type != "freeboard" && annoHolder.parentElement.parentElement.firstElementChild != annoHolder.parentElement) {
@@ -2803,6 +2829,10 @@ modules["pages/editor/annotation"] = {
       return; // Only the _id field, no changes
     }
     let anno = editor.annotations[annoID] || { render: {} };
+    if (anno.pointer != null) {
+      annoID = anno.pointer;
+      anno = editor.annotations[annoID] || { render: {} };
+    }
     anno.revert = anno.revert || JSON.parse(JSON.stringify(anno.render));
     objectUpdate(annoData, anno.render);
     /*
@@ -2838,6 +2868,10 @@ modules["pages/editor/annotation"] = {
           delete mutt.annoRefresh;
         }
         let anno = editor.annotations[mutt._id];
+        if (anno != null && anno.pointer != null) {
+          mutt._id = anno.pointer;
+          anno = editor.annotations[mutt._id];
+        }
         if (anno != null) {
           if (anno.render != null) {
             delete anno.save;
@@ -2846,6 +2880,7 @@ modules["pages/editor/annotation"] = {
               this.enableTimeout(anno.render._id, anno);
             }
             if (mutt.f == null && mutt._id.startsWith("pending_") == true) {
+              // Annotation is still being saved, try again later!
               //anno.retry = true;
               mutt.annoRefresh = anno;
               setPendingSave[mutt._id] = mutt;
@@ -2890,22 +2925,53 @@ modules["pages/editor/annotation"] = {
     data = JSON.parse(JSON.stringify(data));
     let editor = await getModule("pages/editor");
     let annoID = data._id;
+    let annotation = editor.annotations[annoID] || { render: {} };
+    if (annotation.pointer != null) {
+      annoID = annotation.pointer;
+      data._id = annoID;
+      annotation = editor.annotations[annoID] || { render: {} };
+    }
+
     let mutations = await this.saveEdit(data, anno, sync);
     if (mutations == null) {
       return; // Nothing new to send!
     }
 
-    let annotation = editor.annotations[annoID];
     annotation.save = true; // Alert the system it's time to save
     annotation.render.sync = getEpoch();
     mutations.sync = annotation.render.sync;
     
+    let saveSync = { _id: annoID, ...(this.pendingSaves[annoID] || {}), ...mutations };
     if (connected == true) {
-      this.pendingSaves[annoID] = { _id: annoID, ...(this.pendingSaves[annoID] || {}), ...mutations };
+      this.pendingSaves[annoID] = saveSync;
       this.syncSave();
     } else {
       this.pendingSaves = {};
     }
+
+    // Handle History
+    /*
+    let pushFields = {}; //JSON.parse(JSON.stringify(saveSync));
+    let pushKeys = Object.keys(saveSync);
+    for (let i = 0; i < pushKeys.length; i++) {
+      pushFields[pushKeys[i]] = annotation.render[pushKeys[i]];
+    }
+    let lastHistory = this.history[this.history.length - 1];
+    if (lastHistory != null) {
+      if (lastHistory.sync == Math.floor(pushFields.sync / 1000)) {
+        // Combine with last history:
+        lastHistory.changes.push(pushFields);
+      }
+    }
+    if (Object.keys(pushFields).length > 0) {
+      this.history.push({
+        type: "save",
+        sync: Math.floor(pushFields.sync / 1000),
+        changes: [pushFields]
+      });
+    }
+    console.log(this.history);
+    */
 
     return mutations;
 
@@ -2926,5 +2992,69 @@ modules["pages/editor/annotation"] = {
       return;
     }
     await editor.realtime.module.publishShort(null, null, true);
+    editor.realtimeSelect = {};
+  },
+  history: [],
+  location: -1,
+  pushHistory: async function (type, changes, ignoreTime) {
+    //let editor = await getModule("pages/editor");
+    let utils = await getModule("pages/editor/annotation");
+
+    if (utils.history.length > 100) {
+      // If longer than 100, remove the first item to shrink under
+      utils.history.shift();
+      this.location--;
+    }
+    if (utils.location + 1 < utils.history.length) {
+      // Clear out redo history once undo in past
+      utils.history = utils.history.slice(0, utils.location + 1);
+    }
+
+    //console.log(type, changes);
+
+    /*if (type == "remove") {
+      for (let i = 0; i < changes.length; i++) {
+        changes[i].revert = JSON.parse(JSON.stringify((editor.annotations[changes[i]._id] || {}).render || {}));
+      }
+    }*/
+
+    let newChanges = JSON.parse(JSON.stringify(changes));
+
+    let pushHistory = true;
+    let lastHistory = utils.history[utils.location - 1];
+    if (lastHistory != null && ignoreTime != true) {
+      if (lastHistory.time > getEpoch() - 2000) { // 2 seconds
+        let lastIDs = [];
+        for (let i = 0; i < lastHistory.changes.length; i++) {
+          lastIDs.push(lastHistory.changes[i]._id);
+        }
+        let conflicts = false;
+        for (let i = 0; i < newChanges.length; i++) {
+          if (lastIDs.includes(newChanges[i]._id) == false) {
+            conflicts = true;
+            break;
+          }
+          lastIDs.splice(lastIDs.indexOf(newChanges[i]._id), 1);
+        }
+        if (conflicts == false && lastIDs.length < 1) {
+          lastHistory.changes = { ...lastHistory.changes, ...newChanges };
+          pushHistory = false;
+        }
+      }
+    }
+
+    if (pushHistory == true) {
+      utils.history.push({
+        type: type,
+        time: getEpoch(),
+        changes: newChanges,
+        redo: []
+      });
+      utils.location++;
+    }
+
+    if (utils.updateHistory != null) {
+      utils.updateHistory();
+    }
   }
 };

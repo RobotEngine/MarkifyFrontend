@@ -738,6 +738,156 @@ modules["editor/toolbar"] = {
     }
     this.updateToolbar();
 
+    // UNDO / REDO
+    let undoButton = editor.page.querySelector(".eUndo");
+    let redoButton = editor.page.querySelector(".eRedo");
+    utils.updateHistory = () => {
+      if (utils.history.length > 0 && utils.location > -1) {
+        undoButton.removeAttribute("disabled");
+      } else {
+        undoButton.setAttribute("disabled", "");
+      }
+      if (utils.history.length > utils.location + 1) {
+        redoButton.removeAttribute("disabled");
+      } else {
+        redoButton.setAttribute("disabled", "");
+      }
+    }
+    undoButton.addEventListener("click", async () => {
+      let event = utils.history[utils.location];
+      if (event == null) {
+        return;
+      }
+      let addRedo = event.redo.length < 1;
+      let sync = getEpoch();
+      switch (event.type) {
+        case "update":
+          for (let i = 0; i < event.changes.length; i++) {
+            let change = event.changes[i];
+            if (addRedo) {
+              let changeKeys = Object.keys(change);
+              let annotation = (editor.annotations[change._id] || {}).render || {};
+              let redoAnno = { _id: change._id };
+              for (let u = 0; u < changeKeys.length; u++) {
+                redoAnno[changeKeys[u]] = annotation[changeKeys[u]];
+              }
+              event.redo.push(JSON.parse(JSON.stringify(redoAnno)));
+            }
+            if (editor.selecting[event.redo[i]._id] != null) {
+              editor.selecting[event.changes[i]._id] = { ...editor.selecting[event.changes[i]._id], ...change };
+            } else {
+              editor.realtimeSelect[change._id] = { ...change, done: true };
+            }
+            await utils.save(change, null, sync);
+          }
+          break;
+        case "remove":
+          for (let i = 0; i < event.changes.length; i++) {
+            let change = { remove: true };
+            let changeID = event.changes[i]._id;
+            let annotation = (editor.annotations[changeID] || {}).render || {};
+            if (addRedo) {
+              event.redo.push(JSON.parse(JSON.stringify(annotation)));
+            }
+            editor.realtimeSelect[changeID] = { ...change, done: true };
+            console.log(changeID)
+            await utils.save({ _id: changeID, ...change }, null, sync);
+            delete editor.selecting[changeID];
+          }
+          break;
+        case "add":
+          for (let i = 0; i < event.changes.length; i++) {
+            let saveAnno = event.changes[i];
+            let oldID = saveAnno._id;
+            //delete editor.annotations[oldID];
+            let tempID = utils.tempID();
+            for (let h = 0; h < utils.history.length; h++) {
+              let event = utils.history[h];
+              for (let c = 0; c < event.changes.length; c++) {
+                if (event.changes[c]._id == oldID) {
+                  event.changes[c]._id = tempID;
+                }
+              }
+              for (let c = 0; c < event.redo.length; c++) {
+                if (event.redo[c]._id == oldID) {
+                  event.redo[c]._id = tempID;
+                }
+              }
+            }
+            if (addRedo) {
+              event.redo.push({ remove: true, _id: tempID });
+            }
+            editor.realtimeSelect[tempID] = { ...saveAnno, done: true };
+            await utils.save({ ...saveAnno, _id: tempID }, null, sync);
+          }
+      }
+      await utils.forceShort();
+
+      utils.location--; // Remove one from location
+      utils.updateHistory();
+
+      await cursorModule.updateBox();
+      await cursorModule.updateActionUI(true);
+    });
+    redoButton.addEventListener("click", async () => {
+      utils.location++; // Add one to location
+      let event = utils.history[utils.location];
+      if (event == null) {
+        return;
+      }
+      let sync = getEpoch();
+      switch (event.type) {
+        case "update":
+          for (let i = 0; i < event.redo.length; i++) {
+            let change = event.redo[i];
+            if (editor.selecting[event.redo[i]._id] != null) {
+              editor.selecting[event.redo[i]._id] = { ...editor.selecting[event.redo[i]._id], ...change };
+            } else {
+              editor.realtimeSelect[change._id] = { ...change, done: true };
+            }
+            await utils.save(change, null, sync);
+          }
+          break;
+        case "remove": // Sort of Add
+          for (let i = 0; i < event.redo.length; i++) {
+            let saveAnno = event.redo[i];
+            let oldID = saveAnno._id;
+            //delete editor.annotations[oldID];
+            let tempID = utils.tempID();
+            for (let h = 0; h < utils.history.length; h++) {
+              let event = utils.history[h];
+              for (let c = 0; c < event.redo.length; c++) {
+                if (oldID == event.redo[c]._id) {
+                  event.redo[c]._id = tempID;
+                }
+              }
+              for (let c = 0; c < event.changes.length; c++) {
+                if (oldID == event.changes[c]._id) {
+                  event.changes[c]._id = tempID;
+                }
+              }
+            }
+            editor.realtimeSelect[tempID] = { ...saveAnno, done: true };
+            await utils.save({ ...saveAnno, _id: tempID }, null, sync);
+          }
+          break;
+        case "add": // Sort of Remove
+          for (let i = 0; i < event.redo.length; i++) {
+            let change = { remove: true };
+            let changeID = event.redo[i]._id;
+            editor.realtimeSelect[changeID] = { ...change, done: true };
+            await utils.save({ _id: changeID, ...change }, null, sync);
+            delete editor.selecting[changeID];
+          }
+      }
+      await utils.forceShort();
+
+      utils.updateHistory();
+
+      await cursorModule.updateBox();
+      await cursorModule.updateActionUI(true);
+    });
+
     //frame.closest(".eSide").style.opacity = 1;
   }
 }
@@ -1032,7 +1182,7 @@ modules["pages/editor/toolbar/cursor"] = {
     "draw": ["pages/editor/toolbar/color", "pages/editor/toolbar/thickness", "pages/editor/toolbar/opacity", "pages/editor/toolbar/duplicate", "pages/editor/toolbar/delete"],
     "markup": ["pages/editor/toolbar/color", "pages/editor/toolbar/thickness", "pages/editor/toolbar/duplicate", "pages/editor/toolbar/delete"]
   },
-  updateActionUI: async function () {
+  updateActionUI: async function (refresh) {
     let editor = await getModule("pages/editor");
     //let utils = await getModule("pages/editor/annotation");
     let content = editor.page.querySelector(".eContent");
@@ -1048,7 +1198,7 @@ modules["pages/editor/toolbar/cursor"] = {
       for (let i = 0; i < selectionIDs.length; i++) {
         testSelections += selectionIDs[i];
       }
-      if (this.lastSelections != testSelections || this.lastPxCheckX != this.checkX || this.lastPxCheckY != this.checkY) {
+      if (this.lastSelections != testSelections || this.lastPxCheckX != this.checkX || this.lastPxCheckY != this.checkY || refresh == true) {
         this.removeActionUI(actionUI);
         actionUI = null;
       }
@@ -1367,6 +1517,9 @@ modules["pages/editor/toolbar/cursor"] = {
         let selectKeys = Object.keys(editor.selecting);
         let setKeys = Object.keys(set);
         let sync = getEpoch();
+        let saveUpdates = [];
+        let pushChanges = [];
+        let pushRemoves = [];
         for (let i = 0; i < selectKeys.length; i++) {
           let annoID = selectKeys[i];
           let select = editor.selecting[annoID];
@@ -1382,7 +1535,28 @@ modules["pages/editor/toolbar/cursor"] = {
             continue;
           }
           editor.selecting[annoID] = { ...select, ...set };
-          utils.save({ _id: annoID, ...select, ...set }, null, sync);
+          saveUpdates.push({ ...select, ...set, _id: annoID });
+          let changeKeys = Object.keys(set);
+          let pushFields = {};
+          for (let f = 0; f < changeKeys.length; f++) {
+            pushFields[changeKeys[f]] = anno[changeKeys[f]];
+          }
+          if (Object.keys(pushFields).length > 0) {
+            if (set.remove != true) {
+              pushChanges.push(JSON.parse(JSON.stringify({ ...pushFields, _id: annoID })));
+            } else {
+              pushRemoves.push(JSON.parse(JSON.stringify(anno)));
+            }
+          }
+        }
+        if (pushChanges.length > 0) {
+          await utils.pushHistory("update", pushChanges);
+        }
+        if (pushRemoves.length > 0) {
+          await utils.pushHistory("add", pushRemoves);
+        }
+        for (let i = 0; i < saveUpdates.length; i++) {
+          utils.save(saveUpdates[i], null, sync);
         }
         //await utils.forceShort();
       },
@@ -1700,6 +1874,9 @@ modules["pages/editor/toolbar/cursor"] = {
 
     // Save Revert
     let keys = Object.keys(editor.selecting);
+    let saveUpdates = [];
+    let pushChanges = [];
+    let pushAdds = [];
     for (let i = 0; i < keys.length; i++) {
       let annoid = keys[i];
       let selecting = editor.selecting[annoid];
@@ -1734,8 +1911,29 @@ modules["pages/editor/toolbar/cursor"] = {
       }
 
       delete selecting.done;
-      await utils.save({ _id: annoid, ...selecting }, null, setTempSync);
+      let changeKeys = Object.keys(selecting);
+      let pushFields = {};
+      for (let f = 0; f < changeKeys.length; f++) {
+        pushFields[changeKeys[f]] = originalRender[changeKeys[f]];
+      }
+      if (Object.keys(pushFields).length > 0) {
+        if (pushFields.f == null) {
+          pushChanges.push(JSON.parse(JSON.stringify({ ...pushFields, _id: annoid })));
+        } else {
+          pushAdds.push({ _id: annoid, remove: true });
+        }
+      }
+      saveUpdates.push(JSON.parse(JSON.stringify({ ...selecting, _id: annoid })));
       selecting.done = true;
+    }
+    if (pushChanges.length > 0) {
+      await utils.pushHistory("update", pushChanges, true);
+    }
+    if (pushAdds.length > 0) {
+      await utils.pushHistory("remove", pushAdds, true);
+    }
+    for (let i = 0; i < saveUpdates.length; i++) {
+      await utils.save(saveUpdates[i], null, setTempSync);
     }
     await utils.forceShort();
     for (let i = 0; i < keys.length; i++) {
@@ -2192,7 +2390,8 @@ modules["pages/editor/toolbar/highlighter"] = {
       }
 
       utils.save(markup, anno);
-
+      utils.pushHistory("remove", [{ _id: markup._id }]);
+      
       markup.done = true; // Alert other clients that this annotation is done
       await utils.forceShort();
       delete editor.selecting[markup._id];
@@ -2299,6 +2498,7 @@ modules["pages/editor/toolbar/underline"] = {
       }
 
       utils.save(markup, anno);
+      utils.pushHistory("remove", [{ _id: markup._id }]);
 
       markup.done = true; // Alert other clients that this annotation is done
       await utils.forceShort();
@@ -2499,6 +2699,7 @@ modules["pages/editor/toolbar/pen"] = {
       draw.d = this.simplifyPath(draw.d, .75 / editor.zoom);
 
       utils.save(draw, anno);
+      utils.pushHistory("remove", [{ _id: draw._id }]);
 
       draw.done = true; // Alert other clients that this annotation is done
       await utils.forceShort();
@@ -2611,6 +2812,7 @@ modules["pages/editor/toolbar/eraser"] = {
                 for (let i = 1; i < points.numberOfItems; i++) {
                   if (isPointOnLine(x + 100, y + 100, points.getItem(i - 1).x, points.getItem(i - 1).y, points.getItem(i).x, points.getItem(i).y, (parseInt(drawing.getAttribute("stroke-width")) / 2) + 10)) {
                     anno.setAttribute("hidden", "");
+                    await utils.pushHistory("add", [(editor.annotations[annoID].render || {})]);
                     let updateAnno = { _id: annoID, remove: true };
                     utils.save(updateAnno, anno);
                     this.publish.u = updateAnno;
@@ -2809,6 +3011,9 @@ modules["pages/editor/toolbar/color"] = {
     }
     let toolPref = preferences[toolID];
     let selectedColor = toolPref.color.selected;
+    if (this.preferenceTool.c != null) {
+      selectedColor = this.preferenceTool.c;
+    }
 
     let colorButtons = frame.querySelector(".eSubToolColorSelector").children;
     let selected = false;
@@ -3377,6 +3582,5 @@ modules["pages/editor/toolbar/delete"] = {
     await utils.forceShort();
     editor.selecting = {};
     cursor.updateBox();
-
   }
 };

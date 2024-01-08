@@ -2792,6 +2792,8 @@ modules["pages/editor/annotation"] = {
         svg.setAttribute("viewBox", "0 0 " + (width + (this.SVG_PADDING*2)) + " " + (height + (this.SVG_PADDING*2)));
         
         let elem;
+        let widthT;
+        let heightT;
         switch (d) {
           case "square":
             elem = svg.querySelector("rect");
@@ -2824,9 +2826,53 @@ modules["pages/editor/annotation"] = {
               elem = svg.querySelector("polygon");
               elem.setAttribute("stroke-linejoin", "round");
             }
-            let widthT = width - t;
-            let heightT = height - t;
+            widthT = width - t;
+            heightT = height - t;
             elem.setAttribute("points", ((widthT / 2) + this.SVG_PADDING + halfT) + "," + (this.SVG_PADDING + halfT) + " " + (this.SVG_PADDING + halfT) + "," + (heightT + this.SVG_PADDING + halfT) + " " + (widthT + this.SVG_PADDING + halfT) + "," + (heightT + this.SVG_PADDING + halfT));
+            break;
+          case "parallelogram":
+            elem = svg.querySelector("polygon");
+            if (elem == null) {
+              svg.innerHTML = "<polygon/>";
+              elem = svg.querySelector("polygon");
+              elem.setAttribute("stroke-linejoin", "round");
+            }
+            widthT = width - t;
+            heightT = height - t;
+            elem.setAttribute("points", (this.SVG_PADDING + halfT + (widthT * .2)) + "," + (this.SVG_PADDING + halfT) + " " + (widthT + this.SVG_PADDING + halfT) + "," + (this.SVG_PADDING + halfT) + " " + (widthT + this.SVG_PADDING + halfT - (widthT * .2)) + "," + (heightT + this.SVG_PADDING + halfT) + " " + (this.SVG_PADDING + halfT) + "," + (heightT + this.SVG_PADDING + halfT));
+            break;
+          case "trapezoid":
+            elem = svg.querySelector("polygon");
+            if (elem == null) {
+              svg.innerHTML = "<polygon/>";
+              elem = svg.querySelector("polygon");
+              elem.setAttribute("stroke-linejoin", "round");
+            }
+            widthT = width - t;
+            heightT = height - t;
+            elem.setAttribute("points", (this.SVG_PADDING + halfT + (widthT * .2)) + "," + (this.SVG_PADDING + halfT) + " " + (widthT + this.SVG_PADDING + halfT - (widthT * .2)) + "," + (this.SVG_PADDING + halfT) + " " + (widthT + this.SVG_PADDING + halfT) + "," + (heightT + this.SVG_PADDING + halfT) + " " + (this.SVG_PADDING + halfT) + "," + (heightT + this.SVG_PADDING + halfT));
+            break;
+          case "rhombus":
+            elem = svg.querySelector("polygon");
+            if (elem == null) {
+              svg.innerHTML = "<polygon/>";
+              elem = svg.querySelector("polygon");
+              elem.setAttribute("stroke-linejoin", "round");
+            }
+            widthT = width - t;
+            heightT = height - t;
+            elem.setAttribute("points", (this.SVG_PADDING + halfT + (widthT * .5)) + "," + (this.SVG_PADDING + halfT) + " " + (widthT + this.SVG_PADDING + halfT) + "," + (this.SVG_PADDING + halfT + (heightT * .5)) + " " + (this.SVG_PADDING + halfT + (widthT * .5)) + "," + (heightT + this.SVG_PADDING + halfT) + " " + (this.SVG_PADDING + halfT) + "," + (this.SVG_PADDING + halfT + (heightT * .5)));
+            break;
+          case "line":
+            elem = svg.querySelector("polygon");
+            if (elem == null) {
+              svg.innerHTML = "<polygon/>";
+              elem = svg.querySelector("polygon");
+              elem.setAttribute("stroke-linejoin", "round");
+            }
+            widthT = width - t;
+            heightT = height - t;
+            elem.setAttribute("points", (widthT + this.SVG_PADDING + halfT) + "," + (this.SVG_PADDING + halfT) + " " + (this.SVG_PADDING + halfT) + "," + (heightT + this.SVG_PADDING + halfT));
         }
 
         elem.setAttribute("stroke-width", t);

@@ -526,6 +526,7 @@ modules["pages/editor"] = {
             if (member._id == this.sessionID) { // Self
               if (body.access != null) {
                 if (body.access == 1) { // Alert editor
+                  this.realtime.module.exitObserve(); // Exit observe mode
                   alertModule.open("info", "<b>You're Now an Editor</b>You've been granted editing access to markup the lesson!");
                 }
                 this.updateInterface();

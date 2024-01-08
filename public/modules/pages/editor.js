@@ -2595,7 +2595,7 @@ modules["pages/editor/annotation"] = {
     if (anno != null && anno.parentElement != annoHolder) {
       annoHolder.appendChild(anno);
     }
-    if (editor.lesson.type != "freeboard" && annoHolder.parentElement.parentElement.firstElementChild != annoHolder.parentElement) {
+    if (annoHolder.parentElement.parentElement.firstElementChild != annoHolder.parentElement) {
       y -= 4;
     }
     if (width < 0) {

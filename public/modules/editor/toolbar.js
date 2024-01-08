@@ -2355,6 +2355,9 @@ modules["pages/editor/toolbar/highlighter"] = {
       let clientY = clientPosition(event, "y");
       let [page, number] = await utils.findPage(clientY);
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientY, number);
+      if (editor.lesson.type == "freeboard") {
+        y += 4;
+      }
       let tempID = utils.tempID();
       let newAnno = {
         _id: tempID,
@@ -2507,6 +2510,9 @@ modules["pages/editor/toolbar/underline"] = {
       let clientY = clientPosition(event, "y");
       let [page, number] = await utils.findPage(clientY);
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientY, number);
+      if (editor.lesson.type == "freeboard") {
+        y += 4;
+      }
       let thickness = utils.round(Math.max(this.thickness / 4, 1));
       let tempID = utils.tempID();
       let newAnno = {
@@ -2682,6 +2688,9 @@ modules["pages/editor/toolbar/pen"] = {
       let clientY = clientPosition(event, "y");
       let [page, number] = await utils.findPage(clientY);
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientY, number);
+      if (editor.lesson.type == "freeboard") {
+        y += 4;
+      }
       let tempID = utils.tempID();
       let newAnno = {
         _id: tempID,
@@ -3001,6 +3010,9 @@ modules["pages/editor/toolbar/shape"] = {
       clientY = clientPosition(event, "y") || clientY;
       let [page, number] = await utils.findPage(clientY);
       let { x, y } = await utils.scaleToDoc(clientX, clientY, number);
+      if (editor.lesson.type == "freeboard") {
+        y += 4;
+      }
       shape.p = [utils.round(x - (shape.s[0] / 2) - shape.t), utils.round(y - (shape.s[1] / 2) - shape.t)];
       if (page != null && page.hasAttribute("pageid") == true) {
         shape.page = page.getAttribute("pageid");

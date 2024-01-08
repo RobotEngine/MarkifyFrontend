@@ -827,7 +827,7 @@ modules["editor/toolbar"] = {
       utils.updateHistory();
 
       await cursorModule.updateBox();
-      await cursorModule.updateActionUI(true);
+      await cursorModule.redrawActionUI();
     });
     redoButton.addEventListener("click", async () => {
       utils.location++; // Add one to location
@@ -885,7 +885,7 @@ modules["editor/toolbar"] = {
       utils.updateHistory();
 
       await cursorModule.updateBox();
-      await cursorModule.updateActionUI(true);
+      await cursorModule.redrawActionUI();
     });
 
     //frame.closest(".eSide").style.opacity = 1;
@@ -1426,6 +1426,51 @@ modules["pages/editor/toolbar/cursor"] = {
       actionUI = null;
     }
   },
+  redrawActionUI: async function () {
+    let editor = await getModule("pages/editor");
+    //let utils = await getModule("pages/editor/annotation");
+    let content = editor.page.querySelector(".eContent");
+    
+    let actionUI = content.querySelector(".eSelectBar:not([remove])");
+    if (actionUI == null) {
+      return;
+    }
+
+    await this.updateActionUI(); // Update it first if their are selection changes
+
+    // Update buttons:
+    let actionButtonHolder = actionUI.querySelector(".eSelectHolder");
+    for (let i = 0; i < actionButtonHolder.children.length; i++) {
+      let button = actionButtonHolder.children[i];
+      let actionName = button.getAttribute("action");
+      if (actionName == null) {
+        continue;
+      }
+      let module = await getModule(actionName);
+      if (module == null) {
+        continue;
+      }
+      let buttonHolder = button.querySelector("div");
+      buttonHolder.innerHTML = module.button;
+      if (module.setButton != null) {
+        module.setButton(editor, actionUI);
+      }
+    }
+
+    // Update current module:
+    let actionFrame = actionUI.querySelector(".eActionContainer[module]");
+    if (actionFrame != null) {
+      let actionContent = actionFrame.querySelector(".eActionContainerContent");
+      let module = await getModule(actionFrame.getAttribute("module"));
+      if (module != null && module.html != null) {
+        actionContent.innerHTML = module.html;
+        let selectKeys = Object.keys(editor.selecting);
+        let preferenceTool = ((editor.annotations[selectKeys[0]] || {}).render || {}).f;
+        await this.runActionModule(module, actionUI, preferenceTool);
+      }
+      this.updateActionUI();
+    }
+  },
   clickAction: async function (event) {
     let editor = await getModule("pages/editor");
     let toolbarModule = await getModule("editor/toolbar");
@@ -1469,7 +1514,7 @@ modules["pages/editor/toolbar/cursor"] = {
     let module = await getModule(moduleID);
     let selectKeys = Object.keys(editor.selecting);
     let preferenceTool = ((editor.annotations[selectKeys[0]] || {}).render || {}).f;
-    if (module.html != null) {
+    if (module != null && module.html != null) {
       contentFrame.innerHTML = module.html;
       action.setAttribute("selected", "");
       if (actionHolder.hasAttribute("module") == false) {
@@ -1508,6 +1553,10 @@ modules["pages/editor/toolbar/cursor"] = {
       })();
     }
     toolbarModule.updateTooltipHover();
+    await this.runActionModule(module, holder, preferenceTool);
+    this.updateActionUI();
+  },
+  runActionModule: async function (module, holder, preferenceTool) {
     await module.js(holder, preferenceTool, {
       frame: holder,
       updateActionUI: () => { this.updateActionUI(); },
@@ -1571,7 +1620,6 @@ modules["pages/editor/toolbar/cursor"] = {
         }
       }
     });
-    this.updateActionUI();
   },
   removeActionUI: async function (actionUI) {
     if (actionUI == null) {
@@ -2996,6 +3044,7 @@ modules["pages/editor/toolbar/color"] = {
   },
   js: async function (frame, toolID, extra) {
     let editor = await getModule("pages/editor");
+    let utils = await getModule("pages/editor/annotation");
     let selecting = editor.selecting;
     let selectKeys = Object.keys(selecting);
     let isModify = extra != null && selectKeys.length > 0;
@@ -3063,6 +3112,7 @@ modules["pages/editor/toolbar/color"] = {
           editor.toolbar.closeSubSubtoolUI();
         } else {
           await extra.saveSelecting({ c: setColor });
+          utils.forceShort(); // Make sure other users see the color change (no mouse movement)
           extra.updateToolActions(extra.frame);
           runColorSelections();
         }

@@ -559,6 +559,7 @@ modules["editor/realtime"] = {
                   }
                 }
                 if (selectKeys.length > 0) {
+                  let userSelecting = false;
                   for (let i = 0; i < selectKeys.length; i++) {
                     let annoID = selectKeys[i];
                     let anno = extra.select[annoID] || {};
@@ -617,7 +618,7 @@ modules["editor/realtime"] = {
                       }
                     } else {
                       merge = { ...(editor.selecting[annoID] || {}), ...original.render };
-                      cursorModule.updateActionUI(true);
+                      userSelecting = true;
                     }
                     utils.render(merge);
 
@@ -660,6 +661,9 @@ modules["editor/realtime"] = {
                       selection.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
                       selection.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
                     }
+                  }
+                  if (userSelecting == true) {
+                    cursorModule.redrawActionUI(); // Only refresh if user is selecting
                   }
                   member.selecting = selectKeys;
                   editor.updateZoom();

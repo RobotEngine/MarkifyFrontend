@@ -605,7 +605,8 @@ modules["pages/editor"] = {
           sources = { ...sources, ...getObject(body.sources || [], "_id") };
           await this.addSources(data.data.sources || []);
           await this.addPages(data.data.pages || []);
-          this.updatePages();
+          await this.updatePages();
+          await utils.resetAnnotationSize();
           break;
         case "invite":
           if (this.emailInvite != null) {

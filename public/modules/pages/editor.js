@@ -797,13 +797,11 @@ modules["pages/editor"] = {
           }
           */
           // CHECKS FOR IF SERVER VERSION IS AFTER LAST RECIEVED VERSION
-          if (existingAnno.serverSync == null) {
-            existingAnno.serverSync = anno.sync;
-            existingAnno.revert = anno;
-          }
           if (existingAnno.serverSync > anno.sync) {
             return; // Discard event as it's old
           }
+          existingAnno.serverSync = anno.sync;
+          existingAnno.revert = anno;
 
           let gottenRender;
           // UPDATES _id IF IT WAS PENDING
@@ -852,6 +850,15 @@ modules["pages/editor"] = {
           if (this.selecting[anno.pending] != null) {
             this.selecting[anno._id] = JSON.parse(JSON.stringify(this.selecting[anno.pending]));
             delete this.selecting[anno.pending];
+
+            let cursorModule = await getModule("pages/editor/toolbar/cursor");
+            if (cursorModule != null) {
+              let selectionIDs = Object.keys(this.selecting);
+              cursorModule.lastSelections = "";
+              for (let i = 0; i < selectionIDs.length; i++) {
+                cursorModule.lastSelections += selectionIDs[i];
+              }
+            }
           }
           // CHECKS IF SERVER IS AFTER LAST SHORT EDIT SYNC
           if (existingAnno.render.sync > anno.sync) {
@@ -2804,6 +2811,17 @@ modules["pages/editor/annotation"] = {
             elem.setAttribute("cy", this.SVG_PADDING + (height / 2));
             elem.setAttribute("rx", Math.max(Math.abs(width - t) / 2, 5));
             elem.setAttribute("ry", Math.max(Math.abs(height - t) / 2, 5));
+            break;
+          case "triangle":
+            elem = svg.querySelector("polygon");
+            if (elem == null) {
+              svg.innerHTML = "<polygon/>";
+              elem = svg.querySelector("polygon");
+              elem.setAttribute("stroke-linejoin", "round");
+            }
+            let widthT = width - t;
+            let heightT = height - t;
+            elem.setAttribute("points", ((widthT / 2) + this.SVG_PADDING + halfT) + "," + (this.SVG_PADDING + halfT) + " " + (this.SVG_PADDING + halfT) + "," + (heightT + this.SVG_PADDING + halfT) + " " + (widthT + this.SVG_PADDING + halfT) + "," + (heightT + this.SVG_PADDING + halfT));
         }
 
         elem.setAttribute("stroke-width", t);
@@ -2889,9 +2907,11 @@ modules["pages/editor/annotation"] = {
       if (editor.page != page) {
         return;
       }
+      /*
       if (editor.selecting[anno.render._id] != null) {
         return;
       }
+      */
       if (anno.render._id.includes("pending_") == false) { // Means its a new anno
         delete anno.retry;
         if (anno.revert != null) {

@@ -563,9 +563,6 @@ modules["editor/realtime"] = {
                   for (let i = 0; i < selectKeys.length; i++) {
                     let annoID = selectKeys[i];
                     let anno = extra.select[annoID] || {};
-                    if (anno._id == null) {
-                      anno._id = annoID;
-                    }
                     let merge;
                     let annoElem;
                     let original;
@@ -581,6 +578,7 @@ modules["editor/realtime"] = {
                         annoID = original.pointer;
                         original = editor.annotations[annoID];
                       }
+                      anno._id = annoID;
                       if (original == null && annoID.startsWith("pending_") == true) {
                         editor.annotations[annoID] = {};
                         original = editor.annotations[annoID];
@@ -597,7 +595,7 @@ modules["editor/realtime"] = {
                         }
                       }
                       */
-                      if (anno.done != true) {
+                      if (anno.done != true && forced != true) {
                         original.render = { ...(original.render || {}), ...anno };
                       } else {
                         original.render = { ...(original.render || {}), ...anno };

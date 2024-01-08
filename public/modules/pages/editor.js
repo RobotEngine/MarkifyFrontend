@@ -139,10 +139,10 @@ modules["pages/editor"] = {
     ".ePageRearrange": `position: absolute; display: flex; width: 28px; height: 28px; padding: 4px; right: 8px; bottom: 8px; pointer-events: all; z-index: 2; background: rgba(180, 218, 253, 0.75); backdrop-filter: blur(2px); border-radius: 18px; overflow: hidden`, //transform: scale(var(--fixedUIScale));
     ".ePageRearrange div": `margin-left: 6px`,
     ".eAnnotation": `position: absolute`,
-    '.eAnnotation:not([anno^="pending_"])': `transition: .25s`,
+    '.eAnnotation[anno]:not([anno^="pending_"])': `transition: .25s`,
     //'.eAnnotation:not([selected]):not([anno^="pending_"])': `transition: .25s`,
     ".eAnnotation svg": `position: absolute; width: calc(100% + 200px); height: calc(100% + 200px); left: -100px; top: -100px; pointer-events: none`,
-    ".eAnnotation svg polyline": `pointer-events: stroke`,
+    ".eAnnotation svg > *": `pointer-events: stroke`,
 
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 100; overflow: hidden; pointer-events: none`
   },
@@ -837,12 +837,16 @@ modules["pages/editor"] = {
             }
             
             existingAnno.render._id = anno._id;
-            gottenRender.setAttribute("anno", anno._id);
             //delete this.annotations[anno.pending];
             this.annotations[anno._id] = existingAnno;
             this.annotations[anno.pending] = { pointer: anno._id };
             existingAnno = this.annotations[anno._id];
             existingAnno.pending = anno.pending;
+
+            if (gottenRender != null) {
+              gottenRender.setAttribute("anno", anno._id);
+            }
+
             await utils.enableTimeout(anno._id, existingAnno, gottenRender);
           }
           if (this.selecting[anno.pending] != null) {
@@ -2555,6 +2559,7 @@ modules["pages/editor/annotation"] = {
     page - PAGE - Page of annotation
     s - SIZE - Size of annotation - [ WIDTH, HEIGHT ]
     c - COLOR - Color of annotation
+    i - INSIDE COLOR - Color of fill
     t - THICKNESS - Thickness of annotation
     o - OPACITY - Opacity of annotation
     d - DATA - Data, can change based on annotation, path of pen for example
@@ -2563,7 +2568,7 @@ modules["pages/editor/annotation"] = {
       return;
     }
     let editor = await getModule("pages/editor");
-    let { _id, f, page, p, s, c, t, o, d, done, remove, sync } = data;
+    let { _id, f, page, p, s, c, i, t, o, d, done, remove, sync } = data;
     let [x, y] = p || [];
     let [width, height] = s || [];
     if (page != null && editor.loadedIn.includes(page) == false && long != true) {
@@ -2576,12 +2581,12 @@ modules["pages/editor/annotation"] = {
         let annotation = editor.annotations[anno.getAttribute("anno")] || {};
         if (annotation.pointer != null) {
           _id = annotation.pointer;
-          annotation.setAttribute("anno", _id);
-        }
-        if (anno.parentElement != annoHolder) {
-          annoHolder.appendChild(anno);
+          anno.setAttribute("anno", _id);
         }
       }
+    }
+    if (anno != null && anno.parentElement != annoHolder) {
+      annoHolder.appendChild(anno);
     }
     if (editor.lesson.type != "freeboard" && annoHolder.parentElement.parentElement.firstElementChild != annoHolder.parentElement) {
       y -= 4;
@@ -2597,7 +2602,8 @@ modules["pages/editor/annotation"] = {
     let svg;
     let path;
     let drawSetPoints = "";
-    let halfT = t / 2;
+    let transform;
+    let halfT = (t || 0) / 2;
     switch (f) {
       case "markup":
         if (anno == null) {
@@ -2737,6 +2743,89 @@ modules["pages/editor/annotation"] = {
         path.setAttribute("stroke", "#" + c);
         path.setAttribute("opacity", o / 100);
         break;
+      case "shape":
+        if (anno == null) {
+          annoHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
+            <svg xmlns="http://www.w3.org/2000/svg"></svg>
+          </div>`);
+          anno = annoHolder.querySelector(".eAnnotation[new]");
+          anno.removeAttribute("new");
+          /*
+          let polygon = anno.querySelector("polygon");
+          polygon.setAttribute("fill", "none");
+          polygon.setAttribute("stroke-linecap", "round");
+          polygon.setAttribute("stroke-linejoin", "round");
+          */
+        }
+        if (_id != null) {
+          anno.setAttribute("anno", _id);
+        } else {
+          anno.setAttribute("tooleditor", "");
+        }
+        width += t;
+        height += t;
+        x += halfT;
+        y += halfT;
+        anno.style.width = width + "px";
+        anno.style.height = height + "px";
+        anno.style.left = x + "px";
+        anno.style.top = y + "px";
+        svg = anno.querySelector("svg");
+        if (remove != true) {
+          svg.removeAttribute("hidden");
+        } else {
+          svg.setAttribute("hidden", "");
+        }
+        //polygon = svg.querySelector("polygon");
+        svg.setAttribute("viewBox", "0 0 " + (width + (this.SVG_PADDING*2)) + " " + (height + (this.SVG_PADDING*2)));
+        
+        let elem;
+        switch (d) {
+          case "square":
+            elem = svg.querySelector("rect");
+            if (elem == null) {
+              svg.innerHTML = "<rect/>";
+              elem = svg.querySelector("rect");
+              elem.setAttribute("rx", "10");
+              elem.setAttribute("ry", "10");
+            }
+            elem.setAttribute("width", Math.max(Math.abs(width - t), 5));
+            elem.setAttribute("height", Math.max(Math.abs(height - t), 5));
+            elem.setAttribute("x", this.SVG_PADDING + halfT);
+            elem.setAttribute("y", this.SVG_PADDING + halfT);
+            break;
+          case "ellipse":
+            elem = svg.querySelector("ellipse");
+            if (elem == null) {
+              svg.innerHTML = "<ellipse/>";
+              elem = svg.querySelector("ellipse");
+            }
+            elem.setAttribute("cx", this.SVG_PADDING + (width / 2));
+            elem.setAttribute("cy", this.SVG_PADDING + (height / 2));
+            elem.setAttribute("rx", Math.max(Math.abs(width - t) / 2, 5));
+            elem.setAttribute("ry", Math.max(Math.abs(height - t) / 2, 5));
+        }
+
+        elem.setAttribute("stroke-width", t);
+        elem.setAttribute("stroke", "#" + c);
+        elem.setAttribute("opacity", o / 100);
+
+        if (i != null) {
+          elem.setAttribute("fill", i);
+        } else {
+          elem.setAttribute("fill", "none");
+        }
+
+        if (width < 0 && height < 0) {
+          transform = "scale(-1,-1)";
+        } else if (width < 0) {
+          transform = "scale(-1,1)";
+        } else if (height < 0) {
+          transform = "scale(1,-1)";
+        }
+        if (elem != null) {
+          elem.style.transform = transform;
+        }
     }
     if (anno != null) {
       anno.style.zIndex = (sync || getEpoch()) % 1000000000;

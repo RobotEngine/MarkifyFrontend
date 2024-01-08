@@ -437,7 +437,7 @@ modules["editor/realtime"] = {
     this.removeRealtime = (memberID) => {
       let remMemberElem = realtimeHolder.children;
       if (memberID != null) {
-        remMemberElem = realtimeHolder.querySelectorAll('[member="' + memberID + '"]');
+        remMemberElem = [ ...realtimeHolder.querySelectorAll('[member="' + memberID + '"]'), ...editor.page.querySelectorAll('.eAnnotation[member="' + memberID + '"]') ];
       }
       for (let i = 0; i < remMemberElem.length; i++) {
         let elem = remMemberElem[i];
@@ -533,7 +533,7 @@ modules["editor/realtime"] = {
             }
             let updateCursorProps = async () => {
               let selectKeys = Object.keys((extra || {}).select || {});
-              let allSelections = realtimeHolder.querySelectorAll('.eCollabSelect[member="' + memberID + '"]');
+              let allSelections = editor.page.querySelectorAll('.eCollabSelect[member="' + memberID + '"], .eAnnotation[member="' + memberID + '"]');
               for (let i = 0; i < allSelections.length; i++) {
                 let select = allSelections[i];
                 if (selectKeys.includes(select.getAttribute("anno")) == false) {
@@ -563,40 +563,54 @@ modules["editor/realtime"] = {
                   for (let i = 0; i < selectKeys.length; i++) {
                     let annoID = selectKeys[i];
                     let anno = extra.select[annoID] || {};
-                    let original = editor.annotations[annoID];
-                    if (original != null && original.pointer != null) {
-                      annoID = original.pointer;
-                      original = editor.annotations[annoID];
+                    if (anno._id == null) {
+                      anno._id = annoID;
                     }
-                    if (original == null && annoID.startsWith("pending_") == true) {
-                      editor.annotations[annoID] = {};
+                    let merge;
+                    let annoElem;
+                    let original;
+                    if (annoID == "cursor") {
+                      // Just a temporary prop, no saving:
+                      let prevElem = editor.page.querySelector('.eAnnotation[member="' + memberID + '"]');
+                      [merge, annoElem] = await utils.render({ ...anno, _id: memberID + "_cursor" }, prevElem);
+                      annoElem.setAttribute("member", memberID);
+                      annoElem.setAttribute("anno", "cursor");
+                    } else {
                       original = editor.annotations[annoID];
-                    }
-                    original.revert = original.revert || JSON.parse(JSON.stringify(original.render || {}));
-                    // If the user is also selecting, we must update their fields accordingly:
-                    /*
-                    if (selecting != null) {
-                      let annoKeys = Object.keys(anno);
-                      for (let f = 0; f < annoKeys.length; f++) {
-                        if (selecting[annoKeys[f]] != null) {
-                          selecting[annoKeys[f]] = anno[annoKeys[f]];
+                      if (original != null && original.pointer != null) {
+                        annoID = original.pointer;
+                        original = editor.annotations[annoID];
+                      }
+                      if (original == null && annoID.startsWith("pending_") == true) {
+                        editor.annotations[annoID] = {};
+                        original = editor.annotations[annoID];
+                      }
+                      original.revert = original.revert || JSON.parse(JSON.stringify(original.render || {}));
+                      // If the user is also selecting, we must update their fields accordingly:
+                      /*
+                      if (selecting != null) {
+                        let annoKeys = Object.keys(anno);
+                        for (let f = 0; f < annoKeys.length; f++) {
+                          if (selecting[annoKeys[f]] != null) {
+                            selecting[annoKeys[f]] = anno[annoKeys[f]];
+                          }
                         }
                       }
+                      */
+                      if (anno.done != true) {
+                        original.render = { ...(original.render || {}), ...anno };
+                      } else {
+                        original.render = { ...(original.render || {}), ...anno };
+                        delete original.render.done;
+                        utils.saveEdit(anno, null, time);
+                      }
+                      original.render.sync = time;
+                      utils.enableTimeout(annoID, original, null, true);
                     }
-                    */
-                    if (anno.done != true) {
-                      original.render = { ...(original.render || {}), ...anno };
-                    } else {
-                      original.render = { ...(original.render || {}), ...anno };
-                      delete original.render.done;
-                      utils.saveEdit(anno, null, time);
-                    }
-                    original.render.sync = time;
-                    utils.enableTimeout(annoID, original, null, true);
 
                     let selection;
                     //if (original.render._id.startsWith("pending_") == false) {
-                    if (anno.f == null || anno.sync != null) {
+                    if (anno.f == null || anno.sync != null || annoID == "cursor") {
                       selection = realtimeHolder.querySelector('.eCollabSelect[member="' + memberID + '"][anno="' + annoID + '"]:not([old])');
                       if (selection == null) {
                         realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCollabSelect" member="${memberID}" new></div>`);
@@ -609,30 +623,31 @@ modules["editor/realtime"] = {
                         selection.style.opacity = 1;
                       }
                     }
-                    
-                    let merge;
-                    if (editor.selecting[annoID] == null) {
-                      merge = original.render;
-                      if (selection != null) {
-                        selection.removeAttribute("notransition");
-                      }
-                    } else {
-                      merge = { ...(editor.selecting[annoID] || {}), ...original.render };
-                      userSelecting = true;
-                    }
-                    utils.render(merge);
 
-                    if (selection != null && original.render.remove == true && selection.hasAttribute("remove") == false) {
-                      selection.setAttribute("remove", "");
-                      (async function () {
-                        selection.setAttribute("old", "");
-                        selection.style.opacity = 0;
-                        await sleep(150);
+                    if (annoID != "cursor") {
+                      if (editor.selecting[annoID] == null) {
+                        merge = original.render;
                         if (selection != null) {
-                          selection.remove();
+                          selection.removeAttribute("notransition");
                         }
-                      })();
-                      selection = null;
+                      } else {
+                        merge = { ...(editor.selecting[annoID] || {}), ...original.render };
+                        userSelecting = true;
+                      }
+                      utils.render(merge);
+
+                      if (selection != null && original.render.remove == true && selection.hasAttribute("remove") == false) {
+                        selection.setAttribute("remove", "");
+                        (async function () {
+                          selection.setAttribute("old", "");
+                          selection.style.opacity = 0;
+                          await sleep(150);
+                          if (selection != null) {
+                            selection.remove();
+                          }
+                        })();
+                        selection = null;
+                      }
                     }
 
                     if (selection != null) {

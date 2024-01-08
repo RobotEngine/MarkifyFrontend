@@ -767,12 +767,13 @@ modules["editor/toolbar"] = {
     let undoButton = editor.page.querySelector(".eUndo");
     let redoButton = editor.page.querySelector(".eRedo");
     utils.updateHistory = () => {
-      if (utils.history.length > 0 && utils.location > -1) {
+      let isEditor = editor.getSelf().access > 1;
+      if (utils.history.length > 0 && utils.location > -1 && isEditor) {
         undoButton.removeAttribute("disabled");
       } else {
         undoButton.setAttribute("disabled", "");
       }
-      if (utils.history.length > utils.location + 1) {
+      if (utils.history.length > utils.location + 1 && isEditor) {
         redoButton.removeAttribute("disabled");
       } else {
         redoButton.setAttribute("disabled", "");

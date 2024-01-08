@@ -229,6 +229,8 @@ modules["pages/editor"] = {
     };
     let lastAccess;
 
+    let utils = await getModule("pages/editor/annotation");
+
     // EDITOR
     let contentHolder = page.querySelector(".eContent");
     let content = contentHolder.querySelector(".eContentHolder");
@@ -300,6 +302,9 @@ modules["pages/editor"] = {
       }
       if (keepDropdowns != true) {
         (await getModule("dropdown")).close();
+      }
+      if (utils.updateHistory != null) {
+        utils.updateHistory();
       }
     };
     this.hexToRGB = (hex, alpha) => {
@@ -781,7 +786,6 @@ modules["pages/editor"] = {
       }
     }; // Subscribe before to make sure no members are lost in request time.
 
-    let utils = await getModule("pages/editor/annotation");
     socket.remotes["long_" + lessonID] = async (data) => {
       console.log("LONG", data);
       for (let i = 0; i < data.length; i++) {

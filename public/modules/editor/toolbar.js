@@ -3844,12 +3844,7 @@ modules["pages/editor/toolbar/style"] = {
       } else {
         selectedI = false;
       }
-      if (selectedB == "none") {
-        selectedB = "solid";
-        await extra.saveSelecting({ i: selectedI, b: selectedB }, true);
-      } else {
-        await extra.saveSelecting({ i: selectedI }, true);
-      }
+      await extra.saveSelecting({ i: selectedI }, true);
       extra.updateToolActions(extra.frame);
       updateButtons();
     });
@@ -3867,12 +3862,7 @@ modules["pages/editor/toolbar/style"] = {
     });
     noneButton.addEventListener("click", async () => {
       selectedB = "none";
-      if (selectedI != true) {
-        selectedI = true;
-        await extra.saveSelecting({ b: selectedB, i: selectedI }, true);
-      } else {
-        await extra.saveSelecting({ b: selectedB }, true);
-      }
+      await extra.saveSelecting({ b: selectedB }, true);
       await extra.saveSelecting({ b: selectedB }, true);
       extra.updateToolActions(extra.frame);
       updateButtons();

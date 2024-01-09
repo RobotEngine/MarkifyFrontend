@@ -2909,6 +2909,9 @@ modules["pages/editor/annotation"] = {
             heightT = height - t;
             elem.setAttribute("points", (widthT + this.SVG_PADDING + halfT) + "," + (this.SVG_PADDING + halfT) + " " + (this.SVG_PADDING + halfT) + "," + (heightT + this.SVG_PADDING + halfT));
         }
+        if (i == false && b == "none") {
+          i = true;
+        }
         if (i != true) {
           elem.setAttribute("fill", "none");
           elem.setAttribute("stroke", "#" + c);
@@ -2927,7 +2930,6 @@ modules["pages/editor/annotation"] = {
         }
 
         elem.setAttribute("opacity", o / 100);
-
 
         if (width < 0 && height < 0) {
           transform = "scale(-1,-1)";

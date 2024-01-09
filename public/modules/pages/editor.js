@@ -944,7 +944,7 @@ modules["pages/editor"] = {
         if (anno.save == true && (anno.render._id.includes("pending_") == false || anno.render.remove != true)) {
           clearTimeout(anno.expire);
           this.annotations[anno.render._id] = anno;
-          utils.pendingSaves.push(anno.render);
+          utils.pendingSaves[anno.render._id] = { ...utils.pendingSaves[anno.render._id], ...anno.render };
         }
       }
       utils.syncSave();
@@ -1139,6 +1139,12 @@ modules["pages/editor"] = {
         let existingAnno = this.annotations[addAnno._id];
         if (existingAnno == null || existingAnno.render.sync < addAnno.sync) {
           this.annotations[addAnno._id] = { render: addAnno};
+          if (this.lesson.type != "freeboard") {
+            let editorPageAnnotations = this.page.querySelector('.ePage[pageid="' + addAnno.page + '"] .ePageAnnotations');
+            if (editorPageAnnotations != null) {
+              editorPageAnnotations.removeAttribute("loaded");
+            }
+          }
         }
       }
       await this.viewAnnotations(true);

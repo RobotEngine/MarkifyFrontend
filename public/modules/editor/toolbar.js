@@ -1204,7 +1204,7 @@ modules["pages/editor/toolbar/cursor"] = {
   actionBarTools: {
     "draw": ["pages/editor/toolbar/color", "pages/editor/toolbar/thickness", "pages/editor/toolbar/opacity", "pages/editor/toolbar/duplicate", "pages/editor/toolbar/delete"],
     "markup": ["pages/editor/toolbar/color", "pages/editor/toolbar/thickness", "pages/editor/toolbar/duplicate", "pages/editor/toolbar/delete"],
-    "shape": ["pages/editor/toolbar/color", "pages/editor/toolbar/thickness", "pages/editor/toolbar/opacity", "pages/editor/toolbar/duplicate", "pages/editor/toolbar/delete"]
+    "shape": ["pages/editor/toolbar/color", "pages/editor/toolbar/thickness", "pages/editor/toolbar/opacity", "pages/editor/toolbar/style", "pages/editor/toolbar/duplicate", "pages/editor/toolbar/delete"]
   },
   updateActionUI: async function (refresh) {
     let editor = await getModule("pages/editor");
@@ -1584,7 +1584,7 @@ modules["pages/editor/toolbar/cursor"] = {
     await module.js(holder, preferenceTool, {
       frame: holder,
       updateActionUI: () => { this.updateActionUI(); },
-      saveSelecting: async (set) => {
+      saveSelecting: async (set, short) => {
         let editor = await getModule("pages/editor");
         let utils = await getModule("pages/editor/annotation");
         let selectKeys = Object.keys(editor.selecting);
@@ -1629,9 +1629,11 @@ modules["pages/editor/toolbar/cursor"] = {
           await utils.pushHistory("add", pushRemoves);
         }
         for (let i = 0; i < saveUpdates.length; i++) {
-          utils.save(saveUpdates[i], null, sync);
+          await utils.save({ ...saveUpdates[i], sync: sync }, null, sync);
         }
-        //await utils.forceShort();
+        if (short == true) {
+          await utils.forceShort();
+        }
       },
       updateToolActions: async (frame) => {
         let editor = await getModule("pages/editor");
@@ -3104,7 +3106,7 @@ modules["pages/editor/toolbar/color"] = {
   css: {
     ".eSubToolColorHolder": `display: flex; width: 32px; height: 32px; background: #fff; border: solid 3px var(--pageColor); border-radius: 19px; justify-content: center; align-items: center`,
     ".eSubToolColor": `width: 100%; height: 100%; border-radius: 16px`,
-    ".eSubToolImage": `width: 40px; height: 40px`,
+    //".eSubToolImage": `width: 40px; height: 40px`,
 
     ".eSubToolColorFrame": `position: relative; width: 212px; min-height: 106px`,
     ".eSubToolColorSelector": `display: flex; flex-wrap: wrap; top: 0px; justify-content: center; align-items: center; transform: scale(1); opacity: 1; transition: .5s`,
@@ -3731,6 +3733,150 @@ modules["pages/editor/toolbar/opacity"] = {
       updateUI();
     });
     updateUI(null, true);
+  }
+};
+
+modules["pages/editor/toolbar/style"] = {
+  button: `<div class="eSubToolStyleHolder"><div class="eSubToolStyle"></div></div>`,
+  tooltip: "Styling",
+  setButton: function (editor, button) {
+    let selectKeys = Object.keys(editor.selecting);
+    let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
+    let buttonElem = button.querySelector(".eSubToolStyle");
+    let color = editor.hexToRGB(preferenceTool.c, (preferenceTool.o || 0) / 100);
+    if (preferenceTool.b != "none") {
+      if (preferenceTool.i != true) {
+        buttonElem.style.border = (preferenceTool.b || "solid") + " 4px " + color; //var(--darkGray)
+        buttonElem.style.removeProperty("background");
+      } else {
+        buttonElem.style.border = (preferenceTool.b || "solid") + " 4px " + editor.hexToRGB(editor.darkenHex(preferenceTool.c, 20), (preferenceTool.o || 0) / 100);
+        buttonElem.style.background = color;
+      }
+    } else {
+      buttonElem.style.background = color;
+      buttonElem.style.removeProperty("border");
+    }
+  },
+  html: `
+    <div class="eSubToolStyleContainer">
+      <button class="eTool" option><div><div class="eSubToolStyleHolder"><div class="eSubToolStyle" fill></div></div></div></button>
+      <div class="eVerticalDivider" keeptooltip></div>
+      <button class="eTool" option><div><div class="eSubToolStyleHolder"><div class="eSubToolStyle" solid></div></div></div></button>
+      <button class="eTool" option><div><div class="eSubToolStyleHolder"><div class="eSubToolStyle" dashed></div></div></div></button>
+      <button class="eTool" option><div><div class="eSubToolStyleHolder"><div class="eSubToolStyle" none></div></div></div></button>
+    </div>
+  `,
+  css: {
+    ".eSubToolStyleHolder": `display: flex; width: 32px; height: 32px; background: #fff; border: solid 3px var(--pageColor); border-radius: 11px; justify-content: center; align-items: center`,
+    ".eSubToolStyle": `box-sizing: border-box; width: 100%; height: 100%; border-radius: 8px`,
+
+    ".eSubToolStyleContainer": `display: flex; width: 100%; height: 50px; gap: 6px; overflow: auto; border-radius: inherit`,
+    ".eSubToolStyleContainer .eTool:active > div": `border-radius: 15.5px !important`,
+    ".eSubToolStyleContainer .eTool[selected]:active > div": `border-radius: 15.5px !important`,
+    ".eSubToolStyleContainer .eTool[selected] > div": `background: var(--theme) !important`
+  },
+  setPreferenceTool: function (editor) {
+    let selectKeys = Object.keys(editor.selecting);
+    this.preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
+  },
+  js: async function (frame, toolID, extra) {
+    let editor = await getModule("pages/editor");
+    this.setPreferenceTool(editor);
+    let selectedI = this.preferenceTool.i;
+    let selectedB = this.preferenceTool.b;
+
+    let fill = frame.querySelector(".eSubToolStyle[fill]");
+    let solid = frame.querySelector(".eSubToolStyle[solid]");
+    let dashed = frame.querySelector(".eSubToolStyle[dashed]");
+    let none = frame.querySelector(".eSubToolStyle[none]");
+
+    let fillButton = fill.closest(".eTool");
+    let solidButton = solid.closest(".eTool");
+    let dashedButton = dashed.closest(".eTool");
+    let noneButton = none.closest(".eTool");
+
+    // i - INSIDE COLOR
+    // b - BORDER
+    let updateButtons = () => {
+      fillButton.removeAttribute("selected");
+      solidButton.removeAttribute("selected");
+      dashedButton.removeAttribute("selected");
+      noneButton.removeAttribute("selected");
+
+      if (selectedB != "none") {
+        if (selectedI != true) {
+          if ((selectedB || "solid") == "solid") {
+            solidButton.setAttribute("selected", "");
+          } else {
+            dashedButton.setAttribute("selected", "");
+          }
+        } else {
+          fillButton.setAttribute("selected", "");
+          if ((selectedB || "solid") == "solid") {
+            solidButton.setAttribute("selected", "");
+          } else {
+            dashedButton.setAttribute("selected", "");
+          }
+        }
+      } else {
+        fillButton.setAttribute("selected", "");
+        noneButton.setAttribute("selected", "");
+      }
+
+      let color = editor.hexToRGB(this.preferenceTool.c, (this.preferenceTool.o || 0) / 100);
+      let borderColor = color;
+      if (selectedI != null) {
+        borderColor = editor.hexToRGB(editor.darkenHex(this.preferenceTool.c, 20), (this.preferenceTool.o || 0) / 100);
+      }
+
+      fill.style.background = color;
+      solid.style.border = "solid 4px " + borderColor;
+      dashed.style.border = "dashed 4px " + borderColor;
+      none.style.border = "solid 4px #fff";
+      none.style.background = color;
+      none.parentElement.style.border = "solid 4px " + color;
+    }
+    updateButtons();
+
+    fillButton.addEventListener("click", async () => {
+      if (selectedI != true) {
+        selectedI = true;
+      } else {
+        selectedI = false;
+      }
+      if (selectedB == "none") {
+        selectedB = "solid";
+        await extra.saveSelecting({ i: selectedI, b: selectedB }, true);
+      } else {
+        await extra.saveSelecting({ i: selectedI }, true);
+      }
+      extra.updateToolActions(extra.frame);
+      updateButtons();
+    });
+    solidButton.addEventListener("click", async () => {
+      selectedB = "solid";
+      await extra.saveSelecting({ b: selectedB }, true);
+      extra.updateToolActions(extra.frame);
+      updateButtons();
+    });
+    dashedButton.addEventListener("click", async () => {
+      selectedB = "dashed";
+      await extra.saveSelecting({ b: selectedB }, true);
+      extra.updateToolActions(extra.frame);
+      updateButtons();
+    });
+    noneButton.addEventListener("click", async () => {
+      selectedB = "none";
+      if (selectedI != true) {
+        selectedI = true;
+        await extra.saveSelecting({ b: selectedB, i: selectedI }, true);
+      } else {
+        await extra.saveSelecting({ b: selectedB }, true);
+      }
+      await extra.saveSelecting({ b: selectedB }, true);
+      extra.updateToolActions(extra.frame);
+      updateButtons();
+    });
   }
 };
 

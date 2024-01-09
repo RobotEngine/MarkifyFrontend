@@ -142,7 +142,7 @@ modules["pages/editor"] = {
     '.eAnnotation[anno]:not([anno^="pending_"])': `transition: .25s`,
     //'.eAnnotation:not([selected]):not([anno^="pending_"])': `transition: .25s`,
     ".eAnnotation svg": `position: absolute; width: calc(100% + 200px); height: calc(100% + 200px); left: -100px; top: -100px; pointer-events: none`,
-    ".eAnnotation svg > *": `pointer-events: stroke`,
+    ".eAnnotation svg > *": `pointer-events: visiblepainted`,
 
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 100; overflow: hidden; pointer-events: none`
   },
@@ -318,6 +318,28 @@ modules["pages/editor"] = {
         return "rgb(" + r + ", " + g + ", " + b + ")";
       }
     }
+    this.darkenHex = (hexCode, percent) => {
+      // Ensure the percent is within the valid range [0, 100]
+      percent = Math.max(0, Math.min(100, percent));
+
+      // Convert hex code to RGB
+      let r = parseInt(hexCode.slice(0, 2), 16);
+      let g = parseInt(hexCode.slice(2, 4), 16);
+      let b = parseInt(hexCode.slice(4, 6), 16);
+
+      // Calculate darkening factor
+      let factor = 1 - percent / 100;
+
+      // Darken the color components
+      r = Math.max(0, Math.floor(r * factor));
+      g = Math.max(0, Math.floor(g * factor));
+      b = Math.max(0, Math.floor(b * factor));
+
+      // Convert back to hex
+      const darkenedHex = `${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+
+      return darkenedHex;
+    }
     let lastSavePref = JSON.parse(JSON.stringify(this.preferences));
     let saveTimeout;
     this.savePreferences = () => {
@@ -386,7 +408,7 @@ modules["pages/editor"] = {
     });
     tempListen(window, "resize", enableScrollTop);
     eTop.addEventListener("scroll", enableScrollTop);
-    
+
     if (connected) {
       this.realtime.strength = 1;
     }
@@ -736,7 +758,7 @@ modules["pages/editor"] = {
                   dropdownModule.close();
                 } else if (data.data.type == "print") {
                   let blob;
-                  await fetch(assetURL + data.data.export).then(async function(file) {
+                  await fetch(assetURL + data.data.export).then(async function (file) {
                     blob = URL.createObjectURL(await file.blob());
                   });
                   if (blob != null) {
@@ -839,7 +861,7 @@ modules["pages/editor"] = {
                 }
               }
             }
-            
+
             existingAnno.render._id = anno._id;
             //delete this.annotations[anno.pending];
             this.annotations[anno._id] = existingAnno;
@@ -1120,7 +1142,7 @@ modules["pages/editor"] = {
       if (this.exporting == true && getParam("only_thumbnail") == "true" && body.pages != null) {
         endpoint = "lessons/join/annotations?pages=" + body.pages[0]._id;
       }
-      
+
       // Send Load Request:
       let [code, annoBody] = await sendRequest("GET", endpoint, null, { session: this.session }, { allowError: true });
       if (code != 200 && connected == true) {
@@ -1138,7 +1160,7 @@ modules["pages/editor"] = {
         let addAnno = annoBody[i];
         let existingAnno = this.annotations[addAnno._id];
         if (existingAnno == null || existingAnno.render.sync < addAnno.sync) {
-          this.annotations[addAnno._id] = { render: addAnno};
+          this.annotations[addAnno._id] = { render: addAnno };
           if (this.lesson.type != "freeboard") {
             let editorPageAnnotations = this.page.querySelector('.ePage[pageid="' + addAnno.page + '"] .ePageAnnotations');
             if (editorPageAnnotations != null) {
@@ -1421,7 +1443,7 @@ modules["pages/editor"] = {
           let checkInt = 1;
           if (inViewport(pageHolder.children[currentPage - 1], true)) {
             //if (this.exporting != true || afterPageElem.hasAttribute("exporting") == true) {
-              this.visiblePages.unshift(currentPage);
+            this.visiblePages.unshift(currentPage);
             //}
           }
           while (true) {
@@ -1510,13 +1532,13 @@ modules["pages/editor"] = {
           }
         }
         this.addPages(body.pages);
-        
+
         // Load PDFJS
         if (window.pdfjsLib == null) {
           await loadScript("./libraries/pdfjs/pdf.mjs");
         }
         pdfjsLib.GlobalWorkerOptions.workerSrc = "./libraries/pdfjs/pdf.worker.mjs";
-        
+
         // Load sources:
         let loadedSourceCount = 0;
         this.addSources = (sources) => {
@@ -1553,7 +1575,7 @@ modules["pages/editor"] = {
         if (scrollElem != null) {
           window.scrollTo({ top: window.scrollY + scrollElem.getBoundingClientRect().top - scrollOffset });
         }
-        
+
         if (this.exporting == true) {
           if (window.exportReady && (body.sources.length < 1 || (getParam("only_thumbnail") == "true" && pageHolder.firstElementChild != null && pageHolder.firstElementChild.hasAttribute("sourceid") == false))) {
             window.exportReady();
@@ -1662,7 +1684,7 @@ modules["pages/editor"] = {
       //pageHolder.style.transformOrigin = mouseX + "px " + mouseY + "px";
       //pageHolder.style.margin = `${(pageHolder.clientHeight - (pageHolder.clientHeight * zoom)) / 2}px ${(pageHolder.clientWidth - (pageHolder.clientWidth * zoom)) / 2}px`;
       //pageHolder.style.transformOrigin = mousePositionX + "px " + mousePositionY + "px";
-      
+
       content.style.width = pageHolder.clientWidth * this.zoom + "px";
       content.style.height = pageHolder.clientHeight * this.zoom + "px";
 
@@ -1673,11 +1695,11 @@ modules["pages/editor"] = {
       let mouseScaleY = pageScrollY + (mouseY || appSizeHalfY);
       console.log(mouseScaleX, mouseScaleY);
       */
-      
+
       this.updatePageSize();
 
       await utils.checkAnnotationSize();
-      
+
       /*
       let pixels_difference_w = prevWidth - document.body.scrollWidth;
       let side_ratio_x = mouseX / fixed.offsetWidth; // (mouseX - (fixed.offsetWidth / 2)) / fixed.offsetWidth;
@@ -1689,7 +1711,7 @@ modules["pages/editor"] = {
       
       console.log(pixels_difference_w)
       */
-      
+
       // Calculate the new scroll position based on the mouse cursor position and zoom level
       let newScrollX = ((mouseX + pageScrollX) * (document.body.scrollWidth / prevWidth)) - mouseX; // + rect.left;
       let newScrollY = ((mouseY + pageScrollY) * (document.body.scrollHeight / prevHeight)) - mouseY; // + rect.top;
@@ -1750,7 +1772,7 @@ modules["pages/editor"] = {
       let pageHeight = fixed.offsetHeight;
       let xDiff = (touches[1].clientX / pageWidth) - (touches[0].clientX / pageWidth);
       let yDiff = (touches[1].clientY / pageHeight) - (touches[0].clientY / pageHeight);
-      return Math.sqrt(xDiff*xDiff + yDiff*yDiff);
+      return Math.sqrt(xDiff * xDiff + yDiff * yDiff);
     }
     let getCenter = (touches) => {
       return { x: (touches[0].clientX + touches[1].clientX) / 2, y: (touches[0].clientY + touches[1].clientY) / 2 };
@@ -2100,7 +2122,7 @@ modules["dropdowns/editor/file"] = {
         //document.body.insertAdjacentHTML("beforeend", `<object class="eFileActionPrint" type="application/pdf" data="${assetURL + body.export}" width="100%" height="100%" name="${editor.lesson.name}"><param name="src" value=${assetURL + body.export}/></object>`);
         //document.body.querySelector(".eFileActionPrint").printWithDialog();
         let blob;
-        await fetch(assetURL + body.export).then(async function(file) {
+        await fetch(assetURL + body.export).then(async function (file) {
           blob = URL.createObjectURL(await file.blob());
         });
         if (blob != null) {
@@ -2425,7 +2447,7 @@ modules["pages/editor/annotation"] = {
     }
     return page.querySelector(".ePageAnnotations");
   },
-  createSVG: function(parent, type) {
+  createSVG: function (parent, type) {
     let newSVG = document.createElementNS("http://www.w3.org/2000/svg", type);
     parent.appendChild(newSVG);
     return newSVG;
@@ -2433,7 +2455,7 @@ modules["pages/editor/annotation"] = {
   //SOFT_PIXEL_RESIZE: 250,
   //marginLeft: 250,
   //marginRight: 250,
-  resetAnnotationSize: async function() {
+  resetAnnotationSize: async function () {
     if (mouseDown() == true) {
       if (this.runResetEventReset != null) {
         return;
@@ -2468,7 +2490,7 @@ modules["pages/editor/annotation"] = {
     }
     this.checkAnnotationSize();
   },
-  checkAnnotationSize: async function(anno, notUpdate) {
+  checkAnnotationSize: async function (anno, notUpdate) {
     let editor = await getModule("pages/editor");
     let contentFrame = editor.page.querySelector(".eContent");
     let content = contentFrame.querySelector(".eContentHolder");
@@ -2485,7 +2507,7 @@ modules["pages/editor/annotation"] = {
       let left = -(rect.left - parentRect.left);
       let right = ((rect.left + anno.offsetWidth) - (parentRect.left + anno.parentElement.offsetWidth));
       */
-      
+
       if (editor.exporting == true) {
         let page = editor.page.querySelector('.ePage[pageid="' + (anno.page || "") + '"]');
         if (page != null && page.hasAttribute("exporting") == false) {
@@ -2571,23 +2593,24 @@ modules["pages/editor/annotation"] = {
   },
   SVG_PADDING: 100, // How much padding svgs should have to ensure clean render
   render: async function (data, anno, long) {
-  /*
-    _id - ID - The unique ID of the annotation
-    f - FUNCTION - The type of tool to render
-    p - POSITION - Position of annotation - [ X, Y ]
-    page - PAGE - Page of annotation
-    s - SIZE - Size of annotation - [ WIDTH, HEIGHT ]
-    c - COLOR - Color of annotation
-    i - INSIDE COLOR - Color of fill
-    t - THICKNESS - Thickness of annotation
-    o - OPACITY - Opacity of annotation
-    d - DATA - Data, can change based on annotation, path of pen for example
-  */
+    /*
+      _id - ID - The unique ID of the annotation
+      f - FUNCTION - The type of tool to render
+      p - POSITION - Position of annotation - [ X, Y ]
+      page - PAGE - Page of annotation
+      s - SIZE - Size of annotation - [ WIDTH, HEIGHT ]
+      c - COLOR - Color of annotation
+      i - INSIDE COLOR - Color of fill
+      t - THICKNESS - Thickness of annotation
+      b - BORDER - Include border
+      o - OPACITY - Opacity of annotation
+      d - DATA - Data, can change based on annotation, path of pen for example
+    */
     if (data == null) {
       return;
     }
     let editor = await getModule("pages/editor");
-    let { _id, f, page, p, s, c, i, t, o, d, done, remove, sync } = data;
+    let { _id, f, page, p, s, c, i, t, b, o, d, done, remove, sync } = data;
     let [x, y] = p || [];
     let [width, height] = s || [];
     if (page != null && editor.loadedIn.includes(page) == false && long != true) {
@@ -2654,7 +2677,7 @@ modules["pages/editor/annotation"] = {
           svg.setAttribute("hidden", "");
         }
         path = svg.querySelector("polyline");
-        svg.setAttribute("viewBox", "0 0 " + (width + (this.SVG_PADDING*2)) + " " + (height + (this.SVG_PADDING*2)));
+        svg.setAttribute("viewBox", "0 0 " + (width + (this.SVG_PADDING * 2)) + " " + (height + (this.SVG_PADDING * 2)));
         if (d.length == 2) {
           //let dividedT = t / 2;
           //drawSetPoints = (d[0] - dividedT + this.SVG_PADDING) + "," + (d[1] - dividedT + this.SVG_PADDING) + " " + (d[0] + dividedT + this.SVG_PADDING) + "," + (d[1] + dividedT + this.SVG_PADDING);
@@ -2669,7 +2692,7 @@ modules["pages/editor/annotation"] = {
             let largestY = d[1];
             for (let i = 2; i < d.length; i += 2) {
               largestX = Math.max(largestX, d[i]);
-              largestY = Math.max(largestY, d[i+1]);
+              largestY = Math.max(largestY, d[i + 1]);
             }
             let halfT = 0;//t / 2;
             if (largestX - halfT > 0) {
@@ -2684,7 +2707,7 @@ modules["pages/editor/annotation"] = {
             }
           }
           for (let i = 0; i < d.length; i += 2) {
-            drawSetPoints += (halfT + ((d[i]) * scaleW) + this.SVG_PADDING) + "," + (halfT + ((d[i+1]) * scaleH) + this.SVG_PADDING) + " ";
+            drawSetPoints += (halfT + ((d[i]) * scaleW) + this.SVG_PADDING) + "," + (halfT + ((d[i + 1]) * scaleH) + this.SVG_PADDING) + " ";
           }
           path.setAttribute("stroke-width", t);
         }
@@ -2724,7 +2747,7 @@ modules["pages/editor/annotation"] = {
           svg.setAttribute("hidden", "");
         }
         path = svg.querySelector("polyline");
-        svg.setAttribute("viewBox", "0 0 " + (width + (this.SVG_PADDING*2)) + " " + (height + (this.SVG_PADDING*2)));
+        svg.setAttribute("viewBox", "0 0 " + (width + (this.SVG_PADDING * 2)) + " " + (height + (this.SVG_PADDING * 2)));
         if (d.length == 2) {
           //let dividedT = t / 2;
           //drawSetPoints = (d[0] - dividedT + this.SVG_PADDING) + "," + (d[1] - dividedT + this.SVG_PADDING) + " " + (d[0] + dividedT + this.SVG_PADDING) + "," + (d[1] + dividedT + this.SVG_PADDING);
@@ -2739,7 +2762,7 @@ modules["pages/editor/annotation"] = {
             let largestY = d[1];
             for (let i = 2; i < d.length; i += 2) {
               largestX = Math.max(largestX, d[i]);
-              largestY = Math.max(largestY, d[i+1]);
+              largestY = Math.max(largestY, d[i + 1]);
             }
             let halfT = 0;//t / 2;
             if (largestX - halfT > 0) {
@@ -2754,7 +2777,7 @@ modules["pages/editor/annotation"] = {
             }
           }
           for (let i = 0; i < d.length; i += 2) {
-            drawSetPoints += (halfT + ((d[i]) * scaleW) + this.SVG_PADDING) + "," + (halfT + ((d[i+1]) * scaleH) + this.SVG_PADDING) + " ";
+            drawSetPoints += (halfT + ((d[i]) * scaleW) + this.SVG_PADDING) + "," + (halfT + ((d[i + 1]) * scaleH) + this.SVG_PADDING) + " ";
           }
           path.setAttribute("stroke-width", t);
         }
@@ -2783,6 +2806,9 @@ modules["pages/editor/annotation"] = {
           anno.setAttribute("tooleditor", "");
           anno.style.opacity = .7;
         }
+        //if (b == "none") {
+        //  t = 0;
+        //}
         width += t;
         height += t;
         x += halfT;
@@ -2798,8 +2824,8 @@ modules["pages/editor/annotation"] = {
           svg.setAttribute("hidden", "");
         }
         //polygon = svg.querySelector("polygon");
-        svg.setAttribute("viewBox", "0 0 " + (width + (this.SVG_PADDING*2)) + " " + (height + (this.SVG_PADDING*2)));
-        
+        svg.setAttribute("viewBox", "0 0 " + (width + (this.SVG_PADDING * 2)) + " " + (height + (this.SVG_PADDING * 2)));
+
         let elem;
         let widthT;
         let heightT;
@@ -2883,16 +2909,25 @@ modules["pages/editor/annotation"] = {
             heightT = height - t;
             elem.setAttribute("points", (widthT + this.SVG_PADDING + halfT) + "," + (this.SVG_PADDING + halfT) + " " + (this.SVG_PADDING + halfT) + "," + (heightT + this.SVG_PADDING + halfT));
         }
+        if (i != true) {
+          elem.setAttribute("fill", "none");
+          elem.setAttribute("stroke", "#" + c);
+        } else {
+          elem.setAttribute("fill", "#" + c);
+          elem.setAttribute("stroke", "#" + editor.darkenHex(c, 20));
+        }
+        if ((b || "solid") == "solid") {
+          elem.setAttribute("stroke-width", t);
+          elem.removeAttribute("stroke-dasharray");
+        } else if (b == "dashed") {
+          elem.setAttribute("stroke-width", t);
+          elem.setAttribute("stroke-dasharray", t * 2);
+        } else {
+          elem.setAttribute("stroke-width", 0);
+        }
 
-        elem.setAttribute("stroke-width", t);
-        elem.setAttribute("stroke", "#" + c);
         elem.setAttribute("opacity", o / 100);
 
-        if (i != null) {
-          elem.setAttribute("fill", i);
-        } else {
-          elem.setAttribute("fill", "none");
-        }
 
         if (width < 0 && height < 0) {
           transform = "scale(-1,-1)";
@@ -2938,7 +2973,7 @@ modules["pages/editor/annotation"] = {
     }
     return [data, anno];
   },
-  removeAnnotation: async function(annoID, checkDone) {
+  removeAnnotation: async function (annoID, checkDone) {
     let editor = await getModule("pages/editor");
     let anno = editor.page.querySelector('.eAnnotation[anno="' + annoID + '"]');
     if (anno != null && (checkDone != true || anno.hasAttribute("done") == false)) {
@@ -2949,7 +2984,7 @@ modules["pages/editor/annotation"] = {
       allSelections[i].remove();
     }
   },
-  enableTimeout: async function(annoID, anno, render, collab) {
+  enableTimeout: async function (annoID, anno, render, collab) {
     if (anno == null) {
       return;
     }
@@ -2988,7 +3023,7 @@ modules["pages/editor/annotation"] = {
       }
     }, 10000); // Revert if no long update confirms save
   },
-  saveEdit: async function(annoData, render, sync) {
+  saveEdit: async function (annoData, render, sync) {
     let editor = await getModule("pages/editor");
     let annoID = annoData._id;
     if (annoID == null) {
@@ -3016,7 +3051,7 @@ modules["pages/editor/annotation"] = {
   },
   pendingSaves: {},
   debounce: false,
-  syncSave: async function() {
+  syncSave: async function () {
     let editor = await getModule("pages/editor");
     editor.updateSaveStatus("Saving...");
     if (this.debounce == true) {
@@ -3090,7 +3125,7 @@ modules["pages/editor/annotation"] = {
     }
     this.debounce = false;
   },
-  save: async function(data, anno, sync) {
+  save: async function (data, anno, sync) {
     data = JSON.parse(JSON.stringify(data));
     let editor = await getModule("pages/editor");
     let annoID = data._id;
@@ -3109,7 +3144,7 @@ modules["pages/editor/annotation"] = {
     annotation.save = true; // Alert the system it's time to save
     annotation.render.sync = getEpoch();
     mutations.sync = annotation.render.sync;
-    
+
     let saveSync = { _id: annoID, ...(this.pendingSaves[annoID] || {}), ...mutations };
     if (connected == true) {
       this.pendingSaves[annoID] = saveSync;

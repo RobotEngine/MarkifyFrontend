@@ -129,7 +129,7 @@ modules["pages/editor"] = {
     ".ePage:not(:first-child)": `border-top: dashed var(--darkGray) 4px; border-image: url("./images/editor/border.svg") 10 / 1 / 0 space`,
     ".ePage:last-child": `border-bottom-left-radius: 16px; border-bottom-right-radius: 16px`,
     ".ePageContent": "width: 100%; height: 100%; background: var(--pageColor); opacity: 0; border-radius: inherit",
-    ".ePageTextHolder": "--scale-factor: 1; position: absolute; left: 0; top: 0; font-family: sans-serif",
+    ".ePageTextHolder": "--scale-factor: 4/3; position: absolute; left: 0; top: 0; font-family: sans-serif",
     ".ePageTextHolder span": "position: absolute; color: transparent; pointer-events: all",
     ".ePageTextHolder br": `user-select: none`,
     ".ePageAnnotations": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 1; pointer-events: none`,
@@ -2778,8 +2778,10 @@ modules["pages/editor/annotation"] = {
         }
         if (_id != null) {
           anno.setAttribute("anno", _id);
+          anno.style.opacity = 1;
         } else {
           anno.setAttribute("tooleditor", "");
+          anno.style.opacity = .7;
         }
         width += t;
         height += t;

@@ -765,7 +765,7 @@ modules["editor/toolbar"] = {
     let undoButton = editor.page.querySelector(".eUndo");
     let redoButton = editor.page.querySelector(".eRedo");
     utils.updateHistory = () => {
-      let isEditor = editor.getSelf().access > 1;
+      let isEditor = editor.getSelf().access > 0;
       if (utils.history.length > 0 && utils.location > -1 && isEditor) {
         undoButton.removeAttribute("disabled");
       } else {
@@ -844,7 +844,6 @@ modules["editor/toolbar"] = {
             await utils.save({ ...saveAnno, _id: tempID }, null, sync);
           }
       }
-      console.log(editor.realtimeSelect)
       await utils.forceShort();
 
       utils.location--; // Remove one from location
@@ -1793,9 +1792,9 @@ modules["pages/editor/toolbar/cursor"] = {
             }
             preserveAspect = false;
           }
-        }
-        if (this.size[0] == 0 || this.size[1] == 0) {
-          continue;
+          if (this.size[0] == 0 || this.size[1] == 0) {
+            continue;
+          }
         }
         let number;
         let pageElem = editor.page.querySelector('.ePage[pageid="' + (select.page || anno.page) + '"]');

@@ -572,6 +572,7 @@ modules["editor/realtime"] = {
                       [merge, annoElem] = await utils.render({ ...anno, _id: memberID + "_cursor" }, prevElem);
                       annoElem.setAttribute("member", memberID);
                       annoElem.setAttribute("anno", "cursor");
+                      annoElem.style.opacity = .7;
                     } else {
                       original = editor.annotations[annoID];
                       if (original != null && original.pointer != null) {

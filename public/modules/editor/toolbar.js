@@ -1002,7 +1002,7 @@ modules["pages/editor/toolbar/cursor"] = {
         anno.setAttribute("selected", "");
         let activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
         if (activeLayer == null) {
-          anno.parentElement.insertAdjacentHTML("beforeend", `<div class="eSelectActive" anno="${annoID}"></div>`);
+          anno.parentElement.insertAdjacentHTML("beforeend", `<div class="eSelectActive" anno="${annoID}" tooleditor></div>`);
           activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
         }
         activeLayer.style.zIndex = i;

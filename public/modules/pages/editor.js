@@ -2904,6 +2904,7 @@ modules["pages/editor/annotation"] = {
             if (elem == null) {
               svg.innerHTML = "<line/>";
               elem = svg.querySelector("line");
+              elem.setAttribute("stroke-linecap", "round");
             }
             if (b == "none") {
               b = "solid";
@@ -2930,7 +2931,6 @@ modules["pages/editor/annotation"] = {
         if ((b || "solid") == "solid") {
           elem.setAttribute("stroke-width", t);
           elem.removeAttribute("stroke-dasharray");
-          elem.removeAttribute("stroke-linecap");
         } else if (b == "dashed") {
           elem.setAttribute("stroke-width", t);
           elem.setAttribute("stroke-dasharray", (t * 2) + ", " + (t * 2));

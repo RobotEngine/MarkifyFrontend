@@ -1211,7 +1211,7 @@ modules["pages/editor/toolbar/cursor"] = {
   },
   actionBarTools: {
     "draw": ["pages/editor/toolbar/color", "pages/editor/toolbar/thickness", "pages/editor/toolbar/opacity", "pages/editor/toolbar/duplicate", "pages/editor/toolbar/delete"],
-    "markup": ["pages/editor/toolbar/color", "pages/editor/toolbar/thickness", "pages/editor/toolbar/duplicate", "pages/editor/toolbar/delete"],
+    "markup": ["pages/editor/toolbar/color", "pages/editor/toolbar/thickness", "pages/editor/toolbar/opacity", "pages/editor/toolbar/duplicate", "pages/editor/toolbar/delete"],
     "shape": ["pages/editor/toolbar/color", "pages/editor/toolbar/thickness", "pages/editor/toolbar/opacity", "pages/editor/toolbar/style", "pages/editor/toolbar/duplicate", "pages/editor/toolbar/delete"]
   },
   updateActionUI: async function (refresh) {

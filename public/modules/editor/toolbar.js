@@ -1074,11 +1074,15 @@ modules["pages/editor/toolbar/cursor"] = {
           y -= height;
         }
         let pageRect = annoHold.getBoundingClientRect();
-        let boxWidth = ((width + ((merged.t) || 0)) * editor.zoom) - 4;  // +0 for width, -4 for border
-        let boxHeight = ((height + ((merged.t) || 0)) * editor.zoom) - 4;
+        let t = merged.t || 0;
+        if (merged.b == "none" && merged.d != "line") {
+          t = 0;
+        }
+        let boxWidth = ((width + t) * editor.zoom) - 4;  // +0 for width, -4 for border
+        let boxHeight = ((height + t) * editor.zoom) - 4;
         select.style.width = boxWidth + "px";
         select.style.height = boxHeight + "px";
-        let halfT = ((merged.t) || 0) / 2;
+        let halfT = t / 2;
         select.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 2 + "px"; // -2 for border, -0 for width
         select.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 2 + "px";
         let eSelectTopLeft = select.querySelector('.eSelectTooltip[tooltip="topleft"]');
@@ -1115,8 +1119,8 @@ modules["pages/editor/toolbar/cursor"] = {
           }
         }
 
-        activeLayer.style.width = (width + ((merged.t) || 0)) + 8 + "px";
-        activeLayer.style.height = (height + ((merged.t) || 0)) + 8 + "px";
+        activeLayer.style.width = (width + t) + 8 + "px";
+        activeLayer.style.height = (height + t) + 8 + "px";
         activeLayer.style.left = x + halfT - 4 + "px";
         activeLayer.style.top = y + halfT - border - 4 + "px";
 
@@ -1124,11 +1128,11 @@ modules["pages/editor/toolbar/cursor"] = {
         let pageY = pageRect.y - pageHolderRect.y;
         let setMinX = x + halfT;
         this.minX = Math.min(this.minX || setMinX, setMinX);
-        let setMaxX = x + width + ((merged.t) || 0) + halfT;
+        let setMaxX = x + width + t + halfT;
         this.maxX = Math.max(this.maxX || setMaxX, setMaxX);
         let setMinY = (pageY * inverse) + y + halfT - border;
         this.minY = Math.min(this.minY || setMinY, setMinY);
-        let setMaxY = (pageY * inverse) + y + ((merged.t) || 0) - border + height + halfT;
+        let setMaxY = (pageY * inverse) + y + t - border + height + halfT;
         this.maxY = Math.max(this.maxY || setMaxY, setMaxY);
 
         let setCheckX = x + width;
@@ -1138,8 +1142,8 @@ modules["pages/editor/toolbar/cursor"] = {
 
         if (collabSelect != null) {
           collabSelect.offsetWidth;
-          let collWidth = ((width + ((merged.t) || 0)) * editor.zoom) - 3; // +0 for width, -3 for border
-          let collHeight = ((height + ((merged.t) || 0)) * editor.zoom) - 3;
+          let collWidth = ((width + t) * editor.zoom) - 3; // +0 for width, -3 for border
+          let collHeight = ((height + t) * editor.zoom) - 3;
           collabSelect.style.width = collWidth + "px";
           collabSelect.style.height = collHeight + "px";
           collabSelect.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
@@ -1188,11 +1192,15 @@ modules["pages/editor/toolbar/cursor"] = {
           border = 4;
         }
         let pageRect = annoHold.getBoundingClientRect();
-        let boxWidth = ((anno.s[0] + ((anno.t) || 0)) * editor.zoom) - 3; // +0 for width, -3 for border
-        let boxHeight = ((anno.s[1] + ((anno.t) || 0)) * editor.zoom) - 3;
+        let t = anno.t;
+        if (anno.b == "none" && anno.d != "line") {
+          t = 0;
+        }
+        let boxWidth = ((anno.s[0] + t) * editor.zoom) - 3; // +0 for width, -3 for border
+        let boxHeight = ((anno.s[1] + t) * editor.zoom) - 3;
         selection.style.width = boxWidth + "px";
         selection.style.height = boxHeight + "px";
-        let halfT = ((anno.t) || 0) / 2;
+        let halfT = t / 2;
         selection.style.left = pageRect.x + ((anno.p[0] + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
         selection.style.top = pageRect.y + ((anno.p[1] + halfT - border) * editor.zoom) + window.scrollY - 1.5 + "px";
         selection.offsetHeight;
@@ -1629,11 +1637,12 @@ modules["pages/editor/toolbar/cursor"] = {
           await utils.pushHistory("add", pushRemoves);
         }
         for (let i = 0; i < saveUpdates.length; i++) {
-          await utils.save({ ...saveUpdates[i], sync: sync }, null, sync);
+          await utils.save({ ...saveUpdates[i] }, null, sync);
         }
         if (short == true) {
           await utils.forceShort();
         }
+        this.updateBox();
       },
       updateToolActions: async (frame) => {
         let editor = await getModule("pages/editor");
@@ -3047,10 +3056,11 @@ modules["pages/editor/toolbar/shape"] = {
       utils.pushHistory("remove", [{ _id: tempID }]);
 
       saveShape.done = true; // Alert other clients that this annotation is done
+      editor.selecting[tempID] = saveShape;
       await utils.forceShort();
 
       await toolbar.setCurrentTool(editor.page.querySelector('.eTool[tool="select"]'), "select");
-      editor.selecting[tempID] = saveShape;
+      editor.selecting[tempID] = {};
       cursor.updateBox();
     }
     let content = editor.page.querySelector(".eContent");
@@ -3744,12 +3754,20 @@ modules["pages/editor/toolbar/style"] = {
     let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
     let buttonElem = button.querySelector(".eSubToolStyle");
     let color = editor.hexToRGB(preferenceTool.c, (preferenceTool.o || 0) / 100);
-    if (preferenceTool.b != "none") {
-      if (preferenceTool.i != true) {
-        buttonElem.style.border = (preferenceTool.b || "solid") + " 4px " + color; //var(--darkGray)
+    let prefI = preferenceTool.i;
+    let prefB = preferenceTool.b;
+    if (preferenceTool.d == "line") {
+      prefI = false;
+      if (prefB == "none") {
+        prefB = "solid";
+      }
+    }
+    if (prefB != "none") {
+      if (prefI != true) {
+        buttonElem.style.border = (prefB || "solid") + " 4px " + color; //var(--darkGray)
         buttonElem.style.removeProperty("background");
       } else {
-        buttonElem.style.border = (preferenceTool.b || "solid") + " 4px " + editor.hexToRGB(editor.darkenHex(preferenceTool.c, 20), (preferenceTool.o || 0) / 100);
+        buttonElem.style.border = (prefB || "solid") + " 4px " + editor.hexToRGB(editor.darkenHex(preferenceTool.c, 20), (preferenceTool.o || 0) / 100);
         buttonElem.style.background = color;
       }
     } else {
@@ -3760,7 +3778,7 @@ modules["pages/editor/toolbar/style"] = {
   html: `
     <div class="eSubToolStyleContainer">
       <button class="eTool" option><div><div class="eSubToolStyleHolder"><div class="eSubToolStyle" fill></div></div></div></button>
-      <div class="eVerticalDivider" keeptooltip></div>
+      <div class="eVerticalDivider" styles keeptooltip></div>
       <button class="eTool" option><div><div class="eSubToolStyleHolder"><div class="eSubToolStyle" solid></div></div></div></button>
       <button class="eTool" option><div><div class="eSubToolStyleHolder"><div class="eSubToolStyle" dashed></div></div></div></button>
       <button class="eTool" option><div><div class="eSubToolStyleHolder"><div class="eSubToolStyle" none></div></div></div></button>
@@ -3794,6 +3812,16 @@ modules["pages/editor/toolbar/style"] = {
     let solidButton = solid.closest(".eTool");
     let dashedButton = dashed.closest(".eTool");
     let noneButton = none.closest(".eTool");
+
+    if (this.preferenceTool.d == "line") {
+      fillButton.style.display = "none";
+      frame.querySelector(".eVerticalDivider[styles]").style.display = "none";
+      noneButton.style.display = "none";
+      selectedI = false;
+      if (selectedB == "none") {
+        selectedB = "solid";
+      }
+    }
 
     // i - INSIDE COLOR
     // b - BORDER
@@ -3881,6 +3909,7 @@ modules["pages/editor/toolbar/duplicate"] = {
     let selectKeys = Object.keys(editor.selecting);
 
     let newSelect = {};
+    let newNewSelect = {};
     let setTempSync = getEpoch();
     for (let i = 0; i < selectKeys.length; i++) {
       let selectID = selectKeys[i];
@@ -3894,6 +3923,7 @@ modules["pages/editor/toolbar/duplicate"] = {
       await utils.render(newAnno);
       editor.annotations[tempID] = { render: newAnno };
       newSelect[tempID] = newAnno;
+      newNewSelect[tempID] = {};
       //await utils.save(newAnno);
     }
 
@@ -3901,6 +3931,8 @@ modules["pages/editor/toolbar/duplicate"] = {
 
     cursor.action = "save";
     await cursor.endAction();
+
+    editor.selecting = newNewSelect;
 
     cursor.updateBox();
 
@@ -3922,6 +3954,11 @@ modules["pages/editor/toolbar/delete"] = {
     for (let i = 0; i < selectKeys.length; i++) {
       editor.selecting[selectKeys[i]].remove = true;
       editor.selecting[selectKeys[i]].done = true;
+
+      let allSelections = [...editor.page.querySelectorAll('.eSelect[anno="' + selectKeys[i] + '"]'), ...editor.page.querySelectorAll('.eSelectActive[anno="' + selectKeys[i] + '"]'), ...editor.page.querySelectorAll('.eCollabSelect[anno="' + selectKeys[i] + '"]')];
+      for (let i = 0; i < allSelections.length; i++) {
+        allSelections[i].remove();
+      }
     }
     await utils.forceShort();
     editor.selecting = {};

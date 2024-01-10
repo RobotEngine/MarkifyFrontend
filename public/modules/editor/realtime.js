@@ -596,6 +596,10 @@ modules["editor/realtime"] = {
                         }
                       }
                       */
+                      if (anno.remove == true && editor.selecting[annoID] != null) {
+                        delete editor.selecting[annoID];
+                        cursorModule.updateBox();
+                      }
                       if (anno.done != true && forced != true) {
                         original.render = { ...(original.render || {}), ...anno };
                       } else {
@@ -635,7 +639,7 @@ modules["editor/realtime"] = {
                       }
                       utils.render(merge);
 
-                      if (selection != null && original.render.remove == true && selection.hasAttribute("remove") == false) {
+                      if (selection != null && anno.remove == true && selection.hasAttribute("remove") == false) {
                         selection.setAttribute("remove", "");
                         (async function () {
                           selection.setAttribute("old", "");
@@ -667,11 +671,15 @@ modules["editor/realtime"] = {
                         y -= height;
                       }
                       let pageRect = (annoHold).getBoundingClientRect();
-                      let boxWidth = ((width + ((merge.t) || 0)) * editor.zoom) - 3; // +0 for width, -3 for border
-                      let boxHeight = ((height + ((merge.t) || 0)) * editor.zoom) - 3;
+                      let t = merge.t || 0;
+                      if (merge.b == "none" && merge.d != "line") {
+                        t = 0;
+                      }
+                      let boxWidth = ((width + t) * editor.zoom) - 3; // +0 for width, -3 for border
+                      let boxHeight = ((height + t) * editor.zoom) - 3;
                       selection.style.width = boxWidth + "px";
                       selection.style.height = boxHeight + "px";
-                      let halfT = ((merge.t) || 0) / 2;
+                      let halfT = t / 2;
                       selection.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
                       selection.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
                     }

@@ -2806,9 +2806,10 @@ modules["pages/editor/annotation"] = {
           anno.setAttribute("tooleditor", "");
           anno.style.opacity = .7;
         }
-        //if (b == "none") {
-        //  t = 0;
-        //}
+        if (b == "none" && d != "line") {
+          t = 0;
+          halfT = 0;
+        }
         width += t;
         height += t;
         x += halfT;
@@ -2899,17 +2900,24 @@ modules["pages/editor/annotation"] = {
             elem.setAttribute("points", (this.SVG_PADDING + halfT + (widthT * .5)) + "," + (this.SVG_PADDING + halfT) + " " + (widthT + this.SVG_PADDING + halfT) + "," + (this.SVG_PADDING + halfT + (heightT * .5)) + " " + (this.SVG_PADDING + halfT + (widthT * .5)) + "," + (heightT + this.SVG_PADDING + halfT) + " " + (this.SVG_PADDING + halfT) + "," + (this.SVG_PADDING + halfT + (heightT * .5)));
             break;
           case "line":
-            elem = svg.querySelector("polygon");
+            elem = svg.querySelector("line");
             if (elem == null) {
-              svg.innerHTML = "<polygon/>";
-              elem = svg.querySelector("polygon");
-              elem.setAttribute("stroke-linejoin", "round");
+              svg.innerHTML = "<line/>";
+              elem = svg.querySelector("line");
             }
+            if (b == "none") {
+              b = "solid";
+            }
+            i = false;
             widthT = width - t;
             heightT = height - t;
-            elem.setAttribute("points", (widthT + this.SVG_PADDING + halfT) + "," + (this.SVG_PADDING + halfT) + " " + (this.SVG_PADDING + halfT) + "," + (heightT + this.SVG_PADDING + halfT));
+            elem.setAttribute("x1", widthT + this.SVG_PADDING + halfT);
+            elem.setAttribute("y1", this.SVG_PADDING + halfT);
+            elem.setAttribute("x2", this.SVG_PADDING + halfT);
+            elem.setAttribute("y2", heightT + this.SVG_PADDING + halfT);
+            //elem.setAttribute("points", (widthT + this.SVG_PADDING + halfT) + "," + (this.SVG_PADDING + halfT) + " " + (this.SVG_PADDING + halfT) + "," + (heightT + this.SVG_PADDING + halfT));
         }
-        if (i == false && b == "none") {
+        if (b == "none") {
           i = true;
         }
         if (i != true) {
@@ -2922,9 +2930,11 @@ modules["pages/editor/annotation"] = {
         if ((b || "solid") == "solid") {
           elem.setAttribute("stroke-width", t);
           elem.removeAttribute("stroke-dasharray");
+          elem.removeAttribute("stroke-linecap");
         } else if (b == "dashed") {
           elem.setAttribute("stroke-width", t);
-          elem.setAttribute("stroke-dasharray", t * 2);
+          elem.setAttribute("stroke-dasharray", (t * 2) + ", " + (t * 2));
+          elem.setAttribute("stroke-linecap", "round");
         } else {
           elem.setAttribute("stroke-width", 0);
         }

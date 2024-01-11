@@ -1299,10 +1299,6 @@ modules["pages/editor"] = {
                 canvas = pageElem.querySelector(".ePageContent[new]");
                 canvas.removeAttribute("new");
 
-                if (this.exporting == true) {
-                  canvas.style.opacity = 1;
-                }
-
                 let context = canvas.getContext("2d");
 
                 canvas.width = viewport.width;
@@ -1559,7 +1555,6 @@ modules["pages/editor"] = {
             let loadingTask = pdfjsLib.getDocument(assetURL + sourceData.source);
             this.loadedPDFs.push(loadingTask);
             loadingTask.promise.then(async (pdf) => {
-              loadedSourceCount++;
               sourceData.pdf = pdf;
               let loadInPages = pageHolder.querySelectorAll('.ePage[sourceid="' + sourceData._id + '"][loading]');
               for (let i = 0; i < loadInPages.length; i++) {
@@ -1569,6 +1564,7 @@ modules["pages/editor"] = {
                   await loadPage(loadInPages[i]);
                 }
               }
+              loadedSourceCount++;
               if (window.exportReady && (loadedSourceCount >= sources.length || getParam("only_thumbnail") == "true")) {
                 window.exportReady();
               }

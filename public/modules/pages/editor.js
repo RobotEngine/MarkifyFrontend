@@ -668,7 +668,7 @@ modules["pages/editor"] = {
             let annoKeys = Object.keys(this.annotations);
             for (let i = 0; i < annoKeys.length; i++) {
               let anno = this.annotations[annoKeys[i]];
-              if ((anno.revert || anno.render).page == data.data.page) {
+              if ((anno.render || anno.revert || {}).page == data.data.page) {
                 delete this.annotations[annoKeys[i]];
               }
             }

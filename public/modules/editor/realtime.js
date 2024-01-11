@@ -634,7 +634,7 @@ modules["editor/realtime"] = {
                           selection.removeAttribute("notransition");
                         }
                       } else {
-                        merge = { ...(editor.selecting[annoID] || {}), ...original.render };
+                        merge = { ...original.render, ...(editor.selecting[annoID] || {}) };
                         userSelecting = true;
                       }
                       utils.render(merge);

@@ -634,6 +634,7 @@ modules["pages/editor"] = {
           await this.addSources(data.data.sources || []);
           await this.addPages(data.data.pages || []);
           await this.updatePages();
+          await this.setZoom();
           await utils.resetAnnotationSize();
           break;
         case "invite":
@@ -672,6 +673,8 @@ modules["pages/editor"] = {
               }
             }
             this.updatePages();
+            await this.setZoom();
+            await utils.resetAnnotationSize();
           }
           break;
         case "pageswap":

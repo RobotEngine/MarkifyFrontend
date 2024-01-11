@@ -2223,7 +2223,7 @@ modules["pages/editor/toolbar/drag"] = {
       editor.toolbar.closeSubSubtoolUI();
       event.preventDefault();
       content.insertAdjacentHTML("beforeend", `<div class="eSelectDrag" tooleditor new></div>`);
-      selection = content.querySelector(".eSelectDrag");
+      selection = content.querySelector(".eSelectDrag:not([remove])");
       selection.removeAttribute("new");
 
       prevSelecting = JSON.parse(JSON.stringify(editor.selecting));

@@ -1299,6 +1299,10 @@ modules["pages/editor"] = {
                 canvas = pageElem.querySelector(".ePageContent[new]");
                 canvas.removeAttribute("new");
 
+                if (this.exporting == true) {
+                  canvas.style.opacity = 1;
+                }
+
                 let context = canvas.getContext("2d");
 
                 canvas.width = viewport.width;

@@ -1172,7 +1172,7 @@ modules["dropdowns/editor/members"] = {
         setTop = 0;
       }
       if (buttonRect.top + contentHeight > fixed.offsetHeight - dropdownRect.top + 8) { // Below dropdown:
-        setTop = fixed.offsetHeight - memberFrameHolder.offsetHeight - dropdownRect.top - 8;
+        setTop = fixed.offsetHeight - contentFrameHolder.offsetHeight - dropdownRect.top - 8;
       }
       memberFrameHolder.style.top = setTop + "px";
       
@@ -1181,7 +1181,7 @@ modules["dropdowns/editor/members"] = {
       } else {
         dropdown.style.borderTopLeftRadius = "12px";
       }
-      if (setTop + memberFrameHolder.offsetHeight > dropdownRect.top + dropdown.offsetHeight - 20) { // Bottom border radius:
+      if (setTop + contentFrameHolder.offsetHeight > dropdownRect.top + dropdown.offsetHeight - 20) { // Bottom border radius:
         dropdown.style.borderBottomLeftRadius = "0px";
       } else {
         dropdown.style.borderBottomLeftRadius = "12px";

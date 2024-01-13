@@ -1635,6 +1635,11 @@ modules["pages/editor"] = {
           resetTimeout = setTimeout(() => {
             this.updatePageSize();
             utils.resetAnnotationSize();
+            if (this.exporting == true) {
+              this.addMargin = 0;
+              return;
+            }
+            this.addMargin = Math.max((fixed.offsetWidth - (pageHolder.offsetWidth * this.zoom)) / 2, 100);
           }, 500);
         });
         let updateScroll = () => {

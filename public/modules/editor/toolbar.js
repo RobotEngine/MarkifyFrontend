@@ -1384,13 +1384,13 @@ modules["pages/editor/toolbar/cursor"] = {
       
       // Update Tooltip Position
       if (isBottom == false) { // Is the top
-        if (yPos - 38 - 4 < 66) {
+        if (yPos - 32 < 66) {
           actionUI.setAttribute("tooltipbottom", "");
         } else {
           actionUI.removeAttribute("tooltipbottom");
         }
       } else { // Is the bottom
-        if (fixed.offsetHeight - yPos - actionUI.clientHeight - 38 - 4 < 66) {
+        if (fixed.offsetHeight - yPos - actionUI.clientHeight - 32 < 66) {
           actionUI.removeAttribute("tooltipbottom");
         } else {
           actionUI.setAttribute("tooltipbottom", "");

@@ -1697,9 +1697,9 @@ modules["pages/editor/toolbar/cursor"] = {
         }
         if (short == true) {
           await utils.forceShort();
-        }
-        for (let i = 0; i < selectKeys.length; i++) {
-          editor.selecting[selectKeys[i]] = {};
+          for (let i = 0; i < selectKeys.length; i++) {
+            editor.selecting[selectKeys[i]] = {};
+          }
         }
 
         this.updateBox();

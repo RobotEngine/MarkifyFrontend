@@ -323,19 +323,66 @@ modules["editor/toolbar"] = {
           tooltipText.style.top = setTop + "px";
           tooltipText.style.left = setLeft + 6 + "px";
         } else {
+          let actionContainer = tooltipElement.closest(".eActionContainer");
           let barRect = tooltipText.parentElement.getBoundingClientRect();
           let buttonRect = tooltipElement.getBoundingClientRect();
 
           tooltipText.style.left = (buttonRect.left - barRect.left) + (tooltipElement.clientWidth / 2) - (tooltipText.clientWidth / 2) + "px";
-
-          if (tooltipText.parentElement.hasAttribute("tooltipbottom") == false) {
-            // Show tooltip on the top
-            tooltipText.style.transformOrigin = "center bottom";
-            tooltipText.style.top = -tooltipText.clientHeight - 6 + "px";
+          
+          if (actionContainer == null) {
+            if (tooltipText.parentElement.hasAttribute("tooltipbottom") == false) {
+              // Show tooltip on the top
+              tooltipText.style.transformOrigin = "center bottom";
+              let setTop = -tooltipText.clientHeight - 6;
+              /*
+              if (actionContainer != null) {
+                let actionRect = actionContainer.getBoundingClientRect();
+                if (actionRect.top - (tooltipText.clientHeight + 20) > 50) {
+                  setTop -= actionContainer.offsetHeight;
+                } else {
+                  setTop += tooltipText.clientHeight + 8;
+                }
+              }
+              */
+              tooltipText.style.top = -tooltipText.clientHeight - 6 + "px";
+            } else {
+              // Show tooltip on the bottom
+              tooltipText.style.transformOrigin = "center top";
+              tooltipText.style.top = tooltipText.parentElement.clientHeight + 6 + "px";
+            }
           } else {
-            // Show tooltip on the bottom
-            tooltipText.style.transformOrigin = "center top";
-            tooltipText.style.top = tooltipText.parentElement.clientHeight + 6 + "px";
+            let actionRect = actionContainer.getBoundingClientRect();
+            if (tooltipText.parentElement.hasAttribute("actionuitop") == true) {
+              if (actionRect.top - tooltipText.clientHeight - 6 > 66) {
+                tooltipText.style.transformOrigin = "center bottom";
+                tooltipText.style.top = -actionContainer.offsetHeight - tooltipText.clientHeight - 6 + "px";
+                /*
+                if (tooltipText.parentElement.hasAttribute("tooltipbottom") == false) {
+                  tooltipText.style.top = -actionContainer.offsetHeight - tooltipText.clientHeight - 6 + "px";
+                } else {
+                  tooltipText.style.top = actionContainer.offsetHeight - tooltipText.clientHeight - 6 + "px";
+                }
+                */
+              } else {
+                tooltipText.style.transformOrigin = "center top";
+                tooltipText.style.top = "4px";
+                /*
+                if (tooltipText.parentElement.hasAttribute("tooltipbottom") == true) {
+                  tooltipText.style.top = tooltipText.parentElement.clientHeight + actionContainer.offsetHeight + 6 + "px";
+                } else {
+                  tooltipText.style.top = "4px";
+                }
+                */
+              }
+            } else {
+              if (actionRect.top + actionContainer.clientHeight + tooltipText.clientHeight + 6 < fixed.offsetHeight - 66) {
+                tooltipText.style.transformOrigin = "center top";
+                tooltipText.style.top = tooltipText.parentElement.clientHeight + actionContainer.offsetHeight + 6 + "px";
+              } else {
+                tooltipText.style.transformOrigin = "center bottom";
+                tooltipText.style.top = actionContainer.offsetHeight - tooltipText.clientHeight - 6 + "px";
+              }
+            }
           }
         }
       }
@@ -352,6 +399,7 @@ modules["editor/toolbar"] = {
         tooltipText.style.transition = "unset";
       }
     }
+    this.closeTooltipHover = closeTooltipHover;
     editor.page.addEventListener("mousemove", (event) => {
       let hoverElem = event.target;
       if (hoverElem == null) {
@@ -1216,6 +1264,7 @@ modules["pages/editor/toolbar/cursor"] = {
   },
   updateActionUI: async function (refresh) {
     let editor = await getModule("pages/editor");
+    let toolbarModule = await getModule("editor/toolbar");
     //let utils = await getModule("pages/editor/annotation");
     let content = editor.page.querySelector(".eContent");
     let selectionIDs = Object.keys(editor.selecting);
@@ -1266,7 +1315,7 @@ modules["pages/editor/toolbar/cursor"] = {
         // Create UI
         content.insertAdjacentHTML("beforeend", `<div class="eSelectBar" new>
           <div class="eSelectHolder" keeptooltip></div>
-          <div class="eActionContainer">
+          <div class="eActionContainer" keeptooltip>
             <div class="eActionShadow"></div>
               <div class="eActionContainerHolder">
                 <div class="eActionContainerScroll">
@@ -1334,13 +1383,13 @@ modules["pages/editor/toolbar/cursor"] = {
       actionUI.style.top = yPos + window.scrollY + "px";
       
       // Update Tooltip Position
-      if (isBottom == false) {
+      if (isBottom == false) { // Is the top
         if (yPos - 38 - 4 < 66) {
           actionUI.setAttribute("tooltipbottom", "");
         } else {
           actionUI.removeAttribute("tooltipbottom");
         }
-      } else {
+      } else { // Is the bottom
         if (fixed.offsetHeight - yPos - actionUI.clientHeight - 38 - 4 < 66) {
           actionUI.removeAttribute("tooltipbottom");
         } else {
@@ -1363,6 +1412,11 @@ modules["pages/editor/toolbar/cursor"] = {
           if (fixed.offsetHeight - yPos - actionUI.clientHeight - actionContent.clientHeight - 4 < 66) {
             alignTop = true;
           }
+        }
+        if (alignTop == true) {
+          actionUI.setAttribute("actionuitop", "");
+        } else {
+          actionUI.removeAttribute("actionuitop");
         }
 
         let button = actionUI.querySelector('.eTool[action="' + actionFrame.getAttribute("module") + '"');
@@ -1398,6 +1452,7 @@ modules["pages/editor/toolbar/cursor"] = {
 
           if (actionFrame.hasAttribute("changetop") == false) {
             (async function () {
+              toolbarModule.closeTooltipHover();
               actionFrame.setAttribute("changetop", "");
               actionFrame.style.transform = "scale(0)";
               actionFrame.style.opacity = 0;
@@ -1432,6 +1487,7 @@ modules["pages/editor/toolbar/cursor"] = {
 
           if (actionFrame.hasAttribute("changebottom") == false) {
             (async function () {
+              toolbarModule.closeTooltipHover();
               actionFrame.setAttribute("changebottom", "");
               actionFrame.style.transform = "scale(0)";
               actionFrame.style.opacity = 0;
@@ -3781,11 +3837,11 @@ modules["pages/editor/toolbar/style"] = {
   },
   html: `
     <div class="eSubToolStyleContainer">
-      <button class="eTool" option><div><div class="eSubToolStyleHolder"><div class="eSubToolStyle" fill></div></div></div></button>
+      <button class="eTool" tooltip="Filled" option><div><div class="eSubToolStyleHolder"><div class="eSubToolStyle" fill></div></div></div></button>
       <div class="eVerticalDivider" styles keeptooltip></div>
-      <button class="eTool" option><div><div class="eSubToolStyleHolder"><div class="eSubToolStyle" solid></div></div></div></button>
-      <button class="eTool" option><div><div class="eSubToolStyleHolder"><div class="eSubToolStyle" dashed></div></div></div></button>
-      <button class="eTool" option><div><div class="eSubToolStyleHolder"><div class="eSubToolStyle" none></div></div></div></button>
+      <button class="eTool" tooltip="Solid Border" option><div><div class="eSubToolStyleHolder"><div class="eSubToolStyle" solid></div></div></div></button>
+      <button class="eTool" tooltip="Dashed Border" option><div><div class="eSubToolStyleHolder"><div class="eSubToolStyle" dashed></div></div></div></button>
+      <button class="eTool" tooltip="No Border" option><div><div class="eSubToolStyleHolder"><div class="eSubToolStyle" none></div></div></div></button>
     </div>
   `,
   css: {
@@ -3857,7 +3913,7 @@ modules["pages/editor/toolbar/style"] = {
 
       let color = editor.hexToRGB(this.preferenceTool.c, (this.preferenceTool.o || 0) / 100);
       let borderColor = color;
-      if (selectedI != null) {
+      if (selectedI == true || selectedB == "none") {
         borderColor = editor.hexToRGB(editor.darkenHex(this.preferenceTool.c, 20), (this.preferenceTool.o || 0) / 100);
       }
 

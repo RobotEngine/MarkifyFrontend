@@ -2637,6 +2637,10 @@ modules["pages/editor/annotation"] = {
     }
     if (anno != null && anno.parentElement != annoHolder) {
       annoHolder.appendChild(anno);
+      let activeSelect = editor.page.querySelector('.eSelectActive[anno="' + _id + '"]');
+      if (activeSelect != null) {
+        annoHolder.appendChild(activeSelect);
+      }
     }
     if (annoHolder.parentElement.parentElement.firstElementChild != annoHolder.parentElement) {
       y -= 4;

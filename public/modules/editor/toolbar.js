@@ -153,7 +153,7 @@ modules["editor/toolbar"] = {
         module: "pages/editor/toolbar/opacity"
       }
     ],
-    "text": { id: "text", type: "tool" },
+    "text": { id: "text", type: "tool", module: "pages/editor/toolbar/text" },
     "draw": [
       {
         id: "pen",
@@ -2671,6 +2671,9 @@ modules["pages/editor/toolbar/underline"] = {
     addEvent(content, "touchend", disableMarkup, { passive: false });
   }
 };
+
+// TEXT TOOL
+//pages/editor/toolbar/text
 
 // PEN TOOL
 modules["pages/editor/toolbar/pen"] = {

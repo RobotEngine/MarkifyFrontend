@@ -1627,6 +1627,11 @@ modules["pages/editor"] = {
         this.updatePageSize = () => {
           pageHolder.style.width = fixed.offsetWidth - 332 + "px";
           pageHolder.style.height = fixed.offsetHeight - 332 + "px";
+          if (this.exporting == true) {
+            this.addMargin = 0;
+            return;
+          }
+          this.addMargin = Math.max(fixed.offsetWidth / 2, 100);
         }
         pageHolder.style.pointerEvents = "none";
         let resetTimeout;
@@ -1635,11 +1640,6 @@ modules["pages/editor"] = {
           resetTimeout = setTimeout(() => {
             this.updatePageSize();
             utils.resetAnnotationSize();
-            if (this.exporting == true) {
-              this.addMargin = 0;
-              return;
-            }
-            this.addMargin = Math.max((fixed.offsetWidth - (pageHolder.offsetWidth * this.zoom)) / 2, 100);
           }, 500);
         });
         let updateScroll = () => {
@@ -2581,11 +2581,11 @@ modules["pages/editor/annotation"] = {
     let contentTop = this.marginTop || 0;
     this.marginLeft = (this.setLeftMargin * editor.zoom) + editor.addMargin;
     this.marginTop = (this.setTopMargin * editor.zoom) + editor.addMargin;
-    content.style.marginLeft = this.marginLeft + "px";
-    content.style.marginRight = (this.setRightMargin * editor.zoom) + editor.addMargin + "px";
+    content.style.marginLeft = (Math.ceil(this.marginLeft / 40) * 40) + "px";
+    content.style.marginRight = (Math.ceil(((this.setRightMargin * editor.zoom) + editor.addMargin) / 40) * 40) + "px";
     if (editor.lesson.type == "freeboard") {
-      content.style.marginTop = this.marginTop + "px";
-      content.style.marginBottom = (this.setBottomMargin * editor.zoom) + editor.addMargin + "px";
+      content.style.marginTop = (Math.ceil(this.marginTop / 40) * 40) + "px";
+      content.style.marginBottom = (Math.ceil(((this.setBottomMargin * editor.zoom) + editor.addMargin) / 40) * 40) + "px";
     }
     if (contentFrame.offsetWidth != this.lastOffsetWidth || contentFrame.offsetHeight != this.lastOffsetHeight) {
       window.scrollTo(scrollPosX + (this.marginLeft - contentLeft), scrollPosY + (this.marginTop - contentTop));

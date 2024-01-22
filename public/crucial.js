@@ -72,6 +72,7 @@ app.addEventListener("mousemove", setPrimaryButtonState, { capture: true, passiv
 app.addEventListener("mouseup", setPrimaryButtonState, { capture: true, passive: true });
 
 let tempListeners = [];
+let toolEvents = [];
 function tempListen(parent, listen, runFunc, extra) {
   parent.addEventListener(listen, runFunc, extra);
   tempListeners.push({ type: "event", parent: parent, name: listen, listener: runFunc });

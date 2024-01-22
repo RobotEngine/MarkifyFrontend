@@ -637,6 +637,12 @@ modules["editor/realtime"] = {
                         merge = { ...original.render, ...(editor.selecting[annoID] || {}) };
                         userSelecting = true;
                       }
+                      if (merge.f == "text" && anno.d != null) {
+                        let annoTx = editor.page.querySelector('.eAnnotation[anno="' + annoID + '"] div[contenteditable]');
+                        if (annoTx != null) {
+                          annoTx.removeAttribute("contenteditable");
+                        }
+                      }
                       utils.render(merge);
 
                       if (selection != null && anno.remove == true && selection.hasAttribute("remove") == false) {

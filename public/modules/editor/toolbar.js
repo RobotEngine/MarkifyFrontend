@@ -1704,9 +1704,9 @@ modules["pages/editor/toolbar/cursor"] = {
           if (anno.f == "text") {
             let annoTx = editor.page.querySelector('.eAnnotation[anno="' + annoID + '"] div[text]');
             if (annoTx != null) {
-              editor.selecting[annoID] = { ...select, ...annoSet };
+              //editor.selecting[annoID] = { ...select, ...annoSet };
               await utils.render({ ...anno, ...annoSet }, annoTx.parentElement);
-              annoSet.s = anno.s;
+              annoSet.s = JSON.parse(JSON.stringify(anno)).s || [];
               if (anno.textfit == true) {
                 annoSet.s[0] = annoTx.offsetWidth + 6;
               }
@@ -4284,8 +4284,8 @@ modules["pages/editor/toolbar/textedit"] = {
       }
       saveObj.s[1] = annoTx.offsetHeight + 6;
       */
-      extra.saveSelecting(saveObj);
-      utils.forceShort();
+      extra.saveSelecting(saveObj, true);
+      //utils.forceShort();
     };
     this.pastEvents.push({ type: "event", parent: parent, name: "input", listener: inputListener });
     annoTx.addEventListener("input", inputListener);

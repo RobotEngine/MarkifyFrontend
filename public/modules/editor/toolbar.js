@@ -1704,7 +1704,7 @@ modules["pages/editor/toolbar/cursor"] = {
           if (anno.f == "text") {
             let annoTx = editor.page.querySelector('.eAnnotation[anno="' + annoID + '"] div[text]');
             if (annoTx != null) {
-              //editor.selecting[annoID] = { ...select, ...annoSet };
+              editor.selecting[annoID] = { ...select, ...annoSet };
               await utils.render({ ...anno, ...annoSet }, annoTx.parentElement);
               annoSet.s = JSON.parse(JSON.stringify(anno)).s || [];
               if (anno.textfit == true) {

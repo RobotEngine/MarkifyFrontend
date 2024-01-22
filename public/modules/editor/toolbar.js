@@ -3,7 +3,7 @@ modules["editor/toolbar"] = {
   html: `
   <button class="eTool" tool="select" tooltip="Selection" selected><div><svg width="26" viewBox="0 0 36 52" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="path-1-outside-1_306_4" maskUnits="userSpaceOnUse" x="0.192818" y="4.08914" width="36" height="44" fill="black"> <rect fill="white" x="0.192818" y="4.08914" width="36" height="44"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7602 8.2371C8.79786 5.37292 3.25704 8.19611 3.24522 13.0852L3.19284 34.7545C3.18199 39.2411 7.9192 42.1519 11.9168 40.1151L15.9383 38.066L18.0344 42.1798C19.288 44.6402 22.2989 45.6185 24.7593 44.3649L26.0925 43.6856C28.5529 42.4319 29.5312 39.4211 28.2776 36.9606L26.1815 32.8468L29.5308 31.1403C33.5284 29.1034 33.9579 23.56 30.3218 20.9316L12.7602 8.2371Z"/> </mask> <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7602 8.2371C8.79786 5.37292 3.25704 8.19611 3.24522 13.0852L3.19284 34.7545C3.18199 39.2411 7.9192 42.1519 11.9168 40.1151L15.9383 38.066L18.0344 42.1798C19.288 44.6402 22.2989 45.6185 24.7593 44.3649L26.0925 43.6856C28.5529 42.4319 29.5312 39.4211 28.2776 36.9606L26.1815 32.8468L29.5308 31.1403C33.5284 29.1034 33.9579 23.56 30.3218 20.9316L12.7602 8.2371Z" fill="#2F2F2F"/> <path d="M3.24522 13.0852L0.74523 13.0792L3.24522 13.0852ZM12.7602 8.2371L14.2247 6.21101L14.2247 6.21101L12.7602 8.2371ZM3.19284 34.7545L5.69283 34.7606L3.19284 34.7545ZM11.9168 40.1151L10.7818 37.8876L10.7818 37.8876L11.9168 40.1151ZM15.9383 38.066L18.1658 36.931L17.0308 34.7035L14.8033 35.8385L15.9383 38.066ZM18.0344 42.1798L15.8068 43.3147L15.8068 43.3147L18.0344 42.1798ZM24.7593 44.3649L23.6244 42.1373L23.6244 42.1373L24.7593 44.3649ZM26.0925 43.6856L27.2274 45.9131L27.2274 45.9131L26.0925 43.6856ZM28.2776 36.9606L30.5051 35.8256L30.5051 35.8256L28.2776 36.9606ZM26.1815 32.8468L25.0465 30.6193L22.819 31.7543L23.954 33.9818L26.1815 32.8468ZM29.5308 31.1403L30.6658 33.3678L29.5308 31.1403ZM30.3218 20.9316L31.7864 18.9055L31.7864 18.9055L30.3218 20.9316ZM5.74522 13.0913C5.75211 10.2393 8.98425 8.59242 11.2956 10.2632L14.2247 6.21101C8.61146 2.15342 0.761974 6.15294 0.74523 13.0792L5.74522 13.0913ZM5.69283 34.7606L5.74522 13.0913L0.74523 13.0792L0.692844 34.7485L5.69283 34.7606ZM10.7818 37.8876C8.44987 39.0757 5.6865 37.3777 5.69283 34.7606L0.692844 34.7485C0.677478 41.1044 7.38852 45.2281 13.0517 42.3426L10.7818 37.8876ZM14.8033 35.8385L10.7818 37.8876L13.0517 42.3426L17.0733 40.2935L14.8033 35.8385ZM20.2619 41.0448L18.1658 36.931L13.7108 39.201L15.8068 43.3147L20.2619 41.0448ZM23.6244 42.1373C22.3941 42.7642 20.8887 42.275 20.2619 41.0448L15.8068 43.3147C17.6873 47.0054 22.2036 48.4729 25.8943 46.5924L23.6244 42.1373ZM24.9575 41.4581L23.6244 42.1373L25.8943 46.5924L27.2274 45.9131L24.9575 41.4581ZM26.05 38.0956C26.6769 39.3258 26.1877 40.8312 24.9575 41.4581L27.2274 45.9131C30.9181 44.0326 32.3856 39.5163 30.5051 35.8256L26.05 38.0956ZM23.954 33.9818L26.05 38.0956L30.5051 35.8256L28.409 31.7119L23.954 33.9818ZM28.3958 28.9128L25.0465 30.6193L27.3165 35.0744L30.6658 33.3678L28.3958 28.9128ZM28.8572 22.9577C30.9783 24.4909 30.7277 27.7246 28.3958 28.9128L30.6658 33.3678C36.329 30.4822 36.9375 22.629 31.7864 18.9055L28.8572 22.9577ZM11.2956 10.2632L28.8572 22.9577L31.7864 18.9055L14.2247 6.21101L11.2956 10.2632Z" fill="white" mask="url(#path-1-outside-1_306_4)"/> </svg></div></button>
   <button class="eTool" tool="markup" tooltip="Markup"><div><svg width="26" viewBox="0 0 30 42" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M13.1698 36.4384C13.9254 38.5143 16.2208 39.5846 18.2967 38.8291L23.9348 36.7769C26.0107 36.0214 27.0811 33.726 26.3255 31.6501L22.5633 21.3135L9.4076 26.1018L13.1698 36.4384Z" fill="white"/> <path d="M22.1358 20.1389L23.3104 19.7113L23.7379 20.8859L27.5001 31.2226C28.4918 33.9472 27.087 36.9599 24.3624 37.9516L18.7242 40.0037C15.9996 40.9954 12.9869 39.5905 11.9952 36.8659L8.23298 26.5293L7.80546 25.3547L8.98008 24.9271L22.1358 20.1389Z" fillcoloropacity stroke="white" stroke-width="2.5"/> <path d="M11.9685 33.1377L10.7938 33.5652L10.3663 32.3906L2.49986 10.7776C1.50817 8.053 2.913 5.04033 5.63764 4.04864L11.2758 1.99652C14.0004 1.00484 17.0131 2.40967 18.0048 5.1343L25.8712 26.7472L26.2988 27.9219L25.1242 28.3494L11.9685 33.1377Z" fill="#2F2F2F" stroke="white" stroke-width="2.5"/> </svg></div></button>
-  <button class="eTool" soon tool="text" tooltip="Coming Soon"><div><svg width="44" viewBox="0 0 52 32" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M3 7V3H25.5V7H17V29.5H12V7H3Z" fill="#2F2F2F"/> <path d="M34 19L26.5 9H31.5L36.5 15.5L42 9H47L39.5 19L47 29.5H42L36.5 22.5L31.5 29.5H26L34 19Z" fill="white"/> <path d="M34 19L26.5 9H31.5L36.5 15.5L42 9H47L39.5 19L47 29.5H42L36.5 22.5L31.5 29.5H26L34 19Z" fillcoloropacity/> <mask id="path-4-outside-1_925_51" maskUnits="userSpaceOnUse" x="0" y="0" width="52" height="32" fill="black"> <rect fill="white" width="52" height="32"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M3 3V7H12V29.5H17V7H25.5V3H3ZM26.5 9L34 19L26 29.5H31.5L36.5 22.5L42 29.5H47L39.5 19L47 9H42L36.5 15.5L31.5 9H26.5Z"/> </mask> <path d="M3 7H0.5V9.5H3V7ZM3 3V0.5H0.5V3H3ZM12 7H14.5V4.5H12V7ZM12 29.5H9.5V32H12V29.5ZM17 29.5V32H19.5V29.5H17ZM17 7V4.5H14.5V7H17ZM25.5 7V9.5H28V7H25.5ZM25.5 3H28V0.5H25.5V3ZM34 19L35.9886 20.5151L37.1339 19.0119L36 17.5L34 19ZM26.5 9V6.5H21.5L24.5 10.5L26.5 9ZM26 29.5L24.0114 27.9849L20.9523 32H26V29.5ZM31.5 29.5V32H32.7865L33.5343 30.9531L31.5 29.5ZM36.5 22.5L38.4658 20.9554L36.4047 18.3322L34.4657 21.0469L36.5 22.5ZM42 29.5L40.0342 31.0446L40.7849 32H42V29.5ZM47 29.5V32H51.858L49.0343 28.0469L47 29.5ZM39.5 19L37.5 17.5L36.402 18.964L37.4657 20.4531L39.5 19ZM47 9L49 10.5L52 6.5H47V9ZM42 9V6.5H40.8405L40.0915 7.38514L42 9ZM36.5 15.5L34.5184 17.0243L36.4073 19.4798L38.4085 17.1149L36.5 15.5ZM31.5 9L33.4816 7.47572L32.731 6.5H31.5V9ZM5.5 7V3H0.5V7H5.5ZM12 4.5H3V9.5H12V4.5ZM14.5 29.5V7H9.5V29.5H14.5ZM17 27H12V32H17V27ZM14.5 7V29.5H19.5V7H14.5ZM25.5 4.5H17V9.5H25.5V4.5ZM23 3V7H28V3H23ZM3 5.5H25.5V0.5H3V5.5ZM36 17.5L28.5 7.5L24.5 10.5L32 20.5L36 17.5ZM27.9886 31.0151L35.9886 20.5151L32.0114 17.4849L24.0114 27.9849L27.9886 31.0151ZM31.5 27H26V32H31.5V27ZM34.4657 21.0469L29.4657 28.0469L33.5343 30.9531L38.5343 23.9531L34.4657 21.0469ZM43.9658 27.9554L38.4658 20.9554L34.5342 24.0446L40.0342 31.0446L43.9658 27.9554ZM47 27H42V32H47V27ZM37.4657 20.4531L44.9657 30.9531L49.0343 28.0469L41.5343 17.5469L37.4657 20.4531ZM45 7.5L37.5 17.5L41.5 20.5L49 10.5L45 7.5ZM42 11.5H47V6.5H42V11.5ZM38.4085 17.1149L43.9085 10.6149L40.0915 7.38514L34.5915 13.8851L38.4085 17.1149ZM29.5184 10.5243L34.5184 17.0243L38.4816 13.9757L33.4816 7.47572L29.5184 10.5243ZM26.5 11.5H31.5V6.5H26.5V11.5Z" fill="white" mask="url(#path-4-outside-1_925_51)"/> </svg></div></button>
+  <button class="eTool" tool="text" tooltip="Text Box"><div><svg width="44" viewBox="0 0 52 32" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M3 7V3H25.5V7H17V29.5H12V7H3Z" fill="#2F2F2F"/> <path d="M34 19L26.5 9H31.5L36.5 15.5L42 9H47L39.5 19L47 29.5H42L36.5 22.5L31.5 29.5H26L34 19Z" fill="white"/> <path d="M34 19L26.5 9H31.5L36.5 15.5L42 9H47L39.5 19L47 29.5H42L36.5 22.5L31.5 29.5H26L34 19Z" fillcoloropacity/> <mask id="path-4-outside-1_925_51" maskUnits="userSpaceOnUse" x="0" y="0" width="52" height="32" fill="black"> <rect fill="white" width="52" height="32"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M3 3V7H12V29.5H17V7H25.5V3H3ZM26.5 9L34 19L26 29.5H31.5L36.5 22.5L42 29.5H47L39.5 19L47 9H42L36.5 15.5L31.5 9H26.5Z"/> </mask> <path d="M3 7H0.5V9.5H3V7ZM3 3V0.5H0.5V3H3ZM12 7H14.5V4.5H12V7ZM12 29.5H9.5V32H12V29.5ZM17 29.5V32H19.5V29.5H17ZM17 7V4.5H14.5V7H17ZM25.5 7V9.5H28V7H25.5ZM25.5 3H28V0.5H25.5V3ZM34 19L35.9886 20.5151L37.1339 19.0119L36 17.5L34 19ZM26.5 9V6.5H21.5L24.5 10.5L26.5 9ZM26 29.5L24.0114 27.9849L20.9523 32H26V29.5ZM31.5 29.5V32H32.7865L33.5343 30.9531L31.5 29.5ZM36.5 22.5L38.4658 20.9554L36.4047 18.3322L34.4657 21.0469L36.5 22.5ZM42 29.5L40.0342 31.0446L40.7849 32H42V29.5ZM47 29.5V32H51.858L49.0343 28.0469L47 29.5ZM39.5 19L37.5 17.5L36.402 18.964L37.4657 20.4531L39.5 19ZM47 9L49 10.5L52 6.5H47V9ZM42 9V6.5H40.8405L40.0915 7.38514L42 9ZM36.5 15.5L34.5184 17.0243L36.4073 19.4798L38.4085 17.1149L36.5 15.5ZM31.5 9L33.4816 7.47572L32.731 6.5H31.5V9ZM5.5 7V3H0.5V7H5.5ZM12 4.5H3V9.5H12V4.5ZM14.5 29.5V7H9.5V29.5H14.5ZM17 27H12V32H17V27ZM14.5 7V29.5H19.5V7H14.5ZM25.5 4.5H17V9.5H25.5V4.5ZM23 3V7H28V3H23ZM3 5.5H25.5V0.5H3V5.5ZM36 17.5L28.5 7.5L24.5 10.5L32 20.5L36 17.5ZM27.9886 31.0151L35.9886 20.5151L32.0114 17.4849L24.0114 27.9849L27.9886 31.0151ZM31.5 27H26V32H31.5V27ZM34.4657 21.0469L29.4657 28.0469L33.5343 30.9531L38.5343 23.9531L34.4657 21.0469ZM43.9658 27.9554L38.4658 20.9554L34.5342 24.0446L40.0342 31.0446L43.9658 27.9554ZM47 27H42V32H47V27ZM37.4657 20.4531L44.9657 30.9531L49.0343 28.0469L41.5343 17.5469L37.4657 20.4531ZM45 7.5L37.5 17.5L41.5 20.5L49 10.5L45 7.5ZM42 11.5H47V6.5H42V11.5ZM38.4085 17.1149L43.9085 10.6149L40.0915 7.38514L34.5915 13.8851L38.4085 17.1149ZM29.5184 10.5243L34.5184 17.0243L38.4816 13.9757L33.4816 7.47572L29.5184 10.5243ZM26.5 11.5H31.5V6.5H26.5V11.5Z" fill="white" mask="url(#path-4-outside-1_925_51)"/> </svg></div></button>
   <button class="eTool" tool="draw" tooltip="Draw"><div><svg width="22" viewBox="0 0 27 44" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M12.3863 34.9812C13.2256 37.2873 15.077 39.0806 17.4087 39.846L19.7938 40.629C20.4513 40.8448 21.1712 40.5828 21.5361 39.9948L22.86 37.8619C24.1541 35.7768 24.4197 33.213 23.5803 30.9069L18.9826 18.2748L7.78855 22.3491L12.3863 34.9812Z" fill="white"/> <path d="M18.5551 17.1002L19.7297 16.6726L20.1572 17.8472L24.7549 30.4794C25.7254 33.1458 25.4184 36.1102 23.922 38.5211L22.5982 40.654C21.9291 41.732 20.6094 42.2123 19.404 41.8166L17.0188 41.0337C14.3228 40.1486 12.1822 38.0752 11.2117 35.4088L6.61393 22.7766L6.18641 21.602L7.36103 21.1745L18.5551 17.1002Z" fillcoloropacity stroke="white" stroke-width="2.5"/> <path d="M11.4928 32.5264L10.3182 32.9539L9.89068 31.7793L2.35127 11.065C0.990064 7.32509 2.91836 3.18985 6.65823 1.82865C10.3981 0.467446 14.5333 2.39574 15.8945 6.13561L23.434 26.85L23.8615 28.0246L22.6869 28.4521L11.4928 32.5264Z" fill="#2F2F2F" stroke="white" stroke-width="2.5"/> </svg></div></button>
   <button class="eTool" tool="erase" tooltip="Erase"><div><svg width="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_130_2" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_130_2)"> <path d="M176.938 149.353L182.576 147.301L180.524 141.662L151.219 61.1479C146.308 47.6544 131.388 40.6972 117.894 45.6084L83.4034 58.1621C69.9099 63.0733 62.9527 77.9932 67.8639 91.4866L97.1688 172.001L99.2209 177.639L104.859 175.587L176.938 149.353Z" fill="#2F2F2F" stroke="white" stroke-width="12"/> <path d="M104.253 173.921L98.6144 175.974L100.667 181.612L105.486 194.853C110.397 208.346 125.317 215.304 138.81 210.392L173.301 197.839C186.795 192.927 193.752 178.007 188.841 164.514L184.022 151.273L181.969 145.635L176.331 147.687L104.253 173.921Z" fill="#2F2F2F" stroke="white" stroke-width="12"/> </g> </svg></div></button>
   <button class="eTool" tool="shape" tooltip="Shapes"><div><svg width="38" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"> <rect x="1.97104" y="1.47107" width="22.6493" height="22.6493" rx="5.25" fill="#2F2F2F" stroke="white" stroke-width="2.5"/> <circle cx="32.7043" cy="33.2043" r="11.3246" fill="white" stroke="white" stroke-width="2.5"/> <circle cx="32.7043" cy="33.2043" r="11.3246" fillcoloropacity stroke="white" stroke-width="2.5"/> </svg></div></button>
@@ -39,10 +39,12 @@ modules["editor/toolbar"] = {
     ".eTool:active": `transform: unset !important`,
     ".eTool:active > div": `transform: scale(.95); border-radius: 15.5px`,
     ".eTool[option]:active > div": `background: var(--secondary); border-radius: 25px`,
-    '.eTool[selected]:active > div': `border-radius: 15.5px !important`,
+    ".eTool[selected]:active > div": `border-radius: 15.5px !important`,
     ".eTool[selected][option]:active > div": `border-radius: 25px !important`,
     ".eTool[selected] > div": `background: var(--theme); border-top-right-radius: 0px !important; border-bottom-right-radius: 0px !important`,
     ".eTool[selected][option] > div": `background: var(--secondary)`,
+    ".eTool[selecthighlight] > div": `background: var(--theme); border-top-right-radius: 0px !important; border-bottom-right-radius: 0px !important`,
+    ".eTool[selecthighlight]:active > div": `border-radius: 15.5px !important`,
 
     ".eTool[soon]": `opacity: 0.5`, // TEMP CODE
 
@@ -441,8 +443,7 @@ modules["editor/toolbar"] = {
 
     let cursorModule = await getModule("pages/editor/toolbar/cursor");
 
-    let toolEvents = [];
-    let disableTool = () => {
+    this.disableTool = () => {
       for (let i = 0; i < toolEvents.length; i++) {
         let remEvent = toolEvents[i];
         remEvent.parent.removeEventListener(remEvent.name, remEvent.listener);
@@ -480,7 +481,7 @@ modules["editor/toolbar"] = {
     this.currentToolModule = "pages/editor/toolbar/cursor";
     let pageContent = editor.page.querySelector(".eContent");
     this.enableTool = async () => {
-      disableTool();
+      this.disableTool();
       let module;
       if (this.currentToolModule != null) {
         module = await getModule(this.currentToolModule);
@@ -990,6 +991,19 @@ modules["pages/editor/toolbar/cursor"] = {
         if (anno != null) {
           anno.removeAttribute("selected");
           anno.removeAttribute("notransition");
+          let annoTx = anno.querySelector("div[text]");
+          if (annoTx != null) {
+            annoTx.removeAttribute("contenteditable");
+
+            if (annoTx.textContent.trim().length < 1) {
+              let anno = (editor.annotations[annoID] || {}).render || {};
+              await utils.pushHistory("add", [anno]);
+              await utils.save({ _id: annoID, remove: true });
+              editor.realtimeSelect[annoID] = { _id: annoID, remove: true };
+              await utils.forceShort();
+            }
+          }
+
           //anno.style.zIndex = (editor.annotations[annoID] || { render: {} }).render.sync;
           //anno.style.pointerEvents = "unset";
           //anno.style.cursor = "unset";
@@ -1093,9 +1107,15 @@ modules["pages/editor/toolbar/cursor"] = {
             `);
           }
           select.removeAttribute("hidetips");
-        } else if (select.hasAttribute("hidetips") == false) {
-          select.setAttribute("hidetips", "");
-          hideTooltipWait.push(select);
+        } else {
+          if (select.hasAttribute("hidetips") == false) {
+            select.setAttribute("hidetips", "");
+            hideTooltipWait.push(select);
+          }
+          let annoTx = anno.querySelector("div[text]");
+          if (annoTx != null) {
+            annoTx.removeAttribute("contenteditable");
+          }
         }
         /*
         let rect = anno.getBoundingClientRect();
@@ -1259,9 +1279,11 @@ modules["pages/editor/toolbar/cursor"] = {
   },
   actionBarTools: {
     "draw": ["pages/editor/toolbar/color", "pages/editor/toolbar/thickness", "pages/editor/toolbar/opacity", "pages/editor/toolbar/duplicate", "pages/editor/toolbar/delete"],
+    "text": ["pages/editor/toolbar/textedit", "pages/editor/toolbar/color", "pages/editor/toolbar/opacity", "pages/editor/toolbar/fontsize", "pages/editor/toolbar/bold", "pages/editor/toolbar/italic", "pages/editor/toolbar/underline", "pages/editor/toolbar/strikethrough", "pages/editor/toolbar/textalign", "pages/editor/toolbar/duplicate", "pages/editor/toolbar/delete"],
     "markup": ["pages/editor/toolbar/color", "pages/editor/toolbar/thickness", "pages/editor/toolbar/opacity", "pages/editor/toolbar/duplicate", "pages/editor/toolbar/delete"],
     "shape": ["pages/editor/toolbar/color", "pages/editor/toolbar/thickness", "pages/editor/toolbar/opacity", "pages/editor/toolbar/style", "pages/editor/toolbar/duplicate", "pages/editor/toolbar/delete"]
   },
+  actionEvents: [],
   updateActionUI: async function (refresh) {
     let editor = await getModule("pages/editor");
     let toolbarModule = await getModule("editor/toolbar");
@@ -1333,6 +1355,9 @@ modules["pages/editor/toolbar/cursor"] = {
         for (let i = 0; i < combineTools.length; i++) {
           let actionRef = combineTools[i];
           let module = await getModule(actionRef);
+          if (module.multiSelect == false && selectionIDs.length > 1) {
+            continue;
+          }
           if (module.divideBefore == true) {
             actionButtonHolder.insertAdjacentHTML("beforeend", `<div class="eVerticalDivider" keeptooltip></div>`);
           }
@@ -1347,7 +1372,7 @@ modules["pages/editor/toolbar/cursor"] = {
           let buttonHolder = newAction.querySelector("div");
           buttonHolder.innerHTML = module.button;
           if (module.setButton != null) {
-            module.setButton(editor, actionUI);
+            module.setButton(editor, newAction);
           }
           if (module.tooltip != null) {
             newAction.setAttribute("tooltip", module.tooltip);
@@ -1541,7 +1566,7 @@ modules["pages/editor/toolbar/cursor"] = {
       let buttonHolder = button.querySelector("div");
       buttonHolder.innerHTML = module.button;
       if (module.setButton != null) {
-        module.setButton(editor, actionUI);
+        module.setButton(editor, button);
       }
     }
 
@@ -1560,6 +1585,9 @@ modules["pages/editor/toolbar/cursor"] = {
     }
   },
   clickAction: async function (event) {
+    if (event == null || event.target == null) {
+      return;
+    }
     let editor = await getModule("pages/editor");
     let toolbarModule = await getModule("editor/toolbar");
     let action = event.target.closest(".eTool");
@@ -1570,6 +1598,14 @@ modules["pages/editor/toolbar/cursor"] = {
     if (holder == null) {
       return;
     }
+    /*
+    for (let i = 0; i < this.actionEvents.length; i++) {
+      let remEvent = this.actionEvents[i];
+      remEvent.parent.removeEventListener(remEvent.name, remEvent.listener);
+    }
+    this.actionEvents = [];
+    */
+
     let actionHolder = holder.querySelector(".eActionContainer");
     let contentFrame = actionHolder.querySelector(".eActionContainerContent");
     let otherSelected = holder.querySelector(".eTool[selected]");
@@ -1641,10 +1677,10 @@ modules["pages/editor/toolbar/cursor"] = {
       })();
     }
     toolbarModule.updateTooltipHover();
-    await this.runActionModule(module, holder, preferenceTool);
+    await this.runActionModule(module, holder, preferenceTool, { setCaretPosition: event.setCaretPosition, clientX: event.clientX, clientY: event.clientY });
     this.updateActionUI();
   },
-  runActionModule: async function (module, holder, preferenceTool) {
+  runActionModule: async function (module, holder, preferenceTool, extra) {
     await module.js(holder, preferenceTool, {
       frame: holder,
       updateActionUI: () => { this.updateActionUI(); },
@@ -1661,9 +1697,25 @@ modules["pages/editor/toolbar/cursor"] = {
           let annoID = selectKeys[i];
           let select = editor.selecting[annoID];
           let anno = (editor.annotations[annoID] || {}).render || {};
+          let annoSet = JSON.parse(JSON.stringify(set));
+          if (annoSet.d != null && typeof annoSet.d == "object") {
+            annoSet.d = { ...anno.d, ...annoSet.d };
+          }
+          if (anno.f == "text") {
+            let annoTx = editor.page.querySelector('.eAnnotation[anno="' + annoID + '"] div[text]');
+            if (annoTx != null) {
+              editor.selecting[annoID] = { ...select, ...annoSet };
+              await utils.render({ ...anno, ...annoSet }, annoTx.parentElement);
+              annoSet.s = anno.s;
+              if (anno.textfit == true) {
+                annoSet.s[0] = annoTx.offsetWidth + 6;
+              }
+              annoSet.s[1] = annoTx.offsetHeight + 6;
+            }
+          }
           let changes = false;
           for (let c = 0; c < setKeys.length; c++) {
-            if (set[setKeys[c]] != anno[setKeys[c]]) {
+            if (annoSet[setKeys[c]] != anno[setKeys[c]]) {
               changes = true;
               break;
             }
@@ -1671,15 +1723,15 @@ modules["pages/editor/toolbar/cursor"] = {
           if (changes == false) {
             continue;
           }
-          editor.selecting[annoID] = { ...select, ...set };
-          saveUpdates.push({ ...select, ...set, _id: annoID });
-          let changeKeys = Object.keys(set);
+          editor.selecting[annoID] = { ...select, ...annoSet };
+          saveUpdates.push({ ...select, ...annoSet, _id: annoID });
+          let changeKeys = Object.keys(annoSet);
           let pushFields = {};
           for (let f = 0; f < changeKeys.length; f++) {
             pushFields[changeKeys[f]] = anno[changeKeys[f]];
           }
           if (Object.keys(pushFields).length > 0) {
-            if (set.remove != true) {
+            if (annoSet.remove != true) {
               pushChanges.push(JSON.parse(JSON.stringify({ ...pushFields, _id: annoID })));
             } else {
               pushRemoves.push(JSON.parse(JSON.stringify(anno)));
@@ -1713,7 +1765,14 @@ modules["pages/editor/toolbar/cursor"] = {
             module.setButton(editor, toolButtons[i]);
           }
         }
-      }
+      },
+      /*
+      addEvent: async (parent, listen, runFunc, extra) => {
+        parent.addEventListener(listen, runFunc, extra);
+        this.actionEvents.push({ type: "event", parent: parent, name: listen, listener: runFunc });
+      },
+      */
+      ...extra
     });
   },
   removeActionUI: async function (actionUI) {
@@ -1750,6 +1809,9 @@ modules["pages/editor/toolbar/cursor"] = {
       return;
     }
     */
+    if (this.annotationElem != null && this.annotationElem.querySelector("div[contenteditable]") != null) {
+      return;
+    }
     if (this.activeElem != null || (this.annotationElem != null && this.annotationElem.hasAttribute("selected"))) {
       // Drag/Move Element
       this.action = "move";
@@ -1988,6 +2050,17 @@ modules["pages/editor/toolbar/cursor"] = {
               select.p[1] = utils.round(this.position[1] + changeY);
             }
         }
+        if (select.f || anno.f == "text") {
+          await utils.render({ ...anno, ...select, sync: setTempSync });
+          let renderedAnno = editor.page.querySelector('.eAnnotation[anno="' + annoid + '"] div');
+          if (renderedAnno != null) {
+            if (anno.textfit == true && select.textfit != false) {
+              select.s[0] = renderedAnno.offsetWidth + 6;
+              select.textfit = false;
+            }
+            select.s[1] = renderedAnno.offsetHeight + 6; //Math.max(select.s[1], renderedAnno.offsetHeight + 6);
+          }
+        }
       }
       await utils.render({ ...anno, ...select, sync: setTempSync });
     }
@@ -2164,6 +2237,14 @@ modules["pages/editor/toolbar/cursor"] = {
         } else {
           editor.selecting = {};
           editor.selecting[annoID] = {};
+        }
+        if (wasSelected == null && anno.querySelector("div[text]") != null && anno.querySelector("div[contenteditable]") == null) {
+          this.clickAction({
+            target: content.querySelector('.eSelectBar:not([remove]) .eTool[action="pages/editor/toolbar/textedit"]'),
+            setCaretPosition: true,
+            clientX: event.clientX,
+            clientY: event.clientY
+          });
         }
         this.updateBox();
       }
@@ -2673,7 +2754,94 @@ modules["pages/editor/toolbar/underline"] = {
 };
 
 // TEXT TOOL
-//pages/editor/toolbar/text
+modules["pages/editor/toolbar/text"] = {
+  js: async function (editor, utils, addEvent, extra) {
+    this.color = editor.preferences.tools.text.color.selected;
+    this.opacity = editor.preferences.tools.text.opacity;
+    this.publish = {};
+
+    let toolbar = await getModule("editor/toolbar");
+    let cursor = await getModule("pages/editor/toolbar/cursor");
+
+    body.style.userSelect = "none";
+    editor.page.style.touchAction = "pinch-zoom";
+    editor.page.setAttribute("enabled", "");
+
+    let content = editor.page.querySelector(".eContent");
+
+    let text;
+    let anno;
+    let clientY;
+    let clientX;
+    let textmove = async (event) => {
+      if (text == null) {
+        // If not text box, make one!
+        text = {
+          f: "text",
+          //p: [utils.round(x - this.thickness), utils.round(y - this.thickness)],
+          s: [0, 0], //[this.thickness, this.thickness],
+          c: this.color,
+          o: this.opacity,
+          d: { s: editor.preferences.tools.text.size, al: editor.preferences.tools.text.align, b: [ "Example Text" ] },
+          hidden: true,
+          textfit: true
+        };
+      }
+      clientX = clientPosition(event, "x") || clientX;
+      clientY = clientPosition(event, "y") || clientY;
+      let [page, number] = await utils.findPage(clientY);
+      let { x, y } = await utils.scaleToDoc(clientX, clientY, number);
+      if (editor.lesson.type == "freeboard") {
+        y += 4;
+      }
+      text.p = [utils.round(x - (text.s[0] / 2)), utils.round(y - (text.s[1] / 2))];
+      if (page != null && page.hasAttribute("pageid") == true) {
+        text.page = page.getAttribute("pageid");
+      }
+      [_, anno] = await utils.render(text, anno);
+      let textElem = anno.querySelector("div[text]");
+      if (textElem != null) {
+        text.s = [textElem.offsetWidth, textElem.offsetHeight];
+        delete text.hidden;
+      }
+      editor.selecting["cursor"] = text;
+    }
+    let placetext = async () => {
+      let saveText = JSON.parse(JSON.stringify(text));
+      text = null;
+      delete editor.selecting["cursor"];
+
+      let tempID = utils.tempID();
+      anno.setAttribute("anno", tempID);
+      anno.removeAttribute("tooleditor");
+      saveText.sync = getEpoch();
+      utils.save({ ...saveText, _id: tempID }, anno);
+      utils.pushHistory("remove", [{ _id: tempID }]);
+
+      saveText.done = true; // Alert other clients that this annotation is done
+      editor.selecting[tempID] = saveText;
+      await utils.forceShort();
+
+      await toolbar.setCurrentTool(editor.page.querySelector('.eTool[tool="select"]'), "select");
+      editor.selecting[tempID] = {};
+      await cursor.updateBox();
+
+      let textElem = anno.querySelector("div[text]");
+      if (textElem != null) {
+        textElem.textContent = "";
+      }
+
+      cursor.clickAction({
+        target: content.querySelector('.eSelectBar:not([remove]) .eTool[action="pages/editor/toolbar/textedit"]')
+      });
+    }
+    addEvent(content, "mousemove", textmove, { passive: false });
+    addEvent(content, "touchmove", textmove, { passive: false });
+    addEvent(window, "scroll", textmove, { passive: false });
+    addEvent(content, "mouseup", placetext, { passive: false });
+    addEvent(content, "touchend", placetext, { passive: false });
+  }
+};
 
 // PEN TOOL
 modules["pages/editor/toolbar/pen"] = {
@@ -4026,5 +4194,423 @@ modules["pages/editor/toolbar/delete"] = {
     await utils.forceShort();
     editor.selecting = {};
     cursor.updateBox();
+  }
+};
+
+// Textbox Functions
+modules["pages/editor/toolbar/textedit"] = {
+  button: `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_800_56" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_800_56)"> <rect x="111" y="47" width="34" height="162" rx="17" stroke="white" stroke-width="12"/> <path d="M128 211.485L131.536 215.021C134.724 218.209 139.048 220 143.556 220H177C186.389 220 194 212.389 194 203C194 193.611 186.389 186 177 186H128H79C69.6112 186 62 193.611 62 203C62 212.389 69.6112 220 79 220H112.444C116.952 220 121.276 218.209 124.464 215.021L128 211.485Z" stroke="white" stroke-width="12"/> <path d="M128 44.5147L131.536 40.9792C134.724 37.7911 139.048 36 143.556 36H177C186.389 36 194 43.6112 194 53C194 62.3888 186.389 70 177 70H128H79C69.6112 70 62 62.3888 62 53C62 43.6112 69.6112 36 79 36H112.444C116.952 36 121.276 37.7911 124.464 40.9792L128 44.5147Z" stroke="white" stroke-width="12"/> <rect x="117" y="53" width="22" height="150" rx="11" fill="#2F2F2F"/> <path d="M68 203C68 196.925 72.9249 192 79 192H128H177C183.075 192 188 196.925 188 203V203C188 209.075 183.075 214 177 214H143.556C140.639 214 137.841 212.841 135.778 210.778L128 203L120.222 210.778C118.159 212.841 115.361 214 112.444 214H79C72.9249 214 68 209.075 68 203V203Z" fill="#2F2F2F"/> <path d="M68 53C68 59.0751 72.9249 64 79 64H128H177C183.075 64 188 59.0751 188 53V53C188 46.9249 183.075 42 177 42H143.556C140.639 42 137.841 43.1589 135.778 45.2218L128 53L120.222 45.2218C118.159 43.1589 115.361 42 112.444 42H79C72.9249 42 68 46.9249 68 53V53Z" fill="#2F2F2F"/> </g> </svg>`,
+  tooltip: "Edit Text",
+  divideAfter: true,
+  multiSelect: false,
+  setButton: function (editor, button) {
+    let selectID = Object.keys(editor.selecting)[0];
+    let annoTx = editor.page.querySelector('.eAnnotation[anno="' + selectID + '"] div[contenteditable]');
+    if (annoTx == null) {
+      button.removeAttribute("selecthighlight");
+    } else {
+      button.setAttribute("selecthighlight", "");
+    }
+  },
+  pastEvents: [],
+  js: async function (frame, toolID, extra) {
+    let editor = await getModule("pages/editor");
+    let utils = await getModule("pages/editor/annotation");
+    let selectID = Object.keys(editor.selecting)[0];
+    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+
+    let annoElem = editor.page.querySelector('.eAnnotation[anno="' + selectID + '"]');
+    if (annoElem == null) {
+      return;
+    }
+    let annoTx = annoElem.querySelector("div[text]");
+    if (annoTx == null) {
+      return;
+    }
+
+    if (annoTx.hasAttribute("contenteditable") == false) {
+      annoTx.setAttribute("contenteditable", "true");
+      annoTx.focus();
+      
+      if (extra.setCaretPosition != true || document.caretRangeFromPoint == null) {
+        if (window.getSelection && document.createRange) {
+          range = document.createRange();
+          range.selectNodeContents(annoTx);
+          sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        } else if (document.body.createTextRange) {
+          range = document.body.createTextRange();
+          range.moveToElementText(annoTx);
+          range.select();
+        }
+      } else {
+        let range = document.caretRangeFromPoint(extra.clientX, extra.clientY);
+        let selection = window.getSelection();
+
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    } else {
+      annoTx.removeAttribute("contenteditable");
+    }
+
+    for (let i = 0; i < this.pastEvents.length; i++) {
+      let remEvent = this.pastEvents[i];
+      remEvent.parent.removeEventListener(remEvent.name, remEvent.listener);
+    }
+
+    let inputListener = () => {
+      selectID = Object.keys(editor.selecting)[0];
+      original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+      
+      let saveObj = { d: {} };
+      let addText = [];
+      for (let i = 0; i < annoTx.childNodes.length; i++) {
+        //addText += annoTx.childNodes[i].textContent + "\n";
+        let text = annoTx.childNodes[i].textContent;
+        if (text == "") {
+          text = "\n";
+        }
+        addText.push(text);
+      }
+      editor.selecting[selectID].d = editor.selecting[selectID].d || original.d || {};
+      editor.selecting[selectID].d.b = addText;
+      saveObj.d.b = addText;
+      /*
+      saveObj.s = [];
+      if (original.textfit == true) {
+        saveObj.s[0] = annoTx.offsetWidth + 6;
+      }
+      saveObj.s[1] = annoTx.offsetHeight + 6;
+      */
+      extra.saveSelecting(saveObj);
+      utils.forceShort();
+    };
+    this.pastEvents.push({ type: "event", parent: parent, name: "input", listener: inputListener });
+    annoTx.addEventListener("input", inputListener);
+
+    extra.updateToolActions(extra.frame);
+  }
+};
+
+modules["pages/editor/toolbar/fontsize"] = {
+  button: `<div class="eSubToolFontSize"></div>`,
+  tooltip: "Font Size",
+  setButton: function (editor, button) {
+    let selectID = Object.keys(editor.selecting)[0];
+    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    let buttonTx = button.querySelector(".eSubToolFontSize");
+    buttonTx.textContent = original.d.s || 18;
+    buttonTx.style.color = "#" + original.c;
+  },
+  html: `
+    <div class="eSubToolFontSizeContainer">
+      <button class="eFontSizeOption" small>Small</button>
+      <button class="eFontSizeOption" medium>Medium</button>
+      <button class="eFontSizeOption" large>Large</button>
+      <div class="eFontSizeLine"></div>
+      <div class="eFontSizeInput border"><div class="eFontSizeBox" contenteditable></div></div>
+    </div>
+  `,
+  css: {
+    ".eSubToolFontSize": `padding: 2px 8px; background: var(--pageColor); border-radius: 17px; font-size: 24px; font-weight: 700; text-wrap: nowrap`,
+
+    ".eSubToolFontSizeContainer": `display: flex; flex-direction: column; padding: 6px; align-items: center`,
+    ".eFontSizeOption": `display: flex; width: 120px; height: 36px; margin-bottom: 4px; border-radius: 10px; justify-content: center; align-items: center; font-weight: 600; transition: .15s`,
+    ".eFontSizeOption:hover": `background: var(--secondary); color: #fff`,
+    ".eFontSizeOption[selected]": `background: var(--theme) !important; color: #fff`,
+    ".eFontSizeOption[small]": `font-size: 14px`,
+    ".eFontSizeOption[medium]": `font-size: 18px`,
+    ".eFontSizeOption[large]": `font-size: 22px`,
+    ".eFontSizeLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`,
+    ".eFontSizeInput": `display: flex; padding: 3px; margin: 8px; --borderWidth: 3px; --borderColor: var(--secondary); justify-content: center; align-items: center; --borderRadius: 15px; color: var(--theme); font-size: 20px; font-weight: 600`,
+    ".eFontSizeInput div": `max-width: 50px; min-width: 25px; padding: 0 8px; border: none; outline: none; border-radius: 16px; text-align: center; white-space: nowrap; overflow: hidden`,
+  },
+  setPreferenceTool: function (editor) {
+    let selectKeys = Object.keys(editor.selecting);
+    this.preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
+  },
+  js: async function (frame, toolID, extra) {
+    let editor = await getModule("pages/editor");
+    this.setPreferenceTool(editor);
+    let selectedS = this.preferenceTool.d.s || 18;
+
+    let preferences = editor.preferences.tools;
+    let toolPref = preferences[toolID];
+
+    let smallButton = frame.querySelector(".eFontSizeOption[small]"); // 14px
+    let mediumButton = frame.querySelector(".eFontSizeOption[medium]"); // 18px
+    let largeButton = frame.querySelector(".eFontSizeOption[large]"); // 26px
+    let inputSize = frame.querySelector(".eFontSizeBox"); // Custom
+
+    let updateSizeBox = () => {
+      smallButton.removeAttribute("selected");
+      mediumButton.removeAttribute("selected");
+      largeButton.removeAttribute("selected");
+
+      if (selectedS == 14) {
+        smallButton.setAttribute("selected", "");
+      } else if (selectedS == 18) {
+        mediumButton.setAttribute("selected", "");
+      } else if (selectedS == 26) {
+        largeButton.setAttribute("selected", "");
+      }
+
+      inputSize.textContent = selectedS;
+    }
+    updateSizeBox();
+
+    let saveSize = async (set) => {
+      selectedS = set;
+      if (toolPref != null) {
+        toolPref.size = selectedS;
+        editor.savePreferences();
+      }
+      await extra.saveSelecting({ d: { s: selectedS } }, true);
+      extra.updateToolActions(extra.frame);
+      updateSizeBox();
+    }
+
+    smallButton.addEventListener("click", () => {
+      saveSize(14);
+    });
+    mediumButton.addEventListener("click", () => {
+      saveSize(18);
+    });
+    largeButton.addEventListener("click", () => {
+      saveSize(26);
+    });
+
+    inputSize.addEventListener("keydown", (event) => {
+      let textBox = event.target.closest("div");
+      if (textBox == null) {
+        return;
+      }
+      if (event.keyCode == 13) {
+        event.preventDefault();
+        saveSize(parseInt(inputSize.textContent));
+        return;
+      }
+      if (String.fromCharCode(event.keyCode).match(/(\w|\s)/g) && event.key.length == 1) {
+        let textInt = parseInt(textBox.textContent + event.key);
+        if (parseInt(event.key) != event.key) {
+          event.preventDefault();
+          textBoxError(textBox, "Must be a number");
+        } else if (textInt > 250) {
+          event.preventDefault();
+          textBoxError(textBox, "Must be less than 250");
+        }
+      }
+    });
+    inputSize.addEventListener("focusout", (event) => {
+      let textBox = event.target.closest("div");
+      if (textBox == null) {
+        return;
+      }
+      if (textBox.textContent == "") {
+        textBox.textContent = selectedS;
+        return;
+      }
+      let textInt = parseInt(textBox.textContent) || selectedS;
+      if (textInt == "") {
+        setZoomText();
+      } else if (textInt > 250) {
+        textBox.textContent = "250";
+      } else if (textInt < 1) {
+        textBox.textContent = "1";
+      }
+      saveSize(parseInt(inputSize.textContent));
+    });
+    inputSize.addEventListener("focus", (event) => {
+      let textBox = event.target.closest("div");
+      if (textBox == null) {
+        return;
+      }
+      textBox.textContent = "";
+    });
+  }
+};
+
+modules["pages/editor/toolbar/bold"] = {
+  button: `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_808_8" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_808_8)"> <mask id="path-2-outside-1_808_8" maskUnits="userSpaceOnUse" x="44" y="37" width="178" height="185" fill="black"> <rect fill="white" x="44" y="37" width="178" height="185"/> <path d="M56.1 210V49H138.44C159.6 49 175.393 52.91 185.82 60.73C196.247 68.3967 201.46 78.5167 201.46 91.09C201.46 99.37 199.237 106.653 194.79 112.94C190.497 119.073 184.363 123.98 176.39 127.66C168.57 131.187 159.217 132.95 148.33 132.95L152.93 121.91C164.277 121.91 174.167 123.673 182.6 127.2C191.033 130.573 197.55 135.557 202.15 142.15C206.903 148.59 209.28 156.487 209.28 165.84C209.28 179.793 203.607 190.68 192.26 198.5C181.067 206.167 164.66 210 143.04 210H56.1ZM101.18 177.11H139.36C147.18 177.11 153.083 175.807 157.07 173.2C161.21 170.44 163.28 166.3 163.28 160.78C163.28 155.26 161.21 151.197 157.07 148.59C153.083 145.83 147.18 144.45 139.36 144.45H97.96V112.94H132.46C140.127 112.94 145.877 111.637 149.71 109.03C153.543 106.423 155.46 102.513 155.46 97.3C155.46 92.0867 153.543 88.2533 149.71 85.8C145.877 83.1933 140.127 81.89 132.46 81.89H101.18V177.11Z"/> </mask> <path d="M56.1 210H44.1V222H56.1V210ZM56.1 49V37H44.1V49H56.1ZM185.82 60.73L178.62 70.33L178.665 70.3641L178.711 70.3978L185.82 60.73ZM194.79 112.94L184.993 106.01L184.976 106.034L184.959 106.058L194.79 112.94ZM176.39 127.66L181.323 138.599L181.371 138.577L181.419 138.556L176.39 127.66ZM148.33 132.95L137.253 128.335L130.33 144.95H148.33V132.95ZM152.93 121.91V109.91H144.93L141.853 117.295L152.93 121.91ZM182.6 127.2L177.97 138.271L178.057 138.307L178.143 138.342L182.6 127.2ZM202.15 142.15L192.308 149.016L192.4 149.147L192.495 149.276L202.15 142.15ZM192.26 198.5L199.041 208.4L199.055 208.391L199.07 208.381L192.26 198.5ZM101.18 177.11H89.18V189.11H101.18V177.11ZM157.07 173.2L163.637 183.244L163.682 183.214L163.726 183.185L157.07 173.2ZM157.07 148.59L150.239 158.456L150.455 158.605L150.676 158.745L157.07 148.59ZM97.96 144.45H85.96V156.45H97.96V144.45ZM97.96 112.94V100.94H85.96V112.94H97.96ZM149.71 109.03L156.458 118.953L156.458 118.953L149.71 109.03ZM149.71 85.8L142.962 95.7231L143.101 95.8171L143.241 95.9073L149.71 85.8ZM101.18 81.89V69.89H89.18V81.89H101.18ZM68.1 210V49H44.1V210H68.1ZM56.1 61H138.44V37H56.1V61ZM138.44 61C158.494 61 171.21 64.7722 178.62 70.33L193.02 51.13C179.577 41.0478 160.706 37 138.44 37V61ZM178.711 70.3978C186.169 75.8814 189.46 82.4639 189.46 91.09H213.46C213.46 74.5694 206.324 60.9119 192.929 51.0622L178.711 70.3978ZM189.46 91.09C189.46 97.085 187.897 101.905 184.993 106.01L204.587 119.87C210.577 111.401 213.46 101.655 213.46 91.09H189.46ZM184.959 106.058C182.08 110.172 177.743 113.819 171.361 116.764L181.419 138.556C190.983 134.141 198.914 127.974 204.621 119.822L184.959 106.058ZM171.457 116.721C165.545 119.387 157.958 120.95 148.33 120.95V144.95C160.476 144.95 171.595 142.986 181.323 138.599L171.457 116.721ZM159.407 137.565L164.007 126.525L141.853 117.295L137.253 128.335L159.407 137.565ZM152.93 133.91C163.059 133.91 171.311 135.486 177.97 138.271L187.23 116.129C177.022 111.86 165.495 109.91 152.93 109.91V133.91ZM178.143 138.342C184.694 140.962 189.217 144.585 192.308 149.016L211.992 135.284C205.883 126.529 197.372 120.185 187.057 116.058L178.143 138.342ZM192.495 149.276C195.479 153.319 197.28 158.604 197.28 165.84H221.28C221.28 154.369 218.327 143.861 211.805 135.024L192.495 149.276ZM197.28 165.84C197.28 175.906 193.499 183.072 185.45 188.619L199.07 208.381C213.715 198.288 221.28 183.681 221.28 165.84H197.28ZM185.479 188.6C177.148 194.306 163.559 198 143.04 198V222C165.761 222 184.986 218.027 199.041 208.4L185.479 188.6ZM143.04 198H56.1V222H143.04V198ZM101.18 189.11H139.36V165.11H101.18V189.11ZM139.36 189.11C148.161 189.11 156.812 187.706 163.637 183.244L150.503 163.156C149.355 163.907 146.199 165.11 139.36 165.11V189.11ZM163.726 183.185C171.613 177.927 175.28 169.796 175.28 160.78H151.28C151.28 162.033 151.051 162.546 150.994 162.658C150.963 162.721 150.881 162.904 150.414 163.215L163.726 183.185ZM175.28 160.78C175.28 151.763 171.592 143.553 163.464 138.435L150.676 158.745C150.897 158.884 150.985 158.975 151.004 158.995C151.019 159.012 151.024 159.017 151.035 159.04C151.048 159.065 151.28 159.52 151.28 160.78H175.28ZM163.901 138.724C157.018 133.959 148.253 132.45 139.36 132.45V156.45C146.107 156.45 149.149 157.701 150.239 158.456L163.901 138.724ZM139.36 132.45H97.96V156.45H139.36V132.45ZM109.96 144.45V112.94H85.96V144.45H109.96ZM97.96 124.94H132.46V100.94H97.96V124.94ZM132.46 124.94C141.112 124.94 149.716 123.537 156.458 118.953L142.962 99.1069C142.037 99.736 139.142 100.94 132.46 100.94V124.94ZM156.458 118.953C164.028 113.806 167.46 105.908 167.46 97.3H143.46C143.46 98.4328 143.256 98.8429 143.247 98.8606C143.238 98.879 143.237 98.8809 143.228 98.8912C143.216 98.9046 143.146 98.9822 142.962 99.1069L156.458 118.953ZM167.46 97.3C167.46 88.6942 164.009 80.704 156.179 75.6927L143.241 95.9073C143.38 95.9961 143.403 96.033 143.371 95.9977C143.335 95.959 143.304 95.9104 143.289 95.8816C143.253 95.8096 143.46 96.1589 143.46 97.3H167.46ZM156.458 75.8769C149.716 71.2927 141.112 69.89 132.46 69.89V93.89C139.142 93.89 142.037 95.094 142.962 95.7231L156.458 75.8769ZM132.46 69.89H101.18V93.89H132.46V69.89ZM89.18 81.89V177.11H113.18V81.89H89.18Z" fill="white" mask="url(#path-2-outside-1_808_8)"/> <path d="M56.1 210V49H138.44C159.6 49 175.393 52.91 185.82 60.73C196.247 68.3967 201.46 78.5167 201.46 91.09C201.46 99.37 199.237 106.653 194.79 112.94C190.497 119.073 184.363 123.98 176.39 127.66C168.57 131.187 159.217 132.95 148.33 132.95L152.93 121.91C164.277 121.91 174.167 123.673 182.6 127.2C191.033 130.573 197.55 135.557 202.15 142.15C206.903 148.59 209.28 156.487 209.28 165.84C209.28 179.793 203.607 190.68 192.26 198.5C181.067 206.167 164.66 210 143.04 210H56.1ZM101.18 177.11H139.36C147.18 177.11 153.083 175.807 157.07 173.2C161.21 170.44 163.28 166.3 163.28 160.78C163.28 155.26 161.21 151.197 157.07 148.59C153.083 145.83 147.18 144.45 139.36 144.45H97.96V112.94H132.46C140.127 112.94 145.877 111.637 149.71 109.03C153.543 106.423 155.46 102.513 155.46 97.3C155.46 92.0867 153.543 88.2533 149.71 85.8C145.877 83.1933 140.127 81.89 132.46 81.89H101.18V177.11Z" fill="#2F2F2F"/> </g> </svg>`,
+  tooltip: "Bold",
+  divideBefore: true,
+  setButton: function (editor, button) {
+    let selectID = Object.keys(editor.selecting)[0];
+    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    if (original.d.bo != true) {
+      button.removeAttribute("selecthighlight");
+    } else {
+      button.setAttribute("selecthighlight", "");
+    }
+  },
+  js: async function (frame, toolID, extra) {
+    let editor = await getModule("pages/editor");
+    let selectID = Object.keys(editor.selecting)[0];
+    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    extra.saveSelecting({ d: { bo: !(original.d.bo || false) } }, true);
+    extra.updateToolActions(extra.frame);
+  }
+};
+modules["pages/editor/toolbar/italic"] = {
+  button: `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_808_19" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_808_19)"> <mask id="path-2-outside-1_808_19" maskUnits="userSpaceOnUse" x="82" y="37" width="99" height="185" fill="black"> <rect fill="white" x="82" y="37" width="99" height="185"/> <path d="M96.67 210L128.87 49H166.36L134.16 210H96.67Z"/> </mask> <path d="M96.67 210L84.903 207.647L82.0324 222H96.67V210ZM128.87 49V37H119.032L117.103 46.6466L128.87 49ZM166.36 49L178.127 51.3534L180.998 37H166.36V49ZM134.16 210V222H143.998L145.927 212.353L134.16 210ZM108.437 212.353L140.637 51.3534L117.103 46.6466L84.903 207.647L108.437 212.353ZM128.87 61H166.36V37H128.87V61ZM154.593 46.6466L122.393 207.647L145.927 212.353L178.127 51.3534L154.593 46.6466ZM134.16 198H96.67V222H134.16V198Z" fill="white" mask="url(#path-2-outside-1_808_19)"/> <path d="M96.67 210L128.87 49H166.36L134.16 210H96.67Z" fill="#2F2F2F"/> </g> </svg>`,
+  tooltip: "Italic",
+  setButton: function (editor, button) {
+    let selectID = Object.keys(editor.selecting)[0];
+    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    if (original.d.it != true) {
+      button.removeAttribute("selecthighlight");
+    } else {
+      button.setAttribute("selecthighlight", "");
+    }
+  },
+  js: async function (frame, toolID, extra) {
+    let editor = await getModule("pages/editor");
+    let selectID = Object.keys(editor.selecting)[0];
+    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    extra.saveSelecting({ d: { it: !(original.d.it || false) } }, true);
+    extra.updateToolActions(extra.frame);
+  }
+};
+modules["pages/editor/toolbar/underline"] = {
+  button: `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_808_24" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_808_24)"> <mask id="path-2-outside-1_808_24" maskUnits="userSpaceOnUse" x="52" y="25" width="152" height="167" fill="black"> <rect fill="white" x="52" y="25" width="152" height="167"/> <path d="M127.991 179.4C108.125 179.4 92.5914 173.867 81.3914 162.8C70.1914 151.733 64.5914 135.933 64.5914 115.4V37H96.9914V114.2C96.9914 127.533 99.7247 137.133 105.191 143C110.658 148.867 118.325 151.8 128.191 151.8C138.058 151.8 145.725 148.867 151.191 143C156.658 137.133 159.391 127.533 159.391 114.2V37H191.391V115.4C191.391 135.933 185.791 151.733 174.591 162.8C163.391 173.867 147.858 179.4 127.991 179.4Z"/> </mask> <path d="M81.3914 162.8L89.8257 154.264L89.8257 154.264L81.3914 162.8ZM64.5914 37V25H52.5914V37H64.5914ZM96.9914 37H108.991V25H96.9914V37ZM105.191 143L96.4121 151.181L96.4121 151.181L105.191 143ZM151.191 143L159.971 151.181L159.971 151.181L151.191 143ZM159.391 37V25H147.391V37H159.391ZM191.391 37H203.391V25H191.391V37ZM174.591 162.8L183.026 171.336L183.026 171.336L174.591 162.8ZM127.991 167.4C110.414 167.4 98.2292 162.567 89.8257 154.264L72.9571 171.336C86.9536 185.166 105.836 191.4 127.991 191.4V167.4ZM89.8257 154.264C81.5415 146.078 76.5914 133.743 76.5914 115.4H52.5914C52.5914 138.123 58.8413 157.388 72.9571 171.336L89.8257 154.264ZM76.5914 115.4V37H52.5914V115.4H76.5914ZM64.5914 49H96.9914V25H64.5914V49ZM84.9914 37V114.2H108.991V37H84.9914ZM84.9914 114.2C84.9914 128.684 87.8744 142.018 96.4121 151.181L113.971 134.819C111.575 132.248 108.991 126.382 108.991 114.2H84.9914ZM96.4121 151.181C104.655 160.027 115.819 163.8 128.191 163.8V139.8C120.83 139.8 116.661 137.706 113.971 134.819L96.4121 151.181ZM128.191 163.8C140.564 163.8 151.728 160.027 159.971 151.181L142.412 134.819C139.722 137.706 135.552 139.8 128.191 139.8V163.8ZM159.971 151.181C168.508 142.018 171.391 128.684 171.391 114.2H147.391C147.391 126.382 144.808 132.248 142.412 134.819L159.971 151.181ZM171.391 114.2V37H147.391V114.2H171.391ZM159.391 49H191.391V25H159.391V49ZM179.391 37V115.4H203.391V37H179.391ZM179.391 115.4C179.391 133.743 174.441 146.078 166.157 154.264L183.026 171.336C197.142 157.388 203.391 138.123 203.391 115.4H179.391ZM166.157 154.264C157.754 162.567 145.569 167.4 127.991 167.4V191.4C150.147 191.4 169.029 185.166 183.026 171.336L166.157 154.264Z" fill="white" mask="url(#path-2-outside-1_808_24)"/> <rect x="47" y="192" width="162" height="34" rx="17" fill="#2F2F2F" stroke="white" stroke-width="12"/> <path d="M127.991 179.4C108.125 179.4 92.5914 173.867 81.3914 162.8C70.1914 151.733 64.5914 135.933 64.5914 115.4V37H96.9914V114.2C96.9914 127.533 99.7247 137.133 105.191 143C110.658 148.867 118.325 151.8 128.191 151.8C138.058 151.8 145.725 148.867 151.191 143C156.658 137.133 159.391 127.533 159.391 114.2V37H191.391V115.4C191.391 135.933 185.791 151.733 174.591 162.8C163.391 173.867 147.858 179.4 127.991 179.4Z" fill="#2F2F2F"/> </g> </svg>`,
+  tooltip: "Underline",
+  setButton: function (editor, button) {
+    let selectID = Object.keys(editor.selecting)[0];
+    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    if (original.d.ul != true) {
+      button.removeAttribute("selecthighlight");
+    } else {
+      button.setAttribute("selecthighlight", "");
+    }
+  },
+  js: async function (frame, toolID, extra) {
+    let editor = await getModule("pages/editor");
+    let selectID = Object.keys(editor.selecting)[0];
+    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    extra.saveSelecting({ d: { ul: !(original.d.ul || false) } }, true);
+    extra.updateToolActions(extra.frame);
+  }
+};
+modules["pages/editor/toolbar/strikethrough"] = {
+  button: `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_810_34" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_810_34)"> <mask id="path-2-outside-1_810_34" maskUnits="userSpaceOnUse" x="46" y="34" width="162" height="191" fill="black"> <rect fill="white" x="46" y="34" width="162" height="191"/> <path d="M127.155 212.76C114.275 212.76 101.932 211.073 90.125 207.7C78.3184 204.173 68.8117 199.65 61.605 194.13L74.255 166.07C81.155 170.977 89.2817 175.04 98.635 178.26C108.142 181.327 117.725 182.86 127.385 182.86C134.745 182.86 140.648 182.17 145.095 180.79C149.695 179.257 153.068 177.187 155.215 174.58C157.362 171.973 158.435 168.983 158.435 165.61C158.435 161.317 156.748 157.943 153.375 155.49C150.002 152.883 145.555 150.813 140.035 149.28C134.515 147.593 128.382 146.06 121.635 144.68C115.042 143.147 108.372 141.307 101.625 139.16C95.0317 137.013 88.975 134.253 83.455 130.88C77.935 127.507 73.4117 123.06 69.885 117.54C66.5117 112.02 64.825 104.967 64.825 96.38C64.825 87.18 67.2784 78.8233 72.185 71.31C77.245 63.6433 84.7584 57.5867 94.725 53.14C104.845 48.54 117.495 46.24 132.675 46.24C142.795 46.24 152.762 47.4667 162.575 49.92C172.388 52.22 181.052 55.7467 188.565 60.5L177.065 88.79C169.552 84.4967 162.038 81.3533 154.525 79.36C147.012 77.2133 139.652 76.14 132.445 76.14C125.238 76.14 119.335 76.9833 114.735 78.67C110.135 80.3567 106.838 82.58 104.845 85.34C102.852 87.9467 101.855 91.0133 101.855 94.54C101.855 98.68 103.542 102.053 106.915 104.66C110.288 107.113 114.735 109.107 120.255 110.64C125.775 112.173 131.832 113.707 138.425 115.24C145.172 116.773 151.842 118.537 158.435 120.53C165.182 122.523 171.315 125.207 176.835 128.58C182.355 131.953 186.802 136.4 190.175 141.92C193.702 147.44 195.465 154.417 195.465 162.85C195.465 171.897 192.935 180.177 187.875 187.69C182.815 195.203 175.225 201.26 165.105 205.86C155.138 210.46 142.488 212.76 127.155 212.76Z"/> </mask> <path d="M90.125 207.7L86.6906 219.198L86.7594 219.219L86.8284 219.238L90.125 207.7ZM61.605 194.13L50.6653 189.198L46.7553 197.871L54.3081 203.657L61.605 194.13ZM74.255 166.07L81.2093 156.291L69.3141 147.832L63.3153 161.138L74.255 166.07ZM98.635 178.26L94.7289 189.606L94.8396 189.645L94.951 189.681L98.635 178.26ZM145.095 180.79L148.652 192.251L148.771 192.214L148.89 192.174L145.095 180.79ZM155.215 174.58L145.952 166.952L145.952 166.952L155.215 174.58ZM153.375 155.49L146.038 164.985L146.176 165.092L146.317 165.195L153.375 155.49ZM140.035 149.28L136.528 160.756L136.675 160.801L136.823 160.842L140.035 149.28ZM121.635 144.68L118.917 156.368L119.073 156.404L119.23 156.437L121.635 144.68ZM101.625 139.16L97.91 150.57L97.9483 150.583L97.9866 150.595L101.625 139.16ZM83.455 130.88L77.1976 141.119L77.1976 141.119L83.455 130.88ZM69.885 117.54L59.6457 123.797L59.7082 123.9L59.7727 124.001L69.885 117.54ZM72.185 71.31L62.1697 64.6999L62.1537 64.7242L62.1378 64.7485L72.185 71.31ZM94.725 53.14L99.6143 64.0988L99.6526 64.0817L99.6907 64.0644L94.725 53.14ZM162.575 49.92L159.665 61.5617L159.751 61.5832L159.837 61.6034L162.575 49.92ZM188.565 60.5L199.682 65.0189L203.46 55.7236L194.981 50.359L188.565 60.5ZM177.065 88.79L171.111 99.2089L183.018 106.012L188.182 93.3089L177.065 88.79ZM154.525 79.36L151.228 90.8983L151.338 90.9295L151.448 90.9587L154.525 79.36ZM114.735 78.67L110.604 67.4035L110.604 67.4035L114.735 78.67ZM104.845 85.34L114.377 92.6294L114.477 92.499L114.573 92.3659L104.845 85.34ZM106.915 104.66L99.5777 114.155L99.7158 114.262L99.857 114.365L106.915 104.66ZM120.255 110.64L117.043 122.202L117.043 122.202L120.255 110.64ZM138.425 115.24L135.707 126.928L135.736 126.935L135.766 126.942L138.425 115.24ZM158.435 120.53L154.962 132.017L154.999 132.027L155.035 132.038L158.435 120.53ZM176.835 128.58L183.092 118.341L183.092 118.341L176.835 128.58ZM190.175 141.92L179.936 148.177L179.998 148.28L180.063 148.381L190.175 141.92ZM187.875 187.69L197.828 194.393L197.828 194.393L187.875 187.69ZM165.105 205.86L160.139 194.936L160.108 194.95L160.076 194.964L165.105 205.86ZM127.155 200.76C115.335 200.76 104.105 199.214 93.4217 196.162L86.8284 219.238C99.7585 222.933 113.215 224.76 127.155 224.76V200.76ZM93.5595 196.202C82.6825 192.953 74.6193 188.983 68.902 184.603L54.3081 203.657C63.0042 210.317 73.9542 215.394 86.6906 219.198L93.5595 196.202ZM72.5447 199.062L85.1947 171.002L63.3153 161.138L50.6653 189.198L72.5447 199.062ZM67.3008 175.849C75.2784 181.522 84.4676 186.074 94.7289 189.606L102.541 166.914C94.0958 164.006 87.0317 160.431 81.2093 156.291L67.3008 175.849ZM94.951 189.681C105.607 193.118 116.432 194.86 127.385 194.86V170.86C119.018 170.86 110.676 169.535 102.319 166.839L94.951 189.681ZM127.385 194.86C135.337 194.86 142.586 194.133 148.652 192.251L141.538 169.329C138.711 170.207 134.153 170.86 127.385 170.86V194.86ZM148.89 192.174C154.745 190.223 160.402 187.158 164.478 182.208L145.952 166.952C145.734 167.216 144.645 168.291 141.3 169.406L148.89 192.174ZM164.478 182.208C168.392 177.456 170.435 171.77 170.435 165.61H146.435C146.435 166.197 146.331 166.491 145.952 166.952L164.478 182.208ZM170.435 165.61C170.435 157.61 167.017 150.574 160.433 145.785L146.317 165.195C146.484 165.317 146.538 165.381 146.528 165.371C146.516 165.356 146.476 165.305 146.437 165.227C146.398 165.149 146.392 165.11 146.399 165.141C146.407 165.178 146.435 165.324 146.435 165.61H170.435ZM160.712 145.995C155.767 142.173 149.778 139.532 143.247 137.718L136.823 160.842C141.332 162.095 144.236 163.594 146.038 164.985L160.712 145.995ZM143.542 137.804C137.598 135.988 131.09 134.365 124.04 132.923L119.23 156.437C125.674 157.755 131.432 159.199 136.528 160.756L143.542 137.804ZM124.353 132.992C118.084 131.534 111.721 129.779 105.263 127.725L97.9866 150.595C105.023 152.834 112 154.759 118.917 156.368L124.353 132.992ZM105.34 127.75C99.5735 125.872 94.3786 123.492 89.7124 120.641L77.1976 141.119C83.5715 145.015 90.4899 148.155 97.91 150.57L105.34 127.75ZM89.7124 120.641C85.7679 118.23 82.5555 115.083 79.9974 111.079L59.7727 124.001C64.2679 131.037 70.1022 136.783 77.1976 141.119L89.7124 120.641ZM80.1244 111.283C78.2211 108.168 76.825 103.462 76.825 96.38H52.825C52.825 106.471 54.8023 115.872 59.6457 123.797L80.1244 111.283ZM76.825 96.38C76.825 89.4481 78.6335 83.3821 82.2323 77.8715L62.1378 64.7485C55.9233 74.2645 52.825 84.9119 52.825 96.38H76.825ZM82.2004 77.9201C85.7806 72.4955 91.3377 67.7914 99.6143 64.0988L89.8357 42.1812C78.179 47.3819 68.7095 54.7911 62.1697 64.6999L82.2004 77.9201ZM99.6907 64.0644C107.791 60.3824 118.618 58.24 132.675 58.24V34.24C116.372 34.24 101.899 36.6976 89.7594 42.2156L99.6907 64.0644ZM132.675 58.24C141.814 58.24 150.804 59.3464 159.665 61.5617L165.485 38.2783C154.72 35.5869 143.776 34.24 132.675 34.24V58.24ZM159.837 61.6034C168.519 63.6382 175.907 66.692 182.149 70.6409L194.981 50.359C186.196 44.8013 176.258 40.8017 165.313 38.2366L159.837 61.6034ZM177.448 55.981L165.948 84.271L188.182 93.3089L199.682 65.0189L177.448 55.981ZM183.019 78.3711C174.702 73.6189 166.228 70.0497 157.602 67.7613L151.448 90.9587C157.849 92.657 164.401 95.3744 171.111 99.2089L183.019 78.3711ZM157.822 67.8217C149.326 65.3944 140.856 64.14 132.445 64.14V88.14C138.447 88.14 144.697 89.0323 151.228 90.8983L157.822 67.8217ZM132.445 64.14C124.431 64.14 116.994 65.0604 110.604 67.4035L118.866 89.9365C121.676 88.9062 126.046 88.14 132.445 88.14V64.14ZM110.604 67.4035C104.699 69.5687 99.0017 72.9351 95.1169 78.3141L114.573 92.3659C114.675 92.2248 115.571 91.1447 118.866 89.9365L110.604 67.4035ZM95.3127 78.0506C91.596 82.9109 89.855 88.5881 89.855 94.54H113.855C113.855 93.4385 114.107 92.9824 114.377 92.6294L95.3127 78.0506ZM89.855 94.54C89.855 102.524 93.3658 109.355 99.5777 114.155L114.252 95.1646C114.018 94.9836 113.904 94.8598 113.862 94.8099C113.823 94.7638 113.831 94.7647 113.853 94.8084C113.875 94.853 113.882 94.883 113.88 94.8728C113.877 94.8584 113.855 94.7567 113.855 94.54H89.855ZM99.857 114.365C104.736 117.913 110.621 120.418 117.043 122.202L123.467 99.0778C118.849 97.795 115.841 96.3137 113.973 94.9552L99.857 114.365ZM117.043 122.202C122.753 123.788 128.977 125.363 135.707 126.928L141.143 103.552C134.687 102.05 128.797 100.558 123.467 99.0778L117.043 122.202ZM135.766 126.942C142.24 128.413 148.639 130.105 154.962 132.017L161.908 109.043C155.045 106.969 148.103 105.134 141.085 103.538L135.766 126.942ZM155.035 132.038C160.865 133.761 166.025 136.037 170.578 138.819L183.092 118.341C176.605 114.376 169.499 111.286 161.835 109.022L155.035 132.038ZM170.578 138.819C174.473 141.2 177.555 144.282 179.936 148.177L200.414 135.663C196.048 128.518 190.237 122.707 183.092 118.341L170.578 138.819ZM180.063 148.381C182.048 151.488 183.465 156.056 183.465 162.85H207.465C207.465 152.777 205.355 143.392 200.287 135.459L180.063 148.381ZM183.465 162.85C183.465 169.505 181.65 175.452 177.922 180.987L197.828 194.393C204.221 184.902 207.465 174.288 207.465 162.85H183.465ZM177.922 180.987C174.356 186.281 168.697 191.046 160.139 194.936L170.071 216.784C181.753 211.474 191.274 204.125 197.828 194.393L177.922 180.987ZM160.076 194.964C152.182 198.608 141.397 200.76 127.155 200.76V224.76C143.58 224.76 158.095 222.312 170.134 216.756L160.076 194.964Z" fill="white" mask="url(#path-2-outside-1_810_34)"/> <rect x="22" y="111" width="212" height="34" rx="17" fill="#2F2F2F" stroke="white" stroke-width="12"/> <path d="M127.155 212.76C114.275 212.76 101.932 211.073 90.125 207.7C78.3184 204.173 68.8117 199.65 61.605 194.13L74.255 166.07C81.155 170.977 89.2817 175.04 98.635 178.26C108.142 181.327 117.725 182.86 127.385 182.86C134.745 182.86 140.648 182.17 145.095 180.79C149.695 179.257 153.068 177.187 155.215 174.58C157.362 171.973 158.435 168.983 158.435 165.61C158.435 161.317 156.748 157.943 153.375 155.49C150.002 152.883 145.555 150.813 140.035 149.28C134.515 147.593 128.382 146.06 121.635 144.68C115.042 143.147 108.372 141.307 101.625 139.16C95.0317 137.013 88.975 134.253 83.455 130.88C77.935 127.507 73.4117 123.06 69.885 117.54C66.5117 112.02 64.825 104.967 64.825 96.38C64.825 87.18 67.2784 78.8233 72.185 71.31C77.245 63.6433 84.7584 57.5867 94.725 53.14C104.845 48.54 117.495 46.24 132.675 46.24C142.795 46.24 152.762 47.4667 162.575 49.92C172.388 52.22 181.052 55.7467 188.565 60.5L177.065 88.79C169.552 84.4967 162.038 81.3533 154.525 79.36C147.012 77.2133 139.652 76.14 132.445 76.14C125.238 76.14 119.335 76.9833 114.735 78.67C110.135 80.3567 106.838 82.58 104.845 85.34C102.852 87.9467 101.855 91.0133 101.855 94.54C101.855 98.68 103.542 102.053 106.915 104.66C110.288 107.113 114.735 109.107 120.255 110.64C125.775 112.173 131.832 113.707 138.425 115.24C145.172 116.773 151.842 118.537 158.435 120.53C165.182 122.523 171.315 125.207 176.835 128.58C182.355 131.953 186.802 136.4 190.175 141.92C193.702 147.44 195.465 154.417 195.465 162.85C195.465 171.897 192.935 180.177 187.875 187.69C182.815 195.203 175.225 201.26 165.105 205.86C155.138 210.46 142.488 212.76 127.155 212.76Z" fill="#2F2F2F"/> </g> </svg>`,
+  tooltip: "Strikethrough",
+  setButton: function (editor, button) {
+    let selectID = Object.keys(editor.selecting)[0];
+    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    if (original.d.st != true) {
+      button.removeAttribute("selecthighlight");
+    } else {
+      button.setAttribute("selecthighlight", "");
+    }
+  },
+  js: async function (frame, toolID, extra) {
+    let editor = await getModule("pages/editor");
+    let selectID = Object.keys(editor.selecting)[0];
+    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    extra.saveSelecting({ d: { st: !(original.d.st || false) } }, true);
+    extra.updateToolActions(extra.frame);
+  }
+};
+modules["pages/editor/toolbar/textalign"] = {
+  button: ``,
+  tooltip: "Text Alignment",
+  options: {
+    left: `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_815_89" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_815_89)"> <rect x="47" y="171" width="138" height="34" rx="17" fill="#2F2F2F" stroke="white" stroke-width="12"/> <rect x="47" y="111" width="112" height="34" rx="17" fill="#2F2F2F" stroke="white" stroke-width="12"/> <rect x="47" y="51" width="162" height="34" rx="17" fill="#2F2F2F" stroke="white" stroke-width="12"/> </g> </svg>`,
+    center: `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_815_84" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_815_84)"> <rect x="59" y="171" width="138" height="34" rx="17" fill="#2F2F2F" stroke="white" stroke-width="12"/> <rect x="72" y="111" width="112" height="34" rx="17" fill="#2F2F2F" stroke="white" stroke-width="12"/> <rect x="47" y="51" width="162" height="34" rx="17" fill="#2F2F2F" stroke="white" stroke-width="12"/> </g> </svg>`,
+    right: `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_815_76" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_815_76)"> <rect x="71" y="171" width="138" height="34" rx="17" fill="#2F2F2F" stroke="white" stroke-width="12"/> <rect x="97" y="111" width="112" height="34" rx="17" fill="#2F2F2F" stroke="white" stroke-width="12"/> <rect x="47" y="51" width="162" height="34" rx="17" fill="#2F2F2F" stroke="white" stroke-width="12"/> </g> </svg>`
+  },
+  setButton: function (editor, button) {
+    let buttonImg = button.querySelector("div");
+    let selectID = Object.keys(editor.selecting)[0];
+    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    let selectedAl = original.d.al || "left";
+    if (selectedAl == "left") {
+      buttonImg.innerHTML = this.options.left;
+    } else if (selectedAl == "center") {
+      buttonImg.innerHTML = this.options.center;
+    } else if (selectedAl == "right") {
+      buttonImg.innerHTML = this.options.right;
+    }
+  },
+  html: `
+    <div class="eSubToolTextAlignContainer">
+      <button class="eTool" tooltip="Left Align" left option><div></div></button>
+      <button class="eTool" tooltip="Center Align" center option><div></div></button>
+      <button class="eTool" tooltip="Right Align" right option><div></div></button>
+    </div>
+  `,
+  css: {
+    ".eSubToolTextAlignContainer": `display: flex; width: 100%; height: 50px; gap: 6px; overflow: auto; border-radius: inherit`,
+    ".eSubToolTextAlignContainer .eTool:active > div": `border-radius: 15.5px !important`,
+    ".eSubToolTextAlignContainer .eTool[selected]:active > div": `border-radius: 15.5px !important`,
+    ".eSubToolTextAlignContainer .eTool[selected] > div": `background: var(--theme) !important`
+  },
+  setPreferenceTool: function (editor) {
+    let selectKeys = Object.keys(editor.selecting);
+    this.preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
+  },
+  js: async function (frame, toolID, extra) {
+    let editor = await getModule("pages/editor");
+    this.setPreferenceTool(editor);
+    let selectedAl = this.preferenceTool.d.al || "left";
+
+    let preferences = editor.preferences.tools;
+    let toolPref = preferences[toolID];
+
+    let leftAlign = frame.querySelector(".eTool[left]");
+    let centerAlign = frame.querySelector(".eTool[center]");
+    let rightAlign = frame.querySelector(".eTool[right]");
+
+    leftAlign.querySelector("div").innerHTML = this.options.left;
+    centerAlign.querySelector("div").innerHTML = this.options.center;
+    rightAlign.querySelector("div").innerHTML = this.options.right;
+
+    let updateAlignment = () => {
+      leftAlign.removeAttribute("selected");
+      centerAlign.removeAttribute("selected");
+      rightAlign.removeAttribute("selected");
+
+      if (selectedAl == "left") {
+        leftAlign.setAttribute("selected", "");
+      } else if (selectedAl == "center") {
+        centerAlign.setAttribute("selected", "");
+      } else if (selectedAl == "right") {
+        rightAlign.setAttribute("selected", "");
+      }
+    }
+    updateAlignment();
+
+    leftAlign.addEventListener("click", async () => {
+      selectedAl = "left";
+      if (toolPref != null) {
+        toolPref.align = selectedAl;
+        editor.savePreferences();
+      }
+      await extra.saveSelecting({ d: { al: selectedAl } }, true);
+      extra.updateToolActions(extra.frame);
+      updateAlignment();
+    });
+    centerAlign.addEventListener("click", async () => {
+      selectedAl = "center";
+      if (toolPref != null) {
+        toolPref.align = selectedAl;
+        editor.savePreferences();
+      }
+      await extra.saveSelecting({ d: { al: selectedAl } }, true);
+      extra.updateToolActions(extra.frame);
+      updateAlignment();
+    });
+    rightAlign.addEventListener("click", async () => {
+      selectedAl = "right";
+      if (toolPref != null) {
+        toolPref.align = selectedAl;
+        editor.savePreferences();
+      }
+      await extra.saveSelecting({ d: { al: selectedAl } }, true);
+      extra.updateToolActions(extra.frame);
+      updateAlignment();
+    });
   }
 };

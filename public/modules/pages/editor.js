@@ -143,6 +143,8 @@ modules["pages/editor"] = {
     //'.eAnnotation:not([selected]):not([anno^="pending_"])': `transition: .25s`,
     ".eAnnotation svg": `position: absolute; width: calc(100% + 200px); height: calc(100% + 200px); left: -100px; top: -100px; pointer-events: none`,
     ".eAnnotation svg > *": `pointer-events: visiblepainted`,
+    ".eAnnotation div[text]": `padding: 4px 6px; margin: 3px 3px; color: var(--themeColor); font-weight: 500; pointer-events: all; outline: none`,
+    ".eAnnotation div[text][placeborder]": `width: max-content; margin: 0px; border: solid 3px var(--themeColor); border-radius: 8px`,
 
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 100; overflow: hidden; pointer-events: none`
   },
@@ -170,7 +172,9 @@ modules["pages/editor"] = {
             selected: "0084FF",
             options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "000"]
           },
-          opacity: 100
+          opacity: 100,
+          size: 18,
+          align: "left"
         },
         draw: {
           subtool: "pen",
@@ -2618,7 +2622,7 @@ modules["pages/editor/annotation"] = {
       return;
     }
     let editor = await getModule("pages/editor");
-    let { _id, f, page, p, s, c, i, t, b, o, d, done, remove, sync } = data;
+    let { _id, f, page, p, s, c, i, t, b, o, d, done, remove, sync, textfit } = data;
     let [x, y] = p || [];
     let [width, height] = s || [];
     if (page != null && editor.loadedIn.includes(page) == false && long != true) {
@@ -2726,6 +2730,87 @@ modules["pages/editor/annotation"] = {
         path.setAttribute("points", drawSetPoints);
         path.setAttribute("stroke", "#" + c);
         path.setAttribute("opacity", o / 100);
+        break;
+      case "text":
+        if (anno == null) {
+          annoHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
+            <div text></div>
+          </div>`);
+          anno = annoHolder.querySelector(".eAnnotation[new]");
+          anno.removeAttribute("new");
+        }
+        if (_id != null) {
+          anno.setAttribute("anno", _id);
+          anno.style.opacity = 1;
+        } else {
+          anno.setAttribute("tooleditor", "");
+          anno.style.opacity = .7;
+        }
+        anno.style.width = width + "px";
+        anno.style.height = height + "px";
+        anno.style.left = x + "px";
+        anno.style.top = y + "px";
+        if (remove != true) {
+          anno.removeAttribute("hidden");
+        } else {
+          anno.setAttribute("hidden", "");
+        }
+        let text = anno.querySelector("div[text]");
+        if (_id != null) {
+          text.removeAttribute("placeborder");
+        } else {
+          text.setAttribute("placeborder", "");
+        }
+        anno.style.setProperty("--themeColor", "#" + c);
+        text.style.opacity = o / 100;
+        let richText = d;
+        text.style.fontSize = Math.floor(Math.max(Math.min(richText.s || 18, 250), 1)) + "px";
+        if (text.hasAttribute("contenteditable") == false) {
+          let setHTML = "";
+          for (let i = 0; i < richText.b.length; i++) {
+            let addHTML = "";
+            if (richText.b[i] != "\n") {
+              addHTML = "<div>" + cleanString(richText.b[i]) + "</div>";
+            } else {
+              addHTML = "</br>";
+            }
+            setHTML += addHTML;
+          }
+          text.innerHTML = setHTML;
+          //text.innerText = cleanString(richText.b[0]);
+          //text.innerHTML = cleanString(richText.b[0]).replace(/\n\n/g, "</br>").replace(/\n/g, "</br>");
+        } else {
+          anno.setAttribute("notransition", "");
+        }
+        if (richText.bo == true) {
+          text.style.fontWeight = 700;
+        } else {
+          text.style.removeProperty("font-weight");
+        }
+        if (richText.it == true) {
+          text.style.fontStyle = "italic";
+        } else {
+          text.style.removeProperty("font-style");
+        }
+        if (richText.st == true && richText.ul == true) {
+          text.style.textDecoration = "underline line-through";
+        } else if (richText.st == true) {
+          text.style.textDecoration = "line-through";
+        } else if (richText.ul == true) {
+          text.style.textDecoration = "underline";
+        } else {
+          text.style.removeProperty("text-decoration");
+        }
+        text.style.textAlign = richText.al || "left";
+
+        if (textfit == true) {
+          text.style.width = "max-content";
+          text.style.minWidth = "130px";
+        } else {
+          text.style.width = "calc(100% - 18px)"
+          text.style.removeProperty("min-width");
+        }
+        text.style.height = "fit-content";
         break;
       case "draw":
         if (anno == null) {
@@ -2966,11 +3051,11 @@ modules["pages/editor/annotation"] = {
     }
     if (anno != null) {
       anno.style.zIndex = (sync || getEpoch()) % 1000000000;
-      if (s[0] < 0 && s[1] < 0) {
+      if (width < 0 && height < 0) {
         anno.style.transform = "scale(-1)";
-      } else if (s[0] < 0) {
+      } else if (width < 0) {
         anno.style.transform = "scale(-1,1)";
-      } else if (s[1] < 0) {
+      } else if (height < 0) {
         anno.style.transform = "scale(1,-1)";
       } else {
         anno.style.removeProperty("transform");
@@ -2990,10 +3075,12 @@ modules["pages/editor/annotation"] = {
         }
       }
     }
-    if (long == true) {
-      await this.resetAnnotationSize();
-    } else {
-      await this.checkAnnotationSize(data);
+    if (_id != null) {
+      if (long == true) {
+        await this.resetAnnotationSize();
+      } else {
+        await this.checkAnnotationSize(data);
+      }
     }
     return [data, anno];
   },
@@ -3104,8 +3191,9 @@ modules["pages/editor/annotation"] = {
           if (anno.render != null) {
             delete anno.save;
             //mutt._id = anno.render._id;
-            if (anno.retry != true) {
+            if (anno.retry > 0) {
               this.enableTimeout(anno.render._id, anno);
+              anno.retry--;
             }
             if (mutt.f == null && mutt._id.startsWith("pending_") == true) {
               // Annotation is still being saved, try again later!
@@ -3134,8 +3222,10 @@ modules["pages/editor/annotation"] = {
       if (saveSuccess == false) { // If not saved, set to try again
         for (let i = 0; i < mutations.length; i++) {
           let anno = editor.annotations[mutations[i]._id];
-          if (anno != null && anno.retry != true) {
-            anno.retry = true;
+          if (anno.retry == null) {
+            anno.retry = 3;
+          }
+          if (anno != null && anno.retry > 0) {
             setPendingSave[mutations[i]._id] = mutations[i];
           }
         }

@@ -157,7 +157,7 @@ modules["pages/launch"] = {
     <div class="lFooterFooter">
       <div class="lFooterCompany">
         <img class="lFooterLogo" src="./images/logowhite.svg">
-        <a class="lFooterCopyright" href="https://exotek.co" target="_blank">©2023 Exotek LLC</a>
+        <a class="lFooterCopyright" href="https://exotek.co" target="_blank">©2024 Exotek LLC</a>
       </div>
       <div class="lFooterPolicies">
         <a href="https://exotek.co/tos" target="_blank">Terms</a>

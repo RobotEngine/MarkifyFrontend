@@ -4369,6 +4369,16 @@ modules["pages/editor/toolbar/textedit"] = {
     this.pastEvents.push({ type: "event", parent: parent, name: "input", listener: keyListener });
     annoTx.addEventListener("keydown", keyListener);
 
+    let pasteListener = (event) => {
+      // Cancel paste
+      event.preventDefault();
+      
+      // Insert text manually
+      document.execCommand("insertHTML", false, (event.originalEvent || event).clipboardData.getData("text/plain"));
+    }
+    this.pastEvents.push({ type: "event", parent: parent, name: "input", listener: pasteListener });
+    annoTx.addEventListener("paste", pasteListener);
+
     extra.updateToolActions(extra.frame);
   }
 };

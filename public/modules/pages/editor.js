@@ -650,7 +650,11 @@ modules["pages/editor"] = {
           let annoKeys = Object.keys(this.annotations);
           for (let i = 0; i < annoKeys.length; i++) {
             let anno = this.annotations[annoKeys[i]];
-            if ((anno.revert || anno.render).sync < data.data.sync) {
+            let render = anno.revert || anno.render || {};
+            if (data.data.page != null && render.page != data.data.page) {
+              continue;
+            }
+            if (render.sync < data.data.sync) {
               anno.render.remove = true;
               await utils.render(anno.render, null, true);
             }
@@ -2256,6 +2260,10 @@ modules["dropdowns/editor/file/delete"] = {
       case "deletepage":
         title.textContent = "Delete Page?";
         desc.innerHTML = "Are you sure you want to permanently delete this page? <b>This cannot be undone!</b>";
+        break;
+      case "deletepageannotations":
+        title.textContent = "Delete Annotations?";
+        desc.innerHTML = "Are you sure you want to permanently delete all annotations on this page? <b>This cannot be undone!</b>";
     }
     let deleteConfirm = frame.querySelector(".eFileDeleteConfirm");
     deleteConfirm.addEventListener("click", async () => {
@@ -2266,6 +2274,8 @@ modules["dropdowns/editor/file/delete"] = {
         pathAdd = "/annotations";
       } else if (option == "deletepage") {
         pathAdd = "/page?page=" + extra.button.getAttribute("pageid");
+      } else if (option == "deletepageannotations") {
+        pathAdd = "/annotations?page=" + extra.button.getAttribute("pageid");
       }
       let [code] = await sendRequest("DELETE", "lessons/delete" + pathAdd, null, { session: editor.session });
       deleteConfirm.removeAttribute("disabled");
@@ -2290,6 +2300,7 @@ modules["dropdowns/editor/rearrange"] = {
   <button class="eRearrangeAction" option="movedown" title="Move this page down one page."><img src="./images/editor/rearrange/down.svg">Move Down</button>
   <button class="eRearrangeAction" option="movetobottom" title="Move this page to the bottom."><img src="./images/editor/rearrange/downarrow.svg">Move to Bottom</button>
   <div class="eRearrangeLine"></div>
+  <button class="eRearrangeAction" option="deletepageannotations" dropdown="dropdowns/editor/file/delete" title="Delete all annotations on this page." style="--themeColor: var(--error)"><img src="./images/editor/file/delete.svg">Delete Annotations</button>
   <button class="eRearrangeAction" option="deletepage" dropdown="dropdowns/editor/file/delete" title="Remove this page from the lesson." style="--themeColor: var(--error)"><img src="./images/editor/file/delete.svg">Delete Page</button>
   `,
   css: {
@@ -2308,6 +2319,7 @@ modules["dropdowns/editor/rearrange"] = {
     let moveup = frame.querySelector('.eRearrangeAction[option="moveup"]');
     let movedown = frame.querySelector('.eRearrangeAction[option="movedown"]');
     let movetobottom = frame.querySelector('.eRearrangeAction[option="movetobottom"]');
+    frame.querySelector('.eRearrangeAction[option="deletepageannotations"]').setAttribute("pageid", page.getAttribute("pageid"));
     frame.querySelector('.eRearrangeAction[option="deletepage"]').setAttribute("pageid", page.getAttribute("pageid"));
     let hideButtons = () => {
       movetotop.setAttribute("disabled", "");

@@ -851,7 +851,14 @@ modules["editor/toolbar"] = {
             } else {
               editor.realtimeSelect[change._id] = { ...change, done: true };
             }
+            let annoContentTx = editor.page.querySelector('.eAnnotation[anno="' + change._id + '"] div[contenteditable]');
+            if (annoContentTx != null) {
+              annoContentTx.removeAttribute("contenteditable");
+            }
             await utils.save(change, null, sync);
+            if (annoContentTx != null) {
+              annoContentTx.setAttribute("contenteditable", "true");
+            }
           }
           break;
         case "remove":
@@ -917,7 +924,14 @@ modules["editor/toolbar"] = {
             } else {
               editor.realtimeSelect[change._id] = { ...change, done: true };
             }
+            let annoContentTx = editor.page.querySelector('.eAnnotation[anno="' + change._id + '"] div[contenteditable]');
+            if (annoContentTx != null) {
+              annoContentTx.removeAttribute("contenteditable");
+            }
             await utils.save(change, null, sync);
+            if (annoContentTx != null) {
+              annoContentTx.setAttribute("contenteditable", "true");
+            }
           }
           break;
         case "remove": // Sort of Add
@@ -1684,7 +1698,7 @@ modules["pages/editor/toolbar/cursor"] = {
     await module.js(holder, preferenceTool, {
       frame: holder,
       updateActionUI: () => { this.updateActionUI(); },
-      saveSelecting: async (set, short) => {
+      saveSelecting: async (set, short, saveHistory) => {
         let editor = await getModule("pages/editor");
         let utils = await getModule("pages/editor/annotation");
         let selectKeys = Object.keys(editor.selecting);
@@ -1696,7 +1710,8 @@ modules["pages/editor/toolbar/cursor"] = {
         for (let i = 0; i < selectKeys.length; i++) {
           let annoID = selectKeys[i];
           let select = editor.selecting[annoID];
-          let anno = (editor.annotations[annoID] || {}).render || {};
+          let original = (editor.annotations[annoID] || {}).render || {};
+          let anno = JSON.parse(JSON.stringify(original));
           let annoSet = JSON.parse(JSON.stringify(set));
           if (annoSet.d != null && typeof annoSet.d == "object") {
             annoSet.d = { ...anno.d, ...annoSet.d };
@@ -1706,7 +1721,7 @@ modules["pages/editor/toolbar/cursor"] = {
             if (annoTx != null) {
               editor.selecting[annoID] = { ...select, ...annoSet };
               await utils.render({ ...anno, ...annoSet }, annoTx.parentElement);
-              annoSet.s = JSON.parse(JSON.stringify(anno)).s || [];
+              annoSet.s = anno.s || [];
               if (anno.textfit == true) {
                 annoSet.s[0] = annoTx.offsetWidth + 6;
               }
@@ -1725,24 +1740,26 @@ modules["pages/editor/toolbar/cursor"] = {
           }
           editor.selecting[annoID] = { ...select, ...annoSet };
           saveUpdates.push({ ...select, ...annoSet, _id: annoID });
-          let changeKeys = Object.keys(annoSet);
-          let pushFields = {};
-          for (let f = 0; f < changeKeys.length; f++) {
-            pushFields[changeKeys[f]] = anno[changeKeys[f]];
-          }
-          if (Object.keys(pushFields).length > 0) {
-            if (annoSet.remove != true) {
-              pushChanges.push(JSON.parse(JSON.stringify({ ...pushFields, _id: annoID })));
-            } else {
-              pushRemoves.push(JSON.parse(JSON.stringify(anno)));
+          if (saveHistory != false) {
+            let changeKeys = Object.keys(annoSet);
+            let pushFields = {};
+            for (let f = 0; f < changeKeys.length; f++) {
+              pushFields[changeKeys[f]] = original[changeKeys[f]];
+            }
+            if (Object.keys(pushFields).length > 0) {
+              if (annoSet.remove != true) {
+                pushChanges.push(JSON.parse(JSON.stringify({ ...pushFields, _id: annoID })));
+              } else {
+                pushRemoves.push(JSON.parse(JSON.stringify(anno)));
+              }
             }
           }
         }
         if (pushChanges.length > 0) {
-          await utils.pushHistory("update", pushChanges);
+          await utils.pushHistory("update", pushChanges, saveHistory);
         }
         if (pushRemoves.length > 0) {
-          await utils.pushHistory("add", pushRemoves);
+          await utils.pushHistory("add", pushRemoves, saveHistory);
         }
         for (let i = 0; i < saveUpdates.length; i++) {
           await utils.save({ ...saveUpdates[i] }, null, sync);
@@ -4260,7 +4277,9 @@ modules["pages/editor/toolbar/textedit"] = {
       remEvent.parent.removeEventListener(remEvent.name, remEvent.listener);
     }
 
-    let inputListener = () => {
+    let saveHistory = false;
+    //let lastClock;
+    let inputListener = (event) => {
       selectID = Object.keys(editor.selecting)[0];
       original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
       
@@ -4274,7 +4293,7 @@ modules["pages/editor/toolbar/textedit"] = {
         }
         addText.push(text);
       }
-      editor.selecting[selectID].d = editor.selecting[selectID].d || original.d || {};
+      editor.selecting[selectID].d = editor.selecting[selectID].d || JSON.parse(JSON.stringify(original.d || {}));
       editor.selecting[selectID].d.b = addText;
       saveObj.d.b = addText;
       /*
@@ -4284,9 +4303,28 @@ modules["pages/editor/toolbar/textedit"] = {
       }
       saveObj.s[1] = annoTx.offsetHeight + 6;
       */
-      extra.saveSelecting(saveObj, true);
+      /*
+      if (lastClock == null) {
+        restartSaveClock();
+      }
+      */
+      if (event != null && [" ", null].includes(event.data) == true) {
+        saveHistory = true;
+      }
+      extra.saveSelecting(saveObj, true, saveHistory);
+      saveHistory = false;
       //utils.forceShort();
     };
+    /*
+    let restartSaveClock = () => {
+      clearTimeout(lastClock);
+      lastClock = setTimeout(() => {
+        saveHistory = true;
+        lastClock = null;
+        inputListener();
+      }, 5000);
+    }
+    */
     this.pastEvents.push({ type: "event", parent: parent, name: "input", listener: inputListener });
     annoTx.addEventListener("input", inputListener);
 

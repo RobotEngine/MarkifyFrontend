@@ -3157,7 +3157,7 @@ modules["pages/editor/annotation"] = {
     */
     this.enableTimeout(annoID, anno, render);
     editor.annotations[annoID] = anno;
-    this.render({ ...anno.render, sync: sync }, render);
+    await this.render({ ...anno.render, sync: sync }, render);
     return annoData; //mutations;
   },
   pendingSaves: {},
@@ -3335,7 +3335,6 @@ modules["pages/editor/annotation"] = {
         changes[i].revert = JSON.parse(JSON.stringify((editor.annotations[changes[i]._id] || {}).render || {}));
       }
     }*/
-
     let newChanges = JSON.parse(JSON.stringify(changes));
 
     let pushHistory = true;

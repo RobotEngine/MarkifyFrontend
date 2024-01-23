@@ -3013,7 +3013,7 @@ modules["pages/editor/annotation"] = {
             elem.setAttribute("y1", this.SVG_PADDING + halfT);
             elem.setAttribute("x2", this.SVG_PADDING + halfT);
             elem.setAttribute("y2", heightT + this.SVG_PADDING + halfT);
-            //elem.setAttribute("points", (widthT + this.SVG_PADDING + halfT) + "," + (this.SVG_PADDING + halfT) + " " + (this.SVG_PADDING + halfT) + "," + (heightT + this.SVG_PADDING + halfT));
+          //elem.setAttribute("points", (widthT + this.SVG_PADDING + halfT) + "," + (this.SVG_PADDING + halfT) + " " + (this.SVG_PADDING + halfT) + "," + (heightT + this.SVG_PADDING + halfT));
         }
         if (b == "none") {
           i = true;
@@ -3312,9 +3312,68 @@ modules["pages/editor/annotation"] = {
     await editor.realtime.module.publishShort(null, null, true);
     editor.realtimeSelect = {};
   },
+  getCurrentCaretPosition: function (element) {
+    let position = 0;
+    const isSupported = typeof window.getSelection !== "undefined";
+    if (isSupported) {
+      const selection = window.getSelection();
+      if (selection.rangeCount !== 0) {
+        const range = window.getSelection().getRangeAt(0);
+        const preCaretRange = range.cloneRange();
+        preCaretRange.selectNodeContents(element);
+        preCaretRange.setEnd(range.endContainer, range.endOffset);
+        position = preCaretRange.toString().length;
+        if (preCaretRange.endContainer.textContent == "") {
+          position = "END";
+        }
+      }
+    }
+    return position;
+  },
+  createRange: function (node, chars, range) {
+    if (!range) {
+      range = document.createRange()
+      range.selectNode(node);
+      range.setStart(node, 0);
+    }
+    if (chars.count === 0) {
+      range.setEnd(node, chars.count);
+    } else if (node && chars.count > 0) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        if (node.textContent.length < chars.count) {
+          chars.count -= node.textContent.length;
+        } else {
+          range.setEnd(node, chars.count);
+          chars.count = 0;
+        }
+      } else {
+        for (let lp = 0; lp < node.childNodes.length; lp++) {
+          range = this.createRange(node.childNodes[lp], chars, range);
+          if (chars.count === 0) {
+            break;
+          }
+        }
+      }
+    }
+    return range;
+  },
+  setCaretPosition: function (element, chars) {
+    let selection = window.getSelection();
+    let range = null;
+    if (chars == "END") {
+      range = this.createRange(element.lastChild);
+    } else {
+      range = this.createRange(element, { count: chars });
+    }
+    if (range != null) {
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+  },
   history: [],
   location: -1,
-  pushHistory: async function (type, changes, ignoreTime) {
+  pushHistory: async function (type, changes, ignoreTime, caret) {
     //let editor = await getModule("pages/editor");
     let utils = await getModule("pages/editor/annotation");
 
@@ -3361,12 +3420,23 @@ modules["pages/editor/annotation"] = {
     }
 
     if (pushHistory == true) {
-      utils.history.push({
+      let newHistory = {
         type: type,
         time: getEpoch(),
         changes: newChanges,
         redo: []
-      });
+      };
+
+      if (caret != null) {
+        newHistory.caret = {
+          undoElement: caret.undoElement,
+          undoPosition: caret.undoPosition,
+          //redoElement: caret.redoElement,
+          //redoPosition: caret.redoPosition
+        };
+      }
+
+      utils.history.push(newHistory);
       utils.location++;
     }
 

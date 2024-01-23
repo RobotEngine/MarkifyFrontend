@@ -907,6 +907,13 @@ modules["editor/toolbar"] = {
 
       await cursorModule.updateBox();
       await cursorModule.redrawActionUI();
+
+      if (event.caret != null) {
+        if (event.caret.undoElement != null) {
+          event.caret.undoElement.focus();
+          utils.setCaretPosition(event.caret.undoElement, event.caret.undoPosition);
+        }
+      }
     });
     redoButton.addEventListener("click", async () => {
       utils.location++; // Add one to location
@@ -972,6 +979,13 @@ modules["editor/toolbar"] = {
 
       await cursorModule.updateBox();
       await cursorModule.redrawActionUI();
+
+      if (event.caret != null) {
+        if (event.caret.redoElement != null) {
+          event.caret.redoElement.focus();
+          utils.setCaretPosition(event.caret.redoElement, event.caret.redoPosition);
+        }
+      }
     });
 
     //frame.closest(".eSide").style.opacity = 1;
@@ -1698,7 +1712,7 @@ modules["pages/editor/toolbar/cursor"] = {
     await module.js(holder, preferenceTool, {
       frame: holder,
       updateActionUI: () => { this.updateActionUI(); },
-      saveSelecting: async (set, short, saveHistory) => {
+      saveSelecting: async (set, short, saveHistory, lastCaret) => {
         let editor = await getModule("pages/editor");
         let utils = await getModule("pages/editor/annotation");
         let selectKeys = Object.keys(editor.selecting);
@@ -1756,7 +1770,7 @@ modules["pages/editor/toolbar/cursor"] = {
           }
         }
         if (pushChanges.length > 0) {
-          await utils.pushHistory("update", pushChanges, saveHistory);
+          await utils.pushHistory("update", pushChanges, saveHistory, lastCaret);
         }
         if (pushRemoves.length > 0) {
           await utils.pushHistory("add", pushRemoves, saveHistory);
@@ -4279,6 +4293,16 @@ modules["pages/editor/toolbar/textedit"] = {
 
     let saveHistory = false;
     //let lastClock;
+    let lastCaret = {};
+    let setLastCaret = (position) => {
+      if (window.getSelection != null) {
+        let textBox = window.getSelection().baseNode.parentElement;
+        if (textBox != null) {
+          lastCaret[position + "Element"] = textBox;
+          lastCaret[position + "Position"] = utils.getCurrentCaretPosition(textBox);
+        }
+      }
+    }
     let inputListener = (event) => {
       selectID = Object.keys(editor.selecting)[0];
       original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
@@ -4310,8 +4334,9 @@ modules["pages/editor/toolbar/textedit"] = {
       */
       if (event != null && [" ", null].includes(event.data) == true) {
         saveHistory = true;
+        //setLastCaret("redo");
       }
-      extra.saveSelecting(saveObj, true, saveHistory);
+      extra.saveSelecting(saveObj, true, saveHistory, lastCaret);
       saveHistory = false;
       //utils.forceShort();
     };
@@ -4327,6 +4352,22 @@ modules["pages/editor/toolbar/textedit"] = {
     */
     this.pastEvents.push({ type: "event", parent: parent, name: "input", listener: inputListener });
     annoTx.addEventListener("input", inputListener);
+
+    let keyListener = (event) => {
+      if (event != null && [" ", "Enter", "Backspace"].includes(event.key) == true) {
+        setLastCaret("undo");
+      }
+
+      let lastHistory = utils.history[utils.location];
+      if (lastHistory != null) {
+        lastHistory.caret = lastHistory.caret || {};
+        setLastCaret("redo");
+        lastHistory.caret.redoElement = lastCaret.redoElement;
+        lastHistory.caret.redoPosition = lastCaret.redoPosition;
+      }
+    }
+    this.pastEvents.push({ type: "event", parent: parent, name: "input", listener: keyListener });
+    annoTx.addEventListener("keydown", keyListener);
 
     extra.updateToolActions(extra.frame);
   }

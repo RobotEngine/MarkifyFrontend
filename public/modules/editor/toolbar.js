@@ -3378,7 +3378,7 @@ modules["pages/editor/toolbar/color"] = {
   css: {
     ".eSubToolColorHolder": `display: flex; width: 32px; height: 32px; background: #fff; border: solid 3px var(--pageColor); border-radius: 19px; justify-content: center; align-items: center`,
     ".eSubToolColor": `width: 100%; height: 100%; border-radius: 16px`,
-    //".eSubToolImage": `width: 40px; height: 40px`,
+    ".eSubToolImage": `width: 100%`,
 
     ".eSubToolColorFrame": `position: relative; width: 212px; min-height: 106px`,
     ".eSubToolColorSelector": `display: flex; flex-wrap: wrap; top: 0px; justify-content: center; align-items: center; transform: scale(1); opacity: 1; transition: .5s`,

@@ -1140,7 +1140,7 @@ addCSS({
   ".buttonAnim:active": `background: var(--pageColor); --borderWidth: 4px; --borderColor: var(--hover)`,
   ".largeButton:hover": `--borderColor: var(--themeColor2)`,
   ".largeButton:active": `--borderWidth: 8px`,
-  ".fixedItemHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px`,
+  ".fixedItemHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden`,
   "[notransition]": `transition: unset !important`
 });
 

@@ -64,10 +64,21 @@ modules["dropdowns/editor/share/link"] = {
     let accessTitle = accessButton.querySelector(".eShareDetailTitle");
     let accessDesc = accessButton.querySelector(".eShareDetailDesc");
 
-    linkTx.value = "markify.link/join?lesson=" + editor.id;
     frame.querySelector(".eShareLinkCopy").addEventListener("click", async () => {
-      copyClipboardText("https://markify.link/join?lesson=" + editor.id, "link");
+      copyClipboardText("https://" + linkTx.value, "link");
     });
+
+    let actionButton = frame.querySelector(".eShareActionLink");
+    let updateAction = () => {
+      if (editor.lesson.settings.forceLogin == true) {
+        actionButton.setAttribute("on", "");
+        actionButton.removeAttribute("off");
+      } else {
+        actionButton.setAttribute("off", "");
+        actionButton.removeAttribute("on");
+      }
+    }
+    updateAction();
 
     editor.updateLink = async () => {
       if (editor.lesson.access != null && editor.lesson.access > -1) {
@@ -88,6 +99,12 @@ modules["dropdowns/editor/share/link"] = {
         accessTitle.textContent = "Public Edit Access";
         accessDesc.textContent = "Anyone with this link will be able to view the document and create annotations.";
       }
+      if (editor.lesson.settings == null || editor.lesson.settings.forceLogin != true || account.tenant == null || account.tenant.flags == null || account.tenant.flags.require_login_link_auth_classlink != true) {
+        linkTx.value = "markify.link/join?lesson=" + editor.id;
+      } else {
+        linkTx.value = "markify.link/join?lesson=" + editor.id + "&auth=classlink";
+      }
+      updateAction();
     }
     editor.updateLink();
     createButton.addEventListener("click", async () => {
@@ -126,17 +143,6 @@ modules["dropdowns/editor/share/link"] = {
       }
       removeButton.removeAttribute("disabled");
     });
-    let actionButton = frame.querySelector(".eShareActionLink");
-    function updateAction() {
-      if (editor.lesson.settings.forceLogin == true) {
-        actionButton.setAttribute("on", "");
-        actionButton.removeAttribute("off");
-      } else {
-        actionButton.setAttribute("off", "");
-        actionButton.removeAttribute("on");
-      }
-    }
-    updateAction();
     actionButton.addEventListener("click", async () => {
       actionButton.setAttribute("disabled", "");
       if (editor.lesson.settings.forceLogin == true) {

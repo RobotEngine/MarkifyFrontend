@@ -618,6 +618,10 @@ modules["pages/editor"] = {
               this.updateLink();
             }
           }
+          if (this.updateLink != null) {
+            this.updateLink();
+          }
+          /*
           if (body.settings && body.settings.hasOwnProperty("forceLogin")) {
             let actionButton = fixed.querySelector(".eShareActionPin, .eShareActionLink");
             if (actionButton != null) {
@@ -630,6 +634,7 @@ modules["pages/editor"] = {
               }
             }
           }
+          */
           enableScrollTop();
           break;
         case "addpages":
@@ -1678,7 +1683,7 @@ modules["pages/editor"] = {
 
       let prevWidth = document.body.scrollWidth;
       let prevHeight = document.body.scrollHeight;
-
+      
       let delta = Math.max(-1, Math.min(1, (mouse.wheelDelta || -(mouse.detail || 0))));
       if (set == null) {
         set = this.zoom + (delta / 10);
@@ -1727,6 +1732,7 @@ modules["pages/editor"] = {
       
       console.log(pixels_difference_w)
       */
+      
 
       // Calculate the new scroll position based on the mouse cursor position and zoom level
       let newScrollX = ((mouseX + pageScrollX) * (document.body.scrollWidth / prevWidth)) - mouseX; // + rect.left;

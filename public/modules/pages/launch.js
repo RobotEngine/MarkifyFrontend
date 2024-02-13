@@ -152,7 +152,7 @@ modules["pages/launch"] = {
         <img src="./images/launch/badges/coppa.svg">
         <img src="./images/launch/badges/ferpa.svg">
       </div>
-      <div class="footerStatement">Markify is complaint under all <b>COPPA</b> and <b>FERPA</b> rules and regulations.</div>
+      <div class="footerStatement">Markify is compliant under all <b>COPPA</b> and <b>FERPA</b> rules and regulations.</div>
     </div>
     <div class="lFooterFooter">
       <div class="lFooterCompany">

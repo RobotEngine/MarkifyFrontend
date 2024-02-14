@@ -3417,8 +3417,8 @@ modules["pages/editor/toolbar/upload"] = {
               if (image.src == this.imageBlob) {
                 URL.revokeObjectURL(this.imageBlob);
               }
+              let blobAnno = editor.page.querySelector('.eAnnotation[src="' + initBlob + '"]');
               if (code == 200) {
-                let blobAnno = editor.page.querySelector('.eAnnotation[src="' + initBlob + '"]');
                 if (blobAnno != null && blobAnno.hasAttribute("anno") == true) {
                   utils.save({ _id: blobAnno.getAttribute("anno"), d: result.file }, blobAnno);
                 }
@@ -3429,6 +3429,13 @@ modules["pages/editor/toolbar/upload"] = {
                   }
                 }
               } else {
+                if (blobAnno != null) {
+                  if (blobAnno.hasAttribute("anno") == true) {
+                    utils.save({ _id: blobAnno.getAttribute("anno"), remove: true }, blobAnno);
+                  } else {
+                    blobAnno.remove();
+                  }
+                }
                 reset();
               }
             } else {

@@ -1,5 +1,5 @@
-let serverURL = "https://markify.exotek.co/api/";
-//let serverURL = "http://localhost:3000/api/";
+//let serverURL = "https://markify.exotek.co/api/";
+let serverURL = "http://localhost:3000/api/";
 let assetURL = "https://markifyapp.s3.amazonaws.com/";
 
 const socket = new SimpleSocket({
@@ -9,6 +9,8 @@ const socket = new SimpleSocket({
 
 let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 let week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+let supportedImageTypes = ["png", "jpeg", "jpg", "webp", "svg+xml", "tiff", "tif", "heic", "heif"];
 
 let modules = {};
 
@@ -1013,6 +1015,7 @@ modules["alert"] = {
     ".alert img": `width: 32px; height: 32px; object-fit: cover; margin-right: 6px`,
     ".alertText": `display: flex; flex-wrap: wrap; flex: 1; align-items: center; text-align: left; font-size: 16px`,
     ".alertText b": `margin-right: 6px; color: var(--themeColor); font-size: 18px`,
+    ".alertText i": `margin-left: 4px`,
     ".alertClose": `position: relative; width: 22px; height: 22px; margin: 5px 5px 5px 12px; --borderWidth: 3px; --borderRadius: 11px`,
     ".alertClose img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`
   },

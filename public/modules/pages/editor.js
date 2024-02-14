@@ -145,6 +145,7 @@ modules["pages/editor"] = {
     ".eAnnotation svg > *": `pointer-events: visiblepainted`,
     ".eAnnotation div[text]": `padding: 4px 6px; margin: 3px 3px; color: var(--themeColor); font-weight: 500; pointer-events: all; outline: none`,
     ".eAnnotation div[text][placeborder]": `width: max-content; margin: 0px; border: solid 3px var(--themeColor); border-radius: 8px`,
+    ".eAnnotation[src]": `object-fit: cover; pointer-events: all; border-radius: 12px`,
 
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 100; overflow: hidden; pointer-events: none`
   },
@@ -2642,7 +2643,8 @@ modules["pages/editor/annotation"] = {
     let editor = await getModule("pages/editor");
     let { _id, f, page, p, s, c, i, t, b, o, d, done, remove, sync, textfit } = data;
     let [x, y] = p || [];
-    let [width, height] = s || [];
+    let size = s || [];
+    let [width, height] = [size[0], size[1]];
     if (page != null && editor.loadedIn.includes(page) == false && long != true) {
       return;
     }
@@ -3066,14 +3068,48 @@ modules["pages/editor/annotation"] = {
         if (elem != null) {
           elem.style.transform = transform;
         }
+        break;
+      case "media":
+        if (anno == null) {
+          annoHolder.insertAdjacentHTML("beforeend", `<img class="eAnnotation" new></img>`);
+          anno = annoHolder.querySelector(".eAnnotation[new]");
+          anno.removeAttribute("new");
+          /*
+          let polygon = anno.querySelector("polygon");
+          polygon.setAttribute("fill", "none");
+          polygon.setAttribute("stroke-linecap", "round");
+          polygon.setAttribute("stroke-linejoin", "round");
+          */
+        }
+        if (_id != null) {
+          anno.setAttribute("anno", _id);
+          anno.style.opacity = 1;
+        } else {
+          anno.setAttribute("tooleditor", "");
+          anno.style.opacity = .7;
+        }
+        anno.style.width = width + "px";
+        anno.style.height = height + "px";
+        anno.style.left = x + "px";
+        anno.style.top = y + "px";
+        
+        anno.style.opacity = o / 100;
+
+        if (d != null || anno.hasAttribute("src") == false) {
+          if (d != null && d.startsWith("blob:") == false) {
+            anno.src = assetURL + d;
+          } else {
+            anno.src = d || "./images/editor/uploading.png";
+          }
+        }
     }
     if (anno != null) {
       anno.style.zIndex = (sync || getEpoch()) % 1000000000;
-      if (width < 0 && height < 0) {
+      if (size[0] < 0 && size[1] < 0) {
         anno.style.transform = "scale(-1)";
-      } else if (width < 0) {
+      } else if (size[0] < 0) {
         anno.style.transform = "scale(-1,1)";
-      } else if (height < 0) {
+      } else if (size[1] < 0) {
         anno.style.transform = "scale(1,-1)";
       } else {
         anno.style.removeProperty("transform");

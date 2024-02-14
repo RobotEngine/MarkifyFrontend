@@ -24,6 +24,7 @@ modules["pages/editor"] = {
         </div>
         <div class="eTopSection eTopMargin">
           <button class="eMembers" dropdown="dropdowns/editor/members" disabled><span class="eMemberCount">25</span>Members</button>
+          <button class="eEndSession" title="Change all editors to being viewer." disabled><img src="./images/editor/share/endeditors.svg"</button>
           <button class="eShare" dropdown="dropdowns/editor/share" disabled>Share</button>
           <button class="eSharePin"></button>
         </div>
@@ -89,22 +90,24 @@ modules["pages/editor"] = {
     ".eLogo img": `height: 100%`,
     ".eFileName": `max-width: 360px; padding: 3px; margin: 0 4px; outline: unset; --borderRadius: 4px; --borderColor: var(--secondary); font-size: 20px; white-space: nowrap; --transition: .05s`,
     ".eFileName:focus": `--borderWidth: 4px`,
-    ".eFileDropdown": `padding: 6px 10px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
+    ".eFileDropdown": `padding: 6px 10px; height: 32px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
 
-    ".eSaveProgress": `display: flex; width: 31px; height: 31px; padding: 0; align-items: center; overflow: hidden; background: var(--lightGray)`,
+    ".eSaveProgress": `display: flex; width: 32px; height: 32px; padding: 0; align-items: center; overflow: hidden; background: var(--lightGray)`,
     ".eSaveProgress img": `width: 24px`,
     ".eConnection": `width: 30px; height: 30px; margin: 0 4px; object-fit: cover; transition: .3s`,
     ".eStatus": `color: var(--secondary); font-size: 16px; font-weight: 500`,
 
-    ".eMembers": `display: flex; padding: 6px 10px; margin: 0 4px; background: var(--hover); border-radius: 16px; align-items: center; font-size: 16px; font-weight: 600`,
+    ".eMembers": `display: flex; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--hover); border-radius: 16px; align-items: center; font-size: 16px; font-weight: 600`,
     ".eMemberCount": `display: none; padding: 2px 6px; margin-right: 5px; background: #fff; border-radius: 12px; color: var(--theme); font-weight: 700`,
-    ".eShare": "padding: 6px 10px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600",
-    ".eSharePin": "display: none; padding: 6px 10px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600",
+    ".eEndSession": `display: none; width: 32px; height: 32px; padding: 0px; margin: 0 4px; background: var(--error); border-radius: 16px; justify-content: center; align-items: center; color: #fff; font-size: 16px; font-weight: 600`,
+    ".eEndSession img": `width: 28px; height: 28px`,
+    ".eShare": `height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
+    ".eSharePin": `display: none; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
 
-    ".eZoom": `padding: 6px 10px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
-    ".eAccount": `padding: 0; width: 31px; height: 31px; margin: 0 4px; border-radius: 16px; overflow: hidden`,
+    ".eZoom": `height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
+    ".eAccount": `height: 32px; padding: 0; width: 31px; height: 31px; margin: 0 4px; border-radius: 16px; overflow: hidden`,
     ".eAccount img": `width: 100%; height: 100%; object-fit: cover`,
-    ".eLogin": `display: none; padding: 6px 10px; margin: 0 4px; background: var(--secondary); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
+    ".eLogin": `height: 32px; display: none; padding: 6px 10px; margin: 0 4px; background: var(--secondary); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
 
     ".eSide": `position: fixed; display: flex; gap: 8px; height: calc(100% - 132px); top: 58px; padding: 8px; z-index: 500`,
     ".eToolbar": `position: relative; display: flex; box-sizing: border-box; margin: auto 0; align-items: center; pointer-events: all`,
@@ -224,10 +227,16 @@ modules["pages/editor"] = {
     this.memberCount = 0;
     this.active = document.visibilityState == "visible";
     this.syncMembers = async (memberUpd) => {
+      editorCount = 0;
       for (let i = 0; i < memberUpd.length; i++) {
         let memSet = memberUpd[i];
         this.members[memSet._id] = memSet;
+        if (memSet.access == 1) {
+          editorCount++;
+        }
       }
+      console.log(editorCount)
+      this.checkEditorCount();
     };
     this.getSelf = () => {
       return this.members[this.sessionID] || {};
@@ -510,6 +519,16 @@ modules["pages/editor"] = {
 
     let exportSync;
 
+    let editorCount = 0;
+    let removeAllEditors = page.querySelector(".eEndSession");
+    this.checkEditorCount = () => {
+      if (editorCount > 0) {
+        removeAllEditors.style.display = "flex";
+      } else {
+        removeAllEditors.style.display = "none";
+      }
+    }
+
     let alertModule = await getModule("alert");
     let dropdownModule = await getModule("dropdown");
     socket.remotes["lesson_" + lessonID] = async (data) => {
@@ -549,6 +568,11 @@ modules["pages/editor"] = {
             for (let i = 0; i < memberKeys.length; i++) {
               let key = memberKeys[i];
               member[key] = body[key];
+            }
+            if (body.access == 1) {
+              editorCount++;
+            } else if (body.access == 0) {
+              editorCount--;
             }
             if (member._id == this.sessionID) { // Self
               if (body.access != null) {
@@ -595,6 +619,8 @@ modules["pages/editor"] = {
                 cursor.remove();
               }
             }
+
+            this.checkEditorCount();
           }
           break;
         case "set":

@@ -30,6 +30,14 @@ modules["editor/realtime"] = {
     page.querySelector(".eMembers").removeAttribute("disabled");
     page.querySelector(".eShare").removeAttribute("disabled");
 
+    let endSession = page.querySelector(".eEndSession");
+    endSession.removeAttribute("disabled");
+    endSession.addEventListener("click", async () => {
+      endSession.setAttribute("disabled", "");
+      await sendRequest("DELETE", "lessons/members/reset", null, { session: editor.session });
+      endSession.removeAttribute("disabled");
+    });
+
     let cursorModule = await getModule("pages/editor/toolbar/cursor");
     let alert = await getModule("alert");
 

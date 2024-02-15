@@ -24,7 +24,7 @@ modules["pages/editor"] = {
         </div>
         <div class="eTopSection eTopMargin">
           <button class="eMembers" dropdown="dropdowns/editor/members" disabled><span class="eMemberCount">25</span>Members</button>
-          <button class="eEndSession" title="Change all editors to being viewer." disabled><img src="./images/editor/share/endeditors.svg"</button>
+          <button class="eEndSession" title="End Session | Disable all editing access making everyone a viewer." disabled><img src="./images/editor/share/endeditors.svg"</button>
           <button class="eShare" dropdown="dropdowns/editor/share" disabled>Share</button>
           <button class="eSharePin"></button>
         </div>
@@ -522,6 +522,9 @@ modules["pages/editor"] = {
     let editorCount = 0;
     let removeAllEditors = page.querySelector(".eEndSession");
     this.checkEditorCount = () => {
+      if (this.getSelf().access < 5) {
+        return;
+      }
       if (editorCount > 0) {
         removeAllEditors.style.display = "flex";
       } else {
@@ -548,6 +551,9 @@ modules["pages/editor"] = {
           break;
         case "leave":
           if (this.members[body._id]) {
+            if (this.members[body._id].access == 1) {
+              editorCount--;
+            }
             delete this.members[body._id];
           }
           removeRealtimeElem(body._id);

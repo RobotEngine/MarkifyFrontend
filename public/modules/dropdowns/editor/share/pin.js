@@ -54,6 +54,18 @@ modules["dropdowns/editor/share/pin"] = {
     let optionHolder = frame.querySelector(".eSharePinOptions");
     let titleTx = frame.closest(".dropdown").querySelector(".dropdownTitle div");
 
+    let actionButton = frame.querySelector(".eShareActionPin");
+    let updateAction = () => {
+      if (editor.lesson.settings.forceLogin == true) {
+        actionButton.setAttribute("on", "");
+        actionButton.removeAttribute("off");
+      } else {
+        actionButton.setAttribute("off", "");
+        actionButton.removeAttribute("on");
+      }
+    }
+    updateAction();
+
     editor.updatePin = async () => {
       let currentPin = (editor.lesson.pin || "123456").split("");
       let left = "";
@@ -84,6 +96,7 @@ modules["dropdowns/editor/share/pin"] = {
       if (titleTx.querySelector("b") == null) {
         titleTx.innerHTML = editor.lesson.pin || "";
       }
+      updateAction();
     }
     editor.updatePin();
     createButton.addEventListener("click", async () => {
@@ -108,17 +121,6 @@ modules["dropdowns/editor/share/pin"] = {
       }
       removeButton.removeAttribute("disabled");
     });
-    let actionButton = frame.querySelector(".eShareActionPin");
-    function updateAction() {
-      if (editor.lesson.settings.forceLogin == true) {
-        actionButton.setAttribute("on", "");
-        actionButton.removeAttribute("off");
-      } else {
-        actionButton.setAttribute("off", "");
-        actionButton.removeAttribute("on");
-      }
-    }
-    updateAction();
     actionButton.addEventListener("click", async () => {
       actionButton.setAttribute("disabled", "");
       if (editor.lesson.settings.forceLogin == true) {

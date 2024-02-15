@@ -249,10 +249,13 @@ modules["pages/dashboard/lessons"] = {
         this.dashSubscribe.edit(filter);
       } else {
         this.dashSubscribe = subscribe(filter, function (data) {
-          let body = data.data || data.body;
+          let body = data.data || data.body || data;
+          console.log(body)
+          /*
           if (data.task == "join" && body.user == userID) {
             return;
           }
+          */
           let updTiles = frame.querySelectorAll('.dTile[lesson="' + body.lesson + '"]');
           switch (data.task) {
             case "join":

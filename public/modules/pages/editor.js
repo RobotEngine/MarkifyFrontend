@@ -649,10 +649,8 @@ modules["pages/editor"] = {
               this.codeTextButton.style.display = "none";
             }
           }
-          if (body.hasOwnProperty("access")) {
-            if (this.updateLink) {
-              this.updateLink();
-            }
+          if (this.updatePin != null) {
+            this.updatePin();
           }
           if (this.updateLink != null) {
             this.updateLink();

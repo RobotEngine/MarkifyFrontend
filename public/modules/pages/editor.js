@@ -235,7 +235,6 @@ modules["pages/editor"] = {
           editorCount++;
         }
       }
-      console.log(editorCount)
       this.checkEditorCount();
     };
     this.getSelf = () => {
@@ -544,6 +543,10 @@ modules["pages/editor"] = {
       switch (data.task) {
         case "join":
           this.members[body._id] = body;
+          if (body.access == 1) {
+            editorCount++;
+          }
+          this.checkEditorCount();
           updateMemberCount();
           if (body.method == "shared" && this.emailInvite != null) {
             this.emailInvite("join", { _id: body.user, email: body.email, user: body.name, image: body.image });
@@ -554,6 +557,7 @@ modules["pages/editor"] = {
             if (this.members[body._id].access == 1) {
               editorCount--;
             }
+            this.checkEditorCount();
             delete this.members[body._id];
           }
           removeRealtimeElem(body._id);
@@ -580,6 +584,7 @@ modules["pages/editor"] = {
             } else if (body.access == 0) {
               editorCount--;
             }
+            this.checkEditorCount();
             if (member._id == this.sessionID) { // Self
               if (body.access != null) {
                 if (body.access == 1) { // Alert editor
@@ -625,8 +630,6 @@ modules["pages/editor"] = {
                 cursor.remove();
               }
             }
-
-            this.checkEditorCount();
           }
           break;
         case "set":

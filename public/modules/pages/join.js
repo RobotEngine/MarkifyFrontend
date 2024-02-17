@@ -224,7 +224,7 @@ modules["pages/join"] = {
         joinAccount.style.display = "none";
       } else {
         if (userID == null) {
-          promptLogin();
+          promptLogin(null, body.authService);
           return false;
         }
         if (account.image) {

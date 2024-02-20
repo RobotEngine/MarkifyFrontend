@@ -37,6 +37,7 @@ modules["pages/editor"] = {
     </div>
     <div class="eSide">
       <div class="eToolbar"></div>
+      <button hidden class="eHandRaise largeButton" tool title="Raise Hand"><img src="./images/editor/actions/raisehand.svg"></button>
     </div>
     <div class="eBottomHolder">
       <div class="eObserveHolder">
@@ -111,6 +112,9 @@ modules["pages/editor"] = {
 
     ".eSide": `position: fixed; display: flex; gap: 8px; height: calc(100% - 132px); top: 58px; padding: 8px; z-index: 500`,
     ".eToolbar": `position: relative; display: flex; box-sizing: border-box; margin: auto 0; align-items: center; pointer-events: all`,
+    ".eHandRaise": `position: relative; display: flex; box-sizing: border-box; width: 60px; height: 60px; margin: auto 4px; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; --borderRadius: 30px`,
+    ".eHandRaise img": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: 30px`,
+    ".eHandRaise[selected]": `background: var(--theme)`,
 
     ".eBottomHolder": `position: fixed; box-sizing: border-box; display: flex; width: 100%; bottom: 0px; gap: 8px; padding: 8px; justify-content: flex-end; z-index: 500`,
     ".eBottom": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px; pointer-events: all`,

@@ -750,7 +750,7 @@ let authEndpoints = () => {
   }
 }
 if (authService != null) {
-  if (self === top) { 
+  //if (self === top) { 
     modifyParams("auth");
     let randomStr = randomString(20);
     setLocalStore("state", randomStr);
@@ -760,9 +760,9 @@ if (authService != null) {
       endStartup = true;
       window.location = endpoints[authService];
     }
-  } else {
-    throw new Error("IFrames are disabled for secure windows.");
-  }
+  //} else {
+  //  throw new Error("IFrames are disabled for secure windows.");
+  //}
 }
 
 let wasConnected = false;

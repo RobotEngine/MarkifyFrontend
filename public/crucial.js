@@ -750,7 +750,7 @@ let authEndpoints = () => {
   }
 }
 if (authService != null) {
-  //if (self === top) { 
+  if (self === top) { 
     modifyParams("auth");
     let randomStr = randomString(20);
     setLocalStore("state", randomStr);
@@ -760,9 +760,10 @@ if (authService != null) {
       endStartup = true;
       window.location = endpoints[authService];
     }
-  //} else {
-  //  throw new Error("IFrames are disabled for secure windows.");
-  //}
+  } else {
+    app.insertAdjacentHTML("beforeend", `<div style="padding: 16px">Open this webpage in a new window for authentication.</div>`);
+    throw new Error("IFrames are disabled for secure windows.");
+  }
 }
 
 let wasConnected = false;

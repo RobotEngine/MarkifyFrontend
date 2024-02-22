@@ -65,7 +65,7 @@ modules["pages/dashboard"] = {
     page.querySelector(".dAccount div").textContent = account.user;
 
     // Slick Animation
-    (async function () {
+    (async () => {
       let animTextHolder = page.querySelector(".dHeaderTxAnimHolder");
       let animText = page.querySelector(".dHeaderTxAnim");
       let textOptions = ["Markup", "Participate", "Collaborate"];

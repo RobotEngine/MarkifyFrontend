@@ -34,7 +34,18 @@ modules["editor/realtime"] = {
     endSession.removeAttribute("disabled");
     endSession.addEventListener("click", async () => {
       endSession.setAttribute("disabled", "");
-      await sendRequest("DELETE", "lessons/members/reset", null, { session: editor.session });
+      let [code] = await sendRequest("DELETE", "lessons/members/reset", null, { session: editor.session });
+      if (code == 200) {
+        let members = Object.keys(editor.members);
+        for (let i = 0; i < members.length; i++) {
+          let member = editor.members[members[i]];
+          if (member.access == 1) {
+            member.access = 0;
+          }
+        }
+        editor.editorCount = 0;
+        editor.checkEditorCount();
+      }
       endSession.removeAttribute("disabled");
     });
 
@@ -943,6 +954,7 @@ modules["dropdowns/editor/members"] = {
     ".eMemberEvents": `display: flex; margin-left: auto`,
     ".eMemberEvent": `height: fit-content; padding: 3px 6px; margin: 0 1px 0 6px; border-radius: 12px; color: #fff; font-size: 14px; font-weight: 700; white-space: nowrap`,
     ".eMemberEvent[self]": `background: var(--theme)`,
+    ".eMemberEvent[hand]": `background: var(--green)`,
     ".eMemberEvent[idle]": `background: var(--yellow)`,
     ".eMemberEvent[observe]": `background: var(--purple)`,
 
@@ -1000,9 +1012,21 @@ modules["dropdowns/editor/members"] = {
     let updateOrder = (section, updateTile, member) => {
       for (let i = 1; i < section.children.length; i++) { // 1 to skip title
         let child = section.children[i];
-        if (child != updateTile && member.name < (editor.members[child.querySelector("div[holder]").getAttribute("member")] || {}).name) {
-          section.insertBefore(updateTile, child);
-          break;
+        let prev = editor.members[child.querySelector("div[holder]").getAttribute("member")] || {};
+        if (member.hand == null) {
+          if (child != updateTile && member.name < prev.name && prev.hand == null) {
+            section.insertBefore(updateTile, child);
+            break;
+          } else if (i == section.children.length - 1) {
+            section.appendChild(updateTile);
+          }
+        } else {
+          if (child != updateTile && (member.hand < prev.hand || prev.hand == null)) {
+            section.insertBefore(updateTile, child);
+            break;
+          } else if (i == section.children.length - 1) {
+            section.appendChild(updateTile);
+          }
         }
       }
     }
@@ -1039,6 +1063,9 @@ modules["dropdowns/editor/members"] = {
         if (member.observe == editor.sessionID) {
           eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" observe title="This member is observing you on the document.">OBSERVE</div>`);
         }
+      }
+      if (member.hand != null) {
+        eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" hand title="This member is asking for editing access.">HAND</div>`);
       }
       title.querySelector("div[count]").textContent = section.childElementCount - 1; // -1 for title
       section.style.display = "block";
@@ -1124,6 +1151,14 @@ modules["dropdowns/editor/members"] = {
             // Handle event state:
             if (member._id != editor.sessionID) {
               let eventsHolder = updateTile.querySelector(".eMemberEvents");
+              let existingHand = eventsHolder.querySelector(".eMemberEvent[hand]");
+              if (member.hand != null) {
+                if (existingHand == null) {
+                  eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" hand title="This member is asking for editing access.">HAND</div>`);
+                }
+              } else if (existingHand != null) {
+                existingHand.remove();
+              }
               let existingIdle = eventsHolder.querySelector(".eMemberEvent[idle]");
               if (member.active == false) {
                 if (existingIdle == null) {
@@ -1146,8 +1181,12 @@ modules["dropdowns/editor/members"] = {
             //}
 
             // Update member dropdown:
-            if (dropdownButton != null && dropdownButton.getAttribute("member") == member._id) {
-              openDropdown(updateTile, true);
+            if (dropdownButton != null) {
+              if (dropdownButton.getAttribute("member") == member._id) {
+                openDropdown(updateTile, true);
+              } else if (dropdownButton.querySelector("div[title]") != null) {
+                openDropdown(dropdownButton, true);
+              }
             }
           }
       }
@@ -1300,6 +1339,10 @@ modules["dropdowns/editor/members"] = {
                   <div class="eMemberEvent" self>YOU</div>
                   <div class="eMemberEventDesc">This is your profile.</div>
                 </div>
+                <div class="eMemberEventHolder" hand>
+                  <div class="eMemberEvent" hand>HAND</div>
+                  <div class="eMemberEventDesc">They're asking to contribute to the lesson.</div>
+                </div>
                 <div class="eMemberEventHolder" idle>
                   <div class="eMemberEvent" idle>IDLE</div>
                   <div class="eMemberEventDesc">They're currently viewing another window.</div>
@@ -1313,6 +1356,10 @@ modules["dropdowns/editor/members"] = {
                 <button editor style="--themeColor: var(--theme)">
                   <img>
                   <div></div>
+                </button>
+                <button hand style="--themeColor: var(--green)" title="Lower this member's hand.">
+                  <img src="./images/editor/members/lowerhand.svg">
+                  <div>Lower</div>
                 </button>
                 <button observe style="--themeColor: var(--purple)">
                   <img>
@@ -1358,8 +1405,44 @@ modules["dropdowns/editor/members"] = {
               changeSection.style.display = "block";
               openDropdown(changeSection.querySelector(".eMemberAccessTitle"));
             }
-          }
+          } /* else if (code == 404 || code == 500) {
+            if (memberid != null) {
+              if (editor.members[body._id]) {
+                if (editor.members[body._id].access == 1) {
+                  editor.editorCount--;
+                }
+                editor.checkEditorCount();
+                delete editor.members[memberid];
+              }
+              editor.realtime.module.removeRealtime(memberid);
+              editor.updateMemberCount();
+            }
+          } */
           editorButton.removeAttribute("disabled");
+        });
+        let handButton = memberFrameHolder.querySelector(".eMemberSectionActions button[hand]");
+        handButton.addEventListener("click", async function(event) {
+          handButton.setAttribute("disabled", "");
+          let frame = event.target.closest(".eMemberFrame");
+          let memberid = frame.getAttribute("memberid");
+          let url = "lessons/members/hand/lower";
+          if (memberid != null) {
+            url += "?member=" + memberid;
+          } else {
+            url += "?member=all";
+          }
+          await sendRequest("DELETE", url, null, { session: editor.session });
+          /*
+          if (code == 200) {
+            if (frameAccess != null) {
+              getSection(frameAccess).style.display = "none";
+              let changeSection = getSection(sendAccess);
+              changeSection.style.display = "block";
+              openDropdown();
+            }
+          }
+          */
+          handButton.removeAttribute("disabled");
         });
         let observeButton = memberFrameHolder.querySelector(".eMemberSectionActions button[observe]");
         observeButton.addEventListener("click", async function(event) {
@@ -1482,12 +1565,18 @@ modules["dropdowns/editor/members"] = {
       }
       let isSelf = member._id == editor.sessionID;
       let self = memberFrameHolder.querySelector(".eMemberEventHolder[self]");
+      let hand = memberFrameHolder.querySelector(".eMemberEventHolder[hand]");
       let idle = memberFrameHolder.querySelector(".eMemberEventHolder[idle]");
       let observe = memberFrameHolder.querySelector(".eMemberEventHolder[observe]");
       if (isSelf) {
         self.style.display = "flex";
       } else {
         self.style.display = "none";
+      }
+      if (member.hand != null) {
+        hand.style.display = "flex";
+      } else {
+        hand.style.display = "none";
       }
       if (member.active == false && !isSelf) {
         idle.style.display = "flex";
@@ -1500,9 +1589,11 @@ modules["dropdowns/editor/members"] = {
         observe.style.display = "none";
       }
       let editorButton = memberFrameHolder.querySelector(".eMemberSectionActions button[editor]");
+      let handButton = memberFrameHolder.querySelector(".eMemberSectionActions button[hand]");
       let observeButton = memberFrameHolder.querySelector(".eMemberSectionActions button[observe]");
       let kickButton = memberFrameHolder.querySelector(".eMemberSectionActions button[kick]");
       editorButton.removeAttribute("disabled");
+      handButton.removeAttribute("disabled");
       observeButton.removeAttribute("disabled");
       kickButton.removeAttribute("disabled");
       let myself = editor.getSelf();
@@ -1521,6 +1612,16 @@ modules["dropdowns/editor/members"] = {
         editorButton.style.display = "flex";
       } else {
         editorButton.style.display = "none";
+      }
+      let handRaised = member.hand != null;
+      if (member.title != null) {
+        // If someone in section has hand raised
+        handRaised = tile.parentElement.querySelector(".eMemberEvent[hand]") != null;
+      }
+      if (!isSelf && myself.access > 3 && handRaised) {
+        handButton.style.display = "flex";
+      } else {
+        handButton.style.display = "none";
       }
       if (!isSelf && myself.access > 3 && member.access < 4) {
         kickButton.style.display = "flex";

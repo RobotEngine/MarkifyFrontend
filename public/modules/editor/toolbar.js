@@ -1000,6 +1000,33 @@ modules["editor/toolbar"] = {
       }
     });
 
+    // HAND RAISE
+    let raiseHand = editor.page.querySelector(".eHandRaise");
+    raiseHand.addEventListener("click", async () => {
+      let self = editor.getSelf();
+      if (self.access != 0) {
+        raiseHand.setAttribute("hidden", "");
+        return;
+      }
+      raiseHand.setAttribute("disabled", "");
+      if (self.hand == null) {
+        let [code] = await sendRequest("PUT", "lessons/members/hand/raise", null, { session: editor.session });
+        if (code == 200) {
+          self.hand = getEpoch();
+          raiseHand.setAttribute("selected", "");
+          raiseHand.title = "Raising Hand | Asking for editing access.";
+        }
+      } else {
+        let [code] = await sendRequest("DELETE", "lessons/members/hand/lower", null, { session: editor.session });
+        if (code == 200) {
+          self.hand = null;
+          raiseHand.removeAttribute("selected");
+          raiseHand.title = "Raise Hand | Ask for editing access.";
+        }
+      }
+      raiseHand.removeAttribute("disabled", "");
+    });
+
     //frame.closest(".eSide").style.opacity = 1;
   }
 }

@@ -23,7 +23,7 @@ modules["pages/editor"] = {
           <div class="eStatus"></div>
         </div>
         <div class="eTopSection eTopMargin">
-          <button class="eMembers" dropdown="dropdowns/editor/members" disabled><span class="eMemberCount">25</span>Members</button>
+          <button class="eMembers" dropdown="dropdowns/editor/members" disabled><span class="eMemberHandCount">6</span><span class="eMemberCount"></span>Members</button>
           <button class="eEndSession" title="End Session | Disable all editing access making everyone a viewer." disabled><img src="./images/editor/share/endeditors.svg"</button>
           <button class="eShare" dropdown="dropdowns/editor/share" disabled>Share</button>
           <button class="eSharePin"></button>
@@ -37,7 +37,9 @@ modules["pages/editor"] = {
     </div>
     <div class="eSide">
       <div class="eToolbar"></div>
-      <button hidden class="eHandRaise largeButton" tool title="Raise Hand"><img src="./images/editor/actions/raisehand.svg"></button>
+      <div class="eViewerActions">
+        <button hidden class="eHandRaise largeButton" tool><img src="./images/editor/actions/raisehand.svg"></button>
+      </div>
     </div>
     <div class="eBottomHolder">
       <div class="eObserveHolder">
@@ -100,6 +102,7 @@ modules["pages/editor"] = {
 
     ".eMembers": `display: flex; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--hover); border-radius: 16px; align-items: center; font-size: 16px; font-weight: 600`,
     ".eMemberCount": `display: none; padding: 2px 6px; margin-right: 5px; background: #fff; border-radius: 12px; color: var(--theme); font-weight: 700`,
+    ".eMemberHandCount": `display: none; padding: 2px 6px; margin-right: 5px; background: #fff; border-radius: 12px; color: var(--green); font-weight: 700`,
     ".eEndSession": `display: none; width: 32px; height: 32px; padding: 0px; margin: 0 4px; background: var(--error); border-radius: 16px; justify-content: center; align-items: center; color: #fff; font-size: 16px; font-weight: 600`,
     ".eEndSession img": `width: 28px; height: 28px`,
     ".eShare": `height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
@@ -112,6 +115,7 @@ modules["pages/editor"] = {
 
     ".eSide": `position: fixed; display: flex; gap: 8px; height: calc(100% - 132px); top: 58px; padding: 8px; z-index: 500`,
     ".eToolbar": `position: relative; display: flex; box-sizing: border-box; margin: auto 0; align-items: center; pointer-events: all`,
+    ".eViewerActions": `position: absolute; display: flex; height: calc(100% - 16px); left: 8px; top: 8px`,
     ".eHandRaise": `position: relative; display: flex; box-sizing: border-box; width: 60px; height: 60px; margin: auto 4px; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; --borderRadius: 30px`,
     ".eHandRaise img": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: 30px`,
     ".eHandRaise[selected]": `background: var(--theme)`,
@@ -231,12 +235,16 @@ modules["pages/editor"] = {
     this.memberCount = 0;
     this.active = document.visibilityState == "visible";
     this.syncMembers = async (memberUpd) => {
-      editorCount = 0;
+      this.editorCount = 0;
+      this.handCount = 0;
       for (let i = 0; i < memberUpd.length; i++) {
         let memSet = memberUpd[i];
         this.members[memSet._id] = memSet;
         if (memSet.access == 1) {
-          editorCount++;
+          this.editorCount++;
+        }
+        if (memSet.hand != null) {
+          this.handCount++;
         }
       }
       this.checkEditorCount();
@@ -266,6 +274,8 @@ modules["pages/editor"] = {
 
     let addPagesHolder = contentHolder.querySelector(".eAddPagesHolder");
 
+    let raiseHand = page.querySelector(".eHandRaise");
+
     this.updateInterface = async (keepDropdowns) => {
       let toolbar = page.querySelector(".eToolbar");
       let name = page.querySelector(".eFileName");
@@ -291,12 +301,18 @@ modules["pages/editor"] = {
           addPagesHolder.setAttribute("hidden", "");
         }
 
+        raiseHand.removeAttribute("hidden");
+        raiseHand.removeAttribute("selected");
+        raiseHand.title = "Raise Hand | Ask for editing access.";
+
         name.removeAttribute("contenteditable");
       } else {
         toolbar.removeAttribute("hidden");
         if (addPagesHolder != null) {
           addPagesHolder.removeAttribute("hidden");
         }
+
+        raiseHand.setAttribute("hidden", "");
 
         name.setAttribute("contenteditable", "");
       }
@@ -476,8 +492,11 @@ modules["pages/editor"] = {
 
     this.codeTextButton = page.querySelector(".eSharePin");
 
-    let updateMemberCount = () => {
+    this.handCount = 0;
+
+    this.updateMemberCount = () => {
       let counts = document.querySelectorAll(".eMemberCount");
+      let handCounts = document.querySelectorAll(".eMemberHandCount");
       this.memberCount = Object.keys(this.members).length;
       for (let i = 0; i < counts.length; i++) {
         let count = counts[i];
@@ -488,6 +507,15 @@ modules["pages/editor"] = {
         } else {
           count.style.display = "none";
           count.parentElement.style.padding = "6px 10px";
+        }
+      }
+      for (let i = 0; i < handCounts.length; i++) {
+        let count = handCounts[i];
+        count.textContent = this.handCount;
+        if (this.handCount > 0) {
+          count.style.display = "unset";
+        } else {
+          count.style.display = "none";
         }
       }
     }
@@ -522,13 +550,10 @@ modules["pages/editor"] = {
 
     let exportSync;
 
-    let editorCount = 0;
+    this.editorCount = 0;
     let removeAllEditors = page.querySelector(".eEndSession");
     this.checkEditorCount = () => {
-      if (this.getSelf().access < 5) {
-        return;
-      }
-      if (editorCount > 0) {
+      if (this.getSelf().access > 3 && this.editorCount > 0) {
         removeAllEditors.style.display = "flex";
       } else {
         removeAllEditors.style.display = "none";
@@ -548,10 +573,13 @@ modules["pages/editor"] = {
         case "join":
           this.members[body._id] = body;
           if (body.access == 1) {
-            editorCount++;
+            this.editorCount++;
+          }
+          if (body.hand != null) {
+            this.handCount++;
           }
           this.checkEditorCount();
-          updateMemberCount();
+          this.updateMemberCount();
           if (body.method == "shared" && this.emailInvite != null) {
             this.emailInvite("join", { _id: body.user, email: body.email, user: body.name, image: body.image });
           }
@@ -559,13 +587,16 @@ modules["pages/editor"] = {
         case "leave":
           if (this.members[body._id]) {
             if (this.members[body._id].access == 1) {
-              editorCount--;
+              this.editorCount--;
+            }
+            if (this.members[body._id].hand != null) {
+              this.handCount--;
             }
             this.checkEditorCount();
             delete this.members[body._id];
           }
           removeRealtimeElem(body._id);
-          updateMemberCount();
+          this.updateMemberCount();
           /*
           if (body._id == this.sessionID && currentPage == "editor") { // Self
             setFrame("pages/join");
@@ -578,24 +609,40 @@ modules["pages/editor"] = {
             let member = this.members[body._id];
             if (body.access != null && member.access != body.access) { // Must update their access:
               if (body.access == 1) {
-                editorCount++;
+                this.editorCount++;
               } else if (body.access == 0) {
-                editorCount--;
+                this.editorCount--;
               }
               removeRealtimeElem(body._id);
+            }
+            if (body.hasOwnProperty("hand") && member.hand != body.hand) {
+              if (body.hand != null) {
+                this.handCount++;
+              } else {
+                this.handCount--;
+              }
+              this.updateMemberCount();
             }
             for (let i = 0; i < memberKeys.length; i++) {
               let key = memberKeys[i];
               member[key] = body[key];
             }
+            if (member.access > 0 && member.hand != null) { // Alert editor
+              member.hand = null;
+            }
             this.checkEditorCount();
             if (member._id == this.sessionID) { // Self
               if (body.access != null) {
-                if (body.access == 1) { // Alert editor
+                if (body.access > 0) { // Alert editor
                   this.realtime.module.exitObserve(); // Exit observe mode
                   alertModule.open("info", "<b>You're Now an Editor</b>You've been granted editing access to markup the lesson!");
                 }
                 this.updateInterface();
+              }
+              if (member.hand == null) {
+                raiseHand.removeAttribute("selected");
+              } else {
+                raiseHand.setAttribute("selected", "");
               }
             }
             if (body.observe != null && this.realtime.module != null) {
@@ -1086,7 +1133,7 @@ modules["pages/editor"] = {
     }); // PING every minute
 
     this.syncMembers(body.members);
-    updateMemberCount();
+    this.updateMemberCount();
 
     this.updateInterface();
 

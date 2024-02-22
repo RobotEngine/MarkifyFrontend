@@ -1501,13 +1501,12 @@ modules["dropdowns/editor/members"] = {
           let frame = event.target.closest(".eMemberFrame");
           let memberid = frame.getAttribute("memberid");
           let url = "lessons/members/kick";
-          let sendAccess = 1;
           if (memberid != null) {
             url += "?member=" + editor.members[memberid]._id;
           } else {
             url += "?permaccess=" + frame.getAttribute("access");
           }
-          let [code] = await sendRequest("DELETE", url, { access: sendAccess }, { session: editor.session });
+          let [code] = await sendRequest("DELETE", url, null, { session: editor.session });
           if (code == 200) {
             closeDropdown();
           }

@@ -610,6 +610,9 @@ modules["pages/editor"] = {
             if (body.access != null && member.access != body.access) { // Must update their access:
               if (body.access == 1) {
                 this.editorCount++;
+                if (member.hand != null) {
+                  this.handCount--;
+                }
               } else if (body.access == 0) {
                 this.editorCount--;
               }

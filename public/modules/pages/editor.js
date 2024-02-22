@@ -612,13 +612,14 @@ modules["pages/editor"] = {
                 this.editorCount++;
                 if (member.hand != null) {
                   this.handCount--;
+                  this.updateMemberCount();
                 }
               } else if (body.access == 0) {
                 this.editorCount--;
               }
               removeRealtimeElem(body._id);
             }
-            if (body.hasOwnProperty("hand") && member.hand != body.hand) {
+            if (body.hasOwnProperty("hand")) {
               if (body.hand != null) {
                 this.handCount++;
               } else {

@@ -514,6 +514,7 @@ modules["pages/editor"] = {
         count.textContent = this.handCount;
         if (this.handCount > 0) {
           count.style.display = "unset";
+          count.parentElement.style.padding = "4px 10px 4px 4px";
         } else {
           count.style.display = "none";
         }

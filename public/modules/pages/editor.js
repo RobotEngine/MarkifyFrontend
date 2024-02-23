@@ -23,7 +23,7 @@ modules["pages/editor"] = {
           <div class="eStatus"></div>
         </div>
         <div class="eTopSection eTopMargin">
-          <button class="eMembers" dropdown="dropdowns/editor/members" disabled><span class="eMemberHandCount">6</span><span class="eMemberCount"></span>Members</button>
+          <button class="eMembers" dropdown="dropdowns/editor/members" disabled><span class="eMemberHandCount"></span><span class="eMemberCount"></span>Members</button>
           <button class="eEndSession" title="End Session | Disable all editing access making everyone a viewer." disabled><img src="./images/editor/share/endeditors.svg"</button>
           <button class="eShare" dropdown="dropdowns/editor/share" disabled>Share</button>
           <button class="eSharePin"></button>
@@ -303,7 +303,7 @@ modules["pages/editor"] = {
 
         raiseHand.removeAttribute("hidden");
         raiseHand.removeAttribute("selected");
-        raiseHand.title = "Raise Hand | Ask for editing access.";
+        raiseHand.title = "Raise Hand | Ask to contribute to the lesson.";
 
         name.removeAttribute("contenteditable");
       } else {
@@ -645,8 +645,10 @@ modules["pages/editor"] = {
               }
               if (member.hand == null) {
                 raiseHand.removeAttribute("selected");
+                raiseHand.title = "Raise Hand | Ask to contribute to the lesson.";
               } else {
                 raiseHand.setAttribute("selected", "");
+                raiseHand.title = "Hand Raised | Asking to contribute to the lesson.";
               }
             }
             if (body.observe != null && this.realtime.module != null) {

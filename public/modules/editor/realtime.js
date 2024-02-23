@@ -1065,7 +1065,7 @@ modules["dropdowns/editor/members"] = {
         }
       }
       if (member.hand != null) {
-        eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" hand title="This member is asking for editing access.">HAND</div>`);
+        eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" hand title="This member is asking to contribute to the lesson.">HAND</div>`);
       }
       title.querySelector("div[count]").textContent = section.childElementCount - 1; // -1 for title
       section.style.display = "block";
@@ -1154,7 +1154,7 @@ modules["dropdowns/editor/members"] = {
               let existingHand = eventsHolder.querySelector(".eMemberEvent[hand]");
               if (member.hand != null) {
                 if (existingHand == null) {
-                  eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" hand title="This member is asking for editing access.">HAND</div>`);
+                  eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" hand title="This member is asking to contribute to the lesson.">HAND</div>`);
                 }
               } else if (existingHand != null) {
                 existingHand.remove();

@@ -1014,14 +1014,14 @@ modules["editor/toolbar"] = {
         if (code == 200) {
           self.hand = getEpoch();
           raiseHand.setAttribute("selected", "");
-          raiseHand.title = "Raising Hand | Asking for editing access.";
+          raiseHand.title = "Hand Raised | Asking to contribute to the lesson.";
         }
       } else {
         let [code] = await sendRequest("DELETE", "lessons/members/hand/lower", null, { session: editor.session });
         if (code == 200) {
           self.hand = null;
           raiseHand.removeAttribute("selected");
-          raiseHand.title = "Raise Hand | Ask for editing access.";
+          raiseHand.title = "Raise Hand | Ask to contribute to the lesson.";
         }
       }
       raiseHand.removeAttribute("disabled", "");

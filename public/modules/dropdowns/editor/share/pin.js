@@ -3,7 +3,7 @@ modules["dropdowns/editor/share/pin"] = {
   <div class="eSharePinCreate">
     <button class="largeButton border">Generate Pin</button>
   </div>
-  <div class="eSharePinLink">Join with this <b>pin</b> at <a href="https://markify.link/join" target="_blank">markify.link/join</a></div>
+  <div class="eSharePinLink">Join with this <b>pin</b> at <a href="https://markify.link" target="_blank">markify.link</a></div>
   <div class="eSharePinDisplay"><span section left></span><div></div><span section right></span></div>
   <div class="eSharePinOptions">
     <button class="eSharePinCopy border" title="Copy the pin code."><img src="./images/tooltips/copy.svg"></button>

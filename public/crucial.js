@@ -2,6 +2,8 @@ let serverURL = "https://markify.exotek.co/api/";
 //let serverURL = "http://localhost:3000/api/";
 let assetURL = "https://markifyapp.s3.amazonaws.com/";
 
+const version = "0.0.1"; // Big Update . Small Feature Release . Bug Fix
+
 const socket = new SimpleSocket({
   project_id: "62088fbdfc22489578e94822",
   project_token: "client_129dbf2cf03edc6fba2aac135fd5ae119af"
@@ -292,7 +294,7 @@ function getScript(url) {
 }
 function loadScript(url) {
   return new Promise(function (resolve) {
-    let loaded = getScript(url);
+    let loaded = getScript(url + "?v=" + version);
     if (loaded != null) {
       if (loaded.hasAttribute("loaded")) {
         resolve(loaded);
@@ -317,7 +319,7 @@ function loadScript(url) {
         newScript.remove();
         resolve();
       });
-      newScript.src = url;
+      newScript.src = url + "?v=" + version;
       document.body.appendChild(newScript);
     }
   });

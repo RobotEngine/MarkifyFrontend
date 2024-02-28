@@ -1628,7 +1628,7 @@ modules["dropdowns/editor/members"] = {
         kickButton.style.display = "none";
       }
       editor.realtime.module.observeButtonUpdate();
-      if (!isSelf && member.title == null) {
+      if (!isSelf && member.title == null && (member.access > 0 || editor.lesson.settings.observeViewers != false || myself.access > 3)) {
         observeButton.style.display = "flex";
       } else {
         observeButton.style.display = "none";

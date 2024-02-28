@@ -143,6 +143,7 @@ modules["pages/editor"] = {
     ".ePageTextHolder": "--scale-factor: 4/3; position: absolute; left: 0; top: 0; font-family: sans-serif",
     ".ePageTextHolder span": "position: absolute; color: transparent; pointer-events: all",
     ".ePageTextHolder br": `user-select: none`,
+    ".ePageAnnotationHolder": `--scale-factor: 4/3; position: absolute; left: 0; top: 0; font-family: sans-serif`,
     ".ePageAnnotations": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 1; pointer-events: none`,
     ".content[enabled] .ePageAnnotations": `pointer-events: all`,
     ".eAddPagesHolder": `display: none; width: 100% justify-content: center; padding-top: 20px`,
@@ -535,10 +536,12 @@ modules["pages/editor"] = {
       }
       switch (data.task) {
         case "kick":
-          if (userID == null) {
-            modifyParams("lesson");
-            modifyParams("page");
-            modifyParams("pin");
+          if (userID == null || data.filled == true) {
+            if (data.filled != true) {
+              modifyParams("lesson");
+              modifyParams("page");
+              modifyParams("pin");
+            }
             setFrame("pages/join");
           } else {
             setFrame("pages/dashboard");
@@ -617,6 +620,14 @@ modules["pages/editor"] = {
                 }
               } else if (body.access == 0) {
                 this.editorCount--;
+                if (this.lesson.settings.observeViewers == false) {
+                  if (this.realtime.observing == member._id) {
+                    if (this.getSelf().access < 4) {
+                      this.realtime.module.exitObserve();
+                      (await getModule("alert")).open("warning", "<b>Observing Ended</b>The member your observing is no longer an editor.");
+                    }
+                  }
+                }
               }
               removeRealtimeElem(body._id);
             }
@@ -693,7 +704,6 @@ modules["pages/editor"] = {
         case "set":
           objectUpdate(body, this.lesson);
           let setName = this.lesson.name || "Untitled Lesson";
-          console.log(page);
           page.querySelector(".eFileName").textContent = setName;
           document.title = setName + " | Markify";
           if (body.hasOwnProperty("pin")) {
@@ -707,11 +717,22 @@ modules["pages/editor"] = {
               this.codeTextButton.style.display = "none";
             }
           }
-          if (this.updatePin != null) {
-            this.updatePin();
+          if (this.updateOptions != null) {
+            this.updateOptions();
           }
-          if (this.updateLink != null) {
-            this.updateLink();
+          if (body.settings != null) {
+            let access = this.getSelf().access;
+            if (body.settings.hasOwnProperty("allowExport") || body.settings.hasOwnProperty("observeViewers")) {
+              if (access < 4) {
+                (await getModule("dropdown")).close();
+                if (body.settings.observeViewers == false) {
+                  this.realtime.module.exitObserve();
+                }
+              }
+            }
+            if (body.settings.forceLogin == false && access < 2) {
+              setFrame("pages/join");
+            }
           }
           /*
           if (body.settings && body.settings.hasOwnProperty("forceLogin")) {
@@ -1437,6 +1458,25 @@ modules["pages/editor"] = {
                   });
                   pageElem.setAttribute("loaded", "");
                 });
+                /*
+                pageElem.insertAdjacentHTML("beforeend", `<div class="ePageAnnotationHolder" new></div>`);
+                let annotationHolder = pageElem.querySelector(".ePageAnnotationHolder[new]");
+                annotationHolder.removeAttribute("new");
+
+                pageRender.getAnnotations().then(function (annotationsData) {
+                  if (pageElem.hasAttribute("loading") == false) {
+                    return;
+                  }
+          
+                  // Render the annotation layer
+                  annotationHolder.style.left = canvas.offsetLeft + "px";
+                  annotationHolder.style.top = canvas.offsetTop + "px";
+                  annotationHolder.style.height = viewport.height + "px";
+                  annotationHolder.style.width = viewport.width + "px";
+
+                  console.log(annotationsData);
+                });
+                */
               });
             } else {
               resolve();
@@ -1531,6 +1571,9 @@ modules["pages/editor"] = {
               }
               if (page.querySelector(".ePageTextHolder")) {
                 page.querySelector(".ePageTextHolder").remove();
+              }
+              if (page.querySelector(".ePageAnnotationHolder")) {
+                page.querySelector(".ePageAnnotationHolder").remove();
               }
               if (page.querySelector(".ePageAnnotations")) {
                 page.querySelector(".ePageAnnotations").remove();
@@ -2273,6 +2316,12 @@ modules["dropdowns/editor/file"] = {
         setFrame("pages/editor");
       }
     });
+    if (editor.lesson.settings.allowExport == false && access < 4) {
+      exportButton.setAttribute("disabled", "");
+      printButton.setAttribute("disabled", "");
+      copyButton.setAttribute("disabled", "");
+    }
+
     let find = frame.querySelector('.eFileAction[option="find"]');
     let jumptop = frame.querySelector('.eFileAction[option="jumptop"]');
     jumptop.addEventListener("click", () => {

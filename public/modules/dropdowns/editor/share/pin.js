@@ -8,7 +8,7 @@ modules["dropdowns/editor/share/pin"] = {
   <div class="eSharePinOptions">
     <button class="eSharePinCopy border" title="Copy the pin code."><img src="./images/tooltips/copy.svg"></button>
     <button class="eSharePinRemove border" title="Invalidate the pin.">Remove</button>
-    <button class="eShareActionPin border" option="forceLogin" title="Require those joining to login for verified identites." off><div label>Require Login</div><div class="ePinToggle"><div></div></div></button>
+    <button class="eShareOptionPin border" dropdown="dropdowns/editor/share/options" title="Configurable options for members who join.">Options</button>
   </div>
   `,
   css: {
@@ -34,6 +34,10 @@ modules["dropdowns/editor/share/pin"] = {
     ".eSharePinRemove": `height: fit-content; min-height: 36px; padding: 0 12px; margin: 7px 14px 7px 7px; --borderWidth: 3px; --borderRadius: 18px; color: var(--error); font-size: 18px`,
     ".eSharePinRemove:hover": `background: var(--error); --borderWidth: 0px; transform: scale(1.1); color: #fff`,
 
+    ".eShareOptionPin": `height: fit-content; min-height: 36px; padding: 0 12px; margin: 7px 7px 7px auto; --borderWidth: 3px; --borderRadius: 18px; color: var(--secondary); font-size: 18px`,
+    ".eShareOptionPin:hover": `background: var(--secondary); --borderWidth: 0px; transform: scale(1.1); color: #fff`
+
+    /*
     ".eShareActionPin": `display: flex; max-width: 100%; padding: 6px; margin: 7px 7px 7px auto; align-items: center; --borderWidth: 3px; font-size: 16px`,
     ".eShareActionPin div[label]": `flex: 1; margin: 0 8px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
     ".eShareActionPin[on]": `--themeColor: var(--theme); --color: #fff`,
@@ -45,6 +49,7 @@ modules["dropdowns/editor/share/pin"] = {
     ".eShareActionPin:hover": `background: var(--themeColor); --borderWidth: 0px; transform: scale(1.1); color: var(--color)`,
     ".eShareActionPin:hover .ePinToggle": `background: #fff`,
     ".eShareActionPin:hover .ePinToggle div": `background: var(--themeColor)`
+    */
   },
   js: async function (frame) {
     let editor = await getModule("pages/editor");
@@ -54,6 +59,7 @@ modules["dropdowns/editor/share/pin"] = {
     let optionHolder = frame.querySelector(".eSharePinOptions");
     let titleTx = frame.closest(".dropdown").querySelector(".dropdownTitle div");
 
+    /*
     let actionButton = frame.querySelector(".eShareActionPin");
     let updateAction = () => {
       if (editor.lesson.settings.forceLogin == true) {
@@ -65,6 +71,7 @@ modules["dropdowns/editor/share/pin"] = {
       }
     }
     updateAction();
+    */
 
     editor.updatePin = async () => {
       let currentPin = (editor.lesson.pin || "123456").split("");
@@ -96,7 +103,7 @@ modules["dropdowns/editor/share/pin"] = {
       if (titleTx.querySelector("b") == null) {
         titleTx.innerHTML = editor.lesson.pin || "";
       }
-      updateAction();
+      //updateAction();
     }
     editor.updatePin();
     createButton.addEventListener("click", async () => {
@@ -121,6 +128,7 @@ modules["dropdowns/editor/share/pin"] = {
       }
       removeButton.removeAttribute("disabled");
     });
+    /*
     actionButton.addEventListener("click", async () => {
       actionButton.setAttribute("disabled", "");
       if (editor.lesson.settings.forceLogin == true) {
@@ -136,6 +144,7 @@ modules["dropdowns/editor/share/pin"] = {
       }
       actionButton.removeAttribute("disabled");
     });
+    */
 
     if (editor.getSelf().access < 2) {
       createButton.setAttribute("disabled", "");

@@ -16,7 +16,7 @@ modules["dropdowns/editor/share/link"] = {
   </button>
   <div class="eShareLinkRow">
     <button class="eShareLinkRemove border" title="Invalidate the link.">Private Link</button>
-    <button class="eShareActionLink border" option="forceLogin" title="Require those joining to login for verified identites." off><div label>Require Login</div><div class="eLinkToggle"><div></div></div></button>
+    <button class="eShareOptionLink border" dropdown="dropdowns/editor/share/options" title="Configurable options for members who join.">Options</button>
   </div>
   `,
   css: {
@@ -40,6 +40,10 @@ modules["dropdowns/editor/share/link"] = {
     ".eShareLinkRemove": `height: fit-content; min-height: 36px; padding: 0 12px; margin: 7px 14px 7px 7px; --borderWidth: 3px; --borderRadius: 18px; color: var(--error); font-size: 18px`,
     ".eShareLinkRemove:hover": `background: var(--error); --borderWidth: 0px; transform: scale(1.1); color: #fff`,
 
+    ".eShareOptionLink": `height: fit-content; min-height: 36px; padding: 0 12px; margin: 7px 7px 7px auto; --borderWidth: 3px; --borderRadius: 18px; color: var(--secondary); font-size: 18px`,
+    ".eShareOptionLink:hover": `background: var(--secondary); --borderWidth: 0px; transform: scale(1.1); color: #fff`
+
+    /*
     ".eShareActionLink": `display: flex; max-width: 100%; padding: 6px; margin: 7px 7px 7px auto; align-items: center; --borderWidth: 3px; font-size: 16px`,
     ".eShareActionLink div[label]": `flex: 1; margin: 0 8px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
     ".eShareActionLink[on]": `--themeColor: var(--theme); --color: #fff`,
@@ -51,6 +55,7 @@ modules["dropdowns/editor/share/link"] = {
     ".eShareActionLink:hover": `background: var(--themeColor); --borderWidth: 0px; transform: scale(1.1); color: var(--color)`,
     ".eShareActionLink:hover .eLinkToggle": `background: #fff`,
     ".eShareActionLink:hover .eLinkToggle div": `background: var(--themeColor)`
+    */
   },
   js: async function (frame) {
     frame.style.padding = "8px";
@@ -68,6 +73,7 @@ modules["dropdowns/editor/share/link"] = {
       copyClipboardText("https://" + linkTx.value, "link");
     });
 
+    /*
     let actionButton = frame.querySelector(".eShareActionLink");
     let updateAction = () => {
       if (editor.lesson.settings.forceLogin == true) {
@@ -79,6 +85,7 @@ modules["dropdowns/editor/share/link"] = {
       }
     }
     updateAction();
+    */
 
     editor.updateLink = async () => {
       if (editor.lesson.access != null && editor.lesson.access > -1) {
@@ -104,7 +111,7 @@ modules["dropdowns/editor/share/link"] = {
       } else {
         linkTx.value = "markify.link/join?lesson=" + editor.id + "&auth=classlink";
       }
-      updateAction();
+     //updateAction();
     }
     editor.updateLink();
     createButton.addEventListener("click", async () => {
@@ -143,6 +150,7 @@ modules["dropdowns/editor/share/link"] = {
       }
       removeButton.removeAttribute("disabled");
     });
+    /*
     actionButton.addEventListener("click", async () => {
       actionButton.setAttribute("disabled", "");
       if (editor.lesson.settings.forceLogin == true) {
@@ -158,5 +166,6 @@ modules["dropdowns/editor/share/link"] = {
       }
       actionButton.removeAttribute("disabled");
     });
+    */
   }
 }

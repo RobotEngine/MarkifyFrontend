@@ -281,7 +281,7 @@ modules["pages/dashboard/lessons"] = {
               for (let i = 0; i < updTiles.length; i++) {
                 let tile = updTiles[i];
                 let memberCountTx = tile.querySelector(".dTileMemberCount span");
-                memberCountTx.textContent = parseInt(memberCountTx.textContent) - 1;
+                memberCountTx.textContent = Math.max(parseInt(memberCountTx.textContent) - 1, 0);
               }
               break;
             case "set":

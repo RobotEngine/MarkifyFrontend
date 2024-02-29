@@ -139,6 +139,7 @@ modules["pages/editor"] = {
     ".ePage:first-child": `border-top-left-radius: 16px; border-top-right-radius: 16px`,
     ".ePage:not(:first-child)": `border-top: dashed var(--darkGray) 4px; border-image: url("./images/editor/border.svg") 10 / 1 / 0 space`,
     ".ePage:last-child": `border-bottom-left-radius: 16px; border-bottom-right-radius: 16px`,
+    ".ePage[hide] > *:not([reveal])": `visibility: hidden`,
     ".ePageContent": "width: 100%; height: 100%; background: var(--pageColor); opacity: 0; border-radius: inherit",
     ".ePageTextHolder": "--scale-factor: 4/3; position: absolute; left: 0; top: 0; font-family: sans-serif",
     ".ePageTextHolder span": "position: absolute; color: transparent; pointer-events: all",
@@ -2377,7 +2378,7 @@ modules["dropdowns/editor/file/delete"] = {
     ".eFileDeleteHolder img": `width: 64px; height: 64px`,
     ".eFileDeleteTitle": `color: var(--error); font-size: 20px; font-weight: 700; text-align: left`,
     ".eFileDeleteDesc": `max-width: 240px; font-size: 14px; text-align: left`,
-    ".eFileDeleteOptions": `display: flex; flex-wrap: wrap; width: calc(100% - 16px); margin-top: 12px; justify-content: space-around`,
+    ".eFileDeleteOptions": `display: flex; flex-wrap: wrap; width: 100%; margin-top: 12px; justify-content: space-around`,
     ".eFileDeleteOptions button": `display: flex; height: fit-content; min-height: 36px; padding: 0 12px; margin: 6px; --borderColor: var(--hover); --borderWidth: 3px; --borderRadius: 18px; color: var(--theme); justify-content: center; align-items: center; font-size: 18px; font-weight: 700`,
     ".eFileDeleteConfirm:hover": `background: var(--error); --borderWidth: 0px; transform: scale(1.1); color: #fff !important`,
     ".eFileDeleteCancel:hover": `background: var(--theme); --borderWidth: 0px; transform: scale(1.1); color: #fff !important`
@@ -2449,6 +2450,8 @@ modules["dropdowns/editor/rearrange"] = {
   <div class="eRearrangeLine"></div>
   <button class="eRearrangeAction" option="deletepageannotations" dropdown="dropdowns/editor/file/delete" title="Delete all annotations on this page." style="--themeColor: var(--error)"><img src="./images/editor/file/delete.svg">Delete Annotations</button>
   <button class="eRearrangeAction" option="deletepage" dropdown="dropdowns/editor/file/delete" title="Remove this page from the lesson." style="--themeColor: var(--error)"><img src="./images/editor/file/delete.svg">Delete Page</button>
+  <div class="eRearrangeLine" style="display: none"></div>
+  <button class="eRearrangeAction" style="display: none" option="hideshowpage" title="Hide this page for all members."><img src="./images/editor/rearrange/hideshow.svg">Hide Page</button>
   `,
   css: {
     ".eRearrangeAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
@@ -2466,6 +2469,7 @@ modules["dropdowns/editor/rearrange"] = {
     let moveup = frame.querySelector('.eRearrangeAction[option="moveup"]');
     let movedown = frame.querySelector('.eRearrangeAction[option="movedown"]');
     let movetobottom = frame.querySelector('.eRearrangeAction[option="movetobottom"]');
+    let hideshowpage = frame.querySelector('.eRearrangeAction[option="hideshowpage"]');
     frame.querySelector('.eRearrangeAction[option="deletepageannotations"]').setAttribute("pageid", page.getAttribute("pageid"));
     frame.querySelector('.eRearrangeAction[option="deletepage"]').setAttribute("pageid", page.getAttribute("pageid"));
     let hideButtons = () => {
@@ -2538,6 +2542,14 @@ modules["dropdowns/editor/rearrange"] = {
         movetobottom.remove();
       }
     }
+    hideshowpage.addEventListener("click", async () => {
+      hideshowpage.setAttribute("disabled", "");
+      await sendRequest("PUT", "lessons/rearrange/hide?page=" + page.getAttribute("pageid"), null, { session: editor.session });
+      hideshowpage.removeAttribute("disabled");
+      if (code == 200) {
+        dropdown.close();
+      }
+    });
   }
 }
 
@@ -2607,6 +2619,9 @@ modules["pages/editor/annotation"] = {
   annoHolder: async function (pageID) {
     let editor = await getModule("pages/editor");
     let pageHolder = editor.page.querySelector(".ePageHolder");
+    if (editor.lesson.type == "freeboard") {
+      return pageHolder;
+    }
     let page = pageHolder.querySelector('.ePage[pageid="' + pageID + '"]');
     if (page == null) {
       return pageHolder;

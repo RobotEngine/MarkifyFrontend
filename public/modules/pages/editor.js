@@ -23,7 +23,7 @@ modules["pages/editor"] = {
           <div class="eStatus"></div>
         </div>
         <div class="eTopSection eTopMargin">
-          <button class="eMembers" dropdown="dropdowns/editor/members" disabled><span class="eMemberHandCount"></span><span class="eMemberCount"></span>Members</button>
+          <button class="eMembers" dropdown="dropdowns/editor/members" disabled><span class="eMemberHandCount" title="Number of hands raised."></span><span class="eMemberIdleCount" title="Number of idle members."></span><span class="eMemberCount" title="Number of members."></span>Members</button>
           <button class="eEndSession" title="End Session | Disable all editing access making everyone a viewer." disabled><img src="./images/editor/share/endeditors.svg"</button>
           <button class="eShare" dropdown="dropdowns/editor/share" disabled>Share</button>
           <button class="eSharePin"></button>
@@ -103,6 +103,7 @@ modules["pages/editor"] = {
     ".eMembers": `display: flex; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--hover); border-radius: 16px; align-items: center; font-size: 16px; font-weight: 600`,
     ".eMemberCount": `display: none; padding: 2px 6px; margin-right: 5px; background: #fff; border-radius: 12px; color: var(--theme); font-weight: 700`,
     ".eMemberHandCount": `display: none; padding: 2px 6px; margin-right: 5px; background: #fff; border-radius: 12px; color: var(--green); font-weight: 700`,
+    ".eMemberIdleCount": `display: flex; padding: 2px 6px; margin-right: 5px; background: #fff; border-radius: 12px; color: var(--yellow); font-weight: 700`,
     ".eEndSession": `display: none; width: 32px; height: 32px; padding: 0px; margin: 0 4px; background: var(--error); border-radius: 16px; justify-content: center; align-items: center; color: #fff; font-size: 16px; font-weight: 600`,
     ".eEndSession img": `width: 28px; height: 28px`,
     ".eShare": `height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
@@ -245,6 +246,7 @@ modules["pages/editor"] = {
     this.syncMembers = async (memberUpd) => {
       this.editorCount = 0;
       this.handCount = 0;
+      this.idleCount = 0;
       for (let i = 0; i < memberUpd.length; i++) {
         let memSet = memberUpd[i];
         this.members[memSet._id] = memSet;
@@ -253,6 +255,9 @@ modules["pages/editor"] = {
         }
         if (memSet.hand != null) {
           this.handCount++;
+        }
+        if (memSet.active == false) {
+          this.idleCount++;
         }
       }
       this.checkEditorCount();
@@ -501,10 +506,12 @@ modules["pages/editor"] = {
     this.codeTextButton = page.querySelector(".eSharePin");
 
     this.handCount = 0;
+    this.idleCount = 0;
 
     this.updateMemberCount = () => {
       let counts = document.querySelectorAll(".eMemberCount");
       let handCounts = document.querySelectorAll(".eMemberHandCount");
+      let idleCounts = document.querySelectorAll(".eMemberIdleCount");
       this.memberCount = Object.keys(this.members).length;
       for (let i = 0; i < counts.length; i++) {
         let count = counts[i];
@@ -521,6 +528,16 @@ modules["pages/editor"] = {
         let count = handCounts[i];
         count.textContent = this.handCount;
         if (this.handCount > 0) {
+          count.style.display = "unset";
+          count.parentElement.style.padding = "4px 10px 4px 4px";
+        } else {
+          count.style.display = "none";
+        }
+      }
+      for (let i = 0; i < idleCounts.length; i++) {
+        let count = idleCounts[i];
+        count.textContent = this.idleCount;
+        if (this.idleCount > 0) {
           count.style.display = "unset";
           count.parentElement.style.padding = "4px 10px 4px 4px";
         } else {
@@ -589,6 +606,9 @@ modules["pages/editor"] = {
           if (body.hand != null) {
             this.handCount++;
           }
+          if (body.active == false) {
+            this.idleCount++;
+          }
           this.checkEditorCount();
           this.updateMemberCount();
           if (body.method == "shared" && this.emailInvite != null) {
@@ -602,6 +622,9 @@ modules["pages/editor"] = {
             }
             if (this.members[body._id].hand != null) {
               this.handCount--;
+            }
+            if (this.members[body._id].active == false) {
+              this.idleCount--;
             }
             this.checkEditorCount();
             delete this.members[body._id];
@@ -644,8 +667,15 @@ modules["pages/editor"] = {
               } else {
                 this.handCount--;
               }
-              this.updateMemberCount();
             }
+            if (body.hasOwnProperty("active")) {
+              if (body.active == false) {
+                this.idleCount++;
+              } else {
+                this.idleCount--;
+              }
+            }
+            this.updateMemberCount();
             for (let i = 0; i < memberKeys.length; i++) {
               let key = memberKeys[i];
               member[key] = body[key];

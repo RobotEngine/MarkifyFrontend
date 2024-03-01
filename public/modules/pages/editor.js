@@ -537,7 +537,7 @@ modules["pages/editor"] = {
       for (let i = 0; i < idleCounts.length; i++) {
         let count = idleCounts[i];
         count.textContent = this.idleCount;
-        if (this.idleCount > 0) {
+        if (this.idleCount > 0 && this.memberCount > 1) {
           count.style.display = "unset";
           count.parentElement.style.padding = "4px 10px 4px 4px";
         } else {

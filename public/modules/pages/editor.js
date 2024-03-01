@@ -139,7 +139,13 @@ modules["pages/editor"] = {
     ".ePage:first-child": `border-top-left-radius: 16px; border-top-right-radius: 16px`,
     ".ePage:not(:first-child)": `border-top: dashed var(--darkGray) 4px; border-image: url("./images/editor/border.svg") 10 / 1 / 0 space`,
     ".ePage:last-child": `border-bottom-left-radius: 16px; border-bottom-right-radius: 16px`,
-    ".ePage[hide] > *:not([reveal])": `visibility: hidden`,
+    ".ePage[hide] > *:not(.ePageHidden)": `transition: unset !important`, //filter: blur(4px) visibility: hidden
+    ".ePageHidden": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 501`,
+    ".ePageHiddenModal": `display: flex; flex-direction: column; max-width: calc(100% - 32px); max-height: calc(100% - 32px); padding: 8px; overflow: auto; background: var(--pageColor); box-shadow: 0px 0px 16px 0px var(--hover); border-radius: 16px; align-items: center`,
+    ".ePageHiddenModal img": `padding: 12px; width: calc(100% - 24px); max-width: 80px`,
+    ".ePageHiddenModalTitle": `font-size: 28px; font-weight: 700; color: var(--theme)`,
+    ".ePageHiddenModalDesc": `margin: 8px 0; max-width: 450px`,
+    ".ePageRevealButton": `display: flex; margin: 8px; z-index: 1; background: var(--theme); --borderRadius: 20.25px; color: #fff`,
     ".ePageContent": "width: 100%; height: 100%; background: var(--pageColor); opacity: 0; border-radius: inherit",
     ".ePageTextHolder": "--scale-factor: 4/3; position: absolute; left: 0; top: 0; font-family: sans-serif",
     ".ePageTextHolder span": "position: absolute; color: transparent; pointer-events: all",
@@ -148,7 +154,7 @@ modules["pages/editor"] = {
     ".ePageAnnotations": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 1; pointer-events: none`,
     ".content[enabled] .ePageAnnotations": `pointer-events: all`,
     ".eAddPagesHolder": `display: none; width: 100% justify-content: center; padding-top: 20px`,
-    ".eAddPagesButton": `display: flex; margin: 8px; z-index: 1; background: var(--theme); --borderRadius: 20.25px; color: #fff; pointer-events: all`,
+    ".eAddPagesButton": `display: flex; margin: 8px 0; z-index: 1; background: var(--theme); --borderRadius: 20.25px; color: #fff; pointer-events: all`,
     ".ePageRearrange": `position: absolute; display: flex; width: 28px; height: 28px; padding: 4px; right: 8px; bottom: 8px; pointer-events: all; z-index: 2; background: rgba(180, 218, 253, 0.75); backdrop-filter: blur(2px); border-radius: 18px; overflow: hidden`, //transform: scale(var(--fixedUIScale));
     ".ePageRearrange div": `margin-left: 6px`,
     ".eAnnotation": `position: absolute`,
@@ -725,7 +731,7 @@ modules["pages/editor"] = {
             let access = this.getSelf().access;
             if (body.settings.hasOwnProperty("allowExport") || body.settings.hasOwnProperty("observeViewers")) {
               if (access < 4) {
-                (await getModule("dropdown")).close();
+                dropdownModule.close();
                 if (body.settings.observeViewers == false) {
                   this.realtime.module.exitObserve();
                 }
@@ -866,6 +872,35 @@ modules["pages/editor"] = {
             pages[data.data.page].order = newOrder;
             this.updatePages();
           }
+          break;
+        case "pagevisibility":
+          let openDropdown = fixed.querySelector('.eRearrangeAction[option="hideshowpage"]');
+          if (data.data.page != null) {
+            let pagehideshow = pageHolder.querySelector('.ePage[pageid="' + data.data.page + '"]');
+            if (pagehideshow != null) {
+              if (data.data.hidden == true) {
+                pagehideshow.setAttribute("hide", "");
+              } else {
+                pagehideshow.removeAttribute("hide");
+              }
+              if (openDropdown != null && openDropdown.getAttribute("pageid") == data.data.page) {
+                dropdownModule.close();
+              }
+            }
+          } else {
+            let pageshideshow = pageHolder.querySelectorAll(".ePage");
+            for (let i = 0; i < pageshideshow.length; i++) {
+              if (data.data.hidden == true) {
+                pageshideshow[i].setAttribute("hide", "");
+              } else {
+                pageshideshow[i].removeAttribute("hide");
+              }
+              if (openDropdown != null && openDropdown.getAttribute("pageid") == pageshideshow[i].getAttribute("pageid")) {
+                dropdownModule.close();
+              }
+            }
+          }
+          this.updatePages();
           break;
         case "exportstatus":
           if (this.exportAlert != null) {
@@ -1529,6 +1564,25 @@ modules["pages/editor"] = {
               return;
             }
             this.loadedIn.push(pageID);
+            if (pageElem.hasAttribute("hide") == true) {
+              if (pageElem.querySelector(".ePageHidden") == null) {
+                pageElem.insertAdjacentHTML("beforeend", `<div class="ePageHidden" new></div>`);
+                let hiddenElem = pageElem.querySelector(".ePageHidden[new]");
+                hiddenElem.removeAttribute("new");
+                if (this.exporting != true) {
+                  hiddenElem.insertAdjacentHTML("beforeend", `<div class="ePageHiddenModal">
+                    <img src="./images/editor/hidden.svg">
+                    <div class="ePageHiddenModalTitle">Page Hidden</div>
+                    <div class="ePageHiddenModalDesc">This page has been hidden from view and can only be revealed by the lesson owner.</div>
+                  </div>`);
+                  if (this.getSelf().access > 3) {
+                    hiddenElem.querySelector(".ePageHiddenModal").insertAdjacentHTML("beforeend", `<button class="ePageRevealButton largeButton">Reveal Page</button>`);
+                  }
+                }
+              }
+            } else if (pageElem.querySelector(".ePageHidden") != null) {
+              pageElem.querySelector(".ePageHidden").remove();
+            }
             if (pageElem.hasAttribute("loading") == false) {
               let pageData = pages[pageID];
               let sourceData = sources[pageData.source];
@@ -1581,6 +1635,9 @@ modules["pages/editor"] = {
               }
               if (page.querySelector(".ePageRearrange")) {
                 page.querySelector(".ePageRearrange").remove();
+              }
+              if (page.querySelector(".ePageHidden")) {
+                page.querySelector(".ePageHidden").remove();
               }
               page.removeAttribute("loading");
               page.removeAttribute("loaded");
@@ -1673,8 +1730,11 @@ modules["pages/editor"] = {
             }
             pageHolder.insertAdjacentHTML("beforeend", `<div class="ePage" pageid="${page._id}"${includeSource} order="${page.order}" style="width: ${page.width}px; height: ${page.height}px" new></div>`);
             let newPage = pageHolder.querySelector(".ePage[new]");
+            if (page.hidden != null) {
+              newPage.setAttribute("hide", "");
+            }
             newPage.removeAttribute("new");
-            function properSort() {
+            let properSort = () => {
               if (newPage.previousElementSibling != null && parseInt(newPage.previousElementSibling.getAttribute("order")) > page.order) {
                 pageHolder.insertBefore(newPage, newPage.previousElementSibling);
                 properSort();
@@ -1733,20 +1793,19 @@ modules["pages/editor"] = {
             window.exportReady();
           }
         }
-
-        /*
-        pageHolder.addEventListener("click", (event) => {
+        
+        pageHolder.addEventListener("click", async (event) => {
           let element = event.target;
           if (element == null) {
             return;
           }
-          let editPageOption = event.target.closest(".editPageOption");
-          if (editPageOption == null) {
-            return;
+          let revealButton = event.target.closest(".ePageRevealButton");
+          if (revealButton != null) {
+            revealButton.setAttribute("disabled", "");
+            await sendRequest("PUT", "lessons/rearrange/show?page=" + revealButton.closest(".ePage").getAttribute("pageid"), null, { session: this.session });
+            revealButton.removeAttribute("disabled");
           }
-
         });
-        */
 
         this.updatePageSize = () => {
           //let pageChild = pageHolder.children[currentPage - 1] || pageHolder;
@@ -2215,6 +2274,8 @@ modules["dropdowns/editor/file"] = {
   <div class="eFileLine" option="delete"></div>
   <button class="eFileAction" option="deletelesson" dropdown="dropdowns/editor/file/delete" title="Remove this lesson from your dashboard." style="--themeColor: var(--error)"><img src="./images/editor/file/delete.svg">Delete Lesson</button>
   <button class="eFileAction" option="deleteannotations" dropdown="dropdowns/editor/file/delete" title="Remove all annotations from the lesson." style="--themeColor: var(--error)"><img src="./images/editor/file/delete.svg">Delete Annotations</button>
+  <div class="eFileLine" option="hideshow"></div>
+  <button class="eFileAction" option="hideshowpage" title="Hide this page for all members."><img src="./images/editor/rearrange/hideshow.svg">Hide All Pages</button>
   `,
   css: {
     ".eFileAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
@@ -2336,8 +2397,22 @@ modules["dropdowns/editor/file"] = {
     jumpend.addEventListener("click", () => {
       window.scrollTo({ top: document.body.scrollHeight });
     });
+    let hideshowpage = frame.querySelector('.eFileAction[option="hideshowpage"]');
+    hideshowpage.addEventListener("click", async () => {
+      hideshowpage.setAttribute("disabled", "");
+      let [code] = await sendRequest("PUT", "lessons/rearrange/hide", null, { session: editor.session });
+      hideshowpage.removeAttribute("disabled");
+      if (code == 200) {
+        dropdown.close();
+      }
+    });
     if (access < 5) {
       frame.querySelector('.eFileAction[option="deleteannotations"]').remove();
+      hideshowpage.remove();
+      let hideshowLine = frame.querySelector('.eFileLine[option="hideshow"]');
+      if (hideshowLine != null) {
+        hideshowLine.remove();
+      }
       let deleteLesson = frame.querySelector('.eFileAction[option="deletelesson"]');
       if (userID == null) {
         deleteLesson.remove();
@@ -2354,7 +2429,14 @@ modules["dropdowns/editor/file"] = {
       jumptop.remove();
       jump.remove();
       jumpend.remove();
+      if (hideshowpage != null) {
+        hideshowpage.remove();
+      }
       frame.querySelector('.eFileLine[option="findjump"]').remove();
+      let hideshowLine = frame.querySelector('.eFileLine[option="hideshow"]');
+      if (hideshowLine != null) {
+        hideshowLine.remove();
+      }
     }
   }
 }
@@ -2450,8 +2532,8 @@ modules["dropdowns/editor/rearrange"] = {
   <div class="eRearrangeLine"></div>
   <button class="eRearrangeAction" option="deletepageannotations" dropdown="dropdowns/editor/file/delete" title="Delete all annotations on this page." style="--themeColor: var(--error)"><img src="./images/editor/file/delete.svg">Delete Annotations</button>
   <button class="eRearrangeAction" option="deletepage" dropdown="dropdowns/editor/file/delete" title="Remove this page from the lesson." style="--themeColor: var(--error)"><img src="./images/editor/file/delete.svg">Delete Page</button>
-  <div class="eRearrangeLine" style="display: none"></div>
-  <button class="eRearrangeAction" style="display: none" option="hideshowpage" title="Hide this page for all members."><img src="./images/editor/rearrange/hideshow.svg">Hide Page</button>
+  <div class="eRearrangeLine"></div>
+  <button class="eRearrangeAction" option="hideshowpage" title="Hide this page for all members."><img src="./images/editor/rearrange/hideshow.svg">Hide Page</button>
   `,
   css: {
     ".eRearrangeAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
@@ -2472,6 +2554,7 @@ modules["dropdowns/editor/rearrange"] = {
     let hideshowpage = frame.querySelector('.eRearrangeAction[option="hideshowpage"]');
     frame.querySelector('.eRearrangeAction[option="deletepageannotations"]').setAttribute("pageid", page.getAttribute("pageid"));
     frame.querySelector('.eRearrangeAction[option="deletepage"]').setAttribute("pageid", page.getAttribute("pageid"));
+    hideshowpage.setAttribute("pageid", page.getAttribute("pageid"));
     let hideButtons = () => {
       movetotop.setAttribute("disabled", "");
       moveup.setAttribute("disabled", "");
@@ -2544,7 +2627,7 @@ modules["dropdowns/editor/rearrange"] = {
     }
     hideshowpage.addEventListener("click", async () => {
       hideshowpage.setAttribute("disabled", "");
-      await sendRequest("PUT", "lessons/rearrange/hide?page=" + page.getAttribute("pageid"), null, { session: editor.session });
+      let [code] = await sendRequest("PUT", "lessons/rearrange/hide?page=" + page.getAttribute("pageid"), null, { session: editor.session });
       hideshowpage.removeAttribute("disabled");
       if (code == 200) {
         dropdown.close();

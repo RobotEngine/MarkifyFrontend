@@ -190,7 +190,7 @@ modules["pages/launch"] = {
     ".lOpen": `background: var(--theme); --borderRadius: 20.25px; color: #fff`,
     ".lJoin": `background: #fff; --borderRadius: 20.25px; color: var(--secondary)`,
     ".lJoin img": `width: 24px; height: 24px; margin-left: 8px`,
-    ".lHeaderSplash": `width: 100%; margin-top: 40px; max-width: 1000px`,
+    ".lHeaderSplash": `width: 100%; margin-top: 40px; max-width: 1000px; transform: perspective(75em) rotateX(20deg)`, //; transition: .5s
 
     ".lSection[history]": `width: 100%; height: 200vh`,
     ".lHistoryStuck": `position: sticky; display: flex; flex-direction: column; width: 100%; height: 100vh; top: 0px; align-items: center; overflow: hidden`,
@@ -213,7 +213,7 @@ modules["pages/launch"] = {
     ".lUsecaseToolbar button:hover": `background: rgba(var(--themeColor), .3); transform: scale(1.03)`,
     ".lUsecaseToolbar button[selected]": `background: rgba(var(--themeColor), 1); color: #fff`,
     ".lUsecaseTiles": `display: flex; flex-wrap: wrap; width: calc(100% - 24px); max-width: 748px; padding-bottom: 34px; margin: 12px; justify-content: center`,
-    ".lUsecaseTile": `display: flex; width: 350px; max-width: calc(100% - 24px); height: 350px; padding: 8px; margin: 12px; background: #fff; box-shadow: 0px 0px 8px rgba(var(--themeColor), .4); border-radius: 20px; overflow: hidden; justify-content: center; align-items: center; transform: scale(.8); opacity: 0; transition: cubic-bezier(0.175, 0.885, 0.32, 1.275) .3s`,
+    ".lUsecaseTile": `display: flex; width: 350px; max-width: calc(100% - 24px); height: 350px; padding: 8px; margin: 12px; background: #fff; box-shadow: 0px 0px 8px rgba(var(--themeColor), .4); border-radius: 20px; overflow: hidden; justify-content: center; align-items: center; transform: scale(.8) perspective(75em) rotateX(30deg); opacity: 0; transition: cubic-bezier(0.175, 0.885, 0.32, 1.275) .3s`,
     ".lUsecaseTile[column]": `flex-direction: column`,
     ".lUsecaseTile[row]": `width: 724px; height: fit-content; min-height: 350px; flex-wrap: wrap`,
     ".lUsecaseTileInfo": `box-sizing: border-box; flex: 1 1 350px; height: 100%; padding: 0 24px 0 12px; text-align: left`,
@@ -618,7 +618,7 @@ modules["pages/launch"] = {
           newTile.querySelector(".lTileImageHolder").remove();
         }
         newTile.offsetHeight;
-        newTile.style.transform = "scale(1)";
+        newTile.style.transform = "scale(1) perspective(75em) rotateX(0deg)";
         newTile.style.opacity = 1;
       }
     }
@@ -730,6 +730,7 @@ modules["pages/launch"] = {
 
     // Handle Events:
     let sectionElements = page.querySelectorAll(".lSection");
+    let splashImage = page.querySelector(".lHeaderSplash");
     function updateSections() {
       updateHistory();
 
@@ -753,6 +754,13 @@ modules["pages/launch"] = {
         let key = backdropKeys[i];
         page.querySelector(".lBackdrop[" + key + "]").style.opacity = setBackdrops[key];
       }
+
+      // Handle Splash
+      let splashRotate = 20;
+      if (window.scrollY > 100) {
+        splashRotate -= (window.scrollY - 100) / 10;
+      }
+      splashImage.style.transform = "perspective(75em) rotateX(" + Math.max(splashRotate, 0) + "deg)";
     }
     tempListen(window, "scroll", updateSections);
     tempListen(window, "resize", updateSections);

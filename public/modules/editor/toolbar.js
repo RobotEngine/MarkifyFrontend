@@ -4503,6 +4503,7 @@ modules["pages/editor/toolbar/textedit"] = {
       let remEvent = this.pastEvents[i];
       remEvent.parent.removeEventListener(remEvent.name, remEvent.listener);
     }
+    this.pastEvents = [];
 
     let saveHistory = false;
     //let lastClock;
@@ -4563,7 +4564,7 @@ modules["pages/editor/toolbar/textedit"] = {
       }, 5000);
     }
     */
-    this.pastEvents.push({ type: "event", parent: parent, name: "input", listener: inputListener });
+    this.pastEvents.push({ type: "event", parent: annoTx, name: "input", listener: inputListener });
     annoTx.addEventListener("input", inputListener);
 
     let keyListener = (event) => {
@@ -4579,7 +4580,7 @@ modules["pages/editor/toolbar/textedit"] = {
         lastHistory.caret.redoPosition = lastCaret.redoPosition;
       }
     }
-    this.pastEvents.push({ type: "event", parent: parent, name: "input", listener: keyListener });
+    this.pastEvents.push({ type: "event", parent: annoTx, name: "keydown", listener: keyListener });
     annoTx.addEventListener("keydown", keyListener);
 
     let pasteListener = (event) => {
@@ -4589,7 +4590,7 @@ modules["pages/editor/toolbar/textedit"] = {
       // Insert text manually
       document.execCommand("insertHTML", false, (event.originalEvent || event).clipboardData.getData("text/plain"));
     }
-    this.pastEvents.push({ type: "event", parent: parent, name: "input", listener: pasteListener });
+    this.pastEvents.push({ type: "event", parent: annoTx, name: "paste", listener: pasteListener });
     annoTx.addEventListener("paste", pasteListener);
 
     extra.updateToolActions(extra.frame);

@@ -757,8 +757,9 @@ modules["pages/launch"] = {
 
       // Handle Splash
       let splashRotate = 20;
-      if (window.scrollY > 100) {
-        splashRotate -= (window.scrollY - 100) / 10;
+      let alignTop = splashImage.offsetTop / 5;
+      if (window.scrollY > alignTop) {
+        splashRotate -= (window.scrollY - alignTop) / 10;
       }
       splashImage.style.transform = "perspective(75em) rotateX(" + Math.max(splashRotate, 0) + "deg)";
     }

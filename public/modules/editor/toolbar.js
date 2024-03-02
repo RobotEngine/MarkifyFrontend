@@ -2404,6 +2404,10 @@ modules["pages/editor/toolbar/drag"] = {
 
       let selected = this.getElementsInRect(selection.getBoundingClientRect(), content.querySelectorAll(".eAnnotation"));
       for (let i = 0; i < selected.length; i++) {
+        let page = selected[i].closest(".ePage");
+        if (page != null && page.hasAttribute("hide") == true) {
+          continue;
+        }
         editor.selecting[selected[i].getAttribute("anno")] = {};
       }
       cursorModule.updateBox();

@@ -2003,6 +2003,9 @@ modules["pages/editor/toolbar/cursor"] = {
         let pageElem = editor.page.querySelector('.ePage[pageid="' + (select.page || anno.page) + '"]');
         if (pageElem != null) {
           number = parseInt(pageElem.getAttribute("order"));
+          if (pageElem.hasAttribute("hide") == true) {
+            return;
+          }
         }
         let scaleMouse = await utils.scaleToDoc(mouseX + this.offsetX, mouseY + this.offsetY, number);
         let sizeCompare = (a, b) => {
@@ -2181,8 +2184,20 @@ modules["pages/editor/toolbar/cursor"] = {
         let pos = selecting.p || originalRender.p;
         let currentPage = editor.page.querySelector('.ePage[pageid="' + page + '"]');
         if (currentPage != null) {
+          if (currentPage.hasAttribute("hide") == true) {
+            editor.selecting[annoid] = {};
+            await utils.render(originalRender);
+            this.updateBox();
+            return;
+          }
           let [page] = (await utils.findPage((pos[1] * editor.zoom) + currentPage.getBoundingClientRect().top));
           if (page != currentPage) {
+            if (page.hasAttribute("hide") == true) {
+              editor.selecting[annoid] = {};
+              await utils.render(originalRender);
+              this.updateBox();
+              return;
+            }
             selecting.page = page.getAttribute("pageid");
             let change = 0;
             if (parseInt(currentPage.getAttribute("order")) < parseInt(page.getAttribute("order"))) {
@@ -2209,6 +2224,7 @@ modules["pages/editor/toolbar/cursor"] = {
           pushAdds.push({ _id: annoid, remove: true });
         }
       }
+
       saveUpdates.push(JSON.parse(JSON.stringify({ ...selecting, _id: annoid })));
       selecting.done = true;
     }
@@ -2576,6 +2592,9 @@ modules["pages/editor/toolbar/highlighter"] = {
       event.preventDefault();
       let clientY = clientPosition(event, "y");
       let [page, number] = await utils.findPage(clientY);
+      if (page.hasAttribute("hide") == true) {
+        return;
+      }
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientY, number);
       if (editor.lesson.type == "freeboard") {
         y += 4;
@@ -2731,6 +2750,9 @@ modules["pages/editor/toolbar/understrike"] = {
       event.preventDefault();
       let clientY = clientPosition(event, "y");
       let [page, number] = await utils.findPage(clientY);
+      if (page.hasAttribute("hide") == true) {
+        return;
+      }
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientY, number);
       if (editor.lesson.type == "freeboard") {
         y += 4;
@@ -2860,6 +2882,9 @@ modules["pages/editor/toolbar/text"] = {
       clientX = clientPosition(event, "x") || clientX;
       clientY = clientPosition(event, "y") || clientY;
       let [page, number] = await utils.findPage(clientY);
+      if (page.hasAttribute("hide") == true) {
+        return;
+      }
       let { x, y } = await utils.scaleToDoc(clientX, clientY, number);
       if (editor.lesson.type == "freeboard") {
         y += 4;
@@ -2999,6 +3024,9 @@ modules["pages/editor/toolbar/pen"] = {
       event.preventDefault();
       let clientY = clientPosition(event, "y");
       let [page, number] = await utils.findPage(clientY);
+      if (page.hasAttribute("hide") == true) {
+        return;
+      }
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientY, number);
       if (editor.lesson.type == "freeboard") {
         y += 4;
@@ -3333,6 +3361,9 @@ modules["pages/editor/toolbar/shape"] = {
       clientX = clientPosition(event, "x") || clientX;
       clientY = clientPosition(event, "y") || clientY;
       let [page, number] = await utils.findPage(clientY);
+      if (page.hasAttribute("hide") == true) {
+        return;
+      }
       let { x, y } = await utils.scaleToDoc(clientX, clientY, number);
       if (editor.lesson.type == "freeboard") {
         y += 4;
@@ -3504,6 +3535,9 @@ modules["pages/editor/toolbar/upload"] = {
       clientX = clientPosition(event, "x") || clientX;
       clientY = clientPosition(event, "y") || clientY;
       let [page, number] = await utils.findPage(clientY);
+      if (page.hasAttribute("hide") == true) {
+        return;
+      }
       let { x, y } = await utils.scaleToDoc(clientX, clientY, number);
       if (editor.lesson.type == "freeboard") {
         y += 4;

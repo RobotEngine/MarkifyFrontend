@@ -3229,6 +3229,11 @@ modules["pages/editor/toolbar/eraser"] = {
 
       event.preventDefault();
 
+      let [page] = await utils.findPage(y1);
+      if (page.hasAttribute("hide") == true) {
+        return;
+      }
+
       x0 = x0 || x1;
       y0 = y0 || y1;
 

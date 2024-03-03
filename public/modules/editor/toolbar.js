@@ -2157,6 +2157,8 @@ modules["pages/editor/toolbar/cursor"] = {
     editor.page.style.removeProperty("touch-action");
     editor.page.removeAttribute("enabled");
 
+    let pageHolder = editor.page.querySelector(".ePageHolder");
+
     this.updateActionUI();
 
     let setTempSync = getEpoch();
@@ -2188,7 +2190,7 @@ modules["pages/editor/toolbar/cursor"] = {
             editor.selecting[annoid] = {};
             await utils.render(originalRender);
             this.updateBox();
-            return;
+            continue;
           }
           let [page] = (await utils.findPage((pos[1] * editor.zoom) + currentPage.getBoundingClientRect().top));
           if (page != currentPage) {
@@ -2196,14 +2198,23 @@ modules["pages/editor/toolbar/cursor"] = {
               editor.selecting[annoid] = {};
               await utils.render(originalRender);
               this.updateBox();
-              return;
+              continue;
             }
-            selecting.page = page.getAttribute("pageid");
             let change = 0;
-            if (parseInt(currentPage.getAttribute("order")) < parseInt(page.getAttribute("order"))) {
-              change = -currentPage.offsetHeight;
-            } else {
-              change = page.offsetHeight;
+            let newPageId = page.getAttribute("pageid");
+            if (originalRender.page != newPageId) {
+              selecting.page = newPageId;
+              let originalPageOrder = parseInt(currentPage.getAttribute("order"));
+              let newPageOrder = parseInt(page.getAttribute("order"));
+              if (originalPageOrder < newPageOrder) {
+                for (let i = originalPageOrder; i < newPageOrder; i++) {
+                  change -= pageHolder.children[i].offsetHeight;
+                }
+              } else {
+                for (let i = newPageOrder; i < originalPageOrder; i++) {
+                  change += pageHolder.children[i].offsetHeight;
+                }
+              }
             }
             selecting.p = selecting.p || JSON.parse(JSON.stringify(pos));
             selecting.p[1] = utils.round(pos[1] + change);

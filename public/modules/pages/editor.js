@@ -1485,7 +1485,7 @@ modules["pages/editor"] = {
                   return;
                 }
                 */
-                let viewport = pageRender.getViewport({ scale: 1.5 });
+                let viewport = pageRender.getViewport({ scale: 2 });
 
                 pageElem.insertAdjacentHTML("beforeend", `<canvas class="ePageContent" new></canvas>`);
                 canvas = pageElem.querySelector(".ePageContent[new]");

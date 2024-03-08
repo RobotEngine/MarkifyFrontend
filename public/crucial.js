@@ -147,7 +147,7 @@ async function setFrame(path, frame, extra) {
     await getModule(path);
   }
   currentlyLoadingFrames[frameSet.className] = "";
-  let loadingPlacement = frameSet.closest(".dropdown") || frameSet;
+  let loadingPlacement = frameSet.closest(".dropdown") || frameSet.closest(".modal") || frameSet;
   let oldContent = frameSet.querySelectorAll(".content:not([old])");
   for (let i = 0; i < oldContent.length; i++) {
     let remContent = oldContent[i];
@@ -161,9 +161,9 @@ async function setFrame(path, frame, extra) {
       remContent.remove();
     })();
   }
-  if (modules[path] == null || frameSet == app || frameSet.closest(".dropdown") == null) {
+  if (modules[path] == null || frameSet == app || (frameSet.closest(".dropdown") == null && frameSet.closest(".modal") == null)) {
     if (loadingPlacement.querySelector(".loading:not([done])") == null) {
-      if (frameSet.closest(".dropdown") == null && oldContent.length > 0) {
+      if (frameSet.closest(".dropdown") == null && frameSet.closest(".modal") == null && oldContent.length > 0) {
         for (let i = 0; i < oldContent.length; i++) {
           let remContent = oldContent[i];
           if (remContent.parentElement != frameSet) {
@@ -982,6 +982,169 @@ modules["dropdown"] = {
     remDropdown.dropdown.parentElement.remove();
   }
 }
+
+modules["modal"] = {
+  css: {
+    ".modal": `position: absolute; box-sizing: border-box; max-width: calc(100% - 16px); max-height: calc(100% - 16px); left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: 0; box-shadow: var(--shadow); border-radius: 12px; transform-origin: center top; pointer-events: all`,
+    ".modalOverflow": `position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--pageColor); border-radius: inherit; z-index: 0`,
+    ".modalContent": `position: absolute; box-sizing: border-box; width: max-content; height: max-content; padding: 6px; overflow: auto`, //background: var(--pageColor)
+    ".modalFrame": `position: relative`,
+    ".modalHeader": `position: relative; display: flex; gap: 6px; padding: 6px 6px 0 6px; justify-content: space-between; transition: .4s; z-index: 2`,
+    ".modalHeader button": `position: relative; width: 22px; height: 22px; margin: 3px; --borderWidth: 3px; --borderRadius: 14px`,
+    ".modalHeader button img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
+    ".modalTitle": `box-sizing: border-box; display: flex; padding: 3px; flex: 1; max-width: fit-content; justify-content: center; align-items: center; white-space: nowrap; overflow: hidden; font-size: 18px; font-weight: 500`,
+    ".modalTitle div": `flex: 1; margin: 0 4px; white-space: nowrap; overflow: hidden`,
+    ".modalTitle img": `width: 26px; height: 26px; object-fit: cover; border-radius: 13px`
+  },
+  setResizeLoop: function (modal, content, header) {
+    return setInterval(() => {
+      content.style.top = header.offsetHeight + "px";
+      // We use fixed, not window, so that scrollbars are accounted for:
+      content.style.maxWidth = fixed.clientWidth - 16 + "px";
+      content.style.maxHeight = fixed.clientHeight - header.offsetHeight - 16 + "px";
+      content.style.minWidth = Math.min(fixed.clientWidth - 16, 200) + "px";
+
+      if (modal.hasAttribute("closing") == false) {
+        //if (content.querySelector(".modalFrame").hasAttribute("loaded")) {
+        if (content.offsetWidth > 0 && content.offsetHeight > 0) {
+          modal.style.width = content.offsetWidth + "px";
+          modal.style.height = content.offsetHeight + header.offsetHeight + "px";
+        }
+      }
+    }, 1);
+  },
+  open: async function (frameName, button, title) {
+    title = title || "";
+    let loaded = modules[frameName] != null;
+    if (window.modal) { // Clicked inside the modal
+      let modal = window.modal.modal;
+      let header = modal.querySelector(".modalHeader");
+      let oldContent = modal.querySelector(".modalContent:not([old])");
+      oldContent.setAttribute("old", "");
+      modal.querySelector(".modalOverflow").insertAdjacentHTML("beforeend", `<div class="modalContent" new><div class="modalFrame"></div></div>`);
+      let content = modal.querySelector(".modalContent[new]");
+      content.removeAttribute("new");
+      window.modal.content = content;
+      let frame = content.querySelector(".modalFrame");
+      if (button == null || button.closest(".modalBack") == null) {
+        oldContent.style.removeProperty("right");
+        oldContent.style.left = "0%";
+        content.style.left = (modal.offsetWidth / 2) + "px";
+      } else {
+        window.modal.frameHistory.pop();
+        title = window.modal.frameHistory.pop()[1];
+
+        oldContent.style.removeProperty("left");
+        oldContent.style.right = "0%";
+        content.style.right = (modal.offsetWidth / 2) + "px";
+      }
+      header.querySelector(".modalTitle").innerHTML = title;
+      let back = header.querySelector(".modalBack");
+      if (window.modal.frameHistory.length > 0) {
+        back.setAttribute("modal", window.modal.frameHistory[window.modal.frameHistory.length - 1][0]);
+        back.style.display = "flex";
+      } else {
+        back.style.display = "none";
+      }
+      window.modal.frameHistory.push([frameName, title]);
+      content.style.opacity = 0;
+      //content.style.transform = "scale(.85)";
+      content.style.zIndex = 1;
+      content.style.pointerEvents = "none";
+      content.style.transition = ".4s left, .4s right, .5s opacity";
+      content.offsetHeight;
+      //content.style.transform = "scale(1)";
+      if (loaded == false) {
+        frame.style.minHeight = "200px";
+      }
+      oldContent.style.zIndex = 0;
+      oldContent.style.pointerEvents = "none";
+      oldContent.style.transition = ".4s";
+      oldContent.offsetHeight;
+      if (button == null || button.closest(".modalBack") == null) {
+        oldContent.style.left = (modal.offsetWidth / -2) + "px";;
+        content.style.left = "0%";
+      } else {
+        oldContent.style.right = (modal.offsetWidth / -2) + "px";;
+        content.style.right = "0%";
+      }
+      oldContent.style.opacity = 0;
+      //oldContent.style.transform = "scale(.85)";
+      clearInterval(window.modal.interval);
+      window.modal.interval = this.setResizeLoop(modal, content, header);
+      await setFrame(frameName, frame);
+      content.style.opacity = 1;
+      frame.style.removeProperty("min-height");
+      await sleep(500);
+      oldContent.remove();
+      content.style.removeProperty("transition");
+      let titleDiv = header.querySelector(".modalTitle div");
+      if (titleDiv != null) {
+        titleDiv.style.textOverflow = "ellipsis";
+      }
+      content.style.pointerEvents = "all";
+      //await sleep(100);
+      //content.style.overflow = "auto";
+      return;
+    }
+    this.close();
+    fixed.insertAdjacentHTML("beforeend", `<div class="fixedItemHolder">
+      <div class="modal" new>
+        <div class="modalOverflow">
+          <div class="modalHeader">
+            <button class="modalBack buttonAnim border" style="display: none"><img src="./images/tooltips/back.svg"></button>
+            <div class="modalTitle"></div>
+            <button class="modalClose buttonAnim border" close><img src="./images/tooltips/close.svg"></button>
+          </div>
+          <div class="modalContent">
+            <div class="modalFrame"></div>
+          </div>
+        </div>
+      </div>
+    </div>`);
+    let modal = fixed.querySelector(".modal[new]");
+    modal.removeAttribute("new");
+    let header = modal.querySelector(".modalHeader");
+    let content = modal.querySelector(".modalContent");
+    let frame = content.querySelector(".modalFrame");
+    if (loaded == false) {
+      frame.style.minHeight = "200px";
+    }
+    header.querySelector(".modalTitle").innerHTML = title;
+    modal.style.transition = "width .4s, height .4s, opacity .3s, border-radius .3s";
+    modal.offsetHeight;
+    window.modal = { modal: modal, frameHistory: [[frameName, title]], interval: this.setResizeLoop(modal, content, header, button) };
+    modal.style.opacity = 1;
+    await setFrame(frameName, frame);
+    modal.parentElement.setAttribute("blur", "");
+    frame.style.removeProperty("min-height");
+    await sleep(300);
+    let dropTitle = header.querySelector(".modalTitle div");
+    if (dropTitle) {
+      dropTitle.style.textOverflow = "ellipsis";
+    }
+    //await sleep(200);
+    //content.style.overflow = "auto";
+  },
+  close: async function () {
+    if (window.modal == null) {
+      return;
+    }
+    if (window.closeModal != null) {
+      window.closeModal();
+    }
+    let remModal = window.modal;
+    delete window.modal;
+    remModal.modal.setAttribute("closing", "");
+    remModal.modal.style.opacity = 0;
+    remModal.modal.querySelector(".modalHeader").style.transform = "scale(0)";
+    remModal.modal.parentElement.removeAttribute("blur");
+    await sleep(350);
+    clearInterval(remModal.interval);
+    remModal.modal.parentElement.remove();
+  }
+}
+
 body.addEventListener("click", async function (event) {
   let element = event.target;
   if (element == null) {
@@ -996,8 +1159,14 @@ body.addEventListener("click", async function (event) {
   let dropdown = element.closest("[dropdown]");
   if (dropdown) {
     (await getModule("dropdown")).open(dropdown, dropdown.getAttribute("dropdown"));
-  } else if (element.closest(".dropdown") == null || element.closest("[close]")) {
+  } else if (element.closest(".dropdown") == null || element.closest(".dropdown button[close]")) {
     (await getModule("dropdown")).close();
+  }
+  let modal = element.closest("[modal]");
+  if (modal) {
+    (await getModule("modal")).open(modal.getAttribute("modal"), modal);
+  } else if (element.closest(".modal button[close]")) {
+    (await getModule("modal")).close();
   }
   let page = element.closest("[openpage]");
   if (page) {
@@ -1155,7 +1324,8 @@ addCSS({
   ".buttonAnim:active": `background: var(--pageColor); --borderWidth: 4px; --borderColor: var(--hover)`,
   ".largeButton:hover": `--borderColor: var(--themeColor2)`,
   ".largeButton:active": `--borderWidth: 8px`,
-  ".fixedItemHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden`,
+  ".fixedItemHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden; transition: .3s`,
+  ".fixedItemHolder[blur]": `backdrop-filter: blur(4px); background: rgba(180, 218, 253, .1); pointer-events: all`,
   "[notransition]": `transition: unset !important`
 });
 

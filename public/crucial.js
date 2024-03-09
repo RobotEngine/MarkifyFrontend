@@ -22,6 +22,7 @@ let fixed = findC("fixed");
 let stylesheet = document.querySelector("style").sheet;
 
 let loadingAnim = app.innerHTML;
+app.querySelector(".loading[new]").setAttribute("appload", "");
 
 let currentPage = "";
 
@@ -179,7 +180,7 @@ async function setFrame(path, frame, extra) {
       loadingPlacement.insertAdjacentHTML("beforeend", loadingAnim);
       if (frameSet == app) {
         loadingPlacement.querySelector(".loading[new]").setAttribute("appload", "");
-      } else if (app.querySelector(".loading[appload]")) {
+      } else if (app.querySelector(".loading[appload]") && frameSet.closest(".dropdown") == null && frameSet.closest(".modal") == null) {
         loadingPlacement.querySelector(".loading[new]").style.opacity = 0;
       }
     }
@@ -703,9 +704,12 @@ socket.remotes.account = function (data) {
   }
 }
 
-function updateToSignedIn(data) {
+async function updateToSignedIn(data) {
   account = data;
   userID = account.id;
+  if (account.stats == null || account.stats.onboard == null) {
+    //(await getModule("modal")).open("modals/tutorial", null, null, false);
+  }
 }
 async function auth() {
   let [code, body] = await sendRequest("GET", "me?ss=" + socket.secureID);
@@ -1013,7 +1017,7 @@ modules["modal"] = {
       }
     }, 1);
   },
-  open: async function (frameName, button, title) {
+  open: async function (frameName, button, title, stack) {
     title = title || "";
     let loaded = modules[frameName] != null;
     if (window.modal) { // Clicked inside the modal
@@ -1040,13 +1044,15 @@ modules["modal"] = {
       }
       header.querySelector(".modalTitle").innerHTML = title;
       let back = header.querySelector(".modalBack");
-      if (window.modal.frameHistory.length > 0) {
+      if (window.modal.frameHistory.length > 0 && stack != false) {
         back.setAttribute("modal", window.modal.frameHistory[window.modal.frameHistory.length - 1][0]);
         back.style.display = "flex";
       } else {
         back.style.display = "none";
       }
-      window.modal.frameHistory.push([frameName, title]);
+      if (stack != false) {
+        window.modal.frameHistory.push([frameName, title]);
+      }
       content.style.opacity = 0;
       //content.style.transform = "scale(.85)";
       content.style.zIndex = 1;
@@ -1325,7 +1331,7 @@ addCSS({
   ".largeButton:hover": `--borderColor: var(--themeColor2)`,
   ".largeButton:active": `--borderWidth: 8px`,
   ".fixedItemHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden; transition: .3s`,
-  ".fixedItemHolder[blur]": `backdrop-filter: blur(4px); background: rgba(180, 218, 253, .1); pointer-events: all`,
+  ".fixedItemHolder[blur]": `backdrop-filter: blur(4px); background: rgba(180, 218, 253, .3); pointer-events: all`,
   "[notransition]": `transition: unset !important`
 });
 

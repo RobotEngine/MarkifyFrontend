@@ -707,9 +707,6 @@ socket.remotes.account = function (data) {
 async function updateToSignedIn(data) {
   account = data;
   userID = account.id;
-  if (account.stats == null || account.stats.onboard == null) {
-    //(await getModule("modal")).open("modals/tutorial", null, null, false);
-  }
 }
 async function auth() {
   let [code, body] = await sendRequest("GET", "me?ss=" + socket.secureID);
@@ -1121,8 +1118,8 @@ modules["modal"] = {
     modal.offsetHeight;
     window.modal = { modal: modal, frameHistory: [[frameName, title]], interval: this.setResizeLoop(modal, content, header, button) };
     modal.style.opacity = 1;
-    await setFrame(frameName, frame);
     modal.parentElement.setAttribute("blur", "");
+    await setFrame(frameName, frame);
     frame.style.removeProperty("min-height");
     await sleep(300);
     let dropTitle = header.querySelector(".modalTitle div");

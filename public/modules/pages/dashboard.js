@@ -64,6 +64,10 @@ modules["pages/dashboard"] = {
     }
     page.querySelector(".dAccount div").textContent = account.user;
 
+    if (account.stats == null || account.stats.onboard == null) {
+      //(await getModule("modal")).open("modals/tutorial", null, null, false);
+    }
+
     // Slick Animation
     (async () => {
       let animTextHolder = page.querySelector(".dHeaderTxAnimHolder");

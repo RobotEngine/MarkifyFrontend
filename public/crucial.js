@@ -287,7 +287,7 @@ window.addEventListener("hashchange", function () {
 });
 
 async function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms || 1));
 }
 
 function getScript(url) {
@@ -1136,6 +1136,7 @@ modules["modal"] = {
     modal.offsetHeight;
     window.modal = { modal: modal, frameHistory: [[frameName, title]], interval: this.setResizeLoop(modal, content, header, button) };
     modal.style.opacity = 1;
+    await sleep();
     modal.parentElement.setAttribute("blur", "");
     await setFrame(frameName, frame);
     frame.style.removeProperty("min-height");

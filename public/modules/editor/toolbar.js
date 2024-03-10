@@ -2208,11 +2208,11 @@ modules["pages/editor/toolbar/cursor"] = {
               let newPageOrder = parseInt(page.getAttribute("order"));
               if (originalPageOrder < newPageOrder) {
                 for (let i = originalPageOrder; i < newPageOrder; i++) {
-                  change -= pageHolder.children[i].offsetHeight;
+                  change -= pageHolder.children[i-1].offsetHeight;
                 }
               } else {
                 for (let i = newPageOrder; i < originalPageOrder; i++) {
-                  change += pageHolder.children[i].offsetHeight;
+                  change += pageHolder.children[i-1].offsetHeight;
                 }
               }
             }

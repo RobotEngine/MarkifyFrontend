@@ -1060,6 +1060,8 @@ modules["modal"] = {
       }
       if (stack != false) {
         window.modal.frameHistory.push([frameName, title]);
+      } else {
+        window.modal.frameHistory = [[frameName, title]];
       }
       content.style.opacity = 0;
       //content.style.transform = "scale(.85)";

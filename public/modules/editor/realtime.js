@@ -41,6 +41,7 @@ modules["editor/realtime"] = {
           let member = editor.members[members[i]];
           if (member.access == 1) {
             member.access = 0;
+            this.removeRealtime(member._id);
           }
         }
         editor.editorCount = 0;

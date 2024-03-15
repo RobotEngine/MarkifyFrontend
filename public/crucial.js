@@ -1041,14 +1041,14 @@ modules["modal"] = {
 
         oldContent.style.removeProperty("right");
         oldContent.style.left = "0%";
-        content.style.left = (modal.offsetWidth / 2) + "px";
+        content.style.left = (modal.offsetWidth / 1) + "px";
       } else {
         window.modal.frameHistory.pop();
         title = window.modal.frameHistory.pop()[1];
 
         oldContent.style.removeProperty("left");
         oldContent.style.right = "0%";
-        content.style.right = (modal.offsetWidth / 2) + "px";
+        content.style.right = (modal.offsetWidth / 1) + "px";
       }
       header.querySelector(".modalTitle").innerHTML = title;
       let back = header.querySelector(".modalBack");
@@ -1078,17 +1078,17 @@ modules["modal"] = {
       oldContent.style.transition = ".4s";
       oldContent.offsetHeight;
       if (button == null || button.closest(".modalBack") == null) {
-        oldContent.style.left = (modal.offsetWidth / -2) + "px";;
+        oldContent.style.left = (modal.offsetWidth / -1) + "px";;
         content.style.left = "0%";
       } else {
-        oldContent.style.right = (modal.offsetWidth / -2) + "px";;
+        oldContent.style.right = (modal.offsetWidth / -1) + "px";;
         content.style.right = "0%";
       }
       oldContent.style.opacity = 0;
       //oldContent.style.transform = "scale(.85)";
       clearInterval(window.modal.interval);
       window.modal.interval = this.setResizeLoop(modal, content, header);
-      await setFrame(frameName, frame);
+      await setFrame(frameName, frame, { button: button });
       content.style.opacity = 1;
       frame.style.removeProperty("min-height");
       await sleep(500);
@@ -1140,7 +1140,7 @@ modules["modal"] = {
     modal.style.opacity = 1;
     await sleep();
     modal.parentElement.setAttribute("blur", "");
-    await setFrame(frameName, frame);
+    await setFrame(frameName, frame, { button: button });
     frame.style.removeProperty("min-height");
     await sleep(300);
     let dropTitle = header.querySelector(".modalTitle div");
@@ -1295,9 +1295,10 @@ modules["alert"] = {
 
 modules["dropdowns/account"] = {
   html: `
+  <button class="accountDrop accountLogout" style="--setBackground: var(--error)" close><div>Logout</div><img src="./images/tooltips/account/logout.svg"></button>
   <button class="accountDrop accountManage" close><div>Settings</div><img src="./images/tooltips/account/settings.svg"></button>
   <!--<button class="accountDrop" dropdown="dropdowns/account/preferences"><div>Preferences</div><img src="./images/tooltips/account/preferences.svg"></button>-->
-  <button class="accountDrop accountLogout" style="--setBackground: var(--error)" close><div>Logout</div><img src="./images/tooltips/account/logout.svg"></button>
+  <button class="accountDrop accountManage" close modal="modals/tutorial" modaltitle="Resources"><div>Resources</div><img src="./images/tooltips/account/question.svg"></button>
   `,
   css: {
     ".accountDrop": `display: flex; width: 100%; padding: 6px; border-radius: 8px; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s; --setBackground: var(--theme)`,

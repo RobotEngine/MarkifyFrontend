@@ -195,7 +195,7 @@ modules["pages/editor"] = {
           },
           opacity: 100,
           size: 18,
-          align: "left"
+          align: "center"
         },
         draw: {
           subtool: "pen",

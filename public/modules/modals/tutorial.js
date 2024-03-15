@@ -64,7 +64,11 @@ modules["modals/tutorial"] = {
       (await getModule("modal")).close();
       updateSeenTutorial();
     });
-    frame.closest(".modal").querySelector(".modalClose").addEventListener("click", updateSeenTutorial);
+    let closeButton = frame.closest(".modal").querySelector(".modalClose");
+    if (closeButton != null && closeButton.hasAttribute("listen") == false) {
+      closeButton.setAttribute("listen", "");
+      closeButton.addEventListener("click", updateSeenTutorial);
+    }
   }
 }
 

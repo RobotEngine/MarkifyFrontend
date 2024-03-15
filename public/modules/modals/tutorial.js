@@ -108,7 +108,7 @@ modules["modals/tutorial/resources"] = {
     ".dmucNavButton": `--themeColor: var(--theme); --themeColor2: var(--themeColor); --borderRadius: 33px; padding: 4px 8px; flex-wrap: wrap; margin: 0px 12px; justify-content: center; color: var(--theme); font-size: 18px`,
     ".dmucNavButton svg": `width: 30px`,
     ".dmucNavDots": `display: flex; flex-wrap: wrap; justify-content: center; align-items: center`,
-    ".dmucNavDots button": `width: 12px; height: 12px; margin: 4px; background: var(--gray); border-radius: 6px`,
+    ".dmucNavDots button": `display: flex; width: 12px; height: 12px; margin: 4px; background: var(--gray); border-radius: 6px`,
     ".dmucNavDots button[selected]": `width: 24px; background: var(--theme)`
   },
   resources: {

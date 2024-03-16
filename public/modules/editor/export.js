@@ -35,11 +35,13 @@ modules["editor/export"] = {
             let page = pageHolder.children[data.page - 1];
             if (page != null) {
               page.setAttribute("exporting", "");
-              pageHolder.style.removeProperty("width");
-              pageHolder.style.removeProperty("height");
             } else {
               pageHolder.style.width = "250px";
               pageHolder.style.height = "250px";
+              if (window.navigationReady) {
+                window.navigationReady();
+              }
+              return;
             }
             await editor.updatePages();
             await utils.resetAnnotationSize();

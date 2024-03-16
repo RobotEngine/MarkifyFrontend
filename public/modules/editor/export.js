@@ -32,7 +32,10 @@ modules["editor/export"] = {
             if (prevExport != null) {
               prevExport.removeAttribute("exporting");
             }
-            pageHolder.children[data.page - 1].setAttribute("exporting", "");
+            let page = pageHolder.children[data.page - 1];
+            if (page != null) {
+              page.setAttribute("exporting", "");
+            }
             await editor.updatePages();
             await utils.resetAnnotationSize();
             await editor.viewAnnotations();

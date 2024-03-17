@@ -33,7 +33,7 @@ modules["editor/toolbar"] = {
     ".eToolbar .content": `scrollbar-width: none`,
     ".eToolbar .content::-webkit-scrollbar": `display: none`,
 
-    ".eTool": `--hoverColor: var(--hover); width: 50px; height: 50px; flex-shrink: 0; padding: 0; transition: unset`,
+    ".eTool": `--hoverColor: var(--hover); width: 50px; height: 50px; flex-shrink: 0; padding: 0; transition: opacity .3s`,
     ".eTool > div": `display: flex; width: 100%; height: 100%; justify-content: center; align-items: center; transition: .2s; overflow: hidden`,
     ".eTool:hover > div": `background: var(--hoverColor)`,
     ".eTool:active": `transform: unset !important`,
@@ -1345,11 +1345,11 @@ modules["pages/editor/toolbar/cursor"] = {
     this.lastEditorZoom = editor.zoom;
   },
   actionBarTools: {
-    "draw": ["pages/editor/toolbar/color", "pages/editor/toolbar/thickness", "pages/editor/toolbar/opacity", "pages/editor/toolbar/duplicate", "pages/editor/toolbar/delete"],
-    "text": ["pages/editor/toolbar/textedit", "pages/editor/toolbar/color", "pages/editor/toolbar/opacity", "pages/editor/toolbar/fontsize", "pages/editor/toolbar/bold", "pages/editor/toolbar/italic", "pages/editor/toolbar/underline", "pages/editor/toolbar/strikethrough", "pages/editor/toolbar/textalign", "pages/editor/toolbar/duplicate", "pages/editor/toolbar/delete"],
-    "markup": ["pages/editor/toolbar/color", "pages/editor/toolbar/thickness", "pages/editor/toolbar/opacity", "pages/editor/toolbar/duplicate", "pages/editor/toolbar/delete"],
-    "shape": ["pages/editor/toolbar/color", "pages/editor/toolbar/thickness", "pages/editor/toolbar/opacity", "pages/editor/toolbar/style", "pages/editor/toolbar/duplicate", "pages/editor/toolbar/delete"],
-    "media": ["pages/editor/toolbar/duplicate", "pages/editor/toolbar/delete"]
+    "draw": ["color", "thickness", "opacity", "collaborator", "duplicate", "delete"],
+    "text": ["textedit", "color", "opacity", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "collaborator", "duplicate", "delete"],
+    "markup": ["color", "thickness", "opacity", "collaborator", "duplicate", "delete"],
+    "shape": ["color", "thickness", "opacity", "style", "collaborator", "duplicate", "delete"],
+    "media": ["collaborator", "duplicate", "delete"]
   },
   actionEvents: [],
   updateActionUI: async function (refresh) {
@@ -1421,7 +1421,7 @@ modules["pages/editor/toolbar/cursor"] = {
         // Add Buttons
         let actionButtonHolder = actionUI.querySelector(".eSelectHolder");
         for (let i = 0; i < combineTools.length; i++) {
-          let actionRef = combineTools[i];
+          let actionRef = "pages/editor/toolbar/" + combineTools[i];
           let module = await getModule(actionRef);
           if (module.multiSelect == false && selectionIDs.length > 1) {
             continue;
@@ -1882,6 +1882,7 @@ modules["pages/editor/toolbar/cursor"] = {
     if (this.annotationElem != null && this.annotationElem.querySelector("div[contenteditable]") != null) {
       return;
     }
+    this.actionEnabled = false;
     if (this.activeElem != null || (this.annotationElem != null && this.annotationElem.hasAttribute("selected"))) {
       // Drag/Move Element
       this.action = "move";
@@ -1932,6 +1933,18 @@ modules["pages/editor/toolbar/cursor"] = {
     let mouseY = clientPosition(event, "y");
     this.endX = (mouseX + window.scrollX) * inverse;
     this.endY = (mouseY + window.scrollY) * inverse;
+
+    let changeX = this.endX - this.startX;
+    let changeY = this.endY - this.startY;
+
+    if (this.actionEnabled == false) {
+      if (Math.abs(changeX) > 3 || Math.abs(changeY) > 3) {
+        this.actionEnabled = true;
+      } else {
+        return;
+      }
+    }
+
     /*
     if (Math.floor(this.endX - this.startX) == 0 && Math.floor(this.endY - this.startY) == 0) {
       this.action = null;
@@ -1956,8 +1969,6 @@ modules["pages/editor/toolbar/cursor"] = {
       if (original.revert == null) {
         original.revert = JSON.parse(JSON.stringify(original.render));
       }
-      let changeX = this.endX - this.startX;
-      let changeY = this.endY - this.startY;
       if (this.action == "move") {
         select.p = select.p || anno.p;
         select.p[0] = utils.round(select.p[0] + changeX);
@@ -4430,7 +4441,6 @@ modules["pages/editor/toolbar/style"] = {
 modules["pages/editor/toolbar/duplicate"] = {
   button: `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_673_41" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_673_41)"> <path fill-rule="evenodd" clip-rule="evenodd" d="M73 65H133C137.418 65 141 68.5817 141 73V94H153V73C153 61.9543 144.046 53 133 53H73C61.9543 53 53 61.9543 53 73V133C53 144.046 61.9543 153 73 153H94V141H73C68.5817 141 65 137.418 65 133V73C65 68.5817 68.5817 65 73 65Z" fill="white"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M133 21H73C44.2812 21 21 44.2812 21 73V133C21 161.719 44.2812 185 73 185H94V153H73C61.9543 153 53 144.046 53 133V73C53 61.9543 61.9543 53 73 53H133C144.046 53 153 61.9543 153 73V94H185V73C185 44.2812 161.719 21 133 21Z" fill="white"/> <rect x="87" y="87" width="132" height="132" rx="36" stroke="white" stroke-width="32"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M133 33H73C50.9086 33 33 50.9086 33 73V133C33 155.091 50.9086 173 73 173H94V153H73C61.9543 153 53 144.046 53 133V73C53 61.9543 61.9543 53 73 53H133C144.046 53 153 61.9543 153 73V94H173V73C173 50.9086 155.091 33 133 33Z" fill="#2F2F2F"/> <rect x="109" y="109" width="88" height="88" rx="14" stroke="white" stroke-width="12"/> <path d="M125 153H182" stroke="white" stroke-width="30" stroke-linecap="round"/> <path d="M153 181L153 124" stroke="white" stroke-width="30" stroke-linecap="round"/> <path d="M125 153H182" stroke="#2F2F2F" stroke-width="15" stroke-linecap="round"/> <path d="M153 181L153 124" stroke="#2F2F2F" stroke-width="15" stroke-linecap="round"/> <rect x="93" y="93" width="120" height="120" rx="30" stroke="#2F2F2F" stroke-width="20"/> </g> </svg>`,
   tooltip: "Duplicate",
-  divideBefore: true,
   js: async function (frame, toolID, extra) {
     let editor = await getModule("pages/editor");
     let utils = await getModule("pages/editor/annotation");
@@ -4449,6 +4459,7 @@ modules["pages/editor/toolbar/duplicate"] = {
       newAnno.p[0] += 50;
       newAnno.p[1] += 50;
       newAnno.sync = setTempSync;
+      delete newAnno.m;
       await utils.render(newAnno);
       editor.annotations[tempID] = { render: newAnno };
       newSelect[tempID] = newAnno;
@@ -4492,6 +4503,83 @@ modules["pages/editor/toolbar/delete"] = {
     await utils.forceShort();
     editor.selecting = {};
     cursor.updateBox();
+  }
+};
+
+modules["pages/editor/toolbar/collaborator"] = {
+  button: `<img class="eSubToolCollaborator" src="./images/profiles/default.svg">`,
+  divideBefore: true,
+  setButton: async function (editor, button) {
+    button.setAttribute("disabled", "");
+    let selectKeys = Object.keys(editor.selecting);
+    //let buttonElem = button.querySelector(".eSubToolStyle");
+    // Loop through to see if collaborator option should be shown
+    let modifiedBy;
+    for (let i = 0; i < selectKeys.length; i++) {
+      let annotation = editor.annotations[selectKeys[i]];
+      let setModifiedBy = (annotation.revert || annotation.render || annotation.sync || {}).m;
+      if (setModifiedBy == null || setModifiedBy.startsWith("temp_") == true || (modifiedBy != null && setModifiedBy != modifiedBy)) {
+        button.remove();
+        return;
+      }
+      modifiedBy = setModifiedBy;
+    }
+    let modifyID = modifiedBy.substring(5);
+    if (modifyID == editor.sessionID || modifyID == userID) {
+      button.remove();
+      return;
+    }
+    let collaborator = editor.collaborators[modifyID];
+    if (collaborator == null) { // Fetch to get the collaborator
+      let [code, body] = await sendRequest("GET", "lessons/members/collaborator?userid=" + modifyID, null, { session: editor.session });
+      if (code == 200) {
+        editor.collaborators[body._id] = body;
+        collaborator = editor.collaborators[body._id];
+      } else {
+        return;
+      }
+    }
+    button.setAttribute("userid", collaborator._id);
+    button.setAttribute("tooltip", collaborator.user);
+    button.querySelector(".eSubToolCollaborator").src = collaborator.image || "./images/profiles/default.svg";
+    button.removeAttribute("disabled");
+  },
+  html: `
+  <div class="eSubToolCollaboratorHolder">
+    <img class="eSubToolCollaboratorPicture">
+    <div class="eSubToolCollaboratorInfo">
+      <div name></div>
+      <div email></div>
+    </div>
+  </div>
+  `,
+  css: {
+    ".eSubToolCollaborator": `width: 32px; height: 32px; padding: 3px; object-fit: cover; background: var(--pageColor); border-radius: 19px`,
+
+    ".eSubToolCollaboratorHolder": `display: flex; flex-wrap: wrap; width: max-content; max-width: var(--uiwidth); padding: 8px; gap: 4px; align-items: center`,
+    ".eSubToolCollaboratorPicture": `width: 50px; height: 50px; border: solid 4px var(--pageColor); margin: 4px; object-fit: cover; background: var(--pageColor); border-radius: 29px`,
+    ".eSubToolCollaboratorInfo": `margin: 4px; text-align: left`,
+    ".eSubToolCollaboratorInfo div[name]": `max-width: calc(var(--uiwidth) - 24px); font-size: 20px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
+    ".eSubToolCollaboratorInfo div[email]": `max-width: calc(var(--uiwidth) - 24px); font-size: 15px; font-weight: 500; margin-top: 3px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`
+  },
+  js: async function (frame, toolID, extra) {
+    let editor = await getModule("pages/editor");
+    
+    let collaboratorID = extra.frame.querySelector('.eTool[action="pages/editor/toolbar/collaborator"]').getAttribute("userid");
+    let collaborator = editor.collaborators[collaboratorID];
+    if (collaborator == null) {
+      return;
+    }
+
+    frame.querySelector(".eSubToolCollaboratorPicture").src = collaborator.image || "./images/profiles/default.svg";
+    let name = frame.querySelector(".eSubToolCollaboratorInfo div[name]");
+    name.textContent = collaborator.user;
+    name.title = collaborator.user;
+    let email = frame.querySelector(".eSubToolCollaboratorInfo div[email]");
+    email.textContent = collaborator.email;
+    email.title = collaborator.email;
+
+    frame.querySelector(".eSubToolCollaboratorHolder").style.setProperty("--uiwidth", frame.closest(".eSelectBar").clientWidth + "px");
   }
 };
 

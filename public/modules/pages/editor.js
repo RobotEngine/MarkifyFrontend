@@ -736,6 +736,20 @@ modules["pages/editor"] = {
                 cursor.remove();
               }
             }
+
+            // Update collaborators:
+            let collaborator = this.collaborators[member.user];
+            if (collaborator != null) {
+              if (body.name != null) {
+                collaborator.user = body.name;
+              }
+              if (body.email != null) {
+                collaborator.email = body.email;
+              }
+              if (body.hasOwnProperty("image") == true) {
+                collaborator.image = body.image;
+              }
+            }
           }
           break;
         case "set":
@@ -1167,6 +1181,8 @@ modules["pages/editor"] = {
       utils.syncSave();
     }
     window.resync = { lesson: lessonID, annotations: this.annotations };
+
+    this.collaborators = {};
 
     if (body.preferences != null) {
       objectUpdate(body.preferences, this.preferences);

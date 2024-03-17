@@ -1327,7 +1327,7 @@ modules["dropdowns/editor/members"] = {
               <div class="eMemberSection eMemberSectionInfo">
                 <div class="eMemberBackdrop"><div></div></div>
                 <div class="eMemberFrameCursor"></div>
-                <img class="eMemberFramePicture"></img>
+                <img class="eMemberFramePicture">
                 <div class="eMemberFrameInfoHolder">
                   <div name></div>
                   <div email></div>

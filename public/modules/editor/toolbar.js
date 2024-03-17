@@ -4557,7 +4557,7 @@ modules["pages/editor/toolbar/collaborator"] = {
     ".eSubToolCollaborator": `width: 32px; height: 32px; padding: 3px; object-fit: cover; background: var(--pageColor); border-radius: 19px`,
 
     ".eSubToolCollaboratorHolder": `display: flex; flex-wrap: wrap; width: max-content; max-width: var(--uiwidth); padding: 8px; gap: 4px; align-items: center`,
-    ".eSubToolCollaboratorPicture": `width: 50px; height: 50px; border: solid 4px var(--pageColor); margin: 4px; object-fit: cover; background: var(--pageColor); border-radius: 29px`,
+    ".eSubToolCollaboratorPicture": `width: 50px; height: 50px; padding: 3px; margin: 1px; border: solid 4px var(--theme); object-fit: cover; background: var(--pageColor); border-radius: 32px`,
     ".eSubToolCollaboratorInfo": `margin: 4px; text-align: left`,
     ".eSubToolCollaboratorInfo div[name]": `max-width: calc(var(--uiwidth) - 24px); font-size: 20px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
     ".eSubToolCollaboratorInfo div[email]": `max-width: calc(var(--uiwidth) - 24px); font-size: 15px; font-weight: 500; margin-top: 3px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`

@@ -604,7 +604,17 @@ modules["editor/realtime"] = {
                         editor.annotations[annoID] = {};
                         original = editor.annotations[annoID];
                       }
-                      original.revert = original.revert || JSON.parse(JSON.stringify(original.render || {}));
+                      let mCheck;
+                      if (member.user != null) {
+                        mCheck = "user_" + member.user;
+                      } else {
+                        mCheck = "temp_" + member._id;
+                      }
+                      let originalRender = original.render || {};
+                      if (editor.lesson.settings.editOthersWork != true && originalRender.m != mCheck && member.access < 4) { // Can't edit another member's work:
+                        continue;
+                      }
+                      original.revert = original.revert || JSON.parse(JSON.stringify(originalRender));
                       // If the user is also selecting, we must update their fields accordingly:
                       /*
                       if (selecting != null) {
@@ -621,9 +631,9 @@ modules["editor/realtime"] = {
                         cursorModule.updateBox();
                       }
                       if (anno.done != true && forced != true) {
-                        original.render = { ...(original.render || {}), ...anno };
+                        original.render = { ...originalRender, ...anno };
                       } else {
-                        original.render = { ...(original.render || {}), ...anno };
+                        original.render = { ...originalRender, ...anno };
                         delete original.render.done;
                         utils.saveEdit(anno, null, time);
                       }

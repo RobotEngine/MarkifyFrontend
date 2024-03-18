@@ -2196,7 +2196,7 @@ modules["pages/editor/toolbar/cursor"] = {
         let currentPage = editor.page.querySelector('.ePage[pageid="' + page + '"]');
         if (currentPage != null) {
           if (currentPage.hasAttribute("hide") == true) {
-            editor.selecting[annoid] = {};
+            editor.selecting[annoid] = { p: originalRender.p };
             await utils.render(originalRender);
             this.updateBox();
             continue;
@@ -2204,7 +2204,7 @@ modules["pages/editor/toolbar/cursor"] = {
           let [page] = (await utils.findPage((pos[1] * editor.zoom) + currentPage.getBoundingClientRect().top));
           if (page != currentPage) {
             if (page.hasAttribute("hide") == true) {
-              editor.selecting[annoid] = {};
+              editor.selecting[annoid] = { p: originalRender.p };
               await utils.render(originalRender);
               this.updateBox();
               continue;
@@ -2269,6 +2269,7 @@ modules["pages/editor/toolbar/cursor"] = {
   js: async function (editor, utils, addEvent) {
     let content = editor.page.querySelector(".eContent");
     editor.updateZoom = this.updateBox;
+    let alertModule = await getModule("alert");
     let startX;
     let startY;
     let wasSelected;
@@ -2310,6 +2311,17 @@ modules["pages/editor/toolbar/cursor"] = {
         return;
       }
       let annoID = anno.getAttribute("anno");
+      let mCheck;
+      let self = editor.getSelf();
+      if (self.user != null) {
+        mCheck = "user_" + self.user;
+      } else {
+        mCheck = "temp_" + self._id;
+      }
+      if (editor.lesson.settings.editOthersWork != true && ((editor.annotations[annoID] || {}).render || {}).m != mCheck && self.access < 4) { // Can't edit another member's work:
+        alertModule.open("warning", "<b>Someone Else's Annotation</b>The ability to modify another member's work is disabled.");
+        return;
+      }
       if (editor.selecting[annoID] == null) {
         wasSelected = annoID;
         editor.selecting[annoID] = {};
@@ -2337,6 +2349,16 @@ modules["pages/editor/toolbar/cursor"] = {
           return;
         }
         let annoID = anno.getAttribute("anno");
+        let mCheck;
+        let self = editor.getSelf();
+        if (self.user != null) {
+          mCheck = "user_" + self.user;
+        } else {
+          mCheck = "temp_" + self._id;
+        }
+        if (editor.lesson.settings.editOthersWork != true && ((editor.annotations[annoID] || {}).render || {}).m != mCheck && self.access < 4) { // Can't edit another member's work:
+          return;
+        }
         if (event.shiftKey == true) {
           // Unselect
           if (wasSelected != annoID && editor.selecting[annoID] != null) {
@@ -2430,7 +2452,18 @@ modules["pages/editor/toolbar/drag"] = {
         if (page != null && page.hasAttribute("hide") == true) {
           continue;
         }
-        editor.selecting[selected[i].getAttribute("anno")] = {};
+        let annoID = selected[i].getAttribute("anno");
+        let mCheck;
+        let self = editor.getSelf();
+        if (self.user != null) {
+          mCheck = "user_" + self.user;
+        } else {
+          mCheck = "temp_" + self._id;
+        }
+        if (editor.lesson.settings.editOthersWork != true && ((editor.annotations[annoID] || {}).render || {}).m != mCheck && self.access < 4) { // Can't edit another member's work:
+          continue;
+        }
+        editor.selecting[annoID] = {};
       }
       cursorModule.updateBox();
     }

@@ -627,6 +627,13 @@ modules["editor/realtime"] = {
                         delete original.render.done;
                         utils.saveEdit(anno, null, time);
                       }
+                      if (Object.keys({ ...anno, done: "" }).length > 2) {
+                        if (member.user != null) {
+                          original.render.m = "user_" + member.user;
+                        } else {
+                          original.render.m = "temp_" + member._id;
+                        }
+                      }
                       original.render.sync = time;
                       utils.enableTimeout(annoID, original, null, true);
                     }
@@ -725,7 +732,15 @@ modules["editor/realtime"] = {
                   delete member.selecting;
                 }
                 if (extra.u != null) { // Update Annotation
-                  utils.saveEdit(extra.u);
+                  let mutations = utils.saveEdit(extra.u);
+                  console.log(mutations)
+                  if (mutations != null) {
+                    if (member.user != null) {
+                      anno.m = "user_" + member.user;
+                    } else {
+                      anno.m = "temp_" + member._id;
+                    }
+                  }
                 }
               }
               if (extra != null && extra.press == true) {

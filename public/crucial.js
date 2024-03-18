@@ -2,7 +2,7 @@ let serverURL = "https://markify.exotek.co/api/";
 //let serverURL = "http://localhost:3000/api/";
 let assetURL = "https://markifyapp.s3.amazonaws.com/";
 
-const version = "0.4.0"; // Big Update . Small Feature Release . Bug Fix
+const version = "0.4.1"; // Big Update . Small Feature Release . Bug Fix
 
 const socket = new SimpleSocket({
   project_id: "62088fbdfc22489578e94822",

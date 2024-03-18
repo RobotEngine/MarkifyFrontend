@@ -2170,8 +2170,6 @@ modules["pages/editor/toolbar/cursor"] = {
 
     let pageHolder = editor.page.querySelector(".ePageHolder");
 
-    this.updateActionUI();
-
     let setTempSync = getEpoch();
 
     // Save Revert
@@ -2263,6 +2261,8 @@ modules["pages/editor/toolbar/cursor"] = {
     for (let i = 0; i < keys.length; i++) {
       editor.selecting[keys[i]] = {};
     }
+
+    this.updateActionUI();
 
     utils.resetAnnotationSize();
   },
@@ -4517,7 +4517,7 @@ modules["pages/editor/toolbar/collaborator"] = {
     let modifiedBy;
     for (let i = 0; i < selectKeys.length; i++) {
       let annotation = editor.annotations[selectKeys[i]];
-      let setModifiedBy = (annotation.revert || annotation.render || annotation.sync || {}).m;
+      let setModifiedBy = (annotation.render || {}).m || (annotation.revert || {}).m;
       if (setModifiedBy == null || setModifiedBy.startsWith("temp_") == true || (modifiedBy != null && setModifiedBy != modifiedBy)) {
         button.remove();
         return;

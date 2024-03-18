@@ -1025,6 +1025,7 @@ modules["pages/editor"] = {
         let existingAnno = this.annotations[anno._id] || this.annotations[anno.pending];
         if (existingAnno != null) {
           // RUNS FOR EACH ANNOTATION IN LONG
+
           /*
           if (anno.remove == true) {
             utils.removeAnnotation(anno._id);
@@ -3596,6 +3597,13 @@ modules["pages/editor/annotation"] = {
     annotation.save = true; // Alert the system it's time to save
     annotation.render.sync = getEpoch();
     mutations.sync = annotation.render.sync;
+
+    let member = editor.getSelf();
+    if (member.user != null) {
+      annotation.render.m = "user_" + member.user;
+    } else {
+      annotation.render.m = "temp_" + member._id;
+    }
 
     let saveSync = { _id: annoID, ...(this.pendingSaves[annoID] || {}), ...mutations };
     if (connected == true) {

@@ -1817,12 +1817,12 @@ modules["pages/editor/toolbar/cursor"] = {
         for (let i = 0; i < saveUpdates.length; i++) {
           await utils.save({ ...saveUpdates[i] }, null, sync);
         }
-        if (short == true) {
+        //if (short == true) {
           await utils.forceShort();
           for (let i = 0; i < selectKeys.length; i++) {
             editor.selecting[selectKeys[i]] = {};
           }
-        }
+        //}
 
         this.updateBox();
       },
@@ -4519,14 +4519,14 @@ modules["pages/editor/toolbar/collaborator"] = {
       let annotation = editor.annotations[selectKeys[i]];
       let setModifiedBy = (annotation.render || {}).m || (annotation.revert || {}).m;
       if (setModifiedBy == null || setModifiedBy.startsWith("temp_") == true || (modifiedBy != null && setModifiedBy != modifiedBy)) {
-        button.remove();
+        button.style.display = "none";
         return;
       }
       modifiedBy = setModifiedBy;
     }
     let modifyID = modifiedBy.substring(5);
     if (modifyID == editor.sessionID || modifyID == userID) {
-      button.remove();
+      button.style.display = "none";
       return;
     }
     let collaborator = editor.collaborators[modifyID];
@@ -4543,6 +4543,10 @@ modules["pages/editor/toolbar/collaborator"] = {
     button.setAttribute("tooltip", collaborator.user);
     button.querySelector(".eSubToolCollaborator").src = collaborator.image || "./images/profiles/default.svg";
     button.removeAttribute("disabled");
+    if (button.style.display != "unset") {
+      button.style.display = "unset";
+      editor.updateZoom();
+    }
   },
   html: `
   <div class="eSubToolCollaboratorHolder">

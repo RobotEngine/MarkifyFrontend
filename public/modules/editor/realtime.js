@@ -612,7 +612,7 @@ modules["editor/realtime"] = {
                       }
                       original = original || {};
                       let originalRender = original.render || {};
-                      if (editor.lesson.settings.editOthersWork != true && originalRender.m != mCheck && member.access < 4) { // Can't edit another member's work:
+                      if (editor.lesson.settings.editOthersWork != true && originalRender.m != null && originalRender.m != mCheck && member.access < 4) { // Can't edit another member's work:
                         continue;
                       }
                       original.revert = original.revert || JSON.parse(JSON.stringify(originalRender));

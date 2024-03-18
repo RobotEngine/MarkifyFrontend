@@ -2318,7 +2318,8 @@ modules["pages/editor/toolbar/cursor"] = {
       } else {
         mCheck = "temp_" + self._id;
       }
-      if (editor.lesson.settings.editOthersWork != true && ((editor.annotations[annoID] || {}).render || {}).m != mCheck && self.access < 4) { // Can't edit another member's work:
+      let render = ((editor.annotations[annoID] || {}).render || {});
+      if (editor.lesson.settings.editOthersWork != true && render.m != null && render.m != mCheck && self.access < 4) { // Can't edit another member's work:
         alertModule.open("warning", "<b>Someone Else's Annotation</b>The ability to modify another member's work is disabled.");
         return;
       }
@@ -2356,7 +2357,8 @@ modules["pages/editor/toolbar/cursor"] = {
         } else {
           mCheck = "temp_" + self._id;
         }
-        if (editor.lesson.settings.editOthersWork != true && ((editor.annotations[annoID] || {}).render || {}).m != mCheck && self.access < 4) { // Can't edit another member's work:
+        let render = ((editor.annotations[annoID] || {}).render || {});
+        if (editor.lesson.settings.editOthersWork != true && render.m != null && render.m != mCheck && self.access < 4) { // Can't edit another member's work:
           return;
         }
         if (event.shiftKey == true) {
@@ -2460,7 +2462,8 @@ modules["pages/editor/toolbar/drag"] = {
         } else {
           mCheck = "temp_" + self._id;
         }
-        if (editor.lesson.settings.editOthersWork != true && ((editor.annotations[annoID] || {}).render || {}).m != mCheck && self.access < 4) { // Can't edit another member's work:
+        let render = ((editor.annotations[annoID] || {}).render || {});
+        if (editor.lesson.settings.editOthersWork != true && render.m != null && render.m != mCheck && self.access < 4) { // Can't edit another member's work:
           continue;
         }
         editor.selecting[annoID] = {};
@@ -3278,6 +3281,14 @@ modules["pages/editor/toolbar/eraser"] = {
         return;
       }
 
+      let mCheck;
+      let self = editor.getSelf();
+      if (self.user != null) {
+        mCheck = "user_" + self.user;
+      } else {
+        mCheck = "temp_" + self._id;
+      }
+
       x0 = x0 || x1;
       y0 = y0 || y1;
 
@@ -3295,7 +3306,13 @@ modules["pages/editor/toolbar/eraser"] = {
           let anno = annos[i].closest(".eAnnotation");
           if (anno != null && anno.hasAttribute("hidden") == false && anno.querySelector("polyline") != null) {
             let annoID = anno.getAttribute("anno");
-            if (editor.annotations[annoID] != null) {
+            let annotation = editor.annotations[annoID];
+            if (annotation != null) {
+              let render = annotation.render || {};
+              if (editor.lesson.settings.editOthersWork != true && render.m != null && render.m != mCheck && self.access < 4) { // Can't edit another member's work:
+                continue;
+              }
+              
               // This alone isn't enough, the actual points MUST be checked:
               let drawing = anno.querySelector("polyline");
               if (drawing != null && drawing.hasAttribute("points") == true) {
@@ -3305,7 +3322,7 @@ modules["pages/editor/toolbar/eraser"] = {
                 for (let i = 1; i < points.numberOfItems; i++) {
                   if (isPointOnLine(x + 100, y + 100, points.getItem(i - 1).x, points.getItem(i - 1).y, points.getItem(i).x, points.getItem(i).y, (parseInt(drawing.getAttribute("stroke-width")) / 2) + 10)) {
                     anno.setAttribute("hidden", "");
-                    await utils.pushHistory("add", [(editor.annotations[annoID].render || {})]);
+                    await utils.pushHistory("add", [render]);
                     let updateAnno = { _id: annoID, remove: true };
                     utils.save(updateAnno, anno);
                     this.publish.u = updateAnno;

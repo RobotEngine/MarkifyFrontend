@@ -742,15 +742,26 @@ modules["editor/realtime"] = {
                   }
                   delete member.selecting;
                 }
-                if (extra.u != null) { // Update Annotation
-                  let mutations = utils.saveEdit(extra.u);
-                  console.log(mutations)
-                  if (mutations != null) {
-                    if (member.user != null) {
-                      anno.m = "user_" + member.user;
-                    } else {
-                      anno.m = "temp_" + member._id;
-                    }
+                if (extra.u != null && extra.u._id != null) { // Update Annotation
+                  let original = editor.annotations[extra.u._id];
+                  if (original != null && original.pointer != null) {
+                    extra.u._id = original.pointer;
+                    original = editor.annotations[extra.u._id];
+                  }
+                  if (original == null && extra.u._id.startsWith("pending_") == true) {
+                    editor.annotations[extra.u._id] = {};
+                    original = editor.annotations[annextra.u._idoID];
+                  }
+                  let mCheck;
+                  if (member.user != null) {
+                    mCheck = "user_" + member.user;
+                  } else {
+                    mCheck = "temp_" + member._id;
+                  }
+                  original = original || {};
+                  let originalRender = original.render || {};
+                  if (editor.lesson.settings.editOthersWork == true || originalRender.m == null || originalRender.m == mCheck || member.access > 3) { // Can edit another member's work:
+                    utils.saveEdit(extra.u);
                   }
                 }
               }

@@ -610,6 +610,7 @@ modules["editor/realtime"] = {
                       } else {
                         mCheck = "temp_" + member._id;
                       }
+                      original = original || {};
                       let originalRender = original.render || {};
                       if (editor.lesson.settings.editOthersWork != true && originalRender.m != mCheck && member.access < 4) { // Can't edit another member's work:
                         continue;

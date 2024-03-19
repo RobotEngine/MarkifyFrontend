@@ -3528,6 +3528,11 @@ modules["pages/editor/annotation"] = {
         }
         if (anno != null) {
           if (anno.render != null) {
+            if (mutations.length > 249) {
+              setPendingSave[mutt._id] = mutt;
+              this.enableTimeout(anno.render._id, anno);
+              continue;
+            }
             delete anno.save;
             //mutt._id = anno.render._id;
             if (anno.retry > 0) {

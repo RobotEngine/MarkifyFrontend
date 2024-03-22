@@ -974,8 +974,7 @@ modules["dropdown"] = {
     }
     let remDropdown = window.dropdown;
     delete window.dropdown;
-    remDropdown.dropdown.setAttribute("closing", "");
-    remDropdown.button.style.opacity = 1;
+    remDropdown.button.style.removeProperty("opacity");
     remDropdown.dropdown.style.opacity = 0;
     remDropdown.dropdown.querySelector(".dropdownHeader").style.transform = "scale(0)";
     await sleep(350);

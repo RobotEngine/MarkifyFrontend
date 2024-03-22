@@ -142,12 +142,18 @@ modules["pages/dashboard/lessons"] = {
     ".dTileDocImage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: var(--borderRadius); object-fit: cover; object-position: top center`,
     ".dTileInfo": `position: absolute; box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; left: 0px; bottom: 0px; padding: 6px; background: rgba(var(--background), .95)`,
     ".dTileName": `width: 100%; font-size: 18px; font-weight: 600; color: var(--themeColor); text-align: left`,
+    ".dTileName[contenteditable]": `padding: 2px 4px; margin-bottom: 4px; max-height: 70px; outline: solid 2px var(--themeColor); border-radius: 4px; overflow: auto`,
     ".dTileStats": `display: flex; width: 100%; padding: 0 6px; font-size: 16px; font-weight: 700; overflow: hidden; white-space: nowrap`,
     ".dTileDate": `flex: 1; margin-right: 8px; color: var(--darkGray); text-align: left`,
-    ".dTileMemberCount": "display: flex; color: var(--theme); justify-content: right; align-items: center",
-    ".dTileMemberCount img": "width: 21px; height: 21px; margin-right: 2px"
+    ".dTileMemberCount": `display: flex; color: var(--theme); justify-content: right; align-items: center`,
+    ".dTileMemberCount img": `width: 21px; height: 21px; margin-right: 2px`,
+    ".dTileOptions": `position: absolute; display: flex; width: 34px; height: 34px; padding: 4px; right: -2px; top: -2px; z-index: 2; background: var(--themeColor2); border-radius: 0 19px 0 14px; overflow: hidden; opacity: 0`,
+    ".dTile:hover .dTileOptions": "opacity: 1",
+    ".dTileOptions svg": `display: unset !important; width: 100%; height: 100%; flex-shrink: 0`,
+    ".dTileOptions div": `margin-left: 6px`
   },
   js: async function (frame) {
+    let dropdownModule = await getModule("dropdown");
     let path = "lessons";
     if (modules["pages/editor"] && modules["pages/editor"].session) {
       path += "?leave=" + modules["pages/editor"].session;
@@ -180,12 +186,20 @@ modules["pages/dashboard/lessons"] = {
             <div class="dTileMemberCount" title="Active Members"><img src="./images/profiles/default.svg"><span>0</span></div>
           </div>
         </div>
+        <button class="dTileOptions" dropdown="dropdowns/dashboard/options">
+          <svg style="display: none" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_543_6" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#C4C4C4"/> </mask> <g mask="url(#mask0_543_6)"> <circle cx="53" cy="128" r="25" fill="var(--themeColor)"/> <circle cx="128" cy="128" r="25" fill="var(--themeColor)"/> <circle cx="203" cy="128" r="25" fill="var(--themeColor)"/> </g> </svg>
+          <div>Options</div>
+        </button>
       </a>`);
       let tile = tileHolder.querySelector(".dTile[new]");
       tile.removeAttribute("new");
       tile.setAttribute("lesson", lessonRec.lesson);
       tile.setAttribute("time", lessonRec[timeField]);
+      /* if (lesson.type != "freeboard") {
+        tile.style.setProperty("--themeColorRGB", "180, 218, 253");
+      } else { */
       if (lesson.type == "freeboard") {
+        //tile.style.setProperty("--themeColorRGB", "247, 217, 255");
         tile.style.setProperty("--themeColor", "var(--purple)");
         tile.style.setProperty("--themeColor2", "#ECB7FF");
       }
@@ -200,14 +214,14 @@ modules["pages/dashboard/lessons"] = {
         lesson.members = null;
       }
       tile.querySelector(".dTileMemberCount span").textContent = lesson.members || 0;
-      if (lessonRec.join == null) {
-        tile.href = "?lesson=" + lessonRec.lesson + "#editor";
-      } else {
+      if (lessonRec.join != null) {
         tile.setAttribute("join", lessonRec.join);
         if (lessonRec.join.startsWith("pin_")) {
           tile.href = "?pin=" + lessonRec.join.substring(4) + "#join";
         } else if (lessonRec.join == "link") {
           tile.href = "?lesson=" + lessonRec.lesson + "#join";
+        } else {
+          tile.href = "?lesson=" + lessonRec.lesson + "#editor";
         }
       }
 
@@ -380,6 +394,11 @@ modules["pages/dashboard/lessons"] = {
       if (element == null) {
         return;
       }
+      let lessonOptions = element.closest(".dTileOptions");
+      if (lessonOptions) {
+        event.preventDefault();
+        return;
+      }
       let lessonOpen = element.closest(".dTile");
       if (lessonOpen) {
         event.preventDefault();
@@ -445,7 +464,143 @@ modules["pages/dashboard/lessons"] = {
         return;
       }
     });
+    frame.addEventListener("contextmenu", async function (event) {
+      let element = event.target;
+      if (element == null) {
+        return;
+      }
+      let lessonTile = element.closest(".dTile");
+      if (lessonTile) {
+        event.preventDefault();
+        dropdownModule.open(lessonTile.querySelector(".dTileOptions"), "dropdowns/dashboard/options");
+        return;
+      }
+    });
 
     frame.parentElement.style.zIndex = 1;
+  }
+}
+
+modules["dropdowns/dashboard/options"] = {
+  html: `
+  <button class="dTileDropAction" option="open" title="Open this lesson."><img src="./images/dashboard/open.svg">Open</button>
+  <button class="dTileDropAction" option="opennewtab" title="Open this lesson in a new tab."><img src="./images/dashboard/open.svg">Open in New Tab</button>
+  <div class="dTileDropLine"></div>
+  <button class="dTileDropAction" style="opacity: .5" option="moveto" title="Coming Soon!"><img src="./images/dashboard/moveto.svg">Move To Folder</button>
+  <div class="dTileDropLine"></div>
+  <button class="dTileDropAction" option="rename" title="Rename this lesson."><img src="./images/dashboard/rename.svg">Rename</button>
+  <button class="dTileDropAction" option="copy" title="Create a duplicate of this lesson."><img src="./images/editor/file/copy.svg">Duplicate</button>
+  <button class="dTileDropAction" option="delete" dashboard dropdown="dropdowns/editor/file/delete" style="--themeColor: var(--error)" title="Remove this lesson from your dashboard."><img src="./images/editor/file/delete.svg">Delete</button>
+  `, //Move this lesson into a folder.
+  css: {
+    ".dTileDropAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
+    ".dTileDropAction:not(:last-child)": `margin-bottom: 4px`,
+    ".dTileDropAction img": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: #fff; border-radius: 4px`,
+    ".dTileDropAction:hover": `background: var(--themeColor); color: #fff`,
+    ".dTileDropLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`
+  },
+  js: async function (frame, extra) {
+    let dropdownModule = await getModule("dropdown");
+    let alertModule = await getModule("alert");
+    let tile = extra.button.closest(".dTile") || this.lastTile;
+    if (tile == null) {
+      return;
+    }
+    this.lastTile = tile;
+    let isOwner = tile.getAttribute("join") == "owner";
+    let lessonID = tile.getAttribute("lesson");
+    frame.querySelector('.dTileDropAction[option="open"]').addEventListener("click", () => {
+      if (tile.hasAttribute("join")) {
+        let method = tile.getAttribute("join");
+        if (method.startsWith("pin_")) {
+          modifyParams("pin", method.substring(4));
+          setFrame("pages/join");
+          return;
+        } else if (method == "link") {
+          modifyParams("lesson", lessonID);
+          setFrame("pages/join");
+          return;
+        }
+      }
+      modifyParams("lesson", lessonID);
+      setFrame("pages/editor");
+    });
+    frame.querySelector('.dTileDropAction[option="opennewtab"]').addEventListener("click", () => {
+      window.open(tile.getAttribute("href"), "_blank");
+    });
+    let renameButton = frame.querySelector('.dTileDropAction[option="rename"]');
+    let copyButton = frame.querySelector('.dTileDropAction[option="copy"]');
+    let deleteButton = frame.querySelector('.dTileDropAction[option="delete"]');
+    let titleText = tile.querySelector(".dTileName");
+    renameButton.addEventListener("click", async () => {
+      if (titleText.hasAttribute("prevtitle") == false) {
+        titleText.setAttribute("prevtitle", titleText.textContent);
+      }
+      titleText.textContent = "";
+      titleText.setAttribute("contenteditable", "");
+      dropdownModule.close();
+
+      titleText.removeEventListener("keydown", this.keyDownListener);
+      titleText.removeEventListener("focusout", this.focusListener);
+      titleText.removeEventListener("paste", this.pasteListener);
+
+      let keyDownListener = (event) => {
+        if (event.keyCode == 13) {
+          event.preventDefault();
+          return;
+        }
+      };
+      titleText.addEventListener("keydown", keyDownListener);
+      let focusListener = async () => {
+        titleText.removeAttribute("contenteditable");
+        let name = titleText.textContent.substring(0, 30).replace(/[^A-Za-z0-9.,_|/\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
+        if (name.replace(/ /g, "").length < 1) {
+          titleText.textContent = titleText.getAttribute("prevtitle");
+          return;
+        }
+        if (titleText.textContent == titleText.getAttribute("prevtitle")) {
+          return;
+        }
+        titleText.textContent = name;
+        let [code] = await sendRequest("POST", "lessons/name?lesson=" + lessonID, { name: name });
+        if (code != 200) {
+          titleText.textContent = titleText.getAttribute("prevtitle");
+        }
+      };
+      titleText.addEventListener("focusout", focusListener);
+      let pasteListener = (event) => {
+        // Cancel paste
+        event.preventDefault();
+  
+        // Insert text manually
+        document.execCommand("insertHTML", false, (event.originalEvent || event).clipboardData.getData("text/plain"));
+      }
+      titleText.addEventListener("paste", pasteListener);
+      this.keyDownListener = keyDownListener;
+      this.focusListener = focusListener;
+      this.pasteListener = pasteListener;
+
+      await sleep(1);
+      titleText.focus();
+    });
+    copyButton.addEventListener("click", async () => {
+      copyButton.setAttribute("disabled", "");
+      let copyAlert = await alertModule.open("info", "<b>Creating Copy</b><div>Creating a copy of this lesson's pages and annotations.", { time: "never" });
+      let [code] = await sendRequest("POST", "lessons/copy?lesson=" + lessonID, null);
+      copyButton.removeAttribute("disabled");
+      alertModule.close(copyAlert);
+      if (code == 200) {
+        dropdownModule.close();
+        await alertModule.open("info", "<b>Copy Created</b><div>The lesson has been added to the top of your dashboard.");
+      }
+    });
+    deleteButton.setAttribute("lesson", lessonID);
+    if (!isOwner) {
+      renameButton.remove();
+      copyButton.remove();
+      deleteButton.innerHTML = `<img src="./images/editor/file/delete.svg">Remove`;
+    } else {
+      deleteButton.setAttribute("owner", "");
+    }
   }
 }

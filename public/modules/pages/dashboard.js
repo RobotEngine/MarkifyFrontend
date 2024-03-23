@@ -526,6 +526,7 @@ modules["dropdowns/dashboard/options"] = {
       setFrame("pages/editor");
     });
     frame.querySelector('.dTileDropAction[option="opennewtab"]').addEventListener("click", () => {
+      dropdownModule.close();
       window.open(tile.getAttribute("href"), "_blank");
     });
     let renameButton = frame.querySelector('.dTileDropAction[option="rename"]');

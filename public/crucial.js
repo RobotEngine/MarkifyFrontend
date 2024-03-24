@@ -1,22 +1,13 @@
-let serverURL = "https://markify.exotek.co/api/";
+let serverURL = window.serverURL || "https://markify.exotek.co/api/";
 //let serverURL = "http://localhost:3000/api/";
-let assetURL = "https://markifyapp.s3.amazonaws.com/";
+let assetURL = window.mediaURL || "https://markifyapp.s3.amazonaws.com/";
 
 const version = "0.6.0"; // Big Update . Small Feature Release . Bug Fix
-
-let socketURL;
-if (getParam("channel_id") != null) {
-  window.isDiscord = true;
-  serverURL = "https://1221300896294768762.discordsays.com/api/";
-  socketURL = "wss://1221300896294768762.discordsays.com/socket/v2";
-  modifyParams("lesson", "65ffae1dc8cb93361e1e4739");
-  window.location.hash = "#join";
-}
 
 const socket = new SimpleSocket({
   project_id: "62088fbdfc22489578e94822",
   project_token: "client_129dbf2cf03edc6fba2aac135fd5ae119af",
-  socket_url: socketURL
+  socket_url: window.socketURL
 });
 
 let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];

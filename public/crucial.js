@@ -9,7 +9,7 @@ if (getParam("channel_id") != null) {
   window.isDiscord = true;
   serverURL = "https://1221300896294768762.discordsays.com/api/";
   socketURL = "wss://1221300896294768762.discordsays.com/socket/v2";
-  modifyParams("join", "65ffae1dc8cb93361e1e4739");
+  modifyParams("lesson", "65ffae1dc8cb93361e1e4739");
   window.location.hash = "#join";
 }
 

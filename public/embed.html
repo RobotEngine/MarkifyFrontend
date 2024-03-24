@@ -15,15 +15,15 @@
   <meta name="description" content="Share and collaborate on documents across the classroom with Markify!" />
   <meta name="keywords" content="edtech, whiteboard, education, classroom, realtime, collaboration" />
   <meta name="author" content="Exotek LLC (https://exotek.co)" />
-  <link rel="shortcut icon" href="/images/favicon.png" type="image/x-icon" />
+  <link rel="shortcut icon" href="./images/favicon.png" type="image/x-icon" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
 
   <meta name="theme-color" content="#0084FF" />
 
-  <link rel="icon" href="/images/favicon.png" />
-  <link rel="apple-touch-icon" href="/images/favicon.png" />
+  <link rel="icon" href="./images/favicon.png" />
+  <link rel="apple-touch-icon" href="./images/favicon.png" />
 
-  <link rel="manifest" href="/manifest.json" />
+  <link rel="manifest" href="./manifest.json" />
 
   <meta http-equiv="Cache-control" content="public, max-age=1800" />
   <meta http-equiv="Content-Type" content="text/html; charset= ISO-8859-1" />
@@ -149,8 +149,8 @@
 </style>
 
 <body>
-  <img src="/images/tooltips/alerts.svg" hidden>
-  <img src="/images/tooltips/close.svg" hidden>
+  <img src="./images/tooltips/alerts.svg" hidden>
+  <img src="./images/tooltips/close.svg" hidden>
   <noscript>Please enable JavaScript to use this app.</noscript>
   <div class="app">
     <div class="loading" new>
@@ -168,16 +168,16 @@
 
   <script>
     window.isDiscord = true;
-    window.serverURL = "/api/";
-    window.mediaURL = "/?proxy=https://markifyapp.s3.amazonaws.com/";
-    window.socketURL = "/socket/v2";
+    window.serverURL = "./api/";
+    window.mediaURL = "./?proxy=https://markifyapp.s3.amazonaws.com/";
+    window.socketURL = "./socket/v2";
     const Url = new URL(window.location);
     Url.searchParams.set("lesson", "65ffae1dc8cb93361e1e4739");
     window.history.pushState({}, "", Url);
     window.location.hash = "#join";
   </script>
 
-  <script src="/?proxy=https://simplesocket.net/static/v2/simplesocket.js"></script>
-  <script src="crucial.js"></script>
+  <script src="./?proxy=https://simplesocket.net/static/v2/simplesocket.js"></script>
+  <script src="./crucial.js"></script>
 </body>
 </html>

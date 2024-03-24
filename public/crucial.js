@@ -5,9 +5,12 @@ let assetURL = "https://markifyapp.s3.amazonaws.com/";
 const version = "0.6.0"; // Big Update . Small Feature Release . Bug Fix
 
 let socketURL;
-if (getParam("auth") == "discord") {
+if (getParam("channel_id") != null) {
+  window.isDiscord = true;
   serverURL = "https://1221300896294768762.discordsays.com/api/";
   socketURL = "wss://1221300896294768762.discordsays.com/socket/v2";
+  modifyParams("join", "65ffae1dc8cb93361e1e4739");
+  window.location.hash = "#dashboard";
 }
 
 const socket = new SimpleSocket({
@@ -1360,7 +1363,7 @@ addCSS({
   "[notransition]": `transition: unset !important`
 });
 
-if ("serviceWorker" in navigator) {
+if ("serviceWorker" in navigator && window.isDiscord != true) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("serviceworker.js");
   });

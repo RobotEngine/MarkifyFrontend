@@ -10,7 +10,7 @@ if (getParam("channel_id") != null) {
   serverURL = "https://1221300896294768762.discordsays.com/api/";
   socketURL = "wss://1221300896294768762.discordsays.com/socket/v2";
   modifyParams("join", "65ffae1dc8cb93361e1e4739");
-  window.location.hash = "#dashboard";
+  window.location.hash = "#join";
 }
 
 const socket = new SimpleSocket({

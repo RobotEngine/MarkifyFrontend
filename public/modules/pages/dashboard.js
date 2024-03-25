@@ -99,6 +99,13 @@ modules["pages/dashboard"] = {
 modules["pages/dashboard/lessons"] = {
   loading: true,
   html: `
+  <div class="dSection" section="folders">
+    <div class="dSectionTop">
+      <div>Folders</div>
+      <button class="dSectionLoadMore buttonAnim border"><span>View More</span><img src="./images/tooltips/drop.svg"></button>
+    </div>
+    <div class="dSectionTiles" default="10" timefield="opened"></div>
+  </div>
   <div class="dSection" section="recent">
     <div class="dSectionTop">
       <div>Recent Lessons</div>
@@ -223,6 +230,8 @@ modules["pages/dashboard/lessons"] = {
         } else {
           tile.href = "?lesson=" + lessonRec.lesson + "#editor";
         }
+      } else {
+        tile.href = "?lesson=" + lessonRec.lesson + "#editor";
       }
 
       return tile;
@@ -486,16 +495,17 @@ modules["dropdowns/dashboard/options"] = {
   <button class="dTileDropAction" option="open" title="Open this lesson."><img src="./images/dashboard/open.svg">Open</button>
   <button class="dTileDropAction" option="opennewtab" title="Open this lesson in a new tab."><img src="./images/dashboard/open.svg">Open in New Tab</button>
   <div class="dTileDropLine"></div>
-  <button class="dTileDropAction" style="opacity: .5" option="moveto" title="Coming Soon!"><img src="./images/dashboard/moveto.svg">Move To Folder</button>
+  <button class="dTileDropAction" style="opacity: .5" option="moveto" title="Coming Soon"><img class="dTileDropActionImage" src="./images/dashboard/moveto.svg">Move To Folder</button>
   <div class="dTileDropLine"></div>
   <button class="dTileDropAction" option="rename" title="Rename this lesson."><img src="./images/dashboard/rename.svg">Rename</button>
   <button class="dTileDropAction" option="copy" title="Create a duplicate of this lesson."><img src="./images/editor/file/copy.svg">Duplicate</button>
-  <button class="dTileDropAction" option="delete" dashboard dropdown="dropdowns/editor/file/delete" style="--themeColor: var(--error)" title="Remove this lesson from your dashboard."><img src="./images/editor/file/delete.svg">Delete</button>
+  <button class="dTileDropAction" option="delete" dashboard dropdown="dropdowns/editor/file/delete" style="--themeColor: var(--error)" title="Remove this lesson from your dashboard."><img class="dTileDropActionImage" src="./images/editor/file/delete.svg">Delete</button>
   `, //Move this lesson into a folder.
   css: {
     ".dTileDropAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
     ".dTileDropAction:not(:last-child)": `margin-bottom: 4px`,
-    ".dTileDropAction img": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: #fff; border-radius: 4px`,
+    ".dTileDropAction img": `width: 24px; height: 24px; padding: 2px; margin-right: 8px !important; background: #fff; border-radius: 4px`,
+    ".dTileDropActionImage": `margin-right: 4px`,
     ".dTileDropAction:hover": `background: var(--themeColor); color: #fff`,
     ".dTileDropLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`
   },

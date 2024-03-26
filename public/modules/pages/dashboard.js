@@ -291,8 +291,7 @@ modules["pages/dashboard/lessons"] = {
                 let memberCountTx = tile.querySelector(".dTileMemberCount span");
                 memberCountTx.textContent = parseInt(memberCountTx.textContent) + 1;
               }
-              /*
-              if (body.user == userID) {
+              /*if (body.user == userID) {
                 if (updTiles.length > 0) {
                   let tile = frame.querySelector('.dSection[section="recent"]').querySelector('.dTile[lesson="' + body.lesson + '"]');
                   tile.querySelector(".dTileDate").textContent = timeSince(body.joined);
@@ -301,8 +300,7 @@ modules["pages/dashboard/lessons"] = {
                     tile.parentElement.insertBefore(tile, tile.parentElement.firstChild);
                   }
                 }
-              }
-              */
+              }*/
               break;
             case "leave":
               for (let i = 0; i < updTiles.length; i++) {

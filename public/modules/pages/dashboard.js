@@ -145,7 +145,8 @@ modules["pages/dashboard/lessons"] = {
     ".dSectionContinueLoad": `--borderRadius: 22px; color: var(--theme); font-size: 18px; font-weight: 700`,
     ".dSectionLoad": `padding: 8px 12px; margin-top: 28px`,
     ".dSectionTiles": "display: flex; flex-wrap: wrap; min-height: 200px; justify-content: center; align-items: center",
-    ".dTile": `position: relative; width: calc(20% - 52px); min-width: min(148px, calc(100% - 52px)); height: 200px; margin: 12px; --borderRadius: 12px`,
+    ".dTile": `--opacity: 0; position: relative; width: calc(20% - 52px); min-width: min(148px, calc(100% - 52px)); height: 200px; margin: 12px; --borderRadius: 12px`,
+    ".dTile:hover": "--opacity: 1",
     ".dTileDocImage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: var(--borderRadius); object-fit: cover; object-position: top center`,
     ".dTileInfo": `position: absolute; box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; left: 0px; bottom: 0px; padding: 6px; background: rgba(var(--background), .95)`,
     ".dTileName": `width: 100%; font-size: 18px; font-weight: 600; color: var(--themeColor); text-align: left`,
@@ -154,8 +155,7 @@ modules["pages/dashboard/lessons"] = {
     ".dTileDate": `flex: 1; margin-right: 8px; color: var(--darkGray); text-align: left`,
     ".dTileMemberCount": `display: flex; color: var(--theme); justify-content: right; align-items: center`,
     ".dTileMemberCount img": `width: 21px; height: 21px; margin-right: 2px`,
-    ".dTileOptions": `position: absolute; display: flex; width: 34px; height: 34px; padding: 4px; right: -2px; top: -2px; z-index: 2; background: var(--themeColor2); border-radius: 0 19px 0 14px; overflow: hidden; opacity: 0`,
-    ".dTile:hover .dTileOptions": "opacity: 1",
+    ".dTileOptions": `position: absolute; display: flex; width: 34px; height: 34px; padding: 4px; right: -2px; top: -2px; z-index: 2; background: var(--themeColor2); border-radius: 0 19px 0 14px; overflow: hidden; opacity: var(--opacity)`,
     ".dTileOptions svg": `display: unset !important; width: 100%; height: 100%; flex-shrink: 0`,
     ".dTileOptions div": `margin-left: 6px`
   },
@@ -495,12 +495,12 @@ modules["dropdowns/dashboard/options"] = {
   <button class="dTileDropAction" option="open" title="Open this lesson."><img src="./images/dashboard/open.svg">Open</button>
   <button class="dTileDropAction" option="opennewtab" title="Open this lesson in a new tab."><img src="./images/dashboard/open.svg">Open in New Tab</button>
   <div class="dTileDropLine"></div>
-  <button class="dTileDropAction" style="opacity: .5" option="moveto" title="Coming Soon"><img class="dTileDropActionImage" src="./images/dashboard/moveto.svg">Move To Folder</button>
+  <button class="dTileDropAction" option="moveto" disabled title="Move this lesson into a folder." dropdown="dropdowns/dashboard/moveto"><img class="dTileDropActionImage" src="./images/dashboard/moveto.svg">Move To Folder</button>
   <div class="dTileDropLine"></div>
   <button class="dTileDropAction" option="rename" title="Rename this lesson."><img src="./images/dashboard/rename.svg">Rename</button>
   <button class="dTileDropAction" option="copy" title="Create a duplicate of this lesson."><img src="./images/editor/file/copy.svg">Duplicate</button>
   <button class="dTileDropAction" option="delete" dashboard dropdown="dropdowns/editor/file/delete" style="--themeColor: var(--error)" title="Remove this lesson from your dashboard."><img class="dTileDropActionImage" src="./images/editor/file/delete.svg">Delete</button>
-  `, //Move this lesson into a folder.
+  `,
   css: {
     ".dTileDropAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
     ".dTileDropAction:not(:last-child)": `margin-bottom: 4px`,

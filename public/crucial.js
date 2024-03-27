@@ -805,7 +805,7 @@ modules["dropdown"] = {
   css: {
     ".dropdown": `position: sticky; box-sizing: border-box; max-width: calc(100% - 16px); max-height: calc(100% - 16px); right: 0px; bottom: 0px; margin: 8px; opacity: 0; box-shadow: var(--shadow); border-radius: 12px; transform-origin: center top; pointer-events: all`,
     ".dropdownOverflow": `position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--pageColor); border-radius: inherit; z-index: 0`,
-    ".dropdownContent": `position: absolute; box-sizing: border-box; width: max-content; height: max-content; padding: 6px; overflow: auto`, //background: var(--pageColor)
+    ".dropdownContent": `position: absolute; box-sizing: border-box; width: max-content; max-width: var(--dropdownWidth); height: max-content; padding: 6px; overflow: auto`, //background: var(--pageColor)
     ".dropdownFrame": `position: relative`,
     ".dropdownHeader": `position: relative; display: flex; gap: 6px; padding: 6px 6px 0 6px; justify-content: space-between; transition: .4s; z-index: 2`,
     ".dropdownHeader button": `position: relative; width: 22px; height: 22px; margin: 3px; --borderWidth: 3px; --borderRadius: 14px`,
@@ -818,7 +818,7 @@ modules["dropdown"] = {
     return setInterval(() => {
       content.style.top = header.offsetHeight + "px";
       // We use fixed, not window, so that scrollbars are accounted for:
-      content.style.maxWidth = fixed.clientWidth - 16 + "px";
+      content.style.setProperty("--dropdownWidth", (fixed.clientWidth - 16) + "px");
       content.style.maxHeight = fixed.clientHeight - header.offsetHeight - 16 + "px";
       content.style.minWidth = Math.min(fixed.clientWidth - 16, 200) + "px";
 
@@ -837,8 +837,8 @@ modules["dropdown"] = {
         let buttonRect = button.getBoundingClientRect();
         if (buttonRect.top > 0) {
           dropdown.style.top = buttonRect.top + "px";
-          dropdown.style.left = buttonRect.left + (button.offsetWidth / 2) - (dropdown.offsetWidth / 2) + "px";
         }
+        dropdown.style.left = buttonRect.left + (button.offsetWidth / 2) - (dropdown.offsetWidth / 2) + "px";
       }
     }, 1);
   },

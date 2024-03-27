@@ -541,6 +541,7 @@ modules["dropdowns/dashboard/options"] = {
     let copyButton = frame.querySelector('.dTileDropAction[option="copy"]');
     let deleteButton = frame.querySelector('.dTileDropAction[option="delete"]');
     let titleText = tile.querySelector(".dTileName");
+    titleText.removeAttribute("prevtitle");
     renameButton.addEventListener("click", async () => {
       if (titleText.hasAttribute("prevtitle") == false) {
         titleText.setAttribute("prevtitle", titleText.textContent);

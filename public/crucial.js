@@ -821,7 +821,7 @@ modules["dropdown"] = {
       content.style.setProperty("--dropdownWidth", (fixed.clientWidth - 16) + "px");
       content.style.maxHeight = fixed.clientHeight - header.offsetHeight - 16 + "px";
       content.style.minWidth = Math.min(fixed.clientWidth - 16, 200) + "px";
-
+      
       if (dropdown.hasAttribute("closing") == false) {
         //if (content.querySelector(".dropdownFrame").hasAttribute("loaded")) {
         if (content.offsetWidth > 0 && content.offsetHeight > 0) {
@@ -951,7 +951,7 @@ modules["dropdown"] = {
       setTitleHTML = "<div>" + button.innerHTML + "</div>";
     }
     header.querySelector(".dropdownTitle").innerHTML = setTitleHTML;
-    dropdown.style.transition = "width .4s, height .4s, opacity .3s, border-radius .3s";
+    dropdown.style.transition = "width .4s, height .4s, opacity .3s, border-radius .3s, transform .6s";
     dropdown.offsetHeight;
     window.dropdown = { dropdown: dropdown, button: button, frameHistory: [[frameName, setTitleHTML]], interval: this.setResizeLoop(dropdown, content, header, button) };
     button.style.opacity = 0;
@@ -976,8 +976,13 @@ modules["dropdown"] = {
     let remDropdown = window.dropdown;
     delete window.dropdown;
     remDropdown.button.style.removeProperty("opacity");
+    //remDropdown.dropdown.setAttribute("closing", "");
     remDropdown.dropdown.style.opacity = 0;
-    remDropdown.dropdown.querySelector(".dropdownHeader").style.transform = "scale(0)";
+    let buttonRect = remDropdown.button.getBoundingClientRect();
+    let dropdownRect = remDropdown.dropdown.getBoundingClientRect();
+    remDropdown.dropdown.style.transformOrigin = (buttonRect.left - dropdownRect.left + (remDropdown.button.offsetWidth / 2)) + "px " + (buttonRect.top - dropdownRect.top + (remDropdown.button.offsetHeight / 2)) + "px";
+    remDropdown.dropdown.style.transform = "scale(0)";
+    //remDropdown.dropdown.querySelector(".dropdownHeader").style.transform = "scale(0)";
     await sleep(350);
     clearInterval(remDropdown.interval);
     remDropdown.dropdown.parentElement.remove();

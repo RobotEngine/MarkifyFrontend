@@ -138,7 +138,7 @@ modules["pages/dashboard/lessons"] = {
   css: {
     ".dNoLessons": `padding: 8px; margin-top: 15vh`,
     ".dSection": `display: none; margin-bottom: 30px`,
-    ".dSectionTop": `position: sticky; box-sizing: border-box; display: flex; width: 100%; top: 0px; padding: 16px; align-items: center; background: rgba(var(--background), .7); backdrop-filter: blur(4px); z-index: 1`,
+    ".dSectionTop": `position: sticky; box-sizing: border-box; display: flex; width: 100%; top: 0px; padding: 16px; align-items: center; background: rgba(var(--background), .7); backdrop-filter: blur(4px); z-index: 5`,
     ".dSectionTop div": `flex: 1; font-size: 30px; font-weight: 600; text-align: left; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
     ".dSectionTop button": `display: flex; padding: 8px; align-items: center; --borderRadius: 22px; font-size: 18px; font-weight: 600`,
     ".dSectionTop img": `width: 22px; margin-left: 6px; transform: rotate(0deg); transition: .2s`,

@@ -63,7 +63,8 @@ modules["editor/toolbar"] = {
     ".eToolHoverTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; transform: scale(0); opacity: 0`,
 
     ".eSelect": `position: absolute; opacity: 0; z-index: 101; border-radius: 9px; transition: opacity .15s; pointer-events: none`,
-    ".eSelectActive": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: all !important; cursor: move`,
+    ".eSelectActive": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: all !important; cursor: move; z-index: var(--selectZIndex)`,
+    ".eContent[noshiftheld] .eSelectActive": `z-index: var(--annoZIndex) !important`,
     ".eAnnotation[selected] *": `pointer-events: none`,
     ".eSelectTooltip": `position: absolute; transition: .1s; pointer-events: all`,
     ".eSelect[hidetips] .eSelectTooltip": `opacity: 0; pointer-events: none`,
@@ -1133,7 +1134,8 @@ modules["pages/editor/toolbar/cursor"] = {
           anno.parentElement.insertAdjacentHTML("beforeend", `<div class="eSelectActive" anno="${annoID}" tooleditor></div>`);
           activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
         }
-        activeLayer.style.zIndex = i;
+        activeLayer.style.setProperty("--annoZIndex", (merged.sync || getEpoch()) % 1000000000);
+        activeLayer.style.setProperty("--selectZIndex", i);
         anno.style.overflow = "hidden";
         anno.style.borderRadius = "2px";
         if (select == null) {
@@ -2146,7 +2148,8 @@ modules["pages/editor/toolbar/cursor"] = {
           }
         }
       }
-      await utils.render({ ...anno, ...select, sync: setTempSync });
+      select.sync = setTempSync;
+      await utils.render({ ...anno, ...select });
     }
     if (this.action == "move") {
       this.startX = this.endX;
@@ -2273,11 +2276,18 @@ modules["pages/editor/toolbar/cursor"] = {
     let startX;
     let startY;
     let wasSelected;
+    let lastTarget;
     let enableSelect = async (event) => {
+      if (event.shiftKey == false) {
+        content.setAttribute("noshiftheld", "");
+      } else {
+        content.removeAttribute("noshiftheld");
+      }
       if (event.which === 3 || event.button === 2) {
         return;
       }
       let target = event.target;
+      lastTarget = target;
       if (target == null || target.closest(".eContent") == null || target.closest(".eSelectBar") != null) {
         return;
       }
@@ -2320,7 +2330,6 @@ modules["pages/editor/toolbar/cursor"] = {
       }
       let render = ((editor.annotations[annoID] || {}).render || {});
       if (editor.lesson.settings.editOthersWork != true && render.m != null && render.m != mCheck && self.access < 4) { // Can't edit another member's work:
-        alertModule.open("warning", "<b>Someone Else's Annotation</b>The ability to modify another member's work is disabled.");
         return;
       }
       if (editor.selecting[annoID] == null) {
@@ -2333,7 +2342,8 @@ modules["pages/editor/toolbar/cursor"] = {
     let disableSelect = async (event) => {
       this.endAction(event);
 
-      let target = event.target;
+      let target = lastTarget || event.target;
+      lastTarget = null;
       if (target == null) {
         return;
       }
@@ -2359,6 +2369,7 @@ modules["pages/editor/toolbar/cursor"] = {
         }
         let render = ((editor.annotations[annoID] || {}).render || {});
         if (editor.lesson.settings.editOthersWork != true && render.m != null && render.m != mCheck && self.access < 4) { // Can't edit another member's work:
+          alertModule.open("warning", "<b>Someone Else's Annotation</b>The ability to modify another member's work is disabled.");
           return;
         }
         if (event.shiftKey == true) {
@@ -2386,6 +2397,14 @@ modules["pages/editor/toolbar/cursor"] = {
     addEvent(content, "touchstart", enableSelect, { passive: false });
     addEvent(content, "mouseup", disableSelect, { passive: false });
     addEvent(content, "touchend", disableSelect, { passive: false });
+
+    addEvent(window, "keydown", (event) => {
+      if (event.shiftKey == false) {
+        content.setAttribute("noshiftheld", "");
+      } else {
+        content.removeAttribute("noshiftheld");
+      }
+    }, { passive: false });
 
     addEvent(content, "mousemove", (event) => { this.moveAction(event); }, { passive: false });
     addEvent(content, "touchmove", (event) => { this.moveAction(event); }, { passive: false });

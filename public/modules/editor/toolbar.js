@@ -1134,7 +1134,7 @@ modules["pages/editor/toolbar/cursor"] = {
           anno.parentElement.insertAdjacentHTML("beforeend", `<div class="eSelectActive" anno="${annoID}" tooleditor></div>`);
           activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
         }
-        activeLayer.style.setProperty("--annoZIndex", (merged.sync || getEpoch()) % 1000000000);
+        activeLayer.style.setProperty("--annoZIndex", ((merged.sync || getEpoch()) % 1000000000) - 1);
         activeLayer.style.setProperty("--selectZIndex", i);
         anno.style.overflow = "hidden";
         anno.style.borderRadius = "2px";
@@ -3572,21 +3572,28 @@ modules["pages/editor/toolbar/upload"] = {
               form.append("media", file);
               let initBlob = this.imageBlob;
               let [code, result] = await sendRequest("POST", "lessons/save/upload", form, { noFileType: true, session: editor.session });
-              if (image.src == this.imageBlob) {
-                URL.revokeObjectURL(this.imageBlob);
-              }
               let blobAnno = editor.page.querySelector('.eAnnotation[src="' + initBlob + '"]');
               if (code == 200) {
-                if (blobAnno != null && blobAnno.hasAttribute("anno") == true) {
-                  utils.save({ _id: blobAnno.getAttribute("anno"), d: result.file }, blobAnno);
-                }
-                if (image.src == this.imageBlob) {
-                  this.imageBlob = result.file;
-                  if (this.media != null) {
-                    this.media.d = result.file;
+                let preload = new Image();
+                preload.src = assetURL + result.file;
+                preload.onload = () => {
+                  if (blobAnno != null && blobAnno.hasAttribute("anno") == true) {
+                    utils.save({ _id: blobAnno.getAttribute("anno"), d: result.file }, blobAnno);
+                  }
+                  if (image.src == this.imageBlob) {
+                    this.imageBlob = result.file;
+                    if (this.media != null) {
+                      this.media.d = result.file;
+                    }
+                  }
+                  if (image.src == this.imageBlob) {
+                    URL.revokeObjectURL(this.imageBlob);
                   }
                 }
               } else {
+                if (image.src == this.imageBlob) {
+                  URL.revokeObjectURL(this.imageBlob);
+                }
                 if (blobAnno != null) {
                   if (blobAnno.hasAttribute("anno") == true) {
                     utils.save({ _id: blobAnno.getAttribute("anno"), remove: true }, blobAnno);

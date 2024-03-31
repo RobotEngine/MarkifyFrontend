@@ -850,6 +850,7 @@ modules["editor/toolbar"] = {
         case "update":
           for (let i = 0; i < event.changes.length; i++) {
             let change = event.changes[i];
+            change.sync = getEpoch();
             if (addRedo) {
               let changeKeys = Object.keys(change);
               let annotation = (editor.annotations[change._id] || {}).render || {};
@@ -1134,7 +1135,7 @@ modules["pages/editor/toolbar/cursor"] = {
           anno.parentElement.insertAdjacentHTML("beforeend", `<div class="eSelectActive" anno="${annoID}" tooleditor></div>`);
           activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
         }
-        activeLayer.style.setProperty("--annoZIndex", ((merged.sync || getEpoch()) % 1000000000) - 1);
+        activeLayer.style.setProperty("--annoZIndex", ((merged.sync || getEpoch()) % 1000000000) - 10);
         activeLayer.style.setProperty("--selectZIndex", i);
         anno.style.overflow = "hidden";
         anno.style.borderRadius = "2px";
@@ -1768,6 +1769,7 @@ modules["pages/editor/toolbar/cursor"] = {
           let original = (editor.annotations[annoID] || {}).render || {};
           let anno = JSON.parse(JSON.stringify(original));
           let annoSet = JSON.parse(JSON.stringify(set));
+          select.sync = sync;
           if (annoSet.d != null && typeof annoSet.d == "object") {
             annoSet.d = { ...anno.d, ...annoSet.d };
           }
@@ -1819,14 +1821,15 @@ modules["pages/editor/toolbar/cursor"] = {
         for (let i = 0; i < saveUpdates.length; i++) {
           await utils.save({ ...saveUpdates[i] }, null, sync);
         }
+
+        await this.updateBox();
+
         //if (short == true) {
           await utils.forceShort();
           for (let i = 0; i < selectKeys.length; i++) {
             editor.selecting[selectKeys[i]] = {};
           }
         //}
-
-        this.updateBox();
       },
       updateToolActions: async (frame) => {
         let editor = await getModule("pages/editor");

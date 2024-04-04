@@ -1928,11 +1928,12 @@ modules["pages/editor"] = {
       let pageHolderRect = pageHolder.getBoundingClientRect();
 
       // Calculate the new scroll position based on the mouse cursor position and zoom level
+      let prevZoom = this.zoom;
       let mouseRelativeBeforeX = (mouseX - pageHolderRect.left) / (pageHolder.offsetWidth * this.zoom);
       let mouseRelativeBeforeY = (mouseY - pageHolderRect.top) / (pageHolder.offsetHeight * this.zoom);
 
-      let delta = Math.max(-1, Math.min(1, (mouse.wheelDelta || -(mouse.detail || 0))));
       if (set == null) {
+        let delta = Math.max(-1, Math.min(1, (mouse.wheelDelta || -(mouse.detail || 0))));
         set = this.zoom + (delta / 10);
       }
       this.zoom = set;
@@ -1945,8 +1946,8 @@ modules["pages/editor"] = {
 
       pageHolder.style.transform = `scale(${this.zoom})`;
 
-      content.style.width = pageHolder.clientWidth * this.zoom + "px";
-      content.style.height = pageHolder.clientHeight * this.zoom + "px";
+      content.style.width = pageHolder.offsetWidth * this.zoom + "px";
+      content.style.height = pageHolder.offsetHeight * this.zoom + "px";
 
       this.updatePageSize();
 
@@ -1956,11 +1957,11 @@ modules["pages/editor"] = {
       let mouseRelativeAfterX = (mouseX - pageHolderRect.left) / (pageHolder.offsetWidth * this.zoom);
       let mouseRelativeAfterY = (mouseY - pageHolderRect.top) / (pageHolder.offsetHeight * this.zoom);
 
-      let newScrollX = (((pageHolder.offsetWidth * this.zoom) * mouseRelativeBeforeX) - ((pageHolder.offsetWidth * this.zoom) * mouseRelativeAfterX));
-      let newScrollY = (((pageHolder.offsetHeight * this.zoom) * mouseRelativeBeforeY) - ((pageHolder.offsetHeight * this.zoom) * mouseRelativeAfterY));
+      let newScrollX = ((pageHolder.offsetWidth * this.zoom) * mouseRelativeBeforeX) - ((pageHolder.offsetWidth * this.zoom) * mouseRelativeAfterX);
+      let newScrollY = ((pageHolder.offsetHeight * this.zoom) * mouseRelativeBeforeY) - ((pageHolder.offsetHeight * this.zoom) * mouseRelativeAfterY);
 
       // Set the new scroll position
-      window.scrollTo((window.scrollX * 1) + newScrollX, (window.scrollY * 1) + newScrollY);
+      window.scrollTo((window.scrollX) + newScrollX, (window.scrollY) + newScrollY);
 
       /*
       // Calculate the new scroll position based on the mouse cursor position and zoom level

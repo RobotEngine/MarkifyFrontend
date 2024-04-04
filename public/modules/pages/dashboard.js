@@ -554,13 +554,6 @@ modules["dropdowns/dashboard/options"] = {
       titleText.removeEventListener("focusout", this.focusListener);
       titleText.removeEventListener("paste", this.pasteListener);
 
-      let keyDownListener = (event) => {
-        if (event.keyCode == 13) {
-          event.preventDefault();
-          return;
-        }
-      };
-      titleText.addEventListener("keydown", keyDownListener);
       let focusListener = async () => {
         titleText.removeAttribute("contenteditable");
         let name = titleText.textContent.substring(0, 30).replace(/[^A-Za-z0-9.,_|/\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
@@ -578,6 +571,14 @@ modules["dropdowns/dashboard/options"] = {
         }
       };
       titleText.addEventListener("focusout", focusListener);
+      let keyDownListener = (event) => {
+        if (event.keyCode == 13) {
+          event.preventDefault();
+          focusListener();
+          return;
+        }
+      };
+      titleText.addEventListener("keydown", keyDownListener);
       let pasteListener = (event) => {
         // Cancel paste
         event.preventDefault();

@@ -82,6 +82,7 @@ modules["dropdowns/dashboard/moveto"] = {
         let keyDownListener = (event) => {
           if (event.keyCode == 13) {
             event.preventDefault();
+            folderName.blur();
             return;
           }
         };
@@ -116,6 +117,8 @@ modules["dropdowns/dashboard/moveto"] = {
           if (code != 200) {
             newFolder.remove();
             updateMsg();
+          } else {
+            newFolder.removeAttribute("disabled");
           }
         };
         folderName.addEventListener("focusout", focusListener);

@@ -1258,6 +1258,7 @@ modules["pages/editor"] = {
     nameBox.addEventListener("keydown", (event) => {
       if (event.keyCode == 13) {
         event.preventDefault();
+        nameBox.blur();
         return;
       }
       enableScrollTop();
@@ -1920,20 +1921,21 @@ modules["pages/editor"] = {
         this.realtime.module.exitObserve();
       }
 
-      let pageScrollX = window.scrollX;
-      let pageScrollY = window.scrollY;
+      let mouseX = mouse.clientX || ((mouse.changedTouches || [])[0] || {}).clientX || 0;
+      let mouseY = mouse.clientY || ((mouse.changedTouches || [])[0] || {}).clientY || 0;
 
-      let prevWidth = document.body.scrollWidth;
-      let prevHeight = document.body.scrollHeight;
-      
+      // Get Page Rect:
+      let pageHolderRect = pageHolder.getBoundingClientRect();
+
+      // Calculate the new scroll position based on the mouse cursor position and zoom level
+      let mouseRelativeBeforeX = (mouseX - pageHolderRect.left) / (pageHolder.offsetWidth * this.zoom);
+      let mouseRelativeBeforeY = (mouseY - pageHolderRect.top) / (pageHolder.offsetHeight * this.zoom);
+
       let delta = Math.max(-1, Math.min(1, (mouse.wheelDelta || -(mouse.detail || 0))));
       if (set == null) {
         set = this.zoom + (delta / 10);
       }
       this.zoom = set;
-
-      let mouseX = mouse.clientX || ((mouse.changedTouches || [])[0] || {}).clientX || 0;
-      let mouseY = mouse.clientY || ((mouse.changedTouches || [])[0] || {}).clientY || 0;
 
       if (this.zoom > 5) {
         this.zoom = 5;
@@ -1941,53 +1943,33 @@ modules["pages/editor"] = {
         this.zoom = .25;
       }
 
-      //pageHolder.style.zoom = zoom;
-      pageHolder.style.transform = `scale(${this.zoom})`; // translate(${(pageHolder.clientWidth * zoom) / 2}px, ${(pageHolder.clientHeight * zoom) / 2}px)
-      //pageHolder.style.setProperty("--fixedUIScale", 1 / this.zoom);
-      //pageHolder.style.transformOrigin = mouseX + "px " + mouseY + "px";
-      //pageHolder.style.margin = `${(pageHolder.clientHeight - (pageHolder.clientHeight * zoom)) / 2}px ${(pageHolder.clientWidth - (pageHolder.clientWidth * zoom)) / 2}px`;
-      //pageHolder.style.transformOrigin = mousePositionX + "px " + mousePositionY + "px";
+      pageHolder.style.transform = `scale(${this.zoom})`;
 
       content.style.width = pageHolder.clientWidth * this.zoom + "px";
       content.style.height = pageHolder.clientHeight * this.zoom + "px";
-
-      /*
-      let appSizeHalfX = (app.offsetWidth / 2);
-      let appSizeHalfY = (app.offsetHeight / 2);
-      let mouseScaleX = pageScrollX + (mouseX || appSizeHalfX);
-      let mouseScaleY = pageScrollY + (mouseY || appSizeHalfY);
-      console.log(mouseScaleX, mouseScaleY);
-      */
 
       this.updatePageSize();
 
       await utils.checkAnnotationSize();
 
+      // Calculate the new scroll position based on the mouse cursor position and zoom level
+      let mouseRelativeAfterX = (mouseX - pageHolderRect.left) / (pageHolder.offsetWidth * this.zoom);
+      let mouseRelativeAfterY = (mouseY - pageHolderRect.top) / (pageHolder.offsetHeight * this.zoom);
+
+      let newScrollX = (((pageHolder.offsetWidth * this.zoom) * mouseRelativeBeforeX) - ((pageHolder.offsetWidth * this.zoom) * mouseRelativeAfterX));
+      let newScrollY = (((pageHolder.offsetHeight * this.zoom) * mouseRelativeBeforeY) - ((pageHolder.offsetHeight * this.zoom) * mouseRelativeAfterY));
+
+      // Set the new scroll position
+      window.scrollTo((window.scrollX * 1) + newScrollX, (window.scrollY * 1) + newScrollY);
+
       /*
-      let pixels_difference_w = prevWidth - document.body.scrollWidth;
-      let side_ratio_x = mouseX / fixed.offsetWidth; // (mouseX - (fixed.offsetWidth / 2)) / fixed.offsetWidth;
-      let scrollAddX = pixels_difference_w * side_ratio_x;
-
-      let pixels_difference_h = prevHeight - document.body.scrollHeight;
-      let side_ratio_h = mouseY / fixed.offsetHeight; // (mouseY - (fixed.offsetHeight / 2)) / fixed.offsetHeight;
-      let scrollAddY = pixels_difference_h * side_ratio_h;
-      
-      console.log(pixels_difference_w)
-      */
-      
-
       // Calculate the new scroll position based on the mouse cursor position and zoom level
       let newScrollX = ((mouseX + pageScrollX) * (document.body.scrollWidth / prevWidth)) - mouseX; // + rect.left;
       let newScrollY = ((mouseY + pageScrollY) * (document.body.scrollHeight / prevHeight)) - mouseY; // + rect.top;
 
       // Set the new scroll position
       window.scrollTo(newScrollX, newScrollY);
-
-      //window.scrollTo((pageScrollX * (document.body.scrollWidth / prevWidth)) + 0, (pageScrollY * (document.body.scrollHeight / prevHeight)) + 0);
-      //window.scrollTo((mouseX + pageScrollX) * (document.body.scrollWidth / prevWidth), (mouseY + pageScrollY) * (document.body.scrollHeight / prevHeight));
-
-      //window.scrollTo(pageScrollX * (newWidth / prevWidth), pageScrollY * (newHeight / prevHeight));
-      //window.scrollTo((mouseX + pageScrollX) * (newWidth / prevWidth), (mouseY + pageScrollY) * (newWidth / prevWidth));
+      */
 
       let updateZoomPercentBoxes = document.querySelectorAll(".eZoomBox");
       for (let i = 0; i < updateZoomPercentBoxes.length; i++) {

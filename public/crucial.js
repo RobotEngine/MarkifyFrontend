@@ -1303,6 +1303,8 @@ modules["dropdowns/account"] = {
   <button class="accountDrop accountLogout" style="--setBackground: var(--error)" close><div>Logout</div><img src="./images/tooltips/account/logout.svg"></button>
   <button class="accountDrop accountManage" close><div>Settings</div><img src="./images/tooltips/account/settings.svg"></button>
   <!--<button class="accountDrop" dropdown="dropdowns/account/preferences"><div>Preferences</div><img src="./images/tooltips/account/preferences.svg"></button>-->
+  <div class="accountDropLine"></div>
+  <button disabled class="accountDrop accountManage" close dropdown="dropdowns/account/report" dropdowntitle="Report Bugs & Feedback"><div>Report Bug</div><img src="./images/tooltips/account/report.svg"></button>
   <button class="accountDrop accountManage" close modal="modals/tutorial" modaltitle="Resources"><div>Resources</div><img src="./images/tooltips/account/question.svg"></button>
   `,
   css: {
@@ -1311,7 +1313,8 @@ modules["dropdowns/account"] = {
     ".accountDrop div": `flex: 1; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
     ".accountDrop img": `width: 24px; height: 24px; margin-left: 6px; object-fit: cover; transition: .15s`,
     ".accountDrop:hover": `background: var(--setBackground); color: #fff`,
-    ".accountDrop:hover img": `filter: brightness(0) invert(1)`
+    ".accountDrop:hover img": `filter: brightness(0) invert(1)`,
+    ".accountDropLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`
   },
   js: function (frame) {
     frame.querySelector(".accountManage").addEventListener("click", function () {

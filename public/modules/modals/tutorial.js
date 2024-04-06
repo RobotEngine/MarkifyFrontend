@@ -200,6 +200,12 @@ modules["modals/tutorial/resources"] = {
           interface: true,
           title: "End Your Lesson Sessions",
           description: "If you're granting students editing access, make sure to revoke all editing access at the end of your lesson."
+        },
+        {
+          image: "./images/tutorial/steps/report.png",
+          interface: true,
+          title: "BETA - May have Bugs 🐛",
+          description: "If you run into any issues, need help, or have a cool idea, click your profile at the top left corner and let us know!"
         }
       ]
     }
@@ -220,7 +226,7 @@ modules["modals/tutorial/resources"] = {
     let buttonHolder = holder.querySelector(".dmucButtonHolder");
     let backButton = buttonHolder.querySelector(".dmucNavButton[back]");
     let navDots = buttonHolder.querySelector(".dmucNavDots");
-    let nextButton = buttonHolder.querySelector(".dmucNavButton[next]");
+    //let nextButton = buttonHolder.querySelector(".dmucNavButton[next]");
 
     holder.style.setProperty("--theme", resource.theme);
     gradient.style.background = resource.background;
@@ -341,7 +347,7 @@ modules["modals/tutorial/resources"] = {
         currentPage--;
         return updatePage();
       }
-      if (target.closest(".dmucNavDots") != null) {
+      if (target.closest(".dmucNavDots") != null && target.closest("button") != null) {
         currentPage = parseInt(target.closest("button").getAttribute("page"));
         return updatePage();
       }

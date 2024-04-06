@@ -205,7 +205,7 @@ modules["modals/tutorial/resources"] = {
           image: "./images/tutorial/steps/report.png",
           interface: true,
           title: "BETA - May have Bugs 🐛",
-          description: "If you run into any issues, need help, or have a cool idea, click your profile at the top left corner and let us know!"
+          description: "If you run into any issues, need help, or have a cool idea, click your profile at the top right corner and let us know!"
         }
       ]
     }

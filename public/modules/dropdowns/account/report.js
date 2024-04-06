@@ -47,8 +47,47 @@ modules["dropdowns/account/report"] = {
     ".aReportSubmitButton": `padding: 6px 10px; margin: 15px 0 3px 0; background: var(--theme); --borderRadius: 16px; color: #fff; font-size: 16px`
   },
   js: async function (frame) {
+    let alertModule = await getModule("alert");
+    let dropdownModule = await getModule("dropdown");
+
     let buttonHolder = frame.querySelector(".aReportTypeHolder");
     let textarea = frame.querySelector(".aReportDescHolder textarea");
+    let submit = frame.querySelector(".aReportSubmitButton");
+
+    textarea.addEventListener("input", () => {
+      if (textarea.value.length < 1) {
+        submit.setAttribute("disabled", "");
+      } else {
+        submit.removeAttribute("disabled");
+      }
+    });
+
+    submit.addEventListener("click", async () => {
+      if (textarea.value.length < 1) {
+        return;
+      }
+      if (textarea.value.length > 1000) {
+        return alertModule.open("error", "<b>Feedback Too Long</b><div>Please keep feedback under 1,000 characters (" + textarea.value.length + "/1000).");
+      }
+      let type = buttonHolder.querySelector(".aReportTypeButton[selected]").getAttribute("type");
+      frame.setAttribute("disabled", "");
+      let [code] = await sendRequest("POST", "me/feedback", {
+        type: type,
+        content: textarea.value
+      });
+      frame.removeAttribute("disabled");
+      if (code == 200) {
+        dropdownModule.close();
+        switch (type) {
+          case "bug":
+            return alertModule.open("worked", "<b>Thank You</b><div>We received your issue and will be working to resolve it! If we need anything, you may receive an email.", { time: 8 });
+          case "help":
+            return alertModule.open("worked", "<b>Help is On The Way</b><div>You should receive an email with help in your inbox soon.", { time: 8 });
+          case "feature":
+            return alertModule.open("worked", "<b>Thank You</b><div>Markify is still early, and we have a long way to go. Thank you for your suggestion, we'll see what we can do!", { time: 8 });
+        }
+      }
+    });
 
     let setButton = async (button, wait) => {
       if (button == null) {
@@ -60,6 +99,11 @@ modules["dropdowns/account/report"] = {
       }
       button.setAttribute("selected", "");
       textarea.setAttribute("placeholder", button.querySelector("div[context] div[text]").textContent);
+      if (textarea.value.length < 1) {
+        submit.setAttribute("disabled", "");
+      } else {
+        submit.removeAttribute("disabled");
+      }
       if (wait == true) {
         await sleep(400);
       }

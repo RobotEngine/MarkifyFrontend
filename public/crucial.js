@@ -1304,7 +1304,7 @@ modules["dropdowns/account"] = {
   <button class="accountDrop accountManage" close><div>Settings</div><img src="./images/tooltips/account/settings.svg"></button>
   <!--<button class="accountDrop" dropdown="dropdowns/account/preferences"><div>Preferences</div><img src="./images/tooltips/account/preferences.svg"></button>-->
   <div class="accountDropLine"></div>
-  <button disabled class="accountDrop accountManage" close dropdown="dropdowns/account/report" dropdowntitle="Report Bugs & Feedback"><div>Report Bug</div><img src="./images/tooltips/account/report.svg"></button>
+  <button class="accountDrop accountManage" close dropdown="dropdowns/account/report" dropdowntitle="Report Bugs & Feedback"><div>Report Bug</div><img src="./images/tooltips/account/report.svg"></button>
   <button class="accountDrop accountManage" close modal="modals/tutorial" modaltitle="Resources"><div>Resources</div><img src="./images/tooltips/account/question.svg"></button>
   `,
   css: {

@@ -221,8 +221,8 @@ async function setFrame(path, frame, extra) {
   let continueLoading = true;
   if (frameSet == app) {
     extra.from = currentPage;
+    window.location.hash = "#" + path.substring(path.lastIndexOf("/") + 1);
   }
-  window.location.hash = "#" + path.substring(path.lastIndexOf("/") + 1);
   if (module.preJs) {
     continueLoading = (await (module.preJs())) != false;
   }

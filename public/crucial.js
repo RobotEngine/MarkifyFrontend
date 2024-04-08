@@ -222,6 +222,7 @@ async function setFrame(path, frame, extra) {
   if (frameSet == app) {
     extra.from = currentPage;
   }
+  window.location.hash = "#" + path.substring(path.lastIndexOf("/") + 1);
   if (module.preJs) {
     continueLoading = (await (module.preJs())) != false;
   }
@@ -248,7 +249,6 @@ async function setFrame(path, frame, extra) {
       body.style.removeProperty("user-select");
       currentPage = path;
       document.title = module.title + " | Markify";
-      window.location.hash = "#" + path.substring(path.lastIndexOf("/") + 1);
     }
     //frameSet.setAttribute("loaded", "");
     await module.js(frameContent, extra);

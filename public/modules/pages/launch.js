@@ -20,7 +20,7 @@ modules["pages/launch"] = {
       <div class="lHeaderSlogan"><b>Collaboration</b> across the <b>Classroom</b></div>
       <div class="lHeaderSummary">Stream a shared whiteboard to student's devices to see up close and review. All with effective tools that aren't overwhelming or confusing to use.</div>
       <div class="lHeaderActions">
-        <button class="lOpen largeButton">Join Waitlist</button>
+        <button class="lOpen largeButton" openpage="dashboard">Try the BETA</button>
         <button class="lJoin largeButton" openpage="join">Join Lesson<img src="./images/tooltips/link.svg"></button>
       </div>
       <img class="lHeaderSplash" src="./images/launch/showcase.png">
@@ -144,7 +144,7 @@ modules["pages/launch"] = {
         <div div class="lFooterFree">Get started for <b>FREE</b></div>
       </div>
       <div class="dFooterHolder" style="min-height: 125px">
-        <button class="lOpen largeButton">Join Waitlist</button>
+        <button class="lOpen largeButton" openpage="dashboard">Try the BETA</button>
       </div>
     </div>
     <div class="lFooterCompliance">
@@ -769,11 +769,13 @@ modules["pages/launch"] = {
     page.querySelector(".lHeaderContent").style.minHeight = "0px";
 
     // Waitlist Buttons:
+    /*
     page.querySelector(".lHeaderActions .lOpen").addEventListener("click", function() {
       promptLogin("waitlist");
     });
     page.querySelector(".dFooterHolder .lOpen").addEventListener("click", function() {
       promptLogin("waitlist");
     });
+    */
   }
 }

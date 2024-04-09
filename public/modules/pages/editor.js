@@ -327,7 +327,9 @@ modules["pages/editor"] = {
 
         raiseHand.setAttribute("hidden", "");
 
-        name.setAttribute("contenteditable", "");
+        if (access > 3) {
+          name.setAttribute("contenteditable", "");
+        }
       }
       /*
       if (this.realtime.observing != null) {

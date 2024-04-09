@@ -710,7 +710,12 @@ async function updateToSignedIn(data) {
   userID = account.id;
 }
 async function auth() {
-  let [code, body] = await sendRequest("GET", "me?ss=" + socket.secureID);
+  let url = "me?ss=" + socket.secureID;
+  if (getParam("from") != null) {
+    url += "&from=" + getParam("from");
+    modifyParams("from");
+  }
+  let [code, body] = await sendRequest("GET", url);
   if (code == 0) {
     await sleep(500);
     auth();
@@ -730,10 +735,15 @@ async function init() {
     }
     removeLocalStore("state");
     modifyParams("state");
-    let [code, body] = await sendRequest("POST", "auth?ss=" + socket.secureID, {
+    let sendBody = {
       code: paramAuthCode,
       page: window.location.hash.substring(1)
-    });
+    };
+    if (getParam("from") != null) {
+      sendBody.from = getParam("from");
+      modifyParams("from");
+    }
+    let [code, body] = await sendRequest("POST", "auth?ss=" + socket.secureID, sendBody);
     modifyParams("code");
     if (code === 200) {
       setLocalStore("userID", body.user.id);

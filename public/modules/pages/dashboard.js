@@ -221,15 +221,12 @@ modules["pages/dashboard/lessons"] = {
         lesson.members = null;
       }
       tile.querySelector(".dTileMemberCount span").textContent = lesson.members || 0;
-      if (lessonRec.join != null) {
-        tile.setAttribute("join", lessonRec.join);
-        if (lessonRec.join.startsWith("pin_")) {
-          tile.href = "?pin=" + lessonRec.join.substring(4) + "#join";
-        } else if (lessonRec.join == "link") {
-          tile.href = "?lesson=" + lessonRec.lesson + "#join";
-        } else {
-          tile.href = "?lesson=" + lessonRec.lesson + "#editor";
-        }
+      let join = lessonRec.join || "owner";
+      tile.setAttribute("join", join);
+      if (join.startsWith("pin_")) {
+        tile.href = "?pin=" + join.substring(4) + "#join";
+      } else if (join == "link") {
+        tile.href = "?lesson=" + lessonRec.lesson + "#join";
       } else {
         tile.href = "?lesson=" + lessonRec.lesson + "#editor";
       }
@@ -554,7 +551,7 @@ modules["dropdowns/dashboard/options"] = {
       titleText.removeEventListener("focusout", this.focusListener);
       titleText.removeEventListener("paste", this.pasteListener);
 
-      let focusListener = async () => {
+      this.focusListener = async () => {
         titleText.removeAttribute("contenteditable");
         let name = titleText.textContent.substring(0, 30).replace(/[^A-Za-z0-9.,_|/\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
         if (name.replace(/ /g, "").length < 1) {
@@ -570,26 +567,28 @@ modules["dropdowns/dashboard/options"] = {
           titleText.textContent = titleText.getAttribute("prevtitle");
         }
       };
-      titleText.addEventListener("focusout", focusListener);
-      let keyDownListener = (event) => {
+      titleText.addEventListener("focusout", this.focusListener);
+      this.keyDownListener = (event) => {
         if (event.keyCode == 13) {
           event.preventDefault();
-          focusListener();
+
+          titleText.removeEventListener("keydown", this.keyDownListener);
+          titleText.removeEventListener("focusout", this.focusListener);
+          titleText.removeEventListener("paste", this.pasteListener);
+          
+          this.focusListener();
           return;
         }
       };
-      titleText.addEventListener("keydown", keyDownListener);
-      let pasteListener = (event) => {
+      titleText.addEventListener("keydown", this.keyDownListener);
+      this.pasteListener = (event) => {
         // Cancel paste
         event.preventDefault();
   
         // Insert text manually
         document.execCommand("insertHTML", false, (event.originalEvent || event).clipboardData.getData("text/plain"));
       }
-      titleText.addEventListener("paste", pasteListener);
-      this.keyDownListener = keyDownListener;
-      this.focusListener = focusListener;
-      this.pasteListener = pasteListener;
+      titleText.addEventListener("paste", this.pasteListener);
 
       await sleep(1);
       titleText.focus();

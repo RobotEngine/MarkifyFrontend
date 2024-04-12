@@ -1245,7 +1245,7 @@ modules["dropdowns/editor/members"] = {
       let contentFrame = memberFrameHolder.querySelector(".eMemberFrame");
       let contentHolderFrameHolder = contentFrame.querySelector(".eMemberFrameContentHolder");
       let contentFrameHolder = contentFrame.querySelector(".eMemberFrameContent");
-
+      console.log(contentFrameHolder.scrollHeight)
       let contentHeight = contentFrameHolder.scrollHeight;
       //contentFrame.style.maxHeight = Math.min(fixed.offsetHeight - dropdownRect.top, contentHeight + 8) - 8 + "px";
 
@@ -1262,8 +1262,8 @@ modules["dropdowns/editor/members"] = {
       if (setTop < dropdownRect.top) { // Above dropdown:
         setTop = 0;
       }
-      if (buttonRect.top + contentHeight > fixed.offsetHeight - dropdownRect.top + 8) { // Below dropdown:
-        setTop = fixed.offsetHeight - contentFrameHolder.offsetHeight - dropdownRect.top - 8;
+      if (buttonRect.top + contentHeight > fixed.offsetHeight - dropdownRect.top + 12) { // Below dropdown:
+        setTop = fixed.offsetHeight - contentFrameHolder.offsetHeight - dropdownRect.top - 12;
       }
       memberFrameHolder.style.top = setTop + "px";
       

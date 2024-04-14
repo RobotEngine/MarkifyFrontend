@@ -2409,8 +2409,9 @@ modules["pages/editor/toolbar/cursor"] = {
       }
     }, { passive: false });
 
-    addEvent(content, "mousemove", (event) => { console.log("Mouse Move"); this.moveAction(event); }, { passive: false });
-    addEvent(content, "touchmove", (event) => { console.log("Touch Move"); this.moveAction(event); }, { passive: false });
+    addEvent(content, "mousemove", (event) => { this.moveAction(event); }, { passive: false });
+    addEvent(content, "touchmove", (event) => { this.moveAction(event); }, { passive: false });
+    content.addEventListener("mousemove", () => { console.log("Touch Move 2"); });
 
     addEvent(window, "scroll", () => { this.updateActionUI(); }, { passive: true });
     addEvent(window, "resize", () => { this.updateActionUI(); }, { passive: true });

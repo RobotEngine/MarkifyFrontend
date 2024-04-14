@@ -1949,7 +1949,6 @@ modules["pages/editor/toolbar/cursor"] = {
         return;
       }
     }
-    console.log("MOVE1");
 
     /*
     if (Math.floor(this.endX - this.startX) == 0 && Math.floor(this.endY - this.startY) == 0) {
@@ -1979,7 +1978,6 @@ modules["pages/editor/toolbar/cursor"] = {
         select.p = select.p || anno.p;
         select.p[0] = utils.round(select.p[0] + changeX);
         select.p[1] = utils.round(select.p[1] + changeY);
-        console.log("MOVE2");
       } else if (this.action == "resize") {
         select.s = select.s || anno.s;
         if (this.size == null) {
@@ -2160,14 +2158,12 @@ modules["pages/editor/toolbar/cursor"] = {
       this.startX = this.endX;
       this.startY = this.endY;
     }
-    console.log("MOVE3");
     this.updateBox();
   },
   endAction: async function () {
     if (this.action == null) {
       return;
     }
-    console.log("MOVE4");
     let editor = await getModule("pages/editor");
     let utils = await getModule("pages/editor/annotation");
     this.action = null;
@@ -2413,8 +2409,8 @@ modules["pages/editor/toolbar/cursor"] = {
       }
     }, { passive: false });
 
-    addEvent(content, "mousemove", (event) => { this.moveAction(event); }, { passive: false });
-    addEvent(content, "touchmove", (event) => { this.moveAction(event); }, { passive: false });
+    addEvent(content, "mousemove", (event) => { console.log("MOVEM"); this.moveAction(event); }, { passive: false });
+    addEvent(content, "touchmove", (event) => { console.log("MOVET"); this.moveAction(event); }, { passive: false });
 
     addEvent(window, "scroll", () => { this.updateActionUI(); }, { passive: true });
     addEvent(window, "resize", () => { this.updateActionUI(); }, { passive: true });

@@ -2140,7 +2140,6 @@ modules["pages/editor/toolbar/cursor"] = {
             }
         }
         if (select.f || anno.f == "text") {
-          /*
           await utils.render({ ...anno, ...select, sync: setTempSync });
           let renderedAnno = editor.page.querySelector('.eAnnotation[anno="' + annoid + '"] div');
           if (renderedAnno != null) {
@@ -2149,7 +2148,7 @@ modules["pages/editor/toolbar/cursor"] = {
               select.textfit = false;
             }
             select.s[1] = renderedAnno.offsetHeight + 6; //Math.max(select.s[1], renderedAnno.offsetHeight + 6);
-          }*/
+          }
         }
       }
       select.sync = setTempSync;
@@ -2410,8 +2409,8 @@ modules["pages/editor/toolbar/cursor"] = {
       }
     }, { passive: false });
 
-    addEvent(content, "mousemove", (event) => { this.moveAction(event); }, { passive: false });
-    addEvent(content, "touchmove", (event) => { this.moveAction(event); }, { passive: false });
+    addEvent(content, "mousemove", (event) => { console.log("Mouse Move"); this.moveAction(event); }, { passive: false });
+    addEvent(content, "touchmove", (event) => { console.log("Touch Move"); this.moveAction(event); }, { passive: false });
 
     addEvent(window, "scroll", () => { this.updateActionUI(); }, { passive: true });
     addEvent(window, "resize", () => { this.updateActionUI(); }, { passive: true });

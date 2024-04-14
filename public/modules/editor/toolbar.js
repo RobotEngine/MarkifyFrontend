@@ -2140,6 +2140,7 @@ modules["pages/editor/toolbar/cursor"] = {
             }
         }
         if (select.f || anno.f == "text") {
+          /*
           await utils.render({ ...anno, ...select, sync: setTempSync });
           let renderedAnno = editor.page.querySelector('.eAnnotation[anno="' + annoid + '"] div');
           if (renderedAnno != null) {
@@ -2148,7 +2149,7 @@ modules["pages/editor/toolbar/cursor"] = {
               select.textfit = false;
             }
             select.s[1] = renderedAnno.offsetHeight + 6; //Math.max(select.s[1], renderedAnno.offsetHeight + 6);
-          }
+          }*/
         }
       }
       select.sync = setTempSync;
@@ -4683,7 +4684,6 @@ modules["pages/editor/toolbar/textedit"] = {
   },
   pastEvents: [],
   js: async function (frame, toolID, extra) {
-    return;
     let editor = await getModule("pages/editor");
     let utils = await getModule("pages/editor/annotation");
     let selectID = Object.keys(editor.selecting)[0];

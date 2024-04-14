@@ -2411,7 +2411,6 @@ modules["pages/editor/toolbar/cursor"] = {
 
     addEvent(content, "mousemove", (event) => { this.moveAction(event); }, { passive: false });
     addEvent(content, "touchmove", (event) => { this.moveAction(event); }, { passive: false });
-    content.addEventListener("touchmove", () => { console.log("Touch Move 2"); });
 
     addEvent(window, "scroll", () => { this.updateActionUI(); }, { passive: true });
     addEvent(window, "resize", () => { this.updateActionUI(); }, { passive: true });

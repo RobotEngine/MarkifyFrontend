@@ -2979,11 +2979,13 @@ modules["pages/editor/annotation"] = {
             if (richText.b[i] != "\n") {
               addHTML = "<div>" + cleanString(richText.b[i]) + "</div>";
             } else {
-              addHTML = "</br>";
+              addHTML = "<br>";
             }
             setHTML += addHTML;
           }
-          text.innerHTML = setHTML;
+          if (text.innerHTML != setHTML) {
+            text.innerHTML = setHTML;
+          }
           //text.innerText = cleanString(richText.b[0]);
           //text.innerHTML = cleanString(richText.b[0]).replace(/\n\n/g, "</br>").replace(/\n/g, "</br>");
         } else {

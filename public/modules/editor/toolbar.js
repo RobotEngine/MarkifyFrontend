@@ -2409,8 +2409,8 @@ modules["pages/editor/toolbar/cursor"] = {
       }
     }, { passive: false });
 
-    addEvent(content, "mousemove", (event) => { console.log("MOVEM"); this.moveAction(event); }, { passive: false });
-    addEvent(content, "touchmove", (event) => { console.log("MOVET"); this.moveAction(event); }, { passive: false });
+    addEvent(content, "mousemove", (event) => { this.moveAction(event); }, { passive: false });
+    addEvent(content, "touchmove", (event) => { this.moveAction(event); }, { passive: false });
 
     addEvent(window, "scroll", () => { this.updateActionUI(); }, { passive: true });
     addEvent(window, "resize", () => { this.updateActionUI(); }, { passive: true });
@@ -4683,6 +4683,7 @@ modules["pages/editor/toolbar/textedit"] = {
   },
   pastEvents: [],
   js: async function (frame, toolID, extra) {
+    return;
     let editor = await getModule("pages/editor");
     let utils = await getModule("pages/editor/annotation");
     let selectID = Object.keys(editor.selecting)[0];

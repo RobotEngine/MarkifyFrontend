@@ -16,7 +16,7 @@ modules["dropdowns/dashboard/moveto"] = {
     ".dTileDropFolderHolder": `display: flex; flex-direction: column; width: max-content; min-width: 100%; align-items: flex-start`,
     ".dTileDropFolderNone": `display: none; width: 100%; text-align: center; margin: 8px 0`,
     ".dTileDropFolderParent": `width: -webkit-fill-available`,
-    ".dTileDropFolderParent[child]": `padding-left: 10px`,
+    ".dTileDropFolderParent[child]": `padding-left: 20px`,
     ".dTileDropFolder": `--fillColor: var(--theme); --themeColor: var(--fillColor); position: relative; display: flex; padding: 4px; margin-bottom: 6px; align-items: center`, //width: 100%;
     ".dTileDropFolder[selected]": `--themeColor: #fff !important`,
     ".dTileDropFolder[selected] div[select]": `opacity: 1 !important`,
@@ -25,10 +25,11 @@ modules["dropdowns/dashboard/moveto"] = {
     ".dTileDropFolder svg[folder]": `width: 32px; height: 32px; margin-left: 4px; z-index: 1`,
     ".dTileDropFolder div[select]": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--fillColor); border-radius: 24px; opacity: 0; transition: .1s`,
     ".dTileDropFolder:hover div[select]": `opacity: .2`,
-    ".dTileDropFolder div[name]": `margin: 0 8px 0 4px; color: var(--textColor); font-size: 18px; font-weight: 600; z-index: 1`,
+    ".dTileDropFolder div[name]": `flex: 1; margin: 0 8px 0 4px; color: var(--textColor); font-size: 18px; font-weight: 600; z-index: 1; text-align: left`,
     ".dTileDropFolder div[name][contenteditable]": `padding: 2px 4px; outline: solid 2px var(--themeColor); border-radius: 4px; overflow: auto`,
-    ".dTileDropFolder div[arrow]": `position: sticky; display: flex; width: 32px; height: 32px; right: -2px; margin-left: auto; justify-content: center; align-items: center; background: rgba(var(--background), .7); backdrop-filter: blur(4px); border-radius: 16px; z-index: 1`,
+    ".dTileDropFolder div[arrow]": `position: sticky; display: flex; width: 32px; height: 32px; right: -2px; margin-left: auto; justify-content: center; align-items: center; background: rgba(var(--background), .7); backdrop-filter: blur(4px); border-radius: 16px; z-index: 1; transition: .1s`,
     ".dTileDropFolder div[arrow] svg": `width: 24px; height: 24px`,
+    ".dTileDropFolder[loaded] div[arrow]": `transform: rotate(90deg)`,
     ".dTileDropFolderActions": `position: sticky; display: flex; flex-wrap: wrap; max-width: calc(var(--dropdownWidth) - 36px); padding: 8px; margin: 4px; gap: 24px; left: 4px; bottom: 4px; justify-content: space-between; align-items: center; background: rgba(var(--background), .7); backdrop-filter: blur(4px); border-radius: 27px; z-index: 2`,
     ".dTileDropFolderNew": `padding: 6px 10px; background: var(--theme); --borderRadius: 16px; color: #fff; font-size: 16px`,
     ".dTileDropFolderMoveTo": `padding: 6px 10px; background: #fff; --borderRadius: 16px; color: var(--secondary); font-size: 16px`
@@ -49,6 +50,7 @@ modules["dropdowns/dashboard/moveto"] = {
 
     let addFolder = async (folder, parent) => {
       if (parent != null) {
+        parent.removeAttribute("selected");
         parent = parent.closest(".dTileDropFolderParent");
       } else {
         parent = folderFrame;
@@ -68,7 +70,8 @@ modules["dropdowns/dashboard/moveto"] = {
       }
       let folderName = newFolder.querySelector("div[name]");
       if (folder != null) {
-
+        newFolder.setAttribute("folderid", folder._id);
+        folderName.textContent = folder.name;
       } else {
         if (parent.firstElementChild != null) {
           if (parent != folderFrame && parent.firstElementChild.nextElementSibling != null) {
@@ -106,6 +109,7 @@ modules["dropdowns/dashboard/moveto"] = {
           if (name.replace(/ /g, "").length < 1) {
             newFolder.remove();
             updateMsg();
+            newButton.removeAttribute("disabled");
             return;
           }
           /*if (folderName.textContent == folderName.getAttribute("prevtitle")) {
@@ -113,13 +117,22 @@ modules["dropdowns/dashboard/moveto"] = {
           }*/
           newFolder.setAttribute("disabled", "");
           folderName.textContent = name;
-          let [code] = await sendRequest("POST", "me/folders/new", { name: name });
+          let folderBody = { name: name };
+          if (parent != folderFrame) {
+            folderBody.parent = parent.getAttribute("folderid");
+          }
+          let [code, body] = await sendRequest("POST", "lessons/folders/new", folderBody);
           if (code != 200) {
             newFolder.remove();
             updateMsg();
           } else {
+            newFolder.setAttribute("folderid", body.folder);
             newFolder.removeAttribute("disabled");
+            let folderChild = newFolder.querySelector(".dTileDropFolder");
+            folderChild.setAttribute("loaded", "");
+            folderChild.setAttribute("selected", "");
           }
+          newButton.removeAttribute("disabled");
         };
         folderName.addEventListener("focusout", focusListener);
 
@@ -130,10 +143,63 @@ modules["dropdowns/dashboard/moveto"] = {
     }
 
     newButton.addEventListener("click", () => {
+      newButton.setAttribute("disabled", "");
       addFolder(null, folderFrame.querySelector(".dTileDropFolder[selected]"))
     });
 
     updateMsg();
+
+    let loadFolders = async (parent) => {
+      let path = "lessons/folders";
+      if (parent != null) {
+        path += "?parent=" + parent.getAttribute("folderid");
+      }
+      let [code, result] = await sendRequest("POST", path);
+      if (code != 200) {
+        return;
+      }
+
+      for (let i = 0; i < result.folders.length; i++) {
+        addFolder(result.folders[i], parent);
+      }
+    }
+
+    folderFrame.addEventListener("click", async (event) => {
+      let target = event.target;
+      if (target == null) {
+        return;
+      }
+      let folder = target.closest(".dTileDropFolder");
+      if (folder == null) {
+        return;
+      }
+      let folderParent = folder.parentElement;
+      let lastSelect = folderFrame.querySelector(".dTileDropFolder[selected]");
+      if (lastSelect == folder) {
+        for (let i = 0; i < folderParent.children.length; i++) {
+          let child = folderParent.children[i];
+          if (child.hasAttribute("folderid") == true) {
+            child.remove();
+          }
+        }
+        folder.removeAttribute("loaded");
+        folder.removeAttribute("selected");
+        return;
+      }
+      if (lastSelect != null) {
+        lastSelect.removeAttribute("selected");
+      }
+      folder.setAttribute("selected", "");
+
+      if (folder.hasAttribute("loaded") == false) {
+        folderParent.setAttribute("disabled", "");
+        await loadFolders(folderParent);
+        folder.setAttribute("loaded", "");
+        folderParent.removeAttribute("disabled");
+      }
+    });
+
+    await loadFolders();
 
     /*
       <div class="dTileDropFolderParent" child>

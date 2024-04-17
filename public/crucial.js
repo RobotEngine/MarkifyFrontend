@@ -218,6 +218,11 @@ async function setFrame(path, frame, extra) {
     }
     return;
   }
+  if (extra.content != null) {
+    if (module.maxHeight != null) {
+      extra.content.setAttribute("maxheight", module.maxHeight);
+    }
+  }
   let continueLoading = true;
   if (frameSet == app) {
     extra.from = currentPage;
@@ -829,7 +834,11 @@ modules["dropdown"] = {
       content.style.top = header.offsetHeight + "px";
       // We use fixed, not window, so that scrollbars are accounted for:
       content.style.setProperty("--dropdownWidth", (fixed.clientWidth - 16) + "px");
-      content.style.maxHeight = fixed.clientHeight - header.offsetHeight - 16 + "px";
+      let maxHeight = fixed.clientHeight - header.offsetHeight - 16;
+      if (content.hasAttribute("maxheight") == true) {
+        maxHeight = Math.min(maxHeight, parseInt(content.getAttribute("maxheight")));
+      }
+      content.style.maxHeight = maxHeight + "px";
       content.style.minWidth = Math.min(fixed.clientWidth - 16, 200) + "px";
       
       if (dropdown.hasAttribute("closing") == false) {
@@ -915,7 +924,7 @@ modules["dropdown"] = {
       //oldContent.style.transform = "scale(.85)";
       clearInterval(window.dropdown.interval);
       window.dropdown.interval = this.setResizeLoop(dropdown, content, header, window.dropdown.button);
-      await setFrame(frameName, frame, { button: button });
+      await setFrame(frameName, frame, { content: content, button: button });
       content.style.opacity = 1;
       frame.style.removeProperty("min-height");
       await sleep(500);
@@ -966,7 +975,7 @@ modules["dropdown"] = {
     window.dropdown = { dropdown: dropdown, button: button, frameHistory: [[frameName, setTitleHTML]], interval: this.setResizeLoop(dropdown, content, header, button) };
     button.style.opacity = 0;
     dropdown.style.opacity = 1;
-    await setFrame(frameName, frame, { button: button });
+    await setFrame(frameName, frame, { content: content, button: button });
     frame.style.removeProperty("min-height");
     await sleep(300);
     let dropTitle = header.querySelector(".dropdownTitle div");

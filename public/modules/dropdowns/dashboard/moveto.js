@@ -1,5 +1,6 @@
 modules["dropdowns/dashboard/moveto"] = {
   title: "Move To",
+  maxHeight: 450,
   html: `
   <div class="dTileDropFolderFrame">
     <div class="dTileDropFolderHolder">
@@ -32,7 +33,9 @@ modules["dropdowns/dashboard/moveto"] = {
     ".dTileDropFolder[loaded] div[arrow]": `transform: rotate(90deg)`,
     ".dTileDropFolderActions": `position: sticky; display: flex; flex-wrap: wrap; max-width: calc(var(--dropdownWidth) - 36px); padding: 8px; margin: 4px; gap: 24px; left: 4px; bottom: 4px; justify-content: space-between; align-items: center; background: rgba(var(--background), .7); backdrop-filter: blur(4px); border-radius: 27px; z-index: 2`,
     ".dTileDropFolderNew": `padding: 6px 10px; background: var(--theme); --borderRadius: 16px; color: #fff; font-size: 16px`,
-    ".dTileDropFolderMoveTo": `padding: 6px 10px; background: #fff; --borderRadius: 16px; color: var(--secondary); font-size: 16px`
+    ".dTileDropFolderMoveTo": `padding: 6px 10px; background: #fff; --borderRadius: 16px; color: var(--secondary); font-size: 16px`,
+    ".dTileDropFolderLoadMore": `display: flex; width: 100%; justify-content: center; margin-bottom: 8px`,
+    ".dTileDropFolderLoadMore button": `display: flex; padding: 6px 8px; align-items: center; --borderRadius: 16px; font-size: 16px; color: var(--theme); font-weight: 700`
   },
   js: async function (frame) {
     let folderFrame = frame.querySelector(".dTileDropFolderHolder");
@@ -51,7 +54,7 @@ modules["dropdowns/dashboard/moveto"] = {
     let addFolder = async (folder, parent) => {
       if (parent != null) {
         parent.removeAttribute("selected");
-        parent = parent.closest(".dTileDropFolderParent");
+        parent = parent.closest(".dTileDropFolderParent") || parent;
       } else {
         parent = folderFrame;
       }
@@ -127,6 +130,7 @@ modules["dropdowns/dashboard/moveto"] = {
             updateMsg();
           } else {
             newFolder.setAttribute("folderid", body.folder);
+            parent.setAttribute("lastopened", getEpoch());
             newFolder.removeAttribute("disabled");
             let folderChild = newFolder.querySelector(".dTileDropFolder");
             folderChild.setAttribute("loaded", "");
@@ -149,24 +153,46 @@ modules["dropdowns/dashboard/moveto"] = {
 
     updateMsg();
 
-    let loadFolders = async (parent) => {
+    let amount = 50;
+    let loadFolders = async (parent, before) => {
       let path = "lessons/folders";
-      if (parent != null) {
+      if (parent != null && parent.hasAttribute("folderid") == true) {
         path += "?parent=" + parent.getAttribute("folderid");
+        if (before != null) {
+          path += "&before=" + before;
+        }
+      } else if (before != null) {
+        path += "?before=" + before;
       }
-      let [code, result] = await sendRequest("POST", path);
+      let [code, result] = await sendRequest("GET", path);
       if (code != 200) {
-        return;
+        return result;
       }
 
       for (let i = 0; i < result.folders.length; i++) {
         addFolder(result.folders[i], parent);
+        (parent || folderFrame).setAttribute("lastopened", result.folders[i].opened);
       }
+      if (result.folders.length > 0 && result.folders.length >= amount) {
+        (parent || folderFrame).insertAdjacentHTML("beforeend", `<div class="dTileDropFolderLoadMore"><button class="buttonAnim border">View More</button></div>`);
+      }
+      return result;
     }
 
     folderFrame.addEventListener("click", async (event) => {
       let target = event.target;
       if (target == null) {
+        return;
+      }
+      let loadMore = target.closest(".dTileDropFolderLoadMore button");
+      if (loadMore != null) {
+        let folderParent = loadMore.parentElement.parentElement;
+        loadMore.setAttribute("disabled", "");
+        let result = await loadFolders(folderParent, folderParent.getAttribute("lastopened"));
+        loadMore.removeAttribute("disabled");
+        if (result != 200) {
+          loadMore.parentElement.remove();
+        }
         return;
       }
       let folder = target.closest(".dTileDropFolder");
@@ -178,7 +204,7 @@ modules["dropdowns/dashboard/moveto"] = {
       if (lastSelect == folder) {
         for (let i = 0; i < folderParent.children.length; i++) {
           let child = folderParent.children[i];
-          if (child.hasAttribute("folderid") == true) {
+          if (child.nodeName == "DIV") {
             child.remove();
             i--;
           }

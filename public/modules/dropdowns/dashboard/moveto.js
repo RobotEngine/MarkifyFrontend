@@ -180,6 +180,7 @@ modules["dropdowns/dashboard/moveto"] = {
           let child = folderParent.children[i];
           if (child.hasAttribute("folderid") == true) {
             child.remove();
+            i--;
           }
         }
         folder.removeAttribute("loaded");

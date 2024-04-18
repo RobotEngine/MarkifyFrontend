@@ -490,7 +490,7 @@ modules["dropdowns/dashboard/options"] = {
   <button class="dTileDropAction" option="open" title="Open this lesson."><img src="./images/dashboard/open.svg">Open</button>
   <button class="dTileDropAction" option="opennewtab" title="Open this lesson in a new tab."><img src="./images/dashboard/open.svg">Open in New Tab</button>
   <div class="dTileDropLine"></div>
-  <button class="dTileDropAction" option="moveto" disabled title="Move this lesson into a folder." dropdown="dropdowns/dashboard/moveto" dropdowntitle="<img class='dTileDropActionImage' src='./images/dashboard/moveto.svg'>Move To"><img class="dTileDropActionImage" src="./images/dashboard/moveto.svg">Move To Folder</button>
+  <button class="dTileDropAction" option="moveto" title="Move this lesson into a folder." dropdown="dropdowns/dashboard/moveto" dropdowntitle="<img class='dTileDropActionImage' src='./images/dashboard/moveto.svg'>Move To"><img class="dTileDropActionImage" src="./images/dashboard/moveto.svg">Move To Folder</button>
   <div class="dTileDropLine"></div>
   <button class="dTileDropAction" option="rename" title="Rename this lesson."><img src="./images/dashboard/rename.svg">Rename</button>
   <button class="dTileDropAction" option="copy" title="Create a duplicate of this lesson."><img src="./images/editor/file/copy.svg">Duplicate</button>

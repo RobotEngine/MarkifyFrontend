@@ -191,6 +191,7 @@ modules["dropdowns/dashboard/moveto"] = {
         let result = await loadFolders(folderParent, folderParent.getAttribute("lastopened"));
         loadMore.removeAttribute("disabled");
         if (result != 200) {
+          loadMore.removeAttribute("loaded");
           loadMore.parentElement.remove();
         }
         return;
@@ -211,12 +212,14 @@ modules["dropdowns/dashboard/moveto"] = {
         }
         folder.removeAttribute("loaded");
         folder.removeAttribute("selected");
+        moveButton.setAttribute("disabled", "");
         return;
       }
       if (lastSelect != null) {
         lastSelect.removeAttribute("selected");
       }
       folder.setAttribute("selected", "");
+      moveButton.removeAttribute("disabled");
 
       if (folder.hasAttribute("loaded") == false) {
         folderParent.setAttribute("disabled", "");

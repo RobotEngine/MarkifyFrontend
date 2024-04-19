@@ -605,6 +605,7 @@ modules["dropdowns/dashboard/options"] = {
       }
     });
     deleteButton.setAttribute("lesson", lessonID);
+    frame.querySelector('.dTileDropAction[option="moveto"]').setAttribute("lesson", lessonID);
     if (!isOwner) {
       renameButton.remove();
       copyButton.remove();

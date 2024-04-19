@@ -37,7 +37,9 @@ modules["dropdowns/dashboard/moveto"] = {
     ".dTileDropFolderLoadMore": `display: flex; width: 100%; justify-content: center; margin-bottom: 8px`,
     ".dTileDropFolderLoadMore button": `display: flex; padding: 6px 8px; align-items: center; --borderRadius: 16px; font-size: 16px; color: var(--theme); font-weight: 700`
   },
-  js: async function (frame) {
+  js: async function (frame, extra) {
+    let lessonID = extra.button.getAttribute("lesson");
+    
     let dropdownModule = await getModule("dropdown");
 
     let folderFrame = frame.querySelector(".dTileDropFolderHolder");
@@ -159,7 +161,7 @@ modules["dropdowns/dashboard/moveto"] = {
         return;
       }
       moveButton.setAttribute("disabled", "");
-      let [code, result] = await sendRequest("GET", "lessons/folders/move?folder=" + selected.parentElement.getAttribute("folderid"));
+      let [code, result] = await sendRequest("GET", "lessons/folders/move?folder=" + selected.parentElement.getAttribute("folderid") + "&lesson=" + lessonID);
       if (folderFrame.querySelector(".dTileDropFolder[selected]") != null) {
         moveButton.removeAttribute("disabled");
       }

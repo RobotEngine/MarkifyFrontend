@@ -3284,12 +3284,25 @@ modules["pages/editor/annotation"] = {
         
         anno.style.opacity = o / 100;
 
-        if (d != null || anno.hasAttribute("src") == false) {
-          if (d != null && d.startsWith("blob:") == false) {
-            anno.src = assetURL + d;
-          } else {
-            anno.src = d || "./images/editor/uploading.png";
+        if (editor.exporting != true) {
+          if (d != null || anno.hasAttribute("src") == false) {
+            if (d != null && d.startsWith("blob:") == false) {
+              anno.src = assetURL + d;
+            } else {
+              anno.src = d || "./images/editor/uploading.png";
+            }
           }
+        } else {
+          await new Promise(async (resolve) => {
+            anno.addEventListener("load", resolve);
+            if (d != null || anno.hasAttribute("src") == false) {
+              if (d != null && d.startsWith("blob:") == false) {
+                anno.src = assetURL + d;
+              } else {
+                anno.src = d || "./images/editor/uploading.png";
+              }
+            }
+          });
         }
     }
     if (anno != null) {

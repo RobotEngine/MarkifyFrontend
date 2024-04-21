@@ -104,7 +104,7 @@ modules["pages/dashboard/lessons"] = {
       <div>Folders</div>
       <button class="dSectionLoadMore buttonAnim border"><span>View More</span><img src="./images/tooltips/drop.svg"></button>
     </div>
-    <div class="dSectionTiles" default="10" timefield="opened"></div>
+    <div class="dSectionTiles" default="10" timefield="opened" style="min-height: 100px"></div>
   </div>
   <div class="dSection" section="recent">
     <div class="dSectionTop">
@@ -146,8 +146,12 @@ modules["pages/dashboard/lessons"] = {
     ".dSectionLoad": `padding: 8px 12px; margin-top: 28px`,
     ".dSectionTiles": "display: flex; flex-wrap: wrap; min-height: 200px; justify-content: center; align-items: center",
     ".dTile": `--optionOpacity: 0; position: relative; width: calc(20% - 52px); min-width: min(148px, calc(100% - 52px)); height: 200px; margin: 12px; --borderRadius: 12px`,
+    ".dTile[folder]": `height: 100px`,
+    ".dTile[folder] .dTileInfo": `padding: 8px !important`,
     ".dTile:hover": "--optionOpacity: 1",
     ".dTileDocImage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: var(--borderRadius); object-fit: cover; object-position: top center`,
+    ".dTile[folder] .dTileDocImage": `display: flex; flex-wrap: wrap; width: calc(100% - 16px); height: calc(100% - 16px); padding: 8px; gap: 5px; justify-content: center; overflow: hidden`,
+    ".dTileFolderImage": `width: 32px; height: 38px; border: solid 2px var(--secondary); border-radius: 8px; object-fit: cover; object-position: top center`,
     ".dTileInfo": `position: absolute; box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; left: 0px; bottom: 0px; padding: 6px; background: rgba(var(--background), .95)`,
     ".dTileName": `width: 100%; font-size: 18px; font-weight: 600; color: var(--themeColor); text-align: left`,
     ".dTileName[contenteditable]": `padding: 2px 4px; margin-bottom: 4px; max-height: 70px; outline: solid 2px var(--themeColor); border-radius: 4px; overflow: auto`,
@@ -171,7 +175,7 @@ modules["pages/dashboard/lessons"] = {
     }
 
     let lessons = getObject(body.lessons, "_id");
-    function addTile(tileHolder, lessonRec, lesson, insertFirst) {
+    let addTile = (tileHolder, lessonRec, lesson, insertFirst) => {
       if (lesson == null) {
         return;
       }
@@ -187,7 +191,7 @@ modules["pages/dashboard/lessons"] = {
       tileHolder.insertAdjacentHTML(insertAdj, `<a class="dTile largeButton" new>
         <img class="dTileDocImage" src="./images/dashboard/missing.svg">
         <div class="dTileInfo">
-          <div class="dTileName">Untitled Lesson</div>
+          <div class="dTileName"></div>
           <div class="dTileStats">
             <div class="dTileDate"></div>
             <div class="dTileMemberCount" title="Active Members"><img src="./images/profiles/default.svg"><span>0</span></div>
@@ -233,7 +237,55 @@ modules["pages/dashboard/lessons"] = {
 
       return tile;
     }
-    function addLessonTiles(type, data) {
+    let addFolder = (folderHolder, folder, addLessons, insertFirst) => {
+      if (folder == null) {
+        return;
+      }
+      let insertAdj = "beforeend";
+      if (insertFirst) {
+        insertAdj = "afterbegin";
+      }
+      let existingTile = folderHolder.querySelector('.dTile[folder="' + folder._id + '"');
+      if (existingTile) {
+        existingTile.remove();
+      }
+      let timeField = folderHolder.getAttribute("timefield");
+      folderHolder.insertAdjacentHTML(insertAdj, `<a class="dTile largeButton" new>
+        <div class="dTileDocImage">
+        </div>
+        <div class="dTileInfo">
+          <div class="dTileName"></div>
+        </div>
+      </a>`);
+      let tile = folderHolder.querySelector(".dTile[new]");
+      tile.removeAttribute("new");
+      tile.setAttribute("folder", folder._id);
+      tile.setAttribute("time", folder[timeField]);
+      tile.querySelector(".dTileName").textContent = folder.name || "Untitled Folder";
+      let hex = "#" + (folder.color || "0084FF"); // Default Color
+      if (hex.length < 4) {
+        hex = hex.split("").map((hexVal) => { return hexVal + hexVal }).join("");
+      }
+      let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      let rgb = parseInt(result[1], 16) + "," + parseInt(result[2], 16) + "," + parseInt(result[3], 16);
+      tile.style.setProperty("--themeColor", "rgba(" + rgb + ",1)");
+      tile.style.setProperty("--themeColor2", "rgba(" + rgb + ",.5)");
+      let tumbHolder = tile.querySelector(".dTileDocImage");
+      let searchLessons = { ...lessons, ...(addLessons || {}) };
+      for (let i = 0; i < (folder.lessons || []).length; i++) {
+        let lesson = searchLessons[folder.lessons[i]];
+        tumbHolder.insertAdjacentHTML(insertAdj, `<img class="dTileFolderImage" src="./images/dashboard/missing.svg" new>`);
+        let thumbnail = tumbHolder.querySelector(".dTileFolderImage[new]");
+        thumbnail.removeAttribute("new");
+        if (lesson.thumbnail) {
+          thumbnail.src = assetURL + lesson.thumbnail;
+        }
+        if (lesson.type == "freeboard") {
+          thumbnail.style.border = "solid 2px var(--purple)";
+        }
+      }
+    }
+    let addLessonTiles = (type, data) => {
       data = data || body;
       let lessonRecs = data[type];
       let tileSection = frame.querySelector('.dSection[section="' + type + '"]');
@@ -246,12 +298,17 @@ modules["pages/dashboard/lessons"] = {
       }
       for (let i = 0; i < lessonRecs.length; i++) {
         let lessonRec = lessonRecs[i];
-        addTile(tileHolder, lessonRec, lessons[lessonRec.lesson]);
+        if (type != "folders") {
+          addTile(tileHolder, lessonRec, lessons[lessonRec.lesson]);
+        } else {
+          addFolder(tileHolder, lessonRec);
+        }
       }
       if (tileHolder.childElementCount < parseInt(tileHolder.getAttribute("default"))) {
         tileSection.querySelector(".dSectionLoadMore").style.display = "none";
       }
     }
+    addLessonTiles("folders");
     addLessonTiles("recent");
     addLessonTiles("shared");
     addLessonTiles("mine");
@@ -272,7 +329,7 @@ modules["pages/dashboard/lessons"] = {
       if (this.dashSubscribe) {
         this.dashSubscribe.edit(filter);
       } else {
-        this.dashSubscribe = subscribe(filter, function (data) {
+        this.dashSubscribe = subscribe(filter, (data) => {
           let body = data.data || data.body || data;
           console.log(body)
           /*
@@ -393,7 +450,7 @@ modules["pages/dashboard/lessons"] = {
     */
 
     let loadMoreGetAmount = 10;
-    frame.addEventListener("click", async function (event) {
+    frame.addEventListener("click", async (event) => {
       let element = event.target;
       if (element == null) {
         return;
@@ -468,7 +525,7 @@ modules["pages/dashboard/lessons"] = {
         return;
       }
     });
-    frame.addEventListener("contextmenu", async function (event) {
+    frame.addEventListener("contextmenu", async (event) => {
       let element = event.target;
       if (element == null) {
         return;
@@ -476,7 +533,9 @@ modules["pages/dashboard/lessons"] = {
       let lessonTile = element.closest(".dTile");
       if (lessonTile) {
         event.preventDefault();
-        dropdownModule.open(lessonTile.querySelector(".dTileOptions"), "dropdowns/dashboard/options");
+        if (lessonTile.hasAttribute("lesson") == true) {
+          dropdownModule.open(lessonTile.querySelector(".dTileOptions"), "dropdowns/dashboard/options");
+        }
         return;
       }
     });
@@ -490,7 +549,7 @@ modules["dropdowns/dashboard/options"] = {
   <button class="dTileDropAction" option="open" title="Open this lesson."><img src="./images/dashboard/open.svg">Open</button>
   <button class="dTileDropAction" option="opennewtab" title="Open this lesson in a new tab."><img src="./images/dashboard/open.svg">Open in New Tab</button>
   <div class="dTileDropLine"></div>
-  <button class="dTileDropAction" option="moveto" disabled title="Move this lesson into a folder." dropdown="dropdowns/dashboard/moveto" dropdowntitle="<img class='dTileDropActionImage' src='./images/dashboard/moveto.svg'>Move To"><img class="dTileDropActionImage" src="./images/dashboard/moveto.svg">Move To Folder</button>
+  <button class="dTileDropAction" disabled option="moveto" title="Move this lesson into a folder." dropdown="dropdowns/dashboard/moveto" dropdowntitle="<img class='dTileDropActionImage' src='./images/dashboard/moveto.svg'>Move To"><img class="dTileDropActionImage" src="./images/dashboard/moveto.svg">Move To Folder</button>
   <div class="dTileDropLine"></div>
   <button class="dTileDropAction" option="rename" title="Rename this lesson."><img src="./images/dashboard/rename.svg">Rename</button>
   <button class="dTileDropAction" option="copy" title="Create a duplicate of this lesson."><img src="./images/editor/file/copy.svg">Duplicate</button>

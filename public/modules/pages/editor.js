@@ -91,7 +91,7 @@ modules["pages/editor"] = {
 
     ".eLogo": `height: 100%; padding: 0; user-select: none`,
     ".eLogo img": `height: 100%`,
-    ".eFileName": `max-width: 360px; padding: 3px; margin: 0 4px; outline: unset; --borderRadius: 4px; --borderColor: var(--secondary); font-size: 20px; white-space: nowrap; --transition: .05s`,
+    ".eFileName": `padding: 3px; margin: 0 4px; outline: unset; --borderRadius: 4px; --borderColor: var(--secondary); font-size: 20px; white-space: nowrap; --transition: .05s`,
     ".eFileName:focus": `--borderWidth: 4px`,
     ".eFileDropdown": `padding: 6px 10px; height: 32px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
 

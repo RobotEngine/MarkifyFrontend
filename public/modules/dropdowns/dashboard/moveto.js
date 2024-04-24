@@ -38,8 +38,8 @@ modules["dropdowns/dashboard/moveto"] = {
     ".dTileDropFolderLoadMore button": `display: flex; padding: 6px 8px; align-items: center; --borderRadius: 16px; font-size: 16px; color: var(--theme); font-weight: 700`
   },
   js: async function (frame, extra) {
-    let lessonID = extra.button.getAttribute("lesson");
-    
+    let lessonID = extra.button.closest("[lesson]").getAttribute("lesson");
+    console.log(lessonID)
     let dropdownModule = await getModule("dropdown");
 
     let folderFrame = frame.querySelector(".dTileDropFolderHolder");
@@ -139,6 +139,7 @@ modules["dropdowns/dashboard/moveto"] = {
             let folderChild = newFolder.querySelector(".dTileDropFolder");
             folderChild.setAttribute("loaded", "");
             folderChild.setAttribute("selected", "");
+            moveButton.removeAttribute("disabled");
           }
           newButton.removeAttribute("disabled");
         };
@@ -152,6 +153,7 @@ modules["dropdowns/dashboard/moveto"] = {
 
     newButton.addEventListener("click", () => {
       newButton.setAttribute("disabled", "");
+      moveButton.setAttribute("disabled", "");
       addFolder(null, folderFrame.querySelector(".dTileDropFolder[selected]"))
     });
 
@@ -185,6 +187,9 @@ modules["dropdowns/dashboard/moveto"] = {
       }
       let [code, result] = await sendRequest("GET", path);
       if (code != 200) {
+        if (parent == null) {
+          dropdownModule.close();
+        }
         return result;
       }
 
@@ -248,7 +253,7 @@ modules["dropdowns/dashboard/moveto"] = {
       }
     });
 
-    await loadFolders();
+    await loadFolders()
 
     /*
       <div class="dTileDropFolderParent" child>

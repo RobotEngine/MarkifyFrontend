@@ -211,7 +211,7 @@ async function setFrame(path, frame, extra) {
     frameSet.style.display = "flex";
     frameSet.style.justifyContent = "center";
     frameSet.style.alignItems = "center";
-    frameSet.innerHTML = `<span style="max-width: 300px; color: var(--error)">Couldn't load module, please try again later.</span>`;
+    frameSet.innerHTML = `<span style="max-width: 216px; color: var(--error)">Failed to load module, please try again later.</span>`;
     delete currentlyLoadingFrames[frameSet.className];
     if (loading) {
       loading.remove();
@@ -831,6 +831,10 @@ modules["dropdown"] = {
   },
   setResizeLoop: function (dropdown, content, header, button) {
     return setInterval(() => {
+      if (content.hasAttribute("loaded") == false) {
+        return;
+      }
+      
       content.style.top = header.offsetHeight + "px";
       // We use fixed, not window, so that scrollbars are accounted for:
       content.style.setProperty("--dropdownWidth", (fixed.clientWidth - 16) + "px");
@@ -893,7 +897,9 @@ modules["dropdown"] = {
       header.querySelector(".dropdownTitle").innerHTML = setTitleHTML;
       let back = header.querySelector(".dropdownBack");
       if (window.dropdown.frameHistory.length > 0) {
-        back.setAttribute("dropdown", window.dropdown.frameHistory[window.dropdown.frameHistory.length - 1][0]);
+        let prev = window.dropdown.frameHistory[window.dropdown.frameHistory.length - 1];
+        back.setAttribute("dropdown", prev[0]);
+        //back.setAttribute("rememberid", prev[2]);
         back.style.display = "flex";
       } else {
         back.style.display = "none";
@@ -925,6 +931,7 @@ modules["dropdown"] = {
       clearInterval(window.dropdown.interval);
       window.dropdown.interval = this.setResizeLoop(dropdown, content, header, window.dropdown.button);
       await setFrame(frameName, frame, { content: content, button: button });
+      content.setAttribute("loaded", "");
       content.style.opacity = 1;
       frame.style.removeProperty("min-height");
       await sleep(500);
@@ -975,6 +982,7 @@ modules["dropdown"] = {
     window.dropdown = { dropdown: dropdown, button: button, frameHistory: [[frameName, setTitleHTML]], interval: this.setResizeLoop(dropdown, content, header, button) };
     button.style.opacity = 0;
     dropdown.style.opacity = 1;
+    content.setAttribute("loaded", "");
     await setFrame(frameName, frame, { content: content, button: button });
     frame.style.removeProperty("min-height");
     await sleep(300);
@@ -1023,6 +1031,10 @@ modules["modal"] = {
   },
   setResizeLoop: function (modal, content, header) {
     return setInterval(() => {
+      if (content.hasAttribute("loaded") == false) {
+        return;
+      }
+
       content.style.top = header.offsetHeight + "px";
       // We use fixed, not window, so that scrollbars are accounted for:
       content.style.maxWidth = fixed.clientWidth - 16 + "px";
@@ -1113,6 +1125,7 @@ modules["modal"] = {
       clearInterval(window.modal.interval);
       window.modal.interval = this.setResizeLoop(modal, content, header);
       await setFrame(frameName, frame, { button: button });
+      content.setAttribute("loaded", "");
       content.style.opacity = 1;
       frame.style.removeProperty("min-height");
       await sleep(500);
@@ -1165,6 +1178,7 @@ modules["modal"] = {
     await sleep();
     modal.parentElement.setAttribute("blur", "");
     await setFrame(frameName, frame, { button: button });
+    content.setAttribute("loaded", "");
     frame.style.removeProperty("min-height");
     await sleep(300);
     let dropTitle = header.querySelector(".modalTitle div");

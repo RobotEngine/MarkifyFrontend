@@ -495,13 +495,14 @@ modules["pages/dashboard/lessons"] = {
         return;
       }
       let loadMore = element.closest(".dSectionLoadMore, .dSectionContinueLoad");
-      if (loadMore) {
+      if (loadMore && loadMore.hasAttribute("folder") == false) {
         let section = loadMore.closest(".dSection");
         let getSection = section.getAttribute("section");
         let tileSection = section.querySelector(".dSectionTiles");
         if (loadMore.hasAttribute("showless") == false) {
           loadMore.setAttribute("disabled", "");
           let [code, body] = await sendRequest("GET", "lessons?section=" + getSection + "&before=" + tileSection.lastChild.getAttribute("time") + "&amount=" + loadMoreGetAmount);
+          loadMore.removeAttribute("disabled");
           if (code != 200) {
             return;
           }
@@ -511,7 +512,6 @@ modules["pages/dashboard/lessons"] = {
             if (section.querySelector(".dSectionContinueLoad") == null) {
               section.insertAdjacentHTML("beforeend", `<button class="dSectionContinueLoad dSectionLoad buttonAnim border">Show More</button>`);
             }
-            loadMore.removeAttribute("disabled");
             if (loadMore.classList[0] == "dSectionLoadMore") {
               loadMore.setAttribute("showless", "");
               loadMore.querySelector("span").textContent = "Show Less";
@@ -522,7 +522,11 @@ modules["pages/dashboard/lessons"] = {
             if (section.querySelector(".dSectionContinueLoad")) {
               section.querySelector(".dSectionContinueLoad").remove();
             }
-            section.insertAdjacentHTML("beforeend", `<div class="dSectionLoad">That's all of your lessons! Make a new one above.</div>`);
+            if (getSection == "folders") {
+              section.insertAdjacentHTML("beforeend", `<div class="dSectionLoad">That's all of your folders! Make a new one when moving a lesson.</div>`);
+            } else {
+              section.insertAdjacentHTML("beforeend", `<div class="dSectionLoad">That's all of your lessons! Make a new one above.</div>`);
+            }
           }
         } else {
           for (let i = parseInt(tileSection.getAttribute("default")); i < tileSection.children.length; i++) {
@@ -588,7 +592,9 @@ modules["dropdowns/dashboard/folder"] = {
     </div>
   </div>
   <div class="dFolderSection" section="folders" timefield="opened"></div>
+  <button class="dSectionContinueLoad dSectionLoad buttonAnim border" folder="folders">Show More</button>
   <div class="dFolderSection" section="recent" timefield="opened"></div>
+  <button class="dSectionContinueLoad dSectionLoad buttonAnim border" folder="lessons">Show More</button>
   <div class="dFolderEmpty">This folder is empty...</div>
   `,
   css: {
@@ -608,6 +614,7 @@ modules["dropdowns/dashboard/folder"] = {
     ".dFolderColors button": `width: 32px; height: 32px; margin: 4px; border: solid 3px var(--pageColor); border-radius: 16px`,
     ".dFolderSection": `display: none; flex-wrap: wrap; width: 600px; max-width: 100%; margin-top: 16px; justify-content: center`,
     ".dFolderEmpty": `width: 100%; margin: 16px 0; font-weight: 600; font-size: 18px text-align: center`,
+    ".dSectionContinueLoad[folder]": `display: none; margin: 10px 0 20px 0`,
   },
   js: async function (frame, extra) {
     let dropdownModule = await getModule("dropdown");
@@ -728,14 +735,7 @@ modules["dropdowns/dashboard/folder"] = {
       data = data || body;
       let lessonRecs = data[type];
       let tileHolder = frame.querySelector('.dFolderSection[section="' + type + '"]');
-      if (lessonRecs == null || lessonRecs.length < 1) {
-        tileHolder.style.display = "none";
-        return;
-      } else {
-        tileHolder.style.display = "flex";
-        empty.style.display = "none";
-      }
-      for (let i = 0; i < lessonRecs.length; i++) {
+      for (let i = 0; i < (lessonRecs || []).length; i++) {
         let lessonRec = lessonRecs[i];
         if (type != "folders") {
           this.addLessonTile(tileHolder, lessonRec, lessons[lessonRec.lesson]);
@@ -743,14 +743,56 @@ modules["dropdowns/dashboard/folder"] = {
           this.addFolderTile(tileHolder, lessonRec, lessons);
         }
       }
-      /*
-      if (tileHolder.childElementCount < parseInt(tileHolder.getAttribute("default"))) {
-        tileSection.querySelector(".dSectionLoadMore").style.display = "none";
+      if (tileHolder.childElementCount < 1) {
+        tileHolder.style.display = "none";
+      } else {
+        tileHolder.style.display = "flex";
+        empty.style.display = "none";
       }
-      */
     }
     addTiles("folders");
     addTiles("recent");
+
+    let loadAmount = 10;
+
+    let loadMoreFolders = frame.querySelector('.dSectionContinueLoad[folder="folders"]');
+    let loadMoreLessons = frame.querySelector('.dSectionContinueLoad[folder="lessons"]');
+    
+    loadMoreFolders.addEventListener("click", async () => {
+      loadMoreFolders.setAttribute("disabled", "");
+      let beforeTime = frame.querySelector('.dFolderSection[section="folders"]').lastChild.getAttribute("time");
+      let [code, body] = await sendRequest("GET", "lessons?section=folders&folder=" + folderid + "&before=" + beforeTime);
+      loadMoreFolders.removeAttribute("disabled");
+      if (code != 200) {
+        return;
+      }
+      lessons = { ...lessons, ...getObject(body.lessons, "_id") };
+      addTiles("folders", body);
+      if (body.folders.length < loadAmount) {
+        loadMoreFolders.style.display = "none";
+      }
+    });
+    loadMoreLessons.addEventListener("click", async () => {
+      loadMoreLessons.setAttribute("disabled", "");
+      let beforeTime = frame.querySelector('.dFolderSection[section="recent"]').lastChild.getAttribute("time");
+      let [code, body] = await sendRequest("GET", "lessons?section=recent&folder=" + folderid + "&before=" + beforeTime);
+      loadMoreLessons.removeAttribute("disabled");
+      if (code != 200) {
+        return;
+      }
+      lessons = { ...lessons, ...getObject(body.lessons, "_id") };
+      addTiles("recent", body);
+      if (body.recent.length < loadAmount) {
+        loadMoreLessons.style.display = "none";
+      }
+    });
+
+    if (body.folders.length >= loadAmount) {
+      loadMoreFolders.style.display = "unset";
+    }
+    if (body.recent.length >= loadAmount) {
+      loadMoreLessons.style.display = "unset";
+    }
 
     this.dashboardUpdateDashSub();
   }

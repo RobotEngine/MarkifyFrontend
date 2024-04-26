@@ -242,6 +242,7 @@ modules["pages/dashboard/lessons"] = {
         tile.href = "?lesson=" + lessonRec.lesson + "#editor";
       }
       if (lessonRec.folder != null) {
+        tile.setAttribute("folderid", lessonRec.folder);
         tile.querySelector(".dTileOptions[folder]").style.display = "unset";
       }
 
@@ -576,7 +577,7 @@ modules["dropdowns/dashboard/folder"] = {
     <div title>My Folder</div>
     <div class="dFolderInfoActions">
       <button class="dCreateDoc largeButton" dropdown="dropdowns/new/lesson">New Lesson</button>
-      <button class="dFolderRemove largeButton"><img src="./images/editor/file/delete.svg"></button>
+      <button class="dFolderRemove largeButton" dropdown="dropdowns/editor/file/delete" option="deletefolder" dashboard title="Delete this folder." dropdowntitle="Delete Folder"><img src="./images/editor/file/delete.svg"></button>
     </div>
   </div>
   <div class="dFolderColorsHolder">
@@ -618,7 +619,7 @@ modules["dropdowns/dashboard/folder"] = {
   },
   js: async function (frame, extra) {
     let dropdownModule = await getModule("dropdown");
-    let alertModule = await getModule("alert");
+    //let alertModule = await getModule("alert");
     let folderid;
     let tile = extra.button.closest(".dTile");
     if (tile != null) {
@@ -631,10 +632,13 @@ modules["dropdowns/dashboard/folder"] = {
       return;
     }
     window.dropdown.frameHistory[window.dropdown.frameHistory.length - 1][2] = folderid;
+    let dropdownHolder = frame.closest(".dropdownOverflow");
     if (window.dropdown.frameHistory.length > 1) {
-      frame.closest(".dropdownOverflow").querySelector(".dropdownBack").setAttribute("rememberid", window.dropdown.frameHistory[window.dropdown.frameHistory.length - 2][2]);
+      dropdownHolder.querySelector(".dropdownBack").setAttribute("rememberid", window.dropdown.frameHistory[window.dropdown.frameHistory.length - 2][2]);
     }
     this.lastFolderId = folderid;
+
+    dropdownHolder.querySelector(".dropdownTitle").textContent = "";
 
     let info = frame.querySelector(".dFolderInfo");
     let folderName = info.querySelector("div[title]");
@@ -804,10 +808,11 @@ modules["dropdowns/dashboard/options"] = {
   <button class="dTileDropAction" option="opennewtab" title="Open this lesson in a new tab."><img src="./images/dashboard/open.svg">Open in New Tab</button>
   <div class="dTileDropLine"></div>
   <button class="dTileDropAction" option="moveto" disabled title="Move this lesson into a folder." dropdown="dropdowns/dashboard/moveto" dropdowntitle="<img class='dTileDropActionImage' src='./images/dashboard/moveto.svg'>Move To"><img class="dTileDropActionImage" src="./images/dashboard/moveto.svg">Move To Folder</button>
+  <button class="dTileDropAction" option="movefrom" style="display: none" title="Remove this lesson from the folder."><img class="dTileDropActionImage" src="./images/dashboard/moveto.svg">Move From Folder</button>
   <div class="dTileDropLine"></div>
   <button class="dTileDropAction" option="rename" title="Rename this lesson."><img src="./images/dashboard/rename.svg">Rename</button>
   <button class="dTileDropAction" option="copy" title="Create a duplicate of this lesson."><img src="./images/editor/file/copy.svg">Duplicate</button>
-  <button class="dTileDropAction" option="delete" dashboard dropdown="dropdowns/editor/file/delete" style="--themeColor: var(--error)" title="Remove this lesson from your dashboard."><img class="dTileDropActionImage" src="./images/editor/file/delete.svg">Delete</button>
+  <button class="dTileDropAction" option="deletelesson" dashboard dropdown="dropdowns/editor/file/delete" style="--themeColor: var(--error)" title="Remove this lesson from your dashboard."><img class="dTileDropActionImage" src="./images/editor/file/delete.svg">Delete</button>
   `,
   css: {
     ".dTileDropAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
@@ -826,6 +831,15 @@ modules["dropdowns/dashboard/options"] = {
     this.lastTile = tile;
     let isOwner = tile.getAttribute("join") == "owner";
     let lessonID = tile.getAttribute("lesson");
+    let folderid;
+    let folderSection = extra.button.closest(".dFolderSection");
+    if (folderSection != null) {
+      let infoSection = folderSection.parentElement.querySelector(".dFolderInfo");
+      if (infoSection != null) {
+        folderid = infoSection.getAttribute("folder");
+        frame.setAttribute("folderid", folderid);
+      }
+    }
     frame.querySelector('.dTileDropAction[option="open"]').addEventListener("click", () => {
       if (tile.hasAttribute("join")) {
         let method = tile.getAttribute("join");
@@ -842,13 +856,18 @@ modules["dropdowns/dashboard/options"] = {
       modifyParams("lesson", lessonID);
       setFrame("pages/editor");
     });
-    frame.querySelector('.dTileDropAction[option="opennewtab"]').addEventListener("click", () => {
-      dropdownModule.close();
+    let newTabButton = frame.querySelector('.dTileDropAction[option="opennewtab"]');
+    newTabButton.addEventListener("click", () => {
+      if (folderid == null) {
+        dropdownModule.close();
+      } else {
+        dropdownModule.open(newTabButton, "dropdowns/dashboard/folder");
+      }
       window.open(tile.getAttribute("href"), "_blank");
     });
     let renameButton = frame.querySelector('.dTileDropAction[option="rename"]');
     let copyButton = frame.querySelector('.dTileDropAction[option="copy"]');
-    let deleteButton = frame.querySelector('.dTileDropAction[option="delete"]');
+    let deleteButton = frame.querySelector('.dTileDropAction[option="deletelesson"]');
     let titleText = tile.querySelector(".dTileName");
     titleText.removeAttribute("prevtitle");
     renameButton.addEventListener("click", async () => {
@@ -908,22 +927,49 @@ modules["dropdowns/dashboard/options"] = {
     copyButton.addEventListener("click", async () => {
       copyButton.setAttribute("disabled", "");
       let copyAlert = await alertModule.open("info", "<b>Creating Copy</b><div>Creating a copy of this lesson's pages and annotations.", { time: "never" });
-      let [code] = await sendRequest("POST", "lessons/copy?lesson=" + lessonID, null);
+      let path = "lessons/copy?lesson=" + lessonID;
+      if (folderid != null){
+        path += "&folder=" + folderid;
+      }
+      let [code] = await sendRequest("POST", path);
       copyButton.removeAttribute("disabled");
       alertModule.close(copyAlert);
       if (code == 200) {
-        dropdownModule.close();
+        if (folderid == null) {
+          dropdownModule.close();
+        } else {
+          dropdownModule.open(copyButton, "dropdowns/dashboard/folder");
+        }
         await alertModule.open("info", "<b>Copy Created</b><div>The lesson has been added to the top of your dashboard.");
       }
     });
     deleteButton.setAttribute("lesson", lessonID);
     frame.querySelector('.dTileDropAction[option="moveto"]').setAttribute("lesson", lessonID);
+    let movefrom = frame.querySelector('.dTileDropAction[option="movefrom"]');
+    if (tile.hasAttribute("folderid") == true) {
+      movefrom.style.display = "flex";
+    }
+    movefrom.addEventListener("click", async () => {
+      movefrom.setAttribute("disabled", "");
+      let [code] = await sendRequest("POST", "lessons/folders/movefrom?lesson=" + lessonID);
+      movefrom.removeAttribute("disabled");
+      if (code == 200) {
+        if (folderid == null) {
+          dropdownModule.close();
+        } else {
+          dropdownModule.open(movefrom, "dropdowns/dashboard/folder");
+        }
+      }
+    });
     if (!isOwner) {
       renameButton.remove();
       copyButton.remove();
       deleteButton.innerHTML = `<img src="./images/editor/file/delete.svg">Remove`;
     } else {
       deleteButton.setAttribute("owner", "");
+      if (folderid != null) {
+        renameButton.remove();
+      }
     }
   }
 }

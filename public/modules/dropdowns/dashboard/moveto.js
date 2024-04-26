@@ -39,13 +39,18 @@ modules["dropdowns/dashboard/moveto"] = {
   },
   js: async function (frame, extra) {
     let lessonID = extra.button.closest("[lesson]").getAttribute("lesson");
-    console.log(lessonID)
     let dropdownModule = await getModule("dropdown");
 
     let folderFrame = frame.querySelector(".dTileDropFolderHolder");
     let noFoldersMsg = folderFrame.querySelector(".dTileDropFolderNone");
     let newButton = frame.querySelector(".dTileDropFolderNew");
     let moveButton = frame.querySelector(".dTileDropFolderMoveTo");
+
+    let folderid;
+    let folderDropFrame = extra.button.closest("[folderid]");
+    if (folderDropFrame != null) {
+      folderid = folderDropFrame.getAttribute("folderid");
+    }
 
     let updateMsg = () => {
       if (folderFrame.childElementCount > 1) {
@@ -79,6 +84,9 @@ modules["dropdowns/dashboard/moveto"] = {
       if (folder != null) {
         newFolder.setAttribute("folderid", folder._id);
         folderName.textContent = folder.name;
+        if (folder.color != null) {
+          newFolder.querySelector(".dTileDropFolder").style.setProperty("--fillColor", "#" + folder.color);
+        }
       } else {
         if (parent.firstElementChild != null) {
           if (parent != folderFrame && parent.firstElementChild.nextElementSibling != null) {
@@ -168,7 +176,11 @@ modules["dropdowns/dashboard/moveto"] = {
         moveButton.removeAttribute("disabled");
       }
       if (code == 200) {
-        dropdownModule.close();
+        if (folderid == null) {
+          dropdownModule.close();
+        } else {
+          dropdownModule.open(moveButton, "dropdowns/dashboard/folder");
+        }
       }
     });
 

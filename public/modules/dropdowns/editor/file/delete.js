@@ -25,14 +25,18 @@ modules["dropdowns/editor/file/delete"] = {
   js: async function (frame, extra) {
     let dropdown = await getModule("dropdown");
     let alert = await getModule("alert");
-    let option = "deletelesson";
+    let option = extra.button.getAttribute("option") || "deletelesson";
     let access;
     let extraSend;
     let title = frame.querySelector(".eFileDeleteTitle");
     let desc = frame.querySelector(".eFileDeleteDesc");
+    let folderid;
+    let folderFrame = extra.button.closest("[folderid]");
+    if (folderFrame != null) {
+      folderid = folderFrame.getAttribute("folderid");
+    }
     if (extra.button.hasAttribute("dashboard") == false) {
       let editor = await getModule("pages/editor");
-      option = extra.button.getAttribute("option");
       access = editor.getSelf().access;
       extraSend = { session: editor.session };
     } else {
@@ -63,6 +67,10 @@ modules["dropdowns/editor/file/delete"] = {
       case "deletepageannotations":
         title.textContent = "Delete Annotations?";
         desc.innerHTML = "Are you sure you want to permanently delete all annotations on this page? <b>This cannot be undone!</b>";
+        break;
+      case "deletefolder":
+        title.textContent = "Delete Folder?";
+        desc.innerHTML = "Deleting the folder <b>will not</b> delete the lessons.";
     }
     let deleteConfirm = frame.querySelector(".eFileDeleteConfirm");
     deleteConfirm.addEventListener("click", async () => {
@@ -77,15 +85,23 @@ modules["dropdowns/editor/file/delete"] = {
         pathAdd = "/annotations?page=" + extra.button.getAttribute("pageid");
       }
       if (extraSend == null) {
-        pathAdd += "?lesson=" + extra.button.getAttribute("lesson");
+        if (option == "deletefolder") {
+          pathAdd += "/folder?folder=" + extra.button.closest("[folder]").getAttribute("folder");
+        } else {
+          pathAdd += "?lesson=" + extra.button.getAttribute("lesson");
+        }
       }
       let [code] = await sendRequest("DELETE", "lessons/delete" + pathAdd, null, extraSend);
       deleteConfirm.removeAttribute("disabled");
       alert.close(deleteAlert);
       if (code == 200) {
-        dropdown.close();
-        if (pathAdd == "") {
-          setFrame("pages/dashboard");
+        if (folderid == null) {
+          dropdown.close();
+          if (pathAdd == "") {
+            setFrame("pages/dashboard");
+          }
+        } else {
+          dropdown.open(deleteConfirm, "dropdowns/dashboard/folder");
         }
       }
     });

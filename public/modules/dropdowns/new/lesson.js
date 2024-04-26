@@ -33,9 +33,11 @@ modules["dropdowns/new/lesson"] = {
     let lesson = getParam("lesson") || "";
     let editor;
 
+    this.folder = extra.button.parentElement.parentElement.getAttribute("folder");
+
     let the = this;
     let passedFiles = 0;
-    async function processUpload(files, event) {
+    let processUpload = async (files, event) => {
       event.preventDefault();
 
       if (files == null) {
@@ -84,25 +86,33 @@ modules["dropdowns/new/lesson"] = {
           alertText = `<b>Uploading Documents</b>Uploading your PDF${addS(passedFiles)} and inserting into the lesson!`;
         }
         let uploadAlert = await alertModule.open("info", alertText, { time: "never" });
-        let [code, body] = await sendRequest("POST", "lessons/add", sendFormData, extraData);
+        let path = "lessons/add";
+        if (this.folder != null) {
+          path += "?folder=" + this.folder;
+        }
+        let [code, body] = await sendRequest("POST", path, sendFormData, extraData);
         alertModule.close(uploadAlert);
         frame.removeAttribute("disabled");
         extra.button.removeAttribute("disabled");
         if (code == 200) {
-          dropdownModule.close();
-          if (editor == null) {
-            modifyParams("lesson", body.lesson);
-            setFrame("pages/editor");
+          if (this.folder == null) {
+            dropdownModule.close();
+            if (editor == null) {
+              modifyParams("lesson", body.lesson);
+              setFrame("pages/editor");
+            }
+          } else {
+            dropdownModule.open(uploadButton, "dropdowns/dashboard/folder");
           }
         }
       }
 
       resetUI();
     }
-    frame.addEventListener("drop", function (event) {
+    frame.addEventListener("drop", (event) => {
       processUpload(event.dataTransfer.items, event)
     });
-    frame.addEventListener("dragover", function (event) {
+    frame.addEventListener("dragover", (event) => {
       dropdown.style.outline = "dashed 4px var(--theme)";
       uploadButton.style.background = "var(--themeColor)";
       uploadButton.style.color = "#fff";
@@ -110,7 +120,7 @@ modules["dropdowns/new/lesson"] = {
       uploadBImg.style.filter = "brightness(0) invert(1)";
       event.preventDefault();
     });
-    function resetUI() {
+    let resetUI = () => {
       input.value = null;
       dropdown.style.outline = "unset";
       uploadButton.style.removeProperty("background");
@@ -119,24 +129,33 @@ modules["dropdowns/new/lesson"] = {
       uploadBImg.style.removeProperty("filter");
     }
     frame.addEventListener("dragleave", resetUI);
-    uploadButton.addEventListener("click", function () {
+    uploadButton.addEventListener("click", () => {
       input.click();
     });
-    input.addEventListener("change", function (event) {
+    input.addEventListener("change", (event) => {
       processUpload(event.target.files, event)
     });
-    frame.querySelector(".lessonFreeboard").addEventListener("click", async function () {
+    let freeboardButton = frame.querySelector(".lessonFreeboard");
+    freeboardButton.addEventListener("click", async () => {
       frame.setAttribute("disabled", "");
       extra.button.setAttribute("disabled", "");
       let createAlert = await alertModule.open("info", `<b>Creating Lesson</b>Setting up freeboard, an unlimited whiteboard space!`, { time: "never" });
-      let [code, body] = await sendRequest("POST", "lessons/add", { type: "freeboard" });
+      let path = "lessons/add";
+      if (this.folder != null) {
+        path += "?folder=" + this.folder;
+      }
+      let [code, body] = await sendRequest("POST", path, { type: "freeboard" });
       alertModule.close(createAlert);
       frame.removeAttribute("disabled");
       extra.button.removeAttribute("disabled");
       if (code == 200) {
-        dropdownModule.close();
-        modifyParams("lesson", body.lesson);
-        setFrame("pages/editor");
+        if (this.folder == null) {
+          dropdownModule.close();
+          modifyParams("lesson", body.lesson);
+          setFrame("pages/editor");
+        } else {
+          dropdownModule.open(freeboardButton, "dropdowns/dashboard/folder");
+        }
       }
     });
 
@@ -208,10 +227,13 @@ modules["dropdowns/new/blank"] = {
     ".blankSelection button:hover:not([selected])": `--borderColor: var(--hover)`,
     ".blankNumberHolder": `display: flex; flex-wrap: wrap; width: 100%; margin-bottom: 8px; justify-content: center; align-items: center`,
     ".blankNumberHolder b": `margin-right: auto`,
-    ".blankOptionHolder div[contenteditable]": `width: fit-content; max-width: 60px; padding: 4px 6px; margin: 6px 10px; --borderColor: var(--secondary); border: solid 3px var(--borderColor); border-radius: 20px; color: var(--theme); font-size: 20px; font-weight: 600; white-space: nowrap; overflow: hidden; transition: .2s`,
+    ".blankOptionHolder div[contenteditable]": `width: fit-content; max-width: 60px; padding: 4px 6px; margin: 6px 10px; --borderColor: var(--secondary); outline: unset; border: solid 3px var(--borderColor); border-radius: 20px; color: var(--theme); font-size: 20px; font-weight: 600; white-space: nowrap; overflow: hidden; transition: .2s`,
     ".blankCreate": `margin: auto 0 22px 0; background: var(--theme); --borderRadius: 18px; color: #fff`
   },
   js: async function (frame, extra) {
+    let dropdownModule = await getModule("dropdown");
+    let createLessonDropdown = await getModule("dropdowns/new/lesson");
+
     let frameCreationHolder = frame.querySelector(".blackCreationHolder");
     let customSizeHolder = frame.querySelector(".blankCustomSizeHolder");
 
@@ -225,7 +247,7 @@ modules["dropdowns/new/blank"] = {
       frame.querySelector(".blankPage div").setAttribute("max", 500 - editor.page.querySelector(".ePageHolder").children.length);
     }
     
-    frameCreationHolder.addEventListener("click", function (event) {
+    frameCreationHolder.addEventListener("click", (event) => {
       let element = event.target;
       if (element == null) {
         return;
@@ -248,14 +270,14 @@ modules["dropdowns/new/blank"] = {
         }
       }
     });
-    frameCreationHolder.addEventListener("mousedown", function (event) {
+    frameCreationHolder.addEventListener("mousedown", (event) => {
       let textBox = event.target.closest(".blankNumberHolder div");
       if (textBox == null) {
         return;
       }
       textBox.textContent = "";
     });
-    frameCreationHolder.addEventListener("keydown", function (event) {
+    frameCreationHolder.addEventListener("keydown", (event) => {
       let textBox = event.target.closest(".blankNumberHolder div");
       if (textBox == null) {
         return;
@@ -274,7 +296,7 @@ modules["dropdowns/new/blank"] = {
         }
       }
     });
-    frameCreationHolder.addEventListener("focusout", function (event) {
+    frameCreationHolder.addEventListener("focusout", (event) => {
       let textBox = event.target.closest(".blankNumberHolder div");
       if (textBox == null) {
         return;
@@ -287,7 +309,7 @@ modules["dropdowns/new/blank"] = {
       }
     });
     let ppi = 96;
-    createButton.addEventListener("click", async function () {
+    createButton.addEventListener("click", async () => {
       let selectedSize = frame.querySelector(".blankSizeHolder button[selected]");
       let width;
       let height;
@@ -319,15 +341,23 @@ modules["dropdowns/new/blank"] = {
         alertText = `<b>Adding Pages</b>Inserting new pages.`;
       }
       let createAlert = await alertModule.open("info", alertText, { time: "never" });
-      let [code, body] = await sendRequest("POST", "lessons/add", sendData, extraData);
+      let path = "lessons/add";
+      if (createLessonDropdown.folder != null) {
+        path += "?folder=" + createLessonDropdown.folder;
+      }
+      let [code, body] = await sendRequest("POST", path, sendData, extraData);
       alertModule.close(createAlert);
       frame.removeAttribute("disabled");
       extra.button.removeAttribute("disabled");
       if (code == 200) {
-        (await getModule("dropdown")).close();
-        if (editor == null) {
-          modifyParams("lesson", body.lesson);
-          setFrame("pages/editor");
+        if (createLessonDropdown.folder == null) {
+          dropdownModule.close();
+          if (editor == null) {
+            modifyParams("lesson", body.lesson);
+            setFrame("pages/editor");
+          }
+        } else {
+          dropdownModule.open(createButton, "dropdowns/dashboard/folder");
         }
       }
     });

@@ -837,8 +837,13 @@ modules["dropdowns/dashboard/options"] = {
       let infoSection = folderSection.parentElement.querySelector(".dFolderInfo");
       if (infoSection != null) {
         folderid = infoSection.getAttribute("folder");
-        frame.setAttribute("folderid", folderid);
       }
+    } else if (extra.button.closest("[folderid]")) {
+      folderid = extra.button.closest("[folderid]").getAttribute("folderid");
+    }
+    if (folderid != null) {
+      frame.setAttribute("folderid", folderid);
+      frame.closest(".dropdownOverflow").querySelector(".dropdownBack").setAttribute("folderid", folderid);
     }
     frame.querySelector('.dTileDropAction[option="open"]').addEventListener("click", () => {
       if (tile.hasAttribute("join")) {
@@ -944,7 +949,11 @@ modules["dropdowns/dashboard/options"] = {
       }
     });
     deleteButton.setAttribute("lesson", lessonID);
-    frame.querySelector('.dTileDropAction[option="moveto"]').setAttribute("lesson", lessonID);
+    let movetoButton = frame.querySelector('.dTileDropAction[option="moveto"]');
+    movetoButton.setAttribute("lesson", lessonID);
+    if (folderid != null) {
+      movetoButton.setAttribute("folder", folderid);
+    }
     let movefrom = frame.querySelector('.dTileDropAction[option="movefrom"]');
     if (tile.hasAttribute("folderid") == true) {
       movefrom.style.display = "flex";
@@ -967,7 +976,7 @@ modules["dropdowns/dashboard/options"] = {
       deleteButton.innerHTML = `<img src="./images/editor/file/delete.svg">Remove`;
     } else {
       deleteButton.setAttribute("owner", "");
-      if (folderid != null) {
+      if (folderSection != null) {
         renameButton.remove();
       }
     }

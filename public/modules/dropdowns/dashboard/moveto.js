@@ -84,8 +84,12 @@ modules["dropdowns/dashboard/moveto"] = {
       if (folder != null) {
         newFolder.setAttribute("folderid", folder._id);
         folderName.textContent = folder.name;
+        let folderButton = newFolder.querySelector(".dTileDropFolder");
         if (folder.color != null) {
-          newFolder.querySelector(".dTileDropFolder").style.setProperty("--fillColor", "#" + folder.color);
+          folderButton.style.setProperty("--fillColor", "#" + folder.color);
+        }
+        if (folderid == folder._id) {
+          folderButton.setAttribute("inside", "");
         }
       } else {
         if (parent.firstElementChild != null) {

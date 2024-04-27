@@ -572,34 +572,37 @@ modules["pages/dashboard/lessons"] = {
 modules["dropdowns/dashboard/folder"] = {
   maxHeight: 460,
   html: `
-  <div class="dFolderInfo">
-    <button icon><svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_1422_21" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="white"/> </mask> <g mask="url(#mask0_1422_21)"> <path d="M223 178V101.747C223 86.8351 210.912 74.7468 196 74.7468H121V73C121 60.2974 110.703 50 98 50H56C43.2974 50 33 60.2975 33 73V178C33 192.912 45.0883 205 60 205H196C210.912 205 223 192.912 223 178Z" stroke="var(--themeColor)" fill="var(--themeColor)" stroke-width="30"/> </g> </svg></button>
-    <div title>My Folder</div>
-    <div class="dFolderInfoActions">
-      <button class="dCreateDoc largeButton" dropdown="dropdowns/new/lesson">New Lesson</button>
-      <button class="dFolderRemove largeButton" dropdown="dropdowns/editor/file/delete" option="deletefolder" dashboard title="Delete this folder." dropdowntitle="Delete Folder"><img src="./images/editor/file/delete.svg"></button>
+  <div class="dFolder">
+    <div class="dFolderInfo">
+      <button icon><svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_1422_21" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="white"/> </mask> <g mask="url(#mask0_1422_21)"> <path d="M223 178V101.747C223 86.8351 210.912 74.7468 196 74.7468H121V73C121 60.2974 110.703 50 98 50H56C43.2974 50 33 60.2975 33 73V178C33 192.912 45.0883 205 60 205H196C210.912 205 223 192.912 223 178Z" stroke="var(--themeColor)" fill="var(--themeColor)" stroke-width="30"/> </g> </svg></button>
+      <div title>My Folder</div>
+      <div class="dFolderInfoActions">
+        <button class="dCreateDoc largeButton" dropdown="dropdowns/new/lesson">New Lesson</button>
+        <button class="dFolderRemove largeButton" dropdown="dropdowns/editor/file/delete" option="deletefolder" dashboard title="Delete this folder." dropdowntitle="Delete Folder"><img src="./images/editor/file/delete.svg"></button>
+      </div>
     </div>
-  </div>
-  <div class="dFolderColorsHolder">
-    <div class="dFolderColors">
-      <button hex="0084FF"></button>
-      <button hex="DF84FF"></button>
-      <button hex="FFB938"></button>
-      <button hex="34C172"></button>
-      <button hex="FF3D64"></button>
-      <button hex="FA8A5A"></button>
-      <button hex="2F2F2F"></button>
-      <button hex="FF008A"></button>
+    <div class="dFolderColorsHolder">
+      <div class="dFolderColors">
+        <button hex="0084FF"></button>
+        <button hex="DF84FF"></button>
+        <button hex="FFB938"></button>
+        <button hex="34C172"></button>
+        <button hex="FF3D64"></button>
+        <button hex="FA8A5A"></button>
+        <button hex="2F2F2F"></button>
+        <button hex="FF008A"></button>
+      </div>
     </div>
+    <div class="dFolderSection" section="folders" timefield="opened"></div>
+    <button class="dSectionContinueLoad dSectionLoad buttonAnim border" folder="folders">Show More</button>
+    <div class="dFolderSection" section="recent" timefield="opened"></div>
+    <button class="dSectionContinueLoad dSectionLoad buttonAnim border" folder="lessons">Show More</button>
+    <div class="dFolderEmpty">This folder is empty...</div>
   </div>
-  <div class="dFolderSection" section="folders" timefield="opened"></div>
-  <button class="dSectionContinueLoad dSectionLoad buttonAnim border" folder="folders">Show More</button>
-  <div class="dFolderSection" section="recent" timefield="opened"></div>
-  <button class="dSectionContinueLoad dSectionLoad buttonAnim border" folder="lessons">Show More</button>
-  <div class="dFolderEmpty">This folder is empty...</div>
   `,
   css: {
-    ".dFolderInfo": `display: flex; flex-wrap: wrap; justify-content: center; align-items: center`,
+    ".dFolder": `display: flex; flex-direction: column; width: 100%; align-items: center`,
+    ".dFolderInfo": `display: flex; flex-wrap: wrap; width: 100%; justify-content: center; align-items: center`,
     ".dFolderInfo button[icon]": `padding: 0`,
     ".dFolderInfo button[icon] svg": `width: 40px; height: 40px`,
     ".dFolderInfo div[title]": `flex: 1; padding: 4px 0; margin: 0 auto 0 4px; font-size: 24px; font-weight: 700; color: var(--themeColor); border: solid 3px var(--pageColor); border-radius: 12px; outline: none; transition: .2s; cursor: pointer; text-align: left; white-space: nowrap; overflow: auto; scrollbar-width: none`,
@@ -656,6 +659,7 @@ modules["dropdowns/dashboard/folder"] = {
         return;
       }
       if (name == prevName) {
+        folderName.textContent = prevName;
         return;
       }
 

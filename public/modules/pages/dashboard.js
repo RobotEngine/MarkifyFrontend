@@ -612,7 +612,7 @@ modules["dropdowns/dashboard/folder"] = {
     ".dFolderInfo .dCreateDoc": `height: 32px; padding: 6px 8px; margin: 4px 4px 4px 12px; font-size: 16px`,
     ".dFolderRemove": `display: flex; width: 32px; height: 32px; margin: 4px 4px 4px 12px; background: var(--pageColor); --themeColor: var(--error); --themeColor2: var(--error); --borderRadius: 20.25px; color: #fff; justify-content: center; align-items: center`,
     ".dFolderRemove img": `width: 20px; height: 20px`,
-    ".dFolderColorsHolder": `height: 0px; margin: 0 0 0 16px; transition: .3s`,
+    ".dFolderColorsHolder": `height: 0px; margin: 0 auto 0 16px; transition: .3s`,
     ".dFolderColors": `display: flex; flex-wrap: wrap; width: fit-content; padding: 4px; background: var(--lightGray); border-radius: 8px 24px 24px; transform-origin: top left; transform: scale(0); opacity: 0; transition: transform .3s, opacity .2s`,
     ".dFolderColors[open]": `transform: scale(1); opacity: 1`,
     ".dFolderColors button": `width: 32px; height: 32px; margin: 4px; border: solid 3px var(--pageColor); border-radius: 16px`,
@@ -690,11 +690,11 @@ modules["dropdowns/dashboard/folder"] = {
     info.querySelector("button[icon]").addEventListener("click", () => {
       if (colorHolder.hasAttribute("open") == false) {
         colorHolder.setAttribute("open", "");
-        colorHolderHolder.style.margin = "12px 0 12px 16px";
+        colorHolderHolder.style.margin = "12px auto 12px 16px";
         colorHolderHolder.style.height = colorHolder.offsetHeight + "px";
       } else {
         colorHolder.removeAttribute("open");
-        colorHolderHolder.style.margin = "0 0 0 16px";
+        colorHolderHolder.style.margin = "0 auto 0 16px";
         colorHolderHolder.style.height = "0px";
       }
     });

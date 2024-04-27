@@ -76,6 +76,7 @@ modules["dropdowns/editor/file/delete"] = {
     deleteConfirm.addEventListener("click", async () => {
       deleteConfirm.setAttribute("disabled", "");
       let deleteAlert = await alert.open("info", "<b>Deleting</b><div>Processing delete request...", { time: "never" });
+      let forceClose = false;
       let pathAdd = "";
       if (option == "deleteannotations") {
         pathAdd = "/annotations";
@@ -87,6 +88,7 @@ modules["dropdowns/editor/file/delete"] = {
       if (extraSend == null) {
         if (option == "deletefolder") {
           pathAdd += "/folder?folder=" + extra.button.closest("[folder]").getAttribute("folder");
+          forceClose = true
         } else {
           pathAdd += "?lesson=" + extra.button.getAttribute("lesson");
         }
@@ -95,7 +97,7 @@ modules["dropdowns/editor/file/delete"] = {
       deleteConfirm.removeAttribute("disabled");
       alert.close(deleteAlert);
       if (code == 200) {
-        if (extra.button.closest("[fromfolder]") == null) {
+        if (extra.button.closest("[fromfolder]") == null || forceClose) {
           dropdown.close();
           if (pathAdd == "") {
             setFrame("pages/dashboard");

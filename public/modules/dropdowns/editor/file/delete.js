@@ -95,12 +95,13 @@ modules["dropdowns/editor/file/delete"] = {
       deleteConfirm.removeAttribute("disabled");
       alert.close(deleteAlert);
       if (code == 200) {
-        if (folderid == null) {
+        if (extra.button.closest("[fromfolder]") == null) {
           dropdown.close();
           if (pathAdd == "") {
             setFrame("pages/dashboard");
           }
         } else {
+          window.dropdown.frameHistory = [];
           dropdown.open(deleteConfirm, "dropdowns/dashboard/folder");
         }
       }

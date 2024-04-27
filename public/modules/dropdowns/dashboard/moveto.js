@@ -180,9 +180,10 @@ modules["dropdowns/dashboard/moveto"] = {
         moveButton.removeAttribute("disabled");
       }
       if (code == 200) {
-        if (folderid == null) {
+        if (extra.button.closest("[fromfolder]") == null) {
           dropdownModule.close();
         } else {
+          window.dropdown.frameHistory = [];
           dropdownModule.open(moveButton, "dropdowns/dashboard/folder");
         }
       }

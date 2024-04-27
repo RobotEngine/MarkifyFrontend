@@ -102,6 +102,7 @@ modules["dropdowns/new/lesson"] = {
               setFrame("pages/editor");
             }
           } else {
+            window.dropdown.frameHistory = [];
             dropdownModule.open(uploadButton, "dropdowns/dashboard/folder");
           }
         }
@@ -154,6 +155,7 @@ modules["dropdowns/new/lesson"] = {
           modifyParams("lesson", body.lesson);
           setFrame("pages/editor");
         } else {
+          window.dropdown.frameHistory = [];
           dropdownModule.open(freeboardButton, "dropdowns/dashboard/folder");
         }
       }
@@ -357,6 +359,7 @@ modules["dropdowns/new/blank"] = {
             setFrame("pages/editor");
           }
         } else {
+          window.dropdown.frameHistory = [];
           dropdownModule.open(createButton, "dropdowns/dashboard/folder");
         }
       }

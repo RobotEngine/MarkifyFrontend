@@ -275,7 +275,7 @@ modules["pages/dashboard/lessons"] = {
       tile.removeAttribute("new");
       tile.setAttribute("folder", folder._id);
       tile.setAttribute("time", folder[timeField]);
-      tile.querySelector(".dTileName").textContent = folder.name || "Untitled Folder";
+      tile.querySelector(".dTileName").textContent = cleanString(folder.name || "Untitled Folder");
       let hex = "#" + (folder.color || "0084FF"); // Default Color
       if (hex.length < 4) {
         hex = hex.split("").map((hexVal) => { return hexVal + hexVal }).join("");
@@ -478,6 +478,37 @@ modules["pages/dashboard/lessons"] = {
                   if (parent.parentElement.querySelector('.dFolderSection[section="folders"]').childElementCount < 1 && parent.parentElement.querySelector('.dFolderSection[section="recent"]').childElementCount < 1) {
                     parent.parentElement.querySelector(".dFolderEmpty").style.display = "unset";
                   }
+                }
+              }
+              break;
+            case "folderupdate":
+              // Update Dashboard:
+              let dashTile = document.body.querySelector('.dTile[folder="' + body._id + '"]');
+              if (dashTile != null) {
+                if (body.name != null) {
+                  dashTile.querySelector(".dTileName").textContent = cleanString(body.name || "Untitled Folder");
+                }
+                if (body.color != null) {
+                  let hex = "#" + (body.color || "0084FF"); // Default Color
+                  if (hex.length < 4) {
+                    hex = hex.split("").map((hexVal) => { return hexVal + hexVal }).join("");
+                  }
+                  let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                  let rgb = parseInt(result[1], 16) + "," + parseInt(result[2], 16) + "," + parseInt(result[3], 16);
+                  dashTile.style.setProperty("--themeColor", "rgba(" + rgb + ",1)");
+                  dashTile.style.setProperty("--themeColor2", "rgba(" + rgb + ",.5)");
+                }
+              }
+              // Update Dropdown:
+              let dashFolderInfo = document.body.querySelector('.dFolderInfo[folder="' + body._id + '"]');
+              if (dashFolderInfo != null) {
+                if (body.name != null) {
+                  let nameBox = dashFolderInfo.querySelector("div[title]");
+                  nameBox.textContent = cleanString(body.name || "Untitled Folder");
+                  nameBox.removeAttribute("contenteditable");
+                }
+                if (body.color != null) {
+                  dashFolderInfo.style.setProperty("--themeColor", "#" + (body.color || "0084FF"));
                 }
               }
           }
@@ -793,7 +824,7 @@ modules["dropdowns/dashboard/folder"] = {
     });
 
     info.style.setProperty("--themeColor", "#" + prevColor);
-    info.querySelector("div[title]").textContent = cleanString(body.folder.name) || "Untitled Lesson";
+    info.querySelector("div[title]").textContent = cleanString(body.folder.name || "Untitled Folder");
 
     let empty = frame.querySelector(".dFolderEmpty");
 

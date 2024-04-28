@@ -382,10 +382,12 @@ modules["pages/dashboard/lessons"] = {
               }
               break;
             case "set":
+              let skipUpdTile = false;
               if (body.folder != null) {
                 body.sections = body.sections || [];
                 body.sections.push("folder");
                 updTiles = [ ...updTiles, ...document.body.querySelectorAll('.dTile[lesson="' + body.record.lesson + '"]') ]
+                skipUpdTile = true;
               }
               for (let i = 0; i < updTiles.length; i++) {
                 let tile = updTiles[i];
@@ -405,7 +407,7 @@ modules["pages/dashboard/lessons"] = {
                   }
                 }
               }
-              if (updTiles.length < 1 && body.sections != null) {
+              if ((updTiles.length < 1 || skipUpdTile == true) && body.sections != null) {
                 for (let i = 0; i < body.sections.length; i++) {
                   let section = body.sections[i];
                   let tileSection;

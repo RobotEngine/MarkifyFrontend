@@ -2294,6 +2294,7 @@ modules["dropdowns/editor/file"] = {
   <button class="eFileAction" option="export" title="Export the lesson into a PDF."><img src="./images/editor/file/export.svg">Export PDF</button>
   <button class="eFileAction" option="print" title="Export the lesson and print."><img src="./images/editor/file/print.svg">Print</button>
   <button class="eFileAction" option="copy" title="Create a copy of the lesson."><img src="./images/editor/file/copy.svg">Create Copy</button>
+  <button class="eFileAction" option="moveto" title="Move this lesson into a folder." dropdown="dropdowns/dashboard/moveto" dropdowntitle="Move To Folder"><img src="./images/dashboard/moveto.svg">Move To Folder</button>
   <div class="eFileLine" option="findjump"></div>
   <button class="eFileAction" disabled option="find" title="Find text on the PDF." style="--themeColor: var(--secondary)"><img src="./images/editor/file/search.svg">Find</button>
   <button class="eFileAction" option="jumptop" title="Jump to the first page." style="--themeColor: var(--secondary)"><img src="./images/editor/bottom/uparrow.svg">Jump to Top</button>
@@ -2320,6 +2321,7 @@ modules["dropdowns/editor/file"] = {
     let dropdown = await getModule("dropdown");
     let alert = await getModule("alert");
     let access = editor.getSelf().access;
+    frame.setAttribute("lesson", editor.id);
     frame.querySelector('.eFileAction[option="dashboard"]').addEventListener("click", () => {
       setFrame("pages/dashboard");
     });

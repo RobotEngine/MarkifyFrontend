@@ -288,9 +288,11 @@ modules["pages/dashboard/lessons"] = {
       let searchLessons = { ...lessons, ...(addLessons || {}) };
       for (let i = 0; i < (folder.lessons || []).length; i++) {
         let lesson = searchLessons[folder.lessons[i]];
-        tumbHolder.insertAdjacentHTML(insertAdj, `<img class="dTileFolderImage" src="./images/dashboard/missing.svg" new>`);
+        tumbHolder.insertAdjacentHTML("beforeend", `<img class="dTileFolderImage" src="./images/dashboard/missing.svg" new>`);
         let thumbnail = tumbHolder.querySelector(".dTileFolderImage[new]");
         thumbnail.removeAttribute("new");
+        thumbnail.setAttribute("lesson", lesson._id);
+        //thumbnail.setAttribute("time", lesson.membersUpdate);
         if (lesson.thumbnail) {
           thumbnail.src = assetURL + lesson.thumbnail;
         }
@@ -463,6 +465,42 @@ modules["pages/dashboard/lessons"] = {
                 }
                 updateDashSub();
               }
+              // Update lesson preview in folder tile:
+              if (body.lesson != null && body.record.folder != null) {
+                let folderTile = document.body.querySelector('.dTile[folder="' + body.record.folder + '"] .dTileDocImage');
+                let foundPreview = document.body.querySelector('.dTileFolderImage[lesson="' + body.record.lesson + '"]');
+                if (foundPreview != null && foundPreview.parentElement != folderTile) {
+                  foundPreview.remove();
+                  foundPreview = null;
+                }
+                if (folderTile != null) {
+                  if (foundPreview == null) {
+                    folderTile.insertAdjacentHTML("afterbegin", `<img class="dTileFolderImage" src="./images/dashboard/missing.svg" new>`);
+                    foundPreview = folderTile.querySelector(".dTileFolderImage[new]");
+                    foundPreview.removeAttribute("new");
+                    foundPreview.setAttribute("lesson", body.record.lesson);
+                  } else if (folderTile.firstChild != null) {
+                    folderTile.insertBefore(foundPreview, folderTile.firstChild)
+                  }
+                  foundPreview.setAttribute("time", body.record.opened);
+                  if (body.lesson.thumbnail) {
+                    foundPreview.src = assetURL + body.lesson.thumbnail;
+                  }
+                  if (body.record.lesson.type == "freeboard") {
+                    foundPreview.style.border = "solid 2px var(--purple)";
+                  }
+                  if (folderTile.childElementCount > 16) {
+                    folderTile.lastChild.remove();
+                  }
+                  /*for (let i = 0; i < folderTile.children.length; i++) {
+                    let child = folderTile.children[i];
+                    if (parseInt(child.getAttribute("time")) < body.record.opened) {
+                      folderTile.insertBefore(foundPreview, child);
+                      break;
+                    }
+                  }*/
+                }
+              }
               break;
             case "remove":
               for (let i = 0; i < updTiles.length; i++) {
@@ -480,6 +518,26 @@ modules["pages/dashboard/lessons"] = {
                   if (parent.parentElement.querySelector('.dFolderSection[section="folders"]').childElementCount < 1 && parent.parentElement.querySelector('.dFolderSection[section="recent"]').childElementCount < 1) {
                     parent.parentElement.querySelector(".dFolderEmpty").style.display = "unset";
                   }
+                }
+              }
+              break;
+            case "newfolder":
+              let tileHolder;
+              let updateNoItemMessage = false;
+              if (body.parent == null) {
+                tileHolder = frame.querySelector('.dSection[section="folders"] .dSectionTiles');
+              } else {
+                let folderInfo = document.body.querySelector('.dFolderInfo[folder="' + body.parent + '"]');
+                if (folderInfo != null) {
+                  tileHolder = folderInfo.parentElement.querySelector('.dFolderSection[section="folders"]');
+                  updateNoItemMessage = true;
+                }
+              }
+              if (tileHolder != null) {
+                addFolder(tileHolder, body, [], true);
+                if (updateNoItemMessage == true) {
+                  tileHolder.style.display = "flex";
+                  tileHolder.parentElement.querySelector(".dFolderEmpty").style.display = "none";
                 }
               }
               break;
@@ -512,6 +570,38 @@ modules["pages/dashboard/lessons"] = {
                 if (body.color != null) {
                   dashFolderInfo.style.setProperty("--themeColor", "#" + (body.color || "0084FF"));
                 }
+              }
+              break;
+            case "folderremove":
+              // Remove Tile:
+              let remDashTile = document.body.querySelector('.dTile[folder="' + body._id + '"]');
+              if (remDashTile != null) {
+                let parent = remDashTile.parentElement;
+                remDashTile.remove();
+                if (parent.closest(".dFolder") != null) {
+                  if (parent.childElementCount < 1) {
+                    parent.style.display = "none";
+                  }
+                  if (parent.parentElement.querySelector('.dFolderSection[section="folders"]').childElementCount < 1 && parent.parentElement.querySelector('.dFolderSection[section="recent"]').childElementCount < 1) {
+                    parent.parentElement.querySelector(".dFolderEmpty").style.display = "unset";
+                  }
+                } else {
+                  if (parent.childElementCount < 1) {
+                    parent.parentElement.style.display = "none";
+                  }
+                }
+              }
+              // Update Dropdown:
+              let closeDashFolderInfo = document.body.querySelector('.dFolderInfo[folder="' + body._id + '"]');
+              if (closeDashFolderInfo != null) {
+                dropdownModule.close();
+              }
+              // Update Lessons:
+              let updateDashTile = document.body.querySelectorAll('.dTile[folderid="' + body._id + '"]');
+              for (let i = 0; i < updateDashTile.length; i++) {
+                let tile = updateDashTile[i];
+                tile.removeAttribute("folderid");
+                tile.querySelector(".dTileOptions[folder]").style.display = "none";
               }
           }
         });
@@ -904,7 +994,7 @@ modules["dropdowns/dashboard/options"] = {
   <button class="dTileDropAction" option="open" title="Open this lesson."><img src="./images/dashboard/open.svg">Open</button>
   <button class="dTileDropAction" option="opennewtab" title="Open this lesson in a new tab."><img src="./images/dashboard/open.svg">Open in New Tab</button>
   <div class="dTileDropLine"></div>
-  <button class="dTileDropAction" option="moveto" disabled title="Move this lesson into a folder." dropdown="dropdowns/dashboard/moveto" dropdowntitle="<img class='dTileDropActionImage' src='./images/dashboard/moveto.svg'>Move To"><img class="dTileDropActionImage" src="./images/dashboard/moveto.svg">Move To Folder</button>
+  <button class="dTileDropAction" option="moveto" title="Move this lesson into a folder." dropdown="dropdowns/dashboard/moveto" dropdowntitle="<img class='dTileDropActionImage' src='./images/dashboard/moveto.svg'>Move To"><img class="dTileDropActionImage" src="./images/dashboard/moveto.svg">Move To Folder</button>
   <button class="dTileDropAction" option="movefrom" style="display: none" title="Remove this lesson from the folder."><img class="dTileDropActionImage" src="./images/dashboard/moveto.svg">Move From Folder</button>
   <div class="dTileDropLine"></div>
   <button class="dTileDropAction" option="rename" title="Rename this lesson."><img src="./images/dashboard/rename.svg">Rename</button>

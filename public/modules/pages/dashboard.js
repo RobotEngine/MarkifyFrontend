@@ -466,9 +466,9 @@ modules["pages/dashboard/lessons"] = {
                 updateDashSub();
               }
               // Update lesson preview in folder tile:
+              let foundPreview = document.body.querySelector('.dTileFolderImage[lesson="' + body.record.lesson + '"]');
               if (body.lesson != null && body.record.folder != null) {
                 let folderTile = document.body.querySelector('.dTile[folder="' + body.record.folder + '"] .dTileDocImage');
-                let foundPreview = document.body.querySelector('.dTileFolderImage[lesson="' + body.record.lesson + '"]');
                 if (foundPreview != null && foundPreview.parentElement != folderTile) {
                   foundPreview.remove();
                   foundPreview = null;
@@ -500,6 +500,8 @@ modules["pages/dashboard/lessons"] = {
                     }
                   }*/
                 }
+              } else if (foundPreview != null) {
+                foundPreview.remove();
               }
               break;
             case "remove":
@@ -523,21 +525,21 @@ modules["pages/dashboard/lessons"] = {
               break;
             case "newfolder":
               let tileHolder;
-              let updateNoItemMessage = false;
               if (body.parent == null) {
                 tileHolder = frame.querySelector('.dSection[section="folders"] .dSectionTiles');
               } else {
                 let folderInfo = document.body.querySelector('.dFolderInfo[folder="' + body.parent + '"]');
                 if (folderInfo != null) {
                   tileHolder = folderInfo.parentElement.querySelector('.dFolderSection[section="folders"]');
-                  updateNoItemMessage = true;
                 }
               }
               if (tileHolder != null) {
                 addFolder(tileHolder, body, [], true);
-                if (updateNoItemMessage == true) {
+                if (tileHolder.closest(".dFolder") != null) {
                   tileHolder.style.display = "flex";
                   tileHolder.parentElement.querySelector(".dFolderEmpty").style.display = "none";
+                } else {
+                  tileHolder.parentElement.style.display = "block";
                 }
               }
               break;

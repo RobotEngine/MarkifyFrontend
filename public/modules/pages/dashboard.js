@@ -474,6 +474,7 @@ modules["pages/dashboard/lessons"] = {
                   foundPreview = null;
                 }
                 if (folderTile != null) {
+                  folderTile.parentElement.parentElement.insertBefore(folderTile.parentElement, folderTile.parentElement.parentElement.firstChild);
                   if (foundPreview == null) {
                     folderTile.insertAdjacentHTML("afterbegin", `<img class="dTileFolderImage" src="./images/dashboard/missing.svg" new>`);
                     foundPreview = folderTile.querySelector(".dTileFolderImage[new]");

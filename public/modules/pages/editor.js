@@ -991,6 +991,9 @@ modules["pages/editor"] = {
               }
             }
           }
+          break;
+        case "folderset":
+          this.folder = body.folder;
       }
 
       if (this.updateMembersList != null) {
@@ -1160,6 +1163,10 @@ modules["pages/editor"] = {
 
     this.lesson = body.lesson;
     this.lesson.settings = this.lesson.settings || {};
+
+    if (body.folder != null) {
+      this.folder = body.folder;
+    }
 
     if (this.lesson.pin) {
       this.codeTextButton.style.display = "unset";
@@ -2322,6 +2329,9 @@ modules["dropdowns/editor/file"] = {
     let alert = await getModule("alert");
     let access = editor.getSelf().access;
     frame.setAttribute("lesson", editor.id);
+    if (editor.folder != null) {
+      frame.setAttribute("folderid", editor.folder);
+    }
     frame.querySelector('.eFileAction[option="dashboard"]').addEventListener("click", () => {
       setFrame("pages/dashboard");
     });

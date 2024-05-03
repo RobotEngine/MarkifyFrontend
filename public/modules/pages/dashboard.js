@@ -465,44 +465,46 @@ modules["pages/dashboard/lessons"] = {
                 }
                 updateDashSub();
               }
-              // Update lesson preview in folder tile:
-              let foundPreview = document.body.querySelector('.dTileFolderImage[lesson="' + body.record.lesson + '"]');
-              if (body.lesson != null && body.record.folder != null) {
-                let folderTile = document.body.querySelector('.dTile[folder="' + body.record.folder + '"] .dTileDocImage');
-                if (foundPreview != null && foundPreview.parentElement != folderTile) {
-                  foundPreview.remove();
-                  foundPreview = null;
-                }
-                if (folderTile != null) {
-                  folderTile.parentElement.parentElement.insertBefore(folderTile.parentElement, folderTile.parentElement.parentElement.firstChild);
-                  if (foundPreview == null) {
-                    folderTile.insertAdjacentHTML("afterbegin", `<img class="dTileFolderImage" src="./images/dashboard/missing.svg" new>`);
-                    foundPreview = folderTile.querySelector(".dTileFolderImage[new]");
-                    foundPreview.removeAttribute("new");
-                    foundPreview.setAttribute("lesson", body.record.lesson);
-                  } else if (folderTile.firstChild != null) {
-                    folderTile.insertBefore(foundPreview, folderTile.firstChild)
+              if (body.record != null) {
+                // Update lesson preview in folder tile:
+                let foundPreview = document.body.querySelector('.dTileFolderImage[lesson="' + body.record.lesson + '"]');
+                if (body.lesson != null && body.record.folder != null) {
+                  let folderTile = document.body.querySelector('.dTile[folder="' + body.record.folder + '"] .dTileDocImage');
+                  if (foundPreview != null && foundPreview.parentElement != folderTile) {
+                    foundPreview.remove();
+                    foundPreview = null;
                   }
-                  foundPreview.setAttribute("time", body.record.opened);
-                  if (body.lesson.thumbnail) {
-                    foundPreview.src = assetURL + body.lesson.thumbnail;
-                  }
-                  if (body.record.lesson.type == "freeboard") {
-                    foundPreview.style.border = "solid 2px var(--purple)";
-                  }
-                  if (folderTile.childElementCount > 16) {
-                    folderTile.lastChild.remove();
-                  }
-                  /*for (let i = 0; i < folderTile.children.length; i++) {
-                    let child = folderTile.children[i];
-                    if (parseInt(child.getAttribute("time")) < body.record.opened) {
-                      folderTile.insertBefore(foundPreview, child);
-                      break;
+                  if (folderTile != null) {
+                    folderTile.parentElement.parentElement.insertBefore(folderTile.parentElement, folderTile.parentElement.parentElement.firstChild);
+                    if (foundPreview == null) {
+                      folderTile.insertAdjacentHTML("afterbegin", `<img class="dTileFolderImage" src="./images/dashboard/missing.svg" new>`);
+                      foundPreview = folderTile.querySelector(".dTileFolderImage[new]");
+                      foundPreview.removeAttribute("new");
+                      foundPreview.setAttribute("lesson", body.record.lesson);
+                    } else if (folderTile.firstChild != null) {
+                      folderTile.insertBefore(foundPreview, folderTile.firstChild)
                     }
-                  }*/
+                    foundPreview.setAttribute("time", body.record.opened);
+                    if (body.lesson.thumbnail) {
+                      foundPreview.src = assetURL + body.lesson.thumbnail;
+                    }
+                    if (body.record.lesson.type == "freeboard") {
+                      foundPreview.style.border = "solid 2px var(--purple)";
+                    }
+                    if (folderTile.childElementCount > 16) {
+                      folderTile.lastChild.remove();
+                    }
+                    /*for (let i = 0; i < folderTile.children.length; i++) {
+                      let child = folderTile.children[i];
+                      if (parseInt(child.getAttribute("time")) < body.record.opened) {
+                        folderTile.insertBefore(foundPreview, child);
+                        break;
+                      }
+                    }*/
+                  }
+                } else if (foundPreview != null) {
+                  foundPreview.remove();
                 }
-              } else if (foundPreview != null) {
-                foundPreview.remove();
               }
               break;
             case "remove":

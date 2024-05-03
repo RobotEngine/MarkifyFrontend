@@ -158,6 +158,7 @@ modules["pages/editor"] = {
     ".eAddPagesButton": `display: flex; margin: 8px 0; z-index: 1; background: var(--theme); --borderRadius: 20.25px; color: #fff; pointer-events: all`,
     ".ePageRearrange": `position: absolute; display: flex; width: 28px; height: 28px; padding: 4px; right: 8px; bottom: 8px; pointer-events: all; z-index: 2; background: rgba(180, 218, 253, 0.75); backdrop-filter: blur(2px); border-radius: 18px; overflow: hidden`, //transform: scale(var(--fixedUIScale));
     ".ePageRearrange div": `margin-left: 6px`,
+    
     ".eAnnotation": `position: absolute`,
     '.eAnnotation[anno]:not([anno^="pending_"])': `transition: .25s`,
     //'.eAnnotation:not([selected]):not([anno^="pending_"])': `transition: .25s`,
@@ -165,6 +166,7 @@ modules["pages/editor"] = {
     ".eAnnotation svg > *": `pointer-events: visiblepainted`,
     ".eAnnotation div[text]": `padding: 4px 6px; margin: 3px 3px; color: var(--themeColor); font-weight: 500; pointer-events: all; outline: none`,
     ".eAnnotation div[text][placeborder]": `width: max-content; margin: 0px; border: solid 3px var(--themeColor); border-radius: 8px`,
+    ".eAnnotation[sticky]": `background: var(--themeColor); border-radius: 12px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all`,
     ".eAnnotation[src]": `object-fit: cover; pointer-events: all; border-radius: 12px`,
 
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 100; overflow: hidden; pointer-events: none`
@@ -215,8 +217,11 @@ modules["pages/editor"] = {
           thickness: 8,
           opacity: 100
         },
-        comment: {
-
+        sticky: {
+          color: {
+            selected: "FADCA0",
+            options: ["88B4FA", "F49CA9", "FADCA0", "E4B8FB", "A1D8AF", "F285B8", "666666"]
+          },
         },
         media: {
 
@@ -3269,6 +3274,84 @@ modules["pages/editor/annotation"] = {
         if (elem != null) {
           elem.style.transform = transform;
         }
+        break;
+      case "sticky":
+        if (anno == null) {
+          annoHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" sticky new>
+            <div stickytext></div>
+          </div>`);
+          anno = annoHolder.querySelector(".eAnnotation[new]");
+          anno.removeAttribute("new");
+        }
+        if (_id != null) {
+          anno.setAttribute("anno", _id);
+          anno.style.opacity = 1;
+        } else {
+          anno.setAttribute("tooleditor", "");
+          anno.style.opacity = .7;
+        }
+        anno.style.width = width + "px";
+        anno.style.height = height + "px";
+        anno.style.left = x + "px";
+        anno.style.top = y + "px";
+        if (remove != true) {
+          anno.removeAttribute("hidden");
+        } else {
+          anno.setAttribute("hidden", "");
+        }
+        anno.style.setProperty("--themeColor", "#" + c);
+        /*
+        let text = anno.querySelector("div[text]");
+        if (_id != null) {
+          text.removeAttribute("placeborder");
+        } else {
+          text.setAttribute("placeborder", "");
+        }
+        anno.style.setProperty("--themeColor", "#" + c);
+        text.style.opacity = o / 100;
+        let richText = d;
+        text.style.fontSize = Math.floor(Math.max(Math.min(richText.s || 18, 250), 1)) + "px";
+        if (text.hasAttribute("contenteditable") == false) {
+          let setHTML = "";
+          for (let i = 0; i < richText.b.length; i++) {
+            let addHTML = "";
+            if (richText.b[i] != "\n") {
+              addHTML = "<div>" + cleanString(richText.b[i]) + "</div>";
+            } else {
+              addHTML = "<br>";
+            }
+            setHTML += addHTML;
+          }
+          if (text.innerHTML != setHTML) {
+            text.innerHTML = setHTML;
+          }
+          //text.innerText = cleanString(richText.b[0]);
+          //text.innerHTML = cleanString(richText.b[0]).replace(/\n\n/g, "</br>").replace(/\n/g, "</br>");
+        } else {
+          anno.setAttribute("notransition", "");
+        }
+        if (richText.bo == true) {
+          text.style.fontWeight = 700;
+        } else {
+          text.style.removeProperty("font-weight");
+        }
+        if (richText.it == true) {
+          text.style.fontStyle = "italic";
+        } else {
+          text.style.removeProperty("font-style");
+        }
+        if (richText.st == true && richText.ul == true) {
+          text.style.textDecoration = "underline line-through";
+        } else if (richText.st == true) {
+          text.style.textDecoration = "line-through";
+        } else if (richText.ul == true) {
+          text.style.textDecoration = "underline";
+        } else {
+          text.style.removeProperty("text-decoration");
+        }
+        text.style.textAlign = richText.al || "left";
+        text.style.height = "fit-content";
+        */
         break;
       case "media":
         if (anno == null) {

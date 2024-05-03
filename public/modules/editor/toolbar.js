@@ -244,7 +244,7 @@ modules["editor/toolbar"] = {
       }
       */
     ],
-    "sticky": { id: "sticky", type: "tool" },
+    "sticky": { id: "sticky", type: "tool", module: "pages/editor/toolbar/sticky" },
     "media": [
       {
         id: "upload",
@@ -1352,6 +1352,7 @@ modules["pages/editor/toolbar/cursor"] = {
     "text": ["textedit", "color", "opacity", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "collaborator", "duplicate", "delete"],
     "markup": ["color", "thickness", "opacity", "collaborator", "duplicate", "delete"],
     "shape": ["color", "thickness", "opacity", "style", "collaborator", "duplicate", "delete"],
+    "sticky": ["textedit", "color", "bold", "italic", "underline", "strikethrough", "textalign", "collaborator", "duplicate", "delete"],
     "media": ["collaborator", "duplicate", "delete"]
   },
   actionEvents: [],
@@ -2014,6 +2015,8 @@ modules["pages/editor/toolbar/cursor"] = {
           if (this.size[0] == 0 || this.size[1] == 0) {
             continue;
           }
+        } else if (["sticky"].includes(select.f || anno.f) == true && ["bottomright", "topleft", "topright", "bottomleft"].includes(this.tooltip) == true) {
+          preserveAspect = true;
         }
         let number;
         let pageElem = editor.page.querySelector('.ePage[pageid="' + (select.page || anno.page) + '"]');
@@ -3507,6 +3510,79 @@ modules["pages/editor/toolbar/shape"] = {
   }
 };
 
+// STICKY NOTE TOOL
+modules["pages/editor/toolbar/sticky"] = {
+  js: async function (editor, utils, addEvent, extra) {
+    this.color = editor.preferences.tools.sticky.color.selected;
+    this.publish = {};
+
+    let toolbar = await getModule("editor/toolbar");
+    let cursor = await getModule("pages/editor/toolbar/cursor");
+
+    body.style.userSelect = "none";
+    editor.page.style.touchAction = "pinch-zoom";
+    editor.page.setAttribute("enabled", "");
+
+    let sticky;
+    let anno;
+    let clientY;
+    let clientX;
+    let stickymove = async (event) => {
+      if (sticky == null) {
+        // If not sticky, make one!
+        sticky = {
+          f: "sticky",
+          //p: [utils.round(x - this.thickness), utils.round(y - this.thickness)],
+          s: [200, 200], //[this.thickness, this.thickness],
+          c: this.color
+        };
+      }
+      clientX = clientPosition(event, "x") || clientX;
+      clientY = clientPosition(event, "y") || clientY;
+      let [page, number] = await utils.findPage(clientY);
+      if (page.hasAttribute("hide") == true) {
+        return;
+      }
+      let { x, y } = await utils.scaleToDoc(clientX, clientY, number);
+      if (editor.lesson.type == "freeboard") {
+        y += 4;
+      }
+      sticky.p = [utils.round(x - (sticky.s[0] / 2)), utils.round(y - (sticky.s[1] / 2))];
+      if (page != null && page.hasAttribute("pageid") == true) {
+        sticky.page = page.getAttribute("pageid");
+      }
+      [_, anno] = await utils.render(sticky, anno);
+      editor.selecting["cursor"] = sticky;
+    }
+    let placesticky = async () => {
+      let saveSticky = JSON.parse(JSON.stringify(sticky));
+      sticky = null;
+      delete editor.selecting["cursor"];
+
+      let tempID = utils.tempID();
+      anno.setAttribute("anno", tempID);
+      anno.removeAttribute("tooleditor");
+      saveSticky.sync = getEpoch();
+      utils.save({ ...saveSticky, _id: tempID }, anno);
+      utils.pushHistory("remove", [{ _id: tempID }]);
+
+      saveSticky.done = true; // Alert other clients that this annotation is done
+      editor.selecting[tempID] = saveSticky;
+      await utils.forceShort();
+
+      await toolbar.setCurrentTool(editor.page.querySelector('.eTool[tool="select"]'), "select");
+      editor.selecting[tempID] = {};
+      cursor.updateBox();
+    }
+    let content = editor.page.querySelector(".eContent");
+    addEvent(content, "mousemove", stickymove, { passive: false });
+    addEvent(content, "touchmove", stickymove, { passive: false });
+    addEvent(window, "scroll", stickymove, { passive: false });
+    addEvent(content, "mouseup", placesticky, { passive: false });
+    addEvent(content, "touchend", placesticky, { passive: false });
+  }
+};
+
 // MEDIA TOOL
 modules["pages/editor/toolbar/upload"] = {
   width: 150,
@@ -4828,6 +4904,7 @@ modules["pages/editor/toolbar/fontsize"] = {
   setButton: function (editor, button) {
     let selectID = Object.keys(editor.selecting)[0];
     let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    original.d = original.d || {};
     let buttonTx = button.querySelector(".eSubToolFontSize");
     buttonTx.textContent = original.d.s || 18;
     buttonTx.style.color = "#" + original.c;
@@ -4967,6 +5044,7 @@ modules["pages/editor/toolbar/bold"] = {
   setButton: function (editor, button) {
     let selectID = Object.keys(editor.selecting)[0];
     let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    original.d = original.d || {};
     if (original.d.bo != true) {
       button.removeAttribute("selecthighlight");
     } else {
@@ -4987,6 +5065,7 @@ modules["pages/editor/toolbar/italic"] = {
   setButton: function (editor, button) {
     let selectID = Object.keys(editor.selecting)[0];
     let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    original.d = original.d || {};
     if (original.d.it != true) {
       button.removeAttribute("selecthighlight");
     } else {
@@ -5007,6 +5086,7 @@ modules["pages/editor/toolbar/underline"] = {
   setButton: function (editor, button) {
     let selectID = Object.keys(editor.selecting)[0];
     let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    original.d = original.d || {};
     if (original.d.ul != true) {
       button.removeAttribute("selecthighlight");
     } else {
@@ -5027,6 +5107,7 @@ modules["pages/editor/toolbar/strikethrough"] = {
   setButton: function (editor, button) {
     let selectID = Object.keys(editor.selecting)[0];
     let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    original.d = original.d || {};
     if (original.d.st != true) {
       button.removeAttribute("selecthighlight");
     } else {
@@ -5053,6 +5134,7 @@ modules["pages/editor/toolbar/textalign"] = {
     let buttonImg = button.querySelector("div");
     let selectID = Object.keys(editor.selecting)[0];
     let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    original.d = original.d || {};
     let selectedAl = original.d.al || "left";
     if (selectedAl == "left") {
       buttonImg.innerHTML = this.options.left;

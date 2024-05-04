@@ -1149,7 +1149,7 @@ modules["dropdowns/dashboard/options"] = {
     let movetoButton = frame.querySelector('.dTileDropAction[option="moveto"]');
     movetoButton.setAttribute("lesson", lessonID);
     if (folderid != null) {
-      movetoButton.setAttribute("folder", folderid);
+      movetoButton.setAttribute("folderid", folderid);
     }
     let movefrom = frame.querySelector('.dTileDropAction[option="movefrom"]');
     if (tile.hasAttribute("folderid") == true) {

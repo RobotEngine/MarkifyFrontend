@@ -565,7 +565,7 @@ modules["editor/realtime"] = {
                   })();
                 }
               }
-              if (selectKeys.length > 0) {
+              if (selectKeys.length > 0 && editor.options.cursornames != false) {
                 cursorHolder.setAttribute("extend", "");
               } else {
                 cursorHolder.removeAttribute("extend");

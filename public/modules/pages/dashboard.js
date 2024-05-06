@@ -505,6 +505,15 @@ modules["pages/dashboard/lessons"] = {
                 } else if (foundPreview != null) {
                   foundPreview.remove();
                 }
+              } else if (body.hasOwnProperty("thumbnail") == true) {
+                let foundPreview = document.body.querySelector('.dTileFolderImage[lesson="' + body.lesson + '"]');
+                if (foundPreview != null) {
+                  if (body.thumbnail != null) {
+                    foundPreview.src = assetURL + body.thumbnail;
+                  } else {
+                    foundPreview.src = "./images/dashboard/missing.svg";
+                  }
+                }
               }
               break;
             case "remove":

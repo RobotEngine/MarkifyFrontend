@@ -7,7 +7,7 @@ modules["editor/toolbar"] = {
   <button class="eTool" tool="draw" tooltip="Draw"><div><svg width="22" viewBox="0 0 27 44" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M12.3863 34.9812C13.2256 37.2873 15.077 39.0806 17.4087 39.846L19.7938 40.629C20.4513 40.8448 21.1712 40.5828 21.5361 39.9948L22.86 37.8619C24.1541 35.7768 24.4197 33.213 23.5803 30.9069L18.9826 18.2748L7.78855 22.3491L12.3863 34.9812Z" fill="white"/> <path d="M18.5551 17.1002L19.7297 16.6726L20.1572 17.8472L24.7549 30.4794C25.7254 33.1458 25.4184 36.1102 23.922 38.5211L22.5982 40.654C21.9291 41.732 20.6094 42.2123 19.404 41.8166L17.0188 41.0337C14.3228 40.1486 12.1822 38.0752 11.2117 35.4088L6.61393 22.7766L6.18641 21.602L7.36103 21.1745L18.5551 17.1002Z" fillcoloropacity stroke="white" stroke-width="2.5"/> <path d="M11.4928 32.5264L10.3182 32.9539L9.89068 31.7793L2.35127 11.065C0.990064 7.32509 2.91836 3.18985 6.65823 1.82865C10.3981 0.467446 14.5333 2.39574 15.8945 6.13561L23.434 26.85L23.8615 28.0246L22.6869 28.4521L11.4928 32.5264Z" fill="#2F2F2F" stroke="white" stroke-width="2.5"/> </svg></div></button>
   <button class="eTool" tool="erase" tooltip="Erase"><div><svg width="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_130_2" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_130_2)"> <path d="M176.938 149.353L182.576 147.301L180.524 141.662L151.219 61.1479C146.308 47.6544 131.388 40.6972 117.894 45.6084L83.4034 58.1621C69.9099 63.0733 62.9527 77.9932 67.8639 91.4866L97.1688 172.001L99.2209 177.639L104.859 175.587L176.938 149.353Z" fill="#2F2F2F" stroke="white" stroke-width="12"/> <path d="M104.253 173.921L98.6144 175.974L100.667 181.612L105.486 194.853C110.397 208.346 125.317 215.304 138.81 210.392L173.301 197.839C186.795 192.927 193.752 178.007 188.841 164.514L184.022 151.273L181.969 145.635L176.331 147.687L104.253 173.921Z" fill="#2F2F2F" stroke="white" stroke-width="12"/> </g> </svg></div></button>
   <button class="eTool" tool="shape" tooltip="Shapes"><div><svg width="38" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"> <rect x="1.97104" y="1.47107" width="22.6493" height="22.6493" rx="5.25" fill="#2F2F2F" stroke="white" stroke-width="2.5"/> <circle cx="32.7043" cy="33.2043" r="11.3246" fill="white" stroke="white" stroke-width="2.5"/> <circle cx="32.7043" cy="33.2043" r="11.3246" fillcoloropacity stroke="white" stroke-width="2.5"/> </svg></div></button>
-  <button class="eTool" soon tool="sticky" tooltip="Coming Soon"><div><svg width="44" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_850_2" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_850_2)"> <path d="M185 38H72C54.3269 38 40 52.3269 40 70V183.246C40 200.801 54.1418 215.078 71.6952 215.245L145.905 215.952C150.739 215.998 155.387 214.098 158.805 210.68L211.728 157.757C215.104 154.382 217 149.803 217 145.029V70C217 52.3269 202.673 38 185 38Z" fill="#2F2F2F" stroke="white" stroke-width="12"/> <path d="M211 144H171C156.641 144 145 155.641 145 170V210" stroke="white" stroke-width="12"/> <rect x="62" y="60" width="133" height="20" rx="10" fill="white"/> <rect x="62" y="88" width="101" height="20" rx="10" fill="white"/> </g> </svg></div></button>
+  <button class="eTool" tool="sticky" soon tooltip="Coming Soon"><div><svg width="44" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_850_2" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_850_2)"> <path d="M185 38H72C54.3269 38 40 52.3269 40 70V183.246C40 200.801 54.1418 215.078 71.6952 215.245L145.905 215.952C150.739 215.998 155.387 214.098 158.805 210.68L211.728 157.757C215.104 154.382 217 149.803 217 145.029V70C217 52.3269 202.673 38 185 38Z" fill="#2F2F2F" stroke="white" stroke-width="12"/> <path d="M211 144H171C156.641 144 145 155.641 145 170V210" stroke="white" stroke-width="12"/> <rect x="62" y="60" width="133" height="20" rx="10" fill="white"/> <rect x="62" y="88" width="101" height="20" rx="10" fill="white"/> </g> </svg></div></button>
   <button class="eTool" tool="media" tooltip="Media"><div><svg width="40" viewBox="0 0 50 42" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="path-1-outside-1_233_21" maskUnits="userSpaceOnUse" x="-0.459759" y="-0.0484619" width="51" height="42" fill="black"> <rect fill="white" x="-0.459759" y="-0.0484619" width="51" height="42"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M40.8324 12.3729C43.434 12.3729 45.5431 10.2638 45.5431 7.66221C45.5431 5.06058 43.434 2.95154 40.8324 2.95154C38.2308 2.95154 36.1217 5.06058 36.1217 7.66221C36.1217 10.2638 38.2308 12.3729 40.8324 12.3729ZM15.7765 12.2718C16.9312 10.2718 19.8179 10.2718 20.9726 12.2718L28.5261 25.3549L32.5377 18.4066C33.6924 16.4066 36.5792 16.4066 37.7339 18.4066L47.0534 34.5485C48.2081 36.5485 46.7647 39.0485 44.4553 39.0485H25.8163C25.6154 39.0485 25.4211 39.0296 25.2345 38.9937H5.54471C3.23531 38.9937 1.79194 36.4937 2.94664 34.4937L15.7765 12.2718Z"/> </mask> <path fill-rule="evenodd" clip-rule="evenodd" d="M40.8324 12.3729C43.434 12.3729 45.5431 10.2638 45.5431 7.66221C45.5431 5.06058 43.434 2.95154 40.8324 2.95154C38.2308 2.95154 36.1217 5.06058 36.1217 7.66221C36.1217 10.2638 38.2308 12.3729 40.8324 12.3729ZM15.7765 12.2718C16.9312 10.2718 19.8179 10.2718 20.9726 12.2718L28.5261 25.3549L32.5377 18.4066C33.6924 16.4066 36.5792 16.4066 37.7339 18.4066L47.0534 34.5485C48.2081 36.5485 46.7647 39.0485 44.4553 39.0485H25.8163C25.6154 39.0485 25.4211 39.0296 25.2345 38.9937H5.54471C3.23531 38.9937 1.79194 36.4937 2.94664 34.4937L15.7765 12.2718Z" fill="#2F2F2F"/> <path d="M20.9726 12.2718L23.1377 11.0218V11.0218L20.9726 12.2718ZM15.7765 12.2718L17.9415 13.5218L15.7765 12.2718ZM28.5261 25.3549L26.3611 26.6049L28.5261 30.3549L30.6912 26.6049L28.5261 25.3549ZM32.5377 18.4066L30.3726 17.1566V17.1566L32.5377 18.4066ZM37.7339 18.4066L35.5688 19.6566L35.5688 19.6566L37.7339 18.4066ZM47.0534 34.5485L49.2184 33.2985L47.0534 34.5485ZM25.2345 38.9937L25.7061 36.5386L25.4724 36.4937H25.2345V38.9937ZM2.94664 34.4937L0.781578 33.2437L2.94664 34.4937ZM43.0431 7.66221C43.0431 8.88313 42.0533 9.87289 40.8324 9.87289V14.8729C44.8148 14.8729 48.0431 11.6446 48.0431 7.66221H43.0431ZM40.8324 5.45154C42.0533 5.45154 43.0431 6.44129 43.0431 7.66221H48.0431C48.0431 3.67987 44.8148 0.451538 40.8324 0.451538V5.45154ZM38.6217 7.66221C38.6217 6.44129 39.6115 5.45154 40.8324 5.45154V0.451538C36.8501 0.451538 33.6217 3.67987 33.6217 7.66221H38.6217ZM40.8324 9.87289C39.6115 9.87289 38.6217 8.88313 38.6217 7.66221H33.6217C33.6217 11.6446 36.8501 14.8729 40.8324 14.8729V9.87289ZM23.1377 11.0218C21.0207 7.35513 15.7284 7.35511 13.6114 11.0218L17.9415 13.5218C18.134 13.1885 18.6151 13.1885 18.8076 13.5218L23.1377 11.0218ZM30.6912 24.1049L23.1377 11.0218L18.8076 13.5218L26.3611 26.6049L30.6912 24.1049ZM30.3726 17.1566L26.3611 24.1049L30.6912 26.6049L34.7028 19.6566L30.3726 17.1566ZM39.8989 17.1566C37.782 13.4899 32.4896 13.49 30.3726 17.1566L34.7028 19.6566C34.8952 19.3233 35.3763 19.3233 35.5688 19.6566L39.8989 17.1566ZM49.2184 33.2985L39.8989 17.1566L35.5688 19.6566L44.8883 35.7985L49.2184 33.2985ZM44.4553 41.5485C48.6892 41.5485 51.3354 36.9651 49.2184 33.2985L44.8883 35.7985C45.0807 36.1318 44.8402 36.5485 44.4553 36.5485V41.5485ZM25.8163 41.5485H44.4553V36.5485H25.8163V41.5485ZM24.7628 41.4488C25.1057 41.5147 25.458 41.5485 25.8163 41.5485V36.5485C25.7728 36.5485 25.7365 36.5444 25.7061 36.5386L24.7628 41.4488ZM5.54471 41.4937H25.2345V36.4937H5.54471V41.4937ZM0.781578 33.2437C-1.33537 36.9104 1.3108 41.4937 5.54471 41.4937V36.4937C5.15982 36.4937 4.91925 36.077 5.11171 35.7437L0.781578 33.2437ZM13.6114 11.0218L0.781578 33.2437L5.11171 35.7437L17.9415 13.5218L13.6114 11.0218Z" fill="white" mask="url(#path-1-outside-1_233_21)"/> </svg></div></button>
 
   <div class="eSubToolHolder" keeptooltip>
@@ -456,6 +456,7 @@ modules["editor/toolbar"] = {
       body.style.removeProperty("user-select");
       editor.page.style.removeProperty("touch-action");
       editor.page.removeAttribute("enabled");
+      editor.pinchZoomDisable = false;
       let editorTools = content.querySelectorAll("[tooleditor]");
       for (let i = 0; i < editorTools.length; i++) {
         let tool = editorTools[i];
@@ -1060,11 +1061,11 @@ modules["pages/editor/toolbar/cursor"] = {
         if (anno != null) {
           anno.removeAttribute("selected");
           anno.removeAttribute("notransition");
-          let annoTx = anno.querySelector("div[text]");
+          let annoTx = anno.querySelector("div[edit]");
           if (annoTx != null) {
             annoTx.removeAttribute("contenteditable");
 
-            if (annoTx.textContent.trim().length < 1) {
+            if (annoTx.hasAttribute("text") == true && annoTx.textContent.trim().length < 1) {
               let anno = (editor.annotations[annoID] || {}).render || {};
               await utils.pushHistory("add", [anno]);
               await utils.save({ _id: annoID, remove: true });
@@ -1352,7 +1353,7 @@ modules["pages/editor/toolbar/cursor"] = {
     "text": ["textedit", "color", "opacity", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "collaborator", "duplicate", "delete"],
     "markup": ["color", "thickness", "opacity", "collaborator", "duplicate", "delete"],
     "shape": ["color", "thickness", "opacity", "style", "collaborator", "duplicate", "delete"],
-    "sticky": ["textedit", "color", "bold", "italic", "underline", "strikethrough", "textalign", "collaborator", "duplicate", "delete"],
+    "sticky": ["textedit", "color", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "collaborator", "duplicate", "delete"],
     "media": ["collaborator", "duplicate", "delete"]
   },
   actionEvents: [],
@@ -1785,6 +1786,16 @@ modules["pages/editor/toolbar/cursor"] = {
               }
               annoSet.s[1] = annoTx.offsetHeight + 6;
             }
+          } else if (anno.f == "sticky") {
+            let annoTx = editor.page.querySelector('.eAnnotation[anno="' + annoID + '"] div[holder]');
+            if (annoTx != null) {
+              if (annoTx.offsetHeight > annoTx.parentElement.offsetHeight) {
+                editor.selecting[annoID] = { ...select, ...annoSet };
+                await utils.render({ ...anno, ...annoSet }, annoTx.parentElement);
+                annoSet.s = anno.s || [];
+                annoSet.s[1] = annoTx.offsetHeight;
+              }
+            }
           }
           let changes = false;
           for (let c = 0; c < setKeys.length; c++) {
@@ -2142,16 +2153,25 @@ modules["pages/editor/toolbar/cursor"] = {
               select.p[1] = utils.round(this.position[1] + changeY);
             }
         }
-        if (select.f || anno.f == "text") {
+        if (select.f || ["text", "sticky"].includes(anno.f) == true) {
           await utils.render({ ...anno, ...select, sync: setTempSync });
-          let renderedAnno = editor.page.querySelector('.eAnnotation[anno="' + annoid + '"] div');
-          if (renderedAnno != null) {
-            if (anno.textfit == true && select.textfit != false) {
-              select.s[0] = renderedAnno.offsetWidth + 6;
-              select.textfit = false;
+          if (anno.f == "text") {
+            let renderedAnno = editor.page.querySelector('.eAnnotation[anno="' + annoid + '"] div[edit]');
+            if (renderedAnno != null) {
+              if (anno.textfit == true && select.textfit != false) {
+                select.s[0] = renderedAnno.offsetWidth + 6;
+                select.textfit = false;
+              }
+              select.s[1] = renderedAnno.offsetHeight + 6; //Math.max(select.s[1], renderedAnno.offsetHeight + 6);
             }
-            select.s[1] = renderedAnno.offsetHeight + 6; //Math.max(select.s[1], renderedAnno.offsetHeight + 6);
-          }
+          }/* else if (anno.f == "sticky") {
+            let renderedAnno = editor.page.querySelector('.eAnnotation[anno="' + annoid + '"] div[holder]');
+            if (renderedAnno != null) {
+              if (renderedAnno.offsetHeight > renderedAnno.parentElement.offsetHeight) {
+                select.s[1] = renderedAnno.offsetHeight + 26;
+              }
+            }
+          }*/
         }
       }
       select.sync = setTempSync;
@@ -2387,7 +2407,7 @@ modules["pages/editor/toolbar/cursor"] = {
           editor.selecting = {};
           editor.selecting[annoID] = {};
         }
-        if (wasSelected == null && anno.querySelector("div[text]") != null && anno.querySelector("div[contenteditable]") == null) {
+        if (wasSelected == null && anno.querySelector("div[edit]") != null && anno.querySelector("div[contenteditable]") == null) {
           this.clickAction({
             target: content.querySelector('.eSelectBar:not([remove]) .eTool[action="pages/editor/toolbar/textedit"]'),
             setCaretPosition: true,
@@ -2669,11 +2689,25 @@ modules["pages/editor/toolbar/highlighter"] = {
     this.publish = { c: this.color, o: this.opacity };
 
     body.style.userSelect = "none";
-    editor.page.style.touchAction = "pinch-zoom";
+    if (editor.options.stylusmode != true) {
+      editor.page.style.touchAction = "pinch-zoom";
+    } else {
+      editor.pinchZoomDisable = true;
+    }
 
     let markup;
     let anno;
     let enableMarkup = async (event) => {
+      if (event.changedTouches != null && event.changedTouches[0] != null) {
+        let touch = event.changedTouches[0];
+        if (touch.touchType == "stylus") {
+          editor.usingStylus = true;
+        } else if (editor.options.stylusmode == true) {
+          return;
+        }
+      } else if (editor.options.stylusmode == true) {
+        return;
+      }
       disableMarkup();
       editor.toolbar.closeSubSubtoolUI();
       event.preventDefault();
@@ -2713,6 +2747,17 @@ modules["pages/editor/toolbar/highlighter"] = {
       }
       if (event.touches != null && event.touches.length > 1) {
         return;
+      }
+      if (editor.usingStylus == true) {
+        if (event.changedTouches != null && event.changedTouches[0] != null) {
+          let touch = event.changedTouches[0];
+          if (touch.touchType != "stylus") {
+            return;
+          }
+          //touch.force = the force of the touch - useful for later ;)
+        } else {
+          return;
+        }
       }
       event.preventDefault();
       let rect = anno.getBoundingClientRect();
@@ -2807,6 +2852,7 @@ modules["pages/editor/toolbar/highlighter"] = {
       await utils.forceShort();
       delete editor.selecting[markup._id];
       markup = null;
+      editor.usingStylus = true;
     }
     let content = editor.page.querySelector(".eContent");
     addEvent(content, "mousedown", enableMarkup, { passive: false });
@@ -2827,11 +2873,25 @@ modules["pages/editor/toolbar/understrike"] = {
     this.publish = { c: this.color };
 
     body.style.userSelect = "none";
-    editor.page.style.touchAction = "pinch-zoom";
+    if (editor.options.stylusmode != true) {
+      editor.page.style.touchAction = "pinch-zoom";
+    } else {
+      editor.pinchZoomDisable = true;
+    }
 
     let markup;
     let anno;
     let enableMarkup = async (event) => {
+      if (event.changedTouches != null && event.changedTouches[0] != null) {
+        let touch = event.changedTouches[0];
+        if (touch.touchType == "stylus") {
+          editor.usingStylus = true;
+        } else if (editor.options.stylusmode == true) {
+          return;
+        }
+      } else if (editor.options.stylusmode == true) {
+        return;
+      }
       disableMarkup();
       editor.toolbar.closeSubSubtoolUI();
       event.preventDefault();
@@ -2873,6 +2933,17 @@ modules["pages/editor/toolbar/understrike"] = {
       }
       if (event.touches != null && event.touches.length > 1) {
         return;
+      }
+      if (editor.usingStylus == true) {
+        if (event.changedTouches != null && event.changedTouches[0] != null) {
+          let touch = event.changedTouches[0];
+          if (touch.touchType != "stylus") {
+            return;
+          }
+          //touch.force = the force of the touch - useful for later ;)
+        } else {
+          return;
+        }
       }
       event.preventDefault();
       let rect = anno.getBoundingClientRect();
@@ -2921,6 +2992,7 @@ modules["pages/editor/toolbar/understrike"] = {
       await utils.forceShort();
       delete editor.selecting[markup._id];
       markup = null;
+      editor.usingStylus = false;
     }
     let content = editor.page.querySelector(".eContent");
     addEvent(content, "mousedown", enableMarkup, { passive: false });
@@ -3101,11 +3173,25 @@ modules["pages/editor/toolbar/pen"] = {
     this.publish = { c: this.color, o: this.opacity };
 
     body.style.userSelect = "none";
-    editor.page.style.touchAction = "pinch-zoom";
+    if (editor.options.stylusmode != true) {
+      editor.page.style.touchAction = "pinch-zoom";
+    } else {
+      editor.pinchZoomDisable = true;
+    }
 
     let draw;
     let anno;
     let enableDraw = async (event) => {
+      if (event.changedTouches != null && event.changedTouches[0] != null) {
+        let touch = event.changedTouches[0];
+        if (touch.touchType == "stylus") {
+          editor.usingStylus = true;
+        } else if (editor.options.stylusmode == true) {
+          return;
+        }
+      } else if (editor.options.stylusmode == true) {
+        return;
+      }
       disableDraw();
       editor.toolbar.closeSubSubtoolUI();
       event.preventDefault();
@@ -3145,6 +3231,17 @@ modules["pages/editor/toolbar/pen"] = {
       }
       if (event.touches != null && event.touches.length > 1) {
         return;
+      }
+      if (editor.usingStylus == true) {
+        if (event.changedTouches != null && event.changedTouches[0] != null) {
+          let touch = event.changedTouches[0];
+          if (touch.touchType != "stylus") {
+            return;
+          }
+          //touch.force = the force of the touch - useful for later ;)
+        } else {
+          return;
+        }
       }
       event.preventDefault();
       let rect = anno.getBoundingClientRect();
@@ -3221,6 +3318,7 @@ modules["pages/editor/toolbar/pen"] = {
       await utils.forceShort();
       delete editor.selecting[draw._id];
       draw = null;
+      editor.usingStylus = false;
     }
     let content = editor.page.querySelector(".eContent");
     addEvent(content, "mousedown", enableDraw, { passive: false });
@@ -3239,7 +3337,11 @@ modules["pages/editor/toolbar/eraser"] = {
     this.publish = {};
 
     body.style.userSelect = "none";
-    editor.page.style.touchAction = "pinch-zoom";
+    if (editor.options.stylusmode != true) {
+      editor.page.style.touchAction = "pinch-zoom";
+    } else {
+      editor.pinchZoomDisable = true;
+    }
     editor.page.setAttribute("enabled", "");
 
     function isPointOnLine(x, y, x1, y1, x2, y2, tolerance) {
@@ -3276,6 +3378,16 @@ modules["pages/editor/toolbar/eraser"] = {
 
     let erasing = false;
     let starterase = (event) => {
+      if (event.changedTouches != null && event.changedTouches[0] != null) {
+        let touch = event.changedTouches[0];
+        if (touch.touchType == "stylus") {
+          editor.usingStylus = true;
+        } else if (editor.options.stylusmode == true) {
+          return;
+        }
+      } else {
+        return;
+      }
       erasing = true;
       erase(event);
     }
@@ -3285,6 +3397,7 @@ modules["pages/editor/toolbar/eraser"] = {
       x0 = 0;
       y0 = 0;
       erasing = false;
+      editor.usingStylus = false;
     }
     let erase = async (event) => {
       if (mouseDown() == false || erasing == false) {
@@ -3293,6 +3406,17 @@ modules["pages/editor/toolbar/eraser"] = {
       }
       if (event.touches != null && event.touches.length > 1) {
         return;
+      }
+      if (editor.usingStylus == true) {
+        if (event.changedTouches != null && event.changedTouches[0] != null) {
+          let touch = event.changedTouches[0];
+          if (touch.touchType != "stylus") {
+            return;
+          }
+          //touch.force = the force of the touch - useful for later ;)
+        } else {
+          return;
+        }
       }
       editor.toolbar.closeSubSubtoolUI();
 
@@ -3533,7 +3657,7 @@ modules["pages/editor/toolbar/sticky"] = {
         sticky = {
           f: "sticky",
           //p: [utils.round(x - this.thickness), utils.round(y - this.thickness)],
-          s: [200, 200], //[this.thickness, this.thickness],
+          s: [220, 220], //[this.thickness, this.thickness],
           c: this.color
         };
       }
@@ -3572,7 +3696,16 @@ modules["pages/editor/toolbar/sticky"] = {
 
       await toolbar.setCurrentTool(editor.page.querySelector('.eTool[tool="select"]'), "select");
       editor.selecting[tempID] = {};
-      cursor.updateBox();
+      await cursor.updateBox();
+
+      let textElem = anno.querySelector("div[edit]");
+      if (textElem != null) {
+        textElem.textContent = "";
+      }
+
+      cursor.clickAction({
+        target: content.querySelector('.eSelectBar:not([remove]) .eTool[action="pages/editor/toolbar/textedit"]')
+      });
     }
     let content = editor.page.querySelector(".eContent");
     addEvent(content, "mousemove", stickymove, { passive: false });
@@ -4679,6 +4812,9 @@ modules["pages/editor/toolbar/collaborator"] = {
       }
       modifiedBy = setModifiedBy;
     }
+    if (modifiedBy == null) {
+      return;
+    }
     let modifyID = modifiedBy.substring(5);
     if (modifyID == editor.sessionID || modifyID == userID) {
       button.style.display = "none";
@@ -4763,12 +4899,12 @@ modules["pages/editor/toolbar/textedit"] = {
     let utils = await getModule("pages/editor/annotation");
     let selectID = Object.keys(editor.selecting)[0];
     let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
-
+    
     let annoElem = editor.page.querySelector('.eAnnotation[anno="' + selectID + '"]');
     if (annoElem == null) {
       return;
     }
-    let annoTx = annoElem.querySelector("div[text]");
+    let annoTx = annoElem.querySelector("div[edit]");
     if (annoTx == null) {
       return;
     }
@@ -4906,7 +5042,14 @@ modules["pages/editor/toolbar/fontsize"] = {
     let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
     original.d = original.d || {};
     let buttonTx = button.querySelector(".eSubToolFontSize");
-    buttonTx.textContent = original.d.s || 18;
+    let size = original.d.s;
+    if (size == null) {
+      let preferences = editor.preferences.tools[original.f];
+      if (preferences != null && preferences.size != null) {
+        size = preferences.size;
+      }
+    }
+    buttonTx.textContent = size || 18;
     buttonTx.style.color = "#" + original.c;
   },
   html: `
@@ -4939,7 +5082,15 @@ modules["pages/editor/toolbar/fontsize"] = {
   js: async function (frame, toolID, extra) {
     let editor = await getModule("pages/editor");
     this.setPreferenceTool(editor);
-    let selectedS = this.preferenceTool.d.s || 18;
+    this.preferenceTool.d = this.preferenceTool.d || {};
+    let selectedS = this.preferenceTool.d.s;
+    if (selectedS == null) {
+      let preferences = editor.preferences.tools[this.preferenceTool.f];
+      if (preferences != null && preferences.size != null) {
+        selectedS = preferences.size;
+      }
+    }
+    selectedS = selectedS || 18;
 
     let preferences = editor.preferences.tools;
     let toolPref = preferences[toolID];
@@ -5055,6 +5206,7 @@ modules["pages/editor/toolbar/bold"] = {
     let editor = await getModule("pages/editor");
     let selectID = Object.keys(editor.selecting)[0];
     let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    original.d = original.d || {};
     extra.saveSelecting({ d: { bo: !(original.d.bo || false) } }, true);
     extra.updateToolActions(extra.frame);
   }
@@ -5076,6 +5228,7 @@ modules["pages/editor/toolbar/italic"] = {
     let editor = await getModule("pages/editor");
     let selectID = Object.keys(editor.selecting)[0];
     let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    original.d = original.d || {};
     extra.saveSelecting({ d: { it: !(original.d.it || false) } }, true);
     extra.updateToolActions(extra.frame);
   }
@@ -5097,6 +5250,7 @@ modules["pages/editor/toolbar/underline"] = {
     let editor = await getModule("pages/editor");
     let selectID = Object.keys(editor.selecting)[0];
     let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    original.d = original.d || {};
     extra.saveSelecting({ d: { ul: !(original.d.ul || false) } }, true);
     extra.updateToolActions(extra.frame);
   }
@@ -5118,6 +5272,7 @@ modules["pages/editor/toolbar/strikethrough"] = {
     let editor = await getModule("pages/editor");
     let selectID = Object.keys(editor.selecting)[0];
     let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    original.d = original.d || {};
     extra.saveSelecting({ d: { st: !(original.d.st || false) } }, true);
     extra.updateToolActions(extra.frame);
   }
@@ -5164,6 +5319,7 @@ modules["pages/editor/toolbar/textalign"] = {
   js: async function (frame, toolID, extra) {
     let editor = await getModule("pages/editor");
     this.setPreferenceTool(editor);
+    this.preferenceTool.d = this.preferenceTool.d || {};
     let selectedAl = this.preferenceTool.d.al || "left";
 
     let preferences = editor.preferences.tools;

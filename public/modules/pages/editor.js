@@ -166,7 +166,9 @@ modules["pages/editor"] = {
     ".eAnnotation svg > *": `pointer-events: visiblepainted`,
     ".eAnnotation div[text]": `padding: 4px 6px; margin: 3px 3px; color: var(--themeColor); font-weight: 500; pointer-events: all; outline: none`,
     ".eAnnotation div[text][placeborder]": `width: max-content; margin: 0px; border: solid 3px var(--themeColor); border-radius: 8px`,
-    ".eAnnotation[sticky]": `background: var(--themeColor); border-radius: 12px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all`,
+    ".eAnnotation[sticky]": `background: var(--themeColor); border-radius: 12px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all; overflow: hidden`,
+    ".eAnnotation[sticky] div[holder]": `display: flex; flex-direction: column; width: calc(100% - 20px); min-height: calc(100% - 26px); padding: 16px 10px 10px 10px`,
+    ".eAnnotation[sticky] div[edit]": `width: 100%; flex: 1; font-weight: 400; pointer-events: all; outline: none`,
     ".eAnnotation[src]": `object-fit: cover; pointer-events: all; border-radius: 12px`,
 
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 100; overflow: hidden; pointer-events: none`
@@ -222,6 +224,8 @@ modules["pages/editor"] = {
             selected: "FADCA0",
             options: ["88B4FA", "F49CA9", "FADCA0", "E4B8FB", "A1D8AF", "F285B8", "666666"]
           },
+          size: 16,
+          align: "center"
         },
         media: {
 
@@ -235,9 +239,20 @@ modules["pages/editor"] = {
     };
     this.options = {
       cursors: true,
+      cursornames: true,
+      stylusmode: false,
       comments: true,
       fullscreen: false
     };
+    let localOptions = getLocalStore("options");
+    if (localOptions != null) {
+      this.localOptions = JSON.parse(getLocalStore("options"));
+      let localOptionKeys = Object.keys(this.localOptions);
+      for (let i = 0; i < localOptionKeys.length; i++) {
+        let option = localOptionKeys[i];
+        this.options[option] = this.localOptions[option];
+      }
+    }
     this.realtime = {
       strength: 0,
       tool: 0 // 0: Pointer; 1: Markup; 2: Pen; 3: Erase
@@ -2032,14 +2047,19 @@ modules["pages/editor"] = {
       let pageHeight = fixed.offsetHeight;
       let xDiff = (touches[1].clientX / pageWidth) - (touches[0].clientX / pageWidth);
       let yDiff = (touches[1].clientY / pageHeight) - (touches[0].clientY / pageHeight);
-      return Math.sqrt(xDiff * xDiff + yDiff * yDiff);
+      return Math.sqrt((xDiff * xDiff) + (yDiff * yDiff));
     }
     let getCenter = (touches) => {
       return { x: (touches[0].clientX + touches[1].clientX) / 2, y: (touches[0].clientY + touches[1].clientY) / 2 };
     }
     let finishTimeout;
-    let handlePinch = (event) => {
-      if (event.touches.length > 1) {
+    let running = false;
+    let handlePinch = async (event) => {
+      if (running == true) {
+        return;
+      }
+      running = true;
+      if (event.touches.length > 1 && this.pinchZoomDisable != true) {
         let currentDistance = getDistance(event.touches);
         if (startDistance == null) {
           startDistance = currentDistance;
@@ -2058,7 +2078,7 @@ modules["pages/editor"] = {
           delta = -1;
         }
         */
-        this.setZoom(startZoom * (currentDistance / startDistance), null, { clientX: currentCenter.x, clientY: currentCenter.y, updatePages: false });
+        await this.setZoom(startZoom * (currentDistance / startDistance), null, { clientX: currentCenter.x, clientY: currentCenter.y, updatePages: false });
         clearTimeout(finishTimeout);
         finishTimeout = setTimeout(() => {
           if (this.updatePages) {
@@ -2066,6 +2086,7 @@ modules["pages/editor"] = {
           }
         }, 5000);
       }
+      running = false;
     }
     tempListen(document, "touchstart", handlePinch, { passive: false });
     tempListen(document, "touchmove", handlePinch, { passive: false });
@@ -2158,10 +2179,12 @@ modules["dropdowns/editor/zoom"] = {
     <button class="eZoomButton buttonAnim border" add change=".25">+</button>
   </div>
   <div class="eZoomLine"></div>
-  <button class="eZoomAction" option="cursors" title="Display the cursors of other editors."><div label>Cursors</div><div class="eZoomToggle"><div></div></div></button>
-  <button class="eZoomAction" option="comments" title="Show comments on the document."><div label>Comments</div><div class="eZoomToggle"><div></div></div></button>
-  <div class="eZoomLine"></div>
-  <button class="eZoomAction" option="fullscreen" title="Fullscreen allows increased accessibility."><div label>Fullscreen</div><div class="eZoomToggle"><div></div></div></button>
+  <button class="eZoomAction" option="cursors" title="Display the cursors of other editors."><div label>Show Cursors</div><div class="eZoomToggle"><div></div></div></button>
+  <button class="eZoomAction" option="cursornames" title="Show the member's name when they're annotating."><div label>Cursor Names</div><div class="eZoomToggle"><div></div></div></button>
+  <button class="eZoomAction" option="stylusmode" local title="Only write with the pen tool when using an active stylus, such as the Apple Pencil."><div label>Stylus Mode</div><div class="eZoomToggle"><div></div></div></button>
+  <!--<button class="eZoomAction" option="comments" title="Show comments on the document."><div label>Comments</div><div class="eZoomToggle"><div></div></div></button>-->
+  <!--<div class="eZoomLine"></div>-->
+  <!--<button class="eZoomAction" option="fullscreen" title="Fullscreen allows increased accessibility."><div label>Fullscreen</div><div class="eZoomToggle"><div></div></div></button>-->
   `,
   css: {
     ".eZoomHolder": `display: flex; flex-wrap: wrap; justify-content: center; align-items: center`,
@@ -2244,10 +2267,16 @@ modules["dropdowns/editor/zoom"] = {
       }
       forceSetZoom();
     });
+    let cursorZoomAction = fixed.querySelector('.eZoomAction[option="cursors"]');
+    let namesZoomAction = fixed.querySelector('.eZoomAction[option="cursornames"]');
     if (editor.realtime.strength < 3) {
-      let zoomAction = fixed.querySelector('.eZoomAction[option="cursors"]');
-      zoomAction.style.opacity = 0.5;
-      zoomAction.title = "Cursors disabled due to weak connection.";
+      cursorZoomAction.style.opacity = 0.5;
+      cursorZoomAction.title = "Cursors disabled due to weak connection.";
+      namesZoomAction.style.opacity = 0.5;
+      namesZoomAction.title = "Cursors disabled due to weak connection.";
+    }
+    if (cursorZoomAction.hasAttribute("off")) {
+      namesZoomAction.setAttribute("disabled", "");
     }
     frame.addEventListener("click", (event) => {
       let element = event.target;
@@ -2266,16 +2295,22 @@ modules["dropdowns/editor/zoom"] = {
       }
       let toggle = element.closest(".eZoomAction");
       if (toggle) {
+        let option = toggle.getAttribute("option");
         if (toggle.hasAttribute("on")) {
           toggle.setAttribute("off", "");
           toggle.removeAttribute("on");
-          editor.options[toggle.getAttribute("option")] = false;
+          editor.options[option] = false;
         } else {
           toggle.setAttribute("on", "");
           toggle.removeAttribute("off");
-          editor.options[toggle.getAttribute("option")] = true;
+          editor.options[option] = true;
         }
-        if (toggle.getAttribute("option") == "cursors") {
+        if (toggle.hasAttribute("local") == true) {
+          this.localOptions = this.localOptions || {};
+          this.localOptions[option] = editor.options[option];
+          setLocalStore("options", JSON.stringify(this.localOptions));
+        }
+        if (option == "cursors") {
           if (editor.realtime.module) {
             editor.realtime.module.setShortSub(editor.visiblePages);
           }
@@ -2283,7 +2318,7 @@ modules["dropdowns/editor/zoom"] = {
             editor.page.querySelector(".eRealtime").innerHTML = "";
           }
         }
-        if (toggle.getAttribute("option") == "fullscreen") {
+        if (option == "fullscreen") {
           if (toggle.hasAttribute("on")) {
             if (body.requestFullscreen) {
               body.requestFullscreen();
@@ -2292,6 +2327,13 @@ modules["dropdowns/editor/zoom"] = {
             if (document.exitFullscreen) {
               document.exitFullscreen();
             }
+          }
+        }
+        if (option == "cursors") {
+          if (toggle.hasAttribute("on")) {
+            namesZoomAction.removeAttribute("disabled");
+          } else {
+            namesZoomAction.setAttribute("disabled", "");
           }
         }
       }
@@ -2886,6 +2928,8 @@ modules["pages/editor/annotation"] = {
     let drawSetPoints = "";
     let transform;
     let halfT = (t || 0) / 2;
+    let text;
+    let richText = d || {};
     switch (f) {
       case "markup":
         if (anno == null) {
@@ -2958,7 +3002,7 @@ modules["pages/editor/annotation"] = {
       case "text":
         if (anno == null) {
           annoHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
-            <div text></div>
+            <div text edit></div>
           </div>`);
           anno = annoHolder.querySelector(".eAnnotation[new]");
           anno.removeAttribute("new");
@@ -2979,7 +3023,7 @@ modules["pages/editor/annotation"] = {
         } else {
           anno.setAttribute("hidden", "");
         }
-        let text = anno.querySelector("div[text]");
+        text = anno.querySelector("div[edit]");
         if (_id != null) {
           text.removeAttribute("placeborder");
         } else {
@@ -2987,7 +3031,6 @@ modules["pages/editor/annotation"] = {
         }
         anno.style.setProperty("--themeColor", "#" + c);
         text.style.opacity = o / 100;
-        let richText = d;
         text.style.fontSize = Math.floor(Math.max(Math.min(richText.s || 18, 250), 1)) + "px";
         if (text.hasAttribute("contenteditable") == false) {
           let setHTML = "";
@@ -3278,7 +3321,9 @@ modules["pages/editor/annotation"] = {
       case "sticky":
         if (anno == null) {
           annoHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" sticky new>
-            <div stickytext></div>
+            <div holder>
+              <div edit></div>
+            </div>
           </div>`);
           anno = annoHolder.querySelector(".eAnnotation[new]");
           anno.removeAttribute("new");
@@ -3300,18 +3345,29 @@ modules["pages/editor/annotation"] = {
           anno.setAttribute("hidden", "");
         }
         anno.style.setProperty("--themeColor", "#" + c);
-        /*
-        let text = anno.querySelector("div[text]");
+        text = anno.querySelector("div[edit]");
         if (_id != null) {
           text.removeAttribute("placeborder");
         } else {
           text.setAttribute("placeborder", "");
         }
         anno.style.setProperty("--themeColor", "#" + c);
+        // Set Text Color:
+        let redC = parseInt(c.substring(0, 2), 16); // hexToR
+        let greenC = parseInt(c.substring(2, 4), 16); // hexToG
+        let blueC = parseInt(c.substring(4, 6), 16); // hexToB
+        let uicolors = [redC / 255, greenC / 255, blueC / 255];
+        let outputC = uicolors.map((col) => {
+          if (col <= 0.03928) {
+            return col / 12.92;
+          }
+          return Math.pow((col + 0.055) / 1.055, 2.4);
+        });
+        let factorC = (0.2126 * outputC[0]) + (0.7152 * outputC[1]) + (0.0722 * outputC[2]);
+        text.style.color = (factorC > 0.179) ? "#000" : "#fff";
         text.style.opacity = o / 100;
-        let richText = d;
-        text.style.fontSize = Math.floor(Math.max(Math.min(richText.s || 18, 250), 1)) + "px";
-        if (text.hasAttribute("contenteditable") == false) {
+        text.style.fontSize = Math.floor(Math.max(Math.min(richText.s || 16, 250), 1)) + "px";
+        if (text.hasAttribute("contenteditable") == false && richText.b != null) {
           let setHTML = "";
           for (let i = 0; i < richText.b.length; i++) {
             let addHTML = "";
@@ -3350,8 +3406,6 @@ modules["pages/editor/annotation"] = {
           text.style.removeProperty("text-decoration");
         }
         text.style.textAlign = richText.al || "left";
-        text.style.height = "fit-content";
-        */
         break;
       case "media":
         if (anno == null) {

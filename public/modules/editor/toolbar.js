@@ -1139,7 +1139,9 @@ modules["pages/editor/toolbar/cursor"] = {
         }
         activeLayer.style.setProperty("--annoZIndex", Math.floor((merged.sync || getEpoch()) / 9999) - 10);
         activeLayer.style.setProperty("--selectZIndex", i);
-        anno.style.overflow = "hidden";
+        if (anno.hasAttribute("sticky") == false) {
+          anno.style.overflow = "hidden";
+        }
         anno.style.borderRadius = "2px";
         if (select == null) {
           content.insertAdjacentHTML("beforeend", `<div class="eSelect" new></div>`);
@@ -1787,7 +1789,7 @@ modules["pages/editor/toolbar/cursor"] = {
               }
               annoSet.s[1] = annoTx.offsetHeight + 6;
             }
-          } else if (anno.f == "sticky") {
+          }/* else if (anno.f == "sticky") {
             let annoTx = editor.page.querySelector('.eAnnotation[anno="' + annoID + '"] div[holder]');
             if (annoTx != null) {
               if (annoTx.offsetHeight > annoTx.parentElement.offsetHeight) {
@@ -1797,7 +1799,7 @@ modules["pages/editor/toolbar/cursor"] = {
                 annoSet.s[1] = annoTx.offsetHeight;
               }
             }
-          }
+          }*/
           let changes = false;
           for (let c = 0; c < setKeys.length; c++) {
             if (annoSet[setKeys[c]] != anno[setKeys[c]]) {
@@ -4911,8 +4913,13 @@ modules["pages/editor/toolbar/textedit"] = {
     }
 
     if (annoTx.hasAttribute("contenteditable") == false) {
+      let scrollLeft = annoElem.scrollLeft || 0;
+      let scrollTop = annoElem.scrollTop || 0;
       annoTx.setAttribute("contenteditable", "true");
       annoTx.focus();
+      if (scrollLeft > 0 || scrollTop > 0) {
+        annoElem.scrollTo(scrollLeft, scrollTop);
+      }
 
       if (extra.setCaretPosition != true || document.caretRangeFromPoint == null) {
         if (window.getSelection && document.createRange) {
@@ -4927,6 +4934,7 @@ modules["pages/editor/toolbar/textedit"] = {
           range.select();
         }
       } else {
+        console.log(extra.clientY)
         let range = document.caretRangeFromPoint(extra.clientX, extra.clientY);
         let selection = window.getSelection();
 

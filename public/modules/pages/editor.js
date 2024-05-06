@@ -2180,7 +2180,7 @@ modules["dropdowns/editor/zoom"] = {
   </div>
   <div class="eZoomLine"></div>
   <button class="eZoomAction" option="cursors" title="Display the cursors of other editors."><div label>Show Cursors</div><div class="eZoomToggle"><div></div></div></button>
-  <button class="eZoomAction" option="cursornames" title="Show the member's name when they're annotating."><div label>Cursor Names</div><div class="eZoomToggle"><div></div></div></button>
+  <button class="eZoomAction" option="cursornames" local title="Show the member's name when they're annotating."><div label>Cursor Names</div><div class="eZoomToggle"><div></div></div></button>
   <button class="eZoomAction" option="stylusmode" local title="Only write with the pen tool when using an active stylus, such as the Apple Pencil."><div label>Stylus Mode</div><div class="eZoomToggle"><div></div></div></button>
   <!--<button class="eZoomAction" option="comments" title="Show comments on the document."><div label>Comments</div><div class="eZoomToggle"><div></div></div></button>-->
   <!--<div class="eZoomLine"></div>-->

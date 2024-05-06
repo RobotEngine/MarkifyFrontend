@@ -457,6 +457,7 @@ modules["editor/toolbar"] = {
       editor.page.style.removeProperty("touch-action");
       editor.page.removeAttribute("enabled");
       editor.pinchZoomDisable = false;
+      editor.usingStylus = false;
       let editorTools = content.querySelectorAll("[tooleditor]");
       for (let i = 0; i < editorTools.length; i++) {
         let tool = editorTools[i];
@@ -3385,7 +3386,7 @@ modules["pages/editor/toolbar/eraser"] = {
         } else if (editor.options.stylusmode == true) {
           return;
         }
-      } else {
+      } else if (editor.options.stylusmode == true) {
         return;
       }
       erasing = true;

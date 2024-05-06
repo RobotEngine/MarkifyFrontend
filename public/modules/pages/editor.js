@@ -3455,7 +3455,7 @@ modules["pages/editor/annotation"] = {
         }
     }
     if (anno != null) {
-      anno.style.zIndex = (sync || getEpoch()) % 1000000000;
+      anno.style.zIndex = Math.floor((sync || getEpoch()) / 9999);
       if (size[0] < 0 && size[1] < 0) {
         anno.style.transform = "scale(-1)";
       } else if (size[0] < 0) {

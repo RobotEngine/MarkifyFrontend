@@ -4934,7 +4934,6 @@ modules["pages/editor/toolbar/textedit"] = {
           range.select();
         }
       } else {
-        console.log(extra.clientY)
         let range = document.caretRangeFromPoint(extra.clientX, extra.clientY);
         let selection = window.getSelection();
 

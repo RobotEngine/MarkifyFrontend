@@ -4819,6 +4819,11 @@ modules["pages/editor/toolbar/collaborator"] = {
         modifiedBy = setModifiedBy;
       }
     }
+    let modifyID = (modifiedBy || "").substring(5);
+    if (modifyID == "" || modifyID == editor.sessionID || modifyID == userID) {
+      button.style.display = "none";
+      return;
+    }
     if (modifiedBy == null) {
       if (editor.lesson.settings.forceLogin != true) {
         button.setAttribute("tooltip", "Collaborator");
@@ -4826,11 +4831,6 @@ modules["pages/editor/toolbar/collaborator"] = {
       } else {
         button.style.display = "none";
       }
-      return;
-    }
-    let modifyID = modifiedBy.substring(5);
-    if (modifyID == editor.sessionID || modifyID == userID) {
-      button.style.display = "none";
       return;
     }
     let collaborator = editor.collaborators[modifyID];

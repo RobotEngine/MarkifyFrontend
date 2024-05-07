@@ -2856,7 +2856,7 @@ modules["pages/editor/toolbar/highlighter"] = {
       await utils.forceShort();
       delete editor.selecting[markup._id];
       markup = null;
-      editor.usingStylus = true;
+      editor.usingStylus = false;
     }
     let content = editor.page.querySelector(".eContent");
     addEvent(content, "mousedown", enableMarkup, { passive: false });

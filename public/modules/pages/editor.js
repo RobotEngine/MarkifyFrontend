@@ -3366,7 +3366,9 @@ modules["pages/editor/annotation"] = {
         let factorC = (0.2126 * outputC[0]) + (0.7152 * outputC[1]) + (0.0722 * outputC[2]);
         text.style.color = (factorC > 0.179) ? "#000" : "#fff";
         text.style.opacity = o / 100;
-        text.style.fontSize = Math.floor(Math.max(Math.min(richText.s || 16, 250), 1)) + "px";
+        let fontSize = Math.floor(Math.max(Math.min(richText.s || 16, 250), 1));
+        text.style.fontSize = fontSize + "px";
+        text.style.lineHeight = fontSize + 6 + "px";
         if (text.hasAttribute("contenteditable") == false) {
           if (richText.b != null) {
             let setHTML = "";

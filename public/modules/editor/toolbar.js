@@ -3662,7 +3662,8 @@ modules["pages/editor/toolbar/sticky"] = {
           f: "sticky",
           //p: [utils.round(x - this.thickness), utils.round(y - this.thickness)],
           s: [220, 220], //[this.thickness, this.thickness],
-          c: this.color
+          c: this.color,
+          sig: editor.getSelf().name
         };
       }
       clientX = clientPosition(event, "x") || clientX;

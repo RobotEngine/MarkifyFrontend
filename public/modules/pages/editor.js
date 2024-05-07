@@ -3414,7 +3414,8 @@ modules["pages/editor/annotation"] = {
         text.style.textAlign = richText.al || "left";
         let signature = anno.querySelector("div[signature]");
         if (sig && sig != "") {
-          signature.textContent = cleanString(sig || "");
+          signature.textContent = cleanString(sig);
+          signature.title = signature.textContent;
           signature.removeAttribute("hidden");
         } else {
           signature.setAttribute("hidden", "");

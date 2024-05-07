@@ -2274,7 +2274,6 @@ modules["dropdowns/editor/zoom"] = {
       cursorZoomAction.style.opacity = 0.5;
       cursorZoomAction.title = "Cursors disabled due to weak connection.";
       namesZoomAction.style.opacity = 0.5;
-      namesZoomAction.title = "Cursors disabled due to weak connection.";
     }
     if (cursorZoomAction.hasAttribute("off")) {
       namesZoomAction.setAttribute("disabled", "");

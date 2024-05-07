@@ -100,13 +100,16 @@ modules["editor/realtime"] = {
       this.setShortSub(editor.visiblePages);
 
       let zCursorAction = fixed.querySelector('.eZoomAction[option="cursors"]');
+      let zCursorNameAction = fixed.querySelector('.eZoomAction[option="cursornames"]');
       if (zCursorAction) {
         if (editor.realtime.strength < 3) {
           zCursorAction.style.opacity = 0.5;
           zCursorAction.title = "Cursors disabled due to weak connection.";
+          zCursorNameAction.style.opacity = 0.5;
         } else {
           zCursorAction.style.opacity = 1;
           zCursorAction.title = "Display the cursors of other editors.";
+          zCursorNameAction.style.opacity = 1;
         }
       }
     }

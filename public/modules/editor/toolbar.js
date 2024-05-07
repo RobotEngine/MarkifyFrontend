@@ -88,7 +88,7 @@ modules["editor/toolbar"] = {
     ".eActionShadow:after": `position: absolute; width: calc(100% - 32px); height: calc(100% - 16px); left: 16px; top: var(--shadowTop); content: ""; box-shadow: var(--shadow); border-radius: inherit`,
     ".eActionContainerHolder": `width: 100%; height: 100%; overflow: hidden; border-radius: inherit`,
     ".eActionContainerScroll": `width: fit-content`, //; overflow: auto
-    ".eActionContainerContent": `display: flex; flex-wrap: wrap; gap: 6px`
+    ".eActionContainerContent": `display: none; flex-wrap: wrap; gap: 6px`
   },
   tools: {
     "select": [
@@ -1501,6 +1501,7 @@ modules["pages/editor/toolbar/cursor"] = {
       let actionFrame = actionUI.querySelector(".eActionContainer[module]");
       if (actionFrame != null) {
         let actionContent = actionFrame.querySelector(".eActionContainerContent");
+        actionContent.style.display = "flex";
         let alignTop;
         if (isBottom == false) {
           alignTop = true;
@@ -1756,7 +1757,7 @@ modules["pages/editor/toolbar/cursor"] = {
     this.updateActionUI();
   },
   runActionModule: async function (module, holder, preferenceTool, extra) {
-    await module.js(holder, preferenceTool, {
+    let result = await module.js(holder, preferenceTool, {
       frame: holder,
       updateActionUI: () => { this.updateActionUI(); },
       saveSelecting: async (set, short, saveHistory, lastCaret) => {
@@ -4818,6 +4819,8 @@ modules["pages/editor/toolbar/collaborator"] = {
       }
     }
     if (modifiedBy == null) {
+      button.setAttribute("tooltip", "Collaborator");
+      button.removeAttribute("disabled");
       return;
     }
     let modifyID = modifiedBy.substring(5);
@@ -4860,14 +4863,29 @@ modules["pages/editor/toolbar/collaborator"] = {
     ".eSubToolCollaboratorPicture": `width: 50px; height: 50px; padding: 3px; margin: 1px; border: solid 4px var(--theme); object-fit: cover; background: var(--pageColor); border-radius: 32px`,
     ".eSubToolCollaboratorInfo": `margin: 4px; text-align: left`,
     ".eSubToolCollaboratorInfo div[name]": `max-width: calc(var(--uiwidth) - 24px); font-size: 20px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
-    ".eSubToolCollaboratorInfo div[email]": `max-width: calc(var(--uiwidth) - 24px); font-size: 15px; font-weight: 500; margin-top: 3px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`
+    ".eSubToolCollaboratorInfo div[email]": `max-width: calc(var(--uiwidth) - 24px); font-size: 15px; font-weight: 500; margin-top: 3px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
+    
+    ".eSubToolCollaboratorShowMe": `color: var(--theme); font-weight: 700`
   },
   js: async function (frame, toolID, extra) {
     let editor = await getModule("pages/editor");
+    let alertModule = await getModule("alert");
+    let dropdownModule = await getModule("dropdown");
     
-    let collaboratorID = extra.frame.querySelector('.eTool[action="pages/editor/toolbar/collaborator"]').getAttribute("userid");
+    let button = extra.frame.querySelector('.eTool[action="pages/editor/toolbar/collaborator"]');
+    let collaboratorID = button.getAttribute("userid");
     let collaborator = editor.collaborators[collaboratorID];
     if (collaborator == null) {
+      let alert = await alertModule.open("info", '<b>Require Login Disabled</b><div>In order to see who edited this, you must enable the require login option. <a class="eSubToolCollaboratorShowMe" new>Show Me</a></div>', { time: 10 });
+      let showMeButton = fixed.querySelector(".eSubToolCollaboratorShowMe[new]");
+      showMeButton.removeAttribute("new");
+      showMeButton.addEventListener("click", async () => {
+        alertModule.close(alert);
+        await sleep(1);
+        dropdownModule.open(editor.page.querySelector(".eShare"), "dropdowns/editor/share/options");
+      });
+      button.removeAttribute("selected");
+      frame.querySelector(".eActionContainerContent").innerHTML = "";
       return;
     }
 

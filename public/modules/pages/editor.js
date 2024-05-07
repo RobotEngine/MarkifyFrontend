@@ -168,7 +168,7 @@ modules["pages/editor"] = {
     ".eAnnotation div[text][placeborder]": `width: max-content; margin: 0px; border: solid 3px var(--themeColor); border-radius: 8px`,
     ".eAnnotation[sticky]": `background: var(--themeColor); border-radius: 12px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all; overflow: auto`,
     ".eAnnotation[sticky] div[holder]": `display: flex; flex-direction: column; width: calc(100% - 20px); min-height: calc(100% - 26px); padding: 16px 10px 10px 10px`,
-    ".eAnnotation[sticky] div[edit]": `width: 100%; flex: 1; font-weight: 400; pointer-events: all; outline: none`,
+    ".eAnnotation[sticky] div[edit]": `width: 100%; flex: 1; font-weight: 400; line-height: 22px; pointer-events: all; outline: none`,
     ".eAnnotation[src]": `object-fit: cover; pointer-events: all; border-radius: 12px`,
 
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 100; overflow: hidden; pointer-events: none`

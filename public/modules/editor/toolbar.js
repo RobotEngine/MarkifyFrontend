@@ -4819,8 +4819,12 @@ modules["pages/editor/toolbar/collaborator"] = {
       }
     }
     if (modifiedBy == null) {
-      button.setAttribute("tooltip", "Collaborator");
-      button.removeAttribute("disabled");
+      if (editor.lesson.settings.forceLogin != true) {
+        button.setAttribute("tooltip", "Collaborator");
+        button.removeAttribute("disabled");
+      } else {
+        button.style.display = "none";
+      }
       return;
     }
     let modifyID = modifiedBy.substring(5);

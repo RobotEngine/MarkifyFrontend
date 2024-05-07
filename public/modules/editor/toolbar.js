@@ -5058,7 +5058,11 @@ modules["pages/editor/toolbar/fontsize"] = {
       }
     }
     buttonTx.textContent = size || 18;
-    buttonTx.style.color = "#" + original.c;
+    if (original.f != "sticky") {
+      buttonTx.style.color = "#" + original.c;
+    } else {
+      buttonTx.style.color = "var(--theme)";
+    }
   },
   html: `
     <div class="eSubToolFontSizeContainer">

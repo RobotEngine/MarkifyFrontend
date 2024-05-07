@@ -4809,11 +4809,13 @@ modules["pages/editor/toolbar/collaborator"] = {
     for (let i = 0; i < selectKeys.length; i++) {
       let annotation = editor.annotations[selectKeys[i]];
       let setModifiedBy = (annotation.render || {}).m || (annotation.revert || {}).m;
-      if (setModifiedBy == null || setModifiedBy.startsWith("temp_") == true || (modifiedBy != null && setModifiedBy != modifiedBy)) {
+      if (setModifiedBy == null || (modifiedBy != null && setModifiedBy != modifiedBy)) { // || setModifiedBy.startsWith("temp_") == true
         button.style.display = "none";
         return;
       }
-      modifiedBy = setModifiedBy;
+      if (setModifiedBy.startsWith("user_") == true) {
+        modifiedBy = setModifiedBy;
+      }
     }
     if (modifiedBy == null) {
       return;

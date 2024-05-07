@@ -3367,22 +3367,24 @@ modules["pages/editor/annotation"] = {
         text.style.color = (factorC > 0.179) ? "#000" : "#fff";
         text.style.opacity = o / 100;
         text.style.fontSize = Math.floor(Math.max(Math.min(richText.s || 16, 250), 1)) + "px";
-        if (text.hasAttribute("contenteditable") == false && richText.b != null) {
-          let setHTML = "";
-          for (let i = 0; i < richText.b.length; i++) {
-            let addHTML = "";
-            if (richText.b[i] != "\n") {
-              addHTML = "<div>" + cleanString(richText.b[i]) + "</div>";
-            } else {
-              addHTML = "<br>";
+        if (text.hasAttribute("contenteditable") == false) {
+          if (richText.b != null) {
+            let setHTML = "";
+            for (let i = 0; i < richText.b.length; i++) {
+              let addHTML = "";
+              if (richText.b[i] != "\n") {
+                addHTML = "<div>" + cleanString(richText.b[i]) + "</div>";
+              } else {
+                addHTML = "<br>";
+              }
+              setHTML += addHTML;
             }
-            setHTML += addHTML;
+            if (text.innerHTML != setHTML) {
+              text.innerHTML = setHTML;
+            }
+            //text.innerText = cleanString(richText.b[0]);
+            //text.innerHTML = cleanString(richText.b[0]).replace(/\n\n/g, "</br>").replace(/\n/g, "</br>");
           }
-          if (text.innerHTML != setHTML) {
-            text.innerHTML = setHTML;
-          }
-          //text.innerText = cleanString(richText.b[0]);
-          //text.innerHTML = cleanString(richText.b[0]).replace(/\n\n/g, "</br>").replace(/\n/g, "</br>");
         } else {
           anno.setAttribute("notransition", "");
         }

@@ -589,9 +589,14 @@ modules["editor/realtime"] = {
                     if (annoID == "cursor") {
                       // Just a temporary prop, no saving:
                       let prevElem = editor.page.querySelector('.eAnnotation[member="' + memberID + '"]');
+                      if (prevElem != null && prevElem.getAttribute("type") != anno.f) {
+                        prevElem.remove();
+                        prevElem = null;
+                      }
                       [merge, annoElem] = await utils.render({ ...anno, _id: memberID + "_cursor" }, prevElem);
                       annoElem.setAttribute("member", memberID);
                       annoElem.setAttribute("anno", "cursor");
+                      annoElem.setAttribute("type", anno.f);
                       annoElem.style.opacity = .7;
                     } else {
                       original = editor.annotations[annoID];
@@ -675,7 +680,7 @@ modules["editor/realtime"] = {
                         merge = { ...original.render, ...(editor.selecting[annoID] || {}) };
                         userSelecting = true;
                       }
-                      if (merge.f == "text" && anno.d != null) {
+                      if (["text", "sticky"].includes(merge.f) == true && anno.d != null) {
                         let annoTx = editor.page.querySelector('.eAnnotation[anno="' + annoID + '"] div[contenteditable]');
                         if (annoTx != null) {
                           annoTx.removeAttribute("contenteditable");

@@ -5003,6 +5003,7 @@ modules["pages/editor/toolbar/textedit"] = {
       editor.selecting[selectID].d = editor.selecting[selectID].d || JSON.parse(JSON.stringify(original.d || {}));
       editor.selecting[selectID].d.b = addText;
       saveObj.d.b = addText;
+      saveObj.sig = editor.getSelf().name;
       /*
       saveObj.s = [];
       if (original.textfit == true) {

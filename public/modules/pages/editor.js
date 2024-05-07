@@ -168,7 +168,8 @@ modules["pages/editor"] = {
     ".eAnnotation div[text][placeborder]": `width: max-content; margin: 0px; border: solid 3px var(--themeColor); border-radius: 8px`,
     ".eAnnotation[sticky]": `background: var(--themeColor); border-radius: 12px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all; overflow: auto`,
     ".eAnnotation[sticky] div[holder]": `display: flex; flex-direction: column; width: calc(100% - 20px); min-height: calc(100% - 26px); padding: 16px 10px 10px 10px`,
-    ".eAnnotation[sticky] div[edit]": `width: 100%; flex: 1; font-weight: 400; line-height: 22px; pointer-events: all; outline: none`,
+    ".eAnnotation[sticky] div[edit]": `width: 100%; flex: 1; font-weight: 400; line-height: 22px; pointer-events: all; outline: none; text-align: left`,
+    ".eAnnotation[sticky] div[signature]": `width: 100%; margin-top: 8px; opacity: .6; font-size: 14px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; text-align: left`,
     ".eAnnotation[src]": `object-fit: cover; pointer-events: all; border-radius: 12px`,
 
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 100; overflow: hidden; pointer-events: none`
@@ -2887,7 +2888,7 @@ modules["pages/editor/annotation"] = {
       return;
     }
     let editor = await getModule("pages/editor");
-    let { _id, f, page, p, s, c, i, t, b, o, d, done, remove, sync, textfit } = data;
+    let { _id, f, page, p, s, c, i, t, b, o, d, done, remove, sync, textfit, sig } = data;
     let [x, y] = p || [];
     let size = s || [];
     let [width, height] = [size[0], size[1]];
@@ -3323,6 +3324,7 @@ modules["pages/editor/annotation"] = {
           annoHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" sticky new>
             <div holder>
               <div edit></div>
+              <div signature></div>
             </div>
           </div>`);
           anno = annoHolder.querySelector(".eAnnotation[new]");
@@ -3364,7 +3366,7 @@ modules["pages/editor/annotation"] = {
           return Math.pow((col + 0.055) / 1.055, 2.4);
         });
         let factorC = (0.2126 * outputC[0]) + (0.7152 * outputC[1]) + (0.0722 * outputC[2]);
-        text.style.color = (factorC > 0.179) ? "#000" : "#fff";
+        anno.style.color = (factorC > 0.179) ? "#000" : "#fff";
         text.style.opacity = o / 100;
         let fontSize = Math.floor(Math.max(Math.min(richText.s || 16, 250), 1));
         text.style.fontSize = fontSize + "px";
@@ -3410,6 +3412,13 @@ modules["pages/editor/annotation"] = {
           text.style.removeProperty("text-decoration");
         }
         text.style.textAlign = richText.al || "left";
+        let signature = anno.querySelector("div[signature]");
+        if (sig && sig != "") {
+          signature.textContent = cleanString(sig || "");
+          signature.removeAttribute("hidden");
+        } else {
+          signature.setAttribute("hidden", "");
+        }
         break;
       case "media":
         if (anno == null) {
@@ -3591,6 +3600,9 @@ modules["pages/editor/annotation"] = {
         if (mutt.annoRefresh != null && mutt.annoRefresh.render != null) {
           mutt._id = mutt.annoRefresh.render._id;
           delete mutt.annoRefresh;
+        }
+        if (mutt.sig != null) {
+          delete mutt.sig;
         }
         let anno = editor.annotations[mutt._id];
         if (anno != null && anno.pointer != null) {

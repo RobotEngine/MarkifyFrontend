@@ -17,8 +17,8 @@ modules["pages/launch"] = {
           <img src="./images/launch/tools/shape.svg" low>
         </div>
       </div>
-      <div class="lHeaderSlogan"><b>Collaboration</b> across the <b>Classroom</b></div>
-      <div class="lHeaderSummary">Stream a shared whiteboard to student's devices to see up close and review. All with effective tools that aren't overwhelming or confusing to use.</div>
+      <div class="lHeaderSlogan"><b>Collaboration</b> without <b>Chaos</b></div>
+      <div class="lHeaderSummary">Let students work collaboratively across the classroom while you facilitate. Eliminate chaos with robust settings and temporary editing access control.</div>
       <div class="lHeaderActions">
         <button class="lOpen largeButton" openpage="dashboard">Try the BETA</button>
         <button class="lJoin largeButton" openpage="join">Join Lesson<img src="./images/tooltips/link.svg"></button>
@@ -171,6 +171,8 @@ modules["pages/launch"] = {
     </div>
   </div>
   `,
+  //Collaboration across the Classroom
+  //Stream a shared whiteboard to student's devices to see up close and review. All with effective tools that aren't overwhelming or confusing to use.
   css: {
     ".lSection": `position: relative; display: flex; flex-direction: column; margin: 5vh 0; z-index: 1; align-items: center; --blueShadow: 0px 0px 24px var(--hover)`,
     ".lBackdrop": `position: fixed; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; opacity: 0; transition: .3s`,
@@ -185,7 +187,7 @@ modules["pages/launch"] = {
     ".lHeaderLogo": `box-sizing: border-box; width: 100%; max-width: 350px; padding: 24px`,
     ".lHeaderSlogan": `margin-top: 16px; font-size: 35px; line-height: 55px`,
     ".lHeaderSlogan b": `color: var(--theme); font-size: 45px; font-weight: 700`,
-    ".lHeaderSummary": `max-width: 700px; margin-top: 24px`,
+    ".lHeaderSummary": `max-width: 700px; margin-top: 24px; line-height: 26px`,
     ".lHeaderActions": `display: flex; flex-wrap: wrap; gap: 24px; margin-top: 40px; justify-content: center`,
     ".lOpen": `background: var(--theme); --borderRadius: 20.25px; color: #fff`,
     ".lJoin": `background: #fff; --borderRadius: 20.25px; color: var(--secondary)`,

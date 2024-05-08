@@ -167,6 +167,7 @@ modules["pages/editor"] = {
     ".eAnnotation div[text]": `padding: 4px 6px; margin: 3px 3px; color: var(--themeColor); font-weight: 500; pointer-events: all; outline: none`,
     ".eAnnotation div[text][placeborder]": `width: max-content; margin: 0px; border: solid 3px var(--themeColor); border-radius: 8px`,
     ".eAnnotation[sticky]": `background: var(--themeColor); border-radius: 12px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all; overflow: auto`,
+    //".eAnnotation[sticky]::-webkit-scrollbar": `display: none`, ; scrollbar-width: none
     ".eAnnotation[sticky] div[holder]": `display: flex; flex-direction: column; width: calc(100% - 20px); min-height: calc(100% - 26px); padding: 16px 10px 10px 10px`,
     ".eAnnotation[sticky] div[edit]": `width: 100%; flex: 1; font-weight: 400; line-height: 22px; pointer-events: all; outline: none; text-align: left`,
     ".eAnnotation[sticky] div[signature]": `width: 100%; margin-top: 8px; opacity: .6; font-size: 14px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; text-align: left`,

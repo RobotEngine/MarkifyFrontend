@@ -18,7 +18,7 @@ modules["pages/launch"] = {
         </div>
       </div>
       <div class="lHeaderSlogan"><b>Collaboration</b> without <b>Chaos</b></div>
-      <div class="lHeaderSummary">Let students work collaboratively across the classroom while you facilitate. Eliminate chaos with robust settings and temporary editing access control.</div>
+      <div class="lHeaderSummary">Let students work collaboratively across the classroom while you facilitate. Eliminate chaos with robust sharing settings and temporary editing controls.</div>
       <div class="lHeaderActions">
         <button class="lOpen largeButton" openpage="dashboard">Try the BETA</button>
         <button class="lJoin largeButton" openpage="join">Join Lesson<img src="./images/tooltips/link.svg"></button>
@@ -186,7 +186,7 @@ modules["pages/launch"] = {
     "@keyframes bobIconLow": `0%, 100% { transform: translateY(20%) } 50% { transform: translateY(-20%) scale(1.1) }`,
     ".lHeaderLogo": `box-sizing: border-box; width: 100%; max-width: 350px; padding: 24px`,
     ".lHeaderSlogan": `margin-top: 16px; font-size: 35px; line-height: 55px`,
-    ".lHeaderSlogan b": `color: var(--theme); font-size: 45px; font-weight: 700`,
+    ".lHeaderSlogan b": `margin: 0 4px; color: var(--theme); font-size: 45px; font-weight: 700`,
     ".lHeaderSummary": `max-width: 700px; margin-top: 24px; line-height: 26px`,
     ".lHeaderActions": `display: flex; flex-wrap: wrap; gap: 24px; margin-top: 40px; justify-content: center`,
     ".lOpen": `background: var(--theme); --borderRadius: 20.25px; color: #fff`,

@@ -166,11 +166,11 @@ modules["pages/editor"] = {
     ".eAnnotation svg > *": `pointer-events: visiblepainted`,
     ".eAnnotation div[text]": `padding: 4px 6px; margin: 3px 3px; color: var(--themeColor); font-weight: 500; pointer-events: all; outline: none`,
     ".eAnnotation div[text][placeborder]": `width: max-content; margin: 0px; border: solid 3px var(--themeColor); border-radius: 8px`,
-    ".eAnnotation[sticky]": `background: var(--themeColor); border-radius: 12px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all; overflow: auto`,
+    ".eAnnotation[sticky]": `background: var(--themeColor); border-radius: 12px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all; overflow: auto; text-align: left`,
     //".eAnnotation[sticky]::-webkit-scrollbar": `display: none`, ; scrollbar-width: none
     ".eAnnotation[sticky] div[holder]": `display: flex; flex-direction: column; width: calc(100% - 20px); min-height: calc(100% - 26px); padding: 16px 10px 10px 10px`,
-    ".eAnnotation[sticky] div[edit]": `width: 100%; flex: 1; font-weight: 400; line-height: 22px; pointer-events: all; outline: none; text-align: left`,
-    ".eAnnotation[sticky] div[signature]": `width: 100%; margin-top: 8px; opacity: .6; font-size: 14px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; text-align: left`,
+    ".eAnnotation[sticky] div[edit]": `width: 100%; flex: 1; font-weight: 400; line-height: 22px; pointer-events: all; outline: none`,
+    ".eAnnotation[sticky] div[signature]": `width: 100%; margin-top: 8px; opacity: .6; font-size: 14px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
     ".eAnnotation[src]": `object-fit: cover; pointer-events: all; border-radius: 12px`,
 
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 100; overflow: hidden; pointer-events: none`
@@ -3367,6 +3367,7 @@ modules["pages/editor/annotation"] = {
         });
         let factorC = (0.2126 * outputC[0]) + (0.7152 * outputC[1]) + (0.0722 * outputC[2]);
         anno.style.color = (factorC > 0.179) ? "#000" : "#fff";
+        anno.style.textAlign = richText.al || "left";
         text.style.opacity = o / 100;
         let fontSize = Math.floor(Math.max(Math.min(richText.s || 16, 250), 1));
         text.style.fontSize = fontSize + "px";
@@ -3411,7 +3412,6 @@ modules["pages/editor/annotation"] = {
         } else {
           text.style.removeProperty("text-decoration");
         }
-        text.style.textAlign = richText.al || "left";
         let signature = anno.querySelector("div[signature]");
         if (sig && sig != "") {
           signature.textContent = cleanString(sig);

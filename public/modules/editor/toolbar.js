@@ -489,7 +489,7 @@ modules["editor/toolbar"] = {
     let mouseSVG;
     this.currentToolModule = "pages/editor/toolbar/cursor";
     let pageContent = editor.page.querySelector(".eContent");
-    this.enableTool = async () => {
+    this.enableTool = async (extra) => {
       this.disableTool();
       let module;
       if (this.currentToolModule != null) {
@@ -497,7 +497,8 @@ modules["editor/toolbar"] = {
       }
       if (module != null) {
         module.js(editor, utils, tempToolListen, {
-          tool: selectedSubtoolToolID
+          tool: selectedSubtoolToolID,
+          ...(extra || {})
         });
       }
       module = module || {};
@@ -731,7 +732,7 @@ modules["editor/toolbar"] = {
       subSubToolContentHolder.style.removeProperty("height");
       subSubTools.style.transition = "opacity .3s, transform .3s";
     }
-    let showSubSubtoolUI = async (button) => {
+    let showSubSubtoolUI = async (button, extra) => {
       if (mainSubSubtoolButton == button) {
         this.closeSubSubtoolUI();
         button.removeAttribute("selected");
@@ -753,7 +754,7 @@ modules["editor/toolbar"] = {
     //showSubtoolUI(frame.querySelector('[tool="select"]'));
     let selectedToolID = "select";
     let selectedSubtoolToolID = "select";
-    this.setCurrentTool = async (element, override) => {
+    this.setCurrentTool = async (element, override, extra) => {
       if (element == null) {
         return;
       }
@@ -778,7 +779,7 @@ modules["editor/toolbar"] = {
       element.setAttribute("selected", "");
       if (element.hasAttribute("tool") == true) {
         selectedToolID = element.getAttribute("tool");
-        await showSubtoolUI(element, override);
+        await showSubtoolUI(element);
         //this.currentToolModule = element.getAttribute("module");
       } else if (element.hasAttribute("subtool") == true) {
         selectedSubtoolToolID = element.getAttribute("subtool");
@@ -786,7 +787,7 @@ modules["editor/toolbar"] = {
           preferences[selectedToolID].subtool = selectedSubtoolToolID
         }
         this.currentToolModule = element.getAttribute("module");
-        await this.updateToolbar();
+        await this.updateToolbar(null, extra);
         await this.closeSubSubtoolUI();
       } else if (element.hasAttribute("option") == true && element.getAttribute("option").length > 0) {
         await showSubSubtoolUI(element);
@@ -796,7 +797,7 @@ modules["editor/toolbar"] = {
       this.setCurrentTool(event.target);
     });
 
-    this.updateToolbar = (noUpdateTool) => {
+    this.updateToolbar = (noUpdateTool, extra) => {
       let updateColors = frame.querySelectorAll("[fillcoloropacity], [strokecolor], [backcolor], [thickness], [opacity]");
       for (let i = 0; i < updateColors.length; i++) {
         let updateTip = updateColors[i];
@@ -819,7 +820,7 @@ modules["editor/toolbar"] = {
         }
       }
       if (noUpdateTool != true) {
-        this.enableTool(this.currentToolModule);
+        this.enableTool(extra);
       }
       editor.savePreferences();
     }
@@ -1030,6 +1031,31 @@ modules["editor/toolbar"] = {
       }
       raiseHand.removeAttribute("disabled", "");
     });
+
+    // COPY / PASTE
+    // Copy come soon
+    tempListen(window, "paste", (event) => {
+      let data = event.clipboardData || event.originalEvent.clipboardData || {};
+      if (data.items.length > 0) {
+        for (let i = 0; i < data.items.length; i++) {
+          let image = data.items[i];
+          if (image != null) {
+            if (image.kind == "file") {
+              image = image.getAsFile();
+            }
+            if (image.kind != "string") {
+              if (image.type.substring(0, 6) == "image/") {
+                this.setCurrentTool(frame.querySelector('.eTool[tool="media"]'));
+                this.setCurrentTool(frame.querySelector('.eTool[subtool="upload"]'), null, { file: image });
+                return;
+              }
+            }
+          }
+        }
+      }
+      console.log(data.getData("text/html"));
+    });
+
 
     //frame.closest(".eSide").style.opacity = 1;
   }
@@ -3732,6 +3758,7 @@ modules["pages/editor/toolbar/upload"] = {
   width: 150,
   height: 150,
   js: async function (editor, utils, addEvent, extra) {
+    console.log(extra)
     this.publish = {};
 
     let toolbar = await getModule("editor/toolbar");
@@ -3761,7 +3788,7 @@ modules["pages/editor/toolbar/upload"] = {
       toolbar.disableTool();
     }
 
-    uploadInput.addEventListener("change", async (event) => {
+    let startImagePlace = async (file, event) => {
       if (connected == false) {
         reset();
         alertModule.open("error", "<b>No Connection</b>Connect to the internet to upload media.");
@@ -3772,7 +3799,6 @@ modules["pages/editor/toolbar/upload"] = {
         button.removeAttribute("selected");
       }
       */
-      let file = (event.target.files || [])[0];
       if (file == null) {
         return;
       }
@@ -3840,18 +3866,28 @@ modules["pages/editor/toolbar/upload"] = {
         }
       }
       uploadInput.value = null;
+    }
+    uploadInput.addEventListener("change", async (event) => {
+      startImagePlace((event.target.files || [])[0], event);
     });
     uploadInput.addEventListener("cancel", () => {
       reset();
       uploadInput.value = null;
     });
 
-    uploadInput.click();
+    if (extra.file == null) {
+      uploadInput.click();
+    } else {
+      startImagePlace(extra.file, extra.event);
+    }
 
     let anno;
     let clientY;
     let clientX;
     let mediamove = async (event) => {
+      if (event == null) {
+        return;
+      }
       if (this.media == null) {
         // If not text box, make one!
         this.media = {

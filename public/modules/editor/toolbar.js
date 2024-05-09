@@ -88,7 +88,7 @@ modules["editor/toolbar"] = {
     ".eActionShadow:after": `position: absolute; width: calc(100% - 32px); height: calc(100% - 16px); left: 16px; top: var(--shadowTop); content: ""; box-shadow: var(--shadow); border-radius: inherit`,
     ".eActionContainerHolder": `width: 100%; height: 100%; overflow: hidden; border-radius: inherit`,
     ".eActionContainerScroll": `width: fit-content`, //; overflow: auto
-    ".eActionContainerContent": `display: none; flex-wrap: wrap; gap: 6px`
+    ".eActionContainerContent": `flex-wrap: wrap; gap: 6px`
   },
   tools: {
     "select": [
@@ -1652,6 +1652,9 @@ modules["pages/editor/toolbar/cursor"] = {
       let actionContent = actionFrame.querySelector(".eActionContainerContent");
       let module = await getModule(actionFrame.getAttribute("module"));
       if (module != null && module.html != null) {
+        if (module.hideFrame == true) {
+          actionContent.style.display = "none";
+        }
         actionContent.innerHTML = module.html;
         let selectKeys = Object.keys(editor.selecting);
         let preferenceTool = ((editor.annotations[selectKeys[0]] || {}).render || {}).f;
@@ -1715,6 +1718,9 @@ modules["pages/editor/toolbar/cursor"] = {
     let selectKeys = Object.keys(editor.selecting);
     let preferenceTool = ((editor.annotations[selectKeys[0]] || {}).render || {}).f;
     if (module != null && module.html != null) {
+      if (module.hideFrame == true) {
+        contentFrame.style.display = "none";
+      }
       contentFrame.innerHTML = module.html;
       action.setAttribute("selected", "");
       if (actionHolder.hasAttribute("module") == false) {
@@ -1757,7 +1763,7 @@ modules["pages/editor/toolbar/cursor"] = {
     this.updateActionUI();
   },
   runActionModule: async function (module, holder, preferenceTool, extra) {
-    let result = await module.js(holder, preferenceTool, {
+    await module.js(holder, preferenceTool, {
       frame: holder,
       updateActionUI: () => { this.updateActionUI(); },
       saveSelecting: async (set, short, saveHistory, lastCaret) => {
@@ -4802,6 +4808,7 @@ modules["pages/editor/toolbar/delete"] = {
 modules["pages/editor/toolbar/collaborator"] = {
   button: `<img class="eSubToolCollaborator" src="./images/profiles/default.svg">`,
   divideBefore: true,
+  hideFrame: true,
   setButton: async function (editor, button) {
     button.setAttribute("disabled", "");
     let selectKeys = Object.keys(editor.selecting);

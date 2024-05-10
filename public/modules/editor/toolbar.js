@@ -1045,7 +1045,10 @@ modules["editor/toolbar"] = {
             }
             if (image.kind != "string") {
               if (image.type.substring(0, 6) == "image/") {
-                this.setCurrentTool(frame.querySelector('.eTool[tool="media"]'));
+                let mediaTool = frame.querySelector('.eTool[tool="media"]');
+                if (mediaTool.hasAttribute("selected") == false) {
+                  this.setCurrentTool(mediaTool);
+                }
                 this.setCurrentTool(frame.querySelector('.eTool[subtool="upload"]'), null, { file: image });
                 return;
               }

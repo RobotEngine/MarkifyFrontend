@@ -1035,6 +1035,9 @@ modules["editor/toolbar"] = {
     // COPY / PASTE
     // Copy come soon
     let fileUpload = (items, event) => {
+      if (editor.getSelf().access < 1) {
+        return;
+      }
       let activatedTool = false;
       for (let i = 0; i < items.length; i++) {
         let file = items[i];
@@ -3780,7 +3783,6 @@ modules["pages/editor/toolbar/upload"] = {
   width: 150,
   height: 150,
   js: async function (editor, utils, addEvent, extra) {
-    console.log(extra)
     this.publish = {};
 
     let toolbar = await getModule("editor/toolbar");

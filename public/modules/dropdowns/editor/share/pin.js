@@ -51,8 +51,10 @@ modules["dropdowns/editor/share/pin"] = {
     ".eShareActionPin:hover .ePinToggle div": `background: var(--themeColor)`
     */
   },
-  js: async function (frame) {
+  js: async function (frame, extra) {
     let editor = await getModule("pages/editor");
+    let dropdownModule = await getModule("dropdown");
+
     let createHolder = frame.querySelector(".eSharePinCreate");
     let createButton = createHolder.querySelector("button");
     let pinTx = frame.querySelector(".eSharePinDisplay");
@@ -125,6 +127,9 @@ modules["dropdowns/editor/share/pin"] = {
       if (code == 200) {
         editor.lesson.pin = null;
         editor.updatePin();
+        if (extra.button.className == "eSharePin") {
+          dropdownModule.close();
+        }
       }
       removeButton.removeAttribute("disabled");
     });

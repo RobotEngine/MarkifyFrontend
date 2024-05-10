@@ -856,7 +856,7 @@ modules["dropdown"] = {
         dropdown.style.height = button.offsetHeight + "px";
       }
 
-      if (button != null) {
+      if (button != null && button.style.display != "none") {
         let buttonRect = button.getBoundingClientRect();
         if (buttonRect.top > 0) {
           dropdown.style.top = buttonRect.top + "px";
@@ -1005,9 +1005,11 @@ modules["dropdown"] = {
     remDropdown.button.style.removeProperty("opacity");
     //remDropdown.dropdown.setAttribute("closing", "");
     remDropdown.dropdown.style.opacity = 0;
-    let buttonRect = remDropdown.button.getBoundingClientRect();
-    let dropdownRect = remDropdown.dropdown.getBoundingClientRect();
-    remDropdown.dropdown.style.transformOrigin = (buttonRect.left - dropdownRect.left + (remDropdown.button.offsetWidth / 2)) + "px " + (buttonRect.top - dropdownRect.top + (remDropdown.button.offsetHeight / 2)) + "px";
+    if (remDropdown.button.style.display != "none") {
+      let buttonRect = remDropdown.button.getBoundingClientRect();
+      let dropdownRect = remDropdown.dropdown.getBoundingClientRect();
+      remDropdown.dropdown.style.transformOrigin = (buttonRect.left - dropdownRect.left + (remDropdown.button.offsetWidth / 2)) + "px " + (buttonRect.top - dropdownRect.top + (remDropdown.button.offsetHeight / 2)) + "px";
+    }
     remDropdown.dropdown.style.transform = "scale(0)";
     //remDropdown.dropdown.querySelector(".dropdownHeader").style.transform = "scale(0)";
     await sleep(350);

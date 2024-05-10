@@ -1034,26 +1034,45 @@ modules["editor/toolbar"] = {
 
     // COPY / PASTE
     // Copy come soon
+    let fileUpload = (items, event) => {
+      let activatedTool = false;
+      for (let i = 0; i < items.length; i++) {
+        let file = items[i];
+        if (file != null) {
+          if (file.kind == "file") {
+            file = file.getAsFile();
+          }
+          if (file.kind != "string") {
+            if (file.type.substring(0, 6) == "image/") {
+              let mediaTool = frame.querySelector('.eTool[tool="media"]');
+              if (mediaTool.hasAttribute("selected") == false) {
+                this.setCurrentTool(mediaTool);
+              }
+              this.setCurrentTool(frame.querySelector('.eTool[subtool="upload"]'), null, { file: file, event: event });
+              activatedTool = true;
+              return true;
+            }
+          }
+        }
+      }
+      return activatedTool;
+    }
+    tempListen(editor.page, "drop", (event) => {
+      fileUpload(event.dataTransfer.items, event);
+      event.preventDefault();
+      event.stopPropagation();
+    });
+    tempListen(editor.page, "dragover", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      event.dataTransfer.dropEffect = "copy";
+    });
     tempListen(window, "paste", (event) => {
       let data = event.clipboardData || event.originalEvent.clipboardData || {};
       if (data.items.length > 0) {
-        for (let i = 0; i < data.items.length; i++) {
-          let image = data.items[i];
-          if (image != null) {
-            if (image.kind == "file") {
-              image = image.getAsFile();
-            }
-            if (image.kind != "string") {
-              if (image.type.substring(0, 6) == "image/") {
-                let mediaTool = frame.querySelector('.eTool[tool="media"]');
-                if (mediaTool.hasAttribute("selected") == false) {
-                  this.setCurrentTool(mediaTool);
-                }
-                this.setCurrentTool(frame.querySelector('.eTool[subtool="upload"]'), null, { file: image });
-                return;
-              }
-            }
-          }
+        if (fileUpload(data.items) == true) {
+          event.preventDefault();
+          return;
         }
       }
       console.log(data.getData("text/html"));
@@ -3783,6 +3802,8 @@ modules["pages/editor/toolbar/upload"] = {
     uploadInput = editor.page.querySelector(".eToolMediaInput");
     
     let reset = () => {
+      this.media = null;
+      this.imageBlob = null;
       let button = editor.page.querySelector('.eTool[module="pages/editor/toolbar/upload"]');
       if (button != null) {
         button.removeAttribute("selected");
@@ -3790,6 +3811,8 @@ modules["pages/editor/toolbar/upload"] = {
       uploadInput.value = null;
       toolbar.disableTool();
     }
+    this.media = null;
+    this.imageBlob = null;
 
     let startImagePlace = async (file, event) => {
       if (connected == false) {
@@ -3888,7 +3911,7 @@ modules["pages/editor/toolbar/upload"] = {
     let clientY;
     let clientX;
     let mediamove = async (event) => {
-      if (event == null) {
+      if (event == null || this.imageBlob == null) {
         return;
       }
       if (this.media == null) {
@@ -3920,6 +3943,9 @@ modules["pages/editor/toolbar/upload"] = {
       editor.selecting["cursor"] = this.media;
     }
     let placemedia = async () => {
+      if (this.imageBlob == null || this.imageBlob == null) {
+        return;
+      }
       let saveMedia = JSON.parse(JSON.stringify(this.media));
       if (this.imageBlob.startsWith("blob:") == false) {
         saveMedia.d = this.imageBlob;

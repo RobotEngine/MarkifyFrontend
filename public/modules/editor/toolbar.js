@@ -5049,12 +5049,12 @@ modules["pages/editor/toolbar/textedit"] = {
     }
     this.pastEvents = [];
 
-    let saveHistory = false;
+    let saveHistory = true;
     //let lastClock;
     let lastCaret = {};
     let setLastCaret = (position) => {
       if (window.getSelection != null) {
-        let textBox = window.getSelection().baseNode.parentElement;
+        let textBox = window.getSelection().baseNode.parentElement.closest("div[edit]");
         if (textBox != null) {
           lastCaret[position + "Element"] = textBox;
           lastCaret[position + "Position"] = utils.getCurrentCaretPosition(textBox);
@@ -5078,7 +5078,9 @@ modules["pages/editor/toolbar/textedit"] = {
       editor.selecting[selectID].d = editor.selecting[selectID].d || JSON.parse(JSON.stringify(original.d || {}));
       editor.selecting[selectID].d.b = addText;
       saveObj.d.b = addText;
-      saveObj.sig = editor.getSelf().name;
+      if (original.f == "sticky") {
+        saveObj.sig = editor.getSelf().name;
+      }
       /*
       saveObj.s = [];
       if (original.textfit == true) {

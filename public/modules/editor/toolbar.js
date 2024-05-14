@@ -2356,6 +2356,23 @@ modules["pages/editor/toolbar/cursor"] = {
 
     utils.resetAnnotationSize();
   },
+  reactionRun: async function (reaction) {
+    if (reaction.hasAttribute("emoji") == false) {
+      return;
+    }
+    let editor = await getModule("pages/editor");
+    reaction.setAttribute("disabled", "");
+    let body = {
+      emoji: reaction.getAttribute("emoji"),
+      annotation: reaction.closest(".eAnnotation").getAttribute("anno")
+    };
+    if (reaction.hasAttribute("selected") == false) {
+      await sendRequest("PUT", "lessons/members/reaction", body, { session: editor.session });
+    } else {
+      await sendRequest("PUT", "lessons/members/reaction/remove", body, { session: editor.session });
+    }
+    reaction.removeAttribute("disabled");
+  },
   js: async function (editor, utils, addEvent) {
     let content = editor.page.querySelector(".eContent");
     editor.updateZoom = this.updateBox;
@@ -2375,7 +2392,14 @@ modules["pages/editor/toolbar/cursor"] = {
       }
       let target = event.target;
       lastTarget = target;
+      let reaction = target.closest(".eReaction");
+      if (reaction != null) {
+        return this.reactionRun(reaction);
+      }
       if (target == null || target.closest(".eContent") == null || target.closest(".eSelectBar") != null) {
+        return;
+      }
+      if (target.closest("button") != null) {
         return;
       }
       anno = target.closest(".eAnnotation, .eSelect, .eSelectActive");
@@ -2432,6 +2456,9 @@ modules["pages/editor/toolbar/cursor"] = {
       let target = lastTarget || event.target;
       lastTarget = null;
       if (target == null) {
+        return;
+      }
+      if (target.closest("button") != null) {
         return;
       }
       anno = target.closest(".eAnnotation, .eSelect, .eSelectActive");
@@ -2590,10 +2617,16 @@ modules["pages/editor/toolbar/drag"] = {
       cursorModule.enableAction(event);
 
       let target = event.target;
+      let reaction = target.closest(".eReaction");
+      if (reaction != null) {
+        return cursorModule.reactionRun(reaction);
+      }
       if (target == null || target.closest(".eContent") == null || target.closest(".eSelectBar") != null) {
         return;
       }
-
+      if (target.closest("button") != null) {
+        return;
+      }
       anno = target.closest(".eAnnotation, .eSelect, .eSelectActive");
       if (anno != null && anno.hasAttribute("member") == true) {
         // A display annotation, not a real one
@@ -2702,6 +2735,12 @@ modules["pages/editor/toolbar/pan"] = {
     let selectX;
     let selectY;
     let enableDrag = async (event) => {
+      if (event.target != null) {
+        let reaction = event.target.closest(".eReaction");
+        if (reaction != null) {
+          return (await getModule("pages/editor/toolbar/cursor")).reactionRun(reaction);
+        }
+      }
       dragging = true;
       startScrollX = window.scrollX;
       startScrollY = window.scrollY;
@@ -4965,6 +5004,7 @@ modules["pages/editor/toolbar/collaborator"] = {
       });
       button.removeAttribute("selected");
       frame.querySelector(".eActionContainerContent").innerHTML = "";
+      frame.querySelector(".eActionContainer").removeAttribute("module");
       return;
     }
 

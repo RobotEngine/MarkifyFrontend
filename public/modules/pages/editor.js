@@ -166,11 +166,23 @@ modules["pages/editor"] = {
     ".eAnnotation svg > *": `pointer-events: visiblepainted`,
     ".eAnnotation div[text]": `padding: 4px 6px; margin: 3px 3px; color: var(--themeColor); font-weight: 500; pointer-events: all; outline: none`,
     ".eAnnotation div[text][placeborder]": `width: max-content; margin: 0px; border: solid 3px var(--themeColor); border-radius: 8px`,
-    ".eAnnotation[sticky]": `background: var(--themeColor); border-radius: 12px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all; overflow: auto; text-align: left`,
+    ".eAnnotation[sticky]": `display: flex; flex-direction: column; background: var(--themeColor); border-radius: 12px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all; overflow: auto; text-align: left`,
     //".eAnnotation[sticky]::-webkit-scrollbar": `display: none`, ; scrollbar-width: none
-    ".eAnnotation[sticky] div[holder]": `display: flex; flex-direction: column; width: calc(100% - 20px); min-height: calc(100% - 26px); padding: 16px 10px 10px 10px`,
+    ".eAnnotation[sticky] div[holder]": `display: flex; flex-direction: column; width: calc(100% - 20px); flex: 1; padding: 16px 10px 10px 10px`,
     ".eAnnotation[sticky] div[edit]": `width: 100%; flex: 1; font-weight: 400; line-height: 22px; pointer-events: all; outline: none`,
-    ".eAnnotation[sticky] div[signature]": `width: 100%; margin-top: 8px; opacity: .6; font-size: 14px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
+    ".eAnnotation[sticky] div[footer]": `display: flex; flex-wrap: wrap; flex-direction: row-reverse; width: 100%; margin-top: 8px; gap: 8px; align-items: flex-end`,
+    ".eAnnotation[sticky] div[signature]": `margin-left: auto; opacity: .6; font-size: 14px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; taxt-align: right`,
+    ".eAnnotation[sticky] div[reactions]": `display: flex; flex-wrap: wrap; flex: 1; gap: 6px; background: var(--themeColor); pointer-events: all; z-index: 999`,
+    ".eReaction": `display: flex; padding: 2px; background: rgba(255, 255, 255, .8); border: solid 2px rgba(0, 0, 0, 0); border-radius: 8px; align-items: center; overflow: hidden; color: var(--darkGray)`,
+    ".eReaction[selected]": `padding: 2px; background: rgba(180, 218, 253, .8); border: solid 2px var(--theme); color: var(--theme)`,
+    ".eReaction[dropdown]": `opacity: 0; border-radius: 14px`,
+    ".eContent[viewer] .eReaction[dropdown]": "display: none !important",
+    ".eReaction div[imgholder]": `display: flex; width: 20px; height: 20px; justify-content: center; align-items: center`,
+    ".eReaction img": `width: 32px; height: 32px; transform: scale(0.65); border-radius: 7px; filter: drop-shadow(0px 0px 8px var(--pageColor))`,
+    ".eReaction div[count]": `margin: 0 5px 0 6px; font-size: 16px; font-weight: 700`,
+    ".eAnnotation[sticky]:hover .eReaction[dropdown]": `opacity: 1`,
+    ".eAnnotation[sticky][selected] .eReaction[dropdown]": `opacity: 1`,
+    ".eAnnotation[sticky][selected] button": `pointer-events: all`,
     ".eAnnotation[src]": `object-fit: cover; pointer-events: all; border-radius: 12px`,
 
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 100; overflow: hidden; pointer-events: none`
@@ -179,6 +191,7 @@ modules["pages/editor"] = {
   js: async function (page, joinData) {
     this.page = page;
     this.annotations = {};
+    this.reactions = {};
     this.addMargin = 100;
     this.preferences = {
       tools: {
@@ -329,6 +342,7 @@ modules["pages/editor"] = {
         }
       }
       if (access == 0) {
+        contentHolder.setAttribute("viewer", "");
         toolbar.setAttribute("hidden", "");
         toolbar.offsetHeight;
         toolbar.style.transition = ".3s";
@@ -342,6 +356,7 @@ modules["pages/editor"] = {
 
         name.removeAttribute("contenteditable");
       } else {
+        contentHolder.removeAttribute("viewer");
         toolbar.removeAttribute("hidden");
         if (addPagesHolder != null) {
           addPagesHolder.removeAttribute("hidden");
@@ -1016,6 +1031,39 @@ modules["pages/editor"] = {
           break;
         case "folderset":
           this.folder = body.folder;
+          break;
+        case "reaction":
+          if (this.annotations[body.reaction.annotation] != null) {
+            if (this.userCheck == body.member) {
+              if (body.change > 0) {
+                body.reaction.reacted = true;
+              } else {
+                body.reaction.reacted = false;
+              }
+            }
+            this.reactions[body.reaction.annotation] = this.reactions[body.reaction.annotation] || [];
+            let annotationReactions = this.reactions[body.reaction.annotation];
+            let foundReaction = false;
+            for (let i = 0; i < annotationReactions.length; i++) {
+              if (annotationReactions[i]._id == body.reaction._id) {
+                annotationReactions[i].count += body.change;
+                if (body.reaction.reacted != null) {
+                  annotationReactions[i].reacted = body.reaction.reacted;
+                }
+                if (annotationReactions[i].count < 1) {
+                  annotationReactions.splice(i, 1);
+                  i--
+                }
+                foundReaction = true;
+                break;
+              }
+            }
+            if (foundReaction == false) {
+              body.reaction.count += body.change;
+              annotationReactions.push(body.reaction);
+            }
+            utils.render(this.annotations[body.reaction.annotation].render);
+          }
       }
 
       if (this.updateMembersList != null) {
@@ -1067,6 +1115,10 @@ modules["pages/editor"] = {
           }
           existingAnno.serverSync = anno.sync;
           existingAnno.revert = anno;
+
+          if (anno.remove == true) {
+            delete this.reactions[anno._id];
+          }
 
           let gottenRender;
           // UPDATES _id IF IT WAS PENDING
@@ -1279,6 +1331,13 @@ modules["pages/editor"] = {
 
     this.updateInterface();
 
+    let userCheckSelf = this.getSelf();
+    if (userCheckSelf.user != null) {
+      this.userCheck = "user_" + userCheckSelf.user;
+    } else {
+      this.userCheck = "temp_" + userCheckSelf._id;
+    }
+
     page.querySelector(".eLogo").addEventListener("click", function (event) {
       event.preventDefault();
       setFrame("pages/dashboard");
@@ -1400,8 +1459,8 @@ modules["pages/editor"] = {
         }
         return;
       }
-      for (let i = 0; i < annoBody.length; i++) {
-        let addAnno = annoBody[i];
+      for (let i = 0; i < annoBody.annotations.length; i++) {
+        let addAnno = annoBody.annotations[i];
         let existingAnno = this.annotations[addAnno._id];
         if (existingAnno == null || existingAnno.render.sync < addAnno.sync) {
           this.annotations[addAnno._id] = { render: addAnno };
@@ -1413,6 +1472,23 @@ modules["pages/editor"] = {
           }
         }
       }
+      if (annoBody.reactions != null) {
+        let reactedToObject = getObject(annoBody.reactedTo || [], "_id");
+        for (let i = 0; i < annoBody.reactions.length; i++) {
+          let addReaction = annoBody.reactions[i];
+          let existingAnnoRecord = this.reactions[addReaction.annotation];
+          if (existingAnnoRecord == null) {
+            this.reactions[addReaction.annotation] = [];
+            existingAnnoRecord = this.reactions[addReaction.annotation];
+          }
+          delete addReaction.annotation;
+          if (reactedToObject[addReaction._id + "_" + this.userCheck] != null) {
+            addReaction.reacted = true;
+          }
+          existingAnnoRecord.push(addReaction);
+        }
+      }
+
       await this.viewAnnotations(true);
       /*
       let fullPageWidth = app.offsetWidth;
@@ -3324,7 +3400,10 @@ modules["pages/editor/annotation"] = {
           annoHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" sticky new>
             <div holder>
               <div edit></div>
-              <div signature></div>
+              <div footer>
+                <div signature></div>
+                <div reactions><button class="eReaction" dropdown="dropdowns/editor/tools/emojis" dropdowntitle="Reactions" noscrollclose><div imgholder><img src="./images/editor/actions/reaction.svg"></div></button></div>
+              </div>
             </div>
           </div>`);
           anno = annoHolder.querySelector(".eAnnotation[new]");
@@ -3419,6 +3498,58 @@ modules["pages/editor/annotation"] = {
           signature.removeAttribute("hidden");
         } else {
           signature.setAttribute("hidden", "");
+        }
+        let reactions = editor.reactions[_id];
+        if (reactions != null) {
+          let reactionHolder = anno.querySelector("div[reactions]");
+          let addReactionButton = reactionHolder.querySelector(".eReaction[dropdown]");
+          let presentReactions = [];
+          for (let i = 0; i < reactions.length; i++) {
+            let reaction = reactions[i];
+            presentReactions.push(reaction.emoji);
+            let reactionElem = reactionHolder.querySelector('.eReaction[emoji="' + reaction.emoji + '"');
+            if (reactionElem == null) {
+              reactionHolder.insertAdjacentHTML("beforeend", `<button class="eReaction" unloaded new><div imgholder><img src="./images/editor/actions/reaction.svg"></div><div count></div></button>`);
+              reactionElem = reactionHolder.querySelector(".eReaction[new]");
+              reactionHolder.insertBefore(reactionElem, addReactionButton);
+              reactionElem.removeAttribute("new");
+              reactionElem.setAttribute("emoji", reaction.emoji);
+            }
+            if (reaction.reacted == true) {
+              reactionElem.setAttribute("selected", "");
+            } else {
+              reactionElem.removeAttribute("selected");
+            }
+            reactionElem.querySelector("div[count]").textContent = Math.max(reaction.count, 1);
+            if (this.loadingEmojiModule != true && reactionElem.hasAttribute("unloaded") == true) {
+              this.loadingEmojiModule = true;
+              (async () => {
+                let emojiModule = await getModule("dropdowns/editor/tools/emojis");
+                if (emojiModule != null) {
+                  emojiModule.applyReactions();
+                }
+                this.loadingEmojiModule = false;
+              })();
+            }
+          }
+          let currentReactions = reactionHolder.querySelectorAll(".eReaction[emoji]");
+          for (let i = 0; i < currentReactions.length; i++) {
+            if (presentReactions.includes(currentReactions[i].getAttribute("emoji")) == false) {
+              currentReactions[i].remove();
+            }
+          }
+          if (reactionHolder.childElementCount < 9) {
+            addReactionButton.style.display = "flex";
+          } else {
+            addReactionButton.style.display = "none";
+          }
+          if (reactionHolder.childElementCount > 1) {
+            reactionHolder.style.width = "100%";
+            reactionHolder.style.flex = "unset";
+          } else {
+            reactionHolder.style.width = "unset";
+            reactionHolder.style.flex = "1";
+          }
         }
         break;
       case "media":

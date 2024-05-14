@@ -967,7 +967,7 @@ modules["dropdowns/editor/members"] = {
     ".eMemberHolder": `width: 275px; max-width: 100%`,
     ".eMemberSearchHolder": `display: flex; padding: 8px 8px 4px 8px; align-items: center`,
     ".eMemberSearchHolder img": `width: 28px; height: 28px`,
-    ".eMemberSearchHolder input": `width: 100%; padding: 4px 8px; margin-left: 6px; border: solid 2px var(--secondary); outline: unset; border-radius: 17px; font-family: var(--font); font-size: 16px; font-weight: 600`,
+    ".eMemberSearchHolder input": `max-width: calc(100% - 54px); width: 100%; padding: 4px 8px; margin-left: 6px; border: solid 2px var(--secondary); outline: unset; border-radius: 17px; font-family: var(--font); font-size: 16px; font-weight: 600`,
     ".eMemberSearchHolder input::placeholder": `color: var(--secondary)`,
 
     ".eMemberAccessHolder": `display: none; margin-bottom: 12px; background: var(--pageColor)`,

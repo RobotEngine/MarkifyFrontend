@@ -1304,15 +1304,15 @@ modules["pages/editor"] = {
         this.recentEmojis = body.preferences.emojis;
         delete body.preferences.emojis;
       }
-      for (let i = 0; (i < this.defaultEmojis.length && this.recentEmojis.length < 21); i++) {
-        if (this.recentEmojis.includes(this.defaultEmojis[i]) == false) {
-          this.recentEmojis.push(this.defaultEmojis[i]);
-        }
-      }
       objectUpdate(body.preferences, this.preferences);
       lastSavePref = JSON.parse(JSON.stringify(this.preferences));
       if (this.updateToolbar != null) {
         this.updateToolbar();
+      }
+    }
+    for (let i = 0; (i < this.defaultEmojis.length && this.recentEmojis.length < 21); i++) {
+      if (this.recentEmojis.includes(this.defaultEmojis[i]) == false) {
+        this.recentEmojis.push(this.defaultEmojis[i]);
       }
     }
 

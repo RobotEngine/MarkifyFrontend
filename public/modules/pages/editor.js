@@ -630,7 +630,7 @@ modules["pages/editor"] = {
         case "preference":
           switch (data.type) {
             case "emoji":
-              this.recentEmojis = data.data;
+              this.recentEmojis = data.data || [];
               for (let i = 0; (i < this.defaultEmojis.length && this.recentEmojis.length < 21); i++) {
                 if (this.recentEmojis.includes(this.defaultEmojis[i]) == false) {
                   this.recentEmojis.push(this.defaultEmojis[i]);
@@ -1302,10 +1302,11 @@ modules["pages/editor"] = {
     if (body.preferences != null) {
       if (body.preferences.emojis != null) {
         this.recentEmojis = body.preferences.emojis;
-        for (let i = 0; (i < this.defaultEmojis.length && this.recentEmojis.length < 21); i++) {
-          if (this.recentEmojis.includes(this.defaultEmojis[i]) == false) {
-            this.recentEmojis.push(this.defaultEmojis[i]);
-          }
+        delete body.preferences.emojis;
+      }
+      for (let i = 0; (i < this.defaultEmojis.length && this.recentEmojis.length < 21); i++) {
+        if (this.recentEmojis.includes(this.defaultEmojis[i]) == false) {
+          this.recentEmojis.push(this.defaultEmojis[i]);
         }
       }
       objectUpdate(body.preferences, this.preferences);

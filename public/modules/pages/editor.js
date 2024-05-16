@@ -250,7 +250,23 @@ modules["pages/editor"] = {
             scale: 0
           }
         }
-      }
+      },
+      emojis: [
+        "THUMBS UP SIGN",
+        "THUMBS DOWN SIGN",
+        "PARTY POPPER",
+        "ELECTRIC LIGHT BULB",
+        "WHITE HEAVY CHECK MARK",
+        "NO ENTRY",
+        "PUBLIC ADDRESS LOUDSPEAKER",
+        "KEYCAP 1",
+        "KEYCAP 2",
+        "KEYCAP 3",
+        "KEYCAP 4",
+        "KEYCAP 5",
+        "BLACK QUESTION MARK ORNAMENT",
+        "HUNDRED POINTS SYMBOL"
+      ]
     };
     this.options = {
       cursors: true,

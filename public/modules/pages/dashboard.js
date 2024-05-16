@@ -488,7 +488,7 @@ modules["pages/dashboard/lessons"] = {
                     if (body.lesson.thumbnail) {
                       foundPreview.src = assetURL + body.lesson.thumbnail;
                     }
-                    if (body.record.lesson.type == "freeboard") {
+                    if (body.lesson.type == "freeboard") {
                       foundPreview.style.border = "solid 2px var(--purple)";
                     }
                     if (folderTile.childElementCount > 16) {

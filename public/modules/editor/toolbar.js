@@ -2556,9 +2556,24 @@ modules["pages/editor/toolbar/drag"] = {
 
     let cursorModule = await getModule("pages/editor/toolbar/cursor");
 
+    let selection;
+    let selectX;
+    let selectY;
+    let wasSelected;
+    let prevSelecting;
+
+    let useX = 0;
+    let useY = 0;
     let updateSelectedBounds = (event) => {
-      let newX = clientPosition(event, "x") + window.scrollX;
-      let newY = clientPosition(event, "y") + window.scrollY;
+      if (selection == null) {
+        return;
+      }
+      if (event != null) {
+        useX = clientPosition(event, "x");
+        useY = clientPosition(event, "y");
+      }
+      let newX = useX + window.scrollX;
+      let newY = useY + window.scrollY;
       if (newX > selectX) {
         selection.style.width = newX - selectX + "px";
         selection.style.left = selectX + "px";
@@ -2584,6 +2599,7 @@ modules["pages/editor/toolbar/drag"] = {
           selection.style.borderRadius = "0px 10px 10px 10px";
         }
       }
+      editor.updateSelectedBounds = updateSelectedBounds;
 
       let selected = this.getElementsInRect(selection.getBoundingClientRect(), content.querySelectorAll(".eAnnotation"));
       for (let i = 0; i < selected.length; i++) {
@@ -2608,11 +2624,6 @@ modules["pages/editor/toolbar/drag"] = {
       cursorModule.updateBox();
     }
 
-    let selection;
-    let selectX;
-    let selectY;
-    let wasSelected;
-    let prevSelecting;
     let enableSelect = async (event) => {
       if (event.which === 3 || event.button === 2) {
         return;

@@ -2141,6 +2141,9 @@ modules["pages/editor"] = {
       if (this.updateZoom) {
         this.updateZoom(true);
       }
+      if (this.updateSelectedBounds) {
+        this.updateSelectedBounds();
+      }
 
       this.realtime.module.adjustRealtimeHolder();
     }

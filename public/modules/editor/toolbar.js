@@ -2770,11 +2770,11 @@ modules["pages/editor/toolbar/pan"] = {
         return;
       }
       if (mouseDown() == false) {
-        disableDrag();
+        disableDrag(event);
         return;
       }
       if (event.touches != null) {
-        disableDrag();
+        disableDrag(event);
         return;
       }
       let newX = clientPosition(event, "x");
@@ -2782,7 +2782,7 @@ modules["pages/editor/toolbar/pan"] = {
       window.scrollTo({ left: startScrollX - (newX - selectX), top: startScrollY - (newY - selectY) });
     }
     let disableDrag = async (event) => {
-      if (event.target != null) {
+      if (event != null && event.target != null) {
         let reaction = event.target.closest(".eReaction");
         if (reaction != null) {
           return cursorModule.reactionRun(reaction);

@@ -250,24 +250,25 @@ modules["pages/editor"] = {
             scale: 0
           }
         }
-      },
-      emojis: [
-        "THUMBS UP SIGN",
-        "THUMBS DOWN SIGN",
-        "PARTY POPPER",
-        "ELECTRIC LIGHT BULB",
-        "WHITE HEAVY CHECK MARK",
-        "NO ENTRY",
-        "PUBLIC ADDRESS LOUDSPEAKER",
-        "KEYCAP 1",
-        "KEYCAP 2",
-        "KEYCAP 3",
-        "KEYCAP 4",
-        "KEYCAP 5",
-        "BLACK QUESTION MARK ORNAMENT",
-        "HUNDRED POINTS SYMBOL"
-      ]
+      }
     };
+    this.defaultEmojis = [
+      "THUMBS UP SIGN",
+      "THUMBS DOWN SIGN",
+      "PARTY POPPER",
+      "ELECTRIC LIGHT BULB",
+      "WHITE HEAVY CHECK MARK",
+      "NO ENTRY",
+      "PUBLIC ADDRESS LOUDSPEAKER",
+      "KEYCAP 1",
+      "KEYCAP 2",
+      "KEYCAP 3",
+      "KEYCAP 4",
+      "KEYCAP 5",
+      "BLACK QUESTION MARK ORNAMENT",
+      "HUNDRED POINTS SYMBOL"
+    ];
+    this.recentEmojis = [];
     this.options = {
       cursors: true,
       cursornames: true,
@@ -610,7 +611,7 @@ modules["pages/editor"] = {
     }
 
     socket.remotes["member"] = (data) => {
-      if (data.lesson != lessonID) {
+      if (data.lesson != null && data.lesson != lessonID) {
         return;
       }
       switch (data.task) {
@@ -624,6 +625,20 @@ modules["pages/editor"] = {
             setFrame("pages/join");
           } else {
             setFrame("pages/dashboard");
+          }
+          break;
+        case "preference":
+          switch (data.type) {
+            case "emoji":
+              this.recentEmojis = data.data;
+              for (let i = 0; (i < this.defaultEmojis.length && this.recentEmojis.length < 21); i++) {
+                if (this.recentEmojis.includes(this.defaultEmojis[i]) == false) {
+                  this.recentEmojis.push(this.defaultEmojis[i]);
+                }
+              }
+              break;
+            default:
+              objectUpdate(data.data, this.preferences);
           }
       }
     };
@@ -1285,6 +1300,14 @@ modules["pages/editor"] = {
     this.collaborators = {};
 
     if (body.preferences != null) {
+      if (body.preferences.emojis != null) {
+        this.recentEmojis = body.preferences.emojis;
+        for (let i = 0; (i < this.defaultEmojis.length && this.recentEmojis.length < 21); i++) {
+          if (this.recentEmojis.includes(this.defaultEmojis[i]) == false) {
+            this.recentEmojis.push(this.defaultEmojis[i]);
+          }
+        }
+      }
       objectUpdate(body.preferences, this.preferences);
       lastSavePref = JSON.parse(JSON.stringify(this.preferences));
       if (this.updateToolbar != null) {

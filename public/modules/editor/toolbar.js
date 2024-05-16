@@ -1720,6 +1720,10 @@ modules["pages/editor/toolbar/cursor"] = {
     }
     let editor = await getModule("pages/editor");
     let toolbarModule = await getModule("editor/toolbar");
+    let reaction = event.target.closest(".eReaction");
+    if (reaction != null) {
+      return this.reactionRun(reaction);
+    }
     let action = event.target.closest(".eTool");
     if (action == null || action.closest(".eSelectHolder") == null) {
       return;
@@ -2394,7 +2398,7 @@ modules["pages/editor/toolbar/cursor"] = {
       lastTarget = target;
       let reaction = target.closest(".eReaction");
       if (reaction != null) {
-        return this.reactionRun(reaction);
+        return;
       }
       if (target == null || target.closest(".eContent") == null || target.closest(".eSelectBar") != null) {
         return;
@@ -2619,7 +2623,7 @@ modules["pages/editor/toolbar/drag"] = {
       let target = event.target;
       let reaction = target.closest(".eReaction");
       if (reaction != null) {
-        return cursorModule.reactionRun(reaction);
+        return;
       }
       if (target == null || target.closest(".eContent") == null || target.closest(".eSelectBar") != null) {
         return;
@@ -2725,6 +2729,7 @@ modules["pages/editor/toolbar/drag"] = {
 modules["pages/editor/toolbar/pan"] = {
   mouse: "grab",
   js: async function (editor, utils, addEvent) {
+    let cursorModule = await getModule("pages/editor/toolbar/cursor");
     let content = editor.page.querySelector(".eContent");
 
     body.style.userSelect = "none";
@@ -2738,7 +2743,7 @@ modules["pages/editor/toolbar/pan"] = {
       if (event.target != null) {
         let reaction = event.target.closest(".eReaction");
         if (reaction != null) {
-          return (await getModule("pages/editor/toolbar/cursor")).reactionRun(reaction);
+          return;
         }
       }
       dragging = true;
@@ -2765,7 +2770,13 @@ modules["pages/editor/toolbar/pan"] = {
       let newY = clientPosition(event, "y");
       window.scrollTo({ left: startScrollX - (newX - selectX), top: startScrollY - (newY - selectY) });
     }
-    let disableDrag = async () => {
+    let disableDrag = async (event) => {
+      if (event.target != null) {
+        let reaction = event.target.closest(".eReaction");
+        if (reaction != null) {
+          return cursorModule.reactionRun(reaction);
+        }
+      }
       dragging = false;
       content.style.cursor = "grab";
     }

@@ -61,7 +61,7 @@ modules["dropdowns/editor/tools/emojis"] = {
 
     let emojiSectionHolder = frame.querySelector(".eEmojiSectionHolder");
 
-    let setHTML = {};
+    let setHTML = { Recent: "" };
     let setHTMLKeys = [];
     for (let i = 0; i < this.emojis.length; i++) {
       let emoji = this.emojis[i];
@@ -72,8 +72,17 @@ modules["dropdowns/editor/tools/emojis"] = {
         setHTML[emoji.category] = "";
         setHTMLKeys.push(emoji.category);
       }
-      setHTML[emoji.category] += `<button emoji="${emoji.name}" title="${emoji.short_name.replace(/_/g, " ")}" search="${emoji.short_names.toString().replace(/_/g, "")}" style="order: ${emoji.sort_order}" shown><img src="./images/editor/emojis/twitter32.png" style="object-position: ${-((emoji.sheet_x * this.sheetSize) + 1)}px ${-((emoji.sheet_y * this.sheetSize) + 1)}px"></button>`;
+      let emojiTitle = emoji.short_name.replace(/_/g, " ");
+      let emojiSearch = emoji.short_names.toString().replace(/_/g, "");
+      let emojiX = -((emoji.sheet_x * this.sheetSize) + 1);
+      let emojiY = -((emoji.sheet_y * this.sheetSize) + 1);
+      setHTML[emoji.category] += `<button emoji="${emoji.name}" title="${emojiTitle}" search="${emojiSearch}" style="order: ${emoji.sort_order}" shown><img src="./images/editor/emojis/twitter32.png" style="object-position: ${emojiX}px ${emojiY}px"></button>`;
+      if (editor.recentEmojis.includes(emoji.name)) {
+        setHTML["Recent"] += `<button emoji="${emoji.name}" title="${emojiTitle}" search="${emojiSearch}" style="order: ${editor.recentEmojis.indexOf(emoji.name)}" shown><img src="./images/editor/emojis/twitter32.png" style="object-position: ${emojiX}px ${emojiY}px"></button>`;
+      }
     }
+    setHTMLKeys.push("Recent");
+
     //let sectionHTML = "";
     for (let i = 0; i < setHTMLKeys.length; i++) {
       let category = setHTMLKeys[i];

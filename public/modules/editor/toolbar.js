@@ -65,7 +65,7 @@ modules["editor/toolbar"] = {
     ".eSelect": `position: absolute; opacity: 0; z-index: 101; border-radius: 9px; transition: opacity .15s; pointer-events: none`,
     ".eSelectActive": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: all !important; cursor: move; z-index: var(--selectZIndex)`,
     ".eContent[noshiftheld] .eSelectActive": `z-index: var(--annoZIndex) !important`,
-    ".eAnnotation[selected] *": `pointer-events: none`,
+    ".eAnnotation[selected] > *": `pointer-events: none`,
     ".eSelectTooltip": `position: absolute; transition: .1s; pointer-events: all`,
     ".eSelect[hidetips] .eSelectTooltip": `opacity: 0; pointer-events: none`,
     '.eSelectTooltip[tooltip="topleft"]': `left: -10px; top: -10px; cursor: nwse-resize`,
@@ -447,7 +447,7 @@ modules["editor/toolbar"] = {
 
     let cursorModule = await getModule("pages/editor/toolbar/cursor");
 
-    this.disableTool = () => {
+    this.disableTool = async () => {
       for (let i = 0; i < toolEvents.length; i++) {
         let remEvent = toolEvents[i];
         remEvent.parent.removeEventListener(remEvent.name, remEvent.listener);
@@ -480,7 +480,6 @@ modules["editor/toolbar"] = {
       }
       editor.selecting = {};
       cursorModule.updateBox();
-      cursorModule.updateActionUI();
     }
     let tempToolListen = (parent, listen, runFunc, extra) => {
       parent.addEventListener(listen, runFunc, extra);
@@ -924,7 +923,6 @@ modules["editor/toolbar"] = {
       utils.updateHistory();
 
       await cursorModule.updateBox();
-      await cursorModule.updateActionUI();
       await cursorModule.redrawActionUI();
 
       if (event.caret != null) {
@@ -997,7 +995,6 @@ modules["editor/toolbar"] = {
       utils.updateHistory();
 
       await cursorModule.updateBox();
-      await cursorModule.updateActionUI();
       await cursorModule.redrawActionUI();
 
       if (event.caret != null) {
@@ -1091,7 +1088,7 @@ modules["editor/toolbar"] = {
 // CURSOR TOOL
 modules["pages/editor/toolbar/cursor"] = {
   mouse: "default",
-  updateBox: async function (forceNoTransition, forceUpdate) {
+  updateBox: async function (forceNoTransition, forceUpdate, noUpdateAction) {
     let editor = await getModule("pages/editor");
     let utils = await getModule("pages/editor/annotation");
     //let cursor = await getModule("pages/editor/toolbar/cursor");
@@ -1318,7 +1315,7 @@ modules["pages/editor/toolbar/cursor"] = {
         activeLayer.style.height = (height + t) + 8 + "px";
         activeLayer.style.left = x + halfT - 4 + "px";
         activeLayer.style.top = y + halfT - border - 4 + "px";
-
+        
         let inverse = 1 / editor.zoom;
         let pageY = pageRect.y - pageHolderRect.y;
         let setMinX = x + halfT;
@@ -1361,9 +1358,9 @@ modules["pages/editor/toolbar/cursor"] = {
       })();
     }
 
-    /*if (forceNoTransition != true) {
-      cursor.updateActionUI();
-    }*/
+    if (forceNoTransition != true && noUpdateAction != true) {
+      this.updateActionUI();
+    }
 
     if (this.lastEditorZoom != editor.zoom || forceNoTransition == true || forceUpdate == true) {
       let allSelections = editor.page.querySelector(".eRealtime").querySelectorAll(".eCollabSelect");
@@ -1421,7 +1418,7 @@ modules["pages/editor/toolbar/cursor"] = {
     let selectionIDs = Object.keys(editor.selecting);
 
     let actionUI = content.querySelector(".eSelectBar:not([remove])");
-    if (selectionIDs.length > 0 && this.action == null && content.querySelector(".eSelectDrag:not([remove])") == null) {
+    if (selectionIDs.length > 0 && (this.action == null || this.actionEnabled != true) && content.querySelector(".eSelectDrag:not([remove])") == null) {
       if (this.checkX == null || this.checkY == null) {
         return;
       }
@@ -1669,7 +1666,7 @@ modules["pages/editor/toolbar/cursor"] = {
       actionUI = null;
     }
   },
-  redrawActionUI: async function () {
+  redrawActionUI: async function (skip) {
     let editor = await getModule("pages/editor");
     //let utils = await getModule("pages/editor/annotation");
     let content = editor.page.querySelector(".eContent");
@@ -1679,7 +1676,9 @@ modules["pages/editor/toolbar/cursor"] = {
       return;
     }
     
-    await this.updateActionUI(); // Update it first if their are selection changes
+    if (skip != true) {
+      await this.updateActionUI(); // Update it first if their are selection changes
+    }
 
     // Update buttons:
     let actionButtonHolder = actionUI.querySelector(".eSelectHolder");
@@ -1706,15 +1705,11 @@ modules["pages/editor/toolbar/cursor"] = {
       let actionContent = actionFrame.querySelector(".eActionContainerContent");
       let module = await getModule(actionFrame.getAttribute("module"));
       if (module != null && module.html != null && module.reRender != false) {
-        if (module.hideFrame == true) {
-          actionContent.style.display = "none";
-        }
         actionContent.innerHTML = module.html;
         let selectKeys = Object.keys(editor.selecting);
         let preferenceTool = ((editor.annotations[selectKeys[0]] || {}).render || {}).f;
         await this.runActionModule(module, actionUI, preferenceTool, { rerender: true });
       }
-      this.updateActionUI();
     }
   },
   clickAction: async function (event) {
@@ -1776,9 +1771,6 @@ modules["pages/editor/toolbar/cursor"] = {
     let selectKeys = Object.keys(editor.selecting);
     let preferenceTool = ((editor.annotations[selectKeys[0]] || {}).render || {}).f;
     if (module != null && module.html != null) {
-      if (module.hideFrame == true) {
-        contentFrame.style.display = "none";
-      }
       contentFrame.innerHTML = module.html;
       action.setAttribute("selected", "");
       if (actionHolder.hasAttribute("module") == false) {
@@ -1903,6 +1895,7 @@ modules["pages/editor/toolbar/cursor"] = {
           await utils.save({ ...saveUpdates[i] }, null, sync);
         }
 
+        await this.redrawActionUI(true);
         await this.updateBox();
 
         //if (short == true) {
@@ -2359,7 +2352,6 @@ modules["pages/editor/toolbar/cursor"] = {
     for (let i = 0; i < keys.length; i++) {
       editor.selecting[keys[i]] = {};
     }
-    this.updateActionUI();
 
     utils.resetAnnotationSize();
   },
@@ -2382,11 +2374,8 @@ modules["pages/editor/toolbar/cursor"] = {
   },
   js: async function (editor, utils, addEvent) {
     let content = editor.page.querySelector(".eContent");
-    editor.updateZoom = async (forceNoTransition, cancelActionUpdate) => {
-      await this.updateBox(forceNoTransition);
-      if (forceNoTransition != true && cancelActionUpdate != true) {
-        await this.updateActionUI(forceNoTransition);
-      }
+    editor.updateZoom = async (forceNoTransition, noUpdateAction) => {
+      this.updateBox(forceNoTransition, null, noUpdateAction);
     }
     let alertModule = await getModule("alert");
     let startX;
@@ -2429,7 +2418,6 @@ modules["pages/editor/toolbar/cursor"] = {
       if (editor.getSelf().access < 1) {
         editor.selecting = {};
         this.updateBox();
-        this.updateActionUI();
         return;
       }
       startX = clientPosition(event, "x") + window.scrollX;
@@ -2438,7 +2426,6 @@ modules["pages/editor/toolbar/cursor"] = {
         editor.selecting = {};
         if (anno == null) {
           this.updateBox();
-          this.updateActionUI();
           return;
         }
       }
@@ -2463,7 +2450,6 @@ modules["pages/editor/toolbar/cursor"] = {
       }
       await this.updateBox();
       this.enableAction(event);
-      this.updateActionUI();
     }
     let disableSelect = async (event) => {
       this.endAction(event);
@@ -2518,8 +2504,8 @@ modules["pages/editor/toolbar/cursor"] = {
             clientY: event.clientY
           });
         }
-        this.updateBox();
       }
+      this.updateBox();
       wasSelected = null;
     }
     addEvent(content, "mousedown", enableSelect, { passive: false });
@@ -2575,7 +2561,7 @@ modules["pages/editor/toolbar/drag"] = {
 
     let useX = 0;
     let useY = 0;
-    let updateSelectedBounds = (event) => {
+    let updateSelectedBounds = async (event) => {
       if (selection == null) {
         return;
       }
@@ -2633,7 +2619,6 @@ modules["pages/editor/toolbar/drag"] = {
         editor.selecting[annoID] = {};
       }
       cursorModule.updateBox();
-      cursorModule.updateActionUI();
     }
 
     let enableSelect = async (event) => {
@@ -2686,7 +2671,6 @@ modules["pages/editor/toolbar/drag"] = {
     }
     let moveSelect = async (event) => {
       cursorModule.moveAction(event);
-      cursorModule.updateActionUI();
 
       if (selection == null) {
         return;
@@ -2708,7 +2692,6 @@ modules["pages/editor/toolbar/drag"] = {
         let remSelect = selection;
         selection = null;
         remSelect.setAttribute("remove", "");
-        cursorModule.updateActionUI();
         remSelect.style.opacity = 0;
         await sleep(150);
         remSelect.remove();
@@ -2731,7 +2714,6 @@ modules["pages/editor/toolbar/drag"] = {
             delete editor.selecting[annoID];
           }
           cursorModule.updateBox();
-          cursorModule.updateActionUI();
         }
         wasSelected = null;
       }
@@ -3215,7 +3197,6 @@ modules["pages/editor/toolbar/text"] = {
       await toolbar.setCurrentTool(editor.page.querySelector('.eTool[tool="select"]'), "select");
       editor.selecting[tempID] = {};
       await cursor.updateBox();
-      await cursor.updateActionUI();
 
       let textElem = anno.querySelector("div[text]");
       if (textElem != null) {
@@ -3760,8 +3741,7 @@ modules["pages/editor/toolbar/shape"] = {
 
       await toolbar.setCurrentTool(editor.page.querySelector('.eTool[tool="select"]'), "select");
       editor.selecting[tempID] = {};
-      await cursor.updateBox();
-      await cursor.updateActionUI();
+      cursor.updateBox();
     }
     let content = editor.page.querySelector(".eContent");
     addEvent(content, "mousemove", shapemove, { passive: false });
@@ -3835,8 +3815,7 @@ modules["pages/editor/toolbar/sticky"] = {
 
       await toolbar.setCurrentTool(editor.page.querySelector('.eTool[tool="select"]'), "select");
       editor.selecting[tempID] = {};
-      await cursor.updateBox();
-      await cursor.updateActionUI();
+      cursor.updateBox();
 
       let textElem = anno.querySelector("div[edit]");
       if (textElem != null) {
@@ -4046,8 +4025,7 @@ modules["pages/editor/toolbar/upload"] = {
 
       await toolbar.setCurrentTool(editor.page.querySelector('.eTool[tool="select"]'), "select");
       editor.selecting[tempID] = {};
-      await cursor.updateBox();
-      await cursor.updateActionUI();
+      cursor.updateBox();
     }
     addEvent(content, "mousemove", mediamove, { passive: false });
     addEvent(content, "touchmove", mediamove, { passive: false });
@@ -4954,9 +4932,10 @@ modules["pages/editor/toolbar/delete"] = {
 modules["pages/editor/toolbar/collaborator"] = {
   button: `<img class="eSubToolCollaborator" src="./images/profiles/default.svg">`,
   divideBefore: true,
-  hideFrame: true,
   setButton: async function (editor, button) {
+    let cursorModule = await getModule("pages/editor/toolbar/cursor");
     button.setAttribute("disabled", "");
+    this.hidden = true;
     let selectKeys = Object.keys(editor.selecting);
     //let buttonElem = button.querySelector(".eSubToolStyle");
     // Loop through to see if collaborator option should be shown
@@ -4966,6 +4945,10 @@ modules["pages/editor/toolbar/collaborator"] = {
       let setModifiedBy = (annotation.render || {}).m || (annotation.revert || {}).m;
       if (setModifiedBy == null || (modifiedBy != null && setModifiedBy != modifiedBy)) { // || setModifiedBy.startsWith("temp_") == true
         button.style.display = "none";
+        if (this.hidden == false) {
+          this.hidden = true;
+          cursorModule.updateActionUI();
+        }
         return;
       }
       if (setModifiedBy.startsWith("user_") == true) {
@@ -4978,12 +4961,20 @@ modules["pages/editor/toolbar/collaborator"] = {
         button.removeAttribute("disabled");
       } else {
         button.style.display = "none";
+        if (this.hidden == false) {
+          this.hidden = true;
+          cursorModule.updateActionUI();
+        }
       }
       return;
     }
     let modifyID = (modifiedBy || "").substring(5);
     if (modifyID == editor.sessionID || modifyID == userID) {
       button.style.display = "none";
+      if (this.hidden == false) {
+        this.hidden = true;
+        cursorModule.updateActionUI();
+      }
       return;
     }
     let collaborator = editor.collaborators[modifyID];
@@ -4998,11 +4989,18 @@ modules["pages/editor/toolbar/collaborator"] = {
     }
     button.setAttribute("userid", collaborator._id);
     button.setAttribute("tooltip", collaborator.user);
-    button.querySelector(".eSubToolCollaborator").src = collaborator.image || "./images/profiles/default.svg";
+    let image = button.querySelector(".eSubToolCollaborator");
+    if (image.getAttribute("src") != collaborator.image || "./images/profiles/default.svg") {
+      image.src = collaborator.image || "./images/profiles/default.svg";
+    }
     button.removeAttribute("disabled");
     if (button.style.display != "unset") {
       button.style.display = "unset";
-      (await getModule("pages/editor/toolbar/cursor")).updateActionUI();
+      if (this.hidden == true) {
+        this.hidden = false;
+        cursorModule.updateActionUI();
+      }
+      //(await getModule("pages/editor/toolbar/cursor")).updateActionUI();
     }
   },
   html: `
@@ -5046,7 +5044,10 @@ modules["pages/editor/toolbar/collaborator"] = {
       return;
     }
 
-    frame.querySelector(".eSubToolCollaboratorPicture").src = collaborator.image || "./images/profiles/default.svg";
+    let image = frame.querySelector(".eSubToolCollaboratorPicture");
+    if (image.src != collaborator.image || "./images/profiles/default.svg") {
+      image.src = collaborator.image || "./images/profiles/default.svg";
+    }
     let name = frame.querySelector(".eSubToolCollaboratorInfo div[name]");
     name.textContent = collaborator.user;
     name.title = collaborator.user;
@@ -5061,18 +5062,33 @@ modules["pages/editor/toolbar/collaborator"] = {
 modules["pages/editor/toolbar/reactions"] = {
   button: `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_1765_4" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#C4C4C4"/> </mask> <g mask="url(#mask0_1765_4)"> <mask id="path-2-outside-1_1765_4" maskUnits="userSpaceOnUse" x="33" y="33.8643" width="190" height="190" fill="black"> <rect fill="white" x="33" y="33.8643" width="190" height="190"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M161.422 53.1009C151.092 48.4513 139.632 45.8643 127.569 45.8643C81.9673 45.8643 45 82.8316 45 128.433C45 174.035 81.9673 211.002 127.569 211.002C173.17 211.002 210.138 174.035 210.138 128.433C210.138 116.37 207.551 104.911 202.901 94.5807H199.404V111.094C199.404 120.215 192.01 127.608 182.89 127.608H177.936C168.815 127.608 161.422 120.215 161.422 111.094V94.5807H144.908C135.788 94.5807 128.394 87.1872 128.394 78.0669V73.1128C128.394 63.9925 135.788 56.599 144.908 56.599H161.422V53.1009Z"/> </mask> <path fill-rule="evenodd" clip-rule="evenodd" d="M161.422 53.1009C151.092 48.4513 139.632 45.8643 127.569 45.8643C81.9673 45.8643 45 82.8316 45 128.433C45 174.035 81.9673 211.002 127.569 211.002C173.17 211.002 210.138 174.035 210.138 128.433C210.138 116.37 207.551 104.911 202.901 94.5807H199.404V111.094C199.404 120.215 192.01 127.608 182.89 127.608H177.936C168.815 127.608 161.422 120.215 161.422 111.094V94.5807H144.908C135.788 94.5807 128.394 87.1872 128.394 78.0669V73.1128C128.394 63.9925 135.788 56.599 144.908 56.599H161.422V53.1009Z" fill="white"/> <path d="M161.422 53.1009H173.422V45.3424L166.347 42.1581L161.422 53.1009ZM202.901 94.5807L213.844 89.6556L210.66 82.5807H202.901V94.5807ZM199.404 94.5807V82.5807H187.404V94.5807H199.404ZM161.422 94.5807H173.422V82.5807H161.422V94.5807ZM161.422 56.599V68.599H173.422V56.599H161.422ZM166.347 42.1581C154.499 36.8254 141.363 33.8643 127.569 33.8643V57.8643C137.901 57.8643 147.684 60.0772 156.497 64.0436L166.347 42.1581ZM127.569 33.8643C75.3399 33.8643 33 76.2042 33 128.433H57C57 89.459 88.5947 57.8643 127.569 57.8643V33.8643ZM33 128.433C33 180.662 75.3399 223.002 127.569 223.002V199.002C88.5947 199.002 57 167.407 57 128.433H33ZM127.569 223.002C179.798 223.002 222.138 180.662 222.138 128.433H198.138C198.138 167.407 166.543 199.002 127.569 199.002V223.002ZM222.138 128.433C222.138 114.639 219.177 101.504 213.844 89.6556L191.959 99.5057C195.925 108.318 198.138 118.101 198.138 128.433H222.138ZM202.901 82.5807H199.404V106.581H202.901V82.5807ZM187.404 94.5807V111.094H211.404V94.5807H187.404ZM187.404 111.094C187.404 113.587 185.383 115.608 182.89 115.608V139.608C198.638 139.608 211.404 126.842 211.404 111.094H187.404ZM182.89 115.608H177.936V139.608H182.89V115.608ZM177.936 115.608C175.443 115.608 173.422 113.587 173.422 111.094H149.422C149.422 126.842 162.188 139.608 177.936 139.608V115.608ZM173.422 111.094V94.5807H149.422V111.094H173.422ZM161.422 82.5807H144.908V106.581H161.422V82.5807ZM144.908 82.5807C142.415 82.5807 140.394 80.5598 140.394 78.0669H116.394C116.394 93.8146 129.16 106.581 144.908 106.581V82.5807ZM140.394 78.0669V73.1128H116.394V78.0669H140.394ZM140.394 73.1128C140.394 70.6199 142.415 68.599 144.908 68.599V44.599C129.16 44.599 116.394 57.365 116.394 73.1128H140.394ZM144.908 68.599H161.422V44.599H144.908V68.599ZM173.422 56.599V53.1009H149.422V56.599H173.422Z" fill="white" mask="url(#path-2-outside-1_1765_4)"/> <rect x="162.854" y="25" width="35.1193" height="101.174" rx="14.2569" fill="white" stroke="white" stroke-width="12"/> <rect x="129.826" y="58.0273" width="101.174" height="35.1193" rx="14.2569" fill="white" stroke="white" stroke-width="12"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M161.422 53.1009C151.092 48.4513 139.632 45.8643 127.569 45.8643C81.9673 45.8643 45 82.8316 45 128.433C45 174.035 81.9673 211.002 127.569 211.002C173.17 211.002 210.138 174.035 210.138 128.433C210.138 116.37 207.551 104.911 202.901 94.5807H199.404V111.094C199.404 116.193 197.093 120.751 193.463 123.78C193.569 125.317 193.624 126.869 193.624 128.433C193.624 164.914 164.05 194.488 127.569 194.488C91.0876 194.488 61.5138 164.914 61.5138 128.433C61.5138 91.9519 91.0876 62.378 127.569 62.378C129.133 62.378 130.685 62.4324 132.223 62.5394C135.252 58.909 139.81 56.599 144.908 56.599H161.422V53.1009Z" fill="#2F2F2F"/> <path d="M87.936 149.074V149.074C109.825 170.963 145.313 170.963 167.202 149.074V149.074" stroke="#2F2F2F" stroke-width="16" stroke-linecap="round"/> <circle cx="105.275" cy="107.788" r="9.90826" fill="#2F2F2F"/> <circle cx="149.862" cy="107.788" r="9.90826" fill="#2F2F2F"/> <rect x="168.854" y="31" width="23.1193" height="89.1743" rx="8.25688" fill="#2F2F2F"/> <rect x="135.826" y="64.0273" width="89.1743" height="23.1193" rx="8.25688" fill="#2F2F2F"/> </g> </svg>`,
   tooltip: "Reactions",
-  hideFrame: true,
   reRender: false,
   setButton: async function (editor, button, extra) {
     let cursorModule = await getModule("pages/editor/toolbar/cursor");
+    this.hidden = false;
     let selectKeys = Object.keys(editor.selecting);
     if (selectKeys.length > 1) {
       button.style.display = "none";
       button.removeAttribute("loaded");
+      if (this.hidden == false) {
+        this.hidden = true;
+        cursorModule.updateActionUI();
+      }
       return;
     }
     let selectID = selectKeys[0];
     let runReactionRequest = async () => {
+      selectKeys = Object.keys(editor.selecting);
+      if (selectKeys.length > 1) {
+        button.style.display = "none";
+        button.removeAttribute("loaded");
+        if (this.hidden == false) {
+          this.hidden = true;
+          cursorModule.updateActionUI();
+        }
+        return;
+      }
+      selectID = selectKeys[0];
       let reactions = editor.page.querySelector('.eAnnotation[anno="' + selectID + '"] div[reactions]');
       if (reactions.childElementCount < 2) {
         if (button.hasAttribute("selected") == true) {
@@ -5085,7 +5101,11 @@ modules["pages/editor/toolbar/reactions"] = {
         button.style.display = "none";
         button.removeAttribute("loaded");
         button.setAttribute("disabled", "");
-        cursorModule.redrawActionUI();
+        if (this.hidden == false) {
+          this.hidden = true;
+          cursorModule.updateActionUI();
+        }
+        //cursorModule.redrawActionUI(true);
         return;
       }
       if (button.hasAttribute("loaded") == true) {
@@ -5093,6 +5113,10 @@ modules["pages/editor/toolbar/reactions"] = {
       }
       button.setAttribute("loaded", "");
       button.style.display = "unset";
+      if (this.hidden == true) {
+        this.hidden = false;
+        cursorModule.updateActionUI();
+      }
       this.reactionCache = {};
       this.memberCache = {};
       let [code, body] = await sendRequest("GET", "lessons/members/reaction/members?annotation=" + selectID, null, { session: editor.session });
@@ -5119,6 +5143,9 @@ modules["pages/editor/toolbar/reactions"] = {
       button = selectBar.querySelector('.eTool[action="pages/editor/toolbar/reactions"]');
       let frame = selectBar.querySelector('.eActionContainer[module="pages/editor/toolbar/reactions"]');
       runReactionRequest();
+      if (this.reactionCache == null) {
+        return;
+      }
       this.reactionCache[body.reaction.emoji] = this.reactionCache[body.reaction.emoji] || {};
       let cache = this.reactionCache[body.reaction.emoji];
       let reactID;
@@ -5146,7 +5173,7 @@ modules["pages/editor/toolbar/reactions"] = {
           this.updateActionUI();
         }
         button.removeAttribute("disabled");
-        cursorModule.redrawActionUI();
+        cursorModule.redrawActionUI(true);
       } else if (body.change < 0) {
         delete cache[reactID];
         if (frame != null) {

@@ -583,6 +583,7 @@ modules["editor/realtime"] = {
                 }
                 if (selectKeys.length > 0) {
                   let userSelecting = false;
+                  let changes = false;
                   for (let i = 0; i < selectKeys.length; i++) {
                     let annoID = selectKeys[i];
                     let anno = extra.select[annoID] || {};
@@ -652,6 +653,7 @@ modules["editor/realtime"] = {
                         } else {
                           original.render.m = "temp_" + member._id;
                         }
+                        changes = true;
                       }
                       original.render.sync = time;
                       utils.enableTimeout(annoID, original, null, true);
@@ -736,11 +738,11 @@ modules["editor/realtime"] = {
                       selection.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
                     }
                   }
-                  /*if (userSelecting == true) {
-                    cursorModule.redrawActionUI(); // Only refresh if user is selecting
-                  }*/
+                  if (userSelecting == true && changes == true) {
+                    cursorModule.redrawActionUI(true); // Only refresh if user is selecting
+                  }
                   member.selecting = selectKeys;
-                  editor.updateZoom(false, true);
+                  editor.updateZoom(null, true);
                 } else if (member.selecting != null) {
                   for (let i = 0; i < member.selecting.length; i++) {
                     let annoID = member.selecting[i];

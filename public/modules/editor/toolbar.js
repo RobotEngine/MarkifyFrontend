@@ -2354,6 +2354,7 @@ modules["pages/editor/toolbar/cursor"] = {
     }
 
     utils.resetAnnotationSize();
+    this.updateBox();
   },
   reactionRun: async function (reaction) {
     if (reaction.hasAttribute("emoji") == false) {
@@ -3815,7 +3816,7 @@ modules["pages/editor/toolbar/sticky"] = {
 
       await toolbar.setCurrentTool(editor.page.querySelector('.eTool[tool="select"]'), "select");
       editor.selecting[tempID] = {};
-      cursor.updateBox();
+      await cursor.updateBox();
 
       let textElem = anno.querySelector("div[edit]");
       if (textElem != null) {

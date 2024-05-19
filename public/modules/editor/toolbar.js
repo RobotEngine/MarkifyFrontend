@@ -480,6 +480,7 @@ modules["editor/toolbar"] = {
       }
       editor.selecting = {};
       cursorModule.updateBox();
+      cursorModule.updateActionUI();
     }
     let tempToolListen = (parent, listen, runFunc, extra) => {
       parent.addEventListener(listen, runFunc, extra);
@@ -503,7 +504,7 @@ modules["editor/toolbar"] = {
       }
       module = module || {};
       editor.realtime.tool = module.realtimeTool || 0;
-      editor.selecting = {};
+      //editor.selecting = {};
       editor.realtime.passthrough = module.publish;
       if (editor.realtime.module != null) {
         editor.realtime.module.publishShort();
@@ -2632,6 +2633,7 @@ modules["pages/editor/toolbar/drag"] = {
         editor.selecting[annoID] = {};
       }
       cursorModule.updateBox();
+      cursorModule.updateActionUI();
     }
 
     let enableSelect = async (event) => {
@@ -2684,6 +2686,7 @@ modules["pages/editor/toolbar/drag"] = {
     }
     let moveSelect = async (event) => {
       cursorModule.moveAction(event);
+      cursorModule.updateActionUI();
 
       if (selection == null) {
         return;
@@ -2728,6 +2731,7 @@ modules["pages/editor/toolbar/drag"] = {
             delete editor.selecting[annoID];
           }
           cursorModule.updateBox();
+          cursorModule.updateActionUI();
         }
         wasSelected = null;
       }

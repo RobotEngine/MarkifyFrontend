@@ -160,6 +160,7 @@ modules["pages/editor"] = {
     ".ePageRearrange div": `margin-left: 6px`,
     
     ".eAnnotation": `position: absolute`,
+    ".eAnnotation[hidden]": `display: none !important`,
     '.eAnnotation[anno]:not([anno^="pending_"])': `transition: .25s`,
     //'.eAnnotation:not([selected]):not([anno^="pending_"])': `transition: .25s`,
     ".eAnnotation svg": `position: absolute; width: calc(100% + 200px); height: calc(100% + 200px); left: -100px; top: -100px; pointer-events: none`,
@@ -1065,35 +1066,50 @@ modules["pages/editor"] = {
           break;
         case "reaction":
           if (this.annotations[body.reaction.annotation] != null) {
-            if (this.userCheck == body.member) {
-              if (body.change > 0) {
-                body.reaction.reacted = true;
-              } else {
-                body.reaction.reacted = false;
-              }
-            }
             this.reactions[body.reaction.annotation] = this.reactions[body.reaction.annotation] || [];
             let annotationReactions = this.reactions[body.reaction.annotation];
-            let foundReaction = false;
-            for (let i = 0; i < annotationReactions.length; i++) {
-              if (annotationReactions[i]._id == body.reaction._id) {
-                annotationReactions[i].count += body.change;
-                if (body.reaction.reacted != null) {
-                  annotationReactions[i].reacted = body.reaction.reacted;
+            if (body.change != null) {
+              if (this.sessionID == body.member._id || body.member.user == userID) {
+                if (body.change > 0) {
+                  body.reaction.reacted = true;
+                } else {
+                  body.reaction.reacted = false;
                 }
-                if (annotationReactions[i].count < 1) {
+              }
+              let foundReaction = false;
+              for (let i = 0; i < annotationReactions.length; i++) {
+                if (annotationReactions[i]._id == body.reaction._id) {
+                  annotationReactions[i].count += body.change;
+                  if (body.reaction.reacted != null) {
+                    annotationReactions[i].reacted = body.reaction.reacted;
+                  }
+                  if (annotationReactions[i].count < 1) {
+                    annotationReactions.splice(i, 1);
+                    i--;
+                  }
+                  foundReaction = true;
+                  break;
+                }
+              }
+              if (foundReaction == false) {
+                body.reaction.count += body.change;
+                annotationReactions.push(body.reaction);
+              }
+            } else {
+              for (let i = 0; i < annotationReactions.length; i++) {
+                if (annotationReactions[i]._id == body.reaction._id) {
                   annotationReactions.splice(i, 1);
-                  i--
+                  break;
                 }
-                foundReaction = true;
-                break;
               }
             }
-            if (foundReaction == false) {
-              body.reaction.count += body.change;
-              annotationReactions.push(body.reaction);
+            if (annotationReactions.length < 1) {
+              delete this.reactions[body.reaction.annotation];
             }
-            utils.render(this.annotations[body.reaction.annotation].render);
+            await utils.render(this.annotations[body.reaction.annotation].render);
+            if (this.selecting[body.reaction.annotation] != null && this.newReactionUpdate != null) {
+              this.newReactionUpdate(body);
+            }
           }
       }
 
@@ -1371,12 +1387,12 @@ modules["pages/editor"] = {
 
     this.updateInterface();
 
-    let userCheckSelf = this.getSelf();
+    /*let userCheckSelf = this.getSelf();
     if (userCheckSelf.user != null) {
       this.userCheck = "user_" + userCheckSelf.user;
     } else {
       this.userCheck = "temp_" + userCheckSelf._id;
-    }
+    }*/
 
     page.querySelector(".eLogo").addEventListener("click", function (event) {
       event.preventDefault();
@@ -1514,6 +1530,13 @@ modules["pages/editor"] = {
       }
       if (annoBody.reactions != null) {
         let reactedToObject = getObject(annoBody.reactedTo || [], "_id");
+        let userCheckSelf = this.getSelf();
+        let userCheck;
+        if (userCheckSelf.user != null) {
+          userCheck = "user_" + userCheckSelf.user;
+        } else {
+          userCheck = "temp_" + userCheckSelf._id;
+        }
         for (let i = 0; i < annoBody.reactions.length; i++) {
           let addReaction = annoBody.reactions[i];
           let existingAnnoRecord = this.reactions[addReaction.annotation];
@@ -1522,7 +1545,7 @@ modules["pages/editor"] = {
             existingAnnoRecord = this.reactions[addReaction.annotation];
           }
           delete addReaction.annotation;
-          if (reactedToObject[addReaction._id + "_" + this.userCheck] != null) {
+          if (reactedToObject[addReaction._id + "_" + userCheck] != null) {
             addReaction.reacted = true;
           }
           existingAnnoRecord.push(addReaction);
@@ -3075,11 +3098,6 @@ modules["pages/editor/annotation"] = {
         anno.style.left = x + "px";
         anno.style.top = y + "px";
         svg = anno.querySelector("svg");
-        if (remove != true) {
-          svg.removeAttribute("hidden");
-        } else {
-          svg.setAttribute("hidden", "");
-        }
         path = svg.querySelector("polyline");
         svg.setAttribute("viewBox", "0 0 " + (width + (this.SVG_PADDING * 2)) + " " + (height + (this.SVG_PADDING * 2)));
         if (d.length == 2) {
@@ -3138,11 +3156,6 @@ modules["pages/editor/annotation"] = {
         anno.style.height = height + "px";
         anno.style.left = x + "px";
         anno.style.top = y + "px";
-        if (remove != true) {
-          anno.removeAttribute("hidden");
-        } else {
-          anno.setAttribute("hidden", "");
-        }
         text = anno.querySelector("div[edit]");
         if (_id != null) {
           text.removeAttribute("placeborder");
@@ -3227,11 +3240,6 @@ modules["pages/editor/annotation"] = {
         anno.style.left = x + "px";
         anno.style.top = y + "px";
         svg = anno.querySelector("svg");
-        if (remove != true) {
-          svg.removeAttribute("hidden");
-        } else {
-          svg.setAttribute("hidden", "");
-        }
         path = svg.querySelector("polyline");
         svg.setAttribute("viewBox", "0 0 " + (width + (this.SVG_PADDING * 2)) + " " + (height + (this.SVG_PADDING * 2)));
         if (d.length == 2) {
@@ -3463,11 +3471,6 @@ modules["pages/editor/annotation"] = {
         anno.style.height = height + "px";
         anno.style.left = x + "px";
         anno.style.top = y + "px";
-        if (remove != true) {
-          anno.removeAttribute("hidden");
-        } else {
-          anno.setAttribute("hidden", "");
-        }
         anno.style.setProperty("--themeColor", "#" + c);
         text = anno.querySelector("div[edit]");
         if (_id != null) {
@@ -3542,11 +3545,11 @@ modules["pages/editor/annotation"] = {
         } else {
           signature.setAttribute("hidden", "");
         }
+        let reactionHolder = anno.querySelector("div[reactions]");
+        let addReactionButton = reactionHolder.querySelector(".eReaction[dropdown]");
         let reactions = editor.reactions[_id];
+        let presentReactions = [];
         if (reactions != null) {
-          let reactionHolder = anno.querySelector("div[reactions]");
-          let addReactionButton = reactionHolder.querySelector(".eReaction[dropdown]");
-          let presentReactions = [];
           for (let i = 0; i < reactions.length; i++) {
             let reaction = reactions[i];
             presentReactions.push(reaction.emoji);
@@ -3575,24 +3578,24 @@ modules["pages/editor/annotation"] = {
               })();
             }
           }
-          let currentReactions = reactionHolder.querySelectorAll(".eReaction[emoji]");
-          for (let i = 0; i < currentReactions.length; i++) {
-            if (presentReactions.includes(currentReactions[i].getAttribute("emoji")) == false) {
-              currentReactions[i].remove();
-            }
+        }
+        let currentReactions = reactionHolder.querySelectorAll(".eReaction[emoji]");
+        for (let i = 0; i < currentReactions.length; i++) {
+          if (presentReactions.includes(currentReactions[i].getAttribute("emoji")) == false) {
+            currentReactions[i].remove();
           }
-          if (reactionHolder.childElementCount < 9) {
-            addReactionButton.style.display = "flex";
-          } else {
-            addReactionButton.style.display = "none";
-          }
-          if (reactionHolder.childElementCount > 1) {
-            reactionHolder.style.width = "100%";
-            reactionHolder.style.flex = "unset";
-          } else {
-            reactionHolder.style.width = "unset";
-            reactionHolder.style.flex = "1";
-          }
+        }
+        if (reactionHolder.childElementCount < 9) {
+          addReactionButton.style.display = "flex";
+        } else {
+          addReactionButton.style.display = "none";
+        }
+        if (reactionHolder.childElementCount > 1) {
+          reactionHolder.style.width = "100%";
+          reactionHolder.style.flex = "unset";
+        } else {
+          reactionHolder.style.width = "unset";
+          reactionHolder.style.flex = "1";
         }
         break;
       case "media":
@@ -3666,6 +3669,10 @@ modules["pages/editor/annotation"] = {
         if (long == true) {
           anno.remove();
           delete editor.annotations[_id];
+        }
+        let activeSelect = editor.page.querySelector('.eSelectActive[anno="' + _id + '"]');
+        if (activeSelect != null) {
+          activeSelect.remove();
         }
       }
     }
@@ -3798,7 +3805,7 @@ modules["pages/editor/annotation"] = {
               anno.retry--;
             }
             if (mutt.f == null && mutt._id.startsWith("pending_") == true) {
-              // Annotation is still being saved, try again later!
+              //Annotation is still being saved, try again later!
               //anno.retry = true;
               mutt.annoRefresh = anno;
               setPendingSave[mutt._id] = mutt;

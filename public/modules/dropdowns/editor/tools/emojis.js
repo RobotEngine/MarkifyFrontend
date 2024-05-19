@@ -36,11 +36,14 @@ modules["dropdowns/editor/tools/emojis"] = {
     ".eEmojiSectionTiles button img": `width: 32px; height: 32px; transform: scale(.8); object-fit: none`
   },
   sheetSize: 32 + 2,
-  applyReactions: async function () {
-    let editor = await getModule("pages/editor");
+  createEmojiObject: function () {
     if (this.emojitObject == null) {
       this.emojiObject = getObject(this.emojis, "name");
     }
+  },
+  applyReactions: async function () {
+    let editor = await getModule("pages/editor");
+    this.createEmojiObject();
     let unloadedReactions = editor.page.querySelectorAll(".eReaction[unloaded]");
     for (let i = 0; i < unloadedReactions.length; i++) {
       let reaction = unloadedReactions[i];

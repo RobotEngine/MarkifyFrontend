@@ -534,6 +534,11 @@ modules["pages/dashboard/lessons"] = {
                   }
                 }
               }
+              // Update Folder Previews:
+              let foundPreviews = document.body.querySelectorAll('.dTileFolderImage[lesson="' + body.lesson + '"]');
+              for (let i = 0; i < foundPreviews.length; i++) {
+                foundPreviews[i].remove();
+              }
               break;
             case "newfolder":
               let tileHolder;

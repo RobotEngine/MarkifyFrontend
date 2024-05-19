@@ -736,11 +736,11 @@ modules["editor/realtime"] = {
                       selection.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
                     }
                   }
-                  if (userSelecting == true) {
+                  /*if (userSelecting == true) {
                     cursorModule.redrawActionUI(); // Only refresh if user is selecting
-                  }
+                  }*/
                   member.selecting = selectKeys;
-                  editor.updateZoom();
+                  editor.updateZoom(false, true);
                 } else if (member.selecting != null) {
                   for (let i = 0; i < member.selecting.length; i++) {
                     let annoID = member.selecting[i];

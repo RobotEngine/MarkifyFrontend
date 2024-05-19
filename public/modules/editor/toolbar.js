@@ -923,6 +923,7 @@ modules["editor/toolbar"] = {
       utils.updateHistory();
 
       await cursorModule.updateBox();
+      await cursorModule.updateActionUI();
       await cursorModule.redrawActionUI();
 
       if (event.caret != null) {
@@ -995,6 +996,7 @@ modules["editor/toolbar"] = {
       utils.updateHistory();
 
       await cursorModule.updateBox();
+      await cursorModule.updateActionUI();
       await cursorModule.redrawActionUI();
 
       if (event.caret != null) {
@@ -1078,7 +1080,6 @@ modules["editor/toolbar"] = {
           return;
         }
       }
-      console.log(data.getData("text/html"));
     });
 
 
@@ -1092,7 +1093,7 @@ modules["pages/editor/toolbar/cursor"] = {
   updateBox: async function (forceNoTransition, forceUpdate) {
     let editor = await getModule("pages/editor");
     let utils = await getModule("pages/editor/annotation");
-    let cursor = await getModule("pages/editor/toolbar/cursor");
+    //let cursor = await getModule("pages/editor/toolbar/cursor");
     let toolbarModule = await getModule("editor/toolbar");
     let content = editor.page.querySelector(".eContent");
     let pageHolderRect = content.querySelector(".ePageHolder").getBoundingClientRect();
@@ -1359,9 +1360,9 @@ modules["pages/editor/toolbar/cursor"] = {
       })();
     }
 
-    if (forceNoTransition != true) {
+    /*if (forceNoTransition != true) {
       cursor.updateActionUI();
-    }
+    }*/
 
     if (this.lastEditorZoom != editor.zoom || forceNoTransition == true || forceUpdate == true) {
       let allSelections = editor.page.querySelector(".eRealtime").querySelectorAll(".eCollabSelect");
@@ -1407,7 +1408,7 @@ modules["pages/editor/toolbar/cursor"] = {
     "text": ["textedit", "color", "opacity", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "collaborator", "duplicate", "delete"],
     "markup": ["color", "thickness", "opacity", "collaborator", "duplicate", "delete"],
     "shape": ["color", "thickness", "opacity", "style", "collaborator", "duplicate", "delete"],
-    "sticky": ["textedit", "color", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "collaborator", "duplicate", "delete"],
+    "sticky": ["textedit", "color", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "collaborator", "reactions", "duplicate", "delete"],
     "media": ["collaborator", "duplicate", "delete"]
   },
   actionEvents: [],
@@ -1584,6 +1585,7 @@ modules["pages/editor/toolbar/cursor"] = {
           actionFrame.style.left = frameLeft + "px";
           actionFrame.style.width = actionContent.clientWidth + "px";
           actionFrame.style.height = actionContent.clientHeight + "px";
+          actionUI.querySelector(".eActionContainerScroll").style.maxWidth = actionUI.clientWidth + "px";
         }
 
         if (alignTop) {
@@ -1675,7 +1677,7 @@ modules["pages/editor/toolbar/cursor"] = {
     if (actionUI == null) {
       return;
     }
-
+    
     await this.updateActionUI(); // Update it first if their are selection changes
 
     // Update buttons:
@@ -1687,7 +1689,7 @@ modules["pages/editor/toolbar/cursor"] = {
         continue;
       }
       let module = await getModule(actionName);
-      if (module == null) {
+      if (module == null || module.reRender == false) {
         continue;
       }
       let buttonHolder = button.querySelector("div");
@@ -1702,14 +1704,14 @@ modules["pages/editor/toolbar/cursor"] = {
     if (actionFrame != null) {
       let actionContent = actionFrame.querySelector(".eActionContainerContent");
       let module = await getModule(actionFrame.getAttribute("module"));
-      if (module != null && module.html != null) {
+      if (module != null && module.html != null && module.reRender != false) {
         if (module.hideFrame == true) {
           actionContent.style.display = "none";
         }
         actionContent.innerHTML = module.html;
         let selectKeys = Object.keys(editor.selecting);
         let preferenceTool = ((editor.annotations[selectKeys[0]] || {}).render || {}).f;
-        await this.runActionModule(module, actionUI, preferenceTool);
+        await this.runActionModule(module, actionUI, preferenceTool, { rerender: true });
       }
       this.updateActionUI();
     }
@@ -1820,6 +1822,7 @@ modules["pages/editor/toolbar/cursor"] = {
   runActionModule: async function (module, holder, preferenceTool, extra) {
     await module.js(holder, preferenceTool, {
       frame: holder,
+      module: this,
       updateActionUI: () => { this.updateActionUI(); },
       saveSelecting: async (set, short, saveHistory, lastCaret) => {
         let editor = await getModule("pages/editor");
@@ -2279,7 +2282,7 @@ modules["pages/editor/toolbar/cursor"] = {
         annoid = original.pointer;
         original = editor.annotations[annoid];
       }
-      if (original == null && selecting == null) {
+      if (original == null || selecting == null) {
         continue;
       }
 
@@ -2355,7 +2358,6 @@ modules["pages/editor/toolbar/cursor"] = {
     for (let i = 0; i < keys.length; i++) {
       editor.selecting[keys[i]] = {};
     }
-
     this.updateActionUI();
 
     utils.resetAnnotationSize();
@@ -2379,7 +2381,12 @@ modules["pages/editor/toolbar/cursor"] = {
   },
   js: async function (editor, utils, addEvent) {
     let content = editor.page.querySelector(".eContent");
-    editor.updateZoom = this.updateBox;
+    editor.updateZoom = async (forceNoTransition, cancelActionUpdate) => {
+      await this.updateBox(forceNoTransition);
+      if (forceNoTransition != true && cancelActionUpdate != true) {
+        await this.updateActionUI(forceNoTransition);
+      }
+    }
     let alertModule = await getModule("alert");
     let startX;
     let startY;
@@ -2421,6 +2428,7 @@ modules["pages/editor/toolbar/cursor"] = {
       if (editor.getSelf().access < 1) {
         editor.selecting = {};
         this.updateBox();
+        this.updateActionUI();
         return;
       }
       startX = clientPosition(event, "x") + window.scrollX;
@@ -2429,6 +2437,7 @@ modules["pages/editor/toolbar/cursor"] = {
         editor.selecting = {};
         if (anno == null) {
           this.updateBox();
+          this.updateActionUI();
           return;
         }
       }
@@ -2453,6 +2462,7 @@ modules["pages/editor/toolbar/cursor"] = {
       }
       await this.updateBox();
       this.enableAction(event);
+      this.updateActionUI();
     }
     let disableSelect = async (event) => {
       this.endAction(event);
@@ -3201,6 +3211,7 @@ modules["pages/editor/toolbar/text"] = {
       await toolbar.setCurrentTool(editor.page.querySelector('.eTool[tool="select"]'), "select");
       editor.selecting[tempID] = {};
       await cursor.updateBox();
+      await cursor.updateActionUI();
 
       let textElem = anno.querySelector("div[text]");
       if (textElem != null) {
@@ -3423,7 +3434,7 @@ modules["pages/editor/toolbar/pen"] = {
       }
       utils.render(draw, anno);
       if (draw.d.length > 6150) { // Start new annotation when path too long
-        disableDraw();
+        await disableDraw();
         enableDraw(event);
       }
     }
@@ -3745,7 +3756,8 @@ modules["pages/editor/toolbar/shape"] = {
 
       await toolbar.setCurrentTool(editor.page.querySelector('.eTool[tool="select"]'), "select");
       editor.selecting[tempID] = {};
-      cursor.updateBox();
+      await cursor.updateBox();
+      await cursor.updateActionUI();
     }
     let content = editor.page.querySelector(".eContent");
     addEvent(content, "mousemove", shapemove, { passive: false });
@@ -3820,6 +3832,7 @@ modules["pages/editor/toolbar/sticky"] = {
       await toolbar.setCurrentTool(editor.page.querySelector('.eTool[tool="select"]'), "select");
       editor.selecting[tempID] = {};
       await cursor.updateBox();
+      await cursor.updateActionUI();
 
       let textElem = anno.querySelector("div[edit]");
       if (textElem != null) {
@@ -4030,6 +4043,7 @@ modules["pages/editor/toolbar/upload"] = {
       await toolbar.setCurrentTool(editor.page.querySelector('.eTool[tool="select"]'), "select");
       editor.selecting[tempID] = {};
       await cursor.updateBox();
+      await cursor.updateActionUI();
     }
     addEvent(content, "mousemove", mediamove, { passive: false });
     addEvent(content, "touchmove", mediamove, { passive: false });
@@ -4984,7 +4998,7 @@ modules["pages/editor/toolbar/collaborator"] = {
     button.removeAttribute("disabled");
     if (button.style.display != "unset") {
       button.style.display = "unset";
-      editor.updateZoom();
+      (await getModule("pages/editor/toolbar/cursor")).updateActionUI();
     }
   },
   html: `
@@ -5024,9 +5038,7 @@ modules["pages/editor/toolbar/collaborator"] = {
         await sleep(1);
         dropdownModule.open(editor.page.querySelector(".eShare"), "dropdowns/editor/share/options");
       });
-      button.removeAttribute("selected");
-      frame.querySelector(".eActionContainerContent").innerHTML = "";
-      frame.querySelector(".eActionContainer").removeAttribute("module");
+      extra.module.clickAction({ target: button });
       return;
     }
 
@@ -5039,6 +5051,318 @@ modules["pages/editor/toolbar/collaborator"] = {
     email.title = collaborator.email;
 
     frame.querySelector(".eSubToolCollaboratorHolder").style.setProperty("--uiwidth", frame.closest(".eSelectBar").clientWidth + "px");
+  }
+};
+
+modules["pages/editor/toolbar/reactions"] = {
+  button: `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_1765_4" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#C4C4C4"/> </mask> <g mask="url(#mask0_1765_4)"> <mask id="path-2-outside-1_1765_4" maskUnits="userSpaceOnUse" x="33" y="33.8643" width="190" height="190" fill="black"> <rect fill="white" x="33" y="33.8643" width="190" height="190"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M161.422 53.1009C151.092 48.4513 139.632 45.8643 127.569 45.8643C81.9673 45.8643 45 82.8316 45 128.433C45 174.035 81.9673 211.002 127.569 211.002C173.17 211.002 210.138 174.035 210.138 128.433C210.138 116.37 207.551 104.911 202.901 94.5807H199.404V111.094C199.404 120.215 192.01 127.608 182.89 127.608H177.936C168.815 127.608 161.422 120.215 161.422 111.094V94.5807H144.908C135.788 94.5807 128.394 87.1872 128.394 78.0669V73.1128C128.394 63.9925 135.788 56.599 144.908 56.599H161.422V53.1009Z"/> </mask> <path fill-rule="evenodd" clip-rule="evenodd" d="M161.422 53.1009C151.092 48.4513 139.632 45.8643 127.569 45.8643C81.9673 45.8643 45 82.8316 45 128.433C45 174.035 81.9673 211.002 127.569 211.002C173.17 211.002 210.138 174.035 210.138 128.433C210.138 116.37 207.551 104.911 202.901 94.5807H199.404V111.094C199.404 120.215 192.01 127.608 182.89 127.608H177.936C168.815 127.608 161.422 120.215 161.422 111.094V94.5807H144.908C135.788 94.5807 128.394 87.1872 128.394 78.0669V73.1128C128.394 63.9925 135.788 56.599 144.908 56.599H161.422V53.1009Z" fill="white"/> <path d="M161.422 53.1009H173.422V45.3424L166.347 42.1581L161.422 53.1009ZM202.901 94.5807L213.844 89.6556L210.66 82.5807H202.901V94.5807ZM199.404 94.5807V82.5807H187.404V94.5807H199.404ZM161.422 94.5807H173.422V82.5807H161.422V94.5807ZM161.422 56.599V68.599H173.422V56.599H161.422ZM166.347 42.1581C154.499 36.8254 141.363 33.8643 127.569 33.8643V57.8643C137.901 57.8643 147.684 60.0772 156.497 64.0436L166.347 42.1581ZM127.569 33.8643C75.3399 33.8643 33 76.2042 33 128.433H57C57 89.459 88.5947 57.8643 127.569 57.8643V33.8643ZM33 128.433C33 180.662 75.3399 223.002 127.569 223.002V199.002C88.5947 199.002 57 167.407 57 128.433H33ZM127.569 223.002C179.798 223.002 222.138 180.662 222.138 128.433H198.138C198.138 167.407 166.543 199.002 127.569 199.002V223.002ZM222.138 128.433C222.138 114.639 219.177 101.504 213.844 89.6556L191.959 99.5057C195.925 108.318 198.138 118.101 198.138 128.433H222.138ZM202.901 82.5807H199.404V106.581H202.901V82.5807ZM187.404 94.5807V111.094H211.404V94.5807H187.404ZM187.404 111.094C187.404 113.587 185.383 115.608 182.89 115.608V139.608C198.638 139.608 211.404 126.842 211.404 111.094H187.404ZM182.89 115.608H177.936V139.608H182.89V115.608ZM177.936 115.608C175.443 115.608 173.422 113.587 173.422 111.094H149.422C149.422 126.842 162.188 139.608 177.936 139.608V115.608ZM173.422 111.094V94.5807H149.422V111.094H173.422ZM161.422 82.5807H144.908V106.581H161.422V82.5807ZM144.908 82.5807C142.415 82.5807 140.394 80.5598 140.394 78.0669H116.394C116.394 93.8146 129.16 106.581 144.908 106.581V82.5807ZM140.394 78.0669V73.1128H116.394V78.0669H140.394ZM140.394 73.1128C140.394 70.6199 142.415 68.599 144.908 68.599V44.599C129.16 44.599 116.394 57.365 116.394 73.1128H140.394ZM144.908 68.599H161.422V44.599H144.908V68.599ZM173.422 56.599V53.1009H149.422V56.599H173.422Z" fill="white" mask="url(#path-2-outside-1_1765_4)"/> <rect x="162.854" y="25" width="35.1193" height="101.174" rx="14.2569" fill="white" stroke="white" stroke-width="12"/> <rect x="129.826" y="58.0273" width="101.174" height="35.1193" rx="14.2569" fill="white" stroke="white" stroke-width="12"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M161.422 53.1009C151.092 48.4513 139.632 45.8643 127.569 45.8643C81.9673 45.8643 45 82.8316 45 128.433C45 174.035 81.9673 211.002 127.569 211.002C173.17 211.002 210.138 174.035 210.138 128.433C210.138 116.37 207.551 104.911 202.901 94.5807H199.404V111.094C199.404 116.193 197.093 120.751 193.463 123.78C193.569 125.317 193.624 126.869 193.624 128.433C193.624 164.914 164.05 194.488 127.569 194.488C91.0876 194.488 61.5138 164.914 61.5138 128.433C61.5138 91.9519 91.0876 62.378 127.569 62.378C129.133 62.378 130.685 62.4324 132.223 62.5394C135.252 58.909 139.81 56.599 144.908 56.599H161.422V53.1009Z" fill="#2F2F2F"/> <path d="M87.936 149.074V149.074C109.825 170.963 145.313 170.963 167.202 149.074V149.074" stroke="#2F2F2F" stroke-width="16" stroke-linecap="round"/> <circle cx="105.275" cy="107.788" r="9.90826" fill="#2F2F2F"/> <circle cx="149.862" cy="107.788" r="9.90826" fill="#2F2F2F"/> <rect x="168.854" y="31" width="23.1193" height="89.1743" rx="8.25688" fill="#2F2F2F"/> <rect x="135.826" y="64.0273" width="89.1743" height="23.1193" rx="8.25688" fill="#2F2F2F"/> </g> </svg>`,
+  tooltip: "Reactions",
+  hideFrame: true,
+  reRender: false,
+  setButton: async function (editor, button) {
+    let cursorModule = await getModule("pages/editor/toolbar/cursor");
+    let selectKeys = Object.keys(editor.selecting);
+    if (selectKeys.length > 1) {
+      button.style.display = "none";
+      button.removeAttribute("loaded");
+      return;
+    }
+    let runReactionRequest = async () => {
+      let reactions = editor.page.querySelector('.eAnnotation[anno="' + selectID + '"] div[reactions]');
+      if (reactions.childElementCount < 2) {
+        if (button.hasAttribute("selected") == true) {
+          //let frame = button.closest(".eSelectBar");
+          //button.removeAttribute("selected");
+          //frame.querySelector(".eActionContainerContent").innerHTML = "";
+          //frame.querySelector(".eActionContainer").removeAttribute("module");
+          await cursorModule.clickAction({ target: button });
+        }
+        button.style.display = "none";
+        button.removeAttribute("loaded");
+        button.setAttribute("disabled", "");
+        return;
+      }
+      if (button.hasAttribute("loaded") == true) {
+        return;
+      }
+      button.setAttribute("loaded", "");
+      button.style.display = "unset";
+      this.reactionCache = {};
+      this.memberCache = {};
+      let [code, body] = await sendRequest("GET", "lessons/members/reaction/members?annotation=" + selectID, null, { session: editor.session });
+      if (code == 200 && this.currentSelect == selectID) {
+        for (let i = 0; i < body.reactions.length; i++) {
+          let reaction = body.reactions[i];
+          let reactID = reaction._id.split("_");
+          this.reactionCache[reactID[1]] = this.reactionCache[reactID[1]] || {};
+          this.reactionCache[reactID[1]][reaction._id] = reaction.added;
+        }
+        if (body.users != null) {
+          this.memberCache = { ...this.memberCache, ...getObject(body.users, "_id") };
+        }
+      } else {
+        return;
+      }
+      button.removeAttribute("disabled");
+    }
+    editor.newReactionUpdate = (body) => {
+      let selectBar = editor.page.querySelector(".eSelectBar");
+      button = selectBar.querySelector('.eTool[action="pages/editor/toolbar/reactions"]');
+      let frame = selectBar.querySelector('.eActionContainer[module="pages/editor/toolbar/reactions"]');
+      runReactionRequest();
+      this.reactionCache[body.reaction.emoji] = this.reactionCache[body.reaction.emoji] || {};
+      let cache = this.reactionCache[body.reaction.emoji];
+      let reactID;
+      if (body.member != null) {
+        let userCheck;
+        if (body.member.user != null) {
+          userCheck = "user_" + body.member.user;
+        } else {
+          userCheck = "temp_" + body.member._id;
+        }
+        reactID = body.reaction.annotation + "_" + body.reaction.emoji + "_" + userCheck;
+      }
+      if (body.change > 0) {
+        cache[reactID] = body.added;
+        if (body.member.user != null) {
+          this.memberCache[body.member.user] = { ...body.member, user: body.member.name, name: null };
+        }
+        if (frame != null) {
+          let emojiButton = frame.querySelector(".eSubToolReactionSidebar").querySelector('button[emoji="' + body.reaction.emoji + '"]');
+          if (emojiButton == null) {
+            this.insertReactionButton(body.reaction.emoji);
+          } else if (emojiButton.hasAttribute("selected") == true) {
+            this.insertReactionMember(body.member.user, body.added);
+          }
+          this.updateActionUI();
+        }
+      } else if (body.change < 0) {
+        delete cache[reactID];
+        if (frame != null) {
+          let emojiButton = frame.querySelector('button[emoji="' + body.reaction.emoji + '"]');
+          if (emojiButton.hasAttribute("selected") == true) {
+            if (body.member.user != null) {
+              let emojiMemberSection = frame.querySelector('.eSubToolReactionMember[user="' + body.member.user + '"]');
+              if (emojiMemberSection != null) {
+                emojiMemberSection.remove();
+              }
+            } else {
+              this.annoymousCount--;
+              let titleCount = frame.querySelector(".eSubToolReactionTempShow");
+              if (this.annoymousCount > 0) {
+                let addS = "";
+                if (this.annoymousCount > 1) {
+                  addS = "s";
+                }
+                titleCount.querySelector("div[titlecount]").innerHTML = `<b>+${this.annoymousCount}</b> Additional Reaction${addS}`;
+                titleCount.style.display = "flex";
+              } else {
+                titleCount.style.display = "none";
+              }
+            }
+            this.updateActionUI();
+          }
+        }
+      } else if (body.change == null) {
+        cache = {};
+      }
+      if (Object.keys(cache).length < 1) {
+        delete this.reactionCache[body.reaction.emoji];
+        if (frame != null) {
+          let emojiButtonSidebar = frame.querySelector(".eSubToolReactionSidebar");
+          let emojiButton = emojiButtonSidebar.querySelector('button[emoji="' + body.reaction.emoji + '"]');
+          emojiButton.remove();
+          if (emojiButton.hasAttribute("selected") == true && emojiButtonSidebar.firstElementChild != null) {
+            emojiButtonSidebar.firstElementChild.setAttribute("selected", "");
+            this.updateReactionView();
+          }
+        }
+      }
+    }
+    let selectID = selectKeys[0];
+    if (this.currentSelect == selectID) {
+      runReactionRequest();
+      return;
+    }
+    button.setAttribute("disabled", "");
+    this.currentSelect = selectID;
+    runReactionRequest();
+  },
+  html: `
+  <div class="eSubToolReactionHolder">
+    <div class="eSubToolReactionSidebar"></div>
+    <div class="eSubToolReactionMembers">
+      <div class="eSubToolReactionMemberTitle">
+        <div title></div>
+        <button remove title="Remove this reaction from the sticky note."><img src="./images/editor/file/delete.svg"></button>
+      </div>
+      <div class="eSubToolReactionMemberSection"></div>
+    </div>
+  </div>
+  `,
+  css: {
+    ".eSubToolReactionHolder": `display: flex; width: max-content; max-width: 100%; max-height: fit-content`,
+    ".eSubToolReactionSidebar": `display: flex; flex-direction: column; width: 38px; min-width: 38px; max-height: 238px; padding: 6px; gap: 6px; border-right: solid 4px var(--theme); overflow: auto; scrollbar-width: none`,
+    ".eSubToolReactionSidebar::-webkit-scrollbar": `display: none`,
+    ".eSubToolReactionSidebar button": `display: flex; width: 38px; height: 38px; min-height: 38px; justify-content: center; align-items: center; border-radius: 10px`,
+    ".eSubToolReactionSidebar button:hover": `background: var(--hover)`,
+    ".eSubToolReactionSidebar button[selected]": `background: var(--theme) !important`,
+    ".eSubToolReactionSidebar button img": `width: 32px; height: 32px; transform: scale(.95); object-fit: none; filter: drop-shadow(0px 0px 8px var(--pageColor));`,
+    ".eSubToolReactionMembers": `max-width: 100%; max-height: 250px; overflow: auto`,
+    ".eSubToolReactionMemberTitle": `position: sticky; display: flex; width: 100%; top: 0px; background: var(--theme); justify-content: space-between; align-items: center`,
+    ".eSubToolReactionMemberTitle div[title]": `width: 100%; margin: 8px; font-size: 18px; font-weight: 600; color: #fff; text-align: left; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
+    ".eSubToolReactionMemberTitle button": `display: none; width: 32px; height: 32px; margin: 6px; background: var(--pageColor); color: #fff; border-radius: 10px; justify-content: center; align-items: center`,
+    ".eSubToolReactionMemberTitle button img": `width: 22px; height: 22px`,
+    ".eSubToolReactionMemberSection": `display: flex; flex-direction: column; min-height: 163px; height: calc(100% - 44px)`,
+    ".eSubToolReactionMember": `display: flex; padding: 8px; align-items: center`,
+    //".eSubToolReactionMember:not(:first-child)": `border-top: solid 2px var(--hover)`,
+    ".eSubToolReactionMember img": `width: 26px; min-width: 26px; height: 26px; padding: 2px; margin: 1px; border: solid 2px var(--theme); object-fit: cover; background: var(--pageColor); border-radius: 17px`,
+    ".eSubToolReactionMember div[holder]": `display: flex; width: calc(100% - 26px); white-space: nowrap; overflow: hidden; justify-content: space-between`,
+    ".eSubToolReactionMember div[holder] div[name]": `display: inline; margin: 0 12px 0 6px; font-size: 16px; font-weight: 600`,
+    ".eSubToolReactionMember div[holder] div[email]": `display: inline; font-size: 16px; font-weight: 500`,
+    ".eSubToolReactionTempShow": `display: none; flex-direction: column; width: calc(100% - 24px); padding: 12px; margin-top: auto; align-items: center`,
+    ".eSubToolReactionTempShow div[titlecount]": `font-size: 20px; font-weight: 600`,
+    ".eSubToolReactionTempShow div[titlecount] b": `font-weight: 700; color: var(--theme)`,
+    ".eSubToolReactionTempShow div[info]": `max-width: 297px; margin-top: 6px; font-size: 14px; font-weight: 500`,
+    ".eSubToolReactionTempShow div[info] a": `display: none; color: var(--theme); font-size: 16px; font-weight: 700; line-height: 30px`
+  },
+  js: async function (frame, toolID, extra) {
+    this.updateActionUI = extra.updateActionUI;
+    let dropdownModule = await getModule("dropdown");
+    let button = extra.frame.querySelector('.eTool[action="pages/editor/toolbar/reactions"]');
+    if (this.reactionCache == null) {
+      //button.removeAttribute("selected");
+      //frame.querySelector(".eActionContainerContent").innerHTML = "";
+      //frame.querySelector(".eActionContainer").removeAttribute("module");
+      extra.module.clickAction({ target: button });
+      return;
+    }
+    let editor = await getModule("pages/editor");
+    let emojiModule = await getModule("dropdowns/editor/tools/emojis");
+    if (emojiModule == null) {
+      extra.module.clickAction({ target: button });
+      return;
+    }
+    emojiModule.createEmojiObject();
+
+    let emojiButtonSidebar = frame.querySelector(".eSubToolReactionSidebar");
+    let emojiMemberSection = frame.querySelector(".eSubToolReactionMemberSection");
+    let removeReactionButton = frame.querySelector(".eSubToolReactionMemberTitle button[remove]");
+
+    removeReactionButton.addEventListener("click", async () => {
+      removeReactionButton.setAttribute("disabled", "");
+      await sendRequest("DELETE", "lessons/members/reaction/delete?annotation=" + this.currentSelect + "&emoji=" + emojiButtonSidebar.querySelector("button[selected]").getAttribute("emoji").replace(/ /g, "_"), null, { session: editor.session });
+      removeReactionButton.removeAttribute("disabled");
+    });
+
+    this.insertReactionButton = (emojiName) => {
+      if (emojiButtonSidebar.querySelector('.eSubToolReaction[emoji="' + emojiName + '"]') != null) {
+        return;
+      }
+      let emoji = emojiModule.emojiObject[emojiName];
+      emojiButtonSidebar.insertAdjacentHTML("afterbegin", `<button emoji="${emojiName}" title="${emoji.short_name.replace(/_/g, " ")}"><img src="./images/editor/emojis/twitter32.png" style="object-position: ${-((emoji.sheet_x * emojiModule.sheetSize) + 1)}px ${-((emoji.sheet_y * emojiModule.sheetSize) + 1)}px"></button>`);
+    }
+
+    let reactionKeys = Object.keys(this.reactionCache);
+    for (let i = 0; i < reactionKeys.length; i++) {
+      this.insertReactionButton(reactionKeys[i]);
+    }
+    emojiButtonSidebar.firstElementChild.setAttribute("selected", "");
+
+    this.annoymousCount = 0;
+    let largestOrder = 0;
+    this.insertReactionMember = (userid, added) => {
+      let member = this.memberCache[userid];
+      let tempSection = emojiMemberSection.querySelector(".eSubToolReactionTempShow");
+      if (member == null) {
+        this.annoymousCount++;
+        tempSection.style.display = "flex";
+        let addS = "";
+        if (this.annoymousCount > 1) {
+          addS = "s";
+        }
+        tempSection.querySelector("div[titlecount]").innerHTML = `<b>+${this.annoymousCount}</b> Additional Reaction${addS}`;
+        return;
+      }
+      emojiMemberSection.insertAdjacentHTML("afterbegin", `<div class="eSubToolReactionMember" new>
+        <img>
+        <div holder>
+          <div name></div>
+          <div email></div>
+        </div>
+      </div>`);
+      let newMemberTile = emojiMemberSection.querySelector(".eSubToolReactionMember[new]");
+      newMemberTile.removeAttribute("new");
+      newMemberTile.setAttribute("user", userid);
+      newMemberTile.querySelector("img").src = member.image || "./images/profiles/default.svg";
+      let name = newMemberTile.querySelector("div[name]");
+      name.textContent = member.user;
+      name.title = member.user;
+      let email = newMemberTile.querySelector("div[email]");
+      email.textContent = member.email;
+      email.title = member.email;
+      let order = Math.round(((added || getEpoch()) / 2000000000000) * 2147483647);
+      if (order > largestOrder) {
+        largestOrder = order + 1;
+        tempSection.style.order = order;
+      }
+      newMemberTile.style.order = order;
+    }
+    this.updateReactionView = () => {
+      let selected = emojiButtonSidebar.querySelector("button[selected]");
+      if (selected == null) {
+        return;
+      }
+      let emoji = selected.getAttribute("emoji");
+      let title = emojiModule.emojiObject[emoji].short_name.split("_");
+      for (let i = 0; i < title.length; i++) {
+        title[i] = title[i].substring(0, 1).toUpperCase() + title[i].substring(1);
+      }
+      frame.querySelector(".eSubToolReactionMemberTitle div[title]").textContent = title.join(" ");
+      this.annoymousCount = 0;
+      largestOrder = 0;
+      emojiMemberSection.innerHTML = `<div class="eSubToolReactionTempShow">
+        <div titlecount></div>
+        <div info>To see who reacted on the sticky note, the require login option must be enabled. <a>Show Me</a></div>
+      </div>`;
+      let openDropdown = emojiMemberSection.querySelector(".eSubToolReactionTempShow a");
+      openDropdown.addEventListener("click", async () => {
+        await sleep(1);
+        dropdownModule.open(editor.page.querySelector(".eShare"), "dropdowns/editor/share/options");
+      });
+      if (editor.getSelf().access > 3) {
+        openDropdown.style.display = "unset";
+        removeReactionButton.style.display = "flex";
+      }
+      let reactionMembers = this.reactionCache[emoji];
+      let reactionMembersKeys = Object.keys(reactionMembers);
+      for (let i = 0; i < reactionMembersKeys.length; i++) {
+        let reactID = reactionMembersKeys[i].split("_");
+        if (reactID[2] == "user") {
+          this.insertReactionMember(reactID[3], reactionMembers[reactionMembersKeys[i]]);
+        } else {
+          this.insertReactionMember();
+        }
+      }
+      this.updateActionUI();
+    }
+    emojiButtonSidebar.addEventListener("click", (event) => {
+      let target = event.target;
+      if (target == null) {
+        return;
+      }
+      let button = target.closest("button");
+      if (button == null) {
+        return;
+      }
+      let selected = emojiButtonSidebar.querySelector("button[selected]");
+      if (selected != null) {
+        selected.removeAttribute("selected");
+      }
+      button.setAttribute("selected", "");
+      this.updateReactionView();
+    });
+    this.updateReactionView();
   }
 };
 

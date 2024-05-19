@@ -5059,7 +5059,7 @@ modules["pages/editor/toolbar/reactions"] = {
   tooltip: "Reactions",
   hideFrame: true,
   reRender: false,
-  setButton: async function (editor, button) {
+  setButton: async function (editor, button, extra) {
     let cursorModule = await getModule("pages/editor/toolbar/cursor");
     let selectKeys = Object.keys(editor.selecting);
     if (selectKeys.length > 1) {
@@ -5067,6 +5067,7 @@ modules["pages/editor/toolbar/reactions"] = {
       button.removeAttribute("loaded");
       return;
     }
+    let selectID = selectKeys[0];
     let runReactionRequest = async () => {
       let reactions = editor.page.querySelector('.eAnnotation[anno="' + selectID + '"] div[reactions]');
       if (reactions.childElementCount < 2) {
@@ -5080,6 +5081,7 @@ modules["pages/editor/toolbar/reactions"] = {
         button.style.display = "none";
         button.removeAttribute("loaded");
         button.setAttribute("disabled", "");
+        cursorModule.redrawActionUI();
         return;
       }
       if (button.hasAttribute("loaded") == true) {
@@ -5106,6 +5108,9 @@ modules["pages/editor/toolbar/reactions"] = {
       button.removeAttribute("disabled");
     }
     editor.newReactionUpdate = (body) => {
+      selectKeys = Object.keys(editor.selecting);
+      selectID = selectKeys[0];
+      this.currentSelect = selectID;
       let selectBar = editor.page.querySelector(".eSelectBar");
       button = selectBar.querySelector('.eTool[action="pages/editor/toolbar/reactions"]');
       let frame = selectBar.querySelector('.eActionContainer[module="pages/editor/toolbar/reactions"]');
@@ -5136,6 +5141,8 @@ modules["pages/editor/toolbar/reactions"] = {
           }
           this.updateActionUI();
         }
+        button.removeAttribute("disabled");
+        cursorModule.redrawActionUI();
       } else if (body.change < 0) {
         delete cache[reactID];
         if (frame != null) {
@@ -5179,14 +5186,13 @@ modules["pages/editor/toolbar/reactions"] = {
         }
       }
     }
-    let selectID = selectKeys[0];
     if (this.currentSelect == selectID) {
       runReactionRequest();
       return;
     }
     button.setAttribute("disabled", "");
     this.currentSelect = selectID;
-    runReactionRequest();
+    await runReactionRequest();
   },
   html: `
   <div class="eSubToolReactionHolder">

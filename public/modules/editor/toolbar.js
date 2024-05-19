@@ -2685,17 +2685,17 @@ modules["pages/editor/toolbar/drag"] = {
       updateSelectedBounds(event);
     }
     let disableSelect = async (event) => {
-      (async () => {
-        if (selection == null) {
-          return;
-        }
+      if (selection != null) {
         let remSelect = selection;
         selection = null;
         remSelect.setAttribute("remove", "");
         remSelect.style.opacity = 0;
-        await sleep(150);
-        remSelect.remove();
-      })();
+        (async () => {
+          
+          await sleep(150);
+          remSelect.remove();
+        })();
+      }
       if (event != null) {
         cursorModule.endAction(event);
 
@@ -2713,8 +2713,8 @@ modules["pages/editor/toolbar/drag"] = {
           if (wasSelected != annoID && editor.selecting[annoID] != null) {
             delete editor.selecting[annoID];
           }
-          cursorModule.updateBox();
         }
+        cursorModule.updateBox();
         wasSelected = null;
       }
     }

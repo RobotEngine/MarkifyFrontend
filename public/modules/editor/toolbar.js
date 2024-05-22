@@ -784,11 +784,11 @@ modules["editor/toolbar"] = {
       } else if (element.hasAttribute("subtool") == true) {
         selectedSubtoolToolID = element.getAttribute("subtool");
         if (preferences[selectedToolID].subtool != null) {
-          preferences[selectedToolID].subtool = selectedSubtoolToolID
+          preferences[selectedToolID].subtool = selectedSubtoolToolID;
         }
         this.currentToolModule = element.getAttribute("module");
         await this.updateToolbar(null, extra);
-        await this.closeSubSubtoolUI();
+        this.closeSubSubtoolUI();
       } else if (element.hasAttribute("option") == true && element.getAttribute("option").length > 0) {
         await showSubSubtoolUI(element);
       }
@@ -1034,7 +1034,7 @@ modules["editor/toolbar"] = {
 
     // COPY / PASTE
     // Copy come soon
-    let fileUpload = (items, event) => {
+    let fileUpload = async (items, event) => {
       if (editor.getSelf().access < 1) {
         return;
       }
@@ -1049,9 +1049,9 @@ modules["editor/toolbar"] = {
             if (file.type.substring(0, 6) == "image/") {
               let mediaTool = frame.querySelector('.eTool[tool="media"]');
               if (mediaTool.hasAttribute("selected") == false) {
-                this.setCurrentTool(mediaTool);
+                await this.setCurrentTool(mediaTool);
               }
-              this.setCurrentTool(frame.querySelector('.eTool[subtool="upload"]'), null, { file: file, event: event });
+              await this.setCurrentTool(frame.querySelector('.eTool[subtool="upload"]'), null, { file: file, event: event });
               activatedTool = true;
               return true;
             }
@@ -3195,7 +3195,8 @@ modules["pages/editor/toolbar/text"] = {
       editor.selecting[tempID] = saveText;
       await utils.forceShort();
 
-      await toolbar.setCurrentTool(editor.page.querySelector('.eTool[tool="select"]'), "select");
+      await toolbar.setCurrentTool(editor.page.querySelector('.eTool[tool="select"]'));
+      await toolbar.setCurrentTool(editor.page.querySelector('.eTool[subtool="select"]'));
       editor.selecting[tempID] = {};
       await cursor.updateBox();
 
@@ -3740,7 +3741,8 @@ modules["pages/editor/toolbar/shape"] = {
       editor.selecting[tempID] = saveShape;
       await utils.forceShort();
 
-      await toolbar.setCurrentTool(editor.page.querySelector('.eTool[tool="select"]'), "select");
+      await toolbar.setCurrentTool(editor.page.querySelector('.eTool[tool="select"]'));
+      await toolbar.setCurrentTool(editor.page.querySelector('.eTool[subtool="select"]'));
       editor.selecting[tempID] = {};
       cursor.updateBox();
     }
@@ -3814,7 +3816,8 @@ modules["pages/editor/toolbar/sticky"] = {
       editor.selecting[tempID] = saveSticky;
       await utils.forceShort();
 
-      await toolbar.setCurrentTool(editor.page.querySelector('.eTool[tool="select"]'), "select");
+      await toolbar.setCurrentTool(editor.page.querySelector('.eTool[tool="select"]'));
+      await toolbar.setCurrentTool(editor.page.querySelector('.eTool[subtool="select"]'));
       editor.selecting[tempID] = {};
       await cursor.updateBox();
 
@@ -4024,7 +4027,8 @@ modules["pages/editor/toolbar/upload"] = {
       editor.selecting[tempID] = saveMedia;
       await utils.forceShort();
 
-      await toolbar.setCurrentTool(editor.page.querySelector('.eTool[tool="select"]'), "select");
+      await toolbar.setCurrentTool(editor.page.querySelector('.eTool[tool="select"]'));
+      await toolbar.setCurrentTool(editor.page.querySelector('.eTool[subtool="select"]'));
       editor.selecting[tempID] = {};
       cursor.updateBox();
     }

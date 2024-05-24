@@ -340,7 +340,7 @@ modules["pages/dashboard/lessons"] = {
 
     this.dashSubscribe = null;
     let updateDashSub = () => {
-      let visibleTiles = document.body.querySelectorAll(".dTile");
+      let visibleTiles = document.body.querySelectorAll(".dTile[lesson]");
       let tileIDs = {};
       for (let i = 0; i < visibleTiles.length; i++) {
         tileIDs[visibleTiles[i].getAttribute("lesson")] = "";

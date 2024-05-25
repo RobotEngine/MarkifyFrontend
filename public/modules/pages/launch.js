@@ -76,7 +76,7 @@ modules["pages/launch"] = {
       <div class="lFeature">
         <img src="./images/launch/features/upload.svg">
         <div title>Upload PDFs</div>
-        <div desc>Unlike a traditional whiteboard, upload your worksheets and more—strait into Markify!</div>
+        <div desc>Unlike a traditional whiteboard, upload your worksheets and more—straight into Markify!</div>
       </div>
       <div class="lFeature">
         <img src="./images/launch/features/freeboard.svg">

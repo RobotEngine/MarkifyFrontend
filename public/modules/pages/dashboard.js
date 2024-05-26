@@ -151,6 +151,7 @@ modules["pages/dashboard/lessons"] = {
     ".dTile:hover": "--optionOpacity: 1",
     ".dTileDocImage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: var(--borderRadius); object-fit: cover; object-position: top center`,
     ".dTile[folder] .dTileDocImage": `display: flex; flex-wrap: wrap; width: calc(100% - 16px); height: calc(100% - 16px); padding: 8px; gap: 5px; justify-content: center; overflow: hidden`,
+    ".dTileBackground": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--themeColor); opacity: .3; border-radius: 12px; z-index: 0`,
     ".dTileFolderImage": `width: 32px; height: 38px; border: solid 2px var(--secondary); border-radius: 8px; object-fit: cover; object-position: top center`,
     ".dTileInfo": `position: absolute; box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; left: 0px; bottom: 0px; padding: 6px; background: rgba(var(--background), .95)`,
     ".dTileName": `width: 100%; font-size: 18px; font-weight: 600; color: var(--themeColor); text-align: left`,
@@ -265,6 +266,7 @@ modules["pages/dashboard/lessons"] = {
       }
       let timeField = folderHolder.getAttribute("timefield");
       folderHolder.insertAdjacentHTML(insertAdj, `<a class="dTile largeButton" dropdown="dropdowns/dashboard/folder" dropdowntitle=" " new>
+        <div class="dTileBackground"></div>  
         <div class="dTileDocImage">
         </div>
         <div class="dTileInfo">

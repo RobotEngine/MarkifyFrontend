@@ -2790,8 +2790,8 @@ modules["pages/editor/toolbar/pan"] = {
     }
     addEvent(content, "mousedown", enableDrag, { passive: false });
     addEvent(content, "touchstart", enableDrag, { passive: false });
-    addEvent(content, "mousemove", moveDrag, { passive: false });
-    addEvent(content, "touchmove", moveDrag, { passive: false });
+    addEvent(editor.page, "mousemove", moveDrag, { passive: false });
+    addEvent(editor.page, "touchmove", moveDrag, { passive: false });
     addEvent(content, "mouseup", disableDrag, { passive: false });
     addEvent(content, "touchend", disableDrag, { passive: false });
   }

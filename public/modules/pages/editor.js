@@ -1069,7 +1069,7 @@ modules["pages/editor"] = {
             this.reactions[body.reaction.annotation] = this.reactions[body.reaction.annotation] || [];
             let annotationReactions = this.reactions[body.reaction.annotation];
             if (body.change != null) {
-              if (this.sessionID == body.member._id || body.member.user == userID) {
+              if (this.sessionID == body.member._id || (body.member.user != null && body.member.user == userID)) {
                 if (body.change > 0) {
                   body.reaction.reacted = true;
                 } else {

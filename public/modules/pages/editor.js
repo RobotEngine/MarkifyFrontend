@@ -233,7 +233,8 @@ modules["pages/editor"] = {
             options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "000"]
           },
           thickness: 8,
-          opacity: 100
+          opacity: 100,
+          filled: false
         },
         sticky: {
           color: {
@@ -520,16 +521,23 @@ modules["pages/editor"] = {
       saveStatus.style.margin = "0 4px";
       enableScrollTop();
     }
-    tempListen(window, "beforeunload", (event) => {
+    tempListen(window, "beforeunload", async (event) => {
+      /*
       let saved = true;
       let annoKeys = Object.keys(this.annotations);
       for (let i = 0; i < annoKeys.length; i++) {
         let anno = this.annotations[annoKeys[i]];
         if (anno.save == true) {
           saved = false;
+          break;
         }
       }
       if (saved == false) {
+        event.preventDefault();
+        event.returnValue = "";
+      }
+      */
+      if (Object.keys(utils.pendingSaves).length > 0) {
         event.preventDefault();
         event.returnValue = "";
       }
@@ -1394,8 +1402,9 @@ modules["pages/editor"] = {
       this.userCheck = "temp_" + userCheckSelf._id;
     }*/
 
-    page.querySelector(".eLogo").addEventListener("click", function (event) {
+    page.querySelector(".eLogo").addEventListener("click", (event) => {
       event.preventDefault();
+      utils.syncSave(true);
       setFrame("pages/dashboard");
     });
     let nameBox = page.querySelector(".eFileName");
@@ -2515,6 +2524,7 @@ modules["dropdowns/editor/file"] = {
   },
   js: async function (frame) {
     let editor = await getModule("pages/editor");
+    let utils = await getModule("pages/editor/annotation");
     let dropdown = await getModule("dropdown");
     let alert = await getModule("alert");
     let access = editor.getSelf().access;
@@ -2522,7 +2532,8 @@ modules["dropdowns/editor/file"] = {
     if (editor.folder != null) {
       frame.setAttribute("folderid", editor.folder);
     }
-    frame.querySelector('.eFileAction[option="dashboard"]').addEventListener("click", () => {
+    frame.querySelector('.eFileAction[option="dashboard"]').addEventListener("click", async () => {
+      utils.syncSave(true);
       setFrame("pages/dashboard");
     });
     let exportButton = frame.querySelector('.eFileAction[option="export"]');
@@ -3763,10 +3774,10 @@ modules["pages/editor/annotation"] = {
   },
   pendingSaves: {},
   debounce: false,
-  syncSave: async function () {
+  syncSave: async function (skipWait) {
     let editor = await getModule("pages/editor");
     editor.updateSaveStatus("Saving...");
-    if (this.debounce == true) {
+    if (this.debounce == true && skipWait != true) {
       return;
     }
     this.debounce = true;
@@ -3775,7 +3786,9 @@ modules["pages/editor/annotation"] = {
       if (connected == false) {
         break;
       }
-      await sleep(2500); // 1 save per 2.5 seconds
+      if (skipWait != true) {
+        await sleep(2500); // 1 save per 2.5 seconds
+      }
       keys = Object.keys(this.pendingSaves);
       let setPendingSave = {};
       let mutations = [];
@@ -3845,7 +3858,11 @@ modules["pages/editor/annotation"] = {
         }
       }
       this.pendingSaves = { ...this.pendingSaves, ...setPendingSave };
-      keys = Object.keys(this.pendingSaves);
+      if (skipWait != true) {
+        keys = Object.keys(this.pendingSaves);
+      } else {
+        keys = [];
+      }
     }
     if (connected == true) {
       editor.updateSaveStatus("Saved");

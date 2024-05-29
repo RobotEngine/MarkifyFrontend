@@ -3683,6 +3683,7 @@ modules["pages/editor/toolbar/shape"] = {
           c: this.color,
           t: this.thickness,
           o: this.opacity,
+          i: editor.preferences.tools.shape.filled
           //d: []
         };
         switch (extra.tool) {
@@ -4840,6 +4841,8 @@ modules["pages/editor/toolbar/style"] = {
       } else {
         selectedI = false;
       }
+      editor.preferences.tools.shape.filled = selectedI;
+      editor.savePreferences();
       await extra.saveSelecting({ i: selectedI }, true);
       extra.updateToolActions(extra.frame);
       updateButtons();

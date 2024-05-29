@@ -3775,6 +3775,8 @@ modules["pages/editor/annotation"] = {
       if (connected == false) {
         break;
       }
+      await sleep(2500); // 1 save per 2.5 seconds
+      keys = Object.keys(this.pendingSaves);
       let setPendingSave = {};
       let mutations = [];
       for (let i = 0; i < keys.length; i++) {
@@ -3818,12 +3820,15 @@ modules["pages/editor/annotation"] = {
         }
       }
       this.pendingSaves = {};
+      if (mutations.length < 1) {
+        break;
+      }
       let saveSuccess = false;
       try {
         let [result] = await sendRequest("POST", "lessons/save", { mutations: mutations }, { session: editor.session });
         if (result == 200) {
           saveSuccess = true;
-          editor.updateSaveStatus("Saved");
+          //editor.updateSaveStatus("Saved");
         }
       } catch (err) {
         console.log("SAVE ERROR:", err);
@@ -3840,7 +3845,6 @@ modules["pages/editor/annotation"] = {
         }
       }
       this.pendingSaves = { ...this.pendingSaves, ...setPendingSave };
-      await sleep(2500); // 1 save per 2.5 seconds
       keys = Object.keys(this.pendingSaves);
     }
     if (connected == true) {

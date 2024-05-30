@@ -521,8 +521,7 @@ modules["pages/editor"] = {
       saveStatus.style.margin = "0 4px";
       enableScrollTop();
     }
-    tempListen(window, "beforeunload", async (event) => {
-      /*
+    tempListen(window, "beforeunload", (event) => {
       let saved = true;
       let annoKeys = Object.keys(this.annotations);
       for (let i = 0; i < annoKeys.length; i++) {
@@ -536,11 +535,10 @@ modules["pages/editor"] = {
         event.preventDefault();
         event.returnValue = "";
       }
-      */
-      if (Object.keys(utils.pendingSaves).length > 0) {
+      /*if (Object.keys(utils.pendingSaves).length > 0) {
         event.preventDefault();
         event.returnValue = "";
-      }
+      }*/
     });
     closeCallback = () => {
       this.realtime.strength = 1;
@@ -3746,7 +3744,7 @@ modules["pages/editor/annotation"] = {
       }
     }, 10000); // Revert if no long update confirms save
   },
-  saveEdit: async function (annoData, render, sync) {
+  saveEdit: async function (annoData, render, sync, passedRender) {
     let editor = await getModule("pages/editor");
     let annoID = annoData._id;
     if (annoID == null) {
@@ -3755,10 +3753,10 @@ modules["pages/editor/annotation"] = {
     if (Object.keys(annoData).length < 2) {
       return; // Only the _id field, no changes
     }
-    let anno = editor.annotations[annoID] || { render: {} };
+    let anno = editor.annotations[annoID] || passedRender || { render: {} };
     if (anno.pointer != null) {
       annoID = anno.pointer;
-      anno = editor.annotations[annoID] || { render: {} };
+      anno = editor.annotations[annoID] || passedRender || { render: {} };
     }
     anno.revert = anno.revert || JSON.parse(JSON.stringify(anno.render));
     objectUpdate(annoData, anno.render);
@@ -3783,11 +3781,11 @@ modules["pages/editor/annotation"] = {
     this.debounce = true;
     let keys = Object.keys(this.pendingSaves);
     while (keys.length > 0) {
-      if (connected == false) {
-        break;
-      }
       if (skipWait != true) {
         await sleep(2500); // 1 save per 2.5 seconds
+      }
+      if (connected == false) {
+        break;
       }
       keys = Object.keys(this.pendingSaves);
       let setPendingSave = {};
@@ -3880,7 +3878,7 @@ modules["pages/editor/annotation"] = {
       annotation = editor.annotations[annoID] || { render: {} };
     }
 
-    let mutations = await this.saveEdit(data, anno, sync);
+    let mutations = await this.saveEdit(data, anno, sync, { save: true, render: {} });
     if (mutations == null) {
       return; // Nothing new to send!
     }

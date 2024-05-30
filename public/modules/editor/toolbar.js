@@ -2088,7 +2088,7 @@ modules["pages/editor/toolbar/cursor"] = {
           if (this.size[0] == 0 || this.size[1] == 0) {
             continue;
           }
-        } else if (["sticky"].includes(select.f || anno.f) == true && ["bottomright", "topleft", "topright", "bottomleft"].includes(this.tooltip) == true) {
+        } else if (["sticky", "media"].includes(select.f || anno.f) == true && ["bottomright", "topleft", "topright", "bottomleft"].includes(this.tooltip) == true) {
           preserveAspect = true;
         }
         let number;

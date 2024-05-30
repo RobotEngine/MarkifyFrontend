@@ -275,6 +275,12 @@ modules["pages/join"] = {
       setFrame("pages/editor", null, transferData);
     }
     joinButton.addEventListener("click", processJoin);
+    joinNickname.addEventListener("keydown", (event) => {
+      if (event.key == "Enter") {
+        event.preventDefault();
+        processJoin();
+      }
+    });
 
     let prevNickname = getLocalStore("nickname");
     if (prevNickname && prevNickname.length > 0) {

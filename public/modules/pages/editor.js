@@ -3817,12 +3817,16 @@ modules["pages/editor/annotation"] = {
               this.enableTimeout(anno.render._id, anno);
               anno.retry--;
             }
-            if (mutt.f == null && mutt._id.startsWith("pending_") == true) {
-              //Annotation is still being saved, try again later!
-              //anno.retry = true;
-              mutt.annoRefresh = anno;
-              setPendingSave[mutt._id] = mutt;
-              continue;
+            if (mutt._id.startsWith("pending_") == true) {
+              if (mutt.f == null) {
+                //Annotation is still being saved, try again later!
+                //anno.retry = true;
+                mutt.annoRefresh = anno;
+                setPendingSave[mutt._id] = mutt;
+                continue;
+              } else if (mutt.remove == true) {
+                continue;
+              }
             }
             mutations.push(mutt);
           } else {
@@ -3847,11 +3851,15 @@ modules["pages/editor/annotation"] = {
       if (saveSuccess == false) { // If not saved, set to try again
         for (let i = 0; i < mutations.length; i++) {
           let anno = editor.annotations[mutations[i]._id];
+          if (anno.pointer != null) {
+            anno = editor.annotations[anno.pointer];
+          }
           if (anno.retry == null) {
             anno.retry = 3;
           }
           if (anno != null && anno.retry > 0) {
             setPendingSave[mutations[i]._id] = mutations[i];
+            anno.save = true;
           }
         }
       }

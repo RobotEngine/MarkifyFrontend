@@ -739,7 +739,7 @@ modules["editor/realtime"] = {
                     }
                   }
                   if (userSelecting == true && changes == true) {
-                    cursorModule.redrawActionUI(true); // Only refresh if user is selecting
+                    cursorModule.redrawActionUI(); // Only refresh if user is selecting
                   }
                   member.selecting = selectKeys;
                   editor.updateZoom(null, true);

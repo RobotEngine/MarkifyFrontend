@@ -1711,6 +1711,9 @@ modules["pages/editor/toolbar/cursor"] = {
         await this.runActionModule(module, actionUI, preferenceTool, { rerender: true });
       }
     }
+
+    // Check size of UI:
+    
   },
   clickAction: async function (event) {
     if (event == null || event.target == null) {
@@ -1895,7 +1898,7 @@ modules["pages/editor/toolbar/cursor"] = {
           await utils.save({ ...saveUpdates[i] }, null, sync);
         }
 
-        await this.redrawActionUI(true);
+        //await this.redrawActionUI(true);
         await this.updateBox();
 
         //if (short == true) {
@@ -4598,18 +4601,26 @@ modules["pages/editor/toolbar/thickness"] = {
       input.value = selectedThickness;
     });
     input.addEventListener("input", () => {
-      selectedThickness = Math.max(Math.min(input.value, this.maxValue), this.minValue);
+      let value = input.value.replace(/\D/g, "");
+      if (value == "") {
+        value = selectedOpacity;
+      }
+      selectedThickness = Math.max(Math.min(parseInt(value), this.maxValue), this.minValue);
       updateUI(false);
     });
     input.addEventListener("change", () => {
-      selectedThickness = Math.max(Math.min(input.value, this.maxValue), this.minValue);
+      let value = input.value.replace(/\D/g, "");
+      if (value == "") {
+        value = selectedOpacity;
+      }
+      selectedThickness = Math.max(Math.min(parseInt(value), this.maxValue), this.minValue);
       updateUI();
     });
     updateUI(null, true);
   }
 };
 modules["pages/editor/toolbar/opacity"] = {
-  button: `<svg width="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_138_110" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_138_110)"> <circle cx="143.851" cy="143.354" r="65.7026" transform="rotate(-45 143.851 143.354)" stroke="white" stroke-width="24"/> <mask id="path-3-outside-1_138_110" maskUnits="userSpaceOnUse" x="24" y="24" width="133" height="134" fill="black"> <rect fill="white" x="24" y="24" width="133" height="134"/> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z"/> </mask> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z" fill="white"/> <path d="M142.557 77.5985C140.342 68.2142 135.656 59.594 128.984 52.6332C122.312 45.6725 113.897 40.6251 104.615 38.0155C95.3332 35.4058 85.5216 35.3291 76.1998 37.7932C66.878 40.2573 58.3859 45.1724 51.6058 52.0279C44.8256 58.8834 40.0047 67.4292 37.6438 76.7777C35.2829 86.1262 35.4681 95.9364 38.1802 105.189C40.8923 114.442 46.0324 122.8 53.0664 129.394C60.1005 135.989 68.772 140.58 78.1802 142.691L90 90L142.557 77.5985Z" stroke="white" stroke-width="24" mask="url(#path-3-outside-1_138_110)"/> <circle cx="143.851" cy="143.354" r="53.7026" transform="rotate(-45 143.851 143.354)" fill="white"/> <path opacity fill-rule="evenodd" clip-rule="evenodd" d="M100.45 142.99L153.625 196.165C161.903 194.641 169.892 191.162 176.85 185.729L123.487 132.366C116.884 137.592 109.031 141.307 100.45 142.99ZM132.016 123.924L185.434 177.343C190.985 170.568 194.629 162.754 196.366 154.614L142.857 101.104C141.077 109.62 137.291 117.399 132.016 123.924ZM181.824 105.381C191.106 114.662 196.279 126.496 197.346 138.623L148.583 89.8595C160.709 90.9258 172.543 96.0996 181.824 105.381ZM137.126 196.637L90.5683 150.079C92.002 161.504 97.105 172.556 105.877 181.328C114.65 190.1 125.702 195.203 137.126 196.637ZM90 36C115.579 36 137.005 53.7851 142.585 77.664C159.819 77.3339 177.158 83.7445 190.309 96.8957C215.968 122.554 215.968 164.155 190.309 189.813C164.651 215.472 123.05 215.472 97.392 189.813C84.3953 176.817 77.9818 159.73 78.1514 142.696C54.0275 137.295 36 115.753 36 90C36 60.1766 60.1766 36 90 36Z" fill="#2F2F2F"/> </g> </svg>`,
+  button: `<svg width="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_1880_2" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_1880_2)"> <circle cx="128" cy="128" r="97" fill="white" stroke="white" stroke-width="12" stroke-miterlimit="3.99393" stroke-linecap="round"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M128 37C120.924 37 114.028 37.809 107.401 39.343C107.212 39.3868 107.027 39.4368 106.844 39.493C97.4559 41.7373 88.4815 45.4622 80.2629 50.526C80.1325 50.5977 80.0033 50.6734 79.8755 50.7532C74.1892 54.3026 68.924 58.4618 64.1708 63.1399C63.9976 63.3103 63.8251 63.4815 63.6533 63.6533C58.7657 68.5408 54.4319 73.9821 50.7532 79.8755C50.6734 80.0033 50.5977 80.1325 50.526 80.2629C45.4622 88.4815 41.7374 97.4559 39.493 106.844C39.4368 107.027 39.3868 107.212 39.343 107.401C37.809 114.028 37 120.924 37 128C37 135.076 37.809 141.972 39.343 148.599C39.3868 148.788 39.4368 148.973 39.493 149.156C41.7373 158.544 45.4622 167.519 50.526 175.737C50.5977 175.868 50.6734 175.997 50.7532 176.125C54.2882 181.788 58.4282 187.033 63.0831 191.771C63.2723 191.964 63.4624 192.156 63.6533 192.347C64.1625 192.856 64.6778 193.359 65.199 193.856C69.6796 198.13 74.5961 201.951 79.8755 205.247C80.0032 205.327 80.1324 205.402 80.2628 205.474C88.4814 210.538 97.4559 214.263 106.844 216.507C107.027 216.563 107.212 216.613 107.401 216.657C114.028 218.191 120.924 219 128 219C135.076 219 141.972 218.191 148.599 216.657C152.903 215.661 155.585 211.363 154.588 207.059C153.592 202.754 149.295 200.073 144.99 201.069C139.539 202.331 133.852 203 128 203V128V53C133.852 53 139.539 53.6688 144.99 54.9308C149.295 55.9273 153.592 53.2456 154.588 48.9411C155.585 44.6367 152.903 40.3395 148.599 39.343C141.972 37.809 135.076 37 128 37ZM176.125 50.7532C172.376 48.4137 167.442 49.5555 165.102 53.3036C162.762 57.0516 163.904 61.9865 167.652 64.3261C177.373 70.3936 185.606 78.6271 191.674 88.3476C194.013 92.0957 198.948 93.2375 202.696 90.898C206.444 88.5584 207.586 83.6235 205.247 79.8755C197.889 68.0886 187.911 58.1105 176.125 50.7532ZM216.657 107.401C215.661 103.097 211.363 100.415 207.059 101.412C202.754 102.408 200.073 106.705 201.069 111.01C202.331 116.461 203 122.148 203 128C203 133.852 202.331 139.539 201.069 144.99C200.073 149.295 202.754 153.592 207.059 154.588C211.363 155.585 215.661 152.903 216.657 148.599C218.191 141.972 219 135.076 219 128C219 120.924 218.191 114.028 216.657 107.401ZM205.247 176.125C207.586 172.376 206.444 167.442 202.696 165.102C198.948 162.762 194.013 163.904 191.674 167.652C185.606 177.373 177.373 185.606 167.652 191.674C163.904 194.013 162.762 198.948 165.102 202.696C167.442 206.444 172.376 207.586 176.125 205.247C187.911 197.889 197.889 187.911 205.247 176.125Z" opacity fill="#2F2F2F"/> </g> </svg>`,
   tooltip: "Opacity",
   setButton: function (editor, button) {
     let selectKeys = Object.keys(editor.selecting);
@@ -4704,11 +4715,19 @@ modules["pages/editor/toolbar/opacity"] = {
       input.value = selectedOpacity;
     });
     input.addEventListener("input", () => {
-      selectedOpacity = Math.max(Math.min(input.value, this.maxValue), this.minValue);
+      let value = input.value.replace(/\D/g, "");
+      if (value == "") {
+        value = selectedOpacity;
+      }
+      selectedOpacity = Math.max(Math.min(parseInt(value), this.maxValue), this.minValue);
       updateUI(false);
     });
     input.addEventListener("change", () => {
-      selectedOpacity = Math.max(Math.min(input.value, this.maxValue), this.minValue);
+      let value = input.value.replace(/\D/g, "");
+      if (value == "") {
+        value = selectedOpacity;
+      }
+      selectedOpacity = Math.max(Math.min(parseInt(value), this.maxValue), this.minValue);
       updateUI();
     });
     updateUI(null, true);

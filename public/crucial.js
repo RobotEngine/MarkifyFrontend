@@ -505,6 +505,10 @@ function randomString(l) {
   return s;
 }
 function promptLogin(page, service) {
+  if (window.promptLoginActivate == true) {
+    return;
+  }
+  window.promptLoginActivate = true;
   let randomStr = randomString(20);
   setLocalStore("state", randomStr);
   modifyParams("state");

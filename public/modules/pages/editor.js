@@ -1301,7 +1301,7 @@ modules["pages/editor"] = {
 
     this.sessionID = body.session._id;
     this.sessionToken = body.session.token;
-    this.session = (this.sessionID + ";" + this.sessionToken);
+    this.session = this.sessionID + ";" + this.sessionToken;
 
     // Resync unsaved annotations:
     if (window.resync != null && window.resync.lesson == lessonID && this.getSelf().access > 0) {

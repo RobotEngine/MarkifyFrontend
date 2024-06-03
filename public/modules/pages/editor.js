@@ -1304,7 +1304,7 @@ modules["pages/editor"] = {
     this.session = (this.sessionID + ";" + this.sessionToken);
 
     // Resync unsaved annotations:
-    if (window.resync != null && window.resync.lesson == lessonID) {
+    if (window.resync != null && window.resync.lesson == lessonID && this.getSelf().access > 0) {
       let resyncKeys = Object.keys(window.resync.annotations);
       for (let i = 0; i < resyncKeys.length; i++) {
         let anno = window.resync.annotations[resyncKeys[i]];

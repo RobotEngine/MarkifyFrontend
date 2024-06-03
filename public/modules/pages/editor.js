@@ -1241,8 +1241,7 @@ modules["pages/editor"] = {
           }
           // IF AFTER, GOES AHEAD AND UPDATES THE ANNOTATION AND REMOVES REVERT CLOCK
           existingAnno.render = anno;
-          clearTimeout(existingAnno.expire);
-          delete existingAnno.expire;
+          //clearTimeout(existingAnno.expire);
           delete existingAnno.revert;
           //objectUpdate(existingAnno.render, anno);
           utils.render(renderObj, gottenRender, true);
@@ -1310,7 +1309,7 @@ modules["pages/editor"] = {
       for (let i = 0; i < resyncKeys.length; i++) {
         let anno = window.resync.annotations[resyncKeys[i]];
         if (anno.save == true && (anno.render._id.includes("pending_") == false || anno.render.remove != true)) {
-          clearTimeout(anno.expire);
+          delete anno.expire;
           this.annotations[anno.render._id] = anno;
           utils.pendingSaves[anno.render._id] = { ...utils.pendingSaves[anno.render._id], ...anno.render };
         }
@@ -3705,12 +3704,69 @@ modules["pages/editor/annotation"] = {
       allSelections[i].remove();
     }
   },
+  timeoutAnnotations: [],
   enableTimeout: async function (annoID, anno, render, collab) {
     if (anno == null) {
       return;
     }
+    if (anno.expire == null) {
+      this.timeoutAnnotations.push(anno);
+    }
+    anno.expire = getEpoch() + 10000; // 10 seconds until expire
+    anno.collab = collab == true;
+    if (this.runningTimeout == true) {
+      return;
+    }
+    this.runningTimeout = true;
     let editor = await getModule("pages/editor");
     let page = editor.page;
+    while (this.timeoutAnnotations.length > 0) {
+      await sleep(10000);
+      for (let i = 0; i < this.timeoutAnnotations.length; i++) {
+        let annotation = this.timeoutAnnotations[i];
+        if (annotation.expire > getEpoch()) {
+          continue;
+        }
+        
+        // Remove annotation since it was reset:
+        delete annotation.expire;
+        this.timeoutAnnotations.splice(i, 1);
+        i--;
+        delete annotation.collab;
+
+        if (annotation.pending != null) {
+          delete editor.annotations[annotation.pending];
+          delete annotation.pending;
+        }
+        if (connected == false && annotation.collab != true) {
+          return;
+        }
+        if (editor.page != page) {
+          return;
+        }
+        /*
+        if (editor.selecting[annotation.render._id] != null) {
+          return;
+        }
+        */
+        if (annotation.render._id.includes("pending_") == false) { // Means it's a new anno
+          delete annotation.retry;
+          if (annotation.revert != null) {
+            annotation.render = annotation.revert;
+            delete annotation.revert;
+            this.render(annotation.render);
+          }
+        } else {
+          this.removeAnnotation(annotation.render._id);
+          delete editor.annotations[annotation.render._id];
+        }
+        if (editor.updateZoom) {
+          editor.updateZoom(false, true);
+        }
+      }
+    }
+    this.runningTimeout = false;
+    /*
     clearTimeout(anno.expire);
     anno.expire = setTimeout(() => {
       if (anno.pending != null) {
@@ -3723,11 +3779,6 @@ modules["pages/editor/annotation"] = {
       if (editor.page != page) {
         return;
       }
-      /*
-      if (editor.selecting[anno.render._id] != null) {
-        return;
-      }
-      */
       if (anno.render._id.includes("pending_") == false) { // Means its a new anno
         delete anno.retry;
         if (anno.revert != null) {
@@ -3743,6 +3794,7 @@ modules["pages/editor/annotation"] = {
         editor.updateZoom(false, true);
       }
     }, 10000); // Revert if no long update confirms save
+    */
   },
   saveEdit: async function (annoData, render, sync, passedRender) {
     let editor = await getModule("pages/editor");

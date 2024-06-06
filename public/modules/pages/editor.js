@@ -394,11 +394,11 @@ modules["pages/editor"] = {
         toolbar.style.transition = ".3s";
       }
       */
-      if (this.realtime.observing != null) {
+      /*if (this.realtime.observing != null) {
         toolbar.setAttribute("disabled", "");
       } else {
         toolbar.removeAttribute("disabled");
-      }
+      }*/
       if (access < 2) {
         share.style.display = "none";
       } else {
@@ -764,7 +764,7 @@ modules["pages/editor"] = {
             if (member._id == this.sessionID) { // Self
               if (body.access != null) {
                 if (body.access > 0) { // Alert editor
-                  this.realtime.module.exitObserve(); // Exit observe mode
+                  //this.realtime.module.exitObserve(); // Exit observe mode
                   alertModule.open("info", "<b>You're Now an Editor</b>You've been granted editing access to markup the lesson!");
                 }
                 this.updateInterface();

@@ -2,7 +2,7 @@ let serverURL = window.serverURL || "https://markify.exotek.co/api/";
 //let serverURL = "http://localhost:3000/api/";
 let assetURL = window.mediaURL || "https://markifyapp.s3.amazonaws.com/";
 
-const version = "0.11.13"; // Big Update . Small Feature Release . Bug Fix
+const version = "0.11.14"; // Big Update . Small Feature Release . Bug Fix
 
 const socket = new SimpleSocket({
   project_id: "62088fbdfc22489578e94822",
@@ -1349,6 +1349,19 @@ modules["dropdowns/account"] = {
   <div class="accountDropLine"></div>
   <button class="accountDrop accountManage" close dropdown="dropdowns/account/report" dropdowntitle="Report Bugs & Feedback"><div>Report Bug</div><img src="./images/tooltips/account/report.svg"></button>
   <button class="accountDrop accountManage" close modal="modals/tutorial" modaltitle="Resources"><div>Resources</div><img src="./images/tooltips/account/question.svg"></button>
+  <div class="accountDropLine"></div>
+  <div class="accountSocialHolder">
+    <a href="https://twitter.com/markifytool" target="_blank"><img src="./images/launch/socials/twitter.svg"></a>
+    <a href="https://www.linkedin.com/company/exotekco" target="_blank"><img src="./images/launch/socials/linkedin.svg"></a>
+    <a href="https://www.youtube.com/@exotekco" target="_blank"><img src="./images/launch/socials/youtube.svg"></a>
+  </div>
+  <div class="accountPolicyHolder">
+    <a href="https://exotek.co/tos" target="_blank">Terms</a>
+    <a href="https://exotek.co/privacy" target="_blank">Privacy</a>
+  </div>
+  <div class="accountCopyrightHolder">
+    <a href="https://exotek.co" target="_blank">©2024 Exotek LLC</a>
+  </div>
   `,
   css: {
     ".accountDrop": `display: flex; width: 100%; padding: 6px; border-radius: 8px; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s; --setBackground: var(--theme)`,
@@ -1357,7 +1370,14 @@ modules["dropdowns/account"] = {
     ".accountDrop img": `width: 24px; height: 24px; margin-left: 6px; object-fit: cover; transition: .15s`,
     ".accountDrop:hover": `background: var(--setBackground); color: #fff`,
     ".accountDrop:hover img": `filter: brightness(0) invert(1)`,
-    ".accountDropLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`
+    ".accountDropLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`,
+    ".accountSocialHolder": `display: flex; flex-wrap: wrap; height: fit-content; padding: 3px; background: #fff; border-radius: 12px; justify-content: space-evenly`,
+    ".accountSocialHolder a": `width: 30px; height: 30px; margin: 3px`,
+    ".accountSocialHolder a img": `width: 100%; height: 100%`,
+    ".accountPolicyHolder": `display: flex; flex-wrap: wrap; justify-content: space-evenly; align-items: center`,
+    ".accountPolicyHolder a": `margin: 4px; color: var(--darkGray); font-size: 16px; font-weight: 600; text-decoration: none`,
+    ".accountCopyrightHolder": `display: flex; flex-wrap: wrap; margin: 2px 0; justify-content: center; align-items: center`,
+    ".accountCopyrightHolder a": `color: var(--darkGray); font-size: 14px; font-weight: 500; text-decoration: none`
   },
   js: function (frame) {
     frame.querySelector(".accountManage").addEventListener("click", function () {

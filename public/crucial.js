@@ -2,7 +2,7 @@ let serverURL = window.serverURL || "https://markify.exotek.co/api/";
 //let serverURL = "http://localhost:3000/api/";
 let assetURL = window.mediaURL || "https://markifyapp.s3.amazonaws.com/";
 
-const version = "0.11.16"; // Big Update . Small Feature Release . Bug Fix
+const version = "0.11.17"; // Big Update . Small Feature Release . Bug Fix
 
 const socket = new SimpleSocket({
   project_id: "62088fbdfc22489578e94822",
@@ -1353,7 +1353,7 @@ modules["dropdowns/account"] = {
   <div class="accountSocialHolder">
     <a href="https://twitter.com/markifytool" target="_blank"><img src="./images/launch/socials/twitter.svg"></a>
     <a href="https://www.linkedin.com/company/exotekco" target="_blank"><img src="./images/launch/socials/linkedin.svg"></a>
-    <a href="https://www.youtube.com/@exotekco" target="_blank"><img src="./images/launch/socials/youtube.svg"></a>
+    <a href="https://www.youtube.com/@markifyexotek" target="_blank"><img src="./images/launch/socials/youtube.svg"></a>
   </div>
   <div class="accountPolicyHolder">
     <a href="https://exotek.co/tos" target="_blank">Terms</a>

@@ -2,7 +2,7 @@ let serverURL = window.serverURL || "https://markify.exotek.co/api/";
 //let serverURL = "http://localhost:3000/api/";
 let assetURL = window.mediaURL || "https://markifyapp.s3.amazonaws.com/";
 
-const version = "0.11.15"; // Big Update . Small Feature Release . Bug Fix
+const version = "0.11.16"; // Big Update . Small Feature Release . Bug Fix
 
 const socket = new SimpleSocket({
   project_id: "62088fbdfc22489578e94822",
@@ -864,10 +864,10 @@ modules["dropdown"] = {
         dropdown.style.height = button.offsetHeight + "px";
       }
 
-      if (button != null && button.style.display != "none") {
+      if (button != null && button.offsetParent != null) {
         let buttonRect = button.getBoundingClientRect();
         //if (buttonRect.top > 0) {
-          dropdown.style.top = buttonRect.top + "px";
+        dropdown.style.top = buttonRect.top + "px";
         //}
         dropdown.style.left = buttonRect.left + (button.offsetWidth / 2) - (dropdown.offsetWidth / 2) + "px";
       }

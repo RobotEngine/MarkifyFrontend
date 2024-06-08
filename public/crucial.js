@@ -611,6 +611,8 @@ async function sendRequest(method, path, body, extra) {
       case 401:
         await renewToken();
         break;
+      case 304:
+        return [response.status, null, { took: reqTime }];
       default:
         let body = await response.json();
         if ((extra.allowError || []).includes(response.status) == false) {

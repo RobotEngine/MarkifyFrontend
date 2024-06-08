@@ -1169,6 +1169,10 @@ modules["pages/editor/toolbar/cursor"] = {
         //  continue;
         //}
         let annoData = editor.annotations[annoID] || { render: {} };
+        if (annoData.pointer != null) {
+          annoID = annoData.pointer;
+          annoData = editor.annotations[annoID] || { render: {} };
+        }
         let selection = editor.selecting[annoID];
         let merged = { ...annoData.render, ...selection };
         let anno = content.querySelector('.eAnnotation[anno="' + annoID + '"]');
@@ -2856,6 +2860,9 @@ modules["pages/editor/toolbar/highlighter"] = {
       if (page != null && page.hasAttribute("pageid") == true) {
         newAnno.page = page.getAttribute("pageid");
       }
+      if (mouseDown() == false) {
+        return;
+      }
       [markup, anno] = await utils.render(newAnno);
       editor.selecting[tempID] = markup;
     }
@@ -3040,6 +3047,9 @@ modules["pages/editor/toolbar/understrike"] = {
       };
       if (page != null && page.hasAttribute("pageid") == true) {
         newAnno.page = page.getAttribute("pageid");
+      }
+      if (mouseDown() == false) {
+        return;
       }
       [markup, anno] = await utils.render(newAnno);
       editor.selecting[tempID] = markup;
@@ -3340,6 +3350,9 @@ modules["pages/editor/toolbar/pen"] = {
       };
       if (page != null && page.hasAttribute("pageid") == true) {
         newAnno.page = page.getAttribute("pageid");
+      }
+      if (mouseDown() == false) {
+        return;
       }
       [draw, anno] = await utils.render(newAnno);
       editor.selecting[tempID] = draw;

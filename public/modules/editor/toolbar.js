@@ -1824,7 +1824,7 @@ modules["pages/editor/toolbar/cursor"] = {
       frame: holder,
       module: this,
       updateActionUI: () => { this.updateActionUI(); },
-      saveSelecting: async (set, short, saveHistory, lastCaret) => {
+      saveSelecting: async (set, short, saveHistory, lastCaret, refreshBox) => {
         let editor = await getModule("pages/editor");
         let utils = await getModule("pages/editor/annotation");
         let selectKeys = Object.keys(editor.selecting);
@@ -1903,7 +1903,9 @@ modules["pages/editor/toolbar/cursor"] = {
         }
 
         //await this.redrawActionUI(true);
-        await this.updateBox();
+        if (refreshBox != false) {
+          await this.updateBox();
+        }
 
         //if (short == true) {
           await utils.forceShort();
@@ -4576,8 +4578,8 @@ modules["pages/editor/toolbar/thickness"] = {
       if (isModify == false) {
         editor.toolbar.updateToolbar(isModify);
       } else if (updateVal != null || noPref != true) {
-        await extra.saveSelecting({ t: selectedThickness });
-        cursorModule.updateBox();
+        await extra.saveSelecting({ t: selectedThickness }, null, null, null, false);
+        cursorModule.updateBox(true);
         extra.updateToolActions(extra.frame);
       }
     }
@@ -4588,6 +4590,7 @@ modules["pages/editor/toolbar/thickness"] = {
       if (mouseDown() == false || event.target.closest(".eSubToolThicknessHolder") == null) {
         app.style.userSelect = "unset";
         sliderEnabled = false;
+        cursorModule.updateBox();
         return;
       }
       let barRect = slider.getBoundingClientRect();

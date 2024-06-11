@@ -2732,8 +2732,8 @@ modules["pages/editor/toolbar/drag"] = {
     addEvent(content, "touchstart", enableSelect, { passive: false });
     addEvent(content, "mousemove", moveSelect, { passive: false });
     addEvent(content, "touchmove", moveSelect, { passive: false });
-    addEvent(content, "mouseup", disableSelect, { passive: false });
-    addEvent(content, "touchend", disableSelect, { passive: false });
+    addEvent(editor.page, "mouseup", disableSelect, { passive: false });
+    addEvent(editor.page, "touchend", disableSelect, { passive: false });
 
     addEvent(window, "scroll", () => { cursorModule.updateActionUI(); }, { passive: true });
     addEvent(window, "resize", () => { this.updateActionUI(); }, { passive: true });

@@ -1032,7 +1032,7 @@ modules["dropdowns/editor/members"] = {
     ".eMemberSectionActions": `flex-wrap: wrap; width: calc(100% - 12px); padding: 6px; margin-top: 6px; justify-content: space-around`,
     ".eMemberSectionActions button": `display: flex; flex-direction: column; width: 86.33px; padding: 6px 12px; align-items: center; border-radius: 14px; color: var(--themeColor); overflow: visible`,
     ".eMemberSectionActions button img": `width: 55px; height: 55px; transition: .15s`,
-    ".eMemberSectionActions button div": `margin-top: 6px; font-size: 14px; font-weight: 600`,
+    ".eMemberSectionActions button div": `margin-top: 6px; font-size: 14px; font-weight: 600; white-space: nowrap`,
     ".eMemberSectionActions button:hover img": `transform: scale(1.15) translateY(-2px)`,
     ".eMemberSectionActions button:active": `background: var(--themeColor); color: #fff`,
     ".eMemberSectionActions button:active img": `filter: brightness(0) invert(1); transform: scale(1)`
@@ -1311,6 +1311,12 @@ modules["dropdowns/editor/members"] = {
     }
     window.closeDropdown = closeDropdown;
 
+    let editorButton;
+    let handButton;
+    let observeButton;
+    let spotlightButton;
+    let kickButton;
+    
     let openDropdown = (tile, update) => {
       let member = {};
       if (tile.parentElement.className == "eMemberTile") {
@@ -1365,6 +1371,28 @@ modules["dropdowns/editor/members"] = {
           observeButton.style.opacity = .5;
         }
       }
+      editor.realtime.module.checkSpotlightUpdate = (fromSelf) => {
+        let member = editor.members[memberFrame.getAttribute("memberid")] || {};
+        let wasShown = spotlightButton.hasAttribute("shown");
+        if (member._id == editor.sessionID && member.access > 3 && editor.memberCount > 1) {
+          spotlightButton.style.display = "flex";
+          if (fromSelf != true && wasShown == false) {
+            spotlightButton.setAttribute("shown", "");
+            updateDropdownPosition();
+          }
+        } else {
+          spotlightButton.style.display = "none";
+          if (fromSelf != true && wasShown == true) {
+            spotlightButton.removeAttribute("shown");
+            updateDropdownPosition();
+          }
+        }
+        if (editor.realtime.strength > 2) {
+          spotlightButton.style.opacity = 1;
+        } else {
+          spotlightButton.style.opacity = .5;
+        }
+      }
       if (memberFrameHolder == null) {
         dropdown.insertAdjacentHTML("beforeend", `<div class="eMemberFrameHolder">
         <div class="eMemberFrame">
@@ -1413,6 +1441,10 @@ modules["dropdowns/editor/members"] = {
                   <img>
                   <div>Observe</div>
                 </button>
+                <button spotlight style="--themeColor: var(--purple)" title="Bring members to your location.">
+                  <img src="./images/editor/members/spotlight.svg">
+                  <div>Spotlight</div>
+                </button>
                 <button kick style="--themeColor: var(--error)" title="Revoke all viewing and editing privileges.">
                   <img src="./images/editor/members/kick.svg">
                   <div>Kick</div>
@@ -1425,8 +1457,12 @@ modules["dropdowns/editor/members"] = {
         memberFrameHolder.querySelector(".eMemberClose").addEventListener("click", closeDropdown);
         memberFrameHolder.offsetHeight;
 
-        let editorButton = memberFrameHolder.querySelector(".eMemberSectionActions button[editor]");
-        editorButton.addEventListener("click", async function(event) {
+        editorButton = memberFrameHolder.querySelector(".eMemberSectionActions button[editor]");
+        handButton = memberFrameHolder.querySelector(".eMemberSectionActions button[hand]");
+        observeButton = memberFrameHolder.querySelector(".eMemberSectionActions button[observe]");
+        spotlightButton = memberFrameHolder.querySelector(".eMemberSectionActions button[spotlight]");
+        kickButton = memberFrameHolder.querySelector(".eMemberSectionActions button[kick]");
+        editorButton.addEventListener("click", async (event) => {
           editorButton.setAttribute("disabled", "");
           let frame = event.target.closest(".eMemberFrame");
           let memberid = frame.getAttribute("memberid");
@@ -1468,8 +1504,7 @@ modules["dropdowns/editor/members"] = {
           } */
           editorButton.removeAttribute("disabled");
         });
-        let handButton = memberFrameHolder.querySelector(".eMemberSectionActions button[hand]");
-        handButton.addEventListener("click", async function(event) {
+        handButton.addEventListener("click", async (event) => {
           handButton.setAttribute("disabled", "");
           let frame = event.target.closest(".eMemberFrame");
           let memberid = frame.getAttribute("memberid");
@@ -1492,8 +1527,7 @@ modules["dropdowns/editor/members"] = {
           */
           handButton.removeAttribute("disabled");
         });
-        let observeButton = memberFrameHolder.querySelector(".eMemberSectionActions button[observe]");
-        observeButton.addEventListener("click", async function(event) {
+        observeButton.addEventListener("click", async (event) => {
           let memberid = event.target.closest(".eMemberFrame").getAttribute("memberid");
           if (editor.realtime.observing == memberid) {
             editor.realtime.module.exitObserve();
@@ -1543,8 +1577,27 @@ modules["dropdowns/editor/members"] = {
           }
           observeButton.removeAttribute("disabled");
         });
-        let kickButton = memberFrameHolder.querySelector(".eMemberSectionActions button[kick]");
-        kickButton.addEventListener("click", async function(event) {
+        spotlightButton.addEventListener("click", async (event) => {
+          let memberid = event.target.closest(".eMemberFrame").getAttribute("memberid");
+          let member = editor.members[memberid];
+          if (member == null) {
+            (await getModule("dropdown")).close();
+            return;
+          }
+          let alertModule = await getModule("alert");
+          if (editor.realtime.strength < 3) {
+            alertModule.open("error", `<b>Unable to Connect</b>Your connection is too weak to use spotlight.`);
+            return;
+          }
+          if (editor.realtime.observing != null) {
+            editor.realtime.module.exitObserve();
+          }
+          spotlightButton.setAttribute("disabled", "");
+          alertModule.open("info", `<b>Spotlight</b>Letting other's know about the spotlight...`);
+          await sendRequest("GET", "lessons/members/observe/spotlight?member=" + memberid, null, { session: editor.session });
+          spotlightButton.removeAttribute("disabled");
+        });
+        kickButton.addEventListener("click", async (event) => {
           kickButton.setAttribute("disabled", "");
           let frame = event.target.closest(".eMemberFrame");
           let memberid = frame.getAttribute("memberid");
@@ -1635,10 +1688,6 @@ modules["dropdowns/editor/members"] = {
       } else {
         observe.style.display = "none";
       }
-      let editorButton = memberFrameHolder.querySelector(".eMemberSectionActions button[editor]");
-      let handButton = memberFrameHolder.querySelector(".eMemberSectionActions button[hand]");
-      let observeButton = memberFrameHolder.querySelector(".eMemberSectionActions button[observe]");
-      let kickButton = memberFrameHolder.querySelector(".eMemberSectionActions button[kick]");
       editorButton.removeAttribute("disabled");
       handButton.removeAttribute("disabled");
       observeButton.removeAttribute("disabled");
@@ -1681,6 +1730,7 @@ modules["dropdowns/editor/members"] = {
       } else {
         observeButton.style.display = "none";
       }
+      editor.realtime.module.checkSpotlightUpdate(true);
       memberFrameHolder.style.opacity = 1;
       memberFrame.style.transform = "scale(1)";
       updateDropdownPosition();

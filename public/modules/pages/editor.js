@@ -479,7 +479,7 @@ modules["pages/editor"] = {
       loadScript("./modules/editor/export.js");
     }
 
-    function enableScrollTop() {
+    let enableScrollTop = () => {
       if (eTop.scrollWidth > eTop.clientWidth - 1) {
         if (eTop.scrollLeft > 0) {
           eTopScrollLeft.style.opacity = 1;
@@ -606,6 +606,10 @@ modules["pages/editor"] = {
         } else {
           count.style.display = "none";
         }
+      }
+      enableScrollTop();
+      if (this.realtime.module != null && this.realtime.module.checkSpotlightUpdate != null) {
+        this.realtime.module.checkSpotlightUpdate();
       }
     }
 
@@ -1116,6 +1120,55 @@ modules["pages/editor"] = {
             if (this.selecting[body.reaction.annotation] != null && this.newReactionUpdate != null) {
               this.newReactionUpdate(body);
             }
+          }
+          break;
+        case "spotlight":
+          if (this.realtime.module == null) {
+            return;
+          }
+          if (body.member == this.sessionID) {
+            return;
+          }
+          if (body.member == this.realtime.observing) {
+            return;
+          }
+          let member = this.members[body.member];
+          if (member == null) {
+            return;
+          }
+          if (this.realtime.strength < 3) {
+            return;
+          }
+          if (member.observe != null) {
+            member.observe = null;
+          }
+          if (member.weak == true) {
+            return;
+          }
+          let prevObserve = this.realtime.observing;
+          this.realtime.observing = body.member;
+          this.realtime.module.setShortSub(this.visiblePages);
+          if (this.realtime.module.observeButtonUpdate != null) {
+            this.realtime.module.observeButtonUpdate();
+          }
+          alertModule.close(this.realtime.observeLoading);
+          clearTimeout(this.realtime.observeTimeout);
+          let [code] = await sendRequest("GET", "lessons/members/observe?member=" + body.member, null, { session: this.session });
+          if (code == 200) {
+            this.realtime.observeLoading = await alertModule.open("info", `<b>Connecting to Member</b>Connecting to ${member.name}'s screen from spotlight!`, { time: "never" });
+            this.realtime.observeTimeout = setTimeout(() => {
+              alertModule.close(this.realtime.observeLoading);
+              alertModule.open("error", `<b>Observe Timeout</b>Failed to connect to their screen, please try again later...`);
+              this.realtime.module.exitObserve();
+            }, 10000);
+          } else {
+            if (prevObserve != null) {
+              this.realtime.observing = prevObserve;
+              this.realtime.module.exitObserve();
+            }
+            this.realtime.observing = null;
+            this.realtime.module.setShortSub(this.visiblePages);
+            this.realtime.module.observeButtonUpdate();
           }
       }
 

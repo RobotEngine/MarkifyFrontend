@@ -1160,7 +1160,7 @@ modules["pages/editor"] = {
               alertModule.close(this.realtime.observeLoading);
               alertModule.open("error", `<b>Observe Timeout</b>Failed to connect to their screen, please try again later...`);
               this.realtime.module.exitObserve();
-            }, 10000);
+            }, 20000);
           } else {
             if (prevObserve != null) {
               this.realtime.observing = prevObserve;

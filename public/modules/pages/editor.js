@@ -865,6 +865,9 @@ modules["pages/editor"] = {
             if (body.settings.forceLogin == false && access < 2) {
               setFrame("pages/join");
             }
+            if (body.settings.disabled != null && this.toolbar != null) {
+              this.toolbar.checkToolToggle();
+            }
           }
           /*
           if (body.settings && body.settings.hasOwnProperty("forceLogin")) {
@@ -1635,6 +1638,10 @@ modules["pages/editor"] = {
     this.updatePages = null;
 
     this.zoom = 1;
+
+    if (this.toolbar != null) {
+      this.toolbar.checkToolToggle();
+    }
 
     switch (this.lesson.type) {
       case "standard":

@@ -45,6 +45,7 @@ modules["editor/toolbar"] = {
     ".eTool[selected][option] > div": `background: var(--secondary)`,
     ".eTool[selecthighlight] > div": `background: var(--theme); border-top-right-radius: 0px !important; border-bottom-right-radius: 0px !important`,
     ".eTool[selecthighlight]:active > div": `border-radius: 15.5px !important`,
+    ".eTool[off]": `opacity: 0.5`,
 
     ".eTool[soon]": `opacity: 0.5`, // TEMP CODE
 
@@ -265,6 +266,7 @@ modules["editor/toolbar"] = {
   },
   js: async function (frame) {
     let editor = await getModule("pages/editor");
+    let alertModule = await getModule("alert");
     editor.toolbar = this;
 
     frame.style.maxHeight = "calc(100vh - 148px)";
@@ -278,7 +280,7 @@ modules["editor/toolbar"] = {
     frame.setAttribute("keeptooltip", "");
 
     let content = editor.page.querySelector(".eContent");
-
+    
     let subTools = frame.querySelector(".eSubToolHolder");
     let subToolContentHolder = subTools.querySelector(".eSubToolContentHolder");
     let subToolContentScroll = subTools.querySelector(".eSubToolContentScroll");
@@ -453,6 +455,10 @@ modules["editor/toolbar"] = {
         remEvent.parent.removeEventListener(remEvent.name, remEvent.listener);
       }
       toolEvents = [];
+      if (this.endToolEvent != null) {
+        this.endToolEvent();
+        this.endToolEvent = null;
+      }
       body.style.removeProperty("user-select");
       editor.page.style.removeProperty("touch-action");
       editor.page.removeAttribute("enabled");
@@ -765,9 +771,22 @@ modules["editor/toolbar"] = {
       if (element.hasAttribute("soon")) { // TEMP CODE
         return;
       }
+      if (element.hasAttribute("off")) {
+        alertModule.open("warning", "<b>Tool Toggle</b>The lesson owner has disabled this tool.");
+        return;
+      }
       if (element.hasAttribute("noselect") == true) {
         return;
       }
+      let setToolID = element.getAttribute("tool");
+      if (setToolID != null) {
+        let self = editor.getSelf();
+        let disabledTools = (editor.lesson.settings || {}).disabled || [];
+        if (self.access < 4 && disabledTools.includes(setToolID) == true) {
+          return;
+        }
+      }
+
       let lastSelectedQuery = "button[selected]";
       if (element.hasAttribute("option") == true) {
         lastSelectedQuery += "[option]";
@@ -778,7 +797,7 @@ modules["editor/toolbar"] = {
       }
       element.setAttribute("selected", "");
       if (element.hasAttribute("tool") == true) {
-        selectedToolID = element.getAttribute("tool");
+        selectedToolID = setToolID;
         await showSubtoolUI(element);
         //this.currentToolModule = element.getAttribute("module");
       } else if (element.hasAttribute("subtool") == true) {
@@ -825,6 +844,28 @@ modules["editor/toolbar"] = {
       editor.savePreferences();
     }
     this.updateToolbar();
+
+    let toolElements = frame.querySelectorAll(".eTool[tool]");
+    this.checkToolToggle = () => {
+      if (editor.lesson == null) {
+        return;
+      }
+      let self = editor.getSelf();
+      let disabledTools = (editor.lesson.settings || {}).disabled || [];
+      for (let i = 0; i < toolElements.length; i++) {
+        let tool = toolElements[i];
+        if (self.access > 3 || disabledTools.includes(tool.getAttribute("tool")) == false) {
+          tool.removeAttribute("off");
+        } else {
+          tool.setAttribute("off", "");
+        }
+      }
+      if (disabledTools.includes(selectedToolID) == true) {
+        alertModule.open("warning", "<b>Tool Toggle</b>Your current tool was disabled by the lesson owner.");
+        this.setCurrentTool(frame.querySelector('.eTool[tool="select"]'));
+      }
+    }
+    this.checkToolToggle();
 
     // UNDO / REDO
     let undoButton = editor.page.querySelector(".eUndo");
@@ -2992,6 +3033,7 @@ modules["pages/editor/toolbar/highlighter"] = {
     addEvent(content, "touchmove", moveMarkup, { passive: false });
     addEvent(content, "mouseup", disableMarkup, { passive: false });
     addEvent(content, "touchend", disableMarkup, { passive: false });
+    editor.toolbar.endToolEvent = disableMarkup;
   }
 };
 // UNDERLINE TOOL
@@ -3135,6 +3177,7 @@ modules["pages/editor/toolbar/understrike"] = {
     addEvent(content, "touchmove", moveMarkup, { passive: false });
     addEvent(content, "mouseup", disableMarkup, { passive: false });
     addEvent(content, "touchend", disableMarkup, { passive: false });
+    editor.toolbar.endToolEvent = disableMarkup;
   }
 };
 
@@ -3465,6 +3508,7 @@ modules["pages/editor/toolbar/pen"] = {
     addEvent(content, "touchmove", moveDraw, { passive: false });
     addEvent(content, "mouseup", disableDraw, { passive: false });
     addEvent(content, "touchend", disableDraw, { passive: false });
+    editor.toolbar.endToolEvent = disableDraw;
   }
 };
 // ERASER TOOL
@@ -4907,10 +4951,31 @@ modules["pages/editor/toolbar/style"] = {
 modules["pages/editor/toolbar/duplicate"] = {
   button: `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_673_41" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_673_41)"> <path fill-rule="evenodd" clip-rule="evenodd" d="M73 65H133C137.418 65 141 68.5817 141 73V94H153V73C153 61.9543 144.046 53 133 53H73C61.9543 53 53 61.9543 53 73V133C53 144.046 61.9543 153 73 153H94V141H73C68.5817 141 65 137.418 65 133V73C65 68.5817 68.5817 65 73 65Z" fill="white"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M133 21H73C44.2812 21 21 44.2812 21 73V133C21 161.719 44.2812 185 73 185H94V153H73C61.9543 153 53 144.046 53 133V73C53 61.9543 61.9543 53 73 53H133C144.046 53 153 61.9543 153 73V94H185V73C185 44.2812 161.719 21 133 21Z" fill="white"/> <rect x="87" y="87" width="132" height="132" rx="36" stroke="white" stroke-width="32"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M133 33H73C50.9086 33 33 50.9086 33 73V133C33 155.091 50.9086 173 73 173H94V153H73C61.9543 153 53 144.046 53 133V73C53 61.9543 61.9543 53 73 53H133C144.046 53 153 61.9543 153 73V94H173V73C173 50.9086 155.091 33 133 33Z" fill="#2F2F2F"/> <rect x="109" y="109" width="88" height="88" rx="14" stroke="white" stroke-width="12"/> <path d="M125 153H182" stroke="white" stroke-width="30" stroke-linecap="round"/> <path d="M153 181L153 124" stroke="white" stroke-width="30" stroke-linecap="round"/> <path d="M125 153H182" stroke="#2F2F2F" stroke-width="15" stroke-linecap="round"/> <path d="M153 181L153 124" stroke="#2F2F2F" stroke-width="15" stroke-linecap="round"/> <rect x="93" y="93" width="120" height="120" rx="30" stroke="#2F2F2F" stroke-width="20"/> </g> </svg>`,
   tooltip: "Duplicate",
+  /*setButton: async function (editor, button) {
+    button.style.display = "none";
+    let self = editor.getSelf();
+    if (self.access > 3) {
+      button.style.removeProperty("display");
+      return;
+    }
+    let disabledTools = (editor.lesson.settings || {}).disabled || [];
+    let selectKeys = Object.keys(editor.selecting);
+    for (let i = 0; i < selectKeys.length; i++) {
+      let selectID = selectKeys[i];
+      let anno = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+      if (disabledTools.includes(anno.f) == true) {
+        continue;
+      }
+      button.style.removeProperty("display");
+      break;
+    }
+  },*/
   js: async function (frame, toolID, extra) {
     let editor = await getModule("pages/editor");
     let utils = await getModule("pages/editor/annotation");
     let cursor = await getModule("pages/editor/toolbar/cursor");
+    //let self = editor.getSelf();
+    //let disabledTools = (editor.lesson.settings || {}).disabled || [];
     let selectKeys = Object.keys(editor.selecting);
 
     let newSelect = {};
@@ -4920,6 +4985,9 @@ modules["pages/editor/toolbar/duplicate"] = {
       let selectID = selectKeys[i];
       let tempID = utils.tempID();
       let newAnno = JSON.parse(JSON.stringify(({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {}));
+      /*if (self.access < 4 && disabledTools.includes(newAnno.f) == true) {
+        continue;
+      }*/
       newAnno._id = tempID;
       newAnno.p = newAnno.p || [0, 0];
       newAnno.p[0] += 50;

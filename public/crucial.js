@@ -1,5 +1,5 @@
-let serverURL = window.serverURL || "https://api.markifyapp.com/";
-//let serverURL = "http://localhost:3000/api/";
+//let serverURL = window.serverURL || "https://api.markifyapp.com/";
+let serverURL = "http://localhost:3000/api/";
 let assetURL = window.mediaURL || "https://markifyapp.s3.amazonaws.com/";
 
 const version = "0.11.21"; // Big Update . Small Feature Release . Bug Fix

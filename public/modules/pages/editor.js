@@ -3098,7 +3098,7 @@ modules["pages/editor/annotation"] = {
       return;
     }
     let editor = await getModule("pages/editor");
-    let { _id, f, page, p, s, c, i, t, b, o, d, done, remove, sync, textfit, sig } = data;
+    let { _id, f, page, p, s, r, c, i, t, b, o, d, done, remove, sync, textfit, sig } = data;
     let [x, y] = p || [];
     let size = s || [];
     let [width, height] = [size[0], size[1]];
@@ -3716,15 +3716,19 @@ modules["pages/editor/annotation"] = {
     if (anno != null) {
       //console.log((sync || getEpoch()) - editor.lesson.created)
       anno.style.zIndex = Math.round(((sync || getEpoch()) / 2000000000000) * 2147483647);
-      if (size[0] < 0 && size[1] < 0) {
-        anno.style.transform = "scale(-1)";
-      } else if (size[0] < 0) {
-        anno.style.transform = "scale(-1,1)";
-      } else if (size[1] < 0) {
-        anno.style.transform = "scale(1,-1)";
-      } else {
-        anno.style.removeProperty("transform");
+      let rotate = r || 0;
+      if (rotate > 180) {
+        rotate = -(360 - rotate);
       }
+      let transform = "rotate(" + rotate + "deg)";
+      if (size[0] < 0 && size[1] < 0) {
+        transform += " scale(-1)";
+      } else if (size[0] < 0) {
+        transform += " scale(-1,1)";
+      } else if (size[1] < 0) {
+        transform += " scale(1,-1)";
+      }
+      anno.style.transform = transform;
       if (done != true) {
         anno.removeAttribute("done");
       } else {
@@ -4198,5 +4202,11 @@ modules["pages/editor/annotation"] = {
     if (utils.updateHistory != null) {
       utils.updateHistory();
     }
+  },
+  rotatePoint: function (pointX, pointY, angle) {
+    let radian = -(angle || 0) * (Math.PI / 180);
+    let newX = (Math.cos(radian) * pointX) - (Math.sin(radian) * pointY);
+    let newY = (Math.sin(radian) * pointX) + (Math.cos(radian) * pointY);
+    return [newX, newY];
   }
 };

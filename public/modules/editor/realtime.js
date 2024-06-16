@@ -670,8 +670,6 @@ modules["editor/realtime"] = {
                         selection.setAttribute("anno", annoID);
                         selection.style.border = "solid 3px " + member.color;
                         selection.offsetHeight;
-                        selection.style.transition = "all .25s, opacity .15s";
-                        selection.style.opacity = 1;
                       }
                     }
 
@@ -708,7 +706,6 @@ modules["editor/realtime"] = {
                     }
 
                     if (selection != null) {
-                      selection.offsetHeight;
                       let annoHold = await utils.annoHolder(merge.page);
                       let border = 0;
                       if (annoHold.parentElement.parentElement.firstElementChild != annoHold.parentElement) {
@@ -716,6 +713,10 @@ modules["editor/realtime"] = {
                       }
                       let [width, height] = merge.s;
                       let [x, y] = merge.p;
+                      let rotate = merge.r || 0;
+                      if (rotate > 180) {
+                        rotate = -(360 - rotate);
+                      }
                       if (width < 0) {
                         width = -width;
                         x -= width;
@@ -736,6 +737,10 @@ modules["editor/realtime"] = {
                       let halfT = t / 2;
                       selection.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
                       selection.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
+                      selection.style.transform = "rotate(" + rotate + "deg)";
+                      selection.offsetHeight;
+                      selection.style.transition = "all .25s, opacity .15s";
+                      selection.style.opacity = 1;
                     }
                   }
                   if (userSelecting == true && changes == true) {

@@ -63,7 +63,7 @@ modules["editor/toolbar"] = {
 
     ".eToolHoverTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; transform: scale(0); opacity: 0`,
 
-    ".eSelect": `position: absolute; opacity: 0; z-index: 101; border-radius: 9px; transition: opacity .15s; pointer-events: none`,
+    ".eSelect": `position: absolute; opacity: 0; z-index: 101; border-radius: 9px; transition: opacity .15s, transform 0s; pointer-events: none`,
     ".eSelectActive": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: all !important; cursor: move; z-index: var(--selectZIndex)`,
     ".eContent[noshiftheld] .eSelectActive": `z-index: var(--annoZIndex) !important`,
     ".eAnnotation[selected] > *": `pointer-events: none`,
@@ -71,13 +71,13 @@ modules["editor/toolbar"] = {
     ".eSelect[hidetips] .eSelectTooltip": `opacity: 0; pointer-events: none`,
     '.eSelectTooltip[tooltip="topleft"]': `left: -10px; top: -10px; cursor: nwse-resize`,
     '.eSelectTooltip[tooltip="topright"]': `right: -10px; top: -10px; cursor: nesw-resize`,
-    '.eSelectTooltip[tooltip="bottomleft"]': `left: -10px; bottom: -10px; cursor: nesw-resize`,
+    '.eSelectTooltip[tooltip="bottomleft"]': `display: none; left: -10px; bottom: -10px; cursor: nesw-resize`,
     '.eSelectTooltip[tooltip="bottomright"]': `right: -10px; bottom: -10px; cursor: nwse-resize`,
     '.eSelectTooltip[tooltip="left"]': `left: -14px; top: 50%; transform: translateY(-50%); cursor: ew-resize`,
     '.eSelectTooltip[tooltip="right"]': `right: -14px; top: 50%; transform: translateY(-50%); cursor: ew-resize`,
     '.eSelectTooltip[tooltip="top"]': `left: 50%; top: -14px; transform: translateX(-50%); cursor: ns-resize`,
     '.eSelectTooltip[tooltip="bottom"]': `left: 50%; bottom: -14px; transform: translateX(-50%); cursor: ns-resize`,
-    '.eSelectTooltip[tooltip="rotate"]': `display: none; left: -20px; bottom: -20px; cursor: crosshair`,
+    '.eSelectTooltip[tooltip="rotate"]': `left: -20px; bottom: -20px; cursor: crosshair`,
     ".eSelectDrag": `position: absolute; box-sizing: border-box; pointer-events: none; z-index: 99; opacity: 0; background: var(--secondary); border: solid 2px var(--theme); border-radius: 10px; transition: opacity .1s`,
 
     ".eSelectBar": `position: absolute; display: flex; max-width: calc(100vw - 88px); height: 50px; background: var(--pageColor); box-shadow: var(--shadow); z-index: 102; border-radius: 16px; transform: translateY(-10%); opacity: 0; transition: transform .2s, opacity .2s, border-radius .2s`,
@@ -1246,8 +1246,6 @@ modules["pages/editor/toolbar/cursor"] = {
           select.setAttribute("anno", annoID);
           select.style.border = "solid 4px var(--theme)";
           select.style.opacity = 1;
-          select.offsetHeight;
-          select.style.transition = "all .25s, opacity .15s";
         }
         if (this.action != null || forceNoTransition == true) {
           select.setAttribute("notransition", "");
@@ -1304,6 +1302,10 @@ modules["pages/editor/toolbar/cursor"] = {
         }
         let [width, height] = merged.s;
         let [x, y] = merged.p;
+        let rotate = merged.r || 0;
+        if (rotate > 180) {
+          rotate = -(360 - rotate);
+        }
         if (width < 0) {
           width = -width;
           x -= width;
@@ -1324,6 +1326,7 @@ modules["pages/editor/toolbar/cursor"] = {
         let halfT = t / 2;
         select.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 2 + "px"; // -2 for border, -0 for width
         select.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 2 + "px";
+        select.style.transform = "rotate(" + rotate + "deg)";
         let eSelectTopLeft = select.querySelector('.eSelectTooltip[tooltip="topleft"]');
         if (eSelectTopLeft != null) {
           eSelectTopLeft.removeAttribute("hidden");
@@ -1335,6 +1338,7 @@ modules["pages/editor/toolbar/cursor"] = {
           let eSelectRight = select.querySelector('.eSelectTooltip[tooltip="right"]');
           let eSelectTop = select.querySelector('.eSelectTooltip[tooltip="top"]');
           let eSelectBottom = select.querySelector('.eSelectTooltip[tooltip="bottom"]');
+          let eSelectRotate = select.querySelector('.eSelectTooltip[tooltip="rotate"]');
           if (boxWidth < 52) {
             eSelectTop.setAttribute("hidden", "");
             eSelectBottom.setAttribute("hidden", "");
@@ -1352,26 +1356,36 @@ modules["pages/editor/toolbar/cursor"] = {
           if (boxWidth < 20 || boxHeight < 20) {
             eSelectTopRight.setAttribute("hidden", "");
             eSelectBottomLeft.setAttribute("hidden", "");
+            eSelectRotate.setAttribute("hidden", "");
           } else {
             eSelectTopRight.removeAttribute("hidden");
             eSelectBottomLeft.removeAttribute("hidden");
+            eSelectRotate.removeAttribute("hidden");
           }
         }
+
+        select.offsetHeight;
+        select.style.transition = "all .25s, opacity .15s";
 
         activeLayer.style.width = (width + t) + 8 + "px";
         activeLayer.style.height = (height + t) + 8 + "px";
         activeLayer.style.left = x + halfT - 4 + "px";
         activeLayer.style.top = y + halfT - border - 4 + "px";
+        activeLayer.style.transform = "rotate(" + rotate + "deg)";
         
+        let radian = (merged.r || 0) * (Math.PI / 180);
+        let changedWidth = ((Math.abs(width * Math.cos(radian)) + Math.abs(height * Math.sin(radian))) - width) / 2;
+        let changedHeight = ((Math.abs(width * Math.sin(radian)) + Math.abs(height * Math.cos(radian))) - height) / 2;
+
         let inverse = 1 / editor.zoom;
         let pageY = pageRect.y - pageHolderRect.y;
-        let setMinX = x + halfT;
+        let setMinX = x + halfT - changedWidth;
         this.minX = Math.min(this.minX || setMinX, setMinX);
-        let setMaxX = x + width + t + halfT;
+        let setMaxX = x + width + t + halfT + changedWidth;
         this.maxX = Math.max(this.maxX || setMaxX, setMaxX);
-        let setMinY = (pageY * inverse) + y + halfT - border;
+        let setMinY = (pageY * inverse) + y + halfT - border - changedHeight;
         this.minY = Math.min(this.minY || setMinY, setMinY);
-        let setMaxY = (pageY * inverse) + y + t - border + height + halfT;
+        let setMaxY = (pageY * inverse) + y + t - border + height + halfT + changedHeight;
         this.maxY = Math.max(this.maxY || setMaxY, setMaxY);
 
         let setCheckX = x + width;
@@ -1387,6 +1401,7 @@ modules["pages/editor/toolbar/cursor"] = {
           collabSelect.style.height = collHeight + "px";
           collabSelect.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
           collabSelect.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
+          collabSelect.style.transform = "rotate(" + rotate + "deg)";
         }
       }
     }
@@ -2025,16 +2040,15 @@ modules["pages/editor/toolbar/cursor"] = {
       editor.page.style.touchAction = "pinch-zoom";
       event.preventDefault();
     } else if (this.resizeElem != null) {
-      // Resize Element
-      this.action = "resize";
-      let inverse = 1 / editor.zoom;
-      let clientX = clientPosition(event, "x");
-      let clientY = clientPosition(event, "y");
-      this.startX = (clientX + window.scrollX) * inverse;
-      this.startY = (clientY + window.scrollY) * inverse;
-      let handleRect = this.resizeElem.getBoundingClientRect();
-      this.offsetX = (handleRect.left + (this.resizeElem.clientWidth / 2)) - clientX;
-      this.offsetY = (handleRect.top + (this.resizeElem.clientHeight / 2)) - clientY;
+      if (this.resizeElem.getAttribute("tooltip") != "rotate") {
+        // Resize Element
+        this.action = "resize";
+      } else {
+        // Rotate Element
+        this.action = "rotate";
+      }
+      this.startX = clientPosition(event, "x"); //(clientX + window.scrollX) * inverse;
+      this.startY = clientPosition(event, "y"); // (clientY + window.scrollY) * inverse;
       body.style.userSelect = "none";
       editor.page.style.touchAction = "pinch-zoom";
       event.preventDefault();
@@ -2066,11 +2080,8 @@ modules["pages/editor/toolbar/cursor"] = {
     this.endX = (mouseX + window.scrollX) * inverse;
     this.endY = (mouseY + window.scrollY) * inverse;
 
-    let changeX = this.endX - this.startX;
-    let changeY = this.endY - this.startY;
-
     if (this.actionEnabled == false) {
-      if (Math.abs(changeX) > 3 || Math.abs(changeY) > 3) {
+      if (Math.abs(this.endX - this.startX) > 3 || Math.abs(this.endY - this.startY) > 3) {
         this.actionEnabled = true;
       } else {
         return;
@@ -2087,8 +2098,6 @@ modules["pages/editor/toolbar/cursor"] = {
     let keys = Object.keys(editor.selecting);
     for (let i = 0; i < keys.length; i++) {
       let annoid = keys[i];
-      let select = editor.selecting[annoid];
-      delete select.done;
       let original = editor.annotations[annoid];
       if (original == null) {
         continue;
@@ -2097,24 +2106,75 @@ modules["pages/editor/toolbar/cursor"] = {
         delete editor.annotations[annoid];
         continue;
       }
+      if (original.pointer != null) {
+        annoid = annoData.pointer;
+        original = editor.annotations[annoid] || { render: {} };
+      }
+      let select = editor.selecting[annoid];
+      delete select.done;
       let anno = JSON.parse(JSON.stringify(original.render));
       if (original.revert == null) {
         original.revert = JSON.parse(JSON.stringify(original.render));
       }
       if (this.action == "move") {
         select.p = select.p || anno.p;
-        select.p[0] = utils.round(select.p[0] + changeX);
-        select.p[1] = utils.round(select.p[1] + changeY);
+        select.p[0] = utils.round(select.p[0] + (this.endX - this.startX));
+        select.p[1] = utils.round(select.p[1] + (this.endY - this.startY));
       } else if (this.action == "resize") {
         select.s = select.s || anno.s;
-        if (this.size == null) {
-          this.size = JSON.parse(JSON.stringify(select.s || anno.s));
+        select.p = select.p || anno.p;
+        if (this.rotation == null) {
+          this.rotation = JSON.parse(JSON.stringify(select.r || anno.r || 0));
+        }
+        let number;
+        let pageElem = editor.page.querySelector('.ePage[pageid="' + (select.page || anno.page) + '"]');
+        if (pageElem != null) {
+          number = parseInt(pageElem.getAttribute("order"));
+          if (pageElem.hasAttribute("hide") == true) {
+            return;
+          }
+        }
+        let { x, y } = await utils.scaleToDoc(mouseX, mouseY, number);
+        if (editor.lesson.type == "freeboard") {
+          y += 4;
         }
         if (this.position == null) {
           this.position = JSON.parse(JSON.stringify(select.p || anno.p));
         }
+        if (this.size == null) {
+          this.size = JSON.parse(JSON.stringify(select.s || anno.s));
+          let originalPos = await utils.scaleToDoc(this.startX, this.startY, number);
+          if (editor.lesson.type == "freeboard") {
+            originalPos.y += 4;
+          }
+          let halfRotateWidth = (this.size[0] / 2) + this.position[0];
+          let halfRotateHeight = (this.size[1] / 2) + this.position[1];
+          let [xCoord, yCoord] = utils.rotatePoint(originalPos.x - halfRotateWidth, -(originalPos.y - halfRotateHeight), -this.rotation);
+          this.rootX = xCoord;
+          this.rootY = yCoord;
+        }
+        let halfRotateWidth = (this.size[0] / 2) + this.position[0];
+        let halfRotateHeight = (this.size[1] / 2) + this.position[1];
+        let [xCoord, yCoord] = utils.rotatePoint(x - halfRotateWidth, -(y - halfRotateHeight), -this.rotation);
+        let changeX = xCoord - this.rootX;
+        let changeY = yCoord - this.rootY;
+        if (this.rootX < 0) {
+          changeX *= -1;
+        }
+        if (this.rootY < 0) {
+          changeY *= -1;
+        }
+        
         if (this.tooltip == null) {
           this.tooltip = this.resizeElem.getAttribute("tooltip");
+          this.changeReflectX = 1;
+          this.changeReflectY = 1;
+          if (select.s[0] < 0) {
+            this.changeReflectX = -1;
+          }
+          if (select.s[1] < 0) {
+            this.changeReflectY = -1;
+          }
           if (select.s[0] < 0 && select.s[1] < 0) {
             this.tooltip = this.oppositeResize[this.tooltip][0];
           } else if (select.s[0] < 0) {
@@ -2123,6 +2183,9 @@ modules["pages/editor/toolbar/cursor"] = {
             this.tooltip = this.oppositeResize[this.tooltip][2];
           }
         }
+        changeX *= this.changeReflectX;
+        changeY *= this.changeReflectY;
+
         let preserveAspect = event.shiftKey || false;
         if (["markup", "draw"].includes(select.f || anno.f) == true) {
           preserveAspect = true; // All drawings keep aspect
@@ -2144,130 +2207,164 @@ modules["pages/editor/toolbar/cursor"] = {
         } else if (["sticky", "media"].includes(select.f || anno.f) == true && ["bottomright", "topleft", "topright", "bottomleft"].includes(this.tooltip) == true) {
           preserveAspect = true;
         }
-        let number;
-        let pageElem = editor.page.querySelector('.ePage[pageid="' + (select.page || anno.page) + '"]');
-        if (pageElem != null) {
-          number = parseInt(pageElem.getAttribute("order"));
-          if (pageElem.hasAttribute("hide") == true) {
-            return;
-          }
-        }
-        let scaleMouse = await utils.scaleToDoc(mouseX + this.offsetX, mouseY + this.offsetY, number);
-        let sizeCompare = (a, b) => {
-          if (select.s[0] < 0 || select.s[1] < 0) {
-            return a < b;
-          } else {
-            return a > b;
-          }
-        }
+
+        let oppositePositionX = 0;
+        let oppositePositionY = 0;
+        let newOppositePositionX = 0;
+        let newOppositePositionY = 0;
         switch (this.tooltip) {
           case "bottomright":
             if (preserveAspect == true) {
-              if (sizeCompare(scaleMouse.x - (this.position[0] + select.s[0]), scaleMouse.y - (this.position[1] + select.s[1]))) {
-                select.s[0] = utils.round(this.size[0] + changeX);
-                select.s[1] = utils.round(this.size[1] * ((this.size[0] + changeX) / this.size[0]));
+              let setXFromChangeX = utils.round(this.size[0] + changeX);
+              let setYFromChangeX = utils.round(this.size[1] * ((this.size[0] + changeX) / this.size[0]));
+              let setXFromChangeY = utils.round(this.size[0] * ((this.size[1] + changeY) / this.size[1]));
+              let setYFromChangeY = utils.round(this.size[1] + changeY);
+              if (Math.abs(setXFromChangeX * setYFromChangeX) > Math.abs(setXFromChangeY * setYFromChangeY)) {
+                select.s[0] = setXFromChangeX;
+                select.s[1] = setYFromChangeX;
               } else {
-                select.s[0] = utils.round(this.size[0] * ((this.size[1] + changeY) / this.size[1]));
-                select.s[1] = utils.round(this.size[1] + changeY);
+                select.s[0] = setXFromChangeY;
+                select.s[1] = setYFromChangeY;
               }
             } else {
               select.s[0] = utils.round(this.size[0] + changeX);
               select.s[1] = utils.round(this.size[1] + changeY);
             }
+            oppositePositionX = this.position[0];
+            oppositePositionY = this.position[1];
+            newOppositePositionX = this.position[0];
+            newOppositePositionY = this.position[1];
             break;
           case "topleft":
-            select.p = select.p || anno.p;
             if (preserveAspect == true) {
-              if (sizeCompare(select.p[0] - scaleMouse.x, select.p[1] - scaleMouse.y)) {
-                select.s[0] = utils.round(this.size[0] - changeX);
-                select.s[1] = utils.round(this.size[1] * ((this.size[0] - changeX) / this.size[0]));
+              let setXFromChangeX = utils.round(this.size[0] + changeX);
+              let setYFromChangeX = utils.round(this.size[1] * ((this.size[0] + changeX) / this.size[0]));
+              let setXFromChangeY = utils.round(this.size[0] * ((this.size[1] + changeY) / this.size[1]));
+              let setYFromChangeY = utils.round(this.size[1] + changeY);
+              if (Math.abs(setXFromChangeX * setYFromChangeX) > Math.abs(setXFromChangeY * setYFromChangeY)) {
+                select.s[0] = setXFromChangeX;
+                select.s[1] = setYFromChangeX;
               } else {
-                select.s[0] = utils.round(this.size[0] * ((this.size[1] - changeY) / this.size[1]));
-                select.s[1] = utils.round(this.size[1] - changeY);
-              }
-            } else {
-              select.s[0] = utils.round(this.size[0] - changeX);
-              select.s[1] = utils.round(this.size[1] - changeY);
-            }
-            select.p[0] = utils.round(this.position[0] + (this.size[0] - select.s[0]));
-            select.p[1] = utils.round(this.position[1] + (this.size[1] - select.s[1]));
-            break;
-          case "topright":
-            select.p = select.p || anno.p;
-            if (preserveAspect == true) {
-              if (sizeCompare(scaleMouse.x - (select.p[0] + select.s[0]), select.p[1] - scaleMouse.y)) {
-                select.s[0] = utils.round(this.size[0] + changeX);
-                select.s[1] = utils.round(this.size[1] * ((this.size[0] + changeX) / this.size[0]));
-              } else {
-                select.s[0] = utils.round(this.size[0] * ((this.size[1] - changeY) / this.size[1]));
-                select.s[1] = utils.round(this.size[1] - changeY);
+                select.s[0] = setXFromChangeY;
+                select.s[1] = setYFromChangeY;
               }
             } else {
               select.s[0] = utils.round(this.size[0] + changeX);
-              select.s[1] = utils.round(this.size[1] - changeY);
-            }
-            select.p[1] = utils.round(this.position[1] + (this.size[1] - select.s[1]));
-            break;
-          case "bottomleft":
-            select.p = select.p || anno.p;
-            if (preserveAspect == true) {
-              if (sizeCompare(select.p[0] - scaleMouse.x, scaleMouse.y - (select.p[1] + select.s[1]))) {
-                select.s[0] = utils.round(this.size[0] - changeX);
-                select.s[1] = utils.round(this.size[1] * ((this.size[0] - changeX) / this.size[0]));
-              } else {
-                select.s[0] = utils.round(this.size[0] * ((this.size[1] + changeY) / this.size[1]));
-                select.s[1] = utils.round(this.size[1] + changeY);
-              }
-            } else {
-              select.s[0] = utils.round(this.size[0] - changeX);
               select.s[1] = utils.round(this.size[1] + changeY);
             }
-            select.p[0] = utils.round(this.position[0] + (this.size[0] - select.s[0]));
+            oppositePositionX = this.position[0] + this.size[0];
+            oppositePositionY = this.position[1] + this.size[1];
+            newOppositePositionX = this.position[0] + select.s[0];
+            newOppositePositionY = this.position[1] + select.s[1];
+            break;
+          case "topright":
+            if (preserveAspect == true) {
+              let setXFromChangeX = utils.round(this.size[0] + changeX);
+              let setYFromChangeX = utils.round(this.size[1] * ((this.size[0] + changeX) / this.size[0]));
+              let setXFromChangeY = utils.round(this.size[0] * ((this.size[1] + changeY) / this.size[1]));
+              let setYFromChangeY = utils.round(this.size[1] + changeY);
+              if (Math.abs(setXFromChangeX * setYFromChangeX) > Math.abs(setXFromChangeY * setYFromChangeY)) {
+                select.s[0] = setXFromChangeX;
+                select.s[1] = setYFromChangeX;
+              } else {
+                select.s[0] = setXFromChangeY;
+                select.s[1] = setYFromChangeY;
+              }
+            } else {
+              select.s[0] = utils.round(this.size[0] + changeX);
+              select.s[1] = utils.round(this.size[1] + changeY);
+            }
+            oppositePositionX = this.position[0];
+            oppositePositionY = this.position[1] + this.size[1];
+            newOppositePositionX = this.position[0];
+            newOppositePositionY = this.position[1] + select.s[1];
+            break;
+          case "bottomleft":
+            if (preserveAspect == true) {
+              let setXFromChangeX = utils.round(this.size[0] + changeX);
+              let setYFromChangeX = utils.round(this.size[1] * ((this.size[0] + changeX) / this.size[0]));
+              let setXFromChangeY = utils.round(this.size[0] * ((this.size[1] + changeY) / this.size[1]));
+              let setYFromChangeY = utils.round(this.size[1] + changeY);
+              if (Math.abs(setXFromChangeX * setYFromChangeX) > Math.abs(setXFromChangeY * setYFromChangeY)) {
+                select.s[0] = setXFromChangeX;
+                select.s[1] = setYFromChangeX;
+              } else {
+                select.s[0] = setXFromChangeY;
+                select.s[1] = setYFromChangeY;
+              }
+            } else {
+              select.s[0] = utils.round(this.size[0] + changeX);
+              select.s[1] = utils.round(this.size[1] + changeY);
+            }
+            oppositePositionX = this.position[0] + this.size[0];
+            oppositePositionY = this.position[1];
+            newOppositePositionX = this.position[0] + select.s[0];
+            newOppositePositionY = this.position[1];
             break;
           case "right":
             if (preserveAspect == true) {
               select.s[0] = utils.round(this.size[0] + changeX);
               select.s[1] = utils.round(this.size[1] * ((this.size[0] + changeX) / this.size[0]));
-              select.p = select.p || anno.p;
-              select.p[1] = utils.round(this.position[1] + ((this.size[1] - select.s[1]) / 2));
             } else {
               select.s[0] = utils.round(this.size[0] + changeX);
+              select.s[1] = this.size[1];
             }
+            oppositePositionX = this.position[0];
+            oppositePositionY = this.position[1] + (this.size[1] / 2);
+            newOppositePositionX = this.position[0];
+            newOppositePositionY = this.position[1] + (select.s[1] / 2);
             break;
           case "bottom":
             if (preserveAspect == true) {
               select.s[0] = utils.round(this.size[0] * ((this.size[1] + changeY) / this.size[1]));
               select.s[1] = utils.round(this.size[1] + changeY);
-              select.p = select.p || anno.p;
-              select.p[0] = utils.round(this.position[0] + ((this.size[0] - select.s[0]) / 2));
             } else {
+              select.s[0] = this.size[0];
               select.s[1] = utils.round(this.size[1] + changeY);
             }
+            oppositePositionX = this.position[0] + (this.size[0] / 2);
+            oppositePositionY = this.position[1];
+            newOppositePositionX = this.position[0] + (select.s[0] / 2);
+            newOppositePositionY = this.position[1];
             break;
           case "left":
-            select.p = select.p || anno.p;
             if (preserveAspect == true) {
-              select.s[0] = utils.round(this.size[0] - changeX);
-              select.s[1] = utils.round(this.size[1] * ((this.size[0] - changeX) / this.size[0]));
-              select.p[0] = utils.round(this.position[0] + (this.size[0] - select.s[0]));
-              select.p[1] = utils.round(this.position[1] + ((this.size[1] - select.s[1]) / 2));
+              select.s[0] = utils.round(this.size[0] + changeX);
+              select.s[1] = utils.round(this.size[1] * ((this.size[0] + changeX) / this.size[0]));
             } else {
-              select.s[0] = utils.round(this.size[0] - changeX);
-              select.p[0] = utils.round(this.position[0] + changeX);
+              select.s[0] = utils.round(this.size[0] + changeX);
+              select.s[1] = this.size[1];
             }
+            oppositePositionX = this.position[0] + this.size[0];
+            oppositePositionY = this.position[1] + (this.size[1] / 2);
+            newOppositePositionX = this.position[0] + select.s[0];
+            newOppositePositionY = this.position[1] + (select.s[1] / 2);
             break;
           case "top":
-            select.p = select.p || anno.p;
             if (preserveAspect == true) {
-              select.s[0] = utils.round(this.size[0] * ((this.size[1] - changeY) / this.size[1]));
-              select.s[1] = utils.round(this.size[1] - changeY);
-              select.p[0] = utils.round(this.position[0] + ((this.size[0] - select.s[0]) / 2));
-              select.p[1] = utils.round(this.position[1] + (this.size[1] - select.s[1]));
+              select.s[0] = utils.round(this.size[0] * ((this.size[1] + changeY) / this.size[1]));
+              select.s[1] = utils.round(this.size[1] + changeY);
             } else {
-              select.s[1] = utils.round(this.size[1] - changeY);
-              select.p[1] = utils.round(this.position[1] + changeY);
+              select.s[0] = this.size[0];
+              select.s[1] = utils.round(this.size[1] + changeY);
             }
+            oppositePositionX = this.position[0] + (this.size[0] / 2);
+            oppositePositionY = this.position[1] + this.size[1];
+            newOppositePositionX = this.position[0] + (select.s[0] / 2);
+            newOppositePositionY = this.position[1] + select.s[1];
         }
+
+        let oldHalfRotateWidth = (this.size[0] / 2) + this.position[0];
+        let oldHalfRotateHeight = (this.size[1] / 2) + this.position[1];
+        let [originalXCoord, originalYCoord] = utils.rotatePoint(oppositePositionX - oldHalfRotateWidth, -(oppositePositionY - oldHalfRotateHeight), this.rotation);
+
+        let newHalfRotateWidth = (select.s[0] / 2) + this.position[0];
+        let newHalfRotateHeight = (select.s[1] / 2) + this.position[1];
+        let [newXCoord, newYCoord] = utils.rotatePoint(newOppositePositionX - newHalfRotateWidth, -(newOppositePositionY - newHalfRotateHeight), this.rotation);
+        
+        select.p[0] = utils.round(this.position[0] - ((newXCoord + newHalfRotateWidth) - (originalXCoord + oldHalfRotateWidth)));
+        select.p[1] = utils.round(this.position[1] - (((-newYCoord) + newHalfRotateHeight) - ((-originalYCoord) + oldHalfRotateHeight)));
+
         if (select.f || ["text", "sticky"].includes(anno.f) == true) {
           await utils.render({ ...anno, ...select, sync: setTempSync });
           if (anno.f == "text") {
@@ -2288,6 +2385,52 @@ modules["pages/editor/toolbar/cursor"] = {
             }
           }*/
         }
+      } else if (this.action == "rotate") {
+        select.r = select.r || anno.r || 0;
+        let number;
+        let pageElem = editor.page.querySelector('.ePage[pageid="' + (select.page || anno.page) + '"]');
+        if (pageElem != null) {
+          number = parseInt(pageElem.getAttribute("order"));
+          if (pageElem.hasAttribute("hide") == true) {
+            return;
+          }
+        }
+        let { x, y } = await utils.scaleToDoc(mouseX, mouseY, number);
+        if (editor.lesson.type == "freeboard") {
+          y += 4;
+        }
+        if (this.position == null) {
+          this.position = JSON.parse(JSON.stringify(select.p || anno.p));
+        }
+        if (this.size == null) {
+          this.size = JSON.parse(JSON.stringify(select.s || anno.s));
+        }
+        let centerX = this.size[0] / 2;
+        let centerY = this.size[1] / 2;
+        let yRoot = (this.position[1] + centerY) - y;
+        let xRoot = x - this.position[0] - centerX;
+        if (this.rotation == null) {
+          this.rotation = (Math.atan2(yRoot, xRoot) * 180) / Math.PI;
+          if (this.rotation < 0) {
+            this.rotation = 360 + this.rotation;
+          }
+        }
+        let newRotation = (Math.atan2(yRoot, xRoot) * 180) / Math.PI;
+        if (newRotation < 0) {
+          newRotation = 360 + newRotation;
+        }
+        let snapDegree = 15;
+        if (event.shiftKey == true) {
+          snapDegree = 1;
+        }
+        let setRotation = Math.round(((anno.r || 0) + (this.rotation - newRotation)) / snapDegree) * snapDegree;
+        if (setRotation < 0) {
+          setRotation = 360 + setRotation;
+        }
+        if (setRotation > 359) {
+          setRotation = setRotation - 360;
+        }
+        select.r = Math.round(setRotation / snapDegree) * snapDegree;
       }
       select.sync = setTempSync;
       await utils.render({ ...anno, ...select });
@@ -2308,6 +2451,7 @@ modules["pages/editor/toolbar/cursor"] = {
     this.tooltip = null;
     this.position = null;
     this.size = null;
+    this.rotation = null;
     body.style.removeProperty("user-select");
     editor.page.style.removeProperty("touch-action");
     editor.page.removeAttribute("enabled");
@@ -2379,7 +2523,7 @@ modules["pages/editor/toolbar/cursor"] = {
       let changeKeys = Object.keys(selecting);
       let pushFields = {};
       for (let f = 0; f < changeKeys.length; f++) {
-        pushFields[changeKeys[f]] = originalRender[changeKeys[f]];
+        pushFields[changeKeys[f]] = originalRender[changeKeys[f]] || null;
       }
       if (Object.keys(pushFields).length > 0) {
         if (pushFields.f == null) {
@@ -2587,7 +2731,7 @@ modules["pages/editor/toolbar/cursor"] = {
 
 // DRAG TOOL
 modules["pages/editor/toolbar/drag"] = {
-  getElementsInRect: function (selectBoxRect, children) {
+  getElementsInRect: function (selectBoxRect, children, editor, utils) {
     return Array.from(children)
       .filter(element => {
         const elementRect = element.getBoundingClientRect();
@@ -2597,6 +2741,27 @@ modules["pages/editor/toolbar/drag"] = {
           elementRect.left <= selectBoxRect.right &&
           elementRect.right >= selectBoxRect.left
         );
+        /*
+        let original = editor.annotations[element.getAttribute("anno")];
+        if (original == null) {
+          return null;
+        }
+        if (original.pointer != null) {
+          original = editor.annotations[annoData.pointer] || { render: {} };
+        }
+        const elementRect = element.getBoundingClientRect();
+        let halfWidth = (elementRect.width / 2) + elementRect.left;
+        let halfHeight = (elementRect.height / 2) + elementRect.top;
+        let [topLeftX, topLeftY] = utils.rotatePoint(elementRect.left - halfWidth, -(elementRect.top - halfHeight), (original.render.r || 0));
+        let [bottomRightX, bottomRightY] = utils.rotatePoint(elementRect.right - halfWidth, -(elementRect.bottom - halfHeight), (original.render.r || 0));
+        return (
+          ((-topLeftY) + halfHeight) <= selectBoxRect.bottom &&
+          ((-bottomRightY) + halfHeight) >= selectBoxRect.top &&
+          (topLeftX + halfWidth) <= selectBoxRect.right &&
+          (bottomRightX + halfWidth) >= selectBoxRect.left
+        );
+        */
+        
       });
   },
   js: async function (editor, utils, addEvent) {
@@ -2652,7 +2817,7 @@ modules["pages/editor/toolbar/drag"] = {
       }
       editor.updateSelectedBounds = updateSelectedBounds;
 
-      let selected = this.getElementsInRect(selection.getBoundingClientRect(), content.querySelectorAll(".eAnnotation"));
+      let selected = this.getElementsInRect(selection.getBoundingClientRect(), content.querySelectorAll(".eAnnotation"), editor, utils);
       for (let i = 0; i < selected.length; i++) {
         let page = selected[i].closest(".ePage");
         if (page != null && page.hasAttribute("hide") == true) {
@@ -3529,7 +3694,7 @@ modules["pages/editor/toolbar/eraser"] = {
     }
     editor.page.setAttribute("enabled", "");
 
-    function isPointOnLine(x, y, x1, y1, x2, y2, tolerance) {
+    let isPointOnLine = (x, y, x1, y1, x2, y2, tolerance) => {
       // Calculate the distance from the point to the line segment
       let A = x - x1;
       let B = y - y1;
@@ -3610,9 +3775,13 @@ modules["pages/editor/toolbar/eraser"] = {
 
       event.preventDefault();
 
-      let [page] = await utils.findPage(y1);
+      let [page, number] = await utils.findPage(y1);
       if (page.hasAttribute("hide") == true) {
         return;
+      }
+      let { x, y } = await utils.scaleToDoc(x0, y0, number);
+      if (editor.lesson.type == "freeboard") {
+        y += 4;
       }
 
       let mCheck;
@@ -3632,7 +3801,7 @@ modules["pages/editor/toolbar/eraser"] = {
       let sx = (x0 < x1) ? 1 : -1;
       let sy = (y0 < y1) ? 1 : -1;
       let err = dx - dy;
-
+        
       while (true) {
         // Handle Erase:
         let annos = document.elementsFromPoint(x0, y0);
@@ -3650,11 +3819,35 @@ modules["pages/editor/toolbar/eraser"] = {
               // This alone isn't enough, the actual points MUST be checked:
               let drawing = anno.querySelector("polyline");
               if (drawing != null && drawing.hasAttribute("points") == true) {
-                let rect = anno.getBoundingClientRect();
-                let { x, y } = await utils.scaleToDoc(x0 - rect.left, y0 - rect.top);
+                let xPos = x - render.p[0];
+                let yPos = y - render.p[1];
+                if (render.s[0] < 0) {
+                  xPos -= render.s[0];
+                }
+                if (render.s[1] < 0) {
+                  yPos -= render.s[1];
+                }
                 let points = drawing.points;
+                let halfWidth = drawing.parentElement.viewBox.baseVal.width / 2;
+                let halfHeight = drawing.parentElement.viewBox.baseVal.height / 2;
                 for (let i = 1; i < points.numberOfItems; i++) {
-                  if (isPointOnLine(x + 100, y + 100, points.getItem(i - 1).x, points.getItem(i - 1).y, points.getItem(i).x, points.getItem(i).y, (parseInt(drawing.getAttribute("stroke-width")) / 2) + 10)) {
+                  let prevPoint = points.getItem(i - 1);
+                  let prevRelativeX = prevPoint.x - halfWidth;
+                  let prevRelativeY = -(prevPoint.y - halfHeight);
+                  let point = points.getItem(i);
+                  let pRelativeX = point.x - halfWidth;
+                  let pRelativeY = -(point.y - halfHeight);
+                  if (render.s[0] < 0) {
+                    prevRelativeX *= -1;
+                    pRelativeX *= -1;
+                  }
+                  if (render.s[1] < 0) {
+                    prevRelativeY *= -1;
+                    pRelativeY *= -1;
+                  }
+                  let [prevPointX, prevPointY] = utils.rotatePoint(prevRelativeX, prevRelativeY, render.r);
+                  let [pointX, pointY] = utils.rotatePoint(pRelativeX, pRelativeY, render.r);
+                  if (isPointOnLine(xPos + 100, yPos + 100, prevPointX + halfWidth, (-prevPointY) + halfHeight, pointX + halfWidth, (-pointY) + halfHeight, (parseInt(drawing.getAttribute("stroke-width")) / 2) + 10)) {
                     anno.setAttribute("hidden", "");
                     await utils.pushHistory("add", [render]);
                     let updateAnno = { _id: annoID, remove: true };

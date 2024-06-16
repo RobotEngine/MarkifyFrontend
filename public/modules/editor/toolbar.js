@@ -2711,13 +2711,15 @@ modules["pages/editor/toolbar/cursor"] = {
     addEvent(content, "mouseup", disableSelect, { passive: false });
     addEvent(content, "touchend", disableSelect, { passive: false });
 
-    addEvent(window, "keydown", (event) => {
+    let checkShift = (event) => {
       if (event.shiftKey == false) {
         content.setAttribute("noshiftheld", "");
       } else {
         content.removeAttribute("noshiftheld");
       }
-    }, { passive: false });
+    }
+    addEvent(window, "keydown", checkShift, { passive: false });
+    addEvent(window, "keyup", checkShift, { passive: false });
 
     addEvent(content, "mousemove", (event) => { this.moveAction(event); }, { passive: false });
     addEvent(content, "touchmove", (event) => { this.moveAction(event); }, { passive: false });

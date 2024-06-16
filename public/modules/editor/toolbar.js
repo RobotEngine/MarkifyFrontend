@@ -2407,8 +2407,8 @@ modules["pages/editor/toolbar/cursor"] = {
         }
         let centerX = this.size[0] / 2;
         let centerY = this.size[1] / 2;
-        let yRoot = (this.position[1] + centerY) - y;
-        let xRoot = x - this.position[0] - centerX;
+        let yRoot = -(y - (this.position[1] + centerY));
+        let xRoot = x - (this.position[0] + centerX);
         if (this.rotation == null) {
           this.rotation = (Math.atan2(yRoot, xRoot) * 180) / Math.PI;
           if (this.rotation < 0) {

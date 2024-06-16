@@ -2890,6 +2890,10 @@ modules["pages/editor/annotation"] = {
       let pageRect = pageElem.getBoundingClientRect();
       x -= pageRect.left;
       y -= pageRect.top;
+    } else {
+      let pageRect = pageHolder.getBoundingClientRect();
+      x -= pageRect.left;
+      y -= pageRect.top;
     }
     let scaleZoom = 1 / editor.zoom;
     return {

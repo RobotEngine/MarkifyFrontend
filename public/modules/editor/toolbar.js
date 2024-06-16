@@ -2354,17 +2354,6 @@ modules["pages/editor/toolbar/cursor"] = {
             newOppositePositionY = this.position[1] + select.s[1];
         }
 
-        let oldHalfRotateWidth = (this.size[0] / 2) + this.position[0];
-        let oldHalfRotateHeight = (this.size[1] / 2) + this.position[1];
-        let [originalXCoord, originalYCoord] = utils.rotatePoint(oppositePositionX - oldHalfRotateWidth, -(oppositePositionY - oldHalfRotateHeight), this.rotation);
-
-        let newHalfRotateWidth = (select.s[0] / 2) + this.position[0];
-        let newHalfRotateHeight = (select.s[1] / 2) + this.position[1];
-        let [newXCoord, newYCoord] = utils.rotatePoint(newOppositePositionX - newHalfRotateWidth, -(newOppositePositionY - newHalfRotateHeight), this.rotation);
-        
-        select.p[0] = utils.round(this.position[0] - ((newXCoord + newHalfRotateWidth) - (originalXCoord + oldHalfRotateWidth)));
-        select.p[1] = utils.round(this.position[1] - (((-newYCoord) + newHalfRotateHeight) - ((-originalYCoord) + oldHalfRotateHeight)));
-
         if (select.f || ["text", "sticky"].includes(anno.f) == true) {
           await utils.render({ ...anno, ...select, sync: setTempSync });
           if (anno.f == "text") {
@@ -2384,6 +2373,17 @@ modules["pages/editor/toolbar/cursor"] = {
               }
             }
           }*/
+
+          let oldHalfRotateWidth = (this.size[0] / 2) + this.position[0];
+          let oldHalfRotateHeight = (this.size[1] / 2) + this.position[1];
+          let [originalXCoord, originalYCoord] = utils.rotatePoint(oppositePositionX - oldHalfRotateWidth, -(oppositePositionY - oldHalfRotateHeight), this.rotation);
+
+          let newHalfRotateWidth = (select.s[0] / 2) + this.position[0];
+          let newHalfRotateHeight = (select.s[1] / 2) + this.position[1];
+          let [newXCoord, newYCoord] = utils.rotatePoint(newOppositePositionX - newHalfRotateWidth, -(newOppositePositionY - newHalfRotateHeight), this.rotation);
+          
+          select.p[0] = utils.round(this.position[0] - ((newXCoord + newHalfRotateWidth) - (originalXCoord + oldHalfRotateWidth)));
+          select.p[1] = utils.round(this.position[1] - (((-newYCoord) + newHalfRotateHeight) - ((-originalYCoord) + oldHalfRotateHeight)));
         }
       } else if (this.action == "rotate") {
         select.r = select.r || anno.r || 0;

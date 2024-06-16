@@ -336,6 +336,7 @@ modules["pages/editor"] = {
     let observeBorder = page.querySelector(".eObserveBorder");
 
     let eTop = page.querySelector(".eTop");
+    let lessonName = eTop.querySelector(".eFileName");
     let eTopScrollLeft = page.querySelector(".eTopScrollLeft");
     let eTopScrollRight = page.querySelector(".eTopScrollRight");
 
@@ -345,7 +346,6 @@ modules["pages/editor"] = {
 
     this.updateInterface = async (keepDropdowns) => {
       let toolbar = page.querySelector(".eToolbar");
-      let name = page.querySelector(".eFileName");
       let share = page.querySelector(".eShare");
       let access = this.getSelf().access;
       if (access != lastAccess) {
@@ -373,7 +373,7 @@ modules["pages/editor"] = {
         raiseHand.removeAttribute("selected");
         raiseHand.title = "Raise Hand | Ask to contribute to the lesson.";
 
-        name.removeAttribute("contenteditable");
+        lessonName.removeAttribute("contenteditable");
       } else {
         contentHolder.removeAttribute("viewer");
         toolbar.removeAttribute("hidden");
@@ -384,7 +384,7 @@ modules["pages/editor"] = {
         raiseHand.setAttribute("hidden", "");
 
         if (access > 3) {
-          name.setAttribute("contenteditable", "");
+          lessonName.setAttribute("contenteditable", "");
         }
       }
       /*
@@ -836,7 +836,9 @@ modules["pages/editor"] = {
         case "set":
           objectUpdate(body, this.lesson);
           let setName = this.lesson.name || "Untitled Lesson";
-          page.querySelector(".eFileName").textContent = setName;
+          if (document.activeElement.closest(".eFileName") == null) {
+            lessonName.textContent = setName;
+          }
           document.title = setName + " | Markify";
           if (body.hasOwnProperty("pin")) {
             if (this.updatePin) {
@@ -1460,30 +1462,29 @@ modules["pages/editor"] = {
       utils.syncSave(true);
       setFrame("pages/dashboard");
     });
-    let nameBox = page.querySelector(".eFileName");
-    nameBox.textContent = this.lesson.name || "Untitled Lesson";
-    document.title = nameBox.textContent + " | Markify";
-    nameBox.addEventListener("keydown", (event) => {
+    lessonName.textContent = this.lesson.name || "Untitled Lesson";
+    document.title = lessonName.textContent + " | Markify";
+    lessonName.addEventListener("keydown", (event) => {
       if (event.keyCode == 13) {
         event.preventDefault();
-        nameBox.blur();
+        lessonName.blur();
         return;
       }
       enableScrollTop();
     });
-    nameBox.addEventListener("focusout", async () => {
-      let name = nameBox.textContent.substring(0, 30).replace(/[^A-Za-z0-9.,_|/\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
+    lessonName.addEventListener("focusout", async () => {
+      let name = lessonName.textContent.substring(0, 30).replace(/[^A-Za-z0-9.,_|/\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
       if (name.replace(/ /g, "").length < 1) {
-        nameBox.textContent = this.lesson.name;
+        lessonName.textContent = this.lesson.name;
         return;
       }
-      if (nameBox.textContent == this.lesson.name) {
+      if (lessonName.textContent == this.lesson.name) {
         return;
       }
-      nameBox.textContent = name;
+      lessonName.textContent = name;
       let [code] = await sendRequest("POST", "lessons/name", { name: name }, { session: this.session });
       if (code != 200) {
-        nameBox.textContent = this.lesson.name;
+        lessonName.textContent = this.lesson.name;
       }
     });
 

@@ -2891,11 +2891,11 @@ modules["pages/editor/annotation"] = {
       let pageRect = pageElem.getBoundingClientRect();
       x -= pageRect.left;
       y -= pageRect.top;
-    } else {
+    }/* else if (editor.lesson.type == "freeboard") {
       let pageRect = pageHolder.getBoundingClientRect();
       x -= pageRect.left;
       y -= pageRect.top;
-    }
+    }*/
     let scaleZoom = 1 / editor.zoom;
     return {
       x: this.round(x * scaleZoom),

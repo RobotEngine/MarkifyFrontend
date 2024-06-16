@@ -2134,7 +2134,7 @@ modules["pages/editor/toolbar/cursor"] = {
             return;
           }
         }
-        let { x, y } = await utils.scaleToDoc(mouseX, mouseY, number);
+        let { x, y } = await utils.scaleToDoc(mouseX, mouseY, number || 0);
         if (editor.lesson.type == "freeboard") {
           y += 4;
         }
@@ -2143,7 +2143,7 @@ modules["pages/editor/toolbar/cursor"] = {
         }
         if (this.size == null) {
           this.size = JSON.parse(JSON.stringify(select.s || anno.s));
-          let originalPos = await utils.scaleToDoc(this.startX, this.startY, number);
+          let originalPos = await utils.scaleToDoc(this.startX, this.startY, number || 0);
           if (editor.lesson.type == "freeboard") {
             originalPos.y += 4;
           }
@@ -2395,7 +2395,7 @@ modules["pages/editor/toolbar/cursor"] = {
             return;
           }
         }
-        let { x, y } = await utils.scaleToDoc(mouseX, mouseY, number);
+        let { x, y } = await utils.scaleToDoc(mouseX, mouseY, number || 0);
         if (editor.lesson.type == "freeboard") {
           y += 4;
         }

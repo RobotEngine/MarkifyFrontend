@@ -2,7 +2,7 @@ let serverURL = window.serverURL || "https://api.markifyapp.com/";
 //let serverURL = "http://localhost:3000/api/";
 let assetURL = window.mediaURL || "https://markifyapp.s3.amazonaws.com/";
 
-const version = "0.13.6"; // Big Update . Small Feature Release . Bug Fix
+const version = "0.13.7"; // Big Update . Small Feature Release . Bug Fix
 
 const socket = new SimpleSocket({
   project_id: "62088fbdfc22489578e94822",
@@ -13,7 +13,7 @@ const socket = new SimpleSocket({
 let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 let week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-let supportedImageTypes = ["png", "jpeg", "jpg", "webp", "svg+xml", "tiff", "tif", "heic", "heif"];
+let supportedImageTypes = ["png", "jpeg", "jpg", "webp", "svg+xml", "tiff", "tif", "heic", "heif", "gif"];
 
 let modules = {};
 

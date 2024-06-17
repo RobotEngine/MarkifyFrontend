@@ -3700,9 +3700,13 @@ modules["pages/editor/annotation"] = {
         if (editor.exporting != true) {
           if (d != null || anno.hasAttribute("src") == false) {
             if (d != null && d.startsWith("blob:") == false) {
-              anno.src = assetURL + d;
+              if (anno.src != assetURL + d) {
+                anno.src = assetURL + d;
+              }
             } else {
-              anno.src = d || "./images/editor/uploading.png";
+              if (anno.src != (d || "./images/editor/uploading.png")) {
+                anno.src = d || "./images/editor/uploading.png";
+              }
             }
           }
         } else {

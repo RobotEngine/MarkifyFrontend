@@ -3398,6 +3398,9 @@ modules["pages/editor/toolbar/text"] = {
       }
       clientX = clientPosition(event, "x") || clientX;
       clientY = clientPosition(event, "y") || clientY;
+      if (clientX == null || clientY == null) {
+        return;
+      }
       let [page, number] = await utils.findPage(clientY);
       if (page.hasAttribute("hide") == true) {
         return;
@@ -3982,6 +3985,9 @@ modules["pages/editor/toolbar/shape"] = {
       }
       clientX = clientPosition(event, "x") || clientX;
       clientY = clientPosition(event, "y") || clientY;
+      if (clientX == null || clientY == null) {
+        return;
+      }
       let [page, number] = await utils.findPage(clientY);
       if (page.hasAttribute("hide") == true) {
         return;
@@ -4057,6 +4063,9 @@ modules["pages/editor/toolbar/sticky"] = {
       }
       clientX = clientPosition(event, "x") || clientX;
       clientY = clientPosition(event, "y") || clientY;
+      if (clientX == null || clientY == null) {
+        return;
+      }
       let [page, number] = await utils.findPage(clientY);
       if (page.hasAttribute("hide") == true) {
         return;
@@ -4261,6 +4270,9 @@ modules["pages/editor/toolbar/upload"] = {
       }
       clientX = clientPosition(event, "x") || clientX;
       clientY = clientPosition(event, "y") || clientY;
+      if (clientX == null || clientY == null) {
+        return;
+      }
       let [page, number] = await utils.findPage(clientY);
       if (page.hasAttribute("hide") == true) {
         return;

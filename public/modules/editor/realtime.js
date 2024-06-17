@@ -725,7 +725,7 @@ modules["editor/realtime"] = {
                         height = -height;
                         y -= height;
                       }
-                      let pageRect = (annoHold).getBoundingClientRect();
+                      let pageRect = annoHold.getBoundingClientRect();
                       let t = merge.t || 0;
                       if (merge.b == "none" && merge.d != "line") {
                         t = 0;

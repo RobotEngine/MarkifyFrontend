@@ -1450,13 +1450,28 @@ modules["pages/editor/toolbar/cursor"] = {
         if (anno.b == "none" && anno.d != "line") {
           t = 0;
         }
-        let boxWidth = ((anno.s[0] + t) * editor.zoom) - 3; // +0 for width, -3 for border
-        let boxHeight = ((anno.s[1] + t) * editor.zoom) - 3;
+        let [width, height] = anno.s;
+        let [x, y] = anno.p;
+        let rotate = anno.r || 0;
+        if (rotate > 180) {
+          rotate = -(360 - rotate);
+        }
+        if (width < 0) {
+          width = -width;
+          x -= width;
+        }
+        if (height < 0) {
+          height = -height;
+          y -= height;
+        }
+        let boxWidth = ((width + t) * editor.zoom) - 3; // +0 for width, -3 for border
+        let boxHeight = ((height + t) * editor.zoom) - 3;
         selection.style.width = boxWidth + "px";
         selection.style.height = boxHeight + "px";
         let halfT = t / 2;
-        selection.style.left = pageRect.x + ((anno.p[0] + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
-        selection.style.top = pageRect.y + ((anno.p[1] + halfT - border) * editor.zoom) + window.scrollY - 1.5 + "px";
+        selection.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
+        selection.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
+        selection.style.transform = "rotate(" + rotate + "deg)";
         selection.offsetHeight;
         selection.removeAttribute("notransition");
       }
@@ -2399,16 +2414,12 @@ modules["pages/editor/toolbar/cursor"] = {
         if (editor.lesson.type == "freeboard") {
           y += 4;
         }
-        if (this.position == null) {
-          this.position = JSON.parse(JSON.stringify(select.p || anno.p));
-        }
-        if (this.size == null) {
-          this.size = JSON.parse(JSON.stringify(select.s || anno.s));
-        }
-        let centerX = this.size[0] / 2;
-        let centerY = this.size[1] / 2;
-        let yRoot = -(y - (this.position[1] + centerY));
-        let xRoot = x - (this.position[0] + centerX);
+        let position = select.p || anno.p;
+        let size = select.s || anno.s;
+        let centerX = size[0] / 2;
+        let centerY = size[1] / 2;
+        let yRoot = -(y - (position[1] + centerY));
+        let xRoot = x - (position[0] + centerX);
         if (this.rotation == null) {
           this.rotation = (Math.atan2(yRoot, xRoot) * 180) / Math.PI;
           if (this.rotation < 0) {

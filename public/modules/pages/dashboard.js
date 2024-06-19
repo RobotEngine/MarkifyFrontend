@@ -771,6 +771,11 @@ modules["pages/dashboard/lessons"] = {
     folderDropdown.dashboardUpdateDashSub = updateDashSub;
 
     frame.parentElement.style.zIndex = 1;
+
+    if (window.deferredPrompt && window.alreadyPromotedPWA != true) {
+      window.deferredPrompt.prompt();
+      window.alreadyPromotedPWA = true;
+    }
   }
 }
 

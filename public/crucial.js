@@ -1432,3 +1432,7 @@ if ("serviceWorker" in navigator && window.isDiscord != true) {
     navigator.serviceWorker.register("serviceworker.js");
   });
 }
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  window.deferredPrompt = event;
+});

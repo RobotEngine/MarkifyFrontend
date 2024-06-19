@@ -6,7 +6,8 @@
   "background_color": "#0084FF",
   "description": "Share and collaborate on documents across the classroom with Markify.",
   "orientation": "portrait",
-  "display": "standalone",
+  "display": "fullscreen",
+  "display_override": ["standalone", "minimal-ui"],
   "categories": [
     "editor",
     "realtime",
@@ -15,12 +16,25 @@
   ],
   "icons": [
     {
-      "src": "https://markify.exotek.co/images/favicon.png",
+      "src": "./images/favicon.png",
       "sizes": "256x256",
       "type": "image/png"
     }
   ],
-  "screenshots": [],
+  "screenshots": [
+    {
+      "src": "./images/pwa/narrow.png",
+      "type": "image/png",
+      "sizes": "540x720",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "./images/pwa/wide.png",
+      "type": "image/png",
+      "sizes": "720x540",
+      "form_factor": "wide"
+    }
+  ],
   "shortcuts": [],
   "scope": "/"
 }

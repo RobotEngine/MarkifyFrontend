@@ -5238,7 +5238,7 @@ modules["pages/editor/toolbar/delete"] = {
 };
 
 modules["pages/editor/toolbar/collaborator"] = {
-  button: `<img class="eSubToolCollaborator" src="./images/profiles/default.svg">`,
+  button: `<img class="eSubToolCollaborator">`,
   divideBefore: true,
   setButton: async function (editor, button) {
     let cursorModule = await getModule("pages/editor/toolbar/cursor");
@@ -5291,7 +5291,7 @@ modules["pages/editor/toolbar/collaborator"] = {
     button.setAttribute("collaborator", collaborator._id);
     button.setAttribute("tooltip", collaborator.name);
     let image = button.querySelector(".eSubToolCollaborator");
-    if (image.getAttribute("src") != collaborator.image || "./images/profiles/default.svg") {
+    if (image.getAttribute("src") != (collaborator.image || "./images/profiles/default.svg")) {
       image.src = collaborator.image || "./images/profiles/default.svg";
     }
     image.style.border = "solid 3px " + collaborator.color;
@@ -5322,7 +5322,7 @@ modules["pages/editor/toolbar/collaborator"] = {
     ".eSubToolCollaboratorBackdrop": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; background: var(--themeColor); transition: .2s; z-index: -1; border-radius: inherit; overflow: hidden`,
     ".eSubToolCollaboratorBackdrop div": `width: 100%; height: 100%; transform: scale(.95); flex-shrink: 0; opacity: .3; background-image: url(./images/editor/background.svg); background-position: center`,
     ".eSubToolCollaboratorCursor": `display: none; width: 40px; height: 40px; flex-shrink: 0; margin: 2px; background: var(--themeColor); border: solid 6px var(--pageColor); border-radius: 16px 28px 28px`,
-    ".eSubToolCollaboratorPicture": `display: none; width: 44px; height: 44px; flex-shrink: 0; margin: 2px; border: solid 4px var(--pageColor); object-fit: cover; border-radius: 28px`,
+    ".eSubToolCollaboratorPicture": `display: none; width: 44px; height: 44px; flex-shrink: 0; margin: 2px; background: #fff; border: solid 4px var(--pageColor); object-fit: cover; border-radius: 28px`,
     ".eSubToolCollaboratorInfo": `margin: 4px; text-align: left`,
     ".eSubToolCollaboratorInfo div[name]": `max-width: calc(var(--uiwidth) - 24px); font-size: 20px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
     ".eSubToolCollaboratorInfo div[email]": `display: none; max-width: calc(var(--uiwidth) - 24px); font-size: 15px; font-weight: 500; margin-top: 3px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`
@@ -5350,12 +5350,12 @@ modules["pages/editor/toolbar/collaborator"] = {
 
     let holder = frame.querySelector(".eSubToolCollaboratorHolder");
     holder.style.setProperty("--themeColor", collaborator.color);
-    if (collaborator.image == null) {
+    if (collaborator.email == null) {
       frame.querySelector(".eSubToolCollaboratorCursor").style.display = "unset";
     } else {
       let image = frame.querySelector(".eSubToolCollaboratorPicture");
-      if (image.src != collaborator.image) {
-        image.src = collaborator.image;
+      if (image.src != (collaborator.image || "./images/profiles/default.svg")) {
+        image.src = (collaborator.image || "./images/profiles/default.svg");
       }
       image.style.display = "unset";
     }

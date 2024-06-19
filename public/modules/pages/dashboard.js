@@ -772,7 +772,7 @@ modules["pages/dashboard/lessons"] = {
 
     frame.parentElement.style.zIndex = 1;
 
-    if (window.deferredPrompt && window.alreadyPromotedPWA != true) {
+    if (window.deferredPrompt != null && getParam("source") != "pwa" && window.alreadyPromotedPWA != true) {
       window.deferredPrompt.prompt();
       window.alreadyPromotedPWA = true;
     }

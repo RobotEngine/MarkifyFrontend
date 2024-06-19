@@ -2,7 +2,7 @@ let serverURL = window.serverURL || "https://api.markifyapp.com/";
 //let serverURL = "http://localhost:3000/api/";
 let assetURL = window.mediaURL || "https://markifyapp.s3.amazonaws.com/";
 
-const version = "0.13.8"; // Big Update . Small Feature Release . Bug Fix
+const version = "0.13.9"; // Big Update . Small Feature Release . Bug Fix
 
 const socket = new SimpleSocket({
   project_id: "62088fbdfc22489578e94822",
@@ -1349,8 +1349,9 @@ modules["dropdowns/account"] = {
   <button class="accountDrop accountManage" close><div>Settings</div><img src="./images/tooltips/account/settings.svg"></button>
   <!--<button class="accountDrop" dropdown="dropdowns/account/preferences"><div>Preferences</div><img src="./images/tooltips/account/preferences.svg"></button>-->
   <div class="accountDropLine"></div>
-  <button class="accountDrop accountManage" close dropdown="dropdowns/account/report" dropdowntitle="Report Bugs & Feedback"><div>Report Bug</div><img src="./images/tooltips/account/report.svg"></button>
-  <button class="accountDrop accountManage" close modal="modals/tutorial" modaltitle="Resources"><div>Resources</div><img src="./images/tooltips/account/question.svg"></button>
+  <button class="accountDrop" close pwa dropdowntitle="Add Markify as an app on your device!"><div>Get the App</div><img src="./images/tooltips/account/app.svg"></button>
+  <button class="accountDrop" close dropdown="dropdowns/account/report" dropdowntitle="Report Bugs & Feedback"><div>Report Bug</div><img src="./images/tooltips/account/report.svg"></button>
+  <button class="accountDrop" close modal="modals/tutorial" modaltitle="Resources"><div>Resources</div><img src="./images/tooltips/account/question.svg"></button>
   <div class="accountDropLine"></div>
   <div class="accountSocialHolder">
     <a href="https://twitter.com/markifytool" target="_blank"><img src="./images/launch/socials/twitter.svg"></a>
@@ -1372,6 +1373,7 @@ modules["dropdowns/account"] = {
     ".accountDrop img": `width: 24px; height: 24px; margin-left: 6px; object-fit: cover; transition: .15s`,
     ".accountDrop:hover": `background: var(--setBackground); color: #fff`,
     ".accountDrop:hover img": `filter: brightness(0) invert(1)`,
+    ".accountDrop[pwa]": `display: none`,
     ".accountDropLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`,
     ".accountSocialHolder": `display: flex; flex-wrap: wrap; height: fit-content; padding: 3px; background: #fff; border-radius: 12px; justify-content: space-evenly`,
     ".accountSocialHolder a": `width: 30px; height: 30px; margin: 3px`,
@@ -1404,6 +1406,34 @@ modules["dropdowns/account"] = {
         promptLogin();
       }
     });
+    let checkForPrompt = () => {
+      if (window.deferredPrompt == null) {
+        return false;
+      }
+      if (window.matchMedia("(display-mode: standalone)").matches == true || window.navigator.standalone == true || document.referrer.includes("android-app://") == true) {
+        return false;
+      }
+      if (getParam("source") == "pwa") {
+        return false;
+      }
+      if (window.deferredPrompt.prompt == null) {
+        return false;
+      }
+      return true;
+    }
+    let installpwa = frame.querySelector(".accountDrop[pwa]");
+    installpwa.addEventListener("click", async function () {
+      if (checkForPrompt() == true) {
+        await window.deferredPrompt.prompt();
+        let { outcome } = await window.deferredPrompt.userChoice;
+        if (outcome === "accepted") {
+          sendRequest("POST", "me/science", { type: "installedpwa", value: true });
+        }
+      }
+    });
+    if (checkForPrompt() == true) {
+      installpwa.style.display = "flex";
+    }
   }
 }
 

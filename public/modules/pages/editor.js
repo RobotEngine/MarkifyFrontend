@@ -462,6 +462,24 @@ modules["pages/editor"] = {
         }
       }, 1000); // Save after 1 second of no changes
     }
+    this.textColorBackground = (bgColor) => {
+      if (bgColor == null) {
+        return;
+      }
+      let color = (bgColor.charAt(0) === '#') ? bgColor.substring(1, 7) : bgColor;
+      let r = parseInt(color.substring(0, 2), 16); // hexToR
+      let g = parseInt(color.substring(2, 4), 16); // hexToG
+      let b = parseInt(color.substring(4, 6), 16); // hexToB
+      let uicolors = [r / 255, g / 255, b / 255];
+      let c = uicolors.map((col) => {
+        if (col <= 0.03928) {
+          return col / 12.92;
+        }
+        return Math.pow((col + 0.055) / 1.055, 2.4);
+      });
+      let L = (0.2126 * c[0]) + (0.7152 * c[1]) + (0.0722 * c[2]);
+      return (L > 0.3) ? "#000" : "#fff"; // 0.179
+    }
 
     // PRELOAD ASSETS
     loadScript("./libraries/pdfjs/pdf.mjs");
@@ -819,10 +837,10 @@ modules["pages/editor"] = {
             }
 
             // Update collaborators:
-            let collaborator = this.collaborators[member.user];
+            let collaborator = this.collaborators[member.modify];
             if (collaborator != null) {
               if (body.name != null) {
-                collaborator.user = body.name;
+                collaborator.name = body.name;
               }
               if (body.email != null) {
                 collaborator.email = body.email;
@@ -1084,7 +1102,7 @@ modules["pages/editor"] = {
             this.reactions[body.reaction.annotation] = this.reactions[body.reaction.annotation] || [];
             let annotationReactions = this.reactions[body.reaction.annotation];
             if (body.change != null) {
-              if (this.sessionID == body.member._id || (body.member.user != null && body.member.user == userID)) {
+              if (this.getSelf().modify == body.member._id) {
                 if (body.change > 0) {
                   body.reaction.reacted = true;
                 } else {
@@ -1594,12 +1612,6 @@ modules["pages/editor"] = {
       if (annoBody.reactions != null) {
         let reactedToObject = getObject(annoBody.reactedTo || [], "_id");
         let userCheckSelf = this.getSelf();
-        let userCheck;
-        if (userCheckSelf.user != null) {
-          userCheck = "user_" + userCheckSelf.user;
-        } else {
-          userCheck = "temp_" + userCheckSelf._id;
-        }
         for (let i = 0; i < annoBody.reactions.length; i++) {
           let addReaction = annoBody.reactions[i];
           let existingAnnoRecord = this.reactions[addReaction.annotation];
@@ -1608,7 +1620,7 @@ modules["pages/editor"] = {
             existingAnnoRecord = this.reactions[addReaction.annotation];
           }
           delete addReaction.annotation;
-          if (reactedToObject[addReaction._id + "_" + userCheck] != null) {
+          if (reactedToObject[addReaction._id + "_" + userCheckSelf.modify] != null) {
             addReaction.reacted = true;
           }
           existingAnnoRecord.push(addReaction);
@@ -4020,12 +4032,7 @@ modules["pages/editor/annotation"] = {
     annotation.render.sync = getEpoch();
     mutations.sync = annotation.render.sync;
 
-    let member = editor.getSelf();
-    if (member.user != null) {
-      annotation.render.m = "user_" + member.user;
-    } else {
-      annotation.render.m = "temp_" + member._id;
-    }
+    annotation.render.m = editor.getSelf().modify;
 
     let saveSync = { _id: annoID, ...(this.pendingSaves[annoID] || {}), ...mutations };
     if (connected == true) {

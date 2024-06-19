@@ -55,25 +55,6 @@ modules["editor/realtime"] = {
 
     editor.codeTextButton.setAttribute("dropdown", "dropdowns/editor/share/pin");
 
-    this.textColorBackground = (bgColor) => {
-      if (bgColor == null) {
-        return;
-      }
-      let color = (bgColor.charAt(0) === '#') ? bgColor.substring(1, 7) : bgColor;
-      let r = parseInt(color.substring(0, 2), 16); // hexToR
-      let g = parseInt(color.substring(2, 4), 16); // hexToG
-      let b = parseInt(color.substring(4, 6), 16); // hexToB
-      let uicolors = [r / 255, g / 255, b / 255];
-      let c = uicolors.map((col) => {
-        if (col <= 0.03928) {
-          return col / 12.92;
-        }
-        return Math.pow((col + 0.055) / 1.055, 2.4);
-      });
-      let L = (0.2126 * c[0]) + (0.7152 * c[1]) + (0.0722 * c[2]);
-      return (L > 0.3) ? "#000" : "#fff"; // 0.179
-    }
-
     // Update connectivity:
     let statusIcon = page.querySelector(".eConnection");
     this.connectUpdate = () => {
@@ -415,7 +396,7 @@ modules["editor/realtime"] = {
       clearTimeout(editor.realtime.observeTimeout);
       
       observeTag.style.background = member.color;
-      observeTag.style.color = this.textColorBackground(member.color);
+      observeTag.style.color = editor.textColorBackground(member.color);
       observeTag.querySelector("b").textContent = member.name;
       observeHolder.style.display = "flex";
       observeBorder.style.border = "solid 3px " + member.color;
@@ -613,15 +594,9 @@ modules["editor/realtime"] = {
                         editor.annotations[annoID] = {};
                         original = editor.annotations[annoID];
                       }
-                      let mCheck;
-                      if (member.user != null) {
-                        mCheck = "user_" + member.user;
-                      } else {
-                        mCheck = "temp_" + member._id;
-                      }
                       original = original || {};
                       let originalRender = original.render || {};
-                      if (editor.lesson.settings.editOthersWork != true && originalRender.m != null && originalRender.m != mCheck && member.access < 4) { // Can't edit another member's work:
+                      if (editor.lesson.settings.editOthersWork != true && originalRender.m != null && originalRender.m != member.modify && member.access < 4) { // Can't edit another member's work:
                         continue;
                       }
                       original.revert = original.revert || JSON.parse(JSON.stringify(originalRender));
@@ -648,11 +623,7 @@ modules["editor/realtime"] = {
                         utils.saveEdit(anno, null, time);
                       }
                       if (Object.keys({ ...anno, done: "" }).length > 2) {
-                        if (member.user != null) {
-                          original.render.m = "user_" + member.user;
-                        } else {
-                          original.render.m = "temp_" + member._id;
-                        }
+                        original.render.m = member.modify;
                         changes = true;
                       }
                       original.render.sync = time;
@@ -767,15 +738,9 @@ modules["editor/realtime"] = {
                     editor.annotations[extra.u._id] = {};
                     original = editor.annotations[annextra.u._idoID];
                   }
-                  let mCheck;
-                  if (member.user != null) {
-                    mCheck = "user_" + member.user;
-                  } else {
-                    mCheck = "temp_" + member._id;
-                  }
                   original = original || {};
                   let originalRender = original.render || {};
-                  if (editor.lesson.settings.editOthersWork == true || originalRender.m == null || originalRender.m == mCheck || member.access > 3) { // Can edit another member's work:
+                  if (editor.lesson.settings.editOthersWork == true || originalRender.m == null || originalRender.m == member.modify || member.access > 3) { // Can edit another member's work:
                     utils.saveEdit(extra.u);
                   }
                 }
@@ -861,7 +826,7 @@ modules["editor/realtime"] = {
                 cursorHolder.setAttribute("offsety", offsety);
                 cursorHolder.style.setProperty("--origin", origin);
                 cursorHolder.querySelector("[name]").textContent = member.name;
-                let setTextColor = this.textColorBackground(member.color);
+                let setTextColor = editor.textColorBackground(member.color);
                 cursorHolder.style.color = setTextColor;
                 if (setTextColor == "#000") {
                   cursorHolder.style.setProperty("--textColor", "#000");
@@ -1103,7 +1068,7 @@ modules["dropdowns/editor/members"] = {
       tile.setAttribute("member", member._id);
       updateOrder(section, tile.parentElement, member);
       tile.style.setProperty("--themeColor", member.color);
-      tile.style.setProperty("--hoverTextColor", editor.realtime.module.textColorBackground(member.color));
+      tile.style.setProperty("--hoverTextColor", editor.textColorBackground(member.color));
       tile.querySelector(".eMemberName").textContent = member.name;
       tile.querySelector(".eMemberName").title = member.name;
       let eventsHolder = tile.querySelector(".eMemberEvents");
@@ -1623,7 +1588,7 @@ modules["dropdowns/editor/members"] = {
       if (member.title == null) {
         memberFrame.setAttribute("memberid", member._id);
         memberFrame.removeAttribute("access");
-        memberFrame.style.setProperty("--adaptColor", editor.realtime.module.textColorBackground(member.color));
+        memberFrame.style.setProperty("--adaptColor", editor.textColorBackground(member.color));
       } else {
         memberFrame.setAttribute("access", member.access);
         memberFrame.removeAttribute("memberid");

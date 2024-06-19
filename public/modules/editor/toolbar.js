@@ -89,8 +89,8 @@ modules["editor/toolbar"] = {
     ".eActionShadow": `position: absolute; width: 100%; height: 100%; padding: var(--shadowPadding); bottom: var(--shadowBottom); left: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
     ".eActionShadow:after": `position: absolute; width: calc(100% - 32px); height: calc(100% - 16px); left: 16px; top: var(--shadowTop); content: ""; box-shadow: var(--shadow); border-radius: inherit`,
     ".eActionContainerHolder": `width: 100%; height: 100%; overflow: hidden; border-radius: inherit`,
-    ".eActionContainerScroll": `width: fit-content`, //; overflow: auto
-    ".eActionContainerContent": `flex-wrap: wrap; gap: 6px`
+    ".eActionContainerScroll": `width: fit-content; border-radius: inherit`, //; overflow: auto
+    ".eActionContainerContent": `flex-wrap: wrap; gap: 6px; border-radius: inherit`
   },
   tools: {
     "select": [
@@ -2642,15 +2642,9 @@ modules["pages/editor/toolbar/cursor"] = {
         return;
       }
       let annoID = anno.getAttribute("anno");
-      let mCheck;
       let self = editor.getSelf();
-      if (self.user != null) {
-        mCheck = "user_" + self.user;
-      } else {
-        mCheck = "temp_" + self._id;
-      }
       let render = ((editor.annotations[annoID] || {}).render || {});
-      if (editor.lesson.settings.editOthersWork != true && render.m != null && render.m != mCheck && self.access < 4) { // Can't edit another member's work:
+      if (editor.lesson.settings.editOthersWork != true && render.m != null && render.m != self.modify && self.access < 4) { // Can't edit another member's work:
         return;
       }
       if (editor.selecting[annoID] == null) {
@@ -2684,15 +2678,9 @@ modules["pages/editor/toolbar/cursor"] = {
           return;
         }
         let annoID = anno.getAttribute("anno");
-        let mCheck;
         let self = editor.getSelf();
-        if (self.user != null) {
-          mCheck = "user_" + self.user;
-        } else {
-          mCheck = "temp_" + self._id;
-        }
         let render = ((editor.annotations[annoID] || {}).render || {});
-        if (editor.lesson.settings.editOthersWork != true && render.m != null && render.m != mCheck && self.access < 4) { // Can't edit another member's work:
+        if (editor.lesson.settings.editOthersWork != true && render.m != null && render.m != self.modify && self.access < 4) { // Can't edit another member's work:
           alertModule.open("warning", "<b>Someone Else's Annotation</b>The ability to modify another member's work is disabled.");
           return;
         }
@@ -2837,15 +2825,9 @@ modules["pages/editor/toolbar/drag"] = {
           continue;
         }
         let annoID = selected[i].getAttribute("anno");
-        let mCheck;
         let self = editor.getSelf();
-        if (self.user != null) {
-          mCheck = "user_" + self.user;
-        } else {
-          mCheck = "temp_" + self._id;
-        }
         let render = ((editor.annotations[annoID] || {}).render || {});
-        if (editor.lesson.settings.editOthersWork != true && render.m != null && render.m != mCheck && self.access < 4) { // Can't edit another member's work:
+        if (editor.lesson.settings.editOthersWork != true && render.m != null && render.m != self.modify && self.access < 4) { // Can't edit another member's work:
           continue;
         }
         editor.selecting[annoID] = {};
@@ -3800,13 +3782,7 @@ modules["pages/editor/toolbar/eraser"] = {
         y += 4;
       }
 
-      let mCheck;
       let self = editor.getSelf();
-      if (self.user != null) {
-        mCheck = "user_" + self.user;
-      } else {
-        mCheck = "temp_" + self._id;
-      }
 
       x0 = x0 || x1;
       y0 = y0 || y1;
@@ -3828,7 +3804,7 @@ modules["pages/editor/toolbar/eraser"] = {
             let annotation = editor.annotations[annoID];
             if (annotation != null) {
               let render = annotation.render || {};
-              if (editor.lesson.settings.editOthersWork != true && render.m != null && render.m != mCheck && self.access < 4) { // Can't edit another member's work:
+              if (editor.lesson.settings.editOthersWork != true && render.m != null && render.m != self.modify && self.access < 4) { // Can't edit another member's work:
                 continue;
               }
               
@@ -5267,7 +5243,7 @@ modules["pages/editor/toolbar/collaborator"] = {
   setButton: async function (editor, button) {
     let cursorModule = await getModule("pages/editor/toolbar/cursor");
     button.setAttribute("disabled", "");
-    this.hidden = true;
+    this.hidden = false;
     let selectKeys = Object.keys(editor.selecting);
     //let buttonElem = button.querySelector(".eSubToolStyle");
     // Loop through to see if collaborator option should be shown
@@ -5275,7 +5251,7 @@ modules["pages/editor/toolbar/collaborator"] = {
     for (let i = 0; i < selectKeys.length; i++) {
       let annotation = editor.annotations[selectKeys[i]];
       let setModifiedBy = (annotation.render || {}).m || (annotation.revert || {}).m;
-      if (setModifiedBy == null || (modifiedBy != null && setModifiedBy != modifiedBy)) { // || setModifiedBy.startsWith("temp_") == true
+      if (setModifiedBy == null || (modifiedBy != null && setModifiedBy != modifiedBy)) {
         button.style.display = "none";
         if (this.hidden == false) {
           this.hidden = true;
@@ -5283,25 +5259,9 @@ modules["pages/editor/toolbar/collaborator"] = {
         }
         return;
       }
-      if (setModifiedBy.startsWith("user_") == true) {
-        modifiedBy = setModifiedBy;
-      }
+      modifiedBy = setModifiedBy;
     }
-    if (modifiedBy == null) {
-      if (editor.lesson.settings.forceLogin != true && editor.getSelf().access > 3) {
-        button.setAttribute("tooltip", "Collaborator");
-        button.removeAttribute("disabled");
-      } else {
-        button.style.display = "none";
-        if (this.hidden == false) {
-          this.hidden = true;
-          cursorModule.updateActionUI();
-        }
-      }
-      return;
-    }
-    let modifyID = (modifiedBy || "").substring(5);
-    if (modifyID == editor.sessionID || modifyID == userID) {
+    if (modifiedBy == null || modifiedBy == editor.getSelf().modify || modifiedBy.length != 24) {
       button.style.display = "none";
       if (this.hidden == false) {
         this.hidden = true;
@@ -5309,22 +5269,32 @@ modules["pages/editor/toolbar/collaborator"] = {
       }
       return;
     }
-    let collaborator = editor.collaborators[modifyID];
+    let collaborator = editor.collaborators[modifiedBy];
     if (collaborator == null) { // Fetch to get the collaborator
-      let [code, body] = await sendRequest("GET", "lessons/members/collaborator?userid=" + modifyID, null, { session: editor.session });
+      let [code, body] = await sendRequest("GET", "lessons/members/collaborator?modify=" + modifiedBy, null, { session: editor.session, allowError: [404] });
       if (code == 200) {
         editor.collaborators[body._id] = body;
         collaborator = editor.collaborators[body._id];
       } else {
-        return;
+        editor.collaborators[modifiedBy] = {};
+        collaborator = editor.collaborators[modifiedBy];
       }
     }
-    button.setAttribute("userid", collaborator._id);
-    button.setAttribute("tooltip", collaborator.user);
+    if (collaborator._id == null) {
+      button.style.display = "none";
+      if (this.hidden == false) {
+        this.hidden = true;
+        cursorModule.updateActionUI();
+      }
+      return;
+    }
+    button.setAttribute("collaborator", collaborator._id);
+    button.setAttribute("tooltip", collaborator.name);
     let image = button.querySelector(".eSubToolCollaborator");
     if (image.getAttribute("src") != collaborator.image || "./images/profiles/default.svg") {
       image.src = collaborator.image || "./images/profiles/default.svg";
     }
+    image.style.border = "solid 3px " + collaborator.color;
     button.removeAttribute("disabled");
     if (button.style.display != "unset") {
       button.style.display = "unset";
@@ -5332,11 +5302,12 @@ modules["pages/editor/toolbar/collaborator"] = {
         this.hidden = false;
         cursorModule.updateActionUI();
       }
-      //(await getModule("pages/editor/toolbar/cursor")).updateActionUI();
     }
   },
   html: `
   <div class="eSubToolCollaboratorHolder">
+    <div class="eSubToolCollaboratorBackdrop"><div></div></div>
+    <div class="eSubToolCollaboratorCursor"></div>
     <img class="eSubToolCollaboratorPicture">
     <div class="eSubToolCollaboratorInfo">
       <div name></div>
@@ -5345,26 +5316,27 @@ modules["pages/editor/toolbar/collaborator"] = {
   </div>
   `,
   css: {
-    ".eSubToolCollaborator": `width: 32px; height: 32px; padding: 3px; object-fit: cover; background: var(--pageColor); border-radius: 19px`,
+    ".eSubToolCollaborator": `width: 30px; height: 30px; padding: 2px; object-fit: cover; background: var(--pageColor); border-radius: 20px`,
 
-    ".eSubToolCollaboratorHolder": `display: flex; flex-wrap: wrap; width: max-content; max-width: var(--uiwidth); padding: 8px; gap: 4px; align-items: center`,
-    ".eSubToolCollaboratorPicture": `width: 50px; height: 50px; padding: 3px; margin: 1px; border: solid 4px var(--theme); object-fit: cover; background: var(--pageColor); border-radius: 32px`,
+    ".eSubToolCollaboratorHolder": `display: flex; flex-wrap: wrap; width: max-content; max-width: var(--uiwidth); padding: 8px; gap: 4px; align-items: center; border-radius: inherit`,
+    ".eSubToolCollaboratorBackdrop": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; background: var(--themeColor); transition: .2s; z-index: -1; border-radius: inherit; overflow: hidden`,
+    ".eSubToolCollaboratorBackdrop div": `width: 100%; height: 100%; transform: scale(.95); flex-shrink: 0; opacity: .3; background-image: url(./images/editor/background.svg); background-position: center`,
+    ".eSubToolCollaboratorCursor": `display: none; width: 40px; height: 40px; flex-shrink: 0; margin: 2px; background: var(--themeColor); border: solid 6px var(--pageColor); border-radius: 16px 28px 28px`,
+    ".eSubToolCollaboratorPicture": `display: none; width: 44px; height: 44px; flex-shrink: 0; margin: 2px; border: solid 4px var(--pageColor); object-fit: cover; border-radius: 28px`,
     ".eSubToolCollaboratorInfo": `margin: 4px; text-align: left`,
     ".eSubToolCollaboratorInfo div[name]": `max-width: calc(var(--uiwidth) - 24px); font-size: 20px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
-    ".eSubToolCollaboratorInfo div[email]": `max-width: calc(var(--uiwidth) - 24px); font-size: 15px; font-weight: 500; margin-top: 3px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
-    
-    ".eSubToolCollaboratorShowMe": `color: var(--theme); font-weight: 700`
+    ".eSubToolCollaboratorInfo div[email]": `display: none; max-width: calc(var(--uiwidth) - 24px); font-size: 15px; font-weight: 500; margin-top: 3px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`
+    //".eSubToolCollaboratorShowMe": `color: var(--theme); font-weight: 700`
   },
   js: async function (frame, toolID, extra) {
     let editor = await getModule("pages/editor");
-    let alertModule = await getModule("alert");
-    let dropdownModule = await getModule("dropdown");
     
     let button = extra.frame.querySelector('.eTool[action="pages/editor/toolbar/collaborator"]');
-    let collaboratorID = button.getAttribute("userid");
+    let collaboratorID = button.getAttribute("collaborator");
     let collaborator = editor.collaborators[collaboratorID];
     if (collaborator == null) {
-      let alert = await alertModule.open("info", '<b>Require Login Disabled</b><div>In order to see who edited this, you must enable the require login option. <a class="eSubToolCollaboratorShowMe" new>Show Me</a></div>', { time: 10 });
+      /*let alertModule = await getModule("alert");
+      let dropdownModule = await getModule("dropdown");let alert = await alertModule.open("info", '<b>Require Login Disabled</b><div>In order to see who edited this, you must enable the require login option. <a class="eSubToolCollaboratorShowMe" new>Show Me</a></div>', { time: 10 });
       let showMeButton = fixed.querySelector(".eSubToolCollaboratorShowMe[new]");
       showMeButton.removeAttribute("new");
       showMeButton.addEventListener("click", async () => {
@@ -5372,22 +5344,33 @@ modules["pages/editor/toolbar/collaborator"] = {
         await sleep(1);
         dropdownModule.open(editor.page.querySelector(".eShare"), "dropdowns/editor/share/options");
       });
-      extra.module.clickAction({ target: button });
+      extra.module.clickAction({ target: button });*/
       return;
     }
 
-    let image = frame.querySelector(".eSubToolCollaboratorPicture");
-    if (image.src != collaborator.image || "./images/profiles/default.svg") {
-      image.src = collaborator.image || "./images/profiles/default.svg";
+    let holder = frame.querySelector(".eSubToolCollaboratorHolder");
+    holder.style.setProperty("--themeColor", collaborator.color);
+    if (collaborator.image == null) {
+      frame.querySelector(".eSubToolCollaboratorCursor").style.display = "unset";
+    } else {
+      let image = frame.querySelector(".eSubToolCollaboratorPicture");
+      if (image.src != collaborator.image) {
+        image.src = collaborator.image;
+      }
+      image.style.display = "unset";
     }
-    let name = frame.querySelector(".eSubToolCollaboratorInfo div[name]");
-    name.textContent = collaborator.user;
-    name.title = collaborator.user;
-    let email = frame.querySelector(".eSubToolCollaboratorInfo div[email]");
-    email.textContent = collaborator.email;
-    email.title = collaborator.email;
-
-    frame.querySelector(".eSubToolCollaboratorHolder").style.setProperty("--uiwidth", frame.closest(".eSelectBar").clientWidth + "px");
+    let info = frame.querySelector(".eSubToolCollaboratorInfo");
+    info.style.color = editor.textColorBackground(collaborator.color);
+    let name = info.querySelector("div[name]");
+    name.textContent = collaborator.name;
+    name.title = collaborator.name;
+    if (collaborator.email != null) {
+      let email = info.querySelector("div[email]");
+      email.textContent = collaborator.email;
+      email.title = collaborator.email;
+      email.style.display = "unset";
+    }
+    holder.style.setProperty("--uiwidth", frame.closest(".eSelectBar").clientWidth + "px");
   }
 };
 
@@ -5459,8 +5442,8 @@ modules["pages/editor/toolbar/reactions"] = {
           this.reactionCache[reactID[1]] = this.reactionCache[reactID[1]] || {};
           this.reactionCache[reactID[1]][reaction._id] = reaction.added;
         }
-        if (body.users != null) {
-          this.memberCache = { ...this.memberCache, ...getObject(body.users, "_id") };
+        if (body.members != null) {
+          this.memberCache = { ...this.memberCache, ...getObject(body.members, "_id") };
         }
       } else {
         return;
@@ -5482,25 +5465,17 @@ modules["pages/editor/toolbar/reactions"] = {
       let cache = this.reactionCache[body.reaction.emoji];
       let reactID;
       if (body.member != null) {
-        let userCheck;
-        if (body.member.user != null) {
-          userCheck = "user_" + body.member.user;
-        } else {
-          userCheck = "temp_" + body.member._id;
-        }
-        reactID = body.reaction.annotation + "_" + body.reaction.emoji + "_" + userCheck;
+        reactID = body.reaction.annotation + "_" + body.reaction.emoji + "_" + body.member._id;
       }
       if (body.change > 0) {
         cache[reactID] = body.added;
-        if (body.member.user != null) {
-          this.memberCache[body.member.user] = { ...body.member, user: body.member.name, name: null };
-        }
+        this.memberCache[body.member._id] = body.member;
         if (frame != null) {
           let emojiButton = frame.querySelector(".eSubToolReactionSidebar").querySelector('button[emoji="' + body.reaction.emoji + '"]');
           if (emojiButton == null) {
             this.insertReactionButton(body.reaction.emoji);
           } else if (emojiButton.hasAttribute("selected") == true) {
-            this.insertReactionMember(body.member.user, body.added);
+            this.insertReactionMember(body.member._id, body.added);
           }
           this.updateActionUI();
         }
@@ -5511,8 +5486,8 @@ modules["pages/editor/toolbar/reactions"] = {
         if (frame != null) {
           let emojiButton = frame.querySelector('button[emoji="' + body.reaction.emoji + '"]');
           if (emojiButton.hasAttribute("selected") == true) {
-            if (body.member.user != null) {
-              let emojiMemberSection = frame.querySelector('.eSubToolReactionMember[user="' + body.member.user + '"]');
+            if (body.member._id != null) {
+              let emojiMemberSection = frame.querySelector('.eSubToolReactionMember[collaborator="' + body.member._id + '"]');
               if (emojiMemberSection != null) {
                 emojiMemberSection.remove();
               }
@@ -5583,9 +5558,9 @@ modules["pages/editor/toolbar/reactions"] = {
     ".eSubToolReactionMemberTitle button": `display: none; width: 32px; height: 32px; margin: 6px; background: var(--pageColor); color: #fff; border-radius: 10px; justify-content: center; align-items: center`,
     ".eSubToolReactionMemberTitle button img": `width: 22px; height: 22px`,
     ".eSubToolReactionMemberSection": `display: flex; flex-direction: column; min-height: 163px; height: calc(100% - 44px)`,
-    ".eSubToolReactionMember": `display: flex; padding: 8px; align-items: center`,
+    ".eSubToolReactionMember": `display: flex; padding: 4px; align-items: center`,
     //".eSubToolReactionMember:not(:first-child)": `border-top: solid 2px var(--hover)`,
-    ".eSubToolReactionMember img": `width: 26px; min-width: 26px; height: 26px; padding: 2px; margin: 1px; border: solid 2px var(--theme); object-fit: cover; background: var(--pageColor); border-radius: 17px`,
+    ".eSubToolReactionMember div[cursor]": `width: 22px; min-width: 22px; height: 22px; margin: 3px; background: var(--pageColor); border-radius: 10px 18px 18px`,
     ".eSubToolReactionMember div[holder]": `display: flex; width: calc(100% - 26px); white-space: nowrap; overflow: hidden; justify-content: space-between`,
     ".eSubToolReactionMember div[holder] div[name]": `display: inline; margin: 0 12px 0 6px; font-size: 16px; font-weight: 600`,
     ".eSubToolReactionMember div[holder] div[email]": `display: inline; font-size: 16px; font-weight: 500`,
@@ -5597,7 +5572,7 @@ modules["pages/editor/toolbar/reactions"] = {
   },
   js: async function (frame, toolID, extra) {
     this.updateActionUI = extra.updateActionUI;
-    let dropdownModule = await getModule("dropdown");
+    //let dropdownModule = await getModule("dropdown");
     let button = extra.frame.querySelector('.eTool[action="pages/editor/toolbar/reactions"]');
     if (this.reactionCache == null) {
       //button.removeAttribute("selected");
@@ -5654,7 +5629,7 @@ modules["pages/editor/toolbar/reactions"] = {
         return;
       }
       emojiMemberSection.insertAdjacentHTML("afterbegin", `<div class="eSubToolReactionMember" new>
-        <img>
+        <div cursor></div>
         <div holder>
           <div name></div>
           <div email></div>
@@ -5662,14 +5637,16 @@ modules["pages/editor/toolbar/reactions"] = {
       </div>`);
       let newMemberTile = emojiMemberSection.querySelector(".eSubToolReactionMember[new]");
       newMemberTile.removeAttribute("new");
-      newMemberTile.setAttribute("user", userid);
-      newMemberTile.querySelector("img").src = member.image || "./images/profiles/default.svg";
+      newMemberTile.setAttribute("collaborator", userid);
+      newMemberTile.querySelector("div[cursor]").style.border = "solid 3px " + member.color;
       let name = newMemberTile.querySelector("div[name]");
-      name.textContent = member.user;
-      name.title = member.user;
-      let email = newMemberTile.querySelector("div[email]");
-      email.textContent = member.email;
-      email.title = member.email;
+      name.textContent = member.name;
+      name.title = member.name;
+      if (member.email != null) {
+        let email = newMemberTile.querySelector("div[email]");
+        email.textContent = member.email;
+        email.title = member.email;
+      }
       let order = Math.round(((added || getEpoch()) / 2000000000000) * 2147483647);
       if (order > largestOrder) {
         largestOrder = order + 1;
@@ -5692,9 +5669,9 @@ modules["pages/editor/toolbar/reactions"] = {
       largestOrder = 0;
       emojiMemberSection.innerHTML = `<div class="eSubToolReactionTempShow">
         <div titlecount></div>
-        <div info>To see who reacted on the sticky note, the require login option must be enabled. <a>Show Me</a></div>
+        <div info>To save storage space, Markify may loose track of who reacted!</div>
       </div>`;
-      let openDropdown = emojiMemberSection.querySelector(".eSubToolReactionTempShow a");
+      /*let openDropdown = emojiMemberSection.querySelector(".eSubToolReactionTempShow a");
       openDropdown.addEventListener("click", async () => {
         await sleep(1);
         dropdownModule.open(editor.page.querySelector(".eShare"), "dropdowns/editor/share/options");
@@ -5702,16 +5679,14 @@ modules["pages/editor/toolbar/reactions"] = {
       if (editor.getSelf().access > 3) {
         openDropdown.style.display = "unset";
         removeReactionButton.style.display = "flex";
+      }*/
+      if (editor.getSelf().access > 3) {
+        removeReactionButton.style.display = "flex";
       }
       let reactionMembers = this.reactionCache[emoji];
       let reactionMembersKeys = Object.keys(reactionMembers);
       for (let i = 0; i < reactionMembersKeys.length; i++) {
-        let reactID = reactionMembersKeys[i].split("_");
-        if (reactID[2] == "user") {
-          this.insertReactionMember(reactID[3], reactionMembers[reactionMembersKeys[i]]);
-        } else {
-          this.insertReactionMember();
-        }
+        this.insertReactionMember(reactionMembersKeys[i].split("_")[2], reactionMembers[reactionMembersKeys[i]]);
       }
       this.updateActionUI();
     }

@@ -2,7 +2,7 @@ let serverURL = window.serverURL || "https://api.markifyapp.com/";
 //let serverURL = "http://localhost:3000/api/";
 let assetURL = window.mediaURL || "https://markifyapp.s3.amazonaws.com/";
 
-const version = "0.14.4"; // Big Update . Small Feature Release . Bug Fix
+const version = "0.14.5"; // Big Update . Small Feature Release . Bug Fix
 
 const socket = new SimpleSocket({
   project_id: "62088fbdfc22489578e94822",
@@ -1270,6 +1270,7 @@ modules["alert"] = {
     ".alert img": `width: 32px; height: 32px; object-fit: cover; margin-right: 6px`,
     ".alertText": `display: flex; flex-wrap: wrap; flex: 1; align-items: center; text-align: left; font-size: 16px`,
     ".alertText b": `margin-right: 6px; color: var(--themeColor); font-size: 18px`,
+    ".alertText div b": `margin-right: unset; color: unset; font-size: unset`,
     ".alertText i": `margin-left: 4px`,
     ".alertClose": `position: relative; width: 22px; height: 22px; margin: 5px 5px 5px 12px; --borderWidth: 3px; --borderRadius: 11px`,
     ".alertClose img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`
@@ -1383,7 +1384,8 @@ modules["dropdowns/account"] = {
     ".accountCopyrightHolder": `display: flex; flex-wrap: wrap; margin: 2px 0; justify-content: center; align-items: center`,
     ".accountCopyrightHolder a": `color: var(--darkGray); font-size: 14px; font-weight: 500; text-decoration: none`
   },
-  js: function (frame) {
+  js: async function (frame) {
+    let alertModule = await getModule("alert");
     frame.querySelector(".accountManage").addEventListener("click", function () {
       let a = typeof window.screenX != 'undefined' ? window.screenX : window.screenLeft;
       let i = typeof window.screenY != 'undefined' ? window.screenY : window.screenTop;
@@ -1406,14 +1408,18 @@ modules["dropdowns/account"] = {
         promptLogin();
       }
     });
+    let isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
     let checkForPrompt = () => {
-      if (window.deferredPrompt == null) {
-        return false;
-      }
       if (window.matchMedia("(display-mode: standalone)").matches == true || window.navigator.standalone == true || document.referrer.includes("android-app://") == true) {
         return false;
       }
       if (getParam("source") == "pwa") {
+        return false;
+      }
+      if (isIos == true) {
+        return true;
+      }
+      if (window.deferredPrompt == null) {
         return false;
       }
       if (window.deferredPrompt.prompt == null) {
@@ -1424,10 +1430,14 @@ modules["dropdowns/account"] = {
     let installpwa = frame.querySelector(".accountDrop[pwa]");
     installpwa.addEventListener("click", async function () {
       if (checkForPrompt() == true) {
-        await window.deferredPrompt.prompt();
-        let { outcome } = await window.deferredPrompt.userChoice;
-        if (outcome === "accepted") {
-          sendRequest("POST", "me/science", { type: "installedpwa", value: true });
+        if (window.deferredPrompt != null && window.deferredPrompt.prompt != null) {
+          await window.deferredPrompt.prompt();
+          let { outcome } = await window.deferredPrompt.userChoice;
+          if (outcome === "accepted") {
+            sendRequest("POST", "me/science", { type: "installedpwa", value: true });
+          }
+        } else if (isIos == true) {
+          alertModule.open("info", `<b>Add to Home Screen</b><div>To add Markify on an iOS device, tap on the <b>Share</b> button, then scroll down and tap on <b>Add to Home Screen</b></div>`, { time: 15 });
         }
       }
     });

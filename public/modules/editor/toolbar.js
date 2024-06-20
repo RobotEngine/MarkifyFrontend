@@ -4462,7 +4462,9 @@ modules["pages/editor/toolbar/color"] = {
       selectedColor = this.preferenceTool.c;
     }
 
-    let colorButtons = frame.querySelector(".eSubToolColorSelector").children;
+    let selector = frame.querySelector(".eSubToolColorSelector");
+    let colorButtons = selector.children;
+    let picker = frame.querySelector(".eSubToolColorPicker");
     let selected = false;
     let runColorSelections = () => {
       selected = false;
@@ -4472,15 +4474,19 @@ modules["pages/editor/toolbar/color"] = {
         let setColor = toolPref.color.options[i];
         button.setAttribute("int", i);
         button.querySelector(".eSubToolColor").style.background = editor.hexToRGB(setColor, toolPref.opacity / 100);
-        let isSelected = false;
-        if (isModify == false) {
-          isSelected = setColor == toolPref.color.selected;
-        } else {
-          isSelected = setColor == this.preferenceTool.c;
-        }
-        if (isSelected || (i > toolPref.color.options.length - 2 && selected == false)) {
-          button.setAttribute("selected", "");
-          selected = true;
+        if (selected == false) {
+          let isSelected = false;
+          if (isModify == false) {
+            isSelected = setColor == toolPref.color.selected;
+          } else {
+            isSelected = setColor == this.preferenceTool.c;
+          }
+          if (isSelected || i > toolPref.color.options.length - 2) {
+            button.setAttribute("selected", "");
+            selected = true;
+          } else {
+            button.removeAttribute("selected", "");
+          }
         } else {
           button.removeAttribute("selected", "");
         }
@@ -4488,8 +4494,6 @@ modules["pages/editor/toolbar/color"] = {
     }
     runColorSelections();
 
-    let selector = frame.querySelector(".eSubToolColorSelector");
-    let picker = frame.querySelector(".eSubToolColorPicker");
     let [h, s, v] = [];
     selector.addEventListener("click", async (event) => {
       let element = event.target;
@@ -4512,7 +4516,11 @@ modules["pages/editor/toolbar/color"] = {
           await extra.saveSelecting({ c: setColor });
           utils.forceShort(); // Make sure other users see the color change (no mouse movement)
           extra.updateToolActions(extra.frame);
-          runColorSelections();
+          let selected = selector.querySelector("button[int][selected]");
+          if (selected != null) {
+            selected.removeAttribute("selected");
+          }
+          element.setAttribute("selected", "");
         }
         editor.toolbar.updateToolbar(isModify);
       } else if (element.hasAttribute("enablepicker") == true) {
@@ -4661,7 +4669,7 @@ modules["pages/editor/toolbar/color"] = {
     }
     let updateStoredValues = async (hex) => {
       selectedColor = hex || this.hsvToHex(h, s, v);
-      runColorSelections();
+      //runColorSelections();
       let selectedButton = selector.querySelector('.eTool[selected]');
       let int = parseInt(selectedButton.getAttribute("int"));
       if (int == null || int < 0 || int > 6) {

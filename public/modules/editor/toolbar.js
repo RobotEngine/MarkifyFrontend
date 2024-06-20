@@ -4669,8 +4669,11 @@ modules["pages/editor/toolbar/color"] = {
     }
     let updateStoredValues = async (hex) => {
       selectedColor = hex || this.hsvToHex(h, s, v);
-      //runColorSelections();
       let selectedButton = selector.querySelector(".eTool[selected]");
+      if (selectedButton == null) {
+        runColorSelections();
+        selectedButton = selector.querySelector(".eTool[selected]");
+      }
       let int = parseInt(selectedButton.getAttribute("int"));
       if (int == null || int < 0 || int > 6) {
         return;

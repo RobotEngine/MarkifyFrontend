@@ -4806,6 +4806,7 @@ modules["pages/editor/toolbar/thickness"] = {
     let pointer = slider.querySelector("button");
     let input = frame.querySelector(".eSubToolThicknessInput");
     let sliderEnabled = false;
+    let firstChange;
     let updateUI = async (updateVal, noPref) => {
       if (updatePref && noPref != true) {
         toolPref.thickness = selectedThickness;
@@ -4819,9 +4820,10 @@ modules["pages/editor/toolbar/thickness"] = {
       if (isModify == false) {
         editor.toolbar.updateToolbar(isModify);
       } else if (updateVal != null || noPref != true) {
-        await extra.saveSelecting({ t: selectedThickness }, null, null, null, false);
+        await extra.saveSelecting({ t: selectedThickness }, null, firstChange, null, false);
         cursorModule.updateBox(true);
         extra.updateToolActions(extra.frame);
+        firstChange = false;
       }
     }
     let eventBarUpdate = (event) => {
@@ -4842,6 +4844,7 @@ modules["pages/editor/toolbar/thickness"] = {
     editor.events.mouseMove = eventBarUpdate;
     let enableSlider = (event) => {
       sliderEnabled = true;
+      firstChange = true;
       app.style.userSelect = "none";
       eventBarUpdate(event);
     }
@@ -4925,6 +4928,7 @@ modules["pages/editor/toolbar/opacity"] = {
     let pointer = slider.querySelector("button");
     let input = frame.querySelector(".eSubToolOpacityInput");
     let sliderEnabled = false;
+    let firstChange;
     let updateUI = async (updateVal, noPref) => {
       if (updatePref && noPref != true) {
         toolPref.opacity = selectedOpacity;
@@ -4935,8 +4939,9 @@ modules["pages/editor/toolbar/opacity"] = {
         input.value = selectedOpacity;
       }
       if (isModify == true && (updateVal != null || noPref != true)) {
-        await extra.saveSelecting({ o: selectedOpacity });
+        await extra.saveSelecting({ o: selectedOpacity }, null, firstChange);
         extra.updateToolActions(extra.frame);
+        firstChange = false;
       }
       editor.toolbar.updateToolbar(isModify);
     }
@@ -4956,6 +4961,7 @@ modules["pages/editor/toolbar/opacity"] = {
     editor.events.mouseMove = eventBarUpdate;
     let enableSlider = (event) => {
       sliderEnabled = true;
+      firstChange = true;
       app.style.userSelect = "none";
       eventBarUpdate(event);
     }

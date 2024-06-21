@@ -1233,7 +1233,7 @@ modules["pages/editor/toolbar/cursor"] = {
           anno.parentElement.insertAdjacentHTML("beforeend", `<div class="eSelectActive" anno="${annoID}" tooleditor></div>`);
           activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
         }
-        activeLayer.style.setProperty("--annoZIndex", Math.round(((merged.sync || getEpoch()) / 2000000000000) * 2147483647) - 10);
+        activeLayer.style.setProperty("--annoZIndex", Math.round((merged.sync || getEpoch()) / 2000000000000) * 2147483647);
         activeLayer.style.setProperty("--selectZIndex", i);
         if (anno.hasAttribute("sticky") == false) {
           anno.style.overflow = "hidden";
@@ -4543,6 +4543,9 @@ modules["pages/editor/toolbar/color"] = {
         }
       }
     });
+    if (isModify == true) {
+      extra.updateActionUI();
+    }
 
     frame.querySelector(".eSubToolColorPickerTopBack").addEventListener("click", async () => {
       selector.style.position = "relative";
@@ -4667,6 +4670,7 @@ modules["pages/editor/toolbar/color"] = {
       // Update Toolbar Colors:
       editor.toolbar.updateToolbar(isModify);
     }
+    let firstChange;
     let updateStoredValues = async (hex) => {
       selectedColor = hex || this.hsvToHex(h, s, v);
       let selectedButton = selector.querySelector(".eTool[selected]");
@@ -4688,8 +4692,9 @@ modules["pages/editor/toolbar/color"] = {
       }
       updatePickerUI();
       if (isModify == true) {
-        await extra.saveSelecting({ c: selectedColor });
+        await extra.saveSelecting({ c: selectedColor }, null, firstChange);
         extra.updateToolActions(extra.frame);
+        firstChange = false;
       }
     }
     let eventGradientUpdate = (event) => {
@@ -4709,6 +4714,7 @@ modules["pages/editor/toolbar/color"] = {
     let gradientDown = (event) => {
       editor.events.mouseMove = eventGradientUpdate;
       colorGradientEnabled = true;
+      firstChange = true;
       app.style.userSelect = "none";
       eventGradientUpdate(event);
     }
@@ -4733,6 +4739,7 @@ modules["pages/editor/toolbar/color"] = {
     let colorSliderDown = (event) => {
       editor.events.mouseMove = eventColorUpdate;
       colorSliderEnabled = true;
+      firstChange = true;
       app.style.userSelect = "none";
       eventColorUpdate(event);
     }
@@ -4750,6 +4757,7 @@ modules["pages/editor/toolbar/color"] = {
       (new EyeDropper())
         .open()
         .then((result) => {
+          firstChange = true;
           updateStoredValues(result.sRGBHex.substring(1));
         })
         .catch(() => { });
@@ -4867,6 +4875,7 @@ modules["pages/editor/toolbar/thickness"] = {
     input.addEventListener("focus", () => {
       input.value = "";
       input.placeholder = selectedThickness;
+      firstChange = true;
     });
     input.addEventListener("blur", () => {
       input.value = selectedThickness;
@@ -4984,6 +4993,7 @@ modules["pages/editor/toolbar/opacity"] = {
     input.addEventListener("focus", () => {
       input.value = "";
       input.placeholder = selectedOpacity;
+      firstChange = true;
     });
     input.addEventListener("blur", () => {
       input.value = selectedOpacity;

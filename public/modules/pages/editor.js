@@ -3736,7 +3736,7 @@ modules["pages/editor/annotation"] = {
     }
     if (anno != null) {
       //console.log((sync || getEpoch()) - editor.lesson.created)
-      anno.style.zIndex = Math.round(((sync || getEpoch()) / 2000000000000) * 2147483647);
+      anno.style.zIndex = Math.round((((sync || getEpoch()) / 2000000000000) * 2147483647) + 10);
       let rotate = r || 0;
       if (rotate > 180) {
         rotate = -(360 - rotate);

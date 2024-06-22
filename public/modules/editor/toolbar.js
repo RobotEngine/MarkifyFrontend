@@ -1233,7 +1233,7 @@ modules["pages/editor/toolbar/cursor"] = {
           anno.parentElement.insertAdjacentHTML("beforeend", `<div class="eSelectActive" anno="${annoID}" tooleditor></div>`);
           activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
         }
-        activeLayer.style.setProperty("--annoZIndex", Math.round((merged.sync || getEpoch()) / 2000000000000) * 2147483647);
+        activeLayer.style.setProperty("--annoZIndex", Math.round(((merged.sync || getEpoch()) / 2000000000000) * 2147483647));
         activeLayer.style.setProperty("--selectZIndex", i);
         if (anno.hasAttribute("sticky") == false) {
           anno.style.overflow = "hidden";

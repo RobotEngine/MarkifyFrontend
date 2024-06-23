@@ -2,7 +2,7 @@ let serverURL = window.serverURL || "https://api.markifyapp.com/";
 //let serverURL = "http://localhost:3000/api/";
 let assetURL = window.mediaURL || "https://markifyapp.s3.amazonaws.com/";
 
-const version = "0.14.7"; // Big Update . Small Feature Release . Bug Fix
+const version = "0.14.8"; // Big Update . Small Feature Release . Bug Fix
 
 const socket = new SimpleSocket({
   project_id: "62088fbdfc22489578e94822",
@@ -1249,7 +1249,7 @@ body.addEventListener("click", async function (event) {
   }
 });
 window.addEventListener("scroll", async function () {
-  if (window.dropdown && window.dropdown.button && window.dropdown.button.closest("[noscrollclose]") == null) {
+  if (window.dropdown && window.dropdown.button && window.dropdown.button.closest("[noscrollclose]") == null && window.dropdown.dropdown.querySelector(".content[noscrollclose]") == null) {
     (await getModule("dropdown")).close();
   }
 });
@@ -1351,7 +1351,7 @@ modules["dropdowns/account"] = {
   <!--<button class="accountDrop" dropdown="dropdowns/account/preferences"><div>Preferences</div><img src="./images/tooltips/account/preferences.svg"></button>-->
   <div class="accountDropLine"></div>
   <button class="accountDrop" close pwa dropdowntitle="Add Markify as an app on your device!"><div>Get the App</div><img src="./images/tooltips/account/app.svg"></button>
-  <button class="accountDrop" close dropdown="dropdowns/account/report" dropdowntitle="Report Bugs & Feedback"><div>Report Bug</div><img src="./images/tooltips/account/report.svg"></button>
+  <button class="accountDrop" close dropdown="dropdowns/account/report" dropdowntitle="Report Bugs & Feedback" noscrollclose><div>Report Bug</div><img src="./images/tooltips/account/report.svg"></button>
   <button class="accountDrop" close modal="modals/tutorial" modaltitle="Resources"><div>Resources</div><img src="./images/tooltips/account/question.svg"></button>
   <div class="accountDropLine"></div>
   <div class="accountSocialHolder">

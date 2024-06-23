@@ -5347,7 +5347,7 @@ modules["pages/editor/toolbar/collaborator"] = {
 
     ".eSubToolCollaboratorHolder": `display: flex; flex-wrap: wrap; width: max-content; max-width: var(--uiwidth); padding: 8px; gap: 4px; align-items: center; border-radius: inherit`,
     ".eSubToolCollaboratorBackdrop": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; background: var(--themeColor); transition: .2s; z-index: -1; border-radius: inherit; overflow: hidden`,
-    ".eSubToolCollaboratorBackdrop div": `width: 100%; height: 100%; transform: scale(.95); flex-shrink: 0; opacity: .3; background-image: url(./images/editor/background.svg); background-position: center`,
+    ".eSubToolCollaboratorBackdrop div": `width: 100%; height: 100%; flex-shrink: 0; opacity: .3; background-image: url(./images/editor/background.svg); background-position: center`,
     ".eSubToolCollaboratorCursor": `display: none; width: 40px; height: 40px; flex-shrink: 0; margin: 2px; background: var(--themeColor); border: solid 6px var(--pageColor); border-radius: 16px 28px 28px`,
     ".eSubToolCollaboratorPicture": `display: none; width: 44px; height: 44px; flex-shrink: 0; margin: 2px; background: #fff; border: solid 4px var(--pageColor); object-fit: cover; border-radius: 28px`,
     ".eSubToolCollaboratorInfo": `margin: 4px; text-align: left`,

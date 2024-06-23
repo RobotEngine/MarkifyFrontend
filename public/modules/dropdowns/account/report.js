@@ -47,6 +47,7 @@ modules["dropdowns/account/report"] = {
     ".aReportSubmitButton": `padding: 6px 10px; margin: 15px 0 3px 0; background: var(--theme); --borderRadius: 16px; color: #fff; font-size: 16px`
   },
   js: async function (frame) {
+    frame.setAttribute("noscrollclose", "");
     let alertModule = await getModule("alert");
     let dropdownModule = await getModule("dropdown");
 

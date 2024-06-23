@@ -2,7 +2,7 @@ let serverURL = window.serverURL || "https://api.markifyapp.com/";
 //let serverURL = "http://localhost:3000/api/";
 let assetURL = window.mediaURL || "https://markifyapp.s3.amazonaws.com/";
 
-const version = "0.14.8"; // Big Update . Small Feature Release . Bug Fix
+const version = "0.14.9"; // Big Update . Small Feature Release . Bug Fix
 
 const socket = new SimpleSocket({
   project_id: "62088fbdfc22489578e94822",
@@ -18,8 +18,8 @@ let supportedImageTypes = ["png", "jpeg", "jpg", "webp", "svg+xml", "tiff", "tif
 let modules = {};
 
 let body = document.body;
-let app = findC("app");
-let fixed = findC("fixed");
+let app = body.querySelector(".app");
+let fixed = body.querySelector(".fixed");
 let stylesheet = document.querySelector("style").sheet;
 
 let loadingAnim = app.innerHTML;
@@ -110,13 +110,6 @@ function subscribe(filter, callback, config) {
   let sub = socket.subscribe(filter, callback, config);
   subscribes.push(sub);
   return sub;
-}
-
-function findC(name) {
-  return document.getElementsByClassName(name)[0];
-}
-function findI(name) {
-  return document.getElementById(name);
 }
 
 //let currentlyLoadingModules = {};

@@ -2,7 +2,7 @@ let serverURL = window.serverURL || "https://api.markifyapp.com/";
 //let serverURL = "http://localhost:3000/api/";
 let assetURL = window.mediaURL || "https://markifyapp.s3.amazonaws.com/";
 
-const version = "0.14.11"; // Big Update . Small Feature Release . Bug Fix
+const version = "0.14.12"; // Big Update . Small Feature Release . Bug Fix
 
 const socket = new SimpleSocket({
   project_id: "62088fbdfc22489578e94822",
@@ -833,7 +833,7 @@ modules["dropdown"] = {
     ".dropdownTitle img": `width: 26px; height: 26px; object-fit: cover; border-radius: 13px`
   },
   setResizeLoop: function (dropdown, content, header, button) {
-    return setInterval(() => {
+    return setInterval(async () => {
       if (content.hasAttribute("loaded") == false) {
         return;
       }
@@ -864,7 +864,12 @@ modules["dropdown"] = {
         //if (buttonRect.top > 0) {
         dropdown.style.top = buttonRect.top + "px";
         //}
-        dropdown.style.left = buttonRect.left + (button.offsetWidth / 2) - (dropdown.offsetWidth / 2) + "px";
+        let addButtonWidth = button.offsetWidth / 2;
+        if (button.closest(".eContentHolder") != null) {
+          let editor = await getModule("pages/editor");
+          addButtonWidth *= editor.zoom;
+        }
+        dropdown.style.left = buttonRect.left + addButtonWidth - (dropdown.offsetWidth / 2) + "px";
       }
     }, 1);
   },

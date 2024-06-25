@@ -5265,7 +5265,7 @@ modules["pages/editor/toolbar/delete"] = {
 };
 
 modules["pages/editor/toolbar/collaborator"] = {
-  button: `<img class="eSubToolCollaborator">`,
+  button: `<img class="eSubToolCollaborator" src="./images/profiles/default.svg">`,
   divideBefore: true,
   setButton: async function (editor, button) {
     let cursorModule = await getModule("pages/editor/toolbar/cursor");

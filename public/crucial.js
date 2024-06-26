@@ -426,7 +426,7 @@ function addS(num) {
 
 function copyClipboardText(text, type) {
   navigator.clipboard.writeText(text).then(async () => {
-    (await getModule("alert")).open("worked", `<b>Copied to Clipboard</b>The ${type || "text"} was copied to your clipboard.`);
+    (await getModule("alert")).open("worked", `<b>Copied</b>The ${type || "text"} was copied to your clipboard.`);
   }, function(err) {
     console.error('Async: Could not copy text: ', err);
   });

@@ -2706,6 +2706,7 @@ modules["dropdowns/editor/file"] = {
     let jump = frame.querySelector('.eFileAction[option="jump"]');
     jump.addEventListener("click", () => {
       editor.page.querySelector(".eCurrentPage").focus();
+      dropdown.close();
     });
     let jumpend = frame.querySelector('.eFileAction[option="jumpend"]');
     jumpend.addEventListener("click", () => {

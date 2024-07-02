@@ -599,6 +599,14 @@ modules["editor/realtime"] = {
                       if (editor.lesson.settings.editOthersWork != true && originalRender.m != null && originalRender.m != member.modify && member.access < 4) { // Can't edit another member's work:
                         continue;
                       }
+                      if (anno.lock == false) {
+                        if (originalRender.m != null && originalRender.m != member.modify && member.access < 4) {
+                          anno.lock = null;
+                        }
+                      }
+                      if (originalRender.lock == true && anno.lock != false) { // Can't edit another member's work:
+                        continue;
+                      }
                       original.revert = original.revert || JSON.parse(JSON.stringify(originalRender));
                       // If the user is also selecting, we must update their fields accordingly:
                       /*
@@ -718,7 +726,7 @@ modules["editor/realtime"] = {
                     cursorModule.redrawActionUI(); // Only refresh if user is selecting
                   }
                   member.selecting = selectKeys;
-                  editor.updateZoom(null, true);
+                  editor.updateZoom(null, false);
                 } else if (member.selecting != null) {
                   for (let i = 0; i < member.selecting.length; i++) {
                     let annoID = member.selecting[i];

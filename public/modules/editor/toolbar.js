@@ -50,7 +50,7 @@ modules["editor/toolbar"] = {
     ".eTool[soon]": `opacity: 0.5`, // TEMP CODE
 
     ".eDivider": `width: 100%; height: 4px; background: var(--theme)`,
-    ".eVerticalDivider": `flex-shrink: 0; width: 4px; height: 100%; background: var(--theme)`,
+    ".eVerticalDivider": `flex-shrink: 0; width: 4px; height: 100%; background: var(--hover)`,
 
     ".eSubToolHolder": `position: absolute; max-height: 100%; left: 100%; top: 0px; background: var(--pageColor); border-radius: 0 16px 16px 0; border-left: solid 4px var(--theme); transform: scale(0); transform-origin: top left; transition: opacity .3s, transform: .3s`,
     ".eSubToolHolder[option]": `border-left-color: var(--secondary)`,
@@ -83,6 +83,8 @@ modules["editor/toolbar"] = {
     ".eSelectBar": `position: absolute; display: flex; max-width: calc(100vw - 88px); height: 50px; background: var(--pageColor); box-shadow: var(--shadow); z-index: 102; border-radius: 16px; transform: translateY(-10%); opacity: 0; transition: transform .2s, opacity .2s, border-radius .2s`,
     ".eSelectHolder": `display: flex; width: 100%; height: 100%; gap: 6px; overflow: auto; border-radius: inherit`,
     ".eSelectHolder::-webkit-scrollbar": `display: none`,
+    ".eSelectHolder[locked] > *": `display: none`,
+    ".eSelectHolder .eTool[stayonlock]": `display: unset`,
     ".eActionContainer": `position: absolute; max-width: 100%; background: var(--pageColor)`,
     ".eActionContainer[top]": `--shadowPadding: 20px 16px 0; --shadowBottom: -4px; --shadowTop: 16px; bottom: 100%; border-radius: 16px 16px 0 0; border-bottom: solid 4px var(--theme); transform-origin: bottom center`,
     ".eActionContainer[bottom]": `--shadowPadding: 0 16px 20px; --shadowBottom: -16px; --shadowTop: 0px; top: 100%; border-radius: 0 0 16px 16px; border-top: solid 4px var(--theme); transform-origin: top center`,
@@ -281,7 +283,7 @@ modules["editor/toolbar"] = {
     frame.setAttribute("keeptooltip", "");
 
     let content = editor.page.querySelector(".eContent");
-    
+
     let subTools = frame.querySelector(".eSubToolHolder");
     let subToolContentHolder = subTools.querySelector(".eSubToolContentHolder");
     let subToolContentScroll = subTools.querySelector(".eSubToolContentScroll");
@@ -1230,10 +1232,10 @@ modules["pages/editor/toolbar/cursor"] = {
         anno.setAttribute("selected", "");
         let activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
         if (activeLayer == null) {
-          anno.parentElement.insertAdjacentHTML("beforeend", `<div class="eSelectActive" anno="${annoID}" tooleditor></div>`);
+          anno.parentElement.insertAdjacentHTML("afterbegin", `<div class="eSelectActive" anno="${annoID}" tooleditor></div>`);
           activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
         }
-        activeLayer.style.setProperty("--annoZIndex", Math.round(((merged.sync || getEpoch()) / 2000000000000) * 2147483647));
+        activeLayer.style.setProperty("--annoZIndex", merged.l || Math.round(((merged.sync || getEpoch()) / 2000000000000) * 2147483647));
         activeLayer.style.setProperty("--selectZIndex", i);
         if (anno.hasAttribute("sticky") == false) {
           anno.style.overflow = "hidden";
@@ -1285,6 +1287,9 @@ modules["pages/editor/toolbar/cursor"] = {
           if (annoTx != null) {
             annoTx.removeAttribute("contenteditable");
           }
+        }
+        if (merged.lock == true) {
+          select.setAttribute("hidetips", "");
         }
         /*
         let rect = anno.getBoundingClientRect();
@@ -1367,17 +1372,20 @@ modules["pages/editor/toolbar/cursor"] = {
         select.offsetHeight;
         select.style.transition = "all .25s, opacity .15s";
 
-        activeLayer.style.width = (width + t) + 8 + "px";
-        activeLayer.style.height = (height + t) + 8 + "px";
-        activeLayer.style.left = x + halfT - 4 + "px";
-        activeLayer.style.top = y + halfT - border - 4 + "px";
+        let inverse = 1 / editor.zoom;
+
+        let sizeInverse = 22 * inverse;
+        let posInverse = 11 * inverse;
+        activeLayer.style.width = (width + t) + sizeInverse + "px";
+        activeLayer.style.height = (height + t) + sizeInverse + "px";
+        activeLayer.style.left = x + halfT - posInverse + "px";
+        activeLayer.style.top = y + halfT - border - posInverse + "px";
         activeLayer.style.transform = "rotate(" + rotate + "deg)";
-        
+
         let radian = (merged.r || 0) * (Math.PI / 180);
         let changedWidth = ((Math.abs(width * Math.cos(radian)) + Math.abs(height * Math.sin(radian))) - width) / 2;
         let changedHeight = ((Math.abs(width * Math.sin(radian)) + Math.abs(height * Math.cos(radian))) - height) / 2;
 
-        let inverse = 1 / editor.zoom;
         let pageY = pageRect.y - pageHolderRect.y;
         let setMinX = x + halfT - changedWidth;
         this.minX = Math.min(this.minX || setMinX, setMinX);
@@ -1479,12 +1487,12 @@ modules["pages/editor/toolbar/cursor"] = {
     this.lastEditorZoom = editor.zoom;
   },
   actionBarTools: {
-    "draw": ["color", "thickness", "opacity", "collaborator", "duplicate", "delete"],
-    "text": ["textedit", "color", "opacity", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "collaborator", "duplicate", "delete"],
-    "markup": ["color", "thickness", "opacity", "collaborator", "duplicate", "delete"],
-    "shape": ["color", "thickness", "opacity", "style", "collaborator", "duplicate", "delete"],
-    "sticky": ["textedit", "color", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "collaborator", "reactions", "duplicate", "delete"],
-    "media": ["collaborator", "duplicate", "delete"]
+    "draw": ["color", "thickness", "opacity", "unlock", "collaborator", "delete", "more"],
+    "text": ["textedit", "color", "opacity", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "unlock", "collaborator", "delete", "more"],
+    "markup": ["color", "thickness", "opacity", "unlock", "collaborator", "delete", "more"],
+    "shape": ["color", "thickness", "opacity", "style", "unlock", "collaborator", "delete", "more"],
+    "sticky": ["textedit", "color", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "unlock", "collaborator", "reactions", "delete", "more"],
+    "media": ["unlock", "collaborator", "delete", "more"]
   },
   actionEvents: [],
   toolbarPadding: 24,
@@ -1506,8 +1514,10 @@ modules["pages/editor/toolbar/cursor"] = {
         testSelections += selectionIDs[i];
       }
       if (this.lastSelections != testSelections || this.lastPxCheckX != this.checkX || this.lastPxCheckY != this.checkY || refresh == true) {
-        this.removeActionUI(actionUI);
-        actionUI = null;
+        if (refresh != false) {
+          this.removeActionUI(actionUI);
+          actionUI = null;
+        }
       }
       this.lastPxCheckX = this.checkX;
       this.lastPxCheckY = this.checkY;
@@ -1554,8 +1564,23 @@ modules["pages/editor/toolbar/cursor"] = {
         actionUI = content.querySelector(".eSelectBar[new]");
         actionUI.removeAttribute("new");
 
-        // Add Buttons
         let actionButtonHolder = actionUI.querySelector(".eSelectHolder");
+        let showLocked = false;
+        for (let i = 0; i < selectionIDs.length; i++) {
+          let selectID = selectionIDs[i];
+          let anno = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+          if (anno.lock == true) {
+            showLocked = true;
+            break;
+          }
+        }
+        if (showLocked == false) {
+          actionButtonHolder.removeAttribute("locked");
+        } else {
+          actionButtonHolder.setAttribute("locked", "");
+        }
+
+        // Add Buttons
         for (let i = 0; i < combineTools.length; i++) {
           let actionRef = "pages/editor/toolbar/" + combineTools[i];
           let module = await getModule(actionRef);
@@ -1572,6 +1597,9 @@ modules["pages/editor/toolbar/cursor"] = {
           }
           newAction.removeAttribute("new");
           newAction.setAttribute("action", actionRef);
+          if (module.showOnLock == true) {
+            newAction.setAttribute("stayonlock", "");
+          }
           let buttonHolder = newAction.querySelector("div");
           buttonHolder.innerHTML = module.button;
           if (module.setButton != null) {
@@ -1753,13 +1781,36 @@ modules["pages/editor/toolbar/cursor"] = {
     if (actionUI == null) {
       return;
     }
-    
+
     if (skip != true) {
       await this.updateActionUI(); // Update it first if their are selection changes
     }
 
-    // Update buttons:
     let actionButtonHolder = actionUI.querySelector(".eSelectHolder");
+    let showLocked = false;
+    let selectKeys = Object.keys(editor.selecting);
+    for (let i = 0; i < selectKeys.length; i++) {
+      let selectID = selectKeys[i];
+      let anno = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+      if (anno.lock == true) {
+        showLocked = true;
+        break;
+      }
+    }
+    let currentLocked = actionButtonHolder.hasAttribute("locked");
+    if (showLocked == false) {
+      if (currentLocked == true) {
+        actionButtonHolder.removeAttribute("locked");
+        this.updateActionUI();
+      }
+    } else {
+      if (currentLocked == false) {
+        actionButtonHolder.setAttribute("locked", "");
+        this.updateActionUI();
+      }
+    }
+
+    // Update buttons:
     for (let i = 0; i < actionButtonHolder.children.length; i++) {
       let button = actionButtonHolder.children[i];
       let actionName = button.getAttribute("action");
@@ -1789,9 +1840,6 @@ modules["pages/editor/toolbar/cursor"] = {
         await this.runActionModule(module, actionUI, preferenceTool, { rerender: true });
       }
     }
-
-    // Check size of UI:
-    
   },
   clickAction: async function (event) {
     if (event == null || event.target == null) {
@@ -1894,6 +1942,9 @@ modules["pages/editor/toolbar/cursor"] = {
     this.updateActionUI();
   },
   runActionModule: async function (module, holder, preferenceTool, extra) {
+    if (module.js == null) {
+      return;
+    }
     await module.js(holder, preferenceTool, {
       frame: holder,
       module: this,
@@ -1955,7 +2006,7 @@ modules["pages/editor/toolbar/cursor"] = {
             let changeKeys = Object.keys(annoSet);
             let pushFields = {};
             for (let f = 0; f < changeKeys.length; f++) {
-              pushFields[changeKeys[f]] = original[changeKeys[f]];
+              pushFields[changeKeys[f]] = original[changeKeys[f]] || null;
             }
             if (Object.keys(pushFields).length > 0) {
               if (annoSet.remove != true) {
@@ -1982,15 +2033,33 @@ modules["pages/editor/toolbar/cursor"] = {
         }
 
         //if (short == true) {
-          await utils.forceShort();
-          for (let i = 0; i < selectKeys.length; i++) {
-            editor.selecting[selectKeys[i]] = {};
-          }
+        await utils.forceShort();
+        for (let i = 0; i < selectKeys.length; i++) {
+          editor.selecting[selectKeys[i]] = {};
+        }
         //}
       },
       updateToolActions: async (frame) => {
         let editor = await getModule("pages/editor");
-        let toolButtons = frame.querySelectorAll(".eTool[action]");
+        let actionButtonHolder = frame.querySelector(".eSelectHolder");
+        let toolButtons = actionButtonHolder.querySelectorAll(".eTool[action]");
+
+        let showLocked = false;
+        let selectKeys = Object.keys(editor.selecting);
+        for (let i = 0; i < selectKeys.length; i++) {
+          let selectID = selectKeys[i];
+          let anno = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+          if (anno.lock == true) {
+            showLocked = true;
+            break;
+          }
+        }
+        if (showLocked == false) {
+          actionButtonHolder.removeAttribute("locked");
+        } else {
+          actionButtonHolder.setAttribute("locked", "");
+        }
+
         for (let i = 0; i < toolButtons.length; i++) {
           let module = await getModule(toolButtons[i].getAttribute("action"));
           if (module != null && module.setButton != null) {
@@ -2131,6 +2200,9 @@ modules["pages/editor/toolbar/cursor"] = {
       if (original.revert == null) {
         original.revert = JSON.parse(JSON.stringify(original.render));
       }
+      if (anno.lock == true) {
+        return this.endAction();
+      }
       if (this.action == "move") {
         select.p = select.p || anno.p;
         select.p[0] = utils.round(select.p[0] + (this.endX - this.startX));
@@ -2179,7 +2251,7 @@ modules["pages/editor/toolbar/cursor"] = {
         if (this.rootY < 0) {
           changeY *= -1;
         }
-        
+
         if (this.tooltip == null) {
           this.tooltip = this.resizeElem.getAttribute("tooltip");
           this.changeReflectX = 1;
@@ -2397,7 +2469,7 @@ modules["pages/editor/toolbar/cursor"] = {
         let newHalfRotateWidth = (select.s[0] / 2) + this.position[0];
         let newHalfRotateHeight = (select.s[1] / 2) + this.position[1];
         let [newXCoord, newYCoord] = utils.rotatePoint(newOppositePositionX - newHalfRotateWidth, -(newOppositePositionY - newHalfRotateHeight), this.rotation);
-        
+
         select.p[0] = utils.round(this.position[0] - ((newXCoord + newHalfRotateWidth) - (originalXCoord + oldHalfRotateWidth)));
         select.p[1] = utils.round(this.position[1] - (((-newYCoord) + newHalfRotateHeight) - ((-originalYCoord) + oldHalfRotateHeight)));
       } else if (this.action == "rotate") {
@@ -2490,6 +2562,9 @@ modules["pages/editor/toolbar/cursor"] = {
 
       let originalRender = (original.render || {}) || selecting;
       if (originalRender != null && originalRender.page != null) {
+        if (originalRender.lock == true) {
+          continue;
+        }
         let page = selecting.page || originalRender.page;
         let pos = selecting.p || originalRender.p;
         let currentPage = editor.page.querySelector('.ePage[pageid="' + page + '"]');
@@ -2516,11 +2591,11 @@ modules["pages/editor/toolbar/cursor"] = {
               let newPageOrder = parseInt(page.getAttribute("order"));
               if (originalPageOrder < newPageOrder) {
                 for (let i = originalPageOrder; i < newPageOrder; i++) {
-                  change -= pageHolder.children[i-1].offsetHeight;
+                  change -= pageHolder.children[i - 1].offsetHeight;
                 }
               } else {
                 for (let i = newPageOrder; i < originalPageOrder; i++) {
-                  change += pageHolder.children[i-1].offsetHeight;
+                  change += pageHolder.children[i - 1].offsetHeight;
                 }
               }
             }
@@ -2762,7 +2837,7 @@ modules["pages/editor/toolbar/drag"] = {
           (bottomRightX + halfWidth) >= selectBoxRect.left
         );
         */
-        
+
       });
   },
   js: async function (editor, utils, addEvent) {
@@ -2905,7 +2980,7 @@ modules["pages/editor/toolbar/drag"] = {
         remSelect.setAttribute("remove", "");
         remSelect.style.opacity = 0;
         (async () => {
-          
+
           await sleep(150);
           remSelect.remove();
         })();
@@ -3058,6 +3133,7 @@ modules["pages/editor/toolbar/highlighter"] = {
         f: "markup",
         p: [utils.round(x - this.thickness), utils.round(y - this.thickness)],
         s: [0, 0],
+        l: utils.maxLayer + 1,
         c: this.color,
         t: this.thickness,
         o: this.opacity,
@@ -3247,6 +3323,7 @@ modules["pages/editor/toolbar/understrike"] = {
         f: "draw",
         p: [utils.round(x - thickness), utils.round(y - thickness)],
         s: [0, 0],
+        l: utils.maxLayer + 1,
         c: this.color,
         t: thickness,
         o: 100,
@@ -3371,6 +3448,7 @@ modules["pages/editor/toolbar/text"] = {
           f: "text",
           //p: [utils.round(x - this.thickness), utils.round(y - this.thickness)],
           s: [0, 0], //[this.thickness, this.thickness],
+          l: utils.maxLayer + 1,
           c: this.color,
           o: this.opacity,
           d: { s: editor.preferences.tools.text.size, al: editor.preferences.tools.text.align, b: ["Example Text"] },
@@ -3554,6 +3632,7 @@ modules["pages/editor/toolbar/pen"] = {
         f: "draw",
         p: [utils.round(x - this.thickness), utils.round(y - this.thickness)],
         s: [0, 0], //[this.thickness, this.thickness],
+        l: utils.maxLayer + 1,
         c: this.color,
         t: this.thickness,
         o: this.opacity,
@@ -3793,7 +3872,7 @@ modules["pages/editor/toolbar/eraser"] = {
       let sx = (x0 < x1) ? 1 : -1;
       let sy = (y0 < y1) ? 1 : -1;
       let err = dx - dy;
-        
+
       while (true) {
         // Handle Erase:
         let annos = document.elementsFromPoint(x0, y0);
@@ -3807,7 +3886,7 @@ modules["pages/editor/toolbar/eraser"] = {
               if (editor.lesson.settings.editOthersWork != true && render.m != null && render.m != self.modify && self.access < 4) { // Can't edit another member's work:
                 continue;
               }
-              
+
               // This alone isn't enough, the actual points MUST be checked:
               let drawing = anno.querySelector("polyline");
               if (drawing != null && drawing.hasAttribute("points") == true) {
@@ -3930,6 +4009,7 @@ modules["pages/editor/toolbar/shape"] = {
           f: "shape",
           //p: [utils.round(x - this.thickness), utils.round(y - this.thickness)],
           s: [125, 125], //[this.thickness, this.thickness],
+          l: utils.maxLayer + 1,
           c: this.color,
           t: this.thickness,
           o: this.opacity,
@@ -4033,6 +4113,7 @@ modules["pages/editor/toolbar/sticky"] = {
           f: "sticky",
           //p: [utils.round(x - this.thickness), utils.round(y - this.thickness)],
           s: [220, 220], //[this.thickness, this.thickness],
+          l: utils.maxLayer + 1,
           c: this.color,
           sig: editor.getSelf().name
         };
@@ -4117,10 +4198,10 @@ modules["pages/editor/toolbar/upload"] = {
     if (uploadInput != null) {
       uploadInput.remove();
     }
-    
+
     editor.page.insertAdjacentHTML("beforeend", `<input class="eToolMediaInput" tooleditor type="file" accept="image/*" multiple="true" hidden="true">`);
     uploadInput = editor.page.querySelector(".eToolMediaInput");
-    
+
     let reset = () => {
       this.media = null;
       this.imageBlob = null;
@@ -4240,6 +4321,7 @@ modules["pages/editor/toolbar/upload"] = {
           f: "media",
           //p: [utils.round(x - this.thickness), utils.round(y - this.thickness)],
           //s: [this.width, this.height], //[this.thickness, this.thickness],
+          l: utils.maxLayer + 1,
           c: this.color,
           o: this.opacity
         };
@@ -5172,71 +5254,6 @@ modules["pages/editor/toolbar/style"] = {
   }
 };
 
-modules["pages/editor/toolbar/duplicate"] = {
-  button: `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_673_41" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_673_41)"> <path fill-rule="evenodd" clip-rule="evenodd" d="M73 65H133C137.418 65 141 68.5817 141 73V94H153V73C153 61.9543 144.046 53 133 53H73C61.9543 53 53 61.9543 53 73V133C53 144.046 61.9543 153 73 153H94V141H73C68.5817 141 65 137.418 65 133V73C65 68.5817 68.5817 65 73 65Z" fill="white"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M133 21H73C44.2812 21 21 44.2812 21 73V133C21 161.719 44.2812 185 73 185H94V153H73C61.9543 153 53 144.046 53 133V73C53 61.9543 61.9543 53 73 53H133C144.046 53 153 61.9543 153 73V94H185V73C185 44.2812 161.719 21 133 21Z" fill="white"/> <rect x="87" y="87" width="132" height="132" rx="36" stroke="white" stroke-width="32"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M133 33H73C50.9086 33 33 50.9086 33 73V133C33 155.091 50.9086 173 73 173H94V153H73C61.9543 153 53 144.046 53 133V73C53 61.9543 61.9543 53 73 53H133C144.046 53 153 61.9543 153 73V94H173V73C173 50.9086 155.091 33 133 33Z" fill="#2F2F2F"/> <rect x="109" y="109" width="88" height="88" rx="14" stroke="white" stroke-width="12"/> <path d="M125 153H182" stroke="white" stroke-width="30" stroke-linecap="round"/> <path d="M153 181L153 124" stroke="white" stroke-width="30" stroke-linecap="round"/> <path d="M125 153H182" stroke="#2F2F2F" stroke-width="15" stroke-linecap="round"/> <path d="M153 181L153 124" stroke="#2F2F2F" stroke-width="15" stroke-linecap="round"/> <rect x="93" y="93" width="120" height="120" rx="30" stroke="#2F2F2F" stroke-width="20"/> </g> </svg>`,
-  tooltip: "Duplicate",
-  /*setButton: async function (editor, button) {
-    button.style.display = "none";
-    let self = editor.getSelf();
-    if (self.access > 3) {
-      button.style.removeProperty("display");
-      return;
-    }
-    let disabledTools = (editor.lesson.settings || {}).disabled || [];
-    let selectKeys = Object.keys(editor.selecting);
-    for (let i = 0; i < selectKeys.length; i++) {
-      let selectID = selectKeys[i];
-      let anno = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
-      if (disabledTools.includes(anno.f) == true) {
-        continue;
-      }
-      button.style.removeProperty("display");
-      break;
-    }
-  },*/
-  js: async function (frame, toolID, extra) {
-    let editor = await getModule("pages/editor");
-    let utils = await getModule("pages/editor/annotation");
-    let cursor = await getModule("pages/editor/toolbar/cursor");
-    //let self = editor.getSelf();
-    //let disabledTools = (editor.lesson.settings || {}).disabled || [];
-    let selectKeys = Object.keys(editor.selecting);
-
-    let newSelect = {};
-    let newNewSelect = {};
-    let setTempSync = getEpoch();
-    for (let i = 0; i < selectKeys.length; i++) {
-      let selectID = selectKeys[i];
-      let tempID = utils.tempID();
-      let newAnno = JSON.parse(JSON.stringify(({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {}));
-      /*if (self.access < 4 && disabledTools.includes(newAnno.f) == true) {
-        continue;
-      }*/
-      newAnno._id = tempID;
-      newAnno.p = newAnno.p || [0, 0];
-      newAnno.p[0] += 50;
-      newAnno.p[1] += 50;
-      newAnno.sync = setTempSync;
-      delete newAnno.m;
-      await utils.render(newAnno);
-      editor.annotations[tempID] = { render: newAnno };
-      newSelect[tempID] = newAnno;
-      newNewSelect[tempID] = {};
-      //await utils.save(newAnno);
-    }
-
-    editor.selecting = newSelect;
-
-    cursor.action = "save";
-    await cursor.endAction();
-
-    editor.selecting = newNewSelect;
-
-    cursor.updateBox();
-
-    //utils.forceShort();
-  }
-};
 modules["pages/editor/toolbar/delete"] = {
   button: `<svg width="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_673_23" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_673_23)"> <path d="M170.895 45H85.3463C67.613 45 53.7495 60.2992 55.4914 77.9467L65.9071 183.474C67.4224 198.827 80.3347 210.528 95.762 210.528H160.479C175.906 210.528 188.819 198.827 190.334 183.474L200.75 77.9467C202.492 60.2992 188.628 45 170.895 45Z" fill="white" stroke="white" stroke-width="34"/> <path d="M128.811 171.731L128.811 83.0442" stroke="#2F2F2F" stroke-width="14" stroke-linecap="round"/> <path d="M100.615 172.88L95.0507 83.8926" stroke="#2F2F2F" stroke-width="14" stroke-linecap="round"/> <path d="M156.256 172.88L161.82 83.8926" stroke="#2F2F2F" stroke-width="14" stroke-linecap="round"/> <path d="M170.895 51H85.3463C71.1597 51 60.0689 63.2393 61.4623 77.3574L71.8781 182.885C73.0903 195.167 83.4201 204.528 95.762 204.528H160.479C172.821 204.528 183.151 195.167 184.363 182.885L194.779 77.3574C196.172 63.2394 185.082 51 170.895 51Z" stroke="#2F2F2F" stroke-width="22"/> </g> </svg>`,
   tooltip: "Delete",
@@ -5263,14 +5280,217 @@ modules["pages/editor/toolbar/delete"] = {
     cursor.updateBox();
   }
 };
+modules["pages/editor/toolbar/more"] = {
+  button: `<svg width="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_2030_2" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_2030_2)"> <circle cx="54" cy="128" r="26" fill="white" stroke="white" stroke-width="12"/> <circle cx="54" cy="128" r="20" fill="#2F2F2F"/> <circle cx="128" cy="128" r="26" fill="white" stroke="white" stroke-width="12"/> <circle cx="128" cy="128" r="20" fill="#2F2F2F"/> <circle cx="202" cy="128" r="26" fill="white" stroke="white" stroke-width="12"/> <circle cx="202" cy="128" r="20" fill="#2F2F2F"/> </g> </svg>`,
+  tooltip: "More",
+  showOnLock: true,
+  //divideBefore: true,
+  setButton: async function (editor, button) {
+    button.setAttribute("dropdown", "dropdowns/editor/toolbar/more");
+    button.setAttribute("dropdowntitle", "More");
+    //button.setAttribute("noscrollclose", "");
+
+    let toolbarMoreModule = await getModule("dropdowns/editor/toolbar/more");
+    if (toolbarMoreModule.refreshButtons != null) {
+      toolbarMoreModule.refreshButtons();
+    }
+  },
+  js: async function (frame, toolID, extra) {
+    let toolbarMoreModule = await getModule("dropdowns/editor/toolbar/more");
+    toolbarMoreModule.frame = frame;
+    toolbarMoreModule.toolID = toolID;
+    toolbarMoreModule.extra = extra;
+  }
+};
+modules["dropdowns/editor/toolbar/more"] = {
+  html: `
+  <button class="eToolbarMoreAction" option="duplicate" close title="Duplicate"><img src="./images/editor/duplicate.svg">Duplicate</button>
+  <button class="eToolbarMoreAction" option="lock" close title="Lock to prevent editing."><img src="./images/editor/lock.svg">Lock</button>
+  <div class="eToolbarMoreLine" option="layers"></div>
+  <button class="eToolbarMoreAction" option="bringfront" close title="Bring Forward"><img src="./images/editor/rearrange/up.svg">Bring to Front</button>
+  <button class="eToolbarMoreAction" option="sendback" close title="Send Backward"><img src="./images/editor/rearrange/down.svg">Send to Back</button>
+  <div class="eToolbarMoreLine"></div>
+  <button class="eToolbarMoreAction" option="copylink" close title="Copy a share link to element." style="--themeColor: var(--secondary)"><img src="./images/tooltips/copy.svg">Copy Link</button>
+  `,
+  css: {
+    ".eToolbarMoreAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
+    ".eToolbarMoreAction:not(:last-child)": `margin-bottom: 4px`,
+    ".eToolbarMoreAction img": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: #fff; border-radius: 4px`,
+    ".eToolbarMoreAction:hover": `background: var(--themeColor); color: #fff`,
+    ".eToolbarMoreLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`,
+    ".eToolbarMoreShowMe": `color: var(--theme); font-weight: 700`
+  },
+  js: async function (frame) {
+    let editor = await getModule("pages/editor");
+    let utils = await getModule("pages/editor/annotation");
+    let cursor = await getModule("pages/editor/toolbar/cursor");
+    let dropdownModule = await getModule("dropdown");
+    let alertModule = await getModule("alert");
+
+    frame.querySelector('.eToolbarMoreAction[option="duplicate"]').addEventListener("click", async () => {
+      let selectKeys = Object.keys(editor.selecting);
+      let newSelect = {};
+      let newNewSelect = {};
+      let setTempSync = getEpoch();
+      for (let i = 0; i < selectKeys.length; i++) {
+        let selectID = selectKeys[i];
+        let tempID = utils.tempID();
+        let newAnno = JSON.parse(JSON.stringify(({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {}));
+        newAnno._id = tempID;
+        newAnno.p = newAnno.p || [0, 0];
+        newAnno.p[0] += 50;
+        newAnno.p[1] += 50;
+        newAnno.sync = setTempSync;
+        delete newAnno.m;
+        delete newAnno.lock;
+        await utils.render(newAnno);
+        editor.annotations[tempID] = { render: newAnno };
+        newSelect[tempID] = newAnno;
+        newNewSelect[tempID] = {};
+      }
+      editor.selecting = newSelect;
+      cursor.action = "save";
+      await cursor.endAction();
+      editor.selecting = newNewSelect;
+      cursor.updateBox();
+    });
+    let lockButton = frame.querySelector('.eToolbarMoreAction[option="lock"]');
+    lockButton.addEventListener("click", async () => {
+      await this.extra.saveSelecting({ lock: true }, true);
+      this.extra.updateToolActions(this.extra.frame);
+    });
+
+    let layersLine = frame.querySelector('.eToolbarMoreLine[option="layers"]');
+    let frontButton = frame.querySelector('.eToolbarMoreAction[option="bringfront"]');
+    frontButton.addEventListener("click", async () => {
+      await this.extra.saveSelecting({ l: utils.maxLayer + 1 }, true);
+      //this.refreshButtons();
+    });
+    let backButton = frame.querySelector('.eToolbarMoreAction[option="sendback"]');
+    backButton.addEventListener("click", async () => {
+      await this.extra.saveSelecting({ l: utils.minLayer - 1 }, true);
+      //this.refreshButtons();
+    });
+    let shareButton = frame.querySelector('.eToolbarMoreAction[option="copylink"]');
+    shareButton.addEventListener("click", async () => {
+      if (editor.lesson.access == null || editor.lesson.access < 0) {
+        let alert = await alertModule.open("info", '<b>Shared Link Disabled</b><div>To create a share link to this element, the lesson link must be set to public. <a class="eToolbarMoreShowMe" new>Show Me</a></div>', { time: 8 });
+        let showMeButton = fixed.querySelector(".eToolbarMoreShowMe[new]");
+        showMeButton.removeAttribute("new");
+        showMeButton.addEventListener("click", async () => {
+          alertModule.close(alert);
+          await sleep(1);
+          dropdownModule.open(editor.page.querySelector(".eShare"), "dropdowns/editor/share/link");
+        });
+        if (editor.getSelf().access < 4) {
+          showMeButton.remove();
+        }
+        return;
+      }
+      let firstAnno = Object.keys(editor.selecting)[0];
+      if (firstAnno == null || firstAnno.startsWith("pending_") == true) {
+        return;
+      }
+      copyClipboardText("https://markify.link/join?lesson=" + editor.id + "&annotation=" + firstAnno, "link");
+    });
+
+    this.refreshButtons = () => {
+      if (frame == null) {
+        return;
+      }
+      let showLock = true;
+      let pending = false;
+      let selectKeys = Object.keys(editor.selecting);
+      let layer = 0;
+      for (let i = 0; i < selectKeys.length; i++) {
+        let annotation = editor.annotations[selectKeys[i]];
+        let render = annotation.render || annotation.revert || {};
+        layer = render.l || Math.round(((render.sync || getEpoch()) / 2000000000000) * 2147483647);
+        if (render._id.startsWith("pending_") == true) {
+          pending = true;
+        }
+        if (render.lock == true) {
+          showLock = false;
+          break;
+        }
+      }
+      if (showLock == true) {
+        lockButton.style.display = "flex";
+        layersLine.style.display = "block";
+        frontButton.style.display = "flex";
+        backButton.style.display = "flex";
+      } else {
+        lockButton.style.display = "none";
+        layersLine.style.display = "none";
+        frontButton.style.display = "none";
+        backButton.style.display = "none";
+      }
+      if (pending == false) {
+        shareButton.removeAttribute("disabled");
+      } else {
+        shareButton.setAttribute("disabled", "");
+      }
+      /*if (layer < utils.maxLayer || selectKeys.length > 1) {
+        frontButton.removeAttribute("disabled");
+      } else {
+        frontButton.setAttribute("disabled", "");
+      }
+      if (layer > utils.minLayer || selectKeys.length > 1) {
+        backButton.removeAttribute("disabled");
+      } else {
+        backButton.setAttribute("disabled", "");
+      }*/
+    }
+    this.refreshButtons();
+  }
+}
+modules["pages/editor/toolbar/unlock"] = {
+  button: `<svg width="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_2037_69" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_2037_69)"> <rect x="69" y="119" width="118" height="88" rx="17.7647" stroke="white" stroke-width="12"/> <rect x="45.12" y="95.12" width="165.76" height="135.76" rx="41.6447" stroke="white" stroke-width="35.76"/> <rect x="-6" y="6" width="30" height="52" rx="15" transform="matrix(1 0 0 -1 119 207)" fill="#2F2F2F" stroke="white" stroke-width="12"/> <rect x="-6" y="6" width="52" height="52" rx="26" transform="matrix(1 0 0 -1 108 183)" fill="#2F2F2F" stroke="white" stroke-width="12"/> <mask id="path-6-outside-1_2037_69" maskUnits="userSpaceOnUse" x="57.7168" y="10.7168" width="136" height="107" fill="black"> <rect fill="white" x="57.7168" y="10.7168" width="136" height="107"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M73.1983 96.8319L88.2938 84.1652C86.0671 71.8657 90.3169 58.7503 100.578 50.1404C115.552 37.5753 137.754 39.2844 150.642 53.8204C150.863 54.0691 151.081 54.3215 151.296 54.5777L162.161 67.5263L175.95 55.9561L165.084 43.0075C145.914 20.1615 111.854 17.1816 89.0075 36.3517C70.9481 51.5053 65.3023 75.9636 73.1983 96.8319Z"/> </mask> <path fill-rule="evenodd" clip-rule="evenodd" d="M73.1983 96.8319L88.2938 84.1652C86.0671 71.8657 90.3169 58.7503 100.578 50.1404C115.552 37.5753 137.754 39.2844 150.642 53.8204C150.863 54.0691 151.081 54.3215 151.296 54.5777L162.161 67.5263L175.95 55.9561L165.084 43.0075C145.914 20.1615 111.854 17.1816 89.0075 36.3517C70.9481 51.5053 65.3023 75.9636 73.1983 96.8319Z" fill="white"/> <path d="M88.2938 84.1652L96.0072 93.3578L101.343 88.8809L100.102 82.0275L88.2938 84.1652ZM73.1983 96.8319L61.9748 101.078L67.9586 116.893L80.9117 106.024L73.1983 96.8319ZM100.578 50.1404L108.291 59.333L108.291 59.333L100.578 50.1404ZM150.642 53.8204L141.664 61.7816L141.664 61.7817L150.642 53.8204ZM151.296 54.5777L160.488 46.8642L160.488 46.8641L151.296 54.5777ZM162.161 67.5263L152.968 75.2397L160.682 84.4323L169.874 76.7188L162.161 67.5263ZM175.95 55.9561L183.663 65.1486L192.856 57.4352L185.142 48.2426L175.95 55.9561ZM165.084 43.0075L174.277 35.2941L174.277 35.2941L165.084 43.0075ZM89.0075 36.3517L81.2941 27.1591L89.0075 36.3517ZM80.5803 74.9727L65.4848 87.6393L80.9117 106.024L96.0072 93.3578L80.5803 74.9727ZM100.102 82.0275C98.6109 73.7924 101.462 65.063 108.291 59.333L92.8642 40.9479C79.1714 52.4376 73.5232 69.939 76.4857 86.303L100.102 82.0275ZM108.291 59.333C118.273 50.9575 133.075 52.0957 141.664 61.7816L159.621 45.8592C142.432 26.473 112.832 24.1932 92.8642 40.9479L108.291 59.333ZM141.664 61.7817C141.812 61.9486 141.958 62.1184 142.103 62.2913L160.488 46.8641C160.203 46.5246 159.914 46.1896 159.621 45.8591L141.664 61.7817ZM142.103 62.2911L152.968 75.2397L171.353 59.8128L160.488 46.8642L142.103 62.2911ZM168.236 46.7636L154.447 58.3337L169.874 76.7188L183.663 65.1486L168.236 46.7636ZM155.892 50.721L166.757 63.6695L185.142 48.2426L174.277 35.2941L155.892 50.721ZM96.721 45.5442C114.49 30.6341 140.982 32.9518 155.892 50.721L174.277 35.2941C150.847 7.37115 109.217 3.729 81.2941 27.1591L96.721 45.5442ZM84.4217 92.5853C78.2746 76.3388 82.6891 57.3183 96.721 45.5442L81.2941 27.1591C59.2071 45.6923 52.3301 75.5884 61.9748 101.078L84.4217 92.5853Z" fill="white" mask="url(#path-6-outside-1_2037_69)"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M77.8308 106.198L91.8333 94.4485C84.1197 79.7826 87.3658 61.2265 100.578 50.1404C115.552 37.5753 137.754 39.2844 150.642 53.8204C150.863 54.0691 151.081 54.3215 151.296 54.5777L162.161 67.5263L175.95 55.9561L165.084 43.0075C145.914 20.1615 111.854 17.1816 89.0075 36.3517C68.1585 53.8461 63.8543 83.7418 77.8308 106.198Z" fill="#2F2F2F"/> <rect x="51.1177" y="101.118" width="153.765" height="123.765" rx="35.647" stroke="#2F2F2F" stroke-width="23.7647"/> <rect width="18" height="40" rx="9" transform="matrix(1 0 0 -1 119 195)" fill="#2F2F2F"/> <rect width="40" height="40" rx="20" transform="matrix(1 0 0 -1 108 171)" fill="#2F2F2F"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M77.8308 106.198L91.8333 94.4485C84.1197 79.7826 87.3658 61.2265 100.578 50.1404C115.552 37.5753 137.754 39.2844 150.642 53.8204C150.863 54.0691 151.081 54.3215 151.296 54.5777L162.161 67.5263L175.95 55.9561L165.084 43.0075C145.914 20.1615 111.854 17.1816 89.0075 36.3517C68.1585 53.8461 63.8543 83.7418 77.8308 106.198Z" fill="#2F2F2F"/> </g> </svg>`,
+  tooltip: "Unlock",
+  divideBefore: true,
+  showOnLock: true,
+  setButton: async function (editor, button) {
+    if (button.closest(".eSelectHolder").hasAttribute("locked") == false) {
+      button.style.display = "none";
+    } else {
+      button.style.display = "unset";
+      let self = editor.getSelf();
+      let selectKeys = Object.keys(editor.selecting);
+      let showButton = true;
+      for (let i = 0; i < selectKeys.length; i++) {
+        let selectID = selectKeys[i];
+        let anno = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+        if (anno.m != self.modify && self.access < 4) {
+          showButton = false;
+          break;
+        }
+      }
+      if (showButton == true) {
+        button.style.removeProperty("opacity");
+        this.disabled = false;
+      } else {
+        button.style.opacity = .5;
+        this.disabled = true;
+      }
+    }
+  },
+  js: async function (frame, toolID, extra) {
+    let alertModule = await getModule("alert");
+    if (this.disabled == true) {
+      alertModule.open("error", "<b>You Didn't Lock This</b>Only the member who locked this can unlock it.");
+      return;
+    }
+    await extra.saveSelecting({ lock: false }, true);
+    extra.updateToolActions(extra.frame);
+  }
+};
 
 modules["pages/editor/toolbar/collaborator"] = {
   button: `<img class="eSubToolCollaborator" src="./images/profiles/default.svg">`,
-  divideBefore: true,
+  showOnLock: true,
   setButton: async function (editor, button) {
     let cursorModule = await getModule("pages/editor/toolbar/cursor");
     button.setAttribute("disabled", "");
-    this.hidden = false;
     let selectKeys = Object.keys(editor.selecting);
     //let buttonElem = button.querySelector(".eSubToolStyle");
     // Loop through to see if collaborator option should be shown
@@ -5280,20 +5500,14 @@ modules["pages/editor/toolbar/collaborator"] = {
       let setModifiedBy = (annotation.render || {}).m || (annotation.revert || {}).m;
       if (setModifiedBy == null || (modifiedBy != null && setModifiedBy != modifiedBy)) {
         button.style.display = "none";
-        if (this.hidden == false) {
-          this.hidden = true;
-          cursorModule.updateActionUI();
-        }
+        cursorModule.updateActionUI(false);
         return;
       }
       modifiedBy = setModifiedBy;
     }
     if (modifiedBy == null || modifiedBy == editor.getSelf().modify || modifiedBy.length != 24) {
       button.style.display = "none";
-      if (this.hidden == false) {
-        this.hidden = true;
-        cursorModule.updateActionUI();
-      }
+      cursorModule.updateActionUI(false);
       return;
     }
     let collaborator = editor.collaborators[modifiedBy];
@@ -5309,10 +5523,7 @@ modules["pages/editor/toolbar/collaborator"] = {
     }
     if (collaborator._id == null) {
       button.style.display = "none";
-      if (this.hidden == false) {
-        this.hidden = true;
-        cursorModule.updateActionUI();
-      }
+      cursorModule.updateActionUI(false);
       return;
     }
     button.setAttribute("collaborator", collaborator._id);
@@ -5325,10 +5536,7 @@ modules["pages/editor/toolbar/collaborator"] = {
     button.removeAttribute("disabled");
     if (button.style.display != "unset") {
       button.style.display = "unset";
-      if (this.hidden == true) {
-        this.hidden = false;
-        cursorModule.updateActionUI();
-      }
+      cursorModule.updateActionUI(false);
     }
   },
   html: `
@@ -5357,13 +5565,14 @@ modules["pages/editor/toolbar/collaborator"] = {
   },
   js: async function (frame, toolID, extra) {
     let editor = await getModule("pages/editor");
-    
+
     let button = extra.frame.querySelector('.eTool[action="pages/editor/toolbar/collaborator"]');
     let collaboratorID = button.getAttribute("collaborator");
     let collaborator = editor.collaborators[collaboratorID];
     if (collaborator == null) {
       /*let alertModule = await getModule("alert");
-      let dropdownModule = await getModule("dropdown");let alert = await alertModule.open("info", '<b>Require Login Disabled</b><div>In order to see who edited this, you must enable the require login option. <a class="eSubToolCollaboratorShowMe" new>Show Me</a></div>', { time: 10 });
+      let dropdownModule = await getModule("dropdown");
+      let alert = await alertModule.open("info", '<b>Require Login Disabled</b><div>In order to see who edited this, you must enable the require login option. <a class="eSubToolCollaboratorShowMe" new>Show Me</a></div>', { time: 10 });
       let showMeButton = fixed.querySelector(".eSubToolCollaboratorShowMe[new]");
       showMeButton.removeAttribute("new");
       showMeButton.addEventListener("click", async () => {
@@ -5398,6 +5607,7 @@ modules["pages/editor/toolbar/collaborator"] = {
       email.style.display = "unset";
     }
     holder.style.setProperty("--uiwidth", frame.closest(".eSelectBar").clientWidth + "px");
+    extra.updateActionUI();
   }
 };
 
@@ -5405,6 +5615,7 @@ modules["pages/editor/toolbar/reactions"] = {
   button: `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_1765_4" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#C4C4C4"/> </mask> <g mask="url(#mask0_1765_4)"> <mask id="path-2-outside-1_1765_4" maskUnits="userSpaceOnUse" x="33" y="33.8643" width="190" height="190" fill="black"> <rect fill="white" x="33" y="33.8643" width="190" height="190"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M161.422 53.1009C151.092 48.4513 139.632 45.8643 127.569 45.8643C81.9673 45.8643 45 82.8316 45 128.433C45 174.035 81.9673 211.002 127.569 211.002C173.17 211.002 210.138 174.035 210.138 128.433C210.138 116.37 207.551 104.911 202.901 94.5807H199.404V111.094C199.404 120.215 192.01 127.608 182.89 127.608H177.936C168.815 127.608 161.422 120.215 161.422 111.094V94.5807H144.908C135.788 94.5807 128.394 87.1872 128.394 78.0669V73.1128C128.394 63.9925 135.788 56.599 144.908 56.599H161.422V53.1009Z"/> </mask> <path fill-rule="evenodd" clip-rule="evenodd" d="M161.422 53.1009C151.092 48.4513 139.632 45.8643 127.569 45.8643C81.9673 45.8643 45 82.8316 45 128.433C45 174.035 81.9673 211.002 127.569 211.002C173.17 211.002 210.138 174.035 210.138 128.433C210.138 116.37 207.551 104.911 202.901 94.5807H199.404V111.094C199.404 120.215 192.01 127.608 182.89 127.608H177.936C168.815 127.608 161.422 120.215 161.422 111.094V94.5807H144.908C135.788 94.5807 128.394 87.1872 128.394 78.0669V73.1128C128.394 63.9925 135.788 56.599 144.908 56.599H161.422V53.1009Z" fill="white"/> <path d="M161.422 53.1009H173.422V45.3424L166.347 42.1581L161.422 53.1009ZM202.901 94.5807L213.844 89.6556L210.66 82.5807H202.901V94.5807ZM199.404 94.5807V82.5807H187.404V94.5807H199.404ZM161.422 94.5807H173.422V82.5807H161.422V94.5807ZM161.422 56.599V68.599H173.422V56.599H161.422ZM166.347 42.1581C154.499 36.8254 141.363 33.8643 127.569 33.8643V57.8643C137.901 57.8643 147.684 60.0772 156.497 64.0436L166.347 42.1581ZM127.569 33.8643C75.3399 33.8643 33 76.2042 33 128.433H57C57 89.459 88.5947 57.8643 127.569 57.8643V33.8643ZM33 128.433C33 180.662 75.3399 223.002 127.569 223.002V199.002C88.5947 199.002 57 167.407 57 128.433H33ZM127.569 223.002C179.798 223.002 222.138 180.662 222.138 128.433H198.138C198.138 167.407 166.543 199.002 127.569 199.002V223.002ZM222.138 128.433C222.138 114.639 219.177 101.504 213.844 89.6556L191.959 99.5057C195.925 108.318 198.138 118.101 198.138 128.433H222.138ZM202.901 82.5807H199.404V106.581H202.901V82.5807ZM187.404 94.5807V111.094H211.404V94.5807H187.404ZM187.404 111.094C187.404 113.587 185.383 115.608 182.89 115.608V139.608C198.638 139.608 211.404 126.842 211.404 111.094H187.404ZM182.89 115.608H177.936V139.608H182.89V115.608ZM177.936 115.608C175.443 115.608 173.422 113.587 173.422 111.094H149.422C149.422 126.842 162.188 139.608 177.936 139.608V115.608ZM173.422 111.094V94.5807H149.422V111.094H173.422ZM161.422 82.5807H144.908V106.581H161.422V82.5807ZM144.908 82.5807C142.415 82.5807 140.394 80.5598 140.394 78.0669H116.394C116.394 93.8146 129.16 106.581 144.908 106.581V82.5807ZM140.394 78.0669V73.1128H116.394V78.0669H140.394ZM140.394 73.1128C140.394 70.6199 142.415 68.599 144.908 68.599V44.599C129.16 44.599 116.394 57.365 116.394 73.1128H140.394ZM144.908 68.599H161.422V44.599H144.908V68.599ZM173.422 56.599V53.1009H149.422V56.599H173.422Z" fill="white" mask="url(#path-2-outside-1_1765_4)"/> <rect x="162.854" y="25" width="35.1193" height="101.174" rx="14.2569" fill="white" stroke="white" stroke-width="12"/> <rect x="129.826" y="58.0273" width="101.174" height="35.1193" rx="14.2569" fill="white" stroke="white" stroke-width="12"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M161.422 53.1009C151.092 48.4513 139.632 45.8643 127.569 45.8643C81.9673 45.8643 45 82.8316 45 128.433C45 174.035 81.9673 211.002 127.569 211.002C173.17 211.002 210.138 174.035 210.138 128.433C210.138 116.37 207.551 104.911 202.901 94.5807H199.404V111.094C199.404 116.193 197.093 120.751 193.463 123.78C193.569 125.317 193.624 126.869 193.624 128.433C193.624 164.914 164.05 194.488 127.569 194.488C91.0876 194.488 61.5138 164.914 61.5138 128.433C61.5138 91.9519 91.0876 62.378 127.569 62.378C129.133 62.378 130.685 62.4324 132.223 62.5394C135.252 58.909 139.81 56.599 144.908 56.599H161.422V53.1009Z" fill="#2F2F2F"/> <path d="M87.936 149.074V149.074C109.825 170.963 145.313 170.963 167.202 149.074V149.074" stroke="#2F2F2F" stroke-width="16" stroke-linecap="round"/> <circle cx="105.275" cy="107.788" r="9.90826" fill="#2F2F2F"/> <circle cx="149.862" cy="107.788" r="9.90826" fill="#2F2F2F"/> <rect x="168.854" y="31" width="23.1193" height="89.1743" rx="8.25688" fill="#2F2F2F"/> <rect x="135.826" y="64.0273" width="89.1743" height="23.1193" rx="8.25688" fill="#2F2F2F"/> </g> </svg>`,
   tooltip: "Reactions",
   reRender: false,
+  showOnLock: true,
   setButton: async function (editor, button, extra) {
     let cursorModule = await getModule("pages/editor/toolbar/cursor");
     this.hidden = false;
@@ -5707,7 +5918,7 @@ modules["pages/editor/toolbar/reactions"] = {
         openDropdown.style.display = "unset";
         removeReactionButton.style.display = "flex";
       }*/
-      if (editor.getSelf().access > 3) {
+      if (editor.getSelf().access > 3 && extra.frame.querySelector(".eSelectHolder").hasAttribute("locked") == false) {
         removeReactionButton.style.display = "flex";
       }
       let reactionMembers = this.reactionCache[emoji];
@@ -5758,7 +5969,11 @@ modules["pages/editor/toolbar/textedit"] = {
     let utils = await getModule("pages/editor/annotation");
     let selectID = Object.keys(editor.selecting)[0];
     let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
-    
+
+    if (original.lock == true) {
+      return;
+    }
+
     let annoElem = editor.page.querySelector('.eAnnotation[anno="' + selectID + '"]');
     if (annoElem == null) {
       return;
@@ -6078,7 +6293,7 @@ modules["pages/editor/toolbar/bold"] = {
     let selectID = Object.keys(editor.selecting)[0];
     let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
     original.d = original.d || {};
-    extra.saveSelecting({ d: { bo: !(original.d.bo || false) } }, true);
+    await extra.saveSelecting({ d: { bo: !(original.d.bo || false) } }, true);
     extra.updateToolActions(extra.frame);
   }
 };
@@ -6100,7 +6315,7 @@ modules["pages/editor/toolbar/italic"] = {
     let selectID = Object.keys(editor.selecting)[0];
     let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
     original.d = original.d || {};
-    extra.saveSelecting({ d: { it: !(original.d.it || false) } }, true);
+    await extra.saveSelecting({ d: { it: !(original.d.it || false) } }, true);
     extra.updateToolActions(extra.frame);
   }
 };
@@ -6122,7 +6337,7 @@ modules["pages/editor/toolbar/underline"] = {
     let selectID = Object.keys(editor.selecting)[0];
     let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
     original.d = original.d || {};
-    extra.saveSelecting({ d: { ul: !(original.d.ul || false) } }, true);
+    await extra.saveSelecting({ d: { ul: !(original.d.ul || false) } }, true);
     extra.updateToolActions(extra.frame);
   }
 };
@@ -6144,7 +6359,7 @@ modules["pages/editor/toolbar/strikethrough"] = {
     let selectID = Object.keys(editor.selecting)[0];
     let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
     original.d = original.d || {};
-    extra.saveSelecting({ d: { st: !(original.d.st || false) } }, true);
+    await extra.saveSelecting({ d: { st: !(original.d.st || false) } }, true);
     extra.updateToolActions(extra.frame);
   }
 };

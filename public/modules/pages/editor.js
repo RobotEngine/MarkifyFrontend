@@ -753,7 +753,7 @@ modules["pages/editor"] = {
                   if (this.realtime.observing == member._id) {
                     if (this.getSelf().access < 4) {
                       this.realtime.module.exitObserve();
-                      (await getModule("alert")).open("warning", "<b>Observing Ended</b>The member your observing is no longer an editor.");
+                      alertModule.open("warning", "<b>Observing Ended</b>The member your observing is no longer an editor.");
                     }
                   }
                 }
@@ -1524,6 +1524,7 @@ modules["pages/editor"] = {
     this.loadedIn = [];
     let alreadyLoaded = [];
     let firstLoad = true;
+    let checkForJumpLink = getParam("annotation");
     this.viewAnnotations = async (request) => {
       let unloadedPages = [];
       if (this.lesson.type != "freeboard" && this.exporting != true) {
@@ -1556,7 +1557,18 @@ modules["pages/editor"] = {
       }
       if (request == true && firstLoad == true) {
         firstLoad = false;
-        centerWindowWithPage();
+        let jumpAnnotation = null;
+        if (checkForJumpLink != null && checkForJumpLink != "") {
+          if (this.annotations[checkForJumpLink] != null) {
+            [_, jumpAnnotation] = await utils.render((this.annotations[checkForJumpLink] || {}).render, null, null, true);
+          }
+        }
+        if (jumpAnnotation == null) {
+          centerWindowWithPage();
+        } else {
+          let jumpRect = jumpAnnotation.getBoundingClientRect();
+          window.scrollTo(window.scrollX + jumpRect.left - ((fixed.offsetWidth - jumpAnnotation.offsetWidth) / 2), window.scrollY + jumpRect.top - ((fixed.offsetHeight - jumpAnnotation.offsetHeight) / 2));
+        }
       }
     }
     centerWindowWithPage();
@@ -1581,6 +1593,13 @@ modules["pages/editor"] = {
       }
       if (this.exporting == true && getParam("only_thumbnail") == "true" && body.pages != null) {
         endpoint = "lessons/join/annotations?pages=" + body.pages[0]._id;
+      }
+      if (firstLoad == true && checkForJumpLink != null && checkForJumpLink != "") {
+        if (body.pages != null) {
+          endpoint += "&annotation=" + checkForJumpLink;
+        } else {
+          endpoint += "?annotation=" + checkForJumpLink;
+        }
       }
 
       // Send Load Request:
@@ -2990,6 +3009,8 @@ modules["pages/editor/annotation"] = {
     this.farBottom = 0;
     this.setTopMargin = 0;
     this.setBottomMargin = 0;
+    this.maxLayer = 0;
+    this.minLayer = 0;
     let editor = await getModule("pages/editor");
     let annoKeys = Object.keys(editor.annotations);
     for (let i = 0; i < annoKeys.length; i++) {
@@ -3055,6 +3076,13 @@ modules["pages/editor/annotation"] = {
           }
         }
       }
+      let zIndex = anno.l || Math.round(((anno.sync || getEpoch()) / 2000000000000) * 2147483647);
+      if (zIndex < this.minLayer) {
+        this.minLayer = zIndex;
+      }
+      if (zIndex > this.maxLayer) {
+        this.maxLayer = zIndex;
+      }
     }
     if (notUpdate == true) {
       return;
@@ -3102,7 +3130,7 @@ modules["pages/editor/annotation"] = {
     this.lastOffsetHeight = contentFrame.offsetHeight;
   },
   SVG_PADDING: 100, // How much padding svgs should have to ensure clean render
-  render: async function (data, anno, long) {
+  render: async function (data, anno, long, force) {
     /*
       _id - ID - The unique ID of the annotation
       f - FUNCTION - The type of tool to render
@@ -3120,11 +3148,11 @@ modules["pages/editor/annotation"] = {
       return;
     }
     let editor = await getModule("pages/editor");
-    let { _id, f, page, p, s, r, c, i, t, b, o, d, done, remove, sync, textfit, sig } = data;
+    let { _id, f, page, p, s, r, l, c, i, t, b, o, d, done, remove, sync, textfit, sig, lock } = data;
     let [x, y] = p || [];
     let size = s || [];
     let [width, height] = [size[0], size[1]];
-    if (page != null && editor.loadedIn.includes(page) == false && long != true) {
+    if (page != null && editor.loadedIn.includes(page) == false && long != true && force != true) {
       return;
     }
     let annoHolder = await this.annoHolder(page);
@@ -3636,6 +3664,11 @@ modules["pages/editor/annotation"] = {
           signature.setAttribute("hidden", "");
         }
         let reactionHolder = anno.querySelector("div[reactions]");
+        if (lock != true) {
+          reactionHolder.removeAttribute("disabled");
+        } else {
+          reactionHolder.setAttribute("disabled", "");
+        }
         let addReactionButton = reactionHolder.querySelector(".eReaction[dropdown]");
         let reactions = editor.reactions[_id];
         let presentReactions = [];
@@ -3741,7 +3774,7 @@ modules["pages/editor/annotation"] = {
     }
     if (anno != null) {
       //console.log((sync || getEpoch()) - editor.lesson.created)
-      anno.style.zIndex = Math.round((((sync || getEpoch()) / 2000000000000) * 2147483647) + 10);
+      anno.style.zIndex = l || Math.round(((sync || getEpoch()) / 2000000000000) * 2147483647);
       let rotate = r || 0;
       if (rotate > 180) {
         rotate = -(360 - rotate);
@@ -3809,12 +3842,22 @@ modules["pages/editor/annotation"] = {
     }
     this.runningTimeout = true;
     let editor = await getModule("pages/editor");
+    let cursor = await getModule("pages/editor/toolbar/cursor");
     let page = editor.page;
     while (this.timeoutAnnotations.length > 0) {
       await sleep(10000);
+      if (editor.page != page) {
+        return;
+      }
       for (let i = 0; i < this.timeoutAnnotations.length; i++) {
         let annotation = this.timeoutAnnotations[i];
         if (annotation.expire > getEpoch()) {
+          continue;
+        }
+        if (connected == false && annotation.collab != true) {
+          continue;
+        }
+        if (cursor != null && editor.selecting[annotation.render._id] != null && cursor.action != null) {
           continue;
         }
         
@@ -3827,12 +3870,6 @@ modules["pages/editor/annotation"] = {
         if (annotation.pending != null) {
           delete editor.annotations[annotation.pending];
           delete annotation.pending;
-        }
-        if (connected == false && annotation.collab != true) {
-          return;
-        }
-        if (editor.page != page) {
-          return;
         }
         /*
         if (editor.selecting[annotation.render._id] != null) {
@@ -3851,7 +3888,7 @@ modules["pages/editor/annotation"] = {
           delete editor.annotations[annotation.render._id];
         }
         if (editor.updateZoom) {
-          editor.updateZoom(false, true);
+          editor.updateZoom(false, false);
         }
       }
     }

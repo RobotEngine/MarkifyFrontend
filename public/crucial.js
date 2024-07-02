@@ -2,7 +2,7 @@ let serverURL = window.serverURL || "https://api.markifyapp.com/";
 //let serverURL = "http://localhost:3000/api/";
 let assetURL = window.mediaURL || "https://markifyapp.s3.amazonaws.com/";
 
-const version = "0.14.12"; // Big Update . Small Feature Release . Bug Fix
+const version = "0.15.0"; // Big Update . Small Feature Release . Bug Fix
 
 const socket = new SimpleSocket({
   project_id: "62088fbdfc22489578e94822",
@@ -870,6 +870,8 @@ modules["dropdown"] = {
           addButtonWidth *= editor.zoom;
         }
         dropdown.style.left = buttonRect.left + addButtonWidth - (dropdown.offsetWidth / 2) + "px";
+      } else {
+        this.close();
       }
     }, 1);
   },
@@ -1013,10 +1015,15 @@ modules["dropdown"] = {
     remDropdown.button.style.removeProperty("opacity");
     //remDropdown.dropdown.setAttribute("closing", "");
     remDropdown.dropdown.style.opacity = 0;
-    if (remDropdown.button.style.display != "none") {
+    if (remDropdown.button.style.display != "none" && remDropdown.button.offsetParent != null) {
       let buttonRect = remDropdown.button.getBoundingClientRect();
       let dropdownRect = remDropdown.dropdown.getBoundingClientRect();
-      remDropdown.dropdown.style.transformOrigin = (buttonRect.left - dropdownRect.left + (remDropdown.button.offsetWidth / 2)) + "px " + (buttonRect.top - dropdownRect.top + (remDropdown.button.offsetHeight / 2)) + "px";
+      let addButtonWidth = remDropdown.button.offsetWidth / 2;
+      if (remDropdown.button.closest(".eContentHolder") != null) {
+        let editor = await getModule("pages/editor");
+        addButtonWidth *= editor.zoom;
+      }
+      remDropdown.dropdown.style.transformOrigin = (buttonRect.left - dropdownRect.left + addButtonWidth) + "px " + (buttonRect.top - dropdownRect.top + (remDropdown.button.offsetHeight / 2)) + "px";
     }
     remDropdown.dropdown.style.transform = "scale(0)";
     //remDropdown.dropdown.querySelector(".dropdownHeader").style.transform = "scale(0)";
@@ -1450,6 +1457,7 @@ addCSS({
   "button, a": `border: none; background: none; user-select: none; color: var(--textColor); font-family: var(--font); cursor: pointer; transition: .1s`,
   "button:active, a:active": `transform: scale(.95) !important`,
   "[disabled]": `pointer-events: none !important; opacity: .5 !important`,
+  "[disabled] > *": `pointer-events: none !important`,
   "[hidden]": `pointer-events: none !important; opacity: 0 !important`,
   "[error]": `--borderColor: var(--error) !important; color: var(--error) !important`,
   ".largeButton, .border": `--themeColor: var(--secondary); --themeColor2: var(--hover); --borderRadius: 0px; --borderColor: var(--themeColor); --borderWidth: 0px; --outline: solid var(--borderWidth) var(--borderColor); --transition: .1s; position: relative; border-radius: var(--borderRadius)`,

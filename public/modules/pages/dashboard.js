@@ -7,6 +7,7 @@ modules["pages/dashboard"] = {
     }
     modifyParams("lesson");
     modifyParams("page");
+    modifyParams("annotation");
     modifyParams("pin");
   },
   html: `<div class="dPage">

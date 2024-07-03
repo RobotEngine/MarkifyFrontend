@@ -4033,6 +4033,9 @@ modules["pages/editor/annotation"] = {
       if (saveSuccess == false) { // If not saved, set to try again
         for (let i = 0; i < mutations.length; i++) {
           let anno = editor.annotations[mutations[i]._id];
+          if (anno == null) {
+            continue;
+          }
           if (anno.pointer != null) {
             anno = editor.annotations[anno.pointer];
           }

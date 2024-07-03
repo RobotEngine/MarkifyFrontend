@@ -466,7 +466,7 @@ modules["editor/realtime"] = {
     let animationFrameId;
     let tempListenAnimation = { type: "animation" };
     tempListeners.push(tempListenAnimation);
-    function smoothScroll() {
+    let smoothScroll = () => {
       if (animationFrameId !== null) {
         cancelAnimationFrame(animationFrameId);
       }
@@ -488,7 +488,7 @@ modules["editor/realtime"] = {
         tempListenAnimation.frame = animationFrameId;
       }
     }
-    function startScroll(targetX, targetY) {
+    let startScroll = (targetX, targetY) => {
       targetScrollPositionX = targetX;
       targetScrollPositionY = targetY;
       smoothScroll();

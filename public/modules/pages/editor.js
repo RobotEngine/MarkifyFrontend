@@ -1293,11 +1293,11 @@ modules["pages/editor"] = {
 
             await utils.enableTimeout(anno._id, existingAnno, gottenRender);
           }
+          let cursorModule = await getModule("pages/editor/toolbar/cursor");
           if (this.selecting[anno.pending] != null) {
             this.selecting[anno._id] = JSON.parse(JSON.stringify(this.selecting[anno.pending]));
             delete this.selecting[anno.pending];
 
-            let cursorModule = await getModule("pages/editor/toolbar/cursor");
             if (cursorModule != null) {
               let selectionIDs = Object.keys(this.selecting);
               cursorModule.lastSelections = "";
@@ -1305,6 +1305,9 @@ modules["pages/editor"] = {
                 cursorModule.lastSelections += selectionIDs[i];
               }
             }
+          }
+          if (this.selecting[anno._id] != null && cursorModule != null) {
+            cursorModule.redrawActionUI();
           }
           // CHECKS IF SERVER IS AFTER LAST SHORT EDIT SYNC
           if (existingAnno.render.sync > anno.sync) {
@@ -1515,7 +1518,7 @@ modules["pages/editor"] = {
     utils.resetAnnotationSize();
 
     let currentPage = 1;
-    function centerWindowWithPage() {
+    let centerWindowWithPage = () => {
       let pageChild = pageHolder.children[currentPage - 1] || pageHolder;
       window.scrollTo(window.scrollX + pageChild.getBoundingClientRect().left - ((fixed.offsetWidth - pageChild.offsetWidth) / 2), window.scrollY);
     }

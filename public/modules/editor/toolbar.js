@@ -5340,6 +5340,7 @@ modules["dropdowns/editor/toolbar/more"] = {
         newAnno.p = newAnno.p || [0, 0];
         newAnno.p[0] += 50;
         newAnno.p[1] += 50;
+        newAnno.l = utils.maxLayer + 1;
         newAnno.sync = setTempSync;
         delete newAnno.m;
         delete newAnno.lock;

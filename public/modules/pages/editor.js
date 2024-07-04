@@ -1444,7 +1444,7 @@ modules["pages/editor"] = {
         } else {
           setFrame("pages/editor"); // Refresh to rejoin
         }
-      } else if (code != 200 && code != null) {
+      } else if (code != 200 && code != 0 && code != null) {
         setFrame("pages/editor");
       }
     }

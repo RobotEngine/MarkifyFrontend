@@ -2117,9 +2117,11 @@ modules["pages/editor/toolbar/cursor"] = {
     if (this.activeElem != null || (this.annotationElem != null && this.annotationElem.hasAttribute("selected"))) {
       // Drag/Move Element
       this.action = "move";
+      this.enableStartX = clientPosition(event, "x");
+      this.enableStartY = clientPosition(event, "y");
       let inverse = 1 / editor.zoom;
-      this.startX = (clientPosition(event, "x") + window.scrollX) * inverse;
-      this.startY = (clientPosition(event, "y") + window.scrollY) * inverse;
+      this.startX = (this.enableStartX + window.scrollX) * inverse;
+      this.startY = (this.enableStartY + window.scrollY) * inverse;
       body.style.userSelect = "none";
       editor.page.style.touchAction = "pinch-zoom";
       event.preventDefault();
@@ -2165,7 +2167,7 @@ modules["pages/editor/toolbar/cursor"] = {
     this.endY = (mouseY + window.scrollY) * inverse;
 
     if (this.actionEnabled == false) {
-      if (Math.abs(this.endX - this.startX) > 3 || Math.abs(this.endY - this.startY) > 3) {
+      if (Math.abs(mouseX - this.enableStartX) > 3 || Math.abs(mouseY - this.enableStartY) > 3) {
         this.actionEnabled = true;
       } else {
         return;

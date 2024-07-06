@@ -2473,7 +2473,7 @@ modules["dropdowns/editor/zoom"] = {
         buttonToggle.setAttribute("off", "");
       }
     }
-    function forceSetZoom() {
+    let forceSetZoom = () => {
       editor.setZoom(parseInt(zoomPercentage.textContent) / 100, null, { clientX: fixed.offsetWidth / 2, clientY: fixed.offsetHeight / 2 });
     }
     zoomPercentage.addEventListener("keydown", (event) => {

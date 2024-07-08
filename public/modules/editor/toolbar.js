@@ -2586,6 +2586,12 @@ modules["pages/editor/toolbar/cursor"] = {
               continue;
             }
             let change = 0;
+            if (page.parentElement.firstElementChild == page && currentPage.parentElement.firstElementChild != currentPage) {
+              change = 4;
+            }
+            if (currentPage.parentElement.firstElementChild == currentPage && page.parentElement.firstElementChild != page) {
+              change = -4;
+            }
             let newPageId = page.getAttribute("pageid");
             if (originalRender.page != newPageId) {
               selecting.page = newPageId;

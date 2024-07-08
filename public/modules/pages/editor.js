@@ -3176,9 +3176,9 @@ modules["pages/editor/annotation"] = {
         annoHolder.appendChild(activeSelect);
       }
     }
-    if (annoHolder.parentElement.parentElement.firstElementChild != annoHolder.parentElement) {
+    /*if (annoHolder.parentElement.parentElement.firstElementChild != annoHolder.parentElement) {
       y -= 4;
-    }
+    }*/
     if (width < 0) {
       width = -width;
       x -= width;

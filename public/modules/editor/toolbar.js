@@ -1302,9 +1302,9 @@ modules["pages/editor/toolbar/cursor"] = {
         */
         let annoHold = await utils.annoHolder(merged.page);
         let border = 0;
-        if (annoHold.parentElement.parentElement.firstElementChild != annoHold.parentElement) {
+        /*if (annoHold.parentElement.parentElement.firstElementChild != annoHold.parentElement) {
           border = 4;
-        }
+        }*/
         let [width, height] = merged.s;
         let [x, y] = merged.p;
         let rotate = merged.r || 0;
@@ -1450,9 +1450,9 @@ modules["pages/editor/toolbar/cursor"] = {
         }
         let border = 0;
         let annoHold = await utils.annoHolder(anno.page);
-        if (annoHold.parentElement.parentElement.firstElementChild != annoHold.parentElement) {
+        /*if (annoHold.parentElement.parentElement.firstElementChild != annoHold.parentElement) {
           border = 4;
-        }
+        }*/
         let pageRect = annoHold.getBoundingClientRect();
         let t = anno.t || 0;
         if (anno.b == "none" && anno.d != "line") {

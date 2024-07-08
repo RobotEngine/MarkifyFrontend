@@ -2210,8 +2210,8 @@ modules["pages/editor"] = {
 
       if (this.zoom > 5) {
         this.zoom = 5;
-      } else if (this.zoom < .25) {
-        this.zoom = .25;
+      } else if (this.zoom < .2) {
+        this.zoom = .2;
       }
 
       pageHolder.style.transform = `scale(${this.zoom})`;
@@ -2252,7 +2252,7 @@ modules["pages/editor"] = {
         } else {
           fixed.querySelector(".eZoomButton[add]").removeAttribute("disabled");
         }
-        if (this.zoom <= .25) {
+        if (this.zoom <= .2) {
           fixed.querySelector(".eZoomButton[sub]").setAttribute("disabled", "");
         } else {
           fixed.querySelector(".eZoomButton[sub]").removeAttribute("disabled");
@@ -2419,9 +2419,9 @@ modules["pages/editor"] = {
 modules["dropdowns/editor/zoom"] = {
   html: `
   <div class="eZoomHolder">
-    <button class="eZoomButton buttonAnim border" sub change="-.25">-</button>
+    <button class="eZoomButton buttonAnim border" sub change="-.2">-</button>
     <div class="eZoomLevel border"><div class="eZoomBox" contenteditable>100</div>%</div>
-    <button class="eZoomButton buttonAnim border" add change=".25">+</button>
+    <button class="eZoomButton buttonAnim border" add change=".2">+</button>
   </div>
   <div class="eZoomLine"></div>
   <button class="eZoomAction" option="cursors" title="Display the cursors of other editors."><div label>Show Cursors</div><div class="eZoomToggle"><div></div></div></button>
@@ -2434,8 +2434,8 @@ modules["dropdowns/editor/zoom"] = {
   css: {
     ".eZoomHolder": `display: flex; flex-wrap: wrap; justify-content: center; align-items: center`,
     ".eZoomButton": `position: relative; display: flex; width: 22px; height: 22px; margin: 20px 3px; justify-content: center; align-items: center; --borderWidth: 3px; --borderRadius: 8px; color: var(--theme); font-size: 24px; font-weight: 600; line-height: 0`,
-    '.eZoomButton[change="-.1"]': `cursor: zoom-out`,
-    '.eZoomButton[change=".1"]': `cursor: zoom-in`,
+    '.eZoomButton[change="-.2"]': `cursor: zoom-out`,
+    '.eZoomButton[change=".2"]': `cursor: zoom-in`,
     ".eZoomLevel": `display: flex; padding: 3px 6px 3px 3px; margin: 0 12px; --borderWidth: 3px; --borderColor: var(--secondary); justify-content: center; align-items: center; --borderRadius: 15px; color: var(--theme); font-size: 20px; font-weight: 600`,
     ".eZoomLevel div": `max-width: 50px; min-width: 25px; padding: 3px 6px; margin-right: 3px; border: none; outline: none; border-radius: 16px; text-align: center; white-space: nowrap; overflow: hidden`,
 
@@ -2459,7 +2459,7 @@ modules["dropdowns/editor/zoom"] = {
   js: async function (frame) {
     let editor = await getModule("pages/editor");
     let zoomPercentage = frame.querySelector(".eZoomLevel div");
-    function setZoomText() {
+    let setZoomText = () => {
       zoomPercentage.textContent = Math.round(editor.zoom * 100);
     }
     setZoomText();
@@ -2507,7 +2507,7 @@ modules["dropdowns/editor/zoom"] = {
         setZoomText();
       } else if (textInt > 500) {
         textBox.textContent = "500";
-      } else if (textInt < 25) {
+      } else if (textInt < 20) {
         textBox.textContent = "20";
       }
       forceSetZoom();
@@ -2534,7 +2534,7 @@ modules["dropdowns/editor/zoom"] = {
       }
       let zoomChange = element.closest(".eZoomButton");
       if (zoomChange) {
-        editor.setZoom(editor.zoom + parseFloat(zoomChange.getAttribute("change")), null, { clientX: fixed.offsetWidth / 2, clientY: fixed.offsetHeight / 2 });
+        editor.setZoom(Math.floor((editor.zoom + parseFloat(zoomChange.getAttribute("change"))) * 100) / 100, null, { clientX: fixed.offsetWidth / 2, clientY: fixed.offsetHeight / 2 });
         return;
       }
       let toggle = element.closest(".eZoomAction");

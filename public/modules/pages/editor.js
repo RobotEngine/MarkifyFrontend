@@ -2927,6 +2927,9 @@ modules["pages/editor/annotation"] = {
       if (p > 0) {
         pageElem = pageHolder.children[p - 1];
       }
+      if (p > 1) {
+        y -= 4;
+      }
       let pageRect = pageElem.getBoundingClientRect();
       x -= pageRect.left;
       y -= pageRect.top;

@@ -687,9 +687,9 @@ modules["editor/realtime"] = {
                     if (selection != null) {
                       let annoHold = await utils.annoHolder(merge.page);
                       let border = 0;
-                      if (annoHold.parentElement.parentElement.firstElementChild != annoHold.parentElement) {
+                      /*if (annoHold.parentElement.parentElement.firstElementChild != annoHold.parentElement) {
                         border = 4;
-                      }
+                      }*/
                       let [width, height] = merge.s;
                       let [x, y] = merge.p;
                       let rotate = merge.r || 0;

@@ -5976,6 +5976,9 @@ modules["pages/editor/toolbar/textedit"] = {
     if (annoTx == null) {
       button.removeAttribute("selecthighlight");
     } else {
+      if (button.parentElement.hasAttribute("locked") == true) {
+        annoTx.removeAttribute("contenteditable");
+      }
       button.setAttribute("selecthighlight", "");
     }
   },

@@ -605,9 +605,9 @@ modules["editor/realtime"] = {
                           anno.lock = null;
                         }
                       }
-                      if (originalRender.lock == true && anno.lock != false) { // Can't edit another member's work:
+                      /*if (originalRender.lock == true && anno.lock != false) { // Can't edit another member's work:
                         continue;
-                      }
+                      }*/
                       original.revert = original.revert || JSON.parse(JSON.stringify(originalRender));
                       // If the user is also selecting, we must update their fields accordingly:
                       /*
@@ -620,27 +620,29 @@ modules["editor/realtime"] = {
                         }
                       }
                       */
-                      if (anno.remove == true && editor.selecting[annoID] != null) {
-                        delete editor.selecting[annoID];
-                        cursorModule.updateBox();
-                      }
-                      if (anno.done != true && forced != true) {
-                        original.render = { ...originalRender, ...anno };
-                      } else {
-                        original.render = { ...originalRender, ...anno };
-                        delete original.render.done;
-                        utils.saveEdit(anno, null, time);
-                      }
-                      if (Object.keys({ ...anno, done: "" }).length > 2) {
-                        if (isNewAnno == false) {
-                          original.render.m = member.modify;
-                        } else {
-                          original.render.a = member.modify;
+                      if (originalRender.lock != true || anno.lock == false) { // Can't edit another member's work:
+                        if (anno.remove == true && editor.selecting[annoID] != null) {
+                          delete editor.selecting[annoID];
+                          cursorModule.updateBox();
                         }
-                        changes = true;
+                        if (anno.done != true && forced != true) {
+                          original.render = { ...originalRender, ...anno };
+                        } else {
+                          original.render = { ...originalRender, ...anno };
+                          delete original.render.done;
+                          utils.saveEdit(anno, null, time);
+                        }
+                        if (Object.keys({ ...anno, done: "" }).length > 2) {
+                          if (isNewAnno == false) {
+                            original.render.m = member.modify;
+                          } else {
+                            original.render.a = member.modify;
+                          }
+                          changes = true;
+                        }
+                        original.render.sync = time;
+                        utils.enableTimeout(annoID, original, null, true);
                       }
-                      original.render.sync = time;
-                      utils.enableTimeout(annoID, original, null, true);
                     }
 
                     let selection;

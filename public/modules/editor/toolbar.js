@@ -3860,13 +3860,9 @@ modules["pages/editor/toolbar/eraser"] = {
 
       event.preventDefault();
 
-      let [page, number] = await utils.findPage(y1);
+      let [page] = await utils.findPage(y1);
       if (page.hasAttribute("hide") == true) {
         return;
-      }
-      let { x, y } = await utils.scaleToDoc(x0, y0, number);
-      if (editor.lesson.type == "freeboard") {
-        y += 4;
       }
 
       let self = editor.getSelf();
@@ -3898,8 +3894,16 @@ modules["pages/editor/toolbar/eraser"] = {
               // This alone isn't enough, the actual points MUST be checked:
               let drawing = anno.querySelector("polyline");
               if (drawing != null && drawing.hasAttribute("points") == true) {
-                let xPos = x - render.p[0];
-                let yPos = y - render.p[1];
+                let page = anno.closest(".ePage");
+                if (page != null) {
+                  page = parseInt(page.getAttribute("order"));
+                }
+                let scaledPos = await utils.scaleToDoc(x0, y0, page || 0);
+                if (editor.lesson.type == "freeboard") {
+                  scaledPos.y += 4;
+                }
+                let xPos = scaledPos.x - render.p[0];
+                let yPos = scaledPos.y - render.p[1];
                 if (render.s[0] < 0) {
                   xPos -= render.s[0];
                 }

@@ -165,6 +165,7 @@ modules["pages/launch"] = {
       </div>
       <div class="lFooterSocials">
         <a href="https://twitter.com/markifytool" target="_blank"><img src="./images/launch/socials/twitter.svg"></a>
+        <a href="https://www.instagram.com/markifytool" target="_blank"><img src="./images/launch/socials/instagram.svg"></a>
         <a href="https://www.linkedin.com/company/exotekco" target="_blank"><img src="./images/launch/socials/linkedin.svg"></a>
         <a href="https://www.youtube.com/@markifyexotek" target="_blank"><img src="./images/launch/socials/youtube.svg"></a>
       </div>
@@ -267,7 +268,7 @@ modules["pages/launch"] = {
     ".lFooterCompany": `display: flex; flex-direction: column; max-width: 100%; flex: 1; align-items: center; justify-content: center`,
     ".lFooterLogo": `height: 70px`,
     ".lFooterCopyright": `color: var(--secondary); text-decoration: none`,
-    ".lFooterPolicies": `display: flex; flex-wrap: wrap; flex: 1 1 300px; justify-content: center; align-items: center`,
+    ".lFooterPolicies": `display: flex; flex-wrap: wrap; flex: 1 1 205px; justify-content: center; align-items: center`,
     ".lFooterPolicies a": `margin: 16px; color: #fff; font-size: 20px; font-weight: 700; text-decoration: none`,
     ".lFooterSocials": `display: flex; flex-wrap: wrap; height: fit-content; padding: 3px; margin: 16px 0; background: #fff; border-radius: 12px`,
     ".lFooterSocials a": `width: 30px; height: 30px; margin: 3px`,

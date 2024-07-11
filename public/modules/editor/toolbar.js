@@ -1772,7 +1772,7 @@ modules["pages/editor/toolbar/cursor"] = {
       actionUI = null;
     }
   },
-  redrawActionUI: async function (skip) {
+  redrawActionUI: async function (skip, longUpdate) {
     let editor = await getModule("pages/editor");
     //let utils = await getModule("pages/editor/annotation");
     let content = editor.page.querySelector(".eContent");
@@ -1821,14 +1821,17 @@ modules["pages/editor/toolbar/cursor"] = {
       if (module == null || module.reRender == false) {
         continue;
       }
-      let buttonHolder = button.querySelector("div");
-      buttonHolder.innerHTML = module.button;
+      //let buttonHolder = button.querySelector("div");
+      //buttonHolder.innerHTML = module.button;
       if (module.setButton != null) {
         module.setButton(editor, button);
       }
     }
 
     // Update current module:
+    if (longUpdate == true) {
+      return;
+    }
     let actionFrame = actionUI.querySelector(".eActionContainer[module]");
     if (actionFrame != null) {
       let actionContent = actionFrame.querySelector(".eActionContainerContent");

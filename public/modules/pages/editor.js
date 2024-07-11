@@ -1307,7 +1307,7 @@ modules["pages/editor"] = {
             }
           }
           if (this.selecting[anno._id] != null && cursorModule != null) {
-            cursorModule.redrawActionUI();
+            cursorModule.redrawActionUI(null, true);
           }
           // CHECKS IF SERVER IS AFTER LAST SHORT EDIT SYNC
           if (existingAnno.render.sync > anno.sync) {

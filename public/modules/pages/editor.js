@@ -632,6 +632,7 @@ modules["pages/editor"] = {
     }
 
     this.members = {};
+    this.collaborators = {};
 
     let removeRealtimeElem = (userid) => {
       if (this.realtime != null && this.realtime.module.removeRealtime != null) {
@@ -1405,8 +1406,6 @@ modules["pages/editor"] = {
       utils.syncSave();
     }
     window.resync = { lesson: lessonID, annotations: this.annotations };
-
-    this.collaborators = {};
 
     if (body.preferences != null) {
       if (body.preferences.emojis != null) {

@@ -2727,7 +2727,7 @@ modules["pages/editor/toolbar/cursor"] = {
       let annoID = anno.getAttribute("anno");
       let self = editor.getSelf();
       let render = ((editor.annotations[annoID] || {}).render || {});
-      if (editor.lesson.settings.editOthersWork != true && render.m != null && render.m != self.modify && self.access < 4) { // Can't edit another member's work:
+      if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
         return;
       }
       if (editor.selecting[annoID] == null) {
@@ -2763,7 +2763,7 @@ modules["pages/editor/toolbar/cursor"] = {
         let annoID = anno.getAttribute("anno");
         let self = editor.getSelf();
         let render = ((editor.annotations[annoID] || {}).render || {});
-        if (editor.lesson.settings.editOthersWork != true && render.m != null && render.m != self.modify && self.access < 4) { // Can't edit another member's work:
+        if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
           alertModule.open("warning", "<b>Someone Else's Annotation</b>The ability to modify another member's work is disabled.");
           return;
         }
@@ -2910,7 +2910,7 @@ modules["pages/editor/toolbar/drag"] = {
         let annoID = selected[i].getAttribute("anno");
         let self = editor.getSelf();
         let render = ((editor.annotations[annoID] || {}).render || {});
-        if (editor.lesson.settings.editOthersWork != true && render.m != null && render.m != self.modify && self.access < 4) { // Can't edit another member's work:
+        if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) && self.access < 4) { // Can't edit another member's work:
           continue;
         }
         editor.selecting[annoID] = {};
@@ -3891,7 +3891,7 @@ modules["pages/editor/toolbar/eraser"] = {
             let annotation = editor.annotations[annoID];
             if (annotation != null) {
               let render = annotation.render || {};
-              if (editor.lesson.settings.editOthersWork != true && render.m != null && render.m != self.modify && self.access < 4) { // Can't edit another member's work:
+              if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) && self.access < 4) { // Can't edit another member's work:
                 continue;
               }
 
@@ -5469,7 +5469,7 @@ modules["pages/editor/toolbar/unlock"] = {
       for (let i = 0; i < selectKeys.length; i++) {
         let selectID = selectKeys[i];
         let anno = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
-        if (anno.m != self.modify && self.access < 4) {
+        if ([anno.a, anno.m].includes(self.modify) && self.access < 4) {
           showButton = false;
           break;
         }
@@ -5506,7 +5506,7 @@ modules["pages/editor/toolbar/collaborator"] = {
     let modifiedBy;
     for (let i = 0; i < selectKeys.length; i++) {
       let annotation = editor.annotations[selectKeys[i]];
-      let setModifiedBy = (annotation.render || {}).m || (annotation.revert || {}).m;
+      let setModifiedBy = annotation.render.m || annotation.render.a;
       if (setModifiedBy == null || (modifiedBy != null && setModifiedBy != modifiedBy)) {
         button.style.display = "none";
         cursorModule.updateActionUI(false);

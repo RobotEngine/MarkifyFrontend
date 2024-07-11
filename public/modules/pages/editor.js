@@ -4083,6 +4083,12 @@ modules["pages/editor/annotation"] = {
     annotation.render.sync = getEpoch();
     mutations.sync = annotation.render.sync;
 
+    //[originalRender.a, originalRender.m].includes(member.modify) == false
+    /*if (annotation.render._id.startsWith("pending_") == false) {
+      annotation.render.m = editor.getSelf().modify;
+    } else {
+      annotation.render.a = editor.getSelf().modify;
+    }*/
     annotation.render.m = editor.getSelf().modify;
 
     let saveSync = { _id: annoID, ...(this.pendingSaves[annoID] || {}), ...mutations };

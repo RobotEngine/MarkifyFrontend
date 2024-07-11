@@ -590,17 +590,18 @@ modules["editor/realtime"] = {
                         original = editor.annotations[annoID];
                       }
                       anno._id = annoID;
-                      if (original == null && annoID.startsWith("pending_") == true) {
+                      let isNewAnno = annoID.startsWith("pending_") == true;
+                      if (original == null && isNewAnno == true) {
                         editor.annotations[annoID] = {};
                         original = editor.annotations[annoID];
                       }
                       original = original || {};
                       let originalRender = original.render || {};
-                      if (editor.lesson.settings.editOthersWork != true && originalRender.m != null && originalRender.m != member.modify && member.access < 4) { // Can't edit another member's work:
+                      if (editor.lesson.settings.editOthersWork != true && (originalRender.a || originalRender.m) != null && [originalRender.a, originalRender.m].includes(member.modify) == false && member.access < 4) { // Can't edit another member's work:
                         continue;
                       }
                       if (anno.lock == false) {
-                        if (originalRender.m != null && originalRender.m != member.modify && member.access < 4) {
+                        if ([originalRender.a, originalRender.m].includes(member.modify) == false && member.access < 4) {
                           anno.lock = null;
                         }
                       }
@@ -631,7 +632,11 @@ modules["editor/realtime"] = {
                         utils.saveEdit(anno, null, time);
                       }
                       if (Object.keys({ ...anno, done: "" }).length > 2) {
-                        original.render.m = member.modify;
+                        if (isNewAnno == false) {
+                          original.render.m = member.modify;
+                        } else {
+                          original.render.a = member.modify;
+                        }
                         changes = true;
                       }
                       original.render.sync = time;
@@ -748,7 +753,7 @@ modules["editor/realtime"] = {
                   }
                   original = original || {};
                   let originalRender = original.render || {};
-                  if (editor.lesson.settings.editOthersWork == true || originalRender.m == null || originalRender.m == member.modify || member.access > 3) { // Can edit another member's work:
+                  if (editor.lesson.settings.editOthersWork == true || [originalRender.a, originalRender.m].includes(member.modify) == true || member.access > 3) { // Can edit another member's work:
                     utils.saveEdit(extra.u);
                   }
                 }

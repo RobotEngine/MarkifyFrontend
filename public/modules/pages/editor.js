@@ -713,6 +713,15 @@ modules["pages/editor"] = {
           if (body.method == "shared" && this.emailInvite != null) {
             this.emailInvite("join", { _id: body.user, email: body.email, user: body.name, image: body.image });
           }
+          let collaborator = this.collaborators[body.modify];
+          if (collaborator != null) {
+            collaborator.name = body.name;
+            collaborator.color = body.color;
+            collaborator.email = body.email;
+            if (body.hasOwnProperty("image") == true) {
+              collaborator.image = body.image;
+            }
+          }
           break;
         case "leave":
           if (this.members[body._id]) {

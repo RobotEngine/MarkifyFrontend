@@ -4237,7 +4237,7 @@ modules["pages/editor/annotation"] = {
     let newChanges = JSON.parse(JSON.stringify(changes));
 
     let pushHistory = true;
-    let lastHistory = utils.history[utils.location - 1];
+    /*let lastHistory = utils.history[utils.location - 1];
     if (lastHistory != null && ignoreTime != true) {
       if (lastHistory.time > getEpoch() - 2000) { // 2 seconds
         let lastIDs = [];
@@ -4257,7 +4257,7 @@ modules["pages/editor/annotation"] = {
           pushHistory = false;
         }
       }
-    }
+    }*/
 
     if (pushHistory == true) {
       let newHistory = {

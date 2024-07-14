@@ -4566,19 +4566,21 @@ modules["pages/editor/toolbar/color"] = {
     let runColorSelections = () => {
       selected = false;
       this.setPreferenceTool(editor);
-      for (let i = 0; i < toolPref.color.options.length; i++) {
+      for (let i = 0; i < colorButtons.length; i++) {
         let button = colorButtons[i];
         let setColor = toolPref.color.options[i];
-        button.setAttribute("int", i);
-        button.querySelector(".eSubToolColor").style.background = editor.hexToRGB(setColor, toolPref.opacity / 100);
-        if (selected == false) {
-          let isSelected = false;
+        let isSelected = false;
+        if (setColor != null) {
+          button.setAttribute("int", i);
+          button.querySelector(".eSubToolColor").style.background = editor.hexToRGB(setColor, toolPref.opacity / 100);
           if (isModify == false) {
             isSelected = setColor == toolPref.color.selected;
           } else {
             isSelected = setColor == this.preferenceTool.c;
           }
-          if (isSelected || i > toolPref.color.options.length - 2) {
+        }
+        if (selected == false) {
+          if (isSelected || setColor == null) {
             button.setAttribute("selected", "");
             selected = true;
           } else {
@@ -4613,7 +4615,7 @@ modules["pages/editor/toolbar/color"] = {
           await extra.saveSelecting({ c: setColor });
           utils.forceShort(); // Make sure other users see the color change (no mouse movement)
           extra.updateToolActions(extra.frame);
-          let selected = selector.querySelector("button[int][selected]");
+          let selected = selector.querySelector("button[selected]");
           if (selected != null) {
             selected.removeAttribute("selected");
           }
@@ -4770,10 +4772,14 @@ modules["pages/editor/toolbar/color"] = {
     let firstChange;
     let updateStoredValues = async (hex) => {
       selectedColor = hex || this.hsvToHex(h, s, v);
-      let selectedButton = selector.querySelector(".eTool[selected]");
+      let selectedButton = selector.querySelector(".eTool[int][selected]");
       if (selectedButton == null) {
-        runColorSelections();
-        selectedButton = selector.querySelector(".eTool[selected]");
+        selectedButton = selector.children[selector.childElementCount - 2];
+        let selected = selector.querySelector(".eTool[selected]");
+        if (selected != null) {
+          selected.removeAttribute("selected");
+        }
+        selectedButton.setAttribute("selected", "");
       }
       let int = parseInt(selectedButton.getAttribute("int"));
       if (int == null || int < 0 || int > 6) {

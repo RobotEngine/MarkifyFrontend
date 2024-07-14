@@ -1527,8 +1527,14 @@ modules["pages/editor"] = {
 
     let currentPage = 1;
     let centerWindowWithPage = () => {
-      let pageChild = pageHolder.children[currentPage - 1] || pageHolder;
-      window.scrollTo(window.scrollX + pageChild.getBoundingClientRect().left - ((fixed.offsetWidth - pageChild.offsetWidth) / 2), window.scrollY);
+      if (this.lesson.type != "freeboard") {
+        let pageChild = pageHolder.children[currentPage - 1] || pageHolder;
+        let pageRect = pageChild.getBoundingClientRect();
+        window.scrollTo(window.scrollX + pageRect.left - ((fixed.offsetWidth - pageChild.offsetWidth) / 2), window.scrollY + pageRect.top - 66);
+      } else {
+        let pageRect = pageHolder.getBoundingClientRect();
+        window.scrollTo(window.scrollX + pageRect.left - ((fixed.offsetWidth - pageHolder.offsetWidth) / 2), window.scrollY + pageRect.top - ((fixed.offsetHeight - pageHolder.offsetHeight) / 2));
+      }
     }
 
     // Load Annotations:
@@ -2159,9 +2165,11 @@ modules["pages/editor"] = {
       case "freeboard":
         //pageHolder.remove();
         addPagesHolder.remove();
+        pageHolder.style.width = "1px";
+        pageHolder.style.height = "1px";
         this.updatePageSize = () => {
-          pageHolder.style.width = fixed.offsetWidth - 332 + "px";
-          pageHolder.style.height = fixed.offsetHeight - 332 + "px";
+          //pageHolder.style.width = fixed.offsetWidth - 332 + "px";
+          //pageHolder.style.height = fixed.offsetHeight - 332 + "px";
           if (this.exporting == true) {
             this.addMargin = 0;
             return;

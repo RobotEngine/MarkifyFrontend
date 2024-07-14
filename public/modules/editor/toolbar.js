@@ -2227,18 +2227,18 @@ modules["pages/editor/toolbar/cursor"] = {
           }
         }
         let { x, y } = await utils.scaleToDoc(mouseX, mouseY, number || 0);
-        if (editor.lesson.type == "freeboard") {
+        /*if (editor.lesson.type == "freeboard") {
           y += 4;
-        }
+        }*/
         if (this.position == null) {
           this.position = JSON.parse(JSON.stringify(select.p || anno.p));
         }
         if (this.size == null) {
           this.size = JSON.parse(JSON.stringify(select.s || anno.s));
           let originalPos = await utils.scaleToDoc(this.startX, this.startY, number || 0);
-          if (editor.lesson.type == "freeboard") {
+          /*if (editor.lesson.type == "freeboard") {
             originalPos.y += 4;
-          }
+          }*/
           let halfRotateWidth = (this.size[0] / 2) + this.position[0];
           let halfRotateHeight = (this.size[1] / 2) + this.position[1];
           let [xCoord, yCoord] = utils.rotatePoint(originalPos.x - halfRotateWidth, -(originalPos.y - halfRotateHeight), -this.rotation);
@@ -2488,9 +2488,9 @@ modules["pages/editor/toolbar/cursor"] = {
           }
         }
         let { x, y } = await utils.scaleToDoc(mouseX, mouseY, number || 0);
-        if (editor.lesson.type == "freeboard") {
+        /*if (editor.lesson.type == "freeboard") {
           y += 4;
-        }
+        }*/
         let position = select.p || anno.p;
         let size = select.s || anno.s;
         let centerX = size[0] / 2;
@@ -3135,9 +3135,9 @@ modules["pages/editor/toolbar/highlighter"] = {
         return;
       }
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientY, number);
-      if (editor.lesson.type == "freeboard") {
+      /*if (editor.lesson.type == "freeboard") {
         y += 4;
-      }
+      }*/
       let tempID = utils.tempID();
       let newAnno = {
         _id: tempID,
@@ -3324,9 +3324,9 @@ modules["pages/editor/toolbar/understrike"] = {
         return;
       }
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientY, number);
-      if (editor.lesson.type == "freeboard") {
+      /*if (editor.lesson.type == "freeboard") {
         y += 4;
-      }
+      }*/
       let thickness = utils.round(Math.max(this.thickness / 4, 1));
       let tempID = utils.tempID();
       let newAnno = {
@@ -3477,9 +3477,9 @@ modules["pages/editor/toolbar/text"] = {
         return;
       }
       let { x, y } = await utils.scaleToDoc(clientX, clientY, number);
-      if (editor.lesson.type == "freeboard") {
+      /*if (editor.lesson.type == "freeboard") {
         y += 4;
-      }
+      }*/
       text.p = [utils.round(x - (text.s[0] / 2)), utils.round(y - (text.s[1] / 2))];
       if (page != null && page.hasAttribute("pageid") == true) {
         text.page = page.getAttribute("pageid");
@@ -3634,9 +3634,9 @@ modules["pages/editor/toolbar/pen"] = {
         return;
       }
       let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientY, number);
-      if (editor.lesson.type == "freeboard") {
+      /*if (editor.lesson.type == "freeboard") {
         y += 4;
-      }
+      }*/
       let tempID = utils.tempID();
       let newAnno = {
         _id: tempID,
@@ -3902,9 +3902,9 @@ modules["pages/editor/toolbar/eraser"] = {
                   page = parseInt(page.getAttribute("order"));
                 }
                 let scaledPos = await utils.scaleToDoc(x0, y0, page || 0);
-                if (editor.lesson.type == "freeboard") {
+                /*if (editor.lesson.type == "freeboard") {
                   scaledPos.y += 4;
-                }
+                }*/
                 let xPos = scaledPos.x - render.p[0];
                 let yPos = scaledPos.y - render.p[1];
                 if (render.s[0] < 0) {
@@ -4064,9 +4064,9 @@ modules["pages/editor/toolbar/shape"] = {
         return;
       }
       let { x, y } = await utils.scaleToDoc(clientX, clientY, number);
-      if (editor.lesson.type == "freeboard") {
+      /*if (editor.lesson.type == "freeboard") {
         y += 4;
-      }
+      }*/
       shape.p = [utils.round(x - (shape.s[0] / 2) - shape.t), utils.round(y - (shape.s[1] / 2) - shape.t)];
       if (page != null && page.hasAttribute("pageid") == true) {
         shape.page = page.getAttribute("pageid");
@@ -4143,9 +4143,9 @@ modules["pages/editor/toolbar/sticky"] = {
         return;
       }
       let { x, y } = await utils.scaleToDoc(clientX, clientY, number);
-      if (editor.lesson.type == "freeboard") {
+      /*if (editor.lesson.type == "freeboard") {
         y += 4;
-      }
+      }*/
       sticky.p = [utils.round(x - (sticky.s[0] / 2)), utils.round(y - (sticky.s[1] / 2))];
       if (page != null && page.hasAttribute("pageid") == true) {
         sticky.page = page.getAttribute("pageid");
@@ -4351,9 +4351,9 @@ modules["pages/editor/toolbar/upload"] = {
         return;
       }
       let { x, y } = await utils.scaleToDoc(clientX, clientY, number);
-      if (editor.lesson.type == "freeboard") {
+      /*if (editor.lesson.type == "freeboard") {
         y += 4;
-      }
+      }*/
       this.media.s = [this.width, this.height];
       this.media.p = [utils.round(x - (this.media.s[0] / 2)), utils.round(y - (this.media.s[1] / 2))];
       if (page != null && page.hasAttribute("pageid") == true) {

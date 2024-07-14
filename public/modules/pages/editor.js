@@ -1533,7 +1533,7 @@ modules["pages/editor"] = {
         window.scrollTo(window.scrollX + pageRect.left - ((fixed.offsetWidth - pageChild.offsetWidth) / 2), window.scrollY + pageRect.top - 66);
       } else {
         let pageRect = pageHolder.getBoundingClientRect();
-        window.scrollTo(window.scrollX + pageRect.left - ((fixed.offsetWidth - pageHolder.offsetWidth) / 2), window.scrollY + pageRect.top - ((fixed.offsetHeight - pageHolder.offsetHeight) / 2));
+        window.scrollTo(window.scrollX + pageRect.left - ((fixed.offsetWidth - pageHolder.offsetWidth) / 2), window.scrollY + pageRect.top - 66);
       }
     }
 

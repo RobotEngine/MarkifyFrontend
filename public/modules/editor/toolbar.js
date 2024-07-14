@@ -5476,7 +5476,7 @@ modules["pages/editor/toolbar/unlock"] = {
       for (let i = 0; i < selectKeys.length; i++) {
         let selectID = selectKeys[i];
         let anno = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
-        if ([anno.a, anno.m].includes(self.modify) && self.access < 4) {
+        if ([anno.a, anno.m].includes(self.modify) == false && self.access < 4) {
           showButton = false;
           break;
         }

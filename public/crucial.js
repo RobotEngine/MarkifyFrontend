@@ -1471,7 +1471,8 @@ addCSS({
   ".largeButton:active": `--borderWidth: 8px`,
   ".fixedItemHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden; transition: .3s`,
   ".fixedItemHolder[blur]": `backdrop-filter: blur(4px); background: rgba(180, 218, 253, .3); pointer-events: all`,
-  "[notransition]": `transition: unset !important`
+  "[notransition]": `transition: unset !important`,
+  "svg": `-webkit-transform: translate3d(0, 0, 0)`
 });
 
 if ("serviceWorker" in navigator && window.isDiscord != true) {

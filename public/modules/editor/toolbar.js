@@ -2136,8 +2136,8 @@ modules["pages/editor/toolbar/cursor"] = {
         // Rotate Element
         this.action = "rotate";
       }
-      this.startX = clientPosition(event, "x"); //(clientX + window.scrollX) * inverse;
-      this.startY = clientPosition(event, "y"); // (clientY + window.scrollY) * inverse;
+      this.enableStartX = clientPosition(event, "x");
+      this.enableStartY = clientPosition(event, "y");
       body.style.userSelect = "none";
       editor.page.style.touchAction = "pinch-zoom";
       event.preventDefault();
@@ -2235,7 +2235,7 @@ modules["pages/editor/toolbar/cursor"] = {
         }
         if (this.size == null) {
           this.size = JSON.parse(JSON.stringify(select.s || anno.s));
-          let originalPos = await utils.scaleToDoc(this.startX, this.startY, number || 0);
+          let originalPos = await utils.scaleToDoc(this.enableStartX, this.enableStartY, number || 0);
           /*if (editor.lesson.type == "freeboard") {
             originalPos.y += 4;
           }*/

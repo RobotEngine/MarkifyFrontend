@@ -21,7 +21,7 @@ modules["editor/realtime"] = {
     ".eSelection": `opacity: 0; z-index: 10; transition: .3s`,
     ".eSelection div": `position: absolute; background: var(--themeColor); opacity: .4; border-radius: 4px`,
 
-    ".eCollabSelect": `position: absolute; opacity: 0; z-index: 9; border-radius: 9px; opacity .15s; pointer-events: none`
+    ".eCollabSelect": `position: absolute; left: 0px; top: 0px; opacity: 0; z-index: 9; border-radius: 9px; opacity .15s; pointer-events: none`
   },
   js: async function (editor, page) {
     editor.realtime.module = this;
@@ -57,7 +57,7 @@ modules["editor/realtime"] = {
 
     // Update connectivity:
     let statusIcon = page.querySelector(".eConnection");
-    this.connectUpdate = () => {
+    this.connectUpdate = (updateShort) => {
       //object-position: -60px -4px;
       let imgPos = 0;
       let status = "";
@@ -78,7 +78,9 @@ modules["editor/realtime"] = {
       statusIcon.title = status;
       statusIcon.removeAttribute("disabled");
 
-      this.setShortSub(editor.visiblePages);
+      if (updateShort != false) {
+        this.setShortSub(editor.visibleChunks);
+      }
 
       let zCursorAction = fixed.querySelector('.eZoomAction[option="cursors"]');
       let zCursorNameAction = fixed.querySelector('.eZoomAction[option="cursornames"]');
@@ -164,7 +166,7 @@ modules["editor/realtime"] = {
     let lastObservePublish = 0;
     let lastCursorContent = "";
     let lastObserveContent = "";
-    let lastCursorPage;
+    let lastCursorChunk;
 
     let utils = await getModule("pages/editor/annotation");
     
@@ -204,25 +206,30 @@ modules["editor/realtime"] = {
           // Figure out where the cursor is:
           let sendX = mouseX;
           let sendY = mouseY;
-          let pageElem = pageHolder;
+          /*let pageElem = pageHolder;
           if (editor.visiblePages) {
             filter.p = (await utils.findPage(sendY))[1];
             if (filter.p > 0) {
               pageElem = pageHolder.children[filter.p - 1];
             }
-          }
-          let pageRect = pageElem.getBoundingClientRect();
+          }*/
+          let pageRect = pageHolder.getBoundingClientRect();
           sendX -= pageRect.left;
           sendY -= pageRect.top;
+          sendX /= editor.zoom;
+          sendY /= editor.zoom;
+          if (editor.visibleChunks) {
+            filter.p = editor.pointInChunk(sendX, sendY);
+          }
   
-          if (filter.p != (lastCursorPage || filter.p)) {
-            socket.publish({ ...standardFilter, p: lastCursorPage }, [ editor.sessionID, filter.p ]); // When leaving a page, tell everyone!
+          if (filter.p != (lastCursorChunk || filter.p)) {
+            socket.publish({ ...standardFilter, p: lastCursorChunk }, [ editor.sessionID, filter.p ]); // When leaving a chunk, tell those looking!
           }
   
           let scaleZoom = 1 / editor.zoom;
   
-          // [ memberID, page, tool, time, mouseX, mouseY, extra (anno) ]
-          let pubData = [ editor.sessionID, filter.p, editor.realtime.tool, 0, Math.floor(sendX * scaleZoom), Math.floor(sendY * scaleZoom)];
+          // [ memberID, tool, time, mouseX, mouseY, extra (anno) ]
+          let pubData = [ editor.sessionID, editor.realtime.tool, 0, Math.floor(sendX), Math.floor(sendY)];
 
           let addTextSelect = [];
           if (window.getSelection != null) {
@@ -240,18 +247,21 @@ modules["editor/realtime"] = {
                   }
                   let selX = selRect.x;
                   let selY = selRect.y;
-                  let page = (await utils.findPage(selY))[1];
+                  /*let page = (await utils.findPage(selY))[1];
                   let selPageElem = pageHolder;
                   if (editor.visiblePages && pageHolder.children[page - 1]) {
                     selPageElem = pageHolder.children[page - 1];
                   }
                   let selPageRect = selPageElem.getBoundingClientRect();
                   selX -= selPageRect.left;
-                  selY -= selPageRect.top;
+                  selY -= selPageRect.top;*/
+                  let pageRect = pageHolder.getBoundingClientRect();
+                  selX -= pageRect.left;
+                  selY -= pageRect.top;
                   if (selRect.width > 0 && selRect.height > 0) {
                     alreadyInsert[checkInsert] = "";
                     // [ PAGE, WIDTH, HEIGHT, X, Y ]
-                    addTextSelect.push([ page, Math.floor(selRect.width*scaleZoom), Math.floor(selRect.height*scaleZoom), Math.floor(selX * scaleZoom), Math.floor(selY * scaleZoom)]);
+                    addTextSelect.push([ Math.floor(selRect.width*scaleZoom), Math.floor(selRect.height*scaleZoom), Math.floor(selX * scaleZoom), Math.floor(selY * scaleZoom)]);
                   }
                 }
               }
@@ -275,19 +285,19 @@ modules["editor/realtime"] = {
             sendExtra.force = true;
           }
           if (Object.keys(sendExtra).length > 0) {
-            pubData[6] = sendExtra;
+            pubData[5] = sendExtra;
           }
           
           let updJSONContent = JSON.stringify([filter, pubData]);
           if (updJSONContent == lastCursorContent && ignoreSame != true) {
             return;
           }
-          pubData[3] = getEpoch();
+          pubData[2] = getEpoch();
   
           // PUBLISH the event:
           socket.publish(filter, pubData);
           lastCursorPublish = getEpoch();
-          lastCursorPage = filter.p;
+          lastCursorChunk = filter.p;
           lastCursorContent = updJSONContent;
         } else {
           endSyncTimeout = setTimeout(() => {
@@ -299,14 +309,14 @@ modules["editor/realtime"] = {
         if (lastObservePublish < getEpoch() - 250) { // One event every 250 ms
           let filter = { c: "short_" + editor.id, o: editor.sessionID };
 
-          // [ memberID, zoom, centerx, centery, time ]
-          let pubData = [ editor.sessionID, Math.floor(editor.zoom * 100) / 100, Math.floor(window.scrollX + (fixed.offsetWidth / 2) - pageHolder.offsetLeft), Math.floor(window.scrollY + (fixed.offsetHeight / 2) - pageHolder.offsetTop) ];
+          // [ memberID, NULL, zoom, centerx, centery, time ]
+          let pubData = [ editor.sessionID, null, Math.floor(editor.zoom * 100) / 100, Math.floor(window.scrollX + (fixed.offsetWidth / 2) - pageHolder.offsetLeft), Math.floor(window.scrollY + (fixed.offsetHeight / 2) - pageHolder.offsetTop) ];
 
           let updJSONContent = JSON.stringify([filter, pubData]);
           if (updJSONContent == lastObserveContent && ignoreSame != true) {
             return;
           }
-          pubData[4] = getEpoch();
+          pubData[5] = getEpoch();
 
           // PUBLISH the event:
           socket.publish(filter, pubData);
@@ -366,20 +376,15 @@ modules["editor/realtime"] = {
         if (element.hasAttribute("height")) {
           element.style.height = parseFloat(element.getAttribute("height")) * editor.zoom + "px";
         }
-        let pageElem = pageHolder;
+        /*let pageElem = pageHolder;
         if (element.hasAttribute("page")) {
           pageElem = pageHolder.children[parseInt(element.getAttribute("page")) - 1] || pageElem;
-        }
-        let pageRect = pageElem.getBoundingClientRect();
-        if (element.hasAttribute("x")) {
+        }*/
+        let pageRect = pageHolder.getBoundingClientRect();
+        if (element.hasAttribute("x") && element.hasAttribute("y")) {
           let x = parseFloat(element.getAttribute("x")) * editor.zoom;
-          x += pageRect.left;
-          element.style.left = x + (parseInt(element.getAttribute("offsetx") || "0")) + window.scrollX + "px";
-        }
-        if (element.hasAttribute("y")) {
           let y = parseFloat(element.getAttribute("y")) * editor.zoom;
-          y += pageRect.top;
-          element.style.top = y + (parseInt(element.getAttribute("offsety") || "0")) + window.scrollY + "px";
+          element.style.transform = "translate(" + (x + pageRect.left + (parseInt(element.getAttribute("offsetx") || "0")) + window.scrollX) + "px," + (y + pageRect.top + (parseInt(element.getAttribute("offsety") || "0")) + window.scrollY) + "px)";
         }
         element.offsetHeight;
         element.removeAttribute("notransition");
@@ -494,31 +499,31 @@ modules["editor/realtime"] = {
       smoothScroll();
     }
     let transformTimeout;
-    this.setShortSub = (pages) => {
+    this.setShortSub = (chunks) => {
       if (editor.realtime.strength < 3 || editor.options.cursors == false) {
-        pages = null;
+        chunks = null;
       }
-      if (pages != null && pages.length < 1) {
-        pages.push(0);
-      }
-      let filter = { c: "short_" + editor.id, p: pages };
+      let filter = { c: "short_" + editor.id, p: chunks };
       if (editor.realtime.observing != null) {
         filter.o = editor.realtime.observing;
       }
       if (this.shortSub) {
         this.shortSub.edit(filter);
       } else {
+        if (chunks == null) {
+          return;
+        }
         this.shortSub = subscribe(filter, async (data) => {
           //console.log(data);
           let member = editor.members[data[0]];
           if (member == null) {
             return;
           }
-          if (data[2] == null || data[5] != null) { // CURSOR
+          if (data[1] != null) { // CURSOR
             if (editor.options.cursors == false) {
               return;
             }
-            let [ memberID, page, tool, time, x, y, extra ] = data;
+            let [ memberID, tool, time, x, y, extra ] = data;
             let forced = extra != null && extra.force == true;
             if (member.lastShort > time && forced == false) {
               return;
@@ -721,9 +726,9 @@ modules["editor/realtime"] = {
                       selection.style.width = boxWidth + "px";
                       selection.style.height = boxHeight + "px";
                       let halfT = t / 2;
-                      selection.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
-                      selection.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
-                      selection.style.transform = "rotate(" + rotate + "deg)";
+                      //selection.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
+                      //selection.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
+                      selection.style.transform = "translate(" + (pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5) + "px," + (pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5) + "px) rotate(" + rotate + "deg)";
                       selection.offsetHeight;
                       selection.style.transition = "all .25s, opacity .15s";
                       selection.style.opacity = 1;
@@ -765,8 +770,9 @@ modules["editor/realtime"] = {
               } else {
                 cursorHolder.removeAttribute("pressed");
               }
-              cursorHolder.style.left = member.x + (parseInt(cursorHolder.getAttribute("offsetx") || "0")) + window.scrollX + "px";
-              cursorHolder.style.top = member.y + (parseInt(cursorHolder.getAttribute("offsety") || "0")) + window.scrollY + "px";
+              //cursorHolder.style.left = member.x + (parseInt(cursorHolder.getAttribute("offsetx") || "0")) + window.scrollX + "px";
+              //cursorHolder.style.top = member.y + (parseInt(cursorHolder.getAttribute("offsety") || "0")) + window.scrollY + "px";
+              cursorHolder.style.transform = "translate(" + (member.x + (parseInt(cursorHolder.getAttribute("offsetx") || "0")) + window.scrollX) + "px," + (member.y + (parseInt(cursorHolder.getAttribute("offsety") || "0")) + window.scrollY) + "px)";
             }
             if (member.lastShort > time) {
               return;
@@ -776,21 +782,14 @@ modules["editor/realtime"] = {
             cursorHolder.setAttribute("y", y);
             x *= editor.zoom;
             y *= editor.zoom;
-            let pageElem = pageHolder;
-            if (page > 0) {
-              pageElem = pageHolder.children[page - 1];
-              cursorHolder.setAttribute("page", page);
-            }
-            if (pageElem != null) {
-              let pageRect = pageElem.getBoundingClientRect();
-              x += pageRect.left;
-              y += pageRect.top;
-            }
+            let pageRect = pageHolder.getBoundingClientRect();
+            x += pageRect.left;
+            y += pageRect.top;
             member.x = x;
             member.y = y;
-            if (tool == null) {
+            if (time == null) {
               // Must be for a page leave event:
-              if (editor.visiblePages.includes(page)) {
+              if (editor.visibleChunks.includes(tool)) {
                 return;
               }
               this.removeRealtime(memberID);
@@ -872,15 +871,15 @@ modules["editor/realtime"] = {
                 selectionHolder.insertAdjacentHTML("beforeend", `<div scale new></div>`);
                 let select = selectionHolder.querySelector('.eSelection div[new]');
                 select.removeAttribute("new");
-                select.setAttribute("width", selectData[1]);
-                select.setAttribute("height", selectData[2]);
-                select.setAttribute("x", selectData[3]);
-                select.setAttribute("y", selectData[4]);
-                select.style.width = (selectData[1] * editor.zoom) + "px";
-                select.style.height = (selectData[2] * editor.zoom) + "px";
-                let selX = selectData[3] * editor.zoom;
-                let selY = selectData[4] * editor.zoom;
-                let pageElem = pageHolder;
+                select.setAttribute("width", selectData[0]);
+                select.setAttribute("height", selectData[1]);
+                select.setAttribute("x", selectData[2]);
+                select.setAttribute("y", selectData[3]);
+                select.style.width = (selectData[0] * editor.zoom) + "px";
+                select.style.height = (selectData[1] * editor.zoom) + "px";
+                let selX = selectData[2] * editor.zoom;
+                let selY = selectData[3] * editor.zoom;
+                /*let pageElem = pageHolder;
                 if (selectData[0] > 0) {
                   pageElem = pageHolder.children[selectData[0] - 1];
                   select.setAttribute("page", selectData[0]);
@@ -889,7 +888,13 @@ modules["editor/realtime"] = {
                   let pageRect = pageElem.getBoundingClientRect();
                   select.style.left = (selX + pageRect.left) + window.scrollX + "px";
                   select.style.top = (selY + pageRect.top) + window.scrollY + "px";
-                }
+                }*/
+                let pageRect = pageHolder.getBoundingClientRect();
+                selX += pageRect.left;
+                selY += pageRect.top;
+                //select.style.left = selX + window.scrollX + "px";
+                //select.style.top = selY + window.scrollY + "px";
+                select.style.transform = "translate(" + (selX + window.scrollX) + "px," + (selY + window.scrollY) + "px)";
               }
               selectionHolder.style.opacity = 1;
             } else if (selectionHolder != null) {
@@ -901,7 +906,7 @@ modules["editor/realtime"] = {
               })();
             }
           } else if (data[3] != null) { // OBSERVE
-            let [ memberID, zoom, scrollX, scrollY, time ] = data;
+            let [ memberID, _, zoom, scrollX, scrollY, time ] = data;
             if (memberID != editor.realtime.observing) {
               return;
             }
@@ -913,10 +918,10 @@ modules["editor/realtime"] = {
             if (editor.realtime.observeLoading != null) {
               editor.lastZoom = editor.zoom;
               this.enableObserve(member);
-              editor.setZoom(zoom, true);
+              await editor.setZoom(zoom, true);
               window.scrollTo({ left: scrollToX, top: scrollToY });
             } else {
-              editor.setZoom(zoom, true);
+              await editor.setZoom(zoom, true);
               startScroll(scrollToX, scrollToY);
             }
             //smoothScrollTo(scrollX - (fixed.offsetWidth / 2), (scrollY - (fixed.offsetHeight / 2)) * scrollRate, 100);
@@ -925,8 +930,8 @@ modules["editor/realtime"] = {
         });
       }
     }
-
-    this.connectUpdate();
+    
+    this.connectUpdate(editor.visibleChunks.length > 0);
   }
 }
 
@@ -1539,7 +1544,7 @@ modules["dropdowns/editor/members"] = {
           observeButton.setAttribute("disabled", "");
           let prevObserve = editor.realtime.observing;
           editor.realtime.observing = memberid;
-          editor.realtime.module.setShortSub(editor.visiblePages);
+          editor.realtime.module.setShortSub(editor.visibleChunks);
           editor.realtime.module.observeButtonUpdate();
           alertModule.close(editor.realtime.observeLoading);
           clearTimeout(editor.realtime.observeTimeout);
@@ -1557,7 +1562,7 @@ modules["dropdowns/editor/members"] = {
               editor.realtime.module.exitObserve();
             }
             editor.realtime.observing = null;
-            editor.realtime.module.setShortSub(editor.visiblePages);
+            editor.realtime.module.setShortSub(editor.visibleChunks);
             editor.realtime.module.observeButtonUpdate();
           }
           observeButton.removeAttribute("disabled");

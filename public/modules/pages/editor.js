@@ -13,7 +13,7 @@ modules["pages/editor"] = {
       <div class="eTop" noscrollclose>
         <div class="eTopSection">
           <a class="eLogo" href="#dashboard"><img src="./images/logo.svg"></a>
-          <div class="eFileName border" contenteditable spellcheck="false" onpaste="clipBoardRead(event)"></div>
+          <div class="eFileName border" spellcheck="false" onpaste="clipBoardRead(event)"></div>
           <button class="eFileDropdown" dropdown="dropdowns/editor/file">File</button>
         </div>
         <div class="eTopSection">
@@ -58,9 +58,9 @@ modules["pages/editor"] = {
       <div class="eRealtime"></div>
       <div class="eContentHolder">
         <div class="ePageHolder"></div>
-      </div>
-      <div class="eAddPagesHolder">
-        <button class="eAddPagesButton largeButton" dropdown="dropdowns/new/lesson">Add Pages</button>
+        <div class="eAddPagesHolder">
+          <button class="eAddPagesButton largeButton" dropdown="dropdowns/new/lesson">Add Pages</button>
+        </div>
       </div>
     </div>
     <div class="eObserveBorder"></div>
@@ -134,6 +134,7 @@ modules["pages/editor"] = {
     ".eObserveBorder": `position: fixed; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 501`,
 
     ".eContent": `position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - 132px); min-height: calc(100vh - 132px); padding: 66px; align-items: center; z-index: 0; overflow: hidden; pointer-events: all; background-image: url(./images/editor/background.svg); background-position: center`,
+    ".eContentHolder": `position: relative`,
     ".ePageHolder": `position: relative; width: fit-content; height: fit-content; border-radius: 16px; transform-origin: 0 0; z-index: 1`,
     ".ePage": `position: relative; background: var(--pageColor); transition: .5s`,
     ".ePage::after": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: -1; content: ""; box-shadow: 0px 0px 8px 0px var(--shadowColor); border-radius: inherit`,
@@ -154,12 +155,12 @@ modules["pages/editor"] = {
     ".ePageAnnotationHolder": `--scale-factor: 4/3; position: absolute; left: 0; top: 0; font-family: sans-serif`,
     ".ePageAnnotations": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 1; pointer-events: none`,
     ".content[enabled] .ePageAnnotations": `pointer-events: all`,
-    ".eAddPagesHolder": `display: none; width: 100% justify-content: center; padding-top: 20px`,
+    ".eAddPagesHolder": `position: absolute; display: none; width: 100%; bottom: 0px; justify-content: center; padding-top: 20px`,
     ".eAddPagesButton": `display: flex; margin: 8px 0; z-index: 1; background: var(--theme); --borderRadius: 20.25px; color: #fff; pointer-events: all`,
     ".ePageRearrange": `position: absolute; display: flex; width: 28px; height: 28px; padding: 4px; right: 8px; bottom: 8px; pointer-events: all; z-index: 2; background: rgba(180, 218, 253, 0.75); backdrop-filter: blur(2px); border-radius: 18px; overflow: hidden`, //transform: scale(var(--fixedUIScale));
     ".ePageRearrange div": `margin-left: 6px`,
     
-    ".eAnnotation": `position: absolute`,
+    ".eAnnotation": `position: absolute; left: 0px; top: 0px`,
     ".eAnnotation[hidden]": `display: none !important`,
     '.eAnnotation[anno]:not([anno^="pending_"])': `transition: .25s`,
     //'.eAnnotation:not([selected]):not([anno^="pending_"])': `transition: .25s`,
@@ -192,6 +193,7 @@ modules["pages/editor"] = {
   js: async function (page, joinData) {
     this.page = page;
     this.annotations = {};
+    this.chunkAnnotations = {};
     this.reactions = {};
     this.addMargin = 100;
     this.preferences = {
@@ -922,7 +924,7 @@ modules["pages/editor"] = {
           await this.addPages(data.data.pages || []);
           await this.updatePages();
           await this.setZoom();
-          await utils.resetAnnotationSize();
+          await utils.setMarginSize();
           break;
         case "invite":
           if (this.emailInvite != null) {
@@ -965,7 +967,7 @@ modules["pages/editor"] = {
             }
             this.updatePages();
             await this.setZoom();
-            await utils.resetAnnotationSize();
+            await utils.setMarginSize();
           }
           break;
         case "pageswap":
@@ -1180,7 +1182,7 @@ modules["pages/editor"] = {
           }
           let prevObserve = this.realtime.observing;
           this.realtime.observing = body.member;
-          this.realtime.module.setShortSub(this.visiblePages);
+          this.realtime.module.setShortSub(this.visibleChunks);
           if (this.realtime.module.observeButtonUpdate != null) {
             this.realtime.module.observeButtonUpdate();
           }
@@ -1200,7 +1202,7 @@ modules["pages/editor"] = {
               this.realtime.module.exitObserve();
             }
             this.realtime.observing = null;
-            this.realtime.module.setShortSub(this.visiblePages);
+            this.realtime.module.setShortSub(this.visibleChunks);
             this.realtime.module.observeButtonUpdate();
           }
       }
@@ -1301,7 +1303,14 @@ modules["pages/editor"] = {
               gottenRender.setAttribute("anno", anno._id);
             }
 
+            // Update Chunk IDs:
+            for (let i = 0; i < existingAnno.chunks.length; i++) {
+              this.chunkAnnotations[existingAnno.chunks[i]][anno._id] = "";
+              delete this.chunkAnnotations[existingAnno.chunks[i]][anno.pending];
+            }
+
             await utils.enableTimeout(anno._id, existingAnno, gottenRender);
+            utils.setMarginSize();
           }
           let cursorModule = await getModule("pages/editor/toolbar/cursor");
           if (this.selecting[anno.pending] != null) {
@@ -1379,9 +1388,7 @@ modules["pages/editor"] = {
     this.lesson = body.lesson;
     this.lesson.settings = this.lesson.settings || {};
 
-    if (body.folder != null) {
-      this.folder = body.folder;
-    }
+    this.folder = body.folder;
 
     if (this.lesson.pin) {
       this.codeTextButton.style.display = "unset";
@@ -1523,7 +1530,159 @@ modules["pages/editor"] = {
     }
     this.loadedPDFs = [];
 
-    utils.resetAnnotationSize();
+    // Determine Chunks
+    this.visibleChunks = [];
+    this.chunkWidth = 2000;
+    this.chunkHeight = 2000;
+    this.regionInChunks = (topx, topy, bottomx, bottomy) => {
+      let topLeftChunkX = Math.floor(topx / this.chunkWidth) * this.chunkWidth;
+      let topLeftChunkY = Math.floor(topy / this.chunkHeight) * this.chunkHeight;
+      let bottomRightChunkX = Math.floor(bottomx / this.chunkWidth) * this.chunkWidth;
+      let bottomRightChunkY = Math.floor(bottomy / this.chunkHeight) * this.chunkHeight;
+      let xCord = topLeftChunkX;
+      let yCord = topLeftChunkY;
+      let chunks = [];
+      while (yCord <= bottomRightChunkY) {
+        while (xCord <= bottomRightChunkX) {
+          chunks.push(xCord + "_" + yCord);
+          xCord += this.chunkWidth;
+        }
+        xCord = topLeftChunkX;
+        yCord += this.chunkHeight;
+      }
+      return chunks;
+    }
+    this.annotationChunks = async (annotation) => {
+      if (annotation == null) {
+        return;
+      }
+      let render = annotation.render;
+      let t = render.t || 0;
+      if (render.b == "none" && render.d != "line") {
+        t = 0;
+      }
+      let pageTop = 0;
+      if (this.lesson.type != "freeboard" && render.page != null) {
+        let pageElem = await utils.annoHolder(render.page);
+        if (pageElem != null) {
+          pageTop = (pageElem.getBoundingClientRect().top - pageHolder.getBoundingClientRect().top) / this.zoom;
+        }
+      }
+      let chunks = [];
+      if (render.remove != true) {
+        chunks = this.regionInChunks(
+          render.p[0],
+          render.p[1] + pageTop,
+          render.p[0] + render.s[0] + t,
+          render.p[1] + render.s[1] + t + pageTop,
+        );
+      }
+      for (let i = 0; i < chunks.length; i++) {
+        let chunk = chunks[i];
+        if (this.chunkAnnotations[chunk] == null) {
+          this.chunkAnnotations[chunk] = {};
+          utils.setMarginSize();
+        }
+        this.chunkAnnotations[chunk][render._id] = "";
+      }
+      if (annotation.chunks != null) {
+        // Remove existing chunks:
+        for (let i = 0; i < annotation.chunks.length; i++) {
+          let chunk = annotation.chunks[i];
+          if (chunks.includes(chunk) == false) {
+            delete this.chunkAnnotations[chunk][render._id];
+            if (Object.keys(this.chunkAnnotations[chunk]).length == 0) {
+              delete this.chunkAnnotations[chunk];
+              utils.setMarginSize();
+            }
+          }
+        }
+      }
+      annotation.chunks = chunks;
+    }
+    this.pointInChunk = (x, y) => {
+      return this.regionInChunks(x, y, x, y)[0];
+    }
+    let updateSubTimeout;
+    let loadedChunks = {};
+    let alreadyRunningUpdateCycle = false;
+    let runUpdateCycle = async () => {
+      if (alreadyRunningUpdateCycle == true) {
+        return;
+      }
+      alreadyRunningUpdateCycle = true;
+      let visible = Object.keys(loadedChunks);
+      for (let i = 0; i < visible.length; i++) {
+        let chunk = visible[i];
+        if (this.visibleChunks.includes(chunk) == false) {
+          delete loadedChunks[chunk];
+
+          // Remove annotations in unloaded chunks:
+          let chunkAnnos = Object.keys(this.chunkAnnotations[chunk] || {});
+          for (let a = 0; a < chunkAnnos.length; a++) {
+            let anno = this.annotations[chunkAnnos[a]] || {};
+            if (anno.render == null) {
+              continue;
+            }
+            if (anno.chunks != null) {
+              // Annotation may still be visible in another chunk, we must check
+              let remove;
+              for (let c = 0; c < anno.chunks.length; c++) {
+                if (loadedChunks[anno.chunks[c]] != null) {
+                  remove = false;
+                  break;
+                }
+              }
+              if (remove == false) {
+                continue;
+              }
+            }
+            if (this.selecting[anno.render._id] != null) {
+              continue;
+            }
+            let element = pageHolder.querySelector('.eAnnotation[anno="' + anno.render._id + '"]');
+            if (element != null) {
+              element.remove();
+            }
+          }
+        }
+      }
+      for (let i = 0; i < this.visibleChunks.length; i++) {
+        let chunk = this.visibleChunks[i];
+        if (loadedChunks[chunk] == null) {
+          loadedChunks[chunk] = "";
+
+          // Load annotations in these chunks:
+          let chunkAnnos = Object.keys(this.chunkAnnotations[chunk] || {});
+          for (let a = 0; a < chunkAnnos.length; a++) {
+            utils.render((this.annotations[chunkAnnos[a]] || {}).render);
+          }
+        }
+      }
+      alreadyRunningUpdateCycle = false;
+    }
+    this.updateChunks = async () => {
+      let pageRect = pageHolder.getBoundingClientRect();
+      if (this.exporting != true) {
+        this.visibleChunks = this.regionInChunks(
+          ((fixed.offsetWidth / -2) - pageRect.left) / this.zoom,
+          ((fixed.offsetHeight / -2) - pageRect.top) / this.zoom,
+          ((fixed.offsetWidth + (fixed.offsetWidth / 2)) - pageRect.left) / this.zoom,
+          ((fixed.offsetHeight + (fixed.offsetHeight / 2)) - pageRect.top) / this.zoom
+        );
+      } else {
+        this.visibleChunks = Object.keys(this.chunkAnnotations);
+      }
+      runUpdateCycle();
+      clearTimeout(updateSubTimeout);
+      updateSubTimeout = setTimeout(() => {
+        if (this.realtime.module != null) {
+          this.realtime.module.setShortSub(this.visibleChunks);
+        }
+      }, 750);
+    }
+    tempListen(window, "scroll", this.updateChunks);
+    tempListen(window, "resize", this.updateChunks);
 
     let currentPage = 1;
     let centerWindowWithPage = () => {
@@ -1538,11 +1697,17 @@ modules["pages/editor"] = {
     }
 
     // Load Annotations:
-    this.loadedIn = [];
-    let alreadyLoaded = [];
-    let firstLoad = true;
-    let checkForJumpLink = getParam("annotation");
-    this.viewAnnotations = async (request) => {
+    //this.loadedIn = [];
+    //let alreadyLoaded = [];
+    //this.viewAnnotations = async () => {
+      /*await this.updateChunks();
+      for (let i = 0; i < this.visibleChunks.length; i++) {
+        let chunkAnnos = Object.keys(this.chunkAnnotations[this.visibleChunks[i]] || {});
+        for (let a = 0; a < chunkAnnos.length; a++) {
+          await utils.render((this.annotations[chunkAnnos[a]] || {}).render);
+        }
+      }*/
+      /*
       let unloadedPages = [];
       if (this.lesson.type != "freeboard" && this.exporting != true) {
         for (let i = 0; i < this.loadedIn.length; i++) {
@@ -1572,24 +1737,10 @@ modules["pages/editor"] = {
           }
         }
       }
-      if (request == true && firstLoad == true) {
-        firstLoad = false;
-        let jumpAnnotation = null;
-        if (checkForJumpLink != null && checkForJumpLink != "") {
-          if (this.annotations[checkForJumpLink] != null) {
-            [_, jumpAnnotation] = await utils.render((this.annotations[checkForJumpLink] || {}).render, null, null, true);
-          }
-        }
-        if (jumpAnnotation == null) {
-          centerWindowWithPage();
-        } else {
-          let jumpRect = jumpAnnotation.getBoundingClientRect();
-          window.scrollTo(window.scrollX + jumpRect.left - ((fixed.offsetWidth - jumpAnnotation.offsetWidth) / 2), window.scrollY + jumpRect.top - ((fixed.offsetHeight - jumpAnnotation.offsetHeight) / 2));
-        }
-      }
-    }
+      */
+    //}
     centerWindowWithPage();
-    let getAnnotations = async () => {
+    /*let getAnnotations = async () => {
       this.viewAnnotations();
       if (connected == false) {
         return;
@@ -1620,16 +1771,17 @@ modules["pages/editor"] = {
       }
 
       // Send Load Request:
-      let [code, annoBody] = await sendRequest("GET", endpoint, null, { session: this.session }, { allowError: true });
-      if (code != 200 && connected == true) {
-        (await getModule("alert")).open("error", `<b>Error Loading Annotations</b>Failed to load some annotations, will try again later...`);
-        // Remove IDs if load fails, so it can try again!
-        for (let i = 0; i < alreadyLoaded.length; i++) {
-          if (fetchPageIDs.includes(alreadyLoaded[i]) == true) {
-            alreadyLoaded.splice(i, 1);
-            i--;
-          }
-        }
+      
+
+      await this.viewAnnotations(true);
+    }*/
+
+    // Fetch Annotations
+    let checkForJumpLink = getParam("annotation");
+    let asyncLoadAnnotations = async () => {
+      let [annoCode, annoBody] = await sendRequest("GET", "lessons/join/annotations", null, { session: this.session }, { allowError: true });
+      if (annoCode != 200 && connected == true) {
+        (await getModule("alert")).open("error", `<b>Error Loading Annotations</b>Please try again later...`);
         return;
       }
       for (let i = 0; i < annoBody.annotations.length; i++) {
@@ -1637,12 +1789,13 @@ modules["pages/editor"] = {
         let existingAnno = this.annotations[addAnno._id];
         if (existingAnno == null || existingAnno.render.sync < addAnno.sync) {
           this.annotations[addAnno._id] = { render: addAnno };
-          if (this.lesson.type != "freeboard") {
+          await this.annotationChunks(this.annotations[addAnno._id]);
+          /*if (this.lesson.type != "freeboard") {
             let editorPageAnnotations = this.page.querySelector('.ePage[pageid="' + addAnno.page + '"] .ePageAnnotations');
             if (editorPageAnnotations != null) {
               editorPageAnnotations.removeAttribute("loaded");
             }
-          }
+          }*/
         }
       }
       if (annoBody.reactions != null) {
@@ -1662,24 +1815,35 @@ modules["pages/editor"] = {
           existingAnnoRecord.push(addReaction);
         }
       }
-
-      await this.viewAnnotations(true);
-      /*
-      let fullPageWidth = app.offsetWidth;
-      let minX = window.scrollX - fullPageWidth;
-      let maxX = window.scrollX + (fullPageWidth * 2);
-      let fullPageHeight = app.offsetHeight;
-      let minY = window.scrollY - fullPageHeight;
-      let maxY = window.scrollY + (fullPageHeight * 2);
-      */
+      //await this.viewAnnotations();
+      await this.updateChunks();
+      for (let i = 0; i < this.visibleChunks.length; i++) {
+        let chunkAnnos = Object.keys(this.chunkAnnotations[this.visibleChunks[i]] || {});
+        for (let a = 0; a < chunkAnnos.length; a++) {
+          await utils.render((this.annotations[chunkAnnos[a]] || {}).render);
+        }
+      }
+      let jumpAnnotation = null;
+      if (checkForJumpLink != null && checkForJumpLink != "") {
+        if (this.annotations[checkForJumpLink] != null) {
+          [_, jumpAnnotation] = await utils.render((this.annotations[checkForJumpLink] || {}).render, null, null, true);
+        }
+      }
+      if (jumpAnnotation == null) {
+        centerWindowWithPage();
+      } else {
+        let jumpRect = jumpAnnotation.getBoundingClientRect();
+        window.scrollTo(window.scrollX + jumpRect.left - ((fixed.offsetWidth - jumpAnnotation.offsetWidth) / 2), window.scrollY + jumpRect.top - ((fixed.offsetHeight - jumpAnnotation.offsetHeight) / 2));
+      }
     }
+    asyncLoadAnnotations();
 
     if (this.exporting != true) {
       (async () => {
         (await getModule("editor/realtime")).js(this, page);
       })();
     } else {
-      await getAnnotations();
+      //await getAnnotations();
       await (await getModule("editor/export")).js(this, page);
     }
 
@@ -1976,7 +2140,7 @@ modules["pages/editor"] = {
               page.removeAttribute("loaded");
             }
           }
-          await getAnnotations();
+          //await this.viewAnnotations();
         }
         let scrollSubTimeout;
         this.updatePages = async () => {
@@ -2022,7 +2186,7 @@ modules["pages/editor"] = {
           if (this.realtime.module) {
             clearTimeout(scrollSubTimeout);
             scrollSubTimeout = setTimeout(() => {
-              this.realtime.module.setShortSub(this.visiblePages);
+              //this.realtime.module.setShortSub(this.visibleChunks);
               modifyParams("page", currentPage);
             }, 750);
             if (this.scrollEvent) {
@@ -2146,14 +2310,14 @@ modules["pages/editor"] = {
             this.addMargin = 0;
             return;
           }
-          this.addMargin = Math.max((fixed.offsetWidth - (pageHolder.offsetWidth * this.zoom)) / 2, 100);
+          this.addMargin = Math.max(fixed.offsetWidth, fixed.offsetHeight) / 2; //Math.max((fixed.offsetWidth - (pageHolder.offsetWidth * this.zoom)) / 2, 100);
         }
         let resetResizeTimeout;
         tempListen(window, "resize", () => {
           clearTimeout(resetResizeTimeout);
           resetResizeTimeout = setTimeout(() => {
             this.updatePageSize();
-            utils.resetAnnotationSize();
+            utils.setMarginSize();
           }, 500);
         });
         this.updatePageSize();
@@ -2165,24 +2329,23 @@ modules["pages/editor"] = {
       case "freeboard":
         //pageHolder.remove();
         addPagesHolder.remove();
+        addPagesHolder = null;
         pageHolder.style.width = "1px";
         pageHolder.style.height = "1px";
         this.updatePageSize = () => {
           //pageHolder.style.width = fixed.offsetWidth - 332 + "px";
           //pageHolder.style.height = fixed.offsetHeight - 332 + "px";
-          if (this.exporting == true) {
-            this.addMargin = 0;
-            return;
-          }
-          this.addMargin = Math.max(fixed.offsetWidth / 2, 100);
         }
         pageHolder.style.pointerEvents = "none";
         let resetTimeout;
         tempListen(window, "resize", () => {
           clearTimeout(resetTimeout);
           resetTimeout = setTimeout(() => {
-            this.updatePageSize();
-            utils.resetAnnotationSize();
+            //this.updatePageSize();
+            if (this.exporting != true) {
+              this.addMargin = Math.max(fixed.offsetWidth, fixed.offsetHeight) / 2; // Was 100 for some reason???
+            }
+            utils.setMarginSize();
           }, 500);
         });
         let updateScroll = () => {
@@ -2192,14 +2355,23 @@ modules["pages/editor"] = {
         }
         tempListen(window, "scroll", updateScroll);
         tempListen(window, "resize", updateScroll);
-        this.updatePageSize();
+        //this.updatePageSize();
+        this.visiblePages = [0];
         bottomHolder.remove();
-        await getAnnotations();
-        utils.resetAnnotationSize();
+        //await this.viewAnnotations();
+        //utils.resetAnnotationSize();
         if (window.exportReady) {
           window.exportReady();
         }
     }
+
+    let updateContentSize = () => {
+      if (this.lesson.type != "freeboard") {
+        content.style.width = pageHolder.clientWidth * this.zoom + "px";
+        content.style.height = ((pageHolder.clientHeight * this.zoom) + addPagesHolder.clientHeight) + "px";
+      }
+    }
+    updateContentSize();
 
     // Zoom
     this.setZoom = async (set, observe, mouse) => {
@@ -2232,22 +2404,26 @@ modules["pages/editor"] = {
 
       pageHolder.style.transform = `scale(${this.zoom})`;
 
-      content.style.width = pageHolder.clientWidth * this.zoom + "px";
-      content.style.height = pageHolder.clientHeight * this.zoom + "px";
+      updateContentSize();
 
       this.updatePageSize();
+      this.updateChunks();
 
-      await utils.checkAnnotationSize();
+      if (observe != true) {
+        await utils.setMarginSize();
 
-      // Calculate the new scroll position based on the mouse cursor position and zoom level
-      let mouseRelativeAfterX = (mouseX - pageHolderRect.left) / (pageHolder.clientWidth * this.zoom);
-      let mouseRelativeAfterY = (mouseY - pageHolderRect.top) / (pageHolder.clientHeight * this.zoom);
+        // Calculate the new scroll position based on the mouse cursor position and zoom level
+        let mouseRelativeAfterX = (mouseX - pageHolderRect.left) / (pageHolder.clientWidth * this.zoom);
+        let mouseRelativeAfterY = (mouseY - pageHolderRect.top) / (pageHolder.clientHeight * this.zoom);
 
-      let newScrollX = ((pageHolder.clientWidth * this.zoom) * mouseRelativeBeforeX) - ((pageHolder.clientWidth * this.zoom) * mouseRelativeAfterX);
-      let newScrollY = ((pageHolder.clientHeight * this.zoom) * mouseRelativeBeforeY) - ((pageHolder.clientHeight * this.zoom) * mouseRelativeAfterY);
+        let newScrollX = ((pageHolder.clientWidth * this.zoom) * mouseRelativeBeforeX) - ((pageHolder.clientWidth * this.zoom) * mouseRelativeAfterX);
+        let newScrollY = ((pageHolder.clientHeight * this.zoom) * mouseRelativeBeforeY) - ((pageHolder.clientHeight * this.zoom) * mouseRelativeAfterY);
 
-      // Set the new scroll position
-      window.scrollTo((window.scrollX) + newScrollX, (window.scrollY) + newScrollY);
+        // Set the new scroll position
+        window.scrollTo((window.scrollX) + newScrollX, (window.scrollY) + newScrollY);
+      } else {
+        utils.setMarginSize();
+      }
 
       /*
       // Calculate the new scroll position based on the mouse cursor position and zoom level
@@ -2572,7 +2748,7 @@ modules["dropdowns/editor/zoom"] = {
         }
         if (option == "cursors") {
           if (editor.realtime.module) {
-            editor.realtime.module.setShortSub(editor.visiblePages);
+            editor.realtime.module.setShortSub(editor.visibleChunks);
           }
           if (toggle.hasAttribute("off")) {
             editor.page.querySelector(".eRealtime").innerHTML = "";
@@ -2775,7 +2951,7 @@ modules["dropdowns/editor/file"] = {
       }
     }
     if (access < 1) {
-      frame.querySelector('.eFileAction[option="ocr"]').remove();
+      //frame.querySelector('.eFileAction[option="ocr"]').remove();
     }
     if (editor.lesson.type == "freeboard") {
       //find.remove();
@@ -3003,10 +3179,99 @@ modules["pages/editor/annotation"] = {
     parent.appendChild(newSVG);
     return newSVG;
   },
+  setMarginSize: async function () {
+    let editor = await getModule("pages/editor");
+    let contentFrame = editor.page.querySelector(".eContent");
+    let content = contentFrame.querySelector(".eContentHolder");
+    if (getParam("no_expand") == "true") {
+      return;
+    }
+    // chunkWidth, chunkHeight
+
+    this.farLeft = 0;
+    this.farRight = 0;
+    this.setLeftMargin = 0;
+    this.setRightMargin = 0;
+    this.farTop = 0;
+    this.farBottom = 0;
+    this.setTopMargin = 0;
+    this.setBottomMargin = 0;
+
+    let chunks = Object.keys(editor.chunkAnnotations);
+    for (let i = 0; i < chunks.length; i++) {
+      let splitPos = chunks[i].split("_");
+      let [x, y] = [parseInt(splitPos[0]), parseInt(splitPos[1])];
+      let left = -x;
+      let right = x + editor.chunkWidth;
+      let top = -y;
+      let bottom = y + editor.chunkHeight;
+      if (left > this.farLeft) {
+        this.setLeftMargin = Math.ceil(left / 400) * 400;
+        this.farLeft = this.setLeftMargin - 120;
+      }
+      if (right > this.farRight) {
+        this.setRightMargin = Math.ceil(right / 400) * 400;
+        this.farRight = this.setRightMargin - 120;
+      }
+      if (editor.lesson.type == "freeboard") {
+        if (top > this.farTop) {
+          this.setTopMargin = Math.ceil(top / 400) * 400;
+          this.farTop = this.setTopMargin - 120;
+        }
+        if (bottom > this.farBottom) {
+          this.setBottomMargin = Math.ceil(bottom / 400) * 400;
+          this.farBottom = this.setBottomMargin - 120;
+        }
+      }
+    }
+
+    if (mouseDown() == true) {
+      if (this.runCheckSizeReset != null) {
+        return;
+      }
+      this.runCheckSizeReset = () => {
+        this.setMarginSize();
+      };
+      app.addEventListener("mouseup", this.runCheckSizeReset, { passive: false });
+      app.addEventListener("touchend", this.runCheckSizeReset, { passive: false });
+      return;
+    }
+    if (this.runCheckSizeReset != null) {
+      app.removeEventListener("mouseup", this.runCheckSizeReset);
+      app.removeEventListener("touchend", this.runCheckSizeReset);
+      this.runCheckSizeReset = null;
+    }
+    
+    let scrollPosX = window.scrollX;
+    let scrollPosY = window.scrollY;
+    let contentLeft = this.marginLeft || 0;
+    let contentTop = this.marginTop || 0;
+    let addMarginLeftRight = fixed.offsetWidth / 2;
+    let addMarginTopBottom = fixed.offsetHeight / 2;
+    this.marginLeft = (this.setLeftMargin * editor.zoom) + addMarginLeftRight;
+    this.marginTop = (this.setTopMargin * editor.zoom) + addMarginTopBottom;
+    content.style.marginLeft = (Math.ceil(this.marginLeft / 40) * 40) + "px";
+    content.style.marginRight = (Math.ceil(((this.setRightMargin * editor.zoom) + addMarginLeftRight) / 40) * 40) + "px";
+    if (editor.lesson.type == "freeboard") {
+      content.style.marginTop = (Math.ceil(this.marginTop / 40) * 40) + "px";
+      content.style.marginBottom = (Math.ceil(((this.setBottomMargin * editor.zoom) + addMarginTopBottom) / 40) * 40) + "px";
+    }
+    if (contentFrame.offsetWidth != this.lastOffsetWidth || contentFrame.offsetHeight != this.lastOffsetHeight) {
+      window.scrollTo(scrollPosX + (this.marginLeft - contentLeft), scrollPosY + (this.marginTop - contentTop));
+      if (editor.realtime.module && editor.realtime.module.adjustRealtimeHolder) {
+        editor.realtime.module.adjustRealtimeHolder();
+      }
+      if (editor.updateZoom != null) {
+        editor.updateZoom(true);
+      }
+    }
+    this.lastOffsetWidth = contentFrame.offsetWidth;
+    this.lastOffsetHeight = contentFrame.offsetHeight;
+  },
   //SOFT_PIXEL_RESIZE: 250,
   //marginLeft: 250,
   //marginRight: 250,
-  resetAnnotationSize: async function () {
+  /*resetAnnotationSize: async function () {
     if (mouseDown() == true) {
       if (this.runResetEventReset != null) {
         return;
@@ -3048,19 +3313,6 @@ modules["pages/editor/annotation"] = {
     let contentFrame = editor.page.querySelector(".eContent");
     let content = contentFrame.querySelector(".eContentHolder");
     if (anno != null && anno.p != null) {
-      /*
-      if ((anno.getAttribute("anno") || "").startsWith("pending_") == true && anno.hasAttribute("done") == false) {
-        return;
-      }
-      if (anno.hasAttribute("hidden") == true) {
-        return;
-      }
-      let rect = anno.getBoundingClientRect();
-      let parentRect = anno.parentElement.getBoundingClientRect();
-      let left = -(rect.left - parentRect.left);
-      let right = ((rect.left + anno.offsetWidth) - (parentRect.left + anno.parentElement.offsetWidth));
-      */
-
       if (editor.exporting == true) {
         let page = editor.page.querySelector('.ePage[pageid="' + (anno.page || "") + '"]');
         if (page != null && page.hasAttribute("exporting") == false) {
@@ -3150,8 +3402,10 @@ modules["pages/editor/annotation"] = {
     }
     this.lastOffsetWidth = contentFrame.offsetWidth;
     this.lastOffsetHeight = contentFrame.offsetHeight;
-  },
+  },*/
   SVG_PADDING: 100, // How much padding svgs should have to ensure clean render
+  maxLayer: 0,
+  minLayer: 0,
   render: async function (data, anno, long, force) {
     /*
       _id - ID - The unique ID of the annotation
@@ -3174,9 +3428,9 @@ modules["pages/editor/annotation"] = {
     let [x, y] = p || [];
     let size = s || [];
     let [width, height] = [size[0], size[1]];
-    if (page != null && editor.loadedIn.includes(page) == false && long != true && force != true) {
+    /*if (page != null && editor.loadedIn.includes(page) == false && long != true && force != true) {
       return;
-    }
+    }*/
     let annoHolder = await this.annoHolder(page);
     if (anno == null) {
       anno = editor.page.querySelector('.eAnnotation[anno="' + _id + '"]');
@@ -3195,6 +3449,7 @@ modules["pages/editor/annotation"] = {
         annoHolder.appendChild(activeSelect);
       }
     }
+    editor.annotationChunks(editor.annotations[_id]);
     /*if (annoHolder.parentElement.parentElement.firstElementChild != annoHolder.parentElement) {
       y -= 4;
     }*/
@@ -3210,6 +3465,7 @@ modules["pages/editor/annotation"] = {
     let path;
     let drawSetPoints = "";
     let transform;
+    let svgtransform;
     let halfT = (t || 0) / 2;
     let text;
     let richText = d || {};
@@ -3235,8 +3491,7 @@ modules["pages/editor/annotation"] = {
         y += halfT;
         anno.style.width = width + "px";
         anno.style.height = height + "px";
-        anno.style.left = x + "px";
-        anno.style.top = y + "px";
+        transform = "translate(" + x + "px," + y + "px)";
         svg = anno.querySelector("svg");
         path = svg.querySelector("polyline");
         svg.setAttribute("viewBox", "0 0 " + (width + (this.SVG_PADDING * 2)) + " " + (height + (this.SVG_PADDING * 2)));
@@ -3294,8 +3549,7 @@ modules["pages/editor/annotation"] = {
         }
         anno.style.width = width + "px";
         anno.style.height = height + "px";
-        anno.style.left = x + "px";
-        anno.style.top = y + "px";
+        transform = "translate(" + x + "px," + y + "px)";
         text = anno.querySelector("div[edit]");
         if (_id != null) {
           text.removeAttribute("placeborder");
@@ -3377,8 +3631,7 @@ modules["pages/editor/annotation"] = {
         y += halfT;
         anno.style.width = width + "px";
         anno.style.height = height + "px";
-        anno.style.left = x + "px";
-        anno.style.top = y + "px";
+        transform = "translate(" + x + "px," + y + "px)";
         svg = anno.querySelector("svg");
         path = svg.querySelector("polyline");
         svg.setAttribute("viewBox", "0 0 " + (width + (this.SVG_PADDING * 2)) + " " + (height + (this.SVG_PADDING * 2)));
@@ -3450,8 +3703,7 @@ modules["pages/editor/annotation"] = {
         y += halfT;
         anno.style.width = width + "px";
         anno.style.height = height + "px";
-        anno.style.left = x + "px";
-        anno.style.top = y + "px";
+        transform = "translate(" + x + "px," + y + "px)";
         svg = anno.querySelector("svg");
         if (remove != true) {
           svg.removeAttribute("hidden");
@@ -3576,14 +3828,14 @@ modules["pages/editor/annotation"] = {
         elem.setAttribute("opacity", o / 100);
 
         if (width < 0 && height < 0) {
-          transform = "scale(-1,-1)";
+          svgtransform = "scale(-1,-1)";
         } else if (width < 0) {
-          transform = "scale(-1,1)";
+          svgtransform = "scale(-1,1)";
         } else if (height < 0) {
-          transform = "scale(1,-1)";
+          svgtransform = "scale(1,-1)";
         }
         if (elem != null) {
-          elem.style.transform = transform;
+          elem.style.transform = svgtransform;
         }
         break;
       case "sticky":
@@ -3609,8 +3861,7 @@ modules["pages/editor/annotation"] = {
         }
         anno.style.width = width + "px";
         anno.style.height = height + "px";
-        anno.style.left = x + "px";
-        anno.style.top = y + "px";
+        transform = "translate(" + x + "px," + y + "px)";
         anno.style.setProperty("--themeColor", "#" + c);
         text = anno.querySelector("div[edit]");
         if (_id != null) {
@@ -3764,8 +4015,9 @@ modules["pages/editor/annotation"] = {
         }
         anno.style.width = width + "px";
         anno.style.height = height + "px";
-        anno.style.left = x + "px";
-        anno.style.top = y + "px";
+        //anno.style.left = x + "px";
+        //anno.style.top = y + "px";
+        transform = "translate(" + x + "px," + y + "px)";
         
         anno.style.opacity = o / 100;
 
@@ -3796,12 +4048,19 @@ modules["pages/editor/annotation"] = {
     }
     if (anno != null) {
       //console.log((sync || getEpoch()) - editor.lesson.created)
-      anno.style.zIndex = l || Math.round(((sync || getEpoch()) / 2000000000000) * 2147483647);
+      let zIndex = l || Math.round(((sync || getEpoch()) / 2000000000000) * 2147483647);
+      anno.style.zIndex = zIndex;
+      if (zIndex < this.minLayer) {
+        this.minLayer = zIndex;
+      }
+      if (zIndex > this.maxLayer) {
+        this.maxLayer = zIndex;
+      }
       let rotate = r || 0;
       if (rotate > 180) {
         rotate = -(360 - rotate);
       }
-      let transform = "rotate(" + rotate + "deg)";
+      transform += " rotate(" + rotate + "deg)";
       if (size[0] < 0 && size[1] < 0) {
         transform += " scale(-1)";
       } else if (size[0] < 0) {
@@ -3829,13 +4088,13 @@ modules["pages/editor/annotation"] = {
         }
       }
     }
-    if (_id != null) {
+    /*if (_id != null) {
       if (long == true) {
         await this.resetAnnotationSize();
       } else {
         await this.checkAnnotationSize(data);
       }
-    }
+    }*/
     return [data, anno];
   },
   removeAnnotation: async function (annoID, checkDone) {
@@ -3891,7 +4150,7 @@ modules["pages/editor/annotation"] = {
 
         if (annotation.pending != null) {
           delete editor.annotations[annotation.pending];
-          delete annotation.pending;
+          delete annotation.render.pending;
         }
         /*
         if (editor.selecting[annotation.render._id] != null) {
@@ -3903,7 +4162,7 @@ modules["pages/editor/annotation"] = {
           if (annotation.revert != null) {
             annotation.render = annotation.revert;
             delete annotation.revert;
-            this.render(annotation.render);
+            await this.render(annotation.render);
           }
         } else {
           this.removeAnnotation(annotation.render._id);
@@ -4094,6 +4353,7 @@ modules["pages/editor/annotation"] = {
     if (mutations == null) {
       return; // Nothing new to send!
     }
+    annotation = editor.annotations[annoID] || { render: {} };
 
     annotation.save = true; // Alert the system it's time to save
     annotation.render.sync = getEpoch();

@@ -42,12 +42,10 @@ modules["editor/export"] = {
               pageHolder.style.height = "250px";
             }
             await editor.updatePages();
-            await utils.resetAnnotationSize();
-            await editor.viewAnnotations();
+            await utils.setMarginSize();
             break;
           case "freeboard":
-            await utils.resetAnnotationSize();
-            await editor.viewAnnotations();
+            await utils.setMarginSize();
         }
         if (window.navigationReady) {
           window.navigationReady();

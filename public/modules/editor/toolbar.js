@@ -49,7 +49,7 @@ modules["editor/toolbar"] = {
 
     ".eTool[soon]": `opacity: 0.5`, // TEMP CODE
 
-    ".eDivider": `width: 100%; height: 4px; background: var(--theme)`,
+    ".eDivider": `width: 100%; height: 4px; background: var(--hover)`,
     ".eVerticalDivider": `flex-shrink: 0; width: 4px; height: 100%; background: var(--hover)`,
 
     ".eSubToolHolder": `position: absolute; max-height: 100%; left: 100%; top: 0px; background: var(--pageColor); border-radius: 0 16px 16px 0; border-left: solid 4px var(--theme); transform: scale(0); transform-origin: top left; transition: opacity .3s, transform: .3s`,
@@ -63,7 +63,7 @@ modules["editor/toolbar"] = {
 
     ".eToolHoverTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; transform: scale(0); opacity: 0`,
 
-    ".eSelect": `position: absolute; opacity: 0; z-index: 101; border-radius: 9px; transition: opacity .15s, transform 0s; pointer-events: none`,
+    ".eSelect": `position: absolute; left: 0px; top: 0px; opacity: 0; z-index: 101; border-radius: 9px; transition: opacity .15s, transform 0s; pointer-events: none`,
     ".eSelectActive": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: all !important; cursor: move; z-index: var(--selectZIndex)`,
     ".eContent[noshiftheld] .eSelectActive": `z-index: var(--annoZIndex) !important`,
     ".eAnnotation[selected] > *": `pointer-events: none`,
@@ -1240,7 +1240,7 @@ modules["pages/editor/toolbar/cursor"] = {
         if (anno.hasAttribute("sticky") == false) {
           anno.style.overflow = "hidden";
         }
-        anno.style.borderRadius = "2px";
+        anno.style.borderRadius = (4 / editor.zoom) + "px";
         if (select == null) {
           content.insertAdjacentHTML("beforeend", `<div class="eSelect" new></div>`);
           select = content.querySelector(".eSelect[new]");
@@ -1329,9 +1329,9 @@ modules["pages/editor/toolbar/cursor"] = {
         select.style.width = boxWidth + "px";
         select.style.height = boxHeight + "px";
         let halfT = t / 2;
-        select.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 2 + "px"; // -2 for border, -0 for width
-        select.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 2 + "px";
-        select.style.transform = "rotate(" + rotate + "deg)";
+        //select.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 2 + "px"; // -2 for border, -0 for width
+        //select.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 2 + "px";
+        select.style.transform = "translate(" + (pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 2) + "px," + (pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 2) + "px) rotate(" + rotate + "deg)";
         let eSelectTopLeft = select.querySelector('.eSelectTooltip[tooltip="topleft"]');
         if (eSelectTopLeft != null) {
           eSelectTopLeft.removeAttribute("hidden");
@@ -1378,9 +1378,9 @@ modules["pages/editor/toolbar/cursor"] = {
         let posInverse = 11 * inverse;
         activeLayer.style.width = (width + t) + sizeInverse + "px";
         activeLayer.style.height = (height + t) + sizeInverse + "px";
-        activeLayer.style.left = x + halfT - posInverse + "px";
-        activeLayer.style.top = y + halfT - border - posInverse + "px";
-        activeLayer.style.transform = "rotate(" + rotate + "deg)";
+        //activeLayer.style.left = x + halfT - posInverse + "px";
+        //activeLayer.style.top = y + halfT - border - posInverse + "px";
+        activeLayer.style.transform = "translate(" + (x + halfT - posInverse) + "px," + (y + halfT - border - posInverse) + "px) rotate(" + rotate + "deg)";
 
         let radian = (merged.r || 0) * (Math.PI / 180);
         let changedWidth = ((Math.abs(width * Math.cos(radian)) + Math.abs(height * Math.sin(radian))) - width) / 2;
@@ -1407,9 +1407,9 @@ modules["pages/editor/toolbar/cursor"] = {
           let collHeight = ((height + t) * editor.zoom) - 3;
           collabSelect.style.width = collWidth + "px";
           collabSelect.style.height = collHeight + "px";
-          collabSelect.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
-          collabSelect.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
-          collabSelect.style.transform = "rotate(" + rotate + "deg)";
+          //collabSelect.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
+          //collabSelect.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
+          collabSelect.style.transform = "translate(" + (pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5) + "px," + (pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5) + "px) rotate(" + rotate + "deg)";
         }
       }
     }
@@ -1477,9 +1477,9 @@ modules["pages/editor/toolbar/cursor"] = {
         selection.style.width = boxWidth + "px";
         selection.style.height = boxHeight + "px";
         let halfT = t / 2;
-        selection.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
-        selection.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
-        selection.style.transform = "rotate(" + rotate + "deg)";
+        //selection.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
+        //selection.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
+        selection.style.transform = "translate(" + (pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5) + "px," + (pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5) + "px) rotate(" + rotate + "deg)";
         selection.offsetHeight;
         selection.removeAttribute("notransition");
       }
@@ -1501,6 +1501,9 @@ modules["pages/editor/toolbar/cursor"] = {
     let toolbarModule = await getModule("editor/toolbar");
     //let utils = await getModule("pages/editor/annotation");
     let content = editor.page.querySelector(".eContent");
+    if (content == null) {
+      return;
+    }
     let selectionIDs = Object.keys(editor.selecting);
 
     let actionUI = content.querySelector(".eSelectBar:not([remove])");
@@ -2647,7 +2650,7 @@ modules["pages/editor/toolbar/cursor"] = {
       editor.selecting[keys[i]] = {};
     }
 
-    utils.resetAnnotationSize();
+    //utils.resetAnnotationSize();
     this.updateBox();
   },
   reactionRun: async function (reaction) {
@@ -2913,7 +2916,7 @@ modules["pages/editor/toolbar/drag"] = {
         let annoID = selected[i].getAttribute("anno");
         let self = editor.getSelf();
         let render = ((editor.annotations[annoID] || {}).render || {});
-        if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) && self.access < 4) { // Can't edit another member's work:
+        if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
           continue;
         }
         editor.selecting[annoID] = {};
@@ -3890,7 +3893,8 @@ modules["pages/editor/toolbar/eraser"] = {
             let annotation = editor.annotations[annoID];
             if (annotation != null) {
               let render = annotation.render || {};
-              if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) && self.access < 4) { // Can't edit another member's work:
+              console.log(render)
+              if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
                 continue;
               }
 

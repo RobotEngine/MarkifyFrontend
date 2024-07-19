@@ -1606,8 +1606,8 @@ modules["pages/editor"] = {
     let updateSubTimeout;
     let loadedChunks = {};
     let alreadyRunningUpdateCycle = false;
-    let runUpdateCycle = async (force) => {
-      if (alreadyRunningUpdateCycle == true && force != true) {
+    let runUpdateCycle = async () => {
+      if (alreadyRunningUpdateCycle == true) {
         return;
       }
       alreadyRunningUpdateCycle = true;
@@ -1654,14 +1654,8 @@ modules["pages/editor"] = {
 
           // Load annotations in these chunks:
           let chunkAnnos = Object.keys(this.chunkAnnotations[chunk] || {});
-          if (this.exporting != true) {
-            for (let a = 0; a < chunkAnnos.length; a++) {
-              utils.render((this.annotations[chunkAnnos[a]] || {}).render);
-            }
-          } else {
-            for (let a = 0; a < chunkAnnos.length; a++) {
-              await utils.render((this.annotations[chunkAnnos[a]] || {}).render);
-            }
+          for (let a = 0; a < chunkAnnos.length; a++) {
+            utils.render((this.annotations[chunkAnnos[a]] || {}).render);
           }
         }
       }
@@ -1679,11 +1673,7 @@ modules["pages/editor"] = {
       } else {
         this.visibleChunks = Object.keys(this.chunkAnnotations);
       }
-      if (this.exporting != true) {
-        runUpdateCycle();
-      } else {
-        await runUpdateCycle(true);
-      }
+      runUpdateCycle();
       clearTimeout(updateSubTimeout);
       updateSubTimeout = setTimeout(() => {
         if (this.realtime.module != null) {
@@ -1794,6 +1784,14 @@ modules["pages/editor"] = {
         (await getModule("alert")).open("error", `<b>Error Loading Annotations</b>Please try again later...`);
         return;
       }
+      if (this.exporting == true) {
+        for (let i = 0; i < annoBody.annotations.length; i++) {
+          let addAnno = annoBody.annotations[i];
+          this.annotations[addAnno._id] = { render: addAnno };
+          await utils.render(addAnno);
+        }
+        return;
+      }
       for (let i = 0; i < annoBody.annotations.length; i++) {
         let addAnno = annoBody.annotations[i];
         let existingAnno = this.annotations[addAnno._id];
@@ -1846,14 +1844,13 @@ modules["pages/editor"] = {
         window.scrollTo(window.scrollX + jumpRect.left - ((fixed.offsetWidth - jumpAnnotation.offsetWidth) / 2), window.scrollY + jumpRect.top - ((fixed.offsetHeight - jumpAnnotation.offsetHeight) / 2));
       }
     }
-    asyncLoadAnnotations();
 
     if (this.exporting != true) {
+      asyncLoadAnnotations();
       (async () => {
         (await getModule("editor/realtime")).js(this, page);
       })();
     } else {
-      //await getAnnotations();
       await (await getModule("editor/export")).js(this, page);
     }
 
@@ -2282,6 +2279,7 @@ modules["pages/editor"] = {
               }
               loadedSourceCount++;
               if (window.exportReady && (loadedSourceCount >= sources.length || getParam("only_thumbnail") == "true")) {
+                await asyncLoadAnnotations();
                 window.exportReady();
               }
             });
@@ -2297,6 +2295,7 @@ modules["pages/editor"] = {
 
         if (this.exporting == true) {
           if (window.exportReady && (body.sources.length < 1 || (getParam("only_thumbnail") == "true" && pageHolder.firstElementChild != null && pageHolder.firstElementChild.hasAttribute("sourceid") == false))) {
+            await asyncLoadAnnotations();
             window.exportReady();
           }
         }
@@ -2371,6 +2370,7 @@ modules["pages/editor"] = {
         //await this.viewAnnotations();
         //utils.resetAnnotationSize();
         if (window.exportReady) {
+          await asyncLoadAnnotations();
           window.exportReady();
         }
     }

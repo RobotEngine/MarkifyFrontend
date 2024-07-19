@@ -97,6 +97,7 @@ modules["editor/export"] = {
     let pageHolder = page.querySelector(".ePageHolder");
     
     //window.messageA({ data: { type: "FROM_NODE", message: { task: "setpage", page: 1 } } })
+    //window.exportReady = () => { console.log("HEY") }
 
     //window.messageA = async (event) => {
     window.addEventListener("message", async (event) => {

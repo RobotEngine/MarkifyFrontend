@@ -119,6 +119,7 @@ modules["editor/export"] = {
             }
             await editor.updatePages();
             await this.resetAnnotationSize();
+            await this.resetAnnotationSize();
             break;
           case "freeboard":
             await this.resetAnnotationSize();

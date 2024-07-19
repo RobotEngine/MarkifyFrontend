@@ -1606,8 +1606,8 @@ modules["pages/editor"] = {
     let updateSubTimeout;
     let loadedChunks = {};
     let alreadyRunningUpdateCycle = false;
-    let runUpdateCycle = async () => {
-      if (alreadyRunningUpdateCycle == true) {
+    let runUpdateCycle = async (force) => {
+      if (alreadyRunningUpdateCycle == true && force != true) {
         return;
       }
       alreadyRunningUpdateCycle = true;
@@ -1673,7 +1673,11 @@ modules["pages/editor"] = {
       } else {
         this.visibleChunks = Object.keys(this.chunkAnnotations);
       }
-      runUpdateCycle();
+      if (this.exporting != true) {
+        runUpdateCycle();
+      } else {
+        await runUpdateCycle(true);
+      }
       clearTimeout(updateSubTimeout);
       updateSubTimeout = setTimeout(() => {
         if (this.realtime.module != null) {

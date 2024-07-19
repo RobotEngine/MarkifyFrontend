@@ -637,7 +637,7 @@ modules["pages/editor"] = {
     this.collaborators = {};
 
     let removeRealtimeElem = (userid) => {
-      if (this.realtime != null && this.realtime.module.removeRealtime != null) {
+      if (this.realtime.module != null && this.realtime.module.removeRealtime != null) {
         this.realtime.module.removeRealtime(userid);
       }
     }
@@ -3181,11 +3181,11 @@ modules["pages/editor/annotation"] = {
   },
   setMarginSize: async function () {
     let editor = await getModule("pages/editor");
-    let contentFrame = editor.page.querySelector(".eContent");
-    let content = contentFrame.querySelector(".eContentHolder");
-    if (getParam("no_expand") == "true") {
+    if (editor.exporting == true) {
       return;
     }
+    let contentFrame = editor.page.querySelector(".eContent");
+    let content = contentFrame.querySelector(".eContentHolder");
     // chunkWidth, chunkHeight
 
     this.farLeft = 0;

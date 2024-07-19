@@ -1654,8 +1654,14 @@ modules["pages/editor"] = {
 
           // Load annotations in these chunks:
           let chunkAnnos = Object.keys(this.chunkAnnotations[chunk] || {});
-          for (let a = 0; a < chunkAnnos.length; a++) {
-            utils.render((this.annotations[chunkAnnos[a]] || {}).render);
+          if (this.exporting != true) {
+            for (let a = 0; a < chunkAnnos.length; a++) {
+              utils.render((this.annotations[chunkAnnos[a]] || {}).render);
+            }
+          } else {
+            for (let a = 0; a < chunkAnnos.length; a++) {
+              await utils.render((this.annotations[chunkAnnos[a]] || {}).render);
+            }
           }
         }
       }

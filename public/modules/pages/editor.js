@@ -1831,6 +1831,7 @@ modules["pages/editor"] = {
           await utils.render((this.annotations[chunkAnnos[a]] || {}).render);
         }
       }
+      utils.setMarginSize();
       let jumpAnnotation = null;
       if (checkForJumpLink != null && checkForJumpLink != "") {
         if (this.annotations[checkForJumpLink] != null) {

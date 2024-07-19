@@ -18,7 +18,6 @@ modules["editor/export"] = {
     editor.addMargin = 0;
 
     let utils = await getModule("pages/editor/annotation");
-    utils.resetAnnotationSize();
 
     let pageHolder = page.querySelector(".ePageHolder");
     
@@ -43,9 +42,11 @@ modules["editor/export"] = {
             }
             await editor.updatePages();
             await utils.setMarginSize();
+            await utils.updateChunks();
             break;
           case "freeboard":
             await utils.setMarginSize();
+            await utils.updateChunks();
         }
         if (window.navigationReady) {
           window.navigationReady();

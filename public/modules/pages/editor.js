@@ -2426,9 +2426,12 @@ modules["pages/editor"] = {
       if (observe != true) {
         await utils.setMarginSize();
 
+        // Get Page Rect:
+        let newPageHolderRect = pageHolder.getBoundingClientRect();
+
         // Calculate the new scroll position based on the mouse cursor position and zoom level
-        let mouseRelativeAfterX = (mouseX - pageHolderRect.left) / (pageHolder.clientWidth * this.zoom);
-        let mouseRelativeAfterY = (mouseY - pageHolderRect.top) / (pageHolder.clientHeight * this.zoom);
+        let mouseRelativeAfterX = (mouseX - newPageHolderRect.left) / (pageHolder.clientWidth * this.zoom);
+        let mouseRelativeAfterY = (mouseY - newPageHolderRect.top) / (pageHolder.clientHeight * this.zoom);
 
         let newScrollX = ((pageHolder.clientWidth * this.zoom) * mouseRelativeBeforeX) - ((pageHolder.clientWidth * this.zoom) * mouseRelativeAfterX);
         let newScrollY = ((pageHolder.clientHeight * this.zoom) * mouseRelativeBeforeY) - ((pageHolder.clientHeight * this.zoom) * mouseRelativeAfterY);

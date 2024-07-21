@@ -1692,7 +1692,7 @@ modules["pages/editor"] = {
         window.scrollTo(window.scrollX + pageRect.left - ((fixed.offsetWidth - pageChild.offsetWidth) / 2), window.scrollY + pageRect.top - 66);
       } else {
         let pageRect = pageHolder.getBoundingClientRect();
-        window.scrollTo(window.scrollX + pageRect.left - ((fixed.offsetWidth - pageHolder.offsetWidth) / 2), window.scrollY + pageRect.top - 66);
+        window.scrollTo(window.scrollX + pageRect.left - ((fixed.offsetWidth - pageHolder.offsetWidth) / 2), window.scrollY + pageRect.top - ((fixed.offsetHeight - pageHolder.offsetHeight) / 2)); //window.scrollY + pageRect.top - 66
       }
     }
 
@@ -1739,7 +1739,6 @@ modules["pages/editor"] = {
       }
       */
     //}
-    centerWindowWithPage();
     /*let getAnnotations = async () => {
       this.viewAnnotations();
       if (connected == false) {
@@ -2335,6 +2334,8 @@ modules["pages/editor"] = {
         if (this.exporting != true) {
           addPagesHolder.style.display = "flex";
         }
+        await utils.setMarginSize();
+        centerWindowWithPage();
         break;
       case "freeboard":
         //pageHolder.remove();
@@ -2374,6 +2375,8 @@ modules["pages/editor"] = {
           await asyncLoadAnnotations();
           window.exportReady();
         }
+        await utils.setMarginSize();
+        centerWindowWithPage();
     }
 
     let updateContentSize = () => {

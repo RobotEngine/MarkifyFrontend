@@ -1561,6 +1561,9 @@ modules["pages/editor"] = {
         return;
       }
       let render = annotation.render;
+      if (render == null) {
+        return;
+      }
       let t = render.t || 0;
       if (render.b == "none" && render.d != "line") {
         t = 0;

@@ -238,7 +238,7 @@ modules["dropdowns/dashboard/moveto"] = {
         return;
       }
       let folder = target.closest(".dTileDropFolder");
-      if (folder == null) {
+      if (folder == null || folder.parentElement.hasAttribute("folderid") == false) {
         return;
       }
       let folderParent = folder.parentElement;

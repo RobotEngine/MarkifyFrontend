@@ -1117,7 +1117,6 @@ modules["editor/toolbar"] = {
     });
     tempListen(window, "paste", async (event) => {
       let data = event.clipboardData || event.originalEvent.clipboardData || {};
-      let html = data.getData("text/html");
       if (document.activeElement != null) {
         if (document.activeElement.closest("[contenteditable]") != null || document.activeElement.closest("input") != null) {
           return;
@@ -1128,6 +1127,7 @@ modules["editor/toolbar"] = {
           event.preventDefault();
           return;
         } else {
+          let html = data.getData("text/html");
           let startIndex = html.indexOf("(markify+copypaste)"); // 19 chars
           let endIndex = html.indexOf("(/markify+copypaste)");
           if (startIndex > -1 && endIndex > -1) {

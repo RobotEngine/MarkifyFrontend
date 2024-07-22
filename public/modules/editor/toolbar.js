@@ -1077,7 +1077,6 @@ modules["editor/toolbar"] = {
     });
 
     // COPY / PASTE
-    // Copy come soon
     let fileUpload = async (items, event) => {
       if (editor.getSelf().access < 1) {
         return;
@@ -1114,16 +1113,218 @@ modules["editor/toolbar"] = {
       event.stopPropagation();
       event.dataTransfer.dropEffect = "copy";
     });
-    tempListen(window, "paste", (event) => {
+    tempListen(window, "paste", async (event) => {
       let data = event.clipboardData || event.originalEvent.clipboardData || {};
+      let html = data.getData("text/html");
+      if (document.activeElement != null) {
+        if (document.activeElement.closest("[contenteditable]") != null || document.activeElement.closest("input") != null) {
+          return;
+        }
+      }
       if (data.items.length > 0) {
         if (fileUpload(data.items) == true) {
           event.preventDefault();
           return;
+        } else {
+          let startIndex = html.indexOf("(markify+copypaste)"); // 19 chars
+          let endIndex = html.indexOf("(/markify+copypaste)");
+          if (startIndex > -1 && endIndex > -1) {
+            let markifyData = JSON.parse(decodeURIComponent(html.substring(startIndex + 19, endIndex)));
+            if (markifyData.length < 1) {
+              return;
+            }
+            let newSelect = {};
+            let newNewSelect = {};
+            let setTempSync = getEpoch();
+            let visiblePage = editor.visiblePages[Math.floor(editor.visiblePages.length / 2)];
+            let firstPage = editor.page.querySelector('.ePage[order="' + visiblePage + '"');
+            if (firstPage != null && firstPage.hasAttribute("hide") == true) {
+              return;
+            }
+            let minLeft;
+            let minTop;
+            let maxLeft;
+            let maxTop;
+            for (let i = 0; i < markifyData.length; i++) {
+              let newAnno = markifyData[i];
+              newAnno.p = newAnno.p || [0, 0];
+              let t = newAnno.t || 0;
+              if (newAnno.b == "none" && newAnno.d != "line") {
+                t = 0;
+              }
+              if (newAnno.p[0] < minLeft || minLeft == null) {
+                minLeft = newAnno.p[0] + (t / 2);
+              }
+              if (newAnno.p[1] < minTop || minTop == null) {
+                minTop = newAnno.p[1] + (t / 2);
+              }
+              if ((newAnno.p[0] + newAnno.s[0]) > maxLeft || maxLeft == null) {
+                maxLeft = newAnno.p[0] + newAnno.s[0] + t;
+              }
+              if ((newAnno.p[1] + newAnno.s[1]) > maxTop || maxTop == null) {
+                maxTop = newAnno.p[1] + newAnno.s[1] + t;
+              }
+            }
+            let centerX = (maxLeft - minLeft) / 2;
+            let centerY = (maxTop - minTop) / 2;
+            for (let i = 0; i < markifyData.length; i++) {
+              let tempID = utils.tempID();
+              let newAnno = markifyData[i];
+              let existingAnno = (editor.annotations[newAnno._id] || {}).render;
+              if (existingAnno != null) {
+                newAnno.p[0] = (existingAnno.p[0] || newAnno.p[0]) + 50;
+                newAnno.p[1] = (existingAnno.p[1] || newAnno.p[1]) + 50;
+              } else {
+                newAnno.p[0] -= maxLeft;
+                newAnno.p[1] -= maxTop;
+                if (editor.lesson.type != "freeboard") {
+                  newAnno.p[0] += (firstPage.offsetWidth / 2) + centerX;
+                  newAnno.p[1] += (firstPage.offsetHeight / 2) + centerY;
+                  newAnno.page = firstPage.getAttribute("pageid");
+                } else {
+                  let { x, y } = await utils.scaleToDoc(fixed.offsetWidth / 2, fixed.offsetHeight / 2, 0);
+                  newAnno.p[0] += x + centerX;
+                  newAnno.p[1] += y + centerY;
+                  delete newAnno.page;
+                }
+              }
+              newAnno._id = tempID;
+              newAnno.l = (newAnno.l || utils.maxLayer) + 1;
+              newAnno.sync = setTempSync;
+              delete newAnno.m;
+              await utils.render(newAnno);
+              editor.annotations[tempID] = { render: newAnno };
+              newSelect[tempID] = newAnno;
+              newNewSelect[tempID] = {};
+            }
+            editor.selecting = newSelect;
+            cursorModule.action = "save";
+            await cursorModule.endAction();
+            editor.selecting = newNewSelect;
+            cursorModule.updateBox();
+          }
         }
       }
     });
+    tempListen(window, "copy", (event) => {
+      let selection = document.getSelection();
+      if (selection.toString().length > 0) {
+        return; // User it selecting text, ignore event
+      }
+      let data = event.clipboardData || event.originalEvent.clipboardData || {};
+      let selectKeys = Object.keys(editor.selecting);
+      let saveTextData = "";
+      let saveAnnoData = [];
+      for (let i = 0; i < selectKeys.length; i++) {
+        let annoID = selectKeys[i];
+        let annotation = (editor.annotations[annoID] || {}).render || {};
+        saveAnnoData.push(annotation);
+        let richText = annotation.d || {};
+        if (richText.b != null) {
+          if (i > 0) {
+            saveTextData += "\n";
+          }
+          for (let t = 0; t < richText.b.length; t++) {
+            let addText = "";
+            if (richText.b[t] != "\n") {
+              addText = richText.b[t];
+            } else {
+              addText = "\n";
+            }
+            saveTextData += addText;
+          }
+        }
+      }
+      data.setData("text/html", `<meta charset="utf-8"><html><head></head><body><span data-meta="<!--(markify+copypaste)${encodeURIComponent(JSON.stringify(saveAnnoData))}(/markify+copypaste)-->"></span><div>${saveTextData}</div></body></html>`);
+      data.setData("text/plain", saveTextData);
+      event.preventDefault();
+    });
 
+    tempListen(window, "keydown", async (event) => {
+      if (document.activeElement != null) {
+        if (document.activeElement.closest("[contenteditable]") != null || document.activeElement.closest("input") != null) {
+          return;
+        }
+      }
+      if ([8, 46].includes(event.keyCode) == true) { // Backspace / Delete Key
+        //cursorModule.clickAction({ target: editor.page.querySelector('.eTool[action="pages/editor/toolbar/delete"]') });
+        let selectKeys = Object.keys(editor.selecting);
+        for (let i = 0; i < selectKeys.length; i++) {
+          let selectID = selectKeys[i];
+          editor.selecting[selectID].remove = true;
+          editor.selecting[selectID].done = true;
+
+          let allSelections = [...editor.page.querySelectorAll('.eSelect[anno="' + selectID + '"]'), ...editor.page.querySelectorAll('.eSelectActive[anno="' + selectID + '"]'), ...editor.page.querySelectorAll('.eCollabSelect[anno="' + selectID + '"]')];
+          for (let i = 0; i < allSelections.length; i++) {
+            allSelections[i].remove();
+          }
+        }
+        cursorModule.action = "save";
+        await cursorModule.endAction();
+        editor.selecting = {};
+        cursorModule.updateBox();
+        return;
+      }
+      if ([37, 38, 39, 40].includes(event.keyCode) == true) { // Arrow Keys
+        let selectKeys = Object.keys(editor.selecting);
+        if (selectKeys.length < 1) {
+          return;
+        }
+        event.preventDefault();
+        for (let i = 0; i < selectKeys.length; i++) {
+          let selectID = selectKeys[i];
+          let selecting = editor.selecting[selectID];
+          let existingAnno = (editor.annotations[selectID] || {}).render;
+          selecting.p = selecting.p || existingAnno.p || [0, 0];
+          if (event.keyCode == 37) {
+            selecting.p[0] -= 10;
+          } else if (event.keyCode == 38) {
+            selecting.p[1] -= 10;
+          } else if (event.keyCode == 39) {
+            selecting.p[0] += 10;
+          } else if (event.keyCode == 40) {
+            selecting.p[1] += 10;
+          }
+        }
+        cursorModule.action = "save";
+        await cursorModule.endAction();
+        cursorModule.updateBox();
+        return;
+      }
+      if (event.keyCode == 68 && event.ctrlKey == true) {
+        let selectKeys = Object.keys(editor.selecting);
+        if (selectKeys.length < 1) {
+          return;
+        }
+        event.preventDefault();
+        let newSelect = {};
+        let newNewSelect = {};
+        let setTempSync = getEpoch();
+        for (let i = 0; i < selectKeys.length; i++) {
+          let selectID = selectKeys[i];
+          let tempID = utils.tempID();
+          let newAnno = JSON.parse(JSON.stringify(({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {}));
+          newAnno._id = tempID;
+          newAnno.p = newAnno.p || [0, 0];
+          newAnno.p[0] += 50;
+          newAnno.p[1] += 50;
+          newAnno.l = (newAnno.l || utils.maxLayer) + 1;
+          newAnno.sync = setTempSync;
+          delete newAnno.m;
+          delete newAnno.lock;
+          await utils.render(newAnno);
+          editor.annotations[tempID] = { render: newAnno };
+          newSelect[tempID] = newAnno;
+          newNewSelect[tempID] = {};
+        }
+        editor.selecting = newSelect;
+        cursorModule.action = "save";
+        await cursorModule.endAction();
+        editor.selecting = newNewSelect;
+        cursorModule.updateBox();
+        return;
+      }
+    });
 
     //frame.closest(".eSide").style.opacity = 1;
   }
@@ -3029,7 +3230,7 @@ modules["pages/editor/toolbar/drag"] = {
     addEvent(editor.page, "touchend", disableSelect, { passive: false });
 
     addEvent(window, "scroll", () => { cursorModule.updateActionUI(); }, { passive: true });
-    addEvent(window, "resize", () => { this.updateActionUI(); }, { passive: true });
+    addEvent(window, "resize", () => { cursorModule.updateActionUI(); }, { passive: true });
 
     addEvent(content, "click", (event) => { cursorModule.clickAction(event); }, { passive: true });
   }
@@ -5291,10 +5492,11 @@ modules["pages/editor/toolbar/delete"] = {
     await extra.saveSelecting({ remove: true });
     let selectKeys = Object.keys(editor.selecting);
     for (let i = 0; i < selectKeys.length; i++) {
-      editor.selecting[selectKeys[i]].remove = true;
-      editor.selecting[selectKeys[i]].done = true;
+      let selectID = selectKeys[i];
+      editor.selecting[selectID].remove = true;
+      editor.selecting[selectID].done = true;
 
-      let allSelections = [...editor.page.querySelectorAll('.eSelect[anno="' + selectKeys[i] + '"]'), ...editor.page.querySelectorAll('.eSelectActive[anno="' + selectKeys[i] + '"]'), ...editor.page.querySelectorAll('.eCollabSelect[anno="' + selectKeys[i] + '"]')];
+      let allSelections = [...editor.page.querySelectorAll('.eSelect[anno="' + selectID + '"]'), ...editor.page.querySelectorAll('.eSelectActive[anno="' + selectID + '"]'), ...editor.page.querySelectorAll('.eCollabSelect[anno="' + selectID + '"]')];
       for (let i = 0; i < allSelections.length; i++) {
         allSelections[i].remove();
       }
@@ -5364,7 +5566,7 @@ modules["dropdowns/editor/toolbar/more"] = {
         newAnno.p = newAnno.p || [0, 0];
         newAnno.p[0] += 50;
         newAnno.p[1] += 50;
-        newAnno.l = utils.maxLayer + 1;
+        newAnno.l = (newAnno.l || utils.maxLayer) + 1;
         newAnno.sync = setTempSync;
         delete newAnno.m;
         delete newAnno.lock;
@@ -5388,12 +5590,38 @@ modules["dropdowns/editor/toolbar/more"] = {
     let layersLine = frame.querySelector('.eToolbarMoreLine[option="layers"]');
     let frontButton = frame.querySelector('.eToolbarMoreAction[option="bringfront"]');
     frontButton.addEventListener("click", async () => {
-      await this.extra.saveSelecting({ l: utils.maxLayer + 1 }, true);
+      let selectKeys = Object.keys(editor.selecting);
+      selectKeys.sort((a, b) => {
+        let selectA = (editor.annotations[a] || {}).render || {};
+        let selectB = (editor.annotations[b] || {}).render || {};
+        return (selectA.l || selectA.sync) - (selectB.l || selectB.sync);
+      });
+      for (let i = 0; i < selectKeys.length; i++) {
+        editor.selecting[selectKeys[i]].l = utils.maxLayer + 1;
+        utils.maxLayer++;
+      }
+      cursor.action = "save";
+      await cursor.endAction();
+      cursor.updateBox();
+      //await this.extra.saveSelecting({ l: utils.maxLayer + 1 }, true);
       //this.refreshButtons();
     });
     let backButton = frame.querySelector('.eToolbarMoreAction[option="sendback"]');
     backButton.addEventListener("click", async () => {
-      await this.extra.saveSelecting({ l: utils.minLayer - 1 }, true);
+      let selectKeys = Object.keys(editor.selecting);
+      selectKeys.sort((a, b) => {
+        let selectA = (editor.annotations[a] || {}).render || {};
+        let selectB = (editor.annotations[b] || {}).render || {};
+        return (selectB.l || selectB.sync) - (selectA.l || selectA.sync);
+      });
+      for (let i = 0; i < selectKeys.length; i++) {
+        editor.selecting[selectKeys[i]].l = utils.minLayer - 1;
+        utils.minLayer--;
+      }
+      cursor.action = "save";
+      await cursor.endAction();
+      cursor.updateBox();
+      //await this.extra.saveSelecting({ l: utils.minLayer - 1 }, true);
       //this.refreshButtons();
     });
     let shareButton = frame.querySelector('.eToolbarMoreAction[option="copylink"]');
@@ -5426,7 +5654,7 @@ modules["dropdowns/editor/toolbar/more"] = {
       let showLock = true;
       let pending = false;
       let selectKeys = Object.keys(editor.selecting);
-      let layer = 0;
+      //let layer = 0;
       for (let i = 0; i < selectKeys.length; i++) {
         let annotation = editor.annotations[selectKeys[i]];
         let render = annotation.render || annotation.revert || {};
@@ -5521,8 +5749,8 @@ modules["pages/editor/toolbar/collaborator"] = {
     // Loop through to see if collaborator option should be shown
     let modifiedBy;
     for (let i = 0; i < selectKeys.length; i++) {
-      let annotation = editor.annotations[selectKeys[i]];
-      let setModifiedBy = annotation.render.m || annotation.render.a;
+      let annotation = editor.annotations[selectKeys[i]].render || {};
+      let setModifiedBy = annotation.m || annotation.a;
       if (setModifiedBy == null || (modifiedBy != null && setModifiedBy != modifiedBy)) {
         button.style.display = "none";
         cursorModule.updateActionUI(false);

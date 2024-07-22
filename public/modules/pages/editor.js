@@ -1236,6 +1236,8 @@ modules["pages/editor"] = {
 
     socket.remotes["long_" + lessonID] = async (data) => {
       console.log("LONG", data);
+      let redrawActionUI = false;
+      let cursorModule = await getModule("pages/editor/toolbar/cursor");
       for (let i = 0; i < data.length; i++) {
         let anno = data[i];
         let existingAnno = this.annotations[anno._id] || this.annotations[anno.pending];
@@ -1312,7 +1314,6 @@ modules["pages/editor"] = {
             await utils.enableTimeout(anno._id, existingAnno, gottenRender);
             utils.setMarginSize();
           }
-          let cursorModule = await getModule("pages/editor/toolbar/cursor");
           if (this.selecting[anno.pending] != null) {
             this.selecting[anno._id] = JSON.parse(JSON.stringify(this.selecting[anno.pending]));
             delete this.selecting[anno.pending];
@@ -1326,7 +1327,7 @@ modules["pages/editor"] = {
             }
           }
           if (this.selecting[anno._id] != null && cursorModule != null) {
-            cursorModule.redrawActionUI(null, true);
+            redrawActionUI = true;
           }
           // CHECKS IF SERVER IS AFTER LAST SHORT EDIT SYNC
           if (existingAnno.render.sync > anno.sync) {
@@ -1348,6 +1349,9 @@ modules["pages/editor"] = {
           utils.render(anno, null, true);
         }
       }
+      /*if (redrawActionUI == true && cursorModule != null) {
+        cursorModule.redrawActionUI(null, true);
+      }*/
       if (this.updateZoom) {
         this.updateZoom(true);
       }
@@ -4185,9 +4189,9 @@ modules["pages/editor/annotation"] = {
           this.removeAnnotation(annotation.render._id);
           delete editor.annotations[annotation.render._id];
         }
-        if (editor.updateZoom) {
-          editor.updateZoom(false, false);
-        }
+      }
+      if (editor.updateZoom) {
+        editor.updateZoom(false, false);
       }
     }
     this.runningTimeout = false;

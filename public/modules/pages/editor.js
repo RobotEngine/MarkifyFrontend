@@ -4490,7 +4490,7 @@ modules["pages/editor/annotation"] = {
     let selection = window.getSelection();
     let range = null;
     if (chars == "END") {
-      range = this.createRange(element.lastChild);
+      range = this.createRange(element.lastChild, { count: element.lastChild.length - 1 });
     } else {
       range = this.createRange(element, { count: chars });
     }

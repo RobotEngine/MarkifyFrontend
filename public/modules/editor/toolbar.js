@@ -886,7 +886,7 @@ modules["editor/toolbar"] = {
         redoButton.setAttribute("disabled", "");
       }
     }
-    undoButton.addEventListener("click", async () => {
+    let undoAction = async () => {
       let event = utils.history[utils.location];
       if (event == null) {
         return;
@@ -975,8 +975,8 @@ modules["editor/toolbar"] = {
           utils.setCaretPosition(event.caret.undoElement, event.caret.undoPosition);
         }
       }
-    });
-    redoButton.addEventListener("click", async () => {
+    }
+    let redoAction = async () => {
       utils.location++; // Add one to location
       let event = utils.history[utils.location];
       if (event == null) {
@@ -1047,7 +1047,9 @@ modules["editor/toolbar"] = {
           utils.setCaretPosition(event.caret.redoElement, event.caret.redoPosition);
         }
       }
-    });
+    }
+    undoButton.addEventListener("click", undoAction);
+    redoButton.addEventListener("click", redoAction);
 
     // HAND RAISE
     let raiseHand = editor.page.querySelector(".eHandRaise");
@@ -1241,6 +1243,15 @@ modules["editor/toolbar"] = {
     });
 
     tempListen(window, "keydown", async (event) => {
+      let meta = event.ctrlKey || event.metaKey;
+      if (event.keyCode == 90 && event.shiftKey == true && meta == true) {
+        event.preventDefault();
+        return redoAction();
+      }
+      if (event.keyCode == 90 && meta == true) {
+        event.preventDefault();
+        return undoAction();
+      }
       if (document.activeElement != null) {
         if (document.activeElement.closest("[contenteditable]") != null || document.activeElement.closest("input") != null) {
           return;
@@ -1291,7 +1302,7 @@ modules["editor/toolbar"] = {
         cursorModule.updateBox();
         return;
       }
-      if (event.keyCode == 68 && event.ctrlKey == true) {
+      if (event.keyCode == 68 && meta == true) {
         let selectKeys = Object.keys(editor.selecting);
         if (selectKeys.length < 1) {
           return;

@@ -1452,8 +1452,7 @@ modules["pages/editor"] = {
       }
       let path = "lessons/ping";
       if (params.length > 0) {
-        path += "?";
-        path += params.join("&");
+        path += "?" + params.join("&");
       }
       sentPing = true;
       let [code] = await sendRequest("GET", path, null, { session: this.session, allowError: [403] });

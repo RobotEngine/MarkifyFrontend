@@ -1236,7 +1236,7 @@ modules["pages/editor"] = {
 
     socket.remotes["long_" + lessonID] = async (data) => {
       console.log("LONG", data);
-      let redrawActionUI = false;
+      //let redrawActionUI = false;
       let cursorModule = await getModule("pages/editor/toolbar/cursor");
       for (let i = 0; i < data.length; i++) {
         let anno = data[i];

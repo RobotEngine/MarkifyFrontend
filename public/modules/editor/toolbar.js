@@ -891,6 +891,7 @@ modules["editor/toolbar"] = {
       if (event == null) {
         return;
       }
+      utils.location--; // Remove one from location
       let addRedo = event.redo.length < 1;
       let sync = getEpoch();
       switch (event.type) {
@@ -963,7 +964,6 @@ modules["editor/toolbar"] = {
       }
       await utils.forceShort();
 
-      utils.location--; // Remove one from location
       utils.updateHistory();
 
       await cursorModule.updateBox();

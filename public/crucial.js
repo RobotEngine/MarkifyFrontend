@@ -1474,6 +1474,8 @@ addCSS({
   "[notransition]": `transition: unset !important`,
   "button svg": `-webkit-transform: translate3d(0, 0, 0)`
 });
+(new Image()).src = "./images/tooltips/alerts.svg";
+(new Image()).src = "./images/tooltips/close.svg";
 
 if ("serviceWorker" in navigator && window.isDiscord != true) {
   window.addEventListener("load", () => {

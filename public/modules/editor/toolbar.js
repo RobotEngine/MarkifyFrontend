@@ -1293,14 +1293,18 @@ modules["editor/toolbar"] = {
           let selecting = editor.selecting[selectID];
           let existingAnno = (editor.annotations[selectID] || {}).render;
           selecting.p = selecting.p || existingAnno.p || [0, 0];
+          let nudge = 1;
+          if (event.shiftKey == true) {
+            nudge = 10;
+          }
           if (event.keyCode == 37) {
-            selecting.p[0] -= 1;
+            selecting.p[0] -= nudge;
           } else if (event.keyCode == 38) {
-            selecting.p[1] -= 1;
+            selecting.p[1] -= nudge;
           } else if (event.keyCode == 39) {
-            selecting.p[0] += 1;
+            selecting.p[0] += nudge;
           } else if (event.keyCode == 40) {
-            selecting.p[1] += 1;
+            selecting.p[1] += nudge;
           }
         }
         cursorModule.action = "save";

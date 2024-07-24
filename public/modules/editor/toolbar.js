@@ -887,6 +887,9 @@ modules["editor/toolbar"] = {
       }
     }
     let undoAction = async () => {
+      if (undoButton.hasAttribute("disabled") == true) {
+        return;
+      }
       let event = utils.history[utils.location];
       if (event == null) {
         return;
@@ -977,6 +980,9 @@ modules["editor/toolbar"] = {
       }
     }
     let redoAction = async () => {
+      if (redoButton.hasAttribute("disabled") == true) {
+        return;
+      }
       utils.location++; // Add one to location
       let event = utils.history[utils.location];
       if (event == null) {

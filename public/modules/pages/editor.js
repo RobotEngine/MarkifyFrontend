@@ -4506,16 +4506,15 @@ modules["pages/editor/annotation"] = {
   location: -1,
   pushHistory: async function (type, changes, ignoreTime, caret) {
     //let editor = await getModule("pages/editor");
-    let utils = await getModule("pages/editor/annotation");
 
-    if (utils.history.length > 100) {
+    if (this.history.length > 100) {
       // If longer than 100, remove the first item to shrink under
-      utils.history.shift();
+      this.history.shift();
       this.location--;
     }
-    if (utils.location + 1 < utils.history.length) {
+    if (this.location + 1 < this.history.length) {
       // Clear out redo history once undo in past
-      utils.history = utils.history.slice(0, utils.location + 1);
+      this.history = this.history.slice(0, this.location + 1);
     }
 
     //console.log(type, changes);
@@ -4528,7 +4527,7 @@ modules["pages/editor/annotation"] = {
     let newChanges = JSON.parse(JSON.stringify(changes));
 
     let pushHistory = true;
-    /*let lastHistory = utils.history[utils.location - 1];
+    /*let lastHistory = this.history[this.location - 1];
     if (lastHistory != null && ignoreTime != true) {
       if (lastHistory.time > getEpoch() - 2000) { // 2 seconds
         let lastIDs = [];
@@ -4567,12 +4566,12 @@ modules["pages/editor/annotation"] = {
         };
       }
 
-      utils.history.push(newHistory);
-      utils.location++;
+      this.history.push(newHistory);
+      this.location++;
     }
 
-    if (utils.updateHistory != null) {
-      utils.updateHistory();
+    if (this.updateHistory != null) {
+      this.updateHistory();
     }
   },
   rotatePoint: function (pointX, pointY, angle) {

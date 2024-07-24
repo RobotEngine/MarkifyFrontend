@@ -3142,12 +3142,13 @@ modules["pages/editor/annotation"] = {
       if (p > 0) {
         pageElem = pageHolder.children[p - 1];
       }
-      if (p > 1) {
-        y -= 4;
-      }
       let pageRect = pageElem.getBoundingClientRect();
       x -= pageRect.left;
-      y -= pageRect.top;
+      if (p > 1) {
+        y -= pageRect.top + (4 * editor.zoom);
+      } else {
+        y -= pageRect.top;
+      }
     }/* else if (editor.lesson.type == "freeboard") {
       let pageRect = pageHolder.getBoundingClientRect();
       x -= pageRect.left;

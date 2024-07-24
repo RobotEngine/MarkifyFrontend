@@ -1294,13 +1294,13 @@ modules["editor/toolbar"] = {
           let existingAnno = (editor.annotations[selectID] || {}).render;
           selecting.p = selecting.p || existingAnno.p || [0, 0];
           if (event.keyCode == 37) {
-            selecting.p[0] -= 10;
+            selecting.p[0] -= 1;
           } else if (event.keyCode == 38) {
-            selecting.p[1] -= 10;
+            selecting.p[1] -= 1;
           } else if (event.keyCode == 39) {
-            selecting.p[0] += 10;
+            selecting.p[0] += 1;
           } else if (event.keyCode == 40) {
-            selecting.p[1] += 10;
+            selecting.p[1] += 1;
           }
         }
         cursorModule.action = "save";

@@ -925,6 +925,7 @@ modules["pages/editor"] = {
           await this.updatePages();
           await this.setZoom();
           await utils.setMarginSize();
+          this.updateChunks();
           break;
         case "invite":
           if (this.emailInvite != null) {
@@ -968,6 +969,7 @@ modules["pages/editor"] = {
             this.updatePages();
             await this.setZoom();
             await utils.setMarginSize();
+            this.updateChunks();
           }
           break;
         case "pageswap":
@@ -997,6 +999,7 @@ modules["pages/editor"] = {
           pageone.setAttribute("order", pagetwoOrder);
           pagetwo.setAttribute("order", pageoneOrder);
           this.updatePages();
+          this.updateChunks();
           break;
         case "pagetop":
           let pagetop = pageHolder.querySelector('.ePage[pageid="' + data.data.page + '"]');
@@ -1013,6 +1016,7 @@ modules["pages/editor"] = {
             pagetop.setAttribute("order", 1);
             pages[data.data.page].order = 1;
             this.updatePages();
+            this.updateChunks();
           }
           break;
         case "pagebottom":
@@ -1031,6 +1035,7 @@ modules["pages/editor"] = {
             pagebottom.setAttribute("order", newOrder);
             pages[data.data.page].order = newOrder;
             this.updatePages();
+            this.updateChunks();
           }
           break;
         case "pagevisibility":
@@ -1061,6 +1066,7 @@ modules["pages/editor"] = {
             }
           }
           this.updatePages();
+          this.updateChunks();
           break;
         case "exportstatus":
           if (this.exportAlert != null) {

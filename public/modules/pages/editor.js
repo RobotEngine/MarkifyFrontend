@@ -4509,6 +4509,13 @@ modules["pages/editor/annotation"] = {
       selection.addRange(range);
     }
   },
+  clearSelection: function () {
+    if (window.getSelection != null) {
+      window.getSelection().removeAllRanges();
+    } else if (document.selection != null) {
+      document.selection.empty();
+    }
+  },
   history: [],
   location: -1,
   pushHistory: async function (type, changes, ignoreTime, caret) {

@@ -467,6 +467,7 @@ modules["editor/toolbar"] = {
       editor.page.removeAttribute("enabled");
       editor.pinchZoomDisable = false;
       editor.usingStylus = false;
+      utils.clearSelection();
       let editorTools = content.querySelectorAll("[tooleditor]");
       for (let i = 0; i < editorTools.length; i++) {
         let tool = editorTools[i];

@@ -1647,7 +1647,7 @@ modules["dropdowns/editor/members"] = {
             frameDesc.textContent = "Editors can create annotations but cannot grant permisions or change settings.";
             break;
           case 5:
-            frameDesc.textContent = "Owners have full access to all aspects of the lesson.";
+            frameDesc.textContent = "The owner has full access to all aspects of the lesson.";
         }
         frameDesc.style.display = "block";
       } else {

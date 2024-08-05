@@ -316,7 +316,6 @@ modules["editor/realtime"] = {
           sendY -= pageRect.top;
           sendX /= editor.zoom;
           sendY /= editor.zoom;
-          console.log(sendX, sendY);
 
           // [ memberID, NULL, zoom, centerx, centery, time ]
           let pubData = [ editor.sessionID, null, Math.floor(editor.zoom * 100) / 100, Math.floor(sendX), Math.floor(sendY) ];

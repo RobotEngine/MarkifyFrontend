@@ -309,8 +309,17 @@ modules["editor/realtime"] = {
         if (lastObservePublish < getEpoch() - 250) { // One event every 250 ms
           let filter = { c: "short_" + editor.id, o: editor.sessionID };
 
+          let sendX = fixed.offsetWidth / 2;
+          let sendY = fixed.offsetHeight / 2;
+          let pageRect = pageHolder.getBoundingClientRect();
+          sendX -= pageRect.left;
+          sendY -= pageRect.top;
+          sendX /= editor.zoom;
+          sendY /= editor.zoom;
+          console.log(sendX, sendY);
+
           // [ memberID, NULL, zoom, centerx, centery, time ]
-          let pubData = [ editor.sessionID, null, Math.floor(editor.zoom * 100) / 100, Math.floor(window.scrollX + (fixed.offsetWidth / 2) - pageHolder.offsetLeft), Math.floor(window.scrollY + (fixed.offsetHeight / 2) - pageHolder.offsetTop) ];
+          let pubData = [ editor.sessionID, null, Math.floor(editor.zoom * 100) / 100, Math.floor(sendX), Math.floor(sendY) ];
 
           let updJSONContent = JSON.stringify([filter, pubData]);
           if (updJSONContent == lastObserveContent && ignoreSame != true) {
@@ -913,16 +922,24 @@ modules["editor/realtime"] = {
             if (member.lastObserveShort > time) {
               return;
             }
-            let scrollToX = scrollX - (fixed.offsetWidth / 2) + pageHolder.offsetLeft;
-            let scrollToY = scrollY - (fixed.offsetHeight / 2) + pageHolder.offsetTop;
             if (editor.realtime.observeLoading != null) {
               editor.lastZoom = editor.zoom;
               this.enableObserve(member);
-              await editor.setZoom(zoom, true);
-              window.scrollTo({ left: scrollToX, top: scrollToY });
+            }
+            await editor.setZoom(zoom, true);
+            scrollX *= editor.zoom;
+            scrollY *= editor.zoom;
+            let pageRect = pageHolder.getBoundingClientRect();
+            let setX = window.scrollX + pageRect.left;
+            let setY = window.scrollY + pageRect.top;
+            setX += scrollX;
+            setY += scrollY;
+            setX -= fixed.offsetWidth / 2;
+            setY -= fixed.offsetHeight / 2;
+            if (editor.realtime.observeLoading == null) {
+              startScroll(setX, setY);
             } else {
-              await editor.setZoom(zoom, true);
-              startScroll(scrollToX, scrollToY);
+              window.scrollTo({ left: setX, top: setY });
             }
             //smoothScrollTo(scrollX - (fixed.offsetWidth / 2), (scrollY - (fixed.offsetHeight / 2)) * scrollRate, 100);
             //window.scrollTo({ left: scrollX - (fixed.offsetWidth / 2), top: scrollY - (fixed.offsetHeight / 2), behavior: "smooth" });

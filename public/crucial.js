@@ -2,12 +2,12 @@ let serverURL = window.serverURL || "https://api.markifyapp.com/";
 //let serverURL = "http://localhost:3000/api/";
 let assetURL = window.mediaURL || "https://markifyapp.s3.amazonaws.com/";
 
-const version = "0.16.19"; // Big Update . Small Feature Release . Bug Fix
+const version = "0.16.20"; // Big Update . Small Feature Release . Bug Fix
 
 const socket = new SimpleSocket({
   project_id: "62088fbdfc22489578e94822",
   project_token: "client_129dbf2cf03edc6fba2aac135fd5ae119af",
-  socket_url: window.socketURL
+  socket_url: "wss://test.simplesocket.net/socket/v2" // window.socketURL
 });
 
 let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];

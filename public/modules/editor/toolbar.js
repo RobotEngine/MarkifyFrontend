@@ -38,7 +38,7 @@ modules["editor/toolbar"] = {
     ".eTool:hover > div": `background: var(--hoverColor)`,
     ".eTool:active": `transform: unset !important`,
     ".eTool:active > div": `transform: scale(.95); border-radius: 15.5px`,
-    ".eTool[option]:active > div": `background: var(--secondary); border-radius: 25px`,
+    ".eTool[option]:active > div": `background: var(--secondary);border-radius: 25px`,
     ".eTool[selected]:active > div": `border-radius: 15.5px !important`,
     ".eTool[selected][option]:active > div": `border-radius: 25px !important`,
     ".eTool[selected] > div": `background: var(--theme); border-top-right-radius: 0px !important; border-bottom-right-radius: 0px !important`,
@@ -1555,40 +1555,60 @@ modules["pages/editor/toolbar/cursor"] = {
         //select.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 2 + "px"; // -2 for border, -0 for width
         //select.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 2 + "px";
         select.style.transform = "translate(" + (pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 2) + "px," + (pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 2) + "px) rotate(" + rotate + "deg)";
-        let eSelectTopLeft = select.querySelector('.eSelectTooltip[tooltip="topleft"]');
-        if (eSelectTopLeft != null) {
-          eSelectTopLeft.removeAttribute("hidden");
-          let eSelectTopRight = select.querySelector('.eSelectTooltip[tooltip="topright"]');
-          let eSelectBottomLeft = select.querySelector('.eSelectTooltip[tooltip="bottomleft"]');
-          let eSelectBottomRight = select.querySelector('.eSelectTooltip[tooltip="bottomright"]');
-          eSelectBottomRight.removeAttribute("hidden");
+        if (merged.f != "text") {
+          let eSelectTopLeft = select.querySelector('.eSelectTooltip[tooltip="topleft"]');
+          if (eSelectTopLeft != null) {
+            eSelectTopLeft.removeAttribute("hidden");
+            let eSelectTopRight = select.querySelector('.eSelectTooltip[tooltip="topright"]');
+            let eSelectBottomLeft = select.querySelector('.eSelectTooltip[tooltip="bottomleft"]');
+            let eSelectBottomRight = select.querySelector('.eSelectTooltip[tooltip="bottomright"]');
+            eSelectBottomRight.removeAttribute("hidden");
+            let eSelectLeft = select.querySelector('.eSelectTooltip[tooltip="left"]');
+            let eSelectRight = select.querySelector('.eSelectTooltip[tooltip="right"]');
+            let eSelectTop = select.querySelector('.eSelectTooltip[tooltip="top"]');
+            let eSelectBottom = select.querySelector('.eSelectTooltip[tooltip="bottom"]');
+            let eSelectRotate = select.querySelector('.eSelectTooltip[tooltip="rotate"]');
+            if (boxWidth < 52) {
+              eSelectTop.setAttribute("hidden", "");
+              eSelectBottom.setAttribute("hidden", "");
+            } else {
+              eSelectTop.removeAttribute("hidden");
+              eSelectBottom.removeAttribute("hidden");
+            }
+            if (boxHeight < 52) {
+              eSelectLeft.setAttribute("hidden", "");
+              eSelectRight.setAttribute("hidden", "");
+            } else {
+              eSelectLeft.removeAttribute("hidden");
+              eSelectRight.removeAttribute("hidden");
+            }
+            if (boxWidth < 20 || boxHeight < 20) {
+              eSelectTopRight.setAttribute("hidden", "");
+              eSelectBottomLeft.setAttribute("hidden", "");
+              eSelectRotate.setAttribute("hidden", "");
+            } else {
+              eSelectTopRight.removeAttribute("hidden");
+              eSelectBottomLeft.removeAttribute("hidden");
+              eSelectRotate.removeAttribute("hidden");
+            }
+          }
+        } else {
           let eSelectLeft = select.querySelector('.eSelectTooltip[tooltip="left"]');
-          let eSelectRight = select.querySelector('.eSelectTooltip[tooltip="right"]');
-          let eSelectTop = select.querySelector('.eSelectTooltip[tooltip="top"]');
-          let eSelectBottom = select.querySelector('.eSelectTooltip[tooltip="bottom"]');
-          let eSelectRotate = select.querySelector('.eSelectTooltip[tooltip="rotate"]');
-          if (boxWidth < 52) {
-            eSelectTop.setAttribute("hidden", "");
-            eSelectBottom.setAttribute("hidden", "");
-          } else {
-            eSelectTop.removeAttribute("hidden");
-            eSelectBottom.removeAttribute("hidden");
-          }
-          if (boxHeight < 52) {
-            eSelectLeft.setAttribute("hidden", "");
-            eSelectRight.setAttribute("hidden", "");
-          } else {
+          if (eSelectLeft != null) {
             eSelectLeft.removeAttribute("hidden");
-            eSelectRight.removeAttribute("hidden");
-          }
-          if (boxWidth < 20 || boxHeight < 20) {
-            eSelectTopRight.setAttribute("hidden", "");
-            eSelectBottomLeft.setAttribute("hidden", "");
-            eSelectRotate.setAttribute("hidden", "");
-          } else {
-            eSelectTopRight.removeAttribute("hidden");
-            eSelectBottomLeft.removeAttribute("hidden");
-            eSelectRotate.removeAttribute("hidden");
+            select.querySelector('.eSelectTooltip[tooltip="right"]').removeAttribute("hidden");
+            select.querySelector('.eSelectTooltip[tooltip="topleft"]').setAttribute("hidden", "");
+            select.querySelector('.eSelectTooltip[tooltip="topright"]').setAttribute("hidden", "");
+            select.querySelector('.eSelectTooltip[tooltip="bottomleft"]').setAttribute("hidden", "");
+            select.querySelector('.eSelectTooltip[tooltip="bottomright"]').setAttribute("hidden", "");
+            select.querySelector('.eSelectTooltip[tooltip="top"]').setAttribute("hidden", "");
+            select.querySelector('.eSelectTooltip[tooltip="bottom"]').setAttribute("hidden", "");
+            let eSelectRotate = select.querySelector('.eSelectTooltip[tooltip="rotate"]');
+            if (boxHeight < 40) {
+              eSelectRotate.setAttribute("hidden", "");
+            } else {
+              eSelectRotate.removeAttribute("hidden");
+            }
           }
         }
 

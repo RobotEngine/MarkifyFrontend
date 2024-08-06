@@ -7,7 +7,6 @@ modules["editor/realtime"] = {
   css: {
     ".eCursor": `--backgroundColor: var(--themeColor); --textColor: var(--themeColor); --borderColor: #fff; position: absolute; display: flex; z-index: 20; opacity: 0; align-items: center; transition: .25s; pointer-events: all; transform-origin: var(--origin)`,
     ".eCursor[pressed]": `--backgroundColor: #fff; --borderColor: var(--themeColor); color: var(--textColor) !important; transform: scale(.9)`,
-    ".eCursor[changing]": `opacity: 0 !important; transform: scale(0) !important`,
     ".eCursor .pointer": `width: 20px; height: 20px; background: var(--backgroundColor); border: solid 3px var(--borderColor); overflow: hidden; border-radius: 8px 14px 14px 14px; box-shadow: 0 0 6px rgb(0 0 0 / 50%); transition: all .3s, color 0s`,
     ".eCursor .pointer[none]": `border-radius: 14px; opacity: 0; width: 0px`,
     ".eCursor [name]": `box-sizing: border-box; display: flex; width: fit-content; height: 100%; padding: 0px 6px; border-radius: 14px; overflow: hidden; opacity: 0; white-space: nowrap; font-size: 14px; font-weight: 700; white-space: nowrap; align-items: center`,
@@ -813,7 +812,8 @@ modules["editor/realtime"] = {
               cursorHolder.style.opacity = 1;
             }
             if (parseInt(cursorHolder.getAttribute("mode") || -1) != tool) {
-              cursorHolder.setAttribute("changing", "");
+              cursorHolder.setAttribute("hidden", "");
+              cursorHolder.style.transform = "translate(" + (member.x + (parseInt(cursorHolder.getAttribute("offsetx") || "0")) + window.scrollX) + "px," + (member.y + (parseInt(cursorHolder.getAttribute("offsety") || "0")) + window.scrollY) + "px) scale(0)";
               cursorHolder.setAttribute("mode", tool);
               clearTimeout(transformTimeout);
               transformTimeout = setTimeout(async () => {
@@ -859,7 +859,7 @@ modules["editor/realtime"] = {
                 cursorHolder.style.setProperty( "--fullyExtended", colorMain.clientWidth + "px");
                 colorMain.style.removeProperty("width");
                 updateCursorProps();
-                cursorHolder.removeAttribute("changing");
+                cursorHolder.removeAttribute("hidden");
               }, 100);
             } else {
               updateCursorProps();

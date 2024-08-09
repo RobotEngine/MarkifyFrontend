@@ -834,7 +834,7 @@ modules["pages/editor"] = {
             // Update observe:
             if (this.realtime.observing == body._id && this.realtime.module != null) {
               observeTag.style.background = member.color;
-              observeTag.style.color = this.realtime.module.textColorBackground(member.color);
+              observeTag.style.color = this.textColorBackground(member.color);
               observeTag.querySelector("b").textContent = member.name;
               observeHolder.style.display = "flex";
               observeBorder.style.border = "solid 3px " + member.color;

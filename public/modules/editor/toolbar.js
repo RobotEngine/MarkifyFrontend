@@ -4136,6 +4136,9 @@ modules["pages/editor/toolbar/eraser"] = {
             let annotation = editor.annotations[annoID];
             if (annotation != null) {
               let render = annotation.render || {};
+              if (render.lock == true) {
+                continue;
+              }
               if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
                 continue;
               }

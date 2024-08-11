@@ -149,7 +149,7 @@ modules["pages/editor"] = {
     ".ePageHiddenModalDesc": `margin: 8px 0; max-width: 450px`,
     ".ePageRevealButton": `display: flex; margin: 8px; z-index: 1; background: var(--theme); --borderRadius: 20.25px; color: #fff`,
     ".ePageContent": "width: 100%; height: 100%; background: var(--pageColor); opacity: 0; border-radius: inherit",
-    ".ePageTextHolder": "--scale-factor: 4/3; position: absolute; left: 0; top: 0; font-family: sans-serif",
+    ".ePageTextHolder": "width: 100% !important; height: 100% !important; --scale-factor: 4/3; position: absolute; left: 0; top: 0; font-family: sans-serif",
     ".ePageTextHolder span": "position: absolute; color: transparent; pointer-events: all",
     ".ePageTextHolder br": `user-select: none`,
     ".ePageAnnotationHolder": `--scale-factor: 4/3; position: absolute; left: 0; top: 0; font-family: sans-serif`,
@@ -2400,6 +2400,10 @@ modules["pages/editor"] = {
     updateContentSize();
 
     // Zoom
+    let lastMouseX;
+    let lastMouseY;
+    let mouseBeforeX;
+    let mouseBeforeY;
     this.setZoom = async (set, observe, mouse) => {
       mouse = mouse || {};
       if (observe != true && this.realtime.observing != null && this.realtime.module != null) {
@@ -2408,19 +2412,23 @@ modules["pages/editor"] = {
 
       let mouseX = mouse.clientX || ((mouse.changedTouches || [])[0] || {}).clientX || 0;
       let mouseY = mouse.clientY || ((mouse.changedTouches || [])[0] || {}).clientY || 0;
-
-      // Get Page Rect:
-      let pageHolderRect = pageHolder.getBoundingClientRect();
-
-      // Calculate the new scroll position based on the mouse cursor position and zoom level
-      let mouseRelativeBeforeX = (mouseX - pageHolderRect.left) / (pageHolder.clientWidth * this.zoom);
-      let mouseRelativeBeforeY = (mouseY - pageHolderRect.top) / (pageHolder.clientHeight * this.zoom);
-
-      if (set == null) {
-        let delta = Math.max(-1, Math.min(1, (mouse.wheelDelta || -(mouse.detail || 0))));
-        set = this.zoom + (delta / 10);
+      
+      if (lastMouseX != mouseX || lastMouseY != mouseY) {
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
+        // Get Page Rect:
+        let pageHolderRect = pageHolder.getBoundingClientRect();
+        mouseBeforeX = (mouseX - pageHolderRect.left) / this.zoom;
+        mouseBeforeY = (mouseY - pageHolderRect.top) / this.zoom;
       }
-      this.zoom = set;
+
+      if (set != null) {
+        this.zoom = set;
+      } else {
+        this.zoom += ((mouse.deltaY || 0) * -0.01);
+        //let delta = Math.max(-1, Math.min(1, (mouse.wheelDelta || -(mouse.detail || 0))));
+        //this.zoom = this.zoom + (delta / 10);
+      }
 
       if (this.zoom > 5) {
         this.zoom = 5;
@@ -2432,27 +2440,36 @@ modules["pages/editor"] = {
 
       updateContentSize();
 
-      this.updatePageSize();
-      this.updateChunks();
+      await this.updatePageSize();
+      await this.updateChunks();
+      await utils.setMarginSize();
 
-      if (observe != true) {
+      // Get Page Rect:
+      let newPageHolderRect = pageHolder.getBoundingClientRect();
+      let addScrollX = (mouseBeforeX * this.zoom) - (mouseX - newPageHolderRect.left);
+      let addScrollY = (mouseBeforeY * this.zoom) - (mouseY - newPageHolderRect.top);
+      
+      // Set the new scroll position
+      window.scrollTo(window.scrollX + addScrollX, window.scrollY + addScrollY);
+
+      /*if (observe != true) {
         await utils.setMarginSize();
 
         // Get Page Rect:
         let newPageHolderRect = pageHolder.getBoundingClientRect();
 
         // Calculate the new scroll position based on the mouse cursor position and zoom level
-        let mouseRelativeAfterX = (mouseX - newPageHolderRect.left) / (pageHolder.clientWidth * this.zoom);
-        let mouseRelativeAfterY = (mouseY - newPageHolderRect.top) / (pageHolder.clientHeight * this.zoom);
+        let mouseRelativeAfterX = (mouseX - newPageHolderRect.left) / (pageHolder.offsetWidth * this.zoom);
+        let mouseRelativeAfterY = (mouseY - newPageHolderRect.top) / (pageHolder.offsetHeight * this.zoom);
 
-        let newScrollX = ((pageHolder.clientWidth * this.zoom) * mouseRelativeBeforeX) - ((pageHolder.clientWidth * this.zoom) * mouseRelativeAfterX);
-        let newScrollY = ((pageHolder.clientHeight * this.zoom) * mouseRelativeBeforeY) - ((pageHolder.clientHeight * this.zoom) * mouseRelativeAfterY);
+        let newScrollX = ((pageHolder.offsetWidth * this.zoom) * mouseRelativeBeforeX) - ((pageHolder.offsetWidth * this.zoom) * mouseRelativeAfterX);
+        let newScrollY = ((pageHolder.offsetHeight * this.zoom) * mouseRelativeBeforeY) - ((pageHolder.offsetHeight * this.zoom) * mouseRelativeAfterY);
 
         // Set the new scroll position
-        window.scrollTo((window.scrollX) + newScrollX, (window.scrollY) + newScrollY);
+        window.scrollTo(window.scrollX + newScrollX, window.scrollY + newScrollY);
       } else {
         utils.setMarginSize();
-      }
+      }*/
 
       /*
       // Calculate the new scroll position based on the mouse cursor position and zoom level
@@ -2496,6 +2513,9 @@ modules["pages/editor"] = {
       if (event.ctrlKey || event.metaKey) {
         this.setZoom(null, null, event);
         event.preventDefault();
+      } else {
+        lastMouseX = null;
+        lastMouseY = null;
       }
     }
     tempListen(window, "DOMMouseScroll", scrollMouseWheel, { passive: false });

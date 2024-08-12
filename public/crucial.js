@@ -2,13 +2,9 @@ let serverURL = window.serverURL || "https://api.markifyapp.com/";
 //let serverURL = "http://localhost:3000/api/";
 let assetURL = window.mediaURL || "https://static.markifyapp.com/";
 
-const version = "0.16.23"; // Big Update . Small Feature Release . Bug Fix
+const version = "0.16.24"; // Big Update . Small Feature Release . Bug Fix
 
-const socket = new SimpleSocket({
-  project_id: "62088fbdfc22489578e94822",
-  project_token: "client_129dbf2cf03edc6fba2aac135fd5ae119af",
-  socket_url: window.socketURL
-});
+let socket = {};
 
 let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 let week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -691,28 +687,6 @@ function objectUpdate(obj, passData, path) { // obj = Object to apply changes; p
   return changes;
 }
 
-socket.remotes.account = function (data) {
-  console.log(data);
-  if (data.task === "set") {
-    objectUpdate(data.data, account);
-
-    let updateElements = body.querySelectorAll("[accountuser], [accountimage]");
-    for (let i = 0; i < updateElements.length; i++) {
-      let elem = updateElements[i];
-      if (elem.hasAttribute("accountuser")) {
-        elem.textContent = account.user;
-      }
-      if (elem.hasAttribute("accountimage")) {
-        elem.src = account.image || "./images/profiles/default.svg";
-      }
-    }
-  } else if (data.task == "logout") {
-    removeLocalStore("userID");
-    removeLocalStore("token");
-    promptLogin();
-  }
-}
-
 async function updateToSignedIn(data) {
   account = data;
   userID = account.id;
@@ -791,37 +765,70 @@ if (authService != null) {
 let wasConnected = false;
 let connected = false;
 let preloadedFiles = false;
-socket.onopen = async function () {
-  connected = true;
-  if (endStartup == true) {
-    return;
-  }
-  (await getModule("dropdown")).close();
-  await init();
-  if (window.location.hash == "") {
-    setFrame("pages/launch", null, { unsub: false });
-  } else {
-    setFrame("pages/" + window.location.hash.substring(1), null, { unsub: false });
-  }
-  if (wasConnected == true) {
-    (await getModule("alert")).open("worked", `<b>Connected</b>Reconnected to Markify`, { id: "connection" });
-  }
-  wasConnected = true;
-};
 let closeCallback;
-socket.onclose = async function () {
-  connected = false;
-  if (closeCallback) {
-    closeCallback();
+async function initSocket() {
+  if (typeof SimpleSocket == "undefined") { // Backup if static fails
+    await loadScript("https://simplesocket.net/static/v2/simplesocket.js");
   }
-  (await getModule("alert")).open("warning", `<b>Lost Connection</b>Lost connection to Markify. Reconnecting...`, { id: "connection", time: "never" });
-};
+  socket = new SimpleSocket({
+    project_id: "62088fbdfc22489578e94822",
+    project_token: "client_129dbf2cf03edc6fba2aac135fd5ae119af",
+    socket_url: window.socketURL
+  });
+  socket.remotes.account = function (data) {
+    console.log(data);
+    if (data.task === "set") {
+      objectUpdate(data.data, account);
+  
+      let updateElements = body.querySelectorAll("[accountuser], [accountimage]");
+      for (let i = 0; i < updateElements.length; i++) {
+        let elem = updateElements[i];
+        if (elem.hasAttribute("accountuser")) {
+          elem.textContent = account.user;
+        }
+        if (elem.hasAttribute("accountimage")) {
+          elem.src = account.image || "./images/profiles/default.svg";
+        }
+      }
+    } else if (data.task == "logout") {
+      removeLocalStore("userID");
+      removeLocalStore("token");
+      promptLogin();
+    }
+  }
+  socket.onopen = async function () {
+    connected = true;
+    if (endStartup == true) {
+      return;
+    }
+    (await getModule("dropdown")).close();
+    await init();
+    if (window.location.hash == "") {
+      setFrame("pages/launch", null, { unsub: false });
+    } else {
+      setFrame("pages/" + window.location.hash.substring(1), null, { unsub: false });
+    }
+    if (wasConnected == true) {
+      (await getModule("alert")).open("worked", `<b>Connected</b>Reconnected to Markify`, { id: "connection" });
+    }
+    wasConnected = true;
+  };
+  socket.onclose = async function () {
+    connected = false;
+    if (closeCallback) {
+      closeCallback();
+    }
+    (await getModule("alert")).open("warning", `<b>Lost Connection</b>Lost connection to Markify. Reconnecting...`, { id: "connection", time: "never" });
+  };
+}
+initSocket();
 
 // STANDARD MODULES //
 
 modules["dropdown"] = {
   css: {
     ".dropdown": `position: sticky; box-sizing: border-box; max-width: calc(100% - 16px); max-height: calc(100% - 16px); right: 0px; bottom: 0px; margin: 8px; opacity: 0; box-shadow: var(--shadow); border-radius: 12px; transform-origin: center top; pointer-events: all`,
+    ".dropdown .loading": `pointer-events: none`,
     ".dropdownOverflow": `position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--pageColor); border-radius: inherit; z-index: 0`,
     ".dropdownContent": `position: absolute; box-sizing: border-box; width: max-content; max-width: var(--dropdownWidth); height: max-content; padding: 6px; overflow: auto`, //background: var(--pageColor)
     ".dropdownFrame": `position: relative`,
@@ -940,8 +947,10 @@ modules["dropdown"] = {
       //oldContent.style.transform = "scale(.85)";
       clearInterval(window.dropdown.interval);
       window.dropdown.interval = this.setResizeLoop(dropdown, content, header, window.dropdown.button);
+      content.style.pointerEvents = "none";
       await setFrame(frameName, frame, { content: content, button: button });
       content.setAttribute("loaded", "");
+      content.style.pointerEvents = "all";
       content.style.opacity = 1;
       frame.style.removeProperty("min-height");
       await sleep(500);
@@ -992,8 +1001,10 @@ modules["dropdown"] = {
     window.dropdown = { dropdown: dropdown, button: button, frameHistory: [[frameName, setTitleHTML]], interval: this.setResizeLoop(dropdown, content, header, button) };
     button.style.opacity = 0;
     dropdown.style.opacity = 1;
+    content.style.pointerEvents = "none";
     content.setAttribute("loaded", "");
     await setFrame(frameName, frame, { content: content, button: button });
+    content.style.pointerEvents = "all";
     frame.style.removeProperty("min-height");
     await sleep(300);
     let dropTitle = header.querySelector(".dropdownTitle div");
@@ -1036,6 +1047,7 @@ modules["dropdown"] = {
 modules["modal"] = {
   css: {
     ".modal": `position: absolute; box-sizing: border-box; max-width: calc(100% - 16px); max-height: calc(100% - 16px); left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: 0; box-shadow: var(--shadow); border-radius: 12px; transform-origin: center top; pointer-events: all`,
+    ".modal .loading": `pointer-events: none`,
     ".modalOverflow": `position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--pageColor); border-radius: inherit; z-index: 0`,
     ".modalContent": `position: absolute; box-sizing: border-box; width: max-content; height: max-content; padding: 6px; overflow: auto`, //background: var(--pageColor)
     ".modalFrame": `position: relative`,
@@ -1055,7 +1067,11 @@ modules["modal"] = {
       content.style.top = header.offsetHeight + "px";
       // We use fixed, not window, so that scrollbars are accounted for:
       content.style.maxWidth = fixed.clientWidth - 16 + "px";
-      content.style.maxHeight = fixed.clientHeight - header.offsetHeight - 16 + "px";
+      let maxHeight = fixed.clientHeight - header.offsetHeight - 16;
+      if (content.hasAttribute("maxheight") == true) {
+        maxHeight = Math.min(maxHeight, parseInt(content.getAttribute("maxheight")));
+      }
+      content.style.maxHeight = maxHeight + "px";
       content.style.minWidth = Math.min(fixed.clientWidth - 16, 200) + "px";
 
       if (modal.hasAttribute("closing") == false) {
@@ -1120,7 +1136,7 @@ modules["modal"] = {
       //content.style.transform = "scale(.85)";
       content.style.zIndex = 1;
       content.style.pointerEvents = "none";
-      content.style.transition = ".4s left, .4s right, .5s opacity";
+      content.style.transition = ".4s left, .4s right, .5s opacity, transform .6s";
       content.offsetHeight;
       //content.style.transform = "scale(1)";
       if (loaded == false) {
@@ -1141,8 +1157,10 @@ modules["modal"] = {
       //oldContent.style.transform = "scale(.85)";
       clearInterval(window.modal.interval);
       window.modal.interval = this.setResizeLoop(modal, content, header);
-      await setFrame(frameName, frame, { button: button });
+      content.style.pointerEvents = "none";
+      await setFrame(frameName, frame, { content: content, button: button });
       content.setAttribute("loaded", "");
+      content.style.pointerEvents = "all";
       content.style.opacity = 1;
       frame.style.removeProperty("min-height");
       await sleep(500);
@@ -1188,14 +1206,17 @@ modules["modal"] = {
       }
     }
     header.querySelector(".modalTitle").innerHTML = title;
-    modal.style.transition = "width .4s, height .4s, opacity .3s, border-radius .3s";
+    modal.style.transition = "width .4s, height .4s, opacity .3s, border-radius .3s, transform .6s";
     modal.offsetHeight;
+    modal.style.width = content.offsetWidth + "px";
+    modal.style.height = content.offsetHeight + header.offsetHeight + "px";
     window.modal = { modal: modal, frameHistory: [[frameName, title]], interval: this.setResizeLoop(modal, content, header, button) };
     modal.style.opacity = 1;
-    await sleep();
     modal.parentElement.setAttribute("blur", "");
-    await setFrame(frameName, frame, { button: button });
+    content.style.pointerEvents = "none";
     content.setAttribute("loaded", "");
+    await setFrame(frameName, frame, { content: content, button: button });
+    content.style.pointerEvents = "all";
     frame.style.removeProperty("min-height");
     await sleep(300);
     let dropTitle = header.querySelector(".modalTitle div");
@@ -1216,8 +1237,8 @@ modules["modal"] = {
     delete window.modal;
     remModal.modal.setAttribute("closing", "");
     remModal.modal.style.opacity = 0;
-    remModal.modal.querySelector(".modalHeader").style.transform = "scale(0)";
     remModal.modal.parentElement.removeAttribute("blur");
+    remModal.modal.style.transform = "translate(-50%, -50%) scale(0)";
     await sleep(350);
     clearInterval(remModal.interval);
     remModal.modal.parentElement.remove();

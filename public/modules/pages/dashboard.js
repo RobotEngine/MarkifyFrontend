@@ -65,8 +65,11 @@ modules["pages/dashboard"] = {
     }
     page.querySelector(".dAccount div").textContent = account.user;
 
+    let modal = await getModule("modal");
     if (account.onboard == null) {
-      (await getModule("modal")).open("modals/tutorial", null, null, false);
+      modal.open("modals/tutorial", null, null, false);
+    } else {
+      //modal.open("modals/updates/aug-11-2024", null, "What's New", false);
     }
 
     // Slick Animation

@@ -58,7 +58,7 @@ modules["modals/tutorial"] = {
     });
 
     let updateSeenTutorial = () => {
-      sendRequest("POST", "me/read");
+      sendRequest("POST", "me/read?seen=tutorial");
     }
     frame.querySelector(".dmSkipButton").addEventListener("click", async () => {
       (await getModule("modal")).close();

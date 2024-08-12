@@ -2,7 +2,7 @@ let serverURL = window.serverURL || "https://api.markifyapp.com/";
 //let serverURL = "http://localhost:3000/api/";
 let assetURL = window.mediaURL || "https://static.markifyapp.com/";
 
-const version = "0.16.24"; // Big Update . Small Feature Release . Bug Fix
+const version = "0.17.0"; // Big Update . Small Feature Release . Bug Fix
 
 let socket = {};
 
@@ -1378,6 +1378,7 @@ modules["dropdowns/account"] = {
   <div class="accountDropLine"></div>
   <button class="accountDrop" close pwa dropdowntitle="Add Markify as an app on your device!"><div>Get the App</div><img src="./images/tooltips/account/app.svg"></button>
   <button class="accountDrop" close dropdown="dropdowns/account/report" dropdowntitle="Report Bugs & Feedback" noscrollclose><div>Report Bug</div><img src="./images/tooltips/account/report.svg"></button>
+  <button class="accountDrop" close whatsnew modaltitle="What's New"><div>What's New</div><img src="./images/tooltips/account/exclamation.svg"></button>
   <button class="accountDrop" close modal="modals/tutorial" modaltitle="Resources"><div>Resources</div><img src="./images/tooltips/account/question.svg"></button>
   <div class="accountDropLine"></div>
   <div class="accountSocialHolder">
@@ -1470,6 +1471,12 @@ modules["dropdowns/account"] = {
     });
     if (checkForPrompt() == true) {
       installpwa.style.display = "flex";
+    }
+    let whatsNew = frame.querySelector(".accountDrop[whatsnew]");
+    if (account.currentWhatsNew != null) {
+      whatsNew.setAttribute("modal", "modals/updates/" + account.currentWhatsNew);
+    } else {
+      whatsNew.remove();
     }
   }
 }

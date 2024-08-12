@@ -68,8 +68,8 @@ modules["pages/dashboard"] = {
     let modal = await getModule("modal");
     if (account.onboard == null) {
       modal.open("modals/tutorial", null, null, false);
-    } else {
-      //modal.open("modals/updates/aug-11-2024", null, "What's New", false);
+    } else if (account.lastWhatsNew != null && account.lastWhatsNew != account.currentWhatsNew) {
+      modal.open("modals/updates/aug-12-2024", null, "What's New", false);
     }
 
     // Slick Animation

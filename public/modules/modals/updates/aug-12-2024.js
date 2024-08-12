@@ -12,7 +12,7 @@ modules["modals/updates/aug-12-2024"] = {
     <div class="umContent">
       <strong>Welcome Back to School 🥱🙃</strong>
       <span>August 12, 2024</span>
-      <p>I guess all things... <i>including summer break</i>... must come to an end. But here's to a new school year filled with new and endless possibilities.</p>
+      <p>I guess all good things... <i>including summer break</i>... must come to an end. But here's to a new school year filled with new and endless possibilities.</p>
       <p>Over the summer, I've been hard at work improving Markify for the year ahead. While most of the stuff is boring old bug fixes, here are some highlights:</p>
       <ul>
         <li><b>Tool Toggle</b> lets you mitigate collaborative chaos by enabling/disabling the tools availiable to students. Next time you share a lesson, click the "Options" button and play around with it :)</li>

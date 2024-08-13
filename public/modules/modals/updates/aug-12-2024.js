@@ -28,7 +28,7 @@ modules["modals/updates/aug-12-2024"] = {
     <div class="umButtonsSocial">
       <a href="https://twitter.com/markifytool" target="_blank"><img src="./images/launch/socials/twitter.svg"></a>
       <a href="https://www.instagram.com/markifytool" target="_blank"><img src="./images/launch/socials/instagram.svg"></a>
-      <a href="https://www.linkedin.com/company/exotekco" target="_blank"><img src="./images/launch/socials/linkedin.svg"></a>
+      <a href="https://www.linkedin.com/company/markifyapp" target="_blank"><img src="./images/launch/socials/linkedin.svg"></a>
       <a href="https://www.youtube.com/@markifyexotek" target="_blank"><img src="./images/launch/socials/youtube.svg"></a>
       <div>Follow us!</div>
     </div>

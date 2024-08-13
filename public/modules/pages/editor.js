@@ -2507,6 +2507,8 @@ modules["pages/editor"] = {
         this.updateSelectedBounds();
       }
 
+      enableScrollTop();
+
       this.realtime.module.adjustRealtimeHolder();
     }
     let scrollMouseWheel = (event) => {

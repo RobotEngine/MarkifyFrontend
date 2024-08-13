@@ -28,12 +28,12 @@ let userID;
 
 let subscribes = [];
 
-window.addEventListener("error", function(e) {
-  let stacktrace = e.stack;
-  if (!stacktrace && e.error) {
-    stacktrace = e.error.stack;
+window.addEventListener("error", function(event) {
+  let stacktrace = event.stack;
+  if (!stacktrace && event.error) {
+    stacktrace = event.error.stack;
   }
-  if (stacktrace) {
+  if (stacktrace != null) {
     //prompt(e.message + ", " + e.filename + ", " + e.lineno + ":" + e.colno);
   }
 });

@@ -2444,13 +2444,15 @@ modules["pages/editor"] = {
       await this.updateChunks();
       await utils.setMarginSize();
 
-      // Get Page Rect:
-      let newPageHolderRect = pageHolder.getBoundingClientRect();
-      let addScrollX = (mouseBeforeX * this.zoom) - (mouseX - newPageHolderRect.left);
-      let addScrollY = (mouseBeforeY * this.zoom) - (mouseY - newPageHolderRect.top);
-      
-      // Set the new scroll position
-      window.scrollTo(window.scrollX + addScrollX, window.scrollY + addScrollY);
+      if (observe != true) {
+        // Get Page Rect:
+        let newPageHolderRect = pageHolder.getBoundingClientRect();
+        let addScrollX = (mouseBeforeX * this.zoom) - (mouseX - newPageHolderRect.left);
+        let addScrollY = (mouseBeforeY * this.zoom) - (mouseY - newPageHolderRect.top);
+        
+        // Set the new scroll position
+        window.scrollTo(window.scrollX + addScrollX, window.scrollY + addScrollY);
+      }
 
       /*if (observe != true) {
         await utils.setMarginSize();

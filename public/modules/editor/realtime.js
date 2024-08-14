@@ -925,7 +925,9 @@ modules["editor/realtime"] = {
               editor.lastZoom = editor.zoom;
               this.enableObserve(member);
             }
-            await editor.setZoom(zoom, true);
+            if (editor.zoom != zoom) {
+              await editor.setZoom(zoom, true);
+            }
             scrollX *= editor.zoom;
             scrollY *= editor.zoom;
             let pageRect = pageHolder.getBoundingClientRect();

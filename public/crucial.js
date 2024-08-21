@@ -3,7 +3,7 @@ let serverURL = window.serverURL || "https://api.markifyapp.com/";
 let assetURL = window.mediaURL || "https://static.markifyapp.com/";
 //window.socketURL = "ws://localhost:3000/socket/v2";
 
-const version = "0.17.1"; // Big Update . Small Feature Release . Bug Fix
+const version = "0.17.2"; // Big Update . Small Feature Release . Bug Fix
 
 let socket = {};
 
@@ -577,7 +577,7 @@ async function sendRequest(method, path, body, extra) {
       }
       sendData.body = body;
     }
-    let token = getLocalStore("token") || getParam("");
+    let token = getLocalStore("token");
     if (token != null) {
       token = JSON.parse(token);
       if (token.expires < Math.floor(getEpoch() / 1000)) {
@@ -734,6 +734,12 @@ async function init() {
       updateToSignedIn(body.user);
     }
   } else if (getLocalStore("token") != null) {
+    await auth();
+  } else if (getParam("user") != null && getParam("token") != null) {
+    setLocalStore("userID", getParam("user"));
+    setLocalStore("token", decodeURIComponent(getParam("token")));
+    modifyParams("user");
+    modifyParams("token");
     await auth();
   }
 }

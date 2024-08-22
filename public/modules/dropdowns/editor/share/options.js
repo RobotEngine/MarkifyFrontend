@@ -1,6 +1,6 @@
 modules["dropdowns/editor/share/options"] = {
   html: `
-  <div class="eShareActionTitle" style="margin-bottom: 12px"><div></div>Viewer Settings<div></div></div>
+  <div class="eShareActionTitle" style="margin-bottom: 12px"><div></div>Member Settings<div></div></div>
   <button class="eShareActionOption border" option="forceLogin" title="Require those joining to login for verified identites."><div label>Require Login</div><div class="eOptionToggle"><div></div></div></button>
   <button class="eShareActionOption border" option="editOthersWork" title="Allow members to edit and delete annotations created by other members."><div label>Modify Other's Work</div><div class="eOptionToggle"><div></div></div></button>
   <button class="eShareActionOption border" option="allowExport" title="Allow members to export, print, or copy the lesson."><div label>Allow Exporting</div><div class="eOptionToggle"><div></div></div></button>

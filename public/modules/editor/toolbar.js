@@ -260,9 +260,9 @@ modules["editor/toolbar"] = {
       {
         id: "embed",
         tooltip: "Coming Soon",
-        soon: true,
         type: "tool",
-        module: "pages/editor/toolbar/upload",
+        soon: true,
+        module: "pages/editor/toolbar/embed",
         image: `<svg width="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_136_99" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_136_99)"> <rect x="40" y="67" width="177" height="122" rx="32" fill="#2F2F2F" stroke="white" stroke-width="12"/> <path d="M106 144.033V110.967C106 104.784 112.714 100.938 118.047 104.066L146.235 120.599C151.505 123.691 151.505 131.309 146.235 134.401L118.047 150.934C112.714 154.062 106 150.216 106 144.033Z" fill="white"/> </g> </svg>`
       }
     ]
@@ -2368,9 +2368,9 @@ modules["pages/editor/toolbar/cursor"] = {
       this.action = "move";
       this.enableStartX = clientPosition(event, "x");
       this.enableStartY = clientPosition(event, "y");
-      let inverse = 1 / editor.zoom;
-      this.startX = (this.enableStartX + window.scrollX) * inverse;
-      this.startY = (this.enableStartY + window.scrollY) * inverse;
+      //let inverse = 1 / editor.zoom;
+      this.startX = this.enableStartX + window.scrollX; //) * inverse;
+      this.startY = this.enableStartY + window.scrollY; //) * inverse;
       body.style.userSelect = "none";
       editor.page.style.touchAction = "pinch-zoom";
       event.preventDefault();
@@ -2409,11 +2409,11 @@ modules["pages/editor/toolbar/cursor"] = {
     }
     let editor = await getModule("pages/editor");
     let utils = await getModule("pages/editor/annotation");
-    let inverse = 1 / editor.zoom;
+    //let inverse = 1 / editor.zoom;
     let mouseX = clientPosition(event, "x");
     let mouseY = clientPosition(event, "y");
-    this.endX = (mouseX + window.scrollX) * inverse;
-    this.endY = (mouseY + window.scrollY) * inverse;
+    this.endX = mouseX + window.scrollX; //) * inverse;
+    this.endY = mouseY + window.scrollY; //) * inverse;
 
     if (this.actionEnabled == false) {
       if (Math.abs(mouseX - this.enableStartX) > 3 || Math.abs(mouseY - this.enableStartY) > 3) {
@@ -2456,8 +2456,23 @@ modules["pages/editor/toolbar/cursor"] = {
       }
       if (this.action == "move") {
         select.p = select.p || anno.p;
-        select.p[0] = utils.round(select.p[0] + (this.endX - this.startX));
-        select.p[1] = utils.round(select.p[1] + (this.endY - this.startY));
+        let number;
+        let pageElem = editor.page.querySelector('.ePage[pageid="' + (select.page || anno.page) + '"]');
+        if (pageElem != null) {
+          number = parseInt(pageElem.getAttribute("order"));
+          if (pageElem.hasAttribute("hide") == true) {
+            return;
+          }
+        }
+        if (this.position == null) {
+          this.position = JSON.parse(JSON.stringify(select.p || anno.p));
+          let originalPos = await utils.scaleToDoc(this.enableStartX, this.enableStartY, number || 0);
+          this.rootX = originalPos.x;
+          this.rootY = originalPos.y;
+        }
+        let { x, y } = await utils.scaleToDoc(mouseX, mouseY, number || 0);
+        select.p[0] = utils.round(this.position[0] + (x - this.rootX));
+        select.p[1] = utils.round(this.position[1] + (y - this.rootY));
       } else if (this.action == "resize") {
         select.s = select.s || anno.s;
         select.p = select.p || anno.p;
@@ -2768,10 +2783,6 @@ modules["pages/editor/toolbar/cursor"] = {
       }
       select.sync = setTempSync;
       await utils.render({ ...anno, ...select });
-    }
-    if (this.action == "move") {
-      this.startX = this.endX;
-      this.startY = this.endY;
     }
     this.updateBox();
   },
@@ -4643,6 +4654,83 @@ modules["pages/editor/toolbar/upload"] = {
     addEvent(window, "scroll", mediamove, { passive: false });
     addEvent(content, "mouseup", placemedia, { passive: false });
     addEvent(content, "touchend", placemedia, { passive: false });
+  }
+};
+
+// EMBED TOOL
+modules["pages/editor/toolbar/embed"] = {
+  js: async function (editor, utils, addEvent, extra) {
+    this.publish = {};
+
+    let toolbar = await getModule("editor/toolbar");
+    let cursor = await getModule("pages/editor/toolbar/cursor");
+
+    body.style.userSelect = "none";
+    editor.page.style.touchAction = "pinch-zoom";
+    editor.page.setAttribute("enabled", "");
+
+    let embed;
+    let anno;
+    let clientY;
+    let clientX;
+    let embedmove = async (event) => {
+      if (embed == null) {
+        // If not embed, make one!
+        embed = {
+          f: "embed",
+          //p: [utils.round(x - this.thickness), utils.round(y - this.thickness)],
+          s: [400, 350], //[this.thickness, this.thickness],
+          l: utils.maxLayer + 1
+          //d: []
+        };
+      }
+      clientX = clientPosition(event, "x") || clientX;
+      clientY = clientPosition(event, "y") || clientY;
+      if (clientX == null || clientY == null) {
+        return;
+      }
+      let [page, number] = await utils.findPage(clientY);
+      if (page.hasAttribute("hide") == true) {
+        return;
+      }
+      let { x, y } = await utils.scaleToDoc(clientX, clientY, number);
+      /*if (editor.lesson.type == "freeboard") {
+        y += 4;
+      }*/
+      embed.p = [utils.round(x - (embed.s[0] / 2)), utils.round(y - (embed.s[1] / 2))];
+      if (page != null && page.hasAttribute("pageid") == true) {
+        embed.page = page.getAttribute("pageid");
+      }
+      [_, anno] = await utils.render(embed, anno);
+      editor.selecting["cursor"] = embed;
+    }
+    let placeembed = async () => {
+      let saveEmbed = JSON.parse(JSON.stringify(embed));
+      embed = null;
+      delete editor.selecting["cursor"];
+
+      let tempID = utils.tempID();
+      anno.setAttribute("anno", tempID);
+      anno.removeAttribute("tooleditor");
+      saveEmbed.sync = getEpoch();
+      utils.save({ ...saveEmbed, _id: tempID }, anno);
+      utils.pushHistory("remove", [{ _id: tempID }]);
+
+      saveEmbed.done = true; // Alert other clients that this annotation is done
+      editor.selecting[tempID] = saveEmbed;
+      await utils.forceShort();
+
+      await toolbar.setCurrentTool(editor.page.querySelector('.eTool[tool="select"]'));
+      await toolbar.setCurrentTool(editor.page.querySelector('.eTool[subtool="select"]'));
+      editor.selecting[tempID] = {};
+      cursor.updateBox();
+    }
+    let content = editor.page.querySelector(".eContent");
+    addEvent(content, "mousemove", embedmove, { passive: false });
+    addEvent(content, "touchmove", embedmove, { passive: false });
+    addEvent(window, "scroll", embedmove, { passive: false });
+    addEvent(content, "mouseup", placeembed, { passive: false });
+    addEvent(content, "touchend", placeembed, { passive: false });
   }
 };
 

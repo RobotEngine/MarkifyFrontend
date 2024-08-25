@@ -1,9 +1,9 @@
-let serverURL = window.serverURL || "https://api.markifyapp.com/";
-//let serverURL = "http://localhost:3000/api/";
+//let serverURL = window.serverURL || "https://api.markifyapp.com/";
+let serverURL = "http://localhost:3000/api/";
 let assetURL = window.mediaURL || "https://static.markifyapp.com/";
 //window.socketURL = "ws://localhost:3000/socket/v2";
 
-const version = "0.17.2"; // Big Update . Small Feature Release . Bug Fix
+const version = "0.17.3"; // Big Update . Small Feature Release . Bug Fix
 
 let socket = {};
 

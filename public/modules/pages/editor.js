@@ -186,7 +186,11 @@ modules["pages/editor"] = {
     ".eAnnotation[sticky][selected] .eReaction[dropdown]": `opacity: 1`,
     ".eAnnotation[sticky][selected] button": `pointer-events: all`,
     ".eAnnotation[src]": `object-fit: cover; pointer-events: all; border-radius: 12px`,
-
+    ".eAnnotation[embed]": `display: flex; background: var(--pageColor); border-radius: 16px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all; text-align: left`,
+    ".eAnnotation[embed] div[holder]": `display: flex; flex-direction: column; width: calc(100% - 16px); flex: 1; padding: 8px`,
+    ".eAnnotation[embed] div[content]": `position: relative; width: 100%; flex: 1; overflow: hidden; border-radius: 8px`,
+    ".eAnnotation[embed] div[content] iframe": `position: absolute; left: 0px; top: 0px; transform-origin: top left; border: none; pointer-events: all`,
+    
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 100; overflow: hidden; pointer-events: none`
   },
   loadedPDFs: [], // Keep track of loaded PDFs for releasing memory
@@ -1623,58 +1627,79 @@ modules["pages/editor"] = {
         return;
       }
       alreadyRunningUpdateCycle = true;
+      let unloadChunkedAnnotations = {};
+      let newlyUnloaded = {};
       let visible = Object.keys(loadedChunks);
       for (let i = 0; i < visible.length; i++) {
         let chunk = visible[i];
         if (this.visibleChunks.includes(chunk) == false) {
           delete loadedChunks[chunk];
+          newlyUnloaded[chunk] = "";
 
           // Remove annotations in unloaded chunks:
-          let chunkAnnos = Object.keys(this.chunkAnnotations[chunk] || {});
-          for (let a = 0; a < chunkAnnos.length; a++) {
-            let anno = this.annotations[chunkAnnos[a]] || {};
-            if (anno.render == null) {
-              continue;
-            }
-            if (anno.chunks != null) {
-              // Annotation may still be visible in another chunk, we must check
-              let remove;
-              for (let c = 0; c < anno.chunks.length; c++) {
-                if (loadedChunks[anno.chunks[c]] != null) {
-                  remove = false;
-                  break;
-                }
-              }
-              if (remove == false) {
-                continue;
-              }
-            }
-            if (this.selecting[anno.render._id] != null) {
-              continue;
-            }
-            let element = pageHolder.querySelector('.eAnnotation[anno="' + anno.render._id + '"]');
-            if (element != null) {
-              element.remove();
-            }
-          }
+          unloadChunkedAnnotations = { ...unloadChunkedAnnotations, ...(this.chunkAnnotations[chunk] || {}) };
         }
       }
+      let chunkUnloadAnnos = Object.keys(unloadChunkedAnnotations);
+      for (let a = 0; a < chunkUnloadAnnos.length; a++) {
+        let annotation = this.annotations[chunkUnloadAnnos[a]] || {};
+        if (annotation.render == null) {
+          continue;
+        }
+        if (annotation.chunks != null) {
+          // Annotation may still be visible in another chunk, we must check
+          let remove = true;
+          for (let c = 0; c < annotation.chunks.length; c++) {
+            if (loadedChunks[annotation.chunks[c]] != null) {
+              remove = false;
+              break;
+            }
+          }
+          if (remove == false) {
+            continue;
+          }
+        }
+        if (this.selecting[annotation.render._id] != null) {
+          continue;
+        }
+        let element = pageHolder.querySelector('.eAnnotation[anno="' + annotation.render._id + '"]');
+        if (element != null) {
+          element.remove();
+        }
+      }
+
+      let loadChunkedAnnotations = {};
+      let newlyLoaded = {};
       for (let i = 0; i < this.visibleChunks.length; i++) {
         let chunk = this.visibleChunks[i];
         if (loadedChunks[chunk] == null) {
           loadedChunks[chunk] = "";
+          newlyLoaded[chunk] = "";
 
           // Load annotations in these chunks:
-          let chunkAnnos = Object.keys(this.chunkAnnotations[chunk] || {});
-          for (let a = 0; a < chunkAnnos.length; a++) {
-            utils.render((this.annotations[chunkAnnos[a]] || {}).render);
+          loadChunkedAnnotations = { ...loadChunkedAnnotations, ...(this.chunkAnnotations[chunk] || {}) };
+        }
+      }
+      let chunkAnnos = Object.keys(loadChunkedAnnotations);
+      for (let a = 0; a < chunkAnnos.length; a++) {
+        let annotation = this.annotations[chunkAnnos[a]] || {};
+        let render = true;
+        for (let i = 0; i < annotation.chunks.length; i++) {
+          let chunk = annotation.chunks[i];
+          if (loadedChunks[chunk] != null && newlyLoaded[chunk] == null) {
+            render = false;
+            break;
           }
+        }
+        if (render == true) {
+          utils.render(annotation.render);
         }
       }
       alreadyRunningUpdateCycle = false;
     }
     this.updateChunks = async () => {
       let pageRect = pageHolder.getBoundingClientRect();
+      let beforeChunks = JSON.stringify(this.visibleChunks);
       if (this.exporting != true) {
         this.visibleChunks = this.regionInChunks(
           ((fixed.offsetWidth / -2) - pageRect.left) / this.zoom,
@@ -1685,7 +1710,9 @@ modules["pages/editor"] = {
       } else {
         this.visibleChunks = Object.keys(this.chunkAnnotations);
       }
-      runUpdateCycle();
+      if (beforeChunks != JSON.stringify(this.visibleChunks)) {
+        runUpdateCycle();
+      }
       clearTimeout(updateSubTimeout);
       updateSubTimeout = setTimeout(() => {
         if (this.realtime.module != null) {
@@ -1836,11 +1863,13 @@ modules["pages/editor"] = {
       }
       //await this.viewAnnotations();
       await this.updateChunks();
+      let loadChunkedAnnotations = {};
       for (let i = 0; i < this.visibleChunks.length; i++) {
-        let chunkAnnos = Object.keys(this.chunkAnnotations[this.visibleChunks[i]] || {});
-        for (let a = 0; a < chunkAnnos.length; a++) {
-          await utils.render((this.annotations[chunkAnnos[a]] || {}).render);
-        }
+        loadChunkedAnnotations = { ...loadChunkedAnnotations, ...(this.chunkAnnotations[this.visibleChunks[i]] || {}) };
+      }
+      let chunkAnnos = Object.keys(loadChunkedAnnotations);
+      for (let a = 0; a < chunkAnnos.length; a++) {
+        await utils.render((this.annotations[chunkAnnos[a]] || {}).render);
       }
       utils.setMarginSize();
       let jumpAnnotation = null;
@@ -2441,7 +2470,6 @@ modules["pages/editor"] = {
       updateContentSize();
 
       await this.updatePageSize();
-      await this.updateChunks();
       await utils.setMarginSize();
 
       if (observe != true) {
@@ -2453,6 +2481,8 @@ modules["pages/editor"] = {
         // Set the new scroll position
         window.scrollTo(window.scrollX + addScrollX, window.scrollY + addScrollY);
       }
+
+      await this.updateChunks();
 
       /*if (observe != true) {
         await utils.setMarginSize();
@@ -3527,6 +3557,7 @@ modules["pages/editor/annotation"] = {
     let path;
     let drawSetPoints = "";
     let transform;
+    let setAnnoID;
     let svgtransform;
     let halfT = (t || 0) / 2;
     let text;
@@ -3544,9 +3575,6 @@ modules["pages/editor/annotation"] = {
           let line = anno.querySelector("polyline");
           line.setAttribute("fill", "none");
         }
-        if (_id != null) {
-          anno.setAttribute("anno", _id);
-        }
         width += t;
         height += t;
         x += halfT;
@@ -3554,6 +3582,9 @@ modules["pages/editor/annotation"] = {
         anno.style.width = width + "px";
         anno.style.height = height + "px";
         transform = "translate(" + x + "px," + y + "px)";
+        if (_id != null) {
+          setAnnoID = _id;
+        }
         svg = anno.querySelector("svg");
         path = svg.querySelector("polyline");
         svg.setAttribute("viewBox", "0 0 " + (width + (this.SVG_PADDING * 2)) + " " + (height + (this.SVG_PADDING * 2)));
@@ -3602,16 +3633,16 @@ modules["pages/editor/annotation"] = {
           anno = annoHolder.querySelector(".eAnnotation[new]");
           anno.removeAttribute("new");
         }
+        anno.style.width = width + "px";
+        anno.style.height = height + "px";
+        transform = "translate(" + x + "px," + y + "px)";
         if (_id != null) {
-          anno.setAttribute("anno", _id);
+          setAnnoID = _id;
           anno.style.opacity = 1;
         } else {
           anno.setAttribute("tooleditor", "");
           anno.style.opacity = .7;
         }
-        anno.style.width = width + "px";
-        anno.style.height = height + "px";
-        transform = "translate(" + x + "px," + y + "px)";
         text = anno.querySelector("div[edit]");
         if (_id != null) {
           text.removeAttribute("placeborder");
@@ -3684,9 +3715,6 @@ modules["pages/editor/annotation"] = {
           line.setAttribute("stroke-linecap", "round");
           line.setAttribute("stroke-linejoin", "round");
         }
-        if (_id != null) {
-          anno.setAttribute("anno", _id);
-        }
         width += t;
         height += t;
         x += halfT;
@@ -3694,6 +3722,9 @@ modules["pages/editor/annotation"] = {
         anno.style.width = width + "px";
         anno.style.height = height + "px";
         transform = "translate(" + x + "px," + y + "px)";
+        if (_id != null) {
+          setAnnoID = _id;
+        }
         svg = anno.querySelector("svg");
         path = svg.querySelector("polyline");
         svg.setAttribute("viewBox", "0 0 " + (width + (this.SVG_PADDING * 2)) + " " + (height + (this.SVG_PADDING * 2)));
@@ -3748,13 +3779,6 @@ modules["pages/editor/annotation"] = {
           polygon.setAttribute("stroke-linejoin", "round");
           */
         }
-        if (_id != null) {
-          anno.setAttribute("anno", _id);
-          anno.style.opacity = 1;
-        } else {
-          anno.setAttribute("tooleditor", "");
-          anno.style.opacity = .7;
-        }
         if (b == "none" && d != "line") {
           t = 0;
           halfT = 0;
@@ -3766,6 +3790,13 @@ modules["pages/editor/annotation"] = {
         anno.style.width = width + "px";
         anno.style.height = height + "px";
         transform = "translate(" + x + "px," + y + "px)";
+        if (_id != null) {
+          setAnnoID = _id;
+          anno.style.opacity = 1;
+        } else {
+          anno.setAttribute("tooleditor", "");
+          anno.style.opacity = .7;
+        }
         svg = anno.querySelector("svg");
         if (remove != true) {
           svg.removeAttribute("hidden");
@@ -3914,16 +3945,16 @@ modules["pages/editor/annotation"] = {
           anno = annoHolder.querySelector(".eAnnotation[new]");
           anno.removeAttribute("new");
         }
+        anno.style.width = width + "px";
+        anno.style.height = height + "px";
+        transform = "translate(" + x + "px," + y + "px)";
         if (_id != null) {
-          anno.setAttribute("anno", _id);
+          setAnnoID = _id;
           anno.style.opacity = 1;
         } else {
           anno.setAttribute("tooleditor", "");
           anno.style.opacity = .7;
         }
-        anno.style.width = width + "px";
-        anno.style.height = height + "px";
-        transform = "translate(" + x + "px," + y + "px)";
         anno.style.setProperty("--themeColor", "#" + c);
         text = anno.querySelector("div[edit]");
         if (_id != null) {
@@ -4068,19 +4099,19 @@ modules["pages/editor/annotation"] = {
           polygon.setAttribute("stroke-linejoin", "round");
           */
         }
-        if (_id != null) {
-          anno.setAttribute("anno", _id);
-          anno.style.opacity = 1;
-        } else {
-          anno.setAttribute("tooleditor", "");
-          anno.style.opacity = .7;
-        }
         anno.style.width = width + "px";
         anno.style.height = height + "px";
         //anno.style.left = x + "px";
         //anno.style.top = y + "px";
         transform = "translate(" + x + "px," + y + "px)";
-        
+        if (_id != null) {
+          setAnnoID = _id;
+          anno.style.opacity = 1;
+        } else {
+          anno.setAttribute("tooleditor", "");
+          anno.style.opacity = .7;
+        }
+
         anno.style.opacity = o / 100;
 
         if (editor.exporting != true) {
@@ -4106,6 +4137,57 @@ modules["pages/editor/annotation"] = {
               }
             }
           });
+        }
+        break;
+      case "embed":
+        if (anno == null) {
+          annoHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" embed new>
+            <div holder>
+              <div content>
+                <iframe></iframe>
+              </div>
+              <div details style="display: none">
+                <input></input>
+              </div>
+            </div>
+          </div>`);
+          anno = annoHolder.querySelector(".eAnnotation[new]");
+          anno.removeAttribute("new");
+        } // <iframe></iframe>
+        anno.style.width = width + "px";
+        anno.style.height = height + "px";
+        //anno.style.left = x + "px";
+        //anno.style.top = y + "px";
+        transform = "translate(" + x + "px," + y + "px)";
+        if (_id != null) {
+          setAnnoID = _id;
+          anno.style.opacity = 1;
+        } else {
+          anno.setAttribute("tooleditor", "");
+          anno.style.opacity = .7;
+        }
+        
+        let embedHolder = anno.querySelector("div[content]");
+        let embedFrame = anno.querySelector("iframe");
+        if (embedFrame != null) {
+          let defaultMaxWidth = 800;
+          if (embedHolder.offsetWidth < 300) {
+            defaultMaxWidth = 300;
+          }
+          let width = Math.max(embedHolder.offsetWidth, defaultMaxWidth);
+          let scale = embedHolder.offsetWidth / width;
+          embedFrame.style.width = width + "px";
+          embedFrame.style.height = (embedHolder.offsetHeight * (1 / scale)) + "px";
+          embedFrame.style.transform = "scale(" + scale + ")";
+
+          let setLink = d || "https://markifyapp.com";
+          //https://app.schoolai.com/space?code=O8RW
+          //https://kami.app/fu6-EHx-dMW-7BG
+          //https://app.schoolai.com/space?code=O8RW
+          if (embedFrame.getAttribute("currentsrc") != setLink) {
+            embedFrame.src = setLink;
+            embedFrame.setAttribute("currentsrc", setLink);
+          }
         }
     }
     if (anno != null) {
@@ -4148,6 +4230,10 @@ modules["pages/editor/annotation"] = {
         if (activeSelect != null) {
           activeSelect.remove();
         }
+      }
+      if (setAnnoID != null) {
+        anno.offsetHeight;
+        anno.setAttribute("anno", setAnnoID);
       }
     }
     /*if (_id != null) {

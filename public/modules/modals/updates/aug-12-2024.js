@@ -4,7 +4,7 @@ modules["modals/updates/aug-12-2024"] = {
   <div class="umFrame">
     <div class="umVideoHolder">
       <div style="aspect-ratio: 16/9">
-        <iframe id="ytplayer" type="text/html" width="720" height="405"
+        <iframe type="text/html" width="720" height="405"
         src="https://www.youtube.com/embed/WQdZyMwYEnc?autoplay=1&loop=1&mute=1"
         frameborder="0" allowfullscreen></iframe>
       </div>

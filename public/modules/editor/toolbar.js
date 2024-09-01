@@ -2055,7 +2055,7 @@ modules["pages/editor/toolbar/cursor"] = {
     } else {
       if (currentLocked == false) {
         actionButtonHolder.setAttribute("locked", "");
-        this.closeActionContainer(actionUI);
+        this.closeActionContainer(actionUI, null, true);
         this.updateActionUI();
       }
     }
@@ -2094,13 +2094,13 @@ modules["pages/editor/toolbar/cursor"] = {
       }
     }
   },
-  closeActionContainer: function (holder, action) {
+  closeActionContainer: function (holder, action, forceClose) {
     let actionHolder = holder.querySelector(".eActionContainer");
     let contentFrame = actionHolder.querySelector(".eActionContainerContent");
     let otherSelected = holder.querySelector(".eTool[selected]");
     if (otherSelected != null) {
       otherSelected.removeAttribute("selected");
-      if (otherSelected == action || action == null) {
+      if (otherSelected == action || forceClose == true) {
         actionHolder.removeAttribute("module");
         // Close frame:
         if (action != null) {
@@ -2122,6 +2122,7 @@ modules["pages/editor/toolbar/cursor"] = {
           }
         })();
         this.updateActionUI();
+        return {};
       }
     }
     return { actionHolder: actionHolder, contentFrame: contentFrame, otherSelected: otherSelected };
@@ -2152,7 +2153,10 @@ modules["pages/editor/toolbar/cursor"] = {
     this.actionEvents = [];
     */
 
-    let { actionHolder, contentFrame, otherSelected } = this.closeActionContainer(holder);
+    let { actionHolder, contentFrame, otherSelected } = this.closeActionContainer(holder, action);
+    if (actionHolder == null) {
+      return;
+    }
 
     let moduleID = action.getAttribute("action");
     let module = await getModule(moduleID);
@@ -2320,7 +2324,7 @@ modules["pages/editor/toolbar/cursor"] = {
           actionButtonHolder.removeAttribute("locked");
         } else {
           actionButtonHolder.setAttribute("locked", "");
-          this.closeActionContainer(frame);
+          this.closeActionContainer(frame, null, true);
         }
 
         for (let i = 0; i < toolButtons.length; i++) {

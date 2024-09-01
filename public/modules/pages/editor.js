@@ -4223,7 +4223,14 @@ modules["pages/editor/annotation"] = {
           }
           if (data.embed.image != null) {
             if (embedFrame == null) {
-              thumbnail.src = data.embed.image;
+              if (editor.exporting != true) {
+                thumbnail.src = data.embed.image;
+              } else {
+                await new Promise(async (resolve) => {
+                  thumbnail.addEventListener("load", resolve);
+                  thumbnail.src = data.embed.image;
+                });
+              }
               thumbnail.style.display = "unset";
             }
           } else {

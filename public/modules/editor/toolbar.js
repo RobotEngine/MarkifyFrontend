@@ -259,9 +259,9 @@ modules["editor/toolbar"] = {
       },
       {
         id: "embed",
-        tooltip: "Coming Soon",
+        tooltip: "Embed",
         type: "tool",
-        soon: true,
+        //soon: true,
         module: "pages/editor/toolbar/embed",
         image: `<svg width="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_136_99" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_136_99)"> <rect x="40" y="67" width="177" height="122" rx="32" fill="#2F2F2F" stroke="white" stroke-width="12"/> <path d="M106 144.033V110.967C106 104.784 112.714 100.938 118.047 104.066L146.235 120.599C151.505 123.691 151.505 131.309 146.235 134.401L118.047 150.934C112.714 154.062 106 150.216 106 144.033Z" fill="white"/> </g> </svg>`
       }
@@ -1261,7 +1261,9 @@ modules["editor/toolbar"] = {
       }
       if (document.activeElement != null) {
         if (document.activeElement.closest("[contenteditable]") != null || document.activeElement.closest("input") != null) {
+          //if (document.activeElement.hasAttribute("nodelete") == false) {
           return;
+          //}
         }
       }
       if ([8, 46].includes(event.keyCode) == true) { // Backspace / Delete Key
@@ -1735,7 +1737,8 @@ modules["pages/editor/toolbar/cursor"] = {
     "markup": ["color", "thickness", "opacity", "unlock", "collaborator", "delete", "more"],
     "shape": ["color", "thickness", "opacity", "style", "unlock", "collaborator", "delete", "more"],
     "sticky": ["textedit", "color", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "unlock", "collaborator", "reactions", "delete", "more"],
-    "media": ["unlock", "collaborator", "delete", "more"]
+    "media": ["unlock", "collaborator", "delete", "more"],
+    "embed": ["openlink", "enlarge", "setembed", "unlock", "collaborator", "delete", "more"]
   },
   actionEvents: [],
   toolbarPadding: 24,
@@ -2052,6 +2055,7 @@ modules["pages/editor/toolbar/cursor"] = {
     } else {
       if (currentLocked == false) {
         actionButtonHolder.setAttribute("locked", "");
+        this.closeActionContainer(actionUI);
         this.updateActionUI();
       }
     }
@@ -2090,15 +2094,47 @@ modules["pages/editor/toolbar/cursor"] = {
       }
     }
   },
+  closeActionContainer: function (holder, action) {
+    let actionHolder = holder.querySelector(".eActionContainer");
+    let contentFrame = actionHolder.querySelector(".eActionContainerContent");
+    let otherSelected = holder.querySelector(".eTool[selected]");
+    if (otherSelected != null) {
+      otherSelected.removeAttribute("selected");
+      if (otherSelected == action || action == null) {
+        actionHolder.removeAttribute("module");
+        // Close frame:
+        if (action != null) {
+          actionHolder.style.left = (action.getBoundingClientRect().left - holder.getBoundingClientRect().left) + (action.clientWidth / 2) - (contentFrame.clientWidth / 2) + "px";
+        }
+        actionHolder.style.transform = "scale(0)";
+        actionHolder.style.opacity = 0;
+        holder.style.removeProperty("border-top-left-radius");
+        holder.style.removeProperty("border-top-right-radius");
+        holder.style.removeProperty("border-bottom-left-radius");
+        holder.style.removeProperty("border-bottom-right-radius");
+        (async function () {
+          await sleep(300);
+          if (actionHolder.hasAttribute("module") == false) {
+            actionHolder.removeAttribute("changetop");
+            actionHolder.removeAttribute("changebottom");
+            actionHolder.style.left = "unset";
+            actionHolder.style.transition = "unset";
+          }
+        })();
+        this.updateActionUI();
+      }
+    }
+    return { actionHolder: actionHolder, contentFrame: contentFrame, otherSelected: otherSelected };
+  },
   clickAction: async function (event) {
     if (event == null || event.target == null) {
       return;
     }
     let editor = await getModule("pages/editor");
     let toolbarModule = await getModule("editor/toolbar");
-    let reaction = event.target.closest(".eReaction");
-    if (reaction != null) {
-      return this.reactionRun(reaction);
+    let interact = this.interactRun(event.target);
+    if (interact == true) {
+      return;
     }
     let action = event.target.closest(".eTool");
     if (action == null || action.closest(".eSelectHolder") == null) {
@@ -2116,34 +2152,8 @@ modules["pages/editor/toolbar/cursor"] = {
     this.actionEvents = [];
     */
 
-    let actionHolder = holder.querySelector(".eActionContainer");
-    let contentFrame = actionHolder.querySelector(".eActionContainerContent");
-    let otherSelected = holder.querySelector(".eTool[selected]");
-    if (otherSelected != null) {
-      otherSelected.removeAttribute("selected");
-      if (otherSelected == action) {
-        actionHolder.removeAttribute("module");
-        // Close frame:
-        actionHolder.style.left = (action.getBoundingClientRect().left - holder.getBoundingClientRect().left) + (action.clientWidth / 2) - (contentFrame.clientWidth / 2) + "px";
-        actionHolder.style.transform = "scale(0)";
-        actionHolder.style.opacity = 0;
-        holder.style.removeProperty("border-top-left-radius");
-        holder.style.removeProperty("border-top-right-radius");
-        holder.style.removeProperty("border-bottom-left-radius");
-        holder.style.removeProperty("border-bottom-right-radius");
-        (async function () {
-          await sleep(300);
-          if (actionHolder.hasAttribute("module") == false) {
-            actionHolder.removeAttribute("changetop");
-            actionHolder.removeAttribute("changebottom");
-            actionHolder.style.left = "unset";
-            actionHolder.style.transition = "unset";
-          }
-        })();
-        this.updateActionUI();
-        return;
-      }
-    }
+    let { actionHolder, contentFrame, otherSelected } = this.closeActionContainer(holder);
+
     let moduleID = action.getAttribute("action");
     let module = await getModule(moduleID);
     let selectKeys = Object.keys(editor.selecting);
@@ -2211,6 +2221,9 @@ modules["pages/editor/toolbar/cursor"] = {
           let annoID = selectKeys[i];
           let select = editor.selecting[annoID];
           let original = (editor.annotations[annoID] || {}).render || {};
+          if (original.lock == true && set.lock == null) {
+            continue;
+          }
           let anno = JSON.parse(JSON.stringify(original));
           let annoSet = JSON.parse(JSON.stringify(set));
           select.sync = sync;
@@ -2307,6 +2320,7 @@ modules["pages/editor/toolbar/cursor"] = {
           actionButtonHolder.removeAttribute("locked");
         } else {
           actionButtonHolder.setAttribute("locked", "");
+          this.closeActionContainer(frame);
         }
 
         for (let i = 0; i < toolButtons.length; i++) {
@@ -2359,7 +2373,7 @@ modules["pages/editor/toolbar/cursor"] = {
       return;
     }
     */
-    if (this.annotationElem != null && this.annotationElem.querySelector("div[contenteditable]") != null) {
+    if (this.annotationElem != null && (this.annotationElem.querySelector("div[contenteditable]") != null || this.annotationElem.querySelector("div[visible] input") != null)) {
       return;
     }
     this.actionEnabled = false;
@@ -2907,22 +2921,60 @@ modules["pages/editor/toolbar/cursor"] = {
     //utils.resetAnnotationSize();
     this.updateBox();
   },
-  reactionRun: async function (reaction) {
-    if (reaction.hasAttribute("emoji") == false) {
-      return;
-    }
+  interactRun: async function (target) {
     let editor = await getModule("pages/editor");
-    reaction.setAttribute("disabled", "");
-    let body = {
-      emoji: reaction.getAttribute("emoji"),
-      annotation: reaction.closest(".eAnnotation").getAttribute("anno")
-    };
-    if (reaction.hasAttribute("selected") == false) {
-      await sendRequest("PUT", "lessons/members/reaction", body, { session: editor.session });
-    } else {
-      await sendRequest("PUT", "lessons/members/reaction/remove", body, { session: editor.session });
+    let reaction = target.closest(".eReaction");
+    if (reaction != null) {
+      if (reaction.hasAttribute("emoji") == false) {
+        return;
+      }
+      reaction.setAttribute("disabled", "");
+      let body = {
+        emoji: reaction.getAttribute("emoji"),
+        annotation: reaction.closest(".eAnnotation").getAttribute("anno")
+      };
+      if (reaction.hasAttribute("selected") == false) {
+        await sendRequest("PUT", "lessons/members/reaction", body, { session: editor.session });
+      } else {
+        await sendRequest("PUT", "lessons/members/reaction/remove", body, { session: editor.session });
+      }
+      reaction.removeAttribute("disabled");
+      return true;
     }
-    reaction.removeAttribute("disabled");
+    let embedPlay = target.closest(".eAnnotation[embed] div[activate] button");
+    if (embedPlay != null) {
+      let embedAnno = embedPlay.closest(".eAnnotation[embed]");
+      if (embedAnno != null) {
+        let render = ((editor.annotations[embedAnno.getAttribute("anno")] || {}).render || {});
+        if (render.embed != null) {
+          if (render.embed.url == null) {
+            window.open(render.d);
+            return;
+          }
+          let embedHolder = embedAnno.querySelector("div[content]");
+          embedHolder.insertAdjacentHTML("beforeend", `<iframe></iframe>`);
+          let embedFrame = embedHolder.querySelector("iframe");
+          embedFrame.setAttribute("currenturl", render.embed.url);
+          if (render.embed.color != null) {
+            embedFrame.style.background = cleanString(render.embed.color);
+          }
+          let frameWidth = render.s[0] - 16;
+          let defaultMaxWidth = 800;
+          if (frameWidth < 300) {
+            defaultMaxWidth = 300;
+          }
+          let embedWidth = Math.max(frameWidth, defaultMaxWidth);
+          let scale = frameWidth / embedWidth;
+          embedFrame.style.width = embedWidth + "px";
+          embedFrame.style.height = ((render.s[1] - 24 - embedAnno.querySelector("div[details]").offsetHeight) * (1 / scale)) + "px";
+          embedFrame.style.transform = "scale(" + scale + ")";
+          embedFrame.src = render.embed.url;
+          embedHolder.querySelector("img[thumbnail]").style.display = "none";
+          embedHolder.querySelector("div[activate]").style.display = "none";
+        }
+      }
+      return true;
+    }
   },
   js: async function (editor, utils, addEvent) {
     let content = editor.page.querySelector(".eContent");
@@ -2952,7 +3004,7 @@ modules["pages/editor/toolbar/cursor"] = {
       if (target == null || target.closest(".eContent") == null || target.closest(".eSelectBar") != null) {
         return;
       }
-      if (target.closest("button") != null) {
+      if (target.closest("button") != null || target.closest("a") != null) {
         return;
       }
       anno = target.closest(".eAnnotation, .eSelect, .eSelectActive");
@@ -2975,6 +3027,7 @@ modules["pages/editor/toolbar/cursor"] = {
       startX = clientPosition(event, "x") + window.scrollX;
       startY = clientPosition(event, "y") + window.scrollY;
       if ((anno == null || editor.selecting[anno.getAttribute("anno")] == null) && event.shiftKey == false) {
+        await sleep(); // NEEDED TO ALLOW OTHER EVENTS TO FIRE (TEXT BOX / INPUT)
         editor.selecting = {};
         if (anno == null) {
           this.updateBox();
@@ -2990,12 +3043,21 @@ modules["pages/editor/toolbar/cursor"] = {
       if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
         return;
       }
+      let newlySelected = false;
       if (editor.selecting[annoID] == null) {
         wasSelected = annoID;
         editor.selecting[annoID] = {};
+        newlySelected = true;
       }
       await this.updateBox();
-      this.enableAction(event);
+      await this.enableAction(event);
+      if (newlySelected == true) {
+        if (render.f == "embed" && render.embed == null && render.lock != true) {
+          this.clickAction({
+            target: content.querySelector('.eSelectBar:not([remove]) .eTool[action="pages/editor/toolbar/setembed"]')
+          });
+        }
+      }
     }
     let disableSelect = async (event) => {
       this.endAction(event);
@@ -3005,7 +3067,7 @@ modules["pages/editor/toolbar/cursor"] = {
       if (target == null) {
         return;
       }
-      if (target.closest("button") != null) {
+      if (target.closest("button") != null || target.closest("a") != null) {
         return;
       }
       anno = target.closest(".eAnnotation, .eSelect, .eSelectActive");
@@ -3193,7 +3255,7 @@ modules["pages/editor/toolbar/drag"] = {
       if (target == null || target.closest(".eContent") == null || target.closest(".eSelectBar") != null) {
         return;
       }
-      if (target.closest("button") != null) {
+      if (target.closest("button") != null || target.closest("a") != null) {
         return;
       }
       anno = target.closest(".eAnnotation, .eSelect, .eSelectActive");
@@ -3336,9 +3398,9 @@ modules["pages/editor/toolbar/pan"] = {
     }
     let disableDrag = async (event) => {
       if (event != null && event.target != null) {
-        let reaction = event.target.closest(".eReaction");
-        if (reaction != null) {
-          return cursorModule.reactionRun(reaction);
+        let interact = cursorModule.interactRun(event.target);
+        if (interact == true) {
+          return;
         }
       }
       dragging = false;
@@ -4723,7 +4785,13 @@ modules["pages/editor/toolbar/embed"] = {
       await toolbar.setCurrentTool(editor.page.querySelector('.eTool[tool="select"]'));
       await toolbar.setCurrentTool(editor.page.querySelector('.eTool[subtool="select"]'));
       editor.selecting[tempID] = {};
-      cursor.updateBox();
+      await cursor.updateBox();
+
+      await sleep();
+
+      cursor.clickAction({
+        target: content.querySelector('.eSelectBar:not([remove]) .eTool[action="pages/editor/toolbar/setembed"]')
+      });
     }
     let content = editor.page.querySelector(".eContent");
     addEvent(content, "mousemove", embedmove, { passive: false });
@@ -6504,6 +6572,196 @@ modules["pages/editor/toolbar/textedit"] = {
     extra.updateToolActions(extra.frame);
   }
 };
+modules["pages/editor/toolbar/setembed"] = {
+  button: `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_800_56" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_800_56)"> <rect x="111" y="47" width="34" height="162" rx="17" stroke="white" stroke-width="12"/> <path d="M128 211.485L131.536 215.021C134.724 218.209 139.048 220 143.556 220H177C186.389 220 194 212.389 194 203C194 193.611 186.389 186 177 186H128H79C69.6112 186 62 193.611 62 203C62 212.389 69.6112 220 79 220H112.444C116.952 220 121.276 218.209 124.464 215.021L128 211.485Z" stroke="white" stroke-width="12"/> <path d="M128 44.5147L131.536 40.9792C134.724 37.7911 139.048 36 143.556 36H177C186.389 36 194 43.6112 194 53C194 62.3888 186.389 70 177 70H128H79C69.6112 70 62 62.3888 62 53C62 43.6112 69.6112 36 79 36H112.444C116.952 36 121.276 37.7911 124.464 40.9792L128 44.5147Z" stroke="white" stroke-width="12"/> <rect x="117" y="53" width="22" height="150" rx="11" fill="#2F2F2F"/> <path d="M68 203C68 196.925 72.9249 192 79 192H128H177C183.075 192 188 196.925 188 203V203C188 209.075 183.075 214 177 214H143.556C140.639 214 137.841 212.841 135.778 210.778L128 203L120.222 210.778C118.159 212.841 115.361 214 112.444 214H79C72.9249 214 68 209.075 68 203V203Z" fill="#2F2F2F"/> <path d="M68 53C68 59.0751 72.9249 64 79 64H128H177C183.075 64 188 59.0751 188 53V53C188 46.9249 183.075 42 177 42H143.556C140.639 42 137.841 43.1589 135.778 45.2218L128 53L120.222 45.2218C118.159 43.1589 115.361 42 112.444 42H79C72.9249 42 68 46.9249 68 53V53Z" fill="#2F2F2F"/> </g> </svg>`,
+  tooltip: "Set Link",
+  multiSelect: false,
+  setButton: function (editor, button) {
+    let selectID = Object.keys(editor.selecting)[0];
+    let inputText = editor.page.querySelector('.eAnnotation[anno="' + selectID + '"] input');
+    if (document.activeElement != inputText) {
+      button.removeAttribute("selecthighlight");
+    } else {
+      button.setAttribute("selecthighlight", "");
+    }
+  },
+  pastEvents: [],
+  js: async function (frame, toolID, extra) {
+    let editor = await getModule("pages/editor");
+    let utils = await getModule("pages/editor/annotation");
+    let alert = await getModule("alert");
+    let selectID = Object.keys(editor.selecting)[0];
+    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    
+    if (original.lock == true) {
+      return;
+    }
+
+    let annoElem = editor.page.querySelector('.eAnnotation[anno="' + selectID + '"]');
+    if (annoElem == null) {
+      return;
+    }
+    let detailsHolder = annoElem.querySelector("div[details]");
+    if (detailsHolder == null) {
+      return;
+    }
+
+    let linkInputHolder = detailsHolder.querySelector("div[input]");
+    let infoHolder = detailsHolder.querySelector("div[info]");
+
+    if (linkInputHolder.hasAttribute("visible") == true && original.embed != null) {
+      linkInputHolder.removeAttribute("visible");
+      infoHolder.style.removeProperty("display");
+      return;
+    }
+
+    linkInputHolder.removeAttribute("disabled");
+
+    let annoTx = linkInputHolder.querySelector("input");
+    if (annoTx.parentElement.hasAttribute("disabled") == true) {
+      return;
+    }
+
+    if (document.activeElement != annoTx) {
+      linkInputHolder.setAttribute("visible", "");
+      infoHolder.style.display = "none";
+      await sleep();
+      annoTx.select();
+    }
+
+    let updateEmbedSize = () => {
+      let embedFrame = annoElem.querySelector("iframe");
+      if (embedFrame != null) {
+        let frameWidth = original.s[0] - 16;
+        let defaultMaxWidth = 800;
+        if (frameWidth < 300) {
+          defaultMaxWidth = 300;
+        }
+        let embedWidth = Math.max(frameWidth, defaultMaxWidth);
+        let scale = frameWidth / embedWidth;
+        embedFrame.style.width = embedWidth + "px";
+        embedFrame.style.height = ((original.s[1] - 24 - detailsHolder.offsetHeight) * (1 / scale)) + "px";
+        embedFrame.style.transform = "scale(" + scale + ")";
+      }
+    }
+
+    for (let i = 0; i < this.pastEvents.length; i++) {
+      let remEvent = this.pastEvents[i];
+      remEvent.parent.removeEventListener(remEvent.name, remEvent.listener);
+    }
+    this.pastEvents = [];
+
+    let finishListener = async () => {
+      if (annoTx.value.startsWith("http://") == false && annoTx.value.startsWith("https://") == false) {
+        annoTx.value = "https://" + annoTx.value;
+      }
+      if (isValidURL(annoTx.value) == false) {
+        annoTx.select();
+        alert.open("error", "<b>Invalid Link</b>That link is invalid, check it and try again.");
+        return;
+      }
+      await extra.saveSelecting({ d: annoTx.value, embed: null }, true);
+      if (connected == true) {
+        linkInputHolder.setAttribute("disabled", "");
+        utils.syncSave(true);
+      }
+    }
+    this.pastEvents.push({ type: "event", parent: annoTx, name: "change", listener: finishListener });
+    annoTx.addEventListener("change", finishListener);
+
+    let unselectListener = async () => {
+      if (original.embed != null) {
+        annoTx.blur();
+        linkInputHolder.removeAttribute("visible");
+        infoHolder.style.removeProperty("display");
+        await sleep();
+      }
+      extra.updateToolActions(extra.frame);
+      updateEmbedSize();
+    }
+    this.pastEvents.push({ type: "event", parent: annoTx, name: "blur", listener: unselectListener });
+    annoTx.addEventListener("blur", unselectListener);
+
+    let selectListener = () => {
+      extra.updateToolActions(extra.frame);
+    }
+    this.pastEvents.push({ type: "event", parent: annoTx, name: "focus", listener: selectListener });
+    annoTx.addEventListener("focus", selectListener);
+
+    extra.updateToolActions(extra.frame);
+    updateEmbedSize();
+  }
+};
+
+// Embed Functions
+modules["pages/editor/toolbar/openlink"] = {
+  button: `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_2337_3" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_2337_3)"> <path d="M62.0313 194.114L194.554 61.5918" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M74.5537 61.5918H194.554" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M194.554 181.592V61.5918" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M62.0313 194.114L194.554 61.5918" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> <path d="M74.5537 61.5918H194.554" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> <path d="M194.554 181.592V61.5918" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> </g> </svg>`,
+  tooltip: "Open Link",
+  multiSelect: false,
+  setButton: function (editor, button) {
+    let selectKeys = Object.keys(editor.selecting);
+    let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
+    if (preferenceTool.d != null) {
+      button.style.display = "unset";
+    } else {
+      button.style.display = "none";
+    }
+  },
+  js: async function (frame, toolID, extra) {
+    let editor = await getModule("pages/editor");
+    let selectID = Object.keys(editor.selecting)[0];
+    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    
+    if (original.d != null) {
+      window.open(original.d);
+    }
+  }
+};
+modules["pages/editor/toolbar/enlarge"] = {
+  button: `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_2337_30" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_2337_30)"> <path d="M58 102V78C58 66.9543 66.9543 58 78 58H102" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M198 102V78C198 66.9543 189.046 58 178 58H154" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M58 154V178C58 189.046 66.9543 198 78 198H102" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M198 154V178C198 189.046 189.046 198 178 198H154" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M58 102V78C58 66.9543 66.9543 58 78 58H102" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> <path d="M198 102V78C198 66.9543 189.046 58 178 58H154" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> <path d="M58 154V178C58 189.046 66.9543 198 78 198H102" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> <path d="M198 154V178C198 189.046 189.046 198 178 198H154" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> </g> </svg>`,
+  tooltip: "Enlarge",
+  multiSelect: false,
+  setButton: function (editor, button) {
+    let selectKeys = Object.keys(editor.selecting);
+    let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
+    if (preferenceTool.embed != null && preferenceTool.embed.url != null) {
+      button.style.display = "unset";
+    } else {
+      button.style.display = "none";
+    }
+  },
+  js: async function (frame, toolID, extra) {
+    let editor = await getModule("pages/editor");
+    let modal = await getModule("modal");
+    let selectID = Object.keys(editor.selecting)[0];
+    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    modal.open("modals/editor/embed", null, (original.embed || {}).title || (new URL(original.d)).hostname, false);
+  }
+};
+modules["modals/editor/embed"] = {
+  html: `
+  <div class="emFrame"><iframe></iframe></div>
+  `,
+  css: {
+    ".emFrame": `width: calc(100vw - 37px); height: calc(100vh - 77px); max-width: 1000px; max-height: 700px`,
+    ".emFrame iframe": `position: absolute; left: 0px; top: 0px; width: 100% !important; height: 100% !important; transform: unset !important; background: var(--pageColor); border: none`
+  },
+  js: async function (frame) {
+    frame.closest(".modalContent").style.padding = "4px 0px 0px";
+    let editor = await getModule("pages/editor");
+    let selectID = Object.keys(editor.selecting)[0];
+    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    if (original.embed != null && original.embed.url != null) {
+      frame.querySelector(".emFrame iframe").src = original.embed.url;
+    }
+    frame.closest(".fixedItemHolder").addEventListener("click", async () => {
+      (await getModule("modal")).close();
+    });
+    //let embedHolder = editor.page.querySelector('.eAnnotation[anno="' + selectID + '"] div[content]');
+    //let embedFrame = embedHolder.querySelector("iframe");
+    //if (embedFrame != null) {
+  }
+}
 
 modules["pages/editor/toolbar/fontsize"] = {
   button: `<div class="eSubToolFontSize"></div>`,

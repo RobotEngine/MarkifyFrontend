@@ -69,7 +69,7 @@ modules["pages/dashboard"] = {
     if (account.onboard == null) {
       modal.open("modals/tutorial", null, null, false);
     } else if (account.lastWhatsNew != null && account.currentWhatsNew != null && account.lastWhatsNew != account.currentWhatsNew) {
-      modal.open("modals/updates/aug-12-2024", null, "What's New", false);
+      modal.open("modals/updates/" + account.currentWhatsNew, null, "What's New", false);
     }
 
     // Slick Animation

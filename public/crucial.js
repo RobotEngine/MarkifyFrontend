@@ -3,7 +3,7 @@ let serverURL = window.serverURL || "https://api.markifyapp.com/";
 let assetURL = window.mediaURL || "https://static.markifyapp.com/";
 //window.socketURL = "ws://localhost:3000/socket/v2";
 
-const version = "0.17.3"; // Big Update . Small Feature Release . Bug Fix
+const version = "0.18.0"; // Big Update . Small Feature Release . Bug Fix
 
 let socket = {};
 
@@ -360,6 +360,15 @@ function clientPosition(event, type) {
 
 function cleanString(str) {
   return str.replace(/\>/g, "&#62;").replace(/\</g, "&#60;");
+}
+
+function isValidURL(urlString) {
+  try {
+    new URL(urlString);
+    return true;
+  } catch (error) {
+    return false;
+  }
 }
 
 function timeSince(time, long) {

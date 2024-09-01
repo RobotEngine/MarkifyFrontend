@@ -4210,14 +4210,16 @@ modules["pages/editor/annotation"] = {
         let embedLink = infoHolder.querySelector("a[link]");
         if (data.embed != null) {
           linkInputHolder.removeAttribute("visible");
-          if (data.embed.url != null && editor.exporting != true) {
-            if (embedFrame == null) {
-              embedActivate.querySelector("img").src = "./images/editor/actions/play.svg";
+          if (editor.exporting != true) {
+            if (data.embed.url != null) {
+              if (embedFrame == null) {
+                embedActivate.querySelector("img").src = "./images/editor/actions/play.svg";
+                embedActivate.style.display = "flex";
+              }
+            } else {
+              embedActivate.querySelector("img").src = "./images/editor/actions/open.svg";
               embedActivate.style.display = "flex";
             }
-          } else {
-            embedActivate.querySelector("img").src = "./images/editor/actions/open.svg";
-            embedActivate.style.display = "flex";
           }
           if (data.embed.image != null) {
             if (embedFrame == null) {

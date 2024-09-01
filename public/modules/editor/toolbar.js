@@ -2952,7 +2952,7 @@ modules["pages/editor/toolbar/cursor"] = {
             return;
           }
           let embedHolder = embedAnno.querySelector("div[content]");
-          embedHolder.insertAdjacentHTML("beforeend", `<iframe></iframe>`);
+          embedHolder.insertAdjacentHTML("beforeend", `<iframe allowfullscreen></iframe>`);
           let embedFrame = embedHolder.querySelector("iframe");
           embedFrame.setAttribute("currenturl", render.embed.url);
           if (render.embed.color != null) {
@@ -6740,7 +6740,7 @@ modules["pages/editor/toolbar/enlarge"] = {
 };
 modules["modals/editor/embed"] = {
   html: `
-  <div class="emFrame"><iframe></iframe></div>
+  <div class="emFrame"><iframe allowfullscreen></iframe></div>
   `,
   css: {
     ".emFrame": `width: calc(100vw - 37px); height: calc(100vh - 77px); max-width: 1000px; max-height: 700px`,

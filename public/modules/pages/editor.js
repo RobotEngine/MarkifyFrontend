@@ -1393,7 +1393,7 @@ modules["pages/editor"] = {
           utils.pendingSaves[anno.render._id] = { ...utils.pendingSaves[anno.render._id], ...anno.render };
         }
       }
-      utils.syncSave();
+      utils.syncSave(true);
     }
     window.resync = { lesson: lessonID, annotations: this.annotations };
 

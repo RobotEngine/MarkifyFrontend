@@ -2479,14 +2479,15 @@ modules["pages/editor/toolbar/cursor"] = {
           }
         }
         if (this.position == null) {
-          this.position = JSON.parse(JSON.stringify(select.p || anno.p));
+          //this.position = JSON.parse(JSON.stringify(select.p || anno.p));
+          this.position = "";
           let originalPos = await utils.scaleToDoc(this.enableStartX, this.enableStartY, number || 0);
           this.rootX = originalPos.x;
           this.rootY = originalPos.y;
         }
         let { x, y } = await utils.scaleToDoc(mouseX, mouseY, number || 0);
-        select.p[0] = utils.round(this.position[0] + (x - this.rootX));
-        select.p[1] = utils.round(this.position[1] + (y - this.rootY));
+        select.p[0] = utils.round(anno.p[0] + (x - this.rootX));
+        select.p[1] = utils.round(anno.p[1] + (y - this.rootY));
       } else if (this.action == "resize") {
         select.s = select.s || anno.s;
         select.p = select.p || anno.p;

@@ -1303,6 +1303,9 @@ modules["editor/toolbar"] = {
           if (editor.lesson.settings.editOthersWork != true && [anno.a, anno.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
             continue;
           }
+          if (anno.lock == true) {
+            continue;
+          }
           editor.selecting[selectID].remove = true;
           editor.selecting[selectID].done = true;
 

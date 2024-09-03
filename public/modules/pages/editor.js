@@ -1845,6 +1845,10 @@ modules["pages/editor"] = {
       if (checkForJumpLink != null && checkForJumpLink != "") {
         if (this.annotations[checkForJumpLink] != null) {
           [_, jumpAnnotation] = await utils.render((this.annotations[checkForJumpLink] || {}).render, null, null, true);
+          this.selecting[checkForJumpLink] = {};
+          if (this.updateZoom) {
+            await this.updateZoom();
+          }
         }
       }
       if (jumpAnnotation == null) {

@@ -267,6 +267,23 @@ modules["editor/toolbar"] = {
       }
     ]
   },
+  subToolTypes: {
+    draw: ["draw"],
+    markup: ["markup"],
+    shape: ["shape"],
+    text: ["text"],
+    sticky: ["sticky"],
+    media: ["media", "embed"]
+  },
+  checkSubToolType: function (editor, check) {
+    let disabled = editor.lesson.settings.disabled || [];
+    for (let i = 0; i < disabled.length; i++) {
+      let subTool = this.subToolTypes[disabled[i]];
+      if (subTool != null && subTool.includes(check) == true) {
+        return true;
+      }
+    }
+  },
   js: async function (frame) {
     let editor = await getModule("pages/editor");
     let alertModule = await getModule("alert");
@@ -1123,6 +1140,10 @@ modules["editor/toolbar"] = {
       event.dataTransfer.dropEffect = "copy";
     });
     tempListen(window, "paste", async (event) => {
+      let self = editor.getSelf();
+      if (self.access < 1) {
+        return;
+      }
       let data = event.clipboardData || event.originalEvent.clipboardData || {};
       if (document.activeElement != null) {
         if (document.activeElement.closest("[contenteditable]") != null || document.activeElement.closest("input") != null) {
@@ -1179,6 +1200,9 @@ modules["editor/toolbar"] = {
             for (let i = 0; i < markifyData.length; i++) {
               let tempID = utils.tempID();
               let newAnno = markifyData[i];
+              if (self.access < 4 && this.checkSubToolType(editor, newAnno.f) == true) {
+                continue;
+              }
               let existingAnno = (editor.annotations[newAnno._id] || {}).render;
               if (existingAnno != null) {
                 newAnno.p[0] = (existingAnno.p[0] || newAnno.p[0]) + 50;
@@ -1250,6 +1274,10 @@ modules["editor/toolbar"] = {
     });
 
     tempListen(window, "keydown", async (event) => {
+      let self = editor.getSelf();
+      if (self.access < 1) {
+        return;
+      }
       let meta = event.ctrlKey || event.metaKey;
       if (event.keyCode == 90 && event.shiftKey == true && meta == true) {
         event.preventDefault();
@@ -1271,6 +1299,10 @@ modules["editor/toolbar"] = {
         let selectKeys = Object.keys(editor.selecting);
         for (let i = 0; i < selectKeys.length; i++) {
           let selectID = selectKeys[i];
+          let anno = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+          if (editor.lesson.settings.editOthersWork != true && [anno.a, anno.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
+            continue;
+          }
           editor.selecting[selectID].remove = true;
           editor.selecting[selectID].done = true;
 
@@ -1295,6 +1327,9 @@ modules["editor/toolbar"] = {
           let selectID = selectKeys[i];
           let selecting = editor.selecting[selectID];
           let existingAnno = (editor.annotations[selectID] || {}).render;
+          if (editor.lesson.settings.editOthersWork != true && [existingAnno.a, existingAnno.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
+            continue;
+          }
           selecting.p = selecting.p || existingAnno.p || [0, 0];
           let nudge = 1;
           if (event.shiftKey == true) {
@@ -1315,7 +1350,7 @@ modules["editor/toolbar"] = {
         cursorModule.updateBox();
         return;
       }
-      if (event.keyCode == 68 && meta == true) {
+      if (event.keyCode == 68 && meta == true) { // Duplicate
         let selectKeys = Object.keys(editor.selecting);
         if (selectKeys.length < 1) {
           return;
@@ -1328,6 +1363,9 @@ modules["editor/toolbar"] = {
           let selectID = selectKeys[i];
           let tempID = utils.tempID();
           let newAnno = JSON.parse(JSON.stringify(({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {}));
+          if (self.access < 4 && this.checkSubToolType(editor, newAnno.f) == true) {
+            continue;
+          }
           newAnno._id = tempID;
           newAnno.p = newAnno.p || [0, 0];
           newAnno.p[0] += 50;
@@ -1349,7 +1387,8 @@ modules["editor/toolbar"] = {
         return;
       }
     });
-
+    
+    cursorModule.updateBox();
     //frame.closest(".eSide").style.opacity = 1;
   }
 }
@@ -1366,6 +1405,7 @@ modules["pages/editor/toolbar/cursor"] = {
     let pageHolderRect = content.querySelector(".ePageHolder").getBoundingClientRect();
     let selectionIDs = Object.keys(editor.selecting);
     let checkRemSelections = content.querySelectorAll(".eSelect");
+    let self = editor.getSelf();
 
     this.minX = null;
     this.maxX = null;
@@ -1513,7 +1553,7 @@ modules["pages/editor/toolbar/cursor"] = {
             annoTx.removeAttribute("contenteditable");
           }
         }
-        if (merged.lock == true) {
+        if (merged.lock == true || (editor.lesson.settings.editOthersWork != true && [merged.a, merged.m].includes(self.modify) == false && self.access < 4)) { // Can't edit another member's work:
           select.setAttribute("hidetips", "");
         }
         /*
@@ -1814,13 +1854,20 @@ modules["pages/editor/toolbar/cursor"] = {
         actionUI.removeAttribute("new");
 
         let actionButtonHolder = actionUI.querySelector(".eSelectHolder");
-        let showLocked = false;
-        for (let i = 0; i < selectionIDs.length; i++) {
-          let selectID = selectionIDs[i];
-          let anno = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
-          if (anno.lock == true) {
-            showLocked = true;
-            break;
+        let self = editor.getSelf();
+        let showLocked = self.access < 1;
+        if (showLocked == false) {
+          for (let i = 0; i < selectionIDs.length; i++) {
+            let selectID = selectionIDs[i];
+            let anno = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+            if (anno.lock == true) {
+              showLocked = true;
+              break;
+            }
+            if (editor.lesson.settings.editOthersWork != true && [anno.a, anno.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
+              showLocked = true;
+              break;
+            }
           }
         }
         if (showLocked == false) {
@@ -2036,15 +2083,27 @@ modules["pages/editor/toolbar/cursor"] = {
     }
 
     let actionButtonHolder = actionUI.querySelector(".eSelectHolder");
-    let showLocked = false;
-    let selectKeys = Object.keys(editor.selecting);
-    for (let i = 0; i < selectKeys.length; i++) {
-      let selectID = selectKeys[i];
-      let anno = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
-      if (anno.lock == true) {
-        showLocked = true;
-        break;
+    let self = editor.getSelf();
+    let showLocked = self.access < 1;
+    if (showLocked == false) {
+      let selectKeys = Object.keys(editor.selecting);
+      for (let i = 0; i < selectKeys.length; i++) {
+        let selectID = selectKeys[i];
+        let anno = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+        if (anno.lock == true) {
+          showLocked = true;
+          break;
+        }
+        if (editor.lesson.settings.editOthersWork != true && [anno.a, anno.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
+          showLocked = true;
+          break;
+        }
       }
+    }
+    if (showLocked == false) {
+      actionButtonHolder.removeAttribute("locked");
+    } else {
+      actionButtonHolder.setAttribute("locked", "");
     }
     let currentLocked = actionButtonHolder.hasAttribute("locked");
     if (showLocked == false) {
@@ -2310,14 +2369,21 @@ modules["pages/editor/toolbar/cursor"] = {
         let actionButtonHolder = frame.querySelector(".eSelectHolder");
         let toolButtons = actionButtonHolder.querySelectorAll(".eTool[action]");
 
-        let showLocked = false;
-        let selectKeys = Object.keys(editor.selecting);
-        for (let i = 0; i < selectKeys.length; i++) {
-          let selectID = selectKeys[i];
-          let anno = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
-          if (anno.lock == true) {
-            showLocked = true;
-            break;
+        let self = editor.getSelf();
+        let showLocked = self.access < 1;
+        if (showLocked == false) {
+          let selectKeys = Object.keys(editor.selecting);
+          for (let i = 0; i < selectKeys.length; i++) {
+            let selectID = selectKeys[i];
+            let anno = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+            if (anno.lock == true) {
+              showLocked = true;
+              break;
+            }
+            if (editor.lesson.settings.editOthersWork != true && [anno.a, anno.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
+              showLocked = true;
+              break;
+            }
           }
         }
         if (showLocked == false) {
@@ -2433,6 +2499,8 @@ modules["pages/editor/toolbar/cursor"] = {
     this.endX = mouseX + window.scrollX; //) * inverse;
     this.endY = mouseY + window.scrollY; //) * inverse;
 
+    let self = editor.getSelf();
+
     if (this.actionEnabled == false) {
       if (Math.abs(mouseX - this.enableStartX) > 3 || Math.abs(mouseY - this.enableStartY) > 3) {
         this.actionEnabled = true;
@@ -2471,6 +2539,10 @@ modules["pages/editor/toolbar/cursor"] = {
       }
       if (anno.lock == true) {
         return this.endAction();
+      }
+      if (editor.lesson.settings.editOthersWork != true && [anno.a, anno.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
+        delete editor.selecting[annoid];
+        return;
       }
       if (this.action == "move") {
         select.p = select.p || anno.p;
@@ -3024,11 +3096,11 @@ modules["pages/editor/toolbar/cursor"] = {
         console.log(anno)
       }
       */
-      if (editor.getSelf().access < 1) {
+      /*if (editor.getSelf().access < 1) {
         editor.selecting = {};
         this.updateBox();
         return;
-      }
+      }*/
       startX = clientPosition(event, "x") + window.scrollX;
       startY = clientPosition(event, "y") + window.scrollY;
       if ((anno == null || editor.selecting[anno.getAttribute("anno")] == null) && event.shiftKey == false) {
@@ -3045,9 +3117,9 @@ modules["pages/editor/toolbar/cursor"] = {
       let annoID = anno.getAttribute("anno");
       let self = editor.getSelf();
       let render = ((editor.annotations[annoID] || {}).render || {});
-      if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
+      /*if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
         return;
-      }
+      }*/
       let newlySelected = false;
       if (editor.selecting[annoID] == null) {
         wasSelected = annoID;
@@ -3076,11 +3148,11 @@ modules["pages/editor/toolbar/cursor"] = {
         return;
       }
       anno = target.closest(".eAnnotation, .eSelect, .eSelectActive");
-      if (editor.getSelf().access < 1) {
+      /*if (editor.getSelf().access < 1) {
         editor.selecting = {};
         this.updateBox();
         return;
-      }
+      }*/
       let endX = clientPosition(event, "x") + window.scrollX;
       let endY = clientPosition(event, "y") + window.scrollY;
       if (Math.floor(endX - startX) == 0 && Math.floor(endY - startY) == 0) {
@@ -3090,7 +3162,7 @@ modules["pages/editor/toolbar/cursor"] = {
         let annoID = anno.getAttribute("anno");
         let self = editor.getSelf();
         let render = ((editor.annotations[annoID] || {}).render || {});
-        if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
+        if (editor.getSelf().access > 0 && editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
           alertModule.open("warning", "<b>Someone Else's Annotation</b>The ability to modify another member's work is disabled.");
           return;
         }
@@ -5741,7 +5813,7 @@ modules["dropdowns/editor/toolbar/more"] = {
   <div class="eToolbarMoreLine" option="layers"></div>
   <button class="eToolbarMoreAction" option="bringfront" close title="Bring Forward"><img src="./images/editor/rearrange/up.svg">Bring to Front</button>
   <button class="eToolbarMoreAction" option="sendback" close title="Send Backward"><img src="./images/editor/rearrange/down.svg">Send to Back</button>
-  <div class="eToolbarMoreLine"></div>
+  <div class="eToolbarMoreLine" option="duplicate"></div>
   <button class="eToolbarMoreAction" option="copylink" close title="Copy a share link to element." style="--themeColor: var(--secondary)"><img src="./images/tooltips/copy.svg">Copy Link</button>
   `,
   css: {
@@ -5756,10 +5828,12 @@ modules["dropdowns/editor/toolbar/more"] = {
     let editor = await getModule("pages/editor");
     let utils = await getModule("pages/editor/annotation");
     let cursor = await getModule("pages/editor/toolbar/cursor");
-    let dropdownModule = await getModule("dropdown");
-    let alertModule = await getModule("alert");
+    let toolbar = await getModule("editor/toolbar");
 
-    frame.querySelector('.eToolbarMoreAction[option="duplicate"]').addEventListener("click", async () => {
+    let duplicateButton = frame.querySelector('.eToolbarMoreAction[option="duplicate"]');
+    let duplicateLine = frame.querySelector('.eToolbarMoreLine[option="duplicate"]');
+    duplicateButton.addEventListener("click", async () => {
+      let self = editor.getSelf();
       let selectKeys = Object.keys(editor.selecting);
       let newSelect = {};
       let newNewSelect = {};
@@ -5768,6 +5842,9 @@ modules["dropdowns/editor/toolbar/more"] = {
         let selectID = selectKeys[i];
         let tempID = utils.tempID();
         let newAnno = JSON.parse(JSON.stringify(({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {}));
+        if (self.access < 4 && toolbar.checkSubToolType(editor, newAnno.f) == true) {
+          continue;
+        }
         newAnno._id = tempID;
         newAnno.p = newAnno.p || [0, 0];
         newAnno.p[0] += 50;
@@ -5832,7 +5909,7 @@ modules["dropdowns/editor/toolbar/more"] = {
     });
     let shareButton = frame.querySelector('.eToolbarMoreAction[option="copylink"]');
     shareButton.addEventListener("click", async () => {
-      if (editor.lesson.access == null || editor.lesson.access < 0) {
+      /*if (editor.lesson.access == null || editor.lesson.access < 0) {
         let alert = await alertModule.open("info", '<b>Shared Link Disabled</b><div>To create a share link to this element, the lesson link must be set to public. <a class="eToolbarMoreShowMe" new>Show Me</a></div>', { time: 8 });
         let showMeButton = fixed.querySelector(".eToolbarMoreShowMe[new]");
         showMeButton.removeAttribute("new");
@@ -5845,7 +5922,7 @@ modules["dropdowns/editor/toolbar/more"] = {
           showMeButton.remove();
         }
         return;
-      }
+      }*/
       let firstAnno = Object.keys(editor.selecting)[0];
       if (firstAnno == null || firstAnno.startsWith("pending_") == true) {
         return;
@@ -5857,20 +5934,27 @@ modules["dropdowns/editor/toolbar/more"] = {
       if (frame == null) {
         return;
       }
-      let showLock = true;
+      let self = editor.getSelf();
+      let showLock = self.access > 0;
       let pending = false;
       let selectKeys = Object.keys(editor.selecting);
       //let layer = 0;
-      for (let i = 0; i < selectKeys.length; i++) {
-        let annotation = editor.annotations[selectKeys[i]];
-        let render = annotation.render || annotation.revert || {};
-        layer = render.l || Math.round(((render.sync || getEpoch()) / 2000000000000) * 2147483647);
-        if (render._id.startsWith("pending_") == true) {
-          pending = true;
-        }
-        if (render.lock == true) {
-          showLock = false;
-          break;
+      if (showLock != false) {
+        for (let i = 0; i < selectKeys.length; i++) {
+          let annotation = editor.annotations[selectKeys[i]];
+          let render = annotation.render || annotation.revert || {};
+          layer = render.l || Math.round(((render.sync || getEpoch()) / 2000000000000) * 2147483647);
+          if (render._id.startsWith("pending_") == true) {
+            pending = true;
+          }
+          if (render.lock == true) {
+            showLock = false;
+            break;
+          }
+          if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
+            showLock = false;
+            break;
+          }
         }
       }
       if (showLock == true) {
@@ -5883,6 +5967,13 @@ modules["dropdowns/editor/toolbar/more"] = {
         layersLine.style.display = "none";
         frontButton.style.display = "none";
         backButton.style.display = "none";
+      }
+      if (self.access > 0) {
+        duplicateButton.style.display = "flex";
+        duplicateLine.style.display = "block";
+      } else {
+        duplicateButton.style.display = "none";
+        duplicateLine.style.display = "none";
       }
       if (pending == false) {
         shareButton.removeAttribute("disabled");
@@ -5909,28 +6000,37 @@ modules["pages/editor/toolbar/unlock"] = {
   divideBefore: true,
   showOnLock: true,
   setButton: async function (editor, button) {
-    if (button.closest(".eSelectHolder").hasAttribute("locked") == false) {
-      button.style.display = "none";
+    let self = editor.getSelf();
+    let selectKeys = Object.keys(editor.selecting);
+    let showButton = true;
+    let hideButton = self.access < 1;
+    let locked = false;
+    for (let i = 0; i < selectKeys.length; i++) {
+      let selectID = selectKeys[i];
+      let anno = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+      if (anno.lock == true) {
+        locked = true;
+      }
+      if ([anno.a, anno.m].includes(self.modify) == false && self.access < 4) {
+        showButton = false;
+        break;
+      }
+      if (editor.lesson.settings.editOthersWork != true && [anno.a, anno.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
+        hideButton = true;
+        break;
+      }
+    }
+    if (showButton == true) {
+      button.style.removeProperty("opacity");
+      this.disabled = false;
     } else {
+      button.style.opacity = .5;
+      this.disabled = true;
+    }
+    if (hideButton == false && locked == true) {
       button.style.display = "unset";
-      let self = editor.getSelf();
-      let selectKeys = Object.keys(editor.selecting);
-      let showButton = true;
-      for (let i = 0; i < selectKeys.length; i++) {
-        let selectID = selectKeys[i];
-        let anno = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
-        if ([anno.a, anno.m].includes(self.modify) == false && self.access < 4) {
-          showButton = false;
-          break;
-        }
-      }
-      if (showButton == true) {
-        button.style.removeProperty("opacity");
-        this.disabled = false;
-      } else {
-        button.style.opacity = .5;
-        this.disabled = true;
-      }
+    } else {
+      button.style.display = "none";
     }
   },
   js: async function (frame, toolID, extra) {

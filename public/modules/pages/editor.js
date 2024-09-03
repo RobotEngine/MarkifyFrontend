@@ -4114,7 +4114,7 @@ modules["pages/editor/annotation"] = {
         break;
       case "media":
         if (anno == null) {
-          annoHolder.insertAdjacentHTML("beforeend", `<img class="eAnnotation" new></img>`);
+          annoHolder.insertAdjacentHTML("beforeend", `<img class="eAnnotation" draggable="false" new></img>`);
           anno = annoHolder.querySelector(".eAnnotation[new]");
           anno.removeAttribute("new");
           /*

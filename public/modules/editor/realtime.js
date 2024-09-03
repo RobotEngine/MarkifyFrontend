@@ -548,7 +548,8 @@ modules["editor/realtime"] = {
               cursorHolder.style.opacity = 1;
             }
             let updateCursorProps = async () => {
-              let selectKeys = Object.keys((extra || {}).select || {});
+              let userSelection = (extra || {}).select || {};
+              let selectKeys = Object.keys(userSelection);
               let allSelections = editor.page.querySelectorAll('.eCollabSelect[member="' + memberID + '"], .eAnnotation[member="' + memberID + '"]');
               for (let i = 0; i < allSelections.length; i++) {
                 let select = allSelections[i];
@@ -560,11 +561,6 @@ modules["editor/realtime"] = {
                     select.remove();
                   })();
                 }
-              }
-              if (selectKeys.length > 0 && editor.options.cursornames != false) {
-                cursorHolder.setAttribute("extend", "");
-              } else {
-                cursorHolder.removeAttribute("extend");
               }
               if (extra != null) {
                 if (extra.c != null) {
@@ -610,6 +606,7 @@ modules["editor/realtime"] = {
                       original = original || {};
                       let originalRender = original.render || {};
                       if (editor.lesson.settings.editOthersWork != true && (originalRender.a || originalRender.m) != null && [originalRender.a, originalRender.m].includes(member.modify) == false && member.access < 4) { // Can't edit another member's work:
+                        delete userSelection[annoID];
                         continue;
                       }
                       if (anno.lock == false) {
@@ -771,6 +768,11 @@ modules["editor/realtime"] = {
                     utils.saveEdit(extra.u);
                   }
                 }
+              }
+              if (Object.keys(userSelection).length > 0 && editor.options.cursornames != false) {
+                cursorHolder.setAttribute("extend", "");
+              } else {
+                cursorHolder.removeAttribute("extend");
               }
               if (extra != null && extra.press == true) {
                 cursorHolder.setAttribute("pressed", "");

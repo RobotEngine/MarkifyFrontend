@@ -1499,12 +1499,17 @@ modules["pages/editor/toolbar/cursor"] = {
         }
         anno.setAttribute("selected", "");
         let activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
-        if (activeLayer == null) {
-          anno.parentElement.insertAdjacentHTML("afterbegin", `<div class="eSelectActive" anno="${annoID}" tooleditor></div>`);
-          activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
+        if (editor.lesson.settings.editOthersWork == true || [merged.a, merged.m].includes(self.modify) == true || self.access > 3) {
+          if (activeLayer == null) {
+            anno.parentElement.insertAdjacentHTML("afterbegin", `<div class="eSelectActive" anno="${annoID}" tooleditor></div>`);
+            activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
+          }
+          activeLayer.style.setProperty("--annoZIndex", merged.l || Math.round(((merged.sync || getEpoch()) / 2000000000000) * 2147483647));
+          activeLayer.style.setProperty("--selectZIndex", i);
+        } else if (activeLayer != null) {
+          activeLayer.remove();
+          activeLayer = null;
         }
-        activeLayer.style.setProperty("--annoZIndex", merged.l || Math.round(((merged.sync || getEpoch()) / 2000000000000) * 2147483647));
-        activeLayer.style.setProperty("--selectZIndex", i);
         if (anno.hasAttribute("sticky") == false) {
           anno.style.overflow = "hidden";
         }
@@ -1661,14 +1666,15 @@ modules["pages/editor/toolbar/cursor"] = {
         select.style.transition = "all .25s, opacity .15s";
 
         let inverse = 1 / editor.zoom;
-
-        let sizeInverse = 22 * inverse;
-        let posInverse = 11 * inverse;
-        activeLayer.style.width = (width + t) + sizeInverse + "px";
-        activeLayer.style.height = (height + t) + sizeInverse + "px";
-        //activeLayer.style.left = x + halfT - posInverse + "px";
-        //activeLayer.style.top = y + halfT - border - posInverse + "px";
-        activeLayer.style.transform = "translate(" + (x + halfT - posInverse) + "px," + (y + halfT - border - posInverse) + "px) rotate(" + rotate + "deg)";
+        if (activeLayer != null) {
+          let sizeInverse = 22 * inverse;
+          let posInverse = 11 * inverse;
+          activeLayer.style.width = (width + t) + sizeInverse + "px";
+          activeLayer.style.height = (height + t) + sizeInverse + "px";
+          //activeLayer.style.left = x + halfT - posInverse + "px";
+          //activeLayer.style.top = y + halfT - border - posInverse + "px";
+          activeLayer.style.transform = "translate(" + (x + halfT - posInverse) + "px," + (y + halfT - border - posInverse) + "px) rotate(" + rotate + "deg)";
+        }
 
         let radian = (merged.r || 0) * (Math.PI / 180);
         let changedWidth = ((Math.abs(width * Math.cos(radian)) + Math.abs(height * Math.sin(radian))) - width) / 2;
@@ -3166,8 +3172,8 @@ modules["pages/editor/toolbar/cursor"] = {
         let self = editor.getSelf();
         let render = ((editor.annotations[annoID] || {}).render || {});
         if (editor.getSelf().access > 0 && editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
-          alertModule.open("warning", "<b>Someone Else's Annotation</b>The ability to modify another member's work is disabled.");
-          return;
+          alertModule.close(this.someoneElsesAnnoWarning);
+          this.someoneElsesAnnoWarning = await alertModule.open("warning", "<b>Someone Else's Annotation</b>The ability to modify another member's work is disabled.");
         }
         if (event.shiftKey == true) {
           // Unselect

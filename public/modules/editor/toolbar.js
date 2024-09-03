@@ -5866,7 +5866,7 @@ modules["dropdowns/editor/toolbar/more"] = {
     });
     let lockButton = frame.querySelector('.eToolbarMoreAction[option="lock"]');
     lockButton.addEventListener("click", async () => {
-      await this.extra.saveSelecting({ lock: true }, true);
+      await this.extra.saveSelecting({ lock: true });
       this.extra.updateToolActions(this.extra.frame);
     });
 

@@ -3,6 +3,7 @@ modules["dropdowns/editor/share/options"] = {
   <div class="eShareActionTitle" style="margin-bottom: 12px"><div></div>Member Settings<div></div></div>
   <button class="eShareActionOption border" option="forceLogin" title="Require those joining to login for verified identites."><div label>Require Login</div><div class="eOptionToggle"><div></div></div></button>
   <button class="eShareActionOption border" option="editOthersWork" title="Allow members to edit and delete annotations created by other members."><div label>Modify Other's Work</div><div class="eOptionToggle"><div></div></div></button>
+  <button class="eShareActionOption border" option="anonymousMode" title="Hide member names from each other."><div label>Anonymous Mode</div><div class="eOptionToggle"><div></div></div></button>
   <button class="eShareActionOption border" option="allowExport" title="Allow members to export, print, or copy the lesson."><div label>Allow Exporting</div><div class="eOptionToggle"><div></div></div></button>
   <button class="eShareActionOption border" option="observeViewers" title="Allow members to observe those who aren't editing."><div label>Observe Viewers</div><div class="eOptionToggle"><div></div></div></button>
   <div class="eShareActionTitle" style="margin-top: 18px"><div></div>Tool Toggle<div></div></div>
@@ -90,6 +91,7 @@ modules["dropdowns/editor/share/options"] = {
     let editOthersWorkButton = frame.querySelector('.eShareActionOption[option="editOthersWork"]');
     let allowExportButton = frame.querySelector('.eShareActionOption[option="allowExport"]');
     let observeViewersButton = frame.querySelector('.eShareActionOption[option="observeViewers"]');
+    let anonymousModeButton = frame.querySelector('.eShareActionOption[option="anonymousMode"]');
     let toolToggle = frame.querySelector(".eShareToolToggle");
     let toolToggleHolder = toolToggle.querySelector(".eShareToolToggleInfo");
     let toolToogleOptions = toolToggleHolder.querySelectorAll(".eShareActionOption");
@@ -108,6 +110,13 @@ modules["dropdowns/editor/share/options"] = {
       } else {
         editOthersWorkButton.setAttribute("off", "");
         editOthersWorkButton.removeAttribute("on");
+      }
+      if (editor.lesson.settings.anonymousMode == true) {
+        anonymousModeButton.setAttribute("on", "");
+        anonymousModeButton.removeAttribute("off");
+      } else {
+        anonymousModeButton.setAttribute("off", "");
+        anonymousModeButton.removeAttribute("on");
       }
       if (editor.lesson.settings.allowExport != false) {
         allowExportButton.setAttribute("on", "");
@@ -162,6 +171,11 @@ modules["dropdowns/editor/share/options"] = {
       editOthersWorkButton.setAttribute("disabled", "");
       await sendRequest("PUT", "lessons/setting", { set: "editOthersWork", value: !editOthersWorkButton.hasAttribute("on") }, { session: editor.session });
       editOthersWorkButton.removeAttribute("disabled");
+    });
+    anonymousModeButton.addEventListener("click", async () => {
+      anonymousModeButton.setAttribute("disabled", "");
+      await sendRequest("PUT", "lessons/setting", { set: "anonymousMode", value: !anonymousModeButton.hasAttribute("on") }, { session: editor.session });
+      anonymousModeButton.removeAttribute("disabled");
     });
     allowExportButton.addEventListener("click", async () => {
       allowExportButton.setAttribute("disabled", "");

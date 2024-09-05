@@ -6057,6 +6057,11 @@ modules["pages/editor/toolbar/collaborator"] = {
   button: `<img class="eSubToolCollaborator" src="./images/profiles/default.svg">`,
   showOnLock: true,
   setButton: async function (editor, button) {
+    if (editor.lesson.settings.anonymousMode == true && editor.getSelf().access < 4) {
+      button.style.display = "none";
+      cursorModule.updateActionUI(false);
+      return;
+    }
     let cursorModule = await getModule("pages/editor/toolbar/cursor");
     button.setAttribute("disabled", "");
     let selectKeys = Object.keys(editor.selecting);

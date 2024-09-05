@@ -10,17 +10,20 @@ modules["editor/realtime"] = {
     ".eCursor .pointer": `width: 20px; height: 20px; background: var(--backgroundColor); border: solid 3px var(--borderColor); overflow: hidden; border-radius: 8px 14px 14px 14px; box-shadow: 0 0 6px rgb(0 0 0 / 50%); transition: all .3s, color 0s`,
     ".eCursor .pointer[none]": `border-radius: 14px; opacity: 0; width: 0px`,
     ".eCursor [name]": `box-sizing: border-box; display: flex; width: fit-content; height: 100%; padding: 0px 6px; border-radius: 14px; overflow: hidden; opacity: 0; white-space: nowrap; font-size: 14px; font-weight: 700; white-space: nowrap; align-items: center`,
-    ".eCursor:hover [color]": `width: var(--fullyExtended)`,
-    ".eCursor:hover [name]": `width: unset; opacity: 1`,
-    ".eCursor:hover .pointer[none]": `opacity: 1`,
-    ".eCursor[extend] [color]": `width: var(--fullyExtended)`,
-    ".eCursor[extend] [name]": `width: unset; opacity: 1`,
-    ".eCursor[extend] .pointer[none]": `opacity: 1`,
+    ".eCursor:not([anonymous]):hover [color]": `width: var(--fullyExtended)`,
+    ".eCursor:not([anonymous]):hover [name]": `width: unset; opacity: 1`,
+    ".eCursor:not([anonymous]):hover .pointer[none]": `opacity: 1`,
+    ".eCursor:not([anonymous])[extend] [color]": `width: var(--fullyExtended)`,
+    ".eCursor:not([anonymous])[extend] [name]": `width: unset; opacity: 1`,
+    ".eCursor:not([anonymous])[extend] .pointer[none]": `opacity: 1`,
+    ".eCursor[anonymous]": `--themeColor: var(--theme) !important; pointer-events: none !important`,
+    ".eCursor[anonymous] [name]": `opacity: 0`,
 
     ".eSelection": `opacity: 0; z-index: 10; transition: .3s`,
     ".eSelection div": `position: absolute; background: var(--themeColor); opacity: .4; border-radius: 4px`,
 
-    ".eCollabSelect": `position: absolute; left: 0px; top: 0px; opacity: 0; z-index: 9; border-radius: 9px; opacity .15s; pointer-events: none`
+    ".eCollabSelect": `position: absolute; left: 0px; top: 0px; border: solid 3px var(--themeColor); opacity: 0; z-index: 9; border-radius: 9px; opacity .15s; pointer-events: none`,
+    ".eCollabSelect[anonymous]": `--themeColor: var(--theme) !important`
   },
   js: async function (editor, page) {
     editor.realtime.module = this;
@@ -373,28 +376,35 @@ modules["editor/realtime"] = {
     });
 
     this.adjustRealtimeHolder = () => { // Scale realtime elements when zoom or resize:
-      let adjustElements = realtimeHolder.querySelectorAll("[scale]");
+      let adjustElements = realtimeHolder.children; //querySelectorAll("[scale]");
       for (let i = 0; i < adjustElements.length; i++) {
         let element = adjustElements[i];
-        element.setAttribute("notransition", "");
-        if (element.hasAttribute("width")) {
-          element.style.width = parseFloat(element.getAttribute("width")) * editor.zoom + "px";
+        if (element.hasAttribute("scale") == true) {
+          element.setAttribute("notransition", "");
+          if (element.hasAttribute("width")) {
+            element.style.width = parseFloat(element.getAttribute("width")) * editor.zoom + "px";
+          }
+          if (element.hasAttribute("height")) {
+            element.style.height = parseFloat(element.getAttribute("height")) * editor.zoom + "px";
+          }
+          /*let pageElem = pageHolder;
+          if (element.hasAttribute("page")) {
+            pageElem = pageHolder.children[parseInt(element.getAttribute("page")) - 1] || pageElem;
+          }*/
+          let pageRect = pageHolder.getBoundingClientRect();
+          if (element.hasAttribute("x") && element.hasAttribute("y")) {
+            let x = parseFloat(element.getAttribute("x")) * editor.zoom;
+            let y = parseFloat(element.getAttribute("y")) * editor.zoom;
+            element.style.transform = "translate(" + (x + pageRect.left + (parseInt(element.getAttribute("offsetx") || "0")) + window.scrollX) + "px," + (y + pageRect.top + (parseInt(element.getAttribute("offsety") || "0")) + window.scrollY) + "px)";
+          }
+          element.offsetHeight;
+          element.removeAttribute("notransition");
         }
-        if (element.hasAttribute("height")) {
-          element.style.height = parseFloat(element.getAttribute("height")) * editor.zoom + "px";
+        if (editor.lesson.settings.anonymousMode != true) {
+          element.removeAttribute("anonymous");
+        } else {
+          element.setAttribute("anonymous", "");
         }
-        /*let pageElem = pageHolder;
-        if (element.hasAttribute("page")) {
-          pageElem = pageHolder.children[parseInt(element.getAttribute("page")) - 1] || pageElem;
-        }*/
-        let pageRect = pageHolder.getBoundingClientRect();
-        if (element.hasAttribute("x") && element.hasAttribute("y")) {
-          let x = parseFloat(element.getAttribute("x")) * editor.zoom;
-          let y = parseFloat(element.getAttribute("y")) * editor.zoom;
-          element.style.transform = "translate(" + (x + pageRect.left + (parseInt(element.getAttribute("offsetx") || "0")) + window.scrollX) + "px," + (y + pageRect.top + (parseInt(element.getAttribute("offsety") || "0")) + window.scrollY) + "px)";
-        }
-        element.offsetHeight;
-        element.removeAttribute("notransition");
       }
     }
 
@@ -547,6 +557,11 @@ modules["editor/realtime"] = {
               cursorHolder.offsetHeight;
               cursorHolder.style.opacity = 1;
             }
+            if (editor.lesson.settings.anonymousMode != true) {
+              cursorHolder.removeAttribute("anonymous");
+            } else {
+              cursorHolder.setAttribute("anonymous", "");
+            }
             let updateCursorProps = async () => {
               let userSelection = (extra || {}).select || {};
               let selectKeys = Object.keys(userSelection);
@@ -560,6 +575,11 @@ modules["editor/realtime"] = {
                     await sleep(150);
                     select.remove();
                   })();
+                }
+                if (editor.lesson.settings.anonymousMode != true) {
+                  select.removeAttribute("anonymous");
+                } else {
+                  select.setAttribute("anonymous", "");
                 }
               }
               if (extra != null) {
@@ -663,7 +683,12 @@ modules["editor/realtime"] = {
                         selection = realtimeHolder.querySelector('.eCollabSelect[member="' + memberID + '"][new]');
                         selection.removeAttribute("new");
                         selection.setAttribute("anno", annoID);
-                        selection.style.border = "solid 3px " + member.color;
+                        selection.style.setProperty("--themeColor", member.color);
+                        if (editor.lesson.settings.anonymousMode != true) {
+                          selection.removeAttribute("anonymous");
+                        } else {
+                          selection.setAttribute("anonymous", "");
+                        }
                         selection.offsetHeight;
                       }
                     }
@@ -845,7 +870,7 @@ modules["editor/realtime"] = {
                     offsety = -20;
                     origin = "center center";
                 }
-                cursorHolder.innerHTML = html.replace(/MEMBER_COLOR_REPLACE/g, member.color);
+                cursorHolder.innerHTML = html.replace(/MEMBER_COLOR_REPLACE/g, "var(--themeColor)");
                 cursorHolder.setAttribute("offsetx", offsetx);
                 cursorHolder.setAttribute("offsety", offsety);
                 cursorHolder.style.setProperty("--origin", origin);
@@ -858,7 +883,7 @@ modules["editor/realtime"] = {
                 cursorHolder.style.setProperty("--themeColor", member.color);
                 let colorMain = cursorHolder.querySelector("[color]");
                 colorMain.style.width = "fit-content";
-                cursorHolder.style.setProperty( "--fullyExtended", colorMain.clientWidth + "px");
+                cursorHolder.style.setProperty("--fullyExtended", colorMain.clientWidth + "px");
                 colorMain.style.removeProperty("width");
                 updateCursorProps();
                 cursorHolder.removeAttribute("hidden");

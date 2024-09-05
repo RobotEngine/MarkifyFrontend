@@ -891,6 +891,12 @@ modules["pages/editor"] = {
             }
           }
           */
+          if (this.realtime.module != null) {
+            this.realtime.module.adjustRealtimeHolder();
+          }
+          if (this.updateZoom) {
+            this.updateZoom(true);
+          }
           enableScrollTop();
           break;
         case "addpages":

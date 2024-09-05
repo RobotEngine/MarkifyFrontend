@@ -1106,7 +1106,7 @@ modules["dropdowns/dashboard/options"] = {
 
       this.focusListener = async () => {
         titleText.removeAttribute("contenteditable");
-        let name = titleText.textContent.substring(0, 30).replace(/[^A-Za-z0-9.,_|/\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
+        let name = titleText.textContent.substring(0, 100).replace(/[^A-Za-z0-9.,_|/\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
         if (name.replace(/ /g, "").length < 1) {
           titleText.textContent = titleText.getAttribute("prevtitle");
           return;

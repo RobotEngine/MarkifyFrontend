@@ -13,7 +13,7 @@ modules["pages/editor"] = {
       <div class="eTop" noscrollclose>
         <div class="eTopSection">
           <a class="eLogo" href="#dashboard"><img src="./images/logo.svg"></a>
-          <div class="eFileName border" spellcheck="false" onpaste="clipBoardRead(event)"></div>
+          <div class="eFileNameHolder border"><div class="eFileName" spellcheck="false" onpaste="clipBoardRead(event)"></div></div>
           <button class="eFileDropdown" dropdown="dropdowns/editor/file">File</button>
         </div>
         <div class="eTopSection">
@@ -91,8 +91,10 @@ modules["pages/editor"] = {
 
     ".eLogo": `height: 100%; padding: 0; user-select: none`,
     ".eLogo img": `height: 100%`,
-    ".eFileName": `padding: 3px; margin: 0 4px; outline: unset; --borderRadius: 4px; --borderColor: var(--secondary); font-size: 20px; white-space: nowrap; --transition: .05s`,
-    ".eFileName:focus": `--borderWidth: 4px`,
+    ".eFileNameHolder": `margin: 0 4px; --borderRadius: 4px; --borderColor: var(--secondary); --borderWidth: 0px; --transition: .05s`,
+    ".eFileName": `max-width: 350px; padding: 0px; outline: unset; font-size: 20px; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; scrollbar-width: none`,
+    ".eFileName::-webkit-scrollbar": `display: none`,
+    //".eFileName:focus": `--borderWidth: 4px`,
     ".eFileDropdown": `padding: 6px 10px; height: 32px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
 
     ".eSaveProgress": `display: flex; width: 32px; height: 32px; padding: 0; align-items: center; overflow: hidden; background: var(--lightGray)`,
@@ -841,6 +843,7 @@ modules["pages/editor"] = {
           let setName = this.lesson.name || "Untitled Lesson";
           if (document.activeElement.closest(".eFileName") == null) {
             lessonName.textContent = setName;
+            lessonName.title = setName;
           }
           document.title = setName + " | Markify";
           if (body.hasOwnProperty("pin")) {
@@ -1481,6 +1484,7 @@ modules["pages/editor"] = {
       setFrame("pages/dashboard");
     });
     lessonName.textContent = this.lesson.name || "Untitled Lesson";
+    lessonName.title = lessonName.textContent;
     document.title = lessonName.textContent + " | Markify";
     lessonName.addEventListener("keydown", (event) => {
       if (event.keyCode == 13) {
@@ -1491,7 +1495,14 @@ modules["pages/editor"] = {
       enableScrollTop();
     });
     lessonName.addEventListener("focusout", async () => {
-      let name = lessonName.textContent.substring(0, 30).replace(/[^A-Za-z0-9.,_|/\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
+      lessonName.style.removeProperty("padding");
+      lessonName.style.removeProperty("overflow-x");
+      lessonName.style.removeProperty("text-overflow");
+      lessonName.scrollTo(0, 0);
+      lessonName.parentElement.style.setProperty("--borderWidth", "0px");
+      enableScrollTop();
+
+      let name = lessonName.textContent.substring(0, 100).replace(/[^A-Za-z0-9.,_|/\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
       if (name.replace(/ /g, "").length < 1) {
         lessonName.textContent = this.lesson.name;
         return;
@@ -1500,10 +1511,19 @@ modules["pages/editor"] = {
         return;
       }
       lessonName.textContent = name;
+      lessonName.title = name;
       let [code] = await sendRequest("POST", "lessons/name", { name: name }, { session: this.session });
       if (code != 200) {
         lessonName.textContent = this.lesson.name;
+        lessonName.title = this.lesson.name;
       }
+    });
+    lessonName.addEventListener("focus", async () => {
+      lessonName.style.padding = "4px 6px";
+      lessonName.style.overflowX = "auto";
+      lessonName.style.textOverflow = "unset";
+      lessonName.parentElement.style.setProperty("--borderWidth", "4px");
+      enableScrollTop();
     });
 
     // RELEASE OLD MEMORY

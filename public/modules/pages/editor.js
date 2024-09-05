@@ -1580,7 +1580,7 @@ modules["pages/editor"] = {
         }
       }
       let chunks = [];
-      if (render.remove != true) {
+      if (render.remove != true && render.p != null) {
         chunks = this.regionInChunks(
           render.p[0],
           render.p[1] + pageTop,
@@ -2453,7 +2453,7 @@ modules["pages/editor"] = {
       if (set != null) {
         this.zoom = set;
       } else {
-        this.zoom += ((mouse.deltaY || 0) * -0.01);
+        this.zoom += Math.min(mouse.deltaY || 0, 50) * -0.01;
         //let delta = Math.max(-1, Math.min(1, (mouse.wheelDelta || -(mouse.detail || 0))));
         //this.zoom = this.zoom + (delta / 10);
       }

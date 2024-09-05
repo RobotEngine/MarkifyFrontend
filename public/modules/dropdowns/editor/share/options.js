@@ -3,7 +3,7 @@ modules["dropdowns/editor/share/options"] = {
   <div class="eShareActionTitle" style="margin-bottom: 12px"><div></div>Member Settings<div></div></div>
   <button class="eShareActionOption border" option="forceLogin" title="Require those joining to login for verified identites."><div label>Require Login</div><div class="eOptionToggle"><div></div></div></button>
   <button class="eShareActionOption border" option="editOthersWork" title="Allow members to edit and delete annotations created by other members."><div label>Modify Other's Work</div><div class="eOptionToggle"><div></div></div></button>
-  <button class="eShareActionOption border" option="anonymousMode" title="Hide member names from each other."><div label>Anonymous Mode</div><div class="eOptionToggle"><div></div></div></button>
+  <button class="eShareActionOption border" option="anonymousMode" title="Hide all member names and colors in cursors."><div label>Anonymous Mode</div><div class="eOptionToggle"><div></div></div></button>
   <button class="eShareActionOption border" option="allowExport" title="Allow members to export, print, or copy the lesson."><div label>Allow Exporting</div><div class="eOptionToggle"><div></div></div></button>
   <button class="eShareActionOption border" option="observeViewers" title="Allow members to observe those who aren't editing."><div label>Observe Viewers</div><div class="eOptionToggle"><div></div></div></button>
   <div class="eShareActionTitle" style="margin-top: 18px"><div></div>Tool Toggle<div></div></div>

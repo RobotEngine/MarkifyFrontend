@@ -839,7 +839,7 @@ modules["pages/editor"] = {
 
             // Member viewer update:
             if (this.getSelf().access > 3) {
-              let makeViewerButton = contentHolder.querySelector('.eSelectBar .eSubToolCollaboratorHolder button');
+              let makeViewerButton = contentHolder.querySelector('.eSelectBar .eSubToolCollaboratorHolder button[member="' + member._id + '"]');
               if (makeViewerButton != null) {
                 this.updateMakeViewerButton();
               }

@@ -6115,25 +6115,30 @@ modules["pages/editor/toolbar/collaborator"] = {
   html: `
   <div class="eSubToolCollaboratorHolder">
     <div class="eSubToolCollaboratorBackdrop"><div></div></div>
-    <div class="eSubToolCollaboratorCursor"></div>
-    <img class="eSubToolCollaboratorPicture">
-    <div class="eSubToolCollaboratorInfo">
-      <div name></div>
-      <div email></div>
+    <div class="eSubToolCollaboratorContent">
+      <div class="eSubToolCollaboratorCursor"></div>
+      <img class="eSubToolCollaboratorPicture">
+      <div class="eSubToolCollaboratorInfo">
+        <div name></div>
+        <div email></div>
+      </div>
     </div>
+    <button class="largeButton">Make Viewer</button>
   </div>
   `,
   css: {
     ".eSubToolCollaborator": `width: 30px; height: 30px; padding: 2px; object-fit: cover; background: var(--pageColor); border-radius: 20px`,
 
-    ".eSubToolCollaboratorHolder": `display: flex; flex-wrap: wrap; width: max-content; max-width: var(--uiwidth); padding: 8px; gap: 4px; align-items: center; border-radius: inherit`,
+    ".eSubToolCollaboratorHolder": `display: flex; flex-direction: column; width: fit-content; max-width: var(--uiwidth); gap: 4px; align-items: center; border-radius: inherit`,
+    ".eSubToolCollaboratorContent": `display: flex; flex-wrap: wrap; width: max-content; max-width: calc(100% - 16px); margin: 8px; gap: 4px; align-items: center; border-radius: inherit`,
     ".eSubToolCollaboratorBackdrop": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; background: var(--themeColor); transition: .2s; z-index: -1; border-radius: inherit; overflow: hidden`,
     ".eSubToolCollaboratorBackdrop div": `width: 100%; height: 100%; flex-shrink: 0; opacity: .3; background-image: url(./images/editor/background.svg); background-position: center`,
     ".eSubToolCollaboratorCursor": `display: none; width: 40px; height: 40px; flex-shrink: 0; margin: 2px; background: var(--themeColor); border: solid 6px var(--pageColor); border-radius: 16px 28px 28px`,
     ".eSubToolCollaboratorPicture": `display: none; width: 44px; height: 44px; flex-shrink: 0; margin: 2px; background: #fff; border: solid 4px var(--pageColor); object-fit: cover; border-radius: 28px`,
     ".eSubToolCollaboratorInfo": `margin: 4px; text-align: left`,
     ".eSubToolCollaboratorInfo div[name]": `max-width: calc(var(--uiwidth) - 24px); font-size: 20px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
-    ".eSubToolCollaboratorInfo div[email]": `display: none; max-width: calc(var(--uiwidth) - 24px); font-size: 15px; font-weight: 500; margin-top: 3px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`
+    ".eSubToolCollaboratorInfo div[email]": `display: none; max-width: calc(var(--uiwidth) - 24px); font-size: 15px; font-weight: 500; margin-top: 3px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
+    ".eSubToolCollaboratorHolder .largeButton": `width: fit-content; padding: 6px 10px; margin: 4px 12px 12px; background: var(--theme); text-wrap: nowrap; font-size: 16px; --borderRadius: 12px; color: #fff`,
     //".eSubToolCollaboratorShowMe": `color: var(--theme); font-weight: 700`
   },
   js: async function (frame, toolID, extra) {
@@ -6180,7 +6185,38 @@ modules["pages/editor/toolbar/collaborator"] = {
       email.style.display = "unset";
     }
     holder.style.setProperty("--uiwidth", frame.closest(".eSelectBar").clientWidth + "px");
-    extra.updateActionUI();
+    
+    let member;
+    if (editor.getSelf().access > 3) {
+      let memberIDs = Object.keys(editor.members);
+      for (let i = 0; i < memberIDs.length; i++) {
+        let memberCheck = editor.members[memberIDs[i]];
+        if (memberCheck.modify == collaboratorID) {
+          member = memberCheck;
+          break;
+        }
+      }
+    }
+    let makeViewerButton = frame.querySelector(".largeButton");
+    editor.updateMakeViewerButton = () => {
+      if (member != null && member.access == 1) {
+        makeViewerButton.setAttribute("member", member._id);
+        makeViewerButton.style.removeProperty("display");
+      } else {
+        makeViewerButton.style.display = "none";
+      }
+      extra.updateActionUI();
+    }
+    makeViewerButton.addEventListener("click", async () => {
+      makeViewerButton.setAttribute("disabled", "");
+      let [code] = await sendRequest("PUT", "lessons/members/access?member=" + makeViewerButton.getAttribute("member"), { access: 0 }, { session: editor.session });
+      makeViewerButton.removeAttribute("disabled");
+      if (code == 200) {
+        makeViewerButton.style.display = "none";
+        extra.updateActionUI();
+      }
+    });
+    editor.updateMakeViewerButton();
   }
 };
 

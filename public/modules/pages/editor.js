@@ -836,6 +836,14 @@ modules["pages/editor"] = {
                 collaborator.image = body.image;
               }
             }
+
+            // Member viewer update:
+            if (this.getSelf().access > 3) {
+              let makeViewerButton = contentHolder.querySelector('.eSelectBar .eSubToolCollaboratorHolder button');
+              if (makeViewerButton != null) {
+                this.updateMakeViewerButton();
+              }
+            }
           }
           break;
         case "set":
@@ -4365,6 +4373,16 @@ modules["pages/editor/annotation"] = {
         let activeSelect = editor.page.querySelector('.eSelectActive[anno="' + _id + '"]');
         if (activeSelect != null) {
           activeSelect.remove();
+        }
+        let allSelections = editor.page.querySelectorAll('.eCollabSelect[anno="' + _id + '"]');
+        for (let i = 0; i < allSelections.length; i++) {
+          let select = allSelections[i];
+          (async function () {
+            select.setAttribute("old", "");
+            select.style.opacity = 0;
+            await sleep(150);
+            select.remove();
+          })();
         }
       }
       if (setAnnoID != null) {

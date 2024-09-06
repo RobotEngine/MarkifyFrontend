@@ -884,6 +884,13 @@ modules["pages/editor"] = {
             if (body.settings.disabled != null && this.toolbar != null) {
               this.toolbar.checkToolToggle();
             }
+            if (body.settings.hasOwnProperty("anonymousMode")) {
+              if (body.settings.anonymousMode == true) {
+                content.setAttribute("anonymous", "");
+              } else {
+                content.removeAttribute("anonymous");
+              }
+            }
           }
           /*
           if (body.settings && body.settings.hasOwnProperty("forceLogin")) {
@@ -1393,6 +1400,9 @@ modules["pages/editor"] = {
     if (this.lesson.pin) {
       this.codeTextButton.style.display = "unset";
       this.codeTextButton.textContent = this.lesson.pin;
+    }
+    if (this.lesson.settings.anonymousMode == true) {
+      content.setAttribute("anonymous", "");
     }
 
     this.sessionID = body.session._id;
@@ -3521,6 +3531,7 @@ modules["pages/editor/annotation"] = {
     ".eAnnotation[sticky] div[holder]": `display: flex; flex-direction: column; width: calc(100% - 20px); flex: 1; padding: 16px 10px 10px 10px`,
     ".eAnnotation[sticky] div[edit]": `width: 100%; flex: 1; font-weight: 400; line-height: 22px; pointer-events: all; outline: none`,
     ".eAnnotation[sticky] div[footer]": `display: flex; flex-wrap: wrap; flex-direction: row-reverse; width: 100%; margin-top: 8px; gap: 8px; align-items: flex-end`,
+    ".eContentHolder[anonymous] .eAnnotation[sticky] div[signature]": `filter: blur(4px); pointer-events: none`,
     ".eAnnotation[sticky] div[signature]": `margin-left: auto; opacity: .5; font-size: 14px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; taxt-align: right`,
     ".eAnnotation[sticky] div[reactions]": `display: flex; flex-wrap: wrap; flex: 1; gap: 6px; background: var(--themeColor); pointer-events: all; z-index: 999; background: none`,
     ".eReaction": `display: flex; padding: 2px; background: rgba(255, 255, 255, .8); border: solid 2px rgba(0, 0, 0, 0); border-radius: 8px; align-items: center; overflow: hidden; color: var(--darkGray)`,

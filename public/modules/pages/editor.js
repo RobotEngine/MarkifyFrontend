@@ -2589,7 +2589,7 @@ modules["pages/editor"] = {
     let getCenter = (touches) => {
       return { x: (touches[0].clientX + touches[1].clientX) / 2, y: (touches[0].clientY + touches[1].clientY) / 2 };
     }
-    let finishTimeout;
+    //let finishTimeout;
     let running = false;
     let handlePinch = async (event) => {
       if (event.touches.length > 1 && this.pinchZoomDisable != true) {
@@ -2607,9 +2607,9 @@ modules["pages/editor"] = {
           startZoom = this.zoom;
         }
         //let currentCenter = getCenter(event.touches);
-        //if (currentCenter == null) {
+        if (currentCenter == null) {
           currentCenter = getCenter(event.touches);
-        //}
+        }
         /*
         let delta = 0;
         if (currentDistance > lastDistance) {

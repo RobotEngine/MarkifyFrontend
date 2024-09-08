@@ -2607,9 +2607,9 @@ modules["pages/editor"] = {
           startZoom = this.zoom;
         }
         //let currentCenter = getCenter(event.touches);
-        if (currentCenter == null) {
+        //if (currentCenter == null) {
           currentCenter = getCenter(event.touches);
-        }
+        //}
         /*
         let delta = 0;
         if (currentDistance > lastDistance) {
@@ -2619,12 +2619,12 @@ modules["pages/editor"] = {
         }
         */
         await this.setZoom(startZoom * (currentDistance / startDistance), null, { clientX: currentCenter.x, clientY: currentCenter.y, updatePages: false });
-        clearTimeout(finishTimeout);
+        /*clearTimeout(finishTimeout);
         finishTimeout = setTimeout(() => {
           if (this.updatePages) {
             this.updatePages();
           }
-        }, 5000);
+        }, 5000);*/
         running = false;
       }
     }

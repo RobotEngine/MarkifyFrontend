@@ -3,7 +3,7 @@ let serverURL = window.serverURL || "https://api.markifyapp.com/";
 let assetURL = window.mediaURL || "https://static.markifyapp.com/";
 //window.socketURL = "ws://localhost:3000/socket/v2";
 
-const version = "0.19.3"; // Big Update . Small Feature Release . Bug Fix
+const version = "0.19.4"; // Big Update . Small Feature Release . Bug Fix
 
 let socket = {};
 

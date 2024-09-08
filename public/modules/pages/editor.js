@@ -2547,13 +2547,13 @@ modules["pages/editor"] = {
       }
 
       if (mouse.updatePages != false && this.updatePages) {
-        this.updatePages();
+        await this.updatePages();
       }
       if (this.updateZoom) {
-        this.updateZoom(true);
+        await this.updateZoom(true);
       }
       if (this.updateSelectedBounds) {
-        this.updateSelectedBounds();
+        await this.updateSelectedBounds();
       }
 
       enableScrollTop();

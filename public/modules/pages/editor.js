@@ -2576,7 +2576,6 @@ modules["pages/editor"] = {
     // Handle MOBILE
     let startDistance;
     let startZoom;
-    let currentCenter;
     let getDistance = (touches) => {
       //return Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
       // Percent Based Distance:
@@ -2592,12 +2591,13 @@ modules["pages/editor"] = {
     let finishTimeout;
     let running = false;
     let handlePinch = async (event) => {
-      event.preventDefault();
-      if (running == true) {
-        return;
-      }
-      running = true;
       if (event.touches.length > 1 && this.pinchZoomDisable != true) {
+        event.preventDefault();
+        if (running == true) {
+          return;
+        }
+        running = true;
+        this.selecting = {};
         let currentDistance = getDistance(event.touches);
         if (startDistance == null) {
           startDistance = currentDistance;
@@ -2605,9 +2605,7 @@ modules["pages/editor"] = {
         if (startZoom == null) {
           startZoom = this.zoom;
         }
-        if (currentCenter == null) {
-          currentCenter = getCenter(event.touches);
-        }
+        let currentCenter = getCenter(event.touches);
         /*
         let delta = 0;
         if (currentDistance > lastDistance) {
@@ -2623,8 +2621,8 @@ modules["pages/editor"] = {
             this.updatePages();
           }
         }, 5000);
+        running = false;
       }
-      running = false;
     }
     tempListen(document, "touchstart", handlePinch, { passive: false });
     tempListen(document, "touchmove", handlePinch, { passive: false });

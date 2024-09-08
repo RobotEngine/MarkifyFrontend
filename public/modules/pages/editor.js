@@ -2591,7 +2591,7 @@ modules["pages/editor"] = {
     }
     let finishTimeout;
     let running = false;
-    let handlePinch = (event) => {
+    let handlePinch = async (event) => {
       if (event.touches.length > 1 && this.pinchZoomDisable != true) {
         event.preventDefault();
         if (running == true) {
@@ -2618,7 +2618,7 @@ modules["pages/editor"] = {
           delta = -1;
         }
         */
-        this.setZoom(startZoom * (currentDistance / startDistance), null, { clientX: currentCenter.x, clientY: currentCenter.y, updatePages: false });
+        await this.setZoom(startZoom * (currentDistance / startDistance), null, { clientX: currentCenter.x, clientY: currentCenter.y, updatePages: false });
         clearTimeout(finishTimeout);
         finishTimeout = setTimeout(() => {
           if (this.updatePages) {

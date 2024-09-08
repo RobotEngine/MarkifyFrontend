@@ -2592,10 +2592,10 @@ modules["pages/editor"] = {
     let finishTimeout;
     let running = false;
     let handlePinch = async (event) => {
+      event.preventDefault();
       if (running == true) {
         return;
       }
-      event.preventDefault();
       running = true;
       if (event.touches.length > 1 && this.pinchZoomDisable != true) {
         let currentDistance = getDistance(event.touches);

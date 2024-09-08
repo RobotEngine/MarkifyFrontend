@@ -2576,6 +2576,7 @@ modules["pages/editor"] = {
     // Handle MOBILE
     let startDistance;
     let startZoom;
+    let currentCenter;
     let getDistance = (touches) => {
       //return Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
       // Percent Based Distance:
@@ -2605,7 +2606,10 @@ modules["pages/editor"] = {
         if (startZoom == null) {
           startZoom = this.zoom;
         }
-        let currentCenter = getCenter(event.touches);
+        //let currentCenter = getCenter(event.touches);
+        if (currentCenter == null) {
+          currentCenter = getCenter(event.touches);
+        }
         /*
         let delta = 0;
         if (currentDistance > lastDistance) {

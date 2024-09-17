@@ -394,6 +394,9 @@ modules["pages/editor"] = {
       }
     };
     this.hexToRGB = (hex, alpha) => {
+      if (hex == null) {
+        return "";
+      }
       if (hex.length < 4) {
         hex = hex + hex;
       }

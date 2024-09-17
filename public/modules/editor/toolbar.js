@@ -2392,7 +2392,6 @@ modules["pages/editor/toolbar/cursor"] = {
               if (annoSet.remove != true) {
                 pushChanges.push(JSON.parse(JSON.stringify({ ...pushFields, _id: annoID })));
               } else {
-                console.log(anno)
                 pushRemoves.push(JSON.parse(JSON.stringify(anno)));
               }
             }

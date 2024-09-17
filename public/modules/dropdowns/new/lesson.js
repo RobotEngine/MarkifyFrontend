@@ -43,9 +43,12 @@ modules["dropdowns/new/lesson"] = {
       if (files == null) {
         return;
       }
+      if (files.length > 50) {
+        return alertModule.open("warning", "<b>File Overload</b>Woah their! Markify only supports bulk uploads up to 50 files, you can upload more pages in the editor", { time: 10 });
+      }
       let sendFormData = new FormData();
       let fileSize = 0;
-      for (let i = 0; i < Math.min(files.length, 50); i++) {
+      for (let i = 0; i < files.length; i++) {
         let file = files[i];
         if (file.kind == "file") {
           file = file.getAsFile();
@@ -54,9 +57,9 @@ modules["dropdowns/new/lesson"] = {
           if (file.type == "application/pdf") {
             fileSize += file.size;
             if (fileSize > the.maxFileSize) {
-              alertModule.open("error", "<b>Exceeded Size Limit</b><div>Lessons are limited to a max size of <u>3 GB</u> total</div>", { time: 10 });
+              return alertModule.open("error", "<b>Exceeded Size Limit</b><div>Lessons are limited to a max size of <u>3 GB</u> total</div>", { time: 10 });
               //passedFile = false;
-              break;
+              //break;
             }
             sendFormData.append("file" + i, file);
             passedFiles++;
@@ -72,9 +75,6 @@ modules["dropdowns/new/lesson"] = {
             alertModule.open("warning", "<b>" + file.name + " Failed to Upload</b>Only PDF files are currently supported", { time: 10 });
           }
         }
-      }
-      if (files.length > 50) {
-        alertModule.open("warning", "<b>File Overload</b>Woah their! Markify only supports bulk uploads up to 50 files, you can upload more pages in the editor", { time: 10 });
       }
       if (passedFiles > 0) {
         frame.setAttribute("disabled", "");
@@ -191,8 +191,8 @@ modules["dropdowns/new/blank"] = {
       <button class="border" width="1122.24" height="1587.84"><div class="blankSizeTitle">A3</div><div class="blankSizeInfo">11.7" x 16.5"</div></button>
       <button class="border" width="665.28" height="944.64"><div class="blankSizeTitle">B5</div><div class="blankSizeInfo">6.9" x 9.8"</div></button>
       <button class="border" width="944.64" height="1334.4"><div class="blankSizeTitle">B4</div><div class="blankSizeInfo">9.8" x 13.9"</div></button>
-      <button class="border" width="960" height="720"><div class="blankSizeTitle">4:3</div><div class="blankSizeInfo">7.5" x 10"</div></button>
-      <button class="border" width="960" height="540"><div class="blankSizeTitle">16:9</div><div class="blankSizeInfo">5.6" x 10"</div></button>
+      <button class="border" width="960" height="720"><div class="blankSizeTitle">4:3</div><div class="blankSizeInfo">10" x 7.5"</div></button>
+      <button class="border" width="960" height="1706.67"><div class="blankSizeTitle">16:9</div><div class="blankSizeInfo">10" x 17.8"</div></button>
       <button class="border" custom><div class="blankSizeTitle">Custom</div></button>
     </div>
     <div class="blankOptionHolder">
@@ -282,6 +282,10 @@ modules["dropdowns/new/blank"] = {
     frameCreationHolder.addEventListener("keydown", (event) => {
       let textBox = event.target.closest(".blankNumberHolder div");
       if (textBox == null) {
+        return;
+      }
+      if (event.key == "Enter") {
+        event.preventDefault();
         return;
       }
       if (String.fromCharCode(event.keyCode).match(/(\w|\s)/g) && event.key.length == 1) {

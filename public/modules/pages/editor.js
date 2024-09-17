@@ -135,9 +135,9 @@ modules["pages/editor"] = {
     ".eObserve button img": `width: 100%; height: 100%`,
     ".eObserveBorder": `position: fixed; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 501`,
 
-    ".eContent": `position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - 132px); min-height: calc(100vh - 132px); padding: 66px; align-items: center; z-index: 0; overflow: hidden; pointer-events: all; background-image: url(./images/editor/background.svg); background-position: center`,
+    ".eContent": `position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - 132px); min-height: calc(100vh - 132px); padding: 66px; align-items: center; z-index: 0; overflow: hidden; pointer-events: all; --zoom: 1; background-image: url(./images/editor/background.svg); background-position: center`,
     ".eContentHolder": `position: relative`,
-    ".ePageHolder": `position: relative; width: fit-content; height: fit-content; border-radius: 16px; transform-origin: 0 0; z-index: 1`,
+    ".ePageHolder": `position: relative; width: fit-content; height: fit-content; border-radius: 16px; transform-origin: 0 0; transform: scale(var(--zoom)); z-index: 1`,
     ".ePage": `position: relative; background: var(--pageColor); transition: .5s`,
     ".ePage::after": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: -1; content: ""; box-shadow: 0px 0px 8px 0px var(--shadowColor); border-radius: inherit`,
     ".ePage:first-child": `border-top-left-radius: 16px; border-top-right-radius: 16px`,
@@ -152,7 +152,7 @@ modules["pages/editor"] = {
     ".ePageRevealButton": `display: flex; margin: 8px; z-index: 1; background: var(--theme); --borderRadius: 20.25px; color: #fff`,
     ".ePageContent": "width: 100%; height: 100%; background: var(--pageColor); opacity: 0; border-radius: inherit",
     ".ePageTextHolder": "width: 100% !important; height: 100% !important; --scale-factor: 4/3; position: absolute; left: 0; top: 0; font-family: sans-serif",
-    ".ePageTextHolder span": "position: absolute; color: transparent; pointer-events: all",
+    ".ePageTextHolder span": "position: absolute; color: transparent; pointer-events: all; transform-origin: top left",
     ".ePageTextHolder br": `user-select: none`,
     ".ePageAnnotationHolder": `--scale-factor: 4/3; position: absolute; left: 0; top: 0; font-family: sans-serif`,
     ".ePageAnnotations": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 1; pointer-events: none`,
@@ -221,9 +221,14 @@ modules["pages/editor"] = {
           size: 16,
           align: "center"
         },
-        media: {
-
+        page: {
+          color: {
+            selected: "F5F5F5",
+            options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "F5F5F5"]
+          },
+          size: [824, 1064]
         },
+        media: {},
         options: {
           colorpicker: {
             scale: 0
@@ -389,6 +394,9 @@ modules["pages/editor"] = {
       }
     };
     this.hexToRGB = (hex, alpha) => {
+      if (hex.length < 4) {
+        hex = hex + hex;
+      }
       let bigint = parseInt(hex, 16);
       let r = (bigint >> 16) & 255;
       let g = (bigint >> 8) & 255;
@@ -442,6 +450,9 @@ modules["pages/editor"] = {
     this.textColorBackground = (bgColor) => {
       if (bgColor == null) {
         return;
+      }
+      if (bgColor.length < 4) {
+        bgColor = bgColor + bgColor;
       }
       let color = (bgColor.charAt(0) === '#') ? bgColor.substring(1, 7) : bgColor;
       let r = parseInt(color.substring(0, 2), 16); // hexToR
@@ -652,6 +663,8 @@ modules["pages/editor"] = {
 
     let pages = {};
     let sources = {};
+    this.sources = {};
+    this.loadingSources = {};
 
     let exportSync;
 
@@ -913,6 +926,9 @@ modules["pages/editor"] = {
             this.updateZoom(true);
           }
           enableScrollTop();
+          break;
+        case "addsources":
+          this.sources = { ...this.sources, ...getObject(body.sources || [], "_id") };
           break;
         case "addpages":
           pages = { ...pages, ...getObject(body.pages || [], "_id") };
@@ -1353,10 +1369,11 @@ modules["pages/editor"] = {
         }
       }
       if (this.updateZoom) {
-        await this.updateZoom();
+        await this.updateZoom(null, null, true);
       }
       if (redrawActionUI == true && cursorModule != null) {
         cursorModule.redrawActionUI(true, true);
+        //cursorModule.redrawActionUI();
       }
     }; // Subscribe to long, server updates.
 
@@ -1695,7 +1712,7 @@ modules["pages/editor"] = {
       }
       let chunkAnnos = Object.keys(loadChunkedAnnotations);
       for (let a = 0; a < chunkAnnos.length; a++) {
-        let annotation = this.annotations[chunkAnnos[a]] || {};
+        let annotation = this.annotations[chunkAnnos[a]] || { chunks: [] };
         let render = true;
         for (let i = 0; i < annotation.chunks.length; i++) {
           let chunk = annotation.chunks[i];
@@ -1711,6 +1728,9 @@ modules["pages/editor"] = {
       alreadyRunningUpdateCycle = false;
     }
     this.updateChunks = async () => {
+      if (this.zooming == true) {
+        return;
+      }
       let pageRect = pageHolder.getBoundingClientRect();
       let beforeChunks = JSON.stringify(this.visibleChunks);
       if (this.exporting != true) {
@@ -2042,18 +2062,23 @@ modules["pages/editor"] = {
                 pageElem.insertAdjacentHTML("beforeend", `<div class="ePageTextHolder" new></div>`);
                 let textHolder = pageElem.querySelector(".ePageTextHolder[new]");
                 textHolder.removeAttribute("new");
-
+                
                 pageRender.getTextContent().then(function (textContent) {
                   if (pageElem.hasAttribute("loading") == false) {
                     return;
                   }
-                  pdfjsLib.renderTextLayer({
+                  (new pdfjsLib.TextLayer({
+                    textContentSource: textContent,
+                    container: textHolder,
+                    viewport: viewport
+                  })).render();
+                  /*pdfjsLib.renderTextLayer({
                     enhanceTextSelection: true,
                     textContentSource: textContent,
                     container: textHolder,
                     viewport: pageRender.getViewport({ scale: 1 }),
                     textDivs: []
-                  });
+                  });*/
                   pageElem.setAttribute("loaded", "");
                 });
                 /*
@@ -2396,6 +2421,7 @@ modules["pages/editor"] = {
         centerWindowWithPage();
         break;
       case "freeboard":
+        this.sources = { ...this.sources, ...getObject(body.sources || [], "_id") };
         //pageHolder.remove();
         addPagesHolder.remove();
         addPagesHolder = null;
@@ -2475,6 +2501,7 @@ modules["pages/editor"] = {
         //let delta = Math.max(-1, Math.min(1, (mouse.wheelDelta || -(mouse.detail || 0))));
         //this.zoom = this.zoom + (delta / 10);
       }
+      this.zoomChanged = true;
 
       if (this.zoom > 5) {
         this.zoom = 5;
@@ -2482,7 +2509,9 @@ modules["pages/editor"] = {
         this.zoom = .2;
       }
 
-      pageHolder.style.transform = `scale(${this.zoom})`;
+      this.zooming = true;
+
+      contentHolder.style.setProperty("--zoom", this.zoom);
 
       updateContentSize();
 
@@ -2500,6 +2529,8 @@ modules["pages/editor"] = {
       }
 
       await this.updateChunks();
+
+      this.zooming = false;
 
       /*if (observe != true) {
         await utils.setMarginSize();
@@ -2562,8 +2593,8 @@ modules["pages/editor"] = {
     }
     let scrollMouseWheel = (event) => {
       if (event.ctrlKey || event.metaKey) {
-        this.setZoom(null, null, event);
         event.preventDefault();
+        this.setZoom(null, null, event);
       } else {
         lastMouseX = null;
         lastMouseY = null;
@@ -3549,6 +3580,28 @@ modules["pages/editor/annotation"] = {
     ".eAnnotation[sticky][selected] button": `pointer-events: all`,
     ".eAnnotation[src]": `object-fit: cover; pointer-events: all; border-radius: 12px`,
 
+    ".eAnnotation[page]": `display: flex; flex-direction: column; background: white; border-radius: 12px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all`,
+    ".eAnnotation[page] div[background]": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--themeColor); opacity: .1; border-radius: inherit; z-index: 0`,
+    ".eAnnotation[page] div[border]": `position: absolute; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; border: solid 4px var(--themeColor); border-radius: inherit; z-index: 4; pointer-events: none`,
+    ".eAnnotation[page] div[title]": `position: absolute; display: none; box-sizing: border-box; max-width: calc(100% - 12px); padding: 8px 10px; left: 0px; top: 0px; background: var(--themeColor); border-radius: 0px; border-top-left-radius: inherit; border-bottom-right-radius: 12px; font-weight: 600; font-size: 18px; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; outline: none; scrollbar-width: none; z-index: 3`,
+    ".eAnnotation[page] div[title]::-webkit-scrollbar": `display: none`,
+    ".eAnnotation[page] div[content]": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; justify-content: center; align-items: center; z-index: 1`,
+    ".eAnnotation[page][selected] div[title]": `pointer-events: all !important`,
+    ".eAnnotation[page] div[title][contenteditable]": `overflow-x: auto !important; text-overflow: unset !important`,
+    ".eAnnotation[page] div[hide]": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: inherit; z-index: 2; pointer-events: all`,
+    ".eAnnotation[page] div[hide] img[hideicon]": `width: 150px; height: 150px; max-width: calc(100% - 24px); max-height: calc(100% - 24px)`,
+    ".eAnnotation[page] div[hide] div[hidemodal]": `display: flex; flex-direction: column; max-width: calc(100% - 64px); max-height: calc(100% - 64px); padding: 24px; overflow: auto; background: var(--pageColor); box-shadow: 0px 0px 16px 0px var(--hover); border-radius: 16px; align-items: center`,
+    ".eAnnotation[page] div[hide] div[hidemodal] img": `margin-bottom: 12px; width: calc(100% - 24px); max-width: 80px`,
+    ".eAnnotation[page] div[hide] div[hidemodal] div[hidemodaltitle]": `font-size: 28px; font-weight: 700; color: var(--theme)`,
+    //".eAnnotation[page] div[hide] div[hidemodal] div[hidemodaldesc]": `margin: 8px 0; max-width: 450px`,
+    ".eAnnotation[page] div[hide] div[hidemodal] button": `display: flex; margin-top: 24px; z-index: 1; background: var(--theme); --borderRadius: 20.25px; color: #fff`,
+    ".eAnnotation[page] div[content] div[document]": `position: relative; --scale-factor: 2; border-radius: inherit; overflow: hidden`,
+    ".eAnnotation[page] div[content] div[document] canvas": `position: absolute; width: calc(100% - 8px) !important; height: calc(100% - 8px) !important; left: 4px; top: 4px; background: var(--themeColor); z-index: 1`,
+    ".eAnnotation[page] div[content] div[document] div[textlayer]": `position: absolute; width: var(--fullWidth) !important; height: var(--fullHeight) !important; left: 4px; top: 4px; transform-origin: top left; transform: var(--fullScale); font-family: sans-serif; pointer-events: all !important; z-index: 2`,
+    ".eAnnotation[page] div[content] div[document] div[textlayer] span": `position: absolute; color: transparent; pointer-events: all; transform-origin: top left`,
+    ".eAnnotation[page] div[content] div[document] div[textlayer] br": `user-select: none`,
+    ".hiddenCanvasElement": `display: none`,
+
     ".eAnnotation[embed]": `display: flex; background: var(--pageColor); border-radius: 16px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all; text-align: left`,
     ".eAnnotation[embed] div[holder]": `display: flex; flex-direction: column; width: calc(100% - 16px); flex: 1; padding: 8px`,
     ".eAnnotation[embed] div[content]": `position: relative; width: 100%; flex: 1; overflow: hidden; border-radius: 8px; background: radial-gradient(var(--theme), var(--secondary))`,
@@ -4035,20 +4088,7 @@ modules["pages/editor/annotation"] = {
         } else {
           text.setAttribute("placeborder", "");
         }
-        anno.style.setProperty("--themeColor", "#" + c);
-        // Set Text Color:
-        let redC = parseInt(c.substring(0, 2), 16); // hexToR
-        let greenC = parseInt(c.substring(2, 4), 16); // hexToG
-        let blueC = parseInt(c.substring(4, 6), 16); // hexToB
-        let uicolors = [redC / 255, greenC / 255, blueC / 255];
-        let outputC = uicolors.map((col) => {
-          if (col <= 0.03928) {
-            return col / 12.92;
-          }
-          return Math.pow((col + 0.055) / 1.055, 2.4);
-        });
-        let factorC = (0.2126 * outputC[0]) + (0.7152 * outputC[1]) + (0.0722 * outputC[2]);
-        anno.style.color = (factorC > 0.179) ? "#000" : "#fff";
+        anno.style.color = editor.textColorBackground(c);
         anno.style.textAlign = richText.al || "left";
         text.style.opacity = o / 100;
         let fontSize = Math.floor(Math.max(Math.min(richText.s || 16, 250), 1));
@@ -4160,6 +4200,200 @@ modules["pages/editor/annotation"] = {
           reactionHolder.style.flex = "1";
         }
         break;
+      case "page":
+        if (anno == null) {
+          annoHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" page new>
+            <div background></div>
+            <div border></div>
+            <div title></div>
+            <div content></div>
+          </div>`);
+          anno = annoHolder.querySelector(".eAnnotation[new]");
+          anno.removeAttribute("new");
+        }
+        anno.style.width = width + "px";
+        anno.style.height = height + "px";
+        anno.style.setProperty("--themeColor", "#" + c);
+        anno.style.color = editor.textColorBackground(c);
+        //anno.style.left = x + "px";
+        //anno.style.top = y + "px";
+        transform = "translate(" + x + "px," + y + "px)";
+        if (_id != null) {
+          setAnnoID = _id;
+          anno.style.opacity = 1;
+        } else {
+          anno.setAttribute("tooleditor", "");
+          anno.style.opacity = .7;
+        }
+        let pageTitle = anno.querySelector("div[title]");
+        if (pageTitle.hasAttribute("contenteditable") == false) {
+          if ((data.title || "").length < 1) {
+            pageTitle.style.removeProperty("display");
+            pageTitle.textContent = "";
+          } else {
+            pageTitle.style.display = "unset";
+            pageTitle.textContent = cleanString(data.title);
+          }
+        }
+        let pageBorder = anno.querySelector("div[border]");
+        let pageContent = anno.querySelector("div[content]");
+        if (data.source != null && data.number != null) {
+          let loadPDFPromise = new Promise(async (resolve) => {
+            // Load PDFJS
+            if (window.pdfjsLib == null) {
+              await loadScript("./libraries/pdfjs/pdf.mjs");
+            }
+            if (pdfjsLib.GlobalWorkerOptions.workerSrc == "") {
+              pdfjsLib.GlobalWorkerOptions.workerSrc = "./libraries/pdfjs/pdf.worker.mjs";
+            }
+            let source = editor.sources[data.source];
+            if (source != null) {
+              let loadPage = async () => {
+                await new Promise(async (resolve) => {
+                  let pdfDocumentHolder = pageContent.querySelector("div[document]");
+                  if (pdfDocumentHolder != null && pdfDocumentHolder.getAttribute("sourcepage") != data.source + "_" + data.number) {
+                    pdfDocumentHolder.remove();
+                    pdfDocumentHolder = null;
+                  }
+                  if (pdfDocumentHolder == null) {
+                    pageContent.insertAdjacentHTML("beforeend", `<div document>
+                      <canvas></canvas>
+                      <div textlayer></div>
+                    </div>`);
+                    pdfDocumentHolder = pageContent.querySelector("div[document]");
+                    pdfDocumentHolder.setAttribute("sourcepage", data.source + "_" + data.number);
+                    source.pdf.getPage(data.number).then(async (pageRender) => {
+                      if (anno == null || pageContent == null) {
+                        resolve();
+                        return;
+                      }
+
+                      let viewport = pageRender.getViewport({ scale: 2 });
+                      //let outputScale = window.devicePixelRatio || 1;
+                      
+                      let canvas = pdfDocumentHolder.querySelector("canvas");
+                      let textHolder = pdfDocumentHolder.querySelector("div[textlayer]");
+                      let context = canvas.getContext("2d", { alpha: false, willReadFrequently: true });
+
+                      let setWidth = viewport.width;// * outputScale;
+                      let setHeight = viewport.height;// * outputScale;
+                      canvas.width = setWidth;
+                      canvas.height = setHeight;
+                      pdfDocumentHolder.style.setProperty("--fullWidth", setWidth + "px");
+                      pdfDocumentHolder.style.setProperty("--fullHeight", setHeight + "px");
+                      let ratio = setWidth / setHeight;
+                      let ratioedWidth = (data.s[1] - 8) * ratio;
+                      let ratioedHeight = (data.s[0] - 8) / ratio;
+                      if (ratioedWidth < data.s[0] - 8) {
+                        pdfDocumentHolder.style.width = (ratioedWidth + 8) + "px";
+                        pdfDocumentHolder.style.height = data.s[1] + "px";
+                        pdfDocumentHolder.style.setProperty("--fullScale", "scale(" + ((data.s[1] - 8) / setHeight) + ")");
+                      } else {
+                        pdfDocumentHolder.style.width = data.s[0] + "px";
+                        pdfDocumentHolder.style.height = (ratioedHeight + 8) + "px";
+                        pdfDocumentHolder.style.setProperty("--fullScale", "scale(" + ((data.s[0] - 8) / setWidth) + ")");
+                      }
+
+                      //let transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
+                      
+                      pageRender.render({
+                        canvasContext: context,
+                        //transform: transform,
+                        viewport: viewport
+                      }).promise.then(() => {
+                        resolve();
+                      });
+
+                      pageRender.getTextContent().then((textContent) => {
+                        (new pdfjsLib.TextLayer({
+                          textContentSource: textContent,
+                          container: textHolder,
+                          viewport: viewport
+                        })).render();
+                        /*pdfjsLib.renderTextLayer({
+                          enhanceTextSelection: true,
+                          textContentSource: textContent,
+                          container: textHolder,
+                          viewport: viewport,
+                          textDivs: []
+                        });*/
+                      });
+                    });
+                  } else {
+                    let canvas = pdfDocumentHolder.querySelector("canvas");
+                    let width = parseFloat(canvas.getAttribute("width"));
+                    let height = parseFloat(canvas.getAttribute("height"));
+                    pdfDocumentHolder.style.setProperty("--fullWidth", width + "px");
+                    pdfDocumentHolder.style.setProperty("--fullHeight", height + "px");
+                    let ratio = width / height;
+                    let ratioedWidth = (data.s[1] - 8) * ratio;
+                    let ratioedHeight = (data.s[0] - 8) / ratio;
+                    if (ratioedWidth < data.s[0] - 8) {
+                      pdfDocumentHolder.style.width = (ratioedWidth + 8) + "px";
+                      pdfDocumentHolder.style.height = data.s[1] + "px";
+                      pdfDocumentHolder.style.setProperty("--fullScale", "scale(" + ((data.s[1] - 8) / height) + ")");
+                    } else {
+                      pdfDocumentHolder.style.width = data.s[0] + "px";
+                      pdfDocumentHolder.style.height = (ratioedHeight + 8) + "px";
+                      pdfDocumentHolder.style.setProperty("--fullScale", "scale(" + ((data.s[0] - 8) / width) + ")");
+                    }
+                    resolve();
+                  }
+                });
+              }
+              if (source.pdf != null) {
+                await loadPage(anno, data, source);
+                resolve();
+              } else {
+                if (editor.loadingSources[data.source] == null) {
+                  editor.loadingSources[data.source] = [];
+                  let loadingTask = pdfjsLib.getDocument(assetURL + source.source);
+                  editor.loadedPDFs.push(loadingTask);
+                  loadingTask.promise.then(async (pdf) => {
+                    source.pdf = pdf;
+                    let loadPages = editor.loadingSources[data.source];
+                    for (let i = 0; i < loadPages.length; i++) {
+                      await loadPages[i]();
+                    }
+                    delete editor.loadingSources[data.source];
+                    resolve();
+                  });
+                }
+                editor.loadingSources[data.source].push(loadPage);
+              }
+            }
+          });
+          if (editor.exporting == true) {
+            await loadPDFPromise;
+          }
+        }
+        let pageHiddenHolder = anno.querySelector("div[hide]");
+        if (data.hidden == true) {
+          anno.setAttribute("hide", "");
+          if (pageHiddenHolder == null) {
+            anno.insertAdjacentHTML("beforeend", `<div hide></div>`);
+            let hiddenElem = anno.querySelector("div[hide]");
+            if (editor.getSelf().access < 4) {
+              hiddenElem.insertAdjacentHTML("beforeend", `<img hideicon src="./images/editor/hidden.svg" draggable="false">`);
+            } else {
+              if (editor.exporting != true) {
+                hiddenElem.insertAdjacentHTML("beforeend", `<div hidemodal>
+                  <img src="./images/editor/hidden.svg" draggable="false">
+                  <div hidemodaltitle>Page Hidden</div>
+                </div>`);
+                if (editor.getSelf().access > 3) {
+                  hiddenElem.querySelector("div[hidemodal]").insertAdjacentHTML("beforeend", `<button class="largeButton">Reveal Page</button>`);
+                }
+              }
+            }
+          }
+          pageBorder.style.pointerEvents = "none";
+        } else if (pageHiddenHolder != null) {
+          anno.removeAttribute("hide");
+          pageHiddenHolder.remove();
+          pageBorder.style.removeProperty("pointer-events");
+        }
+        break;
       case "media":
         if (anno == null) {
           annoHolder.insertAdjacentHTML("beforeend", `<img class="eAnnotation" draggable="false" new></img>`);
@@ -4260,7 +4494,7 @@ modules["pages/editor/annotation"] = {
         let embedTitle = infoHolder.querySelector("div[title]");
         let embedDesc = infoHolder.querySelector("div[description]");
         let embedLink = infoHolder.querySelector("a[link]");
-        if (data.embed != null) {
+        if (d != null && data.embed != null) {
           linkInputHolder.removeAttribute("visible");
           if (editor.exporting != true) {
             if (data.embed.url != null) {
@@ -4312,10 +4546,13 @@ modules["pages/editor/annotation"] = {
         } else {
           linkInputHolder.setAttribute("visible", "");
           embedActivate.style.removeProperty("display");
+          thumbnail.style.removeProperty("display");
           infoHolder.style.display = "none";
         }
+        if (document.activeElement != linkInput) {
+          linkInput.value = d || "";
+        }
         if (d != null) {
-          linkInput.value = d;
           embedLink.querySelector("div").textContent = (new URL(d)).hostname;
           embedLink.title = d;
           embedLink.href = d;
@@ -4397,6 +4634,10 @@ modules["pages/editor/annotation"] = {
             await sleep(150);
             select.remove();
           })();
+        }
+        let iframePresent = anno.querySelector("iframe");
+        if (iframePresent != null) {
+          iframePresent.remove();
         }
       }
       if (setAnnoID != null) {

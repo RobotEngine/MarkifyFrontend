@@ -8,6 +8,7 @@ modules["editor/toolbar"] = {
   <button class="eTool" tool="text" tooltip="Text Box"><div><svg width="44" viewBox="0 0 52 32" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M3 7V3H25.5V7H17V29.5H12V7H3Z" fill="#2F2F2F"/> <path d="M34 19L26.5 9H31.5L36.5 15.5L42 9H47L39.5 19L47 29.5H42L36.5 22.5L31.5 29.5H26L34 19Z" fill="white"/> <path d="M34 19L26.5 9H31.5L36.5 15.5L42 9H47L39.5 19L47 29.5H42L36.5 22.5L31.5 29.5H26L34 19Z" fillcoloropacity/> <mask id="path-4-outside-1_925_51" maskUnits="userSpaceOnUse" x="0" y="0" width="52" height="32" fill="black"> <rect fill="white" width="52" height="32"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M3 3V7H12V29.5H17V7H25.5V3H3ZM26.5 9L34 19L26 29.5H31.5L36.5 22.5L42 29.5H47L39.5 19L47 9H42L36.5 15.5L31.5 9H26.5Z"/> </mask> <path d="M3 7H0.5V9.5H3V7ZM3 3V0.5H0.5V3H3ZM12 7H14.5V4.5H12V7ZM12 29.5H9.5V32H12V29.5ZM17 29.5V32H19.5V29.5H17ZM17 7V4.5H14.5V7H17ZM25.5 7V9.5H28V7H25.5ZM25.5 3H28V0.5H25.5V3ZM34 19L35.9886 20.5151L37.1339 19.0119L36 17.5L34 19ZM26.5 9V6.5H21.5L24.5 10.5L26.5 9ZM26 29.5L24.0114 27.9849L20.9523 32H26V29.5ZM31.5 29.5V32H32.7865L33.5343 30.9531L31.5 29.5ZM36.5 22.5L38.4658 20.9554L36.4047 18.3322L34.4657 21.0469L36.5 22.5ZM42 29.5L40.0342 31.0446L40.7849 32H42V29.5ZM47 29.5V32H51.858L49.0343 28.0469L47 29.5ZM39.5 19L37.5 17.5L36.402 18.964L37.4657 20.4531L39.5 19ZM47 9L49 10.5L52 6.5H47V9ZM42 9V6.5H40.8405L40.0915 7.38514L42 9ZM36.5 15.5L34.5184 17.0243L36.4073 19.4798L38.4085 17.1149L36.5 15.5ZM31.5 9L33.4816 7.47572L32.731 6.5H31.5V9ZM5.5 7V3H0.5V7H5.5ZM12 4.5H3V9.5H12V4.5ZM14.5 29.5V7H9.5V29.5H14.5ZM17 27H12V32H17V27ZM14.5 7V29.5H19.5V7H14.5ZM25.5 4.5H17V9.5H25.5V4.5ZM23 3V7H28V3H23ZM3 5.5H25.5V0.5H3V5.5ZM36 17.5L28.5 7.5L24.5 10.5L32 20.5L36 17.5ZM27.9886 31.0151L35.9886 20.5151L32.0114 17.4849L24.0114 27.9849L27.9886 31.0151ZM31.5 27H26V32H31.5V27ZM34.4657 21.0469L29.4657 28.0469L33.5343 30.9531L38.5343 23.9531L34.4657 21.0469ZM43.9658 27.9554L38.4658 20.9554L34.5342 24.0446L40.0342 31.0446L43.9658 27.9554ZM47 27H42V32H47V27ZM37.4657 20.4531L44.9657 30.9531L49.0343 28.0469L41.5343 17.5469L37.4657 20.4531ZM45 7.5L37.5 17.5L41.5 20.5L49 10.5L45 7.5ZM42 11.5H47V6.5H42V11.5ZM38.4085 17.1149L43.9085 10.6149L40.0915 7.38514L34.5915 13.8851L38.4085 17.1149ZM29.5184 10.5243L34.5184 17.0243L38.4816 13.9757L33.4816 7.47572L29.5184 10.5243ZM26.5 11.5H31.5V6.5H26.5V11.5Z" fill="white" mask="url(#path-4-outside-1_925_51)"/> </svg></div></button>
   <button class="eTool" tool="shape" tooltip="Shapes"><div><svg width="38" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"> <rect x="1.97104" y="1.47107" width="22.6493" height="22.6493" rx="5.25" fill="#2F2F2F" stroke="white" stroke-width="2.5"/> <circle cx="32.7043" cy="33.2043" r="11.3246" fill="white" stroke="white" stroke-width="2.5"/> <circle cx="32.7043" cy="33.2043" r="11.3246" fillcoloropacity stroke="white" stroke-width="2.5"/> </svg></div></button>
   <button class="eTool" tool="sticky" tooltip="Stickies"><div><svg width="44" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_850_2" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_850_2)"> <path d="M185 38H72C54.3269 38 40 52.3269 40 70V183.246C40 200.801 54.1418 215.078 71.6952 215.245L145.905 215.952C150.739 215.998 155.387 214.098 158.805 210.68L211.728 157.757C215.104 154.382 217 149.803 217 145.029V70C217 52.3269 202.673 38 185 38Z" fill="#2F2F2F" stroke="white" stroke-width="12"/> <path d="M211 144H171C156.641 144 145 155.641 145 170V210" stroke="white" stroke-width="12"/> <rect x="62" y="60" width="133" height="20" rx="10" fill="white"/> <rect x="62" y="88" width="101" height="20" rx="10" fill="white"/> </g> </svg></div></button>
+  <button class="eTool" tool="page" tooltip="Page"><div><svg width="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_2372_2" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_2372_2)"> <path d="M169 41H87C72.6406 41 61 52.6406 61 67V188.211C61 202.487 72.5109 214.093 86.7864 214.21L168.786 214.884C183.229 215.002 195 203.327 195 188.885V67C195 52.6406 183.359 41 169 41Z" fillcoloropacity stroke="white" stroke-width="24"/> <path d="M169 47H87C75.9543 47 67 55.9543 67 67V188.211C67 199.193 75.8545 208.12 86.8357 208.21L168.836 208.884C179.945 208.975 189 199.994 189 188.885V67C189 55.9543 180.046 47 169 47Z" stroke="#2F2F2F" stroke-width="12"/> <path d="M68 58C68 52.4772 72.4772 48 78 48H156V64C156 69.5228 151.523 74 146 74H68V58Z" fill="#2F2F2F"/> </g> </svg></div></button>
   <button class="eTool" tool="media" tooltip="Media"><div><svg width="40" viewBox="0 0 50 42" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="path-1-outside-1_233_21" maskUnits="userSpaceOnUse" x="-0.459759" y="-0.0484619" width="51" height="42" fill="black"> <rect fill="white" x="-0.459759" y="-0.0484619" width="51" height="42"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M40.8324 12.3729C43.434 12.3729 45.5431 10.2638 45.5431 7.66221C45.5431 5.06058 43.434 2.95154 40.8324 2.95154C38.2308 2.95154 36.1217 5.06058 36.1217 7.66221C36.1217 10.2638 38.2308 12.3729 40.8324 12.3729ZM15.7765 12.2718C16.9312 10.2718 19.8179 10.2718 20.9726 12.2718L28.5261 25.3549L32.5377 18.4066C33.6924 16.4066 36.5792 16.4066 37.7339 18.4066L47.0534 34.5485C48.2081 36.5485 46.7647 39.0485 44.4553 39.0485H25.8163C25.6154 39.0485 25.4211 39.0296 25.2345 38.9937H5.54471C3.23531 38.9937 1.79194 36.4937 2.94664 34.4937L15.7765 12.2718Z"/> </mask> <path fill-rule="evenodd" clip-rule="evenodd" d="M40.8324 12.3729C43.434 12.3729 45.5431 10.2638 45.5431 7.66221C45.5431 5.06058 43.434 2.95154 40.8324 2.95154C38.2308 2.95154 36.1217 5.06058 36.1217 7.66221C36.1217 10.2638 38.2308 12.3729 40.8324 12.3729ZM15.7765 12.2718C16.9312 10.2718 19.8179 10.2718 20.9726 12.2718L28.5261 25.3549L32.5377 18.4066C33.6924 16.4066 36.5792 16.4066 37.7339 18.4066L47.0534 34.5485C48.2081 36.5485 46.7647 39.0485 44.4553 39.0485H25.8163C25.6154 39.0485 25.4211 39.0296 25.2345 38.9937H5.54471C3.23531 38.9937 1.79194 36.4937 2.94664 34.4937L15.7765 12.2718Z" fill="#2F2F2F"/> <path d="M20.9726 12.2718L23.1377 11.0218V11.0218L20.9726 12.2718ZM15.7765 12.2718L17.9415 13.5218L15.7765 12.2718ZM28.5261 25.3549L26.3611 26.6049L28.5261 30.3549L30.6912 26.6049L28.5261 25.3549ZM32.5377 18.4066L30.3726 17.1566V17.1566L32.5377 18.4066ZM37.7339 18.4066L35.5688 19.6566L35.5688 19.6566L37.7339 18.4066ZM47.0534 34.5485L49.2184 33.2985L47.0534 34.5485ZM25.2345 38.9937L25.7061 36.5386L25.4724 36.4937H25.2345V38.9937ZM2.94664 34.4937L0.781578 33.2437L2.94664 34.4937ZM43.0431 7.66221C43.0431 8.88313 42.0533 9.87289 40.8324 9.87289V14.8729C44.8148 14.8729 48.0431 11.6446 48.0431 7.66221H43.0431ZM40.8324 5.45154C42.0533 5.45154 43.0431 6.44129 43.0431 7.66221H48.0431C48.0431 3.67987 44.8148 0.451538 40.8324 0.451538V5.45154ZM38.6217 7.66221C38.6217 6.44129 39.6115 5.45154 40.8324 5.45154V0.451538C36.8501 0.451538 33.6217 3.67987 33.6217 7.66221H38.6217ZM40.8324 9.87289C39.6115 9.87289 38.6217 8.88313 38.6217 7.66221H33.6217C33.6217 11.6446 36.8501 14.8729 40.8324 14.8729V9.87289ZM23.1377 11.0218C21.0207 7.35513 15.7284 7.35511 13.6114 11.0218L17.9415 13.5218C18.134 13.1885 18.6151 13.1885 18.8076 13.5218L23.1377 11.0218ZM30.6912 24.1049L23.1377 11.0218L18.8076 13.5218L26.3611 26.6049L30.6912 24.1049ZM30.3726 17.1566L26.3611 24.1049L30.6912 26.6049L34.7028 19.6566L30.3726 17.1566ZM39.8989 17.1566C37.782 13.4899 32.4896 13.49 30.3726 17.1566L34.7028 19.6566C34.8952 19.3233 35.3763 19.3233 35.5688 19.6566L39.8989 17.1566ZM49.2184 33.2985L39.8989 17.1566L35.5688 19.6566L44.8883 35.7985L49.2184 33.2985ZM44.4553 41.5485C48.6892 41.5485 51.3354 36.9651 49.2184 33.2985L44.8883 35.7985C45.0807 36.1318 44.8402 36.5485 44.4553 36.5485V41.5485ZM25.8163 41.5485H44.4553V36.5485H25.8163V41.5485ZM24.7628 41.4488C25.1057 41.5147 25.458 41.5485 25.8163 41.5485V36.5485C25.7728 36.5485 25.7365 36.5444 25.7061 36.5386L24.7628 41.4488ZM5.54471 41.4937H25.2345V36.4937H5.54471V41.4937ZM0.781578 33.2437C-1.33537 36.9104 1.3108 41.4937 5.54471 41.4937V36.4937C5.15982 36.4937 4.91925 36.077 5.11171 35.7437L0.781578 33.2437ZM13.6114 11.0218L0.781578 33.2437L5.11171 35.7437L17.9415 13.5218L13.6114 11.0218Z" fill="white" mask="url(#path-1-outside-1_233_21)"/> </svg></div></button>
 
   <div class="eSubToolHolder" keeptooltip>
@@ -62,13 +63,16 @@ modules["editor/toolbar"] = {
     ".eSubToolContent": `display: flex; flex-wrap: wrap; gap: 6px`,
 
     ".eToolHoverTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; transform: scale(0); opacity: 0`,
-
+    
     ".eSelect": `position: absolute; left: 0px; top: 0px; opacity: 0; z-index: 101; border-radius: 9px; transition: opacity .15s, transform 0s; pointer-events: none`,
     ".eSelectActive": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: all !important; cursor: move; z-index: var(--selectZIndex)`,
     ".eContent[noshiftheld] .eSelectActive": `z-index: var(--annoZIndex) !important`,
     ".eAnnotation[selected] > *": `pointer-events: none`,
-    ".eSelectTooltip": `position: absolute; transition: .1s; pointer-events: all`,
+    ".eSelectTooltip": `position: absolute; transition: .1s; pointer-events: all; --scale: 1`,
+    '.eSelectTooltip:hover': `--scale: 1.3`,
+    '.eSelectTooltip:active': `--scale: 1.1 !important`,
     ".eSelect[hidetips] .eSelectTooltip": `opacity: 0; pointer-events: none`,
+    ".eSelect[notransition] .eSelectTooltip[duplicate]": `opacity: 0; pointer-events: none`,
     '.eSelectTooltip[tooltip="topleft"]': `left: -10px; top: -10px; cursor: nwse-resize`,
     '.eSelectTooltip[tooltip="topright"]': `right: -10px; top: -10px; cursor: nesw-resize`,
     '.eSelectTooltip[tooltip="bottomleft"]': `display: none; left: -10px; bottom: -10px; cursor: nesw-resize`,
@@ -79,6 +83,10 @@ modules["editor/toolbar"] = {
     '.eSelectTooltip[tooltip="bottom"]': `left: 50%; bottom: -14px; transform: translateX(-50%); cursor: ns-resize`,
     '.eSelectTooltip[tooltip="rotate"]': `left: -20px; bottom: -20px; cursor: crosshair`,
     ".eSelectDrag": `position: absolute; box-sizing: border-box; pointer-events: none; z-index: 99; opacity: 0; background: var(--secondary); border: solid 2px var(--theme); border-radius: 10px; transition: opacity .1s`,
+    '.eSelectTooltip[tooltip="duplicateleft"]': `left: -50px; top: 50%; transform: translateY(-50%) scale(var(--scale)); cursor: pointer`,
+    '.eSelectTooltip[tooltip="duplicateright"]': `right: -50px; top: 50%; transform: translateY(-50%) scale(var(--scale)); cursor: pointer`,
+    '.eSelectTooltip[tooltip="duplicatetop"]': `left: 50%; top: -50px; transform: translateX(-50%) scale(var(--scale)); cursor: pointer`,
+    '.eSelectTooltip[tooltip="duplicatebottom"]': `left: 50%; bottom: -50px; transform: translateX(-50%) scale(var(--scale)); cursor: pointer`,
 
     ".eSelectBar": `position: absolute; display: flex; max-width: calc(100vw - 88px); height: 50px; background: var(--pageColor); box-shadow: var(--shadow); z-index: 102; border-radius: 16px; transform: translateY(-10%); opacity: 0; transition: transform .2s, opacity .2s, border-radius .2s`,
     ".eSelectHolder": `display: flex; width: 100%; height: 100%; gap: 6px; overflow: auto; border-radius: inherit`,
@@ -248,6 +256,7 @@ modules["editor/toolbar"] = {
       }
       */
     ],
+    "page": { id: "page", type: "tool", module: "pages/editor/toolbar/page" },
     "sticky": { id: "sticky", type: "tool", module: "pages/editor/toolbar/sticky" },
     "media": [
       {
@@ -273,6 +282,7 @@ modules["editor/toolbar"] = {
     shape: ["shape"],
     text: ["text"],
     sticky: ["sticky"],
+    page: ["page"],
     media: ["media", "embed"]
   },
   checkSubToolType: function (editor, check) {
@@ -507,6 +517,10 @@ modules["editor/toolbar"] = {
       }
       editor.selecting = {};
       cursorModule.updateBox();
+      if (editor.lastZoom != null && editor.zoomChanged == false) {
+        editor.setZoom(editor.lastZoom, null, { clientX: fixed.offsetWidth / 2, clientY: fixed.offsetHeight / 2 });
+        editor.lastZoom = null;
+      }
     }
     let tempToolListen = (parent, listen, runFunc, extra) => {
       parent.addEventListener(listen, runFunc, extra);
@@ -1222,7 +1236,11 @@ modules["editor/toolbar"] = {
                 }
               }
               newAnno._id = tempID;
-              newAnno.l = (newAnno.l || utils.maxLayer) + 1;
+              if (["page"].includes(newAnno.f) == false) {
+                newAnno.l = (newAnno.l || utils.maxLayer) + 1;
+              } else {
+                newAnno.l = (newAnno.l || utils.minLayer) - 1;
+              }
               newAnno.sync = setTempSync;
               delete newAnno.m;
               await utils.render(newAnno);
@@ -1373,7 +1391,11 @@ modules["editor/toolbar"] = {
           newAnno.p = newAnno.p || [0, 0];
           newAnno.p[0] += 50;
           newAnno.p[1] += 50;
-          newAnno.l = (newAnno.l || utils.maxLayer) + 1;
+          if (["page"].includes(newAnno.f) == false) {
+            newAnno.l = (newAnno.l || utils.maxLayer) + 1;
+          } else {
+            newAnno.l = (newAnno.l || utils.minLayer) - 1;
+          }
           newAnno.sync = setTempSync;
           delete newAnno.m;
           delete newAnno.lock;
@@ -1499,7 +1521,7 @@ modules["pages/editor/toolbar/cursor"] = {
         }
         anno.setAttribute("selected", "");
         let activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
-        if (editor.lesson.settings.editOthersWork == true || [merged.a, merged.m].includes(self.modify) == true || self.access > 3) {
+        if ((editor.lesson.settings.editOthersWork == true || [merged.a, merged.m].includes(self.modify) == true || self.access > 3) &&  self.access > 0) {
           if (activeLayer == null) {
             anno.parentElement.insertAdjacentHTML("afterbegin", `<div class="eSelectActive" anno="${annoID}" tooleditor></div>`);
             activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
@@ -1549,6 +1571,14 @@ modules["pages/editor/toolbar/cursor"] = {
               <svg class="eSelectTooltip" tooltip="bottom" width="28" height="12" viewBox="0 0 28 12" hidden fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M22 6H6" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
               <svg class="eSelectTooltip" tooltip="rotate" width="26" height="26" viewBox="0 0 31 31" hidden fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M3.46244 9.45089C2.67045 10.2429 1.38612 10.2429 0.594123 9.45089C-0.197875 8.65884 -0.197875 7.37466 0.594123 6.58261L3.46244 9.45089ZM9.04395 3.86918L3.46244 9.45089L0.594123 6.58261L6.17562 1.0009L9.04395 3.86918Z" fill="#0084FF"/> <path d="M14.6257 6.58261C15.4177 7.37466 15.4177 8.65884 14.6257 9.45089C13.8337 10.2429 12.5494 10.2429 11.7574 9.45089L14.6257 6.58261ZM9.04373 1.0009L14.6257 6.58261L11.7574 9.45089L6.17541 3.86918L9.04373 1.0009Z" fill="var(--theme)"/> <path d="M21.3783 19.0707C20.5863 18.2786 20.5863 16.9945 21.3783 16.2024C22.1703 15.4104 23.4546 15.4104 24.2466 16.2024L21.3783 19.0707ZM26.9603 24.6523L21.3783 19.0707L24.2466 16.2024L29.8281 21.7841L26.9603 24.6523Z" fill="var(--theme)"/> <path d="M24.2466 30.2341C23.4546 31.0261 22.1703 31.0261 21.3783 30.2341C20.5863 29.442 20.5863 28.1579 21.3783 27.3658L24.2466 30.2341ZM29.8281 24.6524L24.2466 30.2341L21.3783 27.3658L26.9603 21.7841L29.8281 24.6524Z" fill="var(--theme)"/> <path d="M7.63804 2.43607V10.0101C7.63804 17.2905 13.5396 23.1924 20.8203 23.1924H28.394" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
             `);
+            if (["page"].includes(merged.f) == true) {
+              select.insertAdjacentHTML("beforeend", `
+                <svg class="eSelectTooltip" duplicate tooltip="duplicateleft" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10.5" fill="var(--hover)" stroke="var(--theme)" stroke-width="3"/> <path d="M12 16.5L12 7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> <path d="M16.5 12H7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> </svg>
+                <svg class="eSelectTooltip" duplicate tooltip="duplicateright" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10.5" fill="var(--hover)" stroke="var(--theme)" stroke-width="3"/> <path d="M12 16.5L12 7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> <path d="M16.5 12H7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> </svg>
+                <svg class="eSelectTooltip" duplicate tooltip="duplicatetop" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10.5" fill="var(--hover)" stroke="var(--theme)" stroke-width="3"/> <path d="M12 16.5L12 7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> <path d="M16.5 12H7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> </svg>
+                <svg class="eSelectTooltip" duplicate tooltip="duplicatebottom" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10.5" fill="var(--hover)" stroke="var(--theme)" stroke-width="3"/> <path d="M12 16.5L12 7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> <path d="M16.5 12H7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> </svg>
+              `);
+            }
           }
           select.removeAttribute("hidetips");
         } else {
@@ -1561,7 +1591,7 @@ modules["pages/editor/toolbar/cursor"] = {
             annoTx.removeAttribute("contenteditable");
           }
         }
-        if (merged.lock == true || (editor.lesson.settings.editOthersWork != true && [merged.a, merged.m].includes(self.modify) == false && self.access < 4)) { // Can't edit another member's work:
+        if (merged.lock == true || self.access < 1 || (editor.lesson.settings.editOthersWork != true && [merged.a, merged.m].includes(self.modify) == false && self.access < 4)) { // Can't edit another member's work:
           select.setAttribute("hidetips", "");
         }
         /*
@@ -1639,7 +1669,13 @@ modules["pages/editor/toolbar/cursor"] = {
             } else {
               eSelectTopRight.removeAttribute("hidden");
               eSelectBottomLeft.removeAttribute("hidden");
-              eSelectRotate.removeAttribute("hidden");
+              if (merged.f == "page") {
+                eSelectRotate.setAttribute("hidden", "");
+                eSelectBottomLeft.style.display = "unset";
+              } else {
+                eSelectRotate.removeAttribute("hidden");
+                eSelectBottomLeft.style.removeProperty("display");
+              }
             }
           }
         } else {
@@ -1693,7 +1729,13 @@ modules["pages/editor/toolbar/cursor"] = {
         let setCheckX = x + width;
         this.checkX = Math.min(this.checkX || setCheckX, setCheckX);
         let setCheckY = (pageY * inverse) + y - border + height;
-        this.checkY = Math.min(this.checkX || setCheckY, setCheckY);
+        this.checkY = Math.min(this.checkY || setCheckY, setCheckY);
+
+        if (selectionIDs.length == 1 && select.querySelector('.eSelectTooltip[duplicate]') != null) {
+          this.tooltipPadding = 60;
+        } else {
+          this.tooltipPadding = 24;
+        }
 
         if (collabSelect != null) {
           collabSelect.offsetWidth;
@@ -1704,6 +1746,10 @@ modules["pages/editor/toolbar/cursor"] = {
           //collabSelect.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
           //collabSelect.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
           collabSelect.style.transform = "translate(" + (pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5) + "px," + (pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5) + "px) rotate(" + rotate + "deg)";
+        }
+
+        if (forceNoTransition == true) {
+          select.removeAttribute("notransition");
         }
       }
     }
@@ -1786,11 +1832,11 @@ modules["pages/editor/toolbar/cursor"] = {
     "markup": ["color", "thickness", "opacity", "unlock", "collaborator", "delete", "more"],
     "shape": ["color", "thickness", "opacity", "style", "unlock", "collaborator", "delete", "more"],
     "sticky": ["textedit", "color", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "unlock", "collaborator", "reactions", "delete", "more"],
+    "page": ["uploadpage", "resize", "settitle", "color", "hidepage", "unlock", "collaborator", "delete", "more"],
     "media": ["unlock", "collaborator", "delete", "more"],
     "embed": ["openlink", "enlarge", "setembed", "unlock", "collaborator", "delete", "more"]
   },
   actionEvents: [],
-  toolbarPadding: 24,
   updateActionUI: async function (refresh) {
     let editor = await getModule("pages/editor");
     let toolbarModule = await getModule("editor/toolbar");
@@ -1926,10 +1972,10 @@ modules["pages/editor/toolbar/cursor"] = {
         pxLeft -= (pxLeft + actionUI.clientWidth + 8) - fixed.offsetWidth;
       }
       actionUI.style.left = Math.max(pxLeft, 66) + window.scrollX + "px";
-      let yPos = pageHolderRect.y + (this.minY * editor.zoom) - actionUI.clientHeight - this.toolbarPadding;
+      let yPos = pageHolderRect.y + (this.minY * editor.zoom) - actionUI.clientHeight - this.tooltipPadding;
       let isBottom = false;
       if (yPos < 66) {
-        let modifiedY = pageHolderRect.y + (this.maxY * editor.zoom) + this.toolbarPadding;
+        let modifiedY = pageHolderRect.y + (this.maxY * editor.zoom) + this.tooltipPadding;
         if (modifiedY + actionUI.clientHeight + 66 > fixed.offsetHeight) {
           //yPos = (modifiedY + actionUI.clientHeight + 66) - fixed.offsetHeight;
           yPos = 66;
@@ -2269,7 +2315,7 @@ modules["pages/editor/toolbar/cursor"] = {
       })();
     }
     toolbarModule.updateTooltipHover();
-    await this.runActionModule(module, holder, preferenceTool, { setCaretPosition: event.setCaretPosition, clientX: event.clientX, clientY: event.clientY });
+    await this.runActionModule(module, holder, preferenceTool, { setCaretPosition: event.setCaretPosition, clientX: event.clientX, clientY: event.clientY, button: action });
     this.updateActionUI();
   },
   runActionModule: async function (module, holder, preferenceTool, extra) {
@@ -2346,6 +2392,7 @@ modules["pages/editor/toolbar/cursor"] = {
               if (annoSet.remove != true) {
                 pushChanges.push(JSON.parse(JSON.stringify({ ...pushFields, _id: annoID })));
               } else {
+                console.log(anno)
                 pushRemoves.push(JSON.parse(JSON.stringify(anno)));
               }
             }
@@ -2452,6 +2499,9 @@ modules["pages/editor/toolbar/cursor"] = {
       return;
     }
     */
+    if (editor.getSelf().access < 1) {
+      return;
+    }
     if (this.annotationElem != null && (this.annotationElem.querySelector("div[contenteditable]") != null || this.annotationElem.querySelector("div[visible] input") != null)) {
       return;
     }
@@ -2468,18 +2518,68 @@ modules["pages/editor/toolbar/cursor"] = {
       editor.page.style.touchAction = "pinch-zoom";
       event.preventDefault();
     } else if (this.resizeElem != null) {
-      if (this.resizeElem.getAttribute("tooltip") != "rotate") {
-        // Resize Element
-        this.action = "resize";
+      if (this.resizeElem.hasAttribute("duplicate") == false) {
+        if (this.resizeElem.getAttribute("tooltip") != "rotate") {
+          // Resize Element
+          this.action = "resize";
+        } else {
+          // Rotate Element
+          this.action = "rotate";
+        }
+        this.enableStartX = clientPosition(event, "x");
+        this.enableStartY = clientPosition(event, "y");
+        body.style.userSelect = "none";
+        editor.page.style.touchAction = "pinch-zoom";
+        event.preventDefault();
       } else {
-        // Rotate Element
-        this.action = "rotate";
+        // Duplicate Element
+        let selectKeys = Object.keys(editor.selecting);
+        if (selectKeys.length < 1) {
+          return;
+        }
+        let utils = await getModule("pages/editor/annotation");
+        let newSelect = {};
+        let newNewSelect = {};
+        let setTempSync = getEpoch();
+        for (let i = 0; i < selectKeys.length; i++) {
+          let selectID = selectKeys[i];
+          let tempID = utils.tempID();
+          let newAnno = JSON.parse(JSON.stringify(({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {}));
+          if (editor.getSelf().access < 4 && editor.toolbar.checkSubToolType(editor, newAnno.f) == true) {
+            continue;
+          }
+          newAnno._id = tempID;
+          newAnno.p = newAnno.p || [0, 0];
+          newAnno.s = newAnno.s || [0, 0];
+          if (this.resizeElem.getAttribute("tooltip") == "duplicateleft") {
+            newAnno.p[0] -= newAnno.s[0] + 34;
+          } else if (this.resizeElem.getAttribute("tooltip") == "duplicateright") {
+            newAnno.p[0] += newAnno.s[0] + 34;
+          } else if (this.resizeElem.getAttribute("tooltip") == "duplicatetop") {
+            newAnno.p[1] -= newAnno.s[1] + 34;
+          } else if (this.resizeElem.getAttribute("tooltip") == "duplicatebottom") {
+            newAnno.p[1] += newAnno.s[1] + 34;
+          }
+          if (["page"].includes(newAnno.f) == false) {
+            newAnno.l = (newAnno.l || utils.maxLayer) + 1;
+          } else {
+            newAnno.l = (newAnno.l || utils.minLayer) - 1;
+          }
+          newAnno.sync = setTempSync;
+          delete newAnno.m;
+          delete newAnno.lock;
+          await utils.render(newAnno);
+          editor.annotations[tempID] = { render: newAnno };
+          newSelect[tempID] = newAnno;
+          newNewSelect[tempID] = {};
+        }
+        editor.selecting = newSelect;
+        this.action = "save";
+        await this.endAction();
+        this.action = null;
+        editor.selecting = newNewSelect;
+        this.updateBox();
       }
-      this.enableStartX = clientPosition(event, "x");
-      this.enableStartY = clientPosition(event, "y");
-      body.style.userSelect = "none";
-      editor.page.style.touchAction = "pinch-zoom";
-      event.preventDefault();
     }
   },
   oppositeResize: {
@@ -2549,6 +2649,10 @@ modules["pages/editor/toolbar/cursor"] = {
       if (anno.lock == true) {
         return this.endAction();
       }
+      if (self.access < 1) {
+        delete editor.selecting[annoid];
+        return;
+      }
       if (editor.lesson.settings.editOthersWork != true && [anno.a, anno.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
         delete editor.selecting[annoid];
         return;
@@ -2565,14 +2669,18 @@ modules["pages/editor/toolbar/cursor"] = {
         }
         if (this.position == null) {
           //this.position = JSON.parse(JSON.stringify(select.p || anno.p));
-          this.position = "";
+          this.position = {};
           let originalPos = await utils.scaleToDoc(this.enableStartX, this.enableStartY, number || 0);
           this.rootX = originalPos.x;
           this.rootY = originalPos.y;
         }
+        if (this.position[annoid] == null) {
+          this.position[annoid] = [anno.p[0], anno.p[1]];
+        }
         let { x, y } = await utils.scaleToDoc(mouseX, mouseY, number || 0);
-        select.p[0] = utils.round(anno.p[0] + (x - this.rootX));
-        select.p[1] = utils.round(anno.p[1] + (y - this.rootY));
+        let originalAnnoPos = this.position[annoid];
+        select.p[0] = utils.round(originalAnnoPos[0] + (x - this.rootX));
+        select.p[1] = utils.round(originalAnnoPos[1] + (y - this.rootY));
       } else if (this.action == "resize") {
         select.s = select.s || anno.s;
         select.p = select.p || anno.p;
@@ -2658,6 +2766,8 @@ modules["pages/editor/toolbar/cursor"] = {
             continue;
           }
         } else if (["sticky", "media"].includes(select.f || anno.f) == true && ["bottomright", "topleft", "topright", "bottomleft"].includes(this.tooltip) == true) {
+          preserveAspect = true;
+        } else if (["page"].includes(select.f || anno.f) == true && ["bottomright", "topleft", "topright", "bottomleft"].includes(this.tooltip) == true && (select.source || anno.source) != null) {
           preserveAspect = true;
         }
 
@@ -2838,6 +2948,21 @@ modules["pages/editor/toolbar/cursor"] = {
 
         select.p[0] = utils.round(this.position[0] - ((newXCoord + newHalfRotateWidth) - (originalXCoord + oldHalfRotateWidth)));
         select.p[1] = utils.round(this.position[1] - (((-newYCoord) + newHalfRotateHeight) - ((-originalYCoord) + oldHalfRotateHeight)));
+
+        if (["page"].includes(select.f || anno.f) == true) {
+          if (select.s[0] < 100) {
+            if (oppositePositionX != newOppositePositionX) {
+              select.p[0] -= 100 - select.s[0];
+            }
+            select.s[0] = 100;
+          }
+          if (select.s[1] < 100) {
+            if (oppositePositionY != newOppositePositionY) {
+              select.p[1] -= 100 - select.s[1];
+            }
+            select.s[1] = 100;
+          }
+        }
       } else if (this.action == "rotate") {
         select.r = select.r || anno.r || 0;
         let number;
@@ -3009,6 +3134,7 @@ modules["pages/editor/toolbar/cursor"] = {
   },
   interactRun: async function (target) {
     let editor = await getModule("pages/editor");
+    let cursorModule = await getModule("pages/editor/toolbar/cursor");
     let reaction = target.closest(".eReaction");
     if (reaction != null) {
       if (reaction.hasAttribute("emoji") == false) {
@@ -3061,11 +3187,29 @@ modules["pages/editor/toolbar/cursor"] = {
       }
       return true;
     }
+    let pageReveal = target.closest(".eAnnotation[page] div[hide] button");
+    if (pageReveal != null) {
+      if (editor.getSelf().access < 4) {
+        return;
+      }
+      let pageAnno = pageReveal.closest(".eAnnotation[page]");
+      if (pageAnno != null) {
+        let oldSelecting = JSON.stringify(editor.selecting);
+        editor.selecting = {};
+        editor.selecting[pageAnno.getAttribute("anno")] = { hidden: false };
+        cursorModule.action = "save";
+        await cursorModule.endAction();
+        editor.selecting = JSON.parse(oldSelecting);
+        await cursorModule.redrawActionUI();
+        cursorModule.updateBox();
+      }
+      return true;
+    }
   },
   js: async function (editor, utils, addEvent) {
     let content = editor.page.querySelector(".eContent");
-    editor.updateZoom = async (forceNoTransition, noUpdateAction) => {
-      this.updateBox(forceNoTransition, null, noUpdateAction);
+    editor.updateZoom = async (forceNoTransition, noUpdateAction, forceUpdate) => {
+      this.updateBox(forceNoTransition, forceUpdate, noUpdateAction);
     }
     let alertModule = await getModule("alert");
     let startX;
@@ -3124,26 +3268,35 @@ modules["pages/editor/toolbar/cursor"] = {
         return;
       }
       let annoID = anno.getAttribute("anno");
-      let self = editor.getSelf();
+      //let self = editor.getSelf();
       let render = ((editor.annotations[annoID] || {}).render || {});
       /*if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
         return;
       }*/
-      let newlySelected = false;
+      if (editor.selecting[annoID] != null && render.f == "page" && target.closest("div[title]") != null && render.lock != true) {
+        if (target.closest("div[title]").hasAttribute("contenteditable") == false) {
+          this.clickAction({
+            target: content.querySelector('.eSelectBar:not([remove]) .eTool[action="pages/editor/toolbar/settitle"]')
+          });
+        }
+      }
+      //let newlySelected = false;
       if (editor.selecting[annoID] == null) {
-        wasSelected = annoID;
-        editor.selecting[annoID] = {};
-        newlySelected = true;
+        if (render.f != "page" || target.closest("div[content]") == null) {
+          wasSelected = annoID;
+          editor.selecting[annoID] = {};
+          //newlySelected = true;
+        }
       }
       await this.updateBox();
       await this.enableAction(event);
-      if (newlySelected == true) {
+      /*if (newlySelected == true) {
         if (render.f == "embed" && render.embed == null && render.lock != true) {
           this.clickAction({
             target: content.querySelector('.eSelectBar:not([remove]) .eTool[action="pages/editor/toolbar/setembed"]')
           });
         }
-      }
+      }*/
     }
     let disableSelect = async (event) => {
       this.endAction(event);
@@ -3153,7 +3306,7 @@ modules["pages/editor/toolbar/cursor"] = {
       if (target == null) {
         return;
       }
-      if (target.closest("button") != null || target.closest("a") != null) {
+      if (target.closest("button") != null || target.closest("a") != null || target.closest(".eSelect") != null) {
         return;
       }
       anno = target.closest(".eAnnotation, .eSelect, .eSelectActive");
@@ -3179,6 +3332,8 @@ modules["pages/editor/toolbar/cursor"] = {
           // Unselect
           if (wasSelected != annoID && editor.selecting[annoID] != null) {
             delete editor.selecting[annoID];
+          } else {
+            editor.selecting[annoID] = {};
           }
         } else {
           editor.selecting = {};
@@ -3227,12 +3382,24 @@ modules["pages/editor/toolbar/drag"] = {
     return Array.from(children)
       .filter(element => {
         const elementRect = element.getBoundingClientRect();
-        return (
-          elementRect.top <= selectBoxRect.bottom &&
-          elementRect.bottom >= selectBoxRect.top &&
-          elementRect.left <= selectBoxRect.right &&
-          elementRect.right >= selectBoxRect.left
-        );
+        if (element.hasAttribute("page") == false) {
+          if (element.closest(".eAnnotation[page][selected]") != null) {
+            return false;
+          }
+          return (
+            elementRect.top < selectBoxRect.bottom &&
+            elementRect.bottom > selectBoxRect.top &&
+            elementRect.left < selectBoxRect.right &&
+            elementRect.right > selectBoxRect.left
+          );
+        } else {
+          return (
+            elementRect.top > selectBoxRect.top &&
+            elementRect.bottom < selectBoxRect.bottom &&
+            elementRect.left > selectBoxRect.left &&
+            elementRect.right < selectBoxRect.right
+          );
+        }
         /*
         let original = editor.annotations[element.getAttribute("anno")];
         if (original == null) {
@@ -4600,6 +4767,91 @@ modules["pages/editor/toolbar/sticky"] = {
   }
 };
 
+// PAGE TOOL
+modules["pages/editor/toolbar/page"] = {
+  js: async function (editor, utils, addEvent, extra) {
+    this.color = editor.preferences.tools.page.color.selected;
+    this.size = editor.preferences.tools.page.size;
+    this.publish = {};
+
+    let toolbar = await getModule("editor/toolbar");
+    let cursor = await getModule("pages/editor/toolbar/cursor");
+
+    body.style.userSelect = "none";
+    editor.page.style.touchAction = "pinch-zoom";
+    editor.page.setAttribute("enabled", "");
+
+    let page;
+    let anno;
+    let clientY;
+    let clientX;
+    let pagemove = async (event) => {
+      if (page == null) {
+        // If not a page, make one!
+        page = {
+          f: "page",
+          //p: [utils.round(x - this.thickness), utils.round(y - this.thickness)],
+          s: this.size, //this.size
+          l: utils.minLayer - 1,
+          c: this.color
+        };
+      }
+      clientX = clientPosition(event, "x") || clientX;
+      clientY = clientPosition(event, "y") || clientY;
+      if (clientX == null || clientY == null) {
+        return;
+      }
+      let [foundPage, number] = await utils.findPage(clientY);
+      if (foundPage.hasAttribute("hide") == true) {
+        return;
+      }
+      let { x, y } = await utils.scaleToDoc(clientX, clientY, number);
+      /*if (editor.lesson.type == "freeboard") {
+        y += 4;
+      }*/
+      page.p = [utils.round(x - (page.s[0] / 2)), utils.round(y - (page.s[1] / 2))];
+      if (foundPage != null && foundPage.hasAttribute("pageid") == true) {
+        page.page = foundPage.getAttribute("pageid");
+      }
+      [_, anno] = await utils.render(page, anno);
+      editor.selecting["cursor"] = page;
+    }
+    let placepage = async () => {
+      let savePage = JSON.parse(JSON.stringify(page));
+      page = null;
+      delete editor.selecting["cursor"];
+
+      let tempID = utils.tempID();
+      anno.setAttribute("anno", tempID);
+      anno.removeAttribute("tooleditor");
+      savePage.sync = getEpoch();
+      utils.save({ ...savePage, _id: tempID }, anno);
+      utils.pushHistory("remove", [{ _id: tempID }]);
+
+      savePage.done = true; // Alert other clients that this annotation is done
+      editor.selecting[tempID] = savePage;
+      await utils.forceShort();
+
+      await toolbar.setCurrentTool(editor.page.querySelector('.eTool[tool="select"]'));
+      await toolbar.setCurrentTool(editor.page.querySelector('.eTool[subtool="select"]'));
+      editor.selecting[tempID] = {};
+      await cursor.updateBox();
+    }
+    let content = editor.page.querySelector(".eContent");
+    addEvent(content, "mousemove", pagemove, { passive: false });
+    addEvent(content, "touchmove", pagemove, { passive: false });
+    addEvent(window, "scroll", pagemove, { passive: false });
+    addEvent(content, "mouseup", placepage, { passive: false });
+    addEvent(content, "touchend", placepage, { passive: false });
+
+    if (editor.zoom > .5) {
+      editor.lastZoom = editor.zoom;
+      await editor.setZoom(.5, null, { clientX: fixed.offsetWidth / 2, clientY: fixed.offsetHeight / 2 });
+      editor.zoomChanged = false;
+    }
+  }
+};
+
 // MEDIA TOOL
 modules["pages/editor/toolbar/upload"] = {
   width: 150,
@@ -5858,7 +6110,11 @@ modules["dropdowns/editor/toolbar/more"] = {
         newAnno.p = newAnno.p || [0, 0];
         newAnno.p[0] += 50;
         newAnno.p[1] += 50;
-        newAnno.l = (newAnno.l || utils.maxLayer) + 1;
+        if (["page"].includes(newAnno.f) == false) {
+          newAnno.l = (newAnno.l || utils.maxLayer) + 1;
+        } else {
+          newAnno.l = (newAnno.l || utils.minLayer) - 1;
+        }
         newAnno.sync = setTempSync;
         delete newAnno.m;
         delete newAnno.lock;
@@ -6766,7 +7022,7 @@ modules["pages/editor/toolbar/setembed"] = {
     let linkInputHolder = detailsHolder.querySelector("div[input]");
     let infoHolder = detailsHolder.querySelector("div[info]");
 
-    if (linkInputHolder.hasAttribute("visible") == true && original.embed != null) {
+    if (linkInputHolder.hasAttribute("visible") == true && original.embed != null && original.d != null) {
       linkInputHolder.removeAttribute("visible");
       infoHolder.style.removeProperty("display");
       return;
@@ -6894,9 +7150,7 @@ modules["pages/editor/toolbar/enlarge"] = {
   }
 };
 modules["modals/editor/embed"] = {
-  html: `
-  <div class="emFrame"><iframe allowfullscreen></iframe></div>
-  `,
+  html: `<div class="emFrame"><iframe allowfullscreen></iframe></div>`,
   css: {
     ".emFrame": `width: calc(100vw - 37px); height: calc(100vh - 77px); max-width: 1000px; max-height: 700px`,
     ".emFrame iframe": `position: absolute; left: 0px; top: 0px; width: 100% !important; height: 100% !important; transform: unset !important; background: var(--pageColor); border: none`
@@ -6917,6 +7171,367 @@ modules["modals/editor/embed"] = {
     //if (embedFrame != null) {
   }
 }
+
+// Page Functions
+modules["pages/editor/toolbar/settitle"] = {
+  button: `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_800_56" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_800_56)"> <rect x="111" y="47" width="34" height="162" rx="17" stroke="white" stroke-width="12"/> <path d="M128 211.485L131.536 215.021C134.724 218.209 139.048 220 143.556 220H177C186.389 220 194 212.389 194 203C194 193.611 186.389 186 177 186H128H79C69.6112 186 62 193.611 62 203C62 212.389 69.6112 220 79 220H112.444C116.952 220 121.276 218.209 124.464 215.021L128 211.485Z" stroke="white" stroke-width="12"/> <path d="M128 44.5147L131.536 40.9792C134.724 37.7911 139.048 36 143.556 36H177C186.389 36 194 43.6112 194 53C194 62.3888 186.389 70 177 70H128H79C69.6112 70 62 62.3888 62 53C62 43.6112 69.6112 36 79 36H112.444C116.952 36 121.276 37.7911 124.464 40.9792L128 44.5147Z" stroke="white" stroke-width="12"/> <rect x="117" y="53" width="22" height="150" rx="11" fill="#2F2F2F"/> <path d="M68 203C68 196.925 72.9249 192 79 192H128H177C183.075 192 188 196.925 188 203V203C188 209.075 183.075 214 177 214H143.556C140.639 214 137.841 212.841 135.778 210.778L128 203L120.222 210.778C118.159 212.841 115.361 214 112.444 214H79C72.9249 214 68 209.075 68 203V203Z" fill="#2F2F2F"/> <path d="M68 53C68 59.0751 72.9249 64 79 64H128H177C183.075 64 188 59.0751 188 53V53C188 46.9249 183.075 42 177 42H143.556C140.639 42 137.841 43.1589 135.778 45.2218L128 53L120.222 45.2218C118.159 43.1589 115.361 42 112.444 42H79C72.9249 42 68 46.9249 68 53V53Z" fill="#2F2F2F"/> </g> </svg>`,
+  tooltip: "Page Title",
+  multiSelect: false,
+  setButton: function (editor, button) {
+    let selectID = Object.keys(editor.selecting)[0];
+    let annoTx = editor.page.querySelector('.eAnnotation[anno="' + selectID + '"] div[title][contenteditable]');
+    if (annoTx == null) {
+      button.removeAttribute("selecthighlight");
+    } else {
+      if (button.parentElement.hasAttribute("locked") == true) {
+        annoTx.removeAttribute("contenteditable");
+      }
+      button.setAttribute("selecthighlight", "");
+    }
+  },
+  pastEvents: [],
+  js: async function (frame, toolID, extra) {
+    let editor = await getModule("pages/editor");
+    let utils = await getModule("pages/editor/annotation");
+    let selectID = Object.keys(editor.selecting)[0];
+    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+
+    if (original.lock == true) {
+      return;
+    }
+
+    let annoElem = editor.page.querySelector('.eAnnotation[anno="' + selectID + '"]');
+    if (annoElem == null) {
+      return;
+    }
+    let annoTx = annoElem.querySelector("div[title]");
+    if (annoTx == null) {
+      return;
+    }
+
+    if (annoTx.hasAttribute("contenteditable") == false) {
+      annoTx.style.display = "unset";
+      annoTx.setAttribute("contenteditable", "true");
+
+      if (extra.setCaretPosition != true || document.caretRangeFromPoint == null) {
+        if (window.getSelection && document.createRange) {
+          range = document.createRange();
+          range.selectNodeContents(annoTx);
+          sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        } else if (document.body.createTextRange) {
+          range = document.body.createTextRange();
+          range.moveToElementText(annoTx);
+          range.select();
+        }
+      } else {
+        let range = document.caretRangeFromPoint(extra.clientX, extra.clientY);
+        let selection = window.getSelection();
+
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    } else {
+      if (annoTx.textContent.length < 1) {
+        annoTx.style.removeProperty("display");
+      }
+      annoTx.scrollTo(0, 0);
+      annoTx.removeAttribute("contenteditable");
+    }
+
+    for (let i = 0; i < this.pastEvents.length; i++) {
+      let remEvent = this.pastEvents[i];
+      remEvent.parent.removeEventListener(remEvent.name, remEvent.listener);
+    }
+    this.pastEvents = [];
+
+    let finishListener = () => {
+      annoTx.textContent = annoTx.textContent.substring(0, 100);
+      extra.saveSelecting({ title: cleanString(annoTx.textContent) }, true);
+      if (annoTx.textContent.length < 1) {
+        annoTx.style.removeProperty("display");
+      }
+      annoTx.scrollTo(0, 0);
+      annoTx.removeAttribute("contenteditable");
+      extra.updateToolActions(extra.frame);
+      utils.clearSelection();
+    };
+    this.pastEvents.push({ type: "event", parent: annoTx, name: "blur", listener: finishListener });
+    annoTx.addEventListener("blur", finishListener);
+
+    let keyListener = (event) => {
+      if (event != null && ["Enter"].includes(event.key) == true) {
+        event.preventDefault();
+        finishListener();
+      }
+    }
+    this.pastEvents.push({ type: "event", parent: annoTx, name: "keydown", listener: keyListener });
+    annoTx.addEventListener("keydown", keyListener);
+
+    let pasteListener = (event) => {
+      // Cancel paste
+      event.preventDefault();
+
+      // Insert text manually
+      document.execCommand("insertHTML", false, (event.originalEvent || event).clipboardData.getData("text/plain")); //.replace(/\n\n/g, "</br>")
+    }
+    this.pastEvents.push({ type: "event", parent: annoTx, name: "paste", listener: pasteListener });
+    annoTx.addEventListener("paste", pasteListener);
+
+    extra.updateToolActions(extra.frame);
+  }
+};
+modules["pages/editor/toolbar/uploadpage"] = {
+  button: `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_2387_72" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_2387_72)"> <path d="M56 145V165C56 181.569 69.4315 195 86 195H171C187.569 195 201 181.569 201 165V145" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M128 60V156" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M128 60L164 96" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M128 60L92 96" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M56 145V165C56 181.569 69.4315 195 86 195H171C187.569 195 201 181.569 201 165V145" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> <path d="M128 60V156" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> <path d="M128 60L164 96" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> <path d="M128 60L92 96" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> </g> </svg>`,
+  tooltip: "Upload PDF",
+  multiSelect: false,
+  maxFileSize: (500 * 10 * 1024 * 1024) + 1, // 5 GB File Limit // Will be 10 MB per page
+  js: async function (frame, toolID, extra) {
+    let editor = await getModule("pages/editor");
+    let utils = await getModule("pages/editor/annotation");
+    let alertModule = await getModule("alert");
+
+    if (Object.keys(editor.selecting)[0].startsWith("pending_") == true) {
+      await utils.syncSave(true);
+    }
+
+    let input = extra.frame.querySelector(".eSubToolUploadPageInput");
+    if (input == null) {
+      extra.frame.querySelector(".eSelectHolder").insertAdjacentHTML("beforeend", `<input class="eSubToolUploadPageInput" type="file" accept="application/pdf" multiple="true" hidden="true">`);
+      input = extra.frame.querySelector(".eSubToolUploadPageInput");
+    }
+    let processUpload = async (files, event) => {
+      event.preventDefault();
+      if (files == null) {
+        return;
+      }
+      let selectID = Object.keys(editor.selecting)[0];
+      if (selectID.startsWith("pending_") == true) {
+        return;
+      }
+      if (files.length > 50) {
+        return alertModule.open("warning", "<b>File Overload</b>Woah their! Markify only supports bulk uploads of up to 50 files at once.", { time: 10 });
+      }
+      let sendFormData = new FormData();
+      let fileSize = 0;
+      let passedFiles = 0;
+      for (let i = 0; i < files.length; i++) {
+        let file = files[i];
+        if (file.kind == "file") {
+          file = file.getAsFile();
+        }
+        if (file.kind != "string") {
+          if (file.type == "application/pdf") {
+            fileSize += file.size;
+            if (fileSize > this.maxFileSize) {
+              return alertModule.open("error", "<b>Exceeded Size Limit</b><div>Lessons are limited to a max size of <u>3 GB</u> total</div>", { time: 10 });
+              //passedFile = false;
+              //break;
+            }
+            sendFormData.append("file" + i, file);
+            passedFiles++;
+            /*
+            if (file.size < this.maxFileSize) {
+              sendFormData.append("file" + i, file);
+              passedFile = true;
+            } else {
+              alertModule.open("warning", "<b>" + file.name + " Failed to Upload</b>Files are limited to a max size of 50 MB", { time: 10 });
+            }
+            */
+          } else {
+            alertModule.open("warning", "<b>" + file.name + " Failed to Upload</b>Only PDF files are currently supported", { time: 10 });
+          }
+        }
+      }
+      input.value = "";
+      if (passedFiles > 0) {
+        extra.button.setAttribute("disabled", "");
+        let uploadAlert = await alertModule.open("info", `<b>Uploading Documents</b>Uploading your PDF${addS(passedFiles)} and inserting into the lesson!`, { time: "never" });
+        let [code, body] = await sendRequest("POST", "lessons/save/file?annotation=" + selectID, sendFormData, { session: editor.session, noFileType: true });
+        alertModule.close(uploadAlert);
+        extra.button.removeAttribute("disabled");
+        if (code == 200) {
+          if (body.historyUpdate != null) {
+            utils.pushHistory("update", body.historyUpdate);
+          }
+          if (body.historyAdd != null) {
+            utils.pushHistory("remove", body.historyAdd);
+          }
+        }
+      }
+    }
+    input.addEventListener("change", (event) => {
+      processUpload(event.target.files, event);
+    });
+    input.click();
+  }
+};
+modules["pages/editor/toolbar/resize"] = {
+  button: `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_2384_8" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_2384_8)"> <rect x="50" y="49" width="157" height="157" rx="36" stroke="white" stroke-width="32"/> <rect x="72" y="71" width="113" height="113" rx="14" stroke="white" stroke-width="12"/> <rect x="56" y="55" width="145" height="145" rx="30" stroke="#2F2F2F" stroke-width="20"/> <path d="M140 84H172" stroke="white" stroke-width="24" stroke-linecap="round"/> <path d="M172 116.5L172 84.5" stroke="white" stroke-width="24" stroke-linecap="round"/> <path d="M117 171H85" stroke="white" stroke-width="24" stroke-linecap="round"/> <path d="M85 138.5L85 170.5" stroke="white" stroke-width="24" stroke-linecap="round"/> <path d="M85 171L172 84" stroke="white" stroke-width="24" stroke-linecap="round"/> <path d="M135 121L172 84" stroke="#2F2F2F" stroke-width="12" stroke-linecap="round"/> <path d="M140 84H172" stroke="#2F2F2F" stroke-width="12" stroke-linecap="round"/> <path d="M172 116.5L172 84.5" stroke="#2F2F2F" stroke-width="12" stroke-linecap="round"/> <path d="M122 134L85 171" stroke="#2F2F2F" stroke-width="12" stroke-linecap="round"/> <path d="M117 171H85" stroke="#2F2F2F" stroke-width="12" stroke-linecap="round"/> <path d="M85 138.5L85 170.5" stroke="#2F2F2F" stroke-width="12" stroke-linecap="round"/> </g> </svg>`,
+  tooltip: "Resize",
+  divideAfter: true,
+  html: `
+  <div class="eSubToolResizeHolder">
+    <div class="eSubToolResizeSizeHolder">
+      <button class="border" width="816" height="1056"><div class="eSubToolResizeSizeTitle">Letter</div><div class="eSubToolResizeSizeInfo">8.5" x 11"</div></button>
+      <button class="border" width="1056" height="1632"><div class="eSubToolResizeSizeTitle">Tabloid</div><div class="eSubToolResizeSizeInfo">11" x 17"</div></button>
+      <button class="border" width="559.68" height="793.92"><div class="eSubToolResizeSizeTitle">A5</div><div class="eSubToolResizeSizeInfo">5.8" x 8.3"</div></button>
+      <button class="border" width="793.92" height="1122.24"><div class="eSubToolResizeSizeTitle">A4</div><div class="eSubToolResizeSizeInfo">8.3" x 11.7"</div></button>
+      <button class="border" width="1122.24" height="1587.84"><div class="eSubToolResizeSizeTitle">A3</div><div class="eSubToolResizeSizeInfo">11.7" x 16.5"</div></button>
+      <button class="border" width="665.28" height="944.64"><div class="eSubToolResizeSizeTitle">B5</div><div class="eSubToolResizeSizeInfo">6.9" x 9.8"</div></button>
+      <button class="border" width="944.64" height="1334.4"><div class="eSubToolResizeSizeTitle">B4</div><div class="eSubToolResizeSizeInfo">9.8" x 13.9"</div></button>
+      <button class="border" width="960" height="720"><div class="eSubToolResizeSizeTitle">4:3</div><div class="eSubToolResizeSizeInfo">10" x 7.5"</div></button>
+      <button class="border" width="960" height="1706.67"><div class="eSubToolResizeSizeTitle">16:9</div><div class="eSubToolResizeSizeInfo">10" x 17.8"</div></button>
+    </div>
+    <div class="eSubToolResizeCustomSizeHolder">
+      <div class="eSubToolResizeNumberHolder" width><b>Width</b><div max="50" contenteditable></div>in</div>
+      <div class="eSubToolResizeNumberHolder" height><b>Height</b><div max="50" contenteditable></div>in</div>
+    </div>
+  </div>
+  `,
+  css: {
+    ".eSubToolResizeHolder": `box-sizing: border-box; max-width: 100%; padding: 6px`,
+    ".eSubToolResizeSizeHolder": `display: flex; flex-wrap: wrap; width: 336px; max-width: 100%; justify-content: center`,
+    ".eSubToolResizeSizeHolder button": `box-sizing: border-box; display: flex; flex-direction: column; width: 100px; padding: 6px; margin: 6px; justify-content: center; align-items: center; --borderWidth: 3px; --borderRadius: 12px`,
+    ".eSubToolResizeSizeHolder button .eSubToolResizeSizeTitle": `color: var(--theme); font-size: 18px; font-weight: 600`,
+    ".eSubToolResizeSizeHolder button .eSubToolResizeSizeInfo": `color: var(--darkGray); font-size: 15px; font-weight: 500`,
+    ".eSubToolResizeSizeHolder button:hover": `--borderColor: var(--hover)`,
+    ".eSubToolResizeHolder button[selected]": `--borderColor: var(--theme); background: var(--hover)`,
+    ".eSubToolResizeCustomSizeHolder": `display: flex; flex-wrap: wrap; width: 100%; margin-top: 8px; justify-content: center; align-items: center`,
+    ".eSubToolResizeNumberHolder": `display: flex; flex-wrap: wrap; margin: 0px 10px; justify-content: center; align-items: center`,
+    ".eSubToolResizeNumberHolder div[contenteditable]": `width: fit-content; max-width: 60px; padding: 4px 6px; margin: 6px 4px 6px 8px; --borderColor: var(--secondary); outline: unset; border: solid 3px var(--borderColor); border-radius: 20px; color: var(--theme); font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; transition: .2s`
+  },
+  setPreferenceTool: function (editor) {
+    let selectKeys = Object.keys(editor.selecting);
+    this.preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
+  },
+  pageBorderSize: 4,
+  ppi: 96, // Pixels per inch
+  js: async function (frame, toolID, extra) {
+    let editor = await getModule("pages/editor");
+    this.setPreferenceTool(editor);
+    let sizeHolder = frame.querySelector(".eSubToolResizeSizeHolder");
+    let sizeOptions = sizeHolder.children;
+    let customSizeHolder = frame.querySelector(".eSubToolResizeCustomSizeHolder");
+    let customSizeWidth = customSizeHolder.querySelector(".eSubToolResizeNumberHolder[width] div[contenteditable]");
+    let customSizeHeight = customSizeHolder.querySelector(".eSubToolResizeNumberHolder[height] div[contenteditable]");
+    let updateSelected = (noTextBox) => {
+      let selectID = Object.keys(editor.selecting)[0];
+      let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+      for (let i = 0; i < sizeOptions.length; i++) {
+        let option = sizeOptions[i];
+        if ((original.s[0] == parseFloat(option.getAttribute("width")) + (this.pageBorderSize * 2)) && (original.s[1] == parseFloat(option.getAttribute("height")) + (this.pageBorderSize * 2))) {
+          option.setAttribute("selected", "");
+        } else {
+          option.removeAttribute("selected");
+        }
+      }
+      if (noTextBox != true) {
+        customSizeWidth.textContent = Math.round(((original.s[0] - (this.pageBorderSize * 2)) / this.ppi) * 100) / 100;
+        customSizeHeight.textContent = Math.round(((original.s[1] - (this.pageBorderSize * 2)) / this.ppi) * 100) / 100;
+      }
+      extra.updateActionUI();
+    }
+
+    sizeHolder.addEventListener("click", async (event) => {
+      let element = event.target;
+      if (element == null) {
+        return;
+      }
+      element = element.closest("button");
+      if (element == null) {
+        return;
+      }
+      let width = parseFloat(element.getAttribute("width")) + (this.pageBorderSize * 2);
+      let height = parseFloat(element.getAttribute("height")) + (this.pageBorderSize * 2);
+      await extra.saveSelecting({ s: [width, height] }, true);
+      updateSelected();
+      if (Object.keys(editor.selecting).length > 0) {
+        editor.preferences.tools.page.size = [width, height];
+      }
+    });
+
+    customSizeHolder.addEventListener("mousedown", (event) => {
+      let textBox = event.target.closest(".eSubToolResizeNumberHolder div");
+      if (textBox == null) {
+        return;
+      }
+      textBox.textContent = "";
+    });
+    customSizeHolder.addEventListener("keydown", (event) => {
+      let textBox = event.target.closest(".eSubToolResizeNumberHolder div");
+      if (textBox == null) {
+        return;
+      }
+      if (event.key == "Enter") {
+        event.preventDefault();
+        return;
+      }
+      if (String.fromCharCode(event.keyCode).match(/(\w|\s)/g) && event.key.length == 1) {
+        let textInt = parseFloat(textBox.textContent + event.key);
+        if (parseInt(event.key) != event.key && (event.keyCode != 190 || textBox.hasAttribute("nodecimal"))) {
+          event.preventDefault();
+          return textBoxError(textBox, "Must be a number");
+        } else if (textInt > parseFloat(textBox.getAttribute("max"))) {
+          event.preventDefault();
+          return textBoxError(textBox, "Must be less than " + textBox.getAttribute("max"));
+        } else if (textInt < 1) {
+          event.preventDefault();
+          return textBoxError(textBox, "Must be greater than 1");
+        }
+      }
+      updateSelected(true);
+    });
+    customSizeHolder.addEventListener("focusout", (event) => {
+      let textBox = event.target.closest(".eSubToolResizeNumberHolder div");
+      if (textBox == null) {
+        return;
+      }
+      let textInt = parseFloat(textBox.textContent) || 0;
+      if (textInt > parseFloat(textBox.getAttribute("max"))) {
+        textBox.textContent = textBox.getAttribute("max");
+      } else if (textInt < 1) {
+        textBox.textContent = 1;
+      }
+    });
+
+    let saveCustomSize = async () => {
+      let widthSet = parseFloat(customSizeWidth.textContent);
+      let heightSet = parseFloat(customSizeHeight.textContent);
+      if (widthSet > 0 && heightSet > 0) {
+        await extra.saveSelecting({ s: [
+          Math.round(((widthSet * this.ppi) + (this.pageBorderSize * 2)) * 100) / 100,
+          Math.round(((heightSet * this.ppi) + (this.pageBorderSize * 2)) * 100) / 100
+        ] }, true);
+      }
+      updateSelected();
+    }
+    customSizeWidth.addEventListener("focusout", saveCustomSize);
+    customSizeHeight.addEventListener("focusout", saveCustomSize);
+
+    updateSelected();
+  }
+};
+modules["pages/editor/toolbar/hidepage"] = {
+  button: `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_2388_117" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_2388_117)"> <path d="M41 127.162L53.8865 111.018C91.9186 63.3708 164.349 63.3708 202.381 111.018L215.268 127.162" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M41 128L53.8865 144.144C91.9186 191.791 164.349 191.791 202.381 144.144L215.268 128" stroke="white" stroke-width="44" stroke-linecap="round"/> <circle cx="128" cy="128" r="32" fill="white"/> <path d="M41 127.162L53.8865 111.018C91.9186 63.3708 164.349 63.3708 202.381 111.018L215.268 127.162" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> <path d="M41 128L53.8865 144.144C91.9186 191.791 164.349 191.791 202.381 144.144L215.268 128" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> <circle cx="128" cy="128" r="20" fill="#2F2F2F"/> </g> </svg>`,
+  tooltip: "Hide Page",
+  setButton: function (editor, button) {
+    let selectKeys = Object.keys(editor.selecting);
+    let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
+    if (preferenceTool.hidden != true) {
+      button.removeAttribute("selecthighlight");
+      button.setAttribute("tooltip", "Hide Page");
+    } else {
+      button.setAttribute("selecthighlight", "");
+      button.setAttribute("tooltip", "Reveal Page");
+    }
+  },
+  js: async function (frame, toolID, extra) {
+    await extra.saveSelecting({ hidden: !(extra.button.hasAttribute("selecthighlight")) }, true);
+    extra.updateToolActions(extra.frame);
+  }
+};
 
 modules["pages/editor/toolbar/fontsize"] = {
   button: `<div class="eSubToolFontSize"></div>`,
@@ -7091,11 +7706,7 @@ modules["pages/editor/toolbar/bold"] = {
     }
   },
   js: async function (frame, toolID, extra) {
-    let editor = await getModule("pages/editor");
-    let selectID = Object.keys(editor.selecting)[0];
-    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
-    original.d = original.d || {};
-    await extra.saveSelecting({ d: { bo: !(original.d.bo || false) } }, true);
+    await extra.saveSelecting({ d: { bo: !(extra.button.hasAttribute("selecthighlight")) } }, true);
     extra.updateToolActions(extra.frame);
   }
 };
@@ -7113,11 +7724,7 @@ modules["pages/editor/toolbar/italic"] = {
     }
   },
   js: async function (frame, toolID, extra) {
-    let editor = await getModule("pages/editor");
-    let selectID = Object.keys(editor.selecting)[0];
-    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
-    original.d = original.d || {};
-    await extra.saveSelecting({ d: { it: !(original.d.it || false) } }, true);
+    await extra.saveSelecting({ d: { it: !(extra.button.hasAttribute("selecthighlight")) } }, true);
     extra.updateToolActions(extra.frame);
   }
 };
@@ -7135,11 +7742,7 @@ modules["pages/editor/toolbar/underline"] = {
     }
   },
   js: async function (frame, toolID, extra) {
-    let editor = await getModule("pages/editor");
-    let selectID = Object.keys(editor.selecting)[0];
-    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
-    original.d = original.d || {};
-    await extra.saveSelecting({ d: { ul: !(original.d.ul || false) } }, true);
+    await extra.saveSelecting({ d: { ul: !(extra.button.hasAttribute("selecthighlight")) } }, true);
     extra.updateToolActions(extra.frame);
   }
 };
@@ -7157,11 +7760,7 @@ modules["pages/editor/toolbar/strikethrough"] = {
     }
   },
   js: async function (frame, toolID, extra) {
-    let editor = await getModule("pages/editor");
-    let selectID = Object.keys(editor.selecting)[0];
-    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
-    original.d = original.d || {};
-    await extra.saveSelecting({ d: { st: !(original.d.st || false) } }, true);
+    await extra.saveSelecting({ d: { st: !(extra.button.hasAttribute("selecthighlight")) } }, true);
     extra.updateToolActions(extra.frame);
   }
 };

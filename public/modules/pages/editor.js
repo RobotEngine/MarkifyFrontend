@@ -3538,7 +3538,7 @@ modules["pages/editor/annotation"] = {
             viewport: viewport
           })).render();
         });
-        await sleep(10);
+        //await sleep(10);
       }
       await sleep(1);
     }

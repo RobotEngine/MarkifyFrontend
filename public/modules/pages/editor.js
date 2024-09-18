@@ -668,6 +668,7 @@ modules["pages/editor"] = {
     let sources = {};
     this.sources = {};
     this.loadingSources = {};
+    this.sourceRenders = {};
 
     let exportSync;
 
@@ -3601,7 +3602,7 @@ modules["pages/editor/annotation"] = {
     ".eAnnotation[page] div[hide] div[hidemodal] div[hidemodaltitle]": `font-size: 28px; font-weight: 700; color: var(--theme)`,
     //".eAnnotation[page] div[hide] div[hidemodal] div[hidemodaldesc]": `margin: 8px 0; max-width: 450px`,
     ".eAnnotation[page] div[hide] div[hidemodal] button": `display: flex; margin-top: 24px; z-index: 1; background: var(--theme); --borderRadius: 20.25px; color: #fff`,
-    ".eAnnotation[page] div[content] div[document]": `position: relative; --scale-factor: 2; border-radius: inherit; overflow: hidden`,
+    ".eAnnotation[page] div[content] div[document]": `position: relative; --scale-factor: 2; border-radius: inherit; overflow: hidden; opacity: 0; transition: .3s`,
     ".eAnnotation[page] div[content] div[document] canvas": `position: absolute; width: calc(100% - 8px) !important; height: calc(100% - 8px) !important; left: 4px; top: 4px; background: var(--themeColor); z-index: 1`,
     ".eAnnotation[page] div[content] div[document] div[textlayer]": `position: absolute; width: var(--fullWidth) !important; height: var(--fullHeight) !important; left: 4px; top: 4px; transform-origin: top left; transform: var(--fullScale); font-family: sans-serif; pointer-events: all !important; z-index: 2`,
     ".eAnnotation[page] div[content] div[document] div[textlayer] span": `position: absolute; color: transparent; pointer-events: all; transform-origin: top left`,
@@ -4256,8 +4257,9 @@ modules["pages/editor/annotation"] = {
             if (source != null) {
               let loadPage = async () => {
                 await new Promise(async (resolve) => {
+                  let sourcePageId = data.source + "_" + data.number;
                   let pdfDocumentHolder = pageContent.querySelector("div[document]");
-                  if (pdfDocumentHolder != null && pdfDocumentHolder.getAttribute("sourcepage") != data.source + "_" + data.number) {
+                  if (pdfDocumentHolder != null && pdfDocumentHolder.getAttribute("sourcepage") != sourcePageId) {
                     pdfDocumentHolder.remove();
                     pdfDocumentHolder = null;
                   }
@@ -4267,63 +4269,72 @@ modules["pages/editor/annotation"] = {
                       <div textlayer></div>
                     </div>`);
                     pdfDocumentHolder = pageContent.querySelector("div[document]");
-                    pdfDocumentHolder.setAttribute("sourcepage", data.source + "_" + data.number);
-                    source.pdf.getPage(data.number).then(async (pageRender) => {
-                      if (anno == null || pageContent == null) {
-                        resolve();
-                        return;
-                      }
+                    pdfDocumentHolder.setAttribute("sourcepage", sourcePageId);
+                    let pageRender = editor.sourceRenders[sourcePageId];
+                    if (pageRender == null) {
+                      pageRender = await new Promise(async (resolve) => {
+                        source.pdf.getPage(data.number).then(async (pageRender) => {
+                          resolve(pageRender);
+                        });
+                      });
+                      editor.sourceRenders[sourcePageId] = pageRender;
+                    }
+                    
+                    if (anno == null || pageContent == null) {
+                      resolve();
+                      return;
+                    }
 
-                      let viewport = pageRender.getViewport({ scale: 2 });
-                      //let outputScale = window.devicePixelRatio || 1;
-                      
-                      let canvas = pdfDocumentHolder.querySelector("canvas");
-                      let textHolder = pdfDocumentHolder.querySelector("div[textlayer]");
-                      let context = canvas.getContext("2d", { alpha: false, willReadFrequently: true });
+                    let viewport = pageRender.getViewport({ scale: 2 });
+                    //let outputScale = window.devicePixelRatio || 1;
+                    
+                    let canvas = pdfDocumentHolder.querySelector("canvas");
+                    let textHolder = pdfDocumentHolder.querySelector("div[textlayer]");
+                    let context = canvas.getContext("2d", { alpha: false, willReadFrequently: true });
 
-                      let setWidth = viewport.width;// * outputScale;
-                      let setHeight = viewport.height;// * outputScale;
-                      canvas.width = setWidth;
-                      canvas.height = setHeight;
-                      pdfDocumentHolder.style.setProperty("--fullWidth", setWidth + "px");
-                      pdfDocumentHolder.style.setProperty("--fullHeight", setHeight + "px");
-                      let ratio = setWidth / setHeight;
-                      let ratioedWidth = (data.s[1] - 8) * ratio;
-                      let ratioedHeight = (data.s[0] - 8) / ratio;
-                      if (ratioedWidth < data.s[0] - 8) {
-                        pdfDocumentHolder.style.width = (ratioedWidth + 8) + "px";
-                        pdfDocumentHolder.style.height = data.s[1] + "px";
-                        pdfDocumentHolder.style.setProperty("--fullScale", "scale(" + ((data.s[1] - 8) / setHeight) + ")");
-                      } else {
-                        pdfDocumentHolder.style.width = data.s[0] + "px";
-                        pdfDocumentHolder.style.height = (ratioedHeight + 8) + "px";
-                        pdfDocumentHolder.style.setProperty("--fullScale", "scale(" + ((data.s[0] - 8) / setWidth) + ")");
-                      }
+                    let setWidth = viewport.width;// * outputScale;
+                    let setHeight = viewport.height;// * outputScale;
+                    canvas.width = setWidth;
+                    canvas.height = setHeight;
+                    pdfDocumentHolder.style.setProperty("--fullWidth", setWidth + "px");
+                    pdfDocumentHolder.style.setProperty("--fullHeight", setHeight + "px");
+                    let ratio = setWidth / setHeight;
+                    let ratioedWidth = (data.s[1] - 8) * ratio;
+                    let ratioedHeight = (data.s[0] - 8) / ratio;
+                    if (ratioedWidth < data.s[0] - 8) {
+                      pdfDocumentHolder.style.width = (ratioedWidth + 8) + "px";
+                      pdfDocumentHolder.style.height = data.s[1] + "px";
+                      pdfDocumentHolder.style.setProperty("--fullScale", "scale(" + ((data.s[1] - 8) / setHeight) + ")");
+                    } else {
+                      pdfDocumentHolder.style.width = data.s[0] + "px";
+                      pdfDocumentHolder.style.height = (ratioedHeight + 8) + "px";
+                      pdfDocumentHolder.style.setProperty("--fullScale", "scale(" + ((data.s[0] - 8) / setWidth) + ")");
+                    }
 
-                      //let transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
-                      
-                      pageRender.render({
-                        canvasContext: context,
-                        //transform: transform,
+                    //let transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
+                    
+                    pageRender.render({
+                      canvasContext: context,
+                      //transform: transform,
+                      viewport: viewport
+                    }).promise.then(() => {
+                      pdfDocumentHolder.style.opacity = "1";
+                      resolve();
+                    });
+
+                    pageRender.getTextContent().then((textContent) => {
+                      (new pdfjsLib.TextLayer({
+                        textContentSource: textContent,
+                        container: textHolder,
                         viewport: viewport
-                      }).promise.then(() => {
-                        resolve();
-                      });
-
-                      pageRender.getTextContent().then((textContent) => {
-                        (new pdfjsLib.TextLayer({
-                          textContentSource: textContent,
-                          container: textHolder,
-                          viewport: viewport
-                        })).render();
-                        /*pdfjsLib.renderTextLayer({
-                          enhanceTextSelection: true,
-                          textContentSource: textContent,
-                          container: textHolder,
-                          viewport: viewport,
-                          textDivs: []
-                        });*/
-                      });
+                      })).render();
+                      /*pdfjsLib.renderTextLayer({
+                        enhanceTextSelection: true,
+                        textContentSource: textContent,
+                        container: textHolder,
+                        viewport: viewport,
+                        textDivs: []
+                      });*/
                     });
                   } else {
                     let canvas = pdfDocumentHolder.querySelector("canvas");

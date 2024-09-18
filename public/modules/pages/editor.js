@@ -3545,7 +3545,7 @@ modules["pages/editor/annotation"] = {
       }
       await sleep(1);
     }
-    if (editor.exporting != true) {
+    if (editor.exporting == true) {
       for (let i = 0; i < editor.loadedPDFs.length; i++) {
         editor.loadedPDFs[i].destroy();
       }

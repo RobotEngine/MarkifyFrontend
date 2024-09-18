@@ -1532,7 +1532,7 @@ modules["pages/editor/toolbar/cursor"] = {
           activeLayer.remove();
           activeLayer = null;
         }
-        if (anno.hasAttribute("sticky") == false) {
+        if (["sticky", "page"].includes(merged.f) == false) {
           anno.style.overflow = "hidden";
         }
         anno.style.borderRadius = (4 / editor.zoom) + "px";

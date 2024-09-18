@@ -3482,15 +3482,6 @@ modules["pages/editor/annotation"] = {
         if (element.childElementCount > 0) {
           continue;
         }
-        let annotation = element.closest(".eAnnotation");
-        if (annotation == null) {
-          continue;
-        }
-        let annoID = annotation.getAttribute("anno");
-        let data = (editor.annotations[annoID] || {}).render;
-        if (data == null) {
-          continue;
-        }
 
         let viewport = pageRender.getViewport({ scale: 2 });
         //let outputScale = window.devicePixelRatio || 1;
@@ -3503,21 +3494,23 @@ modules["pages/editor/annotation"] = {
 
         let setWidth = viewport.width;// * outputScale;
         let setHeight = viewport.height;// * outputScale;
+        let annoWidth = parseInt(element.getAttribute("width"));
+        let annoHeight = parseInt(element.getAttribute("height"));
         canvas.width = setWidth;
         canvas.height = setHeight;
         element.style.setProperty("--fullWidth", setWidth + "px");
         element.style.setProperty("--fullHeight", setHeight + "px");
         let ratio = setWidth / setHeight;
-        let ratioedWidth = (data.s[1] - 8) * ratio;
-        let ratioedHeight = (data.s[0] - 8) / ratio;
-        if (ratioedWidth < data.s[0] - 8) {
+        let ratioedWidth = (annoHeight - 8) * ratio;
+        let ratioedHeight = (annoWidth - 8) / ratio;
+        if (ratioedWidth < annoWidth - 8) {
           element.style.width = (ratioedWidth + 8) + "px";
-          element.style.height = data.s[1] + "px";
-          element.style.setProperty("--fullScale", "scale(" + ((data.s[1] - 8) / setHeight) + ")");
+          element.style.height = annoHeight + "px";
+          element.style.setProperty("--fullScale", "scale(" + ((annoHeight - 8) / setHeight) + ")");
         } else {
-          element.style.width = data.s[0] + "px";
+          element.style.width = annoWidth + "px";
           element.style.height = (ratioedHeight + 8) + "px";
-          element.style.setProperty("--fullScale", "scale(" + ((data.s[0] - 8) / setWidth) + ")");
+          element.style.setProperty("--fullScale", "scale(" + ((annoWidth - 8) / setWidth) + ")");
         }
 
         //let transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
@@ -4395,6 +4388,8 @@ modules["pages/editor/annotation"] = {
             pageContent.insertAdjacentHTML("beforeend", `<div document></div>`);
             pdfDocumentHolder = pageContent.querySelector("div[document]");
             pdfDocumentHolder.setAttribute("sourcepage", sourcePageId);
+            pdfDocumentHolder.setAttribute("width", data.s[0]);
+            pdfDocumentHolder.setAttribute("height", data.s[1]);
             this.addPageToQueue(data.source, data.number);
           } else {
             let canvas = pdfDocumentHolder.querySelector("canvas");

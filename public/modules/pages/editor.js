@@ -3527,16 +3527,15 @@ modules["pages/editor/annotation"] = {
             viewport: viewport
           }).promise.then(() => {
             element.style.opacity = "1";
-            resolve();
+            pageRender.getTextContent().then((textContent) => {
+              (new pdfjsLib.TextLayer({
+                textContentSource: textContent,
+                container: textHolder,
+                viewport: viewport
+              })).render();
+              resolve();
+            });
           });
-        });
-
-        pageRender.getTextContent().then((textContent) => {
-          (new pdfjsLib.TextLayer({
-            textContentSource: textContent,
-            container: textHolder,
-            viewport: viewport
-          })).render();
         });
         //await sleep(10);
       }

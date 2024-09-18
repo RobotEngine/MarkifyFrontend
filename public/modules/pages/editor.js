@@ -3423,6 +3423,7 @@ modules["pages/editor/annotation"] = {
   // PDF RENDER QUEUE
   pdfPageQueue: [],
   pdfPageStorage: {},
+  pdfFileLoading: {},
   runningPageRender: false,
   processPageRenders: async function (editor) {
     if (this.runningPageRender == true) {
@@ -3437,8 +3438,12 @@ modules["pages/editor/annotation"] = {
       pdfjsLib.GlobalWorkerOptions.workerSrc = "./libraries/pdfjs/pdf.worker.mjs";
     }
 
-    while (this.pdfPageQueue.length > 0) {
+    while (this.pdfPageQueue.length > 0 || (editor.exporting == true && Object.keys(this.pdfFileLoading).length > 0)) {
       let sourcePageId = this.pdfPageQueue.shift();
+      if (sourcePageId == null) {
+        await sleep(100);
+        continue;
+      }
       let [sourceID, pageNumber] = this.pdfPageStorage[sourcePageId];
       delete this.pdfPageStorage[sourcePageId];
 
@@ -3447,25 +3452,19 @@ modules["pages/editor/annotation"] = {
         continue;
       }
       if (source.pdf == null) {
-        if (source.loadingPages == null) {
-          source.loadingPages = {};
-          let loadPDFExport = new Promise(async (resolve) => {
-            pdfjsLib.getDocument(assetURL + source.source).promise.then(async (pdf) => {
-              source.pdf = pdf;
-              let loadingPageKeys = Object.keys(source.loadingPages)
-              for (let b = 0; b < loadingPageKeys.length; b++) {
-                let pageAdd = source.loadingPages[loadingPageKeys[b]];
-                this.addPageToQueue(pageAdd[0], pageAdd[1], true);
-              }
-              delete source.loadingPages;
-              resolve();
-            });
+        if (this.pdfFileLoading[sourceID] == null) {
+          this.pdfFileLoading[sourceID] = {};
+          pdfjsLib.getDocument(assetURL + source.source).promise.then(async (pdf) => {
+            source.pdf = pdf;
+            let loadingPageKeys = Object.keys(this.pdfFileLoading[sourceID])
+            for (let b = 0; b < loadingPageKeys.length; b++) {
+              let pageAdd = this.pdfFileLoading[sourceID][loadingPageKeys[b]];
+              this.addPageToQueue(pageAdd[0], pageAdd[1], true);
+            }
+            delete this.pdfFileLoading[sourceID];
           });
-          if (editor.exporting == true) {
-            await loadPDFExport;
-          }
         }
-        source.loadingPages[sourcePageId] = [sourceID, pageNumber];
+        this.pdfFileLoading[sourceID][sourcePageId] = [sourceID, pageNumber];
         continue;
       }
 

@@ -3494,7 +3494,6 @@ modules["pages/editor/annotation"] = {
         element.insertAdjacentHTML("beforeend", `<canvas></canvas><div textlayer></div>`);
         
         let canvas = element.querySelector("canvas");
-        let textHolder = element.querySelector("div[textlayer]");
         let context = canvas.getContext("2d", { alpha: false, willReadFrequently: true });
 
         let setWidth = viewport.width;// * outputScale;
@@ -3527,14 +3526,17 @@ modules["pages/editor/annotation"] = {
             viewport: viewport
           }).promise.then(() => {
             element.style.opacity = "1";
-            pageRender.getTextContent().then((textContent) => {
-              (new pdfjsLib.TextLayer({
-                textContentSource: textContent,
-                container: textHolder,
-                viewport: viewport
-              })).render();
-              resolve();
-            });
+            let textHolder = element.querySelector("div[textlayer]");
+            if (textHolder != null) {
+              pageRender.getTextContent().then((textContent) => {
+                (new pdfjsLib.TextLayer({
+                  textContentSource: textContent,
+                  container: textHolder,
+                  viewport: viewport
+                })).render();
+                resolve();
+              });
+            }
           });
         });
         //await sleep(10);

@@ -1730,8 +1730,9 @@ modules["pages/editor"] = {
       }
       alreadyRunningUpdateCycle = false;
     }
+    let loadedChunkedAnnotations = false;
     this.updateChunks = async () => {
-      if (this.zooming == true) {
+      if (this.zooming == true || loadedChunkedAnnotations != true) {
         return;
       }
       let pageRect = pageHolder.getBoundingClientRect();
@@ -1898,15 +1899,17 @@ modules["pages/editor"] = {
         }
       }
       //await this.viewAnnotations();
+      loadedChunkedAnnotations = true;
       await this.updateChunks();
-      let loadChunkedAnnotations = {};
+      /*let loadChunkedAnnotations = {};
       for (let i = 0; i < this.visibleChunks.length; i++) {
         loadChunkedAnnotations = { ...loadChunkedAnnotations, ...(this.chunkAnnotations[this.visibleChunks[i]] || {}) };
       }
       let chunkAnnos = Object.keys(loadChunkedAnnotations);
       for (let a = 0; a < chunkAnnos.length; a++) {
         await utils.render((this.annotations[chunkAnnos[a]] || {}).render);
-      }
+      }*/
+      
       utils.setMarginSize();
       let jumpAnnotation = null;
       if (checkForJumpLink != null && checkForJumpLink != "") {

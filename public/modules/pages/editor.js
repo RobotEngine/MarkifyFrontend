@@ -3449,15 +3449,21 @@ modules["pages/editor/annotation"] = {
       if (source.pdf == null) {
         if (source.loadingPages == null) {
           source.loadingPages = {};
-          pdfjsLib.getDocument(assetURL + source.source).promise.then(async (pdf) => {
-            source.pdf = pdf;
-            let loadingPageKeys = Object.keys(source.loadingPages)
-            for (let b = 0; b < loadingPageKeys.length; b++) {
-              let pageAdd = source.loadingPages[loadingPageKeys[b]];
-              this.addPageToQueue(pageAdd[0], pageAdd[1], true);
-            }
-            delete source.loadingPages;
+          let loadPDFExport = new Promise(async (resolve) => {
+            pdfjsLib.getDocument(assetURL + source.source).promise.then(async (pdf) => {
+              source.pdf = pdf;
+              let loadingPageKeys = Object.keys(source.loadingPages)
+              for (let b = 0; b < loadingPageKeys.length; b++) {
+                let pageAdd = source.loadingPages[loadingPageKeys[b]];
+                this.addPageToQueue(pageAdd[0], pageAdd[1], true);
+              }
+              delete source.loadingPages;
+              resolve();
+            });
           });
+          if (editor.exporting == true) {
+            await loadPDFExport;
+          }
         }
         source.loadingPages[sourcePageId] = [sourceID, pageNumber];
         continue;

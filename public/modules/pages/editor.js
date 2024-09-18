@@ -3454,7 +3454,9 @@ modules["pages/editor/annotation"] = {
       if (source.pdf == null) {
         if (this.pdfFileLoading[sourceID] == null) {
           this.pdfFileLoading[sourceID] = {};
-          pdfjsLib.getDocument(assetURL + source.source).promise.then(async (pdf) => {
+          let loadingTask = pdfjsLib.getDocument(assetURL + source.source)
+          editor.loadedPDFs.push(loadingTask);
+          loadingTask.promise.then(async (pdf) => {
             source.pdf = pdf;
             let loadingPageKeys = Object.keys(this.pdfFileLoading[sourceID])
             for (let b = 0; b < loadingPageKeys.length; b++) {
@@ -3542,6 +3544,11 @@ modules["pages/editor/annotation"] = {
         await sleep(10);
       }
       await sleep(1);
+    }
+    if (editor.exporting != true) {
+      for (let i = 0; i < editor.loadedPDFs.length; i++) {
+        editor.loadedPDFs[i].destroy();
+      }
     }
     this.runningPageRender = false;
   },
@@ -3741,7 +3748,7 @@ modules["pages/editor/annotation"] = {
     ".eAnnotation[page] div[hide] div[hidemodal] div[hidemodaltitle]": `font-size: 28px; font-weight: 700; color: var(--theme)`,
     //".eAnnotation[page] div[hide] div[hidemodal] div[hidemodaldesc]": `margin: 8px 0; max-width: 450px`,
     ".eAnnotation[page] div[hide] div[hidemodal] button": `display: flex; margin-top: 24px; z-index: 1; background: var(--theme); --borderRadius: 20.25px; color: #fff`,
-    ".eAnnotation[page] div[content] div[document]": `position: relative; --scale-factor: 2; border-radius: inherit; overflow: hidden; opacity: 0; transition: .3s`,
+    ".eAnnotation[page] div[content] div[document]": `position: relative; --scale-factor: 2; border-radius: inherit; overflow: hidden; opacity: 0; transition: opacity .3s`,
     ".eAnnotation[page] div[content] div[document] canvas": `position: absolute; width: calc(100% - 8px) !important; height: calc(100% - 8px) !important; left: 4px; top: 4px; background: var(--themeColor); z-index: 1`,
     ".eAnnotation[page] div[content] div[document] div[textlayer]": `position: absolute; width: var(--fullWidth) !important; height: var(--fullHeight) !important; left: 4px; top: 4px; transform-origin: top left; transform: var(--fullScale); font-family: sans-serif; pointer-events: all !important; z-index: 2`,
     ".eAnnotation[page] div[content] div[document] div[textlayer] span": `position: absolute; color: transparent; pointer-events: all; transform-origin: top left`,

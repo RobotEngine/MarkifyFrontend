@@ -1866,6 +1866,7 @@ modules["pages/editor"] = {
           this.annotations[addAnno._id] = { render: addAnno };
           await utils.render(addAnno);
         }
+        await utils.processPageRenders(this);
         return;
       }
       for (let i = 0; i < annoBody.annotations.length; i++) {
@@ -3418,6 +3419,145 @@ modules["pages/editor/annotation"] = {
     this.lastOffsetWidth = contentFrame.offsetWidth;
     this.lastOffsetHeight = contentFrame.offsetHeight;
   },
+  
+  // PDF RENDER QUEUE
+  pdfPageQueue: [],
+  pdfPageStorage: {},
+  runningPageRender: false,
+  processPageRenders: async function (editor) {
+    if (this.runningPageRender == true) {
+      return;
+    }
+    this.runningPageRender = true;
+    // Load PDFJS
+    if (window.pdfjsLib == null) {
+      await loadScript("./libraries/pdfjs/pdf.mjs");
+    }
+    if (pdfjsLib.GlobalWorkerOptions.workerSrc == "") {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "./libraries/pdfjs/pdf.worker.mjs";
+    }
+
+    while (this.pdfPageQueue.length > 0) {
+      let sourcePageId = this.pdfPageQueue.shift();
+      let [sourceID, pageNumber] = this.pdfPageStorage[sourcePageId];
+      delete this.pdfPageStorage[sourcePageId];
+
+      let source = editor.sources[sourceID];
+      if (source == null) {
+        continue;
+      }
+      if (source.pdf == null) {
+        if (source.loadingPages == null) {
+          source.loadingPages = {};
+          pdfjsLib.getDocument(assetURL + source.source).promise.then(async (pdf) => {
+            source.pdf = pdf;
+            let loadingPageKeys = Object.keys(source.loadingPages)
+            for (let b = 0; b < loadingPageKeys.length; b++) {
+              let pageAdd = source.loadingPages[loadingPageKeys[b]];
+              this.addPageToQueue(pageAdd[0], pageAdd[1], true);
+            }
+            delete source.loadingPages;
+          });
+        }
+        source.loadingPages[sourcePageId] = [sourceID, pageNumber];
+        continue;
+      }
+
+      let pageRender = editor.sourceRenders[sourcePageId];
+      if (pageRender == null) {
+        pageRender = await new Promise(async (resolve) => {
+          source.pdf.getPage(pageNumber).then(async (pageRender) => {
+            resolve(pageRender);
+          });
+        });
+        editor.sourceRenders[sourcePageId] = pageRender;
+      }
+
+      let loadDocumentFrames = editor.page.querySelectorAll('.eAnnotation[page] div[content] div[document][sourcepage="' + sourcePageId + '"]');
+      for (let e = 0; e < loadDocumentFrames.length; e++) {
+        let element = loadDocumentFrames[e];
+        if (element == null) {
+          continue;
+        }
+        if (element.childElementCount > 0) {
+          continue;
+        }
+        let annotation = element.closest(".eAnnotation");
+        if (annotation == null) {
+          continue;
+        }
+        let annoID = annotation.getAttribute("anno");
+        let data = (editor.annotations[annoID] || {}).render;
+        if (data == null) {
+          continue;
+        }
+
+        let viewport = pageRender.getViewport({ scale: 2 });
+        //let outputScale = window.devicePixelRatio || 1;
+        
+        element.insertAdjacentHTML("beforeend", `<canvas></canvas><div textlayer></div>`);
+        
+        let canvas = element.querySelector("canvas");
+        let textHolder = element.querySelector("div[textlayer]");
+        let context = canvas.getContext("2d", { alpha: false, willReadFrequently: true });
+
+        let setWidth = viewport.width;// * outputScale;
+        let setHeight = viewport.height;// * outputScale;
+        canvas.width = setWidth;
+        canvas.height = setHeight;
+        element.style.setProperty("--fullWidth", setWidth + "px");
+        element.style.setProperty("--fullHeight", setHeight + "px");
+        let ratio = setWidth / setHeight;
+        let ratioedWidth = (data.s[1] - 8) * ratio;
+        let ratioedHeight = (data.s[0] - 8) / ratio;
+        if (ratioedWidth < data.s[0] - 8) {
+          element.style.width = (ratioedWidth + 8) + "px";
+          element.style.height = data.s[1] + "px";
+          element.style.setProperty("--fullScale", "scale(" + ((data.s[1] - 8) / setHeight) + ")");
+        } else {
+          element.style.width = data.s[0] + "px";
+          element.style.height = (ratioedHeight + 8) + "px";
+          element.style.setProperty("--fullScale", "scale(" + ((data.s[0] - 8) / setWidth) + ")");
+        }
+
+        //let transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
+        
+        await new Promise(async (resolve) => {
+          pageRender.render({
+            canvasContext: context,
+            //transform: transform,
+            viewport: viewport
+          }).promise.then(() => {
+            element.style.opacity = "1";
+            resolve();
+          });
+        });
+
+        pageRender.getTextContent().then((textContent) => {
+          (new pdfjsLib.TextLayer({
+            textContentSource: textContent,
+            container: textHolder,
+            viewport: viewport
+          })).render();
+        });
+        await sleep(10);
+      }
+      await sleep(1);
+    }
+    this.runningPageRender = false;
+  },
+  addPageToQueue: async function (sourceID, pageNumber, forceRunRender) {
+    let editor = await getModule("pages/editor");
+    let sourcePageId = sourceID + "_" + pageNumber;
+    if (this.pdfPageStorage[sourcePageId] == null) {
+      this.pdfPageStorage[sourcePageId] = [sourceID, pageNumber];
+      this.pdfPageQueue.push(sourcePageId);
+      if (editor.exporting != true || forceRunRender == true) {
+        this.processPageRenders(editor);
+      }
+    }
+  },
+
   //SOFT_PIXEL_RESIZE: 250,
   //marginLeft: 250,
   //marginRight: 250,
@@ -4245,7 +4385,39 @@ modules["pages/editor/annotation"] = {
         let pageBorder = anno.querySelector("div[border]");
         let pageContent = anno.querySelector("div[content]");
         if (data.source != null && data.number != null) {
-          let loadPDFPromise = new Promise(async (resolve) => {
+          let sourcePageId = data.source + "_" + data.number;
+          let pdfDocumentHolder = pageContent.querySelector("div[document]");
+          if (pdfDocumentHolder != null && pdfDocumentHolder.getAttribute("sourcepage") != sourcePageId) {
+            pdfDocumentHolder.remove();
+            pdfDocumentHolder = null;
+          }
+          if (pdfDocumentHolder == null) {
+            pageContent.insertAdjacentHTML("beforeend", `<div document></div>`);
+            pdfDocumentHolder = pageContent.querySelector("div[document]");
+            pdfDocumentHolder.setAttribute("sourcepage", sourcePageId);
+            this.addPageToQueue(data.source, data.number);
+          } else {
+            let canvas = pdfDocumentHolder.querySelector("canvas");
+            if (canvas != null) {
+              let width = parseFloat(canvas.getAttribute("width"));
+              let height = parseFloat(canvas.getAttribute("height"));
+              pdfDocumentHolder.style.setProperty("--fullWidth", width + "px");
+              pdfDocumentHolder.style.setProperty("--fullHeight", height + "px");
+              let ratio = width / height;
+              let ratioedWidth = (data.s[1] - 8) * ratio;
+              let ratioedHeight = (data.s[0] - 8) / ratio;
+              if (ratioedWidth < data.s[0] - 8) {
+                pdfDocumentHolder.style.width = (ratioedWidth + 8) + "px";
+                pdfDocumentHolder.style.height = data.s[1] + "px";
+                pdfDocumentHolder.style.setProperty("--fullScale", "scale(" + ((data.s[1] - 8) / height) + ")");
+              } else {
+                pdfDocumentHolder.style.width = data.s[0] + "px";
+                pdfDocumentHolder.style.height = (ratioedHeight + 8) + "px";
+                pdfDocumentHolder.style.setProperty("--fullScale", "scale(" + ((data.s[0] - 8) / width) + ")");
+              }
+            }
+          }
+          /*let loadPDFPromise = new Promise(async (resolve) => {
             // Load PDFJS
             if (window.pdfjsLib == null) {
               await loadScript("./libraries/pdfjs/pdf.mjs");
@@ -4328,13 +4500,6 @@ modules["pages/editor/annotation"] = {
                         container: textHolder,
                         viewport: viewport
                       })).render();
-                      /*pdfjsLib.renderTextLayer({
-                        enhanceTextSelection: true,
-                        textContentSource: textContent,
-                        container: textHolder,
-                        viewport: viewport,
-                        textDivs: []
-                      });*/
                     });
                   } else {
                     let canvas = pdfDocumentHolder.querySelector("canvas");
@@ -4382,7 +4547,7 @@ modules["pages/editor/annotation"] = {
           });
           if (editor.exporting == true) {
             await loadPDFPromise;
-          }
+          }*/
         }
         let pageHiddenHolder = anno.querySelector("div[hide]");
         if (data.hidden == true) {

@@ -3539,7 +3539,7 @@ modules["pages/editor/annotation"] = {
             }
           });
         });
-        //await sleep(10);
+        await sleep(10);
       }
       await sleep(1);
     }

@@ -304,6 +304,10 @@ modules["pages/editor"] = {
     let lastAccess;
 
     let utils = await getModule("pages/editor/annotation");
+    utils.pdfPageQueue = [];
+    utils.pdfPageStorage = {};
+    utils.pdfFileLoading = {};
+    utils.runningPageRender = false;
 
     // EDITOR
     let contentHolder = page.querySelector(".eContent");
@@ -3421,10 +3425,6 @@ modules["pages/editor/annotation"] = {
   },
   
   // PDF RENDER QUEUE
-  pdfPageQueue: [],
-  pdfPageStorage: {},
-  pdfFileLoading: {},
-  runningPageRender: false,
   processPageRenders: async function (editor) {
     if (this.runningPageRender == true) {
       return;

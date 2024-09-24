@@ -5358,7 +5358,7 @@ modules["pages/editor/annotation"] = {
     annotation = editor.annotations[annoID] || { render: {} };
 
     // Handle Chunk Parent Updates
-    if (data.p != null || data.s != null || data.t != null) {
+    if (data.p != null || data.s != null || data.t != null || data.l != null) {
       let annotationKeys = {};
       for (let c = 0; c < checkChunks.length; c++) {
         annotationKeys = { ...annotationKeys, ...(editor.chunkAnnotations[checkChunks[c]] || {}) };
@@ -5443,7 +5443,7 @@ modules["pages/editor/annotation"] = {
           }
           let [x, y] = editor.getAbsolutePosition(render);
           let checkX = x + (render.s[0] / 2) + thick;
-          let checkY = y + (render.s[0] / 2) + thick;
+          let checkY = y + (render.s[1] / 2) + thick;
           if (checkX >= position[0] && checkX <= position[0] + merged.s[0] + thickness) {
             if (checkY >= position[1] && checkY <= position[1] + merged.s[1] + thickness) {
               if ((render.l || 0) > (merged.l || 0)) {

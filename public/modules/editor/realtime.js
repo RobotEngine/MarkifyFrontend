@@ -659,7 +659,7 @@ modules["editor/realtime"] = {
                         } else {
                           original.render = { ...originalRender, ...anno };
                           delete original.render.done;
-                          utils.saveEdit(anno, null, time);
+                          await utils.saveEdit(anno, null, time);
                         }
                         if (Object.keys({ ...anno, done: "" }).length > 2) {
                           if (isNewAnno == false) {
@@ -709,7 +709,7 @@ modules["editor/realtime"] = {
                           annoTx.removeAttribute("contenteditable");
                         }
                       }
-                      utils.render(merge);
+                      await utils.render(merge);
 
                       if (selection != null && anno.remove == true && selection.hasAttribute("remove") == false) {
                         selection.setAttribute("remove", "");
@@ -790,7 +790,7 @@ modules["editor/realtime"] = {
                   original = original || {};
                   let originalRender = original.render || {};
                   if (editor.lesson.settings.editOthersWork == true || [originalRender.a, originalRender.m].includes(member.modify) == true || member.access > 3) { // Can edit another member's work:
-                    utils.saveEdit(extra.u);
+                    await utils.saveEdit(extra.u);
                   }
                 }
               }

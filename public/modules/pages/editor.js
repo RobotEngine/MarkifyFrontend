@@ -5319,6 +5319,9 @@ modules["pages/editor/annotation"] = {
 
     // Handle Annotation Parent:
     let merged = { ...(annotation.render || {}), ...data };
+    if (merged.p == null || merged.s == null) {
+      return;
+    }
     let position = editor.getAbsolutePosition(merged);
     let thickness = 0;
     if (merged.t != null) {

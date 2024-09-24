@@ -946,6 +946,11 @@ modules["editor/toolbar"] = {
             //if (editor.selecting[event.redo[i]._id] != null) {
             //  editor.selecting[event.changes[i]._id] = { ...editor.selecting[event.changes[i]._id], ...change };
             //} else {
+            if (change.parent != null) {
+              if (((editor.annotations[change.parent] || {}).render || { remove: true }).remove == true) {
+                continue; // Annotation is missing, invalid save
+              }
+            }
             editor.realtimeSelect[change._id] = { ...change, done: true };
             //}
             let annoContentTx = editor.page.querySelector('.eAnnotation[anno="' + change._id + '"] div[contenteditable]');
@@ -993,6 +998,11 @@ modules["editor/toolbar"] = {
             if (addRedo) {
               event.redo.push({ remove: true, _id: tempID });
             }
+            if (saveAnno.parent != null) {
+              if (((editor.annotations[saveAnno.parent] || {}).render || { remove: true }).remove == true) {
+                continue; // Annotation is missing, invalid save
+              }
+            }
             editor.realtimeSelect[tempID] = { ...saveAnno, done: true };
             await utils.save({ ...saveAnno, _id: tempID }, null, sync);
           }
@@ -1028,6 +1038,11 @@ modules["editor/toolbar"] = {
             //if (editor.selecting[event.redo[i]._id] != null) {
             //  editor.selecting[event.redo[i]._id] = { ...editor.selecting[event.redo[i]._id], ...change };
             //} else {
+            if (change.parent != null) {
+              if (((editor.annotations[change.parent] || {}).render || { remove: true }).remove == true) {
+                continue; // Annotation is missing, invalid save
+              }
+            }
             editor.realtimeSelect[change._id] = { ...change, done: true };
             //}
             let annoContentTx = editor.page.querySelector('.eAnnotation[anno="' + change._id + '"] div[contenteditable]');
@@ -1057,6 +1072,11 @@ modules["editor/toolbar"] = {
                 if (oldID == event.changes[c]._id) {
                   event.changes[c]._id = tempID;
                 }
+              }
+            }
+            if (saveAnno.parent != null) {
+              if (((editor.annotations[saveAnno.parent] || {}).render || { remove: true }).remove == true) {
+                continue; // Annotation is missing, invalid save
               }
             }
             editor.realtimeSelect[tempID] = { ...saveAnno, done: true };
@@ -3116,6 +3136,9 @@ modules["pages/editor/toolbar/cursor"] = {
       let pushFields = {};
       for (let f = 0; f < changeKeys.length; f++) {
         pushFields[changeKeys[f]] = originalRender[changeKeys[f]] || null;
+      }
+      if (originalRender.parent != null) {
+        pushFields.parent = originalRender.parent;
       }
       if (Object.keys(pushFields).length > 0) {
         if (pushFields.f == null) {

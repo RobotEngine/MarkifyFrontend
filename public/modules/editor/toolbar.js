@@ -943,11 +943,11 @@ modules["editor/toolbar"] = {
               }
               event.redo.push(JSON.parse(JSON.stringify(redoAnno)));
             }
-            if (editor.selecting[event.redo[i]._id] != null) {
-              editor.selecting[event.changes[i]._id] = { ...editor.selecting[event.changes[i]._id], ...change };
-            } else {
-              editor.realtimeSelect[change._id] = { ...change, done: true };
-            }
+            //if (editor.selecting[event.redo[i]._id] != null) {
+            //  editor.selecting[event.changes[i]._id] = { ...editor.selecting[event.changes[i]._id], ...change };
+            //} else {
+            editor.realtimeSelect[change._id] = { ...change, done: true };
+            //}
             let annoContentTx = editor.page.querySelector('.eAnnotation[anno="' + change._id + '"] div[contenteditable]');
             if (annoContentTx != null) {
               annoContentTx.removeAttribute("contenteditable");
@@ -1025,11 +1025,11 @@ modules["editor/toolbar"] = {
         case "update":
           for (let i = 0; i < event.redo.length; i++) {
             let change = event.redo[i];
-            if (editor.selecting[event.redo[i]._id] != null) {
-              editor.selecting[event.redo[i]._id] = { ...editor.selecting[event.redo[i]._id], ...change };
-            } else {
-              editor.realtimeSelect[change._id] = { ...change, done: true };
-            }
+            //if (editor.selecting[event.redo[i]._id] != null) {
+            //  editor.selecting[event.redo[i]._id] = { ...editor.selecting[event.redo[i]._id], ...change };
+            //} else {
+            editor.realtimeSelect[change._id] = { ...change, done: true };
+            //}
             let annoContentTx = editor.page.querySelector('.eAnnotation[anno="' + change._id + '"] div[contenteditable]');
             if (annoContentTx != null) {
               annoContentTx.removeAttribute("contenteditable");
@@ -1609,7 +1609,7 @@ modules["pages/editor/toolbar/cursor"] = {
           border = 4;
         }*/
         let [width, height] = merged.s;
-        let [x, y] = merged.p;
+        let [x, y] = editor.getAbsolutePosition(merged);
         let rotate = merged.r || 0;
         if (rotate > 180) {
           rotate = -(360 - rotate);
@@ -1707,9 +1707,10 @@ modules["pages/editor/toolbar/cursor"] = {
           let posInverse = 11 * inverse;
           activeLayer.style.width = (width + t) + sizeInverse + "px";
           activeLayer.style.height = (height + t) + sizeInverse + "px";
-          //activeLayer.style.left = x + halfT - posInverse + "px";
-          //activeLayer.style.top = y + halfT - border - posInverse + "px";
-          activeLayer.style.transform = "translate(" + (x + halfT - posInverse) + "px," + (y + halfT - border - posInverse) + "px) rotate(" + rotate + "deg)";
+          let [relX, relY] = merged.p;
+          //activeLayer.style.left = relX + halfT - posInverse + "px";
+          //activeLayer.style.top = relY + halfT - border - posInverse + "px";
+          activeLayer.style.transform = "translate(" + (relX + halfT - posInverse) + "px," + (relY + halfT - border - posInverse) + "px) rotate(" + rotate + "deg)";
         }
 
         let radian = (merged.r || 0) * (Math.PI / 180);
@@ -1772,59 +1773,59 @@ modules["pages/editor/toolbar/cursor"] = {
       this.updateActionUI();
     }
 
-    if (this.lastEditorZoom != editor.zoom || forceNoTransition == true || forceUpdate == true) {
-      let allSelections = editor.page.querySelector(".eRealtime").querySelectorAll(".eCollabSelect");
-      for (let i = 0; i < allSelections.length; i++) {
-        let selection = allSelections[i];
-        if (forceNoTransition == true) {
-          selection.setAttribute("notransition", "");
-        }
-        let annoID = selection.getAttribute("anno");
-        if (editor.annotations[annoID] == null) {
-          selection.remove();
-          continue;
-        }
-        let anno = { ...((editor.annotations[annoID]).render || {}), ...(editor.selecting[annoID] || {}) };
-        if (anno.f == null) {
-          continue;
-        }
-        let border = 0;
-        let annoHold = await utils.annoHolder(anno.page);
-        /*if (annoHold.parentElement.parentElement.firstElementChild != annoHold.parentElement) {
-          border = 4;
-        }*/
-        let pageRect = annoHold.getBoundingClientRect();
-        let t = anno.t || 0;
-        if (anno.b == "none" && anno.d != "line") {
-          t = 0;
-        }
-        let [width, height] = anno.s;
-        let [x, y] = anno.p;
-        let rotate = anno.r || 0;
-        if (rotate > 180) {
-          rotate = -(360 - rotate);
-        }
-        if (width < 0) {
-          width = -width;
-          x -= width;
-        }
-        if (height < 0) {
-          height = -height;
-          y -= height;
-        }
-        let boxWidth = ((width + t) * editor.zoom) - 3; // +0 for width, -3 for border
-        let boxHeight = ((height + t) * editor.zoom) - 3;
-        selection.style.width = boxWidth + "px";
-        selection.style.height = boxHeight + "px";
-        let halfT = t / 2;
-        //selection.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
-        //selection.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
-        selection.style.transform = "translate(" + (pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5) + "px," + (pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5) + "px) rotate(" + rotate + "deg)";
-        selection.offsetHeight;
-        selection.removeAttribute("notransition");
+    //if (this.lastEditorZoom != editor.zoom || forceNoTransition == true || forceUpdate == true) {
+    let allSelections = editor.page.querySelector(".eRealtime").querySelectorAll(".eCollabSelect");
+    for (let i = 0; i < allSelections.length; i++) {
+      let selection = allSelections[i];
+      let annoID = selection.getAttribute("anno");
+      if (editor.annotations[annoID] == null) {
+        selection.remove();
+        continue;
       }
+      let anno = { ...((editor.annotations[annoID]).render || {}), ...(editor.selecting[annoID] || {}) };
+      if (anno.f == null) {
+        continue;
+      }
+      let border = 0;
+      let annoHold = await utils.annoHolder(anno.page);
+      /*if (annoHold.parentElement.parentElement.firstElementChild != annoHold.parentElement) {
+        border = 4;
+      }*/
+      let pageRect = annoHold.getBoundingClientRect();
+      let t = anno.t || 0;
+      if (anno.b == "none" && anno.d != "line") {
+        t = 0;
+      }
+      let [width, height] = anno.s;
+      let [x, y, extra] = editor.getAbsolutePosition(anno);
+      if (forceNoTransition == true || (this.action != null && extra.selectedParent == true)) {
+        selection.setAttribute("notransition", "");
+      }
+      let rotate = anno.r || 0;
+      if (rotate > 180) {
+        rotate = -(360 - rotate);
+      }
+      if (width < 0) {
+        width = -width;
+        x -= width;
+      }
+      if (height < 0) {
+        height = -height;
+        y -= height;
+      }
+      let boxWidth = ((width + t) * editor.zoom) - 3; // +0 for width, -3 for border
+      let boxHeight = ((height + t) * editor.zoom) - 3;
+      selection.style.width = boxWidth + "px";
+      selection.style.height = boxHeight + "px";
+      let halfT = t / 2;
+      //selection.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
+      //selection.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
+      selection.style.transform = "translate(" + (pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5) + "px," + (pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5) + "px) rotate(" + rotate + "deg)";
+      selection.offsetHeight;
+      selection.removeAttribute("notransition");
     }
-    this.lastEditorZoom = editor.zoom;
+    //}
+    //this.lastEditorZoom = editor.zoom;
   },
   actionBarTools: {
     "draw": ["color", "thickness", "opacity", "unlock", "collaborator", "delete", "more"],
@@ -2636,7 +2637,7 @@ modules["pages/editor/toolbar/cursor"] = {
         continue;
       }
       if (original.pointer != null) {
-        annoid = annoData.pointer;
+        annoid = original.pointer;
         original = editor.annotations[annoid] || { render: {} };
       }
       let select = editor.selecting[annoid];
@@ -2699,7 +2700,7 @@ modules["pages/editor/toolbar/cursor"] = {
           y += 4;
         }*/
         if (this.position == null) {
-          this.position = JSON.parse(JSON.stringify(select.p || anno.p));
+          this.position = editor.getAbsolutePosition({ ...select, ...anno }); //JSON.parse(JSON.stringify(select.p || anno.p));
         }
         if (this.size == null) {
           this.size = JSON.parse(JSON.stringify(select.s || anno.s));
@@ -2774,6 +2775,7 @@ modules["pages/editor/toolbar/cursor"] = {
         let oppositePositionY = 0;
         let newOppositePositionX = 0;
         let newOppositePositionY = 0;
+        let fixAnnotationHolder = this.tooltip;
         switch (this.tooltip) {
           case "bottomright":
             if (preserveAspect == true) {
@@ -2875,6 +2877,7 @@ modules["pages/editor/toolbar/cursor"] = {
             oppositePositionY = this.position[1] + (this.size[1] / 2);
             newOppositePositionX = this.position[0];
             newOppositePositionY = this.position[1] + (select.s[1] / 2);
+            fixAnnotationHolder = "bottomright";
             break;
           case "bottom":
             if (preserveAspect == true) {
@@ -2888,6 +2891,7 @@ modules["pages/editor/toolbar/cursor"] = {
             oppositePositionY = this.position[1];
             newOppositePositionX = this.position[0] + (select.s[0] / 2);
             newOppositePositionY = this.position[1];
+            fixAnnotationHolder = "bottomright";
             break;
           case "left":
             if (preserveAspect == true) {
@@ -2901,6 +2905,7 @@ modules["pages/editor/toolbar/cursor"] = {
             oppositePositionY = this.position[1] + (this.size[1] / 2);
             newOppositePositionX = this.position[0] + select.s[0];
             newOppositePositionY = this.position[1] + (select.s[1] / 2);
+            fixAnnotationHolder = "topleft";
             break;
           case "top":
             if (preserveAspect == true) {
@@ -2914,6 +2919,7 @@ modules["pages/editor/toolbar/cursor"] = {
             oppositePositionY = this.position[1] + this.size[1];
             newOppositePositionX = this.position[0] + (select.s[0] / 2);
             newOppositePositionY = this.position[1] + select.s[1];
+            fixAnnotationHolder = "topleft";
         }
 
         if (select.f || ["text", "sticky"].includes(anno.f) == true) {
@@ -2945,8 +2951,15 @@ modules["pages/editor/toolbar/cursor"] = {
         let newHalfRotateHeight = (select.s[1] / 2) + this.position[1];
         let [newXCoord, newYCoord] = utils.rotatePoint(newOppositePositionX - newHalfRotateWidth, -(newOppositePositionY - newHalfRotateHeight), this.rotation);
 
-        select.p[0] = utils.round(this.position[0] - ((newXCoord + newHalfRotateWidth) - (originalXCoord + oldHalfRotateWidth)));
-        select.p[1] = utils.round(this.position[1] - (((-newYCoord) + newHalfRotateHeight) - ((-originalYCoord) + oldHalfRotateHeight)));
+        let [setX, setY] = editor.getRelativePosition({
+          ...select,
+          ...anno,
+          p: [
+            utils.round(this.position[0] - ((newXCoord + newHalfRotateWidth) - (originalXCoord + oldHalfRotateWidth))),
+            utils.round(this.position[1] - (((-newYCoord) + newHalfRotateHeight) - ((-originalYCoord) + oldHalfRotateHeight)))
+          ]
+        });
+        select.p = [setX, setY];
 
         if (["page"].includes(select.f || anno.f) == true) {
           if (select.s[0] < 100) {
@@ -2962,6 +2975,7 @@ modules["pages/editor/toolbar/cursor"] = {
             select.s[1] = 100;
           }
         }
+        select.resizing = fixAnnotationHolder;
       } else if (this.action == "rotate") {
         select.r = select.r || anno.r || 0;
         let number;
@@ -2976,7 +2990,7 @@ modules["pages/editor/toolbar/cursor"] = {
         /*if (editor.lesson.type == "freeboard") {
           y += 4;
         }*/
-        let position = select.p || anno.p;
+        let position = editor.getAbsolutePosition({ ...select, ...anno });
         let size = select.s || anno.s;
         let centerX = size[0] / 2;
         let centerY = size[1] / 2;
@@ -3113,6 +3127,42 @@ modules["pages/editor/toolbar/cursor"] = {
 
       saveUpdates.push(JSON.parse(JSON.stringify({ ...selecting, _id: annoid })));
       selecting.done = true;
+
+      // Update child annotations:
+      if (selecting.p != null && selecting.s != null) {
+        if (Math.floor(Math.abs(originalRender.p[0] - selecting.p[0])) > 0 || Math.floor(Math.abs(originalRender.p[1] - selecting.p[1])) > 0) {
+          let changedXSize = originalRender.s[0] - selecting.s[0];
+          let changedYSize = originalRender.s[1] - selecting.s[1];
+          let checkChunks = editor.annotationInChunks(originalRender);
+          let annotationKeys = {};
+          for (let c = 0; c < checkChunks.length; c++) {
+            annotationKeys = { ...annotationKeys, ...(editor.chunkAnnotations[checkChunks[c]] || {}) };
+          }
+          let annotations = Object.keys(annotationKeys);
+          for (let a = 0; a < annotations.length; a++) {
+            let checkAnnoID = annotations[a];
+            if (checkAnnoID == null || checkAnnoID == annoid) {
+              continue;
+            }
+            let checkAnnotation = editor.annotations[checkAnnoID];
+            if (checkAnnotation == null) {
+              continue;
+            }
+            if (checkAnnotation.pointer != null) {
+              checkAnnoID = checkAnnotation.pointer;
+              checkAnnotation = editor.annotations[checkAnnoID] || { render: {} };
+            }
+            let render = checkAnnotation.render;
+            if (render.parent != annoid) {
+              continue;
+            }
+            let newPos = [render.p[0] - changedXSize, render.p[1] - changedYSize];
+            editor.realtimeSelect[checkAnnoID] = { p: newPos };
+            saveUpdates.push({ p: newPos, parent: annoid, _id: checkAnnoID, done: true });
+            pushChanges.push({ p: render.p, parent: annoid, _id: checkAnnoID });
+          }
+        }
+      }
     }
     if (pushChanges.length > 0) {
       await utils.pushHistory("update", pushChanges, true);
@@ -3281,7 +3331,7 @@ modules["pages/editor/toolbar/cursor"] = {
       }
       //let newlySelected = false;
       if (editor.selecting[annoID] == null) {
-        if (render.f != "page" || target.closest("div[content]") == null) {
+        if (render.f != "page" || target.closest("div[title]") != null) {
           wasSelected = annoID;
           editor.selecting[annoID] = {};
           //newlySelected = true;
@@ -3724,6 +3774,10 @@ modules["pages/editor/toolbar/highlighter"] = {
       if (page != null && page.hasAttribute("pageid") == true) {
         newAnno.page = page.getAttribute("pageid");
       }
+      let parentID = editor.parentFromPoint(x, y);
+      if (parentID != null) {
+        this.setParent = parentID;
+      }
       if (mouseDown() == false) {
         return;
       }
@@ -3837,6 +3891,11 @@ modules["pages/editor/toolbar/highlighter"] = {
           markup.d[3] = 0;
         }
       }
+      
+      if (this.setParent != null) {
+        markup.parent = this.setParent;
+        editor.applyRelativePosition(markup);
+      }
 
       utils.save(markup, anno);
       utils.pushHistory("remove", [{ _id: markup._id }]);
@@ -3914,6 +3973,10 @@ modules["pages/editor/toolbar/understrike"] = {
       if (page != null && page.hasAttribute("pageid") == true) {
         newAnno.page = page.getAttribute("pageid");
       }
+      let parentID = editor.parentFromPoint(x, y);
+      if (parentID != null) {
+        this.setParent = parentID;
+      }
       if (mouseDown() == false) {
         return;
       }
@@ -3981,6 +4044,11 @@ modules["pages/editor/toolbar/understrike"] = {
     let disableMarkup = async () => {
       if (markup == null) {
         return;
+      }
+
+      if (this.setParent != null) {
+        markup.parent = this.setParent;
+        editor.applyRelativePosition(markup);
       }
 
       utils.save(markup, anno);
@@ -4064,6 +4132,11 @@ modules["pages/editor/toolbar/text"] = {
       editor.selecting["cursor"] = text;
     }
     let placetext = async () => {
+      let parentID = editor.parentFromPoint(text.p[0] + (text.s[0] / 2), text.p[1] + (text.s[1] / 2));
+      if (parentID != null) {
+        text.parent = parentID;
+        editor.applyRelativePosition(text);
+      }
       let saveText = JSON.parse(JSON.stringify(text));
       text = null;
       delete editor.selecting["cursor"];
@@ -4223,6 +4296,11 @@ modules["pages/editor/toolbar/pen"] = {
       if (page != null && page.hasAttribute("pageid") == true) {
         newAnno.page = page.getAttribute("pageid");
       }
+      let parentID = editor.parentFromPoint(x, y);
+      if (parentID != null) {
+        this.setParent = parentID;
+      }
+
       if (mouseDown() == false) {
         return;
       }
@@ -4318,6 +4396,11 @@ modules["pages/editor/toolbar/pen"] = {
         return;
       }
       draw.d = this.simplifyPath(draw.d, .75 / editor.zoom);
+
+      if (this.setParent != null) {
+        draw.parent = this.setParent;
+        editor.applyRelativePosition(draw);
+      }
 
       utils.save(draw, anno);
       utils.pushHistory("remove", [{ _id: draw._id }]);
@@ -4456,21 +4539,21 @@ modules["pages/editor/toolbar/eraser"] = {
         let annos = document.elementsFromPoint(x0, y0);
         for (let i = 0; i < annos.length; i++) {
           let anno = annos[i].closest(".eAnnotation");
-          if (anno != null && anno.hasAttribute("hidden") == false && anno.querySelector("polyline") != null) {
-            let annoID = anno.getAttribute("anno");
-            let annotation = editor.annotations[annoID];
-            if (annotation != null) {
-              let render = annotation.render || {};
-              if (render.lock == true) {
-                continue;
-              }
-              if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
-                continue;
-              }
+          if (anno != null && anno.hasAttribute("hidden") == false) {
+            let drawing = anno.querySelector("polyline, .eAnnotationHolder");
+            if (drawing != null && drawing.hasAttribute("points") == true) {
+              let annoID = anno.getAttribute("anno");
+              let annotation = editor.annotations[annoID];
+              if (annotation != null) {
+                let render = annotation.render || {};
+                if (render.lock == true) {
+                  continue;
+                }
+                if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
+                  continue;
+                }
 
-              // This alone isn't enough, the actual points MUST be checked:
-              let drawing = anno.querySelector("polyline");
-              if (drawing != null && drawing.hasAttribute("points") == true) {
+                // This alone isn't enough, the actual points MUST be checked:
                 let page = anno.closest(".ePage");
                 if (page != null) {
                   page = parseInt(page.getAttribute("order"));
@@ -4479,8 +4562,9 @@ modules["pages/editor/toolbar/eraser"] = {
                 /*if (editor.lesson.type == "freeboard") {
                   scaledPos.y += 4;
                 }*/
-                let xPos = scaledPos.x - render.p[0];
-                let yPos = scaledPos.y - render.p[1];
+                let position = editor.getAbsolutePosition(render);
+                let xPos = scaledPos.x - position[0];
+                let yPos = scaledPos.y - position[1];
                 if (render.s[0] < 0) {
                   xPos -= render.s[0];
                 }
@@ -4649,6 +4733,11 @@ modules["pages/editor/toolbar/shape"] = {
       editor.selecting["cursor"] = shape;
     }
     let placeshape = async () => {
+      let parentID = editor.parentFromPoint(shape.p[0] + (shape.s[0] / 2), shape.p[1] + (shape.s[1] / 2));
+      if (parentID != null) {
+        shape.parent = parentID;
+        editor.applyRelativePosition(shape);
+      }
       let saveShape = JSON.parse(JSON.stringify(shape));
       shape = null;
       delete editor.selecting["cursor"];
@@ -4728,6 +4817,11 @@ modules["pages/editor/toolbar/sticky"] = {
       editor.selecting["cursor"] = sticky;
     }
     let placesticky = async () => {
+      let parentID = editor.parentFromPoint(sticky.p[0] + (sticky.s[0] / 2), sticky.p[1] + (sticky.s[1] / 2));
+      if (parentID != null) {
+        sticky.parent = parentID;
+        editor.applyRelativePosition(sticky);
+      }
       let saveSticky = JSON.parse(JSON.stringify(sticky));
       sticky = null;
       delete editor.selecting["cursor"];
@@ -4816,6 +4910,11 @@ modules["pages/editor/toolbar/page"] = {
       editor.selecting["cursor"] = page;
     }
     let placepage = async () => {
+      let parentID = editor.parentFromPoint(page.p[0] + (page.s[0] / 2), page.p[1] + (page.s[1] / 2), page.l);
+      if (parentID != null) {
+        page.parent = parentID;
+        editor.applyRelativePosition(page);
+      }
       let savePage = JSON.parse(JSON.stringify(page));
       page = null;
       delete editor.selecting["cursor"];
@@ -5025,6 +5124,11 @@ modules["pages/editor/toolbar/upload"] = {
       if (this.imageBlob == null || this.imageBlob == null) {
         return;
       }
+      let parentID = editor.parentFromPoint(this.media.p[0] + (this.media.s[0] / 2), this.media.p[1] + (this.media.s[1] / 2));
+      if (parentID != null) {
+        this.media.parent = parentID;
+        editor.applyRelativePosition(this.media);
+      }
       let saveMedia = JSON.parse(JSON.stringify(this.media));
       if (this.imageBlob.startsWith("blob:") == false) {
         saveMedia.d = this.imageBlob;
@@ -5104,6 +5208,11 @@ modules["pages/editor/toolbar/embed"] = {
       editor.selecting["cursor"] = embed;
     }
     let placeembed = async () => {
+      let parentID = editor.parentFromPoint(embed.p[0] + (embed.s[0] / 2), embed.p[1] + (embed.s[1] / 2));
+      if (parentID != null) {
+        embed.parent = parentID;
+        editor.applyRelativePosition(embed);
+      }
       let saveEmbed = JSON.parse(JSON.stringify(embed));
       embed = null;
       delete editor.selecting["cursor"];

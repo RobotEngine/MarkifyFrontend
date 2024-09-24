@@ -732,7 +732,7 @@ modules["editor/realtime"] = {
                         border = 4;
                       }*/
                       let [width, height] = merge.s;
-                      let [x, y] = merge.p;
+                      let [x, y] = editor.getAbsolutePosition(merge);
                       let rotate = merge.r || 0;
                       if (rotate > 180) {
                         rotate = -(360 - rotate);

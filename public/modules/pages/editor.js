@@ -1603,6 +1603,16 @@ modules["pages/editor"] = {
       }
       return chunks;
     }
+    this.annotationInChunks = (anno) => {
+      let [x, y] = this.getAbsolutePosition(anno);
+      let thickness = 0;
+      if (anno.t != null) {
+        if (anno.b != "none" || anno.d == "line") {
+          thickness = anno.t;
+        }
+      }
+      return this.regionInChunks(x, y, x + anno.s[0] + thickness, y + anno.s[1] + thickness);
+    }
     this.annotationChunks = async (annotation) => {
       if (annotation == null) {
         return;
@@ -1624,11 +1634,12 @@ modules["pages/editor"] = {
       }
       let chunks = [];
       if (render.remove != true && render.p != null) {
+        let absPos = this.getAbsolutePosition(render);
         chunks = this.regionInChunks(
-          render.p[0],
-          render.p[1] + pageTop,
-          render.p[0] + render.s[0] + t,
-          render.p[1] + render.s[1] + t + pageTop,
+          absPos[0],
+          absPos[1] + pageTop,
+          absPos[0] + render.s[0] + t,
+          absPos[1] + render.s[1] + t + pageTop,
         );
       }
       for (let i = 0; i < chunks.length; i++) {
@@ -1657,6 +1668,136 @@ modules["pages/editor"] = {
     this.pointInChunk = (x, y) => {
       return this.regionInChunks(x, y, x, y)[0];
     }
+
+    this.getAbsolutePosition = (anno) => {
+      let returnX = anno.p[0];
+      let returnY = anno.p[1];
+      let selectedParent = false;
+      let currentAnnoCheck = anno;
+      let checkedParents = [];
+      while (currentAnnoCheck.parent != null) {
+        let annoid = currentAnnoCheck.parent;
+        if (annoid == null || checkedParents.includes(annoid) == true) {
+          break;
+        }
+        checkedParents.push(annoid);
+        let annotation = this.annotations[annoid];
+        if (annotation == null) {
+          break;
+        }
+        if (annotation.pointer != null) {
+          annoid = annotation.pointer;
+          annotation = this.annotations[annoid] || { render: {} };
+        }
+        let selected = this.selecting[annoid];
+        if (selected != null) {
+          selectedParent = true;
+        }
+        currentAnnoCheck = annotation.render;// { ...(annotation.render || {}), ...(selected || {}) };
+        returnX += currentAnnoCheck.p[0] || 0;
+        returnY += currentAnnoCheck.p[1] || 0;
+      }
+      return [returnX, returnY, { selectedParent: selectedParent }];
+    }
+    this.getRelativePosition = (anno) => {
+      let returnX = anno.p[0];
+      let returnY = anno.p[1];
+      //let selectedParent = false;
+      let currentAnnoCheck = anno;
+      let checkedParents = [];
+      while (currentAnnoCheck.parent != null) {
+        let annoid = currentAnnoCheck.parent;
+        if (annoid == null || checkedParents.includes(annoid) == true) {
+          break;
+        }
+        checkedParents.push(annoid);
+        let annotation = this.annotations[annoid];
+        if (annotation == null) {
+          break;
+        }
+        if (annotation.pointer != null) {
+          annoid = annotation.pointer;
+          annotation = this.annotations[annoid] || { render: {} };
+        }
+        /*let selected = this.selecting[annoid];
+        if (selected != null) {
+          selectedParent = true;
+        }*/
+        currentAnnoCheck = annotation.render;// { ...(annotation.render || {}), ...(selected || {}) };
+        returnX -= currentAnnoCheck.p[0] || 0;
+        returnY -= currentAnnoCheck.p[1] || 0;
+      }
+      return [returnX, returnY];
+    }
+    this.parentFromAnnotation = (anno, types) => {
+      types = types || ["page"];
+      let id = anno._id;
+      let x = anno.p[0];
+      let y = anno.p[1];
+      let index = anno.l || 0;
+      let chunk = this.pointInChunk(x, y);
+      let annotationIDs = Object.keys(this.chunkAnnotations[chunk] || {});
+      let viableParents = [];
+      for (let i = 0; i < annotationIDs.length; i++) {
+        let annoid = annotationIDs[i];
+        if (annoid == null || annoid == id) {
+          continue;
+        }
+        let annotation = this.annotations[annoid];
+        if (annotation == null) {
+          continue;
+        }
+        if (annotation.pointer != null) {
+          annoid = annotation.pointer;
+          annotation = this.annotations[annoid] || { render: {} };
+        }
+        let render = annotation.render; // { ...(annotation.render || {}), ...(this.selecting[annoid] || {}) };
+        if (render == null) {
+          continue;
+        }
+        if (types.includes(render.f) == false) {
+          continue;
+        }
+        if (render.hidden == true || render.lock == true) {
+          continue;
+        }
+        let [parentX, parentY] = this.getAbsolutePosition(render);
+        let [parentWidth, parentHeight] = render.s || [0, 0];
+        let parentThickness = 0;
+        if (render.t != null) {
+          if (render.b != "none" || render.d == "line") {
+            parentThickness = render.t;
+          }
+        }
+        if (x >= parentX && x <= parentX + parentWidth + parentThickness) {
+          if (y >= parentY && y <= parentY + parentHeight + parentThickness) {
+            viableParents.push(render);
+          }
+        }
+      }
+      let highestPageID;
+      let highestLayer;
+      for (let i = 0; i < viableParents.length; i++) {
+        let parent = viableParents[i];
+        if (index != null && parent.l >= index) {
+          continue;
+        }
+        if ((parent.l || 0) > highestLayer || highestLayer == null) {
+          highestLayer = parent.l || 0;
+          highestPageID = parent._id;
+        }
+      }
+      return highestPageID;
+    }
+    this.parentFromPoint = (x, y, index, types) => {
+      return this.parentFromAnnotation({ p: [x, y], l: index }, types);
+    }
+    this.applyRelativePosition = (anno) => {
+      let [setX, setY] = this.getRelativePosition(anno);
+      anno.p = [setX, setY];
+      return anno;
+    }
+
     let updateSubTimeout;
     let loadedChunks = {};
     let alreadyRunningUpdateCycle = false;
@@ -1730,7 +1871,7 @@ modules["pages/editor"] = {
           }
         }
         if (render == true) {
-          utils.render(annotation.render);
+          await utils.render(annotation.render);
         }
       }
       alreadyRunningUpdateCycle = false;
@@ -3704,6 +3845,7 @@ modules["pages/editor/annotation"] = {
   minLayer: 0,
   css: {
     ".eAnnotation": `position: absolute; left: 0px; top: 0px`,
+    ".eAnnotationHolder": `position: absolute; z-index: 10`,
     ".eAnnotation[hidden]": `display: none !important`,
     '.eAnnotation[anno]:not([anno^="pending_"])': `transition: .25s`,
     //'.eAnnotation:not([selected]):not([anno^="pending_"])': `transition: .25s`,
@@ -3733,26 +3875,27 @@ modules["pages/editor/annotation"] = {
     ".eAnnotation[sticky][selected] button": `pointer-events: all`,
     ".eAnnotation[src]": `object-fit: cover; pointer-events: all; border-radius: 12px`,
 
-    ".eAnnotation[page]": `display: flex; flex-direction: column; background: white; border-radius: 12px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all`,
-    ".eAnnotation[page] div[background]": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--themeColor); opacity: .1; border-radius: inherit; z-index: 0`,
-    ".eAnnotation[page] div[border]": `position: absolute; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; border: solid 4px var(--themeColor); border-radius: inherit; z-index: 4; pointer-events: none`,
-    ".eAnnotation[page] div[title]": `position: absolute; display: none; box-sizing: border-box; max-width: calc(100% - 12px); padding: 8px 10px; left: 0px; top: 0px; background: var(--themeColor); border-radius: 0px; border-top-left-radius: inherit; border-bottom-right-radius: 12px; font-weight: 600; font-size: 18px; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; outline: none; scrollbar-width: none; z-index: 3`,
-    ".eAnnotation[page] div[title]::-webkit-scrollbar": `display: none`,
-    ".eAnnotation[page] div[content]": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; justify-content: center; align-items: center; z-index: 1`,
-    ".eAnnotation[page][selected] div[title]": `pointer-events: all !important`,
-    ".eAnnotation[page] div[title][contenteditable]": `overflow-x: auto !important; text-overflow: unset !important`,
-    ".eAnnotation[page] div[hide]": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: inherit; z-index: 2; pointer-events: all`,
-    ".eAnnotation[page] div[hide] img[hideicon]": `width: 150px; height: 150px; max-width: calc(100% - 24px); max-height: calc(100% - 24px)`,
-    ".eAnnotation[page] div[hide] div[hidemodal]": `display: flex; flex-direction: column; max-width: calc(100% - 64px); max-height: calc(100% - 64px); padding: 24px; overflow: auto; background: var(--pageColor); box-shadow: 0px 0px 16px 0px var(--hover); border-radius: 16px; align-items: center`,
-    ".eAnnotation[page] div[hide] div[hidemodal] img": `margin-bottom: 12px; width: calc(100% - 24px); max-width: 80px`,
-    ".eAnnotation[page] div[hide] div[hidemodal] div[hidemodaltitle]": `font-size: 28px; font-weight: 700; color: var(--theme)`,
-    //".eAnnotation[page] div[hide] div[hidemodal] div[hidemodaldesc]": `margin: 8px 0; max-width: 450px`,
-    ".eAnnotation[page] div[hide] div[hidemodal] button": `display: flex; margin-top: 24px; z-index: 1; background: var(--theme); --borderRadius: 20.25px; color: #fff`,
-    ".eAnnotation[page] div[content] div[document]": `position: relative; --scale-factor: 2; border-radius: inherit; overflow: hidden; opacity: 0; transition: opacity .3s`,
-    ".eAnnotation[page] div[content] div[document] canvas": `position: absolute; width: calc(100% - 8px) !important; height: calc(100% - 8px) !important; left: 4px; top: 4px; background: var(--themeColor); z-index: 1`,
-    ".eAnnotation[page] div[content] div[document] div[textlayer]": `position: absolute; width: var(--fullWidth) !important; height: var(--fullHeight) !important; left: 4px; top: 4px; transform-origin: top left; transform: var(--fullScale); font-family: sans-serif; pointer-events: all !important; z-index: 2`,
-    ".eAnnotation[page] div[content] div[document] div[textlayer] span": `position: absolute; color: transparent; pointer-events: all; transform-origin: top left`,
-    ".eAnnotation[page] div[content] div[document] div[textlayer] br": `user-select: none`,
+    ".eAnnotation[page]": `display: flex; flex-direction: column; background: white; border-radius: 12px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2)`,
+    ".eAnnotation[page] > div[background]": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--themeColor); opacity: .1; border-radius: inherit; z-index: 0; pointer-events: all`,
+    ".eAnnotation[page] > div[border]": `position: absolute; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; border: solid 4px var(--themeColor); border-radius: inherit; z-index: 4; pointer-events: none`,
+    ".eAnnotation[page] > div[title]": `position: absolute; display: none; box-sizing: border-box; max-width: calc(100% - 12px); padding: 8px 10px; left: 0px; top: 0px; background: var(--themeColor); border-radius: 0px; border-top-left-radius: inherit; border-bottom-right-radius: 12px; font-weight: 600; font-size: 18px; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; outline: none; scrollbar-width: none; z-index: 3; pointer-events: all`,
+    ".eAnnotation[page] > div[title]::-webkit-scrollbar": `display: none`,
+    ".eAnnotation[page] > div[content]": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; justify-content: center; align-items: center`,
+    ".eAnnotation[page][hide] > div[content] .eAnnotationHolder": `z-index: 2 !important`,
+    ".eAnnotation[page][selected] > div[title]": `pointer-events: all !important`,
+    ".eAnnotation[page] > div[title][contenteditable]": `overflow-x: auto !important; text-overflow: unset !important`,
+    ".eAnnotation[page] > div[hide]": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: inherit; z-index: 2; pointer-events: all`,
+    ".eAnnotation[page] > div[hide] img[hideicon]": `width: 150px; height: 150px; max-width: calc(100% - 24px); max-height: calc(100% - 24px)`,
+    ".eAnnotation[page] > div[hide] div[hidemodal]": `display: flex; flex-direction: column; max-width: calc(100% - 64px); max-height: calc(100% - 64px); padding: 24px; overflow: auto; background: var(--pageColor); box-shadow: 0px 0px 16px 0px var(--hover); border-radius: 16px; align-items: center`,
+    ".eAnnotation[page] > div[hide] div[hidemodal] img": `margin-bottom: 12px; width: calc(100% - 24px); max-width: 80px`,
+    ".eAnnotation[page] > div[hide] div[hidemodal] div[hidemodaltitle]": `font-size: 28px; font-weight: 700; color: var(--theme)`,
+    //".eAnnotation[page] > div[hide] div[hidemodal] div[hidemodaldesc]": `margin: 8px 0; max-width: 450px`,
+    ".eAnnotation[page] > div[hide] div[hidemodal] button": `display: flex; margin-top: 24px; z-index: 1; background: var(--theme); --borderRadius: 20.25px; color: #fff`,
+    ".eAnnotation[page] > div[content] div[document]": `position: relative; --scale-factor: 2; border-radius: inherit; overflow: hidden; z-index: 1; opacity: 0; transition: opacity .3s`,
+    ".eAnnotation[page] > div[content] div[document] canvas": `position: absolute; width: calc(100% - 8px) !important; height: calc(100% - 8px) !important; left: 4px; top: 4px; background: var(--themeColor); z-index: 1`,
+    ".eAnnotation[page] > div[content] div[document] div[textlayer]": `position: absolute; width: var(--fullWidth) !important; height: var(--fullHeight) !important; left: 4px; top: 4px; transform-origin: top left; transform: var(--fullScale); font-family: sans-serif; pointer-events: all !important; z-index: 2`,
+    ".eAnnotation[page] > div[content] div[document] div[textlayer] span": `position: absolute; color: transparent; pointer-events: all; transform-origin: top left`,
+    ".eAnnotation[page] > div[content] div[document] div[textlayer] br": `user-select: none`,
     ".hiddenCanvasElement": `display: none`,
 
     ".eAnnotation[embed]": `display: flex; background: var(--pageColor); border-radius: 16px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all; text-align: left`,
@@ -3795,14 +3938,13 @@ modules["pages/editor/annotation"] = {
       return;
     }
     let editor = await getModule("pages/editor");
-    let { _id, f, page, p, s, r, l, c, i, t, b, o, d, done, remove, sync, textfit, sig, lock } = data;
+    let { _id, f, page, parent, p, s, r, l, c, i, t, b, o, d, done, remove, sync, textfit, sig, lock } = data;
     let [x, y] = p || [];
     let size = s || [];
     let [width, height] = [size[0], size[1]];
     /*if (page != null && editor.loadedIn.includes(page) == false && long != true && force != true) {
       return;
     }*/
-    let annoHolder = await this.annoHolder(page);
     if (anno == null) {
       anno = editor.page.querySelector('.eAnnotation[anno="' + _id + '"]');
       if (anno != null) {
@@ -3813,7 +3955,34 @@ modules["pages/editor/annotation"] = {
         }
       }
     }
+    let annoHolder = await this.annoHolder(page);
+    if (parent != null) {
+      let annoParentData = (editor.annotations[parent] || {}).render;
+      if (annoParentData != null) {
+        let annoParent = editor.page.querySelector('.eAnnotation[anno="' + parent + '"]');
+        if (annoParent == null) {
+          if (annoParentData.parent != _id) {
+            annoParent = (await this.render(annoParentData))[1];
+          }
+        }
+        if (annoParent != null) {
+          annoHolder = annoParent.querySelector(".eAnnotationHolder");
+          if (annoHolder == null) {
+            (annoParent.querySelector("div[annoholdercontainer]") || annoParent).insertAdjacentHTML("beforeend", `<div class="eAnnotationHolder"></div>`);
+            annoHolder = annoParent.querySelector(".eAnnotationHolder");
+            annoHolder.style.width = annoParentData.s[0] + "px";
+            annoHolder.style.height = annoParentData.s[1] + "px";
+            annoHolder.style.left = "0px";
+            annoHolder.style.top = "0px";
+          } else if (data.resizing == null) {
+            annoHolder.style.width = annoParentData.s[0] + "px";
+            annoHolder.style.height = annoParentData.s[1] + "px";
+          }
+        }
+      }
+    }
     if (anno != null && anno.parentElement != annoHolder) {
+      editor.page.querySelector(".ePageHolder").appendChild(anno);
       annoHolder.appendChild(anno);
       let activeSelect = editor.page.querySelector('.eSelectActive[anno="' + _id + '"]');
       if (activeSelect != null) {
@@ -4359,7 +4528,7 @@ modules["pages/editor/annotation"] = {
             <div background></div>
             <div border></div>
             <div title></div>
-            <div content></div>
+            <div content annoholdercontainer></div>
           </div>`);
           anno = annoHolder.querySelector(".eAnnotation[new]");
           anno.removeAttribute("new");
@@ -4798,6 +4967,43 @@ modules["pages/editor/annotation"] = {
         transform += " scale(1,-1)";
       }
       anno.style.transform = transform;
+      let annoAnnotationHolder = anno.querySelector(".eAnnotationHolder");
+      if (annoAnnotationHolder != null) {
+        if (data.resizing == null) {
+          annoAnnotationHolder.style.width = width + "px";
+          annoAnnotationHolder.style.height = height + "px";
+          //annoAnnotationHolder.style.left = "0px";
+          //annoAnnotationHolder.style.top = "0px";
+          //annoAnnotationHolder.style.removeProperty("right");
+          //annoAnnotationHolder.style.removeProperty("bottom");
+        } else {
+          switch (data.resizing) {
+            case "bottomright":
+              annoAnnotationHolder.style.left = "0px";
+              annoAnnotationHolder.style.top = "0px";
+              annoAnnotationHolder.style.removeProperty("right");
+              annoAnnotationHolder.style.removeProperty("bottom");
+              break;
+            case "topleft":
+              annoAnnotationHolder.style.right = "0px";
+              annoAnnotationHolder.style.bottom = "0px";
+              annoAnnotationHolder.style.removeProperty("left");
+              annoAnnotationHolder.style.removeProperty("top");
+              break;
+            case "topright":
+              annoAnnotationHolder.style.left = "0px";
+              annoAnnotationHolder.style.bottom = "0px";
+              annoAnnotationHolder.style.removeProperty("right");
+              annoAnnotationHolder.style.removeProperty("top");
+              break;
+            case "bottomleft":
+              annoAnnotationHolder.style.right = "0px";
+              annoAnnotationHolder.style.top = "0px";
+              annoAnnotationHolder.style.removeProperty("left");
+              annoAnnotationHolder.style.removeProperty("bottom");
+          }
+        }
+      }
       if (done != true) {
         anno.removeAttribute("done");
       } else {
@@ -5006,6 +5212,9 @@ modules["pages/editor/annotation"] = {
         if (mutt.sig != null) {
           delete mutt.sig;
         }
+        if (mutt.resizing != null) {
+          delete mutt.resizing;
+        }
         let anno = editor.annotations[mutt._id];
         if (anno != null && anno.pointer != null) {
           mutt._id = anno.pointer;
@@ -5034,6 +5243,18 @@ modules["pages/editor/annotation"] = {
               } else if (mutt.remove == true) {
                 continue;
               }
+            }
+            if ((mutt.parent || "").startsWith("pending_") == true) {
+              let parentAnno = editor.annotations[mutt.parent];
+              if (parentAnno != null) {
+                if (parentAnno.pointer != null) {
+                  mutt.parent = parentAnno.pointer;
+                } else {
+                  mutt.annoRefresh = anno;
+                  setPendingSave[mutt._id] = mutt;
+                }
+              }
+              continue;
             }
             mutations.push(mutt);
           } else {
@@ -5096,11 +5317,158 @@ modules["pages/editor/annotation"] = {
       annotation = editor.annotations[annoID] || { render: {} };
     }
 
+    // Handle Annotation Parent:
+    let merged = { ...(annotation.render || {}), ...data };
+    let position = editor.getAbsolutePosition(merged);
+    let thickness = 0;
+    if (merged.t != null) {
+      if (merged.b != "none" || merged.d == "line") {
+        thickness = merged.t;
+      }
+    }
+    let parent = editor.parentFromAnnotation({
+      ...merged,
+      parent: null,
+      p: [
+        position[0] + (merged.s[0] / 2) + thickness,
+        position[1] + (merged.s[1] / 2) + thickness
+      ]
+    });
+    if (parent != merged.parent) {
+      data.parent = parent || null;
+      let relativePos = editor.getRelativePosition({
+        ...merged,
+        parent: data.parent,
+        p: [position[0], position[1]]
+      });
+      data.p = data.p || merged.p;
+      data.p[0] = relativePos[0];
+      data.p[1] = relativePos[1];
+    }
+    
+    let checkChunks = editor.annotationInChunks(merged);
+    if (annotation.render.p != null) {
+      checkChunks = [ ...checkChunks, ...editor.annotationInChunks(annotation.render) ];
+    }
+
     let mutations = await this.saveEdit(data, anno, sync, { save: true, render: {} });
     if (mutations == null) {
       return; // Nothing new to send!
     }
     annotation = editor.annotations[annoID] || { render: {} };
+
+    // Handle Chunk Parent Updates
+    if (data.p != null || data.s != null || data.t != null) {
+      let annotationKeys = {};
+      for (let c = 0; c < checkChunks.length; c++) {
+        annotationKeys = { ...annotationKeys, ...(editor.chunkAnnotations[checkChunks[c]] || {}) };
+      }
+      let annotations = Object.keys(annotationKeys);
+      for (let a = 0; a < annotations.length; a++) {
+        let checkAnnoID = annotations[a];
+        if (checkAnnoID == null || checkAnnoID == annoID) {
+          continue;
+        }
+        let checkAnnotation = editor.annotations[checkAnnoID];
+        if (checkAnnotation == null) {
+          continue;
+        }
+        if (checkAnnotation.pointer != null) {
+          checkAnnoID = annotation.pointer;
+          checkAnnotation = editor.annotations[checkAnnoID] || { render: {} };
+        }
+        let render = { ...(checkAnnotation.render || {}), ...(this.pendingSaves[checkAnnoID] || {}) };
+        if (render.parent != annoID && render.parent != merged.parent) {
+          continue;
+        }
+        let thick = 0;
+        if (render.t != null) {
+          if (render.b != "none" || render.d == "line") {
+            thick = render.t;
+          }
+        }
+        let [x, y] = editor.getAbsolutePosition(render);
+        let checkX = x + (render.s[0] / 2) + thick;
+        let checkY = y + (render.s[0] / 2) + thick;
+        if (render.parent == annoID) { // See if out of bounds
+          if (checkX < position[0] || checkX > position[0] + merged.s[0] + thickness || checkY < position[1] || checkY > position[1] + merged.s[1] + thickness) {
+            let setParent = editor.parentFromAnnotation({
+              ...render,
+              parent: null,
+              p: [checkX, checkY]
+            });
+            let relativePos = editor.getRelativePosition({
+              ...render,
+              parent: setParent || null,
+              p: [x, y]
+            });
+            let setChildAnno = {
+              _id: checkAnnoID,
+              parent: setParent || null,
+              p: [relativePos[0], relativePos[1]],
+              sync: getEpoch()
+            }
+            this.saveEdit(setChildAnno, null, sync, { save: true, render: {} });
+            checkAnnotation.save = true; // Alert the system it's time to save
+            checkAnnotation.render.sync = setChildAnno,sync;
+            checkAnnotation.render.m = editor.getSelf().modify;
+            this.pendingSaves[checkAnnoID] = { _id: checkAnnoID, ...(this.pendingSaves[checkAnnoID] || {}), ...setChildAnno };
+          }
+        }
+      }
+
+      if (["page"].includes(merged.f) == true) { // See if in bounds, also check parent to know what is allowed in bounds
+        for (let a = 0; a < annotations.length; a++) {
+          let checkAnnoID = annotations[a];
+          if (checkAnnoID == null || checkAnnoID == annoID) {
+            continue;
+          }
+          let checkAnnotation = editor.annotations[checkAnnoID];
+          if (checkAnnotation == null) {
+            continue;
+          }
+          if (checkAnnotation.pointer != null) {
+            checkAnnoID = annotation.pointer;
+            checkAnnotation = editor.annotations[checkAnnoID] || { render: {} };
+          }
+          let render = { ...(checkAnnotation.render || {}), ...(this.pendingSaves[checkAnnoID] || {}) };
+          if (render.parent == annoID) {
+            continue;
+          }
+          let thick = 0;
+          if (render.t != null) {
+            if (render.b != "none" || render.d == "line") {
+              thick = render.t;
+            }
+          }
+          let [x, y] = editor.getAbsolutePosition(render);
+          let checkX = x + (render.s[0] / 2) + thick;
+          let checkY = y + (render.s[0] / 2) + thick;
+          if (checkX >= position[0] && checkX <= position[0] + merged.s[0] + thickness) {
+            if (checkY >= position[1] && checkY <= position[1] + merged.s[1] + thickness) {
+              if ((render.l || 0) > (merged.l || 0)) {
+                let relativePos = editor.getRelativePosition({
+                  ...render,
+                  parent: annoID,
+                  p: [x, y]
+                });
+                let setChildAnno = {
+                  _id: checkAnnoID,
+                  parent: annoID,
+                  p: [relativePos[0], relativePos[1]],
+                  sync: getEpoch()
+                }
+                this.saveEdit(setChildAnno, null, sync, { save: true, render: {} });
+                checkAnnotation.save = true; // Alert the system it's time to save
+                checkAnnotation.render.sync = setChildAnno,sync;
+                checkAnnotation.render.m = editor.getSelf().modify;
+                this.pendingSaves[checkAnnoID] = { _id: checkAnnoID, ...(this.pendingSaves[checkAnnoID] || {}), ...setChildAnno };
+              }
+            }
+          }
+        }
+      }
+    }
 
     annotation.save = true; // Alert the system it's time to save
     annotation.render.sync = getEpoch();

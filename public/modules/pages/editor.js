@@ -4973,73 +4973,71 @@ modules["pages/editor/annotation"] = {
           anno.setAttribute("tooleditor", "");
           anno.style.opacity = .7;
         }
-        if (d != null) {
-          let nameHolder = anno.querySelector("div[spinnernameholder]");
-          let prevName = nameHolder.querySelector("div[spinnername]");
-          if (prevName == null) {
-            nameHolder.insertAdjacentHTML("beforeend", `<div spinnername></div></div>`);
-            prevName = nameHolder.querySelector("div[spinnername]");
-            prevName.textContent = cleanString(d);
-            prevName.style.transform = "translateY(0%) scale(1)";
-            prevName.style.color = "var(--theme)";
-          } else {
-            (async () => {
-              if (anno.hasAttribute("running") == true) {
+        let nameHolder = anno.querySelector("div[spinnernameholder]");
+        let prevName = nameHolder.querySelector("div[spinnername]");
+        if (prevName == null) {
+          nameHolder.insertAdjacentHTML("beforeend", `<div spinnername></div></div>`);
+          prevName = nameHolder.querySelector("div[spinnername]");
+          prevName.textContent = cleanString(d || "");
+          prevName.style.transform = "translateY(0%) scale(1)";
+          prevName.style.color = "var(--theme)";
+        } else {
+          (async () => {
+            if (anno.hasAttribute("running") == true) {
+              return;
+            }
+            anno.setAttribute("running", "");
+            prevName.remove();
+            prevName = null;
+            let logEquation = 0;
+            let cycle = 1;
+            let removeName = async (name) => {
+              await sleep(5000);
+              if (name == null) {
                 return;
               }
-              anno.setAttribute("running", "");
-              prevName.remove();
-              prevName = null;
-              let logEquation = 0;
-              let cycle = 1;
-              let removeName = async (name) => {
-                await sleep(5000);
-                if (name == null) {
-                  return;
-                }
-                name.remove();
+              name.remove();
+            }
+            while (logEquation < 3) {
+              if (prevName != null) {
+                prevName.style.transform = "translateY(-100%) scale(.8)";
+                removeName(prevName);
               }
-              while (logEquation < 3) {
-                if (prevName != null) {
-                  prevName.style.transform = "translateY(-100%) scale(.8)";
-                  removeName(prevName);
-                }
 
-                logEquation = .01 * Math.pow(Math.E, .5 * cycle);
-                cycle++;
+              logEquation = .01 * Math.pow(Math.E, .5 * cycle);
+              cycle++;
 
-                nameHolder.insertAdjacentHTML("beforeend", `<div spinnername new></div>`);
-                prevName = nameHolder.querySelector("div[spinnername][new]");
-                prevName.removeAttribute("new");
-                let memberIDs = Object.keys(editor.members);
-                let randomMemberID = memberIDs[Math.floor(Math.random() * memberIDs.length)];
-                let randomMember = editor.members[randomMemberID] || {};
-                if (logEquation < 3) {
-                  prevName.textContent = cleanString(randomMember.name || "");
-                } else {
-                  prevName.textContent = cleanString(d || "");
-                }
-                prevName.style.transition = logEquation + "s ease";
-                prevName.offsetHeight;
-                prevName.style.transform = "translateY(0%) scale(1)";
-
-                await sleep(logEquation * 1000)
+              nameHolder.insertAdjacentHTML("beforeend", `<div spinnername new></div>`);
+              prevName = nameHolder.querySelector("div[spinnername][new]");
+              prevName.removeAttribute("new");
+              let memberIDs = Object.keys(editor.members);
+              let randomMemberID = memberIDs[Math.floor(Math.random() * memberIDs.length)];
+              let randomMember = editor.members[randomMemberID] || {};
+              if (logEquation < 3) {
+                prevName.textContent = cleanString(randomMember.name || "");
+              } else {
+                prevName.textContent = cleanString(d || "");
               }
-              prevName.style.transition = ".1s ease";
+              prevName.style.transition = logEquation + "s ease";
               prevName.offsetHeight;
-              for (let i = 0; i < 4; i++) {
-                prevName.style.color = "var(--green)";
-                nameHolder.style.border = "solid 12px var(--green)";
-                prevName.style.transform = "translateY(0%) scale(1.05)";
-                await sleep(200);
-                prevName.style.color = "var(--theme)";
-                nameHolder.style.border = "solid 8px var(--theme)";
-                prevName.style.transform = "translateY(0%) scale(1)";
-                await sleep(200);
-              }
-              anno.removeAttribute("running");
-            })();
-          }
+              prevName.style.transform = "translateY(0%) scale(1)";
+
+              await sleep(logEquation * 1000)
+            }
+            prevName.style.transition = ".1s ease";
+            prevName.offsetHeight;
+            for (let i = 0; i < 3; i++) {
+              prevName.style.color = "var(--green)";
+              nameHolder.style.border = "solid 12px var(--green)";
+              prevName.style.transform = "translateY(0%) scale(1.05)";
+              await sleep(200);
+              prevName.style.color = "var(--theme)";
+              nameHolder.style.border = "solid 8px var(--theme)";
+              prevName.style.transform = "translateY(0%) scale(1)";
+              await sleep(200);
+            }
+            anno.removeAttribute("running");
+          })();
         }
     }
     if (anno != null) {

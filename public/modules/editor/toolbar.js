@@ -3277,6 +3277,45 @@ modules["pages/editor/toolbar/cursor"] = {
       }
       return true;
     }
+    // THE BELOW IS TEMP:
+    let SPINNERButton = target.closest(".eAnnotation[spinner] button[spinnerbutton]");
+    if (SPINNERButton != null) {
+      let self = editor.getSelf();
+      if (self.access < 1) {
+        return;
+      }
+
+      let spinnerAnno = SPINNERButton.closest(".eAnnotation[spinner]");
+      if (spinnerAnno != null) {
+        if (spinnerAnno.hasAttribute("running") == true) {
+          return true;
+        }
+        let annoID = spinnerAnno.getAttribute("anno");
+        let render = ((editor.annotations[annoID] || {}).render || {});
+        let alertModule = await getModule("alert");
+        if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
+          alertModule.close(this.someoneElsesAnnoWarning);
+          this.someoneElsesAnnoWarning = await alertModule.open("warning", "<b>Someone Else's Annotation</b>The ability to modify another member's work is disabled.");
+          return true;
+        }
+
+        let memberIDs = Object.keys(editor.members);
+        let randomMemberID = memberIDs[Math.floor(Math.random() * memberIDs.length)];
+        let randomMember = editor.members[randomMemberID];
+        if (randomMember == null) {
+          return true;
+        }
+        editor.selecting = {};
+        editor.selecting[annoID] = { d: randomMember.name };
+        cursorModule.action = "save";
+        await cursorModule.endAction();
+        editor.selecting = {};
+        cursorModule.updateBox();
+        (await getModule("pages/editor/annotation")).syncSave(true);
+      }
+
+      return true;
+    }
   },
   js: async function (editor, utils, addEvent) {
     let content = editor.page.querySelector(".eContent");
@@ -3396,7 +3435,7 @@ modules["pages/editor/toolbar/cursor"] = {
         let annoID = anno.getAttribute("anno");
         let self = editor.getSelf();
         let render = ((editor.annotations[annoID] || {}).render || {});
-        if (editor.getSelf().access > 0 && editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
+        if (self.access > 0 && editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
           alertModule.close(this.someoneElsesAnnoWarning);
           this.someoneElsesAnnoWarning = await alertModule.open("warning", "<b>Someone Else's Annotation</b>The ability to modify another member's work is disabled.");
         }

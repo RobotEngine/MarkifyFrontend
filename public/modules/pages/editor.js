@@ -3919,6 +3919,12 @@ modules["pages/editor/annotation"] = {
     ".eAnnotation[embed] div[details] div[info] a[link] img": `width: 32px; height: 32px; margin-right: 2px`,
     //".eAnnotation[embed] div[details] div[input] button": `height: 32px; padding: 0 10px; flex-shrink: 0; margin: 3px; --borderWidth: 3px; --borderRadius: 12px; color: var(--theme); font-size: 18px`,
     //".eAnnotation[embed] div[details] div[input] button:active": `--borderWidth: 6px`
+
+    ".eAnnotation[spinner]": `display: flex; flex-direction: column; background: var(--pageColor); border-radius: 16px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all`,
+    ".eAnnotation[spinner] div[spinnertitle]": `margin: 16px 16px 8px; font-size: 32px; font-weight: 700; color: var(--theme)`,
+    ".eAnnotation[spinner] div[spinnernameholder]": `position: relative; margin: 8px 16px; flex: 1; border: solid 8px var(--theme); border-radius: 32px; overflow: hidden; transition: .2s`,
+    ".eAnnotation[spinner] div[spinnername]": `position: absolute; display: flex; width: calc(100% - 16px); height: calc(100% - 16px); left: 8px; top: 8px; justify-content: center; align-items: center; font-size: 64px; font-weight: 900; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; text-align: center; transform: translateY(100%) scale(.8)`,
+    ".eAnnotation[spinner] button[spinnerbutton]": `padding: 12px 24px; margin: 8px auto 16px auto; background: var(--theme); font-size: 32px; font-weight: 600; color: #fff; border-radius: 32px`
   },
   render: async function (data, anno, long, force) {
     /*
@@ -4820,7 +4826,7 @@ modules["pages/editor/annotation"] = {
                 <div info>
                   <div title></div>
                   <div description></div>
-                  <a link><img src="./images/editor/actions/link.svg"><div>markifyapp.com</div></a>
+                  <a link><img src="./images/editor/actions/link.svg"><div></div></a>
                 </div>
               </div>
             </div>
@@ -4942,6 +4948,98 @@ modules["pages/editor/annotation"] = {
             embedFrame.src = setLink;
             embedFrame.setAttribute("currentsrc", setLink);
           }*/
+        }
+        break;
+      case "SPINNER": // THIS IS TEMPORARY CODE, REMOVE LATER
+        if (anno == null) {
+          annoHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" spinner new>
+            <div spinnertitle>Spinner Prototype 9000 🤔🤨</div>
+            <div spinnernameholder></div>
+            <button spinnerbutton>Spin!</button>
+          </div>`);
+          anno = annoHolder.querySelector(".eAnnotation[new]");
+          anno.removeAttribute("new");
+        }
+        //<button class="largeButton border">Set</button>
+        anno.style.width = width + "px";
+        anno.style.height = height + "px";
+        //anno.style.left = x + "px";
+        //anno.style.top = y + "px";
+        transform = "translate(" + x + "px," + y + "px)";
+        if (_id != null) {
+          setAnnoID = _id;
+          anno.style.opacity = 1;
+        } else {
+          anno.setAttribute("tooleditor", "");
+          anno.style.opacity = .7;
+        }
+        if (d != null) {
+          let nameHolder = anno.querySelector("div[spinnernameholder]");
+          let prevName = nameHolder.querySelector("div[spinnername]");
+          if (prevName == null) {
+            nameHolder.insertAdjacentHTML("beforeend", `<div spinnername></div></div>`);
+            prevName = nameHolder.querySelector("div[spinnername]");
+            prevName.textContent = cleanString(d);
+            prevName.style.transform = "translateY(0%) scale(1)";
+            prevName.style.color = "var(--theme)";
+          } else {
+            (async () => {
+              if (anno.hasAttribute("running") == true) {
+                return;
+              }
+              anno.setAttribute("running", "");
+              prevName.remove();
+              prevName = null;
+              let logEquation = 0;
+              let cycle = 1;
+              let removeName = async (name) => {
+                await sleep(5000);
+                if (name == null) {
+                  return;
+                }
+                name.remove();
+              }
+              while (logEquation < 3) {
+                if (prevName != null) {
+                  prevName.style.transform = "translateY(-100%) scale(.8)";
+                  removeName(prevName);
+                }
+
+                logEquation = .01 * Math.pow(Math.E, .5 * cycle);
+                cycle++;
+
+                nameHolder.insertAdjacentHTML("beforeend", `<div spinnername new></div>`);
+                prevName = nameHolder.querySelector("div[spinnername][new]");
+                prevName.removeAttribute("new");
+                let memberIDs = Object.keys(editor.members);
+                let randomMemberID = memberIDs[Math.floor(Math.random() * memberIDs.length)];
+                let randomMember = editor.members[randomMemberID] || {};
+                if (logEquation < 3) {
+                  prevName.textContent = cleanString(randomMember.name || "");
+                } else {
+                  prevName.textContent = cleanString(d || "");
+                }
+                prevName.style.transition = logEquation + "s ease";
+                prevName.offsetHeight;
+                prevName.style.transform = "translateY(0%) scale(1)";
+
+                await sleep(logEquation * 1000)
+              }
+              prevName.style.transition = ".1s ease";
+              prevName.offsetHeight;
+              for (let i = 0; i < 4; i++) {
+                prevName.style.color = "var(--green)";
+                nameHolder.style.border = "solid 12px var(--green)";
+                prevName.style.transform = "translateY(0%) scale(1.05)";
+                await sleep(200);
+                prevName.style.color = "var(--theme)";
+                nameHolder.style.border = "solid 8px var(--theme)";
+                prevName.style.transform = "translateY(0%) scale(1)";
+                await sleep(200);
+              }
+              anno.removeAttribute("running");
+            })();
+          }
         }
     }
     if (anno != null) {

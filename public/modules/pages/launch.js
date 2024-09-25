@@ -20,7 +20,7 @@ modules["pages/launch"] = {
       <div class="lHeaderSlogan"><b>Collaboration</b> without <b>Chaos</b></div>
       <div class="lHeaderSummary">Let students work collaboratively across the classroom while you facilitate. Eliminate chaos with robust sharing settings and temporary editing controls.</div>
       <div class="lHeaderActions">
-        <button class="lOpen largeButton" openpage="dashboard">Try the BETA</button>
+        <button class="lOpen largeButton" openpage="dashboard">Start Collaborating</button>
         <button class="lJoin largeButton" openpage="join">Join Lesson<img src="./images/tooltips/link.svg"></button>
       </div>
       <img class="lHeaderSplash" src="./images/launch/showcase.png">
@@ -144,7 +144,7 @@ modules["pages/launch"] = {
         <div div class="lFooterFree">Get started for <b>FREE</b></div>
       </div>
       <div class="dFooterHolder" style="min-height: 125px">
-        <button class="lOpen largeButton" openpage="dashboard">Try the BETA</button>
+        <button class="lOpen largeButton" openpage="dashboard">Start Collaborating</button>
       </div>
     </div>
     <div class="lFooterCompliance">

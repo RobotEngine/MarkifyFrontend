@@ -1898,7 +1898,7 @@ modules["pages/editor/toolbar/cursor"] = {
         for (let i = 0; i < selectionIDs.length; i++) {
           anno = (editor.annotations[selectionIDs[i]] || {}).render || {};
           if (anno != null) {
-            let tools = this.actionBarTools[anno.f];
+            let tools = this.actionBarTools[anno.f] || [];
             if (combineTools != null) {
               for (let c = 0; c < combineTools.length; c++) {
                 if (tools.includes(combineTools[c]) == false) {

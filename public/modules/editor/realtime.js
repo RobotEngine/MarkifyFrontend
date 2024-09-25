@@ -767,7 +767,9 @@ modules["editor/realtime"] = {
                     cursorModule.redrawActionUI(); // Only refresh if user is selecting
                   }
                   member.selecting = selectKeys;
-                  editor.updateZoom(null, false);
+                  if (userSelecting == true) {
+                    editor.updateZoom(null, false);
+                  }
                 } else if (member.selecting != null) {
                   for (let i = 0; i < member.selecting.length; i++) {
                     let annoID = member.selecting[i];

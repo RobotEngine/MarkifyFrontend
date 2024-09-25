@@ -1792,12 +1792,15 @@ modules["pages/editor/toolbar/cursor"] = {
     if (forceNoTransition != true && noUpdateAction != true) {
       this.updateActionUI();
     }
-
+    console.trace()
     //if (this.lastEditorZoom != editor.zoom || forceNoTransition == true || forceUpdate == true) {
     let allSelections = editor.page.querySelector(".eRealtime").querySelectorAll(".eCollabSelect");
     for (let i = 0; i < allSelections.length; i++) {
       let selection = allSelections[i];
       let annoID = selection.getAttribute("anno");
+      if (annoID == "cursor") {
+        continue;
+      }
       if (editor.annotations[annoID] == null) {
         selection.remove();
         continue;

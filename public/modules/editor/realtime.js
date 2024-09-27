@@ -592,6 +592,7 @@ modules["editor/realtime"] = {
                 }
                 if (selectKeys.length > 0) {
                   let userSelecting = false;
+                  let refreshSelecting = false;
                   let changes = false;
                   for (let i = 0; i < selectKeys.length; i++) {
                     let annoID = selectKeys[i];
@@ -709,7 +710,7 @@ modules["editor/realtime"] = {
                           annoTx.removeAttribute("contenteditable");
                         }
                       }
-                      await utils.render(merge);
+                      [merge, annoElem] = await utils.render(merge);
 
                       if (selection != null && anno.remove == true && selection.hasAttribute("remove") == false) {
                         selection.setAttribute("remove", "");
@@ -762,12 +763,15 @@ modules["editor/realtime"] = {
                       selection.style.transition = "all .25s, opacity .15s";
                       selection.style.opacity = 1;
                     }
+                    if (annoElem != null && annoElem.querySelector(".eAnnotation[selected]") != null) {
+                      refreshSelecting = true;
+                    }
                   }
                   if (userSelecting == true && changes == true) {
                     cursorModule.redrawActionUI(); // Only refresh if user is selecting
                   }
                   member.selecting = selectKeys;
-                  if (userSelecting == true) {
+                  if (userSelecting == true || refreshSelecting == true) {
                     editor.updateZoom(null, false);
                   }
                 } else if (member.selecting != null) {

@@ -1693,7 +1693,7 @@ modules["pages/editor"] = {
         if (selected != null) {
           selectedParent = true;
         }
-        currentAnnoCheck = annotation.render;// { ...(annotation.render || {}), ...(selected || {}) };
+        currentAnnoCheck = { ...(annotation.render || {}), ...(selected || {}) };
         returnX += currentAnnoCheck.p[0] || 0;
         returnY += currentAnnoCheck.p[1] || 0;
       }

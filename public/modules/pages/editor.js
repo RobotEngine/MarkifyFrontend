@@ -54,8 +54,8 @@ modules["pages/editor"] = {
         <button class="ePageNav" up><img src="./images/editor/bottom/uparrow.svg"></button>
       </div>
     </div>
-    <div class="eBackground"></div>
     <div class="eContent">
+      <div class="eBackground"></div>
       <div class="eRealtime"></div>
       <div class="eContentHolder">
         <div class="ePageHolder"></div>
@@ -136,9 +136,8 @@ modules["pages/editor"] = {
     ".eObserve button img": `width: 100%; height: 100%`,
     ".eObserveBorder": `position: fixed; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 501`,
 
-    ".eBackground": `position: fixed; left: 0px; top: 0px; background-image: url(./images/editor/dots.svg); background-position: center; opacity: .075`,
-
     ".eContent": `position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - 132px); min-height: calc(100vh - 132px); padding: 66px; align-items: center; z-index: 0; overflow: hidden; pointer-events: all; --zoom: 1`,
+    ".eBackground": `position: absolute; background-image: url(./images/editor/dots.svg); background-position: center; opacity: .075`,
     ".eContentHolder": `position: relative`,
     ".ePageHolder": `position: relative; width: fit-content; height: fit-content; border-radius: 16px; transform-origin: 0 0; transform: scale(var(--zoom)); z-index: 1`,
     ".ePage": `position: relative; background: var(--pageColor); transition: .5s`,
@@ -315,7 +314,7 @@ modules["pages/editor"] = {
     // EDITOR
     let contentHolder = page.querySelector(".eContent");
     let content = contentHolder.querySelector(".eContentHolder");
-    let dotBackground = page.querySelector(".eBackground");
+    let dotBackground = contentHolder.querySelector(".eBackground");
     let pageHolder = content.querySelector(".ePageHolder");
     let bottomHolder = page.querySelector(".eBottom");
 
@@ -1893,12 +1892,13 @@ modules["pages/editor"] = {
       dotBackground.style.backgroundSize = dotSize + "px " + dotSize + "px";
       let backgroundWidth = Math.ceil((fixed.offsetWidth + (dotSize * 4)) / dotSize) * dotSize;
       let backgroundHeight = Math.ceil((fixed.offsetHeight + (dotSize * 4)) / dotSize) * dotSize;
-      dotBackground.style.width = backgroundWidth + "px";
-      dotBackground.style.height = backgroundHeight + "px";
+      dotBackground.style.width = backgroundWidth + "%";
+      dotBackground.style.height = backgroundHeight + "%";
       let originPointRect = pageHolder.getBoundingClientRect();
       let originCorrectX = (originPointRect.left - (backgroundWidth / 2)) % dotSize;
       let originCorrectY = (originPointRect.top - (backgroundHeight / 2)) % dotSize;
-      dotBackground.style.transform = "translate(" + (originCorrectX - (dotSize * 2)) + "px, " + (originCorrectY - (dotSize * 2)) + "px)";
+      dotBackground.style.left = (window.scrollX + originCorrectX - (dotSize * 2)) + "px";
+      dotBackground.style.top = (window.scrollY + originCorrectY - (dotSize * 2)) + "px";
       
       if (this.zooming == true || loadedChunkedAnnotations != true) {
         return;

@@ -1874,7 +1874,11 @@ modules["pages/editor"] = {
           }
         }
         if (render == true) {
-          await utils.render(annotation.render);
+          if (annotation.parent == null) {
+            utils.render(annotation.render);
+          } else {
+            await utils.render(annotation.render);
+          }
         }
       }
       alreadyRunningUpdateCycle = false;
@@ -4040,6 +4044,7 @@ modules["pages/editor/annotation"] = {
     let svg;
     let path;
     let drawSetPoints = "";
+    let drawSetWidth = 0;
     let transform;
     let setAnnoID;
     let svgtransform;
@@ -4186,37 +4191,19 @@ modules["pages/editor/annotation"] = {
         text.style.height = "fit-content";
         break;
       case "draw":
-        if (anno == null) {
-          annoHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
-            <svg xmlns="http://www.w3.org/2000/svg">
-              <polyline/>
-            </svg>
-          </div>`);
-          anno = annoHolder.querySelector(".eAnnotation[new]");
-          anno.removeAttribute("new");
-          let line = anno.querySelector("polyline");
-          line.setAttribute("fill", "none");
-          line.setAttribute("stroke-linecap", "round");
-          line.setAttribute("stroke-linejoin", "round");
-        }
         width += t;
         height += t;
         x += halfT;
         y += halfT;
-        anno.style.width = width + "px";
-        anno.style.height = height + "px";
         transform = "translate(" + x + "px," + y + "px)";
         if (_id != null) {
           setAnnoID = _id;
         }
-        svg = anno.querySelector("svg");
-        path = svg.querySelector("polyline");
-        svg.setAttribute("viewBox", "0 0 " + (width + (this.SVG_PADDING * 2)) + " " + (height + (this.SVG_PADDING * 2)));
         if (d.length == 2) {
           //let dividedT = t / 2;
           //drawSetPoints = (d[0] - dividedT + this.SVG_PADDING) + "," + (d[1] - dividedT + this.SVG_PADDING) + " " + (d[0] + dividedT + this.SVG_PADDING) + "," + (d[1] + dividedT + this.SVG_PADDING);
-          drawSetPoints = ((width / 2) + this.SVG_PADDING) + "," + ((height / 2) + this.SVG_PADDING) + " " + ((width / 2) + .1 + this.SVG_PADDING) + "," + ((height / 2) + .1 + this.SVG_PADDING);
-          path.setAttribute("stroke-width", width);
+          drawSetPoints = ((width / 2) + this.SVG_PADDING) + "," + ((height / 2) + this.SVG_PADDING) + " " + ((width / 2) + .1 + this.SVG_PADDING) + "," + ((height / 2) + .1 + this.SVG_PADDING)
+          drawSetWidth = width;
         } else {
           let scaleW = 1;
           let scaleH = 1;
@@ -4243,11 +4230,31 @@ modules["pages/editor/annotation"] = {
           for (let i = 0; i < d.length; i += 2) {
             drawSetPoints += (halfT + ((d[i]) * scaleW) + this.SVG_PADDING) + "," + (halfT + ((d[i + 1]) * scaleH) + this.SVG_PADDING) + " ";
           }
-          path.setAttribute("stroke-width", t);
+          drawSetWidth = t;
         }
-        path.setAttribute("points", drawSetPoints);
-        path.setAttribute("stroke", "#" + c);
-        path.setAttribute("opacity", o / 100);
+        if (anno == null) {
+          annoHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" style="width: ${parseFloat(width)}px; height: ${parseFloat(height)}px" new>
+            <svg viewBox="0 0 ${parseFloat(width + (this.SVG_PADDING * 2))} ${parseFloat(height + (this.SVG_PADDING * 2))}" xmlns="http://www.w3.org/2000/svg">
+              <polyline stroke-width="${parseFloat(drawSetWidth)}" points="${drawSetPoints}" stroke="${"#" + cleanString(c)}" opacity="${parseFloat(o) / 100}"/>
+            </svg>
+          </div>`);
+          anno = annoHolder.querySelector(".eAnnotation[new]");
+          anno.removeAttribute("new");
+          let line = anno.querySelector("polyline");
+          line.setAttribute("fill", "none");
+          line.setAttribute("stroke-linecap", "round");
+          line.setAttribute("stroke-linejoin", "round");
+        } else {
+          anno.style.width = width + "px";
+          anno.style.height = height + "px";
+          svg = anno.querySelector("svg");
+          path = svg.querySelector("polyline");
+          svg.setAttribute("viewBox", "0 0 " + (width + (this.SVG_PADDING * 2)) + " " + (height + (this.SVG_PADDING * 2)));
+          path.setAttribute("stroke-width", drawSetWidth);
+          path.setAttribute("points", drawSetPoints);
+          path.setAttribute("stroke", "#" + c);
+          path.setAttribute("opacity", o / 100);
+        }
         break;
       case "shape":
         if (anno == null) {

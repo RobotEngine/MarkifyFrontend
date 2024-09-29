@@ -54,6 +54,7 @@ modules["pages/editor"] = {
         <button class="ePageNav" up><img src="./images/editor/bottom/uparrow.svg"></button>
       </div>
     </div>
+    <div class="eBackground"></div>
     <div class="eContent">
       <div class="eRealtime"></div>
       <div class="eContentHolder">
@@ -135,7 +136,9 @@ modules["pages/editor"] = {
     ".eObserve button img": `width: 100%; height: 100%`,
     ".eObserveBorder": `position: fixed; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 501`,
 
-    ".eContent": `position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - 132px); min-height: calc(100vh - 132px); padding: 66px; align-items: center; z-index: 0; overflow: hidden; pointer-events: all; --zoom: 1; background-image: url(./images/editor/background.svg); background-position: center`,
+    ".eBackground": `position: fixed; left: 0px; top: 0px; background-image: url(./images/editor/dots.svg); background-position: center; opacity: .1`,
+
+    ".eContent": `position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - 132px); min-height: calc(100vh - 132px); padding: 66px; align-items: center; z-index: 0; overflow: hidden; pointer-events: all; --zoom: 1`,
     ".eContentHolder": `position: relative`,
     ".ePageHolder": `position: relative; width: fit-content; height: fit-content; border-radius: 16px; transform-origin: 0 0; transform: scale(var(--zoom)); z-index: 1`,
     ".ePage": `position: relative; background: var(--pageColor); transition: .5s`,
@@ -312,6 +315,7 @@ modules["pages/editor"] = {
     // EDITOR
     let contentHolder = page.querySelector(".eContent");
     let content = contentHolder.querySelector(".eContentHolder");
+    let dotBackground = page.querySelector(".eBackground");
     let pageHolder = content.querySelector(".ePageHolder");
     let bottomHolder = page.querySelector(".eBottom");
 
@@ -1878,6 +1882,24 @@ modules["pages/editor"] = {
     }
     let loadedChunkedAnnotations = false;
     this.updateChunks = async () => {
+      // Update Background Dots:
+      let dotSize = 25 * this.zoom;
+      if (dotSize < 15) {
+        dotSize = 50 * this.zoom;
+        if (dotSize < 15) {
+          dotSize = 100 * this.zoom;
+        }
+      }
+      dotBackground.style.backgroundSize = dotSize + "px " + dotSize + "px";
+      let backgroundWidth = Math.ceil((fixed.offsetWidth + (dotSize * 4)) / dotSize) * dotSize;
+      let backgroundHeight = Math.ceil((fixed.offsetHeight + (dotSize * 4)) / dotSize) * dotSize;
+      dotBackground.style.width = backgroundWidth + "px";
+      dotBackground.style.height = backgroundHeight + "px";
+      let originPointRect = pageHolder.getBoundingClientRect();
+      let originCorrectX = (originPointRect.left - (backgroundWidth / 2)) % dotSize;
+      let originCorrectY = (originPointRect.top - (backgroundHeight / 2)) % dotSize;
+      dotBackground.style.transform = "translate(" + (originCorrectX - (dotSize * 2)) + "px, " + (originCorrectY - (dotSize * 2)) + "px)";
+      
       if (this.zooming == true || loadedChunkedAnnotations != true) {
         return;
       }
@@ -1896,6 +1918,7 @@ modules["pages/editor"] = {
       if (beforeChunks != JSON.stringify(this.visibleChunks)) {
         runUpdateCycle();
       }
+      
       clearTimeout(updateSubTimeout);
       updateSubTimeout = setTimeout(() => {
         if (this.realtime.module != null) {
@@ -2622,7 +2645,6 @@ modules["pages/editor"] = {
         content.style.height = ((pageHolder.clientHeight * this.zoom) + addPagesHolder.clientHeight) + "px";
       }
     }
-    updateContentSize();
 
     // Zoom
     let lastMouseX;
@@ -2666,10 +2688,10 @@ modules["pages/editor"] = {
 
       contentHolder.style.setProperty("--zoom", this.zoom);
 
-      updateContentSize();
-
       await this.updatePageSize();
       await utils.setMarginSize();
+
+      updateContentSize();
 
       if (observe != true) {
         // Get Page Rect:
@@ -3545,13 +3567,21 @@ modules["pages/editor/annotation"] = {
     let addMarginLeftRight = fixed.offsetWidth / 2;
     let addMarginTopBottom = fixed.offsetHeight / 2;
     this.marginLeft = (this.setLeftMargin * editor.zoom) + addMarginLeftRight;
+    this.marginRight = (this.setRightMargin * editor.zoom) + addMarginLeftRight;
     this.marginTop = (this.setTopMargin * editor.zoom) + addMarginTopBottom;
-    content.style.marginLeft = (Math.ceil(this.marginLeft / 40) * 40) + "px";
+    this.marginBottom = (this.setBottomMargin * editor.zoom) + addMarginTopBottom;
+    content.style.marginLeft = this.marginLeft + "px";
+    content.style.marginRight = this.marginRight + "px";
+    if (editor.lesson.type == "freeboard") {
+      content.style.marginTop = this.marginTop + "px";
+      content.style.marginBottom = this.marginBottom + "px";
+    }
+    /*content.style.marginLeft = (Math.ceil(this.marginLeft / 40) * 40) + "px";
     content.style.marginRight = (Math.ceil(((this.setRightMargin * editor.zoom) + addMarginLeftRight) / 40) * 40) + "px";
     if (editor.lesson.type == "freeboard") {
       content.style.marginTop = (Math.ceil(this.marginTop / 40) * 40) + "px";
       content.style.marginBottom = (Math.ceil(((this.setBottomMargin * editor.zoom) + addMarginTopBottom) / 40) * 40) + "px";
-    }
+    }*/
     if (contentFrame.offsetWidth != this.lastOffsetWidth || contentFrame.offsetHeight != this.lastOffsetHeight) {
       window.scrollTo(scrollPosX + (this.marginLeft - contentLeft), scrollPosY + (this.marginTop - contentTop));
       if (editor.realtime.module && editor.realtime.module.adjustRealtimeHolder) {

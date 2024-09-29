@@ -1882,13 +1882,11 @@ modules["pages/editor"] = {
     let loadedChunkedAnnotations = false;
     this.updateChunks = async () => {
       // Update Background Dots:
-      let fixedDotSize = 0;
+      let fixedDotSize = 25;
       if (this.zoom < .25) {
         fixedDotSize = 100;
       } else if (this.zoom < .5) {
         fixedDotSize = 50;
-      } else {
-        fixedDotSize = 25;
       }
       let dotSize = fixedDotSize * this.zoom;
       dotBackground.style.backgroundSize = dotSize + "px " + dotSize + "px";

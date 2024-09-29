@@ -136,7 +136,7 @@ modules["pages/editor"] = {
     ".eObserve button img": `width: 100%; height: 100%`,
     ".eObserveBorder": `position: fixed; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 501`,
 
-    ".eBackground": `position: fixed; left: 0px; top: 0px; background-image: url(./images/editor/dots.svg); background-position: center; opacity: .1`,
+    ".eBackground": `position: fixed; left: 0px; top: 0px; background-image: url(./images/editor/dots.svg); background-position: center; opacity: .075`,
 
     ".eContent": `position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - 132px); min-height: calc(100vh - 132px); padding: 66px; align-items: center; z-index: 0; overflow: hidden; pointer-events: all; --zoom: 1`,
     ".eContentHolder": `position: relative`,

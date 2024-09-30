@@ -7524,6 +7524,11 @@ modules["pages/editor/toolbar/uploadpage"] = {
         alertModule.close(uploadAlert);
         extra.button.removeAttribute("disabled");
         if (code == 200) {
+          let setTempSync = getEpoch();
+          let joinedIds = [ ...body.historyUpdate, ...body.historyAdd ];
+          for (let i = 0; i < joinedIds.length; i++) {
+            utils.save({ _id: joinedIds[i]._id }, null, setTempSync);
+          }
           if (body.historyUpdate != null) {
             utils.pushHistory("update", body.historyUpdate);
           }

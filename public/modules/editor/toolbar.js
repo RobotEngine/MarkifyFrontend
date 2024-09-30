@@ -3156,8 +3156,8 @@ modules["pages/editor/toolbar/cursor"] = {
       // Update child annotations:
       if (selecting.p != null && selecting.s != null) {
         if (Math.floor(Math.abs(originalRender.p[0] - selecting.p[0])) > 0 || Math.floor(Math.abs(originalRender.p[1] - selecting.p[1])) > 0) {
-          let changedXSize = originalRender.s[0] - selecting.s[0];
-          let changedYSize = originalRender.s[1] - selecting.s[1];
+          let changedXSize = selecting.p[0] - originalRender.p[0];
+          let changedYSize = selecting.p[1] - originalRender.p[1];
           let checkChunks = editor.annotationInChunks(originalRender);
           let annotationKeys = {};
           for (let c = 0; c < checkChunks.length; c++) {

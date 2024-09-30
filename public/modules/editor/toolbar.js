@@ -1449,7 +1449,7 @@ modules["pages/editor/toolbar/cursor"] = {
     let content = editor.page.querySelector(".eContent");
     let pageHolderRect = content.querySelector(".ePageHolder").getBoundingClientRect();
     let selectionIDs = Object.keys(editor.selecting);
-    let checkRemSelections = content.querySelectorAll(".eSelect");
+    let checkRemSelections = [ ...content.querySelectorAll(".eSelect") ];
     let self = editor.getSelf();
 
     this.minX = null;
@@ -1462,7 +1462,7 @@ modules["pages/editor/toolbar/cursor"] = {
       let selection = checkRemSelections[i];
       let annoID = selection.getAttribute("anno");
       let anno = content.querySelector('.eAnnotation[anno="' + annoID + '"]');
-      if (selectionIDs.includes(annoID) == false || anno == null) {
+      if (editor.selecting[annoID] == null || anno == null) {
         if (anno != null) {
           anno.removeAttribute("selected");
           anno.removeAttribute("notransition");
@@ -1510,6 +1510,7 @@ modules["pages/editor/toolbar/cursor"] = {
         }
       })();
     }
+
     if (selectionIDs.length > 0) {
       body.style.userSelect = "none";
     } else {
@@ -1538,6 +1539,34 @@ modules["pages/editor/toolbar/cursor"] = {
             select.remove();
           }
           continue;
+        }
+        let currentAnnoCheck = merged;
+        let checkedParents = [];
+        let enableContinue = false;
+        while (currentAnnoCheck.parent != null) {
+          let annoid = currentAnnoCheck.parent;
+          if (annoid == null || checkedParents.includes(annoid) == true) {
+            break;
+          }
+          checkedParents.push(annoid);
+          let annotation = editor.annotations[annoid];
+          if (annotation == null) {
+            break;
+          }
+          if (annotation.pointer != null) {
+            annoid = annotation.pointer;
+            annotation = editor.annotations[annoid] || { render: {} };
+          }
+          if (editor.selecting[annoid] != null) {
+            enableContinue = true;
+            break;
+          }
+          currentAnnoCheck = annotation.render || {};
+        }
+        if (enableContinue == true) {
+          delete editor.selecting[annoID];
+          this.updateBox(forceNoTransition, forceUpdate, noUpdateAction);
+          return;
         }
         anno.setAttribute("selected", "");
         let activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
@@ -3386,7 +3415,7 @@ modules["pages/editor/toolbar/cursor"] = {
       /*if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
         return;
       }*/
-      if (editor.selecting[annoID] != null && render.f == "page" && target.closest("div[title]") != null && render.lock != true) {
+      if (editor.selecting[annoID] != null && render.f == "page" && target.closest("div[title]") != null && anno.querySelector("div[title]").closest(".eAnnotation") == anno && render.lock != true) {
         if (target.closest("div[title]").hasAttribute("contenteditable") == false) {
           this.clickAction({
             target: content.querySelector('.eSelectBar:not([remove]) .eTool[action="pages/editor/toolbar/settitle"]')
@@ -3452,7 +3481,7 @@ modules["pages/editor/toolbar/cursor"] = {
           editor.selecting = {};
           editor.selecting[annoID] = {};
         }
-        if (wasSelected == null && anno.querySelector("div[edit]") != null && anno.querySelector("div[contenteditable]") == null) {
+        if (wasSelected == null && anno.querySelector("div[edit]") != null && anno.querySelector("div[edit]").closest(".eAnnotation") == anno && anno.querySelector("div[contenteditable]") == null) {
           this.clickAction({
             target: content.querySelector('.eSelectBar:not([remove]) .eTool[action="pages/editor/toolbar/textedit"]'),
             setCaretPosition: true,
@@ -3495,10 +3524,10 @@ modules["pages/editor/toolbar/drag"] = {
     return Array.from(children)
       .filter(element => {
         const elementRect = element.getBoundingClientRect();
+        if (element.parentElement.closest(".eAnnotation[selected]") != null) {
+          return false;
+        }
         if (element.hasAttribute("page") == false) {
-          if (element.closest(".eAnnotation[page][selected]") != null) {
-            return false;
-          }
           return (
             elementRect.top < selectBoxRect.bottom &&
             elementRect.bottom > selectBoxRect.top &&

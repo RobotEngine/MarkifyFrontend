@@ -3183,16 +3183,50 @@ modules["pages/editor/toolbar/cursor"] = {
       selecting.done = true;
 
       // Update child annotations:
-      if (selecting.p != null && selecting.s != null) {
-        if (Math.floor(Math.abs(originalRender.p[0] - selecting.p[0])) > 0 || Math.floor(Math.abs(originalRender.p[1] - selecting.p[1])) > 0) {
-          let changedXSize = selecting.p[0] - originalRender.p[0];
-          let changedYSize = selecting.p[1] - originalRender.p[1];
-          let checkChunks = editor.annotationInChunks(originalRender);
-          let annotationKeys = {};
-          for (let c = 0; c < checkChunks.length; c++) {
-            annotationKeys = { ...annotationKeys, ...(editor.chunkAnnotations[checkChunks[c]] || {}) };
+      let merged = { ...originalRender, ...selecting };
+      if (selecting.p != null) {
+        let checkChunks = [ ...editor.annotationInChunks(originalRender), ...editor.annotationInChunks(merged) ];
+        let annotationKeys = {};
+        for (let c = 0; c < checkChunks.length; c++) {
+          annotationKeys = { ...annotationKeys, ...(editor.chunkAnnotations[checkChunks[c]] || {}) };
+        }
+        let annotations = Object.keys(annotationKeys);
+        if (selecting.s != null) {
+          if (Math.floor(Math.abs(originalRender.p[0] - selecting.p[0])) > 0 || Math.floor(Math.abs(originalRender.p[1] - selecting.p[1])) > 0) {
+            let changedXSize = selecting.p[0] - originalRender.p[0];
+            let changedYSize = selecting.p[1] - originalRender.p[1];
+            for (let a = 0; a < annotations.length; a++) {
+              let checkAnnoID = annotations[a];
+              if (checkAnnoID == null || checkAnnoID == annoid) {
+                continue;
+              }
+              let checkAnnotation = editor.annotations[checkAnnoID];
+              if (checkAnnotation == null) {
+                continue;
+              }
+              if (checkAnnotation.pointer != null) {
+                checkAnnoID = checkAnnotation.pointer;
+                checkAnnotation = editor.annotations[checkAnnoID] || { render: {} };
+              }
+              let render = checkAnnotation.render;
+              if (render.parent != annoid) {
+                continue;
+              }
+              let newPos = [render.p[0] - changedXSize, render.p[1] - changedYSize];
+              editor.realtimeSelect[checkAnnoID] = { p: newPos };
+              saveUpdates.push({ p: newPos, parent: annoid, _id: checkAnnoID, done: true });
+              pushChanges.push({ p: render.p, parent: annoid, _id: checkAnnoID });
+            }
           }
-          let annotations = Object.keys(annotationKeys);
+        }
+        if (["page"].includes(merged.f) == true) { // See if in bounds, also check parent to know what is allowed in bounds
+          let position = editor.getAbsolutePosition(merged);
+          let thickness = 0;
+          if (merged.t != null) {
+            if (merged.b != "none" || merged.d == "line") {
+              thickness = merged.t;
+            }
+          }
           for (let a = 0; a < annotations.length; a++) {
             let checkAnnoID = annotations[a];
             if (checkAnnoID == null || checkAnnoID == annoid) {
@@ -3206,14 +3240,41 @@ modules["pages/editor/toolbar/cursor"] = {
               checkAnnoID = checkAnnotation.pointer;
               checkAnnotation = editor.annotations[checkAnnoID] || { render: {} };
             }
-            let render = checkAnnotation.render;
-            if (render.parent != annoid) {
+            let render = { ...(checkAnnotation.render || {}), ...(utils.pendingSaves[checkAnnoID] || {}) };
+            if (render.parent == annoid) {
               continue;
             }
-            let newPos = [render.p[0] - changedXSize, render.p[1] - changedYSize];
-            editor.realtimeSelect[checkAnnoID] = { p: newPos };
-            saveUpdates.push({ p: newPos, parent: annoid, _id: checkAnnoID, done: true });
-            pushChanges.push({ p: render.p, parent: annoid, _id: checkAnnoID });
+            let thick = 0;
+            if (render.t != null) {
+              if (render.b != "none" || render.d == "line") {
+                thick = render.t;
+              }
+            }
+            let [x, y] = editor.getAbsolutePosition(render);
+            let checkX = x + (render.s[0] / 2) + thick;
+            let checkY = y + (render.s[1] / 2) + thick;
+            if (checkX >= position[0] && checkX <= position[0] + merged.s[0] + thickness) {
+              if (checkY >= position[1] && checkY <= position[1] + merged.s[1] + thickness) {
+                if ((render.l || 0) > (merged.l || 0)) {
+                  let setParent = editor.parentFromAnnotation({
+                    ...render,
+                    parent: null,
+                    p: [checkX, checkY]
+                  }, null, merged);
+                  if (setParent != render.parent) {
+                    /*let relativePos = editor.getRelativePosition({
+                      ...render,
+                      parent: annoid,
+                      p: [x, y]
+                    });*/
+                    //let newPos = [relativePos[0], relativePos[1]];
+                    //editor.realtimeSelect[checkAnnoID] = { p: newPos, parent: annoid };
+                    //saveUpdates.push({ p: newPos, parent: annoid, sync: getEpoch(), _id: checkAnnoID, done: true });
+                    pushChanges.push({ p: render.p, parent: render.parent, _id: checkAnnoID });
+                  }
+                }
+              }
+            }
           }
         }
       }

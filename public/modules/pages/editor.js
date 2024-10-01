@@ -1732,11 +1732,18 @@ modules["pages/editor"] = {
       }
       return [returnX, returnY];
     }
-    this.parentFromAnnotation = (anno, types) => {
+    this.parentFromAnnotation = (anno, types, substitute) => {
       types = types || ["page"];
+      substitute = substitute || {};
       let id = anno._id;
-      let x = anno.p[0];
-      let y = anno.p[1];
+      /*let thick = 0;
+      if (anno.t != null) {
+        if (anno.b != "none" || anno.d == "line") {
+          thick = anno.t;
+        }
+      }*/
+      let x = anno.p[0];// + (anno.s[0] / 2) + thick;
+      let y = anno.p[1];// + (anno.s[1] / 2) + thick;
       let index = anno.l || 0;
       let chunk = this.pointInChunk(x, y);
       let annotationIDs = Object.keys(this.chunkAnnotations[chunk] || {});
@@ -1763,6 +1770,9 @@ modules["pages/editor"] = {
         }
         if (render.hidden == true || render.lock == true) {
           continue;
+        }
+        if (substitute._id == annoid) {
+          render = { ...render, ...substitute };
         }
         let [parentX, parentY] = this.getAbsolutePosition(render);
         let [parentWidth, parentHeight] = render.s || [0, 0];
@@ -5510,7 +5520,7 @@ modules["pages/editor/annotation"] = {
           continue;
         }
         if (checkAnnotation.pointer != null) {
-          checkAnnoID = annotation.pointer;
+          checkAnnoID = checkAnnotation.pointer;
           checkAnnotation = editor.annotations[checkAnnoID] || { render: {} };
         }
         let render = { ...(checkAnnotation.render || {}), ...(this.pendingSaves[checkAnnoID] || {}) };
@@ -5564,7 +5574,7 @@ modules["pages/editor/annotation"] = {
             continue;
           }
           if (checkAnnotation.pointer != null) {
-            checkAnnoID = annotation.pointer;
+            checkAnnoID = checkAnnotation.pointer;
             checkAnnotation = editor.annotations[checkAnnoID] || { render: {} };
           }
           let render = { ...(checkAnnotation.render || {}), ...(this.pendingSaves[checkAnnoID] || {}) };

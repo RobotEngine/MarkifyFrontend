@@ -5375,7 +5375,6 @@ modules["pages/editor/annotation"] = {
             if ((mutt.parent || "").startsWith("pending_") == true) {
               let parentAnno = editor.annotations[mutt.parent];
               if (parentAnno != null) {
-                console.log("WHAT THE FUCK")
                 if (parentAnno.pointer != null) {
                   mutt.parent = parentAnno.pointer;
                 } else {

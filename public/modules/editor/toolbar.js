@@ -2386,9 +2386,6 @@ modules["pages/editor/toolbar/cursor"] = {
         let selectKeys = Object.keys(editor.selecting);
         let setKeys = Object.keys(set);
         let sync = getEpoch();
-        let saveUpdates = [];
-        let pushChanges = [];
-        let pushRemoves = [];
         for (let i = 0; i < selectKeys.length; i++) {
           let annoID = selectKeys[i];
           let select = editor.selecting[annoID];
@@ -2424,6 +2421,55 @@ modules["pages/editor/toolbar/cursor"] = {
               }
             }
           }*/
+          let changes = false;
+          for (let c = 0; c < setKeys.length; c++) {
+            if (annoSet[setKeys[c]] != anno[setKeys[c]]) {
+              changes = true;
+              break;
+            }
+          }
+          if (changes == false) {
+            continue;
+          }
+          editor.selecting[annoID] = { ...select, ...annoSet };
+        }
+
+        this.action = "save";
+        await this.endAction();
+
+        /*let editor = await getModule("pages/editor");
+        let utils = await getModule("pages/editor/annotation");
+        let selectKeys = Object.keys(editor.selecting);
+        let setKeys = Object.keys(set);
+        let sync = getEpoch();
+        let saveUpdates = [];
+        let pushChanges = [];
+        let pushRemoves = [];
+        for (let i = 0; i < selectKeys.length; i++) {
+          let annoID = selectKeys[i];
+          let select = editor.selecting[annoID];
+          let original = (editor.annotations[annoID] || {}).render || {};
+          if (original.lock == true && set.lock == null) {
+            continue;
+          }
+          let anno = JSON.parse(JSON.stringify(original));
+          let annoSet = JSON.parse(JSON.stringify(set));
+          select.sync = sync;
+          if (annoSet.d != null && typeof annoSet.d == "object") {
+            annoSet.d = { ...anno.d, ...annoSet.d };
+          }
+          if (anno.f == "text") {
+            let annoTx = editor.page.querySelector('.eAnnotation[anno="' + annoID + '"] div[text]');
+            if (annoTx != null && annoSet.remove != true) {
+              editor.selecting[annoID] = { ...select, ...annoSet };
+              await utils.render({ ...anno, ...annoSet }, annoTx.parentElement);
+              annoSet.s = anno.s || [];
+              if (anno.textfit == true) {
+                annoSet.s[0] = annoTx.offsetWidth + 6;
+              }
+              annoSet.s[1] = annoTx.offsetHeight + 6;
+            }
+          }
           let changes = false;
           for (let c = 0; c < setKeys.length; c++) {
             if (annoSet[setKeys[c]] != anno[setKeys[c]]) {
@@ -2472,6 +2518,7 @@ modules["pages/editor/toolbar/cursor"] = {
           editor.selecting[selectKeys[i]] = {};
         }
         //}
+        */
       },
       updateToolActions: async (frame) => {
         let editor = await getModule("pages/editor");

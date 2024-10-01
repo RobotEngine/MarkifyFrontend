@@ -1004,7 +1004,6 @@ modules["editor/toolbar"] = {
               }
             }
             let saveClone = JSON.parse(JSON.stringify(saveAnno));
-            console.log(saveClone)
             editor.realtimeSelect[tempID] = { ...saveClone, done: true };
             await utils.save({ ...saveClone, _id: tempID }, null, sync);
           }

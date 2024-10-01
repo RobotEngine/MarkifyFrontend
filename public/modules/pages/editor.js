@@ -137,7 +137,7 @@ modules["pages/editor"] = {
     ".eObserveBorder": `position: fixed; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 501`,
 
     ".eContent": `position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - 132px); min-height: calc(100vh - 132px); padding: 66px; align-items: center; z-index: 0; overflow: hidden; pointer-events: all; --zoom: 1`,
-    ".eBackground": `position: absolute; background-image: url(./images/editor/backdrop.svg); background-position: center; opacity: .075`,
+    ".eBackground": `position: absolute; transform: scale(var(--zoom)); transform-origin: left top; background-image: url(./images/editor/backdrop.svg); background-position: center; opacity: .075`,
     ".eContentHolder": `position: relative`,
     ".ePageHolder": `position: relative; width: fit-content; height: fit-content; border-radius: 16px; transform-origin: 0 0; transform: scale(var(--zoom)); z-index: 1`,
     ".ePage": `position: relative; background: var(--pageColor); transition: .5s`,
@@ -1896,23 +1896,23 @@ modules["pages/editor"] = {
     let loadedChunkedAnnotations = false;
     this.updateChunks = async () => {
       // Update Background Dots:
-      let fixedDotSize = 25;
+      let dotSize = 25;
       if (this.zoom < .25) {
-        fixedDotSize = 100;
+        dotSize = 100;
       } else if (this.zoom < .5) {
-        fixedDotSize = 50;
+        dotSize = 50;
       }
-      let dotSize = fixedDotSize * this.zoom;
       dotBackground.style.backgroundSize = dotSize + "px " + dotSize + "px";
-      let backgroundWidth = Math.ceil((fixed.offsetWidth + (dotSize * 4)) / dotSize) * dotSize;
-      let backgroundHeight = Math.ceil((fixed.offsetHeight + (dotSize * 4)) / dotSize) * dotSize;
-      dotBackground.style.width = backgroundWidth + "px";
-      dotBackground.style.height = backgroundHeight + "px";
+      let scaledDotSize = dotSize * this.zoom;
+      let backgroundWidth = Math.ceil((fixed.offsetWidth + (scaledDotSize * 4)) / scaledDotSize) * scaledDotSize;
+      let backgroundHeight = Math.ceil((fixed.offsetHeight + (scaledDotSize * 4)) / scaledDotSize) * scaledDotSize;
+      dotBackground.style.width = (backgroundWidth / this.zoom) + "px";
+      dotBackground.style.height = (backgroundHeight / this.zoom) + "px";
       let originPointRect = pageHolder.getBoundingClientRect();
-      let originCorrectX = (originPointRect.left - (backgroundWidth / 2)) % dotSize;
-      let originCorrectY = (originPointRect.top - (backgroundHeight / 2)) % dotSize;
-      dotBackground.style.left = (window.scrollX + originCorrectX - (dotSize * 2)) + "px";
-      dotBackground.style.top = (window.scrollY + originCorrectY - (dotSize * 2)) + "px";
+      let originCorrectX = (originPointRect.left - (backgroundWidth / 2)) % scaledDotSize;
+      let originCorrectY = (originPointRect.top - (backgroundHeight / 2)) % scaledDotSize;
+      dotBackground.style.left = (window.scrollX + originCorrectX - (scaledDotSize * 2)) + "px";
+      dotBackground.style.top = (window.scrollY + originCorrectY - (scaledDotSize * 2)) + "px";
       
       if (this.zooming == true || loadedChunkedAnnotations != true) {
         return;
@@ -5339,6 +5339,8 @@ modules["pages/editor/annotation"] = {
     while (keys.length > 0) {
       if (skipWait != true) {
         await sleep(2500); // 1 save per 2.5 seconds
+      } else {
+        skipWait = false;
       }
       if (connected == false) {
         break;
@@ -5370,23 +5372,24 @@ modules["pages/editor/annotation"] = {
               this.enableTimeout(anno.render._id, anno);
               continue;
             }
+            if ((mutt.parent || "").startsWith("pending_") == true) {
+              let parentAnno = editor.annotations[mutt.parent];
+              if (parentAnno != null) {
+                console.log("WHAT THE FUCK")
+                if (parentAnno.pointer != null) {
+                  mutt.parent = parentAnno.pointer;
+                } else {
+                  setPendingSave[mutt._id] = mutt;
+                  this.enableTimeout(anno.render._id, anno);
+                  continue;
+                }
+              }
+            }
             delete anno.save;
             //mutt._id = anno.render._id;
             if (anno.retry > 0) {
               this.enableTimeout(anno.render._id, anno);
               anno.retry--;
-            }
-            if ((mutt.parent || "").startsWith("pending_") == true) {
-              let parentAnno = editor.annotations[mutt.parent];
-              if (parentAnno != null) {
-                if (parentAnno.pointer != null) {
-                  mutt.parent = parentAnno.pointer;
-                } else {
-                  mutt.annoRefresh = anno;
-                  setPendingSave[mutt._id] = mutt;
-                  continue;
-                }
-              }
             }
             if (mutt._id.startsWith("pending_") == true) {
               if (mutt.f == null) {

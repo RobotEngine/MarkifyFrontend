@@ -1003,8 +1003,10 @@ modules["editor/toolbar"] = {
                 continue; // Annotation is missing, invalid save
               }
             }
-            editor.realtimeSelect[tempID] = { ...saveAnno, done: true };
-            await utils.save({ ...saveAnno, _id: tempID }, null, sync);
+            let saveClone = JSON.parse(JSON.stringify(saveAnno));
+            console.log(saveClone)
+            editor.realtimeSelect[tempID] = { ...saveClone, done: true };
+            await utils.save({ ...saveClone, _id: tempID }, null, sync);
           }
       }
       await utils.forceShort();
@@ -1079,8 +1081,9 @@ modules["editor/toolbar"] = {
                 continue; // Annotation is missing, invalid save
               }
             }
-            editor.realtimeSelect[tempID] = { ...saveAnno, done: true };
-            await utils.save({ ...saveAnno, _id: tempID }, null, sync);
+            let saveClone = JSON.parse(JSON.stringify(saveAnno));
+            editor.realtimeSelect[tempID] = { ...saveClone, done: true };
+            await utils.save({ ...saveClone, _id: tempID }, null, sync);
           }
           break;
         case "add": // Sort of Remove
@@ -3099,6 +3102,7 @@ modules["pages/editor/toolbar/cursor"] = {
     let saveUpdates = [];
     let pushChanges = [];
     let pushAdds = [];
+    let pushRemoves = [];
     for (let i = 0; i < keys.length; i++) {
       let annoid = keys[i];
       let selecting = editor.selecting[annoid];
@@ -3171,12 +3175,16 @@ modules["pages/editor/toolbar/cursor"] = {
       if (originalRender.parent != null) {
         pushFields.parent = originalRender.parent;
       }
-      if (Object.keys(pushFields).length > 0) {
-        if (pushFields.f == null) {
-          pushChanges.push(JSON.parse(JSON.stringify({ ...pushFields, _id: annoid })));
-        } else {
-          pushAdds.push({ _id: annoid, remove: true });
+      if (selecting.remove != true) {
+        if (Object.keys(pushFields).length > 0) {
+          if (pushFields.f == null) {
+            pushChanges.push(JSON.parse(JSON.stringify({ ...pushFields, _id: annoid })));
+          } else {
+            pushAdds.push({ _id: annoid, remove: true });
+          }
         }
+      } else {
+        pushRemoves.push(JSON.parse(JSON.stringify(originalRender)));
       }
 
       saveUpdates.push(JSON.parse(JSON.stringify({ ...selecting, _id: annoid })));
@@ -3184,13 +3192,54 @@ modules["pages/editor/toolbar/cursor"] = {
 
       // Update child annotations:
       let merged = { ...originalRender, ...selecting };
-      if (selecting.p != null) {
-        let checkChunks = [ ...editor.annotationInChunks(originalRender), ...editor.annotationInChunks(merged) ];
-        let annotationKeys = {};
-        for (let c = 0; c < checkChunks.length; c++) {
-          annotationKeys = { ...annotationKeys, ...(editor.chunkAnnotations[checkChunks[c]] || {}) };
+      let checkChunks = [ ...editor.annotationInChunks(originalRender), ...editor.annotationInChunks(merged) ];
+      let annotationKeys = {};
+      for (let c = 0; c < checkChunks.length; c++) {
+        annotationKeys = { ...annotationKeys, ...(editor.chunkAnnotations[checkChunks[c]] || {}) };
+      }
+      let annotations = Object.keys(annotationKeys);
+      if (selecting.remove == true) {
+        for (let a = 0; a < annotations.length; a++) {
+          let checkAnnoID = annotations[a];
+          if (checkAnnoID == null || checkAnnoID == annoid) {
+            continue;
+          }
+          let checkAnnotation = editor.annotations[checkAnnoID];
+          if (checkAnnotation == null) {
+            continue;
+          }
+          if (checkAnnotation.pointer != null) {
+            checkAnnoID = checkAnnotation.pointer;
+            checkAnnotation = editor.annotations[checkAnnoID] || { render: {} };
+          }
+          let currentAnnoCheck = checkAnnotation.render || {};
+          let checkedParents = [];
+          while (currentAnnoCheck.parent != null) {
+            let checkannoid = currentAnnoCheck.parent;
+            if (checkannoid == null || checkedParents.includes(checkannoid) == true) {
+              break;
+            }
+            checkedParents.push(checkannoid);
+            let annotation = editor.annotations[checkannoid];
+            if (annotation == null) {
+              break;
+            }
+            if (annotation.pointer != null) {
+              checkannoid = annotation.pointer;
+              annotation = editor.annotations[checkannoid] || { render: {} };
+            }
+            if (checkannoid == annoid) {
+              editor.realtimeSelect[checkAnnoID] = { remove: true };
+              saveUpdates.push({ remove: true, _id: checkAnnoID, done: true });
+              let [x, y] = editor.getAbsolutePosition(checkAnnotation.render);
+              pushRemoves.push(JSON.parse(JSON.stringify({ ...checkAnnotation.render, parent: null, p: [x, y] })));
+              break;
+            }
+            currentAnnoCheck = annotation.render || {};
+          }
         }
-        let annotations = Object.keys(annotationKeys);
+      }
+      if (selecting.p != null) {
         if (selecting.s != null) {
           if (Math.floor(Math.abs(originalRender.p[0] - selecting.p[0])) > 0 || Math.floor(Math.abs(originalRender.p[1] - selecting.p[1])) > 0) {
             let changedXSize = selecting.p[0] - originalRender.p[0];
@@ -3284,6 +3333,9 @@ modules["pages/editor/toolbar/cursor"] = {
     }
     if (pushAdds.length > 0) {
       await utils.pushHistory("remove", pushAdds, true);
+    }
+    if (pushRemoves.length > 0) {
+      await utils.pushHistory("add", pushRemoves);
     }
     for (let i = 0; i < saveUpdates.length; i++) {
       await utils.save(saveUpdates[i], null, setTempSync);

@@ -3890,6 +3890,7 @@ modules["pages/editor/annotation"] = {
   css: {
     ".eAnnotation": `position: absolute; left: 0px; top: 0px`,
     ".eAnnotationHolder": `position: absolute; z-index: 10`,
+    ".eAnnotationHolder[notransition] > .eAnnotation": `transition: unset !important`,
     ".eAnnotation[hidden]": `display: none !important`,
     '.eAnnotation[anno]:not([anno^="pending_"])': `transition: .25s`,
     //'.eAnnotation:not([selected]):not([anno^="pending_"])': `transition: .25s`,
@@ -4031,10 +4032,8 @@ modules["pages/editor/annotation"] = {
             annoHolder.style.left = "0px";
             annoHolder.style.top = "0px";
           } else if (data.resizing == null) {
-            annoHolder.setAttribute("notransition", "");
             annoHolder.style.width = annoParentData.s[0] + "px";
             annoHolder.style.height = annoParentData.s[1] + "px";
-            annoHolder.removeAttribute("notransition");
           }
         }
       }
@@ -4990,15 +4989,15 @@ modules["pages/editor/annotation"] = {
       let annoAnnotationHolder = anno.querySelector(".eAnnotationHolder");
       if (annoAnnotationHolder != null) {
         if (data.resizing == null) {
-          annoHolder.setAttribute("notransition", "");
           annoAnnotationHolder.style.width = width + "px";
           annoAnnotationHolder.style.height = height + "px";
-          annoHolder.removeAttribute("notransition");
+          annoAnnotationHolder.removeAttribute("notransition");
           //annoAnnotationHolder.style.left = "0px";
           //annoAnnotationHolder.style.top = "0px";
           //annoAnnotationHolder.style.removeProperty("right");
           //annoAnnotationHolder.style.removeProperty("bottom");
         } else {
+          annoAnnotationHolder.setAttribute("notransition", "");
           switch (data.resizing) {
             case "bottomright":
               annoAnnotationHolder.style.left = "0px";

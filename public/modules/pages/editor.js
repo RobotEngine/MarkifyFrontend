@@ -1696,7 +1696,7 @@ modules["pages/editor"] = {
         if (selected != null) {
           selectedParent = true;
         }
-        currentAnnoCheck = { ...(annotation.render || {}), ...(selected || {}) };
+        currentAnnoCheck = annotation.render || {};
         returnX += currentAnnoCheck.p[0] || 0;
         returnY += currentAnnoCheck.p[1] || 0;
       }
@@ -4007,6 +4007,12 @@ modules["pages/editor/annotation"] = {
     }
     let annoHolder = await this.annoHolder(page);
     if (parent != null) {
+      if ((parent || "").startsWith("pending_") == true) {
+        let parentAnno = editor.annotations[parent];
+        if (parentAnno != null && parentAnno.pointer != null) {
+          parent = parentAnno.pointer;
+        }
+      }
       let annoParentData = (editor.annotations[parent] || {}).render;
       if (annoParentData != null) {
         let annoParent = editor.page.querySelector('.eAnnotation[anno="' + parent + '"]');
@@ -5526,7 +5532,13 @@ modules["pages/editor/annotation"] = {
           checkAnnotation = editor.annotations[checkAnnoID] || { render: {} };
         }
         let render = { ...(checkAnnotation.render || {}), ...(this.pendingSaves[checkAnnoID] || {}) };
-        if (render.parent != annoID && render.parent != merged.parent) {
+        if ((render.parent || "").startsWith("pending_") == true) {
+          let parentAnno = editor.annotations[render.parent];
+          if (parentAnno != null && parentAnno.pointer != null) {
+            render.parent = parentAnno.pointer;
+          }
+        }
+        if (render.parent != annoID) { // && render.parent != merged.parent
           continue;
         }
         let thick = 0;
@@ -5538,30 +5550,28 @@ modules["pages/editor/annotation"] = {
         let [x, y] = editor.getAbsolutePosition(render);
         let checkX = x + (render.s[0] / 2) + thick;
         let checkY = y + (render.s[0] / 2) + thick;
-        if (render.parent == annoID) { // See if out of bounds
-          if (checkX < position[0] || checkX > position[0] + merged.s[0] + thickness || checkY < position[1] || checkY > position[1] + merged.s[1] + thickness) {
-            let setParent = editor.parentFromAnnotation({
-              ...render,
-              parent: null,
-              p: [checkX, checkY]
-            });
-            let relativePos = editor.getRelativePosition({
-              ...render,
-              parent: setParent || null,
-              p: [x, y]
-            });
-            let setChildAnno = {
-              _id: checkAnnoID,
-              parent: setParent || null,
-              p: [relativePos[0], relativePos[1]],
-              sync: getEpoch()
-            }
-            this.saveEdit(setChildAnno, null, sync, { save: true, render: {} });
-            checkAnnotation.save = true; // Alert the system it's time to save
-            checkAnnotation.render.sync = setChildAnno,sync;
-            checkAnnotation.render.m = editor.getSelf().modify;
-            this.pendingSaves[checkAnnoID] = { _id: checkAnnoID, ...(this.pendingSaves[checkAnnoID] || {}), ...setChildAnno };
+        if (checkX < position[0] || checkX > position[0] + merged.s[0] + thickness || checkY < position[1] || checkY > position[1] + merged.s[1] + thickness) {
+          let setParent = editor.parentFromAnnotation({
+            ...render,
+            parent: null,
+            p: [checkX, checkY]
+          });
+          let relativePos = editor.getRelativePosition({
+            ...render,
+            parent: setParent || null,
+            p: [x, y]
+          });
+          let setChildAnno = {
+            _id: checkAnnoID,
+            parent: setParent || null,
+            p: [relativePos[0], relativePos[1]],
+            sync: getEpoch()
           }
+          this.saveEdit(setChildAnno, null, sync, { save: true, render: {} });
+          checkAnnotation.save = true; // Alert the system it's time to save
+          checkAnnotation.render.sync = setChildAnno,sync;
+          checkAnnotation.render.m = editor.getSelf().modify;
+          this.pendingSaves[checkAnnoID] = { _id: checkAnnoID, ...(this.pendingSaves[checkAnnoID] || {}), ...setChildAnno };
         }
       }
 

@@ -2632,53 +2632,8 @@ modules["pages/editor/toolbar/cursor"] = {
         editor.page.style.touchAction = "pinch-zoom";
         event.preventDefault();
       } else {
-        // Duplicate Element
-        let selectKeys = Object.keys(editor.selecting);
-        if (selectKeys.length < 1) {
-          return;
-        }
-        let utils = await getModule("pages/editor/annotation");
-        let newSelect = {};
-        let newNewSelect = {};
-        let setTempSync = getEpoch();
-        for (let i = 0; i < selectKeys.length; i++) {
-          let selectID = selectKeys[i];
-          let tempID = utils.tempID();
-          let newAnno = JSON.parse(JSON.stringify(({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {}));
-          if (editor.getSelf().access < 4 && editor.toolbar.checkSubToolType(editor, newAnno.f) == true) {
-            continue;
-          }
-          newAnno._id = tempID;
-          newAnno.p = newAnno.p || [0, 0];
-          newAnno.s = newAnno.s || [0, 0];
-          if (this.resizeElem.getAttribute("tooltip") == "duplicateleft") {
-            newAnno.p[0] -= newAnno.s[0] + 34;
-          } else if (this.resizeElem.getAttribute("tooltip") == "duplicateright") {
-            newAnno.p[0] += newAnno.s[0] + 34;
-          } else if (this.resizeElem.getAttribute("tooltip") == "duplicatetop") {
-            newAnno.p[1] -= newAnno.s[1] + 34;
-          } else if (this.resizeElem.getAttribute("tooltip") == "duplicatebottom") {
-            newAnno.p[1] += newAnno.s[1] + 34;
-          }
-          if (["page"].includes(newAnno.f) == false) {
-            newAnno.l = (newAnno.l || utils.maxLayer) + 1;
-          } else {
-            newAnno.l = (newAnno.l || utils.minLayer) - 1;
-          }
-          newAnno.sync = setTempSync;
-          delete newAnno.m;
-          delete newAnno.lock;
-          await utils.render(newAnno);
-          editor.annotations[tempID] = { render: newAnno };
-          newSelect[tempID] = newAnno;
-          newNewSelect[tempID] = {};
-        }
-        editor.selecting = newSelect;
-        this.action = "save";
-        await this.endAction();
-        this.action = null;
-        editor.selecting = newNewSelect;
-        this.updateBox();
+        let moreModule = await getModule("dropdowns/editor/toolbar/more");
+        await moreModule.handleDuplicate(this.resizeElem.getAttribute("tooltip"));
       }
     }
   },
@@ -3152,7 +3107,7 @@ modules["pages/editor/toolbar/cursor"] = {
     for (let i = 0; i < keys.length; i++) {
       let annoid = keys[i];
       let selecting = editor.selecting[annoid];
-      let original = editor.annotations[annoid];
+      let original = editor.annotations[annoid] || { render: selecting };
       if (original != null && original.pointer != null) {
         annoid = original.pointer;
         original = editor.annotations[annoid];
@@ -6445,50 +6400,131 @@ modules["dropdowns/editor/toolbar/more"] = {
     ".eToolbarMoreLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`,
     ".eToolbarMoreShowMe": `color: var(--theme); font-weight: 700`
   },
-  js: async function (frame) {
+  handleDuplicate: async (tooltip) => { // Duplicate all selected annotations
     let editor = await getModule("pages/editor");
     let utils = await getModule("pages/editor/annotation");
     let cursor = await getModule("pages/editor/toolbar/cursor");
     let toolbar = await getModule("editor/toolbar");
 
+    let self = editor.getSelf();
+    let selectKeys = Object.keys(editor.selecting);
+    let checkChunks = [];
+    let newSelect = {};
+    let newNewSelect = {};
+    let setTempSync = getEpoch();
+    let maxZIndex;
+    let minZIndex;
+    let offsetX = 50;
+    let offsetY = 50;
+    for (let i = 0; i < selectKeys.length; i++) {
+      let selectID = selectKeys[i];
+      let tempID = utils.tempID();
+      let newAnno = JSON.parse(JSON.stringify(({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {}));
+      if (self.access < 4 && toolbar.checkSubToolType(editor, newAnno.f) == true) {
+        continue;
+      }
+      checkChunks = [ ...checkChunks, ...editor.annotationInChunks(newAnno) ];
+      newAnno._id = tempID;
+      maxZIndex = Math.max(maxZIndex || newAnno.l || utils.maxLayer, newAnno.l || utils.maxLayer);
+      minZIndex = Math.min(minZIndex || newAnno.l || utils.minLayer, newAnno.l || utils.minLayer);
+      newSelect[tempID] = newAnno;
+      newNewSelect[tempID] = {};
+      if (tooltip != null) {
+        offsetX = 0;
+        offsetY = 0;
+        if (tooltip == "duplicateleft") {
+          offsetX -= newAnno.s[0] + 34;
+        } else if (tooltip == "duplicateright") {
+          offsetX += newAnno.s[0] + 34;
+        } else if (tooltip == "duplicatetop") {
+          offsetY -= newAnno.s[1] + 34;
+        } else if (tooltip == "duplicatebottom") {
+          offsetY += newAnno.s[1] + 34;
+        }
+      }
+    }
+    let annotationKeys = {};
+    for (let c = 0; c < checkChunks.length; c++) {
+      annotationKeys = { ...annotationKeys, ...(editor.chunkAnnotations[checkChunks[c]] || {}) };
+    }
+    let annotations = Object.keys(annotationKeys);
+    for (let a = 0; a < annotations.length; a++) {
+      let checkAnnoID = annotations[a];
+      if (checkAnnoID == null || editor.selecting[checkAnnoID] != null) {
+        continue;
+      }
+      let checkAnnotation = editor.annotations[checkAnnoID];
+      if (checkAnnotation == null) {
+        continue;
+      }
+      if (checkAnnotation.pointer != null) {
+        checkAnnoID = checkAnnotation.pointer;
+        checkAnnotation = editor.annotations[checkAnnoID] || { render: {} };
+      }
+      let render = checkAnnotation.render || {};
+      let currentAnnoCheck = render;
+      let checkedParents = [];
+      let enableContinue = false;
+      while (currentAnnoCheck.parent != null) {
+        let annoid = currentAnnoCheck.parent;
+        if (annoid == null || checkedParents.includes(annoid) == true) {
+          break;
+        }
+        checkedParents.push(annoid);
+        let annotation = editor.annotations[annoid];
+        if (annotation == null) {
+          break;
+        }
+        if (annotation.pointer != null) {
+          annoid = annotation.pointer;
+          annotation = editor.annotations[annoid] || { render: {} };
+        }
+        if (editor.selecting[annoid] != null) {
+          enableContinue = true;
+          break;
+        }
+        currentAnnoCheck = annotation.render || {};
+      }
+      if (enableContinue == false) {
+        continue;
+      }
+      let tempID = utils.tempID();
+      let newAnno = JSON.parse(JSON.stringify(render));
+      if (self.access < 4 && toolbar.checkSubToolType(editor, newAnno.f) == true) {
+        continue;
+      }
+      newAnno._id = tempID;
+      maxZIndex = Math.max(maxZIndex || newAnno.l || utils.maxLayer, newAnno.l || utils.maxLayer);
+      minZIndex = Math.min(minZIndex || newAnno.l || utils.minLayer, newAnno.l || utils.minLayer);
+      newSelect[tempID] = newAnno;
+    }
+    maxZIndex++;
+    let duplicateKeys = Object.keys(newSelect);
+    for (let i = 0; i < duplicateKeys.length; i++) {
+      let selectDup = newSelect[duplicateKeys[i]];
+      selectDup.l = maxZIndex + ((selectDup.l || utils.maxLayer) - minZIndex);
+      let [x, y] = editor.getAbsolutePosition(selectDup);
+      selectDup.p = [x + offsetX, y + offsetY];
+      selectDup.parent = null;
+      selectDup.sync = setTempSync;
+      delete selectDup.m;
+      delete selectDup.lock;
+      delete selectDup.hidden;
+    }
+    cursor.action = "save";
+    editor.selecting = newSelect;
+    await cursor.endAction();
+    editor.selecting = newNewSelect;
+    cursor.updateBox();
+  },
+  js: async function (frame) {
+    let editor = await getModule("pages/editor");
+    let utils = await getModule("pages/editor/annotation");
+    let cursor = await getModule("pages/editor/toolbar/cursor");
+
     let duplicateButton = frame.querySelector('.eToolbarMoreAction[option="duplicate"]');
     let duplicateLine = frame.querySelector('.eToolbarMoreLine[option="duplicate"]');
-    duplicateButton.addEventListener("click", async () => {
-      let self = editor.getSelf();
-      let selectKeys = Object.keys(editor.selecting);
-      let newSelect = {};
-      let newNewSelect = {};
-      let setTempSync = getEpoch();
-      for (let i = 0; i < selectKeys.length; i++) {
-        let selectID = selectKeys[i];
-        let tempID = utils.tempID();
-        let newAnno = JSON.parse(JSON.stringify(({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {}));
-        if (self.access < 4 && toolbar.checkSubToolType(editor, newAnno.f) == true) {
-          continue;
-        }
-        newAnno._id = tempID;
-        newAnno.p = newAnno.p || [0, 0];
-        newAnno.p[0] += 50;
-        newAnno.p[1] += 50;
-        if (["page"].includes(newAnno.f) == false) {
-          newAnno.l = (newAnno.l || utils.maxLayer) + 1;
-        } else {
-          newAnno.l = (newAnno.l || utils.minLayer) - 1;
-        }
-        newAnno.sync = setTempSync;
-        delete newAnno.m;
-        delete newAnno.lock;
-        await utils.render(newAnno);
-        editor.annotations[tempID] = { render: newAnno };
-        newSelect[tempID] = newAnno;
-        newNewSelect[tempID] = {};
-      }
-      editor.selecting = newSelect;
-      cursor.action = "save";
-      await cursor.endAction();
-      editor.selecting = newNewSelect;
-      cursor.updateBox();
-    });
+    duplicateButton.addEventListener("click", () => { this.handleDuplicate(); });
     let lockButton = frame.querySelector('.eToolbarMoreAction[option="lock"]');
     lockButton.addEventListener("click", async () => {
       await this.extra.saveSelecting({ lock: true });

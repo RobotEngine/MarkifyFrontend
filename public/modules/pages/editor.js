@@ -5255,11 +5255,15 @@ modules["pages/editor/annotation"] = {
               if (parentAnno != null) {
                 if (parentAnno.pointer != null) {
                   mutt.parent = parentAnno.pointer;
+                  parentAnno = editor.annotations[mutt.parent];
                 } else {
                   setPendingSave[mutt._id] = mutt;
                   this.enableTimeout(anno.render._id, anno);
                   continue;
                 }
+              }
+              if ((parentAnno.render || {}).remove == true) {
+                continue;
               }
             }
             delete anno.save;

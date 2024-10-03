@@ -1337,8 +1337,11 @@ modules["pages/editor"] = {
 
             // Update Chunk IDs:
             for (let i = 0; i < existingAnno.chunks.length; i++) {
-              this.chunkAnnotations[existingAnno.chunks[i]][anno._id] = "";
-              delete this.chunkAnnotations[existingAnno.chunks[i]][anno.pending];
+              let chunk = this.chunkAnnotations[existingAnno.chunks[i]];
+              if (chunk != null) {
+                chunk[anno._id] = "";
+                delete this.chunkAnnotations[existingAnno.chunks[i]][anno.pending];
+              }
             }
 
             await utils.enableTimeout(anno._id, existingAnno, gottenRender);
@@ -1436,21 +1439,6 @@ modules["pages/editor"] = {
     this.sessionID = body.session._id;
     this.sessionToken = body.session.token;
     this.session = this.sessionID + ";" + this.sessionToken;
-
-    // Resync unsaved annotations:
-    if (window.resync != null && window.resync.lesson == lessonID && this.getSelf().access > 0) {
-      let resyncKeys = Object.keys(window.resync.annotations);
-      for (let i = 0; i < resyncKeys.length; i++) {
-        let anno = window.resync.annotations[resyncKeys[i]];
-        if (anno.save == true && (anno.render._id.includes("pending_") == false || anno.render.remove != true)) {
-          delete anno.expire;
-          this.annotations[anno.render._id] = anno;
-          utils.pendingSaves[anno.render._id] = { ...utils.pendingSaves[anno.render._id], ...anno.render };
-        }
-      }
-      utils.syncSave(true);
-    }
-    window.resync = { lesson: lessonID, annotations: this.annotations };
 
     if (body.preferences != null) {
       if (body.preferences.emojis != null) {
@@ -1954,6 +1942,21 @@ modules["pages/editor"] = {
         window.scrollTo(window.scrollX + pageRect.left - ((fixed.offsetWidth - pageHolder.offsetWidth) / 2), window.scrollY + pageRect.top - ((fixed.offsetHeight - pageHolder.offsetHeight) / 2)); //window.scrollY + pageRect.top - 66
       }
     }
+
+    // Resync unsaved annotations:
+    if (window.resync != null && window.resync.lesson == lessonID && this.getSelf().access > 0) {
+      let resyncKeys = Object.keys(window.resync.annotations);
+      for (let i = 0; i < resyncKeys.length; i++) {
+        let anno = window.resync.annotations[resyncKeys[i]];
+        if (anno.save == true && (anno.render._id.includes("pending_") == false || anno.render.remove != true)) {
+          delete anno.expire;
+          this.annotations[anno.render._id] = anno;
+          utils.pendingSaves[anno.render._id] = { ...utils.pendingSaves[anno.render._id], ...anno.render };
+        }
+      }
+      utils.syncSave(true);
+    }
+    window.resync = { lesson: lessonID, annotations: this.annotations };
 
     // Load Annotations:
     //this.loadedIn = [];

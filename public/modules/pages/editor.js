@@ -4623,7 +4623,7 @@ modules["pages/editor/annotation"] = {
           anno.setAttribute("tooleditor", "");
           anno.style.opacity = .7;
         }
-        let pageTitle = anno.querySelector("div[title]");
+        let pageTitle = anno.querySelector(":scope > div[title]");
         if (pageTitle.hasAttribute("contenteditable") == false) {
           if ((data.title || "").length < 1) {
             pageTitle.style.removeProperty("display");
@@ -4633,9 +4633,9 @@ modules["pages/editor/annotation"] = {
             pageTitle.textContent = cleanString(data.title);
           }
         }
-        let pageBorder = anno.querySelector("div[border]");
-        let pageContent = anno.querySelector("div[content]");
-        let pdfDocumentHolder = pageContent.querySelector("div[document]");
+        let pageBorder = anno.querySelector(":scope > div[border]");
+        let pageContent = anno.querySelector(":scope > div[content]");
+        let pdfDocumentHolder = pageContent.querySelector(":scope > div[document]");
         if (data.source != null && data.number != null) {
           let sourcePageId = data.source + "_" + data.number;
           if (pdfDocumentHolder != null && pdfDocumentHolder.getAttribute("sourcepage") != sourcePageId) {
@@ -4644,7 +4644,7 @@ modules["pages/editor/annotation"] = {
           }
           if (pdfDocumentHolder == null) {
             pageContent.insertAdjacentHTML("beforeend", `<div document></div>`);
-            pdfDocumentHolder = pageContent.querySelector("div[document]");
+            pdfDocumentHolder = pageContent.querySelector(":scope > div[document]");
             pdfDocumentHolder.setAttribute("sourcepage", sourcePageId);
             pdfDocumentHolder.setAttribute("width", data.s[0]);
             pdfDocumentHolder.setAttribute("height", data.s[1]);
@@ -4673,12 +4673,12 @@ modules["pages/editor/annotation"] = {
         } else if (pdfDocumentHolder != null) {
           pdfDocumentHolder.remove();
         }
-        let pageHiddenHolder = anno.querySelector("div[hide]");
+        let pageHiddenHolder = anno.querySelector(":scope > div[hide]");
         if (data.hidden == true) {
           anno.setAttribute("hide", "");
           if (pageHiddenHolder == null) {
             anno.insertAdjacentHTML("beforeend", `<div hide></div>`);
-            let hiddenElem = anno.querySelector("div[hide]");
+            let hiddenElem = anno.querySelector(":scope > div[hide]");
             if (editor.getSelf().access < 4) {
               hiddenElem.insertAdjacentHTML("beforeend", `<img hideicon src="./images/editor/hidden.svg" draggable="false">`);
             } else {

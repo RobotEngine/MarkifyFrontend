@@ -5374,6 +5374,7 @@ modules["pages/editor/annotation"] = {
       data.p = data.p || merged.p;
       data.p[0] = relativePos[0];
       data.p[1] = relativePos[1];
+      editor.realtimeSelect[data._id] = data;
     }
     
     let checkChunks = editor.annotationInChunks(merged);
@@ -5448,6 +5449,7 @@ modules["pages/editor/annotation"] = {
           checkAnnotation.render.sync = setChildAnno,sync;
           checkAnnotation.render.m = editor.getSelf().modify;
           this.pendingSaves[checkAnnoID] = { _id: checkAnnoID, ...(this.pendingSaves[checkAnnoID] || {}), ...setChildAnno };
+          editor.realtimeSelect[setChildAnno._id] = setChildAnno;
         }
       }
 
@@ -5503,6 +5505,7 @@ modules["pages/editor/annotation"] = {
                   checkAnnotation.render.sync = setChildAnno,sync;
                   checkAnnotation.render.m = editor.getSelf().modify;
                   this.pendingSaves[checkAnnoID] = { _id: checkAnnoID, ...(this.pendingSaves[checkAnnoID] || {}), ...setChildAnno };
+                  editor.realtimeSelect[setChildAnno._id] = setChildAnno;
                 }
               }
             }

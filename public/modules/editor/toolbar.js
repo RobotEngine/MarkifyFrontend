@@ -1820,7 +1820,7 @@ modules["pages/editor/toolbar/cursor"] = {
       })();
     }
 
-    if (forceNoTransition != true && noUpdateAction != true) {
+    if (noUpdateAction != true) { //forceNoTransition != true && 
       this.updateActionUI();
     }
     //if (this.lastEditorZoom != editor.zoom || forceNoTransition == true || forceUpdate == true) {
@@ -3347,7 +3347,7 @@ modules["pages/editor/toolbar/cursor"] = {
     }
 
     //utils.resetAnnotationSize();
-    this.updateBox();
+    this.updateBox(true);
   },
   interactRun: async function (target) {
     let editor = await getModule("pages/editor");

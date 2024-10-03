@@ -1211,7 +1211,7 @@ modules["editor/toolbar"] = {
             let minTop;
             let maxLeft;
             let maxTop;
-            let maxZIndex;
+            //let maxZIndex;
             let minZIndex;
             for (let i = 0; i < markifyData.length; i++) {
               let newAnno = markifyData[i];
@@ -1232,10 +1232,10 @@ modules["editor/toolbar"] = {
               if ((newAnno.p[1] + newAnno.s[1]) > maxTop || maxTop == null) {
                 maxTop = newAnno.p[1] + newAnno.s[1] + t;
               }
-              maxZIndex = Math.max(maxZIndex || newAnno.l || utils.maxLayer, newAnno.l || utils.maxLayer);
+              //maxZIndex = Math.max(maxZIndex || newAnno.l || utils.maxLayer, newAnno.l || utils.maxLayer);
               minZIndex = Math.min(minZIndex || newAnno.l || utils.minLayer, newAnno.l || utils.minLayer);
             }
-            maxZIndex++;
+            //maxZIndex++;
             let centerX = (maxLeft - minLeft) / 2;
             let centerY = (maxTop - minTop) / 2;
             for (let i = 0; i < markifyData.length; i++) {
@@ -1263,7 +1263,7 @@ modules["editor/toolbar"] = {
                 }
               }
               newAnno._id = tempID;
-              newAnno.l = maxZIndex + ((newAnno.l || utils.maxLayer) - minZIndex);
+              newAnno.l = utils.maxLayer + 1 + ((newAnno.l || utils.maxLayer) - minZIndex);
               /*if (["page"].includes(newAnno.f) == false) {
                 newAnno.l = (newAnno.l || utils.maxLayer) + 1;
               } else {
@@ -1272,7 +1272,9 @@ modules["editor/toolbar"] = {
               newAnno.sync = setTempSync;
               delete newAnno.m;
               newSelect[tempID] = newAnno;
-              newNewSelect[tempID] = {};
+              if (newAnno.parented != true) {
+                newNewSelect[tempID] = {};
+              }
             }
             editor.selecting = newSelect;
             cursorModule.action = "save";
@@ -1370,6 +1372,9 @@ modules["editor/toolbar"] = {
         let renderCopy = JSON.parse(JSON.stringify(render));
         let [x, y] = editor.getAbsolutePosition(render);
         renderCopy.p = [x, y];
+        if (renderCopy.parent != null) {
+          renderCopy.parented = true;
+        }
         renderCopy.parent = null;
         saveAnnoData.push(renderCopy);
         let richText = renderCopy.d || {};

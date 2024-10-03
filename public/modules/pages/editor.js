@@ -3632,24 +3632,37 @@ modules["pages/editor/annotation"] = {
       let [sourceID, pageNumber] = this.pdfPageStorage[sourcePageId];
       delete this.pdfPageStorage[sourcePageId];
 
-      let source = editor.sources[sourceID];
-      if (source == null) {
+      let source = editor.sources[sourceID] || {};
+      if (source.error == true) {
         continue;
       }
       if (source.pdf == null) {
         if (this.pdfFileLoading[sourceID] == null) {
           this.pdfFileLoading[sourceID] = {};
-          let loadingTask = pdfjsLib.getDocument(assetURL + source.source)
-          editor.loadedPDFs.push(loadingTask);
-          loadingTask.promise.then(async (pdf) => {
-            source.pdf = pdf;
-            let loadingPageKeys = Object.keys(this.pdfFileLoading[sourceID])
-            for (let b = 0; b < loadingPageKeys.length; b++) {
-              let pageAdd = this.pdfFileLoading[sourceID][loadingPageKeys[b]];
-              this.addPageToQueue(pageAdd[0], pageAdd[1], true);
+          (async () => {
+            if (source.source == null) {
+              let [code, body] = await sendRequest("GET", "lessons/join/source?source=" + sourceID, null, { session: editor.session });
+              if (code == 200) {
+                editor.sources[sourceID] = { source: body.source };
+              } else {
+                editor.sources[sourceID] = { error: true };
+              }
             }
-            delete this.pdfFileLoading[sourceID];
-          });
+            source = editor.sources[sourceID] || {};
+            if (source.source != null) {
+              let loadingTask = pdfjsLib.getDocument(assetURL + source.source)
+              editor.loadedPDFs.push(loadingTask);
+              loadingTask.promise.then(async (pdf) => {
+                source.pdf = pdf;
+                let loadingPageKeys = Object.keys(this.pdfFileLoading[sourceID])
+                for (let b = 0; b < loadingPageKeys.length; b++) {
+                  let pageAdd = this.pdfFileLoading[sourceID][loadingPageKeys[b]];
+                  this.addPageToQueue(pageAdd[0], pageAdd[1], true);
+                }
+                delete this.pdfFileLoading[sourceID];
+              });
+            }
+          })();
         }
         this.pdfFileLoading[sourceID][sourcePageId] = [sourceID, pageNumber];
         continue;

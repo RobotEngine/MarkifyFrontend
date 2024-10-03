@@ -852,6 +852,14 @@ modules["editor/toolbar"] = {
     });
 
     this.updateToolbar = (noUpdateTool, extra) => {
+      // THIS IS TEMP CODE - REMOVE LATER:
+      if ((editor.lesson || {}).type == "standard") {
+        frame.querySelector('.eTool[tool="page"]').style.display = "none";
+      } else {
+        frame.querySelector('.eTool[tool="page"]').style.removeProperty("display");
+      }
+      ////////////////////////////////////
+      
       let updateColors = frame.querySelectorAll("[fillcoloropacity], [strokecolor], [backcolor], [thickness], [opacity]");
       for (let i = 0; i < updateColors.length; i++) {
         let updateTip = updateColors[i];

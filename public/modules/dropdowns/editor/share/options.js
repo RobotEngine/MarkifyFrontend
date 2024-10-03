@@ -49,7 +49,7 @@ modules["dropdowns/editor/share/options"] = {
         <div line></div>
         <button class="eShareActionOption border" option="sticky"><div class="eOptionToggle"><div></div></div></button>
       </div>
-      <div class="eShareToolToggleRow">
+      <div class="eShareToolToggleRow" tool="page">
         <div title>Page</div>
         <div line></div>
         <button class="eShareActionOption border" option="page"><div class="eOptionToggle"><div></div></div></button>
@@ -92,6 +92,13 @@ modules["dropdowns/editor/share/options"] = {
   },
   js: async function (frame) {
     let editor = await getModule("pages/editor");
+
+    // THIS IS TEMP CODE - REMOVE LATER:
+    if ((editor.lesson || {}).type == "standard") {
+      frame.querySelector('.eShareToolToggleBarTool[tool="page"]').style.display = "none";
+      frame.querySelector('.eShareToolToggleRow[tool="page"]').style.display = "none";
+    }
+    ////////////////////////////////////
     
     let forceLoginButton = frame.querySelector('.eShareActionOption[option="forceLogin"]');
     let editOthersWorkButton = frame.querySelector('.eShareActionOption[option="editOthersWork"]');

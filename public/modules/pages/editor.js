@@ -146,7 +146,7 @@ modules["pages/editor"] = {
     ".ePage:not(:first-child)": `border-top: dashed var(--darkGray) 4px; border-image: url("./images/editor/border.svg") 10 / 1 / 0 space`,
     ".ePage:last-child": `border-bottom-left-radius: 16px; border-bottom-right-radius: 16px`,
     ".ePage[hide] > *:not(.ePageHidden)": `transition: unset !important`, //filter: blur(4px) visibility: hidden
-    ".ePageHidden": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 1001`,
+    ".ePageHidden": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 1001`,
     ".ePageHiddenModal": `display: flex; flex-direction: column; max-width: calc(100% - 32px); max-height: calc(100% - 32px); padding: 8px; overflow: auto; background: var(--pageColor); box-shadow: 0px 0px 16px 0px var(--hover); border-radius: 16px; align-items: center`,
     ".ePageHiddenModal img": `padding: 12px; width: calc(100% - 24px); max-width: 80px`,
     ".ePageHiddenModalTitle": `font-size: 28px; font-weight: 700; color: var(--theme)`,
@@ -4632,9 +4632,9 @@ modules["pages/editor/annotation"] = {
         }
         let pageBorder = anno.querySelector("div[border]");
         let pageContent = anno.querySelector("div[content]");
+        let pdfDocumentHolder = pageContent.querySelector("div[document]");
         if (data.source != null && data.number != null) {
           let sourcePageId = data.source + "_" + data.number;
-          let pdfDocumentHolder = pageContent.querySelector("div[document]");
           if (pdfDocumentHolder != null && pdfDocumentHolder.getAttribute("sourcepage") != sourcePageId) {
             pdfDocumentHolder.remove();
             pdfDocumentHolder = null;
@@ -4667,6 +4667,8 @@ modules["pages/editor/annotation"] = {
               }
             }
           }
+        } else if (pdfDocumentHolder != null) {
+          pdfDocumentHolder.remove();
         }
         let pageHiddenHolder = anno.querySelector("div[hide]");
         if (data.hidden == true) {

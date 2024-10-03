@@ -7803,14 +7803,33 @@ modules["pages/editor/toolbar/settitle"] = {
   }
 };
 modules["pages/editor/toolbar/uploadpage"] = {
-  button: `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_2387_72" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_2387_72)"> <path d="M56 145V165C56 181.569 69.4315 195 86 195H171C187.569 195 201 181.569 201 165V145" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M128 60V156" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M128 60L164 96" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M128 60L92 96" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M56 145V165C56 181.569 69.4315 195 86 195H171C187.569 195 201 181.569 201 165V145" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> <path d="M128 60V156" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> <path d="M128 60L164 96" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> <path d="M128 60L92 96" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> </g> </svg>`,
-  tooltip: "Upload PDF",
+  button: ``,
+  //tooltip: "Upload PDF",
   multiSelect: false,
+  setButton: function (editor, button) {
+    let selectKeys = Object.keys(editor.selecting);
+    let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
+    if (preferenceTool.source == null) {
+      button.querySelector("div").innerHTML = `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_2387_72" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_2387_72)"> <path d="M56 145V165C56 181.569 69.4315 195 86 195H171C187.569 195 201 181.569 201 165V145" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M128 60V156" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M128 60L164 96" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M128 60L92 96" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M56 145V165C56 181.569 69.4315 195 86 195H171C187.569 195 201 181.569 201 165V145" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> <path d="M128 60V156" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> <path d="M128 60L164 96" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> <path d="M128 60L92 96" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> </g> </svg>`;
+      button.setAttribute("tooltip", "Upload PDF");
+      this.mode = "upload";
+    } else {
+      button.querySelector("div").innerHTML = `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_2527_10" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_2527_10)"> <path d="M163 128L93 128" stroke="white" stroke-width="44" stroke-linecap="square"/> <circle cx="128" cy="128" r="75" stroke="white" stroke-width="44"/> <circle cx="128" cy="128" r="75" stroke="#2F2F2F" stroke-width="20"/> <path d="M163 128L93 128" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> </g> </svg>`,
+      button.setAttribute("tooltip", "Remove PDF");
+      this.mode = "remove";
+    }
+  },
   maxFileSize: (500 * 10 * 1024 * 1024) + 1, // 5 GB File Limit // Will be 10 MB per page
   js: async function (frame, toolID, extra) {
     let editor = await getModule("pages/editor");
     let utils = await getModule("pages/editor/annotation");
     let alertModule = await getModule("alert");
+    
+    if (this.mode == "remove") {
+      await extra.saveSelecting({ source: null, number: null }, true);
+      extra.updateToolActions(extra.frame);
+      return;
+    }
 
     if (Object.keys(editor.selecting)[0].startsWith("pending_") == true) {
       await utils.syncSave(true);
@@ -7872,10 +7891,11 @@ modules["pages/editor/toolbar/uploadpage"] = {
         alertModule.close(uploadAlert);
         extra.button.removeAttribute("disabled");
         if (code == 200) {
-          let setTempSync = getEpoch();
-          let joinedIds = [ ...body.historyUpdate, ...body.historyAdd ];
-          for (let i = 0; i < joinedIds.length; i++) {
-            utils.save({ _id: joinedIds[i]._id }, null, setTempSync);
+          if (body.saves != null) {
+            for (let i = 0; i < body.saves.length; i++) {
+              let save = body.saves[i];
+              await utils.save(save, null, save.sync || getEpoch());
+            }
           }
           if (body.historyUpdate != null) {
             utils.pushHistory("update", body.historyUpdate);

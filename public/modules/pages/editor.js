@@ -1660,7 +1660,7 @@ modules["pages/editor"] = {
       return this.regionInChunks(x, y, x, y)[0];
     }
 
-    this.getAbsolutePosition = (anno) => {
+    this.getAbsolutePosition = (anno, includeSelecting) => {
       let returnX = anno.p[0];
       let returnY = anno.p[1];
       let selectedParent = false;
@@ -1684,7 +1684,11 @@ modules["pages/editor"] = {
         if (selected != null) {
           selectedParent = true;
         }
-        currentAnnoCheck = annotation.render || {};
+        if (includeSelecting != true) {
+          currentAnnoCheck = annotation.render || {};
+        } else {
+          currentAnnoCheck = { ...(annotation.render || {}), ...(selected || {}) };
+        }
         returnX += currentAnnoCheck.p[0] || 0;
         returnY += currentAnnoCheck.p[1] || 0;
       }

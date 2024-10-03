@@ -797,6 +797,29 @@ modules["editor/realtime"] = {
                   let originalRender = original.render || {};
                   if (editor.lesson.settings.editOthersWork == true || [originalRender.a, originalRender.m].includes(member.modify) == true || member.access > 3) { // Can edit another member's work:
                     await utils.saveEdit(extra.u);
+                  } else {
+                    let currentAnnoCheck = originalRender;
+                    let checkedParents = [];
+                    while (currentAnnoCheck.parent != null) {
+                      let annoid = currentAnnoCheck.parent;
+                      if (annoid == null || checkedParents.includes(annoid) == true) {
+                        break;
+                      }
+                      checkedParents.push(annoid);
+                      let annotation = editor.annotations[annoid];
+                      if (annotation == null) {
+                        break;
+                      }
+                      if (annotation.pointer != null) {
+                        annoid = annotation.pointer;
+                        annotation = this.annotations[annoid] || { render: {} };
+                      }
+                      currentAnnoCheck = annotation.render || {};
+                      if ([originalRender.a, originalRender.m].includes(member.modify) == true) {
+                        await utils.saveEdit(extra.u);
+                        break;
+                      }
+                    }
                   }
                 }
               }

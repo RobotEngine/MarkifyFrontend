@@ -5261,9 +5261,9 @@ modules["pages/editor/annotation"] = {
                   this.enableTimeout(anno.render._id, anno);
                   continue;
                 }
-              }
-              if ((parentAnno.render || {}).remove == true) {
-                continue;
+                if ((parentAnno.render || {}).remove == true) {
+                  continue;
+                }
               }
             }
             delete anno.save;

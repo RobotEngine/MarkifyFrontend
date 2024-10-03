@@ -1211,6 +1211,8 @@ modules["editor/toolbar"] = {
             let minTop;
             let maxLeft;
             let maxTop;
+            let maxZIndex;
+            let minZIndex;
             for (let i = 0; i < markifyData.length; i++) {
               let newAnno = markifyData[i];
               newAnno.p = newAnno.p || [0, 0];
@@ -1230,7 +1232,10 @@ modules["editor/toolbar"] = {
               if ((newAnno.p[1] + newAnno.s[1]) > maxTop || maxTop == null) {
                 maxTop = newAnno.p[1] + newAnno.s[1] + t;
               }
+              maxZIndex = Math.max(maxZIndex || newAnno.l || utils.maxLayer, newAnno.l || utils.maxLayer);
+              minZIndex = Math.min(minZIndex || newAnno.l || utils.minLayer, newAnno.l || utils.minLayer);
             }
+            maxZIndex++;
             let centerX = (maxLeft - minLeft) / 2;
             let centerY = (maxTop - minTop) / 2;
             for (let i = 0; i < markifyData.length; i++) {
@@ -1241,8 +1246,8 @@ modules["editor/toolbar"] = {
               }
               let existingAnno = (editor.annotations[newAnno._id] || {}).render;
               if (existingAnno != null) {
-                newAnno.p[0] = (existingAnno.p[0] || newAnno.p[0]) + 50;
-                newAnno.p[1] = (existingAnno.p[1] || newAnno.p[1]) + 50;
+                newAnno.p[0] = (newAnno.p[0] || existingAnno.p[0]) + 50;
+                newAnno.p[1] = (newAnno.p[1] || existingAnno.p[1]) + 50;
               } else {
                 newAnno.p[0] -= maxLeft;
                 newAnno.p[1] -= maxTop;
@@ -1258,15 +1263,14 @@ modules["editor/toolbar"] = {
                 }
               }
               newAnno._id = tempID;
-              if (["page"].includes(newAnno.f) == false) {
+              newAnno.l = maxZIndex + ((newAnno.l || utils.maxLayer) - minZIndex);
+              /*if (["page"].includes(newAnno.f) == false) {
                 newAnno.l = (newAnno.l || utils.maxLayer) + 1;
               } else {
                 newAnno.l = (newAnno.l || utils.minLayer) - 1;
-              }
+              }*/
               newAnno.sync = setTempSync;
               delete newAnno.m;
-              await utils.render(newAnno);
-              editor.annotations[tempID] = { render: newAnno };
               newSelect[tempID] = newAnno;
               newNewSelect[tempID] = {};
             }
@@ -1285,7 +1289,121 @@ modules["editor/toolbar"] = {
         return; // User it selecting text, ignore event
       }
       let data = event.clipboardData || event.originalEvent.clipboardData || {};
+
+      let saveTextData = "";
+      let saveAnnoData = [];
+
       let selectKeys = Object.keys(editor.selecting);
+      let checkChunks = [];
+      //let maxZIndex;
+      //let minZIndex;
+      for (let i = 0; i < selectKeys.length; i++) {
+        let annoID = selectKeys[i];
+        let annotation = (editor.annotations[annoID] || {}).render || {};
+        checkChunks = [ ...checkChunks, ...editor.annotationInChunks(annotation) ];
+        //maxZIndex = Math.max(maxZIndex || annotation.l || utils.maxLayer, annotation.l || utils.maxLayer);
+        //minZIndex = Math.min(minZIndex || annotation.l || utils.minLayer, annotation.l || utils.minLayer);
+        saveAnnoData.push(annotation);
+        let richText = annotation.d || {};
+        if (richText.b != null) {
+          if (saveTextData.length > 0) {
+            saveTextData += "\n";
+          }
+          for (let t = 0; t < richText.b.length; t++) {
+            let addText = "";
+            if (richText.b[t] != "\n") {
+              addText = richText.b[t];
+            } else {
+              addText = "\n";
+            }
+            saveTextData += addText;
+          }
+        }
+      }
+      let annotationKeys = {};
+      for (let c = 0; c < checkChunks.length; c++) {
+        annotationKeys = { ...annotationKeys, ...(editor.chunkAnnotations[checkChunks[c]] || {}) };
+      }
+      let annotations = Object.keys(annotationKeys);
+      for (let a = 0; a < annotations.length; a++) {
+        let checkAnnoID = annotations[a];
+        if (checkAnnoID == null || editor.selecting[checkAnnoID] != null) {
+          continue;
+        }
+        let checkAnnotation = editor.annotations[checkAnnoID];
+        if (checkAnnotation == null) {
+          continue;
+        }
+        if (checkAnnotation.pointer != null) {
+          checkAnnoID = checkAnnotation.pointer;
+          checkAnnotation = editor.annotations[checkAnnoID] || { render: {} };
+        }
+        let render = checkAnnotation.render || {};
+        let currentAnnoCheck = render;
+        let checkedParents = [];
+        let enableContinue = false;
+        while (currentAnnoCheck.parent != null) {
+          let annoid = currentAnnoCheck.parent;
+          if (annoid == null || checkedParents.includes(annoid) == true) {
+            break;
+          }
+          checkedParents.push(annoid);
+          let annotation = editor.annotations[annoid];
+          if (annotation == null) {
+            break;
+          }
+          if (annotation.pointer != null) {
+            annoid = annotation.pointer;
+            annotation = editor.annotations[annoid] || { render: {} };
+          }
+          if (editor.selecting[annoid] != null) {
+            enableContinue = true;
+            break;
+          }
+          currentAnnoCheck = annotation.render || {};
+        }
+        if (enableContinue == false) {
+          continue;
+        }
+        //maxZIndex = Math.max(maxZIndex || render.l || utils.maxLayer, render.l || utils.maxLayer);
+        //minZIndex = Math.min(minZIndex || render.l || utils.minLayer, render.l || utils.minLayer);
+        let renderCopy = JSON.parse(JSON.stringify(render));
+        let [x, y] = editor.getAbsolutePosition(render);
+        renderCopy.p = [x, y];
+        renderCopy.parent = null;
+        saveAnnoData.push(renderCopy);
+        let richText = renderCopy.d || {};
+        if (richText.b != null) {
+          if (saveTextData.length > 0) {
+            saveTextData += "\n";
+          }
+          for (let t = 0; t < richText.b.length; t++) {
+            let addText = "";
+            if (richText.b[t] != "\n") {
+              addText = richText.b[t];
+            } else {
+              addText = "\n";
+            }
+            saveTextData += addText;
+          }
+        }
+      }
+      /*
+      maxZIndex++;
+      let duplicateKeys = Object.keys(newSelect);
+      for (let i = 0; i < duplicateKeys.length; i++) {
+        let selectDup = newSelect[duplicateKeys[i]];
+        selectDup.l = maxZIndex + ((selectDup.l || utils.maxLayer) - minZIndex);
+        let [x, y] = editor.getAbsolutePosition(selectDup);
+        selectDup.p = [x + offsetX, y + offsetY];
+        selectDup.parent = null;
+        selectDup.sync = setTempSync;
+        delete selectDup.m;
+        delete selectDup.lock;
+        delete selectDup.hidden;
+      }*/
+
+      /*let selectKeys = Object.keys(editor.selecting);
       let saveTextData = "";
       let saveAnnoData = [];
       for (let i = 0; i < selectKeys.length; i++) {
@@ -1307,7 +1425,8 @@ modules["editor/toolbar"] = {
             saveTextData += addText;
           }
         }
-      }
+      }*/
+      
       data.setData("text/html", `<meta charset="utf-8"><html><head></head><body><span data-meta="<!--(markify+copypaste)${encodeURIComponent(JSON.stringify(saveAnnoData))}(/markify+copypaste)-->"></span><div>${saveTextData}</div></body></html>`);
       data.setData("text/plain", saveTextData);
       event.preventDefault();

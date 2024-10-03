@@ -1526,7 +1526,10 @@ modules["editor/toolbar"] = {
         return;
       }
       if (event.keyCode == 68 && meta == true) { // Duplicate
-        let selectKeys = Object.keys(editor.selecting);
+        event.preventDefault();
+        let moreModule = await getModule("dropdowns/editor/toolbar/more");
+        await moreModule.handleDuplicate();
+        /*let selectKeys = Object.keys(editor.selecting);
         if (selectKeys.length < 1) {
           return;
         }
@@ -1563,7 +1566,7 @@ modules["editor/toolbar"] = {
         await cursorModule.endAction();
         editor.selecting = newNewSelect;
         cursorModule.updateBox();
-        return;
+        return;*/
       }
     });
     

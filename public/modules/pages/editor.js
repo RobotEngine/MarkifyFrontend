@@ -1878,8 +1878,8 @@ modules["pages/editor"] = {
             break;
           }
         }
-        if (render == true) {
-          if (annotation.parent == null) {
+        if (render == true && annotation.render != null) {
+          if (annotation.render.parent == null) {
             utils.render(annotation.render);
           } else {
             await utils.render(annotation.render);
@@ -5474,6 +5474,7 @@ modules["pages/editor/annotation"] = {
           checkAnnotation.render.sync = setChildAnno,sync;
           checkAnnotation.render.m = editor.getSelf().modify;
           this.pendingSaves[checkAnnoID] = { _id: checkAnnoID, ...(this.pendingSaves[checkAnnoID] || {}), ...setChildAnno };
+          console.log("WHY")
           editor.realtimeSelect[checkAnnoID] = { ...(editor.realtimeSelect[checkAnnoID] || {}), ...setChildAnno };
         }
       }

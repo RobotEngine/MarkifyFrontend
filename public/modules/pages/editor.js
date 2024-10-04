@@ -1766,6 +1766,9 @@ modules["pages/editor"] = {
         if (substitute._id == annoid) {
           render = { ...render, ...substitute };
         }
+        if (render.remove == true) {
+          continue;
+        }
         let [parentX, parentY] = this.getAbsolutePosition(render);
         let [parentWidth, parentHeight] = render.s || [0, 0];
         let parentThickness = 0;
@@ -5411,7 +5414,7 @@ modules["pages/editor/annotation"] = {
     annotation = editor.annotations[annoID] || { render: {} };
 
     // Handle Chunk Parent Updates
-    if (data.p != null || data.s != null || data.t != null || data.l != null) {
+    if (data.p != null || data.s != null || data.t != null || data.l != null || data.remove == true) {
       let annotationKeys = {};
       for (let c = 0; c < checkChunks.length; c++) {
         annotationKeys = { ...annotationKeys, ...(editor.chunkAnnotations[checkChunks[c]] || {}) };
@@ -5449,12 +5452,12 @@ modules["pages/editor/annotation"] = {
         let [x, y] = editor.getAbsolutePosition(render);
         let checkX = x + (render.s[0] / 2) + thick;
         let checkY = y + (render.s[0] / 2) + thick;
-        if (checkX < position[0] || checkX > position[0] + merged.s[0] + thickness || checkY < position[1] || checkY > position[1] + merged.s[1] + thickness) {
+        if (checkX < position[0] || checkX > position[0] + merged.s[0] + thickness || checkY < position[1] || checkY > position[1] + merged.s[1] + thickness || merged.remove == true) {
           let setParent = editor.parentFromAnnotation({
             ...render,
             parent: null,
             p: [checkX, checkY]
-          });
+          }, null, merged);
           let relativePos = editor.getRelativePosition({
             ...render,
             parent: setParent || null,
@@ -5465,7 +5468,7 @@ modules["pages/editor/annotation"] = {
             parent: setParent || null,
             p: [relativePos[0], relativePos[1]],
             sync: getEpoch()
-          }
+          };
           this.saveEdit(setChildAnno, null, sync, { save: true, render: {} });
           checkAnnotation.save = true; // Alert the system it's time to save
           checkAnnotation.render.sync = setChildAnno,sync;

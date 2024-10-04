@@ -980,7 +980,7 @@ modules["editor/toolbar"] = {
               event.redo.push(JSON.parse(JSON.stringify(annotation)));
             }
             editor.realtimeSelect[changeID] = { ...change, done: true };
-            await utils.save({ _id: changeID, ...change }, null, sync);
+            await utils.save({ _id: changeID, ...change }, null, sync, true);
             delete editor.selecting[changeID];
           }
           break;

@@ -225,8 +225,8 @@ modules["pages/editor"] = {
         },
         page: {
           color: {
-            selected: "F5F5F5",
-            options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "F5F5F5"]
+            selected: "2F2F2F",
+            options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "2F2F2F"]
           },
           size: [824, 1064]
         },

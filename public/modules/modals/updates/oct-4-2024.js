@@ -13,7 +13,8 @@ modules["modals/updates/oct-4-2024"] = {
       <strong>Wraping Up Quarter #1</strong>
       <span>October 4, 2024</span>
       <p>The end of the first quarter is right around the corner... Can you believe the school year is already 25% through?</br>Oh, you can... gotcha 😐</p>
-      <p>If you can spare 5 to 10 minutes, it would REALLY go a long way to hear your feedback on our short <a href="https://form.jotform.com/242767399821067" target="_blank">questionnaire</a>! Thank you!</p>
+      <div break style="--themeColor: var(--green)">SWEET BUT SHORT SURVEY<div></div></div>
+      <p>If you can spare 5 to 10 minutes, it would REALLY go a long way to hear your feedback on our short <a href="https://form.jotform.com/242767399821067" target="_blank" style="color: var(--green)">questionnaire</a>! Thank you!</p>
       <div break style="--themeColor: var(--theme)">NEW STUFF!<div></div></div>
       <ul>
         <li>Introducing... <b>Pages in Freeboard!</b> You can now add pages anywhere on the unlimited canvas, along with import your PDFs. Anything placed on a page sticks, and when you duplicate, everything on it gets duplicated! Perfect for creating multiple copies for individual or group work.</li>

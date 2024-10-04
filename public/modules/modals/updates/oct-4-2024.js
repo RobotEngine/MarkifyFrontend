@@ -1,27 +1,31 @@
-modules["modals/updates/oct-3-2024"] = {
-  maxHeight: 600,
+modules["modals/updates/oct-4-2024"] = {
+  maxHeight: 650,
   html: `
   <div class="umFrame">
     <div class="umVideoHolder">
       <div style="aspect-ratio: 16/9">
         <iframe type="text/html" width="720" height="405"
-        src="https://www.youtube.com/embed/WQdZyMwYEnc?autoplay=1&loop=1&mute=1"
+        src="https://www.youtube.com/embed/ubsSrCZzydQ?autoplay=1&loop=1&mute=1&playlist=ubsSrCZzydQ"
         frameborder="0" allowfullscreen></iframe>
       </div>
     </div>
     <div class="umContent">
-      <strong>1st Quarter End, Freeboard Pages & More!</strong>
+      <strong>Wraping Up Quarter #1</strong>
       <span>October 4, 2024</span>
-      <p>The end of the first quarter is right around the corner... Can you believe it's already 25% through the school year? You can... gotcha.</p>
-      <p>If you can spare 5 to 10 minutes, it would REALLY help us if you complete our short questinier</p>
+      <p>The end of the first quarter is right around the corner... Can you believe the school year is already 25% through?</br>Oh, you can... gotcha 😐</p>
+      <p>If you can spare 5 to 10 minutes, it would REALLY go a long way to hear your feedback on our short <a href="https://form.jotform.com/242767399821067" target="_blank">questionnaire</a>! Thank you!</p>
+      <div break style="--themeColor: var(--theme)">NEW STUFF!<div></div></div>
       <ul>
-        <li><b>Tool Toggle</b> lets you mitigate collaborative chaos by enabling/disabling the tools availiable to students. Next time you share a lesson, click the "Options" button and play around with it :)</li>
-        <li><b>Rotation</b> took long enough, how embarrassing. To rotate an element, just select it and use the rotate handle at the bottom left corner.</li>
-        <li><b>Locking & Layer</b> order is now available under the "three-dot menu" when you select an element. Locking an element prevents anyone from editing it.</li>
-        <li><b>(Basic) Keybinds</b> is another embarrassing one... Markify now supports ctrl-C and ctrl-V for copy/paste among others. More powerful keybinds coming sometime in the future.</li>
-        <li><b>This Update Dialogue</b> will help make updates more open and transparent. I'm planning to start involving the community more into Markify's development.</li>
+        <li>Introducing... <b>Pages in Freeboard!</b> You can now add pages anywhere on the unlimited canvas, along with import your PDFs. Anything placed on a page sticks, and when you duplicate, everything on it gets duplicated! Perfect for creating multiple copies for individual or group work.</li>
+        <li><b>Interactive Embeds</b> let you embed a wide variety of websites directly into your lesson! Members can interact and use the embedded website without ever leaving Markify. Find it under the "media" tool.</li>
+        <li><b>Anonymous Mode</b> is helping to make all classrooms inclusive, even for shy students. When enabled, the cursor names and colors are hidden from view.</li>
+        <li><b>Remove Editor</b> directly from an annotation! Did someone put something off task or inappropriate? Just click their annotation, see who it is, and revoke editor in one click!</li>
       </ul>
-      <p>Thank you for reading! So much more is on its way, and I cannot wait to show you. ~ Anthony & Markify Team</p>
+      <p>Of course, their have been so many more bug fixes and quality-of-life improvements. For example, did you notice the new dot pattern?</p>
+      <div break style="--themeColor: var(--error)">NOT TO PLEAD... BUT WE NEED...<div></div></div>
+      <p>...your help! Since Markify's inception 2.5 years ago—when I was a high school sophomore—I've relied on word-of-mouth to grow Markify. Not to get needy, but if Markify has impacted you, sharing it with others would truly help to continue the Markify mission!</p>
+      <p>Huge thank you to those who already have 😍</p>
+      <p>~ Anthony</p>
     </div>
   </div>
   <div class="umButtons">
@@ -30,7 +34,7 @@ modules["modals/updates/oct-3-2024"] = {
       <a href="https://www.instagram.com/markifytool" target="_blank"><img src="./images/launch/socials/instagram.svg"></a>
       <a href="https://www.linkedin.com/company/markifyapp" target="_blank"><img src="./images/launch/socials/linkedin.svg"></a>
       <a href="https://www.youtube.com/@markifyexotek" target="_blank"><img src="./images/launch/socials/youtube.svg"></a>
-      <div>Support us!</div>
+      <div>Follow Markify!</div>
     </div>
     <button class="umButtonsClose largeButton">Close</button>
   </div>
@@ -45,7 +49,10 @@ modules["modals/updates/oct-3-2024"] = {
     ".umContent strong": `color: var(--theme); font-size: 26px; font-weight: 900`,
     ".umContent span": `color: var(--darkGray); font-size: 16px; font-weight: 600`,
     ".umContent p": `margin: 8px 0 0 0; font-size: 15px`,
-    ".umContent ul": `padding-left: 24px; margin: 4px 0 0 0; line-height: 20px`,
+    ".umContent a": `font-weight: 600; color: var(--theme)`,
+    ".umContent div[break]": `display: flex; gap: 8px; width: 100%; margin-top: 24px; align-items: center; color: var(--themeColor); font-size: 18px; font-weight: 700`,
+    ".umContent div[break] div": `flex: 1; height: 2px; background: var(--themeColor)`,
+    ".umContent ul": `padding-left: 24px; margin: 0; line-height: 20px`,
     ".umContent li": `margin-top: 16px; font-size: 14px;`,
     ".umContent li::marker": `color: var(--theme)`,
     ".umContent li b": `font-size: 16px; color: var(--theme)`,
@@ -70,7 +77,7 @@ modules["modals/updates/oct-3-2024"] = {
     });
 
     let updateSeenNewUpdate = () => {
-      //sendRequest("POST", "me/read?seen=whatsnew");
+      sendRequest("POST", "me/read?seen=whatsnew");
     }
     frame.querySelector(".umButtonsClose").addEventListener("click", async () => {
       (await getModule("modal")).close();

@@ -5474,8 +5474,7 @@ modules["pages/editor/annotation"] = {
           checkAnnotation.render.sync = setChildAnno,sync;
           checkAnnotation.render.m = editor.getSelf().modify;
           this.pendingSaves[checkAnnoID] = { _id: checkAnnoID, ...(this.pendingSaves[checkAnnoID] || {}), ...setChildAnno };
-          console.log("WHY")
-          editor.realtimeSelect[checkAnnoID] = { ...(editor.realtimeSelect[checkAnnoID] || {}), ...setChildAnno };
+          editor.realtimeSelect[checkAnnoID] = { ...setChildAnno, ...(editor.realtimeSelect[checkAnnoID] || {}) };
         }
       }
 

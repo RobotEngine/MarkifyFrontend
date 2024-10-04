@@ -1694,7 +1694,7 @@ modules["pages/editor"] = {
       }
       return [returnX, returnY, { selectedParent: selectedParent }];
     }
-    this.getRelativePosition = (anno) => {
+    this.getRelativePosition = (anno, includeSelecting) => {
       let returnX = anno.p[0];
       let returnY = anno.p[1];
       //let selectedParent = false;
@@ -1714,11 +1714,11 @@ modules["pages/editor"] = {
           annoid = annotation.pointer;
           annotation = this.annotations[annoid] || { render: {} };
         }
-        /*let selected = this.selecting[annoid];
-        if (selected != null) {
-          selectedParent = true;
-        }*/
-        currentAnnoCheck = annotation.render;// { ...(annotation.render || {}), ...(selected || {}) };
+        if (includeSelecting != true) {
+          currentAnnoCheck = annotation.render || {};
+        } else {
+          currentAnnoCheck = { ...(annotation.render || {}), ...(selected || {}) };
+        }
         returnX -= currentAnnoCheck.p[0] || 0;
         returnY -= currentAnnoCheck.p[1] || 0;
       }
@@ -5399,7 +5399,7 @@ modules["pages/editor/annotation"] = {
       data.p = data.p || merged.p;
       data.p[0] = relativePos[0];
       data.p[1] = relativePos[1];
-      editor.realtimeSelect[data._id] = data;
+      editor.realtimeSelect[data._id] = { ...(editor.realtimeSelect[data._id] || {}), ...data };
     }
     
     let checkChunks = editor.annotationInChunks(merged);
@@ -5474,7 +5474,7 @@ modules["pages/editor/annotation"] = {
           checkAnnotation.render.sync = setChildAnno,sync;
           checkAnnotation.render.m = editor.getSelf().modify;
           this.pendingSaves[checkAnnoID] = { _id: checkAnnoID, ...(this.pendingSaves[checkAnnoID] || {}), ...setChildAnno };
-          editor.realtimeSelect[setChildAnno._id] = setChildAnno;
+          editor.realtimeSelect[checkAnnoID] = { ...(editor.realtimeSelect[checkAnnoID] || {}), ...setChildAnno };
         }
       }
 
@@ -5530,7 +5530,7 @@ modules["pages/editor/annotation"] = {
                   checkAnnotation.render.sync = setChildAnno,sync;
                   checkAnnotation.render.m = editor.getSelf().modify;
                   this.pendingSaves[checkAnnoID] = { _id: checkAnnoID, ...(this.pendingSaves[checkAnnoID] || {}), ...setChildAnno };
-                  editor.realtimeSelect[setChildAnno._id] = setChildAnno;
+                  editor.realtimeSelect[checkAnnoID] = { ...(editor.realtimeSelect[checkAnnoID] || {}), ...setChildAnno };
                 }
               }
             }

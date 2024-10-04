@@ -936,7 +936,9 @@ modules["editor/toolbar"] = {
       }
       utils.location--; // Remove one from location
       let addRedo = event.redo.length < 1;
-      let sync = getEpoch();
+      let keys = Object.keys(editor.selecting);
+      let annoContentTx;
+      //let sync = getEpoch();
       switch (event.type) {
         case "update":
           for (let i = 0; i < event.changes.length; i++) {
@@ -961,14 +963,12 @@ modules["editor/toolbar"] = {
             }
             editor.realtimeSelect[change._id] = { ...change, done: true };
             //}
-            let annoContentTx = editor.page.querySelector('.eAnnotation[anno="' + change._id + '"] div[contenteditable]');
+            annoContentTx = editor.page.querySelector('.eAnnotation[anno="' + change._id + '"] div[contenteditable]');
             if (annoContentTx != null) {
               annoContentTx.removeAttribute("contenteditable");
             }
-            await utils.save(change, null, sync);
-            if (annoContentTx != null) {
-              annoContentTx.setAttribute("contenteditable", "true");
-            }
+            //await utils.save(change, null, sync);
+            editor.selecting[change._id] = change;
           }
           break;
         case "remove":
@@ -980,8 +980,9 @@ modules["editor/toolbar"] = {
               event.redo.push(JSON.parse(JSON.stringify(annotation)));
             }
             editor.realtimeSelect[changeID] = { ...change, done: true };
-            await utils.save({ _id: changeID, ...change }, null, sync, true);
-            delete editor.selecting[changeID];
+            //await utils.save({ _id: changeID, ...change }, null, sync, true);
+            editor.selecting[changeID] = { _id: changeID, ...change };
+            //delete editor.selecting[changeID];
           }
           break;
         case "add":
@@ -1013,15 +1014,20 @@ modules["editor/toolbar"] = {
             }
             let saveClone = JSON.parse(JSON.stringify(saveAnno));
             editor.realtimeSelect[tempID] = { ...saveClone, done: true };
-            await utils.save({ ...saveClone, _id: tempID }, null, sync);
+            //await utils.save({ ...saveClone, _id: tempID }, null, sync);
+            editor.selecting[tempID] = { ...saveClone, _id: tempID };
           }
       }
-      await utils.forceShort();
+
+      cursorModule.action = "save";
+      await cursorModule.endAction(null, true, keys);
 
       utils.updateHistory();
 
-      await cursorModule.updateBox();
-      await cursorModule.redrawActionUI();
+      if (annoContentTx != null) {
+        annoContentTx.setAttribute("contenteditable", "true");
+        await sleep(1);
+      }
 
       if (event.caret != null) {
         if (event.caret.undoElement != null) {
@@ -1039,7 +1045,9 @@ modules["editor/toolbar"] = {
       if (event == null) {
         return;
       }
-      let sync = getEpoch();
+      let keys = Object.keys(editor.selecting);
+      let annoContentTx;
+      //let sync = getEpoch();
       switch (event.type) {
         case "update":
           for (let i = 0; i < event.redo.length; i++) {
@@ -1054,14 +1062,12 @@ modules["editor/toolbar"] = {
             }
             editor.realtimeSelect[change._id] = { ...change, done: true };
             //}
-            let annoContentTx = editor.page.querySelector('.eAnnotation[anno="' + change._id + '"] div[contenteditable]');
+            annoContentTx = editor.page.querySelector('.eAnnotation[anno="' + change._id + '"] div[contenteditable]');
             if (annoContentTx != null) {
               annoContentTx.removeAttribute("contenteditable");
             }
-            await utils.save(change, null, sync);
-            if (annoContentTx != null) {
-              annoContentTx.setAttribute("contenteditable", "true");
-            }
+            //await utils.save(change, null, sync);
+            editor.selecting[change._id] = change;
           }
           break;
         case "remove": // Sort of Add
@@ -1090,7 +1096,8 @@ modules["editor/toolbar"] = {
             }
             let saveClone = JSON.parse(JSON.stringify(saveAnno));
             editor.realtimeSelect[tempID] = { ...saveClone, done: true };
-            await utils.save({ ...saveClone, _id: tempID }, null, sync);
+            //await utils.save({ ...saveClone, _id: tempID }, null, sync);
+            editor.selecting[tempID] = { ...saveClone, _id: tempID };
           }
           break;
         case "add": // Sort of Remove
@@ -1098,16 +1105,20 @@ modules["editor/toolbar"] = {
             let change = { remove: true };
             let changeID = event.redo[i]._id;
             editor.realtimeSelect[changeID] = { ...change, done: true };
-            await utils.save({ _id: changeID, ...change }, null, sync);
-            delete editor.selecting[changeID];
+            //await utils.save({ _id: changeID, ...change }, null, sync);
+            editor.selecting[changeID] = change;
+            //delete editor.selecting[changeID];
           }
       }
-      await utils.forceShort();
-
+      
+      cursorModule.action = "save";
+      await cursorModule.endAction(null, true, keys);
       utils.updateHistory();
 
-      await cursorModule.updateBox();
-      await cursorModule.redrawActionUI();
+      if (annoContentTx != null) {
+        annoContentTx.setAttribute("contenteditable", "true");
+        await sleep(1);
+      }
 
       if (event.caret != null) {
         if (event.caret.redoElement != null) {
@@ -1599,7 +1610,7 @@ modules["pages/editor/toolbar/cursor"] = {
       let selection = checkRemSelections[i];
       let annoID = selection.getAttribute("anno");
       let anno = content.querySelector('.eAnnotation[anno="' + annoID + '"]');
-      if (editor.selecting[annoID] == null || anno == null) {
+      if (editor.selecting[annoID] == null || anno == null || anno.hasAttribute("hidden") == true) {
         if (anno != null) {
           anno.removeAttribute("selected");
           anno.removeAttribute("notransition");
@@ -1611,7 +1622,7 @@ modules["pages/editor/toolbar/cursor"] = {
               let anno = (editor.annotations[annoID] || {}).render || {};
               await utils.pushHistory("add", [anno]);
               await utils.save({ _id: annoID, remove: true });
-              editor.realtimeSelect[annoID] = { _id: annoID, remove: true };
+              editor.realtimeSelect[annoID] = { ...editor.realtimeSelect[annoID], _id: annoID, remove: true };
               await utils.forceShort();
             }
           }
@@ -1670,7 +1681,7 @@ modules["pages/editor/toolbar/cursor"] = {
         let anno = content.querySelector('.eAnnotation[anno="' + annoID + '"]');
         let select = content.querySelector('.eSelect[anno="' + annoID + '"]');
         let collabSelect = content.querySelector('.eCollabSelect[anno="' + annoID + '"]');
-        if (anno == null) {
+        if (anno == null || anno.hasAttribute("hidden") == true) {
           delete editor.selecting[annoID];
           if (select != null) {
             select.remove();
@@ -2570,7 +2581,7 @@ modules["pages/editor/toolbar/cursor"] = {
         }
 
         this.action = "save";
-        await this.endAction();
+        await this.endAction(null, null, null, saveHistory);
 
         /*let editor = await getModule("pages/editor");
         let utils = await getModule("pages/editor/annotation");
@@ -3214,7 +3225,7 @@ modules["pages/editor/toolbar/cursor"] = {
     }
     this.updateBox();
   },
-  endAction: async function () {
+  endAction: async function (event, fromHistory, sentKeys, saveHistory) {
     if (this.action == null) {
       return;
     }
@@ -3334,7 +3345,7 @@ modules["pages/editor/toolbar/cursor"] = {
         annotationKeys = { ...annotationKeys, ...(editor.chunkAnnotations[checkChunks[c]] || {}) };
       }
       let annotations = Object.keys(annotationKeys);
-      if (selecting.remove == true) {
+      if (selecting.remove == true && fromHistory != true) {
         for (let a = 0; a < annotations.length; a++) {
           let checkAnnoID = annotations[a];
           if (checkAnnoID == null || checkAnnoID == annoid) {
@@ -3365,7 +3376,7 @@ modules["pages/editor/toolbar/cursor"] = {
               annotation = editor.annotations[checkannoid] || { render: {} };
             }
             if (checkannoid == annoid) {
-              editor.realtimeSelect[checkAnnoID] = { remove: true };
+              editor.realtimeSelect[checkAnnoID] = { ...(editor.realtimeSelect[checkAnnoID] || {}), remove: true };
               saveUpdates.push({ remove: true, _id: checkAnnoID, done: true });
               let [x, y] = editor.getAbsolutePosition(checkAnnotation.render);
               pushRemoves.push(JSON.parse(JSON.stringify({ ...checkAnnotation.render, parent: null, p: [x, y] })));
@@ -3394,18 +3405,24 @@ modules["pages/editor/toolbar/cursor"] = {
                 checkAnnotation = editor.annotations[checkAnnoID] || { render: {} };
               }
               let render = checkAnnotation.render;
+              if ((render.parent || "").startsWith("pending_") == true) {
+                let parentAnno = editor.annotations[render.parent];
+                if (parentAnno != null && parentAnno.pointer != null) {
+                  render.parent = parentAnno.pointer;
+                }
+              }
               if (render.parent != annoid) {
                 continue;
               }
               let newPos = [render.p[0] - changedXSize, render.p[1] - changedYSize];
-              editor.realtimeSelect[checkAnnoID] = { p: newPos };
+              editor.realtimeSelect[checkAnnoID] = { ...(editor.realtimeSelect[checkAnnoID] || {}), p: newPos, parent: annoid };
               saveUpdates.push({ p: newPos, parent: annoid, _id: checkAnnoID, done: true });
               pushChanges.push({ p: render.p, parent: annoid, _id: checkAnnoID });
             }
           }
         }
         if (["page"].includes(merged.f) == true) { // See if in bounds, also check parent to know what is allowed in bounds
-          let position = editor.getAbsolutePosition(merged);
+          let position = editor.getAbsolutePosition(merged, true);
           let thickness = 0;
           if (merged.t != null) {
             if (merged.b != "none" || merged.d == "line") {
@@ -3435,7 +3452,7 @@ modules["pages/editor/toolbar/cursor"] = {
                 thick = render.t;
               }
             }
-            let [x, y] = editor.getAbsolutePosition(render);
+            let [x, y] = editor.getAbsolutePosition(render, true);
             let checkX = x + (render.s[0] / 2) + thick;
             let checkY = y + (render.s[1] / 2) + thick;
             if (checkX >= position[0] && checkX <= position[0] + merged.s[0] + thickness) {
@@ -3463,22 +3480,30 @@ modules["pages/editor/toolbar/cursor"] = {
           }
         }
       }
+      if (selecting.remove == true) {
+        //delete editor.selecting[annoid];
+        keys.splice(keys.indexOf(annoid), 1);
+      }
     }
-    if (pushChanges.length > 0) {
-      await utils.pushHistory("update", pushChanges, true);
-    }
-    if (pushAdds.length > 0) {
-      await utils.pushHistory("remove", pushAdds, true);
-    }
-    if (pushRemoves.length > 0) {
-      await utils.pushHistory("add", pushRemoves);
+    if (fromHistory != true && saveHistory != false) {
+      if (pushChanges.length > 0) {
+        await utils.pushHistory("update", pushChanges, true);
+      }
+      if (pushAdds.length > 0) {
+        await utils.pushHistory("remove", pushAdds, true);
+      }
+      if (pushRemoves.length > 0) {
+        await utils.pushHistory("add", pushRemoves);
+      }
     }
     for (let i = 0; i < saveUpdates.length; i++) {
       await utils.save(saveUpdates[i], null, setTempSync);
     }
     await utils.forceShort();
-    for (let i = 0; i < keys.length; i++) {
-      editor.selecting[keys[i]] = {};
+    editor.selecting = {};
+    sentKeys = sentKeys || keys;
+    for (let i = 0; i < sentKeys.length; i++) {
+      editor.selecting[sentKeys[i]] = {};
     }
 
     //utils.resetAnnotationSize();
@@ -7424,7 +7449,7 @@ modules["pages/editor/toolbar/textedit"] = {
     let saveHistory = true;
     //let lastClock;
     let lastCaret = {};
-    let setLastCaret = (position) => {
+    let setLastCaret = (position, offset) => {
       if (window.getSelection != null) {
         let textBox = window.getSelection().baseNode.parentElement.closest("div[edit]");
         if (textBox != null) {
@@ -7433,7 +7458,7 @@ modules["pages/editor/toolbar/textedit"] = {
         }
       }
     }
-    let inputListener = (event) => {
+    let inputListener = async (event) => {
       selectID = Object.keys(editor.selecting)[0];
       original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
 
@@ -7469,7 +7494,15 @@ modules["pages/editor/toolbar/textedit"] = {
         saveHistory = true;
         //setLastCaret("redo");
       }
-      extra.saveSelecting(saveObj, true, saveHistory, lastCaret);
+      await extra.saveSelecting(saveObj, true, saveHistory, lastCaret);
+      if (saveHistory == true) {
+        let lastHistory = utils.history[utils.location];
+        if (lastHistory != null) {
+          lastHistory.caret = lastHistory.caret || {};
+          lastHistory.caret.undoElement = lastCaret.undoElement;
+          lastHistory.caret.undoPosition = lastCaret.undoPosition;
+        }
+      }
       saveHistory = false;
       //utils.forceShort();
     };
@@ -7486,11 +7519,15 @@ modules["pages/editor/toolbar/textedit"] = {
     this.pastEvents.push({ type: "event", parent: annoTx, name: "input", listener: inputListener });
     annoTx.addEventListener("input", inputListener);
 
-    let keyListener = (event) => {
+    let keydownListener = (event) => {
       if (event != null && [" ", "Enter", "Backspace"].includes(event.key) == true) {
         setLastCaret("undo");
       }
+    }
+    this.pastEvents.push({ type: "event", parent: annoTx, name: "keydown", listener: keydownListener });
+    annoTx.addEventListener("keydown", keydownListener);
 
+    let keyupListener = async () => {
       let lastHistory = utils.history[utils.location];
       if (lastHistory != null) {
         lastHistory.caret = lastHistory.caret || {};
@@ -7499,8 +7536,8 @@ modules["pages/editor/toolbar/textedit"] = {
         lastHistory.caret.redoPosition = lastCaret.redoPosition;
       }
     }
-    this.pastEvents.push({ type: "event", parent: annoTx, name: "keydown", listener: keyListener });
-    annoTx.addEventListener("keydown", keyListener);
+    this.pastEvents.push({ type: "event", parent: annoTx, name: "keyup", listener: keyupListener });
+    annoTx.addEventListener("keyup", keyupListener);
 
     let pasteListener = (event) => {
       // Cancel paste

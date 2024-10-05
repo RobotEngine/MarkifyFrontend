@@ -1313,13 +1313,21 @@ modules["pages/editor"] = {
             for (let i = 0; i < utils.history.length; i++) {
               let event = utils.history[i];
               for (let c = 0; c < event.changes.length; c++) {
-                if (event.changes[c]._id == anno.pending) {
-                  event.changes[c]._id = anno._id;
+                let change = event.changes[c];
+                if (change._id == anno.pending) {
+                  change._id = anno._id;
+                }
+                if (change.parent == anno.pending) {
+                  change.parent = anno._id;
                 }
               }
               for (let c = 0; c < event.redo.length; c++) {
-                if (event.redo[c]._id == anno.pending) {
-                  event.redo[c]._id = anno._id;
+                let change = event.redo[c];
+                if (change._id == anno.pending) {
+                  change._id = anno._id;
+                }
+                if (change.parent == anno.pending) {
+                  change.parent = anno._id;
                 }
               }
             }

@@ -1023,6 +1023,7 @@ modules["editor/toolbar"] = {
       cursorModule.action = "save";
       await cursorModule.endAction(null, true, keys);
 
+      await cursorModule.redrawActionUI();
       utils.updateHistory();
 
       if (annoContentTx != null) {
@@ -1115,6 +1116,7 @@ modules["editor/toolbar"] = {
       cursorModule.action = "save";
       await cursorModule.endAction(null, true, keys);
       
+      await cursorModule.redrawActionUI();
       utils.updateHistory();
 
       if (annoContentTx != null) {

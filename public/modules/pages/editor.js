@@ -5434,6 +5434,7 @@ modules["pages/editor/annotation"] = {
           checkAnnoID = checkAnnotation.pointer;
           checkAnnotation = editor.annotations[checkAnnoID] || { render: {} };
         }
+        await editor.annotationChunks(editor.annotations[checkAnnoID]);
         let render = { ...(checkAnnotation.render || {}), ...(this.pendingSaves[checkAnnoID] || {}), ...(editor.realtimeSelect[checkAnnoID] || {}) };
         if ((render.parent || "").startsWith("pending_") == true) {
           let parentAnno = editor.annotations[render.parent];

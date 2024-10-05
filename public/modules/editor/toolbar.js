@@ -3496,10 +3496,10 @@ modules["pages/editor/toolbar/cursor"] = {
         await utils.pushHistory("add", pushRemoves);
       }
     }
+    await utils.forceShort();
     for (let i = 0; i < saveUpdates.length; i++) {
       await utils.save(saveUpdates[i], null, setTempSync);
     }
-    await utils.forceShort();
     editor.selecting = {};
     sentKeys = sentKeys || keys;
     for (let i = 0; i < sentKeys.length; i++) {

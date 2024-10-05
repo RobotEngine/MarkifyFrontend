@@ -5116,7 +5116,7 @@ modules["pages/editor/annotation"] = {
       this.timeoutAnnotations.push(anno);
     }
     anno.expire = getEpoch() + 10000; // 10 seconds until expire
-    anno.collab = collab == true;
+    anno.collab = (collab == true);
     if (this.runningTimeout == true) {
       return;
     }
@@ -5407,7 +5407,7 @@ modules["pages/editor/annotation"] = {
     if (annotation.render.p != null) {
       checkChunks = [ ...checkChunks, ...editor.annotationInChunks(annotation.render) ];
     }
-
+    
     let mutations = await this.saveEdit(data, anno, sync, { save: true, render: {} });
     if (mutations == null) {
       return; // Nothing new to send!
@@ -5539,7 +5539,7 @@ modules["pages/editor/annotation"] = {
         }
       }
     }
-
+    
     annotation.save = true; // Alert the system it's time to save
     annotation.render.sync = getEpoch();
     mutations.sync = annotation.render.sync;
@@ -5603,7 +5603,7 @@ modules["pages/editor/annotation"] = {
       return;
     }
     await editor.realtime.module.publishShort(null, null, true);
-    editor.realtimeSelect = {};
+    //editor.realtimeSelect = {};
   },
   getCurrentCaretPosition: function (element) {
     let position = 0;

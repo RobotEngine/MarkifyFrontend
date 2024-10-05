@@ -961,7 +961,7 @@ modules["editor/toolbar"] = {
                 continue; // Annotation is missing, invalid save
               }
             }
-            editor.realtimeSelect[change._id] = { ...change, done: true };
+            //editor.realtimeSelect[change._id] = { ...change, done: true };
             //}
             annoContentTx = editor.page.querySelector('.eAnnotation[anno="' + change._id + '"] div[contenteditable]');
             if (annoContentTx != null) {
@@ -979,7 +979,7 @@ modules["editor/toolbar"] = {
             if (addRedo) {
               event.redo.push(JSON.parse(JSON.stringify(annotation)));
             }
-            editor.realtimeSelect[changeID] = { ...change, done: true };
+            //editor.realtimeSelect[changeID] = { ...change, done: true };
             //await utils.save({ _id: changeID, ...change }, null, sync, true);
             editor.selecting[changeID] = { _id: changeID, ...change };
             //delete editor.selecting[changeID];
@@ -1013,7 +1013,7 @@ modules["editor/toolbar"] = {
               }
             }
             let saveClone = JSON.parse(JSON.stringify(saveAnno));
-            editor.realtimeSelect[tempID] = { ...saveClone, done: true };
+            //editor.realtimeSelect[tempID] = { ...saveClone, done: true };
             //await utils.save({ ...saveClone, _id: tempID }, null, sync);
             editor.selecting[tempID] = { ...saveClone, _id: tempID };
           }
@@ -1060,7 +1060,7 @@ modules["editor/toolbar"] = {
                 continue; // Annotation is missing, invalid save
               }
             }
-            editor.realtimeSelect[change._id] = { ...change, done: true };
+            //editor.realtimeSelect[change._id] = { ...change, done: true };
             //}
             annoContentTx = editor.page.querySelector('.eAnnotation[anno="' + change._id + '"] div[contenteditable]');
             if (annoContentTx != null) {
@@ -1095,7 +1095,7 @@ modules["editor/toolbar"] = {
               }
             }
             let saveClone = JSON.parse(JSON.stringify(saveAnno));
-            editor.realtimeSelect[tempID] = { ...saveClone, done: true };
+            //editor.realtimeSelect[tempID] = { ...saveClone, done: true };
             //await utils.save({ ...saveClone, _id: tempID }, null, sync);
             editor.selecting[tempID] = { ...saveClone, _id: tempID };
           }
@@ -1104,7 +1104,7 @@ modules["editor/toolbar"] = {
           for (let i = 0; i < event.redo.length; i++) {
             let change = { remove: true };
             let changeID = event.redo[i]._id;
-            editor.realtimeSelect[changeID] = { ...change, done: true };
+            //editor.realtimeSelect[changeID] = { ...change, done: true };
             //await utils.save({ _id: changeID, ...change }, null, sync);
             editor.selecting[changeID] = change;
             //delete editor.selecting[changeID];
@@ -1113,6 +1113,7 @@ modules["editor/toolbar"] = {
       
       cursorModule.action = "save";
       await cursorModule.endAction(null, true, keys);
+      
       utils.updateHistory();
 
       if (annoContentTx != null) {
@@ -3377,7 +3378,7 @@ modules["pages/editor/toolbar/cursor"] = {
             }
             if (checkannoid == annoid) {
               editor.realtimeSelect[checkAnnoID] = { ...(editor.realtimeSelect[checkAnnoID] || {}), remove: true };
-              saveUpdates.push({ remove: true, _id: checkAnnoID, done: true });
+              saveUpdates.push({ remove: true, _id: checkAnnoID });
               let [x, y] = editor.getAbsolutePosition(checkAnnotation.render);
               pushRemoves.push(JSON.parse(JSON.stringify({ ...checkAnnotation.render, parent: null, p: [x, y] })));
               break;
@@ -3416,7 +3417,7 @@ modules["pages/editor/toolbar/cursor"] = {
               }
               let newPos = [render.p[0] - changedXSize, render.p[1] - changedYSize];
               editor.realtimeSelect[checkAnnoID] = { ...(editor.realtimeSelect[checkAnnoID] || {}), p: newPos, parent: annoid };
-              saveUpdates.push({ p: newPos, parent: annoid, _id: checkAnnoID, done: true });
+              saveUpdates.push({ p: newPos, parent: annoid, _id: checkAnnoID });
               pushChanges.push({ p: render.p, parent: annoid, _id: checkAnnoID });
             }
           }
@@ -3483,6 +3484,7 @@ modules["pages/editor/toolbar/cursor"] = {
       if (selecting.remove == true) {
         //delete editor.selecting[annoid];
         keys.splice(keys.indexOf(annoid), 1);
+        i--;
       }
     }
     if (fromHistory != true && saveHistory != false) {
@@ -3496,10 +3498,12 @@ modules["pages/editor/toolbar/cursor"] = {
         await utils.pushHistory("add", pushRemoves);
       }
     }
-    await utils.forceShort();
+    let beforeSelect = JSON.stringify(editor.selecting); // Rendering clears out selected!
     for (let i = 0; i < saveUpdates.length; i++) {
       await utils.save(saveUpdates[i], null, setTempSync);
     }
+    editor.selecting = JSON.parse(beforeSelect);
+    await utils.forceShort();
     editor.selecting = {};
     sentKeys = sentKeys || keys;
     for (let i = 0; i < sentKeys.length; i++) {
@@ -6516,7 +6520,7 @@ modules["pages/editor/toolbar/delete"] = {
         allSelections[i].remove();
       }
     }
-    await utils.forceShort();
+    //await utils.forceShort();
     editor.selecting = {};
     cursor.updateBox();
   }

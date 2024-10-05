@@ -5434,7 +5434,7 @@ modules["pages/editor/annotation"] = {
           checkAnnoID = checkAnnotation.pointer;
           checkAnnotation = editor.annotations[checkAnnoID] || { render: {} };
         }
-        let render = { ...(checkAnnotation.render || {}), ...(this.pendingSaves[checkAnnoID] || {}) };
+        let render = { ...(checkAnnotation.render || {}), ...(this.pendingSaves[checkAnnoID] || {}), ...(editor.realtimeSelect[checkAnnoID] || {}) };
         if ((render.parent || "").startsWith("pending_") == true) {
           let parentAnno = editor.annotations[render.parent];
           if (parentAnno != null && parentAnno.pointer != null) {
@@ -5453,29 +5453,31 @@ modules["pages/editor/annotation"] = {
         let [x, y] = editor.getAbsolutePosition(render);
         let checkX = x + (render.s[0] / 2) + thick;
         let checkY = y + (render.s[0] / 2) + thick;
-        if (checkX < position[0] || checkX > position[0] + merged.s[0] + thickness || checkY < position[1] || checkY > position[1] + merged.s[1] + thickness || merged.remove == true) {
+        if (checkX < position[0] || checkX > position[0] + merged.s[0] + thickness || checkY < position[1] || checkY > position[1] + merged.s[1] + thickness || render.l >= merged.l || merged.remove == true) {
           let setParent = editor.parentFromAnnotation({
             ...render,
             parent: null,
             p: [checkX, checkY]
-          }, null, merged);
-          let relativePos = editor.getRelativePosition({
-            ...render,
-            parent: setParent || null,
-            p: [x, y]
           });
-          let setChildAnno = {
-            _id: checkAnnoID,
-            parent: setParent || null,
-            p: [relativePos[0], relativePos[1]],
-            sync: getEpoch()
-          };
-          await this.saveEdit(setChildAnno, null, sync, { save: true, render: {} });
-          checkAnnotation.save = true; // Alert the system it's time to save
-          checkAnnotation.render.sync = setChildAnno.sync;
-          checkAnnotation.render.m = editor.getSelf().modify;
-          this.pendingSaves[checkAnnoID] = { _id: checkAnnoID, ...(this.pendingSaves[checkAnnoID] || {}), ...setChildAnno };
-          editor.realtimeSelect[checkAnnoID] = { ...setChildAnno, ...(editor.realtimeSelect[checkAnnoID] || {}) }; // May cause issues? Check later
+          if (setParent != render.parent) {
+            let relativePos = editor.getRelativePosition({
+              ...render,
+              parent: setParent || null,
+              p: [x, y]
+            });
+            let setChildAnno = {
+              _id: checkAnnoID,
+              parent: setParent || null,
+              p: [relativePos[0], relativePos[1]],
+              sync: getEpoch()
+            };
+            await this.saveEdit(setChildAnno, null, sync, { save: true, render: {} });
+            checkAnnotation.save = true; // Alert the system it's time to save
+            checkAnnotation.render.sync = setChildAnno.sync;
+            checkAnnotation.render.m = editor.getSelf().modify;
+            this.pendingSaves[checkAnnoID] = { _id: checkAnnoID, ...(this.pendingSaves[checkAnnoID] || {}), ...setChildAnno };
+            editor.realtimeSelect[checkAnnoID] = { ...(editor.realtimeSelect[checkAnnoID] || {}), ...setChildAnno };
+          }
         }
       }
 

@@ -277,6 +277,7 @@ modules["editor/realtime"] = {
             sendExtra.press = true;
           }
           let mergedSelect = { ...editor.selecting, ...editor.realtimeSelect };
+          //console.log(JSON.stringify(editor.realtimeSelect))
           editor.realtimeSelect = {};
           if (Object.keys(mergedSelect).length > 0) {
             sendExtra.select = mergedSelect;

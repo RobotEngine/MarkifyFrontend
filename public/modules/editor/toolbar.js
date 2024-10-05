@@ -3352,7 +3352,7 @@ modules["pages/editor/toolbar/cursor"] = {
       if (originalRender.parent != null) {
         pushFields.parent = originalRender.parent;
       }
-      if (fromHistory != true && saveHistory != false) {
+      if (saveHistory != false) {
         if (selecting.remove != true) {
           if (Object.keys(pushFields).length > 0) {
             if (pushFields.f == null) {
@@ -3496,6 +3496,7 @@ modules["pages/editor/toolbar/cursor"] = {
                     p: [checkX, checkY]
                   }, null, merged);
                   if (setParent != render.parent) {
+                    // This is updated in the save utility, just here to add to the history
                     /*let relativePos = editor.getRelativePosition({
                       ...render,
                       parent: annoid,
@@ -3518,14 +3519,16 @@ modules["pages/editor/toolbar/cursor"] = {
         i--;
       }
     }
-    if (pushChanges.length > 0) {
-      await utils.pushHistory("update", pushChanges, true);
-    }
-    if (pushAdds.length > 0) {
-      await utils.pushHistory("remove", pushAdds, true);
-    }
-    if (pushRemoves.length > 0) {
-      await utils.pushHistory("add", pushRemoves);
+    if (fromHistory != true) {
+      if (pushChanges.length > 0) {
+        await utils.pushHistory("update", pushChanges, true);
+      }
+      if (pushAdds.length > 0) {
+        await utils.pushHistory("remove", pushAdds, true);
+      }
+      if (pushRemoves.length > 0) {
+        await utils.pushHistory("add", pushRemoves);
+      }
     }
     let beforeSelect = JSON.stringify(editor.selecting); // Rendering clears out selected!
     for (let i = 0; i < saveUpdates.length; i++) {

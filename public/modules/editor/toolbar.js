@@ -977,7 +977,8 @@ modules["editor/toolbar"] = {
             let changeID = event.changes[i]._id;
             let annotation = (editor.annotations[changeID] || {}).render || {};
             if (addRedo) {
-              event.redo.push(JSON.parse(JSON.stringify(annotation)));
+              let [x, y] = editor.getAbsolutePosition(annotation);
+              event.redo.push(JSON.parse(JSON.stringify({ ...annotation, parent: null, p: [x, y] })));
             }
             //editor.realtimeSelect[changeID] = { ...change, done: true };
             //await utils.save({ _id: changeID, ...change }, null, sync, true);
@@ -3323,16 +3324,18 @@ modules["pages/editor/toolbar/cursor"] = {
       if (originalRender.parent != null) {
         pushFields.parent = originalRender.parent;
       }
-      if (selecting.remove != true) {
-        if (Object.keys(pushFields).length > 0) {
-          if (pushFields.f == null) {
-            pushChanges.push(JSON.parse(JSON.stringify({ ...pushFields, _id: annoid })));
-          } else {
-            pushAdds.push({ _id: annoid, remove: true });
+      if (fromHistory != true && saveHistory != false) {
+        if (selecting.remove != true) {
+          if (Object.keys(pushFields).length > 0) {
+            if (pushFields.f == null) {
+              pushChanges.push(JSON.parse(JSON.stringify({ ...pushFields, _id: annoid })));
+            } else {
+              pushAdds.push({ _id: annoid, remove: true });
+            }
           }
+        } else {
+          pushRemoves.push(JSON.parse(JSON.stringify(originalRender)));
         }
-      } else {
-        pushRemoves.push(JSON.parse(JSON.stringify(originalRender)));
       }
 
       saveUpdates.push(JSON.parse(JSON.stringify({ ...selecting, _id: annoid })));
@@ -3487,16 +3490,14 @@ modules["pages/editor/toolbar/cursor"] = {
         i--;
       }
     }
-    if (fromHistory != true && saveHistory != false) {
-      if (pushChanges.length > 0) {
-        await utils.pushHistory("update", pushChanges, true);
-      }
-      if (pushAdds.length > 0) {
-        await utils.pushHistory("remove", pushAdds, true);
-      }
-      if (pushRemoves.length > 0) {
-        await utils.pushHistory("add", pushRemoves);
-      }
+    if (pushChanges.length > 0) {
+      await utils.pushHistory("update", pushChanges, true);
+    }
+    if (pushAdds.length > 0) {
+      await utils.pushHistory("remove", pushAdds, true);
+    }
+    if (pushRemoves.length > 0) {
+      await utils.pushHistory("add", pushRemoves);
     }
     let beforeSelect = JSON.stringify(editor.selecting); // Rendering clears out selected!
     for (let i = 0; i < saveUpdates.length; i++) {

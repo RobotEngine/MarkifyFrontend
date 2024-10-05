@@ -943,6 +943,11 @@ modules["editor/toolbar"] = {
         case "update":
           for (let i = 0; i < event.changes.length; i++) {
             let change = event.changes[i];
+            if (change.parent != null) {
+              if (((editor.annotations[change.parent] || {}).render || { remove: true }).remove == true) {
+                continue; // Annotation is missing, invalid save
+              }
+            }
             change.sync = getEpoch();
             if (addRedo) {
               let changeKeys = Object.keys(change);
@@ -956,11 +961,6 @@ modules["editor/toolbar"] = {
             //if (editor.selecting[event.redo[i]._id] != null) {
             //  editor.selecting[event.changes[i]._id] = { ...editor.selecting[event.changes[i]._id], ...change };
             //} else {
-            if (change.parent != null) {
-              if (((editor.annotations[change.parent] || {}).render || { remove: true }).remove == true) {
-                continue; // Annotation is missing, invalid save
-              }
-            }
             //editor.realtimeSelect[change._id] = { ...change, done: true };
             //}
             annoContentTx = editor.page.querySelector('.eAnnotation[anno="' + change._id + '"] div[contenteditable]');
@@ -989,19 +989,32 @@ modules["editor/toolbar"] = {
         case "add":
           for (let i = 0; i < event.changes.length; i++) {
             let saveAnno = event.changes[i];
+            if (saveAnno.parent != null) {
+              if (((editor.annotations[saveAnno.parent] || {}).render || { remove: true }).remove == true) {
+                continue; // Annotation is missing, invalid save
+              }
+            }
             let oldID = saveAnno._id;
             //delete editor.annotations[oldID];
             let tempID = utils.tempID();
             for (let h = 0; h < utils.history.length; h++) {
               let event = utils.history[h];
               for (let c = 0; c < event.changes.length; c++) {
-                if (event.changes[c]._id == oldID) {
-                  event.changes[c]._id = tempID;
+                let change = event.changes[c];
+                if (change._id == oldID) {
+                  change._id = tempID;
+                }
+                if (change.parent == oldID) {
+                  change.parent = tempID;
                 }
               }
               for (let c = 0; c < event.redo.length; c++) {
-                if (event.redo[c]._id == oldID) {
-                  event.redo[c]._id = tempID;
+                let change = event.redo[c];
+                if (change._id == oldID) {
+                  change._id = tempID;
+                }
+                if (change.parent == oldID) {
+                  change.parent = tempID;
                 }
               }
             }
@@ -1075,19 +1088,32 @@ modules["editor/toolbar"] = {
         case "remove": // Sort of Add
           for (let i = 0; i < event.redo.length; i++) {
             let saveAnno = event.redo[i];
+            if (saveAnno.parent != null) {
+              if (((editor.annotations[saveAnno.parent] || {}).render || { remove: true }).remove == true) {
+                continue; // Annotation is missing, invalid save
+              }
+            }
             let oldID = saveAnno._id;
             //delete editor.annotations[oldID];
             let tempID = utils.tempID();
             for (let h = 0; h < utils.history.length; h++) {
               let event = utils.history[h];
               for (let c = 0; c < event.redo.length; c++) {
-                if (oldID == event.redo[c]._id) {
-                  event.redo[c]._id = tempID;
+                let change = event.redo[c];
+                if (change._id == oldID) {
+                  change._id = tempID;
+                }
+                if (change.parent == oldID) {
+                  change.parent = tempID;
                 }
               }
               for (let c = 0; c < event.changes.length; c++) {
-                if (oldID == event.changes[c]._id) {
-                  event.changes[c]._id = tempID;
+                let change = event.changes[c];
+                if (change._id == oldID) {
+                  change._id = tempID;
+                }
+                if (change.parent == oldID) {
+                  change.parent = tempID;
                 }
               }
             }

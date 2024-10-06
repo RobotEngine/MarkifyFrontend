@@ -4786,7 +4786,7 @@ modules["pages/editor/annotation"] = {
                 <div info>
                   <div title></div>
                   <div description></div>
-                  <a link><img src="./images/editor/actions/link.svg"><div></div></a>
+                  <a link><img src="./images/editor/actions/link.svg" target="_blank"><div></div></a>
                 </div>
               </div>
             </div>

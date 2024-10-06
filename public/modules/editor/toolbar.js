@@ -3521,10 +3521,10 @@ modules["pages/editor/toolbar/cursor"] = {
     }
     if (fromHistory != true) {
       if (pushChanges.length > 0) {
-        await utils.pushHistory("update", pushChanges, true);
+        await utils.pushHistory("update", pushChanges);
       }
       if (pushAdds.length > 0) {
-        await utils.pushHistory("remove", pushAdds, true);
+        await utils.pushHistory("remove", pushAdds);
       }
       if (pushRemoves.length > 0) {
         await utils.pushHistory("add", pushRemoves);

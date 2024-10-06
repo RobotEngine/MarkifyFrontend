@@ -1732,9 +1732,9 @@ modules["pages/editor"] = {
       }
       return [returnX, returnY];
     }
-    this.parentFromAnnotation = (anno, types, substitute) => {
+    this.parentFromAnnotation = (anno, types, insert) => {
       types = types || ["page"];
-      substitute = substitute || {};
+      insert = insert || {};
       let id = anno._id;
       /*let thick = 0;
       if (anno.t != null) {
@@ -1748,6 +1748,7 @@ modules["pages/editor"] = {
       let chunk = this.pointInChunk(x, y);
       let annotationIDs = Object.keys(this.chunkAnnotations[chunk] || {});
       let viableParents = [];
+      let foundInsert = false;
       for (let i = 0; i < annotationIDs.length; i++) {
         let annoid = annotationIDs[i];
         if (annoid == null || annoid == id) {
@@ -1765,14 +1766,15 @@ modules["pages/editor"] = {
         if (render == null) {
           continue;
         }
+        if (insert._id == annoid) {
+          foundInsert = true;
+          render = { ...render, ...insert };
+        }
         if (types.includes(render.f) == false) {
           continue;
         }
         if (render.hidden == true || render.lock == true) {
           continue;
-        }
-        if (substitute._id == annoid) {
-          render = { ...render, ...substitute };
         }
         if (render.remove == true) {
           continue;
@@ -1787,17 +1789,19 @@ modules["pages/editor"] = {
         }
         if (x >= parentX && x <= parentX + parentWidth + parentThickness) {
           if (y >= parentY && y <= parentY + parentHeight + parentThickness) {
-            viableParents.push(render);
+            if ((index || utils.maxLayer) > render.l) {
+              viableParents.push(render);
+            }
           }
         }
+      }
+      if (insert._id != null && foundInsert == false) {
+        viableParents.push(insert);
       }
       let highestPageID;
       let highestLayer;
       for (let i = 0; i < viableParents.length; i++) {
         let parent = viableParents[i];
-        if (index != null && parent.l >= index) {
-          continue;
-        }
         if ((parent.l || 0) > highestLayer || highestLayer == null) {
           highestLayer = parent.l || 0;
           highestPageID = parent._id;
@@ -5443,7 +5447,7 @@ modules["pages/editor/annotation"] = {
           checkAnnotation = editor.annotations[checkAnnoID] || { render: {} };
         }
         await editor.annotationChunks(editor.annotations[checkAnnoID]);
-        let render = { ...(checkAnnotation.render || {}), ...(this.pendingSaves[checkAnnoID] || {}), ...(editor.realtimeSelect[checkAnnoID] || {}) };
+        let render = { ...(checkAnnotation.render || {}), ...(this.pendingSaves[checkAnnoID] || {}) }; //...(editor.realtimeSelect[checkAnnoID] || {})
         if ((render.parent || "").startsWith("pending_") == true) {
           let parentAnno = editor.annotations[render.parent];
           if (parentAnno != null && parentAnno.pointer != null) {
@@ -5485,7 +5489,10 @@ modules["pages/editor/annotation"] = {
             checkAnnotation.render.sync = setChildAnno.sync;
             checkAnnotation.render.m = editor.getSelf().modify;
             this.pendingSaves[checkAnnoID] = { _id: checkAnnoID, ...(this.pendingSaves[checkAnnoID] || {}), ...setChildAnno };
-            editor.realtimeSelect[checkAnnoID] = { ...(editor.realtimeSelect[checkAnnoID] || {}), ...setChildAnno };
+            if (editor.realtimeSelect[checkAnnoID] == null) {
+              editor.realtimeSelect[checkAnnoID] = setChildAnno;
+              //editor.realtimeSelect[checkAnnoID] = { ...(editor.realtimeSelect[checkAnnoID] || {}), ...setChildAnno };
+            }
           }
         }
       }

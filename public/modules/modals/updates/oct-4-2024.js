@@ -22,7 +22,7 @@ modules["modals/updates/oct-4-2024"] = {
         <li><b>Anonymous Mode</b> is helping to make all classrooms inclusive, even for shy students. When enabled, the cursor names and colors are hidden from view.</li>
         <li><b>Remove Editor</b> directly from an annotation! Did someone put something off task or inappropriate? Just click their annotation, see who it is, and revoke editor in one click!</li>
       </ul>
-      <p>Of course, their have been so many more bug fixes and quality-of-life improvements. For example, did you notice the new dot pattern?</p>
+      <p>Of course, there have been so many more bug fixes and quality-of-life improvements. For example, did you notice the new dot pattern?</p>
       <div break style="--themeColor: var(--error)">NOT TO PLEAD... BUT WE NEED...<div></div></div>
       <p>...your help! Since Markify's inception 2.5 years ago—when I was a high school sophomore—I've relied on word-of-mouth to grow Markify. Not to get needy, but if Markify has impacted you, sharing it with others would truly help to continue the Markify mission!</p>
       <p>Huge thank you to those who already have 😍</p>

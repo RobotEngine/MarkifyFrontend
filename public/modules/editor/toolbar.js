@@ -3273,6 +3273,7 @@ modules["pages/editor/toolbar/cursor"] = {
     let pageHolder = editor.page.querySelector(".ePageHolder");
 
     let setTempSync = getEpoch();
+    let self = editor.getSelf();
 
     // Save Revert
     let keys = Object.keys(editor.selecting);
@@ -3490,6 +3491,9 @@ modules["pages/editor/toolbar/cursor"] = {
             if (checkX >= position[0] && checkX <= position[0] + merged.s[0] + thickness) {
               if (checkY >= position[1] && checkY <= position[1] + merged.s[1] + thickness) {
                 if ((render.l || 0) > (merged.l || 0)) {
+                  if (self.access > 0 && editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
+                    continue;  
+                  }
                   let setParent = editor.parentFromAnnotation({
                     ...render,
                     parent: null,

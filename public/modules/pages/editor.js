@@ -5373,6 +5373,7 @@ modules["pages/editor/annotation"] = {
   save: async function (data, anno, sync) {
     data = JSON.parse(JSON.stringify(data));
     let editor = await getModule("pages/editor");
+    let self = editor.getSelf();
     let annoID = data._id;
     let annotation = editor.annotations[annoID] || { render: {} };
     if (annotation.pointer != null) {
@@ -5425,6 +5426,14 @@ modules["pages/editor/annotation"] = {
       return; // Nothing new to send!
     }
     annotation = editor.annotations[annoID] || { render: {} };
+
+    //[originalRender.a, originalRender.m].includes(member.modify) == false
+    /*if (annotation.render._id.startsWith("pending_") == false) {
+      annotation.render.m = self.modify;
+    } else {
+      annotation.render.a = self.modify;
+    }*/
+    annotation.render.m = self.modify;
 
     // Handle Chunk Parent Updates
     if (data.p != null || data.s != null || data.t != null || data.l != null || data.remove == true) {
@@ -5487,7 +5496,7 @@ modules["pages/editor/annotation"] = {
             await this.saveEdit(setChildAnno, null, sync, { save: true, render: {} });
             checkAnnotation.save = true; // Alert the system it's time to save
             checkAnnotation.render.sync = setChildAnno.sync;
-            checkAnnotation.render.m = editor.getSelf().modify;
+            checkAnnotation.render.m = self.modify;
             this.pendingSaves[checkAnnoID] = { _id: checkAnnoID, ...(this.pendingSaves[checkAnnoID] || {}), ...setChildAnno };
             if (editor.realtimeSelect[checkAnnoID] == null) {
               editor.realtimeSelect[checkAnnoID] = setChildAnno;
@@ -5527,6 +5536,9 @@ modules["pages/editor/annotation"] = {
           if (checkX >= position[0] && checkX <= position[0] + merged.s[0] + thickness) {
             if (checkY >= position[1] && checkY <= position[1] + merged.s[1] + thickness) {
               if ((render.l || 0) > (merged.l || 0)) {
+                if (self.access > 0 && editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
+                  continue;  
+                }
                 let setParent = editor.parentFromAnnotation({
                   ...render,
                   parent: null,
@@ -5547,7 +5559,7 @@ modules["pages/editor/annotation"] = {
                   await this.saveEdit(setChildAnno, null, sync, { save: true, render: {} });
                   checkAnnotation.save = true; // Alert the system it's time to save
                   checkAnnotation.render.sync = setChildAnno,sync;
-                  checkAnnotation.render.m = editor.getSelf().modify;
+                  checkAnnotation.render.m = self.modify;
                   this.pendingSaves[checkAnnoID] = { _id: checkAnnoID, ...(this.pendingSaves[checkAnnoID] || {}), ...setChildAnno };
                   editor.realtimeSelect[checkAnnoID] = { ...(editor.realtimeSelect[checkAnnoID] || {}), ...setChildAnno };
                 }
@@ -5561,14 +5573,6 @@ modules["pages/editor/annotation"] = {
     annotation.save = true; // Alert the system it's time to save
     annotation.render.sync = getEpoch();
     mutations.sync = annotation.render.sync;
-
-    //[originalRender.a, originalRender.m].includes(member.modify) == false
-    /*if (annotation.render._id.startsWith("pending_") == false) {
-      annotation.render.m = editor.getSelf().modify;
-    } else {
-      annotation.render.a = editor.getSelf().modify;
-    }*/
-    annotation.render.m = editor.getSelf().modify;
 
     let saveSync = { _id: annoID, ...(this.pendingSaves[annoID] || {}), ...mutations };
     if (connected == true) {

@@ -2761,7 +2761,10 @@ modules["pages/editor/toolbar/cursor"] = {
     }
     let editor = await getModule("pages/editor");
     this.activeElem = target.closest(".eSelectActive");
-    this.annotationElem = target.closest(".eAnnotation");
+    this.annotationElem = target.closest(".eAnnotation, .eAnnotationHolder");
+    if (this.annotationElem != null && this.annotationElem.className == "eAnnotationHolder") {
+      this.annotationElem = null;
+    }
     this.selectElem = target.closest(".eSelect");
     this.resizeElem = target.closest(".eSelectTooltip");
     /*

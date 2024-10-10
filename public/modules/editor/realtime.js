@@ -712,6 +712,7 @@ modules["editor/realtime"] = {
                           annoTx.removeAttribute("contenteditable");
                         }
                       }
+                      await editor.annotationChunks(editor.annotations[annoID]);
                       [merge, annoElem] = await utils.render(merge);
 
                       if (selection != null && anno.remove == true && selection.hasAttribute("remove") == false) {

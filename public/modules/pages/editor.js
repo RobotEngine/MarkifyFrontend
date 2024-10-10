@@ -4173,7 +4173,7 @@ modules["pages/editor/annotation"] = {
         annoHolder.appendChild(activeSelect);
       }
     }
-    await editor.annotationChunks(editor.annotations[_id]);
+    //await editor.annotationChunks(editor.annotations[_id]);
     /*if (annoHolder.parentElement.parentElement.firstElementChild != annoHolder.parentElement) {
       y -= 4;
     }*/
@@ -5331,6 +5331,7 @@ modules["pages/editor/annotation"] = {
     */
     this.enableTimeout(annoID, anno, render);
     editor.annotations[annoID] = anno;
+    await editor.annotationChunks(editor.annotations[annoID]);
     await this.render({ ...anno.render, sync: sync }, render);
     return annoData; //mutations;
   },
@@ -5548,7 +5549,7 @@ modules["pages/editor/annotation"] = {
           checkAnnoID = checkAnnotation.pointer;
           checkAnnotation = editor.annotations[checkAnnoID] || { render: {} };
         }
-        await editor.annotationChunks(editor.annotations[checkAnnoID]);
+        //await editor.annotationChunks(editor.annotations[checkAnnoID]);
         let render = { ...(checkAnnotation.render || {}), ...(this.pendingSaves[checkAnnoID] || {}) }; //...(editor.realtimeSelect[checkAnnoID] || {})
         if ((render.parent || "").startsWith("pending_") == true) {
           let parentAnno = editor.annotations[render.parent];

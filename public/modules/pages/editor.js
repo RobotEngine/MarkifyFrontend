@@ -5266,6 +5266,7 @@ modules["pages/editor/annotation"] = {
           if (annotation.revert != null) {
             annotation.render = annotation.revert;
             delete annotation.revert;
+            await editor.annotationChunks(editor.annotations[annotation.render._id]);
             await this.render(annotation.render);
           }
         } else {

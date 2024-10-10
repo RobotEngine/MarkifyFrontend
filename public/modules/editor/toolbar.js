@@ -847,7 +847,7 @@ modules["editor/toolbar"] = {
         await showSubSubtoolUI(element);
       }
     }
-    frame.addEventListener("click", async (event) => {
+    frame.addEventListener("mousedown", async (event) => {
       this.setCurrentTool(event.target);
     });
 

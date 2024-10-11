@@ -5266,8 +5266,14 @@ modules["pages/editor/annotation"] = {
           if (annotation.revert != null) {
             annotation.render = annotation.revert;
             delete annotation.revert;
-            await editor.annotationChunks(editor.annotations[annotation.render._id]);
-            await this.render(annotation.render);
+            let existingAnno = editor.annotations[annotation.render._id];
+            await editor.annotationChunks(existingAnno);
+            for (let i = 0; i < existingAnno.chunks.length; i++) {
+              if (editor.visibleChunks.includes(existingAnno.chunks[i]) == true) {
+                await this.render(annotation.render);
+                break;
+              }
+            }
           }
         } else {
           this.removeAnnotation(annotation.render._id);

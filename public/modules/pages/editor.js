@@ -170,7 +170,6 @@ modules["pages/editor"] = {
   js: async function (page, joinData) {
     this.page = page;
     this.annotations = {};
-    this.annotationPages = {};
     this.chunkAnnotations = {};
     this.reactions = {};
     this.addMargin = 100;
@@ -1386,21 +1385,31 @@ modules["pages/editor"] = {
           delete existingAnno.revert;
           //objectUpdate(existingAnno.render, anno);
           await this.annotationChunks(existingAnno);
+          this.updateAnnotationPages(anno);
+          let allowRender = renderObj.remove == true;
           for (let i = 0; i < existingAnno.chunks.length; i++) {
             if (this.visibleChunks.includes(existingAnno.chunks[i]) == true) {
-              utils.render(renderObj, gottenRender, true);
+              allowRender = true;
               break;
             }
+          }
+          if (allowRender == true) {
+            utils.render(renderObj, gottenRender, true);
           }
         } else {
           this.annotations[anno._id] = { render: anno };
           existingAnno = this.annotations[anno._id];
           await this.annotationChunks(existingAnno);
+          this.updateAnnotationPages(anno);
+          let allowRender = anno.remove == true;
           for (let i = 0; i < existingAnno.chunks.length; i++) {
             if (this.visibleChunks.includes(existingAnno.chunks[i]) == true) {
-              utils.render(anno, null, true);
+              allowRender = true
               break;
             }
+          }
+          if (allowRender == true) {
+            utils.render(anno, null, true);
           }
         }
       }
@@ -1680,6 +1689,68 @@ modules["pages/editor"] = {
     }
     this.pointInChunk = (x, y) => {
       return this.regionInChunks(x, y, x, y)[0];
+    }
+
+    let scrollOffset = 66;
+    let pageTextBox = bottomHolder.querySelector(".eCurrentPage");
+    let pageBoxFocus = false;
+
+    this.annotationPages = [];
+
+    this.updateCurrentPage = () => {
+      if (document.activeElement != null && document.activeElement.closest(".eCurrentPage") != null) {
+        return;
+      }
+      pageTextBox.innerHTML = "<b>1</b> / " + this.annotationPages.length;
+    }
+
+    this.updateAnnotationPages = (anno) => {
+      if (anno.f != "page") {
+        return;
+      }
+      for (let i = 0; i < this.annotationPages.length; i++) {
+        let annoid = this.annotationPages[i][0];
+        if ((annoid || "").startsWith("pending_") == true) {
+          let anno = this.annotations[annoid] || {};
+          if (anno.pointer != null) {
+            annoid = anno.pointer;
+          }
+        }
+        if (annoid == anno._id) {
+          this.annotationPages.splice(i, 1);
+          break;
+        }
+      }
+      if (anno.remove != true) {
+        let position = this.getAbsolutePosition(anno);
+        let thickness = 0;
+        if (anno.t != null) {
+          if (anno.b != "none" || anno.d == "line") {
+            thickness = anno.t;
+          }
+        }
+        this.annotationPages.push([
+          anno._id,
+          [position[0] + (anno.s[0] / 2) + thickness, position[1] + (anno.s[1] / 2) + thickness],
+          [anno.s[0], anno.s[1]]
+        ]);
+        this.annotationPages.sort((a, b) => {
+          // Calculate top and bottom bounds
+          let aTop = (a[1][1] - a[2][1]) / 2;
+          let bTop = (b[1][1] - b[2][1]) / 2;
+
+          // Compare by Y bounds first
+          if (Math.abs(aTop - bTop) > Math.max(a[2][1], b[2][1]) / 2) {
+            return aTop - bTop;
+          }
+
+          // If they're in the same row, compare by X bounds
+          let aLeft = a[1][0] - a[2][0] / 2;
+          let bLeft = b[1][0] - b[2][0] / 2;
+          return aLeft - bLeft;
+        });
+      }
+      this.updateCurrentPage();
     }
 
     this.getAbsolutePosition = (anno, includeSelecting) => {
@@ -2069,28 +2140,6 @@ modules["pages/editor"] = {
 
       await this.viewAnnotations(true);
     }*/
-
-    let scrollOffset = 66;
-    let pageTextBox = bottomHolder.querySelector(".eCurrentPage");
-    let pageBoxFocus = false;
-
-    this.updateAnnotationPages = (anno) => {
-      if (anno.f != "page") {
-        return;
-      }
-      if (anno.remove != true) {
-        let position = this.getAbsolutePosition(anno);
-        let thickness = 0;
-        if (anno.t != null) {
-          if (anno.b != "none" || anno.d == "line") {
-            thickness = anno.t;
-          }
-        }
-        this.annotationPages[anno._id] = [position[0] + anno.s[0] + thickness, position[1] + anno.s[1] + thickness];
-      } else {
-        delete this.annotationPages[anno._id];
-      }
-    }
 
     // Fetch Annotations
     let checkForJumpLink = getParam("annotation");
@@ -2706,7 +2755,6 @@ modules["pages/editor"] = {
         await utils.setMarginSize();
         centerWindowWithPage();
 
-        pageTextBox.innerHTML = "<b>1</b> / " + Object.keys(pages).length;
         let updateAnnotationScroll = (nextPage, animation) => {
           if (nextPage) {
             let options = { top: window.scrollY + nextPage.getBoundingClientRect().top - scrollOffset };
@@ -2764,7 +2812,8 @@ modules["pages/editor"] = {
           pageTextBox.innerHTML = "<b>" + setPage + "</b> / " + body.pages.length;
           updateAnnotationScroll(pageHolder.children[setPage - 1], false);
         });
-        bottomHolder.remove();
+        bottomHolder.style.display = "none";
+        //bottomHolder.remove();
     }
 
     let updateContentSize = () => {
@@ -4810,7 +4859,7 @@ modules["pages/editor/annotation"] = {
           pageHiddenHolder.remove();
           pageBorder.style.removeProperty("pointer-events");
         }
-        editor.updateAnnotationPages(data);
+        //editor.updateAnnotationPages(data);
         break;
       case "media":
         if (anno == null) {
@@ -5268,11 +5317,16 @@ modules["pages/editor/annotation"] = {
             delete annotation.revert;
             let existingAnno = editor.annotations[annotation.render._id];
             await editor.annotationChunks(existingAnno);
+            editor.updateAnnotationPages(annotation.render);
+            let allowRender = annotation.render.remove == true;
             for (let i = 0; i < existingAnno.chunks.length; i++) {
               if (editor.visibleChunks.includes(existingAnno.chunks[i]) == true) {
-                await this.render(annotation.render);
+                allowRender = true;
                 break;
               }
+            }
+            if (allowRender == true) {
+              await this.render(annotation.render);
             }
           }
         } else {
@@ -5339,6 +5393,7 @@ modules["pages/editor/annotation"] = {
     this.enableTimeout(annoID, anno, render);
     editor.annotations[annoID] = anno;
     await editor.annotationChunks(editor.annotations[annoID]);
+    editor.updateAnnotationPages(anno.render);
     await this.render({ ...anno.render, sync: sync }, render);
     return annoData; //mutations;
   },

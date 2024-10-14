@@ -49,9 +49,9 @@ modules["pages/editor"] = {
         </div>
       </div>
       <div class="eBottom">
-        <button class="ePageNav" down><img src="./images/editor/bottom/downarrow.svg"></button>
+        <button class="ePageNav" down><img src="./images/editor/bottom/uparrow.svg"></button>
         <div class="eCurrentPage border" contenteditable></div>
-        <button class="ePageNav" up><img src="./images/editor/bottom/uparrow.svg"></button>
+        <button class="ePageNav" up><img src="./images/editor/bottom/downarrow.svg"></button>
       </div>
     </div>
     <div class="eContent">
@@ -1693,15 +1693,53 @@ modules["pages/editor"] = {
 
     let scrollOffset = 66;
     let pageTextBox = bottomHolder.querySelector(".eCurrentPage");
-    let pageBoxFocus = false;
+    //let pageBoxFocus = false;
+    let alreadyRunningFocus = false;
 
     this.annotationPages = [];
+    this.currentPage = 1;
 
     this.updateCurrentPage = () => {
-      if (document.activeElement != null && document.activeElement.closest(".eCurrentPage") != null) {
+      if (this.lesson.type == "standard") {
         return;
       }
-      pageTextBox.innerHTML = "<b>1</b> / " + this.annotationPages.length;
+      let activeElement = document.activeElement;
+      if (activeElement != null) {
+        let currentPageBox = activeElement.closest(".eCurrentPage");
+        if (currentPageBox == pageTextBox) {
+          return;
+        }
+      }
+      let pageRect = pageHolder.getBoundingClientRect();
+      let centerPointX = ((fixed.offsetWidth / 2) - pageRect.left) / this.zoom;
+      let centerPointY = ((fixed.offsetHeight / 2) - pageRect.top) / this.zoom;
+      let minPage = 0;
+      let minDistance;
+      for (let i = 0; i < this.annotationPages.length; i++) {
+        let page = this.annotationPages[i];
+        let distance = Math.pow(page[1][0] - centerPointX, 2) + Math.pow(page[1][1] - centerPointY, 2);
+        if (distance < minDistance || minDistance == null) {
+          minDistance = distance;
+          minPage = i + 1;
+        }
+      }
+      if (minPage > 0) {
+        this.currentPage = minPage;
+        pageTextBox.innerHTML = "<b>" + this.currentPage + "</b> / " + this.annotationPages.length;
+        if (this.currentPage > this.annotationPages.length - 1) {
+          bottomHolder.querySelector(".ePageNav[down]").setAttribute("disabled", "");
+        } else {
+          bottomHolder.querySelector(".ePageNav[down]").removeAttribute("disabled");
+        }
+        if (this.currentPage < 2) {
+          bottomHolder.querySelector(".ePageNav[up]").setAttribute("disabled", "");
+        } else {
+          bottomHolder.querySelector(".ePageNav[up]").removeAttribute("disabled");
+        }
+        bottomHolder.style.display = "flex";
+      } else {
+        bottomHolder.style.display = "none";
+      }
     }
 
     this.updateAnnotationPages = (anno) => {
@@ -1732,15 +1770,15 @@ modules["pages/editor"] = {
         this.annotationPages.push([
           anno._id,
           [position[0] + (anno.s[0] / 2) + thickness, position[1] + (anno.s[1] / 2) + thickness],
-          [anno.s[0], anno.s[1]]
+          [anno.s[0] + thickness, anno.s[1] + thickness]
         ]);
         this.annotationPages.sort((a, b) => {
           // Calculate top and bottom bounds
-          let aTop = (a[1][1] - a[2][1]) / 2;
-          let bTop = (b[1][1] - b[2][1]) / 2;
+          let aTop = a[1][1] - a[2][1];
+          let bTop = b[1][1] - b[2][1];
 
           // Compare by Y bounds first
-          if (Math.abs(aTop - bTop) > Math.max(a[2][1], b[2][1]) / 2) {
+          if (Math.abs(aTop - bTop) > Math.min(a[2][1], b[2][1]) / 2) {
             return aTop - bTop;
           }
 
@@ -1904,6 +1942,7 @@ modules["pages/editor"] = {
     }
 
     let updateSubTimeout;
+    let updatePageTimeout;
     let loadedChunks = {};
     let alreadyRunningUpdateCycle = false;
     let runUpdateCycle = async () => {
@@ -2025,6 +2064,8 @@ modules["pages/editor"] = {
         runUpdateCycle();
       }
       
+      clearTimeout(updatePageTimeout);
+      updatePageTimeout = setTimeout(this.updateCurrentPage, 100);
       clearTimeout(updateSubTimeout);
       updateSubTimeout = setTimeout(() => {
         if (this.realtime.module != null) {
@@ -2264,13 +2305,14 @@ modules["pages/editor"] = {
           updatePageScroll(pageHolder.children[currentPage - 2] || pageHolder.children[0]);
         });
         pageTextBox.addEventListener("focus", async () => {
-          if (pageBoxFocus == true) {
+          if (alreadyRunningFocus == true) {
             return;
           }
-          //pageTextBox.blur();
+          alreadyRunningFocus = true;
+          pageTextBox.blur();
           pageTextBox.innerHTML = "";
-          pageBoxFocus = true;
           pageTextBox.focus();
+          alreadyRunningFocus = false;
         });
         pageTextBox.addEventListener("keydown", (event) => {
           if (event.keyCode == 13) {
@@ -2293,7 +2335,6 @@ modules["pages/editor"] = {
           }
         });
         pageTextBox.addEventListener("focusout", (event) => {
-          pageBoxFocus = false;
           if (pageTextBox.textContent == "") {
             pageTextBox.innerHTML = "<b>" + currentPage + "</b> / " + body.pages.length;
             return;
@@ -2577,12 +2618,20 @@ modules["pages/editor"] = {
               this.scrollEvent();
             }
           }
+          let activeElement = document.activeElement;
+          let pageBoxFocus = false;
+          if (activeElement != null) {
+            let currentPageBox = activeElement.closest(".eCurrentPage");
+            if (currentPageBox == pageTextBox) {
+              pageBoxFocus = true;
+            }
+          }
           if (pageBoxFocus == false) {
             pageTextBox.innerHTML = "<b>" + currentPage + "</b> / " + Object.keys(pages).length;
-          } else {
+          }/* else {
             pageBoxFocus = false;
             pageTextBox.blur();
-          }
+          }*/
           if (currentPage > pageHolder.childElementCount - 1) {
             bottomHolder.querySelector(".ePageNav[down]").setAttribute("disabled", "");
           } else {
@@ -2755,9 +2804,42 @@ modules["pages/editor"] = {
         await utils.setMarginSize();
         centerWindowWithPage();
 
-        let updateAnnotationScroll = (nextPage, animation) => {
-          if (nextPage) {
-            let options = { top: window.scrollY + nextPage.getBoundingClientRect().top - scrollOffset };
+        let updateAnnotationScroll = (page, animation) => {
+          if (page == null) {
+            return;
+          }
+          let annoID = page[0];
+          if ((annoID || "").startsWith("pending_") == true) {
+            let anno = this.annotations[annoID] || {};
+            if (anno.pointer != null) {
+              annoID = anno.pointer;
+            }
+          }
+          let render = (this.annotations[annoID] || {}).render;
+          if (render != null) {
+            let thickness = 0;
+            if (render.t != null) {
+              if (render.b != "none" || render.d == "line") {
+                thickness = render.t;
+              }
+            }
+            let pageRect = pageHolder.getBoundingClientRect();
+            let options = {};
+            let position = this.getAbsolutePosition(render);
+            if ((render.s[0] + (thickness * 2)) * this.zoom < fixed.offsetWidth - (scrollOffset * 2)) {
+              // Position page to center:
+              options.left = pageRect.left + window.scrollX - (fixed.offsetWidth / 2) + ((position[0] + (render.s[0] / 2) + thickness) * this.zoom);
+            } else {
+              // Position page to left corner:
+              options.left = pageRect.left + window.scrollX - scrollOffset + (position[0] * this.zoom);
+            }
+            if ((render.s[1] + (thickness * 2)) * this.zoom < fixed.offsetHeight - (scrollOffset * 2)) {
+              // Position page to center:
+              options.top = pageRect.top + window.scrollY - (fixed.offsetHeight / 2) + ((position[1] + (render.s[1] / 2) + thickness) * this.zoom);
+            } else {
+              // Position page to left corner:
+              options.top = pageRect.top + window.scrollY - scrollOffset + (position[1] * this.zoom);
+            }
             if (animation != false) {
               options.behavior = "smooth";
             }
@@ -2768,19 +2850,20 @@ modules["pages/editor"] = {
           }
         }
         bottomHolder.querySelector(".ePageNav[down]").addEventListener("click", () => {
-          updateAnnotationScroll(pageHolder.children[currentPage] || pageHolder.children[pageHolder.children.length - 1]);
+          updateAnnotationScroll(this.annotationPages[this.currentPage]);
         });
         bottomHolder.querySelector(".ePageNav[up]").addEventListener("click", () => {
-          updateAnnotationScroll(pageHolder.children[currentPage - 2] || pageHolder.children[0]);
+          updateAnnotationScroll(this.annotationPages[this.currentPage - 2]);
         });
         pageTextBox.addEventListener("focus", async () => {
-          if (pageBoxFocus == true) {
+          if (alreadyRunningFocus == true) {
             return;
           }
-          //pageTextBox.blur();
+          alreadyRunningFocus = true;
+          pageTextBox.blur();
           pageTextBox.innerHTML = "";
-          pageBoxFocus = true;
           pageTextBox.focus();
+          alreadyRunningFocus = false;
         });
         pageTextBox.addEventListener("keydown", (event) => {
           if (event.keyCode == 13) {
@@ -2793,9 +2876,9 @@ modules["pages/editor"] = {
             if (parseInt(event.key) != event.key) {
               event.preventDefault();
               textBoxError(pageTextBox, "Must be a number");
-            } else if (textInt > body.pages.length) {
+            } else if (textInt > this.annotationPages.length) {
               event.preventDefault();
-              textBoxError(pageTextBox, "Maximum of page number " + body.pages.length);
+              textBoxError(pageTextBox, "Maximum of page number " + this.annotationPages.length);
             } else if (textInt < 1) {
               event.preventDefault();
               textBoxError(pageTextBox, "Minimum of the first page");
@@ -2803,14 +2886,14 @@ modules["pages/editor"] = {
           }
         });
         pageTextBox.addEventListener("focusout", (event) => {
-          pageBoxFocus = false;
+          //pageBoxFocus = false;
           if (pageTextBox.textContent == "") {
-            pageTextBox.innerHTML = "<b>" + currentPage + "</b> / " + body.pages.length;
+            pageTextBox.innerHTML = "<b>" + this.currentPage + "</b> / " + this.annotationPages.length;
             return;
           }
           let setPage = parseInt(pageTextBox.textContent) || 1;
-          pageTextBox.innerHTML = "<b>" + setPage + "</b> / " + body.pages.length;
-          updateAnnotationScroll(pageHolder.children[setPage - 1], false);
+          pageTextBox.innerHTML = "<b>" + setPage + "</b> / " + this.annotationPages.length;
+          updateAnnotationScroll(this.annotationPages[setPage - 1], false);
         });
         bottomHolder.style.display = "none";
         //bottomHolder.remove();
@@ -3449,13 +3532,13 @@ modules["dropdowns/editor/file"] = {
     }
     if (editor.lesson.type == "freeboard") {
       //find.remove();
-      jumptop.remove();
-      jump.remove();
-      jumpend.remove();
+      //jumptop.remove();
+      //jump.remove();
+      //jumpend.remove();
       if (hideshowpage != null) {
         hideshowpage.remove();
       }
-      frame.querySelector('.eFileLine[option="findjump"]').remove();
+      //frame.querySelector('.eFileLine[option="findjump"]').remove();
       let hideshowLine = frame.querySelector('.eFileLine[option="hideshow"]');
       if (hideshowLine != null) {
         hideshowLine.remove();

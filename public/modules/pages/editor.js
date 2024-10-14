@@ -1699,6 +1699,19 @@ modules["pages/editor"] = {
     this.annotationPages = [];
     this.currentPage = 1;
 
+    this.updateCurrentPageInterface = () => {
+      pageTextBox.innerHTML = "<b>" + this.currentPage + "</b> / " + this.annotationPages.length;
+      if (this.currentPage > this.annotationPages.length - 1) {
+        bottomHolder.querySelector(".ePageNav[down]").setAttribute("disabled", "");
+      } else {
+        bottomHolder.querySelector(".ePageNav[down]").removeAttribute("disabled");
+      }
+      if (this.currentPage < 2) {
+        bottomHolder.querySelector(".ePageNav[up]").setAttribute("disabled", "");
+      } else {
+        bottomHolder.querySelector(".ePageNav[up]").removeAttribute("disabled");
+      }
+    }
     this.updateCurrentPage = () => {
       if (this.lesson.type == "standard") {
         return;
@@ -1725,17 +1738,7 @@ modules["pages/editor"] = {
       }
       if (minPage > 0) {
         this.currentPage = minPage;
-        pageTextBox.innerHTML = "<b>" + this.currentPage + "</b> / " + this.annotationPages.length;
-        if (this.currentPage > this.annotationPages.length - 1) {
-          bottomHolder.querySelector(".ePageNav[down]").setAttribute("disabled", "");
-        } else {
-          bottomHolder.querySelector(".ePageNav[down]").removeAttribute("disabled");
-        }
-        if (this.currentPage < 2) {
-          bottomHolder.querySelector(".ePageNav[up]").setAttribute("disabled", "");
-        } else {
-          bottomHolder.querySelector(".ePageNav[up]").removeAttribute("disabled");
-        }
+        this.updateCurrentPageInterface();
         bottomHolder.style.display = "flex";
       } else {
         bottomHolder.style.display = "none";
@@ -2808,6 +2811,7 @@ modules["pages/editor"] = {
           if (page == null) {
             return;
           }
+          this.updateCurrentPageInterface();
           let annoID = page[0];
           if ((annoID || "").startsWith("pending_") == true) {
             let anno = this.annotations[annoID] || {};
@@ -2850,10 +2854,12 @@ modules["pages/editor"] = {
           }
         }
         bottomHolder.querySelector(".ePageNav[down]").addEventListener("click", () => {
-          updateAnnotationScroll(this.annotationPages[this.currentPage]);
+          this.currentPage++;
+          updateAnnotationScroll(this.annotationPages[this.currentPage - 1]);
         });
         bottomHolder.querySelector(".ePageNav[up]").addEventListener("click", () => {
-          updateAnnotationScroll(this.annotationPages[this.currentPage - 2]);
+          this.currentPage--;
+          updateAnnotationScroll(this.annotationPages[this.currentPage - 1]);
         });
         pageTextBox.addEventListener("focus", async () => {
           if (alreadyRunningFocus == true) {

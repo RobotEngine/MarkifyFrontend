@@ -596,6 +596,7 @@ modules["editor/realtime"] = {
                   let userSelecting = false;
                   let refreshSelecting = false;
                   let changes = false;
+                  let hasCursorAnno = false;
                   for (let i = 0; i < selectKeys.length; i++) {
                     let annoID = selectKeys[i];
                     let anno = extra.select[annoID] || {};
@@ -614,6 +615,8 @@ modules["editor/realtime"] = {
                       annoElem.setAttribute("anno", "cursor");
                       annoElem.setAttribute("type", anno.f);
                       annoElem.style.opacity = .7;
+                      hasCursorAnno = true;
+                      member.cursorRender = merge;
                     } else {
                       original = editor.annotations[annoID];
                       if (original != null && original.pointer != null) {
@@ -776,6 +779,9 @@ modules["editor/realtime"] = {
                   member.selecting = selectKeys;
                   if (userSelecting == true || refreshSelecting == true) {
                     editor.updateZoom(null, false);
+                  }
+                  if (member.cursorRender != null && hasCursorAnno == false) {
+                    delete member.cursorRender;
                   }
                 } else if (member.selecting != null) {
                   for (let i = 0; i < member.selecting.length; i++) {

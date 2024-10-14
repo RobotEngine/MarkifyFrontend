@@ -2004,16 +2004,22 @@ modules["pages/editor/toolbar/cursor"] = {
     for (let i = 0; i < allSelections.length; i++) {
       let selection = allSelections[i];
       let annoID = selection.getAttribute("anno");
-      if (annoID == "cursor") {
-        continue;
-      }
-      if (editor.annotations[annoID] == null) {
-        selection.remove();
-        continue;
-      }
-      let anno = { ...((editor.annotations[annoID]).render || {}), ...(editor.selecting[annoID] || {}) };
-      if (anno.f == null) {
-        continue;
+      let anno;
+      if (annoID != "cursor") {
+        if (editor.annotations[annoID] == null) {
+          selection.remove();
+          continue;
+        }
+        anno = { ...((editor.annotations[annoID]).render || {}), ...(editor.selecting[annoID] || {}) };
+        if (anno.f == null) {
+          continue;
+        }
+      } else {
+        let member = editor.members[selection.getAttribute("member")];
+        if (member == null || member.cursorRender == null) {
+          continue;
+        }
+        anno = { ...member.cursorRender, ...(editor.selecting[annoID] || {}) };
       }
       let border = 0;
       let annoHold = await utils.annoHolder(anno.page);

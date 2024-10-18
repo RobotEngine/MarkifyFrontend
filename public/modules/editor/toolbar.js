@@ -3579,37 +3579,41 @@ modules["pages/editor/toolbar/cursor"] = {
       reaction.removeAttribute("disabled");
       return true;
     }
-    let embedPlay = target.closest(".eAnnotation[embed] div[activate] button");
-    if (embedPlay != null) {
-      let embedAnno = embedPlay.closest(".eAnnotation[embed]");
-      if (embedAnno != null) {
-        let render = ((editor.annotations[embedAnno.getAttribute("anno")] || {}).render || {});
-        if (render.embed != null) {
-          if (render.embed.url == null) {
-            window.open(render.d);
-            return;
-          }
-          let embedHolder = embedAnno.querySelector("div[content]");
-          embedHolder.insertAdjacentHTML("beforeend", `<iframe allowfullscreen></iframe>`);
-          let embedFrame = embedHolder.querySelector("iframe");
-          embedFrame.setAttribute("currenturl", render.embed.url);
-          if (render.embed.color != null) {
-            embedFrame.style.background = cleanString(render.embed.color);
-          }
-          let frameWidth = render.s[0] - 16;
-          let defaultMaxWidth = 800;
-          if (frameWidth < 300) {
-            defaultMaxWidth = 300;
-          }
-          let embedWidth = Math.max(frameWidth, defaultMaxWidth);
-          let scale = frameWidth / embedWidth;
-          embedFrame.style.width = embedWidth + "px";
-          embedFrame.style.height = ((render.s[1] - 24 - embedAnno.querySelector("div[details]").offsetHeight) * (1 / scale)) + "px";
-          embedFrame.style.transform = "scale(" + scale + ")";
-          embedFrame.src = render.embed.url;
-          embedHolder.querySelector("img[thumbnail]").style.display = "none";
-          embedHolder.querySelector("div[activate]").style.display = "none";
+    let embedButton = target.closest("div[activate] button");
+    let embedAnno = target.closest(".eAnnotation");
+    let runEmbed = false;
+    if (embedButton != null && embedAnno != null) {
+      if (embedButton.closest(".eAnnotation[embed]") == embedAnno) {
+        runEmbed = true;
+      }
+    }
+    if (runEmbed == true) {
+      let render = ((editor.annotations[embedAnno.getAttribute("anno")] || {}).render || {});
+      if (render.embed != null) {
+        if (render.embed.url == null) {
+          window.open(render.d);
+          return;
         }
+        let embedHolder = embedAnno.querySelector("div[content]");
+        embedHolder.insertAdjacentHTML("beforeend", `<iframe allowfullscreen></iframe>`);
+        let embedFrame = embedHolder.querySelector("iframe");
+        embedFrame.setAttribute("currenturl", render.embed.url);
+        if (render.embed.color != null) {
+          embedFrame.style.background = cleanString(render.embed.color);
+        }
+        let frameWidth = render.s[0] - 16;
+        let defaultMaxWidth = 800;
+        if (frameWidth < 300) {
+          defaultMaxWidth = 300;
+        }
+        let embedWidth = Math.max(frameWidth, defaultMaxWidth);
+        let scale = frameWidth / embedWidth;
+        embedFrame.style.width = embedWidth + "px";
+        embedFrame.style.height = ((render.s[1] - 24 - embedAnno.querySelector("div[details]").offsetHeight) * (1 / scale)) + "px";
+        embedFrame.style.transform = "scale(" + scale + ")";
+        embedFrame.src = render.embed.url;
+        embedHolder.querySelector("img[thumbnail]").style.display = "none";
+        embedHolder.querySelector("div[activate]").style.display = "none";
       }
       return true;
     }

@@ -964,6 +964,9 @@ modules["pages/editor"] = {
             if (data.data.page != null && render.page != data.data.page) {
               continue;
             }
+            if (render.f == "page") { // Only if not page annotation!
+              continue;
+            }
             if (render.sync < data.data.sync) {
               anno.render.remove = true;
               await utils.render(anno.render, null, true);

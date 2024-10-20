@@ -3540,6 +3540,9 @@ modules["dropdowns/editor/file"] = {
       //frame.querySelector('.eFileAction[option="ocr"]').remove();
     }
     if (editor.lesson.type == "freeboard") {
+      if (editor.annotationPages.length < 1) {
+        jump.remove();
+      }
       //find.remove();
       //jumptop.remove();
       //jump.remove();

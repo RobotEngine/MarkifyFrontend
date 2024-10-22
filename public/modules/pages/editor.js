@@ -1970,31 +1970,33 @@ modules["pages/editor"] = {
           unloadChunkedAnnotations = { ...unloadChunkedAnnotations, ...(this.chunkAnnotations[chunk] || {}) };
         }
       }
-      let chunkUnloadAnnos = Object.keys(unloadChunkedAnnotations);
-      for (let a = 0; a < chunkUnloadAnnos.length; a++) {
-        let annotation = this.annotations[chunkUnloadAnnos[a]] || {};
-        if (annotation.render == null) {
-          continue;
-        }
-        if (annotation.chunks != null) {
-          // Annotation may still be visible in another chunk, we must check
-          let remove = true;
-          for (let c = 0; c < annotation.chunks.length; c++) {
-            if (loadedChunks[annotation.chunks[c]] != null) {
-              remove = false;
-              break;
-            }
-          }
-          if (remove == false) {
+      if (this.exporting != true) {
+        let chunkUnloadAnnos = Object.keys(unloadChunkedAnnotations);
+        for (let a = 0; a < chunkUnloadAnnos.length; a++) {
+          let annotation = this.annotations[chunkUnloadAnnos[a]] || {};
+          if (annotation.render == null) {
             continue;
           }
-        }
-        if (this.selecting[annotation.render._id] != null) {
-          continue;
-        }
-        let element = pageHolder.querySelector('.eAnnotation[anno="' + annotation.render._id + '"]');
-        if (element != null) {
-          element.remove();
+          if (annotation.chunks != null) {
+            // Annotation may still be visible in another chunk, we must check
+            let remove = true;
+            for (let c = 0; c < annotation.chunks.length; c++) {
+              if (loadedChunks[annotation.chunks[c]] != null) {
+                remove = false;
+                break;
+              }
+            }
+            if (remove == false) {
+              continue;
+            }
+          }
+          if (this.selecting[annotation.render._id] != null) {
+            continue;
+          }
+          let element = pageHolder.querySelector('.eAnnotation[anno="' + annotation.render._id + '"]');
+          if (element != null) {
+            element.remove();
+          }
         }
       }
 
@@ -3994,7 +3996,7 @@ modules["pages/editor/annotation"] = {
 
         //let transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
         
-        let renderPromise = new Promise(async (resolve) => {
+        await new Promise(async (resolve) => {
           pageRender.render({
             canvasContext: context,
             //transform: transform,
@@ -4014,11 +4016,6 @@ modules["pages/editor/annotation"] = {
             }
           });
         });
-        if (editor.exporting != true) {
-          await renderPromise;
-        } else {
-          editor.exportPromises.push(renderPromise);
-        }
         await sleep(10);
       }
       await sleep(1);
@@ -4284,7 +4281,28 @@ modules["pages/editor/annotation"] = {
     let editor = await getModule("pages/editor");
     if (editor.exportSelected != null) {
       if (editor.exportSelected.includes(data._id) == false) {
-        return;
+        let currentAnnoCheck = data;
+        let checkedParents = [];
+        let isValid = false;
+        while (currentAnnoCheck.parent != null) {
+          let annoid = currentAnnoCheck.parent;
+          if (annoid == null || checkedParents.includes(annoid) == true) {
+            break;
+          }
+          checkedParents.push(annoid);
+          let annotation = editor.annotations[annoid];
+          if (annotation == null) {
+            break;
+          }
+          currentAnnoCheck = annotation.render || {};
+          if (editor.exportSelected.includes(annoid) == true) {
+            isValid = true;
+            break;
+          }
+        }
+        if (isValid == false) {
+          return;
+        }
       } else if (data.parent != null) {
         let [absX, absY] = editor.getAbsolutePosition(data);
         data.parent = null;

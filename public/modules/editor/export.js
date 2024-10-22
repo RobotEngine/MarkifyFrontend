@@ -228,12 +228,12 @@ modules["editor/export"] = {
             page.setAttribute("exporting", "");
             pageHolder.style.removeProperty("width");
             pageHolder.style.removeProperty("height");
-            pageHolder.style.removeProperty("transform");
-            window.scrollTo(0, 0);
-            pageHolder.style.transform = `translate(${page.getBoundingClientRect().left}px, -${page.getBoundingClientRect().top}px)`;
-            if (editor.exportPromises.length > 0) {
-              await Promise.all(editor.exportPromises)
-            }
+            //pageHolder.style.removeProperty("transform");
+            //window.scrollTo(0, 0);
+            //pageHolder.style.transform = `translate(${page.getBoundingClientRect().left}px, -${page.getBoundingClientRect().top}px)`;
+            //if (editor.exportPromises.length > 0) {
+            //  await Promise.all(editor.exportPromises)
+            //}
             await this.resetAnnotationSize();
             currentPage++;
             return { capture: true, done: false };

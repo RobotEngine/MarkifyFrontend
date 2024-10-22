@@ -3994,7 +3994,7 @@ modules["pages/editor/annotation"] = {
 
         //let transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
         
-        await new Promise(async (resolve) => {
+        let renderPromise = new Promise(async (resolve) => {
           pageRender.render({
             canvasContext: context,
             //transform: transform,
@@ -4014,6 +4014,9 @@ modules["pages/editor/annotation"] = {
             }
           });
         });
+        if (editor.exporting != true) {
+          await renderPromise;
+        }
         await sleep(10);
       }
       await sleep(1);
@@ -4224,7 +4227,7 @@ modules["pages/editor/annotation"] = {
     ".eAnnotation[page] > div[hide] div[hidemodal] div[hidemodaltitle]": `font-size: 28px; font-weight: 700; color: var(--theme)`,
     //".eAnnotation[page] > div[hide] div[hidemodal] div[hidemodaldesc]": `margin: 8px 0; max-width: 450px`,
     ".eAnnotation[page] > div[hide] div[hidemodal] button": `display: flex; margin-top: 24px; z-index: 1; background: var(--theme); --borderRadius: 20.25px; color: #fff`,
-    ".eAnnotation[page] > div[content] div[document]": `position: relative; --scale-factor: 2; border-radius: inherit; overflow: hidden; z-index: 1; opacity: 0; transition: opacity .3s`,
+    ".eAnnotation[page] > div[content] div[document]": `position: relative; --scale-factor: 2; border-radius: inherit; overflow: hidden; z-index: 1`,
     ".eAnnotation[page] > div[content] div[document] canvas": `position: absolute; width: calc(100% - 8px) !important; height: calc(100% - 8px) !important; left: 4px; top: 4px; background: var(--themeColor); z-index: 1`,
     ".eAnnotation[page] > div[content] div[document] div[textlayer]": `position: absolute; width: var(--fullWidth) !important; height: var(--fullHeight) !important; left: 4px; top: 4px; transform-origin: top left; transform: var(--fullScale); font-family: sans-serif; pointer-events: all !important; z-index: 2`,
     ".eAnnotation[page] > div[content] div[document] div[textlayer] span": `position: absolute; color: transparent; pointer-events: all; transform-origin: top left`,
@@ -4929,6 +4932,10 @@ modules["pages/editor/annotation"] = {
             pdfDocumentHolder.setAttribute("sourcepage", sourcePageId);
             pdfDocumentHolder.setAttribute("width", data.s[0]);
             pdfDocumentHolder.setAttribute("height", data.s[1]);
+            if (editor.exporting != true) {
+              pdfDocumentHolder.style.opacity = 0;
+              pdfDocumentHolder.style.transition = "opacity .3s";
+            }
             this.addPageToQueue(data.source, data.number);
           } else {
             let canvas = pdfDocumentHolder.querySelector("canvas");

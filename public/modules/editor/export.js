@@ -180,11 +180,10 @@ modules["editor/export"] = {
               await utils.setMarginSize(true);
               if (annotation.render != null) {
                 let position = editor.getAbsolutePosition(annotation.render);
+                window.scrollTo(0, 0);
+                pageHolder.style.removeProperty("transform");
                 let pageRect = pageHolder.getBoundingClientRect();
-                window.scrollTo({
-                  left: pageRect.left + window.scrollX + (position[0] * editor.zoom) + pageBorderWidth,
-                  top: pageRect.top + window.scrollY + (position[1] * editor.zoom) + pageBorderWidth
-                });
+                pageHolder.style.transform = `translate(-${pageRect.left + ((position[0] + pageBorderWidth) * editor.zoom)}px, -${pageRect.top + ((position[1] + pageBorderWidth) * editor.zoom)}px)`;
               }
               await utils.processPageRenders(editor);
               if (editor.exportPromises.length > 0) {
@@ -193,9 +192,12 @@ modules["editor/export"] = {
               let element = pageHolder.querySelector('.eAnnotation[anno="' + pageID + '"]');
               if (element != null) {
                 element.style.borderRadius = "0px";
-                element.querySelector("div[border]").remove();
+                let border = element.querySelector("div[border]");
+                if (border != null) {
+                  border.remove();
+                }
                 currentPage++;
-                return { capture: true, done: false, width: element.offsetWidth - (pageBorderWidth * 2), height: element.offsetHeight - (pageBorderWidth * 2), page: currentPage - 1 };
+                return { capture: true, done: false, width: element.offsetWidth - (annotation.render.s[0] * editor.zoom), height: element.offsetHeight - (annotation.render.s[1] * editor.zoom), page: currentPage - 1 };
               }
             }
           }
@@ -226,10 +228,9 @@ modules["editor/export"] = {
             page.setAttribute("exporting", "");
             pageHolder.style.removeProperty("width");
             pageHolder.style.removeProperty("height");
-            window.scrollTo({
-              left: window.scrollX + page.getBoundingClientRect().left,
-              top: window.scrollY + page.getBoundingClientRect().top
-            });
+            pageHolder.style.removeProperty("transform");
+            window.scrollTo(0, 0);
+            pageHolder.style.transform = `translate(${page.getBoundingClientRect().left}px, -${page.getBoundingClientRect().top}px)`;
             if (editor.exportPromises.length > 0) {
               await Promise.all(editor.exportPromises)
             }

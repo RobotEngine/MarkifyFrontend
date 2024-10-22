@@ -2095,6 +2095,9 @@ modules["pages/editor"] = {
 
     let currentPage = 1;
     let centerWindowWithPage = () => {
+      if (this.exporting == true) {
+        return;
+      }
       if (this.lesson.type != "freeboard") {
         let pageChild = pageHolder.children[currentPage - 1] || pageHolder;
         let pageRect = pageChild.getBoundingClientRect();

@@ -24,7 +24,7 @@ modules["editor/export"] = {
         await this.checkAnnotationSize(anno, true);
       }
     }
-    this.checkAnnotationSize();
+    await this.checkAnnotationSize();
   },
   checkAnnotationSize: async function (anno) {
     let editor = await getModule("pages/editor");

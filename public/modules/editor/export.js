@@ -198,6 +198,11 @@ modules["editor/export"] = {
                 if (border != null) {
                   border.remove();
                 }
+                let title = element.querySelector("div[title]");
+                if (title != null) {
+                  title.style.margin = "4px";
+                  title.style.borderTopLeftRadius = "0px";
+                }
                 currentPage++;
                 return { capture: true, done: false, width: ((annotation.render.s[0] - (pageBorderWidth * 2)) * editor.zoom) / scaleFactor, height: ((annotation.render.s[1] - (pageBorderWidth * 2)) * editor.zoom) / scaleFactor, page: currentPage - 1 };
               }

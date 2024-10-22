@@ -1819,7 +1819,7 @@ modules["pages/editor"] = {
         }
         if (annotation.pointer != null) {
           annoid = annotation.pointer;
-          annotation = this.annotations[annoid] || { render: {} };
+          annotation = this.annotations[annoid];
         }
         let selected = this.selecting[annoid];
         if (selected != null) {
@@ -1853,7 +1853,7 @@ modules["pages/editor"] = {
         }
         if (annotation.pointer != null) {
           annoid = annotation.pointer;
-          annotation = this.annotations[annoid] || { render: {} };
+          annotation = this.annotations[annoid];
         }
         if (includeSelecting != true) {
           currentAnnoCheck = annotation.render || {};
@@ -1893,7 +1893,7 @@ modules["pages/editor"] = {
         }
         if (annotation.pointer != null) {
           annoid = annotation.pointer;
-          annotation = this.annotations[annoid] || { render: {} };
+          annotation = this.annotations[annoid];
         }
         let render = annotation.render; // { ...(annotation.render || {}), ...(this.selecting[annoid] || {}) };
         if (render == null) {

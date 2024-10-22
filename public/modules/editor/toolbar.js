@@ -1640,7 +1640,7 @@ modules["pages/editor/toolbar/cursor"] = {
       let selection = checkRemSelections[i];
       let annoID = selection.getAttribute("anno");
       let anno = content.querySelector('.eAnnotation[anno="' + annoID + '"]');
-      if (editor.selecting[annoID] == null || anno == null || anno.hasAttribute("hidden") == true) {
+      if (editor.selecting[annoID] == null) { // || anno == null || anno.hasAttribute("hidden") == true) {
         if (anno != null) {
           anno.removeAttribute("selected");
           anno.removeAttribute("notransition");
@@ -1711,13 +1711,16 @@ modules["pages/editor/toolbar/cursor"] = {
         let anno = content.querySelector('.eAnnotation[anno="' + annoID + '"]');
         let select = content.querySelector('.eSelect[anno="' + annoID + '"]');
         let collabSelect = content.querySelector('.eCollabSelect[anno="' + annoID + '"]');
-        if (anno == null || anno.hasAttribute("hidden") == true) {
+        if (anno == null) {
+          continue;
+        }
+        /*if (anno == null || anno.hasAttribute("hidden") == true) {
           delete editor.selecting[annoID];
           if (select != null) {
             select.remove();
           }
           continue;
-        }
+        }*/
         let currentAnnoCheck = merged;
         let checkedParents = [];
         let enableContinue = false;
@@ -3894,6 +3897,7 @@ modules["pages/editor/toolbar/drag"] = {
   },
   js: async function (editor, utils, addEvent) {
     let content = editor.page.querySelector(".eContent");
+    let annoHolder = editor.page.querySelector(".ePageHolder");
 
     body.style.userSelect = "none";
     editor.page.style.touchAction = "pinch-zoom";
@@ -3906,61 +3910,185 @@ modules["pages/editor/toolbar/drag"] = {
     let wasSelected;
     let prevSelecting;
 
+    let self = editor.getSelf();
+
     let useX = 0;
     let useY = 0;
     let updateSelectedBounds = async (event) => {
       if (selection == null) {
         return;
       }
-      if (event != null) {
-        useX = clientPosition(event, "x");
-        useY = clientPosition(event, "y");
-      }
-      let newX = useX + window.scrollX;
-      let newY = useY + window.scrollY;
-      if (newX > selectX) {
-        selection.style.width = newX - selectX + "px";
-        selection.style.left = selectX + "px";
-        if (newY > selectY) {
-          selection.style.height = newY - selectY + "px";
-          selection.style.top = selectY + "px";
-          selection.style.borderRadius = "10px 10px 0px 10px";
+      if (editor.lesson.type != "standard") {
+        if (event != null) {
+          let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientPosition(event, "y"), 0);
+          useX = x;
+          useY = y;
+        }
+        let selectWidth = 0;
+        let selectHeight = 0;
+        let topLeftX = 0;
+        let topLeftY = 0;
+        let bottomRightX = 0;
+        let bottomRightY = 0;
+        if (useX > selectX) {
+          selectWidth = useX - selectX;
+          topLeftX = selectX;
+          bottomRightX = selectX + selectWidth;
+          if (useY > selectY) {
+            selectHeight = useY - selectY;
+            topLeftY = selectY;
+            bottomRightY = selectY + selectHeight;
+            selection.style.borderRadius = "10px 10px 0px 10px";
+          } else {
+            selectHeight = selectY - useY;
+            topLeftY = useY;
+            bottomRightY = useY + selectHeight;
+            selection.style.borderRadius = "10px 0px 10px 10px";
+          }
         } else {
-          selection.style.height = selectY - newY + "px";
-          selection.style.top = newY + "px";
-          selection.style.borderRadius = "10px 0px 10px 10px";
+          selectWidth = selectX - useX;
+          topLeftX = useX;
+          bottomRightX = useX + selectWidth;
+          if (useY > selectY) {
+            selectHeight = useY - selectY;
+            topLeftY = selectY;
+            bottomRightY = selectY + selectHeight;
+            selection.style.borderRadius = "10px 10px 10px 0px";
+          } else {
+            selectHeight = selectY - useY;
+            topLeftY = useY;
+            bottomRightY = useY + selectHeight;
+            selection.style.borderRadius = "0px 10px 10px 10px";
+          }
+        }
+
+        let pageRect = annoHolder.getBoundingClientRect();
+        selection.style.width = (selectWidth * editor.zoom) + "px";
+        selection.style.height = (selectHeight * editor.zoom) + "px";
+        selection.style.left = pageRect.x + (topLeftX * editor.zoom) + window.scrollX + "px";
+        selection.style.top = pageRect.y + (topLeftY * editor.zoom) + window.scrollY + "px";
+        
+        let checkChunks = editor.regionInChunks(topLeftX, topLeftY, bottomRightX, bottomRightY);
+        let annotationKeys = {};
+        for (let c = 0; c < checkChunks.length; c++) {
+          annotationKeys = { ...annotationKeys, ...(editor.chunkAnnotations[checkChunks[c]] || {}) };
+        }
+        let annotations = Object.keys(annotationKeys);
+        for (let a = 0; a < annotations.length; a++) {
+          let annoid = annotations[a];
+          let annotation = editor.annotations[annoid];
+          if (annotation == null) {
+            continue;
+          }
+          if (annotation.pointer != null) {
+            annoid = annotation.pointer;
+            annotation = editor.annotations[annoid];
+          }
+          let render = annotation.render;
+          if (render == null) {
+            continue;
+          }
+          if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
+            continue;
+          }
+          let thick = 0;
+          if (render.t != null) {
+            if (render.b != "none" || render.d == "line") {
+              thick = render.t;
+            }
+          }
+          let [x, y] = editor.getAbsolutePosition(render);
+          let endX = x + render.s[0] + (thick * 2);
+          let endY = y + render.s[1] + (thick * 2);
+          if (render.f != "page") { // Part in bounds:
+            if (!(x < bottomRightX && endX > topLeftX && y < bottomRightY && endY > topLeftY)) {
+              continue;
+            }
+          } else { // Entire thing in bounds:
+            if (x < topLeftX || y < topLeftY || endX > bottomRightX || endY > bottomRightY) {
+              continue;
+            }
+          }
+
+          let currentAnnoCheck = render;
+          let checkedParents = [];
+          let parentCancel = false;
+          while (currentAnnoCheck.parent != null) {
+            let checkannoid = currentAnnoCheck.parent;
+            if (checkannoid == null || checkedParents.includes(checkannoid) == true) {
+              break;
+            }
+            checkedParents.push(checkannoid);
+            let annotation = editor.annotations[checkannoid];
+            if (annotation == null) {
+              break;
+            }
+            if (annotation.pointer != null) {
+              checkannoid = annotation.pointer;
+              annotation = editor.annotations[checkannoid];
+            }
+            currentAnnoCheck = annotation.render || {};
+            if (editor.selecting[checkannoid] != null || currentAnnoCheck.hide == true) {
+              parentCancel = true;
+              break;
+            }
+          }
+          if (parentCancel == true) {
+            continue;
+          }
+
+          editor.selecting[annoid] = {};
         }
       } else {
-        selection.style.width = selectX - newX + "px";
-        selection.style.left = newX + "px";
-        if (newY > selectY) {
-          selection.style.height = newY - selectY + "px";
-          selection.style.top = selectY + "px";
-          selection.style.borderRadius = "10px 10px 10px 0px";
+        if (event != null) {
+          useX = clientPosition(event, "x");
+          useY = clientPosition(event, "y");
+        }
+        let newX = useX + window.scrollX;
+        let newY = useY + window.scrollY;
+        if (newX > selectX) {
+          selection.style.width = newX - selectX + "px";
+          selection.style.left = selectX + "px";
+          if (newY > selectY) {
+            selection.style.height = newY - selectY + "px";
+            selection.style.top = selectY + "px";
+            selection.style.borderRadius = "10px 10px 0px 10px";
+          } else {
+            selection.style.height = selectY - newY + "px";
+            selection.style.top = newY + "px";
+            selection.style.borderRadius = "10px 0px 10px 10px";
+          }
         } else {
-          selection.style.height = selectY - newY + "px";
-          selection.style.top = newY + "px";
-          selection.style.borderRadius = "0px 10px 10px 10px";
+          selection.style.width = selectX - newX + "px";
+          selection.style.left = newX + "px";
+          if (newY > selectY) {
+            selection.style.height = newY - selectY + "px";
+            selection.style.top = selectY + "px";
+            selection.style.borderRadius = "10px 10px 10px 0px";
+          } else {
+            selection.style.height = selectY - newY + "px";
+            selection.style.top = newY + "px";
+            selection.style.borderRadius = "0px 10px 10px 10px";
+          }
         }
-      }
-      editor.updateSelectedBounds = updateSelectedBounds;
 
-      let selected = this.getElementsInRect(selection.getBoundingClientRect(), content.querySelectorAll(".eAnnotation"), editor, utils);
-      for (let i = 0; i < selected.length; i++) {
-        let page = selected[i].closest(".ePage");
-        if (page != null && page.hasAttribute("hide") == true) {
-          continue;
+        let selected = this.getElementsInRect(selection.getBoundingClientRect(), content.querySelectorAll(".eAnnotation"), editor, utils);
+        for (let i = 0; i < selected.length; i++) {
+          let page = selected[i].closest(".ePage");
+          if (page != null && page.hasAttribute("hide") == true) {
+            continue;
+          }
+          let annoID = selected[i].getAttribute("anno");
+          let render = ((editor.annotations[annoID] || {}).render || {});
+          if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
+            continue;
+          }
+          editor.selecting[annoID] = {};
         }
-        let annoID = selected[i].getAttribute("anno");
-        let self = editor.getSelf();
-        let render = ((editor.annotations[annoID] || {}).render || {});
-        if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
-          continue;
-        }
-        editor.selecting[annoID] = {};
       }
       cursorModule.updateBox();
     }
+    editor.updateSelectedBounds = updateSelectedBounds;
 
     let enableSelect = async (event) => {
       if (event.which === 3 || event.button === 2) {
@@ -3985,9 +4113,18 @@ modules["pages/editor/toolbar/drag"] = {
         // A display annotation, not a real one
         return;
       }
-
-      selectX = clientPosition(event, "x") + window.scrollX;
-      selectY = clientPosition(event, "y") + window.scrollY;
+      if (editor.lesson.type != "standard") {
+        let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientPosition(event, "y"), 0);
+        selectX = x;
+        selectY = y;
+        useX = x;
+        useY = y;
+      } else {
+        selectX = clientPosition(event, "x") + window.scrollX;
+        selectY = clientPosition(event, "y") + window.scrollY;
+        useX = selectX;
+        useY = selectY;
+      }
       if (anno != null) {
         let annoID = anno.getAttribute("anno");
         if (editor.selecting[annoID] != null) {
@@ -4046,7 +4183,7 @@ modules["pages/editor/toolbar/drag"] = {
         }
         anno = target.closest(".eAnnotation, .eSelect, .eSelectActive");
 
-        if (Math.floor((clientPosition(event, "x") + window.scrollX) - selectX) == 0 && Math.floor((clientPosition(event, "y") + window.scrollY) - selectY) == 0) {
+        if (Math.floor((useX - selectX)) == 0 && Math.floor(useY - selectY) == 0) {
           if (anno == null) {
             return;
           }
@@ -4066,7 +4203,7 @@ modules["pages/editor/toolbar/drag"] = {
     addEvent(editor.page, "mouseup", disableSelect, { passive: false });
     addEvent(editor.page, "touchend", disableSelect, { passive: false });
 
-    addEvent(window, "scroll", () => { cursorModule.updateActionUI(); }, { passive: true });
+    addEvent(window, "scroll", () => { updateSelectedBounds(); cursorModule.updateActionUI(); }, { passive: true });
     addEvent(window, "resize", () => { cursorModule.updateActionUI(); }, { passive: true });
 
     addEvent(content, "click", (event) => { cursorModule.clickAction(event); }, { passive: true });

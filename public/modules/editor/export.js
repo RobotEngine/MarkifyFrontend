@@ -107,6 +107,7 @@ modules["editor/export"] = {
 
     let currentTask;
     let currentPage = 1;
+    let scaleFactor = 1.5;
 
     this.exportStep = async (data) => {
       editor.exportPromises = [];
@@ -197,7 +198,7 @@ modules["editor/export"] = {
                   border.remove();
                 }
                 currentPage++;
-                return { capture: true, done: false, width: (annotation.render.s[0] - (pageBorderWidth * 2)) * editor.zoom, height: (annotation.render.s[1] - (pageBorderWidth * 2)) * editor.zoom, page: currentPage - 1 };
+                return { capture: true, done: false, width: ((annotation.render.s[0] - (pageBorderWidth * 2)) * editor.zoom) / scaleFactor, height: ((annotation.render.s[1] - (pageBorderWidth * 2)) * editor.zoom) / scaleFactor, page: currentPage - 1 };
               }
             }
           }

@@ -1973,33 +1973,31 @@ modules["pages/editor"] = {
           unloadChunkedAnnotations = { ...unloadChunkedAnnotations, ...(this.chunkAnnotations[chunk] || {}) };
         }
       }
-      if (this.exporting != true) {
-        let chunkUnloadAnnos = Object.keys(unloadChunkedAnnotations);
-        for (let a = 0; a < chunkUnloadAnnos.length; a++) {
-          let annotation = this.annotations[chunkUnloadAnnos[a]] || {};
-          if (annotation.render == null) {
-            continue;
-          }
-          if (annotation.chunks != null) {
-            // Annotation may still be visible in another chunk, we must check
-            let remove = true;
-            for (let c = 0; c < annotation.chunks.length; c++) {
-              if (loadedChunks[annotation.chunks[c]] != null) {
-                remove = false;
-                break;
-              }
-            }
-            if (remove == false) {
-              continue;
+      let chunkUnloadAnnos = Object.keys(unloadChunkedAnnotations);
+      for (let a = 0; a < chunkUnloadAnnos.length; a++) {
+        let annotation = this.annotations[chunkUnloadAnnos[a]] || {};
+        if (annotation.render == null) {
+          continue;
+        }
+        if (annotation.chunks != null) {
+          // Annotation may still be visible in another chunk, we must check
+          let remove = true;
+          for (let c = 0; c < annotation.chunks.length; c++) {
+            if (loadedChunks[annotation.chunks[c]] != null) {
+              remove = false;
+              break;
             }
           }
-          if (this.selecting[annotation.render._id] != null) {
+          if (remove == false) {
             continue;
           }
-          let element = pageHolder.querySelector('.eAnnotation[anno="' + annotation.render._id + '"]');
-          if (element != null) {
-            element.remove();
-          }
+        }
+        if (this.selecting[annotation.render._id] != null) {
+          continue;
+        }
+        let element = pageHolder.querySelector('.eAnnotation[anno="' + annotation.render._id + '"]');
+        if (element != null) {
+          element.remove();
         }
       }
 

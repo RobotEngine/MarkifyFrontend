@@ -4016,6 +4016,8 @@ modules["pages/editor/annotation"] = {
         });
         if (editor.exporting != true) {
           await renderPromise;
+        } else {
+          editor.exportPromises.push(renderPromise);
         }
         await sleep(10);
       }

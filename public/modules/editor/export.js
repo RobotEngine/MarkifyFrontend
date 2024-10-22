@@ -176,6 +176,8 @@ modules["editor/export"] = {
             let annotation = editor.annotations[pageID];
             if (annotation != null) {
               editor.visibleChunks = annotation.chunks;
+              await editor.runUpdateCycle();
+              await utils.setMarginSize(true);
               if (annotation.render != null) {
                 let position = editor.getAbsolutePosition(annotation.render);
                 let pageRect = pageHolder.getBoundingClientRect();
@@ -184,8 +186,6 @@ modules["editor/export"] = {
                   top: pageRect.top + window.scrollY + (position[1] * editor.zoom) + pageBorderWidth
                 });
               }
-              await editor.runUpdateCycle();
-              await utils.setMarginSize(true);
               await utils.processPageRenders(editor);
               if (editor.exportPromises.length > 0) {
                 await Promise.all(editor.exportPromises)

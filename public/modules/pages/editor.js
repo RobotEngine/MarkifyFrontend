@@ -1767,6 +1767,9 @@ modules["pages/editor"] = {
         }
       }
       if (anno.remove != true) {
+        if (anno.parent != null) {
+          return;
+        }
         let position = this.getAbsolutePosition(anno);
         let thickness = 0;
         if (anno.t != null) {

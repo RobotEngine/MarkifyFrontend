@@ -173,6 +173,7 @@ modules["pages/editor"] = {
     this.chunkAnnotations = {};
     this.reactions = {};
     this.addMargin = 100;
+    this.zoom = 1;
     this.preferences = {
       tools: {
         select: {
@@ -1951,7 +1952,7 @@ modules["pages/editor"] = {
     let updatePageTimeout;
     let loadedChunks = {};
     let alreadyRunningUpdateCycle = false;
-    let runUpdateCycle = async () => {
+    this.runUpdateCycle = async () => {
       if (alreadyRunningUpdateCycle == true) {
         return;
       }
@@ -2032,6 +2033,10 @@ modules["pages/editor"] = {
     }
     let loadedChunkedAnnotations = false;
     this.updateChunks = async () => {
+      if (this.exporting == true) {
+        return;
+      }
+
       // Update Background Dots:
       let dotSize = 25;
       if (this.zoom < .25) {
@@ -2056,7 +2061,13 @@ modules["pages/editor"] = {
       }
       let pageRect = pageHolder.getBoundingClientRect();
       let beforeChunks = JSON.stringify(this.visibleChunks);
-      if (this.exporting != true) {
+      this.visibleChunks = this.regionInChunks(
+        ((fixed.offsetWidth / -2) - pageRect.left) / this.zoom,
+        ((fixed.offsetHeight / -2) - pageRect.top) / this.zoom,
+        ((fixed.offsetWidth + (fixed.offsetWidth / 2)) - pageRect.left) / this.zoom,
+        ((fixed.offsetHeight + (fixed.offsetHeight / 2)) - pageRect.top) / this.zoom
+      );
+      /* if (this.exporting != true) {
         this.visibleChunks = this.regionInChunks(
           ((fixed.offsetWidth / -2) - pageRect.left) / this.zoom,
           ((fixed.offsetHeight / -2) - pageRect.top) / this.zoom,
@@ -2065,9 +2076,9 @@ modules["pages/editor"] = {
         );
       } else {
         this.visibleChunks = Object.keys(this.chunkAnnotations);
-      }
+      } */
       if (beforeChunks != JSON.stringify(this.visibleChunks)) {
-        runUpdateCycle();
+        this.runUpdateCycle();
       }
       
       clearTimeout(updatePageTimeout);
@@ -2196,7 +2207,7 @@ modules["pages/editor"] = {
         (await getModule("alert")).open("error", `<b>Error Loading Annotations</b>Please try again later...`);
         return;
       }
-      if (this.exporting == true) {
+      /*if (this.exporting == true) {
         for (let i = 0; i < annoBody.annotations.length; i++) {
           let addAnno = annoBody.annotations[i];
           this.annotations[addAnno._id] = { render: addAnno };
@@ -2204,7 +2215,7 @@ modules["pages/editor"] = {
         }
         await utils.processPageRenders(this);
         return;
-      }
+      }*/
       for (let i = 0; i < annoBody.annotations.length; i++) {
         let addAnno = annoBody.annotations[i];
         let existingAnno = this.annotations[addAnno._id];
@@ -2274,13 +2285,12 @@ modules["pages/editor"] = {
         (await getModule("editor/realtime")).js(this, page);
       })();
     } else {
-      await (await getModule("editor/export")).js(this, page);
+      await asyncLoadAnnotations();
+      await (await getModule("editor/export")).js(this, utils, page);
     }
 
     this.visiblePages = [];
     this.updatePages = null;
-
-    this.zoom = 1;
 
     if (this.toolbar != null) {
       this.toolbar.checkToolToggle();
@@ -2711,7 +2721,7 @@ modules["pages/editor"] = {
               }
               loadedSourceCount++;
               if (window.exportReady && (loadedSourceCount >= sources.length || getParam("only_thumbnail") == "true")) {
-                await asyncLoadAnnotations();
+                //await asyncLoadAnnotations();
                 window.exportReady();
               }
             });
@@ -2727,7 +2737,7 @@ modules["pages/editor"] = {
 
         if (this.exporting == true) {
           if (window.exportReady && (body.sources.length < 1 || (getParam("only_thumbnail") == "true" && pageHolder.firstElementChild != null && pageHolder.firstElementChild.hasAttribute("sourceid") == false))) {
-            await asyncLoadAnnotations();
+            //await asyncLoadAnnotations();
             window.exportReady();
           }
         }
@@ -2804,7 +2814,7 @@ modules["pages/editor"] = {
         //await this.viewAnnotations();
         //utils.resetAnnotationSize();
         if (window.exportReady) {
-          await asyncLoadAnnotations();
+          //await asyncLoadAnnotations();
           window.exportReady();
         }
         await utils.setMarginSize();
@@ -2830,9 +2840,9 @@ modules["pages/editor"] = {
                 thickness = render.t;
               }
             }
+            let position = this.getAbsolutePosition(render);
             let pageRect = pageHolder.getBoundingClientRect();
             let options = {};
-            let position = this.getAbsolutePosition(render);
             if ((render.s[0] + (thickness * 2)) * this.zoom < fixed.offsetWidth - (scrollOffset * 2)) {
               // Position page to center:
               options.left = pageRect.left + window.scrollX - (fixed.offsetWidth / 2) + ((position[0] + (render.s[0] / 2) + thickness) * this.zoom);
@@ -3367,8 +3377,8 @@ modules["dropdowns/editor/file"] = {
   html: `
   <button class="eFileAction" option="dashboard" title="Return to the Dashboard" style="--themeColor: var(--secondary)"><img src="./images/tooltips/back.svg">Dashboard</button>
   <div class="eFileLine"></div>
-  <button class="eFileAction" option="export" title="Export the lesson into a PDF."><img src="./images/editor/file/export.svg">Export PDF</button>
-  <button class="eFileAction" option="print" title="Export the lesson and print."><img src="./images/editor/file/print.svg">Print</button>
+  <button class="eFileAction" option="export" dropdown="dropdowns/editor/file/export" dropdowntitle="Export" title="Export the lesson as a PDF."><img src="./images/editor/file/export.svg">Export</button>
+  <button class="eFileAction" option="print" dropdown="dropdowns/editor/file/export" dropdowntitle="Print" title="Export the lesson and print."><img src="./images/editor/file/print.svg">Print</button>
   <button class="eFileAction" option="copy" title="Create a copy of the lesson."><img src="./images/editor/file/copy.svg">Create Copy</button>
   <button class="eFileAction" option="moveto" title="Move this lesson into a folder." dropdown="dropdowns/dashboard/moveto" dropdowntitle="Move To Folder"><img src="./images/dashboard/moveto.svg">Move To Folder</button>
   <div class="eFileLine" option="findjump"></div>
@@ -3407,74 +3417,78 @@ modules["dropdowns/editor/file"] = {
       setFrame("pages/dashboard");
     });
     let exportButton = frame.querySelector('.eFileAction[option="export"]');
-    exportButton.addEventListener("click", async () => {
-      exportButton.setAttribute("disabled", "");
-      let exportAlert = await alert.open("info", "<b>Exporting Lesson</b><div>Preparing export...</div>", { time: "never" });
-      if (editor.exportAlert) {
-        clearTimeout(editor.exportAlertTimeout);
-        alert.close(editor.exportAlert);
-      }
-      editor.exportAlert = exportAlert;
-      editor.exportAlertTimeout = setTimeout(() => {
-        alert.close(editor.exportAlert);
-      }, 30000);
-      let [code, body] = await sendRequest("POST", "lessons/export", null, { session: editor.session });
-      if (exportButton != null) {
-        exportButton.removeAttribute("disabled");
-      }
-      if ([504, 524, 0].includes(code) == false) { // Gateway timeout
-        alert.close(exportAlert);
-      }
-      if (code == 200 && exportAlert != null && exportAlert.hasAttribute("complete") == false) {
-        exportAlert.setAttribute("complete", "");
-        window.open(assetURL + body.export);
-        dropdown.close();
-      }
-    });
     let printButton = frame.querySelector('.eFileAction[option="print"]');
-    printButton.addEventListener("click", async () => {
-      printButton.setAttribute("disabled", "");
-      let exportAlert = await alert.open("info", "<b>Exporting Lesson</b><div>Preparing export...</div>", { time: "never" });
-      if (editor.exportAlert) {
-        clearTimeout(editor.exportAlertTimeout);
-        alert.close(editor.exportAlert);
-      }
-      editor.exportAlert = exportAlert;
-      editor.exportAlertTimeout = setTimeout(() => {
-        alert.close(editor.exportAlert);
-      }, 30000);
-      let [code, body] = await sendRequest("POST", "lessons/export?type=print", null, { session: editor.session });
-      if (printButton != null) {
-        printButton.removeAttribute("disabled");
-      }
-      if ([504, 524, 0].includes(code) == false) { // Gateway timeout
-        alert.close(exportAlert);
-      }
-      if (code == 200 && exportAlert != null && exportAlert.hasAttribute("complete") == false) {
-        exportAlert.setAttribute("complete", "");
-        //document.body.insertAdjacentHTML("beforeend", `<object class="eFileActionPrint" type="application/pdf" data="${assetURL + body.export}" width="100%" height="100%" name="${editor.lesson.name}"><param name="src" value=${assetURL + body.export}/></object>`);
-        //document.body.querySelector(".eFileActionPrint").printWithDialog();
-        let blob;
-        await fetch(assetURL + body.export).then(async function (file) {
-          blob = URL.createObjectURL(await file.blob());
-        });
-        if (blob != null) {
-          let oldframe = fixed.querySelector(".eFileActionPrintFrame");
-          if (oldframe != null) {
-            oldframe.remove();
-          }
-          fixed.insertAdjacentHTML("beforeend", `<iframe class="eFileActionPrintFrame" style="display: none"></iframe>`);
-          let iframe = fixed.querySelector(".eFileActionPrintFrame");
-          iframe.addEventListener("load", () => {
-            iframe.contentWindow.focus();
-            iframe.contentWindow.print();
-            URL.revokeObjectURL(blob);
-          });
-          iframe.src = blob;
+    if (editor.lesson.type != "freeboard") {
+      exportButton.removeAttribute("dropdown");
+      printButton.removeAttribute("dropdown");
+      exportButton.addEventListener("click", async () => {
+        exportButton.setAttribute("disabled", "");
+        let exportAlert = await alert.open("info", "<b>Exporting Lesson</b><div>Preparing export...</div>", { time: "never" });
+        if (editor.exportAlert) {
+          clearTimeout(editor.exportAlertTimeout);
+          alert.close(editor.exportAlert);
         }
-        dropdown.close();
-      }
-    });
+        editor.exportAlert = exportAlert;
+        editor.exportAlertTimeout = setTimeout(() => {
+          alert.close(editor.exportAlert);
+        }, 30000);
+        let [code, body] = await sendRequest("POST", "lessons/export", null, { session: editor.session });
+        if (exportButton != null) {
+          exportButton.removeAttribute("disabled");
+        }
+        if ([504, 524, 0].includes(code) == false) { // Gateway timeout
+          alert.close(exportAlert);
+        }
+        if (code == 200 && exportAlert != null && exportAlert.hasAttribute("complete") == false) {
+          exportAlert.setAttribute("complete", "");
+          window.open(assetURL + body.export);
+          dropdown.close();
+        }
+      });
+      printButton.addEventListener("click", async () => {
+        printButton.setAttribute("disabled", "");
+        let exportAlert = await alert.open("info", "<b>Exporting Lesson</b><div>Preparing export...</div>", { time: "never" });
+        if (editor.exportAlert) {
+          clearTimeout(editor.exportAlertTimeout);
+          alert.close(editor.exportAlert);
+        }
+        editor.exportAlert = exportAlert;
+        editor.exportAlertTimeout = setTimeout(() => {
+          alert.close(editor.exportAlert);
+        }, 30000);
+        let [code, body] = await sendRequest("POST", "lessons/export?type=print", null, { session: editor.session });
+        if (printButton != null) {
+          printButton.removeAttribute("disabled");
+        }
+        if ([504, 524, 0].includes(code) == false) { // Gateway timeout
+          alert.close(exportAlert);
+        }
+        if (code == 200 && exportAlert != null && exportAlert.hasAttribute("complete") == false) {
+          exportAlert.setAttribute("complete", "");
+          //document.body.insertAdjacentHTML("beforeend", `<object class="eFileActionPrint" type="application/pdf" data="${assetURL + body.export}" width="100%" height="100%" name="${editor.lesson.name}"><param name="src" value=${assetURL + body.export}/></object>`);
+          //document.body.querySelector(".eFileActionPrint").printWithDialog();
+          let blob;
+          await fetch(assetURL + body.export).then(async function (file) {
+            blob = URL.createObjectURL(await file.blob());
+          });
+          if (blob != null) {
+            let oldframe = fixed.querySelector(".eFileActionPrintFrame");
+            if (oldframe != null) {
+              oldframe.remove();
+            }
+            fixed.insertAdjacentHTML("beforeend", `<iframe class="eFileActionPrintFrame" style="display: none"></iframe>`);
+            let iframe = fixed.querySelector(".eFileActionPrintFrame");
+            iframe.addEventListener("load", () => {
+              iframe.contentWindow.focus();
+              iframe.contentWindow.print();
+              URL.revokeObjectURL(blob);
+            });
+            iframe.src = blob;
+          }
+          dropdown.close();
+        }
+      });
+    }
     let copyButton = frame.querySelector('.eFileAction[option="copy"]');
     copyButton.addEventListener("click", async () => {
       if (userID == null) {
@@ -3769,9 +3783,9 @@ modules["pages/editor/annotation"] = {
     parent.appendChild(newSVG);
     return newSVG;
   },
-  setMarginSize: async function () {
+  setMarginSize: async function (force) {
     let editor = await getModule("pages/editor");
-    if (editor.exporting == true) {
+    if (editor.exporting == true && force != true) {
       return;
     }
     let contentFrame = editor.page.querySelector(".eContent");
@@ -4001,11 +4015,11 @@ modules["pages/editor/annotation"] = {
       }
       await sleep(1);
     }
-    if (editor.exporting == true) {
+    /*if (editor.exporting == true) {
       for (let i = 0; i < editor.loadedPDFs.length; i++) {
         editor.loadedPDFs[i].destroy();
       }
-    }
+    }*/
     this.runningPageRender = false;
   },
   addPageToQueue: async function (sourceID, pageNumber, forceRunRender) {
@@ -4260,6 +4274,15 @@ modules["pages/editor/annotation"] = {
       return;
     }
     let editor = await getModule("pages/editor");
+    if (editor.exportSelected != null) {
+      if (editor.exportSelected.includes(data._id) == false) {
+        return;
+      } else if (data.parent != null) {
+        let [absX, absY] = editor.getAbsolutePosition(data);
+        data.parent = null;
+        data.p = [absX, absY];
+      }
+    }
     let { _id, f, page, parent, p, s, r, l, c, i, t, b, o, d, done, remove, sync, textfit, sig, lock } = data;
     let [x, y] = p || [];
     let size = s || [];
@@ -4996,7 +5019,7 @@ modules["pages/editor/annotation"] = {
             }
           }
         } else {
-          await new Promise(async (resolve) => {
+          editor.exportPromises.push(new Promise(async (resolve) => {
             anno.addEventListener("load", resolve);
             if (d != null || anno.hasAttribute("src") == false) {
               if (d != null && d.startsWith("blob:") == false) {
@@ -5005,7 +5028,7 @@ modules["pages/editor/annotation"] = {
                 anno.src = d || "./images/editor/uploading.png";
               }
             }
-          });
+          }));
         }
         break;
       case "embed":
@@ -5074,10 +5097,10 @@ modules["pages/editor/annotation"] = {
               if (editor.exporting != true) {
                 thumbnail.src = data.embed.image;
               } else {
-                await new Promise(async (resolve) => {
+                editor.exportPromises.push(new Promise(async (resolve) => {
                   thumbnail.addEventListener("load", resolve);
                   thumbnail.src = data.embed.image;
-                });
+                }));
               }
               thumbnail.style.display = "unset";
             }

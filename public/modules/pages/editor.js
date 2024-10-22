@@ -2932,6 +2932,7 @@ modules["pages/editor"] = {
         content.style.height = ((pageHolder.clientHeight * this.zoom) + addPagesHolder.clientHeight) + "px";
       }
     }
+    updateContentSize();
 
     // Zoom
     let lastMouseX;

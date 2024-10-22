@@ -176,8 +176,6 @@ modules["editor/export"] = {
             let annotation = editor.annotations[pageID];
             if (annotation != null) {
               editor.visibleChunks = annotation.chunks;
-              await editor.runUpdateCycle();
-              await utils.setMarginSize(true);
               if (annotation.render != null) {
                 let position = editor.getAbsolutePosition(annotation.render);
                 let pageRect = pageHolder.getBoundingClientRect();
@@ -186,6 +184,8 @@ modules["editor/export"] = {
                   top: pageRect.top + window.scrollY + (position[1] * editor.zoom) + pageBorderWidth
                 });
               }
+              await editor.runUpdateCycle();
+              await utils.setMarginSize(true);
               await utils.processPageRenders(editor);
               if (editor.exportPromises.length > 0) {
                 await Promise.all(editor.exportPromises)
@@ -195,7 +195,7 @@ modules["editor/export"] = {
                 element.style.borderRadius = "0px";
                 element.querySelector("div[border]").remove();
                 currentPage++;
-                return { capture: true, done: false, width: element.offsetWidth - (pageBorderWidth * 2), height: element.offsetHeight - (pageBorderWidth * 2), page: currentPage };
+                return { capture: true, done: false, width: element.offsetWidth - (pageBorderWidth * 2), height: element.offsetHeight - (pageBorderWidth * 2), page: currentPage - 1 };
               }
             }
           }

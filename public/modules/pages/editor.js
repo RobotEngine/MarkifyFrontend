@@ -2022,7 +2022,7 @@ modules["pages/editor"] = {
           }
         }
         if (render == true && annotation.render != null) {
-          if (annotation.render.parent == null) {
+          if (annotation.render.parent == null && this.exporting != true) {
             utils.render(annotation.render);
           } else {
             await utils.render(annotation.render);

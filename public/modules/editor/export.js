@@ -117,6 +117,7 @@ modules["editor/export"] = {
             if (editor.annotationPages.length > 0) {
               currentPage = 1;
               currentTask = "set";
+              scaleFactor = 1;
             } else {
               currentTask = "board";
             }

@@ -197,7 +197,7 @@ modules["editor/export"] = {
                   border.remove();
                 }
                 currentPage++;
-                return { capture: true, done: false, width: element.offsetWidth - (annotation.render.s[0] * editor.zoom), height: element.offsetHeight - (annotation.render.s[1] * editor.zoom), page: currentPage - 1 };
+                return { capture: true, done: false, width: (annotation.render.s[0] * editor.zoom), height: (annotation.render.s[1] * editor.zoom), page: currentPage - 1 };
               }
             }
           }

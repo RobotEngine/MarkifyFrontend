@@ -129,6 +129,13 @@ modules["editor/export"] = {
           if (editor.annotationPages.length > 0) {
             currentPage = 1;
             currentTask = "set";
+            for (let i = 0; i < editor.annotationPages.length; i++) {
+              let pageLoadID = (editor.annotationPages[i] || [])[0];
+              let annotation = editor.annotations[pageLoadID];
+              if (annotation != null) {
+                editor.visibleChunks.push(annotation.chunks);
+              }
+            }
           } else {
             currentTask = "board";
           }
@@ -177,7 +184,7 @@ modules["editor/export"] = {
           if (pageID != null) {
             let annotation = editor.annotations[pageID];
             if (annotation != null) {
-              editor.visibleChunks = annotation.chunks;
+              //editor.visibleChunks = annotation.chunks;
               await editor.runUpdateCycle();
               await utils.setMarginSize(true);
               if (annotation.render != null) {
@@ -204,14 +211,6 @@ modules["editor/export"] = {
                   title.style.borderTopLeftRadius = "0px";
                 }
                 currentPage++;
-                if (editor.exportSelected == null) {
-                  let annotation = editor.annotations[(editor.annotationPages[currentPage - 1] || [])[0]];
-                  if (annotation != null) {
-                    editor.visibleChunks = [...editor.visibleChunks, ...annotation.chunks];
-                    await editor.runUpdateCycle();
-                    await utils.processPageRenders(editor);
-                  }
-                }
                 return { capture: true, done: false, width: ((annotation.render.s[0] - (pageBorderWidth * 2)) * editor.zoom) / scaleFactor, height: ((annotation.render.s[1] - (pageBorderWidth * 2)) * editor.zoom) / scaleFactor, page: currentPage - 1 };
               }
             }

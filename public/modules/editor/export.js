@@ -204,6 +204,14 @@ modules["editor/export"] = {
                   title.style.borderTopLeftRadius = "0px";
                 }
                 currentPage++;
+                if (editor.exportSelected == null) {
+                  let annotation = editor.annotations[(editor.annotationPages[currentPage - 1] || [])[0]];
+                  if (annotation != null) {
+                    editor.visibleChunks = [...editor.visibleChunks, ...annotation.chunks];
+                    await editor.runUpdateCycle();
+                    await utils.processPageRenders(editor);
+                  }
+                }
                 return { capture: true, done: false, width: ((annotation.render.s[0] - (pageBorderWidth * 2)) * editor.zoom) / scaleFactor, height: ((annotation.render.s[1] - (pageBorderWidth * 2)) * editor.zoom) / scaleFactor, page: currentPage - 1 };
               }
             }

@@ -3370,7 +3370,6 @@ modules["pages/editor/toolbar/cursor"] = {
         if (selecting.remove != true) {
           if (Object.keys(pushFields).length > 0) {
             if (pushFields.f == null) {
-              console.log(pushFields)
               pushChanges.push(JSON.parse(JSON.stringify({ ...pushFields, _id: annoid })));
             } else {
               pushAdds.push({ _id: annoid, remove: true });

@@ -3293,6 +3293,7 @@ modules["pages/editor/toolbar/cursor"] = {
     let pushChanges = [];
     let pushAdds = [];
     let pushRemoves = [];
+    let deleteKeys = {};
     for (let i = 0; i < keys.length; i++) {
       let annoid = keys[i];
       let selecting = editor.selecting[annoid];
@@ -3358,17 +3359,18 @@ modules["pages/editor/toolbar/cursor"] = {
 
       delete selecting.done;
       let changeKeys = Object.keys(selecting);
-      let pushFields = {};
+      let pushFields = {
+        parent: originalRender.parent,
+        p: originalRender.p
+      };
       for (let f = 0; f < changeKeys.length; f++) {
         pushFields[changeKeys[f]] = originalRender[changeKeys[f]] || null;
-      }
-      if (originalRender.parent != null) {
-        pushFields.parent = originalRender.parent;
       }
       if (saveHistory != false) {
         if (selecting.remove != true) {
           if (Object.keys(pushFields).length > 0) {
             if (pushFields.f == null) {
+              console.log(pushFields)
               pushChanges.push(JSON.parse(JSON.stringify({ ...pushFields, _id: annoid })));
             } else {
               pushAdds.push({ _id: annoid, remove: true });
@@ -3531,8 +3533,9 @@ modules["pages/editor/toolbar/cursor"] = {
       }
       if (selecting.remove == true) {
         //delete editor.selecting[annoid];
-        keys.splice(keys.indexOf(annoid), 1);
-        i--;
+        //keys.splice(keys.indexOf(annoid), 1);
+        //i--;
+        deleteKeys[annoid] = "";
       }
     }
     if (fromHistory != true) {
@@ -3555,7 +3558,9 @@ modules["pages/editor/toolbar/cursor"] = {
     editor.selecting = {};
     sentKeys = sentKeys || keys;
     for (let i = 0; i < sentKeys.length; i++) {
-      editor.selecting[sentKeys[i]] = {};
+      if (deleteKeys[sentKeys[i]] == null) {
+        editor.selecting[sentKeys[i]] = {};
+      }
     }
 
     //utils.resetAnnotationSize();

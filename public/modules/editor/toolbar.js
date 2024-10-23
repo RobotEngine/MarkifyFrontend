@@ -3933,36 +3933,28 @@ modules["pages/editor/toolbar/drag"] = {
         let selectHeight = 0;
         let topLeftX = 0;
         let topLeftY = 0;
-        let bottomRightX = 0;
-        let bottomRightY = 0;
         if (useX > selectX) {
           selectWidth = useX - selectX;
           topLeftX = selectX;
-          bottomRightX = selectX + selectWidth;
           if (useY > selectY) {
             selectHeight = useY - selectY;
             topLeftY = selectY;
-            bottomRightY = selectY + selectHeight;
             selection.style.borderRadius = "10px 10px 0px 10px";
           } else {
             selectHeight = selectY - useY;
             topLeftY = useY;
-            bottomRightY = useY + selectHeight;
             selection.style.borderRadius = "10px 0px 10px 10px";
           }
         } else {
           selectWidth = selectX - useX;
           topLeftX = useX;
-          bottomRightX = useX + selectWidth;
           if (useY > selectY) {
             selectHeight = useY - selectY;
             topLeftY = selectY;
-            bottomRightY = selectY + selectHeight;
             selection.style.borderRadius = "10px 10px 10px 0px";
           } else {
             selectHeight = selectY - useY;
             topLeftY = useY;
-            bottomRightY = useY + selectHeight;
             selection.style.borderRadius = "0px 10px 10px 10px";
           }
         }
@@ -3973,6 +3965,8 @@ modules["pages/editor/toolbar/drag"] = {
         selection.style.left = pageRect.x + (topLeftX * editor.zoom) + window.scrollX + "px";
         selection.style.top = pageRect.y + (topLeftY * editor.zoom) + window.scrollY + "px";
         
+        let bottomRightX = topLeftX + selectWidth;
+        let bottomRightY = topLeftY + selectHeight;
         let checkChunks = editor.regionInChunks(topLeftX, topLeftY, bottomRightX, bottomRightY);
         let annotationKeys = {};
         for (let c = 0; c < checkChunks.length; c++) {

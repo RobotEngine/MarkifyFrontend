@@ -2227,14 +2227,19 @@ modules["pages/editor"] = {
         let existingAnno = this.annotations[addAnno._id];
         if (existingAnno == null || existingAnno.render.sync < addAnno.sync) {
           this.annotations[addAnno._id] = { render: addAnno };
-          await this.annotationChunks(this.annotations[addAnno._id]);
-          this.updateAnnotationPages(addAnno);
           /*if (this.lesson.type != "freeboard") {
             let editorPageAnnotations = this.page.querySelector('.ePage[pageid="' + addAnno.page + '"] .ePageAnnotations');
             if (editorPageAnnotations != null) {
               editorPageAnnotations.removeAttribute("loaded");
             }
           }*/
+        }
+      }
+      for (let i = 0; i < annoBody.annotations.length; i++) {
+        let existingAnno = this.annotations[annoBody.annotations[i]._id];
+        if (existingAnno != null) {
+          await this.annotationChunks(existingAnno);
+          this.updateAnnotationPages(existingAnno.render);
         }
       }
       if (annoBody.reactions != null) {

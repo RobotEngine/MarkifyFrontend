@@ -59,7 +59,7 @@ modules["dropdowns/editor/file/export"] = {
       editor.exportAlert = exportAlert;
       editor.exportAlertTimeout = setTimeout(() => {
         alert.close(editor.exportAlert);
-      }, 30000);
+      }, 60000);
       let sendBody = { type: type, method: method };
       if (method == "selected") {
         sendBody.selecting = Object.keys(editor.selecting);

@@ -3998,27 +3998,39 @@ modules["pages/editor/annotation"] = {
 
         //let transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
         
-        await new Promise(async (resolve) => {
-          pageRender.render({
-            canvasContext: context,
-            //transform: transform,
-            viewport: viewport
-          }).promise.then(() => {
-            element.style.opacity = "1";
-            let textHolder = element.querySelector("div[textlayer]");
-            if (textHolder != null) {
-              pageRender.getTextContent().then((textContent) => {
-                (new pdfjsLib.TextLayer({
-                  textContentSource: textContent,
-                  container: textHolder,
-                  viewport: viewport
-                })).render();
-                resolve();
-              });
-            }
+        if (editor.exporting != true) {
+          await new Promise(async (resolve) => {
+            pageRender.render({
+              canvasContext: context,
+              //transform: transform,
+              viewport: viewport
+            }).promise.then(() => {
+              element.style.opacity = "1";
+              let textHolder = element.querySelector("div[textlayer]");
+              if (textHolder != null) {
+                pageRender.getTextContent().then((textContent) => {
+                  (new pdfjsLib.TextLayer({
+                    textContentSource: textContent,
+                    container: textHolder,
+                    viewport: viewport
+                  })).render();
+                  resolve();
+                });
+              }
+            });
           });
-        });
-        await sleep(10);
+          await sleep(10);
+        } else {
+          editor.exportPromises.push(new Promise(async (resolve) => {
+            pageRender.render({
+              canvasContext: context,
+              //transform: transform,
+              viewport: viewport
+            }).promise.then(() => {
+              resolve();
+            });
+          }));
+        }
       }
       await sleep(1);
     }

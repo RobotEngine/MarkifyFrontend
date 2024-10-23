@@ -109,6 +109,21 @@ modules["editor/export"] = {
     let currentPage = 1;
     let scaleFactor = 1.5;
 
+    let handleRenderPromise;
+    this.handleRendering = () => {
+      if (handleRenderPromise != null) {
+        return handleRenderPromise;
+      }
+      handleRenderPromise = new Promise(async (resolve) => {
+        await editor.runUpdateCycle();
+        await utils.processPageRenders(editor);
+        if (editor.exportPromises.length > 0) {
+          await Promise.all(editor.exportPromises);
+        }
+        resolve();
+      });
+    }
+
     this.exportStep = async (data) => {
       editor.exportPromises = [];
       if (currentTask == null) { // Prepare
@@ -178,7 +193,8 @@ modules["editor/export"] = {
             let annotation = editor.annotations[pageID];
             if (annotation != null) {
               editor.visibleChunks = annotation.chunks;
-              await editor.runUpdateCycle();
+              await this.handleRendering();
+              handleRenderPromise = null;
               await utils.setMarginSize(true);
               if (annotation.render != null) {
                 let position = editor.getAbsolutePosition(annotation.render);
@@ -186,10 +202,6 @@ modules["editor/export"] = {
                 pageHolder.style.removeProperty("transform");
                 let pageRect = pageHolder.getBoundingClientRect();
                 pageHolder.style.transform = `translate(-${pageRect.left + ((position[0] + pageBorderWidth) * editor.zoom)}px, -${pageRect.top + ((position[1] + pageBorderWidth) * editor.zoom)}px)`;
-              }
-              await utils.processPageRenders(editor);
-              if (editor.exportPromises.length > 0) {
-                await Promise.all(editor.exportPromises)
               }
               let element = pageHolder.querySelector('.eAnnotation[anno="' + pageID + '"]');
               if (element != null) {
@@ -204,16 +216,15 @@ modules["editor/export"] = {
                   title.style.borderTopLeftRadius = "0px";
                 }
                 currentPage++;
-                /*if (editor.exportSelected == null) {
+                if (editor.exportSelected == null) {
                   (async () => {
                     let annotation = editor.annotations[(editor.annotationPages[currentPage - 1] || [])[0]];
                     if (annotation != null) {
                       editor.visibleChunks.push(...annotation.chunks);
-                      await editor.runUpdateCycle();
-                      await utils.processPageRenders(editor);
+                      this.handleRendering();
                     }
                   })();
-                }*/
+                }
                 return { capture: true, done: false, width: ((annotation.render.s[0] - (pageBorderWidth * 2)) * editor.zoom) / scaleFactor, height: ((annotation.render.s[1] - (pageBorderWidth * 2)) * editor.zoom) / scaleFactor, page: currentPage - 1 };
               }
             }
@@ -221,11 +232,8 @@ modules["editor/export"] = {
           break;
         case "board":
           editor.visibleChunks = Object.keys(editor.chunkAnnotations);
-          await editor.runUpdateCycle();
-          await utils.processPageRenders(editor);
-          if (editor.exportPromises.length > 0) {
-            await Promise.all(editor.exportPromises)
-          }
+          await this.handleRendering();
+          handleRenderPromise = null;
           await this.resetAnnotationSize();
           return { capture: true, done: true };
           //break;

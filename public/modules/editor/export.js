@@ -122,6 +122,7 @@ modules["editor/export"] = {
         }
         resolve();
       });
+      return handleRenderPromise;
     }
 
     this.exportStep = async (data) => {

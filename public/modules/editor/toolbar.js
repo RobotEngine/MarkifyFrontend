@@ -3919,16 +3919,20 @@ modules["pages/editor/toolbar/drag"] = {
 
     let useX = 0;
     let useY = 0;
+    let lastMouseX = 0;
+    let lastMouseY = 0;
     let updateSelectedBounds = async (event) => {
       if (selection == null) {
         return;
       }
       if (editor.lesson.type != "standard") {
         if (event != null) {
-          let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientPosition(event, "y"), 0);
-          useX = x;
-          useY = y;
+          lastMouseX = clientPosition(event, "x");
+          lastMouseY = clientPosition(event, "y");
         }
+        let { x, y } = await utils.scaleToDoc(lastMouseX, lastMouseY, 0);
+        useX = x;
+        useY = y;
         let selectWidth = 0;
         let selectHeight = 0;
         let topLeftX = 0;

@@ -3557,8 +3557,9 @@ modules["pages/editor/toolbar/cursor"] = {
     editor.selecting = {};
     sentKeys = sentKeys || keys;
     for (let i = 0; i < sentKeys.length; i++) {
-      if (deleteKeys[sentKeys[i]] == null) {
-        editor.selecting[sentKeys[i]] = {};
+      let key = sentKeys[i];
+      if (deleteKeys[key] == null) {
+        editor.selecting[key] = {};
       }
     }
 
@@ -4181,7 +4182,7 @@ modules["pages/editor/toolbar/drag"] = {
         }
         anno = target.closest(".eAnnotation, .eSelect, .eSelectActive");
 
-        if (Math.floor((useX - selectX)) == 0 && Math.floor(useY - selectY) == 0) {
+        if (Math.floor((useX - selectX)) == 0 && Math.floor(useY - selectY) == 0 && selection != null) {
           if (anno == null) {
             return;
           }

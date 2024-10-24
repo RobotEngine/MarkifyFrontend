@@ -4206,7 +4206,7 @@ modules["pages/editor/toolbar/drag"] = {
     addEvent(editor.page, "mouseup", disableSelect, { passive: false });
     addEvent(editor.page, "touchend", disableSelect, { passive: false });
 
-    addEvent(window, "scroll", () => { updateSelectedBounds(); cursorModule.updateActionUI(); }, { passive: true });
+    addEvent(window, "scroll", () => { moveSelect(); cursorModule.updateActionUI(); }, { passive: true });
     addEvent(window, "resize", () => { cursorModule.updateActionUI(); }, { passive: true });
 
     addEvent(content, "click", (event) => { cursorModule.clickAction(event); }, { passive: true });

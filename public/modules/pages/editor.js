@@ -5866,7 +5866,7 @@ modules["pages/editor/annotation"] = {
                     parent: setParent,
                     p: [relativePos[0], relativePos[1]],
                     sync: getEpoch()
-                  }
+                  };
                   await this.saveEdit(setChildAnno, null, sync, { save: true, render: {} });
                   checkAnnotation.save = true; // Alert the system it's time to save
                   checkAnnotation.render.sync = setChildAnno,sync;

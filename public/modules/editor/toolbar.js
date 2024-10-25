@@ -3297,6 +3297,9 @@ modules["pages/editor/toolbar/cursor"] = {
     for (let i = 0; i < keys.length; i++) {
       let annoid = keys[i];
       let selecting = editor.selecting[annoid];
+      if (Object.keys(selecting).length < 1) {
+        continue;
+      }
       let original = editor.annotations[annoid] || { render: selecting };
       if (original != null && original.pointer != null) {
         annoid = original.pointer;

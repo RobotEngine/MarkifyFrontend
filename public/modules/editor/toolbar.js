@@ -847,8 +847,13 @@ modules["editor/toolbar"] = {
         await showSubSubtoolUI(element);
       }
     }
-    frame.addEventListener("mousedown", async (event) => {
+    frame.addEventListener("mousedown", (event) => {
       this.setCurrentTool(event.target);
+    });
+    frame.addEventListener("keydown", (event) => {
+      if (event.key == "Enter") {
+        this.setCurrentTool(event.target); 
+      }
     });
 
     this.updateToolbar = (noUpdateTool, extra) => {

@@ -1357,7 +1357,7 @@ modules["pages/editor"] = {
             }
 
             await utils.enableTimeout(anno._id, existingAnno, gottenRender);
-            utils.setMarginSize();
+            await utils.setMarginSize();
           }
           if (this.selecting[anno.pending] != null) {
             this.selecting[anno._id] = JSON.parse(JSON.stringify(this.selecting[anno.pending]));
@@ -1612,6 +1612,16 @@ modules["pages/editor"] = {
     this.chunkWidth = 2000;
     this.chunkHeight = 2000;
     this.regionInChunks = (topx, topy, bottomx, bottomy) => {
+      if (bottomx < topx) {
+        let setBottomX = topx;
+        topx = bottomx;
+        bottomx = setBottomX;
+      }
+      if (bottomy < topy) {
+        let setBottomY = topy;
+        topy = bottomy;
+        bottomy = setBottomY;
+      }
       let topLeftChunkX = Math.floor(topx / this.chunkWidth) * this.chunkWidth;
       let topLeftChunkY = Math.floor(topy / this.chunkHeight) * this.chunkHeight;
       let bottomRightChunkX = Math.floor(bottomx / this.chunkWidth) * this.chunkWidth;
@@ -1672,7 +1682,7 @@ modules["pages/editor"] = {
         let chunk = chunks[i];
         if (this.chunkAnnotations[chunk] == null) {
           this.chunkAnnotations[chunk] = {};
-          utils.setMarginSize();
+          await utils.setMarginSize();
         }
         this.chunkAnnotations[chunk][render._id] = "";
       }
@@ -1684,7 +1694,7 @@ modules["pages/editor"] = {
             delete this.chunkAnnotations[chunk][render._id];
             if (Object.keys(this.chunkAnnotations[chunk]).length == 0) {
               delete this.chunkAnnotations[chunk];
-              utils.setMarginSize();
+              await utils.setMarginSize();
             }
           }
         }
@@ -2271,7 +2281,7 @@ modules["pages/editor"] = {
         await utils.render((this.annotations[chunkAnnos[a]] || {}).render);
       }*/
       
-      utils.setMarginSize();
+      await utils.setMarginSize();
       let jumpAnnotation = null;
       if (checkForJumpLink != null && checkForJumpLink != "") {
         if (this.annotations[checkForJumpLink] != null) {
@@ -3886,7 +3896,7 @@ modules["pages/editor/annotation"] = {
         editor.realtime.module.adjustRealtimeHolder();
       }
       if (editor.updateZoom != null) {
-        editor.updateZoom(true);
+        await editor.updateZoom(true);
       }
     }
     this.lastOffsetWidth = contentFrame.offsetWidth;
@@ -4254,7 +4264,7 @@ modules["pages/editor/annotation"] = {
     ".eAnnotation[embed] div[details] div[input][visible]": `display: flex !important`,
     ".eAnnotation[embed] div[details] div[input] input": `box-sizing: border-box; width: 100%; height: 36px; border: solid 3px var(--hover); outline: unset; border-radius: 18px; padding: 8px; color: var(--theme); font-size: 18px; font-weight: 600; font-family: var(--font); font-size: 16px`, //margin-right: 6px;
     ".eAnnotation[embed] div[details] div[input] input::placeholder": `color: var(--hover)`,
-    ".eAnnotation[embed] div[details] div[info]": `display: flex; flex-direction: column`,
+    ".eAnnotation[embed] div[details] div[info]": `display: flex; flex-direction: column; color: var(--textColor)`,
     ".eAnnotation[embed] div[details] div[info] div[title]": `display: none; width: 100%; font-size: 18px; font-weight: 700; text-wrap: nowrap; text-overflow: ellipsis; overflow: hidden`,
     ".eAnnotation[embed] div[details] div[info] div[description]": `display: none; width: 100%; margin: 4px 0 2px 0; font-size: 14px; font-weight: 500; color: var(--darkGray); text-wrap: nowrap; text-overflow: ellipsis; overflow: hidden`,
     ".eAnnotation[embed] div[details] div[info] a[link]": `display: flex; width: fit-content; max-width: 100%; align-items: center; font-size: 16px; font-weight: 600; text-decoration: underline; color: var(--theme); text-wrap: nowrap; overflow: hidden; pointer-events: all`,

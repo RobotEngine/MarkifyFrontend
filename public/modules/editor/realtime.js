@@ -635,6 +635,13 @@ modules["editor/realtime"] = {
                         delete userSelection[annoID];
                         continue;
                       }
+                      let setRender = { ...originalRender, ...anno };
+                      if (setRender._id == null || setRender.p == null || setRender.s == null) {
+                        delete userSelection[annoID];
+                        continue;
+                      } else if (setRender.remove == true) {
+                        delete userSelection[annoID];
+                      }
                       if (anno.lock == false) {
                         if ([originalRender.a, originalRender.m].includes(member.modify) == false && member.access < 4) {
                           anno.lock = null;
@@ -661,9 +668,9 @@ modules["editor/realtime"] = {
                           cursorModule.updateBox();
                         }
                         if (anno.done != true && forced != true) {
-                          original.render = { ...originalRender, ...anno };
+                          original.render = setRender;
                         } else {
-                          original.render = { ...originalRender, ...anno };
+                          original.render = setRender;
                           delete original.render.done;
                           await utils.saveEdit(anno, null, time);
                         }
@@ -682,7 +689,7 @@ modules["editor/realtime"] = {
 
                     let selection;
                     //if (original.render._id.startsWith("pending_") == false) {
-                    if (anno.f == null || anno.sync != null || annoID == "cursor") {
+                    if ((anno.f == null || anno.sync != null || annoID == "cursor") && userSelection[annoID] != null) {
                       selection = realtimeHolder.querySelector('.eCollabSelect[member="' + memberID + '"][anno="' + annoID + '"]:not([old])');
                       if (selection == null) {
                         realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCollabSelect" member="${memberID}" new></div>`);

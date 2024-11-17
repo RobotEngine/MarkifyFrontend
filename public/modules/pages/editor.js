@@ -5804,7 +5804,7 @@ modules["pages/editor/annotation"] = {
         position[0] + (merged.s[0] / 2) + thickness,
         position[1] + (merged.s[1] / 2) + thickness
       ]
-    });
+    }, null, null, true);
     if (parent != merged.parent) {
       data.parent = parent ?? null;
       let relativePos = editor.getRelativePosition({

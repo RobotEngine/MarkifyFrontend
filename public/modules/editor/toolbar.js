@@ -3444,7 +3444,7 @@ modules["pages/editor/toolbar/cursor"] = {
             y: Math.min(selectTopLeftY, y)
           };});
         }
-        if (this.action == "resize" && ["topleft", "topright", "left"].includes(this.tooltip) == false) {
+        if (this.action == "resize" && ["topleft", "bottomleft", "left"].includes(this.tooltip) == false) {
           applySnap({ type: "right_center_side", axis: "x", threshold: (x + (width / 2)) - selectBottomRightX }, () => { return {
             width: 0,
             height: Math.ceil(Math.max(selectBottomRightY, y + height) - Math.min(selectTopLeftY, y)),
@@ -3924,7 +3924,7 @@ modules["pages/editor/toolbar/cursor"] = {
     let sizeLimitX = false;
     let sizeLimitY = false;
     let fixAnnotationHolder = this.tooltip;
-    let preserveAspect = this.resizePreserveAspect ?? event.shiftKey ?? false;
+    let preserveAspect = this.resizePreserveAspect || event.shiftKey || false;
     let rotateChange = 0;
     if (this.action == "resize") {
       // Calculate the change in width / height:

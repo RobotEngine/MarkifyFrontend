@@ -107,7 +107,7 @@ modules["editor/export"] = {
 
     let currentTask;
     let currentPage = 1;
-    let scaleFactor = 1; //1.5;
+    let scaleFactor = 1.5;
 
     let handleRenderPromise;
     this.handleRendering = () => {

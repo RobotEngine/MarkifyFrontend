@@ -65,6 +65,7 @@ modules["editor/toolbar"] = {
     ".eToolHoverTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; transform: scale(0); opacity: 0`,
     
     ".eSelect": `position: absolute; left: 0px; top: 0px; opacity: 0; z-index: 101; border-radius: 9px; transition: opacity .15s, transform 0s; pointer-events: none`,
+    ".eSelect[tooleditor]": `z-index: 102`,
     ".eSelectActive": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: all !important; cursor: move; z-index: var(--selectZIndex)`,
     ".eContent[noshiftheld] .eSelectActive": `z-index: var(--annoZIndex) !important`,
     ".eAnnotation[selected] > *": `pointer-events: none`,
@@ -73,20 +74,33 @@ modules["editor/toolbar"] = {
     '.eSelectTooltip:active': `--scale: 1.1 !important`,
     ".eSelect[hidetips] .eSelectTooltip": `opacity: 0; pointer-events: none`,
     ".eSelect[notransition] .eSelectTooltip[duplicate]": `opacity: 0; pointer-events: none`,
+    '.eSelectTooltip[tooltip="movetop"]': `width: 100%; height: 10px; top: -10px; cursor: move`,
+    '.eSelectTooltip[tooltip="movebottom"]': `width: 100%; height: 10px; bottom: -10px; cursor: move`,
+    '.eSelectTooltip[tooltip="moveleft"]': `width: 10px; height: 100%; left: -10px; cursor: move`,
+    '.eSelectTooltip[tooltip="moveright"]': `width: 10px; height: 100%; right: -10px; cursor: move`,
     '.eSelectTooltip[tooltip="topleft"]': `left: -10px; top: -10px; cursor: nwse-resize`,
     '.eSelectTooltip[tooltip="topright"]': `right: -10px; top: -10px; cursor: nesw-resize`,
-    '.eSelectTooltip[tooltip="bottomleft"]': `display: none; left: -10px; bottom: -10px; cursor: nesw-resize`,
+    '.eSelectTooltip[tooltip="bottomleft"]': `left: -10px; bottom: -10px; cursor: nesw-resize`,
     '.eSelectTooltip[tooltip="bottomright"]': `right: -10px; bottom: -10px; cursor: nwse-resize`,
     '.eSelectTooltip[tooltip="left"]': `left: -14px; top: 50%; transform: translateY(-50%); cursor: ew-resize`,
     '.eSelectTooltip[tooltip="right"]': `right: -14px; top: 50%; transform: translateY(-50%); cursor: ew-resize`,
     '.eSelectTooltip[tooltip="top"]': `left: 50%; top: -14px; transform: translateX(-50%); cursor: ns-resize`,
     '.eSelectTooltip[tooltip="bottom"]': `left: 50%; bottom: -14px; transform: translateX(-50%); cursor: ns-resize`,
-    '.eSelectTooltip[tooltip="rotate"]': `left: -20px; bottom: -20px; cursor: crosshair`,
+    '.eSelectTooltip[tooltip="rotate"]': `left: -28px; bottom: -28px; cursor: crosshair`,
     ".eSelectDrag": `position: absolute; box-sizing: border-box; pointer-events: none; z-index: 99; opacity: 0; background: var(--secondary); border: solid 2px var(--theme); border-radius: 10px; transition: opacity .1s`,
+    ".eSelectTooltip[duplicate]": `opacity: 0; pointer-events: none`,
+    ".eSelect[showduplicate] .eSelectTooltip[duplicate]": `opacity: 1 !important; pointer-events: all !important`,
     '.eSelectTooltip[tooltip="duplicateleft"]': `left: -50px; top: 50%; transform: translateY(-50%) scale(var(--scale)); cursor: pointer`,
     '.eSelectTooltip[tooltip="duplicateright"]': `right: -50px; top: 50%; transform: translateY(-50%) scale(var(--scale)); cursor: pointer`,
     '.eSelectTooltip[tooltip="duplicatetop"]': `left: 50%; top: -50px; transform: translateX(-50%) scale(var(--scale)); cursor: pointer`,
     '.eSelectTooltip[tooltip="duplicatebottom"]': `left: 50%; bottom: -50px; transform: translateX(-50%) scale(var(--scale)); cursor: pointer`,
+
+    ".eSelectSnap": `position: absolute; left: 0px; top: 0px; z-index: 102; background: var(--secondary); border-radius: 1px; pointer-events: none`,
+    ".eSelectSnap div[marker]": `position: absolute; z-index: 102; background: var(--secondary); border-radius: 1px; pointer-events: none`,
+    '.eSelectSnap div[marker="snapxleft"]': `width: 2px; height: 16px; left: 0px; top: 50%; transform: translateY(-50%)`,
+    '.eSelectSnap div[marker="snapxright"]': `width: 2px; height: 16px; right: 0px; top: 50%; transform: translateY(-50%)`,
+    '.eSelectSnap div[marker="snapytop"]': `width: 16px; height: 2px; top: 0px; left: 50%; transform: translateX(-50%)`,
+    '.eSelectSnap div[marker="snapybottom"]': `width: 16px; height: 2px; bottom: 0px; left: 50%; transform: translateX(-50%)`,
 
     ".eSelectBar": `position: absolute; display: flex; max-width: calc(100vw - 88px); height: 50px; background: var(--pageColor); box-shadow: var(--shadow); z-index: 102; border-radius: 16px; transform: translateY(-10%); opacity: 0; transition: transform .2s, opacity .2s, border-radius .2s`,
     ".eSelectHolder": `display: flex; width: 100%; height: 100%; gap: 6px; overflow: auto; border-radius: inherit`,
@@ -286,7 +300,7 @@ modules["editor/toolbar"] = {
     media: ["media", "embed"]
   },
   checkSubToolType: function (editor, check) {
-    let disabled = editor.lesson.settings.disabled || [];
+    let disabled = editor.lesson.settings.disabled ?? [];
     for (let i = 0; i < disabled.length; i++) {
       let subTool = this.subToolTypes[disabled[i]];
       if (subTool != null && subTool.includes(check) == true) {
@@ -479,10 +493,12 @@ modules["editor/toolbar"] = {
 
     let cursorModule = await getModule("pages/editor/toolbar/cursor");
 
+    let toolEvents = [];
     this.disableTool = async () => {
       for (let i = 0; i < toolEvents.length; i++) {
         let remEvent = toolEvents[i];
         remEvent.parent.removeEventListener(remEvent.name, remEvent.listener);
+        delete tempListeners[remEvent.remID];
       }
       toolEvents = [];
       if (this.endToolEvent != null) {
@@ -515,6 +531,7 @@ modules["editor/toolbar"] = {
           }
         })();
       }
+      await cursorModule.endAction();
       editor.selecting = {};
       cursorModule.updateBox();
       if (editor.lastZoom != null && editor.zoomChanged == false) {
@@ -524,7 +541,9 @@ modules["editor/toolbar"] = {
     }
     let tempToolListen = (parent, listen, runFunc, extra) => {
       parent.addEventListener(listen, runFunc, extra);
-      toolEvents.push({ type: "event", parent: parent, name: listen, listener: runFunc });
+      let listener = { type: "event", parent: parent, name: listen, listener: runFunc };
+      listener.remID = addTempListener(listener);
+      toolEvents.push(listener);
     }
     let utils = await getModule("pages/editor/annotation");
     let mouseSVG;
@@ -539,11 +558,11 @@ modules["editor/toolbar"] = {
       if (module != null) {
         module.js(editor, utils, tempToolListen, {
           tool: selectedSubtoolToolID,
-          ...(extra || {})
+          ...(extra ?? {})
         });
       }
-      module = module || {};
-      editor.realtime.tool = module.realtimeTool || 0;
+      module = module ?? {};
+      editor.realtime.tool = module.realtimeTool ?? 0;
       //editor.selecting = {};
       editor.realtime.passthrough = module.publish;
       if (editor.realtime.module != null) {
@@ -556,7 +575,7 @@ modules["editor/toolbar"] = {
         pageContent.style.cursor = "grab";
         mouseSVG = null;
       } else {
-        let setSVG = module.mouse || `<svg width="56" height="56" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"> <g filter="url(#filter0_d_231_14)"> <mask id="path-1-outside-1_231_14" maskUnits="userSpaceOnUse" x="28" y="27" width="21" height="28" fill="black"> <rect fill="white" x="28" y="27" width="21" height="28"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M34.7886 30.574C32.8075 29.1419 30.0371 30.5535 30.0312 32.998L30 45.8878C29.9946 48.1311 32.3632 49.5865 34.362 48.5681L36.9809 47.2337L38.5573 50.3275C39.3465 51.8764 41.2418 52.4922 42.7907 51.703C44.3396 50.9138 44.9554 49.0185 44.1662 47.4696L42.5899 44.3757L44.8395 43.2295C46.8383 42.2111 47.053 39.4394 45.235 38.1252L34.7886 30.574Z"/> </mask> <path fill-rule="evenodd" clip-rule="evenodd" d="M34.7886 30.574C32.8075 29.1419 30.0371 30.5535 30.0312 32.998L30 45.8878C29.9946 48.1311 32.3632 49.5865 34.362 48.5681L36.9809 47.2337L38.5573 50.3275C39.3465 51.8764 41.2418 52.4922 42.7907 51.703C44.3396 50.9138 44.9554 49.0185 44.1662 47.4696L42.5899 44.3757L44.8395 43.2295C46.8383 42.2111 47.053 39.4394 45.235 38.1252L34.7886 30.574Z" fill="#2F2F2F"/> <path d="M30.0312 32.998L28.0312 32.9932L30.0312 32.998ZM34.7886 30.574L33.617 32.1949L33.617 32.1949L34.7886 30.574ZM30 45.8878L28 45.883L30 45.8878ZM34.362 48.5681L33.454 46.786L33.454 46.786L34.362 48.5681ZM36.9809 47.2337L38.7629 46.3257L37.8549 44.5437L36.0729 45.4516L36.9809 47.2337ZM38.5573 50.3275L40.3393 49.4195L40.3393 49.4195L38.5573 50.3275ZM42.7907 51.703L43.6987 53.485L43.6987 53.485L42.7907 51.703ZM44.1662 47.4696L45.9483 46.5616L45.9483 46.5616L44.1662 47.4696ZM42.5899 44.3757L41.6819 42.5937L39.8999 43.5017L40.8078 45.2837L42.5899 44.3757ZM44.8395 43.2295L45.7475 45.0115L44.8395 43.2295ZM45.235 38.1252L46.4067 36.5043L46.4067 36.5043L45.235 38.1252ZM32.0312 33.0029C32.0331 32.188 32.9566 31.7175 33.617 32.1949L35.9603 28.9531C32.6584 26.5663 28.041 28.9189 28.0312 32.9932L32.0312 33.0029ZM32 45.8926L32.0312 33.0029L28.0312 32.9932L28 45.883L32 45.8926ZM33.454 46.786C32.7877 47.1255 31.9982 46.6404 32 45.8926L28 45.883C27.991 49.6218 31.9387 52.0475 35.27 50.3501L33.454 46.786ZM36.0729 45.4516L33.454 46.786L35.27 50.3501L37.8889 49.0157L36.0729 45.4516ZM40.3393 49.4195L38.7629 46.3257L35.1989 48.1416L36.7753 51.2355L40.3393 49.4195ZM41.8827 49.921C41.318 50.2087 40.627 49.9842 40.3393 49.4195L36.7753 51.2355C38.0659 53.7685 41.1657 54.7757 43.6987 53.485L41.8827 49.921ZM42.3842 48.3776C42.672 48.9423 42.4474 49.6333 41.8827 49.921L43.6987 53.485C46.2318 52.1944 47.2389 49.0947 45.9483 46.5616L42.3842 48.3776ZM40.8078 45.2837L42.3842 48.3776L45.9483 46.5616L44.3719 43.4678L40.8078 45.2837ZM43.9315 41.4475L41.6819 42.5937L43.4978 46.1578L45.7475 45.0115L43.9315 41.4475ZM44.0633 39.7461C44.6693 40.1841 44.5978 41.108 43.9315 41.4475L45.7475 45.0115C49.0788 43.3141 49.4367 38.6946 46.4067 36.5043L44.0633 39.7461ZM33.617 32.1949L44.0633 39.7461L46.4067 36.5043L35.9603 28.9531L33.617 32.1949Z" fill="white" mask="url(#path-1-outside-1_231_14)"/> </g> <defs> <filter id="filter0_d_231_14" x="24" y="23.9961" width="28.4775" height="34.0508" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"> <feFlood flood-opacity="0" result="BackgroundImageFix"/> <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/> <feOffset/> <feGaussianBlur stdDeviation="2"/> <feComposite in2="hardAlpha" operator="out"/> <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/> <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_231_14"/> <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_231_14" result="shape"/> </filter> </defs> </svg>`;
+        let setSVG = module.mouse ?? `<svg width="56" height="56" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"> <g filter="url(#filter0_d_231_14)"> <mask id="path-1-outside-1_231_14" maskUnits="userSpaceOnUse" x="28" y="27" width="21" height="28" fill="black"> <rect fill="white" x="28" y="27" width="21" height="28"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M34.7886 30.574C32.8075 29.1419 30.0371 30.5535 30.0312 32.998L30 45.8878C29.9946 48.1311 32.3632 49.5865 34.362 48.5681L36.9809 47.2337L38.5573 50.3275C39.3465 51.8764 41.2418 52.4922 42.7907 51.703C44.3396 50.9138 44.9554 49.0185 44.1662 47.4696L42.5899 44.3757L44.8395 43.2295C46.8383 42.2111 47.053 39.4394 45.235 38.1252L34.7886 30.574Z"/> </mask> <path fill-rule="evenodd" clip-rule="evenodd" d="M34.7886 30.574C32.8075 29.1419 30.0371 30.5535 30.0312 32.998L30 45.8878C29.9946 48.1311 32.3632 49.5865 34.362 48.5681L36.9809 47.2337L38.5573 50.3275C39.3465 51.8764 41.2418 52.4922 42.7907 51.703C44.3396 50.9138 44.9554 49.0185 44.1662 47.4696L42.5899 44.3757L44.8395 43.2295C46.8383 42.2111 47.053 39.4394 45.235 38.1252L34.7886 30.574Z" fill="#2F2F2F"/> <path d="M30.0312 32.998L28.0312 32.9932L30.0312 32.998ZM34.7886 30.574L33.617 32.1949L33.617 32.1949L34.7886 30.574ZM30 45.8878L28 45.883L30 45.8878ZM34.362 48.5681L33.454 46.786L33.454 46.786L34.362 48.5681ZM36.9809 47.2337L38.7629 46.3257L37.8549 44.5437L36.0729 45.4516L36.9809 47.2337ZM38.5573 50.3275L40.3393 49.4195L40.3393 49.4195L38.5573 50.3275ZM42.7907 51.703L43.6987 53.485L43.6987 53.485L42.7907 51.703ZM44.1662 47.4696L45.9483 46.5616L45.9483 46.5616L44.1662 47.4696ZM42.5899 44.3757L41.6819 42.5937L39.8999 43.5017L40.8078 45.2837L42.5899 44.3757ZM44.8395 43.2295L45.7475 45.0115L44.8395 43.2295ZM45.235 38.1252L46.4067 36.5043L46.4067 36.5043L45.235 38.1252ZM32.0312 33.0029C32.0331 32.188 32.9566 31.7175 33.617 32.1949L35.9603 28.9531C32.6584 26.5663 28.041 28.9189 28.0312 32.9932L32.0312 33.0029ZM32 45.8926L32.0312 33.0029L28.0312 32.9932L28 45.883L32 45.8926ZM33.454 46.786C32.7877 47.1255 31.9982 46.6404 32 45.8926L28 45.883C27.991 49.6218 31.9387 52.0475 35.27 50.3501L33.454 46.786ZM36.0729 45.4516L33.454 46.786L35.27 50.3501L37.8889 49.0157L36.0729 45.4516ZM40.3393 49.4195L38.7629 46.3257L35.1989 48.1416L36.7753 51.2355L40.3393 49.4195ZM41.8827 49.921C41.318 50.2087 40.627 49.9842 40.3393 49.4195L36.7753 51.2355C38.0659 53.7685 41.1657 54.7757 43.6987 53.485L41.8827 49.921ZM42.3842 48.3776C42.672 48.9423 42.4474 49.6333 41.8827 49.921L43.6987 53.485C46.2318 52.1944 47.2389 49.0947 45.9483 46.5616L42.3842 48.3776ZM40.8078 45.2837L42.3842 48.3776L45.9483 46.5616L44.3719 43.4678L40.8078 45.2837ZM43.9315 41.4475L41.6819 42.5937L43.4978 46.1578L45.7475 45.0115L43.9315 41.4475ZM44.0633 39.7461C44.6693 40.1841 44.5978 41.108 43.9315 41.4475L45.7475 45.0115C49.0788 43.3141 49.4367 38.6946 46.4067 36.5043L44.0633 39.7461ZM33.617 32.1949L44.0633 39.7461L46.4067 36.5043L35.9603 28.9531L33.617 32.1949Z" fill="white" mask="url(#path-1-outside-1_231_14)"/> </g> <defs> <filter id="filter0_d_231_14" x="24" y="23.9961" width="28.4775" height="34.0508" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"> <feFlood flood-opacity="0" result="BackgroundImageFix"/> <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/> <feOffset/> <feGaussianBlur stdDeviation="2"/> <feComposite in2="hardAlpha" operator="out"/> <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/> <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_231_14"/> <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_231_14" result="shape"/> </filter> </defs> </svg>`;
         setSVG = setSVG.replace(/COLOR_REPLACE/g, "#" + module.color).replace(/OPACITY_REPLACE/g, module.opacity / 100);
         if (setSVG != mouseSVG) {
           mouseSVG = setSVG;
@@ -729,7 +748,7 @@ modules["editor/toolbar"] = {
             }
           }
 
-          let selectTool = override || (preferences[toolID] || {}).subtool;
+          let selectTool = override ?? (preferences[toolID] ?? {}).subtool;
           if (selectTool != null) {
             let selectSubtool = subToolContent.querySelector('.eTool[subtool="' + selectTool + '"]');
             if (selectSubtool != null) {
@@ -816,7 +835,7 @@ modules["editor/toolbar"] = {
       let setToolID = element.getAttribute("tool");
       if (setToolID != null) {
         let self = editor.getSelf();
-        let disabledTools = (editor.lesson.settings || {}).disabled || [];
+        let disabledTools = (editor.lesson.settings ?? {}).disabled ?? [];
         if (self.access < 4 && disabledTools.includes(setToolID) == true) {
           return;
         }
@@ -858,7 +877,7 @@ modules["editor/toolbar"] = {
 
     this.updateToolbar = (noUpdateTool, extra) => {
       // THIS IS TEMP CODE - REMOVE LATER:
-      if ((editor.lesson || {}).type == "standard") {
+      if ((editor.lesson ?? {}).type == "standard") {
         frame.querySelector('.eTool[tool="page"]').style.display = "none";
       } else {
         frame.querySelector('.eTool[tool="page"]').style.removeProperty("display");
@@ -871,7 +890,7 @@ modules["editor/toolbar"] = {
         let parent = updateTip.closest("[tool]");
         let toolPref = preferences[parent.getAttribute("tool")];
         if (toolPref != null) {
-          let setOpacity = (toolPref.opacity || 0) / 100;
+          let setOpacity = (toolPref.opacity ?? 0) / 100;
           if (updateTip.hasAttribute("fillcoloropacity") == true && toolPref.color != null) {
             updateTip.setAttribute("fill", editor.hexToRGB(toolPref.color.selected, setOpacity));
           } else if (updateTip.hasAttribute("strokecolor") == true && toolPref.color != null) {
@@ -899,7 +918,7 @@ modules["editor/toolbar"] = {
         return;
       }
       let self = editor.getSelf();
-      let disabledTools = (editor.lesson.settings || {}).disabled || [];
+      let disabledTools = (editor.lesson.settings ?? {}).disabled ?? [];
       for (let i = 0; i < toolElements.length; i++) {
         let tool = toolElements[i];
         if (self.access > 3 || disabledTools.includes(tool.getAttribute("tool")) == false) {
@@ -949,14 +968,14 @@ modules["editor/toolbar"] = {
           for (let i = 0; i < event.changes.length; i++) {
             let change = event.changes[i];
             if (change.parent != null) {
-              if (((editor.annotations[change.parent] || {}).render || { remove: true }).remove == true) {
+              if (((editor.annotations[change.parent] ?? {}).render ?? { remove: true }).remove == true) {
                 continue; // Annotation is missing, invalid save
               }
             }
             change.sync = getEpoch();
             if (addRedo) {
               let changeKeys = Object.keys(change);
-              let annotation = (editor.annotations[change._id] || {}).render || {};
+              let annotation = (editor.annotations[change._id] ?? {}).render ?? {};
               let redoAnno = { _id: change._id };
               for (let u = 0; u < changeKeys.length; u++) {
                 redoAnno[changeKeys[u]] = annotation[changeKeys[u]];
@@ -980,7 +999,7 @@ modules["editor/toolbar"] = {
           for (let i = 0; i < event.changes.length; i++) {
             let change = { remove: true };
             let changeID = event.changes[i]._id;
-            let annotation = (editor.annotations[changeID] || {}).render || {};
+            let annotation = (editor.annotations[changeID] ?? {}).render ?? {};
             if (addRedo) {
               let [x, y] = editor.getAbsolutePosition(annotation);
               event.redo.push(JSON.parse(JSON.stringify({ ...annotation, parent: null, p: [x, y] })));
@@ -995,7 +1014,7 @@ modules["editor/toolbar"] = {
           for (let i = 0; i < event.changes.length; i++) {
             let saveAnno = event.changes[i];
             if (saveAnno.parent != null) {
-              if (((editor.annotations[saveAnno.parent] || {}).render || { remove: true }).remove == true) {
+              if (((editor.annotations[saveAnno.parent] ?? {}).render ?? { remove: true }).remove == true) {
                 continue; // Annotation is missing, invalid save
               }
             }
@@ -1027,7 +1046,7 @@ modules["editor/toolbar"] = {
               event.redo.push({ remove: true, _id: tempID });
             }
             if (saveAnno.parent != null) {
-              if (((editor.annotations[saveAnno.parent] || {}).render || { remove: true }).remove == true) {
+              if (((editor.annotations[saveAnno.parent] ?? {}).render ?? { remove: true }).remove == true) {
                 continue; // Annotation is missing, invalid save
               }
             }
@@ -1076,7 +1095,7 @@ modules["editor/toolbar"] = {
             //  editor.selecting[event.redo[i]._id] = { ...editor.selecting[event.redo[i]._id], ...change };
             //} else {
             if (change.parent != null) {
-              if (((editor.annotations[change.parent] || {}).render || { remove: true }).remove == true) {
+              if (((editor.annotations[change.parent] ?? {}).render ?? { remove: true }).remove == true) {
                 continue; // Annotation is missing, invalid save
               }
             }
@@ -1094,7 +1113,7 @@ modules["editor/toolbar"] = {
           for (let i = 0; i < event.redo.length; i++) {
             let saveAnno = event.redo[i];
             if (saveAnno.parent != null) {
-              if (((editor.annotations[saveAnno.parent] || {}).render || { remove: true }).remove == true) {
+              if (((editor.annotations[saveAnno.parent] ?? {}).render ?? { remove: true }).remove == true) {
                 continue; // Annotation is missing, invalid save
               }
             }
@@ -1123,7 +1142,7 @@ modules["editor/toolbar"] = {
               }
             }
             if (saveAnno.parent != null) {
-              if (((editor.annotations[saveAnno.parent] || {}).render || { remove: true }).remove == true) {
+              if (((editor.annotations[saveAnno.parent] ?? {}).render ?? { remove: true }).remove == true) {
                 continue; // Annotation is missing, invalid save
               }
             }
@@ -1234,7 +1253,7 @@ modules["editor/toolbar"] = {
       if (self.access < 1) {
         return;
       }
-      let data = event.clipboardData || event.originalEvent.clipboardData || {};
+      let data = event.clipboardData ?? event.originalEvent.clipboardData ?? {};
       if (document.activeElement != null) {
         if (document.activeElement.closest("[contenteditable]") != null || document.activeElement.closest("input") != null) {
           return;
@@ -1267,10 +1286,15 @@ modules["editor/toolbar"] = {
             let maxTop;
             //let maxZIndex;
             let minZIndex;
+            let parentIDs = {};
             for (let i = 0; i < markifyData.length; i++) {
               let newAnno = markifyData[i];
-              newAnno.p = newAnno.p || [0, 0];
-              let t = newAnno.t || 0;
+              let tempID = utils.tempID();
+              parentIDs[newAnno._id] = tempID;
+              newAnno.oldID = newAnno._id;
+              newAnno._id = tempID;
+              newAnno.p = newAnno.p ?? [0, 0];
+              let t = newAnno.t ?? 0;
               if (newAnno.b == "none" && newAnno.d != "line") {
                 t = 0;
               }
@@ -1286,22 +1310,22 @@ modules["editor/toolbar"] = {
               if ((newAnno.p[1] + newAnno.s[1]) > maxTop || maxTop == null) {
                 maxTop = newAnno.p[1] + newAnno.s[1] + t;
               }
-              //maxZIndex = Math.max(maxZIndex || newAnno.l || utils.maxLayer, newAnno.l || utils.maxLayer);
-              minZIndex = Math.min(minZIndex || newAnno.l || utils.minLayer, newAnno.l || utils.minLayer);
+              //maxZIndex = Math.max(maxZIndex ?? newAnno.l ?? utils.maxLayer, newAnno.l ?? utils.maxLayer);
+              minZIndex = Math.min(minZIndex ?? newAnno.l ?? utils.minLayer, newAnno.l ?? utils.minLayer);
             }
             //maxZIndex++;
             let centerX = (maxLeft - minLeft) / 2;
             let centerY = (maxTop - minTop) / 2;
             for (let i = 0; i < markifyData.length; i++) {
-              let tempID = utils.tempID();
               let newAnno = markifyData[i];
               if (self.access < 4 && this.checkSubToolType(editor, newAnno.f) == true) {
                 continue;
               }
-              let existingAnno = (editor.annotations[newAnno._id] || {}).render;
+              let existingAnno = (editor.annotations[newAnno.oldID] ?? {}).render;
+              delete newAnno.oldID;
               if (existingAnno != null) {
-                newAnno.p[0] = (newAnno.p[0] || existingAnno.p[0]) + 50;
-                newAnno.p[1] = (newAnno.p[1] || existingAnno.p[1]) + 50;
+                newAnno.p[0] = (newAnno.p[0] ?? existingAnno.p[0]) + 50;
+                newAnno.p[1] = (newAnno.p[1] ?? existingAnno.p[1]) + 50;
               } else {
                 newAnno.p[0] -= maxLeft;
                 newAnno.p[1] -= maxTop;
@@ -1316,19 +1340,26 @@ modules["editor/toolbar"] = {
                   delete newAnno.page;
                 }
               }
-              newAnno._id = tempID;
-              newAnno.l = utils.maxLayer + 1 + ((newAnno.l || utils.maxLayer) - minZIndex);
-              /*if (["page"].includes(newAnno.f) == false) {
-                newAnno.l = (newAnno.l || utils.maxLayer) + 1;
+              newAnno.l = utils.maxLayer + 1 + ((newAnno.l ?? utils.maxLayer) - minZIndex);
+              if (newAnno.parented != null) {
+                let parentCopy = parentIDs[newAnno.parented.parent];
+                if (parentCopy != null) {
+                  newAnno.parent = parentCopy;
+                  newAnno.p[0] = newAnno.parented.x;
+                  newAnno.p[1] = newAnno.parented.y;
+                }
+                delete newAnno.parented;
               } else {
-                newAnno.l = (newAnno.l || utils.minLayer) - 1;
+                newNewSelect[newAnno._id] = {};
+              }
+              /*if (["page"].includes(newAnno.f) == false) {
+                newAnno.l = (newAnno.l ?? utils.maxLayer) + 1;
+              } else {
+                newAnno.l = (newAnno.l ?? utils.minLayer) - 1;
               }*/
               newAnno.sync = setTempSync;
               delete newAnno.m;
-              newSelect[tempID] = newAnno;
-              if (newAnno.parented != true) {
-                newNewSelect[tempID] = {};
-              }
+              newSelect[newAnno._id] = newAnno;
             }
             editor.selecting = newSelect;
             cursorModule.action = "save";
@@ -1344,7 +1375,7 @@ modules["editor/toolbar"] = {
       if (selection.toString().length > 0) {
         return; // User it selecting text, ignore event
       }
-      let data = event.clipboardData || event.originalEvent.clipboardData || {};
+      let data = event.clipboardData ?? event.originalEvent.clipboardData ?? {};
 
       let saveTextData = "";
       let saveAnnoData = [];
@@ -1355,12 +1386,12 @@ modules["editor/toolbar"] = {
       //let minZIndex;
       for (let i = 0; i < selectKeys.length; i++) {
         let annoID = selectKeys[i];
-        let annotation = (editor.annotations[annoID] || {}).render || {};
+        let annotation = (editor.annotations[annoID] ?? {}).render ?? {};
         checkChunks = [ ...checkChunks, ...editor.annotationInChunks(annotation) ];
-        //maxZIndex = Math.max(maxZIndex || annotation.l || utils.maxLayer, annotation.l || utils.maxLayer);
-        //minZIndex = Math.min(minZIndex || annotation.l || utils.minLayer, annotation.l || utils.minLayer);
+        //maxZIndex = Math.max(maxZIndex ?? annotation.l ?? utils.maxLayer, annotation.l ?? utils.maxLayer);
+        //minZIndex = Math.min(minZIndex ?? annotation.l ?? utils.minLayer, annotation.l ?? utils.minLayer);
         saveAnnoData.push(annotation);
-        let richText = annotation.d || {};
+        let richText = annotation.d ?? {};
         if (richText.b != null) {
           if (saveTextData.length > 0) {
             saveTextData += "\n";
@@ -1378,7 +1409,7 @@ modules["editor/toolbar"] = {
       }
       let annotationKeys = {};
       for (let c = 0; c < checkChunks.length; c++) {
-        annotationKeys = { ...annotationKeys, ...(editor.chunkAnnotations[checkChunks[c]] || {}) };
+        annotationKeys = { ...annotationKeys, ...(editor.chunkAnnotations[checkChunks[c]] ?? {}) };
       }
       let annotations = Object.keys(annotationKeys);
       for (let a = 0; a < annotations.length; a++) {
@@ -1392,9 +1423,9 @@ modules["editor/toolbar"] = {
         }
         if (checkAnnotation.pointer != null) {
           checkAnnoID = checkAnnotation.pointer;
-          checkAnnotation = editor.annotations[checkAnnoID] || { render: {} };
+          checkAnnotation = editor.annotations[checkAnnoID] ?? { render: {} };
         }
-        let render = checkAnnotation.render || {};
+        let render = checkAnnotation.render ?? {};
         let currentAnnoCheck = render;
         let checkedParents = [];
         let enableContinue = false;
@@ -1410,28 +1441,32 @@ modules["editor/toolbar"] = {
           }
           if (annotation.pointer != null) {
             annoid = annotation.pointer;
-            annotation = editor.annotations[annoid] || { render: {} };
+            annotation = editor.annotations[annoid] ?? { render: {} };
           }
           if (editor.selecting[annoid] != null) {
             enableContinue = true;
             break;
           }
-          currentAnnoCheck = annotation.render || {};
+          currentAnnoCheck = annotation.render ?? {};
         }
         if (enableContinue == false) {
           continue;
         }
-        //maxZIndex = Math.max(maxZIndex || render.l || utils.maxLayer, render.l || utils.maxLayer);
-        //minZIndex = Math.min(minZIndex || render.l || utils.minLayer, render.l || utils.minLayer);
+        //maxZIndex = Math.max(maxZIndex ?? render.l ?? utils.maxLayer, render.l ?? utils.maxLayer);
+        //minZIndex = Math.min(minZIndex ?? render.l ?? utils.minLayer, render.l ?? utils.minLayer);
         let renderCopy = JSON.parse(JSON.stringify(render));
         let [x, y] = editor.getAbsolutePosition(render);
-        renderCopy.p = [x, y];
         if (renderCopy.parent != null) {
-          renderCopy.parented = true;
+          renderCopy.parented = {
+            parent: renderCopy.parent,
+            x: render.p[0],
+            y: render.p[1]
+          };
         }
+        renderCopy.p = [x, y];
         renderCopy.parent = null;
         saveAnnoData.push(renderCopy);
-        let richText = renderCopy.d || {};
+        let richText = renderCopy.d ?? {};
         if (richText.b != null) {
           if (saveTextData.length > 0) {
             saveTextData += "\n";
@@ -1452,7 +1487,7 @@ modules["editor/toolbar"] = {
       let duplicateKeys = Object.keys(newSelect);
       for (let i = 0; i < duplicateKeys.length; i++) {
         let selectDup = newSelect[duplicateKeys[i]];
-        selectDup.l = maxZIndex + ((selectDup.l || utils.maxLayer) - minZIndex);
+        selectDup.l = maxZIndex + ((selectDup.l ?? utils.maxLayer) - minZIndex);
         let [x, y] = editor.getAbsolutePosition(selectDup);
         selectDup.p = [x + offsetX, y + offsetY];
         selectDup.parent = null;
@@ -1467,9 +1502,9 @@ modules["editor/toolbar"] = {
       let saveAnnoData = [];
       for (let i = 0; i < selectKeys.length; i++) {
         let annoID = selectKeys[i];
-        let annotation = (editor.annotations[annoID] || {}).render || {};
+        let annotation = (editor.annotations[annoID] ?? {}).render ?? {};
         saveAnnoData.push(annotation);
-        let richText = annotation.d || {};
+        let richText = annotation.d ?? {};
         if (richText.b != null) {
           if (i > 0) {
             saveTextData += "\n";
@@ -1496,7 +1531,7 @@ modules["editor/toolbar"] = {
       if (self.access < 1) {
         return;
       }
-      let meta = event.ctrlKey || event.metaKey;
+      let meta = event.ctrlKey ?? event.metaKey;
       if (event.keyCode == 90 && event.shiftKey == true && meta == true) {
         event.preventDefault();
         return redoAction();
@@ -1517,7 +1552,7 @@ modules["editor/toolbar"] = {
         let selectKeys = Object.keys(editor.selecting);
         for (let i = 0; i < selectKeys.length; i++) {
           let selectID = selectKeys[i];
-          let anno = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+          let anno = ({ ...((editor.annotations[selectID] ?? {}).render ?? {}), ...(editor.selecting[selectID] ?? {}) }) ?? {};
           if (editor.lesson.settings.editOthersWork != true && [anno.a, anno.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
             continue;
           }
@@ -1547,11 +1582,11 @@ modules["editor/toolbar"] = {
         for (let i = 0; i < selectKeys.length; i++) {
           let selectID = selectKeys[i];
           let selecting = editor.selecting[selectID];
-          let existingAnno = (editor.annotations[selectID] || {}).render;
+          let existingAnno = (editor.annotations[selectID] ?? {}).render;
           if (editor.lesson.settings.editOthersWork != true && [existingAnno.a, existingAnno.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
             continue;
           }
-          selecting.p = selecting.p || existingAnno.p || [0, 0];
+          selecting.p = selecting.p ?? [existingAnno.p[0] ?? 0, existingAnno.p[1] ?? 0];
           let nudge = 1;
           if (event.shiftKey == true) {
             nudge = 10;
@@ -1568,7 +1603,7 @@ modules["editor/toolbar"] = {
         }
         cursorModule.action = "save";
         await cursorModule.endAction();
-        cursorModule.updateBox();
+        //cursorModule.updateBox();
         return;
       }
       if (event.keyCode == 68 && meta == true) { // Duplicate
@@ -1586,18 +1621,18 @@ modules["editor/toolbar"] = {
         for (let i = 0; i < selectKeys.length; i++) {
           let selectID = selectKeys[i];
           let tempID = utils.tempID();
-          let newAnno = JSON.parse(JSON.stringify(({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {}));
+          let newAnno = JSON.parse(JSON.stringify(({ ...((editor.annotations[selectID] ?? {}).render ?? {}), ...(editor.selecting[selectID] ?? {}) }) ?? {}));
           if (self.access < 4 && this.checkSubToolType(editor, newAnno.f) == true) {
             continue;
           }
           newAnno._id = tempID;
-          newAnno.p = newAnno.p || [0, 0];
+          newAnno.p = newAnno.p ?? [0, 0];
           newAnno.p[0] += 50;
           newAnno.p[1] += 50;
           if (["page"].includes(newAnno.f) == false) {
-            newAnno.l = (newAnno.l || utils.maxLayer) + 1;
+            newAnno.l = (newAnno.l ?? utils.maxLayer) + 1;
           } else {
-            newAnno.l = (newAnno.l || utils.minLayer) - 1;
+            newAnno.l = (newAnno.l ?? utils.minLayer) - 1;
           }
           newAnno.sync = setTempSync;
           delete newAnno.m;
@@ -1624,28 +1659,47 @@ modules["editor/toolbar"] = {
 // CURSOR TOOL
 modules["pages/editor/toolbar/cursor"] = {
   mouse: "default",
+  currentSelections: {},
+  currentSnapElements: {},
   updateBox: async function (forceNoTransition, forceUpdate, noUpdateAction) {
     let editor = await getModule("pages/editor");
     let utils = await getModule("pages/editor/annotation");
     //let cursor = await getModule("pages/editor/toolbar/cursor");
+    let dragSelect = await getModule("pages/editor/toolbar/drag");
     let toolbarModule = await getModule("editor/toolbar");
     let content = editor.page.querySelector(".eContent");
     let pageHolderRect = content.querySelector(".ePageHolder").getBoundingClientRect();
     let selectionIDs = Object.keys(editor.selecting);
-    let checkRemSelections = [ ...content.querySelectorAll(".eSelect") ];
+    //let checkRemSelections = [ ...content.querySelectorAll(".eSelect") ];
     let self = editor.getSelf();
 
     this.minX = null;
     this.maxX = null;
     this.minY = null;
     this.maxY = null;
+    this.resizePreserveAspect = false;
+    this.multiSelectResizePreserveAspect = false;
 
     let removeSelections = [];
-    for (let i = 0; i < checkRemSelections.length; i++) {
-      let selection = checkRemSelections[i];
-      let annoID = selection.getAttribute("anno");
+    let currentCheckSelections = Object.keys(this.currentSelections);
+    for (let i = 0; i < currentCheckSelections.length; i++) {
+      let annoID = currentCheckSelections[i];
+      if (annoID == null) {
+        delete this.currentSelections[annoID];
+        continue;
+      }
+      let selection = content.querySelector('.eSelect[anno="' + annoID + '"]');
+      let annoData = editor.annotations[annoID] ?? {};
+      let render = annoData.render ?? {};
+      if (annoData.pointer != null) {
+        delete this.currentSelections[annoID];
+        annoID = annoData.pointer;
+        annoData = editor.annotations[annoID] ?? { render: {} };
+        this.currentSelections[annoID] = "";
+      }
       let anno = content.querySelector('.eAnnotation[anno="' + annoID + '"]');
       if (editor.selecting[annoID] == null) { // || anno == null || anno.hasAttribute("hidden") == true) {
+        delete this.currentSelections[annoID];
         if (anno != null) {
           anno.removeAttribute("selected");
           anno.removeAttribute("notransition");
@@ -1654,15 +1708,14 @@ modules["pages/editor/toolbar/cursor"] = {
             annoTx.removeAttribute("contenteditable");
 
             if (annoTx.hasAttribute("text") == true && annoTx.textContent.trim().length < 1) {
-              let anno = (editor.annotations[annoID] || {}).render || {};
-              await utils.pushHistory("add", [anno]);
+              await utils.pushHistory("add", [render]);
               await utils.save({ _id: annoID, remove: true });
               editor.realtimeSelect[annoID] = { ...editor.realtimeSelect[annoID], _id: annoID, remove: true };
               await utils.forceShort();
             }
           }
 
-          //anno.style.zIndex = (editor.annotations[annoID] || { render: {} }).render.sync;
+          //anno.style.zIndex = (editor.annotations[annoID] ?? { render: {} }).render.sync;
           //anno.style.pointerEvents = "unset";
           //anno.style.cursor = "unset";
           anno.style.removeProperty("overflow");
@@ -1671,14 +1724,13 @@ modules["pages/editor/toolbar/cursor"] = {
           if (activeLayer != null) {
             activeLayer.remove();
           }
+        }
+        if (selection != null) {
           selection.style.opacity = 0;
           if (selection.hasAttribute("remove") == false) {
             selection.setAttribute("remove", "");
             removeSelections.push(selection);
           }
-        } else {
-          delete editor.selecting[annoID];
-          selection.remove();
         }
       }
     }
@@ -1699,17 +1751,19 @@ modules["pages/editor/toolbar/cursor"] = {
     } else {
       body.style.userSelect = "unset";
     }
-    let hideTooltipWait = [];
-    if (["pages/editor/toolbar/cursor", "pages/editor/toolbar/drag"].includes(toolbarModule.currentToolModule)) { // Prevent selections from other tools
+    let selectedElements = [];
+    let selectionChange = false;
+    let showTooltips = true;
+    let showDuplicateTooltips = true;
+    let showTextBoxEdit = true;
+    let showOnlyPages = true;
+    if (["pages/editor/toolbar/cursor", "pages/editor/toolbar/drag"].includes(toolbarModule.currentToolModule)) {
       for (let i = 0; i < selectionIDs.length; i++) {
         let annoID = selectionIDs[i];
-        //if (annoID == null || annoID.startsWith("pending_")) {
-        //  continue;
-        //}
-        let annoData = editor.annotations[annoID] || { render: {} };
+        let annoData = editor.annotations[annoID] ?? { render: {} };
         if (annoData.pointer != null) {
           annoID = annoData.pointer;
-          annoData = editor.annotations[annoID] || { render: {} };
+          annoData = editor.annotations[annoID] ?? { render: {} };
         }
         let selection = editor.selecting[annoID];
         let merged = { ...annoData.render, ...selection };
@@ -1719,13 +1773,6 @@ modules["pages/editor/toolbar/cursor"] = {
         if (anno == null) {
           continue;
         }
-        /*if (anno == null || anno.hasAttribute("hidden") == true) {
-          delete editor.selecting[annoID];
-          if (select != null) {
-            select.remove();
-          }
-          continue;
-        }*/
         let currentAnnoCheck = merged;
         let checkedParents = [];
         let enableContinue = false;
@@ -1741,13 +1788,13 @@ modules["pages/editor/toolbar/cursor"] = {
           }
           if (annotation.pointer != null) {
             annoid = annotation.pointer;
-            annotation = editor.annotations[annoid] || { render: {} };
+            annotation = editor.annotations[annoid] ?? { render: {} };
           }
           if (editor.selecting[annoid] != null) {
             enableContinue = true;
             break;
           }
-          currentAnnoCheck = annotation.render || {};
+          currentAnnoCheck = annotation.render ?? {};
         }
         if (enableContinue == true) {
           delete editor.selecting[annoID];
@@ -1755,97 +1802,55 @@ modules["pages/editor/toolbar/cursor"] = {
           return;
         }
         anno.setAttribute("selected", "");
-        let activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
+        /*let activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
         if ((editor.lesson.settings.editOthersWork == true || [merged.a, merged.m].includes(self.modify) == true || self.access > 3) &&  self.access > 0) {
           if (activeLayer == null) {
             anno.parentElement.insertAdjacentHTML("afterbegin", `<div class="eSelectActive" anno="${annoID}" tooleditor></div>`);
             activeLayer = anno.parentElement.querySelector('.eSelectActive[anno="' + annoID + '"]');
           }
-          activeLayer.style.setProperty("--annoZIndex", merged.l || Math.round(((merged.sync || getEpoch()) / 2000000000000) * 2147483647));
+          activeLayer.style.setProperty("--annoZIndex", merged.l ?? Math.round(((merged.sync ?? getEpoch()) / 2000000000000) * 2147483647));
           activeLayer.style.setProperty("--selectZIndex", i);
         } else if (activeLayer != null) {
           activeLayer.remove();
           activeLayer = null;
-        }
+        }*/
         if (["sticky", "page"].includes(merged.f) == false) {
           anno.style.overflow = "hidden";
         }
-        anno.style.borderRadius = (4 / editor.zoom) + "px";
-        if (select == null) {
-          content.insertAdjacentHTML("beforeend", `<div class="eSelect" new></div>`);
-          select = content.querySelector(".eSelect[new]");
-          select.removeAttribute("new");
-          select.setAttribute("anno", annoID);
-          select.style.border = "solid 4px var(--theme)";
-          select.style.opacity = 1;
+        if (this.currentSelections[annoID] == null) {
+          selectionChange = true;
         }
-        if (this.action != null || forceNoTransition == true) {
-          select.setAttribute("notransition", "");
-          anno.setAttribute("notransition", "");
-          if (collabSelect != null) {
-            collabSelect.setAttribute("notransition", "");
-          }
-        } else {
-          select.removeAttribute("notransition");
-          anno.removeAttribute("notransition");
-          if (collabSelect != null) {
-            collabSelect.removeAttribute("notransition");
-          }
+        this.currentSelections[annoID] = "";
+        if (["page"].includes(merged.f) != true) {
+          showDuplicateTooltips = false;
+          showOnlyPages = false;
         }
-
-        if (selectionIDs.length == 1) {
-          if (select.querySelector('.eSelectTooltip[tooltip="topright"]') == null) {
-            select.insertAdjacentHTML("beforeend", `
-              <svg class="eSelectTooltip" tooltip="topleft" width="16" height="16" viewBox="0 0 16 16" hidden fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M2 14V14C2 7.37258 7.37258 2 14 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-              <svg class="eSelectTooltip" tooltip="topright" width="16" height="16" viewBox="0 0 16 16" hidden fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M14 14V14C14 7.37258 8.62742 2 2 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-              <svg class="eSelectTooltip" tooltip="bottomleft" width="16" height="16" viewBox="0 0 16 16" hidden fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M2 2V2C2 8.62742 7.37258 14 14 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-              <svg class="eSelectTooltip" tooltip="bottomright" width="16" height="16" viewBox="0 0 16 16" hidden fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M14 2V2C14 8.62742 8.62742 14 2 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-              <svg class="eSelectTooltip" tooltip="left" width="12" height="28" viewBox="0 0 12 28" hidden fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M6 6V22" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-              <svg class="eSelectTooltip" tooltip="right" width="12" height="28" viewBox="0 0 12 28" hidden fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M6 6V22" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-              <svg class="eSelectTooltip" tooltip="top" width="28" height="12" viewBox="0 0 28 12" hidden fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M22 6H6" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-              <svg class="eSelectTooltip" tooltip="bottom" width="28" height="12" viewBox="0 0 28 12" hidden fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M22 6H6" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-              <svg class="eSelectTooltip" tooltip="rotate" width="26" height="26" viewBox="0 0 31 31" hidden fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M3.46244 9.45089C2.67045 10.2429 1.38612 10.2429 0.594123 9.45089C-0.197875 8.65884 -0.197875 7.37466 0.594123 6.58261L3.46244 9.45089ZM9.04395 3.86918L3.46244 9.45089L0.594123 6.58261L6.17562 1.0009L9.04395 3.86918Z" fill="#0084FF"/> <path d="M14.6257 6.58261C15.4177 7.37466 15.4177 8.65884 14.6257 9.45089C13.8337 10.2429 12.5494 10.2429 11.7574 9.45089L14.6257 6.58261ZM9.04373 1.0009L14.6257 6.58261L11.7574 9.45089L6.17541 3.86918L9.04373 1.0009Z" fill="var(--theme)"/> <path d="M21.3783 19.0707C20.5863 18.2786 20.5863 16.9945 21.3783 16.2024C22.1703 15.4104 23.4546 15.4104 24.2466 16.2024L21.3783 19.0707ZM26.9603 24.6523L21.3783 19.0707L24.2466 16.2024L29.8281 21.7841L26.9603 24.6523Z" fill="var(--theme)"/> <path d="M24.2466 30.2341C23.4546 31.0261 22.1703 31.0261 21.3783 30.2341C20.5863 29.442 20.5863 28.1579 21.3783 27.3658L24.2466 30.2341ZM29.8281 24.6524L24.2466 30.2341L21.3783 27.3658L26.9603 21.7841L29.8281 24.6524Z" fill="var(--theme)"/> <path d="M7.63804 2.43607V10.0101C7.63804 17.2905 13.5396 23.1924 20.8203 23.1924H28.394" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-            `);
-            if (["page"].includes(merged.f) == true) {
-              select.insertAdjacentHTML("beforeend", `
-                <svg class="eSelectTooltip" duplicate tooltip="duplicateleft" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10.5" fill="var(--hover)" stroke="var(--theme)" stroke-width="3"/> <path d="M12 16.5L12 7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> <path d="M16.5 12H7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> </svg>
-                <svg class="eSelectTooltip" duplicate tooltip="duplicateright" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10.5" fill="var(--hover)" stroke="var(--theme)" stroke-width="3"/> <path d="M12 16.5L12 7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> <path d="M16.5 12H7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> </svg>
-                <svg class="eSelectTooltip" duplicate tooltip="duplicatetop" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10.5" fill="var(--hover)" stroke="var(--theme)" stroke-width="3"/> <path d="M12 16.5L12 7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> <path d="M16.5 12H7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> </svg>
-                <svg class="eSelectTooltip" duplicate tooltip="duplicatebottom" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10.5" fill="var(--hover)" stroke="var(--theme)" stroke-width="3"/> <path d="M12 16.5L12 7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> <path d="M16.5 12H7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> </svg>
-              `);
-            }
-          }
-          select.removeAttribute("hidetips");
-        } else {
-          if (select.hasAttribute("hidetips") == false) {
-            select.setAttribute("hidetips", "");
-            hideTooltipWait.push(select);
-          }
-          let annoTx = anno.querySelector("div[text]");
-          if (annoTx != null) {
-            annoTx.removeAttribute("contenteditable");
-          }
+        if (["text"].includes(merged.f) != true) {
+          showTextBoxEdit = false;
+        }
+        if (editor.lesson.settings.editOthersWork != true && [merged.a, merged.m].includes(self.modify) == false && self.access < 4 && self.access > 0) {
+          showTooltips = false;
         }
         if (merged.lock == true || self.access < 1 || (editor.lesson.settings.editOthersWork != true && [merged.a, merged.m].includes(self.modify) == false && self.access < 4)) { // Can't edit another member's work:
-          select.setAttribute("hidetips", "");
+          showTooltips = false;
         }
-        /*
-        let rect = anno.getBoundingClientRect();
-        let boxWidth = (anno.offsetWidth * editor.zoom) - 4;
-        let boxHeight = (anno.offsetHeight * editor.zoom) - 4;
-        select.style.width = boxWidth + "px";
-        select.style.height = boxHeight + "px";
-        select.style.left = rect.left + window.scrollX - 2 + "px";
-        select.style.top = rect.top + window.scrollY - 2 + "px";
-        */
+
+        if (["markup", "draw"].includes(merged.f) == true) {
+          this.resizePreserveAspect = true; // All drawings keep aspect
+        } else if (["sticky", "media"].includes(merged.f) == true && ["bottomright", "topleft", "topright", "bottomleft"].includes(this.tooltip) == true) {
+          this.resizePreserveAspect = true;
+        } else if (["page"].includes(merged.f) == true && ["bottomright", "topleft", "topright", "bottomleft"].includes(this.tooltip) == true && (merged.source) != null) {
+          this.resizePreserveAspect = true;
+        }
+
+        anno.style.borderRadius = (4 / editor.zoom) + "px";
+
         let annoHold = await utils.annoHolder(merged.page);
+        let pageRect = annoHold.getBoundingClientRect(); // Move this out of the loop later!! Use "pageHolderRect" defined above!
         let border = 0;
-        /*if (annoHold.parentElement.parentElement.firstElementChild != annoHold.parentElement) {
-          border = 4;
-        }*/
         let [width, height] = merged.s;
         let [x, y] = editor.getAbsolutePosition(merged);
-        let rotate = merged.r || 0;
+        let rotate = merged.r ?? 0;
         if (rotate > 180) {
           rotate = -(360 - rotate);
         }
@@ -1857,32 +1862,208 @@ modules["pages/editor/toolbar/cursor"] = {
           height = -height;
           y -= height;
         }
-        let pageRect = annoHold.getBoundingClientRect();
-        let t = merged.t || 0;
+        let t = merged.t ?? 0;
         if (merged.b == "none" && merged.d != "line") {
           t = 0;
         }
-        let boxWidth = ((width + t) * editor.zoom) - 4;  // +0 for width, -4 for border
-        let boxHeight = ((height + t) * editor.zoom) - 4;
-        select.style.width = boxWidth + "px";
-        select.style.height = boxHeight + "px";
         let halfT = t / 2;
-        //select.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 2 + "px"; // -2 for border, -0 for width
-        //select.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 2 + "px";
-        select.style.transform = "translate(" + (pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 2) + "px," + (pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 2) + "px) rotate(" + rotate + "deg)";
-        if (merged.f != "text") {
-          let eSelectTopLeft = select.querySelector('.eSelectTooltip[tooltip="topleft"]');
+        let inverse = 1 / editor.zoom;
+
+        if (selectionIDs.length > 1 || dragSelect.selection != null) {
+          if (select == null) {
+            content.insertAdjacentHTML("beforeend", `<div class="eSelect" new></div>`);
+            select = content.querySelector(".eSelect[new]");
+            select.removeAttribute("new");
+            select.setAttribute("anno", annoID);
+            select.style.border = "solid 4px var(--secondary)";
+            select.style.opacity = 1;
+          }
+          if (rotate != 0 && dragSelect.selection == null) {
+            this.multiSelectResizePreserveAspect = true;
+          }
+        }
+
+        if (this.action != null || forceNoTransition == true) {
+          if (select != null) {
+            select.setAttribute("notransition", "");
+          }
+          anno.setAttribute("notransition", "");
+          if (collabSelect != null) {
+            collabSelect.setAttribute("notransition", "");
+          }
+        } else {
+          if (select != null) {
+            select.removeAttribute("notransition");
+          }
+          anno.removeAttribute("notransition");
+          if (collabSelect != null) {
+            collabSelect.removeAttribute("notransition");
+          }
+        }
+
+        selectedElements.push(annoID);
+        
+        this.lastElementWidth = width + t;
+        this.lastElementHeight = height + t;
+        this.lastElementX = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 2;
+        this.lastElementY = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 2;
+        this.lastElementRotate = rotate;
+        
+        if (select != null) {
+          select.style.width = ((this.lastElementWidth * editor.zoom) - 4) + "px";
+          select.style.height = ((this.lastElementHeight * editor.zoom) - 4) + "px";
+          select.style.transform = "translate(" + this.lastElementX + "px," + this.lastElementY + "px) rotate(" + this.lastElementRotate + "deg)";
+          select.offsetHeight;
+          select.style.transition = "all .25s, opacity .15s";
+        }
+
+        /*if (activeLayer != null) {
+          let sizeInverse = 22 * inverse;
+          let posInverse = 11 * inverse;
+          activeLayer.style.width = (width + t) + sizeInverse + "px";
+          activeLayer.style.height = (height + t) + sizeInverse + "px";
+          let [relX, relY] = merged.p;
+          activeLayer.style.transform = "translate(" + (relX + halfT - posInverse) + "px," + (relY + halfT - border - posInverse) + "px) rotate(" + rotate + "deg)";
+        }*/
+
+        let radian = (merged.r ?? 0) * (Math.PI / 180);
+        let thickWidth = width + t;
+        let thickHeight = height + t;
+        let changedWidth = ((Math.abs(thickWidth * Math.cos(radian)) + Math.abs(thickHeight * Math.sin(radian))) - thickWidth) / 2;
+        let changedHeight = ((Math.abs(thickWidth * Math.sin(radian)) + Math.abs(thickHeight * Math.cos(radian))) - thickHeight) / 2;
+
+        let pageY = pageRect.y - pageHolderRect.y;
+        let setMinX = x + halfT - changedWidth;
+        this.minX = Math.min(this.minX ?? setMinX, setMinX);
+        let setMaxX = x + width + t + halfT + changedWidth;
+        this.maxX = Math.max(this.maxX ?? setMaxX, setMaxX);
+        let setMinY = (pageY * inverse) + y + halfT - border - changedHeight;
+        this.minY = Math.min(this.minY ?? setMinY, setMinY);
+        let setMaxY = (pageY * inverse) + y + t - border + height + halfT + changedHeight;
+        this.maxY = Math.max(this.maxY ?? setMaxY, setMaxY);
+
+        let setCheckX = x + width;
+        this.checkX = Math.min(this.checkX ?? setCheckX, setCheckX);
+        let setCheckY = (pageY * inverse) + y - border + height;
+        this.checkY = Math.min(this.checkY ?? setCheckY, setCheckY);
+
+        if (collabSelect != null) {
+          collabSelect.offsetWidth;
+          let collWidth = ((width + t) * editor.zoom) - 3; // +0 for width, -3 for border
+          let collHeight = ((height + t) * editor.zoom) - 3;
+          collabSelect.style.width = collWidth + "px";
+          collabSelect.style.height = collHeight + "px";
+          //collabSelect.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
+          //collabSelect.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
+          collabSelect.style.transform = "translate(" + (pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5) + "px," + (pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5) + "px) rotate(" + rotate + "deg)";
+        }
+
+        if (forceNoTransition == true && select != null) {
+          select.removeAttribute("notransition");
+        }
+      }
+    }
+    let removeSelectBox = () => {
+      if (this.selectBox == null) {
+        return;
+      }
+      let remSelect = this.selectBox;
+      this.selectBox = null;
+      this.lastSelectAmount = 0;
+      (async function () {
+        remSelect.style.opacity = 0;
+        await sleep(150);
+        if (remSelect != null) {
+          remSelect.remove();
+        }
+      })();
+    }
+    if (selectedElements.length > 0 && dragSelect.selection == null) {
+      if (this.lastSelectAmount == selectedElements.length && selectionChange == true) {
+        removeSelectBox();
+      }
+      if (this.selectBox == null) {
+        content.insertAdjacentHTML("beforeend", `<div class="eSelect" tooleditor new></div>`);
+        this.selectBox = content.querySelector(".eSelect[new]");
+        this.selectBox.removeAttribute("new");
+        this.selectBox.style.border = "solid 4px var(--theme)";
+        this.selectBox.style.opacity = 1;
+      }
+      if (this.action != null || forceNoTransition == true || this.lastSelectAmount != selectedElements.length) {
+        this.selectBox.setAttribute("notransition", "");
+      } else {
+        this.selectBox.removeAttribute("notransition");
+      }
+      this.lastSelectAmount = selectedElements.length;
+      this.selectBox.offsetHeight;
+      let boxWidth = 0;
+      let boxHeight = 0;
+      let boxX = 0;
+      let boxY = 0;
+      this.selectRotation = 0;
+      if (selectedElements.length < 2) {
+        boxWidth = ((this.lastElementWidth * editor.zoom) - 4);
+        boxHeight = ((this.lastElementHeight * editor.zoom) - 4);
+        boxX = this.lastElementX;
+        boxY = this.lastElementY;
+        this.selectRotation = this.lastElementRotate;
+      } else {
+        boxWidth = ((this.maxX - this.minX) * editor.zoom) - 4;
+        boxHeight = ((this.maxY - this.minY) * editor.zoom) - 4;
+        boxX = pageHolderRect.x + (this.minX * editor.zoom) + window.scrollX - 2;
+        boxY = pageHolderRect.y + (this.minY * editor.zoom) + window.scrollY - 2;
+      }
+      this.selectBox.style.width = boxWidth + "px";
+      this.selectBox.style.height = boxHeight + "px";
+      this.selectBox.style.transform = "translate(" + boxX + "px," + boxY + "px) rotate(" + this.selectRotation + "deg)";
+      this.selectBox.offsetHeight;
+      this.selectBox.style.transition = "all .25s, opacity .15s";
+
+      if (showDuplicateTooltips != true) {
+        this.tooltipPadding = 24;
+      } else {
+        this.tooltipPadding = 60;
+      }
+      if (showTooltips == true) {
+        if (this.selectBox.querySelector('.eSelectTooltip[tooltip="topright"]') == null) {
+          this.selectBox.insertAdjacentHTML("beforeend", `
+            <div class="eSelectTooltip" tooltip="movetop" ignore></div>
+            <div class="eSelectTooltip" tooltip="movebottom" ignore></div>
+            <div class="eSelectTooltip" tooltip="moveleft" ignore></div>
+            <div class="eSelectTooltip" tooltip="moveright" ignore></div>
+            <svg class="eSelectTooltip" tooltip="rotate" width="26" height="26" viewBox="0 0 31 31" hidden fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M3.46244 9.45089C2.67045 10.2429 1.38612 10.2429 0.594123 9.45089C-0.197875 8.65884 -0.197875 7.37466 0.594123 6.58261L3.46244 9.45089ZM9.04395 3.86918L3.46244 9.45089L0.594123 6.58261L6.17562 1.0009L9.04395 3.86918Z" fill="#0084FF"/> <path d="M14.6257 6.58261C15.4177 7.37466 15.4177 8.65884 14.6257 9.45089C13.8337 10.2429 12.5494 10.2429 11.7574 9.45089L14.6257 6.58261ZM9.04373 1.0009L14.6257 6.58261L11.7574 9.45089L6.17541 3.86918L9.04373 1.0009Z" fill="var(--theme)"/> <path d="M21.3783 19.0707C20.5863 18.2786 20.5863 16.9945 21.3783 16.2024C22.1703 15.4104 23.4546 15.4104 24.2466 16.2024L21.3783 19.0707ZM26.9603 24.6523L21.3783 19.0707L24.2466 16.2024L29.8281 21.7841L26.9603 24.6523Z" fill="var(--theme)"/> <path d="M24.2466 30.2341C23.4546 31.0261 22.1703 31.0261 21.3783 30.2341C20.5863 29.442 20.5863 28.1579 21.3783 27.3658L24.2466 30.2341ZM29.8281 24.6524L24.2466 30.2341L21.3783 27.3658L26.9603 21.7841L29.8281 24.6524Z" fill="var(--theme)"/> <path d="M7.63804 2.43607V10.0101C7.63804 17.2905 13.5396 23.1924 20.8203 23.1924H28.394" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectTooltip" tooltip="topleft" width="16" height="16" viewBox="0 0 16 16" hidden fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M2 14V14C2 7.37258 7.37258 2 14 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectTooltip" tooltip="topright" width="16" height="16" viewBox="0 0 16 16" hidden fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M14 14V14C14 7.37258 8.62742 2 2 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectTooltip" tooltip="bottomleft" width="16" height="16" viewBox="0 0 16 16" hidden fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M2 2V2C2 8.62742 7.37258 14 14 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectTooltip" tooltip="bottomright" width="16" height="16" viewBox="0 0 16 16" hidden fill="none" xmlns="http://www.w3.org/2000/svg" hidden> <path d="M14 2V2C14 8.62742 8.62742 14 2 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectTooltip" tooltip="left" width="12" height="28" viewBox="0 0 12 28" hidden fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M6 6V22" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectTooltip" tooltip="right" width="12" height="28" viewBox="0 0 12 28" hidden fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M6 6V22" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectTooltip" tooltip="top" width="28" height="12" viewBox="0 0 28 12" hidden fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M22 6H6" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectTooltip" tooltip="bottom" width="28" height="12" viewBox="0 0 28 12" hidden fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M22 6H6" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectTooltip" duplicate tooltip="duplicateleft" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10.5" fill="var(--hover)" stroke="var(--theme)" stroke-width="3"/> <path d="M12 16.5L12 7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> <path d="M16.5 12H7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> </svg>
+            <svg class="eSelectTooltip" duplicate tooltip="duplicateright" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10.5" fill="var(--hover)" stroke="var(--theme)" stroke-width="3"/> <path d="M12 16.5L12 7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> <path d="M16.5 12H7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> </svg>
+            <svg class="eSelectTooltip" duplicate tooltip="duplicatetop" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10.5" fill="var(--hover)" stroke="var(--theme)" stroke-width="3"/> <path d="M12 16.5L12 7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> <path d="M16.5 12H7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> </svg>
+            <svg class="eSelectTooltip" duplicate tooltip="duplicatebottom" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10.5" fill="var(--hover)" stroke="var(--theme)" stroke-width="3"/> <path d="M12 16.5L12 7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> <path d="M16.5 12H7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> </svg>
+          `);
+        }
+        if (showDuplicateTooltips == false) {
+          this.selectBox.removeAttribute("showduplicate");
+        } else {
+          this.selectBox.setAttribute("showduplicate", "");
+        }
+        if (showTextBoxEdit == false) {
+          let eSelectTopLeft = this.selectBox.querySelector('.eSelectTooltip[tooltip="topleft"]');
           if (eSelectTopLeft != null) {
             eSelectTopLeft.removeAttribute("hidden");
-            let eSelectTopRight = select.querySelector('.eSelectTooltip[tooltip="topright"]');
-            let eSelectBottomLeft = select.querySelector('.eSelectTooltip[tooltip="bottomleft"]');
-            let eSelectBottomRight = select.querySelector('.eSelectTooltip[tooltip="bottomright"]');
+            let eSelectTopRight = this.selectBox.querySelector('.eSelectTooltip[tooltip="topright"]');
+            let eSelectBottomLeft = this.selectBox.querySelector('.eSelectTooltip[tooltip="bottomleft"]');
+            let eSelectBottomRight = this.selectBox.querySelector('.eSelectTooltip[tooltip="bottomright"]');
             eSelectBottomRight.removeAttribute("hidden");
-            let eSelectLeft = select.querySelector('.eSelectTooltip[tooltip="left"]');
-            let eSelectRight = select.querySelector('.eSelectTooltip[tooltip="right"]');
-            let eSelectTop = select.querySelector('.eSelectTooltip[tooltip="top"]');
-            let eSelectBottom = select.querySelector('.eSelectTooltip[tooltip="bottom"]');
-            let eSelectRotate = select.querySelector('.eSelectTooltip[tooltip="rotate"]');
+            let eSelectLeft = this.selectBox.querySelector('.eSelectTooltip[tooltip="left"]');
+            let eSelectRight = this.selectBox.querySelector('.eSelectTooltip[tooltip="right"]');
+            let eSelectTop = this.selectBox.querySelector('.eSelectTooltip[tooltip="top"]');
+            let eSelectBottom = this.selectBox.querySelector('.eSelectTooltip[tooltip="bottom"]');
+            let eSelectRotate = this.selectBox.querySelector('.eSelectTooltip[tooltip="rotate"]');
             if (boxWidth < 52) {
               eSelectTop.setAttribute("hidden", "");
               eSelectBottom.setAttribute("hidden", "");
@@ -1904,27 +2085,27 @@ modules["pages/editor/toolbar/cursor"] = {
             } else {
               eSelectTopRight.removeAttribute("hidden");
               eSelectBottomLeft.removeAttribute("hidden");
-              if (merged.f == "page") {
-                eSelectRotate.setAttribute("hidden", "");
-                eSelectBottomLeft.style.display = "unset";
-              } else {
+              if (showOnlyPages == false) {
                 eSelectRotate.removeAttribute("hidden");
                 eSelectBottomLeft.style.removeProperty("display");
+              } else {
+                eSelectRotate.setAttribute("hidden", "");
+                eSelectBottomLeft.style.display = "unset";
               }
             }
           }
         } else {
-          let eSelectLeft = select.querySelector('.eSelectTooltip[tooltip="left"]');
+          let eSelectLeft = this.selectBox.querySelector('.eSelectTooltip[tooltip="left"]');
           if (eSelectLeft != null) {
             eSelectLeft.removeAttribute("hidden");
-            select.querySelector('.eSelectTooltip[tooltip="right"]').removeAttribute("hidden");
-            select.querySelector('.eSelectTooltip[tooltip="topleft"]').setAttribute("hidden", "");
-            select.querySelector('.eSelectTooltip[tooltip="topright"]').setAttribute("hidden", "");
-            select.querySelector('.eSelectTooltip[tooltip="bottomleft"]').setAttribute("hidden", "");
-            select.querySelector('.eSelectTooltip[tooltip="bottomright"]').setAttribute("hidden", "");
-            select.querySelector('.eSelectTooltip[tooltip="top"]').setAttribute("hidden", "");
-            select.querySelector('.eSelectTooltip[tooltip="bottom"]').setAttribute("hidden", "");
-            let eSelectRotate = select.querySelector('.eSelectTooltip[tooltip="rotate"]');
+            this.selectBox.querySelector('.eSelectTooltip[tooltip="right"]').removeAttribute("hidden");
+            this.selectBox.querySelector('.eSelectTooltip[tooltip="topleft"]').setAttribute("hidden", "");
+            this.selectBox.querySelector('.eSelectTooltip[tooltip="topright"]').setAttribute("hidden", "");
+            this.selectBox.querySelector('.eSelectTooltip[tooltip="bottomleft"]').setAttribute("hidden", "");
+            this.selectBox.querySelector('.eSelectTooltip[tooltip="bottomright"]').setAttribute("hidden", "");
+            this.selectBox.querySelector('.eSelectTooltip[tooltip="top"]').setAttribute("hidden", "");
+            this.selectBox.querySelector('.eSelectTooltip[tooltip="bottom"]').setAttribute("hidden", "");
+            let eSelectRotate = this.selectBox.querySelector('.eSelectTooltip[tooltip="rotate"]');
             if (boxHeight < 40) {
               eSelectRotate.setAttribute("hidden", "");
             } else {
@@ -1932,76 +2113,16 @@ modules["pages/editor/toolbar/cursor"] = {
             }
           }
         }
-
-        select.offsetHeight;
-        select.style.transition = "all .25s, opacity .15s";
-
-        let inverse = 1 / editor.zoom;
-        if (activeLayer != null) {
-          let sizeInverse = 22 * inverse;
-          let posInverse = 11 * inverse;
-          activeLayer.style.width = (width + t) + sizeInverse + "px";
-          activeLayer.style.height = (height + t) + sizeInverse + "px";
-          let [relX, relY] = merged.p;
-          //activeLayer.style.left = relX + halfT - posInverse + "px";
-          //activeLayer.style.top = relY + halfT - border - posInverse + "px";
-          activeLayer.style.transform = "translate(" + (relX + halfT - posInverse) + "px," + (relY + halfT - border - posInverse) + "px) rotate(" + rotate + "deg)";
-        }
-
-        let radian = (merged.r || 0) * (Math.PI / 180);
-        let changedWidth = ((Math.abs(width * Math.cos(radian)) + Math.abs(height * Math.sin(radian))) - width) / 2;
-        let changedHeight = ((Math.abs(width * Math.sin(radian)) + Math.abs(height * Math.cos(radian))) - height) / 2;
-
-        let pageY = pageRect.y - pageHolderRect.y;
-        let setMinX = x + halfT - changedWidth;
-        this.minX = Math.min(this.minX || setMinX, setMinX);
-        let setMaxX = x + width + t + halfT + changedWidth;
-        this.maxX = Math.max(this.maxX || setMaxX, setMaxX);
-        let setMinY = (pageY * inverse) + y + halfT - border - changedHeight;
-        this.minY = Math.min(this.minY || setMinY, setMinY);
-        let setMaxY = (pageY * inverse) + y + t - border + height + halfT + changedHeight;
-        this.maxY = Math.max(this.maxY || setMaxY, setMaxY);
-
-        let setCheckX = x + width;
-        this.checkX = Math.min(this.checkX || setCheckX, setCheckX);
-        let setCheckY = (pageY * inverse) + y - border + height;
-        this.checkY = Math.min(this.checkY || setCheckY, setCheckY);
-
-        if (selectionIDs.length == 1 && select.querySelector('.eSelectTooltip[duplicate]') != null) {
-          this.tooltipPadding = 60;
-        } else {
-          this.tooltipPadding = 24;
-        }
-
-        if (collabSelect != null) {
-          collabSelect.offsetWidth;
-          let collWidth = ((width + t) * editor.zoom) - 3; // +0 for width, -3 for border
-          let collHeight = ((height + t) * editor.zoom) - 3;
-          collabSelect.style.width = collWidth + "px";
-          collabSelect.style.height = collHeight + "px";
-          //collabSelect.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
-          //collabSelect.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
-          collabSelect.style.transform = "translate(" + (pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5) + "px," + (pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5) + "px) rotate(" + rotate + "deg)";
-        }
-
-        if (forceNoTransition == true) {
-          select.removeAttribute("notransition");
-        }
+        this.selectBox.removeAttribute("hidetips");
+      } else {
+        this.selectBox.setAttribute("hidetips", "");
       }
-    }
-    if (hideTooltipWait.length > 0) {
-      (async function () {
-        await sleep(150);
-        for (let i = 0; i < hideTooltipWait.length; i++) {
-          let select = hideTooltipWait[i];
-          if (select != null && select.hasAttribute("hidetips") == true) {
-            let tooltips = select.querySelectorAll(".eSelectTooltip");
-            for (let r = 0; r < tooltips.length; r++) {
-              tooltips[r].remove();
-            }
-          }
-        }
-      })();
+
+      if (forceNoTransition == true && this.selectBox != null) {
+        this.selectBox.removeAttribute("notransition");
+      }
+    } else {
+      removeSelectBox();
     }
 
     if (noUpdateAction != true) { //forceNoTransition != true && 
@@ -2018,7 +2139,7 @@ modules["pages/editor/toolbar/cursor"] = {
           selection.remove();
           continue;
         }
-        anno = { ...((editor.annotations[annoID]).render || {}), ...(editor.selecting[annoID] || {}) };
+        anno = { ...((editor.annotations[annoID]).render ?? {}), ...(editor.selecting[annoID] ?? {}) };
         if (anno.f == null) {
           continue;
         }
@@ -2027,7 +2148,7 @@ modules["pages/editor/toolbar/cursor"] = {
         if (member == null || member.cursorRender == null) {
           continue;
         }
-        anno = { ...member.cursorRender, ...(editor.selecting[annoID] || {}) };
+        anno = { ...member.cursorRender, ...(editor.selecting[annoID] ?? {}) };
       }
       let border = 0;
       let annoHold = await utils.annoHolder(anno.page);
@@ -2035,7 +2156,7 @@ modules["pages/editor/toolbar/cursor"] = {
         border = 4;
       }*/
       let pageRect = annoHold.getBoundingClientRect();
-      let t = anno.t || 0;
+      let t = anno.t ?? 0;
       if (anno.b == "none" && anno.d != "line") {
         t = 0;
       }
@@ -2044,7 +2165,7 @@ modules["pages/editor/toolbar/cursor"] = {
       if (forceNoTransition == true || (this.action != null && extra.selectedParent == true)) {
         selection.setAttribute("notransition", "");
       }
-      let rotate = anno.r || 0;
+      let rotate = anno.r ?? 0;
       if (rotate > 180) {
         rotate = -(360 - rotate);
       }
@@ -2067,6 +2188,10 @@ modules["pages/editor/toolbar/cursor"] = {
       selection.offsetHeight;
       selection.removeAttribute("notransition");
     }
+
+    if (forceNoTransition == true || forceUpdate == true) {
+      await this.updateSnapLines();
+    }
     //}
     //this.lastEditorZoom = editor.zoom;
   },
@@ -2076,7 +2201,7 @@ modules["pages/editor/toolbar/cursor"] = {
     "markup": ["color", "thickness", "opacity", "unlock", "collaborator", "delete", "more"],
     "shape": ["color", "thickness", "opacity", "style", "unlock", "collaborator", "delete", "more"],
     "sticky": ["textedit", "color", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "unlock", "collaborator", "reactions", "delete", "more"],
-    "page": ["uploadpage", "resize", "settitle", "color", "hidepage", "unlock", "collaborator", "delete", "more"],
+    "page": ["uploadpage", "resize", "settitle", "color", "hidepage", "rotatepage", "unlock", "collaborator", "delete", "more"],
     "media": ["unlock", "collaborator", "delete", "more"],
     "embed": ["openlink", "enlarge", "setembed", "unlock", "collaborator", "delete", "more"]
   },
@@ -2117,9 +2242,9 @@ modules["pages/editor/toolbar/cursor"] = {
         let combineTools;
         let anno;
         for (let i = 0; i < selectionIDs.length; i++) {
-          anno = (editor.annotations[selectionIDs[i]] || {}).render || {};
+          anno = (editor.annotations[selectionIDs[i]] ?? {}).render ?? {};
           if (anno != null) {
-            let tools = this.actionBarTools[anno.f] || [];
+            let tools = this.actionBarTools[anno.f] ?? [];
             if (combineTools != null) {
               for (let c = 0; c < combineTools.length; c++) {
                 if (tools.includes(combineTools[c]) == false) {
@@ -2128,7 +2253,7 @@ modules["pages/editor/toolbar/cursor"] = {
                 }
               }
             } else {
-              combineTools = JSON.parse(JSON.stringify(tools || {}));
+              combineTools = JSON.parse(JSON.stringify(tools ?? {}));
             }
           }
         }
@@ -2158,7 +2283,7 @@ modules["pages/editor/toolbar/cursor"] = {
         if (showLocked == false) {
           for (let i = 0; i < selectionIDs.length; i++) {
             let selectID = selectionIDs[i];
-            let anno = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+            let anno = ({ ...((editor.annotations[selectID] || {}).render ?? {}), ...(editor.selecting[selectID] ?? {}) }) ?? {};
             if (anno.lock == true) {
               showLocked = true;
               break;
@@ -2388,7 +2513,7 @@ modules["pages/editor/toolbar/cursor"] = {
       let selectKeys = Object.keys(editor.selecting);
       for (let i = 0; i < selectKeys.length; i++) {
         let selectID = selectKeys[i];
-        let anno = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+        let anno = ({ ...((editor.annotations[selectID] ?? {}).render ?? {}), ...(editor.selecting[selectID] ?? {}) }) ?? {};
         if (anno.lock == true) {
           showLocked = true;
           break;
@@ -2447,7 +2572,7 @@ modules["pages/editor/toolbar/cursor"] = {
       if (module != null && module.html != null && module.reRender != false) {
         actionContent.innerHTML = module.html;
         let selectKeys = Object.keys(editor.selecting);
-        let preferenceTool = ((editor.annotations[selectKeys[0]] || {}).render || {}).f;
+        let preferenceTool = ((editor.annotations[selectKeys[0]] ?? {}).render ?? {}).f;
         await this.runActionModule(module, actionUI, preferenceTool, { rerender: true });
       }
     }
@@ -2519,7 +2644,7 @@ modules["pages/editor/toolbar/cursor"] = {
     let moduleID = action.getAttribute("action");
     let module = await getModule(moduleID);
     let selectKeys = Object.keys(editor.selecting);
-    let preferenceTool = ((editor.annotations[selectKeys[0]] || {}).render || {}).f;
+    let preferenceTool = ((editor.annotations[selectKeys[0]] ?? {}).render ?? {}).f;
     if (module != null && module.html != null) {
       contentFrame.innerHTML = module.html;
       action.setAttribute("selected", "");
@@ -2579,7 +2704,7 @@ modules["pages/editor/toolbar/cursor"] = {
         for (let i = 0; i < selectKeys.length; i++) {
           let annoID = selectKeys[i];
           let select = editor.selecting[annoID];
-          let original = (editor.annotations[annoID] || {}).render || {};
+          let original = (editor.annotations[annoID] ?? {}).render ?? {};
           if (original.lock == true && set.lock == null) {
             continue;
           }
@@ -2594,7 +2719,7 @@ modules["pages/editor/toolbar/cursor"] = {
             if (annoTx != null && annoSet.remove != true) {
               editor.selecting[annoID] = { ...select, ...annoSet };
               await utils.render({ ...anno, ...annoSet }, annoTx.parentElement);
-              annoSet.s = anno.s || [];
+              annoSet.s = anno.s ?? [];
               if (anno.textfit == true) {
                 annoSet.s[0] = annoTx.offsetWidth + 6;
               }
@@ -2606,7 +2731,7 @@ modules["pages/editor/toolbar/cursor"] = {
               if (annoTx.offsetHeight > annoTx.parentElement.offsetHeight) {
                 editor.selecting[annoID] = { ...select, ...annoSet };
                 await utils.render({ ...anno, ...annoSet }, annoTx.parentElement);
-                annoSet.s = anno.s || [];
+                annoSet.s = anno.s ?? [];
                 annoSet.s[1] = annoTx.offsetHeight;
               }
             }
@@ -2638,7 +2763,7 @@ modules["pages/editor/toolbar/cursor"] = {
         for (let i = 0; i < selectKeys.length; i++) {
           let annoID = selectKeys[i];
           let select = editor.selecting[annoID];
-          let original = (editor.annotations[annoID] || {}).render || {};
+          let original = (editor.annotations[annoID] ?? {}).render ?? {};
           if (original.lock == true && set.lock == null) {
             continue;
           }
@@ -2653,7 +2778,7 @@ modules["pages/editor/toolbar/cursor"] = {
             if (annoTx != null && annoSet.remove != true) {
               editor.selecting[annoID] = { ...select, ...annoSet };
               await utils.render({ ...anno, ...annoSet }, annoTx.parentElement);
-              annoSet.s = anno.s || [];
+              annoSet.s = anno.s ?? [];
               if (anno.textfit == true) {
                 annoSet.s[0] = annoTx.offsetWidth + 6;
               }
@@ -2676,7 +2801,7 @@ modules["pages/editor/toolbar/cursor"] = {
             let changeKeys = Object.keys(annoSet);
             let pushFields = {};
             for (let f = 0; f < changeKeys.length; f++) {
-              pushFields[changeKeys[f]] = original[changeKeys[f]] || null;
+              pushFields[changeKeys[f]] = original[changeKeys[f]] ?? null;
             }
             if (Object.keys(pushFields).length > 0) {
               if (annoSet.remove != true) {
@@ -2721,7 +2846,7 @@ modules["pages/editor/toolbar/cursor"] = {
           let selectKeys = Object.keys(editor.selecting);
           for (let i = 0; i < selectKeys.length; i++) {
             let selectID = selectKeys[i];
-            let anno = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+            let anno = ({ ...((editor.annotations[selectID] ?? {}).render ?? {}), ...(editor.selecting[selectID] ?? {}) }) ?? {};
             if (anno.lock == true) {
               showLocked = true;
               break;
@@ -2774,6 +2899,7 @@ modules["pages/editor/toolbar/cursor"] = {
       return;
     }
     let editor = await getModule("pages/editor");
+    let utils = await getModule("pages/editor/annotation");
     this.activeElem = target.closest(".eSelectActive");
     this.annotationElem = target.closest(".eAnnotation, .eAnnotationHolder");
     if (this.annotationElem != null && this.annotationElem.className == "eAnnotationHolder") {
@@ -2781,13 +2907,16 @@ modules["pages/editor/toolbar/cursor"] = {
     }
     this.selectElem = target.closest(".eSelect");
     this.resizeElem = target.closest(".eSelectTooltip");
+    if (this.resizeElem != null && this.resizeElem.hasAttribute("ignore") == true) {
+      this.resizeElem = null;
+    }
     /*
-    let anno = this.annotationElem || this.selectElem;
+    let anno = this.annotationElem ?? this.selectElem;
     if (anno == null) {
       return;
     }
     let annoID = anno.getAttribute("anno");
-    this.annotation = (editor.annotations[annoID] || {}).render;
+    this.annotation = (editor.annotations[annoID] ?? {}).render;
     if (this.annotation == null) {
       return;
     }
@@ -2795,42 +2924,898 @@ modules["pages/editor/toolbar/cursor"] = {
     if (editor.getSelf().access < 1) {
       return;
     }
-    if (this.annotationElem != null && (this.annotationElem.querySelector("div[contenteditable]") != null || this.annotationElem.querySelector("div[visible] input") != null)) {
+    
+    /*if (this.annotationElem != null && (this.annotationElem.querySelector("div[contenteditable]") != null || this.annotationElem.querySelector("div[visible] input") != null)) {
       return;
-    }
+    }*/
     this.actionEnabled = false;
-    if (this.activeElem != null || (this.annotationElem != null && this.annotationElem.hasAttribute("selected"))) {
+    //if (this.activeElem != null || (this.annotationElem != null && this.annotationElem.hasAttribute("selected"))) {
+    if (this.resizeElem == null) {
       // Drag/Move Element
       this.action = "move";
       this.enableStartX = clientPosition(event, "x");
       this.enableStartY = clientPosition(event, "y");
       //let inverse = 1 / editor.zoom;
-      this.startX = this.enableStartX + window.scrollX; //) * inverse;
-      this.startY = this.enableStartY + window.scrollY; //) * inverse;
+      //this.startX = this.enableStartX + window.scrollX; //) * inverse;
+      //this.startY = this.enableStartY + window.scrollY; //) * inverse;
+      let originalPos = await utils.scaleToDoc(this.enableStartX, this.enableStartY, 0);
+      this.rootX = originalPos.x;
+      this.rootY = originalPos.y;
       body.style.userSelect = "none";
       editor.page.style.touchAction = "pinch-zoom";
       event.preventDefault();
-    } else if (this.resizeElem != null) {
+    } else {
       if (this.resizeElem.hasAttribute("duplicate") == false) {
+        this.enableStartX = clientPosition(event, "x");
+        this.enableStartY = clientPosition(event, "y");
+        let originalPos = await utils.scaleToDoc(this.enableStartX, this.enableStartY, 0);
+
+        // Must apply rotations based on the select box:
+        let boundingBoxWidth = this.maxX - this.minX;
+        let boundingBoxHeight = this.maxY - this.minY;
+        let transformRotateWidth = this.minX + (boundingBoxWidth / 2);
+        let transformRotateHeight = this.minY + (boundingBoxHeight / 2);
+
+        let radian = this.selectRotation * (Math.PI / 180);
+
+        //let originalWidth = (Math.abs(boundingBoxWidth * Math.cos(radian)) - Math.abs(boundingBoxHeight * Math.sin(radian))) / (Math.cos(radian) ** 2 - Math.sin(radian) ** 2);
+        //let originalHeight = (Math.abs(boundingBoxHeight * Math.cos(radian)) - Math.abs(boundingBoxWidth * Math.sin(radian))) / (Math.cos(radian) ** 2 - Math.sin(radian) ** 2);
+        let originalWidth = boundingBoxWidth;
+        let originalHeight = boundingBoxHeight;
+
+        if (this.selectRotation != 0) {
+          originalWidth = this.lastElementWidth;
+          originalHeight = this.lastElementHeight;
+        }
+
+        // Calculate the rotated bounding box dimensions using the original bounding box dimensions
+        let rotatedWidth = Math.abs(boundingBoxWidth * Math.cos(radian)) + Math.abs(boundingBoxHeight * Math.sin(radian));
+        let rotatedHeight = Math.abs(boundingBoxHeight * Math.cos(radian)) + Math.abs(boundingBoxWidth * Math.sin(radian));
+
+        // Calculate the offset to the new top-left corner of the rotated bounding box:
+        let offsetX = (rotatedWidth - originalWidth) / 2;
+        let offsetY = (rotatedHeight - originalHeight) / 2;
+
+        // Calculate the new top-left corner of the rotated bounding box:
+        let rotatedTopLeftX = transformRotateWidth - (rotatedWidth / 2) + offsetX;
+        let rotatedTopLeftY = transformRotateHeight - (rotatedHeight / 2) + offsetY;
+
+        this.originalPosition = [rotatedTopLeftX, rotatedTopLeftY];
+        this.originalSize = [originalWidth, originalHeight];
+
         if (this.resizeElem.getAttribute("tooltip") != "rotate") {
           // Resize Element
           this.action = "resize";
+
+          let halfRotateWidth = this.originalPosition[0] + (this.originalSize[0] / 2);
+          let halfRotateHeight = this.originalPosition[1] + (this.originalSize[1] / 2);
+          let [xCoord, yCoord] = utils.rotatePoint(originalPos.x - halfRotateWidth, -(originalPos.y - halfRotateHeight), -this.selectRotation);
+          this.rootX = xCoord;
+          this.rootY = yCoord;
+          this.tooltip = this.resizeElem.getAttribute("tooltip");
         } else {
           // Rotate Element
           this.action = "rotate";
+
+          let centerX = this.originalSize[0] / 2;
+          let centerY = this.originalSize[1] / 2;
+          let yRoot = -(originalPos.y - (this.originalPosition[1] + centerY));
+          let xRoot = originalPos.x - (this.originalPosition[0] + centerX);
+
+          this.originalRotate = this.selectRotation;
+
+          this.originalRotation = (Math.atan2(yRoot, xRoot) * 180) / Math.PI;
+          if (this.originalRotation < 0) {
+            this.originalRotation = 360 + this.originalRotation;
+          }
         }
-        this.enableStartX = clientPosition(event, "x");
-        this.enableStartY = clientPosition(event, "y");
         body.style.userSelect = "none";
         editor.page.style.touchAction = "pinch-zoom";
         event.preventDefault();
       } else {
+        // Duplicate Element
         let moreModule = await getModule("dropdowns/editor/toolbar/more");
         await moreModule.handleDuplicate(this.resizeElem.getAttribute("tooltip"));
       }
     }
+
+    this.position = {};
+    this.size = {};
+    this.rotation = {};
   },
-  oppositeResize: {
+  snapThreshold: 8,
+  renderSnaps: [],
+  updateSnapLines: async function (render) {
+    let editor = await getModule("pages/editor");
+    let content = editor.page.querySelector(".eContent");
+    let pageHolder = content.querySelector(".ePageHolder");
+    let pageRect = pageHolder.getBoundingClientRect();
+
+    //let renderSnaps = [];
+    let validSnaps = {};
+    let snapX = 0;
+    let snapY = 0;
+    for (let i = 0; i < this.renderSnaps.length; i++) {
+      let snap = this.renderSnaps[i];
+      if (snap == null) {
+        continue;
+      }
+      let existingValid = validSnaps[snap.type];
+      if (existingValid != null) {
+        if (snap.marker != null) {
+          if (Math.max(snap.width, snap.height) > Math.max(existingValid.width, existingValid.height)) {
+            continue;
+          }
+        } else {
+          snap.width = snap.width + existingValid.width - (Math.min(snap.x + snap.width, existingValid.x + existingValid.width) - Math.max(snap.x, existingValid.x));
+          snap.height = snap.height + existingValid.height - (Math.min(snap.y + snap.height, existingValid.y + existingValid.height) - Math.max(snap.y, existingValid.y));
+          snap.x = Math.min(snap.x, existingValid.x);
+          snap.y = Math.min(snap.y, existingValid.y);
+        }
+      }
+
+      if (snap.marker != null && snap.width < 1 && snap.height < 1) {
+        continue;
+      }
+      if (snap.width > 0 && snap.height > 0) {
+        if (snap.width > snap.height) {
+          snap.height = 0;
+        } else {
+          snap.width = 0;
+        }
+      }
+
+      validSnaps[snap.type] = snap;
+      //renderSnaps.push(snap);
+
+      /*if (snap.additional != null) {
+        let additional = snap.additional();
+        for (let a = 0; a < additional.length; a++) {
+          let snapVisual = additional[a];
+          renderSnaps.push({ ...snapVisual, visual: true });
+          validSnaps[snapVisual.type] = snapVisual;
+        }
+      }*/
+      if (snap.additionalLines != null) {
+        for (let a = 0; a < snap.additionalLines.length; a++) {
+          let snapVisual = snap.additionalLines[a];
+          //renderSnaps.push({ ...snapVisual, visual: true });
+          validSnaps[snapVisual.type] = snapVisual;
+        }
+      }
+    }
+    if (validSnaps["left_left_side"] != null && validSnaps["right_right_side"] != null) {
+      delete validSnaps["center_vertical"];
+    }
+    if (validSnaps["top_top_side"] != null && validSnaps["bottom_bottom_side"] != null) {
+      delete validSnaps["center_horizontal"];
+    }
+    if (validSnaps["center_distance_left"] == null || validSnaps["center_distance_right"] == null || validSnaps["center_distance_right"].width - validSnaps["center_distance_left"].width > this.snapThreshold) {
+      delete validSnaps["center_distance_left"];
+      delete validSnaps["center_distance_right"];
+    }
+    if (validSnaps["center_distance_right"] == null || validSnaps["center_distance_left"] == null || validSnaps["center_distance_left"].width - validSnaps["center_distance_right"].width > this.snapThreshold) {
+      delete validSnaps["center_distance_right"];
+      delete validSnaps["center_distance_left"];
+    }
+    if (validSnaps["center_distance_top"] == null || validSnaps["center_distance_bottom"] == null || validSnaps["center_distance_bottom"].height - validSnaps["center_distance_top"].height > this.snapThreshold) {
+      delete validSnaps["center_distance_top"];
+      delete validSnaps["center_distance_bottom"];
+    }
+    if (validSnaps["center_distance_bottom"] == null || validSnaps["center_distance_top"] == null || validSnaps["center_distance_top"].height - validSnaps["center_distance_bottom"].height > this.snapThreshold) {
+      delete validSnaps["center_distance_bottom"];
+      delete validSnaps["center_distance_top"];
+    }
+    let renderSnaps = Object.keys(validSnaps);
+    for (let i = 0; i < renderSnaps.length; i++) {
+      let snap = validSnaps[renderSnaps[i]];
+      if (snap == null) { //|| validSnaps[snap.type] == null) {
+        continue;
+      }
+
+      if (snap.axis == "x") {
+        snapX = snap.threshold;
+      } else if (snap.axis == "y") {
+        snapY = snap.threshold;
+      }
+
+      if (render != false) {
+        let offsetWidth = -1;
+        let offsetHeight = -1;
+        if (snap.marker == "x") {
+          offsetWidth += 1;
+        } else if (snap.marker == "y") {
+          offsetHeight += 1;
+        }
+        
+        let snapElement = this.currentSnapElements[snap.type];
+        if (snapElement == null) {
+          content.insertAdjacentHTML("beforeend", `<div class="eSelectSnap" tooleditor new></div>`);
+          snapElement = content.querySelector(".eSelectSnap[new]");
+          snapElement.removeAttribute("new");
+          this.currentSnapElements[snap.type] = snapElement;
+
+          if (snap.marker == "x") {
+            snapElement.insertAdjacentHTML("beforeend", `<div marker="snapxleft"></div><div marker="snapxright"></div>`);
+          } else if (snap.marker == "y") {
+            snapElement.insertAdjacentHTML("beforeend", `<div marker="snapytop"></div><div marker="snapybottom"></div>`);
+          }
+        }
+
+        snapElement.style.width = Math.max(Math.round(snap.width * editor.zoom), 2) + "px";
+        snapElement.style.height = Math.max(Math.round(snap.height * editor.zoom), 2) + "px";
+        snapElement.style.left = Math.round(pageRect.x + (snap.x * editor.zoom) + window.scrollX + offsetWidth) + "px";
+        snapElement.style.top = Math.round(pageRect.y + (snap.y * editor.zoom) + window.scrollY + offsetHeight) + "px";
+      }
+    }
+    let checkRemoveSnaps = Object.keys(this.currentSnapElements);
+    for (let i = 0; i < checkRemoveSnaps.length; i++) {
+      let checkSnap = checkRemoveSnaps[i];
+      if (validSnaps[checkSnap] == null) {
+        this.currentSnapElements[checkSnap].remove();
+        delete this.currentSnapElements[checkSnap];
+      }
+    }
+    return { snapX: snapX, snapY: snapY };
+  },
+  snapItems: async function (event, extra) {
+    // Loops through other visible annotations
+    // Checks if sides / centers line up withen threshold
+    // Also checks distance between items to check for patterns
+    // Returns an offset X / Y to correct for line up
+
+    let editor = await getModule("pages/editor");
+
+    if (["move", "resize"].includes(this.action) == false) {
+      return { snapX: 0, snapY: 0 };
+    }
+    if (this.action == "resize" && this.selectRotation != 0) {
+      return { snapX: 0, snapY: 0 };
+    }
+    if (editor.options.snapping == false) {
+      return { snapX: 0, snapY: 0 };
+    }
+    if (Object.keys(editor.selecting).length < 1) {
+      return { snapX: 0, snapY: 0 };
+    }
+
+    let content = editor.page.querySelector(".eContent");
+    let pageHolder = content.querySelector(".ePageHolder");
+
+    // Get page viewbox:
+    let pageRect = pageHolder.getBoundingClientRect();
+    let pageTopLeftX = -pageRect.left / editor.zoom;
+    let pageTopLeftY = -pageRect.top / editor.zoom;
+    let pageBottomRightX = (fixed.offsetWidth - pageRect.left) / editor.zoom;
+    let pageBottomRightY = (fixed.offsetHeight - pageRect.top) / editor.zoom;
+
+    // Determine selection bounds:
+    let selectTopLeftX = this.minX;
+    let selectTopLeftY = this.minY;
+    let selectBottomRightX = this.maxX;
+    let selectBottomRightY = this.maxY;
+    if (extra.scaleWidth < 0) {
+      selectTopLeftX = this.maxX;
+      selectBottomRightX = this.minX;
+    }
+    if (extra.scaleHeight < 0) {
+      selectTopLeftY = this.maxY;
+      selectBottomRightY = this.minY;
+    }
+
+    // Get common parent:
+    let hasCommonParent = true;
+    let commonParent = null;
+    let selectedKeys = Object.keys(editor.selecting);
+    for (let i = 0; i < selectedKeys.length; i++) {
+      let annoid = selectedKeys[i];
+      let original = editor.annotations[annoid];
+      if (original == null) {
+        continue;
+      }
+      if (original.pointer != null) {
+        annoid = original.pointer;
+        original = editor.annotations[annoid] ?? { render: {} };
+      }
+      if (original == null || original.render == null) {
+        continue;
+      }
+      //lowestZIndex = Math.min(original.render.l, lowestZIndex ?? original.render ?? 0);
+      if (original.render.parent != commonParent && i > 0) {
+        hasCommonParent = false;
+        break;
+      }
+      commonParent = original.render.parent;
+    }
+
+    // Gets all items in loaded chunks:
+    let annotationKeys = {};
+    if (event.ctrlKey != true) {
+      for (let c = 0; c < editor.visibleChunks.length; c++) {
+        annotationKeys = { ...annotationKeys, ...(editor.chunkAnnotations[editor.visibleChunks[c]] ?? {}) };
+      }
+    }
+    let annotations = Object.keys(annotationKeys);
+    
+    this.renderSnaps = [];
+    let applySnap = (data, run) => {
+      let threshold = Math.abs(data.threshold);
+      if (threshold > this.snapThreshold) {
+        return;
+      }
+      if (extra.resizeHandleAxis != null) {
+        if (extra.resizeHandleAxis == "x" && data.axis == "y") {
+          return;
+        } else if (extra.resizeHandleAxis == "y" && data.axis == "x") {
+          return;
+        }
+      }
+      for (let i = 0; i < this.renderSnaps.length; i++) {
+        let check = this.renderSnaps[i];
+        if (check == null) {
+          continue;
+        }
+        if (check.axis == data.axis) {
+          let compare = Math.round(Math.abs(check.threshold) - threshold);
+          if (compare > 0) {
+            this.renderSnaps.splice(i, 1);
+            i--;
+          } else if (compare < 0) { // || check.type != data.type
+            return;
+          }
+        }
+        if (data.type == check.type && data.centerSize != null && check.centerSize != null) {
+          if (data.centerSize > check.centerSize) {
+            return;
+          }/* else {
+            this.renderSnaps.splice(i, 1);
+            i--;
+          }*/
+        }
+        if (data.type == check.type && data.marker != null && check.centerSize == null) {
+          //return;
+        }
+      }
+      if (extra.render != false || data.marker != null) {
+        data = { ...data, ...run() };
+        if (data.additional != null) {
+          let result = data.additional();
+          if (result === false) {
+            return;
+          } else {
+            data.additionalLines = result;
+          }
+        }
+      } else {
+        data = { ...data, width: 0, height: 0, x: 0, y: 0 };
+      }
+      this.renderSnaps.push(data);
+      /*let existingSnap = this.renderSnaps[type];
+      if (existingSnap != null && existingSnap.distance - threshold > 0) {
+        return;
+      }
+      this.renderSnaps[type] = { ...data, distance: threshold };*/
+    }
+
+    // Loop through loaded annotations:
+    let checkDistanceXDirection = [];
+    let checkDistanceYDirection = [];
+    for (let i = 0; i < annotations.length; i++) {
+      let annoid = annotations[i];
+      let annotation = editor.annotations[annoid];
+      if (annotation == null) {
+        continue;
+      }
+      if (annotation.pointer != null) {
+        annoid = annotation.pointer;
+        annotation = editor.annotations[annoid];
+      }
+      if (editor.selecting[annoid] != null) {
+        continue;
+      }
+      let render = annotation.render;
+      if (render == null) {
+        continue;
+      }
+      if (["markup", "draw"].includes(render.f) == true) {
+        continue;
+      }
+      if (hasCommonParent == true && render.parent != commonParent && annoid != commonParent) {
+        continue;
+      }
+      let currentAnnoCheck = render;
+      let checkedParents = [];
+      let enableContinue = false;
+      while (currentAnnoCheck.parent != null) {
+        let annoid = currentAnnoCheck.parent;
+        if (annoid == null || checkedParents.includes(annoid) == true) {
+          break;
+        }
+        checkedParents.push(annoid);
+        let annotation = editor.annotations[annoid];
+        if (annotation == null) {
+          break;
+        }
+        if (annotation.pointer != null) {
+          annoid = annotation.pointer;
+          annotation = editor.annotations[annoid] ?? { render: {} };
+        }
+        if (editor.selecting[annoid] != null) {
+          enableContinue = true;
+          break;
+        }
+        currentAnnoCheck = annotation.render ?? {};
+      }
+      if (enableContinue == true) {
+        continue;
+      }
+      let [x, y] = editor.getAbsolutePosition(render, true);
+      let [width, height] = render.s;
+      let thick = 0;
+      if (render.t != null) {
+        if (render.b != "none" || render.d == "line") {
+          thick = render.t;
+        }
+      }
+      if (width < 0) {
+        width = -width;
+        x -= width;
+      }
+      if (height < 0) {
+        height = -height;
+        y -= height;
+      }
+      let halfT = thick / 2;
+
+      let radian = (render.r ?? 0) * (Math.PI / 180);
+      let thickWidth = width + thick;
+      let thickHeight = height + thick;
+      let changedWidth = ((Math.abs(thickWidth * Math.cos(radian)) + Math.abs(thickHeight * Math.sin(radian))) - thickWidth) / 2;
+      let changedHeight = ((Math.abs(thickWidth * Math.sin(radian)) + Math.abs(thickHeight * Math.cos(radian))) - thickHeight) / 2;
+      
+      x += halfT - changedWidth;
+      y += halfT - changedHeight;
+      width = thickWidth + (changedWidth * 2);
+      height = thickHeight + (changedHeight * 2);
+      
+      // Check for snap lines:
+      if (x + width > pageTopLeftX && x < pageBottomRightX && y + height > pageTopLeftY && y < pageBottomRightY) {
+        if (this.action == "move" || ["topright", "bottomright", "right"].includes(this.tooltip) == false) {
+          applySnap({ type: "left_left_side", axis: "x", threshold: x - selectTopLeftX }, () => { return {
+            width: 0,
+            height: Math.ceil(Math.max(selectBottomRightY, y + height) - Math.min(selectTopLeftY, y)),
+            x: x,
+            y: Math.min(selectTopLeftY, y)
+          };});
+        }
+        if (this.action == "move" || ["topleft", "bottomleft", "left"].includes(this.tooltip) == false) {
+          applySnap({ type: "left_right_side", axis: "x", threshold: x - selectBottomRightX }, () => { return {
+            width: 0,
+            height: Math.ceil(Math.max(selectBottomRightY, y + height) - Math.min(selectTopLeftY, y)),
+            x: x,
+            y: Math.min(selectTopLeftY, y)
+          };});
+        }
+        if (this.action == "resize" && ["topright", "bottomright", "right"].includes(this.tooltip) == false) {
+          applySnap({ type: "left_center_side", axis: "x", threshold: (x + (width / 2)) - selectTopLeftX }, () => { return {
+            width: 0,
+            height: Math.ceil(Math.max(selectBottomRightY, y + height) - Math.min(selectTopLeftY, y)),
+            x: x + (width / 2),
+            y: Math.min(selectTopLeftY, y)
+          };});
+        }
+        if (this.action == "move" || ["bottomleft", "bottomright", "bottom"].includes(this.tooltip) == false) {
+          applySnap({ type: "top_top_side", axis: "y", threshold: y - selectTopLeftY }, () => { return {
+            width: Math.ceil(Math.max(selectBottomRightX, x + width) - Math.min(selectTopLeftX, x)),
+            height: 0,
+            x: Math.min(selectTopLeftX, x),
+            y: y
+          };});
+        }
+        if (this.action == "move" || ["topleft", "topright", "top"].includes(this.tooltip) == false) {
+          applySnap({ type: "top_bottom_side", axis: "y", threshold: y - selectBottomRightY }, () => { return {
+            width: Math.ceil(Math.max(selectBottomRightX, x + width) - Math.min(selectTopLeftX, x)),
+            height: 0,
+            x: Math.min(selectTopLeftX, x),
+            y: y
+          };});
+        }
+        if (this.action == "resize" && ["bottomleft", "bottomright", "bottom"].includes(this.tooltip) == false) {
+          applySnap({ type: "top_center_side", axis: "y", threshold: (y + (height / 2)) - selectTopLeftY }, () => { return {
+            width: Math.ceil(Math.max(selectBottomRightX, x + width) - Math.min(selectTopLeftX, x)),
+            height: 0,
+            x: Math.min(selectTopLeftX, x),
+            y: y + (height / 2)
+          };});
+        }
+        if (this.action == "move" || ["topleft", "bottomleft", "left"].includes(this.tooltip) == false) {
+          applySnap({ type: "right_right_side", axis: "x", threshold: (x + width) - selectBottomRightX }, () => { return {
+            width: 0,
+            height: Math.ceil(Math.max(selectBottomRightY, y + height) - Math.min(selectTopLeftY, y)),
+            x: x + width,
+            y: Math.min(selectTopLeftY, y)
+          };});
+        }
+        if (this.action == "move" || ["topright", "bottomright", "right"].includes(this.tooltip) == false) {
+          applySnap({ type: "right_left_side", axis: "x", threshold: (x + width) - selectTopLeftX }, () => { return {
+            width: 0,
+            height: Math.ceil(Math.max(selectBottomRightY, y + height) - Math.min(selectTopLeftY, y)),
+            x: x + width,
+            y: Math.min(selectTopLeftY, y)
+          };});
+        }
+        if (this.action == "resize" && ["topleft", "topright", "left"].includes(this.tooltip) == false) {
+          applySnap({ type: "right_center_side", axis: "x", threshold: (x + (width / 2)) - selectBottomRightX }, () => { return {
+            width: 0,
+            height: Math.ceil(Math.max(selectBottomRightY, y + height) - Math.min(selectTopLeftY, y)),
+            x: x + (width / 2),
+            y: Math.min(selectTopLeftY, y)
+          };});
+        }
+        if (this.action == "move" || ["topleft", "topright", "top"].includes(this.tooltip) == false) {
+          applySnap({ type: "bottom_bottom_side", axis: "y", threshold: (y + height) - selectBottomRightY }, () => { return {
+            width: Math.ceil(Math.max(selectBottomRightX, x + width) - Math.min(selectTopLeftX, x)),
+            height: 0,
+            x: Math.min(selectTopLeftX, x),
+            y: y + height
+          };});
+        }
+        if (this.action == "move" || ["bottomleft", "bottomright", "bottom"].includes(this.tooltip) == false) {
+          applySnap({ type: "bottom_top_side", axis: "y", threshold: (y + height) - selectTopLeftY }, () => { return {
+            width: Math.ceil(Math.max(selectBottomRightX, x + width) - Math.min(selectTopLeftX, x)),
+            height: 0,
+            x: Math.min(selectTopLeftX, x),
+            y: y + height
+          };});
+        }
+        if (this.action == "resize" && ["topleft", "topright", "top"].includes(this.tooltip) == false) {
+          applySnap({ type: "bottom_center_side", axis: "y", threshold: (y + (height / 2)) - selectBottomRightY }, () => { return {
+            width: Math.ceil(Math.max(selectBottomRightX, x + width) - Math.min(selectTopLeftX, x)),
+            height: 0,
+            x: Math.min(selectTopLeftX, x),
+            y: y + (height / 2)
+          };});
+        }
+        
+        if (this.action == "move") {
+          applySnap({ type: "center_vertical", axis: "x", threshold: (x + (width / 2)) - (selectTopLeftX + ((selectBottomRightX - selectTopLeftX) / 2)) }, () => { return {
+            width: 0,
+            height: Math.ceil(Math.max(selectBottomRightY, y + height) - Math.min(selectTopLeftY, y)),
+            x: x + (width / 2),
+            y: Math.min(selectTopLeftY, y)
+          };});
+          applySnap({ type: "center_horizontal", axis: "y", threshold: (y + (height / 2)) - (selectTopLeftY + ((selectBottomRightY - selectTopLeftY) / 2)) }, () => { return {
+            width: Math.ceil(Math.max(selectBottomRightX, x + width) - Math.min(selectTopLeftX, x)),
+            height: 0,
+            x: Math.min(selectTopLeftX, x),
+            y: y + (height / 2)
+          };});
+
+          // Check for equal distance snap:
+          if (hasCommonParent == true) {
+            if (x < selectTopLeftX || y < selectTopLeftY || x + width > selectBottomRightX || y + height > selectBottomRightY) {
+              if (x < selectBottomRightX && x + width > selectTopLeftX) {
+                checkDistanceYDirection.push({ _id: annoid, width: width, height: height, x: x, y: y });
+              }
+              if (y < selectBottomRightY && y + height > selectTopLeftY) {
+                checkDistanceXDirection.push({ _id: annoid, width: width, height: height, x: x, y: y });
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Check for equal distance snap:
+    checkDistanceXDirection.sort((a, b) => (a.x + (a.width / 2)) - (b.x + (b.width / 2)));
+    checkDistanceYDirection.sort((a, b) => (a.y + (a.height / 2)) - (b.y + (b.height / 2)));
+    let xDistances = {};
+    let xDistanceIds = {};
+    for (let i = 0; i < checkDistanceXDirection.length; i++) {
+      let el1 = checkDistanceXDirection[i];
+      for (let j = i + 1; j < checkDistanceXDirection.length; j++) {
+        let el2 = checkDistanceXDirection[j];
+        let distance = 0;
+        if (el2.x > el1.x + el1.width) {
+          distance = el2.x - el1.x - el1.width;
+        } else if (el1.x > el2.x + el2.width) {
+          distance = el1.x - el2.x - el2.width;
+        } else if (el2.x + el2.width < el1.x) {
+          distance = el1.x - el2.x - el2.width;
+        } else if (el1.x + el1.width < el2.x) {
+          distance = el2.x - el1.x - el1.width;
+        }
+        distance = Math.round(distance);
+        if (distance > 0) {
+          if (xDistances[distance] == null) {
+            xDistances[distance] = [];
+          }
+          xDistances[distance].push([el1, el2]);
+          if (xDistanceIds[distance] == null) {
+            xDistanceIds[distance] = {};
+          }
+          xDistanceIds[distance][el1._id] = "";
+          xDistanceIds[distance][el2._id] = "";
+        }
+      }
+    }
+    /*for (let i = 0; i < checkDistanceXDirection.length - 1; i++) {
+      let el1 = checkDistanceXDirection[i];
+      let el2 = checkDistanceXDirection[i + 1];
+      let distance = 0;
+      if (el2.x > el1.x + el1.width) {
+        distance = el2.x - el1.x - el1.width;
+      } else if (el1.x > el2.x + el2.width) {
+        distance = el1.x - el2.x - el2.width;
+      } else if (el2.x + el2.width < el1.x) {
+        distance = el1.x - el2.x - el2.width;
+      } else if (el1.x + el1.width < el2.x) {
+        distance = el2.x - el1.x - el1.width;
+      }
+      distance = Math.round(distance);
+      if (distance > 0) {
+        if (xDistances[distance] == null) {
+          xDistances[distance] = [];
+        }
+        xDistances[distance].push([el1, el2]);
+      }
+    }*/
+    let yDistances = {};
+    let yDistanceIds = {};
+    for (let i = 0; i < checkDistanceYDirection.length; i++) {
+      let el1 = checkDistanceYDirection[i];
+      for (let j = i + 1; j < checkDistanceYDirection.length; j++) {
+        let el2 = checkDistanceYDirection[j];
+        let distance = 0;
+        if (el2.y > el1.y + el1.height) {
+          distance = el2.y - el1.y - el1.height;
+        } else if (el1.y > el2.y + el2.height) {
+          distance = el1.y - el2.y - el2.height;
+        } else if (el2.y + el2.height < el1.y) {
+          distance = el1.y - el2.y - el2.height;
+        } else if (el1.y + el1.height < el2.y) {
+          distance = el2.y - el1.y - el1.height;
+        }
+        distance = Math.round(distance);
+        if (distance > 0) {
+          if (yDistances[distance] == null) {
+            yDistances[distance] = [];
+          }
+          yDistances[distance].push([el1, el2]);
+          if (yDistanceIds[distance] == null) {
+            yDistanceIds[distance] = {};
+          }
+          yDistanceIds[distance][el1._id] = "";
+          yDistanceIds[distance][el2._id] = "";
+        }
+      }
+    }
+    /*for (let i = 0; i < checkDistanceYDirection.length - 1; i++) {
+      let el1 = checkDistanceYDirection[i];
+      let el2 = checkDistanceYDirection[i + 1];
+      let distance = 0;
+      let checkDistance = (loop) => {
+        distance = 0;
+        if (el2.y > el1.y + el1.height) {
+          distance = el2.y - el1.y - el1.height;
+        } else if (el1.y > el2.y + el2.height) {
+          distance = el1.y - el2.y - el2.height;
+        } else if (el2.y + el2.height < el1.y) {
+          distance = el1.y - el2.y - el2.height;
+        } else if (el1.y + el1.height < el2.y) {
+          distance = el2.y - el1.y - el1.height;
+        }
+        if (distance == 0) {
+          loop++;
+          el2 = checkDistanceYDirection[i + loop];
+          if (el2 != null) {
+            checkDistance(loop);
+          }
+        }
+      }
+      checkDistance(0);
+      distance = Math.round(distance);
+      if (distance > 0) {
+        if (yDistances[distance] == null) {
+          yDistances[distance] = [];
+        }
+        yDistances[distance].push([el1, el2]);
+      }
+    }*/
+    let checkOverlap = (pos1, length1, pos2, length2) => {
+      if (pos1 < pos2 + length2 && pos2 < pos1 + length1) {
+        return true;
+      }
+      return false;
+    }
+    let determinePositionAxis = (elementPos, elementSize, selectPos1, selectPos2) => {
+      if (elementSize < selectPos2 - selectPos1) {
+        let offset = 0;
+        if (selectPos1 > elementPos) {
+          offset = (elementPos - selectPos1) / 2;
+        } else if (selectPos2 < elementPos + elementSize) {
+          offset = (elementPos + elementSize - selectPos2) / 2;
+        }
+        return (elementPos + (elementSize / 2)) - offset;
+      } else {
+        let offset = 0;
+        if (selectPos1 < elementPos) {
+          offset = (selectPos1 - elementPos) / 2;
+        } else if (selectPos2 > elementPos + elementSize) {
+          offset = (selectPos2 - elementPos - elementSize) / 2;
+        }
+        return selectPos1 + ((selectPos2 - selectPos1) / 2) - offset;
+      }
+    }
+    let xDistanceKeys = Object.keys(xDistances);
+    for (let i = 0; i < xDistanceKeys.length; i++) {
+      let key = xDistanceKeys[i];
+      let distance = parseFloat(key);
+      let elements = xDistances[key];
+      let elemIds = xDistanceIds[key];
+
+      for (let s = 0; s < checkDistanceXDirection.length; s++) {
+        let elem = checkDistanceXDirection[s]; //elements[s];
+
+        applySnap({ type: "right_left_distance", axis: "x", marker: "x", threshold: elem.x - selectBottomRightX - distance }, () => { return {
+          width: elem.x - selectBottomRightX,
+          height: 0,
+          x: selectBottomRightX,
+          y: determinePositionAxis(elem.y, elem.height, selectTopLeftY, selectBottomRightY),
+          additional: function () {
+            let renderLines = [];
+            for (let e = 0; e < elements.length; e++) {
+              let [el1, el2] = elements[e];
+              let lineSize = el2.x - el1.x - el1.width;
+              let linePos = el1.x + el1.width;
+              if (checkOverlap(this.x, this.width, linePos, lineSize)) {
+                return false;
+              }
+              renderLines.push({
+                type: "right_left_distance_" + Math.floor(lineSize) + "_" + Math.floor(linePos),
+                width: lineSize,
+                height: 0,
+                x: linePos,
+                y: determinePositionAxis(el2.y, el2.height, el1.y, el1.y + el1.height),
+                marker: "x"
+              });
+            }
+            return renderLines;
+          }
+        };});
+        applySnap({ type: "left_right_distance", axis: "x", marker: "x", threshold: distance - selectTopLeftX + elem.x + elem.width }, () => { return {
+          width: selectTopLeftX - elem.x - elem.width,
+          height: 0,
+          x: elem.x + elem.width,
+          y: determinePositionAxis(elem.y, elem.height, selectTopLeftY, selectBottomRightY),
+          additional: function () {
+            let renderLines = [];
+            for (let e = 0; e < elements.length; e++) {
+              let [el1, el2] = elements[e];
+              let lineSize = el2.x - el1.x - el1.width;
+              let linePos = el1.x + el1.width;
+              if (checkOverlap(this.x, this.width, linePos, lineSize)) {
+                return false;
+              }
+              renderLines.push({
+                type: "left_right_distance_" + Math.floor(lineSize) + "_" + Math.floor(linePos),
+                width: lineSize,
+                height: 0,
+                x: linePos,
+                y: determinePositionAxis(el2.y, el2.height, el1.y, el1.y + el1.height),
+                marker: "x"
+              });
+            }
+            return renderLines;
+          }
+        };});
+        if (elemIds[elem._id] == null) {
+          continue;
+        }
+        let leftCenterSize = selectTopLeftX - elem.x - elem.width;
+        applySnap({ type: "center_distance_left", center: true, axis: "x", marker: "x", centerSize: leftCenterSize, threshold: -((distance / 2) - selectTopLeftX - ((selectBottomRightX - selectTopLeftX) / 2) + elem.x + elem.width) }, () => { return {
+          width: leftCenterSize,
+          height: 0,
+          x: elem.x + elem.width,
+          y: determinePositionAxis(elem.y, elem.height, selectTopLeftY, selectBottomRightY)
+        };});
+        let rightCenterSize = elem.x - selectBottomRightX;
+        applySnap({ type: "center_distance_right", center: true, axis: "x", marker: "x", centerSize: rightCenterSize, threshold: -((distance / 2) + selectTopLeftX + ((selectBottomRightX - selectTopLeftX) / 2) - elem.x) }, () => { return {
+          width: rightCenterSize,
+          height: 0,
+          x: selectBottomRightX,
+          y: determinePositionAxis(elem.y, elem.height, selectTopLeftY, selectBottomRightY)
+        };});
+      }
+    }
+    let yDistanceKeys = Object.keys(yDistances);
+    for (let i = 0; i < yDistanceKeys.length; i++) {
+      let key = yDistanceKeys[i];
+      let distance = parseFloat(key);
+      let elements = yDistances[key];
+      let elemIds = yDistanceIds[key];
+
+      for (let s = 0; s < checkDistanceYDirection.length; s++) {
+        let elem = checkDistanceYDirection[s]; //elements[s];
+
+        applySnap({ type: "bottom_top_distance", axis: "y", marker: "y", threshold: elem.y - selectBottomRightY - distance }, () => { return {
+          width: 0,
+          height: elem.y - selectBottomRightY,
+          x: determinePositionAxis(elem.x, elem.width, selectTopLeftX, selectBottomRightX),
+          y: selectBottomRightY,
+          additional: function () {
+            let renderLines = [];
+            for (let e = 0; e < elements.length; e++) {
+              let [el1, el2] = elements[e];
+              let lineSize = el2.y - el1.y - el1.height;
+              let linePos = el1.y + el1.height;
+              if (checkOverlap(this.y, this.height, linePos, lineSize)) {
+                return false;
+              }
+              renderLines.push({
+                type: "bottom_top_distance_" + Math.floor(lineSize) + "_" + Math.floor(linePos),
+                width: 0,
+                height: lineSize,
+                x: determinePositionAxis(el2.x, el2.width, el1.x, el1.x + el1.width),
+                y: linePos,
+                marker: "y"
+              });
+            }
+            return renderLines;
+          }
+        };});
+        applySnap({ type: "top_bottom_distance", axis: "y", marker: "y", threshold: distance - selectTopLeftY + elem.y + elem.height }, () => { return {
+          width: 0,
+          height: selectTopLeftY - elem.y - elem.height,
+          x: determinePositionAxis(elem.x, elem.width, selectTopLeftX, selectBottomRightX),
+          y: elem.y + elem.height,
+          additional: function () {
+            let renderLines = [];
+            for (let e = 0; e < elements.length; e++) {
+              let [el1, el2] = elements[e];
+              let lineSize = el2.y - el1.y - el1.height;
+              let linePos = el1.y + el1.height;
+              if (checkOverlap(this.y, this.height, linePos, lineSize)) {
+                return false;
+              }
+              renderLines.push({
+                type: "top_bottom_distance_" + Math.floor(lineSize) + "_" + Math.floor(linePos),
+                width: 0,
+                height: lineSize,
+                x: determinePositionAxis(el2.x, el2.width, el1.x, el1.x + el1.width),
+                y: linePos,
+                marker: "y"
+              });
+            }
+            return renderLines;
+          }
+        };});
+        
+        if (elemIds[elem._id] == null) {
+          continue;
+        }
+
+        let topCenterSize = selectTopLeftY - elem.y - elem.height;
+        applySnap({ type: "center_distance_top", center: true, axis: "y", marker: "y", centerSize: topCenterSize, threshold: -((distance / 2) - selectTopLeftY - ((selectBottomRightY - selectTopLeftY) / 2) + elem.y + elem.height) }, () => { return {
+          width: 0,
+          height: topCenterSize,
+          x: determinePositionAxis(elem.x, elem.width, selectTopLeftX, selectBottomRightX),
+          y: elem.y + elem.height
+        };});
+        let bottomCenterSize = elem.y - selectBottomRightY;
+        applySnap({ type: "center_distance_bottom", center: true, axis: "y", marker: "y", centerSize: bottomCenterSize, threshold: -((distance / 2) + selectTopLeftY + ((selectBottomRightY - selectTopLeftY) / 2) - elem.y) }, () => { return {
+          width: 0,
+          height: bottomCenterSize,
+          x: determinePositionAxis(elem.x, elem.width, selectTopLeftX, selectBottomRightX),
+          y: selectBottomRightY
+        };});
+      }
+    }
+
+    // Render snap lines:
+    return await this.updateSnapLines(extra.render);
+  },
+  /*oppositeResize: {
     bottomright: ["topleft", "bottomleft", "topright"],
     topleft: ["bottomright", "topright", "bottomleft"],
     topright: ["bottomleft", "topleft", "bottomright"],
@@ -2839,8 +3824,632 @@ modules["pages/editor/toolbar/cursor"] = {
     bottom: ["top", "bottom", "top"],
     left: ["right", "right", "left"],
     top: ["bottom", "top", "bottom"]
+  },*/
+  scrollIntervalX: 0,
+  scrollIntervalY: 0,
+  scrollIntervalRunning: false,
+  setScrollInterval: async function () {
+    if (this.scrollIntervalRunning == true) {
+      return;
+    }
+    this.scrollIntervalRunning = true;
+    while (this.action != null && (this.scrollIntervalX != 0 || this.scrollIntervalY != 0)) {
+      window.scrollTo(window.scrollX + this.scrollIntervalX, window.scrollY + this.scrollIntervalY);
+      await this.moveAction(this.scrollLastEvent, null, null, true);
+      await sleep(10);
+    }
+    this.scrollIntervalRunning = false;
   },
-  moveAction: async function (event) {
+  lastMouseX: 0,
+  lastMouseY: 0,
+  moveAction: async function (event, snapX, snapY, fromScroll) {
+    if (this.action == null) {
+      return;
+    }
+    if (mouseDown() == false) {
+      this.endAction();
+      return;
+    }
+    let editor = await getModule("pages/editor");
+    let utils = await getModule("pages/editor/annotation");
+    //let inverse = 1 / editor.zoom;
+    let mouseX = this.lastMouseX;
+    let mouseY = this.lastMouseY;
+    
+    if (event != null) {
+      mouseX = clientPosition(event, "x");
+      mouseY = clientPosition(event, "y");
+      this.lastMouseX = mouseX;
+      this.lastMouseY = mouseY;
+      this.scrollLastEvent = event;
+    } else {
+      event = this.scrollLastEvent ?? {};
+    }
+
+    this.endX = mouseX + window.scrollX; //) * inverse;
+    this.endY = mouseY + window.scrollY; //) * inverse;
+
+    let self = editor.getSelf();
+
+    if (this.actionEnabled == false) {
+      if (Math.abs(mouseX - this.enableStartX) > 3 || Math.abs(mouseY - this.enableStartY) > 3) {
+        this.actionEnabled = true;
+      } else {
+        return;
+      }
+    }
+
+    // Handle Scroll with Mouse:
+    if (fromScroll != true && ["move", "resize"].includes(this.action) == true) {
+      let scrollOffset = 32;
+      this.scrollIntervalX = 0;
+      this.scrollIntervalY = 0;
+      let leftPos = scrollOffset - mouseX;
+      if (leftPos > 0) {
+        let percentage = 1 + ((leftPos - scrollOffset) / scrollOffset);
+        this.scrollIntervalX = -Math.min(6 * percentage, 10);
+      }
+      let rightPos = mouseX - fixed.offsetWidth + scrollOffset;
+      if (rightPos > 0) {
+        let percentage = 1 + ((rightPos - scrollOffset) / scrollOffset);
+        this.scrollIntervalX = Math.min(6 * percentage, 10);
+      }
+      let topPos = scrollOffset - mouseY;
+      if (topPos > 0) {
+        let percentage = 1 + ((topPos - scrollOffset) / scrollOffset);
+        this.scrollIntervalY = -Math.min(6 * percentage, 10);
+      }
+      let bottomPos = mouseY - fixed.offsetHeight + scrollOffset;
+      if (bottomPos > 0) {
+        let percentage = 1 + ((bottomPos - scrollOffset) / scrollOffset);
+        this.scrollIntervalY = Math.min(6 * percentage, 10);
+      }
+      if (this.scrollIntervalX != 0 || this.scrollIntervalY != 0) {
+        return this.setScrollInterval();
+      }
+    }
+
+    let keys = Object.keys(editor.selecting);
+    let setTempSync = getEpoch();
+    
+    let { x, y } = await utils.scaleToDoc(mouseX, mouseY, 0);
+    let offsetSnapX = snapX ?? 0;
+    let offsetSnapY = snapY ?? 0;
+
+    let scaleWidth = 1;
+    let scaleHeight = 1;
+    let snapHandleAxis;
+    let changeXCoord = 0;
+    let changeYCoord = 0;
+    let sizeLimitX = false;
+    let sizeLimitY = false;
+    let fixAnnotationHolder = this.tooltip;
+    let preserveAspect = this.resizePreserveAspect ?? event.shiftKey ?? false;
+    let rotateChange = 0;
+    if (this.action == "resize") {
+      // Calculate the change in width / height:
+      let originalMidpointX = this.originalSize[0] / 2;
+      let originalMidpointY = this.originalSize[1] / 2;
+      let halfRotateWidth = this.originalPosition[0] + originalMidpointX;
+      let halfRotateHeight = this.originalPosition[1] + originalMidpointY;
+      let [xCoord, yCoord] = utils.rotatePoint(x - halfRotateWidth, -(y - halfRotateHeight), -this.selectRotation);
+      let changeX = xCoord - this.rootX + offsetSnapX;
+      let changeY = yCoord - this.rootY - offsetSnapY;
+      if (this.rootX < 0) {
+        changeX *= -1;
+      }
+      if (this.rootY < 0) {
+        changeY *= -1;
+      }
+      if (keys.length > 1) {
+        if (this.originalSize[0] + changeX < 25) {
+          changeX = -this.originalSize[0] + 25;
+        }
+        if (this.originalSize[1] + changeY < 25) {
+          changeY = -this.originalSize[1] + 25;
+        }
+      }
+      //scaleWidth = (this.originalSize[0] + changeX) / this.originalSize[0];
+      //scaleHeight = (this.originalSize[1] + changeY) / this.originalSize[1];
+
+      // Handle resize based on handles:
+      let oppositePositionX = 0;
+      let oppositePositionY = 0;
+      let newSize = [0, 0];
+      let newOppositePositionX = 0;
+      let newOppositePositionY = 0;
+      switch (this.tooltip) {
+        case "bottomright":
+          if (preserveAspect == true || this.multiSelectResizePreserveAspect == true) {
+            let setXFromChangeX = this.originalSize[0] + changeX;
+            let setYFromChangeX = this.originalSize[1] * ((this.originalSize[0] + changeX) / this.originalSize[0]);
+            let setXFromChangeY = this.originalSize[0] * ((this.originalSize[1] + changeY) / this.originalSize[1]);
+            let setYFromChangeY = this.originalSize[1] + changeY;
+            if (Math.abs(setXFromChangeX * setYFromChangeX) > Math.abs(setXFromChangeY * setYFromChangeY)) {
+              scaleWidth = (this.originalSize[0] + changeX) / this.originalSize[0];
+              snapHandleAxis = "x";
+            } else {
+              scaleWidth = (this.originalSize[1] + changeY) / this.originalSize[1];
+              snapHandleAxis = "y";
+            }
+            scaleHeight = scaleWidth;
+          } else {
+            scaleWidth = (this.originalSize[0] + changeX) / this.originalSize[0];
+            scaleHeight = (this.originalSize[1] + changeY) / this.originalSize[1];
+          }
+          newSize = [this.originalSize[0] * scaleWidth, this.originalSize[1] * scaleHeight];
+          oppositePositionX = this.originalPosition[0];
+          oppositePositionY = this.originalPosition[1];
+          newOppositePositionX = this.originalPosition[0];
+          newOppositePositionY = this.originalPosition[1];
+          break;
+        case "topleft":
+          if (preserveAspect == true || this.multiSelectResizePreserveAspect == true) {
+            let setXFromChangeX = this.originalSize[0] + changeX;
+            let setYFromChangeX = this.originalSize[1] * ((this.originalSize[0] + changeX) / this.originalSize[0]);
+            let setXFromChangeY = this.originalSize[0] * ((this.originalSize[1] + changeY) / this.originalSize[1]);
+            let setYFromChangeY = this.originalSize[1] + changeY;
+            if (Math.abs(setXFromChangeX * setYFromChangeX) > Math.abs(setXFromChangeY * setYFromChangeY)) {
+              scaleWidth = (this.originalSize[0] + changeX) / this.originalSize[0];
+              snapHandleAxis = "x";
+            } else {
+              scaleWidth = (this.originalSize[1] + changeY) / this.originalSize[1];
+              snapHandleAxis = "y";
+            }
+            scaleHeight = scaleWidth;
+          } else {
+            scaleWidth = (this.originalSize[0] + changeX) / this.originalSize[0];
+            scaleHeight = (this.originalSize[1] + changeY) / this.originalSize[1];
+          }
+          newSize = [this.originalSize[0] * scaleWidth, this.originalSize[1] * scaleHeight];
+          oppositePositionX = this.originalPosition[0] + this.originalSize[0];
+          oppositePositionY = this.originalPosition[1] + this.originalSize[1];
+          newOppositePositionX = this.originalPosition[0] + newSize[0];
+          newOppositePositionY = this.originalPosition[1] + newSize[1];
+          break;
+        case "topright":
+          if (preserveAspect == true || this.multiSelectResizePreserveAspect == true) {
+            let setXFromChangeX = this.originalSize[0] + changeX;
+            let setYFromChangeX = this.originalSize[1] * ((this.originalSize[0] + changeX) / this.originalSize[0]);
+            let setXFromChangeY = this.originalSize[0] * ((this.originalSize[1] + changeY) / this.originalSize[1]);
+            let setYFromChangeY = this.originalSize[1] + changeY;
+            if (Math.abs(setXFromChangeX * setYFromChangeX) > Math.abs(setXFromChangeY * setYFromChangeY)) {
+              scaleWidth = (this.originalSize[0] + changeX) / this.originalSize[0];
+              snapHandleAxis = "x";
+            } else {
+              scaleWidth = (this.originalSize[1] + changeY) / this.originalSize[1];
+              snapHandleAxis = "y";
+            }
+            scaleHeight = scaleWidth;
+          } else {
+            scaleWidth = (this.originalSize[0] + changeX) / this.originalSize[0];
+            scaleHeight = (this.originalSize[1] + changeY) / this.originalSize[1];
+          }
+          newSize = [this.originalSize[0] * scaleWidth, this.originalSize[1] * scaleHeight];
+          oppositePositionX = this.originalPosition[0];
+          oppositePositionY = this.originalPosition[1] + this.originalSize[1];
+          newOppositePositionX = this.originalPosition[0];
+          newOppositePositionY = this.originalPosition[1] + newSize[1];
+          break;
+        case "bottomleft":
+          if (preserveAspect == true || this.multiSelectResizePreserveAspect == true) {
+            let setXFromChangeX = this.originalSize[0] + changeX;
+            let setYFromChangeX = this.originalSize[1] * ((this.originalSize[0] + changeX) / this.originalSize[0]);
+            let setXFromChangeY = this.originalSize[0] * ((this.originalSize[1] + changeY) / this.originalSize[1]);
+            let setYFromChangeY = this.originalSize[1] + changeY;
+            if (Math.abs(setXFromChangeX * setYFromChangeX) > Math.abs(setXFromChangeY * setYFromChangeY)) {
+              scaleWidth = (this.originalSize[0] + changeX) / this.originalSize[0];
+              snapHandleAxis = "x";
+            } else {
+              scaleWidth = (this.originalSize[1] + changeY) / this.originalSize[1];
+              snapHandleAxis = "y";
+            }
+            scaleHeight = scaleWidth;
+          } else {
+            scaleWidth = (this.originalSize[0] + changeX) / this.originalSize[0];
+            scaleHeight = (this.originalSize[1] + changeY) / this.originalSize[1];
+          }
+          newSize = [this.originalSize[0] * scaleWidth, this.originalSize[1] * scaleHeight];
+          oppositePositionX = this.originalPosition[0] + this.originalSize[0];
+          oppositePositionY = this.originalPosition[1];
+          newOppositePositionX = this.originalPosition[0] + newSize[0];
+          newOppositePositionY = this.originalPosition[1];
+          break;
+        case "right":
+          if (preserveAspect == true) {
+            scaleWidth = (this.originalSize[0] + changeX) / this.originalSize[0];
+            scaleHeight = scaleWidth;
+          } else {
+            scaleWidth = (this.originalSize[0] + changeX) / this.originalSize[0];
+          }
+          newSize = [this.originalSize[0] * scaleWidth, this.originalSize[1] * scaleHeight];
+          oppositePositionX = this.originalPosition[0];
+          oppositePositionY = this.originalPosition[1] + (this.originalSize[1] / 2);
+          newOppositePositionX = this.originalPosition[0];
+          newOppositePositionY = this.originalPosition[1] + (newSize[1] / 2);
+          fixAnnotationHolder = "bottomright";
+          snapHandleAxis = "x";
+          break;
+        case "bottom":
+          if (preserveAspect == true) {
+            scaleWidth = (this.originalSize[1] + changeY) / this.originalSize[1];
+            scaleHeight = scaleWidth;
+          } else {
+            scaleHeight = (this.originalSize[1] + changeY) / this.originalSize[1];
+          }
+          newSize = [this.originalSize[0] * scaleWidth, this.originalSize[1] * scaleHeight];
+          oppositePositionX = this.originalPosition[0] + (this.originalSize[0] / 2);
+          oppositePositionY = this.originalPosition[1];
+          newOppositePositionX = this.originalPosition[0] + (newSize[0] / 2);
+          newOppositePositionY = this.originalPosition[1];
+          fixAnnotationHolder = "bottomright";
+          snapHandleAxis = "y";
+          break;
+        case "left":
+          if (preserveAspect == true) {
+            scaleWidth = (this.originalSize[0] + changeX) / this.originalSize[0];
+            scaleHeight = scaleWidth;
+          } else {
+            scaleWidth = (this.originalSize[0] + changeX) / this.originalSize[0];
+          }
+          newSize = [this.originalSize[0] * scaleWidth, this.originalSize[1] * scaleHeight];
+          oppositePositionX = this.originalPosition[0] + this.originalSize[0];
+          oppositePositionY = this.originalPosition[1] + (this.originalSize[1] / 2);
+          newOppositePositionX = this.originalPosition[0] + newSize[0];
+          newOppositePositionY = this.originalPosition[1] + (newSize[1] / 2);
+          fixAnnotationHolder = "topleft";
+          snapHandleAxis = "x";
+          break;
+        case "top":
+          if (preserveAspect == true) {
+            scaleWidth = (this.originalSize[1] + changeY) / this.originalSize[1];
+            scaleHeight = scaleWidth;
+          } else {
+            scaleHeight = (this.originalSize[1] + changeY) / this.originalSize[1];
+          }
+          newSize = [this.originalSize[0] * scaleWidth, this.originalSize[1] * scaleHeight];
+          oppositePositionX = this.originalPosition[0] + (this.originalSize[0] / 2);
+          oppositePositionY = this.originalPosition[1] + this.originalSize[1];
+          newOppositePositionX = this.originalPosition[0] + (newSize[0] / 2);
+          newOppositePositionY = this.originalPosition[1] + newSize[1];
+          fixAnnotationHolder = "topleft";
+          snapHandleAxis = "y";
+      }
+      
+      let newSelectionMidpointX = newSize[0] / 2;
+      let newSelectionMidpointY = newSize[1] / 2;
+      
+      let midpointChangeX = newSelectionMidpointX - originalMidpointX;
+      let midpointChangeY = newSelectionMidpointY - originalMidpointY;
+      
+      // Calculate relative position:
+      let [originalXCoord, originalYCoord] = utils.rotatePoint(oppositePositionX - halfRotateWidth, -(oppositePositionY - halfRotateHeight), this.selectRotation);
+
+      let newHalfRotateWidth = this.originalPosition[0] + newSelectionMidpointX;
+      let newHalfRotateHeight = this.originalPosition[1] + newSelectionMidpointY;
+      let [newXCoord, newYCoord] = utils.rotatePoint(newOppositePositionX - newHalfRotateWidth, -(newOppositePositionY - newHalfRotateHeight), this.selectRotation);
+
+      // Calculate change in opposite handle position:
+      changeXCoord = (newXCoord + newHalfRotateWidth) - (originalXCoord + halfRotateWidth) - midpointChangeX;
+      changeYCoord = (newHalfRotateHeight - newYCoord) - (halfRotateHeight - originalYCoord) - midpointChangeY;
+
+      sizeLimitX = oppositePositionX != newOppositePositionX;
+      sizeLimitY = oppositePositionY != newOppositePositionY;
+    } else if (this.action == "rotate") {
+      let centerX = this.originalSize[0] / 2;
+      let centerY = this.originalSize[1] / 2;
+      let yRoot = -(y - (this.originalPosition[1] + centerY));
+      let xRoot = x - (this.originalPosition[0] + centerX);
+
+      let newRotation = (Math.atan2(yRoot, xRoot) * 180) / Math.PI;
+      if (newRotation < 0) {
+        newRotation = 360 + newRotation;
+      }
+      let snapDegree = 15;
+      if (event.shiftKey == true) {
+        snapDegree = 1;
+      }
+      let setRotation = Math.round((this.originalRotate + (this.originalRotation - newRotation)) / snapDegree) * snapDegree;
+      rotateChange = (Math.round(setRotation / snapDegree) * snapDegree) - this.originalRotate;
+    }
+
+    for (let i = 0; i < keys.length; i++) {
+      let annoid = keys[i];
+      let original = editor.annotations[annoid];
+      if (original == null) {
+        continue;
+      }
+      if (original.render == null && original.pointer == null) {
+        delete editor.annotations[annoid];
+        continue;
+      }
+      if (original.pointer != null) {
+        annoid = original.pointer;
+        original = editor.annotations[annoid] ?? { render: {} };
+      }
+      let select = editor.selecting[annoid];
+      delete select.done;
+      let anno = {
+        f: original.render.f,
+        p: [original.render.p[0], original.render.p[1]],
+        s: [original.render.s[0], original.render.s[1]],
+        r: original.render.r,
+        t: original.render.t,
+        b: original.render.b,
+        d: original.render.d
+      };
+      if (original.revert == null) {
+        original.revert = JSON.parse(JSON.stringify(original.render));
+      }
+      if (original.render.lock == true) {
+        return this.endAction();
+      }
+      if (self.access < 1) {
+        delete editor.selecting[annoid];
+        return;
+      }
+      if (editor.lesson.settings.editOthersWork != true && [original.render.a, original.render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
+        delete editor.selecting[annoid];
+        return;
+      }
+
+      let thick = 0;
+      if (anno.t != null) {
+        if (anno.b != "none" || anno.d == "line") {
+          thick = anno.t;
+        }
+      }
+      let halfThick = thick / 2;
+
+      if (this.position[annoid] == null) {
+        this.position[annoid] = [anno.p[0], anno.p[1]];
+      }
+      if (this.size[annoid] == null) {
+        this.size[annoid] = [anno.s[0], anno.s[1]];
+      }
+      if (this.rotation[annoid] == null) {
+        this.rotation[annoid] = anno.r ?? 0;
+      }
+
+      if (this.action == "move") {
+        select.p = select.p ?? anno.p;
+        let originalAnnoPos = this.position[annoid];
+        select.p[0] = utils.round(originalAnnoPos[0] + (x - this.rootX) + offsetSnapX);
+        select.p[1] = utils.round(originalAnnoPos[1] + (y - this.rootY) + offsetSnapY);
+      } else if (this.action == "resize") {
+        select.p = select.p ?? anno.p;
+        select.s = select.s ?? anno.s;
+        let [originalAnnoX, originalAnnoY] = editor.getAbsolutePosition(original.render);
+        let originalAnnoSize = this.size[annoid];
+
+        if (originalAnnoSize[0] == 0 || originalAnnoSize[1] == 0) {
+          continue;
+        }
+
+        let rotate = anno.r ?? 0;
+        if (rotate > 180) {
+          rotate = -(360 - rotate);
+        }
+        if (scaleWidth == scaleHeight && this.selectRotation == 0) {
+          rotate = 0;
+        }
+        let rotateDifference = rotate - this.selectRotation;
+        let radian = rotateDifference * (Math.PI / 180);
+        
+        let useOriginalWidth = Math.abs(originalAnnoSize[0]) + thick;
+        let useOriginalHeight = Math.abs(originalAnnoSize[1]) + thick;
+
+        // FIRST: Figure out the bounding box size of element:
+        let boundingWidth = Math.abs(useOriginalWidth * Math.cos(radian)) + Math.abs(useOriginalHeight * Math.sin(radian));
+        let boundingHeight = Math.abs(useOriginalHeight * Math.cos(radian)) + Math.abs(useOriginalWidth * Math.sin(radian));
+        
+        // SECOND: Apply the scaling to the bouding box:
+        let setBoundWidth = boundingWidth * scaleWidth;
+        let setBoundHeight = boundingHeight * scaleHeight;
+        
+        // THIRD: Determine actual element width by converting bounding box size back to element size:
+        let setWidth = 0;
+        let setHeight = 0;
+        let maintainSizeWidth = false;
+        let maintainSizeHeight = false;
+
+        let absRotate = Math.abs(rotateDifference);
+        if (absRotate > 45 && absRotate < 135) {
+          let cosAbs = Math.abs(Math.cos((rotateDifference + 90) * (Math.PI / 180)));
+          let cosCorrectWidth = (boundingHeight / cosAbs) - useOriginalWidth;
+          let cosCorrectHeight = (boundingWidth / cosAbs) - useOriginalHeight;
+          let revertThickWidth = thick;
+          let revertThickHeight = thick;
+          if (rotateDifference != 0) {
+            if (setBoundWidth < 0) {
+              cosCorrectWidth *= -1;
+              revertThickWidth *= -1;
+            }
+            if (setBoundHeight < 0) {
+              cosCorrectHeight *= -1;
+              revertThickHeight *= -1;
+            }
+          }
+          setWidth = (setBoundHeight / cosAbs) - cosCorrectWidth - revertThickWidth;
+          setHeight = (setBoundWidth / cosAbs) - cosCorrectHeight - revertThickHeight;
+
+          if (keys.length > 1) {
+            if (setWidth < 25) {
+              setWidth = 25;
+              maintainSizeHeight = true;
+            }
+            if (setHeight < 25) {
+              setHeight = 25;
+              maintainSizeWidth = true;
+            }
+          }
+        } else {
+          let cosAbs = Math.abs(Math.cos(radian));
+          let cosCorrectWidth = (boundingWidth / cosAbs) - useOriginalWidth;
+          let cosCorrectHeight = (boundingHeight / cosAbs) - useOriginalHeight;
+          let revertThickWidth = thick;
+          let revertThickHeight = thick;
+          if (rotateDifference != 0) {
+            if (setBoundWidth < 0) {
+              cosCorrectWidth *= -1;
+              revertThickWidth *= -1;
+            }
+            if (setBoundHeight < 0) {
+              cosCorrectHeight *= -1;
+              revertThickHeight *= -1;
+            }
+          }
+          setWidth = (setBoundWidth / cosAbs) - cosCorrectWidth - revertThickWidth;
+          setHeight = (setBoundHeight / cosAbs) - cosCorrectHeight - revertThickHeight;
+
+          if (keys.length > 1) {
+            if (setWidth < 25) {
+              setWidth = 25;
+              maintainSizeWidth = true;
+            }
+            if (setHeight < 25) {
+              setHeight = 25;
+              maintainSizeHeight = true;
+            }
+          }
+        }
+        
+        // Preserve original sign:
+        if (originalAnnoSize[0] < 0) {
+          setWidth *= -1;
+        }
+        if (originalAnnoSize[1] < 0) {
+          setHeight *= -1;
+        }
+
+        // FINALLY: Apply the new size:
+        select.s[0] = utils.round(setWidth);
+        select.s[1] = utils.round(setHeight);
+        
+        // Special function cases:
+        if (["text"].includes(anno.f ?? select.f) == true) {
+          await utils.render({ ...original.render, ...select, _id: annoid, sync: setTempSync });
+          if (anno.f == "text") {
+            let renderedAnno = editor.page.querySelector('.eAnnotation[anno="' + annoid + '"] div[edit]');
+            if (renderedAnno != null) {
+              if (original.render.textfit == true && select.textfit != false) {
+                select.s[0] = renderedAnno.offsetWidth + 6;
+                select.textfit = false;
+              }
+              select.s[1] = renderedAnno.offsetHeight + 6; //Math.max(select.s[1], renderedAnno.offsetHeight + 6);
+            }
+          }
+        }
+
+        // Get original midpoint of element:
+        let originalAnnoMidpointX = (originalAnnoSize[0] + thick) / 2;
+        let originalAnnoMidpointY = (originalAnnoSize[1] + thick) / 2;
+
+        // Get offset from center of select box:
+        let offsetX = originalAnnoX + halfThick + originalAnnoMidpointX - this.originalPosition[0] - (this.originalSize[0] / 2);
+        let offsetY = originalAnnoY + halfThick + originalAnnoMidpointY - this.originalPosition[1] - (this.originalSize[1] / 2);
+
+        // Calculate center of original selection box:
+        let selectionCenterX = this.originalPosition[0] + (this.originalSize[0] / 2);
+        let selectionCenterY = this.originalPosition[1] + (this.originalSize[1] / 2);
+
+        // Get midpoint of element:
+        let newAnnoMidpointX = (setWidth + thick) / 2;
+        let newAnnoMidpointY = (setHeight + thick) / 2;
+        
+        // Apply the selection box position change based on relative position:
+        let relativePos = editor.getRelativePosition({
+          ...original.render,
+          p: [
+            utils.round(selectionCenterX + (offsetX * scaleWidth) - halfThick - newAnnoMidpointX - changeXCoord),
+            utils.round(selectionCenterY + (offsetY * scaleHeight) - halfThick - newAnnoMidpointY - changeYCoord)
+          ]
+        });
+        if (maintainSizeWidth == false) {
+          select.p[0] = relativePos[0];
+        }
+        if (maintainSizeHeight == false) {
+          select.p[1] = relativePos[1];
+        }
+
+        if (["page"].includes(select.f ?? anno.f) == true) {
+          if (select.s[0] < 100) {
+            if (sizeLimitX == true) {
+              select.p[0] -= 100 - select.s[0];
+            }
+            select.s[0] = 100;
+          }
+          if (select.s[1] < 100) {
+            if (sizeLimitY == true) {
+              select.p[1] -= 100 - select.s[1];
+            }
+            select.s[1] = 100;
+          }
+        }
+        select.resizing = [fixAnnotationHolder, originalAnnoX, originalAnnoY, originalAnnoSize[0] + thick, originalAnnoSize[1] + thick];
+      } else if (this.action == "rotate") {
+        select.p = select.p ?? anno.p;
+        select.r = select.r ?? anno.r;
+        let [originalAnnoX, originalAnnoY] = editor.getAbsolutePosition(original.render);
+        let originalAnnoSize = this.size[annoid];
+
+        // Set rotation:
+        if (["page"].includes(select.f ?? anno.f) == false) {
+          let changeRotate = this.rotation[annoid] + rotateChange;
+          if (changeRotate < 0) {
+            changeRotate = 360 + changeRotate;
+          }
+          if (changeRotate > 359) {
+            changeRotate = changeRotate - 360;
+          }
+          select.r = changeRotate;
+        }
+
+        // Calculate radian:
+        let radian = rotateChange * (Math.PI / 180);
+
+        // Get original midpoint of element:
+        let originalAnnoMidpointX = (originalAnnoSize[0] + 0) / 2;
+        let originalAnnoMidpointY = (originalAnnoSize[1] + 0) / 2;
+
+        // Get center position of element:
+        let originalAnnoCenterX = originalAnnoX + originalAnnoMidpointX + thick;
+        let originalAnnoCenterY = originalAnnoY + originalAnnoMidpointY + thick;
+
+        // Calculate center of original selection box:
+        let selectionCenterX = this.originalPosition[0] + (this.originalSize[0] / 2);
+        let selectionCenterY = this.originalPosition[1] + (this.originalSize[1] / 2);
+
+        // Determine new rotated center position:
+        let rotatedCenterX = selectionCenterX + ((originalAnnoCenterX - selectionCenterX) * Math.cos(radian)) - ((originalAnnoCenterY - selectionCenterY) * Math.sin(radian));
+        let rotatedCenterY = selectionCenterY + ((originalAnnoCenterX - selectionCenterX) * Math.sin(radian)) + ((originalAnnoCenterY - selectionCenterY) * Math.cos(radian));
+
+        // Apply new position:
+        let relativePos = editor.getRelativePosition({
+          ...original.render,
+          p: [
+            utils.round(rotatedCenterX - originalAnnoMidpointX - thick),
+            utils.round(rotatedCenterY - originalAnnoMidpointY - thick)
+          ]
+        });
+        select.p[0] = relativePos[0];
+        select.p[1] = relativePos[1];
+      }
+      select.sync = setTempSync;
+      await utils.render({ ...original.render, ...select });
+    }
+
+    await this.updateBox();
+
+    if (snapX == null && snapY == null) {
+      let { snapX, snapY } = await this.snapItems(event, { resizeHandleAxis: snapHandleAxis, scaleWidth: scaleWidth, scaleHeight: scaleHeight, render: false });
+      if (snapX != 0 || snapY != 0) {
+        await this.moveAction(event, snapX, snapY, fromScroll);
+      }
+      await this.snapItems(event, { resizeHandleAxis: snapHandleAxis, scaleWidth: scaleWidth, scaleHeight: scaleHeight });
+    }
+  },
+  /*moveAction: async function (event) {
     if (this.action == null) {
       return;
     }
@@ -2865,12 +4474,7 @@ modules["pages/editor/toolbar/cursor"] = {
         return;
       }
     }
-
-    /*
-    if (Math.floor(this.endX - this.startX) == 0 && Math.floor(this.endY - this.startY) == 0) {
-      this.action = null;
-    }
-    */
+    
     let setTempSync = getEpoch();
 
     let keys = Object.keys(editor.selecting);
@@ -2886,7 +4490,7 @@ modules["pages/editor/toolbar/cursor"] = {
       }
       if (original.pointer != null) {
         annoid = original.pointer;
-        original = editor.annotations[annoid] || { render: {} };
+        original = editor.annotations[annoid] ?? { render: {} };
       }
       let select = editor.selecting[annoid];
       delete select.done;
@@ -2906,9 +4510,9 @@ modules["pages/editor/toolbar/cursor"] = {
         return;
       }
       if (this.action == "move") {
-        select.p = select.p || anno.p;
+        select.p = select.p ?? anno.p;
         let number;
-        let pageElem = editor.page.querySelector('.ePage[pageid="' + (select.page || anno.page) + '"]');
+        let pageElem = editor.page.querySelector('.ePage[pageid="' + (select.page ?? anno.page) + '"]');
         if (pageElem != null) {
           number = parseInt(pageElem.getAttribute("order"));
           if (pageElem.hasAttribute("hide") == true) {
@@ -2916,46 +4520,40 @@ modules["pages/editor/toolbar/cursor"] = {
           }
         }
         if (this.position == null) {
-          //this.position = JSON.parse(JSON.stringify(select.p || anno.p));
+          //this.position = JSON.parse(JSON.stringify(select.p ?? anno.p));
           this.position = {};
-          let originalPos = await utils.scaleToDoc(this.enableStartX, this.enableStartY, number || 0);
+          let originalPos = await utils.scaleToDoc(this.enableStartX, this.enableStartY, number ?? 0);
           this.rootX = originalPos.x;
           this.rootY = originalPos.y;
         }
         if (this.position[annoid] == null) {
           this.position[annoid] = [anno.p[0], anno.p[1]];
         }
-        let { x, y } = await utils.scaleToDoc(mouseX, mouseY, number || 0);
+        let { x, y } = await utils.scaleToDoc(mouseX, mouseY, number ?? 0);
         let originalAnnoPos = this.position[annoid];
         select.p[0] = utils.round(originalAnnoPos[0] + (x - this.rootX));
         select.p[1] = utils.round(originalAnnoPos[1] + (y - this.rootY));
       } else if (this.action == "resize") {
-        select.s = select.s || anno.s;
-        select.p = select.p || anno.p;
+        select.s = select.s ?? anno.s;
+        select.p = select.p ?? anno.p;
         if (this.rotation == null) {
-          this.rotation = JSON.parse(JSON.stringify(select.r || anno.r || 0));
+          this.rotation = JSON.parse(JSON.stringify(select.r ?? anno.r ?? 0));
         }
         let number;
-        let pageElem = editor.page.querySelector('.ePage[pageid="' + (select.page || anno.page) + '"]');
+        let pageElem = editor.page.querySelector('.ePage[pageid="' + (select.page ?? anno.page) + '"]');
         if (pageElem != null) {
           number = parseInt(pageElem.getAttribute("order"));
           if (pageElem.hasAttribute("hide") == true) {
             return;
           }
         }
-        let { x, y } = await utils.scaleToDoc(mouseX, mouseY, number || 0);
-        /*if (editor.lesson.type == "freeboard") {
-          y += 4;
-        }*/
+        let { x, y } = await utils.scaleToDoc(mouseX, mouseY, number ?? 0);
         if (this.position == null) {
-          this.position = editor.getAbsolutePosition({ ...select, ...anno }); //JSON.parse(JSON.stringify(select.p || anno.p));
+          this.position = editor.getAbsolutePosition({ ...select, ...anno }); //JSON.parse(JSON.stringify(select.p ?? anno.p));
         }
         if (this.size == null) {
-          this.size = JSON.parse(JSON.stringify(select.s || anno.s));
-          let originalPos = await utils.scaleToDoc(this.enableStartX, this.enableStartY, number || 0);
-          /*if (editor.lesson.type == "freeboard") {
-            originalPos.y += 4;
-          }*/
+          this.size = JSON.parse(JSON.stringify(select.s ?? anno.s));
+          let originalPos = await utils.scaleToDoc(this.enableStartX, this.enableStartY, number ?? 0);
           let halfRotateWidth = (this.size[0] / 2) + this.position[0];
           let halfRotateHeight = (this.size[1] / 2) + this.position[1];
           let [xCoord, yCoord] = utils.rotatePoint(originalPos.x - halfRotateWidth, -(originalPos.y - halfRotateHeight), -this.rotation);
@@ -2995,12 +4593,12 @@ modules["pages/editor/toolbar/cursor"] = {
         changeX *= this.changeReflectX;
         changeY *= this.changeReflectY;
 
-        let preserveAspect = event.shiftKey || false;
-        if (["markup", "draw"].includes(select.f || anno.f) == true) {
+        let preserveAspect = event.shiftKey ?? false;
+        if (["markup", "draw"].includes(select.f ?? anno.f) == true) {
           preserveAspect = true; // All drawings keep aspect
 
           // Handle lines:
-          let points = select.d || anno.d;
+          let points = select.d ?? anno.d;
           if (points.length == 4) {
             if (points[0] == points[2]) { // Horizontal Line
               changeX = 0;
@@ -3013,9 +4611,9 @@ modules["pages/editor/toolbar/cursor"] = {
           if (this.size[0] == 0 || this.size[1] == 0) {
             continue;
           }
-        } else if (["sticky", "media"].includes(select.f || anno.f) == true && ["bottomright", "topleft", "topright", "bottomleft"].includes(this.tooltip) == true) {
+        } else if (["sticky", "media"].includes(select.f ?? anno.f) == true && ["bottomright", "topleft", "topright", "bottomleft"].includes(this.tooltip) == true) {
           preserveAspect = true;
-        } else if (["page"].includes(select.f || anno.f) == true && ["bottomright", "topleft", "topright", "bottomleft"].includes(this.tooltip) == true && (select.source || anno.source) != null) {
+        } else if (["page"].includes(select.f ?? anno.f) == true && ["bottomright", "topleft", "topright", "bottomleft"].includes(this.tooltip) == true && (select.source ?? anno.source) != null) {
           preserveAspect = true;
         }
 
@@ -3170,7 +4768,7 @@ modules["pages/editor/toolbar/cursor"] = {
             fixAnnotationHolder = "topleft";
         }
 
-        if (select.f || ["text", "sticky"].includes(anno.f) == true) {
+        if (select.f ?? ["text", "sticky"].includes(anno.f) == true) {
           await utils.render({ ...anno, ...select, sync: setTempSync });
           if (anno.f == "text") {
             let renderedAnno = editor.page.querySelector('.eAnnotation[anno="' + annoid + '"] div[edit]');
@@ -3181,14 +4779,7 @@ modules["pages/editor/toolbar/cursor"] = {
               }
               select.s[1] = renderedAnno.offsetHeight + 6; //Math.max(select.s[1], renderedAnno.offsetHeight + 6);
             }
-          }/* else if (anno.f == "sticky") {
-            let renderedAnno = editor.page.querySelector('.eAnnotation[anno="' + annoid + '"] div[holder]');
-            if (renderedAnno != null) {
-              if (renderedAnno.offsetHeight > renderedAnno.parentElement.offsetHeight) {
-                select.s[1] = renderedAnno.offsetHeight + 26;
-              }
-            }
-          }*/
+          }
         }
 
         let oldHalfRotateWidth = (this.size[0] / 2) + this.position[0];
@@ -3209,7 +4800,7 @@ modules["pages/editor/toolbar/cursor"] = {
         });
         select.p = [setX, setY];
 
-        if (["page"].includes(select.f || anno.f) == true) {
+        if (["page"].includes(select.f ?? anno.f) == true) {
           if (select.s[0] < 100) {
             if (oppositePositionX != newOppositePositionX) {
               select.p[0] -= 100 - select.s[0];
@@ -3225,21 +4816,18 @@ modules["pages/editor/toolbar/cursor"] = {
         }
         select.resizing = fixAnnotationHolder;
       } else if (this.action == "rotate") {
-        select.r = select.r || anno.r || 0;
+        select.r = select.r ?? anno.r ?? 0;
         let number;
-        let pageElem = editor.page.querySelector('.ePage[pageid="' + (select.page || anno.page) + '"]');
+        let pageElem = editor.page.querySelector('.ePage[pageid="' + (select.page ?? anno.page) + '"]');
         if (pageElem != null) {
           number = parseInt(pageElem.getAttribute("order"));
           if (pageElem.hasAttribute("hide") == true) {
             return;
           }
         }
-        let { x, y } = await utils.scaleToDoc(mouseX, mouseY, number || 0);
-        /*if (editor.lesson.type == "freeboard") {
-          y += 4;
-        }*/
+        let { x, y } = await utils.scaleToDoc(mouseX, mouseY, number ?? 0);
         let position = editor.getAbsolutePosition({ ...select, ...anno });
-        let size = select.s || anno.s;
+        let size = select.s ?? anno.s;
         let centerX = size[0] / 2;
         let centerY = size[1] / 2;
         let yRoot = -(y - (position[1] + centerY));
@@ -3258,7 +4846,7 @@ modules["pages/editor/toolbar/cursor"] = {
         if (event.shiftKey == true) {
           snapDegree = 1;
         }
-        let setRotation = Math.round(((anno.r || 0) + (this.rotation - newRotation)) / snapDegree) * snapDegree;
+        let setRotation = Math.round(((anno.r ?? 0) + (this.rotation - newRotation)) / snapDegree) * snapDegree;
         if (setRotation < 0) {
           setRotation = 360 + setRotation;
         }
@@ -3271,7 +4859,7 @@ modules["pages/editor/toolbar/cursor"] = {
       await utils.render({ ...anno, ...select });
     }
     this.updateBox();
-  },
+  },*/
   endAction: async function (event, fromHistory, sentKeys, saveHistory) {
     if (this.action == null) {
       return;
@@ -3279,10 +4867,6 @@ modules["pages/editor/toolbar/cursor"] = {
     let editor = await getModule("pages/editor");
     let utils = await getModule("pages/editor/annotation");
     this.action = null;
-    this.tooltip = null;
-    this.position = null;
-    this.size = null;
-    this.rotation = null;
     body.style.removeProperty("user-select");
     editor.page.style.removeProperty("touch-action");
     editor.page.removeAttribute("enabled");
@@ -3291,6 +4875,9 @@ modules["pages/editor/toolbar/cursor"] = {
 
     let setTempSync = getEpoch();
     let self = editor.getSelf();
+
+    this.renderSnaps = [];
+    await this.updateSnapLines();
 
     // Save Revert
     let keys = Object.keys(editor.selecting);
@@ -3305,7 +4892,7 @@ modules["pages/editor/toolbar/cursor"] = {
       if (Object.keys(selecting).length < 1) {
         continue;
       }
-      let original = editor.annotations[annoid] || { render: selecting };
+      let original = editor.annotations[annoid] ?? { render: selecting };
       if (original != null && original.pointer != null) {
         annoid = original.pointer;
         original = editor.annotations[annoid];
@@ -3314,13 +4901,13 @@ modules["pages/editor/toolbar/cursor"] = {
         continue;
       }
 
-      let originalRender = (original.render || {}) || selecting;
+      let originalRender = (original.render ?? {}) ?? selecting;
       if (originalRender != null && originalRender.page != null) {
         if (originalRender.lock == true) {
           continue;
         }
-        let page = selecting.page || originalRender.page;
-        let pos = selecting.p || originalRender.p;
+        let page = selecting.page ?? originalRender.page;
+        let pos = selecting.p ?? originalRender.p;
         let currentPage = editor.page.querySelector('.ePage[pageid="' + page + '"]');
         if (currentPage != null) {
           if (currentPage.hasAttribute("hide") == true) {
@@ -3359,7 +4946,7 @@ modules["pages/editor/toolbar/cursor"] = {
                 }
               }
             }
-            selecting.p = selecting.p || JSON.parse(JSON.stringify(pos));
+            selecting.p = selecting.p ?? JSON.parse(JSON.stringify(pos));
             selecting.p[1] = utils.round(pos[1] + change);
           }
         }
@@ -3368,11 +4955,11 @@ modules["pages/editor/toolbar/cursor"] = {
       delete selecting.done;
       let changeKeys = Object.keys(selecting);
       let pushFields = {
-        parent: originalRender.parent,
+        parent: originalRender.parent ?? null,
         p: originalRender.p
       };
       for (let f = 0; f < changeKeys.length; f++) {
-        pushFields[changeKeys[f]] = originalRender[changeKeys[f]] || null;
+        pushFields[changeKeys[f]] = originalRender[changeKeys[f]] ?? null;
       }
       if (saveHistory != false) {
         if (selecting.remove != true) {
@@ -3396,7 +4983,7 @@ modules["pages/editor/toolbar/cursor"] = {
       let checkChunks = [ ...editor.annotationInChunks(originalRender), ...editor.annotationInChunks(merged) ];
       let annotationKeys = {};
       for (let c = 0; c < checkChunks.length; c++) {
-        annotationKeys = { ...annotationKeys, ...(editor.chunkAnnotations[checkChunks[c]] || {}) };
+        annotationKeys = { ...annotationKeys, ...(editor.chunkAnnotations[checkChunks[c]] ?? {}) };
       }
       let annotations = Object.keys(annotationKeys);
       if (selecting.remove == true && fromHistory != true) {
@@ -3411,9 +4998,9 @@ modules["pages/editor/toolbar/cursor"] = {
           }
           if (checkAnnotation.pointer != null) {
             checkAnnoID = checkAnnotation.pointer;
-            checkAnnotation = editor.annotations[checkAnnoID] || { render: {} };
+            checkAnnotation = editor.annotations[checkAnnoID] ?? { render: {} };
           }
-          let currentAnnoCheck = checkAnnotation.render || {};
+          let currentAnnoCheck = checkAnnotation.render ?? {};
           let checkedParents = [];
           while (currentAnnoCheck.parent != null) {
             let checkannoid = currentAnnoCheck.parent;
@@ -3427,16 +5014,16 @@ modules["pages/editor/toolbar/cursor"] = {
             }
             if (annotation.pointer != null) {
               checkannoid = annotation.pointer;
-              annotation = editor.annotations[checkannoid] || { render: {} };
+              annotation = editor.annotations[checkannoid] ?? { render: {} };
             }
             if (checkannoid == annoid) {
-              editor.realtimeSelect[checkAnnoID] = { ...(editor.realtimeSelect[checkAnnoID] || {}), remove: true };
+              editor.realtimeSelect[checkAnnoID] = { ...(editor.realtimeSelect[checkAnnoID] ?? {}), remove: true };
               saveUpdates.push({ remove: true, _id: checkAnnoID });
               let [x, y] = editor.getAbsolutePosition(checkAnnotation.render);
               pushRemoves.push(JSON.parse(JSON.stringify({ ...checkAnnotation.render, parent: null, p: [x, y] })));
               break;
             }
-            currentAnnoCheck = annotation.render || {};
+            currentAnnoCheck = annotation.render ?? {};
           }
         }
       }
@@ -3456,10 +5043,10 @@ modules["pages/editor/toolbar/cursor"] = {
               }
               if (checkAnnotation.pointer != null) {
                 checkAnnoID = checkAnnotation.pointer;
-                checkAnnotation = editor.annotations[checkAnnoID] || { render: {} };
+                checkAnnotation = editor.annotations[checkAnnoID] ?? { render: {} };
               }
               let render = checkAnnotation.render;
-              if ((render.parent || "").startsWith("pending_") == true) {
+              if ((render.parent ?? "").startsWith("pending_") == true) {
                 let parentAnno = editor.annotations[render.parent];
                 if (parentAnno != null && parentAnno.pointer != null) {
                   render.parent = parentAnno.pointer;
@@ -3469,7 +5056,7 @@ modules["pages/editor/toolbar/cursor"] = {
                 continue;
               }
               let newPos = [render.p[0] - changedXSize, render.p[1] - changedYSize];
-              editor.realtimeSelect[checkAnnoID] = { ...(editor.realtimeSelect[checkAnnoID] || {}), p: newPos, parent: annoid };
+              editor.realtimeSelect[checkAnnoID] = { ...(editor.realtimeSelect[checkAnnoID] ?? {}), p: newPos, parent: annoid };
               saveUpdates.push({ p: newPos, parent: annoid, _id: checkAnnoID });
               pushChanges.push({ p: render.p, parent: annoid, _id: checkAnnoID });
             }
@@ -3494,9 +5081,9 @@ modules["pages/editor/toolbar/cursor"] = {
             }
             if (checkAnnotation.pointer != null) {
               checkAnnoID = checkAnnotation.pointer;
-              checkAnnotation = editor.annotations[checkAnnoID] || { render: {} };
+              checkAnnotation = editor.annotations[checkAnnoID] ?? { render: {} };
             }
-            let render = { ...(checkAnnotation.render || {}), ...(utils.pendingSaves[checkAnnoID] || {}) };
+            let render = { ...(checkAnnotation.render ?? {}), ...(utils.pendingSaves[checkAnnoID] ?? {}), ...(editor.selecting[checkAnnoID] ?? {}) };
             if (render.parent == annoid) {
               continue;
             }
@@ -3511,15 +5098,16 @@ modules["pages/editor/toolbar/cursor"] = {
             let checkY = y + (render.s[1] / 2) + thick;
             if (checkX >= position[0] && checkX <= position[0] + merged.s[0] + thickness) {
               if (checkY >= position[1] && checkY <= position[1] + merged.s[1] + thickness) {
-                if ((render.l || 0) > (merged.l || 0)) {
+                if ((render.l ?? 0) > (merged.l ?? 0)) {
                   if (self.access > 0 && editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
                     continue;  
                   }
                   let setParent = editor.parentFromAnnotation({
                     ...render,
                     parent: null,
+                    prevParent: render.parent,
                     p: [checkX, checkY]
-                  }, null, merged);
+                  }, null, null, true);
                   if (setParent != render.parent) {
                     // This is updated in the save utility, just here to add to the history
                     /*let relativePos = editor.getRelativePosition({
@@ -3563,7 +5151,7 @@ modules["pages/editor/toolbar/cursor"] = {
     editor.selecting = JSON.parse(beforeSelect);
     await utils.forceShort();
     editor.selecting = {};
-    sentKeys = sentKeys || keys;
+    sentKeys = sentKeys ?? keys;
     for (let i = 0; i < sentKeys.length; i++) {
       let key = sentKeys[i];
       if (deleteKeys[key] == null) {
@@ -3572,7 +5160,7 @@ modules["pages/editor/toolbar/cursor"] = {
     }
 
     //utils.resetAnnotationSize();
-    this.updateBox(true);
+    await this.updateBox(true);
   },
   interactRun: async function (target) {
     let editor = await getModule("pages/editor");
@@ -3604,7 +5192,7 @@ modules["pages/editor/toolbar/cursor"] = {
       }
     }
     if (runEmbed == true) {
-      let render = ((editor.annotations[embedAnno.getAttribute("anno")] || {}).render || {});
+      let render = ((editor.annotations[embedAnno.getAttribute("anno")] ?? {}).render ?? {});
       if (render.embed != null) {
         if (render.embed.url == null) {
           window.open(render.d);
@@ -3665,7 +5253,7 @@ modules["pages/editor/toolbar/cursor"] = {
           return true;
         }
         let annoID = spinnerAnno.getAttribute("anno");
-        let render = ((editor.annotations[annoID] || {}).render || {});
+        let render = ((editor.annotations[annoID] ?? {}).render ?? {});
         let alertModule = await getModule("alert");
         if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
           alertModule.close(this.someoneElsesAnnoWarning);
@@ -3691,10 +5279,58 @@ modules["pages/editor/toolbar/cursor"] = {
       return true;
     }
   },
+  clickInSelect: function (editor, utils, x, y) {
+    let sizeInverse = 10 * (1 / editor.zoom);
+    if (Object.keys(editor.selecting).length < 1) {
+      return false;
+    }
+    if (this.minX == null || this.minY == null || this.maxY == null || this.maxY == null) {
+      return false;
+    }
+    let selectTopLeftX = this.minX;
+    let selectTopLeftY = this.minY;
+    let selectBottomRightX = this.maxX;
+    let selectBottomRightY = this.maxY;
+    let selectWidth = selectBottomRightX - selectTopLeftX;
+    let selectHeight = selectBottomRightY - selectTopLeftY;
+
+    let transformRotateWidth = selectTopLeftX + (selectWidth / 2);
+    let transformRotateHeight = selectTopLeftY + (selectHeight / 2);
+
+    let radian = this.selectRotation * (Math.PI / 180);
+
+    if (this.selectRotation != 0) {
+      selectWidth = this.lastElementWidth;
+      selectHeight = this.lastElementHeight;
+    }
+
+    // Calculate the rotated bounding box dimensions using the original bounding box dimensions
+    let rotatedWidth = Math.abs(selectTopLeftX * Math.cos(radian)) + Math.abs(selectTopLeftY * Math.sin(radian));
+    let rotatedHeight = Math.abs(selectTopLeftY * Math.cos(radian)) + Math.abs(selectTopLeftX * Math.sin(radian));
+
+    // Calculate the offset to the new top-left corner of the rotated bounding box:
+    let offsetX = (rotatedWidth - selectWidth) / 2;
+    let offsetY = (rotatedHeight - selectHeight) / 2;
+
+    // Calculate the new top-left corner of the rotated bounding box:
+    let rotatedTopLeftX = transformRotateWidth - (rotatedWidth / 2) + offsetX;
+    let rotatedTopLeftY = transformRotateHeight - (rotatedHeight / 2) + offsetY;
+
+    let halfRotateWidth = rotatedTopLeftX + (selectWidth / 2);
+    let halfRotateHeight = rotatedTopLeftY + (selectHeight / 2);
+    let [xCoord, yCoord] = utils.rotatePoint(x - halfRotateWidth, y - halfRotateHeight, this.selectRotation);
+    xCoord += halfRotateWidth;
+    yCoord += halfRotateHeight;
+
+    if (xCoord > rotatedTopLeftX - sizeInverse && xCoord < (rotatedTopLeftX + selectWidth + sizeInverse) && yCoord > rotatedTopLeftY - sizeInverse && yCoord < (rotatedTopLeftY + selectHeight + sizeInverse)) { // In the select box, cancel unselect
+      return true;
+    }
+    return false;
+  },
   js: async function (editor, utils, addEvent) {
     let content = editor.page.querySelector(".eContent");
     editor.updateZoom = async (forceNoTransition, noUpdateAction, forceUpdate) => {
-      this.updateBox(forceNoTransition, forceUpdate, noUpdateAction);
+      await this.updateBox(forceNoTransition, forceUpdate, noUpdateAction);
     }
     let alertModule = await getModule("alert");
     let startX;
@@ -3722,7 +5358,7 @@ modules["pages/editor/toolbar/cursor"] = {
       if (target.closest("button") != null || target.closest("a") != null) {
         return;
       }
-      anno = target.closest(".eAnnotation, .eSelect, .eSelectActive");
+      anno = target.closest(".eAnnotation"); //, .eSelect, .eSelectActive
       if (anno != null && anno.hasAttribute("member") == true) {
         // A display annotation, not a real one
         return;
@@ -3739,38 +5375,66 @@ modules["pages/editor/toolbar/cursor"] = {
         this.updateBox();
         return;
       }*/
-      startX = clientPosition(event, "x") + window.scrollX;
-      startY = clientPosition(event, "y") + window.scrollY;
-      if ((anno == null || editor.selecting[anno.getAttribute("anno")] == null) && event.shiftKey == false) {
-        await sleep(); // NEEDED TO ALLOW OTHER EVENTS TO FIRE (TEXT BOX / INPUT)
-        editor.selecting = {};
-        if (anno == null) {
-          this.updateBox();
+      let clientX = clientPosition(event, "x");
+      let clientY = clientPosition(event, "y");
+      startX = clientX + window.scrollX;
+      startY = clientY + window.scrollY;
+      let { x, y } = await utils.scaleToDoc(clientX, clientY, 0);
+      let annoID;
+      let render;
+      
+      if (anno != null) {
+        annoID = anno.getAttribute("anno");
+
+
+        //let self = editor.getSelf();
+        render = ((editor.annotations[annoID] ?? {}).render ?? {});
+        /*if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
+          return;
+        }*/
+      
+        if (anno.querySelector("div[edit]") != null && anno.querySelector("div[edit]").closest(".eAnnotation") == anno && anno.querySelector("div[contenteditable]") != null) {
           return;
         }
-      }
-      if (anno == null) {
-        return;
-      }
-      let annoID = anno.getAttribute("anno");
-      //let self = editor.getSelf();
-      let render = ((editor.annotations[annoID] || {}).render || {});
-      /*if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
-        return;
-      }*/
-      if (editor.selecting[annoID] != null && render.f == "page" && target.closest("div[title]") != null && anno.querySelector("div[title]").closest(".eAnnotation") == anno && render.lock != true) {
-        if (target.closest("div[title]").hasAttribute("contenteditable") == false) {
-          this.clickAction({
-            target: content.querySelector('.eSelectBar:not([remove]) .eTool[action="pages/editor/toolbar/settitle"]')
-          });
+        if (editor.selecting[annoID] != null) {
+          if (render.f == "page" && target.closest("div[title]") != null && anno.querySelector("div[title]").closest(".eAnnotation") == anno && render.lock != true) {
+            if (target.closest("div[title]").hasAttribute("contenteditable") == false) {
+              this.clickAction({
+                target: content.querySelector('.eSelectBar:not([remove]) .eTool[action="pages/editor/toolbar/settitle"]')
+              });
+            }
+            return;
+          }
+          if (render.f == "embed" && target.closest("div[input]") != null && anno.querySelector("div[input]").closest(".eAnnotation") == anno && render.lock != true) {
+            if (render.embed == null) {
+              this.clickAction({
+                target: content.querySelector('.eSelectBar:not([remove]) .eTool[action="pages/editor/toolbar/setembed"]')
+              });
+            }
+            return;
+          }
         }
       }
+      
       //let newlySelected = false;
-      if (editor.selecting[annoID] == null) {
-        if (render.f != "page" || target.closest("div[title]") != null) {
-          wasSelected = annoID;
-          editor.selecting[annoID] = {};
-          //newlySelected = true;
+      if (this.clickInSelect(editor, utils, x, y) == true) {
+        return await this.enableAction(event);
+      }
+      if (target.closest(".eSelect") == null) {
+        if (event.shiftKey == false) {
+          await sleep(); // NEEDED TO ALLOW OTHER EVENTS TO FIRE (TEXT BOX / INPUT)
+          editor.selecting = {};
+          if (anno == null) {
+            this.updateBox();
+            return;
+          }
+        }
+        if (render != null && editor.selecting[annoID] == null) {
+          if (render.f != "page" || target.closest("div[title]") != null) {
+            wasSelected = annoID;
+            editor.selecting[annoID] = {};
+            //newlySelected = true;
+          }
         }
       }
       await this.updateBox();
@@ -3783,10 +5447,23 @@ modules["pages/editor/toolbar/cursor"] = {
         }
       }*/
     }
+    let moveSelect = async (event) => {
+      await this.moveAction(event);
+      /*if (this.action != null) {
+        await this.moveAction(event);
+      } else if (mouseDown() == true) {
+        let endX = clientPosition(event, "x") + window.scrollX;
+        let endY = clientPosition(event, "y") + window.scrollY;
+        if ((Math.floor(endX - startX) != 0 || Math.floor(endY - startY) != 0)) {
+          await this.enableAction(event);
+          await this.moveAction(event);
+        }
+      }*/
+    }
     let disableSelect = async (event) => {
       this.endAction(event);
-
-      let target = lastTarget || event.target;
+      
+      let target = lastTarget ?? event.target;
       lastTarget = null;
       if (target == null) {
         return;
@@ -3794,7 +5471,7 @@ modules["pages/editor/toolbar/cursor"] = {
       if (target.closest("button") != null || target.closest("a") != null || target.closest(".eSelect") != null) {
         return;
       }
-      anno = target.closest(".eAnnotation, .eSelect, .eSelectActive");
+      anno = target.closest(".eAnnotation"); //, .eSelect, .eSelectActive
       /*if (editor.getSelf().access < 1) {
         editor.selecting = {};
         this.updateBox();
@@ -3808,7 +5485,7 @@ modules["pages/editor/toolbar/cursor"] = {
         }
         let annoID = anno.getAttribute("anno");
         let self = editor.getSelf();
-        let render = ((editor.annotations[annoID] || {}).render || {});
+        let render = ((editor.annotations[annoID] ?? {}).render ?? {});
         if (self.access > 0 && editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
           alertModule.close(this.someoneElsesAnnoWarning);
           this.someoneElsesAnnoWarning = await alertModule.open("warning", "<b>Someone Else's Annotation</b>The ability to modify another member's work is disabled.");
@@ -3838,8 +5515,8 @@ modules["pages/editor/toolbar/cursor"] = {
     }
     addEvent(content, "mousedown", enableSelect, { passive: false });
     addEvent(content, "touchstart", enableSelect, { passive: false });
-    addEvent(content, "mouseup", disableSelect, { passive: false });
-    addEvent(content, "touchend", disableSelect, { passive: false });
+    addEvent(document, "mouseup", disableSelect, { passive: false });
+    addEvent(document, "touchend", disableSelect, { passive: false });
 
     let checkShift = (event) => {
       if (event.shiftKey == false) {
@@ -3851,10 +5528,13 @@ modules["pages/editor/toolbar/cursor"] = {
     addEvent(window, "keydown", checkShift, { passive: false });
     addEvent(window, "keyup", checkShift, { passive: false });
 
-    addEvent(content, "mousemove", (event) => { this.moveAction(event); }, { passive: false });
-    addEvent(content, "touchmove", (event) => { this.moveAction(event); }, { passive: false });
+    addEvent(document, "mousemove", moveSelect, { passive: false });
+    addEvent(document, "touchmove", moveSelect, { passive: false });
 
-    addEvent(window, "scroll", () => { this.updateActionUI(); }, { passive: true });
+    addEvent(window, "scroll", async () => {
+      await this.moveAction();
+      this.updateActionUI();
+    }, { passive: true });
     addEvent(window, "resize", () => { this.updateActionUI(); }, { passive: true });
 
     addEvent(content, "click", (event) => { this.clickAction(event); }, { passive: true });
@@ -3863,61 +5543,30 @@ modules["pages/editor/toolbar/cursor"] = {
 
 // DRAG TOOL
 modules["pages/editor/toolbar/drag"] = {
-  getElementsInRect: function (selectBoxRect, children, editor, utils) {
-    return Array.from(children)
-      .filter(element => {
-        const elementRect = element.getBoundingClientRect();
-        if (element.parentElement.closest(".eAnnotation[selected]") != null) {
-          return false;
-        }
-        if (element.hasAttribute("page") == false) {
-          return (
-            elementRect.top < selectBoxRect.bottom &&
-            elementRect.bottom > selectBoxRect.top &&
-            elementRect.left < selectBoxRect.right &&
-            elementRect.right > selectBoxRect.left
-          );
-        } else {
-          return (
-            elementRect.top > selectBoxRect.top &&
-            elementRect.bottom < selectBoxRect.bottom &&
-            elementRect.left > selectBoxRect.left &&
-            elementRect.right < selectBoxRect.right
-          );
-        }
-        /*
-        let original = editor.annotations[element.getAttribute("anno")];
-        if (original == null) {
-          return null;
-        }
-        if (original.pointer != null) {
-          original = editor.annotations[annoData.pointer] || { render: {} };
-        }
-        const elementRect = element.getBoundingClientRect();
-        let halfWidth = (elementRect.width / 2) + elementRect.left;
-        let halfHeight = (elementRect.height / 2) + elementRect.top;
-        let [topLeftX, topLeftY] = utils.rotatePoint(elementRect.left - halfWidth, -(elementRect.top - halfHeight), (original.render.r || 0));
-        let [bottomRightX, bottomRightY] = utils.rotatePoint(elementRect.right - halfWidth, -(elementRect.bottom - halfHeight), (original.render.r || 0));
-        return (
-          ((-topLeftY) + halfHeight) <= selectBoxRect.bottom &&
-          ((-bottomRightY) + halfHeight) >= selectBoxRect.top &&
-          (topLeftX + halfWidth) <= selectBoxRect.right &&
-          (bottomRightX + halfWidth) >= selectBoxRect.left
-        );
-        */
-
-      });
+  scrollIntervalX: 0,
+  scrollIntervalY: 0,
+  scrollIntervalRunning: false,
+  setScrollInterval: async function () {
+    if (this.scrollIntervalRunning == true) {
+      return;
+    }
+    this.scrollIntervalRunning = true;
+    while (this.selection != null && (this.scrollIntervalX != 0 || this.scrollIntervalY != 0)) {
+      window.scrollTo(window.scrollX + this.scrollIntervalX, window.scrollY + this.scrollIntervalY);
+      await this.updateSelectedBounds(this.scrollLastEvent, null, null, true);
+      await sleep(10);
+    }
+    this.scrollIntervalRunning = false;
   },
   js: async function (editor, utils, addEvent) {
     let content = editor.page.querySelector(".eContent");
-    let annoHolder = editor.page.querySelector(".ePageHolder");
+    let annoHolder = content.querySelector(".ePageHolder");
 
     body.style.userSelect = "none";
     editor.page.style.touchAction = "pinch-zoom";
 
     let cursorModule = await getModule("pages/editor/toolbar/cursor");
 
-    let selection;
     let selectX;
     let selectY;
     let wasSelected;
@@ -3929,197 +5578,186 @@ modules["pages/editor/toolbar/drag"] = {
     let useY = 0;
     let lastMouseX = 0;
     let lastMouseY = 0;
-    let updateSelectedBounds = async (event) => {
-      if (selection == null) {
+    this.updateSelectedBounds = async (event) => {
+      if (this.selection == null) {
         return;
       }
-      if (editor.lesson.type != "standard") {
-        if (event != null) {
-          lastMouseX = clientPosition(event, "x");
-          lastMouseY = clientPosition(event, "y");
+      if (event != null) {
+        lastMouseX = clientPosition(event, "x");
+        lastMouseY = clientPosition(event, "y");
+
+        // Handle Scroll with Mouse:
+        let scrollOffset = 32;
+        this.scrollIntervalX = 0;
+        this.scrollIntervalY = 0;
+        let leftPos = scrollOffset - lastMouseX;
+        if (leftPos > 0) {
+          let percentage = 1 + ((leftPos - scrollOffset) / scrollOffset);
+          this.scrollIntervalX = -Math.min(6 * percentage, 10);
         }
-        let { x, y } = await utils.scaleToDoc(lastMouseX, lastMouseY, 0);
-        useX = x;
-        useY = y;
-        let selectWidth = 0;
-        let selectHeight = 0;
-        let topLeftX = 0;
-        let topLeftY = 0;
-        if (useX > selectX) {
-          selectWidth = useX - selectX;
-          topLeftX = selectX;
-          if (useY > selectY) {
-            selectHeight = useY - selectY;
-            topLeftY = selectY;
-            selection.style.borderRadius = "10px 10px 0px 10px";
-          } else {
-            selectHeight = selectY - useY;
-            topLeftY = useY;
-            selection.style.borderRadius = "10px 0px 10px 10px";
-          }
+        let rightPos = lastMouseX - fixed.offsetWidth + scrollOffset;
+        if (rightPos > 0) {
+          let percentage = 1 + ((rightPos - scrollOffset) / scrollOffset);
+          this.scrollIntervalX = Math.min(6 * percentage, 10);
+        }
+        let topPos = scrollOffset - lastMouseY;
+        if (topPos > 0) {
+          let percentage = 1 + ((topPos - scrollOffset) / scrollOffset);
+          this.scrollIntervalY = -Math.min(6 * percentage, 10);
+        }
+        let bottomPos = lastMouseY - fixed.offsetHeight + scrollOffset;
+        if (bottomPos > 0) {
+          let percentage = 1 + ((bottomPos - scrollOffset) / scrollOffset);
+          this.scrollIntervalY = Math.min(6 * percentage, 10);
+        }
+        this.scrollLastEvent = event;
+        if (this.scrollIntervalX != 0 || this.scrollIntervalY != 0) {
+          return this.setScrollInterval();
+        }
+      }
+      let { x, y } = await utils.scaleToDoc(lastMouseX, lastMouseY, 0);
+      useX = x;
+      useY = y;
+      let selectWidth = 0;
+      let selectHeight = 0;
+      let topLeftX = 0;
+      let topLeftY = 0;
+      if (useX > selectX) {
+        selectWidth = useX - selectX;
+        topLeftX = selectX;
+        if (useY > selectY) {
+          selectHeight = useY - selectY;
+          topLeftY = selectY;
+          this.selection.style.borderRadius = "10px 10px 0px 10px";
         } else {
-          selectWidth = selectX - useX;
-          topLeftX = useX;
-          if (useY > selectY) {
-            selectHeight = useY - selectY;
-            topLeftY = selectY;
-            selection.style.borderRadius = "10px 10px 10px 0px";
-          } else {
-            selectHeight = selectY - useY;
-            topLeftY = useY;
-            selection.style.borderRadius = "0px 10px 10px 10px";
-          }
-        }
-
-        let pageRect = annoHolder.getBoundingClientRect();
-        selection.style.width = (selectWidth * editor.zoom) + "px";
-        selection.style.height = (selectHeight * editor.zoom) + "px";
-        selection.style.left = pageRect.x + (topLeftX * editor.zoom) + window.scrollX + "px";
-        selection.style.top = pageRect.y + (topLeftY * editor.zoom) + window.scrollY + "px";
-        
-        let bottomRightX = topLeftX + selectWidth;
-        let bottomRightY = topLeftY + selectHeight;
-        let checkChunks = editor.regionInChunks(topLeftX, topLeftY, bottomRightX, bottomRightY);
-        let annotationKeys = {};
-        for (let c = 0; c < checkChunks.length; c++) {
-          annotationKeys = { ...annotationKeys, ...(editor.chunkAnnotations[checkChunks[c]] || {}) };
-        }
-        let annotations = Object.keys(annotationKeys);
-        for (let a = 0; a < annotations.length; a++) {
-          let annoid = annotations[a];
-          let annotation = editor.annotations[annoid];
-          if (annotation == null) {
-            continue;
-          }
-          if (annotation.pointer != null) {
-            annoid = annotation.pointer;
-            annotation = editor.annotations[annoid];
-          }
-          let render = annotation.render;
-          if (render == null) {
-            continue;
-          }
-          if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
-            continue;
-          }
-          let thick = 0;
-          if (render.t != null) {
-            if (render.b != "none" || render.d == "line") {
-              thick = render.t;
-            }
-          }
-          let [x, y] = editor.getAbsolutePosition(render);
-          let endX = x + render.s[0] + (thick * 2);
-          let endY = y + render.s[1] + (thick * 2);
-          if (render.f != "page") { // Part in bounds:
-            if (!(x < bottomRightX && endX > topLeftX && y < bottomRightY && endY > topLeftY)) {
-              continue;
-            }
-          } else { // Entire thing in bounds:
-            if (x < topLeftX || y < topLeftY || endX > bottomRightX || endY > bottomRightY) {
-              continue;
-            }
-          }
-
-          let currentAnnoCheck = render;
-          let checkedParents = [];
-          let parentCancel = false;
-          while (currentAnnoCheck.parent != null) {
-            let checkannoid = currentAnnoCheck.parent;
-            if (checkannoid == null || checkedParents.includes(checkannoid) == true) {
-              break;
-            }
-            checkedParents.push(checkannoid);
-            let annotation = editor.annotations[checkannoid];
-            if (annotation == null) {
-              break;
-            }
-            if (annotation.pointer != null) {
-              checkannoid = annotation.pointer;
-              annotation = editor.annotations[checkannoid];
-            }
-            currentAnnoCheck = annotation.render || {};
-            if (editor.selecting[checkannoid] != null || currentAnnoCheck.hide == true) {
-              parentCancel = true;
-              break;
-            }
-          }
-          if (parentCancel == true) {
-            continue;
-          }
-
-          editor.selecting[annoid] = {};
+          selectHeight = selectY - useY;
+          topLeftY = useY;
+          this.selection.style.borderRadius = "10px 0px 10px 10px";
         }
       } else {
-        if (event != null) {
-          useX = clientPosition(event, "x");
-          useY = clientPosition(event, "y");
-        }
-        let newX = useX + window.scrollX;
-        let newY = useY + window.scrollY;
-        if (newX > selectX) {
-          selection.style.width = newX - selectX + "px";
-          selection.style.left = selectX + "px";
-          if (newY > selectY) {
-            selection.style.height = newY - selectY + "px";
-            selection.style.top = selectY + "px";
-            selection.style.borderRadius = "10px 10px 0px 10px";
-          } else {
-            selection.style.height = selectY - newY + "px";
-            selection.style.top = newY + "px";
-            selection.style.borderRadius = "10px 0px 10px 10px";
-          }
+        selectWidth = selectX - useX;
+        topLeftX = useX;
+        if (useY > selectY) {
+          selectHeight = useY - selectY;
+          topLeftY = selectY;
+          this.selection.style.borderRadius = "10px 10px 10px 0px";
         } else {
-          selection.style.width = selectX - newX + "px";
-          selection.style.left = newX + "px";
-          if (newY > selectY) {
-            selection.style.height = newY - selectY + "px";
-            selection.style.top = selectY + "px";
-            selection.style.borderRadius = "10px 10px 10px 0px";
-          } else {
-            selection.style.height = selectY - newY + "px";
-            selection.style.top = newY + "px";
-            selection.style.borderRadius = "0px 10px 10px 10px";
+          selectHeight = selectY - useY;
+          topLeftY = useY;
+          this.selection.style.borderRadius = "0px 10px 10px 10px";
+        }
+      }
+
+      let pageRect = annoHolder.getBoundingClientRect();
+      this.selection.style.width = (selectWidth * editor.zoom) + "px";
+      this.selection.style.height = (selectHeight * editor.zoom) + "px";
+      this.selection.style.left = pageRect.x + (topLeftX * editor.zoom) + window.scrollX + "px";
+      this.selection.style.top = pageRect.y + (topLeftY * editor.zoom) + window.scrollY + "px";
+      
+      let bottomRightX = topLeftX + selectWidth;
+      let bottomRightY = topLeftY + selectHeight;
+      let checkChunks = editor.regionInChunks(topLeftX, topLeftY, bottomRightX, bottomRightY);
+      let annotationKeys = {};
+      for (let c = 0; c < checkChunks.length; c++) {
+        annotationKeys = { ...annotationKeys, ...(editor.chunkAnnotations[checkChunks[c]] ?? {}) };
+      }
+      let annotations = Object.keys(annotationKeys);
+      for (let a = 0; a < annotations.length; a++) {
+        let annoid = annotations[a];
+        let annotation = editor.annotations[annoid];
+        if (annotation == null) {
+          continue;
+        }
+        if (annotation.pointer != null) {
+          annoid = annotation.pointer;
+          annotation = editor.annotations[annoid];
+        }
+        let render = annotation.render;
+        if (render == null) {
+          continue;
+        }
+        if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
+          continue;
+        }
+        let thick = 0;
+        if (render.t != null) {
+          if (render.b != "none" || render.d == "line") {
+            thick = render.t;
+          }
+        }
+        let [x, y] = editor.getAbsolutePosition(render);
+        let endX = x + render.s[0] + thick;
+        let endY = y + render.s[1] + thick;
+        if (render.s[0] < 0) {
+          x += render.s[0] + thick;
+          endX = x - render.s[0] + thick;
+        }
+        if (render.s[1] < 0) {
+          y += render.s[1] + thick;
+          endY = y - render.s[1] + thick;
+        }
+        if (render.f != "page") { // Part in bounds:
+          if (!(x < bottomRightX && endX > topLeftX && y < bottomRightY && endY > topLeftY)) {
+            continue;
+          }
+        } else { // Entire thing in bounds:
+          if (x < topLeftX || y < topLeftY || endX > bottomRightX || endY > bottomRightY) {
+            continue;
           }
         }
 
-        let selected = this.getElementsInRect(selection.getBoundingClientRect(), content.querySelectorAll(".eAnnotation"), editor, utils);
-        for (let i = 0; i < selected.length; i++) {
-          let page = selected[i].closest(".ePage");
-          if (page != null && page.hasAttribute("hide") == true) {
-            continue;
+        let currentAnnoCheck = render;
+        let checkedParents = [];
+        let parentCancel = false;
+        while (currentAnnoCheck.parent != null) {
+          let checkannoid = currentAnnoCheck.parent;
+          if (checkannoid == null || checkedParents.includes(checkannoid) == true) {
+            break;
           }
-          let annoID = selected[i].getAttribute("anno");
-          let render = ((editor.annotations[annoID] || {}).render || {});
-          if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
-            continue;
+          checkedParents.push(checkannoid);
+          let annotation = editor.annotations[checkannoid];
+          if (annotation == null) {
+            break;
           }
-          editor.selecting[annoID] = {};
+          if (annotation.pointer != null) {
+            checkannoid = annotation.pointer;
+            annotation = editor.annotations[checkannoid];
+          }
+          currentAnnoCheck = annotation.render ?? {};
+          if (editor.selecting[checkannoid] != null || currentAnnoCheck.hide == true) {
+            parentCancel = true;
+            break;
+          }
         }
+        if (parentCancel == true) {
+          continue;
+        }
+
+        editor.selecting[annoid] = {};
       }
       cursorModule.updateBox();
     }
-    editor.updateSelectedBounds = updateSelectedBounds;
+    editor.updateSelectedBounds = this.updateSelectedBounds;
 
     let enableSelect = async (event) => {
       if (event.which === 3 || event.button === 2) {
         return;
       }
 
-      cursorModule.enableAction(event);
+      await cursorModule.enableAction(event);
 
       let target = event.target;
       let reaction = target.closest(".eReaction");
       if (reaction != null) {
         return;
       }
-      if (target == null || target.closest(".eContent") == null || target.closest(".eSelectBar") != null) {
+      if (target == null || target.closest(".eContent") == null || target.closest(".eSelect") != null || target.closest(".eSelectBar") != null) {
         return;
       }
       if (target.closest("button") != null || target.closest("a") != null) {
         return;
       }
-      anno = target.closest(".eAnnotation, .eSelect, .eSelectActive");
+      anno = target.closest(".eAnnotation"); //.eSelect, .eSelectActive
       if (anno != null && anno.hasAttribute("member") == true) {
         // A display annotation, not a real one
         return;
@@ -4130,11 +5768,17 @@ modules["pages/editor/toolbar/drag"] = {
         selectY = y;
         useX = x;
         useY = y;
+        if (cursorModule.clickInSelect(editor, utils, x, y) == true && event.shiftKey == false) {
+          return;
+        }
       } else {
         selectX = clientPosition(event, "x") + window.scrollX;
         selectY = clientPosition(event, "y") + window.scrollY;
         useX = selectX;
         useY = selectY;
+        if ((anno == null || editor.selecting[anno.getAttribute("anno")] == null) && event.shiftKey == false) {
+          editor.selecting = {};
+        }
       }
       if (anno != null) {
         let annoID = anno.getAttribute("anno");
@@ -4144,57 +5788,73 @@ modules["pages/editor/toolbar/drag"] = {
         }
         wasSelected = annoID;
       }
-      if ((anno == null || editor.selecting[anno.getAttribute("anno")] == null) && event.shiftKey == false) {
+      if (event.shiftKey == false) {
         editor.selecting = {};
       }
+      /*if ((anno == null || editor.selecting[anno.getAttribute("anno")] == null) && event.shiftKey == false) {
+        editor.selecting = {};
+      }*/
 
       disableSelect();
       editor.toolbar.closeSubSubtoolUI();
       event.preventDefault();
       content.insertAdjacentHTML("beforeend", `<div class="eSelectDrag" tooleditor new></div>`);
-      selection = content.querySelector(".eSelectDrag:not([remove])");
-      selection.removeAttribute("new");
+      this.selection = content.querySelector(".eSelectDrag:not([remove])");
+      this.selection.removeAttribute("new");
 
       prevSelecting = JSON.parse(JSON.stringify(editor.selecting));
-      updateSelectedBounds(event);
+      this.updateSelectedBounds(event);
     }
     let moveSelect = async (event) => {
-      cursorModule.moveAction(event);
+      if (this.selection == null) {
+        await cursorModule.moveAction(event);
+      }
+      /*if (event != null) {
+        if (cursorModule.action != null) {
+          await cursorModule.moveAction(event);
+        } else if (this.selection == null) {
+          let endX = clientPosition(event, "x") + window.scrollX;
+          let endY = clientPosition(event, "y") + window.scrollY;
+          if ((Math.floor(endX - selectX) != 0 || Math.floor(endY - selectY) != 0)) {
+            await cursorModule.enableAction(event);
+            await cursorModule.moveAction(event);
+          }
+        }
+      }*/
 
-      if (selection == null) {
+      if (this.selection == null) {
         return;
       }
       if (mouseDown() == false) {
         disableSelect();
         return;
       }
-      selection.style.opacity = .4;
+      this.selection.style.opacity = .4;
 
       editor.selecting = JSON.parse(JSON.stringify(prevSelecting));
-      updateSelectedBounds(event);
+      this.updateSelectedBounds(event);
     }
     let disableSelect = async (event) => {
-      if (selection != null) {
-        let remSelect = selection;
-        selection = null;
+      if (this.selection != null) {
+        let remSelect = this.selection;
+        this.selection = null;
         remSelect.setAttribute("remove", "");
         remSelect.style.opacity = 0;
         (async () => {
-
           await sleep(150);
           remSelect.remove();
         })();
       }
       if (event != null) {
-        cursorModule.endAction(event);
+        await cursorModule.endAction(event);
 
         let target = event.target;
         if (target == null) {
           return;
         }
-        anno = target.closest(".eAnnotation, .eSelect, .eSelectActive");
-
-        if (Math.floor((useX - selectX)) == 0 && Math.floor(useY - selectY) == 0 && selection != null) {
+        anno = target.closest(".eAnnotation"); //, .eSelect, .eSelectActive
+        let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientPosition(event, "y"), 0);
+        if (Math.floor(x - selectX) == 0 && Math.floor(y - selectY) == 0) {
           if (anno == null) {
             return;
           }
@@ -4203,16 +5863,16 @@ modules["pages/editor/toolbar/drag"] = {
             delete editor.selecting[annoID];
           }
         }
-        cursorModule.updateBox();
+        await cursorModule.updateBox();
         wasSelected = null;
       }
     }
     addEvent(content, "mousedown", enableSelect, { passive: false });
     addEvent(content, "touchstart", enableSelect, { passive: false });
-    addEvent(content, "mousemove", moveSelect, { passive: false });
-    addEvent(content, "touchmove", moveSelect, { passive: false });
-    addEvent(editor.page, "mouseup", disableSelect, { passive: false });
-    addEvent(editor.page, "touchend", disableSelect, { passive: false });
+    addEvent(document, "mousemove", moveSelect, { passive: false });
+    addEvent(document, "touchmove", moveSelect, { passive: false });
+    addEvent(document, "mouseup", disableSelect, { passive: false });
+    addEvent(document, "touchend", disableSelect, { passive: false });
 
     addEvent(window, "scroll", () => { moveSelect(); cursorModule.updateActionUI(); }, { passive: true });
     addEvent(window, "resize", () => { cursorModule.updateActionUI(); }, { passive: true });
@@ -4231,10 +5891,10 @@ modules["pages/editor/toolbar/pan"] = {
     body.style.userSelect = "none";
 
     let dragging = false;
-    let startScrollX;
-    let startScrollY;
-    let selectX;
-    let selectY;
+    let startX = 0;
+    let startY = 0;
+    let startScrollX = 0;
+    let startScrollY = 0;
     let enableDrag = async (event) => {
       if (event.target != null) {
         let reaction = event.target.closest(".eReaction");
@@ -4243,10 +5903,10 @@ modules["pages/editor/toolbar/pan"] = {
         }
       }
       dragging = true;
+      startX = clientPosition(event, "x");
+      startY = clientPosition(event, "y");
       startScrollX = window.scrollX;
       startScrollY = window.scrollY;
-      selectX = clientPosition(event, "x");
-      selectY = clientPosition(event, "y");
       content.style.cursor = "grabbing";
       body.style.userSelect = "none";
     }
@@ -4262,9 +5922,7 @@ modules["pages/editor/toolbar/pan"] = {
         disableDrag(event);
         return;
       }
-      let newX = clientPosition(event, "x");
-      let newY = clientPosition(event, "y");
-      window.scrollTo({ left: startScrollX - (newX - selectX), top: startScrollY - (newY - selectY) });
+      window.scrollTo({ left: startScrollX - (clientPosition(event, "x") - startX), top: startScrollY - (clientPosition(event, "y") - startY) });
     }
     let disableDrag = async (event) => {
       if (event != null && event.target != null) {
@@ -4278,10 +5936,10 @@ modules["pages/editor/toolbar/pan"] = {
     }
     addEvent(content, "mousedown", enableDrag, { passive: false });
     addEvent(content, "touchstart", enableDrag, { passive: false });
-    addEvent(editor.page, "mousemove", moveDrag, { passive: false });
-    addEvent(editor.page, "touchmove", moveDrag, { passive: false });
-    addEvent(content, "mouseup", disableDrag, { passive: false });
-    addEvent(content, "touchend", disableDrag, { passive: false });
+    addEvent(document, "mousemove", moveDrag, { passive: false });
+    addEvent(document, "touchmove", moveDrag, { passive: false });
+    addEvent(document, "mouseup", disableDrag, { passive: false });
+    addEvent(document, "touchend", disableDrag, { passive: false });
   }
 };
 
@@ -4674,8 +6332,10 @@ modules["pages/editor/toolbar/text"] = {
           textfit: true
         };
       }
-      clientX = clientPosition(event, "x") || clientX;
-      clientY = clientPosition(event, "y") || clientY;
+      if (event != null) {
+        clientX = clientPosition(event, "x");
+        clientY = clientPosition(event, "y");
+      }
       if (clientX == null || clientY == null) {
         return;
       }
@@ -4736,7 +6396,7 @@ modules["pages/editor/toolbar/text"] = {
     }
     addEvent(content, "mousemove", textmove, { passive: false });
     addEvent(content, "touchmove", textmove, { passive: false });
-    addEvent(window, "scroll", textmove, { passive: false });
+    addEvent(window, "scroll", () => { textmove(); }, { passive: false });
     addEvent(content, "mouseup", placetext, { passive: false });
     addEvent(content, "touchend", placetext, { passive: false });
   }
@@ -5092,8 +6752,8 @@ modules["pages/editor/toolbar/eraser"] = {
 
       let self = editor.getSelf();
 
-      x0 = x0 || x1;
-      y0 = y0 || y1;
+      x0 = x0 ?? x1;
+      y0 = y0 ?? y1;
 
       // To fix cursor move, a line is drawn between mouse points and elements between are removed:
       let dx = Math.abs(x1 - x0);
@@ -5113,7 +6773,7 @@ modules["pages/editor/toolbar/eraser"] = {
               let annoID = anno.getAttribute("anno");
               let annotation = editor.annotations[annoID];
               if (annotation != null) {
-                let render = annotation.render || {};
+                let render = annotation.render ?? {};
                 if (render.lock == true) {
                   continue;
                 }
@@ -5126,7 +6786,7 @@ modules["pages/editor/toolbar/eraser"] = {
                 if (page != null) {
                   page = parseInt(page.getAttribute("order"));
                 }
-                let scaledPos = await utils.scaleToDoc(x0, y0, page || 0);
+                let scaledPos = await utils.scaleToDoc(x0, y0, page ?? 0);
                 /*if (editor.lesson.type == "freeboard") {
                   scaledPos.y += 4;
                 }*/
@@ -5280,8 +6940,10 @@ modules["pages/editor/toolbar/shape"] = {
             shape.d = "line";
         }
       }
-      clientX = clientPosition(event, "x") || clientX;
-      clientY = clientPosition(event, "y") || clientY;
+      if (event != null) {
+        clientX = clientPosition(event, "x");
+        clientY = clientPosition(event, "y");
+      }
       if (clientX == null || clientY == null) {
         return;
       }
@@ -5329,7 +6991,7 @@ modules["pages/editor/toolbar/shape"] = {
     let content = editor.page.querySelector(".eContent");
     addEvent(content, "mousemove", shapemove, { passive: false });
     addEvent(content, "touchmove", shapemove, { passive: false });
-    addEvent(window, "scroll", shapemove, { passive: false });
+    addEvent(window, "scroll", () => { shapemove(); }, { passive: false });
     addEvent(content, "mouseup", placeshape, { passive: false });
     addEvent(content, "touchend", placeshape, { passive: false });
   }
@@ -5350,8 +7012,8 @@ modules["pages/editor/toolbar/sticky"] = {
 
     let sticky;
     let anno;
-    let clientY;
     let clientX;
+    let clientY;
     let stickymove = async (event) => {
       if (sticky == null) {
         // If not sticky, make one!
@@ -5364,8 +7026,10 @@ modules["pages/editor/toolbar/sticky"] = {
           sig: editor.getSelf().name
         };
       }
-      clientX = clientPosition(event, "x") || clientX;
-      clientY = clientPosition(event, "y") || clientY;
+      if (event != null) {
+        clientX = clientPosition(event, "x");
+        clientY = clientPosition(event, "y");
+      }
       if (clientX == null || clientY == null) {
         return;
       }
@@ -5422,7 +7086,7 @@ modules["pages/editor/toolbar/sticky"] = {
     let content = editor.page.querySelector(".eContent");
     addEvent(content, "mousemove", stickymove, { passive: false });
     addEvent(content, "touchmove", stickymove, { passive: false });
-    addEvent(window, "scroll", stickymove, { passive: false });
+    addEvent(window, "scroll", () => { stickymove(); }, { passive: false });
     addEvent(content, "mouseup", placesticky, { passive: false });
     addEvent(content, "touchend", placesticky, { passive: false });
   }
@@ -5458,8 +7122,10 @@ modules["pages/editor/toolbar/page"] = {
           c: this.color
         };
       }
-      clientX = clientPosition(event, "x") || clientX;
-      clientY = clientPosition(event, "y") || clientY;
+      if (event != null) {
+        clientX = clientPosition(event, "x");
+        clientY = clientPosition(event, "y");
+      }
       if (clientX == null || clientY == null) {
         return;
       }
@@ -5507,7 +7173,7 @@ modules["pages/editor/toolbar/page"] = {
     let content = editor.page.querySelector(".eContent");
     addEvent(content, "mousemove", pagemove, { passive: false });
     addEvent(content, "touchmove", pagemove, { passive: false });
-    addEvent(window, "scroll", pagemove, { passive: false });
+    addEvent(window, "scroll", () => { pagemove(); }, { passive: false });
     addEvent(content, "mouseup", placepage, { passive: false });
     addEvent(content, "touchend", placepage, { passive: false });
 
@@ -5584,7 +7250,7 @@ modules["pages/editor/toolbar/upload"] = {
               image.onload = () => {
                 this.width = Math.min(image.width, 400);
                 this.height = image.height * (this.width / image.width);
-                mediamove(event);
+                //mediamove(event);
               }
               let form = new FormData();
               form.append("media", file);
@@ -5637,7 +7303,7 @@ modules["pages/editor/toolbar/upload"] = {
       uploadInput.value = null;
     }
     uploadInput.addEventListener("change", async (event) => {
-      startImagePlace((event.target.files || [])[0], event);
+      startImagePlace((event.target.files ?? [])[0], event);
     });
     uploadInput.addEventListener("cancel", () => {
       reset();
@@ -5654,7 +7320,7 @@ modules["pages/editor/toolbar/upload"] = {
     let clientY;
     let clientX;
     let mediamove = async (event) => {
-      if (event == null || this.imageBlob == null) {
+      if (this.imageBlob == null) {
         return;
       }
       if (this.media == null) {
@@ -5668,8 +7334,10 @@ modules["pages/editor/toolbar/upload"] = {
           o: this.opacity
         };
       }
-      clientX = clientPosition(event, "x") || clientX;
-      clientY = clientPosition(event, "y") || clientY;
+      if (event != null) {
+        clientX = clientPosition(event, "x");
+        clientY = clientPosition(event, "y");
+      }
       if (clientX == null || clientY == null) {
         return;
       }
@@ -5723,7 +7391,7 @@ modules["pages/editor/toolbar/upload"] = {
     }
     addEvent(content, "mousemove", mediamove, { passive: false });
     addEvent(content, "touchmove", mediamove, { passive: false });
-    addEvent(window, "scroll", mediamove, { passive: false });
+    addEvent(window, "scroll", () => { mediamove(); }, { passive: false });
     addEvent(content, "mouseup", placemedia, { passive: false });
     addEvent(content, "touchend", placemedia, { passive: false });
   }
@@ -5756,8 +7424,10 @@ modules["pages/editor/toolbar/embed"] = {
           //d: []
         };
       }
-      clientX = clientPosition(event, "x") || clientX;
-      clientY = clientPosition(event, "y") || clientY;
+      if (event != null) {
+        clientX = clientPosition(event, "x");
+        clientY = clientPosition(event, "y");
+      }
       if (clientX == null || clientY == null) {
         return;
       }
@@ -5811,7 +7481,7 @@ modules["pages/editor/toolbar/embed"] = {
     let content = editor.page.querySelector(".eContent");
     addEvent(content, "mousemove", embedmove, { passive: false });
     addEvent(content, "touchmove", embedmove, { passive: false });
-    addEvent(window, "scroll", embedmove, { passive: false });
+    addEvent(window, "scroll", () => { embedmove(); }, { passive: false });
     addEvent(content, "mouseup", placeembed, { passive: false });
     addEvent(content, "touchend", placeembed, { passive: false });
   }
@@ -5822,8 +7492,8 @@ modules["pages/editor/toolbar/color"] = {
   tooltip: "Colors",
   setButton: function (editor, button) {
     let selectKeys = Object.keys(editor.selecting);
-    let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
-    button.querySelector(".eSubToolColor").style.background = editor.hexToRGB(preferenceTool.c, (preferenceTool.o || 0) / 100);
+    let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] ?? {}).render ?? {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] ?? {}) }) ?? {};
+    button.querySelector(".eSubToolColor").style.background = editor.hexToRGB(preferenceTool.c, (preferenceTool.o ?? 0) / 100);
   },
   html: `
     <div class="eSubToolColorFrame">
@@ -5955,7 +7625,7 @@ modules["pages/editor/toolbar/color"] = {
   },
   setPreferenceTool: function (editor) {
     let selectKeys = Object.keys(editor.selecting);
-    this.preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
+    this.preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] ?? {}).render ?? {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] ?? {}) }) ?? {};
   },
   js: async function (frame, toolID, extra) {
     let editor = await getModule("pages/editor");
@@ -6191,7 +7861,7 @@ modules["pages/editor/toolbar/color"] = {
     }
     let firstChange;
     let updateStoredValues = async (hex) => {
-      selectedColor = hex || this.hsvToHex(h, s, v);
+      selectedColor = hex ?? this.hsvToHex(h, s, v);
       let selectedButton = selector.querySelector(".eTool[int][selected]");
       if (selectedButton == null) {
         selectedButton = selector.children[selector.childElementCount - 2];
@@ -6256,7 +7926,7 @@ modules["pages/editor/toolbar/color"] = {
         return;
       }
       let barRect = colorSliderHolder.getBoundingClientRect();
-      h = Math.ceil(Math.max(Math.min(((event.clientX || event.changedTouches[0].clientX) - barRect.x) / colorSliderHolder.offsetWidth, 1), 0) * 360);
+      h = Math.ceil(Math.max(Math.min(((event.clientX ?? event.changedTouches[0].clientX) - barRect.x) / colorSliderHolder.offsetWidth, 1), 0) * 360);
       updateStoredValues();
     }
     let colorSliderDown = (event) => {
@@ -6294,10 +7964,10 @@ modules["pages/editor/toolbar/thickness"] = {
   tooltip: "Thickness",
   setButton: function (editor, button) {
     let selectKeys = Object.keys(editor.selecting);
-    let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
+    let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] ?? {}).render ?? {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] ?? {}) }) ?? {};
     let tip = button.querySelector(".eSubToolThickness");
     tip.style.width = preferenceTool.t + "px";
-    tip.style.background = editor.hexToRGB(preferenceTool.c, (preferenceTool.o || 0) / 100);
+    tip.style.background = editor.hexToRGB(preferenceTool.c, (preferenceTool.o ?? 0) / 100);
   },
   html: `
     <div class="eSubToolThicknessHolder">
@@ -6321,7 +7991,7 @@ modules["pages/editor/toolbar/thickness"] = {
   },
   setPreferenceTool: function (editor) {
     let selectKeys = Object.keys(editor.selecting);
-    this.preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
+    this.preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] ?? {}).render ?? {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] ?? {}) }) ?? {};
   },
   minValue: 1,
   maxValue: 50,
@@ -6427,8 +8097,8 @@ modules["pages/editor/toolbar/opacity"] = {
   tooltip: "Opacity",
   setButton: function (editor, button) {
     let selectKeys = Object.keys(editor.selecting);
-    let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
-    button.querySelector("[opacity]").setAttribute("fill", editor.hexToRGB(preferenceTool.c, (preferenceTool.o || 0) / 100));
+    let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] ?? {}).render ?? {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] ?? {}) }) ?? {};
+    button.querySelector("[opacity]").setAttribute("fill", editor.hexToRGB(preferenceTool.c, (preferenceTool.o ?? 0) / 100));
   },
   html: `
     <div class="eSubToolOpacityHolder">
@@ -6446,7 +8116,7 @@ modules["pages/editor/toolbar/opacity"] = {
   },
   setPreferenceTool: function (editor) {
     let selectKeys = Object.keys(editor.selecting);
-    this.preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
+    this.preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] ?? {}).render ?? {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] ?? {}) }) ?? {};
   },
   minValue: 10,
   maxValue: 100,
@@ -6498,7 +8168,7 @@ modules["pages/editor/toolbar/opacity"] = {
         return;
       }
       let barRect = slider.getBoundingClientRect();
-      selectedOpacity = Math.ceil((Math.max(Math.min(((event.clientX || event.changedTouches[0].clientX) - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0) * (this.maxValue - this.minValue)) + this.minValue);
+      selectedOpacity = Math.ceil((Math.max(Math.min(((event.clientX ?? event.changedTouches[0].clientX) - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0) * (this.maxValue - this.minValue)) + this.minValue);
       updateUI();
     }
     editor.events.mouseMove = eventBarUpdate;
@@ -6546,9 +8216,9 @@ modules["pages/editor/toolbar/style"] = {
   tooltip: "Styling",
   setButton: function (editor, button) {
     let selectKeys = Object.keys(editor.selecting);
-    let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
+    let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] ?? {}).render ?? {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] ?? {}) }) ?? {};
     let buttonElem = button.querySelector(".eSubToolStyle");
-    let color = editor.hexToRGB(preferenceTool.c, (preferenceTool.o || 0) / 100);
+    let color = editor.hexToRGB(preferenceTool.c, (preferenceTool.o ?? 0) / 100);
     let prefI = preferenceTool.i;
     let prefB = preferenceTool.b;
     if (preferenceTool.d == "line") {
@@ -6559,10 +8229,10 @@ modules["pages/editor/toolbar/style"] = {
     }
     if (prefB != "none") {
       if (prefI != true) {
-        buttonElem.style.border = (prefB || "solid") + " 4px " + color; //var(--darkGray)
+        buttonElem.style.border = (prefB ?? "solid") + " 4px " + color; //var(--darkGray)
         buttonElem.style.removeProperty("background");
       } else {
-        buttonElem.style.border = (prefB || "solid") + " 4px " + editor.hexToRGB(editor.darkenHex(preferenceTool.c, 20), (preferenceTool.o || 0) / 100);
+        buttonElem.style.border = (prefB ?? "solid") + " 4px " + editor.hexToRGB(editor.darkenHex(preferenceTool.c, 20), (preferenceTool.o ?? 0) / 100);
         buttonElem.style.background = color;
       }
     } else {
@@ -6590,7 +8260,7 @@ modules["pages/editor/toolbar/style"] = {
   },
   setPreferenceTool: function (editor) {
     let selectKeys = Object.keys(editor.selecting);
-    this.preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
+    this.preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] ?? {}).render ?? {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] ?? {}) }) ?? {};
   },
   js: async function (frame, toolID, extra) {
     let editor = await getModule("pages/editor");
@@ -6628,14 +8298,14 @@ modules["pages/editor/toolbar/style"] = {
 
       if (selectedB != "none") {
         if (selectedI != true) {
-          if ((selectedB || "solid") == "solid") {
+          if ((selectedB ?? "solid") == "solid") {
             solidButton.setAttribute("selected", "");
           } else {
             dashedButton.setAttribute("selected", "");
           }
         } else {
           fillButton.setAttribute("selected", "");
-          if ((selectedB || "solid") == "solid") {
+          if ((selectedB ?? "solid") == "solid") {
             solidButton.setAttribute("selected", "");
           } else {
             dashedButton.setAttribute("selected", "");
@@ -6646,10 +8316,10 @@ modules["pages/editor/toolbar/style"] = {
         noneButton.setAttribute("selected", "");
       }
 
-      let color = editor.hexToRGB(this.preferenceTool.c, (this.preferenceTool.o || 0) / 100);
+      let color = editor.hexToRGB(this.preferenceTool.c, (this.preferenceTool.o ?? 0) / 100);
       let borderColor = color;
       if (selectedI == true || selectedB == "none") {
-        borderColor = editor.hexToRGB(editor.darkenHex(this.preferenceTool.c, 20), (this.preferenceTool.o || 0) / 100);
+        borderColor = editor.hexToRGB(editor.darkenHex(this.preferenceTool.c, 20), (this.preferenceTool.o ?? 0) / 100);
       }
 
       fill.style.background = color;
@@ -6773,41 +8443,44 @@ modules["dropdowns/editor/toolbar/more"] = {
     let checkChunks = [];
     let newSelect = {};
     let newNewSelect = {};
+    let parentIDs = {};
     let setTempSync = getEpoch();
     let maxZIndex;
     let minZIndex;
     let offsetX = 50;
     let offsetY = 50;
+    
+    if (tooltip != null) {
+      offsetX = 0;
+      offsetY = 0;
+      if (tooltip == "duplicateleft") {
+        offsetX -= (cursor.maxX - cursor.minX) + 34;
+      } else if (tooltip == "duplicateright") {
+        offsetX += (cursor.maxX - cursor.minX) + 34;
+      } else if (tooltip == "duplicatetop") {
+        offsetY -= (cursor.maxY - cursor.minY) + 34;
+      } else if (tooltip == "duplicatebottom") {
+        offsetY += (cursor.maxY - cursor.minY) + 34;
+      }
+    }
     for (let i = 0; i < selectKeys.length; i++) {
       let selectID = selectKeys[i];
       let tempID = utils.tempID();
-      let newAnno = JSON.parse(JSON.stringify(({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {}));
+      let newAnno = JSON.parse(JSON.stringify({ ...((editor.annotations[selectID] ?? {}).render ?? {}), ...(editor.selecting[selectID] ?? {}) }));
       if (self.access < 4 && toolbar.checkSubToolType(editor, newAnno.f) == true) {
         continue;
       }
       checkChunks = [ ...checkChunks, ...editor.annotationInChunks(newAnno) ];
+      parentIDs[selectID] = tempID;
       newAnno._id = tempID;
-      maxZIndex = Math.max(maxZIndex || newAnno.l || utils.maxLayer, newAnno.l || utils.maxLayer);
-      minZIndex = Math.min(minZIndex || newAnno.l || utils.minLayer, newAnno.l || utils.minLayer);
+      maxZIndex = Math.max(maxZIndex ?? newAnno.l ?? utils.maxLayer, newAnno.l ?? utils.maxLayer);
+      minZIndex = Math.min(minZIndex ?? newAnno.l ?? utils.minLayer, newAnno.l ?? utils.minLayer);
       newSelect[tempID] = newAnno;
       newNewSelect[tempID] = {};
-      if (tooltip != null) {
-        offsetX = 0;
-        offsetY = 0;
-        if (tooltip == "duplicateleft") {
-          offsetX -= newAnno.s[0] + 34;
-        } else if (tooltip == "duplicateright") {
-          offsetX += newAnno.s[0] + 34;
-        } else if (tooltip == "duplicatetop") {
-          offsetY -= newAnno.s[1] + 34;
-        } else if (tooltip == "duplicatebottom") {
-          offsetY += newAnno.s[1] + 34;
-        }
-      }
     }
     let annotationKeys = {};
     for (let c = 0; c < checkChunks.length; c++) {
-      annotationKeys = { ...annotationKeys, ...(editor.chunkAnnotations[checkChunks[c]] || {}) };
+      annotationKeys = { ...annotationKeys, ...(editor.chunkAnnotations[checkChunks[c]] ?? {}) };
     }
     let annotations = Object.keys(annotationKeys);
     for (let a = 0; a < annotations.length; a++) {
@@ -6821,9 +8494,9 @@ modules["dropdowns/editor/toolbar/more"] = {
       }
       if (checkAnnotation.pointer != null) {
         checkAnnoID = checkAnnotation.pointer;
-        checkAnnotation = editor.annotations[checkAnnoID] || { render: {} };
+        checkAnnotation = editor.annotations[checkAnnoID] ?? { render: {} };
       }
-      let render = checkAnnotation.render || {};
+      let render = checkAnnotation.render ?? {};
       let currentAnnoCheck = render;
       let checkedParents = [];
       let enableContinue = false;
@@ -6839,13 +8512,13 @@ modules["dropdowns/editor/toolbar/more"] = {
         }
         if (annotation.pointer != null) {
           annoid = annotation.pointer;
-          annotation = editor.annotations[annoid] || { render: {} };
+          annotation = editor.annotations[annoid] ?? { render: {} };
         }
         if (editor.selecting[annoid] != null) {
           enableContinue = true;
           break;
         }
-        currentAnnoCheck = annotation.render || {};
+        currentAnnoCheck = annotation.render ?? {};
       }
       if (enableContinue == false) {
         continue;
@@ -6855,29 +8528,35 @@ modules["dropdowns/editor/toolbar/more"] = {
       if (self.access < 4 && toolbar.checkSubToolType(editor, newAnno.f) == true) {
         continue;
       }
+      parentIDs[checkAnnoID] = tempID;
       newAnno._id = tempID;
-      maxZIndex = Math.max(maxZIndex || newAnno.l || utils.maxLayer, newAnno.l || utils.maxLayer);
-      minZIndex = Math.min(minZIndex || newAnno.l || utils.minLayer, newAnno.l || utils.minLayer);
+      maxZIndex = Math.max(maxZIndex ?? newAnno.l ?? utils.maxLayer, newAnno.l ?? utils.maxLayer);
+      minZIndex = Math.min(minZIndex ?? newAnno.l ?? utils.minLayer, newAnno.l ?? utils.minLayer);
       newSelect[tempID] = newAnno;
     }
     maxZIndex++;
     let duplicateKeys = Object.keys(newSelect);
     for (let i = 0; i < duplicateKeys.length; i++) {
       let selectDup = newSelect[duplicateKeys[i]];
-      selectDup.l = maxZIndex + ((selectDup.l || utils.maxLayer) - minZIndex);
-      let [x, y] = editor.getAbsolutePosition(selectDup);
-      selectDup.p = [x + offsetX, y + offsetY];
-      selectDup.parent = null;
+      let checkParent = parentIDs[selectDup.parent];
+      if (checkParent != null) {
+        selectDup.parent = checkParent;
+      } else {
+        let [x, y] = editor.getAbsolutePosition(selectDup);
+        selectDup.p = [x + offsetX, y + offsetY];
+        selectDup.parent = null;
+      }
+      selectDup.l = maxZIndex + ((selectDup.l ?? utils.maxLayer) - minZIndex);
       selectDup.sync = setTempSync;
       delete selectDup.m;
       delete selectDup.lock;
-      delete selectDup.hidden;
+      //delete selectDup.hidden;
     }
     cursor.action = "save";
     editor.selecting = newSelect;
     await cursor.endAction();
     editor.selecting = newNewSelect;
-    cursor.updateBox();
+    //cursor.updateBox();
   },
   js: async function (frame) {
     let editor = await getModule("pages/editor");
@@ -6898,17 +8577,17 @@ modules["dropdowns/editor/toolbar/more"] = {
     frontButton.addEventListener("click", async () => {
       let selectKeys = Object.keys(editor.selecting);
       selectKeys.sort((a, b) => {
-        let selectA = (editor.annotations[a] || {}).render || {};
-        let selectB = (editor.annotations[b] || {}).render || {};
-        return (selectA.l || selectA.sync) - (selectB.l || selectB.sync);
+        let selectA = (editor.annotations[a] ?? {}).render ?? {};
+        let selectB = (editor.annotations[b] ?? {}).render ?? {};
+        return (selectA.l ?? selectA.sync) - (selectB.l ?? selectB.sync);
       });
       for (let i = 0; i < selectKeys.length; i++) {
-        editor.selecting[selectKeys[i]].l = utils.maxLayer + 1;
         utils.maxLayer++;
+        editor.selecting[selectKeys[i]].l = utils.maxLayer;
       }
       cursor.action = "save";
       await cursor.endAction();
-      cursor.updateBox();
+      //cursor.updateBox();
       //await this.extra.saveSelecting({ l: utils.maxLayer + 1 }, true);
       //this.refreshButtons();
     });
@@ -6916,17 +8595,17 @@ modules["dropdowns/editor/toolbar/more"] = {
     backButton.addEventListener("click", async () => {
       let selectKeys = Object.keys(editor.selecting);
       selectKeys.sort((a, b) => {
-        let selectA = (editor.annotations[a] || {}).render || {};
-        let selectB = (editor.annotations[b] || {}).render || {};
-        return (selectB.l || selectB.sync) - (selectA.l || selectA.sync);
+        let selectA = (editor.annotations[a] ?? {}).render ?? {};
+        let selectB = (editor.annotations[b] ?? {}).render ?? {};
+        return (selectB.l ?? selectB.sync) - (selectA.l ?? selectA.sync);
       });
       for (let i = 0; i < selectKeys.length; i++) {
-        editor.selecting[selectKeys[i]].l = utils.minLayer - 1;
         utils.minLayer--;
+        editor.selecting[selectKeys[i]].l = utils.minLayer;
       }
       cursor.action = "save";
       await cursor.endAction();
-      cursor.updateBox();
+      //cursor.updateBox();
       //await this.extra.saveSelecting({ l: utils.minLayer - 1 }, true);
       //this.refreshButtons();
     });
@@ -6965,8 +8644,8 @@ modules["dropdowns/editor/toolbar/more"] = {
       if (showLock != false) {
         for (let i = 0; i < selectKeys.length; i++) {
           let annotation = editor.annotations[selectKeys[i]];
-          let render = annotation.render || annotation.revert || {};
-          layer = render.l || Math.round(((render.sync || getEpoch()) / 2000000000000) * 2147483647);
+          let render = annotation.render ?? annotation.revert ?? {};
+          layer = render.l ?? Math.round(((render.sync ?? getEpoch()) / 2000000000000) * 2147483647);
           if (render._id.startsWith("pending_") == true) {
             pending = true;
           }
@@ -7030,7 +8709,7 @@ modules["pages/editor/toolbar/unlock"] = {
     let locked = false;
     for (let i = 0; i < selectKeys.length; i++) {
       let selectID = selectKeys[i];
-      let anno = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+      let anno = ({ ...((editor.annotations[selectID] ?? {}).render ?? {}), ...(editor.selecting[selectID] ?? {}) }) ?? {};
       if (anno.lock == true) {
         locked = true;
       }
@@ -7083,8 +8762,8 @@ modules["pages/editor/toolbar/collaborator"] = {
     // Loop through to see if collaborator option should be shown
     let modifiedBy;
     for (let i = 0; i < selectKeys.length; i++) {
-      let annotation = editor.annotations[selectKeys[i]].render || {};
-      let setModifiedBy = annotation.m || annotation.a;
+      let annotation = editor.annotations[selectKeys[i]].render ?? {};
+      let setModifiedBy = annotation.m ?? annotation.a;
       if (setModifiedBy == null || (modifiedBy != null && setModifiedBy != modifiedBy)) {
         button.style.display = "none";
         cursorModule.updateActionUI(false);
@@ -7116,8 +8795,8 @@ modules["pages/editor/toolbar/collaborator"] = {
     button.setAttribute("collaborator", collaborator._id);
     button.setAttribute("tooltip", collaborator.name);
     let image = button.querySelector(".eSubToolCollaborator");
-    if (image.getAttribute("src") != (collaborator.image || "./images/profiles/default.svg")) {
-      image.src = collaborator.image || "./images/profiles/default.svg";
+    if (image.getAttribute("src") != (collaborator.image ?? "./images/profiles/default.svg")) {
+      image.src = collaborator.image ?? "./images/profiles/default.svg";
     }
     image.style.border = "solid 3px " + collaborator.color;
     button.removeAttribute("disabled");
@@ -7182,8 +8861,8 @@ modules["pages/editor/toolbar/collaborator"] = {
       frame.querySelector(".eSubToolCollaboratorCursor").style.display = "unset";
     } else {
       let image = frame.querySelector(".eSubToolCollaboratorPicture");
-      if (image.src != (collaborator.image || "./images/profiles/default.svg")) {
-        image.src = (collaborator.image || "./images/profiles/default.svg");
+      if (image.src != (collaborator.image ?? "./images/profiles/default.svg")) {
+        image.src = (collaborator.image ?? "./images/profiles/default.svg");
       }
       image.style.display = "unset";
     }
@@ -7300,7 +8979,7 @@ modules["pages/editor/toolbar/reactions"] = {
         for (let i = 0; i < body.reactions.length; i++) {
           let reaction = body.reactions[i];
           let reactID = reaction._id.split("_");
-          this.reactionCache[reactID[1]] = this.reactionCache[reactID[1]] || {};
+          this.reactionCache[reactID[1]] = this.reactionCache[reactID[1]] ?? {};
           this.reactionCache[reactID[1]][reaction._id] = reaction.added;
         }
         if (body.members != null) {
@@ -7322,7 +9001,7 @@ modules["pages/editor/toolbar/reactions"] = {
       if (this.reactionCache == null) {
         return;
       }
-      this.reactionCache[body.reaction.emoji] = this.reactionCache[body.reaction.emoji] || {};
+      this.reactionCache[body.reaction.emoji] = this.reactionCache[body.reaction.emoji] ?? {};
       let cache = this.reactionCache[body.reaction.emoji];
       let reactID;
       if (body.member != null) {
@@ -7508,7 +9187,7 @@ modules["pages/editor/toolbar/reactions"] = {
         email.textContent = member.email;
         email.title = member.email;
       }
-      let order = Math.round(((added || getEpoch()) / 2000000000000) * 2147483647);
+      let order = Math.round(((added ?? getEpoch()) / 2000000000000) * 2147483647);
       if (order > largestOrder) {
         largestOrder = order + 1;
         tempSection.style.order = order;
@@ -7594,7 +9273,7 @@ modules["pages/editor/toolbar/textedit"] = {
     let editor = await getModule("pages/editor");
     let utils = await getModule("pages/editor/annotation");
     let selectID = Object.keys(editor.selecting)[0];
-    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    let original = ({ ...((editor.annotations[selectID] ?? {}).render ?? {}), ...(editor.selecting[selectID] ?? {}) }) ?? {};
 
     if (original.lock == true) {
       return;
@@ -7610,8 +9289,8 @@ modules["pages/editor/toolbar/textedit"] = {
     }
 
     if (annoTx.hasAttribute("contenteditable") == false) {
-      let scrollLeft = annoElem.scrollLeft || 0;
-      let scrollTop = annoElem.scrollTop || 0;
+      let scrollLeft = annoElem.scrollLeft ?? 0;
+      let scrollTop = annoElem.scrollTop ?? 0;
       annoTx.setAttribute("contenteditable", "true");
       annoTx.focus();
       if (scrollLeft > 0 || scrollTop > 0) {
@@ -7661,7 +9340,7 @@ modules["pages/editor/toolbar/textedit"] = {
     }
     let inputListener = async (event) => {
       selectID = Object.keys(editor.selecting)[0];
-      original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+      original = ({ ...((editor.annotations[selectID] ?? {}).render ?? {}), ...(editor.selecting[selectID] ?? {}) }) ?? {};
 
       let saveObj = { d: {} };
       let addText = [];
@@ -7673,7 +9352,7 @@ modules["pages/editor/toolbar/textedit"] = {
         }
         addText.push(text);
       }
-      editor.selecting[selectID].d = editor.selecting[selectID].d || JSON.parse(JSON.stringify(original.d || {}));
+      editor.selecting[selectID].d = editor.selecting[selectID].d ?? JSON.parse(JSON.stringify(original.d ?? {}));
       editor.selecting[selectID].d.b = addText;
       saveObj.d.b = addText;
       if (original.f == "sticky") {
@@ -7699,7 +9378,7 @@ modules["pages/editor/toolbar/textedit"] = {
       if (saveHistory == true) {
         let lastHistory = utils.history[utils.location];
         if (lastHistory != null) {
-          lastHistory.caret = lastHistory.caret || {};
+          lastHistory.caret = lastHistory.caret ?? {};
           lastHistory.caret.undoElement = lastCaret.undoElement;
           lastHistory.caret.undoPosition = lastCaret.undoPosition;
         }
@@ -7731,7 +9410,7 @@ modules["pages/editor/toolbar/textedit"] = {
     let keyupListener = async () => {
       let lastHistory = utils.history[utils.location];
       if (lastHistory != null) {
-        lastHistory.caret = lastHistory.caret || {};
+        lastHistory.caret = lastHistory.caret ?? {};
         setLastCaret("redo");
         lastHistory.caret.redoElement = lastCaret.redoElement;
         lastHistory.caret.redoPosition = lastCaret.redoPosition;
@@ -7745,7 +9424,7 @@ modules["pages/editor/toolbar/textedit"] = {
       event.preventDefault();
 
       // Insert text manually
-      document.execCommand("insertHTML", false, (event.originalEvent || event).clipboardData.getData("text/plain")); //.replace(/\n\n/g, "</br>")
+      document.execCommand("insertHTML", false, (event.originalEvent ?? event).clipboardData.getData("text/plain")); //.replace(/\n\n/g, "</br>")
     }
     this.pastEvents.push({ type: "event", parent: annoTx, name: "paste", listener: pasteListener });
     annoTx.addEventListener("paste", pasteListener);
@@ -7774,7 +9453,7 @@ modules["pages/editor/toolbar/setembed"] = {
     let utils = await getModule("pages/editor/annotation");
     let alert = await getModule("alert");
     let selectID = Object.keys(editor.selecting)[0];
-    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    let original = ({ ...((editor.annotations[selectID] ?? {}).render ?? {}), ...(editor.selecting[selectID] ?? {}) }) ?? {};
     
     if (original.lock == true) {
       return;
@@ -7881,7 +9560,7 @@ modules["pages/editor/toolbar/openlink"] = {
   multiSelect: false,
   setButton: function (editor, button) {
     let selectKeys = Object.keys(editor.selecting);
-    let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
+    let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] ?? {}).render ?? {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] ?? {}) }) ?? {};
     if (preferenceTool.d != null) {
       button.style.display = "unset";
     } else {
@@ -7891,7 +9570,7 @@ modules["pages/editor/toolbar/openlink"] = {
   js: async function (frame, toolID, extra) {
     let editor = await getModule("pages/editor");
     let selectID = Object.keys(editor.selecting)[0];
-    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    let original = ({ ...((editor.annotations[selectID] ?? {}).render ?? {}), ...(editor.selecting[selectID] ?? {}) }) ?? {};
     
     if (original.d != null) {
       window.open(original.d);
@@ -7904,7 +9583,7 @@ modules["pages/editor/toolbar/enlarge"] = {
   multiSelect: false,
   setButton: function (editor, button) {
     let selectKeys = Object.keys(editor.selecting);
-    let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
+    let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] ?? {}).render ?? {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] ?? {}) }) ?? {};
     if (preferenceTool.embed != null && preferenceTool.embed.url != null) {
       button.style.display = "unset";
     } else {
@@ -7915,8 +9594,8 @@ modules["pages/editor/toolbar/enlarge"] = {
     let editor = await getModule("pages/editor");
     let modal = await getModule("modal");
     let selectID = Object.keys(editor.selecting)[0];
-    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
-    modal.open("modals/editor/embed", null, (original.embed || {}).title || (new URL(original.d)).hostname, false);
+    let original = ({ ...((editor.annotations[selectID] ?? {}).render ?? {}), ...(editor.selecting[selectID] ?? {}) }) ?? {};
+    modal.open("modals/editor/embed", null, (original.embed ?? {}).title ?? (new URL(original.d)).hostname, false);
   }
 };
 modules["modals/editor/embed"] = {
@@ -7929,7 +9608,7 @@ modules["modals/editor/embed"] = {
     frame.closest(".modalContent").style.padding = "4px 0px 0px";
     let editor = await getModule("pages/editor");
     let selectID = Object.keys(editor.selecting)[0];
-    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    let original = ({ ...((editor.annotations[selectID] ?? {}).render ?? {}), ...(editor.selecting[selectID] ?? {}) }) ?? {};
     if (original.embed != null && original.embed.url != null) {
       frame.querySelector(".emFrame iframe").src = original.embed.url;
     }
@@ -7964,7 +9643,7 @@ modules["pages/editor/toolbar/settitle"] = {
     let editor = await getModule("pages/editor");
     let utils = await getModule("pages/editor/annotation");
     let selectID = Object.keys(editor.selecting)[0];
-    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+    let original = ({ ...((editor.annotations[selectID] ?? {}).render ?? {}), ...(editor.selecting[selectID] ?? {}) }) ?? {};
 
     if (original.lock == true) {
       return;
@@ -8044,7 +9723,7 @@ modules["pages/editor/toolbar/settitle"] = {
       event.preventDefault();
 
       // Insert text manually
-      document.execCommand("insertHTML", false, (event.originalEvent || event).clipboardData.getData("text/plain")); //.replace(/\n\n/g, "</br>")
+      document.execCommand("insertHTML", false, (event.originalEvent ?? event).clipboardData.getData("text/plain")); //.replace(/\n\n/g, "</br>")
     }
     this.pastEvents.push({ type: "event", parent: annoTx, name: "paste", listener: pasteListener });
     annoTx.addEventListener("paste", pasteListener);
@@ -8055,11 +9734,11 @@ modules["pages/editor/toolbar/settitle"] = {
 modules["pages/editor/toolbar/uploadpage"] = {
   button: ``,
   //tooltip: "Upload PDF",
-  multiSelect: false,
+  //multiSelect: false,
   setButton: function (editor, button) {
     let selectKeys = Object.keys(editor.selecting);
-    let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
-    if (preferenceTool.source == null) {
+    let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] ?? {}).render ?? {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] ?? {}) }) ?? {};
+    if (selectKeys.length == 1 && preferenceTool.source == null) {
       button.querySelector("div").innerHTML = `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_2387_72" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_2387_72)"> <path d="M56 145V165C56 181.569 69.4315 195 86 195H171C187.569 195 201 181.569 201 165V145" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M128 60V156" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M128 60L164 96" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M128 60L92 96" stroke="white" stroke-width="44" stroke-linecap="round"/> <path d="M56 145V165C56 181.569 69.4315 195 86 195H171C187.569 195 201 181.569 201 165V145" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> <path d="M128 60V156" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> <path d="M128 60L164 96" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> <path d="M128 60L92 96" stroke="#2F2F2F" stroke-width="20" stroke-linecap="round"/> </g> </svg>`;
       button.setAttribute("tooltip", "Upload PDF");
       this.mode = "upload";
@@ -8076,7 +9755,7 @@ modules["pages/editor/toolbar/uploadpage"] = {
     let alertModule = await getModule("alert");
     
     if (this.mode == "remove") {
-      await extra.saveSelecting({ source: null, number: null }, true);
+      await extra.saveSelecting({ source: null, number: null, rotation: null }, true);
       extra.updateToolActions(extra.frame);
       return;
     }
@@ -8144,8 +9823,10 @@ modules["pages/editor/toolbar/uploadpage"] = {
           if (body.saves != null) {
             for (let i = 0; i < body.saves.length; i++) {
               let save = body.saves[i];
-              await utils.save(save, null, save.sync || getEpoch());
+              await utils.save(save, null, save.sync ?? getEpoch());
+              editor.selecting[save._id] = editor.selecting[save._id] ?? {};
             }
+            extra.module.updateBox();
           }
           if (body.historyUpdate != null) {
             utils.pushHistory("update", body.historyUpdate);
@@ -8199,7 +9880,7 @@ modules["pages/editor/toolbar/resize"] = {
   },
   setPreferenceTool: function (editor) {
     let selectKeys = Object.keys(editor.selecting);
-    this.preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
+    this.preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] ?? {}).render ?? {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] ?? {}) }) ?? {};
   },
   pageBorderSize: 4,
   ppi: 96, // Pixels per inch
@@ -8213,7 +9894,7 @@ modules["pages/editor/toolbar/resize"] = {
     let customSizeHeight = customSizeHolder.querySelector(".eSubToolResizeNumberHolder[height] div[contenteditable]");
     let updateSelected = (noTextBox) => {
       let selectID = Object.keys(editor.selecting)[0];
-      let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
+      let original = ({ ...((editor.annotations[selectID] ?? {}).render ?? {}), ...(editor.selecting[selectID] ?? {}) }) ?? {};
       for (let i = 0; i < sizeOptions.length; i++) {
         let option = sizeOptions[i];
         if ((original.s[0] == parseFloat(option.getAttribute("width")) + (this.pageBorderSize * 2)) && (original.s[1] == parseFloat(option.getAttribute("height")) + (this.pageBorderSize * 2))) {
@@ -8283,7 +9964,7 @@ modules["pages/editor/toolbar/resize"] = {
       if (textBox == null) {
         return;
       }
-      let textInt = parseFloat(textBox.textContent) || 0;
+      let textInt = parseFloat(textBox.textContent) ?? 0;
       if (textInt > parseFloat(textBox.getAttribute("max"))) {
         textBox.textContent = textBox.getAttribute("max");
       } else if (textInt < 1) {
@@ -8313,7 +9994,7 @@ modules["pages/editor/toolbar/hidepage"] = {
   tooltip: "Hide Page",
   setButton: function (editor, button) {
     let selectKeys = Object.keys(editor.selecting);
-    let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
+    let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] ?? {}).render ?? {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] ?? {}) }) ?? {};
     if (preferenceTool.hidden != true) {
       button.removeAttribute("selecthighlight");
       button.setAttribute("tooltip", "Hide Page");
@@ -8327,14 +10008,48 @@ modules["pages/editor/toolbar/hidepage"] = {
     extra.updateToolActions(extra.frame);
   }
 };
+modules["pages/editor/toolbar/rotatepage"] = {
+  button: `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_2782_5" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_2782_5)"> <rect x="62" y="84" width="132" height="132" rx="36" stroke="white" stroke-width="32"/> <rect x="84" y="106" width="88" height="88" rx="14" stroke="white" stroke-width="12"/> <rect x="68" y="90" width="120" height="120" rx="30" stroke="#2F2F2F" stroke-width="20"/> <path d="M166 52H188.185C209.07 52 226 68.107 226 89.8151V112" stroke="white" stroke-width="28" stroke-linecap="round"/> <path d="M174.601 80.3995C180.068 85.8668 188.932 85.8668 194.399 80.3995C199.867 74.9322 199.867 66.0678 194.399 60.6005L174.601 80.3995ZM184.899 51.1005L175 41.201L155.201 61L165.101 70.8995L184.899 51.1005ZM194.399 60.6005L184.899 51.1005L165.101 70.8995L174.601 80.3995L194.399 60.6005Z" fill="white"/> <path d="M165.101 33.1005L155.201 43L175 62.799L184.899 52.8995L165.101 33.1005ZM194.399 43.3995C199.867 37.9322 199.867 29.0678 194.399 23.6005C188.932 18.1332 180.068 18.1332 174.601 23.6005L194.399 43.3995ZM184.899 52.8995L194.399 43.3995L174.601 23.6005L165.101 33.1005L184.899 52.8995Z" fill="white"/> <path d="M155.65 61.4499C150.431 56.2309 150.431 47.7691 155.65 42.55L165.1 33.1001L184 52L165.1 70.8999L155.65 61.4499Z" fill="white"/> <path d="M166 52.001H188.185C209.07 52.001 226 68.108 226 89.8161V112.001" stroke="#2F2F2F" stroke-width="12" stroke-linecap="round"/> <path d="M180.257 74.7426C182.601 77.0858 186.399 77.0858 188.743 74.7426C191.086 72.3995 191.086 68.6005 188.743 66.2574L180.257 74.7426ZM174.243 51.7574L170 47.5147L161.515 56L165.757 60.2426L174.243 51.7574ZM188.743 66.2574L174.243 51.7574L165.757 60.2426L180.257 74.7426L188.743 66.2574Z" fill="#2F2F2F"/> <path d="M165.757 43.7574L161.515 48L170 56.4853L174.243 52.2426L165.757 43.7574ZM188.743 37.7426C191.086 35.3995 191.086 31.6005 188.743 29.2574C186.399 26.9142 182.601 26.9142 180.257 29.2574L188.743 37.7426ZM174.243 52.2426L188.743 37.7426L180.257 29.2574L165.757 43.7574L174.243 52.2426Z" fill="#2F2F2F"/> <path d="M161.757 56.2426C159.414 53.8995 159.414 50.1005 161.757 47.7574L166 43.5147L174.485 52L166 60.4853L161.757 56.2426Z" fill="#2F2F2F"/> </g> </svg>`,
+  tooltip: "Rotate Page",
+  setButton: function (editor, button) {
+    let selectKeys = Object.keys(editor.selecting);
+    let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] ?? {}).render ?? {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] ?? {}) }) ?? {};
+    if (preferenceTool.source != null && preferenceTool.number != null) {
+      button.style.display = "unset";
+    } else {
+      button.style.display = "none";
+    }
+  },
+  js: async function (frame, toolID, extra) {
+    let editor = await getModule("pages/editor");
+    let selectKeys = Object.keys(editor.selecting);
+    for (let i = 0; i < selectKeys.length; i++) {
+      let selectID = selectKeys[i];
+      let anno = { ...((editor.annotations[selectID] ?? {}).render ?? {}), ...(editor.selecting[selectID] ?? {}) };
+      if (anno.source == null || anno.number == null) {
+        continue;
+      }
+      let setRotate = (anno.rotation ?? 0) - 90;
+      if (setRotate < 0) {
+        setRotate = 360 + setRotate;
+      }
+      editor.selecting[selectID] = {
+        rotation: setRotate,
+        s: [anno.s[1], anno.s[0]]
+      };
+    }
+    extra.module.action = "save";
+    await extra.module.endAction();
+  }
+};
 
 modules["pages/editor/toolbar/fontsize"] = {
   button: `<div class="eSubToolFontSize"></div>`,
   tooltip: "Font Size",
   setButton: function (editor, button) {
     let selectID = Object.keys(editor.selecting)[0];
-    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
-    original.d = original.d || {};
+    let original = ({ ...((editor.annotations[selectID] ?? {}).render ?? {}), ...(editor.selecting[selectID] ?? {}) }) ?? {};
+    original.d = original.d ?? {};
     let buttonTx = button.querySelector(".eSubToolFontSize");
     let size = original.d.s;
     if (size == null) {
@@ -8343,7 +10058,7 @@ modules["pages/editor/toolbar/fontsize"] = {
         size = preferences.size;
       }
     }
-    buttonTx.textContent = size || 18;
+    buttonTx.textContent = size ?? 18;
     if (original.f != "sticky") {
       buttonTx.style.color = "#" + original.c;
     } else {
@@ -8375,12 +10090,12 @@ modules["pages/editor/toolbar/fontsize"] = {
   },
   setPreferenceTool: function (editor) {
     let selectKeys = Object.keys(editor.selecting);
-    this.preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
+    this.preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] ?? {}).render ?? {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] ?? {}) }) ?? {};
   },
   js: async function (frame, toolID, extra) {
     let editor = await getModule("pages/editor");
     this.setPreferenceTool(editor);
-    this.preferenceTool.d = this.preferenceTool.d || {};
+    this.preferenceTool.d = this.preferenceTool.d ?? {};
     let selectedS = this.preferenceTool.d.s;
     if (selectedS == null) {
       let preferences = editor.preferences.tools[this.preferenceTool.f];
@@ -8388,7 +10103,7 @@ modules["pages/editor/toolbar/fontsize"] = {
         selectedS = preferences.size;
       }
     }
-    selectedS = selectedS || 18;
+    selectedS = selectedS ?? 18;
 
     let preferences = editor.preferences.tools;
     let toolPref = preferences[toolID];
@@ -8466,7 +10181,7 @@ modules["pages/editor/toolbar/fontsize"] = {
         textBox.textContent = selectedS;
         return;
       }
-      let textInt = parseInt(textBox.textContent) || selectedS;
+      let textInt = parseInt(textBox.textContent) ?? selectedS;
       if (textInt == "") {
         setZoomText();
       } else if (textInt > 250) {
@@ -8492,8 +10207,8 @@ modules["pages/editor/toolbar/bold"] = {
   divideBefore: true,
   setButton: function (editor, button) {
     let selectID = Object.keys(editor.selecting)[0];
-    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
-    original.d = original.d || {};
+    let original = ({ ...((editor.annotations[selectID] ?? {}).render ?? {}), ...(editor.selecting[selectID] ?? {}) }) ?? {};
+    original.d = original.d ?? {};
     if (original.d.bo != true) {
       button.removeAttribute("selecthighlight");
     } else {
@@ -8510,8 +10225,8 @@ modules["pages/editor/toolbar/italic"] = {
   tooltip: "Italic",
   setButton: function (editor, button) {
     let selectID = Object.keys(editor.selecting)[0];
-    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
-    original.d = original.d || {};
+    let original = ({ ...((editor.annotations[selectID] ?? {}).render ?? {}), ...(editor.selecting[selectID] ?? {}) }) ?? {};
+    original.d = original.d ?? {};
     if (original.d.it != true) {
       button.removeAttribute("selecthighlight");
     } else {
@@ -8528,8 +10243,8 @@ modules["pages/editor/toolbar/underline"] = {
   tooltip: "Underline",
   setButton: function (editor, button) {
     let selectID = Object.keys(editor.selecting)[0];
-    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
-    original.d = original.d || {};
+    let original = ({ ...((editor.annotations[selectID] ?? {}).render ?? {}), ...(editor.selecting[selectID] ?? {}) }) ?? {};
+    original.d = original.d ?? {};
     if (original.d.ul != true) {
       button.removeAttribute("selecthighlight");
     } else {
@@ -8546,8 +10261,8 @@ modules["pages/editor/toolbar/strikethrough"] = {
   tooltip: "Strikethrough",
   setButton: function (editor, button) {
     let selectID = Object.keys(editor.selecting)[0];
-    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
-    original.d = original.d || {};
+    let original = ({ ...((editor.annotations[selectID] ?? {}).render ?? {}), ...(editor.selecting[selectID] ?? {}) }) ?? {};
+    original.d = original.d ?? {};
     if (original.d.st != true) {
       button.removeAttribute("selecthighlight");
     } else {
@@ -8570,9 +10285,9 @@ modules["pages/editor/toolbar/textalign"] = {
   setButton: function (editor, button) {
     let buttonImg = button.querySelector("div");
     let selectID = Object.keys(editor.selecting)[0];
-    let original = ({ ...((editor.annotations[selectID] || {}).render || {}), ...(editor.selecting[selectID] || {}) }) || {};
-    original.d = original.d || {};
-    let selectedAl = original.d.al || "left";
+    let original = ({ ...((editor.annotations[selectID] ?? {}).render ?? {}), ...(editor.selecting[selectID] ?? {}) }) ?? {};
+    original.d = original.d ?? {};
+    let selectedAl = original.d.al ?? "left";
     if (selectedAl == "left") {
       buttonImg.innerHTML = this.options.left;
     } else if (selectedAl == "center") {
@@ -8596,13 +10311,13 @@ modules["pages/editor/toolbar/textalign"] = {
   },
   setPreferenceTool: function (editor) {
     let selectKeys = Object.keys(editor.selecting);
-    this.preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] || {}).render || {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] || {}) }) || {};
+    this.preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] ?? {}).render ?? {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] ?? {}) }) ?? {};
   },
   js: async function (frame, toolID, extra) {
     let editor = await getModule("pages/editor");
     this.setPreferenceTool(editor);
-    this.preferenceTool.d = this.preferenceTool.d || {};
-    let selectedAl = this.preferenceTool.d.al || "left";
+    this.preferenceTool.d = this.preferenceTool.d ?? {};
+    let selectedAl = this.preferenceTool.d.al ?? "left";
 
     let preferences = editor.preferences.tools;
     let toolPref = preferences[toolID];

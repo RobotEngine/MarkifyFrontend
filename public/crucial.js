@@ -1,9 +1,9 @@
-let serverURL = window.serverURL || "https://api.markifyapp.com/";
-//let serverURL = "http://localhost:3000/api/";
-let assetURL = window.mediaURL || "https://static.markifyapp.com/";
+//let serverURL = window.serverURL ?? "https://api.markifyapp.com/";
+let serverURL = "http://localhost:3000/api/";
+let assetURL = window.mediaURL ?? "https://static.markifyapp.com/";
 //window.socketURL = "ws://localhost:3000/socket/v2";
 
-const version = "0.21.30"; // Big Update . Small Feature Release . Bug Fix
+const version = "0.22.0"; // Big Update . Small Feature Release . Bug Fix
 
 let socket = {};
 
@@ -56,33 +56,39 @@ window.onmouseup = (e) => {
 }
 */
 let screenPressed = false;
-app.addEventListener("touchstart", function() {
+document.addEventListener("touchstart", function() {
   screenPressed = true;
 }, { capture: true, passive: true });
-app.addEventListener("touchend", function() {
+document.addEventListener("touchend", function() {
   screenPressed = false;
 }, { capture: true, passive: true });
 let primaryButtonDown = false;
 function mouseDown() {
-  return primaryButtonDown || screenPressed;
+  return primaryButtonDown ?? screenPressed;
 }
 function setPrimaryButtonState(event) {
   let flags = event.buttons !== undefined ? event.buttons : event.which;
   primaryButtonDown = (flags & 1) === 1;
 }
-app.addEventListener("mousedown", setPrimaryButtonState, { capture: true, passive: true });
-app.addEventListener("mousemove", setPrimaryButtonState, { capture: true, passive: true });
-app.addEventListener("mouseup", setPrimaryButtonState, { capture: true, passive: true });
+document.addEventListener("mousedown", setPrimaryButtonState, { capture: true, passive: true });
+document.addEventListener("mousemove", setPrimaryButtonState, { capture: true, passive: true });
+document.addEventListener("mouseup", setPrimaryButtonState, { capture: true, passive: true });
 
-let tempListeners = [];
-let toolEvents = [];
+let tempListeners = {};
+function addTempListener(listen) {
+  let listenID = randomString(10) + Date.now();
+  tempListeners[listenID] = listen;
+  return listenID;
+}
 function tempListen(parent, listen, runFunc, extra) {
   parent.addEventListener(listen, runFunc, extra);
-  tempListeners.push({ type: "event", parent: parent, name: listen, listener: runFunc });
+  addTempListener({ type: "event", parent: parent, name: listen, listener: runFunc });
 }
 function removeTempListeners() {
-  for (let i = 0; i < tempListeners.length; i++) {
-    let remEvent = tempListeners[i];
+  let listenKeys = Object.keys(tempListeners);
+  for (let i = 0; i < listenKeys.length; i++) {
+    let remID = listenKeys[i];
+    let remEvent = tempListeners[remID];
     if (remEvent.type == "event") {
       if (remEvent.parent != null) {
         remEvent.parent.removeEventListener(remEvent.name, remEvent.listener);
@@ -92,8 +98,8 @@ function removeTempListeners() {
     } else if (remEvent.type == "animation") {
       cancelAnimationFrame(remEvent.frame);
     }
+    delete tempListeners[remID];
   }
-  tempListeners = [];
 }
 
 function subscribe(filter, callback, config) {
@@ -133,13 +139,13 @@ async function getModule(path) {
 }
 let currentlyLoadingFrames = {};
 async function setFrame(path, frame, extra) {
-  let frameSet = frame || app;
-  extra = extra || {};
+  let frameSet = frame ?? app;
+  extra = extra ?? {};
   if (currentlyLoadingFrames[frameSet.className] == "" && extra.override != true) {
     await getModule(path);
   }
   currentlyLoadingFrames[frameSet.className] = "";
-  let loadingPlacement = frameSet.closest(".dropdown") || frameSet.closest(".modal") || frameSet;
+  let loadingPlacement = frameSet.closest(".dropdown") ?? frameSet.closest(".modal") ?? frameSet;
   let oldContent = frameSet.querySelectorAll(".content:not([old])");
   for (let i = 0; i < oldContent.length; i++) {
     let remContent = oldContent[i];
@@ -283,7 +289,7 @@ window.addEventListener("hashchange", function () {
 });
 
 async function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms || 1));
+  return new Promise((resolve) => setTimeout(resolve, ms ?? 1));
 }
 
 function getScript(url) {
@@ -352,9 +358,9 @@ function getObject(arr, field) {
 function clientPosition(event, type) {
   switch (type) {
     case "x":
-      return Math.floor(event.clientX || ((event.changedTouches || [])[0] || {}).clientX || 0);
+      return Math.floor(event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0);
     case "y":
-      return Math.floor(event.clientY || ((event.changedTouches || [])[0] || {}).clientY || 0);
+      return Math.floor(event.clientY ?? ((event.changedTouches ?? [])[0] ?? {}).clientY ?? 0);
   }
 }
 
@@ -432,7 +438,7 @@ function addS(num) {
 
 function copyClipboardText(text, type) {
   navigator.clipboard.writeText(text).then(async () => {
-    (await getModule("alert")).open("worked", `<b>Copied</b>The ${type || "text"} was copied to your clipboard.`);
+    (await getModule("alert")).open("worked", `<b>Copied</b>The ${type ?? "text"} was copied to your clipboard.`);
   }, function(err) {
     console.error('Async: Could not copy text: ', err);
   });
@@ -447,8 +453,8 @@ function inViewport(element, onlyHeight) {
     return false;
   }
   let rect = element.getBoundingClientRect();
-  let viewportWidth = window.innerWidth || document.documentElement.clientWidth;
-  let viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+  let viewportWidth = window.innerWidth ?? document.documentElement.clientWidth;
+  let viewportHeight = window.innerHeight ?? document.documentElement.clientHeight;
 
   if (onlyHeight != true) {
     return (
@@ -522,7 +528,7 @@ function promptLogin(page, service) {
   randomStr;
   if (service != null) {
     modifyParams("state", randomStr);
-    endpoint = authEndpoints()[service] || endpoint;
+    endpoint = authEndpoints()[service] ?? endpoint;
   }
   window.location = endpoint;
 }
@@ -537,7 +543,7 @@ function ensureLogin() {
 }
 async function renewToken() {
   let token = ensureLogin();
-  let sendUserID = userID || getLocalStore("userID");
+  let sendUserID = userID ?? getLocalStore("userID");
   let refreshToken = await fetch(serverURL + "auth/renew", {
     method: "POST",
     headers: {
@@ -573,7 +579,7 @@ async function sendRequest(method, path, body, extra) {
         cache: "no-cache"
       }
     };
-    extra = extra || {};
+    extra = extra ?? {};
     if (extra.noFileType != true) {
       sendData.headers["Content-Type"] = "text/plain";
     }
@@ -590,9 +596,9 @@ async function sendRequest(method, path, body, extra) {
     if (token != null) {
       token = JSON.parse(token);
       if (token.expires < Math.floor(getEpoch() / 1000)) {
-        token = (await renewToken()) || token;
+        token = (await renewToken()) ?? token;
       }
-      let sendUserID = userID || getLocalStore("userID");
+      let sendUserID = userID ?? getLocalStore("userID");
       if (sendUserID != null) {
         sendData.headers.auth = sendUserID + ";" + token.session;
       }
@@ -614,7 +620,7 @@ async function sendRequest(method, path, body, extra) {
         return [response.status, null, { took: reqTime }];
       default:
         let body = await response.json();
-        if ((extra.allowError || []).includes(response.status) == false) {
+        if ((extra.allowError ?? []).includes(response.status) == false) {
           if (body.errors && body.errors.length > 0) {
             for (let i = 0; i < body.errors.length; i++) {
               let message = body.errors[i];
@@ -634,7 +640,7 @@ async function sendRequest(method, path, body, extra) {
     }
   } catch (err) {
     console.log("FETCH ERROR: " + err);
-    if (response == null || response.status == null) {
+    if (response == null ?? response.status == null) {
       /*
       if (connected == true) {
         socket.onclose(); // Set to disable connection
@@ -657,7 +663,7 @@ async function sendRequest(method, path, body, extra) {
 }
 
 function objectUpdate(obj, passData, path) { // obj = Object to apply changes; passData = Object to edit
-  path = path || "";
+  path = path ?? "";
   if (path.length > 0) {
     path += ".";
   }
@@ -685,13 +691,13 @@ function objectUpdate(obj, passData, path) { // obj = Object to apply changes; p
       }
     } else {
       /*
-      if (passData[key] != passData[key] || {}) {
-        passData[key] = passData[key] || {};
+      if (passData[key] != passData[key] ?? {}) {
+        passData[key] = passData[key] ?? {};
         changes[path + key] = passData[key];
       }
       */
-      passData[key] = passData[key] || {};
-      changes = { ...changes, ...objectUpdate(obj[key], passData[key] || {}, path + key) };
+      passData[key] = passData[key] ?? {};
+      changes = { ...changes, ...objectUpdate(obj[key], passData[key] ?? {}, path + key) };
     }
   }
   return changes;
@@ -803,7 +809,7 @@ async function initSocket() {
           elem.textContent = account.user;
         }
         if (elem.hasAttribute("accountimage")) {
-          elem.src = account.image || "./images/profiles/default.svg";
+          elem.src = account.image ?? "./images/profiles/default.svg";
         }
       }
     } else if (data.task == "logout") {
@@ -910,7 +916,7 @@ modules["dropdown"] = {
       content.removeAttribute("new");
       window.dropdown.content = content;
       let frame = content.querySelector(".dropdownFrame");
-      let setTitleHTML = button.getAttribute("dropdowntitle") || button.innerHTML;
+      let setTitleHTML = button.getAttribute("dropdowntitle") ?? button.innerHTML;
       if (button.closest(".dropdownBack") == null) {
         if (button.innerHTML == button.textContent) {
           setTitleHTML = "<div>" + button.innerHTML + "</div>";
@@ -1007,7 +1013,7 @@ modules["dropdown"] = {
       frame.style.minHeight = "200px";
     }
     let existingTitle = button.getAttribute("dropdowntitle");
-    let setTitleHTML = existingTitle || button.innerHTML;
+    let setTitleHTML = existingTitle ?? button.innerHTML;
     if (button.innerHTML == button.textContent && existingTitle == null) {
       setTitleHTML = "<div>" + button.innerHTML + "</div>";
     }
@@ -1100,7 +1106,7 @@ modules["modal"] = {
     }, 1);
   },
   open: async function (frameName, button, title, stack) {
-    title = title || "";
+    title = title ?? "";
     let loaded = modules[frameName] != null;
     if (window.modal) { // Clicked inside the modal
       let modal = window.modal.modal;
@@ -1324,7 +1330,7 @@ modules["alert"] = {
     error: ["var(--error)", 0]
   },
   open: async function (type, message, data) {
-    data = data || {};
+    data = data ?? {};
     if (fixed.querySelector(".alertHolder") == null) {
       fixed.insertAdjacentHTML("beforeend", `<div class="fixedItemHolder">
         <div class="alertHolder"></div>
@@ -1355,7 +1361,7 @@ modules["alert"] = {
       alert.style.marginTop = "8px";
       alert.style.opacity = 1;
       if (data.time != "never") {
-        await sleep((data.time || 5) * 1000);
+        await sleep((data.time ?? 5) * 1000);
         this.close(alert);
       //} else {
       //  alert.querySelector(".alertClose").remove();

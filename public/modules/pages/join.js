@@ -87,8 +87,8 @@ modules["pages/join"] = {
     ".jPolicies a:active": `transform: scale(.95)`
   },
   js: async function (page) {
-    let code = getParam("pin") || "";
-    let lessonID = getParam("lesson") || "";
+    let code = getParam("pin") ?? "";
+    let lessonID = getParam("lesson") ?? "";
     let name = getParam("name");
 
     //modifyParams("lesson");
@@ -118,7 +118,7 @@ modules["pages/join"] = {
       });
       textBox.addEventListener("blur", function() {
         if (textBox.value == "") {
-          textBox.value = textBox.getAttribute("prev") || "";
+          textBox.value = textBox.getAttribute("prev") ?? "";
         }
       });
       textBox.addEventListener("input", function(e) {
@@ -171,7 +171,7 @@ modules["pages/join"] = {
         if (textBox.value.length > 0) {
           pin += textBox.value;
         } else {
-          pin += textBox.getAttribute("prev") || "";
+          pin += textBox.getAttribute("prev") ?? "";
         }
       }
       modifyParams("pin", pin);

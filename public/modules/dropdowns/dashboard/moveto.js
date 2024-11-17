@@ -63,7 +63,7 @@ modules["dropdowns/dashboard/moveto"] = {
     let addFolder = async (folder, parent) => {
       if (parent != null) {
         parent.removeAttribute("selected");
-        parent = parent.closest(".dTileDropFolderParent") || parent;
+        parent = parent.closest(".dTileDropFolderParent") ?? parent;
       } else {
         parent = folderFrame;
       }
@@ -114,7 +114,7 @@ modules["dropdowns/dashboard/moveto"] = {
           event.preventDefault();
     
           // Insert text manually
-          document.execCommand("insertHTML", false, (event.originalEvent || event).clipboardData.getData("text/plain"));
+          document.execCommand("insertHTML", false, (event.originalEvent ?? event).clipboardData.getData("text/plain"));
         }
         folderName.addEventListener("paste", pasteListener);
         let focusListener;
@@ -212,10 +212,10 @@ modules["dropdowns/dashboard/moveto"] = {
 
       for (let i = 0; i < result.folders.length; i++) {
         addFolder(result.folders[i], parent);
-        (parent || folderFrame).setAttribute("lastopened", result.folders[i].opened);
+        (parent ?? folderFrame).setAttribute("lastopened", result.folders[i].opened);
       }
       if (result.folders.length > 0 && result.folders.length >= amount) {
-        (parent || folderFrame).insertAdjacentHTML("beforeend", `<div class="dTileDropFolderLoadMore"><button class="buttonAnim border">View More</button></div>`);
+        (parent ?? folderFrame).insertAdjacentHTML("beforeend", `<div class="dTileDropFolderLoadMore"><button class="buttonAnim border">View More</button></div>`);
       }
       return result;
     }

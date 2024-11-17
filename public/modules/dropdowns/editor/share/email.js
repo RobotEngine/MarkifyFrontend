@@ -100,14 +100,14 @@ modules["dropdowns/editor/share/email"] = {
       let tile = emailHolder.querySelector(".eShareTile[new]");
       tile.removeAttribute("new");
       tile.setAttribute("userid", data._id);
-      tile.querySelector(".eShareImage").src = data.image || "./images/profiles/default.svg";
+      tile.querySelector(".eShareImage").src = data.image ?? "./images/profiles/default.svg";
       let nameTx = tile.querySelector(".eShareName");
-      nameTx.innerHTML = data.user || "<i>Pending</i>";
-      nameTx.title = data.user || "Awaiting for the user to open the document...";
+      nameTx.innerHTML = data.user ?? "<i>Pending</i>";
+      nameTx.title = data.user ?? "Awaiting for the user to open the document...";
       let emailTx = tile.querySelector(".eShareEmail");
       emailTx.textContent = data.email;
       emailTx.title = data.email;
-      updatePermButton(tile.querySelector(".eSharePerm"), data.access || 0);
+      updatePermButton(tile.querySelector(".eSharePerm"), data.access ?? 0);
       return tile;
     }
     editor.emailInvite = (task, body) => {

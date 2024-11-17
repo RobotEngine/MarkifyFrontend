@@ -19,7 +19,7 @@ modules["editor/export"] = {
     let editor = await getModule("pages/editor");
     let annoKeys = Object.keys(editor.annotations);
     for (let i = 0; i < annoKeys.length; i++) {
-      let anno = (editor.annotations[annoKeys[i]] || {}).render;
+      let anno = (editor.annotations[annoKeys[i]] ?? {}).render;
       if (anno != null) {
         await this.checkAnnotationSize(anno, true);
       }
@@ -38,7 +38,7 @@ modules["editor/export"] = {
         if (editor.exportSelected != null && editor.exportSelected.includes(anno._id) == false) {
           return;
         }
-        let page = editor.page.querySelector('.ePage[pageid="' + (anno.page || "") + '"]');
+        let page = editor.page.querySelector('.ePage[pageid="' + (anno.page ?? "") + '"]');
         if (page != null && page.hasAttribute("exporting") == false) {
           return;
         }
@@ -47,7 +47,7 @@ modules["editor/export"] = {
         }
       }
 
-      if ((anno._id || "").startsWith("pending_") != true || anno.done == true) {
+      if ((anno._id ?? "").startsWith("pending_") != true || anno.done == true) {
         if (anno.remove != true) {
           let position = editor.getAbsolutePosition(anno);
           let annoHolder = await utils.annoHolder(anno.page);
@@ -107,7 +107,7 @@ modules["editor/export"] = {
 
     let currentTask;
     let currentPage = 1;
-    let scaleFactor = 1.5;
+    let scaleFactor = 1; //1.5;
 
     let handleRenderPromise;
     this.handleRendering = () => {
@@ -153,7 +153,7 @@ modules["editor/export"] = {
         } else if (data.method == "selected") {
           let justPages = true;
           for (let i = 0; i < data.selected.length; i++) {
-            let render = (editor.annotations[data.selected[i]] || {}).render;
+            let render = (editor.annotations[data.selected[i]] ?? {}).render;
             if (render == null) {
               data.selected.splice(i, 1);
               i--;
@@ -179,10 +179,10 @@ modules["editor/export"] = {
           let pageBorderWidth = 4;
           let pageID;
           if (editor.exportSelected == null) {
-            pageID = (editor.annotationPages[currentPage - 1] || [])[0];
+            pageID = (editor.annotationPages[currentPage - 1] ?? [])[0];
           } else {
             for (let i = currentPage - 1; i < editor.annotationPages.length; i++) {
-              let annoID = (editor.annotationPages[i] || [])[0];
+              let annoID = (editor.annotationPages[i] ?? [])[0];
               if (annoID != null && editor.exportSelected.includes(annoID) == true) {
                 currentPage = i + 1;
                 pageID = annoID;
@@ -219,7 +219,7 @@ modules["editor/export"] = {
                 currentPage++;
                 if (editor.exportSelected == null) {
                   (async () => {
-                    let annotation = editor.annotations[(editor.annotationPages[currentPage - 1] || [])[0]];
+                    let annotation = editor.annotations[(editor.annotationPages[currentPage - 1] ?? [])[0]];
                     if (annotation != null) {
                       editor.visibleChunks.push(...annotation.chunks);
                       this.handleRendering();
@@ -246,7 +246,7 @@ modules["editor/export"] = {
             currentPage = 1;
             let annoKeys = Object.keys(editor.annotations);
             for (let i = 0; i < annoKeys.length; i++) {
-              await utils.render((editor.annotations[annoKeys[i]] || {}).render);
+              await utils.render((editor.annotations[annoKeys[i]] ?? {}).render);
             }
           }
           let page = pageHolder.children[currentPage - 1];

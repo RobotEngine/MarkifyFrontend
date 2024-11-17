@@ -76,7 +76,7 @@ modules["dropdowns/editor/share/pin"] = {
     */
 
     editor.updatePin = async () => {
-      let currentPin = (editor.lesson.pin || "123456").split("");
+      let currentPin = (editor.lesson.pin ?? "123456").split("");
       let left = "";
       let right = "";
       for (let i = 0; i < currentPin.length; i++) {
@@ -103,7 +103,7 @@ modules["dropdowns/editor/share/pin"] = {
         createHolder.style.pointerEvents = "all";
       }
       if (titleTx.querySelector("b") == null) {
-        titleTx.innerHTML = editor.lesson.pin || "";
+        titleTx.innerHTML = editor.lesson.pin ?? "";
       }
       //updateAction();
     }

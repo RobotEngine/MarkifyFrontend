@@ -356,7 +356,7 @@ modules["pages/launch"] = {
         return;
       }
       let section = sections[[...dotButtons.children].indexOf(target)];
-      window.scrollTo({ top: window.scrollY + historySection.getBoundingClientRect().bottom - (((section.scroll || section.percent) + .1) * historySection.clientHeight), behavior: "smooth" });
+      window.scrollTo({ top: window.scrollY + historySection.getBoundingClientRect().bottom - (((section.scroll ?? section.percent) + .1) * historySection.clientHeight), behavior: "smooth" });
     });
 
     // SECTION 3 | Use Cases
@@ -743,13 +743,13 @@ modules["pages/launch"] = {
         let element = sectionElements[i];
         if (inViewport(element, true)) {
           let back = element.getAttribute("backdrop");
-          let maxOpacity = element.getAttribute("maxopacity") || .3;
+          let maxOpacity = element.getAttribute("maxopacity") ?? .3;
           let rect = element.getBoundingClientRect();
           let percent = Math.min(((fixed.clientHeight - rect.top) / fixed.clientHeight) * maxOpacity, maxOpacity);
           if (rect.bottom < fixed.clientHeight) {
             percent = maxOpacity - Math.min(((fixed.clientHeight - rect.bottom) / fixed.clientHeight) * maxOpacity, maxOpacity);
           }
-          setBackdrops[back] = Math.max(percent, setBackdrops[back] || 0);
+          setBackdrops[back] = Math.max(percent, setBackdrops[back] ?? 0);
         }
       }
       let backdropKeys = Object.keys(setBackdrops);

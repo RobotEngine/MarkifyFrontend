@@ -233,15 +233,15 @@ modules["pages/dashboard/lessons"] = {
       if (lesson.thumbnail) {
         tile.querySelector(".dTileDocImage").src = assetURL + lesson.thumbnail;
       }
-      tile.querySelector(".dTileName").textContent = lesson.name || "Untitled Lesson";
-      tile.querySelector(".dTileName").title = lesson.name || "Untitled Lesson";
+      tile.querySelector(".dTileName").textContent = lesson.name ?? "Untitled Lesson";
+      tile.querySelector(".dTileName").title = lesson.name ?? "Untitled Lesson";
       tile.querySelector(".dTileDate").textContent = timeSince(lessonRec[timeField]);
       tile.querySelector(".dTileDate").title = formatFullDate(lessonRec[timeField]);
       if (lesson.membersUpdate && lesson.membersUpdate < getEpoch() - 300000) {
         lesson.members = null;
       }
-      tile.querySelector(".dTileMemberCount span").textContent = lesson.members || 0;
-      let join = lessonRec.join || "owner";
+      tile.querySelector(".dTileMemberCount span").textContent = lesson.members ?? 0;
+      let join = lessonRec.join ?? "owner";
       tile.setAttribute("join", join);
       if (join.startsWith("pin_")) {
         tile.href = "?pin=" + join.substring(4) + "#join";
@@ -282,8 +282,8 @@ modules["pages/dashboard/lessons"] = {
       tile.removeAttribute("new");
       tile.setAttribute("folder", folder._id);
       tile.setAttribute("time", folder[timeField]);
-      tile.querySelector(".dTileName").textContent = cleanString(folder.name || "Untitled Folder");
-      let hex = "#" + (folder.color || "0084FF"); // Default Color
+      tile.querySelector(".dTileName").textContent = cleanString(folder.name ?? "Untitled Folder");
+      let hex = "#" + (folder.color ?? "0084FF"); // Default Color
       if (hex.length < 4) {
         hex = hex.split("").map((hexVal) => { return hexVal + hexVal }).join("");
       }
@@ -292,8 +292,8 @@ modules["pages/dashboard/lessons"] = {
       tile.style.setProperty("--themeColor", "rgba(" + rgb + ",1)");
       tile.style.setProperty("--themeColor2", "rgba(" + rgb + ",.5)");
       let tumbHolder = tile.querySelector(".dTileDocImage");
-      let searchLessons = { ...lessons, ...(addLessons || {}) };
-      for (let i = 0; i < (folder.lessons || []).length; i++) {
+      let searchLessons = { ...lessons, ...(addLessons ?? {}) };
+      for (let i = 0; i < (folder.lessons ?? []).length; i++) {
         let lesson = searchLessons[folder.lessons[i]];
         tumbHolder.insertAdjacentHTML("beforeend", `<img class="dTileFolderImage" src="./images/dashboard/missing.svg" new>`);
         let thumbnail = tumbHolder.querySelector(".dTileFolderImage[new]");
@@ -309,7 +309,7 @@ modules["pages/dashboard/lessons"] = {
       }
     }
     let addLessonTiles = (type, data) => {
-      data = data || body;
+      data = data ?? body;
       let lessonRecs = data[type];
       let tileSection = frame.querySelector('.dSection[section="' + type + '"]');
       let tileHolder = tileSection.querySelector(".dSectionTiles");
@@ -357,7 +357,7 @@ modules["pages/dashboard/lessons"] = {
         this.dashSubscribe.edit(filter);
       } else {
         this.dashSubscribe = subscribe(filter, (data) => {
-          let body = data.data || data.body || data;
+          let body = data.data ?? data.body ?? data;
           console.log(body)
           /*
           if (data.task == "join" && body.user == userID) {
@@ -393,7 +393,7 @@ modules["pages/dashboard/lessons"] = {
             case "set":
               let skipUpdTile = false;
               if (body.folder != null) {
-                body.sections = body.sections || [];
+                body.sections = body.sections ?? [];
                 body.sections.push("folder");
                 updTiles = [ ...updTiles, ...document.body.querySelectorAll('.dTile[lesson="' + body.record.lesson + '"]') ]
                 skipUpdTile = true;
@@ -401,7 +401,7 @@ modules["pages/dashboard/lessons"] = {
               for (let i = 0; i < updTiles.length; i++) {
                 let tile = updTiles[i];
                 if (body.hasOwnProperty("name")) {
-                  tile.querySelector(".dTileName").textContent = body.name || "Untitled Lesson";
+                  tile.querySelector(".dTileName").textContent = body.name ?? "Untitled Lesson";
                 }
                 if (body.thumbnail) {
                   tile.querySelector(".dTileDocImage").src = assetURL + body.thumbnail;
@@ -572,10 +572,10 @@ modules["pages/dashboard/lessons"] = {
               let dashTile = document.body.querySelector('.dTile[folder="' + body._id + '"]');
               if (dashTile != null) {
                 if (body.name != null) {
-                  dashTile.querySelector(".dTileName").textContent = cleanString(body.name || "Untitled Folder");
+                  dashTile.querySelector(".dTileName").textContent = cleanString(body.name ?? "Untitled Folder");
                 }
                 if (body.color != null) {
-                  let hex = "#" + (body.color || "0084FF"); // Default Color
+                  let hex = "#" + (body.color ?? "0084FF"); // Default Color
                   if (hex.length < 4) {
                     hex = hex.split("").map((hexVal) => { return hexVal + hexVal }).join("");
                   }
@@ -590,11 +590,11 @@ modules["pages/dashboard/lessons"] = {
               if (dashFolderInfo != null) {
                 if (body.name != null) {
                   let nameBox = dashFolderInfo.querySelector("div[title]");
-                  nameBox.textContent = cleanString(body.name || "Untitled Folder");
+                  nameBox.textContent = cleanString(body.name ?? "Untitled Folder");
                   nameBox.removeAttribute("contenteditable");
                 }
                 if (body.color != null) {
-                  dashFolderInfo.style.setProperty("--themeColor", "#" + (body.color || "0084FF"));
+                  dashFolderInfo.style.setProperty("--themeColor", "#" + (body.color ?? "0084FF"));
                 }
               }
               break;
@@ -839,7 +839,7 @@ modules["dropdowns/dashboard/folder"] = {
     } else if (extra.button.closest(".dropdownOverflow").querySelector('.dFolderInfo[folder="' + this.lastFolderId + '"]') != null) {
       folderid = extra.button.getAttribute("rememberid");
     }
-    folderid = folderid || this.lastFolderId;
+    folderid = folderid ?? this.lastFolderId;
     if (folderid == null) {
       return;
     }
@@ -917,7 +917,7 @@ modules["dropdowns/dashboard/folder"] = {
       return;
     }
 
-    let prevColor = (body.folder.color || "0084FF"); // Theme Color
+    let prevColor = (body.folder.color ?? "0084FF"); // Theme Color
     colorHolder.addEventListener("click", async (event) => {
       let target = event.target;
       if (target == null) {
@@ -942,17 +942,17 @@ modules["dropdowns/dashboard/folder"] = {
     });
 
     info.style.setProperty("--themeColor", "#" + prevColor);
-    info.querySelector("div[title]").textContent = cleanString(body.folder.name || "Untitled Folder");
+    info.querySelector("div[title]").textContent = cleanString(body.folder.name ?? "Untitled Folder");
 
     let empty = frame.querySelector(".dFolderEmpty");
 
     let lessons = getObject(body.lessons, "_id");
 
     let addTiles = (type, data) => {
-      data = data || body;
+      data = data ?? body;
       let lessonRecs = data[type];
       let tileHolder = frame.querySelector('.dFolderSection[section="' + type + '"]');
-      for (let i = 0; i < (lessonRecs || []).length; i++) {
+      for (let i = 0; i < (lessonRecs ?? []).length; i++) {
         let lessonRec = lessonRecs[i];
         if (type != "folders") {
           this.addLessonTile(tileHolder, lessonRec, lessons[lessonRec.lesson]);
@@ -1037,7 +1037,7 @@ modules["dropdowns/dashboard/options"] = {
   js: async function (frame, extra) {
     let dropdownModule = await getModule("dropdown");
     let alertModule = await getModule("alert");
-    let tile = extra.button.closest(".dTile") || this.lastTile;
+    let tile = extra.button.closest(".dTile") ?? this.lastTile;
     if (tile == null) {
       return;
     }
@@ -1139,7 +1139,7 @@ modules["dropdowns/dashboard/options"] = {
         event.preventDefault();
   
         // Insert text manually
-        document.execCommand("insertHTML", false, (event.originalEvent || event).clipboardData.getData("text/plain"));
+        document.execCommand("insertHTML", false, (event.originalEvent ?? event).clipboardData.getData("text/plain"));
       }
       titleText.addEventListener("paste", this.pasteListener);
 

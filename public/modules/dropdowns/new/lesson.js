@@ -30,7 +30,7 @@ modules["dropdowns/new/lesson"] = {
     let uploadButton = frame.querySelector(".lessonUpload");
     let uploadBImg = uploadButton.querySelector("img");
 
-    let lesson = getParam("lesson") || "";
+    let lesson = getParam("lesson") ?? "";
     let editor;
 
     this.folder = extra.button.parentElement.parentElement.getAttribute("folder");
@@ -86,7 +86,7 @@ modules["dropdowns/new/lesson"] = {
           alertText = `<b>Uploading Documents</b>Uploading your PDF${addS(passedFiles)} and inserting into the lesson!`;
         }
         let uploadAlert = await alertModule.open("info", alertText, { time: "never" });
-        let path = "lessons/add";
+        let path = "lessons/new";
         if (this.folder != null) {
           path += "?folder=" + this.folder;
         }
@@ -141,11 +141,11 @@ modules["dropdowns/new/lesson"] = {
       frame.setAttribute("disabled", "");
       extra.button.setAttribute("disabled", "");
       let createAlert = await alertModule.open("info", `<b>Creating Lesson</b>Setting up freeboard, an unlimited whiteboard space!`, { time: "never" });
-      let path = "lessons/add";
+      let path = "lessons/new";
       if (this.folder != null) {
         path += "?folder=" + this.folder;
       }
-      let [code, body] = await sendRequest("POST", path, { type: "freeboard" });
+      let [code, body] = await sendRequest("POST", path);
       alertModule.close(createAlert);
       frame.removeAttribute("disabled");
       extra.button.removeAttribute("disabled");
@@ -241,7 +241,7 @@ modules["dropdowns/new/blank"] = {
 
     let createButton = frame.querySelector(".blankCreate");
 
-    let lesson = getParam("lesson") || "";
+    let lesson = getParam("lesson") ?? "";
     let editor;
     if (lesson != "") {
       createButton.textContent = "Add Pages";
@@ -307,7 +307,7 @@ modules["dropdowns/new/blank"] = {
       if (textBox == null) {
         return;
       }
-      let textInt = parseFloat(textBox.textContent) || 0;
+      let textInt = parseFloat(textBox.textContent) ?? 0;
       if (textInt > parseFloat(textBox.getAttribute("max"))) {
         textBox.textContent = textBox.getAttribute("max");
       } else if (textInt < 1) {
@@ -347,7 +347,7 @@ modules["dropdowns/new/blank"] = {
         alertText = `<b>Adding Pages</b>Inserting new pages.`;
       }
       let createAlert = await alertModule.open("info", alertText, { time: "never" });
-      let path = "lessons/add";
+      let path = "lessons/new";
       if (createLessonDropdown.folder != null) {
         path += "?folder=" + createLessonDropdown.folder;
       }

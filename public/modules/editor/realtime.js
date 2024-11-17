@@ -27,7 +27,6 @@ modules["editor/realtime"] = {
   },
   js: async function (editor, page) {
     editor.realtime.module = this;
-    console.log(editor);
 
     page.querySelector(".eMembers").removeAttribute("disabled");
     page.querySelector(".eShare").removeAttribute("disabled");
@@ -112,7 +111,7 @@ modules["editor/realtime"] = {
       if (editor.active == false) {
         return;
       }
-      attempt = attempt || 1;
+      attempt = attempt ?? 1;
       let pingID = getEpoch();
       setTimeout(() => {
         if (awaiting[pingID] == "") {
@@ -153,7 +152,7 @@ modules["editor/realtime"] = {
       }, timeoutTime);
       socket.publish(pingFilter, pingID, { publishToSelf: true });
     }
-    tempListeners.push({
+    addTempListener({
       type: "interval", interval: setInterval(async () => {
         if (connected) {
           ping();
@@ -177,7 +176,7 @@ modules["editor/realtime"] = {
     let endSyncTimeout;
     let endSyncObserveTimeout;
     this.publishShort = async (event, type, ignoreSame) => {
-      type = type || "cursor";
+      type = type ?? "cursor";
       if (event != null) {
         mouseX = clientPosition(event, "x");
         mouseY = clientPosition(event, "y");
@@ -224,7 +223,7 @@ modules["editor/realtime"] = {
             filter.p = editor.pointInChunk(sendX, sendY);
           }
   
-          if (filter.p != (lastCursorChunk || filter.p)) {
+          if (filter.p != (lastCursorChunk ?? filter.p)) {
             socket.publish({ ...standardFilter, p: lastCursorChunk }, [ editor.sessionID, filter.p ]); // When leaving a chunk, tell those looking!
           }
   
@@ -391,13 +390,13 @@ modules["editor/realtime"] = {
           }
           /*let pageElem = pageHolder;
           if (element.hasAttribute("page")) {
-            pageElem = pageHolder.children[parseInt(element.getAttribute("page")) - 1] || pageElem;
+            pageElem = pageHolder.children[parseInt(element.getAttribute("page")) - 1] ?? pageElem;
           }*/
           let pageRect = pageHolder.getBoundingClientRect();
           if (element.hasAttribute("x") && element.hasAttribute("y")) {
             let x = parseFloat(element.getAttribute("x")) * editor.zoom;
             let y = parseFloat(element.getAttribute("y")) * editor.zoom;
-            element.style.transform = "translate(" + (x + pageRect.left + (parseInt(element.getAttribute("offsetx") || "0")) + window.scrollX) + "px," + (y + pageRect.top + (parseInt(element.getAttribute("offsety") || "0")) + window.scrollY) + "px)";
+            element.style.transform = "translate(" + (x + pageRect.left + (parseInt(element.getAttribute("offsetx") ?? "0")) + window.scrollX) + "px," + (y + pageRect.top + (parseInt(element.getAttribute("offsety") ?? "0")) + window.scrollY) + "px)";
           }
           element.offsetHeight;
           element.removeAttribute("notransition");
@@ -489,7 +488,7 @@ modules["editor/realtime"] = {
     let targetScrollPositionY = 0;
     let animationFrameId;
     let tempListenAnimation = { type: "animation" };
-    tempListeners.push(tempListenAnimation);
+    addTempListener(tempListenAnimation);
     let smoothScroll = () => {
       if (animationFrameId !== null) {
         cancelAnimationFrame(animationFrameId);
@@ -565,7 +564,7 @@ modules["editor/realtime"] = {
               cursorHolder.setAttribute("anonymous", "");
             }
             let updateCursorProps = async () => {
-              let userSelection = (extra || {}).select || {};
+              let userSelection = (extra ?? {}).select ?? {};
               let selectKeys = Object.keys(userSelection);
               let allSelections = editor.page.querySelectorAll('.eCollabSelect[member="' + memberID + '"], .eAnnotation[member="' + memberID + '"]');
               for (let i = 0; i < allSelections.length; i++) {
@@ -588,8 +587,8 @@ modules["editor/realtime"] = {
                 if (extra.c != null) {
                   let setColor = cursorHolder.querySelector("[toolcoloropacity]");
                   if (setColor != null) {
-                    setColor.setAttribute("fill", "#" + extra.c || "000");
-                    setColor.setAttribute("fill-opacity", (extra.o || 100) / 100);
+                    setColor.setAttribute("fill", "#" + extra.c ?? "000");
+                    setColor.setAttribute("fill-opacity", (extra.o ?? 100) / 100);
                   }
                 }
                 if (selectKeys.length > 0) {
@@ -599,7 +598,7 @@ modules["editor/realtime"] = {
                   let hasCursorAnno = false;
                   for (let i = 0; i < selectKeys.length; i++) {
                     let annoID = selectKeys[i];
-                    let anno = extra.select[annoID] || {};
+                    let anno = extra.select[annoID] ?? {};
                     let merge;
                     let annoElem;
                     let original;
@@ -629,9 +628,9 @@ modules["editor/realtime"] = {
                         editor.annotations[annoID] = {};
                         original = editor.annotations[annoID];
                       }
-                      original = original || {};
-                      let originalRender = original.render || {};
-                      if (editor.lesson.settings.editOthersWork != true && (originalRender.a || originalRender.m) != null && [originalRender.a, originalRender.m].includes(member.modify) == false && member.access < 4) { // Can't edit another member's work:
+                      original = original ?? {};
+                      let originalRender = original.render ?? {};
+                      if (editor.lesson.settings.editOthersWork != true && (originalRender.a ?? originalRender.m) != null && [originalRender.a, originalRender.m].includes(member.modify) == false && member.access < 4) { // Can't edit another member's work:
                         delete userSelection[annoID];
                         continue;
                       }
@@ -650,7 +649,7 @@ modules["editor/realtime"] = {
                       /*if (originalRender.lock == true && anno.lock != false) { // Can't edit another member's work:
                         continue;
                       }*/
-                      original.revert = original.revert || JSON.parse(JSON.stringify(originalRender));
+                      original.revert = original.revert ?? JSON.parse(JSON.stringify(originalRender));
                       // If the user is also selecting, we must update their fields accordingly:
                       /*
                       if (selecting != null) {
@@ -713,7 +712,7 @@ modules["editor/realtime"] = {
                           selection.removeAttribute("notransition");
                         }
                       } else {
-                        merge = { ...original.render, ...(editor.selecting[annoID] || {}) };
+                        merge = { ...original.render, ...(editor.selecting[annoID] ?? {}) };
                         userSelecting = true;
                       }
                       if (["text", "sticky"].includes(merge.f) == true && anno.d != null) {
@@ -747,7 +746,7 @@ modules["editor/realtime"] = {
                       }*/
                       let [width, height] = merge.s;
                       let [x, y] = editor.getAbsolutePosition(merge);
-                      let rotate = merge.r || 0;
+                      let rotate = merge.r ?? 0;
                       if (rotate > 180) {
                         rotate = -(360 - rotate);
                       }
@@ -760,7 +759,7 @@ modules["editor/realtime"] = {
                         y -= height;
                       }
                       let pageRect = annoHold.getBoundingClientRect();
-                      let t = merge.t || 0;
+                      let t = merge.t ?? 0;
                       if (merge.b == "none" && merge.d != "line") {
                         t = 0;
                       }
@@ -809,8 +808,8 @@ modules["editor/realtime"] = {
                     editor.annotations[extra.u._id] = {};
                     original = editor.annotations[annextra.u._idoID];
                   }
-                  original = original || {};
-                  let originalRender = original.render || {};
+                  original = original ?? {};
+                  let originalRender = original.render ?? {};
                   if (editor.lesson.settings.editOthersWork == true || [originalRender.a, originalRender.m].includes(member.modify) == true || member.access > 3) { // Can edit another member's work:
                     await utils.saveEdit(extra.u);
                   } else {
@@ -828,9 +827,9 @@ modules["editor/realtime"] = {
                       }
                       if (annotation.pointer != null) {
                         annoid = annotation.pointer;
-                        annotation = this.annotations[annoid] || { render: {} };
+                        annotation = this.annotations[annoid] ?? { render: {} };
                       }
-                      currentAnnoCheck = annotation.render || {};
+                      currentAnnoCheck = annotation.render ?? {};
                       if ([originalRender.a, originalRender.m].includes(member.modify) == true) {
                         await utils.saveEdit(extra.u);
                         break;
@@ -849,9 +848,9 @@ modules["editor/realtime"] = {
               } else {
                 cursorHolder.removeAttribute("pressed");
               }
-              //cursorHolder.style.left = member.x + (parseInt(cursorHolder.getAttribute("offsetx") || "0")) + window.scrollX + "px";
-              //cursorHolder.style.top = member.y + (parseInt(cursorHolder.getAttribute("offsety") || "0")) + window.scrollY + "px";
-              cursorHolder.style.transform = "translate(" + (member.x + (parseInt(cursorHolder.getAttribute("offsetx") || "0")) + window.scrollX) + "px," + (member.y + (parseInt(cursorHolder.getAttribute("offsety") || "0")) + window.scrollY) + "px)";
+              //cursorHolder.style.left = member.x + (parseInt(cursorHolder.getAttribute("offsetx") ?? "0")) + window.scrollX + "px";
+              //cursorHolder.style.top = member.y + (parseInt(cursorHolder.getAttribute("offsety") ?? "0")) + window.scrollY + "px";
+              cursorHolder.style.transform = "translate(" + (member.x + (parseInt(cursorHolder.getAttribute("offsetx") ?? "0")) + window.scrollX) + "px," + (member.y + (parseInt(cursorHolder.getAttribute("offsety") ?? "0")) + window.scrollY) + "px)";
             }
             if (member.lastShort > time) {
               return;
@@ -883,9 +882,9 @@ modules["editor/realtime"] = {
             } else {
               cursorHolder.style.opacity = 1;
             }
-            if (parseInt(cursorHolder.getAttribute("mode") || -1) != tool) {
+            if (parseInt(cursorHolder.getAttribute("mode") ?? -1) != tool) {
               cursorHolder.setAttribute("hidden", "");
-              cursorHolder.style.transform = "translate(" + (member.x + (parseInt(cursorHolder.getAttribute("offsetx") || "0")) + window.scrollX) + "px," + (member.y + (parseInt(cursorHolder.getAttribute("offsety") || "0")) + window.scrollY) + "px) scale(0)";
+              cursorHolder.style.transform = "translate(" + (member.x + (parseInt(cursorHolder.getAttribute("offsetx") ?? "0")) + window.scrollX) + "px," + (member.y + (parseInt(cursorHolder.getAttribute("offsety") ?? "0")) + window.scrollY) + "px) scale(0)";
               cursorHolder.setAttribute("mode", tool);
               clearTimeout(transformTimeout);
               transformTimeout = setTimeout(async () => {
@@ -1140,7 +1139,7 @@ modules["dropdowns/editor/members"] = {
     let updateOrder = (section, updateTile, member) => {
       for (let i = 1; i < section.children.length; i++) { // 1 to skip title
         let child = section.children[i];
-        let prev = editor.members[child.querySelector("div[holder]").getAttribute("member")] || {};
+        let prev = editor.members[child.querySelector("div[holder]").getAttribute("member")] ?? {};
         if (member.hand == null) {
           if (child != updateTile && member.name < prev.name && prev.hand == null) {
             section.insertBefore(updateTile, child);
@@ -1201,7 +1200,7 @@ modules["dropdowns/editor/members"] = {
     let createMemberList = (search) => {
       let keys = Object.keys(editor.members);
       keys = keys.filter((value) => {
-        if (editor.members[value].name.toLowerCase().includes((search || "").toLowerCase())) {
+        if (editor.members[value].name.toLowerCase().includes((search ?? "").toLowerCase())) {
           return -1;
         }
         return false;
@@ -1452,7 +1451,7 @@ modules["dropdowns/editor/members"] = {
         }
       }
       editor.realtime.module.checkSpotlightUpdate = (fromSelf) => {
-        let member = editor.members[memberFrame.getAttribute("memberid")] || {};
+        let member = editor.members[memberFrame.getAttribute("memberid")] ?? {};
         let wasShown = spotlightButton.hasAttribute("shown");
         if (member._id == editor.sessionID && member.access > 3 && editor.memberCount > 1) {
           spotlightButton.style.display = "flex";
@@ -1673,7 +1672,7 @@ modules["dropdowns/editor/members"] = {
             editor.realtime.module.exitObserve();
           }
           spotlightButton.setAttribute("disabled", "");
-          alertModule.open("info", `<b>Spotlight</b>Letting other's know about the spotlight...`);
+          alertModule.open("info", `<b>Spotlight</b>Letting members know about the spotlight...`);
           await sendRequest("GET", "lessons/members/observe/spotlight?member=" + memberid, null, { session: editor.session });
           spotlightButton.removeAttribute("disabled");
         });
@@ -1820,7 +1819,7 @@ modules["dropdowns/editor/members"] = {
       if (element == null) {
         return;
       }
-      let memberTile = element.closest(".eMemberTile") || element.closest(".eMemberAccessTitle");
+      let memberTile = element.closest(".eMemberTile") ?? element.closest(".eMemberAccessTitle");
       if (memberTile) {
         if (memberTile.className == "eMemberTile") {
           memberTile = memberTile.querySelector("div[holder]");

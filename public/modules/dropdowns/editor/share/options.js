@@ -94,7 +94,7 @@ modules["dropdowns/editor/share/options"] = {
     let editor = await getModule("pages/editor");
 
     // THIS IS TEMP CODE - REMOVE LATER:
-    if ((editor.lesson || {}).type == "standard") {
+    if ((editor.lesson ?? {}).type == "standard") {
       frame.querySelector('.eShareToolToggleBarTool[tool="page"]').style.display = "none";
       frame.querySelector('.eShareToolToggleRow[tool="page"]').style.display = "none";
     }
@@ -147,7 +147,7 @@ modules["dropdowns/editor/share/options"] = {
       }
 
       if (toolToogleOptions != null) {
-        editor.lesson.settings.disabled = editor.lesson.settings.disabled || [];
+        editor.lesson.settings.disabled = editor.lesson.settings.disabled ?? [];
         for (let i = 0; i < toolToogleOptions.length; i++) {
           let tool = toolToogleOptions[i];
           let toolName = tool.getAttribute("option");

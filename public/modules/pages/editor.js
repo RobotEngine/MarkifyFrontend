@@ -1,7 +1,7 @@
 modules["pages/editor"] = {
   title: "Editor",
   preJs: function () {
-    if ((getParam("lesson") || "").length < 1) {
+    if ((getParam("lesson") ?? "").length < 1) {
       setFrame("pages/dashboard", app, { override: true });
       return false;
     }
@@ -168,6 +168,7 @@ modules["pages/editor"] = {
   },
   loadedPDFs: [], // Keep track of loaded PDFs for releasing memory
   js: async function (page, joinData) {
+    window.lesson = this;
     this.page = page;
     this.annotations = {};
     this.chunkAnnotations = {};
@@ -257,6 +258,7 @@ modules["pages/editor"] = {
     ];
     this.recentEmojis = [];
     this.options = {
+      snapping: true,
       cursors: true,
       cursornames: true,
       stylusmode: false,
@@ -302,7 +304,7 @@ modules["pages/editor"] = {
       this.checkEditorCount();
     };
     this.getSelf = () => {
-      return this.members[this.sessionID] || {};
+      return this.members[this.sessionID] ?? {};
     };
     let lastAccess;
 
@@ -579,7 +581,7 @@ modules["pages/editor"] = {
       loginButton.addEventListener("click", () => { promptLogin(); });
     }
 
-    let lessonID = getParam("lesson") || "";
+    let lessonID = getParam("lesson") ?? "";
     delete socket.remotes["lesson_" + this.id];
     this.id = lessonID;
 
@@ -659,7 +661,7 @@ modules["pages/editor"] = {
         case "preference":
           switch (data.type) {
             case "emoji":
-              this.recentEmojis = data.data || [];
+              this.recentEmojis = data.data ?? [];
               for (let i = 0; (i < this.defaultEmojis.length && this.recentEmojis.length < 21); i++) {
                 if (this.recentEmojis.includes(this.defaultEmojis[i]) == false) {
                   this.recentEmojis.push(this.defaultEmojis[i]);
@@ -873,7 +875,7 @@ modules["pages/editor"] = {
           break;
         case "set":
           objectUpdate(body, this.lesson);
-          let setName = this.lesson.name || "Untitled Lesson";
+          let setName = this.lesson.name ?? "Untitled Lesson";
           if (document.activeElement.closest(".eFileName") == null) {
             lessonName.textContent = setName;
             lessonName.title = setName;
@@ -940,13 +942,13 @@ modules["pages/editor"] = {
           enableScrollTop();
           break;
         case "addsources":
-          this.sources = { ...this.sources, ...getObject(body.sources || [], "_id") };
+          this.sources = { ...this.sources, ...getObject(body.sources ?? [], "_id") };
           break;
         case "addpages":
-          pages = { ...pages, ...getObject(body.pages || [], "_id") };
-          sources = { ...sources, ...getObject(body.sources || [], "_id") };
-          await this.addSources(data.data.sources || []);
-          await this.addPages(data.data.pages || []);
+          pages = { ...pages, ...getObject(body.pages ?? [], "_id") };
+          sources = { ...sources, ...getObject(body.sources ?? [], "_id") };
+          await this.addSources(data.data.sources ?? []);
+          await this.addPages(data.data.pages ?? []);
           await this.updatePages();
           await this.setZoom();
           await utils.setMarginSize();
@@ -961,7 +963,7 @@ modules["pages/editor"] = {
           let annoKeys = Object.keys(this.annotations);
           for (let i = 0; i < annoKeys.length; i++) {
             let anno = this.annotations[annoKeys[i]];
-            let render = anno.revert || anno.render || {};
+            let render = anno.revert ?? anno.render ?? {};
             if (data.data.page != null && render.page != data.data.page) {
               continue;
             }
@@ -990,7 +992,7 @@ modules["pages/editor"] = {
             let annoKeys = Object.keys(this.annotations);
             for (let i = 0; i < annoKeys.length; i++) {
               let anno = this.annotations[annoKeys[i]];
-              if ((anno.render || anno.revert || {}).page == data.data.page) {
+              if ((anno.render ?? anno.revert ?? {}).page == data.data.page) {
                 delete this.annotations[annoKeys[i]];
               }
             }
@@ -1145,7 +1147,7 @@ modules["pages/editor"] = {
           break;
         case "reaction":
           if (this.annotations[body.reaction.annotation] != null) {
-            this.reactions[body.reaction.annotation] = this.reactions[body.reaction.annotation] || [];
+            this.reactions[body.reaction.annotation] = this.reactions[body.reaction.annotation] ?? [];
             let annotationReactions = this.reactions[body.reaction.annotation];
             if (body.change != null) {
               if (this.getSelf().modify == body.member._id) {
@@ -1274,7 +1276,7 @@ modules["pages/editor"] = {
       let cursorModule = await getModule("pages/editor/toolbar/cursor");
       for (let i = 0; i < data.length; i++) {
         let anno = data[i];
-        let existingAnno = this.annotations[anno._id] || this.annotations[anno.pending];
+        let existingAnno = this.annotations[anno._id] ?? this.annotations[anno.pending];
         if (existingAnno != null) {
           // RUNS FOR EACH ANNOTATION IN LONG
 
@@ -1433,7 +1435,7 @@ modules["pages/editor"] = {
     if (this.id != lessonID) {
       delete this.session;
     }
-    joinData = joinData || {};
+    joinData = joinData ?? {};
     if (joinData.pin) {
       sendBody.pin = joinData.pin;
     }
@@ -1445,7 +1447,7 @@ modules["pages/editor"] = {
     if (joinData.from == "pages/join") {
       delete this.session;
     }
-    let paramSession = getParam("member_session") || "";
+    let paramSession = getParam("member_session") ?? "";
     if (paramSession != "" && this.exporting == true) {
       this.session = paramSession;
     }
@@ -1458,8 +1460,9 @@ modules["pages/editor"] = {
       return;
     }
 
+    body.lesson.type = "freeboard"; // TEMP CODE - REMOVE THIS LATER (ONCE ALL STANDARD LESSON PARTS ARE PURGED)
     this.lesson = body.lesson;
-    this.lesson.settings = this.lesson.settings || {};
+    this.lesson.settings = this.lesson.settings ?? {};
 
     this.folder = body.folder;
 
@@ -1532,7 +1535,7 @@ modules["pages/editor"] = {
       sendPing();
     }
 
-    tempListeners.push({
+    addTempListener({
       type: "interval", interval: setInterval(async () => {
         if (sentPing == false) {
           sendPing();
@@ -1558,7 +1561,7 @@ modules["pages/editor"] = {
       utils.syncSave(true);
       setFrame("pages/dashboard");
     });
-    lessonName.textContent = this.lesson.name || "Untitled Lesson";
+    lessonName.textContent = this.lesson.name ?? "Untitled Lesson";
     lessonName.title = lessonName.textContent;
     document.title = lessonName.textContent + " | Markify";
     lessonName.addEventListener("keydown", (event) => {
@@ -1657,7 +1660,7 @@ modules["pages/editor"] = {
       if (render == null) {
         return;
       }
-      let t = render.t || 0;
+      let t = render.t ?? 0;
       if (render.b == "none" && render.d != "line") {
         t = 0;
       }
@@ -1765,8 +1768,8 @@ modules["pages/editor"] = {
       }
       for (let i = 0; i < this.annotationPages.length; i++) {
         let annoid = this.annotationPages[i][0];
-        if ((annoid || "").startsWith("pending_") == true) {
-          let anno = this.annotations[annoid] || {};
+        if ((annoid ?? "").startsWith("pending_") == true) {
+          let anno = this.annotations[annoid] ?? {};
           if (anno.pointer != null) {
             annoid = anno.pointer;
           }
@@ -1790,23 +1793,30 @@ modules["pages/editor"] = {
         this.annotationPages.push([
           anno._id,
           [position[0] + (anno.s[0] / 2) + thickness, position[1] + (anno.s[1] / 2) + thickness],
-          [anno.s[0] + thickness, anno.s[1] + thickness]
+          [position[0], position[1], anno.s[0] + thickness, anno.s[1] + thickness]
         ]);
         this.annotationPages.sort((a, b) => {
+          if (b[1][1] > a[2][1] && b[1][1] < a[2][1] + a[2][3]) {
+            return a[2][0] - b[2][0];
+          }
+          return a[2][1] - b[2][1];
+        });
+        /*this.annotationPages.sort((a, b) => {
           // Calculate top and bottom bounds
           let aTop = a[1][1] - a[2][1];
           let bTop = b[1][1] - b[2][1];
 
           // Compare by Y bounds first
+          console.log(aTop, bTop)
           if (Math.abs(aTop - bTop) > Math.min(a[2][1], b[2][1]) / 2) {
             return aTop - bTop;
           }
 
           // If they're in the same row, compare by X bounds
-          let aLeft = a[1][0] - a[2][0] / 2;
-          let bLeft = b[1][0] - b[2][0] / 2;
+          let aLeft = (a[1][0] - a[2][0]) / 2;
+          let bLeft = (b[1][0] - b[2][0]) / 2;
           return aLeft - bLeft;
-        });
+        });*/
       }
       this.updateCurrentPage();
     }
@@ -1836,12 +1846,12 @@ modules["pages/editor"] = {
           selectedParent = true;
         }
         if (includeSelecting != true) {
-          currentAnnoCheck = annotation.render || {};
+          currentAnnoCheck = annotation.render ?? {};
         } else {
-          currentAnnoCheck = { ...(annotation.render || {}), ...(selected || {}) };
+          currentAnnoCheck = { ...(annotation.render ?? {}), ...(selected ?? {}) };
         }
-        returnX += currentAnnoCheck.p[0] || 0;
-        returnY += currentAnnoCheck.p[1] || 0;
+        returnX += currentAnnoCheck.p[0] ?? 0;
+        returnY += currentAnnoCheck.p[1] ?? 0;
       }
       return [returnX, returnY, { selectedParent: selectedParent }];
     }
@@ -1866,19 +1876,26 @@ modules["pages/editor"] = {
           annotation = this.annotations[annoid];
         }
         if (includeSelecting != true) {
-          currentAnnoCheck = annotation.render || {};
+          currentAnnoCheck = annotation.render ?? {};
         } else {
-          currentAnnoCheck = { ...(annotation.render || {}), ...(selected || {}) };
+          currentAnnoCheck = { ...(annotation.render ?? {}), ...(this.selecting[annoid] ?? {}) };
         }
-        returnX -= currentAnnoCheck.p[0] || 0;
-        returnY -= currentAnnoCheck.p[1] || 0;
+        returnX -= currentAnnoCheck.p[0] ?? 0;
+        returnY -= currentAnnoCheck.p[1] ?? 0;
       }
       return [returnX, returnY];
     }
-    this.parentFromAnnotation = (anno, types, insert) => {
-      types = types || ["page"];
-      insert = insert || {};
+    this.parentFromAnnotation = (anno, types, insert, includeSelecting) => {
+      types = types ?? ["page"];
+      insert = insert ?? {};
       let id = anno._id;
+      let prevParent = anno.prevParent;
+      if (prevParent != null) {
+        let parentAnno = this.annotations[prevParent];
+        if (parentAnno != null && parentAnno.pointer != null) {
+          prevParent = parentAnno.pointer;
+        }
+      }
       /*let thick = 0;
       if (anno.t != null) {
         if (anno.b != "none" || anno.d == "line") {
@@ -1887,9 +1904,9 @@ modules["pages/editor"] = {
       }*/
       let x = anno.p[0];// + (anno.s[0] / 2) + thick;
       let y = anno.p[1];// + (anno.s[1] / 2) + thick;
-      let index = anno.l || 0;
+      let index = anno.l ?? 0;
       let chunk = this.pointInChunk(x, y);
-      let annotationIDs = Object.keys(this.chunkAnnotations[chunk] || {});
+      let annotationIDs = Object.keys(this.chunkAnnotations[chunk] ?? {});
       let viableParents = [];
       let foundInsert = false;
       for (let i = 0; i < annotationIDs.length; i++) {
@@ -1905,7 +1922,7 @@ modules["pages/editor"] = {
           annoid = annotation.pointer;
           annotation = this.annotations[annoid];
         }
-        let render = annotation.render; // { ...(annotation.render || {}), ...(this.selecting[annoid] || {}) };
+        let render = annotation.render; // { ...(annotation.render ?? {}), ...(this.selecting[annoid] ?? {}) };
         if (render == null) {
           continue;
         }
@@ -1916,14 +1933,17 @@ modules["pages/editor"] = {
         if (types.includes(render.f) == false) {
           continue;
         }
-        if (render.hidden == true || render.lock == true) {
+        if ((render.hidden == true || render.lock == true) && prevParent != annoid) {
           continue;
         }
         if (render.remove == true) {
           continue;
         }
-        let [parentX, parentY] = this.getAbsolutePosition(render);
-        let [parentWidth, parentHeight] = render.s || [0, 0];
+        if (includeSelecting == true) {
+          render = { ...render, ...(this.selecting[annoid] ?? {}) };
+        }
+        let [parentX, parentY] = this.getAbsolutePosition(render, includeSelecting);
+        let [parentWidth, parentHeight] = render.s ?? [0, 0];
         let parentThickness = 0;
         if (render.t != null) {
           if (render.b != "none" || render.d == "line") {
@@ -1932,7 +1952,7 @@ modules["pages/editor"] = {
         }
         if (x >= parentX && x <= parentX + parentWidth + parentThickness) {
           if (y >= parentY && y <= parentY + parentHeight + parentThickness) {
-            if ((index || utils.maxLayer) > render.l) {
+            if ((index ?? utils.maxLayer) > render.l) {
               viableParents.push(render);
             }
           }
@@ -1945,8 +1965,8 @@ modules["pages/editor"] = {
       let highestLayer;
       for (let i = 0; i < viableParents.length; i++) {
         let parent = viableParents[i];
-        if ((parent.l || 0) > highestLayer || highestLayer == null) {
-          highestLayer = parent.l || 0;
+        if ((parent.l ?? 0) > highestLayer || highestLayer == null) {
+          highestLayer = parent.l ?? 0;
           highestPageID = parent._id;
         }
       }
@@ -1980,12 +2000,12 @@ modules["pages/editor"] = {
           newlyUnloaded[chunk] = "";
 
           // Remove annotations in unloaded chunks:
-          unloadChunkedAnnotations = { ...unloadChunkedAnnotations, ...(this.chunkAnnotations[chunk] || {}) };
+          unloadChunkedAnnotations = { ...unloadChunkedAnnotations, ...(this.chunkAnnotations[chunk] ?? {}) };
         }
       }
       let chunkUnloadAnnos = Object.keys(unloadChunkedAnnotations);
       for (let a = 0; a < chunkUnloadAnnos.length; a++) {
-        let annotation = this.annotations[chunkUnloadAnnos[a]] || {};
+        let annotation = this.annotations[chunkUnloadAnnos[a]] ?? {};
         if (annotation.render == null) {
           continue;
         }
@@ -2020,12 +2040,12 @@ modules["pages/editor"] = {
           newlyLoaded[chunk] = "";
 
           // Load annotations in these chunks:
-          loadChunkedAnnotations = { ...loadChunkedAnnotations, ...(this.chunkAnnotations[chunk] || {}) };
+          loadChunkedAnnotations = { ...loadChunkedAnnotations, ...(this.chunkAnnotations[chunk] ?? {}) };
         }
       }
       let chunkAnnos = Object.keys(loadChunkedAnnotations);
       for (let a = 0; a < chunkAnnos.length; a++) {
-        let annotation = this.annotations[chunkAnnos[a]] || { chunks: [] };
+        let annotation = this.annotations[chunkAnnos[a]] ?? { chunks: [] };
         let render = true;
         for (let i = 0; i < annotation.chunks.length; i++) {
           let chunk = annotation.chunks[i];
@@ -2063,16 +2083,15 @@ modules["pages/editor"] = {
       let backgroundHeight = Math.ceil((fixed.offsetHeight + (scaledDotSize * 4)) / scaledDotSize) * scaledDotSize;
       dotBackground.style.width = (backgroundWidth / this.zoom) + "px";
       dotBackground.style.height = (backgroundHeight / this.zoom) + "px";
-      let originPointRect = pageHolder.getBoundingClientRect();
-      let originCorrectX = (originPointRect.left - (backgroundWidth / 2)) % scaledDotSize;
-      let originCorrectY = (originPointRect.top - (backgroundHeight / 2)) % scaledDotSize;
+      let pageRect = pageHolder.getBoundingClientRect();
+      let originCorrectX = (pageRect.left - (backgroundWidth / 2)) % scaledDotSize;
+      let originCorrectY = (pageRect.top - (backgroundHeight / 2)) % scaledDotSize;
       dotBackground.style.left = (window.scrollX + originCorrectX - (scaledDotSize * 2)) + "px";
       dotBackground.style.top = (window.scrollY + originCorrectY - (scaledDotSize * 2)) + "px";
       
       if (this.zooming == true || loadedChunkedAnnotations != true) {
         return;
       }
-      let pageRect = pageHolder.getBoundingClientRect();
       let beforeChunks = JSON.stringify(this.visibleChunks);
       this.visibleChunks = this.regionInChunks(
         ((fixed.offsetWidth / -2) - pageRect.left) / this.zoom,
@@ -2112,12 +2131,13 @@ modules["pages/editor"] = {
         return;
       }
       if (this.lesson.type != "freeboard") {
-        let pageChild = pageHolder.children[currentPage - 1] || pageHolder;
+        let pageChild = pageHolder.children[currentPage - 1] ?? pageHolder;
         let pageRect = pageChild.getBoundingClientRect();
-        window.scrollTo(window.scrollX + pageRect.left - ((fixed.offsetWidth - pageChild.offsetWidth) / 2), window.scrollY + pageRect.top - 66);
+        window.scrollTo(window.scrollX + pageRect.left - ((fixed.offsetWidth - pageChild.offsetWidth) / 2), window.scrollY + pageRect.top - scrollOffset);
       } else {
         let pageRect = pageHolder.getBoundingClientRect();
-        window.scrollTo(window.scrollX + pageRect.left - ((fixed.offsetWidth - pageHolder.offsetWidth) / 2), window.scrollY + pageRect.top - ((fixed.offsetHeight - pageHolder.offsetHeight) / 2)); //window.scrollY + pageRect.top - 66
+        //window.scrollTo(window.scrollX + pageRect.left - ((fixed.offsetWidth - pageHolder.offsetWidth) / 2), window.scrollY + pageRect.top - ((fixed.offsetHeight - pageHolder.offsetHeight) / 2)); //window.scrollY + pageRect.top - 66
+        window.scrollTo(window.scrollX + pageRect.left - ((fixed.offsetWidth - pageHolder.offsetWidth) / 2), window.scrollY + pageRect.top - scrollOffset);
       }
     }
 
@@ -2142,9 +2162,9 @@ modules["pages/editor"] = {
     //this.viewAnnotations = async () => {
       /*await this.updateChunks();
       for (let i = 0; i < this.visibleChunks.length; i++) {
-        let chunkAnnos = Object.keys(this.chunkAnnotations[this.visibleChunks[i]] || {});
+        let chunkAnnos = Object.keys(this.chunkAnnotations[this.visibleChunks[i]] ?? {});
         for (let a = 0; a < chunkAnnos.length; a++) {
-          await utils.render((this.annotations[chunkAnnos[a]] || {}).render);
+          await utils.render((this.annotations[chunkAnnos[a]] ?? {}).render);
         }
       }*/
       /*
@@ -2253,7 +2273,7 @@ modules["pages/editor"] = {
         }
       }
       if (annoBody.reactions != null) {
-        let reactedToObject = getObject(annoBody.reactedTo || [], "_id");
+        let reactedToObject = getObject(annoBody.reactedTo ?? [], "_id");
         let userCheckSelf = this.getSelf();
         for (let i = 0; i < annoBody.reactions.length; i++) {
           let addReaction = annoBody.reactions[i];
@@ -2271,10 +2291,9 @@ modules["pages/editor"] = {
       }
       //await this.viewAnnotations();
       loadedChunkedAnnotations = true;
-      await this.updateChunks();
       /*let loadChunkedAnnotations = {};
       for (let i = 0; i < this.visibleChunks.length; i++) {
-        loadChunkedAnnotations = { ...loadChunkedAnnotations, ...(this.chunkAnnotations[this.visibleChunks[i]] || {}) };
+        loadChunkedAnnotations = { ...loadChunkedAnnotations, ...(this.chunkAnnotations[this.visibleChunks[i]] ?? {}) };
       }
       let chunkAnnos = Object.keys(loadChunkedAnnotations);
       for (let a = 0; a < chunkAnnos.length; a++) {
@@ -2285,7 +2304,7 @@ modules["pages/editor"] = {
       let jumpAnnotation = null;
       if (checkForJumpLink != null && checkForJumpLink != "") {
         if (this.annotations[checkForJumpLink] != null) {
-          [_, jumpAnnotation] = await utils.render((this.annotations[checkForJumpLink] || {}).render, null, null, true);
+          [_, jumpAnnotation] = await utils.render((this.annotations[checkForJumpLink] || {}).render);
           this.selecting[checkForJumpLink] = {};
           if (this.updateZoom) {
             await this.updateZoom();
@@ -2293,10 +2312,12 @@ modules["pages/editor"] = {
         }
       }
       if (jumpAnnotation == null) {
+        await this.updateChunks();
         centerWindowWithPage();
       } else {
         let jumpRect = jumpAnnotation.getBoundingClientRect();
         window.scrollTo(window.scrollX + jumpRect.left - ((fixed.offsetWidth - jumpAnnotation.offsetWidth) / 2), window.scrollY + jumpRect.top - ((fixed.offsetHeight - jumpAnnotation.offsetHeight) / 2));
+        await this.updateChunks();
       }
     }
 
@@ -2750,7 +2771,7 @@ modules["pages/editor"] = {
         }
         this.addSources(body.sources);
 
-        let scrollPage = getParam("page") || 1;
+        let scrollPage = getParam("page") ?? 1;
         let scrollElem = pageHolder.children[scrollPage - 1];
         if (scrollElem != null) {
           window.scrollTo({ top: window.scrollY + scrollElem.getBoundingClientRect().top - scrollOffset });
@@ -2777,7 +2798,7 @@ modules["pages/editor"] = {
         });
 
         this.updatePageSize = () => {
-          //let pageChild = pageHolder.children[currentPage - 1] || pageHolder;
+          //let pageChild = pageHolder.children[currentPage - 1] ?? pageHolder;
           if (this.exporting == true) {
             this.addMargin = 0;
             return;
@@ -2801,7 +2822,7 @@ modules["pages/editor"] = {
         centerWindowWithPage();
         break;
       case "freeboard":
-        this.sources = { ...this.sources, ...getObject(body.sources || [], "_id") };
+        this.sources = { ...this.sources, ...getObject(body.sources ?? [], "_id") };
         //pageHolder.remove();
         addPagesHolder.remove();
         addPagesHolder = null;
@@ -2847,13 +2868,13 @@ modules["pages/editor"] = {
           }
           this.updateCurrentPageInterface();
           let annoID = page[0];
-          if ((annoID || "").startsWith("pending_") == true) {
-            let anno = this.annotations[annoID] || {};
+          if ((annoID ?? "").startsWith("pending_") == true) {
+            let anno = this.annotations[annoID] ?? {};
             if (anno.pointer != null) {
               annoID = anno.pointer;
             }
           }
-          let render = (this.annotations[annoID] || {}).render;
+          let render = (this.annotations[annoID] ?? {}).render;
           if (render != null) {
             let thickness = 0;
             if (render.t != null) {
@@ -2931,7 +2952,7 @@ modules["pages/editor"] = {
             pageTextBox.innerHTML = "<b>" + this.currentPage + "</b> / " + this.annotationPages.length;
             return;
           }
-          let setPage = parseInt(pageTextBox.textContent) || 1;
+          let setPage = parseInt(pageTextBox.textContent) ?? 1;
           pageTextBox.innerHTML = "<b>" + setPage + "</b> / " + this.annotationPages.length;
           updateAnnotationScroll(this.annotationPages[setPage - 1], false);
         });
@@ -2953,13 +2974,13 @@ modules["pages/editor"] = {
     let mouseBeforeX;
     let mouseBeforeY;
     this.setZoom = async (set, observe, mouse) => {
-      mouse = mouse || {};
+      mouse = mouse ?? {};
       if (observe != true && this.realtime.observing != null && this.realtime.module != null) {
         this.realtime.module.exitObserve();
       }
 
-      let mouseX = mouse.clientX || ((mouse.changedTouches || [])[0] || {}).clientX || 0;
-      let mouseY = mouse.clientY || ((mouse.changedTouches || [])[0] || {}).clientY || 0;
+      let mouseX = mouse.clientX ?? ((mouse.changedTouches ?? [])[0] ?? {}).clientX ?? 0;
+      let mouseY = mouse.clientY ?? ((mouse.changedTouches ?? [])[0] ?? {}).clientY ?? 0;
       
       if (lastMouseX != mouseX || lastMouseY != mouseY) {
         lastMouseX = mouseX;
@@ -2973,8 +2994,8 @@ modules["pages/editor"] = {
       if (set != null) {
         this.zoom = set;
       } else {
-        this.zoom += Math.min(mouse.deltaY || 0, 50) * -0.01;
-        //let delta = Math.max(-1, Math.min(1, (mouse.wheelDelta || -(mouse.detail || 0))));
+        this.zoom += Math.min(mouse.deltaY ?? 0, 50) * -0.01;
+        //let delta = Math.max(-1, Math.min(1, (mouse.wheelDelta ?? -(mouse.detail ?? 0))));
         //this.zoom = this.zoom + (delta / 10);
       }
       this.zoomChanged = true;
@@ -3105,7 +3126,23 @@ modules["pages/editor"] = {
           return;
         }
         running = true;
+        let selectKeys = Object.keys(this.selecting);
         this.selecting = {};
+        for (let i = 0; i < selectKeys.length; i++) {
+          let existingAnno = this.annotations[selectKeys[i]];
+          if (existingAnno != null) {
+            let allowRender = false;
+            for (let i = 0; i < existingAnno.chunks.length; i++) {
+              if (this.visibleChunks.includes(existingAnno.chunks[i]) == true) {
+                allowRender = true;
+                break;
+              }
+            }
+            if (allowRender == true) {
+              await utils.render(existingAnno.render);
+            }
+          }
+        }
         let currentDistance = getDistance(event.touches);
         if (startDistance == null) {
           startDistance = currentDistance;
@@ -3226,6 +3263,7 @@ modules["dropdowns/editor/zoom"] = {
     <button class="eZoomButton buttonAnim border" add change="20">+</button>
   </div>
   <div class="eZoomLine"></div>
+  <button class="eZoomAction" option="snapping" local title="Snap elements to guides while moving and resizing."><div label>Snapping</div><div class="eZoomToggle"><div></div></div></button>
   <button class="eZoomAction" option="cursors" title="Display the cursors of other editors."><div label>Show Cursors</div><div class="eZoomToggle"><div></div></div></button>
   <button class="eZoomAction" option="cursornames" local title="Show the member's name when they're annotating."><div label>Cursor Names</div><div class="eZoomToggle"><div></div></div></button>
   <button class="eZoomAction" option="stylusmode" local title="Only write on the document when using an active stylus, such as the Apple Pencil."><div label>Stylus Mode</div><div class="eZoomToggle"><div></div></div></button>
@@ -3304,7 +3342,7 @@ modules["dropdowns/editor/zoom"] = {
       if (textBox == null) {
         return;
       }
-      let textInt = parseInt(textBox.textContent) || 0;
+      let textInt = parseInt(textBox.textContent) ?? 0;
       if (textInt == "") {
         setZoomText();
       } else if (textInt > 500) {
@@ -3360,7 +3398,7 @@ modules["dropdowns/editor/zoom"] = {
           editor.options[option] = true;
         }
         if (toggle.hasAttribute("local") == true) {
-          this.localOptions = this.localOptions || {};
+          this.localOptions = this.localOptions ?? {};
           this.localOptions[option] = editor.options[option];
           setLocalStore("options", JSON.stringify(this.localOptions));
         }
@@ -3777,7 +3815,7 @@ modules["pages/editor/annotation"] = {
     return { x, y };
   },
   round: function (num, places) {
-    let pow = Math.pow(10, places || 2);
+    let pow = Math.pow(10, places ?? 2);
     return Math.ceil(num * pow) / pow;
   },
   tempID: function () {
@@ -3823,6 +3861,12 @@ modules["pages/editor/annotation"] = {
     this.setTopMargin = 0;
     this.setBottomMargin = 0;
 
+    // Default Chunks:
+    editor.chunkAnnotations["0_0"] = editor.chunkAnnotations["0_0"] ?? [];
+    editor.chunkAnnotations["0_-" + editor.chunkHeight] = editor.chunkAnnotations["0_-" + editor.chunkHeight] ?? [];
+    editor.chunkAnnotations["-" + editor.chunkWidth + "_0"] = editor.chunkAnnotations["-" + editor.chunkWidth + "_0"] ?? [];
+    editor.chunkAnnotations["-" + editor.chunkWidth + "_-" + editor.chunkHeight] = editor.chunkAnnotations["-" + editor.chunkWidth + "_-" + editor.chunkHeight] ?? [];
+    
     let chunks = Object.keys(editor.chunkAnnotations);
     for (let i = 0; i < chunks.length; i++) {
       let splitPos = chunks[i].split("_");
@@ -3870,8 +3914,8 @@ modules["pages/editor/annotation"] = {
     
     let scrollPosX = window.scrollX;
     let scrollPosY = window.scrollY;
-    let contentLeft = this.marginLeft || 0;
-    let contentTop = this.marginTop || 0;
+    let contentLeft = this.marginLeft ?? 0;
+    let contentTop = this.marginTop ?? 0;
     let addMarginLeftRight = fixed.offsetWidth / 2;
     let addMarginTopBottom = fixed.offsetHeight / 2;
     this.marginLeft = (this.setLeftMargin * editor.zoom) + addMarginLeftRight;
@@ -3926,7 +3970,7 @@ modules["pages/editor/annotation"] = {
       let [sourceID, pageNumber] = this.pdfPageStorage[sourcePageId];
       delete this.pdfPageStorage[sourcePageId];
 
-      let source = editor.sources[sourceID] || {};
+      let source = editor.sources[sourceID] ?? {};
       if (source.error == true) {
         continue;
       }
@@ -3942,7 +3986,7 @@ modules["pages/editor/annotation"] = {
                 editor.sources[sourceID] = { error: true };
               }
             }
-            source = editor.sources[sourceID] || {};
+            source = editor.sources[sourceID] ?? {};
             if (source.source != null) {
               let loadingTask = pdfjsLib.getDocument(assetURL + source.source)
               editor.loadedPDFs.push(loadingTask);
@@ -3983,7 +4027,7 @@ modules["pages/editor/annotation"] = {
         }
 
         let viewport = pageRender.getViewport({ scale: 2 });
-        //let outputScale = window.devicePixelRatio || 1;
+        //let outputScale = window.devicePixelRatio ?? 1;
         
         element.insertAdjacentHTML("beforeend", `<canvas></canvas><div textlayer></div>`);
         
@@ -3992,12 +4036,22 @@ modules["pages/editor/annotation"] = {
 
         let setWidth = viewport.width;// * outputScale;
         let setHeight = viewport.height;// * outputScale;
-        let annoWidth = parseInt(element.getAttribute("width"));
-        let annoHeight = parseInt(element.getAttribute("height"));
         canvas.width = setWidth;
         canvas.height = setHeight;
+        let annoWidth = parseFloat(element.getAttribute("width"));
+        let annoHeight = parseFloat(element.getAttribute("height"));
+        let annoRotation = parseInt(element.getAttribute("rotation"));
+        if (annoRotation == 90 || annoRotation == 270) {
+          //let prevSetWidth = setWidth;
+          //setWidth = setHeight;
+          //setHeight = prevSetWidth;
+          let prevAnnoWidth = annoWidth;
+          annoWidth = annoHeight;
+          annoHeight = prevAnnoWidth;
+        }
         element.style.setProperty("--fullWidth", setWidth + "px");
         element.style.setProperty("--fullHeight", setHeight + "px");
+        element.style.transform = "rotate(" + annoRotation + "deg)";
         let ratio = setWidth / setHeight;
         let ratioedWidth = (annoHeight - 8) * ratio;
         let ratioedHeight = (annoWidth - 8) / ratio;
@@ -4089,7 +4143,7 @@ modules["pages/editor/annotation"] = {
     let editor = await getModule("pages/editor");
     let annoKeys = Object.keys(editor.annotations);
     for (let i = 0; i < annoKeys.length; i++) {
-      let anno = (editor.annotations[annoKeys[i]] || {}).render;
+      let anno = (editor.annotations[annoKeys[i]] ?? {}).render;
       if (anno != null) {
         await this.checkAnnotationSize(anno, true);
       }
@@ -4102,7 +4156,7 @@ modules["pages/editor/annotation"] = {
     let content = contentFrame.querySelector(".eContentHolder");
     if (anno != null && anno.p != null) {
       if (editor.exporting == true) {
-        let page = editor.page.querySelector('.ePage[pageid="' + (anno.page || "") + '"]');
+        let page = editor.page.querySelector('.ePage[pageid="' + (anno.page ?? "") + '"]');
         if (page != null && page.hasAttribute("exporting") == false) {
           return;
         }
@@ -4111,7 +4165,7 @@ modules["pages/editor/annotation"] = {
         }
       }
 
-      if ((anno._id || "").startsWith("pending_") != true || anno.done == true) {
+      if ((anno._id ?? "").startsWith("pending_") != true || anno.done == true) {
         if (anno.remove != true) {
           let annoHolder = await this.annoHolder(anno.page);
           let left = -anno.p[0];
@@ -4138,7 +4192,7 @@ modules["pages/editor/annotation"] = {
           }
         }
       }
-      let zIndex = anno.l || Math.round(((anno.sync || getEpoch()) / 2000000000000) * 2147483647);
+      let zIndex = anno.l ?? Math.round(((anno.sync ?? getEpoch()) / 2000000000000) * 2147483647);
       if (zIndex < this.minLayer) {
         this.minLayer = zIndex;
       }
@@ -4169,8 +4223,8 @@ modules["pages/editor/annotation"] = {
     let scrollPosX = window.scrollX;
     let scrollPosY = window.scrollY;
     //let contentLeft = pageHolder.getBoundingClientRect().left;
-    let contentLeft = this.marginLeft || 0;
-    let contentTop = this.marginTop || 0;
+    let contentLeft = this.marginLeft ?? 0;
+    let contentTop = this.marginTop ?? 0;
     this.marginLeft = (this.setLeftMargin * editor.zoom) + editor.addMargin;
     this.marginTop = (this.setTopMargin * editor.zoom) + editor.addMargin;
     content.style.marginLeft = (Math.ceil(this.marginLeft / 40) * 40) + "px";
@@ -4265,7 +4319,7 @@ modules["pages/editor/annotation"] = {
     ".eAnnotation[embed] div[details] div[input] input": `box-sizing: border-box; width: 100%; height: 36px; border: solid 3px var(--hover); outline: unset; border-radius: 18px; padding: 8px; color: var(--theme); font-size: 18px; font-weight: 600; font-family: var(--font); font-size: 16px`, //margin-right: 6px;
     ".eAnnotation[embed] div[details] div[input] input::placeholder": `color: var(--hover)`,
     ".eAnnotation[embed] div[details] div[info]": `display: flex; flex-direction: column; color: var(--textColor)`,
-    ".eAnnotation[embed] div[details] div[info] div[title]": `display: none; width: 100%; font-size: 18px; font-weight: 700; text-wrap: nowrap; text-overflow: ellipsis; overflow: hidden`,
+    ".eAnnotation[embed] div[details] div[info] div[title]": `display: none; width: 100%; font-size: 18px; font-weight: 700; text-wrap: nowrap; text-overflow: ellipsis; overflow: hidden; color: var(--textColor)`,
     ".eAnnotation[embed] div[details] div[info] div[description]": `display: none; width: 100%; margin: 4px 0 2px 0; font-size: 14px; font-weight: 500; color: var(--darkGray); text-wrap: nowrap; text-overflow: ellipsis; overflow: hidden`,
     ".eAnnotation[embed] div[details] div[info] a[link]": `display: flex; width: fit-content; max-width: 100%; align-items: center; font-size: 16px; font-weight: 600; text-decoration: underline; color: var(--theme); text-wrap: nowrap; overflow: hidden; pointer-events: all`,
     ".eAnnotation[embed] div[details] div[info] a[link] img": `width: 32px; height: 32px; margin-right: 2px`,
@@ -4311,7 +4365,7 @@ modules["pages/editor/annotation"] = {
           if (annotation == null) {
             break;
           }
-          currentAnnoCheck = annotation.render || {};
+          currentAnnoCheck = annotation.render ?? {};
           if (editor.exportSelected.includes(annoid) == true) {
             isValid = true;
             break;
@@ -4327,8 +4381,8 @@ modules["pages/editor/annotation"] = {
       }
     }
     let { _id, f, page, parent, p, s, r, l, c, i, t, b, o, d, done, remove, sync, textfit, sig, lock } = data;
-    let [x, y] = p || [];
-    let size = s || [];
+    let [x, y] = p ?? [];
+    let size = s ?? [];
     let [width, height] = [size[0], size[1]];
     /*if (page != null && editor.loadedIn.includes(page) == false && long != true && force != true) {
       return;
@@ -4336,7 +4390,7 @@ modules["pages/editor/annotation"] = {
     if (anno == null) {
       anno = editor.page.querySelector('.eAnnotation[anno="' + _id + '"]');
       if (anno != null) {
-        let annotation = editor.annotations[anno.getAttribute("anno")] || {};
+        let annotation = editor.annotations[anno.getAttribute("anno")] ?? {};
         if (annotation.pointer != null) {
           _id = annotation.pointer;
           anno.setAttribute("anno", _id);
@@ -4345,13 +4399,13 @@ modules["pages/editor/annotation"] = {
     }
     let annoHolder = await this.annoHolder(page);
     if (parent != null) {
-      if ((parent || "").startsWith("pending_") == true) {
+      if ((parent ?? "").startsWith("pending_") == true) {
         let parentAnno = editor.annotations[parent];
         if (parentAnno != null && parentAnno.pointer != null) {
           parent = parentAnno.pointer;
         }
       }
-      let annoParentData = (editor.annotations[parent] || {}).render;
+      let annoParentData = (editor.annotations[parent] ?? {}).render;
       if (annoParentData != null) {
         let annoParent = editor.page.querySelector('.eAnnotation[anno="' + parent + '"]');
         if (annoParent == null) {
@@ -4362,7 +4416,7 @@ modules["pages/editor/annotation"] = {
         if (annoParent != null) {
           annoHolder = annoParent.querySelector(".eAnnotationHolder");
           if (annoHolder == null) {
-            (annoParent.querySelector("div[annoholdercontainer]") || annoParent).insertAdjacentHTML("beforeend", `<div class="eAnnotationHolder"></div>`);
+            (annoParent.querySelector("div[annoholdercontainer]") ?? annoParent).insertAdjacentHTML("beforeend", `<div class="eAnnotationHolder"></div>`);
             annoHolder = annoParent.querySelector(".eAnnotationHolder");
             annoHolder.style.width = annoParentData.s[0] + "px";
             annoHolder.style.height = annoParentData.s[1] + "px";
@@ -4371,6 +4425,10 @@ modules["pages/editor/annotation"] = {
           } else if (data.resizing == null) {
             annoHolder.style.width = annoParentData.s[0] + "px";
             annoHolder.style.height = annoParentData.s[1] + "px";
+            annoHolder.style.left = "0px";
+            annoHolder.style.top = "0px";
+            annoHolder.style.removeProperty("right");
+            annoHolder.style.removeProperty("bottom");
           }
         }
       }
@@ -4402,9 +4460,9 @@ modules["pages/editor/annotation"] = {
     let transform;
     let setAnnoID;
     let svgtransform;
-    let halfT = (t || 0) / 2;
+    let halfT = (t ?? 0) / 2;
     let text;
-    let richText = d || {};
+    let richText = d ?? {};
     switch (f) {
       case "markup":
         if (anno == null) {
@@ -4494,7 +4552,7 @@ modules["pages/editor/annotation"] = {
         }
         anno.style.setProperty("--themeColor", "#" + c);
         text.style.opacity = o / 100;
-        text.style.fontSize = Math.floor(Math.max(Math.min(richText.s || 18, 250), 1)) + "px";
+        text.style.fontSize = Math.floor(Math.max(Math.min(richText.s ?? 18, 250), 1)) + "px";
         if (text.hasAttribute("contenteditable") == false) {
           let setHTML = "";
           for (let i = 0; i < richText.b.length; i++) {
@@ -4533,7 +4591,7 @@ modules["pages/editor/annotation"] = {
         } else {
           text.style.removeProperty("text-decoration");
         }
-        text.style.textAlign = richText.al || "left";
+        text.style.textAlign = richText.al ?? "left";
 
         if (textfit == true) {
           text.style.width = "max-content";
@@ -4752,7 +4810,7 @@ modules["pages/editor/annotation"] = {
           elem.setAttribute("fill", "#" + c);
           elem.setAttribute("stroke", "#" + editor.darkenHex(c, 20));
         }
-        if ((b || "solid") == "solid") {
+        if ((b ?? "solid") == "solid") {
           elem.setAttribute("stroke-width", t);
           elem.removeAttribute("stroke-dasharray");
         } else if (b == "dashed") {
@@ -4808,9 +4866,9 @@ modules["pages/editor/annotation"] = {
           text.setAttribute("placeborder", "");
         }
         anno.style.color = editor.textColorBackground(c);
-        anno.style.textAlign = richText.al || "left";
+        anno.style.textAlign = richText.al ?? "left";
         text.style.opacity = o / 100;
-        let fontSize = Math.floor(Math.max(Math.min(richText.s || 16, 250), 1));
+        let fontSize = Math.floor(Math.max(Math.min(richText.s ?? 16, 250), 1));
         text.style.fontSize = fontSize + "px";
         text.style.lineHeight = fontSize + 6 + "px";
         if (text.hasAttribute("contenteditable") == false) {
@@ -4946,7 +5004,7 @@ modules["pages/editor/annotation"] = {
         }
         let pageTitle = anno.querySelector(":scope > div[title]");
         if (pageTitle.hasAttribute("contenteditable") == false) {
-          if ((data.title || "").length < 1) {
+          if ((data.title ?? "").length < 1) {
             pageTitle.style.removeProperty("display");
             pageTitle.textContent = "";
           } else {
@@ -4969,29 +5027,45 @@ modules["pages/editor/annotation"] = {
             pdfDocumentHolder.setAttribute("sourcepage", sourcePageId);
             pdfDocumentHolder.setAttribute("width", data.s[0]);
             pdfDocumentHolder.setAttribute("height", data.s[1]);
+            pdfDocumentHolder.setAttribute("rotation", data.rotation);
             if (editor.exporting != true) {
               pdfDocumentHolder.style.opacity = 0;
               pdfDocumentHolder.style.transition = "opacity .3s";
             }
             this.addPageToQueue(data.source, data.number);
           } else {
+            pdfDocumentHolder.setAttribute("sourcepage", sourcePageId);
+            pdfDocumentHolder.setAttribute("width", data.s[0]);
+            pdfDocumentHolder.setAttribute("height", data.s[1]);
+            let rotation = data.rotation ?? 0;
+            pdfDocumentHolder.setAttribute("rotation", rotation);
             let canvas = pdfDocumentHolder.querySelector("canvas");
             if (canvas != null) {
-              let width = parseFloat(canvas.getAttribute("width"));
-              let height = parseFloat(canvas.getAttribute("height"));
-              pdfDocumentHolder.style.setProperty("--fullWidth", width + "px");
-              pdfDocumentHolder.style.setProperty("--fullHeight", height + "px");
-              let ratio = width / height;
-              let ratioedWidth = (data.s[1] - 8) * ratio;
-              let ratioedHeight = (data.s[0] - 8) / ratio;
-              if (ratioedWidth < data.s[0] - 8) {
+              let canvasWidth = parseFloat(canvas.getAttribute("width"));
+              let canvasHeight = parseFloat(canvas.getAttribute("height"));
+              let useWidth = data.s[0];
+              let useHeight = data.s[1];
+              if (rotation == 90 || rotation == 270) {
+                let prevWidth = width;
+                canvasWidth = height;
+                canvasHeight = prevWidth;
+                useWidth = data.s[1];
+                useHeight = data.s[0];
+              }
+              pdfDocumentHolder.style.setProperty("--fullWidth", canvasWidth + "px");
+              pdfDocumentHolder.style.setProperty("--fullHeight", canvasHeight + "px");
+              pdfDocumentHolder.style.transform = "rotate(" + rotation + "deg)";
+              let ratio = canvasWidth / canvasHeight;
+              let ratioedWidth = (useHeight - 8) * ratio;
+              let ratioedHeight = (useWidth - 8) / ratio;
+              if (ratioedWidth < useWidth - 8) {
                 pdfDocumentHolder.style.width = (ratioedWidth + 8) + "px";
-                pdfDocumentHolder.style.height = data.s[1] + "px";
-                pdfDocumentHolder.style.setProperty("--fullScale", "scale(" + ((data.s[1] - 8) / height) + ")");
+                pdfDocumentHolder.style.height = useHeight + "px";
+                pdfDocumentHolder.style.setProperty("--fullScale", "scale(" + ((useHeight - 8) / canvasHeight) + ")");
               } else {
-                pdfDocumentHolder.style.width = data.s[0] + "px";
+                pdfDocumentHolder.style.width = useWidth + "px";
                 pdfDocumentHolder.style.height = (ratioedHeight + 8) + "px";
-                pdfDocumentHolder.style.setProperty("--fullScale", "scale(" + ((data.s[0] - 8) / width) + ")");
+                pdfDocumentHolder.style.setProperty("--fullScale", "scale(" + ((useWidth - 8) / canvasWidth) + ")");
               }
             }
           }
@@ -5060,8 +5134,8 @@ modules["pages/editor/annotation"] = {
                 anno.src = assetURL + d;
               }
             } else {
-              if (anno.src != (d || "./images/editor/uploading.png")) {
-                anno.src = d || "./images/editor/uploading.png";
+              if (anno.src != (d ?? "./images/editor/uploading.png")) {
+                anno.src = d ?? "./images/editor/uploading.png";
               }
             }
           }
@@ -5072,7 +5146,7 @@ modules["pages/editor/annotation"] = {
               if (d != null && d.startsWith("blob:") == false) {
                 anno.src = assetURL + d;
               } else {
-                anno.src = d || "./images/editor/uploading.png";
+                anno.src = d ?? "./images/editor/uploading.png";
               }
             }
           }));
@@ -5093,7 +5167,7 @@ modules["pages/editor/annotation"] = {
                 <div info>
                   <div title></div>
                   <div description></div>
-                  <a link><img src="./images/editor/actions/link.svg" target="_blank"><div></div></a>
+                  <a link target="_blank"><img src="./images/editor/actions/link.svg"><div></div></a>
                 </div>
               </div>
             </div>
@@ -5161,7 +5235,7 @@ modules["pages/editor/annotation"] = {
             embedHolder.style.removeProperty("background");
           }
           if (data.embed.title != null || data.embed.site != null) {
-            embedTitle.textContent = cleanString(data.embed.title || data.embed.site);
+            embedTitle.textContent = cleanString(data.embed.title ?? data.embed.site);
             embedTitle.title = embedTitle.textContent;
             embedTitle.style.display = "unset";
           } else {
@@ -5182,7 +5256,7 @@ modules["pages/editor/annotation"] = {
           infoHolder.style.display = "none";
         }
         if (document.activeElement != linkInput) {
-          linkInput.value = d || "";
+          linkInput.value = d ?? "";
         }
         if (d != null) {
           embedLink.querySelector("div").textContent = (new URL(d)).hostname;
@@ -5202,12 +5276,12 @@ modules["pages/editor/annotation"] = {
           embedFrame.style.height = ((height - 24 - embedDetails.offsetHeight) * (1 / scale)) + "px";
           embedFrame.style.transform = "scale(" + scale + ")";
 
-          if (embedFrame.getAttribute("currenturl") != (data.embed || {}).url) {
+          if (embedFrame.getAttribute("currenturl") != (data.embed ?? {}).url) {
             embedFrame.remove();
             embedActivate.style.opacity = 1;
           }
 
-          /*let setLink = (data.embed || {}).url;
+          /*let setLink = (data.embed ?? {}).url;
           //https://docs.google.com/presentation/d/1UF9kRe9vktykLZDGRT0rRp4ZiobUGDGSDJyEj3VTDlg/edit?usp=sharing
           //https://kami.app/fu6-EHx-dMW-7BG
           //https://app.schoolai.com/space?code=O8RW
@@ -5220,7 +5294,7 @@ modules["pages/editor/annotation"] = {
       case "SPINNER": // THIS IS TEMPORARY CODE, REMOVE LATER
         if (anno == null) {
           annoHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" spinner new>
-            <div spinnertitle>Spinner Prototype 9000 🤔🤨</div>
+            <div spinnertitle>Spinner (BETA)</div>
             <div spinnernameholder></div>
             <button spinnerbutton>Spin!</button>
           </div>`);
@@ -5245,7 +5319,7 @@ modules["pages/editor/annotation"] = {
         if (prevName == null) {
           nameHolder.insertAdjacentHTML("beforeend", `<div spinnername></div></div>`);
           prevName = nameHolder.querySelector("div[spinnername]");
-          prevName.textContent = cleanString(d || "");
+          prevName.textContent = cleanString(d ?? "");
           prevName.style.transform = "translateY(0%) scale(1)";
           prevName.style.color = "var(--theme)";
         } else {
@@ -5279,11 +5353,11 @@ modules["pages/editor/annotation"] = {
               prevName.removeAttribute("new");
               let memberIDs = Object.keys(editor.members);
               let randomMemberID = memberIDs[Math.floor(Math.random() * memberIDs.length)];
-              let randomMember = editor.members[randomMemberID] || {};
+              let randomMember = editor.members[randomMemberID] ?? {};
               if (logEquation < 3) {
-                prevName.textContent = cleanString(randomMember.name || "");
+                prevName.textContent = cleanString(randomMember.name ?? "");
               } else {
-                prevName.textContent = cleanString(d || "");
+                prevName.textContent = cleanString(d ?? "");
               }
               prevName.style.transition = logEquation + "s ease";
               prevName.offsetHeight;
@@ -5308,8 +5382,8 @@ modules["pages/editor/annotation"] = {
         }
     }
     if (anno != null) {
-      //console.log((sync || getEpoch()) - editor.lesson.created)
-      let zIndex = l || Math.round(((sync || getEpoch()) / 2000000000000) * 2147483647);
+      //console.log((sync ?? getEpoch()) - editor.lesson.created)
+      let zIndex = l ?? Math.round(((sync ?? getEpoch()) / 2000000000000) * 2147483647);
       anno.style.zIndex = zIndex;
       if (zIndex < this.minLayer) {
         this.minLayer = zIndex;
@@ -5317,7 +5391,7 @@ modules["pages/editor/annotation"] = {
       if (zIndex > this.maxLayer) {
         this.maxLayer = zIndex;
       }
-      let rotate = r || 0;
+      let rotate = r ?? 0;
       if (rotate > 180) {
         rotate = -(360 - rotate);
       }
@@ -5336,34 +5410,36 @@ modules["pages/editor/annotation"] = {
           annoAnnotationHolder.style.width = width + "px";
           annoAnnotationHolder.style.height = height + "px";
           annoAnnotationHolder.removeAttribute("notransition");
-          //annoAnnotationHolder.style.left = "0px";
-          //annoAnnotationHolder.style.top = "0px";
-          //annoAnnotationHolder.style.removeProperty("right");
-          //annoAnnotationHolder.style.removeProperty("bottom");
+          annoAnnotationHolder.style.left = "0px";
+          annoAnnotationHolder.style.top = "0px";
+          annoAnnotationHolder.style.removeProperty("right");
+          annoAnnotationHolder.style.removeProperty("bottom");
         } else {
           annoAnnotationHolder.setAttribute("notransition", "");
-          switch (data.resizing) {
+          let [annoX, annoY] = editor.getAbsolutePosition(data);
+          let [handle, resizeX, resizeY, resizeWidth, resizeHeight] = data.resizing;
+          switch (handle) {
             case "bottomright":
-              annoAnnotationHolder.style.left = "0px";
-              annoAnnotationHolder.style.top = "0px";
+              annoAnnotationHolder.style.left = (resizeX - annoX) + "px";
+              annoAnnotationHolder.style.top = (resizeY - annoY) + "px";
               annoAnnotationHolder.style.removeProperty("right");
               annoAnnotationHolder.style.removeProperty("bottom");
               break;
             case "topleft":
-              annoAnnotationHolder.style.right = "0px";
-              annoAnnotationHolder.style.bottom = "0px";
+              annoAnnotationHolder.style.right = ((annoX + width) - (resizeX + resizeWidth)) + "px";
+              annoAnnotationHolder.style.bottom = ((annoY + height) - (resizeY + resizeHeight)) + "px";
               annoAnnotationHolder.style.removeProperty("left");
               annoAnnotationHolder.style.removeProperty("top");
               break;
             case "topright":
-              annoAnnotationHolder.style.left = "0px";
-              annoAnnotationHolder.style.bottom = "0px";
+              annoAnnotationHolder.style.left = (resizeX - annoX) + "px";
+              annoAnnotationHolder.style.bottom = ((annoY + height) - (resizeY + resizeHeight)) + "px";
               annoAnnotationHolder.style.removeProperty("right");
               annoAnnotationHolder.style.removeProperty("top");
               break;
             case "bottomleft":
-              annoAnnotationHolder.style.right = "0px";
-              annoAnnotationHolder.style.top = "0px";
+              annoAnnotationHolder.style.right = ((annoX + width) - (resizeX + resizeWidth)) + "px";
+              annoAnnotationHolder.style.top = (resizeY - annoY) + "px";
               annoAnnotationHolder.style.removeProperty("left");
               annoAnnotationHolder.style.removeProperty("bottom");
           }
@@ -5536,6 +5612,9 @@ modules["pages/editor/annotation"] = {
   },
   saveEdit: async function (annoData, render, sync, passedRender) {
     let editor = await getModule("pages/editor");
+    if (annoData.resizing != null) {
+      delete annoData.resizing;
+    }
     let annoID = annoData._id;
     if (annoID == null) {
       return;
@@ -5543,12 +5622,12 @@ modules["pages/editor/annotation"] = {
     if (Object.keys(annoData).length < 2) {
       return; // Only the _id field, no changes
     }
-    let anno = editor.annotations[annoID] || passedRender || { render: {} };
+    let anno = editor.annotations[annoID] ?? passedRender ?? { render: {} };
     if (anno.pointer != null) {
       annoID = anno.pointer;
-      anno = editor.annotations[annoID] || passedRender || { render: {} };
+      anno = editor.annotations[annoID] ?? passedRender ?? { render: {} };
     }
-    anno.revert = anno.revert || JSON.parse(JSON.stringify(anno.render));
+    anno.revert = anno.revert ?? JSON.parse(JSON.stringify(anno.render));
     objectUpdate(annoData, anno.render);
     /*
     if (Object.keys(mutations).length < 1) {
@@ -5593,9 +5672,9 @@ modules["pages/editor/annotation"] = {
         if (mutt.sig != null) {
           delete mutt.sig;
         }
-        if (mutt.resizing != null) {
+        /*if (mutt.resizing != null) {
           delete mutt.resizing;
-        }
+        }*/
         let anno = editor.annotations[mutt._id];
         if (anno != null && anno.pointer != null) {
           mutt._id = anno.pointer;
@@ -5608,7 +5687,7 @@ modules["pages/editor/annotation"] = {
               this.enableTimeout(anno.render._id, anno);
               continue;
             }
-            if ((mutt.parent || "").startsWith("pending_") == true) {
+            if ((mutt.parent ?? "").startsWith("pending_") == true) {
               let parentAnno = editor.annotations[mutt.parent];
               if (parentAnno != null) {
                 if (parentAnno.pointer != null) {
@@ -5619,7 +5698,7 @@ modules["pages/editor/annotation"] = {
                   this.enableTimeout(anno.render._id, anno);
                   continue;
                 }
-                if ((parentAnno.render || {}).remove == true) {
+                if ((parentAnno.render ?? {}).remove == true) {
                   continue;
                 }
               }
@@ -5696,15 +5775,15 @@ modules["pages/editor/annotation"] = {
     let editor = await getModule("pages/editor");
     let self = editor.getSelf();
     let annoID = data._id;
-    let annotation = editor.annotations[annoID] || { render: {} };
+    let annotation = editor.annotations[annoID] ?? { render: {} };
     if (annotation.pointer != null) {
       annoID = annotation.pointer;
       data._id = annoID;
-      annotation = editor.annotations[annoID] || { render: {} };
+      annotation = editor.annotations[annoID] ?? { render: {} };
     }
 
     // Handle Annotation Parent:
-    let merged = { ...(annotation.render || {}), ...data };
+    let merged = { ...(annotation.render ?? {}), ...data };
     if (merged.p == null || merged.s == null) {
       return;
     }
@@ -5718,22 +5797,23 @@ modules["pages/editor/annotation"] = {
     let parent = editor.parentFromAnnotation({
       ...merged,
       parent: null,
+      prevParent: merged.parent,
       p: [
         position[0] + (merged.s[0] / 2) + thickness,
         position[1] + (merged.s[1] / 2) + thickness
       ]
     });
     if (parent != merged.parent) {
-      data.parent = parent || null;
+      data.parent = parent ?? null;
       let relativePos = editor.getRelativePosition({
         ...merged,
         parent: data.parent,
         p: [position[0], position[1]]
       });
-      data.p = data.p || merged.p;
+      data.p = data.p ?? merged.p;
       data.p[0] = relativePos[0];
       data.p[1] = relativePos[1];
-      editor.realtimeSelect[data._id] = { ...(editor.realtimeSelect[data._id] || {}), ...data };
+      editor.realtimeSelect[data._id] = { ...(editor.realtimeSelect[data._id] ?? {}), ...data };
       merged = { ...merged, ...data };
     }
     
@@ -5746,7 +5826,7 @@ modules["pages/editor/annotation"] = {
     if (mutations == null) {
       return; // Nothing new to send!
     }
-    annotation = editor.annotations[annoID] || { render: {} };
+    annotation = editor.annotations[annoID] ?? { render: {} };
 
     //[originalRender.a, originalRender.m].includes(member.modify) == false
     /*if (annotation.render._id.startsWith("pending_") == false) {
@@ -5760,7 +5840,7 @@ modules["pages/editor/annotation"] = {
     if (data.p != null || data.s != null || data.t != null || data.l != null || data.remove == true) {
       let annotationKeys = {};
       for (let c = 0; c < checkChunks.length; c++) {
-        annotationKeys = { ...annotationKeys, ...(editor.chunkAnnotations[checkChunks[c]] || {}) };
+        annotationKeys = { ...annotationKeys, ...(editor.chunkAnnotations[checkChunks[c]] ?? {}) };
       }
       let annotations = Object.keys(annotationKeys);
       for (let a = 0; a < annotations.length; a++) {
@@ -5774,11 +5854,11 @@ modules["pages/editor/annotation"] = {
         }
         if (checkAnnotation.pointer != null) {
           checkAnnoID = checkAnnotation.pointer;
-          checkAnnotation = editor.annotations[checkAnnoID] || { render: {} };
+          checkAnnotation = editor.annotations[checkAnnoID] ?? { render: {} };
         }
         //await editor.annotationChunks(editor.annotations[checkAnnoID]);
-        let render = { ...(checkAnnotation.render || {}), ...(this.pendingSaves[checkAnnoID] || {}) }; //...(editor.realtimeSelect[checkAnnoID] || {})
-        if ((render.parent || "").startsWith("pending_") == true) {
+        let render = { ...(checkAnnotation.render ?? {}), ...(this.pendingSaves[checkAnnoID] ?? {}), ...(editor.selecting[checkAnnoID] ?? {}) }; //...(editor.realtimeSelect[checkAnnoID] ?? {})
+        if ((render.parent ?? "").startsWith("pending_") == true) {
           let parentAnno = editor.annotations[render.parent];
           if (parentAnno != null && parentAnno.pointer != null) {
             render.parent = parentAnno.pointer;
@@ -5793,24 +5873,25 @@ modules["pages/editor/annotation"] = {
             thick = render.t;
           }
         }
-        let [x, y] = editor.getAbsolutePosition(render);
+        let [x, y] = editor.getAbsolutePosition(render, true);
         let checkX = x + (render.s[0] / 2) + thick;
-        let checkY = y + (render.s[0] / 2) + thick;
+        let checkY = y + (render.s[1] / 2) + thick;
         if (checkX < position[0] || checkX > position[0] + merged.s[0] + thickness || checkY < position[1] || checkY > position[1] + merged.s[1] + thickness || render.l >= merged.l || merged.remove == true) {
           let setParent = editor.parentFromAnnotation({
             ...render,
             parent: null,
+            prevParent: render.parent,
             p: [checkX, checkY]
-          });
+          }, null, null, true); // null, merged, true
           if (setParent != render.parent) {
             let relativePos = editor.getRelativePosition({
               ...render,
-              parent: setParent || null,
+              parent: setParent ?? null,
               p: [x, y]
-            });
+            }, true);
             let setChildAnno = {
               _id: checkAnnoID,
-              parent: setParent || null,
+              parent: setParent ?? null,
               p: [relativePos[0], relativePos[1]],
               sync: getEpoch()
             };
@@ -5818,10 +5899,10 @@ modules["pages/editor/annotation"] = {
             checkAnnotation.save = true; // Alert the system it's time to save
             checkAnnotation.render.sync = setChildAnno.sync;
             checkAnnotation.render.m = self.modify;
-            this.pendingSaves[checkAnnoID] = { _id: checkAnnoID, ...(this.pendingSaves[checkAnnoID] || {}), ...setChildAnno };
+            this.pendingSaves[checkAnnoID] = { _id: checkAnnoID, ...(this.pendingSaves[checkAnnoID] ?? {}), ...setChildAnno };
             if (editor.realtimeSelect[checkAnnoID] == null) {
               editor.realtimeSelect[checkAnnoID] = setChildAnno;
-              //editor.realtimeSelect[checkAnnoID] = { ...(editor.realtimeSelect[checkAnnoID] || {}), ...setChildAnno };
+              //editor.realtimeSelect[checkAnnoID] = { ...(editor.realtimeSelect[checkAnnoID] ?? {}), ...setChildAnno };
             }
           }
         }
@@ -5839,9 +5920,12 @@ modules["pages/editor/annotation"] = {
           }
           if (checkAnnotation.pointer != null) {
             checkAnnoID = checkAnnotation.pointer;
-            checkAnnotation = editor.annotations[checkAnnoID] || { render: {} };
+            checkAnnotation = editor.annotations[checkAnnoID];
           }
-          let render = { ...(checkAnnotation.render || {}), ...(this.pendingSaves[checkAnnoID] || {}) };
+          /*if (editor.selecting[checkAnnoID] != null) {
+            continue;
+          }*/
+          let render = { ...(checkAnnotation.render ?? {}), ...(this.pendingSaves[checkAnnoID] ?? {}), ...(editor.selecting[checkAnnoID] ?? {}) };
           if (render.parent == annoID) {
             continue;
           }
@@ -5851,26 +5935,27 @@ modules["pages/editor/annotation"] = {
               thick = render.t;
             }
           }
-          let [x, y] = editor.getAbsolutePosition(render);
+          let [x, y] = editor.getAbsolutePosition(render, true);
           let checkX = x + (render.s[0] / 2) + thick;
           let checkY = y + (render.s[1] / 2) + thick;
           if (checkX >= position[0] && checkX <= position[0] + merged.s[0] + thickness) {
             if (checkY >= position[1] && checkY <= position[1] + merged.s[1] + thickness) {
-              if ((render.l || 0) > (merged.l || 0)) {
+              if ((render.l ?? 0) > (merged.l ?? 0)) {
                 if (self.access > 0 && editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
-                  continue;  
+                  continue;
                 }
                 let setParent = editor.parentFromAnnotation({
                   ...render,
                   parent: null,
+                  prevParent: render.parent,
                   p: [checkX, checkY]
-                });
+                }, null, null, true);
                 if (setParent != render.parent) {
                   let relativePos = editor.getRelativePosition({
                     ...render,
                     parent: setParent,
                     p: [x, y]
-                  });
+                  }, true);
                   let setChildAnno = {
                     _id: checkAnnoID,
                     parent: setParent,
@@ -5881,8 +5966,8 @@ modules["pages/editor/annotation"] = {
                   checkAnnotation.save = true; // Alert the system it's time to save
                   checkAnnotation.render.sync = setChildAnno,sync;
                   checkAnnotation.render.m = self.modify;
-                  this.pendingSaves[checkAnnoID] = { _id: checkAnnoID, ...(this.pendingSaves[checkAnnoID] || {}), ...setChildAnno };
-                  editor.realtimeSelect[checkAnnoID] = { ...(editor.realtimeSelect[checkAnnoID] || {}), ...setChildAnno };
+                  this.pendingSaves[checkAnnoID] = { _id: checkAnnoID, ...(this.pendingSaves[checkAnnoID] ?? {}), ...setChildAnno };
+                  editor.realtimeSelect[checkAnnoID] = { ...(editor.realtimeSelect[checkAnnoID] ?? {}), ...setChildAnno };
                 }
               }
             }
@@ -5895,7 +5980,7 @@ modules["pages/editor/annotation"] = {
     annotation.render.sync = getEpoch();
     mutations.sync = annotation.render.sync;
 
-    let saveSync = { _id: annoID, ...(this.pendingSaves[annoID] || {}), ...mutations };
+    let saveSync = { _id: annoID, ...(this.pendingSaves[annoID] ?? {}), ...mutations };
     if (connected == true) {
       this.pendingSaves[annoID] = saveSync;
       this.syncSave();
@@ -5935,7 +6020,7 @@ modules["pages/editor/annotation"] = {
       return;
     }
     let saveID = "pending_" + randomString(10) + Date.now();
-    let storage = JSON.parse(getLocalStore(storeID) || "{}");
+    let storage = JSON.parse(getLocalStore(storeID) ?? "{}");
     storage[saveID] = JSON.stringify(data);
     setLocalStore(storeID, JSON.stringify(storage));
     */
@@ -6033,7 +6118,7 @@ modules["pages/editor/annotation"] = {
 
     /*if (type == "remove") {
       for (let i = 0; i < changes.length; i++) {
-        changes[i].revert = JSON.parse(JSON.stringify((editor.annotations[changes[i]._id] || {}).render || {}));
+        changes[i].revert = JSON.parse(JSON.stringify((editor.annotations[changes[i]._id] ?? {}).render ?? {}));
       }
     }*/
     let newChanges = JSON.parse(JSON.stringify(changes));
@@ -6087,7 +6172,7 @@ modules["pages/editor/annotation"] = {
     }
   },
   rotatePoint: function (pointX, pointY, angle) {
-    let radian = -(angle || 0) * (Math.PI / 180);
+    let radian = -(angle ?? 0) * (Math.PI / 180);
     let newX = (Math.cos(radian) * pointX) - (Math.sin(radian) * pointY);
     let newY = (Math.sin(radian) * pointX) + (Math.cos(radian) * pointY);
     return [newX, newY];

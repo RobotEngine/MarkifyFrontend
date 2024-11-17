@@ -25,7 +25,7 @@ modules["dropdowns/editor/file/delete"] = {
   js: async function (frame, extra) {
     let dropdown = await getModule("dropdown");
     let alert = await getModule("alert");
-    let option = extra.button.getAttribute("option") || "deletelesson";
+    let option = extra.button.getAttribute("option") ?? "deletelesson";
     let access;
     let extraSend;
     let title = frame.querySelector(".eFileDeleteTitle");

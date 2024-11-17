@@ -227,7 +227,7 @@ modules["editor/export"] = {
                     }
                   })();
                 }
-                return { capture: true, done: false, width: annotation.render.s[0], height: annotation.render.s[1], page: currentPage - 1 }; // - (pageBorderWidth * 2) //) * editor.zoom
+                return { capture: true, done: false, width: annotation.render.s[0] - (pageBorderWidth * 2), height: annotation.render.s[1] - (pageBorderWidth * 2), page: currentPage - 1 }; // - (pageBorderWidth * 2) //) * editor.zoom
               }
             }
           }

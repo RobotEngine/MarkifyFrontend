@@ -108,7 +108,8 @@ modules["editor/export"] = {
     let currentTask;
     let currentPage = 1;
 
-    await editor.setZoom(1.5);
+    let pageScale = 1.5;
+    let pageBorderWidth = 4;
 
     let handleRenderPromise;
     this.handleRendering = () => {
@@ -176,7 +177,6 @@ modules["editor/export"] = {
 
       switch (currentTask) {
         case "set":
-          let pageBorderWidth = 4;
           let pageID;
           if (editor.exportSelected == null) {
             pageID = (editor.annotationPages[currentPage - 1] ?? [])[0];
@@ -199,6 +199,8 @@ modules["editor/export"] = {
               await utils.setMarginSize(true);
               if (annotation.render != null) {
                 let position = editor.getAbsolutePosition(annotation.render);
+                let useZoomWidth = pageBorderWidth * 2;
+                await editor.setZoom((useZoomWidth * pageScale) / useZoomWidth);
                 window.scrollTo(0, 0);
                 pageHolder.style.removeProperty("transform");
                 let pageRect = pageHolder.getBoundingClientRect();

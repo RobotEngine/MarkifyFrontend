@@ -3,7 +3,7 @@ let serverURL = window.serverURL ?? "https://api.markifyapp.com/";
 let assetURL = window.mediaURL ?? "https://static.markifyapp.com/";
 //window.socketURL = "ws://localhost:3000/socket/v2";
 
-const version = "0.22.2"; // Big Update . Small Feature Release . Bug Fix
+const version = "0.22.3"; // Big Update . Small Feature Release . Bug Fix
 
 let socket = {};
 
@@ -64,7 +64,7 @@ document.addEventListener("touchend", function() {
 }, { capture: true, passive: true });
 let primaryButtonDown = false;
 function mouseDown() {
-  return primaryButtonDown ?? screenPressed;
+  return primaryButtonDown || screenPressed;
 }
 function setPrimaryButtonState(event) {
   let flags = event.buttons !== undefined ? event.buttons : event.which;

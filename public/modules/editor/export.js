@@ -199,8 +199,7 @@ modules["editor/export"] = {
               await utils.setMarginSize(true);
               if (annotation.render != null) {
                 let position = editor.getAbsolutePosition(annotation.render);
-                let useZoomWidth = pageBorderWidth * 2;
-                await editor.setZoom((useZoomWidth * pageScale) / useZoomWidth);
+                await editor.setZoom(((annotation.render.s[0] - (pageBorderWidth * 2)) * pageScale) / annotation.render.s[0]);
                 window.scrollTo(0, 0);
                 pageHolder.style.removeProperty("transform");
                 let pageRect = pageHolder.getBoundingClientRect();

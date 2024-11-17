@@ -1531,7 +1531,7 @@ modules["editor/toolbar"] = {
       if (self.access < 1) {
         return;
       }
-      let meta = event.ctrlKey ?? event.metaKey;
+      let meta = event.ctrlKey || event.metaKey;
       if (event.keyCode == 90 && event.shiftKey == true && meta == true) {
         event.preventDefault();
         return redoAction();

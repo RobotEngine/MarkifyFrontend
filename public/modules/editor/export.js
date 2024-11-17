@@ -202,7 +202,7 @@ modules["editor/export"] = {
                 window.scrollTo(0, 0);
                 pageHolder.style.removeProperty("transform");
                 let pageRect = pageHolder.getBoundingClientRect();
-                pageHolder.style.transform = `translate(-${pageRect.left + ((position[0] + pageBorderWidth) * editor.zoom)}px, -${pageRect.top + ((position[1] + pageBorderWidth) * editor.zoom)}px) scale(var(--zoom))`;
+                pageHolder.style.transform = `translate(-${pageRect.left + (position[0] * editor.zoom)}px, -${pageRect.top + (position[1] * editor.zoom)}px) scale(var(--zoom))`; // + pageBorderWidth)
               }
               let element = pageHolder.querySelector('.eAnnotation[anno="' + pageID + '"]');
               if (element != null) {

@@ -107,7 +107,8 @@ modules["editor/export"] = {
 
     let currentTask;
     let currentPage = 1;
-    let scaleFactor = 1.5;
+
+    await editor.setZoom(1.5);
 
     let handleRenderPromise;
     this.handleRendering = () => {
@@ -133,7 +134,6 @@ modules["editor/export"] = {
             if (editor.annotationPages.length > 0) {
               currentPage = 1;
               currentTask = "set";
-              scaleFactor = 1;
             } else {
               currentTask = "board";
             }
@@ -202,7 +202,7 @@ modules["editor/export"] = {
                 window.scrollTo(0, 0);
                 pageHolder.style.removeProperty("transform");
                 let pageRect = pageHolder.getBoundingClientRect();
-                pageHolder.style.transform = `translate(-${pageRect.left + ((position[0] + pageBorderWidth) * editor.zoom)}px, -${pageRect.top + ((position[1] + pageBorderWidth) * editor.zoom)}px)`;
+                pageHolder.style.transform = `translate(-${pageRect.left + ((position[0] + pageBorderWidth) * editor.zoom)}px, -${pageRect.top + ((position[1] + pageBorderWidth) * editor.zoom)}px) scale(var(--zoom))`;
               }
               let element = pageHolder.querySelector('.eAnnotation[anno="' + pageID + '"]');
               if (element != null) {
@@ -226,7 +226,7 @@ modules["editor/export"] = {
                     }
                   })();
                 }
-                return { capture: true, done: false, width: ((annotation.render.s[0] - (pageBorderWidth * 2)) * editor.zoom) / scaleFactor, height: ((annotation.render.s[1] - (pageBorderWidth * 2)) * editor.zoom) / scaleFactor, page: currentPage - 1 };
+                return { capture: true, done: false, width: ((annotation.render.s[0] - (pageBorderWidth * 2)) * editor.zoom), height: ((annotation.render.s[1] - (pageBorderWidth * 2)) * editor.zoom), page: currentPage - 1 };
               }
             }
           }
@@ -287,6 +287,7 @@ modules["editor/export"] = {
     });
 
     window.exporter = this;
+    //await window.exporter.exportStep({ method: "pages" });
   }
 }
 

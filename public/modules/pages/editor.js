@@ -2321,6 +2321,255 @@ modules["pages/editor"] = {
       }
     }
 
+    // Zoom
+    let lastMouseX;
+    let lastMouseY;
+    let mouseBeforeX;
+    let mouseBeforeY;
+    this.setZoom = async (set, observe, mouse) => {
+      mouse = mouse ?? {};
+      if (observe != true && this.realtime.observing != null && this.realtime.module != null) {
+        this.realtime.module.exitObserve();
+      }
+
+      let mouseX = mouse.clientX ?? ((mouse.changedTouches ?? [])[0] ?? {}).clientX ?? 0;
+      let mouseY = mouse.clientY ?? ((mouse.changedTouches ?? [])[0] ?? {}).clientY ?? 0;
+      
+      if (lastMouseX != mouseX || lastMouseY != mouseY) {
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
+        // Get Page Rect:
+        let pageHolderRect = pageHolder.getBoundingClientRect();
+        mouseBeforeX = (mouseX - pageHolderRect.left) / this.zoom;
+        mouseBeforeY = (mouseY - pageHolderRect.top) / this.zoom;
+      }
+
+      if (set != null) {
+        this.zoom = set;
+      } else {
+        this.zoom += Math.min(mouse.deltaY ?? 0, 50) * -0.01;
+        //let delta = Math.max(-1, Math.min(1, (mouse.wheelDelta ?? -(mouse.detail ?? 0))));
+        //this.zoom = this.zoom + (delta / 10);
+      }
+      this.zoomChanged = true;
+
+      if (this.zoom > 5) {
+        this.zoom = 5;
+      } else if (this.zoom < .2) {
+        this.zoom = .2;
+      }
+
+      this.zooming = true;
+
+      contentHolder.style.setProperty("--zoom", this.zoom);
+
+      //await this.updatePageSize();
+      await utils.setMarginSize();
+
+      //updateContentSize();
+
+      if (observe != true) {
+        // Get Page Rect:
+        let newPageHolderRect = pageHolder.getBoundingClientRect();
+        let addScrollX = (mouseBeforeX * this.zoom) - (mouseX - newPageHolderRect.left);
+        let addScrollY = (mouseBeforeY * this.zoom) - (mouseY - newPageHolderRect.top);
+        
+        // Set the new scroll position
+        window.scrollTo(window.scrollX + addScrollX, window.scrollY + addScrollY);
+      }
+
+      await this.updateChunks();
+
+      this.zooming = false;
+
+      /*if (observe != true) {
+        await utils.setMarginSize();
+
+        // Get Page Rect:
+        let newPageHolderRect = pageHolder.getBoundingClientRect();
+
+        // Calculate the new scroll position based on the mouse cursor position and zoom level
+        let mouseRelativeAfterX = (mouseX - newPageHolderRect.left) / (pageHolder.offsetWidth * this.zoom);
+        let mouseRelativeAfterY = (mouseY - newPageHolderRect.top) / (pageHolder.offsetHeight * this.zoom);
+
+        let newScrollX = ((pageHolder.offsetWidth * this.zoom) * mouseRelativeBeforeX) - ((pageHolder.offsetWidth * this.zoom) * mouseRelativeAfterX);
+        let newScrollY = ((pageHolder.offsetHeight * this.zoom) * mouseRelativeBeforeY) - ((pageHolder.offsetHeight * this.zoom) * mouseRelativeAfterY);
+
+        // Set the new scroll position
+        window.scrollTo(window.scrollX + newScrollX, window.scrollY + newScrollY);
+      } else {
+        utils.setMarginSize();
+      }*/
+
+      /*
+      // Calculate the new scroll position based on the mouse cursor position and zoom level
+      let newScrollX = ((mouseX + pageScrollX) * (document.body.scrollWidth / prevWidth)) - mouseX; // + rect.left;
+      let newScrollY = ((mouseY + pageScrollY) * (document.body.scrollHeight / prevHeight)) - mouseY; // + rect.top;
+
+      // Set the new scroll position
+      window.scrollTo(newScrollX, newScrollY);
+      */
+
+      let updateZoomPercentBoxes = document.querySelectorAll(".eZoomBox");
+      for (let i = 0; i < updateZoomPercentBoxes.length; i++) {
+        updateZoomPercentBoxes[i].textContent = Math.round(this.zoom * 100);
+      }
+      if (fixed.querySelector(".eZoomHolder")) {
+        if (this.zoom >= 5) {
+          fixed.querySelector(".eZoomButton[add]").setAttribute("disabled", "");
+        } else {
+          fixed.querySelector(".eZoomButton[add]").removeAttribute("disabled");
+        }
+        if (this.zoom <= .2) {
+          fixed.querySelector(".eZoomButton[sub]").setAttribute("disabled", "");
+        } else {
+          fixed.querySelector(".eZoomButton[sub]").removeAttribute("disabled");
+        }
+      }
+
+      if (mouse.updatePages != false && this.updatePages) {
+        await this.updatePages();
+      }
+      if (this.updateZoom) {
+        await this.updateZoom(true);
+      }
+      if (this.updateSelectedBounds) {
+        await this.updateSelectedBounds();
+      }
+
+      enableScrollTop();
+
+      if (this.realtime.module != null) {
+        this.realtime.module.adjustRealtimeHolder();
+      }
+    }
+    let scrollMouseWheel = (event) => {
+      if (event.ctrlKey || event.metaKey) {
+        event.preventDefault();
+        this.setZoom(null, null, event);
+      } else {
+        lastMouseX = null;
+        lastMouseY = null;
+      }
+    }
+    tempListen(window, "DOMMouseScroll", scrollMouseWheel, { passive: false });
+    tempListen(window, "mousewheel", scrollMouseWheel, { passive: false });
+    tempListen(window, "wheel", scrollMouseWheel, { passive: false });
+
+    // Handle MOBILE
+    let startDistance;
+    let startZoom;
+    let currentCenter;
+    let getDistance = (touches) => {
+      //return Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
+      // Percent Based Distance:
+      let pageWidth = fixed.offsetWidth;
+      let pageHeight = fixed.offsetHeight;
+      let xDiff = (touches[1].clientX / pageWidth) - (touches[0].clientX / pageWidth);
+      let yDiff = (touches[1].clientY / pageHeight) - (touches[0].clientY / pageHeight);
+      return Math.sqrt((xDiff * xDiff) + (yDiff * yDiff));
+    }
+    let getCenter = (touches) => {
+      return { x: (touches[0].clientX + touches[1].clientX) / 2, y: (touches[0].clientY + touches[1].clientY) / 2 };
+    }
+    //let finishTimeout;
+    let running = false;
+    let handlePinch = async (event) => {
+      if (event.touches.length > 1 && this.pinchZoomDisable != true) {
+        event.preventDefault();
+        if (running == true) {
+          return;
+        }
+        running = true;
+        let selectKeys = Object.keys(this.selecting);
+        this.selecting = {};
+        for (let i = 0; i < selectKeys.length; i++) {
+          let existingAnno = this.annotations[selectKeys[i]];
+          if (existingAnno != null) {
+            let allowRender = false;
+            for (let i = 0; i < existingAnno.chunks.length; i++) {
+              if (this.visibleChunks.includes(existingAnno.chunks[i]) == true) {
+                allowRender = true;
+                break;
+              }
+            }
+            if (allowRender == true) {
+              await utils.render(existingAnno.render);
+            }
+          }
+        }
+        let currentDistance = getDistance(event.touches);
+        if (startDistance == null) {
+          startDistance = currentDistance;
+        }
+        if (startZoom == null) {
+          startZoom = this.zoom;
+        }
+        //let currentCenter = getCenter(event.touches);
+        if (currentCenter == null) {
+          currentCenter = getCenter(event.touches);
+        }
+        /*
+        let delta = 0;
+        if (currentDistance > lastDistance) {
+          delta = 1;
+        } else if (lastDistance < currentDistance) {
+          delta = -1;
+        }
+        */
+        await this.setZoom(startZoom * (currentDistance / startDistance), null, { clientX: currentCenter.x, clientY: currentCenter.y, updatePages: false });
+        /*clearTimeout(finishTimeout);
+        finishTimeout = setTimeout(() => {
+          if (this.updatePages) {
+            this.updatePages();
+          }
+        }, 5000);*/
+        running = false;
+      }
+    }
+    tempListen(document, "touchstart", handlePinch, { passive: false });
+    tempListen(document, "touchmove", handlePinch, { passive: false });
+    tempListen(document, "touchend", () => {
+      startDistance = null;
+      startZoom = null;
+      currentCenter = null;
+    }, { passive: false });
+
+    /*
+    let initialDistance = null;
+
+    function calculateDistance(touches) {
+      let [x1, y1] = [touches[0].pageX, touches[0].pageY];
+      let [x2, y2] = [touches[1].pageX, touches[1].pageY];
+      return Math.hypot(x2 - x1, y2 - y1);
+    }
+
+    function handlePinchZoom(event) {
+      let touches = event.touches;
+      if (touches.length !== 2) return;
+
+      let currentDistance = calculateDistance(touches);
+
+      if (initialDistance === null) {
+        initialDistance = currentDistance;
+      } else {
+        let distanceChange = currentDistance - initialDistance;
+        document.title = distanceChange;
+
+        this.setZoom(this.zoom + Math.floor(distanceChange * 0.1));
+      }
+
+      event.preventDefault();
+    }
+
+    function handleTouchEnd() {
+      initialDistance = null;
+    }
+
+    tempListen(window, "touchmove", handlePinchZoom, { passive: false });
+    tempListen(window, "touchend", handleTouchEnd, { passive: false });
+    */
+
     if (this.exporting != true) {
       asyncLoadAnnotations();
       (async () => {
@@ -2828,10 +3077,10 @@ modules["pages/editor"] = {
         addPagesHolder = null;
         pageHolder.style.width = "1px";
         pageHolder.style.height = "1px";
-        this.updatePageSize = () => {
+        //this.updatePageSize = () => {
           //pageHolder.style.width = fixed.offsetWidth - 332 + "px";
           //pageHolder.style.height = fixed.offsetHeight - 332 + "px";
-        }
+        //}
         pageHolder.style.pointerEvents = "none";
         let resetTimeout;
         tempListen(window, "resize", () => {
@@ -2960,260 +3209,13 @@ modules["pages/editor"] = {
         //bottomHolder.remove();
     }
 
-    let updateContentSize = () => {
+    /*let updateContentSize = () => {
       if (this.lesson.type != "freeboard") {
         content.style.width = pageHolder.clientWidth * this.zoom + "px";
         content.style.height = ((pageHolder.clientHeight * this.zoom) + addPagesHolder.clientHeight) + "px";
       }
     }
-    updateContentSize();
-
-    // Zoom
-    let lastMouseX;
-    let lastMouseY;
-    let mouseBeforeX;
-    let mouseBeforeY;
-    this.setZoom = async (set, observe, mouse) => {
-      mouse = mouse ?? {};
-      if (observe != true && this.realtime.observing != null && this.realtime.module != null) {
-        this.realtime.module.exitObserve();
-      }
-
-      let mouseX = mouse.clientX ?? ((mouse.changedTouches ?? [])[0] ?? {}).clientX ?? 0;
-      let mouseY = mouse.clientY ?? ((mouse.changedTouches ?? [])[0] ?? {}).clientY ?? 0;
-      
-      if (lastMouseX != mouseX || lastMouseY != mouseY) {
-        lastMouseX = mouseX;
-        lastMouseY = mouseY;
-        // Get Page Rect:
-        let pageHolderRect = pageHolder.getBoundingClientRect();
-        mouseBeforeX = (mouseX - pageHolderRect.left) / this.zoom;
-        mouseBeforeY = (mouseY - pageHolderRect.top) / this.zoom;
-      }
-
-      if (set != null) {
-        this.zoom = set;
-      } else {
-        this.zoom += Math.min(mouse.deltaY ?? 0, 50) * -0.01;
-        //let delta = Math.max(-1, Math.min(1, (mouse.wheelDelta ?? -(mouse.detail ?? 0))));
-        //this.zoom = this.zoom + (delta / 10);
-      }
-      this.zoomChanged = true;
-
-      if (this.zoom > 5) {
-        this.zoom = 5;
-      } else if (this.zoom < .2) {
-        this.zoom = .2;
-      }
-
-      this.zooming = true;
-
-      contentHolder.style.setProperty("--zoom", this.zoom);
-
-      await this.updatePageSize();
-      await utils.setMarginSize();
-
-      updateContentSize();
-
-      if (observe != true) {
-        // Get Page Rect:
-        let newPageHolderRect = pageHolder.getBoundingClientRect();
-        let addScrollX = (mouseBeforeX * this.zoom) - (mouseX - newPageHolderRect.left);
-        let addScrollY = (mouseBeforeY * this.zoom) - (mouseY - newPageHolderRect.top);
-        
-        // Set the new scroll position
-        window.scrollTo(window.scrollX + addScrollX, window.scrollY + addScrollY);
-      }
-
-      await this.updateChunks();
-
-      this.zooming = false;
-
-      /*if (observe != true) {
-        await utils.setMarginSize();
-
-        // Get Page Rect:
-        let newPageHolderRect = pageHolder.getBoundingClientRect();
-
-        // Calculate the new scroll position based on the mouse cursor position and zoom level
-        let mouseRelativeAfterX = (mouseX - newPageHolderRect.left) / (pageHolder.offsetWidth * this.zoom);
-        let mouseRelativeAfterY = (mouseY - newPageHolderRect.top) / (pageHolder.offsetHeight * this.zoom);
-
-        let newScrollX = ((pageHolder.offsetWidth * this.zoom) * mouseRelativeBeforeX) - ((pageHolder.offsetWidth * this.zoom) * mouseRelativeAfterX);
-        let newScrollY = ((pageHolder.offsetHeight * this.zoom) * mouseRelativeBeforeY) - ((pageHolder.offsetHeight * this.zoom) * mouseRelativeAfterY);
-
-        // Set the new scroll position
-        window.scrollTo(window.scrollX + newScrollX, window.scrollY + newScrollY);
-      } else {
-        utils.setMarginSize();
-      }*/
-
-      /*
-      // Calculate the new scroll position based on the mouse cursor position and zoom level
-      let newScrollX = ((mouseX + pageScrollX) * (document.body.scrollWidth / prevWidth)) - mouseX; // + rect.left;
-      let newScrollY = ((mouseY + pageScrollY) * (document.body.scrollHeight / prevHeight)) - mouseY; // + rect.top;
-
-      // Set the new scroll position
-      window.scrollTo(newScrollX, newScrollY);
-      */
-
-      let updateZoomPercentBoxes = document.querySelectorAll(".eZoomBox");
-      for (let i = 0; i < updateZoomPercentBoxes.length; i++) {
-        updateZoomPercentBoxes[i].textContent = Math.round(this.zoom * 100);
-      }
-      if (fixed.querySelector(".eZoomHolder")) {
-        if (this.zoom >= 5) {
-          fixed.querySelector(".eZoomButton[add]").setAttribute("disabled", "");
-        } else {
-          fixed.querySelector(".eZoomButton[add]").removeAttribute("disabled");
-        }
-        if (this.zoom <= .2) {
-          fixed.querySelector(".eZoomButton[sub]").setAttribute("disabled", "");
-        } else {
-          fixed.querySelector(".eZoomButton[sub]").removeAttribute("disabled");
-        }
-      }
-
-      if (mouse.updatePages != false && this.updatePages) {
-        await this.updatePages();
-      }
-      if (this.updateZoom) {
-        await this.updateZoom(true);
-      }
-      if (this.updateSelectedBounds) {
-        await this.updateSelectedBounds();
-      }
-
-      enableScrollTop();
-
-      this.realtime.module.adjustRealtimeHolder();
-    }
-    let scrollMouseWheel = (event) => {
-      if (event.ctrlKey || event.metaKey) {
-        event.preventDefault();
-        this.setZoom(null, null, event);
-      } else {
-        lastMouseX = null;
-        lastMouseY = null;
-      }
-    }
-    tempListen(window, "DOMMouseScroll", scrollMouseWheel, { passive: false });
-    tempListen(window, "mousewheel", scrollMouseWheel, { passive: false });
-    tempListen(window, "wheel", scrollMouseWheel, { passive: false });
-
-    // Handle MOBILE
-    let startDistance;
-    let startZoom;
-    let currentCenter;
-    let getDistance = (touches) => {
-      //return Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
-      // Percent Based Distance:
-      let pageWidth = fixed.offsetWidth;
-      let pageHeight = fixed.offsetHeight;
-      let xDiff = (touches[1].clientX / pageWidth) - (touches[0].clientX / pageWidth);
-      let yDiff = (touches[1].clientY / pageHeight) - (touches[0].clientY / pageHeight);
-      return Math.sqrt((xDiff * xDiff) + (yDiff * yDiff));
-    }
-    let getCenter = (touches) => {
-      return { x: (touches[0].clientX + touches[1].clientX) / 2, y: (touches[0].clientY + touches[1].clientY) / 2 };
-    }
-    //let finishTimeout;
-    let running = false;
-    let handlePinch = async (event) => {
-      if (event.touches.length > 1 && this.pinchZoomDisable != true) {
-        event.preventDefault();
-        if (running == true) {
-          return;
-        }
-        running = true;
-        let selectKeys = Object.keys(this.selecting);
-        this.selecting = {};
-        for (let i = 0; i < selectKeys.length; i++) {
-          let existingAnno = this.annotations[selectKeys[i]];
-          if (existingAnno != null) {
-            let allowRender = false;
-            for (let i = 0; i < existingAnno.chunks.length; i++) {
-              if (this.visibleChunks.includes(existingAnno.chunks[i]) == true) {
-                allowRender = true;
-                break;
-              }
-            }
-            if (allowRender == true) {
-              await utils.render(existingAnno.render);
-            }
-          }
-        }
-        let currentDistance = getDistance(event.touches);
-        if (startDistance == null) {
-          startDistance = currentDistance;
-        }
-        if (startZoom == null) {
-          startZoom = this.zoom;
-        }
-        //let currentCenter = getCenter(event.touches);
-        if (currentCenter == null) {
-          currentCenter = getCenter(event.touches);
-        }
-        /*
-        let delta = 0;
-        if (currentDistance > lastDistance) {
-          delta = 1;
-        } else if (lastDistance < currentDistance) {
-          delta = -1;
-        }
-        */
-        await this.setZoom(startZoom * (currentDistance / startDistance), null, { clientX: currentCenter.x, clientY: currentCenter.y, updatePages: false });
-        /*clearTimeout(finishTimeout);
-        finishTimeout = setTimeout(() => {
-          if (this.updatePages) {
-            this.updatePages();
-          }
-        }, 5000);*/
-        running = false;
-      }
-    }
-    tempListen(document, "touchstart", handlePinch, { passive: false });
-    tempListen(document, "touchmove", handlePinch, { passive: false });
-    tempListen(document, "touchend", () => {
-      startDistance = null;
-      startZoom = null;
-      currentCenter = null;
-    }, { passive: false });
-
-    /*
-    let initialDistance = null;
-
-    function calculateDistance(touches) {
-      let [x1, y1] = [touches[0].pageX, touches[0].pageY];
-      let [x2, y2] = [touches[1].pageX, touches[1].pageY];
-      return Math.hypot(x2 - x1, y2 - y1);
-    }
-
-    function handlePinchZoom(event) {
-      let touches = event.touches;
-      if (touches.length !== 2) return;
-
-      let currentDistance = calculateDistance(touches);
-
-      if (initialDistance === null) {
-        initialDistance = currentDistance;
-      } else {
-        let distanceChange = currentDistance - initialDistance;
-        document.title = distanceChange;
-
-        this.setZoom(this.zoom + Math.floor(distanceChange * 0.1));
-      }
-
-      event.preventDefault();
-    }
-
-    function handleTouchEnd() {
-      initialDistance = null;
-    }
-
-    tempListen(window, "touchmove", handlePinchZoom, { passive: false });
-    tempListen(window, "touchend", handleTouchEnd, { passive: false });
-    */
+    updateContentSize();*/
 
     // Fullscreen
     let pageUpdateInterval;

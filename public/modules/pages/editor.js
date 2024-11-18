@@ -3279,6 +3279,7 @@ modules["pages/editor/annotation"] = {
   findPage: async function (y) {
     let editor = await getModule("pages/editor");
     let pageHolder = editor.page.querySelector(".ePageHolder");
+    return [pageHolder, 0];
     for (let i = 0; i < editor.visiblePages.length; i++) {
       let pageElem = pageHolder.children[editor.visiblePages[i] - 1];
       if (pageElem == null) {

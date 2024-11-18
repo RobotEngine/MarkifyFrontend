@@ -4903,7 +4903,7 @@ modules["pages/editor/toolbar/cursor"] = {
 
       let originalRender = (original.render ?? {}) ?? selecting;
       if (originalRender != null && originalRender.page != null) {
-        if (originalRender.lock == true) {
+        if (originalRender.lock == true && selecting.lock == null) {
           continue;
         }
         let page = selecting.page ?? originalRender.page;

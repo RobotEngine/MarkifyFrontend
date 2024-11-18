@@ -5797,7 +5797,7 @@ modules["pages/editor/toolbar/drag"] = {
 
       disableSelect();
       editor.toolbar.closeSubSubtoolUI();
-      event.preventDefault();
+      //event.preventDefault();
       content.insertAdjacentHTML("beforeend", `<div class="eSelectDrag" tooleditor new></div>`);
       this.selection = content.querySelector(".eSelectDrag:not([remove])");
       this.selection.removeAttribute("new");

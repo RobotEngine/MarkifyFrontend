@@ -1715,6 +1715,7 @@ modules["pages/editor"] = {
 
     this.annotationPages = [];
     this.currentPage = 1;
+    let pageParam = getParam("page");
 
     this.updateCurrentPageInterface = () => {
       pageTextBox.innerHTML = "<b>" + this.currentPage + "</b> / " + this.annotationPages.length;
@@ -1744,6 +1745,7 @@ modules["pages/editor"] = {
       let centerPointX = ((fixed.offsetWidth / 2) - pageRect.left) / this.zoom;
       let centerPointY = ((fixed.offsetHeight / 2) - pageRect.top) / this.zoom;
       let minPage = 0;
+      let minPageId;
       let minDistance;
       for (let i = 0; i < this.annotationPages.length; i++) {
         let page = this.annotationPages[i];
@@ -1751,6 +1753,7 @@ modules["pages/editor"] = {
         if (distance < minDistance || minDistance == null) {
           minDistance = distance;
           minPage = i + 1;
+          minPageId = page[0];
         }
       }
       if (minPage > 0) {
@@ -1760,6 +1763,7 @@ modules["pages/editor"] = {
       } else {
         bottomHolder.style.display = "none";
       }
+      modifyParams("page", minPageId);
     }
 
     this.updateAnnotationPages = (anno) => {
@@ -2234,6 +2238,145 @@ modules["pages/editor"] = {
 
       await this.viewAnnotations(true);
     }*/
+    
+    this.sources = { ...this.sources, ...getObject(body.sources ?? [], "_id") };
+    //pageHolder.remove();
+    addPagesHolder.remove();
+    addPagesHolder = null;
+    pageHolder.style.width = "1px";
+    pageHolder.style.height = "1px";
+    //this.updatePageSize = () => {
+      //pageHolder.style.width = fixed.offsetWidth - 332 + "px";
+      //pageHolder.style.height = fixed.offsetHeight - 332 + "px";
+    //}
+    pageHolder.style.pointerEvents = "none";
+    let resetTimeout;
+    tempListen(window, "resize", () => {
+      clearTimeout(resetTimeout);
+      resetTimeout = setTimeout(() => {
+        //this.updatePageSize();
+        if (this.exporting != true) {
+          this.addMargin = Math.max(fixed.offsetWidth, fixed.offsetHeight) / 2; // Was 100 for some reason???
+        }
+        utils.setMarginSize();
+      }, 500);
+    });
+    let updateScroll = () => {
+      if (this.scrollEvent) {
+        this.scrollEvent();
+      }
+    }
+    tempListen(window, "scroll", updateScroll);
+    tempListen(window, "resize", updateScroll);
+    //this.updatePageSize();
+    this.visiblePages = [0];
+    //await this.viewAnnotations();
+    //utils.resetAnnotationSize();
+
+    let updateAnnotationScroll = (page, animation) => {
+      if (page == null) {
+        return;
+      }
+      this.updateCurrentPageInterface();
+      let annoID = page[0];
+      if ((annoID ?? "").startsWith("pending_") == true) {
+        let anno = this.annotations[annoID] ?? {};
+        if (anno.pointer != null) {
+          annoID = anno.pointer;
+        }
+      }
+      let render = (this.annotations[annoID] ?? {}).render;
+      if (render != null) {
+        let thickness = 0;
+        if (render.t != null) {
+          if (render.b != "none" || render.d == "line") {
+            thickness = render.t;
+          }
+        }
+        let position = this.getAbsolutePosition(render);
+        let pageRect = pageHolder.getBoundingClientRect();
+        let options = {};
+        if ((render.s[0] + (thickness * 2)) * this.zoom < fixed.offsetWidth - (scrollOffset * 2)) {
+          // Position page to center:
+          options.left = pageRect.left + window.scrollX - (fixed.offsetWidth / 2) + ((position[0] + (render.s[0] / 2) + thickness) * this.zoom);
+        } else {
+          // Position page to left corner:
+          options.left = pageRect.left + window.scrollX - scrollOffset + (position[0] * this.zoom);
+        }
+        if ((render.s[1] + (thickness * 2)) * this.zoom < fixed.offsetHeight - (scrollOffset * 2)) {
+          // Position page to center:
+          options.top = pageRect.top + window.scrollY - (fixed.offsetHeight / 2) + ((position[1] + (render.s[1] / 2) + thickness) * this.zoom);
+        } else {
+          // Position page to left corner:
+          options.top = pageRect.top + window.scrollY - scrollOffset + (position[1] * this.zoom);
+        }
+        if (animation != false) {
+          options.behavior = "smooth";
+        }
+        window.scrollTo(options);
+      }
+      if (this.realtime.observing != null && this.realtime.module != null) {
+        this.realtime.module.exitObserve();
+      }
+    }
+    bottomHolder.querySelector(".ePageNav[down]").addEventListener("click", () => {
+      this.currentPage++;
+      updateAnnotationScroll(this.annotationPages[this.currentPage - 1]);
+    });
+    bottomHolder.querySelector(".ePageNav[up]").addEventListener("click", () => {
+      this.currentPage--;
+      updateAnnotationScroll(this.annotationPages[this.currentPage - 1]);
+    });
+    pageTextBox.addEventListener("focus", async () => {
+      if (alreadyRunningFocus == true) {
+        return;
+      }
+      alreadyRunningFocus = true;
+      pageTextBox.blur();
+      pageTextBox.innerHTML = "";
+      pageTextBox.focus();
+      alreadyRunningFocus = false;
+    });
+    pageTextBox.addEventListener("keydown", (event) => {
+      if (event.keyCode == 13) {
+        event.preventDefault();
+        pageTextBox.blur();
+        return;
+      }
+      if (String.fromCharCode(event.keyCode).match(/(\w|\s)/g) && event.key.length == 1) {
+        let textInt = parseInt(pageTextBox.textContent + event.key);
+        if (parseInt(event.key) != event.key) {
+          event.preventDefault();
+          textBoxError(pageTextBox, "Must be a number");
+        } else if (textInt > this.annotationPages.length) {
+          event.preventDefault();
+          textBoxError(pageTextBox, "Maximum of page number " + this.annotationPages.length);
+        } else if (textInt < 1) {
+          event.preventDefault();
+          textBoxError(pageTextBox, "Minimum of the first page");
+        }
+      }
+    });
+    pageTextBox.addEventListener("focusout", (event) => {
+      //pageBoxFocus = false;
+      if (pageTextBox.textContent == "") {
+        pageTextBox.innerHTML = "<b>" + this.currentPage + "</b> / " + this.annotationPages.length;
+        return;
+      }
+      let setPage = parseInt(pageTextBox.textContent) ?? 1;
+      pageTextBox.innerHTML = "<b>" + setPage + "</b> / " + this.annotationPages.length;
+      updateAnnotationScroll(this.annotationPages[setPage - 1], false);
+    });
+    bottomHolder.style.display = "none";
+    //bottomHolder.remove();
+
+    /*let updateContentSize = () => {
+      if (this.lesson.type != "freeboard") {
+        content.style.width = pageHolder.clientWidth * this.zoom + "px";
+        content.style.height = ((pageHolder.clientHeight * this.zoom) + addPagesHolder.clientHeight) + "px";
+      }
+    }
+    updateContentSize();*/
 
     // Fetch Annotations
     let checkForJumpLink = getParam("annotation");
@@ -2314,6 +2457,9 @@ modules["pages/editor"] = {
       if (jumpAnnotation == null) {
         await this.updateChunks();
         centerWindowWithPage();
+        if (pageParam != null) {
+          updateAnnotationScroll([pageParam], false);
+        }
       } else {
         let jumpRect = jumpAnnotation.getBoundingClientRect();
         window.scrollTo(window.scrollX + jumpRect.left - ((fixed.offsetWidth - jumpAnnotation.offsetWidth) / 2), window.scrollY + jumpRect.top - ((fixed.offsetHeight - jumpAnnotation.offsetHeight) / 2));
@@ -2587,635 +2733,12 @@ modules["pages/editor"] = {
       this.toolbar.checkToolToggle();
     }
 
-    switch (this.lesson.type) {
-      case "standard":
-        pages = { ...pages, ...getObject(body.pages || [], "_id") };
-        sources = { ...sources, ...getObject(body.sources || [], "_id") };
-        
-        pageTextBox.innerHTML = "<b>1</b> / " + Object.keys(pages).length;
-        let updatePageScroll = (nextPage, animation) => {
-          if (nextPage) {
-            let options = { top: window.scrollY + nextPage.getBoundingClientRect().top - scrollOffset };
-            if (animation != false) {
-              options.behavior = "smooth";
-            }
-            window.scrollTo(options);
-          }
-          if (this.realtime.observing != null && this.realtime.module != null) {
-            this.realtime.module.exitObserve();
-          }
-        }
-        bottomHolder.querySelector(".ePageNav[down]").addEventListener("click", () => {
-          updatePageScroll(pageHolder.children[currentPage] || pageHolder.children[pageHolder.children.length - 1]);
-        });
-        bottomHolder.querySelector(".ePageNav[up]").addEventListener("click", () => {
-          updatePageScroll(pageHolder.children[currentPage - 2] || pageHolder.children[0]);
-        });
-        pageTextBox.addEventListener("focus", async () => {
-          if (alreadyRunningFocus == true) {
-            return;
-          }
-          alreadyRunningFocus = true;
-          pageTextBox.blur();
-          pageTextBox.innerHTML = "";
-          pageTextBox.focus();
-          alreadyRunningFocus = false;
-        });
-        pageTextBox.addEventListener("keydown", (event) => {
-          if (event.keyCode == 13) {
-            event.preventDefault();
-            pageTextBox.blur();
-            return;
-          }
-          if (String.fromCharCode(event.keyCode).match(/(\w|\s)/g) && event.key.length == 1) {
-            let textInt = parseInt(pageTextBox.textContent + event.key);
-            if (parseInt(event.key) != event.key) {
-              event.preventDefault();
-              textBoxError(pageTextBox, "Must be a number");
-            } else if (textInt > body.pages.length) {
-              event.preventDefault();
-              textBoxError(pageTextBox, "Maximum of page number " + body.pages.length);
-            } else if (textInt < 1) {
-              event.preventDefault();
-              textBoxError(pageTextBox, "Minimum of the first page");
-            }
-          }
-        });
-        pageTextBox.addEventListener("focusout", (event) => {
-          if (pageTextBox.textContent == "") {
-            pageTextBox.innerHTML = "<b>" + currentPage + "</b> / " + body.pages.length;
-            return;
-          }
-          let setPage = parseInt(pageTextBox.textContent) || 1;
-          pageTextBox.innerHTML = "<b>" + setPage + "</b> / " + body.pages.length;
-          updatePageScroll(pageHolder.children[setPage - 1], false);
-        });
-
-        // Must loop through all pages checking if they are on-screen
-        for (let i = 0; i < pageHolder.childElementCount; i++) {
-          if (inViewport(pageHolder.children[i])) {
-            currentPage = i + 1;
-            break;
-          }
-        }
-        let loadPage = async (pageElem) => {
-          if (pageElem == null) {
-            return;
-          }
-          let pageID = pageElem.getAttribute("pageid");
-          let pageData = pages[pageID];
-          let canvas;
-          await new Promise(async (resolve) => {
-            // Get page
-            let sourceData = sources[pageData.source];
-            if (sourceData) {
-              sourceData.pdf.getPage(pageData.page).then(async (pageRender) => {
-                if (pageElem.hasAttribute("loading") == false) {
-                  resolve();
-                  return;
-                }
-                /*
-                if (this.exporting == true && pageElem.hasAttribute("exporting") == false) {
-                  return;
-                }
-                */
-                let viewport = pageRender.getViewport({ scale: 2 });
-
-                pageElem.insertAdjacentHTML("beforeend", `<canvas class="ePageContent" new></canvas>`);
-                canvas = pageElem.querySelector(".ePageContent[new]");
-                canvas.removeAttribute("new");
-
-                let context = canvas.getContext("2d");
-
-                canvas.width = viewport.width;
-                canvas.height = viewport.height;
-                //pageElem.style.width = viewport.width + "px";
-                //pageElem.style.height = viewport.height + "px";
-
-                pageRender.render({
-                  canvasContext: context,
-                  viewport: viewport
-                }).promise.then(() => {
-                  resolve();
-                });
-
-                pageElem.setAttribute("loaded", "");
-
-                pageElem.insertAdjacentHTML("beforeend", `<div class="ePageTextHolder" new></div>`);
-                let textHolder = pageElem.querySelector(".ePageTextHolder[new]");
-                textHolder.removeAttribute("new");
-                
-                pageRender.getTextContent().then(function (textContent) {
-                  if (pageElem.hasAttribute("loading") == false) {
-                    return;
-                  }
-                  (new pdfjsLib.TextLayer({
-                    textContentSource: textContent,
-                    container: textHolder,
-                    viewport: viewport
-                  })).render();
-                  /*pdfjsLib.renderTextLayer({
-                    enhanceTextSelection: true,
-                    textContentSource: textContent,
-                    container: textHolder,
-                    viewport: pageRender.getViewport({ scale: 1 }),
-                    textDivs: []
-                  });*/
-                  pageElem.setAttribute("loaded", "");
-                });
-                /*
-                pageElem.insertAdjacentHTML("beforeend", `<div class="ePageAnnotationHolder" new></div>`);
-                let annotationHolder = pageElem.querySelector(".ePageAnnotationHolder[new]");
-                annotationHolder.removeAttribute("new");
-
-                pageRender.getAnnotations().then(function (annotationsData) {
-                  if (pageElem.hasAttribute("loading") == false) {
-                    return;
-                  }
-          
-                  // Render the annotation layer
-                  annotationHolder.style.left = canvas.offsetLeft + "px";
-                  annotationHolder.style.top = canvas.offsetTop + "px";
-                  annotationHolder.style.height = viewport.height + "px";
-                  annotationHolder.style.width = viewport.width + "px";
-
-                  console.log(annotationsData);
-                });
-                */
-              });
-            } else {
-              resolve();
-            }
-            if (this.getSelf().access > 3) { // Only owner(s) can rearrange pages:
-              pageElem.insertAdjacentHTML("beforeend", `<button class="ePageRearrange" dropdown="dropdowns/editor/rearrange"><img src="./images/editor/dots.svg"><div>Rearrange</div></button>`);
-            }
-          });
-          // Remove loading
-          if (canvas) {
-            if (this.exporting != true) {
-              canvas.style.transition = ".5s";
-              canvas.offsetHeight;
-            }
-            canvas.style.opacity = 1;
-          }
-          let loading = pageElem.querySelector(".loading");
-          if (loading) {
-            if (this.exporting != true) {
-              loading.setAttribute("done", "");
-              loading.style.opacity = 0;
-              await sleep(500);
-            }
-            loading.remove();
-          }
-        }
-        let renderPages = async () => {
-          this.loadedIn = [];
-          for (let i = -3; i < this.visiblePages.length + 3; i++) {
-            let pageNum = 1;
-            if (i < 0) {
-              pageNum = this.visiblePages[0] + i;
-            } else if (i > this.visiblePages.length - 1) {
-              pageNum = this.visiblePages[this.visiblePages.length - 1] + i - (this.visiblePages.length - 1);
-            } else {
-              pageNum = this.visiblePages[i];
-            }
-            if (pageNum < 1) {
-              continue;
-            } else if (pageNum > pageHolder.children.length) {
-              break;
-            }
-            let pageElem = pageHolder.children[pageNum - 1];
-            if (pageElem == null) {
-              continue;
-            }
-            let pageID = pageElem.getAttribute("pageid");
-            if (pageID == null) {
-              return;
-            }
-            this.loadedIn.push(pageID);
-            if (pageElem.hasAttribute("hide") == true) {
-              if (pageElem.querySelector(".ePageHidden") == null) {
-                pageElem.insertAdjacentHTML("beforeend", `<div class="ePageHidden" new></div>`);
-                let hiddenElem = pageElem.querySelector(".ePageHidden[new]");
-                hiddenElem.removeAttribute("new");
-                if (this.exporting != true) {
-                  hiddenElem.insertAdjacentHTML("beforeend", `<div class="ePageHiddenModal">
-                    <img src="./images/editor/hidden.svg">
-                    <div class="ePageHiddenModalTitle">Page Hidden</div>
-                    <div class="ePageHiddenModalDesc">This page has been hidden from view and can only be revealed by the lesson owner.</div>
-                  </div>`);
-                  if (this.getSelf().access > 3) {
-                    hiddenElem.querySelector(".ePageHiddenModal").insertAdjacentHTML("beforeend", `<button class="ePageRevealButton largeButton">Reveal Page</button>`);
-                  }
-                }
-              }
-            } else if (pageElem.querySelector(".ePageHidden") != null) {
-              pageElem.querySelector(".ePageHidden").remove();
-            }
-            if (pageElem.hasAttribute("loading") == false) {
-              let pageData = pages[pageID];
-              let sourceData = sources[pageData.source];
-              if (this.exporting != true) {
-                pageElem.insertAdjacentHTML("beforeend", loadingAnim);
-                let loading = pageElem.querySelector(".loading[new]");
-                loading.removeAttribute("appload");
-                loading.style.transition = "unset";
-                loading.style.opacity = 0;
-                loading.offsetHeight;
-                loading.style.transition = "opacity .5s";
-                if (page.querySelector(".loading[appload]") == null) {
-                  (async function () { // Only show loading after a tiny period of time:
-                    await sleep(500);
-                    if (loading && loading.hasAttribute("done") == false) {
-                      loading.style.opacity = 1;
-                    }
-                  })();
-                }
-                loading.removeAttribute("new");
-              }
-              pageElem.setAttribute("loading", "");
-              if (sourceData == null || sourceData.pdf) {
-                if (this.exporting != true) {
-                  loadPage(pageElem);
-                } else {
-                  await loadPage(pageElem);
-                }
-              }
-            }
-          }
-          let loadedPages = pageHolder.querySelectorAll(".ePage[loading], .ePage[loaded]");
-          for (let i = 0; i < loadedPages.length; i++) {
-            let page = loadedPages[i];
-            if (this.loadedIn.includes(page.getAttribute("pageid")) == false) {
-              if (page.querySelector(".loading")) {
-                page.querySelector(".loading").remove();
-              }
-              if (page.querySelector(".ePageContent")) {
-                page.querySelector(".ePageContent").remove();
-              }
-              if (page.querySelector(".ePageTextHolder")) {
-                page.querySelector(".ePageTextHolder").remove();
-              }
-              if (page.querySelector(".ePageAnnotationHolder")) {
-                page.querySelector(".ePageAnnotationHolder").remove();
-              }
-              if (page.querySelector(".ePageAnnotations")) {
-                page.querySelector(".ePageAnnotations").remove();
-              }
-              if (page.querySelector(".ePageRearrange")) {
-                page.querySelector(".ePageRearrange").remove();
-              }
-              if (page.querySelector(".ePageHidden")) {
-                page.querySelector(".ePageHidden").remove();
-              }
-              page.removeAttribute("loading");
-              page.removeAttribute("loaded");
-            }
-          }
-          //await this.viewAnnotations();
-        }
-        let scrollSubTimeout;
-        this.updatePages = async () => {
-          // Can go off current page to see which pages are visible or not
-          this.visiblePages = [];
-          let checkInt = 1;
-          if (inViewport(pageHolder.children[currentPage - 1], true)) {
-            //if (this.exporting != true || afterPageElem.hasAttribute("exporting") == true) {
-            this.visiblePages.unshift(currentPage);
-            //}
-          }
-          while (true) {
-            let beforeNoRun = true;
-            let afterNoRun = true;
-            if (currentPage - checkInt > 0) { // Check page before
-              let beforePageElem = pageHolder.children[currentPage - checkInt - 1];
-              if (inViewport(beforePageElem, true)) {
-                /* if (this.exporting == true && beforePageElem.hasAttribute("exporting") == false) {
-                  continue;
-                } */
-                this.visiblePages.unshift(currentPage - checkInt);
-                beforeNoRun = false;
-              }
-            }
-            if (currentPage + checkInt < pageHolder.childElementCount + 1) { // Check page after
-              let afterPageElem = pageHolder.children[currentPage + checkInt - 1];
-              if (inViewport(afterPageElem, true)) {
-                /* if (this.exporting == true && afterPageElem.hasAttribute("exporting") == false) {
-                  continue;
-                } */
-                this.visiblePages.push(currentPage + checkInt);
-                afterNoRun = false;
-              }
-            }
-            checkInt++;
-            if ((this.visiblePages.length > 0 && beforeNoRun && afterNoRun) || checkInt > 500) {
-              break;
-            }
-          }
-          if (this.visiblePages.length > 0) {
-            currentPage = this.visiblePages[Math.floor(this.visiblePages.length / 2)];
-          }
-          if (this.realtime.module) {
-            clearTimeout(scrollSubTimeout);
-            scrollSubTimeout = setTimeout(() => {
-              //this.realtime.module.setShortSub(this.visibleChunks);
-              modifyParams("page", currentPage);
-            }, 750);
-            if (this.scrollEvent) {
-              this.scrollEvent();
-            }
-          }
-          let activeElement = document.activeElement;
-          let pageBoxFocus = false;
-          if (activeElement != null) {
-            let currentPageBox = activeElement.closest(".eCurrentPage");
-            if (currentPageBox == pageTextBox) {
-              pageBoxFocus = true;
-            }
-          }
-          if (pageBoxFocus == false) {
-            pageTextBox.innerHTML = "<b>" + currentPage + "</b> / " + Object.keys(pages).length;
-          }/* else {
-            pageBoxFocus = false;
-            pageTextBox.blur();
-          }*/
-          if (currentPage > pageHolder.childElementCount - 1) {
-            bottomHolder.querySelector(".ePageNav[down]").setAttribute("disabled", "");
-          } else {
-            bottomHolder.querySelector(".ePageNav[down]").removeAttribute("disabled");
-          }
-          if (currentPage < 2) {
-            bottomHolder.querySelector(".ePageNav[up]").setAttribute("disabled", "");
-          } else {
-            bottomHolder.querySelector(".ePageNav[up]").removeAttribute("disabled");
-          }
-          await renderPages();
-
-          //addPagesHolder.style.width = (pageHolder.lastElementChild.offsetWidth * this.zoom) + "px";
-          //addPagesHolder.style.marginLeft = utils.marginLeft + "px";
-        }
-        tempListen(window, "scroll", this.updatePages);
-        tempListen(window, "resize", this.updatePages);
-
-        // Load pages:
-        this.addPages = (pages) => {
-          for (let i = 0; i < pages.length; i++) {
-            let page = pages[i];
-            let includeSource = "";
-            if (page.source) {
-              includeSource = ` sourceid="${page.source}"`;
-            }
-            pageHolder.insertAdjacentHTML("beforeend", `<div class="ePage" pageid="${page._id}"${includeSource} order="${page.order}" style="width: ${page.width}px; height: ${page.height}px" new></div>`);
-            let newPage = pageHolder.querySelector(".ePage[new]");
-            if (page.hidden != null) {
-              newPage.setAttribute("hide", "");
-            }
-            newPage.removeAttribute("new");
-            let properSort = () => {
-              if (newPage.previousElementSibling != null && parseInt(newPage.previousElementSibling.getAttribute("order")) > page.order) {
-                pageHolder.insertBefore(newPage, newPage.previousElementSibling);
-                properSort();
-              }
-            }
-            properSort();
-          }
-        }
-        this.addPages(body.pages);
-
-        // Load PDFJS
-        if (window.pdfjsLib == null) {
-          await loadScript("./libraries/pdfjs/pdf.mjs");
-        }
-        pdfjsLib.GlobalWorkerOptions.workerSrc = "./libraries/pdfjs/pdf.worker.mjs";
-
-        // Load sources:
-        let loadedSourceCount = 0;
-        this.addSources = (sources) => {
-          for (let i = 0; i < sources.length; i++) {
-            let sourceData = sources[i];
-            if (getParam("only_thumbnail") == "true" && this.exporting == true) {
-              if (pageHolder.firstElementChild == null || pageHolder.firstElementChild.getAttribute("sourceid") != sourceData._id) {
-                continue;
-              }
-            }
-            let loadingTask = pdfjsLib.getDocument(assetURL + sourceData.source);
-            this.loadedPDFs.push(loadingTask);
-            loadingTask.promise.then(async (pdf) => {
-              sourceData.pdf = pdf;
-              let loadInPages = pageHolder.querySelectorAll('.ePage[sourceid="' + sourceData._id + '"][loading]');
-              for (let i = 0; i < loadInPages.length; i++) {
-                if (this.exporting != true) {
-                  loadPage(loadInPages[i]);
-                } else {
-                  await loadPage(loadInPages[i]);
-                }
-              }
-              loadedSourceCount++;
-              if (window.exportReady && (loadedSourceCount >= sources.length || getParam("only_thumbnail") == "true")) {
-                //await asyncLoadAnnotations();
-                window.exportReady();
-              }
-            });
-          }
-        }
-        this.addSources(body.sources);
-
-        let scrollPage = getParam("page") ?? 1;
-        let scrollElem = pageHolder.children[scrollPage - 1];
-        if (scrollElem != null) {
-          window.scrollTo({ top: window.scrollY + scrollElem.getBoundingClientRect().top - scrollOffset });
-        }
-
-        if (this.exporting == true) {
-          if (window.exportReady && (body.sources.length < 1 || (getParam("only_thumbnail") == "true" && pageHolder.firstElementChild != null && pageHolder.firstElementChild.hasAttribute("sourceid") == false))) {
-            //await asyncLoadAnnotations();
-            window.exportReady();
-          }
-        }
-        
-        pageHolder.addEventListener("click", async (event) => {
-          let element = event.target;
-          if (element == null) {
-            return;
-          }
-          let revealButton = event.target.closest(".ePageRevealButton");
-          if (revealButton != null) {
-            revealButton.setAttribute("disabled", "");
-            await sendRequest("PUT", "lessons/rearrange/show?page=" + revealButton.closest(".ePage").getAttribute("pageid"), null, { session: this.session });
-            revealButton.removeAttribute("disabled");
-          }
-        });
-
-        this.updatePageSize = () => {
-          //let pageChild = pageHolder.children[currentPage - 1] ?? pageHolder;
-          if (this.exporting == true) {
-            this.addMargin = 0;
-            return;
-          }
-          this.addMargin = Math.max(fixed.offsetWidth, fixed.offsetHeight) / 2; //Math.max((fixed.offsetWidth - (pageHolder.offsetWidth * this.zoom)) / 2, 100);
-        }
-        let resetResizeTimeout;
-        tempListen(window, "resize", () => {
-          clearTimeout(resetResizeTimeout);
-          resetResizeTimeout = setTimeout(() => {
-            this.updatePageSize();
-            utils.setMarginSize();
-          }, 500);
-        });
-        this.updatePageSize();
-
-        if (this.exporting != true) {
-          addPagesHolder.style.display = "flex";
-        }
-        await utils.setMarginSize();
-        centerWindowWithPage();
-        break;
-      case "freeboard":
-        this.sources = { ...this.sources, ...getObject(body.sources ?? [], "_id") };
-        //pageHolder.remove();
-        addPagesHolder.remove();
-        addPagesHolder = null;
-        pageHolder.style.width = "1px";
-        pageHolder.style.height = "1px";
-        //this.updatePageSize = () => {
-          //pageHolder.style.width = fixed.offsetWidth - 332 + "px";
-          //pageHolder.style.height = fixed.offsetHeight - 332 + "px";
-        //}
-        pageHolder.style.pointerEvents = "none";
-        let resetTimeout;
-        tempListen(window, "resize", () => {
-          clearTimeout(resetTimeout);
-          resetTimeout = setTimeout(() => {
-            //this.updatePageSize();
-            if (this.exporting != true) {
-              this.addMargin = Math.max(fixed.offsetWidth, fixed.offsetHeight) / 2; // Was 100 for some reason???
-            }
-            utils.setMarginSize();
-          }, 500);
-        });
-        let updateScroll = () => {
-          if (this.scrollEvent) {
-            this.scrollEvent();
-          }
-        }
-        tempListen(window, "scroll", updateScroll);
-        tempListen(window, "resize", updateScroll);
-        //this.updatePageSize();
-        this.visiblePages = [0];
-        //await this.viewAnnotations();
-        //utils.resetAnnotationSize();
-        if (window.exportReady) {
-          //await asyncLoadAnnotations();
-          window.exportReady();
-        }
-        await utils.setMarginSize();
-        centerWindowWithPage();
-
-        let updateAnnotationScroll = (page, animation) => {
-          if (page == null) {
-            return;
-          }
-          this.updateCurrentPageInterface();
-          let annoID = page[0];
-          if ((annoID ?? "").startsWith("pending_") == true) {
-            let anno = this.annotations[annoID] ?? {};
-            if (anno.pointer != null) {
-              annoID = anno.pointer;
-            }
-          }
-          let render = (this.annotations[annoID] ?? {}).render;
-          if (render != null) {
-            let thickness = 0;
-            if (render.t != null) {
-              if (render.b != "none" || render.d == "line") {
-                thickness = render.t;
-              }
-            }
-            let position = this.getAbsolutePosition(render);
-            let pageRect = pageHolder.getBoundingClientRect();
-            let options = {};
-            if ((render.s[0] + (thickness * 2)) * this.zoom < fixed.offsetWidth - (scrollOffset * 2)) {
-              // Position page to center:
-              options.left = pageRect.left + window.scrollX - (fixed.offsetWidth / 2) + ((position[0] + (render.s[0] / 2) + thickness) * this.zoom);
-            } else {
-              // Position page to left corner:
-              options.left = pageRect.left + window.scrollX - scrollOffset + (position[0] * this.zoom);
-            }
-            if ((render.s[1] + (thickness * 2)) * this.zoom < fixed.offsetHeight - (scrollOffset * 2)) {
-              // Position page to center:
-              options.top = pageRect.top + window.scrollY - (fixed.offsetHeight / 2) + ((position[1] + (render.s[1] / 2) + thickness) * this.zoom);
-            } else {
-              // Position page to left corner:
-              options.top = pageRect.top + window.scrollY - scrollOffset + (position[1] * this.zoom);
-            }
-            if (animation != false) {
-              options.behavior = "smooth";
-            }
-            window.scrollTo(options);
-          }
-          if (this.realtime.observing != null && this.realtime.module != null) {
-            this.realtime.module.exitObserve();
-          }
-        }
-        bottomHolder.querySelector(".ePageNav[down]").addEventListener("click", () => {
-          this.currentPage++;
-          updateAnnotationScroll(this.annotationPages[this.currentPage - 1]);
-        });
-        bottomHolder.querySelector(".ePageNav[up]").addEventListener("click", () => {
-          this.currentPage--;
-          updateAnnotationScroll(this.annotationPages[this.currentPage - 1]);
-        });
-        pageTextBox.addEventListener("focus", async () => {
-          if (alreadyRunningFocus == true) {
-            return;
-          }
-          alreadyRunningFocus = true;
-          pageTextBox.blur();
-          pageTextBox.innerHTML = "";
-          pageTextBox.focus();
-          alreadyRunningFocus = false;
-        });
-        pageTextBox.addEventListener("keydown", (event) => {
-          if (event.keyCode == 13) {
-            event.preventDefault();
-            pageTextBox.blur();
-            return;
-          }
-          if (String.fromCharCode(event.keyCode).match(/(\w|\s)/g) && event.key.length == 1) {
-            let textInt = parseInt(pageTextBox.textContent + event.key);
-            if (parseInt(event.key) != event.key) {
-              event.preventDefault();
-              textBoxError(pageTextBox, "Must be a number");
-            } else if (textInt > this.annotationPages.length) {
-              event.preventDefault();
-              textBoxError(pageTextBox, "Maximum of page number " + this.annotationPages.length);
-            } else if (textInt < 1) {
-              event.preventDefault();
-              textBoxError(pageTextBox, "Minimum of the first page");
-            }
-          }
-        });
-        pageTextBox.addEventListener("focusout", (event) => {
-          //pageBoxFocus = false;
-          if (pageTextBox.textContent == "") {
-            pageTextBox.innerHTML = "<b>" + this.currentPage + "</b> / " + this.annotationPages.length;
-            return;
-          }
-          let setPage = parseInt(pageTextBox.textContent) ?? 1;
-          pageTextBox.innerHTML = "<b>" + setPage + "</b> / " + this.annotationPages.length;
-          updateAnnotationScroll(this.annotationPages[setPage - 1], false);
-        });
-        bottomHolder.style.display = "none";
-        //bottomHolder.remove();
+    if (window.exportReady) {
+      //await asyncLoadAnnotations();
+      window.exportReady();
     }
-
-    /*let updateContentSize = () => {
-      if (this.lesson.type != "freeboard") {
-        content.style.width = pageHolder.clientWidth * this.zoom + "px";
-        content.style.height = ((pageHolder.clientHeight * this.zoom) + addPagesHolder.clientHeight) + "px";
-      }
-    }
-    updateContentSize();*/
+    await utils.setMarginSize();
+    centerWindowWithPage();
 
     // Fullscreen
     let pageUpdateInterval;

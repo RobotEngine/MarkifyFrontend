@@ -208,16 +208,18 @@ modules["editor/export"] = {
               }
               let element = pageHolder.querySelector('.eAnnotation[anno="' + pageID + '"]');
               if (element != null) {
+                element.setAttribute("notransition", "");
+                element.style.setProperty("--borderWidth", "0px");
                 element.style.borderRadius = "0px";
                 let border = element.querySelector("div[border]");
                 if (border != null) {
                   border.remove();
                 }
-                let title = element.querySelector("div[title]");
+                /*let title = element.querySelector("div[title]");
                 if (title != null) {
                   title.style.margin = "4px";
                   title.style.borderTopLeftRadius = "0px";
-                }
+                }*/
                 currentPage++;
                 if (editor.exportSelected == null) {
                   (async () => {

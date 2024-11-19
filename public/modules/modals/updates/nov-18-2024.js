@@ -36,7 +36,7 @@ modules["modals/updates/nov-18-2024"] = {
       <a href="https://www.instagram.com/markifytool" target="_blank"><img src="./images/launch/socials/instagram.svg"></a>
       <a href="https://www.linkedin.com/company/markifyapp" target="_blank"><img src="./images/launch/socials/linkedin.svg"></a>
       <a href="https://www.youtube.com/@markifyexotek" target="_blank"><img src="./images/launch/socials/youtube.svg"></a>
-      <div>Follow Markify!</div>
+      <div title="Follow Markify!">Follow Markify!</div>
     </div>
     <button class="umButtonsClose largeButton">Close</button>
   </div>
@@ -60,12 +60,12 @@ modules["modals/updates/nov-18-2024"] = {
     ".umContent li::marker": `color: var(--theme)`,
     ".umContent li b": `font-size: 16px; color: var(--theme)`,
 
-    ".umButtons": `position: sticky; display: flex; width: calc(100% - 16px); flex-wrap: wrap; padding: 8px; gap: 8px; bottom: 0px; justify-content: space-between; align-items: center; background: var(--pageColor); box-shadow: 0 -2px 20px var(--hover); transition: .3s`,
+    ".umButtons": `position: sticky; display: flex; width: calc(100% - 16px); padding: 8px; gap: 8px; bottom: 0px; justify-content: space-between; align-items: center; background: var(--pageColor); box-shadow: 0 -2px 20px var(--hover); transition: .3s`,
     ".umButtonsSocial": `display: flex; flex-wrap: wrap; height: fit-content; padding: 3px; background: #fff; border-radius: 12px; justify-content: space-evenly; align-items: center`,
     ".umButtonsSocial a": `width: 30px; height: 30px; margin: 3px`,
     ".umButtonsSocial a img": `width: 100%; height: 100%`,
-    ".umButtonsSocial div": `margin-left: 6px; font-size: 16px; font-weight: 500`,
-    ".umButtonsClose": `margin: 3px; background: var(--theme); --borderRadius: 16px; color: #fff`
+    ".umButtonsSocial div": `flex: 1; margin-left: 6px; font-size: 16px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis`,
+    ".umButtonsClose": `flex-shrink: 0; margin: 3px; background: var(--theme); --borderRadius: 16px; color: #fff`
   },
   js: async function (frame) {
     let content = frame.closest(".modalContent");

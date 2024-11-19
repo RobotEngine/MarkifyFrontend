@@ -1931,7 +1931,7 @@ modules["pages/editor/toolbar/cursor"] = {
           collabSelect.style.height = collHeight + "px";
           //collabSelect.style.left = pageHolderRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
           //collabSelect.style.top = pageHolderRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
-          collabSelect.style.transform = "translate(" + (pageHolderRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5) + "px," + (pageHolderRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5) + "px) rotate(" + rotate + "deg)";
+          collabSelect.style.transform = "translate(" + (pageHolderRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5) + "px," + (pageHolderRect.y + ((y + halfT) * editor.zoom) + window.scrollY - 1.5) + "px) rotate(" + rotate + "deg)";
         }
 
         if (forceNoTransition == true && select != null) {

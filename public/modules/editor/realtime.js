@@ -596,8 +596,7 @@ modules["editor/realtime"] = {
                   let refreshSelecting = false;
                   let changes = false;
                   let hasCursorAnno = false;
-                  let annoHold = content.querySelector(".ePageHolder");
-                  let pageRect = annoHold.getBoundingClientRect();
+                  let pageRect = pageHolder.getBoundingClientRect();
                   for (let i = 0; i < selectKeys.length; i++) {
                     let annoID = selectKeys[i];
                     let anno = extra.select[annoID] ?? {};
@@ -742,9 +741,6 @@ modules["editor/realtime"] = {
 
                     if (selection != null) {
                       let border = 0;
-                      /*if (annoHold.parentElement.parentElement.firstElementChild != annoHold.parentElement) {
-                        border = 4;
-                      }*/
                       let [width, height] = merge.s;
                       let [x, y] = editor.getAbsolutePosition(merge);
                       let rotate = merge.r ?? 0;

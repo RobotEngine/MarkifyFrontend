@@ -1272,7 +1272,7 @@ modules["pages/editor"] = {
 
     socket.remotes["long_" + lessonID] = async (data) => {
       console.log("LONG", data);
-      if (editor.exporting == true) {
+      if (this.exporting == true) {
         return;
       }
       let redrawActionUI = false;

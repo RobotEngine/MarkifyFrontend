@@ -876,14 +876,6 @@ modules["editor/toolbar"] = {
     });
 
     this.updateToolbar = (noUpdateTool, extra) => {
-      // THIS IS TEMP CODE - REMOVE LATER:
-      if ((editor.lesson ?? {}).type == "standard") {
-        frame.querySelector('.eTool[tool="page"]').style.display = "none";
-      } else {
-        frame.querySelector('.eTool[tool="page"]').style.removeProperty("display");
-      }
-      ////////////////////////////////////
-      
       let updateColors = frame.querySelectorAll("[fillcoloropacity], [strokecolor], [backcolor], [thickness], [opacity]");
       for (let i = 0; i < updateColors.length; i++) {
         let updateTip = updateColors[i];
@@ -1275,11 +1267,6 @@ modules["editor/toolbar"] = {
             let newSelect = {};
             let newNewSelect = {};
             let setTempSync = getEpoch();
-            let visiblePage = editor.visiblePages[Math.floor(editor.visiblePages.length / 2)];
-            let firstPage = editor.page.querySelector('.ePage[order="' + visiblePage + '"');
-            if (firstPage != null && firstPage.hasAttribute("hide") == true) {
-              return;
-            }
             let minLeft;
             let minTop;
             let maxLeft;
@@ -1329,16 +1316,10 @@ modules["editor/toolbar"] = {
               } else {
                 newAnno.p[0] -= maxLeft;
                 newAnno.p[1] -= maxTop;
-                if (editor.lesson.type != "freeboard") {
-                  newAnno.p[0] += (firstPage.offsetWidth / 2) + centerX;
-                  newAnno.p[1] += (firstPage.offsetHeight / 2) + centerY;
-                  newAnno.page = firstPage.getAttribute("pageid");
-                } else {
-                  let { x, y } = await utils.scaleToDoc(fixed.offsetWidth / 2, fixed.offsetHeight / 2, 0);
-                  newAnno.p[0] += x + centerX;
-                  newAnno.p[1] += y + centerY;
-                  delete newAnno.page;
-                }
+                let { x, y } = await utils.scaleToDoc(fixed.offsetWidth / 2, fixed.offsetHeight / 2);
+                newAnno.p[0] += x + centerX;
+                newAnno.p[1] += y + centerY;
+                delete newAnno.page;
               }
               newAnno.l = utils.maxLayer + 1 + ((newAnno.l ?? utils.maxLayer) - minZIndex);
               if (newAnno.parented != null) {
@@ -1844,9 +1825,7 @@ modules["pages/editor/toolbar/cursor"] = {
         }
 
         anno.style.borderRadius = (4 / editor.zoom) + "px";
-
-        let annoHold = await utils.annoHolder(merged.page);
-        let pageRect = annoHold.getBoundingClientRect(); // Move this out of the loop later!! Use "pageHolderRect" defined above!
+        
         let border = 0;
         let [width, height] = merged.s;
         let [x, y] = editor.getAbsolutePosition(merged);
@@ -1905,8 +1884,8 @@ modules["pages/editor/toolbar/cursor"] = {
         
         this.lastElementWidth = width + t;
         this.lastElementHeight = height + t;
-        this.lastElementX = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 2;
-        this.lastElementY = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 2;
+        this.lastElementX = pageHolderRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 2;
+        this.lastElementY = pageHolderRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 2;
         this.lastElementRotate = rotate;
         
         if (select != null) {
@@ -1932,7 +1911,7 @@ modules["pages/editor/toolbar/cursor"] = {
         let changedWidth = ((Math.abs(thickWidth * Math.cos(radian)) + Math.abs(thickHeight * Math.sin(radian))) - thickWidth) / 2;
         let changedHeight = ((Math.abs(thickWidth * Math.sin(radian)) + Math.abs(thickHeight * Math.cos(radian))) - thickHeight) / 2;
 
-        let pageY = pageRect.y - pageHolderRect.y;
+        let pageY = pageHolderRect.y - pageHolderRect.y;
         let setMinX = x + halfT - changedWidth;
         this.minX = Math.min(this.minX ?? setMinX, setMinX);
         let setMaxX = x + width + t + halfT + changedWidth;
@@ -1953,9 +1932,9 @@ modules["pages/editor/toolbar/cursor"] = {
           let collHeight = ((height + t) * editor.zoom) - 3;
           collabSelect.style.width = collWidth + "px";
           collabSelect.style.height = collHeight + "px";
-          //collabSelect.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
-          //collabSelect.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
-          collabSelect.style.transform = "translate(" + (pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5) + "px," + (pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5) + "px) rotate(" + rotate + "deg)";
+          //collabSelect.style.left = pageHolderRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
+          //collabSelect.style.top = pageHolderRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
+          collabSelect.style.transform = "translate(" + (pageHolderRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5) + "px," + (pageHolderRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5) + "px) rotate(" + rotate + "deg)";
         }
 
         if (forceNoTransition == true && select != null) {
@@ -2151,11 +2130,6 @@ modules["pages/editor/toolbar/cursor"] = {
         anno = { ...member.cursorRender, ...(editor.selecting[annoID] ?? {}) };
       }
       let border = 0;
-      let annoHold = await utils.annoHolder(anno.page);
-      /*if (annoHold.parentElement.parentElement.firstElementChild != annoHold.parentElement) {
-        border = 4;
-      }*/
-      let pageRect = annoHold.getBoundingClientRect();
       let t = anno.t ?? 0;
       if (anno.b == "none" && anno.d != "line") {
         t = 0;
@@ -2182,9 +2156,9 @@ modules["pages/editor/toolbar/cursor"] = {
       selection.style.width = boxWidth + "px";
       selection.style.height = boxHeight + "px";
       let halfT = t / 2;
-      //selection.style.left = pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
-      //selection.style.top = pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
-      selection.style.transform = "translate(" + (pageRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5) + "px," + (pageRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5) + "px) rotate(" + rotate + "deg)";
+      //selection.style.left = pageHolderRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5 + "px"; // -1.5 for border, -0 for width
+      //selection.style.top = pageHolderRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5 + "px";
+      selection.style.transform = "translate(" + (pageHolderRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 1.5) + "px," + (pageHolderRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 1.5) + "px) rotate(" + rotate + "deg)";
       selection.offsetHeight;
       selection.removeAttribute("notransition");
     }
@@ -3815,16 +3789,6 @@ modules["pages/editor/toolbar/cursor"] = {
     // Render snap lines:
     return await this.updateSnapLines(extra.render);
   },
-  /*oppositeResize: {
-    bottomright: ["topleft", "bottomleft", "topright"],
-    topleft: ["bottomright", "topright", "bottomleft"],
-    topright: ["bottomleft", "topleft", "bottomright"],
-    bottomleft: ["topright", "bottomright", "topleft"],
-    right: ["left", "left", "right"],
-    bottom: ["top", "bottom", "top"],
-    left: ["right", "right", "left"],
-    top: ["bottom", "top", "bottom"]
-  },*/
   scrollIntervalX: 0,
   scrollIntervalY: 0,
   scrollIntervalRunning: false,
@@ -4449,417 +4413,6 @@ modules["pages/editor/toolbar/cursor"] = {
       await this.snapItems(event, { resizeHandleAxis: snapHandleAxis, scaleWidth: scaleWidth, scaleHeight: scaleHeight });
     }
   },
-  /*moveAction: async function (event) {
-    if (this.action == null) {
-      return;
-    }
-    if (mouseDown() == false) {
-      this.endAction();
-      return;
-    }
-    let editor = await getModule("pages/editor");
-    let utils = await getModule("pages/editor/annotation");
-    //let inverse = 1 / editor.zoom;
-    let mouseX = clientPosition(event, "x");
-    let mouseY = clientPosition(event, "y");
-    this.endX = mouseX + window.scrollX; //) * inverse;
-    this.endY = mouseY + window.scrollY; //) * inverse;
-
-    let self = editor.getSelf();
-
-    if (this.actionEnabled == false) {
-      if (Math.abs(mouseX - this.enableStartX) > 3 || Math.abs(mouseY - this.enableStartY) > 3) {
-        this.actionEnabled = true;
-      } else {
-        return;
-      }
-    }
-    
-    let setTempSync = getEpoch();
-
-    let keys = Object.keys(editor.selecting);
-    for (let i = 0; i < keys.length; i++) {
-      let annoid = keys[i];
-      let original = editor.annotations[annoid];
-      if (original == null) {
-        continue;
-      }
-      if (original.render == null && original.pointer == null) {
-        delete editor.annotations[annoid];
-        continue;
-      }
-      if (original.pointer != null) {
-        annoid = original.pointer;
-        original = editor.annotations[annoid] ?? { render: {} };
-      }
-      let select = editor.selecting[annoid];
-      delete select.done;
-      let anno = JSON.parse(JSON.stringify(original.render));
-      if (original.revert == null) {
-        original.revert = JSON.parse(JSON.stringify(original.render));
-      }
-      if (anno.lock == true) {
-        return this.endAction();
-      }
-      if (self.access < 1) {
-        delete editor.selecting[annoid];
-        return;
-      }
-      if (editor.lesson.settings.editOthersWork != true && [anno.a, anno.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
-        delete editor.selecting[annoid];
-        return;
-      }
-      if (this.action == "move") {
-        select.p = select.p ?? anno.p;
-        let number;
-        let pageElem = editor.page.querySelector('.ePage[pageid="' + (select.page ?? anno.page) + '"]');
-        if (pageElem != null) {
-          number = parseInt(pageElem.getAttribute("order"));
-          if (pageElem.hasAttribute("hide") == true) {
-            return;
-          }
-        }
-        if (this.position == null) {
-          //this.position = JSON.parse(JSON.stringify(select.p ?? anno.p));
-          this.position = {};
-          let originalPos = await utils.scaleToDoc(this.enableStartX, this.enableStartY, number ?? 0);
-          this.rootX = originalPos.x;
-          this.rootY = originalPos.y;
-        }
-        if (this.position[annoid] == null) {
-          this.position[annoid] = [anno.p[0], anno.p[1]];
-        }
-        let { x, y } = await utils.scaleToDoc(mouseX, mouseY, number ?? 0);
-        let originalAnnoPos = this.position[annoid];
-        select.p[0] = utils.round(originalAnnoPos[0] + (x - this.rootX));
-        select.p[1] = utils.round(originalAnnoPos[1] + (y - this.rootY));
-      } else if (this.action == "resize") {
-        select.s = select.s ?? anno.s;
-        select.p = select.p ?? anno.p;
-        if (this.rotation == null) {
-          this.rotation = JSON.parse(JSON.stringify(select.r ?? anno.r ?? 0));
-        }
-        let number;
-        let pageElem = editor.page.querySelector('.ePage[pageid="' + (select.page ?? anno.page) + '"]');
-        if (pageElem != null) {
-          number = parseInt(pageElem.getAttribute("order"));
-          if (pageElem.hasAttribute("hide") == true) {
-            return;
-          }
-        }
-        let { x, y } = await utils.scaleToDoc(mouseX, mouseY, number ?? 0);
-        if (this.position == null) {
-          this.position = editor.getAbsolutePosition({ ...select, ...anno }); //JSON.parse(JSON.stringify(select.p ?? anno.p));
-        }
-        if (this.size == null) {
-          this.size = JSON.parse(JSON.stringify(select.s ?? anno.s));
-          let originalPos = await utils.scaleToDoc(this.enableStartX, this.enableStartY, number ?? 0);
-          let halfRotateWidth = (this.size[0] / 2) + this.position[0];
-          let halfRotateHeight = (this.size[1] / 2) + this.position[1];
-          let [xCoord, yCoord] = utils.rotatePoint(originalPos.x - halfRotateWidth, -(originalPos.y - halfRotateHeight), -this.rotation);
-          this.rootX = xCoord;
-          this.rootY = yCoord;
-        }
-        let halfRotateWidth = (this.size[0] / 2) + this.position[0];
-        let halfRotateHeight = (this.size[1] / 2) + this.position[1];
-        let [xCoord, yCoord] = utils.rotatePoint(x - halfRotateWidth, -(y - halfRotateHeight), -this.rotation);
-        let changeX = xCoord - this.rootX;
-        let changeY = yCoord - this.rootY;
-        if (this.rootX < 0) {
-          changeX *= -1;
-        }
-        if (this.rootY < 0) {
-          changeY *= -1;
-        }
-
-        if (this.tooltip == null) {
-          this.tooltip = this.resizeElem.getAttribute("tooltip");
-          this.changeReflectX = 1;
-          this.changeReflectY = 1;
-          if (select.s[0] < 0) {
-            this.changeReflectX = -1;
-          }
-          if (select.s[1] < 0) {
-            this.changeReflectY = -1;
-          }
-          if (select.s[0] < 0 && select.s[1] < 0) {
-            this.tooltip = this.oppositeResize[this.tooltip][0];
-          } else if (select.s[0] < 0) {
-            this.tooltip = this.oppositeResize[this.tooltip][1];
-          } else if (select.s[1] < 0) {
-            this.tooltip = this.oppositeResize[this.tooltip][2];
-          }
-        }
-        changeX *= this.changeReflectX;
-        changeY *= this.changeReflectY;
-
-        let preserveAspect = event.shiftKey ?? false;
-        if (["markup", "draw"].includes(select.f ?? anno.f) == true) {
-          preserveAspect = true; // All drawings keep aspect
-
-          // Handle lines:
-          let points = select.d ?? anno.d;
-          if (points.length == 4) {
-            if (points[0] == points[2]) { // Horizontal Line
-              changeX = 0;
-            }
-            if (points[1] == points[3]) { // Vertical Line
-              changeY = 0;
-            }
-            preserveAspect = false;
-          }
-          if (this.size[0] == 0 || this.size[1] == 0) {
-            continue;
-          }
-        } else if (["sticky", "media"].includes(select.f ?? anno.f) == true && ["bottomright", "topleft", "topright", "bottomleft"].includes(this.tooltip) == true) {
-          preserveAspect = true;
-        } else if (["page"].includes(select.f ?? anno.f) == true && ["bottomright", "topleft", "topright", "bottomleft"].includes(this.tooltip) == true && (select.source ?? anno.source) != null) {
-          preserveAspect = true;
-        }
-
-        let oppositePositionX = 0;
-        let oppositePositionY = 0;
-        let newOppositePositionX = 0;
-        let newOppositePositionY = 0;
-        let fixAnnotationHolder = this.tooltip;
-        switch (this.tooltip) {
-          case "bottomright":
-            if (preserveAspect == true) {
-              let setXFromChangeX = utils.round(this.size[0] + changeX);
-              let setYFromChangeX = utils.round(this.size[1] * ((this.size[0] + changeX) / this.size[0]));
-              let setXFromChangeY = utils.round(this.size[0] * ((this.size[1] + changeY) / this.size[1]));
-              let setYFromChangeY = utils.round(this.size[1] + changeY);
-              if (Math.abs(setXFromChangeX * setYFromChangeX) > Math.abs(setXFromChangeY * setYFromChangeY)) {
-                select.s[0] = setXFromChangeX;
-                select.s[1] = setYFromChangeX;
-              } else {
-                select.s[0] = setXFromChangeY;
-                select.s[1] = setYFromChangeY;
-              }
-            } else {
-              select.s[0] = utils.round(this.size[0] + changeX);
-              select.s[1] = utils.round(this.size[1] + changeY);
-            }
-            oppositePositionX = this.position[0];
-            oppositePositionY = this.position[1];
-            newOppositePositionX = this.position[0];
-            newOppositePositionY = this.position[1];
-            break;
-          case "topleft":
-            if (preserveAspect == true) {
-              let setXFromChangeX = utils.round(this.size[0] + changeX);
-              let setYFromChangeX = utils.round(this.size[1] * ((this.size[0] + changeX) / this.size[0]));
-              let setXFromChangeY = utils.round(this.size[0] * ((this.size[1] + changeY) / this.size[1]));
-              let setYFromChangeY = utils.round(this.size[1] + changeY);
-              if (Math.abs(setXFromChangeX * setYFromChangeX) > Math.abs(setXFromChangeY * setYFromChangeY)) {
-                select.s[0] = setXFromChangeX;
-                select.s[1] = setYFromChangeX;
-              } else {
-                select.s[0] = setXFromChangeY;
-                select.s[1] = setYFromChangeY;
-              }
-            } else {
-              select.s[0] = utils.round(this.size[0] + changeX);
-              select.s[1] = utils.round(this.size[1] + changeY);
-            }
-            oppositePositionX = this.position[0] + this.size[0];
-            oppositePositionY = this.position[1] + this.size[1];
-            newOppositePositionX = this.position[0] + select.s[0];
-            newOppositePositionY = this.position[1] + select.s[1];
-            break;
-          case "topright":
-            if (preserveAspect == true) {
-              let setXFromChangeX = utils.round(this.size[0] + changeX);
-              let setYFromChangeX = utils.round(this.size[1] * ((this.size[0] + changeX) / this.size[0]));
-              let setXFromChangeY = utils.round(this.size[0] * ((this.size[1] + changeY) / this.size[1]));
-              let setYFromChangeY = utils.round(this.size[1] + changeY);
-              if (Math.abs(setXFromChangeX * setYFromChangeX) > Math.abs(setXFromChangeY * setYFromChangeY)) {
-                select.s[0] = setXFromChangeX;
-                select.s[1] = setYFromChangeX;
-              } else {
-                select.s[0] = setXFromChangeY;
-                select.s[1] = setYFromChangeY;
-              }
-            } else {
-              select.s[0] = utils.round(this.size[0] + changeX);
-              select.s[1] = utils.round(this.size[1] + changeY);
-            }
-            oppositePositionX = this.position[0];
-            oppositePositionY = this.position[1] + this.size[1];
-            newOppositePositionX = this.position[0];
-            newOppositePositionY = this.position[1] + select.s[1];
-            break;
-          case "bottomleft":
-            if (preserveAspect == true) {
-              let setXFromChangeX = utils.round(this.size[0] + changeX);
-              let setYFromChangeX = utils.round(this.size[1] * ((this.size[0] + changeX) / this.size[0]));
-              let setXFromChangeY = utils.round(this.size[0] * ((this.size[1] + changeY) / this.size[1]));
-              let setYFromChangeY = utils.round(this.size[1] + changeY);
-              if (Math.abs(setXFromChangeX * setYFromChangeX) > Math.abs(setXFromChangeY * setYFromChangeY)) {
-                select.s[0] = setXFromChangeX;
-                select.s[1] = setYFromChangeX;
-              } else {
-                select.s[0] = setXFromChangeY;
-                select.s[1] = setYFromChangeY;
-              }
-            } else {
-              select.s[0] = utils.round(this.size[0] + changeX);
-              select.s[1] = utils.round(this.size[1] + changeY);
-            }
-            oppositePositionX = this.position[0] + this.size[0];
-            oppositePositionY = this.position[1];
-            newOppositePositionX = this.position[0] + select.s[0];
-            newOppositePositionY = this.position[1];
-            break;
-          case "right":
-            if (preserveAspect == true) {
-              select.s[0] = utils.round(this.size[0] + changeX);
-              select.s[1] = utils.round(this.size[1] * ((this.size[0] + changeX) / this.size[0]));
-            } else {
-              select.s[0] = utils.round(this.size[0] + changeX);
-              select.s[1] = this.size[1];
-            }
-            oppositePositionX = this.position[0];
-            oppositePositionY = this.position[1] + (this.size[1] / 2);
-            newOppositePositionX = this.position[0];
-            newOppositePositionY = this.position[1] + (select.s[1] / 2);
-            fixAnnotationHolder = "bottomright";
-            break;
-          case "bottom":
-            if (preserveAspect == true) {
-              select.s[0] = utils.round(this.size[0] * ((this.size[1] + changeY) / this.size[1]));
-              select.s[1] = utils.round(this.size[1] + changeY);
-            } else {
-              select.s[0] = this.size[0];
-              select.s[1] = utils.round(this.size[1] + changeY);
-            }
-            oppositePositionX = this.position[0] + (this.size[0] / 2);
-            oppositePositionY = this.position[1];
-            newOppositePositionX = this.position[0] + (select.s[0] / 2);
-            newOppositePositionY = this.position[1];
-            fixAnnotationHolder = "bottomright";
-            break;
-          case "left":
-            if (preserveAspect == true) {
-              select.s[0] = utils.round(this.size[0] + changeX);
-              select.s[1] = utils.round(this.size[1] * ((this.size[0] + changeX) / this.size[0]));
-            } else {
-              select.s[0] = utils.round(this.size[0] + changeX);
-              select.s[1] = this.size[1];
-            }
-            oppositePositionX = this.position[0] + this.size[0];
-            oppositePositionY = this.position[1] + (this.size[1] / 2);
-            newOppositePositionX = this.position[0] + select.s[0];
-            newOppositePositionY = this.position[1] + (select.s[1] / 2);
-            fixAnnotationHolder = "topleft";
-            break;
-          case "top":
-            if (preserveAspect == true) {
-              select.s[0] = utils.round(this.size[0] * ((this.size[1] + changeY) / this.size[1]));
-              select.s[1] = utils.round(this.size[1] + changeY);
-            } else {
-              select.s[0] = this.size[0];
-              select.s[1] = utils.round(this.size[1] + changeY);
-            }
-            oppositePositionX = this.position[0] + (this.size[0] / 2);
-            oppositePositionY = this.position[1] + this.size[1];
-            newOppositePositionX = this.position[0] + (select.s[0] / 2);
-            newOppositePositionY = this.position[1] + select.s[1];
-            fixAnnotationHolder = "topleft";
-        }
-
-        if (select.f ?? ["text", "sticky"].includes(anno.f) == true) {
-          await utils.render({ ...anno, ...select, sync: setTempSync });
-          if (anno.f == "text") {
-            let renderedAnno = editor.page.querySelector('.eAnnotation[anno="' + annoid + '"] div[edit]');
-            if (renderedAnno != null) {
-              if (anno.textfit == true && select.textfit != false) {
-                select.s[0] = renderedAnno.offsetWidth + 6;
-                select.textfit = false;
-              }
-              select.s[1] = renderedAnno.offsetHeight + 6; //Math.max(select.s[1], renderedAnno.offsetHeight + 6);
-            }
-          }
-        }
-
-        let oldHalfRotateWidth = (this.size[0] / 2) + this.position[0];
-        let oldHalfRotateHeight = (this.size[1] / 2) + this.position[1];
-        let [originalXCoord, originalYCoord] = utils.rotatePoint(oppositePositionX - oldHalfRotateWidth, -(oppositePositionY - oldHalfRotateHeight), this.rotation);
-
-        let newHalfRotateWidth = (select.s[0] / 2) + this.position[0];
-        let newHalfRotateHeight = (select.s[1] / 2) + this.position[1];
-        let [newXCoord, newYCoord] = utils.rotatePoint(newOppositePositionX - newHalfRotateWidth, -(newOppositePositionY - newHalfRotateHeight), this.rotation);
-
-        let [setX, setY] = editor.getRelativePosition({
-          ...select,
-          ...anno,
-          p: [
-            utils.round(this.position[0] - ((newXCoord + newHalfRotateWidth) - (originalXCoord + oldHalfRotateWidth))),
-            utils.round(this.position[1] - (((-newYCoord) + newHalfRotateHeight) - ((-originalYCoord) + oldHalfRotateHeight)))
-          ]
-        });
-        select.p = [setX, setY];
-
-        if (["page"].includes(select.f ?? anno.f) == true) {
-          if (select.s[0] < 100) {
-            if (oppositePositionX != newOppositePositionX) {
-              select.p[0] -= 100 - select.s[0];
-            }
-            select.s[0] = 100;
-          }
-          if (select.s[1] < 100) {
-            if (oppositePositionY != newOppositePositionY) {
-              select.p[1] -= 100 - select.s[1];
-            }
-            select.s[1] = 100;
-          }
-        }
-        select.resizing = fixAnnotationHolder;
-      } else if (this.action == "rotate") {
-        select.r = select.r ?? anno.r ?? 0;
-        let number;
-        let pageElem = editor.page.querySelector('.ePage[pageid="' + (select.page ?? anno.page) + '"]');
-        if (pageElem != null) {
-          number = parseInt(pageElem.getAttribute("order"));
-          if (pageElem.hasAttribute("hide") == true) {
-            return;
-          }
-        }
-        let { x, y } = await utils.scaleToDoc(mouseX, mouseY, number ?? 0);
-        let position = editor.getAbsolutePosition({ ...select, ...anno });
-        let size = select.s ?? anno.s;
-        let centerX = size[0] / 2;
-        let centerY = size[1] / 2;
-        let yRoot = -(y - (position[1] + centerY));
-        let xRoot = x - (position[0] + centerX);
-        if (this.rotation == null) {
-          this.rotation = (Math.atan2(yRoot, xRoot) * 180) / Math.PI;
-          if (this.rotation < 0) {
-            this.rotation = 360 + this.rotation;
-          }
-        }
-        let newRotation = (Math.atan2(yRoot, xRoot) * 180) / Math.PI;
-        if (newRotation < 0) {
-          newRotation = 360 + newRotation;
-        }
-        let snapDegree = 15;
-        if (event.shiftKey == true) {
-          snapDegree = 1;
-        }
-        let setRotation = Math.round(((anno.r ?? 0) + (this.rotation - newRotation)) / snapDegree) * snapDegree;
-        if (setRotation < 0) {
-          setRotation = 360 + setRotation;
-        }
-        if (setRotation > 359) {
-          setRotation = setRotation - 360;
-        }
-        select.r = Math.round(setRotation / snapDegree) * snapDegree;
-      }
-      select.sync = setTempSync;
-      await utils.render({ ...anno, ...select });
-    }
-    this.updateBox();
-  },*/
   endAction: async function (event, fromHistory, sentKeys, saveHistory) {
     if (this.action == null) {
       return;
@@ -5762,23 +5315,13 @@ modules["pages/editor/toolbar/drag"] = {
         // A display annotation, not a real one
         return;
       }
-      if (editor.lesson.type != "standard") {
-        let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientPosition(event, "y"), 0);
-        selectX = x;
-        selectY = y;
-        useX = x;
-        useY = y;
-        if (cursorModule.clickInSelect(editor, utils, x, y) == true && event.shiftKey == false) {
-          return;
-        }
-      } else {
-        selectX = clientPosition(event, "x") + window.scrollX;
-        selectY = clientPosition(event, "y") + window.scrollY;
-        useX = selectX;
-        useY = selectY;
-        if ((anno == null || editor.selecting[anno.getAttribute("anno")] == null) && event.shiftKey == false) {
-          editor.selecting = {};
-        }
+      let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientPosition(event, "y"), 0);
+      selectX = x;
+      selectY = y;
+      useX = x;
+      useY = y;
+      if (cursorModule.clickInSelect(editor, utils, x, y) == true && event.shiftKey == false) {
+        return;
       }
       if (anno != null) {
         let annoID = anno.getAttribute("anno");
@@ -5976,15 +5519,7 @@ modules["pages/editor/toolbar/highlighter"] = {
       disableMarkup();
       editor.toolbar.closeSubSubtoolUI();
       event.preventDefault();
-      let clientY = clientPosition(event, "y");
-      let [page, number] = await utils.findPage(clientY);
-      if (page.hasAttribute("hide") == true) {
-        return;
-      }
-      let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientY, number);
-      /*if (editor.lesson.type == "freeboard") {
-        y += 4;
-      }*/
+      let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientPosition(event, "y"));
       let tempID = utils.tempID();
       let newAnno = {
         _id: tempID,
@@ -5997,9 +5532,6 @@ modules["pages/editor/toolbar/highlighter"] = {
         o: this.opacity,
         d: [0, 0]
       };
-      if (page != null && page.hasAttribute("pageid") == true) {
-        newAnno.page = page.getAttribute("pageid");
-      }
       let parentID = editor.parentFromPoint(x, y);
       if (parentID != null) {
         this.setParent = parentID;
@@ -6034,7 +5566,7 @@ modules["pages/editor/toolbar/highlighter"] = {
       }
       event.preventDefault();
       let rect = anno.getBoundingClientRect();
-      let { x, y } = await utils.scaleToDoc(clientPosition(event, "x") - rect.left, clientPosition(event, "y") - rect.top);
+      let { x, y } = await utils.scaleToDoc(clientPosition(event, "x") - rect.left, clientPosition(event, "y") - rect.top, true);
       let halfT = utils.round(markup.t / 2);
       x -= halfT;
       y -= halfT;
@@ -6174,15 +5706,7 @@ modules["pages/editor/toolbar/understrike"] = {
       disableMarkup();
       editor.toolbar.closeSubSubtoolUI();
       event.preventDefault();
-      let clientY = clientPosition(event, "y");
-      let [page, number] = await utils.findPage(clientY);
-      if (page.hasAttribute("hide") == true) {
-        return;
-      }
-      let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientY, number);
-      /*if (editor.lesson.type == "freeboard") {
-        y += 4;
-      }*/
+      let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientPosition(event, "y"));
       let thickness = utils.round(Math.max(this.thickness / 4, 1));
       let tempID = utils.tempID();
       let newAnno = {
@@ -6196,9 +5720,6 @@ modules["pages/editor/toolbar/understrike"] = {
         o: 100,
         d: [0, 0]
       };
-      if (page != null && page.hasAttribute("pageid") == true) {
-        newAnno.page = page.getAttribute("pageid");
-      }
       let parentID = editor.parentFromPoint(x, y);
       if (parentID != null) {
         this.setParent = parentID;
@@ -6234,7 +5755,7 @@ modules["pages/editor/toolbar/understrike"] = {
       }
       event.preventDefault();
       let rect = anno.getBoundingClientRect();
-      let { x, y } = await utils.scaleToDoc(clientPosition(event, "x") - rect.left, clientPosition(event, "y") - rect.top);
+      let { x, y } = await utils.scaleToDoc(clientPosition(event, "x") - rect.left, clientPosition(event, "y") - rect.top, true);
       let halfT = utils.round(Math.max(this.thickness / 4, 1)) / 2;
       x -= halfT;
       y -= halfT;
@@ -6339,18 +5860,8 @@ modules["pages/editor/toolbar/text"] = {
       if (clientX == null || clientY == null) {
         return;
       }
-      let [page, number] = await utils.findPage(clientY);
-      if (page.hasAttribute("hide") == true) {
-        return;
-      }
-      let { x, y } = await utils.scaleToDoc(clientX, clientY, number);
-      /*if (editor.lesson.type == "freeboard") {
-        y += 4;
-      }*/
+      let { x, y } = await utils.scaleToDoc(clientX, clientY);
       text.p = [utils.round(x - (text.s[0] / 2)), utils.round(y - (text.s[1] / 2))];
-      if (page != null && page.hasAttribute("pageid") == true) {
-        text.page = page.getAttribute("pageid");
-      }
       [_, anno] = await utils.render(text, anno);
       let textElem = anno.querySelector("div[text]");
       if (textElem != null) {
@@ -6500,15 +6011,7 @@ modules["pages/editor/toolbar/pen"] = {
       disableDraw();
       editor.toolbar.closeSubSubtoolUI();
       event.preventDefault();
-      let clientY = clientPosition(event, "y");
-      let [page, number] = await utils.findPage(clientY);
-      if (page.hasAttribute("hide") == true) {
-        return;
-      }
-      let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientY, number);
-      /*if (editor.lesson.type == "freeboard") {
-        y += 4;
-      }*/
+      let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientPosition(event, "y"));
       let tempID = utils.tempID();
       let newAnno = {
         _id: tempID,
@@ -6521,9 +6024,6 @@ modules["pages/editor/toolbar/pen"] = {
         o: this.opacity,
         d: [0, 0]
       };
-      if (page != null && page.hasAttribute("pageid") == true) {
-        newAnno.page = page.getAttribute("pageid");
-      }
       let parentID = editor.parentFromPoint(x, y);
       if (parentID != null) {
         this.setParent = parentID;
@@ -6559,7 +6059,7 @@ modules["pages/editor/toolbar/pen"] = {
       }
       event.preventDefault();
       let rect = anno.getBoundingClientRect();
-      let { x, y } = await utils.scaleToDoc(clientPosition(event, "x") - rect.left, clientPosition(event, "y") - rect.top);
+      let { x, y } = await utils.scaleToDoc(clientPosition(event, "x") - rect.left, clientPosition(event, "y") - rect.top, true);
       let halfT = utils.round(draw.t / 2);
       x -= halfT;
       y -= halfT;
@@ -6745,11 +6245,6 @@ modules["pages/editor/toolbar/eraser"] = {
 
       event.preventDefault();
 
-      let [page] = await utils.findPage(y1);
-      if (page.hasAttribute("hide") == true) {
-        return;
-      }
-
       let self = editor.getSelf();
 
       x0 = x0 ?? x1;
@@ -6762,13 +6257,15 @@ modules["pages/editor/toolbar/eraser"] = {
       let sy = (y0 < y1) ? 1 : -1;
       let err = dx - dy;
 
+      let scaledPos = await utils.scaleToDoc(x0, y0);
+
       while (true) {
         // Handle Erase:
         let annos = document.elementsFromPoint(x0, y0);
         for (let i = 0; i < annos.length; i++) {
           let anno = annos[i].closest(".eAnnotation");
           if (anno != null && anno.hasAttribute("hidden") == false) {
-            let drawing = anno.querySelector("polyline, .eAnnotationHolder");
+            let drawing = anno.querySelector(":scope > svg > polyline");
             if (drawing != null && drawing.hasAttribute("points") == true) {
               let annoID = anno.getAttribute("anno");
               let annotation = editor.annotations[annoID];
@@ -6782,14 +6279,6 @@ modules["pages/editor/toolbar/eraser"] = {
                 }
 
                 // This alone isn't enough, the actual points MUST be checked:
-                let page = anno.closest(".ePage");
-                if (page != null) {
-                  page = parseInt(page.getAttribute("order"));
-                }
-                let scaledPos = await utils.scaleToDoc(x0, y0, page ?? 0);
-                /*if (editor.lesson.type == "freeboard") {
-                  scaledPos.y += 4;
-                }*/
                 let position = editor.getAbsolutePosition(render);
                 let xPos = scaledPos.x - position[0];
                 let yPos = scaledPos.y - position[1];
@@ -6947,18 +6436,8 @@ modules["pages/editor/toolbar/shape"] = {
       if (clientX == null || clientY == null) {
         return;
       }
-      let [page, number] = await utils.findPage(clientY);
-      if (page.hasAttribute("hide") == true) {
-        return;
-      }
-      let { x, y } = await utils.scaleToDoc(clientX, clientY, number);
-      /*if (editor.lesson.type == "freeboard") {
-        y += 4;
-      }*/
+      let { x, y } = await utils.scaleToDoc(clientX, clientY);
       shape.p = [utils.round(x - (shape.s[0] / 2) - shape.t), utils.round(y - (shape.s[1] / 2) - shape.t)];
-      if (page != null && page.hasAttribute("pageid") == true) {
-        shape.page = page.getAttribute("pageid");
-      }
       [_, anno] = await utils.render(shape, anno);
       editor.selecting["cursor"] = shape;
     }
@@ -7033,18 +6512,8 @@ modules["pages/editor/toolbar/sticky"] = {
       if (clientX == null || clientY == null) {
         return;
       }
-      let [page, number] = await utils.findPage(clientY);
-      if (page.hasAttribute("hide") == true) {
-        return;
-      }
-      let { x, y } = await utils.scaleToDoc(clientX, clientY, number);
-      /*if (editor.lesson.type == "freeboard") {
-        y += 4;
-      }*/
+      let { x, y } = await utils.scaleToDoc(clientX, clientY);
       sticky.p = [utils.round(x - (sticky.s[0] / 2)), utils.round(y - (sticky.s[1] / 2))];
-      if (page != null && page.hasAttribute("pageid") == true) {
-        sticky.page = page.getAttribute("pageid");
-      }
       [_, anno] = await utils.render(sticky, anno);
       editor.selecting["cursor"] = sticky;
     }
@@ -7129,18 +6598,8 @@ modules["pages/editor/toolbar/page"] = {
       if (clientX == null || clientY == null) {
         return;
       }
-      let [foundPage, number] = await utils.findPage(clientY);
-      if (foundPage.hasAttribute("hide") == true) {
-        return;
-      }
-      let { x, y } = await utils.scaleToDoc(clientX, clientY, number);
-      /*if (editor.lesson.type == "freeboard") {
-        y += 4;
-      }*/
+      let { x, y } = await utils.scaleToDoc(clientX, clientY);
       page.p = [utils.round(x - (page.s[0] / 2)), utils.round(y - (page.s[1] / 2))];
-      if (foundPage != null && foundPage.hasAttribute("pageid") == true) {
-        page.page = foundPage.getAttribute("pageid");
-      }
       [_, anno] = await utils.render(page, anno);
       editor.selecting["cursor"] = page;
     }
@@ -7341,19 +6800,9 @@ modules["pages/editor/toolbar/upload"] = {
       if (clientX == null || clientY == null) {
         return;
       }
-      let [page, number] = await utils.findPage(clientY);
-      if (page.hasAttribute("hide") == true) {
-        return;
-      }
-      let { x, y } = await utils.scaleToDoc(clientX, clientY, number);
-      /*if (editor.lesson.type == "freeboard") {
-        y += 4;
-      }*/
+      let { x, y } = await utils.scaleToDoc(clientX, clientY);
       this.media.s = [this.width, this.height];
       this.media.p = [utils.round(x - (this.media.s[0] / 2)), utils.round(y - (this.media.s[1] / 2))];
-      if (page != null && page.hasAttribute("pageid") == true) {
-        this.media.page = page.getAttribute("pageid");
-      }
       [_, anno] = await utils.render({ ...this.media, d: this.imageBlob }, anno);
       editor.selecting["cursor"] = this.media;
     }
@@ -7431,18 +6880,8 @@ modules["pages/editor/toolbar/embed"] = {
       if (clientX == null || clientY == null) {
         return;
       }
-      let [page, number] = await utils.findPage(clientY);
-      if (page.hasAttribute("hide") == true) {
-        return;
-      }
-      let { x, y } = await utils.scaleToDoc(clientX, clientY, number);
-      /*if (editor.lesson.type == "freeboard") {
-        y += 4;
-      }*/
+      let { x, y } = await utils.scaleToDoc(clientX, clientY);
       embed.p = [utils.round(x - (embed.s[0] / 2)), utils.round(y - (embed.s[1] / 2))];
-      if (page != null && page.hasAttribute("pageid") == true) {
-        embed.page = page.getAttribute("pageid");
-      }
       [_, anno] = await utils.render(embed, anno);
       editor.selecting["cursor"] = embed;
     }
@@ -10012,6 +9451,10 @@ modules["pages/editor/toolbar/rotatepage"] = {
   button: `<svg width="50" height="50" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_2782_5" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="#D9D9D9"/> </mask> <g mask="url(#mask0_2782_5)"> <rect x="62" y="84" width="132" height="132" rx="36" stroke="white" stroke-width="32"/> <rect x="84" y="106" width="88" height="88" rx="14" stroke="white" stroke-width="12"/> <rect x="68" y="90" width="120" height="120" rx="30" stroke="#2F2F2F" stroke-width="20"/> <path d="M166 52H188.185C209.07 52 226 68.107 226 89.8151V112" stroke="white" stroke-width="28" stroke-linecap="round"/> <path d="M174.601 80.3995C180.068 85.8668 188.932 85.8668 194.399 80.3995C199.867 74.9322 199.867 66.0678 194.399 60.6005L174.601 80.3995ZM184.899 51.1005L175 41.201L155.201 61L165.101 70.8995L184.899 51.1005ZM194.399 60.6005L184.899 51.1005L165.101 70.8995L174.601 80.3995L194.399 60.6005Z" fill="white"/> <path d="M165.101 33.1005L155.201 43L175 62.799L184.899 52.8995L165.101 33.1005ZM194.399 43.3995C199.867 37.9322 199.867 29.0678 194.399 23.6005C188.932 18.1332 180.068 18.1332 174.601 23.6005L194.399 43.3995ZM184.899 52.8995L194.399 43.3995L174.601 23.6005L165.101 33.1005L184.899 52.8995Z" fill="white"/> <path d="M155.65 61.4499C150.431 56.2309 150.431 47.7691 155.65 42.55L165.1 33.1001L184 52L165.1 70.8999L155.65 61.4499Z" fill="white"/> <path d="M166 52.001H188.185C209.07 52.001 226 68.108 226 89.8161V112.001" stroke="#2F2F2F" stroke-width="12" stroke-linecap="round"/> <path d="M180.257 74.7426C182.601 77.0858 186.399 77.0858 188.743 74.7426C191.086 72.3995 191.086 68.6005 188.743 66.2574L180.257 74.7426ZM174.243 51.7574L170 47.5147L161.515 56L165.757 60.2426L174.243 51.7574ZM188.743 66.2574L174.243 51.7574L165.757 60.2426L180.257 74.7426L188.743 66.2574Z" fill="#2F2F2F"/> <path d="M165.757 43.7574L161.515 48L170 56.4853L174.243 52.2426L165.757 43.7574ZM188.743 37.7426C191.086 35.3995 191.086 31.6005 188.743 29.2574C186.399 26.9142 182.601 26.9142 180.257 29.2574L188.743 37.7426ZM174.243 52.2426L188.743 37.7426L180.257 29.2574L165.757 43.7574L174.243 52.2426Z" fill="#2F2F2F"/> <path d="M161.757 56.2426C159.414 53.8995 159.414 50.1005 161.757 47.7574L166 43.5147L174.485 52L166 60.4853L161.757 56.2426Z" fill="#2F2F2F"/> </g> </svg>`,
   tooltip: "Rotate Page",
   setButton: function (editor, button) {
+    if (button.closest(".eSelectHolder").hasAttribute("locked") == true) {
+      button.style.removeProperty("display");
+      return;
+    }
     let selectKeys = Object.keys(editor.selecting);
     let preferenceTool = ({ ...((editor.annotations[selectKeys[selectKeys.length - 1]] ?? {}).render ?? {}), ...(editor.selecting[selectKeys[selectKeys.length - 1]] ?? {}) }) ?? {};
     if (preferenceTool.source != null && preferenceTool.number != null) {

@@ -1460,7 +1460,6 @@ modules["pages/editor"] = {
       return;
     }
 
-    body.lesson.type = "freeboard"; // TEMP CODE - REMOVE THIS LATER (ONCE ALL STANDARD LESSON PARTS ARE PURGED)
     this.lesson = body.lesson;
     this.lesson.settings = this.lesson.settings ?? {};
 
@@ -1664,21 +1663,14 @@ modules["pages/editor"] = {
       if (render.b == "none" && render.d != "line") {
         t = 0;
       }
-      let pageTop = 0;
-      if (this.lesson.type != "freeboard" && render.page != null) {
-        let pageElem = await utils.annoHolder(render.page);
-        if (pageElem != null) {
-          pageTop = (pageElem.getBoundingClientRect().top - pageHolder.getBoundingClientRect().top) / this.zoom;
-        }
-      }
       let chunks = [];
       if (render.remove != true && render.p != null) {
         let absPos = this.getAbsolutePosition(render);
         chunks = this.regionInChunks(
           absPos[0],
-          absPos[1] + pageTop,
+          absPos[1],
           absPos[0] + render.s[0] + t,
-          absPos[1] + render.s[1] + t + pageTop,
+          absPos[1] + render.s[1] + t,
         );
       }
       for (let i = 0; i < chunks.length; i++) {
@@ -1731,9 +1723,6 @@ modules["pages/editor"] = {
       }
     }
     this.updateCurrentPage = () => {
-      if (this.lesson.type == "standard") {
-        return;
-      }
       let activeElement = document.activeElement;
       if (activeElement != null) {
         let currentPageBox = activeElement.closest(".eCurrentPage");
@@ -2134,15 +2123,9 @@ modules["pages/editor"] = {
       if (this.exporting == true) {
         return;
       }
-      if (this.lesson.type != "freeboard") {
-        let pageChild = pageHolder.children[currentPage - 1] ?? pageHolder;
-        let pageRect = pageChild.getBoundingClientRect();
-        window.scrollTo(window.scrollX + pageRect.left - ((fixed.offsetWidth - pageChild.offsetWidth) / 2), window.scrollY + pageRect.top - scrollOffset);
-      } else {
-        let pageRect = pageHolder.getBoundingClientRect();
-        //window.scrollTo(window.scrollX + pageRect.left - ((fixed.offsetWidth - pageHolder.offsetWidth) / 2), window.scrollY + pageRect.top - ((fixed.offsetHeight - pageHolder.offsetHeight) / 2)); //window.scrollY + pageRect.top - 66
-        window.scrollTo(window.scrollX + pageRect.left - ((fixed.offsetWidth - pageHolder.offsetWidth) / 2), window.scrollY + pageRect.top - scrollOffset);
-      }
+      let pageRect = pageHolder.getBoundingClientRect();
+      //window.scrollTo(window.scrollX + pageRect.left - ((fixed.offsetWidth - pageHolder.offsetWidth) / 2), window.scrollY + pageRect.top - ((fixed.offsetHeight - pageHolder.offsetHeight) / 2)); //window.scrollY + pageRect.top - 66
+      window.scrollTo(window.scrollX + pageRect.left - ((fixed.offsetWidth - pageHolder.offsetWidth) / 2), window.scrollY + pageRect.top - scrollOffset);
     }
 
     // Resync unsaved annotations:
@@ -2159,85 +2142,6 @@ modules["pages/editor"] = {
       utils.syncSave(true);
     }
     window.resync = { lesson: lessonID, annotations: this.annotations };
-
-    // Load Annotations:
-    //this.loadedIn = [];
-    //let alreadyLoaded = [];
-    //this.viewAnnotations = async () => {
-      /*await this.updateChunks();
-      for (let i = 0; i < this.visibleChunks.length; i++) {
-        let chunkAnnos = Object.keys(this.chunkAnnotations[this.visibleChunks[i]] ?? {});
-        for (let a = 0; a < chunkAnnos.length; a++) {
-          await utils.render((this.annotations[chunkAnnos[a]] ?? {}).render);
-        }
-      }*/
-      /*
-      let unloadedPages = [];
-      if (this.lesson.type != "freeboard" && this.exporting != true) {
-        for (let i = 0; i < this.loadedIn.length; i++) {
-          let pageid = this.loadedIn[i];
-          let editorPage = this.page.querySelector('.ePage[pageid="' + pageid + '"]');
-          if (editorPage != null && (editorPage.querySelector(".ePageAnnotations") == null || editorPage.querySelector(".ePageAnnotations").hasAttribute("loaded") == false) && alreadyLoaded.includes(pageid) == true) {
-            unloadedPages.push(pageid);
-          }
-        }
-        if (unloadedPages.length < 1) {
-          return;
-        }
-      }
-      let annoKeys = Object.keys(this.annotations);
-      for (let i = 0; i < annoKeys.length; i++) {
-        let anno = this.annotations[annoKeys[i]];
-        if (anno.render == null) {
-          continue;
-        }
-        if (unloadedPages.includes(anno.render.page) == true || this.lesson.type == "freeboard" || this.exporting == true) {
-          await utils.render(anno.render);
-          if (this.lesson.type != "freeboard") {
-            let editorPageAnnotations = this.page.querySelector('.ePage[pageid="' + anno.render.page + '"] .ePageAnnotations');
-            if (editorPageAnnotations != null) {
-              editorPageAnnotations.setAttribute("loaded", "");
-            }
-          }
-        }
-      }
-      */
-    //}
-    /*let getAnnotations = async () => {
-      this.viewAnnotations();
-      if (connected == false) {
-        return;
-      }
-      let endpoint = "lessons/join/annotations";
-      if (this.lesson.type != "freeboard" && getParam("load_all") != "true") {
-        let fetchPageIDs = [];
-        for (let i = 0; i < this.loadedIn.length; i++) {
-          if (alreadyLoaded.includes(this.loadedIn[i]) == false) {
-            fetchPageIDs.push(this.loadedIn[i]);
-            alreadyLoaded.push(this.loadedIn[i]);
-          }
-        }
-        if (fetchPageIDs.length < 1 && this.exporting != true) {
-          return;
-        }
-        endpoint += "?pages=" + fetchPageIDs.join(",");
-      }
-      if (this.exporting == true && getParam("only_thumbnail") == "true" && body.pages != null) {
-        endpoint = "lessons/join/annotations?pages=" + body.pages[0]._id;
-      }
-      if (firstLoad == true && checkForJumpLink != null && checkForJumpLink != "") {
-        if (body.pages != null) {
-          endpoint += "&annotation=" + checkForJumpLink;
-        } else {
-          endpoint += "?annotation=" + checkForJumpLink;
-        }
-      }
-
-      // Send Load Request:
-      
-
-      await this.viewAnnotations(true);
-    }*/
     
     this.sources = { ...this.sources, ...getObject(body.sources ?? [], "_id") };
     //pageHolder.remove();
@@ -2368,15 +2272,6 @@ modules["pages/editor"] = {
       updateAnnotationScroll(this.annotationPages[setPage - 1], false);
     });
     bottomHolder.style.display = "none";
-    //bottomHolder.remove();
-
-    /*let updateContentSize = () => {
-      if (this.lesson.type != "freeboard") {
-        content.style.width = pageHolder.clientWidth * this.zoom + "px";
-        content.style.height = ((pageHolder.clientHeight * this.zoom) + addPagesHolder.clientHeight) + "px";
-      }
-    }
-    updateContentSize();*/
 
     // Fetch Annotations
     let checkForJumpLink = getParam("annotation");
@@ -2386,26 +2281,11 @@ modules["pages/editor"] = {
         (await getModule("alert")).open("error", `<b>Error Loading Annotations</b>Please try again later...`);
         return;
       }
-      /*if (this.exporting == true) {
-        for (let i = 0; i < annoBody.annotations.length; i++) {
-          let addAnno = annoBody.annotations[i];
-          this.annotations[addAnno._id] = { render: addAnno };
-          await utils.render(addAnno);
-        }
-        await utils.processPageRenders(this);
-        return;
-      }*/
       for (let i = 0; i < annoBody.annotations.length; i++) {
         let addAnno = annoBody.annotations[i];
         let existingAnno = this.annotations[addAnno._id];
         if (existingAnno == null || existingAnno.render.sync < addAnno.sync) {
           this.annotations[addAnno._id] = { render: addAnno };
-          /*if (this.lesson.type != "freeboard") {
-            let editorPageAnnotations = this.page.querySelector('.ePage[pageid="' + addAnno.page + '"] .ePageAnnotations');
-            if (editorPageAnnotations != null) {
-              editorPageAnnotations.removeAttribute("loaded");
-            }
-          }*/
         }
       }
       for (let i = 0; i < annoBody.annotations.length; i++) {
@@ -3003,77 +2883,6 @@ modules["dropdowns/editor/file"] = {
     });
     let exportButton = frame.querySelector('.eFileAction[option="export"]');
     let printButton = frame.querySelector('.eFileAction[option="print"]');
-    if (editor.lesson.type != "freeboard") {
-      exportButton.removeAttribute("dropdown");
-      printButton.removeAttribute("dropdown");
-      exportButton.addEventListener("click", async () => {
-        exportButton.setAttribute("disabled", "");
-        let exportAlert = await alert.open("info", "<b>Exporting Lesson</b><div>Preparing export...</div>", { time: "never" });
-        if (editor.exportAlert) {
-          clearTimeout(editor.exportAlertTimeout);
-          alert.close(editor.exportAlert);
-        }
-        editor.exportAlert = exportAlert;
-        editor.exportAlertTimeout = setTimeout(() => {
-          alert.close(editor.exportAlert);
-        }, 30000);
-        let [code, body] = await sendRequest("POST", "lessons/export", null, { session: editor.session });
-        if (exportButton != null) {
-          exportButton.removeAttribute("disabled");
-        }
-        if ([504, 524, 0].includes(code) == false) { // Gateway timeout
-          alert.close(exportAlert);
-        }
-        if (code == 200 && exportAlert != null && exportAlert.hasAttribute("complete") == false) {
-          exportAlert.setAttribute("complete", "");
-          window.open(assetURL + body.export);
-          dropdown.close();
-        }
-      });
-      printButton.addEventListener("click", async () => {
-        printButton.setAttribute("disabled", "");
-        let exportAlert = await alert.open("info", "<b>Exporting Lesson</b><div>Preparing export...</div>", { time: "never" });
-        if (editor.exportAlert) {
-          clearTimeout(editor.exportAlertTimeout);
-          alert.close(editor.exportAlert);
-        }
-        editor.exportAlert = exportAlert;
-        editor.exportAlertTimeout = setTimeout(() => {
-          alert.close(editor.exportAlert);
-        }, 30000);
-        let [code, body] = await sendRequest("POST", "lessons/export?type=print", null, { session: editor.session });
-        if (printButton != null) {
-          printButton.removeAttribute("disabled");
-        }
-        if ([504, 524, 0].includes(code) == false) { // Gateway timeout
-          alert.close(exportAlert);
-        }
-        if (code == 200 && exportAlert != null && exportAlert.hasAttribute("complete") == false) {
-          exportAlert.setAttribute("complete", "");
-          //document.body.insertAdjacentHTML("beforeend", `<object class="eFileActionPrint" type="application/pdf" data="${assetURL + body.export}" width="100%" height="100%" name="${editor.lesson.name}"><param name="src" value=${assetURL + body.export}/></object>`);
-          //document.body.querySelector(".eFileActionPrint").printWithDialog();
-          let blob;
-          await fetch(assetURL + body.export).then(async function (file) {
-            blob = URL.createObjectURL(await file.blob());
-          });
-          if (blob != null) {
-            let oldframe = fixed.querySelector(".eFileActionPrintFrame");
-            if (oldframe != null) {
-              oldframe.remove();
-            }
-            fixed.insertAdjacentHTML("beforeend", `<iframe class="eFileActionPrintFrame" style="display: none"></iframe>`);
-            let iframe = fixed.querySelector(".eFileActionPrintFrame");
-            iframe.addEventListener("load", () => {
-              iframe.contentWindow.focus();
-              iframe.contentWindow.print();
-              URL.revokeObjectURL(blob);
-            });
-            iframe.src = blob;
-          }
-          dropdown.close();
-        }
-      });
-    }
     let copyButton = frame.querySelector('.eFileAction[option="copy"]');
     copyButton.addEventListener("click", async () => {
       if (userID == null) {
@@ -3138,22 +2947,20 @@ modules["dropdowns/editor/file"] = {
     if (access < 1) {
       //frame.querySelector('.eFileAction[option="ocr"]').remove();
     }
-    if (editor.lesson.type == "freeboard") {
-      if (editor.annotationPages.length < 1) {
-        jump.remove();
-      }
-      //find.remove();
-      //jumptop.remove();
-      //jump.remove();
-      //jumpend.remove();
-      if (hideshowpage != null) {
-        hideshowpage.remove();
-      }
-      //frame.querySelector('.eFileLine[option="findjump"]').remove();
-      let hideshowLine = frame.querySelector('.eFileLine[option="hideshow"]');
-      if (hideshowLine != null) {
-        hideshowLine.remove();
-      }
+    if (editor.annotationPages.length < 1) {
+      jump.remove();
+    }
+    //find.remove();
+    //jumptop.remove();
+    //jump.remove();
+    //jumpend.remove();
+    if (hideshowpage != null) {
+      hideshowpage.remove();
+    }
+    //frame.querySelector('.eFileLine[option="findjump"]').remove();
+    let hideshowLine = frame.querySelector('.eFileLine[option="hideshow"]');
+    if (hideshowLine != null) {
+      hideshowLine.remove();
     }
     find.remove();
     frame.querySelector('.eFileLine[option="document"]').remove();
@@ -3300,26 +3107,13 @@ modules["pages/editor/annotation"] = {
     }
     return [pageHolder.children[pageNum - 1], pageNum];
   },
-  scaleToDoc: async function (x, y, p) {
+  scaleToDoc: async function (x, y, noOrigin) {
     let editor = await getModule("pages/editor");
-    let pageHolder = editor.page.querySelector(".ePageHolder");
-    if (p != null) {
-      let pageElem = pageHolder;
-      if (p > 0) {
-        pageElem = pageHolder.children[p - 1];
-      }
-      let pageRect = pageElem.getBoundingClientRect();
-      x -= pageRect.left;
-      if (p > 1) {
-        y -= pageRect.top + (4 * editor.zoom);
-      } else {
-        y -= pageRect.top;
-      }
-    }/* else if (editor.lesson.type == "freeboard") {
-      let pageRect = pageHolder.getBoundingClientRect();
+    let pageRect = editor.page.querySelector(".ePageHolder").getBoundingClientRect();
+    if (noOrigin != true) {
       x -= pageRect.left;
       y -= pageRect.top;
-    }*/
+    }
     let scaleZoom = 1 / editor.zoom;
     return {
       x: this.round(x * scaleZoom),
@@ -3346,23 +3140,6 @@ modules["pages/editor/annotation"] = {
   },
   tempID: function () {
     return "pending_" + randomString(10) + Date.now();
-  },
-  annoHolder: async function (pageID) {
-    let editor = await getModule("pages/editor");
-    let pageHolder = editor.page.querySelector(".ePageHolder");
-    if (editor.lesson.type == "freeboard") {
-      return pageHolder;
-    }
-    let page = pageHolder.querySelector('.ePage[pageid="' + pageID + '"]');
-    if (page == null) {
-      return pageHolder;
-    }
-    let holder = page.querySelector(".ePageAnnotations");
-    if (holder == null) {
-      page.insertAdjacentHTML("beforeend", `<div class="ePageAnnotations"></div>`);
-      holder = page.querySelector(".ePageAnnotations");
-    }
-    return page.querySelector(".ePageAnnotations");
   },
   createSVG: function (parent, type) {
     let newSVG = document.createElementNS("http://www.w3.org/2000/svg", type);
@@ -3409,15 +3186,13 @@ modules["pages/editor/annotation"] = {
         this.setRightMargin = Math.ceil(right / 400) * 400;
         this.farRight = this.setRightMargin - 120;
       }
-      if (editor.lesson.type == "freeboard") {
-        if (top > this.farTop) {
-          this.setTopMargin = Math.ceil(top / 400) * 400;
-          this.farTop = this.setTopMargin - 120;
-        }
-        if (bottom > this.farBottom) {
-          this.setBottomMargin = Math.ceil(bottom / 400) * 400;
-          this.farBottom = this.setBottomMargin - 120;
-        }
+      if (top > this.farTop) {
+        this.setTopMargin = Math.ceil(top / 400) * 400;
+        this.farTop = this.setTopMargin - 120;
+      }
+      if (bottom > this.farBottom) {
+        this.setBottomMargin = Math.ceil(bottom / 400) * 400;
+        this.farBottom = this.setBottomMargin - 120;
       }
     }
 
@@ -3450,16 +3225,8 @@ modules["pages/editor/annotation"] = {
     this.marginBottom = (this.setBottomMargin * editor.zoom) + addMarginTopBottom;
     content.style.marginLeft = this.marginLeft + "px";
     content.style.marginRight = this.marginRight + "px";
-    if (editor.lesson.type == "freeboard") {
-      content.style.marginTop = this.marginTop + "px";
-      content.style.marginBottom = this.marginBottom + "px";
-    }
-    /*content.style.marginLeft = (Math.ceil(this.marginLeft / 40) * 40) + "px";
-    content.style.marginRight = (Math.ceil(((this.setRightMargin * editor.zoom) + addMarginLeftRight) / 40) * 40) + "px";
-    if (editor.lesson.type == "freeboard") {
-      content.style.marginTop = (Math.ceil(this.marginTop / 40) * 40) + "px";
-      content.style.marginBottom = (Math.ceil(((this.setBottomMargin * editor.zoom) + addMarginTopBottom) / 40) * 40) + "px";
-    }*/
+    content.style.marginTop = this.marginTop + "px";
+    content.style.marginBottom = this.marginBottom + "px";
     if (contentFrame.offsetWidth != this.lastOffsetWidth || contentFrame.offsetHeight != this.lastOffsetHeight) {
       window.scrollTo(scrollPosX + (this.marginLeft - contentLeft), scrollPosY + (this.marginTop - contentTop));
       if (editor.realtime.module && editor.realtime.module.adjustRealtimeHolder) {
@@ -3636,141 +3403,6 @@ modules["pages/editor/annotation"] = {
     }
   },
 
-  //SOFT_PIXEL_RESIZE: 250,
-  //marginLeft: 250,
-  //marginRight: 250,
-  /*resetAnnotationSize: async function () {
-    if (mouseDown() == true) {
-      if (this.runResetEventReset != null) {
-        return;
-      }
-      this.runResetEventReset = () => {
-        this.resetAnnotationSize();
-      };
-      app.addEventListener("mouseup", this.runResetEventReset, { passive: false });
-      app.addEventListener("touchend", this.runResetEventReset, { passive: false });
-      return;
-    }
-    if (this.runResetEventReset != null) {
-      app.removeEventListener("mouseup", this.runResetEventReset);
-      app.removeEventListener("touchend", this.runResetEventReset);
-      this.runResetEventReset = null;
-    }
-    this.farLeft = 0;
-    this.farRight = 0;
-    this.setLeftMargin = 0;
-    this.setRightMargin = 0;
-    this.farTop = 0;
-    this.farBottom = 0;
-    this.setTopMargin = 0;
-    this.setBottomMargin = 0;
-    this.maxLayer = 0;
-    this.minLayer = 0;
-    let editor = await getModule("pages/editor");
-    let annoKeys = Object.keys(editor.annotations);
-    for (let i = 0; i < annoKeys.length; i++) {
-      let anno = (editor.annotations[annoKeys[i]] ?? {}).render;
-      if (anno != null) {
-        await this.checkAnnotationSize(anno, true);
-      }
-    }
-    this.checkAnnotationSize();
-  },
-  checkAnnotationSize: async function (anno, notUpdate) {
-    let editor = await getModule("pages/editor");
-    let contentFrame = editor.page.querySelector(".eContent");
-    let content = contentFrame.querySelector(".eContentHolder");
-    if (anno != null && anno.p != null) {
-      if (editor.exporting == true) {
-        let page = editor.page.querySelector('.ePage[pageid="' + (anno.page ?? "") + '"]');
-        if (page != null && page.hasAttribute("exporting") == false) {
-          return;
-        }
-        if (getParam("no_expand") == "true") {
-          return;
-        }
-      }
-
-      if ((anno._id ?? "").startsWith("pending_") != true || anno.done == true) {
-        if (anno.remove != true) {
-          let annoHolder = await this.annoHolder(anno.page);
-          let left = -anno.p[0];
-          let right = anno.p[0] + anno.s[0] - annoHolder.offsetWidth;
-          let top = -anno.p[1];
-          let bottom = anno.p[1] + anno.s[0] - annoHolder.offsetHeight;
-          if (left > this.farLeft) {
-            this.setLeftMargin = Math.ceil(left / 400) * 400;
-            this.farLeft = this.setLeftMargin - 120;
-          }
-          if (right > this.farRight) {
-            this.setRightMargin = Math.ceil(right / 400) * 400;
-            this.farRight = this.setRightMargin - 120;
-          }
-          if (editor.lesson.type == "freeboard") {
-            if (top > this.farTop) {
-              this.setTopMargin = Math.ceil(top / 400) * 400;
-              this.farTop = this.setTopMargin - 120;
-            }
-            if (bottom > this.farBottom) {
-              this.setBottomMargin = Math.ceil(bottom / 400) * 400;
-              this.farBottom = this.setBottomMargin - 120;
-            }
-          }
-        }
-      }
-      let zIndex = anno.l ?? Math.round(((anno.sync ?? getEpoch()) / 2000000000000) * 2147483647);
-      if (zIndex < this.minLayer) {
-        this.minLayer = zIndex;
-      }
-      if (zIndex > this.maxLayer) {
-        this.maxLayer = zIndex;
-      }
-    }
-    if (notUpdate == true) {
-      return;
-    }
-    if (mouseDown() == true) {
-      if (this.runCheckSizeReset != null) {
-        return;
-      }
-      this.runCheckSizeReset = () => {
-        this.checkAnnotationSize(anno);
-      };
-      app.addEventListener("mouseup", this.runCheckSizeReset, { passive: false });
-      app.addEventListener("touchend", this.runCheckSizeReset, { passive: false });
-      return;
-    }
-    if (this.runCheckSizeReset != null) {
-      app.removeEventListener("mouseup", this.runCheckSizeReset);
-      app.removeEventListener("touchend", this.runCheckSizeReset);
-      this.runCheckSizeReset = null;
-    }
-    //let pageHolder = editor.page.querySelector(".ePageHolder");
-    let scrollPosX = window.scrollX;
-    let scrollPosY = window.scrollY;
-    //let contentLeft = pageHolder.getBoundingClientRect().left;
-    let contentLeft = this.marginLeft ?? 0;
-    let contentTop = this.marginTop ?? 0;
-    this.marginLeft = (this.setLeftMargin * editor.zoom) + editor.addMargin;
-    this.marginTop = (this.setTopMargin * editor.zoom) + editor.addMargin;
-    content.style.marginLeft = (Math.ceil(this.marginLeft / 40) * 40) + "px";
-    content.style.marginRight = (Math.ceil(((this.setRightMargin * editor.zoom) + editor.addMargin) / 40) * 40) + "px";
-    if (editor.lesson.type == "freeboard") {
-      content.style.marginTop = (Math.ceil(this.marginTop / 40) * 40) + "px";
-      content.style.marginBottom = (Math.ceil(((this.setBottomMargin * editor.zoom) + editor.addMargin) / 40) * 40) + "px";
-    }
-    if (contentFrame.offsetWidth != this.lastOffsetWidth || contentFrame.offsetHeight != this.lastOffsetHeight) {
-      window.scrollTo(scrollPosX + (this.marginLeft - contentLeft), scrollPosY + (this.marginTop - contentTop));
-      if (editor.realtime.module && editor.realtime.module.adjustRealtimeHolder) {
-        editor.realtime.module.adjustRealtimeHolder();
-      }
-      if (editor.updateZoom != null) {
-        editor.updateZoom(true);
-      }
-    }
-    this.lastOffsetWidth = contentFrame.offsetWidth;
-    this.lastOffsetHeight = contentFrame.offsetHeight;
-  },*/
   SVG_PADDING: 100, // How much padding svgs should have to ensure clean render
   maxLayer: 0,
   minLayer: 0,
@@ -3876,6 +3508,7 @@ modules["pages/editor/annotation"] = {
       return;
     }
     let editor = await getModule("pages/editor");
+    let annoHolder = editor.page.querySelector(".ePageHolder");
     if (editor.exportSelected != null) {
       if (editor.exportSelected.includes(data._id) == false) {
         let currentAnnoCheck = data;
@@ -3923,7 +3556,6 @@ modules["pages/editor/annotation"] = {
         }
       }
     }
-    let annoHolder = await this.annoHolder(page);
     if (parent != null) {
       if ((parent ?? "").startsWith("pending_") == true) {
         let parentAnno = editor.annotations[parent];

@@ -31,6 +31,7 @@ modules["editor/export"] = {
     let utils = await getModule("pages/editor/annotation");
     let contentFrame = editor.page.querySelector(".eContent");
     let content = contentFrame.querySelector(".eContentHolder");
+    let annoHolder = content.querySelector(".ePageHolder");
     content.style.width = "fit-content";
     content.style.height = "fit-content";
     if (anno != null && anno.p != null) {
@@ -50,7 +51,6 @@ modules["editor/export"] = {
       if ((anno._id ?? "").startsWith("pending_") != true || anno.done == true) {
         if (anno.remove != true) {
           let position = editor.getAbsolutePosition(anno);
-          let annoHolder = await utils.annoHolder(anno.page);
           let left = -position[0];
           let right = position[0] + anno.s[0] - annoHolder.offsetWidth;
           let top = -position[1];
@@ -63,15 +63,13 @@ modules["editor/export"] = {
             this.setRightMargin = Math.ceil(right / 400) * 400;
             this.farRight = this.setRightMargin - 120;
           }
-          if (editor.lesson.type != "standard") {
-            if (top > this.farTop) {
-              this.setTopMargin = Math.ceil(top / 400) * 400;
-              this.farTop = this.setTopMargin - 120;
-            }
-            if (bottom > this.farBottom) {
-              this.setBottomMargin = Math.ceil(bottom / 400) * 400;
-              this.farBottom = this.setBottomMargin - 120;
-            }
+          if (top > this.farTop) {
+            this.setTopMargin = Math.ceil(top / 400) * 400;
+            this.farTop = this.setTopMargin - 120;
+          }
+          if (bottom > this.farBottom) {
+            this.setBottomMargin = Math.ceil(bottom / 400) * 400;
+            this.farBottom = this.setBottomMargin - 120;
           }
         }
       }
@@ -80,10 +78,8 @@ modules["editor/export"] = {
     this.marginTop = (this.setTopMargin * editor.zoom) + editor.addMargin;
     content.style.marginLeft = (Math.ceil(this.marginLeft / 40) * 40) + "px";
     content.style.marginRight = (Math.ceil(((this.setRightMargin * editor.zoom) + editor.addMargin) / 40) * 40) + "px";
-    if (editor.lesson.type != "standard") {
-      content.style.marginTop = (Math.ceil(this.marginTop / 40) * 40) + "px";
-      content.style.marginBottom = (Math.ceil(((this.setBottomMargin * editor.zoom) + editor.addMargin) / 40) * 40) + "px";
-    }
+    content.style.marginTop = (Math.ceil(this.marginTop / 40) * 40) + "px";
+    content.style.marginBottom = (Math.ceil(((this.setBottomMargin * editor.zoom) + editor.addMargin) / 40) * 40) + "px";
   },
   js: async function (editor, utils, page) {
     fixed.style.display = "none";
@@ -131,17 +127,12 @@ modules["editor/export"] = {
       editor.exportPromises = [];
       if (currentTask == null) { // Prepare
         if (data.method == "thumbnail") {
-          if (editor.lesson.type != "standard") {
-            if (editor.annotationPages.length > 0) {
-              currentPage = 1;
-              currentTask = "set";
-              pageScale = 1;
-            } else {
-              currentTask = "board";
-            }
-          } else {
+          if (editor.annotationPages.length > 0) {
             currentPage = 1;
-            currentTask = "setpage";
+            currentTask = "set";
+            pageScale = 1;
+          } else {
+            currentTask = "board";
           }
         } else if (data.method == "pages") {
           if (editor.annotationPages.length > 0) {
@@ -241,42 +232,6 @@ modules["editor/export"] = {
           handleRenderPromise = null;
           await this.resetAnnotationSize();
           return { capture: true, done: true };
-          //break;
-        case "setpage":
-          let prevExport = pageHolder.querySelector(".ePage[exporting]");
-          if (prevExport != null) {
-            prevExport.removeAttribute("exporting");
-          } else {
-            currentPage = 1;
-            let annoKeys = Object.keys(editor.annotations);
-            for (let i = 0; i < annoKeys.length; i++) {
-              await utils.render((editor.annotations[annoKeys[i]] ?? {}).render);
-            }
-          }
-          let page = pageHolder.children[currentPage - 1];
-          if (page != null) {
-            page.setAttribute("exporting", "");
-            pageHolder.style.removeProperty("width");
-            pageHolder.style.removeProperty("height");
-            //pageHolder.style.removeProperty("transform");
-            //window.scrollTo(0, 0);
-            //pageHolder.style.transform = `translate(${page.getBoundingClientRect().left}px, -${page.getBoundingClientRect().top}px)`;
-            //if (editor.exportPromises.length > 0) {
-            //  await Promise.all(editor.exportPromises)
-            //}
-            await this.resetAnnotationSize();
-            currentPage++;
-            return { capture: true, done: false };
-          } else {
-            //pageHolder.style.width = "250px";
-            //pageHolder.style.height = "250px";
-          }
-          //editor.visibleChunks = Object.keys(editor.chunkAnnotations);
-          //await editor.updatePages();
-          //await this.resetAnnotationSize();
-        //  break;
-        //case "freeboard":
-        //  await this.resetAnnotationSize();
       }
 
       return { capture: false, done: true };

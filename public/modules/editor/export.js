@@ -93,7 +93,7 @@ modules["editor/export"] = {
     let currentPage = 1;
 
     let pageScale = 1.5;
-    let pageBorderWidth = 4;
+    let pageBorderSize = 4;
 
     let handleRenderPromise;
     this.handleRendering = () => {
@@ -179,16 +179,15 @@ modules["editor/export"] = {
               await utils.setMarginSize(true);
               if (annotation.render != null) {
                 let position = editor.getAbsolutePosition(annotation.render);
-                await editor.setZoom(1.5); //((annotation.render.s[0] - (pageBorderWidth * 2)) * pageScale) / annotation.render.s[0]);
+                await editor.setZoom(pageScale); //((annotation.render.s[0] - (pageBorderSize * 2)) * pageScale) / annotation.render.s[0]);
                 window.scrollTo(0, 0);
                 pageHolder.style.removeProperty("transform");
                 let pageRect = pageHolder.getBoundingClientRect();
-                pageHolder.style.transform = `translate(-${pageRect.left + (position[0] * editor.zoom)}px, -${pageRect.top + (position[1] * editor.zoom)}px) scale(var(--zoom))`; // + pageBorderWidth)
+                pageHolder.style.transform = `translate(-${pageRect.left + ((position[0] + pageBorderSize) * editor.zoom)}px, -${pageRect.top + ((position[1] + pageBorderSize) * editor.zoom)}px) scale(var(--zoom))`;
               }
               let element = pageHolder.querySelector('.eAnnotation[anno="' + pageID + '"]');
               if (element != null) {
                 element.setAttribute("notransition", "");
-                element.style.setProperty("--borderWidth", "0px");
                 element.style.borderRadius = "0px";
                 let border = element.querySelector("div[border]");
                 if (border != null) {
@@ -209,7 +208,7 @@ modules["editor/export"] = {
                     }
                   })();
                 }
-                return { capture: true, done: false, width: annotation.render.s[0] - (pageBorderWidth * 2), height: annotation.render.s[1] - (pageBorderWidth * 2), page: currentPage - 1 }; // - (pageBorderWidth * 2) //) * editor.zoom
+                return { capture: true, done: false, width: annotation.render.s[0] - (pageBorderSize * 2), height: annotation.render.s[1] - (pageBorderSize * 2), page: currentPage - 1 }; // - (pageBorderSize * 2) //) * editor.zoom
               }
             }
           }

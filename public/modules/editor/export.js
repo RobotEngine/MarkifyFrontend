@@ -5,81 +5,67 @@ modules["editor/export"] = {
     ".ePage:not([exporting])": `display: none`,
     ".ePageRearrange": `display: none`
   },
+  marginSize: 100,
   resetAnnotationSize: async function () {
-    this.farLeft = 0;
-    this.farRight = 0;
-    this.setLeftMargin = 0;
-    this.setRightMargin = 0;
-    this.farTop = 0;
-    this.farBottom = 0;
-    this.setTopMargin = 0;
-    this.setBottomMargin = 0;
-    this.maxLayer = 0;
-    this.minLayer = 0;
+    this.minX = 0;
+    this.maxX = 0;
+    this.minY = 0;
+    this.maxY = 0;
     let editor = await getModule("pages/editor");
     let annoKeys = Object.keys(editor.annotations);
     for (let i = 0; i < annoKeys.length; i++) {
       let anno = (editor.annotations[annoKeys[i]] ?? {}).render;
       if (anno != null) {
-        await this.checkAnnotationSize(anno, true);
+        await this.checkAnnotationSize(editor, anno);
       }
     }
-    await this.checkAnnotationSize();
-  },
-  checkAnnotationSize: async function (anno) {
-    let editor = await getModule("pages/editor");
-    let utils = await getModule("pages/editor/annotation");
+
     let contentFrame = editor.page.querySelector(".eContent");
     let content = contentFrame.querySelector(".eContentHolder");
-    let annoHolder = content.querySelector(".ePageHolder");
+
     content.style.width = "fit-content";
     content.style.height = "fit-content";
-    if (anno != null && anno.p != null) {
-      if (editor.exporting == true) {
-        if (editor.exportSelected != null && editor.exportSelected.includes(anno._id) == false) {
-          return;
-        }
-        let page = editor.page.querySelector('.ePage[pageid="' + (anno.page ?? "") + '"]');
-        if (page != null && page.hasAttribute("exporting") == false) {
-          return;
-        }
-        if (getParam("no_expand") == "true") {
-          return;
-        }
-      }
 
-      if ((anno._id ?? "").startsWith("pending_") != true || anno.done == true) {
-        if (anno.remove != true) {
-          let position = editor.getAbsolutePosition(anno);
-          let left = -position[0];
-          let right = position[0] + anno.s[0] - annoHolder.offsetWidth;
-          let top = -position[1];
-          let bottom = position[1] + anno.s[0] - annoHolder.offsetHeight;
-          if (left > this.farLeft) {
-            this.setLeftMargin = Math.ceil(left / 400) * 400;
-            this.farLeft = this.setLeftMargin - 120;
-          }
-          if (right > this.farRight) {
-            this.setRightMargin = Math.ceil(right / 400) * 400;
-            this.farRight = this.setRightMargin - 120;
-          }
-          if (top > this.farTop) {
-            this.setTopMargin = Math.ceil(top / 400) * 400;
-            this.farTop = this.setTopMargin - 120;
-          }
-          if (bottom > this.farBottom) {
-            this.setBottomMargin = Math.ceil(bottom / 400) * 400;
-            this.farBottom = this.setBottomMargin - 120;
-          }
-        }
-      }
+    content.style.marginLeft = Math.ceil((-this.minX * editor.zoom) + this.marginSize) + "px";
+    content.style.marginRight = Math.ceil((this.maxX * editor.zoom) + this.marginSize) + "px";
+    content.style.marginTop = Math.ceil((-this.minY * editor.zoom) + this.marginSize) + "px";
+    content.style.marginBottom = Math.ceil((this.maxY * editor.zoom) + this.marginSize) + "px";
+  },
+  checkAnnotationSize: async function (editor, anno) {
+    let [width, height] = anno.s;
+    let [x, y] = editor.getAbsolutePosition(anno);
+    let rotate = anno.r ?? 0;
+    if (rotate > 180) {
+      rotate = -(360 - rotate);
     }
-    this.marginLeft = (this.setLeftMargin * editor.zoom) + editor.addMargin;
-    this.marginTop = (this.setTopMargin * editor.zoom) + editor.addMargin;
-    content.style.marginLeft = (Math.ceil(this.marginLeft / 40) * 40) + "px";
-    content.style.marginRight = (Math.ceil(((this.setRightMargin * editor.zoom) + editor.addMargin) / 40) * 40) + "px";
-    content.style.marginTop = (Math.ceil(this.marginTop / 40) * 40) + "px";
-    content.style.marginBottom = (Math.ceil(((this.setBottomMargin * editor.zoom) + editor.addMargin) / 40) * 40) + "px";
+    if (width < 0) {
+      width = -width;
+      x -= width;
+    }
+    if (height < 0) {
+      height = -height;
+      y -= height;
+    }
+    let t = anno.t ?? 0;
+    if (anno.b == "none" && anno.d != "line") {
+      t = 0;
+    }
+    let halfT = t / 2;
+
+    let radian = rotate * (Math.PI / 180);
+    let thickWidth = width + t;
+    let thickHeight = height + t;
+    let changedWidth = ((Math.abs(thickWidth * Math.cos(radian)) + Math.abs(thickHeight * Math.sin(radian))) - thickWidth) / 2;
+    let changedHeight = ((Math.abs(thickWidth * Math.sin(radian)) + Math.abs(thickHeight * Math.cos(radian))) - thickHeight) / 2;
+
+    let setMinX = x + halfT - changedWidth;
+    this.minX = Math.min(this.minX ?? setMinX, setMinX);
+    let setMaxX = x + width + t + halfT + changedWidth;
+    this.maxX = Math.max(this.maxX ?? setMaxX, setMaxX);
+    let setMinY = y + halfT - changedHeight;
+    this.minY = Math.min(this.minY ?? setMinY, setMinY);
+    let setMaxY = y + t + height + halfT + changedHeight;
+    this.maxY = Math.max(this.maxY ?? setMaxY, setMaxY);
   },
   js: async function (editor, utils, page) {
     fixed.style.display = "none";

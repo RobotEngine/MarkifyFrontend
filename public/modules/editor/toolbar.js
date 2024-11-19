@@ -1826,7 +1826,6 @@ modules["pages/editor/toolbar/cursor"] = {
 
         anno.style.borderRadius = (4 / editor.zoom) + "px";
         
-        let border = 0;
         let [width, height] = merged.s;
         let [x, y] = editor.getAbsolutePosition(merged);
         let rotate = merged.r ?? 0;
@@ -1846,7 +1845,6 @@ modules["pages/editor/toolbar/cursor"] = {
           t = 0;
         }
         let halfT = t / 2;
-        let inverse = 1 / editor.zoom;
 
         if (selectionIDs.length > 1 || dragSelect.selection != null) {
           if (select == null) {
@@ -1885,7 +1883,7 @@ modules["pages/editor/toolbar/cursor"] = {
         this.lastElementWidth = width + t;
         this.lastElementHeight = height + t;
         this.lastElementX = pageHolderRect.x + ((x + halfT) * editor.zoom) + window.scrollX - 2;
-        this.lastElementY = pageHolderRect.y + (((y + halfT) - border) * editor.zoom) + window.scrollY - 2;
+        this.lastElementY = pageHolderRect.y + ((y + halfT) * editor.zoom) + window.scrollY - 2;
         this.lastElementRotate = rotate;
         
         if (select != null) {
@@ -1905,25 +1903,24 @@ modules["pages/editor/toolbar/cursor"] = {
           activeLayer.style.transform = "translate(" + (relX + halfT - posInverse) + "px," + (relY + halfT - border - posInverse) + "px) rotate(" + rotate + "deg)";
         }*/
 
-        let radian = (merged.r ?? 0) * (Math.PI / 180);
+        let radian = rotate * (Math.PI / 180);
         let thickWidth = width + t;
         let thickHeight = height + t;
         let changedWidth = ((Math.abs(thickWidth * Math.cos(radian)) + Math.abs(thickHeight * Math.sin(radian))) - thickWidth) / 2;
         let changedHeight = ((Math.abs(thickWidth * Math.sin(radian)) + Math.abs(thickHeight * Math.cos(radian))) - thickHeight) / 2;
 
-        let pageY = pageHolderRect.y - pageHolderRect.y;
         let setMinX = x + halfT - changedWidth;
         this.minX = Math.min(this.minX ?? setMinX, setMinX);
         let setMaxX = x + width + t + halfT + changedWidth;
         this.maxX = Math.max(this.maxX ?? setMaxX, setMaxX);
-        let setMinY = (pageY * inverse) + y + halfT - border - changedHeight;
+        let setMinY = y + halfT - changedHeight;
         this.minY = Math.min(this.minY ?? setMinY, setMinY);
-        let setMaxY = (pageY * inverse) + y + t - border + height + halfT + changedHeight;
+        let setMaxY = y + t + height + halfT + changedHeight;
         this.maxY = Math.max(this.maxY ?? setMaxY, setMaxY);
 
         let setCheckX = x + width;
         this.checkX = Math.min(this.checkX ?? setCheckX, setCheckX);
-        let setCheckY = (pageY * inverse) + y - border + height;
+        let setCheckY = y + height;
         this.checkY = Math.min(this.checkY ?? setCheckY, setCheckY);
 
         if (collabSelect != null) {

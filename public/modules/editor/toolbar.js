@@ -5245,8 +5245,6 @@ modules["pages/editor/toolbar/drag"] = {
         return;
       }
 
-      await cursorModule.enableAction(event);
-
       let target = event.target;
       let reaction = target.closest(".eReaction");
       if (reaction != null) {
@@ -5258,6 +5256,7 @@ modules["pages/editor/toolbar/drag"] = {
       if (target.closest("button") != null || target.closest("a") != null) {
         return;
       }
+      await cursorModule.enableAction(event);
       anno = target.closest(".eAnnotation"); //.eSelect, .eSelectActive
       if (anno != null && anno.hasAttribute("member") == true) {
         // A display annotation, not a real one
@@ -6314,7 +6313,7 @@ modules["pages/editor/toolbar/shape"] = {
     body.style.userSelect = "none";
     editor.page.style.touchAction = "pinch-zoom";
     editor.page.setAttribute("enabled", "");
-    
+
     let shape;
     let anno;
     let clientY;

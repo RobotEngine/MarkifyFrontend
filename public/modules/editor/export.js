@@ -32,6 +32,10 @@ modules["editor/export"] = {
     content.style.marginBottom = Math.ceil((this.maxY * editor.zoom) + this.marginSize) + "px";
   },
   checkAnnotationSize: async function (editor, anno) {
+    if (editor.exportSelected != null && editor.exportSelected.includes(anno._id) == false) {
+      return;
+    }
+    
     let [width, height] = anno.s;
     let [x, y] = editor.getAbsolutePosition(anno);
     let rotate = anno.r ?? 0;

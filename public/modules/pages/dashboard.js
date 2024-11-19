@@ -722,11 +722,11 @@ modules["pages/dashboard/lessons"] = {
             if (section.querySelector(".dSectionContinueLoad") == null) {
               section.insertAdjacentHTML("beforeend", `<button class="dSectionContinueLoad dSectionLoad buttonAnim border">Show More</button>`);
             }
-            if (loadMore.classList[0] == "dSectionLoadMore") {
-              loadMore.setAttribute("showless", "");
-              loadMore.querySelector("span").textContent = "Show Less";
-              loadMore.querySelector("img").style.transform = "rotate(-180deg)";
-            }
+          }
+          if (body[getSection].length >= 0 && loadMore.classList[0] == "dSectionLoadMore") {
+            loadMore.setAttribute("showless", "");
+            loadMore.querySelector("span").textContent = "Show Less";
+            loadMore.querySelector("img").style.transform = "rotate(-180deg)";
           }
           if (body[getSection].length < loadMoreGetAmount) {
             if (section.querySelector(".dSectionContinueLoad")) {
@@ -735,7 +735,7 @@ modules["pages/dashboard/lessons"] = {
             if (getSection == "folders") {
               section.insertAdjacentHTML("beforeend", `<div class="dSectionLoad">That's all of your folders! Make a new one when moving a lesson.</div>`);
             } else {
-              section.insertAdjacentHTML("beforeend", `<div class="dSectionLoad">That's all of your lessons! Make a new one above.</div>`);
+              section.insertAdjacentHTML("beforeend", `<div class="dSectionLoad">That's all of the lessons! Make a new one above.</div>`);
             }
           }
         } else {

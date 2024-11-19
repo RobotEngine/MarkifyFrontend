@@ -7,17 +7,55 @@ modules["editor/export"] = {
   },
   marginSize: 100,
   resetAnnotationSize: async function () {
-    this.minX = 0;
-    this.maxX = 0;
-    this.minY = 0;
-    this.maxY = 0;
+    this.minX = null;
+    this.maxX = null;
+    this.minY = null;
+    this.maxY = null;
     let editor = await getModule("pages/editor");
     let annoKeys = Object.keys(editor.annotations);
     for (let i = 0; i < annoKeys.length; i++) {
       let anno = (editor.annotations[annoKeys[i]] ?? {}).render;
-      if (anno != null) {
-        await this.checkAnnotationSize(editor, anno);
+      if (anno == null) {
+        continue;
       }
+      if (editor.exportSelected != null && editor.exportSelected.includes(anno._id) == false) {
+        continue;
+      }
+      
+      let [width, height] = anno.s;
+      let [x, y] = editor.getAbsolutePosition(anno);
+      let rotate = anno.r ?? 0;
+      if (rotate > 180) {
+        rotate = -(360 - rotate);
+      }
+      if (width < 0) {
+        width = -width;
+        x -= width;
+      }
+      if (height < 0) {
+        height = -height;
+        y -= height;
+      }
+      let t = anno.t ?? 0;
+      if (anno.b == "none" && anno.d != "line") {
+        t = 0;
+      }
+      let halfT = t / 2;
+  
+      let radian = rotate * (Math.PI / 180);
+      let thickWidth = width + t;
+      let thickHeight = height + t;
+      let changedWidth = ((Math.abs(thickWidth * Math.cos(radian)) + Math.abs(thickHeight * Math.sin(radian))) - thickWidth) / 2;
+      let changedHeight = ((Math.abs(thickWidth * Math.sin(radian)) + Math.abs(thickHeight * Math.cos(radian))) - thickHeight) / 2;
+  
+      let setMinX = x + halfT - changedWidth;
+      this.minX = Math.min(this.minX ?? setMinX, setMinX);
+      let setMaxX = x + width + t + halfT + changedWidth;
+      this.maxX = Math.max(this.maxX ?? setMaxX, setMaxX);
+      let setMinY = y + halfT - changedHeight;
+      this.minY = Math.min(this.minY ?? setMinY, setMinY);
+      let setMaxY = y + t + height + halfT + changedHeight;
+      this.maxY = Math.max(this.maxY ?? setMaxY, setMaxY);
     }
 
     let contentFrame = editor.page.querySelector(".eContent");
@@ -25,51 +63,11 @@ modules["editor/export"] = {
 
     content.style.width = "fit-content";
     content.style.height = "fit-content";
-
+    
     content.style.marginLeft = Math.ceil((-this.minX * editor.zoom) + this.marginSize) + "px";
     content.style.marginRight = Math.ceil((this.maxX * editor.zoom) + this.marginSize) + "px";
     content.style.marginTop = Math.ceil((-this.minY * editor.zoom) + this.marginSize) + "px";
     content.style.marginBottom = Math.ceil((this.maxY * editor.zoom) + this.marginSize) + "px";
-  },
-  checkAnnotationSize: async function (editor, anno) {
-    if (editor.exportSelected != null && editor.exportSelected.includes(anno._id) == false) {
-      return;
-    }
-    
-    let [width, height] = anno.s;
-    let [x, y] = editor.getAbsolutePosition(anno);
-    let rotate = anno.r ?? 0;
-    if (rotate > 180) {
-      rotate = -(360 - rotate);
-    }
-    if (width < 0) {
-      width = -width;
-      x -= width;
-    }
-    if (height < 0) {
-      height = -height;
-      y -= height;
-    }
-    let t = anno.t ?? 0;
-    if (anno.b == "none" && anno.d != "line") {
-      t = 0;
-    }
-    let halfT = t / 2;
-
-    let radian = rotate * (Math.PI / 180);
-    let thickWidth = width + t;
-    let thickHeight = height + t;
-    let changedWidth = ((Math.abs(thickWidth * Math.cos(radian)) + Math.abs(thickHeight * Math.sin(radian))) - thickWidth) / 2;
-    let changedHeight = ((Math.abs(thickWidth * Math.sin(radian)) + Math.abs(thickHeight * Math.cos(radian))) - thickHeight) / 2;
-
-    let setMinX = x + halfT - changedWidth;
-    this.minX = Math.min(this.minX ?? setMinX, setMinX);
-    let setMaxX = x + width + t + halfT + changedWidth;
-    this.maxX = Math.max(this.maxX ?? setMaxX, setMaxX);
-    let setMinY = y + halfT - changedHeight;
-    this.minY = Math.min(this.minY ?? setMinY, setMinY);
-    let setMaxY = y + t + height + halfT + changedHeight;
-    this.maxY = Math.max(this.maxY ?? setMaxY, setMaxY);
   },
   js: async function (editor, utils, page) {
     fixed.style.display = "none";

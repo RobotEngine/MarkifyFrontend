@@ -64,10 +64,10 @@ modules["editor/export"] = {
     content.style.width = "fit-content";
     content.style.height = "fit-content";
     
-    content.style.marginLeft = Math.ceil((-this.minX * editor.zoom) + this.marginSize) + "px";
-    content.style.marginRight = Math.ceil((this.maxX * editor.zoom) + this.marginSize) + "px";
-    content.style.marginTop = Math.ceil((-this.minY * editor.zoom) + this.marginSize) + "px";
-    content.style.marginBottom = Math.ceil((this.maxY * editor.zoom) + this.marginSize) + "px";
+    content.style.marginLeft = Math.ceil((-(this.minX ?? 0) * editor.zoom) + this.marginSize) + "px";
+    content.style.marginRight = Math.ceil(((this.maxX ?? 0) * editor.zoom) + this.marginSize) + "px";
+    content.style.marginTop = Math.ceil((-(this.minY ?? 0) * editor.zoom) + this.marginSize) + "px";
+    content.style.marginBottom = Math.ceil(((this.maxY ?? 0) * editor.zoom) + this.marginSize) + "px";
   },
   js: async function (editor, utils, page) {
     fixed.style.display = "none";

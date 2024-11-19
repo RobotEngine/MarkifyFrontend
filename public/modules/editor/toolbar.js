@@ -4452,55 +4452,6 @@ modules["pages/editor/toolbar/cursor"] = {
       }
 
       let originalRender = (original.render ?? {}) ?? selecting;
-      if (originalRender != null && originalRender.page != null) {
-        if (originalRender.lock == true && selecting.lock == null) {
-          continue;
-        }
-        let page = selecting.page ?? originalRender.page;
-        let pos = selecting.p ?? originalRender.p;
-        let currentPage = editor.page.querySelector('.ePage[pageid="' + page + '"]');
-        if (currentPage != null) {
-          if (currentPage.hasAttribute("hide") == true) {
-            editor.selecting[annoid] = { p: originalRender.p };
-            await utils.render(originalRender);
-            this.updateBox();
-            continue;
-          }
-          let [page] = (await utils.findPage((pos[1] * editor.zoom) + currentPage.getBoundingClientRect().top));
-          if (page != currentPage) {
-            if (page.hasAttribute("hide") == true) {
-              editor.selecting[annoid] = { p: originalRender.p };
-              await utils.render(originalRender);
-              this.updateBox();
-              continue;
-            }
-            let change = 0;
-            if (page.parentElement.firstElementChild == page && currentPage.parentElement.firstElementChild != currentPage) {
-              change = 4;
-            }
-            if (currentPage.parentElement.firstElementChild == currentPage && page.parentElement.firstElementChild != page) {
-              change = -4;
-            }
-            let newPageId = page.getAttribute("pageid");
-            if (originalRender.page != newPageId) {
-              selecting.page = newPageId;
-              let originalPageOrder = parseInt(currentPage.getAttribute("order"));
-              let newPageOrder = parseInt(page.getAttribute("order"));
-              if (originalPageOrder < newPageOrder) {
-                for (let i = originalPageOrder; i < newPageOrder; i++) {
-                  change -= pageHolder.children[i - 1].offsetHeight;
-                }
-              } else {
-                for (let i = newPageOrder; i < originalPageOrder; i++) {
-                  change += pageHolder.children[i - 1].offsetHeight;
-                }
-              }
-            }
-            selecting.p = selecting.p ?? JSON.parse(JSON.stringify(pos));
-            selecting.p[1] = utils.round(pos[1] + change);
-          }
-        }
-      }
 
       delete selecting.done;
       let changeKeys = Object.keys(selecting);
@@ -6363,28 +6314,7 @@ modules["pages/editor/toolbar/shape"] = {
     body.style.userSelect = "none";
     editor.page.style.touchAction = "pinch-zoom";
     editor.page.setAttribute("enabled", "");
-
-    /*
-    let clientY = clientPosition(event, "y");
-    let [page, number] = await utils.findPage(clientY);
-    let { x, y } = await utils.scaleToDoc(clientPosition(event, "x"), clientY, number);
-    let tempID = utils.tempID();
-    let newAnno = {
-      _id: tempID,
-      f: "draw",
-      p: [utils.round(x - this.thickness), utils.round(y - this.thickness)],
-      s: [0, 0], //[this.thickness, this.thickness],
-      c: this.color,
-      t: this.thickness,
-      o: this.opacity,
-      d: [0, 0]
-    };
-    if (page != null && page.hasAttribute("pageid") == true) {
-      newAnno.page = page.getAttribute("pageid");
-    }
-    [draw, anno] = await utils.render(newAnno);
-    editor.selecting[tempID] = draw;
-    */
+    
     let shape;
     let anno;
     let clientY;

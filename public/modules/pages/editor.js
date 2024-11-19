@@ -3086,30 +3086,6 @@ modules["dropdowns/editor/rearrange"] = {
 }
 
 modules["pages/editor/annotation"] = {
-  findPage: async function (y) {
-    let editor = await getModule("pages/editor");
-    let pageHolder = editor.page.querySelector(".ePageHolder");
-    return [pageHolder, 0];
-    for (let i = 0; i < editor.visiblePages.length; i++) {
-      let pageElem = pageHolder.children[editor.visiblePages[i] - 1];
-      if (pageElem == null) {
-        continue;
-      }
-      let rect = pageElem.getBoundingClientRect();
-      let margin = 4 * editor.zoom;
-      if (editor.visiblePages[i] == 1) {
-        //margin = 0;
-      }
-      if (rect.bottom - margin > y) {
-        return [pageElem, editor.visiblePages[i]];
-      }
-    }
-    let pageNum = editor.visiblePages[editor.visiblePages.length - 1];
-    if (pageNum == 0) {
-      return [pageHolder, 0];
-    }
-    return [pageHolder.children[pageNum - 1], pageNum];
-  },
   scaleToDoc: async function (x, y, noOrigin) {
     let editor = await getModule("pages/editor");
     let pageRect = editor.page.querySelector(".ePageHolder").getBoundingClientRect();
@@ -4370,8 +4346,9 @@ modules["pages/editor/annotation"] = {
                 embedActivate.style.display = "flex";
               }
             } else {
-              embedActivate.querySelector("img").src = "./images/editor/actions/open.svg";
-              embedActivate.style.display = "flex";
+              embedActivate.style.display = "none";
+              //embedActivate.querySelector("img").src = "./images/editor/actions/open.svg";
+              //embedActivate.style.display = "flex";
             }
           }
           if (data.embed.image != null) {

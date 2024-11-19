@@ -207,13 +207,6 @@ modules["editor/realtime"] = {
           // Figure out where the cursor is:
           let sendX = mouseX;
           let sendY = mouseY;
-          /*let pageElem = pageHolder;
-          if (editor.visiblePages) {
-            filter.p = (await utils.findPage(sendY))[1];
-            if (filter.p > 0) {
-              pageElem = pageHolder.children[filter.p - 1];
-            }
-          }*/
           let pageRect = pageHolder.getBoundingClientRect();
           sendX -= pageRect.left;
           sendY -= pageRect.top;
@@ -248,14 +241,6 @@ modules["editor/realtime"] = {
                   }
                   let selX = selRect.x;
                   let selY = selRect.y;
-                  /*let page = (await utils.findPage(selY))[1];
-                  let selPageElem = pageHolder;
-                  if (editor.visiblePages && pageHolder.children[page - 1]) {
-                    selPageElem = pageHolder.children[page - 1];
-                  }
-                  let selPageRect = selPageElem.getBoundingClientRect();
-                  selX -= selPageRect.left;
-                  selY -= selPageRect.top;*/
                   let pageRect = pageHolder.getBoundingClientRect();
                   selX -= pageRect.left;
                   selY -= pageRect.top;

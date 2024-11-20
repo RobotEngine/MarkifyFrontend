@@ -1876,6 +1876,9 @@ modules["pages/editor"] = {
           annoid = annotation.pointer;
           annotation = this.annotations[annoid];
         }
+        if (annotation == null) {
+          break;
+        }
         let selected = this.selecting[annoid];
         if (selected != null) {
           selectedParent = true;
@@ -1909,6 +1912,9 @@ modules["pages/editor"] = {
         if (annotation.pointer != null) {
           annoid = annotation.pointer;
           annotation = this.annotations[annoid];
+        }
+        if (annotation == null) {
+          break;
         }
         if (includeSelecting != true) {
           currentAnnoCheck = annotation.render ?? {};
@@ -5192,6 +5198,7 @@ modules["pages/editor/annotation"] = {
     console.log(this.history);
     */
 
+    editor.selecting[annoID] = {};
     return mutations;
 
     /*

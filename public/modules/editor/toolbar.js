@@ -324,6 +324,7 @@ modules["editor/toolbar"] = {
     frame.setAttribute("keeptooltip", "");
 
     let content = editor.page.querySelector(".eContent");
+    let pageHolder = content.querySelector(".ePageHolder");
 
     let subTools = frame.querySelector(".eSubToolHolder");
     let subToolContentHolder = subTools.querySelector(".eSubToolContentHolder");
@@ -1264,6 +1265,11 @@ modules["editor/toolbar"] = {
             if (markifyData.length < 1) {
               return;
             }
+            let pageRect = pageHolder.getBoundingClientRect();
+            let pageTopLeftX = -pageRect.left / editor.zoom;
+            let pageTopLeftY = -pageRect.top / editor.zoom;
+            let pageBottomRightX = (fixed.offsetWidth - pageRect.left) / editor.zoom;
+            let pageBottomRightY = (fixed.offsetHeight - pageRect.top) / editor.zoom;
             let newSelect = {};
             let newNewSelect = {};
             let setTempSync = getEpoch();
@@ -1309,11 +1315,44 @@ modules["editor/toolbar"] = {
                 continue;
               }
               let existingAnno = (editor.annotations[newAnno.oldID] ?? {}).render;
-              delete newAnno.oldID;
               if (existingAnno != null) {
-                newAnno.p[0] = (newAnno.p[0] ?? existingAnno.p[0]) + 50;
-                newAnno.p[1] = (newAnno.p[1] ?? existingAnno.p[1]) + 50;
-              } else {
+                let [x, y] = editor.getAbsolutePosition(existingAnno, true);
+                let [width, height] = existingAnno.s;
+                let thick = 0;
+                if (existingAnno.t != null) {
+                  if (existingAnno.b != "none" || existingAnno.d == "line") {
+                    thick = existingAnno.t;
+                  }
+                }
+                if (width < 0) {
+                  width = -width;
+                  x -= width;
+                }
+                if (height < 0) {
+                  height = -height;
+                  y -= height;
+                }
+                let halfT = thick / 2;
+
+                let radian = (existingAnno.r ?? 0) * (Math.PI / 180);
+                let thickWidth = width + thick;
+                let thickHeight = height + thick;
+                let changedWidth = ((Math.abs(thickWidth * Math.cos(radian)) + Math.abs(thickHeight * Math.sin(radian))) - thickWidth) / 2;
+                let changedHeight = ((Math.abs(thickWidth * Math.sin(radian)) + Math.abs(thickHeight * Math.cos(radian))) - thickHeight) / 2;
+                
+                x += halfT - changedWidth;
+                y += halfT - changedHeight;
+                width = thickWidth + (changedWidth * 2);
+                height = thickHeight + (changedHeight * 2);
+                if (x + width > pageTopLeftX && x < pageBottomRightX && y + height > pageTopLeftY && y < pageBottomRightY) {
+                  newAnno.p[0] = (newAnno.p[0] ?? existingAnno.p[0]) + 50;
+                  newAnno.p[1] = (newAnno.p[1] ?? existingAnno.p[1]) + 50;
+                } else {
+                  existingAnno = null;
+                }
+              }
+              delete newAnno.oldID;
+              if (existingAnno == null) {
                 newAnno.p[0] -= maxLeft;
                 newAnno.p[1] -= maxTop;
                 let { x, y } = await utils.scaleToDoc(fixed.offsetWidth / 2, fixed.offsetHeight / 2);

@@ -1905,22 +1905,28 @@ modules["pages/editor"] = {
       let annotationIDs = Object.keys(this.chunkAnnotations[chunk] ?? {});
       let viableParents = [];
       let foundInsert = false;
+      if (includeSelecting == true) { // We must check for if new annotations are valid!
+        let selectKeys = Object.keys(this.selecting);
+        for (let i = 0; i < selectKeys.length; i++) {
+          let selectKey = selectKeys[i];
+          if (annotationIDs.includes(selectKey) == false) {
+            annotationIDs.push(selectKey);
+          }
+        }
+      }
       for (let i = 0; i < annotationIDs.length; i++) {
         let annoid = annotationIDs[i];
         if (annoid == null || annoid == id) {
           continue;
         }
-        let annotation = this.annotations[annoid];
-        if (annotation == null) {
-          continue;
-        }
+        let annotation = this.annotations[annoid] || {};
         if (annotation.pointer != null) {
           annoid = annotation.pointer;
           annotation = this.annotations[annoid];
         }
-        let render = annotation.render; // { ...(annotation.render ?? {}), ...(this.selecting[annoid] ?? {}) };
-        if (render == null) {
-          continue;
+        let render = annotation.render || {}; // { ...(annotation.render ?? {}), ...(this.selecting[annoid] ?? {}) };
+        if (includeSelecting == true) {
+          render = { ...render, ...(this.selecting[annoid] ?? {}) };
         }
         if (insert._id == annoid) {
           foundInsert = true;
@@ -1934,9 +1940,6 @@ modules["pages/editor"] = {
         }
         if (render.remove == true) {
           continue;
-        }
-        if (includeSelecting == true) {
-          render = { ...render, ...(this.selecting[annoid] ?? {}) };
         }
         let [parentX, parentY] = this.getAbsolutePosition(render, includeSelecting);
         let [parentWidth, parentHeight] = render.s ?? [0, 0];

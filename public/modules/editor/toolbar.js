@@ -1287,21 +1287,46 @@ modules["editor/toolbar"] = {
               newAnno.oldID = newAnno._id;
               newAnno._id = tempID;
               newAnno.p = newAnno.p ?? [0, 0];
-              let t = newAnno.t ?? 0;
-              if (newAnno.b == "none" && newAnno.d != "line") {
-                t = 0;
+              let [x, y] = newAnno.p;
+              let [width, height] = newAnno.s;
+              let thick = 0;
+              if (newAnno.t != null) {
+                if (newAnno.b != "none" || newAnno.d == "line") {
+                  thick = newAnno.t;
+                }
               }
-              if (newAnno.p[0] < minLeft || minLeft == null) {
-                minLeft = newAnno.p[0] + (t / 2);
+              if (width < 0) {
+                width = -width;
+                x -= width;
               }
-              if (newAnno.p[1] < minTop || minTop == null) {
-                minTop = newAnno.p[1] + (t / 2);
+              if (height < 0) {
+                height = -height;
+                y -= height;
               }
-              if ((newAnno.p[0] + newAnno.s[0]) > maxLeft || maxLeft == null) {
-                maxLeft = newAnno.p[0] + newAnno.s[0] + t;
+              let halfT = thick / 2;
+
+              let radian = (newAnno.r ?? 0) * (Math.PI / 180);
+              let thickWidth = width + thick;
+              let thickHeight = height + thick;
+              let changedWidth = ((Math.abs(thickWidth * Math.cos(radian)) + Math.abs(thickHeight * Math.sin(radian))) - thickWidth) / 2;
+              let changedHeight = ((Math.abs(thickWidth * Math.sin(radian)) + Math.abs(thickHeight * Math.cos(radian))) - thickHeight) / 2;
+              
+              x += halfT - changedWidth;
+              y += halfT - changedHeight;
+              width = thickWidth + (changedWidth * 2);
+              height = thickHeight + (changedHeight * 2);
+              
+              if (x < minLeft || minLeft == null) {
+                minLeft = x;
               }
-              if ((newAnno.p[1] + newAnno.s[1]) > maxTop || maxTop == null) {
-                maxTop = newAnno.p[1] + newAnno.s[1] + t;
+              if (y < minTop || minTop == null) {
+                minTop = y;
+              }
+              if ((x + width) > maxLeft || maxLeft == null) {
+                maxLeft = x + width;
+              }
+              if ((y + height) > maxTop || maxTop == null) {
+                maxTop = y + height;
               }
               //maxZIndex = Math.max(maxZIndex ?? newAnno.l ?? utils.maxLayer, newAnno.l ?? utils.maxLayer);
               minZIndex = Math.min(minZIndex ?? newAnno.l ?? utils.minLayer, newAnno.l ?? utils.minLayer);
@@ -1353,12 +1378,9 @@ modules["editor/toolbar"] = {
               }
               delete newAnno.oldID;
               if (existingAnno == null) {
-                newAnno.p[0] -= maxLeft;
-                newAnno.p[1] -= maxTop;
                 let { x, y } = await utils.scaleToDoc(fixed.offsetWidth / 2, fixed.offsetHeight / 2);
-                newAnno.p[0] += x + centerX;
-                newAnno.p[1] += y + centerY;
-                delete newAnno.page;
+                newAnno.p[0] += x + centerX - maxLeft;
+                newAnno.p[1] += y + centerY - maxTop;
               }
               newAnno.l = utils.maxLayer + 1 + ((newAnno.l ?? utils.maxLayer) - minZIndex);
               if (newAnno.parented != null) {
@@ -1369,9 +1391,8 @@ modules["editor/toolbar"] = {
                   newAnno.p[1] = newAnno.parented.y;
                 }
                 delete newAnno.parented;
-              } else {
-                newNewSelect[newAnno._id] = {};
               }
+              newNewSelect[newAnno._id] = {};
               /*if (["page"].includes(newAnno.f) == false) {
                 newAnno.l = (newAnno.l ?? utils.maxLayer) + 1;
               } else {
@@ -1410,7 +1431,18 @@ modules["editor/toolbar"] = {
         checkChunks = [ ...checkChunks, ...editor.annotationInChunks(annotation) ];
         //maxZIndex = Math.max(maxZIndex ?? annotation.l ?? utils.maxLayer, annotation.l ?? utils.maxLayer);
         //minZIndex = Math.min(minZIndex ?? annotation.l ?? utils.minLayer, annotation.l ?? utils.minLayer);
-        saveAnnoData.push(annotation);
+        let renderCopy = JSON.parse(JSON.stringify(annotation));
+        if (renderCopy.parent != null) {
+          renderCopy.parented = {
+            parent: renderCopy.parent,
+            x: annotation.p[0],
+            y: annotation.p[1]
+          };
+        }
+        let [x, y] = editor.getAbsolutePosition(annotation);
+        renderCopy.p = [x, y];
+        renderCopy.parent = null;
+        saveAnnoData.push(renderCopy);
         let richText = annotation.d ?? {};
         if (richText.b != null) {
           if (saveTextData.length > 0) {
@@ -1475,7 +1507,6 @@ modules["editor/toolbar"] = {
         //maxZIndex = Math.max(maxZIndex ?? render.l ?? utils.maxLayer, render.l ?? utils.maxLayer);
         //minZIndex = Math.min(minZIndex ?? render.l ?? utils.minLayer, render.l ?? utils.minLayer);
         let renderCopy = JSON.parse(JSON.stringify(render));
-        let [x, y] = editor.getAbsolutePosition(render);
         if (renderCopy.parent != null) {
           renderCopy.parented = {
             parent: renderCopy.parent,
@@ -1483,6 +1514,7 @@ modules["editor/toolbar"] = {
             y: render.p[1]
           };
         }
+        let [x, y] = editor.getAbsolutePosition(render);
         renderCopy.p = [x, y];
         renderCopy.parent = null;
         saveAnnoData.push(renderCopy);
@@ -4460,7 +4492,7 @@ modules["pages/editor/toolbar/cursor"] = {
     editor.page.style.removeProperty("touch-action");
     editor.page.removeAttribute("enabled");
 
-    let pageHolder = editor.page.querySelector(".ePageHolder");
+    //let pageHolder = editor.page.querySelector(".ePageHolder");
 
     let setTempSync = getEpoch();
     let self = editor.getSelf();
@@ -4926,7 +4958,6 @@ modules["pages/editor/toolbar/cursor"] = {
       if (anno != null) {
         annoID = anno.getAttribute("anno");
 
-
         //let self = editor.getSelf();
         render = ((editor.annotations[annoID] ?? {}).render ?? {});
         /*if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
@@ -5285,6 +5316,10 @@ modules["pages/editor/toolbar/drag"] = {
       }
 
       let target = event.target;
+      if (target.closest("button") != null || target.closest("a") != null) {
+        return;
+      }
+      await cursorModule.enableAction(event);
       let reaction = target.closest(".eReaction");
       if (reaction != null) {
         return;
@@ -5292,10 +5327,6 @@ modules["pages/editor/toolbar/drag"] = {
       if (target == null || target.closest(".eContent") == null || target.closest(".eSelect") != null || target.closest(".eSelectBar") != null) {
         return;
       }
-      if (target.closest("button") != null || target.closest("a") != null) {
-        return;
-      }
-      await cursorModule.enableAction(event);
       anno = target.closest(".eAnnotation"); //.eSelect, .eSelectActive
       if (anno != null && anno.hasAttribute("member") == true) {
         // A display annotation, not a real one
@@ -8349,7 +8380,7 @@ modules["pages/editor/toolbar/reactions"] = {
       }
       selectID = selectKeys[0];
       let reactions = editor.page.querySelector('.eAnnotation[anno="' + selectID + '"] div[reactions]');
-      if (reactions.childElementCount < 2) {
+      if (reactions != null && reactions.childElementCount < 2) {
         if (button.hasAttribute("selected") == true) {
           //let frame = button.closest(".eSelectBar");
           //button.removeAttribute("selected");

@@ -1715,6 +1715,7 @@ modules["pages/editor"] = {
       height = thickHeight + (changedHeight * 2);
       
       let chunks = this.regionInChunks(x, y, x + width, y + height);
+      let annotationVisible = false;
       for (let i = 0; i < chunks.length; i++) {
         let chunk = chunks[i];
         if (this.chunkAnnotations[chunk] == null) {
@@ -1722,6 +1723,9 @@ modules["pages/editor"] = {
           await utils.setMarginSize();
         }
         this.chunkAnnotations[chunk][render._id] = "";
+        if (this.visibleChunks.includes(chunk) == true) {
+          annotationVisible = true;
+        }
       }
       if (annotation.chunks != null) {
         // Remove existing chunks:
@@ -4822,7 +4826,7 @@ modules["pages/editor/annotation"] = {
     */
     this.enableTimeout(annoID, anno, render);
     editor.annotations[annoID] = anno;
-    await editor.annotationChunks(editor.annotations[annoID]);
+    await editor.annotationChunks(anno);
     editor.updateAnnotationPages(anno.render);
     await this.render({ ...anno.render, sync: sync }, render);
     return annoData; //mutations;
@@ -5091,6 +5095,9 @@ modules["pages/editor/annotation"] = {
               //editor.realtimeSelect[checkAnnoID] = { ...(editor.realtimeSelect[checkAnnoID] ?? {}), ...setChildAnno };
             }
           }
+        }
+        if (checkAnnotation.save != true) {
+          await editor.annotationChunks(checkAnnotation, true);
         }
       }
 

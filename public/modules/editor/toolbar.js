@@ -4503,6 +4503,7 @@ modules["pages/editor/toolbar/cursor"] = {
     // Save Revert
     let keys = Object.keys(editor.selecting);
     let saveUpdates = [];
+    let annoIDs = {};
     let pushChanges = [];
     let pushAdds = [];
     let pushRemoves = [];
@@ -4549,6 +4550,8 @@ modules["pages/editor/toolbar/cursor"] = {
 
       saveUpdates.push(JSON.parse(JSON.stringify({ ...selecting, _id: annoid })));
       selecting.done = true;
+
+      annoIDs[annoid] = true;
 
       // Update child annotations:
       let merged = { ...originalRender, ...selecting };
@@ -4717,8 +4720,21 @@ modules["pages/editor/toolbar/cursor"] = {
       }
     }
     let beforeSelect = JSON.stringify(editor.selecting); // Rendering clears out selected!
-    for (let i = 0; i < saveUpdates.length; i++) {
-      await utils.save(saveUpdates[i], null, setTempSync);
+    /*for (let i = 0; i < saveUpdates.length; i++) {
+      await utils.save(saveUpdates[i], null, setTempSync, false);
+    }*/
+    let savedAnnoIDs = {};
+    while (saveUpdates.length > 0) {
+      for (let i = 0; i < saveUpdates.length; i++) {
+        let newSave = saveUpdates[i];
+        if (annoIDs[newSave.parent] == null || savedAnnoIDs[newSave.parent] != null) {
+          await utils.save(newSave, null, setTempSync, false);
+          savedAnnoIDs[newSave._id] = true;
+          saveUpdates.splice(i, 1);
+          i--;
+        }
+      }
+      await sleep(1); // Just to be safe
     }
     editor.selecting = JSON.parse(beforeSelect);
     await utils.forceShort();

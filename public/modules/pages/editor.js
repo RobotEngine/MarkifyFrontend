@@ -1741,6 +1741,17 @@ modules["pages/editor"] = {
         }
       }
       annotation.chunks = chunks;
+      
+      if (annotationVisible == true) {
+        if (annotation.element == null) {
+          await utils.render(render);
+        }
+      } else {
+        if (annotation.element != null) {
+          annotation.element.remove();
+          annotation.element = null;
+        }
+      }
     }
     this.pointInChunk = (x, y) => {
       return this.regionInChunks(x, y, x, y)[0];
@@ -2073,10 +2084,14 @@ modules["pages/editor"] = {
         if (this.selecting[annotation.render._id] != null) {
           continue;
         }
-        let element = pageHolder.querySelector('.eAnnotation[anno="' + annotation.render._id + '"]');
+        if (annotation.element != null) {
+          annotation.element.remove();
+          annotation.element = null;
+        }
+        /*let element = pageHolder.querySelector('.eAnnotation[anno="' + annotation.render._id + '"]');
         if (element != null) {
           element.remove();
-        }
+        }*/
       }
 
       let loadChunkedAnnotations = {};
@@ -2091,6 +2106,8 @@ modules["pages/editor"] = {
           loadChunkedAnnotations = { ...loadChunkedAnnotations, ...(this.chunkAnnotations[chunk] ?? {}) };
         }
       }
+      let renderAnnotationIDs = {};
+      let renderAnnotationAnnos = [];
       let chunkAnnos = Object.keys(loadChunkedAnnotations);
       for (let a = 0; a < chunkAnnos.length; a++) {
         let annotation = this.annotations[chunkAnnos[a]] ?? { chunks: [] };
@@ -2102,13 +2119,28 @@ modules["pages/editor"] = {
             break;
           }
         }
-        if (render == true && annotation.render != null) {
-          if (annotation.render.parent == null && this.exporting != true) {
+        if (render == true && annotation.render != null && annotation.element == null) {
+          renderAnnotationIDs[annotation.render._id] = {};
+          renderAnnotationAnnos.push(annotation.render);
+          /*if (annotation.render.parent == null && this.exporting != true) {
             utils.render(annotation.render);
           } else {
             await utils.render(annotation.render);
+          }*/
+        }
+      }
+      let renderedNewAnnoIDs = {};
+      while (renderAnnotationAnnos.length > 0) {
+        for (let i = 0; i < renderAnnotationAnnos.length; i++) {
+          let newRender = renderAnnotationAnnos[i];
+          if (renderAnnotationIDs[newRender.parent] == null || renderedNewAnnoIDs[newRender.parent] != null) {
+            utils.render(newRender);
+            renderedNewAnnoIDs[newRender._id] = true;
+            renderAnnotationAnnos.splice(i, 1);
+            i--;
           }
         }
+        await sleep(1); // Just to be safe
       }
       alreadyRunningUpdateCycle = false;
     }
@@ -2173,7 +2205,6 @@ modules["pages/editor"] = {
     tempListen(window, "scroll", this.updateChunks);
     tempListen(window, "resize", this.updateChunks);
 
-    let currentPage = 1;
     let centerWindowWithPage = () => {
       if (this.exporting == true) {
         return;
@@ -2390,11 +2421,12 @@ modules["pages/editor"] = {
         }
       }
       if (jumpAnnotation == null) {
-        await this.updateChunks();
-        centerWindowWithPage();
-        if (pageParam != null) {
+        if (pageParam == null) {
+          centerWindowWithPage();
+        } else {
           updateAnnotationScroll([pageParam], false);
         }
+        await this.updateChunks();
       } else {
         let jumpRect = jumpAnnotation.getBoundingClientRect();
         window.scrollTo(window.scrollX + jumpRect.left - ((fixed.offsetWidth - jumpAnnotation.offsetWidth) / 2), window.scrollY + jumpRect.top - ((fixed.offsetHeight - jumpAnnotation.offsetHeight) / 2));
@@ -3577,14 +3609,18 @@ modules["pages/editor/annotation"] = {
     /*if (page != null && editor.loadedIn.includes(page) == false && long != true && force != true) {
       return;
     }*/
+    let annotation = editor.annotations[_id] ?? {};
+    if (annotation.pointer != null) {
+      _id = annotation.pointer;
+      annotation = editor.annotations[_id] ?? {};
+    }
     if (anno == null) {
-      anno = editor.page.querySelector('.eAnnotation[anno="' + _id + '"]');
+      anno = annotation.element;
+      if (anno == null && _id != null && _id.startsWith("pending_") == true) {
+        anno = editor.page.querySelector('.eAnnotation[anno="' + _id + '"]');
+      }
       if (anno != null) {
-        let annotation = editor.annotations[anno.getAttribute("anno")] ?? {};
-        if (annotation.pointer != null) {
-          _id = annotation.pointer;
-          anno.setAttribute("anno", _id);
-        }
+        anno.setAttribute("anno", _id);
       }
     }
     if (parent != null) {
@@ -3594,9 +3630,10 @@ modules["pages/editor/annotation"] = {
           parent = parentAnno.pointer;
         }
       }
-      let annoParentData = (editor.annotations[parent] ?? {}).render;
+      let annoParentAnno = editor.annotations[parent] ?? {};
+      let annoParentData = annoParentAnno.render;
       if (annoParentData != null) {
-        let annoParent = editor.page.querySelector('.eAnnotation[anno="' + parent + '"]');
+        let annoParent = annoParentAnno.element; // editor.page.querySelector('.eAnnotation[anno="' + parent + '"]');
         if (annoParent == null) {
           if (annoParentData.parent != _id) {
             annoParent = (await this.render(annoParentData))[1];
@@ -4572,6 +4609,9 @@ modules["pages/editor/annotation"] = {
         }
     }
     if (anno != null) {
+      if (annotation != null) {
+        annotation.element = anno;
+      }
       //console.log((sync ?? getEpoch()) - editor.lesson.created)
       let zIndex = l ?? Math.round(((sync ?? getEpoch()) / 2000000000000) * 2147483647);
       anno.style.zIndex = zIndex;
@@ -5096,9 +5136,6 @@ modules["pages/editor/annotation"] = {
             }
           }
         }
-        if (checkAnnotation.save != true) {
-          await editor.annotationChunks(checkAnnotation, true);
-        }
       }
 
       if (["page"].includes(merged.f) == true) { // See if in bounds, also check parent to know what is allowed in bounds
@@ -5167,10 +5204,73 @@ modules["pages/editor/annotation"] = {
           }
         }
       }
+
+      // Update all child annotation chunks:
+      let updateAnnoIDs = {};
+      let updateAnnos = [];
+      for (let a = 0; a < annotations.length; a++) {
+        let checkAnnoID = annotations[a];
+        if (checkAnnoID == null || checkAnnoID == annoID) {
+          continue;
+        }
+        let checkAnnotation = editor.annotations[checkAnnoID];
+        if (checkAnnotation == null) {
+          continue;
+        }
+        if (checkAnnotation.pointer != null) {
+          checkAnnoID = checkAnnotation.pointer;
+          checkAnnotation = editor.annotations[checkAnnoID];
+        }
+        
+        let isChild = false;
+        let currentAnnoCheck = checkAnnotation.render ?? {};
+        let checkedParents = [];
+        while (currentAnnoCheck.parent != null) {
+          let annoid = currentAnnoCheck.parent;
+          if (annoid == null || checkedParents.includes(annoid) == true) {
+            break;
+          }
+          checkedParents.push(annoid);
+          let annotation = editor.annotations[annoid];
+          if (annotation == null) {
+            break;
+          }
+          if (annotation.pointer != null) {
+            annoid = annotation.pointer;
+            annotation = editor.annotations[annoid];
+          }
+          if (annotation == null) {
+            break;
+          }
+          if (annoid == annoID) {
+            isChild = true;
+            break;
+          }
+          currentAnnoCheck = annotation.render ?? {};
+        }
+        if (isChild == false) {
+          continue;
+        }
+        updateAnnoIDs[checkAnnoID] = true;
+        updateAnnos.push(checkAnnotation);
+      }
+      let updatedAnnoIDs = {};
+      while (updateAnnos.length > 0) {
+        for (let i = 0; i < updateAnnos.length; i++) {
+          let newUpdate = updateAnnos[i];
+          if (updateAnnoIDs[newUpdate.render.parent] == null || updatedAnnoIDs[newUpdate.render.parent] != null) {
+            await editor.annotationChunks(newUpdate);
+            updatedAnnoIDs[newUpdate.render._id] = true;
+            updateAnnos.splice(i, 1);
+            i--;
+          }
+        }
+        await sleep(1); // Just to be safe
+      }
     }
     
     annotation.save = true; // Alert the system it's time to save
-    annotation.render.sync = getEpoch();
+    annotation.render.sync = sync || getEpoch();
     mutations.sync = annotation.render.sync;
 
     let saveSync = { _id: annoID, ...(this.pendingSaves[annoID] ?? {}), ...mutations };

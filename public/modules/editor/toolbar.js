@@ -5250,13 +5250,16 @@ modules["pages/editor/toolbar/drag"] = {
         if (editor.lesson.settings.editOthersWork != true && [render.a, render.m].includes(self.modify) == false && self.access < 4) { // Can't edit another member's work:
           continue;
         }
+        if (render.remove == true) {
+          continue;
+        }
         let thick = 0;
         if (render.t != null) {
           if (render.b != "none" || render.d == "line") {
             thick = render.t;
           }
         }
-        let [x, y] = editor.getAbsolutePosition(render);
+        let [x, y] = editor.getAbsolutePosition(render, true);
         let endX = x + render.s[0] + thick;
         let endY = y + render.s[1] + thick;
         if (render.s[0] < 0) {

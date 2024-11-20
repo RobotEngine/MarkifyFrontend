@@ -1644,17 +1644,39 @@ modules["pages/editor"] = {
       }
       return chunks;
     }
-    this.annotationInChunks = (anno) => {
-      let [x, y] = this.getAbsolutePosition(anno);
-      let thickness = 0;
-      if (anno.t != null) {
-        if (anno.b != "none" || anno.d == "line") {
-          thickness = anno.t;
+    this.annotationInChunks = (render, includeSelecting) => {
+      let [x, y] = this.getAbsolutePosition(render, includeSelecting);
+      let [width, height] = render.s;
+      let thick = 0;
+      if (render.t != null) {
+        if (render.b != "none" || render.d == "line") {
+          thick = render.t;
         }
       }
-      return this.regionInChunks(x, y, x + anno.s[0] + thickness, y + anno.s[1] + thickness);
+      if (width < 0) {
+        width = -width;
+        x -= width;
+      }
+      if (height < 0) {
+        height = -height;
+        y -= height;
+      }
+      let halfT = thick / 2;
+
+      let radian = (render.r ?? 0) * (Math.PI / 180);
+      let thickWidth = width + thick;
+      let thickHeight = height + thick;
+      let changedWidth = ((Math.abs(thickWidth * Math.cos(radian)) + Math.abs(thickHeight * Math.sin(radian))) - thickWidth) / 2;
+      let changedHeight = ((Math.abs(thickWidth * Math.sin(radian)) + Math.abs(thickHeight * Math.cos(radian))) - thickHeight) / 2;
+      
+      x += halfT - changedWidth;
+      y += halfT - changedHeight;
+      width = thickWidth + (changedWidth * 2);
+      height = thickHeight + (changedHeight * 2);
+      
+      return this.regionInChunks(x, y, x + width, y + height);
     }
-    this.annotationChunks = async (annotation) => {
+    this.annotationChunks = async (annotation, includeSelecting) => {
       if (annotation == null) {
         return;
       }
@@ -1662,20 +1684,37 @@ modules["pages/editor"] = {
       if (render == null) {
         return;
       }
-      let t = render.t ?? 0;
-      if (render.b == "none" && render.d != "line") {
-        t = 0;
+
+      let [x, y] = this.getAbsolutePosition(render, includeSelecting);
+      let [width, height] = render.s;
+      let thick = 0;
+      if (render.t != null) {
+        if (render.b != "none" || render.d == "line") {
+          thick = render.t;
+        }
       }
-      let chunks = [];
-      if (render.remove != true && render.p != null) {
-        let absPos = this.getAbsolutePosition(render);
-        chunks = this.regionInChunks(
-          absPos[0],
-          absPos[1],
-          absPos[0] + render.s[0] + t,
-          absPos[1] + render.s[1] + t,
-        );
+      if (width < 0) {
+        width = -width;
+        x -= width;
       }
+      if (height < 0) {
+        height = -height;
+        y -= height;
+      }
+      let halfT = thick / 2;
+
+      let radian = (render.r ?? 0) * (Math.PI / 180);
+      let thickWidth = width + thick;
+      let thickHeight = height + thick;
+      let changedWidth = ((Math.abs(thickWidth * Math.cos(radian)) + Math.abs(thickHeight * Math.sin(radian))) - thickWidth) / 2;
+      let changedHeight = ((Math.abs(thickWidth * Math.sin(radian)) + Math.abs(thickHeight * Math.cos(radian))) - thickHeight) / 2;
+      
+      x += halfT - changedWidth;
+      y += halfT - changedHeight;
+      width = thickWidth + (changedWidth * 2);
+      height = thickHeight + (changedHeight * 2);
+      
+      let chunks = this.regionInChunks(x, y, x + width, y + height);
       for (let i = 0; i < chunks.length; i++) {
         let chunk = chunks[i];
         if (this.chunkAnnotations[chunk] == null) {
@@ -4828,7 +4867,7 @@ modules["pages/editor/annotation"] = {
               this.enableTimeout(anno.render._id, anno);
               continue;
             }
-            if ((mutt.parent ?? "").startsWith("pending_") == true) {
+            if ((mutt.parent ?? "").startsWith("pending_") == true && mutt.remove != true) {
               let parentAnno = editor.annotations[mutt.parent];
               if (parentAnno != null) {
                 if (parentAnno.pointer != null) {
@@ -4958,7 +4997,7 @@ modules["pages/editor/annotation"] = {
       merged = { ...merged, ...data };
     }
     
-    let checkChunks = editor.annotationInChunks(merged, true);
+    let checkChunks = editor.annotationInChunks(merged);
     if (annotation.render.p != null) {
       checkChunks = [ ...checkChunks, ...editor.annotationInChunks(annotation.render) ];
     }

@@ -5305,7 +5305,10 @@ modules["pages/editor/annotation"] = {
     console.log(this.history);
     */
 
-    editor.selecting[annoID] = {};
+    if (editor.selecting[annoID] != null) {
+      editor.selecting[annoID] = {};
+    }
+    
     return mutations;
 
     /*

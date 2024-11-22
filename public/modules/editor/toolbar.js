@@ -6250,8 +6250,8 @@ modules["pages/editor/toolbar/eraser"] = {
     let x0;
     let y0;
     let enderase = () => {
-      x0 = 0;
-      y0 = 0;
+      x0 = null;
+      y0 = null;
       erasing = false;
       editor.usingStylus = false;
     }
@@ -6293,8 +6293,6 @@ modules["pages/editor/toolbar/eraser"] = {
       let sy = (y0 < y1) ? 1 : -1;
       let err = dx - dy;
 
-      let scaledPos = await utils.scaleToDoc(x0, y0);
-
       while (true) {
         // Handle Erase:
         let annos = document.elementsFromPoint(x0, y0);
@@ -6315,6 +6313,7 @@ modules["pages/editor/toolbar/eraser"] = {
                 }
 
                 // This alone isn't enough, the actual points MUST be checked:
+                let scaledPos = await utils.scaleToDoc(x0, y0);
                 let position = editor.getAbsolutePosition(render);
                 let xPos = scaledPos.x - position[0];
                 let yPos = scaledPos.y - position[1];

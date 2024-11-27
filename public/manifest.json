@@ -1,0 +1,40 @@
+{
+  "name": "Markify",
+  "short_name": "Markify",
+  "start_url": "/?source=pwa#dashboard",
+  "theme_color": "#0084FF",
+  "background_color": "#0084FF",
+  "description": "Share and collaborate on documents across the classroom with Markify. Putting Markify on your home screen will not grant any access to your device.",
+  "orientation": "portrait",
+  "display": "fullscreen",
+  "display_override": ["standalone", "minimal-ui"],
+  "categories": [
+    "editor",
+    "realtime",
+    "collaborate",
+    "pdf"
+  ],
+  "icons": [
+    {
+      "src": "./images/favicon.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "./images/pwa/narrow.png",
+      "type": "image/png",
+      "sizes": "540x720",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "./images/pwa/wide.png",
+      "type": "image/png",
+      "sizes": "720x540",
+      "form_factor": "wide"
+    }
+  ],
+  "shortcuts": [],
+  "scope": "/"
+}

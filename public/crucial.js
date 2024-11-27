@@ -1,9 +1,24 @@
-let serverURL = window.serverURL ?? "https://api.markifyapp.com/";
-//let serverURL = "http://localhost:3000/api/";
-let assetURL = window.mediaURL ?? "https://static.markifyapp.com/";
-//window.socketURL = "ws://localhost:3000/socket/v2";
+const configs = {
+  public: {
+    server: window.serverURL ?? "https://api.markifyapp.com/",
+    exotek_id: "631056064efd34591c5a8e05",
+    assets: window.mediaURL ?? "https://static.markifyapp.com/",
+    socket: { project_id: "62088fbdfc22489578e94822", project_token: "client_129dbf2cf03edc6fba2aac135fd5ae119af" }
+  },
+  testing: {
+    server: "http://localhost:3000/api/",
+    exotek_id: "6747584c543f96f597ddd21b",
+    assets: "https://test-markify-content.s3.amazonaws.com/",
+    socket: { project_id: "674756e0543f96f597ddd217", project_token: "client_3a6c7ca1cacbf5850efe8ebee32621cdb7b" }
+  }
+};
 
+const config = configs["testing"];
 const version = "1.0.0"; // Big Update . Small Feature Release . Bug Fix
+
+const serverURL = config.server;
+const assetURL = config.assets;
+//window.socketURL = "ws://localhost:3000/socket/v2";
 
 let socket = {};
 
@@ -534,7 +549,7 @@ function promptLogin(page, service) {
   if (page != null) {
     redirectURL.hash = "#" + page;
   }
-  let endpoint = "https://exotek.co/login?client_id=631056064efd34591c5a8e05&redirect_uri=" +
+  let endpoint = "https://exotek.co/login?client_id=" + config.exotek_id + "&redirect_uri=" +
   encodeURIComponent(redirectURL) +
   "&response_type=code&scope=userinfo&state=" +
   randomStr;
@@ -805,8 +820,8 @@ async function initSocket() {
     await loadScript("https://simplesocket.net/static/v2/simplesocket.js");
   }
   socket = new SimpleSocket({
-    project_id: "62088fbdfc22489578e94822",
-    project_token: "client_129dbf2cf03edc6fba2aac135fd5ae119af",
+    project_id: config.socket.project_id,
+    project_token: config.socket.project_token,
     socket_url: window.socketURL
   });
   socket.remotes.account = function (data) {

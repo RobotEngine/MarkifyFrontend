@@ -38,6 +38,7 @@ let loadingAnim = app.innerHTML;
 app.querySelector(".loading[new]").setAttribute("appload", "");
 
 let currentPage = "";
+let defaultPage = "pages/launch";
 
 let account = {};
 let userID;
@@ -190,7 +191,7 @@ async function setFrame(path, frame, extra, parent) {
   let loadId = randomString(15) + getEpoch();
   frameSet.setAttribute("moduleloadid", loadId);
   let loadingPlacement = frameSet.closest(".dropdown") ?? frameSet.closest(".modal") ?? frameSet;
-  let oldContent = frameSet.querySelectorAll(".content:not([old])");
+  let oldContent = frameSet.querySelectorAll(".content:not([old]), .loading:not([old])");
   for (let i = 0; i < oldContent.length; i++) {
     let remContent = oldContent[i];
     if (remContent.parentElement != frameSet) {
@@ -252,15 +253,19 @@ async function setFrame(path, frame, extra, parent) {
   }
   frameSet.removeAttribute("moduleloadid");
   if (module == null) {
-    frameSet.style.display = "flex";
-    frameSet.style.justifyContent = "center";
-    frameSet.style.alignItems = "center";
-    frameSet.innerHTML = `<div class="content"><span style="display: block; max-width: 216px; color: var(--error)">Failed to load module, please try again later.</span></div>`;
-    //delete currentlyLoadingFrames[frameSet.className];
-    if (loading != null) {
-      loading.remove();
+    if (extra.missPageRedirect != true) {
+      frameSet.style.display = "flex";
+      frameSet.style.justifyContent = "center";
+      frameSet.style.alignItems = "center";
+      frameSet.innerHTML = `<div class="content"><span style="display: block; max-width: 216px; color: var(--error)">Failed to load module, please try again later.</span></div>`;
+      //delete currentlyLoadingFrames[frameSet.className];
+      if (loading != null) {
+        loading.remove();
+      }
+      return;
+    } else if (path != defaultPage) {
+      setFrame(defaultPage, null, extra);
     }
-    return;
   }
   if (extra.content != null) {
     if (module.maxHeight != null) {
@@ -845,6 +850,11 @@ async function initSocket() {
       promptLogin();
     }
   }
+  let loadPage = defaultPage;
+  if (window.location.hash != "") {
+    loadPage = "pages/" + window.location.hash.substring(1);
+  }
+  loadScript("./modules/" + loadPage + ".js");
   socket.onopen = async function () {
     connected = true;
     if (endStartup == true) {
@@ -852,11 +862,7 @@ async function initSocket() {
     }
     dropdownModule.close();
     await init();
-    if (window.location.hash == "") {
-      setFrame("pages/launch", null, { unsub: false });
-    } else {
-      setFrame("pages/" + window.location.hash.substring(1), null, { unsub: false });
-    }
+    setFrame(loadPage, null, { unsub: false, missPageRedirect: true });
     if (wasConnected == true) {
       alertModule.open("worked", `<b>Connected</b>Reconnected to Markify`, { id: "connection" });
     }

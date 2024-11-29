@@ -117,13 +117,40 @@ modules["pages/dashboard"] = class {
     ".dSidebarFolder div[arrow] svg": `width: 22px; height: 22px`,
     ".dSidebarFolder[loaded] div[arrow]": `transform: rotate(90deg)`,
 
-    ".dSidebarSpacer": `height: 100%`,
-    ".dSidebarAccountHolder": `display: flex; flex-direction: column; padding: 8px; bottom: 0px; margin-top: auto; align-items: center; transition: .1s`,
+    ".dSidebarAccountHolder": `display: flex; flex-direction: column; padding: 8px; bottom: 0px; margin-top: auto; align-items: center; transition: .2s`,
     ".dAccount": `display: flex; max-width: calc(100% - 16px); width: fit-content; padding: 6px 10px 6px 6px; --borderRadius: 18px`,
-    ".dAccount img[accountimage]": `float: left; width: 32px; min-width: 32px; height: 32px; margin-right: 6px; object-fit: cover; border-radius: 16px`,
-    ".dAccount div[accountuser]": `float: right; max-width: calc(100% - 38px); height: 100%; line-height: 32px; font-size: 18px; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`
+    ".dAccount img[accountimage]": `width: 32px; min-width: 32px; height: 32px; margin-right: 6px; object-fit: cover; border-radius: 16px`,
+    ".dAccount div[accountuser]": `max-width: calc(100% - 38px); height: 100%; line-height: 32px; font-size: 18px; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
+    ".dropdownTitle div[accountuser]": `flex: unset`
   };
   js = async function (page, data) {
+    let dashboard = page.querySelector(".dPage")
+    let sidebar = dashboard.querySelector(".dSidebar");
+    let accountHolder = sidebar.querySelector(".dSidebarAccountHolder");
+    let accountButton = accountHolder.querySelector(".dAccount");
 
+    // Display Account Details
+    if (account.image != null) {
+      accountButton.querySelector("img[accountimage]").src = account.image;
+    }
+    let username = accountButton.querySelector("div[accountuser]");
+    username.textContent = account.user;
+    username.title = account.user;
+    accountButton.addEventListener("click", () => {
+      dropdownModule.open(accountButton, "dropdowns/account", { parent: this });
+    });
+
+    let updateAccountHolder = () => {
+      if (sidebar.scrollTop < sidebar.scrollHeight - dashboard.offsetHeight) { // Show shadow and fill holder:
+        accountHolder.style.background = "var(--pageColor)";
+        accountHolder.style.boxShadow = "var(--lightShadow)";
+      } else {
+        accountHolder.style.removeProperty("background");
+        accountHolder.style.removeProperty("box-shadow");
+      }
+    }
+    updateAccountHolder();
+    tempListen(window, "resize", updateAccountHolder);
+    sidebar.addEventListener("scroll", updateAccountHolder);
   }
 }

@@ -9,7 +9,8 @@ const configs = {
     server: "http://localhost:3000/api/",
     exotek_id: "6747584c543f96f597ddd21b",
     assets: "https://test-markify-content.s3.amazonaws.com/",
-    socket: { project_id: "674756e0543f96f597ddd217", project_token: "client_3a6c7ca1cacbf5850efe8ebee32621cdb7b" }
+    socket: { project_id: "674756e0543f96f597ddd217", project_token: "client_3a6c7ca1cacbf5850efe8ebee32621cdb7b" },
+    redirectOnError: false
   }
 };
 
@@ -191,21 +192,21 @@ async function setFrame(path, frame, extra, parent) {
   let loadId = randomString(15) + getEpoch();
   frameSet.setAttribute("moduleloadid", loadId);
   let loadingPlacement = frameSet.closest(".dropdown") ?? frameSet.closest(".modal") ?? frameSet;
-  let oldContent = frameSet.querySelectorAll(".content:not([old]), .loading:not([old])");
+  let oldContent = frameSet.querySelectorAll(".content:not([old])");
   for (let i = 0; i < oldContent.length; i++) {
     let remContent = oldContent[i];
     if (remContent.parentElement != frameSet) {
       continue;
     }
-    (async function () {
-      remContent.setAttribute("old", "");
-      remContent.style.zIndex = 0;
+    remContent.setAttribute("old", "");
+    remContent.style.zIndex = 0;
+    (async () => {
       await sleep(500);
       remContent.remove();
     })();
   }
   if (modules[path] == null || frameSet == app || (frameSet.closest(".dropdown") == null && frameSet.closest(".modal") == null)) {
-    if (loadingPlacement.querySelector(".loading:not([done])") == null) {
+    if (loadingPlacement.querySelector(".loading:not([old])") == null) {
       if (frameSet.closest(".dropdown") == null && frameSet.closest(".modal") == null && oldContent.length > 0) {
         for (let i = 0; i < oldContent.length; i++) {
           let remContent = oldContent[i];
@@ -253,7 +254,7 @@ async function setFrame(path, frame, extra, parent) {
   }
   frameSet.removeAttribute("moduleloadid");
   if (module == null) {
-    if (extra.missPageRedirect != true) {
+    if (extra.missPageRedirect != true || config.redirectOnError == false) {
       frameSet.style.display = "flex";
       frameSet.style.justifyContent = "center";
       frameSet.style.alignItems = "center";
@@ -264,7 +265,7 @@ async function setFrame(path, frame, extra, parent) {
       }
       return;
     } else if (path != defaultPage) {
-      setFrame(defaultPage, null, extra);
+      return setFrame(defaultPage, null, extra);
     }
   }
   if (extra.content != null) {
@@ -290,7 +291,8 @@ async function setFrame(path, frame, extra, parent) {
     let frameContent = frameSet.querySelector(".content[new]");
     frameContent.removeAttribute("new");
     if (frameSet == app) {
-      frameContent.style.display = "none";
+      frameContent.setAttribute("hideoverflow", "");
+      //frameContent.style.display = "none";
       //frameContent.style.position = "absolute";
       dropdownModule.close();
       frameContent.style.width = "100%";
@@ -308,26 +310,36 @@ async function setFrame(path, frame, extra, parent) {
     if (module.js != null) {
       await module.js(frameContent, extra);
     }
-    if (frameContent.style.display == "none") {
-      frameContent.style.removeProperty("display");
+    if (frameContent.hasAttribute("hideoverflow") == true) { //frameContent.style.display == "none"
+      frameContent.removeAttribute("hideoverflow");
+      //frameContent.style.removeProperty("display");
     }
     frameContent.offsetHeight;
     frameContent.style.opacity = 1;
   }
   if (loading != null) {
-    loading.setAttribute("done", "");
-    (async function () {
-      loading.style.pointerEvents = "none";
-      loading.style.opacity = 0;
+    loading.setAttribute("old", "");
+    loading.style.pointerEvents = "none";
+    loading.style.opacity = 0;
+    (async () => {
       await sleep(500);
-      loading.remove();
-      if (frameSet == app) {
-        let revealLoading = frameSet.querySelectorAll(".loading:not([done])");
-        for (let i = 0; i < revealLoading.length; i++) {
-          revealLoading[i].style.opacity = 1;
-        }
+      if (loading != null) {
+        loading.remove();
       }
     })();
+    if (frameSet == app) {
+      let revealLoading = frameSet.querySelectorAll(".loading:not([old])");
+      for (let i = 0; i < revealLoading.length; i++) {
+        let remLoading = revealLoading[i];
+        remLoading.style.opacity = 1;
+        (async () => {
+          await sleep(500);
+          if (remLoading != null) {
+            remLoading.remove();
+          }
+        })();
+      }
+    }
   }
   //delete currentlyLoadingFrames[frameSet.className];
   return module;
@@ -907,13 +919,16 @@ modules["dropdown"] = class {
         maxHeight = Math.min(maxHeight, parseInt(content.getAttribute("maxheight")));
       }
       content.style.maxHeight = maxHeight + "px";
-      content.style.minWidth = Math.min(fixed.clientWidth - 16, 200) + "px";
+      if (button != null) {
+        content.style.minWidth = Math.max(Math.min(fixed.clientWidth - 16, 200), button.offsetWidth + 8) + "px";
+        content.style.minHeight = Math.max(Math.min(fixed.clientHeight - 16, 200), button.offsetHeight + 8) + "px";
+      }
       
       if (dropdown.hasAttribute("closing") == false) {
         //if (content.querySelector(".dropdownFrame").hasAttribute("loaded")) {
         if (content.offsetWidth > 0 && content.offsetHeight > 0) {
           dropdown.style.width = content.offsetWidth + "px";
-          dropdown.style.height = content.offsetHeight + header.offsetHeight + "px";
+          dropdown.style.height = (content.offsetHeight + header.offsetHeight) + "px";
         }
       } else {
         dropdown.style.width = button.offsetWidth + "px";
@@ -1052,7 +1067,7 @@ modules["dropdown"] = class {
     header.querySelector(".dropdownTitle").innerHTML = setTitleHTML;
     dropdown.style.transition = "width .4s, height .4s, opacity .3s, border-radius .3s, transform .6s";
     dropdown.offsetHeight;
-    window.dropdown = { dropdown: dropdown, button: button, frameHistory: [[frameName, setTitleHTML]], interval: this.setResizeLoop(dropdown, content, header, button) };
+    window.dropdown = { dropdown: dropdown, button: button, origin: button, frameHistory: [[frameName, setTitleHTML]], interval: this.setResizeLoop(dropdown, content, header, button) };
     button.style.opacity = 0;
     dropdown.style.opacity = 1;
     content.style.pointerEvents = "none";
@@ -1271,7 +1286,7 @@ modules["modal"] = class {
     modal.offsetHeight;
     modal.style.width = content.offsetWidth + "px";
     modal.style.height = content.offsetHeight + header.offsetHeight + "px";
-    window.modal = { modal: modal, frameHistory: [[frameName, title]], interval: this.setResizeLoop(modal, content, header, button) };
+    window.modal = { modal: modal, button: button, origin: button, frameHistory: [[frameName, title]], interval: this.setResizeLoop(modal, content, header, button) };
     modal.style.opacity = 1;
     modal.parentElement.setAttribute("blur", "");
     content.style.pointerEvents = "none";
@@ -1418,16 +1433,23 @@ body.addEventListener("click", async function (event) {
     return;
   }
   let alertClose = element.closest(".alertClose");
-  if (alertClose) {
+  if (alertClose != null) {
     alertModule.close(alertClose.parentElement);
     return;
   }
 
-  if (element.closest(".dropdown") == null || element.closest(".dropdown button[close]")) {
-    dropdownModule.close();
+  if (window.dropdown != null) {
+    if (element.closest(".dropdown") == null || element.closest(".dropdown button[close]")) {
+      if (element.closest("button") == window.dropdown.origin) {
+        return;
+      }
+      dropdownModule.close();
+    }
   }
-  if (element.closest(".modal button[close]")) {
-    modalModule.close();
+  if (window.modal != null) {
+    if (element.closest(".modal button[close]")) {
+      modalModule.close();
+    }
   }
   let page = element.closest("[openpage]");
   if (page != null) {
@@ -1443,6 +1465,7 @@ window.addEventListener("scroll", async function () {
 
 // Add CORE CSS:
 addCSS({
+  ".content[hideoverflow]": `max-width: 100vw !important; max-height: 100vh !important; overflow: hidden !important`,
   "button, a": `border: none; background: none; user-select: none; color: var(--textColor); font-family: var(--font); cursor: pointer; transition: .1s`,
   "button:active, a:active": `transform: scale(.95) !important`,
   "[disabled]": `pointer-events: none !important; opacity: .5 !important`,

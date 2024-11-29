@@ -11,10 +11,17 @@ const configs = {
     assets: "https://test-markify-content.s3.amazonaws.com/",
     socket: { project_id: "674756e0543f96f597ddd217", project_token: "client_3a6c7ca1cacbf5850efe8ebee32621cdb7b" },
     redirectOnError: false
+  },
+  prodTesting: {
+    server: "http://localhost:3000/api/",
+    exotek_id: "631056064efd34591c5a8e05",
+    assets: window.mediaURL ?? "https://static.markifyapp.com/",
+    socket: { project_id: "62088fbdfc22489578e94822", project_token: "client_129dbf2cf03edc6fba2aac135fd5ae119af" },
+    redirectOnError: false
   }
 };
 
-const config = configs["testing"];
+const config = configs["prodTesting"];
 const version = "1.0.0"; // Big Update . Small Feature Release . Bug Fix
 
 const serverURL = config.server;
@@ -206,7 +213,7 @@ async function setFrame(path, frame, extra, parent) {
     })();
   }
   if (modules[path] == null || frameSet == app || (frameSet.closest(".dropdown") == null && frameSet.closest(".modal") == null)) {
-    if (loadingPlacement.querySelector(".loading:not([old])") == null) {
+    if (loadingPlacement.querySelector(".loading:not([old])") == null && extra.showLoading != false) {
       if (frameSet.closest(".dropdown") == null && frameSet.closest(".modal") == null && oldContent.length > 0) {
         for (let i = 0; i < oldContent.length; i++) {
           let remContent = oldContent[i];
@@ -214,6 +221,8 @@ async function setFrame(path, frame, extra, parent) {
             continue;
           }
           remContent.style.opacity = 0;
+          remContent.style.width = "100%"; //
+          remContent.style.height = "100%"; //
           remContent.style.left = "0px";
           remContent.style.top = "0px";
           remContent.style.position = "absolute";
@@ -281,7 +290,7 @@ async function setFrame(path, frame, extra, parent) {
   if (module.preJs != null) {
     continueLoading = (await (module.preJs())) != false;
   }
-  if (loading != null && frameSet == app) {
+  if (loading != null) { // && frameSet == app
     let svgHolder = loading.querySelector(".loadingSvgHolder");
     svgHolder.style.width = "max(" + svgHolder.clientWidth + "px, 100%)";
     svgHolder.style.height = svgHolder.clientHeight + "px";
@@ -332,12 +341,12 @@ async function setFrame(path, frame, extra, parent) {
       for (let i = 0; i < revealLoading.length; i++) {
         let remLoading = revealLoading[i];
         remLoading.style.opacity = 1;
-        (async () => {
+        /*(async () => {
           await sleep(500);
           if (remLoading != null) {
             remLoading.remove();
           }
-        })();
+        })();*/
       }
     }
   }

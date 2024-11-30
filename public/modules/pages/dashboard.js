@@ -71,10 +71,10 @@ modules["pages/dashboard"] = class {
     </div>
   </div>`;
   css = {
-    ".dPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100%; height: 100vh; padding: 8px; left: 0px; top: 0px; justify-content: center`,
-    ".dPage": `display: flex; width: 100%; height: 100%; max-width: 1565px; box-shadow: var(--darkShadow); border-radius: 12px; overflow: hidden`,
+    ".dPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100%; height: 100vh; padding: 8px; left: 0px; top: 0px; justify-content: center; transition: .2s`,
+    ".dPage": `display: flex; width: 100%; height: 100%; max-width: 1565px; box-shadow: var(--darkShadow); border-radius: 12px; overflow: hidden; transition: .2s`,
     
-    ".dSidebarHolder": `position: relative; width: 100%; max-width: 270px; height: 100%; flex-shrink: 0; z-index: 2`,
+    ".dSidebarHolder": `position: relative; max-width: 270px; height: 100%; flex-shrink: 0; z-index: 2`,
     ".dBackdropImage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 1; opacity: .75; object-fit: cover; pointer-events: none`,
     ".dSidebar": `display: flex; flex-direction: column; width: 100%; height: 100%; box-shadow: var(--darkShadow); overflow: auto`,
     ".dSidebarSection": `position: sticky; box-sizing: border-box; width: 100%; left: 0px; z-index: 2`,
@@ -133,7 +133,8 @@ modules["pages/dashboard"] = class {
     ".dTilesHolder": `position: relative; width: calc(100% - 32px); min-height: fit-content; height: 100%; margin: 0px 16px 16px 16px; z-index: 1`,
   };
   js = async function (page, data) {
-    let dashboard = page.querySelector(".dPage")
+    let dashboardHolder = page.querySelector(".dPageHolder")
+    let dashboard = dashboardHolder.querySelector(".dPage")
     let sidebar = dashboard.querySelector(".dSidebar");
     let lessonsHolder = dashboard.querySelector(".dLessonsHolder");
     let titleHolder = lessonsHolder.querySelector(".dSelectedTitleHolder");
@@ -169,10 +170,27 @@ modules["pages/dashboard"] = class {
         accountHolder.style.removeProperty("box-shadow");
       }
     }
-    updateScrollShadows();
-    tempListen(window, "resize", updateScrollShadows);
     sidebar.addEventListener("scroll", updateScrollShadows);
     lessonsHolder.addEventListener("scroll", updateScrollShadows);
+
+    // Update Page Resizing
+    let sizeUpdate = () => {
+      if (fixed.offsetWidth > 650 && fixed.offsetHeight > 400) {
+        dashboardHolder.style.removeProperty("padding");
+        dashboard.style.removeProperty("border-radius");
+      } else {
+        dashboardHolder.style.padding = "0px";
+        dashboard.style.borderRadius = "0px";
+      }
+      if (fixed.offsetWidth > 650) {
+        sidebar.style.removeProperty("position");
+      } else {
+        sidebar.style.position = "absolute";
+      }
+      updateScrollShadows();
+    }
+    tempListen(window, "resize", sizeUpdate);
+    sizeUpdate();
     
     // Handle All Loading/Unloading of Lessons
     let sort = "recent";

@@ -290,7 +290,7 @@ async function setFrame(path, frame, extra, parent) {
   if (module.preJs != null) {
     continueLoading = (await (module.preJs())) != false;
   }
-  if (loading != null) { // && frameSet == app
+  if (loading != null && frameSet.closest(".dropdown") == null && frameSet.closest(".modal") == null) { // && frameSet == app
     let svgHolder = loading.querySelector(".loadingSvgHolder");
     svgHolder.style.width = "max(" + svgHolder.clientWidth + "px, 100%)";
     svgHolder.style.height = svgHolder.clientHeight + "px";
@@ -902,7 +902,7 @@ initSocket();
 // STANDARD MODULES //
 modules["dropdown"] = class {
   css = {
-    ".dropdown": `position: sticky; box-sizing: border-box; max-width: calc(100% - 16px); max-height: calc(100% - 16px); right: 0px; bottom: 0px; margin: 8px; opacity: 0; box-shadow: var(--shadow); border-radius: 12px; transform-origin: center top; pointer-events: all`,
+    ".dropdown": `position: sticky; box-sizing: border-box; max-width: calc(100% - 16px); max-height: calc(100% - 16px); right: 0px; bottom: 0px; margin: 8px; opacity: 0; box-shadow: var(--shadow); border-radius: 12px; transform: scale(0); transform-origin: 0px 0px; pointer-events: all`,
     ".dropdown .loading": `pointer-events: none`,
     ".dropdownOverflow": `position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--pageColor); border-radius: inherit; z-index: 0`,
     ".dropdownContent": `position: absolute; box-sizing: border-box; width: max-content; max-width: var(--dropdownWidth); height: max-content; padding: 6px; overflow: auto`, //background: var(--pageColor)
@@ -914,8 +914,8 @@ modules["dropdown"] = class {
     ".dropdownTitle div": `flex: 1; margin: 0 4px; white-space: nowrap; overflow: hidden`,
     ".dropdownTitle img": `width: 26px; height: 26px; object-fit: cover; border-radius: 13px`
   };
-  setResizeLoop = function (dropdown, content, header, button) {
-    return setInterval(async () => {
+  setResizeLoop = async function (dropdown, content, header, button) {
+    let runLoop = async () => {
       if (content.hasAttribute("loaded") == false) {
         return;
       }
@@ -939,26 +939,32 @@ modules["dropdown"] = class {
           dropdown.style.width = content.offsetWidth + "px";
           dropdown.style.height = (content.offsetHeight + header.offsetHeight) + "px";
         }
-      } else {
+      }/* else {
         dropdown.style.width = button.offsetWidth + "px";
         dropdown.style.height = button.offsetHeight + "px";
-      }
+      }*/
 
       if (button != null && button.offsetParent != null) {
         let buttonRect = button.getBoundingClientRect();
-        //if (buttonRect.top > 0) {
-        dropdown.style.top = buttonRect.top + "px";
-        //}
         let addButtonWidth = button.offsetWidth / 2;
         let pageHolder = button.closest(".ePageHolder");
         if (pageHolder != null) {
           addButtonWidth *= parseFloat(pageHolder.getAttribute("zoom"));
         }
-        dropdown.style.left = buttonRect.left + addButtonWidth - (dropdown.offsetWidth / 2) + "px";
+        let setLeft = buttonRect.left + addButtonWidth - (dropdown.offsetWidth / 2);
+        let setTop = buttonRect.top;
+        dropdown.style.left = setLeft + "px";
+        dropdown.style.top = setTop + "px";
+
+        dropdown.style.transformOrigin = "0px 0px";
+        let dropdownRect = dropdown.getBoundingClientRect();
+        dropdown.style.transformOrigin = (buttonRect.left - dropdownRect.left + addButtonWidth) + "px " + (buttonRect.top - dropdownRect.top + (button.offsetHeight / 2)) + "px";
       } else {
         this.close();
       }
-    }, 1);
+    }
+    await runLoop();
+    return setInterval(runLoop, 1);
   };
   open = async function (button, frameName, data) {
     let loaded = modules[frameName] != null;
@@ -1024,7 +1030,7 @@ modules["dropdown"] = class {
       oldContent.style.opacity = 0;
       //oldContent.style.transform = "scale(.85)";
       clearInterval(window.dropdown.interval);
-      window.dropdown.interval = this.setResizeLoop(dropdown, content, header, window.dropdown.button);
+      window.dropdown.interval = await this.setResizeLoop(dropdown, content, header, window.dropdown.button);
       content.style.pointerEvents = "none";
       await setFrame(frameName, frame, { content: content, button: button, origin: window.dropdown.button, ...data });
       content.setAttribute("loaded", "");
@@ -1074,9 +1080,18 @@ modules["dropdown"] = class {
       setTitleHTML = "<div>" + button.innerHTML + "</div>";
     }
     header.querySelector(".dropdownTitle").innerHTML = setTitleHTML;
-    dropdown.style.transition = "width .4s, height .4s, opacity .3s, border-radius .3s, transform .6s";
+    window.dropdown = { dropdown: dropdown, button: button, origin: button, frameHistory: [[frameName, setTitleHTML]], interval: await this.setResizeLoop(dropdown, content, header, button) };
+    /*let buttonRect = button.getBoundingClientRect();
+    let dropdownRect = dropdown.getBoundingClientRect();
+    let addButtonWidth = button.offsetWidth / 2;
+    let pageHolder = button.closest(".ePageHolder");
+    if (pageHolder != null) {
+      addButtonWidth *= parseFloat(pageHolder.getAttribute("zoom"));
+    }
+    dropdown.style.transformOrigin = (buttonRect.left - dropdownRect.left + addButtonWidth) + "px " + (buttonRect.top - dropdownRect.top + (button.offsetHeight / 2)) + "px";*/
+    dropdown.style.transition = "width .4s, height .4s, opacity .3s, border-radius .3s, transform .4s";
     dropdown.offsetHeight;
-    window.dropdown = { dropdown: dropdown, button: button, origin: button, frameHistory: [[frameName, setTitleHTML]], interval: this.setResizeLoop(dropdown, content, header, button) };
+    dropdown.style.transform = "scale(1)";
     button.style.opacity = 0;
     dropdown.style.opacity = 1;
     content.style.pointerEvents = "none";
@@ -1104,7 +1119,7 @@ modules["dropdown"] = class {
     remDropdown.button.style.removeProperty("opacity");
     //remDropdown.dropdown.setAttribute("closing", "");
     remDropdown.dropdown.style.opacity = 0;
-    if (remDropdown.button.style.display != "none" && remDropdown.button.offsetParent != null) {
+    /*if (remDropdown.button.style.display != "none" && remDropdown.button.offsetParent != null) {
       let buttonRect = remDropdown.button.getBoundingClientRect();
       let dropdownRect = remDropdown.dropdown.getBoundingClientRect();
       let addButtonWidth = remDropdown.button.offsetWidth / 2;
@@ -1113,7 +1128,7 @@ modules["dropdown"] = class {
         addButtonWidth *= parseFloat(pageHolder.getAttribute("zoom"));
       }
       remDropdown.dropdown.style.transformOrigin = (buttonRect.left - dropdownRect.left + addButtonWidth) + "px " + (buttonRect.top - dropdownRect.top + (remDropdown.button.offsetHeight / 2)) + "px";
-    }
+    }*/
     remDropdown.dropdown.style.transform = "scale(0)";
     await sleep(350);
     clearInterval(remDropdown.interval);

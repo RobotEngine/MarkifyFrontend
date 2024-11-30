@@ -185,7 +185,7 @@ modules["pages/dashboard"] = class {
     }
     records.recent = body.recent;
     records.shared = body.shared;
-    records.owned = body.owned || body.mine; // Remove .mine later!
+    records.owned = body.owned;
     records.newest = body.newest;
     lessons = { ...lessons, ...getObject(body.lessons, "_id") };
 

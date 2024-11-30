@@ -1092,7 +1092,8 @@ modules["dropdown"] = class {
     dropdown.style.transition = "width .4s, height .4s, opacity .3s, border-radius .3s, transform .4s";
     dropdown.offsetHeight;
     dropdown.style.transform = "scale(1)";
-    button.style.opacity = 0;
+    //button.style.opacity = 0;
+    button.setAttribute("activated", "");
     dropdown.style.opacity = 1;
     content.style.pointerEvents = "none";
     content.setAttribute("loaded", "");
@@ -1116,7 +1117,8 @@ modules["dropdown"] = class {
     }
     let remDropdown = window.dropdown;
     delete window.dropdown;
-    remDropdown.button.style.removeProperty("opacity");
+    remDropdown.button.removeAttribute("activated");
+    //remDropdown.button.style.removeProperty("opacity");
     //remDropdown.dropdown.setAttribute("closing", "");
     remDropdown.dropdown.style.opacity = 0;
     /*if (remDropdown.button.style.display != "none" && remDropdown.button.offsetParent != null) {
@@ -1492,6 +1494,7 @@ addCSS({
   ".content[hideoverflow]": `max-width: 100vw !important; max-height: 100vh !important; overflow: hidden !important`,
   "button, a": `border: none; background: none; user-select: none; color: var(--textColor); font-family: var(--font); cursor: pointer; transition: .1s`,
   "button:active, a:active": `transform: scale(.95) !important`,
+  "button[activated]": `opacity: 0 !important; transition: opacity .4s !important`,
   "[disabled]": `pointer-events: none !important; opacity: .5 !important`,
   "[disabled] > *": `pointer-events: none !important`,
   "[hidden]": `pointer-events: none !important; opacity: 0 !important`,

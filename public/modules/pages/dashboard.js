@@ -71,8 +71,8 @@ modules["pages/dashboard"] = class {
     </div>
   </div>`;
   css = {
-    ".dPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100%; height: 100vh; padding: 8px; left: 0px; top: 0px; justify-content: center; transition: .2s`,
-    ".dPage": `display: flex; width: 100%; height: 100%; max-width: 1565px; box-shadow: var(--darkShadow); border-radius: 12px; overflow: hidden; transition: .2s`,
+    ".dPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100%; height: 100vh; padding: 8px; left: 0px; top: 0px; justify-content: center`, //transition: .2s
+    ".dPage": `display: flex; width: 100%; height: 100%; max-width: 1565px; box-shadow: var(--darkShadow); border-radius: 12px; overflow: hidden`, //transition: .2s
     
     ".dSidebarHolder": `position: relative; max-width: 270px; height: 100%; flex-shrink: 0; z-index: 2`,
     ".dBackdropImage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 1; opacity: .75; object-fit: cover; pointer-events: none`,
@@ -245,7 +245,7 @@ modules["pages/dashboard/lessons"] = class {
     ".dTiles": `position: relative; display: grid; width: 100%; min-height: 100%; grid-gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr))`,
     ".dTile": `position: relative; background: var(--pageColor); --shadow: var(--lightShadow); box-shadow: var(--shadow); border-radius: 12px; overflow: hidden`,
     ".dTile:hover": `--shadow: var(--darkShadow)`,
-    ".dTileThumbnail": `width: 100%; aspect-ratio: 4/3; object-fit: cover`,
+    ".dTileThumbnail": `width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 12px`,
     ".dTileInfoHolder": `position: absolute; display: flex; box-sizing: border-box; width: 100%; padding: 8px; left: 0px; bottom: 0px; align-items: flex-end; background: var(--pageColor); box-shadow: var(--shadow)`,
     ".dTileInfo": `width: 100%`,
     ".dTileTitle": `width: 100%; font-size: 18px; font-weight: 600; text-align: left`,

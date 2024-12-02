@@ -166,7 +166,7 @@ modules["dropdowns/dashboard/moveto"] = {
     newButton.addEventListener("click", () => {
       newButton.setAttribute("disabled", "");
       moveButton.setAttribute("disabled", "");
-      addFolder(null, folderFrame.querySelector(".dTileDropFolder[selected]"))
+      addFolder(null, folderFrame.querySelector(".dTileDropFolder[selected]"));
     });
 
     moveButton.addEventListener("click", async () => {

@@ -967,8 +967,16 @@ modules["dropdown"] = class {
     return setInterval(runLoop, 1);
   };
   open = async function (button, frameName, data) {
+    let setTitleHTML;
+    if (data != null && data.previous == true) {
+      let prev = window.dropdown.frameHistory[window.dropdown.frameHistory.length - 2];
+      if (prev == null) {
+        return;
+      }
+      [frameName, setTitleHTML, data] = prev;
+    }
     let loaded = modules[frameName] != null;
-    if (window.dropdown && button.closest(".dropdown")) { // Clicked inside the dropdown
+    if (window.dropdown != null && button.closest(".dropdown") != null) { // Clicked inside the dropdown
       let dropdown = window.dropdown.dropdown;
       let header = dropdown.querySelector(".dropdownHeader");
       let oldContent = dropdown.querySelector(".dropdownContent:not([old])");
@@ -978,7 +986,7 @@ modules["dropdown"] = class {
       content.removeAttribute("new");
       window.dropdown.content = content;
       let frame = content.querySelector(".dropdownFrame");
-      let setTitleHTML = button.getAttribute("dropdowntitle") ?? button.innerHTML;
+      setTitleHTML = setTitleHTML ?? button.getAttribute("dropdowntitle") ?? button.innerHTML;
       if (button.closest(".dropdownBack") == null) {
         if (button.innerHTML == button.textContent) {
           setTitleHTML = "<div>" + button.innerHTML + "</div>";
@@ -998,14 +1006,14 @@ modules["dropdown"] = class {
       header.querySelector(".dropdownTitle").innerHTML = setTitleHTML;
       let back = header.querySelector(".dropdownBack");
       if (window.dropdown.frameHistory.length > 0) {
-        let prev = window.dropdown.frameHistory[window.dropdown.frameHistory.length - 1];
-        back.setAttribute("dropdown", prev[0]);
+        //let prev = window.dropdown.frameHistory[window.dropdown.frameHistory.length - 1];
+        //back.setAttribute("dropdown", prev[0]);
         //back.setAttribute("rememberid", prev[2]);
         back.style.display = "flex";
       } else {
         back.style.display = "none";
       }
-      window.dropdown.frameHistory.push([frameName, setTitleHTML]);
+      window.dropdown.frameHistory.push([frameName, setTitleHTML, data]);
       content.style.opacity = 0;
       //content.style.transform = "scale(.85)";
       content.style.zIndex = 1;
@@ -1071,16 +1079,20 @@ modules["dropdown"] = class {
     let frame = content.querySelector(".dropdownFrame");
     dropdown.style.width = button.offsetWidth + "px";
     dropdown.style.height = button.offsetHeight + "px";
+    let backButton = dropdown.querySelector(".dropdownBack");
+    backButton.addEventListener("click", () => {
+      this.open(backButton, null, { previous: true });
+    });
     if (loaded == false) {
       frame.style.minHeight = "200px";
     }
     let existingTitle = button.getAttribute("dropdowntitle");
-    let setTitleHTML = existingTitle ?? button.innerHTML;
+    setTitleHTML = setTitleHTML ?? existingTitle ?? button.innerHTML;
     if (button.innerHTML == button.textContent && existingTitle == null) {
       setTitleHTML = "<div>" + button.innerHTML + "</div>";
     }
     header.querySelector(".dropdownTitle").innerHTML = setTitleHTML;
-    window.dropdown = { dropdown: dropdown, button: button, origin: button, frameHistory: [[frameName, setTitleHTML]], interval: await this.setResizeLoop(dropdown, content, header, button) };
+    window.dropdown = { dropdown: dropdown, button: button, origin: button, frameHistory: [[frameName, setTitleHTML, data]], interval: await this.setResizeLoop(dropdown, content, header, button) };
     /*let buttonRect = button.getBoundingClientRect();
     let dropdownRect = dropdown.getBoundingClientRect();
     let addButtonWidth = button.offsetWidth / 2;

@@ -107,8 +107,8 @@ modules["dropdowns/account"] = class {
     }
 
     let reportButton = frame.querySelector(".accountDrop[report]");
-    reportButton.addEventListener("click", async function () {
-      dropdownModule.open(reportButton, "dropdowns/account/report")
+    reportButton.addEventListener("click", () => {
+      dropdownModule.open(reportButton, "dropdowns/account/report");
     });
   }
 }

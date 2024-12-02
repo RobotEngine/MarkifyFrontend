@@ -13,8 +13,8 @@ modules["pages/dashboard"] = class {
   html = `<div class="dPageHolder">
     <div class="dPage">
       <div class="dSidebarHolder">
+        <img class="dBackdropImage" src="./images/dashboard/backdrop.svg" />
         <div class="dSidebar">
-          <img class="dBackdropImage" src="./images/dashboard/backdrop.svg" />
           <div class="dSidebarSection dSidebarHeader">
             <img class="dSidebarLogo" src="./images/logo.svg" />
             <a class="dJoinButton largeButton" openpage="join" href="#join">Join<img src="./images/tooltips/link.svg" /><div backdrop></div></a>
@@ -63,6 +63,7 @@ modules["pages/dashboard"] = class {
             <button class="dAccount largeButton border"><img src="./images/profiles/default.svg" accountimage /><div accountuser>Username</div><div backdrop></div></button>
           </div>
         </div>
+        <div class="dSidebarOpen"><div shadow><div></div></div><button><img src="./images/dashboard/opensidebar.svg" /></button></div>
       </div>
       <div class="dLessonsHolder">
         <div class="dSelectedTitleHolder"></div>
@@ -74,13 +75,20 @@ modules["pages/dashboard"] = class {
     ".dPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100%; height: 100vh; padding: 8px; left: 0px; top: 0px; justify-content: center`, //transition: .2s
     ".dPage": `display: flex; width: 100%; height: 100%; max-width: 1565px; box-shadow: var(--darkShadow); border-radius: 12px; overflow: hidden`, //transition: .2s
     
-    ".dSidebarHolder": `position: relative; max-width: 270px; height: 100%; flex-shrink: 0; z-index: 2`,
-    ".dBackdropImage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 1; opacity: .75; object-fit: cover; pointer-events: none`,
-    ".dSidebar": `display: flex; flex-direction: column; width: 100%; height: 100%; box-shadow: var(--darkShadow); overflow: auto`,
+    ".dSidebarHolder": `position: relative; max-width: min(270px, 100%); height: 100%; flex-shrink: 0; background: var(--pageColor); z-index: 2; transition: .4s`,
+    ".dBackdropImage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 1; opacity: .75; object-fit: cover; z-index: 1; pointer-events: none`,
+    ".dSidebar": `position: relative; display: flex; flex-direction: column; width: 100%; height: 100%; box-shadow: var(--darkShadow); overflow: auto; z-index: 2`,
     ".dSidebarSection": `position: sticky; box-sizing: border-box; width: 100%; left: 0px; z-index: 2`,
     ".dSidebarTitle": `display: flex; gap: 8px; align-items: center`,
     ".dSidebarTitle div[title]": `color: var(--secondary); font-weight: 600; font-size: 16px`,
     ".dSidebarTitle div[divider]": `flex: 1; height: 4px; background: var(--hover); border-radius: 2px`,
+
+    ".dSidebarOpen": `position: absolute; padding: 6px; left: 100%; bottom: 68px; background: var(--pageColor); border-radius: 0 36px 36px 0; z-index: 3`,
+    ".dSidebarOpen div[shadow]": `position: absolute; width: calc(100% + 12px); height: calc(100% + 24px); left: 0px; top: -12px; border-radius: inherit; overflow: hidden; pointer-events: none`,
+    ".dSidebarOpen div[shadow] div": `position: absolute; width: calc(100% - 12px); height: calc(100% - 24px); left: 0px; top: 12px; border-radius: inherit; box-shadow: var(--darkShadow)`,
+    ".dSidebarOpen button": `display: flex; width: 80px; height: 60px; border-radius: 10px 30px 30px 10px; justify-content: center; align-items: center`,
+    ".dSidebarOpen button:hover": `background: var(--hover)`,
+    ".dSidebarOpen button img": `width: 60px; transition: .4s`,
 
     ".dSidebarHeader": `display: flex; gap: 8px; flex-wrap: wrap; padding: 8px; justify-content: space-between; align-items: center`,
     ".dSidebarLogo": `height: 36px`,
@@ -135,7 +143,8 @@ modules["pages/dashboard"] = class {
   js = async function (page, data) {
     let dashboardHolder = page.querySelector(".dPageHolder")
     let dashboard = dashboardHolder.querySelector(".dPage")
-    let sidebar = dashboard.querySelector(".dSidebar");
+    let sidebarHolder = dashboard.querySelector(".dSidebarHolder");
+    let sidebar = sidebarHolder.querySelector(".dSidebar");
     let lessonsHolder = dashboard.querySelector(".dLessonsHolder");
     let titleHolder = lessonsHolder.querySelector(".dSelectedTitleHolder");
     let tileHolder = dashboard.querySelector(".dTilesHolder");
@@ -173,19 +182,57 @@ modules["pages/dashboard"] = class {
     sidebar.addEventListener("scroll", updateScrollShadows);
     lessonsHolder.addEventListener("scroll", updateScrollShadows);
 
+    // Sidebar Open/Close (Mobile Only)
+    let sidebarOpenHolder = sidebarHolder.querySelector(".dSidebarOpen");
+    let sidebarOpenButton = sidebarOpenHolder.querySelector("button");
+    let sidebarOpenButtonImg = sidebarOpenButton.querySelector("img");
+    let sidebarOpen;
+    let sidebarOpenButtonVisible;
+    let openSidebar = () => {
+      sidebarOpen = true;
+      sidebarHolder.style.left = "0px";
+      sidebarOpenButtonImg.style.transform = "scale(-1)";
+    }
+    let closeSidebar = () => {
+      if (sidebarOpenButtonVisible == false) {
+        return;
+      }
+      sidebarOpen = false;
+      sidebarHolder.style.left = -sidebar.clientWidth + "px";
+      sidebarOpenButtonImg.style.transform = "scale(1)";
+    }
+    sidebarOpenButton.addEventListener("click", () => {
+      if (sidebarOpen == false) {
+        openSidebar();
+      } else {
+        closeSidebar();
+      }
+    });
+
     // Update Page Resizing
     let sizeUpdate = () => {
-      if (fixed.offsetWidth > 650 && fixed.offsetHeight > 400) {
+      if (fixed.offsetWidth > 600 && fixed.offsetHeight > 400) {
         dashboardHolder.style.removeProperty("padding");
         dashboard.style.removeProperty("border-radius");
       } else {
         dashboardHolder.style.padding = "0px";
         dashboard.style.borderRadius = "0px";
       }
-      if (fixed.offsetWidth > 650) {
-        sidebar.style.removeProperty("position");
+      if (fixed.offsetWidth > 600) {
+        sidebarOpen = true;
+        if (sidebarOpenButtonVisible != false) {
+          sidebarOpenButtonVisible = false;
+          sidebarHolder.style.removeProperty("position");
+          sidebarOpenHolder.style.display = "none";
+          openSidebar();
+        }
       } else {
-        sidebar.style.position = "absolute";
+        if (sidebarOpenButtonVisible != true) {
+          sidebarOpenButtonVisible = true;
+          sidebarHolder.style.position = "absolute";
+          sidebarOpenHolder.style.removeProperty("display");
+          closeSidebar();
+        }
       }
       updateScrollShadows();
     }
@@ -221,6 +268,11 @@ modules["pages/dashboard"] = class {
     // Click Listener
     page.addEventListener("click", (event) => {
       let target = event.target;
+
+      if (target.closest(".dLessonsHolder") != null) {
+        closeSidebar();
+      }
+
       let button = target.closest("button");
       if (button == null) {
         return;

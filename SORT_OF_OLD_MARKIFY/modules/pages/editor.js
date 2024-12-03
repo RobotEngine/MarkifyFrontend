@@ -1665,46 +1665,46 @@ modules["pages/editor"] = class {
         return;
       }
       let render = annotation.render;
-      if (render == null) {
-        return;
-      }
+      let chunks = [];
 
-      let [x, y] = this.getAbsolutePosition(render, includeSelecting);
-      let [width, height] = render.s;
-      let thick = 0;
-      if (render.t != null) {
-        if (render.b != "none" || render.d == "line") {
-          thick = render.t;
+      if (render != null && render.remove != true) {
+        let [x, y] = this.getAbsolutePosition(render, includeSelecting);
+        let [width, height] = render.s;
+        let thick = 0;
+        if (render.t != null) {
+          if (render.b != "none" || render.d == "line") {
+            thick = render.t;
+          }
         }
-      }
-      if (width < 0) {
-        width = -width;
-        x -= width;
-      }
-      if (height < 0) {
-        height = -height;
-        y -= height;
-      }
-      let halfT = thick / 2;
+        if (width < 0) {
+          width = -width;
+          x -= width;
+        }
+        if (height < 0) {
+          height = -height;
+          y -= height;
+        }
+        let halfT = thick / 2;
 
-      let radian = (render.r ?? 0) * (Math.PI / 180);
-      let thickWidth = width + thick;
-      let thickHeight = height + thick;
-      let changedWidth = ((Math.abs(thickWidth * Math.cos(radian)) + Math.abs(thickHeight * Math.sin(radian))) - thickWidth) / 2;
-      let changedHeight = ((Math.abs(thickWidth * Math.sin(radian)) + Math.abs(thickHeight * Math.cos(radian))) - thickHeight) / 2;
-      
-      x += halfT - changedWidth;
-      y += halfT - changedHeight;
-      width = thickWidth + (changedWidth * 2);
-      height = thickHeight + (changedHeight * 2);
-      
-      let chunks = this.regionInChunks(x, y, x + width, y + height);
+        let radian = (render.r ?? 0) * (Math.PI / 180);
+        let thickWidth = width + thick;
+        let thickHeight = height + thick;
+        let changedWidth = ((Math.abs(thickWidth * Math.cos(radian)) + Math.abs(thickHeight * Math.sin(radian))) - thickWidth) / 2;
+        let changedHeight = ((Math.abs(thickWidth * Math.sin(radian)) + Math.abs(thickHeight * Math.cos(radian))) - thickHeight) / 2;
+        
+        x += halfT - changedWidth;
+        y += halfT - changedHeight;
+        width = thickWidth + (changedWidth * 2);
+        height = thickHeight + (changedHeight * 2);
+        
+        chunks = this.regionInChunks(x, y, x + width, y + height);
+      }
       let annotationVisible = false;
       for (let i = 0; i < chunks.length; i++) {
         let chunk = chunks[i];
         if (this.chunkAnnotations[chunk] == null) {
           this.chunkAnnotations[chunk] = {};
-          await this.utils.setMarginSize();
+          await utils.setMarginSize();
         }
         this.chunkAnnotations[chunk][render._id] = "";
         if (this.visibleChunks.includes(chunk) == true) {
@@ -1717,9 +1717,9 @@ modules["pages/editor"] = class {
           let chunk = annotation.chunks[i];
           if (chunks.includes(chunk) == false) {
             delete this.chunkAnnotations[chunk][render._id];
-            if (Object.keys(this.chunkAnnotations[chunk]).length == 0) {
+            if (Object.keys(this.chunkAnnotations[chunk]).length < 1) {
               delete this.chunkAnnotations[chunk];
-              await this.utils.setMarginSize();
+              await utils.setMarginSize();
             }
           }
         }
@@ -1728,7 +1728,7 @@ modules["pages/editor"] = class {
       
       if (annotationVisible == true) {
         if (annotation.element == null) {
-          await this.utils.render(render);
+          await utils.render(render);
         }
       } else {
         if (annotation.element != null) {

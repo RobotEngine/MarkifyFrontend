@@ -60,7 +60,7 @@ modules["pages/dashboard"] = class {
     ".dSidebarTitle div[title]": `color: var(--secondary); font-weight: 600; font-size: 16px`,
     ".dSidebarTitle div[divider]": `flex: 1; height: 4px; background: var(--hover); border-radius: 2px`,
 
-    ".dSidebarOpen": `position: absolute; padding: 6px; left: 100%; bottom: 68px; background: var(--pageColor); border-radius: 0 36px 36px 0; z-index: 3`,
+    ".dSidebarOpen": `position: absolute; display: none; padding: 6px; left: 100%; bottom: 68px; background: var(--pageColor); border-radius: 0 36px 36px 0; z-index: 3`,
     ".dSidebarOpen div[shadow]": `position: absolute; width: calc(100% + 12px); height: calc(100% + 24px); left: 0px; top: -12px; border-radius: inherit; overflow: hidden; pointer-events: none`,
     ".dSidebarOpen div[shadow] div": `position: absolute; width: calc(100% - 12px); height: calc(100% - 24px); left: 0px; top: 12px; border-radius: inherit; box-shadow: var(--darkShadow)`,
     ".dSidebarOpen button": `display: flex; width: 80px; height: 60px; border-radius: 10px 30px 30px 10px; justify-content: center; align-items: center`,
@@ -85,7 +85,7 @@ modules["pages/dashboard"] = class {
     ".dSidebarSort[selected]": `background: var(--secondary); color: #fff`,
 
     ".dSidebarFolderHeading": `padding: 8px 8px 6px 8px`,
-    ".dSidebarFolders": `position: relative; display: flex; flex-direction: column; min-width: fit-content; gap: 8px; padding: 0 8px 8px 8px`,
+    ".dSidebarFolders": `position: relative; display: flex; flex-direction: column; min-width: fit-content; gap: 8px; padding: 0 4px 8px 8px`,
     ".dSidebarNewFolderButton": `display: flex; width: 28px; height: 28px; justify-content: center; align-items: center; border-radius: 14px`,
     ".dSidebarNewFolderButton:hover": `background: var(--hover)`,
     ".dSidebarNewFolderButton img": `width: 20px; height: 20px`,
@@ -202,14 +202,14 @@ modules["pages/dashboard"] = class {
         if (sidebarOpenButtonVisible != false) {
           sidebarOpenButtonVisible = false;
           sidebarHolder.style.removeProperty("position");
-          sidebarOpenHolder.style.display = "none";
+          sidebarOpenHolder.style.removeProperty("display");
           openSidebar();
         }
       } else {
         if (sidebarOpenButtonVisible != true) {
           sidebarOpenButtonVisible = true;
           sidebarHolder.style.position = "absolute";
-          sidebarOpenHolder.style.removeProperty("display");
+          sidebarOpenHolder.style.display = "unset";
           closeSidebar();
         }
       }
@@ -356,6 +356,16 @@ modules["pages/dashboard"] = class {
         closeSidebar();
       }
 
+      let tile = target.closest(".dTile");
+      if (tile != null) {
+        event.preventDefault();
+        let optionButton = target.closest(".dTileOptions");
+        if (optionButton != null) {
+          return dropdownModule.open(optionButton, "dropdowns/dashboard/options", { parent: this });
+        }
+        setFrame("lesson", null, { _id: tile.getAttribute("lesson") });
+      }
+
       let button = target.closest("button, a");
       if (button == null) {
         return;
@@ -366,6 +376,21 @@ modules["pages/dashboard"] = class {
         sort = button.getAttribute("sort") ?? button.getAttribute("folderid");
         button.setAttribute("selected", "");
         return updateTiles();
+      }
+    });
+
+    // MouseDown Listener
+    page.addEventListener("mousedown", (event) => {
+      let target = event.target;
+      let tile = target.closest(".dTile");
+      if (tile == null) {
+        return;
+      }
+      let optionButton = target.closest(".dTileOptions");
+      if (optionButton == null) {
+        tile.style.removeProperty("transform");
+      } else {
+        tile.style.transform = "scale(1)";
       }
     });
 
@@ -501,5 +526,29 @@ modules["pages/dashboard/lessons"] = class {
       }
       addLessonTile(record, lesson, time, false);
     }
+  }
+}
+
+modules["dropdowns/dashboard/options"] = class {
+  html = `
+  <button class="dTileDropAction" option="open" title="Open this lesson."><img src="./images/dashboard/open.svg">Open</button>
+  <button class="dTileDropAction" option="opennewtab" title="Open this lesson in a new tab."><img src="./images/dashboard/open.svg">Open in New Tab</button>
+  <div class="dTileDropLine"></div>
+  <button class="dTileDropAction" option="moveto" title="Move this lesson into a folder." dropdown="dropdowns/dashboard/moveto" dropdowntitle="<img class='dTileDropActionImage' src='./images/dashboard/moveto.svg'>Move To"><img class="dTileDropActionImage" src="./images/dashboard/moveto.svg">Move To Folder</button>
+  <button class="dTileDropAction" option="movefrom" style="display: none" title="Remove this lesson from the folder."><img class="dTileDropActionImage" src="./images/dashboard/moveto.svg">Move From Folder</button>
+  <div class="dTileDropLine"></div>
+  <button class="dTileDropAction" option="rename" title="Rename this lesson."><img src="./images/dashboard/rename.svg">Rename</button>
+  <button class="dTileDropAction" option="copy" title="Create a duplicate of this lesson."><img src="./images/editor/file/copy.svg">Duplicate</button>
+  <button class="dTileDropAction" option="deletelesson" dashboard dropdown="dropdowns/editor/file/delete" style="--themeColor: var(--error)" title="Remove this lesson from your dashboard."><img class="dTileDropActionImage" src="./images/editor/file/delete.svg">Delete</button>
+  `;
+  css = {
+    ".dTileDropAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
+    ".dTileDropAction:not(:last-child)": `margin-bottom: 4px`,
+    ".dTileDropAction img": `width: 24px; height: 24px; padding: 2px; margin-right: 8px !important; background: #fff; border-radius: 4px`,
+    ".dTileDropAction:hover": `background: var(--themeColor); color: #fff`,
+    ".dTileDropLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`
+  };
+  js = async function (frame, extra) {
+    
   }
 }

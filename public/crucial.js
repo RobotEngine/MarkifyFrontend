@@ -915,57 +915,57 @@ modules["dropdown"] = class {
     ".dropdownTitle div[backdrop]": `display: none`,
     ".dropdownTitle img": `width: 26px; height: 26px; flex-shrink: 0; object-fit: cover; border-radius: 13px`
   };
-  setResizeLoop = async function (dropdown, content, header, button) {
-    let runLoop = async () => {
-      if (content.hasAttribute("loaded") == false) {
-        return;
-      }
-      
-      content.style.top = header.offsetHeight + "px";
-      // We use fixed, not window, so that scrollbars are accounted for:
-      content.style.setProperty("--dropdownWidth", (fixed.clientWidth - 16) + "px");
-      let maxHeight = fixed.clientHeight - header.offsetHeight - 16;
-      if (content.hasAttribute("maxheight") == true) {
-        maxHeight = Math.min(maxHeight, parseInt(content.getAttribute("maxheight")));
-      }
-      content.style.maxHeight = maxHeight + "px";
-      if (button != null) {
-        content.style.minWidth = Math.max(Math.min(fixed.clientWidth - 16, 200), button.offsetWidth + 8) + "px";
-        content.style.minHeight = Math.max(Math.min(fixed.clientHeight - 16, 200), button.offsetHeight + 8) + "px";
-      }
-      
-      if (dropdown.hasAttribute("closing") == false) {
-        //if (content.querySelector(".dropdownFrame").hasAttribute("loaded")) {
-        if (content.offsetWidth > 0 && content.offsetHeight > 0) {
-          dropdown.style.width = content.offsetWidth + "px";
-          dropdown.style.height = (content.offsetHeight + header.offsetHeight) + "px";
-        }
-      }/* else {
-        dropdown.style.width = button.offsetWidth + "px";
-        dropdown.style.height = button.offsetHeight + "px";
-      }*/
-
-      if (button != null && button.offsetParent != null) {
-        let buttonRect = button.getBoundingClientRect();
-        let addButtonWidth = button.offsetWidth / 2;
-        let pageHolder = button.closest(".ePageHolder");
-        if (pageHolder != null) {
-          addButtonWidth *= parseFloat(pageHolder.getAttribute("zoom"));
-        }
-        let setLeft = buttonRect.left + addButtonWidth - (dropdown.offsetWidth / 2);
-        let setTop = buttonRect.top;
-        dropdown.style.left = setLeft + "px";
-        dropdown.style.top = setTop + "px";
-
-        dropdown.style.transformOrigin = "0px 0px";
-        let dropdownRect = dropdown.getBoundingClientRect();
-        dropdown.style.transformOrigin = (buttonRect.left - dropdownRect.left + addButtonWidth) + "px " + (buttonRect.top - dropdownRect.top + (button.offsetHeight / 2)) + "px";
-      } else {
-        this.close();
-      }
+  runResize = async function (dropdown, content, header, button) {
+    if (content.hasAttribute("loaded") == false) {
+      return;
     }
-    await runLoop();
-    return setInterval(runLoop, 1);
+    
+    content.style.top = header.offsetHeight + "px";
+    // We use fixed, not window, so that scrollbars are accounted for:
+    content.style.setProperty("--dropdownWidth", (fixed.clientWidth - 16) + "px");
+    let maxHeight = fixed.clientHeight - header.offsetHeight - 16;
+    if (content.hasAttribute("maxheight") == true) {
+      maxHeight = Math.min(maxHeight, parseInt(content.getAttribute("maxheight")));
+    }
+    content.style.maxHeight = maxHeight + "px";
+    if (button != null) {
+      content.style.minWidth = Math.max(Math.min(fixed.clientWidth - 16, 200), button.offsetWidth + 8) + "px";
+      content.style.minHeight = Math.max(Math.min(fixed.clientHeight - 16, 200), button.offsetHeight + 8) + "px";
+    }
+    
+    if (dropdown.hasAttribute("closing") == false) {
+      //if (content.querySelector(".dropdownFrame").hasAttribute("loaded")) {
+      if (content.offsetWidth > 0 && content.offsetHeight > 0) {
+        dropdown.style.width = content.offsetWidth + "px";
+        dropdown.style.height = (content.offsetHeight + header.offsetHeight) + "px";
+      }
+    }/* else {
+      dropdown.style.width = button.offsetWidth + "px";
+      dropdown.style.height = button.offsetHeight + "px";
+    }*/
+
+    if (button != null && button.offsetParent != null) {
+      let buttonRect = button.getBoundingClientRect();
+      let addButtonWidth = button.offsetWidth / 2;
+      let pageHolder = button.closest(".ePageHolder");
+      if (pageHolder != null) {
+        addButtonWidth *= parseFloat(pageHolder.getAttribute("zoom"));
+      }
+      let setLeft = buttonRect.left + addButtonWidth - (dropdown.offsetWidth / 2);
+      let setTop = buttonRect.top;
+      dropdown.style.left = setLeft + "px";
+      dropdown.style.top = setTop + "px";
+
+      dropdown.style.transformOrigin = "0px 0px";
+      let dropdownRect = dropdown.getBoundingClientRect();
+      dropdown.style.transformOrigin = (buttonRect.left - dropdownRect.left + addButtonWidth) + "px " + (buttonRect.top - dropdownRect.top + (button.offsetHeight / 2)) + "px";
+    } else {
+      this.close();
+    }
+  }
+  setResizeLoop = async function (dropdown, content, header, button) {
+    await this.runResize(dropdown, content, header, button);
+    return setInterval(async () => { await this.runResize(dropdown, content, header, button); }, 1);
   };
   open = async function (button, frameName, data) {
     let setTitleHTML;
@@ -1102,7 +1102,7 @@ modules["dropdown"] = class {
       addButtonWidth *= parseFloat(pageHolder.getAttribute("zoom"));
     }
     dropdown.style.transformOrigin = (buttonRect.left - dropdownRect.left + addButtonWidth) + "px " + (buttonRect.top - dropdownRect.top + (button.offsetHeight / 2)) + "px";*/
-    dropdown.style.transition = "width .4s, height .4s, opacity .3s, border-radius .3s, transform .4s";
+    dropdown.style.transition = "opacity .3s, border-radius .3s, transform .4s";
     dropdown.offsetHeight;
     dropdown.style.transform = "scale(1)";
     //button.style.opacity = 0;
@@ -1113,6 +1113,8 @@ modules["dropdown"] = class {
     await setFrame(frameName, frame, { content: content, button: button, origin: button, ...data });
     content.style.pointerEvents = "all";
     frame.style.removeProperty("min-height");
+    await this.runResize(dropdown, content, header, button);
+    dropdown.style.transition = "width .4s, height .4s, opacity .3s, border-radius .3s, transform .4s";
     await sleep(300);
     let dropTitle = header.querySelector(".dropdownTitle div");
     if (dropTitle) {

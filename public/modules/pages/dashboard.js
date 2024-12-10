@@ -129,6 +129,9 @@ modules["pages/dashboard"] = class {
     let tileHolder = dashboard.querySelector(".dTilesHolder");
     let accountHolder = sidebar.querySelector(".dSidebarAccountHolder");
     let accountButton = accountHolder.querySelector(".dAccount");
+
+    // Preload
+    loadScript("./modules/dropdowns/account.js");
     
     // Display Account Details
     if (account.image != null) {
@@ -418,7 +421,7 @@ modules["pages/dashboard/lessons"] = class {
   };
   js = async function (frame, extra) {
     let sort = extra.sort;
-    let records = extra.records[sort] || [];
+    let records = extra.records[sort];
     let lessons = extra.lessons;
     let tileHolder = frame.querySelector(".dTiles");
 
@@ -449,9 +452,10 @@ modules["pages/dashboard/lessons"] = class {
       records = extra.records[sort];
       lessons = { ...lessons, ...getObject(body.lessons, "_id") };
     }
-    if (records.length < 1) {
+    if (records == null) {
       await loadMoreLessons();
     }
+    records = records || [];
 
     let addLessonTile = (record, lesson, time, insertFirst) => {
       if (lesson == null) {

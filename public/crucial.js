@@ -911,7 +911,7 @@ modules["dropdown"] = class {
     ".dropdownHeader button": `position: relative; width: 22px; height: 22px; margin: 3px; --borderWidth: 3px; --borderRadius: 14px`,
     ".dropdownHeader button img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
     ".dropdownTitle": `box-sizing: border-box; display: flex; padding: 3px; flex: 1; max-width: fit-content; justify-content: center; align-items: center; white-space: nowrap; overflow: hidden; font-size: 18px; font-weight: 500`,
-    ".dropdownTitle div": `flex: 1; margin: 0 4px; white-space: nowrap; overflow: hidden`,
+    ".dropdownTitle div": `flex: 1; margin: 0 4px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
     ".dropdownTitle div[backdrop]": `display: none`,
     ".dropdownTitle img": `width: 26px; height: 26px; flex-shrink: 0; object-fit: cover; border-radius: 13px`
   };
@@ -1115,11 +1115,11 @@ modules["dropdown"] = class {
     frame.style.removeProperty("min-height");
     await this.runResize(dropdown, content, header, button);
     dropdown.style.transition = "width .4s, height .4s, opacity .3s, border-radius .3s, transform .4s";
-    await sleep(300);
-    let dropTitle = header.querySelector(".dropdownTitle div");
-    if (dropTitle) {
+    //await sleep(300);
+    /*let dropTitle = header.querySelector(".dropdownTitle div");
+    if (dropTitle != null) {
       dropTitle.style.textOverflow = "ellipsis";
-    }
+    }*/
     //await sleep(200);
     //content.style.overflow = "auto";
   };

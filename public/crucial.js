@@ -1110,6 +1110,9 @@ modules["dropdown"] = class {
     dropdown.style.opacity = 1;
     content.style.pointerEvents = "none";
     content.setAttribute("loaded", "");
+    if (modules[frameName] == null) {
+      dropdown.style.transition = "width .4s, height .4s, opacity .3s, border-radius .3s, transform .4s";
+    }
     await setFrame(frameName, frame, { content: content, button: button, origin: button, ...data });
     content.style.pointerEvents = "all";
     frame.style.removeProperty("min-height");

@@ -433,7 +433,7 @@ modules["pages/dashboard/lessons"] = class {
       } else { // Sort
         path += "?section=" + sort;
       }
-      let lastRecord = records[(records.length - 1)];
+      let lastRecord = records[records.length - 1];
       if (lastRecord != null) {
         let time = lastRecord.opened;
         switch (sort) {
@@ -454,9 +454,9 @@ modules["pages/dashboard/lessons"] = class {
       lessons = { ...lessons, ...getObject(body.lessons, "_id") };
     }
     if (records == null) {
+      records = [];
       await loadMoreLessons();
     }
-    records = records || [];
 
     let addLessonTile = (record, lesson, time, insertFirst) => {
       if (lesson == null) {

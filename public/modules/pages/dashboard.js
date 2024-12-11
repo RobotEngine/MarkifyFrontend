@@ -108,7 +108,7 @@ modules["pages/dashboard"] = class {
     ".dSidebarFolder[loaded] div[arrow]": `transform: rotate(90deg)`,
 
     ".dSidebarAccountHolder": `display: flex; flex-direction: column; padding: 8px; bottom: 0px; margin-top: auto; align-items: center; transition: .2s`,
-    ".dAccount": `display: flex; max-width: calc(100% - 16px); width: fit-content; padding: 6px 10px 6px 6px; --borderRadius: 18px`,
+    ".dAccount": `display: flex; max-width: calc(100% - 16px); width: fit-content; padding: 6px 12px 6px 6px; --borderRadius: 18px`,
     ".dAccount img[accountimage]": `width: 32px; min-width: 32px; height: 32px; margin-right: 6px; object-fit: cover; border-radius: 16px`,
     ".dAccount div[accountuser]": `max-width: calc(100% - 38px); height: 100%; line-height: 32px; font-size: 18px; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
     ".dropdownTitle div[accountuser]": `flex: unset`,
@@ -366,7 +366,8 @@ modules["pages/dashboard"] = class {
         if (optionButton != null) {
           return dropdownModule.open(optionButton, "dropdowns/dashboard/options", { parent: this });
         }
-        setFrame("lesson", null, { _id: tile.getAttribute("lesson") });
+        modifyParams("lesson", tile.getAttribute("lesson"));
+        setFrame("lesson", null);
       }
 
       let button = target.closest("button, a");

@@ -773,7 +773,7 @@ modules["editor/realtime"] = {
                 } else if (member.selecting != null) {
                   for (let i = 0; i < member.selecting.length; i++) {
                     let annoID = member.selecting[i];
-                    if (annoID.startsWith("pending_") == true) {
+                    if (editor.annotations[annoID] == null) { //annoID.startsWith("pending_") == true
                       utils.removeAnnotation(annoID, true);
                     }
                   }

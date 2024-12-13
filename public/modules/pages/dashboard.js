@@ -339,12 +339,19 @@ modules["pages/dashboard"] = class {
 
     let updateTiles = async (button, firstLoad) => {
       if (sort.length > 20) { // Folder
-        button.setAttribute("opened", "");
+
       } else { // Sort
         titleHolder.innerHTML = `<div class="dSelectedTitle">${sort[0].toUpperCase() + sort.substring(1) + " Lessons"}</div>`;
       }
       lessonsHolder.scrollTo(0, 0);
-      await this.setFrame("pages/dashboard/lessons", tileHolder, { button: button, sort: sort, records: records, lessons: lessons, firstLoad: firstLoad });
+      await this.setFrame("pages/dashboard/lessons", tileHolder, {
+        button: button,
+        sort: sort,
+        records: records,
+        lessons: lessons,
+        folders: folders,
+        firstLoad: firstLoad
+      });
     }
     updateTiles(null, true);
     for (let i = 0; i < body.folders.length; i++) {
@@ -377,7 +384,21 @@ modules["pages/dashboard"] = class {
 
       if (button.hasAttribute("sort") == true || button.hasAttribute("folderid") == true) {
         unselectSidebarButton();
-        sort = button.getAttribute("sort") ?? button.getAttribute("folderid");
+        let folderid = button.getAttribute("folderid");
+        if (folderid != sort) {
+          sort = button.getAttribute("sort") ?? folderid;
+        } else {
+          button.removeAttribute("opened", "");
+          for (let i = 0; i < button.parentElement.children.length; i++) {
+            let child = button.parentElement.children[i];
+            if (child.nodeName == "DIV") {
+              child.remove();
+              i--;
+            }
+          }
+          sort = "recent";
+          button = sidebar.querySelector('.dSidebarSort[sort="recent"]');
+        }
         button.setAttribute("selected", "");
         return updateTiles(button);
       }
@@ -425,12 +446,17 @@ modules["pages/dashboard/lessons"] = class {
     let sort = extra.sort;
     let records = extra.records[sort];
     let lessons = extra.lessons;
+    let folders = extra.folders;
+    let thisFolder = folders[sort];
     let tileHolder = frame.querySelector(".dTiles");
 
     let loadMoreLessons = async () => {
       let path = "lessons";
       if (sort.length > 20) { // Folder
         path += "?folder=" + sort;
+        if (button != null) {
+          button.setAttribute("disabled", "");
+        }
       } else { // Sort
         path += "?section=" + sort;
       }
@@ -457,11 +483,15 @@ modules["pages/dashboard/lessons"] = class {
         extra.lessons[lesson._id] = lesson;
       }
       if (body.folders != null && button != null) {
+        let folderIDs = [];
         for (let i = 0; i < body.folders.length; i++) {
-          //let folder = body.folders[i];
-          this.parent.addFolderTile(body.folders[i], button.parentElement);
+          let folder = body.folders[i];
+          folderIDs.push(folder._id);
+          folders[folder._id] = folder;
         }
+        thisFolder.folders = folderIDs;
         this.parent.updateScrollShadows();
+        button.removeAttribute("disabled", "");
       }
     }
     if (records == null) {
@@ -541,6 +571,15 @@ modules["pages/dashboard/lessons"] = class {
           time = record.added;
       }
       addLessonTile(record, lesson, time, false);
+    }
+
+    if (thisFolder != null && button != null) {
+      if (button.hasAttribute("opened") == false) {
+        button.setAttribute("opened", "");
+        for (let i = 0; i < thisFolder.folders.length; i++) {
+          this.parent.addFolderTile(folders[thisFolder.folders[i]], button.parentElement);
+        }
+      }
     }
   }
 }

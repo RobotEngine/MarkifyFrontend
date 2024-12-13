@@ -105,7 +105,7 @@ modules["pages/dashboard"] = class {
     ".dSidebarFolder div[name][contenteditable]": `padding: 2px 4px; outline: solid 3px var(--themeColor); border-radius: 4px; overflow: auto`,
     ".dSidebarFolder div[arrow]": `position: sticky; display: flex; width: 28px; height: 28px; right: 8px; margin-left: auto; justify-content: center; align-items: center; background: rgba(var(--background), .7); backdrop-filter: blur(4px); border-radius: 14px; z-index: 1; transition: .1s`,
     ".dSidebarFolder div[arrow] svg": `width: 22px; height: 22px`,
-    ".dSidebarFolder[loaded] div[arrow]": `transform: rotate(90deg)`,
+    ".dSidebarFolder[opened] div[arrow]": `transform: rotate(90deg)`,
 
     ".dSidebarAccountHolder": `display: flex; flex-direction: column; padding: 8px; bottom: 0px; margin-top: auto; align-items: center; transition: .2s`,
     ".dAccount": `display: flex; max-width: calc(100% - 16px); width: fit-content; padding: 6px 12px 6px 6px; --borderRadius: 18px`,
@@ -144,7 +144,7 @@ modules["pages/dashboard"] = class {
       dropdownModule.open(accountButton, "dropdowns/account", { parent: this });
     });
 
-    let updateScrollShadows = () => {
+    this.updateScrollShadows = () => {
       if (lessonsHolder.scrollTop > 0) { // Lesson Topbar Shadow:
         titleHolder.style.background = "var(--pageColor)";
         titleHolder.style.boxShadow = "var(--lightShadow)";
@@ -161,8 +161,8 @@ modules["pages/dashboard"] = class {
         accountHolder.style.removeProperty("box-shadow");
       }
     }
-    sidebar.addEventListener("scroll", updateScrollShadows);
-    lessonsHolder.addEventListener("scroll", updateScrollShadows);
+    sidebar.addEventListener("scroll", this.updateScrollShadows);
+    lessonsHolder.addEventListener("scroll", this.updateScrollShadows);
 
     // Sidebar Open/Close (Mobile Only)
     let sidebarOpenHolder = sidebarHolder.querySelector(".dSidebarOpen");
@@ -216,7 +216,7 @@ modules["pages/dashboard"] = class {
           closeSidebar();
         }
       }
-      updateScrollShadows();
+      this.updateScrollShadows();
     }
     tempListen(window, "resize", sizeUpdate);
 
@@ -229,7 +229,7 @@ modules["pages/dashboard"] = class {
 
     // Handle Folders
     let folders = {};
-    let addFolderTile = async (folder, parent) => {
+    this.addFolderTile = async (folder, parent) => {
       parent.insertAdjacentHTML("beforeend", `<div class="dSidebarFolderParent" new>
         <a class="dSidebarFolder" inside>
           <div select></div>
@@ -318,7 +318,7 @@ modules["pages/dashboard"] = class {
       }
     }
     sidebar.querySelector(".dSidebarNewFolderButton").addEventListener("click", () => {
-      addFolderTile(null, folderHolder);
+      this.addFolderTile(null, folderHolder);
     });
     
     // Handle All Loading/Unloading of Lessons
@@ -337,18 +337,18 @@ modules["pages/dashboard"] = class {
     lessons = { ...lessons, ...getObject(body.lessons, "_id") };
     folders = { ...folders, ...getObject(body.folders, "_id") };
 
-    let updateTiles = async (firstLoad) => {
+    let updateTiles = async (button, firstLoad) => {
       if (sort.length > 20) { // Folder
-        
+        button.setAttribute("opened", "");
       } else { // Sort
         titleHolder.innerHTML = `<div class="dSelectedTitle">${sort[0].toUpperCase() + sort.substring(1) + " Lessons"}</div>`;
       }
       lessonsHolder.scrollTo(0, 0);
-      await this.setFrame("pages/dashboard/lessons", tileHolder, { sort: sort, records: records, lessons: lessons, firstLoad: firstLoad });
+      await this.setFrame("pages/dashboard/lessons", tileHolder, { button: button, sort: sort, records: records, lessons: lessons, firstLoad: firstLoad });
     }
-    updateTiles(true);
+    updateTiles(null, true);
     for (let i = 0; i < body.folders.length; i++) {
-      addFolderTile(body.folders[i], folderHolder);
+      this.addFolderTile(body.folders[i], folderHolder);
     }
 
     // Click Listener
@@ -379,7 +379,7 @@ modules["pages/dashboard"] = class {
         unselectSidebarButton();
         sort = button.getAttribute("sort") ?? button.getAttribute("folderid");
         button.setAttribute("selected", "");
-        return updateTiles();
+        return updateTiles(button);
       }
     });
 
@@ -421,6 +421,7 @@ modules["pages/dashboard/lessons"] = class {
     ".dTileMemberCount div": `color: var(--theme); margin-left: 4px; font-size: 16px; font-weight: 600`
   };
   js = async function (frame, extra) {
+    let button = extra.button;
     let sort = extra.sort;
     let records = extra.records[sort];
     let lessons = extra.lessons;
@@ -451,7 +452,17 @@ modules["pages/dashboard/lessons"] = class {
       }
       extra.records[sort] = [...records, ...(body[sort] || body.recent)];
       records = extra.records[sort];
-      lessons = { ...lessons, ...getObject(body.lessons, "_id") };
+      for (let i = 0; i < body.lessons.length; i++) {
+        let lesson = body.lessons[i];
+        extra.lessons[lesson._id] = lesson;
+      }
+      if (body.folders != null && button != null) {
+        for (let i = 0; i < body.folders.length; i++) {
+          //let folder = body.folders[i];
+          this.parent.addFolderTile(body.folders[i], button.parentElement);
+        }
+        this.parent.updateScrollShadows();
+      }
     }
     if (records == null) {
       records = [];

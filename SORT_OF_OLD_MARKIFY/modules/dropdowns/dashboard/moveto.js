@@ -175,7 +175,7 @@ modules["dropdowns/dashboard/moveto"] = {
         return;
       }
       moveButton.setAttribute("disabled", "");
-      let [code, result] = await sendRequest("GET", "lessons/folders/move?folder=" + selected.parentElement.getAttribute("folderid") + "&lesson=" + lessonID);
+      let [code] = await sendRequest("GET", "lessons/folders/move?folder=" + selected.parentElement.getAttribute("folderid") + "&lesson=" + lessonID);
       if (folderFrame.querySelector(".dTileDropFolder[selected]") != null) {
         moveButton.removeAttribute("disabled");
       }

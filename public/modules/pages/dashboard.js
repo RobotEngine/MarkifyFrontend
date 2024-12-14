@@ -34,7 +34,7 @@ modules["pages/dashboard"] = class {
             <div class="dSidebarTitle"><div title>Folders</div><div divider></div><button class="dSidebarNewFolderButton"><img src="./images/dashboard/add.svg" /></button></div>
           </div>
           <div class="dSidebarSection dSidebarFolders">
-            <div class="dSidebarFolderHolder"></div>
+            <div class="dSidebarFolderHolder" opened></div>
           </div>
           <div class="dSidebarSection dSidebarAccountHolder">
             <button class="dAccount largeButton border"><img src="./images/profiles/default.svg" accountimage /><div accountuser>Username</div><div backdrop></div></button>
@@ -106,6 +106,8 @@ modules["pages/dashboard"] = class {
     ".dSidebarFolder div[arrow]": `position: sticky; display: flex; width: 28px; height: 28px; right: 8px; margin-left: auto; justify-content: center; align-items: center; background: rgba(var(--background), .7); backdrop-filter: blur(4px); border-radius: 14px; z-index: 1; transition: .1s`,
     ".dSidebarFolder div[arrow] svg": `width: 22px; height: 22px`,
     ".dSidebarFolder[opened] div[arrow]": `transform: rotate(90deg)`,
+    ".dTileDropFolderLoadMore": `display: flex; width: 100%; justify-content: center; margin-bottom: 8px`,
+    ".dTileDropFolderLoadMore button": `display: flex; padding: 6px 8px; align-items: center; --borderRadius: 16px; font-size: 16px; color: var(--theme); font-weight: 700`,
 
     ".dSidebarAccountHolder": `display: flex; flex-direction: column; padding: 8px; bottom: 0px; margin-top: auto; align-items: center; transition: .2s`,
     ".dAccount": `display: flex; max-width: calc(100% - 16px); width: fit-content; padding: 6px 12px 6px 6px; --borderRadius: 18px`,
@@ -118,6 +120,7 @@ modules["pages/dashboard"] = class {
     ".dSelectedTitle": `font-size: 28px; font-weight: 600; text-align: left`,
     ".dTilesHolder": `position: relative; width: calc(100% - 32px); min-height: fit-content; height: 100%; margin: 0px 16px 16px 16px; z-index: 1`,
   };
+  loadAmount = 25;
   js = async function (page, data) {
     let dashboardHolder = page.querySelector(".dPageHolder")
     let dashboard = dashboardHolder.querySelector(".dPage")
@@ -251,6 +254,7 @@ modules["pages/dashboard"] = class {
         if (folder.color != null) {
           folderButton.style.setProperty("--fillColor", "#" + folder.color);
         }
+        parent.setAttribute("lastopened", folder.opened);
       } else {
         if (parent.firstElementChild != null) {
           if (parent != folderHolder && parent.firstElementChild.nextElementSibling != null) {
@@ -363,9 +367,12 @@ modules["pages/dashboard"] = class {
     for (let i = 0; i < body.folders.length; i++) {
       this.addFolderTile(body.folders[i], folderHolder);
     }
+    if (body.folders.length >= this.loadAmount) {
+      folderHolder.insertAdjacentHTML("beforeend", `<div class="dTileDropFolderLoadMore"><button class="buttonAnim border">View More</button></div>`);
+    }
 
     // Click Listener
-    page.addEventListener("click", (event) => {
+    page.addEventListener("click", async (event) => {
       let target = event.target;
 
       if (target.closest(".dLessonsHolder") != null) {
@@ -394,6 +401,57 @@ modules["pages/dashboard"] = class {
         sort = button.getAttribute("sort") ?? button.getAttribute("folderid");
         button.setAttribute("selected", "");
         return updateTiles(button, null, prevSort);
+      }
+
+      let loadMore = target.closest(".dTileDropFolderLoadMore button");
+      if (loadMore != null) {
+        let folderParent = loadMore.parentElement.parentElement;
+        let subFolder = folderParent.className == "dSidebarFolderParent";
+        loadMore.setAttribute("disabled", "");
+        let path = "lessons/folders";
+        let before = folderParent.getAttribute("lastopened");
+        if (subFolder == true) {
+          path += "?parent=" + folderParent.firstElementChild.getAttribute("folderid");
+          if (before != null) {
+            path += "&before=" + before;
+          }
+        } else if (before != null) {
+          path += "?before=" + before;
+        }
+        let [code, body] = await sendRequest("GET", path);
+        loadMore.removeAttribute("disabled");
+        if (code == 200 && folderParent != null) {
+          let folderIDs = [];
+          for (let i = 0; i < body.folders.length; i++) {
+            let folder = body.folders[i];
+            folderIDs.push(folder._id);
+            folders[folder._id] = folder;
+          }
+          if (subFolder == true && folderParent.firstElementChild.hasAttribute("opened") == true) {
+            let thisFolder = folders[folderParent.firstElementChild.getAttribute("folderid")];
+            thisFolder.folders = [...thisFolder.folders, ...folderIDs];
+            for (let i = 0; i < folderIDs.length; i++) {
+              this.addFolderTile(folders[folderIDs[i]], folderParent);
+            }
+            if (body.folders.length >= this.loadAmount) {
+              folderParent.appendChild(loadMore.parentElement);
+            } else {
+              thisFolder.doneLoading = true;
+              loadMore.parentElement.remove();
+            }
+          } else {
+            for (let i = 0; i < body.folders.length; i++) {
+              this.addFolderTile(body.folders[i], folderParent);
+            }
+            if (body.folders.length >= this.loadAmount) {
+              folderParent.appendChild(loadMore.parentElement);
+            } else {
+              loadMore.parentElement.remove();
+            }
+          }
+          this.updateScrollShadows();
+        }
+        return;
       }
     });
 
@@ -483,6 +541,9 @@ modules["pages/dashboard/lessons"] = class {
           folders[folder._id] = folder;
         }
         thisFolder.folders = folderIDs;
+        if (body.folders.length >= this.parent.loadAmount) {
+          thisFolder.doneLoading = false;
+        }
         button.removeAttribute("disabled");
       }
     }
@@ -570,6 +631,9 @@ modules["pages/dashboard/lessons"] = class {
         button.setAttribute("opened", "");
         for (let i = 0; i < thisFolder.folders.length; i++) {
           this.parent.addFolderTile(folders[thisFolder.folders[i]], button.parentElement);
+        }
+        if (thisFolder.doneLoading == false) {
+          button.parentElement.insertAdjacentHTML("beforeend", `<div class="dTileDropFolderLoadMore"><button class="buttonAnim border">View More</button></div>`);
         }
         this.parent.updateScrollShadows();
       } else if (extra.prevSort == sort) {

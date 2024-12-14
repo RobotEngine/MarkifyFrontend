@@ -483,8 +483,7 @@ modules["pages/dashboard/lessons"] = class {
           folders[folder._id] = folder;
         }
         thisFolder.folders = folderIDs;
-        this.parent.updateScrollShadows();
-        button.removeAttribute("disabled", "");
+        button.removeAttribute("disabled");
       }
     }
     if (records == null) {
@@ -572,6 +571,7 @@ modules["pages/dashboard/lessons"] = class {
         for (let i = 0; i < thisFolder.folders.length; i++) {
           this.parent.addFolderTile(folders[thisFolder.folders[i]], button.parentElement);
         }
+        this.parent.updateScrollShadows();
       } else if (extra.prevSort == sort) {
         button.removeAttribute("opened", "");
         for (let i = 0; i < button.parentElement.children.length; i++) {
@@ -581,6 +581,7 @@ modules["pages/dashboard/lessons"] = class {
             i--;
           }
         }
+        this.parent.updateScrollShadows();
       }
     }
   }

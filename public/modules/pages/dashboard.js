@@ -92,7 +92,7 @@ modules["pages/dashboard"] = class {
     ".dSidebarFolderHolder": `width: max-content; min-width: 100%`,
 
     ".dSidebarFolderParent": `width: -webkit-fill-available`,
-    ".dSidebarFolderParent[child]": `padding-left: 10px`,
+    ".dSidebarFolderParent[child]": `padding-left: 20px`,
     ".dSidebarFolder": `--fillColor: var(--theme); --themeColor: var(--fillColor); position: relative; display: flex; padding: 4px; margin-bottom: 6px; align-items: center`,
     ".dSidebarFolder[selected]": `--themeColor: #fff !important`,
     ".dSidebarFolder[selected] div[select]": `opacity: 1 !important`,
@@ -296,7 +296,7 @@ modules["pages/dashboard"] = class {
           folderName.textContent = name;
           let folderBody = { name: name };
           if (parent != folderHolder) {
-            folderBody.parent = parent.getAttribute("folderid");
+            folderBody.parent = parent.firstElementChild.getAttribute("folderid");
           }
           let [code, body] = await sendRequest("POST", "lessons/folders/new", folderBody);
           if (code != 200) {
@@ -318,7 +318,12 @@ modules["pages/dashboard"] = class {
       }
     }
     sidebar.querySelector(".dSidebarNewFolderButton").addEventListener("click", () => {
-      this.addFolderTile(null, folderHolder);
+      let setParent = folderHolder;
+      let currentSelected = sidebar.querySelector("button[selected], a[selected]");
+      if (currentSelected != null && currentSelected.hasAttribute("folderid") == true) {
+        setParent = currentSelected.parentElement;
+      }
+      this.addFolderTile(null, setParent);
     });
     
     // Handle All Loading/Unloading of Lessons
@@ -337,7 +342,7 @@ modules["pages/dashboard"] = class {
     lessons = { ...lessons, ...getObject(body.lessons, "_id") };
     folders = { ...folders, ...getObject(body.folders, "_id") };
 
-    let updateTiles = async (button, firstLoad) => {
+    let updateTiles = async (button, firstLoad, prevSort) => {
       if (sort.length > 20) { // Folder
 
       } else { // Sort
@@ -350,7 +355,8 @@ modules["pages/dashboard"] = class {
         records: records,
         lessons: lessons,
         folders: folders,
-        firstLoad: firstLoad
+        firstLoad: firstLoad,
+        prevSort: prevSort
       });
     }
     updateTiles(null, true);
@@ -384,23 +390,10 @@ modules["pages/dashboard"] = class {
 
       if (button.hasAttribute("sort") == true || button.hasAttribute("folderid") == true) {
         unselectSidebarButton();
-        let folderid = button.getAttribute("folderid");
-        if (folderid != sort) {
-          sort = button.getAttribute("sort") ?? folderid;
-        } else {
-          button.removeAttribute("opened", "");
-          for (let i = 0; i < button.parentElement.children.length; i++) {
-            let child = button.parentElement.children[i];
-            if (child.nodeName == "DIV") {
-              child.remove();
-              i--;
-            }
-          }
-          sort = "recent";
-          button = sidebar.querySelector('.dSidebarSort[sort="recent"]');
-        }
+        let prevSort = sort;
+        sort = button.getAttribute("sort") ?? button.getAttribute("folderid");
         button.setAttribute("selected", "");
-        return updateTiles(button);
+        return updateTiles(button, null, prevSort);
       }
     });
 
@@ -578,6 +571,15 @@ modules["pages/dashboard/lessons"] = class {
         button.setAttribute("opened", "");
         for (let i = 0; i < thisFolder.folders.length; i++) {
           this.parent.addFolderTile(folders[thisFolder.folders[i]], button.parentElement);
+        }
+      } else if (extra.prevSort == sort) {
+        button.removeAttribute("opened", "");
+        for (let i = 0; i < button.parentElement.children.length; i++) {
+          let child = button.parentElement.children[i];
+          if (child.nodeName == "DIV") {
+            child.remove();
+            i--;
+          }
         }
       }
     }

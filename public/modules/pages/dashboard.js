@@ -316,13 +316,21 @@ modules["pages/dashboard"] = class {
           if (code != 200) {
             newFolder.remove();
           } else {
-            newFolder.setAttribute("folderid", body.folder);
-            parent.setAttribute("lastopened", getEpoch());
+            let timestamp = getEpoch(); // Just temporary, gets updated by socket
+            folders[body.folder] = { ...folderBody, _id: body.folder, created: timestamp, opened: timestamp };
+            if (folderBody.parent != null) {
+              folders[folderBody.parent].folders = folders[folderBody.parent].folders || [];
+              folders[folderBody.parent].folders.unshift(body.folder);
+            }
+            parent.setAttribute("lastopened", timestamp);
             newFolder.removeAttribute("disabled");
             let folderChild = newFolder.querySelector(".dSidebarFolder");
-            folderChild.setAttribute("loaded", "");
+            folderChild.setAttribute("folderid", body.folder);
+            folderChild.setAttribute("opened", "");
             unselectSidebarButton();
+            this.sort = body.folder;
             folderChild.setAttribute("selected", "");
+            this.updateTiles(folderChild);
           }
         };
         folderName.addEventListener("focusout", focusListener);
@@ -341,7 +349,7 @@ modules["pages/dashboard"] = class {
     });
     
     // Handle All Loading/Unloading of Lessons
-    let sort = "recent";
+    this.sort = "recent";
     let records = {};
     let lessons = {};
 
@@ -356,16 +364,17 @@ modules["pages/dashboard"] = class {
     lessons = { ...lessons, ...getObject(body.lessons, "_id") };
     folders = { ...folders, ...getObject(body.folders, "_id") };
 
-    let updateTiles = async (button, firstLoad, prevSort) => {
-      if (sort.length > 20) { // Folder
+    this.updateTiles = async (button, firstLoad, prevSort) => {
+      if (this.sort.length > 20) { // Folder
         titleHolder.innerHTML = `<div class="dFolderInfo">
           <button icon><svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_1422_21" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="white"/> </mask> <g mask="url(#mask0_1422_21)"> <path d="M223 178V101.747C223 86.8351 210.912 74.7468 196 74.7468H121V73C121 60.2974 110.703 50 98 50H56C43.2974 50 33 60.2975 33 73V178C33 192.912 45.0883 205 60 205H196C210.912 205 223 192.912 223 178Z" stroke="var(--themeColor)" fill="var(--themeColor)" stroke-width="30"/> </g> </svg></button>
           <div title></div>
           <div class="dFolderInfoActions">
-            <button class="dFolderRemove largeButton" dropdown="dropdowns/editor/file/delete" option="deletefolder" dashboard title="Delete this folder." dropdowntitle="Delete Folder"><img src="./images/editor/file/delete.svg"></button>
+            <button class="dFolderRemove largeButton" option="deletefolder" dashboard title="Delete this folder." dropdowntitle="Delete Folder"><img src="./images/editor/file/delete.svg"></button>
           </div>
         </div>`;
-        let folder = folders[sort];
+        let folderID = this.sort;
+        let folder = folders[folderID];
         let setColor = "var(--theme)";
         if (folder.color != null) {
           setColor = "#" + folder.color;
@@ -374,15 +383,57 @@ modules["pages/dashboard"] = class {
         let folderName = titleHolder.querySelector("div[title]");
         folderName.textContent = cleanString(folder.name ?? "Untitled Folder");
         folderName.title = folderName.textContent;
+        let prevName = "";
+        folderName.addEventListener("mousedown", () => {
+          folderName.setAttribute("contenteditable", "");
+          prevName = folderName.textContent;
+        });
+        folderName.addEventListener("blur", async () => {
+          folderName.removeAttribute("contenteditable");
+
+          let name = folderName.textContent.substring(0, 30).replace(/[^A-Za-z0-9.,_|/\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
+          if (name.replace(/ /g, "").length < 1) {
+            folderName.textContent = prevName;
+            folderName.title = prevName;
+            return;
+          }
+          if (name == prevName) {
+            folderName.textContent = prevName;
+            folderName.title = prevName;
+            return;
+          }
+
+          folderName.setAttribute("disabled", "");
+          let [code] = await sendRequest("PUT", "lessons/folders/name?folder=" + folderID, { name: name });
+          if (code != 200) {
+            folderName.textContent = prevName;
+            folderName.title = prevName;
+          } else {
+            folderName.textContent = name;
+            folderName.title = name;
+          }
+          folderName.removeAttribute("disabled");
+        });
+        folderName.addEventListener("keydown", (event) => {
+          if (event.keyCode == 13) {
+            event.preventDefault();
+            folderName.blur();
+            return;
+          }
+        });
+        let removeButton = titleHolder.querySelector(".dFolderRemove");
+        removeButton.addEventListener("click", () => {
+          dropdownModule.open(removeButton, "dropdowns/dashboard/remove", { parent: this, type: "deletefolder", folderID: folderID, folders: folders });
+        });
         titleHolder.style.padding = "10px 16px";
       } else { // Sort
-        titleHolder.innerHTML = `<div class="dSelectedTitle">${sort[0].toUpperCase() + sort.substring(1) + " Lessons"}</div>`;
+        titleHolder.innerHTML = `<div class="dSelectedTitle">${this.sort[0].toUpperCase() + this.sort.substring(1) + " Lessons"}</div>`;
         titleHolder.style.removeProperty("padding");
       }
       lessonsHolder.scrollTo(0, 0);
       await this.setFrame("pages/dashboard/lessons", tileHolder, {
         button: button,
-        sort: sort,
+        sort: this.sort,
         records: records,
         lessons: lessons,
         folders: folders,
@@ -390,7 +441,7 @@ modules["pages/dashboard"] = class {
         prevSort: prevSort
       });
     }
-    updateTiles(null, true);
+    this.updateTiles(null, true);
     for (let i = 0; i < body.folders.length; i++) {
       this.addFolderTile(body.folders[i], folderHolder);
     }
@@ -424,10 +475,10 @@ modules["pages/dashboard"] = class {
 
       if (button.hasAttribute("sort") == true || button.hasAttribute("folderid") == true) {
         unselectSidebarButton();
-        let prevSort = sort;
-        sort = button.getAttribute("sort") ?? button.getAttribute("folderid");
+        let prevSort = this.sort;
+        this.sort = button.getAttribute("sort") ?? button.getAttribute("folderid");
         button.setAttribute("selected", "");
-        return updateTiles(button, null, prevSort);
+        return this.updateTiles(button, null, prevSort);
       }
 
       let loadMore = target.closest(".dTileDropFolderLoadMore button");
@@ -699,5 +750,86 @@ modules["dropdowns/dashboard/options"] = class {
   };
   js = async function (frame, extra) {
     
+  }
+}
+modules["dropdowns/dashboard/remove"] = class {
+  html = `
+  <div class="dDeleteHolder">
+    <img src="./images/editor/file/trash.svg">
+    <div class="dDeleteContent">
+      <div class="dDeleteTitle"></div>
+      <div class="dDeleteDesc"></div>
+    </div>
+  </div>
+  <div class="dDeleteOptions">
+    <button class="dDeleteConfirm border" style="color: var(--error)">Delete</button>
+    <button class="dDeleteCancel border">Cancel</button>
+  </div>
+  `;
+  css = {
+    ".dDeleteHolder": `display: flex; flex-wrap: wrap; gap: 6px; justify-content: center`,
+    ".dDeleteHolder img": `width: 64px; height: 64px`,
+    ".dDeleteTitle": `color: var(--error); font-size: 20px; font-weight: 700; text-align: left`,
+    ".dDeleteDesc": `max-width: 240px; font-size: 14px; text-align: left`,
+    ".dDeleteOptions": `display: flex; flex-wrap: wrap; width: 100%; margin-top: 12px; justify-content: space-around`,
+    ".dDeleteOptions button": `display: flex; height: fit-content; min-height: 36px; padding: 0 12px; margin: 6px; --borderColor: var(--hover); --borderWidth: 3px; --borderRadius: 18px; color: var(--theme); justify-content: center; align-items: center; font-size: 18px; font-weight: 700`,
+    ".dDeleteConfirm:hover": `background: var(--error); --borderWidth: 0px; transform: scale(1.1); color: #fff !important`,
+    ".dDeleteCancel:hover": `background: var(--theme); --borderWidth: 0px; transform: scale(1.1); color: #fff !important`,
+    ".dDeleteOptions button:active": `transform: scale(1)`
+  };
+  js = async function (frame, extra) {
+    let parent = extra.parent;
+    let option = extra.type;
+    let title = frame.querySelector(".dDeleteTitle");
+    let desc = frame.querySelector(".dDeleteDesc");
+    switch (extra.type) {
+      case "deletelesson":
+        if (access < 5) {
+          title.textContent = "Remove Lesson?";
+          desc.innerHTML = "Are you sure you want to remove this lesson from your dashboard? <b>You will need to be invited back to regain access.</b>";
+        } else {
+          title.textContent = "Delete Lesson?";
+          desc.innerHTML = "Are you sure you want to permanently delete this lesson? <b>This cannot be undone!</b>";
+        }
+        break;
+      case "deletefolder":
+        title.textContent = "Delete Folder?";
+        desc.innerHTML = "Deleting the folder <b>will not</b> delete the lessons.";
+    }
+    let deleteConfirm = frame.querySelector(".dDeleteConfirm");
+    deleteConfirm.addEventListener("click", async () => {
+      deleteConfirm.setAttribute("disabled", "");
+      let deleteAlert = await alertModule.open("info", "<b>Deleting</b><div>Processing delete request...", { time: "never" });
+      let pathAdd = "";
+      if (option == "deletefolder") {
+        pathAdd += "/folder?folder=" + extra.folderID;
+      } else {
+        pathAdd += "?lesson=" + extra.lessonID;
+      }
+      let [code] = await sendRequest("DELETE", "lessons/delete" + pathAdd, null);
+      deleteConfirm.removeAttribute("disabled");
+      alertModule.close(deleteAlert);
+      if (code == 200) {
+        dropdownModule.close();
+        if (option == "deletefolder") {
+          let parentFolder = extra.folders[extra.folders[extra.folderID].parent];
+          if (parentFolder != null) {
+            parentFolder.folders.splice(parentFolder.folders.indexOf(extra.folderID), 1);
+          }
+          let folderSort = parent.frame.querySelector('.dSidebarFolder[folderid="' + extra.folderID + '"]');
+          if (folderSort != null) {
+            folderSort.remove();
+          }
+          delete extra.folders[extra.folderID];
+          parent.sort = "recent";
+          let recentSort = parent.frame.querySelector('.dSidebarSort[sort="recent"]');
+          recentSort.setAttribute("selected", "");
+          parent.updateTiles(recentSort);
+        }
+      }
+    });
+    frame.querySelector(".dDeleteCancel").addEventListener("click", () => {
+      dropdownModule.close();
+    });
   }
 }

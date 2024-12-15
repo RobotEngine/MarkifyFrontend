@@ -298,6 +298,7 @@ async function setFrame(path, frame, extra, parent) {
   if (continueLoading == true) {
     frameSet.insertAdjacentHTML("beforeend", `<div class="content" style="opacity: 0; transition: all .5s, max-height 0s" new>${module.html}</div>`);
     let frameContent = frameSet.querySelector(".content[new]");
+    module.frame = frameContent;
     frameContent.removeAttribute("new");
     if (frameSet == app) {
       frameContent.setAttribute("hideoverflow", "");
@@ -929,8 +930,8 @@ modules["dropdown"] = class {
     }
     content.style.maxHeight = maxHeight + "px";
     if (button != null) {
-      content.style.minWidth = Math.max(Math.min(fixed.clientWidth - 16, 200), button.offsetWidth + 8) + "px";
-      content.style.minHeight = Math.max(Math.min(fixed.clientHeight - 16, 200), button.offsetHeight + 8) + "px";
+      content.style.minWidth = Math.min(fixed.clientWidth - 16, button.offsetWidth + 8) + "px"; //Math.max(Math.min(fixed.clientWidth - 16, 200), button.offsetWidth + 8) + "px";
+      content.style.minHeight = Math.min(fixed.clientHeight - 16, button.offsetHeight + 8) + "px"; //Math.max(Math.min(fixed.clientHeight - 16, 200), button.offsetHeight + 8) + "px";
     }
     
     if (dropdown.hasAttribute("closing") == false) {
@@ -1455,10 +1456,10 @@ modules["alert"] = class {
 }
 let alertModule = {
   open: async (type, message, data) => {
-    (await newModule("alert")).open(type, message, data);
+    return (await newModule("alert")).open(type, message, data);
   },
   close: async (alert) => {
-    (await newModule("alert")).close(alert);
+    return (await newModule("alert")).close(alert);
   }
 }
 

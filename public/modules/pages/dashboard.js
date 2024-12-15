@@ -116,9 +116,19 @@ modules["pages/dashboard"] = class {
     ".dropdownTitle div[accountuser]": `flex: unset`,
 
     ".dLessonsHolder": `position: relative; display: flex; flex-direction: column; width: 100%; min-height: 100%; overflow-y: auto; z-index: 1`,
-    ".dSelectedTitleHolder": `position: sticky; display: flex; box-sizing: border-box; width: 100%; padding: 16px; top: 0px; z-index: 2; transition: .2s`,
+    ".dSelectedTitleHolder": `position: sticky; display: flex; box-sizing: border-box; width: 100%; padding: 16px; top: 0px; z-index: 2; transition: background .2s, box-shadow .2s`,
     ".dSelectedTitle": `font-size: 28px; font-weight: 600; text-align: left`,
     ".dTilesHolder": `position: relative; width: calc(100% - 32px); min-height: fit-content; height: 100%; margin: 0px 16px 16px 16px; z-index: 1`,
+
+    ".dFolderInfo": `display: flex; width: 100%; justify-content: center; align-items: center`,
+    ".dFolderInfo button[icon]": `padding: 0`,
+    ".dFolderInfo button[icon] svg": `width: 40px; height: 40px`,
+    ".dFolderInfo div[title]": `padding: 4px 0; margin: 0 auto 0 4px; font-size: 26px; font-weight: 600; color: var(--themeColor); border: solid 3px var(--pageColor); border-radius: 12px; outline: none; transition: .2s; cursor: pointer; text-align: left; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; scrollbar-width: none`,
+    ".dFolderInfo div[title]::-webkit-scrollbar": `display: none`,
+    ".dFolderInfo div[contenteditable]": `padding: 4px 6px; border: solid 3px var(--themeColor); cursor: unset; text-overflow: unset !important; overflow: auto !important`,
+    ".dFolderInfoActions": `display: flex; margin-left: 8px`,
+    ".dFolderRemove": `display: flex; padding: 6px; background: var(--pageColor); --themeColor: var(--error); --themeColor2: var(--error); --borderWidth: 3px; --borderRadius: 20px; color: #fff; justify-content: center; align-items: center`,
+    ".dFolderRemove img": `width: 22px; height: 22px`
   };
   loadAmount = 25;
   js = async function (page, data) {
@@ -348,9 +358,26 @@ modules["pages/dashboard"] = class {
 
     let updateTiles = async (button, firstLoad, prevSort) => {
       if (sort.length > 20) { // Folder
-
+        titleHolder.innerHTML = `<div class="dFolderInfo">
+          <button icon><svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_1422_21" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="white"/> </mask> <g mask="url(#mask0_1422_21)"> <path d="M223 178V101.747C223 86.8351 210.912 74.7468 196 74.7468H121V73C121 60.2974 110.703 50 98 50H56C43.2974 50 33 60.2975 33 73V178C33 192.912 45.0883 205 60 205H196C210.912 205 223 192.912 223 178Z" stroke="var(--themeColor)" fill="var(--themeColor)" stroke-width="30"/> </g> </svg></button>
+          <div title></div>
+          <div class="dFolderInfoActions">
+            <button class="dFolderRemove largeButton" dropdown="dropdowns/editor/file/delete" option="deletefolder" dashboard title="Delete this folder." dropdowntitle="Delete Folder"><img src="./images/editor/file/delete.svg"></button>
+          </div>
+        </div>`;
+        let folder = folders[sort];
+        let setColor = "var(--theme)";
+        if (folder.color != null) {
+          setColor = "#" + folder.color;
+        }
+        titleHolder.querySelector(".dFolderInfo").style.setProperty("--themeColor", setColor);
+        let folderName = titleHolder.querySelector("div[title]");
+        folderName.textContent = cleanString(folder.name ?? "Untitled Folder");
+        folderName.title = folderName.textContent;
+        titleHolder.style.padding = "10px 16px";
       } else { // Sort
         titleHolder.innerHTML = `<div class="dSelectedTitle">${sort[0].toUpperCase() + sort.substring(1) + " Lessons"}</div>`;
+        titleHolder.style.removeProperty("padding");
       }
       lessonsHolder.scrollTo(0, 0);
       await this.setFrame("pages/dashboard/lessons", tileHolder, {

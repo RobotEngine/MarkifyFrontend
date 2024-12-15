@@ -346,7 +346,7 @@ modules["pages/dashboard"] = class {
     }
     sidebar.querySelector(".dSidebarNewFolderButton").addEventListener("click", () => {
       let setParent = folderHolder;
-      let currentSelected = sidebar.querySelector("button[selected], a[selected]");
+      let currentSelected = sidebar.querySelector("a[selected][opened]");
       if (currentSelected != null && currentSelected.hasAttribute("folderid") == true) {
         setParent = currentSelected.parentElement;
       }

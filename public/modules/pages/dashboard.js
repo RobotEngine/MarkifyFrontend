@@ -123,11 +123,11 @@ modules["pages/dashboard"] = class {
     ".dFolderInfo": `display: flex; width: 100%; justify-content: center; align-items: center`,
     ".dFolderInfo button[icon]": `padding: 0`,
     ".dFolderInfo button[icon] svg": `width: 40px; height: 40px`,
-    ".dFolderInfo div[title]": `padding: 4px 0; margin: 0 auto 0 4px; font-size: 26px; font-weight: 600; color: var(--themeColor); border: solid 3px var(--pageColor); border-radius: 12px; outline: none; transition: .2s; cursor: pointer; text-align: left; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; scrollbar-width: none`,
+    ".dFolderInfo div[title]": `padding: 4px 0; margin: 0 auto 0 4px; font-size: 26px; font-weight: 600; color: var(--themeColor); border: solid 3px rgba(var(--background), 0); border-radius: 12px; outline: none; transition: .2s; cursor: pointer; text-align: left; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; scrollbar-width: none`,
     ".dFolderInfo div[title]::-webkit-scrollbar": `display: none`,
     ".dFolderInfo div[contenteditable]": `padding: 4px 6px; border: solid 3px var(--themeColor); cursor: unset; text-overflow: unset !important; overflow: auto !important`,
     ".dFolderInfoActions": `display: flex; margin-left: 8px`,
-    ".dFolderRemove": `display: flex; padding: 6px; background: var(--pageColor); --themeColor: var(--error); --themeColor2: var(--error); --borderWidth: 3px; --borderRadius: 20px; color: #fff; justify-content: center; align-items: center`,
+    ".dFolderRemove": `display: flex; padding: 6px; --themeColor: var(--error); --themeColor2: var(--error); --borderWidth: 3px; --borderRadius: 20px; color: #fff; justify-content: center; align-items: center`,
     ".dFolderRemove img": `width: 22px; height: 22px`
   };
   loadAmount = 25;

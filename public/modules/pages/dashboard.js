@@ -812,15 +812,22 @@ modules["dropdowns/dashboard/remove"] = class {
       if (code == 200) {
         dropdownModule.close();
         if (option == "deletefolder") {
-          let parentFolder = extra.folders[extra.folders[extra.folderID].parent];
-          if (parentFolder != null) {
-            parentFolder.folders.splice(parentFolder.folders.indexOf(extra.folderID), 1);
-          }
+          let parentID = extra.folders[extra.folderID].parent;
           let folderSort = parent.frame.querySelector('.dSidebarFolder[folderid="' + extra.folderID + '"]');
           if (folderSort != null) {
             folderSort.remove();
           }
           delete extra.folders[extra.folderID];
+          let parentFolder = extra.folders[parentID];
+          if (parentFolder != null) {
+            parentFolder.folders.splice(parentFolder.folders.indexOf(extra.folderID), 1);
+            let parentSort = parent.frame.querySelector('.dSidebarFolder[folderid="' + parentID + '"]');
+            if (parentSort != null) {
+              parent.sort = parentID;
+              parentSort.setAttribute("selected", "");
+              return parent.updateTiles(parentSort);
+            }
+          }
           parent.sort = "recent";
           let recentSort = parent.frame.querySelector('.dSidebarSort[sort="recent"]');
           recentSort.setAttribute("selected", "");

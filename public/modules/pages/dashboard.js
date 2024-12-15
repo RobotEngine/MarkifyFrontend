@@ -115,14 +115,18 @@ modules["pages/dashboard"] = class {
     ".dAccount div[accountuser]": `max-width: calc(100% - 38px); height: 100%; line-height: 32px; font-size: 18px; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
     ".dropdownTitle div[accountuser]": `flex: unset`,
 
-    ".dLessonsHolder": `position: relative; display: flex; flex-direction: column; width: 100%; min-height: 100%; overflow-y: auto; z-index: 1`,
+    ".dLessonsHolder": `position: relative; display: flex; flex-direction: column; width: 100%; min-height: 100%; overflow-x: hidden; overflow-y: auto; z-index: 1`,
     ".dSelectedTitleHolder": `position: sticky; display: flex; box-sizing: border-box; width: 100%; padding: 16px; top: 0px; z-index: 2; transition: background .2s, box-shadow .2s`,
     ".dSelectedTitle": `font-size: 28px; font-weight: 600; text-align: left`,
     ".dTilesHolder": `position: relative; width: calc(100% - 32px); min-height: fit-content; height: 100%; margin: 0px 16px 16px 16px; z-index: 1`,
 
     ".dFolderInfo": `display: flex; width: 100%; justify-content: center; align-items: center`,
-    ".dFolderInfo button[icon]": `padding: 0`,
-    ".dFolderInfo button[icon] svg": `width: 40px; height: 40px`,
+    ".dFolderColorButton": `position: relative; width: 40px; height: 40px; flex-shrink: 0`,
+    ".dFolderColorsHolder": `position: absolute; width: 48px; left: -6px; top: -4px; background: rgba(var(--background), 0); overflow: hidden; border-radius: 16px 26px 26px 16px; transition: width .4s, box-shadow .4s; z-index: 2`,
+    ".dFolderColors": `display: flex; gap: 4px; width: fit-content; height: 100%; padding: 4px 8px 4px 6px; align-items: center`,
+    ".dFolderColors button[icon]": `width: 40px; height: 40px; padding: 0; flex-shrink: 0`,
+    ".dFolderColors button[icon] svg": `width: 100%; height: 100%`,
+    ".dFolderColors button[hex]": `width: 32px; height: 32px; border: solid 2px var(--pageColor); border-radius: 16px; flex-shrink: 0`,
     ".dFolderInfo div[title]": `padding: 4px 0; margin: 0 auto 0 4px; font-size: 26px; font-weight: 600; color: var(--themeColor); border: solid 3px rgba(var(--background), 0); border-radius: 12px; outline: none; transition: .2s; cursor: pointer; text-align: left; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; scrollbar-width: none`,
     ".dFolderInfo div[title]::-webkit-scrollbar": `display: none`,
     ".dFolderInfo div[contenteditable]": `padding: 4px 6px; border: solid 3px var(--themeColor); cursor: unset; text-overflow: unset !important; overflow: auto !important`,
@@ -175,7 +179,6 @@ modules["pages/dashboard"] = class {
       }
     }
     sidebar.addEventListener("scroll", this.updateScrollShadows);
-    lessonsHolder.addEventListener("scroll", this.updateScrollShadows);
 
     // Sidebar Open/Close (Mobile Only)
     let sidebarOpenHolder = sidebarHolder.querySelector(".dSidebarOpen");
@@ -261,6 +264,7 @@ modules["pages/dashboard"] = class {
         let folderButton = newFolder.querySelector(".dSidebarFolder");
         folderButton.setAttribute("folderid", folder._id);
         folderName.textContent = folder.name;
+        folderName.title = folder.name;
         if (folder.color != null) {
           folderButton.style.setProperty("--fillColor", "#" + folder.color);
         }
@@ -308,6 +312,7 @@ modules["pages/dashboard"] = class {
           }*/
           newFolder.setAttribute("disabled", "");
           folderName.textContent = name;
+          folderName.title = name;
           let folderBody = { name: name };
           if (parent != folderHolder) {
             folderBody.parent = parent.firstElementChild.getAttribute("folderid");
@@ -364,10 +369,25 @@ modules["pages/dashboard"] = class {
     lessons = { ...lessons, ...getObject(body.lessons, "_id") };
     folders = { ...folders, ...getObject(body.folders, "_id") };
 
+    let scrollEventPass;
     this.updateTiles = async (button, firstLoad, prevSort) => {
       if (this.sort.length > 20) { // Folder
         titleHolder.innerHTML = `<div class="dFolderInfo">
-          <button icon><svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_1422_21" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="white"/> </mask> <g mask="url(#mask0_1422_21)"> <path d="M223 178V101.747C223 86.8351 210.912 74.7468 196 74.7468H121V73C121 60.2974 110.703 50 98 50H56C43.2974 50 33 60.2975 33 73V178C33 192.912 45.0883 205 60 205H196C210.912 205 223 192.912 223 178Z" stroke="var(--themeColor)" fill="var(--themeColor)" stroke-width="30"/> </g> </svg></button>
+          <div class="dFolderColorButton">
+            <div class="dFolderColorsHolder">
+              <div class="dFolderColors">
+                <button icon><svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg"> <mask id="mask0_1422_21" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"> <rect width="256" height="256" fill="white"/> </mask> <g mask="url(#mask0_1422_21)"> <path d="M223 178V101.747C223 86.8351 210.912 74.7468 196 74.7468H121V73C121 60.2974 110.703 50 98 50H56C43.2974 50 33 60.2975 33 73V178C33 192.912 45.0883 205 60 205H196C210.912 205 223 192.912 223 178Z" stroke="var(--themeColor)" fill="var(--themeColor)" stroke-width="30"/> </g> </svg></button>
+                <button hex="0084FF"></button>
+                <button hex="DF84FF"></button>
+                <button hex="FFB938"></button>
+                <button hex="34C172"></button>
+                <button hex="FF3D64"></button>
+                <button hex="FA8A5A"></button>
+                <button hex="2F2F2F"></button>
+                <button hex="FF008A"></button>
+              </div>
+            </div>
+          </div>
           <div title></div>
           <div class="dFolderInfoActions">
             <button class="dFolderRemove largeButton" option="deletefolder" dashboard title="Delete this folder." dropdowntitle="Delete Folder"><img src="./images/editor/file/delete.svg"></button>
@@ -379,7 +399,45 @@ modules["pages/dashboard"] = class {
         if (folder.color != null) {
           setColor = "#" + folder.color;
         }
-        titleHolder.querySelector(".dFolderInfo").style.setProperty("--themeColor", setColor);
+        let folderInfo = titleHolder.querySelector(".dFolderInfo");
+        folderInfo.style.setProperty("--themeColor", setColor);
+        let colorHolderFrame = titleHolder.querySelector(".dFolderColorsHolder");
+        let colorHolder = colorHolderFrame.querySelector(".dFolderColors");
+        let colors = colorHolder.querySelectorAll("button[hex]");
+        for (let i = 0; i < colors.length; i++) {
+          colors[i].style.background = "#" + colors[i].getAttribute("hex");
+        }
+        colorHolderFrame.addEventListener("click", async (event) => {
+          if (colorHolderFrame.hasAttribute("open") == false) {
+            colorHolderFrame.setAttribute("open", "");
+            colorHolderFrame.style.width = colorHolder.clientWidth + "px";
+            colorHolderFrame.style.boxShadow = "var(--darkShadow)";
+            colorHolderFrame.style.background = "rgba(var(--background), 1)";
+          } else {
+            let button = event.target.closest("button");
+            if (button == null) {
+              return;
+            }
+            let newColor = button.getAttribute("hex");
+            if (newColor != null) {
+              folderInfo.style.setProperty("--themeColor", "#" + newColor);
+              colorHolder.setAttribute("disabled", "");
+              let [code] = await sendRequest("PUT", "lessons/folders/color?folder=" + folderID, { color: newColor });
+              if (code != 200) {
+                folderInfo.style.setProperty("--themeColor", setColor);
+              }
+              colorHolder.removeAttribute("disabled");
+            }
+            
+            colorHolderFrame.removeAttribute("open");
+            colorHolderFrame.style.removeProperty("width");
+            colorHolderFrame.style.removeProperty("box-shadow");
+            await sleep(400);
+            if (colorHolderFrame != null && colorHolderFrame.hasAttribute("open") == false) {
+              colorHolderFrame.style.removeProperty("background");
+            }
+          }
+        });
         let folderName = titleHolder.querySelector("div[title]");
         folderName.textContent = cleanString(folder.name ?? "Untitled Folder");
         folderName.title = folderName.textContent;
@@ -395,11 +453,13 @@ modules["pages/dashboard"] = class {
           if (name.replace(/ /g, "").length < 1) {
             folderName.textContent = prevName;
             folderName.title = prevName;
+            folderName.scrollTo(0, 0);
             return;
           }
           if (name == prevName) {
             folderName.textContent = prevName;
             folderName.title = prevName;
+            folderName.scrollTo(0, 0);
             return;
           }
 
@@ -412,6 +472,7 @@ modules["pages/dashboard"] = class {
             folderName.textContent = name;
             folderName.title = name;
           }
+          folderName.scrollTo(0, 0);
           folderName.removeAttribute("disabled");
         });
         folderName.addEventListener("keydown", (event) => {
@@ -431,7 +492,7 @@ modules["pages/dashboard"] = class {
         titleHolder.style.removeProperty("padding");
       }
       lessonsHolder.scrollTo(0, 0);
-      await this.setFrame("pages/dashboard/lessons", tileHolder, {
+      let extra = {
         button: button,
         sort: this.sort,
         records: records,
@@ -439,7 +500,9 @@ modules["pages/dashboard"] = class {
         folders: folders,
         firstLoad: firstLoad,
         prevSort: prevSort
-      });
+      };
+      await this.setFrame("pages/dashboard/lessons", tileHolder, extra);
+      scrollEventPass = extra.scrollEventPass;
     }
     this.updateTiles(null, true);
     for (let i = 0; i < body.folders.length; i++) {
@@ -448,6 +511,13 @@ modules["pages/dashboard"] = class {
     if (body.folders.length >= this.loadAmount) {
       folderHolder.insertAdjacentHTML("beforeend", `<div class="dTileDropFolderLoadMore"><button class="buttonAnim border">View More</button></div>`);
     }
+
+    lessonsHolder.addEventListener("scroll", (event) => {
+      if (scrollEventPass != null) {
+        scrollEventPass(event);
+      }
+      this.updateScrollShadows(event);
+    });
 
     // Click Listener
     page.addEventListener("click", async (event) => {
@@ -578,6 +648,8 @@ modules["pages/dashboard/lessons"] = class {
     let folders = extra.folders;
     let thisFolder = folders[sort];
     let tileHolder = frame.querySelector(".dTiles");
+    let scrollContainer = frame.closest(".dLessonsHolder");
+    let allLoaded = false;
 
     let loadMoreLessons = async () => {
       let path = "lessons";
@@ -605,7 +677,11 @@ modules["pages/dashboard/lessons"] = class {
       if (code != 200) {
         return;
       }
-      extra.records[sort] = [...records, ...(body[sort] || body.recent)];
+      let newRecords = body[sort] || body.recent;
+      if (newRecords.length < this.parent.loadAmount) {
+        allLoaded = true;
+      }
+      extra.records[sort] = [...records, ...newRecords];
       records = extra.records[sort];
       for (let i = 0; i < body.lessons.length; i++) {
         let lesson = body.lessons[i];
@@ -628,6 +704,9 @@ modules["pages/dashboard/lessons"] = class {
     if (records == null) {
       records = [];
       await loadMoreLessons();
+    }
+    if (records.length < this.parent.loadAmount) {
+      allLoaded = true;
     }
 
     let addLessonTile = (record, lesson, time, insertFirst) => {
@@ -690,7 +769,7 @@ modules["pages/dashboard/lessons"] = class {
         tile.href = "?lesson=" + record.lesson + "#lesson";
       }
     }
-    for (let i = 0; i < records.length; i++) {
+    for (let i = 0; i < Math.min(records.length, this.parent.loadAmount); i++) {
       let record = records[i];
       let lesson = lessons[record.lesson];
       let time = record.opened || record.added;
@@ -703,6 +782,44 @@ modules["pages/dashboard/lessons"] = class {
       }
       addLessonTile(record, lesson, time, false);
     }
+
+    extra.scrollEventPass = async (event, loop) => {
+      if (allLoaded == true) {
+        return;
+      }
+      if (scrollContainer.scrollTop + scrollContainer.clientHeight + 300 < scrollContainer.scrollHeight && tileHolder.clientHeight > scrollContainer.clientHeight) {
+        return;
+      }
+      if (tileHolder.hasAttribute("disabled") == true) {
+        return;
+      }
+      if (records.length - tileHolder.childElementCount < this.parent.loadAmount) {
+        tileHolder.setAttribute("disabled", "");
+        await loadMoreLessons();
+        if (tileHolder == null) {
+          return;
+        }
+        tileHolder.removeAttribute("disabled");
+      }
+      let count = tileHolder.childElementCount;
+      for (let i = count; i < Math.min(records.length - count, this.parent.loadAmount) + count; i++) {
+        let record = records[i];
+        let lesson = lessons[record.lesson];
+        let time = record.opened || record.added;
+        switch (sort) {
+          case "shared":
+            time = record.added;
+            break;
+          case "newest":
+            time = record.added;
+        }
+        addLessonTile(record, lesson, time, false);
+      }
+      if (loop == true) {
+        await extra.scrollEventPass(event, loop);
+      }
+    }
+    extra.scrollEventPass(null, true);
 
     if (thisFolder != null && button != null) {
       if (button.hasAttribute("opened") == false) {

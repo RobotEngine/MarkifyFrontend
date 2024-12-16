@@ -423,7 +423,12 @@ modules["pages/dashboard"] = class {
               folderInfo.style.setProperty("--themeColor", "#" + newColor);
               colorHolder.setAttribute("disabled", "");
               let [code] = await sendRequest("PUT", "lessons/folders/color?folder=" + folderID, { color: newColor });
-              if (code != 200) {
+              if (code == 200) {
+                let folderSort = folderHolder.querySelector('.dSidebarFolder[folderid="' + folderID + '"]');
+                if (folderSort != null) {
+                  folderSort.style.setProperty("--fillColor", "#" + newColor);
+                }
+              } else {
                 folderInfo.style.setProperty("--themeColor", setColor);
               }
               colorHolder.removeAttribute("disabled");
@@ -465,12 +470,18 @@ modules["pages/dashboard"] = class {
 
           folderName.setAttribute("disabled", "");
           let [code] = await sendRequest("PUT", "lessons/folders/name?folder=" + folderID, { name: name });
-          if (code != 200) {
-            folderName.textContent = prevName;
-            folderName.title = prevName;
-          } else {
+          if (code == 200) {
             folderName.textContent = name;
             folderName.title = name;
+            let folderSort = folderHolder.querySelector('.dSidebarFolder[folderid="' + folderID + '"]');
+            if (folderSort != null) {
+              let title = folderSort.querySelector("div[name]");
+              title.textContent = name;
+              title.title = name;
+            }
+          } else {
+            folderName.textContent = prevName;
+            folderName.title = prevName;
           }
           folderName.scrollTo(0, 0);
           folderName.removeAttribute("disabled");

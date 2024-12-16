@@ -196,7 +196,7 @@ modules["pages/dashboard"] = class {
         return;
       }
       sidebarOpen = false;
-      sidebarHolder.style.left = -sidebar.clientWidth + "px";
+      sidebarHolder.style.left = -sidebar.offsetWidth + "px";
       sidebarOpenButtonImg.style.transform = "scale(1)";
     }
     sidebarOpenButton.addEventListener("click", () => {
@@ -410,7 +410,7 @@ modules["pages/dashboard"] = class {
         colorHolderFrame.addEventListener("click", async (event) => {
           if (colorHolderFrame.hasAttribute("open") == false) {
             colorHolderFrame.setAttribute("open", "");
-            colorHolderFrame.style.width = colorHolder.clientWidth + "px";
+            colorHolderFrame.style.width = colorHolder.offsetWidth + "px";
             colorHolderFrame.style.boxShadow = "var(--darkShadow)";
             colorHolderFrame.style.background = "rgba(var(--background), 1)";
           } else {

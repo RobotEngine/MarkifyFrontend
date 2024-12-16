@@ -543,7 +543,7 @@ modules["pages/dashboard"] = class {
         event.preventDefault();
         let optionButton = target.closest(".dTileOptions");
         if (optionButton != null) {
-          return dropdownModule.open(optionButton, "dropdowns/dashboard/options", { parent: this });
+          return dropdownModule.open(optionButton, "dropdowns/dashboard/options", { parent: this, lessonID: tile.getAttribute("lesson"), lessons: lessons });
         }
         modifyParams("lesson", tile.getAttribute("lesson"));
         setFrame("lesson", null);
@@ -627,6 +627,17 @@ modules["pages/dashboard"] = class {
       } else {
         tile.style.transform = "scale(1)";
       }
+    });
+
+    // Right Click Listener
+    page.addEventListener("contextmenu", (event) => {
+      let target = event.target;
+      let tile = target.closest(".dTile");
+      if (tile == null) {
+        return;
+      }
+      event.preventDefault();
+      dropdownModule.open(tile.querySelector(".dTileOptions"), "dropdowns/dashboard/options", { parent: this, lessonID: tile.getAttribute("lesson"), lessons: lessons });
     });
 
     sizeUpdate();

@@ -653,7 +653,8 @@ modules["pages/dashboard/lessons"] = class {
     ".dTileThumbnail": `width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 12px`,
     ".dTileInfoHolder": `position: absolute; display: flex; box-sizing: border-box; width: 100%; padding: 8px; left: 0px; bottom: 0px; align-items: flex-end; background: var(--pageColor); box-shadow: var(--shadow)`,
     ".dTileInfo": `width: 100%`,
-    ".dTileTitle": `width: 100%; font-size: 18px; font-weight: 600; text-align: left`,
+    ".dTileTitle": `box-sizing: border-box; width: 100%; font-size: 18px; font-weight: 600; text-align: left`,
+    ".dTileTitle[contenteditable]": `padding: 2px 4px; margin-bottom: 4px; max-height: 100px; outline: solid 2px var(--theme); border-radius: 4px; overflow: auto`,
     ".dTileLastOpened": `width: 100%; color: var(--theme); margin-top: 2px; font-size: 14px; font-weight: 600; text-align: left`,
     ".dTileOptions": `display: flex; width: 34px; height: 34px; margin: 4px; flex-shrink: 0; justify-content: center; align-items: center; border-radius: 18px`,
     ".dTileOptions img": `width: 32px; height: 32px`,
@@ -735,6 +736,7 @@ modules["pages/dashboard/lessons"] = class {
       if (lesson == null) {
         return;
       }
+      lesson.record = record;
       let insertAdj = "beforeend";
       if (insertFirst == true) {
         insertAdj = "afterbegin";
@@ -888,7 +890,135 @@ modules["dropdowns/dashboard/options"] = class {
     ".dTileDropLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`
   };
   js = async function (frame, extra) {
-    
+    let lessonID = extra.lessonID;
+    let lessons = extra.lessons;
+    let lesson = lessons[lessonID];
+    if (lesson == null) {
+      return;
+    }
+    let record = lesson.record;
+    if (record == null) {
+      return;
+    }
+    let tile = extra.button.closest(".dTile");
+    let joinMethod = record.join ?? "owner";
+    let isOwner = joinMethod == "owner";
+    let folderID = record.folder;
+    frame.querySelector('.dTileDropAction[option="open"]').addEventListener("click", () => {
+      if (joinMethod.startsWith("pin_")) {
+        modifyParams("pin", joinMethod.substring(4));
+        return setFrame("pages/join");
+      } else if (joinMethod == "link") {
+        modifyParams("lesson", lessonID);
+        return setFrame("pages/join");
+      } else {
+        modifyParams("lesson", lessonID);
+        setFrame("pages/lesson");
+      }
+    });
+    let newTabButton = frame.querySelector('.dTileDropAction[option="opennewtab"]');
+    newTabButton.addEventListener("click", () => {
+      window.open(tile.getAttribute("href"), "_blank");
+    });
+    let moveToButton = frame.querySelector('.dTileDropAction[option="moveto"]');
+    moveToButton.addEventListener("click", () => {
+      dropdownModule.open(extra.button, "dropdowns/moveto", { parent: extra.parent, lessonID: lessonID, lesson: lesson, record: record });
+    });
+    let moveFromButton = frame.querySelector('.dTileDropAction[option="movefrom"]');
+    if (folderID != null) {
+      moveFromButton.style.removeProperty("display");
+    }
+    moveFromButton.addEventListener("click", async () => {
+      moveFromButton.setAttribute("disabled", "");
+      let [code] = await sendRequest("POST", "lessons/folders/movefrom?lesson=" + lessonID);
+      moveFromButton.removeAttribute("disabled");
+      if (code == 200) {
+        //tile.remove();
+        dropdownModule.close();
+      }
+    });
+    let renameButton = frame.querySelector('.dTileDropAction[option="rename"]');
+    let titleText = tile.querySelector(".dTileTitle");
+    titleText.removeAttribute("prevtitle");
+    renameButton.addEventListener("click", async () => {
+      if (titleText.hasAttribute("prevtitle") == false) {
+        titleText.setAttribute("prevtitle", titleText.textContent);
+      }
+      titleText.textContent = "";
+      titleText.setAttribute("contenteditable", "");
+      dropdownModule.close();
+
+      titleText.removeEventListener("keydown", lesson.keyDownListener);
+      titleText.removeEventListener("focusout", lesson.focusListener);
+      titleText.removeEventListener("paste", lesson.pasteListener);
+
+      lesson.focusListener = async () => {
+        titleText.removeAttribute("contenteditable");
+        let name = titleText.textContent.substring(0, 100).replace(/[^A-Za-z0-9.,_|/\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
+        if (name.replace(/ /g, "").length < 1) {
+          titleText.textContent = titleText.getAttribute("prevtitle");
+          return;
+        }
+        if (titleText.textContent == titleText.getAttribute("prevtitle")) {
+          return;
+        }
+        titleText.textContent = name;
+        let [code] = await sendRequest("POST", "lessons/name?lesson=" + lessonID, { name: name });
+        if (code != 200) {
+          titleText.textContent = titleText.getAttribute("prevtitle");
+        }
+      };
+      titleText.addEventListener("focusout", lesson.focusListener);
+      lesson.keyDownListener = (event) => {
+        if (event.keyCode == 13) {
+          event.preventDefault();
+
+          titleText.removeEventListener("keydown", lesson.keyDownListener);
+          titleText.removeEventListener("focusout", lesson.focusListener);
+          titleText.removeEventListener("paste", lesson.pasteListener);
+          
+          lesson.focusListener();
+          return;
+        }
+      };
+      titleText.addEventListener("keydown", lesson.keyDownListener);
+      lesson.pasteListener = (event) => {
+        // Cancel paste
+        event.preventDefault();
+  
+        // Insert text manually
+        document.execCommand("insertHTML", false, (event.originalEvent ?? event).clipboardData.getData("text/plain"));
+      }
+      titleText.addEventListener("paste", lesson.pasteListener);
+
+      await sleep(1);
+      titleText.focus();
+    });
+    let copyButton = frame.querySelector('.dTileDropAction[option="copy"]');
+    copyButton.addEventListener("click", async () => {
+      copyButton.setAttribute("disabled", "");
+      let copyAlert = await alertModule.open("info", "<b>Creating Copy</b><div>Creating a copy of this lesson!", { time: "never" });
+      let path = "lessons/copy?lesson=" + lessonID;
+      if (folderID != null){
+        path += "&folder=" + folderID;
+      }
+      let [code] = await sendRequest("POST", path);
+      copyButton.removeAttribute("disabled");
+      alertModule.close(copyAlert);
+      if (code == 200) {
+        dropdownModule.close();
+        await alertModule.open("info", "<b>Copy Created</b><div>The lesson has been added to the top of your dashboard.");
+      }
+    });
+    let deleteButton = frame.querySelector('.dTileDropAction[option="deletelesson"]');
+    deleteButton.addEventListener("click", () => {
+      dropdownModule.open(extra.button, "dropdowns/dashboard/remove", { parent: extra.parent, type: "deletelesson", lessonID: lessonID, lesson: lesson, record: record, isOwner: isOwner });
+    });
+    if (!isOwner) {
+      renameButton.remove();
+      copyButton.remove();
+      deleteButton.innerHTML = `<img src="./images/editor/file/delete.svg">Remove`;
+    }
   }
 }
 modules["dropdowns/dashboard/remove"] = class {
@@ -923,7 +1053,7 @@ modules["dropdowns/dashboard/remove"] = class {
     let desc = frame.querySelector(".dDeleteDesc");
     switch (extra.type) {
       case "deletelesson":
-        if (access < 5) {
+        if (extra.isOwner != true) {
           title.textContent = "Remove Lesson?";
           desc.innerHTML = "Are you sure you want to remove this lesson from your dashboard? <b>You will need to be invited back to regain access.</b>";
         } else {

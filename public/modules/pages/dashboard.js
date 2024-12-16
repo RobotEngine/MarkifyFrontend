@@ -424,6 +424,7 @@ modules["pages/dashboard"] = class {
               colorHolder.setAttribute("disabled", "");
               let [code] = await sendRequest("PUT", "lessons/folders/color?folder=" + folderID, { color: newColor });
               if (code == 200) {
+                folder.color = newColor;
                 let folderSort = folderHolder.querySelector('.dSidebarFolder[folderid="' + folderID + '"]');
                 if (folderSort != null) {
                   folderSort.style.setProperty("--fillColor", "#" + newColor);
@@ -471,6 +472,7 @@ modules["pages/dashboard"] = class {
           folderName.setAttribute("disabled", "");
           let [code] = await sendRequest("PUT", "lessons/folders/name?folder=" + folderID, { name: name });
           if (code == 200) {
+            folder.name = name;
             folderName.textContent = name;
             folderName.title = name;
             let folderSort = folderHolder.querySelector('.dSidebarFolder[folderid="' + folderID + '"]');
@@ -543,7 +545,7 @@ modules["pages/dashboard"] = class {
         event.preventDefault();
         let optionButton = target.closest(".dTileOptions");
         if (optionButton != null) {
-          return dropdownModule.open(optionButton, "dropdowns/dashboard/options", { parent: this, lessonID: tile.getAttribute("lesson"), lessons: lessons });
+          return dropdownModule.open(optionButton, "dropdowns/dashboard/options", { parent: this, tile: tile, lessonID: tile.getAttribute("lesson"), lessons: lessons });
         }
         modifyParams("lesson", tile.getAttribute("lesson"));
         setFrame("lesson", null);
@@ -637,7 +639,7 @@ modules["pages/dashboard"] = class {
         return;
       }
       event.preventDefault();
-      dropdownModule.open(tile.querySelector(".dTileOptions"), "dropdowns/dashboard/options", { parent: this, lessonID: tile.getAttribute("lesson"), lessons: lessons });
+      dropdownModule.open(tile.querySelector(".dTileOptions"), "dropdowns/dashboard/options", { parent: this, tile: tile, lessonID: tile.getAttribute("lesson"), lessons: lessons });
     });
 
     sizeUpdate();
@@ -900,7 +902,7 @@ modules["dropdowns/dashboard/options"] = class {
     if (record == null) {
       return;
     }
-    let tile = extra.button.closest(".dTile");
+    let tile = extra.tile;
     let joinMethod = record.join ?? "owner";
     let isOwner = joinMethod == "owner";
     let folderID = record.folder;
@@ -922,7 +924,7 @@ modules["dropdowns/dashboard/options"] = class {
     });
     let moveToButton = frame.querySelector('.dTileDropAction[option="moveto"]');
     moveToButton.addEventListener("click", () => {
-      dropdownModule.open(extra.button, "dropdowns/moveto", { parent: extra.parent, lessonID: lessonID, lesson: lesson, record: record });
+      dropdownModule.open(moveToButton, "dropdowns/moveto", { parent: extra.parent, lessonID: lessonID, lesson: lesson, record: record });
     });
     let moveFromButton = frame.querySelector('.dTileDropAction[option="movefrom"]');
     if (folderID != null) {
@@ -1012,7 +1014,7 @@ modules["dropdowns/dashboard/options"] = class {
     });
     let deleteButton = frame.querySelector('.dTileDropAction[option="deletelesson"]');
     deleteButton.addEventListener("click", () => {
-      dropdownModule.open(extra.button, "dropdowns/dashboard/remove", { parent: extra.parent, type: "deletelesson", lessonID: lessonID, lesson: lesson, record: record, isOwner: isOwner });
+      dropdownModule.open(deleteButton, "dropdowns/dashboard/remove", { parent: extra.parent, type: "deletelesson", lessonID: lessonID, lesson: lesson, record: record, isOwner: isOwner });
     });
     if (!isOwner) {
       renameButton.remove();
@@ -1081,6 +1083,8 @@ modules["dropdowns/dashboard/remove"] = class {
       if (code == 200) {
         dropdownModule.close();
         if (option == "deletefolder") {
+          delete extra.lessons[extra.lessonID];
+        } else if (option == "deletefolder") {
           let parentID = extra.folders[extra.folderID].parent;
           let folderSort = parent.frame.querySelector('.dSidebarFolder[folderid="' + extra.folderID + '"]');
           if (folderSort != null) {

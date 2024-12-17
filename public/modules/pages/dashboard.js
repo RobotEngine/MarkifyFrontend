@@ -1082,7 +1082,7 @@ modules["dropdowns/dashboard/remove"] = class {
       alertModule.close(deleteAlert);
       if (code == 200) {
         dropdownModule.close();
-        if (option == "deletefolder") {
+        if (option == "deletelesson") {
           delete extra.lessons[extra.lessonID];
         } else if (option == "deletefolder") {
           let parentID = extra.folders[extra.folderID].parent;

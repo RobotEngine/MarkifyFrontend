@@ -172,16 +172,24 @@ modules["dropdowns/moveto"] = class {
         return;
       }
       moveButton.setAttribute("disabled", "");
-      let [code] = await sendRequest("GET", "lessons/folders/move?folder=" + selected.parentElement.getAttribute("folderid") + "&lesson=" + lessonID);
+      let folderID = selected.parentElement.getAttribute("folderid");
+      let [code] = await sendRequest("GET", "lessons/folders/move?folder=" + folderID + "&lesson=" + lessonID);
       if (folderFrame.querySelector(".dTileDropFolder[selected]") != null) {
         moveButton.removeAttribute("disabled");
       }
       if (code == 200) {
-        if (extra.button.closest("[fromfolder]") == null) {
+        if (extra.lessons != null) {
+          extra.lessons[extra.lessonID].parent = folderID;
+          let lessonTile = extra.parent.frame.querySelector('.dTile[lesson="' + extra.lessonID + '"]');
+          if (lessonTile != null) {
+            let lessonContent = lessonTile.closest(".content");
+            let noLessons = lessonContent.querySelector(".dNoLessons");
+            lessonTile.remove();
+            if (noLessons != null && lessonContent.querySelector(".dTiles").childElementCount < 1) {
+              noLessons.style.removeProperty("display");
+            }
+          }
           dropdownModule.close();
-        } else {
-          window.dropdown.frameHistory = [];
-          dropdownModule.open(moveButton, "dropdowns/dashboard/folder");
         }
       }
     });

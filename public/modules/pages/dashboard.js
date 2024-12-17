@@ -6,6 +6,7 @@ modules["pages/dashboard"] = class {
       return false;
     }
     modifyParams("lesson");
+    modifyParams("folder");
     modifyParams("page");
     modifyParams("annotation");
     modifyParams("pin");
@@ -20,7 +21,7 @@ modules["pages/dashboard"] = class {
             <a class="dJoinButton largeButton" openpage="join" href="#join">Join<img src="./images/tooltips/link.svg" /><div backdrop></div></a>
           </div>
           <div class="dSidebarSection dSidebarActions">
-            <a class="dCreateLessonButton largeButton" openpage="lesson" href="#lesson">New Lesson<div backdrop></div></a>
+            <a class="dCreateLessonButton largeButton" openpage="lesson" href="?lesson=createnew#lesson">New Lesson<div backdrop></div></a>
           </div>
           <div class="dSidebarSection dSidebarSorts">
             <div class="dSidebarTitle"><div title>Sorts</div><div divider></div></div>
@@ -140,6 +141,8 @@ modules["pages/dashboard"] = class {
     let dashboard = dashboardHolder.querySelector(".dPage")
     let sidebarHolder = dashboard.querySelector(".dSidebarHolder");
     let sidebar = sidebarHolder.querySelector(".dSidebar");
+    let joinLessonButton = sidebar.querySelector(".dJoinButton");
+    let newLessonButton = sidebar.querySelector(".dCreateLessonButton");
     let folderHolder = sidebar.querySelector(".dSidebarFolderHolder");
     let lessonsHolder = dashboard.querySelector(".dLessonsHolder");
     let titleHolder = lessonsHolder.querySelector(".dSelectedTitleHolder");
@@ -150,6 +153,19 @@ modules["pages/dashboard"] = class {
     // Preload
     loadScript("./modules/dropdowns/account.js");
     
+    joinLessonButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      setFrame("join", null);
+    });
+    newLessonButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      modifyParams("lesson", "createnew");
+      if (this.sort != null && this.sort.length > 20) {
+        modifyParams("folder", this.sort);
+      }
+      setFrame("lesson", null);
+    });
+
     // Display Account Details
     if (account.image != null) {
       accountButton.querySelector("img[accountimage]").src = account.image;
@@ -500,9 +516,11 @@ modules["pages/dashboard"] = class {
           dropdownModule.open(removeButton, "dropdowns/dashboard/remove", { parent: this, type: "deletefolder", folderID: folderID, folders: folders });
         });
         titleHolder.style.padding = "10px 16px";
+        newLessonButton.href = "?lesson=createnew&folder=" + this.sort + "#lesson";
       } else { // Sort
         titleHolder.innerHTML = `<div class="dSelectedTitle">${this.sort[0].toUpperCase() + this.sort.substring(1) + " Lessons"}</div>`;
         titleHolder.style.removeProperty("padding");
+        newLessonButton.href = "?lesson=createnew#lesson";
       }
       lessonsHolder.scrollTo(0, 0);
       let extra = {
@@ -647,7 +665,14 @@ modules["pages/dashboard"] = class {
 }
 
 modules["pages/dashboard/lessons"] = class {
-  html = `<div class="dTiles"></div>`;
+  html = `
+  <div class="dTiles"></div>
+  <div class="dNoLessons">
+    <img class="dNoLessonsImage" src="./images/dashboard/nolessons.png" />
+    <div class="dNoLessonsTitle">No Lessons... Yet!</div>
+    <div class="dNoLessonsDesc">Try a different sort, or create a new lesson at the top of the sidebar.</div>
+  </div>
+  `;
   css = {
     ".dTiles": `position: relative; display: grid; width: 100%; grid-gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(275px, 100%), 1fr))`, // min-height: 100%;
     ".dTile": `position: relative; background: var(--pageColor); --shadow: var(--lightShadow); box-shadow: var(--shadow); border-radius: 12px; overflow: hidden`,
@@ -663,7 +688,12 @@ modules["pages/dashboard/lessons"] = class {
     ".dTileOptions:hover": `background: var(--hover)`,
     ".dTileMemberCount": `position: absolute; display: flex; box-sizing: border-box; padding: 6px; right: 0px; top: 0px; align-items: center; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 0 0 0 12px; opacity: 0`,
     ".dTileMemberCount img": `width: 22px; height: 22px`,
-    ".dTileMemberCount div": `color: var(--theme); margin-left: 4px; font-size: 16px; font-weight: 600`
+    ".dTileMemberCount div": `color: var(--theme); margin-left: 4px; font-size: 16px; font-weight: 600`,
+
+    ".dNoLessons": `display: flex; flex-direction: column; width: 100%; height: fit-content; align-items: center`,
+    ".dNoLessonsImage": `width: 100%; max-width: 500px; margin-top: 32px`,
+    ".dNoLessonsTitle": `margin-top: 24px; font-size: 32px; font-weight: 700; color: var(--theme)`,
+    ".dNoLessonsDesc": `max-width: 350px; margin-top: 8px; font-size: 18px; font-weight: 500`
   };
   js = async function (frame, extra) {
     let button = extra.button;
@@ -673,6 +703,7 @@ modules["pages/dashboard/lessons"] = class {
     let folders = extra.folders;
     let thisFolder = folders[sort];
     let tileHolder = frame.querySelector(".dTiles");
+    let noLessons = frame.querySelector(".dNoLessons");
     let scrollContainer = frame.closest(".dLessonsHolder");
     let allLoaded = false;
 
@@ -751,7 +782,7 @@ modules["pages/dashboard/lessons"] = class {
         return;
       }
       tileHolder.insertAdjacentHTML(insertAdj, `<a class="dTile" new>
-        <img class="dTileThumbnail" src="./images/dashboard/missing.svg" />
+        <img class="dTileThumbnail" src="./images/dashboard/placeholder.png" />
         <div class="dTileInfoHolder">
           <div class="dTileInfo">
             <div class="dTileTitle"></div>
@@ -808,6 +839,9 @@ modules["pages/dashboard/lessons"] = class {
       }
       addLessonTile(record, lesson, time, false);
     }
+    if (tileHolder.childElementCount > 0) {
+      noLessons.style.display = "none";
+    }
 
     extra.scrollEventPass = async (event, loop) => {
       if (allLoaded == true) {
@@ -840,6 +874,9 @@ modules["pages/dashboard/lessons"] = class {
             time = record.added;
         }
         addLessonTile(record, lesson, time, false);
+      }
+      if (tileHolder.childElementCount > 0) {
+        noLessons.style.display = "none";
       }
       if (loop == true) {
         await extra.scrollEventPass(event, loop);
@@ -924,7 +961,7 @@ modules["dropdowns/dashboard/options"] = class {
     });
     let moveToButton = frame.querySelector('.dTileDropAction[option="moveto"]');
     moveToButton.addEventListener("click", () => {
-      dropdownModule.open(moveToButton, "dropdowns/moveto", { parent: extra.parent, lessonID: lessonID, lesson: lesson, record: record });
+      dropdownModule.open(moveToButton, "dropdowns/moveto", { parent: extra.parent, lessons: lessons, lessonID: lessonID, lesson: lesson, record: record });
     });
     let moveFromButton = frame.querySelector('.dTileDropAction[option="movefrom"]');
     if (folderID != null) {
@@ -935,7 +972,13 @@ modules["dropdowns/dashboard/options"] = class {
       let [code] = await sendRequest("POST", "lessons/folders/movefrom?lesson=" + lessonID);
       moveFromButton.removeAttribute("disabled");
       if (code == 200) {
-        //tile.remove();
+        delete extra.lessons[extra.lessonID].parent;
+        let lessonContent = tile.closest(".content");
+        let noLessons = lessonContent.querySelector(".dNoLessons");
+        tile.remove();
+        if (noLessons != null && lessonContent.querySelector(".dTiles").childElementCount < 1) {
+          noLessons.style.removeProperty("display");
+        }
         dropdownModule.close();
       }
     });
@@ -1014,7 +1057,7 @@ modules["dropdowns/dashboard/options"] = class {
     });
     let deleteButton = frame.querySelector('.dTileDropAction[option="deletelesson"]');
     deleteButton.addEventListener("click", () => {
-      dropdownModule.open(deleteButton, "dropdowns/dashboard/remove", { parent: extra.parent, type: "deletelesson", lessonID: lessonID, lesson: lesson, record: record, isOwner: isOwner });
+      dropdownModule.open(deleteButton, "dropdowns/dashboard/remove", { parent: extra.parent, type: "deletelesson", lessons: lessons, lessonID: lessonID, lesson: lesson, record: record, isOwner: isOwner });
     });
     if (!isOwner) {
       renameButton.remove();
@@ -1072,10 +1115,10 @@ modules["dropdowns/dashboard/remove"] = class {
       deleteConfirm.setAttribute("disabled", "");
       let deleteAlert = await alertModule.open("info", "<b>Deleting</b><div>Processing delete request...", { time: "never" });
       let pathAdd = "";
-      if (option == "deletefolder") {
-        pathAdd += "/folder?folder=" + extra.folderID;
-      } else {
+      if (option == "deletelesson") {
         pathAdd += "?lesson=" + extra.lessonID;
+      } else if (option == "deletefolder") {
+        pathAdd += "/folder?folder=" + extra.folderID;
       }
       let [code] = await sendRequest("DELETE", "lessons/delete" + pathAdd, null);
       deleteConfirm.removeAttribute("disabled");
@@ -1084,6 +1127,15 @@ modules["dropdowns/dashboard/remove"] = class {
         dropdownModule.close();
         if (option == "deletelesson") {
           delete extra.lessons[extra.lessonID];
+          let lessonTile = parent.frame.querySelector('.dTile[lesson="' + extra.lessonID + '"]');
+          if (lessonTile != null) {
+            let lessonContent = lessonTile.closest(".content");
+            let noLessons = lessonContent.querySelector(".dNoLessons");
+            lessonTile.remove();
+            if (noLessons != null && lessonContent.querySelector(".dTiles").childElementCount < 1) {
+              noLessons.style.removeProperty("display");
+            }
+          }
         } else if (option == "deletefolder") {
           let parentID = extra.folders[extra.folderID].parent;
           let folderSort = parent.frame.querySelector('.dSidebarFolder[folderid="' + extra.folderID + '"]');

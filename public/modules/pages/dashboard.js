@@ -665,6 +665,14 @@ modules["pages/dashboard"] = class {
 
     // Search Bar
     searchInput.addEventListener("input", () => {
+      if (searchInput.value == "") {
+        unselectSidebarButton();
+        let button = sidebar.querySelector('.dSidebarSort[sort="recent"]');
+        let prevSort = this.sort;
+        this.sort = "recent";
+        button.setAttribute("selected", "");
+        return this.updateTiles(button, null, prevSort);
+      }
       unselectSidebarButton();
       let prevSort = this.sort;
       this.sort = "search";

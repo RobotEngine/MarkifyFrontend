@@ -143,6 +143,7 @@ modules["pages/dashboard"] = class {
     let sidebar = sidebarHolder.querySelector(".dSidebar");
     let joinLessonButton = sidebar.querySelector(".dJoinButton");
     let newLessonButton = sidebar.querySelector(".dCreateLessonButton");
+    let searchInput = sidebar.querySelector(".dSidebarSearch input");
     let folderHolder = sidebar.querySelector(".dSidebarFolderHolder");
     let lessonsHolder = dashboard.querySelector(".dLessonsHolder");
     let titleHolder = lessonsHolder.querySelector(".dSelectedTitleHolder");
@@ -152,6 +153,7 @@ modules["pages/dashboard"] = class {
 
     // Preload
     loadScript("./modules/dropdowns/account.js");
+    loadScript("./modules/dropdowns/moveto.js");
     
     joinLessonButton.addEventListener("click", (event) => {
       event.preventDefault();
@@ -576,6 +578,7 @@ modules["pages/dashboard"] = class {
 
       if (button.hasAttribute("sort") == true || button.hasAttribute("folderid") == true) {
         unselectSidebarButton();
+        searchInput.value = "";
         let prevSort = this.sort;
         this.sort = button.getAttribute("sort") ?? button.getAttribute("folderid");
         button.setAttribute("selected", "");
@@ -660,6 +663,14 @@ modules["pages/dashboard"] = class {
       dropdownModule.open(tile.querySelector(".dTileOptions"), "dropdowns/dashboard/options", { parent: this, tile: tile, lessonID: tile.getAttribute("lesson"), lessons: lessons });
     });
 
+    // Search Bar
+    searchInput.addEventListener("input", () => {
+      unselectSidebarButton();
+      let prevSort = this.sort;
+      this.sort = "search";
+      return this.updateTiles(searchInput, null, prevSort);
+    });
+
     sizeUpdate();
   }
 }
@@ -707,6 +718,9 @@ modules["pages/dashboard/lessons"] = class {
     let scrollContainer = frame.closest(".dLessonsHolder");
     let allLoaded = false;
 
+    if (sort == "search") {
+      records = null;
+    }
     let loadMoreLessons = async () => {
       let path = "lessons";
       if (sort.length > 20) { // Folder
@@ -714,8 +728,10 @@ modules["pages/dashboard/lessons"] = class {
         if (button != null) {
           button.setAttribute("disabled", "");
         }
-      } else { // Sort
+      } else if (sort != "search") { // Sort
         path += "?section=" + sort;
+      } else { // Search
+        path += "?search=" + encodeURIComponent(button.value);
       }
       let lastRecord = records[records.length - 1];
       if (lastRecord != null) {
@@ -743,7 +759,7 @@ modules["pages/dashboard/lessons"] = class {
         let lesson = body.lessons[i];
         extra.lessons[lesson._id] = lesson;
       }
-      if (body.folders != null && button != null) {
+      if (body.folders != null && button != null && sort != "search") {
         let folderIDs = [];
         for (let i = 0; i < body.folders.length; i++) {
           let folder = body.folders[i];
@@ -853,7 +869,7 @@ modules["pages/dashboard/lessons"] = class {
       if (tileHolder.hasAttribute("disabled") == true) {
         return;
       }
-      if (records.length - tileHolder.childElementCount < this.parent.loadAmount) {
+      if (records.length - tileHolder.childElementCount < this.parent.loadAmount && sort != "search") {
         tileHolder.setAttribute("disabled", "");
         await loadMoreLessons();
         if (tileHolder == null) {

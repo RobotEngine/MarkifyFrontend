@@ -274,7 +274,7 @@ modules["pages/dashboard"] = class {
 
     // Handle Folders
     let folders = {};
-    this.addFolderTile = async (folder, parent) => {
+    this.addFolderTile = async (folder, parent, insertFirst) => {
       parent.insertAdjacentHTML("beforeend", `<div class="dSidebarFolderParent" new>
         <a class="dSidebarFolder" inside>
           <div select></div>
@@ -298,6 +298,17 @@ modules["pages/dashboard"] = class {
           folderButton.style.setProperty("--fillColor", "#" + folder.color);
         }
         parent.setAttribute("lastopened", folder.opened);
+        if (insertFirst == true) {
+          if (parent.className != "dSidebarFolderParent") {
+            if (parent.firstElementChild != null) {
+              parent.insertBefore(newFolder, parent.firstElementChild);
+            }
+          } else {
+            if (parent.children[1] != null) {
+              parent.insertBefore(newFolder, parent.children[1]);
+            }
+          }
+        }
       } else {
         if (parent.firstElementChild != null) {
           if (parent != folderHolder && parent.firstElementChild.nextElementSibling != null) {
@@ -409,8 +420,10 @@ modules["pages/dashboard"] = class {
           console.log(body)
           let lessonID;
           let lesson;
+          let folder;
           let tile;
           let noLessons;
+          let existingFolder;
           switch (data.task) {
             case "join":
               if (lessons[body.lesson] != null) {
@@ -545,13 +558,110 @@ modules["pages/dashboard"] = class {
               }
               break;
             case "newfolder":
-              
+              folders[body._id] = body;
+              existingFolder = folderHolder.querySelector('.dSidebarFolder[folderid="' + body._id + '"]');
+              if (existingFolder == null) {
+                let parent = folderHolder;
+                if (body.parent != null) {
+                  parent = null;
+                  let setParent = folderHolder.querySelector('.dSidebarFolder[folderid="' + body.parent + '"]');
+                  if (setParent != null && setParent.hasAttribute("opened") == true) {
+                    parent = setParent.parentElement;
+                  }
+                }
+                if (parent != null) {
+                  this.addFolderTile(body, parent, true);
+                }
+              }
               break;
             case "folderupdate":
-              
+              folder = folders[body._id];
+              if (folder != null) {
+                existingFolder = folderHolder.querySelector('.dSidebarFolder[folderid="' + body._id + '"]');
+                if (body.hasOwnProperty("name") == true) {
+                  folder.name = body.name;
+                  let newFolderName = cleanString(body.name ?? "Untitled Folder");
+                  if (existingFolder != null) {
+                    existingFolder.querySelector("div[name]").textContent = newFolderName;
+                  }
+                  if (this.sort == body._id) {
+                    let titleTx = titleHolder.querySelector(".dFolderInfo div[title]");
+                    titleTx.textContent = newFolderName;
+                    titleTx.title = newFolderName;
+                  }
+                }
+                if (body.hasOwnProperty("color") == true) {
+                  folder.color = body.color;
+                  let setColor = "var(--theme)";
+                  if (body.color != null) {
+                    setColor = "#" + body.color;
+                  }
+                  if (existingFolder != null) {
+                    existingFolder.style.setProperty("--fillColor", setColor);
+                  }
+                  if (this.sort == body._id) {
+                    titleHolder.querySelector(".dFolderInfo").style.setProperty("--themeColor", setColor);
+                  }
+                }
+                if (body.hasOwnProperty("parent") == true) { // NOT SURE IF THIS WORKS (ADDED FOR FUTURE)
+                  let oldParentFolder = folders[folder.parent];
+                  if (oldParentFolder != null) {
+                    oldParentFolder.folders.splice(oldParentFolder.folders.indexOf(body._id), 1);
+                  }
+                  folder.parent = body.parent;
+                  let newParentFolder = folders[body.parent];
+                  if (newParentFolder != null) {
+                    newParentFolder.folders = newParentFolder.folders ?? [];
+                    newParentFolder.folders.unshift(body._id);
+                    let parentSort = parent.frame.querySelector('.dSidebarFolder[folderid="' + parentID + '"]');
+                    if (parentSort != null && parentSort.hasAttribute("opened") == true) {
+                      this.addFolderTile(body, parentSort.parentElement, true);
+                    }
+                  } else {
+                    this.addFolderTile(folder, folderHolder, true);
+                  }
+                  if (existingFolder != null) {
+                    existingFolder.remove();
+                  }
+                }
+              }
               break;
             case "folderremove":
-              
+              folder = folders[body._id];
+              if (folder != null) {
+                let parentFolder = folders[folder.parent];
+                if (folder.folders != null) {
+                  for (let i = 0; i < folder.folders.length; i++) {
+                    let folderid = folder.folders[i];
+                    delete folders[folderid];
+                    delete records[folderid];
+                  }
+                }
+                delete folders[body._id];
+                delete records[body._id];
+                existingFolder = folderHolder.querySelector('.dSidebarFolder[folderid="' + body._id + '"]');
+                if (existingFolder != null) {
+                  existingFolder.parentElement.remove();
+                }
+                if (parentFolder != null) {
+                  parentFolder.folders.splice(parentFolder.folders.indexOf(body._id), 1);
+                }
+                if (this.sort == body._id) {
+                  if (parentFolder != null) {
+                    let parentSort = folderHolder.querySelector('.dSidebarFolder[folderid="' + parentFolder._id + '"]');
+                    if (parentSort != null) {
+                      this.sort = parentFolder._id;
+                      parentSort.setAttribute("selected", "");
+                      return this.updateTiles(parentSort);
+                    }
+                  } else {
+                    this.sort = "recent";
+                    let recentSort = sidebar.querySelector('.dSidebarSort[sort="recent"]');
+                    recentSort.setAttribute("selected", "");
+                    this.updateTiles(recentSort);
+                  }
+                }
+              }
           }
         });
       }
@@ -685,7 +795,7 @@ modules["pages/dashboard"] = class {
         });
         let removeButton = titleHolder.querySelector(".dFolderRemove");
         removeButton.addEventListener("click", () => {
-          dropdownModule.open(removeButton, "dropdowns/dashboard/remove", { parent: this, type: "deletefolder", folderID: folderID, folders: folders });
+          dropdownModule.open(removeButton, "dropdowns/dashboard/remove", { parent: this, type: "deletefolder", folderID: folderID, folders: folders, records: records });
         });
         titleHolder.style.padding = "10px 16px";
         newLessonButton.href = "?lesson=createnew&folder=" + this.sort + "#lesson";
@@ -944,7 +1054,7 @@ modules["pages/dashboard/lessons"] = class {
         button.removeAttribute("disabled");
       }
     }
-    if (records == null || (thisFolder != null && thisFolder.doneLoading != true)) {
+    if (records == null || (thisFolder != null && thisFolder.doneLoading == false)) {
       records = [];
       await loadMoreLessons();
     }
@@ -1326,6 +1436,7 @@ modules["dropdowns/dashboard/remove"] = class {
             folderSort.remove();
           }
           delete extra.folders[extra.folderID];
+          delete extra.records[extra.folderID];
           let parentFolder = extra.folders[parentID];
           if (parentFolder != null) {
             parentFolder.folders.splice(parentFolder.folders.indexOf(extra.folderID), 1);

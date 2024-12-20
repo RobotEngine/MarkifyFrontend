@@ -136,6 +136,17 @@ modules["pages/dashboard"] = class {
     ".dFolderRemove img": `width: 22px; height: 22px`
   };
   loadAmount = 25;
+  checkTime = function (sort, record) {
+    let time = record.opened ?? record.added;
+    switch (sort) {
+      case "shared":
+        time = record.added;
+        break;
+      case "newest":
+        time = record.added;
+    }
+    return time;
+  }
   js = async function (page, data) {
     let dashboardHolder = page.querySelector(".dPageHolder")
     let dashboard = dashboardHolder.querySelector(".dPage")
@@ -342,7 +353,7 @@ modules["pages/dashboard"] = class {
             let timestamp = getEpoch(); // Just temporary, gets updated by socket
             folders[body.folder] = { ...folderBody, _id: body.folder, created: timestamp, opened: timestamp };
             if (folderBody.parent != null) {
-              folders[folderBody.parent].folders = folders[folderBody.parent].folders || [];
+              folders[folderBody.parent].folders = folders[folderBody.parent].folders ?? [];
               folders[folderBody.parent].folders.unshift(body.folder);
             }
             parent.setAttribute("lastopened", timestamp);
@@ -386,6 +397,165 @@ modules["pages/dashboard"] = class {
     records.newest = body.newest;
     lessons = { ...lessons, ...getObject(body.lessons, "_id") };
     folders = { ...folders, ...getObject(body.folders, "_id") };
+
+    this.dashSubscribe = null;
+    this.updateDashSub = () => {
+      let filter = { type: ["dash", "lesson"], id: Object.keys(lessons), _id: userID };
+      if (this.dashSubscribe) {
+        this.dashSubscribe.edit(filter);
+      } else {
+        this.dashSubscribe = subscribe(filter, (data) => {
+          let body = data.data ?? data.body ?? data;
+          console.log(body)
+          let lessonID;
+          let lesson;
+          let tile;
+          let noLessons;
+          switch (data.task) {
+            case "join":
+              if (lessons[body.lesson] != null) {
+                let memberCount = (lessons[body.lesson].members ?? 0) + 1;
+                lessons[body.lesson].members = memberCount;
+                tile = tileHolder.querySelector('.dTile[lesson="' + body.lesson + '"]');
+                if (tile != null) {
+                  let memberTx = tile.querySelector(".dTileMemberCount");
+                  memberTx.querySelector("div").textContent = memberCount;
+                  memberTx.style.opacity = 1;
+                }
+              }
+              break;
+            case "leave":
+              if (lessons[body.lesson] != null) {
+                let memberCount = Math.max((lessons[body.lesson].members ?? 0) - 1, 0);
+                lessons[body.lesson].members = memberCount;
+                tile = tileHolder.querySelector('.dTile[lesson="' + body.lesson + '"]');
+                if (tile != null) {
+                  let memberTx = tile.querySelector(".dTileMemberCount");
+                  if (memberCount > 0) {
+                    memberTx.querySelector("div").textContent = memberCount;
+                  } else {
+                    memberTx.style.removeProperty("opacity");
+                  }
+                }
+              }
+              break;
+            case "set":
+              body.record = body.record ?? {};
+              lessonID = body.record.lesson ?? body.lesson;
+              if (lessons[lessonID] == null) {
+                lessons[lessonID] = body.lesson;
+              }
+              lesson = lessons[lessonID];
+              tile = tileHolder.querySelector('.dTile[lesson="' + lessonID + '"]');
+              if (body.hasOwnProperty("folder") == true) {
+                lesson.folder = body.folder;
+                if (this.sort.length > 20 && this.sort != body.folder) {
+                  if (tile != null) {
+                    tile.remove();
+                  }
+                }
+                if (body.record.folder != null) {
+                  let folderSort = folderHolder.querySelector('.dSidebarFolder[folderid="' + body.record.folder + '"]');
+                  if (folderSort != null) {
+                    let folder = folderSort.closest(".dSidebarFolderParent");
+                    if (folder.hasAttribute("child") == false) {
+                      if (folder.parentElement.firstElementChild != null) {
+                        folder.parentElement.insertBefore(folder, folder.parentElement.firstElementChild);
+                      }
+                    } else {
+                      if (folder.parentElement.children[1] != null) {
+                        folder.parentElement.insertBefore(folder, folder.parentElement.children[1]);
+                      }
+                    }
+                  }
+                }
+              }
+              if (body.hasOwnProperty("name") == true) {
+                lesson.name = body.name;
+                if (tile != null) {
+                  tile.querySelector(".dTileTitle").textContent = body.name ?? "Untitled Lesson";
+                }
+              }
+              if (body.thumbnail != null) {
+                lesson.thumbnail = body.thumbnail;
+                if (tile != null) {
+                  tile.querySelector(".dTileThumbnail").src = assetURL + body.thumbnail;
+                }
+              }
+              if (body.folder != null) {
+                body.sections = body.sections ?? [];
+                body.sections.push("folder");
+              }
+              if (body.sections != null) {
+                for (let i = 0; i < body.sections.length; i++) {
+                  let section = body.sections[i];
+                  if (section == "folder") {
+                    section = body.record.folder;
+                  }
+                  if (records[section] == null) {
+                    if (section == "folder") {
+                      folders[section] = body.folder;
+                    }
+                    records[section] = [];
+                  }
+                  let time = this.checkTime(this.sort, body.record);
+                  let sectionRecord = records[section];
+                  let insertAt = 0;
+                  for (let r = 0; r < sectionRecord.length; r++) {
+                    let checkTime = this.checkTime(this.sort, sectionRecord[r]);
+                    if (checkTime > time) {
+                      insertAt = r + 1;
+                    }
+                    if (sectionRecord[r]._id == body.record._id) {
+                      sectionRecord.splice(r, 1);
+                      r--;
+                    }
+                  }
+                  sectionRecord.splice(insertAt, 0 , body.record);
+                  if (this.sort == section) {
+                    this.addLessonTile(body.record, body.lesson, time, true);
+                  }
+                }
+                this.updateDashSub();
+              }
+              noLessons = tileHolder.querySelector(".dNoLessons");
+              if (noLessons != null) {
+                if (tileHolder.querySelector(".dTiles").childElementCount > 0) {
+                  noLessons.style.display = "none";
+                } else {
+                  noLessons.style.removeProperty("display");
+                }
+              }
+              break;
+            case "remove":
+              if (lessons[body.lesson] != null) {
+                delete lessons[body.lesson];
+                tile = tileHolder.querySelector('.dTile[lesson="' + body.lesson + '"]');
+                if (tile != null) {
+                  tile.remove();
+                }
+              }
+              noLessons = tileHolder.querySelector(".dNoLessons");
+              if (noLessons != null) {
+                if (tileHolder.querySelector(".dTiles").childElementCount > 0) {
+                  noLessons.style.display = "none";
+                } else {
+                  noLessons.style.removeProperty("display");
+                }
+              }
+              break;
+            case "newfolder":
+              
+              break;
+            case "folderupdate":
+              
+              break;
+            case "folderremove":
+              
+          }
+        });
+      }
+    }
 
     let scrollEventPass;
     this.updateTiles = async (button, firstLoad, prevSort) => {
@@ -705,7 +875,7 @@ modules["pages/dashboard/lessons"] = class {
     ".dTileOptions": `display: flex; width: 34px; height: 34px; margin: 4px; flex-shrink: 0; justify-content: center; align-items: center; border-radius: 18px`,
     ".dTileOptions img": `width: 32px; height: 32px`,
     ".dTileOptions:hover": `background: var(--hover)`,
-    ".dTileMemberCount": `position: absolute; display: flex; box-sizing: border-box; padding: 6px; right: 0px; top: 0px; align-items: center; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 0 0 0 12px; opacity: 0`,
+    ".dTileMemberCount": `position: absolute; display: flex; box-sizing: border-box; padding: 6px; right: 0px; top: 0px; align-items: center; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 0 0 0 12px; opacity: 0; transition: .4s`,
     ".dTileMemberCount img": `width: 22px; height: 22px`,
     ".dTileMemberCount div": `color: var(--theme); margin-left: 4px; font-size: 16px; font-weight: 600`,
 
@@ -743,21 +913,14 @@ modules["pages/dashboard/lessons"] = class {
       }
       let lastRecord = records[records.length - 1];
       if (lastRecord != null) {
-        let time = lastRecord.opened;
-        switch (sort) {
-          case "shared":
-            time = lastRecord.added;
-            break;
-          case "newest":
-            time = lastRecord.added; //(lessons[lastRecord.lesson] || {}).created;
-        }
+        let time = this.parent.checkTime(sort, lastRecord);
         path += "&before=" + time;
       }
       let [code, body] = await sendRequest("GET", path);
       if (code != 200) {
         return;
       }
-      let newRecords = body[sort] || body.recent;
+      let newRecords = body[sort] ?? body.recent;
       if (newRecords.length < this.parent.loadAmount) {
         allLoaded = true;
       }
@@ -781,7 +944,7 @@ modules["pages/dashboard/lessons"] = class {
         button.removeAttribute("disabled");
       }
     }
-    if (records == null) {
+    if (records == null || (thisFolder != null && thisFolder.doneLoading != true)) {
       records = [];
       await loadMoreLessons();
     }
@@ -789,7 +952,7 @@ modules["pages/dashboard/lessons"] = class {
       allLoaded = true;
     }
 
-    let addLessonTile = (record, lesson, time, insertFirst) => {
+    this.parent.addLessonTile = (record, lesson, time, insertFirst) => {
       if (lesson == null) {
         return;
       }
@@ -798,12 +961,12 @@ modules["pages/dashboard/lessons"] = class {
       if (insertFirst == true) {
         insertAdj = "afterbegin";
       }
+      if (insertFirst == true && tileHolder.firstChild != null && time < parseInt(tileHolder.firstChild.getAttribute("time"))) {
+        return;
+      }
       let existingTile = tileHolder.querySelector('.dTile[lesson="' + record.lesson + '"');
       if (existingTile != null) {
         existingTile.remove();
-      }
-      if (insertFirst == true && tileHolder.firstChild != null && time < parseInt(tileHolder.firstChild.getAttribute("time"))) {
-        return;
       }
       tileHolder.insertAdjacentHTML(insertAdj, `<a class="dTile" new>
         <img class="dTileThumbnail" src="./images/dashboard/placeholder.png" />
@@ -853,21 +1016,19 @@ modules["pages/dashboard/lessons"] = class {
     for (let i = 0; i < Math.min(records.length, this.parent.loadAmount); i++) {
       let record = records[i];
       let lesson = lessons[record.lesson];
-      let time = record.opened || record.added;
-      switch (sort) {
-        case "shared":
-          time = record.added;
-          break;
-        case "newest":
-          time = record.added;
+      if (lesson == null) {
+        records.splice(i, 1);
+        i--;
+        continue;
       }
-      addLessonTile(record, lesson, time, false);
+      let time = this.parent.checkTime(sort, record);
+      this.parent.addLessonTile(record, lesson, time, false);
     }
     if (tileHolder.childElementCount > 0) {
       noLessons.style.display = "none";
     }
 
-    extra.scrollEventPass = async (event, loop) => {
+    extra.scrollEventPass = async (event, loop, first) => {
       if (allLoaded == true) {
         return;
       }
@@ -889,21 +1050,17 @@ modules["pages/dashboard/lessons"] = class {
       for (let i = count; i < Math.min(records.length - count, this.parent.loadAmount) + count; i++) {
         let record = records[i];
         let lesson = lessons[record.lesson];
-        let time = record.opened || record.added;
-        switch (sort) {
-          case "shared":
-            time = record.added;
-            break;
-          case "newest":
-            time = record.added;
-        }
-        addLessonTile(record, lesson, time, false);
+        let time = this.parent.checkTime(sort, record);
+        this.parent.addLessonTile(record, lesson, time, false);
       }
       if (tileHolder.childElementCount > 0) {
         noLessons.style.display = "none";
       }
       if (loop == true) {
-        await extra.scrollEventPass(event, loop);
+        await extra.scrollEventPass(event, loop, false);
+      }
+      if (first != false) {
+        this.parent.updateDashSub();
       }
     }
     extra.scrollEventPass(null, true);
@@ -930,6 +1087,8 @@ modules["pages/dashboard/lessons"] = class {
         this.parent.updateScrollShadows();
       }
     }
+
+    this.parent.updateDashSub();
   }
 }
 

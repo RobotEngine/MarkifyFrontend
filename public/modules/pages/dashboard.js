@@ -471,6 +471,14 @@ modules["pages/dashboard"] = class {
                   }
                 }
                 if (body.record.folder != null) {
+                  let foundFolder = folders[body.record.folder];
+                  if (foundFolder != null && foundFolder.parent != null) {
+                    let foundParentFolder = folders[foundFolder.parent];
+                    if (foundParentFolder != null && foundParentFolder.folders != null) {
+                      foundParentFolder.folders.splice(foundParentFolder.folders.indexOf(body.record.folder), 1);
+                      foundParentFolder.folders.unshift(body.record.folder);
+                    }
+                  }
                   let folderSort = folderHolder.querySelector('.dSidebarFolder[folderid="' + body.record.folder + '"]');
                   if (folderSort != null) {
                     let folder = folderSort.closest(".dSidebarFolderParent");
@@ -1057,7 +1065,7 @@ modules["pages/dashboard/lessons"] = class {
         button.removeAttribute("disabled");
       }
     }
-    if (records == null || (thisFolder != null && thisFolder.doneLoading == false)) {
+    if (records == null || (thisFolder != null && thisFolder.folders == null)) {
       records = [];
       await loadMoreLessons();
     }

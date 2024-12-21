@@ -21,7 +21,7 @@ modules["pages/dashboard"] = class {
             <a class="dJoinButton largeButton" openpage="join" href="#join">Join<img src="./images/tooltips/link.svg" /><div backdrop></div></a>
           </div>
           <div class="dSidebarSection dSidebarActions">
-            <a class="dCreateLessonButton largeButton" openpage="lesson" href="?lesson=createnew#lesson">New Lesson<div backdrop></div></a>
+            <a class="dCreateLessonButton largeButton" openpage="lesson" href="#lesson">New Lesson<div backdrop></div></a>
           </div>
           <div class="dSidebarSection dSidebarSorts">
             <div class="dSidebarTitle"><div title>Sorts</div><div divider></div></div>
@@ -172,7 +172,6 @@ modules["pages/dashboard"] = class {
     });
     newLessonButton.addEventListener("click", (event) => {
       event.preventDefault();
-      modifyParams("lesson", "createnew");
       if (this.sort != null && this.sort.length > 20) {
         modifyParams("folder", this.sort);
       }
@@ -809,11 +808,11 @@ modules["pages/dashboard"] = class {
           dropdownModule.open(removeButton, "dropdowns/dashboard/remove", { parent: this, type: "deletefolder", folderID: folderID, folders: folders, records: records });
         });
         titleHolder.style.padding = "10px 16px";
-        newLessonButton.href = "?lesson=createnew&folder=" + this.sort + "#lesson";
+        newLessonButton.href = "?folder=" + this.sort + "#lesson";
       } else { // Sort
         titleHolder.innerHTML = `<div class="dSelectedTitle">${this.sort[0].toUpperCase() + this.sort.substring(1) + " Lessons"}</div>`;
         titleHolder.style.removeProperty("padding");
-        newLessonButton.href = "?lesson=createnew#lesson";
+        newLessonButton.href = "#lesson";
       }
       lessonsHolder.scrollTo(0, 0);
       let extra = {

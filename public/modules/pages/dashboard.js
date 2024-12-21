@@ -345,6 +345,7 @@ modules["pages/dashboard"] = class {
           let name = folderName.textContent.substring(0, 30).replace(/[^A-Za-z0-9.,_|/\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
           if (name.replace(/ /g, "").length < 1) {
             newFolder.remove();
+            this.updateScrollShadows();
             return;
           }
           /*if (folderName.textContent == folderName.getAttribute("prevtitle")) {
@@ -360,6 +361,7 @@ modules["pages/dashboard"] = class {
           let [code, body] = await sendRequest("POST", "lessons/folders/new", folderBody);
           if (code != 200) {
             newFolder.remove();
+            this.updateScrollShadows();
           } else {
             let timestamp = getEpoch(); // Just temporary, gets updated by socket
             folders[body.folder] = { ...folderBody, _id: body.folder, created: timestamp, opened: timestamp };
@@ -391,6 +393,7 @@ modules["pages/dashboard"] = class {
         setParent = currentSelected.parentElement;
       }
       this.addFolderTile(null, setParent);
+      this.updateScrollShadows();
     });
     
     // Handle All Loading/Unloading of Lessons

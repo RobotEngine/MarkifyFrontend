@@ -973,7 +973,7 @@ modules["pages/dashboard/lessons"] = class {
   </div>
   `;
   css = {
-    ".dTiles": `position: relative; display: grid; width: 100%; grid-gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(275px, 100%), 1fr))`, // min-height: 100%;
+    ".dTiles": `position: relative; display: grid; width: 100%; grid-gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(275px, 100%), 1fr)); transition: .4s`, // min-height: 100%;
     ".dTile": `position: relative; background: var(--pageColor); --shadow: var(--lightShadow); box-shadow: var(--shadow); border-radius: 12px; overflow: hidden`,
     ".dTile:hover": `--shadow: var(--darkShadow)`,
     ".dTileThumbnail": `width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 12px`,

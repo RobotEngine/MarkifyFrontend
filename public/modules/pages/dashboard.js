@@ -397,19 +397,40 @@ modules["pages/dashboard"] = class {
     
     // Handle All Loading/Unloading of Lessons
     this.sort = "recent";
-    let records = {};
+    let records = { recent: [], shared: [], owned: [], newest: [] };
     let lessons = {};
 
     let [code, body] = await sendRequest("GET", "lessons");
     if (code != 200) {
       return;
     }
-    records.recent = body.recent;
-    records.shared = body.shared;
-    records.owned = body.owned;
-    records.newest = body.newest;
+    this.addRecords = (recordArr, newRecords) => {
+      for (let i = 0; i < newRecords.length; i++) {
+        let newRecord = newRecords[i];
+        let lesson = lessons[newRecord.lesson];
+        if (lesson == null) {
+          continue;
+        }
+        lesson.record = newRecord;
+        /*if (lesson.records == null) {
+          lesson.records = [];
+        }
+        lesson.records.push(newRecord);*/
+        recordArr.push(newRecord._id);
+      }
+    }
+
     lessons = { ...lessons, ...getObject(body.lessons, "_id") };
     folders = { ...folders, ...getObject(body.folders, "_id") };
+
+    this.addRecords(records.recent, body.recent);
+    this.addRecords(records.shared, body.shared);
+    this.addRecords(records.owned, body.owned);
+    this.addRecords(records.newest, body.newest);
+    //records.recent = body.recent;
+    //records.shared = body.shared;
+    //records.owned = body.owned;
+    //records.newest = body.newest;
 
     this.dashSubscribe = null;
     this.updateDashSub = () => {
@@ -461,9 +482,14 @@ modules["pages/dashboard"] = class {
                 lessons[lessonID] = body.lesson;
               }
               lesson = lessons[lessonID];
+              if (body.record != null && body.record._id != null) {
+                lesson.record = body.record;
+              }
               tile = tileHolder.querySelector('.dTile[lesson="' + lessonID + '"]');
               if (body.hasOwnProperty("folder") == true) {
-                lesson.folder = body.folder;
+                //if (lesson.record != null) {
+                //  lesson.record.folder = body.record.folder;
+                //}
                 if (this.sort.length > 20 && this.sort != body.folder) {
                   if (tile != null) {
                     tile.remove();
@@ -525,16 +551,17 @@ modules["pages/dashboard"] = class {
                   let sectionRecord = records[section];
                   let insertAt = 0;
                   for (let r = 0; r < sectionRecord.length; r++) {
-                    let checkTime = this.checkTime(this.sort, sectionRecord[r]);
+                    //let record = recordDocs[sectionRecord[r]];
+                    let checkTime = this.checkTime(this.sort, body.record);
                     if (checkTime > time) {
                       insertAt = r + 1;
                     }
-                    if (sectionRecord[r]._id == body.record._id) {
+                    if (sectionRecord[r] == body.record._id) {
                       sectionRecord.splice(r, 1);
                       r--;
                     }
                   }
-                  sectionRecord.splice(insertAt, 0 , body.record);
+                  sectionRecord.splice(insertAt, 0, body.record._id);
                   if (this.sort == section) {
                     this.addLessonTile(body.record, body.lesson, time, true);
                   }
@@ -644,10 +671,18 @@ modules["pages/dashboard"] = class {
                   for (let i = 0; i < folder.folders.length; i++) {
                     let folderid = folder.folders[i];
                     delete folders[folderid];
+                    let changeLessons = records[folderid];
+                    for (let c = 0; c < changeLessons.length; c++) {
+                      delete lessons[changeLessons[c].split("_")[0]].record.parent;
+                    }
                     delete records[folderid];
                   }
                 }
                 delete folders[body._id];
+                let changeLessons = records[body._id];
+                for (let c = 0; c < changeLessons.length; c++) {
+                  delete lessons[changeLessons[c].split("_")[0]].record.parent;
+                }
                 delete records[body._id];
                 existingFolder = folderHolder.querySelector('.dSidebarFolder[folderid="' + body._id + '"]');
                 if (existingFolder != null) {
@@ -1022,7 +1057,7 @@ modules["pages/dashboard/lessons"] = class {
     let loadMoreLessons = async () => {
       let path = "lessons";
       if (sort.length > 20) { // Folder
-        path += "?folder=" + sort;
+        path += "?section=folder&folder=" + sort;
         if (button != null) {
           button.setAttribute("disabled", "");
         }
@@ -1033,7 +1068,7 @@ modules["pages/dashboard/lessons"] = class {
       }
       let lastRecord = records[records.length - 1];
       if (lastRecord != null) {
-        let time = this.parent.checkTime(sort, lastRecord);
+        let time = this.parent.checkTime(sort, lessons[lastRecord.split("_")[0]].record);
         path += "&before=" + time;
       }
       let [code, body] = await sendRequest("GET", path);
@@ -1044,12 +1079,13 @@ modules["pages/dashboard/lessons"] = class {
       if (newRecords.length < this.parent.loadAmount) {
         allLoaded = true;
       }
-      extra.records[sort] = [...records, ...newRecords];
-      records = extra.records[sort];
+      //extra.records[sort] = [...records, ...newRecords];
+      //records = extra.records[sort];
       for (let i = 0; i < body.lessons.length; i++) {
         let lesson = body.lessons[i];
-        extra.lessons[lesson._id] = lesson;
+        lessons[lesson._id] = lesson;
       }
+      this.parent.addRecords(records, newRecords);
       if (body.folders != null && button != null && sort != "search") {
         let folderIDs = [];
         for (let i = 0; i < body.folders.length; i++) {
@@ -1065,7 +1101,8 @@ modules["pages/dashboard/lessons"] = class {
       }
     }
     if (records == null || (thisFolder != null && thisFolder.folders == null)) {
-      records = [];
+      extra.records[sort] = [];
+      records = extra.records[sort];
       await loadMoreLessons();
     }
     if (records.length < this.parent.loadAmount) {
@@ -1134,13 +1171,13 @@ modules["pages/dashboard/lessons"] = class {
       }
     }
     for (let i = 0; i < Math.min(records.length, this.parent.loadAmount); i++) {
-      let record = records[i];
-      let lesson = lessons[record.lesson];
+      let lesson = lessons[records[i].split("_")[0]];
       if (lesson == null) {
         records.splice(i, 1);
         i--;
         continue;
       }
+      let record = lesson.record;
       let time = this.parent.checkTime(sort, record);
       this.parent.addLessonTile(record, lesson, time, false);
     }
@@ -1168,8 +1205,13 @@ modules["pages/dashboard/lessons"] = class {
       }
       let count = tileHolder.childElementCount;
       for (let i = count; i < Math.min(records.length - count, this.parent.loadAmount) + count; i++) {
-        let record = records[i];
-        let lesson = lessons[record.lesson];
+        let lesson = lessons[records[i].split("_")[0]];
+        if (lesson == null) {
+          records.splice(i, 1);
+          i--;
+          continue;
+        }
+        let record = lesson.record;
         let time = this.parent.checkTime(sort, record);
         this.parent.addLessonTile(record, lesson, time, false);
       }
@@ -1275,12 +1317,14 @@ modules["dropdowns/dashboard/options"] = class {
       let [code] = await sendRequest("POST", "lessons/folders/movefrom?lesson=" + lessonID);
       moveFromButton.removeAttribute("disabled");
       if (code == 200) {
-        delete extra.lessons[extra.lessonID].parent;
-        let lessonContent = tile.closest(".content");
-        let noLessons = lessonContent.querySelector(".dNoLessons");
-        tile.remove();
-        if (noLessons != null && lessonContent.querySelector(".dTiles").childElementCount < 1) {
-          noLessons.style.removeProperty("display");
+        delete extra.lessons[lessonID].record.parent;
+        if (extra.parent.sort.length > 20 && extra.parent.sort != folderID) {
+          let lessonContent = tile.closest(".content");
+          let noLessons = lessonContent.querySelector(".dNoLessons");
+          tile.remove();
+          if (noLessons != null && lessonContent.querySelector(".dTiles").childElementCount < 1) {
+            noLessons.style.removeProperty("display");
+          }
         }
         dropdownModule.close();
       }

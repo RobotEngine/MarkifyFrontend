@@ -179,14 +179,16 @@ modules["dropdowns/moveto"] = class {
       }
       if (code == 200) {
         if (extra.lessons != null) {
-          extra.lessons[extra.lessonID].parent = folderID;
+          extra.lessons[lessonID].record.parent = folderID;
           let lessonTile = extra.parent.frame.querySelector('.dTile[lesson="' + extra.lessonID + '"]');
           if (lessonTile != null) {
-            let lessonContent = lessonTile.closest(".content");
-            let noLessons = lessonContent.querySelector(".dNoLessons");
-            lessonTile.remove();
-            if (noLessons != null && lessonContent.querySelector(".dTiles").childElementCount < 1) {
-              noLessons.style.removeProperty("display");
+            if (extra.parent.sort.length > 20 && extra.parent.sort != folderID) {
+              let lessonContent = lessonTile.closest(".content");
+              let noLessons = lessonContent.querySelector(".dNoLessons");
+              lessonTile.remove();
+              if (noLessons != null && lessonContent.querySelector(".dTiles").childElementCount < 1) {
+                noLessons.style.removeProperty("display");
+              }
             }
           }
           dropdownModule.close();

@@ -440,7 +440,6 @@ modules["pages/dashboard"] = class {
       } else {
         this.dashSubscribe = subscribe(filter, (data) => {
           let body = data.data ?? data.body ?? data;
-          console.log(body)
           let lessonID;
           let lesson;
           let folder;
@@ -892,6 +891,10 @@ modules["pages/dashboard"] = class {
         if (optionButton != null) {
           return dropdownModule.open(optionButton, "dropdowns/dashboard/options", { parent: this, tile: tile, lessonID: tile.getAttribute("lesson"), lessons: lessons });
         }
+        let lessonTitle = target.closest(".dTileTitle[contenteditable]");
+        if (lessonTitle != null) {
+          return;
+        }
         modifyParams("lesson", tile.getAttribute("lesson"));
         setFrame("lesson", null);
       }
@@ -970,7 +973,8 @@ modules["pages/dashboard"] = class {
         return;
       }
       let optionButton = target.closest(".dTileOptions");
-      if (optionButton == null) {
+      let lessonTitle = target.closest(".dTileTitle[contenteditable]");
+      if (optionButton == null && lessonTitle == null) {
         tile.style.removeProperty("transform");
       } else {
         tile.style.transform = "scale(1)";
@@ -1025,7 +1029,7 @@ modules["pages/dashboard/lessons"] = class {
     ".dTileInfoHolder": `position: absolute; display: flex; box-sizing: border-box; width: 100%; padding: 8px; left: 0px; bottom: 0px; align-items: flex-end; background: var(--pageColor); box-shadow: var(--shadow)`,
     ".dTileInfo": `width: 100%`,
     ".dTileTitle": `box-sizing: border-box; width: 100%; font-size: 18px; font-weight: 600; text-align: left`,
-    ".dTileTitle[contenteditable]": `padding: 2px 4px; margin-bottom: 4px; max-height: 100px; outline: solid 2px var(--theme); border-radius: 4px; overflow: auto`,
+    ".dTileTitle[contenteditable]": `padding: 2px 4px; margin-bottom: 4px; max-height: 100px; outline: solid 2px var(--theme); border-radius: 4px; overflow: auto; cursor: text`,
     ".dTileLastOpened": `width: 100%; color: var(--theme); margin-top: 2px; font-size: 14px; font-weight: 600; text-align: left`,
     ".dTileOptions": `display: flex; width: 34px; height: 34px; margin: 4px; flex-shrink: 0; justify-content: center; align-items: center; border-radius: 18px`,
     ".dTileOptions img": `width: 32px; height: 32px`,
@@ -1336,7 +1340,7 @@ modules["dropdowns/dashboard/options"] = class {
       if (titleText.hasAttribute("prevtitle") == false) {
         titleText.setAttribute("prevtitle", titleText.textContent);
       }
-      titleText.textContent = "";
+      //titleText.textContent = "";
       titleText.setAttribute("contenteditable", "");
       dropdownModule.close();
 
@@ -1384,7 +1388,19 @@ modules["dropdowns/dashboard/options"] = class {
       titleText.addEventListener("paste", lesson.pasteListener);
 
       await sleep(1);
-      titleText.focus();
+      if (window.getSelection != null && document.createRange != null) {
+        let range = document.createRange();
+        range.selectNodeContents(titleText);
+        let sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      } else if (document.body.createTextRange != null) {
+        let range = document.body.createTextRange();
+        range.moveToElementText(titleText);
+        range.select();
+      } else {
+        titleText.focus();
+      }
     });
     let copyButton = frame.querySelector('.dTileDropAction[option="copy"]');
     copyButton.addEventListener("click", async () => {

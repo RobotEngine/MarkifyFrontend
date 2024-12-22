@@ -673,7 +673,7 @@ modules["pages/dashboard"] = class {
                     delete folders[folderid];
                     let changeLessons = records[folderid];
                     for (let c = 0; c < changeLessons.length; c++) {
-                      delete lessons[changeLessons[c].split("_")[0]].record.parent;
+                      delete lessons[changeLessons[c].split("_")[0]].record.folder;
                     }
                     delete records[folderid];
                   }
@@ -681,7 +681,7 @@ modules["pages/dashboard"] = class {
                 delete folders[body._id];
                 let changeLessons = records[body._id];
                 for (let c = 0; c < changeLessons.length; c++) {
-                  delete lessons[changeLessons[c].split("_")[0]].record.parent;
+                  delete lessons[changeLessons[c].split("_")[0]].record.folder;
                 }
                 delete records[body._id];
                 existingFolder = folderHolder.querySelector('.dSidebarFolder[folderid="' + body._id + '"]');
@@ -840,7 +840,7 @@ modules["pages/dashboard"] = class {
         });
         let removeButton = titleHolder.querySelector(".dFolderRemove");
         removeButton.addEventListener("click", () => {
-          dropdownModule.open(removeButton, "dropdowns/dashboard/remove", { parent: this, type: "deletefolder", folderID: folderID, folders: folders, records: records });
+          dropdownModule.open(removeButton, "dropdowns/dashboard/remove", { parent: this, type: "deletefolder", folderID: folderID, folders: folders, records: records, lessons: lessons });
         });
         titleHolder.style.padding = "10px 16px";
         newLessonButton.href = "?folder=" + this.sort + "#lesson";
@@ -1484,12 +1484,28 @@ modules["dropdowns/dashboard/remove"] = class {
             }
           }
         } else if (option == "deletefolder") {
-          let parentID = extra.folders[extra.folderID].parent;
+          let folder = extra.folders[extra.folderID];
+          let parentID = folder.parent;
           let folderSort = parent.frame.querySelector('.dSidebarFolder[folderid="' + extra.folderID + '"]');
           if (folderSort != null) {
             folderSort.remove();
           }
+          if (folder.folders != null) {
+            for (let i = 0; i < folder.folders.length; i++) {
+              let folderid = folder.folders[i];
+              delete extra.folders[folderid];
+              let changeLessons = extra.records[folderid];
+              for (let c = 0; c < changeLessons.length; c++) {
+                delete extra.lessons[changeLessons[c].split("_")[0]].record.folder;
+              }
+              delete extra.records[folderid];
+            }
+          }
           delete extra.folders[extra.folderID];
+          let changeLessons = extra.records[extra.folderID];
+          for (let c = 0; c < changeLessons.length; c++) {
+            delete extra.lessons[changeLessons[c].split("_")[0]].record.folder;
+          }
           delete extra.records[extra.folderID];
           let parentFolder = extra.folders[parentID];
           if (parentFolder != null) {

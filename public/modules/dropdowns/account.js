@@ -41,6 +41,10 @@ modules["dropdowns/account"] = class {
     ".accountCopyrightHolder a": `color: var(--darkGray); font-size: 14px; font-weight: 500; text-decoration: none`
   };
   js = async function (frame) {
+    frame.style.width = "200px";
+    frame.style.minWidth = "100%";
+    frame.style.maxWidth = "100%";
+
     frame.querySelector(".accountManage").addEventListener("click", function () {
       let a = typeof window.screenX != 'undefined' ? window.screenX : window.screenLeft;
       let i = typeof window.screenY != 'undefined' ? window.screenY : window.screenTop;

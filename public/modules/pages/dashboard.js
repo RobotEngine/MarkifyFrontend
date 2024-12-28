@@ -411,7 +411,7 @@ modules["pages/dashboard"] = class {
         if (lesson == null) {
           continue;
         }
-        lesson.record = newRecord;
+        lesson.record = { ...(lesson.record ?? {}), ...newRecord };
         /*if (lesson.records == null) {
           lesson.records = [];
         }

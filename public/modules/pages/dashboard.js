@@ -1138,7 +1138,7 @@ modules["pages/dashboard/lessons"] = class {
           </div>
           <button class="dTileOptions" dropdowntitle="Options"><img src="./images/dashboard/more.svg" /></button>
         </div>
-        <div class="dTileMemberCount">
+        <div class="dTileMemberCount" title="Active Members">
           <img src="./images/profiles/default.svg" />
           <div></div>
         </div>

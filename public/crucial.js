@@ -912,9 +912,9 @@ modules["dropdown"] = class {
     ".dropdownHeader button": `position: relative; width: 22px; height: 22px; margin: 3px; --borderWidth: 3px; --borderRadius: 14px`,
     ".dropdownHeader button img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
     ".dropdownTitle": `box-sizing: border-box; display: flex; padding: 3px; flex: 1; max-width: fit-content; justify-content: center; align-items: center; white-space: nowrap; overflow: hidden; font-size: 18px; font-weight: 500`,
-    ".dropdownTitle div": `flex: 1; margin: 0 4px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
+    ".dropdownTitle div": `flex: 1; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
     ".dropdownTitle div[backdrop]": `display: none`,
-    ".dropdownTitle img": `width: 26px; height: 26px; flex-shrink: 0; object-fit: cover; border-radius: 13px`
+    ".dropdownTitle img": `width: 26px; height: 26px; margin-right: 4px; flex-shrink: 0; object-fit: cover; border-radius: 13px`
   };
   runResize = async function (dropdown, content, header, button) {
     if (content.hasAttribute("loaded") == false) {

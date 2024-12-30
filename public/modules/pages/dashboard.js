@@ -1,6 +1,6 @@
 modules["pages/dashboard"] = class {
   title = "Dashboard";
-  preJs = function () {
+  preJs = () => {
     if (userID == null) {
       promptLogin();
       return false;
@@ -136,7 +136,7 @@ modules["pages/dashboard"] = class {
     ".dFolderRemove img": `width: 22px; height: 22px`
   };
   loadAmount = 25;
-  checkTime = function (sort, record) {
+  checkTime = (sort, record) => {
     let time = record.opened ?? record.added;
     switch (sort) {
       case "shared":
@@ -147,7 +147,7 @@ modules["pages/dashboard"] = class {
     }
     return time;
   }
-  js = async function (page, data) {
+  js = async (page, data) => {
     let dashboardHolder = page.querySelector(".dPageHolder")
     let dashboard = dashboardHolder.querySelector(".dPage")
     let sidebarHolder = dashboard.querySelector(".dSidebarHolder");
@@ -1043,7 +1043,7 @@ modules["pages/dashboard/lessons"] = class {
     ".dNoLessonsTitle": `margin-top: 24px; font-size: 32px; font-weight: 700; color: var(--theme)`,
     ".dNoLessonsDesc": `max-width: 350px; margin-top: 8px; font-size: 18px; font-weight: 500`
   };
-  js = async function (frame, extra) {
+  js = async (frame, extra) => {
     let button = extra.button;
     let sort = extra.sort;
     let records = extra.records[sort];
@@ -1277,7 +1277,7 @@ modules["dropdowns/dashboard/options"] = class {
     ".dTileDropAction:hover": `background: var(--themeColor); color: #fff`,
     ".dTileDropLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`
   };
-  js = async function (frame, extra) {
+  js = async (frame, extra) => {
     let lessonID = extra.lessonID;
     let lessons = extra.lessons;
     let lesson = lessons[lessonID];
@@ -1454,7 +1454,7 @@ modules["dropdowns/dashboard/remove"] = class {
     ".dDeleteCancel:hover": `background: var(--theme); --borderWidth: 0px; transform: scale(1.1); color: #fff !important`,
     ".dDeleteOptions button:active": `transform: scale(1)`
   };
-  js = async function (frame, extra) {
+  js = async (frame, extra) => {
     let parent = extra.parent;
     let option = extra.type;
     let title = frame.querySelector(".dDeleteTitle");

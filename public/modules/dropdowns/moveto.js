@@ -37,7 +37,7 @@ modules["dropdowns/moveto"] = class {
     ".dTileDropFolderLoadMore": `display: flex; width: 100%; justify-content: center; margin-bottom: 8px`,
     ".dTileDropFolderLoadMore button": `display: flex; padding: 6px 8px; align-items: center; --borderRadius: 16px; font-size: 16px; color: var(--theme); font-weight: 700`
   };
-  js = async function (frame, extra) {
+  js = async (frame, extra) => {
     let lessonID = extra.lessonID;
     //let lesson = extra.lesson;
     let record = extra.record;

@@ -41,7 +41,7 @@ modules["modals/resources"] = class {
     ".dmBackground": `position: absolute; width: calc(100% + 12px); height: calc(100% + 12px); left: -6px; top: -6px; object-fit: cover; z-index: 0; opacity: 0; transition: .5s`,
     ".dmBackground[hover]": `opacity: 1`
   };
-  js = async function (frame) {
+  js = async (frame) => {
     frame.addEventListener("mouseover", (event) => {
       let target = event.target;
       if (target == null) {
@@ -219,7 +219,7 @@ modules["modals/resources/resources"] = class {
       ]
     }
   };
-  js = async function (frame, extra) {
+  js = async (frame, extra) => {
     let resourceName = "usecase";
     if (extra.button != null) {
       resourceName = extra.button.getAttribute("type");

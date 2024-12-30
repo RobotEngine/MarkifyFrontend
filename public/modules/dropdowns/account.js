@@ -40,12 +40,12 @@ modules["dropdowns/account"] = class {
     ".accountCopyrightHolder": `display: flex; flex-wrap: wrap; margin: 2px 0; justify-content: center; align-items: center`,
     ".accountCopyrightHolder a": `color: var(--darkGray); font-size: 14px; font-weight: 500; text-decoration: none`
   };
-  js = async function (frame) {
+  js = async (frame) => {
     frame.style.width = "200px";
     frame.style.minWidth = "100%";
     frame.style.maxWidth = "100%";
 
-    frame.querySelector(".accountManage").addEventListener("click", function () {
+    frame.querySelector(".accountManage").addEventListener("click", () => {
       let a = typeof window.screenX != 'undefined' ? window.screenX : window.screenLeft;
       let i = typeof window.screenY != 'undefined' ? window.screenY : window.screenTop;
       let g = typeof window.outerWidth != 'undefined' ? window.outerWidth : document.documentElement.clientWidth;
@@ -53,7 +53,7 @@ modules["dropdowns/account"] = class {
       let h = (a < 0) ? window.screen.width + a : a;
       window.open("https://exotek.co/account?userid=" + account.account, "exotek_window_prompt", "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=" + 1000 + ", height=" + 650 + ", top=" + parseInt(i + ((f - 650) / 2.5), 10) + ", left=" + parseInt(h + ((g - 1000) / 2), 10));
     });
-    frame.querySelector(".accountLogout").addEventListener("click", async function () {
+    frame.querySelector(".accountLogout").addEventListener("click", async () => {
       let token = getLocalStore("token");
       if (token == null) {
         return;
@@ -68,7 +68,7 @@ modules["dropdowns/account"] = class {
       }
     });
     let tutorialButton = frame.querySelector(".accountDrop[tutorial]");
-    tutorialButton.addEventListener("click", async function () {
+    tutorialButton.addEventListener("click", async () => {
       modalModule.open("modals/resources", tutorialButton, "Resources");
     });
     let isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
@@ -91,7 +91,7 @@ modules["dropdowns/account"] = class {
       return true;
     }
     let installpwa = frame.querySelector(".accountDrop[pwa]");
-    installpwa.addEventListener("click", async function () {
+    installpwa.addEventListener("click", async () => {
       if (checkForPrompt() == true) {
         if (window.deferredPrompt != null && window.deferredPrompt.prompt != null) {
           await window.deferredPrompt.prompt();
@@ -169,7 +169,7 @@ modules["dropdowns/account/report"] = class {
     ".aReportDescHolder textarea": `flex: 1; padding: 8px; width: 250px; max-width: calc(100% - 22px); min-height: 140px; border: solid 3px var(--hover); border-radius: 16px; outline: none; resize: none; font-family: var(--font); font-size: 15px`,
     ".aReportSubmitButton": `padding: 6px 10px; margin: 15px 0 3px 0; background: var(--theme); --borderRadius: 16px; color: #fff; font-size: 16px`
   };
-  js = async function (frame) {
+  js = async (frame) => {
     frame.setAttribute("noscrollclose", "");
     
     let buttonHolder = frame.querySelector(".aReportTypeHolder");

@@ -1205,6 +1205,13 @@ modules["modal"] = class {
     }, 1);
   };
   open = async function (frameName, button, title, stack, data) {
+    if (data != null && data.previous == true) {
+      let prev = window.modal.frameHistory[window.modal.frameHistory.length - 2];
+      if (prev == null) {
+        return;
+      }
+      [frameName, button, title, stack, data] = prev;
+    }
     title = title ?? "";
     let loaded = modules[frameName] != null;
     if (window.modal) { // Clicked inside the modal
@@ -1234,24 +1241,24 @@ modules["modal"] = class {
         content.style.left = (modal.offsetWidth / 1) + "px";
       } else {
         window.modal.frameHistory.pop();
-        title = window.modal.frameHistory.pop()[1];
+        title = window.modal.frameHistory.pop()[2];
 
         oldContent.style.removeProperty("left");
         oldContent.style.right = "0%";
-        content.style.right = (modal.offsetWidth / 1) + "px";
+        content.style.right = modal.offsetWidth + "px";
       }
       header.querySelector(".modalTitle").innerHTML = title;
       let back = header.querySelector(".modalBack");
       if (window.modal.frameHistory.length > 0 && stack != false) {
-        back.setAttribute("modal", window.modal.frameHistory[window.modal.frameHistory.length - 1][0]);
+        //back.setAttribute("modal", window.modal.frameHistory[window.modal.frameHistory.length - 1][0]);
         back.style.display = "flex";
       } else {
         back.style.display = "none";
       }
       if (stack != false) {
-        window.modal.frameHistory.push([frameName, title]);
+        window.modal.frameHistory.push([frameName, back, title, stack, data]);
       } else {
-        window.modal.frameHistory = [[frameName, title]];
+        window.modal.frameHistory = [[frameName, back, title, stack, data]];
       }
       content.style.opacity = 0;
       //content.style.transform = "scale(.85)";
@@ -1316,6 +1323,10 @@ modules["modal"] = class {
     let header = modal.querySelector(".modalHeader");
     let content = modal.querySelector(".modalContent");
     let frame = content.querySelector(".modalFrame");
+    let backButton = modal.querySelector(".modalBack");
+    backButton.addEventListener("click", () => {
+      this.open(frameName, backButton, title, stack, { ...data, previous: true });
+    });
     if (loaded == false) {
       frame.style.minHeight = "200px";
     }
@@ -1331,7 +1342,7 @@ modules["modal"] = class {
     modal.offsetHeight;
     modal.style.width = content.offsetWidth + "px";
     modal.style.height = content.offsetHeight + header.offsetHeight + "px";
-    window.modal = { modal: modal, button: button, origin: button, frameHistory: [[frameName, title]], interval: this.setResizeLoop(modal, content, header, button) };
+    window.modal = { modal: modal, button: button, origin: button, frameHistory: [[frameName, backButton, title, stack, data]], interval: this.setResizeLoop(modal, content, header, button) };
     modal.style.opacity = 1;
     modal.parentElement.setAttribute("blur", "");
     content.style.pointerEvents = "none";
@@ -1367,10 +1378,10 @@ modules["modal"] = class {
 }
 let modalModule = {
   open: async (frameName, button, title, stack, data) => {
-    (await newModule("modal")).open(frameName, button, title, stack, data);
+    return await (await newModule("modal")).open(frameName, button, title, stack, data);
   },
   close: async () => {
-    (await newModule("modal")).close();
+    return await (await newModule("modal")).close();
   }
 }
 

@@ -7,7 +7,7 @@ modules["dropdowns/account"] = class {
   <button class="accountDrop" close pwa dropdowntitle="Add Markify as an app on your device!"><div>Get the App</div><img src="./images/tooltips/account/app.svg"></button>
   <button class="accountDrop" report dropdowntitle="Report Bugs & Feedback" noscrollclose><div>Report Bug</div><img src="./images/tooltips/account/report.svg"></button>
   <button class="accountDrop" close whatsnew modaltitle="What's New"><div>What's New</div><img src="./images/tooltips/account/exclamation.svg"></button>
-  <button class="accountDrop" close modal="modals/tutorial" modaltitle="Resources"><div>Resources</div><img src="./images/tooltips/account/question.svg"></button>
+  <button class="accountDrop" tutorial close modaltitle="Resources"><div>Resources</div><img src="./images/tooltips/account/question.svg"></button>
   <div class="accountDropLine"></div>
   <div class="accountSocialHolder">
     <a href="https://twitter.com/markifytool" target="_blank"><img src="./images/launch/socials/twitter.svg"></a>
@@ -66,6 +66,10 @@ modules["dropdowns/account"] = class {
         removeLocalStore("token");
         promptLogin();
       }
+    });
+    let tutorialButton = frame.querySelector(".accountDrop[tutorial]");
+    tutorialButton.addEventListener("click", async function () {
+      modalModule.open("modals/resources", tutorialButton, "Resources");
     });
     let isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
     let checkForPrompt = () => {

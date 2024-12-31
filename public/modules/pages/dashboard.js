@@ -173,14 +173,14 @@ modules["pages/dashboard"] = class {
     
     joinLessonButton.addEventListener("click", (event) => {
       event.preventDefault();
-      setFrame("join", null);
+      setFrame("pages/join", null);
     });
     newLessonButton.addEventListener("click", (event) => {
       event.preventDefault();
       if (this.sort != null && this.sort.length > 20) {
         modifyParams("folder", this.sort);
       }
-      setFrame("lesson", null);
+      setFrame("pages/lesson", null);
     });
 
     // Display Account Details
@@ -903,7 +903,7 @@ modules["pages/dashboard"] = class {
           return;
         }
         modifyParams("lesson", tile.getAttribute("lesson"));
-        setFrame("lesson", null);
+        setFrame("pages/lesson", null);
       }
 
       let button = target.closest("button, a");

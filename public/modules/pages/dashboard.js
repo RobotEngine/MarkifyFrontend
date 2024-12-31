@@ -142,6 +142,9 @@ modules["pages/dashboard"] = class {
       case "shared":
         time = record.added;
         break;
+      case "owned":
+        time = record.added;
+        break;
       case "newest":
         time = record.added;
     }
@@ -161,6 +164,8 @@ modules["pages/dashboard"] = class {
     let tileHolder = dashboard.querySelector(".dTilesHolder");
     let accountHolder = sidebar.querySelector(".dSidebarAccountHolder");
     let accountButton = accountHolder.querySelector(".dAccount");
+
+    let scrollEventPass;
 
     // Preload
     loadScript("./modules/dropdowns/account.js");
@@ -236,7 +241,10 @@ modules["pages/dashboard"] = class {
     });
 
     // Update Page Resizing
-    let sizeUpdate = () => {
+    let sizeUpdate = (event) => {
+      if (scrollEventPass != null) {
+        scrollEventPass(event);
+      }
       if (fixed.offsetWidth > 800 && fixed.offsetHeight > 400) {
         dashboardHolder.style.removeProperty("padding");
         dashboard.style.removeProperty("border-radius");
@@ -546,12 +554,12 @@ modules["pages/dashboard"] = class {
                     }
                     records[section] = [];
                   }
-                  let time = this.checkTime(this.sort, body.record);
+                  let time = this.checkTime(this.sort, { ...lesson, ...body.record });
                   let sectionRecord = records[section];
                   let insertAt = 0;
                   for (let r = 0; r < sectionRecord.length; r++) {
                     //let record = recordDocs[sectionRecord[r]];
-                    let checkTime = this.checkTime(this.sort, body.record);
+                    let checkTime = this.checkTime(this.sort, { ...lesson, ...body.record });
                     if (checkTime > time) {
                       insertAt = r + 1;
                     }
@@ -711,7 +719,6 @@ modules["pages/dashboard"] = class {
       }
     }
 
-    let scrollEventPass;
     this.updateTiles = async (button, firstLoad, prevSort) => {
       if (this.sort.length > 20) { // Folder
         titleHolder.innerHTML = `<div class="dFolderInfo">
@@ -1072,7 +1079,8 @@ modules["pages/dashboard/lessons"] = class {
       }
       let lastRecord = records[records.length - 1];
       if (lastRecord != null) {
-        let time = this.parent.checkTime(sort, lessons[lastRecord.split("_")[0]].record);
+        let lastLesson = lessons[lastRecord.split("_")[0]];
+        let time = this.parent.checkTime(sort, { ...lastLesson, ...lastLesson.record });
         path += "&before=" + time;
       }
       let [code, body] = await sendRequest("GET", path);
@@ -1087,7 +1095,7 @@ modules["pages/dashboard/lessons"] = class {
       //records = extra.records[sort];
       for (let i = 0; i < body.lessons.length; i++) {
         let lesson = body.lessons[i];
-        lessons[lesson._id] = lesson;
+        lessons[lesson._id] = { ...(lessons[lesson._id] ?? {}), ...lesson };
       }
       this.parent.addRecords(records, newRecords);
       if (body.folders != null && button != null && sort != "search") {
@@ -1182,24 +1190,32 @@ modules["pages/dashboard/lessons"] = class {
         continue;
       }
       let record = lesson.record;
-      let time = this.parent.checkTime(sort, record);
+      let time = this.parent.checkTime(sort, { ...lesson, ...record });
       this.parent.addLessonTile(record, lesson, time, false);
     }
     if (tileHolder.childElementCount > 0) {
       noLessons.style.display = "none";
     }
 
+    let alreadyRunningEvent = false;
     extra.scrollEventPass = async (event, loop, first) => {
+      if (alreadyRunningEvent == true && first != false) {
+        return;
+      }
+      alreadyRunningEvent = true;
       if (allLoaded == true) {
+        if (first != false) {
+          alreadyRunningEvent = false;
+        }
         return;
       }
-      if (scrollContainer.scrollTop + scrollContainer.clientHeight + 300 < scrollContainer.scrollHeight && tileHolder.clientHeight > scrollContainer.clientHeight) {
+      if (scrollContainer.scrollTop + scrollContainer.clientHeight + 500 < scrollContainer.scrollHeight && tileHolder.clientHeight > scrollContainer.clientHeight) {
+        if (first != false) {
+          alreadyRunningEvent = false;
+        }
         return;
       }
-      if (tileHolder.hasAttribute("disabled") == true) {
-        return;
-      }
-      if (records.length - tileHolder.childElementCount < this.parent.loadAmount && sort != "search") {
+      if (tileHolder.childElementCount >= records.length && sort != "search") { //records.length - tileHolder.childElementCount < this.parent.loadAmount
         tileHolder.setAttribute("disabled", "");
         await loadMoreLessons();
         if (tileHolder == null) {
@@ -1216,8 +1232,9 @@ modules["pages/dashboard/lessons"] = class {
           continue;
         }
         let record = lesson.record;
-        let time = this.parent.checkTime(sort, record);
+        let time = this.parent.checkTime(sort, { ...lesson, ...record });
         this.parent.addLessonTile(record, lesson, time, false);
+        await sleep(1)
       }
       if (tileHolder.childElementCount > 0) {
         noLessons.style.display = "none";
@@ -1227,6 +1244,7 @@ modules["pages/dashboard/lessons"] = class {
       }
       if (first != false) {
         this.parent.updateDashSub();
+        alreadyRunningEvent = false;
       }
     }
     extra.scrollEventPass(null, true);

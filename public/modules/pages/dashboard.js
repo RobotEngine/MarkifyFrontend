@@ -1234,7 +1234,6 @@ modules["pages/dashboard/lessons"] = class {
         let record = lesson.record;
         let time = this.parent.checkTime(sort, { ...lesson, ...record });
         this.parent.addLessonTile(record, lesson, time, false);
-        await sleep(1)
       }
       if (tileHolder.childElementCount > 0) {
         noLessons.style.display = "none";

@@ -620,6 +620,7 @@ async function renewToken() {
     promptLogin();
   }
 }
+
 async function sendRequest(method, path, body, extra) {
   if (connected == false) {
     return [0, "Not Connected", { took: 0 }];

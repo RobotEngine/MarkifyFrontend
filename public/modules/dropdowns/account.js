@@ -1,7 +1,7 @@
 modules["dropdowns/account"] = class {
   html = `
   <button class="accountDrop accountLogout" style="--setBackground: var(--error)" close><div>Logout</div><img src="./images/tooltips/account/logout.svg"></button>
-  <button class="accountDrop accountManage" close><div>Settings</div><img src="./images/tooltips/account/settings.svg"></button>
+  <button class="accountDrop accountManage" dropdowntitle="Settings" noscrollclose><div>Settings</div><img src="./images/tooltips/account/settings.svg"></button>
   <!--<button class="accountDrop" dropdown="dropdowns/account/preferences"><div>Preferences</div><img src="./images/tooltips/account/preferences.svg"></button>-->
   <div class="accountDropLine"></div>
   <button class="accountDrop" close pwa dropdowntitle="Add Markify as an app on your device!"><div>Get the App</div><img src="./images/tooltips/account/app.svg"></button>
@@ -45,13 +45,16 @@ modules["dropdowns/account"] = class {
     frame.style.minWidth = "100%";
     frame.style.maxWidth = "100%";
 
-    frame.querySelector(".accountManage").addEventListener("click", () => {
+    let settingsButton = frame.querySelector(".accountManage");
+    settingsButton.addEventListener("click", () => {
       let a = typeof window.screenX != 'undefined' ? window.screenX : window.screenLeft;
       let i = typeof window.screenY != 'undefined' ? window.screenY : window.screenTop;
       let g = typeof window.outerWidth != 'undefined' ? window.outerWidth : document.documentElement.clientWidth;
       let f = typeof window.outerHeight != 'undefined' ? window.outerHeight : (document.documentElement.clientHeight - 22);
       let h = (a < 0) ? window.screen.width + a : a;
-      window.open("https://exotek.co/account?userid=" + account.account, "exotek_window_prompt", "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=" + 1000 + ", height=" + 650 + ", top=" + parseInt(i + ((f - 650) / 2.5), 10) + ", left=" + parseInt(h + ((g - 1000) / 2), 10));
+
+      dropdownModule.open(settingsButton, "dropdowns/account/accountManage");
+      //window.open("https://exotek.co/account?userid=" + account.account, "exotek_window_prompt", "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=" + 1000 + ", height=" + 650 + ", top=" + parseInt(i + ((f - 650) / 2.5), 10) + ", left=" + parseInt(h + ((g - 1000) / 2), 10));
     });
     frame.querySelector(".accountLogout").addEventListener("click", async () => {
       let token = getLocalStore("token");
@@ -120,6 +123,113 @@ modules["dropdowns/account"] = class {
     });
   }
 }
+
+modules["dropdowns/account/accountManage"] = class {
+  html = `
+  <div class="aManageHolder">
+    <div class="aManageAccount">
+      <div class="aManageTitle">
+        <div title>Account</div>
+        <div divider></div>
+      </div>
+      <div class="aManageCard">
+        <div class="aImageHolder">
+          <img src="https://cdn.discordapp.com/avatars/373209094581911554/afdcb3f436882f9059a4f0050dae88af.webp?quality=lossless"></img>
+        </div>
+        <div class="aManageInfoHolder">
+          <div class="aManageInfo">
+            <div account>Username</div>
+            <div email>test@test.com</div>
+          </div>
+          <button class="largeButton">Manage Account</button>
+        </div>
+      </div>
+    </div>
+    <div class="aManageSection">
+      <div class="aManageTitle">
+        <div title>Preferences</div>
+        <div divider></div>
+      </div>
+      <div class="aManageSetting">
+        <div title>Theme</div> 
+        <div setting><button class="aManageSettingButton">Light</button></div>
+      </div>
+      <div class="aManageSetting">
+        <div title>Toolbar Side</div> 
+        <div setting><button class="aManageSettingButton">Left</button></div>
+      </div>
+    </div>
+    <div class="aManageSection">
+      <div class="aManageTitle">
+        <div title>Emails</div>
+        <div divider></div>
+      </div>
+      <div class="aManageSetting">
+        <div title>Lesson Invites</div> 
+        <div setting>
+          <div class="aManageSettingToggle">
+            <!-- some sort of checkbox goes here to manage the input and animate the checkbox, but I'll leave it static for now -->
+            <div slider></div>
+          </div>
+        </div>
+      </div>
+      <div class="aManageSetting">
+        <div title>Mentions</div> 
+        <div setting>
+          <div class="aManageSettingToggle">
+            <!-- some sort of checkbox goes here to manage the input and animate the checkbox, but I'll leave it static for now -->
+            <div slider></div>
+          </div>
+        </div>
+      </div>
+      <div class="aManageSetting">
+        <div title>Announcements</div> 
+        <div setting>
+          <div class="aManageSettingToggle">
+            <!-- some sort of checkbox goes here to manage the input and animate the checkbox, but I'll leave it static for now -->
+            <div slider></div>
+          </div>
+        </div>
+      </div>
+      <div class="aManageSetting">
+        <div title>Newsletters</div> 
+        <div setting>
+          <div class="aManageSettingToggle">
+            <!-- some sort of checkbox goes here to manage the input and animate the checkbox, but I'll leave it static for now -->
+            <div slider></div>
+          </div>
+        </div>
+      </div>
+      <div class="aManageRaw"><button><u>Unsubscribe from Marketing</u></button></div>
+    </div>
+  </div>
+  `;
+  css = {
+    ".aManageHolder": `display: flex; flex-direction: column; flex-wrap: wrap; justify-content: center; padding: 8px; gap: 20px; --setBackground: var(--theme); font-weight: 800; font-size: 18px`,
+    ".aManageAccount": `position: sticky; box-sizing: border-box; width: 100%; left: 0px; z-index: 2;`,
+    ".aManageTitle": `display: flex; gap: 8px; align-items: center`,
+    ".aManageTitle div[title]": `color: var(--secondary);`,
+    ".aManageTitle div[divider]": `flex: 1; height: 4px; background: var(--hover); border-radius: 2px`,
+    ".aManageCard": `display: flex; padding: 12px; margin: 8px; gap: 8px; background: #fff; border-radius: 12px; box-shadow: var(--darkShadow); text-align: center;`,
+    ".aImageHolder": `border-radius: 60px; width: 120px; height: 120px; `,
+    ".aImageHolder img": `border-radius: 60px; width: 120px; height: 120px; box-sizing: border-box; border: 6px solid #fff; box-shadow: var(--darkShadow);`,
+    ".aManageInfoHolder": `display: flex; flex-direction: column; flex-wrap: wrap; flex: 1; width: 212; height: 120px`,
+    ".aManageInfo": `margin-top: 3px`,
+    ".aManageInfo div[account]": `color: #000; font-size: 22px; font-weight: 800`,
+    ".aManageInfo div[email]": `color: #48A7FF; font-size: 16px; font-weight: 600; margin-top: 3px`,
+    ".aManageInfoHolder button": `padding: 6px 10px; background-color: #0084FF26; --borderRadius: 14px; margin-top: auto`,
+    ".aManageSection": `display: flex; flex-direction: column; gap: 8px;`, 
+    ".aManageSetting": `display: flex; padding: 6px 6px 6px 10px; background: #fff; border-radius: 12px 22px 22px 12px; box-shadow: var(--darkShadow); text-align: center; align-items: center`,
+    ".aManageSetting div[setting]": "margin-left: auto;",
+    ".aManageSettingButton": `background-color: #48A7FF; color: #FFF; font-size: 16px; font-weight: 800; padding: 6px 10px; border-radius: 18px`,
+    ".aManageSettingToggle": `background-color: #48A7FF; border-radius: 18px; height: 32px; width: 54px; display: flex; flex-direction: column; justify-content: center;`,
+    ".aManageSettingToggle div[slider]": `background-color: #FFF; border-radius: 50%; height: 26px; width: 26px; align-self: flex-end; margin-right: 3px`,
+    ".aManageRaw button": `color: #48A7FF; font-size: 20px; font-weight: 600`,
+  };
+  js = async (frame) => {
+    frame.setAttribute("noscrollclose", "");
+  };
+};
 
 modules["dropdowns/account/report"] = class {
   html = `

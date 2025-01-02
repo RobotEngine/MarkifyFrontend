@@ -8,9 +8,8 @@ modules["pages/lesson"] = class {
   </div>`;
   css = {
     ".lPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100%; height: 100vh; padding: 8px; left: 0px; top: 0px; justify-content: center`,
-    ".lPage": `display: flex; width: 100%; height: 100%; max-width: 1565px; box-shadow: var(--darkShadow); border-radius: 12px; overflow: hidden`
+    ".lPage": `display: flex; width: 100%; height: 100%; box-shadow: var(--darkShadow); border-radius: 12px; overflow: hidden`
   };
-
   // LESSON PAGE : Loads lessons, members, and configs before creating editor modules:
   js = async (page, joinData) => {
     this.id = getParam("lesson") ?? "";
@@ -51,20 +50,71 @@ modules["pages/lesson"] = class {
     this.sessionID = body.session._id;
     this.sessionToken = body.session.token;
     this.session = this.sessionID + ";" + this.sessionToken;
+
+    let sentPing = false;
+    let sendPing = async () => {
+      if (connected == false) {
+        return;
+      }
+      let params = [];
+      if (this.active == false && this.exporting != true) {
+        params.push("idle");
+      }
+      if (this.signalStrength == 2) {
+        params.push("weak");
+      }
+      let path = "lessons/ping";
+      if (params.length > 0) {
+        path += "?" + params.join("&");
+      }
+      sentPing = true;
+      let [code] = await sendRequest("GET", path, null, { session: this.session, allowError: [403] });
+      if (code == 403) {
+        if (sendBody.pin != null) {
+          setFrame("pages/join"); // Send back to join page
+        } else {
+          setFrame("pages/lesson"); // Refresh to rejoin
+        }
+      } else if (code != 200 && code != 0 && code != null) {
+        setFrame("pages/lesson");
+      }
+    }
+    this.sendPing = sendPing;
+
+    if (extra.took < 2500) {
+      this.signalStrength = 3;
+    } else {
+      this.signalStrength = 2;
+      sendPing();
+    }
+
+    addTempListener({
+      type: "interval", interval: setInterval(async () => {
+        if (sentPing == false) {
+          sendPing();
+        }
+        sentPing = false;
+      }, 60000)
+    }); // PING every minute
+
+    this.setFrame("pages/lesson/board", page.querySelector(".lPage"));
+  }
+}
+
+modules["pages/lesson/board"] = class {
+  html = ``;
+  css = {
+    
+  };
+  js = async (frame, extra) => {
+    this.editor = await this.setFrame("pages/lesson/editor", frame);
   }
 }
 
 modules["pages/lesson/editor"] = class {
-  title = "Lesson";
-  preJs = () => {
-
-  }
-  html = `<div class="lPageHolder">
-    <div class="lPage"></div>
-  </div>`;
+  html = ``;
   css = {
-    ".lPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100%; height: 100vh; padding: 8px; left: 0px; top: 0px; justify-content: center`,
-    ".lPage": `display: flex; width: 100%; height: 100%; max-width: 1565px; box-shadow: var(--darkShadow); border-radius: 12px; overflow: hidden`
+
   };
 
   // PIPELINE : Distributes events across various modules and services:

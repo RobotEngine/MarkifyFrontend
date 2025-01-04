@@ -102,12 +102,43 @@ modules["pages/lesson"] = class {
 }
 
 modules["pages/lesson/board"] = class {
-  html = ``;
+  html = `<div class="eInterface eCustomScroll">
+    <div class="eTop">
+      <button class="eTopScroll" left style="left: 8px"><img src="./images/editor/top/leftarrow.svg"></button>
+      <button class="eTopScroll" right style="right: 8px"><img src="./images/editor/top/rightarrow.svg"></button>
+      <div class="eTopSection" left></div>
+      <div class="eTopSection" right></div>
+    </div>
+  </div>
+  <div class="eContentHolder eCustomScroll">
+
+  </div>
+  `;
   css = {
-    
-  };
+    ".eCustomScroll::-webkit-scrollbar": `width: 16px; background: var(--scrollGray)`,
+    ".eCustomScroll::-webkit-scrollbar-thumb": `border: 4px solid var(--scrollGray); background: var(--gray); border-radius: 8px`,
+    ".eCustomScroll::-webkit-scrollbar-thumb:active": `background: var(--activeGray)`,
+    ".eInterface": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; overflow: scroll; z-index: 2`,
+    ".eContentHolder": `position: relative; width: 100%; height: 100%; overflow: scroll; z-index: 1`,
+    ".eContentHolder .content": `width: 5000px; height: 5000px`, // Just a test
+
+    ".eTop": `position: absolute; display: flex; width: 100%; padding-bottom: 8px; left: 0px; top: 0px; justify-content: space-between; visibility: visible; overflow-x: auto; scrollbar-width: none`,
+    ".eTop[scroll]": `padding-bottom: 0px !important; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
+    ".eTop::-webkit-scrollbar": `display: none`,
+    ".eTopScroll": `position: absolute; display: flex; width: 36px; height: 36px; top: 50%; transform: translateY(-50%); background: rgba(180, 218, 253, .75); opacity: 0; backdrop-filter: blur(2px); pointer-events: none; border-radius: 18px; justify-content: center; align-items: center; z-index: 200`,
+    ".eTop[scroll] .eTopScroll": `opacity: 1 !important; pointer-events: all`,
+    ".eTopScroll img": `width: 22px`,
+    ".eTopScroll:active": `transform: translateY(-50%) scale(.85) !important`,
+    ".eTopSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
+    ".eTop[scroll] .eTopSection": `box-shadow: unset !important`,
+    ".eTopSection[left]": `border-bottom-right-radius: 12px; width: 400px`,
+    ".eTopSection[right]": `border-bottom-left-radius: 12px; width: 400px`
+  }; //".": ``,
   js = async (frame, extra) => {
-    this.editor = await this.setFrame("pages/lesson/editor", frame);
+    frame.style.position = "relative";
+    frame.style.width = "100%";
+    frame.style.height = "100%";
+    this.editor = await this.setFrame("pages/lesson/editor", frame.querySelector(".eContentHolder"));
   }
 }
 

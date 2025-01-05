@@ -134,7 +134,7 @@ modules["dropdowns/account/accountManage"] = class {
       </div>
       <div class="aManageCard">
         <div class="aImageHolder">
-          <img src="https://cdn.discordapp.com/avatars/373209094581911554/afdcb3f436882f9059a4f0050dae88af.webp?quality=lossless"></img>
+          <img src="https://cdn.discordapp.com/avatars/373209094581911554/afdcb3f436882f9059a4f0050dae88af.webp?quality=lossless">
         </div>
         <div class="aManageInfoHolder">
           <div class="aManageInfo">
@@ -211,13 +211,13 @@ modules["dropdowns/account/accountManage"] = class {
     ".aManageTitle div[title]": `color: var(--secondary);`,
     ".aManageTitle div[divider]": `flex: 1; height: 4px; background: var(--hover); border-radius: 2px`,
     ".aManageCard": `display: flex; padding: 12px; margin: 8px; gap: 8px; background: #fff; border-radius: 12px; box-shadow: var(--darkShadow); text-align: center;`,
-    ".aImageHolder": `border-radius: 60px; width: 120px; height: 120px; `,
-    ".aImageHolder img": `border-radius: 60px; width: 120px; height: 120px; box-sizing: border-box; border: 6px solid #fff; box-shadow: var(--darkShadow);`,
-    ".aManageInfoHolder": `display: flex; flex-direction: column; flex-wrap: wrap; flex: 1; width: 212; height: 120px`,
-    ".aManageInfo": `margin-top: 3px`,
+    ".aImageHolder": `max-width: 35%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center;`,
+    ".aImageHolder img": `border-radius: 50%; max-width: 100%; aspect-ratio: 1; box-sizing: border-box; border: 6px solid #fff; box-shadow: var(--darkShadow);`,
+    ".aManageInfoHolder": `display: flex; flex-direction: column; flex-wrap: wrap; flex: 1; max-width: 65%;`,
+    ".aManageInfo": `margin: 6px 0px`,
     ".aManageInfo div[account]": `color: #000; font-size: 22px; font-weight: 800`,
     ".aManageInfo div[email]": `color: #48A7FF; font-size: 16px; font-weight: 600; margin-top: 3px`,
-    ".aManageInfoHolder button": `padding: 6px 10px; background-color: #0084FF26; --borderRadius: 14px; margin-top: auto`,
+    ".aManageInfoHolder button": `padding: 6px 10px; background-color: #0084FF26; borderRadius: /*14px*/ 9%; margin-top: auto; text-align: center; justify-content: center; font-size: 20px`,
     ".aManageSection": `display: flex; flex-direction: column; gap: 8px;`, 
     ".aManageSetting": `display: flex; padding: 6px 6px 6px 10px; background: #fff; border-radius: 12px 22px 22px 12px; box-shadow: var(--darkShadow); text-align: center; align-items: center`,
     ".aManageSetting div[setting]": "margin-left: auto;",

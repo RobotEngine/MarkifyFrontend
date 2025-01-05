@@ -197,30 +197,31 @@ modules["pages/lesson/editor"] = class {
 
   };
 
-  // PIPELINE : Distributes events across various modules and services:
-  pipeline = {};
-  pipelineSubs = {};
-  pipePublish = (event, data) => {
-    let subscribes = this.pipeline[event] ?? {};
-    let subKeys = Object.keys(subscribes);
-    for (let i = 0; i < subKeys.length; i++) {
-      subscribes[subKeys[i]](data);
-    }
-  }
-  pipeSubscribe = (id, event, callback) => {
-    if (this.pipelineSubs[id] != null) {
-      this.pipeUnsubscribe(id);
-    }
+  pipeline = { // PIPELINE : Distributes events across various modules and services:
+    pipeline: {},
+    pipelineSubs: {},
+    publish: (event, data) => {
+      let subscribes = this.pipeline[event] ?? {};
+      let subKeys = Object.keys(subscribes);
+      for (let i = 0; i < subKeys.length; i++) {
+        subscribes[subKeys[i]](data);
+      }
+    },
+    subscribe: (id, event, callback) => {
+      if (this.pipelineSubs[id] != null) {
+        this.pipeUnsubscribe(id);
+      }
 
-    this.pipeline[event] = this.pipeline[event] ?? {};
-    this.pipeline[event][id] = callback;
+      this.pipeline[event] = this.pipeline[event] ?? {};
+      this.pipeline[event][id] = callback;
 
-    this.pipelineSubs[id] = event;
-  }
-  pipeUnsubscribe = (id) => {
-    delete this.pipeline[this.pipelineSubs[id]][id];
-    delete this.pipelineSubs[id];
-  }
+      this.pipelineSubs[id] = event;
+    },
+    unsubscribe: (id) => {
+      delete this.pipeline[this.pipelineSubs[id]][id];
+      delete this.pipelineSubs[id];
+    }
+  };
 
   js = async (frame, extra) => {
 

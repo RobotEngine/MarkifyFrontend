@@ -134,7 +134,7 @@ modules["dropdowns/account/accountManage"] = class {
       </div>
       <div class="aManageCard">
         <div class="aImageHolder">
-          <img src="https://cdn.discordapp.com/avatars/373209094581911554/afdcb3f436882f9059a4f0050dae88af.webp?quality=lossless">
+          <img src="./images/profiles/default.svg">
         </div>
         <div class="aManageInfoHolder">
           <div class="aManageInfo">
@@ -152,11 +152,20 @@ modules["dropdowns/account/accountManage"] = class {
       </div>
       <div class="aManageSetting">
         <div title>Theme</div> 
-        <div setting><button class="aManageSettingButton">Light</button></div>
+        <div setting><button id="themeChange" class="aManageSettingButton">Light</button></div>
       </div>
       <div class="aManageSetting">
         <div title>Toolbar Side</div> 
-        <div setting><button class="aManageSettingButton">Left</button></div>
+        <div setting><button id="toolbarSideChange" class="aManageSettingButton">Left</button></div>
+      </div>
+      <div class="aManageSetting">
+        <div title>Fix Editing Bar to Top</div> 
+        <div setting>
+          <div class="aManageSettingToggle">
+            <input id="editingBarFixToTop" type="checkbox">
+            <div slider></div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="aManageSection">
@@ -168,7 +177,7 @@ modules["dropdowns/account/accountManage"] = class {
         <div title>Lesson Invites</div> 
         <div setting>
           <div class="aManageSettingToggle">
-            <!-- some sort of checkbox goes here to manage the input and animate the checkbox, but I'll leave it static for now -->
+            <input id="lessonInviteEmails" type="checkbox">
             <div slider></div>
           </div>
         </div>
@@ -177,7 +186,7 @@ modules["dropdowns/account/accountManage"] = class {
         <div title>Mentions</div> 
         <div setting>
           <div class="aManageSettingToggle">
-            <!-- some sort of checkbox goes here to manage the input and animate the checkbox, but I'll leave it static for now -->
+            <input id="mentionEmails" type="checkbox">
             <div slider></div>
           </div>
         </div>
@@ -186,7 +195,7 @@ modules["dropdowns/account/accountManage"] = class {
         <div title>Announcements</div> 
         <div setting>
           <div class="aManageSettingToggle">
-            <!-- some sort of checkbox goes here to manage the input and animate the checkbox, but I'll leave it static for now -->
+            <input id="announcementEmails" type="checkbox">
             <div slider></div>
           </div>
         </div>
@@ -195,7 +204,7 @@ modules["dropdowns/account/accountManage"] = class {
         <div title>Newsletters</div> 
         <div setting>
           <div class="aManageSettingToggle">
-            <!-- some sort of checkbox goes here to manage the input and animate the checkbox, but I'll leave it static for now -->
+            <input id="newsletterEmails" type="checkbox">
             <div slider></div>
           </div>
         </div>
@@ -205,14 +214,14 @@ modules["dropdowns/account/accountManage"] = class {
   </div>
   `;
   css = {
-    ".aManageHolder": `display: flex; flex-direction: column; flex-wrap: wrap; justify-content: center; padding: 8px; gap: 20px; --setBackground: var(--theme); font-weight: 800; font-size: 18px`,
+    ".aManageHolder": `display: flex; flex-direction: column; flex-wrap: wrap; justify-content: center; padding: 8px; gap: 20px; --setBackground: var(--theme); font-weight: 800; font-size: 18px; max-width: 400px`,
     ".aManageAccount": `position: sticky; box-sizing: border-box; width: 100%; left: 0px; z-index: 2;`,
     ".aManageTitle": `display: flex; gap: 8px; align-items: center`,
     ".aManageTitle div[title]": `color: var(--secondary);`,
     ".aManageTitle div[divider]": `flex: 1; height: 4px; background: var(--hover); border-radius: 2px`,
     ".aManageCard": `display: flex; padding: 12px; margin: 8px; gap: 8px; background: #fff; border-radius: 12px; box-shadow: var(--darkShadow); text-align: center;`,
-    ".aImageHolder": `max-width: 35%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center;`,
-    ".aImageHolder img": `border-radius: 50%; max-width: 100%; aspect-ratio: 1; box-sizing: border-box; border: 6px solid #fff; box-shadow: var(--darkShadow);`,
+    ".aImageHolder": `max-width: min(150px, 35%); aspect-ratio: 1; display: flex; align-items: center; justify-content: center;`,
+    ".aImageHolder img": `border-radius: 50%; max-width: 100%; aspect-ratio: 1; box-sizing: border-box; border: 6px solid #fff; box-shadow: var(--darkShadow); object-fit: cover`,
     ".aManageInfoHolder": `display: flex; flex-direction: column; flex-wrap: wrap; flex: 1; max-width: 65%;`,
     ".aManageInfo": `margin: 6px 0px`,
     ".aManageInfo div[account]": `color: #000; font-size: 22px; font-weight: 800`,
@@ -222,12 +231,34 @@ modules["dropdowns/account/accountManage"] = class {
     ".aManageSetting": `display: flex; padding: 6px 6px 6px 10px; background: #fff; border-radius: 12px 22px 22px 12px; box-shadow: var(--darkShadow); text-align: center; align-items: center`,
     ".aManageSetting div[setting]": "margin-left: auto;",
     ".aManageSettingButton": `background-color: #48A7FF; color: #FFF; font-size: 16px; font-weight: 800; padding: 6px 10px; border-radius: 18px`,
-    ".aManageSettingToggle": `background-color: #48A7FF; border-radius: 18px; height: 32px; width: 54px; display: flex; flex-direction: column; justify-content: center;`,
-    ".aManageSettingToggle div[slider]": `background-color: #FFF; border-radius: 50%; height: 26px; width: 26px; align-self: flex-end; margin-right: 3px`,
+    ".aManageSettingToggle": `height: 32px; width: 54px; display: inline-block; position: relative;`,
+    ".aManageSettingToggle input": `opacity: 0; width: 100%; height: 100%; position: absolute; z-index: 5; cursor: pointer; left: 0`,
+    ".aManageSettingToggle div[slider]": `position: absolute; background-color: #ccc; border-radius: 18px; top: 0; left: 0; right: 0; bottom: 0;`,
+    ".aManageSettingToggle div[slider]:before": `position: absolute; background-color: #FFF; border-radius: 18px; height: 26px; width: 26px; content: ""; transition: .4s; left: 3px; top: 3px;`,
+    "input:checked + div[slider]:before": `transform: translateX(22px);`,
+    "input:checked + div[slider]": `background-color: #48A7FF`,
     ".aManageRaw button": `color: #48A7FF; font-size: 20px; font-weight: 600`,
   };
   js = async (frame) => {
     frame.setAttribute("noscrollclose", "");
+
+    let themeButton = frame.querySelector("#themeChange");
+    let toolbarSideButton = frame.querySelector("#toolbarSideChange");
+
+    themeButton.addEventListener("click", () => {
+        themeButton.textContent = themeButton.textContent == "Light" ? "Dark" : "Light";
+    });
+
+    toolbarSideButton.addEventListener("click", () => {
+        toolbarSideButton.textContent = toolbarSideButton.textContent == "Left" ? "Right" : "Left";
+    });
+
+    if (account.image != null) {
+      frame.querySelector(".aImageHolder img").src = account.image;
+    }
+
+    frame.querySelector(".aManageInfo div[account]").textContent = account.user;
+    frame.querySelector(".aManageInfo div[email]").textContent = account.email;
   };
 };
 

@@ -260,25 +260,25 @@ modules["pages/lesson/editor"] = class {
     pipeline: {},
     pipelineSubs: {},
     publish: (event, data) => {
-      let subscribes = this.pipeline[event] ?? {};
+      let subscribes = this.pipeline.pipeline[event] ?? {};
       let subKeys = Object.keys(subscribes);
       for (let i = 0; i < subKeys.length; i++) {
         subscribes[subKeys[i]](data);
       }
     },
     subscribe: (id, event, callback) => {
-      if (this.pipelineSubs[id] != null) {
-        this.pipeUnsubscribe(id);
+      if (this.pipeline.pipelineSubs[id] != null) {
+        this.pipeline.pipeUnsubscribe(id);
       }
 
-      this.pipeline[event] = this.pipeline[event] ?? {};
-      this.pipeline[event][id] = callback;
+      this.pipeline.pipeline[event] = this.pipeline.pipeline[event] ?? {};
+      this.pipeline.pipeline[event][id] = callback;
 
-      this.pipelineSubs[id] = event;
+      this.pipeline.pipelineSubs[id] = event;
     },
     unsubscribe: (id) => {
-      delete this.pipeline[this.pipelineSubs[id]][id];
-      delete this.pipelineSubs[id];
+      delete this.pipeline.pipeline[this.pipeline.pipelineSubs[id]][id];
+      delete this.pipeline.pipelineSubs[id];
     }
   };
 

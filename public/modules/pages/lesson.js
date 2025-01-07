@@ -109,7 +109,7 @@ modules["pages/lesson/board"] = class {
       <div class="eTop">
         <div class="eTopSection" left>
           <a class="eLogo" href="#dashboard"><img src="./images/icon.svg" /></a>
-          <div class="eFileNameHolder border"><div class="eFileName" spellcheck="false" onpaste="clipBoardRead(event)">My Lovely Lesson</div></div>
+          <div class="eFileNameHolder border"><div class="eFileName" spellcheck="false" onpaste="clipBoardRead(event)">Lesson Name</div></div>
           <button class="eFileDropdown">File</button>
           <div class="eTopDivider"></div>
           <button class="eSaveProgress eUndo" disabled><img draggable="false" src="./images/tooltips/progress/undo.svg" /></button>
@@ -145,15 +145,15 @@ modules["pages/lesson/board"] = class {
     </div>
     <div class="eBottomHolder">
       <div class="eBottom">
-        <div class="eBottomSection" left>
-          <div class="eObserve">
-            <div>Observing <b></b></div>
-            <button><img src="./images/tooltips/exit.svg" /></button>
-          </div>
+        <div class="eBottomSection" left hidden>
+          <img class="eObserveIcon" src="./images/editor/members/observe.svg" />
+          <div class="eObserveText">Observing</div>
+          <div class="eObserveCursor"></div>
+          <button class="eObserveExit buttonAnim border"><img src="./images/tooltips/close.svg"></button>
         </div>
         <div class="eBottomSection" right>
           <button class="ePageNav" down><img src="./images/editor/bottom/uparrow.svg" /></button>
-          <div class="eCurrentPage border" contenteditable></div>
+          <div class="eCurrentPage border" contenteditable><b>0</b> / 0</div>
           <button class="ePageNav" up><img src="./images/editor/bottom/downarrow.svg" /></button>
         </div>
       </div>
@@ -225,17 +225,22 @@ modules["pages/lesson/board"] = class {
     ".eBottom": `position: absolute; display: flex; width: 100%; padding-top: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,
     ".eBottomHolder[scroll] .eBottom": `padding-top: 0px !important; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
     ".eBottom::-webkit-scrollbar": `display: none`,
-    ".eBottomScroll": `position: absolute; display: flex; width: 36px; height: 36px; top: 50%; transform: translateY(-50%); background: rgba(180, 218, 253, .75); opacity: 0; backdrop-filter: blur(2px); border-radius: 18px; justify-content: center; align-items: center; z-index: 200`,
+    //".eBottomScroll": `position: absolute; display: flex; width: 36px; height: 36px; top: 50%; transform: translateY(-50%); background: rgba(180, 218, 253, .75); opacity: 0; backdrop-filter: blur(2px); border-radius: 18px; justify-content: center; align-items: center; z-index: 200`,
     ".eBottomHolder[scroll] .eBottomScroll": `opacity: 1 !important; pointer-events: all`,
-    ".eBottomScroll img": `width: 22px`,
-    ".eBottomScroll:active": `transform: translateY(-50%) scale(.85) !important`,
+    //".eBottomScroll img": `width: 22px`,
+    //".eBottomScroll:active": `transform: translateY(-50%) scale(.85) !important`,
     ".eBottomSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
     ".eBottomHolder[scroll] .eBottomSection": `box-shadow: unset !important`,
     ".eBottomSection[left]": `border-top-right-radius: 12px`,
-    ".eBottomSection[right]": `border-top-left-radius: 12px`,
+    ".eObserveIcon": `width: 34px; height: 34px; margin: 2px`,
+    ".eObserveText": `margin: 0 6px`,
+    ".eObserveCursor": `box-sizing: border-box; display: flex; padding: 2px 6px; margin-right: 4px; background: var(--theme); color: #fff; border: solid 3px var(--pageColor); box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), .5); border-radius: 8px 14px 14px; font-size: 14px; font-weight: 700`,
+    ".eObserveExit": `display: flex; position: relative; width: 22px; height: 22px; margin: 8px; justify-content: center; align-items: center; --borderWidth: 3px; --borderRadius: 14px`,
+    ".eObserveExit img": `width: 12px; height: 12px`,
+    ".eBottomSection[right]": `margin-left: 8px; border-top-left-radius: 12px`,
     ".ePageNav": `display: flex; width: 31px; height: 31px; margin: 0 4px; justify-content: center; align-items: center; background: var(--lightGray); border-radius: 16px`,
     ".eCurrentPage": `margin: 0 6px; font-size: 20px; outline: unset`,
-    ".eCurrentPage:focus": `padding: 4px 12px; --borderWidth: 3px; --borderColor: var(--secondary); --borderRadius: 19px`,
+    ".eCurrentPage:focus": `padding: 4px 12px; --borderWidth: 3px; --borderColor: var(--secondary); --borderRadius: 19px`
   }; //".": ``,
   js = async (frame, extra) => {
     frame.style.position = "relative";

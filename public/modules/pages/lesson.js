@@ -152,9 +152,9 @@ modules["pages/lesson/board"] = class {
           <button class="eObserveExit buttonAnim border"><img src="./images/tooltips/close.svg"></button>
         </div>
         <div class="eBottomSection" right>
-          <button class="ePageNav" down><img src="./images/editor/bottom/uparrow.svg" /></button>
+          <button class="ePageNav" down><img src="./images/editor/bottom/plus.svg" /></button>
           <div class="eCurrentPage border" contenteditable><b>0</b> / 0</div>
-          <button class="ePageNav" up><img src="./images/editor/bottom/downarrow.svg" /></button>
+          <button class="ePageNav" up><img src="./images/editor/bottom/minus.svg" /></button>
         </div>
       </div>
     </div>

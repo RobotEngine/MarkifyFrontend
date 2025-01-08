@@ -8,12 +8,16 @@ modules["pages/lesson"] = class {
   </div>`;
   css = {
     ".lPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100%; height: 100vh; padding: 8px; left: 0px; top: 0px; justify-content: center`,
-    ".lPage": `display: flex; width: 100%; height: 100%; box-shadow: var(--darkShadow); border-radius: 12px; overflow: hidden`
+    ".lPageHolder[maximize]": `padding: 0px !important`,
+    ".lPage": `display: flex; width: 100%; height: 100%; box-shadow: var(--darkShadow); border-radius: 12px; overflow: hidden`,
+    ".lPageHolder[maximize] .lPage": `border-radius: 0px !important`
   };
   editors = {};
   // LESSON PAGE : Loads lessons, members, and configs before creating editor modules:
   js = async (page, joinData) => {
     this.id = getParam("lesson") ?? "";
+
+    let pageHolder = page.querySelector(".lPageHolder");
 
     if (this.id == "" && joinData.pin == null) {
       return; // Open the create new lesson page
@@ -106,6 +110,12 @@ modules["pages/lesson"] = class {
         let editor = this.editors[editorKeys[i]];
         editor.pipeline.publish("resize", { event: event });
         editor.pipeline.publish("bounds_change", { type: "resize", event: event });
+      }
+
+      if (fixed.offsetWidth > 800 && fixed.offsetHeight > 400) {
+        pageHolder.removeAttribute("maximize");
+      } else {
+        pageHolder.setAttribute("maximize", "");
       }
     });
   }

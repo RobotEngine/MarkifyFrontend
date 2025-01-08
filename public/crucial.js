@@ -517,12 +517,12 @@ function copyClipboardText(text, type) {
   navigator.clipboard.writeText(text).then(async () => {
     alertModule.open("worked", `<b>Copied</b>The ${type ?? "text"} was copied to your clipboard.`);
   }, function(err) {
-    console.error('Async: Could not copy text: ', err);
+    console.error("Async: Could not copy text: ", err);
   });
 }
 function clipBoardRead(event) {
   event.preventDefault();
-  document.execCommand('inserttext', false, event.clipboardData.getData("text/plain"));
+  document.execCommand("inserttext", false, event.clipboardData.getData("text/plain"));
 }
 
 let localDataStore = {};

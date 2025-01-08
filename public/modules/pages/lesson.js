@@ -134,6 +134,9 @@ modules["pages/lesson/board"] = class {
             </div>
           </div>
         </div>
+        <div class="eTopSection" scroll>
+          <div class="eTopDivider"></div>
+        </div>
         <div class="eTopSection" right>
           <button class="eMembers"><span class="eMemberHandCount" title="Number of hands raised."></span><span class="eMemberIdleCount" title="Number of idle members."></span><span class="eMemberCount" title="Number of members."></span>Members</button>
           <button class="eEndSession" title="End Session | Disable all editing access making everyone a viewer."><img src="./images/editor/share/endeditors.svg" /></button>
@@ -181,14 +184,16 @@ modules["pages/lesson/board"] = class {
     ".eContentHolder .content": `width: 5000px; height: 5000px`, // Just a test
     
     ".eTopHolder": `position: relative; width: 100%; height: 50px; visibility: visible`,
-    ".eTop": `position: absolute; display: flex; width: 100%; gap: 8px; padding-bottom: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,
-    ".eTopHolder[scroll] .eTop": `padding-bottom: 0px !important; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
+    ".eTop": `position: absolute; display: flex; box-sizing: border-box; width: 100%; gap: 8px; padding-bottom: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,
+    ".eTopHolder[scroll] .eTop": `gap: 0px !important; padding: 0 6px !important; padding-bottom: 0px !important; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
     ".eTop::-webkit-scrollbar": `display: none`,
+    ".eTopSection[scroll]": `display: none`,
+    ".eTopHolder[scroll] .eTopSection[scroll]": `display: flex !important`,
     ".eTopScroll": `position: absolute; display: flex; width: 36px; height: 36px; top: 50%; transform: translateY(-50%); background: rgba(180, 218, 253, .75); opacity: 0; backdrop-filter: blur(2px); border-radius: 18px; justify-content: center; align-items: center; z-index: 200`,
     ".eTopScroll img": `width: 22px`,
     ".eTopScroll:active": `transform: translateY(-50%) scale(.85) !important`,
     ".eTopSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
-    ".eTopHolder[scroll] .eTopSection": `box-shadow: unset !important`,
+    ".eTopHolder[scroll] .eTopSection": `padding: 6px 0px !important; box-shadow: unset !important`,
     ".eTopSection[left]": `border-bottom-right-radius: 12px`,
     ".eTopSection[right]": `border-bottom-left-radius: 12px`,
 
@@ -232,13 +237,8 @@ modules["pages/lesson/board"] = class {
 
     ".eBottomHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
     ".eBottom": `position: absolute; display: flex; width: 100%; gap: 8px; padding-top: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,
-    //".eBottomHolder[scroll] .eBottom": `padding-top: 0px !important; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
     ".eBottom::-webkit-scrollbar": `display: none`,
-    //".eBottomScroll": `position: absolute; display: flex; width: 36px; height: 36px; top: 50%; transform: translateY(-50%); background: rgba(180, 218, 253, .75); opacity: 0; backdrop-filter: blur(2px); border-radius: 18px; justify-content: center; align-items: center; z-index: 200`,
-    //".eBottomScroll img": `width: 22px`,
-    //".eBottomScroll:active": `transform: translateY(-50%) scale(.85) !important`,
     ".eBottomSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
-    //".eBottomHolder[scroll] .eBottomSection": `box-shadow: unset !important`,
     ".eBottomSection[left]": `display: none; border-top-right-radius: 12px`,
     ".eObserveIcon": `width: 34px; height: 34px; margin: 2px`,
     ".eObserveText": `margin: 0 6px`,
@@ -267,6 +267,7 @@ modules["pages/lesson/board"] = class {
     this.parent.editors["board"] = this.editor;
 
     let updateTopBar = () => {
+      eTopHolder.removeAttribute("scroll");
       if (eTop.scrollWidth > eTop.clientWidth) {
         eTopHolder.setAttribute("scroll", "");
         if (eTop.scrollLeft > 0) {
@@ -284,7 +285,6 @@ modules["pages/lesson/board"] = class {
           eTopScrollRight.style.pointerEvents = "none";
         }
       } else {
-        eTopHolder.removeAttribute("scroll");
         eTopScrollLeft.style.opacity = 0;
         eTopScrollLeft.style.pointerEvents = "none";
         eTopScrollRight.style.opacity = 0;

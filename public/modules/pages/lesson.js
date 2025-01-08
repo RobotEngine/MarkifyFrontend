@@ -10,6 +10,7 @@ modules["pages/lesson"] = class {
     ".lPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100%; height: 100vh; padding: 8px; left: 0px; top: 0px; justify-content: center`,
     ".lPage": `display: flex; width: 100%; height: 100%; box-shadow: var(--darkShadow); border-radius: 12px; overflow: hidden`
   };
+  editors = {};
   // LESSON PAGE : Loads lessons, members, and configs before creating editor modules:
   js = async (page, joinData) => {
     this.id = getParam("lesson") ?? "";
@@ -97,7 +98,16 @@ modules["pages/lesson"] = class {
       }, 60000)
     }); // PING every minute
 
-    this.setFrame("pages/lesson/board", page.querySelector(".lPage"));
+    await this.setFrame("pages/lesson/board", page.querySelector(".lPage"));
+
+    tempListen(window, "resize", (event) => {
+      let editorKeys = Object.keys(this.editors);
+      for (let i = 0; i < editorKeys.length; i++) {
+        let editor = this.editors[editorKeys[i]];
+        editor.pipeline.publish("resize", { event: event });
+        editor.pipeline.publish("bounds_change", { type: "resize", event: event });
+      }
+    });
   }
 }
 
@@ -145,7 +155,7 @@ modules["pages/lesson/board"] = class {
     </div>
     <div class="eBottomHolder">
       <div class="eBottom">
-        <div class="eBottomSection" left hidden>
+        <div class="eBottomSection" left>
           <img class="eObserveIcon" src="./images/editor/members/observe.svg" />
           <div class="eObserveText">Observing</div>
           <div class="eObserveCursor"></div>
@@ -171,11 +181,10 @@ modules["pages/lesson/board"] = class {
     ".eContentHolder .content": `width: 5000px; height: 5000px`, // Just a test
     
     ".eTopHolder": `position: relative; width: 100%; height: 50px; visibility: visible`,
-    ".eTop": `position: absolute; display: flex; width: 100%; padding-bottom: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,
+    ".eTop": `position: absolute; display: flex; width: 100%; gap: 8px; padding-bottom: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,
     ".eTopHolder[scroll] .eTop": `padding-bottom: 0px !important; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
     ".eTop::-webkit-scrollbar": `display: none`,
     ".eTopScroll": `position: absolute; display: flex; width: 36px; height: 36px; top: 50%; transform: translateY(-50%); background: rgba(180, 218, 253, .75); opacity: 0; backdrop-filter: blur(2px); border-radius: 18px; justify-content: center; align-items: center; z-index: 200`,
-    ".eTopHolder[scroll] .eTopScroll": `opacity: 1 !important; pointer-events: all`,
     ".eTopScroll img": `width: 22px`,
     ".eTopScroll:active": `transform: translateY(-50%) scale(.85) !important`,
     ".eTopSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
@@ -222,22 +231,21 @@ modules["pages/lesson/board"] = class {
     ".eHandRaise[selected]": `background: var(--theme)`,
 
     ".eBottomHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
-    ".eBottom": `position: absolute; display: flex; width: 100%; padding-top: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,
-    ".eBottomHolder[scroll] .eBottom": `padding-top: 0px !important; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
+    ".eBottom": `position: absolute; display: flex; width: 100%; gap: 8px; padding-top: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,
+    //".eBottomHolder[scroll] .eBottom": `padding-top: 0px !important; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
     ".eBottom::-webkit-scrollbar": `display: none`,
     //".eBottomScroll": `position: absolute; display: flex; width: 36px; height: 36px; top: 50%; transform: translateY(-50%); background: rgba(180, 218, 253, .75); opacity: 0; backdrop-filter: blur(2px); border-radius: 18px; justify-content: center; align-items: center; z-index: 200`,
-    ".eBottomHolder[scroll] .eBottomScroll": `opacity: 1 !important; pointer-events: all`,
     //".eBottomScroll img": `width: 22px`,
     //".eBottomScroll:active": `transform: translateY(-50%) scale(.85) !important`,
     ".eBottomSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
-    ".eBottomHolder[scroll] .eBottomSection": `box-shadow: unset !important`,
-    ".eBottomSection[left]": `border-top-right-radius: 12px`,
+    //".eBottomHolder[scroll] .eBottomSection": `box-shadow: unset !important`,
+    ".eBottomSection[left]": `display: none; border-top-right-radius: 12px`,
     ".eObserveIcon": `width: 34px; height: 34px; margin: 2px`,
     ".eObserveText": `margin: 0 6px`,
     ".eObserveCursor": `box-sizing: border-box; display: flex; padding: 2px 6px; margin-right: 4px; background: var(--theme); color: #fff; border: solid 3px var(--pageColor); box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), .5); border-radius: 8px 14px 14px; font-size: 14px; font-weight: 700`,
     ".eObserveExit": `display: flex; position: relative; width: 22px; height: 22px; margin: 8px; justify-content: center; align-items: center; --borderWidth: 3px; --borderRadius: 14px`,
     ".eObserveExit img": `width: 12px; height: 12px`,
-    ".eBottomSection[right]": `margin-left: 8px; border-top-left-radius: 12px`,
+    ".eBottomSection[right]": `margin-left: auto; border-top-left-radius: 12px`,
     ".ePageNav": `display: flex; width: 31px; height: 31px; margin: 0 4px; justify-content: center; align-items: center; background: var(--lightGray); border-radius: 16px`,
     ".eCurrentPage": `margin: 0 6px; font-size: 20px; outline: unset`,
     ".eCurrentPage:focus": `padding: 4px 12px; --borderWidth: 3px; --borderColor: var(--secondary); --borderRadius: 19px`
@@ -246,7 +254,66 @@ modules["pages/lesson/board"] = class {
     frame.style.position = "relative";
     frame.style.width = "100%";
     frame.style.height = "100%";
+
+    let eTopHolder = frame.querySelector(".eTopHolder");
+    let eTop = eTopHolder.querySelector(".eTop");
+    let lessonName = eTop.querySelector(".eFileName");
+    let eTopScrollLeft = eTopHolder.querySelector(".eTopScroll[left]");
+    let eTopScrollRight = eTopHolder.querySelector(".eTopScroll[right]");
+
+    let contentHolder = frame.querySelector(".eContentHolder");
+
     this.editor = await this.setFrame("pages/lesson/editor", frame.querySelector(".eContentHolder"));
+    this.parent.editors["board"] = this.editor;
+
+    let updateTopBar = () => {
+      if (eTop.scrollWidth > eTop.clientWidth) {
+        eTopHolder.setAttribute("scroll", "");
+        if (eTop.scrollLeft > 0) {
+          eTopScrollLeft.style.opacity = 1;
+          eTopScrollLeft.style.pointerEvents = "all";
+        } else {
+          eTopScrollLeft.style.opacity = 0;
+          eTopScrollLeft.style.pointerEvents = "none";
+        }
+        if (eTop.scrollWidth - eTop.scrollLeft > eTop.clientWidth) {
+          eTopScrollRight.style.opacity = 1;
+          eTopScrollRight.style.pointerEvents = "all";
+        } else {
+          eTopScrollRight.style.opacity = 0;
+          eTopScrollRight.style.pointerEvents = "none";
+        }
+      } else {
+        eTopHolder.removeAttribute("scroll");
+        eTopScrollLeft.style.opacity = 0;
+        eTopScrollLeft.style.pointerEvents = "none";
+        eTopScrollRight.style.opacity = 0;
+        eTopScrollRight.style.pointerEvents = "none";
+      }
+    }
+    eTopScrollLeft.addEventListener("click", function () {
+      eTop.scrollTo({ left: eTop.scrollLeft - 200, behavior: "smooth" });
+      updateTopBar();
+    });
+    eTopScrollRight.addEventListener("click", function () {
+      eTop.scrollTo({ left: eTop.scrollLeft + 200, behavior: "smooth" });
+      updateTopBar();
+    });
+    this.editor.pipeline.subscribe("topbarResize", "resize", updateTopBar);
+    this.editor.pipeline.subscribe("topbarScroll", "topbar_scroll", updateTopBar);
+    updateTopBar();
+
+    this.editor.pipeline.subscribe("boundChange", "bounds_change", (data) => {
+      //console.log("BOUNDS", data);
+    });
+
+    contentHolder.addEventListener("scroll", (event) => {
+      this.editor.pipeline.publish("scroll", { event: event });
+      this.editor.pipeline.publish("bounds_change", { type: "scroll", event: event });
+    });
+    eTop.addEventListener("scroll", (event) => {
+      this.editor.pipeline.publish("topbar_scroll", { event: event });
+    });
   }
 }
 

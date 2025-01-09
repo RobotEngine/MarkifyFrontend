@@ -105,17 +105,17 @@ modules["pages/lesson"] = class {
     await this.setFrame("pages/lesson/board", page.querySelector(".lPage"));
 
     tempListen(window, "resize", (event) => {
+      if (fixed.offsetWidth > 800 && fixed.offsetHeight > 400) {
+        pageHolder.removeAttribute("maximize");
+      } else {
+        pageHolder.setAttribute("maximize", "");
+      }
+
       let editorKeys = Object.keys(this.editors);
       for (let i = 0; i < editorKeys.length; i++) {
         let editor = this.editors[editorKeys[i]];
         editor.pipeline.publish("resize", { event: event });
         editor.pipeline.publish("bounds_change", { type: "resize", event: event });
-      }
-
-      if (fixed.offsetWidth > 800 && fixed.offsetHeight > 400) {
-        pageHolder.removeAttribute("maximize");
-      } else {
-        pageHolder.setAttribute("maximize", "");
       }
     });
   }
@@ -191,7 +191,7 @@ modules["pages/lesson/board"] = class {
     ".eCustomScroll::-webkit-scrollbar-thumb:active": `background: var(--activeGray)`,
     ".eInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; overflow: scroll; z-index: 2`,
     ".eContentHolder": `position: relative; width: 100%; height: 100%; overflow: scroll; z-index: 1`,
-    ".eContentHolder .content": `width: 5000px; height: 5000px`, // Just a test
+    //".eContentHolder .content": `width: 5000px; height: 5000px`, // Just a test
     
     ".eTopHolder": `position: relative; width: 100%; height: 50px; visibility: visible`,
     ".eTop": `position: absolute; display: flex; box-sizing: border-box; width: 100%; gap: 8px; padding-bottom: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,
@@ -313,10 +313,6 @@ modules["pages/lesson/board"] = class {
     this.editor.pipeline.subscribe("topbarScroll", "topbar_scroll", updateTopBar);
     updateTopBar();
 
-    this.editor.pipeline.subscribe("boundChange", "bounds_change", (data) => {
-      //console.log("BOUNDS", data);
-    });
-
     contentHolder.addEventListener("scroll", (event) => {
       this.editor.pipeline.publish("scroll", { event: event });
       this.editor.pipeline.publish("bounds_change", { type: "scroll", event: event });
@@ -328,9 +324,21 @@ modules["pages/lesson/board"] = class {
 }
 
 modules["pages/lesson/editor"] = class {
-  html = ``;
+  html = `
+  <div class="eContent">
+    <div class="eRealtime"></div>
+    <div class="eAnnotationHolder" style="margin: 2000px">
+      <div class="eAnnotations"></div>
+    </div>
+    <div class="eBackground"></div>
+  </div>
+  `;
   css = {
-
+    ".eContent": `--interfacePadding: 58px; position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - (var(--interfacePadding) * 2)); min-height: calc(100vh - (var(--interfacePadding) * 2)); padding: var(--interfacePadding); align-items: center; overflow: hidden; pointer-events: all; --zoom: 1`,
+    ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 3; overflow: hidden; pointer-events: none`,
+    ".eAnnotationHolder": `position: relative`,
+    ".eAnnotations": `position: relative; width: 1px; height: 1px; transform-origin: 0 0; transform: scale(var(--zoom)); z-index: 2`,
+    ".eBackground": `position: absolute; transform: scale(var(--zoom)); transform-origin: left top; background-image: url(./images/editor/backdrop.svg); background-position: center; opacity: .075; z-index: 1`
   };
 
   pipeline = { // PIPELINE : Distributes events across various modules and services:
@@ -359,7 +367,42 @@ modules["pages/lesson/editor"] = class {
     }
   };
 
+  zoom = 1;
+
   js = async (frame, extra) => {
+    let page = frame.closest(".lPage");
+    let contentHolder = page.querySelector(".eContentHolder");
+    let content = contentHolder.querySelector(".eContent");
+    let annotationHolder = content.querySelector(".eAnnotationHolder");
+    let annotations = annotationHolder.querySelector(".eAnnotations");
+    let background = content.querySelector(".eBackground");
+    
+    this.updateChunks = async () => {
+      if (this.exporting == true) {
+        return;
+      }
+
+      // Update Background Dots:
+      let dotSize = 25;
+      if (this.zoom < .25) {
+        dotSize = 100;
+      } else if (this.zoom < .5) {
+        dotSize = 50;
+      }
+      background.style.backgroundSize = dotSize + "px " + dotSize + "px";
+      let scaledDotSize = dotSize * this.zoom;
+      let backgroundWidth = Math.ceil((page.offsetWidth + (scaledDotSize * 4)) / scaledDotSize) * scaledDotSize;
+      let backgroundHeight = Math.ceil((page.offsetHeight + (scaledDotSize * 4)) / scaledDotSize) * scaledDotSize;
+      background.style.width = (backgroundWidth / this.zoom) + "px";
+      background.style.height = (backgroundHeight / this.zoom) + "px";
+      let annotationRect = annotations.getBoundingClientRect();
+      let originCorrectX = (annotationRect.left - (backgroundWidth / 2)) % scaledDotSize;
+      let originCorrectY = (annotationRect.top - (backgroundHeight / 2)) % scaledDotSize;
+      background.style.left = (contentHolder.scrollLeft + originCorrectX - (scaledDotSize * 2)) + "px";
+      background.style.top = (contentHolder.scrollTop + originCorrectY - (scaledDotSize * 2)) + "px";
+    }
+    this.pipeline.subscribe("boundChange", "bounds_change", this.updateChunks);
+    this.updateChunks();
 
   }
 }

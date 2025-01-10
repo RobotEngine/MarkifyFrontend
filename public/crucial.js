@@ -1389,7 +1389,7 @@ let modalModule = {
 modules["alert"] = class {
   css = {
     ".alertHolder": `position: relative; box-sizing: border-box; display: flex; flex-direction: column; width: 600px; max-width: 100%; height: fit-content; margin: 58px 8px 8px 8px; align-items: center; z-index: 9999`,
-    ".alert": `box-sizing: border-box; display: flex; max-width: 100%; transform: scale(0); opacity: 0; background: var(--pageColor); border-radius: 12px; box-shadow: var(--shadow); pointer-events: all; overflow: hidden`,
+    ".alert": `box-sizing: border-box; display: flex; max-width: 100%; transform: scale(0); opacity: 0; background: var(--pageColor); border-radius: 12px; box-shadow: var(--darkShadow); pointer-events: all; overflow: hidden`,
     ".alert img": `width: 32px; height: 32px; object-fit: cover; margin-right: 6px`,
     ".alertText": `display: flex; flex-wrap: wrap; flex: 1; align-items: center; text-align: left; font-size: 16px`,
     ".alertText b": `margin-right: 6px; color: var(--themeColor); font-size: 18px`,

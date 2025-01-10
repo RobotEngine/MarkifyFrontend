@@ -124,6 +124,23 @@ modules["pages/lesson"] = class {
         editor.pipeline.publish("bounds_change", { type: "resize", event: event });
       }
     });
+    
+    tempListen(app, "mouseup", (event) => {
+      let editorKeys = Object.keys(this.editors);
+      for (let i = 0; i < editorKeys.length; i++) {
+        let editor = this.editors[editorKeys[i]];
+        editor.pipeline.publish("mouseup", { event: event });
+        editor.pipeline.publish("click_end", { type: "mouseup", event: event });
+      }
+    }, { passive: false });
+    tempListen(app, "touchend", (event) => {
+      let editorKeys = Object.keys(this.editors);
+      for (let i = 0; i < editorKeys.length; i++) {
+        let editor = this.editors[editorKeys[i]];
+        editor.pipeline.publish("touchend", { event: event });
+        editor.pipeline.publish("click_end", { type: "touchend", event: event });
+      }
+    }, { passive: false });
   }
 }
 
@@ -345,7 +362,33 @@ modules["pages/lesson/board"] = class {
           this.editor.annotations[addAnno._id] = { render: addAnno };
         }
       }
-      
+      for (let i = 0; i < annoBody.annotations.length; i++) {
+        let existingAnno = this.editor.annotations[annoBody.annotations[i]._id];
+        if (existingAnno != null) {
+          await this.editor.utils.annotationChunks(existingAnno);
+          this.editor.utils.updateAnnotationPages(existingAnno.render);
+        }
+      }
+      if (annoBody.reactions != null) {
+        let reactedToObject = getObject(annoBody.reactedTo ?? [], "_id");
+        let userCheckSelf = this.parent.getSelf();
+        for (let i = 0; i < annoBody.reactions.length; i++) {
+          let addReaction = annoBody.reactions[i];
+          let existingAnnoRecord = this.editor.reactions[addReaction.annotation];
+          if (existingAnnoRecord == null) {
+            this.editor.reactions[addReaction.annotation] = [];
+            existingAnnoRecord = this.editor.reactions[addReaction.annotation];
+          }
+          delete addReaction.annotation;
+          if (reactedToObject[addReaction._id + "_" + userCheckSelf.modify] != null) {
+            addReaction.reacted = true;
+          }
+          existingAnnoRecord.push(addReaction);
+        }
+      }
+
+      await this.editor.render.setMarginSize();
+
     }
     asyncLoadAnnotations();
   }
@@ -355,7 +398,7 @@ modules["pages/lesson/editor"] = class {
   html = `
   <div class="eContent">
     <div class="eRealtime"></div>
-    <div class="eEditorContent" style="margin: 2000px">
+    <div class="eEditorContent">
       <div class="eAnnotations"></div>
     </div>
     <div class="eBackground"></div>
@@ -471,6 +514,10 @@ modules["pages/lesson/editor"] = class {
   };
 
   utils = {
+    round: (num, places) => {
+      let pow = Math.pow(10, places ?? 2);
+      return Math.ceil(num * pow) / pow;
+    },
     hexToRGB: (hex, alpha) => {
       if (hex == null) {
         return "";
@@ -550,6 +597,17 @@ modules["pages/lesson/editor"] = class {
   reactions = {};
   sources = {};
 
+  selecting = {};
+
+  visibleChunks = [];
+  chunkAnnotations = {};
+  chunkWidth = 2000;
+  chunkHeight = 2000;
+  scrollOffset = 58;
+
+  annotationPages = [];
+  currentPage = 1;
+
   zoom = 1;
   SVG_PADDING = 100; // How much padding svgs should have to ensure clean render
   maxLayer = 0;
@@ -566,12 +624,525 @@ modules["pages/lesson/editor"] = class {
     let annotations = editorContent.querySelector(".eAnnotations");
     let background = content.querySelector(".eBackground");
 
+    let currentPageHolder = page.querySelector(".eBottomSection[right]");
+    let pageTextBox = currentPageHolder.querySelector(".eCurrentPage");
+    let increasePageButton = currentPageHolder.querySelector(".ePageNav[down]");
+    let decreasePageButton = currentPageHolder.querySelector(".ePageNav[up]");
+
+    this.utils.localBoundingRect = (frame) => {
+      let frameRect = frame.getBoundingClientRect();
+      let pageRect = page.getBoundingClientRect();
+      return { width: frameRect.width, height: frameRect.height, x: frameRect.x - pageRect.x + contentHolder.scrollLeft, y: frameRect.y - pageRect.y + contentHolder.scrollTop }
+    }
+    this.utils.scaleToDoc = (x, y, noOrigin) => {
+      let pageRect = this.utils.localBoundingRect(annotations);
+      if (noOrigin != true) {
+        x -= pageRect.left;
+        y -= pageRect.top;
+      }
+      let scaleZoom = 1 / this.zoom;
+      return {
+        x: this.utils.round(x * scaleZoom),
+        y: this.utils.round(y * scaleZoom)
+      }
+    };
+    this.utils.scaleToZoom = (x, y) => {
+      let pageRect = this.utils.localBoundingRect(annotations);
+      return {
+        x: (x * this.zoom) + pageRect.left,
+        y: (y * this.zoom) + pageRect.top
+      };
+    };
+    this.utils.regionInChunks = (topx, topy, bottomx, bottomy) => {
+      if (bottomx < topx) {
+        let setBottomX = topx;
+        topx = bottomx;
+        bottomx = setBottomX;
+      }
+      if (bottomy < topy) {
+        let setBottomY = topy;
+        topy = bottomy;
+        bottomy = setBottomY;
+      }
+      let topLeftChunkX = Math.floor(topx / this.chunkWidth) * this.chunkWidth;
+      let topLeftChunkY = Math.floor(topy / this.chunkHeight) * this.chunkHeight;
+      let bottomRightChunkX = Math.floor(bottomx / this.chunkWidth) * this.chunkWidth;
+      let bottomRightChunkY = Math.floor(bottomy / this.chunkHeight) * this.chunkHeight;
+      let xCord = topLeftChunkX;
+      let yCord = topLeftChunkY;
+      let chunks = [];
+      while (yCord <= bottomRightChunkY) {
+        while (xCord <= bottomRightChunkX) {
+          chunks.push(xCord + "_" + yCord);
+          xCord += this.chunkWidth;
+        }
+        xCord = topLeftChunkX;
+        yCord += this.chunkHeight;
+      }
+      return chunks;
+    }
+    this.utils.annotationInChunks = (render, includeSelecting) => {
+      let [x, y] = this.utils.getAbsolutePosition(render, includeSelecting);
+      let [width, height] = render.s;
+      let thick = 0;
+      if (render.t != null) {
+        if (render.b != "none" || render.d == "line") {
+          thick = render.t;
+        }
+      }
+      if (width < 0) {
+        width = -width;
+        x -= width;
+      }
+      if (height < 0) {
+        height = -height;
+        y -= height;
+      }
+      let halfT = thick / 2;
+
+      let radian = (render.r ?? 0) * (Math.PI / 180);
+      let thickWidth = width + thick;
+      let thickHeight = height + thick;
+      let changedWidth = ((Math.abs(thickWidth * Math.cos(radian)) + Math.abs(thickHeight * Math.sin(radian))) - thickWidth) / 2;
+      let changedHeight = ((Math.abs(thickWidth * Math.sin(radian)) + Math.abs(thickHeight * Math.cos(radian))) - thickHeight) / 2;
+      
+      x += halfT - changedWidth;
+      y += halfT - changedHeight;
+      width = thickWidth + (changedWidth * 2);
+      height = thickHeight + (changedHeight * 2);
+      
+      return this.utils.regionInChunks(x, y, x + width, y + height);
+    }
+    this.utils.annotationChunks = async (annotation, includeSelecting) => {
+      if (annotation == null) {
+        return;
+      }
+      let render = annotation.render;
+      let chunks = [];
+
+      if (render != null && render.remove != true) {
+        let [x, y] = this.utils.getAbsolutePosition(render, includeSelecting);
+        let [width, height] = render.s;
+        let thick = 0;
+        if (render.t != null) {
+          if (render.b != "none" || render.d == "line") {
+            thick = render.t;
+          }
+        }
+        if (width < 0) {
+          width = -width;
+          x -= width;
+        }
+        if (height < 0) {
+          height = -height;
+          y -= height;
+        }
+        let halfT = thick / 2;
+
+        let radian = (render.r ?? 0) * (Math.PI / 180);
+        let thickWidth = width + thick;
+        let thickHeight = height + thick;
+        let changedWidth = ((Math.abs(thickWidth * Math.cos(radian)) + Math.abs(thickHeight * Math.sin(radian))) - thickWidth) / 2;
+        let changedHeight = ((Math.abs(thickWidth * Math.sin(radian)) + Math.abs(thickHeight * Math.cos(radian))) - thickHeight) / 2;
+        
+        x += halfT - changedWidth;
+        y += halfT - changedHeight;
+        width = thickWidth + (changedWidth * 2);
+        height = thickHeight + (changedHeight * 2);
+        
+        chunks = this.utils.regionInChunks(x, y, x + width, y + height);
+      }
+      let annotationVisible = false;
+      for (let i = 0; i < chunks.length; i++) {
+        let chunk = chunks[i];
+        if (this.chunkAnnotations[chunk] == null) {
+          this.chunkAnnotations[chunk] = {};
+          await this.render.setMarginSize();
+        }
+        this.chunkAnnotations[chunk][render._id] = "";
+        if (this.visibleChunks.includes(chunk) == true) {
+          annotationVisible = true;
+        }
+      }
+      if (annotation.chunks != null) {
+        // Remove existing chunks:
+        for (let i = 0; i < annotation.chunks.length; i++) {
+          let chunk = annotation.chunks[i];
+          if (chunks.includes(chunk) == false) {
+            delete this.chunkAnnotations[chunk][render._id];
+            if (Object.keys(this.chunkAnnotations[chunk]).length < 1) {
+              delete this.chunkAnnotations[chunk];
+              await this.render.setMarginSize();
+            }
+          }
+        }
+      }
+      annotation.chunks = chunks;
+      
+      if (annotationVisible == true) {
+        if (annotation.element == null) {
+          await this.render.createAnnotation(render);
+        }
+      } else {
+        if (annotation.element != null) {
+          annotation.element.remove();
+          annotation.element = null;
+        }
+      }
+    }
+    this.utils.pointInChunk = (x, y) => {
+      return this.utils.regionInChunks(x, y, x, y)[0];
+    }
+
+    let pageParam = getParam("page");
+    
+    this.utils.updateCurrentPageInterface = () => {
+      pageTextBox.innerHTML = "<b>" + this.currentPage + "</b> / " + this.annotationPages.length;
+      if (this.currentPage > this.annotationPages.length - 1) {
+        increasePageButton.setAttribute("disabled", "");
+      } else {
+        increasePageButton.removeAttribute("disabled");
+      }
+      if (this.currentPage < 2) {
+        decreasePageButton.setAttribute("disabled", "");
+      } else {
+        decreasePageButton.removeAttribute("disabled");
+      }
+    }
+    this.utils.updateCurrentPage = () => {
+      let activeElement = document.activeElement;
+      if (activeElement != null) {
+        let currentPageBox = activeElement.closest(".eCurrentPage");
+        if (currentPageBox == pageTextBox) {
+          return;
+        }
+      }
+      let pageRect = this.utils.localBoundingRect(editorContent);
+      let centerPointX = ((page.offsetWidth / 2) - pageRect.x) / this.zoom;
+      let centerPointY = ((page.offsetHeight / 2) - pageRect.y) / this.zoom;
+      let minPage = 0;
+      let minPageId;
+      let minDistance;
+      for (let i = 0; i < this.annotationPages.length; i++) {
+        let page = this.annotationPages[i];
+        let distance = Math.pow(page[1][0] - centerPointX, 2) + Math.pow(page[1][1] - centerPointY, 2);
+        if (distance < minDistance || minDistance == null) {
+          minDistance = distance;
+          minPage = i + 1;
+          minPageId = page[0];
+        }
+      }
+      if (minPage > 0) {
+        this.currentPage = minPage;
+        this.utils.updateCurrentPageInterface();
+        currentPageHolder.style.display = "flex";
+      } else {
+        currentPageHolder.style.display = "none";
+      }
+      modifyParams("page", minPageId);
+    }
+    this.utils.updateAnnotationPages = (anno) => {
+      if (anno.f != "page") {
+        return;
+      }
+      for (let i = 0; i < this.annotationPages.length; i++) {
+        let annoid = this.annotationPages[i][0];
+        if ((annoid ?? "").startsWith("pending_") == true) {
+          let anno = this.annotations[annoid] ?? {};
+          if (anno.pointer != null) {
+            annoid = anno.pointer;
+          }
+        }
+        if (annoid == anno._id) {
+          this.annotationPages.splice(i, 1);
+          break;
+        }
+      }
+      if (anno.remove != true) {
+        if (anno.parent != null) {
+          return;
+        }
+        let position = this.utils.getAbsolutePosition(anno);
+        let thickness = 0;
+        if (anno.t != null) {
+          if (anno.b != "none" || anno.d == "line") {
+            thickness = anno.t;
+          }
+        }
+        this.annotationPages.push([
+          anno._id,
+          [position[0] + (anno.s[0] / 2) + thickness, position[1] + (anno.s[1] / 2) + thickness],
+          [position[0], position[1], anno.s[0] + thickness, anno.s[1] + thickness]
+        ]);
+        this.annotationPages.sort((a, b) => {
+          if (b[1][1] > a[2][1] && b[1][1] < a[2][1] + a[2][3]) {
+            return a[2][0] - b[2][0];
+          }
+          return a[2][1] - b[2][1];
+        });
+      }
+      this.utils.updateCurrentPage();
+    }
+
+    this.utils.getAbsolutePosition = (anno, includeSelecting) => {
+      let returnX = anno.p[0];
+      let returnY = anno.p[1];
+      let selectedParent = false;
+      let currentAnnoCheck = anno;
+      let checkedParents = [];
+      while (currentAnnoCheck.parent != null) {
+        let annoid = currentAnnoCheck.parent;
+        if (annoid == null || checkedParents.includes(annoid) == true) {
+          break;
+        }
+        checkedParents.push(annoid);
+        let annotation = this.annotations[annoid];
+        if (annotation == null) {
+          break;
+        }
+        if (annotation.pointer != null) {
+          annoid = annotation.pointer;
+          annotation = this.annotations[annoid];
+        }
+        if (annotation == null) {
+          break;
+        }
+        let selected = this.selecting[annoid];
+        if (selected != null) {
+          selectedParent = true;
+        }
+        if (includeSelecting != true) {
+          currentAnnoCheck = annotation.render ?? {};
+        } else {
+          currentAnnoCheck = { ...(annotation.render ?? {}), ...(selected ?? {}) };
+        }
+        returnX += currentAnnoCheck.p[0] ?? 0;
+        returnY += currentAnnoCheck.p[1] ?? 0;
+      }
+      return [returnX, returnY, { selectedParent: selectedParent }];
+    }
+    this.utils.getRelativePosition = (anno, includeSelecting) => {
+      let returnX = anno.p[0];
+      let returnY = anno.p[1];
+      //let selectedParent = false;
+      let currentAnnoCheck = anno;
+      let checkedParents = [];
+      while (currentAnnoCheck.parent != null) {
+        let annoid = currentAnnoCheck.parent;
+        if (annoid == null || checkedParents.includes(annoid) == true) {
+          break;
+        }
+        checkedParents.push(annoid);
+        let annotation = this.annotations[annoid];
+        if (annotation == null) {
+          break;
+        }
+        if (annotation.pointer != null) {
+          annoid = annotation.pointer;
+          annotation = this.annotations[annoid];
+        }
+        if (annotation == null) {
+          break;
+        }
+        if (includeSelecting != true) {
+          currentAnnoCheck = annotation.render ?? {};
+        } else {
+          currentAnnoCheck = { ...(annotation.render ?? {}), ...(this.selecting[annoid] ?? {}) };
+        }
+        returnX -= currentAnnoCheck.p[0] ?? 0;
+        returnY -= currentAnnoCheck.p[1] ?? 0;
+      }
+      return [returnX, returnY];
+    }
+    this.utils.parentFromAnnotation = (anno, types, insert, includeSelecting) => {
+      types = types ?? ["page"];
+      insert = insert ?? {};
+      let id = anno._id;
+      let prevParent = anno.prevParent;
+      if (prevParent != null) {
+        let parentAnno = this.annotations[prevParent];
+        if (parentAnno != null && parentAnno.pointer != null) {
+          prevParent = parentAnno.pointer;
+        }
+      }
+      let x = anno.p[0];// + (anno.s[0] / 2) + thick;
+      let y = anno.p[1];// + (anno.s[1] / 2) + thick;
+      let index = anno.l ?? 0;
+      let chunk = this.utils.pointInChunk(x, y);
+      let annotationIDs = Object.keys(this.chunkAnnotations[chunk] ?? {});
+      let viableParents = [];
+      let foundInsert = false;
+      if (includeSelecting == true) { // We must check for if new annotations are valid!
+        let selectKeys = Object.keys(this.selecting);
+        for (let i = 0; i < selectKeys.length; i++) {
+          let selectKey = selectKeys[i];
+          if (annotationIDs.includes(selectKey) == false) {
+            annotationIDs.push(selectKey);
+          }
+        }
+      }
+      for (let i = 0; i < annotationIDs.length; i++) {
+        let annoid = annotationIDs[i];
+        if (annoid == null || annoid == id) {
+          continue;
+        }
+        let annotation = this.annotations[annoid] || {};
+        if (annotation.pointer != null) {
+          annoid = annotation.pointer;
+          annotation = this.annotations[annoid];
+        }
+        let render = annotation.render || {}; // { ...(annotation.render ?? {}), ...(this.selecting[annoid] ?? {}) };
+        if (includeSelecting == true) {
+          render = { ...render, ...(this.selecting[annoid] ?? {}) };
+        }
+        if (insert._id == annoid) {
+          foundInsert = true;
+          render = { ...render, ...insert };
+        }
+        if (types.includes(render.f) == false) {
+          continue;
+        }
+        if ((render.hidden == true || render.lock == true) && prevParent != annoid) {
+          continue;
+        }
+        if (render.remove == true) {
+          continue;
+        }
+        let [parentX, parentY] = this.utils.getAbsolutePosition(render, includeSelecting);
+        let [parentWidth, parentHeight] = render.s ?? [0, 0];
+        let parentThickness = 0;
+        if (render.t != null) {
+          if (render.b != "none" || render.d == "line") {
+            parentThickness = render.t;
+          }
+        }
+        if (x >= parentX && x <= parentX + parentWidth + parentThickness) {
+          if (y >= parentY && y <= parentY + parentHeight + parentThickness) {
+            if ((index ?? this.utils.maxLayer) > render.l) {
+              viableParents.push(render);
+            }
+          }
+        }
+      }
+      if (insert._id != null && foundInsert == false) {
+        viableParents.push(insert);
+      }
+      let highestPageID;
+      let highestLayer;
+      for (let i = 0; i < viableParents.length; i++) {
+        let parent = viableParents[i];
+        if ((parent.l ?? 0) > highestLayer || highestLayer == null) {
+          highestLayer = parent.l ?? 0;
+          highestPageID = parent._id;
+        }
+      }
+      return highestPageID;
+    }
+    this.utils.parentFromPoint = (x, y, index, types) => {
+      return this.utils.parentFromAnnotation({ p: [x, y], l: index }, types);
+    }
+    this.utils.applyRelativePosition = (anno) => {
+      let [setX, setY] = this.utils.getRelativePosition(anno);
+      anno.p = [setX, setY];
+      return anno;
+    }
+
     this.render = {};
     this.render.pdfPageQueue = [];
     this.render.pdfPageStorage = {};
     this.render.pdfFileLoading = {};
     this.render.runningPageRender = false;
-    this.render.processPageRenders = async function () {
+    this.render.tempID = () => {
+      return "pending_" + randomString(10) + Date.now();
+    };
+    this.render.setMarginSize = async (force) => {
+      if (this.exporting == true && force != true) {
+        return;
+      }
+  
+      this.render.farLeft = 0;
+      this.render.farRight = 0;
+      this.render.setLeftMargin = 0;
+      this.render.setRightMargin = 0;
+      this.render.farTop = 0;
+      this.render.farBottom = 0;
+      this.render.setTopMargin = 0;
+      this.render.setBottomMargin = 0;
+  
+      // Default Chunks:
+      this.chunkAnnotations["0_0"] = this.chunkAnnotations["0_0"] ?? [];
+      this.chunkAnnotations["0_-" + this.chunkHeight] = this.chunkAnnotations["0_-" + this.chunkHeight] ?? [];
+      this.chunkAnnotations["-" + this.chunkWidth + "_0"] = this.chunkAnnotations["-" + this.chunkWidth + "_0"] ?? [];
+      this.chunkAnnotations["-" + this.chunkWidth + "_-" + this.chunkHeight] = this.chunkAnnotations["-" + this.chunkWidth + "_-" + this.chunkHeight] ?? [];
+      
+      let chunks = Object.keys(this.chunkAnnotations);
+      for (let i = 0; i < chunks.length; i++) {
+        let splitPos = chunks[i].split("_");
+        let [x, y] = [parseInt(splitPos[0]), parseInt(splitPos[1])];
+        let left = -x;
+        let right = x + this.chunkWidth;
+        let top = -y;
+        let bottom = y + this.chunkHeight;
+        if (left > this.render.farLeft) {
+          this.render.setLeftMargin = Math.ceil(left / 400) * 400;
+          this.render.farLeft = this.render.setLeftMargin - 120;
+        }
+        if (right > this.render.farRight) {
+          this.render.setRightMargin = Math.ceil(right / 400) * 400;
+          this.render.farRight = this.render.setRightMargin - 120;
+        }
+        if (top > this.render.farTop) {
+          this.render.setTopMargin = Math.ceil(top / 400) * 400;
+          this.render.farTop = this.render.setTopMargin - 120;
+        }
+        if (bottom > this.render.farBottom) {
+          this.render.setBottomMargin = Math.ceil(bottom / 400) * 400;
+          this.render.farBottom = this.render.setBottomMargin - 120;
+        }
+      }
+  
+      if (mouseDown() == true) {
+        if (this.render.runCheckSizeReset != null) {
+          return;
+        }
+        this.render.runCheckSizeReset = () => {
+          this.render.setMarginSize();
+        };
+        this.pipeline.subscribe("marginSizeUpdateDelay", "click_end", this.render.runCheckSizeReset);
+        return;
+      }
+      if (this.render.runCheckSizeReset != null) {
+        this.pipeline.unsubscribe("marginSizeUpdateDelay");
+        this.render.runCheckSizeReset = null;
+      }
+      
+      let scrollPosX = contentHolder.scrollLeft;
+      let scrollPosY = contentHolder.scrollTop;
+      let contentLeft = this.render.marginLeft ?? 0;
+      let contentTop = this.render.marginTop ?? 0;
+      let addMarginLeftRight = fixed.offsetWidth / 2;
+      let addMarginTopBottom = fixed.offsetHeight / 2;
+      this.render.marginLeft = (this.render.setLeftMargin * this.zoom) + addMarginLeftRight;
+      this.render.marginRight = (this.render.setRightMargin * this.zoom) + addMarginLeftRight;
+      this.render.marginTop = (this.render.setTopMargin * this.zoom) + addMarginTopBottom;
+      this.render.marginBottom = (this.render.setBottomMargin * this.zoom) + addMarginTopBottom;
+      editorContent.style.marginLeft = this.render.marginLeft + "px";
+      editorContent.style.marginRight = this.render.marginRight + "px";
+      editorContent.style.marginTop = this.render.marginTop + "px";
+      editorContent.style.marginBottom = this.render.marginBottom + "px";
+      if (content.offsetWidth != this.render.lastOffsetWidth || content.offsetHeight != this.render.lastOffsetHeight) {
+        contentHolder.scrollTo(scrollPosX + (this.render.marginLeft - contentLeft), scrollPosY + (this.render.marginTop - contentTop));
+        if (this.realtime.module && this.realtime.module.adjustRealtimeHolder) {
+          editor.realtime.module.adjustRealtimeHolder();
+        }
+        if (this.updateZoom != null) {
+          await this.updateZoom(true);
+        }
+      }
+      this.render.lastOffsetWidth = content.offsetWidth;
+      this.render.lastOffsetHeight = content.offsetHeight;
+    };
+    this.render.processPageRenders = async () => {
       if (this.render.runningPageRender == true) {
         return;
       }
@@ -716,7 +1287,7 @@ modules["pages/lesson/editor"] = class {
       }
       this.render.runningPageRender = false;
     };
-    this.render.addPageToQueue = async function (sourceID, pageNumber, forceRunRender) {
+    this.render.addPageToQueue = async (sourceID, pageNumber, forceRunRender) => {
       let sourcePageId = sourceID + "_" + pageNumber;
       if (this.render.pdfPageStorage[sourcePageId] == null) {
         this.render.pdfPageStorage[sourcePageId] = [sourceID, pageNumber];
@@ -725,6 +1296,11 @@ modules["pages/lesson/editor"] = class {
           this.processPageRenders();
         }
       }
+    };
+    this.render.createSVG = (parent, type) => {
+      let newSVG = document.createElementNS("http://www.w3.org/2000/svg", type);
+      parent.appendChild(newSVG);
+      return newSVG;
     };
     this.render.createAnnotation = async (data, anno, long) => {
       /*
@@ -1778,7 +2354,7 @@ modules["pages/lesson/editor"] = class {
       }
       return [data, anno];
     }
-    this.render.removeAnnotation = async function (annoID, checkDone) {
+    this.render.removeAnnotation = async (annoID, checkDone) => {
       let anno = annotations.querySelector('.eAnnotation[anno="' + annoID + '"]');
       if (anno != null && (checkDone != true || anno.hasAttribute("done") == false)) {
         anno.remove();
@@ -1807,13 +2383,15 @@ modules["pages/lesson/editor"] = class {
       let backgroundHeight = Math.ceil((page.offsetHeight + (scaledDotSize * 4)) / scaledDotSize) * scaledDotSize;
       background.style.width = (backgroundWidth / this.zoom) + "px";
       background.style.height = (backgroundHeight / this.zoom) + "px";
-      let annotationRect = annotations.getBoundingClientRect();
-      let originCorrectX = (annotationRect.left - (backgroundWidth / 2)) % scaledDotSize;
-      let originCorrectY = (annotationRect.top - (backgroundHeight / 2)) % scaledDotSize;
+      let annotationRect = this.utils.localBoundingRect(annotations);
+      let originCorrectX = (annotationRect.x - contentHolder.scrollLeft - (backgroundWidth / 2)) % scaledDotSize;
+      let originCorrectY = (annotationRect.y - contentHolder.scrollTop - (backgroundHeight / 2)) % scaledDotSize;
       background.style.left = (contentHolder.scrollLeft + originCorrectX - (scaledDotSize * 2)) + "px";
       background.style.top = (contentHolder.scrollTop + originCorrectY - (scaledDotSize * 2)) + "px";
     }
     this.pipeline.subscribe("boundChange", "bounds_change", this.updateChunks);
     this.updateChunks();
+
+
   }
 }

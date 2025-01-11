@@ -1080,8 +1080,8 @@ modules["pages/lesson/editor"] = class {
       if (pageData == null) {
         return;
       }
-      this.pipeline.publish("page_change", { page: this.currentPage });
       let annoID = pageData[0];
+      this.pipeline.publish("page_change", { page: this.currentPage, pageId: annoID });
       if ((annoID ?? "").startsWith("pending_") == true) {
         let anno = this.annotations[annoID] ?? {};
         if (anno.pointer != null) {

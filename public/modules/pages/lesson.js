@@ -348,6 +348,7 @@ modules["pages/lesson/board"] = class {
     });
 
     // Fetch Annotations
+    let pageParam = getParam("page");
     let checkForJumpLink = getParam("annotation");
     let asyncLoadAnnotations = async () => {
       let [annoCode, annoBody] = await sendRequest("GET", "lessons/join/annotations", null, { session: this.parent.session }, { allowError: true });
@@ -389,6 +390,28 @@ modules["pages/lesson/board"] = class {
 
       await this.editor.render.setMarginSize();
 
+      let jumpAnnotation = null;
+      if (checkForJumpLink != null && checkForJumpLink != "") {
+        if (this.editor.annotations[checkForJumpLink] != null) {
+          [_, jumpAnnotation] = await this.editor.render.render((this.editor.annotations[checkForJumpLink] || {}).render);
+          this.selecting[checkForJumpLink] = {};
+          if (this.editor.updateZoom != null) {
+            await this.editor.updateZoom();
+          }
+        }
+      }
+      if (jumpAnnotation == null) {
+        if (pageParam == null) {
+          this.editor.utils.centerWindowWithPage();
+        } else {
+          this.editor.utils.updateAnnotationScroll([pageParam], false);
+        }
+        await this.editor.updateChunks();
+      } else {
+        let jumpRect = jumpAnnotation.getBoundingClientRect();
+        //window.scrollTo(window.scrollX + jumpRect.left - ((fixed.offsetWidth - jumpAnnotation.offsetWidth) / 2), window.scrollY + jumpRect.top - ((fixed.offsetHeight - jumpAnnotation.offsetHeight) / 2));
+        await this.editor.updateChunks();
+      }
     }
     asyncLoadAnnotations();
   }
@@ -433,13 +456,13 @@ modules["pages/lesson/editor"] = class {
     ".eAnnotation[sticky] div[reactions]": `display: flex; flex-wrap: wrap; flex: 1; gap: 6px; background: var(--themeColor); pointer-events: all; z-index: 999; background: none`,
     ".eReaction": `display: flex; padding: 2px; background: rgba(255, 255, 255, .8); border: solid 2px rgba(0, 0, 0, 0); border-radius: 8px; align-items: center; overflow: hidden; color: var(--darkGray)`,
     ".eReaction[selected]": `padding: 2px; background: rgba(180, 218, 253, .8); border: solid 2px var(--theme); color: var(--theme)`,
-    ".eReaction[dropdown]": `opacity: 0; border-radius: 14px`,
-    ".eContent[viewer] .eReaction[dropdown]": "display: none !important",
+    ".eReaction[add]": `opacity: 0; border-radius: 14px`,
+    ".eContent[viewer] .eReaction[add]": "display: none !important",
     ".eReaction div[imgholder]": `display: flex; width: 20px; height: 20px; justify-content: center; align-items: center`,
     ".eReaction img": `width: 32px; height: 32px; transform: scale(0.65); border-radius: 7px; filter: drop-shadow(0px 0px 8px var(--pageColor))`,
     ".eReaction div[count]": `margin: 0 5px 0 6px; font-size: 16px; font-weight: 700`,
-    ".eAnnotation[sticky]:hover .eReaction[dropdown]": `opacity: 1`,
-    ".eAnnotation[sticky][selected] .eReaction[dropdown]": `opacity: 1`,
+    ".eAnnotation[sticky]:hover .eReaction[add]": `opacity: 1`,
+    ".eAnnotation[sticky][selected] .eReaction[add]": `opacity: 1`,
     ".eAnnotation[sticky][selected] button": `pointer-events: all`,
     ".eAnnotation[src]": `object-fit: cover; pointer-events: all; border-radius: 12px`,
 
@@ -596,6 +619,7 @@ modules["pages/lesson/editor"] = class {
   annotations = {};
   reactions = {};
   sources = {};
+  sourceRenders = {};
 
   selecting = {};
 
@@ -632,7 +656,16 @@ modules["pages/lesson/editor"] = class {
     this.utils.localBoundingRect = (frame) => {
       let frameRect = frame.getBoundingClientRect();
       let pageRect = page.getBoundingClientRect();
-      return { width: frameRect.width, height: frameRect.height, x: frameRect.x - pageRect.x + contentHolder.scrollLeft, y: frameRect.y - pageRect.y + contentHolder.scrollTop }
+      let diffX = frameRect.x - pageRect.x;
+      let diffY = frameRect.y - pageRect.y;
+      return {
+        width: frameRect.width,
+        height: frameRect.height,
+        left: diffX,
+        top: diffY,
+        x: diffX + contentHolder.scrollLeft,
+        y: diffY + contentHolder.scrollTop
+      }
     }
     this.utils.scaleToDoc = (x, y, noOrigin) => {
       let pageRect = this.utils.localBoundingRect(annotations);
@@ -794,8 +827,6 @@ modules["pages/lesson/editor"] = class {
       return this.utils.regionInChunks(x, y, x, y)[0];
     }
 
-    let pageParam = getParam("page");
-    
     this.utils.updateCurrentPageInterface = () => {
       pageTextBox.innerHTML = "<b>" + this.currentPage + "</b> / " + this.annotationPages.length;
       if (this.currentPage > this.annotationPages.length - 1) {
@@ -882,6 +913,52 @@ modules["pages/lesson/editor"] = class {
         });
       }
       this.utils.updateCurrentPage();
+    }
+    this.utils.updateAnnotationScroll = (page, animation) => {
+      if (page == null) {
+        return;
+      }
+      this.utils.updateCurrentPageInterface();
+      let annoID = page[0];
+      if ((annoID ?? "").startsWith("pending_") == true) {
+        let anno = this.annotations[annoID] ?? {};
+        if (anno.pointer != null) {
+          annoID = anno.pointer;
+        }
+      }
+      let render = (this.annotations[annoID] ?? {}).render;
+      if (render != null) {
+        let thickness = 0;
+        if (render.t != null) {
+          if (render.b != "none" || render.d == "line") {
+            thickness = render.t;
+          }
+        }
+        let position = this.utils.getAbsolutePosition(render);
+        let annotationRect = this.utils.localBoundingRect(annotations);
+        let options = {};
+        if ((render.s[0] + (thickness * 2)) * this.zoom < page.offsetWidth - (this.scrollOffset * 2)) {
+          // Position page to center:
+          options.left = annotationRect.left + contentHolder.scrollLeft - (page.offsetWidth / 2) + ((position[0] + (render.s[0] / 2) + thickness) * this.zoom);
+        } else {
+          // Position page to left corner:
+          options.left = annotationRect.left + contentHolder.scrollLeft - this.scrollOffset + (position[0] * this.zoom);
+        }
+        if ((render.s[1] + (thickness * 2)) * this.zoom < page.offsetHeight - (this.scrollOffset * 2)) {
+          // Position page to center:
+          options.top = annotationRect.top + contentHolder.scrollTop - (page.offsetHeight / 2) + ((position[1] + (render.s[1] / 2) + thickness) * this.zoom);
+        } else {
+          // Position page to left corner:
+          options.top = annotationRect.top + contentHolder.scrollTop - this.scrollOffset + (position[1] * this.zoom);
+        }
+        if (animation != false) {
+          options.behavior = "smooth";
+        }
+        contentHolder.scrollTo(options);
+      }
+      if (this.realtime.observing != null && this.realtime.module != null) {
+        this.realtime.module.exitObserve();
+      }
     }
 
     this.utils.getAbsolutePosition = (anno, includeSelecting) => {
@@ -1293,7 +1370,7 @@ modules["pages/lesson/editor"] = class {
         this.render.pdfPageStorage[sourcePageId] = [sourceID, pageNumber];
         this.render.pdfPageQueue.push(sourcePageId);
         if (this.exporting != true || forceRunRender == true) {
-          this.processPageRenders();
+          this.render.processPageRenders();
         }
       }
     };
@@ -1809,7 +1886,7 @@ modules["pages/lesson/editor"] = class {
                 <div edit></div>
                 <div footer>
                   <div signature></div>
-                  <div reactions><button class="eReaction" dropdowntitle="Reactions" noscrollclose><div imgholder><img src="./images/editor/actions/reaction.svg"></div></button></div>
+                  <div reactions><button class="eReaction" add dropdowntitle="Reactions" noscrollclose><div imgholder><img src="./images/editor/actions/reaction.svg"></div></button></div>
                 </div>
               </div>
             </div>`);
@@ -1893,7 +1970,7 @@ modules["pages/lesson/editor"] = class {
           } else {
             reactionHolder.setAttribute("disabled", "");
           }
-          let addReactionButton = reactionHolder.querySelector(".eReaction[dropdown]");
+          let addReactionButton = reactionHolder.querySelector(".eReaction[add]");
           let reactions = this.reactions[_id];
           let presentReactions = [];
           if (reactions != null) {
@@ -2365,6 +2442,101 @@ modules["pages/lesson/editor"] = class {
       }
     };
 
+    let updateSubTimeout;
+    let updatePageTimeout;
+    let loadedChunks = {};
+    let alreadyRunningUpdateCycle = false;
+    this.runUpdateCycle = async () => {
+      if (alreadyRunningUpdateCycle == true) {
+        return;
+      }
+      alreadyRunningUpdateCycle = true;
+      let unloadChunkedAnnotations = {};
+      let newlyUnloaded = {};
+      let visible = Object.keys(loadedChunks);
+      for (let i = 0; i < visible.length; i++) {
+        let chunk = visible[i];
+        if (this.visibleChunks.includes(chunk) == false) {
+          delete loadedChunks[chunk];
+          newlyUnloaded[chunk] = "";
+
+          // Remove annotations in unloaded chunks:
+          unloadChunkedAnnotations = { ...unloadChunkedAnnotations, ...(this.chunkAnnotations[chunk] ?? {}) };
+        }
+      }
+      let chunkUnloadAnnos = Object.keys(unloadChunkedAnnotations);
+      for (let a = 0; a < chunkUnloadAnnos.length; a++) {
+        let annotation = this.annotations[chunkUnloadAnnos[a]] ?? {};
+        if (annotation.render == null) {
+          continue;
+        }
+        if (annotation.chunks != null) {
+          // Annotation may still be visible in another chunk, we must check
+          let remove = true;
+          for (let c = 0; c < annotation.chunks.length; c++) {
+            if (loadedChunks[annotation.chunks[c]] != null) {
+              remove = false;
+              break;
+            }
+          }
+          if (remove == false) {
+            continue;
+          }
+        }
+        if (this.selecting[annotation.render._id] != null) {
+          continue;
+        }
+        if (annotation.element != null) {
+          annotation.element.remove();
+          annotation.element = null;
+        }
+      }
+
+      let loadChunkedAnnotations = {};
+      let newlyLoaded = {};
+      for (let i = 0; i < this.visibleChunks.length; i++) {
+        let chunk = this.visibleChunks[i];
+        if (loadedChunks[chunk] == null) {
+          loadedChunks[chunk] = "";
+          newlyLoaded[chunk] = "";
+
+          // Load annotations in these chunks:
+          loadChunkedAnnotations = { ...loadChunkedAnnotations, ...(this.chunkAnnotations[chunk] ?? {}) };
+        }
+      }
+      let renderAnnotationIDs = {};
+      let renderAnnotationAnnos = [];
+      let chunkAnnos = Object.keys(loadChunkedAnnotations);
+      for (let a = 0; a < chunkAnnos.length; a++) {
+        let annotation = this.annotations[chunkAnnos[a]] ?? { chunks: [] };
+        let render = true;
+        for (let i = 0; i < annotation.chunks.length; i++) {
+          let chunk = annotation.chunks[i];
+          if (loadedChunks[chunk] != null && newlyLoaded[chunk] == null) {
+            render = false;
+            break;
+          }
+        }
+        if (render == true && annotation.render != null && annotation.element == null) {
+          renderAnnotationIDs[annotation.render._id] = {};
+          renderAnnotationAnnos.push(annotation.render);
+        }
+      }
+      let renderedNewAnnoIDs = {};
+      while (renderAnnotationAnnos.length > 0) {
+        for (let i = 0; i < renderAnnotationAnnos.length; i++) {
+          let newRender = renderAnnotationAnnos[i];
+          if (renderAnnotationIDs[newRender.parent] == null || renderedNewAnnoIDs[newRender.parent] != null) {
+            this.render.createAnnotation(newRender);
+            renderedNewAnnoIDs[newRender._id] = true;
+            renderAnnotationAnnos.splice(i, 1);
+            i--;
+          }
+        }
+        await sleep(1); // Just to be safe
+      }
+      alreadyRunningUpdateCycle = false;
+    }
     this.updateChunks = async () => {
       if (this.exporting == true) {
         return;
@@ -2384,10 +2556,34 @@ modules["pages/lesson/editor"] = class {
       background.style.width = (backgroundWidth / this.zoom) + "px";
       background.style.height = (backgroundHeight / this.zoom) + "px";
       let annotationRect = this.utils.localBoundingRect(annotations);
-      let originCorrectX = (annotationRect.x - contentHolder.scrollLeft - (backgroundWidth / 2)) % scaledDotSize;
-      let originCorrectY = (annotationRect.y - contentHolder.scrollTop - (backgroundHeight / 2)) % scaledDotSize;
+      let originCorrectX = (annotationRect.left - (backgroundWidth / 2)) % scaledDotSize;
+      let originCorrectY = (annotationRect.top - (backgroundHeight / 2)) % scaledDotSize;
       background.style.left = (contentHolder.scrollLeft + originCorrectX - (scaledDotSize * 2)) + "px";
       background.style.top = (contentHolder.scrollTop + originCorrectY - (scaledDotSize * 2)) + "px";
+
+      if (this.zooming == true) {
+        return;
+      }
+
+      let beforeChunks = JSON.stringify(this.visibleChunks);
+      this.visibleChunks = this.utils.regionInChunks(
+        ((page.offsetWidth / -2) - annotationRect.left) / this.zoom,
+        ((page.offsetHeight / -2) - annotationRect.top) / this.zoom,
+        ((page.offsetWidth + (page.offsetWidth / 2)) - annotationRect.left) / this.zoom,
+        ((page.offsetHeight + (page.offsetHeight / 2)) - annotationRect.top) / this.zoom
+      );
+      if (beforeChunks != JSON.stringify(this.visibleChunks)) {
+        this.runUpdateCycle();
+      }
+      
+      clearTimeout(updatePageTimeout);
+      updatePageTimeout = setTimeout(this.utils.updateCurrentPage, 100);
+      clearTimeout(updateSubTimeout);
+      updateSubTimeout = setTimeout(() => {
+        if (this.realtime.module != null) {
+          this.realtime.module.setShortSub(this.visibleChunks);
+        }
+      }, 750);
     }
     this.pipeline.subscribe("boundChange", "bounds_change", this.updateChunks);
     this.updateChunks();

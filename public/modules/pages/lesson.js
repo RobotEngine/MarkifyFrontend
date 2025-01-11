@@ -15,9 +15,6 @@ modules["pages/lesson"] = class {
   editors = {};
 
   members = {};
-  getSelf = () => {
-    return this.members[this.sessionID] ?? {};
-  }
   
   // LESSON PAGE : Loads lessons, members, and configs before creating editor modules:
   js = async (page, joinData) => {
@@ -28,6 +25,25 @@ modules["pages/lesson"] = class {
     if (this.id == "" && joinData.pin == null) {
       return; // Open the create new lesson page
     }
+
+    this.syncMembers = async (memberUpd) => {
+      this.editorCount = 0;
+      this.handCount = 0;
+      this.idleCount = 0;
+      for (let i = 0; i < memberUpd.length; i++) {
+        let memSet = memberUpd[i];
+        this.members[memSet._id] = memSet;
+        if (memSet.access == 1) {
+          this.editorCount++;
+        }
+        if (memSet.hand != null) {
+          this.handCount++;
+        }
+        if (memSet.active == false) {
+          this.idleCount++;
+        }
+      }
+    };
 
     joinData = joinData ?? {};
     let sendBody = { ss: socket.secureID };
@@ -61,6 +77,10 @@ modules["pages/lesson"] = class {
     this.sessionID = body.session._id;
     this.sessionToken = body.session.token;
     this.session = this.sessionID + ";" + this.sessionToken;
+
+    this.syncMembers(body.members);
+
+    document.title = (this.lesson.name ?? "Untitled Lesson") + " | Markify";
 
     let sentPing = false;
     let sendPing = async () => {
@@ -152,7 +172,7 @@ modules["pages/lesson/board"] = class {
       <div class="eTop">
         <div class="eTopSection" left>
           <a class="eLogo" href="#dashboard"><img src="./images/icon.svg" /></a>
-          <div class="eFileNameHolder border"><div class="eFileName" spellcheck="false" onpaste="clipBoardRead(event)">Lesson Name</div></div>
+          <div class="eFileNameHolder border"><div class="eFileName" spellcheck="false" onpaste="clipBoardRead(event)"></div></div>
           <button class="eFileDropdown">File</button>
           <div class="eTopDivider"></div>
           <button class="eSaveProgress eUndo" disabled><img draggable="false" src="./images/tooltips/progress/undo.svg" /></button>
@@ -283,10 +303,18 @@ modules["pages/lesson/board"] = class {
     ".eCurrentPage": `margin: 0 6px; font-size: 20px; outline: unset`,
     ".eCurrentPage:focus": `padding: 4px 12px; --borderWidth: 3px; --borderColor: var(--secondary); --borderRadius: 19px`
   }; //".": ``,
+
+  getSelf = () => {
+    return this.parent.members[this.parent.sessionID] ?? {};
+  }
+
   js = async (frame, extra) => {
     frame.style.position = "relative";
     frame.style.width = "100%";
     frame.style.height = "100%";
+
+    this.lesson = this.parent.lesson;
+    this.session = this.parent.session;
 
     let eTopHolder = frame.querySelector(".eTopHolder");
     let eTop = eTopHolder.querySelector(".eTop");
@@ -303,11 +331,21 @@ modules["pages/lesson/board"] = class {
     let increasePageButton = currentPageHolder.querySelector(".ePageNav[down]");
     let decreasePageButton = currentPageHolder.querySelector(".ePageNav[up]");
 
-    this.editor = await this.setFrame("pages/lesson/editor", contentHolder, {
-      session: this.parent.session,
-      getSelf: this.parent.getSelf
-    });
+    this.editor = await this.setFrame("pages/lesson/editor", contentHolder);
     this.parent.editors["board"] = this.editor;
+
+    this.editor.session = this.parent.session;
+
+    this.updateInterface = async () => {
+      let access = this.getSelf().access;
+      if (access == 0) {
+        lessonName.removeAttribute("contenteditable");
+      } else {
+        if (access > 3) {
+          lessonName.setAttribute("contenteditable", "");
+        }
+      }
+    }
 
     let updateTopBar = () => {
       eTopHolder.removeAttribute("scroll");
@@ -348,6 +386,49 @@ modules["pages/lesson/board"] = class {
 
     eTop.addEventListener("scroll", (event) => {
       this.editor.pipeline.publish("topbar_scroll", { event: event });
+    });
+
+    eTop.querySelector(".eLogo").addEventListener("click", (event) => {
+      event.preventDefault();
+      setFrame("pages/dashboard");
+    });
+    lessonName.textContent = this.lesson.name ?? "Untitled Lesson";
+    lessonName.title = lessonName.textContent;
+    lessonName.addEventListener("keydown", (event) => {
+      if (event.keyCode == 13) {
+        event.preventDefault();
+        lessonName.blur();
+        return;
+      }
+    });
+    lessonName.addEventListener("input", updateTopBar);
+    lessonName.addEventListener("focusout", async () => {
+      lessonName.scrollTo(0, 0);
+      lessonName.parentElement.style.setProperty("--borderWidth", "0px");
+      updateTopBar();
+
+      let name = lessonName.textContent.substring(0, 100).replace(/[^A-Za-z0-9.,_|/\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
+      if (name.replace(/ /g, "").length < 1) {
+        lessonName.textContent = this.lesson.name;
+        return;
+      }
+      if (lessonName.textContent == this.lesson.name) {
+        return;
+      }
+      let oldName = this.lesson.name;
+      this.lesson.name = name;
+      lessonName.textContent = name;
+      lessonName.title = name;
+      let [code] = await sendRequest("POST", "lessons/name", { name: name }, { session: this.session });
+      if (code != 200) {
+        this.lesson.name = oldName;
+        lessonName.textContent = oldName;
+        lessonName.title = oldName;
+      }
+    });
+    lessonName.addEventListener("focus", async () => {
+      lessonName.parentElement.style.setProperty("--borderWidth", "4px");
+      updateTopBar();
     });
 
     this.editor.pipeline.subscribe("zoomTextUpdate", "zoom_change", (event) => {
@@ -450,7 +531,7 @@ modules["pages/lesson/board"] = class {
       }
       if (annoBody.reactions != null) {
         let reactedToObject = getObject(annoBody.reactedTo ?? [], "_id");
-        let userCheckSelf = this.parent.getSelf();
+        let userCheckSelf = this.getSelf();
         for (let i = 0; i < annoBody.reactions.length; i++) {
           let addReaction = annoBody.reactions[i];
           let existingAnnoRecord = this.editor.reactions[addReaction.annotation];
@@ -491,6 +572,8 @@ modules["pages/lesson/board"] = class {
       }
     }
     asyncLoadAnnotations();
+
+    this.updateInterface();
   }
 }
 
@@ -716,9 +799,6 @@ modules["pages/lesson/editor"] = class {
   minLayer = 0;
 
   js = async (frame, extra) => {
-    this.session = extra.session;
-    this.getSelf = extra.getSelf;
-
     let page = frame.closest(".lPage");
     let contentHolder = page.querySelector(".eContentHolder");
     let content = contentHolder.querySelector(".eContent");
@@ -2195,7 +2275,7 @@ modules["pages/lesson/editor"] = class {
             if (pageHiddenHolder == null) {
               anno.insertAdjacentHTML("beforeend", `<div hide></div>`);
               let hiddenElem = anno.querySelector(":scope > div[hide]");
-              if (this.getSelf().access < 4) {
+              if (this.parent.getSelf().access < 4) {
                 hiddenElem.insertAdjacentHTML("beforeend", `<img hideicon src="./images/editor/hidden.svg" draggable="false">`);
               } else {
                 if (this.exporting != true) {
@@ -2203,7 +2283,7 @@ modules["pages/lesson/editor"] = class {
                     <img src="./images/editor/hidden.svg" draggable="false">
                     <div hidemodaltitle>Page Hidden</div>
                   </div>`);
-                  if (this.getSelf().access > 3) {
+                  if (this.parent.getSelf().access > 3) {
                     hiddenElem.querySelector("div[hidemodal]").insertAdjacentHTML("beforeend", `<button class="largeButton">Reveal Page</button>`);
                   }
                 }
@@ -2820,10 +2900,6 @@ modules["pages/lesson/editor"] = class {
       this.pipeline.publish("mousemove", { event: event });
       this.pipeline.publish("click_move", { type: "mousemove", event: event });
     }, { passive: false });
-    contentHolder.addEventListener("mouseup", (event) => {
-      this.pipeline.publish("mouseup", { event: event });
-      this.pipeline.publish("click_end", { type: "mouseup", event: event });
-    }, { passive: false });
 
     contentHolder.addEventListener("touchstart", (event) => {
       this.pipeline.publish("touchstart", { event: event });
@@ -2832,10 +2908,6 @@ modules["pages/lesson/editor"] = class {
     contentHolder.addEventListener("touchmove", (event) => {
       this.pipeline.publish("touchmove", { event: event });
       this.pipeline.publish("click_move", { type: "touchmove", event: event });
-    }, { passive: false });
-    contentHolder.addEventListener("touchend", (event) => {
-      this.pipeline.publish("touchend", { event: event });
-      this.pipeline.publish("click_end", { type: "touchend", event: event });
     }, { passive: false });
 
     this.updateChunks();

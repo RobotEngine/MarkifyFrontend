@@ -177,7 +177,7 @@ modules["pages/lesson/board"] = class {
           <button class="eMemberOptions" title="Member Options | Configure various member settings and available tools."><img src="./images/editor/share/setting.svg" /></button>
           <button class="eSharePin"></button>
           <div class="eTopDivider"></div>
-          <button class="eZoom"><span class="eZoomBox">100</span>%</button>
+          <button class="eZoom">100%</button>
           <button class="eAccount"><img src="./images/profiles/default.svg" accountimage /><div accountuser></div></button>
           <button class="eLogin">Login</button>
         </div>
@@ -294,6 +294,8 @@ modules["pages/lesson/board"] = class {
     let eTopScrollLeft = eTopHolder.querySelector(".eTopScroll[left]");
     let eTopScrollRight = eTopHolder.querySelector(".eTopScroll[right]");
 
+    let zoomButton = eTop.querySelector(".eZoom");
+
     let contentHolder = frame.querySelector(".eContentHolder");
 
     let currentPageHolder = frame.querySelector(".eBottomSection[right]");
@@ -346,6 +348,10 @@ modules["pages/lesson/board"] = class {
 
     eTop.addEventListener("scroll", (event) => {
       this.editor.pipeline.publish("topbar_scroll", { event: event });
+    });
+
+    this.editor.pipeline.subscribe("zoomTextUpdate", "zoom_change", (event) => {
+      zoomButton.textContent = Math.round(event.zoom * 100) + "%";
     });
 
     this.editor.pipeline.subscribe("pageTextUpdate", "page_change", (event) => {
@@ -593,7 +599,7 @@ modules["pages/lesson/editor"] = class {
     },
     subscribe: (id, event, callback) => {
       if (this.pipeline.pipelineSubs[id] != null) {
-        this.pipeline.pipeUnsubscribe(id);
+        this.pipeline.unsubscribe(id);
       }
 
       this.pipeline.pipeline[event] = this.pipeline.pipeline[event] ?? {};
@@ -2712,7 +2718,7 @@ modules["pages/lesson/editor"] = class {
 
       this.zooming = false;
 
-      this.pipeline.publish("zoom", { zoom: this.zoom });
+      this.pipeline.publish("zoom_change", { zoom: this.zoom });
 
       if (this.realtime.module != null) {
         this.realtime.module.adjustRealtimeHolder();

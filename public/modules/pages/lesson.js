@@ -343,17 +343,6 @@ modules["pages/lesson/board"] = class {
     this.editor.session = this.parent.session;
     this.editor.sources = this.parent.sources;
 
-    this.updateInterface = async () => {
-      let access = this.getSelf().access;
-      if (access == 0) {
-        lessonName.removeAttribute("contenteditable");
-      } else {
-        if (access > 3) {
-          lessonName.setAttribute("contenteditable", "");
-        }
-      }
-    }
-
     let updateTopBar = () => {
       eTopHolder.removeAttribute("scroll");
       if (eTop.scrollWidth > eTop.clientWidth) {
@@ -390,6 +379,18 @@ modules["pages/lesson/board"] = class {
     this.editor.pipeline.subscribe("topbarResize", "resize", updateTopBar);
     this.editor.pipeline.subscribe("topbarScroll", "topbar_scroll", updateTopBar);
     updateTopBar();
+
+    this.updateInterface = async () => {
+      let access = this.getSelf().access;
+      if (access == 0) {
+        lessonName.removeAttribute("contenteditable");
+      } else {
+        if (access > 3) {
+          lessonName.setAttribute("contenteditable", "");
+        }
+      }
+      updateTopBar();
+    }
 
     eTop.addEventListener("scroll", (event) => {
       this.editor.pipeline.publish("topbar_scroll", { event: event });

@@ -443,6 +443,7 @@ modules["pages/lesson/board"] = class {
     });
 
     if (userID != null) {
+      loadScript("./modules/dropdowns/account.js");
       accountButton.querySelector("div").textContent = account.user;
       if (account.image != null) {
         accountButton.querySelector("img").src = account.image;

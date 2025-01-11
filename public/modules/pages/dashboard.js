@@ -456,9 +456,11 @@ modules["pages/dashboard"] = class {
           let existingFolder;
           switch (data.task) {
             case "join":
-              if (lessons[body.lesson] != null) {
-                let memberCount = (lessons[body.lesson].members ?? 0) + 1;
-                lessons[body.lesson].members = memberCount;
+              lesson = lessons[body.lesson];
+              if (lesson != null) {
+                let memberCount = (lesson.members ?? 0) + 1;
+                lesson.members = memberCount;
+                lesson.membersUpdate = getEpoch();
                 tile = tileHolder.querySelector('.dTile[lesson="' + body.lesson + '"]');
                 if (tile != null) {
                   let memberTx = tile.querySelector(".dTileMemberCount");
@@ -468,9 +470,11 @@ modules["pages/dashboard"] = class {
               }
               break;
             case "leave":
-              if (lessons[body.lesson] != null) {
-                let memberCount = Math.max((lessons[body.lesson].members ?? 0) - 1, 0);
-                lessons[body.lesson].members = memberCount;
+              lesson = lessons[body.lesson];
+              if (lesson != null) {
+                let memberCount = Math.max((lesson.members ?? 0) - 1, 0);
+                lesson.members = memberCount;
+                lesson.membersUpdate = getEpoch();
                 tile = tileHolder.querySelector('.dTile[lesson="' + body.lesson + '"]');
                 if (tile != null) {
                   let memberTx = tile.querySelector(".dTileMemberCount");
@@ -531,6 +535,10 @@ modules["pages/dashboard"] = class {
                 if (tile != null) {
                   tile.querySelector(".dTileTitle").textContent = body.name ?? "Untitled Lesson";
                 }
+              }
+              if (body.members != null) {
+                lesson.members = body.members;
+                lesson.membersUpdate = getEpoch();
               }
               if (body.thumbnail != null) {
                 lesson.thumbnail = body.thumbnail;
@@ -1165,7 +1173,7 @@ modules["pages/dashboard/lessons"] = class {
       openedTx.textContent = timeSince(time, true);
       openedTx.title = formatFullDate(time);
       if (lesson.membersUpdate && lesson.membersUpdate < getEpoch() - 300000) {
-        lesson.members = null;
+        lesson.members = 0;
       }
       if (lesson.members > 0) {
         let memberCount = tile.querySelector(".dTileMemberCount");

@@ -199,7 +199,7 @@ modules["pages/lesson/board"] = class {
         </div>
         <div class="eBottomSection" right>
           <button class="ePageNav" down><img src="./images/editor/bottom/plus.svg" /></button>
-          <div class="eCurrentPage border" contenteditable><b>0</b> / 0</div>
+          <div class="eCurrentPage border" contenteditable></div>
           <button class="ePageNav" up><img src="./images/editor/bottom/minus.svg" /></button>
         </div>
       </div>
@@ -344,10 +344,6 @@ modules["pages/lesson/board"] = class {
     this.editor.pipeline.subscribe("topbarScroll", "topbar_scroll", updateTopBar);
     updateTopBar();
 
-    contentHolder.addEventListener("scroll", (event) => {
-      this.editor.pipeline.publish("scroll", { event: event });
-      this.editor.pipeline.publish("bounds_change", { type: "scroll", event: event });
-    });
     eTop.addEventListener("scroll", (event) => {
       this.editor.pipeline.publish("topbar_scroll", { event: event });
     });
@@ -724,6 +720,12 @@ modules["pages/lesson/editor"] = class {
     let annotations = editorContent.querySelector(".eAnnotations");
     let background = content.querySelector(".eBackground");
 
+    this.utils.localMousePosition = (mouse) => {
+      let mouseX = mouse.x ?? mouse.clientX ?? ((mouse.changedTouches ?? [])[0] ?? {}).clientX ?? 0;
+      let mouseY = mouse.y ?? mouse.clientY ?? ((mouse.changedTouches ?? [])[0] ?? {}).clientY ?? 0;
+      let pageRect = page.getBoundingClientRect();
+      return { mouseX: mouseX - pageRect.x, mouseY: mouseY - pageRect.y };
+    }
     this.utils.localBoundingRect = (frame) => {
       let frameRect = frame.getBoundingClientRect();
       let pageRect = page.getBoundingClientRect();
@@ -2650,6 +2652,186 @@ modules["pages/lesson/editor"] = class {
       }, 750);
     }
     this.pipeline.subscribe("boundChange", "bounds_change", this.updateChunks);
+
+    contentHolder.addEventListener("scroll", (event) => {
+      this.pipeline.publish("scroll", { event: event });
+      this.pipeline.publish("bounds_change", { type: "scroll", event: event });
+    });
+
+    let lastMouseX;
+    let lastMouseY;
+    let mouseBeforeX;
+    let mouseBeforeY;
+    this.setZoom = async (set, observe, mouse) => {
+      mouse = mouse ?? {};
+      if (observe != true && this.realtime.observing != null && this.realtime.module != null) {
+        this.realtime.module.exitObserve();
+      }
+
+      let { mouseX, mouseY } = this.utils.localMousePosition(mouse);
+
+      if (lastMouseX != mouseX || lastMouseY != mouseY) {
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
+        // Get Page Rect:
+        let annotationHolderRect = this.utils.localBoundingRect(annotations);
+        mouseBeforeX = (mouseX - annotationHolderRect.left) / this.zoom;
+        mouseBeforeY = (mouseY - annotationHolderRect.top) / this.zoom;
+      }
+
+      if (set != null) {
+        this.zoom = set;
+      } else {
+        this.zoom += Math.min(mouse.deltaY ?? 0, 50) * -0.01;
+      }
+      this.zoomChanged = true;
+
+      if (this.zoom > 5) {
+        this.zoom = 5;
+      } else if (this.zoom < .2) {
+        this.zoom = .2;
+      }
+
+      this.zooming = true;
+
+      content.style.setProperty("--zoom", this.zoom);
+
+      await this.render.setMarginSize();
+
+      if (observe != true) {
+        // Get Page Rect:
+        let annotationHolderRect = this.utils.localBoundingRect(annotations);
+        let addScrollX = (mouseBeforeX * this.zoom) - (mouseX - annotationHolderRect.left);
+        let addScrollY = (mouseBeforeY * this.zoom) - (mouseY - annotationHolderRect.top);
+        
+        // Set the new scroll position
+        contentHolder.scrollTo(contentHolder.scrollLeft + addScrollX, contentHolder.scrollTop + addScrollY);
+      }
+
+      await this.updateChunks();
+
+      this.zooming = false;
+
+      this.pipeline.publish("zoom", { zoom: this.zoom });
+
+      if (this.realtime.module != null) {
+        this.realtime.module.adjustRealtimeHolder();
+      }
+    }
+    this.pipeline.subscribe("zoomWheel", "wheel", (data) => {
+      let event = data.event;
+      if (event.ctrlKey == true || event.metaKey == true) {
+        event.preventDefault();
+        this.setZoom(null, null, event);
+      } else {
+        lastMouseX = null;
+        lastMouseY = null;
+      }
+    });
+    contentHolder.addEventListener("DOMMouseScroll", (event) => {
+      this.pipeline.publish("wheel", { type: "DOMMouseScroll", event: event });
+    }, { passive: false });
+    contentHolder.addEventListener("mousewheel", (event) => {
+      this.pipeline.publish("wheel", { type: "mousewheel", event: event });
+    }, { passive: false });
+    contentHolder.addEventListener("wheel", (event) => {
+      this.pipeline.publish("wheel", { type: "wheel", event: event });
+    }, { passive: false });
+
+    let startDistance;
+    let startZoom;
+    let currentCenter;
+    let getDistance = (touches) => {
+      let pageWidth = page.offsetWidth;
+      let pageHeight = page.offsetHeight;
+      let { touchAX, touchAY } = this.utils.localMousePosition(touches[1]);
+      let { touchBX, touchBY } = this.utils.localMousePosition(touches[0]);
+      let xDiff = (touchAX / pageWidth) - (touchBX / pageWidth);
+      let yDiff = (touchAY / pageHeight) - (touchBY / pageHeight);
+      return Math.sqrt((xDiff * xDiff) + (yDiff * yDiff));
+    }
+    let getCenter = (touches) => {
+      let { touchAX, touchAY } = this.utils.localMousePosition(touches[0]);
+      let { touchBX, touchBY } = this.utils.localMousePosition(touches[1]);
+      return { x: (touchAX + touchBX) / 2, y: (touchAY + touchBY) / 2 };
+    }
+    let running = false;
+    let handlePinch = async (event) => {
+      if (event.touches.length > 1 && this.pinchZoomDisable != true) {
+        event.preventDefault();
+        if (running == true) {
+          return;
+        }
+        running = true;
+        let selectKeys = Object.keys(this.selecting);
+        this.selecting = {};
+        for (let i = 0; i < selectKeys.length; i++) {
+          let existingAnno = this.annotations[selectKeys[i]];
+          if (existingAnno != null) {
+            let allowRender = false;
+            for (let i = 0; i < existingAnno.chunks.length; i++) {
+              if (this.visibleChunks.includes(existingAnno.chunks[i]) == true) {
+                allowRender = true;
+                break;
+              }
+            }
+            if (allowRender == true) {
+              await this.render.createAnnotation(existingAnno.render);
+            }
+          }
+        }
+        let currentDistance = getDistance(event.touches);
+        if (startDistance == null) {
+          startDistance = currentDistance;
+        }
+        if (startZoom == null) {
+          startZoom = this.zoom;
+        }
+        if (currentCenter == null) {
+          currentCenter = getCenter(event.touches);
+        }
+        await this.setZoom(startZoom * (currentDistance / startDistance), null, { clientX: currentCenter.x, clientY: currentCenter.y, updatePages: false });
+        running = false;
+      }
+    }
+    this.pipeline.subscribe("zoomPinchTouchStart", "touchstart", (data) => {
+      handlePinch(data.event);
+    });
+    this.pipeline.subscribe("zoomPinchTouchMove", "touchmove", (data) => {
+      handlePinch(data.event);
+    });
+    this.pipeline.subscribe("zoomPinchTouchEnd", "touchend", (data) => {
+      startDistance = null;
+      startZoom = null;
+      currentCenter = null;
+    });
+
+    contentHolder.addEventListener("mousedown", (event) => {
+      this.pipeline.publish("mousedown", { event: event });
+      this.pipeline.publish("click_start", { type: "mousedown", event: event });
+    }, { passive: false });
+    contentHolder.addEventListener("mousemove", (event) => {
+      this.pipeline.publish("mousemove", { event: event });
+      this.pipeline.publish("click_move", { type: "mousemove", event: event });
+    }, { passive: false });
+    contentHolder.addEventListener("mouseup", (event) => {
+      this.pipeline.publish("mouseup", { event: event });
+      this.pipeline.publish("click_end", { type: "mouseup", event: event });
+    }, { passive: false });
+
+    contentHolder.addEventListener("touchstart", (event) => {
+      this.pipeline.publish("touchstart", { event: event });
+      this.pipeline.publish("click_start", { type: "touchstart", event: event });
+    }, { passive: false });
+    contentHolder.addEventListener("touchmove", (event) => {
+      this.pipeline.publish("touchmove", { event: event });
+      this.pipeline.publish("click_move", { type: "touchmove", event: event });
+    }, { passive: false });
+    contentHolder.addEventListener("touchend", (event) => {
+      this.pipeline.publish("touchend", { event: event });
+      this.pipeline.publish("click_end", { type: "touchend", event: event });
+    }, { passive: false });
+
     this.updateChunks();
   }
 }

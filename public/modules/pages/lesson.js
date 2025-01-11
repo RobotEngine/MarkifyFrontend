@@ -961,6 +961,14 @@ modules["pages/lesson/editor"] = class {
       }
     }
 
+    this.utils.centerWindowWithPage = () => {
+      if (this.exporting == true) {
+        return;
+      }
+      let annotationRect = this.utils.localBoundingRect(annotations);
+      contentHolder.scrollTo(contentHolder.scrollLeft + annotationRect.left - ((page.offsetWidth - annotations.offsetWidth) / 2), contentHolder.scrollTop + annotationRect.top - this.scrollOffset);
+    }
+
     this.utils.getAbsolutePosition = (anno, includeSelecting) => {
       let returnX = anno.p[0];
       let returnY = anno.p[1];

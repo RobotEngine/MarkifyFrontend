@@ -15,6 +15,8 @@ modules["pages/lesson"] = class {
   editors = {};
 
   members = {};
+
+  sources = {};
   
   // LESSON PAGE : Loads lessons, members, and configs before creating editor modules:
   js = async (page, joinData) => {
@@ -79,6 +81,8 @@ modules["pages/lesson"] = class {
     this.session = this.sessionID + ";" + this.sessionToken;
 
     this.syncMembers(body.members);
+
+    this.sources = { ...this.sources, ...getObject(body.sources ?? [], "_id") };
 
     document.title = (this.lesson.name ?? "Untitled Lesson") + " | Markify";
 
@@ -319,6 +323,8 @@ modules["pages/lesson/board"] = class {
     let eTopHolder = frame.querySelector(".eTopHolder");
     let eTop = eTopHolder.querySelector(".eTop");
     let lessonName = eTop.querySelector(".eFileName");
+    let accountButton = eTop.querySelector(".eAccount");
+    let loginButton = eTop.querySelector(".eLogin");
     let eTopScrollLeft = eTopHolder.querySelector(".eTopScroll[left]");
     let eTopScrollRight = eTopHolder.querySelector(".eTopScroll[right]");
 
@@ -335,6 +341,7 @@ modules["pages/lesson/board"] = class {
     this.parent.editors["board"] = this.editor;
 
     this.editor.session = this.parent.session;
+    this.editor.sources = this.parent.sources;
 
     this.updateInterface = async () => {
       let access = this.getSelf().access;
@@ -434,6 +441,20 @@ modules["pages/lesson/board"] = class {
     this.editor.pipeline.subscribe("zoomTextUpdate", "zoom_change", (event) => {
       zoomButton.textContent = Math.round(event.zoom * 100) + "%";
     });
+
+    if (userID != null) {
+      accountButton.querySelector("div").textContent = account.user;
+      if (account.image != null) {
+        accountButton.querySelector("img").src = account.image;
+      }
+      accountButton.addEventListener("click", () => {
+        dropdownModule.open(accountButton, "dropdowns/account", { parent: this });
+      });
+    } else {
+      accountButton.remove();
+      loginButton.style.display = "block";
+      loginButton.addEventListener("click", () => { promptLogin(); });
+    }
 
     this.editor.pipeline.subscribe("pageTextUpdate", "page_change", (event) => {
       if (this.editor.currentPage > 0) {

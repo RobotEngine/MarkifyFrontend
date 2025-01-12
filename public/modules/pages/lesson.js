@@ -79,6 +79,7 @@ modules["pages/lesson"] = class {
     this.sessionID = body.session._id;
     this.sessionToken = body.session.token;
     this.session = this.sessionID + ";" + this.sessionToken;
+    window.previousLessonSession = this.session;
 
     this.syncMembers(body.members);
 
@@ -133,7 +134,6 @@ modules["pages/lesson"] = class {
     }); // PING every minute
 
     // On page:
-
     tempListen(document, "visibilitychange", () => {
       this.active = document.visibilityState == "visible";
       sendPing();
@@ -2846,7 +2846,7 @@ modules["pages/lesson/editor"] = class {
         allSelections[i].remove();
       }
     };
-
+    
     let updateSubTimeout;
     let updatePageTimeout;
     let loadedChunks = {};
@@ -2991,12 +2991,12 @@ modules["pages/lesson/editor"] = class {
       }, 750);
     }
     this.pipeline.subscribe("boundChange", "bounds_change", this.updateChunks);
-
+    
     contentHolder.addEventListener("scroll", (event) => {
       this.pipeline.publish("scroll", { event: event });
       this.pipeline.publish("bounds_change", { type: "scroll", event: event });
     });
-
+    
     let lastMouseX;
     let lastMouseY;
     let mouseBeforeX;

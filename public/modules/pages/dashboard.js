@@ -408,7 +408,11 @@ modules["pages/dashboard"] = class {
     let records = { recent: [], shared: [], owned: [], newest: [] };
     let lessons = {};
 
-    let [code, body] = await sendRequest("GET", "lessons");
+    let path = "lessons";
+    if (window.previousLessonSession != null) {
+      path += "?leave=" + window.previousLessonSession;
+    }
+    let [code, body] = await sendRequest("GET", path);
     if (code != 200) {
       return;
     }

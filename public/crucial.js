@@ -161,6 +161,11 @@ function addCSS(newRules) {
     stylesheet.insertRule(ruleKeys[i] + "{" + newRules[ruleKeys[i]] + "}", stylesheet.cssRules.length);
   }
 }
+
+let cleanup = new FinalizationRegistry((key) => {
+  console.log("CLEARED:", key);
+});
+
 let loadedModules = {};
 async function newModule(path, parent) {
   if (modules[path] == null) {
@@ -171,6 +176,8 @@ async function newModule(path, parent) {
     return;
   }
   let module = new moduleTemplate;
+  //console.log("REGISTER:", path);
+  //cleanup.register(module, path);
   module.newModule = async function (path) {
     return newModule(path, this);
   }

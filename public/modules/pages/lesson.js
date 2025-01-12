@@ -421,6 +421,7 @@ modules["pages/lesson/board"] = class {
         return;
       }
       if (lessonName.textContent == this.lesson.name) {
+        lessonName.textContent = this.lesson.name;
         return;
       }
       let oldName = this.lesson.name;

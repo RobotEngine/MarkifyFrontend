@@ -294,9 +294,9 @@ modules["pages/lesson/board"] = class {
     ".eMemberOptions img": `width: 32px; height: 32px`,
     ".eSharePin": `display: none; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
     ".eZoom": `height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
-    ".eAccount": `height: 32px; padding: 0; width: 31px; height: 31px; margin-left: 4px; border-radius: 16px; overflow: hidden`,
+    ".eAccount": `padding: 0; width: 32px; height: 32px; margin: 0 4px; border-radius: 16px; overflow: hidden`,
     ".eAccount img": `width: 100%; height: 100%; object-fit: cover`,
-    ".eLogin": `height: 32px; display: none; padding: 6px 10px; margin-left: 4px; background: var(--secondary); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
+    ".eLogin": `height: 32px; display: none; padding: 6px 10px; margin: 0 4px; background: var(--secondary); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
 
     ".eToolbarHolder": `position: relative; display: flex; gap: 8px; width: fit-content; flex: 1; margin: 8px 0; visibility: visible`,
     ".eToolbar": `position: relative; display: flex; box-sizing: border-box; margin: auto 0; align-items: center; pointer-events: all`,

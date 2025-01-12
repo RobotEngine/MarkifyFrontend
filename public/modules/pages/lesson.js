@@ -347,14 +347,14 @@ modules["pages/lesson/board"] = class {
       eTopHolder.removeAttribute("scroll");
       if (eTop.scrollWidth > eTop.clientWidth) {
         eTopHolder.setAttribute("scroll", "");
-        if (eTop.scrollLeft > 0) {
+        if (Math.floor(eTop.scrollLeft) > 0) {
           eTopScrollLeft.style.opacity = 1;
           eTopScrollLeft.style.pointerEvents = "all";
         } else {
           eTopScrollLeft.style.opacity = 0;
           eTopScrollLeft.style.pointerEvents = "none";
         }
-        if (eTop.scrollWidth - eTop.scrollLeft > eTop.clientWidth) {
+        if (Math.floor(eTop.scrollWidth - eTop.scrollLeft) > Math.floor(eTop.clientWidth)) {
           eTopScrollRight.style.opacity = 1;
           eTopScrollRight.style.pointerEvents = "all";
         } else {
@@ -441,6 +441,7 @@ modules["pages/lesson/board"] = class {
 
     this.editor.pipeline.subscribe("zoomTextUpdate", "zoom_change", (event) => {
       zoomButton.textContent = Math.round(event.zoom * 100) + "%";
+      updateTopBar();
     });
 
     if (userID != null) {

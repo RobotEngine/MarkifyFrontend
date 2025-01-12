@@ -714,10 +714,21 @@ modules["dropdowns/editor/zoom"] = class {
         }
       }
     });
-    zoomPercentage.addEventListener("focus", async () => {
-      zoomPercentage.textContent = "";
+    let alreadyRunningFocus = false;
+    zoomPercentage.addEventListener("focus", () => {
+      if (alreadyRunningFocus == true) {
+        return;
+      }
+      alreadyRunningFocus = true;
+      zoomPercentage.blur();
+      zoomPercentage.innerHTML = "";
+      zoomPercentage.focus();
+      alreadyRunningFocus = false;
     });
     zoomPercentage.addEventListener("focusout", (event) => {
+      if (alreadyRunningFocus == true) {
+        return;
+      }
       let textBox = event.target.closest("div");
       if (textBox == null) {
         return;

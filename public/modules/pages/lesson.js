@@ -677,6 +677,7 @@ modules["dropdowns/editor/zoom"] = class {
       } else {
         zoomSub.removeAttribute("disabled");
       }
+      frame.closest(".dropdown").querySelector(".dropdownTitle").textContent = zoomPercentage.textContent + "%";
     }
     editor.pipeline.subscribe("zoomDropdownUpdate", "zoom_change", setZoomText);
     setZoomText();

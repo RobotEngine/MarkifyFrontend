@@ -132,6 +132,19 @@ modules["pages/lesson"] = class {
       }, 60000)
     }); // PING every minute
 
+    // On page:
+
+    tempListen(document, "visibilitychange", () => {
+      this.active = document.visibilityState == "visible";
+      sendPing();
+
+      let editorKeys = Object.keys(this.editors);
+      for (let i = 0; i < editorKeys.length; i++) {
+        let editor = this.editors[editorKeys[i]];
+        editor.pipeline.publish("visibilitychange", { active: this.active });
+      }
+    });
+
     await this.setFrame("pages/lesson/board", page.querySelector(".lPage"));
 
     tempListen(window, "resize", (event) => {
@@ -306,7 +319,7 @@ modules["pages/lesson/board"] = class {
     ".ePageNav": `display: flex; width: 31px; height: 31px; margin: 0 4px; justify-content: center; align-items: center; background: var(--lightGray); border-radius: 16px`,
     ".eCurrentPage": `margin: 0 6px; font-size: 20px; outline: unset`,
     ".eCurrentPage:focus": `padding: 4px 12px; --borderWidth: 3px; --borderColor: var(--secondary); --borderRadius: 19px`
-  }; //".": ``,
+  };
 
   getSelf = () => {
     return this.parent.members[this.parent.sessionID] ?? {};
@@ -443,6 +456,9 @@ modules["pages/lesson/board"] = class {
     this.editor.pipeline.subscribe("zoomTextUpdate", "zoom_change", (event) => {
       zoomButton.textContent = Math.round(event.zoom * 100) + "%";
       updateTopBar();
+    });
+    zoomButton.addEventListener("click", () => {
+      dropdownModule.open(zoomButton, "dropdowns/editor/zoom", { parent: this });
     });
 
     if (userID != null) {
@@ -599,6 +615,195 @@ modules["pages/lesson/board"] = class {
     asyncLoadAnnotations();
 
     this.updateInterface();
+  }
+}
+
+modules["dropdowns/editor/zoom"] = class {
+  html = `
+  <div class="eZoomHolder">
+    <button class="eZoomButton buttonAnim border" sub change="-20">-</button>
+    <div class="eZoomLevel border"><div class="eZoomBox" contenteditable>100</div>%</div>
+    <button class="eZoomButton buttonAnim border" add change="20">+</button>
+  </div>
+  <div class="eZoomLine"></div>
+  <button class="eZoomAction" option="snapping" local title="Snap elements to guides while moving and resizing."><div label>Snapping</div><div class="eZoomToggle"><div></div></div></button>
+  <button class="eZoomAction" option="cursors" title="Display the cursors of other editors."><div label>Show Cursors</div><div class="eZoomToggle"><div></div></div></button>
+  <button class="eZoomAction" option="cursornames" local title="Show the member's name when they're annotating."><div label>Cursor Names</div><div class="eZoomToggle"><div></div></div></button>
+  <button class="eZoomAction" option="stylusmode" local title="Only write on the document when using an active stylus, such as the Apple Pencil."><div label>Stylus Mode</div><div class="eZoomToggle"><div></div></div></button>
+  <!--<button class="eZoomAction" option="comments" title="Show comments on the document."><div label>Comments</div><div class="eZoomToggle"><div></div></div></button>-->
+  <!--<div class="eZoomLine"></div>-->
+  <!--<button class="eZoomAction" option="fullscreen" title="Fullscreen allows increased accessibility."><div label>Fullscreen</div><div class="eZoomToggle"><div></div></div></button>-->
+  `;
+  css = {
+    ".eZoomHolder": `display: flex; flex-wrap: wrap; justify-content: center; align-items: center`,
+    ".eZoomButton": `position: relative; display: flex; width: 22px; height: 22px; margin: 20px 3px; justify-content: center; align-items: center; --borderWidth: 3px; --borderRadius: 8px; color: var(--theme); font-size: 24px; font-weight: 600; line-height: 0`,
+    '.eZoomButton[sub]': `cursor: zoom-out`,
+    '.eZoomButton[add]': `cursor: zoom-in`,
+    ".eZoomLevel": `display: flex; padding: 3px 6px 3px 3px; margin: 0 12px; --borderWidth: 3px; --borderColor: var(--secondary); justify-content: center; align-items: center; --borderRadius: 15px; color: var(--theme); font-size: 20px; font-weight: 600`,
+    ".eZoomLevel div": `max-width: 50px; min-width: 25px; padding: 3px 6px; margin-right: 3px; border: none; outline: none; border-radius: 16px; text-align: center; white-space: nowrap; overflow: hidden`,
+
+    ".eZoomLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`,
+
+    ".eZoomAction": `display: flex; width: 100%; padding: 6px; border-radius: 8px; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
+    ".eZoomAction:not(:last-child)": `margin-bottom: 4px`,
+    ".eZoomAction div[label]": `flex: 1; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
+    ".eZoomAction[on]": `--themeColor: var(--theme)`,
+    ".eZoomAction[off]": `--themeColor: var(--error)`,
+    ".eZoomToggle": `position: relative; width: 36px; height: 20px; padding: 2px; margin-left: 12px; background: var(--themeColor); border-radius: 12px; transition: .2s`,
+    ".eZoomToggle div": `position: absolute; width: 20px; height: 20px; background: #fff; border-radius: 10px; transition: .2s`,
+    ".eZoomAction[on] .eZoomToggle div": `right: 2px`,
+    ".eZoomAction[off] .eZoomToggle div": `right: calc(100% - 22px)`,
+    ".eZoomAction:hover": `background: var(--themeColor); color: #fff`,
+    ".eZoomAction:hover .eZoomToggle": `background: #fff`,
+    ".eZoomAction:hover .eZoomToggle div": `background: var(--themeColor)`,
+
+    "body:fullscreen": `overflow: auto !important`
+  };
+  js = async function (frame, extra) {
+    let editor = extra.parent.editor;
+
+    let zoomPercentage = frame.querySelector(".eZoomLevel div");
+    let zoomAdd = frame.querySelector(".eZoomButton[add]");
+    let zoomSub = frame.querySelector(".eZoomButton[sub]");
+    let setZoomText = () => {
+      zoomPercentage.textContent = Math.round(editor.zoom * 100);
+      if (editor.zoom >= 5) {
+        zoomAdd.setAttribute("disabled", "");
+      } else {
+        zoomAdd.removeAttribute("disabled");
+      }
+      if (editor.zoom <= .2) {
+        zoomSub.setAttribute("disabled", "");
+      } else {
+        zoomSub.removeAttribute("disabled");
+      }
+    }
+    editor.pipeline.subscribe("zoomDropdownUpdate", "zoom_change", setZoomText);
+    setZoomText();
+    let setButtonOptions = frame.querySelectorAll(".eZoomAction");
+    for (let i = 0; i < setButtonOptions.length; i++) {
+      let buttonToggle = setButtonOptions[i];
+      if (editor.options[buttonToggle.getAttribute("option")] == true) {
+        buttonToggle.setAttribute("on", "");
+      } else {
+        buttonToggle.setAttribute("off", "");
+      }
+    }
+    let forceSetZoom = () => {
+      editor.setZoom(parseInt(zoomPercentage.textContent) / 100, null, { clientX: editor.contentHolder.offsetWidth / 2, clientY: editor.contentHolder.offsetHeight / 2 });
+    }
+    zoomPercentage.addEventListener("keydown", (event) => {
+      let textBox = event.target.closest("div");
+      if (textBox == null) {
+        return;
+      }
+      if (event.keyCode == 13) {
+        event.preventDefault();
+        zoomPercentage.blur();
+        return;
+      }
+      if (String.fromCharCode(event.keyCode).match(/(\w|\s)/g) && event.key.length == 1) {
+        let textInt = parseInt(textBox.textContent + event.key);
+        if (parseInt(event.key) != event.key) {
+          event.preventDefault();
+          textBoxError(textBox, "Must be a number");
+        } else if (textInt > 500) {
+          event.preventDefault();
+          textBoxError(textBox, "Must be less than 500%");
+        }
+      }
+    });
+    zoomPercentage.addEventListener("focus", async () => {
+      zoomPercentage.textContent = "";
+    });
+    zoomPercentage.addEventListener("focusout", (event) => {
+      let textBox = event.target.closest("div");
+      if (textBox == null) {
+        return;
+      }
+      let textInt = parseInt(textBox.textContent);
+      if (isNaN(textInt) == true) {
+        setZoomText();
+      } else if (textInt > 500) {
+        textBox.textContent = "500";
+      } else if (textInt < 20) {
+        textBox.textContent = "20";
+      }
+      forceSetZoom();
+    });
+    let cursorZoomAction = frame.querySelector('.eZoomAction[option="cursors"]');
+    let namesZoomAction = frame.querySelector('.eZoomAction[option="cursornames"]');
+    if (editor.parent.parent.signalStrength < 3) {
+      cursorZoomAction.style.opacity = 0.5;
+      cursorZoomAction.title = "Cursors disabled due to weak connection.";
+      namesZoomAction.style.opacity = 0.5;
+    }
+    if (cursorZoomAction.hasAttribute("off")) {
+      namesZoomAction.setAttribute("disabled", "");
+    }
+    frame.addEventListener("click", (event) => {
+      let element = event.target;
+      if (element == null) {
+        return;
+      }
+      let zoomChange = element.closest(".eZoomButton");
+      if (zoomChange) {
+        (Math.floor(((editor.zoom + parseFloat(zoomChange.getAttribute("change"))) * 100) / 5) * 5) / 100
+        editor.setZoom(
+          (
+            Math.round(
+              (
+                Math.round(editor.zoom * 100) + parseInt(zoomChange.getAttribute("change"))
+              ) / 20
+          ) * 20
+        ) / 100, null, { clientX: editor.contentHolder.offsetWidth / 2, clientY: editor.contentHolder.offsetHeight / 2 });
+        return;
+      }
+      let toggle = element.closest(".eZoomAction");
+      if (toggle != null) {
+        let option = toggle.getAttribute("option");
+        if (toggle.hasAttribute("on")) {
+          toggle.setAttribute("off", "");
+          toggle.removeAttribute("on");
+          editor.options[option] = false;
+        } else {
+          toggle.setAttribute("on", "");
+          toggle.removeAttribute("off");
+          editor.options[option] = true;
+        }
+        if (toggle.hasAttribute("local") == true) {
+          this.localOptions = this.localOptions ?? {};
+          this.localOptions[option] = editor.options[option];
+          setLocalStore("options", JSON.stringify(this.localOptions));
+        }
+        if (option == "cursors") {
+          if (editor.realtime.module != null) {
+            editor.realtime.module.setShortSub(editor.visibleChunks);
+          }
+          if (toggle.hasAttribute("off") == true) {
+            editor.frame.querySelector(".eRealtime").innerHTML = "";
+          }
+        }
+        if (option == "fullscreen") {
+          if (toggle.hasAttribute("on") == true) {
+            if (body.requestFullscreen != null) {
+              body.requestFullscreen();
+            }
+          } else {
+            if (document.exitFullscreen != null) {
+              document.exitFullscreen();
+            }
+          }
+        }
+        if (option == "cursors") {
+          if (toggle.hasAttribute("on") == true) {
+            namesZoomAction.removeAttribute("disabled");
+          } else {
+            namesZoomAction.setAttribute("disabled", "");
+          }
+        }
+      }
+    });
   }
 }
 
@@ -826,10 +1031,21 @@ modules["pages/lesson/editor"] = class {
   js = async (frame, extra) => {
     let page = frame.closest(".lPage");
     let contentHolder = page.querySelector(".eContentHolder");
+    this.contentHolder = contentHolder;
     let content = contentHolder.querySelector(".eContent");
     let editorContent = content.querySelector(".eEditorContent");
     let annotations = editorContent.querySelector(".eAnnotations");
     let background = content.querySelector(".eBackground");
+
+    let localOptions = getLocalStore("options");
+    if (localOptions != null) {
+      this.localOptions = JSON.parse(getLocalStore("options"));
+      let localOptionKeys = Object.keys(this.localOptions);
+      for (let i = 0; i < localOptionKeys.length; i++) {
+        let option = localOptionKeys[i];
+        this.options[option] = this.localOptions[option];
+      }
+    }
 
     this.utils.localMousePosition = (mouse) => {
       let mouseX = mouse.x ?? mouse.clientX ?? ((mouse.changedTouches ?? [])[0] ?? {}).clientX ?? 0;

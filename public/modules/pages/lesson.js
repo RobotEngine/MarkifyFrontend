@@ -242,7 +242,7 @@ modules["pages/lesson/board"] = class {
       </div>
     </div>
   </div>
-  <div class="eContentHolder eCustomScroll"></div>
+  <div class="eContentHolder eCustomScroll" disabled></div>
   `;
   css = {
     ".eCustomScroll::-webkit-scrollbar": `width: 16px; background: var(--scrollGray)`,
@@ -250,7 +250,7 @@ modules["pages/lesson/board"] = class {
     ".eCustomScroll::-webkit-scrollbar-thumb": `border: 4px solid var(--scrollGray); background: var(--gray); border-radius: 8px`,
     ".eCustomScroll::-webkit-scrollbar-thumb:active": `background: var(--activeGray)`,
     ".eInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; overflow: scroll; z-index: 2`,
-    ".eContentHolder": `position: relative; width: 100%; height: 100%; overflow: scroll; z-index: 1`,
+    ".eContentHolder": `position: relative; width: 100%; height: 100%; overflow: scroll; z-index: 1; transition: .5s`,
     //".eContentHolder .content": `width: 5000px; height: 5000px`, // Just a test
     
     ".eTopHolder": `position: relative; width: 100%; height: 50px; visibility: visible`,
@@ -611,6 +611,8 @@ modules["pages/lesson/board"] = class {
         await this.editor.utils.scrollToElement(jumpAnnotation);
         await this.editor.updateChunks();
       }
+
+      contentHolder.removeAttribute("disabled");
     }
     asyncLoadAnnotations();
 

@@ -1528,6 +1528,19 @@ window.addEventListener("scroll", async function () {
   }
 });
 
+// Disable Default UI Zooming:
+window.addEventListener("wheel", (event) => {
+  if (event.ctrlKey == true || event.metaKey == true) {
+    event.preventDefault();
+  }
+}, { passive: false });
+document.addEventListener("touchstart", (event) => {
+  event.preventDefault();
+}, { passive: false });
+document.addEventListener("touchmove", (event) => {
+  event.preventDefault();
+}, { passive: false });
+
 // Add CORE CSS:
 addCSS({
   ".content[hideoverflow]": `max-width: 100vw !important; max-height: 100vh !important; overflow: hidden !important`,

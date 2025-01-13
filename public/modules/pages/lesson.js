@@ -207,7 +207,7 @@ modules["pages/lesson/board"] = class {
           <a class="eLogo" href="#dashboard"><img src="./images/icon.svg" /></a>
           <div class="eFileNameHolder border"><div class="eFileName" spellcheck="false" onpaste="clipBoardRead(event)"></div></div>
           <button class="eFileDropdown">File</button>
-          <button class="eCreateCopy">Create Copy</button>
+          <button class="eCreateCopy">Make Copy</button>
           <div class="eTopDivider"></div>
           <button class="eSaveProgress eUndo" disabled><img draggable="false" src="./images/tooltips/progress/undo.svg" /></button>
           <button class="eSaveProgress eRedo" disabled><img draggable="false" src="./images/tooltips/progress/redo.svg" /></button>
@@ -421,7 +421,11 @@ modules["pages/lesson/board"] = class {
       let access = this.editor.self.access;
       if (access == 0) {
         lessonName.removeAttribute("contenteditable");
-        createCopyButton.style.removeProperty("display");
+        if (this.editor.settings.allowExport != false) {
+          createCopyButton.style.removeProperty("display");
+        } else {
+          createCopyButton.style.display = "none";
+        }
         undoButton.style.display = "none";
         redoButton.style.display = "none";
       } else {
@@ -3254,13 +3258,13 @@ modules["pages/lesson/editor"] = class {
         lastMouseY = null;
       }
     });
-    contentHolder.addEventListener("DOMMouseScroll", (event) => {
+    page.addEventListener("DOMMouseScroll", (event) => {
       this.pipeline.publish("wheel", { type: "DOMMouseScroll", event: event });
     }, { passive: false });
-    contentHolder.addEventListener("mousewheel", (event) => {
+    page.addEventListener("mousewheel", (event) => {
       this.pipeline.publish("wheel", { type: "mousewheel", event: event });
     }, { passive: false });
-    contentHolder.addEventListener("wheel", (event) => {
+    page.addEventListener("wheel", (event) => {
       this.pipeline.publish("wheel", { type: "wheel", event: event });
     }, { passive: false });
 
@@ -3332,20 +3336,20 @@ modules["pages/lesson/editor"] = class {
       currentCenter = null;
     });
 
-    contentHolder.addEventListener("mousedown", (event) => {
+    page.addEventListener("mousedown", (event) => {
       this.pipeline.publish("mousedown", { event: event });
       this.pipeline.publish("click_start", { type: "mousedown", event: event });
     }, { passive: false });
-    contentHolder.addEventListener("mousemove", (event) => {
+    page.addEventListener("mousemove", (event) => {
       this.pipeline.publish("mousemove", { event: event });
       this.pipeline.publish("click_move", { type: "mousemove", event: event });
     }, { passive: false });
 
-    contentHolder.addEventListener("touchstart", (event) => {
+    page.addEventListener("touchstart", (event) => {
       this.pipeline.publish("touchstart", { event: event });
       this.pipeline.publish("click_start", { type: "touchstart", event: event });
     }, { passive: false });
-    contentHolder.addEventListener("touchmove", (event) => {
+    page.addEventListener("touchmove", (event) => {
       this.pipeline.publish("touchmove", { event: event });
       this.pipeline.publish("click_move", { type: "touchmove", event: event });
     }, { passive: false });

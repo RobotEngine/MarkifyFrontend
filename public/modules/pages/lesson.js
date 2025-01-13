@@ -25,6 +25,12 @@ modules["pages/lesson"] = class {
 
     let pageHolder = page.querySelector(".lPageHolder");
 
+    // Preload
+    loadScript("./modules/dropdowns/account.js");
+    loadScript("./modules/dropdowns/moveto.js");
+    loadScript("./modules/dropdowns/remove.js");
+    loadScript("./libraries/pdfjs/pdf.mjs");
+
     if (this.id == "" && joinData.pin == null) {
       return; // Open the create new lesson page
     }
@@ -151,12 +157,17 @@ modules["pages/lesson"] = class {
 
     this.pages["board"] = await this.setFrame("pages/lesson/board", page.querySelector(".lPage"));
 
-    tempListen(window, "resize", (event) => {
+    let sizeUpdate = () => {
       if (fixed.offsetWidth > 800 && fixed.offsetHeight > 400) {
         pageHolder.removeAttribute("maximize");
+        fixed.style.setProperty("--floatMargin", "12px");
       } else {
         pageHolder.setAttribute("maximize", "");
+        fixed.style.removeProperty("--floatMargin");
       }
+    }
+    tempListen(window, "resize", (event) => {
+      sizeUpdate();
 
       let pageKeys = Object.keys(this.pages);
       for (let i = 0; i < pageKeys.length; i++) {
@@ -165,6 +176,7 @@ modules["pages/lesson"] = class {
         editor.pipeline.publish("bounds_change", { type: "resize", event: event });
       }
     });
+    sizeUpdate();
     
     tempListen(app, "mouseup", (event) => {
       let pageKeys = Object.keys(this.pages);
@@ -467,7 +479,6 @@ modules["pages/lesson/board"] = class {
     });
 
     if (userID != null) {
-      loadScript("./modules/dropdowns/account.js");
       accountButton.querySelector("div").textContent = account.user;
       if (account.image != null) {
         accountButton.querySelector("img").src = account.image;

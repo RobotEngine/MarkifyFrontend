@@ -249,9 +249,11 @@ modules["pages/dashboard"] = class {
       if (fixed.offsetWidth > 800 && fixed.offsetHeight > 400) {
         dashboardHolder.style.removeProperty("padding");
         dashboard.style.removeProperty("border-radius");
+        fixed.style.setProperty("--floatMargin", "12px");
       } else {
         dashboardHolder.style.padding = "0px";
         dashboard.style.borderRadius = "0px";
+        fixed.style.removeProperty("--floatMargin");
       }
       if (fixed.offsetWidth > 800) {
         sidebarOpen = true;

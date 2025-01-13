@@ -40,14 +40,12 @@ modules["dropdowns/moveto"] = class {
   js = async (frame, extra) => {
     let lessonID = extra.lessonID;
     //let lesson = extra.lesson;
-    let record = extra.record;
+    let folderid = extra.folderID ?? (extra.record ?? {}).folder;
 
     let folderFrame = frame.querySelector(".dTileDropFolderHolder");
     let noFoldersMsg = folderFrame.querySelector(".dTileDropFolderNone");
     let newButton = frame.querySelector(".dTileDropFolderNew");
     let moveButton = frame.querySelector(".dTileDropFolderMoveTo");
-
-    let folderid = record.folder;
 
     let updateMsg = () => {
       if (folderFrame.childElementCount > 1) {
@@ -191,8 +189,8 @@ modules["dropdowns/moveto"] = class {
               }
             }
           }
-          dropdownModule.close();
         }
+        dropdownModule.close();
       }
     });
 

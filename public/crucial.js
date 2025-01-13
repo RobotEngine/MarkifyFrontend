@@ -961,7 +961,7 @@ modules["dropdown"] = class {
         addButtonWidth *= parseFloat(pageHolder.getAttribute("zoom"));
       }
       let setLeft = buttonRect.left + addButtonWidth - (dropdown.offsetWidth / 2);
-      let setTop = buttonRect.top;
+      let setTop = buttonRect.top - 4;
       dropdown.style.left = setLeft + "px";
       dropdown.style.top = setTop + "px";
 
@@ -1123,9 +1123,9 @@ modules["dropdown"] = class {
       dropdown.style.transition = "width .4s, height .4s, opacity .3s, border-radius .3s, transform .4s";
     }
     await setFrame(frameName, frame, { content: content, button: button, origin: button, ...data });
-    content.style.pointerEvents = "all";
     frame.style.removeProperty("min-height");
     await this.runResize(dropdown, content, header, button);
+    content.style.pointerEvents = "all";
     dropdown.style.transition = "width .4s, height .4s, opacity .3s, border-radius .3s, transform .4s";
     //await sleep(300);
     /*let dropTitle = header.querySelector(".dropdownTitle div");

@@ -746,6 +746,13 @@ modules["pages/lesson/board"] = class {
       this.editor.utils.updateAnnotationScroll(this.editor.annotationPages[setPage - 1], false);
     });
 
+    this.editor.pipeline.subscribe("boardLessonSet", "set", (body) => {
+      if (body.name != null && document.activeElement.closest(".eFileName") != lessonName) {
+        lessonName.textContent = this.lesson.name ?? "Untitled Lesson";
+        lessonName.title = lessonName.textContent;
+      }
+    });
+
     // Fetch Annotations
     let pageParam = getParam("page");
     let checkForJumpLink = getParam("annotation");

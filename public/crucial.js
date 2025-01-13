@@ -228,8 +228,8 @@ async function setFrame(path, frame, extra, parent) {
             continue;
           }
           remContent.style.opacity = 0;
-          remContent.style.width = "100%"; //
-          remContent.style.height = "100%"; //
+          remContent.style.width = "100%";
+          remContent.style.height = "100%";
           remContent.style.left = "0px";
           remContent.style.top = "0px";
           remContent.style.position = "absolute";
@@ -294,6 +294,13 @@ async function setFrame(path, frame, extra, parent) {
     extra.from = currentPage;
     window.location.hash = "#" + path.substring(path.lastIndexOf("/") + 1);
     fixed.style.removeProperty("--floatMargin");
+    let currentRemotes = Object.keys(socket.remotes);
+    for (let i = 0; i < currentRemotes.length; i++) {
+      let remote = currentRemotes[i];
+      if (remote != "account") {
+        delete socket.remotes[remote];
+      }
+    }
   }
   if (module.preJs != null) {
     continueLoading = (await (module.preJs())) != false;

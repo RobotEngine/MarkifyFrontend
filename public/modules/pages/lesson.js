@@ -14,10 +14,29 @@ modules["pages/lesson"] = class {
   };
 
   pages = {};
-
   members = {};
-
+  collaborators = {};
   sources = {};
+
+  defaultEmojis = [
+    "THUMBS UP SIGN",
+    "THUMBS DOWN SIGN",
+    "PARTY POPPER",
+    "ELECTRIC LIGHT BULB",
+    "WHITE HEAVY CHECK MARK",
+    "NO ENTRY",
+    "PUBLIC ADDRESS LOUDSPEAKER",
+    "KEYCAP 1",
+    "KEYCAP 2",
+    "KEYCAP 3",
+    "KEYCAP 4",
+    "KEYCAP 5",
+    "BLACK QUESTION MARK ORNAMENT",
+    "HUNDRED POINTS SYMBOL"
+  ];
+  recentEmojis = [];
+
+  signalStrength = 1;
   
   // LESSON PAGE : Loads lessons, members, and configs before creating editor modules:
   js = async (page, joinData) => {
@@ -32,9 +51,9 @@ modules["pages/lesson"] = class {
     loadScript("./modules/dropdowns/lesson/file/export.js");
     loadScript("./libraries/pdfjs/pdf.mjs");
 
-    if (this.id == "" && joinData.pin == null) {
+    /*if (this.id == "" && joinData.pin == null) {
       return; // Open the create new lesson page
-    }
+    }*/
 
     this.syncMembers = async (memberUpd) => {
       this.editorCount = 0;
@@ -54,6 +73,120 @@ modules["pages/lesson"] = class {
         }
       }
     };
+
+    socket.remotes["member"] = (data) => {
+      if (data.lesson != null && data.lesson != lessonID) {
+        return;
+      }
+      switch (data.task) {
+        case "kick":
+          if (userID == null || data.filled == true) {
+            if (data.filled != true) {
+              modifyParams("lesson");
+              modifyParams("page");
+              modifyParams("pin");
+            }
+            setFrame("pages/join");
+          } else {
+            setFrame("pages/dashboard");
+          }
+          break;
+        case "preference":
+          switch (data.type) {
+            case "emoji":
+              this.recentEmojis = data.data ?? [];
+              for (let i = 0; (i < this.defaultEmojis.length && this.recentEmojis.length < 21); i++) {
+                if (this.recentEmojis.includes(this.defaultEmojis[i]) == false) {
+                  this.recentEmojis.push(this.defaultEmojis[i]);
+                }
+              }
+              break;
+            default:
+              objectUpdate(data.data, this.preferences);
+          }
+      }
+    }
+    socket.remotes["lesson_" + this.id] = async (data) => {
+      let body = data.data;
+      let page = data.page ?? "board";
+
+      switch (data.task) {
+        case "join":
+          this.members[body._id] = body;
+          let collaborator = this.collaborators[body.modify];
+          if (collaborator != null) {
+            collaborator.name = body.name;
+            collaborator.color = body.color;
+            collaborator.email = body.email;
+            if (body.hasOwnProperty("image") == true) {
+              collaborator.image = body.image;
+            }
+          }
+          break;
+        case "leave":
+          if (this.members[body._id] == null) {
+            return;
+          }
+          delete this.members[body._id];
+          break;
+        case "update":
+          if (this.members[body._id] != null) {
+            let member = this.members[body._id];
+            let memberKeys = Object.keys(body);
+            for (let i = 0; i < memberKeys.length; i++) {
+              let key = memberKeys[i];
+              member[key] = body[key];
+            }
+            if (member.access > 0 && member.hand != null) {
+              member.hand = null;
+            }
+            let collaborator = this.collaborators[member.modify];
+            if (collaborator != null) {
+              if (body.name != null) {
+                collaborator.name = body.name;
+              }
+              if (body.email != null) {
+                collaborator.email = body.email;
+              }
+              if (body.hasOwnProperty("image") == true) {
+                collaborator.image = body.image;
+              }
+            }
+          } else {
+            return;
+          }
+          break;
+        case "set":
+          objectUpdate(body, this.lesson);
+          if (body.hasOwnProperty("name") == true) {
+            document.title = (this.lesson.name ?? "Untitled Lesson") + " | Markify";
+          }
+          if (body.settings != null) {
+            if (body.settings.forceLogin == false && access < 2) {
+              setFrame("pages/join");
+            }
+          }
+          break;
+        case "addsources":
+          this.sources = { ...this.sources, ...getObject(body.sources ?? [], "_id") };
+          break;
+        case "folderset":
+          this.folder = body.folder;
+      }
+
+      if (this.pages[page] != null) {
+        this.pages[page].editor.pipeline.publish(data.task, body);
+      }
+    }
+    socket.remotes["long_" + this.id] = async (data) => {
+      if (this.exporting == true) {
+        return;
+      }
+      let page = data.page ?? "board";
+      if (this.pages[page] != null) {
+        this.pages[page].editor.pipeline.publish("long", data.annotations ?? data);
+      }
+    }
 
     joinData = joinData ?? {};
     let sendBody = { ss: socket.secureID };
@@ -97,6 +230,18 @@ modules["pages/lesson"] = class {
     this.sources = { ...this.sources, ...getObject(body.sources ?? [], "_id") };
 
     document.title = (this.lesson.name ?? "Untitled Lesson") + " | Markify";
+
+    if (body.preferences != null) {
+      if (body.preferences.emojis != null) {
+        this.recentEmojis = body.preferences.emojis;
+        delete body.preferences.emojis;
+      }
+    }
+    for (let i = 0; (i < this.defaultEmojis.length && this.recentEmojis.length < 21); i++) {
+      if (this.recentEmojis.includes(this.defaultEmojis[i]) == false) {
+        this.recentEmojis.push(this.defaultEmojis[i]);
+      }
+    }
 
     let sentPing = false;
     let sendPing = async () => {

@@ -1442,7 +1442,7 @@ modules["dropdowns/dashboard/options"] = class {
     let copyButton = frame.querySelector('.dTileDropAction[option="copy"]');
     copyButton.addEventListener("click", async () => {
       copyButton.setAttribute("disabled", "");
-      let copyAlert = await alertModule.open("info", "<b>Creating Copy</b><div>Creating a copy of this lesson!", { time: "never" });
+      let copyAlert = await alertModule.open("info", "<b>Creating Copy</b><div>Creating a copy of this lesson.", { time: "never" });
       let path = "lessons/copy?lesson=" + lessonID;
       if (folderID != null){
         path += "&folder=" + folderID;

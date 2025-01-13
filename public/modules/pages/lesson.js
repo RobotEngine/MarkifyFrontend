@@ -207,6 +207,7 @@ modules["pages/lesson/board"] = class {
           <a class="eLogo" href="#dashboard"><img src="./images/icon.svg" /></a>
           <div class="eFileNameHolder border"><div class="eFileName" spellcheck="false" onpaste="clipBoardRead(event)"></div></div>
           <button class="eFileDropdown">File</button>
+          <button class="eCreateCopy">Create Copy</button>
           <div class="eTopDivider"></div>
           <button class="eSaveProgress eUndo" disabled><img draggable="false" src="./images/tooltips/progress/undo.svg" /></button>
           <button class="eSaveProgress eRedo" disabled><img draggable="false" src="./images/tooltips/progress/redo.svg" /></button>
@@ -291,6 +292,7 @@ modules["pages/lesson/board"] = class {
     ".eFileName:focus": `padding: 4px 6px !important; overflow-x: auto !important; text-overflow: unset !important`,
     ".eFileName::-webkit-scrollbar": `display: none`,
     ".eFileDropdown": `padding: 6px 10px; height: 32px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
+    ".eCreateCopy": `padding: 6px 10px; height: 32px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
     ".eTopDivider": `width: 4px; height: 32px; margin: 0 4px; background: var(--lightGray); border-radius: 2px`,
     ".eSaveProgress": `display: flex; width: 32px; height: 32px; padding: 0; align-items: center; overflow: hidden; background: var(--lightGray)`,
     ".eSaveProgress img": `width: 24px; height: 24px; margin: 2px`,
@@ -347,11 +349,20 @@ modules["pages/lesson/board"] = class {
 
     let eTopHolder = frame.querySelector(".eTopHolder");
     let eTop = eTopHolder.querySelector(".eTop");
-    let lessonName = eTop.querySelector(".eFileName");
-    let fileButton = eTop.querySelector(".eFileDropdown");
-    let zoomButton = eTop.querySelector(".eZoom");
-    let accountButton = eTop.querySelector(".eAccount");
-    let loginButton = eTop.querySelector(".eLogin");
+
+    let leftTop = eTop.querySelector(".eTopSection[left]");
+    let lessonName = leftTop.querySelector(".eFileName");
+    let fileButton = leftTop.querySelector(".eFileDropdown");
+    let createCopyButton = leftTop.querySelector(".eCreateCopy");
+    let undoButton = leftTop.querySelector(".eUndo");
+    let redoButton = leftTop.querySelector(".eRedo");
+    let status = leftTop.querySelector(".eStatus");
+
+    let rightTop = eTop.querySelector(".eTopSection[right]");
+    let zoomButton = rightTop.querySelector(".eZoom");
+    let accountButton = rightTop.querySelector(".eAccount");
+    let loginButton = rightTop.querySelector(".eLogin");
+
     let eTopScrollLeft = eTopHolder.querySelector(".eTopScroll[left]");
     let eTopScrollRight = eTopHolder.querySelector(".eTopScroll[right]");
 
@@ -410,10 +421,16 @@ modules["pages/lesson/board"] = class {
       let access = this.editor.self.access;
       if (access == 0) {
         lessonName.removeAttribute("contenteditable");
+        createCopyButton.style.removeProperty("display");
+        undoButton.style.display = "none";
+        redoButton.style.display = "none";
       } else {
         if (access > 3) {
           lessonName.setAttribute("contenteditable", "");
         }
+        createCopyButton.style.display = "none";
+        undoButton.style.removeProperty("display");
+        redoButton.style.removeProperty("display");
       }
       updateTopBar();
     }
@@ -468,6 +485,22 @@ modules["pages/lesson/board"] = class {
 
     fileButton.addEventListener("click", () => {
       dropdownModule.open(fileButton, "dropdowns/lesson/file", { parent: this });
+    });
+
+    createCopyButton.addEventListener("click", async () => {
+      if (userID == null) {
+        promptLogin();
+        return;
+      }
+      createCopyButton.setAttribute("disabled", "");
+      let copyAlert = await alertModule.open("info", "<b>Creating Copy</b><div>Creating a copy of this lesson.", { time: "never" });
+      let [code, body] = await sendRequest("POST", "lessons/copy", null, { session: this.editor.session });
+      createCopyButton.removeAttribute("disabled");
+      alertModule.close(copyAlert);
+      if (code == 200) {
+        modifyParams("lesson", body.lesson);
+        setFrame("pages/lesson");
+      }
     });
 
     this.editor.pipeline.subscribe("zoomTextUpdate", "zoom_change", (event) => {
@@ -688,14 +721,14 @@ modules["dropdowns/lesson/file"] = class {
         return;
       }
       copyButton.setAttribute("disabled", "");
-      let copyAlert = await alertModule.open("info", "<b>Creating Copy</b><div>Creating a copy of this lesson's pages and annotations.", { time: "never" });
+      let copyAlert = await alertModule.open("info", "<b>Creating Copy</b><div>Creating a copy of this lesson.", { time: "never" });
       let [code, body] = await sendRequest("POST", "lessons/copy", null, { session: editor.session });
       copyButton.removeAttribute("disabled");
       alertModule.close(copyAlert);
       if (code == 200) {
         dropdownModule.close();
         modifyParams("lesson", body.lesson);
-        setFrame("pages/editor");
+        setFrame("pages/lesson");
       }
     });
     if (editor.settings.allowExport == false && access < 4) {

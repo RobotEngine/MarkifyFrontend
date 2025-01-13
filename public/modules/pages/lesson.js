@@ -29,6 +29,7 @@ modules["pages/lesson"] = class {
     loadScript("./modules/dropdowns/account.js");
     loadScript("./modules/dropdowns/moveto.js");
     loadScript("./modules/dropdowns/remove.js");
+    loadScript("./modules/dropdowns/lesson/file/export.js");
     loadScript("./libraries/pdfjs/pdf.mjs");
 
     if (this.id == "" && joinData.pin == null) {

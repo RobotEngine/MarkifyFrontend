@@ -300,6 +300,12 @@ modules["pages/lesson"] = class {
         editor.pipeline.publish("visibilitychange", { active: this.active });
       }
     });
+    tempListen(window, "focus", () => {
+      let oldExportAction = page.querySelector(".eFileActionExport");
+      if (oldExportAction != null) {
+        oldExportAction.remove();
+      }
+    });
 
     this.pages["board"] = await this.setFrame("pages/lesson/board", page.querySelector(".lPage"));
 

@@ -158,7 +158,10 @@ function loadScript(url) {
 function addCSS(newRules) {
   let ruleKeys = Object.keys(newRules);
   for (let i = 0; i < ruleKeys.length; i++) {
-    stylesheet.insertRule(ruleKeys[i] + "{" + newRules[ruleKeys[i]] + "}", stylesheet.cssRules.length);
+    let rule = ruleKeys[i];
+    try {
+      stylesheet.insertRule(rule + "{" + newRules[rule] + "}", stylesheet.cssRules.length);
+    } catch {}
   }
 }
 

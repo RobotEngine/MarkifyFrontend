@@ -567,6 +567,7 @@ modules["pages/lesson/board"] = class {
     });
     this.editor.pipeline.subscribe("topbarResize", "resize", updateTopBar);
     this.editor.pipeline.subscribe("topbarScroll", "topbar_scroll", updateTopBar);
+    this.editor.pipeline.subscribe("topbarVisibilityChange", "visibilitychange", updateTopBar);
     updateTopBar();
 
     this.updateInterface = async () => {

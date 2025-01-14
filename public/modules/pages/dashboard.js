@@ -1175,8 +1175,21 @@ modules["pages/dashboard/lessons"] = class {
       tile.removeAttribute("new");
       tile.setAttribute("lesson", record.lesson);
       tile.setAttribute("time", time);
+      let thumbnail = tile.querySelector(".dTileThumbnail");
       if (lesson.thumbnail != null) {
-        tile.querySelector(".dTileThumbnail").src = assetURL + lesson.thumbnail;
+        thumbnail.src = assetURL + lesson.thumbnail;
+        let completeListener = () => {
+          thumbnail.removeEventListener("error", errorListener);
+          thumbnail.removeEventListener("complete", completeListener);
+        }
+        let errorListener = () => {
+          completeListener();
+          thumbnail.src = "./images/dashboard/placeholder.png";
+        }
+        thumbnail.addEventListener("error", errorListener);
+        thumbnail.addEventListener("complete", completeListener);
+      } else {
+        thumbnail.src = "./images/dashboard/placeholder.png";
       }
       let title = tile.querySelector(".dTileTitle");
       title.textContent = lesson.name ?? "Untitled Lesson";

@@ -106,7 +106,7 @@ modules["dropdowns/lesson/file/export"] = class {
           oldExportAction.remove();
         }
         if (body.type == "download") {
-          frameParent.insertAdjacentHTML("beforeend", `<a class="eFileActionExport" target="_blank" style="display: none"></a>`);
+          frameParent.insertAdjacentHTML("beforeend", `<a class="eFileActionExport" style="display: none"></a>`); // target="_blank"
           let link = frameParent.querySelector(".eFileActionExport");
           link.href = assetURL + body.export;
           link.click();

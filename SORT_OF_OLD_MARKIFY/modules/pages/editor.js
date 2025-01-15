@@ -1308,7 +1308,7 @@ modules["pages/editor"] = class {
             for (let i = 0; i < allSelections.length; i++) {
               allSelections[i].setAttribute("anno", anno._id);
             }
-            // Update Hisotry IDs:
+            // Update History IDs:
             for (let i = 0; i < this.utils.history.length; i++) {
               let event = this.utils.history[i];
               for (let c = 0; c < event.changes.length; c++) {

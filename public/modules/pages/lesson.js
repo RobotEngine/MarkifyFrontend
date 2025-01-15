@@ -807,9 +807,7 @@ modules["pages/lesson/board"] = class {
         if (this.editor.annotations[checkForJumpLink] != null) {
           jumpAnnotation = (await this.editor.render.createAnnotation((this.editor.annotations[checkForJumpLink] || {}).render))[1];
           this.editor.selecting[checkForJumpLink] = {};
-          if (this.editor.updateZoom != null) {
-            await this.editor.updateZoom();
-          }
+          this.pipeline.publish("redraw", {});
         }
       }
       if (jumpAnnotation == null) {
@@ -1396,6 +1394,7 @@ modules["pages/lesson/editor"] = class {
     let contentHolder = page.querySelector(".eContentHolder");
     this.contentHolder = contentHolder;
     let content = contentHolder.querySelector(".eContent");
+    let realtimeHolder = content.querySelector(".eRealtime");
     let editorContent = content.querySelector(".eEditorContent");
     let annotations = editorContent.querySelector(".eAnnotations");
     let background = content.querySelector(".eBackground");
@@ -1968,9 +1967,7 @@ modules["pages/lesson/editor"] = class {
         if (this.realtime.module && this.realtime.module.adjustRealtimeHolder) {
           editor.realtime.module.adjustRealtimeHolder();
         }
-        if (this.updateZoom != null) {
-          await this.updateZoom(true);
-        }
+        this.pipeline.publish("redraw", { transition: false });
       }
       this.render.lastOffsetWidth = content.offsetWidth;
       this.render.lastOffsetHeight = content.offsetHeight;
@@ -3159,13 +3156,13 @@ modules["pages/lesson/editor"] = class {
           anno.setAttribute("hidden", "");
           if (long == true) {
             anno.remove();
-            delete editor.annotations[_id];
+            delete this.annotations[_id];
           }
-          let activeSelect = editor.page.querySelector('.eSelectActive[anno="' + _id + '"]');
+          let activeSelect = content.querySelector('.eSelectActive[anno="' + _id + '"]');
           if (activeSelect != null) {
             activeSelect.remove();
           }
-          let allSelections = editor.page.querySelectorAll('.eCollabSelect[anno="' + _id + '"]');
+          let allSelections = content.querySelectorAll('.eCollabSelect[anno="' + _id + '"]');
           for (let i = 0; i < allSelections.length; i++) {
             let select = allSelections[i];
             (async function () {
@@ -3198,6 +3195,79 @@ modules["pages/lesson/editor"] = class {
       }
     };
     
+    this.save = {};
+    this.save.timeoutAnnotations = [];
+    this.save.enableTimeout = async (anno, collab) => {
+      if (anno == null) {
+        return;
+      }
+      if (anno.expire == null) {
+        this.save.timeoutAnnotations.push(anno);
+      }
+      anno.expire = getEpoch() + 10000; // 10 seconds until expire
+      anno.collab = (collab == true);
+      if (this.save.runningTimeout == true) {
+        return;
+      }
+      this.save.runningTimeout = true;
+      while (this.save.timeoutAnnotations.length > 0) {
+        await sleep(10000);
+        for (let i = 0; i < this.save.timeoutAnnotations.length; i++) {
+          let annotation = this.save.timeoutAnnotations[i];
+          if (annotation.expire > getEpoch()) {
+            continue;
+          }
+          if (connected == false && annotation.collab != true) {
+            continue;
+          }
+          if (this.toolbar != null && editor.selecting[annotation.render._id] != null && this.toolbar.cursor.action != null) {
+            continue;
+          }
+          
+          // Remove annotation since it was reset:
+          delete annotation.expire;
+          this.save.timeoutAnnotations.splice(i, 1);
+          i--;
+          delete annotation.collab;
+  
+          if (annotation.pending != null) {
+            delete editor.annotations[annotation.pending];
+            delete annotation.render.pending;
+          }
+
+          if (annotation.render._id.includes("pending_") == false) { // Must be a new anno
+            delete annotation.retry;
+            if (annotation.revert != null) {
+              annotation.render = annotation.revert;
+              delete annotation.revert;
+              let existingAnno = editor.annotations[annotation.render._id];
+              await this.utils.annotationChunks(existingAnno);
+              this.utils.updateAnnotationPages(annotation.render);
+              let allowRender = annotation.render.remove == true;
+              for (let i = 0; i < existingAnno.chunks.length; i++) {
+                if (editor.visibleChunks.includes(existingAnno.chunks[i]) == true) {
+                  allowRender = true;
+                  break;
+                }
+              }
+              if (allowRender == true) {
+                await this.render.createAnnotation(annotation.render);
+              }
+            }
+          } else {
+            this.render.removeAnnotation(annotation.render._id);
+            delete editor.annotations[annotation.render._id];
+          }
+        }
+        this.pipeline.publish("redraw", {});
+      }
+      this.runningTimeout = false;
+    }
+
+    this.history = {};
+    this.history.history = [];
+    this.history.location = -1;
+
     let updateSubTimeout;
     let updatePageTimeout;
     let loadedChunks = {};
@@ -3346,6 +3416,136 @@ modules["pages/lesson/editor"] = class {
     contentHolder.addEventListener("scroll", (event) => {
       this.pipeline.publish("scroll", { event: event });
       this.pipeline.publish("bounds_change", { type: "scroll", event: event });
+    });
+
+    this.pipeline.subscribe("longAnnotationUpdate", "long", async (data) => {
+      let redrawAction = false;
+      for (let i = 0; i < data.length; i++) {
+        let anno = data[i];
+        let pendingAnno = this.annotations[anno.pending];
+        let existingAnno = this.annotations[anno._id] ?? pendingAnno;
+        let existingRender;
+        let renderObject;
+        if (existingAnno != null) {
+          if (existingAnno.serverSync > anno.sync) {
+            return; // Discard event as it's old
+          }
+          existingAnno.serverSync = anno.sync;
+          existingAnno.revert = anno;
+
+          if (pendingAnno != null) {
+            existingRender = annotations.querySelector('.eAnnotation[anno="' + anno.pending + '"]');
+
+            let selectActive = content.querySelector('.eSelectActive[anno="' + anno.pending + '"]');
+            if (selectActive != null) {
+              selectActive.setAttribute("anno", anno._id);
+            }
+            let selectBox = content.querySelector('.eSelect[anno="' + anno.pending + '"]');
+            if (selectBox != null) {
+              selectBox.setAttribute("anno", anno._id);
+            }
+            let allSelections = realtimeHolder.querySelectorAll('.eCollabSelect[anno="' + anno.pending + '"]');
+            for (let i = 0; i < allSelections.length; i++) {
+              allSelections[i].setAttribute("anno", anno._id);
+            }
+
+            for (let i = 0; i < this.history.history.length; i++) {
+              let event = this.history.history[i];
+              for (let c = 0; c < event.changes.length; c++) {
+                let change = event.changes[c];
+                if (change._id == anno.pending) {
+                  change._id = anno._id;
+                }
+                if (change.parent == anno.pending) {
+                  change.parent = anno._id;
+                }
+              }
+              for (let c = 0; c < event.redo.length; c++) {
+                let change = event.redo[c];
+                if (change._id == anno.pending) {
+                  change._id = anno._id;
+                }
+                if (change.parent == anno.pending) {
+                  change.parent = anno._id;
+                }
+              }
+            }
+
+            existingAnno.render._id = anno._id;
+            this.annotations[anno._id] = existingAnno;
+            this.annotations[anno.pending] = { pointer: anno._id };
+            existingAnno = this.annotations[anno._id];
+            existingAnno.pending = anno.pending;
+
+            if (existingRender != null) {
+              existingRender.setAttribute("anno", anno._id);
+            }
+
+            // Update Chunk IDs:
+            for (let i = 0; i < existingAnno.chunks.length; i++) {
+              let chunk = this.chunkAnnotations[existingAnno.chunks[i]];
+              if (chunk != null) {
+                chunk[anno._id] = "";
+                delete this.chunkAnnotations[existingAnno.chunks[i]][anno.pending];
+              }
+            }
+
+            this.save.enableTimeout(existingAnno);
+            await this.render.setMarginSize();
+
+            if (this.selecting[anno.pending] != null) {
+              this.selecting[anno._id] = JSON.parse(JSON.stringify(this.selecting[anno.pending]));
+              delete this.selecting[anno.pending];
+  
+              if (this.toolbar != null) {
+                let selectionIDs = Object.keys(this.selecting);
+                this.toolbar.cursor.lastSelections = "";
+                for (let i = 0; i < selectionIDs.length; i++) {
+                  this.toolbar.cursor.lastSelections += selectionIDs[i];
+                }
+              }
+            }
+          }
+          
+          // CHECKS IF SERVER IS AFTER LAST SHORT EDIT SYNC
+          if (existingAnno.render.sync > anno.sync) {
+            continue;
+          }
+
+          // IF SELECTING, DO NOT UPDATE THOSE FIELDS
+          renderObject = anno;
+          if (this.selecting[anno._id] != null) {
+            renderObject = { ...anno, ...this.selecting[anno._id] };
+            redrawAction = true;
+          }
+
+          // IF AFTER, GOES AHEAD AND UPDATES THE ANNOTATION
+          existingAnno.render = anno;
+          delete existingAnno.revert;
+
+          await this.utils.annotationChunks(existingAnno);
+          this.utils.updateAnnotationPages(anno);
+        } else {
+          this.annotations[anno._id] = { render: anno };
+          existingAnno = this.annotations[anno._id];
+          renderObject = anno;
+
+          await this.utils.annotationChunks(existingAnno);
+          this.utils.updateAnnotationPages(renderObject);
+        }
+
+        let allowRender = renderObject.remove == true;
+        for (let i = 0; i < existingAnno.chunks.length; i++) {
+          if (this.visibleChunks.includes(existingAnno.chunks[i]) == true) {
+            allowRender = true;
+            break;
+          }
+        }
+        if (allowRender == true) {
+          this.render.createAnnotation(renderObject, existingRender, true);
+        }
+      }
+      this.pipeline.publish("redraw", { redrawAction: redrawAction, fromLong: true });
     });
     
     let lastMouseX;

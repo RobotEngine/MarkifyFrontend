@@ -3534,6 +3534,10 @@ modules["pages/lesson/editor"] = class {
           this.utils.updateAnnotationPages(renderObject);
         }
 
+        if (anno.remove == true) {
+          delete this.reactions[anno._id];
+        }
+
         let allowRender = renderObject.remove == true;
         for (let i = 0; i < existingAnno.chunks.length; i++) {
           if (this.visibleChunks.includes(existingAnno.chunks[i]) == true) {

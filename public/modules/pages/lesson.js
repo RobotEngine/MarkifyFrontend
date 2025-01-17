@@ -864,7 +864,7 @@ modules["pages/lesson/board"] = class {
         if (this.editor.annotations[checkForJumpLink] != null) {
           jumpAnnotation = (await this.editor.render.createAnnotation((this.editor.annotations[checkForJumpLink] || {}).render))[1];
           this.editor.selecting[checkForJumpLink] = {};
-          this.pipeline.publish("redraw", {});
+          this.pipeline.publish("redraw_selection", {});
         }
       }
       if (jumpAnnotation == null) {
@@ -2024,7 +2024,7 @@ modules["pages/lesson/editor"] = class {
         if (this.realtime.module && this.realtime.module.adjustRealtimeHolder) {
           editor.realtime.module.adjustRealtimeHolder();
         }
-        this.pipeline.publish("redraw", { transition: false });
+        this.pipeline.publish("redraw_selection", { transition: false });
       }
       this.render.lastOffsetWidth = content.offsetWidth;
       this.render.lastOffsetHeight = content.offsetHeight;
@@ -3269,6 +3269,8 @@ modules["pages/lesson/editor"] = class {
       this.save.runningTimeout = true;
       while (this.save.timeoutAnnotations.length > 0) {
         await sleep(10000);
+
+        let changeOccured = false;
         for (let i = 0; i < this.save.timeoutAnnotations.length; i++) {
           let annotation = this.save.timeoutAnnotations[i];
           if (annotation.expire > getEpoch()) {
@@ -3310,13 +3312,18 @@ modules["pages/lesson/editor"] = class {
               if (allowRender == true) {
                 await this.render.createAnnotation(annotation.render);
               }
+              changeOccured = true;
             }
           } else {
             this.render.removeAnnotation(annotation.render._id);
             delete editor.annotations[annotation.render._id];
+            changeOccured = true;
           }
         }
-        this.pipeline.publish("redraw", {});
+
+        if (changeOccured == true) {
+          this.pipeline.publish("redraw_selection", {});
+        }
       }
       this.runningTimeout = false;
     }
@@ -3606,7 +3613,7 @@ modules["pages/lesson/editor"] = class {
           this.render.createAnnotation(renderObject, existingRender, true);
         }
       }
-      this.pipeline.publish("redraw", { redrawAction: redrawAction, fromLong: true });
+      this.pipeline.publish("redraw_selection", { redrawAction: redrawAction, fromLong: true });
     });
     
     let lastMouseX;

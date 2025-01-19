@@ -4787,7 +4787,7 @@ modules["pages/editor/toolbar/cursor"] = {
           return;
         }
         let embedHolder = embedAnno.querySelector("div[content]");
-        embedHolder.insertAdjacentHTML("beforeend", `<iframe allowfullscreen></iframe>`);
+        embedHolder.insertAdjacentHTML("beforeend", `<iframe allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe>`);
         let embedFrame = embedHolder.querySelector("iframe");
         embedFrame.setAttribute("currenturl", render.embed.url);
         if (render.embed.color != null) {

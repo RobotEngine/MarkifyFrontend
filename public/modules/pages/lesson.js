@@ -14,6 +14,42 @@ modules["pages/lesson"] = class {
   };
 
   pages = {};
+  addPage = async (id, type, holder) => {
+    id = id ?? type;
+    this.pages[type] = this.pages[type] ?? {};
+    let typePages = this.pages[type];
+    if (typePages[id] != null) {
+      this.removePage(id, type);
+    }
+    let newPage = await this.setFrame("pages/lesson/board", holder);
+    newPage.type = type;
+    newPage.holder = holder;
+    typePages[id] = newPage;
+    return newPage;
+  }
+  removePage = (id, type) => {
+    let typePages = this.pages[type];
+    if (typePages[id] == null) {
+      return;
+    }
+    delete typePages[id];
+  }
+  pushToPipelines = (type, event, data) => {
+    let pageTypeKeys = Object.keys(this.pages);
+    for (let i = 0; i < pageTypeKeys.length; i++) {
+      let pageType = pageTypeKeys[i];
+      if (pageType != type && type != null) {
+        continue;
+      }
+      let typePages = this.pages[pageType] ?? {};
+      let pageKeys = Object.keys(typePages);
+      for (let i = 0; i < pageKeys.length; i++) {
+        let page = typePages[pageKeys[i]];
+        page.editor.pipeline.publish(event, data);
+      }
+    }
+  }
+
   members = {};
   collaborators = {};
   sources = {};
@@ -174,18 +210,13 @@ modules["pages/lesson"] = class {
           this.folder = body.folder;
       }
 
-      if (this.pages[page] != null) {
-        this.pages[page].editor.pipeline.publish(data.task, body);
-      }
+      this.pushToPipelines(page, data.task, body);
     }
     socket.remotes["long_" + this.id] = async (data) => {
       if (this.exporting == true) {
         return;
       }
-      let page = data.page ?? "board";
-      if (this.pages[page] != null) {
-        this.pages[page].editor.pipeline.publish("long", data.annotations ?? data);
-      }
+      this.pushToPipelines(data.page ?? "board", "long", data.annotations ?? data);
     }
 
     joinData = joinData ?? {};
@@ -328,11 +359,7 @@ modules["pages/lesson"] = class {
           }
         }
         if (updateSignalStrength != null) {
-          let pageKeys = Object.keys(this.pages);
-          for (let i = 0; i < pageKeys.length; i++) {
-            let editor = this.pages[pageKeys[i]].editor;
-            editor.pipeline.publish("signal_strength", updateSignalStrength);
-          }
+          this.pushToPipelines(null, "signal_strength", updateSignalStrength);
         }
       }, pongTimeoutTime);
       socket.publish(pingSocketFilter, pingID, { publishToSelf: true });
@@ -351,11 +378,7 @@ modules["pages/lesson"] = class {
       this.active = document.visibilityState == "visible";
       sendPing();
 
-      let pageKeys = Object.keys(this.pages);
-      for (let i = 0; i < pageKeys.length; i++) {
-        let editor = this.pages[pageKeys[i]].editor;
-        editor.pipeline.publish("visibilitychange", { active: this.active });
-      }
+      this.pushToPipelines(null, "visibilitychange", { active: this.active });
     });
     tempListen(window, "focus", () => {
       let oldExportAction = page.querySelector(".eFileActionExport");
@@ -364,7 +387,7 @@ modules["pages/lesson"] = class {
       }
     });
 
-    this.pages["board"] = await this.setFrame("pages/lesson/board", page.querySelector(".lPage"));
+    this.addPage("board", "board", page.querySelector(".lPage"));
 
     let sizeUpdate = () => {
       if (fixed.offsetWidth > 800 && fixed.offsetHeight > 400) {
@@ -378,30 +401,18 @@ modules["pages/lesson"] = class {
     tempListen(window, "resize", (event) => {
       sizeUpdate();
 
-      let pageKeys = Object.keys(this.pages);
-      for (let i = 0; i < pageKeys.length; i++) {
-        let editor = this.pages[pageKeys[i]].editor;
-        editor.pipeline.publish("resize", { event: event });
-        editor.pipeline.publish("bounds_change", { type: "resize", event: event });
-      }
+      this.pushToPipelines(null, "resize", { event: event });
+      this.pushToPipelines(null, "bounds_change", { type: "resize", event: event });
     });
     sizeUpdate();
     
     tempListen(app, "mouseup", (event) => {
-      let pageKeys = Object.keys(this.pages);
-      for (let i = 0; i < pageKeys.length; i++) {
-        let editor = this.pages[pageKeys[i]].editor;
-        editor.pipeline.publish("mouseup", { event: event });
-        editor.pipeline.publish("click_end", { type: "mouseup", event: event });
-      }
+      this.pushToPipelines(null, "mouseup", { event: event });
+      this.pushToPipelines(null, "click_end", { type: "mouseup", event: event });
     }, { passive: false });
     tempListen(app, "touchend", (event) => {
-      let pageKeys = Object.keys(this.pages);
-      for (let i = 0; i < pageKeys.length; i++) {
-        let editor = this.pages[pageKeys[i]].editor;
-        editor.pipeline.publish("touchend", { event: event });
-        editor.pipeline.publish("click_end", { type: "touchend", event: event });
-      }
+      this.pushToPipelines(null, "touchend", { event: event });
+      this.pushToPipelines(null, "click_end", { type: "touchend", event: event });
     }, { passive: false });
   }
 }

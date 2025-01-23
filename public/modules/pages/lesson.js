@@ -32,6 +32,25 @@ modules["pages/lesson"] = class {
     if (typePages[id] == null) {
       return;
     }
+    let page = typePages[id];
+    if (page == null) {
+      return;
+    }
+    let editor = page.editor;
+    let editorSubscribes = editor.realtime.subscribes;
+    let removeIDs = [];
+    for (let i = 0; i < editorSubscribes.length; i++) {
+      let sub = editorSubscribes[i];
+      removeIDs.push(sub.id);
+      sub.close();
+    }
+    for (let i = 0; i < subscribes.length; i++) {
+      let sub = subscribes[i];
+      if (removeIDs.includes(sub.id) == true) {
+        subscribes.splice(i, 1);
+        i--;
+      }
+    }
     delete typePages[id];
   }
   pushToPipelines = (type, event, data) => {
@@ -1431,6 +1450,7 @@ modules["pages/lesson/editor"] = class {
   self = {};
 
   realtime = {
+    subscribes: [],
     tool: 0 // 0: Pointer; 1: Markup; 2: Pen; 3: Erase
   };
 

@@ -1,13 +1,12 @@
 modules["editor/realtime"] = class {
   js = async function () {
-    let parent = this.parent;
-    let editor = parent.editor;
+    let editor = this.parent;
 
     this.setShortSub = (chunks) => {
-      if (parent.parent.signalStrength < 3 || editor.options.cursors == false) {
+      if (editor.parent.parent.signalStrength < 3 || editor.options.cursors == false) {
         chunks = null;
       }
-      let filter = { c: "short_" + parent.parent.id, p: chunks };
+      let filter = { c: "short_" + editor.parent.parent.id, p: chunks };
       if (editor.realtime.observing != null) {
         filter.o = editor.realtime.observing;
       }

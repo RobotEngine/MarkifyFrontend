@@ -929,9 +929,6 @@ modules["pages/lesson/board"] = class {
 
     if (this.exporting != true) {
       asyncLoadAnnotations();
-      (async () => {
-        (await this.newModule("editor/realtime")).js();
-      })();
     } else {
       await asyncLoadAnnotations();
       //await (await this.loadModule("editor/export")).js(this, this.utils, page);
@@ -1519,6 +1516,12 @@ modules["pages/lesson/editor"] = class {
         let option = localOptionKeys[i];
         this.options[option] = this.localOptions[option];
       }
+    }
+
+    if (this.exporting != true) {
+      (async () => {
+        (await this.newModule("editor/realtime")).js();
+      })();
     }
 
     this.utils.localMousePosition = (mouse) => {

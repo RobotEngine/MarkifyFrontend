@@ -622,10 +622,12 @@ modules["pages/lesson/board"] = class {
 
     this.editor = await this.setFrame("pages/lesson/editor", contentHolder);
 
+    this.editor.id = this.parent.id;
     this.editor.session = this.parent.session;
+    this.editor.sessionID = this.parent.sessionID;
     this.editor.sources = this.parent.sources;
     this.editor.settings = this.parent.lesson.settings ?? {};
-    this.editor.self = this.parent.members[this.parent.sessionID];
+    this.editor.self = this.parent.members[this.editor.sessionID];
 
     let updateTopBar = () => {
       eTopHolder.removeAttribute("scroll");
@@ -1486,6 +1488,7 @@ modules["pages/lesson/editor"] = class {
   sourceRenders = {};
 
   selecting = {};
+  realtimeSelect = {};
 
   visibleChunks = [];
   chunkAnnotations = {};
@@ -1529,8 +1532,7 @@ modules["pages/lesson/editor"] = class {
       let pageRect = page.getBoundingClientRect();
       return { mouseX: mouseX - pageRect.x, mouseY: mouseY - pageRect.y };
     }
-    this.utils.localBoundingRect = (frame) => {
-      let frameRect = frame.getBoundingClientRect();
+    this.utils.convertBoundingRect = (frameRect) => {
       let pageRect = page.getBoundingClientRect();
       let diffX = frameRect.x - pageRect.x;
       let diffY = frameRect.y - pageRect.y;
@@ -1542,6 +1544,9 @@ modules["pages/lesson/editor"] = class {
         x: diffX + contentHolder.scrollLeft,
         y: diffY + contentHolder.scrollTop
       }
+    }
+    this.utils.localBoundingRect = (frame) => {
+      return this.utils.convertBoundingRect(frame.getBoundingClientRect());
     }
     this.utils.scaleToDoc = (x, y, noOrigin) => {
       let pageRect = this.utils.localBoundingRect(annotations);
@@ -1800,12 +1805,13 @@ modules["pages/lesson/editor"] = class {
         } else {
           // Position page to left corner:
           options.left = annotationRect.left + contentHolder.scrollLeft - this.scrollOffset + (position[0] * this.zoom);
+          //options.left = annotationRect.left + contentHolder.scrollLeft - page.offsetWidth + (contentHolder.offsetWidth - contentHolder.clientWidth) + this.scrollOffset + ((position[0] + render.s[0] + (thickness * 2)) * this.zoom);
         }
         if ((render.s[1] + (thickness * 2)) * this.zoom < page.offsetHeight - (this.scrollOffset * 2)) {
           // Position page to center:
           options.top = annotationRect.top + contentHolder.scrollTop - (page.offsetHeight / 2) + ((position[1] + (render.s[1] / 2) + thickness) * this.zoom);
         } else {
-          // Position page to left corner:
+          // Position page to top:
           options.top = annotationRect.top + contentHolder.scrollTop - this.scrollOffset + (position[1] * this.zoom);
         }
         if (animation != false) {

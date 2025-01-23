@@ -1,6 +1,5 @@
 modules["editor/realtime"] = class {
-  js = async function () {
-    let editor = this.parent;
+  js = async function (editor) {
 
     this.setShortSub = (chunks) => {
       if (editor.parent.parent.signalStrength < 3 || editor.options.cursors == false) {

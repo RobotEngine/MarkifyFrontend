@@ -668,6 +668,7 @@ modules["pages/lesson/board"] = class {
     this.updateInterface = async () => {
       let access = this.editor.self.access;
       if (access == 0) {
+        contentHolder.setAttribute("viewer", "");
         lessonName.removeAttribute("contenteditable");
         if (this.editor.settings.allowExport != false) {
           createCopyButton.style.removeProperty("display");
@@ -678,6 +679,7 @@ modules["pages/lesson/board"] = class {
         redoButton.style.display = "none";
         memberOptionsButton.style.removeProperty("display");
       } else {
+        contentHolder.removeAttribute("viewer");
         if (access > 3) {
           lessonName.setAttribute("contenteditable", "");
           memberOptionsButton.style.display = "flex";
@@ -1316,7 +1318,7 @@ modules["pages/lesson/editor"] = class {
     ".eReaction": `display: flex; padding: 2px; background: rgba(255, 255, 255, .8); border: solid 2px rgba(0, 0, 0, 0); border-radius: 8px; align-items: center; overflow: hidden; color: var(--darkGray)`,
     ".eReaction[selected]": `padding: 2px; background: rgba(180, 218, 253, .8); border: solid 2px var(--theme); color: var(--theme)`,
     ".eReaction[add]": `opacity: 0; border-radius: 14px`,
-    ".eContent[viewer] .eReaction[add]": "display: none !important",
+    ".eContentHolder[viewer] .eReaction[add]": "display: none !important",
     ".eReaction div[imgholder]": `display: flex; width: 20px; height: 20px; justify-content: center; align-items: center`,
     ".eReaction img": `width: 32px; height: 32px; transform: scale(0.65); border-radius: 7px; filter: drop-shadow(0px 0px 8px var(--pageColor))`,
     ".eReaction div[count]": `margin: 0 5px 0 6px; font-size: 16px; font-weight: 700`,

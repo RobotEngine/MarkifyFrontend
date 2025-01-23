@@ -100,11 +100,14 @@ modules["pages/lesson"] = class {
     let pageHolder = page.querySelector(".lPageHolder");
 
     // Preload
+    loadScript("./modules/editor/realtime.js");
+
+    loadScript("./libraries/pdfjs/pdf.mjs");
+
     loadScript("./modules/dropdowns/account.js");
     loadScript("./modules/dropdowns/moveto.js");
     loadScript("./modules/dropdowns/remove.js");
     loadScript("./modules/dropdowns/lesson/file/export.js");
-    loadScript("./libraries/pdfjs/pdf.mjs");
 
     /*if (this.id == "" && joinData.pin == null) {
       return; // Open the create new lesson page
@@ -464,9 +467,9 @@ modules["pages/lesson/board"] = class {
           <div class="eTopDivider"></div>
         </div>
         <div class="eTopSection" right>
-          <button class="eMembers"><span class="eMemberHandCount" title="Number of hands raised."></span><span class="eMemberIdleCount" title="Number of idle members."></span><span class="eMemberCount" title="Number of members."></span>Members</button>
+          <button class="eMembers" disabled><span class="eMemberHandCount" title="Number of hands raised."></span><span class="eMemberIdleCount" title="Number of idle members."></span><span class="eMemberCount" title="Number of members."></span>Members</button>
           <button class="eEndSession" title="End Session | Disable all editing access making everyone a viewer."><img src="./images/editor/share/endeditors.svg" /></button>
-          <button class="eShare">Share</button>
+          <button class="eShare" disabled>Share</button>
           <button class="eMemberOptions" title="Member Options | Configure various member settings and available tools."><img src="./images/editor/share/setting.svg" /></button>
           <button class="eSharePin"></button>
           <div class="eTopDivider"></div>
@@ -547,7 +550,7 @@ modules["pages/lesson/board"] = class {
     ".eEndSession": `display: none; width: 32px; height: 32px; padding: 0px; margin: 0 4px; background: var(--error); border-radius: 16px; justify-content: center; align-items: center; color: #fff; font-size: 16px; font-weight: 600`,
     ".eEndSession img": `width: 28px; height: 28px`,
     ".eShare": `height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
-    ".eMemberOptions": `display: flex; width: 32px; height: 32px; padding: 0px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; justify-content: center; align-items: center; color: #fff; font-size: 16px; font-weight: 600`,
+    ".eMemberOptions": `display: none; width: 32px; height: 32px; padding: 0px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; justify-content: center; align-items: center; color: #fff; font-size: 16px; font-weight: 600`,
     ".eMemberOptions img": `width: 32px; height: 32px`,
     ".eSharePin": `display: none; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
     ".eZoom": `height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
@@ -598,6 +601,11 @@ modules["pages/lesson/board"] = class {
     let status = leftTop.querySelector(".eStatus");
 
     let rightTop = eTop.querySelector(".eTopSection[right]");
+    let membersButton = rightTop.querySelector(".eMembers");
+    let endSessionButton = rightTop.querySelector(".eEndSession");
+    let shareButton = rightTop.querySelector(".eShare");
+    let memberOptionsButton = rightTop.querySelector(".eMemberOptions");
+    let sharePinButton = rightTop.querySelector(".eSharePin");
     let zoomButton = rightTop.querySelector(".eZoom");
     let accountButton = rightTop.querySelector(".eAccount");
     let loginButton = rightTop.querySelector(".eLogin");
@@ -668,9 +676,11 @@ modules["pages/lesson/board"] = class {
         }
         undoButton.style.display = "none";
         redoButton.style.display = "none";
+        memberOptionsButton.style.removeProperty("display");
       } else {
         if (access > 3) {
           lessonName.setAttribute("contenteditable", "");
+          memberOptionsButton.style.display = "flex";
         }
         createCopyButton.style.display = "none";
         undoButton.style.removeProperty("display");
@@ -847,6 +857,11 @@ modules["pages/lesson/board"] = class {
       }
     });
 
+    this.editor.pipeline.subscribe("realtimeButtonEnable", "realtime_loaded", () => {
+      membersButton.removeAttribute("disabled");
+      shareButton.removeAttribute("disabled");
+    });
+
     // Fetch Annotations
     let pageParam = getParam("page");
     let checkForJumpLink = getParam("annotation");
@@ -911,7 +926,16 @@ modules["pages/lesson/board"] = class {
 
       contentHolder.removeAttribute("disabled");
     }
-    asyncLoadAnnotations();
+
+    if (this.exporting != true) {
+      asyncLoadAnnotations();
+      (async () => {
+        (await this.newModule("editor/realtime")).js();
+      })();
+    } else {
+      await asyncLoadAnnotations();
+      //await (await this.loadModule("editor/export")).js(this, this.utils, page);
+    }
 
     this.updateInterface();
   }
@@ -2053,7 +2077,7 @@ modules["pages/lesson/editor"] = class {
       if (content.offsetWidth != this.render.lastOffsetWidth || content.offsetHeight != this.render.lastOffsetHeight) {
         contentHolder.scrollTo(scrollPosX + (this.render.marginLeft - contentLeft), scrollPosY + (this.render.marginTop - contentTop));
         if (this.realtime.module && this.realtime.module.adjustRealtimeHolder) {
-          editor.realtime.module.adjustRealtimeHolder();
+          this.realtime.module.adjustRealtimeHolder();
         }
         this.pipeline.publish("redraw_selection", { transition: false });
       }

@@ -10,8 +10,8 @@ modules["editor/realtime"] = class {
     let lastObserveContent = "";
     let lastCursorChunk;
 
-    let mouseX = 0;
-    let mouseY = 0;
+    let mouseX;
+    let mouseY;
     let endSyncTimeout;
     let endSyncObserveTimeout;
     this.publishShort = async (event, type, ignoreSame) => {
@@ -32,6 +32,10 @@ modules["editor/realtime"] = class {
       if (type == "cursor") {
         clearTimeout(endSyncTimeout);
         if (lastCursorPublish < epoch - 80 || ignoreSame == true) { // One event every 80 ms
+          if (mouseX == null || mouseY == null) {
+            return;
+          }
+          
           let standardFilter = { c: "short_" + editor.id };
           if (editor.realtime.observed && editor.self.access < 1) {
             standardFilter.o = editor.sessionID;
@@ -149,7 +153,7 @@ modules["editor/realtime"] = class {
         clearTimeout(endSyncTimeout);
         if (lastCursorPublish < epoch - 80 || ignoreSame == true) { // One event every 80 ms
           if (lastCursorContent == null && ignoreSame != true) {
-
+            return;
           }
           let standardFilter = { c: "short_" + editor.id };
           if (editor.realtime.observed && editor.self.access < 1) {

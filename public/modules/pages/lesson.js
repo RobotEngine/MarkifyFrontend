@@ -7,7 +7,7 @@ modules["pages/lesson"] = class {
     <div class="lPage" active></div>
   </div>`;
   css = {
-    ".lPageHolder": `position: fixed; display: flex; gap: 8px; box-sizing: border-box; width: 100%; height: 100vh; padding: 8px; left: 0px; top: 0px; justify-content: center`,
+    ".lPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100%; height: 100vh; padding: 8px; left: 0px; top: 0px; justify-content: center`,
     ".lPageHolder[maximize]": `padding: 0px !important`,
     ".lPage": `display: flex; width: 100%; height: 100%; box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), .3); border-radius: 12px; overflow: hidden; transition: .2s`,
     ".lPage[active]": `box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), .5)`,

@@ -35,7 +35,7 @@ modules["editor/realtime"] = class {
           if (mouseX == null || mouseY == null) {
             return;
           }
-          
+
           let standardFilter = { c: "short_" + editor.id };
           if (editor.realtime.observed && editor.self.access < 1) {
             standardFilter.o = editor.sessionID;
@@ -64,17 +64,19 @@ modules["editor/realtime"] = class {
               let range = select.getRangeAt(0);
               if (range.toString().length > 0 && range.endContainer.parentNode.getAttribute("role") == "presentation") {
                 let selections = range.getClientRects();
-                let alreadyInsert = {};
-                for (let i = 0; i < Math.min(selections.length, 100); i++) {
-                  let selRect = editor.utils.convertBoundingRect(selections[i]);
-                  let checkInsert = selRect.width + "_" + selRect.height + "_" + selRect.left + "_" + selRect.top;
-                  if (alreadyInsert[checkInsert] != null) {
-                    continue;
-                  }
-                  if (selRect.width > 0 && selRect.height > 0) {
-                    alreadyInsert[checkInsert] = "";
-                    // [ PAGE, WIDTH, HEIGHT, X, Y ]
-                    addTextSelect.push([ Math.floor(selRect.width * scaleZoom), Math.floor(selRect.height * scaleZoom), Math.floor((selRect.left - annotationRect.left) * scaleZoom), Math.floor((selRect.top - annotationRect.top) * scaleZoom)]);
+                if (selections.length < 100) {
+                  let alreadyInsert = {};
+                  for (let i = 0; i < selections.length; i++) { //Math.min(selections.length, 100)
+                    let selRect = editor.utils.convertBoundingRect(selections[i]);
+                    let checkInsert = selRect.width + "_" + selRect.height + "_" + selRect.left + "_" + selRect.top;
+                    if (alreadyInsert[checkInsert] != null) {
+                      continue;
+                    }
+                    if (selRect.width > 0 && selRect.height > 0) {
+                      alreadyInsert[checkInsert] = "";
+                      // [ PAGE, WIDTH, HEIGHT, X, Y ]
+                      addTextSelect.push([ Math.floor(selRect.width * scaleZoom), Math.floor(selRect.height * scaleZoom), Math.floor((selRect.left - annotationRect.left) * scaleZoom), Math.floor((selRect.top - annotationRect.top) * scaleZoom)]);
+                    }
                   }
                 }
               }
@@ -209,7 +211,7 @@ modules["editor/realtime"] = class {
           return;
         }
         this.shortSub = subscribe(filter, async (data) => {
-          editor.pipeline.publish("short", data);
+          editor.pipeline.publish("short", data); // Dump onto the pipeline
         });
         editor.realtime.subscribes.push(this.shortSub);
       }

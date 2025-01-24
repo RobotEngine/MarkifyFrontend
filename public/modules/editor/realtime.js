@@ -42,9 +42,7 @@ modules["editor/realtime"] = class {
           let annotationRect = editor.utils.localBoundingRect(annotations);
           let sendX = (mouseX - annotationRect.left) / editor.zoom;
           let sendY = (mouseY - annotationRect.top) / editor.zoom;
-          if (editor.visibleChunks != null) {
-            filter.p = editor.utils.pointInChunk(sendX, sendY);
-          }
+          filter.p = editor.utils.pointInChunk(sendX, sendY);
 
           if (filter.p != (lastCursorChunk ?? filter.p)) {
             socket.publish({ ...standardFilter, p: lastCursorChunk }, [ editor.sessionID, filter.p ]); // When leaving a chunk, tell those looking!
@@ -147,6 +145,24 @@ modules["editor/realtime"] = class {
             this.publishShort(event, type);
           }, 300); // If after 300 MS, send the last event to ensure proper sync.
         }
+      } else if (type == "exit") {
+        clearTimeout(endSyncTimeout);
+        if (lastCursorPublish < epoch - 80 || ignoreSame == true) { // One event every 80 ms
+          if (lastCursorContent == null && ignoreSame != true) {
+
+          }
+          let standardFilter = { c: "short_" + editor.id };
+          if (editor.realtime.observed && editor.self.access < 1) {
+            standardFilter.o = editor.sessionID;
+          }
+          socket.publish({ ...standardFilter, p: lastCursorChunk }, [ editor.sessionID, "" ]);
+          lastCursorPublish = epoch;
+          lastCursorContent = null;
+        } else {
+          endSyncTimeout = setTimeout(() => {
+            this.publishShort(event, type);
+          }, 80); // If after 80 MS, send the last event to ensure proper sync.
+        }
       }
     }
     editor.pipeline.subscribe("realtimePublishClickStart", "click_start", (data) => { this.publishShort(data.event); });
@@ -161,6 +177,16 @@ modules["editor/realtime"] = class {
     editor.pipeline.subscribe("realtimePublishResize", "resize", () => {
       if (editor.realtime.observed == true) {
         this.publishShort(null, "observe");
+      }
+    });
+    editor.pipeline.subscribe("realtimePublishVisibility", "visibilitychange", (data) => {
+      if (data.active == false) {
+        this.publishShort(null, "exit");
+      }
+    });
+    editor.pipeline.subscribe("realtimePublishPageSwitch", "page_switch", (data) => {
+      if (data.pageID != editor.parent.pageID) {
+        this.publishShort(null, "exit");
       }
     });
 
@@ -179,11 +205,15 @@ modules["editor/realtime"] = class {
           return;
         }
         this.shortSub = subscribe(filter, async (data) => {
-          
+          editor.pipeline.publish("short", data);
         });
         editor.realtime.subscribes.push(this.shortSub);
       }
     }
+
+    editor.pipeline.subscribe("realtimeShortSub", "short", (data) => {
+      
+    });
 
     this.adjustRealtimeHolder = () => {
 

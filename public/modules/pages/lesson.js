@@ -4,12 +4,13 @@ modules["pages/lesson"] = class {
 
   }
   html = `<div class="lPageHolder">
-    <div class="lPage"></div>
+    <div class="lPage" active></div>
   </div>`;
   css = {
-    ".lPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100%; height: 100vh; padding: 8px; left: 0px; top: 0px; justify-content: center`,
+    ".lPageHolder": `position: fixed; display: flex; gap: 8px; box-sizing: border-box; width: 100%; height: 100vh; padding: 8px; left: 0px; top: 0px; justify-content: center`,
     ".lPageHolder[maximize]": `padding: 0px !important`,
-    ".lPage": `display: flex; width: 100%; height: 100%; box-shadow: var(--darkShadow); border-radius: 12px; overflow: hidden`,
+    ".lPage": `display: flex; width: 100%; height: 100%; box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), .3); border-radius: 12px; overflow: hidden; transition: .2s`,
+    ".lPage[active]": `box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), .5)`,
     ".lPageHolder[maximize] .lPage": `border-radius: 0px !important`
   };
 
@@ -22,6 +23,7 @@ modules["pages/lesson"] = class {
       this.removePage(id, type);
     }
     let newPage = await this.setFrame("pages/lesson/board", holder);
+    newPage.pageID = id;
     newPage.type = type;
     newPage.holder = holder;
     typePages[id] = newPage;
@@ -589,6 +591,8 @@ modules["pages/lesson/board"] = class {
     this.lesson = this.parent.lesson;
     this.session = this.parent.session;
 
+    let page = frame.closest(".lPage");
+
     let eTopHolder = frame.querySelector(".eTopHolder");
     let eTop = eTopHolder.querySelector(".eTop");
 
@@ -864,6 +868,20 @@ modules["pages/lesson/board"] = class {
     this.editor.pipeline.subscribe("realtimeButtonEnable", "realtime_loaded", () => {
       membersButton.removeAttribute("disabled");
       shareButton.removeAttribute("disabled");
+    });
+
+    this.editor.pipeline.subscribe("checkActivePage", "click_start", () => {
+      if (this.parent.activePageID != this.pageID) {
+        this.parent.activePageID = this.pageID;
+        this.parent.pushToPipelines(null, "page_switch", { pageID: this.pageID });
+      }
+    });
+    this.editor.pipeline.subscribe("checkPageSwitch", "page_switch", (data) => {
+      if (data.pageID != this.pageID) {
+        page.removeAttribute("active");
+      } else {
+        page.setAttribute("active", "");
+      }
     });
 
     // Fetch Annotations
@@ -3844,6 +3862,10 @@ modules["pages/lesson/editor"] = class {
       this.pipeline.publish("touchmove", { event: event });
       this.pipeline.publish("click_move", { type: "touchmove", event: event });
     }, { passive: false });
+
+    page.addEventListener("mouseleave", (event) => {
+      this.pipeline.publish("mouseleave", { event: event });
+    });
 
     this.updateChunks();
   }

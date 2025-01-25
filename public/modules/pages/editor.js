@@ -1340,8 +1340,12 @@ modules["pages/editor"] = {
                 }
               }
             }
-
-            existingAnno.render._id = anno._id;
+            
+            if (existingAnno.render != null) {
+              existingAnno.render._id = anno._id;
+            } else {
+              existingAnno.render = existingAnno.render ?? anno;
+            }
             //delete this.annotations[anno.pending];
             this.annotations[anno._id] = existingAnno;
             this.annotations[anno.pending] = { pointer: anno._id };
@@ -1353,6 +1357,7 @@ modules["pages/editor"] = {
             }
 
             // Update Chunk IDs:
+            existingAnno.chunks = existingAnno.chunks ?? [];
             for (let i = 0; i < existingAnno.chunks.length; i++) {
               let chunk = this.chunkAnnotations[existingAnno.chunks[i]];
               if (chunk != null) {

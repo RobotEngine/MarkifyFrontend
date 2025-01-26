@@ -394,7 +394,9 @@ modules["pages/lesson"] = class {
         sendPing();
       }
       sentPing = false;
-      sendSocketPing();
+      if (connected == true) {
+        sendSocketPing();
+      }
     }, 60000) }); // PING every minute
 
     // On page:

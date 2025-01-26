@@ -615,28 +615,32 @@ function ensureLogin() {
   return token;
 }
 async function renewToken() {
-  let token = ensureLogin();
-  let sendUserID = userID ?? getLocalStore("userID");
-  let refreshToken = await fetch(serverURL + "auth/renew", {
-    method: "POST",
-    headers: {
-      cache: "no-cache",
-      "Content-Type": "text/plain"
-    },
-    body: JSON.stringify({
-      userid: sendUserID,
-      refresh: JSON.parse(token).refresh
-    })
-  });
-  if (refreshToken.status == 200) {
-    let refreshData = await refreshToken.json();
-    setLocalStore("token", JSON.stringify(refreshData.token));
-    //account.realtime = refreshData.realtime;
-    return refreshData.token;
-  } else {
-    removeLocalStore("userID");
-    removeLocalStore("token");
-    promptLogin();
+  try {
+    let token = ensureLogin();
+    let sendUserID = userID ?? getLocalStore("userID");
+    let refreshToken = await fetch(serverURL + "auth/renew", {
+      method: "POST",
+      headers: {
+        cache: "no-cache",
+        "Content-Type": "text/plain"
+      },
+      body: JSON.stringify({
+        userid: sendUserID,
+        refresh: JSON.parse(token).refresh
+      })
+    });
+    if (refreshToken.status == 200) {
+      let refreshData = await refreshToken.json();
+      setLocalStore("token", JSON.stringify(refreshData.token));
+      //account.realtime = refreshData.realtime;
+      return refreshData.token;
+    } else if (refreshToken.status > 399 && refreshToken.status < 500) {
+      removeLocalStore("userID");
+      removeLocalStore("token");
+      promptLogin();
+    }
+  } catch {
+    console.log("FAILED TO RENEW TOKEN");
   }
 }
 

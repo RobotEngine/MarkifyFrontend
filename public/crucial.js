@@ -304,6 +304,7 @@ async function setFrame(path, frame, extra, parent) {
         delete socket.remotes[remote];
       }
     }
+    delete window.closeCallback;
   }
   if (module.preJs != null) {
     continueLoading = (await (module.preJs())) != false;
@@ -860,7 +861,6 @@ if (authService != null) {
 let wasConnected = false;
 let connected = false;
 let preloadedFiles = false;
-let closeCallback;
 async function initSocket() {
   if (typeof SimpleSocket == "undefined") { // Backup if static fails
     await loadScript("https://simplesocket.net/static/v2/simplesocket.js");
@@ -911,8 +911,8 @@ async function initSocket() {
   };
   socket.onclose = async function () {
     connected = false;
-    if (closeCallback) {
-      closeCallback();
+    if (window.closeCallback != null) {
+      window.closeCallback();
     }
     alertModule.open("warning", `<b>Lost Connection</b>Reconnecting to Markify...`, { id: "connection", time: "never" });
   };

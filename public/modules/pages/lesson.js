@@ -399,6 +399,11 @@ modules["pages/lesson"] = class {
       }
     }, 60000) }); // PING every minute
 
+    window.closeCallback = () => {
+      this.pushToPipelines(null, "signal_strength", { oldSignalStrength: this.signalStrength, signalStrength: 1 });
+      this.signalStrength = 1;
+    }
+
     // On page:
     tempListen(document, "visibilitychange", () => {
       this.active = document.visibilityState == "visible";

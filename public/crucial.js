@@ -801,8 +801,8 @@ async function auth() {
   }
   let [code, body] = await sendRequest("GET", url);
   if (code == 0) {
-    await sleep(500);
-    auth();
+    //await sleep(500);
+    //auth();
     return;
   }
   if (code != 200) {
@@ -811,6 +811,8 @@ async function auth() {
   updateToSignedIn(body);
 }
 async function init() {
+  account = {};
+  userID = null;
   let paramAuthCode = getParam("code");
   if (paramAuthCode != null) {
     if (getParam("state") != getLocalStore("state")) {

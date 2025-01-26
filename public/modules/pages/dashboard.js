@@ -2,7 +2,7 @@ modules["pages/dashboard"] = class {
   title = "Dashboard";
   preJs = () => {
     if (userID == null) {
-      promptLogin();
+      checkForAuth(true);
       return false;
     }
     modifyParams("lesson");

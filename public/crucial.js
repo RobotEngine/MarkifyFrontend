@@ -605,7 +605,6 @@ function promptLogin(page, service) {
   }
   window.location = endpoint;
 }
-
 function ensureLogin() {
   let token = getLocalStore("token");
   if (token == null) {
@@ -643,6 +642,19 @@ async function renewToken() {
     console.log("FAILED TO RENEW TOKEN");
   }
 }
+async function checkForAuth(prompt) {
+  let token = getLocalStore("token");
+  if (token != null) {
+    token = JSON.parse(token);
+    if (token.expires < Math.floor(getEpoch() / 1000)) {
+      token = (await renewToken()) ?? token;
+    }
+    return token;
+  }
+  if (prompt == true) {
+    promptLogin();
+  }
+}
 
 async function sendRequest(method, path, body, extra) {
   if (connected == false) {
@@ -670,12 +682,8 @@ async function sendRequest(method, path, body, extra) {
       }
       sendData.body = body;
     }
-    let token = getLocalStore("token");
+    let token = await checkForAuth();
     if (token != null) {
-      token = JSON.parse(token);
-      if (token.expires < Math.floor(getEpoch() / 1000)) {
-        token = (await renewToken()) ?? token;
-      }
       let sendUserID = userID ?? getLocalStore("userID");
       if (sendUserID != null) {
         sendData.headers.auth = sendUserID + ";" + token.session;
@@ -804,7 +812,7 @@ async function auth() {
 }
 async function init() {
   let paramAuthCode = getParam("code");
-  if (paramAuthCode) {
+  if (paramAuthCode != null) {
     if (getParam("state") != getLocalStore("state")) {
       promptLogin();
       return;

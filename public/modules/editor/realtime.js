@@ -222,7 +222,7 @@ modules["editor/realtime"] = class {
     });
 
     this.adjustRealtimeHolder = () => {
-
+      
     }
 
     editor.realtime.module = this;

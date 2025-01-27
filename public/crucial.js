@@ -882,7 +882,7 @@ async function initSocket() {
   socket = new SimpleSocket({
     project_id: config.socket.project_id,
     project_token: config.socket.project_token,
-    socket_url: window.socketURL
+    socket_url: window.socketURL ?? config.socket.socket_url
   });
   socket.remotes.account = function (data) {
     console.log(data);

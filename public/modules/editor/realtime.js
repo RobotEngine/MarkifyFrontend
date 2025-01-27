@@ -188,6 +188,8 @@ modules["editor/realtime"] = class {
     editor.pipeline.subscribe("realtimePublishVisibility", "visibilitychange", (data) => {
       if (data.active == false) {
         this.publishShort(null, "exit");
+      } else {
+        this.publishShort();
       }
     });
     editor.pipeline.subscribe("realtimePublishPageSwitch", "page_switch", (data) => {
@@ -222,7 +224,7 @@ modules["editor/realtime"] = class {
     });
 
     this.adjustRealtimeHolder = () => {
-      
+
     }
 
     editor.realtime.module = this;

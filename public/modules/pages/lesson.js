@@ -1409,18 +1409,49 @@ modules["pages/lesson/editor"] = class {
       }
     },
     subscribe: (id, event, callback) => {
-      if (this.pipeline.pipelineSubs[id] != null) {
-        this.pipeline.unsubscribe(id);
+      let pipelineSubs = this.pipeline.pipelineSubs[id];
+      if (pipelineSubs != null && pipelineSubs[event] != null) {
+        this.pipeline.unsubscribe(id, event);
       }
 
-      this.pipeline.pipeline[event] = this.pipeline.pipeline[event] ?? {};
-      this.pipeline.pipeline[event][id] = callback;
+      let pipelineEvent = this.pipeline.pipeline[event];
+      if (pipelineEvent == null) {
+        this.pipeline.pipeline[event] = {};
+        pipelineEvent = this.pipeline.pipeline[event];
+      }
+      pipelineEvent[id] = callback;
 
-      this.pipeline.pipelineSubs[id] = event;
+      if (pipelineSubs == null) {
+        this.pipeline.pipelineSubs[id] = {};
+        pipelineSubs = this.pipeline.pipelineSubs[id];
+      }
+      pipelineSubs[event] = "";
     },
-    unsubscribe: (id) => {
-      delete this.pipeline.pipeline[this.pipeline.pipelineSubs[id]][id];
-      delete this.pipeline.pipelineSubs[id];
+    unsubscribe: (id, event) => {
+      let pipelineSubs = this.pipeline.pipelineSubs[id];
+      if (pipelineSubs == null) {
+        return;
+      }
+      let checkEvents = [];
+      if (event == null) {
+        checkEvents = Object.keys(pipelineSubs);
+      } else {
+        checkEvents.push(event);
+      }
+      for (let i = 0; i < checkEvents.length; i++) {
+        let check = checkEvents[i];
+        let pipelineEvent = this.pipeline.pipeline[check];
+        if (pipelineEvent != null) {
+          delete pipelineEvent[id];
+          if (Object.keys(pipelineEvent).length < 1) {
+            delete this.pipeline.pipeline[check];
+          }
+        }
+        delete pipelineSubs[check];
+      }
+      if (Object.keys(pipelineSubs).length < 1) {
+        delete this.pipeline.pipelineSubs[id];
+      }
     }
   };
 
@@ -3302,6 +3333,7 @@ modules["pages/lesson/editor"] = class {
           if (long == true) {
             anno.remove();
             delete this.annotations[_id];
+            this.pipeline.unsubscribe("annotation" + _id);
           }
           let activeSelect = content.querySelector('.eSelectActive[anno="' + _id + '"]');
           if (activeSelect != null) {
@@ -3333,6 +3365,7 @@ modules["pages/lesson/editor"] = class {
       let anno = annotations.querySelector('.eAnnotation[anno="' + annoID + '"]');
       if (anno != null && (checkDone != true || anno.hasAttribute("done") == false)) {
         anno.remove();
+        this.pipeline.unsubscribe("annotation" + _id);
       }
       let allSelections = [...annotations.querySelectorAll('.eSelect[anno="' + annoID + '"]'), ...annotations.querySelectorAll('.eSelectActive[anno="' + annoID + '"]')];
       for (let i = 0; i < allSelections.length; i++) {

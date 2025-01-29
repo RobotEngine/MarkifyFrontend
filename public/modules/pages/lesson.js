@@ -264,6 +264,49 @@ modules["pages/lesson"] = class {
       this.pushToPipelines(data.page ?? "board", "long", data.annotations ?? data);
     }
 
+    let sizeUpdate = () => {
+      if (fixed.offsetWidth > 800 && fixed.offsetHeight > 400) {
+        pageHolder.removeAttribute("maximize");
+        fixed.style.setProperty("--floatMargin", "12px");
+      } else {
+        pageHolder.setAttribute("maximize", "");
+        fixed.style.removeProperty("--floatMargin");
+      }
+    }
+    tempListen(window, "resize", (event) => {
+      sizeUpdate();
+
+      this.pushToPipelines(null, "resize", { event: event });
+      this.pushToPipelines(null, "bounds_change", { type: "resize", event: event });
+    });
+    sizeUpdate();
+    
+    tempListen(app, "mouseup", (event) => {
+      this.pushToPipelines(null, "mouseup", { event: event });
+      this.pushToPipelines(null, "click_end", { type: "mouseup", event: event });
+    }, { passive: false });
+    tempListen(app, "touchend", (event) => {
+      this.pushToPipelines(null, "touchend", { event: event });
+      this.pushToPipelines(null, "click_end", { type: "touchend", event: event });
+    }, { passive: false });
+
+    this.active = document.visibilityState == "visible";
+    tempListen(document, "visibilitychange", () => {
+      this.active = document.visibilityState == "visible";
+      
+      if (this.sendPing != null) {
+        this.sendPing();
+      }
+
+      this.pushToPipelines(null, "visibilitychange", { active: this.active });
+    });
+    tempListen(window, "focus", () => {
+      let oldExportAction = page.querySelector(".eFileActionExport");
+      if (oldExportAction != null) {
+        oldExportAction.remove();
+      }
+    });
+
     joinData = joinData ?? {};
     let sendBody = { ss: socket.secureID };
     if (this.active == false) {
@@ -369,6 +412,10 @@ modules["pages/lesson"] = class {
       sendPing();
     }
 
+    if (this.active != sendBody.active) {
+      sendPing();
+    }
+
     let pingSocketFilter = { c: "short_" + this.id, o: this.sessionID, t: this.sessionToken };
     let awaitingPongs = {};
     let pongTimeoutTime = 500; // ms
@@ -438,47 +485,7 @@ modules["pages/lesson"] = class {
       this.signalStrength = 1;
     }
 
-    // On page:
-    tempListen(document, "visibilitychange", () => {
-      this.active = document.visibilityState == "visible";
-      sendPing();
-
-      this.pushToPipelines(null, "visibilitychange", { active: this.active });
-    });
-    tempListen(window, "focus", () => {
-      let oldExportAction = page.querySelector(".eFileActionExport");
-      if (oldExportAction != null) {
-        oldExportAction.remove();
-      }
-    });
-
     this.addPage("board", "board", page.querySelector(".lPage"));
-
-    let sizeUpdate = () => {
-      if (fixed.offsetWidth > 800 && fixed.offsetHeight > 400) {
-        pageHolder.removeAttribute("maximize");
-        fixed.style.setProperty("--floatMargin", "12px");
-      } else {
-        pageHolder.setAttribute("maximize", "");
-        fixed.style.removeProperty("--floatMargin");
-      }
-    }
-    tempListen(window, "resize", (event) => {
-      sizeUpdate();
-
-      this.pushToPipelines(null, "resize", { event: event });
-      this.pushToPipelines(null, "bounds_change", { type: "resize", event: event });
-    });
-    sizeUpdate();
-    
-    tempListen(app, "mouseup", (event) => {
-      this.pushToPipelines(null, "mouseup", { event: event });
-      this.pushToPipelines(null, "click_end", { type: "mouseup", event: event });
-    }, { passive: false });
-    tempListen(app, "touchend", (event) => {
-      this.pushToPipelines(null, "touchend", { event: event });
-      this.pushToPipelines(null, "click_end", { type: "touchend", event: event });
-    }, { passive: false });
   }
 }
 

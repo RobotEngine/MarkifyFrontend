@@ -151,6 +151,7 @@ modules["pages/lesson"] = class {
           }
       }
     }
+    console.log(this.members)
     socket.remotes["lesson_" + this.id] = async (data) => {
       let body = data.data;
       let page = data.page ?? "board";
@@ -342,19 +343,26 @@ modules["pages/lesson"] = class {
     this.sessionToken = body.session.token;
     this.session = this.sessionID + ";" + this.sessionToken;
     window.previousLessonSession = this.session;
-
+    
     for (let i = 0; i < body.members.length; i++) {
       let memSet = body.members[i];
-      this.members[memSet._id] = memSet;
-      if (memSet.access == 1) {
+      let member = this.members[memSet._id] ?? {};
+      if (memSet.access == 1 && member.access < 1) {
         this.editorCount++;
+      } else if (memSet.access == 0 && member.access > 0) {
+        this.editorCount--;
       }
-      if (memSet.hand != null) {
+      if (memSet.hand != null && member.hand == null) {
         this.handCount++;
+      } else if (memSet.hand == null && member.hand != null) {
+        this.handCount--;
       }
-      if (memSet.active == false) {
+      if (memSet.active == false && member.active != false) {
         this.idleCount++;
+      } else if (memSet.active != false && member.active == false) {
+        this.idleCount--;
       }
+      this.members[memSet._id] = memSet;
     }
     this.members[this.sessionID] = this.members[this.sessionID] ?? {};
     this.memberCount = Object.keys(this.members).length;

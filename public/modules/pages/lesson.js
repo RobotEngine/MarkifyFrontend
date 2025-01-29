@@ -594,9 +594,10 @@ modules["pages/lesson/board"] = class {
     ".eStatusStrength": `display: flex; width: 100%; height: 100%; justify-content: center; align-items: center`,
 
     ".eMembers": `display: flex; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--hover); border-radius: 16px; align-items: center; font-size: 16px; font-weight: 600`,
-    ".eMemberCount": `display: none; padding: 2px 6px; margin-right: 5px; background: #fff; border-radius: 12px; color: var(--theme); font-weight: 700`,
-    ".eMemberHandCount": `display: none; padding: 2px 6px; margin-right: 5px; background: #fff; border-radius: 12px; color: var(--green); font-weight: 700`,
-    ".eMemberIdleCount": `display: none; padding: 2px 6px; margin-right: 5px; background: #fff; border-radius: 12px; color: var(--yellow); font-weight: 700`,
+    ".eMembers span": `display: none; min-width: 12px; height: 24px; padding: 0px 6px; margin-right: 5px; justify-content: center; align-items: center; background: #fff; border-radius: 12px; font-weight: 700`,
+    ".eMemberCount": `color: var(--theme)`,
+    ".eMemberHandCount": `color: var(--green)`,
+    ".eMemberIdleCount": `color: var(--yellow)`,
     ".eEndSession": `display: none; width: 32px; height: 32px; padding: 0px; margin: 0 4px; background: var(--error); border-radius: 16px; justify-content: center; align-items: center; color: #fff; font-size: 16px; font-weight: 600`,
     ".eEndSession img": `width: 28px; height: 28px`,
     ".eShare": `height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
@@ -752,27 +753,27 @@ modules["pages/lesson/board"] = class {
 
       memberCountTx.textContent = this.parent.memberCount;
       if (this.parent.memberCount > 1) {
-        memberCountTx.style.display = "unset";
+        memberCountTx.style.display = "flex";
         memberCountTx.parentElement.style.padding = "4px 10px 4px 4px";
       } else {
-        memberCountTx.style.display = "none";
-        memberCountTx.parentElement.style.padding = "6px 10px";
+        memberCountTx.style.removeProperty("display");
+        memberCountTx.parentElement.style.removeProperty("padding");
       }
       
       handCountTx.textContent = this.parent.handCount;
       if (this.parent.handCount > 0 && this.parent.memberCount > 1) {
-        handCountTx.style.display = "unset";
+        handCountTx.style.display = "flex";
         handCountTx.parentElement.style.padding = "4px 10px 4px 4px";
       } else {
-        handCountTx.style.display = "none";
+        handCountTx.style.removeProperty("display");
       }
 
       idleCountTx.textContent = this.parent.idleCount;
       if (this.parent.idleCount > 0 && this.parent.memberCount > 1) {
-        idleCountTx.style.display = "unset";
+        idleCountTx.style.display = "flex";
         idleCountTx.parentElement.style.padding = "4px 10px 4px 4px";
       } else {
-        idleCountTx.style.display = "none";
+        idleCountTx.style.removeProperty("display");
       }
 
       updateTopBar();

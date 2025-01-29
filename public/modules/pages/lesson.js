@@ -73,6 +73,10 @@ modules["pages/lesson"] = class {
 
   members = {};
   collaborators = {};
+  editorCount = 0;
+  handCount = 0;
+  idleCount = 0;
+
   sources = {};
 
   defaultEmojis = [
@@ -114,25 +118,6 @@ modules["pages/lesson"] = class {
     /*if (this.id == "" && joinData.pin == null) {
       return; // Open the create new lesson page
     }*/
-
-    this.syncMembers = async (memberUpd) => {
-      this.editorCount = 0;
-      this.handCount = 0;
-      this.idleCount = 0;
-      for (let i = 0; i < memberUpd.length; i++) {
-        let memSet = memberUpd[i];
-        this.members[memSet._id] = memSet;
-        if (memSet.access == 1) {
-          this.editorCount++;
-        }
-        if (memSet.hand != null) {
-          this.handCount++;
-        }
-        if (memSet.active == false) {
-          this.idleCount++;
-        }
-      }
-    };
 
     socket.remotes["member"] = (data) => {
       if (data.lesson != null && data.lesson != lessonID) {
@@ -182,23 +167,59 @@ modules["pages/lesson"] = class {
               collaborator.image = body.image;
             }
           }
+          this.memberCount++;
+          if (body.access == 1) {
+            this.editorCount++;
+          }
+          if (body.hand != null) {
+            this.handCount++;
+          }
+          if (body.active == false) {
+            this.idleCount++;
+          }
           break;
         case "leave":
-          if (this.members[body._id] == null) {
-            return;
+          if (this.members[body._id] != null) {
+            let member = this.members[body._id];
+            if (member.access == 1) {
+              this.editorCount--;
+            }
+            if (member.hand != null) {
+              this.handCount--;
+            }
+            if (member.active == false) {
+              this.idleCount--;
+            }
+            delete this.members[body._id];
+            this.memberCount--;
           }
-          delete this.members[body._id];
           break;
         case "update":
           if (this.members[body._id] != null) {
             let member = this.members[body._id];
             let memberKeys = Object.keys(body);
+            if (body.access == 1 && member.access < 1) {
+              this.editorCount++;
+            } else if (body.access == 0 && member.access > 0) {
+              this.editorCount--;
+            }
+            if (body.hand != null && member.hand == null) {
+              this.handCount++;
+            } else if (body.hand == null && member.hand != null) {
+              this.handCount--;
+            }
+            if (body.active == false && member.active != false) {
+              this.idleCount++;
+            } else if (body.active != false && member.active == false) {
+              this.idleCount--;
+            }
             for (let i = 0; i < memberKeys.length; i++) {
               let key = memberKeys[i];
               member[key] = body[key];
             }
             if (member.access > 0 && member.hand != null) {
               member.hand = null;
+              this.handCount--;
             }
             let collaborator = this.collaborators[member.modify];
             if (collaborator != null) {
@@ -279,8 +300,21 @@ modules["pages/lesson"] = class {
     this.session = this.sessionID + ";" + this.sessionToken;
     window.previousLessonSession = this.session;
 
-    await this.syncMembers(body.members);
+    for (let i = 0; i < body.members.length; i++) {
+      let memSet = body.members[i];
+      this.members[memSet._id] = memSet;
+      if (memSet.access == 1) {
+        this.editorCount++;
+      }
+      if (memSet.hand != null) {
+        this.handCount++;
+      }
+      if (memSet.active == false) {
+        this.idleCount++;
+      }
+    }
     this.members[this.sessionID] = this.members[this.sessionID] ?? {};
+    this.memberCount = Object.keys(this.members).length;
 
     this.sources = { ...this.sources, ...getObject(body.sources ?? [], "_id") };
 
@@ -704,6 +738,41 @@ modules["pages/lesson/board"] = class {
       updateTopBar();
     }
 
+    this.updateMemberCount = (button) => {
+      let memberCountTx = button.querySelector(".eMemberCount");
+      let handCountTx = button.querySelector(".eMemberHandCount");
+      let idleCountTx = button.querySelector(".eMemberIdleCount");
+
+      memberCountTx.textContent = this.parent.memberCount;
+      if (this.parent.memberCount > 1) {
+        memberCountTx.style.display = "unset";
+        memberCountTx.parentElement.style.padding = "4px 10px 4px 4px";
+      } else {
+        memberCountTx.style.display = "none";
+        memberCountTx.parentElement.style.padding = "6px 10px";
+      }
+      
+      handCountTx.textContent = this.parent.handCount;
+      if (this.parent.handCount > 0 && this.parent.memberCount > 1) {
+        handCountTx.style.display = "unset";
+        handCountTx.parentElement.style.padding = "4px 10px 4px 4px";
+      } else {
+        handCountTx.style.display = "none";
+      }
+
+      idleCountTx.textContent = this.parent.idleCount;
+      if (this.parent.idleCount > 0 && this.parent.memberCount > 1) {
+        idleCountTx.style.display = "unset";
+        idleCountTx.parentElement.style.padding = "4px 10px 4px 4px";
+      } else {
+        idleCountTx.style.display = "none";
+      }
+
+      updateTopBar();
+    }
+    this.updateMemberCount(membersButton);
+    
+
     eTop.addEventListener("scroll", (event) => {
       this.editor.pipeline.publish("topbar_scroll", { event: event });
     });
@@ -871,6 +940,9 @@ modules["pages/lesson/board"] = class {
         lessonName.title = lessonName.textContent;
       }
     });
+    this.editor.pipeline.subscribe("boardMemberJoin", "join", () => { this.updateMemberCount(membersButton); });
+    this.editor.pipeline.subscribe("boardMemberLeave", "leave", () => { this.updateMemberCount(membersButton); });
+    this.editor.pipeline.subscribe("boardMemberUpdate", "update", () => { this.updateMemberCount(membersButton); });
 
     this.editor.pipeline.subscribe("realtimeButtonEnable", "realtime_loaded", () => {
       membersButton.removeAttribute("disabled");

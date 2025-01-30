@@ -19,7 +19,7 @@ modules["editor/realtime"] = class {
       if (event != null) {
         ({ mouseX, mouseY } = editor.utils.localMousePosition(event));
       }
-      if (editor.parent.memberCount < 2) { // No one to send cursor events too!
+      if (editor.parent.parent.memberCount < 2) { // No one to send cursor events too!
         return;
       }
       if (editor.parent.parent.signalStrength < 3 || connected == false) { // If weak don't send!

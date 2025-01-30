@@ -151,7 +151,6 @@ modules["pages/lesson"] = class {
           }
       }
     }
-    console.log(this.members)
     socket.remotes["lesson_" + this.id] = async (data) => {
       let body = data.data;
       let page = data.page ?? "board";

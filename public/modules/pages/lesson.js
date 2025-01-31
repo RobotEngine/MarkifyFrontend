@@ -503,7 +503,7 @@ modules["pages/lesson/board"] = class {
       <button class="eTopScroll" right style="right: 8px"><img src="./images/editor/top/rightarrow.svg" /></button>
       <div class="eTop">
         <div class="eTopSection" left>
-          <a class="eLogo" href="#dashboard"><img src="./images/icon.svg" /></a>
+          <a class="eLogo" href="#dashboard" draggable="false"></a>
           <div class="eFileNameHolder border"><div class="eFileName" spellcheck="false" onpaste="clipBoardRead(event)"></div></div>
           <button class="eFileDropdown">File</button>
           <button class="eCreateCopy">Make Copy</button>
@@ -584,7 +584,7 @@ modules["pages/lesson/board"] = class {
     ".eTopSection[right]": `border-bottom-left-radius: 12px`,
 
     ".eLogo": `display: flex; width: 38px; height: 38px; padding: 0; margin-right: 4px; user-select: none; justify-content: center; align-items: center; border-radius: 6px`,
-    ".eLogo img": `width: 32px; height: 32px`,
+    ".eLogo svg": `width: 32px; height: 32px`,
     //".eLogo:hover": `background: var(--hover)`,
     ".eFileNameHolder": `margin: 0 4px; --borderRadius: 4px; --borderColor: var(--secondary); --borderWidth: 0px; --transition: .05s`,
     ".eFileName": `max-width: 350px; padding: 0px; outline: unset; font-size: 20px; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; scrollbar-width: none`,
@@ -792,10 +792,12 @@ modules["pages/lesson/board"] = class {
       this.editor.pipeline.publish("topbar_scroll", { event: event });
     });
 
-    eTop.querySelector(".eLogo").addEventListener("click", (event) => {
+    let icon = eTop.querySelector(".eLogo");
+    icon.addEventListener("click", (event) => {
       event.preventDefault();
       setFrame("pages/dashboard");
     });
+    setSVG(icon, "./images/icon.svg", (svg) => { return svg.replace(/stroke="#0084FF"/g, 'stroke="var(--theme)"'); });
     lessonName.textContent = this.lesson.name ?? "Untitled Lesson";
     lessonName.title = lessonName.textContent;
     lessonName.addEventListener("keydown", (event) => {

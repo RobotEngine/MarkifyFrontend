@@ -395,7 +395,7 @@ function loadScript(url) {
   return new Promise(function (resolve) {
     let loaded = getScript(url + "?v=" + version);
     if (loaded != null) {
-      if (loaded.hasAttribute("loaded")) {
+      if (loaded.hasAttribute("loaded") == true) {
         resolve(loaded);
       } else {
         loaded.addEventListener("load", function () {
@@ -565,6 +565,33 @@ function removeLocalStore(key) {
   try {
     localStorage.removeItem(key);
   } catch { }
+}
+
+function getSVG(path) {
+  return new Promise(function (resolve) {
+    let newObject = document.createElement("object");
+    newObject.setAttribute("type", "image/svg+xml");
+    newObject.addEventListener("load", () => {
+      resolve(newObject.contentDocument.documentElement.outerHTML);
+      newObject.remove();
+    });
+    newObject.addEventListener("error", () => {
+      resolve();
+      newObject.remove();
+    });
+    newObject.setAttribute("data", path);
+    document.body.appendChild(newObject);
+  });
+}
+async function setSVG(element, path, replace) {
+  let svg = await getSVG(path);
+  if (svg == null) {
+    return;
+  }
+  if (replace != null) {
+    svg = await replace(svg);
+  }
+  element.innerHTML = svg;
 }
 
 let epochOffset = 0;

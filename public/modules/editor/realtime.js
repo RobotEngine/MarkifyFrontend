@@ -1,5 +1,6 @@
 modules["editor/realtime"] = class {
   js = async function (editor) {
+    let contentHolder = editor.contentHolder;
     let content = editor.contentHolder.querySelector(".eContent");
     let realtimeHolder = content.querySelector(".eRealtime");
     let annotations = content.querySelector(".eAnnotations");
@@ -224,8 +225,57 @@ modules["editor/realtime"] = class {
     });
 
     this.adjustRealtimeHolder = () => {
-
+      let adjustElements = realtimeHolder.children;
+      let annotationRect = editor.utils.localBoundingRect(annotations);
+      for (let i = 0; i < adjustElements.length; i++) {
+        let element = adjustElements[i];
+        if (element.hasAttribute("scale") == true) {
+          element.setAttribute("notransition", "");
+          if (element.hasAttribute("width") == true) {
+            element.style.width = parseFloat(element.getAttribute("width")) * editor.zoom + "px";
+          }
+          if (element.hasAttribute("height") == true) {
+            element.style.height = parseFloat(element.getAttribute("height")) * editor.zoom + "px";
+          }
+          if (element.hasAttribute("x") == true && element.hasAttribute("y") == true) {
+            let x = parseFloat(element.getAttribute("x")) * editor.zoom;
+            let y = parseFloat(element.getAttribute("y")) * editor.zoom;
+            element.style.transform = "translate(" + (x + annotationRect.left + (parseInt(element.getAttribute("offsetx") ?? "0")) + contentHolder.scrollLeft) + "px," + (y + annotationRect.top + (parseInt(element.getAttribute("offsety") ?? "0")) + contentHolder.scrollTop) + "px)";
+          }
+          element.offsetHeight;
+          element.removeAttribute("notransition");
+        }
+        if (editor.settings.anonymousMode != true) {
+          element.removeAttribute("anonymous");
+        } else {
+          element.setAttribute("anonymous", "");
+        }
+      }
     }
+    this.removeRealtime = (memberID) => {
+      let remMemberElem = realtimeHolder.children;
+      if (memberID != null) {
+        remMemberElem = [ ...realtimeHolder.querySelectorAll('[member="' + memberID + '"]'), ...editor.page.querySelectorAll('.eAnnotation[member="' + memberID + '"]') ];
+      }
+      for (let i = 0; i < remMemberElem.length; i++) {
+        let elem = remMemberElem[i];
+        (async function () {
+          elem.style.opacity = 0;
+          await sleep(300);
+          elem.remove();
+        })();
+      }
+      let member = editor.members[memberID];
+      if (member == null) {
+        return;
+      }
+      if (member.activeAnno != null) {
+        member.activeAnno.remove();
+        member.activeAnno = null;
+      }
+    }
+
+    //editor.page.querySelector(".eLogo").innerHTML = (await getSVG("./images/icon.svg")).replace(/#0084FF/g, "var(--error)");
 
     editor.realtime.module = this;
     editor.pipeline.publish("realtime_loaded", {});

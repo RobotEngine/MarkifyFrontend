@@ -792,7 +792,6 @@ modules["pages/lesson/board"] = class {
       updateTopBar();
     }
     this.updateMemberCount(membersButton);
-    
 
     eTop.addEventListener("scroll", (event) => {
       this.editor.pipeline.publish("topbar_scroll", { event: event });
@@ -970,6 +969,12 @@ modules["pages/lesson/board"] = class {
         lessonName.textContent = this.lesson.name ?? "Untitled Lesson";
         lessonName.title = lessonName.textContent;
       }
+      if (body.pin != null) {
+        sharePinButton.textContent = body.pin;
+        sharePinButton.style.display = "unset";
+      } else {
+        sharePinButton.style.removeProperty("display");
+      }
     });
     this.editor.pipeline.subscribe("boardMemberJoin", "join", () => { this.updateMemberCount(membersButton); });
     this.editor.pipeline.subscribe("boardMemberLeave", "leave", () => { this.updateMemberCount(membersButton); });
@@ -979,6 +984,10 @@ modules["pages/lesson/board"] = class {
       membersButton.removeAttribute("disabled");
       shareButton.removeAttribute("disabled");
     });
+    if (this.parent.lesson.pin != null) {
+      sharePinButton.style.display = "unset";
+      sharePinButton.textContent = this.lesson.pin;
+    }
 
     this.editor.pipeline.subscribe("checkActivePage", "click_start", () => {
       if (this.parent.activePageID != this.pageID) {

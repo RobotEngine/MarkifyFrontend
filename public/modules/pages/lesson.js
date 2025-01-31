@@ -3844,6 +3844,18 @@ modules["pages/lesson/editor"] = class {
       }
       this.pipeline.publish("redraw_selection", { redrawAction: redrawAction, fromLong: true });
     });
+
+    this.pipeline.subscribe("editorMemberUpdate", "update", (data) => {
+      if (data.active == false && this.realtime.module != null) {
+        this.realtime.module.removeRealtime(data._id);
+      }
+    });
+    this.pipeline.subscribe("editorMemberLeave", "leave", (data) => {
+      if (this.realtime.module != null) {
+        this.realtime.module.removeRealtime(data._id);
+        delete this.realtime.module.members[data._id];
+      }
+    });
     
     let lastMouseX;
     let lastMouseY;

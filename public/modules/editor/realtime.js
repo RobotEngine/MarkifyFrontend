@@ -1,8 +1,9 @@
 modules["editor/realtime"] = class {
   css = {
     ".eCursor": `--backgroundColor: var(--themeColor); --textColor: var(--themeColor); --borderColor: #fff; position: absolute; display: flex; z-index: 20; opacity: 0; align-items: center; transition: .25s; pointer-events: all; transform-origin: var(--origin)`,
+    ".eCursor[hidden]": `transition: transform 0s, all .25s`,
     ".eCursor[pressed]": `--backgroundColor: #fff; --borderColor: var(--themeColor); color: var(--textColor) !important; transform: scale(.9)`,
-    ".eCursor .pointer": `width: 20px; height: 20px; background: var(--backgroundColor); border: solid 3px var(--borderColor); overflow: hidden; border-radius: 8px 14px 14px 14px; box-shadow: 0 0 6px rgb(0 0 0 / 50%); transition: all .3s, color 0s`,
+    ".eCursor .pointer": `width: 20px; height: 20px; background: var(--backgroundColor); border: solid 3px var(--borderColor); overflow: hidden; border-radius: 8px 14px 14px 14px; box-shadow: 0 0 6px rgb(0 0 0 / 25%); transition: all .3s, color 0s`,
     ".eCursor .pointer[none]": `border-radius: 14px; opacity: 0; width: 0px`,
     ".eCursor [name]": `box-sizing: border-box; display: flex; width: fit-content; height: 100%; padding: 0px 6px; border-radius: 14px; overflow: hidden; opacity: 0; font-size: 14px; font-weight: 700; white-space: nowrap; align-items: center`,
     ".eCursor:not([anonymous]):hover [color]": `width: var(--fullyExtended)`,
@@ -266,10 +267,10 @@ modules["editor/realtime"] = class {
         clearInterval(member.interval);
         member.interval = setInterval(() => {
           this.removeRealtime(memberID);
-        }, 10000); // Remove realtime member elements if inactive for 2 minutes
+        }, 120000); // Remove realtime member elements if inactive for 2 minutes
         let cursorHolder = member.elements.cursor;
         if (cursorHolder == null) {
-          realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCursor" member="${memberID}" scale></div>`);
+          realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCursor" member="${memberID}" scale notransition></div>`);
           cursorHolder = realtimeHolder.querySelector('.eCursor[member="' + memberID + '"]');
           member.elements.cursor = cursorHolder;
           cursorHolder.offsetHeight;
@@ -280,12 +281,136 @@ modules["editor/realtime"] = class {
         } else {
           cursorHolder.setAttribute("anonymous", "");
         }
+        // Set x and y:
+        cursorHolder.setAttribute("x", x);
+        cursorHolder.setAttribute("y", y);
+        x *= editor.zoom;
+        y *= editor.zoom;
+        let annotationRect = editor.utils.localBoundingRect(annotations);
+        x += annotationRect.left;
+        y += annotationRect.top;
+        member.x = x;
+        member.y = y;
+        if (time == null) { // Must be for a page leave event:
+          if (tool == null || editor.visibleChunks.includes(tool) == true) {
+            return;
+          }
+          this.removeRealtime(memberID);
+          return;
+        } else {
+          cursorHolder.style.opacity = 1;
+        }
+        if (parseInt(cursorHolder.getAttribute("mode") ?? -1) != tool) {
+          cursorHolder.setAttribute("hidden", "");
+          cursorHolder.style.transform = "translate(" + (member.x + (parseInt(cursorHolder.getAttribute("offsetx") ?? "0")) + contentHolder.scrollLeft) + "px," + (member.y + (parseInt(cursorHolder.getAttribute("offsety") ?? "0")) + contentHolder.scrollTop) + "px) scale(0)";
+          cursorHolder.setAttribute("mode", tool);
+          (async () => {
+            let html = "";
+            let offsetx = 0;
+            let offsety = 0;
+            let origin = "top left";
+            switch (tool) {
+              case 0: // Normal cursor:
+                html = `<div class="pointer" color><div name></div></div>`;
+                break;
+              case 1: // Highlighter 
+                html = `${await getSVG("./images/editor/realtime/highlighter.svg")}<div class="pointer" color none><div name></div></div>`;
+                offsetx = -14;
+                offsety = -30;
+                origin = "bottom center";
+                break;
+              case 2: // Pen 
+                html = `${await getSVG("./images/editor/realtime/pen.svg")}<div class="pointer" color none><div name></div></div>`;
+                offsetx = -14;
+                offsety = -30;
+                origin = "bottom center";
+                break;
+              case 3: // Eraser
+                html = `${await getSVG("./images/editor/realtime/eraser.svg")}<div class="pointer" color none><div name></div></div>`;
+                offsetx = -20;
+                offsety = -20;
+                origin = "center center";
+            }
+            await sleep(100);
+            cursorHolder.innerHTML = html.replace(/MEMBER_COLOR_REPLACE/g, "var(--themeColor)");
+            cursorHolder.setAttribute("offsetx", offsetx);
+            cursorHolder.setAttribute("offsety", offsety);
+            cursorHolder.style.setProperty("--origin", origin);
+            cursorHolder.querySelector("[name]").textContent = memberData.name;
+            let setTextColor = editor.utils.textColorBackground(memberData.color);
+            cursorHolder.style.color = setTextColor;
+            if (setTextColor == "#000") {
+              cursorHolder.style.setProperty("--textColor", "#000");
+            }
+            cursorHolder.style.setProperty("--themeColor", memberData.color);
+            let colorMain = cursorHolder.querySelector("[color]");
+            colorMain.style.width = "fit-content";
+            cursorHolder.style.setProperty("--fullyExtended", colorMain.clientWidth + "px");
+            colorMain.style.removeProperty("width");
+            cursorHolder.style.transform = "translate(" + (member.x + (parseInt(cursorHolder.getAttribute("offsetx") ?? "0")) + contentHolder.scrollLeft) + "px," + (member.y + (parseInt(cursorHolder.getAttribute("offsety") ?? "0")) + contentHolder.scrollTop) + "px)";
+            cursorHolder.removeAttribute("notransition");
+            cursorHolder.removeAttribute("hidden");
+          })();
+        } else {
+          cursorHolder.style.transform = "translate(" + (member.x + (parseInt(cursorHolder.getAttribute("offsetx") ?? "0")) + contentHolder.scrollLeft) + "px," + (member.y + (parseInt(cursorHolder.getAttribute("offsety") ?? "0")) + contentHolder.scrollTop) + "px)";
+        }
 
+        // Handle Selection:
+        let userSelection = (extra ?? {}).select ?? {};
+        let selectKeys = Object.keys(userSelection);
+
+        if (Object.keys(userSelection).length > 0 && editor.options.cursornames != false) {
+          cursorHolder.setAttribute("extend", "");
+        } else {
+          cursorHolder.removeAttribute("extend");
+        }
+        if (extra != null && extra.press == true) {
+          cursorHolder.setAttribute("pressed", "");
+        } else {
+          cursorHolder.removeAttribute("pressed");
+        }
+
+        // Handle Text Selection
+        let textSelectHolder = member.elements.textSelectionHolder;
+        if (extra != null && extra.selection != null && extra.selection.length < 100) {
+          if (textSelectHolder == null) {
+            realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eSelection" member="${memberID}"></div>`);
+            textSelectHolder = realtimeHolder.querySelector('.eSelection[member="' + memberID + '"]:not([old])');
+            member.elements.textSelectionHolder = textSelectHolder;
+            textSelectHolder.style.setProperty("--themeColor", memberData.color);
+          } else {
+            textSelectHolder.innerHTML = "";
+          }
+          for (let i = 0; i < extra.selection.length; i++) {
+            let selectData = extra.selection[i];
+            textSelectHolder.insertAdjacentHTML("beforeend", "<div scale new></div>");
+            let select = textSelectHolder.querySelector(".eSelection div[new]");
+            select.removeAttribute("new");
+            select.setAttribute("width", selectData[0]);
+            select.setAttribute("height", selectData[1]);
+            select.setAttribute("x", selectData[2]);
+            select.setAttribute("y", selectData[3]);
+            select.style.width = (selectData[0] * editor.zoom) + "px";
+            select.style.height = (selectData[1] * editor.zoom) + "px";
+            select.style.transform = "translate(" + ((selectData[2] * editor.zoom) + annotationRect.left + contentHolder.scrollLeft) + "px," + ((selectData[3] * editor.zoom) + annotationRect.top + contentHolder.scrollTop) + "px)";
+          }
+          textSelectHolder.style.opacity = 1;
+        } else if (textSelectHolder != null) {
+          delete member.elements.textSelectionHolder;
+          textSelectHolder.setAttribute("old", "");
+          textSelectHolder.style.opacity = 0;
+          (async function () {
+            await sleep(300);
+            if (textSelectHolder != null) {
+              textSelectHolder.remove();
+            }
+          })();
+        }
       }
     });
 
     this.adjustRealtimeHolder = () => {
-      let adjustElements = realtimeHolder.children;
+      let adjustElements = realtimeHolder.querySelectorAll("div[scale]");
       let annotationRect = editor.utils.localBoundingRect(annotations);
       for (let i = 0; i < adjustElements.length; i++) {
         let element = adjustElements[i];
@@ -314,7 +439,7 @@ modules["editor/realtime"] = class {
     }
     this.removeRealtime = (memberID) => {
       let member = this.members[memberID];
-      if (member == null) {
+      if (member == null || member.elements == null) {
         return;
       }
       let memberElements = [];

@@ -117,9 +117,9 @@ modules["pages/dashboard"] = class {
     ".dropdownTitle div[accountuser]": `flex: unset`,
 
     ".dLessonsHolder": `position: relative; display: flex; flex-direction: column; width: 100%; min-height: 100%; overflow-x: hidden; overflow-y: auto; z-index: 1`,
-    ".dSelectedTitleHolder": `position: sticky; display: flex; box-sizing: border-box; width: 100%; padding: 16px; top: 0px; z-index: 2; transition: background .2s, box-shadow .2s`,
+    ".dSelectedTitleHolder": `position: sticky; display: flex; box-sizing: border-box; width: 100%; padding: 20px; top: 0px; z-index: 2; transition: background .2s, box-shadow .2s`,
     ".dSelectedTitle": `font-size: 28px; font-weight: 600; text-align: left`,
-    ".dTilesHolder": `position: relative; width: calc(100% - 32px); min-height: fit-content; height: 100%; margin: 0px 16px 16px 16px; z-index: 1`,
+    ".dTilesHolder": `position: relative; width: calc(100% - 40px); min-height: fit-content; height: 100%; margin: 0px 20px 20px 20px; z-index: 1`,
 
     ".dFolderInfo": `display: flex; width: 100%; justify-content: center; align-items: center`,
     ".dFolderColorButton": `position: relative; width: 40px; height: 40px; flex-shrink: 0`,
@@ -1049,7 +1049,7 @@ modules["pages/dashboard/lessons"] = class {
   </div>
   `;
   css = {
-    ".dTiles": `position: relative; display: grid; width: 100%; grid-gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(275px, 100%), 1fr)); transition: .4s`, // min-height: 100%;
+    ".dTiles": `position: relative; display: grid; width: 100%; grid-gap: 20px; grid-template-columns: repeat(auto-fill, minmax(min(275px, 100%), 1fr)); transition: .4s`, // min-height: 100%;
     ".dTile": `position: relative; background: var(--pageColor); --shadow: var(--lightShadow); box-shadow: var(--shadow); border-radius: 12px; overflow: hidden`,
     ".dTile:hover": `--shadow: var(--darkShadow)`,
     ".dTileThumbnail": `width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 12px`,

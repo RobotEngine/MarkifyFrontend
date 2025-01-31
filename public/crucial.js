@@ -570,6 +570,7 @@ function removeLocalStore(key) {
 function getSVG(path) {
   return new Promise(function (resolve) {
     let newObject = document.createElement("object");
+    newObject.className = "svgImageLoad";
     newObject.setAttribute("type", "image/svg+xml");
     newObject.addEventListener("load", () => {
       resolve(newObject.contentDocument.documentElement.outerHTML);
@@ -580,7 +581,7 @@ function getSVG(path) {
       newObject.remove();
     });
     newObject.setAttribute("data", path);
-    document.body.appendChild(newObject);
+    fixed.appendChild(newObject);
   });
 }
 async function setSVG(element, path, replace) {
@@ -1614,7 +1615,8 @@ addCSS({
   ".fixedItemHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden; transition: .3s`,
   ".fixedItemHolder[blur]": `backdrop-filter: blur(4px); background: rgba(180, 218, 253, .3); pointer-events: all`,
   "[notransition]": `transition: unset !important`,
-  "button svg": `-webkit-transform: translate3d(0, 0, 0)`
+  "button svg": `-webkit-transform: translate3d(0, 0, 0)`,
+  ".svgImageLoad": "position: absolute; width: 0px; height: 0px; opacity: 0; pointer-events: none"
 });
 (new Image()).src = "./images/tooltips/alerts.svg";
 (new Image()).src = "./images/tooltips/close.svg";

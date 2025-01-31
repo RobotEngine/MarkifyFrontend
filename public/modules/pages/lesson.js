@@ -508,8 +508,8 @@ modules["pages/lesson/board"] = class {
           <button class="eFileDropdown">File</button>
           <button class="eCreateCopy">Make Copy</button>
           <div class="eTopDivider"></div>
-          <button class="eSaveProgress eUndo" disabled><img draggable="false" src="./images/tooltips/progress/undo.svg" /></button>
-          <button class="eSaveProgress eRedo" disabled><img draggable="false" src="./images/tooltips/progress/redo.svg" /></button>
+          <button class="eSaveProgress eUndo" disabled></button>
+          <button class="eSaveProgress eRedo" disabled></button>
           <div class="eStatus">
             <div class="eStatusStrength" full>
               <svg saved width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -525,9 +525,9 @@ modules["pages/lesson/board"] = class {
         </div>
         <div class="eTopSection" right>
           <button class="eMembers" disabled><span class="eMemberHandCount" title="Number of hands raised."></span><span class="eMemberIdleCount" title="Number of idle members."></span><span class="eMemberCount" title="Number of members."></span>Members</button>
-          <button class="eEndSession" title="End Session | Disable all editing access making everyone a viewer."><img src="./images/editor/share/endeditors.svg" /></button>
+          <button class="eEndSession" title="End Session | Disable all editing access making everyone a viewer."></button>
           <button class="eShare" disabled>Share</button>
-          <button class="eMemberOptions" title="Member Options | Configure various member settings and available tools."><img src="./images/editor/share/setting.svg" /></button>
+          <button class="eMemberOptions" title="Member Options | Configure various member settings and available tools."></button>
           <button class="eSharePin"></button>
           <div class="eTopDivider"></div>
           <button class="eZoom">100%</button>
@@ -551,9 +551,9 @@ modules["pages/lesson/board"] = class {
           <button class="eObserveExit buttonAnim border"><img src="./images/tooltips/close.svg"></button>
         </div>
         <div class="eBottomSection" right>
-          <button class="ePageNav" down><img src="./images/editor/bottom/plus.svg" /></button>
+          <button class="ePageNav" down></button>
           <div class="eCurrentPage border" contenteditable></div>
-          <button class="ePageNav" up><img src="./images/editor/bottom/minus.svg" /></button>
+          <button class="ePageNav" up></button>
         </div>
       </div>
     </div>
@@ -594,7 +594,7 @@ modules["pages/lesson/board"] = class {
     ".eCreateCopy": `padding: 6px 10px; height: 32px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
     ".eTopDivider": `width: 4px; height: 32px; margin: 0 4px; background: var(--lightGray); border-radius: 2px`,
     ".eSaveProgress": `display: flex; width: 32px; height: 32px; padding: 0; align-items: center; overflow: hidden; background: var(--lightGray)`,
-    ".eSaveProgress img": `width: 24px; height: 24px; margin: 2px`,
+    ".eSaveProgress svg": `width: 24px; height: 24px; margin: 2px`,
     ".eUndo": `margin: 0 2px 0 4px; justify-content: end; border-radius: 16px 0 0 16px`,
     ".eRedo": `margin: 0 4px 0 2px; justify-content: start; border-radius: 0 16px 16px 0`,
     ".eStatus": `display: flex; width: 32px; height: 32px; margin: 4px; justify-content: center; align-items: center`,
@@ -606,10 +606,10 @@ modules["pages/lesson/board"] = class {
     ".eMemberHandCount": `color: var(--green)`,
     ".eMemberIdleCount": `color: var(--yellow)`,
     ".eEndSession": `display: none; width: 32px; height: 32px; padding: 0px; margin: 0 4px; background: var(--error); border-radius: 16px; justify-content: center; align-items: center; color: #fff; font-size: 16px; font-weight: 600`,
-    ".eEndSession img": `width: 28px; height: 28px`,
+    ".eEndSession svg": `width: 28px; height: 28px`,
     ".eShare": `height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
     ".eMemberOptions": `display: none; width: 32px; height: 32px; padding: 0px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; justify-content: center; align-items: center; color: #fff; font-size: 16px; font-weight: 600`,
-    ".eMemberOptions img": `width: 32px; height: 32px`,
+    ".eMemberOptions svg": `width: 32px; height: 32px`,
     ".eSharePin": `display: none; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
     ".eZoom": `height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
     ".eAccount": `padding: 0; width: 32px; height: 32px; margin: 0 4px; border-radius: 16px; overflow: hidden`,
@@ -675,6 +675,8 @@ modules["pages/lesson/board"] = class {
 
     let contentHolder = frame.querySelector(".eContentHolder");
 
+    let observeHolder = frame.querySelector(".eBottomSection[left]");
+
     let currentPageHolder = frame.querySelector(".eBottomSection[right]");
     let pageTextBox = currentPageHolder.querySelector(".eCurrentPage");
     let increasePageButton = currentPageHolder.querySelector(".ePageNav[down]");
@@ -689,10 +691,14 @@ modules["pages/lesson/board"] = class {
     this.editor.settings = this.parent.lesson.settings ?? {};
     this.editor.self = this.parent.members[this.editor.sessionID];
 
-    let updateTopBar = () => {
-      eTopHolder.removeAttribute("scroll");
+    let updateTopBar = (ignoreAttr) => {
+      if (ignoreAttr != true) {
+        eTopHolder.removeAttribute("scroll");
+      }
       if (eTop.scrollWidth > eTop.clientWidth) {
-        eTopHolder.setAttribute("scroll", "");
+        if (ignoreAttr != true) {
+          eTopHolder.setAttribute("scroll", "");
+        }
         if (Math.floor(eTop.scrollLeft) > 0) {
           eTopScrollLeft.style.opacity = 1;
           eTopScrollLeft.style.pointerEvents = "all";
@@ -723,7 +729,7 @@ modules["pages/lesson/board"] = class {
       updateTopBar();
     });
     this.editor.pipeline.subscribe("topbarResize", "resize", updateTopBar);
-    this.editor.pipeline.subscribe("topbarScroll", "topbar_scroll", updateTopBar);
+    this.editor.pipeline.subscribe("topbarScroll", "topbar_scroll", () => { updateTopBar(true); });
     this.editor.pipeline.subscribe("topbarVisibilityChange", "visibilitychange", updateTopBar);
     updateTopBar();
 
@@ -797,7 +803,6 @@ modules["pages/lesson/board"] = class {
       event.preventDefault();
       setFrame("pages/dashboard");
     });
-    setSVG(icon, "./images/icon.svg", (svg) => { return svg.replace(/stroke="#0084FF"/g, 'stroke="var(--theme)"'); });
     lessonName.textContent = this.lesson.name ?? "Untitled Lesson";
     lessonName.title = lessonName.textContent;
     lessonName.addEventListener("keydown", (event) => {
@@ -857,6 +862,15 @@ modules["pages/lesson/board"] = class {
         setFrame("pages/lesson");
       }
     });
+
+    // Load Images:
+    setSVG(icon, "./images/icon.svg", (svg) => { return svg.replace(/"#0084FF"/g, '"var(--theme)"'); });
+    setSVG(undoButton, "./images/tooltips/progress/undo.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
+    setSVG(redoButton, "./images/tooltips/progress/redo.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
+    setSVG(endSessionButton, "./images/editor/share/endeditors.svg", (svg) => { return svg.replace(/"#FF2F5A"/g, '"var(--error)"'); });
+    setSVG(memberOptionsButton, "./images/editor/share/setting.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
+    setSVG(increasePageButton, "./images/editor/bottom/plus.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
+    setSVG(decreasePageButton, "./images/editor/bottom/minus.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
 
     this.editor.pipeline.subscribe("zoomTextUpdate", "zoom_change", (event) => {
       zoomButton.textContent = Math.round(event.zoom * 100) + "%";

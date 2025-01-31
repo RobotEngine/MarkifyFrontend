@@ -1,4 +1,26 @@
 modules["editor/realtime"] = class {
+  css = {
+    ".eCursor": `--backgroundColor: var(--themeColor); --textColor: var(--themeColor); --borderColor: #fff; position: absolute; display: flex; z-index: 20; opacity: 0; align-items: center; transition: .25s; pointer-events: all; transform-origin: var(--origin)`,
+    ".eCursor[pressed]": `--backgroundColor: #fff; --borderColor: var(--themeColor); color: var(--textColor) !important; transform: scale(.9)`,
+    ".eCursor .pointer": `width: 20px; height: 20px; background: var(--backgroundColor); border: solid 3px var(--borderColor); overflow: hidden; border-radius: 8px 14px 14px 14px; box-shadow: 0 0 6px rgb(0 0 0 / 50%); transition: all .3s, color 0s`,
+    ".eCursor .pointer[none]": `border-radius: 14px; opacity: 0; width: 0px`,
+    ".eCursor [name]": `box-sizing: border-box; display: flex; width: fit-content; height: 100%; padding: 0px 6px; border-radius: 14px; overflow: hidden; opacity: 0; font-size: 14px; font-weight: 700; white-space: nowrap; align-items: center`,
+    ".eCursor:not([anonymous]):hover [color]": `width: var(--fullyExtended)`,
+    ".eCursor:not([anonymous]):hover [name]": `width: unset; opacity: 1`,
+    ".eCursor:not([anonymous]):hover .pointer[none]": `opacity: 1`,
+    ".eCursor:not([anonymous])[extend] [color]": `width: var(--fullyExtended)`,
+    ".eCursor:not([anonymous])[extend] [name]": `width: unset; opacity: 1`,
+    ".eCursor:not([anonymous])[extend] .pointer[none]": `opacity: 1`,
+    ".eCursor[anonymous]": `--themeColor: var(--theme) !important; pointer-events: none !important`,
+    ".eCursor[anonymous] [name]": `opacity: 0`,
+
+    ".eSelection": `opacity: 0; z-index: 10; transition: .3s`,
+    ".eSelection div": `position: absolute; background: var(--themeColor); opacity: .4; border-radius: 4px`,
+
+    ".eCollabSelect": `position: absolute; left: 0px; top: 0px; border: solid 3px var(--themeColor); opacity: 0; z-index: 9; border-radius: 9px; opacity .15s; pointer-events: none`,
+    ".eCollabSelect[anonymous]": `--themeColor: var(--theme) !important`
+  };
+  members = {};
   js = async function (editor) {
     let contentHolder = editor.contentHolder;
     let content = editor.contentHolder.querySelector(".eContent");
@@ -221,7 +243,45 @@ modules["editor/realtime"] = class {
     }
 
     editor.pipeline.subscribe("realtimeShortSub", "short", (data) => {
-      
+      let memberID = data[0];
+      let memberData = editor.parent.parent.members[memberID];
+      if (memberData == null) {
+        return;
+      }
+      let member = this.members[memberID];
+      if (member == null) {
+        member = { elements: {} };
+        this.members[memberID] = member;
+      }
+      if (data[1] != null) { // CURSOR EVENT
+        if (editor.options.cursors == false) {
+          return;
+        }
+        let [ memberID, tool, time, x, y, extra ] = data;
+        let forced = extra != null && extra.force == true;
+        if (member.lastShort > time && forced == false) {
+          return;
+        }
+        member.lastShort = time;
+        clearInterval(member.interval);
+        member.interval = setInterval(() => {
+          this.removeRealtime(memberID);
+        }, 10000); // Remove realtime member elements if inactive for 2 minutes
+        let cursorHolder = member.elements.cursor;
+        if (cursorHolder == null) {
+          realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCursor" member="${memberID}" scale></div>`);
+          cursorHolder = realtimeHolder.querySelector('.eCursor[member="' + memberID + '"]');
+          member.elements.cursor = cursorHolder;
+          cursorHolder.offsetHeight;
+          cursorHolder.style.opacity = 1;
+        }
+        if (editor.settings.anonymousMode != true) {
+          cursorHolder.removeAttribute("anonymous");
+        } else {
+          cursorHolder.setAttribute("anonymous", "");
+        }
+
+      }
     });
 
     this.adjustRealtimeHolder = () => {
@@ -253,29 +313,36 @@ modules["editor/realtime"] = class {
       }
     }
     this.removeRealtime = (memberID) => {
-      let remMemberElem = realtimeHolder.children;
-      if (memberID != null) {
-        remMemberElem = [ ...realtimeHolder.querySelectorAll('[member="' + memberID + '"]'), ...editor.page.querySelectorAll('.eAnnotation[member="' + memberID + '"]') ];
-      }
-      for (let i = 0; i < remMemberElem.length; i++) {
-        let elem = remMemberElem[i];
-        (async function () {
-          elem.style.opacity = 0;
-          await sleep(300);
-          elem.remove();
-        })();
-      }
-      let member = editor.members[memberID];
+      let member = this.members[memberID];
       if (member == null) {
         return;
       }
+      let memberElements = [];
+      let elementKeys = Object.keys(member.elements);
+      for (let i = 0; i < elementKeys.length; i++) {
+        memberElements.push(member.elements[elementKeys[i]]);
+      }
+      member.elements = {};
+      (async function () {
+        for (let i = 0; i < memberElements.length; i++) {
+          let elem = memberElements[i];
+          if (elem != null) {
+            elem.style.opacity = 0;
+          }
+        }
+        await sleep(300);
+        for (let i = 0; i < memberElements.length; i++) {
+          let elem = memberElements[i];
+          if (elem != null) {
+            elem.remove();
+          }
+        }
+      })();
       if (member.activeAnno != null) {
         member.activeAnno.remove();
-        member.activeAnno = null;
+        delete member.activeAnno;
       }
     }
-
-    //editor.page.querySelector(".eLogo").innerHTML = (await getSVG("./images/icon.svg")).replace(/#0084FF/g, "var(--error)");
 
     editor.realtime.module = this;
     editor.pipeline.publish("realtime_loaded", {});

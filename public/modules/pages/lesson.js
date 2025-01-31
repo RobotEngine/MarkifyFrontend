@@ -2515,7 +2515,7 @@ modules["pages/lesson/editor"] = class {
         }
       }
       if (anno != null && anno.parentElement != annoHolder) {
-        annotations.querySelector(".ePageHolder").appendChild(anno);
+        //annotations.appendChild(anno);
         annoHolder.appendChild(anno);
         let activeSelect = annotations.querySelector('.eSelectActive[anno="' + _id + '"]');
         if (activeSelect != null) {
@@ -3503,7 +3503,7 @@ modules["pages/lesson/editor"] = class {
           if (connected == false && annotation.collab != true) {
             continue;
           }
-          if (this.toolbar != null && editor.selecting[annotation.render._id] != null && this.toolbar.cursor.action != null) {
+          if (this.toolbar != null && this.selecting[annotation.render._id] != null && this.toolbar.cursor.action != null) {
             continue;
           }
           
@@ -3514,7 +3514,7 @@ modules["pages/lesson/editor"] = class {
           delete annotation.collab;
   
           if (annotation.pending != null) {
-            delete editor.annotations[annotation.pending];
+            delete this.annotations[annotation.pending];
             delete annotation.render.pending;
           }
 
@@ -3523,12 +3523,12 @@ modules["pages/lesson/editor"] = class {
             if (annotation.revert != null) {
               annotation.render = annotation.revert;
               delete annotation.revert;
-              let existingAnno = editor.annotations[annotation.render._id];
+              let existingAnno = this.annotations[annotation.render._id];
               await this.utils.annotationChunks(existingAnno);
               this.utils.updateAnnotationPages(annotation.render);
               let allowRender = annotation.render.remove == true;
               for (let i = 0; i < existingAnno.chunks.length; i++) {
-                if (editor.visibleChunks.includes(existingAnno.chunks[i]) == true) {
+                if (this.visibleChunks.includes(existingAnno.chunks[i]) == true) {
                   allowRender = true;
                   break;
                 }
@@ -3540,7 +3540,7 @@ modules["pages/lesson/editor"] = class {
             }
           } else {
             this.render.removeAnnotation(annotation.render._id);
-            delete editor.annotations[annotation.render._id];
+            delete this.annotations[annotation.render._id];
             changeOccured = true;
           }
         }
@@ -3550,6 +3550,31 @@ modules["pages/lesson/editor"] = class {
         }
       }
       this.runningTimeout = false;
+    }
+    this.save.applyEdit = async (annoData, render, sync, passedRender) => {
+      if (annoData.resizing != null) {
+        delete annoData.resizing;
+      }
+      let annoID = annoData._id;
+      if (annoID == null) {
+        return;
+      }
+      if (Object.keys(annoData).length < 2) {
+        return; // Only the _id field, no changes
+      }
+      let anno = this.annotations[annoID] ?? passedRender ?? { render: {} };
+      if (anno.pointer != null) {
+        annoID = anno.pointer;
+        anno = this.annotations[annoID] ?? passedRender ?? { render: {} };
+      }
+      anno.revert = anno.revert ?? JSON.parse(JSON.stringify(anno.render));
+      objectUpdate(annoData, anno.render);
+      this.save.enableTimeout(anno, render);
+      this.annotations[annoID] = anno;
+      await this.utils.annotationChunks(anno);
+      this.utils.updateAnnotationPages(anno.render);
+      await this.render.createAnnotation({ ...anno.render, sync: sync }, render);
+      return annoData;
     }
 
     this.history = {};

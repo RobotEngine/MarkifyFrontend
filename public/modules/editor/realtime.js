@@ -451,6 +451,7 @@ modules["editor/realtime"] = class {
         // Handle Selection:
         let userSelection = (extra ?? {}).select ?? {};
         let selectKeys = Object.keys(userSelection);
+        let selections = {};
         let elementKeys = Object.keys(member.elements);
         for (let i = 0; i < elementKeys.length; i++) {
           let elemID = elementKeys[i];
@@ -458,6 +459,9 @@ modules["editor/realtime"] = class {
             continue;
           }
           let select = member.elements[elemID];
+          if (select == null) {
+            continue;
+          }
           let annoID = select.getAttribute("anno");
           if (selectKeys.includes(annoID) == false) {
             delete member.elements[elemID];
@@ -470,10 +474,7 @@ modules["editor/realtime"] = class {
               }
             })();
           } else {
-            if (annoID != "cursor" && elemID.endsWith(annoID) == false) {
-              member.elements["selection_" + annoID] = select;
-              delete member.elements[elemID];
-            }
+            selections[annoID] = select;
             if (editor.settings.anonymousMode != true) {
               select.removeAttribute("anonymous");
             } else {
@@ -582,7 +583,7 @@ modules["editor/realtime"] = class {
 
               let selection;
               if ((anno.f == null || anno.sync != null || annoID == "cursor") && userSelection[annoID] != null) {
-                selection = member.elements["selection_" + annoID];
+                selection = selections[annoID];
                 if (selection == null) {
                   realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCollabSelect" member="${memberID}" new></div>`);
                   selection = realtimeHolder.querySelector('.eCollabSelect[member="' + memberID + '"][new]');

@@ -989,8 +989,8 @@ modules["pages/lesson/board"] = class {
         lessonName.textContent = this.lesson.name ?? "Untitled Lesson";
         lessonName.title = lessonName.textContent;
       }
-      if (body.pin != null) {
-        sharePinButton.textContent = body.pin;
+      if (this.parent.lesson.pin != null) {
+        sharePinButton.textContent = this.parent.lesson.pin;
         sharePinButton.style.display = "unset";
       } else {
         sharePinButton.style.removeProperty("display");

@@ -868,7 +868,7 @@ modules["pages/dashboard"] = class {
         removeButton.addEventListener("click", () => {
           dropdownModule.open(removeButton, "dropdowns/remove", { parent: this, type: "deletefolder", folderID: folderID, folders: folders, records: records, lessons: lessons });
         });
-        titleHolder.style.padding = "10px 16px";
+        titleHolder.style.padding = "14px 16px";
         newLessonButton.href = "?folder=" + this.sort + "#lesson";
       } else { // Sort
         titleHolder.innerHTML = `<div class="dSelectedTitle">${this.sort[0].toUpperCase() + this.sort.substring(1) + " Lessons"}</div>`;

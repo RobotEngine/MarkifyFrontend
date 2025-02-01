@@ -482,200 +482,203 @@ modules["editor/realtime"] = class {
             }
           }
         }
-        if (extra != null) {
-          if (extra.c != null) {
-            let setColor = cursorHolder.querySelector("[toolcoloropacity]");
-            if (setColor != null) {
-              setColor.setAttribute("fill", "#" + extra.c ?? "000");
-              setColor.setAttribute("fill-opacity", (extra.o ?? 100) / 100);
-            }
+
+        if (extra == null) {
+          extra = {};
+        }
+
+        if (extra.c != null) {
+          let setColor = cursorHolder.querySelector("[toolcoloropacity]");
+          if (setColor != null) {
+            setColor.setAttribute("fill", "#" + extra.c ?? "000");
+            setColor.setAttribute("fill-opacity", (extra.o ?? 100) / 100);
           }
-          if (extra.press == true) {
-            cursorHolder.setAttribute("pressed", "");
-          } else {
-            cursorHolder.removeAttribute("pressed");
-          }
-          if (selectKeys.length > 0) {
-            let userSelecting = false;
-            let refreshSelecting = false;
-            let changes = false;
-            let hasCursorAnno = false;
-            for (let i = 0; i < selectKeys.length; i++) {
-              let annoID = selectKeys[i];
-              let anno = extra.select[annoID] ?? {};
-              let merge;
-              let annoElem;
-              let original;
-              if (annoID == "cursor") {
-                // Just a temporary prop, no saving:
-                let prevElem = member.elements.selection_cursor_annotation;
-                if (prevElem != null && prevElem.getAttribute("type") != anno.f) {
-                  prevElem.remove();
-                  prevElem = null;
-                }
-                ([merge, annoElem] = await editor.render.createAnnotation({ ...anno, _id: memberID + "_cursor" }, prevElem));
-                member.elements.selection_cursor_annotation = annoElem;
-                annoElem.setAttribute("member", memberID);
-                annoElem.setAttribute("anno", "cursor");
-                annoElem.setAttribute("type", anno.f);
-                annoElem.style.opacity = .7;
-                hasCursorAnno = true;
-                member.cursorRender = merge;
-              } else {
+        }
+        if (extra.press == true) {
+          cursorHolder.setAttribute("pressed", "");
+        } else {
+          cursorHolder.removeAttribute("pressed");
+        }
+        if (selectKeys.length > 0) {
+          let userSelecting = false;
+          let refreshSelecting = false;
+          let changes = false;
+          let hasCursorAnno = false;
+          for (let i = 0; i < selectKeys.length; i++) {
+            let annoID = selectKeys[i];
+            let anno = extra.select[annoID] ?? {};
+            let merge;
+            let annoElem;
+            let original;
+            if (annoID == "cursor") {
+              // Just a temporary prop, no saving:
+              let prevElem = member.elements.selection_cursor_annotation;
+              if (prevElem != null && prevElem.getAttribute("type") != anno.f) {
+                prevElem.remove();
+                prevElem = null;
+              }
+              ([merge, annoElem] = await editor.render.createAnnotation({ ...anno, _id: memberID + "_cursor" }, prevElem));
+              member.elements.selection_cursor_annotation = annoElem;
+              annoElem.setAttribute("member", memberID);
+              annoElem.setAttribute("anno", "cursor");
+              annoElem.setAttribute("type", anno.f);
+              annoElem.style.opacity = .7;
+              hasCursorAnno = true;
+              member.cursorRender = merge;
+            } else {
+              original = editor.annotations[annoID];
+              if (original != null && original.pointer != null) {
+                annoID = original.pointer;
                 original = editor.annotations[annoID];
-                if (original != null && original.pointer != null) {
-                  annoID = original.pointer;
-                  original = editor.annotations[annoID];
-                }
-                anno._id = annoID;
-                let isNewAnno = annoID.startsWith("pending_") == true;
-                if (original == null && isNewAnno == true) {
-                  editor.annotations[annoID] = {};
-                  original = editor.annotations[annoID];
-                }
-                original = original ?? {};
-                let originalRender = original.render ?? {};
-                if (editor.settings.editOthersWork != true && (originalRender.a ?? originalRender.m) != null && [originalRender.a, originalRender.m].includes(memberData.modify) == false && memberData.access < 4) { // Can't edit another member's work:
-                  delete userSelection[annoID];
-                  continue;
-                }
-                let setRender = { ...originalRender, ...anno };
-                if (setRender._id == null || setRender.p == null || setRender.s == null) {
-                  delete userSelection[annoID];
-                  continue;
-                } else if (setRender.remove == true) {
-                  delete userSelection[annoID];
-                }
-                if (anno.lock == false) {
-                  if ([originalRender.a, originalRender.m].includes(memberData.modify) == false && memberData.access < 4) {
-                    anno.lock = null;
-                  }
-                }
-
-                original.revert = original.revert ?? JSON.parse(JSON.stringify(originalRender));
-
-                if (originalRender.lock != true || anno.lock == false) { // Can't edit another member's work:
-                  if (anno.remove == true && editor.selecting[annoID] != null) {
-                    delete editor.selecting[annoID];
-                    userSelecting = true;
-                  }
-                  if (Object.keys({ ...anno, done: "" }).length > 2) {
-                    changes = true;
-                  }
-                  if (anno.done != true && forced != true) {
-                    original.render = setRender;
-                  } else if (changes == true) {
-                    original.render = setRender;
-                    delete original.render.done;
-                    await editor.save.applyEdit(anno, null, time);
-                  }
-                  if (changes == true) {
-                    if (isNewAnno == false) {
-                      original.render.m = member.modify;
-                    } else {
-                      original.render.a = member.modify;
-                    }
-                    original.render.sync = time;
-                    editor.save.enableTimeout(original, null, true);
-                  }
+              }
+              anno._id = annoID;
+              let isNewAnno = annoID.startsWith("pending_") == true;
+              if (original == null && isNewAnno == true) {
+                editor.annotations[annoID] = {};
+                original = editor.annotations[annoID];
+              }
+              original = original ?? {};
+              let originalRender = original.render ?? {};
+              if (editor.settings.editOthersWork != true && (originalRender.a ?? originalRender.m) != null && [originalRender.a, originalRender.m].includes(memberData.modify) == false && memberData.access < 4) { // Can't edit another member's work:
+                delete userSelection[annoID];
+                continue;
+              }
+              let setRender = { ...originalRender, ...anno };
+              if (setRender._id == null || setRender.p == null || setRender.s == null) {
+                delete userSelection[annoID];
+                continue;
+              } else if (setRender.remove == true) {
+                delete userSelection[annoID];
+              }
+              if (anno.lock == false) {
+                if ([originalRender.a, originalRender.m].includes(memberData.modify) == false && memberData.access < 4) {
+                  anno.lock = null;
                 }
               }
 
-              let selection;
-              if ((anno.f == null || anno.sync != null || annoID == "cursor") && userSelection[annoID] != null) {
-                selection = selections[annoID];
-                if (selection == null) {
-                  realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCollabSelect" member="${memberID}" new></div>`);
-                  selection = realtimeHolder.querySelector('.eCollabSelect[member="' + memberID + '"][new]');
-                  member.elements["selection_" + annoID] = selection;
-                  selection.removeAttribute("new");
-                  selection.style.setProperty("--themeColor", memberData.color);
-                  if (editor.settings.anonymousMode != true) {
-                    selection.removeAttribute("anonymous");
-                  } else {
-                    selection.setAttribute("anonymous", "");
-                  }
-                  selection.offsetHeight;
-                }
-                selection.setAttribute("anno", annoID);
-              }
-              
-              if (annoID != "cursor") {
-                if (editor.selecting[annoID] == null) {
-                  merge = original.render;
-                  if (selection != null) {
-                    selection.removeAttribute("notransition");
-                  }
-                } else {
-                  merge = { ...original.render, ...(editor.selecting[annoID] ?? {}) };
+              original.revert = original.revert ?? JSON.parse(JSON.stringify(originalRender));
+
+              if (originalRender.lock != true || anno.lock == false) { // Can't edit another member's work:
+                if (anno.remove == true && editor.selecting[annoID] != null) {
+                  delete editor.selecting[annoID];
                   userSelecting = true;
                 }
-                if (["text", "sticky"].includes(merge.f) == true && anno.d != null) {
-                  let annoTx = annotations.querySelector('.eAnnotation[anno="' + annoID + '"] div[contenteditable]');
-                  if (annoTx != null) {
-                    annoTx.removeAttribute("contenteditable");
+                if (Object.keys({ ...anno, done: "" }).length > 2) {
+                  changes = true;
+                }
+                if (anno.done != true && forced != true) {
+                  original.render = setRender;
+                } else if (changes == true) {
+                  original.render = setRender;
+                  delete original.render.done;
+                  await editor.save.applyEdit(anno, null, time);
+                }
+                if (changes == true) {
+                  if (isNewAnno == false) {
+                    original.render.m = member.modify;
+                  } else {
+                    original.render.a = member.modify;
                   }
-                }
-                await editor.utils.annotationChunks(editor.annotations[annoID]);
-                [merge, annoElem] = await editor.render.createAnnotation(merge);
-                if (selection != null && anno.remove == true && selection.hasAttribute("remove") == false) {
-                  delete member.elements["selection_" + annoID];
-                  selection.setAttribute("remove", "");
-                  //selection.setAttribute("old", "");
-                  selection.style.opacity = 0;
-                  (async () => {
-                    await sleep(150);
-                    if (selection != null) {
-                      selection.remove();
-                    }
-                  })();
-                  selection = null;
+                  original.render.sync = time;
+                  editor.save.enableTimeout(original, null, true);
                 }
               }
+            }
 
-              if (selection != null) {
-                let border = 0;
-                let [width, height] = merge.s;
-                let [x, y] = editor.utils.getAbsolutePosition(merge);
-                let rotate = merge.r ?? 0;
-                if (rotate > 180) {
-                  rotate = -(360 - rotate);
+            let selection;
+            if ((anno.f == null || anno.sync != null || annoID == "cursor") && userSelection[annoID] != null) {
+              selection = selections[annoID];
+              if (selection == null) {
+                realtimeHolder.insertAdjacentHTML("beforeend", `<div class="eCollabSelect" member="${memberID}" new></div>`);
+                selection = realtimeHolder.querySelector('.eCollabSelect[member="' + memberID + '"][new]');
+                member.elements["selection_" + annoID] = selection;
+                selection.removeAttribute("new");
+                selection.style.setProperty("--themeColor", memberData.color);
+                if (editor.settings.anonymousMode != true) {
+                  selection.removeAttribute("anonymous");
+                } else {
+                  selection.setAttribute("anonymous", "");
                 }
-                if (width < 0) {
-                  width = -width;
-                  x -= width;
-                }
-                if (height < 0) {
-                  height = -height;
-                  y -= height;
-                }
-                let t = merge.t ?? 0;
-                if (merge.b == "none" && merge.d != "line") {
-                  t = 0;
-                }
-                let halfT = t / 2;
-                let boxWidth = ((width + t) * editor.zoom) - 3; // +0 for width, -3 for border
-                let boxHeight = ((height + t) * editor.zoom) - 3;
-                selection.style.width = boxWidth + "px";
-                selection.style.height = boxHeight + "px";
-                selection.style.transform = "translate(" + (annotationRect.left + ((x + halfT) * editor.zoom) + contentHolder.scrollLeft - 1.5) + "px," + (annotationRect.top + (((y + halfT) - border) * editor.zoom) + contentHolder.scrollTop - 1.5) + "px) rotate(" + rotate + "deg)";
                 selection.offsetHeight;
-                selection.style.transition = "all .25s, opacity .15s";
-                selection.style.opacity = 1;
               }
-              if (annoElem != null && annoElem.querySelector(".eAnnotation[selected]") != null) {
-                refreshSelecting = true;
+              selection.setAttribute("anno", annoID);
+            }
+            
+            if (annoID != "cursor") {
+              if (editor.selecting[annoID] == null) {
+                merge = original.render;
+                if (selection != null) {
+                  selection.removeAttribute("notransition");
+                }
+              } else {
+                merge = { ...original.render, ...(editor.selecting[annoID] ?? {}) };
+                userSelecting = true;
+              }
+              if (["text", "sticky"].includes(merge.f) == true && anno.d != null) {
+                let annoTx = annotations.querySelector('.eAnnotation[anno="' + annoID + '"] div[contenteditable]');
+                if (annoTx != null) {
+                  annoTx.removeAttribute("contenteditable");
+                }
+              }
+              await editor.utils.annotationChunks(editor.annotations[annoID]);
+              [merge, annoElem] = await editor.render.createAnnotation(merge);
+              if (selection != null && anno.remove == true && selection.hasAttribute("remove") == false) {
+                delete member.elements["selection_" + annoID];
+                selection.setAttribute("remove", "");
+                //selection.setAttribute("old", "");
+                selection.style.opacity = 0;
+                (async () => {
+                  await sleep(150);
+                  if (selection != null) {
+                    selection.remove();
+                  }
+                })();
+                selection = null;
               }
             }
-            member.selecting = selectKeys;
-            if (userSelecting == true && changes == true) { // Only refresh if user is selecting
-              editor.pipeline.publish("redraw_selection", {});
-            } else if (userSelecting == true || refreshSelecting == true) {
-              editor.pipeline.publish("redraw_selection", {});
+
+            if (selection != null) {
+              let border = 0;
+              let [width, height] = merge.s;
+              let [x, y] = editor.utils.getAbsolutePosition(merge);
+              let rotate = merge.r ?? 0;
+              if (rotate > 180) {
+                rotate = -(360 - rotate);
+              }
+              if (width < 0) {
+                width = -width;
+                x -= width;
+              }
+              if (height < 0) {
+                height = -height;
+                y -= height;
+              }
+              let t = merge.t ?? 0;
+              if (merge.b == "none" && merge.d != "line") {
+                t = 0;
+              }
+              let halfT = t / 2;
+              let boxWidth = ((width + t) * editor.zoom) - 3; // +0 for width, -3 for border
+              let boxHeight = ((height + t) * editor.zoom) - 3;
+              selection.style.width = boxWidth + "px";
+              selection.style.height = boxHeight + "px";
+              selection.style.transform = "translate(" + (annotationRect.left + ((x + halfT) * editor.zoom) + contentHolder.scrollLeft - 1.5) + "px," + (annotationRect.top + (((y + halfT) - border) * editor.zoom) + contentHolder.scrollTop - 1.5) + "px) rotate(" + rotate + "deg)";
+              selection.offsetHeight;
+              selection.style.transition = "all .25s, opacity .15s";
+              selection.style.opacity = 1;
             }
-            if (member.cursorRender != null && hasCursorAnno == false) {
-              delete member.cursorRender;
+            if (annoElem != null && annoElem.querySelector(".eAnnotation[selected]") != null) {
+              refreshSelecting = true;
             }
+          }
+          member.selecting = selectKeys;
+          if (userSelecting == true && changes == true) { // Only refresh if user is selecting
+            editor.pipeline.publish("redraw_selection", {});
+          } else if (userSelecting == true || refreshSelecting == true) {
+            editor.pipeline.publish("redraw_selection", {});
+          }
+          if (member.cursorRender != null && hasCursorAnno == false) {
+            delete member.cursorRender;
           }
         }
 

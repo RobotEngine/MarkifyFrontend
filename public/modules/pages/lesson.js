@@ -203,6 +203,7 @@ modules["pages/lesson"] = class {
             } else if (body.access == 0 && member.access > 0) {
               this.editorCount--;
             }
+            console.log(this.editorCount)
             if (body.hand != null && member.hand == null) {
               this.handCount++;
             } else if (body.hand == null && member.hand != null) {
@@ -787,6 +788,12 @@ modules["pages/lesson/board"] = class {
         idleCountTx.style.removeProperty("display");
       }
 
+      if (this.editor.self.access > 3 && this.parent.editorCount > 0) {
+        endSessionButton.style.display = "flex";
+      } else {
+        endSessionButton.style.removeProperty("display");
+      }
+
       updateTopBar();
     }
     this.updateMemberCount(membersButton);
@@ -858,6 +865,13 @@ modules["pages/lesson/board"] = class {
         modifyParams("lesson", body.lesson);
         setFrame("pages/lesson");
       }
+    });
+
+    endSessionButton.removeAttribute("disabled");
+    endSessionButton.addEventListener("click", async () => {
+      endSessionButton.setAttribute("disabled", "");
+      await sendRequest("DELETE", "lessons/members/reset", null, { session: this.editor.session });
+      endSessionButton.removeAttribute("disabled");
     });
 
     // Load Images:

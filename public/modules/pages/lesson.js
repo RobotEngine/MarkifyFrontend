@@ -976,7 +976,31 @@ modules["pages/lesson/board"] = class {
     });
     this.editor.pipeline.subscribe("boardMemberJoin", "join", () => { this.updateMemberCount(membersButton); });
     this.editor.pipeline.subscribe("boardMemberLeave", "leave", () => { this.updateMemberCount(membersButton); });
-    this.editor.pipeline.subscribe("boardMemberUpdate", "update", () => { this.updateMemberCount(membersButton); });
+    this.editor.pipeline.subscribe("boardMemberUpdate", "update", async (body) => {
+      let member = this.parent.members[body._id];
+      if (this.editor.realtime.module != null) {
+        if (body.observe == this.editor.sessionID) { // Being observed:
+          this.editor.realtime.observed = true;
+          this.editor.realtime.module.publishShort(null, "observe", true);
+        }
+        if (body.weak == true) {
+          this.editor.realtime.module.removeRealtime(body._id);
+          if (this.editor.realtime.observing == body._id) {
+            this.editor.realtime.module.exitObserve();
+            alertModule.open("warning", "<b>Observing Ended</b>The member you where observing has too weak a connection, try again later...");
+          }
+        }
+        if (body.observe != null && this.editor.realtime.observing == body._id) {
+          this.editor.realtime.module.exitObserve();
+          alertModule.open("warning", "<b>Observing Ended</b>The member your observing started watching someone.");
+        }
+        if (this.editor.realtime.observing == body._id) {
+          this.editor.realtime.module.setObserveFrame(member);
+        }
+      }
+
+      this.updateMemberCount(membersButton);
+    });
 
     this.editor.pipeline.subscribe("spotlightStart", "spotlight", async (body) => {
       if (this.editor.realtime.module == null || this.parent.signalStrength < 3) {

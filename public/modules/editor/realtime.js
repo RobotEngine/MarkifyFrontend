@@ -153,9 +153,9 @@ modules["editor/realtime"] = class {
         if (lastObservePublish < epoch - 250) { // One event every 250 ms
           let filter = { c: "short_" + editor.id, o: editor.sessionID };
 
-          let pageRect = pageHolder.getBoundingClientRect();
-          let sendX = ((page.offsetWidth / 2) - pageRect.left) / editor.zoom;
-          let sendY = ((page.offsetHeight / 2) - pageRect.top) / editor.zoom;
+          let annotationRect = editor.utils.localBoundingRect(annotations);
+          let sendX = ((editor.page.offsetWidth / 2) - annotationRect.left) / editor.zoom;
+          let sendY = ((editor.page.offsetHeight / 2) - annotationRect.top) / editor.zoom;
 
           // [ memberID, NULL, zoom, centerx, centery, time ]
           let pubData = [ editor.sessionID, null, Math.floor(editor.zoom * 100) / 100, Math.floor(sendX), Math.floor(sendY) ];
@@ -246,19 +246,21 @@ modules["editor/realtime"] = class {
     let observeHolder = editor.page.querySelector(".eBottomSection[left]");
     let observeCursor = observeHolder.querySelector(".eObserveCursor");
     let observeExit = editor.page.querySelector(".eObserveExit");
+    this.setObserveFrame = (member) => {
+      observeCursor.textContent = member.name;
+      observeCursor.style.color = editor.utils.textColorBackground(member.color);
+      observeCursor.style.background = member.color;
+      observeHolder.style.display = "flex";
+      //editor.page.style.setProperty("--lightShadow", "0px 0px 8px 0px " + editor.utils.hexToRGB(member.color, .3));
+      editor.page.style.boxShadow = "0px 0px 8px 0px " + editor.utils.hexToRGB(member.color, "var(--shadowOpacity)");
+    }
     this.enableObserve = async (member) => {
       alertModule.close(editor.realtime.observeLoading);
       editor.realtime.observeLoading = null;
 
       clearTimeout(editor.realtime.observeTimeout);
       
-      observeCursor.textContent = member.name;
-      observeCursor.style.color = editor.utils.textColorBackground(member.color);
-      observeCursor.style.background = member.color;
-      observeHolder.style.display = "flex";
-
-      //editor.page.style.setProperty("--lightShadow", "0px 0px 8px 0px " + editor.utils.hexToRGB(member.color, .3));
-      editor.page.style.boxShadow = "0px 0px 8px 0px " + editor.utils.hexToRGB(member.color, "var(--shadowOpacity)");
+      this.setObserveFrame(member);
 
       editor.pipeline.publish("observe_enable", { memberID: member._id });
       editor.pipeline.publish("refresh_interface", {});

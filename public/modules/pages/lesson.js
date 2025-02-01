@@ -3793,14 +3793,15 @@ modules["pages/lesson/editor"] = class {
       }
       background.style.backgroundSize = dotSize + "px " + dotSize + "px";
       let scaledDotSize = dotSize * this.zoom;
-      let backgroundWidth = Math.ceil((page.offsetWidth + (scaledDotSize * 4)) / scaledDotSize) * scaledDotSize;
-      let backgroundHeight = Math.ceil((page.offsetHeight + (scaledDotSize * 4)) / scaledDotSize) * scaledDotSize;
+      let backgroundWidth = Math.ceil((page.offsetWidth * 2) / scaledDotSize) * scaledDotSize;
+      let backgroundHeight = Math.ceil((page.offsetHeight * 2) / scaledDotSize) * scaledDotSize;
       background.style.width = (backgroundWidth / this.zoom) + "px";
       background.style.height = (backgroundHeight / this.zoom) + "px";
       let annotationRect = this.utils.localBoundingRect(annotations);
+      console.log(backgroundWidth)
       let originCorrectX = (annotationRect.left - (backgroundWidth / 2)) % scaledDotSize;
       let originCorrectY = (annotationRect.top - (backgroundHeight / 2)) % scaledDotSize;
-      background.style.transform = "translate(" + (contentHolder.scrollLeft + originCorrectX - (scaledDotSize * 2)) + "px, " + (contentHolder.scrollTop + originCorrectY - (scaledDotSize * 2)) + "px) scale(var(--zoom))";
+      background.style.transform = "translate(" + (contentHolder.scrollLeft + originCorrectX - (page.offsetWidth / 2)) + "px, " + (contentHolder.scrollTop + originCorrectY - (page.offsetHeight / 2)) + "px) scale(var(--zoom))";
 
       if (this.zooming == true) {
         return;

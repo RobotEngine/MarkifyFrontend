@@ -243,6 +243,97 @@ modules["editor/realtime"] = class {
       }
     }
 
+    let observeHolder = editor.page.querySelector(".eBottomSection[left]");
+    let observeCursor = observeHolder.querySelector(".eObserveCursor");
+    let observeExit = editor.page.querySelector(".eObserveExit");
+    this.enableObserve = async (member) => {
+      alertModule.close(editor.realtime.observeLoading);
+      editor.realtime.observeLoading = null;
+
+      clearTimeout(editor.realtime.observeTimeout);
+      
+      observeCursor.textContent = member.name;
+      observeCursor.style.color = editor.utils.textColorBackground(member.color);
+      observeCursor.style.background = member.color;
+      observeHolder.style.display = "flex";
+
+      //editor.page.style.setProperty("--lightShadow", "0px 0px 8px 0px " + editor.utils.hexToRGB(member.color, .3));
+      editor.page.style.boxShadow = "0px 0px 8px 0px " + editor.utils.hexToRGB(member.color, "var(--shadowOpacity)");
+
+      editor.pipeline.publish("observe_enable", { memberID: member._id });
+      editor.pipeline.publish("refresh_interface", {});
+    }
+    this.exitObserve = async () => {
+      let prevObservID = editor.realtime.observing;
+      if (prevObservID == null) {
+        return;
+      }
+
+      editor.realtime.observing = null;
+      
+      alertModule.close(editor.realtime.observeLoading);
+      clearTimeout(editor.realtime.observeTimeout);
+
+      observeHolder.style.removeProperty("display");
+      //editor.page.style.removeProperty("--lightShadow");
+      editor.page.style.removeProperty("box-shadow");
+
+      cancelAnimationFrame(animationFrameId);
+
+      if (editor.lastZoom != null) {
+        editor.setZoom(editor.lastZoom, true);
+        editor.lastZoom = null;
+      }
+
+      let member = editor.parent.parent.members[prevObservID];
+      if (member == null) {
+        return;
+      }
+      if (member.access < 1) {
+        this.removeRealtime(member._id);
+      }
+      sendRequest("DELETE", "lessons/members/observe/exit?member=" + member._id, null, { session: editor.session });
+      editor.pipeline.publish("observe_exit", { memberID: member._id });
+      editor.pipeline.publish("refresh_interface", {});
+    }
+    observeExit.addEventListener("click", () => { this.exitObserve(); });
+    editor.pipeline.subscribe("realtimeWheelEvent", "wheel", () => { this.exitObserve(); });
+    editor.pipeline.subscribe("realtimeSignalUpdate", "signal_strength", (data) => {
+      if (data.signalStrength < 3) {
+        this.exitObserve();
+      }
+    });
+
+    let targetScrollPositionX = 0;
+    let targetScrollPositionY = 0;
+    let animationFrameId;
+    let smoothScroll = () => {
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+      }
+
+      const distanceX = (targetScrollPositionX - contentHolder.scrollLeft) / 10; // Divide the distance into steps
+      const distanceY = (targetScrollPositionY - contentHolder.scrollTop) / 10; // Divide the distance into steps
+      
+      let changeX = Math.min(distanceX, 50);
+      if (distanceX < 0) {
+        changeX = Math.max(distanceX, -50);
+      }
+      let changeY = Math.min(distanceY, 50);
+      if (distanceY < 0) {
+        changeY = Math.max(distanceY, -50);
+      }
+      if (Math.abs(distanceY) > 1 || Math.abs(distanceX) > 1) {
+        contentHolder.scrollTo({ left: contentHolder.scrollLeft + changeX, top: contentHolder.scrollTop + changeY });
+        animationFrameId = requestAnimationFrame(smoothScroll);
+      }
+    }
+    let startScroll = (targetX, targetY) => {
+      targetScrollPositionX = targetX;
+      targetScrollPositionY = targetY;
+      smoothScroll();
+    }
+
     editor.pipeline.subscribe("realtimeShortSub", "short", async (data) => {
       let memberID = data[0];
       let memberData = editor.parent.parent.members[memberID];
@@ -621,6 +712,35 @@ modules["editor/realtime"] = class {
               textSelectHolder.remove();
             }
           })();
+        }
+      } else if (data[3] != null) { // OBSERVE EVENT
+        let [ memberID, _, zoom, scrollX, scrollY, time ] = data;
+        if (memberID != editor.realtime.observing) {
+          return;
+        }
+        if (member.lastObserveShort > time) {
+          return;
+        }
+        if (editor.realtime.observeLoading != null) {
+          //editor.lastZoom = editor.zoom;
+          this.enableObserve(memberData);
+        }
+        if (editor.zoom != zoom) {
+          await editor.setZoom(zoom, true);
+        }
+        scrollX *= editor.zoom;
+        scrollY *= editor.zoom;
+        let annotationRect = editor.utils.localBoundingRect(annotations);
+        let setX = contentHolder.scrollLeft + annotationRect.left;
+        let setY = contentHolder.scrollTop + annotationRect.top;
+        setX += scrollX;
+        setY += scrollY;
+        setX -= editor.page.offsetWidth / 2;
+        setY -= editor.page.offsetHeight / 2;
+        if (editor.realtime.observeLoading == null) {
+          startScroll(setX, setY);
+        } else {
+          contentHolder.scrollTo({ left: setX, top: setY });
         }
       }
     });

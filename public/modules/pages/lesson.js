@@ -9,8 +9,8 @@ modules["pages/lesson"] = class {
   css = {
     ".lPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100%; height: 100vh; padding: 8px; left: 0px; top: 0px; justify-content: center`,
     ".lPageHolder[maximize]": `padding: 0px !important`,
-    ".lPage": `display: flex; width: 100%; height: 100%; box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), .3); border-radius: 12px; overflow: hidden; transition: .2s`,
-    ".lPage[active]": `box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), .5)`,
+    ".lPage": `--shadowOpacity: .3; display: flex; width: 100%; height: 100%; box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: 12px; overflow: hidden; transition: .2s`,
+    ".lPage[active]": `--shadowOpacity: .5 !important`,
     ".lPageHolder[maximize] .lPage": `border-radius: 0px !important`
   };
 
@@ -630,7 +630,7 @@ modules["pages/lesson/board"] = class {
     ".eBottomSection[left]": `border-top-right-radius: 12px`,
     ".eObserveIcon": `width: 34px; height: 34px; margin: 2px`,
     ".eObserveText": `margin: 0 6px`,
-    ".eObserveCursor": `box-sizing: border-box; display: flex; padding: 2px 6px; margin-right: 4px; background: var(--theme); color: #fff; border: solid 3px var(--pageColor); box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), .5); border-radius: 8px 14px 14px; font-size: 14px; font-weight: 700`,
+    ".eObserveCursor": `box-sizing: border-box; display: flex; padding: 2px 6px; margin-right: 4px; background: var(--theme); color: #fff; border: solid 3px var(--pageColor); box-shadow: 0 0 6px rgb(0 0 0 / 25%); border-radius: 8px 14px 14px; font-size: 14px; font-weight: 700`,
     ".eObserveExit": `display: flex; position: relative; width: 22px; height: 22px; margin: 8px; justify-content: center; align-items: center; --borderWidth: 3px; --borderRadius: 14px`,
     ".eObserveExit img": `width: 12px; height: 12px`,
     ".eBottomSection[right]": `margin-left: auto; border-top-left-radius: 12px`,
@@ -674,8 +674,6 @@ modules["pages/lesson/board"] = class {
     let eTopScrollRight = eTopHolder.querySelector(".eTopScroll[right]");
 
     let contentHolder = frame.querySelector(".eContentHolder");
-
-    let observeHolder = frame.querySelector(".eBottomSection[left]");
 
     let currentPageHolder = frame.querySelector(".eBottomSection[right]");
     let pageTextBox = currentPageHolder.querySelector(".eCurrentPage");
@@ -980,6 +978,48 @@ modules["pages/lesson/board"] = class {
     this.editor.pipeline.subscribe("boardMemberLeave", "leave", () => { this.updateMemberCount(membersButton); });
     this.editor.pipeline.subscribe("boardMemberUpdate", "update", () => { this.updateMemberCount(membersButton); });
 
+    this.editor.pipeline.subscribe("spotlightStart", "spotlight", async (body) => {
+      if (this.editor.realtime.module == null || this.parent.signalStrength < 3) {
+        return;
+      }
+      if (body.member == this.editor.sessionID || body.member == this.editor.realtime.observing) {
+        return;
+      }
+      let member = this.parent.members[body.member];
+      if (member == null) {
+        return;
+      }
+      if (member.observe != null) {
+        member.observe = null;
+      }
+      if (member.weak == true) {
+        return;
+      }
+      let prevObserve = this.editor.realtime.observing;
+      this.editor.realtime.observing = body.member;
+      this.editor.realtime.module.setShortSub(this.editor.visibleChunks);
+      this.editor.pipeline.publish("observe_enable", { memberID: body.member });
+      alertModule.close(this.editor.realtime.observeLoading);
+      clearTimeout(this.editor.realtime.observeTimeout);
+      let [code] = await sendRequest("GET", "lessons/members/observe?member=" + body.member, null, { session: this.editor.session });
+      if (code == 200) {
+        this.editor.realtime.observeLoading = await alertModule.open("info", `<b>Connecting to Member</b>Connecting to ${member.name}'s screen from spotlight!`, { time: "never" });
+        this.editor.realtime.observeTimeout = setTimeout(() => {
+          alertModule.close(this.editor.realtime.observeLoading);
+          alertModule.open("error", `<b>Observe Timeout</b>Failed to connect to their screen, please try again later...`);
+          this.editor.realtime.module.exitObserve();
+        }, 20000);
+      } else {
+        if (prevObserve != null) {
+          this.editor.realtime.observing = prevObserve;
+          this.editor.realtime.module.exitObserve();
+        }
+        this.editor.realtime.observing = null;
+        this.editor.realtime.module.setShortSub(this.visibleChunks);
+        this.editor.pipeline.publish("observe_exit", { memberID: body.member });
+      }
+    });
+
     this.editor.pipeline.subscribe("realtimeButtonEnable", "realtime_loaded", () => {
       membersButton.removeAttribute("disabled");
       shareButton.removeAttribute("disabled");
@@ -988,6 +1028,10 @@ modules["pages/lesson/board"] = class {
       sharePinButton.style.display = "unset";
       sharePinButton.textContent = this.lesson.pin;
     }
+
+    this.editor.pipeline.subscribe("interfaceUpdate", "refresh_interface", () => {
+      this.updateInterface();
+    });
 
     this.editor.pipeline.subscribe("checkActivePage", "click_start", () => {
       if (this.parent.activePageID != this.pageID) {
@@ -1576,6 +1620,9 @@ modules["pages/lesson/editor"] = class {
       if (hex == null) {
         return "";
       }
+      if (hex.startsWith("#") == true) {
+        hex = hex.substring(1);
+      }
       if (hex.length < 4) {
         hex = hex + hex;
       }
@@ -1583,7 +1630,7 @@ modules["pages/lesson/editor"] = class {
       let r = (bigint >> 16) & 255;
       let g = (bigint >> 8) & 255;
       let b = bigint & 255;
-      if (alpha) {
+      if (alpha != null) {
         return "rgba(" + r + ", " + g + ", " + b + ", " + alpha + ")";
       } else {
         return "rgb(" + r + ", " + g + ", " + b + ")";
@@ -3888,6 +3935,10 @@ modules["pages/lesson/editor"] = class {
       if (this.realtime.module != null) {
         this.realtime.module.removeRealtime(data._id);
         delete this.realtime.module.members[data._id];
+        if (this.realtime.observing == data._id) {
+          this.realtime.module.exitObserve();
+          alertModule.open("warning", "<b>Member Left</b>The member you where observing left.");
+        }
       }
     });
     

@@ -1522,7 +1522,7 @@ modules["pages/lesson/editor"] = class {
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 3; overflow: hidden; pointer-events: none`,
     ".eEditorContent": `position: relative`,
     ".eAnnotations": `position: relative; width: 1px; height: 1px; transform-origin: 0 0; transform: scale(var(--zoom)); z-index: 2`,
-    ".eBackground": `position: absolute; transform: scale(var(--zoom)); transform-origin: left top; background-image: url(./images/editor/backdrop.svg); background-position: center; opacity: .075; z-index: 1`,
+    ".eBackground": `position: absolute; left: 0px; top: 0px; transform-origin: left top; background-image: url(./images/editor/backdrop.svg); background-position: center; opacity: .075; z-index: 1`,
 
     ".eAnnotation": `position: absolute; left: 0px; top: 0px`,
     ".eAnnotationHolder": `position: absolute; z-index: 10`,
@@ -3800,8 +3800,7 @@ modules["pages/lesson/editor"] = class {
       let annotationRect = this.utils.localBoundingRect(annotations);
       let originCorrectX = (annotationRect.left - (backgroundWidth / 2)) % scaledDotSize;
       let originCorrectY = (annotationRect.top - (backgroundHeight / 2)) % scaledDotSize;
-      background.style.left = (contentHolder.scrollLeft + originCorrectX - (scaledDotSize * 2)) + "px";
-      background.style.top = (contentHolder.scrollTop + originCorrectY - (scaledDotSize * 2)) + "px";
+      background.style.transform = "translate(" + (contentHolder.scrollLeft + originCorrectX - (scaledDotSize * 2)) + "px, " + (contentHolder.scrollTop + originCorrectY - (scaledDotSize * 2)) + "px) scale(var(--zoom))";
 
       if (this.zooming == true) {
         return;

@@ -458,7 +458,8 @@ modules["editor/realtime"] = class {
             continue;
           }
           let select = member.elements[elemID];
-          if (selectKeys.includes(select.getAttribute("anno")) == false) {
+          let annoID = select.getAttribute("anno");
+          if (selectKeys.includes(annoID) == false) {
             delete member.elements[elemID];
             //select.setAttribute("old", "");
             select.style.opacity = 0;
@@ -469,6 +470,10 @@ modules["editor/realtime"] = class {
               }
             })();
           } else {
+            if (annoID != "cursor" && elemID.endsWith(annoID) == false) {
+              member.elements["selection_" + annoID] = select;
+              delete member.elements[elemID];
+            }
             if (editor.settings.anonymousMode != true) {
               select.removeAttribute("anonymous");
             } else {
@@ -583,7 +588,6 @@ modules["editor/realtime"] = class {
                   selection = realtimeHolder.querySelector('.eCollabSelect[member="' + memberID + '"][new]');
                   member.elements["selection_" + annoID] = selection;
                   selection.removeAttribute("new");
-                  selection.setAttribute("anno", annoID);
                   selection.style.setProperty("--themeColor", memberData.color);
                   if (editor.settings.anonymousMode != true) {
                     selection.removeAttribute("anonymous");
@@ -592,6 +596,7 @@ modules["editor/realtime"] = class {
                   }
                   selection.offsetHeight;
                 }
+                selection.setAttribute("anno", annoID);
               }
               
               if (annoID != "cursor") {

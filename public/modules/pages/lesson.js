@@ -508,8 +508,8 @@ modules["pages/lesson"] = class {
 modules["pages/lesson/board"] = class {
   html = `<div class="eInterface eCustomScroll">
     <div class="eTopHolder">
-      <button class="eTopScroll" left style="left: 8px"><img src="./images/editor/top/leftarrow.svg" /></button>
-      <button class="eTopScroll" right style="right: 8px"><img src="./images/editor/top/rightarrow.svg" /></button>
+      <button class="eTopScroll" left style="left: 7px"><img src="./images/editor/top/leftarrow.svg" /></button>
+      <button class="eTopScroll" right style="right: 7px"><img src="./images/editor/top/rightarrow.svg" /></button>
       <div class="eTop">
         <div class="eTopSection" left>
           <a class="eLogo" href="#dashboard" draggable="false"></a>

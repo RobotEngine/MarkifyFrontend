@@ -213,7 +213,7 @@ modules["pages/lesson"] = class {
               }
               if (body.hand != null && member.hand == null) {
                 this.handCount++;
-              } else if (body.hand == null && member.hand != null) {
+              } else if (body.hasOwnProperty("hand") == true && member.hand != null) {
                 this.handCount--;
               }
               if (body.active == false && member.active != false) {
@@ -611,9 +611,9 @@ modules["pages/lesson/board"] = class {
 
     ".eMembers": `display: flex; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--hover); border-radius: 16px; align-items: center; font-size: 16px; font-weight: 600`,
     ".eMembers span": `display: none; min-width: 12px; height: 24px; padding: 0px 6px; margin-right: 5px; justify-content: center; align-items: center; background: #fff; border-radius: 12px; font-weight: 700`,
-    ".eMemberCount": `color: var(--theme)`,
-    ".eMemberHandCount": `color: var(--green)`,
-    ".eMemberIdleCount": `color: var(--yellow)`,
+    ".eMemberCount": `--themeColorRGB: var(--themeRGB); color: rgb(var(--themeColorRGB))`,
+    ".eMemberHandCount": `--themeColorRGB: var(--greenRGB); color: rgb(var(--themeColorRGB))`,
+    ".eMemberIdleCount": `--themeColorRGB: var(--yellowRGB); color: rgb(var(--themeColorRGB))`,
     ".eEndSession": `display: none; width: 32px; height: 32px; padding: 0px; margin: 0 4px; background: var(--error); border-radius: 16px; justify-content: center; align-items: center; color: #fff; font-size: 16px; font-weight: 600`,
     ".eEndSession svg": `width: 28px; height: 28px`,
     ".eShare": `height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
@@ -873,6 +873,10 @@ modules["pages/lesson/board"] = class {
         modifyParams("lesson", body.lesson);
         setFrame("pages/lesson");
       }
+    });
+
+    membersButton.addEventListener("click", () => {
+      dropdownModule.open(membersButton, "dropdowns/lesson/members", { parent: this });
     });
 
     endSessionButton.removeAttribute("disabled");

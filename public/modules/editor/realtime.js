@@ -820,3 +820,103 @@ modules["editor/realtime"] = class {
     editor.pipeline.publish("realtime_loaded", {});
   }
 }
+
+modules["dropdowns/lesson/members"] = class {
+  html = `
+  <div class="eMemberHolder">
+    <div class="eMemberSearchHolder">
+      <img src="./images/editor/glass.svg">
+      <input placeholder="Search..."></input>
+    </div>
+    <div class="eMemberMemberHolder">
+      <div class="eMemberAccessHolder" access="5">
+        <button class="eMemberAccessTitle"><div holder><div title>Owner</div><div count>0</div></div></button>
+      </div>
+      <div class="eMemberAccessHolder" access="1">
+        <button class="eMemberAccessTitle"><div holder><div title>Editors</div><div count>0</div></div></button>
+      </div>
+      <div class="eMemberAccessHolder" access="0">
+        <button class="eMemberAccessTitle"><div holder><div title>Viewers</div><div count>0</div></div></button>
+      </div>
+    </div>
+  </div>
+  `;
+  css = {
+    ".dropdownTitle span": `display: none; min-width: 12px; height: 24px; padding: 0px 6px; margin-right: 5px; justify-content: center; align-items: center; background: #fff; box-shadow: 0px 0px 8px 0px rgba(var(--themeColorRGB), .3); border-radius: 12px; font-weight: 700`,
+
+    ".eMemberHolder": `width: 275px; max-width: 100%`,
+    ".eMemberSearchHolder": `display: flex; padding: 8px 8px 4px 8px; align-items: center`,
+    ".eMemberSearchHolder img": `width: 28px; height: 28px`,
+    ".eMemberSearchHolder input": `max-width: calc(100% - 54px); width: 100%; padding: 4px 8px; margin-left: 6px; border: solid 2px var(--secondary); outline: unset; border-radius: 17px; font-family: var(--font); font-size: 16px; font-weight: 600`,
+    ".eMemberSearchHolder input::placeholder": `color: var(--secondary)`,
+
+    ".eMemberAccessHolder": `display: none; margin-bottom: 12px; background: var(--pageColor)`,
+    ".eMemberAccessTitle": `position: sticky; display: flex; width: 100%; padding: 0; top: 0px; justify-content: center; align-items: center; background: rgba(var(--background), .7); backdrop-filter: blur(4px); z-index: 2; text-align: left; font-weight: 700; font-size: 18px`,
+    ".eMemberAccessTitle div[holder]": `display: flex; width: 100%; padding: 4px 8px; top: 0px; justify-content: space-between; transition: .1s`,
+    ".eMemberAccessTitle div[count]": `margin-left: 6px; font-weight: 500`,
+    ".eMemberAccessTitle:hover div[holder]": `background: var(--hover)`,
+    ".eMemberAccessTitle:active": `transform: scale(1) !important`,
+    ".eMemberAccessTitle:active div[holder]": `background: var(--secondary); color: #fff !important`,
+    ".eMemberAccessHolder[selected] .eMemberAccessTitle div[holder]": `background: var(--secondary); color: #fff`,
+
+    ".eMemberTile": `position: relative; display: flex; width: 100%; height: 34px; padding: 0px; justify-content: center; align-items: center; z-index: 1`, //; margin: 4px 0
+    ".eMemberTile div[holder]": `--opacity: 0; position: relative; display: flex; width: 100%; padding: 4px; overflow: hidden; align-items: center; transition: .1s`, //; margin: 4px 0
+    ".eMemberBackground": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--themeColor); opacity: var(--opacity); transition: .1s; z-index: -1`,
+    ".eMemberAccessHolder button:hover div[holder]": `--opacity: .35`,
+    ".eMemberAccessHolder button:hover .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor); transform: translateX(-3px) scale(1.15)`,
+    ".eMemberAccessHolder button:active": `transform: scale(1) !important`,
+    ".eMemberAccessHolder button:active div[holder]": `--opacity: 1; color: var(--hoverTextColor); border-radius: 18px; transform: scale(.95)`,
+    ".eMemberAccessHolder button:active .eMemberCursor": `transform: scale(1.15)`,
+    ".eMemberTile div[holder][selected]": `--opacity: 1 !important; color: var(--hoverTextColor)`,
+    ".eMemberTile div[holder][selected] .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor)`,
+    ".eMemberAccessHolder[hover] div[holder]": `--themeColor: var(--secondary) !important; --opacity: .35 !important; color: var(--textColor)`,
+    ".eMemberAccessHolder[hover] .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor); transform: translateX(-3px) scale(1.15)`,
+    ".eMemberAccessHolder[active] div[holder]": `--opacity: 1 !important; border-radius: 18px; transform: scale(.95); color: #fff`,
+    ".eMemberAccessHolder[active] .eMemberCursor": `transform: scale(1.15)`,
+    ".eMemberAccessHolder[selected] div[holder]": `--themeColor: var(--secondary) !important; --opacity: 1 !important; color: #fff`,
+    ".eMemberAccessHolder[selected] .eMemberCursor": `background: var(--themeColor); border-color: var(--pageColor)`,
+    ".eMemberCursor": `width: 20px; height: 20px; flex-shrink: 0; margin: 0 6px; background: var(--pageColor); border: solid 3px var(--themeColor); overflow: hidden; border-radius: 8px 14px 14px; transition: 0.2s`, //box-shadow: 0 0 6px rgb(0 0 0 / 50%);
+    ".eMemberName": `width: 100%; font-size: 16px; font-weight: 600; text-align: left; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
+    ".eMemberEvents": `display: flex; margin-left: auto`,
+    ".eMemberEvent": `height: fit-content; padding: 3px 6px; margin: 0 1px 0 6px; border-radius: 12px; color: #fff; font-size: 14px; font-weight: 700; white-space: nowrap`,
+    ".eMemberEvent[self]": `background: var(--theme)`,
+    ".eMemberEvent[hand]": `background: var(--green)`,
+    ".eMemberEvent[idle]": `background: var(--yellow)`,
+    ".eMemberEvent[observe]": `background: var(--purple)`,
+
+    ".eMemberFrameHolder": `position: absolute; width: 200%; height: fit-content; right: 0px; pointer-events: none; z-index: 0; opacity: 0; transition: top .3s, opacity .3s`,
+    ".eMemberFrame": `--themeColor: var(--theme); position: sticky; width: calc(50% - 4px); max-width: calc(100vw - 20px); left: 8px; top: 8px; margin-left: 4px; pointer-events: all; background: var(--pageColor); border-right: solid 4px var(--themeColor); border-radius: 38px 0 0 12px; transform-origin: top right; transform: scale(0); transition: transform .3s`,
+    ".eMemberFrameContentHolder": `width: 100%; height: 0px; border-radius: 38px 0 0 12px; overflow: hidden`,
+    ".eMemberFrameShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 0 16px 16px; right: 0px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
+    ".eMemberFrameShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); right: 0px; top: 16px; content: ""; box-shadow: var(--shadow); border-radius: inherit`,
+    ".eMemberFrameContent": `overflow: auto`,
+    ".eMemberSection": `position: relative; display: flex; width: 100%; justify-content: center; align-items: center`,
+    ".eMemberSectionInfo": `border-radius: 38px 0 0 38px; overflow: hidden`,
+    ".eMemberBackdrop": `position: absolute; display: flex; width: calc(100% + 2px); height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; background: var(--themeColor); transition: .2s; z-index: -1`,
+    ".eMemberBackdrop div": `width: 100%; height: 100%; flex-shrink: 0; opacity: .3; background-image: url(./images/editor/background.svg); background-position: center`, //transform: rotate(12deg);
+    ".eMemberFrameCursor": `width: 40px; height: 40px; flex-shrink: 0; margin: 12px; background: var(--themeColor); border: solid 6px var(--pageColor); border-radius: 16px 28px 28px; transition: 0.2s`,
+    ".eMemberFramePicture": `width: 44px; height: 44px; flex-shrink: 0; margin: 12px; border: solid 4px var(--pageColor); object-fit: cover; border-radius: 28px; transition: 0.2s`,
+    ".eMemberFrameInfoHolder": `display: flex; flex-direction: column; width: calc(100% - 76px); height: calc(100% - 12px); color: var(--adaptColor); text-align: left`,
+    ".eMemberFrameInfoHolder div[name]": `width: calc(100% - 30px); font-size: 20px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
+    ".eMemberFrameInfoHolder div[email]": `width: 100%; font-size: 15px; font-weight: 500; margin-top: 3px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
+    ".eMemberFrameInfoHolder div[joined]": `font-size: 14px; font-weight: 500; text-align: right; margin: auto 6px 2px 0; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
+    ".eMemberClose": `position: absolute; width: 22px; height: 22px; top: 4px; right: 0px; margin: 5px 5px 5px 12px; background: var(--pageColor); --borderWidth: 3px; --borderRadius: 14px`,
+    ".eMemberClose img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
+    ".eMemberSectionDesc": `box-sizing: border-box; padding: 12px 12px 0; font-size: 14px`,
+    ".eMemberSectionEvents": `flex-direction: column`,
+    ".eMemberEventHolder": `display: none; width: calc(100% - 24px); margin: 12px 12px 0px; justify-content: space-between; align-items: center`,
+    ".eMemberEventHolder .eMemberEvent": `margin: 0px 8px 0 0`,
+    ".eMemberEventDesc": `font-size: 14px; text-align: right`,
+    ".eMemberSectionActions": `flex-wrap: wrap; width: calc(100% - 12px); padding: 6px; margin-top: 6px; justify-content: space-around`,
+    ".eMemberSectionActions button": `display: flex; flex-direction: column; width: 86.33px; padding: 6px 12px; align-items: center; border-radius: 14px; color: var(--themeColor); overflow: visible`,
+    ".eMemberSectionActions button img": `width: 55px; height: 55px; transition: .15s`,
+    ".eMemberSectionActions button div": `margin-top: 6px; font-size: 14px; font-weight: 600; white-space: nowrap`,
+    ".eMemberSectionActions button:hover img": `transform: scale(1.15) translateY(-2px)`,
+    ".eMemberSectionActions button:active": `background: var(--themeColor); color: #fff`,
+    ".eMemberSectionActions button:active img": `filter: brightness(0) invert(1); transform: scale(1)`
+  };
+  js = async function (frame, extra) {
+    let parent = extra.parent;
+    let editor = parent.editor;
+  }
+}

@@ -964,7 +964,7 @@ initSocket();
 // STANDARD MODULES //
 modules["dropdown"] = class {
   css = {
-    ".dropdown": `position: sticky; box-sizing: border-box; max-width: calc(100% - 16px); max-height: calc(100% - 16px); right: 0px; bottom: 0px; margin: var(--floatMargin); opacity: 0; box-shadow: var(--shadow); border-radius: 12px; transform: scale(0); transform-origin: 0px 0px; pointer-events: all`,
+    ".dropdown": `position: sticky; box-sizing: border-box; max-width: calc(100% - 16px); max-height: calc(100% - 16px); right: 0px; bottom: 0px; margin: var(--floatMargin); opacity: 0; box-shadow: var(--darkShadow); border-radius: 12px; transform: scale(0); transform-origin: 0px 0px; pointer-events: all`,
     ".dropdown .loading": `pointer-events: none`,
     ".dropdownOverflow": `position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--pageColor); border-radius: inherit; z-index: 0`,
     ".dropdownContent": `position: absolute; box-sizing: border-box; width: max-content; max-width: var(--dropdownWidth); height: max-content; padding: 6px; overflow: auto`, //background: var(--pageColor)
@@ -1228,7 +1228,7 @@ let dropdownModule = {
 
 modules["modal"] = class {
   css = {
-    ".modal": `position: absolute; box-sizing: border-box; max-width: calc(100% - 16px); max-height: calc(100% - 16px); left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: 0; box-shadow: var(--shadow); border-radius: 12px; transform-origin: center top; pointer-events: all`,
+    ".modal": `position: absolute; box-sizing: border-box; max-width: calc(100% - 16px); max-height: calc(100% - 16px); left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: 0; box-shadow: var(--darkShadow); border-radius: 12px; transform-origin: center top; pointer-events: all`,
     ".modal .loading": `pointer-events: none`,
     ".modalOverflow": `position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--pageColor); border-radius: inherit; z-index: 0`,
     ".modalContent": `position: absolute; box-sizing: border-box; width: max-content; height: max-content; padding: 6px; overflow: auto`, //background: var(--pageColor)

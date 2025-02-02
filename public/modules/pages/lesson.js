@@ -1,5 +1,19 @@
 modules["pages/lesson"] = class {
   title = "Lesson";
+  preload = [
+    "./modules/editor/board.js",
+    "./modules/editor/realtime.js",
+
+    "./libraries/pdfjs/pdf.mjs",
+    "./libraries/pdfjs/pdf.worker.mjs",
+
+    "./modules/dropdowns/lesson/share.js",
+    "./modules/dropdowns/account.js",
+    "./modules/dropdowns/moveto.js",
+    "./modules/dropdowns/remove.js",
+    "./modules/dropdowns/lesson/editor/tools/emojis.js",
+    "./modules/dropdowns/lesson/file/export.js"
+  ];
   preJs = () => {
 
   }
@@ -22,7 +36,7 @@ modules["pages/lesson"] = class {
     if (typePages[id] != null) {
       this.removePage(id, type);
     }
-    let newPage = await this.setFrame("pages/lesson/board", holder);
+    let newPage = await this.setFrame("editor/board", holder);
     newPage.pageID = id;
     newPage.type = type;
     newPage.holder = holder;
@@ -104,16 +118,6 @@ modules["pages/lesson"] = class {
     this.id = getParam("lesson") ?? "";
 
     let pageHolder = page.querySelector(".lPageHolder");
-
-    // Preload
-    loadScript("./modules/editor/realtime.js");
-
-    loadScript("./libraries/pdfjs/pdf.mjs");
-
-    loadScript("./modules/dropdowns/account.js");
-    loadScript("./modules/dropdowns/moveto.js");
-    loadScript("./modules/dropdowns/remove.js");
-    loadScript("./modules/dropdowns/lesson/file/export.js");
 
     /*if (this.id == "" && joinData.pin == null) {
       return; // Open the create new lesson page
@@ -502,1013 +506,6 @@ modules["pages/lesson"] = class {
     }
 
     this.addPage("board", "board", page.querySelector(".lPage"));
-  }
-}
-
-modules["pages/lesson/board"] = class {
-  html = `<div class="eInterface eCustomScroll">
-    <div class="eTopHolder">
-      <button class="eTopScroll" left style="left: 7px"><img src="./images/editor/top/leftarrow.svg" /></button>
-      <button class="eTopScroll" right style="right: 7px"><img src="./images/editor/top/rightarrow.svg" /></button>
-      <div class="eTop">
-        <div class="eTopSection" left>
-          <a class="eLogo" href="#dashboard" draggable="false"></a>
-          <div class="eFileNameHolder border"><div class="eFileName" spellcheck="false" onpaste="clipBoardRead(event)"></div></div>
-          <button class="eFileDropdown">File</button>
-          <button class="eCreateCopy">Make Copy</button>
-          <div class="eTopDivider"></div>
-          <button class="eSaveProgress eUndo" disabled></button>
-          <button class="eSaveProgress eRedo" disabled></button>
-          <div class="eStatus">
-            <div class="eStatusStrength" full>
-              <svg saved width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="15.2344" cy="15.2344" r="12.4219" stroke="#48A7FF" stroke-width="3.75"/>
-                <path d="M9.4375 15.9905L13.1524 19.7054C13.8847 20.4377 15.0719 20.4377 15.8041 19.7054L25.6399 9.86957" stroke="white" stroke-width="7.5" stroke-linecap="round"/>
-                <path d="M9.4375 15.793L13.9458 20.061C14.3073 20.4033 14.8733 20.4033 15.2348 20.061L26 9.86957" stroke="#48A7FF" stroke-width="3.75" stroke-linecap="round"/>
-              </svg>
-            </div>
-          </div>
-        </div>
-        <div class="eTopSection" scroll>
-          <div class="eTopDivider"></div>
-        </div>
-        <div class="eTopSection" right>
-          <button class="eMembers" disabled><span class="eMemberHandCount" title="Number of hands raised."></span><span class="eMemberIdleCount" title="Number of idle members."></span><span class="eMemberCount" title="Number of members."></span>Members</button>
-          <button class="eEndSession" title="End Session | Disable all editing access making everyone a viewer."></button>
-          <button class="eShare" disabled>Share</button>
-          <button class="eMemberOptions" title="Member Options | Configure various member settings and available tools."></button>
-          <button class="eSharePin"></button>
-          <div class="eTopDivider"></div>
-          <button class="eZoom">100%</button>
-          <button class="eAccount"><img src="./images/profiles/default.svg" accountimage /><div accountuser></div></button>
-          <button class="eLogin">Login</button>
-        </div>
-      </div>
-    </div>
-    <div class="eToolbarHolder">
-      <div class="eToolbar"></div>
-      <div class="eViewerActions">
-        <button hidden class="eHandRaise largeButton" tool><img src="./images/editor/actions/raisehand.svg" /></button>
-      </div>
-    </div>
-    <div class="eBottomHolder">
-      <div class="eBottom">
-        <div class="eBottomSection" left>
-          <img class="eObserveIcon" src="./images/editor/members/observe.svg" />
-          <div class="eObserveText">Observing</div>
-          <div class="eObserveCursor"></div>
-          <button class="eObserveExit buttonAnim border"><img src="./images/tooltips/close.svg"></button>
-        </div>
-        <div class="eBottomSection" right>
-          <button class="ePageNav" down></button>
-          <div class="eCurrentPage border" contenteditable></div>
-          <button class="ePageNav" up></button>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="eContentHolder eCustomScroll" disabled></div>
-  `;
-  css = {
-    ".eCustomScroll::-webkit-scrollbar": `width: 16px; background: var(--scrollGray)`,
-    ".eCustomScroll::-webkit-scrollbar-corner": `background: var(--scrollGray)`,
-    ".eCustomScroll::-webkit-scrollbar-thumb": `border: 4px solid var(--scrollGray); background: var(--gray); border-radius: 8px`,
-    ".eCustomScroll::-webkit-scrollbar-thumb:active": `background: var(--activeGray)`,
-    ".eInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; overflow: scroll; z-index: 2`,
-    ".eContentHolder": `position: relative; width: 100%; height: 100%; overflow: scroll; z-index: 1; transition: .5s`,
-    //".eContentHolder .content": `width: 5000px; height: 5000px`, // Just a test
-    
-    ".eTopHolder": `position: relative; width: 100%; height: 50px; visibility: visible`,
-    ".eTop": `position: absolute; display: flex; box-sizing: border-box; width: 100%; gap: 8px; padding-bottom: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,
-    ".eTopHolder[scroll] .eTop": `gap: 0px !important; padding: 0 6px !important; padding-bottom: 0px !important; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
-    ".eTop::-webkit-scrollbar": `display: none`,
-    ".eTopSection[scroll]": `display: none`,
-    ".eTopHolder[scroll] .eTopSection[scroll]": `display: flex !important`,
-    ".eTopScroll": `position: absolute; display: flex; width: 36px; height: 36px; top: 50%; transform: translateY(-50%); background: rgba(180, 218, 253, .75); opacity: 0; backdrop-filter: blur(2px); border-radius: 18px; justify-content: center; align-items: center; z-index: 200`,
-    ".eTopScroll img": `width: 22px`,
-    ".eTopScroll:active": `transform: translateY(-50%) scale(.85) !important`,
-    ".eTopSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
-    ".eTopHolder[scroll] .eTopSection": `padding: 6px 0px !important; box-shadow: unset !important`,
-    ".eTopSection[left]": `border-bottom-right-radius: 12px`,
-    ".eTopSection[right]": `border-bottom-left-radius: 12px`,
-
-    ".eLogo": `display: flex; width: 38px; height: 38px; padding: 0; margin-right: 4px; user-select: none; justify-content: center; align-items: center; border-radius: 6px`,
-    ".eLogo svg": `width: 32px; height: 32px`,
-    //".eLogo:hover": `background: var(--hover)`,
-    ".eFileNameHolder": `margin: 0 4px; --borderRadius: 4px; --borderColor: var(--secondary); --borderWidth: 0px; --transition: .05s`,
-    ".eFileName": `max-width: 350px; padding: 0px; outline: unset; font-size: 20px; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; scrollbar-width: none`,
-    ".eFileName:focus": `padding: 4px 6px !important; overflow-x: auto !important; text-overflow: unset !important`,
-    ".eFileName::-webkit-scrollbar": `display: none`,
-    ".eFileDropdown": `padding: 6px 10px; height: 32px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
-    ".eCreateCopy": `padding: 6px 10px; height: 32px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
-    ".eTopDivider": `width: 4px; height: 32px; margin: 0 4px; background: var(--lightGray); border-radius: 2px`,
-    ".eSaveProgress": `display: flex; width: 32px; height: 32px; padding: 0; align-items: center; overflow: hidden; background: var(--lightGray)`,
-    ".eSaveProgress svg": `width: 24px; height: 24px; margin: 2px`,
-    ".eUndo": `margin: 0 2px 0 4px; justify-content: end; border-radius: 16px 0 0 16px`,
-    ".eRedo": `margin: 0 4px 0 2px; justify-content: start; border-radius: 0 16px 16px 0`,
-    ".eStatus": `display: flex; width: 32px; height: 32px; margin: 4px; justify-content: center; align-items: center`,
-    ".eStatusStrength": `display: flex; width: 100%; height: 100%; justify-content: center; align-items: center`,
-
-    ".eMembers": `display: flex; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--hover); border-radius: 16px; align-items: center; font-size: 16px; font-weight: 600`,
-    ".eMembers span": `display: none; min-width: 12px; height: 24px; padding: 0px 6px; margin-right: 5px; justify-content: center; align-items: center; background: #fff; border-radius: 12px; font-weight: 700`,
-    ".eMemberCount": `--themeColorRGB: var(--themeRGB); color: rgb(var(--themeColorRGB))`,
-    ".eMemberHandCount": `--themeColorRGB: var(--greenRGB); color: rgb(var(--themeColorRGB))`,
-    ".eMemberIdleCount": `--themeColorRGB: var(--yellowRGB); color: rgb(var(--themeColorRGB))`,
-    ".eEndSession": `display: none; width: 32px; height: 32px; padding: 0px; margin: 0 4px; background: var(--error); border-radius: 16px; justify-content: center; align-items: center; color: #fff; font-size: 16px; font-weight: 600`,
-    ".eEndSession svg": `width: 28px; height: 28px`,
-    ".eShare": `height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
-    ".eMemberOptions": `display: none; width: 32px; height: 32px; padding: 0px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; justify-content: center; align-items: center; color: #fff; font-size: 16px; font-weight: 600`,
-    ".eMemberOptions svg": `width: 32px; height: 32px`,
-    ".eSharePin": `display: none; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
-    ".eZoom": `height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
-    ".eAccount": `padding: 0; width: 32px; height: 32px; margin: 0 4px; border-radius: 16px; overflow: hidden`,
-    ".eAccount img": `width: 100%; height: 100%; object-fit: cover`,
-    ".eLogin": `height: 32px; display: none; padding: 6px 10px; margin: 0 4px; background: var(--secondary); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
-
-    ".eToolbarHolder": `position: relative; display: flex; gap: 8px; width: fit-content; flex: 1; margin: 8px 0; visibility: visible`,
-    ".eToolbar": `position: relative; display: flex; box-sizing: border-box; margin: auto 0; align-items: center; pointer-events: all`,
-    ".eViewerActions": `position: absolute; display: flex; height: calc(100% - 16px); left: 8px; top: 8px`,
-    ".eHandRaise": `position: relative; display: flex; box-sizing: border-box; width: 60px; height: 60px; margin: auto 4px; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; --borderRadius: 30px`,
-    ".eHandRaise img": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: 30px`,
-    ".eHandRaise[selected]": `background: var(--theme)`,
-
-    ".eBottomHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
-    ".eBottom": `position: absolute; display: flex; width: 100%; gap: 8px; padding-top: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,
-    ".eBottom::-webkit-scrollbar": `display: none`,
-    ".eBottomSection": `display: none; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
-    ".eBottomSection[left]": `border-top-right-radius: 12px`,
-    ".eObserveIcon": `width: 34px; height: 34px; margin: 2px`,
-    ".eObserveText": `margin: 0 6px`,
-    ".eObserveCursor": `box-sizing: border-box; display: flex; padding: 2px 6px; margin-right: 4px; background: var(--theme); color: #fff; border: solid 3px var(--pageColor); box-shadow: 0 0 6px rgb(0 0 0 / 25%); border-radius: 8px 14px 14px; font-size: 14px; font-weight: 700`,
-    ".eObserveExit": `display: flex; position: relative; width: 22px; height: 22px; margin: 8px; justify-content: center; align-items: center; --borderWidth: 3px; --borderRadius: 14px`,
-    ".eObserveExit img": `width: 12px; height: 12px`,
-    ".eBottomSection[right]": `margin-left: auto; border-top-left-radius: 12px`,
-    ".ePageNav": `display: flex; width: 31px; height: 31px; margin: 0 4px; justify-content: center; align-items: center; background: var(--lightGray); border-radius: 16px`,
-    ".eCurrentPage": `margin: 0 6px; font-size: 20px; outline: unset`,
-    ".eCurrentPage:focus": `padding: 4px 12px; --borderWidth: 3px; --borderColor: var(--secondary); --borderRadius: 19px`
-  };
-
-  js = async (frame, extra) => {
-    frame.style.position = "relative";
-    frame.style.width = "100%";
-    frame.style.height = "100%";
-
-    this.lesson = this.parent.lesson;
-    this.session = this.parent.session;
-
-    let page = frame.closest(".lPage");
-
-    let eTopHolder = frame.querySelector(".eTopHolder");
-    let eTop = eTopHolder.querySelector(".eTop");
-
-    let leftTop = eTop.querySelector(".eTopSection[left]");
-    let lessonName = leftTop.querySelector(".eFileName");
-    let fileButton = leftTop.querySelector(".eFileDropdown");
-    let createCopyButton = leftTop.querySelector(".eCreateCopy");
-    let undoButton = leftTop.querySelector(".eUndo");
-    let redoButton = leftTop.querySelector(".eRedo");
-    let status = leftTop.querySelector(".eStatus");
-
-    let rightTop = eTop.querySelector(".eTopSection[right]");
-    let membersButton = rightTop.querySelector(".eMembers");
-    let endSessionButton = rightTop.querySelector(".eEndSession");
-    let shareButton = rightTop.querySelector(".eShare");
-    let memberOptionsButton = rightTop.querySelector(".eMemberOptions");
-    let sharePinButton = rightTop.querySelector(".eSharePin");
-    let zoomButton = rightTop.querySelector(".eZoom");
-    let accountButton = rightTop.querySelector(".eAccount");
-    let loginButton = rightTop.querySelector(".eLogin");
-
-    let eTopScrollLeft = eTopHolder.querySelector(".eTopScroll[left]");
-    let eTopScrollRight = eTopHolder.querySelector(".eTopScroll[right]");
-
-    let contentHolder = frame.querySelector(".eContentHolder");
-
-    let currentPageHolder = frame.querySelector(".eBottomSection[right]");
-    let pageTextBox = currentPageHolder.querySelector(".eCurrentPage");
-    let increasePageButton = currentPageHolder.querySelector(".ePageNav[down]");
-    let decreasePageButton = currentPageHolder.querySelector(".ePageNav[up]");
-
-    this.editor = await this.setFrame("pages/lesson/editor", contentHolder);
-
-    this.editor.id = this.parent.id;
-    this.editor.session = this.parent.session;
-    this.editor.sessionID = this.parent.sessionID;
-    this.editor.sources = this.parent.sources;
-    this.editor.settings = this.parent.lesson.settings ?? {};
-    this.editor.self = this.parent.members[this.editor.sessionID];
-
-    let updateTopBar = (ignoreAttr) => {
-      if (ignoreAttr != true) {
-        eTopHolder.removeAttribute("scroll");
-      }
-      if (eTop.scrollWidth > eTop.clientWidth) {
-        if (ignoreAttr != true) {
-          eTopHolder.setAttribute("scroll", "");
-        }
-        if (Math.floor(eTop.scrollLeft) > 0) {
-          eTopScrollLeft.style.opacity = 1;
-          eTopScrollLeft.style.pointerEvents = "all";
-        } else {
-          eTopScrollLeft.style.opacity = 0;
-          eTopScrollLeft.style.pointerEvents = "none";
-        }
-        if (Math.floor(eTop.scrollWidth - eTop.scrollLeft) > Math.floor(eTop.clientWidth)) {
-          eTopScrollRight.style.opacity = 1;
-          eTopScrollRight.style.pointerEvents = "all";
-        } else {
-          eTopScrollRight.style.opacity = 0;
-          eTopScrollRight.style.pointerEvents = "none";
-        }
-      } else {
-        eTopScrollLeft.style.opacity = 0;
-        eTopScrollLeft.style.pointerEvents = "none";
-        eTopScrollRight.style.opacity = 0;
-        eTopScrollRight.style.pointerEvents = "none";
-      }
-    }
-    eTopScrollLeft.addEventListener("click", function () {
-      eTop.scrollTo({ left: eTop.scrollLeft - 200, behavior: "smooth" });
-      updateTopBar();
-    });
-    eTopScrollRight.addEventListener("click", function () {
-      eTop.scrollTo({ left: eTop.scrollLeft + 200, behavior: "smooth" });
-      updateTopBar();
-    });
-    this.editor.pipeline.subscribe("topbarResize", "resize", updateTopBar);
-    this.editor.pipeline.subscribe("topbarScroll", "topbar_scroll", () => { updateTopBar(true); });
-    this.editor.pipeline.subscribe("topbarVisibilityChange", "visibilitychange", updateTopBar);
-    updateTopBar();
-
-    this.updateInterface = async () => {
-      let access = this.editor.self.access;
-      if (access == 0) {
-        contentHolder.setAttribute("viewer", "");
-        lessonName.removeAttribute("contenteditable");
-        if (this.editor.settings.allowExport != false) {
-          createCopyButton.style.removeProperty("display");
-        } else {
-          createCopyButton.style.display = "none";
-        }
-        undoButton.style.display = "none";
-        redoButton.style.display = "none";
-        memberOptionsButton.style.removeProperty("display");
-      } else {
-        contentHolder.removeAttribute("viewer");
-        if (access > 3) {
-          lessonName.setAttribute("contenteditable", "");
-          memberOptionsButton.style.display = "flex";
-        }
-        createCopyButton.style.display = "none";
-        undoButton.style.removeProperty("display");
-        redoButton.style.removeProperty("display");
-      }
-      updateTopBar();
-    }
-
-    this.updateMemberCount = (button) => {
-      let memberCountTx = button.querySelector(".eMemberCount");
-      let handCountTx = button.querySelector(".eMemberHandCount");
-      let idleCountTx = button.querySelector(".eMemberIdleCount");
-
-      memberCountTx.textContent = this.parent.memberCount;
-      if (this.parent.memberCount > 1) {
-        memberCountTx.style.display = "flex";
-        memberCountTx.parentElement.style.padding = "4px 10px 4px 4px";
-      } else {
-        memberCountTx.style.removeProperty("display");
-        memberCountTx.parentElement.style.removeProperty("padding");
-      }
-      
-      handCountTx.textContent = this.parent.handCount;
-      if (this.parent.handCount > 0 && this.parent.memberCount > 1) {
-        handCountTx.style.display = "flex";
-        handCountTx.parentElement.style.padding = "4px 10px 4px 4px";
-      } else {
-        handCountTx.style.removeProperty("display");
-      }
-
-      idleCountTx.textContent = this.parent.idleCount;
-      if (this.parent.idleCount > 0 && this.parent.memberCount > 1) {
-        idleCountTx.style.display = "flex";
-        idleCountTx.parentElement.style.padding = "4px 10px 4px 4px";
-      } else {
-        idleCountTx.style.removeProperty("display");
-      }
-
-      if (this.editor.self.access > 3 && this.parent.editorCount > 0) {
-        endSessionButton.style.display = "flex";
-      } else {
-        endSessionButton.style.removeProperty("display");
-      }
-
-      updateTopBar();
-    }
-    this.updateMemberCount(membersButton);
-
-    eTop.addEventListener("scroll", (event) => {
-      this.editor.pipeline.publish("topbar_scroll", { event: event });
-    });
-
-    let icon = eTop.querySelector(".eLogo");
-    icon.addEventListener("click", (event) => {
-      event.preventDefault();
-      setFrame("pages/dashboard");
-    });
-    lessonName.textContent = this.lesson.name ?? "Untitled Lesson";
-    lessonName.title = lessonName.textContent;
-    lessonName.addEventListener("keydown", (event) => {
-      if (event.keyCode == 13) {
-        event.preventDefault();
-        lessonName.blur();
-        return;
-      }
-    });
-    lessonName.addEventListener("input", updateTopBar);
-    lessonName.addEventListener("focusout", async () => {
-      lessonName.scrollTo(0, 0);
-      lessonName.parentElement.style.setProperty("--borderWidth", "0px");
-      updateTopBar();
-
-      let name = lessonName.textContent.substring(0, 100).replace(/[^A-Za-z0-9.,_|/\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
-      if (name.replace(/ /g, "").length < 1) {
-        lessonName.textContent = this.lesson.name;
-        return;
-      }
-      if (lessonName.textContent == this.lesson.name) {
-        lessonName.textContent = this.lesson.name;
-        return;
-      }
-      let oldName = this.lesson.name;
-      this.lesson.name = name;
-      lessonName.textContent = name;
-      lessonName.title = name;
-      let [code] = await sendRequest("POST", "lessons/name", { name: name }, { session: this.session });
-      if (code != 200) {
-        this.lesson.name = oldName;
-        lessonName.textContent = oldName;
-        lessonName.title = oldName;
-      }
-    });
-    lessonName.addEventListener("focus", async () => {
-      lessonName.parentElement.style.setProperty("--borderWidth", "4px");
-      updateTopBar();
-    });
-
-    fileButton.addEventListener("click", () => {
-      dropdownModule.open(fileButton, "dropdowns/lesson/file", { parent: this });
-    });
-
-    createCopyButton.addEventListener("click", async () => {
-      if (userID == null) {
-        promptLogin();
-        return;
-      }
-      createCopyButton.setAttribute("disabled", "");
-      let copyAlert = await alertModule.open("info", "<b>Creating Copy</b><div>Creating a copy of this lesson.", { time: "never" });
-      let [code, body] = await sendRequest("POST", "lessons/copy", null, { session: this.editor.session });
-      createCopyButton.removeAttribute("disabled");
-      alertModule.close(copyAlert);
-      if (code == 200) {
-        modifyParams("lesson", body.lesson);
-        setFrame("pages/lesson");
-      }
-    });
-
-    membersButton.addEventListener("click", () => {
-      dropdownModule.open(membersButton, "dropdowns/lesson/board/members", { parent: this });
-    });
-
-    endSessionButton.removeAttribute("disabled");
-    endSessionButton.addEventListener("click", async () => {
-      endSessionButton.setAttribute("disabled", "");
-      await sendRequest("DELETE", "lessons/members/reset", null, { session: this.editor.session });
-      endSessionButton.removeAttribute("disabled");
-    });
-
-    // Load Images:
-    setSVG(icon, "./images/icon.svg", (svg) => { return svg.replace(/"#0084FF"/g, '"var(--theme)"'); });
-    setSVG(undoButton, "./images/tooltips/progress/undo.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
-    setSVG(redoButton, "./images/tooltips/progress/redo.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
-    setSVG(endSessionButton, "./images/editor/share/endeditors.svg", (svg) => { return svg.replace(/"#FF2F5A"/g, '"var(--error)"'); });
-    setSVG(memberOptionsButton, "./images/editor/share/setting.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
-    setSVG(increasePageButton, "./images/editor/bottom/plus.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
-    setSVG(decreasePageButton, "./images/editor/bottom/minus.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
-
-    this.editor.pipeline.subscribe("zoomTextUpdate", "zoom_change", (event) => {
-      zoomButton.textContent = Math.round(event.zoom * 100) + "%";
-      updateTopBar();
-    });
-    zoomButton.addEventListener("click", () => {
-      dropdownModule.open(zoomButton, "dropdowns/lesson/zoom", { parent: this });
-    });
-
-    if (userID != null) {
-      accountButton.querySelector("div").textContent = account.user;
-      if (account.image != null) {
-        accountButton.querySelector("img").src = account.image;
-      }
-      accountButton.addEventListener("click", () => {
-        dropdownModule.open(accountButton, "dropdowns/account", { parent: this });
-      });
-    } else {
-      accountButton.remove();
-      loginButton.style.display = "block";
-      loginButton.addEventListener("click", () => { promptLogin(); });
-    }
-
-    this.editor.pipeline.subscribe("pageTextUpdate", "page_change", (event) => {
-      if (this.editor.currentPage > 0) {
-        currentPageHolder.style.display = "flex";
-        modifyParams("page", event.pageId);
-      } else {
-        currentPageHolder.style.display = "none";
-        modifyParams("page");
-        return;
-      }
-      pageTextBox.innerHTML = "<b>" + this.editor.currentPage + "</b> / " + this.editor.annotationPages.length;
-      if (this.editor.currentPage > this.editor.annotationPages.length - 1) {
-        increasePageButton.setAttribute("disabled", "");
-      } else {
-        increasePageButton.removeAttribute("disabled");
-      }
-      if (this.editor.currentPage < 2) {
-        decreasePageButton.setAttribute("disabled", "");
-      } else {
-        decreasePageButton.removeAttribute("disabled");
-      }
-    });
-    increasePageButton.addEventListener("click", () => {
-      this.editor.currentPage++;
-      this.editor.utils.updateAnnotationScroll(this.editor.annotationPages[this.editor.currentPage - 1]);
-    });
-    decreasePageButton.addEventListener("click", () => {
-      this.editor.currentPage--;
-      this.editor.utils.updateAnnotationScroll(this.editor.annotationPages[this.editor.currentPage - 1]);
-    });
-    let alreadyRunningFocus = false;
-    pageTextBox.addEventListener("focus", async () => {
-      if (alreadyRunningFocus == true) {
-        return;
-      }
-      alreadyRunningFocus = true;
-      pageTextBox.blur();
-      pageTextBox.innerHTML = "";
-      pageTextBox.focus();
-      alreadyRunningFocus = false;
-    });
-    pageTextBox.addEventListener("keydown", (event) => {
-      if (event.keyCode == 13) {
-        event.preventDefault();
-        pageTextBox.blur();
-        return;
-      }
-      if (String.fromCharCode(event.keyCode).match(/(\w|\s)/g) && event.key.length == 1) {
-        let textInt = parseInt(pageTextBox.textContent + event.key);
-        if (parseInt(event.key) != event.key) {
-          event.preventDefault();
-          textBoxError(pageTextBox, "Must be a number");
-        } else if (textInt > this.editor.annotationPages.length) {
-          event.preventDefault();
-          textBoxError(pageTextBox, "Maximum of page number " + this.editor.annotationPages.length);
-        } else if (textInt < 1) {
-          event.preventDefault();
-          textBoxError(pageTextBox, "Minimum of the first page");
-        }
-      }
-    });
-    pageTextBox.addEventListener("focusout", (event) => {
-      //pageBoxFocus = false;
-      if (pageTextBox.textContent == "") {
-        pageTextBox.innerHTML = "<b>" + this.editor.currentPage + "</b> / " + this.editor.annotationPages.length;
-        return;
-      }
-      let setPage = parseInt(pageTextBox.textContent) ?? 1;
-      pageTextBox.innerHTML = "<b>" + setPage + "</b> / " + this.editor.annotationPages.length;
-      this.editor.utils.updateAnnotationScroll(this.editor.annotationPages[setPage - 1], false);
-    });
-
-    this.editor.pipeline.subscribe("boardLessonSet", "set", (body) => {
-      if (body.name != null && document.activeElement.closest(".eFileName") != lessonName) {
-        lessonName.textContent = this.lesson.name ?? "Untitled Lesson";
-        lessonName.title = lessonName.textContent;
-      }
-      if (this.parent.lesson.pin != null) {
-        sharePinButton.textContent = this.parent.lesson.pin;
-        sharePinButton.style.display = "unset";
-      } else {
-        sharePinButton.style.removeProperty("display");
-      }
-    });
-    this.editor.pipeline.subscribe("boardMemberJoin", "join", () => { this.updateMemberCount(membersButton); });
-    this.editor.pipeline.subscribe("boardMemberLeave", "leave", () => { this.updateMemberCount(membersButton); });
-    this.editor.pipeline.subscribe("boardMemberUpdate", "update", async (body) => {
-      let member = this.parent.members[body._id];
-      if (this.editor.realtime.module != null) {
-        if (body.observe == this.editor.sessionID) { // Being observed:
-          this.editor.realtime.observed = true;
-          this.editor.realtime.module.publishShort(null, "observe", true);
-        }
-        if (body.weak == true) {
-          this.editor.realtime.module.removeRealtime(body._id);
-          if (this.editor.realtime.observing == body._id) {
-            this.editor.realtime.module.exitObserve();
-            alertModule.open("warning", "<b>Observing Ended</b>The member you where observing has too weak a connection, try again later...");
-          }
-        }
-        if (body.observe != null && this.editor.realtime.observing == body._id) {
-          this.editor.realtime.module.exitObserve();
-          alertModule.open("warning", "<b>Observing Ended</b>The member your observing started watching someone.");
-        }
-        if (this.editor.realtime.observing == body._id) {
-          this.editor.realtime.module.setObserveFrame(member);
-        }
-      }
-
-      this.updateMemberCount(membersButton);
-    });
-
-    this.editor.pipeline.subscribe("spotlightStart", "spotlight", async (body) => {
-      if (this.editor.realtime.module == null || this.parent.signalStrength < 3) {
-        return;
-      }
-      if (body.member == this.editor.sessionID || body.member == this.editor.realtime.observing) {
-        return;
-      }
-      let member = this.parent.members[body.member];
-      if (member == null) {
-        return;
-      }
-      if (member.observe != null) {
-        member.observe = null;
-      }
-      if (member.weak == true) {
-        return;
-      }
-      let prevObserve = this.editor.realtime.observing;
-      this.editor.realtime.observing = body.member;
-      this.editor.realtime.module.setShortSub(this.editor.visibleChunks);
-      this.editor.pipeline.publish("observe_enable", { memberID: body.member });
-      alertModule.close(this.editor.realtime.observeLoading);
-      clearTimeout(this.editor.realtime.observeTimeout);
-      let [code] = await sendRequest("GET", "lessons/members/observe?member=" + body.member, null, { session: this.editor.session });
-      if (code == 200) {
-        this.editor.realtime.observeLoading = await alertModule.open("info", `<b>Connecting to Member</b>Connecting to ${member.name}'s screen from spotlight!`, { time: "never" });
-        this.editor.realtime.observeTimeout = setTimeout(() => {
-          alertModule.close(this.editor.realtime.observeLoading);
-          alertModule.open("error", `<b>Observe Timeout</b>Failed to connect to their screen, please try again later...`);
-          this.editor.realtime.module.exitObserve();
-        }, 20000);
-      } else {
-        if (prevObserve != null) {
-          this.editor.realtime.observing = prevObserve;
-          this.editor.realtime.module.exitObserve();
-        }
-        this.editor.realtime.observing = null;
-        this.editor.realtime.module.setShortSub(this.visibleChunks);
-        this.editor.pipeline.publish("observe_exit", { memberID: body.member });
-      }
-    });
-
-    this.editor.pipeline.subscribe("realtimeButtonEnable", "realtime_loaded", () => {
-      membersButton.removeAttribute("disabled");
-      shareButton.removeAttribute("disabled");
-    });
-    if (this.parent.lesson.pin != null) {
-      sharePinButton.style.display = "unset";
-      sharePinButton.textContent = this.lesson.pin;
-    }
-
-    this.editor.pipeline.subscribe("interfaceUpdate", "refresh_interface", () => {
-      this.updateInterface();
-    });
-
-    this.editor.pipeline.subscribe("checkActivePage", "click_start", () => {
-      if (this.parent.activePageID != this.pageID) {
-        this.parent.activePageID = this.pageID;
-        this.parent.pushToPipelines(null, "page_switch", { pageID: this.pageID });
-      }
-    });
-    this.editor.pipeline.subscribe("checkPageSwitch", "page_switch", (data) => {
-      if (data.pageID != this.pageID) {
-        page.removeAttribute("active");
-      } else {
-        page.setAttribute("active", "");
-      }
-    });
-
-    // Fetch Annotations
-    let pageParam = getParam("page");
-    let checkForJumpLink = getParam("annotation");
-    let asyncLoadAnnotations = async () => {
-      let [annoCode, annoBody] = await sendRequest("GET", "lessons/join/annotations", null, { session: this.parent.session }, { allowError: true });
-      if (annoCode != 200 && connected == true) {
-        alertModule.open("error", `<b>Error Loading Annotations</b>Please try again later...`);
-        return;
-      }
-      for (let i = 0; i < annoBody.annotations.length; i++) {
-        let addAnno = annoBody.annotations[i];
-        let existingAnno = this.editor.annotations[addAnno._id];
-        if (existingAnno == null || existingAnno.render.sync < addAnno.sync) {
-          this.editor.annotations[addAnno._id] = { render: addAnno };
-        }
-      }
-      for (let i = 0; i < annoBody.annotations.length; i++) {
-        let existingAnno = this.editor.annotations[annoBody.annotations[i]._id];
-        if (existingAnno != null) {
-          await this.editor.utils.annotationChunks(existingAnno);
-          this.editor.utils.updateAnnotationPages(existingAnno.render);
-        }
-      }
-      if (annoBody.reactions != null) {
-        let reactedToObject = getObject(annoBody.reactedTo ?? [], "_id");
-        for (let i = 0; i < annoBody.reactions.length; i++) {
-          let addReaction = annoBody.reactions[i];
-          let existingAnnoRecord = this.editor.reactions[addReaction.annotation];
-          if (existingAnnoRecord == null) {
-            this.editor.reactions[addReaction.annotation] = [];
-            existingAnnoRecord = this.editor.reactions[addReaction.annotation];
-          }
-          delete addReaction.annotation;
-          if (reactedToObject[addReaction._id + "_" + this.editor.self.modify] != null) {
-            addReaction.reacted = true;
-          }
-          existingAnnoRecord.push(addReaction);
-        }
-      }
-
-      await this.editor.render.setMarginSize();
-
-      let jumpAnnotation = null;
-      if (checkForJumpLink != null && checkForJumpLink != "") {
-        if (this.editor.annotations[checkForJumpLink] != null) {
-          jumpAnnotation = (await this.editor.render.createAnnotation((this.editor.annotations[checkForJumpLink] || {}).render))[1];
-          this.editor.selecting[checkForJumpLink] = {};
-          this.pipeline.publish("redraw_selection", {});
-        }
-      }
-      if (jumpAnnotation == null) {
-        if (pageParam == null) {
-          this.editor.utils.centerWindowWithPage();
-        } else {
-          this.editor.utils.updateAnnotationScroll([pageParam], false);
-        }
-        await this.editor.updateChunks();
-      } else {
-        await this.editor.utils.scrollToElement(jumpAnnotation);
-        await this.editor.updateChunks();
-      }
-
-      contentHolder.removeAttribute("disabled");
-    }
-
-    if (this.exporting != true) {
-      asyncLoadAnnotations();
-      (async () => {
-        (await this.newModule("editor/realtime")).js(this.editor);
-      })();
-    } else {
-      await asyncLoadAnnotations();
-      //await (await this.loadModule("editor/export")).js(this, this.utils, page);
-    }
-
-    this.updateInterface();
-  }
-}
-
-modules["dropdowns/lesson/file"] = class {
-  html = `
-  <button class="eFileAction" option="dashboard" title="Return to the Dashboard" style="--themeColor: var(--secondary)"><img src="./images/tooltips/back.svg">Dashboard</button>
-  <div class="eFileLine"></div>
-  <button class="eFileAction" option="export" dropdowntitle="Export" title="Export the lesson as a PDF."><img src="./images/editor/file/export.svg">Export</button>
-  <button class="eFileAction" option="print" dropdowntitle="Print" title="Export the lesson and print."><img src="./images/editor/file/print.svg">Print</button>
-  <button class="eFileAction" option="copy" title="Create a copy of the lesson."><img src="./images/editor/file/copy.svg">Create Copy</button>
-  <button class="eFileAction" option="moveto" title="Move this lesson into a folder." dropdowntitle="Move To Folder"><img src="./images/dashboard/moveto.svg">Move To Folder</button>
-  <div class="eFileLine" option="findjump"></div>
-  <button class="eFileAction" disabled option="find" title="Find text on the PDF." style="--themeColor: var(--secondary)"><img src="./images/editor/file/search.svg">Find</button>
-  <button class="eFileAction" option="jumptop" title="Jump to the first page." style="--themeColor: var(--secondary)"><img src="./images/editor/bottom/uparrow.svg">Jump to Top</button>
-  <button class="eFileAction" option="jump" title="Jump to page number." style="--themeColor: var(--secondary)"><img src="./images/editor/file/jump.svg">Jump to Page</button>
-  <button class="eFileAction" option="jumpend" title="Jump to the last page." style="--themeColor: var(--secondary)"><img src="./images/editor/bottom/downarrow.svg">Jump to End</button>
-  <div class="eFileLine" option="document"></div>
-  <button class="eFileAction" disabled option="properties" title="View lesson properties." style="--themeColor: var(--secondary)"><img src="./images/editor/file/info.svg">Properties</button>
-  <button class="eFileAction" disabled option="ocr" title="Run optical character recognition (OCR)."><img src="./images/editor/file/text.svg">Recognize Text</button>
-  <div class="eFileLine" option="delete"></div>
-  <button class="eFileAction" option="deletelesson" title="Remove this lesson from your dashboard." style="--themeColor: var(--error)"><img src="./images/editor/file/delete.svg">Delete Lesson</button>
-  <button class="eFileAction" option="deleteannotations" title="Remove all annotations from the lesson." style="--themeColor: var(--error)"><img src="./images/editor/file/delete.svg">Delete Annotations</button>
-  <div class="eFileLine" option="hideshow"></div>
-  <button class="eFileAction" option="hideshowpage" title="Hide this page for all members."><img src="./images/editor/rearrange/hideshow.svg">Hide All Pages</button>
-  `;
-  css = {
-    ".eFileAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
-    ".eFileAction:not(:last-child)": `margin-bottom: 4px`,
-    ".eFileAction img": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: #fff; border-radius: 4px`,
-    ".eFileAction:hover": `background: var(--themeColor); color: #fff`,
-    ".eFileLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`
-  };
-  js = async function (frame, extra) {
-    let parent = extra.parent;
-    let editor = parent.editor;
-    let access = editor.self.access;
-
-    frame.querySelector('.eFileAction[option="dashboard"]').addEventListener("click", async () => {
-      //utils.syncSave(true);
-      setFrame("pages/dashboard");
-    });
-    let exportButton = frame.querySelector('.eFileAction[option="export"]');
-    exportButton.addEventListener("click", () => {
-      dropdownModule.open(exportButton, "dropdowns/lesson/file/export", { type: "download", editor: editor });
-    });
-    let printButton = frame.querySelector('.eFileAction[option="print"]');
-    printButton.addEventListener("click", () => {
-      dropdownModule.open(printButton, "dropdowns/lesson/file/export", { type: "print", editor: editor });
-    });
-    let copyButton = frame.querySelector('.eFileAction[option="copy"]');
-    copyButton.addEventListener("click", async () => {
-      if (userID == null) {
-        promptLogin();
-        return;
-      }
-      copyButton.setAttribute("disabled", "");
-      let copyAlert = await alertModule.open("info", "<b>Creating Copy</b><div>Creating a copy of this lesson.", { time: "never" });
-      let [code, body] = await sendRequest("POST", "lessons/copy", null, { session: editor.session });
-      copyButton.removeAttribute("disabled");
-      alertModule.close(copyAlert);
-      if (code == 200) {
-        dropdownModule.close();
-        modifyParams("lesson", body.lesson);
-        setFrame("pages/lesson");
-      }
-    });
-    if (editor.settings.allowExport == false && access < 4) {
-      exportButton.setAttribute("disabled", "");
-      printButton.setAttribute("disabled", "");
-      copyButton.setAttribute("disabled", "");
-    }
-
-    let fileButton = frame.querySelector('.eFileAction[option="moveto"]');
-    fileButton.addEventListener("click", () => {
-      dropdownModule.open(fileButton, "dropdowns/moveto", { lessonID: parent.parent.id, folderID: parent.parent.folder });
-    });
-
-    let find = frame.querySelector('.eFileAction[option="find"]');
-    let jumptop = frame.querySelector('.eFileAction[option="jumptop"]');
-    jumptop.addEventListener("click", () => {
-      editor.contentHolder.scrollTo({ top: 0 });
-    });
-    let jump = frame.querySelector('.eFileAction[option="jump"]');
-    jump.addEventListener("click", () => {
-      editor.page.querySelector(".eCurrentPage").focus();
-      dropdownModule.close();
-    });
-    let jumpend = frame.querySelector('.eFileAction[option="jumpend"]');
-    jumpend.addEventListener("click", () => {
-      editor.contentHolder.scrollTo({ top: editor.contentHolder.scrollHeight });
-    });
-
-    let deleteLessonButton = frame.querySelector('.eFileAction[option="deletelesson"]');
-    deleteLessonButton.addEventListener("click", () => {
-      dropdownModule.open(deleteLessonButton, "dropdowns/remove", { type: "deletelesson", lessonID: parent.parent.id, isOwner: editor.self.access == 5, session: editor.session });
-    });
-    let deleteAnnotationsButton = frame.querySelector('.eFileAction[option="deleteannotations"]');
-    deleteAnnotationsButton.addEventListener("click", () => {
-      dropdownModule.open(deleteAnnotationsButton, "dropdowns/remove", { type: "deleteannotations", lessonID: parent.parent.id, session: editor.session });
-    });
-
-    let hideshowpage = frame.querySelector('.eFileAction[option="hideshowpage"]');
-    hideshowpage.addEventListener("click", async () => {
-      hideshowpage.setAttribute("disabled", "");
-      //let [code] = await sendRequest("PUT", "lessons/rearrange/hide", null, { session: editor.session });
-      hideshowpage.removeAttribute("disabled");
-      //if (code == 200) {
-      //  dropdownModule.close();
-      //}
-    });
-
-    if (access < 5) {
-      deleteAnnotationsButton.remove();
-      hideshowpage.remove();
-      let hideshowLine = frame.querySelector('.eFileLine[option="hideshow"]');
-      if (hideshowLine != null) {
-        hideshowLine.remove();
-      }
-      if (userID == null) {
-        deleteLessonButton.remove();
-        frame.querySelector('.eFileLine[option="delete"]').remove();
-      } else {
-        deleteLessonButton.innerHTML = `<img src="./images/editor/file/delete.svg">Remove Lesson`;
-      }
-    }
-
-    if (editor.annotationPages.length < 1) {
-      jump.remove();
-    }
-
-    find.remove();
-    frame.querySelector('.eFileLine[option="document"]').remove();
-    frame.querySelector('.eFileAction[option="properties"]').remove();
-    frame.querySelector('.eFileAction[option="ocr"]').remove();
-  }
-}
-
-modules["dropdowns/lesson/zoom"] = class {
-  html = `
-  <div class="eZoomHolder">
-    <button class="eZoomButton buttonAnim border" sub change="-20">-</button>
-    <div class="eZoomLevel border"><div class="eZoomBox" contenteditable>100</div>%</div>
-    <button class="eZoomButton buttonAnim border" add change="20">+</button>
-  </div>
-  <div class="eZoomLine"></div>
-  <button class="eZoomAction" option="snapping" local title="Snap elements to guides while moving and resizing."><div label>Snapping</div><div class="eZoomToggle"><div></div></div></button>
-  <button class="eZoomAction" option="cursors" title="Display the cursors of other editors."><div label>Show Cursors</div><div class="eZoomToggle"><div></div></div></button>
-  <button class="eZoomAction" option="cursornames" local title="Show the member's name when they're annotating."><div label>Cursor Names</div><div class="eZoomToggle"><div></div></div></button>
-  <button class="eZoomAction" option="stylusmode" local title="Only write on the document when using an active stylus, such as the Apple Pencil."><div label>Stylus Mode</div><div class="eZoomToggle"><div></div></div></button>
-  <!--<button class="eZoomAction" option="comments" title="Show comments on the document."><div label>Comments</div><div class="eZoomToggle"><div></div></div></button>-->
-  <!--<div class="eZoomLine"></div>-->
-  <!--<button class="eZoomAction" option="fullscreen" title="Fullscreen allows increased accessibility."><div label>Fullscreen</div><div class="eZoomToggle"><div></div></div></button>-->
-  `;
-  css = {
-    ".eZoomHolder": `display: flex; flex-wrap: wrap; justify-content: center; align-items: center`,
-    ".eZoomButton": `position: relative; display: flex; width: 22px; height: 22px; margin: 20px 3px; justify-content: center; align-items: center; --borderWidth: 3px; --borderRadius: 8px; color: var(--theme); font-size: 24px; font-weight: 600; line-height: 0`,
-    '.eZoomButton[sub]': `cursor: zoom-out`,
-    '.eZoomButton[add]': `cursor: zoom-in`,
-    ".eZoomLevel": `display: flex; padding: 3px 6px 3px 3px; margin: 0 12px; --borderWidth: 3px; --borderColor: var(--secondary); justify-content: center; align-items: center; --borderRadius: 15px; color: var(--theme); font-size: 20px; font-weight: 600`,
-    ".eZoomLevel div": `max-width: 50px; min-width: 25px; padding: 3px 6px; margin-right: 3px; border: none; outline: none; border-radius: 16px; text-align: center; white-space: nowrap; overflow: hidden`,
-
-    ".eZoomLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`,
-
-    ".eZoomAction": `display: flex; width: 100%; padding: 6px; border-radius: 8px; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
-    ".eZoomAction:not(:last-child)": `margin-bottom: 4px`,
-    ".eZoomAction div[label]": `flex: 1; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
-    ".eZoomAction[on]": `--themeColor: var(--theme)`,
-    ".eZoomAction[off]": `--themeColor: var(--error)`,
-    ".eZoomToggle": `position: relative; width: 36px; height: 20px; padding: 2px; margin-left: 12px; background: var(--themeColor); border-radius: 12px; transition: .2s`,
-    ".eZoomToggle div": `position: absolute; width: 20px; height: 20px; background: #fff; border-radius: 10px; transition: .2s`,
-    ".eZoomAction[on] .eZoomToggle div": `right: 2px`,
-    ".eZoomAction[off] .eZoomToggle div": `right: calc(100% - 22px)`,
-    ".eZoomAction:hover": `background: var(--themeColor); color: #fff`,
-    ".eZoomAction:hover .eZoomToggle": `background: #fff`,
-    ".eZoomAction:hover .eZoomToggle div": `background: var(--themeColor)`,
-
-    "body:fullscreen": `overflow: auto !important`
-  };
-  js = async function (frame, extra) {
-    let editor = extra.parent.editor;
-
-    let zoomPercentage = frame.querySelector(".eZoomLevel div");
-    let zoomAdd = frame.querySelector(".eZoomButton[add]");
-    let zoomSub = frame.querySelector(".eZoomButton[sub]");
-    let setZoomText = () => {
-      zoomPercentage.textContent = Math.round(editor.zoom * 100);
-      if (editor.zoom >= 5) {
-        zoomAdd.setAttribute("disabled", "");
-      } else {
-        zoomAdd.removeAttribute("disabled");
-      }
-      if (editor.zoom <= .2) {
-        zoomSub.setAttribute("disabled", "");
-      } else {
-        zoomSub.removeAttribute("disabled");
-      }
-      frame.closest(".dropdown").querySelector(".dropdownTitle").textContent = zoomPercentage.textContent + "%";
-    }
-    editor.pipeline.subscribe("zoomDropdownUpdate", "zoom_change", setZoomText);
-    setZoomText();
-    let setButtonOptions = frame.querySelectorAll(".eZoomAction");
-    for (let i = 0; i < setButtonOptions.length; i++) {
-      let buttonToggle = setButtonOptions[i];
-      if (editor.options[buttonToggle.getAttribute("option")] == true) {
-        buttonToggle.setAttribute("on", "");
-      } else {
-        buttonToggle.setAttribute("off", "");
-      }
-    }
-    let forceSetZoom = () => {
-      editor.setZoom(parseInt(zoomPercentage.textContent) / 100, null, { clientX: editor.contentHolder.offsetWidth / 2, clientY: editor.contentHolder.offsetHeight / 2 });
-    }
-    zoomPercentage.addEventListener("keydown", (event) => {
-      let textBox = event.target.closest("div");
-      if (textBox == null) {
-        return;
-      }
-      if (event.keyCode == 13) {
-        event.preventDefault();
-        zoomPercentage.blur();
-        return;
-      }
-      if (String.fromCharCode(event.keyCode).match(/(\w|\s)/g) && event.key.length == 1) {
-        let textInt = parseInt(textBox.textContent + event.key);
-        if (parseInt(event.key) != event.key) {
-          event.preventDefault();
-          textBoxError(textBox, "Must be a number");
-        } else if (textInt > 500) {
-          event.preventDefault();
-          textBoxError(textBox, "Must be less than 500%");
-        }
-      }
-    });
-    let alreadyRunningFocus = false;
-    zoomPercentage.addEventListener("focus", () => {
-      if (alreadyRunningFocus == true) {
-        return;
-      }
-      alreadyRunningFocus = true;
-      zoomPercentage.blur();
-      zoomPercentage.innerHTML = "";
-      zoomPercentage.focus();
-      alreadyRunningFocus = false;
-    });
-    zoomPercentage.addEventListener("focusout", (event) => {
-      if (alreadyRunningFocus == true) {
-        return;
-      }
-      let textBox = event.target.closest("div");
-      if (textBox == null) {
-        return;
-      }
-      let textInt = parseInt(textBox.textContent);
-      if (isNaN(textInt) == true) {
-        setZoomText();
-      } else if (textInt > 500) {
-        textBox.textContent = "500";
-      } else if (textInt < 20) {
-        textBox.textContent = "20";
-      }
-      forceSetZoom();
-    });
-    let cursorZoomAction = frame.querySelector('.eZoomAction[option="cursors"]');
-    let namesZoomAction = frame.querySelector('.eZoomAction[option="cursornames"]');
-    if (editor.parent.parent.signalStrength < 3) {
-      cursorZoomAction.style.opacity = 0.5;
-      cursorZoomAction.title = "Cursors disabled due to weak connection.";
-      namesZoomAction.style.opacity = 0.5;
-    }
-    if (cursorZoomAction.hasAttribute("off")) {
-      namesZoomAction.setAttribute("disabled", "");
-    }
-    frame.addEventListener("click", (event) => {
-      let element = event.target;
-      if (element == null) {
-        return;
-      }
-      let zoomChange = element.closest(".eZoomButton");
-      if (zoomChange) {
-        (Math.floor(((editor.zoom + parseFloat(zoomChange.getAttribute("change"))) * 100) / 5) * 5) / 100
-        editor.setZoom(
-          (
-            Math.round(
-              (
-                Math.round(editor.zoom * 100) + parseInt(zoomChange.getAttribute("change"))
-              ) / 20
-          ) * 20
-        ) / 100, null, { clientX: editor.contentHolder.offsetWidth / 2, clientY: editor.contentHolder.offsetHeight / 2 });
-        return;
-      }
-      let toggle = element.closest(".eZoomAction");
-      if (toggle != null) {
-        let option = toggle.getAttribute("option");
-        if (toggle.hasAttribute("on")) {
-          toggle.setAttribute("off", "");
-          toggle.removeAttribute("on");
-          editor.options[option] = false;
-        } else {
-          toggle.setAttribute("on", "");
-          toggle.removeAttribute("off");
-          editor.options[option] = true;
-        }
-        if (toggle.hasAttribute("local") == true) {
-          this.localOptions = this.localOptions ?? {};
-          this.localOptions[option] = editor.options[option];
-          setLocalStore("options", JSON.stringify(this.localOptions));
-        }
-        if (option == "cursors") {
-          if (editor.realtime.module != null) {
-            editor.realtime.module.setShortSub(editor.visibleChunks);
-          }
-          if (toggle.hasAttribute("off") == true) {
-            if (editor.realtime.module != null) {
-              editor.realtime.module.members = {};
-            }
-            editor.frame.querySelector(".eRealtime").innerHTML = "";
-          }
-          if (toggle.hasAttribute("on") == true) {
-            namesZoomAction.removeAttribute("disabled");
-          } else {
-            namesZoomAction.setAttribute("disabled", "");
-          }
-        }
-        if (option == "fullscreen") {
-          if (toggle.hasAttribute("on") == true) {
-            if (body.requestFullscreen != null) {
-              body.requestFullscreen();
-            }
-          } else {
-            if (document.exitFullscreen != null) {
-              document.exitFullscreen();
-            }
-          }
-        }
-      }
-    });
   }
 }
 
@@ -4166,5 +3163,341 @@ modules["pages/lesson/editor"] = class {
     });
 
     this.updateChunks();
+  }
+}
+
+modules["dropdowns/lesson/file"] = class {
+  html = `
+  <button class="eFileAction" option="dashboard" title="Return to the Dashboard" style="--themeColor: var(--secondary)"><img src="./images/tooltips/back.svg">Dashboard</button>
+  <div class="eFileLine"></div>
+  <button class="eFileAction" option="export" dropdowntitle="Export" title="Export the lesson as a PDF."><img src="./images/editor/file/export.svg">Export</button>
+  <button class="eFileAction" option="print" dropdowntitle="Print" title="Export the lesson and print."><img src="./images/editor/file/print.svg">Print</button>
+  <button class="eFileAction" option="copy" title="Create a copy of the lesson."><img src="./images/editor/file/copy.svg">Create Copy</button>
+  <button class="eFileAction" option="moveto" title="Move this lesson into a folder." dropdowntitle="Move To Folder"><img src="./images/dashboard/moveto.svg">Move To Folder</button>
+  <div class="eFileLine" option="findjump"></div>
+  <button class="eFileAction" disabled option="find" title="Find text on the PDF." style="--themeColor: var(--secondary)"><img src="./images/editor/file/search.svg">Find</button>
+  <button class="eFileAction" option="jumptop" title="Jump to the first page." style="--themeColor: var(--secondary)"><img src="./images/editor/bottom/uparrow.svg">Jump to Top</button>
+  <button class="eFileAction" option="jump" title="Jump to page number." style="--themeColor: var(--secondary)"><img src="./images/editor/file/jump.svg">Jump to Page</button>
+  <button class="eFileAction" option="jumpend" title="Jump to the last page." style="--themeColor: var(--secondary)"><img src="./images/editor/bottom/downarrow.svg">Jump to End</button>
+  <div class="eFileLine" option="document"></div>
+  <button class="eFileAction" disabled option="properties" title="View lesson properties." style="--themeColor: var(--secondary)"><img src="./images/editor/file/info.svg">Properties</button>
+  <button class="eFileAction" disabled option="ocr" title="Run optical character recognition (OCR)."><img src="./images/editor/file/text.svg">Recognize Text</button>
+  <div class="eFileLine" option="delete"></div>
+  <button class="eFileAction" option="deletelesson" title="Remove this lesson from your dashboard." style="--themeColor: var(--error)"><img src="./images/editor/file/delete.svg">Delete Lesson</button>
+  <button class="eFileAction" option="deleteannotations" title="Remove all annotations from the lesson." style="--themeColor: var(--error)"><img src="./images/editor/file/delete.svg">Delete Annotations</button>
+  <div class="eFileLine" option="hideshow"></div>
+  <button class="eFileAction" option="hideshowpage" title="Hide this page for all members."><img src="./images/editor/rearrange/hideshow.svg">Hide All Pages</button>
+  `;
+  css = {
+    ".eFileAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
+    ".eFileAction:not(:last-child)": `margin-bottom: 4px`,
+    ".eFileAction img": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: #fff; border-radius: 4px`,
+    ".eFileAction:hover": `background: var(--themeColor); color: #fff`,
+    ".eFileLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`
+  };
+  js = async function (frame, extra) {
+    let parent = extra.parent;
+    let editor = parent.editor;
+    let access = editor.self.access;
+
+    frame.querySelector('.eFileAction[option="dashboard"]').addEventListener("click", async () => {
+      //utils.syncSave(true);
+      setFrame("pages/dashboard");
+    });
+    let exportButton = frame.querySelector('.eFileAction[option="export"]');
+    exportButton.addEventListener("click", () => {
+      dropdownModule.open(exportButton, "dropdowns/lesson/file/export", { type: "download", editor: editor });
+    });
+    let printButton = frame.querySelector('.eFileAction[option="print"]');
+    printButton.addEventListener("click", () => {
+      dropdownModule.open(printButton, "dropdowns/lesson/file/export", { type: "print", editor: editor });
+    });
+    let copyButton = frame.querySelector('.eFileAction[option="copy"]');
+    copyButton.addEventListener("click", async () => {
+      if (userID == null) {
+        promptLogin();
+        return;
+      }
+      copyButton.setAttribute("disabled", "");
+      let copyAlert = await alertModule.open("info", "<b>Creating Copy</b><div>Creating a copy of this lesson.", { time: "never" });
+      let [code, body] = await sendRequest("POST", "lessons/copy", null, { session: editor.session });
+      copyButton.removeAttribute("disabled");
+      alertModule.close(copyAlert);
+      if (code == 200) {
+        dropdownModule.close();
+        modifyParams("lesson", body.lesson);
+        setFrame("pages/lesson");
+      }
+    });
+    if (editor.settings.allowExport == false && access < 4) {
+      exportButton.setAttribute("disabled", "");
+      printButton.setAttribute("disabled", "");
+      copyButton.setAttribute("disabled", "");
+    }
+
+    let fileButton = frame.querySelector('.eFileAction[option="moveto"]');
+    fileButton.addEventListener("click", () => {
+      dropdownModule.open(fileButton, "dropdowns/moveto", { lessonID: parent.parent.id, folderID: parent.parent.folder });
+    });
+
+    let find = frame.querySelector('.eFileAction[option="find"]');
+    let jumptop = frame.querySelector('.eFileAction[option="jumptop"]');
+    jumptop.addEventListener("click", () => {
+      editor.contentHolder.scrollTo({ top: 0 });
+    });
+    let jump = frame.querySelector('.eFileAction[option="jump"]');
+    jump.addEventListener("click", () => {
+      editor.page.querySelector(".eCurrentPage").focus();
+      dropdownModule.close();
+    });
+    let jumpend = frame.querySelector('.eFileAction[option="jumpend"]');
+    jumpend.addEventListener("click", () => {
+      editor.contentHolder.scrollTo({ top: editor.contentHolder.scrollHeight });
+    });
+
+    let deleteLessonButton = frame.querySelector('.eFileAction[option="deletelesson"]');
+    deleteLessonButton.addEventListener("click", () => {
+      dropdownModule.open(deleteLessonButton, "dropdowns/remove", { type: "deletelesson", lessonID: parent.parent.id, isOwner: editor.self.access == 5, session: editor.session });
+    });
+    let deleteAnnotationsButton = frame.querySelector('.eFileAction[option="deleteannotations"]');
+    deleteAnnotationsButton.addEventListener("click", () => {
+      dropdownModule.open(deleteAnnotationsButton, "dropdowns/remove", { type: "deleteannotations", lessonID: parent.parent.id, session: editor.session });
+    });
+
+    let hideshowpage = frame.querySelector('.eFileAction[option="hideshowpage"]');
+    hideshowpage.addEventListener("click", async () => {
+      hideshowpage.setAttribute("disabled", "");
+      //let [code] = await sendRequest("PUT", "lessons/rearrange/hide", null, { session: editor.session });
+      hideshowpage.removeAttribute("disabled");
+      //if (code == 200) {
+      //  dropdownModule.close();
+      //}
+    });
+
+    if (access < 5) {
+      deleteAnnotationsButton.remove();
+      hideshowpage.remove();
+      let hideshowLine = frame.querySelector('.eFileLine[option="hideshow"]');
+      if (hideshowLine != null) {
+        hideshowLine.remove();
+      }
+      if (userID == null) {
+        deleteLessonButton.remove();
+        frame.querySelector('.eFileLine[option="delete"]').remove();
+      } else {
+        deleteLessonButton.innerHTML = `<img src="./images/editor/file/delete.svg">Remove Lesson`;
+      }
+    }
+
+    if (editor.annotationPages.length < 1) {
+      jump.remove();
+    }
+
+    find.remove();
+    frame.querySelector('.eFileLine[option="document"]').remove();
+    frame.querySelector('.eFileAction[option="properties"]').remove();
+    frame.querySelector('.eFileAction[option="ocr"]').remove();
+  }
+}
+
+modules["dropdowns/lesson/zoom"] = class {
+  html = `
+  <div class="eZoomHolder">
+    <button class="eZoomButton buttonAnim border" sub change="-20">-</button>
+    <div class="eZoomLevel border"><div class="eZoomBox" contenteditable>100</div>%</div>
+    <button class="eZoomButton buttonAnim border" add change="20">+</button>
+  </div>
+  <div class="eZoomLine"></div>
+  <button class="eZoomAction" option="snapping" local title="Snap elements to guides while moving and resizing."><div label>Snapping</div><div class="eZoomToggle"><div></div></div></button>
+  <button class="eZoomAction" option="cursors" title="Display the cursors of other editors."><div label>Show Cursors</div><div class="eZoomToggle"><div></div></div></button>
+  <button class="eZoomAction" option="cursornames" local title="Show the member's name when they're annotating."><div label>Cursor Names</div><div class="eZoomToggle"><div></div></div></button>
+  <button class="eZoomAction" option="stylusmode" local title="Only write on the document when using an active stylus, such as the Apple Pencil."><div label>Stylus Mode</div><div class="eZoomToggle"><div></div></div></button>
+  <!--<button class="eZoomAction" option="comments" title="Show comments on the document."><div label>Comments</div><div class="eZoomToggle"><div></div></div></button>-->
+  <!--<div class="eZoomLine"></div>-->
+  <!--<button class="eZoomAction" option="fullscreen" title="Fullscreen allows increased accessibility."><div label>Fullscreen</div><div class="eZoomToggle"><div></div></div></button>-->
+  `;
+  css = {
+    ".eZoomHolder": `display: flex; flex-wrap: wrap; justify-content: center; align-items: center`,
+    ".eZoomButton": `position: relative; display: flex; width: 22px; height: 22px; margin: 20px 3px; justify-content: center; align-items: center; --borderWidth: 3px; --borderRadius: 8px; color: var(--theme); font-size: 24px; font-weight: 600; line-height: 0`,
+    '.eZoomButton[sub]': `cursor: zoom-out`,
+    '.eZoomButton[add]': `cursor: zoom-in`,
+    ".eZoomLevel": `display: flex; padding: 3px 6px 3px 3px; margin: 0 12px; --borderWidth: 3px; --borderColor: var(--secondary); justify-content: center; align-items: center; --borderRadius: 15px; color: var(--theme); font-size: 20px; font-weight: 600`,
+    ".eZoomLevel div": `max-width: 50px; min-width: 25px; padding: 3px 6px; margin-right: 3px; border: none; outline: none; border-radius: 16px; text-align: center; white-space: nowrap; overflow: hidden`,
+
+    ".eZoomLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`,
+
+    ".eZoomAction": `display: flex; width: 100%; padding: 6px; border-radius: 8px; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
+    ".eZoomAction:not(:last-child)": `margin-bottom: 4px`,
+    ".eZoomAction div[label]": `flex: 1; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
+    ".eZoomAction[on]": `--themeColor: var(--theme)`,
+    ".eZoomAction[off]": `--themeColor: var(--error)`,
+    ".eZoomToggle": `position: relative; width: 36px; height: 20px; padding: 2px; margin-left: 12px; background: var(--themeColor); border-radius: 12px; transition: .2s`,
+    ".eZoomToggle div": `position: absolute; width: 20px; height: 20px; background: #fff; border-radius: 10px; transition: .2s`,
+    ".eZoomAction[on] .eZoomToggle div": `right: 2px`,
+    ".eZoomAction[off] .eZoomToggle div": `right: calc(100% - 22px)`,
+    ".eZoomAction:hover": `background: var(--themeColor); color: #fff`,
+    ".eZoomAction:hover .eZoomToggle": `background: #fff`,
+    ".eZoomAction:hover .eZoomToggle div": `background: var(--themeColor)`,
+
+    "body:fullscreen": `overflow: auto !important`
+  };
+  js = async function (frame, extra) {
+    let editor = extra.parent.editor;
+
+    let zoomPercentage = frame.querySelector(".eZoomLevel div");
+    let zoomAdd = frame.querySelector(".eZoomButton[add]");
+    let zoomSub = frame.querySelector(".eZoomButton[sub]");
+    let setZoomText = () => {
+      zoomPercentage.textContent = Math.round(editor.zoom * 100);
+      if (editor.zoom >= 5) {
+        zoomAdd.setAttribute("disabled", "");
+      } else {
+        zoomAdd.removeAttribute("disabled");
+      }
+      if (editor.zoom <= .2) {
+        zoomSub.setAttribute("disabled", "");
+      } else {
+        zoomSub.removeAttribute("disabled");
+      }
+      frame.closest(".dropdown").querySelector(".dropdownTitle").textContent = zoomPercentage.textContent + "%";
+    }
+    editor.pipeline.subscribe("zoomDropdownUpdate", "zoom_change", setZoomText);
+    setZoomText();
+    let setButtonOptions = frame.querySelectorAll(".eZoomAction");
+    for (let i = 0; i < setButtonOptions.length; i++) {
+      let buttonToggle = setButtonOptions[i];
+      if (editor.options[buttonToggle.getAttribute("option")] == true) {
+        buttonToggle.setAttribute("on", "");
+      } else {
+        buttonToggle.setAttribute("off", "");
+      }
+    }
+    let forceSetZoom = () => {
+      editor.setZoom(parseInt(zoomPercentage.textContent) / 100, null, { clientX: editor.contentHolder.offsetWidth / 2, clientY: editor.contentHolder.offsetHeight / 2 });
+    }
+    zoomPercentage.addEventListener("keydown", (event) => {
+      let textBox = event.target.closest("div");
+      if (textBox == null) {
+        return;
+      }
+      if (event.keyCode == 13) {
+        event.preventDefault();
+        zoomPercentage.blur();
+        return;
+      }
+      if (String.fromCharCode(event.keyCode).match(/(\w|\s)/g) && event.key.length == 1) {
+        let textInt = parseInt(textBox.textContent + event.key);
+        if (parseInt(event.key) != event.key) {
+          event.preventDefault();
+          textBoxError(textBox, "Must be a number");
+        } else if (textInt > 500) {
+          event.preventDefault();
+          textBoxError(textBox, "Must be less than 500%");
+        }
+      }
+    });
+    let alreadyRunningFocus = false;
+    zoomPercentage.addEventListener("focus", () => {
+      if (alreadyRunningFocus == true) {
+        return;
+      }
+      alreadyRunningFocus = true;
+      zoomPercentage.blur();
+      zoomPercentage.innerHTML = "";
+      zoomPercentage.focus();
+      alreadyRunningFocus = false;
+    });
+    zoomPercentage.addEventListener("focusout", (event) => {
+      if (alreadyRunningFocus == true) {
+        return;
+      }
+      let textBox = event.target.closest("div");
+      if (textBox == null) {
+        return;
+      }
+      let textInt = parseInt(textBox.textContent);
+      if (isNaN(textInt) == true) {
+        setZoomText();
+      } else if (textInt > 500) {
+        textBox.textContent = "500";
+      } else if (textInt < 20) {
+        textBox.textContent = "20";
+      }
+      forceSetZoom();
+    });
+    let cursorZoomAction = frame.querySelector('.eZoomAction[option="cursors"]');
+    let namesZoomAction = frame.querySelector('.eZoomAction[option="cursornames"]');
+    if (editor.parent.parent.signalStrength < 3) {
+      cursorZoomAction.style.opacity = 0.5;
+      cursorZoomAction.title = "Cursors disabled due to weak connection.";
+      namesZoomAction.style.opacity = 0.5;
+    }
+    if (cursorZoomAction.hasAttribute("off")) {
+      namesZoomAction.setAttribute("disabled", "");
+    }
+    frame.addEventListener("click", (event) => {
+      let element = event.target;
+      if (element == null) {
+        return;
+      }
+      let zoomChange = element.closest(".eZoomButton");
+      if (zoomChange) {
+        (Math.floor(((editor.zoom + parseFloat(zoomChange.getAttribute("change"))) * 100) / 5) * 5) / 100
+        editor.setZoom(
+          (
+            Math.round(
+              (
+                Math.round(editor.zoom * 100) + parseInt(zoomChange.getAttribute("change"))
+              ) / 20
+          ) * 20
+        ) / 100, null, { clientX: editor.contentHolder.offsetWidth / 2, clientY: editor.contentHolder.offsetHeight / 2 });
+        return;
+      }
+      let toggle = element.closest(".eZoomAction");
+      if (toggle != null) {
+        let option = toggle.getAttribute("option");
+        if (toggle.hasAttribute("on")) {
+          toggle.setAttribute("off", "");
+          toggle.removeAttribute("on");
+          editor.options[option] = false;
+        } else {
+          toggle.setAttribute("on", "");
+          toggle.removeAttribute("off");
+          editor.options[option] = true;
+        }
+        if (toggle.hasAttribute("local") == true) {
+          this.localOptions = this.localOptions ?? {};
+          this.localOptions[option] = editor.options[option];
+          setLocalStore("options", JSON.stringify(this.localOptions));
+        }
+        if (option == "cursors") {
+          if (editor.realtime.module != null) {
+            editor.realtime.module.setShortSub(editor.visibleChunks);
+          }
+          if (toggle.hasAttribute("off") == true) {
+            if (editor.realtime.module != null) {
+              editor.realtime.module.members = {};
+            }
+            editor.frame.querySelector(".eRealtime").innerHTML = "";
+          }
+          if (toggle.hasAttribute("on") == true) {
+            namesZoomAction.removeAttribute("disabled");
+          } else {
+            namesZoomAction.setAttribute("disabled", "");
+          }
+        }
+        if (option == "fullscreen") {
+          if (toggle.hasAttribute("on") == true) {
+            if (body.requestFullscreen != null) {
+              body.requestFullscreen();
+            }
+          } else {
+            if (document.exitFullscreen != null) {
+              document.exitFullscreen();
+            }
+          }
+        }
+      }
+    });
   }
 }

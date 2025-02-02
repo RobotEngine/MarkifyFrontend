@@ -195,6 +195,11 @@ async function newModule(path, parent) {
     if (module.css != null) {
       addCSS(module.css);
     }
+    if (module.preload != null) {
+      for (let i = 0; i < module.preload.length; i++) {
+        loadScript(module.preload[i]);
+      }
+    }
   }
   return module;
 }

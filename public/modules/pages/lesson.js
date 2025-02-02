@@ -876,7 +876,7 @@ modules["pages/lesson/board"] = class {
     });
 
     membersButton.addEventListener("click", () => {
-      dropdownModule.open(membersButton, "dropdowns/lesson/members", { parent: this });
+      dropdownModule.open(membersButton, "dropdowns/lesson/board/members", { parent: this });
     });
 
     endSessionButton.removeAttribute("disabled");
@@ -1485,7 +1485,15 @@ modules["dropdowns/lesson/zoom"] = class {
             editor.realtime.module.setShortSub(editor.visibleChunks);
           }
           if (toggle.hasAttribute("off") == true) {
+            if (editor.realtime.module != null) {
+              editor.realtime.module.members = {};
+            }
             editor.frame.querySelector(".eRealtime").innerHTML = "";
+          }
+          if (toggle.hasAttribute("on") == true) {
+            namesZoomAction.removeAttribute("disabled");
+          } else {
+            namesZoomAction.setAttribute("disabled", "");
           }
         }
         if (option == "fullscreen") {
@@ -1497,13 +1505,6 @@ modules["dropdowns/lesson/zoom"] = class {
             if (document.exitFullscreen != null) {
               document.exitFullscreen();
             }
-          }
-        }
-        if (option == "cursors") {
-          if (toggle.hasAttribute("on") == true) {
-            namesZoomAction.removeAttribute("disabled");
-          } else {
-            namesZoomAction.setAttribute("disabled", "");
           }
         }
       }

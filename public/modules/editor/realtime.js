@@ -821,7 +821,7 @@ modules["editor/realtime"] = class {
   }
 }
 
-modules["dropdowns/lesson/members"] = class {
+modules["dropdowns/lesson/board/members"] = class {
   html = `
   <div class="eMemberHolder">
     <div class="eMemberSearchHolder">

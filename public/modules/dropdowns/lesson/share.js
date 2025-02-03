@@ -638,6 +638,7 @@ modules["dropdowns/lesson/share/options"] = class {
         button.setAttribute("selected", "");
       }
       
+      dropdownContent.scrollTo(0, 0);
       dropdownContent.style.overflow = "unset";
       clearTimeout(overflowSetTimeout);
 

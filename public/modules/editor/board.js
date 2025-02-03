@@ -29,7 +29,7 @@ modules["editor/board"] = class {
           <button class="eMembers"><span class="eMemberHandCount" title="Number of hands raised."></span><span class="eMemberIdleCount" title="Number of idle members."></span><span class="eMemberCount" title="Number of members."></span>Members</button>
           <button class="eEndSession" title="End Session | Disable all editing access making everyone a viewer."></button>
           <button class="eShare">Share</button>
-          <button class="eMemberOptions" title="Member Options | Configure various member settings and available tools."></button>
+          <button class="eMemberOptions" dropdowntitle="Options" title="Member Options | Configure various member settings and available tools."></button>
           <button class="eSharePin"></button>
           <div class="eTopDivider"></div>
           <button class="eZoom">100%</button>
@@ -387,7 +387,7 @@ modules["editor/board"] = class {
     });
     optionsButton.addEventListener("click", () => {
       if (modules["dropdowns/lesson/share/options"] != null) {
-        dropdownModule.open(sharePinButton, "dropdowns/lesson/share/options", { parent: this });
+        dropdownModule.open(optionsButton, "dropdowns/lesson/share/options", { title: "Options", parent: this });
       }
     });
 

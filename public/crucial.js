@@ -969,7 +969,7 @@ initSocket();
 // STANDARD MODULES //
 modules["dropdown"] = class {
   css = {
-    ".dropdown": `position: sticky; box-sizing: border-box; max-width: calc(100% - 16px); max-height: calc(100% - 16px); right: 0px; bottom: 0px; margin: var(--floatMargin); opacity: 0; box-shadow: var(--darkShadow); border-radius: 12px; transform: scale(0); transform-origin: 0px 0px; pointer-events: all`,
+    ".dropdown": `position: sticky; box-sizing: border-box; max-width: calc(100% - (var(--floatMargin) * 2)); max-height: calc(100% - (var(--floatMargin) * 2)); right: 0px; bottom: 0px; margin: var(--floatMargin); opacity: 0; box-shadow: var(--darkShadow); border-radius: 12px; transform: scale(0); transform-origin: 0px 0px; pointer-events: all`,
     ".dropdown .loading": `pointer-events: none`,
     ".dropdownOverflow": `position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--pageColor); border-radius: inherit; z-index: 0`,
     ".dropdownContent": `position: absolute; box-sizing: border-box; width: max-content; max-width: var(--dropdownWidth); height: max-content; padding: 6px; overflow: auto`, //background: var(--pageColor)
@@ -989,15 +989,15 @@ modules["dropdown"] = class {
     
     content.style.top = header.offsetHeight + "px";
     // We use fixed, not window, so that scrollbars are accounted for:
-    content.style.setProperty("--dropdownWidth", (fixed.clientWidth - 16) + "px");
-    let maxHeight = fixed.clientHeight - header.offsetHeight - 16;
-    if (content.hasAttribute("maxheight") == true) {
-      maxHeight = Math.min(maxHeight, parseInt(content.getAttribute("maxheight")));
+    content.style.setProperty("--dropdownWidth", "calc(" + fixed.clientWidth + "px - (var(--floatMargin) * 2))");
+    if (content.hasAttribute("maxheight") == false) {
+      content.style.maxHeight = "calc(" + (fixed.clientHeight - header.offsetHeight) + "px - (var(--floatMargin) * 2))";
+    } else {
+      content.style.maxHeight = "min(" + (fixed.clientHeight - header.offsetHeight) + "px - (var(--floatMargin) * 2), " + parseInt(content.getAttribute("maxheight")) + "px)";
     }
-    content.style.maxHeight = maxHeight + "px";
     if (button != null) {
-      content.style.minWidth = Math.min(fixed.clientWidth - 16, button.offsetWidth + 8) + "px"; //Math.max(Math.min(fixed.clientWidth - 16, 200), button.offsetWidth + 8) + "px";
-      content.style.minHeight = Math.min(fixed.clientHeight - 16, button.offsetHeight + 8) + "px"; //Math.max(Math.min(fixed.clientHeight - 16, 200), button.offsetHeight + 8) + "px";
+      content.style.minWidth = "min(" + fixed.clientWidth + "px - (var(--floatMargin) * 2), " + button.offsetWidth + "px)";
+      content.style.minHeight = "min(" + fixed.clientHeight + "px - (var(--floatMargin) * 2), " + button.offsetHeight + "px)";
     }
     
     if (dropdown.hasAttribute("closing") == false) {

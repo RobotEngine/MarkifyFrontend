@@ -91,6 +91,8 @@ modules["pages/lesson"] = class {
   handCount = 0;
   idleCount = 0;
 
+  self = {};
+
   sources = {};
 
   defaultEmojis = [
@@ -110,6 +112,7 @@ modules["pages/lesson"] = class {
     "HUNDRED POINTS SYMBOL"
   ];
   recentEmojis = [];
+  preferences = {};
 
   signalStrength = 1;
   
@@ -256,7 +259,7 @@ modules["pages/lesson"] = class {
               document.title = (this.lesson.name ?? "Untitled Lesson") + " | Markify";
             }
             if (body.settings != null) {
-              if (body.settings.forceLogin == false && access < 2) {
+              if (body.settings.forceLogin == false && this.self.access < 2) {
                 setFrame("pages/join");
               }
             }
@@ -378,6 +381,7 @@ modules["pages/lesson"] = class {
       this.members[memSet._id] = memSet;
     }
     this.members[this.sessionID] = this.members[this.sessionID] ?? {};
+    this.self = this.members[this.sessionID];
     this.memberCount = Object.keys(this.members).length;
 
     this.sources = { ...this.sources, ...getObject(body.sources ?? [], "_id") };

@@ -109,7 +109,7 @@ modules["editor/board"] = class {
     ".eMemberIdleCount": `--themeColorRGB: var(--yellowRGB); color: rgb(var(--themeColorRGB))`,
     ".eEndSession": `display: none; width: 32px; height: 32px; padding: 0px; margin: 0 4px; background: var(--error); border-radius: 16px; justify-content: center; align-items: center; color: #fff; font-size: 16px; font-weight: 600`,
     ".eEndSession svg": `width: 28px; height: 28px`,
-    ".eShare": `height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
+    ".eShare": `display: none; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
     ".eMemberOptions": `display: none; width: 32px; height: 32px; padding: 0px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; justify-content: center; align-items: center; color: #fff; font-size: 16px; font-weight: 600`,
     ".eMemberOptions svg": `width: 32px; height: 32px`,
     ".eSharePin": `display: none; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
@@ -166,7 +166,7 @@ modules["editor/board"] = class {
     let membersButton = rightTop.querySelector(".eMembers");
     let endSessionButton = rightTop.querySelector(".eEndSession");
     let shareButton = rightTop.querySelector(".eShare");
-    let memberOptionsButton = rightTop.querySelector(".eMemberOptions");
+    let optionsButton = rightTop.querySelector(".eMemberOptions");
     let sharePinButton = rightTop.querySelector(".eSharePin");
     let zoomButton = rightTop.querySelector(".eZoom");
     let accountButton = rightTop.querySelector(".eAccount");
@@ -245,16 +245,21 @@ modules["editor/board"] = class {
         }
         undoButton.style.display = "none";
         redoButton.style.display = "none";
-        memberOptionsButton.style.removeProperty("display");
       } else {
         contentHolder.removeAttribute("viewer");
         if (access > 3) {
           lessonName.setAttribute("contenteditable", "");
-          memberOptionsButton.style.display = "flex";
         }
         createCopyButton.style.display = "none";
         undoButton.style.removeProperty("display");
         redoButton.style.removeProperty("display");
+      }
+      if (access < 4) {
+        shareButton.style.removeProperty("display");
+        optionsButton.style.removeProperty("display");
+      } else {
+        shareButton.style.display = "flex";
+        optionsButton.style.display = "flex";
       }
       updateTopBar();
     }
@@ -375,6 +380,16 @@ modules["editor/board"] = class {
     shareButton.addEventListener("click", () => {
       dropdownModule.open(shareButton, "dropdowns/lesson/share", { parent: this });
     });
+    sharePinButton.addEventListener("click", () => {
+      if (modules["dropdowns/lesson/share/pin"] != null) {
+        dropdownModule.open(sharePinButton, "dropdowns/lesson/share/pin", { parent: this });
+      }
+    });
+    optionsButton.addEventListener("click", () => {
+      if (modules["dropdowns/lesson/share/options"] != null) {
+        dropdownModule.open(sharePinButton, "dropdowns/lesson/share/options", { parent: this });
+      }
+    });
 
     endSessionButton.removeAttribute("disabled");
     endSessionButton.addEventListener("click", async () => {
@@ -388,7 +403,7 @@ modules["editor/board"] = class {
     setSVG(undoButton, "./images/tooltips/progress/undo.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
     setSVG(redoButton, "./images/tooltips/progress/redo.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
     setSVG(endSessionButton, "./images/editor/share/endeditors.svg", (svg) => { return svg.replace(/"#FF2F5A"/g, '"var(--error)"'); });
-    setSVG(memberOptionsButton, "./images/editor/share/setting.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
+    setSVG(optionsButton, "./images/editor/share/setting.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
     setSVG(increasePageButton, "./images/editor/bottom/plus.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
     setSVG(decreasePageButton, "./images/editor/bottom/minus.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
 

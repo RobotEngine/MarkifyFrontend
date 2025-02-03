@@ -124,7 +124,7 @@ modules["pages/lesson"] = class {
     }*/
 
     socket.remotes["member"] = (data) => {
-      if (data.lesson != null && data.lesson != lessonID) {
+      if (data.lesson != null && data.lesson != this.id) {
         return;
       }
       switch (data.task) {
@@ -139,6 +139,7 @@ modules["pages/lesson"] = class {
           } else {
             setFrame("pages/dashboard");
           }
+          alertModule.open("error", "<b>You've Been Kicked</b>The lesson owner has removed you from the lesson.");
           break;
         case "preference":
           switch (data.type) {
@@ -613,10 +614,15 @@ modules["pages/lesson/editor"] = class {
         subscribes[subKeys[i]](data);
       }
     },
-    subscribe: (id, event, callback) => {
+    subscribe: (id, event, callback, extra) => {
+      extra = extra ?? {};
       let pipelineSubs = this.pipeline.pipelineSubs[id];
-      if (pipelineSubs != null && pipelineSubs[event] != null) {
-        this.pipeline.unsubscribe(id, event);
+      if (pipelineSubs != null) {
+        if (extra.unsubscribe != true) {
+          this.pipeline.unsubscribe(id, event);
+        } else {
+          this.pipeline.unsubscribe(id);
+        }
       }
 
       let pipelineEvent = this.pipeline.pipeline[event];

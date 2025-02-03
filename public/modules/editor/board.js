@@ -761,7 +761,7 @@ modules["dropdowns/lesson/board/members"] = class {
     ".eMemberSection": `position: relative; display: flex; width: 100%; justify-content: center; align-items: center`,
     ".eMemberSectionInfo": `border-radius: 38px 0 0 38px; overflow: hidden`,
     ".eMemberBackdrop": `position: absolute; display: flex; width: calc(100% + 2px); height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; background: var(--themeColor); transition: .2s; z-index: -1`,
-    ".eMemberBackdrop div": `width: 100%; height: 100%; flex-shrink: 0; opacity: .3; background-image: url(./images/editor/background.svg); background-position: center`, //transform: rotate(12deg);
+    ".eMemberBackdrop div": `width: 100%; height: 100%; flex-shrink: 0; opacity: .1; background-image: url(./images/editor/backdrop.svg); background-size: 24px; background-position: center`, //transform: rotate(12deg);
     ".eMemberFrameCursor": `width: 40px; height: 40px; flex-shrink: 0; margin: 12px; background: var(--themeColor); border: solid 6px var(--pageColor); border-radius: 16px 28px 28px; transition: 0.2s`,
     ".eMemberFramePicture": `width: 44px; height: 44px; flex-shrink: 0; margin: 12px; border: solid 4px var(--pageColor); object-fit: cover; border-radius: 28px; transition: 0.2s`,
     ".eMemberFrameInfoHolder": `display: flex; flex-direction: column; width: calc(100% - 76px); height: calc(100% - 12px); color: var(--adaptColor); text-align: left`,

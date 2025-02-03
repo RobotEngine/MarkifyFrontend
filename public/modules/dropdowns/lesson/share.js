@@ -670,6 +670,9 @@ modules["dropdowns/lesson/share/options"] = class {
     }
     switcher.addEventListener("click", (event) => {
       let button = event.target.closest("button");
+      if (button == null) {
+        return;
+      }
       let section = button.getAttribute("section");
       if (section != null) {
         lesson.preferences.shareOptionLastSection = section;

@@ -688,8 +688,10 @@ modules["dropdowns/lesson/board/members"] = class {
   html = `
   <div class="eMemberHolder">
     <div class="eMemberSearchHolder">
-      <img src="./images/editor/glass.svg">
-      <input placeholder="Search..."></input>
+      <div class="eMemberSearch">
+        <div image></div>
+        <input placeholder="Search..."></input>
+      </div>
     </div>
     <div class="eMemberMemberHolder">
       <div class="eMemberAccessHolder" access="5">
@@ -709,10 +711,13 @@ modules["dropdowns/lesson/board/members"] = class {
 
     ".eMemberHolder": `width: 275px; max-width: 100%`,
     ".eMemberSearchHolder": `display: flex; padding: 8px 8px 4px 8px; align-items: center`,
-    ".eMemberSearchHolder img": `width: 28px; height: 28px`,
-    ".eMemberSearchHolder input": `max-width: calc(100% - 54px); width: 100%; padding: 4px 8px; margin-left: 6px; border: solid 2px var(--secondary); outline: unset; border-radius: 17px; font-family: var(--font); font-size: 16px; font-weight: 600`,
-    ".eMemberSearchHolder input::placeholder": `color: var(--secondary)`,
+    ".eMemberSearch": `display: flex; width: 100%; align-items: center; border: solid 2px var(--secondary); border-radius: 18px`,
+    ".eMemberSearch div[image]": `width: 25px; height: 25px; margin-left: 4px`,
+    ".eMemberSearch div[image] svg": `width: 100%; height: 100%`,
+    ".eMemberSearch input": `width: 100%; padding: 5px; background: unset; border: unset; outline: unset; font-family: var(--font); font-size: 16px; font-weight: 600`,
+    ".eMemberSearch input::placeholder": `color: var(--secondary)`,
 
+    ".eMemberMemberHolder": `min-height: 4px`,
     ".eMemberAccessHolder": `display: none; margin-bottom: 12px; background: var(--pageColor)`,
     ".eMemberAccessTitle": `position: sticky; display: flex; width: 100%; padding: 0; top: 0px; justify-content: center; align-items: center; background: rgba(var(--background), .7); backdrop-filter: blur(4px); z-index: 2; text-align: left; font-weight: 700; font-size: 18px`,
     ".eMemberAccessTitle div[holder]": `display: flex; width: 100%; padding: 4px 8px; top: 0px; justify-content: space-between; transition: .1s`,
@@ -779,7 +784,733 @@ modules["dropdowns/lesson/board/members"] = class {
     ".eMemberSectionActions button:active img": `filter: brightness(0) invert(1); transform: scale(1)`
   };
   js = async function (frame, extra) {
+    frame.closest(".dropdownContent").style.padding = "0px";
+
     let parent = extra.parent;
+    let lesson = parent.parent;
     let editor = parent.editor;
+
+    let dropdownTitle = frame.closest(".dropdownOverflow").querySelector(".dropdownTitle");
+
+    let searchHolder = frame.querySelector(".eMemberSearch");
+    let searchField = searchHolder.querySelector("input");
+    let accessHolders = frame.querySelectorAll(".eMemberAccessHolder");
+
+    // Load Images:
+    setSVG(searchHolder.querySelector(".eMemberSearch div[image]"), "./images/editor/glass.svg", (svg) => { return svg.replace(/"#0084FF"/g, '"var(--secondary)"'); });
+
+    let getSection = (access) => {
+      return frame.querySelector('.eMemberAccessHolder[access="' + access + '"]');
+    }
+    let updateOrder = (section, updateTile, member) => {
+      for (let i = 1; i < section.children.length; i++) { // 1 to skip title
+        let child = section.children[i];
+        let prev = lesson.members[child.querySelector("div[holder]").getAttribute("member")] ?? {};
+        if (member.hand == null) {
+          if (child != updateTile && member.name < prev.name && prev.hand == null) {
+            section.insertBefore(updateTile, child);
+            break;
+          } else if (i == section.children.length - 1) {
+            section.appendChild(updateTile);
+          }
+        } else {
+          if (child != updateTile && (member.hand < prev.hand || prev.hand == null)) {
+            section.insertBefore(updateTile, child);
+            break;
+          } else if (i == section.children.length - 1) {
+            section.appendChild(updateTile);
+          }
+        }
+      }
+    }
+    let addMemberTile = (member) => {
+      if (member.name.toLowerCase().includes(searchField.value.toLowerCase()) == false) {
+        return;
+      }
+      let section = getSection(member.access);
+      if (section == null) {
+        return;
+      }
+      let title = section.querySelector(".eMemberAccessTitle");
+      section.insertAdjacentHTML("beforeend", `<button class="eMemberTile"><div holder new>
+        <div class="eMemberBackground"></div>
+        <div class="eMemberCursor"></div>
+        <div class="eMemberName"></div>
+        <div class="eMemberEvents"></div>
+      </div></button>`);
+      let tile = section.querySelector(".eMemberTile div[holder][new]");
+      tile.removeAttribute("new");
+      tile.setAttribute("member", member._id);
+      updateOrder(section, tile.parentElement, member);
+      tile.style.setProperty("--themeColor", member.color);
+      tile.style.setProperty("--hoverTextColor", editor.utils.textColorBackground(member.color));
+      tile.querySelector(".eMemberName").textContent = member.name;
+      tile.querySelector(".eMemberName").title = member.name;
+      let eventsHolder = tile.querySelector(".eMemberEvents");
+      if (member._id == editor.sessionID) {
+        eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" self title="This member is you.">YOU</div>`);
+      } else { // Don't show if self:
+        if (member.active == false) {
+          eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" idle title="This member is currently viewing a different window.">IDLE</div>`);
+        }
+        if (member.observe == editor.sessionID) {
+          eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" observe title="This member is observing you on the document.">OBSERVE</div>`);
+        }
+      }
+      if (member.hand != null) {
+        eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" hand title="This member is asking to contribute to the lesson.">HAND</div>`);
+      }
+      title.querySelector("div[count]").textContent = section.childElementCount - 1; // -1 for title
+      section.style.display = "block";
+    }
+    let createMemberList = (search) => {
+      let keys = Object.keys(lesson.members);
+      keys = keys.filter((value) => {
+        if (lesson.members[value].name.toLowerCase().includes((search ?? "").toLowerCase())) {
+          return -1;
+        }
+        return false;
+      });
+      for (let i = 0; i < keys.length; i++) {
+        addMemberTile(lesson.members[keys[i]]);
+      }
+    }
+    createMemberList();
+
+    let dropdown;
+    let memberFrameHolder;
+    let dropdownButton;
+
+    editor.pipeline.subscribe("membersDropdownJoin", "join", (body) => {
+      addMemberTile(lesson.members[body._id]);
+      parent.updateMemberCount(dropdownTitle);
+      if (this.checkSpotlightUpdate != null) {
+        this.checkSpotlightUpdate();
+      }
+    });
+    editor.pipeline.subscribe("membersDropdownLeave", "leave", (body) => {
+      let removeTileContent = frame.querySelector('.eMemberTile div[holder][member="' + body._id + '"]');
+      if (removeTileContent != null) {
+        let removeTile = removeTileContent.parentElement;
+        let title = removeTile.parentElement.querySelector("div[count]");
+        let newCount = removeTile.parentElement.childElementCount - 2; // -2 for title and tile
+        title.textContent = newCount;
+        if (newCount < 1) {
+          removeTile.parentElement.style.display = "none";
+        }
+        if ((dropdownButton != null && dropdownButton.getAttribute("member") == body._id) || (newCount < 1 && removeTile.parentElement.hasAttribute("selected"))) {
+          closeDropdown();
+        }
+        removeTile.remove();
+      }
+      parent.updateMemberCount(dropdownTitle);
+      if (this.checkSpotlightUpdate != null) {
+        this.checkSpotlightUpdate();
+      }
+    });
+    editor.pipeline.subscribe("membersDropdownUpdate", "update", (body) => {
+      let updateTile = frame.querySelector('.eMemberTile div[holder][member="' + body._id + '"]');
+      if (updateTile != null) {
+        let member = lesson.members[body._id];
+
+        // Handle User / Color Updates:
+        updateTile.style.setProperty("--themeColor", member.color);
+        updateTile.querySelector(".eMemberName").textContent = member.name;
+        updateTile.querySelector(".eMemberName").title = member.name;
+
+        // Handle access changes:
+        let section = getSection(member.access);
+        let oldSection = updateTile.parentElement.parentElement;
+        if (section != oldSection) {
+          section.appendChild(updateTile.parentElement);
+
+          // Update new section:
+          section.querySelector(".eMemberAccessTitle div[count]").textContent = section.childElementCount - 1; // -1 for title
+          section.style.display = "block";
+
+          // Update old section:
+          let newOldCount = oldSection.childElementCount - 1; // -1 for title
+          oldSection.querySelector(".eMemberAccessTitle div[count]").textContent = newOldCount;
+          if (newOldCount < 1) {
+            oldSection.style.display = "none";
+          }
+        }
+
+        // Update order:
+        updateOrder(section, updateTile.parentElement, member);
+
+        // Handle event state:
+        if (member._id != editor.sessionID) {
+          let eventsHolder = updateTile.querySelector(".eMemberEvents");
+          let existingHand = eventsHolder.querySelector(".eMemberEvent[hand]");
+          if (member.hand != null) {
+            if (existingHand == null) {
+              eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" hand title="This member is asking to contribute to the lesson.">HAND</div>`);
+            }
+          } else if (existingHand != null) {
+            existingHand.remove();
+          }
+          let existingIdle = eventsHolder.querySelector(".eMemberEvent[idle]");
+          if (member.active == false) {
+            if (existingIdle == null) {
+              eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" idle title="This member is currently viewing a different window.">IDLE</div>`);
+            }
+          } else if (existingIdle != null) {
+            existingIdle.remove();
+          }
+          let existingObserve = eventsHolder.querySelector(".eMemberEvent[observe]");
+          if (member.observe == editor.sessionID) {
+            if (existingObserve == null) {
+              eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" observe title="This member is observing you on the document.">OBSERVE</div>`);
+            }
+          } else if (existingObserve != null) {
+            existingObserve.remove();
+          }
+        }
+
+        // Update member dropdown:
+        if (dropdownButton != null) {
+          if (dropdownButton.getAttribute("member") == member._id) {
+            openDropdown(updateTile, true);
+          } else if (dropdownButton.querySelector("div[title]") != null) {
+            openDropdown(dropdownButton, true);
+          }
+        }
+      }
+      parent.updateMemberCount(dropdownTitle);
+      if (this.checkSpotlightUpdate != null) {
+        this.checkSpotlightUpdate();
+      }
+    });
+
+    let updateDropdownPosition = () => {
+      if (memberFrameHolder == null) {
+        return;
+      }
+      if (dropdownButton == null) {
+        dropdown.style.borderTopLeftRadius = "12px";
+        dropdown.style.borderBottomLeftRadius = "12px";
+        return;
+      }
+      let dropdownRect = dropdown.getBoundingClientRect();
+      let buttonRect = dropdownButton.closest("button").getBoundingClientRect();
+      
+      let contentFrame = memberFrameHolder.querySelector(".eMemberFrame");
+      let contentHolderFrameHolder = contentFrame.querySelector(".eMemberFrameContentHolder");
+      let contentFrameHolder = contentFrame.querySelector(".eMemberFrameContent");
+      
+      let contentHeight = contentFrameHolder.scrollHeight;
+
+      contentFrameHolder.style.maxHeight = "calc(" + (fixed.offsetHeight - dropdownRect.top) + "px - 8px)";
+      
+      contentHolderFrameHolder.style.height = contentFrameHolder.offsetHeight + "px";
+      contentHolderFrameHolder.offsetHeight;
+      contentHolderFrameHolder.style.transition = "height .3s";
+
+      let setTop = buttonRect.top - dropdownRect.top;
+      if (buttonRect.top < dropdownRect.top) {
+        setTop = 0;
+      }
+      if (setTop < dropdownRect.top) { // Above dropdown:
+        setTop = 0;
+      }
+      let dropdownMargin = parseInt(window.getComputedStyle(dropdown).getPropertyValue("--floatMargin"));
+      if (buttonRect.top + contentHeight > fixed.offsetHeight - dropdownRect.top - dropdownMargin) { // Below dropdown:
+        setTop = fixed.offsetHeight - contentFrameHolder.offsetHeight - dropdownRect.top - dropdownMargin;
+      }
+      memberFrameHolder.style.top = setTop + "px";
+      
+      if (setTop < dropdownRect.top) { // Top border radius:
+        dropdown.style.borderTopLeftRadius = "0px";
+      } else {
+        dropdown.style.borderTopLeftRadius = "12px";
+      }
+      if (setTop + contentFrameHolder.offsetHeight > dropdownRect.top + dropdown.offsetHeight - 20) { // Bottom border radius:
+        dropdown.style.borderBottomLeftRadius = "0px";
+      } else {
+        dropdown.style.borderBottomLeftRadius = "12px";
+      }
+    }
+    editor.pipeline.subscribe("membersDropdownResize", "resize", updateDropdownPosition);
+    frame.closest(".dropdownContent").addEventListener("scroll", updateDropdownPosition);
+
+    let closeDropdown = async () => {
+      if (memberFrameHolder == null) {
+        return;
+      }
+      if (dropdownButton != null) {
+        dropdownButton.removeAttribute("selected");
+        if (dropdownButton.parentElement != null) {
+          dropdownButton.parentElement.removeAttribute("selected");
+        }
+        dropdownButton = null;
+      }
+      memberFrameHolder.style.opacity = 0;
+      let frame = memberFrameHolder.querySelector(".eMemberFrame");
+      frame.querySelector(".eMemberFrameContentHolder").style.removeProperty("transition");
+      frame.style.width = frame.clientWidth + "px";
+      frame.style.transform = "scale(0)";
+      updateDropdownPosition();
+    }
+
+    let editorButton;
+    let handButton;
+    let observeButton;
+    let spotlightButton;
+    let kickButton;
+
+    let openDropdown = (tile, update) => {
+      let member = {};
+      if (tile.parentElement.className == "eMemberTile") {
+        member = lesson.members[tile.getAttribute("member")];
+        if (member == null) {
+          tile.remove();
+          return;
+        }
+      } else {
+        member = { title: true, name: tile.querySelector("div[title]").textContent, access: parseInt(tile.closest(".eMemberAccessHolder").getAttribute("access")), color: "var(--secondary)" };
+      }
+      if (dropdownButton != null) {
+        if (dropdownButton == tile && update != true) {
+          closeDropdown();
+          return;
+        } else {
+          dropdownButton.removeAttribute("selected");
+          if (dropdownButton.parentElement != null) {
+            dropdownButton.parentElement.removeAttribute("selected");
+          }
+        }
+      }
+      dropdownButton = tile;
+      if (member.title == null) {
+        dropdownButton.setAttribute("selected", "");
+      } else {
+        dropdownButton.parentElement.setAttribute("selected", "");
+      }
+      dropdown = frame.closest(".dropdown");
+      memberFrameHolder = dropdown.querySelector(".eMemberFrameHolder");
+
+      let observeButtonUpdate = () => {
+        let memberFrame = memberFrameHolder.querySelector(".eMemberFrame");
+        let button = memberFrame.querySelector(".eMemberSectionActions button[observe]");
+        let member = lesson.members[memberFrame.getAttribute("memberid")];
+        if (member == null) {
+          return;
+        }
+        let obvImg = "./images/editor/members/observe.svg";
+        let obvText = "Observe";
+        let obvDesc = "Watch this member's screen.";
+        if (editor.realtime.observing == member._id) {
+          obvImg = "./images/editor/members/observeexit.svg";
+          obvText = "Exit";
+          obvDesc = "Stop watching this member's screen."
+        }
+        button.querySelector("img").src = obvImg;
+        button.querySelector("div").textContent = obvText;
+        button.title = obvDesc;
+        if (member.weak != true && lesson.signalStrength > 2 && member.observe == null) {
+          observeButton.style.opacity = 1;
+        } else {
+          observeButton.style.opacity = .5;
+        }
+      }
+      editor.pipeline.subscribe("membersDropdownObserveEnable", "observe_enable", observeButtonUpdate);
+      editor.pipeline.subscribe("membersDropdownObserveExit", "observe_exit", observeButtonUpdate);
+
+      this.checkSpotlightUpdate = (fromSelf) => {
+        let member = lesson.members[memberFrame.getAttribute("memberid")] ?? {};
+        let wasShown = spotlightButton.hasAttribute("shown");
+        if (member._id == editor.sessionID && member.access > 3 && lesson.memberCount > 1) {
+          spotlightButton.style.display = "flex";
+          if (fromSelf != true && wasShown == false) {
+            spotlightButton.setAttribute("shown", "");
+            updateDropdownPosition();
+          }
+        } else {
+          spotlightButton.style.display = "none";
+          if (fromSelf != true && wasShown == true) {
+            spotlightButton.removeAttribute("shown");
+            updateDropdownPosition();
+          }
+        }
+        if (lesson.signalStrength > 2) {
+          spotlightButton.style.opacity = 1;
+        } else {
+          spotlightButton.style.opacity = .5;
+        }
+      }
+
+      if (memberFrameHolder == null) {
+        dropdown.insertAdjacentHTML("beforeend", `<div class="eMemberFrameHolder">
+        <div class="eMemberFrame">
+          <div class="eMemberFrameShadow"></div>
+          <div class="eMemberFrameContentHolder">
+            <div class="eMemberFrameContent">
+              <div class="eMemberSection eMemberSectionInfo">
+                <div class="eMemberBackdrop"><div></div></div>
+                <div class="eMemberFrameCursor"></div>
+                <img class="eMemberFramePicture">
+                <div class="eMemberFrameInfoHolder">
+                  <div name></div>
+                  <div email></div>
+                </div>
+                <button class="eMemberClose buttonAnim border"><img src="./images/tooltips/close.svg"></button>
+              </div>
+              <div class="eMemberSection eMemberSectionDesc"></div>
+              <div class="eMemberSection eMemberSectionEvents">
+                <div class="eMemberEventHolder" self>
+                  <div class="eMemberEvent" self>YOU</div>
+                  <div class="eMemberEventDesc">This is your profile.</div>
+                </div>
+                <div class="eMemberEventHolder" hand>
+                  <div class="eMemberEvent" hand>HAND</div>
+                  <div class="eMemberEventDesc">They're asking to contribute to the lesson.</div>
+                </div>
+                <div class="eMemberEventHolder" idle>
+                  <div class="eMemberEvent" idle>IDLE</div>
+                  <div class="eMemberEventDesc">They're currently viewing another window.</div>
+                </div>
+                <div class="eMemberEventHolder" observe>
+                  <div class="eMemberEvent" observe>OBSERVE</div>
+                  <div class="eMemberEventDesc">They're following you around the lesson.</div>
+                </div>
+              </div>
+              <div class="eMemberSection eMemberSectionActions">
+                <button editor style="--themeColor: var(--theme)">
+                  <img>
+                  <div></div>
+                </button>
+                <button hand style="--themeColor: var(--green)" title="Lower this member's hand.">
+                  <img src="./images/editor/members/lowerhand.svg">
+                  <div>Lower</div>
+                </button>
+                <button observe style="--themeColor: var(--purple)">
+                  <img>
+                  <div>Observe</div>
+                </button>
+                <button spotlight style="--themeColor: var(--purple)" title="Bring members to your location.">
+                  <img src="./images/editor/members/spotlight.svg">
+                  <div>Spotlight</div>
+                </button>
+                <button kick style="--themeColor: var(--error)" title="Revoke all viewing and editing privileges.">
+                  <img src="./images/editor/members/kick.svg">
+                  <div>Kick</div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div></div>`);
+        memberFrameHolder = dropdown.querySelector(".eMemberFrameHolder");
+        memberFrameHolder.querySelector(".eMemberClose").addEventListener("click", closeDropdown);
+        memberFrameHolder.offsetHeight;
+
+        editorButton = memberFrameHolder.querySelector(".eMemberSectionActions button[editor]");
+        handButton = memberFrameHolder.querySelector(".eMemberSectionActions button[hand]");
+        observeButton = memberFrameHolder.querySelector(".eMemberSectionActions button[observe]");
+        spotlightButton = memberFrameHolder.querySelector(".eMemberSectionActions button[spotlight]");
+        kickButton = memberFrameHolder.querySelector(".eMemberSectionActions button[kick]");
+
+        editorButton.addEventListener("click", async (event) => {
+          editorButton.setAttribute("disabled", "");
+          let frame = event.target.closest(".eMemberFrame");
+          let memberid = frame.getAttribute("memberid");
+          let frameAccess = frame.getAttribute("access");
+          let url = "lessons/members/access";
+          let sendAccess = 1;
+          if (memberid != null) {
+            let member = lesson.members[memberid];
+            if (member.access == 1) {
+              sendAccess = 0;
+            }
+            url += "?member=" + member._id;
+          } else if (frameAccess != null) {
+            url += "?permaccess=" + frameAccess;
+            if (parseInt(frameAccess) == 1) {
+              sendAccess = 0;
+            }
+          }
+          let [code] = await sendRequest("PUT", url, { access: sendAccess }, { session: editor.session });
+          if (code == 200) {
+            if (frameAccess != null) {
+              getSection(frameAccess).style.display = "none";
+              let changeSection = getSection(sendAccess);
+              changeSection.style.display = "block";
+              openDropdown(changeSection.querySelector(".eMemberAccessTitle"));
+            }
+          }
+          editorButton.removeAttribute("disabled");
+        });
+
+        handButton.addEventListener("click", async (event) => {
+          handButton.setAttribute("disabled", "");
+          let frame = event.target.closest(".eMemberFrame");
+          let memberid = frame.getAttribute("memberid");
+          let url = "lessons/members/hand/lower";
+          if (memberid != null) {
+            url += "?member=" + memberid;
+          } else {
+            url += "?member=all";
+          }
+          await sendRequest("DELETE", url, null, { session: editor.session });
+          handButton.removeAttribute("disabled");
+        });
+
+        observeButton.addEventListener("click", async (event) => {
+          let memberid = event.target.closest(".eMemberFrame").getAttribute("memberid");
+          if (editor.realtime.observing == memberid) {
+            editor.realtime.module.exitObserve();
+            return;
+          }
+          let member = lesson.members[memberid];
+          if (member == null) {
+            dropdownModule.close();
+            return;
+          }
+          if (lesson.signalStrength < 3) {
+            alertModule.open("error", `<b>Unable to Connect</b>Your connection is too weak to watch their screen.`);
+            return;
+          }
+          if (member.observe != null) {
+            alertModule.open("error", `<b>Unable to Connect</b>This member is observing someone else.`);
+            return;
+          }
+          if (member.weak == true) {
+            alertModule.open("error", `<b>Unable to Connect</b>${member.name} has too weak of a connection to watch their screen.`);
+            return;
+          }
+          observeButton.setAttribute("disabled", "");
+          let prevObserve = editor.realtime.observing;
+          editor.realtime.observing = memberid;
+          editor.realtime.module.setShortSub(editor.visibleChunks);
+          alertModule.close(editor.realtime.observeLoading);
+          clearTimeout(editor.realtime.observeTimeout);
+          let [code] = await sendRequest("GET", "lessons/members/observe?member=" + memberid, null, { session: editor.session });
+          if (code == 200) {
+            editor.realtime.observeLoading = await alertModule.open("info", `<b>Connecting to Member</b>Connecting to ${member.name}'s screen to observe!`, { time: "never" });
+            editor.realtime.observeTimeout = setTimeout(() => {
+              alertModule.close(editor.realtime.observeLoading);
+              alertModule.open("error", `<b>Observe Timeout</b>Failed to connect to their screen, please try again later...`);
+              editor.realtime.module.exitObserve();
+            }, 10000);
+          } else {
+            if (prevObserve != null) {
+              editor.realtime.observing = prevObserve;
+              editor.realtime.module.exitObserve();
+            }
+            editor.realtime.observing = null;
+            editor.realtime.module.setShortSub(editor.visibleChunks);
+          }
+          observeButton.removeAttribute("disabled");
+        });
+  
+        spotlightButton.addEventListener("click", async (event) => {
+          let memberid = event.target.closest(".eMemberFrame").getAttribute("memberid");
+          let member = lesson.members[memberid];
+          if (member == null) {
+            dropdownModule.close();
+            return;
+          }
+          if (lesson.signalStrength < 3) {
+            alertModule.open("error", `<b>Unable to Connect</b>Your connection is too weak to use spotlight.`);
+            return;
+          }
+          if (editor.realtime.observing != null) {
+            editor.realtime.module.exitObserve();
+          }
+          spotlightButton.setAttribute("disabled", "");
+          alertModule.open("info", `<b>Spotlight</b>Letting members know about the spotlight...`);
+          await sendRequest("GET", "lessons/members/observe/spotlight?member=" + memberid, null, { session: editor.session });
+          spotlightButton.removeAttribute("disabled");
+        });
+  
+        kickButton.addEventListener("click", async (event) => {
+          kickButton.setAttribute("disabled", "");
+          let frame = event.target.closest(".eMemberFrame");
+          let memberid = frame.getAttribute("memberid");
+          let url = "lessons/members/kick";
+          if (memberid != null) {
+            url += "?member=" + lesson.members[memberid]._id;
+          } else {
+            url += "?permaccess=" + frame.getAttribute("access");
+          }
+          let [code] = await sendRequest("DELETE", url, null, { session: editor.session });
+          if (code == 200) {
+            closeDropdown();
+          }
+          kickButton.removeAttribute("disabled");
+        });
+      }
+
+      let memberFrame = memberFrameHolder.querySelector(".eMemberFrame");
+      if (member.title == null) {
+        memberFrame.setAttribute("memberid", member._id);
+        memberFrame.removeAttribute("access");
+        memberFrame.style.setProperty("--adaptColor", editor.utils.textColorBackground(member.color));
+      } else {
+        memberFrame.setAttribute("access", member.access);
+        memberFrame.removeAttribute("memberid");
+        memberFrame.style.setProperty("--adaptColor", "#fff");
+      }
+      memberFrame.style.setProperty("--themeColor", member.color);
+      memberFrame.style.removeProperty("width");
+
+      let cursor = memberFrameHolder.querySelector(".eMemberFrameCursor");
+      let picture = memberFrameHolder.querySelector(".eMemberFramePicture");
+      if (member.image == null) {
+        picture.style.display = "none";
+        cursor.style.display = "unset";
+      } else {
+        cursor.style.display = "none";
+        picture.src = member.image;
+        picture.style.display = "unset";
+      }
+      let name = memberFrameHolder.querySelector(".eMemberFrameInfoHolder div[name]");
+      name.textContent = member.name;
+      name.title = member.name;
+      let email = memberFrameHolder.querySelector(".eMemberFrameInfoHolder div[email]");
+      if (member.email) {
+        email.textContent = member.email;
+        email.title = member.email;
+        email.style.display = "unset";
+      } else {
+        email.style.display = "none";
+      }
+
+      let frameDesc = memberFrameHolder.querySelector(".eMemberSectionDesc");
+      if (member.title != null) {
+        switch (member.access) {
+          case 0:
+            frameDesc.textContent = "Viewers can see all pages and annotations in this lesson.";
+            break;
+          case 1:
+            frameDesc.textContent = "Editors can create annotation, but cannot grant permisions or change settings.";
+            break;
+          case 5:
+            frameDesc.textContent = "The owner has full access to all aspects of the lesson.";
+        }
+        frameDesc.style.display = "block";
+      } else {
+        frameDesc.style.display = "none";
+      }
+
+      let isSelf = member._id == editor.sessionID;
+      let self = memberFrameHolder.querySelector(".eMemberEventHolder[self]");
+      let hand = memberFrameHolder.querySelector(".eMemberEventHolder[hand]");
+      let idle = memberFrameHolder.querySelector(".eMemberEventHolder[idle]");
+      let observe = memberFrameHolder.querySelector(".eMemberEventHolder[observe]");
+      if (isSelf == true) {
+        self.style.display = "flex";
+      } else {
+        self.style.display = "none";
+      }
+      if (member.hand != null) {
+        hand.style.display = "flex";
+      } else {
+        hand.style.display = "none";
+      }
+      if (member.active == false && isSelf == false) {
+        idle.style.display = "flex";
+      } else {
+        idle.style.display = "none";
+      }
+      observeButtonUpdate();
+      if (member.observe == editor.sessionID && isSelf == false) {
+        observe.style.display = "flex";
+      } else {
+        observe.style.display = "none";
+      }
+      editorButton.removeAttribute("disabled");
+      handButton.removeAttribute("disabled");
+      observeButton.removeAttribute("disabled");
+      kickButton.removeAttribute("disabled");
+
+      if (isSelf == false && editor.self.access > 2 && member.access < 2) {
+        let image = "./images/editor/share/editor.svg";
+        let text = "Editor";
+        let desc = "Grant temporary editing privileges.";
+        if (member.access == 1) {
+          image = "./images/editor/share/viewer.svg";
+          text = "Viewer";
+          desc = "Revoke temporary editing privileges, granting viewer.";
+        }
+        editorButton.querySelector("img").src = image;
+        editorButton.querySelector("div").textContent = text;
+        editorButton.title = desc;
+        editorButton.style.display = "flex";
+      } else {
+        editorButton.style.display = "none";
+      }
+
+      let handRaised = member.hand != null;
+      if (member.title != null) {
+        // If someone in section has hand raised
+        handRaised = tile.parentElement.querySelector(".eMemberEvent[hand]") != null;
+      }
+      if (isSelf == false && editor.self.access > 3 && handRaised == true) {
+        handButton.style.display = "flex";
+      } else {
+        handButton.style.display = "none";
+      }
+      if (isSelf == false && editor.self.access > 3 && member.access < 4) {
+        kickButton.style.display = "flex";
+      } else {
+        kickButton.style.display = "none";
+      }
+      if (isSelf == false && member.title == null && (member.access > 0 || lesson.lesson.settings.observeViewers != false || editor.self.access > 3)) {
+        observeButton.style.display = "flex";
+      } else {
+        observeButton.style.display = "none";
+      }
+      this.checkSpotlightUpdate(true);
+      memberFrameHolder.style.opacity = 1;
+      memberFrame.style.transform = "scale(1)";
+      updateDropdownPosition();
+    }
+
+    frame.addEventListener("click", (event) => {
+      let element = event.target;
+      if (element == null) {
+        return;
+      }
+      let memberTile = element.closest(".eMemberTile") ?? element.closest(".eMemberAccessTitle");
+      if (memberTile != null) {
+        if (memberTile.className == "eMemberTile") {
+          memberTile = memberTile.querySelector("div[holder]");
+        }
+        return openDropdown(memberTile);
+      }
+    });
+
+    for (let i = 0; i < accessHolders.length; i++) {
+      let holder = accessHolders[i];
+      let title = holder.querySelector(".eMemberAccessTitle");
+      title.addEventListener("mouseenter", function() {
+        holder.setAttribute("hover", "");
+      });
+      title.addEventListener("mouseleave", function() {
+        holder.removeAttribute("hover");
+        holder.removeAttribute("active");
+      });
+      title.addEventListener("mousedown", function() {
+        holder.setAttribute("active", "");
+      });
+      title.addEventListener("mouseup", function() {
+        holder.removeAttribute("active");
+      });
+    }
+
+    searchField.addEventListener("input", () => {
+      closeDropdown();
+      
+      let clearTiles = frame.querySelectorAll(".eMemberTile");
+      for (let i = 0; i < clearTiles.length; i++) {
+        if (clearTiles[i].parentElement.childElementCount < 3) { // 3 to account for title and removed tile
+          clearTiles[i].parentElement.style.display = "none";
+        }
+        clearTiles[i].remove();
+      }
+
+      createMemberList(searchField.value);
+    });
   }
 }

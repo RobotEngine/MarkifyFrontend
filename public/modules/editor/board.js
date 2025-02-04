@@ -38,11 +38,9 @@ modules["editor/board"] = class {
         </div>
       </div>
     </div>
-    <div class="eToolbarHolder">
-      <div class="eToolbar"></div>
-      <div class="eViewerActions">
-        <button hidden class="eHandRaise largeButton" tool><img src="./images/editor/actions/raisehand.svg" /></button>
-      </div>
+    <div class="eToolbarHolder" right>
+      <div class="eToolbar" editor hidden></div>
+      <div class="eToolbar" viewer hidden></div>
     </div>
     <div class="eBottomHolder">
       <div class="eBottom">
@@ -118,12 +116,12 @@ modules["editor/board"] = class {
     ".eAccount img": `width: 100%; height: 100%; object-fit: cover`,
     ".eLogin": `height: 32px; display: none; padding: 6px 10px; margin: 0 4px; background: var(--secondary); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
 
-    ".eToolbarHolder": `position: relative; display: flex; gap: 8px; width: fit-content; flex: 1; margin: 8px 0; visibility: visible`,
-    ".eToolbar": `position: relative; display: flex; box-sizing: border-box; margin: auto 0; align-items: center; pointer-events: all`,
-    ".eViewerActions": `position: absolute; display: flex; height: calc(100% - 16px); left: 8px; top: 8px`,
-    ".eHandRaise": `position: relative; display: flex; box-sizing: border-box; width: 60px; height: 60px; margin: auto 4px; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; --borderRadius: 30px`,
-    ".eHandRaise img": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: 30px`,
-    ".eHandRaise[selected]": `background: var(--theme)`,
+    ".eToolbarHolder": `position: relative; display: flex; gap: 8px; width: fit-content; flex: 1; visibility: visible`,
+    ".eToolbarHolder[left]": `margin: 8px 0 0`,
+    ".eToolbarHolder[right]": `margin: 8px 0 0 auto`,
+    ".eToolbar": `position: absolute; display: flex; box-sizing: border-box; width: 50px; height: fit-content; max-height: 100%; top: 50%; transform: translateY(-50%); background: var(--pageColor); box-shadow: var(--lightShadow); align-items: center; pointer-events: all; transition: all .4s, border-radius .2s`,
+    ".eToolbarHolder[left] .eToolbar": `left: 0px; border-radius: 0 12px 12px 0`,
+    ".eToolbarHolder[right] .eToolbar": `right: 0px; border-radius: 12px 0 0 12px`,
 
     ".eBottomHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
     ".eBottom": `position: absolute; display: flex; width: 100%; gap: 8px; padding-top: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,

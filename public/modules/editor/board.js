@@ -766,7 +766,7 @@ modules["dropdowns/lesson/board/members"] = class {
     ".eMemberFrame": `--themeColor: var(--theme); position: sticky; width: calc(50% - 4px); max-width: calc(100vw - 20px); left: 8px; top: 8px; margin-left: 4px; pointer-events: all; background: var(--pageColor); border-right: solid 4px var(--themeColor); border-radius: 38px 0 0 12px; transform-origin: top right; transform: scale(0); transition: transform .3s`,
     ".eMemberFrameContentHolder": `width: 100%; height: 0px; border-radius: 38px 0 0 12px; overflow: hidden`,
     ".eMemberFrameShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 0 16px 16px; right: 0px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
-    ".eMemberFrameShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); right: 0px; top: 16px; content: ""; box-shadow: var(--shadow); border-radius: inherit`,
+    ".eMemberFrameShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); right: 0px; top: 16px; content: ""; box-shadow: var(--lightShadow); border-radius: inherit`,
     ".eMemberFrameContent": `overflow: auto`,
     ".eMemberSection": `position: relative; display: flex; width: 100%; justify-content: center; align-items: center`,
     ".eMemberSectionInfo": `border-radius: 38px 0 0 38px; overflow: hidden`,
@@ -1011,7 +1011,7 @@ modules["dropdowns/lesson/board/members"] = class {
       
       let contentHeight = contentFrameHolder.scrollHeight;
 
-      contentFrameHolder.style.maxHeight = "calc(" + (fixed.offsetHeight - dropdownRect.top) + "px - 8px)";
+      contentFrameHolder.style.maxHeight = "calc(" + (fixed.offsetHeight - dropdownRect.top) + "px - var(--floatMargin))";
       
       contentHolderFrameHolder.style.height = contentFrameHolder.offsetHeight + "px";
       contentHolderFrameHolder.offsetHeight;

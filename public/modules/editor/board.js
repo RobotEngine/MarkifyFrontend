@@ -189,7 +189,7 @@ modules["editor/board"] = class {
     this.editor.sessionID = this.parent.sessionID;
     this.editor.sources = this.parent.sources;
     this.editor.settings = this.parent.lesson.settings ?? {};
-    this.editor.self = this.parent.members[this.editor.sessionID];
+    this.editor.self = this.parent.self;
 
     let updateTopBar = (ignoreAttr) => {
       if (ignoreAttr != true) {
@@ -516,6 +516,7 @@ modules["editor/board"] = class {
     this.editor.pipeline.subscribe("boardMemberLeave", "leave", () => { this.updateMemberCount(membersButton); });
     this.editor.pipeline.subscribe("boardMemberUpdate", "update", async (body) => {
       let member = this.parent.members[body._id];
+
       if (this.editor.realtime.module != null) {
         if (body.observe == this.editor.sessionID) { // Being observed:
           this.editor.realtime.observed = true;
@@ -535,6 +536,10 @@ modules["editor/board"] = class {
         if (this.editor.realtime.observing == body._id) {
           this.editor.realtime.module.setObserveFrame(member);
         }
+      }
+
+      if (body._id == this.parent.sessionID) {
+        this.updateInterface();
       }
 
       this.updateMemberCount(membersButton);
@@ -672,9 +677,8 @@ modules["editor/board"] = class {
 
     if (this.exporting != true) {
       asyncLoadAnnotations();
-      (async () => {
-        (await this.newModule("editor/realtime")).js(this.editor);
-      })();
+      (await this.newModule("editor/realtime")).js(this.editor);
+      (await this.newModule("editor/toolbar")).js(this.editor);
     } else {
       await asyncLoadAnnotations();
       //await (await this.loadModule("editor/export")).js(this, this.utils, page);

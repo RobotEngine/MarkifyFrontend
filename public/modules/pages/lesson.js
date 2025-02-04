@@ -3,6 +3,7 @@ modules["pages/lesson"] = class {
   preload = [
     "./modules/editor/board.js",
     "./modules/editor/realtime.js",
+    "./modules/editor/toolbar.js",
 
     "./libraries/pdfjs/pdf.mjs",
     "./libraries/pdfjs/pdf.worker.mjs",
@@ -173,7 +174,10 @@ modules["pages/lesson"] = class {
         let body = events[i];
         switch (data.task) {
           case "join":
-            this.members[body._id] = body;
+            if (this.members[body._id] == null) {
+              this.members[body._id] = {};
+            }
+            objectUpdate(body, this.members[body._id] ?? {});
             let collaborator = this.collaborators[body.modify];
             if (collaborator != null) {
               collaborator.name = body.name;
@@ -229,10 +233,7 @@ modules["pages/lesson"] = class {
               } else if (body.active != false && member.active == false) {
                 this.idleCount--;
               }
-              for (let i = 0; i < memberKeys.length; i++) {
-                let key = memberKeys[i];
-                member[key] = body[key];
-              }
+              objectUpdate(body, member);
               if (member.access > 0 && member.hand != null) {
                 member.hand = null;
                 this.handCount--;
@@ -362,7 +363,10 @@ modules["pages/lesson"] = class {
     
     for (let i = 0; i < body.members.length; i++) {
       let memSet = body.members[i];
-      let member = this.members[memSet._id] ?? {};
+      if (this.members[memSet._id] == null) {
+        this.members[memSet._id] = {};
+      }
+      let member = this.members[memSet._id];
       if (memSet.access == 1 && member.access < 1) {
         this.editorCount++;
       } else if (memSet.access == 0 && member.access > 0) {
@@ -378,9 +382,11 @@ modules["pages/lesson"] = class {
       } else if (memSet.active != false && member.active == false) {
         this.idleCount--;
       }
-      this.members[memSet._id] = memSet;
+      objectUpdate(memSet, member);
     }
-    this.members[this.sessionID] = this.members[this.sessionID] ?? {};
+    if (this.members[this.sessionID] == null) {
+      this.members[this.sessionID] = {};
+    }
     this.self = this.members[this.sessionID];
     this.memberCount = Object.keys(this.members).length;
 

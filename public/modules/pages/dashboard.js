@@ -18,10 +18,10 @@ modules["pages/dashboard"] = class {
         <div class="dSidebar">
           <div class="dSidebarSection dSidebarHeader">
             <img class="dSidebarLogo" src="./images/logo.svg" />
-            <a class="dJoinButton largeButton" openpage="join" href="#join">Join<img src="./images/tooltips/link.svg" /><div backdrop></div></a>
+            <a class="dJoinButton largeButton" href="#join">Join<img src="./images/tooltips/link.svg" /><div backdrop></div></a>
           </div>
           <div class="dSidebarSection dSidebarActions">
-            <a class="dCreateLessonButton largeButton" openpage="lesson" href="#lesson">New Lesson<div backdrop></div></a>
+            <a class="dCreateLessonButton largeButton" href="#lesson">New Lesson<div backdrop></div></a>
           </div>
           <div class="dSidebarSection dSidebarSorts">
             <div class="dSidebarTitle"><div title>Sorts</div><div divider></div></div>
@@ -174,14 +174,14 @@ modules["pages/dashboard"] = class {
     
     joinLessonButton.addEventListener("click", (event) => {
       event.preventDefault();
-      setFrame("pages/join", null);
+      setFrame("pages/join");
     });
     newLessonButton.addEventListener("click", (event) => {
       event.preventDefault();
       if (this.sort != null && this.sort.length > 20) {
         modifyParams("folder", this.sort);
       }
-      setFrame("pages/lesson", null);
+      setFrame("pages/lesson");
     });
 
     // Display Account Details

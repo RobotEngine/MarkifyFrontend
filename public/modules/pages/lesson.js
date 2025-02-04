@@ -1280,7 +1280,7 @@ modules["pages/lesson/editor"] = class {
     this.render.runningPageRender = false;
     this.render.tempID = () => {
       return "pending_" + randomString(10) + Date.now();
-    };
+    }
     this.render.setMarginSize = async (force) => {
       if (this.exporting == true && force != true) {
         return;
@@ -1365,7 +1365,7 @@ modules["pages/lesson/editor"] = class {
       }
       this.render.lastOffsetWidth = content.offsetWidth;
       this.render.lastOffsetHeight = content.offsetHeight;
-    };
+    }
     this.render.processPageRenders = async () => {
       if (this.render.runningPageRender == true) {
         return;
@@ -1510,7 +1510,7 @@ modules["pages/lesson/editor"] = class {
         await sleep(1);
       }
       this.render.runningPageRender = false;
-    };
+    }
     this.render.addPageToQueue = async (sourceID, pageNumber, forceRunRender) => {
       let sourcePageId = sourceID + "_" + pageNumber;
       if (this.render.pdfPageStorage[sourcePageId] == null) {
@@ -1520,12 +1520,12 @@ modules["pages/lesson/editor"] = class {
           this.render.processPageRenders();
         }
       }
-    };
+    }
     this.render.createSVG = (parent, type) => {
       let newSVG = document.createElementNS("http://www.w3.org/2000/svg", type);
       parent.appendChild(newSVG);
       return newSVG;
-    };
+    }
     this.render.createAnnotation = async (data, anno, long) => {
       /*
         _id - ID - The unique ID of the annotation
@@ -2589,7 +2589,7 @@ modules["pages/lesson/editor"] = class {
       for (let i = 0; i < allSelections.length; i++) {
         allSelections[i].remove();
       }
-    };
+    }
     
     this.save = {};
     this.save.timeoutAnnotations = [];
@@ -2997,7 +2997,7 @@ modules["pages/lesson/editor"] = class {
         delete this.realtime.module.members[data._id];
         if (this.realtime.observing == data._id) {
           this.realtime.module.exitObserve();
-          alertModule.open("warning", "<b>Member Left</b>The member you where observing left.");
+          alertModule.open("warning", "<b>Member Left</b>The member you were observing left.");
         }
       }
     });

@@ -38,7 +38,7 @@ modules["editor/board"] = class {
         </div>
       </div>
     </div>
-    <div class="eToolbarHolder" right>
+    <div class="eToolbarHolder" left>
       <div class="eToolbar" editor hidden></div>
       <div class="eToolbar" viewer hidden></div>
     </div>
@@ -120,8 +120,9 @@ modules["editor/board"] = class {
     ".eToolbarHolder[left]": `margin: 8px 0 0`,
     ".eToolbarHolder[right]": `margin: 8px 0 0 auto`,
     ".eToolbar": `position: absolute; display: flex; box-sizing: border-box; width: 50px; height: fit-content; max-height: 100%; top: 50%; transform: translateY(-50%); background: var(--pageColor); box-shadow: var(--lightShadow); align-items: center; pointer-events: all; transition: all .4s, border-radius .2s`,
-    ".eToolbarHolder[left] .eToolbar": `left: 0px; border-radius: 0 12px 12px 0`,
-    ".eToolbarHolder[right] .eToolbar": `right: 0px; border-radius: 12px 0 0 12px`,
+    ".eToolbar[hidden]": `transform: translateY(-50%) scale(0) !important`,
+    ".eToolbarHolder[left] .eToolbar": `left: 0px; border-radius: 0 12px 12px 0; transform-origin: left center`,
+    ".eToolbarHolder[right] .eToolbar": `right: 0px; border-radius: 12px 0 0 12px; transform-origin: right center`,
 
     ".eBottomHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
     ".eBottom": `position: absolute; display: flex; width: 100%; gap: 8px; padding-top: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,
@@ -138,7 +139,6 @@ modules["editor/board"] = class {
     ".eCurrentPage": `margin: 0 6px; font-size: 20px; outline: unset`,
     ".eCurrentPage:focus": `padding: 4px 12px; --borderWidth: 3px; --borderColor: var(--secondary); --borderRadius: 19px`
   };
-
   js = async (frame, extra) => {
     frame.style.position = "relative";
     frame.style.width = "100%";
@@ -174,6 +174,10 @@ modules["editor/board"] = class {
     let eTopScrollRight = eTopHolder.querySelector(".eTopScroll[right]");
 
     let contentHolder = frame.querySelector(".eContentHolder");
+
+    let toolbarHolder = page.querySelector(".eToolbarHolder");
+    let editorToolbar = toolbarHolder.querySelector(".eToolbar[editor]");
+    let viewerToolbar = toolbarHolder.querySelector(".eToolbar[viewer]");
 
     let currentPageHolder = frame.querySelector(".eBottomSection[right]");
     let pageTextBox = currentPageHolder.querySelector(".eCurrentPage");
@@ -233,7 +237,7 @@ modules["editor/board"] = class {
 
     this.updateInterface = async () => {
       let access = this.editor.self.access;
-      if (access == 0) {
+      if (access < 1) {
         contentHolder.setAttribute("viewer", "");
         lessonName.removeAttribute("contenteditable");
         if (this.editor.settings.allowExport != false) {
@@ -243,6 +247,8 @@ modules["editor/board"] = class {
         }
         undoButton.style.display = "none";
         redoButton.style.display = "none";
+        viewerToolbar.removeAttribute("hidden");
+        editorToolbar.setAttribute("hidden", "");
       } else {
         contentHolder.removeAttribute("viewer");
         if (access > 3) {
@@ -251,6 +257,8 @@ modules["editor/board"] = class {
         createCopyButton.style.display = "none";
         undoButton.style.removeProperty("display");
         redoButton.style.removeProperty("display");
+        editorToolbar.removeAttribute("hidden");
+        viewerToolbar.setAttribute("hidden", "");
       }
       if (access < 4) {
         shareButton.style.removeProperty("display");

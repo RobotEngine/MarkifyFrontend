@@ -39,8 +39,8 @@ modules["editor/board"] = class {
       </div>
     </div>
     <div class="eToolbarHolder" left>
-      <div class="eToolbar" editor keeptooltip hidden></div>
-      <div class="eToolbar" viewer keeptooltip hidden></div>
+      <div class="eToolbar" editor keeptooltip hidden notransition></div>
+      <div class="eToolbar" viewer keeptooltip hidden notransition></div>
     </div>
     <div class="eBottomHolder">
       <div class="eBottom">
@@ -136,9 +136,9 @@ modules["editor/board"] = class {
     ".eObserveExit": `display: flex; position: relative; width: 22px; height: 22px; margin: 8px; justify-content: center; align-items: center; --borderWidth: 3px; --borderRadius: 14px`,
     ".eObserveExit img": `width: 12px; height: 12px`,
     ".eBottomSection[right]": `margin-left: auto; border-top-left-radius: 12px`,
-    ".ePageNav": `display: flex; width: 31px; height: 31px; margin: 0 4px; justify-content: center; align-items: center; background: var(--lightGray); border-radius: 16px`,
-    ".eCurrentPage": `margin: 0 6px; font-size: 20px; outline: unset`,
-    ".eCurrentPage:focus": `padding: 4px 12px; --borderWidth: 3px; --borderColor: var(--secondary); --borderRadius: 19px`
+    ".ePageNav": `display: flex; width: 32px; height: 32px; margin: 0 4px; justify-content: center; align-items: center; background: var(--lightGray); border-radius: 16px`,
+    ".eCurrentPage": `min-width: 8px; margin: 0 6px; font-size: 20px; outline: unset`,
+    ".eCurrentPage:focus": `padding: 4px 12px; --borderWidth: 3px; --borderColor: var(--secondary); --borderRadius: 20px`
   };
   js = async (frame, extra) => {
     frame.style.position = "relative";
@@ -692,6 +692,8 @@ modules["editor/board"] = class {
     }
 
     this.updateInterface();
+    editorToolbar.removeAttribute("notransition");
+    viewerToolbar.removeAttribute("notransition");
   }
 }
 

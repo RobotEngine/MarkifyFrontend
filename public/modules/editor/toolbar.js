@@ -1,6 +1,6 @@
 modules["editor/toolbar"] = class {
   css = {
-    ".eTool": `--hoverColor: var(--hover); width: 50px; height: 42px; flex-shrink: 0; padding: 0; transition: opacity .3s`,
+    ".eTool": `--hoverColor: var(--hover); width: 50px; height: 46px; flex-shrink: 0; padding: 0; transition: opacity .3s`,
     ".eTool > div": `display: flex; width: 42px; height: 42px; margin: 0 4px; justify-content: center; align-items: center; border-radius: 8px; transition: .2s; overflow: hidden`,
     ".eTool:hover > div": `background: var(--hoverColor)`,
     ".eTool:active": `transform: unset !important`,
@@ -16,8 +16,8 @@ modules["editor/toolbar"] = class {
     ".eTool[selecthighlight]:active > div": `border-radius: 8px !important`,
     ".eTool[off]": `opacity: 0.5`,
 
-    ".eDivider": `width: calc(100% - 8px); height: 4px; background: var(--hover); border-radius: 2px`,
-    ".eVerticalDivider": `flex-shrink: 0; width: 4px; height: calc(100% - 8px); background: var(--hover); border-radius: 2px`,
+    ".eDivider": `width: calc(100% - 8px); height: 4px; margin: 2px 0; background: var(--hover); border-radius: 2px`,
+    ".eVerticalDivider": `flex-shrink: 0; width: 4px; height: calc(100% - 8px); margin: 0 2px; background: var(--hover); border-radius: 2px`,
 
     ".eSubToolHolder": `position: absolute; max-height: 100%; left: 100%; top: 0px; background: var(--pageColor); border-radius: 0 16px 16px 0; border-left: solid 4px var(--theme); transform: scale(0); transform-origin: top left; transition: opacity .3s, transform: .3s`,
     ".eSubToolHolder[option]": `border-left-color: var(--secondary)`,

@@ -176,6 +176,7 @@ modules["pages/lesson"] = class {
           case "join":
             if (this.members[body._id] == null) {
               this.members[body._id] = {};
+              this.memberCount++;
             }
             objectUpdate(body, this.members[body._id] ?? {});
             let collaborator = this.collaborators[body.modify];
@@ -187,7 +188,6 @@ modules["pages/lesson"] = class {
                 collaborator.image = body.image;
               }
             }
-            this.memberCount++;
             if (body.access == 1) {
               this.editorCount++;
             }

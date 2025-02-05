@@ -819,7 +819,7 @@ modules["dropdowns/lesson/board/members"] = class {
         let child = section.children[i];
         let prev = lesson.members[child.querySelector("div[holder]").getAttribute("member")] ?? {};
         if (member.hand == null) {
-          if (child != updateTile && member.name < prev.name && prev.hand == null) {
+          if (child != updateTile && member.name + "_" + member.joined < prev.name + "_" + prev.joined && prev.hand == null) {
             section.insertBefore(updateTile, child);
             break;
           } else if (i == section.children.length - 1) {

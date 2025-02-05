@@ -28,9 +28,7 @@ modules["editor/toolbar"] = class {
     ".eSubToolHolder[option] .eSubToolContentScroll": `overflow: visible`,
     ".eSubToolContent": `display: flex; flex-wrap: wrap; gap: 6px`,
 
-    ".eToolHoverTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; transform: scale(0); opacity: 0`,
-
-
+    ".eToolHoverTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; transform: scale(0); opacity: 0`
   };
   js = async (editor) => {
     let page = editor.page;

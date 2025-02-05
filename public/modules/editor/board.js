@@ -119,7 +119,7 @@ modules["editor/board"] = class {
     ".eToolbarHolder": `position: relative; display: flex; gap: 8px; width: fit-content; flex: 1; visibility: visible`,
     ".eToolbarHolder[left]": `margin: 8px 0 0`,
     ".eToolbarHolder[right]": `margin: 8px 0 0 auto`,
-    ".eToolbar": `position: absolute; display: flex; flex-direction: column; gap: 4px; box-sizing: border-box; padding: 4px 0; width: 50px; height: fit-content; max-height: 100%; top: 50%; transform: translateY(-50%); background: var(--pageColor); box-shadow: var(--lightShadow); align-items: center; scrollbar-width: none; pointer-events: all; transition: all .4s, border-radius .2s`,
+    ".eToolbar": `position: absolute; display: flex; flex-direction: column; gap: 4px; box-sizing: border-box; padding: 4px 0; width: 50px; height: fit-content; max-height: 100%; top: 50%; transform: translateY(-50%); background: var(--pageColor); box-shadow: var(--lightShadow); align-items: center; overflow: auto; scrollbar-width: none; pointer-events: all; transition: all .4s, border-radius .2s`,
     ".eToolbar::-webkit-scrollbar": `display: none`,
     ".eToolbar[hidden]": `transform: translateY(-50%) scale(0) !important`,
     ".eToolbarHolder[left] .eToolbar": `left: 0px; border-radius: 0 12px 12px 0; transform-origin: left center`,

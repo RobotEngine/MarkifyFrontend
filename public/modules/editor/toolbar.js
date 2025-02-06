@@ -106,25 +106,42 @@ modules["editor/toolbar"] = class {
       }
 
       if (tooltipElement.closest(".eToolbar") != null || tooltipElement.closest(".content") != null) {
-        tooltipText.style.transformOrigin = "center left";
-
         let toolHolderRect = toolbarHolder.getBoundingClientRect();
-        let toolsRect = editorToolbar.getBoundingClientRect();
         let buttonRect = tooltipElement.getBoundingClientRect();
 
-        let setLeft = editorToolbar.offsetWidth;
-        let setTop = + buttonRect.top - toolHolderRect.top + (tooltipElement.offsetHeight / 2) - (tooltipText.offsetHeight / 2);
-        let subToolWidth = parseInt(subTools.getAttribute("setwidth")) + 4;
-        let subToolTop = parseInt(subTools.getAttribute("settop"));
-        if (tooltipElement.hasAttribute("tool") == false) {
-          setLeft += subToolWidth;
-        } else if (mainSubtoolButton != null) {
-          if (setTop > subToolTop && setTop < subToolTop + parseInt(subTools.getAttribute("setheight"))) {
+        if (toolbarHolder.hasAttribute("right") == false) {
+          let setLeft = editorToolbar.offsetWidth;
+          let setTop = buttonRect.top - toolHolderRect.top + (tooltipElement.offsetHeight / 2) - (tooltipText.offsetHeight / 2);
+          let subToolWidth = parseInt(subTools.getAttribute("setwidth")) + 4;
+          let subToolTop = parseInt(subTools.getAttribute("settop"));
+          if (tooltipElement.hasAttribute("tool") == false) {
             setLeft += subToolWidth;
+          } else if (mainSubtoolButton != null) {
+            if (setTop > subToolTop && setTop < subToolTop + parseInt(subTools.getAttribute("setheight"))) {
+              setLeft += subToolWidth;
+            }
           }
+          tooltipText.style.transformOrigin = "center left";
+          tooltipText.style.left = setLeft + 6 + "px";
+          tooltipText.style.top = setTop + "px";
+          tooltipText.style.removeProperty("right");
+        } else {
+          let setRight = editorToolbar.offsetWidth;
+          let setTop = buttonRect.top - toolHolderRect.top + (tooltipElement.offsetHeight / 2) - (tooltipText.offsetHeight / 2);
+          let subToolWidth = parseInt(subTools.getAttribute("setwidth")) + 4;
+          let subToolTop = parseInt(subTools.getAttribute("settop"));
+          if (tooltipElement.hasAttribute("tool") == false) {
+            setRight += subToolWidth;
+          } else if (mainSubtoolButton != null) {
+            if (setTop > subToolTop && setTop < subToolTop + parseInt(subTools.getAttribute("setheight"))) {
+              setRight += subToolWidth;
+            }
+          }
+          tooltipText.style.transformOrigin = "center right";
+          tooltipText.style.right = setRight + 6 + "px";
+          tooltipText.style.top = setTop + "px";
+          tooltipText.style.removeProperty("left");
         }
-        tooltipText.style.left = setLeft + 6 + "px";
-        tooltipText.style.top = setTop + "px";
         return;
       }
 

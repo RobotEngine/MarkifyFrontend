@@ -139,8 +139,8 @@ modules["editor/board"] = class {
     ".eObserveExit img": `width: 12px; height: 12px`,
     ".eBottomSection[right]": `margin-left: auto; border-top-left-radius: 12px`,
     ".ePageNav": `display: flex; width: 32px; height: 32px; margin: 0 4px; justify-content: center; align-items: center; background: var(--lightGray); border-radius: 16px`,
-    ".eCurrentPage": `min-width: 8px; margin: 0 6px; font-size: 20px; outline: unset`,
-    ".eCurrentPage:focus": `padding: 4px 12px; --borderWidth: 3px; --borderColor: var(--secondary); --borderRadius: 20px`
+    ".eCurrentPage": `min-width: 8px; max-height: 24px; padding: 4px 0; margin: 0 6px; font-size: 20px; outline: unset`,
+    ".eCurrentPage:focus": `padding: 4px 12px; --borderWidth: 3px; --borderColor: var(--secondary); --borderRadius: 12px`
   };
   js = async (frame, extra) => {
     frame.style.position = "relative";

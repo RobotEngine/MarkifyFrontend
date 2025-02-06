@@ -40,7 +40,12 @@ modules["editor/board"] = class {
     </div>
     <div class="eToolbarHolder" left>
       <div class="eToolbar" editor keeptooltip hidden notransition></div>
-      <div class="eToolbar" viewer keeptooltip hidden notransition></div>
+      <div class="eToolbar" viewer keeptooltip hidden notransition>
+        <button class="eTool" subtool="raisehand" tooltip="Raise Hand"><div></div></button>
+        <div class="eDivider"></div>
+        <button class="eTool" subtool="select" tooltip="Select" module="pages/editor/toolbar/select" selected><div></div></button>
+        <button class="eTool" subtool="pan" tooltip="Pan" module="pages/editor/toolbar/pan"><div></div></button>
+      </div>
       <div class="eToolbarTooltip"></div>
     </div>
     <div class="eBottomHolder">

@@ -34,7 +34,6 @@ modules["editor/toolbar"] = class {
 
     let toolbarHolder = page.querySelector(".eToolbarHolder");
     let editorToolbar = toolbarHolder.querySelector(".eToolbar[editor]");
-    let viewerToolbar = toolbarHolder.querySelector(".eToolbar[viewer]");
     let tooltipText = toolbarHolder.querySelector(".eToolbarTooltip");
     
     editorToolbar.innerHTML = `
@@ -65,12 +64,6 @@ modules["editor/toolbar"] = class {
         </div>
       </div>
     </div>
-    `;
-    viewerToolbar.innerHTML = `
-    <button class="eTool" subtool="raisehand" tooltip="Raise Hand"><div></div></button>
-    <div class="eDivider"></div>
-    <button class="eTool" subtool="select" tooltip="Select" module="pages/editor/toolbar/select" selected><div></div></button>
-    <button class="eTool" subtool="pan" tooltip="Pan" module="pages/editor/toolbar/pan"><div></div></button>
     `;
 
     // Apply toolbar images:

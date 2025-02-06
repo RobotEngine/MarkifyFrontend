@@ -2,6 +2,7 @@ modules["editor/toolbar"] = class {
   css = {
     ".eTool": `--hoverColor: var(--hover); width: 50px; height: 46px; flex-shrink: 0; padding: 0; transition: opacity .3s`,
     ".eTool > div": `display: flex; width: 42px; height: 42px; margin: 0 4px; justify-content: center; align-items: center; border-radius: 8px; transition: .2s; overflow: hidden`,
+    ".eTool > div > svg": `width: 42px; height: 42px`,
     ".eTool:hover > div": `background: var(--hoverColor)`,
     ".eTool:active": `transform: unset !important`,
     ".eTool:active > div": `transform: scale(.95)`,
@@ -10,8 +11,8 @@ modules["editor/toolbar"] = class {
     ".eTool[selected][option]:active > div": `border-radius: 22px !important`,
     ".eTool[selected] > div": `background: var(--theme)`,
     ".eTool[selected][option] > div": `background: var(--secondary)`,
-    ".eToolbarHolder[left] .eTool[extended] > div": `width: 46px; margin: 0 0 0 4px; border-radius: 8px 0 0 8px`,
-    ".eToolbarHolder[right] .eTool[extended] > div": `width: 46px; margin: 0 4px 0 0; border-radius: 0 8px 8px 0`,
+    ".eToolbarHolder[left] .eTool[extended] > div": `width: 46px; margin: 0 0 0 4px; border-radius: 8px 0 0 8px; justify-content: left`,
+    ".eToolbarHolder[right] .eTool[extended] > div": `width: 46px; margin: 0 4px 0 0; border-radius: 0 8px 8px 0; justify-content: right`,
     ".eTool[selecthighlight] > div": `background: var(--theme)`,
     ".eTool[selecthighlight]:active > div": `border-radius: 8px !important`,
     ".eTool[off]": `opacity: 0.5`,
@@ -66,11 +67,18 @@ modules["editor/toolbar"] = class {
     </div>
     `;
     viewerToolbar.innerHTML = `
-    <button class="eTool" subtool="hand" tooltip="Raise Hand"><div></div></button>
+    <button class="eTool" subtool="raisehand" tooltip="Raise Hand"><div></div></button>
     <div class="eDivider"></div>
     <button class="eTool" subtool="select" tooltip="Select" module="pages/editor/toolbar/select" selected><div></div></button>
     <button class="eTool" subtool="pan" tooltip="Pan" module="pages/editor/toolbar/pan"><div></div></button>
     `;
+
+    // Apply toolbar images:
+    let gottenTools = toolbarHolder.querySelectorAll(".eTool");
+    for (let i = 0; i < gottenTools.length; i++) {
+      let tool = gottenTools[i];
+      setSVG(tool.querySelector("div"), "./images/editor/toolbar/" + (tool.getAttribute("tool") ?? tool.getAttribute("subtool")) + ".svg");
+    }
 
     let contentHolder = editor.contentHolder;
     let content = editor.contentHolder.querySelector(".eContent");
@@ -105,16 +113,17 @@ modules["editor/toolbar"] = class {
         tooltipText.style.color = "var(--theme)";
       }
 
-      if (tooltipElement.closest(".eToolbar") != null || tooltipElement.closest(".content") != null) {
+      let toolbarParent = tooltipElement.closest(".eToolbar");
+      if (toolbarParent != null) {
         let toolHolderRect = toolbarHolder.getBoundingClientRect();
         let buttonRect = tooltipElement.getBoundingClientRect();
 
         if (toolbarHolder.hasAttribute("right") == false) {
-          let setLeft = editorToolbar.offsetWidth;
+          let setLeft = toolbarParent.offsetWidth;
           let setTop = buttonRect.top - toolHolderRect.top + (tooltipElement.offsetHeight / 2) - (tooltipText.offsetHeight / 2);
           let subToolWidth = parseInt(subTools.getAttribute("setwidth")) + 4;
           let subToolTop = parseInt(subTools.getAttribute("settop"));
-          if (tooltipElement.hasAttribute("tool") == false) {
+          if (tooltipElement.closest(".eSubToolHolder") != null) {
             setLeft += subToolWidth;
           } else if (mainSubtoolButton != null) {
             if (setTop > subToolTop && setTop < subToolTop + parseInt(subTools.getAttribute("setheight"))) {
@@ -126,7 +135,7 @@ modules["editor/toolbar"] = class {
           tooltipText.style.top = setTop + "px";
           tooltipText.style.removeProperty("right");
         } else {
-          let setRight = editorToolbar.offsetWidth;
+          let setRight = toolbarParent.offsetWidth;
           let setTop = buttonRect.top - toolHolderRect.top + (tooltipElement.offsetHeight / 2) - (tooltipText.offsetHeight / 2);
           let subToolWidth = parseInt(subTools.getAttribute("setwidth")) + 4;
           let subToolTop = parseInt(subTools.getAttribute("settop"));

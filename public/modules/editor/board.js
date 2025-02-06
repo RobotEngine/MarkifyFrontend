@@ -117,7 +117,7 @@ modules["editor/board"] = class {
     ".eAccount img": `width: 100%; height: 100%; object-fit: cover`,
     ".eLogin": `height: 32px; display: none; padding: 6px 10px; margin: 0 4px; background: var(--secondary); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
 
-    ".eToolbarHolder": `position: relative; display: flex; gap: 8px; width: fit-content; flex: 1; visibility: visible`,
+    ".eToolbarHolder": `position: relative; display: flex; gap: 8px; flex: 1; visibility: visible`,
     ".eToolbarHolder[left]": `margin: 8px 0 0`,
     ".eToolbarHolder[right]": `margin: 8px 0 0 auto`,
     ".eToolbar": `position: absolute; display: flex; flex-direction: column; box-sizing: border-box; padding: 2px 0; width: 50px; height: fit-content; max-height: 100%; top: 50%; transform: translateY(-50%); background: var(--pageColor); box-shadow: var(--lightShadow); align-items: center; overflow: auto; scrollbar-width: none; pointer-events: all; transition: all .4s, border-radius .2s`,

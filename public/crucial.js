@@ -597,7 +597,7 @@ async function setSVG(element, path, replace) {
   if (replace != null) {
     svg = await replace(svg);
   }
-  element.innerHTML = svg;
+  element.insertAdjacentHTML("beforeend", svg);
 }
 
 let epochOffset = 0;

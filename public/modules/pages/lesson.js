@@ -19,10 +19,11 @@ modules["pages/lesson"] = class {
 
   }
   html = `<div class="lPageHolder">
-    <div class="lPage" active></div>
+    <div class="lPage" active a></div>
+    <div class="lPage" active b></div>
   </div>`;
   css = {
-    ".lPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100%; height: 100vh; padding: 8px; left: 0px; top: 0px; justify-content: center`,
+    ".lPageHolder": `position: fixed; display: flex; gap: 8px; box-sizing: border-box; width: 100%; height: 100vh; padding: 8px; left: 0px; top: 0px; justify-content: center`,
     ".lPageHolder[maximize]": `padding: 0px !important`,
     ".lPage": `--shadowOpacity: .3; display: flex; width: 100%; height: 100%; box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: 12px; overflow: hidden; transition: .2s`,
     ".lPage[active]": `--shadowOpacity: .5 !important`,
@@ -516,7 +517,8 @@ modules["pages/lesson"] = class {
       this.signalStrength = 1;
     }
 
-    this.addPage("board", "board", page.querySelector(".lPage"));
+    this.addPage("boarda", "board", page.querySelector(".lPage[a]"));
+    this.addPage("boardb", "board", page.querySelector(".lPage[b]"));
   }
 }
 

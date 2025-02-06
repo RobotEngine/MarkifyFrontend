@@ -2,7 +2,7 @@ modules["editor/toolbar"] = class {
   css = {
     ".eTool": `--hoverColor: var(--hover); width: 50px; height: 46px; flex-shrink: 0; padding: 0; transition: opacity .3s`,
     ".eTool > div": `display: flex; width: 42px; height: 42px; margin: 0 4px; justify-content: center; align-items: center; border-radius: 8px; transition: .2s; overflow: hidden`,
-    ".eTool > div > svg": `width: 38px; height: 38px; margin: 2px`,
+    ".eTool > div > svg": `width: 40px; height: 40px; margin: 1px`,
     ".eTool:hover > div": `background: var(--hoverColor)`,
     ".eTool:active": `transform: unset !important`,
     ".eTool:active > div": `transform: scale(.95)`,

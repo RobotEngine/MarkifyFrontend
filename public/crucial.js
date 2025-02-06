@@ -26,7 +26,7 @@ const version = "1.0.0"; // Big Update . Small Feature Release . Bug Fix
 
 const serverURL = config.server;
 const assetURL = config.assets;
-//window.socketURL = "ws://localhost:3000/socket/v2";
+const isLocal = ["localhost", "127.0.0.1"].includes(location.hostname);
 
 let socket = {};
 
@@ -596,6 +596,9 @@ async function setSVG(element, path, replace) {
   }
   if (replace != null) {
     svg = await replace(svg);
+  }
+  if (isLocal == true) {
+    svg = svg.replace(/<script>/g, "<disabled_script>");
   }
   element.insertAdjacentHTML("beforeend", svg);
 }

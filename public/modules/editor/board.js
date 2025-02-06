@@ -41,6 +41,7 @@ modules["editor/board"] = class {
     <div class="eToolbarHolder" left>
       <div class="eToolbar" editor keeptooltip hidden notransition></div>
       <div class="eToolbar" viewer keeptooltip hidden notransition></div>
+      <div class="eToolbarTooltip"></div>
     </div>
     <div class="eBottomHolder">
       <div class="eBottom">
@@ -124,6 +125,7 @@ modules["editor/board"] = class {
     ".eToolbar[hidden]": `transform: translateY(-50%) scale(0) !important`,
     ".eToolbarHolder[left] .eToolbar": `left: 0px; border-radius: 0 12px 12px 0; transform-origin: left center`,
     ".eToolbarHolder[right] .eToolbar": `right: 0px; border-radius: 12px 0 0 12px; transform-origin: right center`,
+    ".eToolbarTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; transform: scale(0); opacity: 0`,
 
     ".eBottomHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
     ".eBottom": `position: absolute; display: flex; width: 100%; gap: 8px; padding-top: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,

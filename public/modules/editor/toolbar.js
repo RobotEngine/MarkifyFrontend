@@ -58,7 +58,7 @@ modules["editor/toolbar"] = class {
       <button class="eTool" tool="media" tooltip="Media"><div></div></button>
     </div>
     `;
-    editorToolbar.querySelector(".eToolbarContent").addEventListener("scroll", () => { this.updateToolbars(); });
+    editorToolbar.querySelector(".eToolbarContent").addEventListener("scroll", () => { this.updateToolbars() });
 
     // Apply toolbar images:
     let gottenTools = toolbarHolder.querySelectorAll(".eTool");
@@ -383,9 +383,6 @@ modules["editor/toolbar"] = class {
           removeToolbar.remove();
         }
       })();
-    }
-    this.toolbarClick = (button) => {
-      
     }
     this.enableToolUI = (button) => {
       let toolID = button.getAttribute("tool");

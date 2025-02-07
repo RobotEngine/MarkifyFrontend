@@ -1,4 +1,146 @@
 modules["editor/toolbar"] = class {
+  tools = {
+    "select": [
+      {
+        id: "select",
+        tooltip: "Select",
+        type: "tool",
+        module: "editor/toolbar/cursor"
+      },
+      {
+        id: "pan",
+        tooltip: "Pan",
+        type: "tool",
+        module: "editor/toolbar/pan"
+      },
+      {
+        id: "drag",
+        tooltip: "Multi-Select",
+        type: "tool",
+        module: "editor/toolbar/drag"
+      }
+    ],
+    "draw": [
+      {
+        id: "pen",
+        tooltip: "Pen",
+        type: "tool",
+        module: "editor/toolbar/pen",
+      },
+      {
+        type: "divider"
+      },
+      {
+        id: "color",
+        type: "option",
+        module: "editor/toolbar/color"
+      },
+      {
+        id: "thickness",
+        type: "option",
+        module: "editor/toolbar/thickness"
+      },
+      {
+        id: "opacity",
+        type: "option",
+        module: "editor/toolbar/opacity"
+      }
+    ],
+    "markup": [
+      {
+        id: "highlighter",
+        tooltip: "Highlighter",
+        type: "tool",
+        module: "editor/toolbar/highlighter",
+      },
+      {
+        id: "underline",
+        tooltip: "Underline",
+        type: "tool",
+        module: "editor/toolbar/understrike",
+      },
+      {
+        type: "divider"
+      },
+      {
+        id: "color",
+        type: "option",
+        module: "editor/toolbar/color"
+      },
+      {
+        id: "thickness",
+        type: "option",
+        module: "editor/toolbar/thickness"
+      },
+      {
+        id: "opacity",
+        type: "option",
+        module: "editor/toolbar/opacity"
+      }
+    ],
+    "erase": { id: "erase", type: "tool", module: "editor/toolbar/eraser" },
+    "text": { id: "text", type: "tool", module: "editor/toolbar/text" },
+    "shape": [
+      {
+        id: "square",
+        tooltip: "Square",
+        type: "tool",
+        module: "editor/toolbar/shape",
+      },
+      {
+        id: "ellipse",
+        tooltip: "Ellipse",
+        type: "tool",
+        module: "editor/toolbar/shape",
+      },
+      {
+        id: "triangle",
+        tooltip: "Triangle",
+        type: "tool",
+        module: "editor/toolbar/shape",
+      },
+      {
+        id: "parallelogram",
+        tooltip: "Parallelogram",
+        type: "tool",
+        module: "editor/toolbar/shape",
+      },
+      {
+        id: "trapezoid",
+        tooltip: "Trapezoid",
+        type: "tool",
+        module: "editor/toolbar/shape",
+      },
+      {
+        id: "rhombus",
+        tooltip: "Rhombus",
+        type: "tool",
+        module: "editor/toolbar/shape",
+      },
+      {
+        id: "line",
+        tooltip: "Line",
+        type: "tool",
+        module: "editor/toolbar/shape",
+      }
+    ],
+    "sticky": { id: "sticky", type: "tool", module: "editor/toolbar/sticky" },
+    "page": { id: "page", type: "tool", module: "editor/toolbar/page" },
+    "media": [
+      {
+        id: "upload",
+        tooltip: "Upload Image",
+        type: "tool",
+        module: "editor/toolbar/upload",
+      },
+      {
+        id: "embed",
+        tooltip: "Embed",
+        type: "tool",
+        module: "editor/toolbar/embed",
+      }
+    ]
+  };
   css = {
     ".eToolbar": `position: absolute; width: 50px; height: fit-content; max-height: var(--maxToolbarHeight); top: 50%; transform: translateY(-50%); background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; transition: transform .4s, border-radius .2s`,
     ".eToolbarContent": `position: relative; box-sizing: border-box; display: flex; flex-direction: column; max-height: var(--maxToolbarHeight); padding: 2px 0; align-items: center; background: var(--pageColor); overflow: auto; z-index: 3; scrollbar-width: none; border-radius: inherit`,

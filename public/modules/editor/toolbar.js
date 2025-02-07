@@ -29,7 +29,7 @@ modules["editor/toolbar"] = class {
     ".eDivider": `width: calc(100% - 8px); height: 4px; margin: 2px 0; background: var(--hover); border-radius: 2px`,
     ".eVerticalDivider": `flex-shrink: 0; width: 4px; height: calc(100% - 8px); margin: 0 2px; background: var(--hover); border-radius: 2px`,
 
-    ".eSubToolHolder": `position: absolute; max-height: 100%; left: 100%; background: var(--pageColor); border-radius: 0 12px 12px 0; border-left: solid 4px var(--theme); z-index: 2; transform: translateX(-100%); opacity: 0; transition: opacity .25s, transform .25s`,
+    ".eSubToolHolder": `position: absolute; max-height: 100%; background: var(--pageColor); z-index: 2; opacity: 0; transition: opacity .25s, transform .25s`,
     ".eSubToolHolder[option]": `border-left-color: var(--secondary)`,
     ".eSubToolShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 20px 16px 0; left: -4px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
     ".eSubToolShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); left: 0px; top: 16px; content: ""; box-shadow: var(--lightShadow); border-radius: inherit`,
@@ -282,14 +282,41 @@ modules["editor/toolbar"] = class {
         }
         subToolbar.style.top = setSubToolTop + "px";
 
-        if (setSubToolTop < 13) {
-          toolbar.style.borderTopRightRadius = "0px";
+        if (toolbarHolder.hasAttribute("right") == false) {
+          subToolbar.style.borderRadius = "0 12px 12px 0";
+          subToolbar.style.left = "100%";
+          subToolbar.style.removeProperty("right");
+          subToolbar.style.borderLeft = "solid 4px var(--theme)";
+          subToolbar.style.removeProperty("border-right");
+          if (setSubToolTop < 13) {
+            toolbar.style.borderTopRightRadius = "0px";
+          } else {
+            toolbar.style.removeProperty("border-top-right-radius");
+          }
+          toolbar.style.removeProperty("border-top-left-radius");
+          if (setSubToolTop + subtoolHeight > toolbar.offsetHeight - 12) {
+            toolbar.style.borderBottomRightRadius = "0px";
+          } else {
+            toolbar.style.removeProperty("border-bottom-right-radius");
+          }
+          toolbar.style.removeProperty("border-bottom-left-radius");
         } else {
+          subToolbar.style.borderRadius = "12px 0 0 12px";
+          subToolbar.style.right = "100%";
+          subToolbar.style.removeProperty("left");
+          subToolbar.style.borderRight = "solid 4px var(--theme)";
+          subToolbar.style.removeProperty("border-left");
+          if (setSubToolTop < 13) {
+            toolbar.style.borderTopLeftRadius = "0px";
+          } else {
+            toolbar.style.removeProperty("border-top-left-radius");
+          }
           toolbar.style.removeProperty("border-top-right-radius");
-        }
-        if (setSubToolTop + subtoolHeight > toolbar.offsetHeight - 12) {
-          toolbar.style.borderBottomRightRadius = "0px";
-        } else {
+          if (setSubToolTop + subtoolHeight > toolbar.offsetHeight - 12) {
+            toolbar.style.borderBottomLeftRadius = "0px";
+          } else {
+            toolbar.style.removeProperty("border-bottom-left-radius");
+          }
           toolbar.style.removeProperty("border-bottom-right-radius");
         }
 
@@ -306,6 +333,8 @@ modules["editor/toolbar"] = class {
         let toolbar = currentToolButton.closest(".eToolbar");
         toolbar.style.removeProperty("border-top-right-radius");
         toolbar.style.removeProperty("border-bottom-right-radius");
+        toolbar.style.removeProperty("border-top-left-radius");
+        toolbar.style.removeProperty("border-bottom-left-radius");
       }
     }
     this.openSubToolbar = async () => {
@@ -323,6 +352,11 @@ modules["editor/toolbar"] = class {
       </div>`);
       subToolbar = toolbar.querySelector(".eSubToolHolder[new]");
       subToolbar.removeAttribute("new");
+      if (toolbarHolder.hasAttribute("right") == false) {
+        subToolbar.style.transform = "translateX(-100%)";
+      } else {
+        subToolbar.style.transform = "translateX(100%)";
+      }
       subToolbar.offsetHeight;
       this.updateToolbars();
       subToolbar.style.transform = "translateX(0%)";
@@ -338,7 +372,11 @@ modules["editor/toolbar"] = class {
       this.updateTooltip();
       (async () => {
         removeToolbar.style.zIndex = 1;
-        removeToolbar.style.transform = "translateX(-100%)";
+        if (toolbarHolder.hasAttribute("right") == false) {
+          removeToolbar.style.transform = "translateX(-100%)";
+        } else {
+          removeToolbar.style.transform = "translateX(100%)";
+        }
         removeToolbar.style.opacity = 0;
         await sleep(300);
         if (removeToolbar != null) {

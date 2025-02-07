@@ -42,6 +42,7 @@ modules["pages/lesson"] = class {
     newPage.type = type;
     newPage.holder = holder;
     typePages[id] = newPage;
+    this.pushToPipelines(null, "page_add", { type: type, page: newPage });
     return newPage;
   }
   removePage = (id, type) => {
@@ -69,6 +70,7 @@ modules["pages/lesson"] = class {
       }
     }
     delete typePages[id];
+    this.pushToPipelines(null, "page_remove", { type: type });
   }
   pushToPipelines = (type, event, data) => {
     let pageTypeKeys = Object.keys(this.pages);

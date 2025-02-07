@@ -1,7 +1,7 @@
 modules["editor/toolbar"] = class {
   css = {
-    ".eToolbar": `position: absolute; width: 50px; height: 100%; max-height: fit-content; top: 50%; transform: translateY(-50%); background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; transition: all .4s, border-radius .2s`,
-    ".eToolbarContent": `position: relative; box-sizing: border-box; display: flex; flex-direction: column; height: fit-content; max-height: 100%; padding: 2px 0; align-items: center; background: var(--pageColor); overflow: auto; z-index: 3; scrollbar-width: none; border-radius: inherit`,
+    ".eToolbar": `position: absolute; width: 50px; height: fit-content; max-height: var(--maxToolbarHeight); top: 50%; transform: translateY(-50%); background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; transition: transform .4s, border-radius .2s`,
+    ".eToolbarContent": `position: relative; box-sizing: border-box; display: flex; flex-direction: column; max-height: var(--maxToolbarHeight); padding: 2px 0; align-items: center; background: var(--pageColor); overflow: auto; z-index: 3; scrollbar-width: none; border-radius: inherit`,
     ".eToolbarContent::-webkit-scrollbar": `display: none`,
     ".eToolbar[hidden]": `transform: translateY(-50%) scale(0) !important`,
     ".eToolbarHolder[left] .eToolbar": `left: 0px; border-radius: 0 12px 12px 0; transform-origin: left center`,
@@ -444,6 +444,10 @@ modules["editor/toolbar"] = class {
         this.setTool(event.target.closest("button"));
       }
     });
+    this.updateMaxHeight = () => {
+      toolbarHolder.style.setProperty("--maxToolbarHeight", toolbarHolder.offsetHeight + "px"); // Have to add this solution because FIREFOX
+    }
+    this.updateMaxHeight();
 
     // Subscribe to Events:
     editor.pipeline.subscribe("toolbarMouseMove", "mousemove", (data) => {
@@ -454,6 +458,11 @@ modules["editor/toolbar"] = class {
       this.closeTooltip();
     });
     editor.pipeline.subscribe("toolbarPageResize", "resize", () => {
+      this.updateMaxHeight();
+      this.updateToolbars();
+    });
+    editor.pipeline.subscribe("toolbarPageResize", "page_add", () => {
+      this.updateMaxHeight();
       this.updateToolbars();
     });
   }

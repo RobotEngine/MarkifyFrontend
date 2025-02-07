@@ -41,10 +41,12 @@ modules["editor/board"] = class {
     <div class="eToolbarHolder" left>
       <div class="eToolbar" editor keeptooltip hidden notransition></div>
       <div class="eToolbar" viewer keeptooltip hidden notransition>
-        <button class="eTool" subtool="raisehand" tooltip="Raise Hand"><div></div></button>
-        <div class="eDivider"></div>
-        <button class="eTool" subtool="select" tooltip="Select" module="pages/editor/toolbar/select" selected><div></div></button>
-        <button class="eTool" subtool="pan" tooltip="Pan" module="pages/editor/toolbar/pan"><div></div></button>
+        <div class="eToolbarContent">
+          <button class="eTool" subtool="raisehand" tooltip="Raise Hand"><div></div></button>
+          <div class="eDivider"></div>
+          <button class="eTool" subtool="select" tooltip="Select" module="pages/editor/toolbar/select" selected><div></div></button>
+          <button class="eTool" subtool="pan" tooltip="Pan" module="pages/editor/toolbar/pan"><div></div></button>
+        </div>
       </div>
       <div class="eToolbarTooltip"></div>
     </div>
@@ -75,7 +77,7 @@ modules["editor/board"] = class {
     ".eContentHolder": `position: relative; width: 100%; height: 100%; overflow: scroll; z-index: 1; transition: .5s`,
     //".eContentHolder .content": `width: 5000px; height: 5000px`, // Just a test
     
-    ".eTopHolder": `position: relative; width: 100%; height: 50px; visibility: visible`,
+    ".eTopHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
     ".eTop": `position: absolute; display: flex; box-sizing: border-box; width: 100%; gap: 8px; padding-bottom: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,
     ".eTopHolder[scroll] .eTop": `gap: 0px !important; padding: 0 6px !important; padding-bottom: 0px !important; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
     ".eTop::-webkit-scrollbar": `display: none`,
@@ -122,15 +124,7 @@ modules["editor/board"] = class {
     ".eAccount img": `width: 100%; height: 100%; object-fit: cover`,
     ".eLogin": `height: 32px; display: none; padding: 6px 10px; margin: 0 4px; background: var(--secondary); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
 
-    ".eToolbarHolder": `position: relative; display: flex; gap: 8px; flex: 1; visibility: visible`,
-    ".eToolbarHolder[left]": `margin: 8px 0 0`,
-    ".eToolbarHolder[right]": `margin: 8px 0 0 auto`,
-    ".eToolbar": `position: absolute; display: flex; flex-direction: column; box-sizing: border-box; padding: 2px 0; width: 50px; height: fit-content; max-height: 100%; top: 50%; transform: translateY(-50%); background: var(--pageColor); box-shadow: var(--lightShadow); align-items: center; overflow: auto; scrollbar-width: none; pointer-events: all; transition: all .4s, border-radius .2s`,
-    ".eToolbar::-webkit-scrollbar": `display: none`,
-    ".eToolbar[hidden]": `transform: translateY(-50%) scale(0) !important`,
-    ".eToolbarHolder[left] .eToolbar": `left: 0px; border-radius: 0 12px 12px 0; transform-origin: left center`,
-    ".eToolbarHolder[right] .eToolbar": `right: 0px; border-radius: 12px 0 0 12px; transform-origin: right center`,
-    ".eToolbarTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; transform: scale(0); opacity: 0`,
+    ".eToolbarHolder": `position: relative; display: none; gap: 8px; flex: 1; visibility: visible`,
 
     ".eBottomHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
     ".eBottom": `position: absolute; display: flex; width: 100%; gap: 8px; padding-top: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,

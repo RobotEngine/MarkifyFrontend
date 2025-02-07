@@ -415,7 +415,6 @@ modules["editor/toolbar"] = class {
       this.closeTooltip();
     });
     editor.pipeline.subscribe("toolbarPageResize", "resize", () => {
-      console.log("WDA")
       this.updateToolbars();
     });
   }

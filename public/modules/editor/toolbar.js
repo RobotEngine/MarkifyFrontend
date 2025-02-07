@@ -73,8 +73,9 @@ modules["editor/toolbar"] = class {
     let content = editor.contentHolder.querySelector(".eContent");
     let annotations = content.querySelector(".eAnnotations");
 
+    let currentTool = "select";
+    let currentToolButton;
     let subToolbar;
-    let mainSubtoolButton;
 
     // Handle Disabled Tools:
     let subToolTypes = {
@@ -135,14 +136,14 @@ modules["editor/toolbar"] = class {
           let setLeft = toolbarParent.offsetWidth;
           let setTop = buttonRect.top - toolHolderRect.top + (tooltipElement.offsetHeight / 2) - (tooltipText.offsetHeight / 2);
           if (subToolbar != null) {
-            let subToolWidth = parseInt(subToolbar.getAttribute("setwidth")) + 4;
-            let subToolTop = parseInt(subToolbar.getAttribute("settop"));
+            let toolbarRect = subToolbar.getBoundingClientRect();
+            let toolbarContentScroll = subToolbar.querySelector(".eSubToolContentScroll");
+            let subToolWidth = toolbarContentScroll.offsetWidth + 4;
+            let subToolTop = toolbarRect.top - toolHolderRect.top;
             if (tooltipElement.closest(".eSubToolHolder") != null) {
               setLeft += subToolWidth;
-            } else if (mainSubtoolButton != null) {
-              if (setTop > subToolTop && setTop < subToolTop + parseInt(subToolbar.getAttribute("setheight"))) {
-                setLeft += subToolWidth;
-              }
+            } else if (setTop > subToolTop && setTop + (tooltipText.offsetHeight / 2) < subToolTop + toolbarContentScroll.offsetHeight) {
+              setLeft += subToolWidth;
             }
           }
           tooltipText.style.transformOrigin = "center left";
@@ -153,14 +154,14 @@ modules["editor/toolbar"] = class {
           let setRight = toolbarParent.offsetWidth;
           let setTop = buttonRect.top - toolHolderRect.top + (tooltipElement.offsetHeight / 2) - (tooltipText.offsetHeight / 2);
           if (subToolbar != null) {
-            let subToolWidth = parseInt(subToolbar.getAttribute("setwidth")) + 4;
-            let subToolTop = parseInt(subToolbar.getAttribute("settop"));
+            let toolbarRect = subToolbar.getBoundingClientRect();
+            let toolbarContentScroll = subToolbar.querySelector(".eSubToolContentScroll");
+            let subToolWidth = toolbarContentScroll.offsetWidth + 4;
+            let subToolTop = toolbarRect.top - toolHolderRect.top;
             if (tooltipElement.hasAttribute("tool") == false) {
               setRight += subToolWidth;
-            } else if (mainSubtoolButton != null) {
-              if (setTop > subToolTop && setTop < subToolTop + parseInt(subToolbar.getAttribute("setheight"))) {
-                setRight += subToolWidth;
-              }
+            } else if (setTop > subToolTop && setTop + (tooltipText.offsetHeight / 2) < subToolTop + toolbarContentScroll.offsetHeight) {
+              setRight += subToolWidth;
             }
           }
           tooltipText.style.transformOrigin = "center right";
@@ -239,7 +240,7 @@ modules["editor/toolbar"] = class {
       this.updateTooltip();
       tooltipOpen = true;
       tooltipText.offsetHeight;
-      tooltipText.style.transition = ".3s";
+      tooltipText.style.transition = ".25s";
       tooltipText.style.transform = "scale(1)";
       tooltipText.style.opacity = 1;
     }
@@ -257,8 +258,6 @@ modules["editor/toolbar"] = class {
     }
 
     // Manage Toolbar:
-    let currentTool = "select";
-    let currentToolButton;
     this.updateToolbars = () => {
       if (subToolbar != null && currentToolButton != null) {
         let toolbar = currentToolButton.closest(".eToolbar");
@@ -282,7 +281,6 @@ modules["editor/toolbar"] = class {
           setSubToolTop = 0;
         }
         subToolbar.style.top = setSubToolTop + "px";
-        subToolbar.setAttribute("settop", setSubToolTop);
 
         if (setSubToolTop < 13) {
           toolbar.style.borderTopRightRadius = "0px";
@@ -295,13 +293,15 @@ modules["editor/toolbar"] = class {
           toolbar.style.removeProperty("border-bottom-right-radius");
         }
 
-        subToolbar.setAttribute("setwidth", contentScroll.offsetWidth);
-        subToolbar.setAttribute("setheight", contentScroll.offsetHeight);
+        //subToolbar.setAttribute("setwidth", contentScroll.offsetWidth);
+        //subToolbar.setAttribute("setheight", contentScroll.offsetHeight);
         
         contentHolder.style.width = contentScroll.offsetWidth + "px";
         contentHolder.style.height = contentScroll.offsetHeight + "px";
 
-        contentHolder.style.transition = "width .3s, height .3s";
+        //contentHolder.style.transition = "width .3s, height .3s";
+
+        this.updateTooltip();
       } else if (currentToolButton != null) {
         let toolbar = currentToolButton.closest(".eToolbar");
         toolbar.style.removeProperty("border-top-right-radius");
@@ -335,6 +335,7 @@ modules["editor/toolbar"] = class {
       let removeToolbar = subToolbar;
       subToolbar = null;
       this.updateToolbars();
+      this.updateTooltip();
       (async () => {
         removeToolbar.style.zIndex = 1;
         removeToolbar.style.transform = "translateX(-100%)";

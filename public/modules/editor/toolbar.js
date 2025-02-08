@@ -460,22 +460,20 @@ modules["editor/toolbar"] = class {
       let toolID = button.getAttribute("tool");
       let isSelected = button.hasAttribute("selected");
       let isExtended = button.hasAttribute("extend");
-
-      if (isSelected == false) {
-        let lastSelectedQuery = "button[selected]";
-        if (button.hasAttribute("option") == true) {
-          lastSelectedQuery += "[option]";
-        }
-        let lastSelected = button.parentElement.querySelectorAll(lastSelectedQuery);
-        for (let i = 0; i < lastSelected.length; i++) {
-          let prev = lastSelected[i];
-          if (prev.hasAttribute("noselect") == false) {
-            prev.removeAttribute("selected");
-            prev.removeAttribute("extend");
-          }
-        }
-        button.setAttribute("selected", "");
+      
+      let lastSelectedQuery = "button[selected]";
+      if (button.hasAttribute("option") == true) {
+        lastSelectedQuery += "[option]";
       }
+      let lastSelected = button.parentElement.querySelectorAll(lastSelectedQuery);
+      for (let i = 0; i < lastSelected.length; i++) {
+        let prev = lastSelected[i];
+        if (prev.hasAttribute("noselect") == false) {
+          prev.removeAttribute("selected");
+          prev.removeAttribute("extend");
+        }
+      }
+      button.setAttribute("selected", "");
 
       if (button.closest(".eToolbarContent") != null) {
         this.closeSubToolbar();

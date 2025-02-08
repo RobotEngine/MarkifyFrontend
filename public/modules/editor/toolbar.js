@@ -533,13 +533,21 @@ modules["editor/toolbar"] = class {
       }
       this.updateTooltip();
     }
-    this.setTool = async (button, shortPress) => {
+    let lastSetButton;
+    this.setTool = async (targetButton, shortPress) => {
+      let button = targetButton ?? lastSetButton;
       if (button == null || button.hasAttribute("noselect") == true) {
         return;
       }
       let toolID = button.getAttribute("tool");
       if (this.checkToolEnabled(toolID) == false) {
         return alertModule.open("warning", "<b>Tool Toggle</b>The lesson owner has disabled this tool.");
+      }
+
+      if (targetButton != null) {
+        lastSetButton = targetButton;
+      } else {
+        lastSetButton = null;
       }
 
       if (button.closest(".eToolbarContent") != null) {
@@ -564,8 +572,6 @@ modules["editor/toolbar"] = class {
         this.updateToolbars();
       }
     }
-    toolbarHolder.addEventListener("mousedown", (event) => { this.setTool(event.target.closest("button"), true); });
-    toolbarHolder.addEventListener("mouseup", (event) => { this.setTool(event.target.closest("button")); });
     toolbarHolder.addEventListener("keydown", (event) => {
       if (event.key == "Enter") {
         this.setTool(event.target.closest("button"));
@@ -578,11 +584,21 @@ modules["editor/toolbar"] = class {
     this.activateTool();
 
     // Subscribe to Events:
-    editor.pipeline.subscribe("toolbarMouseMove", "mousemove", (data) => {
+    editor.pipeline.subscribe("toolbarMouse", "mousedown", (data) => {
+      let event = data.event;
+      let target = event.target;
+      if (target.closest(".eToolbar") != null) {
+        this.setTool(target.closest("button"), true);
+      }
+    });
+    editor.pipeline.subscribe("toolbarMouse", "mousemove", (data) => {
       let event = data.event;
       this.setTooltip(event);
     });
-    editor.pipeline.subscribe("toolbarMouseLeave", "mouseleave", () => {
+    editor.pipeline.subscribe("toolbarMouse", "mouseup", (data) => {
+      this.setTool();
+    });
+    editor.pipeline.subscribe("toolbarMouse", "mouseleave", () => {
       this.closeTooltip();
     });
     editor.pipeline.subscribe("toolbarPageResize", "resize", () => {

@@ -171,12 +171,14 @@ modules["editor/toolbar"] = class {
       if (tooltipElement.hasAttribute("selected") == true && (tooltipElement.hasAttribute("option") == true || tooltipElement.hasAttribute("action") == true)) {
         return this.closeTooltip();
       }
+      let tooltipElementStyle = getComputedStyle(tooltipElement);
       let themeColor = getComputedStyle(tooltipElement).getPropertyValue("--hoverTooltip");
       if (themeColor != "" && themeColor != null) {
         tooltipText.style.color = themeColor;
       } else {
-        tooltipText.style.color = "var(--theme)";
+        tooltipText.style.color = tooltipElementStyle.getPropertyValue("--theme");
       }
+      tooltipText.textContent = tooltipElement.getAttribute("tooltip");
 
       let toolbarParent = tooltipElement.closest(".eToolbar");
       if (toolbarParent != null) {
@@ -287,7 +289,6 @@ modules["editor/toolbar"] = class {
         toolbar.appendChild(tooltipText);
       }
       tooltipElement = element;
-      tooltipText.textContent = element.getAttribute("tooltip");
       this.updateTooltip();
       tooltipOpen = true;
       tooltipText.offsetHeight;
@@ -463,8 +464,10 @@ modules["editor/toolbar"] = class {
         let lastSelected = button.parentElement.querySelectorAll(lastSelectedQuery);
         for (let i = 0; i < lastSelected.length; i++) {
           let prev = lastSelected[i];
-          prev.removeAttribute("selected");
-          prev.removeAttribute("extend");
+          if (prev.hasAttribute("noselect") == false) {
+            prev.removeAttribute("selected");
+            prev.removeAttribute("extend");
+          }
         }
         button.setAttribute("selected", "");
       }
@@ -527,5 +530,6 @@ modules["editor/toolbar"] = class {
       this.updateMaxHeight();
       this.updateToolbars();
     });
+    editor.toolbar = this;
   }
 }

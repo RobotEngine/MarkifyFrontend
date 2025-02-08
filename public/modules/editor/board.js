@@ -42,7 +42,7 @@ modules["editor/board"] = class {
       <div class="eToolbar" editor keeptooltip hidden notransition></div>
       <div class="eToolbar" viewer keeptooltip hidden notransition>
         <div class="eToolbarContent">
-          <button class="eTool" tool="raisehand" tooltip="Raise Hand"><div></div></button>
+          <button class="eTool" tool="raisehand" tooltip="Raise Hand" noselect style="--theme: var(--green); --hoverColor: rgba(var(--greenRGB), .3)"><div></div></button>
           <div class="eDivider" keeptoolbar></div>
           <button class="eTool" tool="select" tooltip="Select" module="editor/toolbar/select" selected><div></div></button>
           <button class="eTool" tool="pan" tooltip="Pan" module="editor/toolbar/pan"><div></div></button>
@@ -180,6 +180,7 @@ modules["editor/board"] = class {
     let toolbarHolder = page.querySelector(".eToolbarHolder");
     let editorToolbar = toolbarHolder.querySelector(".eToolbar[editor]");
     let viewerToolbar = toolbarHolder.querySelector(".eToolbar[viewer]");
+    let handButton = viewerToolbar.querySelector('.eTool[tool="raisehand"]');
 
     let currentPageHolder = frame.querySelector(".eBottomSection[right]");
     let pageTextBox = currentPageHolder.querySelector(".eCurrentPage");
@@ -286,7 +287,7 @@ modules["editor/board"] = class {
       }
       
       handCountTx.textContent = this.parent.handCount;
-      if (this.parent.handCount > 0 && this.parent.memberCount > 1) {
+      if (this.parent.handCount > 0) {
         handCountTx.style.display = "flex";
         handCountTx.parentElement.style.padding = "4px 10px 4px 4px";
       } else {
@@ -404,6 +405,31 @@ modules["editor/board"] = class {
       endSessionButton.setAttribute("disabled", "");
       await sendRequest("DELETE", "lessons/members/reset", null, { session: this.editor.session });
       endSessionButton.removeAttribute("disabled");
+    });
+
+    handButton.addEventListener("click", async () => {
+      if (this.editor.self.access != 0) {
+        raiseHand.setAttribute("hidden", "");
+        return;
+      }
+      handButton.setAttribute("disabled", "");
+      if (handButton.hasAttribute("selected") == false) {
+        let [code] = await sendRequest("PUT", "lessons/members/hand/raise", null, { session: this.editor.session });
+        if (code == 200) {
+          handButton.setAttribute("selected", "");
+          handButton.setAttribute("tooltip", "Lower Hand");
+        }
+      } else {
+        let [code] = await sendRequest("DELETE", "lessons/members/hand/lower", null, { session: this.editor.session });
+        if (code == 200) {
+          handButton.removeAttribute("selected");
+          handButton.setAttribute("tooltip", "Raise Hand");
+        }
+      }
+      if (this.editor.toolbar != null) {
+        this.editor.toolbar.updateTooltip();
+      }
+      handButton.removeAttribute("disabled", "");
     });
 
     // Load Images:

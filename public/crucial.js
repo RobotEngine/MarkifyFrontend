@@ -573,20 +573,17 @@ function removeLocalStore(key) {
 }
 
 function getSVG(path) {
-  return new Promise(function (resolve) {
-    let newObject = document.createElement("object");
-    newObject.className = "svgImageLoad";
-    newObject.setAttribute("type", "image/svg+xml");
-    newObject.addEventListener("load", () => {
-      resolve(newObject.contentDocument.documentElement.outerHTML);
-      newObject.remove();
-    });
-    newObject.addEventListener("error", () => {
-      resolve();
-      newObject.remove();
-    });
-    newObject.setAttribute("data", path);
-    fixed.appendChild(newObject);
+  return new Promise(async (resolve) => {
+    try {
+      let response = await fetch(path);
+      if (response.ok != true) {
+        return resolve();
+      }
+      return resolve(await response.text());
+    } catch (error) {
+      console.error("Failed to fetch SVG:", error);
+      return resolve();
+    }
   });
 }
 async function setSVG(element, path, replace) {
@@ -596,9 +593,6 @@ async function setSVG(element, path, replace) {
   }
   if (replace != null) {
     svg = await replace(svg);
-  }
-  if (isLocal == true) {
-    svg = svg.replace(/<script>/g, "<disabled_script>");
   }
   element.insertAdjacentHTML("beforeend", svg);
 }

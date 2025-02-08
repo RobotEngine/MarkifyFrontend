@@ -189,11 +189,15 @@ modules["editor/board"] = class {
 
     this.editor = await this.setFrame("pages/lesson/editor", contentHolder);
     this.editor.id = this.parent.id;
+    this.editor.self = this.parent.self;
     this.editor.session = this.parent.session;
     this.editor.sessionID = this.parent.sessionID;
     this.editor.sources = this.parent.sources;
     this.editor.settings = this.parent.lesson.settings ?? {};
-    this.editor.self = this.parent.self;
+
+    let stringPref = JSON.stringify(this.parent.preferences); // Must be duplicated
+    this.editor.preferences = JSON.parse(stringPref);
+    this.editor.lastSavePreferences = JSON.parse(stringPref);
 
     let updateTopBar = (ignoreAttr) => {
       if (ignoreAttr != true) {

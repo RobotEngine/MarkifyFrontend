@@ -98,6 +98,71 @@ modules["pages/lesson"] = class {
 
   sources = {};
 
+  preferences = {
+    tools: {
+      selection: {
+        subtool: "select"
+      },
+      markup: {
+        subtool: "highlighter",
+        color: {
+          selected: "FFC24A",
+          options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "000"]
+        },
+        thickness: 16,
+        opacity: 50
+      },
+      text: {
+        color: {
+          selected: "0084FF",
+          options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "000"]
+        },
+        opacity: 100,
+        size: 18,
+        align: "center"
+      },
+      draw: {
+        subtool: "pen",
+        color: {
+          selected: "DF84FF",
+          options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "000"]
+        },
+        thickness: 4,
+        opacity: 100
+      },
+      shape: {
+        subtool: "square",
+        color: {
+          selected: "FF4C6C",
+          options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "000"]
+        },
+        thickness: 8,
+        opacity: 100,
+        filled: false
+      },
+      sticky: {
+        color: {
+          selected: "FADCA0",
+          options: ["88B4FA", "F49CA9", "FADCA0", "E4B8FB", "A1D8AF", "F285B8", "666666"]
+        },
+        size: 16,
+        align: "center"
+      },
+      page: {
+        color: {
+          selected: "2F2F2F",
+          options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "2F2F2F"]
+        },
+        size: [824, 1064]
+      },
+      media: {},
+      options: {
+        colorpicker: {
+          scale: 0
+        }
+      }
+    }
+  };
   defaultEmojis = [
     "THUMBS UP SIGN",
     "THUMBS DOWN SIGN",
@@ -115,7 +180,6 @@ modules["pages/lesson"] = class {
     "HUNDRED POINTS SYMBOL"
   ];
   recentEmojis = [];
-  preferences = {};
 
   signalStrength = 1;
   
@@ -401,6 +465,7 @@ modules["pages/lesson"] = class {
         this.recentEmojis = body.preferences.emojis;
         delete body.preferences.emojis;
       }
+      objectUpdate(body.preferences, this.preferences);
     }
     for (let i = 0; (i < this.defaultEmojis.length && this.recentEmojis.length < 21); i++) {
       if (this.recentEmojis.includes(this.defaultEmojis[i]) == false) {
@@ -806,6 +871,24 @@ modules["pages/lesson/editor"] = class {
         let option = localOptionKeys[i];
         this.options[option] = this.localOptions[option];
       }
+    }
+
+    let savePreferenceTimeout;
+    this.savePreferences = () => {
+      if (userID == null) {
+        return; // Can't save if not a user!
+      }
+      clearTimeout(savePreferenceTimeout);
+      savePreferenceTimeout = setTimeout(async () => {
+        let tempRevert = JSON.parse(JSON.stringify(this.lastSavePreferences));
+        let changes = objectUpdate(this.preferences, this.lastSavePreferences);
+        if (Object.keys(changes).length > 0) {
+          let [code] = await sendRequest("POST", "lessons/save/preferences", { save: changes });
+          if (code != 200) {
+            this.lastSavePreferences = tempRevert;
+          }
+        }
+      }, 1000); // Save after 1 second of no changes
     }
 
     this.utils.localMousePosition = (mouse) => {

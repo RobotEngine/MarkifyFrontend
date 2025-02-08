@@ -64,9 +64,7 @@ modules["editor/toolbar"] = class {
     ".eTool:hover > div": `background: var(--hoverColor)`,
     ".eTool:active": `transform: unset !important`,
     ".eTool:active > div": `transform: scale(.95)`,
-    ".eTool[option]:active > div": `background: var(--secondary); border-radius: 22px`,
     ".eTool[selected]:active > div": `width: 42px !important; margin: 0 4px !important; border-radius: 8px !important`,
-    ".eTool[selected][option]:active > div": `border-radius: 22px !important`,
     ".eTool[selected] > div": `background: var(--theme)`,
     ".eTool[selected][option] > div": `background: var(--secondary)`,
     ".eToolbarHolder[left] .eTool[extend] > div": `width: 46px; margin: 0 0 0 4px; border-radius: 8px 0 0 8px; justify-content: left`,
@@ -126,9 +124,12 @@ modules["editor/toolbar"] = class {
     let content = editor.contentHolder.querySelector(".eContent");
     let annotations = content.querySelector(".eAnnotations");
 
-    let currentTool = "select";
+    let currentTool = "selection";
+    this.currentToolModule = "pages/editor/toolbar/cursor";
     let currentToolButton;
     let subToolbar;
+
+    let selectedSubtoolToolID = "select";
 
     // Handle Disabled Tools:
     let subToolTypes = {
@@ -393,7 +394,7 @@ modules["editor/toolbar"] = class {
       }
       let toolData = this.tools[currentTool] ?? {};
       if (toolData.html == null && toolData.frame == null) {
-        return;
+        return [toolData];
       }
 
       let toolbar = currentToolButton.closest(".eToolbar");
@@ -431,7 +432,7 @@ modules["editor/toolbar"] = class {
       this.updateToolbars();
       subToolbar.style.transform = "translateX(0%)";
       subToolbar.style.opacity = 1;
-      return subToolbar;
+      return [toolData, subToolbar];
     }
     this.closeSubToolbar = () => {
       if (subToolbar == null) {
@@ -476,16 +477,30 @@ modules["editor/toolbar"] = class {
         button.setAttribute("selected", "");
       }
 
-      if (toolID != null) {
+      if (button.closest(".eToolbarContent") != null) {
         this.closeSubToolbar();
         if (isExtended == false) {
-          let newToolbar = await this.openSubToolbar();
+          let [toolData, newToolbar] = await this.openSubToolbar();
           if (newToolbar != null) {
             button.setAttribute("extend", "");
+            let selectTool = (editor.preferences.tools[toolID] ?? {}).subtool;
+            if (selectTool != null) {
+              let selectSubtool = newToolbar.querySelector('.eTool[tool="' + selectTool + '"]');
+              if (selectSubtool != null) {
+                this.currentToolModule = selectSubtool.getAttribute("module");
+                selectSubtool.setAttribute("selected", "");
+              }
+            } else if (toolData != null) {
+              this.currentToolModule = null;
+            }
+          } else {
+            this.currentToolModule = toolData.module;
           }
         } else {
           button.removeAttribute("extend");
         }
+      } else if (button.closest(".eSubToolContentScroll") != null) {
+        // TODO
       }
     }
     this.setTool = (button, shortPress) => {
@@ -500,6 +515,13 @@ modules["editor/toolbar"] = class {
       if (button.closest(".eToolbarContent") != null) {
         currentTool = toolID;
         currentToolButton = button;
+      } else if (button.closest(".eSubToolContentScroll") != null) {
+        selectedSubtoolToolID = button.getAttribute("tool");
+        if ((editor.preferences.tools[currentTool] ?? {}).subtool != null) {
+          editor.preferences.tools[currentTool].subtool = selectedSubtoolToolID;
+          editor.savePreferences();
+        }
+        this.currentToolModule = button.getAttribute("module");
       }
 
       if (shortPress != true) {

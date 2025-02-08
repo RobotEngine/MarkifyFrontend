@@ -1,145 +1,52 @@
 modules["editor/toolbar"] = class {
   tools = {
-    "select": [
-      {
-        id: "select",
-        tooltip: "Select",
-        type: "tool",
-        module: "editor/toolbar/cursor"
-      },
-      {
-        id: "pan",
-        tooltip: "Pan",
-        type: "tool",
-        module: "editor/toolbar/pan"
-      },
-      {
-        id: "drag",
-        tooltip: "Multi-Select",
-        type: "tool",
-        module: "editor/toolbar/drag"
-      }
-    ],
-    "draw": [
-      {
-        id: "pen",
-        tooltip: "Pen",
-        type: "tool",
-        module: "editor/toolbar/pen",
-      },
-      {
-        type: "divider"
-      },
-      {
-        id: "color",
-        type: "option",
-        module: "editor/toolbar/color"
-      },
-      {
-        id: "thickness",
-        type: "option",
-        module: "editor/toolbar/thickness"
-      },
-      {
-        id: "opacity",
-        type: "option",
-        module: "editor/toolbar/opacity"
-      }
-    ],
-    "markup": [
-      {
-        id: "highlighter",
-        tooltip: "Highlighter",
-        type: "tool",
-        module: "editor/toolbar/highlighter",
-      },
-      {
-        id: "underline",
-        tooltip: "Underline",
-        type: "tool",
-        module: "editor/toolbar/understrike",
-      },
-      {
-        type: "divider"
-      },
-      {
-        id: "color",
-        type: "option",
-        module: "editor/toolbar/color"
-      },
-      {
-        id: "thickness",
-        type: "option",
-        module: "editor/toolbar/thickness"
-      },
-      {
-        id: "opacity",
-        type: "option",
-        module: "editor/toolbar/opacity"
-      }
-    ],
+    "select": {
+      html: `<div class="eSubToolToolsHolder">
+        <button class="eTool" tool="select" tooltip="Select" module="editor/toolbar/select"><div></div></button>
+        <button class="eTool" tool="pan" tooltip="Pan" module="editor/toolbar/pan"><div></div></button>
+        <button class="eTool" tool="drag" tooltip="Multi-Select" module="editor/toolbar/drag"><div></div></button>
+      </div>`
+    },
+    "draw": {
+      html: `<div class="eSubToolToolsHolder">
+        <button class="eTool" tool="pen" tooltip="Pen" module="editor/toolbar/pen"><div></div></button>
+        <div class="eDivider" keeptoolbar></div>
+        <button class="eTool" option="color" tooltip="Color" module="editor/toolbar/color"><div></div></button>
+        <button class="eTool" option="thickness" tooltip="Thickness" module="editor/toolbar/thickness"><div></div></button>
+        <button class="eTool" option="opacity" tooltip="Opacity" module="editor/toolbar/opacity"><div></div></button>
+      </div>`
+    },
+    "markup": {
+      html: `<div class="eSubToolToolsHolder">
+        <button class="eTool" tool="highlighter" tooltip="Highlighter" module="editor/toolbar/highlighter"><div></div></button>
+        <button class="eTool" tool="underline" tooltip="Underline" module="editor/toolbar/underline"><div></div></button>
+        <div class="eDivider" keeptoolbar></div>
+        <button class="eTool" option="color" tooltip="Color" module="editor/toolbar/color"><div></div></button>
+        <button class="eTool" option="thickness" tooltip="Thickness" module="editor/toolbar/thickness"><div></div></button>
+        <button class="eTool" option="opacity" tooltip="Opacity" module="editor/toolbar/opacity"><div></div></button>
+      </div>`
+    },
     "erase": { id: "erase", type: "tool", module: "editor/toolbar/eraser" },
     "text": { id: "text", type: "tool", module: "editor/toolbar/text" },
-    "shape": [
-      {
-        id: "square",
-        tooltip: "Square",
-        type: "tool",
-        module: "editor/toolbar/shape",
-      },
-      {
-        id: "ellipse",
-        tooltip: "Ellipse",
-        type: "tool",
-        module: "editor/toolbar/shape",
-      },
-      {
-        id: "triangle",
-        tooltip: "Triangle",
-        type: "tool",
-        module: "editor/toolbar/shape",
-      },
-      {
-        id: "parallelogram",
-        tooltip: "Parallelogram",
-        type: "tool",
-        module: "editor/toolbar/shape",
-      },
-      {
-        id: "trapezoid",
-        tooltip: "Trapezoid",
-        type: "tool",
-        module: "editor/toolbar/shape",
-      },
-      {
-        id: "rhombus",
-        tooltip: "Rhombus",
-        type: "tool",
-        module: "editor/toolbar/shape",
-      },
-      {
-        id: "line",
-        tooltip: "Line",
-        type: "tool",
-        module: "editor/toolbar/shape",
-      }
-    ],
+    "shape": {
+      html: `<div class="eSubToolToolsHolder">
+        <button class="eTool" tool="square" tooltip="Square" module="editor/toolbar/shape"><div></div></button>
+        <button class="eTool" tool="ellipse" tooltip="Ellipse" module="editor/toolbar/shape"><div></div></button>
+        <button class="eTool" tool="triangle" tooltip="Triangle" module="editor/toolbar/shape"><div></div></button>
+        <button class="eTool" tool="parallelogram" tooltip="Parallelogram" module="editor/toolbar/shape"><div></div></button>
+        <button class="eTool" tool="trapezoid" tooltip="Trapezoid" module="editor/toolbar/shape"><div></div></button>
+        <button class="eTool" tool="rhombus" tooltip="Rhombus" module="editor/toolbar/shape"><div></div></button>
+        <button class="eTool" tool="line" tooltip="Line" module="editor/toolbar/shape"><div></div></button>
+      </div>`
+    },
     "sticky": { id: "sticky", type: "tool", module: "editor/toolbar/sticky" },
     "page": { id: "page", type: "tool", module: "editor/toolbar/page" },
-    "media": [
-      {
-        id: "upload",
-        tooltip: "Upload Image",
-        type: "tool",
-        module: "editor/toolbar/upload",
-      },
-      {
-        id: "embed",
-        tooltip: "Embed",
-        type: "tool",
-        module: "editor/toolbar/embed",
-      }
-    ]
+    "media": {
+      html: `<div class="eSubToolToolsHolder">
+        <button class="eTool" tool="upload" tooltip="Square" module="editor/toolbar/upload"><div></div></button>
+        <button class="eTool" tool="embed" tooltip="Embed" module="editor/toolbar/embed"><div></div></button>
+      </div>`
+    }
   };
   css = {
     ".eToolbar": `position: absolute; width: 50px; height: fit-content; max-height: var(--maxToolbarHeight); top: 50%; transform: translateY(-50%); background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; transition: transform .4s, border-radius .2s`,
@@ -173,12 +80,10 @@ modules["editor/toolbar"] = class {
 
     ".eSubToolHolder": `position: absolute; max-height: 100%; background: var(--pageColor); z-index: 2; opacity: 0; transition: opacity .25s, transform .25s`,
     ".eSubToolHolder[option]": `border-left-color: var(--secondary)`,
-    
     ".eToolbarHolder[left] .eSubToolShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 20px 16px 0; left: -4px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
     ".eToolbarHolder[right] .eSubToolShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 0 16px 20px; right: -4px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
     ".eToolbarHolder[left] .eSubToolShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); left: 0px; top: 16px; content: ""; box-shadow: var(--lightShadow); border-radius: inherit`,
     ".eToolbarHolder[right] .eSubToolShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); right: 0px; top: 16px; content: ""; box-shadow: var(--lightShadow); border-radius: inherit`,
-    
     ".eSubToolContentHolder": `overflow: hidden; border-radius: inherit`,
     ".eSubToolContentScroll": `width: fit-content; overflow: auto`,
     ".eSubToolHolder[option] .eSubToolContentScroll": `overflow: visible`,
@@ -565,14 +470,12 @@ modules["editor/toolbar"] = class {
         return;
       }
       let toolID = button.getAttribute("tool");
-      let subToolID = button.getAttribute("subtool");
-      let setToolID = toolID ?? subToolID;
       if (this.checkToolEnabled(toolID) == false) {
         return alertModule.open("warning", "<b>Tool Toggle</b>The lesson owner has disabled this tool.");
       }
 
-      if (toolID != null) {
-        currentTool = setToolID;
+      if (button.closest(".eToolbarContent") != null) {
+        currentTool = toolID;
         currentToolButton = button;
       }
 

@@ -1356,7 +1356,7 @@ modules["dropdowns/dashboard/options"] = class {
     });
     let newTabButton = frame.querySelector('.dTileDropAction[option="opennewtab"]');
     newTabButton.addEventListener("click", () => {
-      window.open(tile.getAttribute("href"), "_blank");
+      window.open(tile.getAttribute("href"), "_blank").focus();
     });
     let moveToButton = frame.querySelector('.dTileDropAction[option="moveto"]');
     moveToButton.addEventListener("click", () => {

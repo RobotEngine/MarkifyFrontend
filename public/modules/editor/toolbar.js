@@ -1,6 +1,6 @@
 modules["editor/toolbar"] = class {
   tools = {
-    "select": {
+    "selection": {
       html: `<div class="eSubToolToolsHolder">
         <button class="eTool" tool="select" tooltip="Select" module="editor/toolbar/select"><div></div></button>
         <button class="eTool" tool="pan" tooltip="Pan" module="editor/toolbar/pan"><div></div></button>
@@ -43,7 +43,7 @@ modules["editor/toolbar"] = class {
     "page": { id: "page", type: "tool", module: "editor/toolbar/page" },
     "media": {
       html: `<div class="eSubToolToolsHolder">
-        <button class="eTool" tool="upload" tooltip="Square" module="editor/toolbar/upload"><div></div></button>
+        <button class="eTool" tool="upload" tooltip="Upload Image" module="editor/toolbar/upload"><div></div></button>
         <button class="eTool" tool="embed" tooltip="Embed" module="editor/toolbar/embed"><div></div></button>
       </div>`
     }
@@ -87,7 +87,7 @@ modules["editor/toolbar"] = class {
     ".eSubToolContentHolder": `overflow: hidden; border-radius: inherit`,
     ".eSubToolContentScroll": `width: fit-content; overflow: auto`,
     ".eSubToolHolder[option] .eSubToolContentScroll": `overflow: visible`,
-    ".eSubToolContent": `display: flex; flex-wrap: wrap; gap: 6px`
+    ".eSubToolToolsHolder": `display: flex; flex-direction: column; padding: 2px 0; align-items: center`
   };
   js = async (editor) => {
     let page = editor.page;
@@ -98,7 +98,7 @@ modules["editor/toolbar"] = class {
     
     editorToolbar.innerHTML = `
     <div class="eToolbarContent">
-      <button class="eTool" tool="select" tooltip="Selection" selected><div></div></button>
+      <button class="eTool" tool="selection" tooltip="Selection" selected><div></div></button>
       <button class="eTool" tool="draw" tooltip="Draw"><div></div></button>
       <button class="eTool" tool="markup" tooltip="Markup"><div></div></button>
       <button class="eTool" tool="erase" tooltip="Erase"><div></div></button>
@@ -115,7 +115,7 @@ modules["editor/toolbar"] = class {
     let gottenTools = toolbarHolder.querySelectorAll(".eTool");
     for (let i = 0; i < gottenTools.length; i++) {
       let tool = gottenTools[i];
-      setSVG(tool.querySelector("div"), "./images/editor/toolbar/" + (tool.getAttribute("tool") ?? tool.getAttribute("subtool")) + ".svg");
+      setSVG(tool.querySelector("div"), "./images/editor/toolbar/" + tool.getAttribute("tool") + ".svg");
     }
 
     toolbarHolder.style.display = "flex";
@@ -315,17 +315,13 @@ modules["editor/toolbar"] = class {
         let contentHolder = subToolbar.querySelector(".eSubToolContentHolder");
         let contentScroll = contentHolder.querySelector(".eSubToolContentScroll");
 
-        let subToolbarContent = subToolbar.querySelector(".eSubToolContent");
-        subToolbarContent.style.width = "50px";
-        subToolbarContent.style.height = "200px";
-
         let toolsRect = toolbar.getBoundingClientRect();
         let buttonRect = currentToolButton.getBoundingClientRect();
 
         contentScroll.style.maxHeight = toolbar.clientHeight + "px";
 
         let subtoolHeight = contentScroll.offsetHeight;
-        let setSubToolTop = buttonRect.top - toolsRect.top - 4; // 4 Pixels from top
+        let setSubToolTop = buttonRect.top - toolsRect.top - 2; // 2 Pixels from top
         if (setSubToolTop + subtoolHeight > toolbar.offsetHeight) {
           setSubToolTop = toolbar.offsetHeight - subtoolHeight;
         } else if (setSubToolTop < 0) {
@@ -392,6 +388,11 @@ modules["editor/toolbar"] = class {
       if (currentToolButton == null) {
         return;
       }
+      let toolData = this.tools[currentTool] ?? {};
+      if (toolData.html == null && toolData.frame == null) {
+        return;
+      }
+
       let toolbar = currentToolButton.closest(".eToolbar");
       toolbar.insertAdjacentHTML("beforeend", `<div class="eSubToolHolder" keeptooltip new>
         <div class="eSubToolShadow"></div>
@@ -408,10 +409,24 @@ modules["editor/toolbar"] = class {
       } else {
         subToolbar.style.transform = "translateX(100%)";
       }
+
+      let contentHolder = subToolbar.querySelector(".eSubToolContent");
+      if (toolData.frame != null) {
+        await this.parent.setFrame(toolData.frame, contentHolder, { toolbar: this });
+      } else if (toolData.html != null) {
+        contentHolder.innerHTML = toolData.html;
+      }
+      let gottenTools = contentHolder.querySelectorAll(".eTool");
+      for (let i = 0; i < gottenTools.length; i++) {
+        let tool = gottenTools[i];
+        setSVG(tool.querySelector("div"), "./images/editor/toolbar/" + tool.getAttribute("tool") + ".svg");
+      }
+
       subToolbar.offsetHeight;
       this.updateToolbars();
       subToolbar.style.transform = "translateX(0%)";
       subToolbar.style.opacity = 1;
+      return subToolbar;
     }
     this.closeSubToolbar = () => {
       if (subToolbar == null) {
@@ -435,9 +450,8 @@ modules["editor/toolbar"] = class {
         }
       })();
     }
-    this.enableToolUI = (button) => {
+    this.enableToolUI = async (button) => {
       let toolID = button.getAttribute("tool");
-      let subToolID = button.getAttribute("subtool");
       let isSelected = button.hasAttribute("selected");
       let isExtended = button.hasAttribute("extend");
 
@@ -458,8 +472,10 @@ modules["editor/toolbar"] = class {
       if (toolID != null) {
         this.closeSubToolbar();
         if (isExtended == false) {
-          button.setAttribute("extend", "");
-          this.openSubToolbar();
+          let newToolbar = await this.openSubToolbar();
+          if (newToolbar != null) {
+            button.setAttribute("extend", "");
+          }
         } else {
           button.removeAttribute("extend");
         }

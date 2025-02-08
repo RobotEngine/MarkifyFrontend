@@ -42,10 +42,10 @@ modules["editor/board"] = class {
       <div class="eToolbar" editor keeptooltip hidden notransition></div>
       <div class="eToolbar" viewer keeptooltip hidden notransition>
         <div class="eToolbarContent">
-          <button class="eTool" subtool="raisehand" tooltip="Raise Hand"><div></div></button>
+          <button class="eTool" tool="raisehand" tooltip="Raise Hand"><div></div></button>
           <div class="eDivider" keeptoolbar></div>
-          <button class="eTool" subtool="select" tooltip="Select" module="editor/toolbar/select" selected><div></div></button>
-          <button class="eTool" subtool="pan" tooltip="Pan" module="editor/toolbar/pan"><div></div></button>
+          <button class="eTool" tool="select" tooltip="Select" module="editor/toolbar/select" selected><div></div></button>
+          <button class="eTool" tool="pan" tooltip="Pan" module="editor/toolbar/pan"><div></div></button>
         </div>
       </div>
       <div class="eToolbarTooltip"></div>
@@ -375,8 +375,9 @@ modules["editor/board"] = class {
       createCopyButton.removeAttribute("disabled");
       alertModule.close(copyAlert);
       if (code == 200) {
-        modifyParams("lesson", body.lesson);
-        setFrame("pages/lesson");
+        window.open("?lesson=" + body.lesson + "#lesson", "_blank").focus();
+        //modifyParams("lesson", body.lesson);
+        //setFrame("pages/lesson");
       }
     });
 

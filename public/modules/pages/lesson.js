@@ -2674,7 +2674,7 @@ modules["pages/lesson/editor"] = class {
       let anno = annotations.querySelector('.eAnnotation[anno="' + annoID + '"]');
       if (anno != null && (checkDone != true || anno.hasAttribute("done") == false)) {
         anno.remove();
-        this.pipeline.unsubscribe("annotation" + _id);
+        this.pipeline.unsubscribe("annotation" + annoID);
       }
       let allSelections = [...annotations.querySelectorAll('.eSelect[anno="' + annoID + '"]'), ...annotations.querySelectorAll('.eSelectActive[anno="' + annoID + '"]')];
       for (let i = 0; i < allSelections.length; i++) {

@@ -173,8 +173,12 @@ modules["editor/toolbar"] = class {
 
     ".eSubToolHolder": `position: absolute; max-height: 100%; background: var(--pageColor); z-index: 2; opacity: 0; transition: opacity .25s, transform .25s`,
     ".eSubToolHolder[option]": `border-left-color: var(--secondary)`,
-    ".eSubToolShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 20px 16px 0; left: -4px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
-    ".eSubToolShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); left: 0px; top: 16px; content: ""; box-shadow: var(--lightShadow); border-radius: inherit`,
+    
+    ".eToolbarHolder[left] .eSubToolShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 20px 16px 0; left: -4px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
+    ".eToolbarHolder[right] .eSubToolShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 0 16px 20px; right: -4px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
+    ".eToolbarHolder[left] .eSubToolShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); left: 0px; top: 16px; content: ""; box-shadow: var(--lightShadow); border-radius: inherit`,
+    ".eToolbarHolder[right] .eSubToolShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); right: 0px; top: 16px; content: ""; box-shadow: var(--lightShadow); border-radius: inherit`,
+    
     ".eSubToolContentHolder": `overflow: hidden; border-radius: inherit`,
     ".eSubToolContentScroll": `width: fit-content; overflow: auto`,
     ".eSubToolHolder[option] .eSubToolContentScroll": `overflow: visible`,

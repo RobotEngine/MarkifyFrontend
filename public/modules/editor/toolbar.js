@@ -458,7 +458,6 @@ modules["editor/toolbar"] = class {
     }
     this.enableToolUI = async (button) => {
       let toolID = button.getAttribute("tool");
-      let isSelected = button.hasAttribute("selected");
       let isExtended = button.hasAttribute("extend");
       
       let lastSelectedQuery = "button[selected]";

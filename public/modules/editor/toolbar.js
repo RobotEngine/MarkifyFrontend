@@ -1,14 +1,14 @@
 modules["editor/toolbar"] = class {
   tools = {
     "selection": {
-      html: `<div class="eSubToolToolsHolder">
+      html: `<div class="eVerticalToolsHolder">
         <button class="eTool" tool="select" tooltip="Select" module="editor/toolbar/select"><div></div></button>
         <button class="eTool" tool="pan" tooltip="Pan" module="editor/toolbar/pan"><div></div></button>
         <button class="eTool" tool="drag" tooltip="Multi-Select" module="editor/toolbar/drag"><div></div></button>
       </div>`
     },
     "draw": {
-      html: `<div class="eSubToolToolsHolder">
+      html: `<div class="eVerticalToolsHolder">
         <button class="eTool" tool="pen" tooltip="Pen" module="editor/toolbar/pen"><div></div></button>
         <div class="eDivider" keeptoolbar></div>
         <button class="eTool" option="color" tooltip="Color" module="editor/toolbar/color"><div></div></button>
@@ -17,7 +17,7 @@ modules["editor/toolbar"] = class {
       </div>`
     },
     "markup": {
-      html: `<div class="eSubToolToolsHolder">
+      html: `<div class="eVerticalToolsHolder">
         <button class="eTool" tool="highlighter" tooltip="Highlighter" module="editor/toolbar/highlighter"><div></div></button>
         <button class="eTool" tool="underline" tooltip="Underline" module="editor/toolbar/underline"><div></div></button>
         <div class="eDivider" keeptoolbar></div>
@@ -29,7 +29,7 @@ modules["editor/toolbar"] = class {
     "erase": { id: "erase", type: "tool", module: "editor/toolbar/eraser" },
     "text": { id: "text", type: "tool", module: "editor/toolbar/text" },
     "shape": {
-      html: `<div class="eSubToolToolsHolder">
+      html: `<div class="eVerticalToolsHolder">
         <button class="eTool" tool="square" tooltip="Square" module="editor/toolbar/shape"><div></div></button>
         <button class="eTool" tool="ellipse" tooltip="Ellipse" module="editor/toolbar/shape"><div></div></button>
         <button class="eTool" tool="triangle" tooltip="Triangle" module="editor/toolbar/shape"><div></div></button>
@@ -42,7 +42,7 @@ modules["editor/toolbar"] = class {
     "sticky": { id: "sticky", type: "tool", module: "editor/toolbar/sticky" },
     "page": { id: "page", type: "tool", module: "editor/toolbar/page" },
     "media": {
-      html: `<div class="eSubToolToolsHolder">
+      html: `<div class="eVerticalToolsHolder">
         <button class="eTool" tool="upload" tooltip="Upload Image" module="editor/toolbar/upload"><div></div></button>
         <button class="eTool" tool="embed" tooltip="Embed" module="editor/toolbar/embed"><div></div></button>
       </div>`
@@ -50,7 +50,7 @@ modules["editor/toolbar"] = class {
   };
   css = {
     ".eToolbar": `position: absolute; width: 50px; height: fit-content; max-height: var(--maxToolbarHeight); top: 50%; transform: translateY(-50%); background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; transition: transform .4s, border-radius .2s`,
-    ".eToolbarContent": `position: relative; box-sizing: border-box; display: flex; flex-direction: column; max-height: var(--maxToolbarHeight); padding: 2px 0; align-items: center; background: var(--pageColor); overflow: auto; z-index: 3; scrollbar-width: none; border-radius: inherit`,
+    ".eToolbarContent": `position: relative; box-sizing: border-box; max-height: var(--maxToolbarHeight); background: var(--pageColor); overflow: auto; z-index: 3; scrollbar-width: none; border-radius: inherit`,
     ".eToolbarContent::-webkit-scrollbar": `display: none`,
     ".eToolbar[hidden]": `transform: translateY(-50%) scale(0) !important`,
     ".eToolbarHolder[left] .eToolbar": `left: 0px; border-radius: 0 12px 12px 0; transform-origin: left center`,
@@ -85,7 +85,7 @@ modules["editor/toolbar"] = class {
     ".eSubToolContentHolder": `overflow: hidden; border-radius: inherit`,
     ".eSubToolContentScroll": `width: fit-content; overflow: auto`,
     ".eSubToolHolder[option] .eSubToolContentScroll": `overflow: visible`,
-    ".eSubToolToolsHolder": `display: flex; flex-direction: column; padding: 2px 0; align-items: center`
+    ".eVerticalToolsHolder": `display: flex; flex-direction: column; padding: 2px 0; align-items: center`
   };
   js = async (editor) => {
     let page = editor.page;
@@ -95,7 +95,7 @@ modules["editor/toolbar"] = class {
     let tooltipText = toolbarHolder.querySelector(".eToolbarTooltip");
     
     editorToolbar.innerHTML = `
-    <div class="eToolbarContent">
+    <div class="eToolbarContent eVerticalToolsHolder">
       <button class="eTool" tool="selection" tooltip="Selection" selected><div></div></button>
       <button class="eTool" tool="draw" tooltip="Draw"><div></div></button>
       <button class="eTool" tool="markup" tooltip="Markup"><div></div></button>

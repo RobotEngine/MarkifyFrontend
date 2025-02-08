@@ -315,7 +315,7 @@ modules["editor/toolbar"] = class {
     }
 
     this.activateTool = () => {
-      console.log("START:", this.currentToolModule)
+      // TODO
     }
     
     // Manage Toolbar:

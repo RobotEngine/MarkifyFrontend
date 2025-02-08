@@ -458,6 +458,7 @@ modules["editor/toolbar"] = class {
     }
     this.enableToolUI = async (button) => {
       let toolID = button.getAttribute("tool");
+      let isSelected = button.hasAttribute("selected");
       let isExtended = button.hasAttribute("extend");
       
       let lastSelectedQuery = "button[selected]";
@@ -467,14 +468,16 @@ modules["editor/toolbar"] = class {
       let lastSelected = button.parentElement.querySelectorAll(lastSelectedQuery);
       for (let i = 0; i < lastSelected.length; i++) {
         let prev = lastSelected[i];
-        if (prev.hasAttribute("noselect") == false) {
+        if (prev != button && prev.hasAttribute("noselect") == false) {
           prev.removeAttribute("selected");
           prev.removeAttribute("extend");
         }
       }
-      button.setAttribute("selected", "");
+      if (isSelected == false) {
+        button.setAttribute("selected", "");
+      }
 
-      if (button.closest(".eToolbarContent") != null) {
+      if (button.closest(".eToolbarContent") != null) { // Toolbar button
         this.closeSubToolbar();
         if (isExtended == false) {
           let [toolData, newToolbar] = await this.openSubToolbar();
@@ -496,9 +499,19 @@ modules["editor/toolbar"] = class {
         } else {
           button.removeAttribute("extend");
         }
-      } else if (button.closest(".eSubToolContentScroll") != null) {
-        // TODO
+      } else if (button.closest(".eSubToolContentScroll") != null) { // SubToolbar Button
+        if (button.hasAttribute("option") == false) { // Subtool
+          // TODO
+        } else { // Option
+          if (isSelected == false) {
+            // TODO
+          } else {
+            button.removeAttribute("extend");
+            button.removeAttribute("selected");
+          }
+        }
       }
+      this.updateTooltip();
     }
     this.setTool = (button, shortPress) => {
       if (button == null || button.hasAttribute("noselect") == true) {

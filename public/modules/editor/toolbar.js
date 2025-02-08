@@ -115,7 +115,9 @@ modules["editor/toolbar"] = class {
     let gottenTools = toolbarHolder.querySelectorAll(".eTool");
     for (let i = 0; i < gottenTools.length; i++) {
       let tool = gottenTools[i];
-      setSVG(tool.querySelector("div"), "./images/editor/toolbar/" + tool.getAttribute("tool") + ".svg");
+      if (tool.hasAttribute("tool") == true) {
+        setSVG(tool.querySelector("div"), "./images/editor/toolbar/" + tool.getAttribute("tool") + ".svg");
+      }
     }
 
     toolbarHolder.style.display = "flex";
@@ -420,7 +422,9 @@ modules["editor/toolbar"] = class {
       let gottenTools = contentHolder.querySelectorAll(".eTool");
       for (let i = 0; i < gottenTools.length; i++) {
         let tool = gottenTools[i];
-        setSVG(tool.querySelector("div"), "./images/editor/toolbar/" + tool.getAttribute("tool") + ".svg");
+        if (tool.hasAttribute("tool") == true) {
+          setSVG(tool.querySelector("div"), "./images/editor/toolbar/" + tool.getAttribute("tool") + ".svg");
+        }
       }
 
       subToolbar.offsetHeight;

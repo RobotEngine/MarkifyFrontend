@@ -572,14 +572,27 @@ function removeLocalStore(key) {
   } catch { }
 }
 
+let cachedSVGs = {};
+let cachedSVGArray = [];
 function getSVG(path) {
+  if (cachedSVGs[path] != null) {
+    cachedSVGArray.splice(cachedSVGArray.indexOf(path), 1);
+    cachedSVGArray.unshift(path);
+    return cachedSVGs[path];
+  }
   return new Promise(async (resolve) => {
     try {
       let response = await fetch(path);
       if (response.ok != true) {
         return resolve();
       }
-      return resolve(await response.text());
+      let text = await response.text();
+      cachedSVGs[path] = text;
+      cachedSVGArray.unshift(path);
+      if (cachedSVGArray.length > 100) {
+        delete cachedSVGs[cachedSVGArray.pop()];
+      }
+      return resolve(text);
     } catch (error) {
       console.error("Failed to fetch SVG:", error);
       return resolve();

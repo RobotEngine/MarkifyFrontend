@@ -503,6 +503,7 @@ modules["editor/toolbar"] = class {
               }
             } else {
               this.currentToolModule = toolData.module;
+              this.updateTooltip();
             }
             this.activateTool();
           } else {

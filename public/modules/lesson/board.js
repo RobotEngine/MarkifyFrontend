@@ -1,4 +1,4 @@
-modules["pages/lesson/board"] = class {
+modules["lesson/board"] = class {
   html = `<div class="eInterface eCustomScroll">
     <div class="eTopHolder">
       <button class="eTopScroll" left style="left: 7px"><img src="./images/editor/top/leftarrow.svg" /></button>

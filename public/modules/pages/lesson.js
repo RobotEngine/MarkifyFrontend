@@ -1,7 +1,7 @@
 modules["pages/lesson"] = class {
   title = "Lesson";
   preload = [
-    "./modules/pages/lesson/board.js",
+    "./modules/lesson/board.js",
 
     "./modules/editor/realtime.js",
     "./modules/editor/toolbar.js",
@@ -38,7 +38,7 @@ modules["pages/lesson"] = class {
     if (typePages[id] != null) {
       this.removePage(id, type);
     }
-    let newPage = await this.setFrame("pages/lesson/board", holder);
+    let newPage = await this.setFrame("lesson/board", holder);
     if (newPage == null) {
       return;
     }

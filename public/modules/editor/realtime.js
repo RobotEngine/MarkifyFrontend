@@ -517,7 +517,7 @@ modules["editor/realtime"] = class {
                 prevElem.remove();
                 prevElem = null;
               }
-              ([merge, annoElem] = await editor.render.createAnnotation({ ...anno, _id: memberID + "_cursor" }, prevElem));
+              ([merge, annoElem] = await editor.render.create({ ...anno, _id: memberID + "_cursor" }, prevElem));
               member.elements.selection_cursor_annotation = annoElem;
               annoElem.setAttribute("member", memberID);
               annoElem.setAttribute("anno", "cursor");
@@ -621,7 +621,7 @@ modules["editor/realtime"] = class {
                 }
               }
               await editor.utils.annotationChunks(editor.annotations[annoID]);
-              [merge, annoElem] = await editor.render.createAnnotation(merge);
+              [merge, annoElem] = await editor.render.create(merge);
               if (selection != null && anno.remove == true && selection.hasAttribute("remove") == false) {
                 delete member.elements["selection_" + annoID];
                 selection.setAttribute("remove", "");

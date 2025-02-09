@@ -1,4 +1,4 @@
-modules["editor/board"] = class {
+modules["pages/lesson/board"] = class {
   html = `<div class="eInterface eCustomScroll">
     <div class="eTopHolder">
       <button class="eTopScroll" left style="left: 7px"><img src="./images/editor/top/leftarrow.svg" /></button>
@@ -187,7 +187,7 @@ modules["editor/board"] = class {
     let increasePageButton = currentPageHolder.querySelector(".ePageNav[down]");
     let decreasePageButton = currentPageHolder.querySelector(".ePageNav[up]");
 
-    this.editor = await this.setFrame("pages/lesson/editor", contentHolder);
+    this.editor = await this.setFrame("editor", contentHolder);
     this.editor.id = this.parent.id;
     this.editor.self = this.parent.self;
     this.editor.session = this.parent.session;
@@ -693,7 +693,7 @@ modules["editor/board"] = class {
       let jumpAnnotation = null;
       if (checkForJumpLink != null && checkForJumpLink != "") {
         if (this.editor.annotations[checkForJumpLink] != null) {
-          jumpAnnotation = (await this.editor.render.createAnnotation((this.editor.annotations[checkForJumpLink] || {}).render))[1];
+          jumpAnnotation = (await this.editor.render.create((this.editor.annotations[checkForJumpLink] || {}).render))[1];
           this.editor.selecting[checkForJumpLink] = {};
           this.pipeline.publish("redraw_selection", {});
         }

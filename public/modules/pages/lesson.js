@@ -1,7 +1,8 @@
 modules["pages/lesson"] = class {
   title = "Lesson";
   preload = [
-    "./modules/editor/board.js",
+    "./modules/pages/lesson/board.js",
+
     "./modules/editor/realtime.js",
     "./modules/editor/toolbar.js",
 
@@ -37,7 +38,7 @@ modules["pages/lesson"] = class {
     if (typePages[id] != null) {
       this.removePage(id, type);
     }
-    let newPage = await this.setFrame("editor/board", holder);
+    let newPage = await this.setFrame("pages/lesson/board", holder);
     if (newPage == null) {
       return;
     }
@@ -590,7 +591,7 @@ modules["pages/lesson"] = class {
   }
 }
 
-modules["pages/lesson/editor"] = class {
+modules["editor"] = class {
   html = `
   <div class="eContent">
     <div class="eRealtime"></div>
@@ -1063,7 +1064,7 @@ modules["pages/lesson/editor"] = class {
       
       if (annotationVisible == true) {
         if (annotation.element == null) {
-          await this.render.createAnnotation(render);
+          await this.render.create(render);
         }
       } else {
         if (annotation.element != null) {
@@ -1620,7 +1621,7 @@ modules["pages/lesson/editor"] = class {
       parent.appendChild(newSVG);
       return newSVG;
     }
-    this.render.createAnnotation = async (data, anno, long) => {
+    this.render.create = async (data, anno, long) => {
       /*
         _id - ID - The unique ID of the annotation
         f - FUNCTION - The type of tool to render
@@ -1700,7 +1701,7 @@ modules["pages/lesson/editor"] = class {
           let annoParent = annoParentAnno.element;
           if (annoParent == null) {
             if (annoParentData.parent != _id) {
-              annoParent = (await this.render.createAnnotation(annoParentData))[1];
+              annoParent = (await this.render.create(annoParentData))[1];
             }
           }
           if (annoParent != null) {
@@ -2673,7 +2674,7 @@ modules["pages/lesson/editor"] = class {
       }
       return [data, anno];
     }
-    this.render.removeAnnotation = async (annoID, checkDone) => {
+    this.render.remove = async (annoID, checkDone) => {
       let anno = annotations.querySelector('.eAnnotation[anno="' + annoID + '"]');
       if (anno != null && (checkDone != true || anno.hasAttribute("done") == false)) {
         anno.remove();
@@ -2743,12 +2744,12 @@ modules["pages/lesson/editor"] = class {
                 }
               }
               if (allowRender == true) {
-                await this.render.createAnnotation(annotation.render);
+                await this.render.create(annotation.render);
               }
               changeOccured = true;
             }
           } else {
-            this.render.removeAnnotation(annotation.render._id);
+            this.render.remove(annotation.render._id);
             delete this.annotations[annotation.render._id];
             changeOccured = true;
           }
@@ -2782,7 +2783,7 @@ modules["pages/lesson/editor"] = class {
       this.annotations[annoID] = anno;
       await this.utils.annotationChunks(anno);
       this.utils.updateAnnotationPages(anno.render);
-      await this.render.createAnnotation({ ...anno.render, sync: sync }, render);
+      await this.render.create({ ...anno.render, sync: sync }, render);
       return annoData;
     }
 
@@ -2875,7 +2876,7 @@ modules["pages/lesson/editor"] = class {
         for (let i = 0; i < renderAnnotationAnnos.length; i++) {
           let newRender = renderAnnotationAnnos[i];
           if (renderAnnotationIDs[newRender.parent] == null || renderedNewAnnoIDs[newRender.parent] != null) {
-            this.render.createAnnotation(newRender);
+            this.render.create(newRender);
             renderedNewAnnoIDs[newRender._id] = true;
             renderAnnotationAnnos.splice(i, 1);
             i--;
@@ -3074,7 +3075,7 @@ modules["pages/lesson/editor"] = class {
           }
         }
         if (allowRender == true) {
-          this.render.createAnnotation(renderObject, existingRender, true);
+          this.render.create(renderObject, existingRender, true);
         }
       }
       this.pipeline.publish("redraw_selection", { redrawAction: redrawAction, fromLong: true });
@@ -3214,7 +3215,7 @@ modules["pages/lesson/editor"] = class {
               }
             }
             if (allowRender == true) {
-              await this.render.createAnnotation(existingAnno.render);
+              await this.render.create(existingAnno.render);
             }
           }
         }

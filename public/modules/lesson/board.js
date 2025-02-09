@@ -38,10 +38,10 @@ modules["lesson/board"] = class {
         </div>
       </div>
     </div>
-    <div class="eToolbarHolder" left>
+    <div class="eToolbarHolder" left hidden>
       <div class="eToolbar" editor keeptooltip hidden notransition></div>
       <div class="eToolbar" viewer keeptooltip hidden notransition>
-        <div class="eToolbarContent hideScroll">
+        <div class="eToolbarContent eVerticalToolsHolder hideScroll">
           <button class="eTool" tool="raisehand" tooltip="Raise Hand" noselect style="--theme: var(--green); --hoverColor: rgba(var(--greenRGB), .3)"><div></div></button>
           <div class="eDivider" keeptoolbar></div>
           <button class="eTool" tool="select" tooltip="Select" module="editor/toolbar/select" selected><div></div></button>
@@ -124,7 +124,7 @@ modules["lesson/board"] = class {
     ".eAccount img": `width: 100%; height: 100%; object-fit: cover`,
     ".eLogin": `height: 32px; display: none; padding: 6px 10px; margin: 0 4px; background: var(--secondary); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
 
-    ".eToolbarHolder": `position: relative; display: none; gap: 8px; flex: 1; visibility: visible`,
+    ".eToolbarHolder": `position: relative; gap: 8px; flex: 1; visibility: visible`,
 
     ".eBottomHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
     ".eBottom": `position: absolute; display: flex; width: 100%; gap: 8px; padding-top: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,

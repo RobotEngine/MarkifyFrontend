@@ -49,9 +49,9 @@ modules["editor/toolbar"] = class {
     }
   };
   css = {
-    ".eToolbar": `position: absolute; width: 50px; height: fit-content; max-height: var(--maxToolbarHeight); top: 50%; transform: translateY(-50%); background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; transition: transform .4s, border-radius .2s`,
+    ".eToolbar": `position: absolute; display: block; width: 50px; height: fit-content; max-height: var(--maxToolbarHeight); top: 50%; transform: translateY(-50%); z-index: 2; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; transition: transform .4s, opacity .4s, border-radius .2s`,
+    ".eToolbar[hidden]": `transform: translateY(-50%) scale(0) !important; z-index: 1 !important`,
     ".eToolbarContent": `position: relative; box-sizing: border-box; max-height: var(--maxToolbarHeight); background: var(--pageColor); overflow: auto; z-index: 3; border-radius: inherit`,
-    ".eToolbar[hidden]": `transform: translateY(-50%) scale(0) !important`,
     ".eToolbarHolder[left] .eToolbar": `left: 0px; border-radius: 0 12px 12px 0; transform-origin: left center`,
     ".eToolbarHolder[right] .eToolbar": `right: 0px; border-radius: 12px 0 0 12px; transform-origin: right center`,
     ".eToolbarTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; transform: scale(0); opacity: 0`,
@@ -90,10 +90,10 @@ modules["editor/toolbar"] = class {
     let page = editor.page;
 
     let toolbarHolder = page.querySelector(".eToolbarHolder");
-    let editorToolbar = toolbarHolder.querySelector(".eToolbar[editor]");
+    let toolbar = toolbarHolder.querySelector(".eToolbar[editor]");
     let tooltipText = toolbarHolder.querySelector(".eToolbarTooltip");
     
-    editorToolbar.innerHTML = `
+    toolbar.innerHTML = `
     <div class="eToolbarContent eVerticalToolsHolder hideScroll">
       <button class="eTool" tool="selection" tooltip="Selection" selected><div></div></button>
       <button class="eTool" tool="draw" tooltip="Draw"><div></div></button>
@@ -106,7 +106,7 @@ modules["editor/toolbar"] = class {
       <button class="eTool" tool="media" tooltip="Media"><div></div></button>
     </div>
     `;
-    editorToolbar.querySelector(".eToolbarContent").addEventListener("scroll", () => { this.updateToolbars() });
+    let toolbarContent = toolbar.querySelector(".eToolbarContent");
 
     // Apply toolbar images:
     let gottenTools = toolbarHolder.querySelectorAll(".eTool");
@@ -117,7 +117,7 @@ modules["editor/toolbar"] = class {
       }
     }
 
-    toolbarHolder.style.display = "flex";
+    toolbarHolder.removeAttribute("hidden");
 
     let contentHolder = editor.contentHolder;
     let content = editor.contentHolder.querySelector(".eContent");
@@ -399,6 +399,7 @@ modules["editor/toolbar"] = class {
         this.updateTooltip();
       }
     }
+    toolbarContent.addEventListener("scroll", () => { this.updateToolbars() });
     this.createSubToolbar = async () => {
       if (currentToolButton == null) {
         return;
@@ -589,6 +590,26 @@ modules["editor/toolbar"] = class {
         this.setTool();
       }
     });
+    this.checkToolToggle = () => {
+      let disabledTools = (editor.settings ?? {}).disabled ?? [];
+
+      let toolElements = toolbarContent.querySelectorAll(".eTool[tool]");
+      for (let i = 0; i < toolElements.length; i++) {
+        let tool = toolElements[i];
+        if (editor.self.access > 3 || disabledTools.includes(tool.getAttribute("tool")) == false) {
+          tool.removeAttribute("off");
+        } else {
+          tool.setAttribute("off", "");
+        }
+      }
+      if (disabledTools.includes(currentTool) == true && editor.self.access > 0) {
+        alertModule.open("warning", "<b>Tool Toggle</b>Your current tool was disabled by the lesson owner.");
+        this.setTool(toolbarContent.querySelector('.eTool[tool="selection"]'), true);
+        this.setTool();
+      }
+    }
+    this.checkToolToggle();
+
     this.updateMaxHeight = () => {
       toolbarHolder.style.setProperty("--maxToolbarHeight", toolbarHolder.offsetHeight + "px"); // Have to add this solution because FIREFOX
     }
@@ -598,8 +619,11 @@ modules["editor/toolbar"] = class {
     // Subscribe to Events:
     editor.pipeline.subscribe("toolbarMouse", "mousedown", (data) => {
       let event = data.event;
+      if (event.buttons > 1) {
+        return;
+      }
       let target = event.target;
-      if (target.closest(".eToolbar") != null) {
+      if (target.closest(".eToolbar") == toolbar) {
         this.setTool(target.closest("button"), true);
       }
     });
@@ -620,6 +644,11 @@ modules["editor/toolbar"] = class {
     editor.pipeline.subscribe("toolbarPageResize", "page_add", () => {
       this.updateMaxHeight();
       this.updateToolbars();
+    });
+    editor.pipeline.subscribe("toolbarEditorUpdate", "set", (data) => {
+      if (data.hasOwnProperty("settings") == true) {
+        this.checkToolToggle();
+      }
     });
     editor.toolbar = this;
   }

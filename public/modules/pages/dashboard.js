@@ -1032,6 +1032,8 @@ modules["pages/dashboard"] = class {
       unselectSidebarButton();
       let prevSort = this.sort;
       this.sort = "search";
+      scrollEventPass = null;
+      tileHolder.innerHTML = "";
       return this.updateTiles(searchInput, null, prevSort);
     });
 

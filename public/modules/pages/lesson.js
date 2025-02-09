@@ -38,6 +38,9 @@ modules["pages/lesson"] = class {
       this.removePage(id, type);
     }
     let newPage = await this.setFrame("editor/board", holder);
+    if (newPage == null) {
+      return;
+    }
     newPage.pageID = id;
     newPage.type = type;
     newPage.holder = holder;

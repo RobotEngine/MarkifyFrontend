@@ -1630,8 +1630,9 @@ addCSS({
   ".fixedItemHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden; transition: .3s`,
   ".fixedItemHolder[blur]": `backdrop-filter: blur(4px); background: rgba(180, 218, 253, .3); pointer-events: all`,
   "[notransition]": `transition: unset !important`,
-  "button svg": `-webkit-transform: translate3d(0, 0, 0)`,
-  ".svgImageLoad": "position: absolute; width: 0px; height: 0px; opacity: 0; pointer-events: none"
+  "button > svg": `-webkit-transform: translate3d(0, 0, 0)`,
+  ".hideScroll": `scrollbar-width: none`,
+  ".hideScroll::-webkit-scrollbar": `display: none`
 });
 (new Image()).src = "./images/tooltips/alerts.svg";
 (new Image()).src = "./images/tooltips/close.svg";

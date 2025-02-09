@@ -41,7 +41,7 @@ modules["editor/board"] = class {
     <div class="eToolbarHolder" left>
       <div class="eToolbar" editor keeptooltip hidden notransition></div>
       <div class="eToolbar" viewer keeptooltip hidden notransition>
-        <div class="eToolbarContent">
+        <div class="eToolbarContent hideScroll">
           <button class="eTool" tool="raisehand" tooltip="Raise Hand" noselect style="--theme: var(--green); --hoverColor: rgba(var(--greenRGB), .3)"><div></div></button>
           <div class="eDivider" keeptoolbar></div>
           <button class="eTool" tool="select" tooltip="Select" module="editor/toolbar/select" selected><div></div></button>

@@ -50,8 +50,7 @@ modules["editor/toolbar"] = class {
   };
   css = {
     ".eToolbar": `position: absolute; width: 50px; height: fit-content; max-height: var(--maxToolbarHeight); top: 50%; transform: translateY(-50%); background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; transition: transform .4s, border-radius .2s`,
-    ".eToolbarContent": `position: relative; box-sizing: border-box; max-height: var(--maxToolbarHeight); background: var(--pageColor); overflow: auto; z-index: 3; scrollbar-width: none; border-radius: inherit`,
-    ".eToolbarContent::-webkit-scrollbar": `display: none`,
+    ".eToolbarContent": `position: relative; box-sizing: border-box; max-height: var(--maxToolbarHeight); background: var(--pageColor); overflow: auto; z-index: 3; border-radius: inherit`,
     ".eToolbar[hidden]": `transform: translateY(-50%) scale(0) !important`,
     ".eToolbarHolder[left] .eToolbar": `left: 0px; border-radius: 0 12px 12px 0; transform-origin: left center`,
     ".eToolbarHolder[right] .eToolbar": `right: 0px; border-radius: 12px 0 0 12px; transform-origin: right center`,
@@ -95,7 +94,7 @@ modules["editor/toolbar"] = class {
     let tooltipText = toolbarHolder.querySelector(".eToolbarTooltip");
     
     editorToolbar.innerHTML = `
-    <div class="eToolbarContent eVerticalToolsHolder">
+    <div class="eToolbarContent eVerticalToolsHolder hideScroll">
       <button class="eTool" tool="selection" tooltip="Selection" selected><div></div></button>
       <button class="eTool" tool="draw" tooltip="Draw"><div></div></button>
       <button class="eTool" tool="markup" tooltip="Markup"><div></div></button>
@@ -188,11 +187,20 @@ modules["editor/toolbar"] = class {
       let toolbarParent = tooltipElement.closest(".eToolbar");
       if (toolbarParent != null) {
         let toolHolderRect = toolbarHolder.getBoundingClientRect();
+        let toolbarParentRect = toolbarParent.getBoundingClientRect();
         let buttonRect = tooltipElement.getBoundingClientRect();
+
+        let halfTooltipHeight = tooltipText.offsetHeight / 2;
+        let setTop = buttonRect.top - toolHolderRect.top + (tooltipElement.offsetHeight / 2) - halfTooltipHeight;
+        if (setTop < toolbarParentRect.top - toolHolderRect.top) {
+          setTop = toolbarParentRect.top - toolHolderRect.top;
+        } else if (setTop + tooltipText.offsetHeight > toolbarParentRect.top - toolHolderRect.top + toolbarParent.offsetHeight) {
+          setTop = toolbarParentRect.top - toolHolderRect.top + toolbarParent.offsetHeight - tooltipText.offsetHeight;
+        }
+        tooltipText.style.top = setTop + "px";
 
         if (toolbarHolder.hasAttribute("right") == false) {
           let setLeft = toolbarParent.offsetWidth;
-          let setTop = buttonRect.top - toolHolderRect.top + (tooltipElement.offsetHeight / 2) - (tooltipText.offsetHeight / 2);
           if (subToolbar != null) {
             let toolbarRect = subToolbar.getBoundingClientRect();
             let toolbarContentScroll = subToolbar.querySelector(".eSubToolContentScroll");
@@ -200,17 +208,15 @@ modules["editor/toolbar"] = class {
             let subToolTop = toolbarRect.top - toolHolderRect.top;
             if (tooltipElement.closest(".eSubToolHolder") != null) {
               setLeft += subToolWidth;
-            } else if (setTop > subToolTop && setTop + (tooltipText.offsetHeight / 2) < subToolTop + toolbarContentScroll.offsetHeight) {
+            } else if (setTop + halfTooltipHeight > subToolTop && setTop + halfTooltipHeight < subToolTop + toolbarContentScroll.offsetHeight) {
               setLeft += subToolWidth;
             }
           }
           tooltipText.style.transformOrigin = "center left";
           tooltipText.style.left = setLeft + 6 + "px";
-          tooltipText.style.top = setTop + "px";
           tooltipText.style.removeProperty("right");
         } else {
           let setRight = toolbarParent.offsetWidth;
-          let setTop = buttonRect.top - toolHolderRect.top + (tooltipElement.offsetHeight / 2) - (tooltipText.offsetHeight / 2);
           if (subToolbar != null) {
             let toolbarRect = subToolbar.getBoundingClientRect();
             let toolbarContentScroll = subToolbar.querySelector(".eSubToolContentScroll");
@@ -218,13 +224,12 @@ modules["editor/toolbar"] = class {
             let subToolTop = toolbarRect.top - toolHolderRect.top;
             if (tooltipElement.hasAttribute("tool") == false) {
               setRight += subToolWidth;
-            } else if (setTop > subToolTop && setTop + (tooltipText.offsetHeight / 2) < subToolTop + toolbarContentScroll.offsetHeight) {
+            } else if (setTop + halfTooltipHeight > subToolTop && setTop + halfTooltipHeight < subToolTop + toolbarContentScroll.offsetHeight) {
               setRight += subToolWidth;
             }
           }
           tooltipText.style.transformOrigin = "center right";
           tooltipText.style.right = setRight + 6 + "px";
-          tooltipText.style.top = setTop + "px";
           tooltipText.style.removeProperty("left");
         }
         return;
@@ -319,7 +324,7 @@ modules["editor/toolbar"] = class {
     }
     
     // Manage Toolbar:
-    this.updateToolbars = () => {
+    this.updateToolbars = (update) => {
       if (subToolbar != null && currentToolButton != null) {
         let toolbar = currentToolButton.closest(".eToolbar");
         let contentHolder = subToolbar.querySelector(".eSubToolContentHolder");
@@ -382,14 +387,16 @@ modules["editor/toolbar"] = class {
 
         subToolbar.style.transform = "translateX(0%)";
         subToolbar.style.opacity = 1;
-
-        this.updateTooltip();
       } else if (currentToolButton != null) {
         let toolbar = currentToolButton.closest(".eToolbar");
         toolbar.style.removeProperty("border-top-right-radius");
         toolbar.style.removeProperty("border-bottom-right-radius");
         toolbar.style.removeProperty("border-top-left-radius");
         toolbar.style.removeProperty("border-bottom-left-radius");
+      }
+
+      if (update != false) {
+        this.updateTooltip();
       }
     }
     this.createSubToolbar = async () => {
@@ -405,7 +412,7 @@ modules["editor/toolbar"] = class {
       toolbar.insertAdjacentHTML("beforeend", `<div class="eSubToolHolder" keeptooltip new>
         <div class="eSubToolShadow"></div>
         <div class="eSubToolContentHolder">
-          <div class="eSubToolContentScroll">
+          <div class="eSubToolContentScroll hideScroll">
             <div class="eSubToolContent" keeptooltip></div>
           </div>
         </div>
@@ -441,8 +448,8 @@ modules["editor/toolbar"] = class {
       }
       let removeToolbar = subToolbar;
       subToolbar = null;
-      this.updateToolbars();
-      this.updateTooltip();
+      this.updateToolbars(false);
+      //this.updateTooltip();
       (async () => {
         removeToolbar.style.zIndex = 1;
         if (toolbarHolder.hasAttribute("right") == false) {
@@ -498,6 +505,8 @@ modules["editor/toolbar"] = class {
               this.currentToolModule = toolData.module;
             }
             this.activateTool();
+          } else {
+            this.updateTooltip();
           }
         } else {
           if (isExtended == false && subToolbar != null) {
@@ -531,7 +540,7 @@ modules["editor/toolbar"] = class {
           }
         }
       }
-      this.updateTooltip();
+      //this.updateTooltip();
     }
     let lastSetButton;
     this.setTool = async (targetButton, shortPress) => {
@@ -569,12 +578,14 @@ modules["editor/toolbar"] = class {
       }
 
       if (shortPress != true) {
-        this.updateToolbars();
+        this.updateToolbars(false);
+        this.updateTooltip();
       }
     }
     toolbarHolder.addEventListener("keydown", (event) => {
       if (event.key == "Enter") {
-        this.setTool(event.target.closest("button"));
+        this.setTool(event.target.closest("button"), true);
+        this.setTool();
       }
     });
     this.updateMaxHeight = () => {

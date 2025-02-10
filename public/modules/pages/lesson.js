@@ -895,316 +895,6 @@ modules["editor"] = class {
       }, 1000); // Save after 1 second of no changes
     }
 
-    this.utils.localMousePosition = (mouse) => {
-      let mouseX = mouse.x ?? mouse.clientX ?? ((mouse.changedTouches ?? [])[0] ?? {}).clientX ?? 0;
-      let mouseY = mouse.y ?? mouse.clientY ?? ((mouse.changedTouches ?? [])[0] ?? {}).clientY ?? 0;
-      let pageRect = page.getBoundingClientRect();
-      return { mouseX: mouseX - pageRect.x, mouseY: mouseY - pageRect.y };
-    }
-    this.utils.convertBoundingRect = (frameRect) => {
-      let pageRect = page.getBoundingClientRect();
-      let diffX = frameRect.x - pageRect.x;
-      let diffY = frameRect.y - pageRect.y;
-      return {
-        width: frameRect.width,
-        height: frameRect.height,
-        left: diffX,
-        top: diffY,
-        x: diffX + contentHolder.scrollLeft,
-        y: diffY + contentHolder.scrollTop
-      }
-    }
-    this.utils.localBoundingRect = (frame) => {
-      return this.utils.convertBoundingRect(frame.getBoundingClientRect());
-    }
-    this.utils.scaleToDoc = (x, y, noOrigin) => {
-      let pageRect = this.utils.localBoundingRect(annotations);
-      if (noOrigin != true) {
-        x -= pageRect.left;
-        y -= pageRect.top;
-      }
-      let scaleZoom = 1 / this.zoom;
-      return {
-        x: this.utils.round(x * scaleZoom),
-        y: this.utils.round(y * scaleZoom)
-      }
-    };
-    this.utils.scaleToZoom = (x, y) => {
-      let pageRect = this.utils.localBoundingRect(annotations);
-      return {
-        x: (x * this.zoom) + pageRect.left,
-        y: (y * this.zoom) + pageRect.top
-      };
-    };
-    this.utils.regionInChunks = (topx, topy, bottomx, bottomy) => {
-      if (bottomx < topx) {
-        let setBottomX = topx;
-        topx = bottomx;
-        bottomx = setBottomX;
-      }
-      if (bottomy < topy) {
-        let setBottomY = topy;
-        topy = bottomy;
-        bottomy = setBottomY;
-      }
-      let topLeftChunkX = Math.floor(topx / this.chunkWidth) * this.chunkWidth;
-      let topLeftChunkY = Math.floor(topy / this.chunkHeight) * this.chunkHeight;
-      let bottomRightChunkX = Math.floor(bottomx / this.chunkWidth) * this.chunkWidth;
-      let bottomRightChunkY = Math.floor(bottomy / this.chunkHeight) * this.chunkHeight;
-      let xCord = topLeftChunkX;
-      let yCord = topLeftChunkY;
-      let chunks = [];
-      while (yCord <= bottomRightChunkY) {
-        while (xCord <= bottomRightChunkX) {
-          chunks.push(xCord + "_" + yCord);
-          xCord += this.chunkWidth;
-        }
-        xCord = topLeftChunkX;
-        yCord += this.chunkHeight;
-      }
-      return chunks;
-    }
-    this.utils.annotationInChunks = (render, includeSelecting) => {
-      let [x, y] = this.utils.getAbsolutePosition(render, includeSelecting);
-      let [width, height] = render.s;
-      let thick = 0;
-      if (render.t != null) {
-        if (render.b != "none" || render.d == "line") {
-          thick = render.t;
-        }
-      }
-      if (width < 0) {
-        width = -width;
-        x -= width;
-      }
-      if (height < 0) {
-        height = -height;
-        y -= height;
-      }
-      let halfT = thick / 2;
-
-      let radian = (render.r ?? 0) * (Math.PI / 180);
-      let thickWidth = width + thick;
-      let thickHeight = height + thick;
-      let changedWidth = ((Math.abs(thickWidth * Math.cos(radian)) + Math.abs(thickHeight * Math.sin(radian))) - thickWidth) / 2;
-      let changedHeight = ((Math.abs(thickWidth * Math.sin(radian)) + Math.abs(thickHeight * Math.cos(radian))) - thickHeight) / 2;
-      
-      x += halfT - changedWidth;
-      y += halfT - changedHeight;
-      width = thickWidth + (changedWidth * 2);
-      height = thickHeight + (changedHeight * 2);
-      
-      return this.utils.regionInChunks(x, y, x + width, y + height);
-    }
-    this.utils.annotationChunks = async (annotation, includeSelecting) => {
-      if (annotation == null) {
-        return;
-      }
-      let render = annotation.render;
-      let chunks = [];
-
-      if (render != null && render.remove != true) {
-        let [x, y] = this.utils.getAbsolutePosition(render, includeSelecting);
-        let [width, height] = render.s;
-        let thick = 0;
-        if (render.t != null) {
-          if (render.b != "none" || render.d == "line") {
-            thick = render.t;
-          }
-        }
-        if (width < 0) {
-          width = -width;
-          x -= width;
-        }
-        if (height < 0) {
-          height = -height;
-          y -= height;
-        }
-        let halfT = thick / 2;
-
-        let radian = (render.r ?? 0) * (Math.PI / 180);
-        let thickWidth = width + thick;
-        let thickHeight = height + thick;
-        let changedWidth = ((Math.abs(thickWidth * Math.cos(radian)) + Math.abs(thickHeight * Math.sin(radian))) - thickWidth) / 2;
-        let changedHeight = ((Math.abs(thickWidth * Math.sin(radian)) + Math.abs(thickHeight * Math.cos(radian))) - thickHeight) / 2;
-        
-        x += halfT - changedWidth;
-        y += halfT - changedHeight;
-        width = thickWidth + (changedWidth * 2);
-        height = thickHeight + (changedHeight * 2);
-        
-        chunks = this.utils.regionInChunks(x, y, x + width, y + height);
-      }
-      let annotationVisible = false;
-      for (let i = 0; i < chunks.length; i++) {
-        let chunk = chunks[i];
-        if (this.chunkAnnotations[chunk] == null) {
-          this.chunkAnnotations[chunk] = {};
-          await this.render.setMarginSize();
-        }
-        this.chunkAnnotations[chunk][render._id] = "";
-        if (this.visibleChunks.includes(chunk) == true) {
-          annotationVisible = true;
-        }
-      }
-      if (annotation.chunks != null) {
-        // Remove existing chunks:
-        for (let i = 0; i < annotation.chunks.length; i++) {
-          let chunk = annotation.chunks[i];
-          if (chunks.includes(chunk) == false) {
-            delete this.chunkAnnotations[chunk][render._id];
-            if (Object.keys(this.chunkAnnotations[chunk]).length < 1) {
-              delete this.chunkAnnotations[chunk];
-              await this.render.setMarginSize();
-            }
-          }
-        }
-      }
-      annotation.chunks = chunks;
-      
-      if (annotationVisible == true) {
-        if (annotation.element == null) {
-          await this.render.create(render);
-        }
-      } else {
-        if (annotation.element != null) {
-          annotation.element.remove();
-          annotation.element = null;
-        }
-      }
-    }
-    this.utils.pointInChunk = (x, y) => {
-      return this.utils.regionInChunks(x, y, x, y)[0];
-    }
-
-    this.utils.updateCurrentPage = () => {
-      let activeElement = document.activeElement;
-      if (activeElement != null) {
-        let currentPageBox = activeElement.closest(".eCurrentPage");
-        if (currentPageBox != null) { //== pageTextBox
-          return;
-        }
-      }
-      let pageRect = this.utils.localBoundingRect(editorContent);
-      let centerPointX = ((page.offsetWidth / 2) - pageRect.left) / this.zoom;
-      let centerPointY = ((page.offsetHeight / 2) - pageRect.top) / this.zoom;
-      let minPage = 0;
-      let minPageId;
-      let minDistance;
-      for (let i = 0; i < this.annotationPages.length; i++) {
-        let page = this.annotationPages[i];
-        let distance = Math.pow(page[1][0] - centerPointX, 2) + Math.pow(page[1][1] - centerPointY, 2);
-        if (distance < minDistance || minDistance == null) {
-          minDistance = distance;
-          minPage = i + 1;
-          minPageId = page[0];
-        }
-      }
-      this.currentPage = minPage;
-      this.pipeline.publish("page_change", { page: this.currentPage, pageId: minPageId });
-    }
-    this.utils.updateAnnotationPages = (anno) => {
-      if (anno.f != "page") {
-        return;
-      }
-      for (let i = 0; i < this.annotationPages.length; i++) {
-        let annoid = this.annotationPages[i][0];
-        if ((annoid ?? "").startsWith("pending_") == true) {
-          let anno = this.annotations[annoid] ?? {};
-          if (anno.pointer != null) {
-            annoid = anno.pointer;
-          }
-        }
-        if (annoid == anno._id) {
-          this.annotationPages.splice(i, 1);
-          break;
-        }
-      }
-      if (anno.remove != true) {
-        if (anno.parent != null) {
-          return;
-        }
-        let position = this.utils.getAbsolutePosition(anno);
-        let thickness = 0;
-        if (anno.t != null) {
-          if (anno.b != "none" || anno.d == "line") {
-            thickness = anno.t;
-          }
-        }
-        this.annotationPages.push([
-          anno._id,
-          [position[0] + (anno.s[0] / 2) + thickness, position[1] + (anno.s[1] / 2) + thickness],
-          [position[0], position[1], anno.s[0] + thickness, anno.s[1] + thickness]
-        ]);
-        this.annotationPages.sort((a, b) => {
-          if (b[1][1] > a[2][1] && b[1][1] < a[2][1] + a[2][3]) {
-            return a[2][0] - b[2][0];
-          }
-          return a[2][1] - b[2][1];
-        });
-      }
-      this.utils.updateCurrentPage();
-    }
-    this.utils.updateAnnotationScroll = (pageData, animation) => {
-      if (pageData == null) {
-        return;
-      }
-      let annoID = pageData[0];
-      this.pipeline.publish("page_change", { page: this.currentPage, pageId: annoID });
-      if ((annoID ?? "").startsWith("pending_") == true) {
-        let anno = this.annotations[annoID] ?? {};
-        if (anno.pointer != null) {
-          annoID = anno.pointer;
-        }
-      }
-      let render = (this.annotations[annoID] ?? {}).render;
-      if (render != null) {
-        let thickness = 0;
-        if (render.t != null) {
-          if (render.b != "none" || render.d == "line") {
-            thickness = render.t;
-          }
-        }
-        let position = this.utils.getAbsolutePosition(render);
-        let annotationRect = this.utils.localBoundingRect(annotations);
-        let options = {};
-        if ((render.s[0] + (thickness * 2)) * this.zoom < page.offsetWidth - (this.scrollOffset * 2)) {
-          // Position page to center:
-          options.left = annotationRect.left + contentHolder.scrollLeft - (page.offsetWidth / 2) + ((position[0] + (render.s[0] / 2) + thickness) * this.zoom);
-        } else {
-          // Position page to left corner:
-          options.left = annotationRect.left + contentHolder.scrollLeft - this.scrollOffset + (position[0] * this.zoom);
-          //options.left = annotationRect.left + contentHolder.scrollLeft - page.offsetWidth + (contentHolder.offsetWidth - contentHolder.clientWidth) + this.scrollOffset + ((position[0] + render.s[0] + (thickness * 2)) * this.zoom);
-        }
-        if ((render.s[1] + (thickness * 2)) * this.zoom < page.offsetHeight - (this.scrollOffset * 2)) {
-          // Position page to center:
-          options.top = annotationRect.top + contentHolder.scrollTop - (page.offsetHeight / 2) + ((position[1] + (render.s[1] / 2) + thickness) * this.zoom);
-        } else {
-          // Position page to top:
-          options.top = annotationRect.top + contentHolder.scrollTop - this.scrollOffset + (position[1] * this.zoom);
-        }
-        if (animation != false) {
-          options.behavior = "smooth";
-        }
-        contentHolder.scrollTo(options);
-      }
-      if (this.realtime.observing != null && this.realtime.module != null) {
-        this.realtime.module.exitObserve();
-      }
-    }
-
-    this.utils.centerWindowWithPage = () => {
-      if (this.exporting == true) {
-        return;
-      }
-      let annotationRect = this.utils.localBoundingRect(annotations);
-      contentHolder.scrollTo(contentHolder.scrollLeft + annotationRect.left - ((page.offsetWidth - annotations.offsetWidth) / 2), contentHolder.scrollTop + annotationRect.top - this.scrollOffset);
-    }
-    this.utils.scrollToElement = (element) => {
-      let jumpRect = this.utils.localBoundingRect(element);
-      contentHolder.scrollTo(contentHolder.scrollLeft + jumpRect.left - ((page.offsetWidth - element.offsetWidth) / 2), contentHolder.scrollTop + jumpRect.top - ((page.offsetHeight - element.offsetHeight) / 2));
-    }
-
     this.utils.getAbsolutePosition = (anno, includeSelecting) => {
       let returnX = anno.p[0];
       let returnY = anno.p[1];
@@ -1274,6 +964,27 @@ modules["editor"] = class {
         returnY -= currentAnnoCheck.p[1] ?? 0;
       }
       return [returnX, returnY];
+    }
+    this.utils.getRect = (anno) => {
+      anno = anno ?? {};
+      let position = this.utils.getAbsolutePosition(anno);
+      let thickness = 0;
+      if (anno.t != null) {
+        if (anno.b != "none" || anno.d == "line") {
+          thickness = anno.t;
+        }
+      }
+      return {
+        x: position[0],
+        y: position[1],
+        centerX: position[0] + (anno.s[0] / 2) + thickness,
+        centerY: position[1] + (anno.s[1] / 2) + thickness,
+        bottomX: position[0] + anno.s[0] + (thickness * 2),
+        bottomY: position[1] + anno.s[1] + (thickness * 2),
+        width: anno.s[0],
+        height: anno.s[1],
+        thickness: thickness
+      };
     }
     this.utils.parentFromAnnotation = (anno, types, insert, includeSelecting) => {
       types = types ?? ["page"];
@@ -1368,11 +1079,388 @@ modules["editor"] = class {
       return anno;
     }
 
+    this.utils.localMousePosition = (mouse) => {
+      let mouseX = mouse.x ?? mouse.clientX ?? ((mouse.changedTouches ?? [])[0] ?? {}).clientX ?? 0;
+      let mouseY = mouse.y ?? mouse.clientY ?? ((mouse.changedTouches ?? [])[0] ?? {}).clientY ?? 0;
+      let pageRect = page.getBoundingClientRect();
+      return { mouseX: mouseX - pageRect.x, mouseY: mouseY - pageRect.y };
+    }
+    this.utils.convertBoundingRect = (frameRect) => {
+      let pageRect = page.getBoundingClientRect();
+      let diffX = frameRect.x - pageRect.x;
+      let diffY = frameRect.y - pageRect.y;
+      return {
+        width: frameRect.width,
+        height: frameRect.height,
+        left: diffX,
+        top: diffY,
+        x: diffX + contentHolder.scrollLeft,
+        y: diffY + contentHolder.scrollTop
+      }
+    }
+    this.utils.localBoundingRect = (frame) => {
+      return this.utils.convertBoundingRect(frame.getBoundingClientRect());
+    }
+    this.utils.scaleToDoc = (x, y, noOrigin) => {
+      let pageRect = this.utils.localBoundingRect(annotations);
+      if (noOrigin != true) {
+        x -= pageRect.left;
+        y -= pageRect.top;
+      }
+      let scaleZoom = 1 / this.zoom;
+      return {
+        x: this.utils.round(x * scaleZoom),
+        y: this.utils.round(y * scaleZoom)
+      }
+    };
+    this.utils.scaleToZoom = (x, y) => {
+      let pageRect = this.utils.localBoundingRect(annotations);
+      return {
+        x: (x * this.zoom) + pageRect.left,
+        y: (y * this.zoom) + pageRect.top
+      };
+    };
+    this.utils.regionInChunks = (topx, topy, bottomx, bottomy) => {
+      if (bottomx < topx) {
+        let setBottomX = topx;
+        topx = bottomx;
+        bottomx = setBottomX;
+      }
+      if (bottomy < topy) {
+        let setBottomY = topy;
+        topy = bottomy;
+        bottomy = setBottomY;
+      }
+      let topLeftChunkX = Math.floor(topx / this.chunkWidth) * this.chunkWidth;
+      let topLeftChunkY = Math.floor(topy / this.chunkHeight) * this.chunkHeight;
+      let bottomRightChunkX = Math.floor(bottomx / this.chunkWidth) * this.chunkWidth;
+      let bottomRightChunkY = Math.floor(bottomy / this.chunkHeight) * this.chunkHeight;
+      let xCord = topLeftChunkX;
+      let yCord = topLeftChunkY;
+      let chunks = [];
+      while (yCord <= bottomRightChunkY) {
+        while (xCord <= bottomRightChunkX) {
+          chunks.push(xCord + "_" + yCord);
+          xCord += this.chunkWidth;
+        }
+        xCord = topLeftChunkX;
+        yCord += this.chunkHeight;
+      }
+      return chunks;
+    }
+    this.utils.annotationsInChunks = (chunks) => {
+      let annotationKeys = {};
+      let annotations = [];
+      for (let i = 0; i < chunks.length; i++) {
+        let keys = Object.keys(this.chunkAnnotations[chunks[i]] ?? {});
+        for (let a = 0; a < keys.length; a++) {
+          let key = keys[a];
+          if (annotationKeys[key] == null) {
+            annotationKeys[key] = true;
+            annotations.push(this.annotations[key]);
+          }
+        }
+      }
+      return annotations;
+    }
+    this.utils.renderedAnnotations = () => {
+      return this.utils.annotationsInChunks(this.visibleChunks);
+    }
+    this.utils.chunksFromAnnotation = (render, includeSelecting) => {
+      let [x, y] = this.utils.getAbsolutePosition(render, includeSelecting);
+      let [width, height] = render.s;
+      let thick = 0;
+      if (render.t != null) {
+        if (render.b != "none" || render.d == "line") {
+          thick = render.t;
+        }
+      }
+      if (width < 0) {
+        width = -width;
+        x -= width;
+      }
+      if (height < 0) {
+        height = -height;
+        y -= height;
+      }
+      let halfT = thick / 2;
+
+      let radian = (render.r ?? 0) * (Math.PI / 180);
+      let thickWidth = width + thick;
+      let thickHeight = height + thick;
+      let changedWidth = ((Math.abs(thickWidth * Math.cos(radian)) + Math.abs(thickHeight * Math.sin(radian))) - thickWidth) / 2;
+      let changedHeight = ((Math.abs(thickWidth * Math.sin(radian)) + Math.abs(thickHeight * Math.cos(radian))) - thickHeight) / 2;
+      
+      x += halfT - changedWidth;
+      y += halfT - changedHeight;
+      width = thickWidth + (changedWidth * 2);
+      height = thickHeight + (changedHeight * 2);
+      
+      return this.utils.regionInChunks(x, y, x + width, y + height);
+    }
+    this.utils.setAnnotationChunks = async (annotation, includeSelecting) => {
+      if (annotation == null) {
+        return;
+      }
+      let render = annotation.render;
+      let chunks = [];
+
+      if (render != null && render.remove != true) {
+        let [x, y] = this.utils.getAbsolutePosition(render, includeSelecting);
+        let [width, height] = render.s;
+        let thick = 0;
+        if (render.t != null) {
+          if (render.b != "none" || render.d == "line") {
+            thick = render.t;
+          }
+        }
+        if (width < 0) {
+          width = -width;
+          x -= width;
+        }
+        if (height < 0) {
+          height = -height;
+          y -= height;
+        }
+        let halfT = thick / 2;
+
+        let radian = (render.r ?? 0) * (Math.PI / 180);
+        let thickWidth = width + thick;
+        let thickHeight = height + thick;
+        let changedWidth = ((Math.abs(thickWidth * Math.cos(radian)) + Math.abs(thickHeight * Math.sin(radian))) - thickWidth) / 2;
+        let changedHeight = ((Math.abs(thickWidth * Math.sin(radian)) + Math.abs(thickHeight * Math.cos(radian))) - thickHeight) / 2;
+        
+        x += halfT - changedWidth;
+        y += halfT - changedHeight;
+        width = thickWidth + (changedWidth * 2);
+        height = thickHeight + (changedHeight * 2);
+        
+        chunks = this.utils.regionInChunks(x, y, x + width, y + height);
+      }
+      let annotationVisible = false;
+      for (let i = 0; i < chunks.length; i++) {
+        let chunk = chunks[i];
+        if (this.chunkAnnotations[chunk] == null) {
+          this.chunkAnnotations[chunk] = {};
+          await this.render.setMarginSize();
+        }
+        this.chunkAnnotations[chunk][render._id] = "";
+        if (annotationVisible == false && this.visibleChunks.includes(chunk) == true) {
+          annotationVisible = true;
+        }
+      }
+      if (annotation.chunks != null) {
+        // Remove existing chunks:
+        for (let i = 0; i < annotation.chunks.length; i++) {
+          let chunk = annotation.chunks[i];
+          if (chunks.includes(chunk) == false) {
+            delete this.chunkAnnotations[chunk][render._id];
+            if (Object.keys(this.chunkAnnotations[chunk]).length < 1) {
+              delete this.chunkAnnotations[chunk];
+              await this.render.setMarginSize();
+            }
+          }
+        }
+      }
+      annotation.chunks = chunks;
+      
+      if (annotationVisible == true) {
+        if (annotation.element == null) {
+          await this.render.create(render);
+        }
+      } else {
+        if (annotation.element != null) {
+          annotation.element.remove();
+          annotation.element = null;
+        }
+      }
+    }
+    this.utils.pointInChunk = (x, y) => {
+      return this.utils.regionInChunks(x, y, x, y)[0];
+    }
+    this.utils.topmostChunk = (lockX) => {
+      let topmostChunk;
+      let highestPoint;
+      let chunks = Object.keys({ "0_0": [], ...this.chunkAnnotations });
+      for (let i = 0; i < chunks.length; i++) {
+        let chunk = chunks[i];
+        let split = chunk.split("_");
+        let [xCoord, yCoord] = [parseFloat(split[0]), parseFloat(split[1])];
+        if (lockX != null && xCoord != lockX) {
+          continue;
+        }
+        if (yCoord < highestPoint || highestPoint == null) {
+          if (this.chunkAnnotations[chunk].length < 1) {
+            continue;
+          }
+          highestPoint = yCoord;
+          topmostChunk = chunk;
+        }
+      }
+      return topmostChunk;
+    }
+
+    this.utils.updateCurrentPage = () => {
+      let activeElement = document.activeElement;
+      if (activeElement != null) {
+        let currentPageBox = activeElement.closest(".eCurrentPage");
+        if (currentPageBox != null) { //== pageTextBox
+          return;
+        }
+      }
+      let pageRect = this.utils.localBoundingRect(editorContent);
+      let centerPointX = ((page.offsetWidth / 2) - pageRect.left) / this.zoom;
+      let centerPointY = ((page.offsetHeight / 2) - pageRect.top) / this.zoom;
+      let minPage = 0;
+      let minPageId;
+      let minDistance;
+      for (let i = 0; i < this.annotationPages.length; i++) {
+        let page = this.annotationPages[i];
+        let distance = Math.pow(page[1][0] - centerPointX, 2) + Math.pow(page[1][1] - centerPointY, 2);
+        if (distance < minDistance || minDistance == null) {
+          minDistance = distance;
+          minPage = i + 1;
+          minPageId = page[0];
+        }
+      }
+      this.currentPage = minPage;
+      this.pipeline.publish("page_change", { page: this.currentPage, pageId: minPageId });
+    }
+    this.utils.updateAnnotationPages = (anno) => {
+      if (anno.f != "page") {
+        return;
+      }
+      for (let i = 0; i < this.annotationPages.length; i++) {
+        let annoid = this.annotationPages[i][0];
+        if ((annoid ?? "").startsWith("pending_") == true) {
+          let anno = this.annotations[annoid] ?? {};
+          if (anno.pointer != null) {
+            annoid = anno.pointer;
+          }
+        }
+        if (annoid == anno._id) {
+          this.annotationPages.splice(i, 1);
+          break;
+        }
+      }
+      if (anno.remove != true) {
+        if (anno.parent != null) {
+          return;
+        }
+        let rect = this.utils.getRect(anno);
+        this.annotationPages.push([
+          anno._id,
+          [rect.centerX, rect.centerY],
+          [rect.x, rect.y, rect.width + rect.thickness, rect.height + rect.thickness]
+        ]);
+        this.annotationPages.sort((a, b) => {
+          if (b[1][1] > a[2][1] && b[1][1] < a[2][1] + a[2][3]) {
+            return a[2][0] - b[2][0];
+          }
+          return a[2][1] - b[2][1];
+        });
+      }
+      this.utils.updateCurrentPage();
+    }
+    this.utils.updateAnnotationScroll = (pageData, animation) => {
+      if (pageData == null) {
+        return;
+      }
+      let annoID = pageData[0];
+      this.pipeline.publish("page_change", { page: this.currentPage, pageId: annoID });
+      if ((annoID ?? "").startsWith("pending_") == true) {
+        let anno = this.annotations[annoID] ?? {};
+        if (anno.pointer != null) {
+          annoID = anno.pointer;
+        }
+      }
+      let render = (this.annotations[annoID] ?? {}).render;
+      if (render != null) {
+        let thickness = 0;
+        if (render.t != null) {
+          if (render.b != "none" || render.d == "line") {
+            thickness = render.t;
+          }
+        }
+        let position = this.utils.getAbsolutePosition(render);
+        let annotationRect = this.utils.localBoundingRect(annotations);
+        let options = {};
+        if ((render.s[0] + (thickness * 2)) * this.zoom < page.offsetWidth - (this.scrollOffset * 2)) {
+          // Position page to center:
+          options.left = annotationRect.left + contentHolder.scrollLeft - (page.offsetWidth / 2) + ((position[0] + (render.s[0] / 2) + thickness) * this.zoom);
+        } else {
+          // Position page to left corner:
+          options.left = annotationRect.left + contentHolder.scrollLeft - this.scrollOffset + (position[0] * this.zoom);
+          //options.left = annotationRect.left + contentHolder.scrollLeft - page.offsetWidth + (contentHolder.offsetWidth - contentHolder.clientWidth) + this.scrollOffset + ((position[0] + render.s[0] + (thickness * 2)) * this.zoom);
+        }
+        if ((render.s[1] + (thickness * 2)) * this.zoom < page.offsetHeight - (this.scrollOffset * 2)) {
+          // Position page to center:
+          options.top = annotationRect.top + contentHolder.scrollTop - (page.offsetHeight / 2) + ((position[1] + (render.s[1] / 2) + thickness) * this.zoom);
+        } else {
+          // Position page to top:
+          options.top = annotationRect.top + contentHolder.scrollTop - this.scrollOffset + (position[1] * this.zoom);
+        }
+        if (animation != false) {
+          options.behavior = "smooth";
+        }
+        contentHolder.scrollTo(options);
+      }
+      if (this.realtime.observing != null && this.realtime.module != null) {
+        this.realtime.module.exitObserve();
+      }
+    }
+
+    this.utils.centerWindowWithPage = () => {
+      let annotationRect = this.utils.localBoundingRect(annotations);
+      contentHolder.scrollTo(contentHolder.scrollLeft + annotationRect.left - ((page.offsetWidth - annotations.offsetWidth) / 2), contentHolder.scrollTop + annotationRect.top - this.scrollOffset);
+    }
+    this.utils.findStartingPoint = () => {
+      let topmostChunkY = parseFloat(this.utils.topmostChunk().split("_")[1]);
+      let getChunkAnnotations = [];
+      let chunks = Object.keys({ "0_0": "", ...this.chunkAnnotations });
+      for (let i = 0; i < chunks.length; i++) {
+        let chunk = chunks[i];
+        if (parseFloat(chunk.split("_")[1]) != topmostChunkY) {
+          continue;
+        }
+        getChunkAnnotations.push(chunk);
+      }
+      let annotations = this.utils.annotationsInChunks(getChunkAnnotations);
+      if (annotations.length < 1) {
+        return;
+      }
+      annotations.sort((a, b) => {
+        let aRect = this.utils.getRect(a.render);
+        let bRect = this.utils.getRect(b.render);
+        if (bRect.centerY > aRect.y && bRect.centerY < aRect.bottomY) {
+          return aRect.x - bRect.x;
+        }
+        return aRect.y - bRect.y;
+      });
+      return this.utils.getRect(annotations[0].render);
+    }
+    this.utils.scrollToPoint = (x, y, animation) => {
+      let annotationRect = this.utils.localBoundingRect(annotations);
+      let options = {
+        left: annotationRect.left + contentHolder.scrollLeft - this.scrollOffset + (x * this.zoom),
+        top: annotationRect.top + contentHolder.scrollTop - this.scrollOffset + (y * this.zoom)
+      };
+      if (animation != false) {
+        options.behavior = "smooth";
+      }
+      contentHolder.scrollTo(options);
+    }
+    this.utils.scrollToElement = (element) => {
+      let jumpRect = this.utils.localBoundingRect(element);
+      contentHolder.scrollTo(contentHolder.scrollLeft + jumpRect.left - ((page.offsetWidth - element.offsetWidth) / 2), contentHolder.scrollTop + jumpRect.top - ((page.offsetHeight - element.offsetHeight) / 2));
+    }
+
     this.render = {};
     this.render.pdfPageQueue = [];
     this.render.pdfPageStorage = {};
     this.render.pdfFileLoading = {};
     this.render.runningPageRender = false;
+    // Default Chunks:
     this.render.tempID = () => {
       return "pending_" + randomString(10) + Date.now();
     }
@@ -1389,12 +1477,6 @@ modules["editor"] = class {
       this.render.farBottom = 0;
       this.render.setTopMargin = 0;
       this.render.setBottomMargin = 0;
-  
-      // Default Chunks:
-      this.chunkAnnotations["0_0"] = this.chunkAnnotations["0_0"] ?? [];
-      this.chunkAnnotations["0_-" + this.chunkHeight] = this.chunkAnnotations["0_-" + this.chunkHeight] ?? [];
-      this.chunkAnnotations["-" + this.chunkWidth + "_0"] = this.chunkAnnotations["-" + this.chunkWidth + "_0"] ?? [];
-      this.chunkAnnotations["-" + this.chunkWidth + "_-" + this.chunkHeight] = this.chunkAnnotations["-" + this.chunkWidth + "_-" + this.chunkHeight] ?? [];
       
       let chunks = Object.keys(this.chunkAnnotations);
       for (let i = 0; i < chunks.length; i++) {
@@ -2685,6 +2767,10 @@ modules["editor"] = class {
         allSelections[i].remove();
       }
     }
+    this.chunkAnnotations["0_0"] = {};
+    this.chunkAnnotations["0_-" + this.chunkHeight] = {};
+    this.chunkAnnotations["-" + this.chunkWidth + "_0"] = {};
+    this.chunkAnnotations["-" + this.chunkWidth + "_-" + this.chunkHeight] = {};
     
     this.save = {};
     this.save.timeoutAnnotations = [];
@@ -2734,7 +2820,7 @@ modules["editor"] = class {
               annotation.render = annotation.revert;
               delete annotation.revert;
               let existingAnno = this.annotations[annotation.render._id];
-              await this.utils.annotationChunks(existingAnno);
+              await this.utils.setAnnotationChunks(existingAnno);
               this.utils.updateAnnotationPages(annotation.render);
               let allowRender = annotation.render.remove == true;
               for (let i = 0; i < existingAnno.chunks.length; i++) {
@@ -2781,7 +2867,7 @@ modules["editor"] = class {
       objectUpdate(annoData, anno.render);
       this.save.enableTimeout(anno, render);
       this.annotations[annoID] = anno;
-      await this.utils.annotationChunks(anno);
+      await this.utils.setAnnotationChunks(anno);
       this.utils.updateAnnotationPages(anno.render);
       await this.render.create({ ...anno.render, sync: sync }, render);
       return annoData;
@@ -3052,14 +3138,14 @@ modules["editor"] = class {
           existingAnno.render = anno;
           delete existingAnno.revert;
 
-          await this.utils.annotationChunks(existingAnno);
+          await this.utils.setAnnotationChunks(existingAnno);
           this.utils.updateAnnotationPages(anno);
         } else {
           this.annotations[anno._id] = { render: anno };
           existingAnno = this.annotations[anno._id];
           renderObject = anno;
 
-          await this.utils.annotationChunks(existingAnno);
+          await this.utils.setAnnotationChunks(existingAnno);
           this.utils.updateAnnotationPages(renderObject);
         }
 

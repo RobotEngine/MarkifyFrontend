@@ -667,7 +667,7 @@ modules["lesson/board"] = class {
       for (let i = 0; i < annoBody.annotations.length; i++) {
         let existingAnno = this.editor.annotations[annoBody.annotations[i]._id];
         if (existingAnno != null) {
-          await this.editor.utils.annotationChunks(existingAnno);
+          await this.editor.utils.setAnnotationChunks(existingAnno);
           this.editor.utils.updateAnnotationPages(existingAnno.render);
         }
       }
@@ -690,6 +690,10 @@ modules["lesson/board"] = class {
 
       await this.editor.render.setMarginSize();
 
+      if (this.exporting == true) {
+        return;
+      }
+
       let jumpAnnotation = null;
       if (checkForJumpLink != null && checkForJumpLink != "") {
         if (this.editor.annotations[checkForJumpLink] != null) {
@@ -700,7 +704,13 @@ modules["lesson/board"] = class {
       }
       if (jumpAnnotation == null) {
         if (pageParam == null) {
-          this.editor.utils.centerWindowWithPage();
+          //this.editor.utils.centerWindowWithPage();
+          let startingPos = this.editor.utils.findStartingPoint();
+          if (startingPos != null) {
+            this.editor.utils.scrollToPoint(startingPos.x, startingPos.y, false);
+          } else {
+            this.editor.utils.centerWindowWithPage();
+          }
         } else {
           this.editor.utils.updateAnnotationScroll([pageParam], false);
         }
@@ -709,6 +719,7 @@ modules["lesson/board"] = class {
         await this.editor.utils.scrollToElement(jumpAnnotation);
         await this.editor.updateChunks();
       }
+
 
       contentHolder.removeAttribute("disabled");
     }

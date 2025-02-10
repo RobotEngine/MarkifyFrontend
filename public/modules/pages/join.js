@@ -1,6 +1,7 @@
 modules["pages/join"] = class {
   title = "Join";
   html = `<div class="jBackdrop">
+    <div class="jBackground"></div>
     <img class="jSplash" src="./images/join/splash.svg">
   </div>
   <div class="jModalHolder">
@@ -43,8 +44,9 @@ modules["pages/join"] = class {
   </div>
   `;
   css = {
-    ".jBackdrop": `position: fixed; min-width: 100%; min-height: 100vh; z-index: 0; background: var(--pageColor); background-image: url(./images/editor/background.svg); background-position: center`,
-    ".jSplash": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; opacity: .8`,
+    ".jBackdrop": `position: fixed; min-width: 100%; min-height: 100vh; z-index: 0; background: var(--pageColor)`,
+    ".jBackground": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background-image: url(./images/editor/backdrop.svg); background-size: 25px; background-position: center; opacity: .075`,
+    ".jSplash": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover`,
     
     ".jModalHolder": `display: flex; width: 100%; min-height: 100vh; left: 0px; top: 0px; justify-content: center; align-items: center; overflow: hidden`,
     ".jModalContainer": `position: relative`,

@@ -638,7 +638,7 @@ function promptLogin(page, service) {
   if (page != null) {
     redirectURL.hash = "#" + page;
   }
-  let endpoint = "https://exotek.co/login?client_id=" + config.exotek_id + "&redirect_uri=" +
+  let endpoint = "https://exotek.co/login?client_id=631056064efd34591c5a8e05&redirect_uri=" +
   encodeURIComponent(redirectURL) +
   "&response_type=code&scope=userinfo&state=" +
   randomStr;

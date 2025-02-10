@@ -843,8 +843,8 @@ modules["editor"] = class {
 
   visibleChunks = [];
   chunkAnnotations = {};
-  chunkWidth = 2000;
-  chunkHeight = 2000;
+  chunkWidth = 1000;
+  chunkHeight = 1000;
   scrollOffset = 58;
 
   visiblePages = [0];
@@ -1278,7 +1278,7 @@ modules["editor"] = class {
     this.utils.pointInChunk = (x, y) => {
       return this.utils.regionInChunks(x, y, x, y)[0];
     }
-    this.utils.topmostChunk = (lockX) => {
+    /*this.utils.topmostChunk = (lockX) => {
       let topmostChunk;
       let highestPoint;
       let chunks = Object.keys({ "0_0": [], ...this.chunkAnnotations });
@@ -1298,7 +1298,7 @@ modules["editor"] = class {
         }
       }
       return topmostChunk;
-    }
+    }*/
 
     this.utils.updateCurrentPage = () => {
       let activeElement = document.activeElement;
@@ -1414,7 +1414,7 @@ modules["editor"] = class {
       let annotationRect = this.utils.localBoundingRect(annotations);
       contentHolder.scrollTo(contentHolder.scrollLeft + annotationRect.left - ((page.offsetWidth - annotations.offsetWidth) / 2), contentHolder.scrollTop + annotationRect.top - this.scrollOffset);
     }
-    this.utils.findStartingPoint = () => {
+    /*this.utils.findStartingPoint = () => {
       let topmostChunkY = parseFloat(this.utils.topmostChunk().split("_")[1]);
       let getChunkAnnotations = [];
       let chunks = Object.keys({ "0_0": "", ...this.chunkAnnotations });
@@ -1438,8 +1438,8 @@ modules["editor"] = class {
         return aRect.y - bRect.y;
       });
       return this.utils.getRect(annotations[0].render);
-    }
-    this.utils.scrollToPoint = (x, y, animation) => {
+    }*/
+    /*this.utils.scrollToPoint = (x, y, animation) => {
       let annotationRect = this.utils.localBoundingRect(annotations);
       let options = {
         left: annotationRect.left + contentHolder.scrollLeft - this.scrollOffset + (x * this.zoom),
@@ -1449,7 +1449,7 @@ modules["editor"] = class {
         options.behavior = "smooth";
       }
       contentHolder.scrollTo(options);
-    }
+    }*/
     this.utils.scrollToElement = (element) => {
       let jumpRect = this.utils.localBoundingRect(element);
       contentHolder.scrollTo(contentHolder.scrollLeft + jumpRect.left - ((page.offsetWidth - element.offsetWidth) / 2), contentHolder.scrollTop + jumpRect.top - ((page.offsetHeight - element.offsetHeight) / 2));
@@ -1703,6 +1703,17 @@ modules["editor"] = class {
       parent.appendChild(newSVG);
       return newSVG;
     }
+    //this.render.modules = {};
+    this.render.getModule = async (name) => {
+      /*let module = "editor/render/" + name;
+      if (this.render.modules[module] != null) {
+        return this.render.modules[module];
+      }
+      let newModule = await this.newModule(module);
+      this.render.modules[module] = newModule;
+      return newModule*/
+      return await this.newModule("editor/render/" + name);
+    }
     this.render.create = async (data, anno, long) => {
       /*
         _id - ID - The unique ID of the annotation
@@ -1746,7 +1757,7 @@ modules["editor"] = class {
             return;
           }
         } else if (data.parent != null) {
-          let [absX, absY] = this.render.getAbsolutePosition(data);
+          let [absX, absY] = this.utils.getAbsolutePosition(data);
           data.parent = null;
           data.p = [absX, absY];
         }
@@ -1764,9 +1775,6 @@ modules["editor"] = class {
         anno = annotation.element;
         if (anno == null && _id != null && _id.startsWith("pending_") == true) {
           anno = annotations.querySelector('.eAnnotation[anno="' + _id + '"]');
-        }
-        if (anno != null) {
-          anno.setAttribute("anno", _id);
         }
       }
       let annoHolder = annotations;
@@ -1822,836 +1830,17 @@ modules["editor"] = class {
         height = -height;
         y -= height;
       }
-      let svg;
-      let path;
-      let drawSetPoints = "";
-      let drawSetWidth = 0;
       let transform;
-      let setAnnoID;
-      let svgtransform;
-      let halfT = (t ?? 0) / 2;
-      let text;
-      let richText = d ?? {};
-      switch (f) {
-        case "markup":
-          if (anno == null) {
-            annoHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
-              <svg xmlns="http://www.w3.org/2000/svg">
-                <polyline/>
-              </svg>
-            </div>`);
-            anno = annoHolder.querySelector(".eAnnotation[new]");
-            anno.removeAttribute("new");
-            let line = anno.querySelector("polyline");
-            line.setAttribute("fill", "none");
-          }
-          width += t;
-          height += t;
-          x += halfT;
-          y += halfT;
-          anno.style.width = width + "px";
-          anno.style.height = height + "px";
-          transform = "translate(" + x + "px," + y + "px)";
-          if (_id != null) {
-            setAnnoID = _id;
-          }
-          svg = anno.querySelector("svg");
-          path = svg.querySelector("polyline");
-          svg.setAttribute("viewBox", "0 0 " + (width + (this.SVG_PADDING * 2)) + " " + (height + (this.SVG_PADDING * 2)));
-          if (d.length == 2) {
-            //let dividedT = t / 2;
-            //drawSetPoints = (d[0] - dividedT + this.SVG_PADDING) + "," + (d[1] - dividedT + this.SVG_PADDING) + " " + (d[0] + dividedT + this.SVG_PADDING) + "," + (d[1] + dividedT + this.SVG_PADDING);
-            drawSetPoints = ((width / 2) + this.SVG_PADDING) + "," + ((height / 2) + this.SVG_PADDING) + " " + ((width / 2) + .1 + this.SVG_PADDING) + "," + ((height / 2) + .1 + this.SVG_PADDING);
-            path.setAttribute("stroke-width", width);
-          } else {
-            let scaleW = 1;
-            let scaleH = 1;
-            if (sync != null) {
-              // Allows for greater precision when zoomed in:
-              let largestX = d[0];
-              let largestY = d[1];
-              for (let i = 2; i < d.length; i += 2) {
-                largestX = Math.max(largestX, d[i]);
-                largestY = Math.max(largestY, d[i + 1]);
-              }
-              let halfT = 0;//t / 2;
-              if (largestX - halfT > 0) {
-                scaleW = (width - t) / (largestX - halfT);
-              } else {
-                scaleW = width - t;
-              }
-              if (largestY - halfT > 0) {
-                scaleH = (height - t) / (largestY - halfT);
-              } else {
-                scaleH = height - t;
-              }
-            }
-            for (let i = 0; i < d.length; i += 2) {
-              drawSetPoints += (halfT + ((d[i]) * scaleW) + this.SVG_PADDING) + "," + (halfT + ((d[i + 1]) * scaleH) + this.SVG_PADDING) + " ";
-            }
-            path.setAttribute("stroke-width", t);
-          }
-          path.setAttribute("points", drawSetPoints);
-          path.setAttribute("stroke", "#" + c);
-          path.setAttribute("opacity", o / 100);
-          break;
-        case "text":
-          if (anno == null) {
-            annoHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
-              <div text edit></div>
-            </div>`);
-            anno = annoHolder.querySelector(".eAnnotation[new]");
-            anno.removeAttribute("new");
-          }
-          anno.style.width = width + "px";
-          anno.style.height = height + "px";
-          transform = "translate(" + x + "px," + y + "px)";
-          if (_id != null) {
-            setAnnoID = _id;
-            anno.style.opacity = 1;
-          } else {
-            anno.setAttribute("tooleditor", "");
-            anno.style.opacity = .7;
-          }
-          text = anno.querySelector("div[edit]");
-          if (_id != null) {
-            text.removeAttribute("placeborder");
-          } else {
-            text.setAttribute("placeborder", "");
-          }
-          anno.style.setProperty("--themeColor", "#" + c);
-          text.style.opacity = o / 100;
-          text.style.fontSize = Math.floor(Math.max(Math.min(richText.s ?? 18, 250), 1)) + "px";
-          if (text.hasAttribute("contenteditable") == false) {
-            let setHTML = "";
-            for (let i = 0; i < richText.b.length; i++) {
-              let addHTML = "";
-              if (richText.b[i] != "\n") {
-                addHTML = "<div>" + cleanString(richText.b[i]) + "</div>";
-              } else {
-                addHTML = "<br>";
-              }
-              setHTML += addHTML;
-            }
-            if (text.innerHTML != setHTML) {
-              text.innerHTML = setHTML;
-            }
-            //text.innerText = cleanString(richText.b[0]);
-            //text.innerHTML = cleanString(richText.b[0]).replace(/\n\n/g, "</br>").replace(/\n/g, "</br>");
-          } else {
-            anno.setAttribute("notransition", "");
-          }
-          if (richText.bo == true) {
-            text.style.fontWeight = 700;
-          } else {
-            text.style.removeProperty("font-weight");
-          }
-          if (richText.it == true) {
-            text.style.fontStyle = "italic";
-          } else {
-            text.style.removeProperty("font-style");
-          }
-          if (richText.st == true && richText.ul == true) {
-            text.style.textDecoration = "underline line-through";
-          } else if (richText.st == true) {
-            text.style.textDecoration = "line-through";
-          } else if (richText.ul == true) {
-            text.style.textDecoration = "underline";
-          } else {
-            text.style.removeProperty("text-decoration");
-          }
-          text.style.textAlign = richText.al ?? "left";
-  
-          if (textfit == true) {
-            text.style.width = "max-content";
-            text.style.minWidth = "130px";
-          } else {
-            text.style.width = "calc(100% - 18px)"
-            text.style.removeProperty("min-width");
-          }
-          text.style.height = "fit-content";
-          break;
-        case "draw":
-          width += t;
-          height += t;
-          x += halfT;
-          y += halfT;
-          transform = "translate(" + x + "px," + y + "px)";
-          if (_id != null) {
-            setAnnoID = _id;
-          }
-          if (d.length == 2) {
-            //let dividedT = t / 2;
-            //drawSetPoints = (d[0] - dividedT + this.SVG_PADDING) + "," + (d[1] - dividedT + this.SVG_PADDING) + " " + (d[0] + dividedT + this.SVG_PADDING) + "," + (d[1] + dividedT + this.SVG_PADDING);
-            drawSetPoints = ((width / 2) + this.SVG_PADDING) + "," + ((height / 2) + this.SVG_PADDING) + " " + ((width / 2) + .1 + this.SVG_PADDING) + "," + ((height / 2) + .1 + this.SVG_PADDING)
-            drawSetWidth = width;
-          } else {
-            let scaleW = 1;
-            let scaleH = 1;
-            if (sync != null) {
-              // Allows for greater precision when zoomed in:
-              let largestX = d[0];
-              let largestY = d[1];
-              for (let i = 2; i < d.length; i += 2) {
-                largestX = Math.max(largestX, d[i]);
-                largestY = Math.max(largestY, d[i + 1]);
-              }
-              let halfT = 0;//t / 2;
-              if (largestX - halfT > 0) {
-                scaleW = (width - t) / (largestX - halfT);
-              } else {
-                scaleW = width - t;
-              }
-              if (largestY - halfT > 0) {
-                scaleH = (height - t) / (largestY - halfT);
-              } else {
-                scaleH = height - t;
-              }
-            }
-            for (let i = 0; i < d.length; i += 2) {
-              drawSetPoints += (halfT + ((d[i]) * scaleW) + this.SVG_PADDING) + "," + (halfT + ((d[i + 1]) * scaleH) + this.SVG_PADDING) + " ";
-            }
-            drawSetWidth = t;
-          }
-          if (anno == null) {
-            annoHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" style="width: ${parseFloat(width)}px; height: ${parseFloat(height)}px" new>
-              <svg viewBox="0 0 ${parseFloat(width + (this.SVG_PADDING * 2))} ${parseFloat(height + (this.SVG_PADDING * 2))}" xmlns="http://www.w3.org/2000/svg">
-                <polyline stroke-width="${parseFloat(drawSetWidth)}" points="${drawSetPoints}" stroke="${"#" + cleanString(c)}" opacity="${parseFloat(o) / 100}"/>
-              </svg>
-            </div>`);
-            anno = annoHolder.querySelector(".eAnnotation[new]");
-            anno.removeAttribute("new");
-            let line = anno.querySelector("polyline");
-            line.setAttribute("fill", "none");
-            line.setAttribute("stroke-linecap", "round");
-            line.setAttribute("stroke-linejoin", "round");
-          } else {
-            anno.style.width = width + "px";
-            anno.style.height = height + "px";
-            svg = anno.querySelector("svg");
-            path = svg.querySelector("polyline");
-            svg.setAttribute("viewBox", "0 0 " + (width + (this.SVG_PADDING * 2)) + " " + (height + (this.SVG_PADDING * 2)));
-            path.setAttribute("stroke-width", drawSetWidth);
-            path.setAttribute("points", drawSetPoints);
-            path.setAttribute("stroke", "#" + c);
-            path.setAttribute("opacity", o / 100);
-          }
-          break;
-        case "shape":
-          if (anno == null) {
-            annoHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
-              <svg xmlns="http://www.w3.org/2000/svg"></svg>
-            </div>`);
-            anno = annoHolder.querySelector(".eAnnotation[new]");
-            anno.removeAttribute("new");
-            /*
-            let polygon = anno.querySelector("polygon");
-            polygon.setAttribute("fill", "none");
-            polygon.setAttribute("stroke-linecap", "round");
-            polygon.setAttribute("stroke-linejoin", "round");
-            */
-          }
-          if (b == "none" && d != "line") {
-            t = 0;
-            halfT = 0;
-          }
-          width += t;
-          height += t;
-          x += halfT;
-          y += halfT;
-          anno.style.width = width + "px";
-          anno.style.height = height + "px";
-          transform = "translate(" + x + "px," + y + "px)";
-          if (_id != null) {
-            setAnnoID = _id;
-            anno.style.opacity = 1;
-          } else {
-            anno.setAttribute("tooleditor", "");
-            anno.style.opacity = .7;
-          }
-          svg = anno.querySelector("svg");
-          if (remove != true) {
-            svg.removeAttribute("hidden");
-          } else {
-            svg.setAttribute("hidden", "");
-          }
-          //polygon = svg.querySelector("polygon");
-          svg.setAttribute("viewBox", "0 0 " + (width + (this.SVG_PADDING * 2)) + " " + (height + (this.SVG_PADDING * 2)));
-  
-          let elem;
-          let widthT;
-          let heightT;
-          switch (d) {
-            case "square":
-              elem = svg.querySelector("rect");
-              if (elem == null) {
-                svg.innerHTML = "<rect/>";
-                elem = svg.querySelector("rect");
-                elem.setAttribute("rx", "10");
-                elem.setAttribute("ry", "10");
-              }
-              elem.setAttribute("width", Math.max(Math.abs(width - t), 5));
-              elem.setAttribute("height", Math.max(Math.abs(height - t), 5));
-              elem.setAttribute("x", this.SVG_PADDING + halfT);
-              elem.setAttribute("y", this.SVG_PADDING + halfT);
-              break;
-            case "ellipse":
-              elem = svg.querySelector("ellipse");
-              if (elem == null) {
-                svg.innerHTML = "<ellipse/>";
-                elem = svg.querySelector("ellipse");
-              }
-              elem.setAttribute("cx", this.SVG_PADDING + (width / 2));
-              elem.setAttribute("cy", this.SVG_PADDING + (height / 2));
-              elem.setAttribute("rx", Math.max(Math.abs(width - t) / 2, 5));
-              elem.setAttribute("ry", Math.max(Math.abs(height - t) / 2, 5));
-              break;
-            case "triangle":
-              elem = svg.querySelector("polygon");
-              if (elem == null) {
-                svg.innerHTML = "<polygon/>";
-                elem = svg.querySelector("polygon");
-                elem.setAttribute("stroke-linejoin", "round");
-              }
-              widthT = width - t;
-              heightT = height - t;
-              elem.setAttribute("points", ((widthT / 2) + this.SVG_PADDING + halfT) + "," + (this.SVG_PADDING + halfT) + " " + (this.SVG_PADDING + halfT) + "," + (heightT + this.SVG_PADDING + halfT) + " " + (widthT + this.SVG_PADDING + halfT) + "," + (heightT + this.SVG_PADDING + halfT));
-              break;
-            case "parallelogram":
-              elem = svg.querySelector("polygon");
-              if (elem == null) {
-                svg.innerHTML = "<polygon/>";
-                elem = svg.querySelector("polygon");
-                elem.setAttribute("stroke-linejoin", "round");
-              }
-              widthT = width - t;
-              heightT = height - t;
-              elem.setAttribute("points", (this.SVG_PADDING + halfT + (widthT * .2)) + "," + (this.SVG_PADDING + halfT) + " " + (widthT + this.SVG_PADDING + halfT) + "," + (this.SVG_PADDING + halfT) + " " + (widthT + this.SVG_PADDING + halfT - (widthT * .2)) + "," + (heightT + this.SVG_PADDING + halfT) + " " + (this.SVG_PADDING + halfT) + "," + (heightT + this.SVG_PADDING + halfT));
-              break;
-            case "trapezoid":
-              elem = svg.querySelector("polygon");
-              if (elem == null) {
-                svg.innerHTML = "<polygon/>";
-                elem = svg.querySelector("polygon");
-                elem.setAttribute("stroke-linejoin", "round");
-              }
-              widthT = width - t;
-              heightT = height - t;
-              elem.setAttribute("points", (this.SVG_PADDING + halfT + (widthT * .2)) + "," + (this.SVG_PADDING + halfT) + " " + (widthT + this.SVG_PADDING + halfT - (widthT * .2)) + "," + (this.SVG_PADDING + halfT) + " " + (widthT + this.SVG_PADDING + halfT) + "," + (heightT + this.SVG_PADDING + halfT) + " " + (this.SVG_PADDING + halfT) + "," + (heightT + this.SVG_PADDING + halfT));
-              break;
-            case "rhombus":
-              elem = svg.querySelector("polygon");
-              if (elem == null) {
-                svg.innerHTML = "<polygon/>";
-                elem = svg.querySelector("polygon");
-                elem.setAttribute("stroke-linejoin", "round");
-              }
-              widthT = width - t;
-              heightT = height - t;
-              elem.setAttribute("points", (this.SVG_PADDING + halfT + (widthT * .5)) + "," + (this.SVG_PADDING + halfT) + " " + (widthT + this.SVG_PADDING + halfT) + "," + (this.SVG_PADDING + halfT + (heightT * .5)) + " " + (this.SVG_PADDING + halfT + (widthT * .5)) + "," + (heightT + this.SVG_PADDING + halfT) + " " + (this.SVG_PADDING + halfT) + "," + (this.SVG_PADDING + halfT + (heightT * .5)));
-              break;
-            case "line":
-              elem = svg.querySelector("line");
-              if (elem == null) {
-                svg.innerHTML = "<line/>";
-                elem = svg.querySelector("line");
-                elem.setAttribute("stroke-linecap", "round");
-              }
-              if (b == "none") {
-                b = "solid";
-              }
-              i = false;
-              widthT = width - t;
-              heightT = height - t;
-              elem.setAttribute("x1", widthT + this.SVG_PADDING + halfT);
-              elem.setAttribute("y1", this.SVG_PADDING + halfT);
-              elem.setAttribute("x2", this.SVG_PADDING + halfT);
-              elem.setAttribute("y2", heightT + this.SVG_PADDING + halfT);
-            //elem.setAttribute("points", (widthT + this.SVG_PADDING + halfT) + "," + (this.SVG_PADDING + halfT) + " " + (this.SVG_PADDING + halfT) + "," + (heightT + this.SVG_PADDING + halfT));
-          }
-          if (b == "none") {
-            i = true;
-          }
-          if (i != true) {
-            elem.setAttribute("fill", "none");
-            elem.setAttribute("stroke", "#" + c);
-          } else {
-            elem.setAttribute("fill", "#" + c);
-            elem.setAttribute("stroke", "#" + this.utils.darkenHex(c, 20));
-          }
-          if ((b ?? "solid") == "solid") {
-            elem.setAttribute("stroke-width", t);
-            elem.removeAttribute("stroke-dasharray");
-          } else if (b == "dashed") {
-            elem.setAttribute("stroke-width", t);
-            elem.setAttribute("stroke-dasharray", (t * 2) + ", " + (t * 2));
-            elem.setAttribute("stroke-linecap", "round");
-          } else {
-            elem.setAttribute("stroke-width", 0);
-          }
-  
-          elem.setAttribute("opacity", o / 100);
-  
-          if (width < 0 && height < 0) {
-            svgtransform = "scale(-1,-1)";
-          } else if (width < 0) {
-            svgtransform = "scale(-1,1)";
-          } else if (height < 0) {
-            svgtransform = "scale(1,-1)";
-          }
-          if (elem != null) {
-            elem.style.transform = svgtransform;
-          }
-          break;
-        case "sticky":
-          if (anno == null) {
-            annoHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" sticky new>
-              <div holder>
-                <div edit></div>
-                <div footer>
-                  <div signature></div>
-                  <div reactions><button class="eReaction" add dropdowntitle="Reactions" noscrollclose><div imgholder><img src="./images/editor/actions/reaction.svg"></div></button></div>
-                </div>
-              </div>
-            </div>`);
-            anno = annoHolder.querySelector(".eAnnotation[new]");
-            anno.removeAttribute("new");
-          }
-          anno.style.width = width + "px";
-          anno.style.height = height + "px";
-          transform = "translate(" + x + "px," + y + "px)";
-          if (_id != null) {
-            setAnnoID = _id;
-            anno.style.opacity = 1;
-          } else {
-            anno.setAttribute("tooleditor", "");
-            anno.style.opacity = .7;
-          }
-          anno.style.setProperty("--themeColor", "#" + c);
-          text = anno.querySelector("div[edit]");
-          if (_id != null) {
-            text.removeAttribute("placeborder");
-          } else {
-            text.setAttribute("placeborder", "");
-          }
-          anno.style.color = this.utils.textColorBackground(c);
-          anno.style.textAlign = richText.al ?? "left";
-          text.style.opacity = o / 100;
-          let fontSize = Math.floor(Math.max(Math.min(richText.s ?? 16, 250), 1));
-          text.style.fontSize = fontSize + "px";
-          text.style.lineHeight = fontSize + 6 + "px";
-          if (text.hasAttribute("contenteditable") == false) {
-            if (richText.b != null) {
-              let setHTML = "";
-              for (let i = 0; i < richText.b.length; i++) {
-                let addHTML = "";
-                if (richText.b[i] != "\n") {
-                  addHTML = "<div>" + cleanString(richText.b[i]) + "</div>";
-                } else {
-                  addHTML = "<br>";
-                }
-                setHTML += addHTML;
-              }
-              if (text.innerHTML != setHTML) {
-                text.innerHTML = setHTML;
-              }
-              //text.innerText = cleanString(richText.b[0]);
-              //text.innerHTML = cleanString(richText.b[0]).replace(/\n\n/g, "</br>").replace(/\n/g, "</br>");
-            }
-          } else {
-            anno.setAttribute("notransition", "");
-          }
-          if (richText.bo == true) {
-            text.style.fontWeight = 700;
-          } else {
-            text.style.removeProperty("font-weight");
-          }
-          if (richText.it == true) {
-            text.style.fontStyle = "italic";
-          } else {
-            text.style.removeProperty("font-style");
-          }
-          if (richText.st == true && richText.ul == true) {
-            text.style.textDecoration = "underline line-through";
-          } else if (richText.st == true) {
-            text.style.textDecoration = "line-through";
-          } else if (richText.ul == true) {
-            text.style.textDecoration = "underline";
-          } else {
-            text.style.removeProperty("text-decoration");
-          }
-          let signature = anno.querySelector("div[signature]");
-          if (sig && sig != "") {
-            signature.textContent = cleanString(sig);
-            signature.title = signature.textContent;
-            signature.removeAttribute("hidden");
-          } else {
-            signature.setAttribute("hidden", "");
-          }
-          let reactionHolder = anno.querySelector("div[reactions]");
-          if (lock != true) {
-            reactionHolder.removeAttribute("disabled");
-          } else {
-            reactionHolder.setAttribute("disabled", "");
-          }
-          let addReactionButton = reactionHolder.querySelector(".eReaction[add]");
-          let reactions = this.reactions[_id];
-          let presentReactions = [];
-          if (reactions != null) {
-            for (let i = 0; i < reactions.length; i++) {
-              let reaction = reactions[i];
-              presentReactions.push(reaction.emoji);
-              let reactionElem = reactionHolder.querySelector('.eReaction[emoji="' + reaction.emoji + '"');
-              if (reactionElem == null) {
-                reactionHolder.insertAdjacentHTML("beforeend", `<button class="eReaction" unloaded new><div imgholder><img src="./images/editor/actions/reaction.svg"></div><div count></div></button>`);
-                reactionElem = reactionHolder.querySelector(".eReaction[new]");
-                reactionHolder.insertBefore(reactionElem, addReactionButton);
-                reactionElem.removeAttribute("new");
-                reactionElem.setAttribute("emoji", reaction.emoji);
-              }
-              if (reaction.reacted == true) {
-                reactionElem.setAttribute("selected", "");
-              } else {
-                reactionElem.removeAttribute("selected");
-              }
-              reactionElem.querySelector("div[count]").textContent = Math.max(reaction.count, 1);
-              if (this.loadingEmojiModule != true && reactionElem.hasAttribute("unloaded") == true) {
-                this.loadingEmojiModule = true;
-                (async () => {
-                  let emojiModule = await this.newModule("dropdowns/lesson/editor/tools/emojis");
-                  if (emojiModule != null) {
-                    emojiModule.applyReactions();
-                  }
-                  this.loadingEmojiModule = false;
-                })();
-              }
-            }
-          }
-          let currentReactions = reactionHolder.querySelectorAll(".eReaction[emoji]");
-          for (let i = 0; i < currentReactions.length; i++) {
-            if (presentReactions.includes(currentReactions[i].getAttribute("emoji")) == false) {
-              currentReactions[i].remove();
-            }
-          }
-          if (reactionHolder.childElementCount < 9) {
-            addReactionButton.style.display = "flex";
-          } else {
-            addReactionButton.style.display = "none";
-          }
-          if (reactionHolder.childElementCount > 1) {
-            reactionHolder.style.width = "100%";
-            reactionHolder.style.flex = "unset";
-          } else {
-            reactionHolder.style.width = "unset";
-            reactionHolder.style.flex = "1";
-          }
-          break;
-        case "page":
-          if (anno == null) {
-            annoHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" page new>
-              <div background></div>
-              <div border></div>
-              <div title></div>
-              <div content annoholdercontainer></div>
-            </div>`);
-            anno = annoHolder.querySelector(".eAnnotation[new]");
-            anno.removeAttribute("new");
-          }
-          anno.style.width = width + "px";
-          anno.style.height = height + "px";
-          anno.style.setProperty("--themeColor", "#" + c);
-          anno.style.color = this.utils.textColorBackground(c);
-          //anno.style.left = x + "px";
-          //anno.style.top = y + "px";
-          transform = "translate(" + x + "px," + y + "px)";
-          if (_id != null) {
-            setAnnoID = _id;
-            anno.style.opacity = 1;
-          } else {
-            anno.setAttribute("tooleditor", "");
-            anno.style.opacity = .7;
-          }
-          let pageTitle = anno.querySelector(":scope > div[title]");
-          if (pageTitle.hasAttribute("contenteditable") == false) {
-            if ((data.title ?? "").length < 1) {
-              pageTitle.style.removeProperty("display");
-              pageTitle.textContent = "";
-            } else {
-              pageTitle.style.display = "unset";
-              pageTitle.textContent = cleanString(data.title);
-            }
-          }
-          let pageBorder = anno.querySelector(":scope > div[border]");
-          let pageContent = anno.querySelector(":scope > div[content]");
-          let pdfDocumentHolder = pageContent.querySelector(":scope > div[document]");
-          if (data.source != null && data.number != null) {
-            let sourcePageId = data.source + "_" + data.number;
-            if (pdfDocumentHolder != null && pdfDocumentHolder.getAttribute("sourcepage") != sourcePageId) {
-              pdfDocumentHolder.remove();
-              pdfDocumentHolder = null;
-            }
-            if (pdfDocumentHolder == null) {
-              pageContent.insertAdjacentHTML("beforeend", `<div document></div>`);
-              pdfDocumentHolder = pageContent.querySelector(":scope > div[document]");
-              pdfDocumentHolder.setAttribute("sourcepage", sourcePageId);
-              pdfDocumentHolder.setAttribute("width", data.s[0]);
-              pdfDocumentHolder.setAttribute("height", data.s[1]);
-              pdfDocumentHolder.setAttribute("rotation", data.rotation);
-              if (this.exporting != true) {
-                pdfDocumentHolder.style.opacity = 0;
-                pdfDocumentHolder.style.transition = "opacity .3s";
-              }
-              this.render.addPageToQueue(data.source, data.number);
-            } else {
-              pdfDocumentHolder.setAttribute("sourcepage", sourcePageId);
-              pdfDocumentHolder.setAttribute("width", data.s[0]);
-              pdfDocumentHolder.setAttribute("height", data.s[1]);
-              let rotation = data.rotation ?? 0;
-              pdfDocumentHolder.setAttribute("rotation", rotation);
-              let canvas = pdfDocumentHolder.querySelector("canvas");
-              if (canvas != null) {
-                let canvasWidth = parseFloat(canvas.getAttribute("width"));
-                let canvasHeight = parseFloat(canvas.getAttribute("height"));
-                let useWidth = data.s[0];
-                let useHeight = data.s[1];
-                if (rotation == 90 || rotation == 270) {
-                  let prevWidth = width;
-                  canvasWidth = height;
-                  canvasHeight = prevWidth;
-                  useWidth = data.s[1];
-                  useHeight = data.s[0];
-                }
-                pdfDocumentHolder.style.setProperty("--fullWidth", canvasWidth + "px");
-                pdfDocumentHolder.style.setProperty("--fullHeight", canvasHeight + "px");
-                pdfDocumentHolder.style.transform = "rotate(" + rotation + "deg)";
-                let ratio = canvasWidth / canvasHeight;
-                let ratioedWidth = (useHeight - 8) * ratio;
-                let ratioedHeight = (useWidth - 8) / ratio;
-                if (ratioedWidth < useWidth - 8) {
-                  pdfDocumentHolder.style.width = (ratioedWidth + 8) + "px";
-                  pdfDocumentHolder.style.height = useHeight + "px";
-                  pdfDocumentHolder.style.setProperty("--fullScale", "scale(" + ((useHeight - 8) / canvasHeight) + ")");
-                } else {
-                  pdfDocumentHolder.style.width = useWidth + "px";
-                  pdfDocumentHolder.style.height = (ratioedHeight + 8) + "px";
-                  pdfDocumentHolder.style.setProperty("--fullScale", "scale(" + ((useWidth - 8) / canvasWidth) + ")");
-                }
-              }
-            }
-          } else if (pdfDocumentHolder != null) {
-            pdfDocumentHolder.remove();
-          }
-          let pageHiddenHolder = anno.querySelector(":scope > div[hide]");
-          if (data.hidden == true) {
-            anno.setAttribute("hide", "");
-            if (pageHiddenHolder == null) {
-              anno.insertAdjacentHTML("beforeend", `<div hide></div>`);
-              let hiddenElem = anno.querySelector(":scope > div[hide]");
-              if (this.self.access < 4) {
-                hiddenElem.insertAdjacentHTML("beforeend", `<img hideicon src="./images/editor/hidden.svg" draggable="false">`);
-              } else {
-                if (this.exporting != true) {
-                  hiddenElem.insertAdjacentHTML("beforeend", `<div hidemodal>
-                    <img src="./images/editor/hidden.svg" draggable="false">
-                    <div hidemodaltitle>Page Hidden</div>
-                  </div>`);
-                  if (this.self.access > 3) {
-                    hiddenElem.querySelector("div[hidemodal]").insertAdjacentHTML("beforeend", `<button class="largeButton">Reveal Page</button>`);
-                  }
-                }
-              }
-            }
-            pageBorder.style.pointerEvents = "none";
-          } else if (pageHiddenHolder != null) {
-            anno.removeAttribute("hide");
-            pageHiddenHolder.remove();
-            pageBorder.style.removeProperty("pointer-events");
-          }
-          break;
-        case "media":
-          if (anno == null) {
-            annoHolder.insertAdjacentHTML("beforeend", `<img class="eAnnotation" draggable="false" new></img>`);
-            anno = annoHolder.querySelector(".eAnnotation[new]");
-            anno.removeAttribute("new");
-            /*
-            let polygon = anno.querySelector("polygon");
-            polygon.setAttribute("fill", "none");
-            polygon.setAttribute("stroke-linecap", "round");
-            polygon.setAttribute("stroke-linejoin", "round");
-            */
-          }
-          anno.style.width = width + "px";
-          anno.style.height = height + "px";
-          //anno.style.left = x + "px";
-          //anno.style.top = y + "px";
-          transform = "translate(" + x + "px," + y + "px)";
-          if (_id != null) {
-            setAnnoID = _id;
-            anno.style.opacity = 1;
-          } else {
-            anno.setAttribute("tooleditor", "");
-            anno.style.opacity = .7;
-          }
-
-          anno.style.opacity = o / 100;
-
-          if (this.exporting != true) {
-            if (d != null || anno.hasAttribute("src") == false) {
-              if (d != null && d.startsWith("blob:") == false) {
-                if (anno.src != assetURL + d) {
-                  anno.src = assetURL + d;
-                }
-              } else {
-                if (anno.src != (d ?? "./images/editor/uploading.png")) {
-                  anno.src = d ?? "./images/editor/uploading.png";
-                }
-              }
-            }
-          } else {
-            this.exportPromises.push(new Promise(async (resolve) => {
-              anno.addEventListener("load", resolve);
-              if (d != null || anno.hasAttribute("src") == false) {
-                if (d != null && d.startsWith("blob:") == false) {
-                  anno.src = assetURL + d;
-                } else {
-                  anno.src = d ?? "./images/editor/uploading.png";
-                }
-              }
-            }));
-          }
-          break;
-        case "embed":
-          if (anno == null) {
-            annoHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" embed new>
-              <div holder>
-                <div content>
-                  <img thumbnail>
-                  <div activate><button><img></button></div>
-                </div>
-                <div details>
-                  <div input>
-                    <input placeholder="https://markifyapp.com" nodelete></input>
-                  </div>
-                  <div info>
-                    <div title></div>
-                    <div description></div>
-                    <a link target="_blank"><img src="./images/editor/actions/link.svg"><div></div></a>
-                  </div>
-                </div>
-              </div>
-            </div>`);
-            anno = annoHolder.querySelector(".eAnnotation[new]");
-            anno.removeAttribute("new");
-          }
-          //<button class="largeButton border">Set</button>
-          anno.style.width = width + "px";
-          anno.style.height = height + "px";
-          //anno.style.left = x + "px";
-          //anno.style.top = y + "px";
-          transform = "translate(" + x + "px," + y + "px)";
-          if (_id != null) {
-            setAnnoID = _id;
-            anno.style.opacity = 1;
-          } else {
-            anno.setAttribute("tooleditor", "");
-            anno.style.opacity = .7;
-          }
-  
-          let embedHolder = anno.querySelector("div[content]");
-          let thumbnail = embedHolder.querySelector("img[thumbnail]");
-          let embedActivate = anno.querySelector("div[activate]");
-          let embedFrame = anno.querySelector("iframe");
-          let embedDetails = anno.querySelector("div[details]");
-          let linkInputHolder = embedDetails.querySelector("div[input]");
-          let linkInput = linkInputHolder.querySelector("input");
-          let infoHolder = embedDetails.querySelector("div[info]");
-          let embedTitle = infoHolder.querySelector("div[title]");
-          let embedDesc = infoHolder.querySelector("div[description]");
-          let embedLink = infoHolder.querySelector("a[link]");
-          if (d != null && data.embed != null) {
-            linkInputHolder.removeAttribute("visible");
-            if (this.exporting != true) {
-              if (data.embed.url != null) {
-                if (embedFrame == null) {
-                  embedActivate.querySelector("img").src = "./images/editor/actions/play.svg";
-                  embedActivate.style.display = "flex";
-                }
-              } else {
-                embedActivate.style.display = "none";
-              }
-            }
-            if (data.embed.image != null) {
-              if (embedFrame == null) {
-                if (this.exporting != true) {
-                  thumbnail.src = data.embed.image;
-                } else {
-                  this.exportPromises.push(new Promise(async (resolve) => {
-                    thumbnail.addEventListener("load", resolve);
-                    thumbnail.src = data.embed.image;
-                  }));
-                }
-                thumbnail.style.display = "unset";
-              }
-            } else {
-              thumbnail.style.removeProperty("display");
-              thumbnail.removeAttribute("src");
-            }
-            if (data.embed.color != null) {
-              embedHolder.style.background = cleanString(data.embed.color);
-            } else {
-              embedHolder.style.removeProperty("background");
-            }
-            if (data.embed.title != null || data.embed.site != null) {
-              embedTitle.textContent = cleanString(data.embed.title ?? data.embed.site);
-              embedTitle.title = embedTitle.textContent;
-              embedTitle.style.display = "unset";
-            } else {
-              embedTitle.style.removeProperty("display");
-            }
-            if (data.embed.description) {
-              embedDesc.textContent = cleanString(data.embed.description);
-              embedDesc.title = embedDesc.textContent;
-              embedDesc.style.display = "unset";
-            } else {
-              embedDesc.style.removeProperty("display");
-            }
-            infoHolder.style.removeProperty("display");
-          } else {
-            linkInputHolder.setAttribute("visible", "");
-            embedActivate.style.removeProperty("display");
-            thumbnail.style.removeProperty("display");
-            infoHolder.style.display = "none";
-          }
-          if (document.activeElement != linkInput) {
-            linkInput.value = d ?? "";
-          }
-          if (d != null) {
-            embedLink.querySelector("div").textContent = (new URL(d)).hostname;
-            embedLink.title = d;
-            embedLink.href = d;
-          }
-  
-          if (embedFrame != null) {
-            let frameWidth = width - 16;
-            let defaultMaxWidth = 800;
-            if (frameWidth < 300) {
-              defaultMaxWidth = 300;
-            }
-            let embedWidth = Math.max(frameWidth, defaultMaxWidth);
-            let scale = frameWidth / embedWidth;
-            embedFrame.style.width = embedWidth + "px";
-            embedFrame.style.height = ((height - 24 - embedDetails.offsetHeight) * (1 / scale)) + "px";
-            embedFrame.style.transform = "scale(" + scale + ")";
-  
-            if (embedFrame.getAttribute("currenturl") != (data.embed ?? {}).url) {
-              embedFrame.remove();
-              embedActivate.style.opacity = 1;
-            }
-          }
+      let renderModule = await this.render.getModule(f);
+      if (renderModule.render != null) {
+        let result = (await renderModule.render(data, anno, annoHolder)) ?? {};
+        anno = result.element;
+        transform = result.transform;
       }
       if (anno != null) {
-        if (annotation != null) {
-          annotation.element = anno;
+        annotation.element = anno;
+        if (_id != null) {
+          anno.setAttribute("anno", _id);
         }
         //console.log((sync ?? getEpoch()) - editor.lesson.created)
         let zIndex = l ?? Math.round(((sync ?? getEpoch()) / 2000000000000) * 2147483647);
@@ -2687,7 +1876,7 @@ modules["editor"] = class {
             annoAnnotationHolder.style.removeProperty("bottom");
           } else {
             annoAnnotationHolder.setAttribute("notransition", "");
-            let [annoX, annoY] = editor.getAbsolutePosition(data);
+            let [annoX, annoY] = this.utils.getAbsolutePosition(data);
             let [handle, resizeX, resizeY, resizeWidth, resizeHeight] = data.resizing;
             switch (handle) {
               case "bottomright":
@@ -2748,10 +1937,6 @@ modules["editor"] = class {
           if (iframePresent != null) {
             iframePresent.remove();
           }
-        }
-        if (setAnnoID != null) {
-          anno.offsetHeight;
-          anno.setAttribute("anno", setAnnoID);
         }
       }
       return [data, anno];
@@ -2939,8 +2124,6 @@ modules["editor"] = class {
           loadChunkedAnnotations = { ...loadChunkedAnnotations, ...(this.chunkAnnotations[chunk] ?? {}) };
         }
       }
-      let renderAnnotationIDs = {};
-      let renderAnnotationAnnos = [];
       let chunkAnnos = Object.keys(loadChunkedAnnotations);
       for (let a = 0; a < chunkAnnos.length; a++) {
         let annotation = this.annotations[chunkAnnos[a]] ?? { chunks: [] };
@@ -2953,22 +2136,8 @@ modules["editor"] = class {
           }
         }
         if (render == true && annotation.render != null && annotation.element == null) {
-          renderAnnotationIDs[annotation.render._id] = {};
-          renderAnnotationAnnos.push(annotation.render);
+          await this.render.create(annotation.render);
         }
-      }
-      let renderedNewAnnoIDs = {};
-      while (renderAnnotationAnnos.length > 0) {
-        for (let i = 0; i < renderAnnotationAnnos.length; i++) {
-          let newRender = renderAnnotationAnnos[i];
-          if (renderAnnotationIDs[newRender.parent] == null || renderedNewAnnoIDs[newRender.parent] != null) {
-            this.render.create(newRender);
-            renderedNewAnnoIDs[newRender._id] = true;
-            renderAnnotationAnnos.splice(i, 1);
-            i--;
-          }
-        }
-        await sleep(1); // Just to be safe
       }
       alreadyRunningUpdateCycle = false;
     }
@@ -3161,7 +2330,7 @@ modules["editor"] = class {
           }
         }
         if (allowRender == true) {
-          this.render.create(renderObject, existingRender, true);
+          await this.render.create(renderObject, existingRender, true);
         }
       }
       this.pipeline.publish("redraw_selection", { redrawAction: redrawAction, fromLong: true });
@@ -3354,6 +2523,815 @@ modules["editor"] = class {
     });
 
     this.updateChunks();
+  }
+}
+
+// Render Modules:
+modules["editor/render/draw"] = class {
+  render = (anno, element, holder) => {
+    let halfT = anno.t / 2;
+    let width = anno.s[0] + anno.t;
+    let height = anno.s[1] + anno.t;
+    let x = anno.p[0] + halfT;
+    let y = anno.p[1] + halfT;
+    let transform = "translate(" + x + "px," + y + "px)";
+    let drawSetWidth;
+    let drawSetPoints = "";
+    if (anno.d.length == 2) {
+      drawSetPoints = ((width / 2) + this.parent.SVG_PADDING) + "," + ((height / 2) + this.parent.SVG_PADDING) + " " + ((width / 2) + .1 + this.parent.SVG_PADDING) + "," + ((height / 2) + .1 + this.parent.SVG_PADDING);
+      drawSetWidth = width;
+    } else {
+      let scaleW = 1;
+      let scaleH = 1;
+      if (anno.sync != null) {
+        // Allows for greater precision when zoomed in:
+        let largestX = anno.d[0];
+        let largestY = anno.d[1];
+        for (let i = 2; i < anno.d.length; i += 2) {
+          largestX = Math.max(largestX, anno.d[i]);
+          largestY = Math.max(largestY, anno.d[i + 1]);
+        }
+        let halfT = 0;
+        if (largestX - halfT > 0) {
+          scaleW = (width - anno.t) / (largestX - halfT);
+        } else {
+          scaleW = width - anno.t;
+        }
+        if (largestY - halfT > 0) {
+          scaleH = (height - anno.t) / (largestY - halfT);
+        } else {
+          scaleH = height - anno.t;
+        }
+      }
+      for (let i = 0; i < anno.d.length; i += 2) {
+        drawSetPoints += (halfT + ((anno.d[i]) * scaleW) + this.parent.SVG_PADDING) + "," + (halfT + ((anno.d[i + 1]) * scaleH) + this.parent.SVG_PADDING) + " ";
+      }
+      drawSetWidth = anno.t;
+    }
+    if (element == null) {
+      holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" style="width: ${parseFloat(width)}px; height: ${parseFloat(height)}px" new>
+        <svg viewBox="0 0 ${parseFloat(width + (this.parent.SVG_PADDING * 2))} ${parseFloat(height + (this.parent.SVG_PADDING * 2))}" xmlns="http://www.w3.org/2000/svg">
+          <polyline stroke-width="${parseFloat(drawSetWidth)}" points="${drawSetPoints}" stroke="${"#" + cleanString(anno.c)}" opacity="${parseFloat(anno.o) / 100}"/>
+        </svg>
+      </div>`);
+      element = holder.querySelector(".eAnnotation[new]");
+      element.removeAttribute("new");
+      let line = element.querySelector("polyline");
+      line.setAttribute("fill", "none");
+      line.setAttribute("stroke-linecap", "round");
+      line.setAttribute("stroke-linejoin", "round");
+    } else {
+      element.style.width = width + "px";
+      element.style.height = height + "px";
+      let svg = element.querySelector("svg");
+      let path = svg.querySelector("polyline");
+      svg.setAttribute("viewBox", "0 0 " + (width + (this.parent.SVG_PADDING * 2)) + " " + (height + (this.parent.SVG_PADDING * 2)));
+      path.setAttribute("stroke-width", drawSetWidth);
+      path.setAttribute("points", drawSetPoints);
+      path.setAttribute("stroke", "#" + anno.c);
+      path.setAttribute("opacity", anno.o / 100);
+    }
+    return { element: element, transform: transform };
+  }
+}
+modules["editor/render/markup"] = class {
+  render = (anno, element, holder) => {
+    if (element == null) {
+      holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
+        <svg xmlns="http://www.w3.org/2000/svg">
+          <polyline/>
+        </svg>
+      </div>`);
+      element = holder.querySelector(".eAnnotation[new]");
+      element.removeAttribute("new");
+      let line = element.querySelector("polyline");
+      line.setAttribute("fill", "none");
+    }
+    let halfT = anno.t / 2;
+    let width = anno.s[0] + anno.t;
+    let height = anno.s[1] + anno.t;
+    let x = anno.p[0] + halfT;
+    let y = anno.p[1] + halfT;
+    let transform = "translate(" + x + "px," + y + "px)";
+    element.style.width = width + "px";
+    element.style.height = height + "px";
+    let svg = element.querySelector("svg");
+    let path = svg.querySelector("polyline");
+    let drawSetPoints = "";
+    svg.setAttribute("viewBox", "0 0 " + (width + (this.parent.SVG_PADDING * 2)) + " " + (height + (this.parent.SVG_PADDING * 2)));
+    if (anno.d.length == 2) {
+      drawSetPoints = ((width / 2) + this.parent.SVG_PADDING) + "," + ((height / 2) + this.parent.SVG_PADDING) + " " + ((width / 2) + .1 + this.parent.SVG_PADDING) + "," + ((height / 2) + .1 + this.parent.SVG_PADDING);
+      path.setAttribute("stroke-width", width);
+    } else {
+      let scaleW = 1;
+      let scaleH = 1;
+      if (anno.sync != null) {
+        // Allows for greater precision when zoomed in:
+        let largestX = anno.d[0];
+        let largestY = anno.d[1];
+        for (let i = 2; i < anno.d.length; i += 2) {
+          largestX = Math.max(largestX, anno.d[i]);
+          largestY = Math.max(largestY, anno.d[i + 1]);
+        }
+        let halfT = 0;//t / 2;
+        if (largestX - halfT > 0) {
+          scaleW = (width - anno.t) / (largestX - halfT);
+        } else {
+          scaleW = width - anno.t;
+        }
+        if (largestY - halfT > 0) {
+          scaleH = (height - anno.t) / (largestY - halfT);
+        } else {
+          scaleH = height - anno.t;
+        }
+      }
+      for (let i = 0; i < anno.d.length; i += 2) {
+        drawSetPoints += (halfT + ((anno.d[i]) * scaleW) + this.parent.SVG_PADDING) + "," + (halfT + ((anno.d[i + 1]) * scaleH) + this.parent.SVG_PADDING) + " ";
+      }
+      path.setAttribute("stroke-width", anno.t);
+    }
+    path.setAttribute("points", drawSetPoints);
+    path.setAttribute("stroke", "#" + anno.c);
+    path.setAttribute("opacity", anno.o / 100);
+    return { element: element, transform: transform };
+  }
+}
+modules["editor/render/text"] = class {
+  render = (anno, element, holder) => {
+    if (element == null) {
+      holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
+        <div text edit></div>
+      </div>`);
+      element = holder.querySelector(".eAnnotation[new]");
+      element.removeAttribute("new");
+    }
+    element.style.width = anno.width + "px";
+    element.style.height = anno.height + "px";
+    let transform = "translate(" + anno.p[0] + "px," + anno.p[1] + "px)";
+    if (anno._id != null) {
+      element.style.opacity = 1;
+    } else {
+      element.setAttribute("tooleditor", "");
+      element.style.opacity = .7;
+    }
+    let text = element.querySelector("div[edit]");
+    if (anno._id != null) {
+      text.removeAttribute("placeborder");
+    } else {
+      text.setAttribute("placeborder", "");
+    }
+    element.style.setProperty("--themeColor", "#" + anno.c);
+    text.style.opacity = anno.o / 100;
+    let richText = anno.d ?? {};
+    text.style.fontSize = Math.floor(Math.max(Math.min(richText.s ?? 18, 250), 1)) + "px";
+    if (text.hasAttribute("contenteditable") == false) {
+      let setHTML = "";
+      for (let i = 0; i < richText.b.length; i++) {
+        let addHTML = "";
+        if (richText.b[i] != "\n") {
+          addHTML = "<div>" + cleanString(richText.b[i]) + "</div>";
+        } else {
+          addHTML = "<br>";
+        }
+        setHTML += addHTML;
+      }
+      if (text.innerHTML != setHTML) {
+        text.innerHTML = setHTML;
+      }
+    } else {
+      element.setAttribute("notransition", "");
+    }
+    if (richText.bo == true) {
+      text.style.fontWeight = 700;
+    } else {
+      text.style.removeProperty("font-weight");
+    }
+    if (richText.it == true) {
+      text.style.fontStyle = "italic";
+    } else {
+      text.style.removeProperty("font-style");
+    }
+    if (richText.st == true && richText.ul == true) {
+      text.style.textDecoration = "underline line-through";
+    } else if (richText.st == true) {
+      text.style.textDecoration = "line-through";
+    } else if (richText.ul == true) {
+      text.style.textDecoration = "underline";
+    } else {
+      text.style.removeProperty("text-decoration");
+    }
+    text.style.textAlign = richText.al ?? "left";
+    if (anno.textfit == true) {
+      text.style.width = "max-content";
+      text.style.minWidth = "130px";
+    } else {
+      text.style.width = "calc(100% - 18px)"
+      text.style.removeProperty("min-width");
+    }
+    text.style.height = "fit-content";
+    return { element: element, transform: transform };
+  }
+}
+modules["editor/render/shape"] = class {
+  render = (anno, element, holder) => {
+    if (element == null) {
+      holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
+        <svg xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>`);
+      element = holder.querySelector(".eAnnotation[new]");
+      element.removeAttribute("new");
+    }
+    let t = anno.t;
+    let halfT = t / 2;
+    if (anno.b == "none" && anno.d != "line") {
+      t = 0;
+      halfT = 0;
+    }
+    let width = anno.s[0] + anno.t;
+    let height = anno.s[1] + anno.t;
+    let x = anno.p[0] + halfT;
+    let y = anno.p[1] + halfT;
+    let transform = "translate(" + x + "px," + y + "px)";
+    element.style.width = width + "px";
+    element.style.height = height + "px";
+    if (anno._id != null) {
+      element.style.opacity = 1;
+    } else {
+      element.setAttribute("tooleditor", "");
+      element.style.opacity = .7;
+    }
+    let svg = element.querySelector("svg");
+    if (anno.remove != true) {
+      svg.removeAttribute("hidden");
+    } else {
+      svg.setAttribute("hidden", "");
+    }
+    svg.setAttribute("viewBox", "0 0 " + (width + (this.parent.SVG_PADDING * 2)) + " " + (height + (this.parent.SVG_PADDING * 2)));
+
+    let elem;
+    let widthT;
+    let heightT;
+    let i = anno.i;
+    switch (anno.d) {
+      case "square":
+        elem = svg.querySelector("rect");
+        if (elem == null) {
+          svg.innerHTML = "<rect/>";
+          elem = svg.querySelector("rect");
+          elem.setAttribute("rx", "10");
+          elem.setAttribute("ry", "10");
+        }
+        elem.setAttribute("width", Math.max(Math.abs(width - t), 5));
+        elem.setAttribute("height", Math.max(Math.abs(height - t), 5));
+        elem.setAttribute("x", this.parent.SVG_PADDING + halfT);
+        elem.setAttribute("y", this.parent.SVG_PADDING + halfT);
+        break;
+      case "ellipse":
+        elem = svg.querySelector("ellipse");
+        if (elem == null) {
+          svg.innerHTML = "<ellipse/>";
+          elem = svg.querySelector("ellipse");
+        }
+        elem.setAttribute("cx", this.parent.SVG_PADDING + (width / 2));
+        elem.setAttribute("cy", this.parent.SVG_PADDING + (height / 2));
+        elem.setAttribute("rx", Math.max(Math.abs(width - t) / 2, 5));
+        elem.setAttribute("ry", Math.max(Math.abs(height - t) / 2, 5));
+        break;
+      case "triangle":
+        elem = svg.querySelector("polygon");
+        if (elem == null) {
+          svg.innerHTML = "<polygon/>";
+          elem = svg.querySelector("polygon");
+          elem.setAttribute("stroke-linejoin", "round");
+        }
+        widthT = width - t;
+        heightT = height - t;
+        elem.setAttribute("points", ((widthT / 2) + this.parent.SVG_PADDING + halfT) + "," + (this.parent.SVG_PADDING + halfT) + " " + (this.parent.SVG_PADDING + halfT) + "," + (heightT + this.parent.SVG_PADDING + halfT) + " " + (widthT + this.parent.SVG_PADDING + halfT) + "," + (heightT + this.parent.SVG_PADDING + halfT));
+        break;
+      case "parallelogram":
+        elem = svg.querySelector("polygon");
+        if (elem == null) {
+          svg.innerHTML = "<polygon/>";
+          elem = svg.querySelector("polygon");
+          elem.setAttribute("stroke-linejoin", "round");
+        }
+        widthT = width - t;
+        heightT = height - t;
+        elem.setAttribute("points", (this.parent.SVG_PADDING + halfT + (widthT * .2)) + "," + (this.parent.SVG_PADDING + halfT) + " " + (widthT + this.parent.SVG_PADDING + halfT) + "," + (this.parent.SVG_PADDING + halfT) + " " + (widthT + this.parent.SVG_PADDING + halfT - (widthT * .2)) + "," + (heightT + this.parent.SVG_PADDING + halfT) + " " + (this.parent.SVG_PADDING + halfT) + "," + (heightT + this.parent.SVG_PADDING + halfT));
+        break;
+      case "trapezoid":
+        elem = svg.querySelector("polygon");
+        if (elem == null) {
+          svg.innerHTML = "<polygon/>";
+          elem = svg.querySelector("polygon");
+          elem.setAttribute("stroke-linejoin", "round");
+        }
+        widthT = width - t;
+        heightT = height - t;
+        elem.setAttribute("points", (this.parent.SVG_PADDING + halfT + (widthT * .2)) + "," + (this.parent.SVG_PADDING + halfT) + " " + (widthT + this.parent.SVG_PADDING + halfT - (widthT * .2)) + "," + (this.parent.SVG_PADDING + halfT) + " " + (widthT + this.parent.SVG_PADDING + halfT) + "," + (heightT + this.parent.SVG_PADDING + halfT) + " " + (this.parent.SVG_PADDING + halfT) + "," + (heightT + this.parent.SVG_PADDING + halfT));
+        break;
+      case "rhombus":
+        elem = svg.querySelector("polygon");
+        if (elem == null) {
+          svg.innerHTML = "<polygon/>";
+          elem = svg.querySelector("polygon");
+          elem.setAttribute("stroke-linejoin", "round");
+        }
+        widthT = width - t;
+        heightT = height - t;
+        elem.setAttribute("points", (this.parent.SVG_PADDING + halfT + (widthT * .5)) + "," + (this.parent.SVG_PADDING + halfT) + " " + (widthT + this.parent.SVG_PADDING + halfT) + "," + (this.parent.SVG_PADDING + halfT + (heightT * .5)) + " " + (this.parent.SVG_PADDING + halfT + (widthT * .5)) + "," + (heightT + this.parent.SVG_PADDING + halfT) + " " + (this.parent.SVG_PADDING + halfT) + "," + (this.parent.SVG_PADDING + halfT + (heightT * .5)));
+        break;
+      case "line":
+        elem = svg.querySelector("line");
+        if (elem == null) {
+          svg.innerHTML = "<line/>";
+          elem = svg.querySelector("line");
+          elem.setAttribute("stroke-linecap", "round");
+        }
+        let b = anno.b;
+        if (b == "none") {
+          b = "solid";
+        }
+        i = false;
+        widthT = width - t;
+        heightT = height - t;
+        elem.setAttribute("x1", widthT + this.parent.SVG_PADDING + halfT);
+        elem.setAttribute("y1", this.parent.SVG_PADDING + halfT);
+        elem.setAttribute("x2", this.parent.SVG_PADDING + halfT);
+        elem.setAttribute("y2", heightT + this.parent.SVG_PADDING + halfT);
+    }
+    if (anno.b == "none") {
+      i = true;
+    }
+    if (i != true) {
+      elem.setAttribute("fill", "none");
+      elem.setAttribute("stroke", "#" + anno.c);
+    } else {
+      elem.setAttribute("fill", "#" + anno.c);
+      elem.setAttribute("stroke", "#" + this.parent.utils.darkenHex(c, 20));
+    }
+    if ((anno.b ?? "solid") == "solid") {
+      elem.setAttribute("stroke-width", t);
+      elem.removeAttribute("stroke-dasharray");
+    } else if (b == "dashed") {
+      elem.setAttribute("stroke-width", t);
+      elem.setAttribute("stroke-dasharray", (t * 2) + ", " + (t * 2));
+      elem.setAttribute("stroke-linecap", "round");
+    } else {
+      elem.setAttribute("stroke-width", 0);
+    }
+
+    elem.setAttribute("opacity", anno.o / 100);
+
+    let svgtransform;
+    if (width < 0 && height < 0) {
+      svgtransform = "scale(-1,-1)";
+    } else if (width < 0) {
+      svgtransform = "scale(-1,1)";
+    } else if (height < 0) {
+      svgtransform = "scale(1,-1)";
+    }
+    if (elem != null) {
+      elem.style.transform = svgtransform;
+    }
+    return { element: element, transform: transform };
+  }
+}
+modules["editor/render/sticky"] = class {
+  render = (anno, element, holder) => {
+    if (element == null) {
+      holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" sticky new>
+        <div holder>
+          <div edit></div>
+          <div footer>
+            <div signature></div>
+            <div reactions><button class="eReaction" add dropdowntitle="Reactions" noscrollclose><div imgholder><img src="./images/editor/actions/reaction.svg"></div></button></div>
+          </div>
+        </div>
+      </div>`);
+      element = holder.querySelector(".eAnnotation[new]");
+      element.removeAttribute("new");
+    }
+    element.style.width = anno.s[0] + "px";
+    element.style.height = anno.s[1] + "px";
+    let transform = "translate(" + anno.p[0] + "px," + anno.p[1] + "px)";
+    element.style.setProperty("--themeColor", "#" + anno.c);
+    let text = element.querySelector("div[edit]");
+    if (anno._id != null) {
+      text.removeAttribute("placeborder");
+      element.style.opacity = 1;
+    } else {
+      text.setAttribute("placeborder", "");
+      element.setAttribute("tooleditor", "");
+      element.style.opacity = .7;
+    }
+    element.style.color = this.parent.utils.textColorBackground(anno.c);
+    let richText = anno.d ?? {};
+    element.style.textAlign = richText.al ?? "left";
+    text.style.opacity = anno.o / 100;
+    let fontSize = Math.floor(Math.max(Math.min(richText.s ?? 16, 250), 1));
+    text.style.fontSize = fontSize + "px";
+    text.style.lineHeight = fontSize + 6 + "px";
+    if (text.hasAttribute("contenteditable") == false) {
+      if (richText.b != null) {
+        let setHTML = "";
+        for (let i = 0; i < richText.b.length; i++) {
+          let addHTML = "";
+          if (richText.b[i] != "\n") {
+            addHTML = "<div>" + cleanString(richText.b[i]) + "</div>";
+          } else {
+            addHTML = "<br>";
+          }
+          setHTML += addHTML;
+        }
+        if (text.innerHTML != setHTML) {
+          text.innerHTML = setHTML;
+        }
+      }
+    } else {
+      element.setAttribute("notransition", "");
+    }
+    if (richText.bo == true) {
+      text.style.fontWeight = 700;
+    } else {
+      text.style.removeProperty("font-weight");
+    }
+    if (richText.it == true) {
+      text.style.fontStyle = "italic";
+    } else {
+      text.style.removeProperty("font-style");
+    }
+    if (richText.st == true && richText.ul == true) {
+      text.style.textDecoration = "underline line-through";
+    } else if (richText.st == true) {
+      text.style.textDecoration = "line-through";
+    } else if (richText.ul == true) {
+      text.style.textDecoration = "underline";
+    } else {
+      text.style.removeProperty("text-decoration");
+    }
+    let signature = element.querySelector("div[signature]");
+    if (anno.sig != null && anno.sig != "") {
+      signature.textContent = cleanString(anno.sig);
+      signature.title = signature.textContent;
+      signature.removeAttribute("hidden");
+    } else {
+      signature.setAttribute("hidden", "");
+    }
+    let reactionHolder = element.querySelector("div[reactions]");
+    if (anno.lock != true) {
+      reactionHolder.removeAttribute("disabled");
+    } else {
+      reactionHolder.setAttribute("disabled", "");
+    }
+    let addReactionButton = reactionHolder.querySelector(".eReaction[add]");
+    let reactions = this.parent.reactions[anno._id];
+    let presentReactions = [];
+    if (reactions != null) {
+      for (let i = 0; i < reactions.length; i++) {
+        let reaction = reactions[i];
+        presentReactions.push(reaction.emoji);
+        let reactionElem = reactionHolder.querySelector('.eReaction[emoji="' + reaction.emoji + '"');
+        if (reactionElem == null) {
+          reactionHolder.insertAdjacentHTML("beforeend", `<button class="eReaction" unloaded new><div imgholder><img src="./images/editor/actions/reaction.svg"></div><div count></div></button>`);
+          reactionElem = reactionHolder.querySelector(".eReaction[new]");
+          reactionHolder.insertBefore(reactionElem, addReactionButton);
+          reactionElem.removeAttribute("new");
+          reactionElem.setAttribute("emoji", reaction.emoji);
+        }
+        if (reaction.reacted == true) {
+          reactionElem.setAttribute("selected", "");
+        } else {
+          reactionElem.removeAttribute("selected");
+        }
+        reactionElem.querySelector("div[count]").textContent = Math.max(reaction.count, 1);
+        if (this.loadingEmojiModule != true && reactionElem.hasAttribute("unloaded") == true) {
+          this.loadingEmojiModule = true;
+          (async () => {
+            let emojiModule = await this.parent.newModule("dropdowns/lesson/editor/tools/emojis");
+            if (emojiModule != null) {
+              emojiModule.applyReactions();
+            }
+            this.loadingEmojiModule = false;
+          })();
+        }
+      }
+    }
+    let currentReactions = reactionHolder.querySelectorAll(".eReaction[emoji]");
+    for (let i = 0; i < currentReactions.length; i++) {
+      if (presentReactions.includes(currentReactions[i].getAttribute("emoji")) == false) {
+        currentReactions[i].remove();
+      }
+    }
+    if (reactionHolder.childElementCount < 9) {
+      addReactionButton.style.display = "flex";
+    } else {
+      addReactionButton.style.display = "none";
+    }
+    if (reactionHolder.childElementCount > 1) {
+      reactionHolder.style.width = "100%";
+      reactionHolder.style.flex = "unset";
+    } else {
+      reactionHolder.style.width = "unset";
+      reactionHolder.style.flex = "1";
+    }
+    return { element: element, transform: transform };
+  }
+}
+modules["editor/render/page"] = class {
+  render = (anno, element, holder) => {
+    if (element == null) {
+      holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" page new>
+        <div background></div>
+        <div border></div>
+        <div title></div>
+        <div content annoholdercontainer></div>
+      </div>`);
+      element = holder.querySelector(".eAnnotation[new]");
+      element.removeAttribute("new");
+    }
+    element.style.width = anno.s[0] + "px";
+    element.style.height = anno.s[1] + "px";
+    element.style.setProperty("--themeColor", "#" + anno.c);
+    element.style.color = this.parent.utils.textColorBackground(anno.c);
+    let transform = "translate(" + anno.p[0] + "px," + anno.p[1] + "px)";
+    if (anno._id != null) {
+      element.style.opacity = 1;
+    } else {
+      element.setAttribute("tooleditor", "");
+      element.style.opacity = .7;
+    }
+    let pageTitle = element.querySelector(":scope > div[title]");
+    if (pageTitle.hasAttribute("contenteditable") == false) {
+      if ((anno.title ?? "").length < 1) {
+        pageTitle.style.removeProperty("display");
+        pageTitle.textContent = "";
+      } else {
+        pageTitle.style.display = "unset";
+        pageTitle.textContent = cleanString(anno.title);
+      }
+    }
+    let pageBorder = element.querySelector(":scope > div[border]");
+    let pageContent = element.querySelector(":scope > div[content]");
+    let pdfDocumentHolder = pageContent.querySelector(":scope > div[document]");
+    if (anno.source != null && anno.number != null) {
+      let sourcePageId = anno.source + "_" + anno.number;
+      if (pdfDocumentHolder != null && pdfDocumentHolder.getAttribute("sourcepage") != sourcePageId) {
+        pdfDocumentHolder.remove();
+        pdfDocumentHolder = null;
+      }
+      if (pdfDocumentHolder == null) {
+        pageContent.insertAdjacentHTML("beforeend", `<div document></div>`);
+        pdfDocumentHolder = pageContent.querySelector(":scope > div[document]");
+        pdfDocumentHolder.setAttribute("sourcepage", sourcePageId);
+        pdfDocumentHolder.setAttribute("width", anno.s[0]);
+        pdfDocumentHolder.setAttribute("height", anno.s[1]);
+        pdfDocumentHolder.setAttribute("rotation", anno.rotation);
+        if (this.exporting != true) {
+          pdfDocumentHolder.style.opacity = 0;
+          pdfDocumentHolder.style.transition = "opacity .3s";
+        }
+        this.parent.render.addPageToQueue(anno.source, anno.number);
+      } else {
+        pdfDocumentHolder.setAttribute("sourcepage", sourcePageId);
+        pdfDocumentHolder.setAttribute("width", anno.s[0]);
+        pdfDocumentHolder.setAttribute("height", anno.s[1]);
+        let rotation = anno.rotation ?? 0;
+        pdfDocumentHolder.setAttribute("rotation", rotation);
+        let canvas = pdfDocumentHolder.querySelector("canvas");
+        if (canvas != null) {
+          let canvasWidth = parseFloat(canvas.getAttribute("width"));
+          let canvasHeight = parseFloat(canvas.getAttribute("height"));
+          let useWidth = anno.s[0];
+          let useHeight = anno.s[1];
+          if (rotation == 90 || rotation == 270) {
+            let prevWidth = width;
+            canvasWidth = height;
+            canvasHeight = prevWidth;
+            useWidth = anno.s[1];
+            useHeight = anno.s[0];
+          }
+          pdfDocumentHolder.style.setProperty("--fullWidth", canvasWidth + "px");
+          pdfDocumentHolder.style.setProperty("--fullHeight", canvasHeight + "px");
+          pdfDocumentHolder.style.transform = "rotate(" + rotation + "deg)";
+          let ratio = canvasWidth / canvasHeight;
+          let ratioedWidth = (useHeight - 8) * ratio;
+          let ratioedHeight = (useWidth - 8) / ratio;
+          if (ratioedWidth < useWidth - 8) {
+            pdfDocumentHolder.style.width = (ratioedWidth + 8) + "px";
+            pdfDocumentHolder.style.height = useHeight + "px";
+            pdfDocumentHolder.style.setProperty("--fullScale", "scale(" + ((useHeight - 8) / canvasHeight) + ")");
+          } else {
+            pdfDocumentHolder.style.width = useWidth + "px";
+            pdfDocumentHolder.style.height = (ratioedHeight + 8) + "px";
+            pdfDocumentHolder.style.setProperty("--fullScale", "scale(" + ((useWidth - 8) / canvasWidth) + ")");
+          }
+        }
+      }
+    } else if (pdfDocumentHolder != null) {
+      pdfDocumentHolder.remove();
+    }
+    let pageHiddenHolder = element.querySelector(":scope > div[hide]");
+    if (anno.hidden == true) {
+      element.setAttribute("hide", "");
+      if (pageHiddenHolder == null) {
+        element.insertAdjacentHTML("beforeend", `<div hide></div>`);
+        let hiddenElem = element.querySelector(":scope > div[hide]");
+        if (this.parent.self.access < 4) {
+          hiddenElem.insertAdjacentHTML("beforeend", `<img hideicon src="./images/editor/hidden.svg" draggable="false">`);
+        } else {
+          if (this.exporting != true) {
+            hiddenElem.insertAdjacentHTML("beforeend", `<div hidemodal>
+              <img src="./images/editor/hidden.svg" draggable="false">
+              <div hidemodaltitle>Page Hidden</div>
+            </div>`);
+            if (this.parent.self.access > 3) {
+              hiddenElem.querySelector("div[hidemodal]").insertAdjacentHTML("beforeend", `<button class="largeButton">Reveal Page</button>`);
+            }
+          }
+        }
+      }
+      pageBorder.style.pointerEvents = "none";
+    } else if (pageHiddenHolder != null) {
+      element.removeAttribute("hide");
+      pageHiddenHolder.remove();
+      pageBorder.style.removeProperty("pointer-events");
+    }
+    return { element: element, transform: transform };
+  }
+}
+modules["editor/render/media"] = class {
+  render = (anno, element, holder) => {
+    if (element == null) {
+      holder.insertAdjacentHTML("beforeend", `<img class="eAnnotation" draggable="false" new></img>`);
+      element = holder.querySelector(".eAnnotation[new]");
+      element.removeAttribute("new");
+    }
+    element.style.width = anno.s[0] + "px";
+    element.style.height = anno.s[1] + "px";
+    let transform = "translate(" + anno.p[0] + "px," + anno.p[1] + "px)";
+    if (anno._id != null) {
+      element.style.opacity = 1;
+    } else {
+      element.setAttribute("tooleditor", "");
+      element.style.opacity = .7;
+    }
+
+    element.style.opacity = anno.o / 100;
+
+    if (this.parent.exporting != true) {
+      if (anno.d != null || element.hasAttribute("src") == false) {
+        if (anno.d != null && anno.d.startsWith("blob:") == false) {
+          if (element.src != assetURL + anno.d) {
+            element.src = assetURL + anno.d;
+          }
+        } else {
+          if (element.src != (anno.d ?? "./images/editor/uploading.png")) {
+            element.src = anno.d ?? "./images/editor/uploading.png";
+          }
+        }
+      }
+    } else {
+      this.exportPromises.push(new Promise(async (resolve) => {
+        element.addEventListener("load", resolve);
+        if (anno.d != null || element.hasAttribute("src") == false) {
+          if (anno.d != null && anno.d.startsWith("blob:") == false) {
+            element.src = assetURL + anno.d;
+          } else {
+            element.src = anno.d ?? "./images/editor/uploading.png";
+          }
+        }
+      }));
+    }
+    return { element: element, transform: transform };
+  }
+}
+modules["editor/render/embed"] = class {
+  render = (anno, element, holder) => {
+    if (element == null) {
+      holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" embed new>
+        <div holder>
+          <div content>
+            <img thumbnail>
+            <div activate><button><img></button></div>
+          </div>
+          <div details>
+            <div input>
+              <input placeholder="https://markifyapp.com" nodelete></input>
+            </div>
+            <div info>
+              <div title></div>
+              <div description></div>
+              <a link target="_blank"><img src="./images/editor/actions/link.svg"><div></div></a>
+            </div>
+          </div>
+        </div>
+      </div>`);
+      element = holder.querySelector(".eAnnotation[new]");
+      element.removeAttribute("new");
+    }
+    element.style.width = anno.s[0] + "px";
+    element.style.height = anno.s[1] + "px";
+    let transform = "translate(" + anno.p[0] + "px," + anno.p[1] + "px)";
+    if (anno._id != null) {
+      element.style.opacity = 1;
+    } else {
+      element.setAttribute("tooleditor", "");
+      element.style.opacity = .7;
+    }
+
+    let embedHolder = element.querySelector("div[content]");
+    let thumbnail = embedHolder.querySelector("img[thumbnail]");
+    let embedActivate = element.querySelector("div[activate]");
+    let embedFrame = element.querySelector("iframe");
+    let embedDetails = element.querySelector("div[details]");
+    let linkInputHolder = embedDetails.querySelector("div[input]");
+    let linkInput = linkInputHolder.querySelector("input");
+    let infoHolder = embedDetails.querySelector("div[info]");
+    let embedTitle = infoHolder.querySelector("div[title]");
+    let embedDesc = infoHolder.querySelector("div[description]");
+    let embedLink = infoHolder.querySelector("a[link]");
+    if (anno.d != null && anno.embed != null) {
+      linkInputHolder.removeAttribute("visible");
+      if (this.exporting != true) {
+        if (anno.embed.url != null) {
+          if (embedFrame == null) {
+            embedActivate.querySelector("img").src = "./images/editor/actions/play.svg";
+            embedActivate.style.display = "flex";
+          }
+        } else {
+          embedActivate.style.display = "none";
+        }
+      }
+      if (anno.embed.image != null) {
+        if (embedFrame == null) {
+          if (this.exporting != true) {
+            thumbnail.src = anno.embed.image;
+          } else {
+            this.exportPromises.push(new Promise(async (resolve) => {
+              thumbnail.addEventListener("load", resolve);
+              thumbnail.src = anno.embed.image;
+            }));
+          }
+          thumbnail.style.display = "unset";
+        }
+      } else {
+        thumbnail.style.removeProperty("display");
+        thumbnail.removeAttribute("src");
+      }
+      if (anno.embed.color != null) {
+        embedHolder.style.background = cleanString(anno.embed.color);
+      } else {
+        embedHolder.style.removeProperty("background");
+      }
+      if (anno.embed.title != null || anno.embed.site != null) {
+        embedTitle.textContent = cleanString(anno.embed.title ?? anno.embed.site);
+        embedTitle.title = embedTitle.textContent;
+        embedTitle.style.display = "unset";
+      } else {
+        embedTitle.style.removeProperty("display");
+      }
+      if (anno.embed.description != null) {
+        embedDesc.textContent = cleanString(anno.embed.description);
+        embedDesc.title = embedDesc.textContent;
+        embedDesc.style.display = "unset";
+      } else {
+        embedDesc.style.removeProperty("display");
+      }
+      infoHolder.style.removeProperty("display");
+    } else {
+      linkInputHolder.setAttribute("visible", "");
+      embedActivate.style.removeProperty("display");
+      thumbnail.style.removeProperty("display");
+      infoHolder.style.display = "none";
+    }
+    if (document.activeElement != linkInput) {
+      linkInput.value = anno.d ?? "";
+    }
+    if (anno.d != null) {
+      embedLink.querySelector("div").textContent = (new URL(anno.d)).hostname;
+      embedLink.title = anno.d;
+      embedLink.href = anno.d;
+    }
+
+    if (embedFrame != null) {
+      let frameWidth = anno.s[0] - 16;
+      let defaultMaxWidth = 800;
+      if (frameWidth < 300) {
+        defaultMaxWidth = 300;
+      }
+      let embedWidth = Math.max(frameWidth, defaultMaxWidth);
+      let scale = frameWidth / embedWidth;
+      embedFrame.style.width = embedWidth + "px";
+      embedFrame.style.height = ((height - 24 - embedDetails.offsetHeight) * (1 / scale)) + "px";
+      embedFrame.style.transform = "scale(" + scale + ")";
+
+      if (embedFrame.getAttribute("currenturl") != (anno.embed ?? {}).url) {
+        embedFrame.remove();
+        embedActivate.style.opacity = 1;
+      }
+    }
+    return { element: element, transform: transform };
   }
 }
 

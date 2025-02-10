@@ -43,7 +43,7 @@ modules["dropdowns/lesson/editor/tools/emojis"] = class {
   }
   applyReactions = async () => {
     this.createEmojiObject();
-    let unloadedReactions = this.parent.frame.querySelectorAll(".eReaction[unloaded]");
+    let unloadedReactions = this.parent.contentHolder.querySelectorAll(".eReaction[unloaded]");
     for (let i = 0; i < unloadedReactions.length; i++) {
       let reaction = unloadedReactions[i];
       let emoji = this.emojiObject[reaction.getAttribute("emoji")];

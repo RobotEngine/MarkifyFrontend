@@ -704,13 +704,18 @@ modules["lesson/board"] = class {
       }
       if (jumpAnnotation == null) {
         if (pageParam == null) {
+          if (this.editor.annotationPages.length > 0) {
+            this.editor.utils.updateAnnotationScroll([this.editor.annotationPages[0][0]], false);
+          } else {
+            this.editor.utils.centerWindowWithPage();
+          }
           //this.editor.utils.centerWindowWithPage();
-          let startingPos = this.editor.utils.findStartingPoint();
+          /*let startingPos = this.editor.utils.findStartingPoint();
           if (startingPos != null) {
             this.editor.utils.scrollToPoint(startingPos.x, startingPos.y, false);
           } else {
             this.editor.utils.centerWindowWithPage();
-          }
+          }*/
         } else {
           this.editor.utils.updateAnnotationScroll([pageParam], false);
         }

@@ -1,5 +1,13 @@
 modules["pages/dashboard"] = class {
   title = "Dashboard";
+  preload = [
+    "./pages/lesson.js",
+    "./pages/join.js",
+    
+    "./modules/dropdowns/account.js",
+    "./modules/dropdowns/moveto.js",
+    "./modules/dropdowns/remove.js"
+  ];
   preJs = () => {
     if (userID == null) {
       checkForAuth(true);
@@ -166,11 +174,6 @@ modules["pages/dashboard"] = class {
     let accountButton = accountHolder.querySelector(".dAccount");
 
     let scrollEventPass;
-
-    // Preload
-    loadScript("./modules/dropdowns/account.js");
-    loadScript("./modules/dropdowns/moveto.js");
-    loadScript("./modules/dropdowns/remove.js");
     
     joinLessonButton.addEventListener("click", (event) => {
       event.preventDefault();

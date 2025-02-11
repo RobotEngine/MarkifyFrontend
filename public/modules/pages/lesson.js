@@ -1,6 +1,8 @@
 modules["pages/lesson"] = class {
   title = "Lesson";
   preload = [
+    "./pages/dashboard.js",
+    
     "./modules/lesson/board.js",
 
     "./modules/editor/realtime.js",

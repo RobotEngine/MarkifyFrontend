@@ -615,7 +615,7 @@ modules["editor"] = class {
     //'.eAnnotation[anno]:not([anno^="pending_"])': `transition: .25s`,
     ".eAnnotation[anno]": `transition: .25s`,
     //'.eAnnotation:not([selected]):not([anno^="pending_"])': `transition: .25s`,
-    ".eAnnotation svg": `position: absolute; width: calc(100% + 200px); height: calc(100% + 200px); left: -100px; top: -100px; pointer-events: none`,
+    ".eAnnotation svg": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: none; overflow: visible`,
     ".eAnnotation svg > *": `pointer-events: visiblepainted`,
     
     ".eAnnotation div[text]": `padding: 4px 6px; margin: 3px 3px; color: var(--themeColor); font-weight: 500; pointer-events: all; outline: none`,
@@ -852,7 +852,6 @@ modules["editor"] = class {
   currentPage = 1;
 
   zoom = 1;
-  SVG_PADDING = 100; // How much padding svgs should have to ensure clean render
   maxLayer = 0;
   minLayer = 0;
 
@@ -2538,7 +2537,7 @@ modules["editor/render/draw"] = class {
     let drawSetWidth;
     let drawSetPoints = "";
     if (anno.d.length == 2) {
-      drawSetPoints = ((width / 2) + this.parent.SVG_PADDING) + "," + ((height / 2) + this.parent.SVG_PADDING) + " " + ((width / 2) + .1 + this.parent.SVG_PADDING) + "," + ((height / 2) + .1 + this.parent.SVG_PADDING);
+      drawSetPoints = (width / 2) + "," + (height / 2) + " " + ((width / 2) + .1) + "," + ((height / 2) + .1);
       drawSetWidth = width;
     } else {
       let scaleW = 1;
@@ -2564,13 +2563,13 @@ modules["editor/render/draw"] = class {
         }
       }
       for (let i = 0; i < anno.d.length; i += 2) {
-        drawSetPoints += (halfT + ((anno.d[i]) * scaleW) + this.parent.SVG_PADDING) + "," + (halfT + ((anno.d[i + 1]) * scaleH) + this.parent.SVG_PADDING) + " ";
+        drawSetPoints += (halfT + (anno.d[i]) * scaleW) + "," + (halfT + (anno.d[i + 1] * scaleH)) + " ";
       }
       drawSetWidth = anno.t;
     }
     if (element == null) {
-      holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" style="width: ${parseFloat(width)}px; height: ${parseFloat(height)}px" new>
-        <svg viewBox="0 0 ${parseFloat(width + (this.parent.SVG_PADDING * 2))} ${parseFloat(height + (this.parent.SVG_PADDING * 2))}" xmlns="http://www.w3.org/2000/svg">
+      holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" style="width: ${width}px; height: ${height}px" new>
+        <svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
           <polyline stroke-width="${parseFloat(drawSetWidth)}" points="${drawSetPoints}" stroke="${"#" + cleanString(anno.c)}" opacity="${parseFloat(anno.o) / 100}"/>
         </svg>
       </div>`);
@@ -2585,7 +2584,7 @@ modules["editor/render/draw"] = class {
       element.style.height = height + "px";
       let svg = element.querySelector("svg");
       let path = svg.querySelector("polyline");
-      svg.setAttribute("viewBox", "0 0 " + (width + (this.parent.SVG_PADDING * 2)) + " " + (height + (this.parent.SVG_PADDING * 2)));
+      svg.setAttribute("viewBox", "0 0 " + width + " " + height);
       path.setAttribute("stroke-width", drawSetWidth);
       path.setAttribute("points", drawSetPoints);
       path.setAttribute("stroke", "#" + anno.c);
@@ -2618,9 +2617,9 @@ modules["editor/render/markup"] = class {
     let svg = element.querySelector("svg");
     let path = svg.querySelector("polyline");
     let drawSetPoints = "";
-    svg.setAttribute("viewBox", "0 0 " + (width + (this.parent.SVG_PADDING * 2)) + " " + (height + (this.parent.SVG_PADDING * 2)));
+    svg.setAttribute("viewBox", "0 0 " + width + " " + height);
     if (anno.d.length == 2) {
-      drawSetPoints = ((width / 2) + this.parent.SVG_PADDING) + "," + ((height / 2) + this.parent.SVG_PADDING) + " " + ((width / 2) + .1 + this.parent.SVG_PADDING) + "," + ((height / 2) + .1 + this.parent.SVG_PADDING);
+      drawSetPoints = (width / 2) + "," + (height / 2) + " " + ((width / 2) + .1) + "," + ((height / 2) + .1);
       path.setAttribute("stroke-width", width);
     } else {
       let scaleW = 1;
@@ -2646,7 +2645,7 @@ modules["editor/render/markup"] = class {
         }
       }
       for (let i = 0; i < anno.d.length; i += 2) {
-        drawSetPoints += (halfT + ((anno.d[i]) * scaleW) + this.parent.SVG_PADDING) + "," + (halfT + ((anno.d[i + 1]) * scaleH) + this.parent.SVG_PADDING) + " ";
+        drawSetPoints += (halfT + (anno.d[i] * scaleW)) + "," + (halfT + (anno.d[i + 1] * scaleH)) + " ";
       }
       path.setAttribute("stroke-width", anno.t);
     }
@@ -2766,7 +2765,7 @@ modules["editor/render/shape"] = class {
     } else {
       svg.setAttribute("hidden", "");
     }
-    svg.setAttribute("viewBox", "0 0 " + (width + (this.parent.SVG_PADDING * 2)) + " " + (height + (this.parent.SVG_PADDING * 2)));
+    svg.setAttribute("viewBox", "0 0 " + width + " " + height);
 
     let elem;
     let widthT;
@@ -2783,8 +2782,8 @@ modules["editor/render/shape"] = class {
         }
         elem.setAttribute("width", Math.max(Math.abs(width - t), 5));
         elem.setAttribute("height", Math.max(Math.abs(height - t), 5));
-        elem.setAttribute("x", this.parent.SVG_PADDING + halfT);
-        elem.setAttribute("y", this.parent.SVG_PADDING + halfT);
+        elem.setAttribute("x", halfT);
+        elem.setAttribute("y", halfT);
         break;
       case "ellipse":
         elem = svg.querySelector("ellipse");
@@ -2792,8 +2791,8 @@ modules["editor/render/shape"] = class {
           svg.innerHTML = "<ellipse/>";
           elem = svg.querySelector("ellipse");
         }
-        elem.setAttribute("cx", this.parent.SVG_PADDING + (width / 2));
-        elem.setAttribute("cy", this.parent.SVG_PADDING + (height / 2));
+        elem.setAttribute("cx", width / 2);
+        elem.setAttribute("cy", height / 2);
         elem.setAttribute("rx", Math.max(Math.abs(width - t) / 2, 5));
         elem.setAttribute("ry", Math.max(Math.abs(height - t) / 2, 5));
         break;
@@ -2806,7 +2805,7 @@ modules["editor/render/shape"] = class {
         }
         widthT = width - t;
         heightT = height - t;
-        elem.setAttribute("points", ((widthT / 2) + this.parent.SVG_PADDING + halfT) + "," + (this.parent.SVG_PADDING + halfT) + " " + (this.parent.SVG_PADDING + halfT) + "," + (heightT + this.parent.SVG_PADDING + halfT) + " " + (widthT + this.parent.SVG_PADDING + halfT) + "," + (heightT + this.parent.SVG_PADDING + halfT));
+        elem.setAttribute("points", ((widthT / 2) + halfT) + "," + halfT + " " + halfT + "," + (heightT + halfT) + " " + (widthT + halfT) + "," + (heightT + halfT));
         break;
       case "parallelogram":
         elem = svg.querySelector("polygon");
@@ -2817,7 +2816,7 @@ modules["editor/render/shape"] = class {
         }
         widthT = width - t;
         heightT = height - t;
-        elem.setAttribute("points", (this.parent.SVG_PADDING + halfT + (widthT * .2)) + "," + (this.parent.SVG_PADDING + halfT) + " " + (widthT + this.parent.SVG_PADDING + halfT) + "," + (this.parent.SVG_PADDING + halfT) + " " + (widthT + this.parent.SVG_PADDING + halfT - (widthT * .2)) + "," + (heightT + this.parent.SVG_PADDING + halfT) + " " + (this.parent.SVG_PADDING + halfT) + "," + (heightT + this.parent.SVG_PADDING + halfT));
+        elem.setAttribute("points", (halfT + (widthT * .2)) + "," + halfT + " " + (widthT + halfT) + "," + halfT + " " + (widthT + halfT - (widthT * .2)) + "," + (heightT + halfT) + " " + halfT + "," + (heightT + halfT));
         break;
       case "trapezoid":
         elem = svg.querySelector("polygon");
@@ -2828,7 +2827,7 @@ modules["editor/render/shape"] = class {
         }
         widthT = width - t;
         heightT = height - t;
-        elem.setAttribute("points", (this.parent.SVG_PADDING + halfT + (widthT * .2)) + "," + (this.parent.SVG_PADDING + halfT) + " " + (widthT + this.parent.SVG_PADDING + halfT - (widthT * .2)) + "," + (this.parent.SVG_PADDING + halfT) + " " + (widthT + this.parent.SVG_PADDING + halfT) + "," + (heightT + this.parent.SVG_PADDING + halfT) + " " + (this.parent.SVG_PADDING + halfT) + "," + (heightT + this.parent.SVG_PADDING + halfT));
+        elem.setAttribute("points", (halfT + (widthT * .2)) + "," + halfT + " " + (widthT + halfT - (widthT * .2)) + "," + halfT + " " + (widthT + halfT) + "," + (heightT + halfT) + " " + halfT + "," + (heightT + halfT));
         break;
       case "rhombus":
         elem = svg.querySelector("polygon");
@@ -2839,7 +2838,7 @@ modules["editor/render/shape"] = class {
         }
         widthT = width - t;
         heightT = height - t;
-        elem.setAttribute("points", (this.parent.SVG_PADDING + halfT + (widthT * .5)) + "," + (this.parent.SVG_PADDING + halfT) + " " + (widthT + this.parent.SVG_PADDING + halfT) + "," + (this.parent.SVG_PADDING + halfT + (heightT * .5)) + " " + (this.parent.SVG_PADDING + halfT + (widthT * .5)) + "," + (heightT + this.parent.SVG_PADDING + halfT) + " " + (this.parent.SVG_PADDING + halfT) + "," + (this.parent.SVG_PADDING + halfT + (heightT * .5)));
+        elem.setAttribute("points", (halfT + (widthT * .5)) + "," + halfT + " " + (widthT + halfT) + "," + (halfT + (heightT * .5)) + " " + (halfT + (widthT * .5)) + "," + (heightT + halfT) + " " + halfT + "," + (halfT + (heightT * .5)));
         break;
       case "line":
         elem = svg.querySelector("line");
@@ -2855,10 +2854,10 @@ modules["editor/render/shape"] = class {
         i = false;
         widthT = width - t;
         heightT = height - t;
-        elem.setAttribute("x1", widthT + this.parent.SVG_PADDING + halfT);
-        elem.setAttribute("y1", this.parent.SVG_PADDING + halfT);
-        elem.setAttribute("x2", this.parent.SVG_PADDING + halfT);
-        elem.setAttribute("y2", heightT + this.parent.SVG_PADDING + halfT);
+        elem.setAttribute("x1", widthT + halfT);
+        elem.setAttribute("y1", halfT);
+        elem.setAttribute("x2", halfT);
+        elem.setAttribute("y2", heightT + halfT);
     }
     if (anno.b == "none") {
       i = true;

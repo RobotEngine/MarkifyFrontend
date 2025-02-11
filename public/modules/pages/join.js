@@ -1,8 +1,8 @@
 modules["pages/join"] = class {
   title = "Join";
   preload = [
-    "./pages/lesson.js",
-    "./pages/dashboard.js"
+    "./modules/pages/lesson.js",
+    "./modules/pages/dashboard.js"
   ];
   html = `<div class="jBackdrop">
     <div class="jBackground"></div>

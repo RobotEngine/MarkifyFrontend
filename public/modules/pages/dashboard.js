@@ -1,8 +1,8 @@
 modules["pages/dashboard"] = class {
   title = "Dashboard";
   preload = [
-    "./pages/lesson.js",
-    "./pages/join.js",
+    "./modules/pages/lesson.js",
+    "./modules/pages/join.js",
     
     "./modules/dropdowns/account.js",
     "./modules/dropdowns/moveto.js",

@@ -187,7 +187,7 @@ modules["lesson/board"] = class {
     let increasePageButton = currentPageHolder.querySelector(".ePageNav[down]");
     let decreasePageButton = currentPageHolder.querySelector(".ePageNav[up]");
 
-    this.editor = await this.setFrame("editor", contentHolder);
+    this.editor = await this.setFrame("editor/editor", contentHolder);
     this.editor.id = this.parent.id;
     this.editor.self = this.parent.self;
     this.editor.session = this.parent.session;

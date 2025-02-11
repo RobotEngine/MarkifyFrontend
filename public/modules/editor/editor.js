@@ -1223,10 +1223,6 @@ modules["editor/editor"] = class {
       if (anno != null && anno.parentElement != annoHolder) {
         //annotations.appendChild(anno);
         annoHolder.appendChild(anno);
-        let activeSelect = annotations.querySelector('.eSelectActive[anno="' + _id + '"]');
-        if (activeSelect != null) {
-          annoHolder.appendChild(activeSelect);
-        }
       }
       if (width < 0) {
         width = -width;
@@ -1319,44 +1315,54 @@ modules["editor/editor"] = class {
         if (remove != true) {
           anno.removeAttribute("hidden");
         } else {
-          anno.setAttribute("hidden", "");
-          if (long == true) {
-            anno.remove();
+          if (long != true) {
+            this.render.hide(annotation);
+          } else {
+            this.render.remove(annotation);
             delete this.annotations[_id];
-            this.pipeline.unsubscribe("annotation" + _id);
-          }
-          let activeSelect = content.querySelector('.eSelectActive[anno="' + _id + '"]');
-          if (activeSelect != null) {
-            activeSelect.remove();
-          }
-          let allSelections = content.querySelectorAll('.eCollabSelect[anno="' + _id + '"]');
-          for (let i = 0; i < allSelections.length; i++) {
-            let select = allSelections[i];
-            (async function () {
-              select.setAttribute("old", "");
-              select.style.opacity = 0;
-              await sleep(150);
-              select.remove();
-            })();
-          }
-          let iframePresent = anno.querySelector("iframe");
-          if (iframePresent != null) {
-            iframePresent.remove();
           }
         }
       }
       return [data, anno];
     }
-    this.render.remove = async (annoID, checkDone) => {
-      let anno = annotations.querySelector('.eAnnotation[anno="' + annoID + '"]');
-      if (anno != null && (checkDone != true || anno.hasAttribute("done") == false)) {
-        anno.remove();
-        this.pipeline.unsubscribe("annotation" + annoID);
+    this.render.hide = (annotation) => {
+      if (annotation == null) {
+        return;
       }
-      let allSelections = [...annotations.querySelectorAll('.eSelect[anno="' + annoID + '"]'), ...annotations.querySelectorAll('.eSelectActive[anno="' + annoID + '"]')];
+      let render = annotation.render ?? {};
+      if (annotation.element == null) {
+        return;
+      }
+      annotation.element.setAttribute("hidden", "");
+      let allSelections = [
+        ...annotations.querySelectorAll('.eSelect[anno="' + render._id + '"]'),
+        ...realtimeHolder.querySelectorAll('.eCollabSelect[anno="' + render._id + '"]')
+      ];
       for (let i = 0; i < allSelections.length; i++) {
-        allSelections[i].remove();
+        let select = allSelections[i];
+        (async () => {
+          select.setAttribute("old", "");
+          select.style.opacity = 0;
+          await sleep(150);
+          select.remove();
+        })();
       }
+      let iframePresent = annotation.element.querySelector("iframe");
+      if (iframePresent != null) {
+        iframePresent.remove();
+      }
+    }
+    this.render.remove = (annotation) => {
+      if (annotation == null) {
+        return;
+      }
+      let render = annotation.render ?? {};
+      if (annotation.element != null) {
+        this.render.hide(annotation);
+        annotation.element.remove();
+        annotation.element = null;
+      }
+      this.pipeline.unsubscribe("annotation" + render._id);
     }
     this.chunkAnnotations["0_0"] = {};
     this.chunkAnnotations["0_-" + this.chunkHeight] = {};
@@ -1513,8 +1519,7 @@ modules["editor/editor"] = class {
           continue;
         }
         if (annotation.element != null) {
-          annotation.element.remove();
-          annotation.element = null;
+          this.render.remove(annotation);
         }
       }
 
@@ -1619,12 +1624,8 @@ modules["editor/editor"] = class {
           existingAnno.revert = anno;
 
           if (pendingAnno != null) {
-            existingRender = annotations.querySelector('.eAnnotation[anno="' + anno.pending + '"]');
+            existingRender = pendingAnno.element;
 
-            let selectActive = content.querySelector('.eSelectActive[anno="' + anno.pending + '"]');
-            if (selectActive != null) {
-              selectActive.setAttribute("anno", anno._id);
-            }
             let selectBox = content.querySelector('.eSelect[anno="' + anno.pending + '"]');
             if (selectBox != null) {
               selectBox.setAttribute("anno", anno._id);

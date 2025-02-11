@@ -456,8 +456,15 @@ modules["editor/realtime"] = class {
           cursorHolder.style.transform = "translate(" + (member.x + (parseInt(cursorHolder.getAttribute("offsetx") ?? "0")) + contentHolder.scrollLeft) + "px," + (member.y + (parseInt(cursorHolder.getAttribute("offsety") ?? "0")) + contentHolder.scrollTop) + "px)";
         }
 
+        if (extra == null) {
+          extra = {};
+        }
+
         // Handle Selection:
-        let userSelection = (extra ?? {}).select ?? {};
+        let userSelection = extra.select ?? {};
+        if (extra.u != null && extra.u._id != null) {
+          userSelection[extra.u._id] = extra.u;
+        }
         let selectKeys = Object.keys(userSelection);
         let selections = {};
         let elementKeys = Object.keys(member.elements);
@@ -491,10 +498,6 @@ modules["editor/realtime"] = class {
           }
         }
 
-        if (extra == null) {
-          extra = {};
-        }
-
         if (extra.c != null) {
           let setColor = cursorHolder.querySelector("[toolcoloropacity]");
           if (setColor != null) {
@@ -514,7 +517,7 @@ modules["editor/realtime"] = class {
           let hasCursorAnno = false;
           for (let i = 0; i < selectKeys.length; i++) {
             let annoID = selectKeys[i];
-            let anno = extra.select[annoID] ?? {};
+            let anno = userSelection[annoID] ?? {};
             let merge;
             let annoElem;
             let original;
@@ -629,7 +632,14 @@ modules["editor/realtime"] = class {
                 }
               }
               await editor.utils.setAnnotationChunks(editor.annotations[annoID]);
-              [merge, annoElem] = await editor.render.create(merge);
+              ([merge, annoElem] = await editor.render.create(merge));
+              if (annoElem != null) {
+                if (anno.f == null) { // Anno is being created
+                  annoElem.removeAttribute("notransition");
+                } else {
+                  annoElem.setAttribute("notransition", "");
+                }
+              }
               if (selection != null && anno.remove == true && selection.hasAttribute("remove") == false) {
                 delete member.elements["selection_" + annoID];
                 selection.setAttribute("remove", "");

@@ -86,7 +86,15 @@ modules["editor/realtime"] = class {
             let select = window.getSelection();
             if (select.rangeCount > 0) {
               let range = select.getRangeAt(0);
-              if (range.toString().length > 0 && range.endContainer.parentNode.getAttribute("role") == "presentation") {
+              let ancestorElement = null;
+              if (range.commonAncestorContainer != null) {
+                if (range.commonAncestorContainer.nodeType == Node.ELEMENT_NODE) {
+                  ancestorElement = range.commonAncestorContainer
+                } else {
+                  ancestorElement = range.commonAncestorContainer.parentElement;
+                }
+              }
+              if (range.toString().length > 0 && ancestorElement != null && ancestorElement.closest("div[textlayer]") != null) {
                 let selections = range.getClientRects();
                 if (selections.length < 100) {
                   let alreadyInsert = {};

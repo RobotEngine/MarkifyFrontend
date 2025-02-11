@@ -1932,7 +1932,7 @@ modules["editor/editor"] = class {
   }
 }
 
-// Render Modules:
+// Annotation Modules:
 modules["editor/render/draw"] = class {
   render = (anno, element, holder) => {
     let halfT = anno.t / 2;

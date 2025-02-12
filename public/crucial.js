@@ -630,7 +630,7 @@ function promptLogin(page, service) {
     return;
   }
   window.promptLoginActivate = true;
-  let randomStr = randomString(20);
+  let randomStr = getLocalStore("state") ?? randomString(20);
   setLocalStore("state", randomStr);
   modifyParams("state");
   modifyParams("code");

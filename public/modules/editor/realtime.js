@@ -528,7 +528,8 @@ modules["editor/realtime"] = class {
                 prevElem.remove();
                 prevElem = null;
               }
-              ([merge, annoElem] = await editor.render.create({ ...anno, _id: memberID + "_cursor" }, prevElem));
+              merge = { ...anno, _id: memberID + "_cursor" };
+              annoElem = await editor.render.create({ element: prevElem, render: merge });
               member.elements.selection_cursor_annotation = annoElem;
               annoElem.setAttribute("member", memberID);
               annoElem.setAttribute("anno", "cursor");
@@ -582,16 +583,16 @@ modules["editor/realtime"] = class {
                 } else if (changes == true) {
                   original.render = setRender;
                   delete original.render.done;
-                  await editor.save.applyEdit(anno, null, time);
-                }
-                if (changes == true) {
+
                   if (isNewAnno == false) {
                     original.render.m = member.modify;
                   } else {
                     original.render.a = member.modify;
                   }
                   original.render.sync = time;
-                  editor.save.enableTimeout(original, null, true);
+
+                  await editor.save.apply({ ...anno, sync: time });
+                  editor.save.enableTimeout(original);
                 }
               }
             }
@@ -631,8 +632,7 @@ modules["editor/realtime"] = class {
                   annoTx.removeAttribute("contenteditable");
                 }
               }
-              await editor.utils.setAnnotationChunks(editor.annotations[annoID]);
-              ([merge, annoElem] = await editor.render.create(merge));
+              annoElem = ((await editor.save.apply(merge)).annotation ?? {}).element;
               if (annoElem != null) {
                 if (anno.f == null) { // Anno is being created
                   annoElem.removeAttribute("notransition");

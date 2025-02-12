@@ -697,7 +697,7 @@ modules["lesson/board"] = class {
       let jumpAnnotation = null;
       if (checkForJumpLink != null && checkForJumpLink != "") {
         if (this.editor.annotations[checkForJumpLink] != null) {
-          jumpAnnotation = (await this.editor.render.create((this.editor.annotations[checkForJumpLink] || {}).render))[1];
+          jumpAnnotation = await this.editor.render.create(this.editor.annotations[checkForJumpLink]);
           this.editor.selecting[checkForJumpLink] = {};
           this.pipeline.publish("redraw_selection", {});
         }

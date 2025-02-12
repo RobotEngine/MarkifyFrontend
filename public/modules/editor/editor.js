@@ -672,7 +672,7 @@ modules["editor/editor"] = class {
       
       if (annotationVisible == true) {
         if (annotation.element == null) {
-          await this.render.create(render);
+          await this.render.create(annotation);
         }
       } else {
         if (annotation.element != null) {
@@ -1120,7 +1120,7 @@ modules["editor/editor"] = class {
       return newModule*/
       return await this.newModule("editor/render/" + name);
     }
-    this.render.create = async (data, anno, long) => {
+    this.render.create = async (annotation, long) => {
       /*
         _id - ID - The unique ID of the annotation
         f - FUNCTION - The type of tool to render
@@ -1135,12 +1135,23 @@ modules["editor/editor"] = class {
         d - DATA - Data, can change based on annotation, path of pen for example
       */
 
-      if (data == null) {
+      if (annotation == null) {
         return;
       }
+      if (annotation.pointer != null) { // If synced is availiable, update to it
+        annotation = this.annotations[annotation.pointer] ?? annotation;
+      }
+      let render = annotation.render;
+      let element = annotation.element;
+      if (annotation.render == null) {
+        return;
+      }
+
+      let { _id, p: position, s: size, parent } = render; // Must combine these back before render function
+
       if (this.exportSelected != null) {
-        if (this.exportSelected.includes(data._id) == false) {
-          let currentAnnoCheck = data;
+        if (this.exportSelected.includes(_id) == false) {
+          let currentAnnoCheck = render;
           let checkedParents = [];
           let isValid = false;
           while (currentAnnoCheck.parent != null) {
@@ -1162,158 +1173,148 @@ modules["editor/editor"] = class {
           if (isValid == false) {
             return;
           }
-        } else if (data.parent != null) {
-          let [absX, absY] = this.utils.getAbsolutePosition(data);
-          data.parent = null;
-          data.p = [absX, absY];
+        } else if (render.parent != null) {
+          let [absX, absY] = this.utils.getAbsolutePosition(render);
+          parent = null;
+          position = [absX, absY];
         }
       }
-      let { _id, f, parent, p, s, r, l, c, i, t, b, o, d, done, remove, sync, textfit, sig, lock } = data;
-      let [x, y] = p ?? [];
-      let size = s ?? [];
-      let [width, height] = [size[0], size[1]];
-      let annotation = this.annotations[_id] ?? {};
-      if (annotation.pointer != null) {
-        _id = annotation.pointer;
-        annotation = this.annotations[_id] ?? {};
-      }
-      if (anno == null) {
-        anno = annotation.element;
-        if (anno == null && _id != null && _id.startsWith("pending_") == true) {
-          anno = annotations.querySelector('.eAnnotation[anno="' + _id + '"]');
-        }
-      }
-      let annoHolder = annotations;
+
+      let holder = annotations;
       if (parent != null) {
-        if ((parent ?? "").startsWith("pending_") == true) {
-          let parentAnno = this.annotations[parent];
-          if (parentAnno != null && parentAnno.pointer != null) {
-            parent = parentAnno.pointer;
-          }
+        let parentAnnotation = this.annotations[parent] ?? {};
+        if (parentAnnotation.pointer != null) {
+          parentAnnotation = this.annotations[parentAnnotation.pointer] ?? parentAnnotation;
         }
-        let annoParentAnno = this.annotations[parent] ?? {};
-        let annoParentData = annoParentAnno.render;
-        if (annoParentData != null) {
-          let annoParent = annoParentAnno.element;
-          if (annoParent == null) {
-            if (annoParentData.parent != _id) {
-              annoParent = (await this.render.create(annoParentData))[1];
-            }
+        if (parentAnnotation.render != null) {
+          let parentAnnotationElement = parentAnnotation.element;
+          if (parentAnnotationElement == null && parentAnnotation.render.parent != _id) {
+            parentAnnotationElement = await this.render.create(parentAnnotation);
           }
-          if (annoParent != null) {
-            annoHolder = annoParent.querySelector(".eAnnotationHolder");
-            if (annoHolder == null) {
-              (annoParent.querySelector("div[annoholdercontainer]") ?? annoParent).insertAdjacentHTML("beforeend", `<div class="eAnnotationHolder"></div>`);
-              annoHolder = annoParent.querySelector(".eAnnotationHolder");
-              annoHolder.style.width = annoParentData.s[0] + "px";
-              annoHolder.style.height = annoParentData.s[1] + "px";
-              annoHolder.style.left = "0px";
-              annoHolder.style.top = "0px";
-            } else if (data.resizing == null) {
-              annoHolder.style.width = annoParentData.s[0] + "px";
-              annoHolder.style.height = annoParentData.s[1] + "px";
-              annoHolder.style.left = "0px";
-              annoHolder.style.top = "0px";
-              annoHolder.style.removeProperty("right");
-              annoHolder.style.removeProperty("bottom");
+          if (parentAnnotationElement != null) {
+            holder = parentAnnotationElement.querySelector(".eAnnotationHolder");
+            if (holder == null) {
+              (parentAnnotationElement.querySelector("div[annoholdercontainer]") ?? parentAnnotationElement).insertAdjacentHTML("beforeend", `<div class="eAnnotationHolder"></div>`);
+              holder = parentAnnotationElement.querySelector(".eAnnotationHolder");
+              holder.style.width = parentAnnotation.render.s[0] + "px";
+              holder.style.height = parentAnnotation.render.s[1] + "px";
+              holder.style.left = "0px";
+              holder.style.top = "0px";
+            } else if (render.resizing == null) {
+              holder.style.width = parentAnnotation.render.s[0] + "px";
+              holder.style.height = parentAnnotation.render.s[1] + "px";
+              holder.style.left = "0px";
+              holder.style.top = "0px";
+              holder.style.removeProperty("right");
+              holder.style.removeProperty("bottom");
             }
           }
         }
       }
-      if (anno != null && anno.parentElement != annoHolder) {
-        //annotations.appendChild(anno);
-        annoHolder.appendChild(anno);
+      if (element != null && element.parentElement != holder) {
+        holder.appendChild(element); // Change annotation parent to the new parent
       }
+
+      let transform;
+
+      let [xPos, yPos] = position;
+      let [width, height] = size;
       if (width < 0) {
         width = -width;
-        x -= width;
+        xPos -= width;
       }
       if (height < 0) {
         height = -height;
-        y -= height;
+        yPos -= height;
       }
-      let transform;
-      let renderModule = await this.render.getModule(f);
+
+      let renderModule = await this.render.getModule(render.f);
       if (renderModule.render != null) {
-        let result = (await renderModule.render(data, anno, annoHolder)) ?? {};
-        anno = result.element;
+        let result = (await renderModule.render({ ...render, p: [xPos, yPos], s: [width, height], parent: parent }, element, holder)) ?? {};
+        element = result.element;
         transform = result.transform;
       }
-      if (anno != null) {
-        annotation.element = anno;
+
+      if (element != null) {
+        annotation.element = element;
+        
         if (_id != null) {
-          anno.setAttribute("anno", _id);
+          element.setAttribute("anno", _id);
         }
-        //console.log((sync ?? getEpoch()) - editor.lesson.created)
-        let zIndex = l ?? Math.round(((sync ?? getEpoch()) / 2000000000000) * 2147483647);
-        anno.style.zIndex = zIndex;
+        
+        let zIndex = render.l ?? 0;
+        element.style.zIndex = zIndex;
         if (zIndex < this.minLayer) {
           this.minLayer = zIndex;
         }
         if (zIndex > this.maxLayer) {
           this.maxLayer = zIndex;
         }
-        let rotate = r ?? 0;
+
+        let rotate = render.r ?? 0;
         if (rotate > 180) {
           rotate = -(360 - rotate);
         }
         transform += " rotate(" + rotate + "deg)";
-        if (size[0] < 0 && size[1] < 0) {
+        if (width < 0 && height < 0) {
           transform += " scale(-1)";
-        } else if (size[0] < 0) {
+        } else if (width < 0) {
           transform += " scale(-1,1)";
-        } else if (size[1] < 0) {
+        } else if (height < 0) {
           transform += " scale(1,-1)";
         }
-        anno.style.transform = transform;
-        let annoAnnotationHolder = anno.querySelector(".eAnnotationHolder");
-        if (annoAnnotationHolder != null) {
-          if (data.resizing == null) {
-            annoAnnotationHolder.style.width = width + "px";
-            annoAnnotationHolder.style.height = height + "px";
-            annoAnnotationHolder.removeAttribute("notransition");
-            annoAnnotationHolder.style.left = "0px";
-            annoAnnotationHolder.style.top = "0px";
-            annoAnnotationHolder.style.removeProperty("right");
-            annoAnnotationHolder.style.removeProperty("bottom");
-          } else {
-            annoAnnotationHolder.setAttribute("notransition", "");
-            let [annoX, annoY] = this.utils.getAbsolutePosition(data);
-            let [handle, resizeX, resizeY, resizeWidth, resizeHeight] = data.resizing;
-            switch (handle) {
-              case "bottomright":
-                annoAnnotationHolder.style.left = (resizeX - annoX) + "px";
-                annoAnnotationHolder.style.top = (resizeY - annoY) + "px";
-                annoAnnotationHolder.style.removeProperty("right");
-                annoAnnotationHolder.style.removeProperty("bottom");
-                break;
-              case "topleft":
-                annoAnnotationHolder.style.right = ((annoX + width) - (resizeX + resizeWidth)) + "px";
-                annoAnnotationHolder.style.bottom = ((annoY + height) - (resizeY + resizeHeight)) + "px";
-                annoAnnotationHolder.style.removeProperty("left");
-                annoAnnotationHolder.style.removeProperty("top");
-                break;
-              case "topright":
-                annoAnnotationHolder.style.left = (resizeX - annoX) + "px";
-                annoAnnotationHolder.style.bottom = ((annoY + height) - (resizeY + resizeHeight)) + "px";
-                annoAnnotationHolder.style.removeProperty("right");
-                annoAnnotationHolder.style.removeProperty("top");
-                break;
-              case "bottomleft":
-                annoAnnotationHolder.style.right = ((annoX + width) - (resizeX + resizeWidth)) + "px";
-                annoAnnotationHolder.style.top = (resizeY - annoY) + "px";
-                annoAnnotationHolder.style.removeProperty("left");
-                annoAnnotationHolder.style.removeProperty("bottom");
+        element.style.transform = transform;
+
+        if (renderModule.CAN_PARENT_CHILDREN == true) { // If it can have children, must check the holder
+          let annoAnnotationHolder = element.querySelector(".eAnnotationHolder");
+          if (annoAnnotationHolder != null) {
+            if (render.resizing == null) {
+              annoAnnotationHolder.style.width = width + "px";
+              annoAnnotationHolder.style.height = height + "px";
+              annoAnnotationHolder.removeAttribute("notransition");
+              annoAnnotationHolder.style.left = "0px";
+              annoAnnotationHolder.style.top = "0px";
+              annoAnnotationHolder.style.removeProperty("right");
+              annoAnnotationHolder.style.removeProperty("bottom");
+            } else {
+              annoAnnotationHolder.setAttribute("notransition", "");
+              let [annoX, annoY] = this.utils.getAbsolutePosition(render);
+              let [handle, resizeX, resizeY, resizeWidth, resizeHeight] = data.resizing;
+              switch (handle) {
+                case "bottomright":
+                  annoAnnotationHolder.style.left = (resizeX - annoX) + "px";
+                  annoAnnotationHolder.style.top = (resizeY - annoY) + "px";
+                  annoAnnotationHolder.style.removeProperty("right");
+                  annoAnnotationHolder.style.removeProperty("bottom");
+                  break;
+                case "topleft":
+                  annoAnnotationHolder.style.right = ((annoX + width) - (resizeX + resizeWidth)) + "px";
+                  annoAnnotationHolder.style.bottom = ((annoY + height) - (resizeY + resizeHeight)) + "px";
+                  annoAnnotationHolder.style.removeProperty("left");
+                  annoAnnotationHolder.style.removeProperty("top");
+                  break;
+                case "topright":
+                  annoAnnotationHolder.style.left = (resizeX - annoX) + "px";
+                  annoAnnotationHolder.style.bottom = ((annoY + height) - (resizeY + resizeHeight)) + "px";
+                  annoAnnotationHolder.style.removeProperty("right");
+                  annoAnnotationHolder.style.removeProperty("top");
+                  break;
+                case "bottomleft":
+                  annoAnnotationHolder.style.right = ((annoX + width) - (resizeX + resizeWidth)) + "px";
+                  annoAnnotationHolder.style.top = (resizeY - annoY) + "px";
+                  annoAnnotationHolder.style.removeProperty("left");
+                  annoAnnotationHolder.style.removeProperty("bottom");
+              }
             }
           }
         }
-        if (done != true) {
-          anno.removeAttribute("done");
+        if (render.done != true) { // Not sure what this is for?
+          element.removeAttribute("done");
         } else {
-          anno.setAttribute("done", "");
+          element.setAttribute("done", "");
         }
-        if (remove != true) {
-          anno.removeAttribute("hidden");
+        if (render.remove != true) {
+          element.removeAttribute("hidden");
         } else {
           if (long != true) {
             this.render.hide(annotation);
@@ -1323,7 +1324,7 @@ modules["editor/editor"] = class {
           }
         }
       }
-      return [data, anno];
+      return element;
     }
     this.render.hide = (annotation) => {
       if (annotation == null) {
@@ -1388,9 +1389,11 @@ modules["editor/editor"] = class {
         await sleep(10000);
 
         let changeOccured = false;
+        let redrawAction = false;
+        let epoch = getEpoch();
         for (let i = 0; i < this.save.timeoutAnnotations.length; i++) {
           let annotation = this.save.timeoutAnnotations[i];
-          if (annotation.expire > getEpoch()) {
+          if (annotation.expire > epoch) {
             continue;
           }
           if (connected == false && annotation.collab != true) {
@@ -1411,26 +1414,18 @@ modules["editor/editor"] = class {
             delete annotation.render.pending;
           }
 
+          if (annotation.revert == null) {
+            continue;
+          }
+
           if (annotation.render._id.includes("pending_") == false) { // Must be a new anno
             delete annotation.retry;
-            if (annotation.revert != null) {
-              annotation.render = annotation.revert;
-              delete annotation.revert;
-              let existingAnno = this.annotations[annotation.render._id];
-              await this.utils.setAnnotationChunks(existingAnno);
-              this.utils.updateAnnotationPages(annotation.render);
-              let allowRender = annotation.render.remove == true;
-              for (let i = 0; i < existingAnno.chunks.length; i++) {
-                if (this.visibleChunks.includes(existingAnno.chunks[i]) == true) {
-                  allowRender = true;
-                  break;
-                }
-              }
-              if (allowRender == true) {
-                await this.render.create(annotation.render);
-              }
-              changeOccured = true;
+            let result = this.save.apply(annotation.revert, true);
+            if (result.redrawAction == true) {
+              redrawAction = true;
             }
+            delete annotation.revert;
+            changeOccured = true;
           } else {
             this.render.remove(annotation.render._id);
             delete this.annotations[annotation.render._id];
@@ -1439,35 +1434,64 @@ modules["editor/editor"] = class {
         }
 
         if (changeOccured == true) {
-          this.pipeline.publish("redraw_selection", {});
+          this.pipeline.publish("redraw_selection", { redrawAction: redrawAction });
         }
       }
       this.runningTimeout = false;
     }
-    this.save.applyEdit = async (annoData, render, sync, passedRender) => {
-      if (annoData.resizing != null) {
-        delete annoData.resizing;
+    this.save.apply = async (save, noTimeout) => {
+      if (save.resizing != null) {
+        delete save.resizing;
       }
-      let annoID = annoData._id;
+      let annoID = save._id;
       if (annoID == null) {
         return;
       }
-      if (Object.keys(annoData).length < 2) {
-        return; // Only the _id field, no changes
+
+      let existingAnnotation = this.annotations[annoID];
+      let annotation = existingAnnotation ?? { render: {} };
+      if (annotation.pointer != null) {
+        annoID = annotation.pointer;
+        annotation = this.annotations[annoID] ?? { render: {} };
       }
-      let anno = this.annotations[annoID] ?? passedRender ?? { render: {} };
-      if (anno.pointer != null) {
-        annoID = anno.pointer;
-        anno = this.annotations[annoID] ?? passedRender ?? { render: {} };
+
+      if (annotation.revert == null && noTimeout != true) {
+        annotation.revert = JSON.parse(JSON.stringify(annotation.render)); // Copy the currents attributes to revert to later
       }
-      anno.revert = anno.revert ?? JSON.parse(JSON.stringify(anno.render));
-      objectUpdate(annoData, anno.render);
-      this.save.enableTimeout(anno, render);
-      this.annotations[annoID] = anno;
-      await this.utils.setAnnotationChunks(anno);
-      this.utils.updateAnnotationPages(anno.render);
-      await this.render.create({ ...anno.render, sync: sync }, render);
-      return annoData;
+
+      // IF SELECTING, DO NOT UPDATE THOSE FIELDS
+      let redrawAction = false;
+      if (this.selecting[annotation.render._id] != null) {
+        renderObject = { ...annotation.render, ...this.selecting[annotation.render._id] };
+        redrawAction = true;
+      }
+
+      objectUpdate(save, annotation.render); // Update the annotation
+      if (noTimeout != true) {
+        this.save.enableTimeout(annotation); // Start timer to revert if update isn't server-confirmed
+      }
+
+      if (existingAnnotation == null) {
+        this.annotations[annoID] = annotation;
+      }
+
+      await this.utils.setAnnotationChunks(annotation);
+      this.utils.updateAnnotationPages(annotation.render);
+
+      let allowRender = annotation.render.remove == true;
+      for (let i = 0; i < annotation.chunks.length; i++) {
+        if (this.visibleChunks.includes(annotation.chunks[i]) == true) {
+          allowRender = true;
+          break;
+        }
+      }
+      if (allowRender == true) {
+        await this.render.create(annotation);
+      } else {
+        await this.render.remove(annotation);
+      }
+      
+      return { annotation: annotation, redrawAction: redrawAction };
     }
 
     this.history = {};
@@ -1547,7 +1571,7 @@ modules["editor/editor"] = class {
           }
         }
         if (render == true && annotation.render != null && annotation.element == null) {
-          await this.render.create(annotation.render);
+          await this.render.create(annotation);
         }
       }
       alreadyRunningUpdateCycle = false;
@@ -1614,8 +1638,6 @@ modules["editor/editor"] = class {
         let anno = data[i];
         let pendingAnno = this.annotations[anno.pending];
         let existingAnno = this.annotations[anno._id] ?? pendingAnno;
-        let existingRender;
-        let renderObject;
         if (existingAnno != null) {
           if (existingAnno.serverSync > anno.sync) {
             return; // Discard event as it's old
@@ -1624,8 +1646,6 @@ modules["editor/editor"] = class {
           existingAnno.revert = anno;
 
           if (pendingAnno != null) {
-            existingRender = pendingAnno.element;
-
             let selectBox = content.querySelector('.eSelect[anno="' + anno.pending + '"]');
             if (selectBox != null) {
               selectBox.setAttribute("anno", anno._id);
@@ -1660,16 +1680,12 @@ modules["editor/editor"] = class {
             if (existingAnno.render != null) {
               existingAnno.render._id = anno._id;
             } else {
-              existingAnno.render = existingAnno.render ?? anno;
+              existingAnno.render = anno;
             }
             this.annotations[anno._id] = existingAnno;
             this.annotations[anno.pending] = { pointer: anno._id };
             existingAnno = this.annotations[anno._id];
             existingAnno.pending = anno.pending;
-
-            if (existingRender != null) {
-              existingRender.setAttribute("anno", anno._id);
-            }
 
             // Update Chunk IDs:
             existingAnno.chunks = existingAnno.chunks ?? [];
@@ -1681,7 +1697,6 @@ modules["editor/editor"] = class {
               }
             }
 
-            this.save.enableTimeout(existingAnno);
             await this.render.setMarginSize();
 
             if (this.selecting[anno.pending] != null) {
@@ -1702,42 +1717,15 @@ modules["editor/editor"] = class {
           if (existingAnno.render.sync > anno.sync) {
             continue;
           }
-
-          // IF SELECTING, DO NOT UPDATE THOSE FIELDS
-          renderObject = anno;
-          if (this.selecting[anno._id] != null) {
-            renderObject = { ...anno, ...this.selecting[anno._id] };
-            redrawAction = true;
-          }
-
-          // IF AFTER, GOES AHEAD AND UPDATES THE ANNOTATION
-          existingAnno.render = anno;
-          delete existingAnno.revert;
-
-          await this.utils.setAnnotationChunks(existingAnno);
-          this.utils.updateAnnotationPages(anno);
-        } else {
-          this.annotations[anno._id] = { render: anno };
-          existingAnno = this.annotations[anno._id];
-          renderObject = anno;
-
-          await this.utils.setAnnotationChunks(existingAnno);
-          this.utils.updateAnnotationPages(renderObject);
         }
 
         if (anno.remove == true) {
           delete this.reactions[anno._id];
         }
 
-        let allowRender = renderObject.remove == true;
-        for (let i = 0; i < existingAnno.chunks.length; i++) {
-          if (this.visibleChunks.includes(existingAnno.chunks[i]) == true) {
-            allowRender = true;
-            break;
-          }
-        }
-        if (allowRender == true) {
-          await this.render.create(renderObject, existingRender, true);
+        let result = await this.save.apply(anno, true);
+        if (result.redrawAction == true) {
+          redrawAction = true;
         }
       }
       this.pipeline.publish("redraw_selection", { redrawAction: redrawAction, fromLong: true });
@@ -1877,7 +1865,7 @@ modules["editor/editor"] = class {
               }
             }
             if (allowRender == true) {
-              await this.render.create(existingAnno.render);
+              await this.render.create(existingAnno);
             }
           }
         }
@@ -2446,6 +2434,8 @@ modules["editor/render/sticky"] = class {
   }
 }
 modules["editor/render/page"] = class {
+  CAN_PARENT_CHILDREN = true;
+
   render = (anno, element, holder) => {
     if (element == null) {
       holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" page new>

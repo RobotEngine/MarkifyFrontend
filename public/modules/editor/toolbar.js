@@ -672,11 +672,14 @@ modules["editor/toolbar"] = class {
 modules["editor/toolbar/color"] = class {
   setToolbarButton = (button) => {
     button.innerHTML = `<div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div>`;
-    button.querySelector(".eSubToolColor").style.background = "#" + ((this.parent.getToolPreference() ?? {}).color ?? {}).selected;
+    let color = button.querySelector(".eSubToolColor");
+    let preference = this.parent.getToolPreference() ?? {};
+    color.style.background = "#" + (preference.color ?? {}).selected;
+    color.style.opacity = preference.opacity / 100;
   }
 
   css = {
-    ".eSubToolColorHolder": `box-sizing: border-box; display: flex; width: 36px; height: 36px; margin: 3px; background: var(--pageColor); border: solid 3px var(--pageColor); border-radius: 18px; justify-content: center; align-items: center`,
+    ".eSubToolColorHolder": `box-sizing: border-box; display: flex; width: 34px; height: 34px; margin: 4px; background: var(--pageColor); border: solid 3px var(--pageColor); border-radius: 18px; justify-content: center; align-items: center`,
     ".eSubToolColor": `width: 100%; height: 100%; border-radius: 16px`
   };
 }
@@ -686,8 +689,9 @@ modules["editor/toolbar/thickness"] = class {
     button.innerHTML = `<div class="eSubToolThicknessButtonHolder"><div class="eSubToolThicknessHolder"><div class="eSubToolThickness"></div></div></div>`;
     let thickness = button.querySelector(".eSubToolThickness");
     let preference = this.parent.getToolPreference() ?? {};
-    thickness.style.height = preference.thickness + "px";
     thickness.style.background = "#" + (preference.color ?? {}).selected;
+    thickness.style.height = preference.thickness + "px";
+    thickness.style.opacity = preference.opacity / 100;
   }
 
   css = {
@@ -701,10 +705,17 @@ modules["editor/toolbar/thickness"] = class {
 
 modules["editor/toolbar/opacity"] = class {
   setToolbarButton = async (button) => {
-    await setSVG(button, "./images/editor/toolbar/opacity.svg");
-    let svg = button.querySelector("svg");
+    button.innerHTML = `<div class="eSubToolOpacityHolder"></div>`;
+    let opacity = button.querySelector(".eSubToolOpacityHolder");
+    await setSVG(opacity, "./images/editor/toolbar/opacity.svg");
+    let svg = opacity.querySelector("svg");
     let preference = this.parent.getToolPreference() ?? {};
     svg.querySelector("path").style.opacity = preference.opacity / 100;
     svg.style.setProperty("--toolColor", "#" + (preference.color ?? {}).selected);
   }
+
+  css = {
+    ".eSubToolOpacityHolder": `box-sizing: border-box; display: flex; width: 34px; height: 34px; margin: 4px; background: var(--pageColor); border: solid 3px var(--pageColor); border-radius: 18px; justify-content: center; align-items: center`,
+    ".eSubToolOpacityHolder svg": `width: 100%; height: 100%`
+  };
 }

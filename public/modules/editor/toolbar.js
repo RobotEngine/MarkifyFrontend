@@ -692,7 +692,7 @@ modules["editor/toolbar/thickness"] = class {
 
   css = {
     ".eSubToolThicknessButtonHolder": `position: relative; display: flex; width: 42px; height: 42px; align-items: center; overflow: hidden`,
-    ".eSubToolThicknessHolder": `position: absolute; padding: 3px; background: var(--pageColor); border-radius: 16px`,
+    ".eSubToolThicknessHolder": `position: absolute; padding: 3px; background: var(--pageColor); border-radius: 14px`,
     ".eToolbarHolder[left] .eSubToolThicknessHolder": `transform: translateX(-12px)`,
     ".eToolbarHolder[right] .eSubToolThicknessHolder": `transform: translateX(4px)`,
     ".eSubToolThickness": `width: 44px; border-radius: 10px`

@@ -15,81 +15,22 @@ modules["editor/editor"] = class {
     ".eAnnotations": `position: relative; width: 1px; height: 1px; transform-origin: 0 0; transform: scale(var(--zoom)); z-index: 2`,
     ".eBackground": `position: absolute; left: 0px; top: 0px; transform-origin: left top; background-image: url(./images/editor/backdrop.svg); background-position: center; opacity: .075; z-index: 1`,
 
-    ".eAnnotation": `position: absolute; left: 0px; top: 0px`,
+    ".eAnnotation": `position: absolute; left: 0px; top: 0px; transition: .25s`,
     ".eAnnotationHolder": `position: absolute; z-index: 10`,
     ".eAnnotationHolder[notransition] > .eAnnotation": `transition: unset !important`,
     ".eAnnotation[hidden]": `display: none !important`,
     //'.eAnnotation[anno]:not([anno^="pending_"])': `transition: .25s`,
-    ".eAnnotation[anno]": `transition: .25s`,
     //'.eAnnotation:not([selected]):not([anno^="pending_"])': `transition: .25s`,
     ".eAnnotation svg": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: none; overflow: visible`,
     ".eAnnotation svg > *": `pointer-events: visiblepainted`,
     
-    ".eAnnotation div[text]": `padding: 4px 6px; margin: 3px 3px; color: var(--themeColor); font-weight: 500; pointer-events: all; outline: none`,
-    ".eAnnotation div[text][placeborder]": `width: max-content; margin: 0px; border: solid 3px var(--themeColor); border-radius: 8px`,
-    
-    ".eAnnotation[sticky]": `display: flex; flex-direction: column; background: var(--themeColor); border-radius: 12px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all; overflow: auto; text-align: left`,
-    //".eAnnotation[sticky]::-webkit-scrollbar": `display: none`, ; scrollbar-width: none
-    ".eAnnotation[sticky] div[holder]": `display: flex; flex-direction: column; width: calc(100% - 20px); flex: 1; padding: 16px 10px 10px 10px`,
-    ".eAnnotation[sticky] div[edit]": `width: 100%; flex: 1; font-weight: 400; line-height: 22px; pointer-events: all; outline: none`,
-    ".eAnnotation[sticky] div[footer]": `display: flex; flex-wrap: wrap; flex-direction: row-reverse; width: 100%; margin-top: 8px; gap: 8px; align-items: flex-end`,
-    ".eContentHolder[anonymous] .eAnnotation[sticky] div[signature]": `filter: blur(4px); pointer-events: none`,
-    ".eAnnotation[sticky] div[signature]": `margin-left: auto; opacity: .5; font-size: 14px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; taxt-align: right`,
-    ".eAnnotation[sticky] div[reactions]": `display: flex; flex-wrap: wrap; flex: 1; gap: 6px; background: var(--themeColor); pointer-events: all; z-index: 999; background: none`,
     ".eReaction": `display: flex; padding: 2px; background: rgba(255, 255, 255, .8); border: solid 2px rgba(0, 0, 0, 0); border-radius: 8px; align-items: center; overflow: hidden; color: var(--darkGray)`,
     ".eReaction[selected]": `padding: 2px; background: rgba(180, 218, 253, .8); border: solid 2px var(--theme); color: var(--theme)`,
     ".eReaction[add]": `opacity: 0; border-radius: 14px`,
     ".eContentHolder[viewer] .eReaction[add]": "display: none !important",
     ".eReaction div[imgholder]": `display: flex; width: 20px; height: 20px; justify-content: center; align-items: center`,
     ".eReaction img": `width: 32px; height: 32px; transform: scale(0.65); border-radius: 7px; filter: drop-shadow(0px 0px 8px var(--pageColor))`,
-    ".eReaction div[count]": `margin: 0 5px 0 6px; font-size: 16px; font-weight: 700`,
-    ".eAnnotation[sticky]:hover .eReaction[add]": `opacity: 1`,
-    ".eAnnotation[sticky][selected] .eReaction[add]": `opacity: 1`,
-    ".eAnnotation[sticky][selected] button": `pointer-events: all`,
-    ".eAnnotation[src]": `object-fit: cover; pointer-events: all; border-radius: 12px`,
-
-    ".eAnnotation[page]": `display: flex; flex-direction: column; background: white; border-radius: 12px; --borderWidth: 4px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2)`,
-    ".eAnnotation[page] > div[background]": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--themeColor); opacity: .1; border-radius: inherit; z-index: 0; pointer-events: all`,
-    ".eAnnotation[page] > div[border]": `position: absolute; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; border: solid var(--borderWidth) var(--themeColor); border-radius: inherit; z-index: 4; pointer-events: none`,
-    ".eAnnotation[page] > div[title]": `position: absolute; display: none; box-sizing: border-box; max-width: calc(100% - 12px); padding: 8px 10px; left: 0px; top: 0px; background: var(--themeColor); border-radius: 0px; border-top-left-radius: inherit; border-bottom-right-radius: 12px; font-weight: 600; font-size: 18px; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; outline: none; scrollbar-width: none; z-index: 3; pointer-events: all`,
-    ".eAnnotation[page] > div[title]::-webkit-scrollbar": `display: none`,
-    ".eAnnotation[page] > div[content]": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; justify-content: center; align-items: center`,
-    ".eAnnotation[page][hide] > div[content] .eAnnotationHolder": `z-index: 2 !important`,
-    ".eAnnotation[page][selected] > div[title]": `pointer-events: all !important`,
-    ".eAnnotation[page] > div[title][contenteditable]": `overflow-x: auto !important; text-overflow: unset !important`,
-    ".eAnnotation[page] > div[hide]": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: inherit; z-index: 2; pointer-events: all`,
-    ".eAnnotation[page] > div[hide] img[hideicon]": `width: 150px; height: 150px; max-width: calc(100% - 24px); max-height: calc(100% - 24px)`,
-    ".eAnnotation[page] > div[hide] div[hidemodal]": `display: flex; flex-direction: column; max-width: calc(100% - 64px); max-height: calc(100% - 64px); padding: 24px; overflow: auto; background: var(--pageColor); box-shadow: 0px 0px 16px 0px var(--hover); border-radius: 16px; align-items: center`,
-    ".eAnnotation[page] > div[hide] div[hidemodal] img": `margin-bottom: 12px; width: calc(100% - 24px); max-width: 80px`,
-    ".eAnnotation[page] > div[hide] div[hidemodal] div[hidemodaltitle]": `font-size: 28px; font-weight: 700; color: var(--theme)`,
-    //".eAnnotation[page] > div[hide] div[hidemodal] div[hidemodaldesc]": `margin: 8px 0; max-width: 450px`,
-    ".eAnnotation[page] > div[hide] div[hidemodal] button": `display: flex; margin-top: 24px; z-index: 1; background: var(--theme); --borderRadius: 20.25px; color: #fff`,
-    ".eAnnotation[page] > div[content] div[document]": `position: relative; --scale-factor: 2; border-radius: inherit; overflow: hidden; z-index: 1`,
-    ".eAnnotation[page] > div[content] div[document] canvas": `position: absolute; width: calc(100% - 8px) !important; height: calc(100% - 8px) !important; left: var(--borderWidth); top: var(--borderWidth); background: var(--themeColor); z-index: 1`,
-    ".eAnnotation[page] > div[content] div[document] div[textlayer]": `position: absolute; width: var(--fullWidth) !important; height: var(--fullHeight) !important; left: var(--borderWidth); top: var(--borderWidth); transform-origin: top left; transform: var(--fullScale); font-family: sans-serif; pointer-events: all !important; z-index: 2`,
-    ".eAnnotation[page] > div[content] div[document] div[textlayer] span": `position: absolute; color: transparent; pointer-events: all; transform-origin: top left`,
-    ".eAnnotation[page] > div[content] div[document] div[textlayer] br": `user-select: none`,
-    ".hiddenCanvasElement": `display: none`,
-
-    ".eAnnotation[embed]": `display: flex; background: var(--pageColor); border-radius: 16px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all; text-align: left`,
-    ".eAnnotation[embed] div[holder]": `display: flex; flex-direction: column; width: calc(100% - 16px); flex: 1; padding: 8px`,
-    ".eAnnotation[embed] div[content]": `position: relative; width: 100%; flex: 1; overflow: hidden; border-radius: 8px; background: radial-gradient(var(--theme), var(--secondary)); pointer-events: all !important;`,
-    ".eAnnotation[embed] div[content] img[thumbnail]": `position: absolute; display: none; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; background: #fff`,
-    ".eAnnotation[embed] div[content] iframe": `position: absolute; left: 0px; top: 0px; transform-origin: top left; background: var(--pageColor); border: none`,
-    ".eAnnotation[embed]:not([notransition]) div[content]": `pointer-events: all`,
-    ".eAnnotation[embed] div[content] div[activate]": `position: absolute; display: none; width: 100%; height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; background: radial-gradient(rgba(0, 0, 0, .5), rgba(0, 0, 0, .2)); backdrop-filter: blur(4px); transition: .3s`,
-    ".eAnnotation[embed] div[content] div[activate] button": `width: 80px; height: 80px; max-width: 80%; max-height: 80%`,
-    ".eAnnotation[embed] div[content] div[activate] button img": `width: 100%; height: 100%`,
-    ".eAnnotation[embed] div[details]": `margin-top: 8px`,
-    ".eAnnotation[embed] div[details] div[input]": `display: none; align-items: center; pointer-events: all`,
-    ".eAnnotation[embed] div[details] div[input][visible]": `display: flex !important`,
-    ".eAnnotation[embed] div[details] div[input] input": `box-sizing: border-box; width: 100%; height: 36px; border: solid 3px var(--hover); outline: unset; border-radius: 18px; padding: 8px; color: var(--theme); font-size: 18px; font-weight: 600; font-family: var(--font); font-size: 16px`, //margin-right: 6px;
-    ".eAnnotation[embed] div[details] div[input] input::placeholder": `color: var(--hover)`,
-    ".eAnnotation[embed] div[details] div[info]": `display: flex; flex-direction: column; color: var(--textColor)`,
-    ".eAnnotation[embed] div[details] div[info] div[title]": `display: none; width: 100%; font-size: 18px; font-weight: 700; text-wrap: nowrap; text-overflow: ellipsis; overflow: hidden; color: var(--textColor)`,
-    ".eAnnotation[embed] div[details] div[info] div[description]": `display: none; width: 100%; margin: 4px 0 2px 0; font-size: 14px; font-weight: 500; color: var(--darkGray); text-wrap: nowrap; text-overflow: ellipsis; overflow: hidden`,
-    ".eAnnotation[embed] div[details] div[info] a[link]": `display: flex; width: fit-content; max-width: 100%; align-items: center; font-size: 16px; font-weight: 600; text-decoration: underline; color: var(--theme); text-wrap: nowrap; overflow: hidden; pointer-events: all`,
-    ".eAnnotation[embed] div[details] div[info] a[link] img": `width: 32px; height: 32px; margin-right: 2px`
+    ".eReaction div[count]": `margin: 0 5px 0 6px; font-size: 16px; font-weight: 700`
   };
 
   pipeline = { // PIPELINE : Distributes events across various modules and services:
@@ -2052,6 +1993,10 @@ modules["editor/render/markup"] = class {
   }
 }
 modules["editor/render/text"] = class {
+  css = {
+    ".eAnnotation div[text]": `padding: 4px 6px; margin: 3px; color: var(--themeColor); font-weight: 500; pointer-events: all; outline: none`,
+    ".eAnnotation div[text][placeborder]": `width: max-content; margin: 0px; border: solid 3px var(--themeColor); border-radius: 8px`
+  };
   render = (anno, element, holder) => {
     if (element == null) {
       holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
@@ -2293,6 +2238,19 @@ modules["editor/render/shape"] = class {
   }
 }
 modules["editor/render/sticky"] = class {
+  css = {
+    ".eAnnotation[sticky]": `display: flex; flex-direction: column; background: var(--themeColor); border-radius: 12px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all; overflow: auto; text-align: left`,
+    //".eAnnotation[sticky]::-webkit-scrollbar": `display: none`, ; scrollbar-width: none
+    ".eAnnotation[sticky] div[holder]": `display: flex; flex-direction: column; width: calc(100% - 20px); flex: 1; padding: 16px 10px 10px 10px`,
+    ".eAnnotation[sticky] div[edit]": `width: 100%; flex: 1; font-weight: 400; line-height: 22px; pointer-events: all; outline: none`,
+    ".eAnnotation[sticky] div[footer]": `display: flex; flex-wrap: wrap; flex-direction: row-reverse; width: 100%; margin-top: 8px; gap: 8px; align-items: flex-end`,
+    ".eContentHolder[anonymous] .eAnnotation[sticky] div[signature]": `filter: blur(4px); pointer-events: none`,
+    ".eAnnotation[sticky] div[signature]": `margin-left: auto; opacity: .5; font-size: 14px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; taxt-align: right`,
+    ".eAnnotation[sticky] div[reactions]": `display: flex; flex-wrap: wrap; flex: 1; gap: 6px; background: var(--themeColor); pointer-events: all; z-index: 999; background: none`,
+    ".eAnnotation[sticky]:hover .eReaction[add]": `opacity: 1`,
+    ".eAnnotation[sticky][selected] .eReaction[add]": `opacity: 1`,
+    ".eAnnotation[sticky][selected] button": `pointer-events: all`
+  };
   render = (anno, element, holder) => {
     if (element == null) {
       holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" sticky new>
@@ -2436,12 +2394,35 @@ modules["editor/render/sticky"] = class {
 modules["editor/render/page"] = class {
   CAN_PARENT_CHILDREN = true;
 
+  css = {
+    ".eAnnotation[page]": `display: flex; flex-direction: column; background: white; border-radius: 12px; --borderWidth: 4px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2)`,
+    ".eAnnotation[page] > div[background]": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--themeColor); opacity: .1; border-radius: inherit; z-index: 0; pointer-events: all`,
+    ".eAnnotation[page] > div[border]": `position: absolute; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; border: solid var(--borderWidth) var(--themeColor); border-radius: inherit; z-index: 4; pointer-events: none`,
+    ".eAnnotation[page] > div[label]": `position: absolute; display: none; box-sizing: border-box; max-width: calc(100% - 12px); padding: 8px 10px; left: 0px; top: 0px; background: var(--themeColor); border-radius: 0px; border-top-left-radius: inherit; border-bottom-right-radius: 12px; font-weight: 600; font-size: 18px; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; outline: none; scrollbar-width: none; z-index: 3; pointer-events: all`,
+    ".eAnnotation[page] > div[label]::-webkit-scrollbar": `display: none`,
+    ".eAnnotation[page] > div[content]": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; justify-content: center; align-items: center`,
+    ".eAnnotation[page][hide] > div[content] .eAnnotationHolder": `z-index: 2 !important`,
+    ".eAnnotation[page][selected] > div[label]": `pointer-events: all !important`,
+    ".eAnnotation[page] > div[label][contenteditable]": `overflow-x: auto !important; text-overflow: unset !important`,
+    ".eAnnotation[page] > div[hide]": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: inherit; z-index: 2; pointer-events: all`,
+    ".eAnnotation[page] > div[hide] img[hideicon]": `width: 150px; height: 150px; max-width: calc(100% - 24px); max-height: calc(100% - 24px)`,
+    ".eAnnotation[page] > div[hide] div[hidemodal]": `display: flex; flex-direction: column; max-width: calc(100% - 64px); max-height: calc(100% - 64px); padding: 24px; overflow: auto; background: var(--pageColor); box-shadow: 0px 0px 16px 0px var(--hover); border-radius: 16px; align-items: center`,
+    ".eAnnotation[page] > div[hide] div[hidemodal] img": `margin-bottom: 12px; width: calc(100% - 24px); max-width: 80px`,
+    ".eAnnotation[page] > div[hide] div[hidemodal] div[hidemodaltitle]": `font-size: 28px; font-weight: 700; color: var(--theme)`,
+    ".eAnnotation[page] > div[hide] div[hidemodal] button": `display: flex; margin-top: 24px; z-index: 1; background: var(--theme); --borderRadius: 20.25px; color: #fff`,
+    ".eAnnotation[page] > div[content] div[document]": `position: relative; --scale-factor: 2; border-radius: inherit; overflow: hidden; z-index: 1`,
+    ".eAnnotation[page] > div[content] div[document] canvas": `position: absolute; width: calc(100% - 8px) !important; height: calc(100% - 8px) !important; left: var(--borderWidth); top: var(--borderWidth); background: var(--themeColor); z-index: 1`,
+    ".eAnnotation[page] > div[content] div[document] div[textlayer]": `position: absolute; width: var(--fullWidth) !important; height: var(--fullHeight) !important; left: var(--borderWidth); top: var(--borderWidth); transform-origin: top left; transform: var(--fullScale); font-family: sans-serif; pointer-events: all !important; z-index: 2`,
+    ".eAnnotation[page] > div[content] div[document] div[textlayer] span": `position: absolute; color: transparent; pointer-events: all; transform-origin: top left`,
+    ".eAnnotation[page] > div[content] div[document] div[textlayer] br": `user-select: none`,
+    ".hiddenCanvasElement": `display: none`,
+  };
   render = (anno, element, holder) => {
     if (element == null) {
       holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" page new>
         <div background></div>
         <div border></div>
-        <div title></div>
+        <div label></div>
         <div content annoholdercontainer></div>
       </div>`);
       element = holder.querySelector(".eAnnotation[new]");
@@ -2458,14 +2439,14 @@ modules["editor/render/page"] = class {
       element.setAttribute("tooleditor", "");
       element.style.opacity = .7;
     }
-    let pageTitle = element.querySelector(":scope > div[title]");
-    if (pageTitle.hasAttribute("contenteditable") == false) {
+    let pageLabel = element.querySelector(":scope > div[label]");
+    if (pageLabel.hasAttribute("contenteditable") == false) {
       if ((anno.title ?? "").length < 1) {
-        pageTitle.style.removeProperty("display");
-        pageTitle.textContent = "";
+        pageLabel.style.removeProperty("display");
+        pageLabel.textContent = "";
       } else {
-        pageTitle.style.display = "unset";
-        pageTitle.textContent = cleanString(anno.title);
+        pageLabel.style.display = "unset";
+        pageLabel.textContent = cleanString(anno.title);
       }
     }
     let pageBorder = element.querySelector(":scope > div[border]");
@@ -2558,9 +2539,12 @@ modules["editor/render/page"] = class {
   }
 }
 modules["editor/render/media"] = class {
+  css = {
+    ".eAnnotation[media] img": `object-fit: cover; pointer-events: all; border-radius: 12px`,
+  };
   render = (anno, element, holder) => {
     if (element == null) {
-      holder.insertAdjacentHTML("beforeend", `<img class="eAnnotation" draggable="false" new></img>`);
+      holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" media new><img draggable="false" /></div>`);
       element = holder.querySelector(".eAnnotation[new]");
       element.removeAttribute("new");
     }
@@ -2574,28 +2558,30 @@ modules["editor/render/media"] = class {
       element.style.opacity = .7;
     }
 
-    element.style.opacity = anno.o / 100;
+    let image = element.querySelector("img");
+
+    image.style.opacity = anno.o / 100;
 
     if (this.parent.exporting != true) {
-      if (anno.d != null || element.hasAttribute("src") == false) {
+      if (anno.d != null || image.hasAttribute("src") == false) {
         if (anno.d != null && anno.d.startsWith("blob:") == false) {
-          if (element.src != assetURL + anno.d) {
-            element.src = assetURL + anno.d;
+          if (image.src != assetURL + anno.d) {
+            image.src = assetURL + anno.d;
           }
         } else {
-          if (element.src != (anno.d ?? "./images/editor/uploading.png")) {
-            element.src = anno.d ?? "./images/editor/uploading.png";
+          if (image.src != (anno.d ?? "./images/editor/uploading.png")) {
+            image.src = anno.d ?? "./images/editor/uploading.png";
           }
         }
       }
     } else {
       this.exportPromises.push(new Promise(async (resolve) => {
-        element.addEventListener("load", resolve);
-        if (anno.d != null || element.hasAttribute("src") == false) {
+        image.addEventListener("load", resolve);
+        if (anno.d != null || image.hasAttribute("src") == false) {
           if (anno.d != null && anno.d.startsWith("blob:") == false) {
-            element.src = assetURL + anno.d;
+            image.src = assetURL + anno.d;
           } else {
-            element.src = anno.d ?? "./images/editor/uploading.png";
+            image.src = anno.d ?? "./images/editor/uploading.png";
           }
         }
       }));
@@ -2604,6 +2590,27 @@ modules["editor/render/media"] = class {
   }
 }
 modules["editor/render/embed"] = class {
+  css = {
+    ".eAnnotation[embed]": `display: flex; background: var(--pageColor); border-radius: 16px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all; text-align: left`,
+    ".eAnnotation[embed] div[holder]": `display: flex; flex-direction: column; width: calc(100% - 16px); flex: 1; padding: 8px`,
+    ".eAnnotation[embed] div[content]": `position: relative; width: 100%; flex: 1; overflow: hidden; border-radius: 8px; background: radial-gradient(var(--theme), var(--secondary)); pointer-events: all !important;`,
+    ".eAnnotation[embed] div[content] img[thumbnail]": `position: absolute; display: none; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; background: #fff`,
+    ".eAnnotation[embed] div[content] iframe": `position: absolute; left: 0px; top: 0px; transform-origin: top left; background: var(--pageColor); border: none`,
+    ".eAnnotation[embed]:not([notransition]) div[content]": `pointer-events: all`,
+    ".eAnnotation[embed] div[content] div[activate]": `position: absolute; display: none; width: 100%; height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; background: radial-gradient(rgba(0, 0, 0, .5), rgba(0, 0, 0, .2)); backdrop-filter: blur(4px); transition: .3s`,
+    ".eAnnotation[embed] div[content] div[activate] button": `width: 80px; height: 80px; max-width: 80%; max-height: 80%`,
+    ".eAnnotation[embed] div[content] div[activate] button img": `width: 100%; height: 100%`,
+    ".eAnnotation[embed] div[details]": `margin-top: 8px`,
+    ".eAnnotation[embed] div[details] div[input]": `display: none; align-items: center; pointer-events: all`,
+    ".eAnnotation[embed] div[details] div[input][visible]": `display: flex !important`,
+    ".eAnnotation[embed] div[details] div[input] input": `box-sizing: border-box; width: 100%; height: 36px; border: solid 3px var(--hover); outline: unset; border-radius: 18px; padding: 8px; color: var(--theme); font-size: 18px; font-weight: 600; font-family: var(--font); font-size: 16px`, //margin-right: 6px;
+    ".eAnnotation[embed] div[details] div[input] input::placeholder": `color: var(--hover)`,
+    ".eAnnotation[embed] div[details] div[info]": `display: flex; flex-direction: column; color: var(--textColor)`,
+    ".eAnnotation[embed] div[details] div[info] div[title]": `display: none; width: 100%; font-size: 18px; font-weight: 700; text-wrap: nowrap; text-overflow: ellipsis; overflow: hidden; color: var(--textColor)`,
+    ".eAnnotation[embed] div[details] div[info] div[description]": `display: none; width: 100%; margin: 4px 0 2px 0; font-size: 14px; font-weight: 500; color: var(--darkGray); text-wrap: nowrap; text-overflow: ellipsis; overflow: hidden`,
+    ".eAnnotation[embed] div[details] div[info] a[link]": `display: flex; width: fit-content; max-width: 100%; align-items: center; font-size: 16px; font-weight: 600; text-decoration: underline; color: var(--theme); text-wrap: nowrap; overflow: hidden; pointer-events: all`,
+    ".eAnnotation[embed] div[details] div[info] a[link] img": `width: 32px; height: 32px; margin-right: 2px`
+  };
   render = (anno, element, holder) => {
     if (element == null) {
       holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" embed new>

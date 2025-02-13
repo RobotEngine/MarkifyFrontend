@@ -2540,7 +2540,7 @@ modules["editor/render/page"] = class {
 }
 modules["editor/render/media"] = class {
   css = {
-    ".eAnnotation[media] img": `object-fit: cover; pointer-events: all; border-radius: 12px`,
+    ".eAnnotation[media] img": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; pointer-events: all; border-radius: 12px`
   };
   render = (anno, element, holder) => {
     if (element == null) {

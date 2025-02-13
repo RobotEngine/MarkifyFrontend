@@ -683,7 +683,7 @@ modules["editor/toolbar/color"] = class {
 
 modules["editor/toolbar/thickness"] = class {
   setToolbarButton = (button) => {
-    button.innerHTML = `<div class="eSubToolThicknessButtonHolder"><div class="eSubToolThickness"></div></div>`;
+    button.innerHTML = `<div class="eSubToolThicknessButtonHolder"><div class="eSubToolThicknessHolder"><div class="eSubToolThickness"></div></div></div>`;
     let thickness = button.querySelector(".eSubToolThickness");
     let preference = this.parent.getToolPreference() ?? {};
     thickness.style.height = preference.thickness + "px";
@@ -692,9 +692,10 @@ modules["editor/toolbar/thickness"] = class {
 
   css = {
     ".eSubToolThicknessButtonHolder": `position: relative; display: flex; width: 42px; height: 42px; align-items: center; overflow: hidden`,
-    ".eSubToolThickness": `position: absolute; border: 3px solid var(--pageColor); border-radius: 10px`,
-    ".eToolbarHolder[left] .eSubToolThickness": `width: 44px; height: 16px; transform: translateX(-12px)`,
-    ".eToolbarHolder[right] .eSubToolThickness": `width: 44px; height: 16px; transform: translateX(4px)`
+    ".eSubToolThicknessHolder": `position: absolute; padding: 3px; background: var(--pageColor); border-radius: 16px`,
+    ".eToolbarHolder[left] .eSubToolThicknessHolder": `transform: translateX(-12px)`,
+    ".eToolbarHolder[right] .eSubToolThicknessHolder": `transform: translateX(4px)`,
+    ".eSubToolThickness": `width: 44px; border-radius: 10px`
   };
 }
 

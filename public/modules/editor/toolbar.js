@@ -108,15 +108,6 @@ modules["editor/toolbar"] = class {
     `;
     let toolbarContent = toolbar.querySelector(".eToolbarContent");
 
-    // Apply toolbar images:
-    let gottenTools = toolbarHolder.querySelectorAll(".eTool");
-    for (let i = 0; i < gottenTools.length; i++) {
-      let tool = gottenTools[i];
-      if (tool.hasAttribute("tool") == true) {
-        setSVG(tool.querySelector("div"), "./images/editor/toolbar/" + tool.getAttribute("tool") + ".svg");
-      }
-    }
-
     toolbarHolder.removeAttribute("hidden");
 
     let contentHolder = editor.contentHolder;
@@ -124,13 +115,12 @@ modules["editor/toolbar"] = class {
     let annotations = content.querySelector(".eAnnotations");
 
     let currentTool = "selection";
+    let currentSubTool = "select";
     this.currentToolModule = "pages/editor/toolbar/cursor";
     let currentToolButton;
     let subToolbar;
 
     let subSubToolbar;
-
-    let selectedSubtoolToolID = "select";
 
     // Handle Disabled Tools:
     let subToolTypes = {
@@ -166,14 +156,15 @@ modules["editor/toolbar"] = class {
     }
 
     // Handle Tooltip:
+    this.tooltip = {};
     let tooltipElement;
     let tooltipOpen = false;
-    this.updateTooltip = () => {
+    this.tooltip.update = () => {
       if (tooltipElement == null) {
         return;
       }
       if (tooltipElement.hasAttribute("selected") == true && (tooltipElement.hasAttribute("option") == true || tooltipElement.hasAttribute("action") == true)) {
-        return this.closeTooltip();
+        return this.tooltip.close();
       }
       let tooltipElementStyle = getComputedStyle(tooltipElement);
       let themeColor = getComputedStyle(tooltipElement).getPropertyValue("--hoverTooltip");
@@ -275,20 +266,20 @@ modules["editor/toolbar"] = class {
         tooltipText.style.top = actionContainer.offsetHeight - tooltipText.clientHeight - 6 + "px";
       }
     }
-    this.setTooltip = (event) => {
+    this.tooltip.set = (event) => {
       let hoverElem = event.target;
       let element = hoverElem.closest("button[tool], button[subtool], button[option], button[action]");
       if ((element == null || element.hasAttribute("tooltip") == false) && (hoverElem.closest("[keeptooltip]") == null || (element != null && element.hasAttribute("option") == true))) {
         tooltipElement = null;
-        return this.closeTooltip();
+        return this.tooltip.close();
       } else if (element == null) {
         return;
       }
       if (element.hasAttribute("selected") == true && (element.hasAttribute("option") == true || element.hasAttribute("action") == true)) {
-        return this.closeTooltip();
+        return this.tooltip.close();
       }
       if (element == tooltipElement) {
-        return this.updateTooltip();
+        return this.tooltip.update();
       }
       let toolbar = hoverElem.closest(".eToolbar .content");
       if (toolbar != null && tooltipText.parentElement != toolbar) {
@@ -299,14 +290,14 @@ modules["editor/toolbar"] = class {
         toolbar.appendChild(tooltipText);
       }
       tooltipElement = element;
-      this.updateTooltip();
+      this.tooltip.update();
       tooltipOpen = true;
       tooltipText.offsetHeight;
       tooltipText.style.transition = ".25s";
       tooltipText.style.transform = "scale(1)";
       tooltipText.style.opacity = 1;
     }
-    this.closeTooltip = async () => {
+    this.tooltip.close = async () => {
       if (tooltipOpen == false) {
         return;
       }
@@ -324,7 +315,8 @@ modules["editor/toolbar"] = class {
     }
     
     // Manage Toolbar:
-    this.updateToolbars = (update) => {
+    this.toolbar = {};
+    this.toolbar.update = (update) => {
       if (subToolbar != null && currentToolButton != null) {
         let toolbar = currentToolButton.closest(".eToolbar");
         let contentHolder = subToolbar.querySelector(".eSubToolContentHolder");
@@ -396,11 +388,26 @@ modules["editor/toolbar"] = class {
       }
 
       if (update != false) {
-        this.updateTooltip();
+        this.tooltip.update();
       }
     }
-    toolbarContent.addEventListener("scroll", () => { this.updateToolbars() });
-    this.createSubToolbar = async () => {
+    toolbarContent.addEventListener("scroll", () => { this.toolbar.update() });
+    this.toolbar.updateButtons = async (contentHolder) => {
+      let gottenTools = contentHolder.querySelectorAll(".eTool");
+      for (let i = 0; i < gottenTools.length; i++) {
+        let tool = gottenTools[i];
+        if (tool.hasAttribute("tool") == true) {
+          setSVG(tool.querySelector("div"), "./images/editor/toolbar/" + tool.getAttribute("tool") + ".svg");
+        } else if (tool.hasAttribute("module") == true) {
+          let newModule = await this.newModule(tool.getAttribute("module"));
+          newModule.editor = editor;
+          if (newModule.setToolbarButton != null) {
+            newModule.setToolbarButton(tool.querySelector("div"));
+          }
+        }
+      }
+    }
+    this.toolbar.createSub = async () => {
       if (currentToolButton == null) {
         return;
       }
@@ -432,25 +439,19 @@ modules["editor/toolbar"] = class {
       } else if (toolData.html != null) {
         contentHolder.innerHTML = toolData.html;
       }
-      let gottenTools = contentHolder.querySelectorAll(".eTool");
-      for (let i = 0; i < gottenTools.length; i++) {
-        let tool = gottenTools[i];
-        if (tool.hasAttribute("tool") == true) {
-          setSVG(tool.querySelector("div"), "./images/editor/toolbar/" + tool.getAttribute("tool") + ".svg");
-        }
-      }
+      this.toolbar.updateButtons(contentHolder);
 
       subToolbar.offsetHeight;
       return toolData;
     }
-    this.closeSubToolbar = () => {
+    this.toolbar.closeSub = () => {
       if (subToolbar == null) {
         return;
       }
       let removeToolbar = subToolbar;
       subToolbar = null;
-      this.updateToolbars(false);
-      //this.updateTooltip();
+      this.toolbar.update(false);
+      //this.tooltip.update();
       (async () => {
         removeToolbar.style.zIndex = 1;
         if (toolbarHolder.hasAttribute("right") == false) {
@@ -465,7 +466,7 @@ modules["editor/toolbar"] = class {
         }
       })();
     }
-    this.enableTool = async (button, shortPress) => {
+    this.toolbar.enableTool = async (button, shortPress) => {
       let toolID = button.getAttribute("tool");
       let isSelected = button.hasAttribute("selected");
       let isExtended = button.hasAttribute("extend");
@@ -488,14 +489,15 @@ modules["editor/toolbar"] = class {
 
       if (button.closest(".eToolbarContent") != null) { // Toolbar button
         if (shortPress == true) {
-          this.closeSubToolbar();
+          this.toolbar.closeSub();
           if (isExtended == false) {
-            let toolData = await this.createSubToolbar();
+            let toolData = await this.toolbar.createSub();
             if (subToolbar != null) {
               let selectTool = (editor.preferences.tools[toolID] ?? {}).subtool;
               if (selectTool != null) {
                 let selectSubtool = subToolbar.querySelector('.eTool[tool="' + selectTool + '"]');
                 if (selectSubtool != null) {
+                  currentSubTool = selectTool;
                   this.currentToolModule = selectSubtool.getAttribute("module");
                   selectSubtool.setAttribute("selected", "");
                 }
@@ -504,11 +506,11 @@ modules["editor/toolbar"] = class {
               }
             } else {
               this.currentToolModule = toolData.module;
-              this.updateTooltip();
+              this.tooltip.update();
             }
             this.activateTool();
           } else {
-            this.updateTooltip();
+            this.tooltip.update();
           }
         } else {
           if (isExtended == false && subToolbar != null) {
@@ -519,8 +521,8 @@ modules["editor/toolbar"] = class {
         }
       } else if (button.closest(".eSubToolContentScroll") != null) { // SubToolbar Button
         if (button.hasAttribute("option") == false) { // Subtool
-          // TODO
           if (shortPress == true) {
+            currentSubTool = button.getAttribute("tool");
             this.currentToolModule = button.getAttribute("module");
             this.activateTool();
           }
@@ -542,10 +544,10 @@ modules["editor/toolbar"] = class {
           }
         }
       }
-      //this.updateTooltip();
+      //this.tooltip.update();
     }
     let lastSetButton;
-    this.setTool = async (targetButton, shortPress) => {
+    this.toolbar.setTool = async (targetButton, shortPress) => {
       let button = targetButton ?? lastSetButton;
       if (button == null || button.hasAttribute("noselect") == true) {
         return;
@@ -564,33 +566,33 @@ modules["editor/toolbar"] = class {
       if (button.closest(".eToolbarContent") != null) {
         currentTool = toolID;
         currentToolButton = button;
-        await this.enableTool(button, shortPress);
+        await this.toolbar.enableTool(button, shortPress);
       } else if (button.closest(".eSubToolContentScroll") != null) {
         let setSubTool = button.getAttribute("tool");
         if (setSubTool != null) {
-          selectedSubtoolToolID = setSubTool;
+          currentSubTool = setSubTool;
           if ((editor.preferences.tools[currentTool] ?? {}).subtool != null) {
-            editor.preferences.tools[currentTool].subtool = selectedSubtoolToolID;
+            editor.preferences.tools[currentTool].subtool = currentSubTool;
             editor.savePreferences();
           }
-          await this.enableTool(button, shortPress);
+          await this.toolbar.enableTool(button, shortPress);
         } else {
-          await this.enableTool(button, shortPress);
+          await this.toolbar.enableTool(button, shortPress);
         }
       }
 
       if (shortPress != true) {
-        this.updateToolbars(false);
-        this.updateTooltip();
+        this.toolbar.update(false);
+        this.tooltip.update();
       }
     }
     toolbarHolder.addEventListener("keydown", (event) => {
       if (event.key == "Enter") {
-        this.setTool(event.target.closest("button"), true);
-        this.setTool();
+        this.toolbar.setTool(event.target.closest("button"), true);
+        this.toolbar.setTool();
       }
     });
-    this.checkToolToggle = () => {
+    this.toolbar.checkToolToggle = () => {
       let disabledTools = (editor.settings ?? {}).disabled ?? [];
 
       let toolElements = toolbarContent.querySelectorAll(".eTool[tool]");
@@ -604,17 +606,30 @@ modules["editor/toolbar"] = class {
       }
       if (disabledTools.includes(currentTool) == true && editor.self.access > 0) {
         alertModule.open("warning", "<b>Tool Toggle</b>Your current tool was disabled by the lesson owner.");
-        this.setTool(toolbarContent.querySelector('.eTool[tool="selection"]'), true);
-        this.setTool();
+        this.toolbar.setTool(toolbarContent.querySelector('.eTool[tool="selection"]'), true);
+        this.toolbar.setTool();
       }
     }
-    this.checkToolToggle();
+    this.toolbar.checkToolToggle();
 
-    this.updateMaxHeight = () => {
+    this.toolbar.updateMaxHeight = () => {
       toolbarHolder.style.setProperty("--maxToolbarHeight", toolbarHolder.offsetHeight + "px"); // Have to add this solution because FIREFOX
     }
-    this.updateMaxHeight();
+    this.toolbar.updateMaxHeight();
     this.activateTool();
+    this.toolbar.updateButtons(toolbarHolder);
+
+    this.getToolPreference = () => {
+      return editor.preferences.tools[currentSubTool] ?? editor.preferences.tools[currentTool];
+    }
+    this.getAnnotationPreference = () => {
+      let selectKeys = Object.keys(editor.selecting);
+      let annoID = selectKeys[selectKeys.length - 1];
+      return {
+        ...((editor.annotations[annoID] ?? {}).render ?? {}),
+        ...(editor.selecting[annoID] ?? {})
+      } ?? {};
+    }
 
     // Subscribe to Events:
     editor.pipeline.subscribe("toolbarMouse", "mousedown", (data) => {
@@ -624,32 +639,71 @@ modules["editor/toolbar"] = class {
       }
       let target = event.target;
       if (target.closest(".eToolbar") == toolbar) {
-        this.setTool(target.closest("button"), true);
+        this.toolbar.setTool(target.closest("button"), true);
       }
     });
     editor.pipeline.subscribe("toolbarMouse", "mousemove", (data) => {
       let event = data.event;
-      this.setTooltip(event);
+      this.tooltip.set(event);
     });
     editor.pipeline.subscribe("toolbarMouse", "mouseup", (data) => {
-      this.setTool();
+      this.toolbar.setTool();
     });
     editor.pipeline.subscribe("toolbarMouse", "mouseleave", () => {
-      this.closeTooltip();
+      this.tooltip.close();
     });
     editor.pipeline.subscribe("toolbarPageResize", "resize", () => {
-      this.updateMaxHeight();
-      this.updateToolbars();
+      this.toolbar.updateMaxHeight();
+      this.toolbar.update();
     });
     editor.pipeline.subscribe("toolbarPageResize", "page_add", () => {
-      this.updateMaxHeight();
-      this.updateToolbars();
+      this.toolbar.updateMaxHeight();
+      this.toolbar.update();
     });
     editor.pipeline.subscribe("toolbarEditorUpdate", "set", (data) => {
       if (data.hasOwnProperty("settings") == true) {
-        this.checkToolToggle();
+        this.toolbar.checkToolToggle();
       }
     });
     editor.toolbar = this;
+  }
+}
+
+modules["editor/toolbar/color"] = class {
+  setToolbarButton = (button) => {
+    button.innerHTML = `<div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div>`;
+    button.querySelector(".eSubToolColor").style.background = "#" + ((this.parent.getToolPreference() ?? {}).color ?? {}).selected;
+  }
+
+  css = {
+    ".eSubToolColorHolder": `box-sizing: border-box; display: flex; width: 36px; height: 36px; margin: 3px; background: var(--pageColor); border: solid 3px var(--pageColor); border-radius: 18px; justify-content: center; align-items: center`,
+    ".eSubToolColor": `width: 100%; height: 100%; border-radius: 16px`
+  };
+}
+
+modules["editor/toolbar/thickness"] = class {
+  setToolbarButton = (button) => {
+    button.innerHTML = `<div class="eSubToolThicknessButtonHolder"><div class="eSubToolThickness"></div></div>`;
+    let thickness = button.querySelector(".eSubToolThickness");
+    let preference = this.parent.getToolPreference() ?? {};
+    thickness.style.height = preference.thickness + "px";
+    thickness.style.background = "#" + (preference.color ?? {}).selected;
+  }
+
+  css = {
+    ".eSubToolThicknessButtonHolder": `position: relative; display: flex; width: 42px; height: 42px; align-items: center; overflow: hidden`,
+    ".eSubToolThickness": `position: absolute; border: 3px solid var(--pageColor); border-radius: 10px`,
+    ".eToolbarHolder[left] .eSubToolThickness": `width: 44px; height: 16px; transform: translateX(-12px)`,
+    ".eToolbarHolder[right] .eSubToolThickness": `width: 44px; height: 16px; transform: translateX(4px)`
+  };
+}
+
+modules["editor/toolbar/opacity"] = class {
+  setToolbarButton = async (button) => {
+    await setSVG(button, "./images/editor/toolbar/opacity.svg");
+    let svg = button.querySelector("svg");
+    let preference = this.parent.getToolPreference() ?? {};
+    svg.querySelector("path").style.opacity = preference.opacity / 100;
+    svg.style.setProperty("--toolColor", "#" + (preference.color ?? {}).selected);
   }
 }

@@ -396,13 +396,24 @@ modules["editor/toolbar"] = class {
       let gottenTools = contentHolder.querySelectorAll(".eTool");
       for (let i = 0; i < gottenTools.length; i++) {
         let tool = gottenTools[i];
+        let div = tool.querySelector("div");
         if (tool.hasAttribute("tool") == true) {
-          setSVG(tool.querySelector("div"), "./images/editor/toolbar/" + tool.getAttribute("tool") + ".svg");
+          let toolType = tool.getAttribute("tool");
+          if (div.hasAttribute("loaded") == false) {
+            setSVG(div, "./images/editor/toolbar/" + toolType + ".svg");
+            div.setAttribute("loaded", "");
+          }
+          let toolPreference = editor.preferences.tools[toolType] ?? editor.preferences.tools[currentTool] ?? {};
+          if (toolPreference.color != null) {
+            div.style.setProperty("--toolColor", "#" + toolPreference.color.selected);
+            div.style.setProperty("--toolColorOpacity", editor.utils.hexToRGB(toolPreference.color.selected, (toolPreference.opacity ?? 100) / 100));
+          }
+          div.style.setProperty("--toolOpacity", (toolPreference.opacity ?? 100) / 100);
         } else if (tool.hasAttribute("module") == true) {
           let newModule = await this.newModule(tool.getAttribute("module"));
           newModule.editor = editor;
           if (newModule.setToolbarButton != null) {
-            newModule.setToolbarButton(tool.querySelector("div"));
+            newModule.setToolbarButton(div);
           }
         }
       }
@@ -571,8 +582,9 @@ modules["editor/toolbar"] = class {
         let setSubTool = button.getAttribute("tool");
         if (setSubTool != null) {
           currentSubTool = setSubTool;
-          if ((editor.preferences.tools[currentTool] ?? {}).subtool != null) {
-            editor.preferences.tools[currentTool].subtool = currentSubTool;
+          let toolPreference = editor.preferences.tools[currentTool] ?? {};
+          if (toolPreference.subtool != null) {
+            toolPreference.subtool = currentSubTool;
             editor.savePreferences();
           }
           await this.toolbar.enableTool(button, shortPress);

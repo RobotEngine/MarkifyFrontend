@@ -424,7 +424,7 @@ function loadScript(url) {
         resolve();
       });
       newScript.src = url + "?v=" + version;
-      document.body.appendChild(newScript);
+      document.head.appendChild(newScript);
     }
   });
 }

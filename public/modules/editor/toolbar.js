@@ -75,13 +75,18 @@ modules["editor/toolbar"] = class {
     ".eDivider": `width: calc(100% - 8px); height: 4px; margin: 2px 0; background: var(--hover); border-radius: 2px`,
     ".eVerticalDivider": `flex-shrink: 0; width: 4px; height: calc(100% - 8px); margin: 0 2px; background: var(--hover); border-radius: 2px`,
 
-    ".eSubToolHolder": `position: absolute; max-height: 100%; background: var(--pageColor); z-index: 2; opacity: 0; transition: opacity .25s, transform .25s`,
-    ".eSubToolHolder[option]": `border-left-color: var(--secondary)`,
+    ".eSubToolHolder": `position: absolute; max-height: 100%; background: var(--pageColor); z-index: 2; opacity: 0; transition: opacity .25s, transform .25s; border-radius: var(--borderRadius)`,
+    ".eToolbarHolder[left] .eSubToolHolder": `left: 100%; padding-left: 4px; border-radius: 0 12px 12px 0`,
+    ".eToolbarHolder[right] .eSubToolHolder": `right: 100%; padding-right: 4px; border-radius: 12px 0 0 12px`,
+    ".eSubToolHolder:after": `content: ""; position: absolute; width: 4px; height: 100%; top: 0px; background: var(--theme); z-index: 4`,
+    ".eToolbarHolder[left] .eSubToolHolder:after": `left: 0px`,
+    ".eToolbarHolder[right] .eSubToolHolder:after": `right: 0px`,
+    ".eSubToolHolder[option]:after": `background: var(--secondary)`,
     ".eToolbarHolder[left] .eSubToolShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 20px 16px 0; left: -4px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
     ".eToolbarHolder[right] .eSubToolShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 0 16px 20px; right: -4px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
     ".eToolbarHolder[left] .eSubToolShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); left: 0px; top: 16px; content: ""; box-shadow: var(--lightShadow); border-radius: inherit`,
     ".eToolbarHolder[right] .eSubToolShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); right: 0px; top: 16px; content: ""; box-shadow: var(--lightShadow); border-radius: inherit`,
-    ".eSubToolContentHolder": `overflow: hidden; border-radius: inherit`,
+    ".eSubToolContentHolder": `position: relative; background: var(--pageColor); z-index: 3; overflow: hidden; border-radius: inherit`,
     ".eSubToolContentScroll": `width: fit-content; overflow: auto`,
     ".eSubToolHolder[option] .eSubToolContentScroll": `overflow: visible`,
     ".eVerticalToolsHolder": `display: flex; flex-direction: column; padding: 2px 0; align-items: center`
@@ -117,9 +122,11 @@ modules["editor/toolbar"] = class {
     let currentTool = "selection";
     let currentSubTool = "select";
     this.currentToolModule = "pages/editor/toolbar/cursor";
+
     let currentToolButton;
     let subToolbar;
 
+    let currentSubToolButton;
     let subSubToolbar;
 
     // Handle Disabled Tools:
@@ -269,7 +276,7 @@ modules["editor/toolbar"] = class {
     this.tooltip.set = (event) => {
       let hoverElem = event.target;
       let element = hoverElem.closest("button[tool], button[subtool], button[option], button[action]");
-      if ((element == null || element.hasAttribute("tooltip") == false) && (hoverElem.closest("[keeptooltip]") == null || (element != null && element.hasAttribute("option") == true))) {
+      if ((element == null || element.hasAttribute("tooltip") == false) && (hoverElem.closest("[keeptooltip]") == null || hoverElem.closest("[closetooltip]") != null)) {
         tooltipElement = null;
         return this.tooltip.close();
       } else if (element == null) {
@@ -317,74 +324,126 @@ modules["editor/toolbar"] = class {
     // Manage Toolbar:
     this.toolbar = {};
     this.toolbar.update = (update) => {
-      if (subToolbar != null && currentToolButton != null) {
+      if (currentToolButton != null) {
         let toolbar = currentToolButton.closest(".eToolbar");
-        let contentHolder = subToolbar.querySelector(".eSubToolContentHolder");
-        let contentScroll = contentHolder.querySelector(".eSubToolContentScroll");
+        if (subToolbar != null) {
+          let contentHolder = subToolbar.querySelector(".eSubToolContentHolder");
+          let contentScroll = contentHolder.querySelector(".eSubToolContentScroll");
 
-        let toolsRect = toolbar.getBoundingClientRect();
-        let buttonRect = currentToolButton.getBoundingClientRect();
+          let toolsRect = toolbar.getBoundingClientRect();
+          let buttonRect = currentToolButton.getBoundingClientRect();
 
-        contentScroll.style.maxHeight = toolbar.clientHeight + "px";
+          contentScroll.style.maxHeight = toolbar.clientHeight + "px";
 
-        let subtoolHeight = contentScroll.offsetHeight;
-        let setSubToolTop = buttonRect.top - toolsRect.top - 2; // 2 Pixels from top
-        if (setSubToolTop + subtoolHeight > toolbar.offsetHeight) {
-          setSubToolTop = toolbar.offsetHeight - subtoolHeight;
-        } else if (setSubToolTop < 0) {
-          setSubToolTop = 0;
-        }
-        subToolbar.style.top = setSubToolTop + "px";
-
-        if (toolbarHolder.hasAttribute("right") == false) {
-          subToolbar.style.borderRadius = "0 12px 12px 0";
-          subToolbar.style.left = "100%";
-          subToolbar.style.removeProperty("right");
-          subToolbar.style.borderLeft = "solid 4px var(--theme)";
-          subToolbar.style.removeProperty("border-right");
-          if (setSubToolTop < 13) {
-            toolbar.style.borderTopRightRadius = "0px";
-          } else {
-            toolbar.style.removeProperty("border-top-right-radius");
+          let subtoolHeight = contentScroll.offsetHeight;
+          let setSubToolTop = buttonRect.top - toolsRect.top - 2; // 2 Pixels from top
+          if (setSubToolTop + subtoolHeight > toolbar.offsetHeight) {
+            setSubToolTop = toolbar.offsetHeight - subtoolHeight;
+          } else if (setSubToolTop < 0) {
+            setSubToolTop = 0;
           }
-          toolbar.style.removeProperty("border-top-left-radius");
-          if (setSubToolTop + subtoolHeight > toolbar.offsetHeight - 12) {
-            toolbar.style.borderBottomRightRadius = "0px";
+          subToolbar.style.top = setSubToolTop + "px";
+
+          if (toolbarHolder.hasAttribute("right") == false) {
+            if (setSubToolTop < 13) {
+              toolbar.style.borderTopRightRadius = "0px";
+            } else {
+              toolbar.style.removeProperty("border-top-right-radius");
+            }
+            toolbar.style.removeProperty("border-top-left-radius");
+            if (setSubToolTop + subtoolHeight > toolbar.offsetHeight - 12) {
+              toolbar.style.borderBottomRightRadius = "0px";
+            } else {
+              toolbar.style.removeProperty("border-bottom-right-radius");
+            }
+            toolbar.style.removeProperty("border-bottom-left-radius");
           } else {
+            if (setSubToolTop < 13) {
+              toolbar.style.borderTopLeftRadius = "0px";
+            } else {
+              toolbar.style.removeProperty("border-top-left-radius");
+            }
+            toolbar.style.removeProperty("border-top-right-radius");
+            if (setSubToolTop + subtoolHeight > toolbar.offsetHeight - 12) {
+              toolbar.style.borderBottomLeftRadius = "0px";
+            } else {
+              toolbar.style.removeProperty("border-bottom-left-radius");
+            }
             toolbar.style.removeProperty("border-bottom-right-radius");
           }
-          toolbar.style.removeProperty("border-bottom-left-radius");
-        } else {
-          subToolbar.style.borderRadius = "12px 0 0 12px";
-          subToolbar.style.right = "100%";
-          subToolbar.style.removeProperty("left");
-          subToolbar.style.borderRight = "solid 4px var(--theme)";
-          subToolbar.style.removeProperty("border-left");
-          if (setSubToolTop < 13) {
-            toolbar.style.borderTopLeftRadius = "0px";
-          } else {
-            toolbar.style.removeProperty("border-top-left-radius");
-          }
-          toolbar.style.removeProperty("border-top-right-radius");
-          if (setSubToolTop + subtoolHeight > toolbar.offsetHeight - 12) {
-            toolbar.style.borderBottomLeftRadius = "0px";
-          } else {
-            toolbar.style.removeProperty("border-bottom-left-radius");
-          }
-          toolbar.style.removeProperty("border-bottom-right-radius");
-        }
-        
-        contentHolder.style.width = contentScroll.offsetWidth + "px";
-        contentHolder.style.height = contentScroll.offsetHeight + "px";
+          
+          contentHolder.style.width = contentScroll.offsetWidth + "px";
+          contentHolder.style.height = contentScroll.offsetHeight + "px";
 
-        subToolbar.style.transform = "translateX(0%)";
-        subToolbar.style.opacity = 1;
-      } else if (currentToolButton != null) {
-        let toolbar = currentToolButton.closest(".eToolbar");
-        toolbar.style.removeProperty("border-top-right-radius");
-        toolbar.style.removeProperty("border-bottom-right-radius");
-        toolbar.style.removeProperty("border-top-left-radius");
-        toolbar.style.removeProperty("border-bottom-left-radius");
+          subToolbar.style.transform = "translateX(0%)";
+          subToolbar.style.opacity = 1;
+        } else {
+          toolbar.style.removeProperty("border-top-right-radius");
+          toolbar.style.removeProperty("border-bottom-right-radius");
+          toolbar.style.removeProperty("border-top-left-radius");
+          toolbar.style.removeProperty("border-bottom-left-radius");
+        }
+      }
+
+      if (currentSubToolButton != null) {
+        let toolbar = currentSubToolButton.closest(".eSubToolHolder");
+        if (subSubToolbar != null) {
+          let contentHolder = subSubToolbar.querySelector(".eSubToolContentHolder");
+          let contentScroll = contentHolder.querySelector(".eSubToolContentScroll");
+
+          let toolsRect = toolbar.getBoundingClientRect();
+          let buttonRect = currentSubToolButton.getBoundingClientRect();
+
+          contentScroll.style.maxHeight = toolbar.clientHeight + "px";
+
+          let subtoolHeight = contentScroll.offsetHeight;
+          let setSubToolTop = buttonRect.top - toolsRect.top - 2; // 2 Pixels from top
+          if (setSubToolTop + subtoolHeight > toolbar.offsetHeight) {
+            setSubToolTop = toolbar.offsetHeight - subtoolHeight;
+          } else if (setSubToolTop < 0) {
+            setSubToolTop = 0;
+          }
+          subSubToolbar.style.top = setSubToolTop + "px";
+
+          if (toolbarHolder.hasAttribute("right") == false) {
+            if (setSubToolTop < 13) {
+              toolbar.style.borderTopRightRadius = "0px";
+            } else {
+              toolbar.style.removeProperty("border-top-right-radius");
+            }
+            toolbar.style.removeProperty("border-top-left-radius");
+            if (setSubToolTop + subtoolHeight > toolbar.offsetHeight - 12) {
+              toolbar.style.borderBottomRightRadius = "0px";
+            } else {
+              toolbar.style.removeProperty("border-bottom-right-radius");
+            }
+            toolbar.style.removeProperty("border-bottom-left-radius");
+          } else {
+            if (setSubToolTop < 13) {
+              toolbar.style.borderTopLeftRadius = "0px";
+            } else {
+              toolbar.style.removeProperty("border-top-left-radius");
+            }
+            toolbar.style.removeProperty("border-top-right-radius");
+            if (setSubToolTop + subtoolHeight > toolbar.offsetHeight - 12) {
+              toolbar.style.borderBottomLeftRadius = "0px";
+            } else {
+              toolbar.style.removeProperty("border-bottom-left-radius");
+            }
+            toolbar.style.removeProperty("border-bottom-right-radius");
+          }
+          
+          contentHolder.style.width = contentScroll.offsetWidth + "px";
+          contentHolder.style.height = contentScroll.offsetHeight + "px";
+
+          subSubToolbar.style.transform = "translateX(0%)";
+          subSubToolbar.style.opacity = 1;
+        } else {
+          toolbar.style.removeProperty("border-top-right-radius");
+          toolbar.style.removeProperty("border-bottom-right-radius");
+          toolbar.style.removeProperty("border-top-left-radius");
+          toolbar.style.removeProperty("border-bottom-left-radius");
+        }
       }
 
       if (update != false) {
@@ -417,6 +476,51 @@ modules["editor/toolbar"] = class {
           }
         }
       }
+    }
+    this.toolbar.createSubSub = async (moduleName) => {
+      if (currentSubToolButton == null || moduleName == null) {
+        return;
+      }
+      let toolbar = currentSubToolButton.closest(".eSubToolHolder");
+      toolbar.insertAdjacentHTML("beforeend", `<div class="eSubToolHolder" option new>
+        <div class="eSubToolShadow"></div>
+        <div class="eSubToolContentHolder">
+          <div class="eSubToolContentScroll hideScroll">
+            <div class="eSubToolContent" closetooltip></div>
+          </div>
+        </div>
+      </div>`);
+      subSubToolbar = toolbar.querySelector(".eSubToolHolder[new]");
+      subSubToolbar.removeAttribute("new");
+      if (toolbarHolder.hasAttribute("right") == false) {
+        subSubToolbar.style.transform = "translateX(-100%)";
+      } else {
+        subSubToolbar.style.transform = "translateX(100%)";
+      }
+      await this.parent.setFrame(moduleName, subSubToolbar.querySelector(".eSubToolContent"));
+    }
+    this.toolbar.closeSubSub = async (update) => {
+      if (subSubToolbar == null) {
+        return;
+      }
+      let removeToolbar = subSubToolbar;
+      subSubToolbar = null;
+      if (update != false) {
+        this.toolbar.update(false);
+      }
+      (async () => {
+        removeToolbar.style.zIndex = 1;
+        if (toolbarHolder.hasAttribute("right") == false) {
+          removeToolbar.style.transform = "translateX(-100%)";
+        } else {
+          removeToolbar.style.transform = "translateX(100%)";
+        }
+        removeToolbar.style.opacity = 0;
+        await sleep(300);
+        if (removeToolbar != null) {
+          removeToolbar.remove();
+        }
+      })();
     }
     this.toolbar.createSub = async () => {
       if (currentToolButton == null) {
@@ -451,8 +555,6 @@ modules["editor/toolbar"] = class {
         contentHolder.innerHTML = toolData.html;
       }
       this.toolbar.updateButtons(contentHolder);
-
-      subToolbar.offsetHeight;
       return toolData;
     }
     this.toolbar.closeSub = () => {
@@ -462,7 +564,7 @@ modules["editor/toolbar"] = class {
       let removeToolbar = subToolbar;
       subToolbar = null;
       this.toolbar.update(false);
-      //this.tooltip.update();
+      this.toolbar.closeSubSub(false);
       (async () => {
         removeToolbar.style.zIndex = 1;
         if (toolbarHolder.hasAttribute("right") == false) {
@@ -532,6 +634,7 @@ modules["editor/toolbar"] = class {
         }
       } else if (button.closest(".eSubToolContentScroll") != null) { // SubToolbar Button
         if (button.hasAttribute("option") == false) { // Subtool
+          this.toolbar.closeSubSub();
           if (shortPress == true) {
             currentSubTool = button.getAttribute("tool");
             this.currentToolModule = button.getAttribute("module");
@@ -539,9 +642,10 @@ modules["editor/toolbar"] = class {
           }
         } else { // Option
           if (shortPress == true) {
-            // Close SubSub Function Here
+            this.toolbar.closeSubSub();
             if (isSelected == false) {
-              // TODO
+              currentSubToolButton = button;
+              this.toolbar.createSubSub(button.getAttribute("module"));
             } else {
               button.removeAttribute("selected");
             }
@@ -694,6 +798,7 @@ modules["editor/toolbar/color"] = class {
     ".eSubToolColorHolder": `box-sizing: border-box; display: flex; width: 34px; height: 34px; margin: 4px; background: var(--pageColor); border: solid 3px var(--pageColor); border-radius: 18px; justify-content: center; align-items: center`,
     ".eSubToolColor": `width: 100%; height: 100%; border-radius: 16px`
   };
+  html = `<div style="width: 200px; height: 96px"></div>`;
 }
 
 modules["editor/toolbar/thickness"] = class {
@@ -713,6 +818,7 @@ modules["editor/toolbar/thickness"] = class {
     ".eToolbarHolder[right] .eSubToolThicknessHolder": `transform: translateX(4px)`,
     ".eSubToolThickness": `width: 44px; border-radius: 10px`
   };
+  html = `<div style="width: 200px; height: 50px"></div>`;
 }
 
 modules["editor/toolbar/opacity"] = class {
@@ -730,4 +836,5 @@ modules["editor/toolbar/opacity"] = class {
     ".eSubToolOpacityHolder": `box-sizing: border-box; display: flex; width: 34px; height: 34px; margin: 4px; background: var(--pageColor); border: solid 3px var(--pageColor); border-radius: 18px; justify-content: center; align-items: center`,
     ".eSubToolOpacityHolder svg": `width: 100%; height: 100%`
   };
+  html = `<div style="width: 200px; height: 50px"></div>`;
 }

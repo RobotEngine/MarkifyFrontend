@@ -772,7 +772,7 @@ modules["dropdowns/lesson/board/members"] = class {
     ".eMemberHolder": `width: 275px; max-width: 100%`,
     ".eMemberSearchHolder": `display: flex; padding: 8px 8px 4px 8px; align-items: center`,
     ".eMemberSearch": `display: flex; width: 100%; align-items: center; border: solid 2px var(--secondary); border-radius: 18px`,
-    ".eMemberSearch div[image]": `width: 25px; height: 25px; margin-left: 4px`,
+    ".eMemberSearch div[image]": `width: 24px; height: 24px; margin-left: 4px`,
     ".eMemberSearch div[image] svg": `width: 100%; height: 100%`,
     ".eMemberSearch input": `width: 100%; padding: 5px; background: unset; border: unset; outline: unset; font-family: var(--font); font-size: 16px; font-weight: 600`,
     ".eMemberSearch input::placeholder": `color: var(--secondary)`,

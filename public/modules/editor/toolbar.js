@@ -277,7 +277,6 @@ modules["editor/toolbar"] = class {
       let hoverElem = event.target;
       let element = hoverElem.closest("button[tool], button[subtool], button[option], button[action]");
       if ((element == null || element.hasAttribute("tooltip") == false) && (hoverElem.closest("[keeptooltip]") == null || hoverElem.closest("[closetooltip]") != null)) {
-        tooltipElement = null;
         return this.tooltip.close();
       } else if (element == null) {
         return;
@@ -308,6 +307,7 @@ modules["editor/toolbar"] = class {
       if (tooltipOpen == false) {
         return;
       }
+      tooltipElement = null;
       tooltipOpen = false;
       tooltipText.style.transform = "scale(0)";
       tooltipText.style.opacity = 0;

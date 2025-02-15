@@ -120,6 +120,61 @@ modules["editor/editor"] = class {
         return "rgb(" + r + ", " + g + ", " + b + ")";
       }
     },
+    hexToRGBArray: function (hex) {
+      if (hex.length < 4) {
+        hex = hex.split("").map((hexVal) => { return hexVal + hexVal }).join("");
+      }
+      let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  
+      return [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)];
+    },
+    hslToHex: (h, s, l) => {
+      l /= 100;
+      let a = s * Math.min(l, 1 - l) / 100;
+      let f = n => {
+        let k = (n + h / 30) % 12;
+        let color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+        return Math.round(255 * color).toString(16).padStart(2, "0");
+      }
+      return `${f(0)}${f(8)}${f(4)}`;
+    },
+    hsvToHex: (h, s, b) => {
+      let x = (200 - s) * b / 100;
+      s = x === 0 || x === 200 ? 0 : Math.round(s * b / (x <= 100 ? x : 200 - x));
+      let l = Math.round(x / 2);
+      return this.hslToHex(h, s, l);
+    },
+    hexToHSL: (hex) => {
+      let [r, g, b] = this.hexToRGB(hex);
+  
+      r /= 255, g /= 255, b /= 255;
+      let max = Math.max(r, g, b), min = Math.min(r, g, b);
+      let h, s, l = (max + min) / 2;
+  
+      if (max == min) {
+        h = s = 0;
+      } else {
+        let d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+          case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+          case g: h = (b - r) / d + 2; break;
+          case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+      }
+  
+      return [Math.round(360 * h), Math.round(s * 100), Math.round(l * 100)];
+    },
+    hexToHSV: (hex) => {
+      let [h, s, l] = this.hexToHSL(hex);
+      let x = s * (l < 50 ? l : 100 - l);
+      let b = l + (x / 100);
+      return [h, l === 0 ? s : 2 * x / b, l + (x / 100)];
+    },
+    rgbToHex: (r, g, b) => {
+      return (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1);
+    },
     darkenHex: (hexCode, percent) => {
       // Ensure the percent is within the valid range [0, 100]
       percent = Math.max(0, Math.min(100, percent));

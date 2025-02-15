@@ -497,7 +497,7 @@ modules["editor/toolbar"] = class {
       } else {
         subSubToolbar.style.transform = "translateX(100%)";
       }
-      await this.parent.setFrame(moduleName, subSubToolbar.querySelector(".eSubToolContent"));
+      await this.setFrame(moduleName, subSubToolbar.querySelector(".eSubToolContent"), { editor: editor, toolbar: true });
     }
     this.toolbar.closeSubSub = async (update) => {
       if (subSubToolbar == null) {
@@ -736,7 +736,18 @@ modules["editor/toolbar"] = class {
     this.toolbar.updateButtons(toolbarHolder);
 
     this.getToolPreference = () => {
-      return editor.preferences.tools[currentSubTool] ?? editor.preferences.tools[currentTool];
+      return editor.preferences.tools[currentSubTool] ?? editor.preferences.tools[currentTool] ?? {};
+    }
+    this.setToolPreference = (path, value) => {
+      let split = path.split(".");
+      let check = this.getToolPreference();
+      for (let i = 0; i < split.length; i++) {
+        if (i < split.length - 1) {
+          check = check[split[i]];
+        } else {
+          check[split[i]] = value;
+        }
+      }
     }
     this.getAnnotationPreference = () => {
       let selectKeys = Object.keys(editor.selecting);
@@ -744,7 +755,7 @@ modules["editor/toolbar"] = class {
       return {
         ...((editor.annotations[annoID] ?? {}).render ?? {}),
         ...(editor.selecting[annoID] ?? {})
-      } ?? {};
+      };
     }
 
     // Subscribe to Events:
@@ -789,23 +800,94 @@ modules["editor/toolbar/color"] = class {
   setToolbarButton = (button) => {
     button.innerHTML = `<div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div>`;
     let color = button.querySelector(".eSubToolColor");
-    let preference = this.parent.getToolPreference() ?? {};
+    let preference = this.parent.getToolPreference();
     color.style.background = "#" + (preference.color ?? {}).selected;
     color.style.opacity = preference.opacity / 100;
   }
 
+  html = `
+  <div class="eSubToolColorFrame">
+    <div class="eSubToolColorSelector">
+      <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+      <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+      <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+      <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+      <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+      <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+      <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+      <button class="eTool" enablepicker option noselect><div><img class="eSubToolImage" src="./images/editor/picker.svg"></div></button>
+    </div>
+    <div class="eSubToolColorPicker">
+      <div class="eSubToolColorPickerTop">
+        <div class="eSubToolColorPickerTopSelected"></div>
+        <button class="eSubToolColorPickerEyedroper" title="Eyedropper"><img src="./images/editor/eyedropper.svg"></button>
+        <button class="eSubToolColorPickerTopBack buttonAnim border"><img src="./images/tooltips/close.svg"></button>
+      </div>
+      <div class="eSubToolColorPickerShade">
+        <div><canvas></canvas></div>
+        <button></button>
+      </div>
+      <div class="eSubToolColorPickerGradient">
+        <div class="eSubToolColorPickerGradientSlider"></div>
+        <button></button>
+      </div>
+      <div class="eSubToolColorPickerInput">
+        <button class="largeButton border" title="Change Color Scale"></button>
+        <input name="Color Input">
+      </div>
+    </div>
+  </div>
+  `;
   css = {
     ".eSubToolColorHolder": `box-sizing: border-box; display: flex; width: 34px; height: 34px; margin: 4px; background: var(--pageColor); border: solid 3px var(--pageColor); border-radius: 18px; justify-content: center; align-items: center`,
-    ".eSubToolColor": `width: 100%; height: 100%; border-radius: 16px`
+    ".eSubToolColor": `width: 100%; height: 100%; border-radius: 16px`,
+
+    ".eSubToolColorFrame": `position: relative; width: 208px; min-height: 106px`,
+    ".eSubToolColorSelector": `display: flex; flex-wrap: wrap; top: 0px; justify-content: center; align-items: center; transform: scale(1); opacity: 1; transition: .5s`,
+    ".eSubToolColorSelector .eTool": `width: 46px; height: 46px; margin: 3px`,
+    ".eSubToolColorSelector .eTool > div": `border-radius: 25px !important`,
+    ".eSubToolColorSelector .eSubToolColor": `width: 32px; height: 32px`,
+
+    ".eSubToolColorPicker": `width: 212px; position: absolute; top: 0px; transform: scale(.9); opacity: 0; transition: .5s; pointer-events: none; touch-action: none`,
+    ".eSubToolColorPickerTop": `position: relative; display: flex; box-sizing: border-box; width: 100%; height: 50px; padding: 10px`,
+    ".eSubToolColorPickerTopSelected": `width: 30px; height: 30px; border-radius: 10px`,
+    ".eSubToolColorPickerEyedroper": `width: 30px; height: 30px; padding: 0px; margin: 0 13px 0 6px; border-radius: 10px`,
+    ".eSubToolColorPickerEyedroper img": `width: 100%; height: 100%`,
+    ".eSubToolColorPickerEyedroper:hover": `background: var(--hover)`,
+    ".eSubToolColorPickerEyedroper:active": `transform: scale(.95)`,
+    ".eSubToolColorPickerTopBack": `position: relative; width: 22px; height: 22px; margin: 3px 3px 3px auto; --borderWidth: 3px; --borderRadius: 11px`,
+    ".eSubToolColorPickerTopBack img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
+    ".eSubToolColorPickerShade": `position: relative; width: calc(100% - 20px); height: 102px; margin: 0px 10px 10px`,
+    ".eSubToolColorPickerShade div": `width: 100%; height: 100%; border-radius: 10px; overflow: hidden`,
+    ".eSubToolColorPickerShade canvas": `width: 100%; height: 100%; background: #000`,
+    ".eSubToolColorPickerShade button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; background: var(--theme); box-shadow: var(--lightShadow); border: solid 3px var(--pageColor); border-radius: 10px; transition: transform .2s`,
+    ".eSubToolColorPickerShade button:hover": `transform: scale(1.2) !important`,
+    ".eSubToolColorPickerShade button:active": `transform: scale(1.1) !important`,
+    ".eSubToolColorPickerGradient": `position: relative; width: calc(100% - 20px); height: 10px; margin: 14px 10px 10px 10px`,
+    ".eSubToolColorPickerGradientSlider": `width: 100%; height: 100%; background: -webkit-linear-gradient(left, rgb(255, 0, 0), rgb(255, 255, 0), rgb(0, 255, 0), rgb(0, 255, 255), rgb(0, 0, 255), rgb(255, 0, 255), rgb(255, 0, 0)); border-radius: 5px`,
+    ".eSubToolColorPickerGradient button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; top: -5px; background: var(--theme); box-shadow: var(--lightShadow); border: solid 3px var(--pageColor); border-radius: 10px; transition: transform .2s`,
+    ".eSubToolColorPickerGradient button:hover": `transform: scale(1.2) !important`,
+    ".eSubToolColorPickerGradient button:active": `transform: scale(1.1) !important`,
+    ".eSubToolColorPickerInput": `display: flex; width: calc(100% - 20px); margin: 14px 10px 10px`,
+    ".eSubToolColorPickerInput button": `height: 22px; padding: 3px 6px; margin: 3px; --borderWidth: 3px; --borderRadius: 7px; font-size: 16px; font-weight: 700; color: var(--theme)`,
+    ".eSubToolColorPickerInput input": `flex: 1; min-width: 0px; height: 19px; margin-left: 6px; border: solid 3px var(--secondary); outline: none; border-radius: 14px; font-family: var(--font); font-size: 18px; font-weight: 700; color: var(--theme); text-align: center`,
+    ".eSubToolColorPickerInput input::placeholder": `color: var(--hover)`
   };
-  html = `<div style="width: 200px; height: 96px"></div>`;
+  js = (frame, { editor, toolbar: isToolbar }) => {
+    let toolbar = this.parent;
+    let utils = editor.utils;
+    let selecting = editor.selecting;
+    let selectKeys = Object.keys(selecting);
+    let modifyPreference = isToolbar == true || selectKeys.length == 1;
+    let preference = toolbar.getAnnotationPreference().c ?? toolbar.getToolPreference().color;
+  }
 }
 
 modules["editor/toolbar/thickness"] = class {
   setToolbarButton = (button) => {
     button.innerHTML = `<div class="eSubToolThicknessButtonHolder"><div class="eSubToolThicknessHolder"><div class="eSubToolThickness"></div></div></div>`;
     let thickness = button.querySelector(".eSubToolThickness");
-    let preference = this.parent.getToolPreference() ?? {};
+    let preference = this.parent.getToolPreference();
     thickness.style.background = "#" + (preference.color ?? {}).selected;
     thickness.style.height = preference.thickness + "px";
     thickness.style.opacity = preference.opacity / 100;
@@ -827,7 +909,7 @@ modules["editor/toolbar/opacity"] = class {
     let opacity = button.querySelector(".eSubToolOpacityHolder");
     await setSVG(opacity, "./images/editor/toolbar/opacity.svg");
     let svg = opacity.querySelector("svg");
-    let preference = this.parent.getToolPreference() ?? {};
+    let preference = this.parent.getToolPreference();
     svg.querySelector("path").style.opacity = preference.opacity / 100;
     svg.style.setProperty("--toolColor", "#" + (preference.color ?? {}).selected);
   }

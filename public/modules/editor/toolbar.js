@@ -878,7 +878,7 @@ modules["editor/toolbar/color"] = class {
     let utils = editor.utils;
     let selecting = editor.selecting;
     let selectKeys = Object.keys(selecting);
-    let modifyPreference = isToolbar == true || selectKeys.length == 1;
+    let savePreference = isToolbar == true || selectKeys.length == 1;
     let preference = toolbar.getAnnotationPreference().c ?? toolbar.getToolPreference().color;
   }
 }

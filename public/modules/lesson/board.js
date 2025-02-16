@@ -431,7 +431,7 @@ modules["lesson/board"] = class {
         }
       }
       if (this.editor.toolbar != null) {
-        this.editor.toolbar.updateTooltip();
+        this.editor.toolbar.toolbar.update();
       }
       handButton.removeAttribute("disabled", "");
     });

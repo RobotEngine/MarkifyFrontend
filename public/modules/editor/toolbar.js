@@ -664,7 +664,7 @@ modules["editor/toolbar"] = class {
     let lastSetButton;
     this.toolbar.setTool = async (targetButton, shortPress) => {
       let button = targetButton ?? lastSetButton;
-      if (button == null || button.hasAttribute("noselect") == true) {
+      if (button == null || button.closest("[noselect]") != null) {
         return;
       }
       let toolID = button.getAttribute("tool");
@@ -749,13 +749,16 @@ modules["editor/toolbar"] = class {
         }
       }
     }
-    this.getAnnotationPreference = () => {
+    this.getPreferenceTool = () => {
       let selectKeys = Object.keys(editor.selecting);
       let annoID = selectKeys[selectKeys.length - 1];
       return {
         ...((editor.annotations[annoID] ?? {}).render ?? {}),
         ...(editor.selecting[annoID] ?? {})
       };
+    }
+    this.getAnnotationPreference = () => {
+      return editor.preferences.tools[this.getPreferenceTool().f] ?? {};
     }
 
     // Subscribe to Events:
@@ -807,15 +810,15 @@ modules["editor/toolbar/color"] = class {
 
   html = `
   <div class="eSubToolColorFrame">
-    <div class="eSubToolColorSelector">
-      <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
-      <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
-      <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
-      <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
-      <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
-      <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
-      <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
-      <button class="eTool" enablepicker option noselect><div><img class="eSubToolImage" src="./images/editor/picker.svg"></div></button>
+    <div class="eSubToolColorSelector" noselect>
+      <button class="eTool" option><div holder><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+      <button class="eTool" option><div holder><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+      <button class="eTool" option><div holder><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+      <button class="eTool" option><div holder><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+      <button class="eTool" option><div holder><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+      <button class="eTool" option><div holder><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+      <button class="eTool" option><div holder><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+      <button class="eTool" enablepicker option><div holder><img class="eSubToolImage" src="./images/editor/picker.svg"></div></button>
     </div>
     <div class="eSubToolColorPicker">
       <div class="eSubToolColorPickerTop">
@@ -842,11 +845,11 @@ modules["editor/toolbar/color"] = class {
     ".eSubToolColorHolder": `box-sizing: border-box; display: flex; width: 34px; height: 34px; margin: 4px; background: var(--pageColor); border: solid 3px var(--pageColor); border-radius: 18px; justify-content: center; align-items: center`,
     ".eSubToolColor": `width: 100%; height: 100%; border-radius: 16px`,
 
-    ".eSubToolColorFrame": `position: relative; width: 208px; min-height: 106px`,
-    ".eSubToolColorSelector": `display: flex; flex-wrap: wrap; top: 0px; justify-content: center; align-items: center; transform: scale(1); opacity: 1; transition: .5s`,
-    ".eSubToolColorSelector .eTool": `width: 46px; height: 46px; margin: 3px`,
-    ".eSubToolColorSelector .eTool > div": `border-radius: 25px !important`,
-    ".eSubToolColorSelector .eSubToolColor": `width: 32px; height: 32px`,
+    ".eSubToolColorFrame": `position: relative; width: 188px; min-height: 96px`,
+    ".eSubToolColorSelector": `display: flex; flex-wrap: wrap; top: 0px; padding: 2px; justify-content: center; align-items: center; transform: scale(1); opacity: 1; transition: .5s`,
+    ".eSubToolColorSelector .eTool": `width: 46px; height: 46px`,
+    ".eSubToolColorSelector .eTool > div[holder]": `margin: 2px !important; border-radius: 8px !important`,
+    ".eSubToolColorSelector .eSubToolColor": `width: 28px; height: 28px`,
 
     ".eSubToolColorPicker": `width: 212px; position: absolute; top: 0px; transform: scale(.9); opacity: 0; transition: .5s; pointer-events: none; touch-action: none`,
     ".eSubToolColorPickerTop": `position: relative; display: flex; box-sizing: border-box; width: 100%; height: 50px; padding: 10px`,
@@ -878,8 +881,42 @@ modules["editor/toolbar/color"] = class {
     let utils = editor.utils;
     let selecting = editor.selecting;
     let selectKeys = Object.keys(selecting);
-    let savePreference = isToolbar == true || selectKeys.length == 1;
-    let preference = toolbar.getAnnotationPreference().c ?? toolbar.getToolPreference().color;
+    let shouldSave = isToolbar == true || selectKeys.length == 1;
+    let colorPreference = toolbar.getAnnotationPreference().color ?? toolbar.getToolPreference().color;
+    
+    let selector = frame.querySelector(".eSubToolColorSelector");
+    let colorButtons = selector.children;
+    let picker = frame.querySelector(".eSubToolColorPicker");
+    let selected = false;
+    let runColorSelections = () => {
+      selected = false;
+      for (let i = 0; i < colorButtons.length; i++) {
+        let button = colorButtons[i];
+        let setColor = colorPreference.options[i];
+        let isSelected = false;
+        if (setColor != null) {
+          button.setAttribute("int", i);
+          button.querySelector(".eSubToolColor").style.background = "#" + setColor;
+          if (isToolbar == true) {
+            isSelected = setColor == colorPreference.selected;
+          } else {
+            isSelected = setColor == this.preferenceTool.c;
+          }
+        }
+        if (selected == false) {
+          if (isSelected || setColor == null) {
+            button.setAttribute("selected", "");
+            selected = true;
+          } else {
+            button.removeAttribute("selected", "");
+          }
+        } else {
+          button.removeAttribute("selected", "");
+        }
+      }
+    }
+    runColorSelections();
+
   }
 }
 

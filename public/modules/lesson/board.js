@@ -744,6 +744,140 @@ modules["lesson/board"] = class {
   }
 }
 
+modules["dropdowns/lesson/file"] = class {
+  html = `
+  <button class="eFileAction" option="dashboard" title="Return to the Dashboard" style="--themeColor: var(--secondary)"><img src="./images/tooltips/back.svg">Dashboard</button>
+  <div class="eFileLine"></div>
+  <button class="eFileAction" option="export" dropdowntitle="Export" title="Export the lesson as a PDF."><img src="./images/editor/file/export.svg">Export</button>
+  <button class="eFileAction" option="print" dropdowntitle="Print" title="Export the lesson and print."><img src="./images/editor/file/print.svg">Print</button>
+  <button class="eFileAction" option="copy" title="Create a copy of the lesson."><img src="./images/editor/file/copy.svg">Create Copy</button>
+  <button class="eFileAction" option="moveto" title="Move this lesson into a folder." dropdowntitle="Move To Folder"><img src="./images/dashboard/moveto.svg">Move To Folder</button>
+  <div class="eFileLine" option="findjump"></div>
+  <button class="eFileAction" disabled option="find" title="Find text on the PDF." style="--themeColor: var(--secondary)"><img src="./images/editor/file/search.svg">Find</button>
+  <button class="eFileAction" option="jumptop" title="Jump to the first page." style="--themeColor: var(--secondary)"><img src="./images/editor/bottom/uparrow.svg">Jump to Top</button>
+  <button class="eFileAction" option="jump" title="Jump to page number." style="--themeColor: var(--secondary)"><img src="./images/editor/file/jump.svg">Jump to Page</button>
+  <button class="eFileAction" option="jumpend" title="Jump to the last page." style="--themeColor: var(--secondary)"><img src="./images/editor/bottom/downarrow.svg">Jump to End</button>
+  <div class="eFileLine" option="document"></div>
+  <button class="eFileAction" disabled option="properties" title="View lesson properties." style="--themeColor: var(--secondary)"><img src="./images/editor/file/info.svg">Properties</button>
+  <button class="eFileAction" disabled option="ocr" title="Run optical character recognition (OCR)."><img src="./images/editor/file/text.svg">Recognize Text</button>
+  <div class="eFileLine" option="delete"></div>
+  <button class="eFileAction" option="deletelesson" title="Remove this lesson from your dashboard." style="--themeColor: var(--error)"><img src="./images/editor/file/delete.svg">Delete Lesson</button>
+  <button class="eFileAction" option="deleteannotations" title="Remove all annotations from the lesson." style="--themeColor: var(--error)"><img src="./images/editor/file/delete.svg">Delete Annotations</button>
+  <div class="eFileLine" option="hideshow"></div>
+  <button class="eFileAction" option="hideshowpage" title="Hide this page for all members."><img src="./images/editor/rearrange/hideshow.svg">Hide All Pages</button>
+  `;
+  css = {
+    ".eFileAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
+    ".eFileAction:not(:last-child)": `margin-bottom: 4px`,
+    ".eFileAction img": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: #fff; border-radius: 4px`,
+    ".eFileAction:hover": `background: var(--themeColor); color: #fff`,
+    ".eFileLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`
+  };
+  js = async function (frame, extra) {
+    let parent = extra.parent;
+    let editor = parent.editor;
+    let access = editor.self.access;
+
+    frame.querySelector('.eFileAction[option="dashboard"]').addEventListener("click", async () => {
+      //utils.syncSave(true);
+      setFrame("pages/dashboard");
+    });
+    let exportButton = frame.querySelector('.eFileAction[option="export"]');
+    exportButton.addEventListener("click", () => {
+      dropdownModule.open(exportButton, "dropdowns/lesson/file/export", { type: "download", editor: editor });
+    });
+    let printButton = frame.querySelector('.eFileAction[option="print"]');
+    printButton.addEventListener("click", () => {
+      dropdownModule.open(printButton, "dropdowns/lesson/file/export", { type: "print", editor: editor });
+    });
+    let copyButton = frame.querySelector('.eFileAction[option="copy"]');
+    copyButton.addEventListener("click", async () => {
+      if (userID == null) {
+        promptLogin();
+        return;
+      }
+      copyButton.setAttribute("disabled", "");
+      let copyAlert = await alertModule.open("info", "<b>Creating Copy</b><div>Creating a copy of this lesson.", { time: "never" });
+      let [code, body] = await sendRequest("POST", "lessons/copy", null, { session: editor.session });
+      copyButton.removeAttribute("disabled");
+      alertModule.close(copyAlert);
+      if (code == 200) {
+        dropdownModule.close();
+        modifyParams("lesson", body.lesson);
+        setFrame("pages/lesson");
+      }
+    });
+    if (editor.settings.allowExport == false && access < 4) {
+      exportButton.setAttribute("disabled", "");
+      printButton.setAttribute("disabled", "");
+      copyButton.setAttribute("disabled", "");
+    }
+
+    let fileButton = frame.querySelector('.eFileAction[option="moveto"]');
+    fileButton.addEventListener("click", () => {
+      dropdownModule.open(fileButton, "dropdowns/moveto", { lessonID: parent.parent.id, folderID: parent.parent.folder });
+    });
+
+    let find = frame.querySelector('.eFileAction[option="find"]');
+    let jumptop = frame.querySelector('.eFileAction[option="jumptop"]');
+    jumptop.addEventListener("click", () => {
+      editor.contentHolder.scrollTo({ top: 0 });
+    });
+    let jump = frame.querySelector('.eFileAction[option="jump"]');
+    jump.addEventListener("click", () => {
+      editor.page.querySelector(".eCurrentPage").focus();
+      dropdownModule.close();
+    });
+    let jumpend = frame.querySelector('.eFileAction[option="jumpend"]');
+    jumpend.addEventListener("click", () => {
+      editor.contentHolder.scrollTo({ top: editor.contentHolder.scrollHeight });
+    });
+
+    let deleteLessonButton = frame.querySelector('.eFileAction[option="deletelesson"]');
+    deleteLessonButton.addEventListener("click", () => {
+      dropdownModule.open(deleteLessonButton, "dropdowns/remove", { type: "deletelesson", lessonID: parent.parent.id, isOwner: editor.self.access == 5, session: editor.session });
+    });
+    let deleteAnnotationsButton = frame.querySelector('.eFileAction[option="deleteannotations"]');
+    deleteAnnotationsButton.addEventListener("click", () => {
+      dropdownModule.open(deleteAnnotationsButton, "dropdowns/remove", { type: "deleteannotations", lessonID: parent.parent.id, session: editor.session });
+    });
+
+    let hideshowpage = frame.querySelector('.eFileAction[option="hideshowpage"]');
+    hideshowpage.addEventListener("click", async () => {
+      hideshowpage.setAttribute("disabled", "");
+      //let [code] = await sendRequest("PUT", "lessons/rearrange/hide", null, { session: editor.session });
+      hideshowpage.removeAttribute("disabled");
+      //if (code == 200) {
+      //  dropdownModule.close();
+      //}
+    });
+
+    if (access < 5) {
+      deleteAnnotationsButton.remove();
+      hideshowpage.remove();
+      let hideshowLine = frame.querySelector('.eFileLine[option="hideshow"]');
+      if (hideshowLine != null) {
+        hideshowLine.remove();
+      }
+      if (userID == null) {
+        deleteLessonButton.remove();
+        frame.querySelector('.eFileLine[option="delete"]').remove();
+      } else {
+        deleteLessonButton.innerHTML = `<img src="./images/editor/file/delete.svg">Remove Lesson`;
+      }
+    }
+
+    if (editor.annotationPages.length < 1) {
+      jump.remove();
+    }
+
+    find.remove();
+    frame.querySelector('.eFileLine[option="document"]').remove();
+    frame.querySelector('.eFileAction[option="properties"]').remove();
+    frame.querySelector('.eFileAction[option="ocr"]').remove();
+  }
+}
+
 modules["dropdowns/lesson/board/members"] = class {
   html = `
   <div class="eMemberHolder">

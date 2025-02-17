@@ -124,33 +124,45 @@ function getScript(url) {
 }
 function loadScript(url) {
   return new Promise(function (resolve) {
-    let loaded = getScript(url + "?v=" + version);
-    if (loaded != null) {
-      if (loaded.hasAttribute("loaded")) {
-        resolve(loaded);
+    let script = getScript(url + "?v=" + version);
+    if (script != null) {
+      if (script.hasAttribute("loaded") == true) {
+        resolve(script);
       } else {
-        loaded.addEventListener("load", function () {
-          resolve(loaded);
-        });
-        loaded.addEventListener("error", function () {
-          resolve();
-        });
+        let loadFunction;
+        let errorFunction;
+        loadFunction = function () {
+          resolve(script);
+          script.removeEventListener("load", loadListener);
+          script.removeEventListener("error", errorListener);
+        }
+        errorFunction = function () {
+          resolve(); // No need to clear events (Script is removed)
+        }
+        script.addEventListener("load", loadFunction);
+        script.addEventListener("error", errorFunction);
       }
     } else {
       let newScript = document.createElement("script");
       if (url.endsWith(".mjs") == true) {
         newScript.setAttribute("type", "module");
       }
-      newScript.addEventListener("load", function () {
+      let loadFunction;
+      let errorFunction;
+      loadFunction = function () {
         newScript.setAttribute("loaded", "");
         resolve(newScript);
-      });
-      newScript.addEventListener("error", function () {
+        newScript.removeEventListener("load", loadFunction);
+        newScript.removeEventListener("error", errorFunction);
+      }
+      errorFunction = function () {
         newScript.remove();
         resolve();
-      });
+      }
+      newScript.addEventListener("load", loadFunction);
+      newScript.addEventListener("error", errorFunction);
       newScript.src = url + "?v=" + version;
-      document.body.appendChild(newScript);
+      document.head.appendChild(newScript);
     }
   });
 }
@@ -388,46 +400,6 @@ window.addEventListener("hashchange", function () {
   }
   setFrame(setPage);
 });
-
-async function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms ?? 1));
-}
-
-function getScript(url) {
-  return document.querySelector("[src='" + url + "'");
-}
-function loadScript(url) {
-  return new Promise(function (resolve) {
-    let loaded = getScript(url + "?v=" + version);
-    if (loaded != null) {
-      if (loaded.hasAttribute("loaded") == true) {
-        resolve(loaded);
-      } else {
-        loaded.addEventListener("load", function () {
-          resolve(loaded);
-        });
-        loaded.addEventListener("error", function () {
-          resolve();
-        });
-      }
-    } else {
-      let newScript = document.createElement("script");
-      if (url.endsWith(".mjs") == true) {
-        newScript.setAttribute("type", "module");
-      }
-      newScript.addEventListener("load", function () {
-        newScript.setAttribute("loaded", "");
-        resolve(newScript);
-      });
-      newScript.addEventListener("error", function () {
-        newScript.remove();
-        resolve();
-      });
-      newScript.src = url + "?v=" + version;
-      document.head.appendChild(newScript);
-    }
-  });
-}
 
 function getParam(key) {
   let queryString = window.location.search;

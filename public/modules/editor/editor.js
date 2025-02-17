@@ -1225,6 +1225,9 @@ modules["editor/editor"] = class {
       }
 
       let renderModule = await this.render.getModule(render.f);
+      if (renderModule == null) {
+        return;
+      }
       if (renderModule.render != null) {
         let result = (await renderModule.render({ ...render, p: [xPos, yPos], s: [width, height], parent: parent }, element, holder)) ?? {};
         element = result.element;
@@ -1936,7 +1939,7 @@ modules["dropdowns/lesson/zoom"] = class {
   <button class="eZoomAction" option="cursornames" local title="Show the member's name when they're annotating."><div label>Cursor Names</div><div class="eZoomToggle"><div></div></div></button>
   <button class="eZoomAction" option="stylusmode" local title="Only write on the document when using an active stylus, such as the Apple Pencil."><div label>Stylus Mode</div><div class="eZoomToggle"><div></div></div></button>
   <!--<button class="eZoomAction" option="comments" title="Show comments on the document."><div label>Comments</div><div class="eZoomToggle"><div></div></div></button>-->
-  <button class="eZoomAction" option="fullscreen" title="Use Markify in fullscreen mode."><div label>Fullscreen</div><div class="eZoomToggle"><div></div></div></button>
+  <button class="eZoomAction" option="fullscreen" title="Use Markify in full screen mode."><div label>Full Screen</div><div class="eZoomToggle"><div></div></div></button>
   `;
   css = {
     ".eZoomHolder": `display: flex; flex-wrap: wrap; justify-content: center; align-items: center`,

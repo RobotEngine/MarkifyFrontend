@@ -15,12 +15,12 @@ modules["editor/editor"] = class {
     ".eAnnotations": `position: relative; width: 1px; height: 1px; transform-origin: 0 0; transform: scale(var(--zoom)); z-index: 2; pointer-events: none`,
     ".eBackground": `position: absolute; left: 0px; top: 0px; transform-origin: left top; background-image: url(./images/editor/backdrop.svg); background-position: center; opacity: .075; z-index: 1`,
 
-    ".eAnnotation": `position: absolute; left: 0px; top: 0px; transition: .25s`,
-    ".eAnnotationHolder": `position: absolute; z-index: 10`,
-    ".eAnnotationHolder[notransition] > .eAnnotation": `transition: unset !important`,
+    ".eAnnotation": `position: absolute; left: 0px; top: 0px`,
     ".eAnnotation[hidden]": `display: none !important`,
-    //'.eAnnotation[anno]:not([anno^="pending_"])': `transition: .25s`,
-    //'.eAnnotation:not([selected]):not([anno^="pending_"])': `transition: .25s`,
+    ".eAnnotation[anno]": `transition: .25s`,
+    //".eAnnotation:not([anno])": `display: none !important`,
+    ".eAnnotationHolder": `position: absolute; z-index: 10`,
+    //".eAnnotationHolder[notransition] > .eAnnotation": `transition: unset !important`,
     ".eAnnotation > svg": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: none; overflow: visible`,
     ".eAnnotation > svg > *": `pointer-events: visiblepainted`,
     
@@ -1236,11 +1236,7 @@ modules["editor/editor"] = class {
 
       if (element != null) {
         annotation.element = element;
-        
-        if (_id != null) {
-          element.setAttribute("anno", _id);
-        }
-        
+
         let zIndex = render.l ?? 0;
         element.style.zIndex = zIndex;
         if (zIndex < this.minLayer) {
@@ -1311,6 +1307,9 @@ modules["editor/editor"] = class {
           element.removeAttribute("done");
         } else {
           element.setAttribute("done", "");
+        }
+        if (_id != null) {
+          element.setAttribute("anno", _id);
         }
         if (render.remove != true) {
           element.removeAttribute("hidden");

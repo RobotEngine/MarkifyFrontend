@@ -157,11 +157,11 @@ modules["pages/launch"] = {
     <div class="lFooterFooter">
       <div class="lFooterCompany">
         <img class="lFooterLogo" src="./images/logowhite.svg">
-        <a class="lFooterCopyright" href="https://exotek.co" target="_blank">©2024 Exotek LLC</a>
+        <a class="lFooterCopyright" href="../" target="_blank">©2025 Markify, LLC</a>
       </div>
       <div class="lFooterPolicies">
-        <a href="https://exotek.co/tos" target="_blank">Terms</a>
-        <a href="https://exotek.co/privacy" target="_blank">Privacy</a>
+        <a href="../tos" target="_blank">Terms</a>
+        <a href="../privacy" target="_blank">Privacy</a>
       </div>
       <div class="lFooterSocials">
         <a href="https://twitter.com/markifytool" target="_blank"><img src="./images/launch/socials/twitter.svg"></a>

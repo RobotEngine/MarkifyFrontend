@@ -1096,7 +1096,7 @@ modules["editor/editor"] = class {
         this.render.pdfPageStorage[sourcePageId] = [sourceID, pageNumber];
         this.render.pdfPageQueue.push(sourcePageId);
         if (this.exporting != true || forceRunRender == true) {
-          this.render.processPageRenders();
+          setTimeout(this.render.processPageRenders, 0);
         }
       }
     }
@@ -1175,7 +1175,7 @@ modules["editor/editor"] = class {
           position = [absX, absY];
         }
       }
-
+      
       let holder = annotations;
       if (parent != null) {
         let parentAnnotation = this.annotations[parent] ?? {};

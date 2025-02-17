@@ -12,7 +12,7 @@ modules["editor/editor"] = class {
     ".eContent": `--interfacePadding: 58px; position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - (var(--interfacePadding) * 2)); min-height: calc(100vh - (var(--interfacePadding) * 2)); padding: var(--interfacePadding); align-items: center; overflow: hidden; pointer-events: all; --zoom: 1`,
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 3; overflow: hidden; pointer-events: none`,
     ".eEditorContent": `position: relative`,
-    ".eAnnotations": `position: relative; width: 1px; height: 1px; transform-origin: 0 0; transform: scale(var(--zoom)); z-index: 2`,
+    ".eAnnotations": `position: relative; width: 1px; height: 1px; transform-origin: 0 0; transform: scale(var(--zoom)); z-index: 2; pointer-events: none`,
     ".eBackground": `position: absolute; left: 0px; top: 0px; transform-origin: left top; background-image: url(./images/editor/backdrop.svg); background-position: center; opacity: .075; z-index: 1`,
 
     ".eAnnotation": `position: absolute; left: 0px; top: 0px; transition: .25s`,
@@ -1255,11 +1255,11 @@ modules["editor/editor"] = class {
           rotate = -(360 - rotate);
         }
         transform += " rotate(" + rotate + "deg)";
-        if (width < 0 && height < 0) {
+        if (render.s[0] < 0 && render.s[1] < 0) {
           transform += " scale(-1)";
-        } else if (width < 0) {
+        } else if (render.s[0] < 0) {
           transform += " scale(-1,1)";
-        } else if (height < 0) {
+        } else if (render.s[1] < 0) {
           transform += " scale(1,-1)";
         }
         element.style.transform = transform;
@@ -2283,8 +2283,8 @@ modules["editor/render/text"] = class {
       element = holder.querySelector(".eAnnotation[new]");
       element.removeAttribute("new");
     }
-    element.style.width = anno.width + "px";
-    element.style.height = anno.height + "px";
+    element.style.width = anno.s[0] + "px";
+    element.style.height = anno.s[1] + "px";
     let transform = "translate(" + anno.p[0] + "px," + anno.p[1] + "px)";
     if (anno._id != null) {
       element.style.opacity = 1;
@@ -2486,12 +2486,12 @@ modules["editor/render/shape"] = class {
       elem.setAttribute("stroke", "#" + anno.c);
     } else {
       elem.setAttribute("fill", "#" + anno.c);
-      elem.setAttribute("stroke", "#" + this.parent.utils.darkenHex(c, 20));
+      elem.setAttribute("stroke", "#" + this.parent.utils.darkenHex(anno.c, 20));
     }
     if ((anno.b ?? "solid") == "solid") {
       elem.setAttribute("stroke-width", t);
       elem.removeAttribute("stroke-dasharray");
-    } else if (b == "dashed") {
+    } else if (anno.b == "dashed") {
       elem.setAttribute("stroke-width", t);
       elem.setAttribute("stroke-dasharray", (t * 2) + ", " + (t * 2));
       elem.setAttribute("stroke-linecap", "round");

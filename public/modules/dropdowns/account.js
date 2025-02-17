@@ -16,11 +16,11 @@ modules["dropdowns/account"] = class {
     <a href="https://www.youtube.com/@markifyexotek" target="_blank"><img src="./images/launch/socials/youtube.svg"></a>
   </div>
   <div class="accountPolicyHolder">
-    <a href="https://exotek.co/tos" target="_blank">Terms</a>
-    <a href="https://exotek.co/privacy" target="_blank">Privacy</a>
+    <a href="../tos" target="_blank">Terms</a>
+    <a href="../privacy" target="_blank">Privacy</a>
   </div>
   <div class="accountCopyrightHolder">
-    <a href="https://exotek.co" target="_blank">©2024 Exotek LLC</a>
+    <a href="../" target="_blank">©2025 Markify, LLC</a>
   </div>
   `;
   css = {

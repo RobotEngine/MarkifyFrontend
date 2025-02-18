@@ -859,7 +859,7 @@ modules["editor/toolbar/color"] = class {
     ".eSubToolColorSelector .eTool > div[holder]": `margin: 2px !important; border-radius: 8px !important`,
     ".eSubToolColorSelector .eSubToolColor": `width: 28px; height: 28px`,
 
-    ".eSubToolColorPicker": `width: 212px; position: absolute; top: 0px; transform: scale(.9); opacity: 0; transition: .5s; pointer-events: none; touch-action: none`,
+    ".eSubToolColorPicker": `width: 188px; position: absolute; top: 0px; transform: scale(.9); opacity: 0; transition: .5s; pointer-events: none; touch-action: none`,
     ".eSubToolColorPickerTop": `position: relative; display: flex; box-sizing: border-box; width: 100%; height: 50px; padding: 10px`,
     ".eSubToolColorPickerTopSelected": `width: 30px; height: 30px; border-radius: 10px`,
     ".eSubToolColorPickerEyedroper": `width: 30px; height: 30px; padding: 0px; margin: 0 13px 0 6px; border-radius: 10px`,

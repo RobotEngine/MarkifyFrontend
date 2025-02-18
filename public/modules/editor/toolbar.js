@@ -452,7 +452,7 @@ modules["editor/toolbar"] = class {
     }
     toolbarContent.addEventListener("scroll", () => { this.toolbar.update() });
     this.toolbar.updateButtons = async (contentHolder) => {
-      let gottenTools = contentHolder.querySelectorAll(".eTool");
+      let gottenTools = (contentHolder ?? toolbar).querySelectorAll(".eTool");
       for (let i = 0; i < gottenTools.length; i++) {
         let tool = gottenTools[i];
         let div = tool.querySelector("div");
@@ -505,6 +505,10 @@ modules["editor/toolbar"] = class {
       }
       let removeToolbar = subSubToolbar;
       subSubToolbar = null;
+      if (update == true && currentSubToolButton != null) {
+        currentSubToolButton.removeAttribute("selected");
+        currentSubToolButton.removeAttribute("extend");
+      }
       if (update != false) {
         this.toolbar.update(false);
       }
@@ -557,12 +561,15 @@ modules["editor/toolbar"] = class {
       this.toolbar.updateButtons(contentHolder);
       return toolData;
     }
-    this.toolbar.closeSub = () => {
+    this.toolbar.closeSub = (update) => {
       if (subToolbar == null) {
         return;
       }
       let removeToolbar = subToolbar;
       subToolbar = null;
+      if (update == true && currentToolButton != null) {
+        currentToolButton.removeAttribute("extend");
+      }
       this.toolbar.update(false);
       this.toolbar.closeSubSub(false);
       (async () => {
@@ -748,6 +755,7 @@ modules["editor/toolbar"] = class {
           check[split[i]] = value;
         }
       }
+      editor.savePreferences();
     }
     this.getPreferenceTool = () => {
       let selectKeys = Object.keys(editor.selecting);
@@ -916,6 +924,72 @@ modules["editor/toolbar/color"] = class {
       }
     }
     runColorSelections();
+
+    let [h, s, v] = [];
+    selector.addEventListener("click", async (event) => {
+      let element = event.target;
+      if (element == null) {
+        return;
+      }
+      element = element.closest(".eTool");
+      if (element == null) {
+        return;
+      }
+      if (element.hasAttribute("int") == true) {
+        let setColor = colorPreference.options[parseInt(element.getAttribute("int"))];
+        if (shouldSave == true) {
+          toolbar.setToolPreference("color.selected", setColor);
+        }
+        if (isToolbar == true) {
+          toolbar.toolbar.closeSubSub(true);
+        } else {
+          //await extra.saveSelecting({ c: setColor });
+          //utils.forceShort(); // Make sure other users see the color change (no mouse movement)
+          //extra.updateToolActions(extra.frame);
+          let selected = selector.querySelector("button[selected]");
+          if (selected != null) {
+            selected.removeAttribute("selected");
+          }
+          element.setAttribute("selected", "");
+        }
+        toolbar.toolbar.updateButtons();
+      } else if (element.hasAttribute("enablepicker") == true) {
+        ([h, s, v] = editor.utils.hexToHSV(colorPreference.selected));
+        //updatePickerUI();
+        picker.style.position = "relative";
+        selector.style.position = "absolute";
+        picker.style.transform = "scale(1)";
+        selector.style.transform = "scale(.9)";
+        picker.style.opacity = 1;
+        selector.style.opacity = 0;
+        picker.style.pointerEvents = "all";
+        if (isToolbar == true) {
+          toolbar.toolbar.update();
+        } else {
+          //extra.updateActionUI();
+        }
+      }
+    });
+    if (isToolbar == false) {
+      //this.updateActionUI();
+    }
+
+    frame.querySelector(".eSubToolColorPickerTopBack").addEventListener("click", async () => {
+      selector.style.position = "relative";
+      picker.style.position = "absolute";
+      selector.style.transform = "scale(1)";
+      picker.style.transform = "scale(.9)";
+      selector.style.opacity = 1;
+      picker.style.opacity = 0;
+      selector.style.pointerEvents = "all";
+      picker.style.pointerEvents = "none";
+      if (isToolbar == true) {
+        editor.updateSubtoolUI();
+      } else {
+        extra.updateActionUI();
+      }
+    });
+
 
   }
 }

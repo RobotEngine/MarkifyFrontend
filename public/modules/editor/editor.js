@@ -145,7 +145,7 @@ modules["editor/editor"] = class {
       return this.hslToHex(h, s, l);
     },
     hexToHSL: (hex) => {
-      let [r, g, b] = this.hexToRGB(hex);
+      let [r, g, b] = this.utils.hexToRGB(hex);
   
       r /= 255, g /= 255, b /= 255;
       let max = Math.max(r, g, b), min = Math.min(r, g, b);
@@ -167,7 +167,7 @@ modules["editor/editor"] = class {
       return [Math.round(360 * h), Math.round(s * 100), Math.round(l * 100)];
     },
     hexToHSV: (hex) => {
-      let [h, s, l] = this.hexToHSL(hex);
+      let [h, s, l] = this.utils.hexToHSL(hex);
       let x = s * (l < 50 ? l : 100 - l);
       let b = l + (x / 100);
       return [h, l === 0 ? s : 2 * x / b, l + (x / 100)];

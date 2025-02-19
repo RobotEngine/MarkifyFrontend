@@ -825,14 +825,14 @@ modules["editor/toolbar/color"] = class {
   html = `
   <div class="eSubToolColorFrame">
     <div class="eSubToolColorSelector" noselect>
-      <button class="eTool" option><div holder><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
-      <button class="eTool" option><div holder><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
-      <button class="eTool" option><div holder><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
-      <button class="eTool" option><div holder><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
-      <button class="eTool" option><div holder><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
-      <button class="eTool" option><div holder><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
-      <button class="eTool" option><div holder><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
-      <button class="eTool" enablepicker option><div holder><img class="eSubToolImage" src="./images/editor/picker.svg"></div></button>
+      <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+      <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+      <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+      <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+      <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+      <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+      <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
+      <button class="eTool" enablepicker option><div><img class="eSubToolImage" src="./images/editor/picker.svg"></div></button>
     </div>
     <div class="eSubToolColorPicker">
       <div class="eSubToolColorPickerTop">
@@ -862,7 +862,7 @@ modules["editor/toolbar/color"] = class {
     ".eSubToolColorFrame": `position: relative; width: 188px; min-height: 96px`,
     ".eSubToolColorSelector": `display: flex; flex-wrap: wrap; top: 0px; padding: 2px; justify-content: center; align-items: center; transform: scale(1); opacity: 1; transition: .5s`,
     ".eSubToolColorSelector .eTool": `width: 46px; height: 46px`,
-    ".eSubToolColorSelector .eTool > div[holder]": `margin: 2px !important; border-radius: 8px !important`,
+    ".eSubToolColorSelector .eTool > div": `margin: 2px !important; border-radius: 8px !important`,
     ".eSubToolColorSelector .eSubToolColor": `width: 28px; height: 28px`,
 
     ".eSubToolColorPicker": `width: 188px; position: absolute; top: 0px; transform: scale(.9); opacity: 0; transition: .5s; pointer-events: none; touch-action: none`,

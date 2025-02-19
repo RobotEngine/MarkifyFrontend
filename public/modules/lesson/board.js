@@ -298,8 +298,12 @@ modules["lesson/board"] = class {
         handCountTx.style.removeProperty("display");
       }
 
-      idleCountTx.textContent = this.parent.idleCount;
-      if (this.parent.idleCount > 0 && this.parent.memberCount > 1) {
+      let idleCount = this.parent.idleCount;
+      if (this.editor.self.active == false) {
+        idleCount--;
+      }
+      idleCountTx.textContent = idleCount;
+      if (idleCount > 0 && this.parent.memberCount > 1) {
         idleCountTx.style.display = "flex";
         idleCountTx.parentElement.style.padding = "4px 10px 4px 4px";
       } else {

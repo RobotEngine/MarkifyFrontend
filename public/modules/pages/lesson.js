@@ -290,7 +290,6 @@ modules["pages/lesson"] = class {
           case "update":
             if (this.members[body._id] != null) {
               let member = this.members[body._id];
-              let memberKeys = Object.keys(body);
               if (body.access == 1 && member.access < 1) {
                 this.editorCount++;
               } else if (body.access == 0 && member.access > 0) {
@@ -382,7 +381,7 @@ modules["pages/lesson"] = class {
     }, { passive: false });
 
     this.active = document.visibilityState == "visible";
-    tempListen(document, "visibilitychange", () => {
+    /*tempListen(document, "visibilitychange", () => {
       this.active = document.visibilityState == "visible";
       
       if (this.sendPing != null) {
@@ -390,13 +389,23 @@ modules["pages/lesson"] = class {
       }
 
       this.pushToPipelines(null, "visibilitychange", { active: this.active });
-    });
+    });*/
+    let visibilityChange = (active) => {
+      this.active = active;
+      if (this.sendPing != null) {
+        this.sendPing();
+      }
+      this.pushToPipelines(null, "visibilitychange", { active: this.active });
+    }
     tempListen(window, "focus", () => {
+      visibilityChange(true);
+
       let oldExportAction = page.querySelector(".eFileActionExport");
       if (oldExportAction != null) {
         oldExportAction.remove();
       }
     });
+    tempListen(window, "blur", () => { visibilityChange(false); });
     tempListen(document, "fullscreenchange", () => {
       this.pushToPipelines(null, "fullscreenchange", { fullscreen: document.fullscreenElement != null });
     });

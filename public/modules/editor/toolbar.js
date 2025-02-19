@@ -377,6 +377,9 @@ modules["editor/toolbar"] = class {
 
           subToolbar.style.transform = "translateX(0%)";
           subToolbar.style.opacity = 1;
+
+          subToolbar.style.transition = "top .25s, opacity .25s, transform .25s, border-radius .25s";
+          contentHolder.style.transition = "width .25s, height .25s";
         } else {
           toolbar.style.removeProperty("border-top-right-radius");
           toolbar.style.removeProperty("border-bottom-right-radius");
@@ -438,6 +441,9 @@ modules["editor/toolbar"] = class {
 
           subSubToolbar.style.transform = "translateX(0%)";
           subSubToolbar.style.opacity = 1;
+
+          subSubToolbar.style.transition = "top .25s, opacity .25s, transform .25s, border-radius .25s";
+          contentHolder.style.transition = "width .25s, height .25s";
         } else {
           toolbar.style.removeProperty("border-top-right-radius");
           toolbar.style.removeProperty("border-bottom-right-radius");
@@ -486,7 +492,7 @@ modules["editor/toolbar"] = class {
         <div class="eSubToolShadow"></div>
         <div class="eSubToolContentHolder">
           <div class="eSubToolContentScroll hideScroll">
-            <div class="eSubToolContent" closetooltip></div>
+            <div class="eSubToolContent" closetooltip noselect></div>
           </div>
         </div>
       </div>`);
@@ -671,7 +677,7 @@ modules["editor/toolbar"] = class {
     let lastSetButton;
     this.toolbar.setTool = async (targetButton, shortPress) => {
       let button = targetButton ?? lastSetButton;
-      if (button == null || button.closest("[noselect]") != null) {
+      if (button == null || button.className != "eTool" || button.closest("[noselect]") != null) {
         return;
       }
       let toolID = button.getAttribute("tool");
@@ -984,9 +990,9 @@ modules["editor/toolbar/color"] = class {
       selector.style.pointerEvents = "all";
       picker.style.pointerEvents = "none";
       if (isToolbar == true) {
-        editor.updateSubtoolUI();
+        toolbar.toolbar.update();
       } else {
-        extra.updateActionUI();
+        //extra.updateActionUI();
       }
     });
 

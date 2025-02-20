@@ -259,8 +259,8 @@ modules["editor/realtime"] = class {
       observeCursor.style.color = editor.utils.textColorBackground(member.color);
       observeCursor.style.background = member.color;
       observeHolder.style.display = "flex";
-      //editor.page.style.setProperty("--lightShadow", "0px 0px 8px 0px " + editor.utils.hexToRGB(member.color, .3));
-      editor.page.style.boxShadow = "0px 0px 8px 0px " + editor.utils.hexToRGB(member.color, "var(--shadowOpacity)");
+      //editor.page.style.setProperty("--lightShadow", "0px 0px 8px 0px " + editor.utils.hexToRGBString(member.color, .3));
+      editor.page.style.boxShadow = "0px 0px 8px 0px " + editor.utils.hexToRGBString(member.color, "var(--shadowOpacity)");
     }
     this.enableObserve = async (member) => {
       alertModule.close(editor.realtime.observeLoading);

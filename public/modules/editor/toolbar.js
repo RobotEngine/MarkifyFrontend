@@ -121,7 +121,8 @@ modules["editor/toolbar"] = class {
 
     let currentTool = "selection";
     let currentSubTool = "select";
-    this.currentToolModule = "pages/editor/toolbar/cursor";
+    this.currentToolModulePath = "pages/editor/toolbar/cursor";
+    this.currentToolModule;
 
     let currentToolButton;
     let subToolbar;
@@ -317,8 +318,19 @@ modules["editor/toolbar"] = class {
       }
     }
 
+    this.applyToolModule = (module) => {
+      module = module ?? this.currentToolModule ?? {};
+
+      if (module.USER_SELECT != null) {
+        page.style.userSelect = module.USER_SELECT;
+      } else {
+        page.style.removeProperty("user-select");
+      }
+    }
+
     this.activateTool = () => {
       // TODO
+      this.applyToolModule();
     }
     
     // Manage Toolbar:
@@ -471,7 +483,7 @@ modules["editor/toolbar"] = class {
           let toolPreference = editor.preferences.tools[toolType] ?? editor.preferences.tools[currentTool] ?? {};
           if (toolPreference.color != null) {
             div.style.setProperty("--toolColor", "#" + toolPreference.color.selected);
-            div.style.setProperty("--toolColorOpacity", editor.utils.hexToRGB(toolPreference.color.selected, (toolPreference.opacity ?? 100) / 100));
+            div.style.setProperty("--toolColorOpacity", editor.utils.hexToRGBString(toolPreference.color.selected, (toolPreference.opacity ?? 100) / 100));
           }
           div.style.setProperty("--toolOpacity", (toolPreference.opacity ?? 100) / 100);
         } else if (tool.hasAttribute("module") == true) {
@@ -503,7 +515,7 @@ modules["editor/toolbar"] = class {
       } else {
         subSubToolbar.style.transform = "translateX(100%)";
       }
-      await this.setFrame(moduleName, subSubToolbar.querySelector(".eSubToolContent"), { editor: editor, toolbar: true });
+      this.applyToolModule(await this.setFrame(moduleName, subSubToolbar.querySelector(".eSubToolContent"), { editor: editor, toolbar: true }));
     }
     this.toolbar.closeSubSub = async (update) => {
       if (subSubToolbar == null) {
@@ -515,6 +527,7 @@ modules["editor/toolbar"] = class {
         currentSubToolButton.removeAttribute("selected");
         currentSubToolButton.removeAttribute("extend");
       }
+      this.applyToolModule();
       if (update != false) {
         this.toolbar.update(false);
       }
@@ -624,17 +637,18 @@ modules["editor/toolbar"] = class {
                 let selectSubtool = subToolbar.querySelector('.eTool[tool="' + selectTool + '"]');
                 if (selectSubtool != null) {
                   currentSubTool = selectTool;
-                  this.currentToolModule = selectSubtool.getAttribute("module");
+                  this.currentToolModulePath = selectSubtool.getAttribute("module");
                   selectSubtool.setAttribute("selected", "");
+                  this.activateTool();
                 }
               } else {
-                this.currentToolModule = null;
+                this.currentToolModulePath = null;
               }
             } else {
-              this.currentToolModule = toolData.module;
+              this.currentToolModulePath = toolData.module;
+              this.activateTool();
               this.tooltip.update();
             }
-            this.activateTool();
           } else {
             this.tooltip.update();
           }
@@ -650,7 +664,7 @@ modules["editor/toolbar"] = class {
           this.toolbar.closeSubSub();
           if (shortPress == true) {
             currentSubTool = button.getAttribute("tool");
-            this.currentToolModule = button.getAttribute("module");
+            this.currentToolModulePath = button.getAttribute("module");
             this.activateTool();
           }
         } else { // Option
@@ -822,6 +836,8 @@ modules["editor/toolbar/color"] = class {
     color.style.opacity = preference.opacity / 100;
   }
 
+  USER_SELECT = "none";
+
   html = `
   <div class="eSubToolColorFrame">
     <div class="eSubToolColorSelector" noselect>
@@ -874,16 +890,16 @@ modules["editor/toolbar/color"] = class {
     ".eSubToolColorPickerShade button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; background: var(--theme); box-shadow: var(--lightShadow); border: solid 3px var(--pageColor); border-radius: 10px; transition: transform .2s`,
     ".eSubToolColorPickerShade button:hover": `transform: scale(1.2) !important`,
     ".eSubToolColorPickerShade button:active": `transform: scale(1.1) !important`,
-    ".eSubToolColorPickerColorSelector": `box-sizing: border-box; display: flex; width: 100%; padding: 0 0 6px 6px; align-items: center`,
-    ".eSubToolColorPickerEyedroper": `position: relative; width: 26px; height: 26px; --borderWidth: 0px; --borderRadius: 13px`,
+    ".eSubToolColorPickerColorSelector": `box-sizing: border-box; display: flex; width: 100%; height: 32px; padding-bottom: 6px; align-items: center`,
+    ".eSubToolColorPickerEyedroper": `position: relative; width: 26px; height: 26px; margin-left: 6px; --borderWidth: 0px; --borderRadius: 13px`,
     ".eSubToolColorPickerEyedroper img": `position: absolute; width: 24px; height: 24px; left: 1px; top: 1px`,
     ".eSubToolColorPickerGradient": `position: relative; flex: 1; height: 10px; margin: 0 10px`,
     ".eSubToolColorPickerGradientSlider": `width: 100%; height: 100%; background: -webkit-linear-gradient(left, rgb(255, 0, 0), rgb(255, 255, 0), rgb(0, 255, 0), rgb(0, 255, 255), rgb(0, 0, 255), rgb(255, 0, 255), rgb(255, 0, 0)); border-radius: 5px`,
     ".eSubToolColorPickerGradient button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; top: -5px; background: var(--theme); box-shadow: var(--lightShadow); border: solid 3px var(--pageColor); border-radius: 10px; transition: transform .2s`,
     ".eSubToolColorPickerGradient button:hover": `transform: scale(1.2) !important`,
     ".eSubToolColorPickerGradient button:active": `transform: scale(1.1) !important`,
-    ".eSubToolColorPickerType": `height: 22px; padding: 3px 6px; margin: 3px; --borderWidth: 3px; --borderRadius: 7px; font-size: 16px; font-weight: 700; color: var(--theme)`,
-    ".eSubToolColorPickerField": `flex: 1; min-width: 0px; height: 19px; margin: 0 6px; border: solid 3px var(--secondary); outline: none; border-radius: 14px; font-family: var(--font); font-size: 18px; font-weight: 700; color: var(--theme); text-align: center`,
+    ".eSubToolColorPickerType": `height: 22px; padding: 3px 6px; margin: 3px; --borderWidth: 3px; --borderRadius: 7px; font-size: 14px; font-weight: 700; color: var(--theme)`,
+    ".eSubToolColorPickerField": `flex: 1; min-width: 0px; height: 19px; margin: 0 6px; border: solid 3px var(--secondary); outline: none; border-radius: 14px; font-family: var(--font); font-size: 14px; font-weight: 700; color: var(--theme); text-align: center`,
     ".eSubToolColorPickerField::placeholder": `color: var(--hover)`
   };
   js = (frame, { editor, toolbar: isToolbar }) => {
@@ -892,8 +908,13 @@ modules["editor/toolbar/color"] = class {
     let selecting = editor.selecting;
     let selectKeys = Object.keys(selecting);
     let shouldSave = isToolbar == true || selectKeys.length == 1;
+    let preferenceTool = toolbar.getPreferenceTool();
     let colorPreference = toolbar.getAnnotationPreference().color ?? toolbar.getToolPreference().color;
-    
+    let selectedColor = colorPreference.selected;
+    if (preferenceTool.c != null) {
+      selectedColor = preferenceTool.c;
+    }
+
     let selector = frame.querySelector(".eSubToolColorSelector");
     let colorButtons = selector.children;
     let picker = frame.querySelector(".eSubToolColorPicker");
@@ -938,14 +959,14 @@ modules["editor/toolbar/color"] = class {
         return;
       }
       if (element.hasAttribute("int") == true) {
-        let setColor = colorPreference.options[parseInt(element.getAttribute("int"))];
+        selectedColor = colorPreference.options[parseInt(element.getAttribute("int"))];
         if (shouldSave == true) {
-          toolbar.setToolPreference("color.selected", setColor);
+          toolbar.setToolPreference("color.selected", selectedColor);
         }
         if (isToolbar == true) {
           toolbar.toolbar.closeSubSub(true);
         } else {
-          //await extra.saveSelecting({ c: setColor });
+          //await extra.saveSelecting({ c: selectedColor });
           //utils.forceShort(); // Make sure other users see the color change (no mouse movement)
           //extra.updateToolActions(extra.frame);
           let selected = selector.querySelector("button[selected]");
@@ -956,8 +977,8 @@ modules["editor/toolbar/color"] = class {
         }
         toolbar.toolbar.updateButtons();
       } else if (element.hasAttribute("enablepicker") == true) {
-        ([h, s, v] = editor.utils.hexToHSV(colorPreference.selected));
-        //updatePickerUI();
+        ([h, s, v] = editor.utils.hexToHSV(selectedColor));
+        updatePickerUI();
         picker.style.position = "relative";
         selector.style.position = "absolute";
         picker.style.transform = "scale(1)";
@@ -992,7 +1013,202 @@ modules["editor/toolbar/color"] = class {
       }
     });
 
+    let colorSliderHolder = frame.querySelector(".eSubToolColorPickerGradient");
+    let colorPointer = colorSliderHolder.querySelector("button");
+    let shadeSliderHolder = frame.querySelector(".eSubToolColorPickerShade");
+    let canvas = shadeSliderHolder.querySelector("canvas");
+    let ctx = canvas.getContext("2d");
+    let shadePointer = shadeSliderHolder.querySelector("button");
+    let modeButton = frame.querySelector(".eSubToolColorPickerType");
+    let modeInput = frame.querySelector(".eSubToolColorPickerField");
+    let colorGradientEnabled = false;
+    let colorSliderEnabled = false;
+    let modes = ["HEX", "RGB", "HSL", "HSB"];
+    modeButton.addEventListener("click", () => {
+      editor.preferences.tools.options.colorpicker.scale++;
+      if (editor.preferences.tools.options.colorpicker.scale > modes.length - 1) {
+        editor.preferences.tools.options.colorpicker.scale = 0;
+      }
+      modeButton.textContent = modes[editor.preferences.tools.options.colorpicker.scale];
+      editor.savePreferences();
+      updatePickerUI();
+    });
+    modeButton.textContent = modes[editor.preferences.tools.options.colorpicker.scale];
+    modeInput.addEventListener("input", () => {
+      switch (modes[editor.preferences.tools.options.colorpicker.scale]) {
+        case "HEX":
+          modeInput.value = modeInput.value.replace(/[^0-9a-z]/gi, "");
+          if ((/^([0-9a-f]{3}){1,2}$/i).test(modeInput.value) == true) {
+            updateStoredValues(modeInput.value, false);
+          } else {
+            modeInput.style.borderColor = "var(--error)";
+          }
+          break;
+        case "RGB":
+          modeInput.value = modeInput.value.replace(/[^0-9a-z, ]/gi, "");
+          let rgbVals = modeInput.value.match(/\d+/g);
+          if (rgbVals[0] >= 0 && rgbVals[0] <= 255 && rgbVals[1] >= 0 && rgbVals[1] <= 255 && rgbVals[2] >= 0 && rgbVals[2] <= 255) {
+            updateStoredValues(editor.utils.rgbToHex(rgbVals[0], rgbVals[1], rgbVals[2]), false);
+          } else {
+            modeInput.style.borderColor = "var(--error)";
+          }
+          break;
+        case "HSL":
+          modeInput.value = modeInput.value.replace(/[^0-9a-z, ]/gi, "");
+          let hslVals = modeInput.value.match(/\d+/g);
+          if (hslVals[0] >= 0 && hslVals[0] <= 360 && hslVals[1] >= 0 && hslVals[1] <= 100 && hslVals[2] >= 0 && hslVals[2] <= 100) {
+            updateStoredValues(editor.utils.hslToHex(hslVals[0], hslVals[1], hslVals[2]), false);
+          } else {
+            modeInput.style.borderColor = "var(--error)";
+          }
+          break;
+        case "HSB":
+          modeInput.value = modeInput.value.replace(/[^0-9a-z, ]/gi, "");
+          let hsvVals = modeInput.value.match(/\d+/g);
+          if (hsvVals[0] >= 0 && hsvVals[0] <= 360 && hsvVals[1] >= 0 && hsvVals[1] <= 100 && hsvVals[2] >= 0 && hsvVals[2] <= 100) {
+            updateStoredValues(editor.utils.hsvToHex(hsvVals[0], hsvVals[1], hsvVals[2]), false);
+          } else {
+            modeInput.style.borderColor = "var(--error)";
+          }
+      }
+    });
+    let updatePickerUI = (updateText) => {
+      // Update Colors Shown:
+      let hue = "#" + editor.utils.hsvToHex(h, 100, 100);
+      shadePointer.style.background = "#" + colorPreference.selected;
+      colorPointer.style.background = hue;
+      // Update Pointer Positions:
+      shadePointer.style.left = (shadeSliderHolder.offsetWidth * (s / 100)) - 10 + "px";
+      shadePointer.style.top = (shadeSliderHolder.offsetHeight - (shadeSliderHolder.offsetHeight * (v / 100))) - 10 + "px";
+      colorPointer.style.left = (colorSliderHolder.offsetWidth * (h / 360)) - 10 + "px";
+      // Update Gradient:
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      let colorscale = ctx.createLinearGradient(0, 0, canvas.width, 0);
+      colorscale.addColorStop(0, "white");
+      colorscale.addColorStop(1, hue);
+      ctx.fillStyle = colorscale;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      let grayscale = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      grayscale.addColorStop(0, "rgba(0, 0, 0, 0)");
+      grayscale.addColorStop(1, "black");
+      ctx.fillStyle = grayscale;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Update Input:
+      if (updateText != false) {
+        switch (modes[editor.preferences.tools.options.colorpicker.scale]) {
+          case "HEX":
+            modeInput.value = selectedColor.toUpperCase();
+            break;
+          case "RGB":
+            let rgbVal = editor.utils.hexToRGB(selectedColor);
+            modeInput.value = rgbVal[0] + ", " + rgbVal[1] + ", " + rgbVal[2];
+            break;
+          case "HSL":
+            let hslVal = editor.utils.hexToHSL(selectedColor);
+            modeInput.value = hslVal[0] + ", " + hslVal[1] + ", " + hslVal[2];
+            break;
+          case "HSB":
+            let hsbVal = editor.utils.hexToHSV(selectedColor);
+            modeInput.value = Math.floor(hsbVal[0]) + ", " + Math.floor(hsbVal[1]) + ", " + Math.floor(hsbVal[2]);
+        }
+      }
+      modeInput.placeholder = modeInput.value;
+      modeInput.style.borderColor = "var(--secondary)";
+      // Update Toolbar Colors:
+      toolbar.toolbar.updateButtons();
+    }
+    let firstChange;
+    let updateStoredValues = async (hex, updateText) => {
+      selectedColor = hex ?? editor.utils.hsvToHex(h, s, v);
+      let selectedButton = selector.querySelector(".eTool[int][selected]");
+      if (selectedButton == null) {
+        selectedButton = selector.children[selector.childElementCount - 2];
+        let selected = selector.querySelector(".eTool[selected]");
+        if (selected != null) {
+          selected.removeAttribute("selected");
+        }
+        selectedButton.setAttribute("selected", "");
+      }
+      let int = parseInt(selectedButton.getAttribute("int"));
+      if (int == null || int < 0 || int > 6) {
+        return;
+      }
+      colorPreference.options[int] = selectedColor;
+      selectedButton.querySelector(".eSubToolColor").style.background = "#" + selectedColor;
+      if (hex != null) {
+        ([h, s, v] = editor.utils.hexToHSV(selectedColor));
+      }
+      if (shouldSave == true) {
+        toolbar.setToolPreference("color.options", colorPreference.options);
+        toolbar.setToolPreference("color.selected", selectedColor);
+      }
+      updatePickerUI(updateText);
+      if (isToolbar == false) {
+        //await extra.saveSelecting({ c: selectedColor }, null, firstChange);
+        //extra.updateToolActions(extra.frame);
+        //firstChange = false;
+      }
+    }
+    let eventGradientUpdate = (event) => {
+      if (colorGradientEnabled == false) {
+        return;
+      }
+      if (mouseDown() == false || shadeSliderHolder == null) {
+        colorGradientEnabled = false;
+        editor.pipeline.unsubscribe("colorSelectorMouse");
+        return;
+      }
+      let barRect = shadeSliderHolder.getBoundingClientRect();
+      s = Math.ceil(Math.max(Math.min((clientPosition(event, "x") - barRect.x - 2) / shadeSliderHolder.offsetWidth, 1), 0) * 100);
+      v = Math.ceil(Math.max(Math.min((shadeSliderHolder.offsetHeight - (clientPosition(event, "y") - barRect.y + 2)) / shadeSliderHolder.offsetHeight, 1), 0) * 100);
+      updateStoredValues();
+    }
+    let gradientDown = (event) => {
+      colorGradientEnabled = true;
+      firstChange = true;
+      app.style.userSelect = "none";
+      eventGradientUpdate(event);
+      editor.pipeline.subscribe("colorSelectorMouse", "mousemove", (data) => { eventGradientUpdate(data.event); });
+    }
+    shadeSliderHolder.addEventListener("mousedown", gradientDown);
+    shadeSliderHolder.addEventListener("touchstart", gradientDown, { passive: true });
+    let eventColorUpdate = (event) => {
+      if (colorSliderEnabled == false) {
+        return;
+      }
+      if (mouseDown() == false || colorSliderHolder == null) {
+        colorSliderEnabled = false;
+        editor.pipeline.unsubscribe("colorSelectorMouse");
+        return;
+      }
+      let barRect = colorSliderHolder.getBoundingClientRect();
+      h = Math.ceil(Math.max(Math.min(((event.clientX ?? event.changedTouches[0].clientX) - barRect.x) / colorSliderHolder.offsetWidth, 1), 0) * 360);
+      updateStoredValues();
+    }
+    let colorSliderDown = (event) => {
+      colorSliderEnabled = true;
+      firstChange = true;
+      eventColorUpdate(event);
+      editor.pipeline.subscribe("colorSelectorMouse", "mousemove", (data) => { eventColorUpdate(data.event); });
+    }
+    colorSliderHolder.addEventListener("mousedown", colorSliderDown);
+    colorSliderHolder.addEventListener("touchstart", colorSliderDown, { passive: true });
 
+    let eyeDropper = frame.querySelector(".eSubToolColorPickerEyedroper");
+    if (window.EyeDropper == null) {
+      eyeDropper.style.display = "none";
+    }
+    eyeDropper.addEventListener("click", () => {
+      (new EyeDropper())
+        .open()
+        .then((result) => {
+          firstChange = true;
+          updateStoredValues(result.sRGBHex.substring(1));
+        })
+        .catch(() => { });
+    });
   }
 }
 
@@ -1005,6 +1221,8 @@ modules["editor/toolbar/thickness"] = class {
     thickness.style.height = preference.thickness + "px";
     thickness.style.opacity = preference.opacity / 100;
   }
+
+  USER_SELECT = "none";
 
   css = {
     ".eSubToolThicknessButtonHolder": `position: relative; display: flex; width: 42px; height: 42px; align-items: center; overflow: hidden`,
@@ -1026,6 +1244,8 @@ modules["editor/toolbar/opacity"] = class {
     svg.querySelector("path").style.opacity = preference.opacity / 100;
     svg.style.setProperty("--toolColor", "#" + (preference.color ?? {}).selected);
   }
+
+  USER_SELECT = "none";
 
   css = {
     ".eSubToolOpacityHolder": `box-sizing: border-box; display: flex; width: 34px; height: 34px; margin: 4px; background: var(--pageColor); border: solid 3px var(--pageColor); border-radius: 18px; justify-content: center; align-items: center`,

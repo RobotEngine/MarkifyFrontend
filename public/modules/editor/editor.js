@@ -100,7 +100,7 @@ modules["editor/editor"] = class {
       let pow = Math.pow(10, places ?? 2);
       return Math.ceil(num * pow) / pow;
     },
-    hexToRGB: (hex, alpha) => {
+    hexToRGBString: (hex, alpha) => {
       if (hex == null) {
         return "";
       }
@@ -120,7 +120,7 @@ modules["editor/editor"] = class {
         return "rgb(" + r + ", " + g + ", " + b + ")";
       }
     },
-    hexToRGBArray: function (hex) {
+    hexToRGB: function (hex) {
       if (hex.length < 4) {
         hex = hex.split("").map((hexVal) => { return hexVal + hexVal }).join("");
       }
@@ -142,7 +142,7 @@ modules["editor/editor"] = class {
       let x = (200 - s) * b / 100;
       s = x === 0 || x === 200 ? 0 : Math.round(s * b / (x <= 100 ? x : 200 - x));
       let l = Math.round(x / 2);
-      return this.hslToHex(h, s, l);
+      return this.utils.hslToHex(h, s, l);
     },
     hexToHSL: (hex) => {
       let [r, g, b] = this.utils.hexToRGB(hex);

@@ -874,7 +874,7 @@ modules["editor/toolbar/color"] = class {
     ".eSubToolColorPickerShade button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; background: var(--theme); box-shadow: var(--lightShadow); border: solid 3px var(--pageColor); border-radius: 10px; transition: transform .2s`,
     ".eSubToolColorPickerShade button:hover": `transform: scale(1.2) !important`,
     ".eSubToolColorPickerShade button:active": `transform: scale(1.1) !important`,
-    ".eSubToolColorPickerColorSelector": `box-sizing: border-box; display: flex; width: 100%; padding: 0 0 4px 6px; align-items: center`,
+    ".eSubToolColorPickerColorSelector": `box-sizing: border-box; display: flex; width: 100%; padding: 0 0 6px 6px; align-items: center`,
     ".eSubToolColorPickerEyedroper": `position: relative; width: 26px; height: 26px; --borderWidth: 0px; --borderRadius: 13px`,
     ".eSubToolColorPickerEyedroper img": `position: absolute; width: 24px; height: 24px; left: 1px; top: 1px`,
     ".eSubToolColorPickerGradient": `position: relative; flex: 1; height: 10px; margin: 0 10px`,

@@ -583,7 +583,7 @@ modules["dropdowns/lesson/share/options"] = class {
   css = {
     ".eShareOptionSwitcherHolder": `position: sticky; box-sizing: border-box; width: 100%; padding: 8px; left: 0px; top: 0px; background: var(--pageColor); z-index: 2`,
     ".eShareOptionSwitcher": `box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 4px; width: 100%; padding: 4px; box-shadow: var(--lightShadow); border-radius: 20px`,
-    ".eShareOptionSwitcher button": `flex: 1 1 120px; padding: 6px; border-radius: 16px; font-size: 17px; font-weight: 600`,
+    ".eShareOptionSwitcher button": `flex: 1 1 120px; padding: 6px; border-radius: 16px; font-size: 16px; font-weight: 600`,
     ".eShareOptionSwitcher button:hover": `background: var(--hover)`,
     ".eShareOptionSwitcher button[selected]": `background: var(--theme); color: #fff`,
 

@@ -1961,9 +1961,7 @@ modules["dropdowns/lesson/zoom"] = class {
     ".eZoomAction[off] .eZoomToggle div": `right: calc(100% - 22px)`,
     ".eZoomAction:hover": `background: var(--themeColor); color: #fff`,
     ".eZoomAction:hover .eZoomToggle": `background: #fff`,
-    ".eZoomAction:hover .eZoomToggle div": `background: var(--themeColor)`,
-
-    "body:fullscreen": `overflow: auto !important`
+    ".eZoomAction:hover .eZoomToggle div": `background: var(--themeColor)`
   };
   js = async function (frame, extra) {
     let editor = extra.parent.editor;
@@ -2113,17 +2111,17 @@ modules["dropdowns/lesson/zoom"] = class {
         }
         if (option == "fullscreen") {
           if (toggle.hasAttribute("on") == true) {
-            if (body.requestFullscreen != null) {
-              body.requestFullscreen();
-            }
+            body.requestFullscreen();
           } else {
-            if (document.exitFullscreen != null) {
-              document.exitFullscreen();
-            }
+            document.exitFullscreen();
           }
         }
       }
     });
+
+    if (body.requestFullscreen == null || document.exitFullscreen == null) {
+      fullscreenZoomAction.remove();
+    }
 
     editor.pipeline.subscribe("zoomDropdownFullscreen", "fullscreenchange", (event) => {
       if (fullscreenZoomAction != null) {

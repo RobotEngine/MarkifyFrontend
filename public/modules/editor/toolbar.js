@@ -836,21 +836,20 @@ modules["editor/toolbar/color"] = class {
     </div>
     <div class="eSubToolColorPicker">
       <div class="eSubToolColorPickerTop">
-        <div class="eSubToolColorPickerTopSelected"></div>
-        <button class="eSubToolColorPickerEyedroper" title="Eyedropper"><img src="./images/editor/eyedropper.svg"></button>
+        <button class="eSubToolColorPickerType largeButton border" title="Change Color Scale"></button>
+        <input class="eSubToolColorPickerField" name="Color Input" />
         <button class="eSubToolColorPickerTopBack buttonAnim border"><img src="./images/tooltips/close.svg"></button>
       </div>
       <div class="eSubToolColorPickerShade">
         <div><canvas></canvas></div>
         <button></button>
       </div>
-      <div class="eSubToolColorPickerGradient">
-        <div class="eSubToolColorPickerGradientSlider"></div>
-        <button></button>
-      </div>
-      <div class="eSubToolColorPickerInput">
-        <button class="largeButton border" title="Change Color Scale"></button>
-        <input name="Color Input">
+      <div class="eSubToolColorPickerColorSelector">
+        <button class="eSubToolColorPickerEyedroper buttonAnim border" title="Eyedropper"><img src="./images/editor/eyedropper.svg"></button>
+        <div class="eSubToolColorPickerGradient">
+          <div class="eSubToolColorPickerGradientSlider"></div>
+          <button></button>
+        </div>
       </div>
     </div>
   </div>
@@ -866,29 +865,26 @@ modules["editor/toolbar/color"] = class {
     ".eSubToolColorSelector .eSubToolColor": `width: 28px; height: 28px`,
 
     ".eSubToolColorPicker": `width: 188px; position: absolute; top: 0px; transform: scale(.9); opacity: 0; transition: .5s; pointer-events: none; touch-action: none`,
-    ".eSubToolColorPickerTop": `position: relative; display: flex; box-sizing: border-box; width: 100%; height: 50px; padding: 10px`,
-    ".eSubToolColorPickerTopSelected": `width: 30px; height: 30px; border-radius: 10px`,
-    ".eSubToolColorPickerEyedroper": `width: 30px; height: 30px; padding: 0px; margin: 0 13px 0 6px; border-radius: 10px`,
-    ".eSubToolColorPickerEyedroper img": `width: 100%; height: 100%`,
-    ".eSubToolColorPickerEyedroper:hover": `background: var(--hover)`,
-    ".eSubToolColorPickerEyedroper:active": `transform: scale(.95)`,
-    ".eSubToolColorPickerTopBack": `position: relative; width: 22px; height: 22px; margin: 3px 3px 3px auto; --borderWidth: 3px; --borderRadius: 11px`,
+    ".eSubToolColorPickerTop": `position: relative; display: flex; box-sizing: border-box; width: 100%; padding: 6px`,
+    ".eSubToolColorPickerTopBack": `position: relative; width: 22px; height: 22px; margin: 3px; --borderWidth: 3px; --borderRadius: 11px`,
     ".eSubToolColorPickerTopBack img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
-    ".eSubToolColorPickerShade": `position: relative; width: calc(100% - 20px); height: 102px; margin: 0px 10px 10px`,
+    ".eSubToolColorPickerShade": `position: relative; width: calc(100% - 12px); height: 112px; padding: 6px`,
     ".eSubToolColorPickerShade div": `width: 100%; height: 100%; border-radius: 10px; overflow: hidden`,
     ".eSubToolColorPickerShade canvas": `width: 100%; height: 100%; background: #000`,
     ".eSubToolColorPickerShade button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; background: var(--theme); box-shadow: var(--lightShadow); border: solid 3px var(--pageColor); border-radius: 10px; transition: transform .2s`,
     ".eSubToolColorPickerShade button:hover": `transform: scale(1.2) !important`,
     ".eSubToolColorPickerShade button:active": `transform: scale(1.1) !important`,
-    ".eSubToolColorPickerGradient": `position: relative; width: calc(100% - 20px); height: 10px; margin: 14px 10px 10px 10px`,
+    ".eSubToolColorPickerColorSelector": `display: flex; width: calc(100% - 12px); padding: 0 6px 6px; align-items: center`,
+    ".eSubToolColorPickerEyedroper": `position: relative; width: 26px; height: 26px; margin-right: 4px; --borderWidth: 0px; --borderRadius: 13px`,
+    ".eSubToolColorPickerEyedroper img": `position: absolute; width: 24px; height: 24px; left: 1px; top: 1px`,
+    ".eSubToolColorPickerGradient": `position: relative; flex: 1; height: 10px`,
     ".eSubToolColorPickerGradientSlider": `width: 100%; height: 100%; background: -webkit-linear-gradient(left, rgb(255, 0, 0), rgb(255, 255, 0), rgb(0, 255, 0), rgb(0, 255, 255), rgb(0, 0, 255), rgb(255, 0, 255), rgb(255, 0, 0)); border-radius: 5px`,
     ".eSubToolColorPickerGradient button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; top: -5px; background: var(--theme); box-shadow: var(--lightShadow); border: solid 3px var(--pageColor); border-radius: 10px; transition: transform .2s`,
     ".eSubToolColorPickerGradient button:hover": `transform: scale(1.2) !important`,
     ".eSubToolColorPickerGradient button:active": `transform: scale(1.1) !important`,
-    ".eSubToolColorPickerInput": `display: flex; width: calc(100% - 20px); margin: 14px 10px 10px`,
-    ".eSubToolColorPickerInput button": `height: 22px; padding: 3px 6px; margin: 3px; --borderWidth: 3px; --borderRadius: 7px; font-size: 16px; font-weight: 700; color: var(--theme)`,
-    ".eSubToolColorPickerInput input": `flex: 1; min-width: 0px; height: 19px; margin-left: 6px; border: solid 3px var(--secondary); outline: none; border-radius: 14px; font-family: var(--font); font-size: 18px; font-weight: 700; color: var(--theme); text-align: center`,
-    ".eSubToolColorPickerInput input::placeholder": `color: var(--hover)`
+    ".eSubToolColorPickerType": `height: 22px; padding: 3px 6px; margin: 3px; --borderWidth: 3px; --borderRadius: 7px; font-size: 16px; font-weight: 700; color: var(--theme)`,
+    ".eSubToolColorPickerField": `flex: 1; min-width: 0px; height: 19px; margin: 0 6px; border: solid 3px var(--secondary); outline: none; border-radius: 14px; font-family: var(--font); font-size: 18px; font-weight: 700; color: var(--theme); text-align: center`,
+    ".eSubToolColorPickerField::placeholder": `color: var(--hover)`
   };
   js = (frame, { editor, toolbar: isToolbar }) => {
     let toolbar = this.parent;

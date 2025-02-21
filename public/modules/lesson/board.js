@@ -48,7 +48,6 @@ modules["lesson/board"] = class {
           <button class="eTool" tool="pan" tooltip="Pan" module="editor/toolbar/pan"><div></div></button>
         </div>
       </div>
-      <div class="eToolbarTooltip"></div>
     </div>
     <div class="eBottomHolder">
       <div class="eBottom">

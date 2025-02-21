@@ -96,7 +96,6 @@ modules["editor/toolbar"] = class {
 
     let toolbarHolder = page.querySelector(".eToolbarHolder");
     let toolbar = toolbarHolder.querySelector(".eToolbar[editor]");
-    let tooltipText = toolbarHolder.querySelector(".eToolbarTooltip");
     
     toolbar.innerHTML = `
     <div class="eToolbarContent eVerticalToolsHolder hideScroll">
@@ -164,9 +163,9 @@ modules["editor/toolbar"] = class {
     }
 
     // Handle Tooltip:
+    let tooltipText;
     this.tooltip = {};
     let tooltipElement;
-    let tooltipOpen = false;
     this.tooltip.update = () => {
       if (tooltipElement == null) {
         return;
@@ -174,8 +173,20 @@ modules["editor/toolbar"] = class {
       if (tooltipElement.hasAttribute("selected") == true && (tooltipElement.hasAttribute("option") == true || tooltipElement.hasAttribute("action") == true)) {
         return this.tooltip.close();
       }
+      let parent = tooltipElement.closest(".eToolbarHolder") ?? tooltipElement.closest(".eSelectBar");
+      if (parent == null) {
+        return this.tooltip.close();
+      }
+      if (tooltipText != null && tooltipText.parentElement != parent) {
+        this.tooltip.close();
+      }
+      if (tooltipText == null) {
+        parent.insertAdjacentHTML("beforeend", `<div class="eToolbarTooltip" new></div>`);
+        tooltipText = parent.querySelector(".eToolbarTooltip[new]");
+        tooltipText.removeAttribute("new");
+      }
       let tooltipElementStyle = getComputedStyle(tooltipElement);
-      let themeColor = getComputedStyle(tooltipElement).getPropertyValue("--hoverTooltip");
+      let themeColor = tooltipElementStyle.getPropertyValue("--hoverTooltip");
       if (themeColor != "" && themeColor != null) {
         tooltipText.style.color = themeColor;
       } else {
@@ -285,37 +296,32 @@ modules["editor/toolbar"] = class {
       if (element.hasAttribute("selected") == true && (element.hasAttribute("option") == true || element.hasAttribute("action") == true)) {
         return this.tooltip.close();
       }
-      if (element == tooltipElement) {
+      if (tooltipText != null && element == tooltipElement) {
         return this.tooltip.update();
-      }
-      let toolbar = hoverElem.closest(".eToolbar .content");
-      if (toolbar != null && tooltipText.parentElement != toolbar) {
-        toolbar.appendChild(tooltipText);
-      }
-      toolbar = hoverElem.closest(".eSelectBar");
-      if (toolbar != null && tooltipText.parentElement != toolbar) {
-        toolbar.appendChild(tooltipText);
       }
       tooltipElement = element;
       this.tooltip.update();
-      tooltipOpen = true;
-      tooltipText.offsetHeight;
-      tooltipText.style.transition = ".25s";
-      tooltipText.style.transform = "scale(1)";
-      tooltipText.style.opacity = 1;
+      if (tooltipText != null) {
+        tooltipText.offsetHeight;
+        tooltipText.style.transition = ".25s";
+        tooltipText.style.transform = "scale(1)";
+        tooltipText.style.opacity = 1;
+      }
     }
     this.tooltip.close = async () => {
-      if (tooltipOpen == false) {
+      if (tooltipText == null) {
         return;
       }
-      tooltipElement = null;
-      tooltipOpen = false;
-      tooltipText.style.transform = "scale(0)";
-      tooltipText.style.opacity = 0;
-      await sleep(300);
-      if (tooltipOpen == false) {
-        tooltipText.style.transition = "unset";
-      }
+      let removeTooltip = tooltipText;
+      tooltipText = null;
+      (async () => {
+        removeTooltip.style.transform = "scale(0)";
+        removeTooltip.style.opacity = 0;
+        await sleep(300);
+        if (removeTooltip != null) {
+          removeTooltip.remove();
+        }
+      })();
     }
 
     this.applyToolModule = (module) => {
@@ -729,10 +735,13 @@ modules["editor/toolbar"] = class {
         this.tooltip.update();
       }
     }
+    this.toolbar.startTool = (button) => {
+      this.toolbar.setTool(button, true);
+      this.toolbar.setTool();
+    }
     toolbarHolder.addEventListener("keydown", (event) => {
       if (event.key == "Enter") {
-        this.toolbar.setTool(event.target.closest("button"), true);
-        this.toolbar.setTool();
+        this.toolbar.startTool(event.target.closest("button"));
       }
     });
     this.toolbar.checkToolToggle = () => {

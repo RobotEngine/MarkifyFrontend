@@ -1300,11 +1300,11 @@ modules["editor/toolbar/thickness"] = class {
       selectedThickness = Math.ceil(Math.pow((Math.max(Math.min((clientPosition(event, "x") - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0)), this.exponentFactor ?? 1) * (this.maxValue - this.minValue) + this.minValue);
       updateUI();
     }
-    editor.pipeline.subscribe("thicknessSelectorMouse", "mousemove", (data) => { eventBarUpdate(data.event); });
     let enableSlider = (event) => {
       sliderEnabled = true;
       firstChange = true;
       eventBarUpdate(event);
+      editor.pipeline.subscribe("thicknessSelectorMouse", "mousemove", (data) => { eventBarUpdate(data.event); });
     }
     slider.addEventListener("mousedown", enableSlider);
     slider.addEventListener("touchstart", enableSlider, { passive: true });
@@ -1420,11 +1420,11 @@ modules["editor/toolbar/opacity"] = class {
       selectedOpacity = Math.ceil(Math.pow((Math.max(Math.min((clientPosition(event, "x") - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0)), this.exponentFactor ?? 1) * (this.maxValue - this.minValue) + this.minValue);
       updateUI();
     }
-    editor.pipeline.subscribe("opacitySelectorMouse", "mousemove", (data) => { eventBarUpdate(data.event); });
     let enableSlider = (event) => {
       sliderEnabled = true;
       firstChange = true;
       eventBarUpdate(event);
+      editor.pipeline.subscribe("opacitySelectorMouse", "mousemove", (data) => { eventBarUpdate(data.event); });
     }
     slider.addEventListener("mousedown", enableSlider);
     slider.addEventListener("touchstart", enableSlider, { passive: true });

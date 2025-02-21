@@ -1224,14 +1224,116 @@ modules["editor/toolbar/thickness"] = class {
 
   USER_SELECT = "none";
 
+  html = `
+  <div class="eSubToolThicknessFrame">
+    <input class="eSubToolThicknessInput" name="Thickness">
+    <div class="eSubToolThicknessSlider"><button></button></div>
+  </div>
+  `;
   css = {
-    ".eSubToolThicknessButtonHolder": `position: relative; display: flex; width: 42px; height: 42px; align-items: center; overflow: hidden`,
+    ".eSubToolThicknessButtonHolder": `position: relative; display: flex; width: 100%; height: 100%; align-items: center; overflow: hidden`,
     ".eSubToolThicknessHolder": `position: absolute; padding: 3px; background: var(--pageColor); border-radius: 14px`,
     ".eToolbarHolder[left] .eSubToolThicknessHolder": `transform: translateX(-12px)`,
     ".eToolbarHolder[right] .eSubToolThicknessHolder": `transform: translateX(4px)`,
-    ".eSubToolThickness": `width: 44px; border-radius: 10px`
+    ".eSubToolThickness": `width: 44px; border-radius: 10px`,
+
+    ".eSubToolThicknessFrame": `box-sizing: border-box; display: flex; width: 188px; height: 50px; padding: 6px; align-items: center`,
+    ".eSubToolThicknessInput": `width: 40px; height: 26px; border: solid 3px var(--secondary); outline: none; border-radius: 17px; font-family: var(--font); font-size: 18px; font-weight: 700; color: var(--theme); text-align: center`,
+    ".eSubToolThicknessInput::placeholder": `color: var(--hover)`,
+    ".eSubToolThicknessSlider": `position: relative; flex: 1; height: 10px; margin: 0 12px; background: var(--hover); border-radius: 5px; touch-action: none`,
+    ".eSubToolThicknessSlider button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; top: -5px; background: var(--theme); box-shadow: var(--lightShadow); border: solid 5px var(--secondary); border-radius: 10px; transition: transform .2s`,
+    ".eSubToolThicknessSlider button:hover": `transform: scale(1.2) !important`,
+    ".eSubToolThicknessSlider button:active": `transform: scale(1.1) !important`
   };
-  html = `<div style="width: 200px; height: 50px"></div>`;
+  minValue = 1;
+  maxValue = 40;
+  exponentFactor = 1.4;
+  js = (frame, { editor, toolbar: isToolbar }) => {
+    let toolbar = this.parent;
+    let utils = editor.utils;
+    let selecting = editor.selecting;
+    let selectKeys = Object.keys(selecting);
+    let shouldSave = isToolbar == true || selectKeys.length == 1;
+    let preferenceTool = toolbar.getPreferenceTool();
+    let thicknessPreference = toolbar.getAnnotationPreference().thickness ?? toolbar.getToolPreference().thickness;
+    let selectedThickness = thicknessPreference;
+    if (preferenceTool.t != null) {
+      selectedThickness = preferenceTool.t;
+    }
+
+    let slider = frame.querySelector(".eSubToolThicknessSlider");
+    let pointer = slider.querySelector("button");
+    let input = frame.querySelector(".eSubToolThicknessInput");
+    let sliderEnabled = false;
+    let firstChange;
+    let updateUI = async (updateVal, noPref) => {
+      if (shouldSave == true && noPref != true) {
+        toolbar.setToolPreference("thickness", selectedThickness);
+      }
+      let percentage = Math.pow(((selectedThickness - this.minValue) / (this.maxValue - this.minValue)), 1 / (this.exponentFactor ?? 1));
+      pointer.style.left = ((slider.offsetWidth - 10) * percentage) - 6 + "px";
+      if (updateVal != false) {
+        input.value = selectedThickness;
+      }
+      if (noPref != true) {
+        if (isToolbar == true) {
+          toolbar.toolbar.updateButtons();
+        } else if (updateVal != null) {
+          //await extra.saveSelecting({ t: selectedThickness }, null, firstChange, null, false);
+          //cursorModule.updateBox(true);
+          //extra.updateToolActions(extra.frame);
+          firstChange = false;
+        }
+      }
+    }
+    let eventBarUpdate = (event) => {
+      if (sliderEnabled == false) {
+        return;
+      }
+      if (mouseDown() == false || slider == null) {
+        sliderEnabled = false;
+        //cursorModule.updateBox();
+        editor.pipeline.unsubscribe("thicknessSelectorMouse");
+        return;
+      }
+      let barRect = slider.getBoundingClientRect();
+      selectedThickness = Math.ceil(Math.pow((Math.max(Math.min((clientPosition(event, "x") - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0)), this.exponentFactor ?? 1) * (this.maxValue - this.minValue) + this.minValue);
+      updateUI();
+    }
+    editor.pipeline.subscribe("thicknessSelectorMouse", "mousemove", (data) => { eventBarUpdate(data.event); });
+    let enableSlider = (event) => {
+      sliderEnabled = true;
+      firstChange = true;
+      eventBarUpdate(event);
+    }
+    slider.addEventListener("mousedown", enableSlider);
+    slider.addEventListener("touchstart", enableSlider, { passive: true });
+    input.addEventListener("focus", () => {
+      input.value = "";
+      input.placeholder = selectedThickness;
+      firstChange = true;
+    });
+    input.addEventListener("blur", () => {
+      input.value = selectedThickness;
+    });
+    input.addEventListener("input", () => {
+      let value = input.value.replace(/\D/g, "");
+      if (value == "") {
+        value = selectedOpacity;
+      }
+      selectedThickness = Math.max(Math.min(parseInt(value), this.maxValue), this.minValue);
+      updateUI(false);
+    });
+    input.addEventListener("change", () => {
+      let value = input.value.replace(/\D/g, "");
+      if (value == "") {
+        value = selectedOpacity;
+      }
+      selectedThickness = Math.max(Math.min(parseInt(value), this.maxValue), this.minValue);
+      updateUI();
+    });
+    updateUI(null, true);
+  }
 }
 
 modules["editor/toolbar/opacity"] = class {
@@ -1247,9 +1349,109 @@ modules["editor/toolbar/opacity"] = class {
 
   USER_SELECT = "none";
 
+  html = `
+  <div class="eSubToolOpacityFrame">
+    <input class="eSubToolOpacityInput" name="Thickness">
+    <div class="eSubToolOpacitySlider"><button></button></div>
+  </div>
+  `;
   css = {
     ".eSubToolOpacityHolder": `box-sizing: border-box; display: flex; width: 34px; height: 34px; margin: 4px; background: var(--pageColor); border: solid 3px var(--pageColor); border-radius: 18px; justify-content: center; align-items: center`,
-    ".eSubToolOpacityHolder svg": `width: 100%; height: 100%`
+    ".eSubToolOpacityHolder svg": `width: 100%; height: 100%`,
+
+    ".eSubToolOpacityFrame": `box-sizing: border-box; display: flex; width: 188px; height: 50px; padding: 6px; align-items: center`,
+    ".eSubToolOpacityInput": `width: 40px; height: 26px; border: solid 3px var(--secondary); outline: none; border-radius: 17px; font-family: var(--font); font-size: 18px; font-weight: 700; color: var(--theme); text-align: center`,
+    ".eSubToolOpacitySlider": `position: relative; flex: 1; height: 10px; margin: 0 12px; background: var(--hover); border-radius: 5px; touch-action: none`,
+    ".eSubToolOpacitySlider button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; top: -5px; background: var(--theme); box-shadow: var(--lightShadow); border: solid 5px var(--secondary); border-radius: 10px; transition: transform .2s`,
+    ".eSubToolOpacitySlider button:hover": `transform: scale(1.2) !important`,
+    ".eSubToolOpacitySlider button:active": `transform: scale(1.1) !important`
   };
-  html = `<div style="width: 200px; height: 50px"></div>`;
+  minValue = 10;
+  maxValue = 100;
+  js = (frame, { editor, toolbar: isToolbar }) => {
+    let toolbar = this.parent;
+    let utils = editor.utils;
+    let selecting = editor.selecting;
+    let selectKeys = Object.keys(selecting);
+    let shouldSave = isToolbar == true || selectKeys.length == 1;
+    let preferenceTool = toolbar.getPreferenceTool();
+    let opacityPreference = toolbar.getAnnotationPreference().opacity ?? toolbar.getToolPreference().opacity;
+    let selectedOpacity = opacityPreference;
+    if (preferenceTool.t != null) {
+      selectedOpacity = preferenceTool.o;
+    }
+
+    let slider = frame.querySelector(".eSubToolOpacitySlider");
+    let pointer = slider.querySelector("button");
+    let input = frame.querySelector(".eSubToolOpacityInput");
+    let sliderEnabled = false;
+    let firstChange;
+    let updateUI = async (updateVal, noPref) => {
+      if (shouldSave == true && noPref != true) {
+        toolbar.setToolPreference("opacity", selectedOpacity);
+      }
+      let percentage = Math.pow(((selectedOpacity - this.minValue) / (this.maxValue - this.minValue)), 1 / (this.exponentFactor ?? 1));
+      pointer.style.left = ((slider.offsetWidth - 10) * percentage) - 6 + "px";
+      if (updateVal != false) {
+        input.value = selectedOpacity;
+      }
+      if (noPref != true) {
+        if (isToolbar == true) {
+          toolbar.toolbar.updateButtons();
+        } else if (updateVal != null) {
+          //await extra.saveSelecting({ o: selectedOpacity }, null, firstChange, null, false);
+          //cursorModule.updateBox(true);
+          //extra.updateToolActions(extra.frame);
+          firstChange = false;
+        }
+      }
+    }
+    let eventBarUpdate = (event) => {
+      if (sliderEnabled == false) {
+        return;
+      }
+      if (mouseDown() == false || slider == null) {
+        sliderEnabled = false;
+        //cursorModule.updateBox();
+        editor.pipeline.unsubscribe("opacitySelectorMouse");
+        return;
+      }
+      let barRect = slider.getBoundingClientRect();
+      selectedOpacity = Math.ceil(Math.pow((Math.max(Math.min((clientPosition(event, "x") - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0)), this.exponentFactor ?? 1) * (this.maxValue - this.minValue) + this.minValue);
+      updateUI();
+    }
+    editor.pipeline.subscribe("opacitySelectorMouse", "mousemove", (data) => { eventBarUpdate(data.event); });
+    let enableSlider = (event) => {
+      sliderEnabled = true;
+      firstChange = true;
+      eventBarUpdate(event);
+    }
+    slider.addEventListener("mousedown", enableSlider);
+    slider.addEventListener("touchstart", enableSlider, { passive: true });
+    input.addEventListener("focus", () => {
+      input.value = "";
+      input.placeholder = selectedOpacity;
+      firstChange = true;
+    });
+    input.addEventListener("blur", () => {
+      input.value = selectedOpacity;
+    });
+    input.addEventListener("input", () => {
+      let value = input.value.replace(/\D/g, "");
+      if (value == "") {
+        value = selectedOpacity;
+      }
+      selectedOpacity = Math.max(Math.min(parseInt(value), this.maxValue), this.minValue);
+      updateUI(false);
+    });
+    input.addEventListener("change", () => {
+      let value = input.value.replace(/\D/g, "");
+      if (value == "") {
+        value = selectedOpacity;
+      }
+      selectedOpacity = Math.max(Math.min(parseInt(value), this.maxValue), this.minValue);
+      updateUI();
+    });
+    updateUI(null, true);
+  }
 }

@@ -220,6 +220,13 @@ modules["editor/editor"] = class {
     }
   };
 
+  isThisPage = (element) => {
+    if (element != null && element.closest(".lPage") == this.page) {
+      return true;
+    }
+    return false;
+  }
+
   options = {
     snapping: true,
     cursors: true,

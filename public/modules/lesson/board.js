@@ -44,8 +44,8 @@ modules["lesson/board"] = class {
         <div class="eToolbarContent eVerticalToolsHolder hideScroll">
           <button class="eTool" tool="raisehand" tooltip="Raise Hand" noselect style="--theme: var(--green); --hoverColor: rgba(var(--greenRGB), .3)"><div></div></button>
           <div class="eDivider" keeptoolbar></div>
-          <button class="eTool" tool="select" tooltip="Select" module="editor/toolbar/select" selected><div></div></button>
-          <button class="eTool" tool="pan" tooltip="Pan" module="editor/toolbar/pan"><div></div></button>
+          <button class="eTool" tool="select" tooltip="Select" selected><div></div></button>
+          <button class="eTool" tool="pan" tooltip="Pan"><div></div></button>
         </div>
       </div>
     </div>
@@ -180,6 +180,8 @@ modules["lesson/board"] = class {
     let editorToolbar = toolbarHolder.querySelector(".eToolbar[editor]");
     let viewerToolbar = toolbarHolder.querySelector(".eToolbar[viewer]");
     let handButton = viewerToolbar.querySelector('.eTool[tool="raisehand"]');
+    let selectButton = viewerToolbar.querySelector('.eTool[tool="select"]');
+    let panButton = viewerToolbar.querySelector('.eTool[tool="pan"]');
 
     let currentPageHolder = frame.querySelector(".eBottomSection[right]");
     let pageTextBox = currentPageHolder.querySelector(".eCurrentPage");
@@ -437,6 +439,16 @@ modules["lesson/board"] = class {
         this.editor.toolbar.toolbar.update();
       }
       handButton.removeAttribute("disabled", "");
+    });
+    selectButton.addEventListener("click", async () => {
+      if (this.editor.toolbar != null) {
+        this.editor.toolbar.toolbar.startTool(selectButton);
+      }
+    });
+    panButton.addEventListener("click", async () => {
+      if (this.editor.toolbar != null) {
+        this.editor.toolbar.toolbar.startTool(panButton);
+      }
     });
 
     // Load Images:

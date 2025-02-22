@@ -46,7 +46,11 @@ modules["editor/toolbar"] = class {
         <button class="eTool" tool="upload" tooltip="Upload Image" module="editor/toolbar/upload"><div></div></button>
         <button class="eTool" tool="embed" tooltip="Embed" module="editor/toolbar/embed"><div></div></button>
       </div>`
-    }
+    },
+
+    // Viewer Toolbar:
+    "select": { id: "select", type: "tool", module: "editor/toolbar/select" },
+    "pan": { id: "pan", type: "tool", module: "editor/toolbar/pan" }
   };
   css = {
     ".eToolbar": `position: absolute; display: block; width: 50px; height: fit-content; max-height: var(--maxToolbarHeight); top: 50%; transform: translateY(-50%); z-index: 2; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; transition: transform .4s, opacity .4s, border-radius .2s`,
@@ -120,7 +124,7 @@ modules["editor/toolbar"] = class {
 
     let currentTool = "selection";
     let currentSubTool = "select";
-    this.currentToolModulePath = "pages/editor/toolbar/cursor";
+    this.currentToolModulePath = "editor/toolbar/select";
 
     let currentToolButton;
     let subToolbar;
@@ -286,7 +290,7 @@ modules["editor/toolbar"] = class {
     }
     this.tooltip.set = (event) => {
       let hoverElem = event.target;
-      if (hoverElem.closest(".lPage") != editor.page) {
+      if (editor.isThisPage(hoverElem) != true) {
         return;
       }
       let element = hoverElem.closest("button[tool], button[subtool], button[option], button[action]");
@@ -326,40 +330,56 @@ modules["editor/toolbar"] = class {
       })();
     }
 
-    this.updateMouse = (type, value) => {
-      if (type == "set") {
-        if (value != null) {
-          content.style.cursor = value;
+    let currentMouseSVG;
+    this.updateMouse = async (cursor) => {
+      if (cursor.type == "set") {
+        if (cursor.value != null) {
+          content.style.cursor = cursor.value;
         } else {
           content.style.removeProperty("cursor");
+        }
+        currentMouseSVG = null;
+      } else if (cursor.type == "svg") {
+        let insertString = `style="--themeColor: #2F2F2F`;
+        if (cursor.color != null) {
+          insertString += `; --toolColorOpacity: ${editor.utils.hexToRGBString(cursor.color, (cursor.opacity ?? 100) / 100)}`;
+        }
+        let setSVG = ((await getSVG(cursor.url)) ?? "").replace(/viewBox=/g, insertString + `" viewBox=`);
+        if (setSVG != currentMouseSVG) {
+          currentMouseSVG = setSVG;
+          let reader = new FileReader();
+          reader.readAsDataURL(new Blob([setSVG], { type: "image/svg+xml" }));
+          reader.onload = () => {
+            let translate = cursor.translate ?? {};
+            content.style.cursor = "url('" + reader.result + "') " + (translate.x ?? 0) + " " + (translate.y ?? 0) + ", auto";
+          }
         }
       }
     }
     this.applyToolModule = (module) => {
       module = module ?? this.currentToolModule ?? {};
-      module.editor = editor;
       if (module.USER_SELECT != null) {
         page.style.userSelect = module.USER_SELECT;
       } else {
         page.style.removeProperty("user-select");
       }
-      let mouse = module.MOUSE ?? { type: "set" };
-      this.updateMouse(mouse.type, mouse.value);
     }
     this.activateTool = async () => {
       if (this.currentToolModulePath == null) {
         return;
       }
       this.currentToolModule = await this.newModule(this.currentToolModulePath);
-      this.applyToolModule();
       if (this.currentToolModule == null) {
         return;
       }
-      editor.realtime.tool = this.currentToolModule.REALTIME_TOOL ?? 0;
-      editor.realtime.passthrough = this.currentToolModule.publish;
+      this.currentToolModule.editor = editor;
       if (this.currentToolModule.activate != null) {
         this.currentToolModule.activate();
       }
+      editor.realtime.tool = this.currentToolModule.REALTIME_TOOL ?? 0;
+      editor.realtime.passthrough = this.currentToolModule.PUBLISH;
+      this.applyToolModule();
+      this.updateMouse(this.currentToolModule.MOUSE ?? { type: "set" });
     }
     this.pushToolEvent = (type, event) => {
       if (this.currentToolModule == null) {
@@ -530,6 +550,9 @@ modules["editor/toolbar"] = class {
             newModule.setToolbarButton(div);
           }
         }
+      }
+      if (this.currentToolModule != null && currentMouseSVG != null) {
+        this.updateMouse(this.currentToolModule.MOUSE ?? { type: "set" });
       }
     }
     this.toolbar.createSubSub = async (moduleName) => {
@@ -877,6 +900,10 @@ modules["editor/toolbar"] = class {
   }
 }
 
+modules["editor/toolbar/select"] = class {
+
+}
+
 modules["editor/toolbar/pan"] = class {
   USER_SELECT = "none";
   MOUSE = { type: "set", value: "grab" };
@@ -892,7 +919,7 @@ modules["editor/toolbar/pan"] = class {
     let annotationRect = this.editor.utils.localBoundingRect(this.editor.annotationHolder);
     this.startX = (mouseX - annotationRect.left) / this.editor.zoom;
     this.startY = (mouseY - annotationRect.top) / this.editor.zoom;
-    this.parent.updateMouse("set", "grabbing");
+    this.parent.updateMouse({ type: "set", value: "grabbing" });
   }
   clickMove = (event) => {
     if (this.dragging != true) {
@@ -915,7 +942,7 @@ modules["editor/toolbar/pan"] = class {
   }
   clickEnd = () => {
     this.dragging = false;
-    this.parent.updateMouse("set", "grab");
+    this.parent.updateMouse({ type: "set", value: "grab" });
   }
   wheel = (event) => {
     if (this.dragging == true) {
@@ -923,6 +950,38 @@ modules["editor/toolbar/pan"] = class {
       this.clickMove();
     }
   }
+}
+
+modules["editor/toolbar/pen"] = class {
+  USER_SELECT = "none";
+  REALTIME_TOOL = 2;
+  MOUSE = { type: "svg", url: "./images/editor/cursors/pen.svg", translate: { x: 16, y: 28 } };
+
+  activate = () => {
+    let toolPreference = this.parent.getToolPreference();
+    this.MOUSE.color = toolPreference.color.selected;
+    this.MOUSE.opacity = toolPreference.opacity;
+    this.PUBLISH = { c: toolPreference.color.selected, o: toolPreference.opacity };
+  }
+}
+
+modules["editor/toolbar/highlighter"] = class {
+  USER_SELECT = "none";
+  REALTIME_TOOL = 1;
+  MOUSE = { type: "svg", url: "./images/editor/cursors/highlighter.svg", translate: { x: 15, y: 30 } };
+
+  activate = () => {
+    let toolPreference = this.parent.getToolPreference();
+    this.MOUSE.color = toolPreference.color.selected;
+    this.MOUSE.opacity = toolPreference.opacity;
+    this.PUBLISH = { c: toolPreference.color.selected, o: toolPreference.opacity };
+  }
+}
+
+modules["editor/toolbar/eraser"] = class {
+  USER_SELECT = "none";
+  REALTIME_TOOL = 3;
+  MOUSE = { type: "svg", url: "./images/editor/cursors/eraser.svg", translate: { x: 20, y: 20 } };
 }
 
 modules["editor/toolbar/color"] = class {
@@ -1063,6 +1122,7 @@ modules["editor/toolbar/color"] = class {
         }
         if (isToolbar == true) {
           toolbar.toolbar.closeSubSub(true);
+          toolbar.activateTool();
         } else {
           //await extra.saveSelecting({ c: selectedColor });
           //utils.forceShort(); // Make sure other users see the color change (no mouse movement)
@@ -1243,7 +1303,9 @@ modules["editor/toolbar/color"] = class {
         toolbar.setToolPreference("color.selected", selectedColor);
       }
       updatePickerUI(updateText);
-      if (isToolbar == false) {
+      if (isToolbar == true) {
+        toolbar.activateTool();
+      } else {
         //await extra.saveSelecting({ c: selectedColor }, null, firstChange);
         //extra.updateToolActions(extra.frame);
         //firstChange = false;
@@ -1376,6 +1438,7 @@ modules["editor/toolbar/thickness"] = class {
       if (noPref != true) {
         if (isToolbar == true) {
           toolbar.toolbar.updateButtons();
+          toolbar.activateTool();
         } else if (updateVal != null) {
           //await extra.saveSelecting({ t: selectedThickness }, null, firstChange, null, false);
           //cursorModule.updateBox(true);
@@ -1496,6 +1559,7 @@ modules["editor/toolbar/opacity"] = class {
       if (noPref != true) {
         if (isToolbar == true) {
           toolbar.toolbar.updateButtons();
+          toolbar.activateTool();
         } else if (updateVal != null) {
           //await extra.saveSelecting({ o: selectedOpacity }, null, firstChange, null, false);
           //cursorModule.updateBox(true);

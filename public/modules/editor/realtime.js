@@ -204,7 +204,12 @@ modules["editor/realtime"] = class {
       }
     }
     editor.pipeline.subscribe("realtimePublishClickStart", "click_start", (data) => { this.publishShort(data.event); });
-    editor.pipeline.subscribe("realtimePublishClickMove", "click_move", (data) => { this.publishShort(data.event); });
+    editor.pipeline.subscribe("realtimePublishClickMove", "click_move", (data) => {
+      let event = data.event;
+      if (editor.isThisPage(event.target) == true) {
+        this.publishShort(event);
+      }
+    });
     editor.pipeline.subscribe("realtimePublishClickEnd", "click_end", () => { this.publishShort(); });
     editor.pipeline.subscribe("realtimePublishScroll", "scroll", () => {
       this.publishShort();
@@ -415,25 +420,25 @@ modules["editor/realtime"] = class {
                 html = `<div class="pointer" color><div name></div></div>`;
                 break;
               case 1: // Highlighter 
-                html = `${await getSVG("./images/editor/realtime/highlighter.svg")}<div class="pointer" color none><div name></div></div>`;
+                html = `${await getSVG("./images/editor/cursors/highlighter.svg")}<div class="pointer" color none><div name></div></div>`;
                 offsetx = -14;
                 offsety = -30;
                 origin = "bottom center";
                 break;
               case 2: // Pen 
-                html = `${await getSVG("./images/editor/realtime/pen.svg")}<div class="pointer" color none><div name></div></div>`;
+                html = `${await getSVG("./images/editor/cursors/pen.svg")}<div class="pointer" color none><div name></div></div>`;
                 offsetx = -14;
                 offsety = -30;
                 origin = "bottom center";
                 break;
               case 3: // Eraser
-                html = `${await getSVG("./images/editor/realtime/eraser.svg")}<div class="pointer" color none><div name></div></div>`;
+                html = `${await getSVG("./images/editor/cursors/eraser.svg")}<div class="pointer" color none><div name></div></div>`;
                 offsetx = -20;
                 offsety = -20;
                 origin = "center center";
             }
             await sleep(100);
-            cursorHolder.innerHTML = html.replace(/MEMBER_COLOR_REPLACE/g, "var(--themeColor)");
+            cursorHolder.innerHTML = html; //.replace(/MEMBER_COLOR_REPLACE/g, "var(--themeColor)");
             cursorHolder.setAttribute("offsetx", offsetx);
             cursorHolder.setAttribute("offsety", offsety);
             cursorHolder.style.setProperty("--origin", origin);
@@ -499,11 +504,7 @@ modules["editor/realtime"] = class {
         }
 
         if (extra.c != null) {
-          let setColor = cursorHolder.querySelector("[toolcoloropacity]");
-          if (setColor != null) {
-            setColor.setAttribute("fill", "#" + extra.c ?? "000");
-            setColor.setAttribute("fill-opacity", (extra.o ?? 100) / 100);
-          }
+          cursorHolder.style.setProperty("--toolColorOpacity", editor.utils.hexToRGBString(extra.c, (extra.o ?? 100) / 100));
         }
         if (extra.press == true) {
           cursorHolder.setAttribute("pressed", "");

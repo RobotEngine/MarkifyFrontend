@@ -371,11 +371,20 @@ modules["pages/lesson"] = class {
     });
     sizeUpdate();
     
-    tempListen(app, "mouseup", (event) => {
+    tempListen(window, "mousemove", (event) => {
+      this.pushToPipelines(null, "mousemove", { event: event });
+      this.pushToPipelines(null, "click_move", { type: "mousemove", event: event });
+    }, { passive: false });
+    tempListen(window, "touchmove", (event) => {
+      this.pushToPipelines(null, "touchmove", { event: event });
+      this.pushToPipelines(null, "click_move", { type: "touchmove", event: event });
+    }, { passive: false });
+
+    tempListen(window, "mouseup", (event) => {
       this.pushToPipelines(null, "mouseup", { event: event });
       this.pushToPipelines(null, "click_end", { type: "mouseup", event: event });
     }, { passive: false });
-    tempListen(app, "touchend", (event) => {
+    tempListen(window, "touchend", (event) => {
       this.pushToPipelines(null, "touchend", { event: event });
       this.pushToPipelines(null, "click_end", { type: "touchend", event: event });
     }, { passive: false });

@@ -286,6 +286,9 @@ modules["editor/toolbar"] = class {
     }
     this.tooltip.set = (event) => {
       let hoverElem = event.target;
+      if (hoverElem.closest(".lPage") != editor.page) {
+        return;
+      }
       let element = hoverElem.closest("button[tool], button[subtool], button[option], button[action]");
       if ((element == null || element.hasAttribute("tooltip") == false) && (hoverElem.closest("[keeptooltip]") == null || hoverElem.closest("[closetooltip]") != null)) {
         return this.tooltip.close();

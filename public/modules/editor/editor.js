@@ -1904,19 +1904,19 @@ modules["editor/editor"] = class {
       this.pipeline.publish("mousedown", { event: event });
       this.pipeline.publish("click_start", { type: "mousedown", event: event });
     }, { passive: false });
-    page.addEventListener("mousemove", (event) => {
+    /*page.addEventListener("mousemove", (event) => {
       this.pipeline.publish("mousemove", { event: event });
       this.pipeline.publish("click_move", { type: "mousemove", event: event });
-    }, { passive: false });
+    }, { passive: false });*/
 
     page.addEventListener("touchstart", (event) => {
       this.pipeline.publish("touchstart", { event: event });
       this.pipeline.publish("click_start", { type: "touchstart", event: event });
     }, { passive: false });
-    page.addEventListener("touchmove", (event) => {
+    /*page.addEventListener("touchmove", (event) => {
       this.pipeline.publish("touchmove", { event: event });
       this.pipeline.publish("click_move", { type: "touchmove", event: event });
-    }, { passive: false });
+    }, { passive: false });*/
 
     page.addEventListener("mouseleave", (event) => {
       this.pipeline.publish("mouseleave", { event: event });

@@ -813,7 +813,7 @@ modules["editor/toolbar"] = class {
       let event = data.event;
       this.tooltip.set(event);
     });
-    editor.pipeline.subscribe("toolbarMouse", "click_end", (data) => {
+    editor.pipeline.subscribe("toolbarMouse", "click_end", () => {
       this.toolbar.setTool();
     });
     editor.pipeline.subscribe("toolbarMouse", "mouseleave", () => {

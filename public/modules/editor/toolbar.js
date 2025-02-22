@@ -1279,7 +1279,11 @@ modules["editor/toolbar/color"] = class {
     }
     let firstChange;
     let updateStoredValues = async (hex, updateText) => {
-      selectedColor = hex ?? editor.utils.hsvToHex(h, s, v);
+      let newColor = hex ?? editor.utils.hsvToHex(h, s, v);
+      if (selectedColor == newColor) {
+        return;
+      }
+      selectedColor = newColor;
       let selectedButton = selector.querySelector(".eTool[int][selected]");
       if (selectedButton == null) {
         selectedButton = selector.children[selector.childElementCount - 2];
@@ -1458,8 +1462,11 @@ modules["editor/toolbar/thickness"] = class {
         return;
       }
       let barRect = slider.getBoundingClientRect();
-      selectedThickness = Math.ceil(Math.pow((Math.max(Math.min((clientPosition(event, "x") - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0)), this.exponentFactor ?? 1) * (this.maxValue - this.minValue) + this.minValue);
-      updateUI();
+      let newThickness = Math.ceil(Math.pow((Math.max(Math.min((clientPosition(event, "x") - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0)), this.exponentFactor ?? 1) * (this.maxValue - this.minValue) + this.minValue);
+      if (selectedThickness != newThickness) {
+        selectedThickness = newThickness;
+        updateUI();
+      }
     }
     let enableSlider = (event) => {
       sliderEnabled = true;
@@ -1579,8 +1586,11 @@ modules["editor/toolbar/opacity"] = class {
         return;
       }
       let barRect = slider.getBoundingClientRect();
-      selectedOpacity = Math.ceil(Math.pow((Math.max(Math.min((clientPosition(event, "x") - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0)), this.exponentFactor ?? 1) * (this.maxValue - this.minValue) + this.minValue);
-      updateUI();
+      let newOpacity = Math.ceil(Math.pow((Math.max(Math.min((clientPosition(event, "x") - barRect.x - 6) / (slider.offsetWidth - 10), 1), 0)), this.exponentFactor ?? 1) * (this.maxValue - this.minValue) + this.minValue);
+      if (selectedOpacity != newOpacity) {
+        selectedOpacity = newOpacity;
+        updateUI();
+      }
     }
     let enableSlider = (event) => {
       sliderEnabled = true;

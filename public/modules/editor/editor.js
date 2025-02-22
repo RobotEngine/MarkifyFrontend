@@ -260,14 +260,16 @@ modules["editor/editor"] = class {
 
   js = async (frame, extra) => {
     let page = frame.closest(".lPage");
-    this.page = page;
     let contentHolder = page.querySelector(".eContentHolder");
-    this.contentHolder = contentHolder;
     let content = contentHolder.querySelector(".eContent");
     let realtimeHolder = content.querySelector(".eRealtime");
     let editorContent = content.querySelector(".eEditorContent");
     let annotations = editorContent.querySelector(".eAnnotations");
     let background = content.querySelector(".eBackground");
+
+    this.page = page;
+    this.contentHolder = contentHolder;
+    this.annotationHolder = annotations;
 
     let localOptions = getLocalStore("options");
     if (localOptions != null) {
@@ -906,7 +908,7 @@ modules["editor/editor"] = class {
         }
       }
   
-      if (mouseDown() == true) {
+     /*if (mouseDown() == true) {
         if (this.render.runCheckSizeReset != null) {
           return;
         }
@@ -919,7 +921,7 @@ modules["editor/editor"] = class {
       if (this.render.runCheckSizeReset != null) {
         this.pipeline.unsubscribe("marginSizeUpdateDelay");
         this.render.runCheckSizeReset = null;
-      }
+      }*/
       
       let scrollPosX = contentHolder.scrollLeft;
       let scrollPosY = contentHolder.scrollTop;

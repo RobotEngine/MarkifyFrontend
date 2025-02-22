@@ -121,7 +121,6 @@ modules["editor/toolbar"] = class {
     let currentTool = "selection";
     let currentSubTool = "select";
     this.currentToolModulePath = "pages/editor/toolbar/cursor";
-    this.currentToolModule;
 
     let currentToolButton;
     let subToolbar;
@@ -324,19 +323,48 @@ modules["editor/toolbar"] = class {
       })();
     }
 
+    this.updateMouse = (type, value) => {
+      if (type == "set") {
+        if (value != null) {
+          content.style.cursor = value;
+        } else {
+          content.style.removeProperty("cursor");
+        }
+      }
+    }
     this.applyToolModule = (module) => {
       module = module ?? this.currentToolModule ?? {};
-
+      module.editor = editor;
       if (module.USER_SELECT != null) {
         page.style.userSelect = module.USER_SELECT;
       } else {
         page.style.removeProperty("user-select");
       }
+      let mouse = module.MOUSE ?? { type: "set" };
+      this.updateMouse(mouse.type, mouse.value);
     }
-
-    this.activateTool = () => {
-      // TODO
+    this.activateTool = async () => {
+      if (this.currentToolModulePath == null) {
+        return;
+      }
+      this.currentToolModule = await this.newModule(this.currentToolModulePath);
       this.applyToolModule();
+      if (this.currentToolModule == null) {
+        return;
+      }
+      editor.realtime.tool = this.currentToolModule.REALTIME_TOOL ?? 0;
+      editor.realtime.passthrough = this.currentToolModule.publish;
+      if (this.currentToolModule.activate != null) {
+        this.currentToolModule.activate();
+      }
+    }
+    this.pushToolEvent = (type, event) => {
+      if (this.currentToolModule == null) {
+        return;
+      }
+      if (this.currentToolModule[type] != null) {
+        this.currentToolModule[type](event);
+      }
     }
     
     // Manage Toolbar:
@@ -808,20 +836,30 @@ modules["editor/toolbar"] = class {
       if (target.closest(".eToolbar") == toolbar) {
         this.toolbar.setTool(target.closest("button"), true);
       }
+      this.pushToolEvent("clickStart", event);
     });
     editor.pipeline.subscribe("toolbarMouse", "click_move", (data) => {
       let event = data.event;
       this.tooltip.set(event);
+      this.pushToolEvent("clickMove", event);
     });
-    editor.pipeline.subscribe("toolbarMouse", "click_end", () => {
+    editor.pipeline.subscribe("toolbarMouse", "click_end", (data) => {
       this.toolbar.setTool();
+      this.pushToolEvent("clickEnd", data.event);
     });
     editor.pipeline.subscribe("toolbarMouse", "mouseleave", () => {
       this.tooltip.close();
     });
-    editor.pipeline.subscribe("toolbarPageResize", "resize", () => {
+    editor.pipeline.subscribe("toolbarScroll", "scroll", (data) => {
+      this.pushToolEvent("scroll", data.event);
+    });
+    editor.pipeline.subscribe("toolbarWheel", "wheel", (data) => {
+      this.pushToolEvent("wheel", data.event);
+    });
+    editor.pipeline.subscribe("toolbarPageResize", "resize", (data) => {
       this.toolbar.updateMaxHeight();
       this.toolbar.update();
+      this.pushToolEvent("scroll", data.event);
     });
     editor.pipeline.subscribe("toolbarPageResize", "page_add", () => {
       this.toolbar.updateMaxHeight();
@@ -833,6 +871,54 @@ modules["editor/toolbar"] = class {
       }
     });
     editor.toolbar = this;
+  }
+}
+
+modules["editor/toolbar/pan"] = class {
+  USER_SELECT = "none";
+  MOUSE = { type: "set", value: "grab" };
+
+  dragging = false;
+
+  clickStart = (event) => {
+    if (event.target != null && event.target.closest("button") != null) {
+      return;
+    }
+    this.dragging = true;
+    let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
+    let annotationRect = this.editor.utils.localBoundingRect(this.editor.annotationHolder);
+    this.startX = (mouseX - annotationRect.left) / this.editor.zoom;
+    this.startY = (mouseY - annotationRect.top) / this.editor.zoom;
+    this.parent.updateMouse("set", "grabbing");
+  }
+  clickMove = (event) => {
+    if (this.dragging != true) {
+      return;
+    }
+    if (event != null) {
+      if (mouseDown() == false || event.touches != null) {
+        this.clickEnd(event);
+        return;
+      }
+      let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
+      this.endX = mouseX;
+      this.endY = mouseY;
+    }
+    let annotationRect = this.editor.utils.localBoundingRect(this.editor.annotationHolder);
+    this.editor.contentHolder.scrollTo({
+      left: this.editor.contentHolder.scrollLeft - ((((this.endX - annotationRect.left) / this.editor.zoom) - this.startX) * this.editor.zoom),
+      top: this.editor.contentHolder.scrollTop - ((((this.endY - annotationRect.top) / this.editor.zoom) - this.startY) * this.editor.zoom)
+    });
+  }
+  clickEnd = () => {
+    this.dragging = false;
+    this.parent.updateMouse("set", "grab");
+  }
+  wheel = (event) => {
+    if (this.dragging == true) {
+      event.preventDefault();
+      this.clickMove();
+    }
   }
 }
 

@@ -799,7 +799,7 @@ modules["editor/toolbar"] = class {
     }
 
     // Subscribe to Events:
-    editor.pipeline.subscribe("toolbarMouse", "mousedown", (data) => {
+    editor.pipeline.subscribe("toolbarMouse", "click_start", (data) => {
       let event = data.event;
       if (event.buttons > 1) {
         return;
@@ -809,11 +809,11 @@ modules["editor/toolbar"] = class {
         this.toolbar.setTool(target.closest("button"), true);
       }
     });
-    editor.pipeline.subscribe("toolbarMouse", "mousemove", (data) => {
+    editor.pipeline.subscribe("toolbarMouse", "click_move", (data) => {
       let event = data.event;
       this.tooltip.set(event);
     });
-    editor.pipeline.subscribe("toolbarMouse", "mouseup", (data) => {
+    editor.pipeline.subscribe("toolbarMouse", "click_end", (data) => {
       this.toolbar.setTool();
     });
     editor.pipeline.subscribe("toolbarMouse", "mouseleave", () => {
@@ -1179,7 +1179,7 @@ modules["editor/toolbar/color"] = class {
       firstChange = true;
       app.style.userSelect = "none";
       eventGradientUpdate(event);
-      editor.pipeline.subscribe("colorSelectorMouse", "mousemove", (data) => { eventGradientUpdate(data.event); });
+      editor.pipeline.subscribe("colorSelectorMouse", "click_move", (data) => { eventGradientUpdate(data.event); });
     }
     shadeSliderHolder.addEventListener("mousedown", gradientDown);
     shadeSliderHolder.addEventListener("touchstart", gradientDown, { passive: true });
@@ -1200,7 +1200,7 @@ modules["editor/toolbar/color"] = class {
       colorSliderEnabled = true;
       firstChange = true;
       eventColorUpdate(event);
-      editor.pipeline.subscribe("colorSelectorMouse", "mousemove", (data) => { eventColorUpdate(data.event); });
+      editor.pipeline.subscribe("colorSelectorMouse", "click_move", (data) => { eventColorUpdate(data.event); });
     }
     colorSliderHolder.addEventListener("mousedown", colorSliderDown);
     colorSliderHolder.addEventListener("touchstart", colorSliderDown, { passive: true });
@@ -1313,7 +1313,7 @@ modules["editor/toolbar/thickness"] = class {
       sliderEnabled = true;
       firstChange = true;
       eventBarUpdate(event);
-      editor.pipeline.subscribe("thicknessSelectorMouse", "mousemove", (data) => { eventBarUpdate(data.event); });
+      editor.pipeline.subscribe("thicknessSelectorMouse", "click_move", (data) => { eventBarUpdate(data.event); });
     }
     slider.addEventListener("mousedown", enableSlider);
     slider.addEventListener("touchstart", enableSlider, { passive: true });
@@ -1433,7 +1433,7 @@ modules["editor/toolbar/opacity"] = class {
       sliderEnabled = true;
       firstChange = true;
       eventBarUpdate(event);
-      editor.pipeline.subscribe("opacitySelectorMouse", "mousemove", (data) => { eventBarUpdate(data.event); });
+      editor.pipeline.subscribe("opacitySelectorMouse", "click_move", (data) => { eventBarUpdate(data.event); });
     }
     slider.addEventListener("mousedown", enableSlider);
     slider.addEventListener("touchstart", enableSlider, { passive: true });

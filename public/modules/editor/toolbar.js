@@ -955,7 +955,7 @@ modules["editor/toolbar/pan"] = class {
 modules["editor/toolbar/pen"] = class {
   USER_SELECT = "none";
   REALTIME_TOOL = 2;
-  MOUSE = { type: "svg", url: "./images/editor/cursors/pen.svg", translate: { x: 16, y: 28 } };
+  MOUSE = { type: "svg", url: "./images/editor/cursors/pen.svg", translate: { x: 15, y: 30 } };
 
   activate = () => {
     let toolPreference = this.parent.getToolPreference();

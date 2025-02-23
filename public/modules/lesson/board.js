@@ -1,5 +1,5 @@
 modules["lesson/board"] = class {
-  html = `<div class="eInterface eCustomScroll">
+  html = `<div class="eInterface lCustomScroll">
     <div class="eTopHolder">
       <button class="eTopScroll" left style="left: 7px"><img src="./images/editor/top/leftarrow.svg" /></button>
       <button class="eTopScroll" right style="right: 7px"><img src="./images/editor/top/rightarrow.svg" /></button>
@@ -65,13 +65,9 @@ modules["lesson/board"] = class {
       </div>
     </div>
   </div>
-  <div class="eContentHolder eCustomScroll" disabled></div>
+  <div class="eContentHolder lCustomScroll" disabled></div>
   `;
   css = {
-    ".eCustomScroll::-webkit-scrollbar": `width: 16px; background: var(--scrollGray)`,
-    ".eCustomScroll::-webkit-scrollbar-corner": `background: var(--scrollGray)`,
-    ".eCustomScroll::-webkit-scrollbar-thumb": `border: 4px solid var(--scrollGray); background: var(--gray); border-radius: 8px`,
-    ".eCustomScroll::-webkit-scrollbar-thumb:active": `background: var(--activeGray)`,
     ".eInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; overflow: scroll; z-index: 2`,
     ".eContentHolder": `position: relative; width: 100%; height: 100%; overflow: scroll; z-index: 1; transition: .5s`,
     //".eContentHolder .content": `width: 5000px; height: 5000px`, // Just a test

@@ -969,7 +969,7 @@ modules["editor/toolbar/pen"] = class {
   USER_SELECT = "none";
   TOUCH_ACTION = null;
   REALTIME_TOOL = 2;
-  MOUSE = { type: "svg", url: "./images/editor/cursors/pen.svg", translate: { x: 16, y: 30 } };
+  MOUSE = { type: "svg", url: "./images/editor/cursors/pen.svg", translate: { x: 15, y: 30 } };
   PUBLISH = {};
 
   clickStart = async (event) => {

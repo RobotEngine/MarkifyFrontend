@@ -356,30 +356,47 @@ modules["editor/toolbar"] = class {
         }
       }
     }
-    this.applyToolModule = (module) => {
-      module = module ?? this.currentToolModule ?? {};
+    this.applyToolModule = (moduleData) => {
+      let module = { ...(this.currentToolModule ?? {}), ...(moduleData ?? {}) };
       if (module.USER_SELECT != null) {
         page.style.userSelect = module.USER_SELECT;
       } else {
         page.style.removeProperty("user-select");
       }
+      if (module.TOUCH_ACTION != null) {
+        page.style.touchAction = module.TOUCH_ACTION;
+      } else {
+        page.style.removeProperty("touch-action");
+      }
     }
+    let lastToolModulePath;
     this.activateTool = async () => {
-      if (this.currentToolModulePath == null) {
+      editor.pinchZoomDisable = false;
+      editor.usingStylus = false;
+      if (this.currentToolModulePath == lastToolModulePath) {
         return;
       }
-      this.currentToolModule = await this.newModule(this.currentToolModulePath);
-      if (this.currentToolModule == null) {
-        return;
+      if (this.currentToolModule != null && this.currentToolModule.disable != null) {
+        this.currentToolModule.disable();
       }
-      this.currentToolModule.editor = editor;
-      if (this.currentToolModule.activate != null) {
-        this.currentToolModule.activate();
+      let newModule;
+      if (this.currentToolModulePath != null) {
+        newModule = await this.newModule(this.currentToolModulePath);
       }
-      editor.realtime.tool = this.currentToolModule.REALTIME_TOOL ?? 0;
-      editor.realtime.passthrough = this.currentToolModule.PUBLISH;
+      if (newModule != null) {
+        lastToolModulePath = this.currentToolModulePath;
+        this.currentToolModule = newModule;
+        newModule.editor = editor;
+        if (newModule.activate != null) {
+          newModule.activate();
+        }
+      } else {
+        newModule = {};
+      }
+      editor.realtime.tool = newModule.REALTIME_TOOL ?? 0;
+      editor.realtime.passthrough = newModule.PUBLISH;
       this.applyToolModule();
-      this.updateMouse(this.currentToolModule.MOUSE ?? { type: "set" });
+      this.updateMouse(newModule.MOUSE ?? { type: "set" });
     }
     this.pushToolEvent = (type, event) => {
       if (this.currentToolModule == null) {
@@ -862,7 +879,9 @@ modules["editor/toolbar"] = class {
       if (target.closest(".eToolbar") == toolbar) {
         this.toolbar.setTool(target.closest("button"), true);
       }
-      this.pushToolEvent("clickStart", event);
+      if (target.closest(".eContent") != null) {
+        this.pushToolEvent("clickStart", event);
+      }
     });
     editor.pipeline.subscribe("toolbarMouse", "click_move", (data) => {
       let event = data.event;
@@ -927,8 +946,7 @@ modules["editor/toolbar/pan"] = class {
     }
     if (event != null) {
       if (mouseDown() == false || event.touches != null) {
-        this.clickEnd(event);
-        return;
+        return this.clickEnd(event);
       }
       let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
       this.endX = mouseX;
@@ -954,17 +972,166 @@ modules["editor/toolbar/pan"] = class {
 
 modules["editor/toolbar/pen"] = class {
   USER_SELECT = "none";
+  TOUCH_ACTION = null;
   REALTIME_TOOL = 2;
   MOUSE = { type: "svg", url: "./images/editor/cursors/pen.svg", translate: { x: 16, y: 30 } };
   PUBLISH = {};
 
+  clickStart = async (event) => {
+    if (event.changedTouches != null && event.changedTouches[0] != null) {
+      let touch = event.changedTouches[0];
+      if (touch.touchType == "stylus") {
+        this.editor.usingStylus = true;
+      } else if (this.editor.options.stylusmode == true) {
+        return;
+      }
+    } else if (this.editor.options.stylusmode == true) {
+      return;
+    }
+    event.preventDefault();
+    this.clickEnd();
+    this.parent.toolbar.closeSubSub(true);
+    let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
+    let position = this.editor.utils.scaleToDoc(mouseX, mouseY);
+    this.startX = position.x;
+    this.startY = position.y;
+    let toolPreference = this.parent.getToolPreference();
+    this.annotation = {
+      render: {
+        _id: this.editor.render.tempID(),
+        f: "draw",
+        p: [this.editor.utils.round(position.x - toolPreference.thickness), this.editor.utils.round(position.y - toolPreference.thickness)],
+        s: [0, 0],
+        l: this.editor.utils.maxLayer + 1,
+        c: toolPreference.color.selected,
+        t: toolPreference.thickness,
+        o: toolPreference.opacity,
+        d: [0, 0]
+      },
+      animate: false
+    };
+    await this.editor.render.create(this.annotation);
+    this.editor.selecting[this.annotation.render._id] = this.annotation.render;
+  }
+  clickMove = async (event) => {
+    if (this.annotation == null) {
+      return;
+    }
+    if (mouseDown() == false) {
+      return this.clickEnd();
+    }
+    if (event.touches != null && event.touches.length > 1) {
+      return;
+    }
+    if (this.editor.usingStylus == true) {
+      if (event.changedTouches != null && event.changedTouches[0] != null) {
+        let touch = event.changedTouches[0];
+        if (touch.touchType != "stylus") {
+          return;
+        }
+        //touch.force = the force of the touch - useful for later ;)
+      } else {
+        return;
+      }
+    }
+    event.preventDefault();
+    let rect = this.editor.utils.localBoundingRect(this.annotation.element);
+    let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
+    let { x, y } = this.editor.utils.scaleToDoc(mouseX - rect.left, mouseY - rect.top, true);
+    let halfT = this.editor.utils.round(this.annotation.render.t / 2);
+    x -= halfT;
+    y -= halfT;
+    if (event.shiftKey == false) {
+      if (x > this.annotation.render.s[0]) {
+        this.annotation.render.s[0] = Math.ceil(x);
+      }
+      if (y > this.annotation.render.s[1]) {
+        this.annotation.render.s[1] = Math.ceil(y);
+      }
+      let sizeIncX = Math.ceil(x);
+      if (sizeIncX < 0) {
+        for (let i = 0; i < this.annotation.render.d.length; i += 2) {
+          this.annotation.render.d[i] = this.editor.utils.round(this.annotation.render.d[i] - sizeIncX);
+        }
+        this.annotation.render.s[0] = this.editor.utils.round(this.annotation.render.s[0] - sizeIncX);
+        this.annotation.render.p[0] = this.editor.utils.round(this.annotation.render.p[0] + sizeIncX);
+        x = 0;
+      }
+      let sizeIncY = Math.ceil(y);
+      if (sizeIncY < 0) {
+        for (let i = 1; i < this.annotation.render.d.length; i += 2) {
+          this.annotation.render.d[i] = this.editor.utils.round(this.annotation.render.d[i] - sizeIncY);
+        }
+        this.annotation.render.s[1] = this.editor.utils.round(this.annotation.render.s[1] - sizeIncY);
+        this.annotation.render.p[1] = this.editor.utils.round(this.annotation.render.p[1] + sizeIncY);
+        y = 0;
+      }
+      this.annotation.render.d.push(this.editor.utils.round(x));
+      this.annotation.render.d.push(this.editor.utils.round(y));
+    } else {
+      this.annotation.render.d = [this.annotation.render.d[0], this.annotation.render.d[1]];
+      let sizeIncX = x;
+      if (sizeIncX < this.annotation.render.d[0]) {
+        this.annotation.render.d[0] = this.editor.utils.round(this.annotation.render.d[0] - sizeIncX);
+        this.annotation.render.s[0] = this.editor.utils.round(this.annotation.render.s[0] - sizeIncX);
+        this.annotation.render.p[0] = this.editor.utils.round(this.annotation.render.p[0] + sizeIncX);
+        x = 0;
+      } else {
+        this.annotation.render.s[0] = Math.ceil(x);
+      }
+      let sizeIncY = y;
+      if (sizeIncY < this.annotation.d[1]) {
+        this.annotation.render.d[1] = this.editor.utils.round(this.annotation.render.d[1] - sizeIncY);
+        this.annotation.render.s[1] = this.editor.utils.round(this.annotation.render.s[1] - sizeIncY);
+        this.annotation.render.p[1] = this.editor.utils.round(this.annotation.render.p[1] + sizeIncY);
+        y = 0;
+      } else {
+        this.annotation.render.s[1] = Math.ceil(y);
+      }
+      this.annotation.render.d[2] = x;
+      this.annotation.render.d[3] = y;
+    }
+    await this.editor.render.create(this.annotation);
+    if (this.annotation.render.d.length > 6150) { // Start new annotation when path too long
+      await this.clickEnd();
+      this.clickStart(event);
+    }
+  }
+  clickEnd = async () => {
+    if (this.annotation == null) {
+      return;
+    }
+    this.annotation.render.d = this.editor.math.simplifyPath(this.annotation.render.d, .75 / this.editor.zoom);
+    let parentID = this.editor.utils.parentFromPoint(this.startX, this.startY);
+    if (parentID != null) {
+      this.annotation.render.parent = parentID;
+      this.editor.utils.applyRelativePosition(this.annotation.render);
+    }
+
+    await this.editor.render.create(this.annotation); // TEMP
+    //this.editor.save.push(this.annotation);
+    //this.editor.history.push("remove", [{ _id: this.annotation.render._id }]);
+
+    this.annotation.render.done = true;
+    await this.editor.realtime.forceShort();
+    this.editor.usingStylus = false;
+    delete this.editor.selecting[this.annotation.render._id];
+    this.annotation = null;
+  }
   activate = () => {
     let toolPreference = this.parent.getToolPreference();
     this.MOUSE.color = toolPreference.color.selected;
     this.MOUSE.opacity = toolPreference.opacity;
     this.PUBLISH.c = toolPreference.color.selected;
     this.PUBLISH.o = toolPreference.opacity;
+
+    if (this.editor.options.stylusmode != true) {
+      this.TOUCH_ACTION = "pinch-zoom";
+    } else {
+      editor.pinchZoomDisable = true;
+    }
   }
+  disable = this.clickEnd;
 }
 
 modules["editor/toolbar/highlighter"] = class {

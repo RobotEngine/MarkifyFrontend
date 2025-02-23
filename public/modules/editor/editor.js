@@ -219,6 +219,73 @@ modules["editor/editor"] = class {
       return (L > 0.3) ? "#000" : "#fff"; // 0.179
     }
   };
+  math = {
+    simplifyPath: (points, epsilon) => {
+      if (points.length <= 2) {
+        return points;
+      }
+  
+      let dmax = 0;
+      let index = 0;
+  
+      for (let i = 2; i < points.length - 2; i += 2) {
+        let d = this.math.perpendicularDistance(points.slice(i, i + 2), points.slice(0, 2), points.slice(-2));
+        if (d > dmax) {
+          index = i;
+          dmax = d;
+        }
+      }
+  
+      if (dmax > epsilon) {
+        let left = this.math.simplifyPath(points.slice(0, index + 2), epsilon);
+        let right = this.math.simplifyPath(points.slice(index), epsilon);
+        return left.slice(0, left.length - 2).concat(right);
+      } else {
+        if (points[0] !== points[points.length - 2] || points[1] !== points[points.length - 1]) {
+          return [points[0], points[1], points[points.length - 2], points[points.length - 1]];
+        } else {
+          return [points[0], points[1]];
+        }
+      }
+    },
+    perpendicularDistance: (point, lineStart, lineEnd) => {
+      return Math.abs((lineEnd[1] - lineStart[1]) * point[0] - (lineEnd[0] - lineStart[0]) * point[1] +
+        lineEnd[0] * lineStart[1] - lineEnd[1] * lineStart[0]) /
+        Math.sqrt(Math.pow(lineEnd[1] - lineStart[1], 2) + Math.pow(lineEnd[0] - lineStart[0], 2));
+    },
+    relativelyStraight: (coordinates, tolerance) => {
+      // Extract pairs of points from the coordinates array
+      let points = [];
+      for (let i = 0; i < coordinates.length; i += 2) {
+        points.push([coordinates[i], coordinates[i + 1]]);
+      }
+  
+      // Calculate the slope between consecutive pairs of points
+      let slope = null;
+      for (let i = 0; i < points.length - 1; i++) {
+        let [x1, y1] = points[i];
+        let [x2, y2] = points[i + 1];
+  
+        let newSlope = (y2 - y1) / (x2 - x1);
+  
+        if (isFinite(newSlope)) {
+          if (Math.abs(slope - newSlope) > tolerance) {
+            return false; // Slopes differ significantly
+          }
+  
+          slope = newSlope;
+        }
+      }
+  
+      return true; // All slopes are consistent
+    },
+    horizontalLine: (points) => {
+      if (Math.abs(points[1] - points[3]) < 15) {
+        return true;
+      }
+      return false;
+    }
+  }
 
   isThisPage = (element) => {
     if (element != null && element.closest(".lPage") == this.page) {
@@ -240,7 +307,12 @@ modules["editor/editor"] = class {
 
   realtime = {
     subscribes: [],
-    tool: 0 // 0: Pointer; 1: Markup; 2: Pen; 3: Erase
+    tool: 0, // 0: Pointer; 1: Markup; 2: Pen; 3: Erase
+    forceShort: async () => {
+      if (this.realtime.module != null) {
+        await this.realtime.module.publishShort(null, null, true);
+      }
+    }
   };
 
   annotations = {};
@@ -408,8 +480,14 @@ modules["editor/editor"] = class {
           prevParent = parentAnno.pointer;
         }
       }
-      let x = anno.p[0];// + (anno.s[0] / 2) + thick;
-      let y = anno.p[1];// + (anno.s[1] / 2) + thick;
+      let thick = 0;
+      if (anno.t != null) {
+        if (anno.b != "none" || anno.d == "line") {
+          thick = anno.t;
+        }
+      }
+      let x = anno.p[0] + (((anno.s ?? {})[0] ?? 0) / 2) + thick;
+      let y = anno.p[1] + (((anno.s ?? {})[1] ?? 0) / 2) + thick;
       let index = anno.l ?? 0;
       let chunk = this.utils.pointInChunk(x, y);
       let annotationIDs = Object.keys(this.chunkAnnotations[chunk] ?? {});
@@ -1320,6 +1398,11 @@ modules["editor/editor"] = class {
         if (_id != null) {
           element.setAttribute("anno", _id);
         }
+        if (annotation.animate != false) {
+          element.removeAttribute("notransition");
+        } else {
+          element.setAttribute("notransition", "");
+        }
         if (render.remove != true) {
           element.removeAttribute("hidden");
         } else {
@@ -1434,7 +1517,7 @@ modules["editor/editor"] = class {
             delete annotation.revert;
             changeOccured = true;
           } else {
-            this.render.remove(annotation.render._id);
+            this.render.remove(annotation);
             delete this.annotations[annotation.render._id];
             changeOccured = true;
           }

@@ -591,9 +591,9 @@ modules["editor/realtime"] = class {
                     original.render.a = member.modify;
                   }
                   original.render.sync = time;
-
+                  
                   await editor.save.apply({ ...anno, sync: time });
-                  editor.save.enableTimeout(original);
+                  //editor.save.enableTimeout(original);
                 }
               }
             }

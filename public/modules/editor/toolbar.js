@@ -956,12 +956,14 @@ modules["editor/toolbar/pen"] = class {
   USER_SELECT = "none";
   REALTIME_TOOL = 2;
   MOUSE = { type: "svg", url: "./images/editor/cursors/pen.svg", translate: { x: 16, y: 30 } };
+  PUBLISH = {};
 
   activate = () => {
     let toolPreference = this.parent.getToolPreference();
     this.MOUSE.color = toolPreference.color.selected;
     this.MOUSE.opacity = toolPreference.opacity;
-    this.PUBLISH = { c: toolPreference.color.selected, o: toolPreference.opacity };
+    this.PUBLISH.c = toolPreference.color.selected;
+    this.PUBLISH.o = toolPreference.opacity;
   }
 }
 
@@ -969,12 +971,14 @@ modules["editor/toolbar/highlighter"] = class {
   USER_SELECT = "none";
   REALTIME_TOOL = 1;
   MOUSE = { type: "svg", url: "./images/editor/cursors/highlighter.svg", translate: { x: 15, y: 30 } };
+  PUBLISH = {};
 
   activate = () => {
     let toolPreference = this.parent.getToolPreference();
     this.MOUSE.color = toolPreference.color.selected;
     this.MOUSE.opacity = toolPreference.opacity;
-    this.PUBLISH = { c: toolPreference.color.selected, o: toolPreference.opacity };
+    this.PUBLISH.c = toolPreference.color.selected;
+    this.PUBLISH.o = toolPreference.opacity;
   }
 }
 

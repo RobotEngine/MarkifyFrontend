@@ -428,6 +428,10 @@ function getObject(arr, field) {
   return returnObj;
 }
 
+function copyObject(obj) {
+  return JSON.parse(JSON.stringify(obj));
+}
+
 function clientPosition(event, type) {
   switch (type) {
     case "x":

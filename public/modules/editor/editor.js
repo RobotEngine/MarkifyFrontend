@@ -367,7 +367,7 @@ modules["editor/editor"] = class {
       }
       clearTimeout(savePreferenceTimeout);
       savePreferenceTimeout = setTimeout(async () => {
-        let tempRevert = JSON.parse(JSON.stringify(this.lastSavePreferences));
+        let tempRevert = copyObject(this.lastSavePreferences);
         let changes = objectUpdate(this.preferences, this.lastSavePreferences);
         if (Object.keys(changes).length > 0) {
           let [code] = await sendRequest("POST", "lessons/save/preferences", { save: changes });
@@ -1546,7 +1546,7 @@ modules["editor/editor"] = class {
       }
 
       if (annotation.revert == null && noTimeout != true) {
-        annotation.revert = JSON.parse(JSON.stringify(annotation.render)); // Copy the currents attributes to revert to later
+        annotation.revert = copyObject(annotation.render); // Copy the currents attributes to revert to later
       }
 
       // IF SELECTING, DO NOT UPDATE THOSE FIELDS
@@ -1582,6 +1582,16 @@ modules["editor/editor"] = class {
       }
       
       return { annotation: annotation, redrawAction: redrawAction };
+    }
+    this.save.push = async (save) => {
+      let data = copyObject(save);
+      let annotation = this.annotations[data._id] ?? { render: {} };
+      if (annotation.pointer != null) {
+        data._id = annotation.pointer;
+        annotation = editor.annotations[data._id] ?? { render: {} };
+      }
+      let annoID = data._id;
+      
     }
 
     this.history = {};
@@ -1790,7 +1800,7 @@ modules["editor/editor"] = class {
             await this.render.setMarginSize();
 
             if (this.selecting[anno.pending] != null) {
-              this.selecting[anno._id] = JSON.parse(JSON.stringify(this.selecting[anno.pending]));
+              this.selecting[anno._id] = copyObject(this.selecting[anno.pending]);
               delete this.selecting[anno.pending];
   
               if (this.toolbar != null) {

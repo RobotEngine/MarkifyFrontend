@@ -569,7 +569,7 @@ modules["editor/realtime"] = class {
                 }
               }
 
-              original.revert = original.revert ?? JSON.parse(JSON.stringify(originalRender));
+              original.revert = original.revert ?? copyObject(originalRender);
 
               if (originalRender.lock != true || anno.lock == false) { // Can't edit another member's work:
                 if (anno.remove == true && editor.selecting[annoID] != null) {

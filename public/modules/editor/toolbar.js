@@ -369,13 +369,9 @@ modules["editor/toolbar"] = class {
         page.style.removeProperty("touch-action");
       }
     }
-    let lastToolModulePath;
     this.activateTool = async () => {
       editor.pinchZoomDisable = false;
       editor.usingStylus = false;
-      if (this.currentToolModulePath == lastToolModulePath) {
-        return;
-      }
       if (this.currentToolModule != null && this.currentToolModule.disable != null) {
         this.currentToolModule.disable();
       }
@@ -384,7 +380,6 @@ modules["editor/toolbar"] = class {
         newModule = await this.newModule(this.currentToolModulePath);
       }
       if (newModule != null) {
-        lastToolModulePath = this.currentToolModulePath;
         this.currentToolModule = newModule;
         newModule.editor = editor;
         if (newModule.activate != null) {
@@ -1080,7 +1075,7 @@ modules["editor/toolbar/pen"] = class {
         this.annotation.render.s[0] = Math.ceil(x);
       }
       let sizeIncY = y;
-      if (sizeIncY < this.annotation.d[1]) {
+      if (sizeIncY < this.annotation.render.d[1]) {
         this.annotation.render.d[1] = this.editor.utils.round(this.annotation.render.d[1] - sizeIncY);
         this.annotation.render.s[1] = this.editor.utils.round(this.annotation.render.s[1] - sizeIncY);
         this.annotation.render.p[1] = this.editor.utils.round(this.annotation.render.p[1] + sizeIncY);

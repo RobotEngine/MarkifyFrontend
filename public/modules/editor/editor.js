@@ -512,7 +512,7 @@ modules["editor/editor"] = class {
           annotation = this.annotations[annoid];
         }
         let type = (annotation.render || {}).f;
-        if (checkedTypes[type] != null) {
+        if (type == null || checkedTypes[type] != null) {
           continue;
         }
         checkedTypes[type] = true;
@@ -704,9 +704,14 @@ modules["editor/editor"] = class {
         return;
       }
       let render = annotation.render;
-      let chunks = [];
+      if (render == null) {
+        return;
+      }
 
-      if (render != null && render.remove != true) {
+      let chunks = [];
+      let annotationVisible = false;
+
+      if (render.remove != true) {
         let [x, y] = this.utils.getAbsolutePosition(render, includeSelecting);
         let [width, height] = render.s;
         let thick = 0;
@@ -737,17 +742,17 @@ modules["editor/editor"] = class {
         height = thickHeight + (changedHeight * 2);
         
         chunks = this.utils.regionInChunks(x, y, x + width, y + height);
-      }
-      let annotationVisible = false;
-      for (let i = 0; i < chunks.length; i++) {
-        let chunk = chunks[i];
-        if (this.chunkAnnotations[chunk] == null) {
-          this.chunkAnnotations[chunk] = {};
-          await this.render.setMarginSize();
-        }
-        this.chunkAnnotations[chunk][render._id] = "";
-        if (annotationVisible == false && this.visibleChunks.includes(chunk) == true) {
-          annotationVisible = true;
+
+        for (let i = 0; i < chunks.length; i++) {
+          let chunk = chunks[i];
+          if (this.chunkAnnotations[chunk] == null) {
+            this.chunkAnnotations[chunk] = {};
+            await this.render.setMarginSize();
+          }
+          this.chunkAnnotations[chunk][render._id] = "";
+          if (annotationVisible == false && this.visibleChunks.includes(chunk) == true) {
+            annotationVisible = true;
+          }
         }
       }
       if (annotation.chunks != null) {
@@ -770,10 +775,7 @@ modules["editor/editor"] = class {
           await this.render.create(annotation);
         }
       } else {
-        if (annotation.element != null) {
-          annotation.element.remove();
-          annotation.element = null;
-        }
+        this.render.remove(annotation);
       }
     }
     this.utils.pointInChunk = (x, y) => {
@@ -1421,7 +1423,7 @@ modules["editor/editor"] = class {
           if (long != true) {
             this.render.hide(annotation);
           } else {
-            this.render.remove(annotation);
+            this.utils.setAnnotationChunks({ ...annotation, render: { ...render, remove: true } });
             delete this.annotations[_id];
           }
         }
@@ -1533,7 +1535,7 @@ modules["editor/editor"] = class {
             delete annotation.revert;
             changeOccured = true;
           } else {
-            this.render.remove(annotation);
+            this.utils.setAnnotationChunks({ ...annotation, render: { ...annotation.render, remove: true } });
             delete this.annotations[annotation.render._id];
             changeOccured = true;
           }
@@ -2673,6 +2675,8 @@ modules["editor/render/shape"] = class {
   }
 }
 modules["editor/render/sticky"] = class {
+  CAN_PARENT_CHILDREN = true;
+
   css = {
     ".eAnnotation[sticky]": `display: flex; flex-direction: column; background: var(--themeColor); border-radius: 12px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all; overflow: auto; text-align: left`,
     //".eAnnotation[sticky]::-webkit-scrollbar": `display: none`, ; scrollbar-width: none

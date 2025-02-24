@@ -1669,9 +1669,11 @@ modules["editor/toolbar/opacity"] = class {
     let opacity = button.querySelector(".eSubToolOpacityHolder");
     await setSVG(opacity, "./images/editor/toolbar/opacity.svg");
     let svg = opacity.querySelector("svg");
-    let preference = this.parent.getToolPreference();
-    svg.querySelector("path").style.opacity = preference.opacity / 100;
-    svg.style.setProperty("--toolColor", "#" + (preference.color ?? {}).selected);
+    if (svg != null) {
+      let preference = this.parent.getToolPreference();
+      svg.querySelector("path").style.opacity = preference.opacity / 100;
+      svg.style.setProperty("--toolColor", "#" + (preference.color ?? {}).selected);
+    }
   }
 
   USER_SELECT = "none";

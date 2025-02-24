@@ -1761,10 +1761,10 @@ modules["editor/editor"] = class {
       annotation.render.m = this.self.modify;
       if (connected == true) {
         this.save.pendingSaves[annoID] = { _id: annoID, ...(this.save.pendingSaves[annoID] ?? {}), ...data, sync: getEpoch() };
-        this.save.syncSave();
       } else {
         this.pendingSaves = {};
       }
+      this.save.syncSave();
     }
 
     this.history = {};

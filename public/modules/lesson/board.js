@@ -97,7 +97,7 @@ modules["lesson/board"] = class {
     ".eUndo": `margin: 0 2px 0 4px; justify-content: end; border-radius: 16px 0 0 16px`,
     ".eRedo": `margin: 0 4px 0 2px; justify-content: start; border-radius: 0 16px 16px 0`,
     ".eStatusHolder": `display: flex; width: 32px; height: 32px; margin: 4px; justify-content: center; align-items: center`,
-    ".eStatus": `position: relative; width: 100%; height: 100%`,
+    ".eStatus": `position: relative; width: 100%; height: 100%; transform: scale(.9)`,
     ".eStatus > div": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; transition: .4s`,
     ".eStatus svg *": `transform-origin: center; transition: .4s`,
     ".eStatus[saving] [saved]": `opacity: 0`,
@@ -276,7 +276,7 @@ modules["lesson/board"] = class {
     }
     let currentStatusStrength;
     let currentStatusSaving = false;
-    this.updateStatus = async (saving) => {
+    this.updateStatus = (saving) => {
       if (currentStatusStrength != this.parent.signalStrength) {
         for (let i = 0; i < status.children.length; i++) {
           let child = status.children[i];

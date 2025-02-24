@@ -469,8 +469,7 @@ modules["editor/editor"] = class {
         thickness: thickness
       };
     }
-    this.utils.parentFromAnnotation = (anno, types, includeSelecting) => {
-      types = types ?? ["page"];
+    this.utils.parentFromAnnotation = async (anno, includeSelecting) => {
       let id = anno._id;
       let prevParent = anno.prevParent;
       if (prevParent != null) {
@@ -500,6 +499,28 @@ modules["editor/editor"] = class {
           }
         }
       }
+      let types = {};
+      let checkedTypes = {};
+      for (let i = 0; i < annotationIDs.length; i++) {
+        let annoid = annotationIDs[i];
+        if (annoid == null || annoid == id) {
+          continue;
+        }
+        let annotation = this.annotations[annoid] || {};
+        if (annotation.pointer != null) {
+          annoid = annotation.pointer;
+          annotation = this.annotations[annoid];
+        }
+        let type = (annotation.render || {}).f;
+        if (checkedTypes[type] != null) {
+          continue;
+        }
+        checkedTypes[type] = true;
+        let renderModule = await this.render.getModule(type);
+        if (renderModule != null && renderModule.CAN_PARENT_CHILDREN == true) {
+          types[type] = true;
+        }
+      }
       for (let i = 0; i < annotationIDs.length; i++) {
         let annoid = annotationIDs[i];
         if (annoid == null || annoid == id) {
@@ -514,7 +535,7 @@ modules["editor/editor"] = class {
         if (includeSelecting == true) {
           render = { ...render, ...(this.selecting[annoid] ?? {}) };
         }
-        if (types.includes(render.f) == false) {
+        if (types[render.f] == null) {
           continue;
         }
         if ((render.hidden == true || render.lock == true) && prevParent != annoid) {
@@ -550,8 +571,8 @@ modules["editor/editor"] = class {
       }
       return highestPageID;
     }
-    this.utils.parentFromPoint = (x, y, index, types) => {
-      return this.utils.parentFromAnnotation({ p: [x, y], l: index }, types);
+    this.utils.parentFromPoint = async (x, y, index) => {
+      return await this.utils.parentFromAnnotation({ p: [x, y], l: index });
     }
     this.utils.applyRelativePosition = (anno) => {
       let [setX, setY] = this.utils.getRelativePosition(anno);
@@ -1600,12 +1621,12 @@ modules["editor/editor"] = class {
       }
 
       // Check for a new parent:
-      let parent = this.utils.parentFromAnnotation({
+      let parent = await this.utils.parentFromAnnotation({
         ...merged,
         p: [position[0], position[1]],
         parent: null,
         prevParent: merged.parent
-      }, null, true);
+      }, true);
       if (parent != merged.parent) {
         data.parent = parent ?? null;
         let [newX, newY] = this.utils.getRelativePosition({

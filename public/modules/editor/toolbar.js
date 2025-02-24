@@ -1096,7 +1096,7 @@ modules["editor/toolbar/pen"] = class {
     }
     this.annotation.render.d = this.editor.math.simplifyPath(this.annotation.render.d, .75 / this.editor.zoom);
 
-    this.editor.save.push(this.annotation.render);
+    await this.editor.save.push(this.annotation.render);
     //this.editor.history.push("remove", [{ _id: this.annotation.render._id }]);
 
     this.annotation.render.done = true;

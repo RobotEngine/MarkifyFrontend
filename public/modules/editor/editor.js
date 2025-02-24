@@ -469,9 +469,8 @@ modules["editor/editor"] = class {
         thickness: thickness
       };
     }
-    this.utils.parentFromAnnotation = (anno, types, insert, includeSelecting) => {
+    this.utils.parentFromAnnotation = (anno, types, includeSelecting) => {
       types = types ?? ["page"];
-      insert = insert ?? {};
       let id = anno._id;
       let prevParent = anno.prevParent;
       if (prevParent != null) {
@@ -492,7 +491,6 @@ modules["editor/editor"] = class {
       let chunk = this.utils.pointInChunk(x, y);
       let annotationIDs = Object.keys(this.chunkAnnotations[chunk] ?? {});
       let viableParents = [];
-      let foundInsert = false;
       if (includeSelecting == true) { // We must check for if new annotations are valid!
         let selectKeys = Object.keys(this.selecting);
         for (let i = 0; i < selectKeys.length; i++) {
@@ -515,10 +513,6 @@ modules["editor/editor"] = class {
         let render = annotation.render || {}; // { ...(annotation.render ?? {}), ...(this.selecting[annoid] ?? {}) };
         if (includeSelecting == true) {
           render = { ...render, ...(this.selecting[annoid] ?? {}) };
-        }
-        if (insert._id == annoid) {
-          foundInsert = true;
-          render = { ...render, ...insert };
         }
         if (types.includes(render.f) == false) {
           continue;
@@ -544,9 +538,6 @@ modules["editor/editor"] = class {
             }
           }
         }
-      }
-      if (insert._id != null && foundInsert == false) {
-        viableParents.push(insert);
       }
       let highestPageID;
       let highestLayer;
@@ -1461,7 +1452,11 @@ modules["editor/editor"] = class {
     this.chunkAnnotations["-" + this.chunkWidth + "_-" + this.chunkHeight] = {};
     
     this.save = {};
+    this.save.pendingSaves = {};
     this.save.timeoutAnnotations = [];
+    this.save.syncSave = async () => {
+
+    }
     this.save.enableTimeout = async (anno, collab) => {
       if (anno == null) {
         return;
@@ -1527,7 +1522,7 @@ modules["editor/editor"] = class {
           this.pipeline.publish("redraw_selection", { redrawAction: redrawAction });
         }
       }
-      this.runningTimeout = false;
+      this.save.runningTimeout = false;
     }
     this.save.apply = async (save, noTimeout) => {
       if (save.resizing != null) {
@@ -1588,10 +1583,52 @@ modules["editor/editor"] = class {
       let annotation = this.annotations[data._id] ?? { render: {} };
       if (annotation.pointer != null) {
         data._id = annotation.pointer;
-        annotation = editor.annotations[data._id] ?? { render: {} };
+        annotation = this.annotations[data._id] ?? { render: {} };
       }
       let annoID = data._id;
+
+      let merged = { ...(annotation.render ?? {}), ...data };
+      if (merged.p == null || merged.s == null) {
+        return;
+      }
+      let position = this.utils.getAbsolutePosition(merged);
+      let thickness = 0;
+      if (merged.t != null) {
+        if (merged.b != "none" || merged.d == "line") {
+          thickness = merged.t;
+        }
+      }
+
+      // Check for a new parent:
+      let parent = this.utils.parentFromAnnotation({
+        ...merged,
+        p: [position[0], position[1]],
+        parent: null,
+        prevParent: merged.parent
+      }, null, true);
+      if (parent != merged.parent) {
+        data.parent = parent ?? null;
+        let [newX, newY] = this.utils.getRelativePosition({
+          ...merged,
+          parent: data.parent,
+          p: [position[0], position[1]]
+        });
+        data.p = [newX, newY];
+        this.realtimeSelect[data._id] = { ...(this.realtimeSelect[data._id] ?? {}), ...data };
+        merged = { ...merged, ...data };
+      }
+
+      await this.save.apply(data, null); // Apply Save
       
+
+      annotation.save = true;
+      annotation.render.m = this.self.modify;
+      if (connected == true) {
+        this.save.pendingSaves[annoID] = { _id: annoID, ...(this.save.pendingSaves[annoID] ?? {}), ...data, sync: getEpoch() };
+        this.save.syncSave();
+      } else {
+        this.pendingSaves = {};
+      }
     }
 
     this.history = {};

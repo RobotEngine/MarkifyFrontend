@@ -988,8 +988,6 @@ modules["editor/toolbar/pen"] = class {
     this.parent.toolbar.closeSubSub(true);
     let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
     let position = this.editor.utils.scaleToDoc(mouseX, mouseY);
-    this.startX = position.x;
-    this.startY = position.y;
     let toolPreference = this.parent.getToolPreference();
     this.annotation = {
       render: {
@@ -1097,20 +1095,15 @@ modules["editor/toolbar/pen"] = class {
       return;
     }
     this.annotation.render.d = this.editor.math.simplifyPath(this.annotation.render.d, .75 / this.editor.zoom);
-    let parentID = this.editor.utils.parentFromPoint(this.startX, this.startY);
-    if (parentID != null) {
-      this.annotation.render.parent = parentID;
-      this.editor.utils.applyRelativePosition(this.annotation.render);
-    }
 
-    await this.editor.render.create(this.annotation); // TEMP
-    //this.editor.save.push(this.annotation);
+    this.editor.save.push(this.annotation.render);
     //this.editor.history.push("remove", [{ _id: this.annotation.render._id }]);
 
     this.annotation.render.done = true;
     await this.editor.realtime.forceShort();
     this.editor.usingStylus = false;
     delete this.editor.selecting[this.annotation.render._id];
+    this.editor.render.remove(this.annotation);
     this.annotation = null;
   }
   activate = () => {

@@ -995,7 +995,7 @@ modules["editor/toolbar/pen"] = class {
         f: "draw",
         p: [this.editor.utils.round(position.x - toolPreference.thickness), this.editor.utils.round(position.y - toolPreference.thickness)],
         s: [0, 0],
-        l: this.editor.utils.maxLayer + 1,
+        l: this.editor.maxLayer + 1,
         c: toolPreference.color.selected,
         t: toolPreference.thickness,
         o: toolPreference.opacity,

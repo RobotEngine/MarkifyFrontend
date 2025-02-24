@@ -277,7 +277,6 @@ modules["lesson/board"] = class {
     let currentStatusStrength;
     let currentStatusSaving = false;
     this.updateStatus = async (saving) => {
-      currentStatusSaving = saving ?? currentStatusSaving;
       if (currentStatusStrength != this.parent.signalStrength) {
         for (let i = 0; i < status.children.length; i++) {
           let child = status.children[i];
@@ -289,6 +288,7 @@ modules["lesson/board"] = class {
         }
         currentStatusStrength = this.parent.signalStrength;
       }
+      currentStatusSaving = saving ?? currentStatusSaving;
       if (currentStatusSaving == true) {
         status.setAttribute("saving", "");
       } else {

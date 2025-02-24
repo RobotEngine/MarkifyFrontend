@@ -1477,8 +1477,121 @@ modules["editor/editor"] = class {
     this.save = {};
     this.save.pendingSaves = {};
     this.save.timeoutAnnotations = [];
-    this.save.syncSave = async () => {
+    this.save.syncSave = async (skip) => {
       this.pipeline.publish("save_status", { saving: true });
+      if (this.save.runningSyncSave == true && skip != true) {
+        return;
+      }
+      this.save.runningSyncSave = true;
+      let keys = Object.keys(this.save.pendingSaves);
+      while (keys.length > 0) {
+        if (skip != true) {
+          await sleep(2500); // 1 save per 2.5 seconds
+        } else {
+          skip = false;
+        }
+        if (connected == false) {
+          break;
+        }
+        keys = Object.keys(this.save.pendingSaves);
+        let setPendingSave = {};
+        let mutations = [];
+        for (let i = 0; i < keys.length; i++) {
+          let mutt = this.save.pendingSaves[keys[i]];
+          if (mutt.annoRefresh != null && mutt.annoRefresh.render != null) {
+            mutt._id = mutt.annoRefresh.render._id;
+            delete mutt.annoRefresh;
+          }
+          let anno = this.annotations[mutt._id];
+          if (anno != null && anno.pointer != null) {
+            mutt._id = anno.pointer;
+            anno = this.annotations[mutt._id];
+          }
+          if (anno == null) {
+            continue;
+          }
+          if (anno.render == null) {
+            delete this.annotations[mutt._id];
+            continue;
+          }
+          if (mutations.length > 249) {
+            setPendingSave[mutt._id] = mutt;
+            this.save.enableTimeout(anno);
+            continue;
+          }
+          if ((mutt.parent ?? "").startsWith("pending_") == true && mutt.remove != true) {
+            let parentAnno = this.annotations[mutt.parent];
+            if (parentAnno != null) {
+              if (parentAnno.pointer != null) {
+                mutt.parent = parentAnno.pointer;
+                parentAnno = this.annotations[mutt.parent];
+              } else {
+                setPendingSave[mutt._id] = mutt;
+                this.save.enableTimeout(anno);
+                continue;
+              }
+              if ((parentAnno.render ?? {}).remove == true) {
+                continue;
+              }
+            }
+          }
+          delete mutt.sig;
+          delete anno.save;
+          if (anno.retry > 0) {
+            this.save.enableTimeout(anno);
+            anno.retry--;
+          }
+          if (mutt._id.startsWith("pending_") == true) {
+            if (mutt.f == null) {
+              mutt.annoRefresh = anno;
+              setPendingSave[mutt._id] = mutt;
+              continue;
+            } else if (mutt.remove == true) {
+              continue;
+            }
+          }
+          mutations.push(mutt);
+        }
+        this.save.pendingSaves = {};
+        if (mutations.length < 1 && Object.keys(setPendingSave).length < 1) {
+          break;
+        }
+        let saveSuccess = false;
+        try {
+          let [result] = await sendRequest("POST", "lessons/save", { mutations: mutations }, { session: this.session });
+          saveSuccess = result == 200;
+        } catch (err) {
+          console.log("SAVE ERROR:", err);
+        }
+        if (saveSuccess == false) { // If not saved, set to try again
+          for (let i = 0; i < mutations.length; i++) {
+            let anno = this.annotations[mutations[i]._id];
+            if (anno == null) {
+              continue;
+            }
+            if (anno.pointer != null) {
+              anno = this.annotations[anno.pointer];
+            }
+            if (anno.retry == null) {
+              anno.retry = 3;
+            }
+            if (anno != null && anno.retry > 0) {
+              setPendingSave[mutations[i]._id] = mutations[i];
+              anno.save = true;
+            }
+          }
+        }
+        this.save.pendingSaves = { ...this.save.pendingSaves, ...setPendingSave };
+        if (skip != true) {
+          keys = Object.keys(this.save.pendingSaves);
+        } else {
+          keys = [];
+        }
+      }
+      if (connected == true) {
+        this.pipeline.publish("save_status", { saving: false });
+      }
+      this.save.runningSyncSave = false;
     }
     this.save.enableTimeout = async (anno, collab) => {
       if (anno == null) {

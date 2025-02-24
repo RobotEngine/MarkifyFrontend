@@ -284,6 +284,41 @@ modules["editor/editor"] = class {
         return true;
       }
       return false;
+    },
+    isPointOnLine: (x, y, x1, y1, x2, y2, tolerance) => {
+      let A = x - x1;
+      let B = y - y1;
+      let C = x2 - x1;
+      let D = y2 - y1;
+
+      let dot = A * C + B * D;
+      let lenSq = C * C + D * D;
+      let param = dot / lenSq;
+
+      let closestX, closestY;
+
+      if (param < 0 || (x1 == x2 && y1 == y2)) {
+        closestX = x1;
+        closestY = y1;
+      } else if (param > 1) {
+        closestX = x2;
+        closestY = y2;
+      } else {
+        closestX = x1 + param * C;
+        closestY = y1 + param * D;
+      }
+
+      let dx = x - closestX;
+      let dy = y - closestY;
+      let distance = Math.sqrt(dx * dx + dy * dy);
+
+      return distance <= tolerance;
+    },
+    rotatePoint: (pointX, pointY, angle) => {
+      let radian = -(angle ?? 0) * (Math.PI / 180);
+      let newX = (Math.cos(radian) * pointX) - (Math.sin(radian) * pointY);
+      let newY = (Math.sin(radian) * pointX) + (Math.cos(radian) * pointY);
+      return [newX, newY];
     }
   }
 
@@ -1770,6 +1805,9 @@ modules["editor/editor"] = class {
     this.history = {};
     this.history.history = [];
     this.history.location = -1;
+    this.history.push = (type, changes, caret) => {
+      
+    }
 
     let updateSubTimeout;
     let updatePageTimeout;
@@ -2422,6 +2460,8 @@ modules["dropdowns/lesson/zoom"] = class {
 
 // Annotation Modules:
 modules["editor/render/draw"] = class {
+  CAN_ERASE = true;
+  
   render = (anno, element, holder) => {
     let halfT = anno.t / 2;
     let width = anno.s[0] + anno.t;
@@ -2489,6 +2529,8 @@ modules["editor/render/draw"] = class {
   }
 }
 modules["editor/render/markup"] = class {
+  CAN_ERASE = true;
+
   render = (anno, element, holder) => {
     if (element == null) {
       holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>

@@ -373,7 +373,7 @@ modules["editor/toolbar"] = class {
       editor.pinchZoomDisable = false;
       editor.usingStylus = false;
       if (this.currentToolModule != null && this.currentToolModule.disable != null) {
-        this.currentToolModule.disable();
+        await this.currentToolModule.disable();
       }
       let newModule;
       if (this.currentToolModulePath != null) {
@@ -922,8 +922,6 @@ modules["editor/toolbar/pan"] = class {
   USER_SELECT = "none";
   MOUSE = { type: "set", value: "grab" };
 
-  dragging = false;
-
   clickStart = (event) => {
     if (event.target != null && event.target.closest("button") != null) {
       return;
@@ -1097,14 +1095,14 @@ modules["editor/toolbar/pen"] = class {
     this.annotation.render.d = this.editor.math.simplifyPath(this.annotation.render.d, .75 / this.editor.zoom);
 
     await this.editor.save.push(this.annotation.render);
-    //this.editor.history.push("remove", [{ _id: this.annotation.render._id }]);
+    await this.editor.history.push("remove", [{ _id: this.annotation.render._id }]);
 
     this.annotation.render.done = true;
     await this.editor.realtime.forceShort();
-    this.editor.usingStylus = false;
     delete this.editor.selecting[this.annotation.render._id];
     this.editor.render.remove(this.annotation);
     this.annotation = null;
+    this.editor.usingStylus = false;
   }
   activate = () => {
     let toolPreference = this.parent.getToolPreference();
@@ -1124,6 +1122,7 @@ modules["editor/toolbar/pen"] = class {
 
 modules["editor/toolbar/highlighter"] = class {
   USER_SELECT = "none";
+  TOUCH_ACTION = null;
   REALTIME_TOOL = 1;
   MOUSE = { type: "svg", url: "./images/editor/cursors/highlighter.svg", translate: { x: 15, y: 30 } };
   PUBLISH = {};
@@ -1139,8 +1138,163 @@ modules["editor/toolbar/highlighter"] = class {
 
 modules["editor/toolbar/eraser"] = class {
   USER_SELECT = "none";
+  TOUCH_ACTION = null;
   REALTIME_TOOL = 3;
   MOUSE = { type: "svg", url: "./images/editor/cursors/eraser.svg", translate: { x: 20, y: 20 } };
+  PUBLISH = {};
+  
+  clickStart = async (event) => {
+    if (event.changedTouches != null && event.changedTouches[0] != null) {
+      let touch = event.changedTouches[0];
+      if (touch.touchType == "stylus") {
+        this.editor.usingStylus = true;
+      } else if (this.editor.options.stylusmode == true) {
+        return;
+      }
+    } else if (this.editor.options.stylusmode == true) {
+      return;
+    }
+    event.preventDefault();
+    this.erasing = true;
+    this.clickMove(event);
+    this.parent.toolbar.closeSubSub(true);
+  }
+  clickMove = async (event) => {
+    if (this.erasing != true) {
+      return;
+    }
+    if (mouseDown() == false) {
+      return this.clickEnd();
+    }
+    if (event.touches != null && event.touches.length > 1) {
+      return;
+    }
+    if (this.editor.usingStylus == true) {
+      if (event.changedTouches != null && event.changedTouches[0] != null) {
+        let touch = event.changedTouches[0];
+        if (touch.touchType != "stylus") {
+          return;
+        }
+      } else {
+        return;
+      }
+    }
+    event.preventDefault();
+    
+    let { mouseX: x1, mouseY: y1 } = this.editor.utils.localMousePosition(event);
+    let x0 = this.x0 ?? x1;
+    let y0 = this.y0 ?? x0;
+    let dx = Math.abs(x1 - x0);
+    let dy = Math.abs(y1 - y0);
+    let sx = (x0 < x1) ? 1 : -1;
+    let sy = (y0 < y1) ? 1 : -1;
+    let err = dx - dy;
+
+    while (true) {
+      let annos = document.elementsFromPoint(x0, y0);
+
+      let { x: scaledX, y: scaledY } = await this.editor.utils.scaleToDoc(x0, y0);
+
+      for (let i = 0; i < annos.length; i++) {
+        let anno = annos[i].closest(".eAnnotation");
+        if (anno == null || anno.hasAttribute("hidden") == true) {
+          continue;
+        }
+        let annoID = anno.getAttribute("anno");
+        let render = (this.editor.annotations[annoID] ?? {}).render;
+        if (render == null) {
+          continue;
+        }
+        if (this.editor.settings.editOthersWork != true && [render.a, render.m].includes(this.editor.self.modify) == false && this.editor.self.access < 4) { // Can't edit another member's work:
+          continue;
+        }
+        if (render.lock == true) {
+          continue;
+        }
+        let renderModule = await this.editor.render.getModule(render.f);
+        if (renderModule == null || renderModule.CAN_ERASE != true) {
+          continue;
+        }
+        let drawing = anno.querySelector(":scope > svg > polyline");
+        if (drawing == null || drawing.hasAttribute("points") == false) {
+          continue;
+        }
+        let strokeWidth = parseInt(drawing.getAttribute("stroke-width"));
+
+        // See if valid annotation is by eraser line:
+        let position = this.editor.utils.getAbsolutePosition(render);
+        let xPos = scaledX - position[0];
+        let yPos = scaledY - position[1];
+        if (render.s[0] < 0) {
+          xPos -= render.s[0];
+        }
+        if (render.s[1] < 0) {
+          yPos -= render.s[1];
+        }
+
+        let points = drawing.points;
+        let halfWidth = drawing.parentElement.viewBox.baseVal.width / 2;
+        let halfHeight = drawing.parentElement.viewBox.baseVal.height / 2;
+        for (let i = 1; i < points.numberOfItems; i++) {
+          let prevPoint = points.getItem(i - 1);
+          let prevRelativeX = prevPoint.x - halfWidth;
+          let prevRelativeY = -(prevPoint.y - halfHeight);
+          let point = points.getItem(i);
+          let pRelativeX = point.x - halfWidth;
+          let pRelativeY = -(point.y - halfHeight);
+          if (render.s[0] < 0) {
+            prevRelativeX *= -1;
+            pRelativeX *= -1;
+          }
+          if (render.s[1] < 0) {
+            prevRelativeY *= -1;
+            pRelativeY *= -1;
+          }
+          let [prevPointX, prevPointY] = this.editor.math.rotatePoint(prevRelativeX, prevRelativeY, render.r);
+          let [pointX, pointY] = this.editor.math.rotatePoint(pRelativeX, pRelativeY, render.r);
+          if (this.editor.math.isPointOnLine(xPos, yPos, prevPointX + halfWidth, (-prevPointY) + halfHeight, pointX + halfWidth, (-pointY) + halfHeight, (strokeWidth / 2) + 10)) {
+            anno.setAttribute("hidden", "");
+            await this.editor.history.push("add", [render]);
+            let updateAnno = { _id: annoID, remove: true };
+            await this.editor.save.push(updateAnno);
+            this.PUBLISH.u = updateAnno;
+            await this.editor.realtime.forceShort();
+            delete this.PUBLISH.u;
+          }
+        }
+      }
+
+      if (x0 === x1 && y0 === y1) {
+        break;
+      }
+      
+      let e2 = 2 * err;
+      if (e2 > -dy) {
+        err -= dy;
+        x0 += sx;
+      }
+      if (e2 < dx) {
+        err += dx;
+        y0 += sy;
+      }
+    }
+    this.x0 = x1;
+    this.y0 = y1;
+  }
+  clickEnd = () => {
+    this.erasing = false;
+    this.x0 = null;
+    this.y0 = null;
+    this.editor.usingStylus = false;
+  }
+  activate = () => {
+    if (this.editor.options.stylusmode != true) {
+      this.TOUCH_ACTION = "pinch-zoom";
+    } else {
+      editor.pinchZoomDisable = true;
+    }
+  }
+  disable = this.clickEnd;
 }
 
 modules["editor/toolbar/color"] = class {

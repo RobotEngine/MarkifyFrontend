@@ -12,15 +12,11 @@ modules["lesson/board"] = class {
           <div class="eTopDivider"></div>
           <button class="eSaveProgress eUndo" disabled></button>
           <button class="eSaveProgress eRedo" disabled></button>
-          <div class="eStatus">
-            <div class="eStatusStrength" full>
-              <svg saved width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="15.2344" cy="15.2344" r="12.4219" stroke="#48A7FF" stroke-width="3.75"/>
-                <path d="M9.4375 15.9905L13.1524 19.7054C13.8847 20.4377 15.0719 20.4377 15.8041 19.7054L25.6399 9.86957" stroke="white" stroke-width="7.5" stroke-linecap="round"/>
-                <path d="M9.4375 15.793L13.9458 20.061C14.3073 20.4033 14.8733 20.4033 15.2348 20.061L26 9.86957" stroke="#48A7FF" stroke-width="3.75" stroke-linecap="round"/>
-              </svg>
-            </div>
-          </div>
+          <div class="eStatusHolder"><div class="eStatus">
+            <div strength="3" title="Strong Connection | All features seamlessly synced to the cloud."></div>
+            <div strength="2" title="Weak Connection | Cloud-saved annotations, limited real-time features."></div>
+            <div strength="1" title="No Connection | Changes stored on-device, synced to cloud upon reconnecting."></div>
+          </div></div>
         </div>
         <div class="eTopSection" scroll>
           <div class="eTopDivider"></div>
@@ -100,8 +96,14 @@ modules["lesson/board"] = class {
     ".eSaveProgress svg": `width: 24px; height: 24px; margin: 2px`,
     ".eUndo": `margin: 0 2px 0 4px; justify-content: end; border-radius: 16px 0 0 16px`,
     ".eRedo": `margin: 0 4px 0 2px; justify-content: start; border-radius: 0 16px 16px 0`,
-    ".eStatus": `display: flex; width: 32px; height: 32px; margin: 4px; justify-content: center; align-items: center`,
-    ".eStatusStrength": `display: flex; width: 100%; height: 100%; justify-content: center; align-items: center`,
+    ".eStatusHolder": `display: flex; width: 32px; height: 32px; margin: 4px; justify-content: center; align-items: center`,
+    ".eStatus": `position: relative; width: 100%; height: 100%`,
+    ".eStatus > div": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; transition: .4s`,
+    ".eStatus svg *": `transform-origin: center; transition: .4s`,
+    ".eStatus[saving] [saved]": `opacity: 0`,
+    ".eStatus:not([saving]) [saving]": `opacity: 0`,
+    ".eStatus [animation]": `animation: eStatusSpinAnimation 2s linear infinite`,
+    "@keyframes eStatusSpinAnimation": `from { transform: rotate(0deg) } to { transform: rotate(360deg) }`,
 
     ".eMembers": `display: flex; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--hover); border-radius: 16px; align-items: center; font-size: 16px; font-weight: 600`,
     ".eMembers span": `display: none; min-width: 12px; height: 24px; padding: 0px 6px; margin-right: 5px; justify-content: center; align-items: center; background: #fff; border-radius: 12px; font-weight: 700`,
@@ -272,7 +274,28 @@ modules["lesson/board"] = class {
       }
       updateTopBar();
     }
-
+    let currentStatusStrength;
+    let currentStatusSaving = false;
+    this.updateStatus = async (saving) => {
+      currentStatusSaving = saving ?? currentStatusSaving;
+      if (currentStatusStrength != this.parent.signalStrength) {
+        for (let i = 0; i < status.children.length; i++) {
+          let child = status.children[i];
+          if (parseInt(child.getAttribute("strength")) != this.parent.signalStrength) {
+            child.setAttribute("hidden", "");
+          } else {
+            child.removeAttribute("hidden");
+          }
+        }
+        currentStatusStrength = this.parent.signalStrength;
+      }
+      if (currentStatusSaving == true) {
+        status.setAttribute("saving", "");
+      } else {
+        status.removeAttribute("saving");
+      }
+    }
+    this.updateStatus();
     this.updateMemberCount = (button) => {
       let memberCountTx = button.querySelector(".eMemberCount");
       let handCountTx = button.querySelector(".eMemberHandCount");
@@ -451,10 +474,16 @@ modules["lesson/board"] = class {
     setSVG(icon, "./images/icon.svg", (svg) => { return svg.replace(/"#0084FF"/g, '"var(--theme)"'); });
     setSVG(undoButton, "./images/tooltips/progress/undo.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
     setSVG(redoButton, "./images/tooltips/progress/redo.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
+    setSVG(status.querySelector('div[strength="3"]'), "./images/editor/status/full.svg");
+    setSVG(status.querySelector('div[strength="2"]'), "./images/editor/status/weak.svg");
+    setSVG(status.querySelector('div[strength="1"]'), "./images/editor/status/none.svg");
     setSVG(endSessionButton, "./images/editor/share/endeditors.svg", (svg) => { return svg.replace(/"#FF2F5A"/g, '"var(--error)"'); });
     setSVG(optionsButton, "./images/editor/share/setting.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
     setSVG(increasePageButton, "./images/editor/bottom/plus.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
     setSVG(decreasePageButton, "./images/editor/bottom/minus.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
+
+    this.editor.pipeline.subscribe("statusSignalStrengthUpdate", "signal_strength", () => { this.updateStatus(); });
+    this.editor.pipeline.subscribe("statusSavingUpdate", "save_status", (event) => { this.updateStatus(event.saving); });
 
     this.editor.pipeline.subscribe("zoomTextUpdate", "zoom_change", (event) => {
       zoomButton.textContent = Math.round(event.zoom * 100) + "%";

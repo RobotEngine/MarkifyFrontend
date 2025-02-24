@@ -1478,7 +1478,7 @@ modules["editor/editor"] = class {
     this.save.pendingSaves = {};
     this.save.timeoutAnnotations = [];
     this.save.syncSave = async () => {
-
+      this.pipeline.publish("save_status", { saving: true });
     }
     this.save.enableTimeout = async (anno, collab) => {
       if (anno == null) {
@@ -2096,7 +2096,7 @@ modules["dropdowns/lesson/zoom"] = class {
   </div>
   <div class="eZoomLine"></div>
   <button class="eZoomAction" option="snapping" local title="Snap elements to guides while moving and resizing."><div label>Snapping</div><div class="eZoomToggle"><div></div></div></button>
-  <button class="eZoomAction" option="cursors" title="Display the cursors of other editors."><div label>Show Cursors</div><div class="eZoomToggle"><div></div></div></button>
+  <button class="eZoomAction" option="cursors"><div label>Show Cursors</div><div class="eZoomToggle"><div></div></div></button>
   <button class="eZoomAction" option="cursornames" local title="Show the member's name when they're annotating."><div label>Cursor Names</div><div class="eZoomToggle"><div></div></div></button>
   <button class="eZoomAction" option="stylusmode" local title="Only write on the document when using an active stylus, such as the Apple Pencil."><div label>Stylus Mode</div><div class="eZoomToggle"><div></div></div></button>
   <!--<button class="eZoomAction" option="comments" title="Show comments on the document."><div label>Comments</div><div class="eZoomToggle"><div></div></div></button>-->
@@ -2212,12 +2212,20 @@ modules["dropdowns/lesson/zoom"] = class {
     let cursorZoomAction = frame.querySelector('.eZoomAction[option="cursors"]');
     let namesZoomAction = frame.querySelector('.eZoomAction[option="cursornames"]');
     let fullscreenZoomAction = frame.querySelector('.eZoomAction[option="fullscreen"]');
-    if (editor.parent.parent.signalStrength < 3) {
-      cursorZoomAction.style.opacity = 0.5;
-      cursorZoomAction.title = "Cursors disabled due to weak connection.";
-      namesZoomAction.style.opacity = 0.5;
+    let updateZoomActions = () => {
+      if (editor.parent.parent.signalStrength < 3) {
+        cursorZoomAction.style.opacity = 0.5;
+        cursorZoomAction.title = "Cursors disabled due to weak connection.";
+        namesZoomAction.style.opacity = 0.5;
+      } else {
+        cursorZoomAction.style.opacity = 1;
+        cursorZoomAction.title = "Display the cursors of other editors.";
+        namesZoomAction.style.opacity = 1;
+      }
     }
-    if (cursorZoomAction.hasAttribute("off")) {
+    editor.pipeline.subscribe("zoomDropdownSignalStrength", "signal_strength", updateZoomActions);
+    updateZoomActions();
+    if (cursorZoomAction.hasAttribute("off") == true) {
       namesZoomAction.setAttribute("disabled", "");
     }
     frame.addEventListener("click", (event) => {
@@ -2675,8 +2683,6 @@ modules["editor/render/shape"] = class {
   }
 }
 modules["editor/render/sticky"] = class {
-  CAN_PARENT_CHILDREN = true;
-
   css = {
     ".eAnnotation[sticky]": `display: flex; flex-direction: column; background: var(--themeColor); border-radius: 12px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all; overflow: auto; text-align: left`,
     //".eAnnotation[sticky]::-webkit-scrollbar": `display: none`, ; scrollbar-width: none

@@ -569,8 +569,7 @@ function getSVG(path) {
         delete cachedSVGs[cachedSVGArray.pop()];
       }
       return resolve(text);
-    } catch (error) {
-      console.error("Failed to fetch SVG:", error);
+    } catch {
       return resolve();
     }
   });

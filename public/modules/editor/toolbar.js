@@ -1228,7 +1228,7 @@ modules["editor/toolbar/eraser"] = class {
         let rect = this.editor.utils.getRect(render);
         let xPos = scaledX - rect.x;
         let yPos = scaledY - rect.y;
-
+        let halfT = rect.thickness / 2;
         if (rect.width < 0) {
           xPos -= rect.width;
         }
@@ -1256,7 +1256,7 @@ modules["editor/toolbar/eraser"] = class {
           }
           let [prevPointX, prevPointY] = this.editor.math.rotatePoint(prevRelativeX, prevRelativeY, render.r);
           let [pointX, pointY] = this.editor.math.rotatePoint(pRelativeX, pRelativeY, render.r);
-          if (this.editor.math.isPointOnLine(xPos, yPos, prevPointX + halfWidth, prevPointY + halfHeight, pointX + halfWidth, pointY + halfHeight, Math.max(strokeWidth / 2, 10)) == true) {
+          if (this.editor.math.isPointOnLine(xPos - halfT, yPos - halfT, prevPointX + halfWidth, prevPointY + halfHeight, pointX + halfWidth, pointY + halfHeight, Math.max(strokeWidth / 2, 8)) == true) {
             await this.editor.history.push("add", [render]);
             let updateAnno = { _id: annoID, remove: true };
             await this.editor.save.push(updateAnno);

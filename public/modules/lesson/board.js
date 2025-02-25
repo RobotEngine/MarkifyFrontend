@@ -25,7 +25,7 @@ modules["lesson/board"] = class {
           <button class="eMembers"><span class="eMemberHandCount" title="Number of hands raised."></span><span class="eMemberIdleCount" title="Number of idle members."></span><span class="eMemberCount" title="Number of members."></span>Members</button>
           <button class="eEndSession" title="End Session | Disable all editing access making everyone a viewer."></button>
           <button class="eShare">Share</button>
-          <button class="eMemberOptions" dropdowntitle="Options" title="Member Options | Configure various member settings and available tools."></button>
+          <button class="eMemberOptions" dropdowntitle="Member Options" title="Member Options | Configure various member settings and available tools."></button>
           <button class="eSharePin"></button>
           <div class="eTopDivider"></div>
           <button class="eZoom">100%</button>
@@ -186,13 +186,15 @@ modules["lesson/board"] = class {
     let increasePageButton = currentPageHolder.querySelector(".ePageNav[down]");
     let decreasePageButton = currentPageHolder.querySelector(".ePageNav[up]");
 
-    this.editor = await this.setFrame("editor/editor", contentHolder);
-    this.editor.id = this.parent.id;
-    this.editor.self = this.parent.self;
-    this.editor.session = this.parent.session;
-    this.editor.sessionID = this.parent.sessionID;
-    this.editor.sources = this.parent.sources;
-    this.editor.settings = this.parent.lesson.settings ?? {};
+    this.editor = await this.setFrame("editor/editor", contentHolder, {
+      id: this.parent.id,
+      self: this.parent.self,
+      session: this.parent.session,
+      sessionID: this.parent.sessionID,
+      sources: this.parent.sources,
+      settings: this.parent.lesson.settings ?? {},
+      resync: this.resync
+    });
 
     let stringPref = JSON.stringify(this.parent.preferences); // Must be duplicated
     this.editor.preferences = JSON.parse(stringPref);
@@ -347,6 +349,7 @@ modules["lesson/board"] = class {
     let icon = eTop.querySelector(".eLogo");
     icon.addEventListener("click", (event) => {
       event.preventDefault();
+      this.editor.save.syncSave(true);
       setFrame("pages/dashboard");
     });
     lessonName.textContent = this.lesson.name ?? "Untitled Lesson";
@@ -589,6 +592,7 @@ modules["lesson/board"] = class {
       } else {
         sharePinButton.style.removeProperty("display");
       }
+      this.updateInterface();
     });
     this.editor.pipeline.subscribe("boardMemberJoin", "join", () => { this.updateMemberCount(membersButton); });
     this.editor.pipeline.subscribe("boardMemberLeave", "leave", () => { this.updateMemberCount(membersButton); });

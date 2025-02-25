@@ -378,6 +378,8 @@ modules["editor/editor"] = class {
   minLayer = 0;
 
   js = async (frame, extra) => {
+    objectUpdate(extra ?? {}, this);
+
     let page = frame.closest(".lPage");
     let contentHolder = page.querySelector(".eContentHolder");
     let content = contentHolder.querySelector(".eContent");
@@ -1507,6 +1509,12 @@ modules["editor/editor"] = class {
         annotation.element.remove();
         annotation.element = null;
       }
+      (async () => {
+        let renderModule = await this.render.getModule(render.f);
+        if (renderModule != null && renderModule.remove != null) {
+          renderModule.remove(annotation);
+        }
+      })();
       this.pipeline.unsubscribe("annotation" + render._id);
     }
     this.chunkAnnotations["0_0"] = {};
@@ -1515,14 +1523,16 @@ modules["editor/editor"] = class {
     this.chunkAnnotations["-" + this.chunkWidth + "_-" + this.chunkHeight] = {};
     
     this.save = {};
+    this.save.synced = true;
     this.save.pendingSaves = {};
     this.save.timeoutAnnotations = [];
     this.save.syncSave = async (skip) => {
-      this.pipeline.publish("save_status", { saving: true });
       if (this.save.runningSyncSave == true && skip != true) {
         return;
       }
       this.save.runningSyncSave = true;
+      this.save.synced = false;
+      this.pipeline.publish("save_status", { saving: true });
       let keys = Object.keys(this.save.pendingSaves);
       while (keys.length > 0) {
         if (skip != true) {
@@ -1629,6 +1639,7 @@ modules["editor/editor"] = class {
         }
       }
       if (connected == true) {
+        this.save.synced = true;
         this.pipeline.publish("save_status", { saving: false });
       }
       this.save.runningSyncSave = false;
@@ -1806,6 +1817,21 @@ modules["editor/editor"] = class {
       }
       this.save.syncSave();
     }
+    if (this.resync != null && this.resync.annotations != null) {
+      let resyncKeys = Object.keys(this.resync.annotations);
+      for (let i = 0; i < resyncKeys.length; i++) {
+        let anno = this.resync.annotations[resyncKeys[i]];
+        if (anno.save == true && (anno.render._id.includes("pending_") == false || anno.render.remove != true)) {
+          delete anno.expire;
+          this.annotations[anno.render._id] = anno;
+          this.save.pendingSaves[anno.render._id] = { ...this.save.pendingSaves[anno.render._id], ...anno.render };
+        }
+      }
+      this.save.syncSave(true);
+    }
+    if (this.parent != null && this.parent.pageID != null && (window.resync ?? {}).pageSync != null) {
+      window.resync.pageSync[this.parent.pageID] = { annotations: this.annotations };
+    }
 
     this.history = {};
     this.history.history = [];
@@ -1814,6 +1840,15 @@ modules["editor/editor"] = class {
 
     }
 
+    this.updateInterface = () => {
+      if (this.settings.anonymousMode == true) {
+        content.setAttribute("anonymous", "");
+      } else {
+        content.removeAttribute("anonymous");
+      }
+    }
+    this.updateInterface();
+    
     let updateSubTimeout;
     let updatePageTimeout;
     let loadedChunks = {};
@@ -2060,6 +2095,24 @@ modules["editor/editor"] = class {
           this.realtime.module.exitObserve();
           alertModule.open("warning", "<b>Member Left</b>The member you were observing left.");
         }
+      }
+    });
+
+    this.pipeline.subscribe("editorSettingsUpdate", "set", (data) => {
+      if (data.settings != null) {
+        objectUpdate(data.settings, this.settings);
+      }
+      this.updateInterface();
+    });
+
+    this.pipeline.subscribe("editorCloseCheck", "beforeunload", (data) => {
+      if (Object.keys(this.save.pendingSaves).length > 0 || this.save.synced == false) {
+        if (data.returned != true) {
+          data.event.preventDefault();
+          data.event.returnValue = "";
+          data.returned = true;
+        }
+        this.save.syncSave(true);
       }
     });
     
@@ -2849,7 +2902,7 @@ modules["editor/render/sticky"] = class {
     ".eAnnotation[sticky] div[holder]": `display: flex; flex-direction: column; width: calc(100% - 20px); flex: 1; padding: 16px 10px 10px 10px`,
     ".eAnnotation[sticky] div[edit]": `width: 100%; flex: 1; font-weight: 400; line-height: 22px; pointer-events: all; outline: none`,
     ".eAnnotation[sticky] div[footer]": `display: flex; flex-wrap: wrap; flex-direction: row-reverse; width: 100%; margin-top: 8px; gap: 8px; align-items: flex-end`,
-    ".eContentHolder[anonymous] .eAnnotation[sticky] div[signature]": `filter: blur(4px); pointer-events: none`,
+    ".eContent[anonymous] .eAnnotation[sticky] div[signature]": `filter: blur(4px); pointer-events: none`,
     ".eAnnotation[sticky] div[signature]": `margin-left: auto; opacity: .5; font-size: 14px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; taxt-align: right`,
     ".eAnnotation[sticky] div[reactions]": `display: flex; flex-wrap: wrap; flex: 1; gap: 6px; background: var(--themeColor); pointer-events: all; z-index: 999; background: none`,
     ".eAnnotation[sticky]:hover .eReaction[add]": `opacity: 1`,

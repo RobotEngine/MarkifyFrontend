@@ -52,6 +52,9 @@ modules["pages/lesson"] = class {
     newPage.pageID = id;
     newPage.type = type;
     newPage.holder = holder;
+    if (this.resyncPages != null && this.resyncPages[id] != null) {
+      newPage.resync = this.resyncPages[id];
+    }
     typePages[id] = newPage;
     this.pushToPipelines(null, "page_add", { type: type, page: newPage });
     return newPage;
@@ -422,6 +425,7 @@ modules["pages/lesson"] = class {
     tempListen(document, "fullscreenchange", () => {
       this.pushToPipelines(null, "fullscreenchange", { fullscreen: document.fullscreenElement != null });
     });
+    tempListen(window, "beforeunload", (event) => { this.pushToPipelines(null, "beforeunload", { event: event }); });
 
     joinData = joinData ?? {};
     let sendBody = { ss: socket.secureID };
@@ -615,6 +619,10 @@ modules["pages/lesson"] = class {
       this.signalStrength = 1;
       this.pushToPipelines(null, "signal_strength", { oldSignalStrength: oldSignalStrength, signalStrength: 1 });
     }
+    if (window.resync != null && window.resync.lesson == this.id) {
+      this.resyncPages = window.resync.pageSync;
+    }
+    window.resync = { lesson: this.id, pageSync: {} };
 
     this.addPage("board", "board", page.querySelector(".lPage"));
   }

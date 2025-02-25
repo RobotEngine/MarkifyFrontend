@@ -710,13 +710,6 @@ modules["lesson/board"] = class {
           this.editor.annotations[addAnno._id] = { render: addAnno };
         }
       }
-      for (let i = 0; i < annoBody.annotations.length; i++) {
-        let existingAnno = this.editor.annotations[annoBody.annotations[i]._id];
-        if (existingAnno != null) {
-          await this.editor.utils.setAnnotationChunks(existingAnno);
-          this.editor.utils.updateAnnotationPages(existingAnno.render);
-        }
-      }
       if (annoBody.reactions != null) {
         let reactedToObject = getObject(annoBody.reactedTo ?? [], "_id");
         for (let i = 0; i < annoBody.reactions.length; i++) {
@@ -731,6 +724,13 @@ modules["lesson/board"] = class {
             addReaction.reacted = true;
           }
           existingAnnoRecord.push(addReaction);
+        }
+      }
+      for (let i = 0; i < annoBody.annotations.length; i++) {
+        let existingAnno = this.editor.annotations[annoBody.annotations[i]._id];
+        if (existingAnno != null) {
+          await this.editor.utils.setAnnotationChunks(existingAnno);
+          this.editor.utils.updateAnnotationPages(existingAnno.render);
         }
       }
 

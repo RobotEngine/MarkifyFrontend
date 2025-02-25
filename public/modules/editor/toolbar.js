@@ -987,16 +987,17 @@ modules["editor/toolbar/pen"] = class {
     let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
     let position = this.editor.utils.scaleToDoc(mouseX, mouseY);
     let toolPreference = this.parent.getToolPreference();
+    let useThickness = this.THICKNESS ?? toolPreference.thickness;
     this.annotation = {
       render: {
         _id: this.editor.render.tempID(),
-        f: "draw",
-        p: [this.editor.utils.round(position.x - toolPreference.thickness), this.editor.utils.round(position.y - toolPreference.thickness)],
+        f: this.FUNCTION ?? "draw",
+        p: [this.editor.utils.round(position.x - useThickness), this.editor.utils.round(position.y - useThickness)],
         s: [0, 0],
         l: this.editor.maxLayer + 1,
-        c: toolPreference.color.selected,
-        t: toolPreference.thickness,
-        o: toolPreference.opacity,
+        c: this.COLOR ?? toolPreference.color.selected,
+        t: useThickness,
+        o: this.OPACITY ?? toolPreference.opacity,
         d: [0, 0]
       },
       animate: false
@@ -1032,7 +1033,7 @@ modules["editor/toolbar/pen"] = class {
     let halfT = this.editor.utils.round(this.annotation.render.t / 2);
     x -= halfT;
     y -= halfT;
-    if (event.shiftKey == false) {
+    if (this.FORCE_LINE != true && event.shiftKey == false) {
       if (x > this.annotation.render.s[0]) {
         this.annotation.render.s[0] = Math.ceil(x);
       }
@@ -1082,6 +1083,15 @@ modules["editor/toolbar/pen"] = class {
       this.annotation.render.d[2] = x;
       this.annotation.render.d[3] = y;
     }
+    if (this.HORIZONTAL_CHECK == true) {
+      if (this.editor.math.horizontalLine(this.annotation.render.d) == true) {
+        this.annotation.render.d[3] = this.annotation.render.d[1];
+        this.annotation.render.s[1] = this.annotation.render.t;
+        this.annotation.render.p[1] = this.editor.utils.round(this.annotation.render.p[1] + this.annotation.render.d[1]);
+        this.annotation.render.d[1] = 0;
+        this.annotation.render.d[3] = 0;
+      }
+    }
     await this.editor.render.create(this.annotation);
     if (this.annotation.render.d.length > 6150) { // Start new annotation when path too long
       await this.clickEnd();
@@ -1093,6 +1103,18 @@ modules["editor/toolbar/pen"] = class {
       return;
     }
     this.annotation.render.d = this.editor.math.simplifyPath(this.annotation.render.d, .75 / this.editor.zoom);
+    if (this.STRAITEN_CHECK == true) {
+      if (this.editor.math.relativelyStraight(this.annotation.render.d, 5 * this.editor.zoom) == true) {
+        this.annotation.render.d = [this.annotation.render.d[0], this.annotation.render.d[1], this.annotation.render.d[this.annotation.render.d.length - 2], this.annotation.render.d[this.annotation.render.d.length - 1]]; // Strait line
+        if (this.editor.math.horizontalLine(this.annotation.render.d) == true) {
+          let averageY = (this.annotation.render.d[1] + this.annotation.render.d[3]) / 2;
+          this.annotation.render.s[1] = this.annotation.render.t;
+          this.annotation.render.p[1] = this.editor.utils.round(this.annotation.render.p[1] + averageY);
+          this.annotation.render.d[1] = 0;
+          this.annotation.render.d[3] = 0;
+        }
+      }
+    }
 
     await this.editor.save.push(this.annotation.render);
     await this.editor.history.push("remove", [{ _id: this.annotation.render._id }]);
@@ -1119,23 +1141,36 @@ modules["editor/toolbar/pen"] = class {
   }
   disable = this.clickEnd;
 }
-
-modules["editor/toolbar/highlighter"] = class {
-  USER_SELECT = "none";
-  TOUCH_ACTION = null;
+modules["editor/toolbar/highlighter"] = class extends modules["editor/toolbar/pen"] {
+  FUNCTION = "markup";
+  STRAITEN_CHECK = true;
   REALTIME_TOOL = 1;
   MOUSE = { type: "svg", url: "./images/editor/cursors/highlighter.svg", translate: { x: 15, y: 30 } };
-  PUBLISH = {};
+}
+modules["editor/toolbar/underline"] = class extends modules["editor/toolbar/pen"] {
+  FORCE_LINE = true;
+  HORIZONTAL_CHECK = true;
+  REALTIME_TOOL = 1;
+  MOUSE = { type: "svg", url: "./images/editor/cursors/highlighter.svg", translate: { x: 15, y: 30 } };
 
   activate = () => {
     let toolPreference = this.parent.getToolPreference();
+
+    this.OPACITY = 100;
+    this.THICKNESS = this.editor.utils.round(Math.max(toolPreference.thickness / 4, 1));
+
     this.MOUSE.color = toolPreference.color.selected;
-    this.MOUSE.opacity = toolPreference.opacity;
+    this.MOUSE.opacity = this.OPACITY;
     this.PUBLISH.c = toolPreference.color.selected;
     this.PUBLISH.o = toolPreference.opacity;
+
+    if (this.editor.options.stylusmode != true) {
+      this.TOUCH_ACTION = "pinch-zoom";
+    } else {
+      editor.pinchZoomDisable = true;
+    }
   }
 }
-
 modules["editor/toolbar/eraser"] = class {
   USER_SELECT = "none";
   TOUCH_ACTION = null;

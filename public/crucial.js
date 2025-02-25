@@ -323,6 +323,9 @@ async function setFrame(path, frame, extra, parent) {
     }
     delete window.closeCallback;
   }
+  if (extra.construct != null) {
+    Object.assign(module, extra.construct);
+  }
   if (module.preJs != null) {
     continueLoading = (await (module.preJs())) != false;
   }

@@ -19,9 +19,6 @@ modules["pages/lesson"] = class {
     "./modules/dropdowns/lesson/editor/tools/emojis.js",
     "./modules/dropdowns/lesson/file/export.js"
   ];
-  preJs = () => {
-
-  }
   html = `<div class="lPageHolder">
     <div class="lPage" active></div>
   </div>`;
@@ -45,15 +42,17 @@ modules["pages/lesson"] = class {
     if (typePages[id] != null) {
       this.removePage(id, type);
     }
-    let newPage = await this.setFrame("lesson/board", holder);
+    let construct = {
+      pageID: id,
+      type: type,
+      holder: holder
+    };
+    if (this.resyncPages != null && this.resyncPages[id] != null) {
+      construct.resync = this.resyncPages[id];
+    }
+    let newPage = await this.setFrame("lesson/board", holder, { construct: construct });
     if (newPage == null) {
       return;
-    }
-    newPage.pageID = id;
-    newPage.type = type;
-    newPage.holder = holder;
-    if (this.resyncPages != null && this.resyncPages[id] != null) {
-      newPage.resync = this.resyncPages[id];
     }
     typePages[id] = newPage;
     this.pushToPipelines(null, "page_add", { type: type, page: newPage });

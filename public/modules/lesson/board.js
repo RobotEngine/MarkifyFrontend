@@ -187,13 +187,15 @@ modules["lesson/board"] = class {
     let decreasePageButton = currentPageHolder.querySelector(".ePageNav[up]");
 
     this.editor = await this.setFrame("editor/editor", contentHolder, {
-      id: this.parent.id,
-      self: this.parent.self,
-      session: this.parent.session,
-      sessionID: this.parent.sessionID,
-      sources: this.parent.sources,
-      settings: this.parent.lesson.settings,
-      resync: this.resync
+      construct: {
+        id: this.parent.id,
+        self: this.parent.self,
+        session: this.parent.session,
+        sessionID: this.parent.sessionID,
+        sources: this.parent.sources,
+        settings: this.parent.lesson.settings,
+        resync: this.resync
+      }
     });
 
     let stringPref = JSON.stringify(this.parent.preferences); // Must be duplicated

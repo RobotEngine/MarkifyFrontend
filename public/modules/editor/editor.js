@@ -377,16 +377,7 @@ modules["editor/editor"] = class {
   maxLayer = 0;
   minLayer = 0;
 
-  js = async (frame, extra) => {
-    let options = extra ?? {};
-    this.id = options.id;
-    this.self = options.self;
-    this.session= options.session;
-    this.sessionID = options.sessionID;
-    this.sources = options.sources;
-    this.settings = options.settings ?? {};
-    this.resync = options.resync;
-
+  js = async (frame) => {
     let page = frame.closest(".lPage");
     let contentHolder = page.querySelector(".eContentHolder");
     let content = contentHolder.querySelector(".eContent");
@@ -1812,7 +1803,7 @@ modules["editor/editor"] = class {
         merged = { ...merged, ...data };
       }
 
-      await this.save.apply(data, null); // Apply Save
+      annotation = (await this.save.apply(data, null)).annotation; // Apply Save
       
 
       annotation.save = true;
@@ -1825,9 +1816,12 @@ modules["editor/editor"] = class {
       this.save.syncSave();
     }
     if (this.resync != null && this.resync.annotations != null) {
+      if (this.self.access < 1) {
+        return;
+      }
       let resyncKeys = Object.keys(this.resync.annotations);
       for (let i = 0; i < resyncKeys.length; i++) {
-        let anno = this.resync.annotations[resyncKeys[i]];
+        let anno = this.resync.annotations[resyncKeys[i]] ?? {};
         if (anno.save == true && (anno.render._id.includes("pending_") == false || anno.render.remove != true)) {
           delete anno.expire;
           this.annotations[anno.render._id] = anno;

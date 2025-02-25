@@ -378,7 +378,14 @@ modules["editor/editor"] = class {
   minLayer = 0;
 
   js = async (frame, extra) => {
-    objectUpdate(extra ?? {}, this);
+    let options = extra ?? {};
+    this.id = options.id;
+    this.self = options.self;
+    this.session= options.session;
+    this.sessionID = options.sessionID;
+    this.sources = options.sources;
+    this.settings = options.settings ?? {};
+    this.resync = options.resync;
 
     let page = frame.closest(".lPage");
     let contentHolder = page.querySelector(".eContentHolder");

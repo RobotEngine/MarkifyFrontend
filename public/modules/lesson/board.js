@@ -192,7 +192,7 @@ modules["lesson/board"] = class {
       session: this.parent.session,
       sessionID: this.parent.sessionID,
       sources: this.parent.sources,
-      settings: this.parent.lesson.settings ?? {},
+      settings: this.parent.lesson.settings,
       resync: this.resync
     });
 

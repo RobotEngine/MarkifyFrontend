@@ -310,15 +310,20 @@ modules["editor/editor"] = class {
 
       let dx = x - closestX;
       let dy = y - closestY;
-      let distance = Math.sqrt(dx * dx + dy * dy);
+      let distance = Math.hypot(dx, dy); // Math.sqrt(dx * dx + dy * dy);
 
-      return distance <= tolerance;
+      return dx * dx + dy * dy <= tolerance * tolerance; // return distance <= tolerance;
     },
     rotatePoint: (pointX, pointY, angle) => {
-      let radian = -(angle ?? 0) * (Math.PI / 180);
-      let newX = (Math.cos(radian) * pointX) - (Math.sin(radian) * pointY);
-      let newY = (Math.sin(radian) * pointX) + (Math.cos(radian) * pointY);
+      let radian = (angle ?? 0) * (Math.PI / 180);
+      let cos = Math.cos(radian);
+      let sin = Math.sin(radian);
+      let newX = (cos * pointX) - (sin * pointY);
+      let newY = (sin * pointX) + (cos * pointY);
       return [newX, newY];
+    },
+    rotatePointOrigin: (pointX, pointY, centerX, centerY, angle) => {
+      return this.math.rotatePoint(pointX - centerX, pointY - centerY, angle);
     }
   }
 
@@ -1806,7 +1811,7 @@ modules["editor/editor"] = class {
     this.history.history = [];
     this.history.location = -1;
     this.history.push = (type, changes, caret) => {
-      
+
     }
 
     let updateSubTimeout;

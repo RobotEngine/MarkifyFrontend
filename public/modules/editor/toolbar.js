@@ -1183,20 +1183,22 @@ modules["editor/toolbar/eraser"] = class {
     
     let { mouseX: x1, mouseY: y1 } = this.editor.utils.localMousePosition(event);
     let x0 = this.x0 ?? x1;
-    let y0 = this.y0 ?? x0;
+    let y0 = this.y0 ?? y1;
     let dx = Math.abs(x1 - x0);
     let dy = Math.abs(y1 - y0);
     let sx = (x0 < x1) ? 1 : -1;
     let sy = (y0 < y1) ? 1 : -1;
     let err = dx - dy;
-
+    
     while (true) {
-      let annos = document.elementsFromPoint(x0, y0);
-
       let { x: scaledX, y: scaledY } = await this.editor.utils.scaleToDoc(x0, y0);
-
-      for (let i = 0; i < annos.length; i++) {
-        let anno = annos[i].closest(".eAnnotation");
+      let chunkAnnotations = this.editor.utils.annotationsInChunks([this.editor.utils.pointInChunk(scaledX, scaledY)]);
+      for (let i = 0; i < chunkAnnotations.length; i++) {
+        let annotation = chunkAnnotations[i] ?? {};
+        let anno = annotation.element;
+        if (annotation.element == null) {
+          continue;
+        }
         if (anno == null || anno.hasAttribute("hidden") == true) {
           continue;
         }
@@ -1219,29 +1221,31 @@ modules["editor/toolbar/eraser"] = class {
         if (drawing == null || drawing.hasAttribute("points") == false) {
           continue;
         }
+        let svg = drawing.closest("svg");
         let strokeWidth = parseInt(drawing.getAttribute("stroke-width"));
 
-        // See if valid annotation is by eraser line:
-        let position = this.editor.utils.getAbsolutePosition(render);
-        let xPos = scaledX - position[0];
-        let yPos = scaledY - position[1];
-        if (render.s[0] < 0) {
-          xPos -= render.s[0];
+        // See if valid drawing is by eraser line:
+        let rect = this.editor.utils.getRect(render);
+        let xPos = scaledX - rect.x;
+        let yPos = scaledY - rect.y;
+
+        if (rect.width < 0) {
+          xPos -= rect.width;
         }
-        if (render.s[1] < 0) {
-          yPos -= render.s[1];
+        if (rect.height < 0) {
+          yPos -= rect.height;
         }
 
         let points = drawing.points;
-        let halfWidth = drawing.parentElement.viewBox.baseVal.width / 2;
-        let halfHeight = drawing.parentElement.viewBox.baseVal.height / 2;
+        let halfWidth = svg.viewBox.baseVal.width / 2;
+        let halfHeight = svg.viewBox.baseVal.height / 2;
         for (let i = 1; i < points.numberOfItems; i++) {
           let prevPoint = points.getItem(i - 1);
           let prevRelativeX = prevPoint.x - halfWidth;
-          let prevRelativeY = -(prevPoint.y - halfHeight);
+          let prevRelativeY = prevPoint.y - halfHeight;
           let point = points.getItem(i);
           let pRelativeX = point.x - halfWidth;
-          let pRelativeY = -(point.y - halfHeight);
+          let pRelativeY = point.y - halfHeight;
           if (render.s[0] < 0) {
             prevRelativeX *= -1;
             pRelativeX *= -1;
@@ -1252,14 +1256,14 @@ modules["editor/toolbar/eraser"] = class {
           }
           let [prevPointX, prevPointY] = this.editor.math.rotatePoint(prevRelativeX, prevRelativeY, render.r);
           let [pointX, pointY] = this.editor.math.rotatePoint(pRelativeX, pRelativeY, render.r);
-          if (this.editor.math.isPointOnLine(xPos, yPos, prevPointX + halfWidth, (-prevPointY) + halfHeight, pointX + halfWidth, (-pointY) + halfHeight, (strokeWidth / 2) + 10)) {
-            anno.setAttribute("hidden", "");
+          if (this.editor.math.isPointOnLine(xPos, yPos, prevPointX + halfWidth, prevPointY + halfHeight, pointX + halfWidth, pointY + halfHeight, Math.max(strokeWidth / 2, 10)) == true) {
             await this.editor.history.push("add", [render]);
             let updateAnno = { _id: annoID, remove: true };
             await this.editor.save.push(updateAnno);
             this.PUBLISH.u = updateAnno;
             await this.editor.realtime.forceShort();
             delete this.PUBLISH.u;
+            continue;
           }
         }
       }

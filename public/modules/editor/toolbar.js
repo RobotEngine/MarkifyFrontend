@@ -728,7 +728,7 @@ modules["editor/toolbar"] = class {
             this.tooltip.update();
           }
         } else {
-          if (isExtended == false && subToolbar != null) {
+          if (subToolbar != null) {
             button.setAttribute("extend", "");
           } else {
             button.removeAttribute("extend");
@@ -804,9 +804,9 @@ modules["editor/toolbar"] = class {
         this.tooltip.update();
       }
     }
-    this.toolbar.startTool = (button, noExtend) => {
-      this.toolbar.setTool(button, true, noExtend);
-      this.toolbar.setTool();
+    this.toolbar.startTool = async (button, noExtend) => {
+      await this.toolbar.setTool(button, true, noExtend);
+      await this.toolbar.setTool();
     }
     toolbarHolder.addEventListener("keydown", (event) => {
       if (event.key == "Enter") {

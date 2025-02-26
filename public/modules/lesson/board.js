@@ -624,6 +624,13 @@ modules["lesson/board"] = class {
 
       if (body._id == this.parent.sessionID) {
         this.updateInterface();
+        if (body.access != null && this.editor.toolbar != null) {
+          if (body.access == 0) {
+            this.editor.toolbar.toolbar.startTool(selectButton);
+          } else {
+            this.editor.toolbar.toolbar.startTool(editorToolbar.querySelector('.eTool[tool="selection"]'), true);
+          }
+        }
       }
 
       this.updateMemberCount(membersButton);

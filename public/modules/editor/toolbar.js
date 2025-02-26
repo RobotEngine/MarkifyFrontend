@@ -677,7 +677,7 @@ modules["editor/toolbar"] = class {
         }
       })();
     }
-    this.toolbar.enableTool = async (button, shortPress) => {
+    this.toolbar.enableTool = async (button, shortPress, noExtend) => {
       let toolID = button.getAttribute("tool");
       let isSelected = button.hasAttribute("selected");
       let isExtended = button.hasAttribute("extend");
@@ -715,6 +715,9 @@ modules["editor/toolbar"] = class {
                 }
               } else {
                 this.currentToolModulePath = null;
+              }
+              if (noExtend == true) {
+                this.toolbar.closeSub();
               }
             } else {
               this.currentToolModulePath = toolData.module;
@@ -761,7 +764,7 @@ modules["editor/toolbar"] = class {
       //this.tooltip.update();
     }
     let lastSetButton;
-    this.toolbar.setTool = async (targetButton, shortPress) => {
+    this.toolbar.setTool = async (targetButton, shortPress, noExtend) => {
       let button = targetButton ?? lastSetButton;
       if (button == null || button.className != "eTool" || button.closest("[noselect]") != null) {
         return;
@@ -780,7 +783,7 @@ modules["editor/toolbar"] = class {
       if (button.closest(".eToolbarContent") != null) {
         currentTool = toolID;
         currentToolButton = button;
-        await this.toolbar.enableTool(button, shortPress);
+        await this.toolbar.enableTool(button, shortPress, noExtend);
       } else if (button.closest(".eSubToolContentScroll") != null) {
         let setSubTool = button.getAttribute("tool");
         if (setSubTool != null) {
@@ -801,8 +804,8 @@ modules["editor/toolbar"] = class {
         this.tooltip.update();
       }
     }
-    this.toolbar.startTool = (button) => {
-      this.toolbar.setTool(button, true);
+    this.toolbar.startTool = (button, noExtend) => {
+      this.toolbar.setTool(button, true, noExtend);
       this.toolbar.setTool();
     }
     toolbarHolder.addEventListener("keydown", (event) => {

@@ -16,7 +16,7 @@
   ],
   "icons": [
     {
-      "src": "./images/favicon.png",
+      "src": "./images/appicon.png",
       "sizes": "256x256",
       "type": "image/png"
     }

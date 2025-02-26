@@ -48,7 +48,7 @@ modules["dropdowns/lesson/share/pin"] = class {
   `;
   css = {
     ".eSharePinCreate": "position: absolute; display: flex; width: 100%; height: 100%; justify-content: center; align-items: center; z-index: 1; background: rgba(var(--background), .7); transition: .3s",
-    ".eSharePinCreate button": `background: var(--theme); --borderColor: var(--secondary); --borderRadius: 22px; color: #fff`,
+    ".eSharePinCreate button": `background: var(--theme); --borderColor: var(--secondary); --borderRadius: 14px; color: #fff`,
     
     ".eSharePinLink": "margin-top: 8p; transition: .3s",
     ".eSharePinLink a": `color: var(--theme); font-weight: 700; text-decoration: none`,
@@ -183,7 +183,7 @@ modules["dropdowns/lesson/share/link"] = class {
   `;
   css = {
     ".eShareLinkCreate": "position: absolute; display: flex; width: calc(100% - 16px); height: calc(100% - 16px); justify-content: center; align-items: center; z-index: 1; background: rgba(var(--background), .7); transition: .3s",
-    ".eShareLinkCreate button": `background: var(--theme); --borderColor: var(--secondary); --borderRadius: 22px; color: #fff`,
+    ".eShareLinkCreate button": `background: var(--theme); --borderColor: var(--secondary); --borderRadius: 14px; color: #fff`,
 
     ".eShareLinkRow": `display: flex; flex-wrap: wrap; width: 100%; margin-top: 16px; justify-content: center; align-items: center`,
     ".eShareLinkRow button": `display: flex; --borderColor: var(--hover); --borderRadius: 18px; justify-content: center; align-items: center; font-weight: 700`,

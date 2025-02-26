@@ -410,13 +410,16 @@ function getParam(key) {
   return urlParams.get(key);
 }
 function modifyParams(key, value) {
-  const Url = new URL(window.location);
+  const url = new URL(window.location);
   if (value != null) {
-    Url.searchParams.set(key, value);
+    url.searchParams.set(key, value);
   } else if (getParam(key)) {
-    Url.searchParams.delete(key);
+    url.searchParams.delete(key);
   }
-  window.history.pushState({}, "", Url);
+  //window.history.replaceState({}, "", url);
+  try {
+    window.history.pushState({}, "", url);
+  } catch {}
 }
 
 function getObject(arr, field) {

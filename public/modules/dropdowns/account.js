@@ -53,8 +53,8 @@ modules["dropdowns/account"] = class {
       let f = typeof window.outerHeight != 'undefined' ? window.outerHeight : (document.documentElement.clientHeight - 22);
       let h = (a < 0) ? window.screen.width + a : a;
 
-      dropdownModule.open(settingsButton, "dropdowns/account/accountManage");
-      //window.open("https://exotek.co/account?userid=" + account.account, "exotek_window_prompt", "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=" + 1000 + ", height=" + 650 + ", top=" + parseInt(i + ((f - 650) / 2.5), 10) + ", left=" + parseInt(h + ((g - 1000) / 2), 10));
+      //dropdownModule.open(settingsButton, "dropdowns/account/accountManage");
+      window.open("https://exotek.co/account?userid=" + account.account, "exotek_window_prompt", "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=" + 1000 + ", height=" + 650 + ", top=" + parseInt(i + ((f - 650) / 2.5), 10) + ", left=" + parseInt(h + ((g - 1000) / 2), 10));
     });
     frame.querySelector(".accountLogout").addEventListener("click", async () => {
       let token = getLocalStore("token");

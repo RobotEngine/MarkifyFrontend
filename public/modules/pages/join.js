@@ -40,8 +40,8 @@ modules["pages/join"] = class {
         <button class="largeButton border" join>Join Lesson</button>
         <div class="jPromo">Create your lesson at <a href="#launch" target="_blank">${location.host}</a></div>
         <div class="jPolicies">
-          <a href="https://exotek.co/tos" target="_blank">Terms</a>
-          <a href="https://exotek.co/privacy" target="_blank">Privacy</a>
+          <a href="../tos" target="_blank">Terms</a>
+          <a href="../privacy" target="_blank">Privacy</a>
         </div>
       </div>
     </div>

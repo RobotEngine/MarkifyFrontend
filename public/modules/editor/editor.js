@@ -843,6 +843,7 @@ modules["editor/editor"] = class {
       return topmostChunk;
     }*/
 
+    let updatePageTimeout;
     this.utils.updateCurrentPage = () => {
       let activeElement = document.activeElement;
       if (activeElement != null) {
@@ -866,8 +867,10 @@ modules["editor/editor"] = class {
           minPageId = page[0];
         }
       }
-      this.currentPage = minPage;
-      this.pipeline.publish("page_change", { page: this.currentPage, pageId: minPageId });
+      if (this.currentPage != minPage) {
+        this.currentPage = minPage;
+        this.pipeline.publish("page_change", { page: this.currentPage, pageId: minPageId });
+      }
     }
     this.utils.updateAnnotationPages = (anno) => {
       if (anno.f != "page") {
@@ -903,7 +906,8 @@ modules["editor/editor"] = class {
           return a[2][1] - b[2][1];
         });
       }
-      this.utils.updateCurrentPage();
+      clearTimeout(updatePageTimeout);
+      updatePageTimeout = setTimeout(this.utils.updateCurrentPage, 100);
     }
     this.utils.updateAnnotationScroll = (pageData, animation) => {
       if (pageData == null) {
@@ -1809,23 +1813,22 @@ modules["editor/editor"] = class {
       }
       this.save.syncSave();
     }
-    if (this.resync != null && this.resync.annotations != null) {
-      if (this.self.access < 1) {
-        return;
-      }
-      let resyncKeys = Object.keys(this.resync.annotations);
-      for (let i = 0; i < resyncKeys.length; i++) {
-        let anno = this.resync.annotations[resyncKeys[i]] ?? {};
-        if (anno.save == true && (anno.render._id.includes("pending_") == false || anno.render.remove != true)) {
-          delete anno.expire;
-          this.annotations[anno.render._id] = anno;
-          this.save.pendingSaves[anno.render._id] = { ...this.save.pendingSaves[anno.render._id], ...anno.render };
+    if (this.resync != null && this.resync.save != null && this.resync.save.synced == false && this.resync.annotations != null) {
+      if (this.self.access > 0) {
+        let resyncKeys = Object.keys(this.resync.annotations);
+        for (let i = 0; i < resyncKeys.length; i++) {
+          let anno = this.resync.annotations[resyncKeys[i]] ?? {};
+          if (anno.save == true && (anno.render._id.includes("pending_") == false || anno.render.remove != true)) {
+            delete anno.expire;
+            this.annotations[anno.render._id] = anno;
+            this.save.pendingSaves[anno.render._id] = { ...this.save.pendingSaves[anno.render._id], ...anno.render };
+          }
         }
+        this.save.syncSave(true);
       }
-      this.save.syncSave(true);
     }
     if (this.parent != null && this.parent.pageID != null && (window.resync ?? {}).pageSync != null) {
-      window.resync.pageSync[this.parent.pageID] = { annotations: this.annotations };
+      window.resync.pageSync[this.parent.pageID] = { save: this.save, annotations: this.annotations };
     }
 
     this.history = {};
@@ -1845,7 +1848,6 @@ modules["editor/editor"] = class {
     this.updateInterface();
     
     let updateSubTimeout;
-    let updatePageTimeout;
     let loadedChunks = {};
     let alreadyRunningUpdateCycle = false;
     this.runUpdateCycle = async () => {
@@ -3062,7 +3064,7 @@ modules["editor/render/page"] = class {
     ".eAnnotation[page] > div[hide] div[hidemodal]": `display: flex; flex-direction: column; max-width: calc(100% - 64px); max-height: calc(100% - 64px); padding: 24px; overflow: auto; background: var(--pageColor); box-shadow: 0px 0px 16px 0px var(--hover); border-radius: 16px; align-items: center`,
     ".eAnnotation[page] > div[hide] div[hidemodal] img": `margin-bottom: 12px; width: calc(100% - 24px); max-width: 80px`,
     ".eAnnotation[page] > div[hide] div[hidemodal] div[hidemodaltitle]": `font-size: 28px; font-weight: 700; color: var(--theme)`,
-    ".eAnnotation[page] > div[hide] div[hidemodal] button": `display: flex; margin-top: 24px; z-index: 1; background: var(--theme); --borderRadius: 20.25px; color: #fff`,
+    ".eAnnotation[page] > div[hide] div[hidemodal] button": `display: flex; margin-top: 24px; z-index: 1; background: var(--theme); --borderColor: var(--secondary); --borderRadius: 14px; color: #fff`,
     ".eAnnotation[page] > div[content] div[document]": `position: relative; --scale-factor: 2; border-radius: inherit; overflow: hidden; z-index: 1`,
     ".eAnnotation[page] > div[content] div[document] canvas": `position: absolute; width: calc(100% - 8px) !important; height: calc(100% - 8px) !important; left: var(--borderWidth); top: var(--borderWidth); background: var(--themeColor); z-index: 1`,
     ".eAnnotation[page] > div[content] div[document] div[textlayer]": `position: absolute; width: var(--fullWidth) !important; height: var(--fullHeight) !important; left: var(--borderWidth); top: var(--borderWidth); transform-origin: top left; transform: var(--fullScale); font-family: sans-serif; pointer-events: all !important; z-index: 2`,

@@ -59,7 +59,7 @@ modules["pages/dashboard"] = class {
   </div>`;
   css = {
     ".dPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100%; height: 100vh; padding: 8px; left: 0px; top: 0px; justify-content: center`, //transition: .2s
-    ".dPage": `display: flex; width: 100%; height: 100%; max-width: 1565px; box-shadow: var(--darkShadow); border-radius: 12px; overflow: hidden`, //transition: .2s
+    ".dPage": `display: flex; width: 100%; height: 100%; max-width: 1585px; box-shadow: var(--darkShadow); border-radius: 12px; overflow: hidden`, //transition: .2s
     
     ".dSidebarHolder": `position: relative; max-width: min(270px, 100%); height: 100%; flex-shrink: 0; background: var(--pageColor); z-index: 2; transition: .4s`,
     ".dBackdropImage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 1; opacity: .75; object-fit: cover; z-index: 1; pointer-events: none`,
@@ -1054,7 +1054,7 @@ modules["pages/dashboard/lessons"] = class {
   </div>
   `;
   css = {
-    ".dTiles": `position: relative; display: grid; width: 100%; grid-gap: 20px; grid-template-columns: repeat(auto-fill, minmax(min(275px, 100%), 1fr)); transition: .4s`, // min-height: 100%;
+    ".dTiles": `position: relative; display: grid; width: 100%; grid-gap: 20px; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); transition: .4s`, // min-height: 100%;
     ".dTile": `position: relative; background: var(--pageColor); --shadow: var(--lightShadow); box-shadow: var(--shadow); border-radius: 12px; overflow: hidden`,
     ".dTile:hover": `--shadow: var(--darkShadow)`,
     ".dTileThumbnail": `width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 12px`,

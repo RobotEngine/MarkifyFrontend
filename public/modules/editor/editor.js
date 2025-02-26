@@ -919,29 +919,23 @@ modules["editor/editor"] = class {
       }
       let render = (this.annotations[annoID] ?? {}).render;
       if (render != null) {
-        let thickness = 0;
-        if (render.t != null) {
-          if (render.b != "none" || render.d == "line") {
-            thickness = render.t;
-          }
-        }
-        let position = this.utils.getAbsolutePosition(render);
+        let annoRect = this.utils.getRect(render);
         let annotationRect = this.utils.localBoundingRect(annotations);
         let options = {};
-        if ((render.s[0] + (thickness * 2)) * this.zoom < page.offsetWidth - (this.scrollOffset * 2)) {
+        if ((render.s[0] + (annoRect.thickness * 2)) * this.zoom < contentHolder.clientWidth - (this.scrollOffset * 2)) {
           // Position page to center:
-          options.left = annotationRect.left + contentHolder.scrollLeft - (page.offsetWidth / 2) + ((position[0] + (render.s[0] / 2) + thickness) * this.zoom);
+          options.left = annotationRect.left + contentHolder.scrollLeft - (contentHolder.clientWidth / 2) + ((annoRect.x + (annoRect.width / 2) + annoRect.thickness) * this.zoom);
         } else {
           // Position page to left corner:
-          options.left = annotationRect.left + contentHolder.scrollLeft - this.scrollOffset + (position[0] * this.zoom);
-          //options.left = annotationRect.left + contentHolder.scrollLeft - page.offsetWidth + (contentHolder.offsetWidth - contentHolder.clientWidth) + this.scrollOffset + ((position[0] + render.s[0] + (thickness * 2)) * this.zoom);
+          options.left = annotationRect.left + contentHolder.scrollLeft - this.scrollOffset + (annoRect.x * this.zoom);
+          //options.left = annotationRect.left + contentHolder.scrollLeft - contentHolder.clientWidth + this.scrollOffset + ((annoRect.x + annoRect.width + (annoRect.thickness * 2)) * this.zoom);
         }
-        if ((render.s[1] + (thickness * 2)) * this.zoom < page.offsetHeight - (this.scrollOffset * 2)) {
+        if ((render.s[1] + (annoRect.thickness * 2)) * this.zoom < contentHolder.clientHeight - (this.scrollOffset * 2)) {
           // Position page to center:
-          options.top = annotationRect.top + contentHolder.scrollTop - (page.offsetHeight / 2) + ((position[1] + (render.s[1] / 2) + thickness) * this.zoom);
+          options.top = annotationRect.top + contentHolder.scrollTop - (contentHolder.clientHeight / 2) + ((annoRect.y + (annoRect.height / 2) + annoRect.thickness) * this.zoom);
         } else {
           // Position page to top:
-          options.top = annotationRect.top + contentHolder.scrollTop - this.scrollOffset + (position[1] * this.zoom);
+          options.top = annotationRect.top + contentHolder.scrollTop - this.scrollOffset + (annoRect.y * this.zoom);
         }
         if (animation != false) {
           options.behavior = "smooth";

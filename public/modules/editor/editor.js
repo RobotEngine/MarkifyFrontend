@@ -1756,7 +1756,7 @@ modules["editor/editor"] = class {
         }
       }
       if (allowRender == true) {
-        await this.render.create(annotation);
+        await this.render.create(annotation, noTimeout);
       } else {
         await this.render.remove(annotation);
       }

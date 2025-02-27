@@ -4,7 +4,7 @@ modules["pages/dashboard"] = class {
     "./modules/pages/lesson.js",
     "./modules/pages/join.js",
 
-    "./modules/lesson/createnew.js",
+    "./modules/modals/lesson/newboard.js",
     
     "./modules/dropdowns/account.js",
     "./modules/dropdowns/moveto.js",

@@ -63,7 +63,7 @@ modules["modals/resources"] = class {
       if (button == null) {
         return;
       }
-      modalModule.open("modals/resources/resources", button);
+      modalModule.open("modals/resources/resources", null, button);
     });
 
     let updateSeenTutorial = () => {
@@ -252,7 +252,7 @@ modules["modals/resources/resources"] = class {
       let info = resource.pages[currentPage];
 
       if (info == null) {
-        return modalModule.open("modals/resources", null, null, false);
+        return modalModule.open("modals/resources", null, null, null, false);
       }
 
       let prevImage = imageContent.querySelector("img:not([old])");

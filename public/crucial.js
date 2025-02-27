@@ -1183,6 +1183,7 @@ modules["dropdown"] = class {
     }*/
     //await sleep(200);
     //content.style.overflow = "auto";
+    return this;
   };
   close = async function () {
     if (window.dropdown == null) {
@@ -1215,10 +1216,10 @@ modules["dropdown"] = class {
 }
 let dropdownModule = {
   open: async (button, frameName, data) => {
-    (await newModule("dropdown")).open(button, frameName, data);
+    return await (await newModule("dropdown")).open(button, frameName, data);
   },
   close: async () => {
-    (await newModule("dropdown")).close();
+    return await (await newModule("dropdown")).close();
   }
 }
 
@@ -1244,13 +1245,14 @@ modules["modal"] = class {
 
       content.style.top = header.offsetHeight + "px";
       // We use fixed, not window, so that scrollbars are accounted for:
-      content.style.maxWidth = fixed.clientWidth - 16 + "px";
-      let maxHeight = fixed.clientHeight - header.offsetHeight - 16;
+      let parent = modal.parentElement;
+      content.style.maxWidth = parent.clientWidth - 16 + "px";
+      let maxHeight = parent.clientHeight - header.offsetHeight - 16;
       if (content.hasAttribute("maxheight") == true) {
         maxHeight = Math.min(maxHeight, parseInt(content.getAttribute("maxheight")));
       }
       content.style.maxHeight = maxHeight + "px";
-      content.style.minWidth = Math.min(fixed.clientWidth - 16, 200) + "px";
+      content.style.minWidth = Math.min(parent.clientWidth - 16, 200) + "px";
 
       if (modal.hasAttribute("closing") == false) {
         //if (content.querySelector(".modalFrame").hasAttribute("loaded")) {
@@ -1261,25 +1263,29 @@ modules["modal"] = class {
       }
     }, 1);
   };
-  open = async function (frameName, button, title, stack, data) {
+  open = async function (frameName, parent, button, title, stack, data) {
+    let dataParent = window;
+    if (parent != null) {
+      dataParent = this;
+    }
     if (data != null && data.previous == true) {
-      let prev = window.modal.frameHistory[window.modal.frameHistory.length - 2];
+      let prev = dataParent.modal.frameHistory[dataParent.modal.frameHistory.length - 2];
       if (prev == null) {
         return;
       }
-      [frameName, button, title, stack, data] = prev;
+      ([frameName, parent, button, title, stack, data] = prev);
     }
     title = title ?? "";
     let loaded = modules[frameName] != null;
-    if (window.modal) { // Clicked inside the modal
-      let modal = window.modal.modal;
+    if (dataParent.modal != null) { // Clicked inside the modal
+      let modal = dataParent.modal.modal;
       let header = modal.querySelector(".modalHeader");
       let oldContent = modal.querySelector(".modalContent:not([old])");
       oldContent.setAttribute("old", "");
       modal.querySelector(".modalOverflow").insertAdjacentHTML("beforeend", `<div class="modalContent" new><div class="modalFrame"></div></div>`);
       let content = modal.querySelector(".modalContent[new]");
       content.removeAttribute("new");
-      window.modal.content = content;
+      dataParent.modal.content = content;
       let frame = content.querySelector(".modalFrame");
       if (button != null && title == "") {
         if (button.hasAttribute("modaltitle") == true) {
@@ -1297,8 +1303,8 @@ modules["modal"] = class {
         oldContent.style.left = "0%";
         content.style.left = (modal.offsetWidth / 1) + "px";
       } else {
-        window.modal.frameHistory.pop();
-        title = window.modal.frameHistory.pop()[2];
+        dataParent.modal.frameHistory.pop();
+        title = dataParent.modal.frameHistory.pop()[3];
 
         oldContent.style.removeProperty("left");
         oldContent.style.right = "0%";
@@ -1306,16 +1312,16 @@ modules["modal"] = class {
       }
       header.querySelector(".modalTitle").innerHTML = title;
       let back = header.querySelector(".modalBack");
-      if (window.modal.frameHistory.length > 0 && stack != false) {
-        //back.setAttribute("modal", window.modal.frameHistory[window.modal.frameHistory.length - 1][0]);
+      if (dataParent.modal.frameHistory.length > 0 && stack != false) {
+        //back.setAttribute("modal", dataParent.modal.frameHistory[dataParent.modal.frameHistory.length - 1][0]);
         back.style.display = "flex";
       } else {
         back.style.display = "none";
       }
       if (stack != false) {
-        window.modal.frameHistory.push([frameName, back, title, stack, data]);
+        dataParent.modal.frameHistory.push([frameName, parent, back, title, stack, data]);
       } else {
-        window.modal.frameHistory = [[frameName, back, title, stack, data]];
+        dataParent.modal.frameHistory = [[frameName, parent, back, title, stack, data]];
       }
       content.style.opacity = 0;
       //content.style.transform = "scale(.85)";
@@ -1340,10 +1346,10 @@ modules["modal"] = class {
       }
       oldContent.style.opacity = 0;
       //oldContent.style.transform = "scale(.85)";
-      clearInterval(window.modal.interval);
-      window.modal.interval = this.setResizeLoop(modal, content, header);
+      clearInterval(dataParent.modal.interval);
+      dataParent.modal.interval = this.setResizeLoop(modal, content, header);
       content.style.pointerEvents = "none";
-      await setFrame(frameName, frame, { content: content, button: button, origin: window.modal.button, ...data });
+      await setFrame(frameName, frame, { content: content, button: button, origin: dataParent.modal.button, ...data });
       content.setAttribute("loaded", "");
       content.style.pointerEvents = "all";
       content.style.opacity = 1;
@@ -1361,7 +1367,8 @@ modules["modal"] = class {
       return;
     }
     this.close();
-    fixed.insertAdjacentHTML("beforeend", `<div class="fixedItemHolder">
+    let setParent = parent ?? fixed;
+    setParent.insertAdjacentHTML("beforeend", `<div class="fixedItemHolder">
       <div class="modal" new>
         <div class="modalOverflow">
           <div class="modalHeader">
@@ -1375,14 +1382,17 @@ modules["modal"] = class {
         </div>
       </div>
     </div>`);
-    let modal = fixed.querySelector(".modal[new]");
+    let modal = setParent.querySelector(".modal[new]");
     modal.removeAttribute("new");
     let header = modal.querySelector(".modalHeader");
     let content = modal.querySelector(".modalContent");
     let frame = content.querySelector(".modalFrame");
     let backButton = modal.querySelector(".modalBack");
     backButton.addEventListener("click", () => {
-      this.open(frameName, backButton, title, stack, { ...data, previous: true });
+      this.open(frameName, parent, backButton, title, stack, { ...data, previous: true });
+    });
+    modal.querySelector(".modalClose").addEventListener("click", () => {
+      this.close();
     });
     if (loaded == false) {
       frame.style.minHeight = "200px";
@@ -1399,7 +1409,7 @@ modules["modal"] = class {
     modal.offsetHeight;
     modal.style.width = content.offsetWidth + "px";
     modal.style.height = content.offsetHeight + header.offsetHeight + "px";
-    window.modal = { modal: modal, button: button, origin: button, frameHistory: [[frameName, backButton, title, stack, data]], interval: this.setResizeLoop(modal, content, header, button) };
+    dataParent.modal = { modal: modal, button: button, origin: button, frameHistory: [[frameName, parent, backButton, title, stack, data]], interval: this.setResizeLoop(modal, content, header, button) };
     modal.style.opacity = 1;
     modal.parentElement.setAttribute("blur", "");
     content.style.pointerEvents = "none";
@@ -1414,16 +1424,19 @@ modules["modal"] = class {
     }
     //await sleep(200);
     //content.style.overflow = "auto";
+    return this;
   };
   close = async function () {
-    if (window.modal == null) {
+    let remModal = this.modal ?? window.modal;
+    if (remModal == null) {
       return;
     }
-    if (window.closeModal != null) {
-      window.closeModal();
+    if (this.modal == null) {
+      if (window.closeModal != null) {
+        window.closeModal();
+      }
+      delete window.modal;
     }
-    let remModal = window.modal;
-    delete window.modal;
     remModal.modal.setAttribute("closing", "");
     remModal.modal.style.opacity = 0;
     remModal.modal.parentElement.removeAttribute("blur");
@@ -1434,8 +1447,8 @@ modules["modal"] = class {
   }
 }
 let modalModule = {
-  open: async (frameName, button, title, stack, data) => {
-    return await (await newModule("modal")).open(frameName, button, title, stack, data);
+  open: async (frameName, parent, button, title, stack, data) => {
+    return await (await newModule("modal")).open(frameName, parent, button, title, stack, data);
   },
   close: async () => {
     return await (await newModule("modal")).close();
@@ -1559,11 +1572,11 @@ body.addEventListener("click", async function (event) {
       dropdownModule.close();
     }
   }
-  if (window.modal != null) {
+  /*if (window.modal != null) {
     if (element.closest(".modal button[close]")) {
       modalModule.close();
     }
-  }
+  }*/
   let page = element.closest("[openpage]");
   if (page != null) {
     event.preventDefault();

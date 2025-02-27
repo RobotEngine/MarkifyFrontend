@@ -72,7 +72,7 @@ modules["dropdowns/account"] = class {
     });
     let tutorialButton = frame.querySelector(".accountDrop[tutorial]");
     tutorialButton.addEventListener("click", async () => {
-      modalModule.open("modals/resources", tutorialButton, "Resources");
+      modalModule.open("modals/resources", null, tutorialButton, "Resources");
     });
     let isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
     let checkForPrompt = () => {

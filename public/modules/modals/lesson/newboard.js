@@ -1,4 +1,4 @@
-modules["lesson/createnew"] = class {
+modules["modals/lesson/newboard"] = class {
   html = `<input type="file" accept="application/pdf" multiple="true" hidden="true">
   <div class="lessonCreationHolder">
     <div class="lessonBlankHolder">

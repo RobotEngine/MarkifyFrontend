@@ -1099,7 +1099,7 @@ modules["dropdown"] = class {
       clearInterval(window.dropdown.interval);
       window.dropdown.interval = await this.setResizeLoop(dropdown, content, header, window.dropdown.button);
       content.style.pointerEvents = "none";
-      await setFrame(frameName, frame, { content: content, button: button, origin: window.dropdown.button, ...data });
+      await setFrame(frameName, frame, { dropdown: this, content: content, button: button, origin: window.dropdown.button, ...data });
       content.setAttribute("loaded", "");
       content.style.pointerEvents = "all";
       content.style.opacity = 1;
@@ -1171,7 +1171,7 @@ modules["dropdown"] = class {
     if (modules[frameName] == null) {
       dropdown.style.transition = "width .4s, height .4s, opacity .3s, border-radius .3s, transform .4s";
     }
-    await setFrame(frameName, frame, { content: content, button: button, origin: button, ...data });
+    await setFrame(frameName, frame, { dropdown: this, content: content, button: button, origin: button, ...data });
     frame.style.removeProperty("min-height");
     await this.runResize(dropdown, content, header, button);
     content.style.pointerEvents = "all";
@@ -1264,6 +1264,7 @@ modules["modal"] = class {
     }, 1);
   };
   open = async function (frameName, parent, button, title, stack, data) {
+    parent = parent ?? this.parent;
     let dataParent = window;
     if (parent != null) {
       dataParent = this;
@@ -1349,7 +1350,7 @@ modules["modal"] = class {
       clearInterval(dataParent.modal.interval);
       dataParent.modal.interval = this.setResizeLoop(modal, content, header);
       content.style.pointerEvents = "none";
-      await setFrame(frameName, frame, { content: content, button: button, origin: dataParent.modal.button, ...data });
+      await setFrame(frameName, frame, { modal: this, content: content, button: button, origin: dataParent.modal.button, ...data });
       content.setAttribute("loaded", "");
       content.style.pointerEvents = "all";
       content.style.opacity = 1;
@@ -1367,8 +1368,8 @@ modules["modal"] = class {
       return;
     }
     this.close();
-    let setParent = parent ?? fixed;
-    setParent.insertAdjacentHTML("beforeend", `<div class="fixedItemHolder">
+    this.parent = parent ?? fixed;
+    this.parent.insertAdjacentHTML("beforeend", `<div class="fixedItemHolder">
       <div class="modal" new>
         <div class="modalOverflow">
           <div class="modalHeader">
@@ -1382,7 +1383,7 @@ modules["modal"] = class {
         </div>
       </div>
     </div>`);
-    let modal = setParent.querySelector(".modal[new]");
+    let modal = this.parent.querySelector(".modal[new]");
     modal.removeAttribute("new");
     let header = modal.querySelector(".modalHeader");
     let content = modal.querySelector(".modalContent");
@@ -1414,7 +1415,7 @@ modules["modal"] = class {
     modal.parentElement.setAttribute("blur", "");
     content.style.pointerEvents = "none";
     content.setAttribute("loaded", "");
-    await setFrame(frameName, frame, { content: content, button: button, origin: button, ...data });
+    await setFrame(frameName, frame, { modal: this, content: content, button: button, origin: button, ...data });
     content.style.pointerEvents = "all";
     frame.style.removeProperty("min-height");
     await sleep(300);

@@ -796,7 +796,7 @@ modules["lesson/board"] = class {
 
     if (this.session == null) { // Create New Lesson
       frame.insertAdjacentHTML("beforeend", `<div class="eCreateBoardHolder"></div>`);
-      this.modal = await modalModule.open("modals/lesson/newboard", frame.querySelector(".eCreateBoardHolder"), null, "Create Board", null, { parent: this });
+      modalModule.open("modals/lesson/newboard", frame.querySelector(".eCreateBoardHolder"), null, "Create Board", null, { parent: this });
     }
   }
 }

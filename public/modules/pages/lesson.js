@@ -464,7 +464,7 @@ modules["pages/lesson"] = class {
       }
     });
     let sendSocketPing = (attempt) => {
-      if (this.active == false) {
+      if (this.active == false || this.session == null) {
         return;
       }
       attempt = attempt ?? 1;

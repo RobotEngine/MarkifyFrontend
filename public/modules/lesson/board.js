@@ -1,5 +1,6 @@
 modules["lesson/board"] = class {
-  html = `<div class="eInterface lCustomScroll">
+  html = `
+  <div class="eInterface lCustomScroll">
     <div class="eTopHolder">
       <button class="eTopScroll" left style="left: 7px"><img src="./images/editor/top/leftarrow.svg" /></button>
       <button class="eTopScroll" right style="right: 7px"><img src="./images/editor/top/rightarrow.svg" /></button>
@@ -66,7 +67,7 @@ modules["lesson/board"] = class {
   css = {
     ".eInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; overflow: scroll; z-index: 2`,
     ".eContentHolder": `position: relative; width: 100%; height: 100%; overflow: scroll; z-index: 1; transition: .5s`,
-    //".eContentHolder .content": `width: 5000px; height: 5000px`, // Just a test
+    ".eCreateBoardHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden; z-index: 3; backdrop-filter: blur(4px); background: rgba(var(--hoverRGB), .3); pointer-events: all; transition: .3s`,
     
     ".eTopHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
     ".eTop": `position: absolute; display: flex; box-sizing: border-box; width: 100%; gap: 8px; padding-bottom: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,
@@ -705,6 +706,9 @@ modules["lesson/board"] = class {
     let pageParam = getParam("page");
     let checkForJumpLink = getParam("annotation");
     let asyncLoadAnnotations = async () => {
+      if (this.session == null) {
+        return;
+      }
       let [annoCode, annoBody] = await sendRequest("GET", "lessons/join/annotations", null, { session: this.parent.session }, { allowError: true });
       if (annoCode != 200 && connected == true) {
         alertModule.open("error", `<b>Error Loading Annotations</b>Please try again later...`);
@@ -782,18 +786,18 @@ modules["lesson/board"] = class {
       contentHolder.removeAttribute("disabled");
     }
 
-    if (this.exporting != true) {
-      asyncLoadAnnotations();
-      (await this.newModule("editor/realtime")).js(this.editor);
-      (await this.newModule("editor/toolbar")).js(this.editor);
-    } else {
-      await asyncLoadAnnotations();
-      //await (await this.loadModule("editor/export")).js(this, this.utils, page);
-    }
+    asyncLoadAnnotations();
+    (await this.newModule("editor/realtime")).js(this.editor);
+    (await this.newModule("editor/toolbar")).js(this.editor);
 
     this.updateInterface();
     editorToolbar.removeAttribute("notransition");
     viewerToolbar.removeAttribute("notransition");
+
+    if (this.session == null) { // Create New Lesson
+      page.insertAdjacentHTML("beforeend", `<div class="eCreateBoardHolder"><div class="eCreateBoard"></div></div>`);
+      this.setFrame("lesson/createnew", page.querySelector(".eCreateBoardHolder .eCreateBoard"));
+    }
   }
 }
 

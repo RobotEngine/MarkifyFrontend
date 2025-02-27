@@ -133,8 +133,8 @@ function loadScript(url) {
         let errorFunction;
         loadFunction = function () {
           resolve(script);
-          script.removeEventListener("load", loadListener);
-          script.removeEventListener("error", errorListener);
+          script.removeEventListener("load", loadFunction);
+          script.removeEventListener("error", errorFunction);
         }
         errorFunction = function () {
           resolve(); // No need to clear events (Script is removed)
@@ -1609,7 +1609,7 @@ addCSS({
   ".largeButton:hover": `--borderColor: var(--themeColor2)`,
   ".largeButton:active": `--animBorderWidth: calc(var(--borderWidth) * 2); --animBorderRadius: calc(var(--borderRadius) + var(--borderWidth))`,
   ".fixedItemHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden; transition: .3s`,
-  ".fixedItemHolder[blur]": `backdrop-filter: blur(4px); background: rgba(180, 218, 253, .3); pointer-events: all`,
+  ".fixedItemHolder[blur]": `backdrop-filter: blur(4px); background: rgba(var(--hoverRGB), .3); pointer-events: all`,
   "[notransition]": `transition: unset !important`,
   "button > svg": `-webkit-transform: translate3d(0, 0, 0)`,
   ".hideScroll": `scrollbar-width: none`,

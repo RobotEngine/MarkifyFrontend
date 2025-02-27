@@ -202,9 +202,7 @@ modules["pages/lesson"] = class {
 
     let pageHolder = page.querySelector(".lPageHolder");
 
-    /*if (this.id == "" && joinData.pin == null) {
-      return; // Open the create new lesson page
-    }*/
+    let isNewLesson = this.id == "" && joinData.pin == null;
 
     socket.remotes["member"] = (data) => {
       if (data.lesson != null && data.lesson != this.id) {
@@ -426,91 +424,11 @@ modules["pages/lesson"] = class {
     });
     tempListen(window, "beforeunload", (event) => { this.pushToPipelines(null, "beforeunload", { event: event }); });
 
-    joinData = joinData ?? {};
     let sendBody = { ss: socket.secureID };
-    if (this.active == false) {
-      sendBody.active = false;
-    }
-    if (joinData.pin != null) {
-      sendBody.pin = joinData.pin;
-    }
-    if (joinData.name != null) {
-      sendBody.name = joinData.name;
-    } else {
-      sendBody.name = getParam("name");
-    }
-    let paramSession = getParam("member_session") ?? "";
-    if (paramSession != "" && this.exporting == true) {
-      this.session = paramSession;
-    }
-    let [code, body, extra] = await sendRequest("POST", "lessons/join?lesson=" + this.id, sendBody, { session: this.session, allowError: [403, 406] });
-    if (code == 403 || code == 406) {
-      page.innerHTML = "";
-      setFrame("pages/join");
-    }
-    if (code != 200) {
-      return;
-    }
-
-    this.lesson = body.lesson;
-    this.lesson.settings = this.lesson.settings ?? {};
-
-    this.folder = body.folder;
-
-    this.sessionID = body.session._id;
-    this.sessionToken = body.session.token;
-    this.session = this.sessionID + ";" + this.sessionToken;
-    window.previousLessonSession = this.session;
-    
-    for (let i = 0; i < body.members.length; i++) {
-      let memSet = body.members[i];
-      if (this.members[memSet._id] == null) {
-        this.members[memSet._id] = {};
-      }
-      let member = this.members[memSet._id];
-      if (memSet.access == 1 && member.access < 1) {
-        this.editorCount++;
-      } else if (memSet.access == 0 && member.access > 0) {
-        this.editorCount--;
-      }
-      if (memSet.hand != null && member.hand == null) {
-        this.handCount++;
-      } else if (memSet.hand == null && member.hand != null) {
-        this.handCount--;
-      }
-      if (memSet.active == false && member.active != false) {
-        this.idleCount++;
-      } else if (memSet.active != false && member.active == false) {
-        this.idleCount--;
-      }
-      objectUpdate(memSet, member);
-    }
-    if (this.members[this.sessionID] == null) {
-      this.members[this.sessionID] = {};
-    }
-    this.self = this.members[this.sessionID];
-    this.memberCount = Object.keys(this.members).length;
-
-    this.sources = { ...this.sources, ...getObject(body.sources ?? [], "_id") };
-
-    document.title = (this.lesson.name ?? "Untitled Lesson") + " | Markify";
-
-    if (body.preferences != null) {
-      if (body.preferences.emojis != null) {
-        this.recentEmojis = body.preferences.emojis;
-        delete body.preferences.emojis;
-      }
-      objectUpdate(body.preferences, this.preferences);
-    }
-    for (let i = 0; (i < this.defaultEmojis.length && this.recentEmojis.length < 21); i++) {
-      if (this.recentEmojis.includes(this.defaultEmojis[i]) == false) {
-        this.recentEmojis.push(this.defaultEmojis[i]);
-      }
-    }
 
     let sentPing = false;
-    let sendPing = async () => {
-      if (connected == false) {
+    this.sendPing = async () => {
+      if (connected == false || this.session == null) {
         return;
       }
       let params = [];
@@ -535,18 +453,6 @@ modules["pages/lesson"] = class {
       } else if (code != 200 && code != 0 && code != null) {
         setFrame("pages/lesson");
       }
-    }
-    this.sendPing = sendPing;
-
-    if (extra.took < 2500) {
-      this.signalStrength = 3;
-    } else {
-      this.signalStrength = 2;
-      sendPing();
-    }
-
-    if (this.active != sendBody.active) {
-      sendPing();
     }
 
     let pingSocketFilter = { c: "short_" + this.id, o: this.sessionID, t: this.sessionToken };
@@ -577,7 +483,7 @@ modules["pages/lesson"] = class {
               // Enable everything:
               updateSignalStrength = { oldSignalStrength: this.signalStrength, signalStrength: 3 };
               this.signalStrength = 3;
-              sendPing();
+              this.sendPing();
               alertModule.open("info", "<b>Connection Restored</b>A strong connection has been established, all features enabled.");
             }
           }
@@ -591,7 +497,7 @@ modules["pages/lesson"] = class {
               // Disable the stuff:
               updateSignalStrength = { oldSignalStrength: this.signalStrength, signalStrength: 2 };
               this.signalStrength = 2;
-              sendPing();
+              this.sendPing();
               alertModule.open("info", "<b>Weak Connection</b>While you're still connected, real-time collaboration is disabled to save bandwidth.");
             }
           }
@@ -605,7 +511,7 @@ modules["pages/lesson"] = class {
     
     addTempListener({ type: "interval", interval: setInterval(async () => {
       if (sentPing == false) {
-        sendPing();
+        this.sendPing();
       }
       sentPing = false;
       if (connected == true) {
@@ -622,6 +528,123 @@ modules["pages/lesson"] = class {
       this.resyncPages = window.resync.pageSync;
     }
     window.resync = { lesson: this.id, pageSync: {} };
+
+    this.setLesson = (body) => {
+      this.lesson = body.lesson;
+      this.lesson.settings = this.lesson.settings ?? {};
+  
+      this.folder = body.folder;
+  
+      this.sessionID = body.session._id;
+      this.sessionToken = body.session.token;
+      if (body.session._id != null && body.session.token != null) {
+        this.session = this.sessionID + ";" + this.sessionToken;
+      }
+      window.previousLessonSession = this.session;
+      
+      for (let i = 0; i < body.members.length; i++) {
+        let memSet = body.members[i];
+        if (this.members[memSet._id] == null) {
+          this.members[memSet._id] = {};
+        }
+        let member = this.members[memSet._id];
+        if (memSet.access == 1 && member.access < 1) {
+          this.editorCount++;
+        } else if (memSet.access == 0 && member.access > 0) {
+          this.editorCount--;
+        }
+        if (memSet.hand != null && member.hand == null) {
+          this.handCount++;
+        } else if (memSet.hand == null && member.hand != null) {
+          this.handCount--;
+        }
+        if (memSet.active == false && member.active != false) {
+          this.idleCount++;
+        } else if (memSet.active != false && member.active == false) {
+          this.idleCount--;
+        }
+        objectUpdate(memSet, member);
+      }
+      if (this.members[this.sessionID] == null) {
+        this.members[this.sessionID] = {};
+      }
+      this.self = this.members[this.sessionID];
+      this.memberCount = Object.keys(this.members).length;
+  
+      this.sources = { ...this.sources, ...getObject(body.sources ?? [], "_id") };
+  
+      document.title = (this.lesson.name ?? "Untitled Lesson") + " | Markify";
+  
+      if (body.preferences != null) {
+        if (body.preferences.emojis != null) {
+          this.recentEmojis = body.preferences.emojis;
+          delete body.preferences.emojis;
+        }
+        objectUpdate(body.preferences, this.preferences);
+      }
+      for (let i = 0; (i < this.defaultEmojis.length && this.recentEmojis.length < 21); i++) {
+        if (this.recentEmojis.includes(this.defaultEmojis[i]) == false) {
+          this.recentEmojis.push(this.defaultEmojis[i]);
+        }
+      }
+    }
+
+    if (isNewLesson == false) {
+      joinData = joinData ?? {};
+      if (this.active == false) {
+        sendBody.active = false;
+      }
+      if (joinData.pin != null) {
+        sendBody.pin = joinData.pin;
+      }
+      if (joinData.name != null) {
+        sendBody.name = joinData.name;
+      } else {
+        sendBody.name = getParam("name");
+      }
+      let paramSession = getParam("member_session") ?? "";
+      if (paramSession != "" && this.exporting == true) {
+        this.session = paramSession;
+      }
+      let [code, body, extra] = await sendRequest("POST", "lessons/join?lesson=" + this.id, sendBody, { session: this.session, allowError: [403, 406] });
+      if (code == 403 || code == 406) {
+        page.innerHTML = "";
+        setFrame("pages/join");
+      }
+      if (code != 200) {
+        return;
+      }
+      this.setLesson(body);
+      if (extra.took < 2500) {
+        this.signalStrength = 3;
+      } else {
+        this.signalStrength = 2;
+        this.sendPing();
+      }
+  
+      if (this.active != sendBody.active) {
+        this.sendPing();
+      }
+    } else {
+      if (userID == null) {
+        checkForAuth(true);
+        return;
+      }
+      this.setLesson({
+        "lesson": {
+            "_id": null,
+            "owner": userID,
+            "created": getEpoch(),
+            "members": 0,
+            "name": "Untitled Lesson",
+            "access": 0
+        },
+        "session": {},
+        "members": [],
+        "sources": []
+      });
+      this.signalStrength = 3;
+    }
 
     this.addPage("board", "board", page.querySelector(".lPage"));
   }

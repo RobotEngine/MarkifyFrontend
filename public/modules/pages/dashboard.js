@@ -3,6 +3,8 @@ modules["pages/dashboard"] = class {
   preload = [
     "./modules/pages/lesson.js",
     "./modules/pages/join.js",
+
+    "./modules/lesson/createnew.js",
     
     "./modules/dropdowns/account.js",
     "./modules/dropdowns/moveto.js",
@@ -18,6 +20,7 @@ modules["pages/dashboard"] = class {
     modifyParams("page");
     modifyParams("annotation");
     modifyParams("pin");
+    modifyParams("type");
   }
   html = `<div class="dPageHolder">
     <div class="dPage">
@@ -29,7 +32,7 @@ modules["pages/dashboard"] = class {
             <a class="dJoinButton largeButton" href="#join">Join<img src="./images/tooltips/link.svg" /><div backdrop></div></a>
           </div>
           <div class="dSidebarSection dSidebarActions">
-            <a class="dCreateLessonButton largeButton" href="#lesson">New Lesson<div backdrop></div></a>
+            <a class="dCreateLessonButton largeButton" href="?type=board#lesson">New Lesson<div backdrop></div></a>
           </div>
           <div class="dSidebarSection dSidebarSorts">
             <div class="dSidebarTitle"><div title>Sorts</div><div divider></div></div>
@@ -181,6 +184,7 @@ modules["pages/dashboard"] = class {
     });
     newLessonButton.addEventListener("click", (event) => {
       event.preventDefault();
+      modifyParams("type", "board");
       if (this.sort != null && this.sort.length > 20) {
         modifyParams("folder", this.sort);
       }

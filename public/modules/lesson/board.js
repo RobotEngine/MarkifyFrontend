@@ -782,7 +782,6 @@ modules["lesson/board"] = class {
         await this.editor.updateChunks();
       }
 
-
       contentHolder.removeAttribute("disabled");
     }
 
@@ -796,7 +795,8 @@ modules["lesson/board"] = class {
 
     if (this.session == null) { // Create New Lesson
       frame.insertAdjacentHTML("beforeend", `<div class="eCreateBoardHolder"></div>`);
-      modalModule.open("modals/lesson/newboard", frame.querySelector(".eCreateBoardHolder"), null, "Create Board", null, { parent: this });
+      await modalModule.open("modals/lesson/newboard", frame.querySelector(".eCreateBoardHolder"), null, "Create Board", null, { parent: this });
+      //contentHolder.removeAttribute("disabled");
     }
   }
 }

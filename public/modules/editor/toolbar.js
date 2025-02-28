@@ -1159,12 +1159,13 @@ modules["editor/toolbar/pen"] = class {
       }
     }
 
+    delete this.editor.selecting[this.annotation.render._id];
+    
     await this.editor.save.push(this.annotation.render);
     await this.editor.history.push("remove", [{ _id: this.annotation.render._id }]);
 
     this.annotation.render.done = true;
     await this.editor.realtime.forceShort();
-    delete this.editor.selecting[this.annotation.render._id];
     this.editor.render.remove(this.annotation);
     this.annotation = null;
     this.editor.usingStylus = false;
@@ -1390,9 +1391,10 @@ modules["editor/toolbar/text"] = class {
 
   clickMove = async (event) => {
     if (this.annotation == null) {
-      if (event != null && event.target.closest(".eContent") == null) {
+      if (event != null && this.editor.isEditorContent(event.target) != true) {
         return;
       }
+      this.activate();
       this.annotation = {
         render: this.PROPERTIES,
         animate: false
@@ -1426,7 +1428,7 @@ modules["editor/toolbar/text"] = class {
     if (this.annotation == null) {
       return;
     }
-    if (event != null && event.target.closest(".eContentHolder") == this.editor.contentHolder) {
+    if (event != null && this.editor.isEditorContent(event.target) == true) {
       this.annotation.render._id = this.editor.render.tempID();
 
       await this.editor.save.push(this.annotation.render);
@@ -1493,9 +1495,10 @@ modules["editor/toolbar/shape"] = class {
       return this.clickEnd();
     }
     if (this.annotation == null) {
-      if (event != null && event.target.closest(".eContent") == null) {
+      if (event != null && this.editor.isEditorContent(event.target) != true) {
         return;
       }
+      this.activate();
       this.annotation = {
         render: this.PROPERTIES,
         animate: false
@@ -1572,7 +1575,7 @@ modules["editor/toolbar/shape"] = class {
     if (this.annotation == null) {
       return;
     }
-    if (event != null && event.target.closest(".eContentHolder") == this.editor.contentHolder) {
+    if (event != null && this.editor.isEditorContent(event.target) == true) {
       this.annotation.render._id = this.editor.render.tempID();
 
       await this.editor.save.push(this.annotation.render);

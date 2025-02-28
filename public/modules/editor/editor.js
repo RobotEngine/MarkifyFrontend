@@ -328,16 +328,13 @@ modules["editor/editor"] = class {
   }
 
   isPageActive = () => {
-    if (this.pageFrame.hasAttribute("active") == true) {
-      return true;
-    }
-    return false;
+    return this.pageFrame.hasAttribute("active") == true;
   }
   isThisPage = (element) => {
-    if (element != null && element.closest(".lPage") == this.pageFrame) {
-      return true;
-    }
-    return false;
+    return element != null && element.closest(".lPage") == this.pageFrame;
+  }
+  isEditorContent = (target) => {
+    return target.closest(".eContentHolder") == this.contentHolder;
   }
 
   options = {
@@ -1782,18 +1779,12 @@ modules["editor/editor"] = class {
       if (merged.p == null || merged.s == null) {
         return;
       }
-      let position = this.utils.getAbsolutePosition(merged);
-      let thickness = 0;
-      if (merged.t != null) {
-        if (merged.b != "none" || merged.d == "line") {
-          thickness = merged.t;
-        }
-      }
+      let rect = this.utils.getRect(merged);
 
       // Check for a new parent:
       let parent = await this.utils.parentFromAnnotation({
         ...merged,
-        p: [position[0], position[1]],
+        p: [rect.x, rect.y],
         parent: null,
         prevParent: merged.parent
       }, true);
@@ -1802,7 +1793,7 @@ modules["editor/editor"] = class {
         let [newX, newY] = this.utils.getRelativePosition({
           ...merged,
           parent: data.parent,
-          p: [position[0], position[1]]
+          p: [rect.x, rect.y]
         });
         data.p = [newX, newY];
         this.realtimeSelect[data._id] = { ...(this.realtimeSelect[data._id] ?? {}), ...data };

@@ -1381,7 +1381,7 @@ modules["editor/toolbar/eraser"] = class {
 
 modules["editor/toolbar/text"] = class {
   PROPERTIES = {};
-  TARGET_QUERY = '.eSelectBar:not([remove]) .eTool[action="pages/editor/toolbar/textedit"]';
+  TARGET_QUERY = '.eSelectBar:not([remove]) .eTool[action="editor/toolbar/textedit"]';
   USER_SELECT = "none";
   TOUCH_ACTION = "pinch-zoom";
   REALTIME_TOOL = 4;
@@ -1468,8 +1468,9 @@ modules["editor/toolbar/text"] = class {
 modules["editor/toolbar/shape"] = class {
   ACTIVE = true;
   PROPERTIES = {};
+  RENDER_INSERT = {};
   CAN_FLIP = true;
-  MINIMUM_SIZE = 100;
+  MINIMUM_SIZE = 25;
   USER_SELECT = "none";
   TOUCH_ACTION = "pinch-zoom";
   REALTIME_TOOL = 4;
@@ -1561,7 +1562,9 @@ modules["editor/toolbar/shape"] = class {
         }
       }
     }
-    await this.editor.render.create(this.annotation);
+    let renderObject = { ...this.annotation, render: { ...this.annotation.render, ...this.RENDER_INSERT } };
+    await this.editor.render.create(renderObject);
+    this.annotation.element = renderObject.element;
     this.editor.selecting["cursor"] = this.annotation.render;
   }
   scroll = () => { this.clickMove(); }
@@ -1632,6 +1635,7 @@ modules["editor/toolbar/page"] = class extends modules["editor/toolbar/shape"] {
 
 modules["editor/toolbar/upload"] = class extends modules["editor/toolbar/shape"] {
   ACTIVE = false;
+  MINIMUM_SIZE = 100;
 
   activate = (extra) => {
     let toolPreference = this.parent.getToolPreference();
@@ -1653,7 +1657,7 @@ modules["editor/toolbar/upload"] = class extends modules["editor/toolbar/shape"]
     let reset = () => {
       this.annotation = null;
       imageBlob = null;
-      let button = this.parent.toolbar.toolbar.querySelector('.eTool[module="pages/editor/toolbar/upload"]');
+      let button = this.parent.toolbar.toolbar.querySelector('.eTool[module="editor/toolbar/upload"]');
       if (button != null) {
         button.removeAttribute("selected");
       }
@@ -1681,7 +1685,7 @@ modules["editor/toolbar/upload"] = class extends modules["editor/toolbar/shape"]
               image.onload = () => {
                 this.width = Math.min(image.width, 400);
                 this.height = image.height * (this.width / image.width);
-                this.PROPERTIES.d = this.PROPERTIES.d ?? imageBlob;
+                this.RENDER_INSERT = { d: this.PROPERTIES.d ?? imageBlob };
                 this.PROPERTIES.s = this.PROPERTIES.s ?? [this.width, this.height];
                 this.ACTIVE = true;
               }
@@ -1749,7 +1753,7 @@ modules["editor/toolbar/upload"] = class extends modules["editor/toolbar/shape"]
 }
 
 modules["editor/toolbar/embed"] = class extends modules["editor/toolbar/text"] {
-  TARGET_QUERY = '.eSelectBar:not([remove]) .eTool[action="pages/editor/toolbar/setembed"]';
+  TARGET_QUERY = '.eSelectBar:not([remove]) .eTool[action="editor/toolbar/setembed"]';
   
   activate = () => {
     this.PROPERTIES = {

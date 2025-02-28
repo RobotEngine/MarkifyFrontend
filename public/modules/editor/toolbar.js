@@ -896,6 +896,9 @@ modules["editor/toolbar"] = class {
     this.selection.updateBox = () => {
 
     }
+    this.selection.clickAction = (data) => {
+
+    }
 
     // Subscribe to Events:
     editor.pipeline.subscribe("toolbarMouse", "click_start", (data) => {
@@ -1440,7 +1443,8 @@ modules["editor/toolbar/text"] = class {
       this.parent.selection.updateBox();
 
       this.parent.selection.clickAction({
-        target: this.editor.page.querySelector('.eSelectBar:not([remove]) .eTool[action="pages/editor/toolbar/textedit"]')
+        target: this.editor.page.querySelector('.eSelectBar:not([remove]) .eTool[action="pages/editor/toolbar/textedit"]'),
+        clearText: true
       });
     }
     this.editor.render.remove(this.annotation);

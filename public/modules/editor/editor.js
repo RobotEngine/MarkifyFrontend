@@ -1736,12 +1736,13 @@ modules["editor/editor"] = class {
 
       // IF SELECTING, DO NOT UPDATE THOSE FIELDS
       let redrawAction = false;
+      let renderObject = annotation.render;
       if (this.selecting[annotation.render._id] != null) {
         renderObject = { ...annotation.render, ...this.selecting[annotation.render._id] };
         redrawAction = true;
       }
 
-      objectUpdate(save, annotation.render); // Update the annotation
+      objectUpdate(save, renderObject); // Update the annotation
       if (noTimeout != true) {
         this.save.enableTimeout(annotation); // Start timer to revert if update isn't server-confirmed
       }
@@ -1751,9 +1752,9 @@ modules["editor/editor"] = class {
       }
 
       await this.utils.setAnnotationChunks(annotation);
-      this.utils.updateAnnotationPages(annotation.render);
+      this.utils.updateAnnotationPages(renderObject);
 
-      let allowRender = annotation.render.remove == true;
+      let allowRender = renderObject.remove == true;
       for (let i = 0; i < annotation.chunks.length; i++) {
         if (this.visibleChunks.includes(annotation.chunks[i]) == true) {
           allowRender = true;
@@ -2060,7 +2061,7 @@ modules["editor/editor"] = class {
   
               if (this.toolbar != null) {
                 let selectionIDs = Object.keys(this.selecting);
-                this.toolbar.cursor.lastSelections = "";
+                this.toolbar.selection.lastSelections = "";
                 for (let i = 0; i < selectionIDs.length; i++) {
                   this.toolbar.cursor.lastSelections += selectionIDs[i];
                 }

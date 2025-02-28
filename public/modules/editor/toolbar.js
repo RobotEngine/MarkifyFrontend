@@ -1517,21 +1517,21 @@ modules["editor/toolbar/shape"] = class {
     let position = this.editor.utils.scaleToDoc(this.mouseX, this.mouseY);
     this.endX = position.x;
     this.endY = position.y;
-    this.annotation.render.p = [this.startX ?? this.endX, this.startY ?? this.endY];
+    let thickness = this.annotation.render.t ?? 0;
+    this.annotation.render.p = [(this.startX ?? this.endX) - thickness, (this.startY ?? this.endY) - thickness];
     if (this.resizeActive == true || Math.abs(this.endX - (this.startX ?? this.endX)) > 10 / this.editor.zoom || Math.abs(this.endY - (this.startY ?? this.endY)) > 10 / this.editor.zoom) {
       this.resizeActive = true;
-      let thickness = this.annotation.render.t ?? 0;
       let setX = this.endX - this.startX;
       if (setX >= 0) {
-        setX = this.editor.utils.round(Math.max(setX - thickness, this.MINIMUM_SIZE));
+        setX = this.editor.utils.round(Math.max(setX, this.MINIMUM_SIZE));
       } else {
-        setX = this.editor.utils.round(Math.min(setX - thickness, -this.MINIMUM_SIZE));
+        setX = this.editor.utils.round(Math.min(setX, -this.MINIMUM_SIZE));
       }
       let setY = this.endY - this.startY;
       if (setY >= 0) {
-        setY = this.editor.utils.round(Math.max(setY - thickness, this.MINIMUM_SIZE));
+        setY = this.editor.utils.round(Math.max(setY, this.MINIMUM_SIZE));
       } else {
-        setY = this.editor.utils.round(Math.min(setY - thickness, -this.MINIMUM_SIZE));
+        setY = this.editor.utils.round(Math.min(setY, -this.MINIMUM_SIZE));
       }
       if (event != null && (event.shiftKey == true)) {
         let changeX = setX / (this.width ?? setX);

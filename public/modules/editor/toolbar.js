@@ -744,6 +744,7 @@ modules["editor/toolbar"] = class {
                 this.toolbar.closeSub();
               }
             } else {
+              currentSubTool = toolData.id;
               this.currentToolModulePath = toolData.module;
               this.tooltip.update();
             }
@@ -893,7 +894,7 @@ modules["editor/toolbar"] = class {
 
     this.selection = {};
     this.selection.updateBox = () => {
-      
+
     }
 
     // Subscribe to Events:
@@ -1370,6 +1371,83 @@ modules["editor/toolbar/eraser"] = class {
   disable = this.clickEnd;
 }
 
+modules["editor/toolbar/text"] = class {
+  USER_SELECT = "none";
+  TOUCH_ACTION = "pinch-zoom";
+  REALTIME_TOOL = 4;
+  MOUSE = { type: "svg", url: "./images/editor/cursors/insert.svg", translate: { x: 20, y: 20 } };
+  PUBLISH = {};
+
+  clickMove = async (event) => {
+    if (event != null && event.target.closest(".eAnnotations") == null) {
+      return;
+    }
+    if (this.annotation == null) {
+      let toolPreference = this.parent.getToolPreference();
+      this.annotation = {
+        render: {
+          f: "text",
+          s: [0, 0],
+          l: this.editor.maxLayer + 1,
+          c: toolPreference.color.selected,
+          o: toolPreference.opacity,
+          d: { s: toolPreference.size, al: toolPreference.align, b: ["Example Text"] },
+          hidden: true,
+          textfit: true
+        },
+        animate: false
+      };
+    }
+    if (event != null) {
+      let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
+      this.mouseX = mouseX;
+      this.mouseY = mouseY;
+    }
+    if (this.mouseX == null || this.mouseY == null) {
+      return;
+    }
+    let position = this.editor.utils.scaleToDoc(this.mouseX, this.mouseY);
+    this.annotation.render.p = [
+      this.editor.utils.round(position.x - (this.annotation.render.s[0] / 2)),
+      this.editor.utils.round(position.y - (this.annotation.render.s[1] / 2))
+    ];
+    await this.editor.render.create(this.annotation);
+    let textElem = this.annotation.element.querySelector("div[text]");
+    if (textElem != null) {
+      this.annotation.render.s = [textElem.offsetWidth, textElem.offsetHeight];
+      delete this.annotation.render.hidden;
+    }
+    this.editor.selecting["cursor"] = this.annotation.render;
+  }
+  scroll = () => { this.clickMove(); }
+  clickEnd = async (event) => {
+    if (this.annotation == null) {
+      return;
+    }
+    if (event != null && event.target.closest(".eAnnotations") != null) {
+      this.annotation.render._id = this.editor.render.tempID();
+
+      await this.editor.save.push(this.annotation.render);
+      await this.editor.history.push("remove", [{ _id: this.annotation.render._id }]);
+
+      this.annotation.render.done = true;
+      await this.editor.realtime.forceShort();
+      delete this.editor.selecting["cursor"];
+
+      await this.parent.toolbar.startTool(this.parent.toolbar.toolbar.querySelector('.eTool[tool="selection"]'));
+      await this.parent.toolbar.startTool(this.parent.toolbar.toolbar.querySelector('.eTool[tool="select"]'));
+      this.editor.selecting[this.annotation.render._id] = {};
+      this.parent.selection.updateBox();
+
+      this.parent.selection.clickAction({
+        target: this.editor.page.querySelector('.eSelectBar:not([remove]) .eTool[action="pages/editor/toolbar/textedit"]')
+      });
+    }
+    this.editor.render.remove(this.annotation);
+    this.annotation = null;
+  }
+}
+
 modules["editor/toolbar/shape"] = class {
   USER_SELECT = "none";
   TOUCH_ACTION = "pinch-zoom";
@@ -1409,12 +1487,12 @@ modules["editor/toolbar/shape"] = class {
       this.mouseX = mouseX;
       this.mouseY = mouseY;
     }
-    let position = this.editor.utils.scaleToDoc(this.mouseX, this.mouseY);
-      this.endX = position.x;
-      this.endY = position.y;
-    if (this.endX == null || this.endY == null) {
+    if (this.mouseX == null || this.mouseY == null) {
       return;
     }
+    let position = this.editor.utils.scaleToDoc(this.mouseX, this.mouseY);
+    this.endX = position.x;
+    this.endY = position.y;
     this.annotation.render.p = [this.startX ?? this.endX, this.startY ?? this.endY];
     if (Math.abs(this.endX - (this.startX ?? this.endX)) > 25 || Math.abs(this.endY - (this.startY ?? this.endY)) > 25) {
       let setX = this.endX - this.startX;
@@ -1456,11 +1534,6 @@ modules["editor/toolbar/shape"] = class {
     }
     this.editor.render.remove(this.annotation);
     this.annotation = null;
-  }
-  activate = () => {
-    let toolPreference = this.parent.getToolPreference();
-    this.MOUSE.color = toolPreference.color.selected;
-    this.MOUSE.opacity = toolPreference.opacity;
   }
 }
 

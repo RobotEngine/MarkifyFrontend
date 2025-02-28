@@ -901,11 +901,16 @@ modules["dropdowns/lesson/file"] = class {
     let hideshowpage = frame.querySelector('.eFileAction[option="hideshowpage"]');
     hideshowpage.addEventListener("click", async () => {
       hideshowpage.setAttribute("disabled", "");
-      //let [code] = await sendRequest("PUT", "lessons/rearrange/hide", null, { session: editor.session });
+      for (let i = 0; i < parent.editor.annotationPages.length; i++) {
+        let pageID = parent.editor.annotationPages[i][0];
+        let render = (parent.editor.annotations[pageID] ?? {}).render;
+        if (render != null && render.hidden != true) {
+          await parent.editor.save.push({ _id: pageID, hidden: true });
+        }
+      }
+      await parent.editor.save.syncSave(true);
       hideshowpage.removeAttribute("disabled");
-      //if (code == 200) {
-      //  dropdownModule.close();
-      //}
+      dropdownModule.close();
     });
 
     if (access < 5) {

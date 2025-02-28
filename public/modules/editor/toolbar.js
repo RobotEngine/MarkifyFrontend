@@ -1002,6 +1002,7 @@ modules["editor/toolbar/pan"] = class {
 }
 
 modules["editor/toolbar/pen"] = class {
+  FUNCTION = "draw";
   USER_SELECT = "none";
   TOUCH_ACTION = null;
   REALTIME_TOOL = 2;
@@ -1029,7 +1030,7 @@ modules["editor/toolbar/pen"] = class {
     this.annotation = {
       render: {
         _id: this.editor.render.tempID(),
-        f: this.FUNCTION ?? "draw",
+        f: this.FUNCTION,
         p: [this.editor.utils.round(position.x - useThickness), this.editor.utils.round(position.y - useThickness)],
         s: [0, 0],
         l: this.editor.maxLayer + 1,
@@ -1375,6 +1376,8 @@ modules["editor/toolbar/eraser"] = class {
 }
 
 modules["editor/toolbar/text"] = class {
+  FUNCTION = "text";
+  PROPERTIES = {};
   USER_SELECT = "none";
   TOUCH_ACTION = "pinch-zoom";
   REALTIME_TOOL = 4;
@@ -1382,21 +1385,18 @@ modules["editor/toolbar/text"] = class {
   PUBLISH = {};
 
   clickMove = async (event) => {
-    if (event != null && event.target.closest(".eAnnotations") == null) {
+    if (event != null && event.target.closest(".eContent") == null) {
       return;
     }
     if (this.annotation == null) {
       let toolPreference = this.parent.getToolPreference();
       this.annotation = {
         render: {
-          f: "text",
-          s: [0, 0],
+          f: this.FUNCTION,
           l: this.editor.maxLayer + 1,
           c: toolPreference.color.selected,
           o: toolPreference.opacity,
-          d: { s: toolPreference.size, al: toolPreference.align, b: ["Example Text"] },
-          hidden: true,
-          textfit: true
+          ...(this.PROPERTIES ?? {})
         },
         animate: false
       };
@@ -1415,10 +1415,12 @@ modules["editor/toolbar/text"] = class {
       this.editor.utils.round(position.y - (this.annotation.render.s[1] / 2))
     ];
     await this.editor.render.create(this.annotation);
-    let textElem = this.annotation.element.querySelector("div[text]");
-    if (textElem != null) {
-      this.annotation.render.s = [textElem.offsetWidth, textElem.offsetHeight];
-      delete this.annotation.render.hidden;
+    if (this.annotation.render.textfit == true) {
+      let textElem = this.annotation.element.querySelector("div[text]");
+      if (textElem != null) {
+        this.annotation.render.s = [textElem.offsetWidth, textElem.offsetHeight];
+        delete this.annotation.render.hidden;
+      }
     }
     this.editor.selecting["cursor"] = this.annotation.render;
   }
@@ -1427,7 +1429,7 @@ modules["editor/toolbar/text"] = class {
     if (this.annotation == null) {
       return;
     }
-    if (event != null && event.target.closest(".eAnnotations") != null) {
+    if (event != null && event.target.closest(".eContent") != null) {
       this.annotation.render._id = this.editor.render.tempID();
 
       await this.editor.save.push(this.annotation.render);
@@ -1450,6 +1452,15 @@ modules["editor/toolbar/text"] = class {
     this.editor.render.remove(this.annotation);
     this.annotation = null;
   }
+  activate = () => {
+    let toolPreference = this.parent.getToolPreference();
+    this.PROPERTIES = {
+      s: [0, 0],
+      d: { s: toolPreference.size, al: toolPreference.align, b: ["Example Text"] },
+      hidden: true,
+      textfit: true
+    }
+  }
 }
 
 modules["editor/toolbar/shape"] = class {
@@ -1468,7 +1479,7 @@ modules["editor/toolbar/shape"] = class {
     }
   }
   clickMove = async (event) => {
-    if (event != null && event.target.closest(".eAnnotations") == null) {
+    if (event != null && event.target.closest(".eContent") == null) {
       return;
     }
     if (this.annotation == null) {
@@ -1523,7 +1534,7 @@ modules["editor/toolbar/shape"] = class {
     if (this.annotation == null) {
       return;
     }
-    if (event != null && event.target.closest(".eAnnotations") != null) {
+    if (event != null && event.target.closest(".eContent") != null) {
       this.annotation.render._id = this.editor.render.tempID();
 
       await this.editor.save.push(this.annotation.render);
@@ -1540,6 +1551,17 @@ modules["editor/toolbar/shape"] = class {
     }
     this.editor.render.remove(this.annotation);
     this.annotation = null;
+  }
+}
+
+modules["editor/toolbar/sticky"] = class extends modules["editor/toolbar/text"] {
+  FUNCTION = "sticky";
+
+  activate = () => {
+    this.PROPERTIES = {
+      s: [220, 220],
+      sig: this.editor.self.name
+    }
   }
 }
 

@@ -1032,6 +1032,7 @@ modules["pages/dashboard"] = class {
         unselectSidebarButton();
         let button = sidebar.querySelector('.dSidebarSort[sort="recent"]');
         let prevSort = this.sort;
+        scrollEventPass = null;
         this.sort = "recent";
         button.setAttribute("selected", "");
         return this.updateTiles(button, null, prevSort);
@@ -1090,6 +1091,12 @@ modules["pages/dashboard/lessons"] = class {
     let noLessons = frame.querySelector(".dNoLessons");
     let scrollContainer = frame.closest(".dLessonsHolder");
     let allLoaded = false;
+
+    extra.scrollEventPass = async (event, loop, first) => {
+      if (this.eventUpdate != null) {
+        await this.eventUpdate(event, loop, first);
+      }
+    }
 
     if (sort == "search") {
       records = null;
@@ -1240,7 +1247,7 @@ modules["pages/dashboard/lessons"] = class {
     }
 
     let alreadyRunningEvent = false;
-    extra.scrollEventPass = async (event, loop, first) => {
+    this.eventUpdate = async (event, loop, first) => {
       if (alreadyRunningEvent == true && first != false) {
         return;
       }
@@ -1281,14 +1288,14 @@ modules["pages/dashboard/lessons"] = class {
         noLessons.style.display = "none";
       }
       if (loop == true) {
-        await extra.scrollEventPass(event, loop, false);
+        await this.eventUpdate(event, loop, false);
       }
       if (first != false) {
         this.parent.updateDashSub();
         alreadyRunningEvent = false;
       }
     }
-    extra.scrollEventPass(null, true);
+    this.eventUpdate(null, true);
 
     if (thisFolder != null && button != null) {
       if (button.hasAttribute("opened") == false) {

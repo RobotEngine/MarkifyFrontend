@@ -318,6 +318,7 @@ modules["editor/realtime"] = class {
       if (data.signalStrength < 3) {
         this.exitObserve();
       }
+      this.setShortSub(editor.visibleChunks);
     });
 
     let targetScrollPositionX = 0;

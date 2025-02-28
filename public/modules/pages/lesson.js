@@ -426,101 +426,6 @@ modules["pages/lesson"] = class {
     });
     tempListen(window, "beforeunload", (event) => { this.pushToPipelines(null, "beforeunload", { event: event }); });
 
-    let sendBody = { ss: socket.secureID };
-
-    let sentPing = false;
-    this.sendPing = async () => {
-      if (connected == false || this.session == null) {
-        return;
-      }
-      let params = [];
-      if (this.active == false && this.exporting != true) {
-        params.push("idle");
-      }
-      if (this.signalStrength == 2) {
-        params.push("weak");
-      }
-      let path = "lessons/ping";
-      if (params.length > 0) {
-        path += "?" + params.join("&");
-      }
-      sentPing = true;
-      let [code] = await sendRequest("GET", path, null, { session: this.session, allowError: [403] });
-      if (code == 403) {
-        if (sendBody.pin != null) {
-          setFrame("pages/join"); // Send back to join page
-        } else {
-          setFrame("pages/lesson"); // Refresh to rejoin
-        }
-      } else if (code != 200 && code != 0 && code != null) {
-        setFrame("pages/lesson");
-      }
-    }
-
-    let pingSocketFilter = { c: "short_" + this.id, o: this.sessionID, t: this.sessionToken };
-    let awaitingPongs = {};
-    let pongTimeoutTime = 500; // ms
-    subscribe(pingSocketFilter, (pingID) => {
-      if (getEpoch() - pingID < pongTimeoutTime) {
-        awaitingPongs[pingID] = "";
-      }
-    });
-    let sendSocketPing = (attempt) => {
-      if (this.active == false || this.session == null) {
-        return;
-      }
-      attempt = attempt ?? 1;
-      let pingID = getEpoch();
-      setTimeout(() => {
-        let updateSignalStrength;
-        if (awaitingPongs[pingID] == "") {
-          delete awaitingPongs[pingID];
-
-          // STRONG INTERNET
-          if (this.signalStrength != 3) {
-            if (attempt < 3) {
-              // Try 2 more times to make sure:
-              return sendSocketPing(attempt + 1);
-            } else {
-              // Enable everything:
-              updateSignalStrength = { oldSignalStrength: this.signalStrength, signalStrength: 3 };
-              this.signalStrength = 3;
-              this.sendPing();
-              alertModule.open("info", "<b>Connection Restored</b>A strong connection has been established, all features enabled.");
-            }
-          }
-        } else {
-          // WEAK INTERNET
-          if (this.signalStrength != 2) {
-            if (attempt < 3) {
-              // Try 2 more times to make sure:
-              return sendSocketPing(attempt + 1);
-            } else {
-              // Disable the stuff:
-              updateSignalStrength = { oldSignalStrength: this.signalStrength, signalStrength: 2 };
-              this.signalStrength = 2;
-              this.sendPing();
-              alertModule.open("info", "<b>Weak Connection</b>While you're still connected, real-time collaboration is disabled to save bandwidth.");
-            }
-          }
-        }
-        if (updateSignalStrength != null) {
-          this.pushToPipelines(null, "signal_strength", updateSignalStrength);
-        }
-      }, pongTimeoutTime);
-      socket.publish(pingSocketFilter, pingID, { publishToSelf: true });
-    }
-    
-    addTempListener({ type: "interval", interval: setInterval(async () => {
-      if (sentPing == false) {
-        this.sendPing();
-      }
-      sentPing = false;
-      if (connected == true) {
-        sendSocketPing();
-      }
-    }, 60000) }); // PING every minute
-
     window.closeCallback = () => {
       let oldSignalStrength = this.signalStrength;
       this.signalStrength = 1;
@@ -530,6 +435,8 @@ modules["pages/lesson"] = class {
       this.resyncPages = window.resync.pageSync;
     }
     window.resync = { lesson: this.id, pageSync: {} };
+
+    let sendBody = { ss: socket.secureID };
 
     this.setLesson = (body) => {
       this.lesson = body.lesson;
@@ -592,6 +499,99 @@ modules["pages/lesson"] = class {
         if (this.recentEmojis.includes(this.defaultEmojis[i]) == false) {
           this.recentEmojis.push(this.defaultEmojis[i]);
         }
+      }
+
+      if (this.session != null) {
+        let sentPing = false;
+        this.sendPing = async () => {
+          if (connected == false) {
+            return;
+          }
+          let params = [];
+          if (this.active == false && this.exporting != true) {
+            params.push("idle");
+          }
+          if (this.signalStrength == 2) {
+            params.push("weak");
+          }
+          let path = "lessons/ping";
+          if (params.length > 0) {
+            path += "?" + params.join("&");
+          }
+          sentPing = true;
+          let [code] = await sendRequest("GET", path, null, { session: this.session, allowError: [403] });
+          if (code == 403) {
+            if (sendBody.pin != null) {
+              setFrame("pages/join"); // Send back to join page
+            } else {
+              setFrame("pages/lesson"); // Refresh to rejoin
+            }
+          } else if (code != 200 && code != 0 && code != null) {
+            setFrame("pages/lesson");
+          }
+        }
+    
+        let pingSocketFilter = { c: "short_" + this.id, o: this.sessionID, t: this.sessionToken };
+        let awaitingPongs = {};
+        let pongTimeoutTime = 500; // ms
+        subscribe(pingSocketFilter, (pingID) => {
+          if (getEpoch() - pingID < pongTimeoutTime) {
+            awaitingPongs[pingID] = "";
+          }
+        });
+        let sendSocketPing = (attempt) => {
+          if (connected == false || document.visibilityState != "visible") {
+            return;
+          }
+          attempt = attempt ?? 1;
+          let pingID = getEpoch();
+          setTimeout(() => {
+            let updateSignalStrength;
+            if (awaitingPongs[pingID] == "") {
+              delete awaitingPongs[pingID];
+    
+              // STRONG INTERNET
+              if (this.signalStrength != 3) {
+                if (attempt < 3) {
+                  // Try 2 more times to make sure:
+                  return sendSocketPing(attempt + 1);
+                } else {
+                  // Enable everything:
+                  updateSignalStrength = { oldSignalStrength: this.signalStrength, signalStrength: 3 };
+                  this.signalStrength = 3;
+                  this.sendPing();
+                  alertModule.open("info", "<b>Connection Restored</b>A strong connection has been established, all features enabled.");
+                }
+              }
+            } else {
+              // WEAK INTERNET
+              if (this.signalStrength != 2) {
+                if (attempt < 3) {
+                  // Try 2 more times to make sure:
+                  return sendSocketPing(attempt + 1);
+                } else {
+                  // Disable the stuff:
+                  updateSignalStrength = { oldSignalStrength: this.signalStrength, signalStrength: 2 };
+                  this.signalStrength = 2;
+                  this.sendPing();
+                  alertModule.open("info", "<b>Weak Connection</b>While you're still connected, real-time collaboration is disabled to save bandwidth.");
+                }
+              }
+            }
+            if (updateSignalStrength != null) {
+              this.pushToPipelines(null, "signal_strength", updateSignalStrength);
+            }
+          }, pongTimeoutTime);
+          socket.publish(pingSocketFilter, pingID, { publishToSelf: true });
+        }
+        
+        addTempListener({ type: "interval", interval: setInterval(async () => {
+          if (sentPing == false) {
+            this.sendPing();
+          }
+          sentPing = false;
+          sendSocketPing();
+        }, 60000) }); // PING every minute
       }
 
       this.addPage("board", "board", page.querySelector(".lPage"));

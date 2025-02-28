@@ -2063,7 +2063,7 @@ modules["editor/editor"] = class {
                 let selectionIDs = Object.keys(this.selecting);
                 this.toolbar.selection.lastSelections = "";
                 for (let i = 0; i < selectionIDs.length; i++) {
-                  this.toolbar.cursor.lastSelections += selectionIDs[i];
+                  this.toolbar.selection.lastSelections += selectionIDs[i];
                 }
               }
             }

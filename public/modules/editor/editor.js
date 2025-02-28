@@ -1715,6 +1715,7 @@ modules["editor/editor"] = class {
       this.save.runningTimeout = false;
     }
     this.save.apply = async (save, noTimeout) => {
+      save = save ?? {};
       if (save.resizing != null) {
         delete save.resizing;
       }
@@ -1736,13 +1737,12 @@ modules["editor/editor"] = class {
 
       // IF SELECTING, DO NOT UPDATE THOSE FIELDS
       let redrawAction = false;
-      let renderObject = annotation.render;
-      if (this.selecting[annotation.render._id] != null) {
-        renderObject = { ...annotation.render, ...this.selecting[annotation.render._id] };
+      if (this.selecting[annoID] != null) {
+        save = { ...save, ...this.selecting[annoID] };
         redrawAction = true;
       }
 
-      objectUpdate(save, renderObject); // Update the annotation
+      objectUpdate(save, annotation.render); // Update the annotation
       if (noTimeout != true) {
         this.save.enableTimeout(annotation); // Start timer to revert if update isn't server-confirmed
       }
@@ -1752,9 +1752,9 @@ modules["editor/editor"] = class {
       }
 
       await this.utils.setAnnotationChunks(annotation);
-      this.utils.updateAnnotationPages(renderObject);
+      this.utils.updateAnnotationPages(annotation.render);
 
-      let allowRender = renderObject.remove == true;
+      let allowRender = annotation.render.remove == true;
       for (let i = 0; i < annotation.chunks.length; i++) {
         if (this.visibleChunks.includes(annotation.chunks[i]) == true) {
           allowRender = true;

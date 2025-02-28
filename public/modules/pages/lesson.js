@@ -103,6 +103,7 @@ modules["pages/lesson"] = class {
     }
   }
 
+  lesson = {};
   members = {};
   collaborators = {};
   editorCount = 0;
@@ -439,7 +440,7 @@ modules["pages/lesson"] = class {
     let sendBody = { ss: socket.secureID };
 
     this.setLesson = (body) => {
-      this.lesson = body.lesson;
+      this.lesson = { ...this.lesson, ...body.lesson };
       if (this.id != this.lesson._id) {
         this.id = this.lesson._id;
         modifyParams("lesson", this.id);

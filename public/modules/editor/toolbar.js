@@ -372,6 +372,29 @@ modules["editor/toolbar"] = class {
     this.activateTool = async () => {
       editor.pinchZoomDisable = false;
       editor.usingStylus = false;
+      editor.selecting = {};
+
+      let editorTools = content.querySelectorAll("[tooleditor]");
+      if (editorTools.length > 0) {
+        for (let i = 0; i < editorTools.length; i++) {
+          let tool = editorTools[i];
+          tool.removeAttribute("tooleditor");
+          tool.style.opacity = 0;
+          if (tool.hasAttribute("src") == true && tool.getAttribute("src").startsWith("blob:") == true) {
+            URL.revokeObjectURL(tool.getAttribute("src"));
+          }
+        }
+        (async () => {
+          await sleep(150);
+          for (let i = 0; i < editorTools.length; i++) {
+            let tool = editorTools[i];
+            if (tool != null) {
+              tool.remove();
+            }
+          }
+        })();
+      }
+
       if (this.currentToolModule != null && this.currentToolModule.disable != null) {
         await this.currentToolModule.disable();
       }
@@ -379,8 +402,8 @@ modules["editor/toolbar"] = class {
       if (this.currentToolModulePath != null) {
         newModule = await this.newModule(this.currentToolModulePath);
       }
+      this.currentToolModule = newModule;
       if (newModule != null) {
-        this.currentToolModule = newModule;
         newModule.editor = editor;
         newModule.tool = currentSubTool ?? currentTool;
         if (newModule.activate != null) {
@@ -405,6 +428,7 @@ modules["editor/toolbar"] = class {
     
     // Manage Toolbar:
     this.toolbar = {};
+    this.toolbar.toolbar = toolbar;
     this.toolbar.update = (update) => {
       if (currentToolButton != null) {
         let toolbar = currentToolButton.closest(".eToolbar");
@@ -712,7 +736,6 @@ modules["editor/toolbar"] = class {
                   currentSubTool = selectTool;
                   this.currentToolModulePath = selectSubtool.getAttribute("module");
                   selectSubtool.setAttribute("selected", "");
-                  this.activateTool();
                 }
               } else {
                 this.currentToolModulePath = null;
@@ -722,9 +745,9 @@ modules["editor/toolbar"] = class {
               }
             } else {
               this.currentToolModulePath = toolData.module;
-              this.activateTool();
               this.tooltip.update();
             }
+            this.activateTool();
           } else {
             this.tooltip.update();
           }
@@ -866,6 +889,11 @@ modules["editor/toolbar"] = class {
     }
     this.getAnnotationPreference = () => {
       return editor.preferences.tools[this.getPreferenceTool().f] ?? {};
+    }
+
+    this.selection = {};
+    this.selection.updateBox = () => {
+      
     }
 
     // Subscribe to Events:
@@ -1349,7 +1377,86 @@ modules["editor/toolbar/shape"] = class {
   MOUSE = { type: "svg", url: "./images/editor/cursors/insert.svg", translate: { x: 20, y: 20 } };
   PUBLISH = {};
 
-  // this.tool
+  clickStart = async (event) => {
+    if (event != null) {
+      let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
+      let position = this.editor.utils.scaleToDoc(mouseX, mouseY);
+      this.startX = position.x;
+      this.startY = position.y;
+    }
+  }
+  clickMove = async (event) => {
+    if (event != null && event.target.closest(".eAnnotations") == null) {
+      return;
+    }
+    if (this.annotation == null) {
+      let toolPreference = this.parent.getToolPreference();
+      this.annotation = {
+        render: {
+          f: "shape",
+          s: [125, 125],
+          l: this.editor.maxLayer + 1,
+          c: toolPreference.color.selected,
+          t: toolPreference.thickness,
+          o: toolPreference.opacity,
+          d: this.tool
+        },
+        animate: false
+      };
+    }
+    if (event != null) {
+      let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
+      this.mouseX = mouseX;
+      this.mouseY = mouseY;
+    }
+    let position = this.editor.utils.scaleToDoc(this.mouseX, this.mouseY);
+      this.endX = position.x;
+      this.endY = position.y;
+    if (this.endX == null || this.endY == null) {
+      return;
+    }
+    this.annotation.render.p = [this.startX ?? this.endX, this.startY ?? this.endY];
+    if (Math.abs(this.endX - (this.startX ?? this.endX)) > 25 || Math.abs(this.endY - (this.startY ?? this.endY)) > 25) {
+      let setX = this.endX - this.startX;
+      if (setX >= 0) {
+        setX = this.editor.utils.round(Math.max(setX - this.annotation.render.t, 25));
+      } else {
+        setX = this.editor.utils.round(Math.min(setX - this.annotation.render.t, -25));
+      }
+      let setY = this.endY - this.startY;
+      if (setY >= 0) {
+        setY = this.editor.utils.round(Math.max(setY - this.annotation.render.t, 25));
+      } else {
+        setY = this.editor.utils.round(Math.min(setY - this.annotation.render.t, -25));
+      }
+      this.annotation.render.s = [setX, setY];
+    }
+    await this.editor.render.create(this.annotation);
+    this.editor.selecting["cursor"] = this.annotation.render;
+  }
+  scroll = () => { this.clickMove(); }
+  clickEnd = async (event) => {
+    if (this.annotation == null) {
+      return;
+    }
+    if (event != null && event.target.closest(".eAnnotations") != null) {
+      this.annotation.render._id = this.editor.render.tempID();
+
+      await this.editor.save.push(this.annotation.render);
+      await this.editor.history.push("remove", [{ _id: this.annotation.render._id }]);
+
+      this.annotation.render.done = true;
+      await this.editor.realtime.forceShort();
+      delete this.editor.selecting["cursor"];
+
+      await this.parent.toolbar.startTool(this.parent.toolbar.toolbar.querySelector('.eTool[tool="selection"]'));
+      await this.parent.toolbar.startTool(this.parent.toolbar.toolbar.querySelector('.eTool[tool="select"]'));
+      this.editor.selecting[this.annotation.render._id] = {};
+      this.parent.selection.updateBox();
+    }
+    this.editor.render.remove(this.annotation);
+    this.annotation = null;
+  }
   activate = () => {
     let toolPreference = this.parent.getToolPreference();
     this.MOUSE.color = toolPreference.color.selected;

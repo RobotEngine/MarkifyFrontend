@@ -6,7 +6,7 @@ modules["dropdowns/account"] = class {
   <div class="accountDropLine"></div>
   <button class="accountDrop" close pwa dropdowntitle="Add Markify as an app on your device!"><div>Get the App</div><img src="./images/tooltips/account/app.svg"></button>
   <button class="accountDrop" report dropdowntitle="Report Bugs & Feedback" noscrollclose><div>Report Bug</div><img src="./images/tooltips/account/report.svg"></button>
-  <button class="accountDrop" close whatsnew modaltitle="What's New"><div>What's New</div><img src="./images/tooltips/account/exclamation.svg"></button>
+  <button class="accountDrop" style="display: none" close whatsnew modaltitle="What's New"><div>What's New</div><img src="./images/tooltips/account/exclamation.svg"></button>
   <button class="accountDrop" tutorial close modaltitle="Resources"><div>Resources</div><img src="./images/tooltips/account/question.svg"></button>
   <div class="accountDropLine"></div>
   <div class="accountSocialHolder">

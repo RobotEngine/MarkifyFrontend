@@ -369,7 +369,7 @@ modules["editor/toolbar"] = class {
         page.style.removeProperty("touch-action");
       }
     }
-    this.activateTool = async () => {
+    this.activateTool = async (extra) => {
       editor.pinchZoomDisable = false;
       editor.usingStylus = false;
       editor.selecting = {};
@@ -407,7 +407,7 @@ modules["editor/toolbar"] = class {
         newModule.editor = editor;
         newModule.tool = currentSubTool ?? currentTool;
         if (newModule.activate != null) {
-          newModule.activate();
+          newModule.activate(extra ?? {});
         }
       } else {
         newModule = {};
@@ -416,6 +416,10 @@ modules["editor/toolbar"] = class {
       editor.realtime.passthrough = newModule.PUBLISH;
       this.applyToolModule();
       this.updateMouse(newModule.MOUSE ?? { type: "set" });
+    }
+    this.disableTool = async () => {
+      this.currentToolModulePath = null;
+      return await this.activateTool();
     }
     this.pushToolEvent = (type, event) => {
       if (this.currentToolModule == null) {
@@ -1377,6 +1381,7 @@ modules["editor/toolbar/eraser"] = class {
 
 modules["editor/toolbar/text"] = class {
   PROPERTIES = {};
+  TARGET_QUERY = '.eSelectBar:not([remove]) .eTool[action="pages/editor/toolbar/textedit"]';
   USER_SELECT = "none";
   TOUCH_ACTION = "pinch-zoom";
   REALTIME_TOOL = 4;
@@ -1384,18 +1389,12 @@ modules["editor/toolbar/text"] = class {
   PUBLISH = {};
 
   clickMove = async (event) => {
-    if (event != null && event.target.closest(".eContent") == null) {
-      return;
-    }
     if (this.annotation == null) {
-      let toolPreference = this.parent.getToolPreference();
+      if (event != null && event.target.closest(".eContent") == null) {
+        return;
+      }
       this.annotation = {
-        render: {
-          l: this.editor.maxLayer + 1,
-          c: toolPreference.color.selected,
-          o: toolPreference.opacity,
-          ...this.PROPERTIES
-        },
+        render: this.PROPERTIES,
         animate: false
       };
     }
@@ -1443,7 +1442,7 @@ modules["editor/toolbar/text"] = class {
       this.parent.selection.updateBox();
 
       this.parent.selection.clickAction({
-        target: this.editor.page.querySelector('.eSelectBar:not([remove]) .eTool[action="pages/editor/toolbar/textedit"]'),
+        target: this.editor.page.querySelector(this.TARGET_QUERY),
         clearText: true
       });
     }
@@ -1455,16 +1454,22 @@ modules["editor/toolbar/text"] = class {
     this.PROPERTIES = {
       f: "text",
       s: [0, 0],
+      c: toolPreference.color.selected,
+      l: this.editor.maxLayer + 1,
+      t: toolPreference.thickness,
+      o: toolPreference.opacity,
       d: { s: toolPreference.size, al: toolPreference.align, b: ["Example Text"] },
       hidden: true,
       textfit: true
-    }
+    };
   }
 }
 
 modules["editor/toolbar/shape"] = class {
+  ACTIVE = true;
   PROPERTIES = {};
   CAN_FLIP = true;
+  MINIMUM_SIZE = 100;
   USER_SELECT = "none";
   TOUCH_ACTION = "pinch-zoom";
   REALTIME_TOOL = 4;
@@ -1472,6 +1477,9 @@ modules["editor/toolbar/shape"] = class {
   PUBLISH = {};
 
   clickStart = async (event) => {
+    if (this.ACTIVE == false) {
+      return;
+    }
     if (event != null) {
       let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
       let position = this.editor.utils.scaleToDoc(mouseX, mouseY);
@@ -1480,20 +1488,22 @@ modules["editor/toolbar/shape"] = class {
     }
   }
   clickMove = async (event) => {
-    if (event != null && event.target.closest(".eContent") == null) {
-      return;
+    if (this.ACTIVE == false) {
+      return this.clickEnd();
     }
     if (this.annotation == null) {
-      let toolPreference = this.parent.getToolPreference();
+      if (event != null && event.target.closest(".eContent") == null) {
+        return;
+      }
       this.annotation = {
-        render: {
-          c: toolPreference.color.selected,
-          ...this.PROPERTIES
-        },
+        render: this.PROPERTIES,
         animate: false
       };
+      this.resizeActive = false;
       this.startX = null;
       this.startY = null;
+      this.width = this.width ?? this.annotation.render.s[0];
+      this.height = this.height ?? this.annotation.render.s[1];
     }
     if (event != null) {
       let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
@@ -1507,19 +1517,37 @@ modules["editor/toolbar/shape"] = class {
     this.endX = position.x;
     this.endY = position.y;
     this.annotation.render.p = [this.startX ?? this.endX, this.startY ?? this.endY];
-    if (Math.abs(this.endX - (this.startX ?? this.endX)) > 25 || Math.abs(this.endY - (this.startY ?? this.endY)) > 25) {
+    if (this.resizeActive == true || Math.abs(this.endX - (this.startX ?? this.endX)) > 10 / this.editor.zoom || Math.abs(this.endY - (this.startY ?? this.endY)) > 10 / this.editor.zoom) {
+      this.resizeActive = true;
       let thickness = this.annotation.render.t ?? 0;
       let setX = this.endX - this.startX;
       if (setX >= 0) {
-        setX = this.editor.utils.round(Math.max(setX - thickness, 25));
+        setX = this.editor.utils.round(Math.max(setX - thickness, this.MINIMUM_SIZE));
       } else {
-        setX = this.editor.utils.round(Math.min(setX - thickness, -25));
+        setX = this.editor.utils.round(Math.min(setX - thickness, -this.MINIMUM_SIZE));
       }
       let setY = this.endY - this.startY;
       if (setY >= 0) {
-        setY = this.editor.utils.round(Math.max(setY - thickness, 25));
+        setY = this.editor.utils.round(Math.max(setY - thickness, this.MINIMUM_SIZE));
       } else {
-        setY = this.editor.utils.round(Math.min(setY - thickness, -25));
+        setY = this.editor.utils.round(Math.min(setY - thickness, -this.MINIMUM_SIZE));
+      }
+      if (event != null && (event.shiftKey == true)) {
+        let changeX = setX / (this.width ?? setX);
+        let changeY = setY / (this.height ?? setY);
+        if (Math.abs(changeX) > Math.abs(changeY)) {
+          if (changeX >= 0) {
+            setY = Math.max(this.height * changeX, this.MINIMUM_SIZE);
+          } else {
+            setY = Math.min(this.height * changeX, -this.MINIMUM_SIZE);
+          }
+        } else {
+          if (changeY >= 0) {
+            setX = Math.max(this.width * changeY, this.MINIMUM_SIZE);
+          } else {
+            setX = Math.min(this.width * changeY, -this.MINIMUM_SIZE);
+          }
+        }
       }
       if (this.CAN_FLIP != false) {
         this.annotation.render.s = [setX, setY];
@@ -1564,9 +1592,10 @@ modules["editor/toolbar/shape"] = class {
     this.PROPERTIES = {
       f: "shape",
       s: [125, 125],
-      l: this.editor.maxLayer + 1,
+      c: toolPreference.color.selected,
       t: toolPreference.thickness,
       o: toolPreference.opacity,
+      l: this.editor.maxLayer + 1,
       d: this.tool
     };
   }
@@ -1574,9 +1603,12 @@ modules["editor/toolbar/shape"] = class {
 
 modules["editor/toolbar/sticky"] = class extends modules["editor/toolbar/text"] {
   activate = () => {
+    let toolPreference = this.parent.getToolPreference();
     this.PROPERTIES = {
       f: "sticky",
       s: [220, 220],
+      c: toolPreference.color.selected,
+      l: this.editor.maxLayer + 1,
       sig: this.editor.self.name
     };
   }
@@ -1584,13 +1616,146 @@ modules["editor/toolbar/sticky"] = class extends modules["editor/toolbar/text"] 
 
 modules["editor/toolbar/page"] = class extends modules["editor/toolbar/shape"] {
   CAN_FLIP = false;
+  MINIMUM_SIZE = 100;
 
   activate = () => {
+    let toolPreference = this.parent.getToolPreference();
     this.PROPERTIES = {
       f: "page",
+      c: toolPreference.color.selected,
       title: "Untitled Page",
       s: [200, 200],
       l: this.editor.minLayer - 1
+    };
+  }
+}
+
+modules["editor/toolbar/upload"] = class extends modules["editor/toolbar/shape"] {
+  ACTIVE = false;
+
+  activate = (extra) => {
+    let toolPreference = this.parent.getToolPreference();
+    this.PROPERTIES = {
+      f: "media",
+      c: (toolPreference.color ?? {}).selected,
+      o: toolPreference.opacity,
+      l: this.editor.maxLayer + 1
+    };
+
+    let uploadInput = this.editor.contentHolder.querySelector(".eToolMediaInput");
+    if (uploadInput != null) {
+      uploadInput.remove();
+    }
+    this.editor.contentHolder.insertAdjacentHTML("beforeend", `<input class="eToolMediaInput" tooleditor type="file" accept="image/*" multiple="true" hidden="true">`);
+    uploadInput = this.editor.contentHolder.querySelector(".eToolMediaInput");
+
+    let imageBlob;
+    let reset = () => {
+      this.annotation = null;
+      imageBlob = null;
+      let button = this.parent.toolbar.toolbar.querySelector('.eTool[module="pages/editor/toolbar/upload"]');
+      if (button != null) {
+        button.removeAttribute("selected");
+      }
+      uploadInput.value = null;
+      this.parent.disableTool();
+    }
+    let startImagePlace = async (file) => {
+      if (connected == false) {
+        reset();
+        return alertModule.open("error", "<b>No Connection</b>Connect to the internet to upload media.");
+      }
+      if (file == null) {
+        return;
+      }
+      if (file.kind == "file") {
+        file = file.getAsFile();
+      }
+      if (file.kind != "string") {
+        if (file.type.substring(0, 6) == "image/") {
+          if (supportedImageTypes.includes(file.type.replace(/image\//g, "")) == true) {
+            if (file.size < 10485760) { // 10 MB
+              imageBlob = URL.createObjectURL(file);
+              let image = new Image();
+              image.src = imageBlob;
+              image.onload = () => {
+                this.width = Math.min(image.width, 400);
+                this.height = image.height * (this.width / image.width);
+                this.PROPERTIES.d = this.PROPERTIES.d ?? imageBlob;
+                this.PROPERTIES.s = this.PROPERTIES.s ?? [this.width, this.height];
+                this.ACTIVE = true;
+              }
+              let form = new FormData();
+              form.append("media", file);
+              let initBlob = imageBlob;
+              let [code, result] = await sendRequest("POST", "lessons/save/upload", form, { noFileType: true, session: this.editor.session });
+              let blobAnno = this.editor.contentHolder.querySelector('.eAnnotation[src="' + initBlob + '"]');
+              if (code == 200) {
+                let preload = new Image();
+                preload.src = assetURL + result.file;
+                preload.onload = () => {
+                  if (blobAnno != null && blobAnno.hasAttribute("anno") == true) {
+                    this.editor.save.push({ _id: blobAnno.getAttribute("anno"), d: result.file });
+                  }
+                  if (image.src == imageBlob) {
+                    imageBlob = result.file;
+                    this.PROPERTIES.d = result.file;
+                  }
+                  if (image.src == imageBlob) {
+                    URL.revokeObjectURL(imageBlob);
+                  }
+                }
+              } else {
+                if (image.src == imageBlob) {
+                  URL.revokeObjectURL(imageBlob);
+                }
+                if (blobAnno != null) {
+                  if (blobAnno.hasAttribute("anno") == true) {
+                    this.editor.save.push({ _id: blobAnno.getAttribute("anno"), remove: true });
+                  } else {
+                    blobAnno.remove();
+                  }
+                }
+                reset();
+              }
+            } else {
+              reset();
+              alertModule.open("error", "<b>Image Too Large</b>10 MB is the file size limit.");
+            }
+          } else {
+            reset();
+            alertModule.open("error", `<b>Invalid Image Type</b>The following image types are supported: <i style='color: var(--darkGray)'>${(supportedImageTypes.join(", "))}</i>`);
+          }
+        } else {
+          reset();
+          alertModule.open("error", "<b>Invalid File Type</b>Only images are currently supported.");
+        }
+      }
+      uploadInput.value = null;
+    }
+    uploadInput.addEventListener("change", async (event) => {
+      startImagePlace((event.target.files ?? [])[0], event);
+    });
+    uploadInput.addEventListener("cancel", () => {
+      reset();
+      uploadInput.value = null;
+    });
+    if (extra.file == null) {
+      uploadInput.click();
+    } else {
+      startImagePlace(extra.file, extra.event);
+    }
+  }
+}
+
+modules["editor/toolbar/embed"] = class extends modules["editor/toolbar/text"] {
+  TARGET_QUERY = '.eSelectBar:not([remove]) .eTool[action="pages/editor/toolbar/setembed"]';
+  
+  activate = () => {
+    this.PROPERTIES = {
+      f: "embed",
+      s: [400, 350],
+      l: this.editor.maxLayer + 1
     };
   }
 }

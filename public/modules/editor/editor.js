@@ -1502,7 +1502,7 @@ modules["editor/editor"] = class {
         iframePresent.remove();
       }
     }
-    this.render.remove = (annotation) => {
+    this.render.remove = (annotation, animate) => {
       if (annotation == null) {
         return;
       }

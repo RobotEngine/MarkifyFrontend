@@ -1426,7 +1426,7 @@ modules["editor/toolbar/text"] = class {
     if (this.annotation == null) {
       return;
     }
-    if (event != null) {
+    if (event != null && event.target.closest(".eContentHolder") == this.editor.contentHolder) {
       this.annotation.render._id = this.editor.render.tempID();
 
       await this.editor.save.push(this.annotation.render);
@@ -1572,7 +1572,7 @@ modules["editor/toolbar/shape"] = class {
     if (this.annotation == null) {
       return;
     }
-    if (event != null) {
+    if (event != null && event.target.closest(".eContentHolder") == this.editor.contentHolder) {
       this.annotation.render._id = this.editor.render.tempID();
 
       await this.editor.save.push(this.annotation.render);

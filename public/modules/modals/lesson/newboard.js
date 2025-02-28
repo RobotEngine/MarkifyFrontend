@@ -31,9 +31,11 @@ modules["modals/lesson/newboard"] = class {
     let uploadButton = frame.querySelector(".lessonUpload");
     let uploadBImg = uploadButton.querySelector("img");
 
-    modal.querySelector(".modalClose").addEventListener("click", () => {
-      setFrame("pages/dashboard");
-    });
+    if (extra.button == null) {
+      modal.querySelector(".modalClose").addEventListener("click", () => {
+        setFrame("pages/dashboard");
+      });
+    }
 
     let blankButton = frame.querySelector(".lessonBlank");
     blankButton.addEventListener("click", () => {

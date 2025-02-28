@@ -1485,6 +1485,8 @@ modules["editor/toolbar/shape"] = class {
         },
         animate: false
       };
+      this.startX = null;
+      this.startY = null;
     }
     if (event != null) {
       let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);

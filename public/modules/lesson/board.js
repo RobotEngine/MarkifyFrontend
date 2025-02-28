@@ -62,7 +62,7 @@ modules["lesson/board"] = class {
       </div>
     </div>
   </div>
-  <div class="eContentHolder lCustomScroll" disabled></div>
+  <div class="eContentHolder lCustomScroll"></div>
   `;
   css = {
     ".eInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; overflow: scroll; z-index: 2`,
@@ -709,6 +709,7 @@ modules["lesson/board"] = class {
       if (this.session == null) {
         return;
       }
+      contentHolder.setAttribute("disabled", "");
       let [annoCode, annoBody] = await sendRequest("GET", "lessons/join/annotations", null, { session: this.parent.session }, { allowError: true });
       if (annoCode != 200 && connected == true) {
         alertModule.open("error", `<b>Error Loading Annotations</b>Please try again later...`);
@@ -781,7 +782,6 @@ modules["lesson/board"] = class {
         await this.editor.utils.scrollToElement(jumpAnnotation);
         await this.editor.updateChunks();
       }
-
       contentHolder.removeAttribute("disabled");
     }
 
@@ -796,7 +796,6 @@ modules["lesson/board"] = class {
     if (this.session == null) { // Create New Lesson
       frame.insertAdjacentHTML("beforeend", `<div class="eCreateBoardHolder"></div>`);
       await modalModule.open("modals/lesson/newboard", frame.querySelector(".eCreateBoardHolder"), null, "Create Board", null, { parent: this });
-      //contentHolder.removeAttribute("disabled");
     }
   }
 }

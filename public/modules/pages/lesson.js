@@ -25,7 +25,7 @@ modules["pages/lesson"] = class {
   css = {
     ".lPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100%; height: 100vh; padding: 8px; left: 0px; top: 0px; justify-content: center`,
     ".lPageHolder[maximize]": `padding: 0px !important`,
-    ".lPage": `--shadowOpacity: .3; display: flex; width: 100%; height: 100%; box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: 12px; overflow: hidden; transition: .2s`,
+    ".lPage": `--shadowOpacity: .3; position: relative; display: flex; width: 100%; height: 100%; box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: 12px; overflow: hidden; transition: .2s`,
     ".lPage[active]": `--shadowOpacity: .5 !important`,
     ".lPageHolder[maximize] .lPage": `border-radius: 0px !important`,
     ".lCustomScroll::-webkit-scrollbar": `width: 16px; background: var(--scrollGray)`,
@@ -44,13 +44,13 @@ modules["pages/lesson"] = class {
     }
     let construct = {
       pageID: id,
-      type: type,
-      holder: holder
+      pageType: type,
+      pageHolder: holder
     };
     if (this.resyncPages != null && this.resyncPages[id] != null) {
       construct.resync = this.resyncPages[id];
     }
-    let newPage = await this.setFrame("lesson/board", holder, { construct: construct });
+    let newPage = await this.setFrame("lesson/" + type, holder, { construct: construct });
     if (newPage == null) {
       return;
     }
@@ -59,7 +59,7 @@ modules["pages/lesson"] = class {
     return newPage;
   }
   removePage = (id, type) => {
-    let typePages = this.pages[type];
+    let typePages = this.pages[type] ?? {};
     if (typePages[id] == null) {
       return;
     }
@@ -68,18 +68,20 @@ modules["pages/lesson"] = class {
       return;
     }
     let editor = page.editor;
-    let editorSubscribes = editor.realtime.subscribes;
-    let removeIDs = [];
-    for (let i = 0; i < editorSubscribes.length; i++) {
-      let sub = editorSubscribes[i];
-      removeIDs.push(sub.id);
-      sub.close();
-    }
-    for (let i = 0; i < subscribes.length; i++) {
-      let sub = subscribes[i];
-      if (removeIDs.includes(sub.id) == true) {
-        subscribes.splice(i, 1);
-        i--;
+    if (editor != null) {
+      let editorSubscribes = editor.realtime.subscribes;
+      let removeIDs = [];
+      for (let i = 0; i < editorSubscribes.length; i++) {
+        let sub = editorSubscribes[i];
+        removeIDs.push(sub.id);
+        sub.close();
+      }
+      for (let i = 0; i < subscribes.length; i++) {
+        let sub = subscribes[i];
+        if (removeIDs.includes(sub.id) == true) {
+          subscribes.splice(i, 1);
+          i--;
+        }
       }
     }
     delete typePages[id];
@@ -531,6 +533,10 @@ modules["pages/lesson"] = class {
 
     this.setLesson = (body) => {
       this.lesson = body.lesson;
+      if (this.id != this.lesson._id) {
+        this.id = this.lesson._id;
+        modifyParams("lesson", this.id);
+      }
       this.lesson.settings = this.lesson.settings ?? {};
   
       this.folder = body.folder;
@@ -587,6 +593,8 @@ modules["pages/lesson"] = class {
           this.recentEmojis.push(this.defaultEmojis[i]);
         }
       }
+
+      this.addPage("board", "board", page.querySelector(".lPage"));
     }
 
     if (isNewLesson == false) {
@@ -645,7 +653,5 @@ modules["pages/lesson"] = class {
       });
       this.signalStrength = 3;
     }
-
-    this.addPage("board", "board", page.querySelector(".lPage"));
   }
 }

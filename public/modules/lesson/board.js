@@ -147,7 +147,7 @@ modules["lesson/board"] = class {
     this.lesson = this.parent.lesson;
     this.session = this.parent.session;
 
-    let page = frame.closest(".lPage");
+    let page = frame.closest(".content");
 
     let eTopHolder = frame.querySelector(".eTopHolder");
     let eTop = eTopHolder.querySelector(".eTop");
@@ -705,7 +705,7 @@ modules["lesson/board"] = class {
     // Fetch Annotations
     let pageParam = getParam("page");
     let checkForJumpLink = getParam("annotation");
-    let asyncLoadAnnotations = async () => {
+    this.loadAnnotations = async () => {
       if (this.session == null) {
         return;
       }
@@ -785,7 +785,7 @@ modules["lesson/board"] = class {
       contentHolder.removeAttribute("disabled");
     }
 
-    asyncLoadAnnotations();
+    this.loadAnnotations();
     (await this.newModule("editor/realtime")).js(this.editor);
     (await this.newModule("editor/toolbar")).js(this.editor);
 

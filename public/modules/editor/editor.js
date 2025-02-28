@@ -378,8 +378,8 @@ modules["editor/editor"] = class {
   minLayer = 0;
 
   js = async (frame) => {
-    let page = frame.closest(".lPage");
-    let contentHolder = page.querySelector(".eContentHolder");
+    let contentHolder = frame.closest(".eContentHolder");
+    let page = contentHolder.closest(".content");
     let content = contentHolder.querySelector(".eContent");
     let realtimeHolder = content.querySelector(".eRealtime");
     let editorContent = content.querySelector(".eEditorContent");

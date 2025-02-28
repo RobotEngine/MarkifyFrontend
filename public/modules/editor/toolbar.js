@@ -382,6 +382,7 @@ modules["editor/toolbar"] = class {
       if (newModule != null) {
         this.currentToolModule = newModule;
         newModule.editor = editor;
+        newModule.tool = currentSubTool ?? currentTool;
         if (newModule.activate != null) {
           newModule.activate();
         }
@@ -917,6 +918,8 @@ modules["editor/toolbar"] = class {
   }
 }
 
+// TOOL MODULES //
+
 modules["editor/toolbar/select"] = class {
 
 }
@@ -1338,6 +1341,24 @@ modules["editor/toolbar/eraser"] = class {
   }
   disable = this.clickEnd;
 }
+
+modules["editor/toolbar/shape"] = class {
+  USER_SELECT = "none";
+  TOUCH_ACTION = "pinch-zoom";
+  REALTIME_TOOL = 4;
+  MOUSE = { type: "svg", url: "./images/editor/cursors/insert.svg", translate: { x: 20, y: 20 } };
+  PUBLISH = {};
+
+  // this.tool
+  activate = () => {
+    let toolPreference = this.parent.getToolPreference();
+    this.MOUSE.color = toolPreference.color.selected;
+    this.MOUSE.opacity = toolPreference.opacity;
+  }
+}
+
+
+// SUBTOOL MODULES //
 
 modules["editor/toolbar/color"] = class {
   setToolbarButton = (button) => {
@@ -1984,3 +2005,6 @@ modules["editor/toolbar/opacity"] = class {
     updateUI(null, true);
   }
 }
+
+
+// ACTION BAR MODULES //

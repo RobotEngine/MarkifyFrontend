@@ -1,8 +1,10 @@
 modules["editor/realtime"] = class {
   css = {
     ".eCursor": `--backgroundColor: var(--themeColor); --textColor: var(--themeColor); --borderColor: #fff; position: absolute; display: flex; z-index: 20; opacity: 0; align-items: center; transition: .25s; pointer-events: all; transform-origin: var(--origin)`,
+    ".eCursor svg": `transform-origin: var(--origin); transition: .3s`,
     ".eCursor[hidden]": `transition: transform 0s, all .25s`,
-    ".eCursor[pressed]": `--backgroundColor: #fff; --borderColor: var(--themeColor); color: var(--textColor) !important; transform: scale(.9)`,
+    ".eCursor[pressed]": `--backgroundColor: #fff; --borderColor: var(--themeColor); color: var(--textColor) !important`,
+    ".eCursor[pressed] svg": `transform: scale(.9)`,
     ".eCursor .pointer": `width: 20px; height: 20px; background: var(--backgroundColor); border: solid 3px var(--borderColor); overflow: hidden; border-radius: 8px 14px 14px 14px; box-shadow: 0 0 6px rgb(0 0 0 / 25%); transition: all .3s, color 0s`,
     ".eCursor .pointer[none]": `border-radius: 14px; opacity: 0; width: 0px`,
     ".eCursor [name]": `box-sizing: border-box; display: flex; width: fit-content; height: 100%; padding: 0px 6px; border-radius: 14px; overflow: hidden; opacity: 0; font-size: 14px; font-weight: 700; white-space: nowrap; align-items: center`,
@@ -205,9 +207,8 @@ modules["editor/realtime"] = class {
     }
     editor.pipeline.subscribe("realtimePublishClickStart", "click_start", (data) => { this.publishShort(data.event); });
     editor.pipeline.subscribe("realtimePublishClickMove", "click_move", (data) => {
-      let event = data.event;
-      if (editor.isThisPage(event.target) == true) {
-        this.publishShort(event);
+      if (editor.isPageActive() == true) {
+        this.publishShort(data.event);
       }
     });
     editor.pipeline.subscribe("realtimePublishClickEnd", "click_end", () => { this.publishShort(); });
@@ -421,18 +422,24 @@ modules["editor/realtime"] = class {
                 break;
               case 1: // Highlighter 
                 html = `${await getSVG("./images/editor/cursors/highlighter.svg")}<div class="pointer" color none><div name></div></div>`;
-                offsetx = -14;
+                offsetx = -15;
                 offsety = -30;
                 origin = "bottom center";
                 break;
               case 2: // Pen 
                 html = `${await getSVG("./images/editor/cursors/pen.svg")}<div class="pointer" color none><div name></div></div>`;
-                offsetx = -14;
+                offsetx = -15;
                 offsety = -30;
                 origin = "bottom center";
                 break;
               case 3: // Eraser
                 html = `${await getSVG("./images/editor/cursors/eraser.svg")}<div class="pointer" color none><div name></div></div>`;
+                offsetx = -20;
+                offsety = -20;
+                origin = "center center";
+                break;
+              case 4: // Insert
+                html = `${await getSVG("./images/editor/cursors/insert.svg")}<div class="pointer" color none><div name></div></div>`;
                 offsetx = -20;
                 offsety = -20;
                 origin = "center center";

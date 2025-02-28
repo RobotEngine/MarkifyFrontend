@@ -327,8 +327,14 @@ modules["editor/editor"] = class {
     }
   }
 
+  isPageActive = () => {
+    if (this.pageFrame.hasAttribute("active") == true) {
+      return true;
+    }
+    return false;
+  }
   isThisPage = (element) => {
-    if (element != null && element.closest(".lPage") == this.page) {
+    if (element != null && element.closest(".lPage") == this.pageFrame) {
       return true;
     }
     return false;
@@ -387,6 +393,7 @@ modules["editor/editor"] = class {
     let background = content.querySelector(".eBackground");
 
     this.page = page;
+    this.pageFrame = page.closest(".lPage");
     this.contentHolder = contentHolder;
     this.annotationHolder = annotations;
 

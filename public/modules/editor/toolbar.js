@@ -1376,7 +1376,6 @@ modules["editor/toolbar/eraser"] = class {
 }
 
 modules["editor/toolbar/text"] = class {
-  FUNCTION = "text";
   PROPERTIES = {};
   USER_SELECT = "none";
   TOUCH_ACTION = "pinch-zoom";
@@ -1392,11 +1391,10 @@ modules["editor/toolbar/text"] = class {
       let toolPreference = this.parent.getToolPreference();
       this.annotation = {
         render: {
-          f: this.FUNCTION,
           l: this.editor.maxLayer + 1,
           c: toolPreference.color.selected,
           o: toolPreference.opacity,
-          ...(this.PROPERTIES ?? {})
+          ...this.PROPERTIES
         },
         animate: false
       };
@@ -1455,6 +1453,7 @@ modules["editor/toolbar/text"] = class {
   activate = () => {
     let toolPreference = this.parent.getToolPreference();
     this.PROPERTIES = {
+      f: "text",
       s: [0, 0],
       d: { s: toolPreference.size, al: toolPreference.align, b: ["Example Text"] },
       hidden: true,
@@ -1464,6 +1463,8 @@ modules["editor/toolbar/text"] = class {
 }
 
 modules["editor/toolbar/shape"] = class {
+  PROPERTIES = {};
+  CAN_FLIP = true;
   USER_SELECT = "none";
   TOUCH_ACTION = "pinch-zoom";
   REALTIME_TOOL = 4;
@@ -1486,13 +1487,8 @@ modules["editor/toolbar/shape"] = class {
       let toolPreference = this.parent.getToolPreference();
       this.annotation = {
         render: {
-          f: "shape",
-          s: [125, 125],
-          l: this.editor.maxLayer + 1,
           c: toolPreference.color.selected,
-          t: toolPreference.thickness,
-          o: toolPreference.opacity,
-          d: this.tool
+          ...this.PROPERTIES
         },
         animate: false
       };
@@ -1512,19 +1508,30 @@ modules["editor/toolbar/shape"] = class {
     this.endY = position.y;
     this.annotation.render.p = [this.startX ?? this.endX, this.startY ?? this.endY];
     if (Math.abs(this.endX - (this.startX ?? this.endX)) > 25 || Math.abs(this.endY - (this.startY ?? this.endY)) > 25) {
+      let thickness = this.annotation.render.t ?? 0;
       let setX = this.endX - this.startX;
       if (setX >= 0) {
-        setX = this.editor.utils.round(Math.max(setX - this.annotation.render.t, 25));
+        setX = this.editor.utils.round(Math.max(setX - thickness, 25));
       } else {
-        setX = this.editor.utils.round(Math.min(setX - this.annotation.render.t, -25));
+        setX = this.editor.utils.round(Math.min(setX - thickness, -25));
       }
       let setY = this.endY - this.startY;
       if (setY >= 0) {
-        setY = this.editor.utils.round(Math.max(setY - this.annotation.render.t, 25));
+        setY = this.editor.utils.round(Math.max(setY - thickness, 25));
       } else {
-        setY = this.editor.utils.round(Math.min(setY - this.annotation.render.t, -25));
+        setY = this.editor.utils.round(Math.min(setY - thickness, -25));
       }
-      this.annotation.render.s = [setX, setY];
+      if (this.CAN_FLIP != false) {
+        this.annotation.render.s = [setX, setY];
+      } else {
+        this.annotation.render.s = [Math.abs(setX), Math.abs(setY)];
+        if (setX < 0) {
+          this.annotation.render.p[0] += setX;
+        }
+        if (setY < 0) {
+          this.annotation.render.p[1] += setY;
+        }
+      }
     }
     await this.editor.render.create(this.annotation);
     this.editor.selecting["cursor"] = this.annotation.render;
@@ -1552,16 +1559,39 @@ modules["editor/toolbar/shape"] = class {
     this.editor.render.remove(this.annotation);
     this.annotation = null;
   }
+  activate = () => {
+    let toolPreference = this.parent.getToolPreference();
+    this.PROPERTIES = {
+      f: "shape",
+      s: [125, 125],
+      l: this.editor.maxLayer + 1,
+      t: toolPreference.thickness,
+      o: toolPreference.opacity,
+      d: this.tool
+    };
+  }
 }
 
 modules["editor/toolbar/sticky"] = class extends modules["editor/toolbar/text"] {
-  FUNCTION = "sticky";
+  activate = () => {
+    this.PROPERTIES = {
+      f: "sticky",
+      s: [220, 220],
+      sig: this.editor.self.name
+    };
+  }
+}
+
+modules["editor/toolbar/page"] = class extends modules["editor/toolbar/shape"] {
+  CAN_FLIP = false;
 
   activate = () => {
     this.PROPERTIES = {
-      s: [220, 220],
-      sig: this.editor.self.name
-    }
+      f: "page",
+      title: "Untitled Page",
+      s: [200, 200],
+      l: this.editor.minLayer - 1
+    };
   }
 }
 

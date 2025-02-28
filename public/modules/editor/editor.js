@@ -1674,7 +1674,7 @@ modules["editor/editor"] = class {
           if (connected == false && annotation.collab != true) {
             continue;
           }
-          if (this.toolbar != null && this.selecting[annotation.render._id] != null && this.toolbar.cursor.action != null) {
+          if (this.toolbar != null && this.selecting[annotation.render._id] != null && this.toolbar.selection.action != null) {
             continue;
           }
           

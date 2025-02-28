@@ -12,7 +12,8 @@ modules["dropdowns/lesson/editor/tools/emojis"] = class {
     "EMOJI MODIFIER FITZPATRICK TYPE-1-2",
     "PEACH",
     "AUBERGINE",
-    "BANANA"
+    "BANANA",
+    "BIKINI"
   ];
   html = `
   <div class="eEmojiHolder">

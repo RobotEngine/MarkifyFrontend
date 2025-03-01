@@ -1987,7 +1987,7 @@ modules["editor/editor"] = class {
         let existingAnno = this.annotations[anno._id] ?? pendingAnno;
         if (existingAnno != null) {
           if (existingAnno.serverSync > anno.sync) {
-            return; // Discard event as it's old
+            continue; // Discard event as it's old
           }
           existingAnno.serverSync = anno.sync;
           existingAnno.revert = anno;
@@ -2069,7 +2069,7 @@ modules["editor/editor"] = class {
         if (anno.remove == true) {
           delete this.reactions[anno._id];
         }
-
+        
         let result = await this.save.apply(anno, true);
         if (result.redrawAction == true) {
           redrawAction = true;

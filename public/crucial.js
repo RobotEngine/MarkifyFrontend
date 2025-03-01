@@ -435,6 +435,9 @@ function getObject(arr, field) {
 }
 
 function copyObject(obj) {
+  if (window.structuredClone != null) {
+    return structuredClone(obj);
+  }
   return JSON.parse(JSON.stringify(obj));
 }
 

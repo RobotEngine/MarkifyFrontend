@@ -351,7 +351,8 @@ modules["editor/realtime"] = class {
       smoothScroll();
     }
 
-    editor.pipeline.subscribe("realtimeShortSub", "short", async (data) => {
+    editor.pipeline.subscribe("realtimeShortSub", "short", async (event) => {
+      let data = copyObject(event);
       let memberID = data[0];
       let memberData = editor.parent.parent.members[memberID];
       if (memberData == null) {
@@ -601,7 +602,6 @@ modules["editor/realtime"] = class {
                   original.render.sync = time;
                   
                   await editor.save.apply({ ...anno, sync: time });
-                  //editor.save.enableTimeout(original);
                 }
               }
             }

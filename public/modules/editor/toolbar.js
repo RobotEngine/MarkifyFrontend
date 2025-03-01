@@ -1160,7 +1160,7 @@ modules["editor/toolbar/pen"] = class {
     }
 
     delete this.editor.selecting[this.annotation.render._id];
-    
+
     await this.editor.save.push(this.annotation.render);
     await this.editor.history.push("remove", [{ _id: this.annotation.render._id }]);
 
@@ -1575,9 +1575,11 @@ modules["editor/toolbar/shape"] = class {
     if (this.annotation == null) {
       return;
     }
-    if (event != null && this.editor.isEditorContent(event.target) == true) {
+    if (event != null && (this.editor.isEditorContent(event.target) == true || this.resizeActive == true)) {
       this.annotation.render._id = this.editor.render.tempID();
 
+      this.editor.selecting[this.annotation.render._id] = {};
+      
       await this.editor.save.push(this.annotation.render);
       await this.editor.history.push("remove", [{ _id: this.annotation.render._id }]);
 
@@ -1587,7 +1589,6 @@ modules["editor/toolbar/shape"] = class {
 
       await this.parent.toolbar.startTool(this.parent.toolbar.toolbar.querySelector('.eTool[tool="selection"]'));
       await this.parent.toolbar.startTool(this.parent.toolbar.toolbar.querySelector('.eTool[tool="select"]'));
-      this.editor.selecting[this.annotation.render._id] = {};
       this.parent.selection.updateBox();
     }
     this.editor.render.remove(this.annotation);

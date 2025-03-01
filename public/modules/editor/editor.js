@@ -1979,7 +1979,8 @@ modules["editor/editor"] = class {
       this.pipeline.publish("bounds_change", { type: "scroll", event: event });
     });
 
-    this.pipeline.subscribe("longAnnotationUpdate", "long", async (data) => {
+    this.pipeline.subscribe("longAnnotationUpdate", "long", async (event) => {
+      let data = copyObject(event);
       let redrawAction = false;
       for (let i = 0; i < data.length; i++) {
         let anno = data[i];

@@ -1536,7 +1536,7 @@ modules["editor/toolbar/shape"] = class {
       } else {
         setY = this.editor.utils.round(Math.min(setY, -this.MINIMUM_SIZE));
       }
-      if (event != null && (event.shiftKey == true)) {
+      if (event != null && (event.shiftKey == true || this.EVEN_SCALE == true)) {
         let changeX = setX / (this.width ?? setX);
         let changeY = setY / (this.height ?? setY);
         if (Math.abs(changeX) > Math.abs(changeY)) {
@@ -1640,11 +1640,17 @@ modules["editor/toolbar/page"] = class extends modules["editor/toolbar/shape"] {
 modules["editor/toolbar/upload"] = class extends modules["editor/toolbar/shape"] {
   ACTIVE = false;
   MINIMUM_SIZE = 100;
+  EVEN_SCALE = true;
 
   activate = (extra) => {
+    if (this.imageBlob != null) {
+      return;
+    }
+
     let toolPreference = this.parent.getToolPreference();
     this.PROPERTIES = {
       f: "media",
+      s: [200, 200],
       c: (toolPreference.color ?? {}).selected,
       o: toolPreference.opacity,
       l: this.editor.maxLayer + 1
@@ -1657,10 +1663,9 @@ modules["editor/toolbar/upload"] = class extends modules["editor/toolbar/shape"]
     this.editor.contentHolder.insertAdjacentHTML("beforeend", `<input class="eToolMediaInput" tooleditor type="file" accept="image/*" multiple="true" hidden="true">`);
     uploadInput = this.editor.contentHolder.querySelector(".eToolMediaInput");
 
-    let imageBlob;
     let reset = () => {
       this.annotation = null;
-      imageBlob = null;
+      this.imageBlob = null;
       let button = this.parent.toolbar.toolbar.querySelector('.eTool[module="editor/toolbar/upload"]');
       if (button != null) {
         button.removeAttribute("selected");
@@ -1683,19 +1688,19 @@ modules["editor/toolbar/upload"] = class extends modules["editor/toolbar/shape"]
         if (file.type.substring(0, 6) == "image/") {
           if (supportedImageTypes.includes(file.type.replace(/image\//g, "")) == true) {
             if (file.size < 10485760) { // 10 MB
-              imageBlob = URL.createObjectURL(file);
+              this.imageBlob = URL.createObjectURL(file);
               let image = new Image();
-              image.src = imageBlob;
+              image.src = this.imageBlob;
               image.onload = () => {
                 this.width = Math.min(image.width, 400);
                 this.height = image.height * (this.width / image.width);
-                this.RENDER_INSERT = { d: this.PROPERTIES.d ?? imageBlob };
+                this.RENDER_INSERT = { d: this.PROPERTIES.d ?? this.imageBlob };
                 this.PROPERTIES.s = this.PROPERTIES.s ?? [this.width, this.height];
                 this.ACTIVE = true;
               }
               let form = new FormData();
               form.append("media", file);
-              let initBlob = imageBlob;
+              let initBlob = this.imageBlob;
               let [code, result] = await sendRequest("POST", "lessons/save/upload", form, { noFileType: true, session: this.editor.session });
               let blobAnno = this.editor.contentHolder.querySelector('.eAnnotation[src="' + initBlob + '"]');
               if (code == 200) {
@@ -1705,17 +1710,17 @@ modules["editor/toolbar/upload"] = class extends modules["editor/toolbar/shape"]
                   if (blobAnno != null && blobAnno.hasAttribute("anno") == true) {
                     this.editor.save.push({ _id: blobAnno.getAttribute("anno"), d: result.file });
                   }
-                  if (image.src == imageBlob) {
-                    imageBlob = result.file;
+                  if (image.src == this.imageBlob) {
+                    this.imageBlob = result.file;
                     this.PROPERTIES.d = result.file;
                   }
-                  if (image.src == imageBlob) {
-                    URL.revokeObjectURL(imageBlob);
+                  if (image.src == this.imageBlob) {
+                    URL.revokeObjectURL(this.imageBlob);
                   }
                 }
               } else {
-                if (image.src == imageBlob) {
-                  URL.revokeObjectURL(imageBlob);
+                if (image.src == this.imageBlob) {
+                  URL.revokeObjectURL(this.imageBlob);
                 }
                 if (blobAnno != null) {
                   if (blobAnno.hasAttribute("anno") == true) {
@@ -1748,7 +1753,7 @@ modules["editor/toolbar/upload"] = class extends modules["editor/toolbar/shape"]
       reset();
       uploadInput.value = null;
     });
-    if (extra.file == null) {
+    if (extra == null || extra.file == null) {
       uploadInput.click();
     } else {
       startImagePlace(extra.file, extra.event);

@@ -561,7 +561,7 @@ modules["editor/realtime"] = class {
               }
               original = original ?? {};
               let originalRender = original.render ?? {};
-              if (editor.settings.editOthersWork != true && (originalRender.a ?? originalRender.m) != null && [originalRender.a, originalRender.m].includes(memberData.modify) == false && memberData.access < 4) { // Can't edit another member's work:
+              if (editor.utils.canMemberModify(originalRender, memberData) != true) { // Can't edit another member's work:
                 delete userSelection[annoID];
                 continue;
               }
@@ -573,7 +573,7 @@ modules["editor/realtime"] = class {
                 delete userSelection[annoID];
               }
               if (anno.lock == false) {
-                if ([originalRender.a, originalRender.m].includes(memberData.modify) == false && memberData.access < 4) {
+                if (editor.utils.canMemberModify(originalRender, memberData) == true) {
                   anno.lock = null;
                 }
               }

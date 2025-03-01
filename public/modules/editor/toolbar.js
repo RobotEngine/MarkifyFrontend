@@ -1286,7 +1286,7 @@ modules["editor/toolbar/eraser"] = class {
         if (render == null) {
           continue;
         }
-        if (this.editor.settings.editOthersWork != true && [render.a, render.m].includes(this.editor.self.modify) == false && this.editor.self.access < 4) { // Can't edit another member's work:
+        if (this.editor.utils.canMemberModify(render) != true) { // Can't edit another member's work:
           continue;
         }
         if (render.lock == true) {

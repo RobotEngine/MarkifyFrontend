@@ -1000,6 +1000,23 @@ modules["editor/editor"] = class {
       contentHolder.scrollTo(contentHolder.scrollLeft + jumpRect.left - ((page.offsetWidth - element.offsetWidth) / 2), contentHolder.scrollTop + jumpRect.top - ((page.offsetHeight - element.offsetHeight) / 2));
     }
 
+    this.utils.canMemberModify = (render, member) => {
+      render = render ?? {};
+      member = member ?? this.self;
+      if (this.settings.editOthersWork == true) {
+        return true;
+      }
+      if (member.access > 3) {
+        return true;
+      }
+      if (member.modify != null) {
+        if ([render.a, render.m].includes(member.modify) == true) {
+          return true;
+        }
+      }
+      return false;
+    }
+
     this.render = {};
     this.render.pdfPageQueue = [];
     this.render.pdfPageStorage = {};

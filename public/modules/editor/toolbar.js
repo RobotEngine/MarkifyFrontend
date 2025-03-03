@@ -1380,9 +1380,8 @@ modules["editor/toolbar/eraser"] = class {
   disable = this.clickEnd;
 }
 
-modules["editor/toolbar/text"] = class {
+modules["editor/toolbar/placement"] = class {
   PROPERTIES = {};
-  TARGET_QUERY = '.eSelectBar:not([remove]) .eTool[action="editor/toolbar/textedit"]';
   USER_SELECT = "none";
   TOUCH_ACTION = "pinch-zoom";
   REALTIME_TOOL = 4;
@@ -1394,7 +1393,9 @@ modules["editor/toolbar/text"] = class {
       if (event != null && this.editor.isEditorContent(event.target) != true) {
         return;
       }
-      this.activate();
+      if (this.activate != null) {
+        this.activate();
+      }
       this.annotation = {
         render: this.PROPERTIES,
         animate: false
@@ -1443,14 +1444,21 @@ modules["editor/toolbar/text"] = class {
       this.editor.selecting[this.annotation.render._id] = {};
       this.parent.selection.updateBox();
 
-      this.parent.selection.clickAction({
-        target: this.editor.page.querySelector(this.TARGET_QUERY),
-        clearText: true
-      });
+      if (this.TARGET_QUERY != null) {
+        this.parent.selection.clickAction({
+          target: this.editor.page.querySelector(this.TARGET_QUERY),
+          clearText: true
+        });
+      }
     }
     this.editor.render.remove(this.annotation);
     this.annotation = null;
   }
+}
+
+modules["editor/toolbar/text"] = class extends modules["editor/toolbar/placement"] {
+  TARGET_QUERY = '.eSelectBar:not([remove]) .eTool[action="editor/toolbar/textedit"]';
+
   activate = () => {
     let toolPreference = this.parent.getToolPreference();
     this.PROPERTIES = {
@@ -1467,12 +1475,12 @@ modules["editor/toolbar/text"] = class {
   }
 }
 
-modules["editor/toolbar/shape"] = class {
+modules["editor/toolbar/resize_placement"] = class {
   ACTIVE = true;
   PROPERTIES = {};
   RENDER_INSERT = {};
   CAN_FLIP = true;
-  MINIMUM_SIZE = 25;
+  MINIMUM_SIZE = 0;
   USER_SELECT = "none";
   TOUCH_ACTION = "pinch-zoom";
   REALTIME_TOOL = 4;
@@ -1498,7 +1506,9 @@ modules["editor/toolbar/shape"] = class {
       if (event != null && this.editor.isEditorContent(event.target) != true) {
         return;
       }
-      this.activate();
+      if (this.activate != null) {
+        this.activate();
+      }
       this.annotation = {
         render: this.PROPERTIES,
         animate: false
@@ -1597,6 +1607,11 @@ modules["editor/toolbar/shape"] = class {
     this.editor.render.remove(this.annotation);
     this.annotation = null;
   }
+}
+
+modules["editor/toolbar/shape"] = class extends modules["editor/toolbar/resize_placement"] {
+  MINIMUM_SIZE = 25;
+  
   activate = () => {
     let toolPreference = this.parent.getToolPreference();
     this.PROPERTIES = {
@@ -1611,7 +1626,7 @@ modules["editor/toolbar/shape"] = class {
   }
 }
 
-modules["editor/toolbar/sticky"] = class extends modules["editor/toolbar/text"] {
+modules["editor/toolbar/sticky"] = class extends modules["editor/toolbar/placement"] {
   activate = () => {
     let toolPreference = this.parent.getToolPreference();
     this.PROPERTIES = {
@@ -1624,7 +1639,7 @@ modules["editor/toolbar/sticky"] = class extends modules["editor/toolbar/text"] 
   }
 }
 
-modules["editor/toolbar/page"] = class extends modules["editor/toolbar/shape"] {
+modules["editor/toolbar/page"] = class extends modules["editor/toolbar/resize_placement"] {
   CAN_FLIP = false;
   MINIMUM_SIZE = 100;
 
@@ -1634,13 +1649,13 @@ modules["editor/toolbar/page"] = class extends modules["editor/toolbar/shape"] {
       f: "page",
       c: toolPreference.color.selected,
       title: "Untitled Page",
-      s: [200, 200],
+      s: [200, 275],
       l: this.editor.minLayer - 1
     };
   }
 }
 
-modules["editor/toolbar/upload"] = class extends modules["editor/toolbar/shape"] {
+modules["editor/toolbar/upload"] = class extends modules["editor/toolbar/resize_placement"] {
   ACTIVE = false;
   MINIMUM_SIZE = 100;
   EVEN_SCALE = true;
@@ -1764,7 +1779,7 @@ modules["editor/toolbar/upload"] = class extends modules["editor/toolbar/shape"]
   }
 }
 
-modules["editor/toolbar/embed"] = class extends modules["editor/toolbar/text"] {
+modules["editor/toolbar/embed"] = class extends modules["editor/toolbar/placement"] {
   TARGET_QUERY = '.eSelectBar:not([remove]) .eTool[action="editor/toolbar/setembed"]';
   
   activate = () => {

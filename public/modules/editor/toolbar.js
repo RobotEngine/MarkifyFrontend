@@ -1536,7 +1536,10 @@ modules["editor/toolbar/shape"] = class {
       } else {
         setY = this.editor.utils.round(Math.min(setY, -this.MINIMUM_SIZE));
       }
-      if (event != null && (event.shiftKey == true || this.EVEN_SCALE == true)) {
+      if (event != null) {
+        this.shiftKey = event.shiftKey;
+      }
+      if (this.shiftKey == true || this.EVEN_SCALE == true) {
         let changeX = setX / (this.width ?? setX);
         let changeY = setY / (this.height ?? setY);
         if (Math.abs(changeX) > Math.abs(changeY)) {

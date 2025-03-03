@@ -941,7 +941,7 @@ modules["editor/toolbar"] = class {
       this.toolbar.update();
       this.pushToolEvent("scroll", data.event);
     });
-    editor.pipeline.subscribe("toolbarPageResize", "page_add", () => {
+    editor.pipeline.subscribe("toolbarPagePageAdd", "page_add", () => {
       this.toolbar.updateMaxHeight();
       this.toolbar.update();
     });

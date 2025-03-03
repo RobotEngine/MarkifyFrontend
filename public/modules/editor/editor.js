@@ -2074,7 +2074,7 @@ modules["editor/editor"] = class {
         }
       }, 750);
     }
-    this.pipeline.subscribe("boundChange", "bounds_change", this.updateChunks);
+    //this.pipeline.subscribe("boundChange", "bounds_change", this.updateChunks);
     
     contentHolder.addEventListener("scroll", (event) => {
       this.pipeline.publish("scroll", { event: event });

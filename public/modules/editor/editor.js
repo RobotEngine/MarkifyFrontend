@@ -423,6 +423,9 @@ modules["editor/editor"] = class {
     }
 
     this.utils.getAbsolutePosition = (anno, includeSelecting) => {
+      if (anno.p == null) {
+        return;
+      }
       let returnX = anno.p[0];
       let returnY = anno.p[1];
       let selectedParent = false;
@@ -492,9 +495,12 @@ modules["editor/editor"] = class {
       }
       return [returnX, returnY];
     }
-    this.utils.getRect = (anno) => {
+    this.utils.getRect = (anno, includeSelecting) => {
       anno = anno ?? {};
-      let position = this.utils.getAbsolutePosition(anno);
+      if (anno.p == null) {
+        return;
+      }
+      let position = this.utils.getAbsolutePosition(anno, includeSelecting);
       let thickness = 0;
       if (anno.t != null) {
         if (anno.b != "none" || anno.d == "line") {
@@ -506,8 +512,8 @@ modules["editor/editor"] = class {
         y: position[1],
         centerX: position[0] + (anno.s[0] / 2) + thickness,
         centerY: position[1] + (anno.s[1] / 2) + thickness,
-        bottomX: position[0] + anno.s[0] + (thickness * 2),
-        bottomY: position[1] + anno.s[1] + (thickness * 2),
+        endX: position[0] + anno.s[0] + (thickness * 2),
+        endY: position[1] + anno.s[1] + (thickness * 2),
         width: anno.s[0],
         height: anno.s[1],
         thickness: thickness
@@ -522,14 +528,7 @@ modules["editor/editor"] = class {
           prevParent = parentAnno.pointer;
         }
       }
-      let thick = 0;
-      if (anno.t != null) {
-        if (anno.b != "none" || anno.d == "line") {
-          thick = anno.t;
-        }
-      }
-      let x = anno.p[0] + (((anno.s ?? {})[0] ?? 0) / 2) + thick;
-      let y = anno.p[1] + (((anno.s ?? {})[1] ?? 0) / 2) + thick;
+      let { centerX: x, centerY: y } = this.utils.getRect(anno, includeSelecting);
       let index = anno.l ?? 0;
       let chunk = this.utils.pointInChunk(x, y);
       let annotationIDs = Object.keys(this.chunkAnnotations[chunk] ?? {});
@@ -702,7 +701,11 @@ modules["editor/editor"] = class {
           let key = keys[a];
           if (annotationKeys[key] == null) {
             annotationKeys[key] = true;
-            annotations.push(this.annotations[key]);
+            let anno = this.annotations[key] ?? {};
+            if (anno.pointer != null) {
+              anno = this.annotations[anno.pointer] ?? { render: {} };
+            }
+            annotations.push(anno);
           }
         }
       }
@@ -712,14 +715,10 @@ modules["editor/editor"] = class {
       return this.utils.annotationsInChunks(this.visibleChunks);
     }
     this.utils.chunksFromAnnotation = (render, includeSelecting) => {
-      let [x, y] = this.utils.getAbsolutePosition(render, includeSelecting);
-      let [width, height] = render.s;
-      let thick = 0;
-      if (render.t != null) {
-        if (render.b != "none" || render.d == "line") {
-          thick = render.t;
-        }
+      if (render.p == null) {
+        return [];
       }
+      let { x, y, width, height, thickness } = this.utils.getRect(render, includeSelecting);
       if (width < 0) {
         width = -width;
         x -= width;
@@ -728,11 +727,11 @@ modules["editor/editor"] = class {
         height = -height;
         y -= height;
       }
-      let halfT = thick / 2;
+      let halfT = thickness / 2;
 
       let radian = (render.r ?? 0) * (Math.PI / 180);
-      let thickWidth = width + thick;
-      let thickHeight = height + thick;
+      let thickWidth = width + thickness;
+      let thickHeight = height + thickness;
       let changedWidth = ((Math.abs(thickWidth * Math.cos(radian)) + Math.abs(thickHeight * Math.sin(radian))) - thickWidth) / 2;
       let changedHeight = ((Math.abs(thickWidth * Math.sin(radian)) + Math.abs(thickHeight * Math.cos(radian))) - thickHeight) / 2;
       
@@ -1434,7 +1433,7 @@ modules["editor/editor"] = class {
             } else {
               annoAnnotationHolder.setAttribute("notransition", "");
               let [annoX, annoY] = this.utils.getAbsolutePosition(render);
-              let [handle, resizeX, resizeY, resizeWidth, resizeHeight] = data.resizing;
+              let [handle, resizeX, resizeY, resizeWidth, resizeHeight] = render.resizing;
               switch (handle) {
                 case "bottomright":
                   annoAnnotationHolder.style.left = (resizeX - annoX) + "px";
@@ -1817,8 +1816,66 @@ modules["editor/editor"] = class {
         merged = { ...merged, ...data };
       }
 
+      let checkChunks = [ ...this.utils.chunksFromAnnotation(merged), ...this.utils.chunksFromAnnotation(annotation.render) ];
+
       annotation = (await this.save.apply(data, null)).annotation; // Apply Save
-      
+
+      if (data.p != null || data.s != null || data.t != null || data.l != null || data.remove == true) {
+        let annotationModule = await this.render.getModule(merged.f);
+        let chunkAnnotations = this.utils.annotationsInChunks(checkChunks);
+        for (let i = 0; i < chunkAnnotations.length; i++) {
+          let anno = chunkAnnotations[i] ?? {};
+          let render = anno.render;
+          if (render == null || render._id == annoID) {
+            continue;
+          }
+          if ((render.parent ?? "").startsWith("pending_") == true) {
+            let parentAnno = this.annotations[render.parent];
+            if (parentAnno != null && parentAnno.pointer != null) {
+              render.parent = parentAnno.pointer;
+            }
+          }
+          let { x, y, width, height, thickness, centerX, centerY } = this.utils.getRect(render);
+          let checkParent = false;
+          if (centerX < rect.x || centerX > rect.endX || centerY < rect.y || centerY > rect.endY || render.l < merged.l || merged.remove == true) {
+            // Is outside the saved annotation:
+            checkParent = render.parent == annoID;
+          } else if (annotationModule.CAN_PARENT_CHILDREN == true) {
+            // Is inside the saved annotation:
+            if (this.utils.canMemberModify(render) == true) {
+              checkParent = render.parent != annoID;
+            }
+          }
+          if (checkParent == true) {
+            let setParent = await this.utils.parentFromAnnotation({
+              ...render,
+              p: [x, y],
+              parent: null,
+              prevParent: render.parent
+            }, true);
+            if (setParent != render.parent) {
+              let [newX, newY] = this.utils.getRelativePosition({
+                ...render,
+                p: [x, y],
+                parent: setParent
+              });
+              let setChildAnno = {
+                _id: render._id,
+                parent: setParent,
+                p: [newX, newY],
+                sync: getEpoch()
+              };
+              await this.save.apply(setChildAnno);
+              anno.save = true;
+              anno.render.m = this.self.modify;
+              if (connected == true) {
+                this.save.pendingSaves[setChildAnno._id] = { ...(this.save.pendingSaves[setChildAnno._id] ?? {}), ...setChildAnno };
+                this.realtimeSelect[setChildAnno._id] = { ...(this.realtimeSelect[setChildAnno._id] ?? {}), ...setChildAnno };
+              }
+            }
+          }
+        }
+      }
 
       annotation.save = true;
       annotation.render.m = this.self.modify;

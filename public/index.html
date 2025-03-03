@@ -122,41 +122,44 @@
   }
 
   .loadsvg {
+    --spacing: 276px;
     width: min(100%, 120px);
     height: min(100%, 120px);
     margin: 64px;
   }
 
   .loadsvg path {
-    animation: var(--anim) 2.7s cubic-bezier(0.46, 0.03, 0.52, 0.96) infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: var(--anim) 3s cubic-bezier(0.46, 0.03, 0.52, 0.96) infinite;
   }
   @keyframes loadinga {
-    0% { transform: translate(0) }
-    25% { transform: translate(0, -94.73px) }
-    50% { transform: translate(94.73px, -94.73px) }
-    75% { transform: translate(94.73px, 0) }
-    100% { transform: translate(0) }
+    0% { transform: translate(0) rotate(0) }
+    25% { transform: translate(var(--spacing), 0) rotate(90deg) }
+    50% { transform: translate(var(--spacing), var(--spacing)) rotate(180deg) }
+    75% { transform: translate(0, var(--spacing)) rotate(270deg) }
+    100% { transform: translate(0) rotate(360deg) }
   }
   @keyframes loadingb {
-    0% { transform: translate(0) rotate(0) }
-    25% { transform: translate(94.73px, 0) rotate(90deg) }
-    50% { transform: translate(94.73px, 94.73px) rotate(180deg) }
-    75% { transform: translate(0, 94.73px) rotate(270deg) }
-    100% { transform: translate(0) rotate(360deg) }
+    0% { transform: translate(0) }
+    25% { transform: translate(0, var(--spacing)) }
+    50% { transform: translate(calc(var(--spacing) * -1), var(--spacing)) }
+    75% { transform: translate(calc(var(--spacing) * -1), 0) }
+    100% { transform: translate(0) }
   }
   @keyframes loadingc {
-    0% { transform: translate(0) rotate(0) }
-    25% { transform: translate(-94.73px, 0) rotate(90deg) }
-    50% { transform: translate(-94.73px, -94.73px) rotate(180deg) }
-    75% { transform: translate(0, -94.73px) rotate(270deg) }
-    100% { transform: translate(0) rotate(360deg) }
+    0% { transform: translate(0) }
+    25% { transform: translate(0, calc(var(--spacing) * -1)) }
+    50% { transform: translate(var(--spacing), calc(var(--spacing) * -1)) }
+    75% { transform: translate(var(--spacing), 0) }
+    100% { transform: translate(0) }
   }
   @keyframes loadingd {
-    0% { transform: translate(0) }
-    25% { transform: translate(0, 94.73px) }
-    50% { transform: translate(-94.73px, 94.73px) }
-    75% { transform: translate(-94.73px, 0) }
-    100% { transform: translate(0) }
+    0% { transform: translate(0) rotate(0) }
+    25% { transform: translate(calc(var(--spacing) * -1), 0) rotate(90deg) }
+    50% { transform: translate(calc(var(--spacing) * -1), calc(var(--spacing) * -1)) rotate(180deg) }
+    75% { transform: translate(0, calc(var(--spacing) * -1)) rotate(270deg) }
+    100% { transform: translate(0) rotate(360deg) }
   }
 </style>
 <body>
@@ -164,11 +167,11 @@
   <div class="app">
     <div class="loading" new>
       <div class="loadingSvgHolder">
-        <svg class="loadsvg" viewBox="0 0 175 175" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path style="--anim: loadinga" d="M10 134.734C10 118.166 23.4315 104.734 40 104.734C56.5685 104.734 70 118.166 70 134.734C70 151.303 56.5685 164.734 40 164.734C23.4315 164.734 10 151.303 10 134.734Z" stroke="#0084FF" stroke-width="20"/>
-          <path style="--anim: loadingb; transform-origin: 40px 40px" d="M10.1685 40C10.1685 56.5685 23.5999 70 40.1685 70H60.1685C65.6913 70 70.1685 65.5228 70.1685 60V40C70.1685 23.4315 56.737 10 40.1685 10C23.5999 10 10.1685 23.4315 10.1685 40Z" stroke="#0084FF" stroke-width="20"/>
-          <path style="--anim: loadingc; transform-origin: 135px 135px" d="M165 134.996C165 118.428 151.569 104.996 135 104.996H115C109.477 104.996 105 109.473 105 114.996V134.996C105 151.565 118.431 164.996 135 164.996C151.569 164.996 165 151.565 165 134.996Z" stroke="#0084FF" stroke-width="20"/>
-          <path style="--anim: loadingd" d="M165 40C165 56.5685 151.569 70 135 70C118.431 70 105 56.5685 105 40C105 23.4315 118.431 10 135 10C151.569 10 165 23.4315 165 40Z" stroke="#0084FF" stroke-width="20"/>
+        <svg class="loadsvg" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path style="--anim: loadinga" d="M118 28C167.706 28 208 68.2944 208 118V172C208 191.882 191.882 208 172 208H118C68.2944 208 28 167.706 28 118C28 68.2944 68.2944 28 118 28Z" stroke="#0084FF" stroke-width="56"/>
+          <path style="--anim: loadingb" d="M394 28C443.706 28 484 68.2944 484 118C484 167.706 443.706 208 394 208C344.294 208 304 167.706 304 118C304 68.2944 344.294 28 394 28Z" stroke="#0084FF" stroke-width="56"/>
+          <path style="--anim: loadingc" d="M118 304C167.706 304 208 344.294 208 394C208 443.706 167.706 484 118 484C68.2944 484 28 443.706 28 394C28 344.294 68.2944 304 118 304Z" stroke="#0084FF" stroke-width="56"/>
+          <path style="--anim: loadingd" d="M394 304C443.706 304 484 344.294 484 394C484 443.706 443.706 484 394 484C344.294 484 304 443.706 304 394V340C304 320.118 320.118 304 340 304H394Z" stroke="#0084FF" stroke-width="56"/>
         </svg>
       </div>
     </div>

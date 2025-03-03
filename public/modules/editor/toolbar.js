@@ -1418,8 +1418,15 @@ modules["editor/toolbar/placement"] = class {
     if (this.annotation.render.textfit == true) {
       let textElem = this.annotation.element.querySelector("div[text]");
       if (textElem != null) {
+        if (this.annotation.render.remove == true) {
+          this.annotation.element.style.opacity = 0;
+          this.annotation.element.removeAttribute("hidden");
+        }
         this.annotation.render.s = [textElem.offsetWidth, textElem.offsetHeight];
-        delete this.annotation.render.hidden;
+        if (this.annotation.render.remove == true) {
+          delete this.annotation.render.remove;
+          await this.clickMove();
+        }
       }
     }
     this.editor.selecting["cursor"] = this.annotation.render;
@@ -1469,7 +1476,7 @@ modules["editor/toolbar/text"] = class extends modules["editor/toolbar/placement
       t: toolPreference.thickness,
       o: toolPreference.opacity,
       d: { s: toolPreference.size, al: toolPreference.align, b: ["Example Text"] },
-      hidden: true,
+      remove: true,
       textfit: true
     };
   }

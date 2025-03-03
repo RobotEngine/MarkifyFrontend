@@ -519,6 +519,30 @@ modules["editor/editor"] = class {
         thickness: thickness
       };
     }
+    this.utils.getParents = (anno) => {
+      let parents = [];
+      let currentAnnoCheck = anno ?? {};
+      while (currentAnnoCheck.parent != null) {
+        let annoid = currentAnnoCheck.parent;
+        if (annoid == null || parents.includes(annoid) == true) {
+          break;
+        }
+        let annotation = this.annotations[annoid];
+        if (annotation == null) {
+          break;
+        }
+        if (annotation.pointer != null) {
+          annoid = annotation.pointer;
+          annotation = this.annotations[annoid];
+        }
+        if (annotation == null) {
+          break;
+        }
+        parents.push(annoid);
+        currentAnnoCheck = annotation.render ?? {};
+      }
+      return parents;
+    }
     this.utils.parentFromAnnotation = async (anno, includeSelecting) => {
       let id = anno._id;
       let prevParent = anno.prevParent;
@@ -1836,7 +1860,7 @@ modules["editor/editor"] = class {
               render.parent = parentAnno.pointer;
             }
           }
-          let { x, y, width, height, thickness, centerX, centerY } = this.utils.getRect(render);
+          let { x, y, centerX, centerY } = this.utils.getRect(render);
           let checkParent = false;
           if (centerX < rect.x || centerX > rect.endX || centerY < rect.y || centerY > rect.endY || render.l < merged.l || merged.remove == true) {
             // Is outside the saved annotation:
@@ -1874,6 +1898,9 @@ modules["editor/editor"] = class {
                 this.realtimeSelect[setChildAnno._id] = { ...(this.realtimeSelect[setChildAnno._id] ?? {}), ...setChildAnno };
               }
             }
+          } else if (this.utils.getParents(render).includes(annoID) == true) { // Update chunks of child annotations:
+            await this.utils.setAnnotationChunks(render);
+            this.utils.updateAnnotationPages(render);
           }
         }
       }
@@ -2598,7 +2625,7 @@ modules["editor/render/draw"] = class {
     let height = anno.s[1] + anno.t;
     let x = anno.p[0] + halfT;
     let y = anno.p[1] + halfT;
-    let transform = "translate(" + x + "px," + y + "px)";
+    let transform = "translate3d(" + x + "px," + y + "px, 0)";
     let drawSetWidth;
     let drawSetPoints = "";
     if (anno.d.length == 2) {
@@ -2678,7 +2705,7 @@ modules["editor/render/markup"] = class {
     let height = anno.s[1] + anno.t;
     let x = anno.p[0] + halfT;
     let y = anno.p[1] + halfT;
-    let transform = "translate(" + x + "px," + y + "px)";
+    let transform = "translate3d(" + x + "px," + y + "px, 0)";
     element.style.width = width + "px";
     element.style.height = height + "px";
     let svg = element.querySelector("svg");
@@ -2737,7 +2764,7 @@ modules["editor/render/text"] = class {
     }
     element.style.width = anno.s[0] + "px";
     element.style.height = anno.s[1] + "px";
-    let transform = "translate(" + anno.p[0] + "px," + anno.p[1] + "px)";
+    let transform = "translate3d(" + anno.p[0] + "px," + anno.p[1] + "px, 0)";
     if (anno._id != null) {
       element.style.opacity = 1;
     } else {
@@ -2821,7 +2848,7 @@ modules["editor/render/shape"] = class {
     let height = anno.s[1] + anno.t;
     let x = anno.p[0] + halfT;
     let y = anno.p[1] + halfT;
-    let transform = "translate(" + x + "px," + y + "px)";
+    let transform = "translate3d(" + x + "px," + y + "px, 0)";
     element.style.width = width + "px";
     element.style.height = height + "px";
     if (anno._id != null) {
@@ -2997,7 +3024,7 @@ modules["editor/render/sticky"] = class {
     }
     element.style.width = anno.s[0] + "px";
     element.style.height = anno.s[1] + "px";
-    let transform = "translate(" + anno.p[0] + "px," + anno.p[1] + "px)";
+    let transform = "translate3d(" + anno.p[0] + "px," + anno.p[1] + "px, 0)";
     element.style.setProperty("--themeColor", "#" + anno.c);
     let text = element.querySelector("div[edit]");
     if (anno._id != null) {
@@ -3162,7 +3189,7 @@ modules["editor/render/page"] = class {
     element.style.height = anno.s[1] + "px";
     element.style.setProperty("--themeColor", "#" + anno.c);
     element.style.color = this.parent.utils.textColorBackground(anno.c);
-    let transform = "translate(" + anno.p[0] + "px," + anno.p[1] + "px)";
+    let transform = "translate3d(" + anno.p[0] + "px," + anno.p[1] + "px, 0)";
     if (anno._id != null) {
       element.style.opacity = 1;
     } else {
@@ -3280,7 +3307,7 @@ modules["editor/render/media"] = class {
     }
     element.style.width = anno.s[0] + "px";
     element.style.height = anno.s[1] + "px";
-    let transform = "translate(" + anno.p[0] + "px," + anno.p[1] + "px)";
+    let transform = "translate3d(" + anno.p[0] + "px," + anno.p[1] + "px, 0)";
     if (anno._id != null) {
       element.style.opacity = 1;
     } else {
@@ -3366,7 +3393,7 @@ modules["editor/render/embed"] = class {
     }
     element.style.width = anno.s[0] + "px";
     element.style.height = anno.s[1] + "px";
-    let transform = "translate(" + anno.p[0] + "px," + anno.p[1] + "px)";
+    let transform = "translate3d(" + anno.p[0] + "px," + anno.p[1] + "px, 0)";
     if (anno._id != null) {
       element.style.opacity = 1;
     } else {

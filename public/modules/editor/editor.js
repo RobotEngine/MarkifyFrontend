@@ -1431,10 +1431,12 @@ modules["editor/editor"] = class {
         }
 
         let rotate = render.r ?? 0;
-        if (rotate > 180) {
-          rotate = -(360 - rotate);
+        if (rotate > 0) {
+          if (rotate > 180) {
+            rotate = -(360 - rotate);
+          }
+          transform += " rotate(" + rotate + "deg)";
         }
-        transform += " rotate(" + rotate + "deg)";
         if (render.s[0] < 0 && render.s[1] < 0) {
           transform += " scale(-1)";
         } else if (render.s[0] < 0) {
@@ -2048,7 +2050,7 @@ modules["editor/editor"] = class {
       let annotationRect = this.utils.localBoundingRect(annotations);
       let originCorrectX = (annotationRect.left - (backgroundWidth / 2)) % scaledDotSize;
       let originCorrectY = (annotationRect.top - (backgroundHeight / 2)) % scaledDotSize;
-      background.style.transform = "translate(" + (contentHolder.scrollLeft + originCorrectX - backgroundPaddingWidth) + "px, " + (contentHolder.scrollTop + originCorrectY - backgroundPaddingHeight) + "px) scale(var(--zoom))";
+      background.style.transform = "translate3d(" + (contentHolder.scrollLeft + originCorrectX - backgroundPaddingWidth) + "px, " + (contentHolder.scrollTop + originCorrectY - backgroundPaddingHeight) + "px, 0) scale(var(--zoom))";
 
       if (this.zooming == true) {
         return;
@@ -2074,7 +2076,7 @@ modules["editor/editor"] = class {
         }
       }, 750);
     }
-    //this.pipeline.subscribe("boundChange", "bounds_change", this.updateChunks);
+    this.pipeline.subscribe("boundChange", "bounds_change", this.updateChunks);
     
     contentHolder.addEventListener("scroll", (event) => {
       this.pipeline.publish("scroll", { event: event });

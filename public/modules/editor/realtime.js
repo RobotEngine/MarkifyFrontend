@@ -205,13 +205,13 @@ modules["editor/realtime"] = class {
         }
       }
     }
-    editor.pipeline.subscribe("realtimePublishClickStart", "click_start", (data) => { this.publishShort(data.event); });
+    editor.pipeline.subscribe("realtimePublishClickStart", "click_start", (data) => { this.publishShort(data.event); }, { sort: 2 });
     editor.pipeline.subscribe("realtimePublishClickMove", "click_move", (data) => {
       if (editor.isPageActive() == true) {
         this.publishShort(data.event);
       }
-    });
-    editor.pipeline.subscribe("realtimePublishClickEnd", "click_end", () => { this.publishShort(); });
+    }, { sort: 2 });
+    editor.pipeline.subscribe("realtimePublishClickEnd", "click_end", () => { this.publishShort(); }, { sort: 2 });
     editor.pipeline.subscribe("realtimePublishScroll", "scroll", () => {
       this.publishShort();
       if (editor.realtime.observed == true) {

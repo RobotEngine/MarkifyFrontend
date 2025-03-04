@@ -39,6 +39,7 @@ modules["editor/editor"] = class {
     publish: (event, data) => {
       let subscribes = this.pipeline.pipeline[event] ?? {};
       let subKeys = Object.keys(subscribes);
+      subKeys.sort();
       for (let i = 0; i < subKeys.length; i++) {
         subscribes[subKeys[i]](data);
       }
@@ -52,6 +53,9 @@ modules["editor/editor"] = class {
         } else {
           this.pipeline.unsubscribe(id);
         }
+      }
+      if (extra.sort != null) {
+        id = extra.sort + "_" + id;
       }
 
       let pipelineEvent = this.pipeline.pipeline[event];

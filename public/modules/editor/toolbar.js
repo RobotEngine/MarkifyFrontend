@@ -917,16 +917,16 @@ modules["editor/toolbar"] = class {
       if (target.closest(".eContent") != null) {
         this.pushToolEvent("clickStart", event);
       }
-    });
-    editor.pipeline.subscribe("toolbarMouse", "click_move", (data) => {
+    }, { sort: 1 });
+    editor.pipeline.subscribe("1_toolbarMouse", "click_move", (data) => {
       let event = data.event;
       this.tooltip.set(event);
       this.pushToolEvent("clickMove", event);
-    });
+    }, { sort: 1 });
     editor.pipeline.subscribe("toolbarMouse", "click_end", (data) => {
       this.toolbar.setTool();
       this.pushToolEvent("clickEnd", data.event);
-    });
+    }, { sort: 1 });
     editor.pipeline.subscribe("toolbarMouse", "mouseleave", () => {
       this.tooltip.close();
     });

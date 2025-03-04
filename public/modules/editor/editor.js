@@ -332,6 +332,16 @@ modules["editor/editor"] = class {
     rotatePointOrigin: (pointX, pointY, centerX, centerY, angle) => {
       return this.math.rotatePoint(pointX - centerX, pointY - centerY, angle);
     },
+    rotatedBounds: (topLeftX, topLeftY, bottomRightX, bottomRightY, angle) => {
+      let width = bottomRightX - topLeftX;
+      let height = bottomRightY - topLeftY;
+      let radian = (angle ?? 0) * (Math.PI / 180);
+
+      let changedWidth = ((Math.abs(width * Math.cos(radian)) + Math.abs(height * Math.sin(radian))) - width) / 2;
+      let changedHeight = ((Math.abs(width * Math.sin(radian)) + Math.abs(height * Math.cos(radian))) - height) / 2;
+      
+      return [topLeftX - changedWidth, topLeftY - changedHeight, bottomRightX + changedWidth, bottomRightY + changedHeight];
+    },
     pointInRotatedBounds: (pointX, pointY, topLeftX, topLeftY, bottomRightX, bottomRightY, angle, tolerance) => {
       angle = angle ?? 0;
       tolerance = tolerance ?? 0;
@@ -811,14 +821,8 @@ modules["editor/editor"] = class {
       let annotationVisible = false;
 
       if (render.remove != true) {
-        let [x, y] = this.utils.getAbsolutePosition(render, includeSelecting);
-        let [width, height] = render.s;
-        let thick = 0;
-        if (render.t != null) {
-          if (render.b != "none" || render.d == "line") {
-            thick = render.t;
-          }
-        }
+        let { x, y, width, height, thickness, rotation } = this.utils.getRect(render, includeSelecting);
+
         if (width < 0) {
           width = -width;
           x -= width;
@@ -827,20 +831,10 @@ modules["editor/editor"] = class {
           height = -height;
           y -= height;
         }
-        let halfT = thick / 2;
 
-        let radian = (render.r ?? 0) * (Math.PI / 180);
-        let thickWidth = width + thick;
-        let thickHeight = height + thick;
-        let changedWidth = ((Math.abs(thickWidth * Math.cos(radian)) + Math.abs(thickHeight * Math.sin(radian))) - thickWidth) / 2;
-        let changedHeight = ((Math.abs(thickWidth * Math.sin(radian)) + Math.abs(thickHeight * Math.cos(radian))) - thickHeight) / 2;
-        
-        x += halfT - changedWidth;
-        y += halfT - changedHeight;
-        width = thickWidth + (changedWidth * 2);
-        height = thickHeight + (changedHeight * 2);
-        
-        chunks = this.utils.regionInChunks(x, y, x + width, y + height);
+        let [topLeftX, topLeftY, bottomRightX, bottomRightY] = this.math.rotatedBounds(x, y, x + width + thickness, y + height + thickness, rotation);
+
+        chunks = this.utils.regionInChunks(topLeftX, topLeftY, bottomRightX, bottomRightY);
 
         for (let i = 0; i < chunks.length; i++) {
           let chunk = chunks[i];

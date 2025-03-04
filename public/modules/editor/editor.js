@@ -34,14 +34,15 @@ modules["editor/editor"] = class {
   };
 
   pipeline = { // PIPELINE : Distributes events across various modules and services:
-    pipeline: {},
-    pipelineSubs: {},
+    pipeline: {}, // All active events
+    pipelineSubs: {}, // All active subscribes
     publish: (event, data) => {
-      let subscribes = this.pipeline.pipeline[event] ?? {};
-      let subKeys = Object.keys(subscribes);
-      subKeys.sort();
-      for (let i = 0; i < subKeys.length; i++) {
-        subscribes[subKeys[i]](data);
+      let listeners = this.pipeline.pipeline[event] ?? [];
+      for (let i = 0; i < listeners.length; i++) {
+        let subscribe = (this.pipeline.pipelineSubs[listeners[i]] ?? {})[event] ?? {};
+        if (subscribe.callback != null) {
+          subscribe.callback(data);
+        }
       }
     },
     subscribe: (id, event, callback, extra) => {
@@ -54,28 +55,29 @@ modules["editor/editor"] = class {
           this.pipeline.unsubscribe(id);
         }
       }
-      if (extra.sort != null) {
-        id = extra.sort + "_" + id;
-      }
-
-      let pipelineEvent = this.pipeline.pipeline[event];
-      if (pipelineEvent == null) {
-        this.pipeline.pipeline[event] = {};
-        pipelineEvent = this.pipeline.pipeline[event];
-      }
-      pipelineEvent[id] = callback;
 
       if (pipelineSubs == null) {
         this.pipeline.pipelineSubs[id] = {};
         pipelineSubs = this.pipeline.pipelineSubs[id];
       }
-      pipelineSubs[event] = "";
+      let subData = { callback: callback };
+      if (extra.sort != null) {
+        subData.sort = extra.sort;
+      }
+      pipelineSubs[event] = subData;
+
+      let pipelineEvent = this.pipeline.pipeline[event];
+      if (pipelineEvent == null) {
+        this.pipeline.pipeline[event] = [];
+        pipelineEvent = this.pipeline.pipeline[event];
+      }
+      pipelineEvent.push(id);
+      pipelineEvent.sort((a, b) => {
+        return (((this.pipeline.pipelineSubs[a] ?? {})[event] ?? {}).sort ?? 0) - (((this.pipeline.pipelineSubs[b] ?? {})[event] ?? {}).sort ?? 0);
+      });
     },
     unsubscribe: (id, event) => {
-      let pipelineSubs = this.pipeline.pipelineSubs[id];
-      if (pipelineSubs == null) {
-        return;
-      }
+      let pipelineSubs = this.pipeline.pipelineSubs[id] ?? [];
       let checkEvents = [];
       if (event == null) {
         checkEvents = Object.keys(pipelineSubs);
@@ -84,12 +86,13 @@ modules["editor/editor"] = class {
       }
       for (let i = 0; i < checkEvents.length; i++) {
         let check = checkEvents[i];
-        let pipelineEvent = this.pipeline.pipeline[check];
-        if (pipelineEvent != null) {
-          delete pipelineEvent[id];
-          if (Object.keys(pipelineEvent).length < 1) {
-            delete this.pipeline.pipeline[check];
-          }
+        let pipelineEvents = this.pipeline.pipeline[check] ?? [];
+        let index = pipelineEvents.indexOf(id);
+        if (index > -1) {
+          pipelineEvents.splice(index, 1);
+        }
+        if (pipelineEvents.length < 1) {
+          delete this.pipeline.pipeline[check];
         }
         delete pipelineSubs[check];
       }

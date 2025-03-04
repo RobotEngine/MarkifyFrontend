@@ -903,6 +903,24 @@ modules["editor/toolbar"] = class {
     this.selection.clickAction = (data) => {
 
     }
+    this.selection.undo = () => {
+      let event = editor.history.history[editor.history.location];
+      if (event == null) {
+        return;
+      }
+      editor.history.location--;
+
+      editor.pipeline.publish("history_update", { history: editor.history.history, location: editor.history.location });
+    }
+    this.selection.redo = () => {
+      let event = editor.history.history[editor.history.location + 1];
+      if (event == null) {
+        return;
+      }
+      editor.history.location++;
+
+      editor.pipeline.publish("history_update", { history: editor.history.history, location: editor.history.location });
+    }
 
     // Subscribe to Events:
     editor.pipeline.subscribe("toolbarMouse", "click_start", (data) => {

@@ -1945,7 +1945,109 @@ modules["editor/editor"] = class {
     this.history.history = [];
     this.history.location = -1;
     this.history.push = (type, changes, caret) => {
+      if (this.history.history.length > 100) { // If longer than 100, remove the first item to shrink under
+        this.history.history.shift();
+        this.history.location--;
+      }
+      if (this.history.location + 1 < this.history.history.length) { // Clear out redo history once undo in past
+        this.history.history = this.history.history.slice(0, this.history.location + 1);
+      }
 
+      let newHistory = {
+        type: type,
+        time: getEpoch(),
+        changes: copyObject(changes),
+        redo: []
+      };
+      if (caret != null) {
+        newHistory.caret = {
+          undoElement: caret.undoElement,
+          undoPosition: caret.undoPosition,
+          //redoElement: caret.redoElement,
+          //redoPosition: caret.redoPosition
+        };
+      }
+      this.history.history.push(newHistory);
+      this.history.location++;
+
+      this.pipeline.publish("history_update", { history: this.history.history, location: this.history.location });
+    }
+    this.history.undo = async () => {
+      if (this.toolbar != null) {
+        await this.toolbar.selection.undo();
+      }
+    }
+    this.history.redo = async () => {
+      if (this.toolbar != null) {
+        await this.toolbar.selection.redo();
+      }
+    }
+
+    this.text = {};
+    this.text.getCurrentCaretPosition = (element) => {
+      let position = 0;
+      if (typeof window.getSelection !== "undefined") {
+        const selection = window.getSelection();
+        if (selection.rangeCount !== 0) {
+          const range = window.getSelection().getRangeAt(0);
+          const preCaretRange = range.cloneRange();
+          preCaretRange.selectNodeContents(element);
+          preCaretRange.setEnd(range.endContainer, range.endOffset);
+          position = preCaretRange.toString().length;
+          if (preCaretRange.endContainer.textContent == "") {
+            position = "END";
+          }
+        }
+      }
+      return position;
+    }
+    this.text.createRange = (node, chars, range) => {
+      if (range == null) {
+        range = document.createRange()
+        range.selectNode(node);
+        range.setStart(node, 0);
+      }
+      if (chars.count === 0) {
+        range.setEnd(node, chars.count);
+      } else if (node && chars.count > 0) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          if (node.textContent.length < chars.count) {
+            chars.count -= node.textContent.length;
+          } else {
+            range.setEnd(node, chars.count);
+            chars.count = 0;
+          }
+        } else {
+          for (let lp = 0; lp < node.childNodes.length; lp++) {
+            range = this.createRange(node.childNodes[lp], chars, range);
+            if (chars.count === 0) {
+              break;
+            }
+          }
+        }
+      }
+      return range;
+    }
+    this.text.setCaretPosition = (element, chars) => {
+      let selection = window.getSelection();
+      let range = null;
+      if (chars == "END") {
+        range = this.createRange(element.lastChild, { count: element.lastChild.length - 1 });
+      } else {
+        range = this.createRange(element, { count: chars });
+      }
+      if (range != null) {
+        range.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    }
+    this.text.clearSelection = () => {
+      if (window.getSelection != null) {
+        window.getSelection().removeAllRanges();
+      } else if (document.selection != null) {
+        document.selection.empty();
+      }
     }
 
     this.updateInterface = () => {

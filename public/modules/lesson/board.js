@@ -702,6 +702,21 @@ modules["lesson/board"] = class {
       }
     });
 
+    this.editor.pipeline.subscribe("updateHistory", "history_update", (data) => {
+      if (data.history.length > 0 && data.location > -1 && this.editor.self.access > 0) {
+        undoButton.removeAttribute("disabled");
+      } else {
+        undoButton.setAttribute("disabled", "");
+      }
+      if (data.history.length > data.location + 1 && this.editor.self.access > 0) {
+        redoButton.removeAttribute("disabled");
+      } else {
+        redoButton.setAttribute("disabled", "");
+      }
+    });
+    undoButton.addEventListener("click", () => { this.editor.history.undo(); });
+    redoButton.addEventListener("click", () => { this.editor.history.redo(); });
+
     // Fetch Annotations
     let pageParam = getParam("page");
     let checkForJumpLink = getParam("annotation");

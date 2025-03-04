@@ -331,6 +331,39 @@ modules["editor/editor"] = class {
     },
     rotatePointOrigin: (pointX, pointY, centerX, centerY, angle) => {
       return this.math.rotatePoint(pointX - centerX, pointY - centerY, angle);
+    },
+    pointInRotatedBounds: (pointX, pointY, topLeftX, topLeftY, bottomRightX, bottomRightY, angle, tolerance) => {
+      angle = angle ?? 0;
+      tolerance = tolerance ?? 0;
+      let width = bottomRightX - topLeftX;
+      let height = bottomRightY - topLeftY;
+      let radian = angle * (Math.PI / 180);
+
+      let halfWidth = width / 2;
+      let halfHeight = height / 2;
+
+      let transformRotateWidth = topLeftX + halfWidth;
+      let transformRotateHeight = topLeftY + halfHeight;
+
+      let rotatedWidth = Math.abs(topLeftX * Math.cos(radian)) + Math.abs(topLeftY * Math.sin(radian));
+      let rotatedHeight = Math.abs(topLeftY * Math.cos(radian)) + Math.abs(topLeftX * Math.sin(radian));
+
+      let offsetX = (rotatedWidth - width) / 2;
+      let offsetY = (rotatedHeight - height) / 2;
+
+      let rotatedTopLeftX = transformRotateWidth - (rotatedWidth / 2) + offsetX;
+      let rotatedTopLeftY = transformRotateHeight - (rotatedHeight / 2) + offsetY;
+
+      let halfRotateWidth = rotatedTopLeftX + halfWidth;
+      let halfRotateHeight = rotatedTopLeftY + halfHeight;
+      let [xCoord, yCoord] = this.math.rotatePoint(pointX - halfRotateWidth, pointY - halfRotateHeight, -angle);
+      xCoord += halfRotateWidth;
+      yCoord += halfRotateHeight;
+      
+      if (xCoord > rotatedTopLeftX - tolerance && xCoord < (rotatedTopLeftX + width + tolerance) && yCoord > rotatedTopLeftY - tolerance && yCoord < (rotatedTopLeftY + height + tolerance)) {
+        return true;
+      }
+      return false;
     }
   }
 
@@ -618,19 +651,10 @@ modules["editor/editor"] = class {
         if (render.remove == true) {
           continue;
         }
-        let [parentX, parentY] = this.utils.getAbsolutePosition(render, includeSelecting);
-        let [parentWidth, parentHeight] = render.s ?? [0, 0];
-        let parentThickness = 0;
-        if (render.t != null) {
-          if (render.b != "none" || render.d == "line") {
-            parentThickness = render.t;
-          }
-        }
-        if (x >= parentX && x <= parentX + parentWidth + parentThickness) {
-          if (y >= parentY && y <= parentY + parentHeight + parentThickness) {
-            if ((index ?? this.utils.maxLayer) > render.l) {
-              viableParents.push(render);
-            }
+        let rect = this.utils.getRect(render, includeSelecting);
+        if (this.math.pointInRotatedBounds(x, y, rect.x, rect.y, rect.endX, rect.endY, render.r) == true) {
+          if ((index ?? this.utils.maxLayer) > render.l) {
+            viableParents.push(render);
           }
         }
       }
@@ -1871,7 +1895,7 @@ modules["editor/editor"] = class {
           }
           let { x, y, centerX, centerY } = this.utils.getRect(render);
           let checkParent = false;
-          if (centerX < rect.x || centerX > rect.endX || centerY < rect.y || centerY > rect.endY || render.l < merged.l || merged.remove == true) {
+          if (this.math.pointInRotatedBounds(centerX, centerY, rect.x, rect.y, rect.endX, rect.endY, render.r) == false || render.l < merged.l || merged.remove == true) {
             // Is outside the saved annotation:
             checkParent = render.parent == annoID;
           } else if (annotationModule.CAN_PARENT_CHILDREN == true) {

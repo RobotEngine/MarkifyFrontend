@@ -556,7 +556,8 @@ modules["editor/editor"] = class {
         endY: position[1] + anno.s[1] + (thickness * 2),
         width: anno.s[0],
         height: anno.s[1],
-        thickness: thickness
+        thickness: thickness,
+        rotation: anno.r ?? 0
       };
     }
     this.utils.getParents = (anno) => {
@@ -652,7 +653,7 @@ modules["editor/editor"] = class {
           continue;
         }
         let rect = this.utils.getRect(render, includeSelecting);
-        if (this.math.pointInRotatedBounds(x, y, rect.x, rect.y, rect.endX, rect.endY, render.r) == true) {
+        if (this.math.pointInRotatedBounds(x, y, rect.x, rect.y, rect.endX, rect.endY, rect.rotation) == true) {
           if ((index ?? this.utils.maxLayer) > render.l) {
             viableParents.push(render);
           }
@@ -1895,7 +1896,7 @@ modules["editor/editor"] = class {
           }
           let { x, y, centerX, centerY } = this.utils.getRect(render);
           let checkParent = false;
-          if (this.math.pointInRotatedBounds(centerX, centerY, rect.x, rect.y, rect.endX, rect.endY, render.r) == false || render.l < merged.l || merged.remove == true) {
+          if (this.math.pointInRotatedBounds(centerX, centerY, rect.x, rect.y, rect.endX, rect.endY, rect.rotation) == false || render.l < merged.l || merged.remove == true) {
             // Is outside the saved annotation:
             checkParent = render.parent == annoID;
           } else if (annotationModule.CAN_PARENT_CHILDREN == true) {

@@ -1,11 +1,11 @@
 modules["editor/realtime"] = class {
   css = {
     ".eCursor": `--backgroundColor: var(--themeColor); --textColor: var(--themeColor); --borderColor: #fff; position: absolute; display: flex; z-index: 20; opacity: 0; align-items: center; transition: .25s; pointer-events: all; transform-origin: var(--origin)`,
-    ".eCursor svg": `transform-origin: var(--origin); transition: .3s`,
+    ".eCursor svg": `transform-origin: var(--origin); transition: .25s`,
     ".eCursor[hidden]": `transition: transform 0s, all .25s`,
     ".eCursor[pressed]": `--backgroundColor: #fff; --borderColor: var(--themeColor); color: var(--textColor) !important`,
     ".eCursor[pressed] svg": `transform: scale(.9)`,
-    ".eCursor .pointer": `width: 20px; height: 20px; background: var(--backgroundColor); border: solid 3px var(--borderColor); overflow: hidden; border-radius: 8px 14px 14px 14px; box-shadow: 0 0 6px rgb(0 0 0 / 25%); transition: all .3s, color 0s`,
+    ".eCursor .pointer": `width: 20px; height: 20px; background: var(--backgroundColor); border: solid 3px var(--borderColor); overflow: hidden; border-radius: 8px 14px 14px 14px; box-shadow: 0 0 6px rgb(0 0 0 / 25%); transition: all .25s, color 0s`,
     ".eCursor .pointer[none]": `border-radius: 14px; opacity: 0; width: 0px`,
     ".eCursor [name]": `box-sizing: border-box; display: flex; width: fit-content; height: 100%; padding: 0px 6px; border-radius: 14px; overflow: hidden; opacity: 0; font-size: 14px; font-weight: 700; white-space: nowrap; align-items: center`,
     ".eCursor:not([anonymous]):hover [color]": `width: var(--fullyExtended)`,
@@ -17,7 +17,7 @@ modules["editor/realtime"] = class {
     ".eCursor[anonymous]": `--themeColor: var(--theme) !important; pointer-events: none !important`,
     ".eCursor[anonymous] [name]": `opacity: 0`,
 
-    ".eSelection": `opacity: 0; z-index: 10; transition: .3s`,
+    ".eSelection": `opacity: 0; z-index: 10; transition: .25s`,
     ".eSelection div": `position: absolute; background: var(--themeColor); opacity: .4; border-radius: 4px`,
 
     ".eCollabSelect": `position: absolute; left: 0px; top: 0px; border: solid 3px var(--themeColor); opacity: 0; z-index: 9; border-radius: 9px; opacity .15s; pointer-events: none`,

@@ -207,158 +207,160 @@ modules["pages/lesson"] = class {
 
     let isNewLesson = this.id == "" && joinData.pin == null;
 
-    socket.remotes["member"] = (data) => {
-      if (data.lesson != null && data.lesson != this.id) {
-        return;
-      }
-      switch (data.task) {
-        case "kick":
-          if (userID == null || data.filled == true) {
-            if (data.filled != true) {
-              modifyParams("lesson");
-              modifyParams("page");
-              modifyParams("pin");
-            }
-            setFrame("pages/join");
-          } else {
-            setFrame("pages/dashboard");
-          }
-          alertModule.open("error", "<b>You've Been Kicked</b>The lesson owner has removed you from the lesson.");
-          break;
-        case "preference":
-          switch (data.type) {
-            case "emoji":
-              this.recentEmojis = data.data ?? [];
-              for (let i = 0; (i < this.defaultEmojis.length && this.recentEmojis.length < 21); i++) {
-                if (this.recentEmojis.includes(this.defaultEmojis[i]) == false) {
-                  this.recentEmojis.push(this.defaultEmojis[i]);
-                }
-              }
-              break;
-            default:
-              objectUpdate(data.data, this.preferences);
-          }
-      }
-    }
-    socket.remotes["lesson_" + this.id] = async (data) => {
-      let events = [];
-      if (Array.isArray(data.data) == false) {
-        events.push(data.data);
-      } else {
-        events = data.data;
-      }
-
-      let page = data.page ?? "board";
-
-      for (let i = 0; i < events.length; i++) {
-        let body = events[i];
+    let setSubscribes = () => {
+      socket.remotes["member"] = (data) => {
+        if (data.lesson != null && data.lesson != this.id) {
+          return;
+        }
         switch (data.task) {
-          case "join":
-            if (this.members[body._id] == null) {
-              this.members[body._id] = {};
-              this.memberCount++;
-            }
-            objectUpdate(body, this.members[body._id] ?? {});
-            let collaborator = this.collaborators[body.modify];
-            if (collaborator != null) {
-              collaborator.name = body.name;
-              collaborator.color = body.color;
-              collaborator.email = body.email;
-              if (body.hasOwnProperty("image") == true) {
-                collaborator.image = body.image;
+          case "kick":
+            if (userID == null || data.filled == true) {
+              if (data.filled != true) {
+                modifyParams("lesson");
+                modifyParams("page");
+                modifyParams("pin");
               }
+              setFrame("pages/join");
+            } else {
+              setFrame("pages/dashboard");
             }
-            if (body.access == 1) {
-              this.editorCount++;
-            }
-            if (body.hand != null) {
-              this.handCount++;
-            }
-            if (body.active == false) {
-              this.idleCount++;
-            }
+            alertModule.open("error", "<b>You've Been Kicked</b>The lesson owner has removed you from the lesson.");
             break;
-          case "leave":
-            if (this.members[body._id] != null) {
-              let member = this.members[body._id];
-              if (member.access == 1) {
-                this.editorCount--;
-              }
-              if (member.hand != null) {
-                this.handCount--;
-              }
-              if (member.active == false) {
-                this.idleCount--;
-              }
-              delete this.members[body._id];
-              this.memberCount--;
+          case "preference":
+            switch (data.type) {
+              case "emoji":
+                this.recentEmojis = data.data ?? [];
+                for (let i = 0; (i < this.defaultEmojis.length && this.recentEmojis.length < 21); i++) {
+                  if (this.recentEmojis.includes(this.defaultEmojis[i]) == false) {
+                    this.recentEmojis.push(this.defaultEmojis[i]);
+                  }
+                }
+                break;
+              default:
+                objectUpdate(data.data, this.preferences);
             }
-            break;
-          case "update":
-            if (this.members[body._id] != null) {
-              let member = this.members[body._id];
-              if (body.access == 1 && member.access < 1) {
-                this.editorCount++;
-              } else if (body.access == 0 && member.access > 0) {
-                this.editorCount--;
+        }
+      }
+      socket.remotes["lesson_" + this.id] = async (data) => {
+        let events = [];
+        if (Array.isArray(data.data) == false) {
+          events.push(data.data);
+        } else {
+          events = data.data;
+        }
+
+        let page = data.page ?? "board";
+
+        for (let i = 0; i < events.length; i++) {
+          let body = events[i];
+          switch (data.task) {
+            case "join":
+              if (this.members[body._id] == null) {
+                this.members[body._id] = {};
+                this.memberCount++;
               }
-              if (body.hand != null && member.hand == null) {
-                this.handCount++;
-              } else if (body.hasOwnProperty("hand") == true && member.hand != null) {
-                this.handCount--;
-              }
-              if (body.active == false && member.active != false) {
-                this.idleCount++;
-              } else if (body.active != false && member.active == false) {
-                this.idleCount--;
-              }
-              objectUpdate(body, member);
-              if (member.access > 0 && member.hand != null) {
-                member.hand = null;
-                this.handCount--;
-              }
-              let collaborator = this.collaborators[member.modify];
+              objectUpdate(body, this.members[body._id] ?? {});
+              let collaborator = this.collaborators[body.modify];
               if (collaborator != null) {
-                if (body.name != null) {
-                  collaborator.name = body.name;
-                }
-                if (body.email != null) {
-                  collaborator.email = body.email;
-                }
+                collaborator.name = body.name;
+                collaborator.color = body.color;
+                collaborator.email = body.email;
                 if (body.hasOwnProperty("image") == true) {
                   collaborator.image = body.image;
                 }
               }
-            } else {
-              return;
-            }
-            break;
-          case "set":
-            objectUpdate(body, this.lesson);
-            if (body.hasOwnProperty("name") == true) {
-              document.title = (this.lesson.name ?? "Untitled Lesson") + " | Markify";
-            }
-            if (body.settings != null) {
-              if (body.settings.forceLogin == false && this.self.access < 2) {
-                setFrame("pages/join");
+              if (body.access == 1) {
+                this.editorCount++;
               }
-            }
-            break;
-          case "addsources":
-            this.sources = { ...this.sources, ...getObject(body.sources ?? [], "_id") };
-            break;
-          case "folderset":
-            this.folder = body.folder;
-        }
+              if (body.hand != null) {
+                this.handCount++;
+              }
+              if (body.active == false) {
+                this.idleCount++;
+              }
+              break;
+            case "leave":
+              if (this.members[body._id] != null) {
+                let member = this.members[body._id];
+                if (member.access == 1) {
+                  this.editorCount--;
+                }
+                if (member.hand != null) {
+                  this.handCount--;
+                }
+                if (member.active == false) {
+                  this.idleCount--;
+                }
+                delete this.members[body._id];
+                this.memberCount--;
+              }
+              break;
+            case "update":
+              if (this.members[body._id] != null) {
+                let member = this.members[body._id];
+                if (body.access == 1 && member.access < 1) {
+                  this.editorCount++;
+                } else if (body.access == 0 && member.access > 0) {
+                  this.editorCount--;
+                }
+                if (body.hand != null && member.hand == null) {
+                  this.handCount++;
+                } else if (body.hasOwnProperty("hand") == true && member.hand != null) {
+                  this.handCount--;
+                }
+                if (body.active == false && member.active != false) {
+                  this.idleCount++;
+                } else if (body.active != false && member.active == false) {
+                  this.idleCount--;
+                }
+                objectUpdate(body, member);
+                if (member.access > 0 && member.hand != null) {
+                  member.hand = null;
+                  this.handCount--;
+                }
+                let collaborator = this.collaborators[member.modify];
+                if (collaborator != null) {
+                  if (body.name != null) {
+                    collaborator.name = body.name;
+                  }
+                  if (body.email != null) {
+                    collaborator.email = body.email;
+                  }
+                  if (body.hasOwnProperty("image") == true) {
+                    collaborator.image = body.image;
+                  }
+                }
+              } else {
+                return;
+              }
+              break;
+            case "set":
+              objectUpdate(body, this.lesson);
+              if (body.hasOwnProperty("name") == true) {
+                document.title = (this.lesson.name ?? "Untitled Lesson") + " | Markify";
+              }
+              if (body.settings != null) {
+                if (body.settings.forceLogin == false && this.self.access < 2) {
+                  setFrame("pages/join");
+                }
+              }
+              break;
+            case "addsources":
+              this.sources = { ...this.sources, ...getObject(body.sources ?? [], "_id") };
+              break;
+            case "folderset":
+              this.folder = body.folder;
+          }
 
-        this.pushToPipelines(page, data.task, body);
+          this.pushToPipelines(page, data.task, body);
+        }
       }
-    }
-    socket.remotes["long_" + this.id] = async (data) => {
-      if (this.exporting == true) {
-        return;
+      socket.remotes["long_" + this.id] = async (data) => {
+        if (this.exporting == true) {
+          return;
+        }
+        this.pushToPipelines(data.page ?? "board", "long", data.annotations ?? data);
       }
-      this.pushToPipelines(data.page ?? "board", "long", data.annotations ?? data);
     }
 
     let sizeUpdate = () => {
@@ -444,6 +446,7 @@ modules["pages/lesson"] = class {
       if (this.id != this.lesson._id) {
         this.id = this.lesson._id;
         modifyParams("lesson", this.id);
+        setSubscribes();
       }
       this.lesson.settings = this.lesson.settings ?? {};
   
@@ -453,8 +456,8 @@ modules["pages/lesson"] = class {
       this.sessionToken = body.session.token;
       if (body.session._id != null && body.session.token != null) {
         this.session = this.sessionID + ";" + this.sessionToken;
+        window.previousLessonSession = this.session;
       }
-      window.previousLessonSession = this.session;
       
       for (let i = 0; i < body.members.length; i++) {
         let memSet = body.members[i];
@@ -479,10 +482,10 @@ modules["pages/lesson"] = class {
         }
         objectUpdate(memSet, member);
       }
-      if (this.members[this.sessionID] == null) {
+      if (this.members[this.sessionID] == null && this.session != null) {
         this.members[this.sessionID] = {};
       }
-      this.self = this.members[this.sessionID];
+      this.self = this.members[this.sessionID] ?? {};
       this.memberCount = Object.keys(this.members).length;
   
       this.sources = { ...this.sources, ...getObject(body.sources ?? [], "_id") };
@@ -599,6 +602,8 @@ modules["pages/lesson"] = class {
     }
 
     if (isNewLesson == false) {
+      setSubscribes();
+
       joinData = joinData ?? {};
       if (this.active == false) {
         sendBody.active = false;

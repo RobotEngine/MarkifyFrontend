@@ -375,7 +375,7 @@ modules["editor/editor"] = class {
       }
       return false;
     }
-  }
+  };
 
   isPageActive = () => {
     return this.pageFrame.hasAttribute("active") == true;

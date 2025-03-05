@@ -31,7 +31,7 @@ modules["pages/lesson"] = class {
     ".lCustomScroll::-webkit-scrollbar": `width: 16px; background: var(--scrollGray)`,
     ".lCustomScroll::-webkit-scrollbar-corner": `background: var(--scrollGray)`,
     ".lCustomScroll::-webkit-scrollbar-thumb": `min-width: 50px; min-height: 50px; border: 4px solid var(--scrollGray); background: var(--gray); border-radius: 8px`,
-    ".lCustomScroll::-webkit-scrollbar-thumb:active": `background: var(--activeGray)`,
+    ".lCustomScroll::-webkit-scrollbar-thumb:active": `background: var(--activeGray)`
   };
 
   pages = {};

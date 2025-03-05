@@ -431,7 +431,7 @@ modules["editor/editor"] = class {
   minLayer = 0;
 
   js = async (frame) => {
-    let contentHolder = frame.closest(".eContentHolder");
+    let contentHolder = this.contentHolder ?? frame.parentElement;
     let page = contentHolder.closest(".content");
     let content = contentHolder.querySelector(".eContent");
     let realtimeHolder = content.querySelector(".eRealtime");
@@ -3462,7 +3462,7 @@ modules["editor/render/media"] = class {
         }
       }
     } else {
-      this.exportPromises.push(new Promise(async (resolve) => {
+      this.parent.exportPromises.push(new Promise(async (resolve) => {
         image.addEventListener("load", resolve);
         if (anno.d != null || image.hasAttribute("src") == false) {
           if (anno.d != null && anno.d.startsWith("blob:") == false) {
@@ -3559,7 +3559,7 @@ modules["editor/render/embed"] = class {
           if (this.exporting != true) {
             thumbnail.src = anno.embed.image;
           } else {
-            this.exportPromises.push(new Promise(async (resolve) => {
+            this.parent.exportPromises.push(new Promise(async (resolve) => {
               thumbnail.addEventListener("load", resolve);
               thumbnail.src = anno.embed.image;
             }));

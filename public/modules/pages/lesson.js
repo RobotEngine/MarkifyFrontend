@@ -203,6 +203,12 @@ modules["pages/lesson"] = class {
   js = async (page, joinData) => {
     this.id = getParam("lesson") ?? "";
 
+    this.exporting = getParam("export_browser") == "true";
+    if (this.exporting == true) {
+      addCSS({ ".loading": `display: none` });
+      loadScript("./modules/lesson/export.js");
+    }
+
     let pageHolder = page.querySelector(".lPageHolder");
 
     let isNewLesson = this.id == "" && joinData.pin == null;
@@ -364,7 +370,7 @@ modules["pages/lesson"] = class {
     }
 
     let sizeUpdate = () => {
-      if (fixed.offsetWidth > 800 && fixed.offsetHeight > 400) {
+      if (fixed.offsetWidth > 800 && fixed.offsetHeight > 400 && this.exporting != true) {
         pageHolder.removeAttribute("maximize");
         fixed.style.setProperty("--floatMargin", "12px");
       } else {
@@ -596,6 +602,10 @@ modules["pages/lesson"] = class {
           sentPing = false;
           sendSocketPing();
         }, 60000) }); // PING every minute
+      }
+
+      if (this.exporting == true) {
+        return this.addPage("export", "export", page.querySelector(".lPage"));
       }
 
       this.addPage("board", "board", page.querySelector(".lPage"));

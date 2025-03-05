@@ -188,6 +188,8 @@ modules["lesson/board"] = class {
     let increasePageButton = currentPageHolder.querySelector(".ePageNav[down]");
     let decreasePageButton = currentPageHolder.querySelector(".ePageNav[up]");
 
+    let stringPref = JSON.stringify(this.parent.preferences); // Must be duplicated
+
     this.editor = await this.setFrame("editor/editor", contentHolder, {
       construct: {
         id: this.parent.id,
@@ -196,13 +198,11 @@ modules["lesson/board"] = class {
         sessionID: this.parent.sessionID,
         sources: this.parent.sources,
         settings: this.parent.lesson.settings,
-        resync: this.resync
+        resync: this.resync,
+        preferences: JSON.parse(stringPref),
+        lastSavePreferences: JSON.parse(stringPref)
       }
     });
-
-    let stringPref = JSON.stringify(this.parent.preferences); // Must be duplicated
-    this.editor.preferences = JSON.parse(stringPref);
-    this.editor.lastSavePreferences = JSON.parse(stringPref);
 
     let updateTopBar = (ignoreAttr) => {
       if (ignoreAttr != true) {

@@ -455,21 +455,25 @@ modules["editor/editor"] = class {
     }
 
     let savePreferenceTimeout;
-    this.savePreferences = () => {
+    let savePreference = async () => {
+      let tempRevert = copyObject(this.lastSavePreferences);
+      let changes = objectUpdate(this.preferences, this.lastSavePreferences);
+      if (Object.keys(changes).length > 0) {
+        let [code] = await sendRequest("POST", "lessons/save/preferences", { save: changes });
+        if (code != 200) {
+          this.lastSavePreferences = tempRevert;
+        }
+      }
+    }
+    this.savePreferences = async (skip) => {
       if (userID == null) {
         return; // Can't save if not a user!
       }
       clearTimeout(savePreferenceTimeout);
-      savePreferenceTimeout = setTimeout(async () => {
-        let tempRevert = copyObject(this.lastSavePreferences);
-        let changes = objectUpdate(this.preferences, this.lastSavePreferences);
-        if (Object.keys(changes).length > 0) {
-          let [code] = await sendRequest("POST", "lessons/save/preferences", { save: changes });
-          if (code != 200) {
-            this.lastSavePreferences = tempRevert;
-          }
-        }
-      }, 1000); // Save after 1 second of no changes
+      if (skip == true) {
+        return await savePreference();
+      }
+      savePreferenceTimeout = setTimeout(savePreference, 1000); // Save after 1 second of no changes
     }
 
     this.utils.getAbsolutePosition = (anno, includeSelecting) => {

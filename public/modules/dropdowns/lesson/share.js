@@ -521,6 +521,7 @@ modules["dropdowns/lesson/share/options"] = class {
       <button class="eShareActionOption border" option="anonymousMode" title="Hide all member names and colors in cursors."><div label>Anonymous Mode</div><div class="eOptionToggle"><div></div></div></button>
       <button class="eShareActionOption border" option="allowExport" title="Allow members to export, print, or copy the lesson."><div label>Allow Exporting</div><div class="eOptionToggle"><div></div></div></button>
       <button class="eShareActionOption border" option="observeViewers" title="Allow members to observe those who aren't editing."><div label>Observe Viewers</div><div class="eOptionToggle"><div></div></div></button>
+      <button class="eShareSaveDefault border" title="Save as the default for new lessons.">Save as Default</button>
     </div>
     <div class="eShareOptionSection" section="tooltoggle">
       <div class="eShareToolToggle">
@@ -577,6 +578,7 @@ modules["dropdowns/lesson/share/options"] = class {
           </div>
         </div>
       </div>
+      <button class="eShareSaveDefault border" title="Save as the default for new lessons.">Save as Default</button>
     </div>
   </div>
   `;
@@ -589,6 +591,9 @@ modules["dropdowns/lesson/share/options"] = class {
 
     ".eShareOptionContent": `position: relative; z-index: 1`,
     ".eShareOptionSection": `position: absolute; display: none; box-sizing: border-box; width: fit-content; max-width: 100%; height: fit-content; padding: 8px; left: 0px; top: 0px; transition: .4s`,
+    ".eShareSaveDefault": `height: fit-content; padding: 6px 10px; margin: 8px 0 6px; --borderWidth: 3px; --borderRadius: 18px; color: var(--secondary); font-size: 16px; font-weight: 600`,
+    ".eShareSaveDefault:hover": `background: var(--secondary); --borderWidth: 0px; transform: scale(1.1); color: #fff`,
+    ".eShareSaveDefault:active": `transform: scale(1.02) !important`,
 
     ".eShareActionOption": `display: flex; width: 300px; max-width: calc(100% - 14px); padding: 6px; margin: 7px 7px 11px 7px; align-items: center; --borderWidth: 3px; --borderRadius: 18px; justify-content: center; align-items: center; font-size: 16px; font-weight: 700; text-align: left`,
     ".eShareActionOption:last-child": `margin: 7px`,
@@ -799,6 +804,31 @@ modules["dropdowns/lesson/share/options"] = class {
       button.setAttribute("disabled", "");
       await sendRequest("PUT", "lessons/setting/tool", { set: button.getAttribute("option"), value: !button.hasAttribute("on") }, { session: editor.session });
       button.removeAttribute("disabled");
+    });
+
+    let saveDefault = async (data) => {
+      editor.preferences.share = { ...(editor.preferences.share ?? {}), ...data };
+      await editor.savePreferences(true);
+    }
+    let settingDefaultButton = settingSection.querySelector(".eShareSaveDefault");
+    settingDefaultButton.addEventListener("click", async () => {
+      settingDefaultButton.setAttribute("disabled", "");
+      await saveDefault({
+        forceLogin: forceLoginButton.hasAttribute("on"),
+        editOthersWork: editOthersWorkButton.hasAttribute("on"),
+        anonymousMode: anonymousModeButton.hasAttribute("on"),
+        allowExport: allowExportButton.hasAttribute("on"),
+        observeViewers: observeViewersButton.hasAttribute("on")
+      });
+      settingDefaultButton.removeAttribute("disabled");
+    });
+    let tooltoggleDefaultButton = tooltoggleSection.querySelector(".eShareSaveDefault");
+    tooltoggleDefaultButton.addEventListener("click", async() => {
+      tooltoggleDefaultButton.setAttribute("disabled", "");
+      await saveDefault({
+        
+      });
+      tooltoggleDefaultButton.removeAttribute("disabled");
     });
   }
 }

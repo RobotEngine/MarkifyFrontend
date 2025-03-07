@@ -524,6 +524,10 @@ modules["dropdowns/lesson/share/options"] = class {
       <button class="eShareSaveDefault border" title="Save as the default for new lessons.">Save as Default</button>
     </div>
     <div class="eShareOptionSection" section="tooltoggle">
+      <div class="eShareToolToggleAllHolder">
+        <button class="eShareToolToggleAll border" on title="Toggle all tools on.">All On</button>
+        <button class="eShareToolToggleAll border" off title="Toggle all tools off.">All Off</button>
+      </div>
       <div class="eShareToolToggle">
         <div class="eShareToolToggleBar">
           <button class="eShareToolToggleBarTool" tool="draw"><div><svg width="22" viewBox="0 0 27 44" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M12.3863 34.9812C13.2256 37.2873 15.077 39.0806 17.4087 39.846L19.7938 40.629C20.4513 40.8448 21.1712 40.5828 21.5361 39.9948L22.86 37.8619C24.1541 35.7768 24.4197 33.213 23.5803 30.9069L18.9826 18.2748L7.78855 22.3491L12.3863 34.9812Z" fill="white"></path> <path d="M18.5551 17.1002L19.7297 16.6726L20.1572 17.8472L24.7549 30.4794C25.7254 33.1458 25.4184 36.1102 23.922 38.5211L22.5982 40.654C21.9291 41.732 20.6094 42.2123 19.404 41.8166L17.0188 41.0337C14.3228 40.1486 12.1822 38.0752 11.2117 35.4088L6.61393 22.7766L6.18641 21.602L7.36103 21.1745L18.5551 17.1002Z" fillcoloropacity="" stroke="white" stroke-width="2.5" fill="rgba(226, 122, 255, 1)"></path> <path d="M11.4928 32.5264L10.3182 32.9539L9.89068 31.7793L2.35127 11.065C0.990064 7.32509 2.91836 3.18985 6.65823 1.82865C10.3981 0.467446 14.5333 2.39574 15.8945 6.13561L23.434 26.85L23.8615 28.0246L22.6869 28.4521L11.4928 32.5264Z" fill="#2F2F2F" stroke="white" stroke-width="2.5"></path> </svg></div></button>
@@ -609,6 +613,11 @@ modules["dropdowns/lesson/share/options"] = class {
     ".eShareActionOption:hover .eOptionToggle": `background: #fff`,
     ".eShareActionOption:hover .eOptionToggle div": `background: var(--themeColor)`,
     ".eShareActionOption:active": `transform: scale(.98) !important`,
+
+    ".eShareToolToggleAllHolder": `display: flex; flex-wrap: wrap; width: 314px; max-width: 100%; gap: 12px; justify-content: center`,
+    ".eShareToolToggleAll": `height: fit-content; padding: 6px 10px; --borderWidth: 3px; --borderRadius: 18px; color: var(--secondary); font-size: 16px; font-weight: 600`,
+    ".eShareToolToggleAll:hover": `background: var(--secondary); --borderWidth: 0px; transform: scale(1.1); color: #fff`,
+    ".eShareToolToggleAll:active": `transform: scale(1.02) !important`,
     
     ".eShareToolToggle": `position: relative; display: flex; width: 314px; max-width: 100%`,
     ".eShareToolToggleBar": `display: flex; flex-direction: column; gap: 6px; margin: 8px; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px; align-items: center; pointer-events: none`,
@@ -693,7 +702,7 @@ modules["dropdowns/lesson/share/options"] = class {
     let anonymousModeButton = frame.querySelector('.eShareActionOption[option="anonymousMode"]');
     let toolToggle = frame.querySelector(".eShareToolToggle");
     let toolToggleHolder = toolToggle.querySelector(".eShareToolToggleInfo");
-    let toolToogleOptions = toolToggleHolder.querySelectorAll(".eShareActionOption");
+    let toolToogleOptions = toolToggleHolder.querySelectorAll(".eShareActionOption[option]");
 
     let updateOptions = async () => {
       if (lesson.lesson.settings.forceLogin == true) {
@@ -792,6 +801,19 @@ modules["dropdowns/lesson/share/options"] = class {
       observeViewersButton.removeAttribute("disabled");
     });
 
+    let toolToggleAllOnButton = frame.querySelector(".eShareToolToggleAll[on]");
+    toolToggleAllOnButton.addEventListener("click", async () => {
+      toolToggleAllOnButton.setAttribute("disabled", "");
+      await sendRequest("PUT", "lessons/setting/tool", { set: "all", value: true }, { session: editor.session });
+      toolToggleAllOnButton.removeAttribute("disabled");
+    });
+    let toolToggleAllOffButton = frame.querySelector(".eShareToolToggleAll[off]");
+    toolToggleAllOffButton.addEventListener("click", async () => {
+      toolToggleAllOffButton.setAttribute("disabled", "");
+      await sendRequest("PUT", "lessons/setting/tool", { set: "all", value: false }, { session: editor.session });
+      toolToggleAllOffButton.removeAttribute("disabled");
+    });
+
     toolToggleHolder.addEventListener("click", async (event) => {
       let target = event.target;
       if (target == null) {
@@ -822,9 +844,9 @@ modules["dropdowns/lesson/share/options"] = class {
       });
       settingDefaultButton.removeAttribute("disabled");
     });
-    let tooltoggleDefaultButton = tooltoggleSection.querySelector(".eShareSaveDefault");
-    tooltoggleDefaultButton.addEventListener("click", async() => {
-      tooltoggleDefaultButton.setAttribute("disabled", "");
+    let toolToggleDefaultButton = tooltoggleSection.querySelector(".eShareSaveDefault");
+    toolToggleDefaultButton.addEventListener("click", async() => {
+      toolToggleDefaultButton.setAttribute("disabled", "");
       let saveArr = [];
       for (let i = 0; i < toolToogleOptions.length; i++) {
         let option = toolToogleOptions[i];
@@ -833,7 +855,7 @@ modules["dropdowns/lesson/share/options"] = class {
         }
       }
       await saveDefault({ disabled: saveArr });
-      tooltoggleDefaultButton.removeAttribute("disabled");
+      toolToggleDefaultButton.removeAttribute("disabled");
     });
   }
 }

@@ -47,23 +47,19 @@ modules["editor/editor"] = class {
     },
     subscribe: (id, event, callback, extra) => {
       extra = extra ?? {};
-      let pipelineSubs = this.pipeline.pipelineSubs[id];
-      if (pipelineSubs != null) {
-        if (extra.unsubscribe != true) {
-          this.pipeline.unsubscribe(id, event);
-        } else {
-          this.pipeline.unsubscribe(id);
-        }
+
+      if (extra.unsubscribe != true) {
+        this.pipeline.unsubscribe(id, event);
+      } else {
+        this.pipeline.unsubscribe(id);
       }
 
+      let pipelineSubs = this.pipeline.pipelineSubs[id];
       if (pipelineSubs == null) {
         this.pipeline.pipelineSubs[id] = {};
         pipelineSubs = this.pipeline.pipelineSubs[id];
       }
       let subData = { callback: callback };
-      if (extra.sort != null) {
-        subData.sort = extra.sort;
-      }
       pipelineSubs[event] = subData;
 
       let pipelineEvent = this.pipeline.pipeline[event];
@@ -72,17 +68,23 @@ modules["editor/editor"] = class {
         pipelineEvent = this.pipeline.pipeline[event];
       }
       pipelineEvent.push(id);
-      pipelineEvent.sort((a, b) => {
-        return (((this.pipeline.pipelineSubs[a] ?? {})[event] ?? {}).sort ?? 0) - (((this.pipeline.pipelineSubs[b] ?? {})[event] ?? {}).sort ?? 0);
-      });
+      if (extra.sort != null) {
+        subData.sort = extra.sort;
+        pipelineEvent.sort((a, b) => {
+          return (((this.pipeline.pipelineSubs[a] ?? {})[event] ?? {}).sort ?? 0) - (((this.pipeline.pipelineSubs[b] ?? {})[event] ?? {}).sort ?? 0);
+        });
+      }
     },
     unsubscribe: (id, event) => {
-      let pipelineSubs = this.pipeline.pipelineSubs[id] ?? [];
-      let checkEvents = [];
-      if (event == null) {
-        checkEvents = Object.keys(pipelineSubs);
+      let pipelineSubs = this.pipeline.pipelineSubs[id];
+      if (pipelineSubs == null) {
+        return;
+      }
+      let checkEvents;
+      if (event != null) {
+        checkEvents = [event];
       } else {
-        checkEvents.push(event);
+        checkEvents = Object.keys(pipelineSubs);
       }
       for (let i = 0; i < checkEvents.length; i++) {
         let check = checkEvents[i];
@@ -94,7 +96,7 @@ modules["editor/editor"] = class {
         if (pipelineEvents.length < 1) {
           delete this.pipeline.pipeline[check];
         }
-        delete pipelineSubs[check];
+        delete this.pipeline.pipelineSubs[id][check];
       }
       if (Object.keys(pipelineSubs).length < 1) {
         delete this.pipeline.pipelineSubs[id];

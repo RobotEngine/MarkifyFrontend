@@ -802,8 +802,7 @@ modules["dropdowns/lesson/share/options"] = class {
         return;
       }
       button.setAttribute("disabled", "");
-      let option = button.getAttribute("option");
-      await sendRequest("PUT", "lessons/setting/tool", { set: option, value: (editor.settings.disabled ?? []).includes(option) }, { session: editor.session });
+      await sendRequest("PUT", "lessons/setting/tool", { set: button.getAttribute("option"), value: !(button.hasAttribute("on")) }, { session: editor.session });
       button.removeAttribute("disabled");
     });
 

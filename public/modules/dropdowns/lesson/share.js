@@ -802,7 +802,8 @@ modules["dropdowns/lesson/share/options"] = class {
         return;
       }
       button.setAttribute("disabled", "");
-      await sendRequest("PUT", "lessons/setting/tool", { set: button.getAttribute("option"), value: !button.hasAttribute("on") }, { session: editor.session });
+      let option = button.getAttribute("option");
+      await sendRequest("PUT", "lessons/setting/tool", { set: option, value: (editor.settings.disabled ?? []).includes(option) }, { session: editor.session });
       button.removeAttribute("disabled");
     });
 
@@ -825,9 +826,14 @@ modules["dropdowns/lesson/share/options"] = class {
     let tooltoggleDefaultButton = tooltoggleSection.querySelector(".eShareSaveDefault");
     tooltoggleDefaultButton.addEventListener("click", async() => {
       tooltoggleDefaultButton.setAttribute("disabled", "");
-      await saveDefault({
-        
-      });
+      let saveArr = [];
+      for (let i = 0; i < toolToogleOptions.length; i++) {
+        let option = toolToogleOptions[i];
+        if (option.hasAttribute("off") == true) {
+          saveArr.push(option.getAttribute("option"));
+        }
+      }
+      await saveDefault({ disabled: saveArr });
       tooltoggleDefaultButton.removeAttribute("disabled");
     });
   }

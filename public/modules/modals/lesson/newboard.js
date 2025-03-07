@@ -93,7 +93,7 @@ modules["modals/lesson/newboard"] = class {
       }
       if (passedFiles > 0) {
         frame.setAttribute("disabled", "");
-        let alertText = `<b>Uploading Lesson</b>Uploading your PDF${addS(passedFiles)} and creating the lesson!`;
+        let alertText = `<b>Uploading Lesson</b>Uploading your PDF${addS(passedFiles)} and creating the lesson.`;
         let extraData = { noFileType: true };
         let uploadAlert = await alertModule.open("info", alertText, { time: "never" });
         let path = "lessons/new?ss=" + socket.secureID;

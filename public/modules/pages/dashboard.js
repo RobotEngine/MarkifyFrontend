@@ -28,11 +28,11 @@ modules["pages/dashboard"] = class {
         <img class="dBackdropImage" src="./images/dashboard/backdrop.svg" />
         <div class="dSidebar">
           <div class="dSidebarSection dSidebarHeader">
-            <img class="dSidebarLogo" src="./images/logo.svg" />
-            <a class="dJoinButton largeButton" href="#join">Join<img src="./images/tooltips/link.svg" /><div backdrop></div></a>
+            <a class="dSidebarLogo" href="/#launch"><img src="./images/logo.svg" /></a>
+            <a class="dJoinButton largeButton" href="/#join">Join<img src="./images/tooltips/link.svg" /><div backdrop></div></a>
           </div>
           <div class="dSidebarSection dSidebarActions">
-            <a class="dCreateLessonButton largeButton" href="?type=board#lesson">New Lesson<div backdrop></div></a>
+            <a class="dCreateLessonButton largeButton" href="/?type=board#lesson">New Lesson<div backdrop></div></a>
           </div>
           <div class="dSidebarSection dSidebarSorts">
             <div class="dSidebarTitle"><div title>Sorts</div><div divider></div></div>
@@ -80,12 +80,13 @@ modules["pages/dashboard"] = class {
     ".dSidebarOpen button img": `width: 60px; transition: .4s`,
 
     ".dSidebarHeader": `display: flex; gap: 8px; flex-wrap: wrap; padding: 8px; justify-content: space-between; align-items: center`,
-    ".dSidebarLogo": `height: 36px`,
-    ".dJoinButton": `padding: 4px 10px; font-size: 18px; --themeColor: var(--secondary); --themeColor2: var(--hover); --borderWidth: 3px; --borderRadius: 12px`,
+    ".dSidebarLogo": `width: fit-content; height: 36px`,
+    ".dSidebarLogo img": `height: 100%`,
+    ".dJoinButton": `padding: 4px 10px; font-size: 18px; --borderWidth: 3px; --borderRadius: 12px`,
     ".dJoinButton img": `width: 22px; height: 22px; margin-left: 4px`,
 
     ".dSidebarActions": `display: flex; flex-direction: column; gap: 8px; padding: 8px; margin: 8px 0; align-items: center`,
-    ".dCreateLessonButton": `--themeColor: var(--theme); --borderRadius: 14px`,
+    ".dCreateLessonButton": `--borderRadius: 14px`,
 
     ".dSidebarSorts": `display: flex; flex-direction: column; gap: 8px; padding: 8px`,
     ".dSidebarSearch": `display: flex; box-sizing: border-box; width: calc(100% - 8px); margin: 4px; align-items: center; background: rgba(var(--background), .5); --borderColor: var(--hover); --borderWidth: 4px; --borderRadius: 12px`,
@@ -166,6 +167,7 @@ modules["pages/dashboard"] = class {
     let dashboard = dashboardHolder.querySelector(".dPage")
     let sidebarHolder = dashboard.querySelector(".dSidebarHolder");
     let sidebar = sidebarHolder.querySelector(".dSidebar");
+    let logoButton = sidebar.querySelector(".dSidebarLogo");
     let joinLessonButton = sidebar.querySelector(".dJoinButton");
     let newLessonButton = sidebar.querySelector(".dCreateLessonButton");
     let searchInput = sidebar.querySelector(".dSidebarSearch input");
@@ -178,6 +180,10 @@ modules["pages/dashboard"] = class {
 
     let scrollEventPass;
     
+    logoButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      setFrame("pages/launch");
+    });
     joinLessonButton.addEventListener("click", (event) => {
       event.preventDefault();
       setFrame("pages/join");

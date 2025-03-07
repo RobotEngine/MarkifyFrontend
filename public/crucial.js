@@ -350,7 +350,7 @@ async function setFrame(path, frame, extra, parent) {
         subscribes[i].close();
       }
       subscribes = [];
-      window.scrollTo(0, 0);
+      //window.scrollTo(0, 0);
       body.style.removeProperty("user-select");
       currentPage = path;
       document.title = module.title + " | Markify";
@@ -410,6 +410,9 @@ function getParam(key) {
   return urlParams.get(key);
 }
 function modifyParams(key, value) {
+  if (getParam(key) == value) {
+    return;
+  }
   const url = new URL(window.location);
   if (value != null) {
     url.searchParams.set(key, value);
@@ -450,6 +453,29 @@ function clientPosition(event, type) {
   }
 }
 
+function inViewport(element, onlyHeight) {
+  if (element == null) {
+    return false;
+  }
+  let rect = element.getBoundingClientRect();
+  let viewportWidth = window.innerWidth ?? document.documentElement.clientWidth;
+  let viewportHeight = window.innerHeight ?? document.documentElement.clientHeight;
+
+  if (onlyHeight != true) {
+    return (
+      rect.right >= 0 &&
+      rect.left <= viewportWidth &&
+      rect.bottom >= 0 &&
+      rect.top <= viewportHeight
+    );
+  } else {
+    return (
+      rect.bottom >= 0 &&
+      rect.top <= viewportHeight
+    );
+  }
+}
+
 function cleanString(str) {
   return str.replace(/\>/g, "&#62;").replace(/\</g, "&#60;");
 }
@@ -469,29 +495,29 @@ function timeSince(time, long) {
     calcTimestamp = 1;
   }
   let amountDivide = 1;
-  let end = (long ? 'Second' : 's');
+  let end = (long ? "Second" : "s");
   if (calcTimestamp > 31536000 - 1) {
     amountDivide = 31536000;
-    end = (long ? 'Year' : 'y');
+    end = (long ? "Year" : "y");
   } else if (calcTimestamp > 2592000 - 1) {
     amountDivide = 2592000;
-    end = (long ? 'Month' : 'mo');
+    end = (long ? "Month" : "mo");
   } else if (calcTimestamp > 604800 - 1) {
     amountDivide = 604800;
-    end = (long ? 'Week' : 'w');
+    end = (long ? "Week" : "w");
   } else if (calcTimestamp > 86400 - 1) {
     amountDivide = 86400;
-    end = (long ? 'Day' : 'd');
+    end = (long ? "Day" : "d");
   } else if (calcTimestamp > 3600 - 1) {
     amountDivide = 3600;
-    end = (long ? 'Hour' : 'h');
+    end = (long ? "Hour" : "h");
   } else if (calcTimestamp > 60 - 1) {
     amountDivide = 60;
-    end = (long ? 'Minute' : 'm');
+    end = (long ? "Minute" : "m");
   }
   let timeToSet = Math.floor(calcTimestamp / amountDivide);
   if (timeToSet > 1 && long) {
-    end += 's';
+    end += "s";
   }
   if (long == true) {
     return timeToSet + " " + end + " Ago";
@@ -1616,7 +1642,7 @@ addCSS({
   "[disabled] > *": `pointer-events: none !important`,
   "[hidden]": `pointer-events: none !important; opacity: 0 !important`,
   "[error]": `--borderColor: var(--error) !important; color: var(--error) !important`,
-  ".largeButton, .border": `--themeColor: var(--theme); --themeColor2: var(--secondary); --borderRadius: 0px; --animBorderRadius: var(--borderRadius); --borderColor: var(--themeColor); --borderWidth: 0px; --animBorderWidth: var(--borderWidth); --outline: solid var(--animBorderWidth) var(--borderColor); --transition: .1s; position: relative; border-radius: var(--animBorderRadius)`,
+  ".largeButton, .border": `--themeColor: var(--secondary); --themeColor2: var(--hover); --borderRadius: 0px; --animBorderRadius: var(--borderRadius); --borderColor: var(--themeColor); --borderWidth: 0px; --animBorderWidth: var(--borderWidth); --outline: solid var(--animBorderWidth) var(--borderColor); --transition: .1s; position: relative; border-radius: var(--animBorderRadius)`,
   ".largeButton": `display: flex; padding: 6px 14px; --borderWidth: 4px; margin: var(--borderWidth); align-items: center; color: var(--themeColor); font-size: 20px; font-weight: 700; text-decoration: none; transition: .1s`,
   ".largeButton div[backdrop]": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--themeColor); box-shadow: 0px 0px calc(var(--animBorderWidth) + 4px) 0px var(--themeColor); opacity: .15; border-radius: var(--animBorderRadius); pointer-events: none`,
   ".largeButton:after, .border:after": `position: absolute; display: inline-block; width: calc(100% - 2px); height: calc(100% - 2px); left: 50%; top: 50%; transform: translate(-50%, -50%); border-radius: calc(var(--animBorderRadius) + var(--borderWidth)*2); content: ""; pointer-events: none; border: var(--outline); transition: var(--transition)`,

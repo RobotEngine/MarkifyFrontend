@@ -2319,13 +2319,14 @@ modules["editor/editor"] = class {
     this.pipeline.subscribe("removeAnnotationUpdate", "removeannotations", async (data) => {
       let annoKeys = Object.keys(this.annotations);
       for (let i = 0; i < annoKeys.length; i++) {
-        let anno = this.annotations[annoKeys[i]];
+        let anno = this.annotations[annoKeys[i]] ?? {};
         let render = anno.revert ?? anno.render ?? {};
         if (render.f == "page") { // Only if not page annotation!
           continue;
         }
         if (render.sync < data.sync) {
           anno.render.remove = true;
+          delete anno.revert;
           await this.render.create(anno, true);
         }
       }

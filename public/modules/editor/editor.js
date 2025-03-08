@@ -2316,6 +2316,21 @@ modules["editor/editor"] = class {
       }
       this.pipeline.publish("redraw_selection", { redrawAction: redrawAction, fromLong: true });
     });
+    this.pipeline.subscribe("removeAnnotationUpdate", "removeannotations", async (data) => {
+      let annoKeys = Object.keys(this.annotations);
+      for (let i = 0; i < annoKeys.length; i++) {
+        let anno = this.annotations[annoKeys[i]];
+        let render = anno.revert ?? anno.render ?? {};
+        if (render.f == "page") { // Only if not page annotation!
+          continue;
+        }
+        if (render.sync < data.sync) {
+          anno.render.remove = true;
+          await this.render.create(anno, true);
+        }
+      }
+      this.pipeline.publish("redraw_selection", { fromLong: true });
+    });
 
     this.pipeline.subscribe("editorMemberUpdate", "update", (data) => {
       if (data.active == false && this.realtime.module != null) {
@@ -2526,6 +2541,8 @@ modules["editor/editor"] = class {
       this.pipeline.publish("mouseleave", { event: event });
     });
 
+    await this.render.setMarginSize();
+    this.utils.centerWindowWithPage();
     this.updateChunks();
   }
 }

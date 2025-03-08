@@ -1,7 +1,7 @@
 modules["pages/launch"] = class {
   title = "Collaboration across the Classroom";
   html = `
-  <div class="lBackdrop" dots style="background-image: url(./images/editor/background.svg); background-position: center"></div>
+  <div class="lBackdrop" dots style="--setOpacity: .075; background-image: url(./images/editor/backdrop.svg); background-size: 25px; background-position: center"></div>
   <img class="lBackdrop" src="./images/launch/backdropside.png" side>
   <img class="lBackdrop" src="./images/launch/backdrop.png" center>
   <div class="lSection" header backdrop="center">
@@ -20,7 +20,7 @@ modules["pages/launch"] = class {
       <div class="lHeaderSlogan"><b>Collaboration</b> without <b>Chaos</b></div>
       <div class="lHeaderSummary">Let students work collaboratively across the classroom while you facilitate. Eliminate chaos with robust sharing settings and temporary editing controls.</div>
       <div class="lHeaderActions">
-        <button class="lOpen largeButton" openpage="dashboard">Start Collaborating</button>
+        <button class="lOpen largeButton" openpage="dashboard">Create Lesson</button>
         <button class="lJoin largeButton" openpage="join">Join Lesson<img src="./images/tooltips/link.svg"></button>
       </div>
       <img class="lHeaderSplash" src="./images/launch/showcase.png">
@@ -144,7 +144,7 @@ modules["pages/launch"] = class {
         <div div class="lFooterFree">Get started for <b>FREE</b></div>
       </div>
       <div class="dFooterHolder" style="min-height: 125px">
-        <button class="lOpen largeButton" openpage="dashboard">Start Collaborating</button>
+        <button class="lOpen largeButton" openpage="dashboard">Create Lesson</button>
       </div>
     </div>
     <div class="lFooterCompliance">
@@ -176,7 +176,7 @@ modules["pages/launch"] = class {
   //Stream a shared whiteboard to student's devices to see up close and review. All with effective tools that aren't overwhelming or confusing to use.
   css = {
     ".lSection": `position: relative; display: flex; flex-direction: column; margin: 5vh 0; z-index: 1; align-items: center; --blueShadow: 0px 0px 24px var(--hover)`,
-    ".lBackdrop": `position: fixed; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; opacity: 0; transition: .3s`,
+    ".lBackdrop": `--setOpacity: 1; position: fixed; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; opacity: 0; transition: .3s`,
     ".lHeaderContent": `display: flex; flex-direction: column; box-sizing: border-box; max-width: 100%; min-height: 1000px; padding: 26px; align-items: center; overflow: hidden`,
     ".lHeaderRow": `display: flex; width: 100%; justify-content: center`,
     ".lHeaderRow div": `display: flex; flex: 1; min-width: 300px; max-width: 500px; justify-content: space-around; align-items: center`,
@@ -743,7 +743,7 @@ modules["pages/launch"] = class {
       let setBackdrops = {};
       for (let i = 0; i < sectionElements.length; i++) {
         let element = sectionElements[i];
-        if (inViewport(element, true)) {
+        if (inViewport(element, true) == true) {
           let back = element.getAttribute("backdrop");
           let maxOpacity = element.getAttribute("maxopacity") ?? .3;
           let rect = element.getBoundingClientRect();
@@ -757,7 +757,7 @@ modules["pages/launch"] = class {
       let backdropKeys = Object.keys(setBackdrops);
       for (let i = 0; i < backdropKeys.length; i++) {
         let key = backdropKeys[i];
-        page.querySelector(".lBackdrop[" + key + "]").style.opacity = setBackdrops[key];
+        page.querySelector(".lBackdrop[" + key + "]").style.opacity = "calc(" + setBackdrops[key] + " * var(--setOpacity))";
       }
 
       // Handle Splash

@@ -235,7 +235,7 @@ async function setFrame(path, frame, extra, parent) {
     remContent.setAttribute("old", "");
     remContent.style.zIndex = 0;
     (async () => {
-      await sleep(500);
+      await sleep(300);
       remContent.remove();
     })();
   }
@@ -371,7 +371,7 @@ async function setFrame(path, frame, extra, parent) {
     loading.style.pointerEvents = "none";
     loading.style.opacity = 0;
     (async () => {
-      await sleep(500);
+      await sleep(300);
       if (loading != null) {
         loading.remove();
       }
@@ -382,7 +382,7 @@ async function setFrame(path, frame, extra, parent) {
         let remLoading = revealLoading[i];
         remLoading.style.opacity = 1;
         /*(async () => {
-          await sleep(500);
+          await sleep(300);
           if (remLoading != null) {
             remLoading.remove();
           }

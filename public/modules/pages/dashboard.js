@@ -61,7 +61,7 @@ modules["pages/dashboard"] = class {
     </div>
   </div>`;
   css = {
-    ".dPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100%; height: 100vh; padding: 8px; left: 0px; top: 0px; justify-content: center`, //transition: .2s
+    ".dPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100vw; height: 100vh; padding: 8px; left: 0px; top: 0px; justify-content: center`, //transition: .2s
     ".dPage": `display: flex; width: 100%; height: 100%; max-width: 1585px; box-shadow: var(--darkShadow); border-radius: 12px; overflow: hidden`, //transition: .2s
     
     ".dSidebarHolder": `position: relative; max-width: min(270px, 100%); height: 100%; flex-shrink: 0; background: var(--pageColor); z-index: 2; transition: .4s`,

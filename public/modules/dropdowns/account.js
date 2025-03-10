@@ -298,7 +298,7 @@ modules["dropdowns/account/report"] = class {
     ".aReportHolder": `display: flex; flex-wrap: wrap; justify-content: center`,
     ".aReportTypeHolder": `display: flex; margin: 8px; flex-direction: column; align-items: center`,
     ".aReportTypeButton": `--themeColor: rgb(var(--rgbTheme)); --themeColor2: var(--themeColor); --borderRadius: 24px; width: 100%; padding: 8px; flex-wrap: wrap; margin: 8px; justify-content: center; text-align: left; background: linear-gradient(to bottom right, rgba(var(--rgbTheme), 0), var(--pageColor))`,
-    ".aReportTypeButton:hover": `--borderWidth: 6px; background: linear-gradient(to bottom right, rgba(var(--rgbTheme), .3), var(--pageColor))`,
+    ".aReportTypeButton:hover": `background: linear-gradient(to bottom right, rgba(var(--rgbTheme), .3), var(--pageColor))`,
     ".aReportTypeButton div[circle]": `width: 20px; height: 20px; margin: 0 10px 0 6px; border: solid 3px var(--themeColor); border-radius: 20px`,
     ".aReportTypeButton div[circle] div": `width: 14px; height: 14px; margin: 3px; border-radius: 7px; transform: scale(0); transition: .3s`,
     ".aReportTypeButton[selected] div[circle] div": `transform: scale(1); background: var(--themeColor)`,

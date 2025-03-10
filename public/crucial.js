@@ -453,29 +453,6 @@ function clientPosition(event, type) {
   }
 }
 
-function inViewport(element, onlyHeight) {
-  if (element == null) {
-    return false;
-  }
-  let rect = element.getBoundingClientRect();
-  let viewportWidth = window.innerWidth ?? document.documentElement.clientWidth;
-  let viewportHeight = window.innerHeight ?? document.documentElement.clientHeight;
-
-  if (onlyHeight != true) {
-    return (
-      rect.right >= 0 &&
-      rect.left <= viewportWidth &&
-      rect.bottom >= 0 &&
-      rect.top <= viewportHeight
-    );
-  } else {
-    return (
-      rect.bottom >= 0 &&
-      rect.top <= viewportHeight
-    );
-  }
-}
-
 function cleanString(str) {
   return str.replace(/\>/g, "&#62;").replace(/\</g, "&#60;");
 }

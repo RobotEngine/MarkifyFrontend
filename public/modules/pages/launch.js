@@ -48,7 +48,7 @@ modules["pages/launch"] = class {
       <div class="lSpacer"></div>
     </div>
   </div>
-  <div class="lSection" usecase backdrop="dots" maxopacity="1">
+  <div class="lSection" usecase backdrop="dots">
     <div class="lTitle">How <b>Markify</b> revolutionizes the <b>Classroom</b></div>
     <div class="lUsecaseToolbar">
       <button selected style="--themeColor: 0, 132, 255">English</button>
@@ -70,7 +70,7 @@ modules["pages/launch"] = class {
       </div>
     </div>
   </div>
-  <div class="lSection" features backdrop="dots" maxopacity="1">
+  <div class="lSection" features backdrop="dots">
     <div class="lTitle">Powerful <b>Features</b>, exceeding <b>Simplicity</b></div>
     <div class="lFeatures">
       <div class="lFeature">
@@ -176,7 +176,7 @@ modules["pages/launch"] = class {
   //Stream a shared whiteboard to student's devices to see up close and review. All with effective tools that aren't overwhelming or confusing to use.
   css = {
     ".lSection": `position: relative; display: flex; flex-direction: column; margin: 5vh 0; z-index: 1; align-items: center; --blueShadow: 0px 0px 24px var(--hover)`,
-    ".lBackdrop": `--setOpacity: 1; position: fixed; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; opacity: 0; transition: .3s`,
+    ".lBackdrop": `--setOpacity: .3; position: fixed; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; opacity: 0; transition: .3s`,
     ".lHeaderContent": `display: flex; flex-direction: column; box-sizing: border-box; max-width: 100%; min-height: 1000px; padding: 26px; align-items: center; overflow: hidden`,
     ".lHeaderRow": `display: flex; width: 100%; justify-content: center`,
     ".lHeaderRow div": `display: flex; flex: 1; min-width: 300px; max-width: 500px; justify-content: space-around; align-items: center`,
@@ -741,18 +741,20 @@ modules["pages/launch"] = class {
 
       // Handle Backdrop:
       let setBackdrops = {};
+      let viewportHeight = window.innerHeight ?? document.documentElement.clientHeight;
       for (let i = 0; i < sectionElements.length; i++) {
         let element = sectionElements[i];
-        if (inViewport(element, true) == true) {
-          let back = element.getAttribute("backdrop");
-          let maxOpacity = element.getAttribute("maxopacity") ?? .3;
-          let rect = element.getBoundingClientRect();
-          let percent = Math.min(((fixed.clientHeight - rect.top) / fixed.clientHeight) * maxOpacity, maxOpacity);
-          if (rect.bottom < fixed.clientHeight) {
-            percent = maxOpacity - Math.min(((fixed.clientHeight - rect.bottom) / fixed.clientHeight) * maxOpacity, maxOpacity);
+        let rect = element.getBoundingClientRect();
+        let back = element.getAttribute("backdrop");
+        let percent = 0;
+        if (rect.bottom >= 0 && rect.top <= viewportHeight) {
+          if (rect.bottom < viewportHeight) {
+            percent = 1 - Math.min((viewportHeight - rect.bottom) / viewportHeight, 1);
+          } else {
+            percent = Math.min((viewportHeight - rect.top) / viewportHeight, 1);
           }
-          setBackdrops[back] = Math.max(percent, setBackdrops[back] ?? 0);
         }
+        setBackdrops[back] = Math.max(percent, setBackdrops[back] ?? 0);
       }
       let backdropKeys = Object.keys(setBackdrops);
       for (let i = 0; i < backdropKeys.length; i++) {

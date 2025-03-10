@@ -1889,7 +1889,7 @@ modules["editor/editor"] = class {
               prevParent: render.parent
             }, true);
             if (setParent != render.parent) {
-              let { x: newX, y: newY } = this.utils.getRelativePosition({
+              let { x: newX, y: newY, rotation: newRotation } = this.utils.getRelativePosition({
                 ...render,
                 p: [x, y],
                 parent: setParent
@@ -1900,6 +1900,9 @@ modules["editor/editor"] = class {
                 p: [newX, newY],
                 sync: getEpoch()
               };
+              if (render.r != null || newRotation != 0) {
+                setChildAnno.r = newRotation;
+              }
               await this.save.apply(setChildAnno);
               anno.save = true;
               anno.render.m = this.self.modify;

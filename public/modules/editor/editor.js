@@ -478,105 +478,7 @@ modules["editor/editor"] = class {
       savePreferenceTimeout = setTimeout(savePreference, 1000); // Save after 1 second of no changes
     }
 
-    this.utils.getAbsolutePosition = (anno, includeSelecting) => {
-      if (anno.p == null) {
-        return;
-      }
-      let returnX = anno.p[0];
-      let returnY = anno.p[1];
-      let selectedParent = false;
-      let currentAnnoCheck = anno;
-      let checkedParents = [];
-      while (currentAnnoCheck.parent != null) {
-        let annoid = currentAnnoCheck.parent;
-        if (annoid == null || checkedParents.includes(annoid) == true) {
-          break;
-        }
-        checkedParents.push(annoid);
-        let annotation = this.annotations[annoid];
-        if (annotation == null) {
-          break;
-        }
-        if (annotation.pointer != null) {
-          annoid = annotation.pointer;
-          annotation = this.annotations[annoid];
-        }
-        if (annotation == null) {
-          break;
-        }
-        let selected = this.selecting[annoid];
-        if (selected != null) {
-          selectedParent = true;
-        }
-        if (includeSelecting != true) {
-          currentAnnoCheck = annotation.render ?? {};
-        } else {
-          currentAnnoCheck = { ...(annotation.render ?? {}), ...(selected ?? {}) };
-        }
-        returnX += currentAnnoCheck.p[0] ?? 0;
-        returnY += currentAnnoCheck.p[1] ?? 0;
-      }
-      return [returnX, returnY, { selectedParent: selectedParent }];
-    }
-    this.utils.getRelativePosition = (anno, includeSelecting) => {
-      let returnX = anno.p[0];
-      let returnY = anno.p[1];
-      //let selectedParent = false;
-      let currentAnnoCheck = anno;
-      let checkedParents = [];
-      while (currentAnnoCheck.parent != null) {
-        let annoid = currentAnnoCheck.parent;
-        if (annoid == null || checkedParents.includes(annoid) == true) {
-          break;
-        }
-        checkedParents.push(annoid);
-        let annotation = this.annotations[annoid];
-        if (annotation == null) {
-          break;
-        }
-        if (annotation.pointer != null) {
-          annoid = annotation.pointer;
-          annotation = this.annotations[annoid];
-        }
-        if (annotation == null) {
-          break;
-        }
-        if (includeSelecting != true) {
-          currentAnnoCheck = annotation.render ?? {};
-        } else {
-          currentAnnoCheck = { ...(annotation.render ?? {}), ...(this.selecting[annoid] ?? {}) };
-        }
-        returnX -= currentAnnoCheck.p[0] ?? 0;
-        returnY -= currentAnnoCheck.p[1] ?? 0;
-      }
-      return [returnX, returnY];
-    }
-    this.utils.getRect = (anno, includeSelecting) => {
-      anno = anno ?? {};
-      if (anno.p == null) {
-        return;
-      }
-      let position = this.utils.getAbsolutePosition(anno, includeSelecting);
-      let thickness = 0;
-      if (anno.t != null) {
-        if (anno.b != "none" || anno.d == "line") {
-          thickness = anno.t;
-        }
-      }
-      return {
-        x: position[0],
-        y: position[1],
-        centerX: position[0] + (anno.s[0] / 2) + thickness,
-        centerY: position[1] + (anno.s[1] / 2) + thickness,
-        endX: position[0] + anno.s[0] + (thickness * 2),
-        endY: position[1] + anno.s[1] + (thickness * 2),
-        width: anno.s[0],
-        height: anno.s[1],
-        thickness: thickness,
-        rotation: anno.r ?? 0
-      };
-    }
-    this.utils.getParents = (anno) => {
+    this.utils.getParents = (anno, includeSelecting) => {
       let parents = [];
       let currentAnnoCheck = anno ?? {};
       while (currentAnnoCheck.parent != null) {
@@ -595,10 +497,81 @@ modules["editor/editor"] = class {
         if (annotation == null) {
           break;
         }
-        parents.push(annoid);
-        currentAnnoCheck = annotation.render ?? {};
+        if (includeSelecting != true) {
+          currentAnnoCheck = annotation.render ?? {};
+        } else {
+          currentAnnoCheck = { ...(annotation.render ?? {}), ...(this.selecting[annotation._id] ?? {}) };
+        }
+        parents.push(currentAnnoCheck);
       }
       return parents;
+    }
+    this.utils.getParentIDs = (anno) => {
+      return this.utils.getParents(anno).map((value) => { return value._id; });
+    }
+    this.utils.getAbsolutePosition = (anno, includeSelecting) => {
+      if (anno.p == null) {
+        return;
+      }
+      let returnX = anno.p[0];
+      let returnY = anno.p[1];
+      let returnRotation = anno.r ?? 0;
+      let selectedParent = false;
+      let parents = this.utils.getParents(anno, includeSelecting);
+      for (let i = 0; i < parents.length; i++) {
+        let render = parents[i];
+        if (this.selecting[render._id] != null) {
+          selectedParent = true;
+        }
+        returnX += render.p[0] ?? 0;
+        returnY += render.p[1] ?? 0;
+        returnRotation += render.r ?? 0;
+      }
+      if (returnRotation < 0) {
+        returnRotation = 360 + returnRotation;
+      }
+      return { x: returnX, y: returnY, rotation: returnRotation, selectedParent: selectedParent };
+    }
+    this.utils.getRelativePosition = (anno, includeSelecting) => {
+      let returnX = anno.p[0];
+      let returnY = anno.p[1];
+      let returnRotation = anno.r ?? 0;
+      let parents = this.utils.getParents(anno, includeSelecting);
+      for (let i = 0; i < parents.length; i++) {
+        let render = parents[i];
+        returnX -= render.p[0] ?? 0;
+        returnY -= render.p[1] ?? 0;
+        returnRotation -= render.r ?? 0;
+      }
+      if (returnRotation < 0) {
+        returnRotation = 360 + returnRotation;
+      }
+      return { x: returnX, y: returnY, rotation: returnRotation };
+    }
+    this.utils.getRect = (anno, includeSelecting) => {
+      anno = anno ?? {};
+      if (anno.p == null) {
+        return;
+      }
+      let position = this.utils.getAbsolutePosition(anno, includeSelecting);
+      let thickness = 0;
+      if (anno.t != null) {
+        if (anno.b != "none" || anno.d == "line") {
+          thickness = anno.t;
+        }
+      }
+      return {
+        x: position.x,
+        y: position.y,
+        centerX: position.x + (anno.s[0] / 2) + thickness,
+        centerY: position.y + (anno.s[1] / 2) + thickness,
+        endX: position.x + anno.s[0] + (thickness * 2),
+        endY: position.y + anno.s[1] + (thickness * 2),
+        width: anno.s[0],
+        height: anno.s[1],
+        thickness: thickness,
+        rotation: position.rotation
+      };
     }
     this.utils.parentFromAnnotation = async (anno, includeSelecting) => {
       let id = anno._id;
@@ -690,7 +663,7 @@ modules["editor/editor"] = class {
       return await this.utils.parentFromAnnotation({ p: [x, y], l: index });
     }
     this.utils.applyRelativePosition = (anno) => {
-      let [setX, setY] = this.utils.getRelativePosition(anno);
+      let { x: setX, y: setY } = this.utils.getRelativePosition(anno);
       anno.p = [setX, setY];
       return anno;
     }
@@ -1385,7 +1358,7 @@ modules["editor/editor"] = class {
             return;
           }
         } else if (render.parent != null) {
-          let [absX, absY] = this.utils.getAbsolutePosition(render);
+          let { x: absX, y: absY } = this.utils.getAbsolutePosition(render);
           parent = null;
           position = [absX, absY];
         }
@@ -1491,7 +1464,7 @@ modules["editor/editor"] = class {
               annoAnnotationHolder.style.removeProperty("bottom");
             } else {
               annoAnnotationHolder.setAttribute("notransition", "");
-              let [annoX, annoY] = this.utils.getAbsolutePosition(render);
+              let { x: annoX, y: annoY } = this.utils.getAbsolutePosition(render);
               let [handle, resizeX, resizeY, resizeWidth, resizeHeight] = render.resizing;
               switch (handle) {
                 case "bottomright":
@@ -1865,12 +1838,15 @@ modules["editor/editor"] = class {
       }, true);
       if (parent != merged.parent) {
         data.parent = parent ?? null;
-        let [newX, newY] = this.utils.getRelativePosition({
+        let { x: newX, y: newY, rotation: newRotation } = this.utils.getRelativePosition({
           ...merged,
           parent: data.parent,
           p: [rect.x, rect.y]
         });
         data.p = [newX, newY];
+        if (merged.r != null || newRotation != 0) {
+          data.r = newRotation;
+        }
         this.realtimeSelect[data._id] = { ...(this.realtimeSelect[data._id] ?? {}), ...data };
         merged = { ...merged, ...data };
       }
@@ -1913,7 +1889,7 @@ modules["editor/editor"] = class {
               prevParent: render.parent
             }, true);
             if (setParent != render.parent) {
-              let [newX, newY] = this.utils.getRelativePosition({
+              let { x: newX, y: newY } = this.utils.getRelativePosition({
                 ...render,
                 p: [x, y],
                 parent: setParent
@@ -1932,7 +1908,7 @@ modules["editor/editor"] = class {
                 this.realtimeSelect[setChildAnno._id] = { ...(this.realtimeSelect[setChildAnno._id] ?? {}), ...setChildAnno };
               }
             }
-          } else if (this.utils.getParents(render).includes(annoID) == true) { // Update chunks of child annotations:
+          } else if (this.utils.getParentIDs(render).includes(annoID) == true) { // Update chunks of child annotations:
             await this.utils.setAnnotationChunks(render);
             this.utils.updateAnnotationPages(render);
           }

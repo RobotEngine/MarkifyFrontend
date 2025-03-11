@@ -323,8 +323,8 @@ modules["editor/editor"] = class {
 
       return dx * dx + dy * dy <= tolerance * tolerance; // return distance <= tolerance;
     },
-    rotatePoint: (pointX, pointY, angle) => {
-      let radian = (angle ?? 0) * (Math.PI / 180);
+    rotatePoint: (pointX, pointY, angle = 0) => {
+      let radian = angle * (Math.PI / 180);
       let cos = Math.cos(radian);
       let sin = Math.sin(radian);
       let newX = (cos * pointX) - (sin * pointY);
@@ -332,7 +332,8 @@ modules["editor/editor"] = class {
       return [newX, newY];
     },
     rotatePointOrigin: (pointX, pointY, centerX, centerY, angle) => {
-      return this.math.rotatePoint(pointX - centerX, pointY - centerY, angle);
+      let rotatedPoint = this.math.rotatePoint(pointX - centerX, pointY - centerY, angle);
+      return [rotatedPoint[0] + centerX, rotatedPoint[1] + centerY];
     },
     rotatedBounds: (topLeftX, topLeftY, bottomRightX, bottomRightY, angle) => {
       let width = bottomRightX - topLeftX;
@@ -344,38 +345,24 @@ modules["editor/editor"] = class {
       
       return [topLeftX - changedWidth, topLeftY - changedHeight, bottomRightX + changedWidth, bottomRightY + changedHeight];
     },
-    pointInRotatedBounds: (pointX, pointY, topLeftX, topLeftY, bottomRightX, bottomRightY, angle, tolerance) => {
-      angle = angle ?? 0;
-      tolerance = tolerance ?? 0;
+    pointInRotatedBounds: (pointX, pointY, topLeftX, topLeftY, bottomRightX, bottomRightY, angle = 0, tolerance = 0) => {
+      if (bottomRightX < topLeftX) {
+        [topLeftX, bottomRightX] = [bottomRightX, topLeftX];
+      }
+      if (bottomRightY < topLeftY) {
+        [topLeftY, bottomRightY] = [bottomRightY, topLeftY];
+      }
+
       let width = bottomRightX - topLeftX;
       let height = bottomRightY - topLeftY;
-      let radian = angle * (Math.PI / 180);
 
-      let halfWidth = width / 2;
-      let halfHeight = height / 2;
-
-      let transformRotateWidth = topLeftX + halfWidth;
-      let transformRotateHeight = topLeftY + halfHeight;
-
-      let rotatedWidth = Math.abs(topLeftX * Math.cos(radian)) + Math.abs(topLeftY * Math.sin(radian));
-      let rotatedHeight = Math.abs(topLeftY * Math.cos(radian)) + Math.abs(topLeftX * Math.sin(radian));
-
-      let offsetX = (rotatedWidth - width) / 2;
-      let offsetY = (rotatedHeight - height) / 2;
-
-      let rotatedTopLeftX = transformRotateWidth - (rotatedWidth / 2) + offsetX;
-      let rotatedTopLeftY = transformRotateHeight - (rotatedHeight / 2) + offsetY;
-
-      let halfRotateWidth = rotatedTopLeftX + halfWidth;
-      let halfRotateHeight = rotatedTopLeftY + halfHeight;
-      let [xCoord, yCoord] = this.math.rotatePoint(pointX - halfRotateWidth, pointY - halfRotateHeight, -angle);
-      xCoord += halfRotateWidth;
-      yCoord += halfRotateHeight;
+      let centerX = topLeftX + (width / 2);
+      let centerY = topLeftY + (height / 2);
+      let [rotatedX, rotatedY] = this.math.rotatePoint(pointX - centerX, pointY - centerY, -angle);
+      rotatedX += centerX;
+      rotatedY += centerY;
       
-      if (xCoord > rotatedTopLeftX - tolerance && xCoord < (rotatedTopLeftX + width + tolerance) && yCoord > rotatedTopLeftY - tolerance && yCoord < (rotatedTopLeftY + height + tolerance)) {
-        return true;
-      }
-      return false;
+      return rotatedX >= topLeftX - tolerance && rotatedX <= bottomRightX + tolerance && rotatedY >= topLeftY - tolerance && rotatedY <= bottomRightY + tolerance;
     }
   };
 
@@ -518,7 +505,7 @@ modules["editor/editor"] = class {
       let returnRotation = anno.r ?? 0;
       let selectedParent = false;
       let parents = this.utils.getParents(anno, includeSelecting);
-      for (let i = 0; i < parents.length; i++) {
+      for (let i = parents.length - 1; i > -1; i--) {
         let render = parents[i];
         if (this.selecting[render._id] != null) {
           selectedParent = true;
@@ -530,14 +517,14 @@ modules["editor/editor"] = class {
       if (returnRotation < 0) {
         returnRotation = 360 + returnRotation;
       }
-      return { x: returnX, y: returnY, rotation: returnRotation, selectedParent: selectedParent };
+      return { x: returnX, y: returnY, rotation: returnRotation, parents: parents, selectedParent: selectedParent };
     }
     this.utils.getRelativePosition = (anno, includeSelecting) => {
       let returnX = anno.p[0];
       let returnY = anno.p[1];
       let returnRotation = anno.r ?? 0;
       let parents = this.utils.getParents(anno, includeSelecting);
-      for (let i = 0; i < parents.length; i++) {
+      for (let i = parents.length - 1; i > -1; i--) {
         let render = parents[i];
         returnX -= render.p[0] ?? 0;
         returnY -= render.p[1] ?? 0;
@@ -546,7 +533,7 @@ modules["editor/editor"] = class {
       if (returnRotation < 0) {
         returnRotation = 360 + returnRotation;
       }
-      return { x: returnX, y: returnY, rotation: returnRotation };
+      return { x: returnX, y: returnY, rotation: returnRotation, parents: parents };
     }
     this.utils.getRect = (anno, includeSelecting) => {
       anno = anno ?? {};
@@ -560,15 +547,20 @@ modules["editor/editor"] = class {
           thickness = anno.t;
         }
       }
+      let fullThick = thickness * 2;
+      let fullWidth = anno.s[0] + fullThick;
+      let fullHeight = anno.s[1] + fullThick;
       return {
         x: position.x,
         y: position.y,
         centerX: position.x + (anno.s[0] / 2) + thickness,
         centerY: position.y + (anno.s[1] / 2) + thickness,
-        endX: position.x + anno.s[0] + (thickness * 2),
-        endY: position.y + anno.s[1] + (thickness * 2),
+        endX: position.x + fullWidth,
+        endY: position.y + fullHeight,
         width: anno.s[0],
         height: anno.s[1],
+        fullWidth: fullWidth,
+        fullHeight: fullHeight,
         thickness: thickness,
         rotation: position.rotation
       };
@@ -648,16 +640,19 @@ modules["editor/editor"] = class {
           }
         }
       }
-      let highestPageID;
+      let highestParent;
       let highestLayer;
       for (let i = 0; i < viableParents.length; i++) {
         let parent = viableParents[i];
         if ((parent.l ?? 0) > highestLayer || highestLayer == null) {
           highestLayer = parent.l ?? 0;
-          highestPageID = parent._id;
+          highestParent = parent;
         }
       }
-      return highestPageID;
+      if (highestParent == null) {
+        return { parentID: null, parent: null };
+      }
+      return { parentID: highestParent._id, parent: highestParent };
     }
     this.utils.parentFromPoint = async (x, y, index) => {
       return await this.utils.parentFromAnnotation({ p: [x, y], l: index });
@@ -1830,25 +1825,32 @@ modules["editor/editor"] = class {
       let rect = this.utils.getRect(merged);
 
       // Check for a new parent:
-      let parent = await this.utils.parentFromAnnotation({
+      let { parentID, parent } = await this.utils.parentFromAnnotation({
         ...merged,
         p: [rect.x, rect.y],
         parent: null,
         prevParent: merged.parent
       }, true);
-      if (parent != merged.parent) {
-        data.parent = parent ?? null;
+      if (parentID != merged.parent) {
+        data.parent = parentID ?? null;
+
         let { x: newX, y: newY, rotation: newRotation } = this.utils.getRelativePosition({
           ...merged,
           parent: data.parent,
           p: [rect.x, rect.y]
         });
-        data.p = [newX, newY];
+        let halfFullWidth = rect.fullWidth / 2;
+        let halfFullHeight = rect.fullHeight / 2;
+        let parentRect = this.utils.getRect(parent);
+        let [newCenterX, newCenterY] = this.math.rotatePointOrigin(newX + halfFullWidth, newY + halfFullHeight, parentRect.fullWidth / 2, parentRect.fullHeight / 2, newRotation);
+        data.p = [newCenterX - halfFullWidth, newCenterY - halfFullHeight];
         if (merged.r != null || newRotation != 0) {
           data.r = newRotation;
         }
+
         this.realtimeSelect[data._id] = { ...(this.realtimeSelect[data._id] ?? {}), ...data };
         merged = { ...merged, ...data };
+        rect = this.utils.getRect(merged);
       }
 
       let checkChunks = [ ...this.utils.chunksFromAnnotation(merged), ...this.utils.chunksFromAnnotation(annotation.render) ];
@@ -1870,7 +1872,7 @@ modules["editor/editor"] = class {
               render.parent = parentAnno.pointer;
             }
           }
-          let { x, y, centerX, centerY } = this.utils.getRect(render);
+          let { x, y, centerX, centerY, fullWidth, fullHeight } = this.utils.getRect(render);
           let checkParent = false;
           if (this.math.pointInRotatedBounds(centerX, centerY, rect.x, rect.y, rect.endX, rect.endY, rect.rotation) == false || render.l < merged.l || merged.remove == true) {
             // Is outside the saved annotation:
@@ -1882,22 +1884,26 @@ modules["editor/editor"] = class {
             }
           }
           if (checkParent == true) {
-            let setParent = await this.utils.parentFromAnnotation({
+            let { parentID: setParentID, parent: setParent } = await this.utils.parentFromAnnotation({
               ...render,
               p: [x, y],
               parent: null,
               prevParent: render.parent
             }, true);
-            if (setParent != render.parent) {
+            if (setParentID != render.parent) {
               let { x: newX, y: newY, rotation: newRotation } = this.utils.getRelativePosition({
                 ...render,
                 p: [x, y],
-                parent: setParent
+                parent: setParentID
               });
+              let halfFullWidth = fullWidth / 2;
+              let halfFullHeight = fullHeight / 2;
+              let parentRect = this.utils.getRect(setParent);
+              let [newCenterX, newCenterY] = this.math.rotatePointOrigin(newX + halfFullWidth, newY + halfFullHeight, parentRect.fullWidth / 2, parentRect.fullHeight / 2, newRotation);
               let setChildAnno = {
                 _id: render._id,
-                parent: setParent,
-                p: [newX, newY],
+                parent: setParentID,
+                p: [newCenterX - halfFullWidth, newCenterY - halfFullHeight],
                 sync: getEpoch()
               };
               if (render.r != null || newRotation != 0) {

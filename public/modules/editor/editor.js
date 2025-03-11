@@ -503,12 +503,26 @@ modules["editor/editor"] = class {
     this.utils.getParentIDs = (anno) => {
       return this.utils.getParents(anno).map((value) => { return value._id; });
     }
+    this.utils.getThickness = (anno) => {
+      let thickness = 0;
+      if (anno.t != null) {
+        if (anno.b != "none" || anno.d == "line") {
+          thickness = anno.t;
+        }
+      }
+      return thickness;
+    }
     this.utils.getAbsolutePosition = (anno, includeSelecting) => {
       if (anno.p == null) {
         return;
       }
-      let returnX = anno.p[0];
-      let returnY = anno.p[1];
+      let thickness = this.utils.getThickness(anno);
+      let fullThick = thickness * 2;
+      let topLeftX = anno.p[0];
+      let topLeftY = anno.p[1];
+      let bottomRightX = anno.p[0] + anno.s[0] + fullThick;
+      let bottomRightY = anno.p[1] + anno.s[1] + fullThick;
+
       let returnRotation = anno.r ?? 0;
       let selectedParent = false;
       let parents = this.utils.getParents(anno, includeSelecting);
@@ -517,27 +531,35 @@ modules["editor/editor"] = class {
         if (this.selecting[render._id] != null) {
           selectedParent = true;
         }
-        returnX += render.p[0];
-        returnY += render.p[1];
-        returnRotation += render.r ?? 0;
-        /*let rotate = render.r ?? 0;
-        let thickness = 0;
-        if (render.t != null) {
-          if (render.b != "none" || render.d == "line") {
-            thickness = render.t;
-          }
-        }
-        let parentCenterX = render.p[0] + (render.s[0] / 2) + thickness;
-        let parentCenterY = render.p[1] + (render.s[1] / 2) + thickness;
-        let [rotatedReturnX, rotatedReturnY] = this.math.rotatePointOrigin(returnX + render.p[0], returnY + render.p[1], parentCenterX, parentCenterY, rotate);
-        returnX = rotatedReturnX;
-        returnY = rotatedReturnY;
-        returnRotation += rotate;*/
+        //topLeftX += render.p[0];
+        //topLeftY += render.p[1];
+        //returnRotation += render.r ?? 0;
+        let rotate = render.r ?? 0;
+        let renderThickness = this.utils.getThickness(render);
+        let centerX = render.p[0] + (render.s[0] / 2) + renderThickness;
+        let centerY = render.p[1] + (render.s[1] / 2) + renderThickness;
+
+        [topLeftX, topLeftY] = this.math.rotatePointOrigin(
+          topLeftX + render.p[0],
+          topLeftY + render.p[1],
+          centerX,
+          centerY,
+          rotate
+        );
+        [bottomRightX, bottomRightY] = this.math.rotatePointOrigin(
+          bottomRightX + render.p[0],
+          bottomRightY + render.p[1],
+          centerX,
+          centerY,
+          rotate
+        );
+
+        returnRotation += rotate;
       }
       if (returnRotation < 0) {
         returnRotation = 360 + returnRotation;
       }
-      return { x: returnX, y: returnY, rotation: returnRotation, parents: parents, selectedParent: selectedParent };
+      return { x: topLeftX, y: topLeftY, endX: bottomRightX, endY: bottomRightY, rotation: returnRotation, thickness: thickness, parents: parents, selectedParent: selectedParent };
     }
     this.utils.getRelativePosition = (anno, includeSelecting) => {
       let returnX = anno.p[0];
@@ -574,27 +596,20 @@ modules["editor/editor"] = class {
         return;
       }
       let position = this.utils.getAbsolutePosition(anno, includeSelecting);
-      let thickness = 0;
-      if (anno.t != null) {
-        if (anno.b != "none" || anno.d == "line") {
-          thickness = anno.t;
-        }
-      }
-      let fullThick = thickness * 2;
-      let fullWidth = anno.s[0] + fullThick;
-      let fullHeight = anno.s[1] + fullThick;
+      let fullWidth = Math.abs(position.endX - position.x);
+      let fullHeight = Math.abs(position.endY - position.y);
       return {
         x: position.x,
         y: position.y,
-        centerX: position.x + (anno.s[0] / 2) + thickness,
-        centerY: position.y + (anno.s[1] / 2) + thickness,
-        endX: position.x + fullWidth,
-        endY: position.y + fullHeight,
+        centerX: Math.min(position.x, position.endX) + (fullWidth / 2),
+        centerY: Math.min(position.y, position.endY) + (fullHeight / 2),
+        endX: position.endX,
+        endY: position.endY,
         width: anno.s[0],
         height: anno.s[1],
         fullWidth: fullWidth,
         fullHeight: fullHeight,
-        thickness: thickness,
+        thickness: position.thickness,
         rotation: position.rotation
       };
     }
@@ -1675,7 +1690,7 @@ modules["editor/editor"] = class {
         }
         let saveSuccess = false;
         try {
-          //mutations = [];
+          mutations = [];
           let [result] = await sendRequest("POST", "lessons/save", { mutations: mutations }, { session: this.session });
           saveSuccess = result == 200;
         } catch (err) {

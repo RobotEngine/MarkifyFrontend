@@ -336,6 +336,13 @@ modules["editor/editor"] = class {
       return [rotatedPoint[0] + centerX, rotatedPoint[1] + centerY];
     },
     rotatedBounds: (topLeftX, topLeftY, bottomRightX, bottomRightY, angle) => {
+      if (bottomRightX < topLeftX) {
+        [topLeftX, bottomRightX] = [bottomRightX, topLeftX];
+      }
+      if (bottomRightY < topLeftY) {
+        [topLeftY, bottomRightY] = [bottomRightY, topLeftY];
+      }
+      
       let width = bottomRightX - topLeftX;
       let height = bottomRightY - topLeftY;
       let radian = (angle ?? 0) * (Math.PI / 180);
@@ -510,9 +517,22 @@ modules["editor/editor"] = class {
         if (this.selecting[render._id] != null) {
           selectedParent = true;
         }
-        returnX += render.p[0] ?? 0;
-        returnY += render.p[1] ?? 0;
+        returnX += render.p[0];
+        returnY += render.p[1];
         returnRotation += render.r ?? 0;
+        /*let rotate = render.r ?? 0;
+        let thickness = 0;
+        if (render.t != null) {
+          if (render.b != "none" || render.d == "line") {
+            thickness = render.t;
+          }
+        }
+        let parentCenterX = render.p[0] + (render.s[0] / 2) + thickness;
+        let parentCenterY = render.p[1] + (render.s[1] / 2) + thickness;
+        let [rotatedReturnX, rotatedReturnY] = this.math.rotatePointOrigin(returnX + render.p[0], returnY + render.p[1], parentCenterX, parentCenterY, rotate);
+        returnX = rotatedReturnX;
+        returnY = rotatedReturnY;
+        returnRotation += rotate;*/
       }
       if (returnRotation < 0) {
         returnRotation = 360 + returnRotation;
@@ -526,9 +546,22 @@ modules["editor/editor"] = class {
       let parents = this.utils.getParents(anno, includeSelecting);
       for (let i = parents.length - 1; i > -1; i--) {
         let render = parents[i];
-        returnX -= render.p[0] ?? 0;
-        returnY -= render.p[1] ?? 0;
+        returnX -= render.p[0];
+        returnY -= render.p[1];
         returnRotation -= render.r ?? 0;
+        /*let rotate = render.r ?? 0;
+        let thickness = 0;
+        if (render.t != null) {
+          if (render.b != "none" || render.d == "line") {
+            thickness = render.t;
+          }
+        }
+        let parentCenterX = render.p[0] + (render.s[0] / 2) + thickness;
+        let parentCenterY = render.p[1] + (render.s[1] / 2) + thickness;
+        let [rotatedReturnX, rotatedReturnY] = this.math.rotatePointOrigin(returnX - render.p[0], returnY - render.p[1], parentCenterX, parentCenterY, 0);
+        returnX = rotatedReturnX;
+        returnY = rotatedReturnY;
+        returnRotation -= rotate;*/
       }
       if (returnRotation < 0) {
         returnRotation = 360 + returnRotation;
@@ -795,18 +828,9 @@ modules["editor/editor"] = class {
       let annotationVisible = false;
 
       if (render.remove != true) {
-        let { x, y, width, height, thickness, rotation } = this.utils.getRect(render, includeSelecting);
+        let { x, y, endX, endY, rotation } = this.utils.getRect(render, includeSelecting);
 
-        if (width < 0) {
-          width = -width;
-          x -= width;
-        }
-        if (height < 0) {
-          height = -height;
-          y -= height;
-        }
-
-        let [topLeftX, topLeftY, bottomRightX, bottomRightY] = this.math.rotatedBounds(x, y, x + width + thickness, y + height + thickness, rotation);
+        let [topLeftX, topLeftY, bottomRightX, bottomRightY] = this.math.rotatedBounds(x, y, endX, endY, rotation);
 
         chunks = this.utils.regionInChunks(topLeftX, topLeftY, bottomRightX, bottomRightY);
 
@@ -1651,6 +1675,7 @@ modules["editor/editor"] = class {
         }
         let saveSuccess = false;
         try {
+          //mutations = [];
           let [result] = await sendRequest("POST", "lessons/save", { mutations: mutations }, { session: this.session });
           saveSuccess = result == 200;
         } catch (err) {

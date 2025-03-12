@@ -602,19 +602,18 @@ modules["editor/editor"] = class {
         return;
       }
       let position = this.utils.getAbsolutePosition(anno, includeSelecting);
-      let fullWidth = Math.abs(position.endX - position.x);
-      let fullHeight = Math.abs(position.endY - position.y);
+      let fullThick = position.thickness * 2;
       return {
         x: position.x,
         y: position.y,
-        centerX: Math.min(position.x, position.endX) + (fullWidth / 2),
-        centerY: Math.min(position.y, position.endY) + (fullHeight / 2),
+        centerX: (position.endX + position.x) / 2,
+        centerY: (position.endY + position.y) / 2,
         endX: position.endX,
         endY: position.endY,
         width: anno.s[0],
         height: anno.s[1],
-        fullWidth: fullWidth,
-        fullHeight: fullHeight,
+        fullWidth: anno.s[0] + fullThick,
+        fullHeight: anno.s[1] + fullThick,
         thickness: position.thickness,
         rotation: position.rotation
       };
@@ -688,7 +687,9 @@ modules["editor/editor"] = class {
           continue;
         }
         let rect = this.utils.getRect(render, includeSelecting);
-        if (this.math.pointInRotatedBounds(x, y, rect.x, rect.y, rect.endX, rect.endY, rect.rotation) == true) {
+        let halfWidth = rect.fullWidth / 2;
+        let halfHeight = rect.fullHeight / 2;
+        if (this.math.pointInRotatedBounds(x, y, rect.centerX - halfWidth, rect.centerY - halfHeight, rect.centerX + halfWidth, rect.centerY + halfHeight, rect.rotation) == true) {
           if ((index ?? this.utils.maxLayer) > render.l) {
             viableParents.push(render);
           }
@@ -849,10 +850,11 @@ modules["editor/editor"] = class {
       let annotationVisible = false;
 
       if (render.remove != true) {
-        let { x, y, endX, endY, rotation } = this.utils.getRect(render, includeSelecting);
-
-        let [topLeftX, topLeftY, bottomRightX, bottomRightY] = this.math.rotatedBounds(x, y, endX, endY, rotation);
-
+        let { centerX, centerY, fullWidth, fullHeight, rotation } = this.utils.getRect(render, includeSelecting);
+        let halfWidth = fullWidth / 2;
+        let halfHeight = fullHeight / 2;
+        let [topLeftX, topLeftY, bottomRightX, bottomRightY] = this.math.rotatedBounds(centerX - halfWidth, centerY - halfHeight, centerX + halfWidth, centerY + halfHeight, rotation);
+        
         chunks = this.utils.regionInChunks(topLeftX, topLeftY, bottomRightX, bottomRightY);
 
         for (let i = 0; i < chunks.length; i++) {

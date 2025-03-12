@@ -940,10 +940,6 @@ modules["editor/toolbar"] = class {
       let event = data.event;
       this.tooltip.set(event);
       this.pushToolEvent("clickMove", event);
-      if (event.shiftKey == true) {
-        let local = editor.utils.localMousePosition(event);
-        console.log(editor.utils.scaleToDoc(local.mouseX, local.mouseY));
-      }
     }, { sort: 1 });
     editor.pipeline.subscribe("toolbarMouse", "click_end", (data) => {
       this.toolbar.setTool();

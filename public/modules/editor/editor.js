@@ -522,8 +522,8 @@ modules["editor/editor"] = class {
       let topLeftY = anno.p[1];
       let bottomRightX = anno.p[0] + anno.s[0] + fullThick;
       let bottomRightY = anno.p[1] + anno.s[1] + fullThick;
-
       let returnRotation = anno.r ?? 0;
+
       let selectedParent = false;
       let parents = this.utils.getParents(anno, includeSelecting);
       for (let i = parents.length - 1; i > -1; i--) {
@@ -531,9 +531,6 @@ modules["editor/editor"] = class {
         if (this.selecting[render._id] != null) {
           selectedParent = true;
         }
-        //topLeftX += render.p[0];
-        //topLeftY += render.p[1];
-        //returnRotation += render.r ?? 0;
         let rotate = render.r ?? 0;
         let renderThickness = this.utils.getThickness(render);
         let centerX = render.p[0] + (render.s[0] / 2) + renderThickness;
@@ -556,39 +553,48 @@ modules["editor/editor"] = class {
 
         returnRotation += rotate;
       }
-      if (returnRotation < 0) {
-        returnRotation = 360 + returnRotation;
-      }
-      return { x: topLeftX, y: topLeftY, endX: bottomRightX, endY: bottomRightY, rotation: returnRotation, thickness: thickness, parents: parents, selectedParent: selectedParent };
+      return { x: topLeftX, y: topLeftY, endX: bottomRightX, endY: bottomRightY, rotation: (returnRotation + 360) % 360, thickness: thickness, parents: parents, selectedParent: selectedParent };
     }
     this.utils.getRelativePosition = (anno, includeSelecting) => {
-      let returnX = anno.p[0];
-      let returnY = anno.p[1];
+      let thickness = this.utils.getThickness(anno);
+      let fullThick = thickness * 2;
+      let topLeftX = anno.p[0];
+      let topLeftY = anno.p[1];
+      let bottomRightX = anno.p[0] + anno.s[0] + fullThick;
+      let bottomRightY = anno.p[1] + anno.s[1] + fullThick;
       let returnRotation = anno.r ?? 0;
+
       let parents = this.utils.getParents(anno, includeSelecting);
-      for (let i = parents.length - 1; i > -1; i--) {
+      for (let i = 0; i < parents.length; i++) {
         let render = parents[i];
-        returnX -= render.p[0];
-        returnY -= render.p[1];
-        returnRotation -= render.r ?? 0;
-        /*let rotate = render.r ?? 0;
-        let thickness = 0;
-        if (render.t != null) {
-          if (render.b != "none" || render.d == "line") {
-            thickness = render.t;
-          }
-        }
-        let parentCenterX = render.p[0] + (render.s[0] / 2) + thickness;
-        let parentCenterY = render.p[1] + (render.s[1] / 2) + thickness;
-        let [rotatedReturnX, rotatedReturnY] = this.math.rotatePointOrigin(returnX - render.p[0], returnY - render.p[1], parentCenterX, parentCenterY, 0);
-        returnX = rotatedReturnX;
-        returnY = rotatedReturnY;
-        returnRotation -= rotate;*/
+        let rotate = render.r ?? 0;
+        let renderThickness = this.utils.getThickness(render);
+        let centerX = render.p[0] + (render.s[0] / 2) + renderThickness;
+        let centerY = render.p[1] + (render.s[1] / 2) + renderThickness;
+
+        [topLeftX, topLeftY] = this.math.rotatePointOrigin(
+          topLeftX,
+          topLeftY,
+          centerX,
+          centerY,
+          -rotate
+        );
+        topLeftX -= render.p[0];
+        topLeftY -= render.p[1];
+
+        [bottomRightX, bottomRightY] = this.math.rotatePointOrigin(
+          bottomRightX,
+          bottomRightY,
+          centerX,
+          centerY,
+          -rotate
+        );
+        bottomRightX -= render.p[0];
+        bottomRightY -= render.p[1];
+
+        returnRotation -= rotate;
       }
-      if (returnRotation < 0) {
-        returnRotation = 360 + returnRotation;
-      }
-      return { x: returnX, y: returnY, rotation: returnRotation, parents: parents };
+      return { x: topLeftX, y: topLeftY, endX: bottomRightX, endY: bottomRightY, rotation: (returnRotation + 360) % 360, thickness: thickness, parents: parents };
     }
     this.utils.getRect = (anno, includeSelecting) => {
       anno = anno ?? {};
@@ -1690,7 +1696,7 @@ modules["editor/editor"] = class {
         }
         let saveSuccess = false;
         try {
-          //mutations = [];
+          mutations = [];
           let [result] = await sendRequest("POST", "lessons/save", { mutations: mutations }, { session: this.session });
           saveSuccess = result == 200;
         } catch (err) {
@@ -1884,6 +1890,7 @@ modules["editor/editor"] = class {
         let parentRect = this.utils.getRect(parent);
         let [newCenterX, newCenterY] = this.math.rotatePointOrigin(newX + halfFullWidth, newY + halfFullHeight, parentRect.fullWidth / 2, parentRect.fullHeight / 2, newRotation);
         data.p = [newCenterX - halfFullWidth, newCenterY - halfFullHeight];
+        //data.p = [newX, newY];
         if (merged.r != null || newRotation != 0) {
           data.r = newRotation;
         }

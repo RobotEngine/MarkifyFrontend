@@ -936,14 +936,10 @@ modules["editor/toolbar"] = class {
         this.pushToolEvent("clickStart", event);
       }
     }, { sort: 1 });
-    editor.pipeline.subscribe("1_toolbarMouse", "click_move", (data) => {
+    editor.pipeline.subscribe("toolbarMouse", "click_move", (data) => {
       let event = data.event;
       this.tooltip.set(event);
       this.pushToolEvent("clickMove", event);
-      if (event.shiftKey == true) {
-        let local = editor.utils.localMousePosition(event);
-        console.log(editor.utils.scaleToDoc(local.mouseX, local.mouseY));
-      }
     }, { sort: 1 });
     editor.pipeline.subscribe("toolbarMouse", "click_end", (data) => {
       this.toolbar.setTool();

@@ -526,7 +526,7 @@ modules["editor/editor"] = class {
 
       let selectedParent = false;
       let parents = this.utils.getParents(anno, includeSelecting);
-      for (let i = parents.length - 1; i > -1; i--) {
+      for (let i = 0; i < parents.length; i++) {
         let render = parents[i];
         if (this.selecting[render._id] != null) {
           selectedParent = true;
@@ -556,18 +556,18 @@ modules["editor/editor"] = class {
       return { x: topLeftX, y: topLeftY, endX: bottomRightX, endY: bottomRightY, rotation: (returnRotation + 360) % 360, thickness: thickness, parents: parents, selectedParent: selectedParent };
     }
     this.utils.getRelativePosition = (anno, includeSelecting) => {
-      let thickness = this.utils.getThickness(anno);
-      let fullThick = thickness * 2;
-      let topLeftX = anno.p[0];
-      let topLeftY = anno.p[1];
-      let bottomRightX = anno.p[0] + anno.s[0] + fullThick;
-      let bottomRightY = anno.p[1] + anno.s[1] + fullThick;
-      let returnRotation = anno.r ?? 0;
+      let position = this.utils.getAbsolutePosition({ ...anno, parent: anno.prevParent });
+
+      let topLeftX = position.x;
+      let topLeftY = position.y;
+      let bottomRightX = position.endX;
+      let bottomRightY = position.endY;
+      let returnRotation = position.rotation;
 
       let parents = this.utils.getParents(anno, includeSelecting);
-      for (let i = 0; i < parents.length; i++) {
+      for (let i = parents.length - 1; i > -1; i--) {
         let render = parents[i];
-        let rotate = render.r ?? 0;
+        let rotate = -(render.r ?? 0);
         let renderThickness = this.utils.getThickness(render);
         let centerX = render.p[0] + (render.s[0] / 2) + renderThickness;
         let centerY = render.p[1] + (render.s[1] / 2) + renderThickness;
@@ -577,24 +577,24 @@ modules["editor/editor"] = class {
           topLeftY,
           centerX,
           centerY,
-          -rotate
+          rotate
         );
         topLeftX -= render.p[0];
         topLeftY -= render.p[1];
-
         [bottomRightX, bottomRightY] = this.math.rotatePointOrigin(
           bottomRightX,
           bottomRightY,
           centerX,
           centerY,
-          -rotate
+          rotate
         );
         bottomRightX -= render.p[0];
         bottomRightY -= render.p[1];
 
-        returnRotation -= rotate;
+        returnRotation += rotate;
       }
-      return { x: topLeftX, y: topLeftY, endX: bottomRightX, endY: bottomRightY, rotation: (returnRotation + 360) % 360, thickness: thickness, parents: parents };
+
+      return { x: topLeftX, y: topLeftY, endX: bottomRightX, endY: bottomRightY, rotation: (returnRotation + 360) % 360, thickness: position.thickness, parents: parents };
     }
     this.utils.getRect = (anno, includeSelecting) => {
       anno = anno ?? {};
@@ -1871,7 +1871,7 @@ modules["editor/editor"] = class {
       let rect = this.utils.getRect(merged);
 
       // Check for a new parent:
-      let { parentID, parent } = await this.utils.parentFromAnnotation({
+      let { parentID } = await this.utils.parentFromAnnotation({
         ...merged,
         p: [rect.x, rect.y],
         parent: null,
@@ -1883,14 +1883,10 @@ modules["editor/editor"] = class {
         let { x: newX, y: newY, rotation: newRotation } = this.utils.getRelativePosition({
           ...merged,
           parent: data.parent,
-          p: [rect.x, rect.y]
+          p: [rect.x, rect.y] //[3, 1075] //
         });
-        let halfFullWidth = rect.fullWidth / 2;
-        let halfFullHeight = rect.fullHeight / 2;
-        let parentRect = this.utils.getRect(parent);
-        let [newCenterX, newCenterY] = this.math.rotatePointOrigin(newX + halfFullWidth, newY + halfFullHeight, parentRect.fullWidth / 2, parentRect.fullHeight / 2, newRotation);
-        data.p = [newCenterX - halfFullWidth, newCenterY - halfFullHeight];
-        //data.p = [newX, newY];
+        let [correctX, correctY] = this.math.rotatePointOrigin(newX, newY, newX + (rect.fullWidth / 2), newY + (rect.fullHeight / 2), newRotation);
+        data.p = [newX - (correctX - newX), newY - (correctY - newY)];
         if (merged.r != null || newRotation != 0) {
           data.r = newRotation;
         }
@@ -1931,7 +1927,7 @@ modules["editor/editor"] = class {
             }
           }
           if (checkParent == true) {
-            let { parentID: setParentID, parent: setParent } = await this.utils.parentFromAnnotation({
+            let { parentID: setParentID } = await this.utils.parentFromAnnotation({
               ...render,
               p: [x, y],
               parent: null,
@@ -1943,14 +1939,11 @@ modules["editor/editor"] = class {
                 p: [x, y],
                 parent: setParentID
               });
-              let halfFullWidth = fullWidth / 2;
-              let halfFullHeight = fullHeight / 2;
-              let parentRect = this.utils.getRect(setParent);
-              let [newCenterX, newCenterY] = this.math.rotatePointOrigin(newX + halfFullWidth, newY + halfFullHeight, parentRect.fullWidth / 2, parentRect.fullHeight / 2, newRotation);
+              let [correctX, correctY] = this.math.rotatePointOrigin(newX, newY, newX + (fullWidth / 2), newY + (fullHeight / 2), newRotation);
               let setChildAnno = {
                 _id: render._id,
                 parent: setParentID,
-                p: [newCenterX - halfFullWidth, newCenterY - halfFullHeight],
+                p: [newX - (correctX - newX), newY - (correctY - newY)],
                 sync: getEpoch()
               };
               if (render.r != null || newRotation != 0) {

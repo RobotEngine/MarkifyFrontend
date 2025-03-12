@@ -799,6 +799,44 @@ modules["lesson/board"] = class {
         await this.editor.updateChunks();
       }
       contentHolder.removeAttribute("disabled");
+
+      console.log(this.editor.utils.getAbsolutePosition({
+        "_id": "67d201dec03fdcab45cf018b",
+        "sig": "Anthony Beckett",
+        "a": "67cf59cb114d57032732116f",
+        "sync": 1741816283293,
+        "parent": "67cf59cb114d570327321170",
+        "f": "sticky",
+        "p": [
+            150,
+            150
+        ],
+        "s": [
+            220,
+            220
+        ],
+        "r": 0,
+        "l": 1,
+        "c": "FADCA0"
+    }));
+      console.log(this.editor.utils.getRelativePosition({
+        "_id": "67d201dec03fdcab45cf018b",
+        "sig": "Anthony Beckett",
+        "a": "67cf59cb114d57032732116f",
+        "sync": 1741816283293,
+        "parent": "67cf59cb114d570327321170",
+        "f": "sticky",
+        "p": [
+          2.645599219280598, 1074.5550797939923
+        ],
+        "s": [
+            220,
+            220
+        ],
+        "r": 0,
+        "l": 1,
+        "c": "FADCA0"
+    }));
     }
 
     this.loadAnnotations();

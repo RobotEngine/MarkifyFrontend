@@ -1698,7 +1698,6 @@ modules["editor/editor"] = class {
         }
         let saveSuccess = false;
         try {
-          mutations = [];
           let [result] = await sendRequest("POST", "lessons/save", { mutations: mutations }, { session: this.session });
           saveSuccess = result == 200;
         } catch (err) {

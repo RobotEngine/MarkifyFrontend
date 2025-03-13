@@ -529,9 +529,8 @@ modules["editor/editor"] = class {
         topLeftY -= height;
       }
       let thickness = this.utils.getThickness(anno);
-      let fullThickness = thickness * 2;
-      let bottomRightX = topLeftX + width + fullThickness;
-      let bottomRightY = topLeftY + height + fullThickness;
+      let bottomRightX = topLeftX + width + thickness;
+      let bottomRightY = topLeftY + height + thickness;
       let returnRotation = anno.r ?? 0;
 
       let selectedParent = false;

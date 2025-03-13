@@ -665,11 +665,11 @@ modules["editor/realtime"] = class {
             }
 
             if (selection != null) {
-              let border = 0;
               let { x, y, width, height, rotation: rotate } = editor.utils.getRect(merge);
               if (rotate > 180) {
                 rotate = -(360 - rotate);
               }
+              console.log(width, height)
               let boxWidth = (width * editor.zoom) - 3; // +0 for width, -3 for border
               let boxHeight = (height * editor.zoom) - 3;
               selection.style.width = boxWidth + "px";

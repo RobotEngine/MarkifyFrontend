@@ -670,24 +670,11 @@ modules["editor/realtime"] = class {
               if (rotate > 180) {
                 rotate = -(360 - rotate);
               }
-              if (width < 0) {
-                width = -width;
-                x -= width;
-              }
-              if (height < 0) {
-                height = -height;
-                y -= height;
-              }
-              let t = merge.t ?? 0;
-              if (merge.b == "none" && merge.d != "line") {
-                t = 0;
-              }
-              let halfT = t / 2;
-              let boxWidth = ((width + t) * editor.zoom) - 3; // +0 for width, -3 for border
-              let boxHeight = ((height + t) * editor.zoom) - 3;
+              let boxWidth = (width * editor.zoom) - 3; // +0 for width, -3 for border
+              let boxHeight = (height * editor.zoom) - 3;
               selection.style.width = boxWidth + "px";
               selection.style.height = boxHeight + "px";
-              selection.style.transform = "translate(" + (annotationRect.left + ((x + halfT) * editor.zoom) + contentHolder.scrollLeft - 1.5) + "px," + (annotationRect.top + (((y + halfT) - border) * editor.zoom) + contentHolder.scrollTop - 1.5) + "px) rotate(" + rotate + "deg)";
+              selection.style.transform = "translate(" + (annotationRect.left + (x * editor.zoom) + contentHolder.scrollLeft - 1.5) + "px," + (annotationRect.top + (y * editor.zoom) + contentHolder.scrollTop - 1.5) + "px) rotate(" + rotate + "deg)";
               selection.offsetHeight;
               selection.style.transition = "all .25s, opacity .15s";
               selection.style.opacity = 1;

@@ -516,12 +516,22 @@ modules["editor/editor"] = class {
       if (anno.p == null) {
         return;
       }
-      let thickness = this.utils.getThickness(anno);
-      let fullThick = thickness * 2;
+      let width = anno.s[0];
+      let height = anno.s[1];
       let topLeftX = anno.p[0];
       let topLeftY = anno.p[1];
-      let bottomRightX = anno.p[0] + anno.s[0] + fullThick;
-      let bottomRightY = anno.p[1] + anno.s[1] + fullThick;
+      if (width < 0) {
+        width = -width;
+        topLeftX -= width;
+      }
+      if (height < 0) {
+        height = -height;
+        topLeftY -= height;
+      }
+      let thickness = this.utils.getThickness(anno);
+      let fullThickness = thickness * 2;
+      let bottomRightX = topLeftX + width + fullThickness;
+      let bottomRightY = topLeftY + height + fullThickness;
       let returnRotation = anno.r ?? 0;
 
       let selectedParent = false;
@@ -602,9 +612,8 @@ modules["editor/editor"] = class {
         return;
       }
       let position = this.utils.getAbsolutePosition(anno, includeSelecting);
-      let fullThick = position.thickness * 2;
-      let width = anno.s[0] + fullThick;
-      let height = anno.s[1] + fullThick;
+      let width = Math.abs(anno.s[0]) + position.thickness;
+      let height = Math.abs(anno.s[1]) + position.thickness;
       let halfWidth = width / 2;
       let halfHeight = height / 2;
       let centerX = (position.endX + position.x) / 2;

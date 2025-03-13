@@ -217,27 +217,26 @@ modules["lesson/export"] = class {
           }
           if (pageID != null) {
             let annotation = this.editor.annotations[pageID];
-            if (annotation != null) {
+            if (annotation != null && annotation.render != null) {
               this.editor.visibleChunks = annotation.chunks;
               await this.handleRendering();
               handleRenderPromise = null;
               await this.editor.render.setMarginSize(true);
-              if (annotation.render != null) {
-                let position = this.editor.utils.getAbsolutePosition(annotation.render);
-                await this.editor.setZoom(pageScale); //((annotation.render.s[0] - (pageBorderSize * 2)) * pageScale) / annotation.render.s[0]);
-                window.scrollTo(0, 0);
-                pageContent.style.removeProperty("transform");
-                let pageRect = pageContent.getBoundingClientRect();
-                pageContent.style.transform = `translate(-${pageRect.left + ((position.x + pageBorderSize) * this.editor.zoom)}px, -${pageRect.top + ((position.y + pageBorderSize) * this.editor.zoom)}px) scale(var(--zoom))`;
-              }
+              let rect = this.editor.utils.getRect(annotation.render);
+              let [topLeftX, topLeftY, bottomRightX, bottomRightY] = this.editor.math.rotatedBounds(rect.x, rect.y, rect.endX, rect.endY, rect.rotation);
+              await this.editor.setZoom(pageScale); //((annotation.render.s[0] - (pageBorderSize * 2)) * pageScale) / annotation.render.s[0]);
+              window.scrollTo(0, 0);
+              pageContent.style.removeProperty("transform");
+              let pageRect = pageContent.getBoundingClientRect();
+              pageContent.style.transform = `translate(-${pageRect.left + ((topLeftX + pageBorderSize) * this.editor.zoom)}px, -${pageRect.top + ((topLeftY + pageBorderSize) * this.editor.zoom)}px) scale(var(--zoom))`;
               let element = pageContent.querySelector('.eAnnotation[anno="' + pageID + '"]');
               if (element != null) {
                 element.setAttribute("notransition", "");
                 element.style.borderRadius = "0px";
-                let border = element.querySelector("div[border]");
+                /*let border = element.querySelector("div[border]");
                 if (border != null) {
                   border.remove();
-                }
+                }*/
                 currentPage++;
                 if (this.editor.exportSelected == null) {
                   (async () => {
@@ -248,7 +247,7 @@ modules["lesson/export"] = class {
                     }
                   })();
                 }
-                return { capture: true, done: false, width: annotation.render.s[0] - (pageBorderSize * 2), height: annotation.render.s[1] - (pageBorderSize * 2), page: currentPage - 1 }; // - (pageBorderSize * 2) //) * editor.zoom
+                return { capture: true, done: false, width: Math.abs(bottomRightX - topLeftX) - (pageBorderSize * 2), height: Math.abs(bottomRightY - topLeftY) - (pageBorderSize * 2), page: currentPage - 1 }; // - (pageBorderSize * 2) //) * editor.zoom
               }
             }
           }

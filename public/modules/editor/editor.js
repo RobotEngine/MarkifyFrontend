@@ -603,17 +603,21 @@ modules["editor/editor"] = class {
       }
       let position = this.utils.getAbsolutePosition(anno, includeSelecting);
       let fullThick = position.thickness * 2;
+      let width = anno.s[0] + fullThick;
+      let height = anno.s[1] + fullThick;
+      let halfWidth = width / 2;
+      let halfHeight = height / 2;
+      let centerX = (position.endX + position.x) / 2;
+      let centerY = (position.endY + position.y) / 2;
       return {
-        x: position.x,
-        y: position.y,
-        centerX: (position.endX + position.x) / 2,
-        centerY: (position.endY + position.y) / 2,
-        endX: position.endX,
-        endY: position.endY,
-        width: anno.s[0],
-        height: anno.s[1],
-        fullWidth: anno.s[0] + fullThick,
-        fullHeight: anno.s[1] + fullThick,
+        x: centerX - halfWidth,
+        y: centerY - halfHeight,
+        centerX: centerX,
+        centerY: centerY,
+        endX: centerX + halfWidth,
+        endY: centerY + halfHeight,
+        width: width,
+        height: height,
         thickness: position.thickness,
         rotation: position.rotation
       };
@@ -687,9 +691,7 @@ modules["editor/editor"] = class {
           continue;
         }
         let rect = this.utils.getRect(render, includeSelecting);
-        let halfWidth = rect.fullWidth / 2;
-        let halfHeight = rect.fullHeight / 2;
-        if (this.math.pointInRotatedBounds(x, y, rect.centerX - halfWidth, rect.centerY - halfHeight, rect.centerX + halfWidth, rect.centerY + halfHeight, rect.rotation) == true) {
+        if (this.math.pointInRotatedBounds(x, y, rect.x, rect.y, rect.endX, rect.endY, rect.rotation) == true) {
           if ((index ?? this.utils.maxLayer) > render.l) {
             viableParents.push(render);
           }
@@ -850,10 +852,8 @@ modules["editor/editor"] = class {
       let annotationVisible = false;
 
       if (render.remove != true) {
-        let { centerX, centerY, fullWidth, fullHeight, rotation } = this.utils.getRect(render, includeSelecting);
-        let halfWidth = fullWidth / 2;
-        let halfHeight = fullHeight / 2;
-        let [topLeftX, topLeftY, bottomRightX, bottomRightY] = this.math.rotatedBounds(centerX - halfWidth, centerY - halfHeight, centerX + halfWidth, centerY + halfHeight, rotation);
+        let { x, y, endX, endY, rotation } = this.utils.getRect(render, includeSelecting);
+        let [topLeftX, topLeftY, bottomRightX, bottomRightY] = this.math.rotatedBounds(x, y, endX, endY, rotation);
         
         chunks = this.utils.regionInChunks(topLeftX, topLeftY, bottomRightX, bottomRightY);
 
@@ -998,22 +998,24 @@ modules["editor/editor"] = class {
       let render = (this.annotations[annoID] ?? {}).render;
       if (render != null) {
         let annoRect = this.utils.getRect(render);
+        let [topLeftX, topLeftY, bottomRightX, bottomRightY] = this.math.rotatedBounds(annoRect.x, annoRect.y, annoRect.endX, annoRect.endY, annoRect.rotation);
+        
         let annotationRect = this.utils.localBoundingRect(annotations);
         let options = {};
-        if ((render.s[0] + (annoRect.thickness * 2)) * this.zoom < contentHolder.clientWidth - (this.scrollOffset * 2)) {
+        if (annoRect.width * this.zoom < contentHolder.clientWidth - (this.scrollOffset * 2)) {
           // Position page to center:
-          options.left = annotationRect.left + contentHolder.scrollLeft - (contentHolder.clientWidth / 2) + ((annoRect.x + (annoRect.width / 2) + annoRect.thickness) * this.zoom);
+          options.left = annotationRect.left + contentHolder.scrollLeft - (contentHolder.clientWidth / 2) + (annoRect.centerX * this.zoom);
         } else {
           // Position page to left corner:
-          options.left = annotationRect.left + contentHolder.scrollLeft - this.scrollOffset + (annoRect.x * this.zoom);
-          //options.left = annotationRect.left + contentHolder.scrollLeft - contentHolder.clientWidth + this.scrollOffset + ((annoRect.x + annoRect.width + (annoRect.thickness * 2)) * this.zoom);
+          options.left = annotationRect.left + contentHolder.scrollLeft - this.scrollOffset + (topLeftX * this.zoom);
+          //options.left = annotationRect.left + contentHolder.scrollLeft - contentHolder.clientWidth + this.scrollOffset + (bottomRightX * this.zoom);
         }
-        if ((render.s[1] + (annoRect.thickness * 2)) * this.zoom < contentHolder.clientHeight - (this.scrollOffset * 2)) {
+        if (annoRect.height * this.zoom < contentHolder.clientHeight - (this.scrollOffset * 2)) {
           // Position page to center:
-          options.top = annotationRect.top + contentHolder.scrollTop - (contentHolder.clientHeight / 2) + ((annoRect.y + (annoRect.height / 2) + annoRect.thickness) * this.zoom);
+          options.top = annotationRect.top + contentHolder.scrollTop - (contentHolder.clientHeight / 2) + (annoRect.centerY * this.zoom);
         } else {
           // Position page to top:
-          options.top = annotationRect.top + contentHolder.scrollTop - this.scrollOffset + (annoRect.y * this.zoom);
+          options.top = annotationRect.top + contentHolder.scrollTop - this.scrollOffset + (topLeftY * this.zoom);
         }
         if (animation != false) {
           options.behavior = "smooth";
@@ -1698,6 +1700,7 @@ modules["editor/editor"] = class {
         }
         let saveSuccess = false;
         try {
+          //mutations = [];
           let [result] = await sendRequest("POST", "lessons/save", { mutations: mutations }, { session: this.session });
           saveSuccess = result == 200;
         } catch (err) {
@@ -1884,9 +1887,9 @@ modules["editor/editor"] = class {
         let { x: newX, y: newY, rotation: newRotation } = this.utils.getRelativePosition({
           ...merged,
           parent: data.parent,
-          p: [rect.x, rect.y] //[3, 1075] //
+          p: [rect.x, rect.y]
         });
-        let [correctX, correctY] = this.math.rotatePointOrigin(newX, newY, newX + (rect.fullWidth / 2), newY + (rect.fullHeight / 2), newRotation);
+        let [correctX, correctY] = this.math.rotatePointOrigin(newX, newY, newX + (rect.width / 2), newY + (rect.height / 2), newRotation);
         data.p = [newX - (correctX - newX), newY - (correctY - newY)];
         if (merged.r != null || newRotation != 0) {
           data.r = newRotation;
@@ -1916,7 +1919,7 @@ modules["editor/editor"] = class {
               render.parent = parentAnno.pointer;
             }
           }
-          let { x, y, centerX, centerY, fullWidth, fullHeight } = this.utils.getRect(render);
+          let { x, y, centerX, centerY, width, height } = this.utils.getRect(render);
           let checkParent = false;
           if (this.math.pointInRotatedBounds(centerX, centerY, rect.x, rect.y, rect.endX, rect.endY, rect.rotation) == false || render.l < merged.l || merged.remove == true) {
             // Is outside the saved annotation:
@@ -1940,7 +1943,7 @@ modules["editor/editor"] = class {
                 p: [x, y],
                 parent: setParentID
               });
-              let [correctX, correctY] = this.math.rotatePointOrigin(newX, newY, newX + (fullWidth / 2), newY + (fullHeight / 2), newRotation);
+              let [correctX, correctY] = this.math.rotatePointOrigin(newX, newY, newX + (width / 2), newY + (height / 2), newRotation);
               let setChildAnno = {
                 _id: render._id,
                 parent: setParentID,

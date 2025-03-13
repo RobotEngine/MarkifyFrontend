@@ -922,12 +922,21 @@ modules["editor/toolbar"] = class {
       editor.pipeline.publish("history_update", { history: editor.history.history, location: editor.history.location });
     }
 
+    let checkShift = (event) => {
+      if (event.shiftKey == false) {
+        content.removeAttribute("shiftheld");
+      } else {
+        content.setAttribute("shiftheld", "");
+      }
+    }
+
     // Subscribe to Events:
     editor.pipeline.subscribe("toolbarMouse", "click_start", (data) => {
       let event = data.event;
       if (event.buttons > 1) {
         return;
       }
+      checkShift(event);
       let target = event.target;
       if (target.closest(".eToolbar") == toolbar) {
         this.toolbar.setTool(target.closest("button"), true);
@@ -939,14 +948,24 @@ modules["editor/toolbar"] = class {
     editor.pipeline.subscribe("toolbarMouse", "click_move", (data) => {
       let event = data.event;
       this.tooltip.set(event);
+      checkShift(event);
       this.pushToolEvent("clickMove", event);
     }, { sort: 1 });
     editor.pipeline.subscribe("toolbarMouse", "click_end", (data) => {
       this.toolbar.setTool();
+      checkShift(data.event);
       this.pushToolEvent("clickEnd", data.event);
     }, { sort: 1 });
     editor.pipeline.subscribe("toolbarMouse", "mouseleave", () => {
       this.tooltip.close();
+    });
+    editor.pipeline.subscribe("toolbarKeyDown", "keydown", (data) => {
+      checkShift(data.event);
+      this.pushToolEvent("keydown", data.event);
+    });
+    editor.pipeline.subscribe("toolbarKeyUp", "keyup", (data) => {
+      checkShift(data.event);
+      this.pushToolEvent("keyup", data.event);
     });
     editor.pipeline.subscribe("toolbarScroll", "scroll", (data) => {
       this.pushToolEvent("scroll", data.event);

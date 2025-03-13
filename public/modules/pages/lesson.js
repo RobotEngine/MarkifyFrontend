@@ -404,6 +404,13 @@ modules["pages/lesson"] = class {
       this.pushToPipelines(null, "click_end", { type: "touchend", event: event });
     }, { passive: false });
 
+    tempListen(window, "keydown", (event) => {
+      this.pushToPipelines(null, "keydown", { event: event });
+    }, { passive: false });
+    tempListen(window, "keyup", (event) => {
+      this.pushToPipelines(null, "keyup", { event: event });
+    }, { passive: false });
+
     this.active = document.visibilityState == "visible";
     /*tempListen(document, "visibilitychange", () => {
       this.active = document.visibilityState == "visible";

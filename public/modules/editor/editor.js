@@ -1952,7 +1952,7 @@ modules["editor/editor"] = class {
                 p: [x, y],
                 parent: setParentID
               });
-              let [correctX, correctY] = this.math.rotatePointOrigin(newX, newY, newX + (width / 2), newY + (height / 2), newRotation);
+              //let [correctX, correctY] = this.math.rotatePointOrigin(newX, newY, newX + (width / 2), newY + (height / 2), newRotation);
               let setChildAnno = {
                 _id: render._id,
                 parent: setParentID,

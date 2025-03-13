@@ -1956,7 +1956,7 @@ modules["editor/editor"] = class {
               let setChildAnno = {
                 _id: render._id,
                 parent: setParentID,
-                p: [newX - (correctX - newX), newY - (correctY - newY)],
+                p: [newX, newY], //[newX - (correctX - newX), newY - (correctY - newY)],
                 sync: getEpoch()
               };
               if (render.r != null || newRotation != 0) {

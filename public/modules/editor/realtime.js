@@ -666,9 +666,7 @@ modules["editor/realtime"] = class {
 
             if (selection != null) {
               let border = 0;
-              let [width, height] = merge.s;
-              let { x, y } = editor.utils.getAbsolutePosition(merge);
-              let rotate = merge.r ?? 0;
+              let { x, y, width, height, rotation: rotate } = editor.utils.getRect(merge);
               if (rotate > 180) {
                 rotate = -(360 - rotate);
               }

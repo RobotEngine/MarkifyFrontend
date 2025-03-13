@@ -951,7 +951,7 @@ modules["editor/editor"] = class {
     }*/
 
     let updatePageTimeout;
-    this.utils.updateCurrentPage = () => {
+    this.utils.updateCurrentPage = (force) => {
       let activeElement = document.activeElement;
       if (activeElement != null) {
         let currentPageBox = activeElement.closest(".eCurrentPage");
@@ -974,7 +974,7 @@ modules["editor/editor"] = class {
           minPageId = page[0];
         }
       }
-      if (this.currentPage != minPage) {
+      if (this.currentPage != minPage || force == true) {
         this.currentPage = minPage;
         this.pipeline.publish("page_change", { page: this.currentPage, pageId: minPageId });
       }
@@ -996,15 +996,16 @@ modules["editor/editor"] = class {
           break;
         }
       }
-      if (anno.remove != true) {
+      if (anno.remove != true && (anno._id ?? "").startsWith("pending_") == false) {
         if (anno.parent != null) {
           return;
         }
         let rect = this.utils.getRect(anno);
+        let [topLeftX, topLeftY, bottomRightX, bottomRightY] = this.math.rotatedBounds(rect.x, rect.y, rect.endX, rect.endY, rect.rotation);
         this.annotationPages.push([
           anno._id,
           [rect.centerX, rect.centerY],
-          [rect.x, rect.y, rect.width + rect.thickness, rect.height + rect.thickness]
+          [topLeftX, topLeftY, bottomRightX - topLeftX, bottomRightY - topLeftY]
         ]);
         this.annotationPages.sort((a, b) => {
           if (b[1][1] > a[2][1] && b[1][1] < a[2][1] + a[2][3]) {
@@ -1014,7 +1015,7 @@ modules["editor/editor"] = class {
         });
       }
       clearTimeout(updatePageTimeout);
-      updatePageTimeout = setTimeout(this.utils.updateCurrentPage, 100);
+      updatePageTimeout = setTimeout(() => { this.utils.updateCurrentPage(true); }, 100);
     }
     this.utils.updateAnnotationScroll = (pageData, animation) => {
       if (pageData == null) {

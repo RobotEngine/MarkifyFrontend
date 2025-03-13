@@ -542,19 +542,31 @@ modules["editor/editor"] = class {
         }
         let rotate = render.r ?? 0;
         let renderThickness = this.utils.getThickness(render);
-        let centerX = render.p[0] + (render.s[0] / 2) + renderThickness;
-        let centerY = render.p[1] + (render.s[1] / 2) + renderThickness;
+        let renderWidth = render.s[0];
+        let renderHeight = render.s[1];
+        let renderX = render.p[0];
+        let renderY = render.p[1];
+        if (renderWidth < 0) {
+          renderWidth = -renderWidth;
+          renderX -= renderWidth;
+        }
+        if (renderHeight < 0) {
+          renderHeight = -renderHeight;
+          renderY -= renderHeight;
+        }
+        let centerX = renderX + ((renderWidth + renderThickness) / 2);
+        let centerY = renderY + ((renderHeight + renderThickness) / 2);
 
         [topLeftX, topLeftY] = this.math.rotatePointOrigin(
-          topLeftX + render.p[0],
-          topLeftY + render.p[1],
+          topLeftX + renderX,
+          topLeftY + renderY,
           centerX,
           centerY,
           rotate
         );
         [bottomRightX, bottomRightY] = this.math.rotatePointOrigin(
-          bottomRightX + render.p[0],
-          bottomRightY + render.p[1],
+          bottomRightX + renderX,
+          bottomRightY + renderY,
           centerX,
           centerY,
           rotate
@@ -562,6 +574,7 @@ modules["editor/editor"] = class {
 
         returnRotation += rotate;
       }
+      
       return { x: topLeftX, y: topLeftY, endX: bottomRightX, endY: bottomRightY, rotation: (returnRotation + 360) % 360, thickness: thickness, parents: parents, selectedParent: selectedParent };
     }
     this.utils.getRelativePosition = (anno, includeSelecting) => {
@@ -578,8 +591,20 @@ modules["editor/editor"] = class {
         let render = parents[i];
         let rotate = -(render.r ?? 0);
         let renderThickness = this.utils.getThickness(render);
-        let centerX = render.p[0] + (render.s[0] / 2) + renderThickness;
-        let centerY = render.p[1] + (render.s[1] / 2) + renderThickness;
+        let renderWidth = render.s[0];
+        let renderHeight = render.s[1];
+        let renderX = render.p[0];
+        let renderY = render.p[1];
+        if (renderWidth < 0) {
+          renderWidth = -renderWidth;
+          renderX -= renderWidth;
+        }
+        if (renderHeight < 0) {
+          renderHeight = -renderHeight;
+          renderY -= renderHeight;
+        }
+        let centerX = renderX + ((renderWidth + renderThickness) / 2);
+        let centerY = renderY + ((renderHeight + renderThickness) / 2);
 
         [topLeftX, topLeftY] = this.math.rotatePointOrigin(
           topLeftX,
@@ -588,8 +613,8 @@ modules["editor/editor"] = class {
           centerY,
           rotate
         );
-        topLeftX -= render.p[0];
-        topLeftY -= render.p[1];
+        topLeftX -= renderX;
+        topLeftY -= renderY;
         [bottomRightX, bottomRightY] = this.math.rotatePointOrigin(
           bottomRightX,
           bottomRightY,
@@ -597,8 +622,8 @@ modules["editor/editor"] = class {
           centerY,
           rotate
         );
-        bottomRightX -= render.p[0];
-        bottomRightY -= render.p[1];
+        bottomRightX -= renderX;
+        bottomRightY -= renderY;
 
         returnRotation += rotate;
       }
@@ -2814,8 +2839,8 @@ modules["editor/render/draw"] = class {
     let halfT = anno.t / 2;
     let width = anno.s[0] + anno.t;
     let height = anno.s[1] + anno.t;
-    let x = anno.p[0] + halfT;
-    let y = anno.p[1] + halfT;
+    let x = anno.p[0]; // + halfT;
+    let y = anno.p[1]; // + halfT;
     let transform = "translate3d(" + x + "px," + y + "px, 0)";
     let drawSetWidth;
     let drawSetPoints = "";
@@ -2894,8 +2919,8 @@ modules["editor/render/markup"] = class {
     let halfT = anno.t / 2;
     let width = anno.s[0] + anno.t;
     let height = anno.s[1] + anno.t;
-    let x = anno.p[0] + halfT;
-    let y = anno.p[1] + halfT;
+    let x = anno.p[0]; // + halfT;
+    let y = anno.p[1]; // + halfT;
     let transform = "translate3d(" + x + "px," + y + "px, 0)";
     element.style.width = width + "px";
     element.style.height = height + "px";
@@ -3037,8 +3062,8 @@ modules["editor/render/shape"] = class {
     }
     let width = anno.s[0] + anno.t;
     let height = anno.s[1] + anno.t;
-    let x = anno.p[0] + halfT;
-    let y = anno.p[1] + halfT;
+    let x = anno.p[0]; // + halfT;
+    let y = anno.p[1]; // + halfT;
     let transform = "translate3d(" + x + "px," + y + "px, 0)";
     element.style.width = width + "px";
     element.style.height = height + "px";

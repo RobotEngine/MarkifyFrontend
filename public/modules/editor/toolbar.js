@@ -1049,11 +1049,12 @@ modules["editor/toolbar/pen"] = class {
     let position = this.editor.utils.scaleToDoc(mouseX, mouseY);
     let toolPreference = this.parent.getToolPreference();
     let useThickness = this.THICKNESS ?? toolPreference.thickness;
+    let halfUseThickness = useThickness / 2;
     this.annotation = {
       render: {
         _id: this.editor.render.tempID(),
         f: this.FUNCTION,
-        p: [this.editor.utils.round(position.x - useThickness), this.editor.utils.round(position.y - useThickness)],
+        p: [this.editor.utils.round(position.x - halfUseThickness), this.editor.utils.round(position.y - halfUseThickness)],
         s: [0, 0],
         l: this.editor.maxLayer + 1,
         c: this.COLOR ?? toolPreference.color.selected,
@@ -1326,12 +1327,6 @@ modules["editor/toolbar/eraser"] = class {
         let xPos = scaledX - rect.x;
         let yPos = scaledY - rect.y;
         let halfT = rect.thickness / 2;
-        if (rect.width < 0) {
-          xPos -= rect.width;
-        }
-        if (rect.height < 0) {
-          yPos -= rect.height;
-        }
 
         let points = drawing.points;
         let halfWidth = svg.viewBox.baseVal.width / 2;
@@ -1351,9 +1346,9 @@ modules["editor/toolbar/eraser"] = class {
             prevRelativeY *= -1;
             pRelativeY *= -1;
           }
-          let [prevPointX, prevPointY] = this.editor.math.rotatePoint(prevRelativeX, prevRelativeY, render.r);
-          let [pointX, pointY] = this.editor.math.rotatePoint(pRelativeX, pRelativeY, render.r);
-          if (this.editor.math.isPointOnLine(xPos - halfT, yPos - halfT, prevPointX + halfWidth, prevPointY + halfHeight, pointX + halfWidth, pointY + halfHeight, Math.max(strokeWidth / 2, Math.min(4 / this.editor.zoom, 8))) == true) {
+          let [prevPointX, prevPointY] = this.editor.math.rotatePoint(prevRelativeX, prevRelativeY, rect.rotation);
+          let [pointX, pointY] = this.editor.math.rotatePoint(pRelativeX, pRelativeY, rect.rotation);
+          if (this.editor.math.isPointOnLine(xPos, yPos, prevPointX + halfWidth, prevPointY + halfHeight, pointX + halfWidth, pointY + halfHeight, Math.max(strokeWidth / 2, Math.min(4 / this.editor.zoom, 8))) == true) {
             await this.editor.history.push("add", [render]);
             let updateAnno = { _id: annoID, remove: true };
             await this.editor.save.push(updateAnno);
@@ -1556,7 +1551,8 @@ modules["editor/toolbar/resize_placement"] = class {
     this.endX = position.x;
     this.endY = position.y;
     let thickness = this.annotation.render.t ?? 0;
-    this.annotation.render.p = [(this.startX ?? this.endX) - thickness, (this.startY ?? this.endY) - thickness];
+    let halfThickness = thickness / 2;
+    this.annotation.render.p = [(this.startX ?? this.endX) - halfThickness, (this.startY ?? this.endY) - halfThickness];
     if (this.resizeActive == true || Math.abs(this.endX - (this.startX ?? this.endX)) > 10 / this.editor.zoom || Math.abs(this.endY - (this.startY ?? this.endY)) > 10 / this.editor.zoom) {
       this.resizeActive = true;
       let setX = this.endX - this.startX;

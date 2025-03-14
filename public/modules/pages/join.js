@@ -299,7 +299,7 @@ modules["pages/join"] = class {
       if (code == 200) {
         if (body.id) {
           // Valid LINK
-          page.querySelector(".jTitleDesc").textContent = "Set a name to join";
+          page.querySelector(".jTitleDesc").textContent = "Enter a name to join";
           inputHolder.style.display = "none";
           if (name != null) {
             body.name = name;

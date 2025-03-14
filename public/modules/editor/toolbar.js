@@ -1321,7 +1321,7 @@ modules["editor/toolbar/eraser"] = class {
         }
         let annoID = anno.getAttribute("anno");
         let render = (this.editor.annotations[annoID] ?? {}).render;
-        if (render == null) {
+        if (render == null || render.remove == true) {
           continue;
         }
         if (this.editor.utils.canMemberModify(render) != true) { // Can't edit another member's work:
@@ -1345,7 +1345,6 @@ modules["editor/toolbar/eraser"] = class {
         let rect = this.editor.utils.getRect(render);
         let xPos = scaledX - rect.x;
         let yPos = scaledY - rect.y;
-        let halfT = rect.thickness / 2;
 
         let points = drawing.points;
         let halfWidth = svg.viewBox.baseVal.width / 2;

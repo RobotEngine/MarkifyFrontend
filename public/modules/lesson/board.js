@@ -103,6 +103,7 @@ modules["lesson/board"] = class {
     ".eStatus svg *": `transform-origin: center; transition: .4s`,
     ".eStatus[saving] [saved]": `opacity: 0`,
     ".eStatus:not([saving]) [saving]": `opacity: 0`,
+    ".eStatus:not([saving]) [animation]": `animation-play-state: paused`,
     ".eStatus [animation]": `animation: eStatusSpinAnimation 2s linear infinite`,
     "@keyframes eStatusSpinAnimation": `from { transform: rotate(0deg) } to { transform: rotate(360deg) }`,
 
@@ -574,7 +575,7 @@ modules["lesson/board"] = class {
         }
       }
     });
-    pageTextBox.addEventListener("focusout", (event) => {
+    pageTextBox.addEventListener("focusout", () => {
       //pageBoxFocus = false;
       if (pageTextBox.textContent == "") {
         pageTextBox.innerHTML = "<b>" + this.editor.currentPage + "</b> / " + this.editor.annotationPages.length;

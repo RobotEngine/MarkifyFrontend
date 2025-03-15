@@ -897,11 +897,28 @@ modules["editor/toolbar"] = class {
     }
 
     this.selection = {};
+    this.selection.minX = 0;
+    this.selection.minY = 0;
+    this.selection.maxX = 0;
+    this.selection.maxY = 0;
+    this.selection.rotation = 0;
     this.selection.updateBox = () => {
       
     }
+    this.selection.startAction = (event) => {
+      
+    }
+    this.selection.moveAction = (event) => {
+      
+    }
+    this.selection.endAction = (event) => {
+      
+    }
     this.selection.clickAction = (data) => {
-
+      
+    }
+    this.selection.pointInSelectBox = (x, y) => {
+      return editor.math.pointInRotatedBounds(x, y, this.selection.minX, this.selection.minY, this.selection.maxX, this.selection.maxY, this.selection.rotation, 10 / editor.zoom);
     }
     this.selection.undo = () => {
       let event = editor.history.history[editor.history.location];
@@ -1012,9 +1029,46 @@ modules["editor/toolbar/select"] = class {
       return;
     }
     let annotation = target.closest(".eAnnotation");
+    if (annotation != null) {
+      let annoID = annotation.getAttribute("anno");
+      let render = (this.editor.annotations[annoID] ?? {}).render;
+      if (render == null) {
+        return;
+      }
+      if (annotation.querySelector("div[edit]") != null && annotation.querySelector("div[edit]").closest(".eAnnotation") == annotation && annotation.querySelector("div[contenteditable]") != null) {
+        return;
+      }
+      if (this.editor.selecting[annoID] != null) {
+        if (render.f == "page" && target.closest("div[title]") != null && annotation.querySelector("div[title]").closest(".eAnnotation") == annotation && this.editor.utils.isLocked(render) != true) {
+          if (target.closest("div[title]").hasAttribute("contenteditable") == false) {
+            this.parent.selection.clickAction({
+              target: this.editor.page.querySelector('.eSelectBar:not([remove]) .eTool[action="pages/editor/toolbar/settitle"]')
+            });
+          }
+          return;
+        }
+        if (render.f == "embed" && target.closest("div[input]") != null && annotation.querySelector("div[input]").closest(".eAnnotation") == annotation && this.editor.utils.isLocked(render) != true) {
+          if (render.embed == null) {
+            this.parent.selection.clickAction({
+              target: this.editor.page.querySelector('.eSelectBar:not([remove]) .eTool[action="pages/editor/toolbar/setembed"]')
+            });
+          }
+          return;
+        }
+      }
+    }
+
+    let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
+    this.startX = mouseX + this.editor.contentHolder.scrollLeft;
+    this.startY = mouseY + this.editor.contentHolder.scrollTop;
+    let position = this.editor.utils.scaleToDoc(mouseX, mouseY);
+    if (this.parent.selection.pointInSelectBox(position.x, position.y) == true) {
+      return await this.parent.selection.startAction(event);
+    }
+    
   }
   clickMove = async (event) => {
-    
+    await this.parent.selection.moveAction(event);
   }
   clickEnd = async (event) => {
     

@@ -1122,6 +1122,11 @@ modules["editor/editor"] = class {
       }
       return false;
     }
+    this.utils.isLocked = (render, member) => {
+      render = render ?? {};
+      member = member ?? this.self;
+      return render.lock == true;
+    }
 
     this.render = {};
     this.render.pdfPageQueue = [];

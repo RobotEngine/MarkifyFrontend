@@ -903,7 +903,7 @@ modules["editor/toolbar"] = class {
     this.selection.maxY = 0;
     this.selection.rotation = 0;
     this.selection.updateBox = () => {
-      
+      console.log(editor.selecting)
     }
     this.selection.startAction = (event) => {
       
@@ -1029,9 +1029,11 @@ modules["editor/toolbar/select"] = class {
       return;
     }
     let annotation = target.closest(".eAnnotation");
+    let annoID;
+    let render;
     if (annotation != null) {
-      let annoID = annotation.getAttribute("anno");
-      let render = (this.editor.annotations[annoID] ?? {}).render;
+      annoID = annotation.getAttribute("anno");
+      render = (this.editor.annotations[annoID] ?? {}).render;
       if (render == null) {
         return;
       }
@@ -1042,7 +1044,7 @@ modules["editor/toolbar/select"] = class {
         if (render.f == "page" && target.closest("div[title]") != null && annotation.querySelector("div[title]").closest(".eAnnotation") == annotation && this.editor.utils.isLocked(render) != true) {
           if (target.closest("div[title]").hasAttribute("contenteditable") == false) {
             this.parent.selection.clickAction({
-              target: this.editor.page.querySelector('.eSelectBar:not([remove]) .eTool[action="pages/editor/toolbar/settitle"]')
+              target: this.editor.page.querySelector('.eSelectBar:not([remove]) .eTool[action="editor/toolbar/settitle"]')
             });
           }
           return;
@@ -1050,7 +1052,7 @@ modules["editor/toolbar/select"] = class {
         if (render.f == "embed" && target.closest("div[input]") != null && annotation.querySelector("div[input]").closest(".eAnnotation") == annotation && this.editor.utils.isLocked(render) != true) {
           if (render.embed == null) {
             this.parent.selection.clickAction({
-              target: this.editor.page.querySelector('.eSelectBar:not([remove]) .eTool[action="pages/editor/toolbar/setembed"]')
+              target: this.editor.page.querySelector('.eSelectBar:not([remove]) .eTool[action="editor/toolbar/setembed"]')
             });
           }
           return;
@@ -1065,7 +1067,23 @@ modules["editor/toolbar/select"] = class {
     if (this.parent.selection.pointInSelectBox(position.x, position.y) == true) {
       return await this.parent.selection.startAction(event);
     }
-    
+    if (target.closest(".eSelect") == null) {
+      if (event.shiftKey == false) {
+        this.editor.selecting = {};
+        if (annotation == null) {
+          return this.parent.selection.updateBox();
+        }
+      }
+      if (render != null && this.editor.selecting[annoID] == null) {
+        let module = await this.editor.render.getModule(render.f);
+        if (module.HOLD_FOR_SELECT != true || target.closest("[selectable]") != null) {
+          this.wasSelected = annoID;
+          this.editor.selecting[annoID] = {};
+        }
+      }
+    }
+    await this.parent.selection.updateBox();
+    await this.parent.selection.startAction(event);
   }
   clickMove = async (event) => {
     await this.parent.selection.moveAction(event);

@@ -3367,6 +3367,7 @@ modules["editor/render/sticky"] = class {
 }
 modules["editor/render/page"] = class {
   CAN_PARENT_CHILDREN = true;
+  HOLD_FOR_SELECT = true;
 
   css = {
     ".eAnnotation[page]": `display: flex; flex-direction: column; background: white; border-radius: 12px; --borderWidth: 4px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2)`,
@@ -3396,7 +3397,7 @@ modules["editor/render/page"] = class {
       holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" page new>
         <div background></div>
         <div border></div>
-        <div label></div>
+        <div label selectable></div>
         <div content annoholdercontainer></div>
       </div>`);
       element = holder.querySelector(".eAnnotation[new]");

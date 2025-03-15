@@ -897,11 +897,6 @@ modules["editor/toolbar"] = class {
     }
 
     this.selection = {};
-    this.selection.minX = 0;
-    this.selection.minY = 0;
-    this.selection.maxX = 0;
-    this.selection.maxY = 0;
-    this.selection.rotation = 0;
     this.selection.updateBox = async () => {
       
     }
@@ -921,6 +916,10 @@ modules["editor/toolbar"] = class {
       
     }
     this.selection.pointInSelectBox = (x, y) => {
+      let selectCount = Object.keys(editor.selecting);
+      if (selectCount == 0) {
+        return false;
+      }
       return editor.math.pointInRotatedBounds(x, y, this.selection.minX, this.selection.minY, this.selection.maxX, this.selection.maxY, this.selection.rotation, 10 / editor.zoom);
     }
     this.selection.undo = () => {

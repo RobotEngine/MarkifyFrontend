@@ -898,7 +898,7 @@ modules["editor/toolbar"] = class {
 
     this.selection = {};
     this.selection.updateBox = () => {
-
+      
     }
     this.selection.clickAction = (data) => {
 
@@ -987,6 +987,12 @@ modules["editor/toolbar"] = class {
         this.toolbar.checkToolToggle();
       }
     });
+    editor.pipeline.subscribe("toolbarSelectionRedraw", "redraw_selection", (data) => {
+      this.selection.updateBox();
+    });
+    editor.pipeline.subscribe("toolbarSelectionZoomChange", "zoom_change", () => {
+      this.selection.updateBox();
+    });
     editor.toolbar = this;
   }
 }
@@ -994,7 +1000,28 @@ modules["editor/toolbar"] = class {
 // TOOL MODULES //
 
 modules["editor/toolbar/select"] = class {
-
+  clickStart = async (event) => {
+    if (event.which === 3 || event.button === 2) {
+      return;
+    }
+    let target = event.target;
+    if (this.editor.isEditorContent(event.target) != true) {
+      return;
+    }
+    if (target.closest("button") != null || target.closest("a") != null) {
+      return;
+    }
+    let annotation = target.closest(".eAnnotation");
+  }
+  clickMove = async (event) => {
+    
+  }
+  clickEnd = async (event) => {
+    
+  }
+  scroll = async (event) => {
+    
+  }
 }
 
 modules["editor/toolbar/pan"] = class {
@@ -1280,7 +1307,7 @@ modules["editor/toolbar/eraser"] = class {
     if (this.erasing != true) {
       return;
     }
-    if (mouseDown() == false) {
+    if (mouseDown() == false || this.editor.isEditorContent(event.target) != true) {
       return this.clickEnd();
     }
     if (event.touches != null && event.touches.length > 1) {

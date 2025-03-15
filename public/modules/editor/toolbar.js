@@ -902,8 +902,11 @@ modules["editor/toolbar"] = class {
     this.selection.maxX = 0;
     this.selection.maxY = 0;
     this.selection.rotation = 0;
-    this.selection.updateBox = () => {
-      console.log(editor.selecting)
+    this.selection.updateBox = async () => {
+      
+    }
+    this.selection.updateActionBar = async () => {
+
     }
     this.selection.startAction = (event) => {
       
@@ -1091,8 +1094,9 @@ modules["editor/toolbar/select"] = class {
   clickEnd = async (event) => {
     
   }
-  scroll = async (event) => {
-    
+  scroll = async () => {
+    await this.parent.selection.moveAction();
+    await this.parent.selection.updateActionBar();
   }
 }
 

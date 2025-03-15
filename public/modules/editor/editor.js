@@ -2371,7 +2371,7 @@ modules["editor/editor"] = class {
         if (anno.remove == true) {
           delete this.reactions[anno._id];
         }
-        
+
         let result = await this.save.apply(anno, true);
         if (result.redrawAction == true) {
           redrawAction = true;

@@ -1025,7 +1025,8 @@ modules["editor/toolbar/select"] = class {
       return;
     }
     let target = event.target;
-    if (this.editor.isEditorContent(event.target) != true) {
+    this.lastTarget = target;
+    if (this.editor.isEditorContent(target) != true) {
       return;
     }
     if (target.closest("button") != null || target.closest("a") != null) {
@@ -1064,8 +1065,8 @@ modules["editor/toolbar/select"] = class {
     }
 
     let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
-    this.startX = mouseX + this.editor.contentHolder.scrollLeft;
-    this.startY = mouseY + this.editor.contentHolder.scrollTop;
+    this.startX = mouseX;
+    this.startY = mouseY;
     let position = this.editor.utils.scaleToDoc(mouseX, mouseY);
     if (this.parent.selection.pointInSelectBox(position.x, position.y) == true) {
       return await this.parent.selection.startAction(event);
@@ -1092,7 +1093,52 @@ modules["editor/toolbar/select"] = class {
     await this.parent.selection.moveAction(event);
   }
   clickEnd = async (event) => {
-    
+    await this.parent.selection.endAction(event);
+
+    let target = this.lastTarget ?? event.target;
+    this.lastTarget = null;
+    if (this.editor.isEditorContent(target) != true) {
+      return;
+    }
+    if (target.closest("button") != null || target.closest("a") != null || target.closest(".eSelect") != null) {
+      return;
+    }
+    let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
+    if (Math.floor(mouseX - this.startX) == 0 && Math.floor(mouseY - this.startY) == 0) {
+      let annotation = target.closest(".eAnnotation");
+      if (annotation == null) {
+        return;
+      }
+      let annoID = annotation.getAttribute("anno");
+      let render = (this.editor.annotations[annoID] ?? {}).render;
+      if (render == null) {
+        return;
+      }
+      if (this.editor.utils.canMemberModify(render) == false) {
+        alertModule.close(this.parent.someoneElsesAnnoWarning);
+        this.parent.someoneElsesAnnoWarning = await alertModule.open("warning", "<b>Someone Else's Annotation</b>The ability to modify another member's work is disabled.");
+      }
+      if (event.shiftKey == true) {
+        if (this.wasSelected != annoID && this.editor.selecting[annoID] != null) {
+          delete this.editor.selecting[annoID];
+        } else {
+          this.editor.selecting[annoID] = {};
+        }
+      } else {
+        this.editor.selecting = {};
+        this.editor.selecting[annoID] = {};
+      }
+      if (this.wasSelected == null && annotation.querySelector("div[edit]") != null && annotation.querySelector("div[edit]").closest(".eAnnotation") == annotation && annotation.querySelector("div[contenteditable]") == null) {
+        this.clickAction({
+          target: content.querySelector('.eSelectBar:not([remove]) .eTool[action="editor/toolbar/textedit"]'),
+          setCaretPosition: true,
+          clientX: event.clientX,
+          clientY: event.clientY
+        });
+      }
+    }
+    this.parent.selection.updateBox();
+    this.wasSelected = null;
   }
   scroll = async () => {
     await this.parent.selection.moveAction();

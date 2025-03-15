@@ -1729,41 +1729,36 @@ modules["editor/editor"] = class {
           mutations.push(mutt);
         }
         this.save.pendingSaves = {};
-        if (mutations.length < 1 && Object.keys(setPendingSave).length < 1) {
-          break;
-        }
-        let saveSuccess = false;
-        try {
-          //mutations = [];
-          let [result] = await sendRequest("POST", "lessons/save", { mutations: mutations }, { session: this.session });
-          saveSuccess = result == 200;
-        } catch (err) {
-          console.log("SAVE ERROR:", err);
-        }
-        if (saveSuccess == false) { // If not saved, set to try again
-          for (let i = 0; i < mutations.length; i++) {
-            let anno = this.annotations[mutations[i]._id];
-            if (anno == null) {
-              continue;
-            }
-            if (anno.pointer != null) {
-              anno = this.annotations[anno.pointer];
-            }
-            if (anno.retry == null) {
-              anno.retry = 3;
-            }
-            if (anno != null && anno.retry > 0) {
-              setPendingSave[mutations[i]._id] = mutations[i];
-              anno.save = true;
+        if (mutations.length > 0) {
+          let saveSuccess = false;
+          try {
+            //mutations = [];
+            let [result] = await sendRequest("POST", "lessons/save", { mutations: mutations }, { session: this.session });
+            saveSuccess = result == 200;
+          } catch (err) {
+            console.log("SAVE ERROR:", err);
+          }
+          if (saveSuccess == false) { // If not saved, set to try again
+            for (let i = 0; i < mutations.length; i++) {
+              let anno = this.annotations[mutations[i]._id];
+              if (anno == null) {
+                continue;
+              }
+              if (anno.pointer != null) {
+                anno = this.annotations[anno.pointer];
+              }
+              if (anno.retry == null) {
+                anno.retry = 3;
+              }
+              if (anno != null && anno.retry > 0) {
+                setPendingSave[mutations[i]._id] = mutations[i];
+                anno.save = true;
+              }
             }
           }
         }
         this.save.pendingSaves = { ...this.save.pendingSaves, ...setPendingSave };
-        if (skip != true) {
-          keys = Object.keys(this.save.pendingSaves);
-        } else {
-          keys = [];
-        }
+        keys = Object.keys(this.save.pendingSaves);
       }
       if (connected == true) {
         this.save.synced = true;

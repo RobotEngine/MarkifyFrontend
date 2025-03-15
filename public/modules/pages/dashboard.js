@@ -86,7 +86,7 @@ modules["pages/dashboard"] = class {
     ".dJoinButton img": `width: 22px; height: 22px; margin-left: 4px`,
 
     ".dSidebarActions": `display: flex; flex-direction: column; gap: 8px; padding: 8px; margin: 8px 0; align-items: center`,
-    ".dCreateLessonButton": `--borderRadius: 14px`,
+    ".dCreateLessonButton": `--themeColor: var(--theme); --borderRadius: 14px`,
 
     ".dSidebarSorts": `display: flex; flex-direction: column; gap: 8px; padding: 8px`,
     ".dSidebarSearch": `display: flex; box-sizing: border-box; width: calc(100% - 8px); margin: 4px; align-items: center; background: rgba(var(--background), .5); --borderColor: var(--hover); --borderWidth: 4px; --borderRadius: 12px`,

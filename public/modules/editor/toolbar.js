@@ -897,8 +897,70 @@ modules["editor/toolbar"] = class {
     }
 
     this.selection = {};
+    this.selection.currentSelections = {};
     this.selection.updateBox = async (options = {}) => {
-      console.log(editor.selecting);
+      let removeSelections = [];
+      let checkSelections = Object.keys(this.selection.currentSelections);
+      for (let i = 0; i < checkSelections.length; i++) {
+        let annoID = checkSelections[i];
+        let selection = this.selection.currentSelections[annoID];
+        let annoData = editor.annotations[annoID] ?? {};
+        if (annoData.pointer != null) {
+          delete this.selection.currentSelections[annoID];
+          annoID = annoData.pointer;
+          annoData = editor.annotations[annoID];
+          this.selection.currentSelections[annoID] = selection;
+        }
+        let render = annoData.render;
+        if (editor.selecting[annoID] != null && render != null && render.remove == true) {
+          continue; // Is valid selection box
+        }
+        delete this.selection.currentSelections[annoID];
+        let annotation = annoData.element;
+        if (annotation != null) {
+          annotation.removeAttribute("selected");
+          annotation.removeAttribute("notransition");
+          annotation.style.removeProperty("overflow");
+          annotation.style.removeProperty("border-radius");
+          let annoTx = annotation.querySelector("div[edit]");
+          if (annoTx != null) {
+            annoTx.removeAttribute("contenteditable");
+            if (annoTx.hasAttribute("text") == true && annoTx.textContent.trim().length < 1) {
+              await editor.history.push("add", [render]);
+              await editor.save.push({ _id: annoID, remove: true });
+              editor.realtimeSelect[annoID] = { ...editor.realtimeSelect[annoID], _id: annoID, remove: true };
+              await editor.realtime.forceShort();
+            }
+          }
+        }
+        if (selection != null) {
+          selection.style.opacity = 0;
+          if (selection.hasAttribute("remove") == false) {
+            selection.setAttribute("remove", "");
+            removeSelections.push(selection);
+          }
+        }
+      }
+      if (removeSelections.length > 0) {
+        (async function () {
+          await sleep(150);
+          for (let i = 0; i < removeSelections.length; i++) {
+            let selection = removeSelections[i];
+            if (selection != null) {
+              selection.remove();
+            }
+          }
+        })();
+      }
+
+      this.selection.minX = null;
+      this.selection.maxX = null;
+      this.selection.minY = null;
+      this.selection.maxY = null;
+      this.selection.resizePreserveAspect = false;
+      this.selection.multiSelectResizePreserveAspect = false;
+
+      let selections = Object.keys(editor.selecting);
     }
     this.selection.updateActionBar = async () => {
 
@@ -950,12 +1012,22 @@ modules["editor/toolbar"] = class {
     }
 
     // Subscribe to Events:
-    editor.pipeline.subscribe("toolbarMouse", "click_start", (data) => {
+    let prevToolModule; 
+    editor.pipeline.subscribe("toolbarMouse", "click_start", async (data) => {
       let event = data.event;
+      checkShift(event);
+      if (data.event.button == 1) { // Start pan from scroll wheel press
+        if (this.currentToolModulePath != "editor/toolbar/pan") {
+          prevToolModule = this.currentToolModulePath;
+          this.currentToolModulePath = "editor/toolbar/pan";
+          await this.activateTool();
+        }
+        this.currentToolModule.forced = true;
+        return this.currentToolModule.clickStart(event);
+      }
       if (event.buttons > 1) {
         return;
       }
-      checkShift(event);
       let target = event.target;
       if (target.closest(".eToolbar") == toolbar) {
         this.toolbar.setTool(target.closest("button"), true);
@@ -966,13 +1038,18 @@ modules["editor/toolbar"] = class {
     }, { sort: 1 });
     editor.pipeline.subscribe("toolbarMouse", "click_move", (data) => {
       let event = data.event;
-      this.tooltip.set(event);
       checkShift(event);
+      this.tooltip.set(event);
       this.pushToolEvent("clickMove", event);
     }, { sort: 1 });
     editor.pipeline.subscribe("toolbarMouse", "click_end", (data) => {
-      this.toolbar.setTool();
       checkShift(data.event);
+      if (prevToolModule != null && prevToolModule != "editor/toolbar/pan") {
+        this.currentToolModulePath = prevToolModule;
+        prevToolModule = null;
+        return this.activateTool();
+      }
+      this.toolbar.setTool();
       this.pushToolEvent("clickEnd", data.event);
     }, { sort: 1 });
     editor.pipeline.subscribe("toolbarMouse", "mouseleave", () => {
@@ -1165,7 +1242,7 @@ modules["editor/toolbar/pan"] = class {
       return;
     }
     if (event != null) {
-      if (mouseDown() == false || event.touches != null) {
+      if ((mouseDown() == false && this.forced != true) || event.touches != null) {
         return this.clickEnd(event);
       }
       let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
@@ -1180,6 +1257,7 @@ modules["editor/toolbar/pan"] = class {
   }
   clickEnd = () => {
     this.dragging = false;
+    this.forced = false;
     this.parent.updateMouse({ type: "set", value: "grab" });
   }
   wheel = (event) => {

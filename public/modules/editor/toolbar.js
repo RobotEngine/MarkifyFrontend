@@ -961,6 +961,18 @@ modules["editor/toolbar"] = class {
       this.selection.multiSelectResizePreserveAspect = false;
 
       let selections = Object.keys(editor.selecting);
+      if (this.currentToolModule != null) {
+        let setUserSelect;
+        if (selections.length > 0) {
+          setUserSelect = "none";
+        } else {
+          setUserSelect = "unset";
+        }
+        if (setUserSelect != this.currentToolModule.USER_SELECT) {
+          this.currentToolModule.USER_SELECT = setUserSelect;
+          this.applyToolModule();
+        }
+      }
     }
     this.selection.updateActionBar = async () => {
 

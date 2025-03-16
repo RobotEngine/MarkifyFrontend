@@ -898,7 +898,7 @@ modules["editor/toolbar"] = class {
 
     this.selection = {};
     this.selection.updateBox = async (options = {}) => {
-      
+      console.log(editor.selecting);
     }
     this.selection.updateActionBar = async () => {
 
@@ -1129,7 +1129,7 @@ modules["editor/toolbar/select"] = class {
       }
       if (this.wasSelected == null && annotation.querySelector("div[edit]") != null && annotation.querySelector("div[edit]").closest(".eAnnotation") == annotation && annotation.querySelector("div[contenteditable]") == null) {
         this.clickAction({
-          target: content.querySelector('.eSelectBar:not([remove]) .eTool[action="editor/toolbar/textedit"]'),
+          target: this.editor.page.querySelector('.eSelectBar:not([remove]) .eTool[action="editor/toolbar/textedit"]'),
           setCaretPosition: true,
           clientX: event.clientX,
           clientY: event.clientY

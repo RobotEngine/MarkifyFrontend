@@ -897,7 +897,7 @@ modules["editor/toolbar"] = class {
     }
 
     this.selection = {};
-    this.selection.updateBox = async () => {
+    this.selection.updateBox = async (options = {}) => {
       
     }
     this.selection.updateActionBar = async () => {
@@ -1007,7 +1007,7 @@ modules["editor/toolbar"] = class {
       }
     });
     editor.pipeline.subscribe("toolbarSelectionRedraw", "redraw_selection", (data) => {
-      this.selection.updateBox();
+      this.selection.updateBox(data);
     });
     editor.pipeline.subscribe("toolbarSelectionZoomChange", "zoom_change", () => {
       this.selection.updateBox();

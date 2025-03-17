@@ -96,7 +96,6 @@ modules["editor/toolbar"] = class {
     ".eVerticalToolsHolder": `display: flex; flex-direction: column; padding: 2px 0; align-items: center`,
 
     ".eSelect": `position: absolute; left: 0px; top: 0px; opacity: 0; z-index: 101; border-radius: 9px; transition: all .25s, opacity .15s; pointer-events: none`,
-    ".eSelect[tooleditor]": `z-index: 102`,
     ".eSelectActive": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: all !important; cursor: move; z-index: var(--selectZIndex)`,
     ".eContent[noshiftheld] .eSelectActive": `z-index: var(--annoZIndex) !important`,
     ".eAnnotation[selected] > *": `pointer-events: none`,
@@ -376,10 +375,13 @@ modules["editor/toolbar"] = class {
         page.style.removeProperty("touch-action");
       }
     }
-    this.activateTool = async (extra) => {
+    this.activateTool = async (extra, options = {}) => {
       editor.pinchZoomDisable = false;
       editor.usingStylus = false;
-      editor.selecting = {};
+      if (options.resetSelection != false) {
+        editor.selecting = {};
+        this.selection.updateBox();
+      }
 
       let editorTools = content.querySelectorAll("[tooleditor]");
       if (editorTools.length > 0) {
@@ -405,6 +407,7 @@ modules["editor/toolbar"] = class {
       if (this.currentToolModule != null && this.currentToolModule.disable != null) {
         await this.currentToolModule.disable();
       }
+
       let newModule;
       if (this.currentToolModulePath != null) {
         newModule = await this.newModule(this.currentToolModulePath);
@@ -872,9 +875,6 @@ modules["editor/toolbar"] = class {
     this.toolbar.updateMaxHeight = () => {
       toolbarHolder.style.setProperty("--maxToolbarHeight", toolbarHolder.offsetHeight + "px"); // Have to add this solution because FIREFOX
     }
-    this.toolbar.updateMaxHeight();
-    this.activateTool();
-    this.toolbar.updateButtons(toolbarHolder);
 
     this.getToolPreference = () => {
       return editor.preferences.tools[currentSubTool] ?? editor.preferences.tools[currentTool] ?? {};
@@ -1051,7 +1051,7 @@ modules["editor/toolbar"] = class {
 
         if (selections.length > 1 || options.showSelects == true) {
           if (select == null) {
-            content.insertAdjacentHTML("beforeend", `<div class="eSelect" notransition new></div>`);
+            content.insertAdjacentHTML("beforeend", `<div class="eSelect" new></div>`);
             select = content.querySelector(".eSelect[new]");
             select.removeAttribute("new");
             select.style.border = "solid 4px var(--secondary)";
@@ -1145,9 +1145,10 @@ modules["editor/toolbar"] = class {
       if (showSelectBox == true) {
         let transition = this.selection.action == null && options.transition != false && this.selection.lastSelectAmount == selectedAnnotations.length;
         if (this.selection.selectBox == null) {
-          content.insertAdjacentHTML("beforeend", `<div class="eSelect" tooleditor new></div>`);
+          content.insertAdjacentHTML("beforeend", `<div class="eSelect" new></div>`);
           this.selection.selectBox = content.querySelector(".eSelect[new]");
           this.selection.selectBox.removeAttribute("new");
+          this.selection.selectBox.style.zIndex = 102;
           this.selection.selectBox.style.border = "solid 4px var(--theme)";
           this.selection.selectBox.style.opacity = 1;
           transition = false;
@@ -1277,6 +1278,10 @@ modules["editor/toolbar"] = class {
       }
     }
 
+    this.toolbar.updateMaxHeight();
+    this.activateTool();
+    this.toolbar.updateButtons(toolbarHolder);
+
     // Subscribe to Events:
     let prevToolModule; 
     editor.pipeline.subscribe("toolbarMouse", "click_start", async (data) => {
@@ -1286,7 +1291,7 @@ modules["editor/toolbar"] = class {
         if (this.currentToolModulePath != "editor/toolbar/pan") {
           prevToolModule = this.currentToolModulePath;
           this.currentToolModulePath = "editor/toolbar/pan";
-          await this.activateTool();
+          await this.activateTool(null, { resetSelection: false });
         }
         this.currentToolModule.forced = true;
         return this.currentToolModule.clickStart(event);
@@ -1313,7 +1318,7 @@ modules["editor/toolbar"] = class {
       if (prevToolModule != null && prevToolModule != "editor/toolbar/pan") {
         this.currentToolModulePath = prevToolModule;
         prevToolModule = null;
-        return this.activateTool();
+        return this.activateTool(null, { resetSelection: false });
       }
       this.toolbar.setTool();
       this.pushToolEvent("clickEnd", data.event);

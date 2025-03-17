@@ -1206,15 +1206,15 @@ modules["editor/editor"] = class {
       editorContent.style.marginRight = this.render.marginRight + "px";
       editorContent.style.marginTop = this.render.marginTop + "px";
       editorContent.style.marginBottom = this.render.marginBottom + "px";
-      if (content.offsetWidth != this.render.lastOffsetWidth || content.offsetHeight != this.render.lastOffsetHeight) {
+      if (editorContent.offsetWidth != this.render.lastOffsetWidth || editorContent.offsetHeight != this.render.lastOffsetHeight) {
         contentHolder.scrollTo(scrollPosX + (this.render.marginLeft - contentLeft), scrollPosY + (this.render.marginTop - contentTop));
         if (this.realtime.module && this.realtime.module.adjustRealtimeHolder) {
           this.realtime.module.adjustRealtimeHolder();
         }
         this.pipeline.publish("redraw_selection", { transition: false });
       }
-      this.render.lastOffsetWidth = content.offsetWidth;
-      this.render.lastOffsetHeight = content.offsetHeight;
+      this.render.lastOffsetWidth = editorContent.offsetWidth;
+      this.render.lastOffsetHeight = editorContent.offsetHeight;
     }
     this.render.processPageRenders = async () => {
       if (this.render.runningPageRender == true) {
@@ -2835,6 +2835,7 @@ modules["dropdowns/lesson/zoom"] = class {
 // Annotation Modules:
 modules["editor/render/draw"] = class {
   CAN_ERASE = true;
+  RESIZE_PRESERVE_ASPECT = true;
   
   render = (anno, element, holder) => {
     let halfT = anno.t / 2;
@@ -2904,6 +2905,7 @@ modules["editor/render/draw"] = class {
 }
 modules["editor/render/markup"] = class {
   CAN_ERASE = true;
+  RESIZE_PRESERVE_ASPECT = true;
 
   render = (anno, element, holder) => {
     if (element == null) {
@@ -2967,6 +2969,8 @@ modules["editor/render/markup"] = class {
   }
 }
 modules["editor/render/text"] = class {
+  SHOW_ONLY_WIDTH_HANDLES = true;
+
   css = {
     ".eAnnotation div[text]": `padding: 4px 6px; margin: 3px; color: var(--themeColor); font-weight: 500; pointer-events: all; outline: none`,
     ".eAnnotation div[text][placeborder]": `width: max-content; margin: 0px; border: solid 3px var(--themeColor); border-radius: 8px`
@@ -3212,6 +3216,8 @@ modules["editor/render/shape"] = class {
   }
 }
 modules["editor/render/sticky"] = class {
+  ALLOW_SELECT_OVERFLOW = true;
+  
   css = {
     ".eAnnotation[sticky]": `display: flex; flex-direction: column; background: var(--themeColor); border-radius: 12px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all; overflow: auto; text-align: left`,
     //".eAnnotation[sticky]::-webkit-scrollbar": `display: none`, ; scrollbar-width: none
@@ -3368,6 +3374,14 @@ modules["editor/render/sticky"] = class {
 modules["editor/render/page"] = class {
   CAN_PARENT_CHILDREN = true;
   HOLD_FOR_SELECT = true;
+  ALLOW_SELECT_OVERFLOW = true;
+  SHOW_DUPLICATE_HANDLES = true;
+
+  SELECTION_FUNCTION = (selection, render) => {
+    if (render.source != null && ["bottomright", "topleft", "topright", "bottomleft"].includes(selection.tooltip) == true) {
+      selection.resizePreserveAspect = true;
+    }
+  }
 
   css = {
     ".eAnnotation[page]": `display: flex; flex-direction: column; background: white; border-radius: 12px; --borderWidth: 4px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2)`,
@@ -3514,6 +3528,12 @@ modules["editor/render/page"] = class {
   }
 }
 modules["editor/render/media"] = class {
+  SELECTION_FUNCTION = (selection) => {
+    if (["bottomright", "topleft", "topright", "bottomleft"].includes(selection.tooltip) == true) {
+      selection.resizePreserveAspect = true;
+    }
+  }
+
   css = {
     ".eAnnotation[media] img": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; pointer-events: all; border-radius: 12px`
   };

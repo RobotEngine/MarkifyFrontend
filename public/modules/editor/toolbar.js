@@ -1050,15 +1050,14 @@ modules["editor/toolbar"] = class {
             content.insertAdjacentHTML("beforeend", `<div class="eSelect" notransition new></div>`);
             select = content.querySelector(".eSelect[new]");
             select.removeAttribute("new");
-            this.selection.currentSelections[annoID] = select;
             select.style.border = "solid 4px var(--secondary)";
             select.style.opacity = 1;
             transition = false;
           }
         } else if (select != null) {
-          this.selection.currentSelections[annoID] = null;
           select.remove();
         }
+        this.selection.currentSelections[annoID] = select;
 
         if (transition == false) {
           if (select != null) {

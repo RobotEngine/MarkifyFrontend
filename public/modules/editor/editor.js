@@ -520,15 +520,15 @@ modules["editor/editor"] = class {
       let height = anno.s[1];
       let topLeftX = anno.p[0];
       let topLeftY = anno.p[1];
-      if (width < 0) {
-        width = -width;
-        topLeftX -= width;
-      }
-      if (height < 0) {
-        height = -height;
-        topLeftY -= height;
-      }
       let thickness = this.utils.getThickness(anno);
+      if (anno.s[0] < 0) {
+        width = -width;
+        topLeftX -= width + thickness;
+      }
+      if (anno.s[1] < 0) {
+        height = -height;
+        topLeftY -= height + thickness;
+      }
       let bottomRightX = topLeftX + width + thickness;
       let bottomRightY = topLeftY + height + thickness;
       let returnRotation = anno.r ?? 0;
@@ -627,8 +627,22 @@ modules["editor/editor"] = class {
 
         returnRotation += rotate;
       }
-
-      return { x: topLeftX, y: topLeftY, endX: bottomRightX, endY: bottomRightY, rotation: (returnRotation + 360) % 360, thickness: position.thickness, parents: parents };
+      
+      let x = ((bottomRightX + topLeftX) / 2);
+      let y = ((bottomRightY + topLeftY) / 2);
+      console.log(x, y)
+      //let doubleThickness = position.thickness * 2;
+      if (anno.s[0] > 0) {
+        x -= (Math.abs(anno.s[0]) + position.thickness) / 2;
+      } else {
+        x += (Math.abs(anno.s[0]) + position.thickness) / 2;
+      }
+      if (anno.s[1] > 0) {
+        y -= (Math.abs(anno.s[1]) + position.thickness) / 2;
+      } else {
+        y += (Math.abs(anno.s[1]) + position.thickness) / 2;
+      }
+      return { x, y, rotation: (returnRotation + 360) % 360, thickness: position.thickness, parents: parents };
     }
     this.utils.getRect = (anno, includeSelecting) => {
       anno = anno ?? {};
@@ -642,15 +656,28 @@ modules["editor/editor"] = class {
       let halfHeight = height / 2;
       let centerX = (position.endX + position.x) / 2;
       let centerY = (position.endY + position.y) / 2;
+
+      let x = centerX - halfWidth;
+      let y = centerY - halfHeight;
+      let endX = centerX + halfWidth;
+      let endY = centerY + halfHeight;
+
+      let annoX = x;
+      let annoY = y;
+      if (anno.s[0] < 0) {
+        annoX = endX;
+      }
+      if (anno.s[1] < 0) {
+        annoY = endY;
+      }
+
       return {
-        x: centerX - halfWidth,
-        y: centerY - halfHeight,
+        annoX, annoY,
+        x, y,
         centerX: centerX,
         centerY: centerY,
-        endX: centerX + halfWidth,
-        endY: centerY + halfHeight,
-        width: width,
-        height: height,
+        endX, endY,
+        width, height,
         thickness: position.thickness,
         rotation: position.rotation,
         selectingParent: position.selectingParent
@@ -1487,13 +1514,14 @@ modules["editor/editor"] = class {
 
       let [xPos, yPos] = position;
       let [width, height] = size;
+      let thickness = this.utils.getThickness(render);
       if (width < 0) {
         width = -width;
-        xPos -= width;
+        xPos -= width + thickness;
       }
       if (height < 0) {
         height = -height;
-        yPos -= height;
+        yPos -= height + thickness;
       }
 
       let renderModule = await this.render.getModule(render.f);
@@ -1912,7 +1940,7 @@ modules["editor/editor"] = class {
       // Check for a new parent:
       let { parentID } = await this.utils.parentFromAnnotation({
         ...merged,
-        p: [rect.x, rect.y],
+        p: [rect.annoX, rect.annoY],
         parent: null,
         prevParent: merged.parent
       }, true);
@@ -1922,10 +1950,11 @@ modules["editor/editor"] = class {
         let { x: newX, y: newY, rotation: newRotation } = this.utils.getRelativePosition({
           ...merged,
           parent: data.parent,
-          p: [rect.x, rect.y]
+          p: [rect.annoX, rect.annoY]
         });
-        let [correctX, correctY] = this.math.rotatePointOrigin(newX, newY, newX + (rect.width / 2), newY + (rect.height / 2), newRotation);
-        data.p = [newX - (correctX - newX), newY - (correctY - newY)];
+        //let [correctX, correctY] = this.math.rotatePointOrigin(newX, newY, newX + (rect.width / 2), newY + (rect.height / 2), newRotation);
+        //data.p = [newX - (correctX - newX), newY - (correctY - newY)];
+        data.p = [newX, newY];
         if (merged.r != null || newRotation != 0) {
           data.r = newRotation;
         }
@@ -1954,7 +1983,7 @@ modules["editor/editor"] = class {
               render.parent = parentAnno.pointer;
             }
           }
-          let { x, y, centerX, centerY, width, height } = this.utils.getRect(render);
+          let { annoX, annoY, centerX, centerY, width, height } = this.utils.getRect(render);
           let checkParent = false;
           if (this.math.pointInRotatedBounds(centerX, centerY, rect.x, rect.y, rect.endX, rect.endY, rect.rotation) == false || render.l < merged.l || merged.remove == true) {
             // Is outside the saved annotation:
@@ -1968,14 +1997,14 @@ modules["editor/editor"] = class {
           if (checkParent == true) {
             let { parentID: setParentID } = await this.utils.parentFromAnnotation({
               ...render,
-              p: [x, y],
+              p: [annoX, annoY],
               parent: null,
               prevParent: render.parent
             }, true);
             if (setParentID != render.parent) {
               let { x: newX, y: newY, rotation: newRotation } = this.utils.getRelativePosition({
                 ...render,
-                p: [x, y],
+                p: [annoX, annoY],
                 parent: setParentID
               });
               //let [correctX, correctY] = this.math.rotatePointOrigin(newX, newY, newX + (width / 2), newY + (height / 2), newRotation);

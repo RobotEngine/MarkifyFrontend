@@ -2103,6 +2103,12 @@ modules["editor/toolbar/resize_placement"] = class {
         }
       }
       if (this.CAN_FLIP != false) {
+        if (setX < 0) {
+          this.annotation.render.p[0] += thickness;
+        }
+        if (setY < 0) {
+          this.annotation.render.p[1] += thickness;
+        }
         this.annotation.render.s = [setX, setY];
       } else {
         this.annotation.render.s = [Math.abs(setX), Math.abs(setY)];
@@ -2113,6 +2119,8 @@ modules["editor/toolbar/resize_placement"] = class {
           this.annotation.render.p[1] += setY;
         }
       }
+    } else {
+      
     }
     let renderObject = { ...this.annotation, render: { ...this.annotation.render, ...this.RENDER_INSERT } };
     await this.editor.render.create(renderObject);
@@ -2126,8 +2134,6 @@ modules["editor/toolbar/resize_placement"] = class {
     }
     if (event != null && (this.editor.isEditorContent(event.target) == true || this.resizeActive == true)) {
       this.annotation.render._id = this.editor.render.tempID();
-
-      this.editor.selecting[this.annotation.render._id] = {};
       
       await this.editor.save.push(this.annotation.render);
       await this.editor.history.push("remove", [{ _id: this.annotation.render._id }]);
@@ -2138,6 +2144,7 @@ modules["editor/toolbar/resize_placement"] = class {
 
       await this.parent.toolbar.startTool(this.parent.toolbar.toolbar.querySelector('.eTool[tool="selection"]'));
       await this.parent.toolbar.startTool(this.parent.toolbar.toolbar.querySelector('.eTool[tool="select"]'));
+      this.editor.selecting[this.annotation.render._id] = {};
       this.parent.selection.updateBox();
     }
     this.editor.render.remove(this.annotation);

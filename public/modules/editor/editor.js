@@ -533,12 +533,12 @@ modules["editor/editor"] = class {
       let bottomRightY = topLeftY + height + thickness;
       let returnRotation = anno.r ?? 0;
 
-      let selectedParent = false;
+      let selectingParent = false;
       let parents = this.utils.getParents(anno, includeSelecting);
       for (let i = 0; i < parents.length; i++) {
         let render = parents[i];
         if (this.selecting[render._id] != null) {
-          selectedParent = true;
+          selectingParent = true;
         }
         let rotate = render.r ?? 0;
         let renderThickness = this.utils.getThickness(render);
@@ -575,7 +575,7 @@ modules["editor/editor"] = class {
         returnRotation += rotate;
       }
       
-      return { x: topLeftX, y: topLeftY, endX: bottomRightX, endY: bottomRightY, rotation: (returnRotation + 360) % 360, thickness: thickness, parents: parents, selectedParent: selectedParent };
+      return { x: topLeftX, y: topLeftY, endX: bottomRightX, endY: bottomRightY, rotation: (returnRotation + 360) % 360, thickness: thickness, parents: parents, selectingParent: selectingParent };
     }
     this.utils.getRelativePosition = (anno, includeSelecting) => {
       let position = this.utils.getAbsolutePosition({ ...anno, parent: anno.prevParent });
@@ -652,7 +652,8 @@ modules["editor/editor"] = class {
         width: width,
         height: height,
         thickness: position.thickness,
-        rotation: position.rotation
+        rotation: position.rotation,
+        selectingParent: position.selectingParent
       };
     }
     this.utils.parentFromAnnotation = async (anno, includeSelecting) => {
@@ -1206,15 +1207,15 @@ modules["editor/editor"] = class {
       editorContent.style.marginRight = this.render.marginRight + "px";
       editorContent.style.marginTop = this.render.marginTop + "px";
       editorContent.style.marginBottom = this.render.marginBottom + "px";
-      if (editorContent.offsetWidth != this.render.lastOffsetWidth || editorContent.offsetHeight != this.render.lastOffsetHeight) {
+      if (content.offsetWidth != this.render.lastOffsetWidth || content.offsetHeight != this.render.lastOffsetHeight) {
         contentHolder.scrollTo(scrollPosX + (this.render.marginLeft - contentLeft), scrollPosY + (this.render.marginTop - contentTop));
         if (this.realtime.module && this.realtime.module.adjustRealtimeHolder) {
           this.realtime.module.adjustRealtimeHolder();
         }
         this.pipeline.publish("redraw_selection", { transition: false });
       }
-      this.render.lastOffsetWidth = editorContent.offsetWidth;
-      this.render.lastOffsetHeight = editorContent.offsetHeight;
+      this.render.lastOffsetWidth = content.offsetWidth;
+      this.render.lastOffsetHeight = content.offsetHeight;
     }
     this.render.processPageRenders = async () => {
       if (this.render.runningPageRender == true) {

@@ -126,6 +126,7 @@ modules["editor/toolbar"] = class {
 
     let contentHolder = editor.contentHolder;
     let content = editor.contentHolder.querySelector(".eContent");
+    let realtimeHolder = content.querySelector(".eRealtime");
     let annotations = content.querySelector(".eAnnotations");
 
     let currentTool = "selection";
@@ -971,6 +972,9 @@ modules["editor/toolbar"] = class {
       let showOnlyWidthHandles = true;
       let showRotationHandle = false;
 
+      let selectedAnnotations = [];
+      let selectionChange = false;
+
       let annotationRect = editor.utils.localBoundingRect(annotations);
 
       let selections = Object.keys(editor.selecting);
@@ -1002,12 +1006,12 @@ modules["editor/toolbar"] = class {
           delete editor.selecting[annoID];
           continue;
         }
-        let parents = editor.utils.getParents(merged);
-        for (let p = 0; p < parents.length; p++) {
-          if (editor.selecting[parents[p]._id] != null) {
-            delete editor.selecting[annoID];
-            return this.selection.updateBox(options);
-          }
+        
+        let rect = editor.utils.getRect(merged);
+        
+        if (rect.selectingParent == true) {
+          delete editor.selecting[annoID];
+          return this.selection.updateBox(options);
         }
 
         if (editor.utils.canMemberModify(merged) != true || editor.utils.isLocked(merged) == true) {
@@ -1041,7 +1045,7 @@ modules["editor/toolbar"] = class {
         }
 
         let select = this.selection.currentSelections[annoID];
-        let collabSelect = content.querySelector('.eCollabSelect[anno="' + annoID + '"]');
+        let collabSelect = realtimeHolder.querySelector('.eCollabSelect[anno="' + annoID + '"]');
         
         let transition = this.selection.action == null && options.transition != false;
 
@@ -1057,7 +1061,11 @@ modules["editor/toolbar"] = class {
         } else if (select != null) {
           select.remove();
         }
+        if (this.selection.currentSelections.hasOwnProperty(annoID) == false) {
+          selectionChange = true;
+        }
         this.selection.currentSelections[annoID] = select;
+        selectedAnnotations.push(annoID);
 
         if (transition == false) {
           if (select != null) {
@@ -1081,8 +1089,6 @@ modules["editor/toolbar"] = class {
           }
         }
 
-        let rect = editor.utils.getRect(merged);
-
         this.selection.lastRect = rect;
         this.selection.lastElementWidth = rect.width;
         this.selection.lastElementHeight = rect.height;
@@ -1098,15 +1104,15 @@ modules["editor/toolbar"] = class {
 
         let [topLeftX, topLeftY, bottomRightX, bottomRightY] = editor.math.rotatedBounds(rect.x, rect.y, rect.endX, rect.endY, rect.rotation);
 
-        this.minX = Math.min(this.minX ?? topLeftX, topLeftX);
-        this.minY = Math.min(this.minY ?? topLeftY, topLeftY);
-        this.maxX = Math.max(this.maxX ?? bottomRightX, bottomRightX);
-        this.maxY = Math.max(this.maxY ?? bottomRightY, bottomRightY);
+        this.selection.minX = Math.min(this.selection.minX ?? topLeftX, topLeftX);
+        this.selection.minY = Math.min(this.selection.minY ?? topLeftY, topLeftY);
+        this.selection.maxX = Math.max(this.selection.maxX ?? bottomRightX, bottomRightX);
+        this.selection.maxY = Math.max(this.selection.maxY ?? bottomRightY, bottomRightY);
 
         let setCheckX = rect.x + rect.width;
-        this.checkX = Math.min(this.checkX ?? setCheckX, setCheckX);
+        this.selection.checkX = Math.min(this.selection.checkX ?? setCheckX, setCheckX);
         let setCheckY = rect.y + rect.height;
-        this.checkY = Math.min(this.checkY ?? setCheckY, setCheckY);
+        this.selection.checkY = Math.min(this.selection.checkY ?? setCheckY, setCheckY);
 
         if (transition == false && select != null) {
           select.offsetHeight;
@@ -1119,8 +1125,107 @@ modules["editor/toolbar"] = class {
           collabSelect.style.transform = "translate(" + (annotationRect.left + (rect.x * editor.zoom) + contentHolder.scrollLeft - 1.5) + "px," + (annotationRect.top + (rect.y * editor.zoom) + contentHolder.scrollTop - 1.5) + "px) rotate(" + rect.rotation + "deg)";
         }
       }
+
+      let showSelectBox = selectedAnnotations.length > 0 && options.hideSelectBox != true;
+      let refreshSelectBox = this.selection.lastSelectAmount == selectedAnnotations.length && selectionChange == true;
+      if (showSelectBox == false || refreshSelectBox == true) {
+        let remSelect = this.selection.selectBox;
+        if (remSelect != null) {
+          this.selection.selectBox = null;
+          this.selection.lastSelectAmount = 0;
+          remSelect.style.opacity = 0;
+          (async function () {
+            await sleep(150);
+            if (remSelect != null) {
+              remSelect.remove();
+            }
+          })();
+        }
+      }
+      if (showSelectBox == true) {
+        let transition = this.selection.action == null && options.transition != false && this.selection.lastSelectAmount == selectedAnnotations.length;
+        if (this.selection.selectBox == null) {
+          content.insertAdjacentHTML("beforeend", `<div class="eSelect" tooleditor new></div>`);
+          this.selection.selectBox = content.querySelector(".eSelect[new]");
+          this.selection.selectBox.removeAttribute("new");
+          this.selection.selectBox.style.border = "solid 4px var(--theme)";
+          this.selection.selectBox.style.opacity = 1;
+          transition = false;
+        }
+        if (transition == false) {
+          this.selection.selectBox.setAttribute("notransition", "");
+        } else {
+          this.selection.selectBox.removeAttribute("notransition");
+        }
+        this.selection.lastSelectAmount = selectedAnnotations.length;
+
+        let boxWidth = 0;
+        let boxHeight = 0;
+        let boxX = 0;
+        let boxY = 0;
+        this.selection.rotation = 0;
+        if (selectedAnnotations.length < 2) {
+          boxWidth = ((this.selection.lastElementWidth * editor.zoom) - 4);
+          boxHeight = ((this.selection.lastElementHeight * editor.zoom) - 4);
+          boxX = this.selection.lastElementX;
+          boxY = this.selection.lastElementY;
+          this.selection.rotation = this.selection.lastElementRotate;
+        } else {
+          boxWidth = ((this.selection.maxX - this.selection.minX) * editor.zoom) - 4;
+          boxHeight = ((this.selection.maxY - this.selection.minY) * editor.zoom) - 4;
+          boxX = annotationRect.left + (this.selection.minX * editor.zoom) + contentHolder.scrollLeft - 2;
+          boxY = annotationRect.top + (this.selection.minY * editor.zoom) + contentHolder.scrollTop - 2;
+        }
+        this.selection.selectBox.style.width = boxWidth + "px";
+        this.selection.selectBox.style.height = boxHeight + "px";
+        this.selection.selectBox.style.transform = "translate(" + boxX + "px," + boxY + "px) rotate(" + this.selection.rotation + "deg)";
+        
+        if (transition == false) {
+          this.selection.selectBox.offsetHeight;
+          this.selection.selectBox.removeAttribute("notransition");
+        }
+      }
+
+      if (options.redrawAction != false) {
+        this.selection.updateActionBar(options);
+      }
+
+      let allRealtimeSelections = realtimeHolder.querySelectorAll(".eCollabSelect");
+      for (let i = 0; i < allRealtimeSelections.length; i++) {
+        let selection = allRealtimeSelections[i];
+        let annoID = selection.getAttribute("anno");
+        let render;
+        if (annoID != "cursor") {
+          if (editor.annotations[annoID] == null) {
+            selection.remove();
+            continue;
+          }
+          render = { ...((editor.annotations[annoID]).render ?? {}), ...(editor.selecting[annoID] ?? {}) };
+          if (render.f == null) {
+            continue;
+          }
+        } else {
+          let member = editor.members[selection.getAttribute("member")];
+          if (member == null || member.cursorRender == null) {
+            continue;
+          }
+          render = { ...member.cursorRender, ...(editor.selecting[annoID] ?? {}) };
+        }
+        let rect = editor.utils.getRect(render);
+        let transition = options.transition != false && (this.selection.action != null && rect.selectingParent != true);
+        if (transition == false) {
+          selection.setAttribute("notransition", "");
+        }
+        selection.style.width = ((rect.width * editor.zoom) - 3) + "px";
+        selection.style.height = ((rect.height * editor.zoom) - 3) + "px";
+        selection.style.transform = "translate(" + (annotationRect.left + (rect.x * editor.zoom) + contentHolder.scrollLeft - 1.5) + "px," + (annotationRect.top + (rect.y * editor.zoom) + contentHolder.scrollTop - 1.5) + "px) rotate(" + rect.rotation + "deg)";
+        if (transition == false) {
+          selection.offsetHeight;
+          selection.removeAttribute("notransition");
+        }
+      }
     }
-    this.selection.updateActionBar = async () => {
+    this.selection.updateActionBar = async (options = {}) => {
 
     }
     this.selection.startAction = (event) => {

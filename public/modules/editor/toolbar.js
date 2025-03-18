@@ -1060,6 +1060,7 @@ modules["editor/toolbar"] = class {
           }
         } else if (select != null) {
           select.remove();
+          select = null;
         }
         if (this.selection.currentSelections.hasOwnProperty(annoID) == false) {
           selectionChange = true;

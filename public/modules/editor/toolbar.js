@@ -1298,7 +1298,7 @@ modules["editor/toolbar"] = class {
           render = { ...member.cursorRender, ...(editor.selecting[annoID] ?? {}) };
         }
         let rect = editor.utils.getRect(render);
-        let transition = options.transition != false && (this.selection.action != null && rect.selectingParent != true);
+        let transition = options.transition != false && (this.selection.action == null || rect.selectingParent != true);
         if (transition == false) {
           selection.setAttribute("notransition", "");
         }
@@ -2204,8 +2204,6 @@ modules["editor/toolbar/resize_placement"] = class {
           this.annotation.render.p[1] += setY;
         }
       }
-    } else {
-      
     }
     let renderObject = { ...this.annotation, render: { ...this.annotation.render, ...this.RENDER_INSERT } };
     await this.editor.render.create(renderObject);
@@ -2336,14 +2334,16 @@ modules["editor/toolbar/upload"] = class extends modules["editor/toolbar/resize_
             if (file.size < 10485760) { // 10 MB
               this.imageBlob = URL.createObjectURL(file);
               let image = new Image();
-              image.src = this.imageBlob;
               image.onload = () => {
                 this.width = Math.min(image.width, 400);
                 this.height = image.height * (this.width / image.width);
                 this.RENDER_INSERT = { d: this.PROPERTIES.d ?? this.imageBlob };
-                this.PROPERTIES.s = this.PROPERTIES.s ?? [this.width, this.height];
+                if (this.resizeActive != true) {
+                  this.PROPERTIES.s = [this.width, this.height];
+                }
                 this.ACTIVE = true;
               }
+              image.src = this.imageBlob;
               let form = new FormData();
               form.append("media", file);
               let initBlob = this.imageBlob;

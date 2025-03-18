@@ -573,7 +573,7 @@ modules["editor/realtime"] = class {
                 delete userSelection[annoID];
               }
               if (anno.lock == false) {
-                if (editor.utils.canMemberModify(originalRender, memberData) == true) {
+                if (editor.utils.canMemberModify(originalRender, memberData) == false) {
                   anno.lock = null;
                 }
               }

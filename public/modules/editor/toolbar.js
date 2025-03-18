@@ -99,6 +99,31 @@ modules["editor/toolbar"] = class {
     ".eSelectActive": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: all !important; cursor: move; z-index: var(--selectZIndex)`,
     ".eContent[noshiftheld] .eSelectActive": `z-index: var(--annoZIndex) !important`,
     ".eAnnotation[selected] > *": `pointer-events: none`,
+    ".eSelectHandle": `position: absolute; transition: .1s; pointer-events: all; --scale: 1`,
+    '.eSelectHandle:hover': `--scale: 1.3`,
+    '.eSelectHandle:active': `--scale: 1.1 !important`,
+    '.eSelectHandle[handle="movetop"]': `width: 100%; height: 10px; top: -10px; cursor: move`,
+    '.eSelectHandle[handle="movebottom"]': `width: 100%; height: 10px; bottom: -10px; cursor: move`,
+    '.eSelectHandle[handle="moveleft"]': `width: 10px; height: 100%; left: -10px; cursor: move`,
+    '.eSelectHandle[handle="moveright"]': `width: 10px; height: 100%; right: -10px; cursor: move`,
+    '.eSelectHandle[handle="topleft"]': `left: -10px; top: -10px; cursor: nwse-resize`,
+    '.eSelectHandle[handle="topright"]': `right: -10px; top: -10px; cursor: nesw-resize`,
+    '.eSelectHandle[handle="bottomleft"]': `left: -10px; bottom: -10px; cursor: nesw-resize`,
+    '.eSelectHandle[handle="bottomright"]': `right: -10px; bottom: -10px; cursor: nwse-resize`,
+    '.eSelectHandle[handle="left"]': `left: -14px; top: 50%; transform: translateY(-50%); cursor: ew-resize`,
+    '.eSelectHandle[handle="right"]': `right: -14px; top: 50%; transform: translateY(-50%); cursor: ew-resize`,
+    '.eSelectHandle[handle="top"]': `left: 50%; top: -14px; transform: translateX(-50%); cursor: ns-resize`,
+    '.eSelectHandle[handle="bottom"]': `left: 50%; bottom: -14px; transform: translateX(-50%); cursor: ns-resize`,
+    '.eSelectHandle[handle="rotate"]': `left: -28px; bottom: -28px; cursor: crosshair`,
+    ".eSelectHandle[duplicate]": `opacity: 0; pointer-events: none`,
+    '.eSelectHandle[handle="duplicateleft"]': `left: -50px; top: 50%; transform: translateY(-50%) scale(var(--scale)); cursor: pointer`,
+    '.eSelectHandle[handle="duplicateright"]': `right: -50px; top: 50%; transform: translateY(-50%) scale(var(--scale)); cursor: pointer`,
+    '.eSelectHandle[handle="duplicatetop"]': `left: 50%; top: -50px; transform: translateX(-50%) scale(var(--scale)); cursor: pointer`,
+    '.eSelectHandle[handle="duplicatebottom"]': `left: 50%; bottom: -50px; transform: translateX(-50%) scale(var(--scale)); cursor: pointer`,
+    ".eSelect[hidehandles] .eSelectHandle": `opacity: 0; pointer-events: none`,
+    ".eSelect[showduplicate]:not([notransition]) .eSelectHandle[duplicate]": `opacity: 1 !important; pointer-events: all !important`,
+    ".eSelect[showonlywidth] .eSelectHandle[fullresize]": `opacity: 0; pointer-events: none`,
+    '.eSelect[hiderotation] .eSelectHandle[handle="rotate"]': `opacity: 0; pointer-events: none`
   };
   js = async (editor) => {
     let page = editor.page;
@@ -967,7 +992,7 @@ modules["editor/toolbar"] = class {
       this.selection.resizePreserveAspect = false;
       this.selection.multiSelectResizePreserveAspect = false;
 
-      let showActions = true;
+      let showHandles = true;
       let showDuplicateHandles = true;
       let showOnlyWidthHandles = true;
       let showRotationHandle = false;
@@ -1015,7 +1040,7 @@ modules["editor/toolbar"] = class {
         }
 
         if (editor.utils.canMemberModify(merged) != true || editor.utils.isLocked(merged) == true) {
-          showActions = false;
+          showHandles = false;
         }
 
         let annoModule = (await editor.render.getModule(merged.f)) ?? {};
@@ -1146,7 +1171,25 @@ modules["editor/toolbar"] = class {
       if (showSelectBox == true) {
         let transition = this.selection.action == null && options.transition != false && this.selection.lastSelectAmount == selectedAnnotations.length;
         if (this.selection.selectBox == null) {
-          content.insertAdjacentHTML("beforeend", `<div class="eSelect" new></div>`);
+          content.insertAdjacentHTML("beforeend", `<div class="eSelect" new>
+            <div class="eSelectHandle" handle="movetop" ignore></div>
+            <div class="eSelectHandle" handle="movebottom" ignore></div>
+            <div class="eSelectHandle" handle="moveleft" ignore></div>
+            <div class="eSelectHandle" handle="moveright" ignore></div>
+            <svg class="eSelectHandle" handle="rotate" width="26" height="26" viewBox="0 0 31 31" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M3.46244 9.45089C2.67045 10.2429 1.38612 10.2429 0.594123 9.45089C-0.197875 8.65884 -0.197875 7.37466 0.594123 6.58261L3.46244 9.45089ZM9.04395 3.86918L3.46244 9.45089L0.594123 6.58261L6.17562 1.0009L9.04395 3.86918Z" fill="#0084FF"/> <path d="M14.6257 6.58261C15.4177 7.37466 15.4177 8.65884 14.6257 9.45089C13.8337 10.2429 12.5494 10.2429 11.7574 9.45089L14.6257 6.58261ZM9.04373 1.0009L14.6257 6.58261L11.7574 9.45089L6.17541 3.86918L9.04373 1.0009Z" fill="var(--theme)"/> <path d="M21.3783 19.0707C20.5863 18.2786 20.5863 16.9945 21.3783 16.2024C22.1703 15.4104 23.4546 15.4104 24.2466 16.2024L21.3783 19.0707ZM26.9603 24.6523L21.3783 19.0707L24.2466 16.2024L29.8281 21.7841L26.9603 24.6523Z" fill="var(--theme)"/> <path d="M24.2466 30.2341C23.4546 31.0261 22.1703 31.0261 21.3783 30.2341C20.5863 29.442 20.5863 28.1579 21.3783 27.3658L24.2466 30.2341ZM29.8281 24.6524L24.2466 30.2341L21.3783 27.3658L26.9603 21.7841L29.8281 24.6524Z" fill="var(--theme)"/> <path d="M7.63804 2.43607V10.0101C7.63804 17.2905 13.5396 23.1924 20.8203 23.1924H28.394" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="topleft" fullresize width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M2 14V14C2 7.37258 7.37258 2 14 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="topright" fullresize width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M14 14V14C14 7.37258 8.62742 2 2 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="bottomleft" fullresize width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M2 2V2C2 8.62742 7.37258 14 14 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="bottomright" fullresize width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M14 2V2C14 8.62742 8.62742 14 2 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="left" width="12" height="28" viewBox="0 0 12 28" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M6 6V22" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="right" width="12" height="28" viewBox="0 0 12 28" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M6 6V22" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="top" fullresize width="28" height="12" viewBox="0 0 28 12" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M22 6H6" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="bottom" fullresize width="28" height="12" viewBox="0 0 28 12" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M22 6H6" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="duplicateleft" duplicate width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10.5" fill="var(--hover)" stroke="var(--theme)" stroke-width="3"/> <path d="M12 16.5L12 7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> <path d="M16.5 12H7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="duplicateright" duplicate width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10.5" fill="var(--hover)" stroke="var(--theme)" stroke-width="3"/> <path d="M12 16.5L12 7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> <path d="M16.5 12H7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="duplicatetop" duplicate width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10.5" fill="var(--hover)" stroke="var(--theme)" stroke-width="3"/> <path d="M12 16.5L12 7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> <path d="M16.5 12H7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="duplicatebottom" duplicate width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10.5" fill="var(--hover)" stroke="var(--theme)" stroke-width="3"/> <path d="M12 16.5L12 7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> <path d="M16.5 12H7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> </svg>  
+          </div>`);
           this.selection.selectBox = content.querySelector(".eSelect[new]");
           this.selection.selectBox.removeAttribute("new");
           this.selection.selectBox.style.zIndex = 102;
@@ -1182,6 +1225,27 @@ modules["editor/toolbar"] = class {
         this.selection.selectBox.style.height = boxHeight + "px";
         this.selection.selectBox.style.transform = "translate(" + boxX + "px," + boxY + "px) rotate(" + this.selection.rotation + "deg)";
         
+        if (showHandles == true) {
+          this.selection.selectBox.removeAttribute("hidehandles");
+        } else {
+          this.selection.selectBox.setAttribute("hidehandles", "");
+        }
+        if (showDuplicateHandles != true) {
+          this.selection.selectBox.removeAttribute("showduplicate");
+        } else {
+          this.selection.selectBox.setAttribute("showduplicate", "");
+        }
+        if (showOnlyWidthHandles != true) {
+          this.selection.selectBox.removeAttribute("showonlywidth");
+        } else {
+          this.selection.selectBox.setAttribute("showonlywidth", "");
+        }
+        if (showRotationHandle == true) {
+          this.selection.selectBox.removeAttribute("hiderotation");
+        } else {
+          this.selection.selectBox.setAttribute("hiderotation", "");
+        }
+
         if (transition == false) {
           this.selection.selectBox.offsetHeight;
           this.selection.selectBox.removeAttribute("notransition");

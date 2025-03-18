@@ -631,19 +631,19 @@ modules["editor/editor"] = class {
         returnRotation += rotate;
       }
       
+      let width = (Math.abs(anno.s[0]) + position.thickness) / 2;
+      let height = (Math.abs(anno.s[1]) + position.thickness) / 2;
       let x = ((bottomRightX + topLeftX) / 2);
       let y = ((bottomRightY + topLeftY) / 2);
-      console.log(x, y)
-      //let doubleThickness = position.thickness * 2;
       if (anno.s[0] > 0) {
-        x -= (Math.abs(anno.s[0]) + position.thickness) / 2;
+        x -= width;
       } else {
-        x += (Math.abs(anno.s[0]) + position.thickness) / 2;
+        x += width;
       }
       if (anno.s[1] > 0) {
-        y -= (Math.abs(anno.s[1]) + position.thickness) / 2;
+        y -= height;
       } else {
-        y += (Math.abs(anno.s[1]) + position.thickness) / 2;
+        y += height;
       }
       return { x, y, rotation: (returnRotation + 360) % 360, thickness: position.thickness, parents: parents };
     }

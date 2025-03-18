@@ -324,6 +324,9 @@ modules["editor/editor"] = class {
       return dx * dx + dy * dy <= tolerance * tolerance; // return distance <= tolerance;
     },
     rotatePoint: (pointX, pointY, angle = 0) => {
+      if (angle == 0) {
+        return [pointX, pointY];
+      }
       let radian = angle * (Math.PI / 180);
       let cos = Math.cos(radian);
       let sin = Math.sin(radian);

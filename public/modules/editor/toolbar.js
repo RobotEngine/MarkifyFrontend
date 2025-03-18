@@ -1327,7 +1327,7 @@ modules["editor/toolbar"] = class {
       
     }
     this.selection.pointInSelectBox = (x, y) => {
-      let selectCount = Object.keys(editor.selecting);
+      let selectCount = Object.keys(editor.selecting).length;
       if (selectCount > 1) {
         return editor.math.pointInRotatedBounds(x, y, this.selection.minX, this.selection.minY, this.selection.maxX, this.selection.maxY, this.selection.rotation, 10 / editor.zoom);
       } else if (selectCount > 0) {

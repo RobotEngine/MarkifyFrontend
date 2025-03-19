@@ -105,10 +105,6 @@ modules["editor/editor"] = class {
   };
 
   utils = {
-    round: (num, places) => {
-      let pow = Math.pow(10, places ?? 2);
-      return Math.ceil(num * pow) / pow;
-    },
     hexToRGBString: (hex, alpha) => {
       if (hex == null) {
         return "";
@@ -229,6 +225,10 @@ modules["editor/editor"] = class {
     }
   };
   math = {
+    round: (num, places) => {
+      let pow = Math.pow(10, places ?? 2);
+      return Math.ceil(num * pow) / pow;
+    },
     simplifyPath: (points, epsilon) => {
       if (points.length <= 2) {
         return points;
@@ -814,8 +814,8 @@ modules["editor/editor"] = class {
       }
       let scaleZoom = 1 / this.zoom;
       return {
-        x: this.utils.round(x * scaleZoom),
-        y: this.utils.round(y * scaleZoom)
+        x: this.math.round(x * scaleZoom),
+        y: this.math.round(y * scaleZoom)
       }
     };
     this.utils.scaleToZoom = (x, y) => {

@@ -1008,13 +1008,25 @@ modules["editor/toolbar"] = class {
       let selections = Object.keys(editor.selecting);
       if (this.currentToolModule != null) {
         let setUserSelect;
+        let setTouchAction;
         if (selections.length > 0) {
           setUserSelect = "none";
+          setTouchAction = "pinch-zoom";
+          if (this.selection.originalUserSelect == null) {
+            this.selection.originalUserSelect = this.currentToolModule.USER_SELECT;
+          }
+          if (this.selection.originalTouchAction == null) {
+            this.selection.originalTouchAction = this.currentToolModule.TOUCH_ACTION;
+          }
         } else {
-          setUserSelect = "unset";
+          setUserSelect = this.selection.originalUserSelect;
+          this.selection.originalUserSelect = null;
+          setTouchAction = this.selection.originalTouchAction;
+          this.selection.originalTouchAction = null;
         }
         if (setUserSelect != this.currentToolModule.USER_SELECT) {
           this.currentToolModule.USER_SELECT = setUserSelect;
+          this.currentToolModule.TOUCH_ACTION = setTouchAction;
           this.applyToolModule();
         }
       }
@@ -1318,7 +1330,7 @@ modules["editor/toolbar"] = class {
       }
 
       this.selection.actionEnabled = false;
-      this.selection.annotations = {};
+      this.selection.annotationRects = {};
       this.selection.handle = null;
       let handleElement = event.target.closest(".eSelectHandle");
       if (handleElement != null) {
@@ -1329,16 +1341,13 @@ modules["editor/toolbar"] = class {
 
       let { mouseX, mouseY } = editor.utils.localMousePosition(event);
       let position = editor.utils.scaleToDoc(mouseX, mouseY);
-      this.enableStartX = mouseX;
-      this.enableStartY = mouseY;
+      this.selection.enableStartX = mouseX;
+      this.selection.enableStartY = mouseY;
 
       if (this.selection.handle == null) { // Move
         this.selection.action = "move";
-        this.rootX = position.x;
-        this.rootY = position.y;
-        this.currentToolModule.USER_SELECT = "none";
-        this.currentToolModule.TOUCH_ACTION = "pinch-zoom";
-        this.applyToolModule();
+        this.selection.rootX = position.x;
+        this.selection.rootY = position.y;
       } else if (handleElement.hasAttribute("duplicate") == false) { // Resize OR Rotate
         let boundingBoxWidth = this.selection.maxX - this.selection.minX;
         let boundingBoxHeight = this.selection.maxY - this.selection.minY;
@@ -1375,8 +1384,8 @@ modules["editor/toolbar"] = class {
           let halfRotateWidth = this.selection.originalPosition[0] + (this.selection.originalSize[0] / 2);
           let halfRotateHeight = this.selection.originalPosition[1] + (this.selection.originalSize[1] / 2);
           let [xCoord, yCoord] = editor.math.rotatePoint(position.x - halfRotateWidth, position.y - halfRotateHeight, this.selection.rotation);
-          this.rootX = xCoord;
-          this.rootY = yCoord;
+          this.selection.rootX = xCoord;
+          this.selection.rootY = yCoord;
         } else { // Rotate
           this.selection.action = "rotate";
 
@@ -1391,19 +1400,152 @@ modules["editor/toolbar"] = class {
             this.selection.originalRotation = 360 + this.selection.originalRotation;
           }
         }
-        this.currentToolModule.USER_SELECT = "none";
-        this.currentToolModule.TOUCH_ACTION = "pinch-zoom";
-        this.applyToolModule();
       } else { // Duplicate
         // MUST DO LATER
       }
       event.preventDefault();
     }
-    this.selection.moveAction = (event) => {
-      
+    this.selection.setScrollInterval = async () => {
+      if (this.selection.scrollIntervalRunning == true) {
+        return;
+      }
+      this.selection.scrollIntervalRunning = true;
+      while (this.selection.action != null && (this.selection.scrollIntervalX != 0 || this.selection.scrollIntervalY != 0)) {
+        contentHolder.scrollTo(contentHolder.scrollLeft + this.selection.scrollIntervalX, contentHolder.scrollTop + this.selection.scrollIntervalY);
+        await this.selection.moveAction(this.selection.scrollLastEvent, null, null, true);
+        await sleep(10);
+      }
+      this.selection.scrollIntervalRunning = false;
     }
-    this.selection.endAction = (event) => {
+    this.selection.moveAction = async (event, snapX, snapY, fromScroll) => {
+      if (this.selection.action == null) {
+        return;
+      }
+      if (mouseDown() == false) {
+        return this.selection.endAction();
+      }
+
+      let mouseX = this.selection.lastMouseX;
+      let mouseY = this.selection.lastMouseY;
+      if (event != null) {
+        ({ mouseX, mouseY } = editor.utils.localMousePosition(event));
+        this.selection.lastMouseX = mouseX;
+        this.selection.lastMouseY = mouseY;
+        this.selection.scrollLastEvent = event;
+      } else {
+        event = this.scrollLastEvent ?? {};
+      }
+
+      if (this.selection.actionEnabled == false) {
+        if (Math.abs(mouseX - this.selection.enableStartX) > 3 || Math.abs(mouseY - this.selection.enableStartY) > 3) {
+          this.selection.actionEnabled = true;
+        } else {
+          return;
+        }
+      }
+
+      // Handle Scroll with Mouse:
+      if (fromScroll != true && ["move", "resize"].includes(this.selection.action) == true) {
+        let scrollOffset = 32;
+        this.selection.scrollIntervalX = 0;
+        this.selection.scrollIntervalY = 0;
+        let leftPos = scrollOffset - mouseX;
+        if (leftPos > 0) {
+          let percentage = 1 + ((leftPos - scrollOffset) / scrollOffset);
+          this.selection.scrollIntervalX = -Math.min(10 * percentage, 10);
+        }
+        let rightPos = mouseX - page.offsetWidth + scrollOffset;
+        if (rightPos > 0) {
+          let percentage = 1 + ((rightPos - scrollOffset) / scrollOffset);
+          this.selection.scrollIntervalX = Math.min(10 * percentage, 10);
+        }
+        let topPos = scrollOffset - mouseY;
+        if (topPos > 0) {
+          let percentage = 1 + ((topPos - scrollOffset) / scrollOffset);
+          this.selection.scrollIntervalY = -Math.min(10 * percentage, 10);
+        }
+        let bottomPos = mouseY - page.offsetHeight + scrollOffset;
+        if (bottomPos > 0) {
+          let percentage = 1 + ((bottomPos - scrollOffset) / scrollOffset);
+          this.selection.scrollIntervalY = Math.min(10 * percentage, 10);
+        }
+        if (this.selection.scrollIntervalX != 0 || this.selection.scrollIntervalY != 0) {
+          return this.selection.setScrollInterval();
+        }
+      }
       
+      let position = editor.utils.scaleToDoc(mouseX, mouseY);
+      let offsetSnapX = snapX ?? 0;
+      let offsetSnapY = snapY ?? 0;
+
+      let changePositionX = 0;
+      let changePositionY = 0;
+      if (this.selection.action == "move") {
+        changePositionX = position.x - this.selection.rootX;
+        changePositionY = position.y - this.selection.rootY;
+      }
+
+      let keys = Object.keys(editor.selecting);
+      for (let i = 0; i < keys.length; i++) {
+        let annoid = keys[i];
+        let original = editor.annotations[annoid] ?? {};
+        if (original.pointer != null) {
+          editor.selecting[original.pointer] = { ...(editor.selecting[annoid] ?? {}), ...(editor.selecting[original.pointer] ?? {}) };
+          delete editor.selecting[annoid];
+          annoid = original.pointer;
+          original = editor.annotations[annoid] ?? {};
+        }
+        if (original.render == null) {
+          continue;
+        }
+        if (original.render.lock == true) {
+          return this.selection.endAction();
+        }
+        if (original.revert == null) {
+          original.revert = copyObject(original.render);
+        }
+        if (editor.self.access < 1 || editor.utils.canMemberModify(original.render) == false) {
+          delete editor.selecting[annoid];
+          continue;
+        }
+        let select = editor.selecting[annoid];
+        delete select.done;
+
+        let rect = this.selection.annotationRects[annoid];
+        if (rect == null) {
+          rect = editor.utils.getRect(original.render);
+          this.selection.annotationRects[annoid] = rect;
+        }
+
+        if (this.selection.action == "move") {
+          select.p = [
+            editor.math.round(rect.annoX + changePositionX + offsetSnapX),
+            editor.math.round(rect.annoY + changePositionY + offsetSnapY)
+          ];
+        }
+
+        let { x: newX, y: newY, rotation: newRotation } = editor.utils.getRelativePosition({
+          ...original.render,
+          p: select.p ?? [rect.annoX, rect.annoY],
+          r: select.r ?? rect.rotation
+        });
+        if (select.p != null) {
+          select.p = [newX, newY];
+        }
+        if (select.r != null) {
+          select.r = newRotation;
+        }
+
+        await editor.render.create({ ...original, render: { ...original.render, ...select }, animate: false });
+      }
+
+      await this.selection.updateBox();
+    }
+    this.selection.endAction = () => {
+      if (this.selection.action == null) {
+        return;
+      }
+      this.selection.action = null;
     }
     this.selection.clickAction = (data) => {
       
@@ -1601,13 +1743,15 @@ modules["editor/toolbar/select"] = class {
       }
     }
     await this.parent.selection.updateBox();
-    await this.parent.selection.startAction(event);
+    if (event.target.closest(".eSelect") != null) {
+      await this.parent.selection.startAction(event);
+    }
   }
   clickMove = async (event) => {
     await this.parent.selection.moveAction(event);
   }
   clickEnd = async (event) => {
-    await this.parent.selection.endAction(event);
+    await this.parent.selection.endAction();
 
     let target = this.lastTarget ?? event.target;
     this.lastTarget = null;
@@ -1737,7 +1881,7 @@ modules["editor/toolbar/pen"] = class {
       render: {
         _id: this.editor.render.tempID(),
         f: this.FUNCTION,
-        p: [this.editor.utils.round(position.x - halfUseThickness), this.editor.utils.round(position.y - halfUseThickness)],
+        p: [this.editor.math.round(position.x - halfUseThickness), this.editor.math.round(position.y - halfUseThickness)],
         s: [0, 0],
         l: this.editor.maxLayer + 1,
         c: this.COLOR ?? toolPreference.color.selected,
@@ -1775,7 +1919,7 @@ modules["editor/toolbar/pen"] = class {
     let rect = this.editor.utils.localBoundingRect(this.annotation.element);
     let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
     let { x, y } = this.editor.utils.scaleToDoc(mouseX - rect.left, mouseY - rect.top, true);
-    let halfT = this.editor.utils.round(this.annotation.render.t / 2);
+    let halfT = this.editor.math.round(this.annotation.render.t / 2);
     x -= halfT;
     y -= halfT;
     if (this.FORCE_LINE != true && event.shiftKey == false) {
@@ -1788,39 +1932,39 @@ modules["editor/toolbar/pen"] = class {
       let sizeIncX = Math.ceil(x);
       if (sizeIncX < 0) {
         for (let i = 0; i < this.annotation.render.d.length; i += 2) {
-          this.annotation.render.d[i] = this.editor.utils.round(this.annotation.render.d[i] - sizeIncX);
+          this.annotation.render.d[i] = this.editor.math.round(this.annotation.render.d[i] - sizeIncX);
         }
-        this.annotation.render.s[0] = this.editor.utils.round(this.annotation.render.s[0] - sizeIncX);
-        this.annotation.render.p[0] = this.editor.utils.round(this.annotation.render.p[0] + sizeIncX);
+        this.annotation.render.s[0] = this.editor.math.round(this.annotation.render.s[0] - sizeIncX);
+        this.annotation.render.p[0] = this.editor.math.round(this.annotation.render.p[0] + sizeIncX);
         x = 0;
       }
       let sizeIncY = Math.ceil(y);
       if (sizeIncY < 0) {
         for (let i = 1; i < this.annotation.render.d.length; i += 2) {
-          this.annotation.render.d[i] = this.editor.utils.round(this.annotation.render.d[i] - sizeIncY);
+          this.annotation.render.d[i] = this.editor.math.round(this.annotation.render.d[i] - sizeIncY);
         }
-        this.annotation.render.s[1] = this.editor.utils.round(this.annotation.render.s[1] - sizeIncY);
-        this.annotation.render.p[1] = this.editor.utils.round(this.annotation.render.p[1] + sizeIncY);
+        this.annotation.render.s[1] = this.editor.math.round(this.annotation.render.s[1] - sizeIncY);
+        this.annotation.render.p[1] = this.editor.math.round(this.annotation.render.p[1] + sizeIncY);
         y = 0;
       }
-      this.annotation.render.d.push(this.editor.utils.round(x));
-      this.annotation.render.d.push(this.editor.utils.round(y));
+      this.annotation.render.d.push(this.editor.math.round(x));
+      this.annotation.render.d.push(this.editor.math.round(y));
     } else {
       this.annotation.render.d = [this.annotation.render.d[0], this.annotation.render.d[1]];
       let sizeIncX = x;
       if (sizeIncX < this.annotation.render.d[0]) {
-        this.annotation.render.d[0] = this.editor.utils.round(this.annotation.render.d[0] - sizeIncX);
-        this.annotation.render.s[0] = this.editor.utils.round(this.annotation.render.s[0] - sizeIncX);
-        this.annotation.render.p[0] = this.editor.utils.round(this.annotation.render.p[0] + sizeIncX);
+        this.annotation.render.d[0] = this.editor.math.round(this.annotation.render.d[0] - sizeIncX);
+        this.annotation.render.s[0] = this.editor.math.round(this.annotation.render.s[0] - sizeIncX);
+        this.annotation.render.p[0] = this.editor.math.round(this.annotation.render.p[0] + sizeIncX);
         x = 0;
       } else {
         this.annotation.render.s[0] = Math.ceil(x);
       }
       let sizeIncY = y;
       if (sizeIncY < this.annotation.render.d[1]) {
-        this.annotation.render.d[1] = this.editor.utils.round(this.annotation.render.d[1] - sizeIncY);
-        this.annotation.render.s[1] = this.editor.utils.round(this.annotation.render.s[1] - sizeIncY);
-        this.annotation.render.p[1] = this.editor.utils.round(this.annotation.render.p[1] + sizeIncY);
+        this.annotation.render.d[1] = this.editor.math.round(this.annotation.render.d[1] - sizeIncY);
+        this.annotation.render.s[1] = this.editor.math.round(this.annotation.render.s[1] - sizeIncY);
+        this.annotation.render.p[1] = this.editor.math.round(this.annotation.render.p[1] + sizeIncY);
         y = 0;
       } else {
         this.annotation.render.s[1] = Math.ceil(y);
@@ -1832,7 +1976,7 @@ modules["editor/toolbar/pen"] = class {
       if (this.editor.math.horizontalLine(this.annotation.render.d) == true) {
         this.annotation.render.d[3] = this.annotation.render.d[1];
         this.annotation.render.s[1] = this.annotation.render.t;
-        this.annotation.render.p[1] = this.editor.utils.round(this.annotation.render.p[1] + this.annotation.render.d[1]);
+        this.annotation.render.p[1] = this.editor.math.round(this.annotation.render.p[1] + this.annotation.render.d[1]);
         this.annotation.render.d[1] = 0;
         this.annotation.render.d[3] = 0;
       }
@@ -1854,7 +1998,7 @@ modules["editor/toolbar/pen"] = class {
         if (this.editor.math.horizontalLine(this.annotation.render.d) == true) {
           let averageY = (this.annotation.render.d[1] + this.annotation.render.d[3]) / 2;
           this.annotation.render.s[1] = this.annotation.render.t;
-          this.annotation.render.p[1] = this.editor.utils.round(this.annotation.render.p[1] + averageY);
+          this.annotation.render.p[1] = this.editor.math.round(this.annotation.render.p[1] + averageY);
           this.annotation.render.d[1] = 0;
           this.annotation.render.d[3] = 0;
         }
@@ -1903,7 +2047,7 @@ modules["editor/toolbar/underline"] = class extends modules["editor/toolbar/pen"
     let toolPreference = this.parent.getToolPreference();
 
     this.OPACITY = 100;
-    this.THICKNESS = this.editor.utils.round(Math.max(toolPreference.thickness / 4, 1));
+    this.THICKNESS = this.editor.math.round(Math.max(toolPreference.thickness / 4, 1));
 
     this.MOUSE.color = toolPreference.color.selected;
     this.MOUSE.opacity = this.OPACITY;
@@ -2106,8 +2250,8 @@ modules["editor/toolbar/placement"] = class {
     }
     let position = this.editor.utils.scaleToDoc(this.mouseX, this.mouseY);
     this.annotation.render.p = [
-      this.editor.utils.round(position.x - (this.annotation.render.s[0] / 2)),
-      this.editor.utils.round(position.y - (this.annotation.render.s[1] / 2))
+      this.editor.math.round(position.x - (this.annotation.render.s[0] / 2)),
+      this.editor.math.round(position.y - (this.annotation.render.s[1] / 2))
     ];
     await this.editor.render.create(this.annotation);
     if (this.annotation.render.textfit == true) {
@@ -2239,15 +2383,15 @@ modules["editor/toolbar/resize_placement"] = class {
       this.resizeActive = true;
       let setX = this.endX - this.startX;
       if (setX >= 0) {
-        setX = this.editor.utils.round(Math.max(setX, this.MINIMUM_SIZE));
+        setX = this.editor.math.round(Math.max(setX, this.MINIMUM_SIZE));
       } else {
-        setX = this.editor.utils.round(Math.min(setX, -this.MINIMUM_SIZE));
+        setX = this.editor.math.round(Math.min(setX, -this.MINIMUM_SIZE));
       }
       let setY = this.endY - this.startY;
       if (setY >= 0) {
-        setY = this.editor.utils.round(Math.max(setY, this.MINIMUM_SIZE));
+        setY = this.editor.math.round(Math.max(setY, this.MINIMUM_SIZE));
       } else {
-        setY = this.editor.utils.round(Math.min(setY, -this.MINIMUM_SIZE));
+        setY = this.editor.math.round(Math.min(setY, -this.MINIMUM_SIZE));
       }
       if (event != null) {
         this.shiftKey = event.shiftKey;

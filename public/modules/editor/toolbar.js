@@ -96,8 +96,6 @@ modules["editor/toolbar"] = class {
     ".eVerticalToolsHolder": `display: flex; flex-direction: column; padding: 2px 0; align-items: center`,
 
     ".eSelect": `position: absolute; left: 0px; top: 0px; opacity: 0; z-index: 101; border-radius: 9px; transition: all .25s, opacity .15s; pointer-events: none`,
-    ".eSelectActive": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: all !important; cursor: move; z-index: var(--selectZIndex)`,
-    ".eContent[noshiftheld] .eSelectActive": `z-index: var(--annoZIndex) !important`,
     ".eAnnotation[selected] > *": `pointer-events: none`,
     ".eSelectHandle": `position: absolute; transition: .1s; pointer-events: all; --scale: 1`,
     '.eSelectHandle:hover': `--scale: 1.3`,
@@ -1213,7 +1211,6 @@ modules["editor/toolbar"] = class {
         let boxHeight = 0;
         let boxX = 0;
         let boxY = 0;
-        this.selection.rotation = 0;
         if (selectedAnnotations.length < 2) {
           boxWidth = ((this.selection.lastElementWidth * editor.zoom) - 4);
           boxHeight = ((this.selection.lastElementHeight * editor.zoom) - 4);
@@ -1225,6 +1222,7 @@ modules["editor/toolbar"] = class {
           boxHeight = ((this.selection.maxY - this.selection.minY) * editor.zoom) - 4;
           boxX = annotationRect.left + (this.selection.minX * editor.zoom) + contentHolder.scrollLeft - 2;
           boxY = annotationRect.top + (this.selection.minY * editor.zoom) + contentHolder.scrollTop - 2;
+          this.selection.rotation = 0;
         }
         this.selection.selectBox.style.width = boxWidth + "px";
         this.selection.selectBox.style.height = boxHeight + "px";
@@ -1315,7 +1313,91 @@ modules["editor/toolbar"] = class {
 
     }
     this.selection.startAction = (event) => {
-      
+      if (editor.self.access < 1) {
+        return;
+      }
+
+      this.selection.actionEnabled = false;
+      this.selection.annotations = {};
+      this.selection.handle = null;
+      let handleElement = event.target.closest(".eSelectHandle");
+      if (handleElement != null) {
+        if (handleElement.hasAttribute("ignore") == false) {
+          this.selection.handle = handleElement.getAttribute("handle");
+        }
+      }
+
+      let { mouseX, mouseY } = editor.utils.localMousePosition(event);
+      let position = editor.utils.scaleToDoc(mouseX, mouseY);
+      this.enableStartX = mouseX;
+      this.enableStartY = mouseY;
+
+      if (this.selection.handle == null) { // Move
+        this.selection.action = "move";
+        this.rootX = position.x;
+        this.rootY = position.y;
+        this.currentToolModule.USER_SELECT = "none";
+        this.currentToolModule.TOUCH_ACTION = "pinch-zoom";
+        this.applyToolModule();
+      } else if (handleElement.hasAttribute("duplicate") == false) { // Resize OR Rotate
+        let boundingBoxWidth = this.selection.maxX - this.selection.minX;
+        let boundingBoxHeight = this.selection.maxY - this.selection.minY;
+        let transformRotateWidth = this.selection.minX + (boundingBoxWidth / 2);
+        let transformRotateHeight = this.selection.minY + (boundingBoxHeight / 2);
+
+        let radian = this.selection.rotation * (Math.PI / 180);
+
+        let originalWidth = boundingBoxWidth;
+        let originalHeight = boundingBoxHeight;
+        if (this.selection.rotation != 0) {
+          originalWidth = this.selection.lastElementWidth;
+          originalHeight = this.selection.lastElementHeight;
+        }
+
+        // Calculate the rotated bounding box dimensions using the original bounding box dimensions
+        let rotatedWidth = Math.abs(boundingBoxWidth * Math.cos(radian)) + Math.abs(boundingBoxHeight * Math.sin(radian));
+        let rotatedHeight = Math.abs(boundingBoxHeight * Math.cos(radian)) + Math.abs(boundingBoxWidth * Math.sin(radian));
+
+        // Calculate the offset to the new top-left corner of the rotated bounding box:
+        let offsetX = (rotatedWidth - originalWidth) / 2;
+        let offsetY = (rotatedHeight - originalHeight) / 2;
+
+        // Calculate the new top-left corner of the rotated bounding box:
+        let rotatedTopLeftX = transformRotateWidth - (rotatedWidth / 2) + offsetX;
+        let rotatedTopLeftY = transformRotateHeight - (rotatedHeight / 2) + offsetY;
+
+        this.selection.originalPosition = [rotatedTopLeftX, rotatedTopLeftY];
+        this.selection.originalSize = [originalWidth, originalHeight];
+
+        if (this.selection.handle != "rotate") { // Resize
+          this.selection.action = "resize";
+
+          let halfRotateWidth = this.selection.originalPosition[0] + (this.selection.originalSize[0] / 2);
+          let halfRotateHeight = this.selection.originalPosition[1] + (this.selection.originalSize[1] / 2);
+          let [xCoord, yCoord] = editor.math.rotatePoint(position.x - halfRotateWidth, position.y - halfRotateHeight, this.selection.rotation);
+          this.rootX = xCoord;
+          this.rootY = yCoord;
+        } else { // Rotate
+          this.selection.action = "rotate";
+
+          this.selection.originalRotate = this.selection.rotation;
+
+          let centerX = this.selection.originalSize[0] / 2;
+          let centerY = this.selection.originalSize[1] / 2;
+          let yRoot = -(position.y - (this.selection.originalPosition[1] + centerY));
+          let xRoot = position.x - this.selection.originalPosition[0] + centerX;
+          this.selection.originalRotation = (Math.atan2(yRoot, xRoot) * 180) / Math.PI;
+          if (this.selection.originalRotation < 0) {
+            this.selection.originalRotation = 360 + this.selection.originalRotation;
+          }
+        }
+        this.currentToolModule.USER_SELECT = "none";
+        this.currentToolModule.TOUCH_ACTION = "pinch-zoom";
+        this.applyToolModule();
+      } else { // Duplicate
+        // MUST DO LATER
+      }
+      event.preventDefault();
     }
     this.selection.moveAction = (event) => {
       
@@ -1327,13 +1409,13 @@ modules["editor/toolbar"] = class {
       
     }
     this.selection.pointInSelectBox = (x, y) => {
-      let selectCount = Object.keys(editor.selecting).length;
-      if (selectCount > 1) {
+      if (this.selection.selectBox == null) {
+        return;
+      }
+      if (this.selection.rotation == 0) {
         return editor.math.pointInRotatedBounds(x, y, this.selection.minX, this.selection.minY, this.selection.maxX, this.selection.maxY, this.selection.rotation, 10 / editor.zoom);
-      } else if (selectCount > 0) {
-        return editor.math.pointInRotatedBounds(x, y, this.selection.lastRect.x, this.selection.lastRect.y, this.selection.lastRect.endX, this.selection.lastRect.endY, this.selection.lastRect.rotation, 10 / editor.zoom);
       } else {
-        return false;
+        return editor.math.pointInRotatedBounds(x, y, this.selection.lastRect.x, this.selection.lastRect.y, this.selection.lastRect.endX, this.selection.lastRect.endY, this.selection.lastRect.rotation, 10 / editor.zoom);
       }
     }
     this.selection.undo = () => {

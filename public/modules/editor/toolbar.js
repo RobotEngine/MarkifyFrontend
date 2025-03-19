@@ -1325,6 +1325,9 @@ modules["editor/toolbar"] = class {
 
     }
     this.selection.startAction = (event) => {
+      if (this.selection.selectBox == null) {
+        return;
+      }
       if (editor.self.access < 1) {
         return;
       }
@@ -1743,9 +1746,7 @@ modules["editor/toolbar/select"] = class {
       }
     }
     await this.parent.selection.updateBox();
-    if (event.target.closest(".eSelect") != null) {
-      await this.parent.selection.startAction(event);
-    }
+    await this.parent.selection.startAction(event);
   }
   clickMove = async (event) => {
     await this.parent.selection.moveAction(event);

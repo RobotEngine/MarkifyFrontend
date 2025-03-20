@@ -1582,12 +1582,6 @@ modules["editor/toolbar"] = class {
       for (let i = 0; i < keys.length; i++) {
         let annoid = keys[i];
         let original = editor.annotations[annoid] ?? {};
-        if (original.pointer != null) {
-          this.selection.annotationRects[original.pointer] = this.selection.annotationRects[annoid];
-          delete this.selection.annotationRects[annoid];
-          annoid = original.pointer;
-          original = editor.annotations[annoid] ?? {};
-        }
         if (original.render == null) {
           continue;
         }

@@ -993,7 +993,6 @@ modules["editor/toolbar"] = class {
       this.selection.minY = null;
       this.selection.maxY = null;
       this.selection.resizePreserveAspect = false;
-      this.selection.multiSelectResizePreserveAspect = false;
 
       let showHandles = true;
       let showDuplicateHandles = true;
@@ -1481,14 +1480,105 @@ modules["editor/toolbar"] = class {
       let offsetSnapX = snapX ?? 0;
       let offsetSnapY = snapY ?? 0;
 
+      let keys = Object.keys(editor.selecting);
+
       let changePositionX = 0;
       let changePositionY = 0;
+
+      let scaleWidth = 1;
+      let scaleHeight = 1;
+      let snapHandleAxis;
+      let changeXCoord = 0;
+      let changeYCoord = 0;
+      let sizeLimitX = false;
+      let sizeLimitY = false;
+      let fixAnnotationHolder = this.selection.handle;
+      let preserveAspect = this.selection.resizePreserveAspect || event.shiftKey || false;
+      let multiSelectPreserveAspect = this.selection.rotation != 0 && keys.length > 1;
+
+      let rotateChange = 0;
+      
       if (this.selection.action == "move") {
         changePositionX = position.x - this.selection.rootX;
         changePositionY = position.y - this.selection.rootY;
+      } else if (this.selection.action == "resize") {
+        // Calculate the change in width / height:
+        let originalMidpointX = this.selection.originalSize[0] / 2;
+        let originalMidpointY = this.selection.originalSize[1] / 2;
+        let halfRotateWidth = this.selection.originalPosition[0] + originalMidpointX;
+        let halfRotateHeight = this.selection.originalPosition[1] + originalMidpointY;
+        let [xCoord, yCoord] = editor.math.rotatePoint(position.x - halfRotateWidth, position.y - halfRotateHeight, this.selection.rotation);
+        let changeX = xCoord - this.selection.rootX + offsetSnapX;
+        let changeY = yCoord - this.selection.rootY + offsetSnapY; // Might be - offsetSnapY?
+        if (this.selection.rootX < 0) {
+          changeX *= -1;
+        }
+        if (this.selection.rootY < 0) {
+          changeY *= -1;
+        }
+        if (keys.length > 1) {
+          if (this.selection.originalSize[0] + changeX < 25) {
+            changeX = -this.selection.originalSize[0] + 25;
+          }
+          if (this.selection.originalSize[1] + changeY < 25) {
+            changeY = -this.selection.originalSize[1] + 25;
+          }
+        }
+
+        // Handle resize based on handles:
+        let oppositePositionX = 0;
+        let oppositePositionY = 0;
+        let newSize = [0, 0];
+        let newOppositePositionX = 0;
+        let newOppositePositionY = 0;
+        switch (this.selection.handle) {
+          case "bottomright":
+            if (preserveAspect == true || multiSelectPreserveAspect == true) {
+              let setXFromChangeX = this.selection.originalSize[0] + changeX;
+              let setYFromChangeX = this.selection.originalSize[1] * ((this.selection.originalSize[0] + changeX) / this.selection.originalSize[0]);
+              let setXFromChangeY = this.selection.originalSize[0] * ((this.selection.originalSize[1] + changeY) / this.selection.originalSize[1]);
+              let setYFromChangeY = this.selection.originalSize[1] + changeY;
+              if (Math.abs(setXFromChangeX * setYFromChangeX) > Math.abs(setXFromChangeY * setYFromChangeY)) {
+                scaleWidth = (this.selection.originalSize[0] + changeX) / this.selection.originalSize[0];
+                snapHandleAxis = "x";
+              } else {
+                scaleWidth = (this.selection.originalSize[1] + changeY) / this.selection.originalSize[1];
+                snapHandleAxis = "y";
+              }
+              scaleHeight = scaleWidth;
+            } else {
+              scaleWidth = (this.selection.originalSize[0] + changeX) / this.selection.originalSize[0];
+              scaleHeight = (this.selection.originalSize[1] + changeY) / this.selection.originalSize[1];
+            }
+            newSize = [this.selection.originalSize[0] * scaleWidth, this.selection.originalSize[1] * scaleHeight];
+            oppositePositionX = this.selection.originalPosition[0];
+            oppositePositionY = this.selection.originalPosition[1];
+            newOppositePositionX = this.selection.originalPosition[0];
+            newOppositePositionY = this.selection.originalPosition[1];
+            break;
+        }
+
+        let newSelectionMidpointX = newSize[0] / 2;
+        let newSelectionMidpointY = newSize[1] / 2;
+        
+        let midpointChangeX = newSelectionMidpointX - originalMidpointX;
+        let midpointChangeY = newSelectionMidpointY - originalMidpointY;
+
+        // Calculate relative position:
+        let [originalXCoord, originalYCoord] = editor.math.rotatePoint(oppositePositionX - halfRotateWidth, oppositePositionY - halfRotateHeight, this.selection.rotation);
+
+        let newHalfRotateWidth = this.selection.originalPosition[0] + newSelectionMidpointX;
+        let newHalfRotateHeight = this.selection.originalPosition[1] + newSelectionMidpointY;
+        let [newXCoord, newYCoord] = editor.math.rotatePoint(newOppositePositionX - newHalfRotateWidth, newOppositePositionY - newHalfRotateHeight, this.selection.rotation);
+
+        // Calculate change in opposite handle position:
+        changeXCoord = (newXCoord + newHalfRotateWidth) - (originalXCoord + halfRotateWidth) - midpointChangeX;
+        changeYCoord = (newYCoord + newHalfRotateHeight) - (originalYCoord + halfRotateHeight) - midpointChangeY;
+        
+        sizeLimitX = oppositePositionX != newOppositePositionX;
+        sizeLimitY = oppositePositionY != newOppositePositionY;
       }
 
-      let keys = Object.keys(editor.selecting);
       for (let i = 0; i < keys.length; i++) {
         let annoid = keys[i];
         let original = editor.annotations[annoid] ?? {};
@@ -1517,6 +1607,7 @@ modules["editor/toolbar"] = class {
         let rect = this.selection.annotationRects[annoid];
         if (rect == null) {
           rect = editor.utils.getRect(original.render);
+          rect.size = [original.render.s[0], original.render.s[1]];
           this.selection.annotationRects[annoid] = rect;
         }
 
@@ -1525,6 +1616,166 @@ modules["editor/toolbar"] = class {
             editor.math.round(rect.annoX + changePositionX + offsetSnapX),
             editor.math.round(rect.annoY + changePositionY + offsetSnapY)
           ];
+        } else if (this.selection.action == "resize") {
+          if (rect.size[0] == 0 || rect.size[1] == 0) {
+            continue;
+          }
+
+          let rotate = rect.rotation;
+          if (rotate > 180) {
+            rotate = -(360 - rotate);
+          }
+          if (scaleWidth == scaleHeight && this.selection.rotation == 0) {
+            rotate = 0;
+          }
+          let rotateDifference = rotate - this.selection.rotation;
+          let radian = rotateDifference * (Math.PI / 180);
+
+          // FIRST: Figure out the bounding box size of element:
+          let boundingWidth = Math.abs(rect.width * Math.cos(radian)) + Math.abs(rect.height * Math.sin(radian));
+          let boundingHeight = Math.abs(rect.height * Math.cos(radian)) + Math.abs(rect.width * Math.sin(radian));
+
+          // SECOND: Apply the scaling to the bouding box:
+          let setBoundWidth = boundingWidth * scaleWidth;
+          let setBoundHeight = boundingHeight * scaleHeight;
+
+          // THIRD: Determine actual element width by converting bounding box size back to element size:
+          let setWidth = 0;
+          let setHeight = 0;
+          let maintainSizeWidth = false;
+          let maintainSizeHeight = false;
+
+          let absRotate = Math.abs(rotateDifference);
+          if (absRotate > 45 && absRotate < 135) {
+            let cosAbs = Math.abs(Math.cos((rotateDifference + 90) * (Math.PI / 180)));
+            let cosCorrectWidth = (boundingHeight / cosAbs) - rect.width;
+            let cosCorrectHeight = (boundingWidth / cosAbs) - rect.height;
+            let revertThickWidth = rect.thickness;
+            let revertThickHeight = rect.thickness;
+            if (rotateDifference != 0) {
+              if (setBoundWidth < 0) {
+                cosCorrectWidth *= -1;
+                revertThickWidth *= -1;
+              }
+              if (setBoundHeight < 0) {
+                cosCorrectHeight *= -1;
+                revertThickHeight *= -1;
+              }
+            }
+            setWidth = (setBoundHeight / cosAbs) - cosCorrectWidth - revertThickWidth;
+            setHeight = (setBoundWidth / cosAbs) - cosCorrectHeight - revertThickHeight;
+
+            if (keys.length > 1) {
+              if (setWidth < 25) {
+                setWidth = 25;
+                maintainSizeHeight = true;
+              }
+              if (setHeight < 25) {
+                setHeight = 25;
+                maintainSizeWidth = true;
+              }
+            }
+          } else {
+            let cosAbs = Math.abs(Math.cos(radian));
+            let cosCorrectWidth = (boundingWidth / cosAbs) - rect.width;
+            let cosCorrectHeight = (boundingHeight / cosAbs) - rect.height;
+            let revertThickWidth = rect.thickness;
+            let revertThickHeight = rect.thickness;
+            if (rotateDifference != 0) {
+              if (setBoundWidth < 0) {
+                cosCorrectWidth *= -1;
+                revertThickWidth *= -1;
+              }
+              if (setBoundHeight < 0) {
+                cosCorrectHeight *= -1;
+                revertThickHeight *= -1;
+              }
+            }
+            setWidth = (setBoundWidth / cosAbs) - cosCorrectWidth - revertThickWidth;
+            setHeight = (setBoundHeight / cosAbs) - cosCorrectHeight - revertThickHeight;
+
+            if (keys.length > 1) {
+              if (setWidth < 25) {
+                setWidth = 25;
+                maintainSizeWidth = true;
+              }
+              if (setHeight < 25) {
+                setHeight = 25;
+                maintainSizeHeight = true;
+              }
+            }
+          }
+
+          // Preserve original sign:
+          if (rect.size[0] < 0) {
+            setWidth *= -1;
+          }
+          if (rect.size[1] < 0) {
+            setHeight *= -1;
+          }
+
+          // FINALLY: Apply the new size:
+          select.s = [editor.math.round(setWidth), editor.math.round(setHeight)];
+
+          // Special function cases:
+          let annoModule = (await editor.render.getModule(select.f ?? original.render.f)) ?? {};
+          if (annoModule.AUTO_TEXT_FIT == true || annoModule.AUTO_SET_HEIGHT == true) {
+            await editor.render.create({ ...original, render: { ...original.render, ...select }, animate: false });
+            let renderedText = original.element.querySelector("div[edit]");
+            if (renderedText != null) {
+              if (annoModule.AUTO_TEXT_FIT == true && original.render.textfit == true && select.textfit != false) {
+                select.s[0] = renderedText.offsetWidth + 6;
+                select.textfit = false;
+              }
+              if (annoModule.AUTO_SET_HEIGHT == true ) {
+                select.s[1] = renderedText.offsetHeight + 6; //Math.max(select.s[1], renderedAnno.offsetHeight + 6);
+              }
+            }
+          }
+          
+          // Get original midpoint of element:
+          let originalAnnoMidpointX = rect.width / 2;
+          let originalAnnoMidpointY = rect.height / 2;
+
+          // Get offset from center of select box:
+          let offsetX = rect.annoX + originalAnnoMidpointX - this.selection.originalPosition[0] - (this.selection.originalSize[0] / 2);
+          let offsetY = rect.annoY + originalAnnoMidpointY - this.selection.originalPosition[1] - (this.selection.originalSize[1] / 2);
+
+          // Calculate center of original selection box:
+          let selectionCenterX = this.selection.originalPosition[0] + (this.selection.originalSize[0] / 2);
+          let selectionCenterY = this.selection.originalPosition[1] + (this.selection.originalSize[1] / 2);
+
+          // Get midpoint of element:
+          let newAnnoMidpointX = (setWidth + rect.thickness) / 2;
+          let newAnnoMidpointY = (setHeight + rect.thickness) / 2;
+
+          // Apply the selection box position change:
+          select.p = select.p ?? [rect.annoX, rect.annoY];
+          if (maintainSizeWidth == false) {
+            select.p[0] = selectionCenterX + (offsetX * scaleWidth) - newAnnoMidpointX - changeXCoord;
+          }
+          if (maintainSizeHeight == false) {
+            select.p[1] = selectionCenterY + (offsetY * scaleHeight) - newAnnoMidpointY - changeYCoord;
+          }
+
+          if (annoModule.MIN_WIDTH != null) {
+            if (select.s[0] < annoModule.MIN_WIDTH) {
+              if (sizeLimitX == true) {
+                select.p[0] -= annoModule.MIN_WIDTH - select.s[0];
+              }
+              select.s[0] = annoModule.MIN_WIDTH;
+            }
+          }
+          if (annoModule.MIN_HEIGHT != null) {
+            if (select.s[1] < annoModule.MIN_HEIGHT) {
+              if (sizeLimitY == true) {
+                select.p[1] -= annoModule.MIN_HEIGHT - select.s[1];
+              }
+              select.s[1] = annoModule.MIN_HEIGHT;
+            }
+          }
+          
+          select.resizing = [fixAnnotationHolder, rect.annoX, rect.annoY, rect.width, rect.height];
         }
 
         let { x: newX, y: newY, rotation: newRotation } = editor.utils.getRelativePosition({

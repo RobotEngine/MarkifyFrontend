@@ -3003,6 +3003,8 @@ modules["editor/render/markup"] = class {
 }
 modules["editor/render/text"] = class {
   SHOW_ONLY_WIDTH_HANDLES = true;
+  AUTO_TEXT_FIT = true;
+  AUTO_SET_HEIGHT = true;
 
   css = {
     ".eAnnotation div[text]": `padding: 4px 6px; margin: 3px; color: var(--themeColor); font-weight: 500; pointer-events: all; outline: none`,
@@ -3409,6 +3411,8 @@ modules["editor/render/page"] = class {
   HOLD_FOR_SELECT = true;
   ALLOW_SELECT_OVERFLOW = true;
   SHOW_DUPLICATE_HANDLES = true;
+  MIN_WIDTH = 100;
+  MIN_HEIGHT = 100;
 
   SELECTION_FUNCTION = (selection, render) => {
     if (render.source != null && ["bottomright", "topleft", "topright", "bottomleft"].includes(selection.tooltip) == true) {

@@ -1385,7 +1385,7 @@ modules["editor/toolbar"] = class {
 
           let halfRotateWidth = this.selection.originalPosition[0] + (this.selection.originalSize[0] / 2);
           let halfRotateHeight = this.selection.originalPosition[1] + (this.selection.originalSize[1] / 2);
-          let [xCoord, yCoord] = editor.math.rotatePoint(position.x - halfRotateWidth, position.y - halfRotateHeight, this.selection.rotation);
+          let [xCoord, yCoord] = editor.math.rotatePoint(position.x - halfRotateWidth, position.y - halfRotateHeight, -this.selection.rotation);
           this.selection.rootX = xCoord;
           this.selection.rootY = yCoord;
         } else { // Rotate
@@ -1507,7 +1507,7 @@ modules["editor/toolbar"] = class {
         let originalMidpointY = this.selection.originalSize[1] / 2;
         let halfRotateWidth = this.selection.originalPosition[0] + originalMidpointX;
         let halfRotateHeight = this.selection.originalPosition[1] + originalMidpointY;
-        let [xCoord, yCoord] = editor.math.rotatePoint(position.x - halfRotateWidth, position.y - halfRotateHeight, this.selection.rotation);
+        let [xCoord, yCoord] = editor.math.rotatePoint(position.x - halfRotateWidth, position.y - halfRotateHeight, -this.selection.rotation);
         let changeX = xCoord - this.selection.rootX + offsetSnapX;
         let changeY = yCoord - this.selection.rootY + offsetSnapY; // Might be - offsetSnapY?
         if (this.selection.rootX < 0) {
@@ -1707,6 +1707,20 @@ modules["editor/toolbar"] = class {
           }
 
           // Preserve original sign:
+          /*if (Math.abs(setWidth) < rect.thickness) {
+            if (setWidth > 0) {
+              setWidth = rect.thickness;
+            } else {
+              setWidth = -rect.thickness;
+            }
+          }
+          if (Math.abs(setHeight) < rect.thickness) {
+            if (setHeight > 0) {
+              setHeight = rect.thickness;
+            } else {
+              setHeight = -rect.thickness;
+            }
+          }*/
           if (rect.size[0] < 0) {
             setWidth *= -1;
           }
@@ -1780,13 +1794,14 @@ modules["editor/toolbar"] = class {
 
         let { x: newX, y: newY, rotation: newRotation } = editor.utils.getRelativePosition({
           ...original.render,
+          ...select,
           p: select.p ?? [rect.annoX, rect.annoY],
           r: select.r ?? rect.rotation
         });
-        if (select.p != null) {
+        if (newX != original.render.p[0] || newY != original.render.p[1]) {
           select.p = [newX, newY];
         }
-        if (select.r != null) {
+        if (newRotation != original.render.r) {
           select.r = newRotation;
         }
 

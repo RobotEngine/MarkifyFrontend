@@ -1583,8 +1583,8 @@ modules["editor/toolbar"] = class {
         let annoid = keys[i];
         let original = editor.annotations[annoid] ?? {};
         if (original.pointer != null) {
-          editor.selecting[original.pointer] = { ...(editor.selecting[annoid] ?? {}), ...(editor.selecting[original.pointer] ?? {}) };
-          delete editor.selecting[annoid];
+          this.selection.annotationRects[original.pointer] = this.selection.annotationRects[annoid];
+          delete this.selection.annotationRects[annoid];
           annoid = original.pointer;
           original = editor.annotations[annoid] ?? {};
         }
@@ -1798,10 +1798,10 @@ modules["editor/toolbar"] = class {
           p: select.p ?? [rect.annoX, rect.annoY],
           r: select.r ?? rect.rotation
         });
-        if (newX != original.render.p[0] || newY != original.render.p[1]) {
+        if (select.p != null) {
           select.p = [newX, newY];
         }
-        if (newRotation != original.render.r) {
+        if (select.r != null) {
           select.r = newRotation;
         }
 

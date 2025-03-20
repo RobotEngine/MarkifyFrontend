@@ -2382,10 +2382,14 @@ modules["editor/editor"] = class {
             await this.render.setMarginSize();
 
             if (this.selecting[anno.pending] != null) {
-              this.selecting[anno._id] = copyObject(this.selecting[anno.pending]);
+              this.selecting[anno._id] = this.selecting[anno.pending];
               delete this.selecting[anno.pending];
   
               if (this.toolbar != null) {
+                if (this.toolbar.selection.annotationRects[anno.pending] != null) {
+                  this.toolbar.selection.annotationRects[anno._id] = this.toolbar.selection.annotationRects[anno.pending];
+                }
+                
                 let selectionIDs = Object.keys(this.selecting);
                 this.toolbar.selection.lastSelections = "";
                 for (let i = 0; i < selectionIDs.length; i++) {

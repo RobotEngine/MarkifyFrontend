@@ -2389,7 +2389,7 @@ modules["editor/editor"] = class {
                 if (this.toolbar.selection.annotationRects[anno.pending] != null) {
                   this.toolbar.selection.annotationRects[anno._id] = this.toolbar.selection.annotationRects[anno.pending];
                 }
-                
+
                 let selectionIDs = Object.keys(this.selecting);
                 this.toolbar.selection.lastSelections = "";
                 for (let i = 0; i < selectionIDs.length; i++) {
@@ -3417,6 +3417,7 @@ modules["editor/render/page"] = class {
   SHOW_DUPLICATE_HANDLES = true;
   MIN_WIDTH = 100;
   MIN_HEIGHT = 100;
+  CAN_ROTATE = false;
 
   SELECTION_FUNCTION = (selection, render) => {
     if (render.source != null && ["bottomright", "topleft", "topright", "bottomleft"].includes(selection.tooltip) == true) {

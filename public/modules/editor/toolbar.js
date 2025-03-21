@@ -1400,7 +1400,7 @@ modules["editor/toolbar"] = class {
           let centerX = this.selection.originalSize[0] / 2;
           let centerY = this.selection.originalSize[1] / 2;
           let yRoot = -(position.y - (this.selection.originalPosition[1] + centerY));
-          let xRoot = position.x - this.selection.originalPosition[0] + centerX;
+          let xRoot = position.x - (this.selection.originalPosition[0] + centerX);
           this.selection.originalRotation = (Math.atan2(yRoot, xRoot) * 180) / Math.PI;
           if (this.selection.originalRotation < 0) {
             this.selection.originalRotation = 360 + this.selection.originalRotation;
@@ -1711,6 +1711,22 @@ modules["editor/toolbar"] = class {
         
         sizeLimitX = oppositePositionX != newOppositePositionX;
         sizeLimitY = oppositePositionY != newOppositePositionY;
+      } else if (this.selection.action == "rotate") {
+        let centerX = this.selection.originalSize[0] / 2;
+        let centerY = this.selection.originalSize[1] / 2;
+        let yRoot = -(position.y - (this.selection.originalPosition[1] + centerY));
+        let xRoot = position.x - (this.selection.originalPosition[0] + centerX);
+
+        let newRotation = (Math.atan2(yRoot, xRoot) * 180) / Math.PI;
+        if (newRotation < 0) {
+          newRotation = 360 + newRotation;
+        }
+        let snapDegree = 15;
+        if (event.shiftKey == true) {
+          snapDegree = 1;
+        }
+        let setRotation = Math.round((this.selection.originalRotate + (this.selection.originalRotation - newRotation)) / snapDegree) * snapDegree;
+        rotateChange = (Math.round(setRotation / snapDegree) * snapDegree) - this.selection.originalRotate;
       }
 
       for (let i = 0; i < keys.length; i++) {
@@ -1731,6 +1747,8 @@ modules["editor/toolbar"] = class {
         }
         let select = editor.selecting[annoid];
         delete select.done;
+
+        let annoModule = (await editor.render.getModule(select.f ?? original.render.f)) ?? {};
 
         let rect = this.selection.annotationRects[annoid];
         if (rect == null) {
@@ -1872,7 +1890,6 @@ modules["editor/toolbar"] = class {
           select.s = [editor.math.round(setWidth), editor.math.round(setHeight)];
 
           // Special function cases:
-          let annoModule = (await editor.render.getModule(select.f ?? original.render.f)) ?? {};
           if (annoModule.AUTO_TEXT_FIT == true || annoModule.AUTO_SET_HEIGHT == true) {
             await editor.render.create({ ...original, render: { ...original.render, ...select }, animate: false });
             let renderedText = original.element.querySelector("div[edit]");
@@ -1935,6 +1952,41 @@ modules["editor/toolbar"] = class {
           }
           
           select.resizing = [fixAnnotationHolder, rect.annoX, rect.annoY, rect.width, rect.height];
+        } else if (this.selection.action == "rotate") {
+          if (annoModule.CAN_ROTATE != false) {
+            let changeRotate = rect.rotation + rotateChange;
+            if (changeRotate < 0) {
+              changeRotate = 360 + changeRotate;
+            }
+            if (changeRotate >= 360) {
+              changeRotate = changeRotate - 360;
+            }
+            select.r = changeRotate;
+          }
+
+          // Calculate radian:
+          let radian = rotateChange * (Math.PI / 180);
+
+          // Get original midpoint of element:
+          let originalAnnoMidpointX = rect.width / 2;
+          let originalAnnoMidpointY = rect.height / 2;
+
+          // Get center position of element:
+          let originalAnnoCenterX = rect.annoX + originalAnnoMidpointX;
+          let originalAnnoCenterY = rect.annoY + originalAnnoMidpointY;
+
+          // Calculate center of original selection box:
+          let selectionCenterX = this.selection.originalPosition[0] + (this.selection.originalSize[0] / 2);
+          let selectionCenterY = this.selection.originalPosition[1] + (this.selection.originalSize[1] / 2);
+
+          // Determine new rotated center position:
+          let rotatedCenterX = selectionCenterX + ((originalAnnoCenterX - selectionCenterX) * Math.cos(radian)) - ((originalAnnoCenterY - selectionCenterY) * Math.sin(radian));
+          let rotatedCenterY = selectionCenterY + ((originalAnnoCenterX - selectionCenterX) * Math.sin(radian)) + ((originalAnnoCenterY - selectionCenterY) * Math.cos(radian));
+
+          select.p = [
+            rotatedCenterX - originalAnnoMidpointX,
+            rotatedCenterY - originalAnnoMidpointY
+          ];
         }
 
         let { x: newX, y: newY, rotation: newRotation } = editor.utils.getRelativePosition({

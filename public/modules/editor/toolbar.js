@@ -1315,9 +1315,13 @@ modules["editor/toolbar"] = class {
         if (transition == false) {
           selection.setAttribute("notransition", "");
         }
+        let rotate = rect.rotation;
+        if (rotate > 180) {
+          rotate = -(360 - rotate);
+        }
         selection.style.width = ((rect.width * editor.zoom) - 3) + "px";
         selection.style.height = ((rect.height * editor.zoom) - 3) + "px";
-        selection.style.transform = "translate(" + (annotationRect.left + (rect.x * editor.zoom) + contentHolder.scrollLeft - 1.5) + "px," + (annotationRect.top + (rect.y * editor.zoom) + contentHolder.scrollTop - 1.5) + "px) rotate(" + rect.rotation + "deg)";
+        selection.style.transform = "translate(" + (annotationRect.left + (rect.x * editor.zoom) + contentHolder.scrollLeft - 1.5) + "px," + (annotationRect.top + (rect.y * editor.zoom) + contentHolder.scrollTop - 1.5) + "px) rotate(" + rotate + "deg)";
         if (transition == false) {
           selection.offsetHeight;
           selection.removeAttribute("notransition");
@@ -1796,20 +1800,16 @@ modules["editor/toolbar"] = class {
             let cosAbs = Math.abs(Math.cos((rotateDifference + 90) * (Math.PI / 180)));
             let cosCorrectWidth = (boundingHeight / cosAbs) - rect.width;
             let cosCorrectHeight = (boundingWidth / cosAbs) - rect.height;
-            let revertThickWidth = rect.thickness;
-            let revertThickHeight = rect.thickness;
             if (rotateDifference != 0) {
               if (setBoundWidth < 0) {
                 cosCorrectWidth *= -1;
-                revertThickWidth *= -1;
               }
               if (setBoundHeight < 0) {
                 cosCorrectHeight *= -1;
-                revertThickHeight *= -1;
               }
             }
-            setWidth = (setBoundHeight / cosAbs) - cosCorrectWidth - revertThickWidth;
-            setHeight = (setBoundWidth / cosAbs) - cosCorrectHeight - revertThickHeight;
+            setWidth = (setBoundHeight / cosAbs) - cosCorrectWidth - rect.thickness;
+            setHeight = (setBoundWidth / cosAbs) - cosCorrectHeight - rect.thickness;
 
             if (keys.length > 1) {
               if (setWidth < 25) {
@@ -1825,20 +1825,16 @@ modules["editor/toolbar"] = class {
             let cosAbs = Math.abs(Math.cos(radian));
             let cosCorrectWidth = (boundingWidth / cosAbs) - rect.width;
             let cosCorrectHeight = (boundingHeight / cosAbs) - rect.height;
-            let revertThickWidth = rect.thickness;
-            let revertThickHeight = rect.thickness;
             if (rotateDifference != 0) {
               if (setBoundWidth < 0) {
                 cosCorrectWidth *= -1;
-                revertThickWidth *= -1;
               }
               if (setBoundHeight < 0) {
                 cosCorrectHeight *= -1;
-                revertThickHeight *= -1;
               }
             }
-            setWidth = (setBoundWidth / cosAbs) - cosCorrectWidth - revertThickWidth;
-            setHeight = (setBoundHeight / cosAbs) - cosCorrectHeight - revertThickHeight;
+            setWidth = (setBoundWidth / cosAbs) - cosCorrectWidth - rect.thickness;
+            setHeight = (setBoundHeight / cosAbs) - cosCorrectHeight - rect.thickness;
 
             if (keys.length > 1) {
               if (setWidth < 25) {
@@ -1853,7 +1849,7 @@ modules["editor/toolbar"] = class {
           }
 
           // Account for min-width of thickness:
-          if (Math.abs(setWidth) < rect.thickness) {
+          /*if (Math.abs(setWidth) < rect.thickness) {
             if (setWidth > 0) {
               setWidth = rect.thickness;
             } else {
@@ -1868,7 +1864,7 @@ modules["editor/toolbar"] = class {
               setHeight = -rect.thickness;
             }
             //maintainSizeHeight = true;
-          }
+          }*/
 
           // Preserve original sign:
           let signOriginalWidth = rect.width;
@@ -2007,11 +2003,110 @@ modules["editor/toolbar"] = class {
 
       await this.selection.updateBox();
     }
-    this.selection.endAction = () => {
+    this.selection.endAction = async (options = {}) => {
       if (this.selection.action == null) {
         return;
       }
       this.selection.action = null;
+
+      let keys = Object.keys(editor.selecting);
+      let saveUpdates = [];
+      let annoIDs = {};
+      let pushChanges = [];
+      let pushAdds = [];
+      let pushRemoves = [];
+      let deleteKeys = {};
+      for (let i = 0; i < keys.length; i++) {
+        let annoid = keys[i];
+        let selecting = editor.selecting[annoid] ?? {};
+        let changeKeys = Object.keys(selecting);
+        if (changeKeys.length < 1) {
+          continue;
+        }
+        let original = editor.annotations[annoid] ?? {};
+        let originalRender = original.render;
+        if (originalRender == null) {
+          continue;
+        }
+
+        delete selecting.done;
+
+        let pushFields = {};
+        for (let f = 0; f < changeKeys.length; f++) {
+          let key = changeKeys[f];
+          pushFields[key] = originalRender[key] ?? null;
+        }
+        if (options.saveHistory == true) {
+          if (selecting.remove != true) {
+            if (Object.keys(pushFields).length > 0) {
+              if (pushFields.f == null) {
+                pushChanges.push(copyObject({
+                  ...pushFields,
+                  parent: pushFields.parent ?? originalRender.parent ?? null,
+                  p: pushFields.p ?? originalRender.p,
+                  _id: annoid
+                }));
+              } else {
+                pushAdds.push({ _id: annoid, remove: true });
+              }
+            }
+          } else {
+            pushRemoves.push(copyObject(originalRender));
+          }
+        }
+
+        saveUpdates.push(copyObject({ ...selecting, _id: annoid }));
+        selecting.done = true;
+        annoIDs[annoid] = true;
+
+        if (selecting.remove == true) {
+          deleteKeys[annoid] = "";
+        }
+
+        // Update child annotations:
+      }
+
+      if (options.fromHistory != true) {
+        if (pushChanges.length > 0) {
+          await editor.history.push("update", pushChanges);
+        }
+        if (pushAdds.length > 0) {
+          await editor.history.push("remove", pushAdds);
+        }
+        if (pushRemoves.length > 0) {
+          await editor.history.push("add", pushRemoves);
+        }
+      }
+
+      let beforeSelect = copyObject(editor.selecting);
+
+      let savedAnnoIDs = {};
+      while (saveUpdates.length > 0) {
+        for (let i = 0; i < saveUpdates.length; i++) {
+          let newSave = saveUpdates[i];
+          if (annoIDs[newSave.parent] == null || savedAnnoIDs[newSave.parent] != null) {
+            await editor.save.push(newSave);
+            editor.selecting[newSave._id] = {};
+            savedAnnoIDs[newSave._id] = true;
+            saveUpdates.splice(i, 1);
+            i--;
+          }
+        }
+      }
+
+      editor.realtimeSelect = beforeSelect;
+      await editor.realtime.forceShort();
+      editor.realtimeSelect = {};
+
+      let resetKeys = options.sentKeys ?? keys;
+      for (let i = 0; i < resetKeys.length; i++) {
+        let key = resetKeys[i];
+        if (deleteKeys[key] == null) {
+          editor.selecting[key] = {};
+        }
+      }
+
+      await this.selection.updateBox({ transition: false });
     }
     this.selection.clickAction = (data) => {
       

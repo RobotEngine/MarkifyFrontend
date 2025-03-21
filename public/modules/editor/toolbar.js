@@ -1065,7 +1065,7 @@ modules["editor/toolbar"] = class {
         if (annoModule.SHOW_ONLY_WIDTH_HANDLES != true) {
           showOnlyWidthHandles = false;
         }
-        if (annoModule.CAN_ROTATE != true) {
+        if (annoModule.CAN_ROTATE != false) {
           showRotationHandle = true;
         }
         if (annoModule.RESIZE_PRESERVE_ASPECT == true) {

@@ -993,6 +993,7 @@ modules["editor/toolbar"] = class {
       this.selection.minY = null;
       this.selection.maxY = null;
       this.selection.resizePreserveAspect = false;
+      this.selection.multiSelectPreserveAspect = false;
 
       let showHandles = true;
       let showDuplicateHandles = true;
@@ -1096,6 +1097,9 @@ modules["editor/toolbar"] = class {
             select.style.border = "solid 4px var(--secondary)";
             select.style.opacity = 1;
             transition = false;
+          }
+          if (rect.rotation != 0) {
+            this.selection.multiSelectPreserveAspect = true;
           }
         } else if (select != null) {
           select.remove();
@@ -1494,7 +1498,6 @@ modules["editor/toolbar"] = class {
       let sizeLimitY = false;
       let fixAnnotationHolder = this.selection.handle;
       let preserveAspect = this.selection.resizePreserveAspect || event.shiftKey || false;
-      let multiSelectPreserveAspect = this.selection.rotation != 0 && keys.length > 1;
 
       let rotateChange = 0;
       
@@ -1533,7 +1536,7 @@ modules["editor/toolbar"] = class {
         let newOppositePositionY = 0;
         switch (this.selection.handle) {
           case "bottomright":
-            if (preserveAspect == true || multiSelectPreserveAspect == true) {
+            if (preserveAspect == true || this.selection.multiSelectPreserveAspect == true) {
               let setXFromChangeX = this.selection.originalSize[0] + changeX;
               let setYFromChangeX = this.selection.originalSize[1] * ((this.selection.originalSize[0] + changeX) / this.selection.originalSize[0]);
               let setXFromChangeY = this.selection.originalSize[0] * ((this.selection.originalSize[1] + changeY) / this.selection.originalSize[1]);
@@ -1556,6 +1559,137 @@ modules["editor/toolbar"] = class {
             newOppositePositionX = this.selection.originalPosition[0];
             newOppositePositionY = this.selection.originalPosition[1];
             break;
+          case "topleft":
+            if (preserveAspect == true || this.selection.multiSelectPreserveAspect == true) {
+              let setXFromChangeX = this.selection.originalSize[0] + changeX;
+              let setYFromChangeX = this.selection.originalSize[1] * ((this.selection.originalSize[0] + changeX) / this.selection.originalSize[0]);
+              let setXFromChangeY = this.selection.originalSize[0] * ((this.selection.originalSize[1] + changeY) / this.selection.originalSize[1]);
+              let setYFromChangeY = this.selection.originalSize[1] + changeY;
+              if (Math.abs(setXFromChangeX * setYFromChangeX) > Math.abs(setXFromChangeY * setYFromChangeY)) {
+                scaleWidth = (this.selection.originalSize[0] + changeX) / this.selection.originalSize[0];
+                snapHandleAxis = "x";
+              } else {
+                scaleWidth = (this.selection.originalSize[1] + changeY) / this.selection.originalSize[1];
+                snapHandleAxis = "y";
+              }
+              scaleHeight = scaleWidth;
+            } else {
+              scaleWidth = (this.selection.originalSize[0] + changeX) / this.selection.originalSize[0];
+              scaleHeight = (this.selection.originalSize[1] + changeY) / this.selection.originalSize[1];
+            }
+            newSize = [this.selection.originalSize[0] * scaleWidth, this.selection.originalSize[1] * scaleHeight];
+            oppositePositionX = this.selection.originalPosition[0] + this.selection.originalSize[0];
+            oppositePositionY = this.selection.originalPosition[1] + this.selection.originalSize[1];
+            newOppositePositionX = this.selection.originalPosition[0] + newSize[0];
+            newOppositePositionY = this.selection.originalPosition[1] + newSize[1];
+            break;
+          case "topright":
+            if (preserveAspect == true || this.selection.multiSelectPreserveAspect == true) {
+              let setXFromChangeX = this.selection.originalSize[0] + changeX;
+              let setYFromChangeX = this.selection.originalSize[1] * ((this.selection.originalSize[0] + changeX) / this.selection.originalSize[0]);
+              let setXFromChangeY = this.selection.originalSize[0] * ((this.selection.originalSize[1] + changeY) / this.selection.originalSize[1]);
+              let setYFromChangeY = this.selection.originalSize[1] + changeY;
+              if (Math.abs(setXFromChangeX * setYFromChangeX) > Math.abs(setXFromChangeY * setYFromChangeY)) {
+                scaleWidth = (this.selection.originalSize[0] + changeX) / this.selection.originalSize[0];
+                snapHandleAxis = "x";
+              } else {
+                scaleWidth = (this.selection.originalSize[1] + changeY) / this.selection.originalSize[1];
+                snapHandleAxis = "y";
+              }
+              scaleHeight = scaleWidth;
+            } else {
+              scaleWidth = (this.selection.originalSize[0] + changeX) / this.selection.originalSize[0];
+              scaleHeight = (this.selection.originalSize[1] + changeY) / this.selection.originalSize[1];
+            }
+            newSize = [this.selection.originalSize[0] * scaleWidth, this.selection.originalSize[1] * scaleHeight];
+            oppositePositionX = this.selection.originalPosition[0];
+            oppositePositionY = this.selection.originalPosition[1] + this.selection.originalSize[1];
+            newOppositePositionX = this.selection.originalPosition[0];
+            newOppositePositionY = this.selection.originalPosition[1] + newSize[1];
+            break;
+          case "bottomleft":
+            if (preserveAspect == true || this.selection.multiSelectPreserveAspect == true) {
+              let setXFromChangeX = this.selection.originalSize[0] + changeX;
+              let setYFromChangeX = this.selection.originalSize[1] * ((this.selection.originalSize[0] + changeX) / this.selection.originalSize[0]);
+              let setXFromChangeY = this.selection.originalSize[0] * ((this.selection.originalSize[1] + changeY) / this.selection.originalSize[1]);
+              let setYFromChangeY = this.selection.originalSize[1] + changeY;
+              if (Math.abs(setXFromChangeX * setYFromChangeX) > Math.abs(setXFromChangeY * setYFromChangeY)) {
+                scaleWidth = (this.selection.originalSize[0] + changeX) / this.selection.originalSize[0];
+                snapHandleAxis = "x";
+              } else {
+                scaleWidth = (this.selection.originalSize[1] + changeY) / this.selection.originalSize[1];
+                snapHandleAxis = "y";
+              }
+              scaleHeight = scaleWidth;
+            } else {
+              scaleWidth = (this.selection.originalSize[0] + changeX) / this.selection.originalSize[0];
+              scaleHeight = (this.selection.originalSize[1] + changeY) / this.selection.originalSize[1];
+            }
+            newSize = [this.selection.originalSize[0] * scaleWidth, this.selection.originalSize[1] * scaleHeight];
+            oppositePositionX = this.selection.originalPosition[0] + this.selection.originalSize[0];
+            oppositePositionY = this.selection.originalPosition[1];
+            newOppositePositionX = this.selection.originalPosition[0] + newSize[0];
+            newOppositePositionY = this.selection.originalPosition[1];
+            break;
+          case "right":
+            if (preserveAspect == true) {
+              scaleWidth = (this.selection.originalSize[0] + changeX) / this.selection.originalSize[0];
+              scaleHeight = scaleWidth;
+            } else {
+              scaleWidth = (this.selection.originalSize[0] + changeX) / this.selection.originalSize[0];
+            }
+            newSize = [this.selection.originalSize[0] * scaleWidth, this.selection.originalSize[1] * scaleHeight];
+            oppositePositionX = this.selection.originalPosition[0];
+            oppositePositionY = this.selection.originalPosition[1] + (this.selection.originalSize[1] / 2);
+            newOppositePositionX = this.selection.originalPosition[0];
+            newOppositePositionY = this.selection.originalPosition[1] + (newSize[1] / 2);
+            fixAnnotationHolder = "bottomright";
+            snapHandleAxis = "x";
+            break;
+          case "bottom":
+            if (preserveAspect == true) {
+              scaleWidth = (this.selection.originalSize[1] + changeY) / this.selection.originalSize[1];
+              scaleHeight = scaleWidth;
+            } else {
+              scaleHeight = (this.selection.originalSize[1] + changeY) / this.selection.originalSize[1];
+            }
+            newSize = [this.selection.originalSize[0] * scaleWidth, this.selection.originalSize[1] * scaleHeight];
+            oppositePositionX = this.selection.originalPosition[0] + (this.selection.originalSize[0] / 2);
+            oppositePositionY = this.selection.originalPosition[1];
+            newOppositePositionX = this.selection.originalPosition[0] + (newSize[0] / 2);
+            newOppositePositionY = this.selection.originalPosition[1];
+            fixAnnotationHolder = "bottomright";
+            snapHandleAxis = "y";
+            break;
+          case "left":
+            if (preserveAspect == true) {
+              scaleWidth = (this.selection.originalSize[0] + changeX) / this.selection.originalSize[0];
+              scaleHeight = scaleWidth;
+            } else {
+              scaleWidth = (this.selection.originalSize[0] + changeX) / this.selection.originalSize[0];
+            }
+            newSize = [this.selection.originalSize[0] * scaleWidth, this.selection.originalSize[1] * scaleHeight];
+            oppositePositionX = this.selection.originalPosition[0] + this.selection.originalSize[0];
+            oppositePositionY = this.selection.originalPosition[1] + (this.selection.originalSize[1] / 2);
+            newOppositePositionX = this.selection.originalPosition[0] + newSize[0];
+            newOppositePositionY = this.selection.originalPosition[1] + (newSize[1] / 2);
+            fixAnnotationHolder = "topleft";
+            snapHandleAxis = "x";
+            break;
+          case "top":
+            if (preserveAspect == true) {
+              scaleWidth = (this.selection.originalSize[1] + changeY) / this.selection.originalSize[1];
+              scaleHeight = scaleWidth;
+            } else {
+              scaleHeight = (this.selection.originalSize[1] + changeY) / this.selection.originalSize[1];
+            }
+            newSize = [this.selection.originalSize[0] * scaleWidth, this.selection.originalSize[1] * scaleHeight];
+            oppositePositionX = this.selection.originalPosition[0] + (this.selection.originalSize[0] / 2);
+            oppositePositionY = this.selection.originalPosition[1] + this.selection.originalSize[1];
+            newOppositePositionX = this.selection.originalPosition[0] + (newSize[0] / 2);
+            newOppositePositionY = this.selection.originalPosition[1] + newSize[1];
+            fixAnnotationHolder = "topleft";
+            snapHandleAxis = "y";
         }
 
         let newSelectionMidpointX = newSize[0] / 2;
@@ -1700,26 +1834,38 @@ modules["editor/toolbar"] = class {
             }
           }
 
-          // Preserve original sign:
-          /*if (Math.abs(setWidth) < rect.thickness) {
+          // Account for min-width of thickness:
+          if (Math.abs(setWidth) < rect.thickness) {
             if (setWidth > 0) {
               setWidth = rect.thickness;
             } else {
               setWidth = -rect.thickness;
             }
+            //maintainSizeWidth = true;
           }
           if (Math.abs(setHeight) < rect.thickness) {
-            if (setHeight > 0) {
+            if (setWidth > 0) {
               setHeight = rect.thickness;
             } else {
               setHeight = -rect.thickness;
             }
-          }*/
+            //maintainSizeHeight = true;
+          }
+
+          // Preserve original sign:
+          let signOriginalWidth = rect.width;
+          let signNewWidth = setWidth + rect.thickness;
           if (rect.size[0] < 0) {
             setWidth *= -1;
+            signOriginalWidth *= -1;
+            signNewWidth *= -1;
           }
+          let signOriginalHeight = rect.height;
+          let signNewHeight = setHeight + rect.thickness;
           if (rect.size[1] < 0) {
             setHeight *= -1;
+            signOriginalHeight *= -1;
+            signNewHeight *= -1;
           }
 
           // FINALLY: Apply the new size:
@@ -1742,8 +1888,8 @@ modules["editor/toolbar"] = class {
           }
           
           // Get original midpoint of element:
-          let originalAnnoMidpointX = rect.width / 2;
-          let originalAnnoMidpointY = rect.height / 2;
+          let originalAnnoMidpointX = signOriginalWidth / 2;
+          let originalAnnoMidpointY = signOriginalHeight / 2;
 
           // Get offset from center of select box:
           let offsetX = rect.annoX + originalAnnoMidpointX - this.selection.originalPosition[0] - (this.selection.originalSize[0] / 2);
@@ -1754,17 +1900,22 @@ modules["editor/toolbar"] = class {
           let selectionCenterY = this.selection.originalPosition[1] + (this.selection.originalSize[1] / 2);
 
           // Get midpoint of element:
-          let newAnnoMidpointX = (setWidth + rect.thickness) / 2;
-          let newAnnoMidpointY = (setHeight + rect.thickness) / 2;
+          let newAnnoMidpointX = signNewWidth / 2;
+          let newAnnoMidpointY = signNewHeight / 2;
 
           // Apply the selection box position change:
-          select.p = select.p ?? [rect.annoX, rect.annoY];
+          /*select.p = [
+            selectionCenterX + (offsetX * scaleWidth) - newAnnoMidpointX - changeXCoord,
+            selectionCenterY + (offsetY * scaleHeight) - newAnnoMidpointY - changeYCoord
+          ];*/
+          select.p = rect.lastPosition ?? [rect.annoX, rect.annoY];
           if (maintainSizeWidth == false) {
             select.p[0] = selectionCenterX + (offsetX * scaleWidth) - newAnnoMidpointX - changeXCoord;
           }
           if (maintainSizeHeight == false) {
             select.p[1] = selectionCenterY + (offsetY * scaleHeight) - newAnnoMidpointY - changeYCoord;
           }
+          rect.lastPosition = [select.p[0], select.p[1]];
 
           if (annoModule.MIN_WIDTH != null) {
             if (select.s[0] < annoModule.MIN_WIDTH) {

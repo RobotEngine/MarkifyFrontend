@@ -3020,7 +3020,7 @@ modules["editor/toolbar/resize_placement"] = class {
       
       await this.editor.save.push(this.annotation.render);
       await this.editor.history.push("remove", [{ _id: this.annotation.render._id }]);
-      
+
       this.editor.selecting[this.annotation.render._id] = { ...this.annotation.render, done: true };
       await this.editor.realtime.forceShort();
       delete this.editor.selecting["cursor"];

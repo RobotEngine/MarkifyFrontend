@@ -1588,7 +1588,7 @@ modules["editor/editor"] = class {
               switch (handle) {
                 case "bottomright":
                   [annoX, annoY] = this.math.rotatePointOrigin(rect.annoX, rect.annoY, rect.centerX, rect.centerY, rect.rotation);
-                  [finishX, finishY] = this.math.rotatePointOrigin(resizeX - annoX, resizeY - annoY, 0, 0, -rect.rotation);
+                  [finishX, finishY] = this.math.rotatePoint(resizeX - annoX, resizeY - annoY, -rect.rotation);
                   annoAnnotationHolder.style.left = finishX + "px";
                   annoAnnotationHolder.style.top = finishY + "px";
                   annoAnnotationHolder.style.removeProperty("right");
@@ -1596,7 +1596,7 @@ modules["editor/editor"] = class {
                   break;
                 case "topleft":
                   [annoX, annoY] = this.math.rotatePointOrigin(rect.annoX + width, rect.annoY + height, rect.centerX, rect.centerY, rect.rotation);
-                  [finishX, finishY] = this.math.rotatePointOrigin(resizeX - annoX, resizeY - annoY, 0, 0, -rect.rotation);
+                  [finishX, finishY] = this.math.rotatePoint(resizeX - annoX, resizeY - annoY, -rect.rotation);
                   annoAnnotationHolder.style.right = -finishX + "px";
                   annoAnnotationHolder.style.bottom = -finishY + "px";
                   annoAnnotationHolder.style.removeProperty("left");
@@ -1604,7 +1604,7 @@ modules["editor/editor"] = class {
                   break;
                 case "topright":
                   [annoX, annoY] = this.math.rotatePointOrigin(rect.annoX, rect.annoY + height, rect.centerX, rect.centerY, rect.rotation);
-                  [finishX, finishY] = this.math.rotatePointOrigin(resizeX - annoX, resizeY - annoY, 0, 0, -rect.rotation);
+                  [finishX, finishY] = this.math.rotatePoint(resizeX - annoX, resizeY - annoY, -rect.rotation);
                   annoAnnotationHolder.style.left = finishX + "px";
                   annoAnnotationHolder.style.bottom = -finishY + "px";
                   annoAnnotationHolder.style.removeProperty("right");
@@ -1612,7 +1612,7 @@ modules["editor/editor"] = class {
                   break;
                 case "bottomleft":
                   [annoX, annoY] = this.math.rotatePointOrigin(rect.annoX + width, rect.annoY, rect.centerX, rect.centerY, rect.rotation);
-                  [finishX, finishY] = this.math.rotatePointOrigin(resizeX - annoX, resizeY - annoY, 0, 0, -rect.rotation);
+                  [finishX, finishY] = this.math.rotatePoint(resizeX - annoX, resizeY - annoY, -rect.rotation);
                   annoAnnotationHolder.style.right = -finishX + "px";
                   annoAnnotationHolder.style.top = finishY + "px";
                   annoAnnotationHolder.style.removeProperty("left");

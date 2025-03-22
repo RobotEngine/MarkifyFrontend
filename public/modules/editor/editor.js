@@ -1579,30 +1579,42 @@ modules["editor/editor"] = class {
               annoAnnotationHolder.style.removeProperty("bottom");
             } else {
               annoAnnotationHolder.setAttribute("notransition", "");
-              let { x: annoX, y: annoY } = this.utils.getAbsolutePosition(render);
-              let [handle, resizeX, resizeY, resizeWidth, resizeHeight] = render.resizing;
+              let rect = this.utils.getRect(render);
+              let [handle, resizeX, resizeY] = render.resizing;
+              let annoX;
+              let annoY;
+              let finishX;
+              let finishY;
               switch (handle) {
                 case "bottomright":
-                  annoAnnotationHolder.style.left = (resizeX - annoX) + "px";
-                  annoAnnotationHolder.style.top = (resizeY - annoY) + "px";
+                  [annoX, annoY] = this.math.rotatePointOrigin(rect.annoX, rect.annoY, rect.centerX, rect.centerY, rect.rotation);
+                  [finishX, finishY] = this.math.rotatePointOrigin(resizeX - annoX, resizeY - annoY, 0, 0, -rect.rotation);
+                  annoAnnotationHolder.style.left = finishX + "px";
+                  annoAnnotationHolder.style.top = finishY + "px";
                   annoAnnotationHolder.style.removeProperty("right");
                   annoAnnotationHolder.style.removeProperty("bottom");
                   break;
                 case "topleft":
-                  annoAnnotationHolder.style.right = ((annoX + width) - (resizeX + resizeWidth)) + "px";
-                  annoAnnotationHolder.style.bottom = ((annoY + height) - (resizeY + resizeHeight)) + "px";
+                  [annoX, annoY] = this.math.rotatePointOrigin(rect.annoX + width, rect.annoY + height, rect.centerX, rect.centerY, rect.rotation);
+                  [finishX, finishY] = this.math.rotatePointOrigin(resizeX - annoX, resizeY - annoY, 0, 0, -rect.rotation);
+                  annoAnnotationHolder.style.right = -finishX + "px";
+                  annoAnnotationHolder.style.bottom = -finishY + "px";
                   annoAnnotationHolder.style.removeProperty("left");
                   annoAnnotationHolder.style.removeProperty("top");
                   break;
                 case "topright":
-                  annoAnnotationHolder.style.left = (resizeX - annoX) + "px";
-                  annoAnnotationHolder.style.bottom = ((annoY + height) - (resizeY + resizeHeight)) + "px";
+                  [annoX, annoY] = this.math.rotatePointOrigin(rect.annoX, rect.annoY + height, rect.centerX, rect.centerY, rect.rotation);
+                  [finishX, finishY] = this.math.rotatePointOrigin(resizeX - annoX, resizeY - annoY, 0, 0, -rect.rotation);
+                  annoAnnotationHolder.style.left = finishX + "px";
+                  annoAnnotationHolder.style.bottom = -finishY + "px";
                   annoAnnotationHolder.style.removeProperty("right");
                   annoAnnotationHolder.style.removeProperty("top");
                   break;
                 case "bottomleft":
-                  annoAnnotationHolder.style.right = ((annoX + width) - (resizeX + resizeWidth)) + "px";
-                  annoAnnotationHolder.style.top = (resizeY - annoY) + "px";
+                  [annoX, annoY] = this.math.rotatePointOrigin(rect.annoX + width, rect.annoY, rect.centerX, rect.centerY, rect.rotation);
+                  [finishX, finishY] = this.math.rotatePointOrigin(resizeX - annoX, resizeY - annoY, 0, 0, -rect.rotation);
+                  annoAnnotationHolder.style.right = -finishX + "px";
+                  annoAnnotationHolder.style.top = finishY + "px";
                   annoAnnotationHolder.style.removeProperty("left");
                   annoAnnotationHolder.style.removeProperty("bottom");
               }
@@ -1750,6 +1762,7 @@ modules["editor/editor"] = class {
           }
           delete mutt.sig;
           delete anno.save;
+          delete anno.resizing;
           if (anno.retry > 0) {
             this.save.enableTimeout(anno);
             anno.retry--;
@@ -1851,7 +1864,7 @@ modules["editor/editor"] = class {
 
           if (annotation.render._id.includes("pending_") == false) { // Must be a new anno
             delete annotation.retry;
-            let result = this.save.apply(annotation.revert, true);
+            let result = this.save.apply(annotation.revert, { timeout: false });
             if (result.redrawAction == true) {
               redrawAction = true;
             }
@@ -1870,11 +1883,8 @@ modules["editor/editor"] = class {
       }
       this.save.runningTimeout = false;
     }
-    this.save.apply = async (save, noTimeout) => {
+    this.save.apply = async (save, options = {}) => {
       save = save ?? {};
-      if (save.resizing != null) {
-        delete save.resizing;
-      }
       let annoID = save._id;
       if (annoID == null) {
         return;
@@ -1887,7 +1897,7 @@ modules["editor/editor"] = class {
         annotation = this.annotations[annoID] ?? { render: {} };
       }
 
-      if (annotation.revert == null && noTimeout != true) {
+      if (annotation.revert == null && options.timeout != false) {
         annotation.revert = copyObject(annotation.render); // Copy the currents attributes to revert to later
       }
 
@@ -1897,12 +1907,14 @@ modules["editor/editor"] = class {
         save = { ...save, ...this.selecting[annoID] };
         redrawAction = true;
       }
-
-      objectUpdate(save, annotation.render); // Update the annotation
-      if (noTimeout != true) {
+      if (options.overwrite != true) {
+        objectUpdate(save, annotation.render); // Update the annotation
+      } else {
+        annotation.render = save;
+      }
+      if (options.timeout != false) {
         this.save.enableTimeout(annotation); // Start timer to revert if update isn't server-confirmed
       }
-
       if (existingAnnotation == null) {
         this.annotations[annoID] = annotation;
       }
@@ -1918,7 +1930,7 @@ modules["editor/editor"] = class {
         }
       }
       if (allowRender == true) {
-        await this.render.create(annotation, noTimeout);
+        await this.render.create({ ...annotation, ...(options.render ?? {}) }, options.timeout == false);
       } else {
         await this.render.remove(annotation);
       }
@@ -1969,7 +1981,8 @@ modules["editor/editor"] = class {
 
       let checkChunks = [ ...this.utils.chunksFromAnnotation(merged), ...this.utils.chunksFromAnnotation(annotation.render) ];
 
-      annotation = (await this.save.apply(data, null)).annotation; // Apply Save
+      data.sync = getEpoch();
+      annotation = (await this.save.apply(data)).annotation; // Apply Save
 
       if (data.p != null || data.s != null || data.t != null || data.l != null || data.remove == true) {
         let annotationModule = await this.render.getModule(merged.f);
@@ -2038,7 +2051,7 @@ modules["editor/editor"] = class {
       annotation.save = true;
       annotation.render.m = this.self.modify;
       if (connected == true) {
-        this.save.pendingSaves[annoID] = { _id: annoID, ...(this.save.pendingSaves[annoID] ?? {}), ...data, sync: getEpoch() };
+        this.save.pendingSaves[annoID] = { _id: annoID, ...(this.save.pendingSaves[annoID] ?? {}), ...data };
       } else {
         this.pendingSaves = {};
       }
@@ -2409,7 +2422,7 @@ modules["editor/editor"] = class {
           delete this.reactions[anno._id];
         }
 
-        let result = await this.save.apply(anno, true);
+        let result = await this.save.apply(anno, { overwrite: true, timeout: false });
         if (result.redrawAction == true) {
           redrawAction = true;
         }

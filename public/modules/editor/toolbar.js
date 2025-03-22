@@ -1293,22 +1293,22 @@ modules["editor/toolbar"] = class {
       for (let i = 0; i < allRealtimeSelections.length; i++) {
         let selection = allRealtimeSelections[i];
         let annoID = selection.getAttribute("anno");
-        let render;
+        let render = {};
         if (annoID != "cursor") {
           if (editor.annotations[annoID] == null) {
             selection.remove();
             continue;
           }
           render = { ...((editor.annotations[annoID]).render ?? {}), ...(editor.selecting[annoID] ?? {}) };
-          if (render.f == null) {
-            continue;
-          }
-        } else {
-          let member = editor.members[selection.getAttribute("member")];
+        } else if (editor.realtime.module != null) {
+          let member = editor.realtime.module.members[selection.getAttribute("member")];
           if (member == null || member.cursorRender == null) {
             continue;
           }
           render = { ...member.cursorRender, ...(editor.selecting[annoID] ?? {}) };
+        }
+        if (render.f == null) {
+          continue;
         }
         let rect = editor.utils.getRect(render);
         let transition = options.transition != false && (this.selection.action == null || rect.selectingParent != true);
@@ -1947,7 +1947,22 @@ modules["editor/toolbar"] = class {
             }
           }
           
-          select.resizing = [fixAnnotationHolder, rect.annoX, rect.annoY, rect.width, rect.height];
+          let resizeAnnoX;
+          let resizeAnnoY;
+          switch (fixAnnotationHolder) {
+            case "bottomright":
+              [resizeAnnoX, resizeAnnoY] = editor.math.rotatePointOrigin(rect.annoX, rect.annoY, rect.centerX, rect.centerY, rect.rotation);
+              break;
+            case "topleft":
+              [resizeAnnoX, resizeAnnoY] = editor.math.rotatePointOrigin(rect.annoX + rect.width, rect.annoY + rect.height, rect.centerX, rect.centerY, rect.rotation);
+              break;
+            case "topright":
+              [resizeAnnoX, resizeAnnoY] = editor.math.rotatePointOrigin(rect.annoX, rect.annoY + rect.height, rect.centerX, rect.centerY, rect.rotation);
+              break;
+            case "bottomleft":
+              [resizeAnnoX, resizeAnnoY] = editor.math.rotatePointOrigin(rect.annoX + rect.width, rect.annoY, rect.centerX, rect.centerY, rect.rotation);
+          }
+          select.resizing = [fixAnnotationHolder, resizeAnnoX, resizeAnnoY];
         } else if (this.selection.action == "rotate") {
           if (annoModule.CAN_ROTATE != false) {
             let changeRotate = rect.rotation + rotateChange;
@@ -2840,7 +2855,7 @@ modules["editor/toolbar/placement"] = class {
       await this.editor.save.push(this.annotation.render);
       await this.editor.history.push("remove", [{ _id: this.annotation.render._id }]);
 
-      this.annotation.render.done = true;
+      this.editor.selecting[this.annotation.render._id] = { ...this.annotation.render, done: true };
       await this.editor.realtime.forceShort();
       delete this.editor.selecting["cursor"];
 
@@ -3005,8 +3020,8 @@ modules["editor/toolbar/resize_placement"] = class {
       
       await this.editor.save.push(this.annotation.render);
       await this.editor.history.push("remove", [{ _id: this.annotation.render._id }]);
-
-      this.annotation.render.done = true;
+      
+      this.editor.selecting[this.annotation.render._id] = { ...this.annotation.render, done: true };
       await this.editor.realtime.forceShort();
       delete this.editor.selecting["cursor"];
 

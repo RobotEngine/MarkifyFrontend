@@ -579,13 +579,13 @@ modules["editor/realtime"] = class {
               }
 
               original.revert = original.revert ?? copyObject(originalRender);
-
+              
               if (originalRender.lock != true || anno.lock == false) { // Can't edit another member's work:
                 if (anno.remove == true && editor.selecting[annoID] != null) {
                   delete editor.selecting[annoID];
                   userSelecting = true;
                 }
-                if (Object.keys({ ...anno, done: "" }).length > 2) {
+                if (Object.keys(anno).length > 1) {
                   changes = true;
                 }
                 if (anno.done != true && forced != true) {
@@ -600,7 +600,7 @@ modules["editor/realtime"] = class {
                     original.render.a = member.modify;
                   }
                   original.render.sync = time;
-                  
+
                   await editor.save.apply({ ...anno, sync: time });
                 }
               }
@@ -635,18 +635,13 @@ modules["editor/realtime"] = class {
                 merge = { ...original.render, ...(editor.selecting[annoID] ?? {}) };
                 userSelecting = true;
               }
-              if (["text", "sticky"].includes(merge.f) == true && anno.d != null) {
-                let annoTx = annotations.querySelector('.eAnnotation[anno="' + annoID + '"] div[contenteditable]');
-                if (annoTx != null) {
-                  annoTx.removeAttribute("contenteditable");
-                }
-              }
-              annoElem = ((await editor.save.apply(merge)).annotation ?? {}).element;
-              if (annoElem != null) {
-                if (anno.f == null) { // Anno is being created
-                  annoElem.removeAttribute("notransition");
-                } else {
-                  annoElem.setAttribute("notransition", "");
+              if (merge.f != null) {
+                annoElem = ((await editor.save.apply({ ...merge, sync: time }, { overwrite: true, render: { animate: anno.f == null }})).annotation ?? {}).element;
+                if (annoElem != null) {
+                  let annoTx = annoElem.querySelector("div[contenteditable]");
+                  if (annoTx != null) {
+                    annoTx.removeAttribute("contenteditable");
+                  }
                 }
               }
               if (selection != null && anno.remove == true && selection.hasAttribute("remove") == false) {

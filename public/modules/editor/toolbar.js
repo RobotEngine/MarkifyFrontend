@@ -1164,9 +1164,13 @@ modules["editor/toolbar"] = class {
         }
 
         if (collabSelect != null) {
+          let rotate = rect.rotation;
+          if (rotate > 180) {
+            rotate = -(360 - rotate);
+          }
           collabSelect.style.width = ((rect.width * editor.zoom) - 3) + "px";
           collabSelect.style.height = ((rect.height * editor.zoom) - 3) + "px";
-          collabSelect.style.transform = "translate(" + (annotationRect.left + (rect.x * editor.zoom) + contentHolder.scrollLeft - 1.5) + "px," + (annotationRect.top + (rect.y * editor.zoom) + contentHolder.scrollTop - 1.5) + "px) rotate(" + rect.rotation + "deg)";
+          collabSelect.style.transform = "translate(" + (annotationRect.left + (rect.x * editor.zoom) + contentHolder.scrollLeft - 1.5) + "px," + (annotationRect.top + (rect.y * editor.zoom) + contentHolder.scrollTop - 1.5) + "px) rotate(" + rotate + "deg)";
         }
       }
 
@@ -1232,6 +1236,9 @@ modules["editor/toolbar"] = class {
           boxX = this.selection.lastElementX;
           boxY = this.selection.lastElementY;
           this.selection.rotation = this.selection.lastElementRotate;
+          if (this.selection.rotation > 180) {
+            this.selection.rotation = -(360 - this.selection.rotation);
+          }
         } else {
           boxWidth = ((this.selection.maxX - this.selection.minX) * editor.zoom) - 4;
           boxHeight = ((this.selection.maxY - this.selection.minY) * editor.zoom) - 4;

@@ -2134,6 +2134,8 @@ modules["editor/toolbar"] = class {
           await editor.history.push("add", pushRemoves);
         }
       }
+      
+      let realtimeSelectSet = copyObject(editor.selecting);
 
       let savedAnnoIDs = {};
       while (saveUpdates.length > 0) {
@@ -2149,7 +2151,9 @@ modules["editor/toolbar"] = class {
         }
       }
 
+      editor.realtimeSelect = { ...realtimeSelectSet, ...editor.realtimeSelect };
       await editor.realtime.forceShort();
+      editor.realtimeSelect = {};
       editor.selecting = {};
 
       let resetKeys = options.sentKeys ?? keys;

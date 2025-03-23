@@ -1800,8 +1800,8 @@ modules["editor/toolbar"] = class {
           // THIRD: Determine actual element width by converting bounding box size back to element size:
           let setWidth = 0;
           let setHeight = 0;
-          let maintainSizeWidth = false;
-          let maintainSizeHeight = false;
+          //let maintainSizeWidth = false;
+          //let maintainSizeHeight = false;
 
           let absRotate = Math.abs(rotateDifference);
           if (absRotate > 45 && absRotate < 135) {
@@ -1818,17 +1818,6 @@ modules["editor/toolbar"] = class {
             }
             setWidth = (setBoundHeight / cosAbs) - cosCorrectWidth - rect.thickness;
             setHeight = (setBoundWidth / cosAbs) - cosCorrectHeight - rect.thickness;
-
-            if (keys.length > 1) {
-              if (setWidth < 25) {
-                setWidth = 25;
-                maintainSizeHeight = true;
-              }
-              if (setHeight < 25) {
-                setHeight = 25;
-                maintainSizeWidth = true;
-              }
-            }
           } else {
             let cosAbs = Math.abs(Math.cos(radian));
             let cosCorrectWidth = (boundingWidth / cosAbs) - rect.width;
@@ -1843,17 +1832,6 @@ modules["editor/toolbar"] = class {
             }
             setWidth = (setBoundWidth / cosAbs) - cosCorrectWidth - rect.thickness;
             setHeight = (setBoundHeight / cosAbs) - cosCorrectHeight - rect.thickness;
-
-            if (keys.length > 1) {
-              if (setWidth < 25) {
-                setWidth = 25;
-                maintainSizeWidth = true;
-              }
-              if (setHeight < 25) {
-                setHeight = 25;
-                maintainSizeHeight = true;
-              }
-            }
           }
 
           // Account for min-width of thickness:
@@ -1874,27 +1852,35 @@ modules["editor/toolbar"] = class {
             //maintainSizeHeight = true;
           }*/
 
+          if (keys.length > 1) {
+            if (setWidth < 25) {
+              setWidth = 25;
+              //maintainSizeWidth = true;
+            }
+            if (setHeight < 25) {
+              setHeight = 25;
+              //maintainSizeHeight = true;
+            }
+          }
+
           // Preserve original sign:
           let signOriginalWidth = rect.width;
-          let signNewWidth = setWidth + rect.thickness;
           let signOriginalHeight = rect.height;
-          let signNewHeight = setHeight + rect.thickness;
           if (annoModule.CAN_FLIP != false) {
             if (rect.size[0] < 0) {
               setWidth *= -1;
               signOriginalWidth *= -1;
-              signNewWidth *= -1;
             }
             if (rect.size[1] < 0) {
               setHeight *= -1;
               signOriginalHeight *= -1;
-              signNewHeight *= -1;
             }
           } else {
             setWidth = Math.max(setWidth, 25);
             setHeight = Math.max(setHeight, 25);
           }
 
+          let lockPosition = false;
           if (annoModule.MIN_WIDTH != null) {
             if (Math.abs(setWidth) < annoModule.MIN_WIDTH) {
               if (setWidth > 0) {
@@ -1902,7 +1888,8 @@ modules["editor/toolbar"] = class {
               } else {
                 setWidth = -annoModule.MIN_WIDTH;
               }
-              maintainSizeWidth = true;
+              lockPosition = true;
+              //maintainSizeWidth = true;
             }
           }
           if (annoModule.MIN_HEIGHT != null) {
@@ -1912,8 +1899,18 @@ modules["editor/toolbar"] = class {
               } else {
                 setHeight = -annoModule.MIN_HEIGHT;
               }
-              maintainSizeHeight = true;
+              lockPosition = true;
+              //maintainSizeHeight = true;
             }
+          }
+
+          let signNewWidth = Math.abs(setWidth) + rect.thickness;
+          let signNewHeight = Math.abs(setHeight) + rect.thickness;
+          if (setWidth < 0) {
+            signNewWidth *= -1;
+          }
+          if (setHeight < 0) {
+            signNewHeight *= -1;
           }
 
           // FINALLY: Apply the new size:
@@ -1951,17 +1948,17 @@ modules["editor/toolbar"] = class {
           let newAnnoMidpointY = signNewHeight / 2;
 
           // Apply the selection box position change:
-          /*select.p = [
+          select.p = [
             selectionCenterX + (offsetX * scaleWidth) - newAnnoMidpointX - changeXCoord,
             selectionCenterY + (offsetY * scaleHeight) - newAnnoMidpointY - changeYCoord
-          ];*/
-          select.p = rect.lastPosition ?? [rect.annoX, rect.annoY];
+          ];
+          /*select.p = rect.lastPosition ?? [rect.annoX, rect.annoY];
           if (maintainSizeWidth == false) {
             select.p[0] = selectionCenterX + (offsetX * scaleWidth) - newAnnoMidpointX - changeXCoord;
           }
           if (maintainSizeHeight == false) {
             select.p[1] = selectionCenterY + (offsetY * scaleHeight) - newAnnoMidpointY - changeYCoord;
-          }
+          }*/
           rect.lastPosition = [select.p[0], select.p[1]];
 
           /*if (annoModule.MIN_WIDTH != null) {
@@ -2015,6 +2012,12 @@ modules["editor/toolbar"] = class {
           // Get original midpoint of element:
           let originalAnnoMidpointX = rect.width / 2;
           let originalAnnoMidpointY = rect.height / 2;
+          if (rect.size[0] < 0) {
+            originalAnnoMidpointX *= -1;
+          }
+          if (rect.size[1] < 0) {
+            originalAnnoMidpointY *= -1;
+          }
 
           // Get center position of element:
           let originalAnnoCenterX = rect.annoX + originalAnnoMidpointX;

@@ -2100,15 +2100,13 @@ modules["editor/toolbar"] = class {
         }
       }
 
-      let beforeSelect = copyObject(editor.selecting);
-
       let savedAnnoIDs = {};
       while (saveUpdates.length > 0) {
         for (let i = 0; i < saveUpdates.length; i++) {
           let newSave = saveUpdates[i];
           if (annoIDs[newSave.parent] == null || savedAnnoIDs[newSave.parent] != null) {
-            await editor.save.push(newSave);
             editor.selecting[newSave._id] = {};
+            await editor.save.push(newSave, { ignoreSelect: true });
             savedAnnoIDs[newSave._id] = true;
             saveUpdates.splice(i, 1);
             i--;
@@ -2116,9 +2114,8 @@ modules["editor/toolbar"] = class {
         }
       }
 
-      editor.realtimeSelect = beforeSelect;
       await editor.realtime.forceShort();
-      editor.realtimeSelect = {};
+      editor.selecting = {};
 
       let resetKeys = options.sentKeys ?? keys;
       for (let i = 0; i < resetKeys.length; i++) {

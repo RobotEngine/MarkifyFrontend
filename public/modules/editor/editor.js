@@ -587,7 +587,8 @@ modules["editor/editor"] = class {
       let topLeftY = position.y;
       let bottomRightX = position.endX;
       let bottomRightY = position.endY;
-      let returnRotation = position.rotation;
+
+      let returnRotation = 0;
 
       let parents = this.utils.getParents(anno, includeSelecting);
       for (let i = parents.length - 1; i > -1; i--) {
@@ -645,7 +646,7 @@ modules["editor/editor"] = class {
       } else {
         y += height;
       }
-      return { x, y, rotation: (returnRotation + 360) % 360, thickness: position.thickness, parents: parents };
+      return { x, y, rotation: (((anno.r ?? 0) + returnRotation) + 360) % 360, thickness: position.thickness, parents: parents };
     }
     this.utils.getRect = (anno, includeSelecting) => {
       anno = anno ?? {};
@@ -1864,7 +1865,7 @@ modules["editor/editor"] = class {
 
           if (annotation.render._id.includes("pending_") == false) { // Must be a new anno
             delete annotation.retry;
-            let result = this.save.apply(annotation.revert, { timeout: false });
+            let result = this.save.apply(annotation.revert, { overwrite: true, timeout: false });
             if (result.redrawAction == true) {
               redrawAction = true;
             }
@@ -1903,7 +1904,7 @@ modules["editor/editor"] = class {
 
       // IF SELECTING, DO NOT UPDATE THOSE FIELDS
       let redrawAction = false;
-      if (this.selecting[annoID] != null) {
+      if (options.ignoreSelecting != true && this.selecting[annoID] != null) {
         save = { ...save, ...this.selecting[annoID] };
         redrawAction = true;
       }
@@ -1938,7 +1939,7 @@ modules["editor/editor"] = class {
       
       return { annotation: annotation, redrawAction: redrawAction };
     }
-    this.save.push = async (save) => {
+    this.save.push = async (save, options = {}) => {
       let data = copyObject(save);
       let annotation = this.annotations[data._id] ?? { render: {} };
       if (annotation.pointer != null) {
@@ -1957,6 +1958,7 @@ modules["editor/editor"] = class {
       let { parentID } = await this.utils.parentFromAnnotation({
         ...merged,
         p: [rect.annoX, rect.annoY],
+        r: rect.rotation,
         parent: null,
         prevParent: merged.parent
       }, true);
@@ -1966,7 +1968,8 @@ modules["editor/editor"] = class {
         let { x: newX, y: newY, rotation: newRotation } = this.utils.getRelativePosition({
           ...merged,
           parent: data.parent,
-          p: [rect.annoX, rect.annoY]
+          p: [rect.annoX, rect.annoY],
+          r: rect.rotation
         });
         //let [correctX, correctY] = this.math.rotatePointOrigin(newX, newY, newX + (rect.width / 2), newY + (rect.height / 2), newRotation);
         //data.p = [newX - (correctX - newX), newY - (correctY - newY)];
@@ -1983,7 +1986,7 @@ modules["editor/editor"] = class {
       let checkChunks = [ ...this.utils.chunksFromAnnotation(merged), ...this.utils.chunksFromAnnotation(annotation.render) ];
 
       data.sync = getEpoch();
-      annotation = (await this.save.apply(data)).annotation; // Apply Save
+      annotation = (await this.save.apply(data, options)).annotation; // Apply Save
 
       if (data.p != null || data.s != null || data.t != null || data.l != null || data.remove == true) {
         let annotationModule = await this.render.getModule(merged.f);
@@ -2000,7 +2003,7 @@ modules["editor/editor"] = class {
               render.parent = parentAnno.pointer;
             }
           }
-          let { annoX, annoY, centerX, centerY, width, height } = this.utils.getRect(render);
+          let { annoX, annoY, centerX, centerY, rotation } = this.utils.getRect(render);
           let checkParent = false;
           if (this.math.pointInRotatedBounds(centerX, centerY, rect.x, rect.y, rect.endX, rect.endY, rect.rotation) == false || render.l < merged.l || merged.remove == true) {
             // Is outside the saved annotation:
@@ -2015,14 +2018,16 @@ modules["editor/editor"] = class {
             let { parentID: setParentID } = await this.utils.parentFromAnnotation({
               ...render,
               p: [annoX, annoY],
+              r: rotation,
               parent: null,
               prevParent: render.parent
             }, true);
             if (setParentID != render.parent) {
               let { x: newX, y: newY, rotation: newRotation } = this.utils.getRelativePosition({
                 ...render,
+                parent: setParentID,
                 p: [annoX, annoY],
-                parent: setParentID
+                r: rotation
               });
               //let [correctX, correctY] = this.math.rotatePointOrigin(newX, newY, newX + (width / 2), newY + (height / 2), newRotation);
               let setChildAnno = {

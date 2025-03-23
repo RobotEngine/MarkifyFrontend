@@ -1907,6 +1907,7 @@ modules["editor/editor"] = class {
         save = { ...save, ...this.selecting[annoID] };
         redrawAction = true;
       }
+      delete save.resizing;
       if (options.overwrite != true) {
         objectUpdate(save, annotation.render); // Update the annotation
       } else {
@@ -1930,7 +1931,7 @@ modules["editor/editor"] = class {
         }
       }
       if (allowRender == true) {
-        await this.render.create({ ...annotation, ...(options.render ?? {}) }, options.timeout == false);
+        await this.render.create({ ...annotation, render: { ...annotation.render, ...(options.renderPassthrough ?? {}) }, ...(options.render ?? {}) }, options.timeout == false);
       } else {
         await this.render.remove(annotation);
       }

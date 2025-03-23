@@ -636,7 +636,7 @@ modules["editor/realtime"] = class {
                 userSelecting = true;
               }
               if (merge.f != null) {
-                annoElem = ((await editor.save.apply({ ...merge, sync: time }, { overwrite: true, render: { animate: anno.f == null }})).annotation ?? {}).element;
+                annoElem = ((await editor.save.apply({ ...merge, sync: time }, { overwrite: true, render: { animate: anno.f == null }, renderPassthrough: { resizing: merge.resizing } })).annotation ?? {}).element;
                 if (annoElem != null) {
                   let annoTx = annoElem.querySelector("div[contenteditable]");
                   if (annoTx != null) {

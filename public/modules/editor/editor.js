@@ -3436,7 +3436,8 @@ modules["editor/render/page"] = class {
   SHOW_DUPLICATE_HANDLES = true;
   MIN_WIDTH = 100;
   MIN_HEIGHT = 100;
-  CAN_ROTATE = false;
+  //CAN_ROTATE = false;
+  CAN_FLIP = false;
 
   SELECTION_FUNCTION = (selection, render) => {
     if (render.source != null && ["bottomright", "topleft", "topright", "bottomleft"].includes(selection.tooltip) == true) {

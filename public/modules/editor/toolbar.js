@@ -1876,17 +1876,43 @@ modules["editor/toolbar"] = class {
           // Preserve original sign:
           let signOriginalWidth = rect.width;
           let signNewWidth = setWidth + rect.thickness;
-          if (rect.size[0] < 0) {
-            setWidth *= -1;
-            signOriginalWidth *= -1;
-            signNewWidth *= -1;
-          }
           let signOriginalHeight = rect.height;
           let signNewHeight = setHeight + rect.thickness;
-          if (rect.size[1] < 0) {
-            setHeight *= -1;
-            signOriginalHeight *= -1;
-            signNewHeight *= -1;
+          if (annoModule.CAN_FLIP != false) {
+            if (rect.size[0] < 0) {
+              setWidth *= -1;
+              signOriginalWidth *= -1;
+              signNewWidth *= -1;
+            }
+            if (rect.size[1] < 0) {
+              setHeight *= -1;
+              signOriginalHeight *= -1;
+              signNewHeight *= -1;
+            }
+          } else {
+            setWidth = Math.max(setWidth, 25);
+            setHeight = Math.max(setHeight, 25);
+          }
+
+          if (annoModule.MIN_WIDTH != null) {
+            if (Math.abs(setWidth) < annoModule.MIN_WIDTH) {
+              if (setWidth > 0) {
+                setWidth = annoModule.MIN_WIDTH;
+              } else {
+                setWidth = -annoModule.MIN_WIDTH;
+              }
+              maintainSizeWidth = true;
+            }
+          }
+          if (annoModule.MIN_HEIGHT != null) {
+            if (Math.abs(setHeight) < annoModule.MIN_HEIGHT) {
+              if (setHeight > 0) {
+                setHeight = annoModule.MIN_HEIGHT;
+              } else {
+                setHeight = -annoModule.MIN_HEIGHT;
+              }
+              maintainSizeHeight = true;
+            }
           }
 
           // FINALLY: Apply the new size:
@@ -1937,7 +1963,7 @@ modules["editor/toolbar"] = class {
           }
           rect.lastPosition = [select.p[0], select.p[1]];
 
-          if (annoModule.MIN_WIDTH != null) {
+          /*if (annoModule.MIN_WIDTH != null) {
             if (select.s[0] < annoModule.MIN_WIDTH) {
               if (sizeLimitX == true) {
                 select.p[0] -= annoModule.MIN_WIDTH - select.s[0];
@@ -1952,7 +1978,7 @@ modules["editor/toolbar"] = class {
               }
               select.s[1] = annoModule.MIN_HEIGHT;
             }
-          }
+          }*/
           
           let resizeAnnoX;
           let resizeAnnoY;

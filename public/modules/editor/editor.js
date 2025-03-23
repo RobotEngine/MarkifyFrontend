@@ -2025,7 +2025,7 @@ modules["editor/editor"] = class {
               _id: render._id,
               p: [(render.p[0] ?? 0) + resizeChangeX, (render.p[1] ?? 0) + resizeChangeY]
             };
-            await this.save.apply(setChildAnno);
+            await this.save.apply(setChildAnno, { render: { animate: false } });
             if (connected == true) {
               this.save.pendingSaves[setChildAnno._id] = { ...(this.save.pendingSaves[setChildAnno._id] ?? {}), ...setChildAnno, sync: getEpoch() };
               this.realtimeSelect[setChildAnno._id] = { ...(this.realtimeSelect[setChildAnno._id] ?? {}), ...setChildAnno };

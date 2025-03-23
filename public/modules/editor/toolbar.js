@@ -933,6 +933,7 @@ modules["editor/toolbar"] = class {
 
     this.selection = {};
     this.selection.currentSelections = {};
+    this.selection.annotationRects = {};
     this.selection.updateBox = async (options = {}) => {
       let removeSelections = [];
       let checkSelections = Object.keys(this.selection.currentSelections);
@@ -2119,8 +2120,22 @@ modules["editor/toolbar"] = class {
         if (selecting.remove == true) {
           deleteKeys[annoid] = "";
         }
+      }
+      
+      let realtimeSelectSet = copyObject(editor.selecting);
 
-        // Update child annotations:
+      let savedAnnoIDs = {};
+      while (saveUpdates.length > 0) {
+        for (let i = 0; i < saveUpdates.length; i++) {
+          let newSave = saveUpdates[i];
+          if (annoIDs[newSave.parent] == null || savedAnnoIDs[newSave.parent] != null) {
+            editor.selecting[newSave._id] = {};
+            await editor.save.push(newSave, { history: { fromHistory: options.fromHistory, update: pushChanges, add: pushRemoves }, ignoreSelect: true });
+            savedAnnoIDs[newSave._id] = true;
+            saveUpdates.splice(i, 1);
+            i--;
+          }
+        }
       }
 
       if (options.fromHistory != true) {
@@ -2132,22 +2147,6 @@ modules["editor/toolbar"] = class {
         }
         if (pushRemoves.length > 0) {
           await editor.history.push("add", pushRemoves);
-        }
-      }
-      
-      let realtimeSelectSet = copyObject(editor.selecting);
-
-      let savedAnnoIDs = {};
-      while (saveUpdates.length > 0) {
-        for (let i = 0; i < saveUpdates.length; i++) {
-          let newSave = saveUpdates[i];
-          if (annoIDs[newSave.parent] == null || savedAnnoIDs[newSave.parent] != null) {
-            editor.selecting[newSave._id] = {};
-            await editor.save.push(newSave, { ignoreSelect: true });
-            savedAnnoIDs[newSave._id] = true;
-            saveUpdates.splice(i, 1);
-            i--;
-          }
         }
       }
 

@@ -1941,10 +1941,12 @@ modules["editor/editor"] = class {
     }
     this.save.push = async (save, options = {}) => {
       let data = copyObject(save);
-      let annotation = this.annotations[data._id] ?? { render: {} };
+      let history = options.history ?? {};
+
+      let annotation = this.annotations[data._id] ?? {};
       if (annotation.pointer != null) {
         data._id = annotation.pointer;
-        annotation = this.annotations[data._id] ?? { render: {} };
+        annotation = this.annotations[data._id] ?? {};
       }
       let annoID = data._id;
 
@@ -1952,6 +1954,8 @@ modules["editor/editor"] = class {
       if (merged.p == null || merged.s == null) {
         return;
       }
+
+      let originalRect = this.utils.getRect(annotation.render ?? merged);
       let rect = this.utils.getRect(merged);
 
       // Check for a new parent:
@@ -1971,8 +1975,6 @@ modules["editor/editor"] = class {
           p: [rect.annoX, rect.annoY],
           r: rect.rotation
         });
-        //let [correctX, correctY] = this.math.rotatePointOrigin(newX, newY, newX + (rect.width / 2), newY + (rect.height / 2), newRotation);
-        //data.p = [newX - (correctX - newX), newY - (correctY - newY)];
         data.p = [newX, newY];
         if (merged.r != null || newRotation != 0) {
           data.r = newRotation;
@@ -1989,6 +1991,14 @@ modules["editor/editor"] = class {
       annotation = (await this.save.apply(data, options)).annotation; // Apply Save
 
       if (data.p != null || data.s != null || data.t != null || data.l != null || data.remove == true) {
+        let resizeChangeX = 0;
+        let resizeChangeY = 0;
+        if (data.resizing != null) {
+          let [originalResizeX, originalResizeY] = this.math.rotatePointOrigin(originalRect.annoX, originalRect.annoY, originalRect.centerX, originalRect.centerY, originalRect.rotation);
+          let [newResizeX, newResizeY] = this.math.rotatePointOrigin(rect.annoX, rect.annoY, rect.centerX, rect.centerY, rect.rotation);
+          [resizeChangeX, resizeChangeY] = this.math.rotatePoint(originalResizeX - newResizeX, originalResizeY - newResizeY, -rect.rotation);
+        }
+        
         let annotationModule = await this.render.getModule(merged.f);
         let chunkAnnotations = this.utils.annotationsInChunks(checkChunks);
         for (let i = 0; i < chunkAnnotations.length; i++) {
@@ -2003,15 +2013,35 @@ modules["editor/editor"] = class {
               render.parent = parentAnno.pointer;
             }
           }
+
+          let isChild = render.parent == annoID;
+
+          // Update position for parent resize:
+          if (isChild == true && (Math.floor(Math.abs(resizeChangeX)) > 0 || Math.floor(Math.abs(resizeChangeY)) > 0)) {
+            if (history.update != null) {
+              history.update.push(copyObject({ _id: render._id, parent: render.parent, p: render.p }));
+            }
+            let setChildAnno = {
+              _id: render._id,
+              p: [(render.p[0] ?? 0) + resizeChangeX, (render.p[1] ?? 0) + resizeChangeY]
+            };
+            await this.save.apply(setChildAnno);
+            if (connected == true) {
+              this.save.pendingSaves[setChildAnno._id] = { ...(this.save.pendingSaves[setChildAnno._id] ?? {}), ...setChildAnno, sync: getEpoch() };
+              this.realtimeSelect[setChildAnno._id] = { ...(this.realtimeSelect[setChildAnno._id] ?? {}), ...setChildAnno };
+            }
+          }
+
+          // Check for child parent change:
           let { annoX, annoY, centerX, centerY, rotation } = this.utils.getRect(render);
           let checkParent = false;
           if (this.math.pointInRotatedBounds(centerX, centerY, rect.x, rect.y, rect.endX, rect.endY, rect.rotation) == false || render.l < merged.l || merged.remove == true) {
             // Is outside the saved annotation:
-            checkParent = render.parent == annoID;
+            checkParent = isChild;
           } else if (annotationModule.CAN_PARENT_CHILDREN == true) {
             // Is inside the saved annotation:
             if (this.utils.canMemberModify(render) == true) {
-              checkParent = render.parent != annoID;
+              checkParent = !isChild;
             }
           }
           if (checkParent == true) {
@@ -2029,12 +2059,13 @@ modules["editor/editor"] = class {
                 p: [annoX, annoY],
                 r: rotation
               });
-              //let [correctX, correctY] = this.math.rotatePointOrigin(newX, newY, newX + (width / 2), newY + (height / 2), newRotation);
+              if (history.update != null) {
+                history.update.push(copyObject({ _id: render._id, parent: render.parent, p: render.p, r: render.r }));
+              }
               let setChildAnno = {
                 _id: render._id,
                 parent: setParentID,
-                p: [newX, newY], //[newX - (correctX - newX), newY - (correctY - newY)],
-                sync: getEpoch()
+                p: [newX, newY]
               };
               if (render.r != null || newRotation != 0) {
                 setChildAnno.r = newRotation;
@@ -2043,13 +2074,26 @@ modules["editor/editor"] = class {
               anno.save = true;
               anno.render.m = this.self.modify;
               if (connected == true) {
-                this.save.pendingSaves[setChildAnno._id] = { ...(this.save.pendingSaves[setChildAnno._id] ?? {}), ...setChildAnno };
+                this.save.pendingSaves[setChildAnno._id] = { ...(this.save.pendingSaves[setChildAnno._id] ?? {}), ...setChildAnno, sync: getEpoch() };
                 this.realtimeSelect[setChildAnno._id] = { ...(this.realtimeSelect[setChildAnno._id] ?? {}), ...setChildAnno };
               }
             }
           } else if (this.utils.getParentIDs(render).includes(annoID) == true) { // Update chunks of child annotations:
             await this.utils.setAnnotationChunks(render);
             this.utils.updateAnnotationPages(render);
+          }
+
+          // Delete children if parent is deleted:
+          if (isChild == true && data.remove == true && history.fromHistory != true) {
+            let setChildAnno = { _id: render._id, remove: true };
+            await this.save.apply(setChildAnno);
+            if (connected == true) {
+              this.save.pendingSaves[setChildAnno._id] = { ...(this.save.pendingSaves[setChildAnno._id] ?? {}), ...setChildAnno, sync: getEpoch() };
+              this.realtimeSelect[setChildAnno._id] = { ...(this.realtimeSelect[setChildAnno._id] ?? {}), ...setChildAnno };
+            }
+            if (history.add != null) {
+              history.add.push(copyObject({ ...render, p: [annoX, annoY], r: rotation, parent: null }));
+            }
           }
         }
       }

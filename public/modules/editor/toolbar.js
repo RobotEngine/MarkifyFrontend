@@ -118,15 +118,15 @@ modules["editor/toolbar"] = class {
     '.eSelectHandle[handle="duplicateright"]': `right: -50px; top: 50%; transform: translateY(-50%) scale(var(--scale)); cursor: pointer`,
     '.eSelectHandle[handle="duplicatetop"]': `left: 50%; top: -50px; transform: translateX(-50%) scale(var(--scale)); cursor: pointer`,
     '.eSelectHandle[handle="duplicatebottom"]': `left: 50%; bottom: -50px; transform: translateX(-50%) scale(var(--scale)); cursor: pointer`,
-    ".eSelect[hidehandles] .eSelectHandle": `opacity: 0; pointer-events: none`,
-    ".eSelect[showduplicate]:not([notransition]) .eSelectHandle[duplicate]": `opacity: 1 !important; pointer-events: all !important`,
+    ".eSelect[hidehandles] .eSelectHandle": `opacity: 0 !important; pointer-events: none !important`,
+    ".eSelect[showduplicate]:not([notransition]) .eSelectHandle[duplicate]": `opacity: 1; pointer-events: all`,
     ".eSelect[showonlywidth] .eSelectHandle": `opacity: 0; pointer-events: none`,
     ".eSelect[showonlywidth] .eSelectHandle[widthhandle]": `opacity: 1 !important; pointer-events: all !important`,
     '.eSelect[showonlywidth] .eSelectHandle[handle="rotate"]': `opacity: 1; pointer-events: all`,
     '.eSelect[hiderotation] .eSelectHandle[handle="rotate"]': `opacity: 0 !important; pointer-events: none !important`,
     '.eSelect[hideheighthandles] .eSelectHandle[heighthandle]': `opacity: 0; pointer-events: none`,
     '.eSelect[hidewidthhandles] .eSelectHandle[widthhandle]': `opacity: 0; pointer-events: none`,
-    '.eSelect[hidenonessential] .eSelectHandle:not([essential])': `opacity: 0; pointer-events: none`,
+    '.eSelect[hidenonessential] .eSelectHandle:not([essential])': `opacity: 0; pointer-events: none`
   };
   js = async (editor) => {
     let page = editor.page;

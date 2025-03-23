@@ -880,29 +880,9 @@ modules["editor/editor"] = class {
       if (render.p == null) {
         return [];
       }
-      let { x, y, width, height, thickness } = this.utils.getRect(render, includeSelecting);
-      if (width < 0) {
-        width = -width;
-        x -= width;
-      }
-      if (height < 0) {
-        height = -height;
-        y -= height;
-      }
-      let halfT = thickness / 2;
-
-      let radian = (render.r ?? 0) * (Math.PI / 180);
-      let thickWidth = width + thickness;
-      let thickHeight = height + thickness;
-      let changedWidth = ((Math.abs(thickWidth * Math.cos(radian)) + Math.abs(thickHeight * Math.sin(radian))) - thickWidth) / 2;
-      let changedHeight = ((Math.abs(thickWidth * Math.sin(radian)) + Math.abs(thickHeight * Math.cos(radian))) - thickHeight) / 2;
-      
-      x += halfT - changedWidth;
-      y += halfT - changedHeight;
-      width = thickWidth + (changedWidth * 2);
-      height = thickHeight + (changedHeight * 2);
-      
-      return this.utils.regionInChunks(x, y, x + width, y + height);
+      let { x, y, endX, endY, rotation } = this.utils.getRect(render, includeSelecting);
+      let [topLeftX, topLeftY, bottomRightX, bottomRightY] = this.math.rotatedBounds(x, y, endX, endY, rotation);
+      return this.utils.regionInChunks(topLeftX, topLeftY, bottomRightX, bottomRightY);
     }
     this.utils.setAnnotationChunks = async (annotation, includeSelecting) => {
       if (annotation == null) {
@@ -1902,6 +1882,11 @@ modules["editor/editor"] = class {
         annotation.revert = copyObject(annotation.render); // Copy the currents attributes to revert to later
       }
 
+      let checkChunks = [];
+      if (options.childChunkUpdate != false) {
+        checkChunks = this.utils.chunksFromAnnotation(annotation.render);
+      }
+
       // IF SELECTING, DO NOT UPDATE THOSE FIELDS
       let redrawAction = false;
       if (options.ignoreSelecting != true && this.selecting[annoID] != null) {
@@ -1923,6 +1908,19 @@ modules["editor/editor"] = class {
 
       await this.utils.setAnnotationChunks(annotation);
       this.utils.updateAnnotationPages(annotation.render);
+
+      let chunkAnnotations = this.utils.annotationsInChunks(checkChunks);
+      for (let i = 0; i < chunkAnnotations.length; i++) {
+        let anno = chunkAnnotations[i] ?? {};
+        let render = anno.render;
+        if (render == null || render._id == annoID) {
+          continue;
+        }
+        if (this.utils.getParentIDs(render).includes(annoID) == true) { // Update chunks of child annotations:
+          await this.utils.setAnnotationChunks(anno);
+          this.utils.updateAnnotationPages(render);
+        }
+      }
 
       let allowRender = annotation.render.remove == true;
       for (let i = 0; i < annotation.chunks.length; i++) {
@@ -1988,7 +1986,7 @@ modules["editor/editor"] = class {
       let checkChunks = [ ...this.utils.chunksFromAnnotation(merged), ...this.utils.chunksFromAnnotation(annotation.render ?? {}) ];
 
       data.sync = getEpoch();
-      annotation = (await this.save.apply(data, options)).annotation; // Apply Save
+      annotation = (await this.save.apply(data, { ...options, childChunkUpdate: false })).annotation; // Apply Save
 
       if (data.p != null || data.s != null || data.t != null || data.l != null || data.remove == true) {
         let resizeChangeX = 0;
@@ -2079,7 +2077,7 @@ modules["editor/editor"] = class {
               }
             }
           } else if (this.utils.getParentIDs(render).includes(annoID) == true) { // Update chunks of child annotations:
-            await this.utils.setAnnotationChunks(render);
+            await this.utils.setAnnotationChunks(anno);
             this.utils.updateAnnotationPages(render);
           }
 

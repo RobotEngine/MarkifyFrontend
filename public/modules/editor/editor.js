@@ -1985,7 +1985,7 @@ modules["editor/editor"] = class {
         rect = this.utils.getRect(merged);
       }
 
-      let checkChunks = [ ...this.utils.chunksFromAnnotation(merged), ...this.utils.chunksFromAnnotation(annotation.render) ];
+      let checkChunks = [ ...this.utils.chunksFromAnnotation(merged), ...this.utils.chunksFromAnnotation(annotation.render ?? {}) ];
 
       data.sync = getEpoch();
       annotation = (await this.save.apply(data, options)).annotation; // Apply Save

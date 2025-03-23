@@ -2057,21 +2057,30 @@ modules["editor/toolbar"] = class {
       }
       this.selection.action = null;
 
-      let keys = Object.keys(editor.selecting);
       let saveUpdates = [];
       let annoIDs = {};
       let pushChanges = [];
       let pushAdds = [];
       let pushRemoves = [];
       let deleteKeys = {};
+
+      let keys = Object.keys(editor.selecting);
+      let saveAnnotations = [];
       for (let i = 0; i < keys.length; i++) {
         let annoid = keys[i];
+        let original = editor.annotations[annoid] ?? {};
         let selecting = editor.selecting[annoid] ?? {};
+        saveAnnotations.push([annoid, original, selecting, { ...(original.render ?? {}), ...selecting }.l ?? 0]);
+      }
+
+      saveAnnotations.sort((a, b) => { return b[3] - a[3]; });
+
+      for (let i = 0; i < saveAnnotations.length; i++) {
+        let [annoid, original, selecting] = saveAnnotations[i];
         let changeKeys = Object.keys(selecting);
         if (changeKeys.length < 1) {
           continue;
         }
-        let original = editor.annotations[annoid] ?? {};
         let originalRender = original.render;
         if (originalRender == null) {
           continue;

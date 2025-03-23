@@ -701,7 +701,7 @@ modules["editor/editor"] = class {
       let chunk = this.utils.pointInChunk(x, y);
       let annotationIDs = Object.keys(this.chunkAnnotations[chunk] ?? {});
       let viableParents = [];
-      if (includeSelecting == true) { // We must check for if new annotations are valid!
+      if (includeSelecting == true) { // Must check for if new annotations are valid!
         let selectKeys = Object.keys(this.selecting);
         for (let i = 0; i < selectKeys.length; i++) {
           let selectKey = selectKeys[i];

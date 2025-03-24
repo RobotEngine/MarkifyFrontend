@@ -2064,10 +2064,7 @@ modules["editor/toolbar"] = class {
         if (changeKeys.length < 1) {
           continue;
         }
-        let originalRender = original.render;
-        if (originalRender == null) {
-          continue;
-        }
+        let originalRender = original.render ?? {};
 
         delete selecting.done;
 
@@ -2076,7 +2073,7 @@ modules["editor/toolbar"] = class {
           let key = changeKeys[f];
           pushFields[key] = originalRender[key] ?? null;
         }
-        if (options.saveHistory == true) {
+        if (options.saveHistory != false) {
           if (selecting.remove != true) {
             if (Object.keys(pushFields).length > 0) {
               if (pushFields.f == null) {
@@ -2160,16 +2157,113 @@ modules["editor/toolbar"] = class {
         return editor.math.pointInRotatedBounds(x, y, this.selection.lastRect.x, this.selection.lastRect.y, this.selection.lastRect.endX, this.selection.lastRect.endY, this.selection.lastRect.rotation, 10 / editor.zoom);
       }
     }
-    this.selection.undo = () => {
+    this.selection.undo = async () => {
       let event = editor.history.history[editor.history.location];
       if (event == null) {
         return;
       }
       editor.history.location--;
 
+      let addRedo = event.redo.length < 1;
+      let keys = Object.keys(editor.selecting);
+      let annoContentTx;
+      switch (event.type) {
+        case "update":
+          for (let i = 0; i < event.changes.length; i++) {
+            let change = event.changes[i];
+            if (change.parent != null) {
+              if (((editor.annotations[change.parent] ?? {}).render ?? { remove: true }).remove == true) {
+                continue; // Parent annotation is missing, invalid save
+              }
+            }
+            let annotation = editor.annotations[change._id] ?? {};
+            if (addRedo == true) {
+              let changeKeys = Object.keys(change);
+              let render = annotation.render ?? {};
+              let redoAnno = { _id: change._id };
+              for (let u = 0; u < changeKeys.length; u++) {
+                redoAnno[changeKeys[u]] = render[changeKeys[u]];
+              }
+              event.redo.push(copyObject(redoAnno));
+            }
+            if (annotation.element != null) {
+              annoContentTx = annotation.element.querySelector("div[contenteditable]");
+              if (annoContentTx != null) {
+                annoContentTx.removeAttribute("contenteditable");
+              }
+            }
+            editor.selecting[change._id] = change;
+          }
+          break;
+        case "remove":
+          for (let i = 0; i < event.changes.length; i++) {
+            let change = { remove: true };
+            let changeID = event.changes[i]._id;
+            let annotation = (editor.annotations[changeID] ?? {}).render ?? {};
+            if (addRedo == true) {
+              let rect = editor.utils.getRect(annotation);
+              if (rect != null) {
+                event.redo.push(JSON.parse(JSON.stringify({ ...annotation, parent: null, p: [rect.annoX, rect.annoY] })));
+              }
+            }
+            editor.selecting[changeID] = { _id: changeID, ...change };
+          }
+          break;
+        case "add":
+          for (let i = 0; i < event.changes.length; i++) {
+            let saveAnno = event.changes[i];
+            if (saveAnno.parent != null) {
+              if (((editor.annotations[saveAnno.parent] ?? {}).render ?? { remove: true }).remove == true) {
+                continue; // Parent annotation is missing, invalid save
+              }
+            }
+            let oldID = saveAnno._id;
+            let tempID = editor.render.tempID();
+            for (let h = 0; h < editor.history.history.length; h++) {
+              let event = editor.history.history[h];
+              for (let c = 0; c < event.changes.length; c++) {
+                let change = event.changes[c];
+                if (change._id == oldID) {
+                  change._id = tempID;
+                }
+                if (change.parent == oldID) {
+                  change.parent = tempID;
+                }
+              }
+              for (let c = 0; c < event.redo.length; c++) {
+                let change = event.redo[c];
+                if (change._id == oldID) {
+                  change._id = tempID;
+                }
+                if (change.parent == oldID) {
+                  change.parent = tempID;
+                }
+              }
+            }
+            if (addRedo == true) {
+              event.redo.push({ remove: true, _id: tempID });
+            }
+            editor.selecting[tempID] = copyObject({ ...saveAnno, _id: tempID });
+          }
+      }
+
+      this.selection.action = "save";
+      await this.selection.endAction({ sentKeys: keys, fromHistory: true });
+
+      if (annoContentTx != null) {
+        annoContentTx.setAttribute("contenteditable", "true");
+        await sleep(1);
+      }
+      if (event.caret != null) {
+        if (event.caret.redoElement != null) {
+          event.caret.redoElement.focus();
+          editor.text.setCaretPosition(event.caret.redoElement, event.caret.redoPosition);
+        }
+      }
+
       editor.pipeline.publish("history_update", { history: editor.history.history, location: editor.history.location });
     }
-    this.selection.redo = () => {
+    this.selection.redo = async () => {
       let event = editor.history.history[editor.history.location + 1];
       if (event == null) {
         return;

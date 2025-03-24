@@ -1846,6 +1846,8 @@ modules["editor/toolbar"] = class {
           // Preserve original sign:
           let signOriginalWidth = rect.width;
           let signOriginalHeight = rect.height;
+          let absWidth = Math.abs(setWidth);
+          let absHeight = Math.abs(setHeight);
           if (annoModule.CAN_FLIP != false) {
             if (rect.size[0] < 0) {
               setWidth *= -1;
@@ -1856,27 +1858,33 @@ modules["editor/toolbar"] = class {
               signOriginalHeight *= -1;
             }
           } else {
-            setWidth = Math.max(setWidth, 25);
-            setHeight = Math.max(setHeight, 25);
+            setWidth = Math.max(absWidth, 1);
+            setHeight = Math.max(absHeight, 1);
           }
+          let originalSetWidth = setWidth;
+          let originalSetHeight = setHeight;
 
           let minWidth = annoModule.MIN_WIDTH ?? rect.thickness;
-          if (Math.abs(setWidth) < minWidth) {
+          if (absWidth < minWidth) {
             if (setWidth > 0) {
               setWidth = minWidth;
             } else {
               setWidth = -minWidth;
             }
-            maintainSizeWidth = true;
+            if (absWidth < annoModule.MIN_WIDTH) {
+              maintainSizeWidth = true;
+            }
           }
           let minHeight = annoModule.MIN_HEIGHT ?? rect.thickness;
-          if (Math.abs(setHeight) < minHeight) {
+          if (absHeight < minHeight) {
             if (setHeight > 0) {
               setHeight = minHeight;
             } else {
               setHeight = -minHeight;
             }
-            maintainSizeHeight = true;
+            if (absHeight < annoModule.MIN_HEIGHT) {
+              maintainSizeHeight = true;
+            }
           }
 
           let signNewWidth = Math.abs(setWidth) + rect.thickness;
@@ -1922,22 +1930,32 @@ modules["editor/toolbar"] = class {
           let newAnnoMidpointX = signNewWidth / 2;
           let newAnnoMidpointY = signNewHeight / 2;
 
+          let changeX = changeXCoord;
+          let changeY = changeYCoord;
+          if (maintainSizeWidth == true || maintainSizeHeight == true) {
+            let updateXCoord = 0;
+            if (maintainSizeWidth == true) {
+              updateXCoord = (minWidth - originalSetWidth) / 2;
+            }
+            let updateYCoord = 0;
+            if (maintainSizeHeight == true) {
+              updateYCoord = (minHeight - originalSetHeight) / 2;
+            }
+            let [rotateUpdateXCoord, rotateUpdateYCoord] = editor.math.rotatePoint(updateXCoord, updateYCoord, rect.rotation);
+            if (sizeLimitX == true) {
+              changeX += rotateUpdateXCoord;
+              changeY += rotateUpdateYCoord;
+            } else {
+              changeX -= rotateUpdateXCoord;
+              changeY -= rotateUpdateYCoord;
+            }
+          }
+
           // Apply the selection box position change:
           select.p = [
-            selectionCenterX + (offsetX * scaleWidth) - newAnnoMidpointX - changeXCoord,
-            selectionCenterY + (offsetY * scaleHeight) - newAnnoMidpointY - changeYCoord
+            selectionCenterX + (offsetX * scaleWidth) - newAnnoMidpointX - changeX,
+            selectionCenterY + (offsetY * scaleHeight) - newAnnoMidpointY - changeY
           ];
-
-          if (maintainSizeWidth == true) {
-            select.p[0] += (rect.lastCenterX) - (select.p[0] + newAnnoMidpointX);
-          } else {
-            rect.lastCenterX = select.p[0] + newAnnoMidpointX;
-          }
-          if (maintainSizeHeight == true) {
-            select.p[1] += (rect.lastCenterY) - (select.p[1] + newAnnoMidpointY);
-          } else {
-            rect.lastCenterY = select.p[1] + newAnnoMidpointY;
-          }
           
           let resizeAnnoX;
           let resizeAnnoY;

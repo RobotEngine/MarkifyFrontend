@@ -1927,6 +1927,17 @@ modules["editor/toolbar"] = class {
             selectionCenterX + (offsetX * scaleWidth) - newAnnoMidpointX - changeXCoord,
             selectionCenterY + (offsetY * scaleHeight) - newAnnoMidpointY - changeYCoord
           ];
+
+          if (maintainSizeWidth == true) {
+            select.p[0] += (rect.lastCenterX) - (select.p[0] + newAnnoMidpointX);
+          } else {
+            rect.lastCenterX = select.p[0] + newAnnoMidpointX;
+          }
+          if (maintainSizeHeight == true) {
+            select.p[1] += (rect.lastCenterY) - (select.p[1] + newAnnoMidpointY);
+          } else {
+            rect.lastCenterY = select.p[1] + newAnnoMidpointY;
+          }
           
           let resizeAnnoX;
           let resizeAnnoY;

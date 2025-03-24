@@ -1800,8 +1800,8 @@ modules["editor/toolbar"] = class {
           // THIRD: Determine actual element width by converting bounding box size back to element size:
           let setWidth = 0;
           let setHeight = 0;
-          //let maintainSizeWidth = false;
-          //let maintainSizeHeight = false;
+          let maintainSizeWidth = false;
+          let maintainSizeHeight = false;
 
           let absRotate = Math.abs(rotateDifference);
           if (absRotate > 45 && absRotate < 135) {
@@ -1880,28 +1880,23 @@ modules["editor/toolbar"] = class {
             setHeight = Math.max(setHeight, 25);
           }
 
-          let lockPosition = false;
-          if (annoModule.MIN_WIDTH != null) {
-            if (Math.abs(setWidth) < annoModule.MIN_WIDTH) {
-              if (setWidth > 0) {
-                setWidth = annoModule.MIN_WIDTH;
-              } else {
-                setWidth = -annoModule.MIN_WIDTH;
-              }
-              lockPosition = true;
-              //maintainSizeWidth = true;
+          let minWidth = annoModule.MIN_WIDTH ?? rect.thickness;
+          if (Math.abs(setWidth) < minWidth) {
+            if (setWidth > 0) {
+              setWidth = minWidth;
+            } else {
+              setWidth = -minWidth;
             }
+            maintainSizeWidth = true;
           }
-          if (annoModule.MIN_HEIGHT != null) {
-            if (Math.abs(setHeight) < annoModule.MIN_HEIGHT) {
-              if (setHeight > 0) {
-                setHeight = annoModule.MIN_HEIGHT;
-              } else {
-                setHeight = -annoModule.MIN_HEIGHT;
-              }
-              lockPosition = true;
-              //maintainSizeHeight = true;
+          let minHeight = annoModule.MIN_HEIGHT ?? rect.thickness;
+          if (Math.abs(setHeight) < minHeight) {
+            if (setHeight > 0) {
+              setHeight = minHeight;
+            } else {
+              setHeight = -minHeight;
             }
+            maintainSizeHeight = true;
           }
 
           let signNewWidth = Math.abs(setWidth) + rect.thickness;
@@ -1947,10 +1942,21 @@ modules["editor/toolbar"] = class {
           let newAnnoMidpointX = signNewWidth / 2;
           let newAnnoMidpointY = signNewHeight / 2;
 
+          let changeX = changeXCoord;
+          let changeY = changeYCoord;
+          if (maintainSizeWidth == true) {
+            //changeX = rect.lastChangeX ?? changeX;
+          }
+          if (maintainSizeHeight == true) {
+            //changeY = rect.lastChangeY ?? changeY;
+          }
+          rect.lastChangeX = changeX;
+          rect.lastChangeY = changeY;
+
           // Apply the selection box position change:
           select.p = [
-            selectionCenterX + (offsetX * scaleWidth) - newAnnoMidpointX - changeXCoord,
-            selectionCenterY + (offsetY * scaleHeight) - newAnnoMidpointY - changeYCoord
+            selectionCenterX + (offsetX * scaleWidth) - newAnnoMidpointX - changeX,
+            selectionCenterY + (offsetY * scaleHeight) - newAnnoMidpointY - changeY
           ];
           /*select.p = rect.lastPosition ?? [rect.annoX, rect.annoY];
           if (maintainSizeWidth == false) {
@@ -1958,8 +1964,8 @@ modules["editor/toolbar"] = class {
           }
           if (maintainSizeHeight == false) {
             select.p[1] = selectionCenterY + (offsetY * scaleHeight) - newAnnoMidpointY - changeYCoord;
-          }*/
-          rect.lastPosition = [select.p[0], select.p[1]];
+          }
+          rect.lastPosition = [select.p[0], select.p[1]];*/
 
           /*if (annoModule.MIN_WIDTH != null) {
             if (select.s[0] < annoModule.MIN_WIDTH) {

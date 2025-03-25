@@ -2147,6 +2147,9 @@ modules["editor/toolbar"] = class {
     this.selection.clickAction = (data) => {
       
     }
+    this.selection.interactRun = async () => {
+
+    }
     this.selection.pointInSelectBox = (x, y) => {
       if (this.selection.selectBox == null) {
         return;
@@ -2568,6 +2571,21 @@ modules["editor/toolbar/select"] = class {
   scroll = async () => {
     await this.parent.selection.moveAction();
     await this.parent.selection.updateActionBar();
+  }
+}
+
+modules["editor/toolbar/drag"] = class {
+  clickStart = (event) => {
+
+  }
+  clickMove = (event) => {
+
+  }
+  clickEnd = (event) => {
+
+  }
+  scroll = () => {
+
   }
 }
 

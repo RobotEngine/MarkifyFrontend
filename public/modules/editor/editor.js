@@ -1121,6 +1121,9 @@ modules["editor/editor"] = class {
     this.utils.canMemberModify = (render, member) => {
       render = render ?? {};
       member = member ?? this.self;
+      if (member.access < 1) {
+        return false;
+      }
       if (this.settings.editOthersWork == true) {
         return true;
       }

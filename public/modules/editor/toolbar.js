@@ -2498,9 +2498,85 @@ modules["editor/toolbar"] = class {
     editor.pipeline.subscribe("toolbarMouse", "mouseleave", () => {
       this.tooltip.close();
     });
-    editor.pipeline.subscribe("toolbarKeyDown", "keydown", (data) => {
-      checkShift(data.event);
-      this.pushToolEvent("keydown", data.event);
+    editor.pipeline.subscribe("toolbarKeyDown", "keydown", async (data) => {
+      let event = data.event;
+      checkShift(event);
+      this.pushToolEvent("keydown", event);
+
+      // Keybind Manager:
+      if (editor.self.access < 1) {
+        return;
+      }
+      let meta = event.ctrlKey || event.metaKey;
+
+      if (event.keyCode == 90 && event.shiftKey == true && meta == true) { // Handle Redo
+        event.preventDefault();
+        return this.selection.redo();
+      }
+      if (event.keyCode == 90 && meta == true) { // Handle Undo
+        event.preventDefault();
+        return this.selection.undo();
+      }
+
+      if (document.activeElement != null) {
+        if (document.activeElement.closest("[contenteditable]") != null || document.activeElement.closest("input") != null) {
+          return;
+        }
+      }
+
+      if ([8, 46].includes(event.keyCode) == true) { // Handle Backspace / Delete Key
+        let selectKeys = Object.keys(editor.selecting);
+        for (let i = 0; i < selectKeys.length; i++) {
+          let selectID = selectKeys[i];
+          let anno = ({ ...((editor.annotations[selectID] ?? {}).render ?? {}), ...(editor.selecting[selectID] ?? {}) }) ?? {};
+          if (editor.utils.canMemberModify(anno) == false) { // Can't edit another member's work:
+            continue;
+          }
+          if (anno.lock == true) {
+            continue;
+          }
+          editor.selecting[selectID].remove = true;
+          editor.selecting[selectID].done = true;
+        }
+        this.selection.action = "save";
+        return await this.selection.endAction();
+      }
+
+      if ([37, 38, 39, 40].includes(event.keyCode) == true) { // Handle Arrow Key Move
+        let selectKeys = Object.keys(editor.selecting);
+        if (selectKeys.length < 1) {
+          return;
+        }
+        event.preventDefault();
+        for (let i = 0; i < selectKeys.length; i++) {
+          let selectID = selectKeys[i];
+          let selecting = editor.selecting[selectID];
+          let anno = (editor.annotations[selectID] ?? {}).render;
+          if (editor.utils.canMemberModify(anno) == false) { // Can't edit another member's work:
+            continue;
+          }
+          selecting.p = selecting.p ?? [anno.p[0] ?? 0, anno.p[1] ?? 0];
+          let nudge = 1;
+          if (event.shiftKey == true) {
+            nudge = 10;
+          }
+          if (event.keyCode == 37) {
+            selecting.p[0] -= nudge;
+          } else if (event.keyCode == 38) {
+            selecting.p[1] -= nudge;
+          } else if (event.keyCode == 39) {
+            selecting.p[0] += nudge;
+          } else if (event.keyCode == 40) {
+            selecting.p[1] += nudge;
+          }
+        }
+        this.selection.action = "save";
+        return await this.selection.endAction();
+      }
+
+      if (event.keyCode == 68 && meta == true) { // Handle Duplicate
+        event.preventDefault();
+      }
     });
     editor.pipeline.subscribe("toolbarKeyUp", "keyup", (data) => {
       checkShift(data.event);

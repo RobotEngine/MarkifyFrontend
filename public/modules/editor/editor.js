@@ -1763,7 +1763,7 @@ modules["editor/editor"] = class {
         if (mutations.length > 0) {
           let saveSuccess = false;
           try {
-            //mutations = [];
+            mutations = [];
             let [result] = await sendRequest("POST", "lessons/save", { mutations: mutations }, { session: this.session });
             saveSuccess = result == 200;
           } catch (err) {
@@ -2493,6 +2493,57 @@ modules["editor/editor"] = class {
       }
       this.pipeline.publish("redraw_selection", { fromLong: true });
     });
+    this.pipeline.subscribe("reactionAnnotation", "reaction", async (event) => {
+      let data = copyObject(event);
+      let annotation = this.annotations[data.reaction.annotation];
+      if (annotation == null) {
+        return;
+      }
+      let reactions = this.reactions[data.reaction.annotation];
+      if (reactions == null) {
+        this.reactions[data.reaction.annotation] = [];
+        reactions = this.reactions[data.reaction.annotation];
+      }
+      if (data.change != null) {
+        if (this.self.modify == data.member._id) {
+          if (data.change > 0) {
+            data.reaction.reacted = true;
+          } else {
+            data.reaction.reacted = false;
+          }
+        }
+        let foundReaction = false;
+        for (let i = 0; i < reactions.length; i++) {
+          if (reactions[i]._id == data.reaction._id) {
+            reactions[i].count += data.change;
+            if (data.reaction.reacted != null) {
+              reactions[i].reacted = data.reaction.reacted;
+            }
+            if (reactions[i].count < 1) {
+              reactions.splice(i, 1);
+              i--;
+            }
+            foundReaction = true;
+            break;
+          }
+        }
+        if (foundReaction == false) {
+          data.reaction.count += data.change;
+          reactions.push(data.reaction);
+        }
+      } else {
+        for (let i = 0; i < reactions.length; i++) {
+          if (reactions[i]._id == data.reaction._id) {
+            reactions.splice(i, 1);
+            break;
+          }
+        }
+      }
+      if (reactions.length < 1) {
+        delete this.reactions[data.reaction.annotation];
+      }
+      await this.render.create(annotation);
+    });
 
     this.pipeline.subscribe("editorMemberUpdate", "update", (data) => {
       if (data.active == false && this.realtime.module != null) {
@@ -2698,6 +2749,10 @@ modules["editor/editor"] = class {
       this.pipeline.publish("touchmove", { event: event });
       this.pipeline.publish("click_move", { type: "touchmove", event: event });
     }, { passive: false });*/
+
+    page.addEventListener("click", (event) => {
+      this.pipeline.publish("click", { event: event });
+    }, { passive: false });
 
     page.addEventListener("mouseleave", (event) => {
       this.pipeline.publish("mouseleave", { event: event });

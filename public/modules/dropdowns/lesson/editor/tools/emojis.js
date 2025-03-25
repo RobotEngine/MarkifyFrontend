@@ -57,7 +57,7 @@ modules["dropdowns/lesson/editor/tools/emojis"] = class {
     }
   }
   js = async (frame, extra) => {
-    let editor = this.parent;
+    let editor = extra.parent;
 
     frame.closest(".dropdownContent").style.padding = "0px";
 
@@ -79,8 +79,8 @@ modules["dropdowns/lesson/editor/tools/emojis"] = class {
       let emojiX = -((emoji.sheet_x * this.sheetSize) + 1);
       let emojiY = -((emoji.sheet_y * this.sheetSize) + 1);
       setHTML[emoji.category] += `<button emoji="${emoji.name}" title="${emojiTitle}" search="${emojiSearch}" style="order: ${emoji.sort_order}" shown><img src="./images/editor/emojis/twitter32.png" style="object-position: ${emojiX}px ${emojiY}px"></button>`;
-      if (editor.recentEmojis.includes(emoji.name)) {
-        setHTML["Recent"] += `<button emoji="${emoji.name}" title="${emojiTitle}" search="${emojiSearch}" style="order: ${editor.recentEmojis.indexOf(emoji.name)}" shown><img src="./images/editor/emojis/twitter32.png" style="object-position: ${emojiX}px ${emojiY}px"></button>`;
+      if (editor.parent.parent.recentEmojis.includes(emoji.name)) {
+        setHTML["Recent"] += `<button emoji="${emoji.name}" title="${emojiTitle}" search="${emojiSearch}" style="order: ${editor.parent.parent.recentEmojis.indexOf(emoji.name)}" shown><img src="./images/editor/emojis/twitter32.png" style="object-position: ${emojiX}px ${emojiY}px"></button>`;
       }
     }
     setHTMLKeys.push("Recent");
@@ -92,7 +92,7 @@ modules["dropdowns/lesson/editor/tools/emojis"] = class {
         <div class="eEmojiSectionTitle"></div>
         <div class="eEmojiSectionTiles"></div>
       </div>`);
-      emojiSection = emojiSectionHolder.querySelector(".eEmojiSection[new]");
+      let emojiSection = emojiSectionHolder.querySelector(".eEmojiSection[new]");
       emojiSection.removeAttribute("new");
       emojiSection.setAttribute("category", category);
       emojiSection.querySelector(".eEmojiSectionTitle").textContent = category;

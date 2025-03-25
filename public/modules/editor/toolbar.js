@@ -2144,11 +2144,39 @@ modules["editor/toolbar"] = class {
 
       await this.selection.updateBox({ transition: false });
     }
-    this.selection.clickAction = (data) => {
-      
+    this.selection.clickAction = async (event) => {
+      if (event == null) {
+        return;
+      }
+      let interact = await this.selection.interactRun(event.target);
+      if (interact == true) {
+        return;
+      }
     }
-    this.selection.interactRun = async () => {
+    this.selection.interactRun = async (target) => {
+      if (target == null) {
+        return;
+      }
 
+      let reaction = target.closest(".eReaction");
+      if (reaction != null) {
+        if (reaction.hasAttribute("emoji") == false) {
+          dropdownModule.open(reaction, "dropdowns/lesson/editor/tools/emojis", { parent: editor });
+          return true;
+        }
+        reaction.setAttribute("disabled", "");
+        let body = {
+          emoji: reaction.getAttribute("emoji"),
+          annotation: reaction.closest(".eAnnotation").getAttribute("anno")
+        };
+        if (reaction.hasAttribute("selected") == false) {
+          await sendRequest("PUT", "lessons/members/reaction", body, { session: editor.session });
+        } else {
+          await sendRequest("PUT", "lessons/members/reaction/remove", body, { session: editor.session });
+        }
+        reaction.removeAttribute("disabled");
+        return true;
+      }
     }
     this.selection.pointInSelectBox = (x, y) => {
       if (this.selection.selectBox == null) {
@@ -2404,6 +2432,9 @@ modules["editor/toolbar"] = class {
       this.toolbar.setTool();
       this.pushToolEvent("clickEnd", data.event);
     }, { sort: 1 });
+    editor.pipeline.subscribe("toolbarMouse", "click", (data) => {
+      this.pushToolEvent("click", data.event);
+    }, { sort: 1 });
     editor.pipeline.subscribe("toolbarMouse", "mouseleave", () => {
       this.tooltip.close();
     });
@@ -2572,6 +2603,7 @@ modules["editor/toolbar/select"] = class {
     await this.parent.selection.moveAction();
     await this.parent.selection.updateActionBar();
   }
+  click = async (event) => { await this.parent.selection.clickAction(event); }
 }
 
 modules["editor/toolbar/drag"] = class {

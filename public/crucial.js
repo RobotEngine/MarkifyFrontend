@@ -1010,7 +1010,7 @@ modules["dropdown"] = class {
 
     if (button != null && button.offsetParent != null) {
       let buttonRect = button.getBoundingClientRect();
-      let addButtonWidth = button.offsetWidth / 2;
+      let addButtonWidth = buttonRect.width / 2;
       let pageHolder = button.closest(".ePageHolder");
       if (pageHolder != null) {
         addButtonWidth *= parseFloat(pageHolder.getAttribute("zoom"));
@@ -1022,7 +1022,7 @@ modules["dropdown"] = class {
 
       dropdown.style.transformOrigin = "0px 0px";
       let dropdownRect = dropdown.getBoundingClientRect();
-      dropdown.style.transformOrigin = (buttonRect.left - dropdownRect.left + addButtonWidth) + "px " + (buttonRect.top - dropdownRect.top + (button.offsetHeight / 2)) + "px";
+      dropdown.style.transformOrigin = (buttonRect.left - dropdownRect.left + addButtonWidth) + "px " + (buttonRect.top - dropdownRect.top + (buttonRect.height / 2)) + "px";
     } else {
       this.close();
     }

@@ -1069,7 +1069,7 @@ modules["pages/dashboard/lessons"] = class {
     ".dTile": `position: relative; background: var(--pageColor); --shadow: var(--lightShadow); box-shadow: var(--shadow); border-radius: 12px; overflow: hidden`,
     ".dTile:hover": `--shadow: var(--darkShadow)`,
     ".dTileThumbnailHolder": `position: relative; width: 100%; aspect-ratio: 4/3`,
-    ".dTileThumbnail": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; border-radius: 12px`,
+    ".dTileThumbnail": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; border-radius: 12px; opacity: 0`,
     ".dTileInfoHolder": `position: absolute; display: flex; box-sizing: border-box; width: 100%; padding: 8px; left: 0px; bottom: 0px; align-items: flex-end; background: var(--pageColor); box-shadow: var(--shadow)`,
     ".dTileInfo": `width: 100%`,
     ".dTileTitle": `box-sizing: border-box; width: 100%; font-size: 18px; font-weight: 600; text-align: left`,
@@ -1204,24 +1204,28 @@ modules["pages/dashboard/lessons"] = class {
       let placeholderThumbnail = tile.querySelector(".dTileThumbnail[src]");
       let thumbnail = tile.querySelector(".dTileThumbnail:not([src])");
       if (lesson.thumbnail != null) {
+        let loadingTimeout = setTimeout(() => {
+          placeholderThumbnail.style.transition = ".4s";
+          placeholderThumbnail.style.opacity = 1;
+        }, 10);
         let completeListener = async () => {
           thumbnail.removeEventListener("error", errorListener);
           thumbnail.removeEventListener("load", completeListener);
 
+          clearTimeout(loadingTimeout);
           thumbnail.style.opacity = 1;
           placeholderThumbnail.style.opacity = 0;
           await sleep(400);
           placeholderThumbnail.remove();
         }
         let errorListener = () => {
+          clearTimeout(loadingTimeout);
           thumbnail.remove();
         }
         thumbnail.addEventListener("error", errorListener);
         thumbnail.addEventListener("load", completeListener);
-        thumbnail.style.opacity = 0;
-        thumbnail.style.transition = ".4s";
-        placeholderThumbnail.style.transition = ".4s";
         thumbnail.src = assetURL + lesson.thumbnail;
+        thumbnail.style.transition = ".4s";
       }
       let title = tile.querySelector(".dTileTitle");
       title.textContent = lesson.name ?? "Untitled Lesson";

@@ -1339,6 +1339,15 @@ modules["editor/toolbar"] = class {
     this.selection.updateActionBar = async (options = {}) => {
 
     }
+    this.selection.clickAction = async (event) => {
+      if (event == null) {
+        return;
+      }
+      let interact = await this.selection.interactRun(event.target);
+      if (interact == true) {
+        return;
+      }
+    }
     this.selection.startAction = (event) => {
       if (this.selection.selectBox == null) {
         return;
@@ -2144,20 +2153,12 @@ modules["editor/toolbar"] = class {
 
       await this.selection.updateBox({ transition: false });
     }
-    this.selection.clickAction = async (event) => {
-      if (event == null) {
-        return;
-      }
-      let interact = await this.selection.interactRun(event.target);
-      if (interact == true) {
-        return;
-      }
-    }
     this.selection.interactRun = async (target) => {
       if (target == null) {
         return;
       }
 
+      // REACTIONS:
       let reaction = target.closest(".eReaction");
       if (reaction != null) {
         if (reaction.hasAttribute("emoji") == false) {
@@ -2175,6 +2176,65 @@ modules["editor/toolbar"] = class {
           await sendRequest("PUT", "lessons/members/reaction/remove", body, { session: editor.session });
         }
         reaction.removeAttribute("disabled");
+        return true;
+      }
+
+      // EMBEDS:
+      let embedButton = target.closest("div[activate] button");
+      let embedAnno = target.closest(".eAnnotation");
+      let runEmbed = false;
+      if (embedButton != null && embedAnno != null) {
+        if (embedButton.closest(".eAnnotation[embed]") == embedAnno) {
+          runEmbed = true;
+        }
+      }
+      if (runEmbed == true) {
+        let render = (editor.annotations[embedAnno.getAttribute("anno")] ?? {}).render ?? {};
+        if (render.embed != null) {
+          if (render.embed.url == null) {
+            window.open(render.d);
+            return;
+          }
+          let embedHolder = embedAnno.querySelector("div[content]");
+          embedHolder.insertAdjacentHTML("beforeend", `<iframe allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe>`);
+          let embedFrame = embedHolder.querySelector("iframe");
+          embedFrame.setAttribute("currenturl", render.embed.url);
+          if (render.embed.color != null) {
+            embedFrame.style.background = cleanString(render.embed.color);
+          }
+          let frameWidth = render.s[0] - 16;
+          let defaultMaxWidth = 800;
+          if (frameWidth < 300) {
+            defaultMaxWidth = 300;
+          }
+          let embedWidth = Math.max(frameWidth, defaultMaxWidth);
+          let scale = frameWidth / embedWidth;
+          embedFrame.style.width = embedWidth + "px";
+          embedFrame.style.height = ((render.s[1] - 24 - embedAnno.querySelector("div[details]").offsetHeight) * (1 / scale)) + "px";
+          embedFrame.style.transform = "scale(" + scale + ")";
+          embedFrame.src = render.embed.url;
+          embedHolder.querySelector("img[thumbnail]").style.display = "none";
+          embedHolder.querySelector("div[activate]").style.display = "none";
+        }
+        return true;
+      }
+
+      // PAGE REVEAL:
+      let pageReveal = target.closest(".eAnnotation[page] div[hide] button");
+      if (pageReveal != null) {
+        let pageAnno = pageReveal.closest(".eAnnotation[page]");
+        if (pageAnno == null) {
+          return;
+        }
+        let render = (editor.annotations[pageAnno.getAttribute("anno")] ?? {}).render;
+        if (render == null || editor.utils.canMemberModify(render) == false) {
+          return;
+        }
+        let keys = Object.keys(editor.selecting);
+        editor.selecting = {};
+        editor.selecting[render._id] = { hidden: false };
+        this.selection.action = "save";
+        await this.selection.endAction({ sentKeys: keys });
         return true;
       }
     }

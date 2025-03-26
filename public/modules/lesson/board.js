@@ -690,20 +690,6 @@ modules["lesson/board"] = class {
       this.updateInterface();
     });
 
-    this.editor.pipeline.subscribe("checkActivePage", "click_start", () => {
-      if (this.parent.activePageID != this.pageID) {
-        this.parent.activePageID = this.pageID;
-        this.parent.pushToPipelines(null, "page_switch", { pageID: this.pageID });
-      }
-    });
-    this.editor.pipeline.subscribe("checkPageSwitch", "page_switch", (data) => {
-      if (data.pageID != this.pageID) {
-        page.removeAttribute("active");
-      } else {
-        page.setAttribute("active", "");
-      }
-    });
-
     this.editor.pipeline.subscribe("updateHistory", "history_update", (data) => {
       if (data.history.length > 0 && data.location > -1 && this.editor.self.access > 0) {
         undoButton.removeAttribute("disabled");

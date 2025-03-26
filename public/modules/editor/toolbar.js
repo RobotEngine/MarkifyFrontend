@@ -2131,7 +2131,7 @@ modules["editor/toolbar"] = class {
       while (saveUpdates.length > 0) {
         for (let i = 0; i < saveUpdates.length; i++) {
           let newSave = saveUpdates[i];
-          if (annoIDs[newSave.parent] == null || savedAnnoIDs[newSave.parent] != null) {
+          if (newSave.parent == null || annoIDs[newSave.parent] == null || savedAnnoIDs[newSave.parent] != null) {
             editor.selecting[newSave._id] = {};
             await editor.save.push(newSave, { history: { fromHistory: options.fromHistory, update: pushChanges, add: pushRemoves }, ignoreSelect: true });
             savedAnnoIDs[newSave._id] = true;
@@ -2355,7 +2355,7 @@ modules["editor/toolbar"] = class {
             editor.selecting[tempID] = copyObject({ ...saveAnno, _id: tempID });
           }
       }
-
+      
       this.selection.action = "save";
       await this.selection.endAction({ sentKeys: keys, fromHistory: true });
 
@@ -2538,6 +2538,9 @@ modules["editor/toolbar"] = class {
       this.pushToolEvent("keydown", event);
 
       // Keybind Manager:
+      if (editor.isPageActive() == false) {
+        return;
+      }
       if (editor.self.access < 1) {
         return;
       }

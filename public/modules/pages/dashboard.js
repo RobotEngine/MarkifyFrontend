@@ -568,7 +568,7 @@ modules["pages/dashboard"] = class {
               if (body.thumbnail != null) {
                 lesson.thumbnail = body.thumbnail;
                 if (tile != null) {
-                  tile.querySelector(".dTileThumbnail").src = assetURL + body.thumbnail;
+                  (tile.querySelector(".dTileThumbnail[main]") ?? tile.querySelector(".dTileThumbnail")).src = assetURL + body.thumbnail;
                 }
               }
               if (body.folder != null) {
@@ -1183,7 +1183,7 @@ modules["pages/dashboard/lessons"] = class {
       tileHolder.insertAdjacentHTML(insertAdj, `<a class="dTile" new>
         <div class="dTileThumbnailHolder">
           <img class="dTileThumbnail" src="./images/dashboard/placeholder.png" />
-          <img class="dTileThumbnail" />
+          <img class="dTileThumbnail" main />
         </div>
         <div class="dTileInfoHolder">
           <div class="dTileInfo">
@@ -1202,7 +1202,7 @@ modules["pages/dashboard/lessons"] = class {
       tile.setAttribute("lesson", record.lesson);
       tile.setAttribute("time", time);
       let placeholderThumbnail = tile.querySelector(".dTileThumbnail[src]");
-      let thumbnail = tile.querySelector(".dTileThumbnail:not([src])");
+      let thumbnail = tile.querySelector(".dTileThumbnail[main");
       if (lesson.thumbnail != null) {
         let loadingTimeout = setTimeout(() => {
           placeholderThumbnail.style.transition = ".4s";

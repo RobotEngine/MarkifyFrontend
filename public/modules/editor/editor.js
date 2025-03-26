@@ -3542,6 +3542,7 @@ modules["editor/render/page"] = class {
   MIN_HEIGHT = 100;
   //CAN_ROTATE = false;
   CAN_FLIP = false;
+  SELECT_BOX_COVER = true;
 
   SELECTION_FUNCTION = (selection, render) => {
     if (render.source != null && ["bottomright", "topleft", "topright", "bottomleft"].includes(selection.tooltip) == true) {

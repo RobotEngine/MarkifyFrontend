@@ -608,7 +608,7 @@ modules["editor/toolbar"] = class {
         this.tooltip.update();
       }
     }
-    toolbarContent.addEventListener("scroll", () => { this.toolbar.update() });
+    toolbarContent.addEventListener("scroll", () => { this.toolbar.update(); });
     this.toolbar.updateButtons = async (contentHolder) => {
       let gottenTools = (contentHolder ?? toolbar).querySelectorAll(".eTool");
       for (let i = 0; i < gottenTools.length; i++) {
@@ -1012,8 +1012,8 @@ modules["editor/toolbar"] = class {
 
       let selections = Object.keys(editor.selecting);
       if (this.currentToolModule != null) {
-        let setUserSelect;
-        let setTouchAction;
+        let setUserSelect = this.currentToolModule.USER_SELECT;
+        let setTouchAction = this.currentToolModule.TOUCH_ACTION;
         if (selections.length > 0) {
           setUserSelect = "none";
           setTouchAction = "pinch-zoom";
@@ -1023,7 +1023,9 @@ modules["editor/toolbar"] = class {
           if (this.selection.originalTouchAction == null) {
             this.selection.originalTouchAction = this.currentToolModule.TOUCH_ACTION;
           }
-        } else {
+          this.selection.replaceCursorActive = true;
+        } else if (this.selection.replaceCursorActive == true) {
+          this.selection.replaceCursorActive = false;
           setUserSelect = this.selection.originalUserSelect;
           this.selection.originalUserSelect = null;
           setTouchAction = this.selection.originalTouchAction;
@@ -2778,18 +2780,261 @@ modules["editor/toolbar/select"] = class {
 }
 
 modules["editor/toolbar/drag"] = class {
-  clickStart = (event) => {
+  USER_SELECT = "none";
+  TOUCH_ACTION = "pinch-zoom";
+  MOUSE = { type: "svg", url: "./images/editor/cursors/cursor.svg", translate: { x: 22, y: 22 } };
 
-  }
-  clickMove = (event) => {
+  css = {
+    ".eSelectDrag": `position: absolute; box-sizing: border-box; pointer-events: none; z-index: 99; opacity: .4; background: var(--secondary); border: solid 2px var(--theme); border-radius: 10px; transition: opacity .1s`
+  };
 
-  }
-  clickEnd = (event) => {
+  clickStart = async (event) => {
+    if (event.which === 3 || event.button === 2) {
+      return;
+    }
+    let target = event.target;
+    if (this.editor.isEditorContent(target) != true) {
+      return;
+    }
+    if (target.closest("button") != null || target.closest("a") != null) {
+      return;
+    }
+    await this.parent.selection.startAction(event);
+    if (target.closest(".eContent") == null || target.closest(".eSelect") != null || target.closest(".eSelectBar") != null) {
+      return;
+    }
+    let annotation = target.closest(".eAnnotation");
+    let annoID;
+    let render;
+    if (annotation != null) {
+      annoID = annotation.getAttribute("anno");
+      render = (this.editor.annotations[annoID] ?? {}).render;
+      if (render == null) {
+        return;
+      }
+    }
 
-  }
-  scroll = () => {
+    let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
+    let position = this.editor.utils.scaleToDoc(mouseX, mouseY);
+    this.startX = position.x;
+    this.startY = position.y;
+    if (this.parent.selection.pointInSelectBox(this.startX, this.startY) == true && event.shiftKey == false) {
+      return;
+    }
 
+    if (annoID != null) {
+      if (this.editor.selecting[annoID] != null) {
+        return this.clickEnd();
+      }
+      this.wasSelected = annoID;
+    }
+    if (event.shiftKey == false) {
+      this.editor.selecting = {};
+    }
+
+    this.clickEnd();
+    this.parent.toolbar.closeSubSub(true);
+
+    let content = this.editor.contentHolder.querySelector(".eContent");
+    content.insertAdjacentHTML("beforeend", `<div class="eSelectDrag" tooleditor new></div>`);
+    this.selection = content.querySelector(".eSelectDrag[new]");
+    this.selection.removeAttribute("new");
+
+    this.prevSelecting = copyObject(this.editor.selecting);
+    await this.parent.selection.updateBox();
+    this.clickMove(event);
   }
+  setScrollInterval = async () => {
+    if (this.scrollIntervalRunning == true) {
+      return;
+    }
+    this.scrollIntervalRunning = true;
+    while (this.selection != null && (this.scrollIntervalX != 0 || this.scrollIntervalY != 0)) {
+      this.editor.contentHolder.scrollTo(this.editor.contentHolder.scrollLeft + this.scrollIntervalX, this.editor.contentHolder.scrollTop + this.scrollIntervalY);
+      await this.clickMove(this.scrollLastEvent, true);
+      await sleep(10);
+    }
+    this.scrollIntervalRunning = false;
+  }
+  clickMove = async (event, fromScrollInterval) => {
+    if (this.selection == null) {
+      return await this.parent.selection.moveAction(event);
+    }
+    if (mouseDown() == false) {
+      return this.clickEnd();
+    }
+
+    if (event != null) {
+      let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
+      this.mouseX = mouseX;
+      this.mouseY = mouseY;
+
+      // Handle Scroll with Mouse:
+      if (fromScrollInterval != true) {
+        let scrollOffset = 32;
+        this.scrollIntervalX = 0;
+        this.scrollIntervalY = 0;
+        let leftPos = scrollOffset - mouseX;
+        if (leftPos > 0) {
+          let percentage = 1 + ((leftPos - scrollOffset) / scrollOffset);
+          this.scrollIntervalX = -Math.min(10 * percentage, 10);
+        }
+        let rightPos = mouseX - this.editor.page.offsetWidth + scrollOffset;
+        if (rightPos > 0) {
+          let percentage = 1 + ((rightPos - scrollOffset) / scrollOffset);
+          this.scrollIntervalX = Math.min(10 * percentage, 10);
+        }
+        let topPos = scrollOffset - mouseY;
+        if (topPos > 0) {
+          let percentage = 1 + ((topPos - scrollOffset) / scrollOffset);
+          this.scrollIntervalY = -Math.min(10 * percentage, 10);
+        }
+        let bottomPos = mouseY - this.editor.page.offsetHeight + scrollOffset;
+        if (bottomPos > 0) {
+          let percentage = 1 + ((bottomPos - scrollOffset) / scrollOffset);
+          this.scrollIntervalY = Math.min(10 * percentage, 10);
+        }
+        this.scrollLastEvent = event;
+        if (this.scrollIntervalX != 0 || this.scrollIntervalY != 0) {
+          return this.setScrollInterval();
+        }
+      }
+    }
+
+    let { x, y } = await this.editor.utils.scaleToDoc(this.mouseX, this.mouseY);
+    let selectWidth = 0;
+    let selectHeight = 0;
+    let topLeftX = 0;
+    let topLeftY = 0;
+    if (x > this.startX) {
+      selectWidth = x - this.startX;
+      topLeftX = this.startX;
+      if (y > this.startY) {
+        selectHeight = y - this.startY;
+        topLeftY = this.startY;
+        this.selection.style.borderRadius = "10px 10px 0px 10px";
+      } else {
+        selectHeight = this.startY - y;
+        topLeftY = y;
+        this.selection.style.borderRadius = "10px 0px 10px 10px";
+      }
+    } else {
+      selectWidth = this.startX - x;
+      topLeftX = x;
+      if (y > this.startY) {
+        selectHeight = y - this.startY;
+        topLeftY = this.startY;
+        this.selection.style.borderRadius = "10px 10px 10px 0px";
+      } else {
+        selectHeight = this.startY - y;
+        topLeftY = y;
+        this.selection.style.borderRadius = "0px 10px 10px 10px";
+      }
+    }
+    let annotationRect = this.editor.utils.localBoundingRect(this.editor.annotationHolder);
+    this.selection.style.width = (selectWidth * this.editor.zoom) + "px";
+    this.selection.style.height = (selectHeight * this.editor.zoom) + "px";
+    this.selection.style.left = annotationRect.left + (topLeftX * this.editor.zoom) + this.editor.contentHolder.scrollLeft + "px";
+    this.selection.style.top = annotationRect.top + (topLeftY * this.editor.zoom) + this.editor.contentHolder.scrollTop + "px";
+
+    let selectionChange = false;
+    let currentSelections = Object.keys(this.editor.selecting);
+    this.editor.selecting = copyObject(this.prevSelecting);
+
+    let bottomRightX = topLeftX + selectWidth;
+    let bottomRightY = topLeftY + selectHeight;
+    let chunkAnnotations = this.editor.utils.annotationsInChunks(this.editor.utils.regionInChunks(topLeftX, topLeftY, bottomRightX, bottomRightY));
+    for (let i = 0; i < chunkAnnotations.length; i++) {
+      let annotation = chunkAnnotations[i];
+      if (annotation.pointer != null) {
+        annotation = editor.annotations[annotation.pointer];
+      }
+      let render = annotation.render;
+      if (render == null) {
+        continue;
+      }
+      if (this.editor.utils.canMemberModify(render) == false) {
+        continue;
+      }
+      if (render.remove == true) {
+        continue;
+      }
+
+      let annotationModule = await this.editor.render.getModule(render.f);
+      let { x, y, endX, endY, rotation, selectingParent } = this.editor.utils.getRect(render);
+      if (selectingParent == true) {
+        continue;
+      }
+      let [boundsTopLeftX, boundsTopLeftY, boundsBottomRightX, boundsBottomRightY] = this.editor.math.rotatedBounds(x, y, endX, endY, rotation);
+
+      if (annotationModule.SELECT_BOX_COVER != true) { // Part in bounds:
+        if (!(boundsTopLeftX < bottomRightX && boundsBottomRightX > topLeftX && boundsTopLeftY < bottomRightY && boundsBottomRightY > topLeftY)) {
+          continue;
+        }
+      } else { // Entire thing in bounds:
+        if (boundsTopLeftX < topLeftX || boundsTopLeftY < topLeftY || boundsBottomRightX > bottomRightX || boundsBottomRightY > bottomRightY) {
+          continue;
+        }
+      }
+
+      if (this.editor.selecting[render._id] == null) {
+        this.editor.selecting[render._id] = {};
+        let currentSelectIndex = currentSelections.indexOf(render._id);
+        if (currentSelectIndex > -1) {
+          currentSelections.splice(currentSelectIndex, 1);
+        } else {
+          selectionChange = true;
+        }
+      }
+    }
+
+    if (selectionChange == true || currentSelections.length > 0) {
+      this.parent.selection.updateBox();
+    }
+  }
+  clickEnd = async (event) => {
+    if (this.selection != null) {
+      let remSelect = this.selection;
+      this.selection = null;
+      remSelect.style.opacity = 0;
+      (async () => {
+        await sleep(150);
+        remSelect.remove();
+      })();
+    }
+    if (event != null) {
+      await this.parent.selection.endAction(event);
+
+      let target = event.target;
+      if (target == null) {
+        return;
+      }
+      let annotation = target.closest(".eAnnotation");
+      let annoID;
+      let render;
+      if (annotation != null) {
+        annoID = annotation.getAttribute("anno");
+        render = (this.editor.annotations[annoID] ?? {}).render;
+      }
+      let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
+      let position = this.editor.utils.scaleToDoc(mouseX, mouseY);
+      if (Math.floor(position.x - this.startX) == 0 && Math.floor(position.y - this.startY) == 0) {
+        if (render == null) {
+          return;
+        }
+        if (this.wasSelected != annoID && this.editor.selecting[annoID] != null) {
+          delete this.editor.selecting[annoID];
+        }
+      }
+      this.parent.selection.updateBox();
+      this.wasSelected = null;
+    }
+  }
+  scroll = async () => {
+    await this.parent.selection.moveAction();
+    await this.parent.selection.updateActionBar();
+  }
+  click = async (event) => { await this.parent.selection.clickAction(event); }
 }
 
 modules["editor/toolbar/pan"] = class {

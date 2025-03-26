@@ -3031,6 +3031,7 @@ modules["editor/toolbar/drag"] = class {
     }
   }
   scroll = async () => {
+    await this.clickMove();
     await this.parent.selection.moveAction();
     await this.parent.selection.updateActionBar();
   }

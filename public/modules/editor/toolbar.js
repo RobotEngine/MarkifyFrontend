@@ -2473,6 +2473,7 @@ modules["editor/toolbar"] = class {
       let event = data.event;
       checkShift(event);
       if (data.event.button == 1) { // Start pan from scroll wheel press
+        event.preventDefault();
         if (this.currentToolModulePath != "editor/toolbar/pan") {
           prevToolModule = this.currentToolModulePath;
           this.currentToolModulePath = "editor/toolbar/pan";
@@ -2516,6 +2517,7 @@ modules["editor/toolbar"] = class {
     editor.pipeline.subscribe("toolbarMouse", "click_end", (data) => {
       checkShift(data.event);
       if (prevToolModule != null && prevToolModule != "editor/toolbar/pan") {
+        data.event.preventDefault();
         this.currentToolModulePath = prevToolModule;
         prevToolModule = null;
         return this.activateTool(null, { resetSelection: false });

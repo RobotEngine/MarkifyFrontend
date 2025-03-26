@@ -2481,7 +2481,6 @@ modules["editor/toolbar"] = class {
           this.currentToolModulePath = "editor/toolbar/pan";
           await this.activateTool(null, { resetSelection: false });
         }
-        this.currentToolModule.forced = true;
         return this.currentToolModule.clickStart(event);
       }
       if (event.buttons > 1) {
@@ -3058,7 +3057,7 @@ modules["editor/toolbar/pan"] = class {
       return;
     }
     if (event != null) {
-      if ((mouseDown() == false && this.forced != true) || event.touches != null) {
+      if ((mouseDown() == false && event.which != 2) || event.touches != null) {
         return this.clickEnd(event);
       }
       let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
@@ -3073,7 +3072,6 @@ modules["editor/toolbar/pan"] = class {
   }
   clickEnd = () => {
     this.dragging = false;
-    this.forced = false;
     this.parent.updateMouse({ type: "set", value: "grab" });
   }
   wheel = (event) => {

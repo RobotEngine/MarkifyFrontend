@@ -2016,12 +2016,12 @@ modules["editor/editor"] = class {
           }
 
           let isChild = render.parent == annoID;
+          
+          let historyUpdate;
 
           // Update position for parent resize:
           if (isChild == true && (Math.floor(Math.abs(resizeChangeX)) > 0 || Math.floor(Math.abs(resizeChangeY)) > 0)) {
-            if (history.update != null) {
-              history.update.push(copyObject({ _id: render._id, parent: render.parent, p: render.p }));
-            }
+            historyUpdate = copyObject({ _id: render._id, parent: render.parent, p: render.p, r: render.r });
             let setChildAnno = {
               _id: render._id,
               p: [(render.p[0] ?? 0) + resizeChangeX, (render.p[1] ?? 0) + resizeChangeY]
@@ -2060,8 +2060,8 @@ modules["editor/editor"] = class {
                 p: [annoX, annoY],
                 r: rotation
               });
-              if (history.update != null) {
-                history.update.push(copyObject({ _id: render._id, parent: render.parent, p: render.p, r: render.r }));
+              if (historyUpdate == null) {
+                historyUpdate = copyObject({ _id: render._id, parent: render.parent, p: render.p, r: render.r });
               }
               let setChildAnno = {
                 _id: render._id,
@@ -2082,6 +2082,10 @@ modules["editor/editor"] = class {
           } else if (this.utils.getParentIDs(render).includes(annoID) == true) { // Update chunks of child annotations:
             await this.utils.setAnnotationChunks(anno);
             this.utils.updateAnnotationPages(render);
+          }
+
+          if (history.update != null && historyUpdate != null) {
+            history.update.push(historyUpdate);
           }
 
           // Delete children if parent is deleted:

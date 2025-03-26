@@ -1203,14 +1203,14 @@ modules["editor/toolbar"] = class {
             <div class="eSelectHandle" handle="movebottom" ignore></div>
             <div class="eSelectHandle" handle="moveleft" ignore></div>
             <div class="eSelectHandle" handle="moveright" ignore></div>
-            <svg class="eSelectHandle" handle="topleft" essential width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M2 14V14C2 7.37258 7.37258 2 14 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-            <svg class="eSelectHandle" handle="topright" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M14 14V14C14 7.37258 8.62742 2 2 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-            <svg class="eSelectHandle" handle="bottomleft" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M2 2V2C2 8.62742 7.37258 14 14 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-            <svg class="eSelectHandle" handle="bottomright" essential width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M14 2V2C14 8.62742 8.62742 14 2 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-            <svg class="eSelectHandle" handle="left" widthhandle width="12" height="28" viewBox="0 0 12 28" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M6 6V22" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-            <svg class="eSelectHandle" handle="right" widthhandle width="12" height="28" viewBox="0 0 12 28" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M6 6V22" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-            <svg class="eSelectHandle" handle="top" heighthandle width="28" height="12" viewBox="0 0 28 12" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M22 6H6" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-            <svg class="eSelectHandle" handle="bottom" heighthandle width="28" height="12" viewBox="0 0 28 12" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M22 6H6" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="topleft" essential width="16" height="16" rotation="180" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M2 14V14C2 7.37258 7.37258 2 14 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="topright" width="16" height="16" rotation="270" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M14 14V14C14 7.37258 8.62742 2 2 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="bottomleft" width="16" height="16" rotation="90" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M2 2V2C2 8.62742 7.37258 14 14 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="bottomright" essential width="16" height="16" rotation="0" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M14 2V2C14 8.62742 8.62742 14 2 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="left" widthhandle width="12" height="28" rotation="135" viewBox="0 0 12 28" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M6 6V22" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="right" widthhandle width="12" height="28" rotation="315" viewBox="0 0 12 28" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M6 6V22" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="top" heighthandle width="28" height="12" rotation="225" viewBox="0 0 28 12" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M22 6H6" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="bottom" heighthandle width="28" height="12" rotation="45" viewBox="0 0 28 12" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M22 6H6" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
             <svg class="eSelectHandle" handle="rotate" width="26" height="26" viewBox="0 0 31 31" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M3.46244 9.45089C2.67045 10.2429 1.38612 10.2429 0.594123 9.45089C-0.197875 8.65884 -0.197875 7.37466 0.594123 6.58261L3.46244 9.45089ZM9.04395 3.86918L3.46244 9.45089L0.594123 6.58261L6.17562 1.0009L9.04395 3.86918Z" fill="#0084FF"/> <path d="M14.6257 6.58261C15.4177 7.37466 15.4177 8.65884 14.6257 9.45089C13.8337 10.2429 12.5494 10.2429 11.7574 9.45089L14.6257 6.58261ZM9.04373 1.0009L14.6257 6.58261L11.7574 9.45089L6.17541 3.86918L9.04373 1.0009Z" fill="var(--theme)"/> <path d="M21.3783 19.0707C20.5863 18.2786 20.5863 16.9945 21.3783 16.2024C22.1703 15.4104 23.4546 15.4104 24.2466 16.2024L21.3783 19.0707ZM26.9603 24.6523L21.3783 19.0707L24.2466 16.2024L29.8281 21.7841L26.9603 24.6523Z" fill="var(--theme)"/> <path d="M24.2466 30.2341C23.4546 31.0261 22.1703 31.0261 21.3783 30.2341C20.5863 29.442 20.5863 28.1579 21.3783 27.3658L24.2466 30.2341ZM29.8281 24.6524L24.2466 30.2341L21.3783 27.3658L26.9603 21.7841L29.8281 24.6524Z" fill="var(--theme)"/> <path d="M7.63804 2.43607V10.0101C7.63804 17.2905 13.5396 23.1924 20.8203 23.1924H28.394" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
             <svg class="eSelectHandle" handle="duplicateleft" duplicate width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10.5" fill="var(--hover)" stroke="var(--theme)" stroke-width="3"/> <path d="M12 16.5L12 7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> <path d="M16.5 12H7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> </svg>
             <svg class="eSelectHandle" handle="duplicateright" duplicate width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10.5" fill="var(--hover)" stroke="var(--theme)" stroke-width="3"/> <path d="M12 16.5L12 7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> <path d="M16.5 12H7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> </svg>
@@ -1418,7 +1418,8 @@ modules["editor/toolbar"] = class {
           this.selection.rootX = xCoord;
           this.selection.rootY = yCoord;
 
-          this.updateMouse({ type: "svg", url: "./images/editor/cursors/resize.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation });
+          this.selection.resizeCursorRotation = parseInt(handleElement.getAttribute("rotation") ?? "0");
+          this.updateMouse({ type: "svg", url: "./images/editor/cursors/resize.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation + this.selection.resizeCursorRotation });
         } else { // Rotate
           this.selection.action = "rotate";
 
@@ -1741,7 +1742,7 @@ modules["editor/toolbar"] = class {
         sizeLimitX = oppositePositionX != newOppositePositionX;
         sizeLimitY = oppositePositionY != newOppositePositionY;
 
-        this.updateMouse({ type: "svg", url: "./images/editor/cursors/resize.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation });
+        this.updateMouse({ type: "svg", url: "./images/editor/cursors/resize.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation + this.selection.resizeCursorRotation });
       } else if (this.selection.action == "rotate") {
         let centerX = this.selection.originalSize[0] / 2;
         let centerY = this.selection.originalSize[1] / 2;
@@ -2163,8 +2164,10 @@ modules["editor/toolbar"] = class {
         }
       }
 
+      this.updateMouse(this.currentToolModule.MOUSE);
+      this.selection.usingCustomMouse = false;
+
       await this.selection.updateBox({ transition: false });
-      await this.updateMouse(this.currentToolModule.MOUSE);
     }
     this.selection.interactRun = async (target) => {
       if (target == null) {
@@ -2494,6 +2497,21 @@ modules["editor/toolbar"] = class {
       checkShift(event);
       this.tooltip.set(event);
       this.pushToolEvent("clickMove", event);
+
+      if (this.selection.action == null && (this.currentToolModule.MOUSE == null || this.currentToolModule.MOUSE.override != true)) {
+        let handle = event.target.closest(".eSelectHandle");
+        if (handle != null) {
+          if (handle.getAttribute("handle") == "rotate") {
+            this.updateMouse({ type: "svg", url: "./images/editor/cursors/rotate.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation });
+          } else if (handle.hasAttribute("rotation") == true) {
+            this.updateMouse({ type: "svg", url: "./images/editor/cursors/resize.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation + parseInt(handle.getAttribute("rotation")) });
+          } else {
+            this.updateMouse(this.currentToolModule.MOUSE);
+          }
+        } else {
+          this.updateMouse(this.currentToolModule.MOUSE);
+        }
+      }
     }, { sort: 1 });
     editor.pipeline.subscribe("toolbarMouse", "click_end", (data) => {
       checkShift(data.event);
@@ -2628,7 +2646,7 @@ modules["editor/toolbar"] = class {
 // TOOL MODULES //
 
 modules["editor/toolbar/select"] = class {
-  MOUSE = { type: "svg", url: "./images/editor/cursors/cursor.svg", translate: { x: 22, y: 22 } };
+  //MOUSE = { type: "svg", url: "./images/editor/cursors/cursor.svg", translate: { x: 22, y: 22 } };
 
   clickStart = async (event) => {
     if (event.which === 3 || event.button === 2) {
@@ -2774,7 +2792,7 @@ modules["editor/toolbar/drag"] = class {
 
 modules["editor/toolbar/pan"] = class {
   USER_SELECT = "none";
-  MOUSE = { type: "set", value: "grab" };
+  MOUSE = { type: "set", value: "grab", override: true };
 
   clickStart = (event) => {
     if (event.target != null && event.target.closest("button") != null) {

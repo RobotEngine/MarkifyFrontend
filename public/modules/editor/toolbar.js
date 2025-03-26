@@ -100,19 +100,19 @@ modules["editor/toolbar"] = class {
     ".eSelectHandle": `position: absolute; transition: .1s; pointer-events: all; --scale: 1`,
     '.eSelectHandle:hover': `--scale: 1.3`,
     '.eSelectHandle:active': `--scale: 1.1 !important`,
-    '.eSelectHandle[handle="movetop"]': `width: 100%; height: 10px; top: -10px; cursor: move`,
-    '.eSelectHandle[handle="movebottom"]': `width: 100%; height: 10px; bottom: -10px; cursor: move`,
-    '.eSelectHandle[handle="moveleft"]': `width: 10px; height: 100%; left: -10px; cursor: move`,
-    '.eSelectHandle[handle="moveright"]': `width: 10px; height: 100%; right: -10px; cursor: move`,
-    '.eSelectHandle[handle="topleft"]': `left: -10px; top: -10px; cursor: nwse-resize`,
-    '.eSelectHandle[handle="topright"]': `right: -10px; top: -10px; cursor: nesw-resize`,
-    '.eSelectHandle[handle="bottomleft"]': `left: -10px; bottom: -10px; cursor: nesw-resize`,
-    '.eSelectHandle[handle="bottomright"]': `right: -10px; bottom: -10px; cursor: nwse-resize`,
-    '.eSelectHandle[handle="left"]': `left: -14px; top: 50%; transform: translateY(-50%); cursor: ew-resize`,
-    '.eSelectHandle[handle="right"]': `right: -14px; top: 50%; transform: translateY(-50%); cursor: ew-resize`,
-    '.eSelectHandle[handle="top"]': `left: 50%; top: -14px; transform: translateX(-50%); cursor: ns-resize`,
-    '.eSelectHandle[handle="bottom"]': `left: 50%; bottom: -14px; transform: translateX(-50%); cursor: ns-resize`,
-    '.eSelectHandle[handle="rotate"]': `left: -28px; bottom: -28px; cursor: crosshair`,
+    '.eSelectHandle[handle="movetop"]': `width: 100%; height: 10px; top: -10px`,
+    '.eSelectHandle[handle="movebottom"]': `width: 100%; height: 10px; bottom: -10px`,
+    '.eSelectHandle[handle="moveleft"]': `width: 10px; height: 100%; left: -10px`,
+    '.eSelectHandle[handle="moveright"]': `width: 10px; height: 100%; right: -10px`,
+    '.eSelectHandle[handle="topleft"]': `left: -10px; top: -10px`,
+    '.eSelectHandle[handle="topright"]': `right: -10px; top: -10px`,
+    '.eSelectHandle[handle="bottomleft"]': `left: -10px; bottom: -10px`,
+    '.eSelectHandle[handle="bottomright"]': `right: -10px; bottom: -10px`,
+    '.eSelectHandle[handle="left"]': `left: -14px; top: 50%; transform: translateY(-50%)`,
+    '.eSelectHandle[handle="right"]': `right: -14px; top: 50%; transform: translateY(-50%)`,
+    '.eSelectHandle[handle="top"]': `left: 50%; top: -14px; transform: translateX(-50%)`,
+    '.eSelectHandle[handle="bottom"]': `left: 50%; bottom: -14px; transform: translateX(-50%)`,
+    '.eSelectHandle[handle="rotate"]': `left: -28px; bottom: -28px`,
     ".eSelectHandle[duplicate]": `opacity: 0; pointer-events: none`,
     '.eSelectHandle[handle="duplicateleft"]': `left: -50px; top: 50%; transform: translateY(-50%) scale(var(--scale)); cursor: pointer`,
     '.eSelectHandle[handle="duplicateright"]': `right: -50px; top: 50%; transform: translateY(-50%) scale(var(--scale)); cursor: pointer`,
@@ -366,6 +366,7 @@ modules["editor/toolbar"] = class {
 
     let currentMouseSVG;
     this.updateMouse = async (cursor) => {
+      cursor = cursor  ?? { type: "set" };
       if (cursor.type == "set") {
         if (cursor.value != null) {
           content.style.cursor = cursor.value;
@@ -375,6 +376,9 @@ modules["editor/toolbar"] = class {
         currentMouseSVG = null;
       } else if (cursor.type == "svg") {
         let insertString = `style="--themeColor: #2F2F2F`;
+        if (cursor.rotate != null) {
+          insertString += "; transform: rotate(" + cursor.rotate + "deg)";
+        }
         if (cursor.color != null) {
           insertString += `; --toolColorOpacity: ${editor.utils.hexToRGBString(cursor.color, (cursor.opacity ?? 100) / 100)}`;
         }
@@ -453,7 +457,7 @@ modules["editor/toolbar"] = class {
       editor.realtime.tool = newModule.REALTIME_TOOL ?? 0;
       editor.realtime.passthrough = newModule.PUBLISH;
       this.applyToolModule();
-      this.updateMouse(newModule.MOUSE ?? { type: "set" });
+      this.updateMouse(newModule.MOUSE);
     }
     this.disableTool = async () => {
       this.currentToolModulePath = null;
@@ -1413,6 +1417,8 @@ modules["editor/toolbar"] = class {
           let [xCoord, yCoord] = editor.math.rotatePoint(position.x - halfRotateWidth, position.y - halfRotateHeight, -this.selection.rotation);
           this.selection.rootX = xCoord;
           this.selection.rootY = yCoord;
+
+          this.updateMouse({ type: "svg", url: "./images/editor/cursors/resize.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation });
         } else { // Rotate
           this.selection.action = "rotate";
 
@@ -1426,6 +1432,8 @@ modules["editor/toolbar"] = class {
           if (this.selection.originalRotation < 0) {
             this.selection.originalRotation = 360 + this.selection.originalRotation;
           }
+
+          this.updateMouse({ type: "svg", url: "./images/editor/cursors/rotate.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation });
         }
       } else { // Duplicate
         // MUST DO LATER
@@ -1732,6 +1740,8 @@ modules["editor/toolbar"] = class {
         
         sizeLimitX = oppositePositionX != newOppositePositionX;
         sizeLimitY = oppositePositionY != newOppositePositionY;
+
+        this.updateMouse({ type: "svg", url: "./images/editor/cursors/resize.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation });
       } else if (this.selection.action == "rotate") {
         let centerX = this.selection.originalSize[0] / 2;
         let centerY = this.selection.originalSize[1] / 2;
@@ -1748,6 +1758,8 @@ modules["editor/toolbar"] = class {
         }
         let setRotation = Math.round((this.selection.originalRotate + (this.selection.originalRotation - newRotation)) / snapDegree) * snapDegree;
         rotateChange = (Math.round(setRotation / snapDegree) * snapDegree) - this.selection.originalRotate;
+
+        this.updateMouse({ type: "svg", url: "./images/editor/cursors/rotate.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation });
       }
 
       for (let i = 0; i < keys.length; i++) {
@@ -2152,6 +2164,7 @@ modules["editor/toolbar"] = class {
       }
 
       await this.selection.updateBox({ transition: false });
+      await this.updateMouse(this.currentToolModule.MOUSE);
     }
     this.selection.interactRun = async (target) => {
       if (target == null) {
@@ -2615,6 +2628,8 @@ modules["editor/toolbar"] = class {
 // TOOL MODULES //
 
 modules["editor/toolbar/select"] = class {
+  MOUSE = { type: "svg", url: "./images/editor/cursors/cursor.svg", translate: { x: 22, y: 22 } };
+
   clickStart = async (event) => {
     if (event.which === 3 || event.button === 2) {
       return;

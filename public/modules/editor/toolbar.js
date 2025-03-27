@@ -1762,7 +1762,7 @@ modules["editor/toolbar"] = class {
         let setRotation = Math.round((this.selection.originalRotate + (this.selection.originalRotation - newRotation)) / snapDegree) * snapDegree;
         rotateChange = (Math.round(setRotation / snapDegree) * snapDegree) - this.selection.originalRotate;
 
-        this.updateMouse({ type: "svg", url: "./images/editor/cursors/rotate.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation });
+        this.updateMouse({ type: "svg", url: "./images/editor/cursors/rotate.svg", translate: { x: 22, y: 22 }, rotate: this.selection.originalRotate + rotateChange });
       }
 
       for (let i = 0; i < keys.length; i++) {
@@ -1968,9 +1968,12 @@ modules["editor/toolbar"] = class {
             let [rotateUpdateXCoord, rotateUpdateYCoord] = editor.math.rotatePoint(updateXCoord, updateYCoord, rect.rotation);
             if (sizeLimitX == true) {
               changeX += rotateUpdateXCoord;
-              changeY += rotateUpdateYCoord;
             } else {
               changeX -= rotateUpdateXCoord;
+            }
+            if (sizeLimitY == true) {
+              changeY += rotateUpdateYCoord;
+            } else {
               changeY -= rotateUpdateYCoord;
             }
           }

@@ -682,6 +682,7 @@ modules["editor/editor"] = class {
         centerY: centerY,
         endX, endY,
         width, height,
+        size: [anno.s[0], anno.s[1]],
         thickness: position.thickness,
         rotation: position.rotation,
         selectingParent: position.selectingParent
@@ -1950,9 +1951,6 @@ modules["editor/editor"] = class {
         annotation = this.annotations[data._id] ?? {};
       }
       let annoID = data._id;
-      
-      let originalRender = annotation.render ?? {};
-      let originalSize = [(originalRender.s ?? [])[0], (originalRender.s ?? [])[1]];
 
       let merged = { ...(annotation.render ?? {}), ...data };
       if (merged.p == null || merged.s == null) {
@@ -1997,7 +1995,7 @@ modules["editor/editor"] = class {
       if (data.p != null || data.s != null || data.t != null || data.l != null || data.remove == true) {
         let resizeChangeX = 0;
         let resizeChangeY = 0;
-        if ((merged.s ?? [])[0] != originalSize[0] || (merged.s ?? [])[1] != originalSize[1]) {
+        if (rect.size[0] != originalRect.size[0] || rect.size[1] != originalRect.size[1]) {
           let [originalResizeX, originalResizeY] = this.math.rotatePointOrigin(originalRect.annoX, originalRect.annoY, originalRect.centerX, originalRect.centerY, originalRect.rotation);
           let [newResizeX, newResizeY] = this.math.rotatePointOrigin(rect.annoX, rect.annoY, rect.centerX, rect.centerY, rect.rotation);
           [resizeChangeX, resizeChangeY] = this.math.rotatePoint(originalResizeX - newResizeX, originalResizeY - newResizeY, -rect.rotation);

@@ -185,7 +185,7 @@ modules["editor/toolbar"] = class {
       }
       return true;
     }
-    this.checkSubToolEndabled = (check) => {
+    this.checkSubToolEnabled = (check) => {
       if (editor.self.access > 3) {
         return true;
       }
@@ -444,7 +444,7 @@ modules["editor/toolbar"] = class {
       if (this.currentToolModulePath != null) {
         newModule = await this.newModule(this.currentToolModulePath);
       }
-      this.currentToolModule = newModule;
+      this.currentToolModule = newModule ?? {};
       if (newModule != null) {
         newModule.editor = editor;
         newModule.tool = currentSubTool ?? currentTool;
@@ -748,7 +748,7 @@ modules["editor/toolbar"] = class {
         }
       })();
     }
-    this.toolbar.enableTool = async (button, shortPress, noExtend) => {
+    this.toolbar.enableTool = async (button, shortPress, noExtend, passData) => {
       let toolID = button.getAttribute("tool");
       let isSelected = button.hasAttribute("selected");
       let isExtended = button.hasAttribute("extend");
@@ -794,7 +794,7 @@ modules["editor/toolbar"] = class {
               this.currentToolModulePath = toolData.module;
               this.tooltip.update();
             }
-            this.activateTool();
+            this.activateTool(passData);
           } else {
             this.tooltip.update();
           }
@@ -811,7 +811,7 @@ modules["editor/toolbar"] = class {
           if (shortPress == true) {
             currentSubTool = button.getAttribute("tool");
             this.currentToolModulePath = button.getAttribute("module");
-            this.activateTool();
+            this.activateTool(passData);
           }
         } else { // Option
           if (shortPress == true) {
@@ -835,7 +835,7 @@ modules["editor/toolbar"] = class {
       //this.tooltip.update();
     }
     let lastSetButton;
-    this.toolbar.setTool = async (targetButton, shortPress, noExtend) => {
+    this.toolbar.setTool = async (targetButton, shortPress, noExtend, passData) => {
       let button = targetButton ?? lastSetButton;
       if (button == null || button.className != "eTool" || button.closest("[noselect]") != null) {
         return;
@@ -854,7 +854,7 @@ modules["editor/toolbar"] = class {
       if (button.closest(".eToolbarContent") != null) {
         currentTool = toolID;
         currentToolButton = button;
-        await this.toolbar.enableTool(button, shortPress, noExtend);
+        await this.toolbar.enableTool(button, shortPress, noExtend, passData);
       } else if (button.closest(".eSubToolContentScroll") != null) {
         let setSubTool = button.getAttribute("tool");
         if (setSubTool != null) {
@@ -864,9 +864,9 @@ modules["editor/toolbar"] = class {
             toolPreference.subtool = currentSubTool;
             editor.savePreferences();
           }
-          await this.toolbar.enableTool(button, shortPress);
+          await this.toolbar.enableTool(button, shortPress, null, passData);
         } else {
-          await this.toolbar.enableTool(button, shortPress);
+          await this.toolbar.enableTool(button, shortPress, null, passData);
         }
       }
 
@@ -875,8 +875,8 @@ modules["editor/toolbar"] = class {
         this.tooltip.update();
       }
     }
-    this.toolbar.startTool = async (button, noExtend) => {
-      await this.toolbar.setTool(button, true, noExtend);
+    this.toolbar.startTool = async (button, noExtend, passData) => {
+      await this.toolbar.setTool(button, true, noExtend, passData);
       await this.toolbar.setTool();
     }
     toolbarHolder.addEventListener("keydown", (event) => {
@@ -2103,7 +2103,7 @@ modules["editor/toolbar"] = class {
         if (options.saveHistory != false) {
           if (selecting.remove != true) {
             if (Object.keys(pushFields).length > 0) {
-              if (pushFields.f == null) {
+              if (pushFields.hasOwnProperty("f") == false) {
                 pushChanges.push(copyObject({
                   ...pushFields,
                   parent: pushFields.parent ?? originalRender.parent ?? null,
@@ -2649,6 +2649,256 @@ modules["editor/toolbar"] = class {
     editor.pipeline.subscribe("toolbarSelectionZoomChange", "zoom_change", () => {
       this.selection.updateBox({ transition: false });
     });
+
+    // COPY / PASTE
+    let processFileUpload = async (items, event) => {
+      if (editor.self.access < 1) {
+        return;
+      }
+      for (let i = 0; i < items.length; i++) {
+        let file = items[i];
+        if (file != null) {
+          if (file.kind == "file") {
+            file = file.getAsFile();
+          }
+          if (file.kind != "string") {
+            if (file.type.substring(0, 6) == "image/") {
+              await this.toolbar.startTool(toolbar.querySelector('.eTool[tool="media"]'));
+              await this.toolbar.startTool(toolbar.querySelector('.eTool[tool="upload"]'), null, { file: file, event: event });
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+    }
+    page.addEventListener("drop", (event) => {
+      processFileUpload(event.dataTransfer.items, event);
+      event.preventDefault();
+      event.stopPropagation();
+    });
+    page.addEventListener("dragover", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      event.dataTransfer.dropEffect = "copy";
+    });
+    editor.pipeline.subscribe("toolbarPaste", "paste", async (data) => {
+      if (editor.isPageActive() == false) {
+        return;
+      }
+      if (editor.self.access < 1) {
+        return;
+      }
+      if (document.activeElement != null) {
+        if (document.activeElement.closest("[contenteditable]") != null || document.activeElement.closest("input") != null) {
+          return;
+        }
+      }
+      let event = data.event;
+      let clipboardData = event.clipboardData ?? event.originalEvent.clipboardData ?? {};
+
+      if (clipboardData.items.length < 1) {
+        return;
+      }
+      if (processFileUpload(clipboardData.items) == true) {
+        return event.preventDefault();
+      }
+
+      let html = clipboardData.getData("text/html");
+      let startIndex = html.indexOf("(markify+copypaste)"); // 19 chars
+      let endIndex = html.indexOf("(/markify+copypaste)");
+      if (startIndex < 0 || endIndex < 0) {
+        return;
+      }
+      let annotationData = JSON.parse(decodeURIComponent(html.substring(startIndex + 19, endIndex)));
+      if (annotationData.length < 1) {
+        return;
+      }
+
+      let annotationRect = editor.utils.localBoundingRect(annotations);
+      let pageTopLeftX = -annotationRect.left / editor.zoom;
+      let pageTopLeftY = -annotationRect.top / editor.zoom;
+      let pageBottomRightX = (page.offsetWidth - annotationRect.left) / editor.zoom;
+      let pageBottomRightY = (page.offsetHeight - annotationRect.top) / editor.zoom;
+      //let setSelect = {};
+      //let newNewSelect = {};
+      let minLeft;
+      let minTop;
+      let maxLeft;
+      let maxTop;
+      let minZIndex;
+      let parentIDs = {};
+      editor.selecting = {};
+
+      for (let i = 0; i < annotationData.length; i++) {
+        let newAnno = annotationData[i];
+        let tempID = editor.render.tempID();
+        parentIDs[newAnno._id] = tempID;
+        newAnno.old_ID = newAnno._id;
+        newAnno._id = tempID;
+        let annoRect = editor.utils.getRect(newAnno);
+        let [topLeftX, topLeftY, bottomRightX, bottomRightY] = editor.math.rotatedBounds(annoRect.x, annoRect.y, annoRect.endX, annoRect.endY, annoRect.rotation);
+        if (topLeftX < minLeft || minLeft == null) {
+          minLeft = topLeftX;
+        }
+        if (topLeftY < minTop || minTop == null) {
+          minTop = topLeftY;
+        }
+        if (bottomRightX > maxLeft || maxLeft == null) {
+          maxLeft = bottomRightX;
+        }
+        if (bottomRightY > maxTop || maxTop == null) {
+          maxTop = bottomRightY;
+        }
+        minZIndex = Math.min(minZIndex ?? newAnno.l ?? editor.minLayer, newAnno.l ?? editor.minLayer);
+      }
+
+      let { x: centerPageX, y: centerPageY } = editor.utils.scaleToDoc(page.offsetWidth / 2, page.offsetHeight / 2);
+      let centerX = (maxLeft - minLeft) / 2;
+      let centerY = (maxTop - minTop) / 2;
+
+      for (let i = 0; i < annotationData.length; i++) {
+        let newAnno = annotationData[i];
+        if (editor.self.access < 4 && this.checkSubToolEnabled(newAnno.f) == false) {
+          continue;
+        }
+        let existingAnno = (editor.annotations[newAnno.old_ID] ?? {}).render;
+        if (existingAnno != null) {
+          let existingAnnoRect = editor.utils.getRect(existingAnno);
+          let [topLeftX, topLeftY, bottomRightX, bottomRightY] = editor.math.rotatedBounds(existingAnnoRect.x, existingAnnoRect.y, existingAnnoRect.endX, existingAnnoRect.endY, existingAnnoRect.rotation);
+          if (bottomRightX > pageTopLeftX && topLeftX < pageBottomRightX && bottomRightY > pageTopLeftY && topLeftY < pageBottomRightY) {
+            newAnno.p[0] = (newAnno.p[0] ?? existingAnno.p[0]) + 50;
+            newAnno.p[1] = (newAnno.p[1] ?? existingAnno.p[1]) + 50;
+          } else {
+            existingAnno = null;
+          }
+        } else {
+          newAnno.p[0] += centerPageX + centerX - maxLeft;
+          newAnno.p[1] += centerPageY + centerY - maxTop;
+        }
+        newAnno.l = editor.maxLayer + 1 + ((newAnno.l ?? editor.maxLayer) - minZIndex);
+        if (newAnno.parented != null) {
+          let parentCopy = parentIDs[newAnno.parented.parent];
+          if (parentCopy != null) {
+            newAnno.parent = parentCopy;
+            newAnno.p = newAnno.parented.p;
+            newAnno.r = newAnno.parented.r;
+          }
+          delete newAnno.parented;
+        }
+        delete newAnno.old_ID;
+        delete newAnno.m;
+        editor.selecting[newAnno._id] = newAnno;
+      }
+
+      this.selection.action = "save";
+      await this.selection.endAction();
+    });
+    editor.pipeline.subscribe("toolbarCopy", "copy", (data) => {
+      if (editor.isPageActive() == false) {
+        return;
+      }
+      let selection = document.getSelection();
+      if (selection.toString().length > 0) {
+        return; // User it selecting text, ignore event
+      }
+      let event = data.event;
+      let clipboardData = event.clipboardData ?? event.originalEvent.clipboardData ?? {};
+      let saveTextData = "";
+      let saveAnnoData = [];
+      event.preventDefault();
+
+      let selectKeys = Object.keys(editor.selecting);
+      let checkChunks = {};
+      for (let i = 0; i < selectKeys.length; i++) {
+        let annoID = selectKeys[i];
+        let render = (editor.annotations[annoID] ?? {}).render;
+        if (render == null) {
+          continue;
+        }
+        let addChunks = editor.utils.chunksFromAnnotation(render);
+        for (let c = 0; c < addChunks.length; c++) {
+          checkChunks[addChunks[c]] = true;
+        }
+        let renderCopy = copyObject(render);
+        if (renderCopy.parent != null) {
+          renderCopy.parented = {
+            parent: renderCopy.parent,
+            p: [render.p[0], render.p[1]],
+            r: render.r
+          };
+        }
+        let { annoX, annoY, rotation } = editor.utils.getRect(render);
+        delete renderCopy.parent;
+        renderCopy.p = [annoX, annoY];
+        renderCopy.r = rotation;
+        saveAnnoData.push(renderCopy);
+
+        let richText = render.d ?? {};
+        if (richText.b != null) {
+          if (saveTextData.length > 0) {
+            saveTextData += "\n";
+          }
+          for (let t = 0; t < richText.b.length; t++) {
+            let addText = "";
+            if (richText.b[t] != "\n") {
+              addText = richText.b[t];
+            } else {
+              addText = "\n";
+            }
+            saveTextData += addText;
+          }
+        }
+      }
+
+      let annotations = editor.utils.annotationsInChunks(Object.keys(checkChunks));
+      for (let i = 0; i < annotations.length; i++) {
+        let annotation = annotations[i] ?? {};
+        if (annotation.pointer != null) {
+          annotation = editor.annotations[annotation.pointer];
+        }
+        let render = annotation.render;
+        if (render == null || editor.selecting[render._id] != null) {
+          continue;
+        }
+        let { selectingParent, annoX, annoY, rotation } = editor.utils.getRect(render);
+        if (selectingParent == false) {
+          continue;
+        }
+        let renderCopy = copyObject(render);
+        if (renderCopy.parent != null) {
+          renderCopy.parented = {
+            parent: renderCopy.parent,
+            p: [render.p[0], render.p[1]],
+            r: render.r
+          };
+        }
+        delete renderCopy.parent;
+        renderCopy.p = [annoX, annoY];
+        renderCopy.r = rotation;
+        saveAnnoData.push(renderCopy);
+
+        let richText = render.d ?? {};
+        if (richText.b != null) {
+          if (saveTextData.length > 0) {
+            saveTextData += "\n";
+          }
+          for (let t = 0; t < richText.b.length; t++) {
+            let addText = "";
+            if (richText.b[t] != "\n") {
+              addText = richText.b[t];
+            } else {
+              addText = "\n";
+            }
+            saveTextData += addText;
+          }
+        }
+      }
+
+      clipboardData.setData("text/html", `<meta charset="utf-8"><html><head></head><body><span data-meta="<!--(markify+copypaste)${encodeURIComponent(JSON.stringify(saveAnnoData))}(/markify+copypaste)-->"></span><div>${saveTextData}</div></body></html>`);
+      clipboardData.setData("text/plain", saveTextData);
+    });
+
     editor.toolbar = this;
   }
 }

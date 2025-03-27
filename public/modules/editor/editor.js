@@ -1950,6 +1950,9 @@ modules["editor/editor"] = class {
         annotation = this.annotations[data._id] ?? {};
       }
       let annoID = data._id;
+      
+      let originalRender = annotation.render ?? {};
+      let originalSize = [(originalRender.s ?? [])[0], (originalRender.s ?? [])[1]];
 
       let merged = { ...(annotation.render ?? {}), ...data };
       if (merged.p == null || merged.s == null) {
@@ -1994,7 +1997,7 @@ modules["editor/editor"] = class {
       if (data.p != null || data.s != null || data.t != null || data.l != null || data.remove == true) {
         let resizeChangeX = 0;
         let resizeChangeY = 0;
-        if (data.resizing != null) {
+        if ((merged.s ?? [])[0] != originalSize[0] || (merged.s ?? [])[1] != originalSize[1]) {
           let [originalResizeX, originalResizeY] = this.math.rotatePointOrigin(originalRect.annoX, originalRect.annoY, originalRect.centerX, originalRect.centerY, originalRect.rotation);
           let [newResizeX, newResizeY] = this.math.rotatePointOrigin(rect.annoX, rect.annoY, rect.centerX, rect.centerY, rect.rotation);
           [resizeChangeX, resizeChangeY] = this.math.rotatePoint(originalResizeX - newResizeX, originalResizeY - newResizeY, -rect.rotation);

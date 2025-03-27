@@ -411,6 +411,13 @@ modules["pages/lesson"] = class {
       this.pushToPipelines(null, "keyup", { event: event });
     }, { passive: false });
 
+    tempListen(window, "paste", (event) => {
+      this.pushToPipelines(null, "paste", { event: event });
+    }, { passive: false });
+    tempListen(window, "copy", (event) => {
+      this.pushToPipelines(null, "copy", { event: event });
+    }, { passive: false });
+
     this.active = document.visibilityState == "visible";
     /*tempListen(document, "visibilitychange", () => {
       this.active = document.visibilityState == "visible";

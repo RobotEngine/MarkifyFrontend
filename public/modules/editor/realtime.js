@@ -626,13 +626,14 @@ modules["editor/realtime"] = class {
             }
             
             if (annoID != "cursor") {
+              merge = original.render;
               if (editor.selecting[annoID] == null) {
-                merge = original.render;
+                //merge = original.render;
                 if (selection != null) {
                   selection.removeAttribute("notransition");
                 }
               } else {
-                merge = { ...original.render, ...(editor.selecting[annoID] ?? {}) };
+                //merge = { ...original.render, ...(editor.selecting[annoID] ?? {}) };
                 userSelecting = true;
               }
               if (merge.f != null) {

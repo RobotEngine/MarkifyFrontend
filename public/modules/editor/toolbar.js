@@ -2108,6 +2108,7 @@ modules["editor/toolbar"] = class {
                   ...pushFields,
                   parent: pushFields.parent ?? originalRender.parent ?? null,
                   p: pushFields.p ?? originalRender.p,
+                  r: pushFields.r ?? originalRender.r,
                   _id: annoid
                 }));
               } else {

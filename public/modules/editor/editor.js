@@ -1893,7 +1893,7 @@ modules["editor/editor"] = class {
       // IF SELECTING, DO NOT UPDATE THOSE FIELDS
       let redrawAction = false;
       if (options.ignoreSelecting != true && this.selecting[annoID] != null) {
-        save = { ...save, ...this.selecting[annoID] };
+        //save = { ...save, ...this.selecting[annoID] };
         redrawAction = true;
       }
       delete save.resizing;
@@ -1933,7 +1933,7 @@ modules["editor/editor"] = class {
         }
       }
       if (allowRender == true) {
-        await this.render.create({ ...annotation, render: { ...annotation.render, ...(options.renderPassthrough ?? {}) }, ...(options.render ?? {}) }, options.timeout == false);
+        await this.render.create({ ...annotation, render: { ...annotation.render, ...(options.renderPassthrough ?? {}), ...(this.selecting[annoID] ?? {}) }, ...(options.render ?? {}) }, options.timeout == false);
       } else {
         await this.render.remove(annotation);
       }
@@ -3396,6 +3396,11 @@ modules["editor/render/shape"] = class {
 }
 modules["editor/render/sticky"] = class {
   ALLOW_SELECT_OVERFLOW = true;
+  SELECTION_FUNCTION = (selection) => {
+    if (["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {
+      selection.resizePreserveAspect = true;
+    }
+  }
   
   css = {
     ".eAnnotation[sticky]": `display: flex; flex-direction: column; background: var(--themeColor); border-radius: 12px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all; overflow: auto; text-align: left`,
@@ -3562,7 +3567,7 @@ modules["editor/render/page"] = class {
   SELECT_BOX_COVER = true;
 
   SELECTION_FUNCTION = (selection, render) => {
-    if (render.source != null && ["bottomright", "topleft", "topright", "bottomleft"].includes(selection.tooltip) == true) {
+    if (render.source != null && ["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {
       selection.resizePreserveAspect = true;
     }
   }
@@ -3713,7 +3718,7 @@ modules["editor/render/page"] = class {
 }
 modules["editor/render/media"] = class {
   SELECTION_FUNCTION = (selection) => {
-    if (["bottomright", "topleft", "topright", "bottomleft"].includes(selection.tooltip) == true) {
+    if (["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {
       selection.resizePreserveAspect = true;
     }
   }

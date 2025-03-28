@@ -126,7 +126,14 @@ modules["editor/toolbar"] = class {
     '.eSelect[hiderotation] .eSelectHandle[handle="rotate"]': `opacity: 0 !important; pointer-events: none !important`,
     '.eSelect[hideheighthandles] .eSelectHandle[heighthandle]': `opacity: 0; pointer-events: none`,
     '.eSelect[hidewidthhandles] .eSelectHandle[widthhandle]': `opacity: 0; pointer-events: none`,
-    '.eSelect[hidenonessential] .eSelectHandle:not([essential])': `opacity: 0; pointer-events: none`
+    '.eSelect[hidenonessential] .eSelectHandle:not([essential])': `opacity: 0; pointer-events: none`,
+
+    ".eSelectSnap": `position: absolute; left: 0px; top: 0px; z-index: 102; background: var(--secondary); border-radius: 1px; pointer-events: none`,
+    ".eSelectSnap div[marker]": `position: absolute; z-index: 102; background: var(--secondary); border-radius: 1px; pointer-events: none`,
+    '.eSelectSnap div[marker="snapxleft"]': `width: 2px; height: 16px; left: 0px; top: 50%; transform: translateY(-50%)`,
+    '.eSelectSnap div[marker="snapxright"]': `width: 2px; height: 16px; right: 0px; top: 50%; transform: translateY(-50%)`,
+    '.eSelectSnap div[marker="snapytop"]': `width: 16px; height: 2px; top: 0px; left: 50%; transform: translateX(-50%)`,
+    '.eSelectSnap div[marker="snapybottom"]': `width: 16px; height: 2px; bottom: 0px; left: 50%; transform: translateX(-50%)`
   };
   js = async (editor) => {
     let page = editor.page;
@@ -940,6 +947,7 @@ modules["editor/toolbar"] = class {
     this.selection.annotationRects = {};
     this.selection.snapThreshold = 8;
     this.selection.renderSnaps = [];
+    this.selection.currentSnapElements = {};
     this.selection.updateBox = async (options = {}) => {
       let removeSelections = [];
       let checkSelections = Object.keys(this.selection.currentSelections);
@@ -1450,10 +1458,385 @@ modules["editor/toolbar"] = class {
       event.preventDefault();
     }
     this.selection.updateSnapLines = async (render) => {
+      let annotationRect = editor.utils.localBoundingRect(annotations);
 
+      let validSnaps = {};
+      let snapX = 0;
+      let snapY = 0;
+      for (let i = 0; i < this.selection.renderSnaps.length; i++) {
+        let snap = this.selection.renderSnaps[i];
+        if (snap == null) {
+          continue;
+        }
+        let existingValid = validSnaps[snap.type];
+        if (existingValid != null) {
+          if (snap.marker != null) {
+            if (Math.max(snap.width, snap.height) > Math.max(existingValid.width, existingValid.height)) {
+              continue;
+            }
+          } else {
+            snap.width = snap.width + existingValid.width - (Math.min(snap.x + snap.width, existingValid.x + existingValid.width) - Math.max(snap.x, existingValid.x));
+            snap.height = snap.height + existingValid.height - (Math.min(snap.y + snap.height, existingValid.y + existingValid.height) - Math.max(snap.y, existingValid.y));
+            snap.x = Math.min(snap.x, existingValid.x);
+            snap.y = Math.min(snap.y, existingValid.y);
+          }
+        }
+
+        if (snap.marker != null && snap.width < 1 && snap.height < 1) {
+          continue;
+        }
+        if (snap.width > 0 && snap.height > 0) {
+          if (snap.width > snap.height) {
+            snap.height = 0;
+          } else {
+            snap.width = 0;
+          }
+        }
+  
+        validSnaps[snap.type] = snap;
+
+        if (snap.additionalLines != null) {
+          for (let a = 0; a < snap.additionalLines.length; a++) {
+            let snapVisual = snap.additionalLines[a];
+            validSnaps[snapVisual.type] = snapVisual;
+          }
+        }
+      }
+      if (validSnaps["left_left_side"] != null && validSnaps["right_right_side"] != null) {
+        delete validSnaps["center_vertical"];
+      }
+      if (validSnaps["top_top_side"] != null && validSnaps["bottom_bottom_side"] != null) {
+        delete validSnaps["center_horizontal"];
+      }
+      if (validSnaps["center_distance_left"] == null || validSnaps["center_distance_right"] == null || validSnaps["center_distance_right"].width - validSnaps["center_distance_left"].width > this.snapThreshold) {
+        delete validSnaps["center_distance_left"];
+        delete validSnaps["center_distance_right"];
+      }
+      if (validSnaps["center_distance_right"] == null || validSnaps["center_distance_left"] == null || validSnaps["center_distance_left"].width - validSnaps["center_distance_right"].width > this.snapThreshold) {
+        delete validSnaps["center_distance_right"];
+        delete validSnaps["center_distance_left"];
+      }
+      if (validSnaps["center_distance_top"] == null || validSnaps["center_distance_bottom"] == null || validSnaps["center_distance_bottom"].height - validSnaps["center_distance_top"].height > this.snapThreshold) {
+        delete validSnaps["center_distance_top"];
+        delete validSnaps["center_distance_bottom"];
+      }
+      if (validSnaps["center_distance_bottom"] == null || validSnaps["center_distance_top"] == null || validSnaps["center_distance_top"].height - validSnaps["center_distance_bottom"].height > this.snapThreshold) {
+        delete validSnaps["center_distance_bottom"];
+        delete validSnaps["center_distance_top"];
+      }
+
+      let renderSnaps = Object.keys(validSnaps);
+      let currentSnaps = Object.keys(this.selection.currentSnapElements);
+      for (let i = 0; i < renderSnaps.length; i++) {
+        let snap = validSnaps[renderSnaps[i]];
+        if (snap == null) {
+          continue;
+        }
+        if (snap.axis == "x") {
+          snapX = snap.threshold;
+        } else if (snap.axis == "y") {
+          snapY = snap.threshold;
+        }
+        if (render == false) {
+          continue;
+        }
+
+        let offsetWidth = -1;
+        let offsetHeight = -1;
+        if (snap.marker == "x") {
+          offsetWidth = 1;
+        } else if (snap.marker == "y") {
+          offsetHeight = 1;
+        }
+        
+        let snapElement = this.selection.currentSnapElements[snap.type];
+        if (snapElement == null) {
+          content.insertAdjacentHTML("beforeend", `<div class="eSelectSnap" tooleditor new></div>`);
+          snapElement = content.querySelector(".eSelectSnap[new]");
+          snapElement.removeAttribute("new");
+          this.selection.currentSnapElements[snap.type] = snapElement;
+
+          if (snap.marker == "x") {
+            snapElement.insertAdjacentHTML("beforeend", `<div marker="snapxleft"></div><div marker="snapxright"></div>`);
+          } else if (snap.marker == "y") {
+            snapElement.insertAdjacentHTML("beforeend", `<div marker="snapytop"></div><div marker="snapybottom"></div>`);
+          }
+        } else {
+          currentSnaps.splice(currentSnaps.indexOf(snap.type), 1);
+        }
+
+        snapElement.style.width = Math.max(Math.round(snap.width * editor.zoom), 2) + "px";
+        snapElement.style.height = Math.max(Math.round(snap.height * editor.zoom), 2) + "px";
+        snapElement.style.left = Math.round(annotationRect.left + (snap.x * editor.zoom) + contentHolder.scrollLeft + offsetWidth) + "px";
+        snapElement.style.top = Math.round(annotationRect.top + (snap.y * editor.zoom) + contentHolder.scrollTop + offsetHeight) + "px";
+      }
+      for (let i = 0; i < currentSnaps.length; i++) {
+        let checkSnap = currentSnaps[i];
+        this.selection.currentSnapElements[checkSnap].remove();
+        delete this.selection.currentSnapElements[checkSnap];
+      }
+
+      return { snapX, snapY };
     }
     this.selection.snapItems = async (event, extra) => {
-      return { snapX: 0, snapY: 0 };
+      // Loops through other visible annotations
+      // Checks if sides / centers line up withen threshold
+      // Also checks distance between items to check for patterns
+      // Returns an offset X / Y to correct for line up
+      
+      if (["move", "resize"].includes(this.selection.action) == false) {
+        return { snapX: 0, snapY: 0 };
+      }
+      if (this.selection.action == "resize" && this.selection.rotation != 0) {
+        return { snapX: 0, snapY: 0 };
+      }
+      if (editor.options.snapping == false) {
+        return { snapX: 0, snapY: 0 };
+      }
+      if (Object.keys(editor.selecting).length < 1) {
+        return { snapX: 0, snapY: 0 };
+      }
+
+      // Determine selection bounds:
+      let selectTopLeftX = this.selection.minX;
+      let selectTopLeftY = this.selection.minY;
+      let selectBottomRightX = this.selection.maxX;
+      let selectBottomRightY = this.selection.maxY;
+      if (extra.scaleWidth < 0) {
+        selectTopLeftX = this.selection.maxX;
+        selectBottomRightX = this.selection.minX;
+      }
+      if (extra.scaleHeight < 0) {
+        selectTopLeftY = this.selection.maxY;
+        selectBottomRightY = this.selection.minY;
+      }
+      let annotationRect = editor.utils.localBoundingRect(annotations);
+      let pageTopLeftX = -annotationRect.left / editor.zoom;
+      let pageTopLeftY = -annotationRect.top / editor.zoom;
+      let pageBottomRightX = (page.offsetWidth - annotationRect.left) / editor.zoom;
+      let pageBottomRightY = (page.offsetHeight - annotationRect.top) / editor.zoom;
+      
+      let hasCommonParent = true;
+      let commonParent;
+      let selectedKeys = Object.keys(editor.selecting);
+      for (let i = 0; i < selectedKeys.length; i++) {
+        let annoid = selectedKeys[i];
+        let original = editor.annotations[annoid] ?? {};
+        if (original.render == null) {
+          continue;
+        }
+        if (original.render.parent != commonParent && i > 0) {
+          hasCommonParent = false;
+          break;
+        }
+        commonParent = original.render.parent;
+      }
+
+      this.selection.renderSnaps = [];
+      let applySnap = (data, run) => {
+        let threshold = Math.abs(data.threshold);
+        if (threshold > this.selection.snapThreshold) {
+          return;
+        }
+        if (extra.resizeHandleAxis != null) {
+          if (extra.resizeHandleAxis == "x" && data.axis == "y") {
+            return;
+          } else if (extra.resizeHandleAxis == "y" && data.axis == "x") {
+            return;
+          }
+        }
+        for (let i = 0; i < this.selection.renderSnaps.length; i++) {
+          let check = this.selection.renderSnaps[i];
+          if (check == null) {
+            continue;
+          }
+          if (check.axis == data.axis) {
+            let compare = Math.round(Math.abs(check.threshold) - threshold);
+            if (compare > 0) {
+              this.selection.renderSnaps.splice(i, 1);
+              i--;
+            } else if (compare < 0) {
+              return;
+            }
+          }
+          if (data.type == check.type && data.centerSize != null && check.centerSize != null) {
+            if (data.centerSize > check.centerSize) {
+              return;
+            }
+          }
+        }
+        if (extra.render != false || data.marker != null) {
+          data = { ...data, ...run() };
+          if (data.additional != null) {
+            let result = data.additional();
+            if (result == false) {
+              return;
+            } else {
+              data.additionalLines = result;
+            }
+          }
+        } else {
+          data = { ...data, width: 0, height: 0, x: 0, y: 0 };
+        }
+        this.selection.renderSnaps.push(data);
+      }
+
+      let checkDistanceXDirection = [];
+      let checkDistanceYDirection = [];
+      
+      let visibleAnnotations = editor.utils.annotationsInChunks(editor.visibleChunks);
+      for (let i = 0; i < visibleAnnotations.length; i++) {
+        let annotation = visibleAnnotations[i] ?? {};
+        let render = annotation.render;
+        if (render == null) {
+          continue;
+        }
+        if (hasCommonParent == true && render.parent != commonParent && render._id != commonParent) {
+          continue;
+        }
+        if (editor.selecting[render._id] != null) {
+          continue;
+        }
+        let annoModule = (await editor.render.getModule(render.f)) ?? {};
+        if (annoModule.CAN_BE_SNAPPED_TO == false) {
+          continue;
+        }
+        let rect = editor.utils.getRect(render);
+        if (rect.selectingParent == true) {
+          continue;
+        }
+        let [topLeftX, topLeftY, bottomRightX, bottomRightY] = editor.math.rotatedBounds(rect.x, rect.y, rect.endX, rect.endY, rect.rotation);
+        if (bottomRightX < pageTopLeftX || topLeftX > pageBottomRightX || bottomRightY < pageTopLeftY || topLeftY > pageBottomRightY) {
+          continue;
+        }
+        let { centerX, centerY } = rect;
+
+        if (this.selection.action == "move" || ["topright", "bottomright", "right"].includes(this.selection.handle) == false) {
+          applySnap({ type: "left_left_side", axis: "x", threshold: topLeftX - selectTopLeftX }, () => { return {
+            width: 0,
+            height: Math.ceil(Math.max(selectBottomRightY, bottomRightY) - Math.min(selectTopLeftY, topLeftY)),
+            x: topLeftX,
+            y: Math.min(selectTopLeftY, topLeftY)
+          };});
+        }
+        if (this.selection.action == "move" || ["topleft", "bottomleft", "left"].includes(this.selection.handle) == false) {
+          applySnap({ type: "left_right_side", axis: "x", threshold: topLeftX - selectBottomRightX }, () => { return {
+            width: 0,
+            height: Math.ceil(Math.max(selectBottomRightY, bottomRightY) - Math.min(selectTopLeftY, topLeftY)),
+            x: topLeftX,
+            y: Math.min(selectTopLeftY, topLeftY)
+          };});
+        }
+        if (this.selection.action == "resize" && ["topright", "bottomright", "right"].includes(this.selection.handle) == false) {
+          applySnap({ type: "left_center_side", axis: "x", threshold: centerX - selectTopLeftX }, () => { return {
+            width: 0,
+            height: Math.ceil(Math.max(selectBottomRightY, bottomRightY) - Math.min(selectTopLeftY, topLeftY)),
+            x: centerX,
+            y: Math.min(selectTopLeftY, topLeftY)
+          };});
+        }
+        if (this.selection.action == "move" || ["bottomleft", "bottomright", "bottom"].includes(this.selection.handle) == false) {
+          applySnap({ type: "top_top_side", axis: "y", threshold: topLeftY - selectTopLeftY }, () => { return {
+            width: Math.ceil(Math.max(selectBottomRightX, bottomRightX) - Math.min(selectTopLeftX, topLeftX)),
+            height: 0,
+            x: Math.min(selectTopLeftX, topLeftX),
+            y: topLeftY
+          };});
+        }
+        if (this.selection.action == "move" || ["topleft", "topright", "top"].includes(this.selection.handle) == false) {
+          applySnap({ type: "top_bottom_side", axis: "y", threshold: topLeftY - selectBottomRightY }, () => { return {
+            width: Math.ceil(Math.max(selectBottomRightX, bottomRightX) - Math.min(selectTopLeftX, topLeftX)),
+            height: 0,
+            x: Math.min(selectTopLeftX, topLeftX),
+            y: topLeftY
+          };});
+        }
+        if (this.selection.action == "resize" && ["bottomleft", "bottomright", "bottom"].includes(this.selection.handle) == false) {
+          applySnap({ type: "top_center_side", axis: "y", threshold: centerY - selectTopLeftY }, () => { return {
+            width: Math.ceil(Math.max(selectBottomRightX, bottomRightX) - Math.min(selectTopLeftX, topLeftX)),
+            height: 0,
+            x: Math.min(selectTopLeftX, topLeftX),
+            y: centerY
+          };});
+        }
+        if (this.selection.action == "move" || ["topleft", "bottomleft", "left"].includes(this.selection.handle) == false) {
+          applySnap({ type: "right_right_side", axis: "x", threshold: bottomRightX - selectBottomRightX }, () => { return {
+            width: 0,
+            height: Math.ceil(Math.max(selectBottomRightY, bottomRightY) - Math.min(selectTopLeftY, topLeftY)),
+            x: bottomRightX,
+            y: Math.min(selectTopLeftY, topLeftY)
+          };});
+        }
+        if (this.selection.action == "move" || ["topright", "bottomright", "right"].includes(this.selection.handle) == false) {
+          applySnap({ type: "right_left_side", axis: "x", threshold: bottomRightX - selectTopLeftX }, () => { return {
+            width: 0,
+            height: Math.ceil(Math.max(selectBottomRightY, bottomRightY) - Math.min(selectTopLeftY, topLeftY)),
+            x: bottomRightX,
+            y: Math.min(selectTopLeftY, topLeftY)
+          };});
+        }
+        if (this.selection.action == "resize" && ["topleft", "bottomleft", "left"].includes(this.selection.handle) == false) {
+          applySnap({ type: "right_center_side", axis: "x", threshold: centerX - selectBottomRightX }, () => { return {
+            width: 0,
+            height: Math.ceil(Math.max(selectBottomRightY, bottomRightY) - Math.min(selectTopLeftY, topLeftY)),
+            x: centerX,
+            y: Math.min(selectTopLeftY, topLeftY)
+          };});
+        }
+        if (this.selection.action == "move" || ["topleft", "topright", "top"].includes(this.selection.handle) == false) {
+          applySnap({ type: "bottom_bottom_side", axis: "y", threshold: bottomRightY - selectBottomRightY }, () => { return {
+            width: Math.ceil(Math.max(selectBottomRightX, bottomRightX) - Math.min(selectTopLeftX, topLeftX)),
+            height: 0,
+            x: Math.min(selectTopLeftX, topLeftX),
+            y: bottomRightY
+          };});
+        }
+        if (this.selection.action == "move" || ["bottomleft", "bottomright", "bottom"].includes(this.selection.handle) == false) {
+          applySnap({ type: "bottom_top_side", axis: "y", threshold: bottomRightY - selectTopLeftY }, () => { return {
+            width: Math.ceil(Math.max(selectBottomRightX, bottomRightX) - Math.min(selectTopLeftX, topLeftX)),
+            height: 0,
+            x: Math.min(selectTopLeftX, topLeftX),
+            y: bottomRightY
+          };});
+        }
+        if (this.selection.action == "resize" && ["topleft", "topright", "top"].includes(this.selection.handle) == false) {
+          applySnap({ type: "bottom_center_side", axis: "y", threshold: centerY - selectBottomRightY }, () => { return {
+            width: Math.ceil(Math.max(selectBottomRightX, bottomRightX) - Math.min(selectTopLeftX, topLeftX)),
+            height: 0,
+            x: Math.min(selectTopLeftX, topLeftX),
+            y: centerY
+          };});
+        }
+
+        if (this.selection.action == "move") {
+          applySnap({ type: "center_vertical", axis: "x", threshold: centerX - (selectTopLeftX + ((selectBottomRightX - selectTopLeftX) / 2)) }, () => { return {
+            width: 0,
+            height: Math.ceil(Math.max(selectBottomRightY, bottomRightY) - Math.min(selectTopLeftY, topLeftY)),
+            x: centerX,
+            y: Math.min(selectTopLeftY, topLeftY)
+          };});
+          applySnap({ type: "center_horizontal", axis: "y", threshold: centerY - (selectTopLeftY + ((selectBottomRightY - selectTopLeftY) / 2)) }, () => { return {
+            width: Math.ceil(Math.max(selectBottomRightX, bottomRightX) - Math.min(selectTopLeftX, topLeftX)),
+            height: 0,
+            x: Math.min(selectTopLeftX, topLeftX),
+            y: centerY
+          };});
+
+          // Check for equal distance snap:
+          if (hasCommonParent == true) {
+            if (topLeftX < selectTopLeftX || topLeftY < selectTopLeftY || bottomRightX > selectBottomRightX || bottomRightY > selectBottomRightY) {
+              if (topLeftX < selectBottomRightX && bottomRightX > selectTopLeftX) {
+                checkDistanceYDirection.push({ _id: render._id, topLeftX, topLeftY, bottomRightX, bottomRightY });
+              }
+              if (topLeftY < selectBottomRightY && bottomRightY > selectTopLeftY) {
+                checkDistanceXDirection.push({ _id: render._id, topLeftX, topLeftY, bottomRightX, bottomRightY });
+              }
+            }
+          }
+        }
+      }
+
+      return await this.selection.updateSnapLines(extra.render); // Render snap lines
     }
     this.selection.setScrollInterval = async () => {
       if (this.selection.scrollIntervalRunning == true) {

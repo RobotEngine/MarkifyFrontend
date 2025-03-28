@@ -3014,6 +3014,7 @@ modules["dropdowns/lesson/zoom"] = class {
 modules["editor/render/draw"] = class {
   CAN_ERASE = true;
   RESIZE_PRESERVE_ASPECT = true;
+  CAN_BE_SNAPPED_TO = false;
   
   render = (anno, element, holder) => {
     let halfT = anno.t / 2;
@@ -3084,6 +3085,7 @@ modules["editor/render/draw"] = class {
 modules["editor/render/markup"] = class {
   CAN_ERASE = true;
   RESIZE_PRESERVE_ASPECT = true;
+  CAN_BE_SNAPPED_TO = false;
 
   render = (anno, element, holder) => {
     if (element == null) {

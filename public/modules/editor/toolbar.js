@@ -938,6 +938,8 @@ modules["editor/toolbar"] = class {
     this.selection = {};
     this.selection.currentSelections = {};
     this.selection.annotationRects = {};
+    this.selection.snapThreshold = 8;
+    this.selection.renderSnaps = [];
     this.selection.updateBox = async (options = {}) => {
       let removeSelections = [];
       let checkSelections = Object.keys(this.selection.currentSelections);
@@ -1341,6 +1343,10 @@ modules["editor/toolbar"] = class {
           selection.removeAttribute("notransition");
         }
       }
+
+      if (options.transition == false) {
+        this.selection.updateSnapLines();
+      }
     }
     this.selection.updateActionBar = async (options = {}) => {
 
@@ -1442,6 +1448,12 @@ modules["editor/toolbar"] = class {
         // MUST DO LATER
       }
       event.preventDefault();
+    }
+    this.selection.updateSnapLines = async (render) => {
+
+    }
+    this.selection.snapItems = async (event, extra) => {
+      return { snapX: 0, snapY: 0 };
     }
     this.selection.setScrollInterval = async () => {
       if (this.selection.scrollIntervalRunning == true) {
@@ -2060,12 +2072,23 @@ modules["editor/toolbar"] = class {
       }
 
       await this.selection.updateBox();
+
+      if (snapX == null && snapY == null) {
+        let { snapX, snapY } = await this.selection.snapItems(event, { resizeHandleAxis: snapHandleAxis, scaleWidth: scaleWidth, scaleHeight: scaleHeight, render: false });
+        if (snapX != 0 || snapY != 0) {
+          await this.selection.moveAction(event, snapX, snapY, fromScroll);
+        }
+        await this.selection.snapItems(event, { resizeHandleAxis: snapHandleAxis, scaleWidth: scaleWidth, scaleHeight: scaleHeight });
+      }
     }
     this.selection.endAction = async (options = {}) => {
       if (this.selection.action == null) {
         return;
       }
       this.selection.action = null;
+
+      this.selection.renderSnaps = [];
+      this.selection.updateSnapLines();
 
       let saveUpdates = [];
       let annoIDs = {};

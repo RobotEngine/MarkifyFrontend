@@ -1544,9 +1544,9 @@ modules["editor/toolbar"] = class {
         let offsetWidth = -1;
         let offsetHeight = -1;
         if (snap.marker == "x") {
-          offsetWidth = 1;
+          offsetWidth = 0;
         } else if (snap.marker == "y") {
-          offsetHeight = 1;
+          offsetHeight = 0;
         }
         
         let snapElement = this.selection.currentSnapElements[snap.type];
@@ -1826,12 +1826,262 @@ modules["editor/toolbar"] = class {
           if (hasCommonParent == true) {
             if (topLeftX < selectTopLeftX || topLeftY < selectTopLeftY || bottomRightX > selectBottomRightX || bottomRightY > selectBottomRightY) {
               if (topLeftX < selectBottomRightX && bottomRightX > selectTopLeftX) {
-                checkDistanceYDirection.push({ _id: render._id, topLeftX, topLeftY, bottomRightX, bottomRightY });
+                checkDistanceYDirection.push({ _id: render._id, topLeftX, topLeftY, bottomRightX, bottomRightY, centerX, centerY });
               }
               if (topLeftY < selectBottomRightY && bottomRightY > selectTopLeftY) {
-                checkDistanceXDirection.push({ _id: render._id, topLeftX, topLeftY, bottomRightX, bottomRightY });
+                checkDistanceXDirection.push({ _id: render._id, topLeftX, topLeftY, bottomRightX, bottomRightY, centerX, centerY });
               }
             }
+          }
+        }
+      }
+
+      // Check for equal distance snap:
+      checkDistanceXDirection.sort((a, b) => a.centerX - b.centerX);
+      checkDistanceYDirection.sort((a, b) => a.centerY - b.centerY);
+      let xDistances = {};
+      let xDistanceIds = {};
+      let yDistances = {};
+      let yDistanceIds = {};
+      for (let i = 0; i < checkDistanceXDirection.length; i++) {
+        let el1 = checkDistanceXDirection[i];
+        for (let j = i + 1; j < checkDistanceXDirection.length; j++) {
+          let el2 = checkDistanceXDirection[j];
+          let distance = 0;
+          if (el2.topLeftX > el1.bottomRightX) {
+            distance = el2.topLeftX - el1.bottomRightX;
+          } else if (el1.topLeftX > el2.bottomRightX) {
+            distance = el1.topLeftX - el2.bottomRightX;
+          } else if (el2.bottomRightX < el1.topLeftX) {
+            distance = el1.topLeftX - el2.bottomRightX;
+          } else if (el1.bottomRightX < el2.topLeftX) {
+            distance = el2.topLeftX - el1.bottomRightX;
+          }
+          distance = Math.round(distance);
+          if (distance > 0) {
+            if (xDistances[distance] == null) {
+              xDistances[distance] = [];
+            }
+            xDistances[distance].push([el1, el2]);
+            if (xDistanceIds[distance] == null) {
+              xDistanceIds[distance] = {};
+            }
+            xDistanceIds[distance][el1._id] = "";
+            xDistanceIds[distance][el2._id] = "";
+          }
+        }
+      }
+      for (let i = 0; i < checkDistanceYDirection.length; i++) {
+        let el1 = checkDistanceYDirection[i];
+        for (let j = i + 1; j < checkDistanceYDirection.length; j++) {
+          let el2 = checkDistanceYDirection[j];
+          let distance = 0;
+          if (el2.topLeftY > el1.bottomRightY) {
+            distance = el2.topLeftY - el1.bottomRightY;
+          } else if (el1.topLeftY > el2.bottomRightY) {
+            distance = el1.topLeftY - el2.bottomRightY;
+          } else if (el2.bottomRightY < el1.topLeftY) {
+            distance = el1.topLeftY - el2.bottomRightY;
+          } else if (el1.bottomRightY < el2.topLeftY) {
+            distance = el2.topLeftY - el1.bottomRightY;
+          }
+          distance = Math.round(distance);
+          if (distance > 0) {
+            if (yDistances[distance] == null) {
+              yDistances[distance] = [];
+            }
+            yDistances[distance].push([el1, el2]);
+            if (yDistanceIds[distance] == null) {
+              yDistanceIds[distance] = {};
+            }
+            yDistanceIds[distance][el1._id] = "";
+            yDistanceIds[distance][el2._id] = "";
+          }
+        }
+      }
+
+      let checkOverlap = (pos1, length1, pos2, length2) => {
+        if (pos1 < pos2 + length2 && pos2 < pos1 + length1) {
+          return true;
+        }
+        return false;
+      }
+      let determinePositionAxis = (topLeftPosition, bottomRightPosition, centerPosition, selectPos1, selectPos2) => {
+        if (Math.abs(bottomRightPosition - topLeftPosition) < selectPos2 - selectPos1) {
+          let offset = 0;
+          if (selectPos1 > topLeftPosition) {
+            offset = (topLeftPosition - selectPos1) / 2;
+          } else if (selectPos2 < bottomRightPosition) {
+            offset = (bottomRightPosition - selectPos2) / 2;
+          }
+          return centerPosition - offset;
+        } else {
+          let offset = 0;
+          if (selectPos1 < topLeftPosition) {
+            offset = (selectPos1 - topLeftPosition) / 2;
+          } else if (selectPos2 > bottomRightPosition) {
+            offset = (selectPos2 - bottomRightPosition) / 2;
+          }
+          return selectPos1 + ((selectPos2 - selectPos1) / 2) - offset;
+        }
+      }
+
+      let xDistanceKeys = Object.keys(xDistances);
+      for (let i = 0; i < xDistanceKeys.length; i++) {
+        let key = xDistanceKeys[i];
+        let distance = parseFloat(key);
+        let elements = xDistances[key];
+        let elemIds = xDistanceIds[key];
+
+        for (let s = 0; s < checkDistanceXDirection.length; s++) {
+          let elem = checkDistanceXDirection[s];
+
+          applySnap({ type: "right_left_distance", axis: "x", marker: "x", threshold: elem.topLeftX - selectBottomRightX - distance }, () => { return {
+            width: elem.topLeftX - selectBottomRightX,
+            height: 0,
+            x: selectBottomRightX,
+            y: determinePositionAxis(elem.topLeftY, elem.bottomRightY, elem.centerY, selectTopLeftY, selectBottomRightY),
+            additional: function () {
+              let renderLines = [];
+              for (let e = 0; e < elements.length; e++) {
+                let [el1, el2] = elements[e];
+                let lineSize = el2.topLeftX - el1.bottomRightX;
+                if (checkOverlap(this.x, this.width, el1.bottomRightX, lineSize) == true) {
+                  return false;
+                }
+                renderLines.push({
+                  type: "right_left_distance_" + Math.floor(lineSize) + "_" + Math.floor(el1.bottomRightX),
+                  width: lineSize,
+                  height: 0,
+                  x: el1.bottomRightX,
+                  y: determinePositionAxis(el2.topLeftY, el2.bottomRightY, el2.centerY, el1.topLeftY, el1.bottomRightY),
+                  marker: "x"
+                });
+              }
+              return renderLines;
+            }
+          };});
+          applySnap({ type: "left_right_distance", axis: "x", marker: "x", threshold: distance - selectTopLeftX + elem.bottomRightX }, () => { return {
+            width: selectTopLeftX - elem.bottomRightX,
+            height: 0,
+            x: elem.bottomRightX,
+            y: determinePositionAxis(elem.topLeftY, elem.bottomRightY, elem.centerY, selectTopLeftY, selectBottomRightY),
+            additional: function () {
+              let renderLines = [];
+              for (let e = 0; e < elements.length; e++) {
+                let [el1, el2] = elements[e];
+                let lineSize = el2.topLeftX - el1.bottomRightX;
+                if (checkOverlap(this.x, this.width, el1.bottomRightX, lineSize) == true) {
+                  return false;
+                }
+                renderLines.push({
+                  type: "left_right_distance_" + Math.floor(lineSize) + "_" + Math.floor(el1.bottomRightX),
+                  width: lineSize,
+                  height: 0,
+                  x: el1.bottomRightX,
+                  y: determinePositionAxis(el2.topLeftY, el2.bottomRightY, el2.centerY, el1.topLeftY, el1.bottomRightY),
+                  marker: "x"
+                });
+              }
+              return renderLines;
+            }
+          };});
+
+          if (elemIds[elem._id] != null) {
+            let leftCenterSize = selectTopLeftX - elem.bottomRightX;
+            applySnap({ type: "center_distance_left", center: true, axis: "x", marker: "x", centerSize: leftCenterSize, threshold: -((distance / 2) - selectTopLeftX - ((selectBottomRightX - selectTopLeftX) / 2) + elem.bottomRightX) }, () => { return {
+              width: leftCenterSize,
+              height: 0,
+              x: elem.bottomRightX,
+              y: determinePositionAxis(elem.topLeftY, elem.bottomRightY, elem.centerY, selectTopLeftY, selectBottomRightY)
+            };});
+            let rightCenterSize = elem.topLeftX - selectBottomRightX;
+            applySnap({ type: "center_distance_right", center: true, axis: "x", marker: "x", centerSize: rightCenterSize, threshold: -((distance / 2) + selectTopLeftX + ((selectBottomRightX - selectTopLeftX) / 2) - elem.topLeftX) }, () => { return {
+              width: rightCenterSize,
+              height: 0,
+              x: selectBottomRightX,
+              y: determinePositionAxis(elem.topLeftY, elem.bottomRightY, elem.centerY, selectTopLeftY, selectBottomRightY)
+            };});
+          }
+        }
+      }
+
+      let yDistanceKeys = Object.keys(yDistances);
+      for (let i = 0; i < yDistanceKeys.length; i++) {
+        let key = yDistanceKeys[i];
+        let distance = parseFloat(key);
+        let elements = yDistances[key];
+        let elemIds = yDistanceIds[key];
+
+        for (let s = 0; s < checkDistanceYDirection.length; s++) {
+          let elem = checkDistanceYDirection[s];
+
+          applySnap({ type: "bottom_top_distance", axis: "y", marker: "y", threshold: elem.topLeftY - selectBottomRightY - distance }, () => { return {
+            width: 0,
+            height: elem.topLeftY - selectBottomRightY,
+            x: determinePositionAxis(elem.topLeftX, elem.bottomRightX, elem.centerX, selectTopLeftX, selectBottomRightX),
+            y: selectBottomRightY,
+            additional: function () {
+              let renderLines = [];
+              for (let e = 0; e < elements.length; e++) {
+                let [el1, el2] = elements[e];
+                let lineSize = el2.topLeftY - el1.bottomRightY;
+                if (checkOverlap(this.y, this.height, el1.bottomRightY, lineSize) == true) {
+                  return false;
+                }
+                renderLines.push({
+                  type: "bottom_top_distance_" + Math.floor(lineSize) + "_" + Math.floor(el1.bottomRightY),
+                  width: 0,
+                  height: lineSize,
+                  x: determinePositionAxis(el2.topLeftX, el2.bottomRightX, el2.centerX, el1.topLeftX, el1.bottomRightX),
+                  y: el1.bottomRightY,
+                  marker: "y"
+                });
+              }
+              return renderLines;
+            }
+          };});
+          applySnap({ type: "top_bottom_distance", axis: "y", marker: "y", threshold: distance - selectTopLeftY + elem.bottomRightY }, () => { return {
+            width: 0,
+            height: selectTopLeftY - elem.bottomRightY,
+            x: determinePositionAxis(elem.topLeftX, elem.bottomRightX, elem.centerX, selectTopLeftX, selectBottomRightX),
+            y: elem.bottomRightY,
+            additional: function () {
+              let renderLines = [];
+              for (let e = 0; e < elements.length; e++) {
+                let [el1, el2] = elements[e];
+                let lineSize = el2.topLeftY - el1.bottomRightY;
+                if (checkOverlap(this.y, this.height, el1.bottomRightY, lineSize) == true) {
+                  return false;
+                }
+                renderLines.push({
+                  type: "top_bottom_distance_" + Math.floor(lineSize) + "_" + Math.floor(el1.bottomRightY),
+                  width: 0,
+                  height: lineSize,
+                  x: determinePositionAxis(el2.topLeftX, el2.bottomRightX, el2.centerX, el1.topLeftX, el1.bottomRightX),
+                  y: el1.bottomRightY,
+                  marker: "y"
+                });
+              }
+              return renderLines;
+            }
+          };});
+
+          if (elemIds[elem._id] != null) {
+            let topCenterSize = selectTopLeftY - elem.bottomRightY;
+            applySnap({ type: "center_distance_top", center: true, axis: "y", marker: "y", centerSize: topCenterSize, threshold: -((distance / 2) - selectTopLeftY - ((selectBottomRightY - selectTopLeftY) / 2) + elem.bottomRightY) }, () => { return {
+              width: 0,
+              height: topCenterSize,
+              x: determinePositionAxis(elem.topLeftX, elem.bottomRightX, elem.centerX, selectTopLeftX, selectBottomRightX),
+              y: elem.bottomRightY
+            };});
+            let bottomCenterSize = elem.topLeftY - selectBottomRightY;
+            applySnap({ type: "center_distance_bottom", center: true, axis: "y", marker: "y", centerSize: bottomCenterSize, threshold: -((distance / 2) + selectTopLeftY + ((selectBottomRightY - selectTopLeftY) / 2) - elem.topLeftY) }, () => { return {
+              width: 0,
+              height: bottomCenterSize,
+              x: determinePositionAxis(elem.topLeftX, elem.bottomRightX, elem.centerX, selectTopLeftX, selectBottomRightX),
+              y: selectBottomRightY
+            };});
           }
         }
       }
@@ -1939,7 +2189,7 @@ modules["editor/toolbar"] = class {
         let halfRotateHeight = this.selection.originalPosition[1] + originalMidpointY;
         let [xCoord, yCoord] = editor.math.rotatePoint(position.x - halfRotateWidth, position.y - halfRotateHeight, -this.selection.rotation);
         let changeX = xCoord - this.selection.rootX + offsetSnapX;
-        let changeY = yCoord - this.selection.rootY + offsetSnapY; // Might be - offsetSnapY?
+        let changeY = yCoord - this.selection.rootY + offsetSnapY;
         if (this.selection.rootX < 0) {
           changeX *= -1;
         }

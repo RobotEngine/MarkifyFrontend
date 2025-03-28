@@ -1098,7 +1098,7 @@ modules["editor/toolbar"] = class {
         
         let transition = this.selection.action == null && options.transition != false;
 
-        if (selections.length > 1 || options.showSelects == true) {
+        if (selections.length > 1 || options.hideSelectBox == true) {
           if (select == null) {
             content.insertAdjacentHTML("beforeend", `<div class="eSelect" new></div>`);
             select = content.querySelector(".eSelect[new]");
@@ -3058,6 +3058,51 @@ modules["editor/toolbar/select"] = class {
   click = async (event) => { await this.parent.selection.clickAction(event); }
 }
 
+modules["editor/toolbar/pan"] = class {
+  USER_SELECT = "none";
+  MOUSE = { type: "set", value: "grab", override: true };
+
+  clickStart = (event) => {
+    if (event.target != null && event.target.closest("button") != null) {
+      return;
+    }
+    this.dragging = true;
+    let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
+    let annotationRect = this.editor.utils.localBoundingRect(this.editor.annotationHolder);
+    this.startX = (mouseX - annotationRect.left) / this.editor.zoom;
+    this.startY = (mouseY - annotationRect.top) / this.editor.zoom;
+    this.parent.updateMouse({ type: "set", value: "grabbing" });
+  }
+  clickMove = (event) => {
+    if (this.dragging != true) {
+      return;
+    }
+    if (event != null) {
+      if ((mouseDown() == false && event.which != 2) || event.touches != null) {
+        return this.clickEnd(event);
+      }
+      let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
+      this.endX = mouseX;
+      this.endY = mouseY;
+    }
+    let annotationRect = this.editor.utils.localBoundingRect(this.editor.annotationHolder);
+    this.editor.contentHolder.scrollTo({
+      left: this.editor.contentHolder.scrollLeft - ((((this.endX - annotationRect.left) / this.editor.zoom) - this.startX) * this.editor.zoom),
+      top: this.editor.contentHolder.scrollTop - ((((this.endY - annotationRect.top) / this.editor.zoom) - this.startY) * this.editor.zoom)
+    });
+  }
+  clickEnd = () => {
+    this.dragging = false;
+    this.parent.updateMouse({ type: "set", value: "grab" });
+  }
+  wheel = (event) => {
+    if (this.dragging == true) {
+      event.preventDefault();
+      this.clickMove();
+    }
+  }
+}
+
 modules["editor/toolbar/drag"] = class {
   USER_SELECT = "none";
   TOUCH_ACTION = "pinch-zoom";
@@ -3268,7 +3313,7 @@ modules["editor/toolbar/drag"] = class {
     }
 
     if (selectionChange == true || currentSelections.length > 0) {
-      this.parent.selection.updateBox();
+      this.parent.selection.updateBox({ hideSelectBox: true });
     }
   }
   clickEnd = async (event) => {
@@ -3315,51 +3360,6 @@ modules["editor/toolbar/drag"] = class {
     await this.parent.selection.updateActionBar();
   }
   click = async (event) => { await this.parent.selection.clickAction(event); }
-}
-
-modules["editor/toolbar/pan"] = class {
-  USER_SELECT = "none";
-  MOUSE = { type: "set", value: "grab", override: true };
-
-  clickStart = (event) => {
-    if (event.target != null && event.target.closest("button") != null) {
-      return;
-    }
-    this.dragging = true;
-    let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
-    let annotationRect = this.editor.utils.localBoundingRect(this.editor.annotationHolder);
-    this.startX = (mouseX - annotationRect.left) / this.editor.zoom;
-    this.startY = (mouseY - annotationRect.top) / this.editor.zoom;
-    this.parent.updateMouse({ type: "set", value: "grabbing" });
-  }
-  clickMove = (event) => {
-    if (this.dragging != true) {
-      return;
-    }
-    if (event != null) {
-      if ((mouseDown() == false && event.which != 2) || event.touches != null) {
-        return this.clickEnd(event);
-      }
-      let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
-      this.endX = mouseX;
-      this.endY = mouseY;
-    }
-    let annotationRect = this.editor.utils.localBoundingRect(this.editor.annotationHolder);
-    this.editor.contentHolder.scrollTo({
-      left: this.editor.contentHolder.scrollLeft - ((((this.endX - annotationRect.left) / this.editor.zoom) - this.startX) * this.editor.zoom),
-      top: this.editor.contentHolder.scrollTop - ((((this.endY - annotationRect.top) / this.editor.zoom) - this.startY) * this.editor.zoom)
-    });
-  }
-  clickEnd = () => {
-    this.dragging = false;
-    this.parent.updateMouse({ type: "set", value: "grab" });
-  }
-  wheel = (event) => {
-    if (this.dragging == true) {
-      event.preventDefault();
-      this.clickMove();
-    }
-  }
 }
 
 modules["editor/toolbar/pen"] = class {

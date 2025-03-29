@@ -55,6 +55,19 @@ modules["pages/dashboard"] = class {
         <div class="dSidebarOpen"><div shadow><div></div></div><button><img src="./images/dashboard/opensidebar.svg" /></button></div>
       </div>
       <div class="dLessonsHolder">
+        <div class="dBannerHolder">
+          <div class="dBanner">
+            <img class="dBannerIcon" src="./images/dashboard/banner/version1release.svg" />
+            <div class="dBannerContent">
+              <div class="dBannerTitle">Welcome to Markify 1.0</div>
+              <div class="dBannerText">Introducing the newly released Markify! We hope you enjoy the new touch-ups.</div>
+            </div>
+            <div class="dBannerButtons">
+              <button class="dBannerFeedback buttonAnim border">Feedback</button>
+              <button class="dBannerClose buttonAnim border"><img src="./images/tooltips/close.svg"></button>
+            </div>
+          </div>
+        </div>
         <div class="dSelectedTitleHolder"></div>
         <div class="dTilesHolder"></div>
       </div>
@@ -131,6 +144,18 @@ modules["pages/dashboard"] = class {
     ".dLessonsHolder": `position: relative; display: flex; flex-direction: column; width: 100%; min-height: 100%; overflow-x: hidden; overflow-y: auto; z-index: 1`,
     ".dSelectedTitleHolder": `position: sticky; display: flex; box-sizing: border-box; width: 100%; padding: 20px; top: 0px; z-index: 2; transition: background .2s, box-shadow .2s`,
     ".dSelectedTitle": `font-size: 28px; font-weight: 600; text-align: left`,
+    ".dBannerHolder": `display: none; box-sizing: border-box; width: 100%; height: fit-content; transition: .4s`,
+    ".dBanner": `display: flex; gap: 8px; width: 100%; height: fit-content; padding: 6px; margin: 8px; box-shadow: var(--darkShadow); border-radius: 4px 4px 12px 12px; transition: .4s`,
+    ".dBannerIcon": `width: 50px; height: 50px`,
+    ".dBannerContent": `display: flex; flex-direction: column; flex: 1; text-align: left`,
+    ".dBannerTitle": `margin-top: 4px; font-size: 18px; font-weight: 700; color: var(--theme)`,
+    ".dBannerText": `margin-top: 4px; font-size: 14px`,
+    ".dBannerButtons": `display: flex; gap: 8px; height: fit-content; min-height: 50px; padding: 0 8px 0 0; align-items: center`,
+    ".dBannerButtons button": `position: relative; --borderWidth: 3px; --borderRadius: 14px`,
+    ".dBannerButtons button img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
+    ".dBannerClose": `width: 22px; height: 22px; margin: 3px`,
+    ".dBannerFeedback": `--themeColor: var(--theme); padding: 0 8px; font-size: 16px; font-weight: 600; color: var(--theme); height: 28px; margin: 3px`,
+
     ".dTilesHolder": `position: relative; width: calc(100% - 40px); min-height: fit-content; height: 100%; margin: 0px 20px 20px 20px; z-index: 1`,
 
     ".dFolderInfo": `display: flex; width: 100%; justify-content: center; align-items: center`,
@@ -179,6 +204,34 @@ modules["pages/dashboard"] = class {
     let accountButton = accountHolder.querySelector(".dAccount");
 
     let scrollEventPass;
+
+    // Handle Banner:
+    const CURRENT_BANNER = "1.0-release";
+    let bannerHolder = lessonsHolder.querySelector(".dBannerHolder");
+    let banner = bannerHolder.querySelector(".dBanner");
+    let bannerCloseButton = banner.querySelector(".dBannerClose");
+    let seenBanners = JSON.parse(getLocalStore("seenDashboardBanners") ?? "[]");
+    if (seenBanners.includes(CURRENT_BANNER) == false) {
+      bannerHolder.style.display = "flex";
+    }
+    bannerCloseButton.addEventListener("click", async () => {
+      window.closedDashboardBanner = true;
+      seenBanners.push(CURRENT_BANNER);
+      setLocalStore("seenDashboardBanners", JSON.stringify(seenBanners));
+      bannerHolder.style.height = bannerHolder.offsetHeight + "px";
+      bannerHolder.offsetHeight;
+      banner.style.opacity = 0;
+      banner.style.transform = "translateY(-100%)";
+      bannerHolder.style.height = "0px";
+    });
+
+    let bannerFeedbackButton = banner.querySelector(".dBannerFeedback");
+    bannerFeedbackButton.addEventListener("click", async () => {
+      bannerFeedbackButton.setAttribute("disabled", "");
+      await loadScript("./modules/dropdowns/account.js");
+      await dropdownModule.open(bannerFeedbackButton, "dropdowns/account/report");
+      bannerFeedbackButton.removeAttribute("disabled");
+    });
     
     logoButton.addEventListener("click", (event) => {
       event.preventDefault();
@@ -209,7 +262,7 @@ modules["pages/dashboard"] = class {
     });
 
     this.updateScrollShadows = () => {
-      if (lessonsHolder.scrollTop > 0) { // Lesson Topbar Shadow:
+      if (lessonsHolder.scrollTop > 0 && Math.round(lessonsHolder.scrollTop) >= Math.round(titleHolder.offsetTop)) { // Lesson Topbar Shadow:
         titleHolder.style.background = "var(--pageColor)";
         titleHolder.style.boxShadow = "var(--lightShadow)";
       } else {

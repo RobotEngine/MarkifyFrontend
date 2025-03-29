@@ -1357,7 +1357,7 @@ modules["editor/toolbar"] = class {
       }
     }
     this.selection.updateActionBar = async (options = {}) => {
-
+      
     }
     this.selection.clickAction = async (event) => {
       if (event == null) {

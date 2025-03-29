@@ -2751,7 +2751,7 @@ modules["editor/toolbar"] = class {
 
         delete selecting.done;
 
-        let pushFields = {};
+        let pushFields = { p: originalRender.p, r: originalRender.r };
         for (let f = 0; f < changeKeys.length; f++) {
           let key = changeKeys[f];
           pushFields[key] = originalRender[key] ?? null;
@@ -2763,7 +2763,7 @@ modules["editor/toolbar"] = class {
                 pushChanges.push(copyObject({
                   ...pushFields,
                   parent: pushFields.parent ?? originalRender.parent ?? null,
-                  p: pushFields.p ?? originalRender.p,
+                  p: pushFields.p,
                   r: pushFields.r,
                   _id: annoid
                 }));

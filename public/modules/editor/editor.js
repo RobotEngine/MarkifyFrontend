@@ -1992,7 +1992,7 @@ modules["editor/editor"] = class {
       data.sync = getEpoch();
       annotation = (await this.save.apply(data, { ...options, childChunkUpdate: false })).annotation; // Apply Save
 
-      if (data.p != null || data.s != null || data.r != null || data.t != null || data.l != null || data.remove == true) {
+      if (data.hasOwnProperty("p") || data.hasOwnProperty("s") || data.hasOwnProperty("r") || data.hasOwnProperty("t") || data.hasOwnProperty("l") != null || data.remove == true) {
         let resizeChangeX = 0;
         let resizeChangeY = 0;
         if (rect.size[0] != originalRect.size[0] || rect.size[1] != originalRect.size[1]) {
@@ -3579,7 +3579,7 @@ modules["editor/render/page"] = class {
     ".eAnnotation[page]": `display: flex; flex-direction: column; background: white; border-radius: 12px; --borderWidth: 4px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2)`,
     ".eAnnotation[page] > div[background]": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--themeColor); opacity: .1; border-radius: inherit; z-index: 0; pointer-events: all`,
     ".eAnnotation[page] > div[border]": `position: absolute; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; border: solid var(--borderWidth) var(--themeColor); border-radius: inherit; z-index: 4; pointer-events: none`,
-    ".eAnnotation[page] > div[label]": `position: absolute; display: none; box-sizing: border-box; max-width: calc(100% - 12px); padding: 8px 10px; left: 0px; top: 0px; background: var(--themeColor); border-radius: 0px; border-top-left-radius: inherit; border-bottom-right-radius: 12px; font-weight: 600; font-size: 18px; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; outline: none; scrollbar-width: none; z-index: 3; pointer-events: all`,
+    ".eAnnotation[page] > div[label]": `position: absolute; display: none; box-sizing: border-box; padding: 8px 10px; background: var(--themeColor); border-radius: 0px; border-top-left-radius: inherit; border-bottom-right-radius: 12px;  font-weight: 600; font-size: 18px; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; outline: none; scrollbar-width: none; z-index: 3; pointer-events: all`,
     ".eAnnotation[page] > div[label]::-webkit-scrollbar": `display: none`,
     ".eAnnotation[page] > div[content]": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; justify-content: center; align-items: center`,
     ".eAnnotation[page][hide] > div[content] .eAnnotationHolder": `z-index: 2 !important`,
@@ -3629,6 +3629,39 @@ modules["editor/render/page"] = class {
         pageLabel.style.display = "unset";
         pageLabel.textContent = cleanString(anno.title);
       }
+    }
+    if (anno.r == null || anno.r < 45 || anno.r >= 315) {
+      pageLabel.style.removeProperty("right");
+      pageLabel.style.removeProperty("bottom");
+      pageLabel.style.left = "0px";
+      pageLabel.style.top = "0px";
+      pageLabel.style.maxWidth = (anno.s[0] - 12) + "px";
+      pageLabel.style.transformOrigin = "center center";
+      pageLabel.style.transform = "rotate(0deg)";
+    } else if (anno.r < 135) {
+      pageLabel.style.removeProperty("right");
+      pageLabel.style.removeProperty("top");
+      pageLabel.style.left = "38px";
+      pageLabel.style.bottom = "0px";
+      pageLabel.style.maxWidth = (anno.s[1] - 12) + "px";
+      pageLabel.style.transformOrigin = "left bottom";
+      pageLabel.style.transform = "rotate(270deg)";
+    } else if (anno.r < 225) {
+      pageLabel.style.removeProperty("left");
+      pageLabel.style.removeProperty("top");
+      pageLabel.style.right = "0px";
+      pageLabel.style.bottom = "0px";
+      pageLabel.style.maxWidth = (anno.s[0] - 12) + "px";
+      pageLabel.style.transformOrigin = "center center";
+      pageLabel.style.transform = "rotate(180deg)";
+    } else if (anno.r < 315) {
+      pageLabel.style.removeProperty("right");
+      pageLabel.style.removeProperty("bottom");
+      pageLabel.style.left = "100%";
+      pageLabel.style.top = "0px";
+      pageLabel.style.maxWidth = (anno.s[1] - 12) + "px";
+      pageLabel.style.transformOrigin = "left top";
+      pageLabel.style.transform = "rotate(90deg)";
     }
     let pageBorder = element.querySelector(":scope > div[border]");
     let pageContent = element.querySelector(":scope > div[content]");

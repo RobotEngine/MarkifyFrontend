@@ -2756,7 +2756,7 @@ modules["editor/toolbar"] = class {
           let key = changeKeys[f];
           pushFields[key] = originalRender[key] ?? null;
         }
-        if (options.saveHistory != false) {
+        if (options.fromHistory != true) {
           if (selecting.remove != true) {
             if (Object.keys(pushFields).length > 0) {
               if (pushFields.hasOwnProperty("f") == false) {
@@ -2764,7 +2764,7 @@ modules["editor/toolbar"] = class {
                   ...pushFields,
                   parent: pushFields.parent ?? originalRender.parent ?? null,
                   p: pushFields.p ?? originalRender.p,
-                  r: pushFields.r ?? originalRender.r,
+                  r: pushFields.r,
                   _id: annoid
                 }));
               } else {

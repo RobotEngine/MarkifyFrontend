@@ -1992,7 +1992,7 @@ modules["editor/editor"] = class {
       data.sync = getEpoch();
       annotation = (await this.save.apply(data, { ...options, childChunkUpdate: false })).annotation; // Apply Save
 
-      if (data.p != null || data.s != null || data.t != null || data.l != null || data.remove == true) {
+      if (data.p != null || data.s != null || data.r != null || data.t != null || data.l != null || data.remove == true) {
         let resizeChangeX = 0;
         let resizeChangeY = 0;
         if (rect.size[0] != originalRect.size[0] || rect.size[1] != originalRect.size[1]) {

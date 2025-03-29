@@ -2,6 +2,7 @@ modules["lesson/export"] = class {
   html = `<div class="eExportHolder"></div>`;
   css = {
     ".eExportHolder": `position: relative; width: fit-content; height: fit-content`,
+    ".eAnnotation[anno][hide] > div[hide]": `background: var(--pageColor)`,
     ".ePage[exporting]": `border-radius: 0px !important; border-top: unset`,
     ".ePage:not([exporting])": `display: none`,
     ".ePageRearrange": `display: none`

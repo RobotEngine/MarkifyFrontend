@@ -215,13 +215,13 @@ modules["pages/dashboard"] = class {
       bannerHolder.style.display = "flex";
     }
     bannerCloseButton.addEventListener("click", async () => {
-      window.closedDashboardBanner = true;
       seenBanners.push(CURRENT_BANNER);
       setLocalStore("seenDashboardBanners", JSON.stringify(seenBanners));
+      lessonsHolder.scrollTo({ top: 0, behavior: "smooth" });
       bannerHolder.style.height = bannerHolder.offsetHeight + "px";
       bannerHolder.offsetHeight;
       banner.style.opacity = 0;
-      banner.style.transform = "translateY(-100%)";
+      banner.style.transform = "translateY(calc(-100% - 16px)";
       bannerHolder.style.height = "0px";
     });
 

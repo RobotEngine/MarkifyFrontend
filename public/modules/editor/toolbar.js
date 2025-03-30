@@ -2389,7 +2389,16 @@ modules["editor/toolbar"] = class {
         sizeLimitX = oppositePositionX != newOppositePositionX;
         sizeLimitY = oppositePositionY != newOppositePositionY;
 
-        this.updateMouse({ type: "svg", url: "./images/editor/cursors/resize.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation + this.selection.resizeCursorRotation });
+        let cursorRotate = this.selection.resizeCursorRotation;
+        if (cursorRotate % 90 == 0) {
+          if (scaleWidth < 0) {
+            cursorRotate -= 90;
+          }
+          if (scaleHeight < 0) {
+            cursorRotate += 90;
+          }
+        }
+        this.updateMouse({ type: "svg", url: "./images/editor/cursors/resize.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation + cursorRotate });
       } else if (this.selection.action == "rotate") {
         let centerX = this.selection.originalSize[0] / 2;
         let centerY = this.selection.originalSize[1] / 2;

@@ -187,7 +187,7 @@ modules["pages/dashboard"] = class {
     }
     return time;
   }
-  js = async (page, data) => {
+  js = async (page) => {
     let dashboardHolder = page.querySelector(".dPageHolder")
     let dashboard = dashboardHolder.querySelector(".dPage")
     let sidebarHolder = dashboard.querySelector(".dSidebarHolder");

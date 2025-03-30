@@ -154,7 +154,7 @@ modules["modals/lesson/newboard/blank"] = class {
       <button class="border" width="665.28" height="944.64"><div class="blankSizeTitle">B5</div><div class="blankSizeInfo">6.9" x 9.8"</div></button>
       <button class="border" width="944.64" height="1334.4"><div class="blankSizeTitle">B4</div><div class="blankSizeInfo">9.8" x 13.9"</div></button>
       <button class="border" width="960" height="720"><div class="blankSizeTitle">4:3</div><div class="blankSizeInfo">10" x 7.5"</div></button>
-      <button class="border" width="960" height="1706.67"><div class="blankSizeTitle">16:9</div><div class="blankSizeInfo">10" x 17.8"</div></button>
+      <button class="border" width="960" height="540.48"><div class="blankSizeTitle">16:9</div><div class="blankSizeInfo">10" x 5.63"</div></button>
       <button class="border" custom><div class="blankSizeTitle">Custom</div></button>
     </div>
     <div class="blankOptionHolder">

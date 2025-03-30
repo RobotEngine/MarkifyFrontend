@@ -1269,10 +1269,10 @@ modules["modal"] = class {
       }
     }, 1);
   };
-  open = async function (frameName, parent, button, title, stack, data) {
-    parent = parent ?? this.parent;
+  open = async function (frameName, originalParent, button, title, stack, data) {
+    let parent = originalParent ?? this.parent;
     let dataParent = window;
-    if (parent != null) {
+    if (parent != null && this.modal != null) {
       dataParent = this;
     }
     if (data != null && data.previous == true) {

@@ -213,7 +213,7 @@ modules["modals/resources/resources"] = class {
         {
           image: "./images/tutorial/steps/report.png",
           interface: true,
-          title: "BETA - May have Bugs 🐛",
+          title: "Send your Feedback!",
           description: "If you run into any issues, need help, or have a cool idea, click your profile at the top right corner and let us know!"
         }
       ]

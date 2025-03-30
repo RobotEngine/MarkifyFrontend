@@ -1585,16 +1585,20 @@ modules["editor/toolbar"] = class {
       // Returns an offset X / Y to correct for line up
       
       if (["move", "resize"].includes(this.selection.action) == false) {
-        return { snapX: 0, snapY: 0 };
+        this.selection.renderSnaps = [];
+        return await this.selection.updateSnapLines(extra.render);
       }
       if (this.selection.action == "resize" && this.selection.rotation != 0) {
-        return { snapX: 0, snapY: 0 };
+        this.selection.renderSnaps = [];
+        return await this.selection.updateSnapLines(extra.render);
       }
-      if (editor.options.snapping == false) {
-        return { snapX: 0, snapY: 0 };
+      if (editor.options.snapping == false || event.ctrlKey == true) {
+        this.selection.renderSnaps = [];
+        return await this.selection.updateSnapLines(extra.render);
       }
       if (Object.keys(editor.selecting).length < 1) {
-        return { snapX: 0, snapY: 0 };
+        this.selection.renderSnaps = [];
+        return await this.selection.updateSnapLines(extra.render);
       }
 
       // Determine selection bounds:

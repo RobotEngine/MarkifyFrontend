@@ -133,7 +133,21 @@ modules["editor/toolbar"] = class {
     '.eSelectSnap div[marker="snapxleft"]': `width: 2px; height: 16px; left: 0px; top: 50%; transform: translateY(-50%)`,
     '.eSelectSnap div[marker="snapxright"]': `width: 2px; height: 16px; right: 0px; top: 50%; transform: translateY(-50%)`,
     '.eSelectSnap div[marker="snapytop"]': `width: 16px; height: 2px; top: 0px; left: 50%; transform: translateX(-50%)`,
-    '.eSelectSnap div[marker="snapybottom"]': `width: 16px; height: 2px; bottom: 0px; left: 50%; transform: translateX(-50%)`
+    '.eSelectSnap div[marker="snapybottom"]': `width: 16px; height: 2px; bottom: 0px; left: 50%; transform: translateX(-50%)`,
+
+    ".eActionBar": `position: absolute; display: flex; max-width: calc(100vw - 88px); height: 50px; background: var(--pageColor); box-shadow: var(--shadow); z-index: 102; border-radius: 16px; transform: translateY(-10%); opacity: 0; transition: transform .2s, opacity .2s, border-radius .2s`,
+    ".eActionHolder": `display: flex; width: 100%; height: 100%; gap: 6px; overflow: auto; border-radius: inherit`,
+    ".eActionHolder::-webkit-scrollbar": `display: none`,
+    ".eActionHolder[locked] > *": `display: none`,
+    ".eActionHolder .eTool[stayonlock]": `display: unset`,
+    ".eActionContainer": `position: absolute; max-width: 100%; background: var(--pageColor)`,
+    ".eActionContainer[top]": `--shadowPadding: 20px 16px 0; --shadowBottom: -4px; --shadowTop: 16px; bottom: 100%; border-radius: 16px 16px 0 0; border-bottom: solid 4px var(--theme); transform-origin: bottom center`,
+    ".eActionContainer[bottom]": `--shadowPadding: 0 16px 20px; --shadowBottom: -16px; --shadowTop: 0px; top: 100%; border-radius: 0 0 16px 16px; border-top: solid 4px var(--theme); transform-origin: top center`,
+    ".eActionShadow": `position: absolute; width: 100%; height: 100%; padding: var(--shadowPadding); bottom: var(--shadowBottom); left: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
+    ".eActionShadow:after": `position: absolute; width: calc(100% - 32px); height: calc(100% - 16px); left: 16px; top: var(--shadowTop); content: ""; box-shadow: var(--shadow); border-radius: inherit`,
+    ".eActionContainerHolder": `width: 100%; height: 100%; overflow: hidden; border-radius: inherit`,
+    ".eActionContainerScroll": `width: fit-content; border-radius: inherit`,
+    ".eActionContainerContent": `flex-wrap: wrap; gap: 6px; border-radius: inherit`
   };
   js = async (editor) => {
     let page = editor.page;
@@ -945,6 +959,7 @@ modules["editor/toolbar"] = class {
     this.selection = {};
     this.selection.currentSelections = {};
     this.selection.annotationRects = {};
+    this.selection.scrollOffset = 32;
     this.selection.snapThreshold = 8;
     this.selection.renderSnaps = [];
     this.selection.currentSnapElements = {};
@@ -2120,7 +2135,7 @@ modules["editor/toolbar"] = class {
         this.selection.lastMouseY = mouseY;
         this.selection.scrollLastEvent = event;
       } else {
-        event = this.scrollLastEvent ?? {};
+        event = this.selection.scrollLastEvent ?? {};
       }
 
       if (this.selection.actionEnabled == false) {
@@ -2133,27 +2148,26 @@ modules["editor/toolbar"] = class {
 
       // Handle Scroll with Mouse:
       if (fromScroll != true && ["move", "resize"].includes(this.selection.action) == true) {
-        let scrollOffset = 32;
         this.selection.scrollIntervalX = 0;
         this.selection.scrollIntervalY = 0;
-        let leftPos = scrollOffset - mouseX;
+        let leftPos = this.selection.scrollOffset - mouseX;
         if (leftPos > 0) {
-          let percentage = 1 + ((leftPos - scrollOffset) / scrollOffset);
+          let percentage = 1 + ((leftPos - this.selection.scrollOffset) / this.selection.scrollOffset);
           this.selection.scrollIntervalX = -Math.min(10 * percentage, 10);
         }
-        let rightPos = mouseX - page.offsetWidth + scrollOffset;
+        let rightPos = mouseX - page.offsetWidth + this.selection.scrollOffset;
         if (rightPos > 0) {
-          let percentage = 1 + ((rightPos - scrollOffset) / scrollOffset);
+          let percentage = 1 + ((rightPos - this.selection.scrollOffset) / this.selection.scrollOffset);
           this.selection.scrollIntervalX = Math.min(10 * percentage, 10);
         }
-        let topPos = scrollOffset - mouseY;
+        let topPos = this.selection.scrollOffset - mouseY;
         if (topPos > 0) {
-          let percentage = 1 + ((topPos - scrollOffset) / scrollOffset);
+          let percentage = 1 + ((topPos - this.selection.scrollOffset) / this.selection.scrollOffset);
           this.selection.scrollIntervalY = -Math.min(10 * percentage, 10);
         }
-        let bottomPos = mouseY - page.offsetHeight + scrollOffset;
+        let bottomPos = mouseY - page.offsetHeight + this.selection.scrollOffset;
         if (bottomPos > 0) {
-          let percentage = 1 + ((bottomPos - scrollOffset) / scrollOffset);
+          let percentage = 1 + ((bottomPos - this.selection.scrollOffset) / this.selection.scrollOffset);
           this.selection.scrollIntervalY = Math.min(10 * percentage, 10);
         }
         if (this.selection.scrollIntervalX != 0 || this.selection.scrollIntervalY != 0) {

@@ -281,8 +281,10 @@ modules["pages/lesson"] = class {
               if (body.hand != null) {
                 this.handCount++;
               }
-              if (body.active == false) {
-                this.idleCount++;
+              if (body._id != this.sessionID) {
+                if (body.active == false) {
+                  this.idleCount++;
+                }
               }
               break;
             case "leave":
@@ -294,8 +296,10 @@ modules["pages/lesson"] = class {
                 if (member.hand != null) {
                   this.handCount--;
                 }
-                if (member.active == false) {
-                  this.idleCount--;
+                if (body._id != this.sessionID) {
+                  if (member.active == false) {
+                    this.idleCount--;
+                  }
                 }
                 delete this.members[body._id];
                 this.memberCount--;
@@ -314,10 +318,12 @@ modules["pages/lesson"] = class {
                 } else if (body.hasOwnProperty("hand") == true && member.hand != null) {
                   this.handCount--;
                 }
-                if (body.active == false && member.active != false) {
-                  this.idleCount++;
-                } else if (body.active != false && member.active == false) {
-                  this.idleCount--;
+                if (body._id != this.sessionID) {
+                  if (body.active == false && member.active != false) {
+                    this.idleCount++;
+                  } else if (body.active != false && member.active == false) {
+                    this.idleCount--;
+                  }
                 }
                 objectUpdate(body, member);
                 if (member.access > 0 && member.hand != null) {
@@ -495,10 +501,12 @@ modules["pages/lesson"] = class {
         } else if (memSet.hand == null && member.hand != null) {
           this.handCount--;
         }
-        if (memSet.active == false && member.active != false) {
-          this.idleCount++;
-        } else if (memSet.active != false && member.active == false) {
-          this.idleCount--;
+        if (memSet._id != this.sessionID) {
+          if (memSet.active == false && member.active != false) {
+            this.idleCount++;
+          } else if (memSet.active != false && member.active == false) {
+            this.idleCount--;
+          }
         }
         objectUpdate(memSet, member);
       }

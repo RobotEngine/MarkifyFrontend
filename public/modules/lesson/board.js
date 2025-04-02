@@ -9,7 +9,7 @@ modules["lesson/board"] = class {
           <a class="eLogo" href="/#dashboard" draggable="false"></a>
           <div class="eFileNameHolder border"><div class="eFileName" spellcheck="false" onpaste="clipBoardRead(event)"></div></div>
           <button class="eFileDropdown">File</button>
-          <button class="eCreateCopy">Make Copy</button>
+          <button class="eCreateCopy">Create Copy</button>
           <div class="eTopDivider"></div>
           <button class="eSaveProgress eUndo" disabled></button>
           <button class="eSaveProgress eRedo" disabled></button>

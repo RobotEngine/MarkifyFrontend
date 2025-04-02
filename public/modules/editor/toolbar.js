@@ -1594,9 +1594,6 @@ modules["editor/toolbar"] = class {
           }
         }
 
-        if (snap.marker != null && snap.width < 1 && snap.height < 1) {
-          continue;
-        }
         if (snap.width > 0 && snap.height > 0) {
           if (snap.width > snap.height) {
             snap.height = 0;
@@ -1687,7 +1684,6 @@ modules["editor/toolbar"] = class {
         this.selection.currentSnapElements[checkSnap].remove();
         delete this.selection.currentSnapElements[checkSnap];
       }
-
       return { snapX, snapY };
     }
     this.selection.snapItems = async (event, extra) => {
@@ -1747,7 +1743,6 @@ modules["editor/toolbar"] = class {
         }
         commonParent = original.render.parent;
       }
-
       this.selection.renderSnaps = [];
       let applySnap = (data, run) => {
         let threshold = Math.abs(data.threshold);
@@ -1760,6 +1755,22 @@ modules["editor/toolbar"] = class {
           } else if (extra.resizeHandleAxis == "y" && data.axis == "x") {
             return;
           }
+        }
+        if (extra.render != false || data.marker != null) {
+          data = { ...data, ...run() };
+          if (data.additional != null) {
+            let result = data.additional();
+            if (result == false) {
+              return;
+            } else {
+              data.additionalLines = result;
+            }
+          }
+        } else {
+          data = { ...data, width: 0, height: 0, x: 0, y: 0 };
+        }
+        if (data.marker != null && data.width < 1 && data.height < 1) {
+          return;
         }
         for (let i = 0; i < this.selection.renderSnaps.length; i++) {
           let check = this.selection.renderSnaps[i];
@@ -1780,19 +1791,6 @@ modules["editor/toolbar"] = class {
               return;
             }
           }
-        }
-        if (extra.render != false || data.marker != null) {
-          data = { ...data, ...run() };
-          if (data.additional != null) {
-            let result = data.additional();
-            if (result == false) {
-              return;
-            } else {
-              data.additionalLines = result;
-            }
-          }
-        } else {
-          data = { ...data, width: 0, height: 0, x: 0, y: 0 };
         }
         this.selection.renderSnaps.push(data);
       }

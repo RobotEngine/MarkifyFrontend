@@ -1022,6 +1022,8 @@ modules["editor/toolbar"] = class {
       this.selection.maxX = null;
       this.selection.minY = null;
       this.selection.maxY = null;
+      this.selection.checkX = null;
+      this.selection.checkY = null;
       this.selection.resizePreserveAspect = false;
       this.selection.multiSelectPreserveAspect = false;
 
@@ -1288,8 +1290,10 @@ modules["editor/toolbar"] = class {
           this.selection.selectBox.setAttribute("hidehandles", "");
         }
         if (showDuplicateHandles != true) {
+          this.selection.handlePadding = 24;
           this.selection.selectBox.removeAttribute("showduplicate");
         } else {
+          this.selection.handlePadding = 60;
           this.selection.selectBox.setAttribute("showduplicate", "");
         }
         if (showOnlyWidthHandles != true) {
@@ -1325,7 +1329,7 @@ modules["editor/toolbar"] = class {
       }
 
       if (options.redrawAction != false) {
-        this.selection.updateActionBar(options);
+        this.selection.updateActionBar({ redraw: selectionChange, hideSelectBox: options.hideSelectBox, transition: options.transition });
       }
 
       let allRealtimeSelections = realtimeHolder.querySelectorAll(".eCollabSelect");
@@ -1372,7 +1376,100 @@ modules["editor/toolbar"] = class {
       }
     }
     this.selection.updateActionBar = async (options = {}) => {
-      
+      let removeSelectBox = true;
+      let showSelectBox = (
+        Object.keys(this.selection.currentSelections).length > 0 &&
+        (this.selection.action == null || this.selection.actionEnabled == false) &&
+        options.hideSelectBox != true
+      );
+      if (showSelectBox == true) {
+        removeSelectBox = (
+          this.selection.checkX != this.selection.lastCheckX ||
+          this.selection.checkY != this.selection.lastCheckY ||
+          this.selection.checkX == null || this.selection.checkY == null ||
+          options.redraw == true
+        );
+        this.selection.lastCheckX = this.selection.checkX;
+        this.selection.lastCheckY = this.selection.checkY;
+      }
+      if (removeSelectBox == true && this.selection.actionBar != null) {
+        let removeActionBar = this.selection.actionBar;
+        this.selection.actionBar = null;
+        (async () => {
+          removeActionBar.style.transform = "translateY(-10%)";
+          removeActionBar.style.opacity = 0;
+          await sleep(200);
+          if (removeActionBar != null) {
+            removeActionBar.remove();
+          }
+        })();
+      }
+      if (showSelectBox == false) {
+        return;
+      }
+
+      if (this.selection.actionBar == null) { // Create UI
+        content.insertAdjacentHTML("beforeend", `<div class="eActionBar" style="width: 350px" new>
+          <div class="eActionHolder" keeptooltip></div>
+          <div class="eActionContainer" keeptooltip>
+            <div class="eActionShadow"></div>
+              <div class="eActionContainerHolder">
+                <div class="eActionContainerScroll">
+                  <div class="eActionContainerContent"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>`);
+        this.selection.actionBar = content.querySelector(".eActionBar[new]");
+        this.selection.actionBar.removeAttribute("new");
+      }
+
+      // Update Action UI
+      let annotationRect = editor.utils.localBoundingRect(annotations);
+      let pxLeft = annotationRect.left + ((this.selection.minX + ((this.selection.maxX - this.selection.minX) / 2)) * editor.zoom) - (this.selection.actionBar.offsetWidth / 2);
+      if (toolbarHolder.hasAttribute("right") == false) {
+        if (pxLeft + this.selection.actionBar.offsetWidth + 8 > contentHolder.clientWidth) {
+          pxLeft -= (pxLeft + this.selection.actionBar.offsetWidth + 8) - contentHolder.clientWidth;
+        }
+        pxLeft = Math.max(pxLeft, editor.scrollOffset);
+      } else {
+        if (pxLeft + this.selection.actionBar.offsetWidth + editor.scrollOffset > contentHolder.clientWidth) {
+          pxLeft -= (pxLeft + this.selection.actionBar.offsetWidth + editor.scrollOffset) - contentHolder.clientWidth;
+        }
+        pxLeft = Math.max(pxLeft, 8);
+      }
+      let yPos = annotationRect.top + (this.selection.minY * editor.zoom) - this.selection.actionBar.offsetHeight - this.selection.handlePadding;
+      let isBottom = false;
+      if (yPos < editor.scrollOffset) {
+        let modifiedY = annotationRect.top + (this.selection.maxY * editor.zoom) + this.selection.handlePadding;
+        if (modifiedY + this.selection.actionBar.offsetHeight + editor.scrollOffset > contentHolder.clientHeight) {
+          yPos = editor.scrollOffset;
+        } else {
+          yPos = modifiedY;
+          isBottom = true;
+        }
+      }
+      this.selection.actionBar.style.maxWidth = (contentHolder.clientWidth - editor.scrollOffset - 8) + "px";
+      this.selection.actionBar.style.left = (pxLeft + contentHolder.scrollLeft) + "px";
+      this.selection.actionBar.style.top = (yPos + contentHolder.scrollTop) + "px";
+
+      if (isBottom == false) { // Is at top
+        if (yPos - 32 < editor.scrollOffset) {
+          this.selection.actionBar.setAttribute("tooltipbottom", "");
+        } else {
+          this.selection.actionBar.removeAttribute("tooltipbottom");
+        }
+      } else { // Is at bottom
+        if (contentHolder.clientHeight - yPos - this.selection.actionBar.offsetHeight - 32 < editor.scrollOffset) {
+          this.selection.actionBar.removeAttribute("tooltipbottom");
+        } else {
+          this.selection.actionBar.setAttribute("tooltipbottom", "");
+        }
+      }
+
+      this.selection.actionBar.style.transform = "translateY(0%)";
+      this.selection.actionBar.style.opacity = 1;
     }
     this.selection.clickAction = async (event) => {
       if (event == null) {
@@ -3750,6 +3847,7 @@ modules["editor/toolbar/pan"] = class {
       left: this.editor.contentHolder.scrollLeft - ((((this.endX - annotationRect.left) / this.editor.zoom) - this.startX) * this.editor.zoom),
       top: this.editor.contentHolder.scrollTop - ((((this.endY - annotationRect.top) / this.editor.zoom) - this.startY) * this.editor.zoom)
     });
+    this.parent.selection.updateActionBar();
   }
   clickEnd = () => {
     this.dragging = false;

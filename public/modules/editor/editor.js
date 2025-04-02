@@ -2459,11 +2459,11 @@ modules["editor/editor"] = class {
                   this.toolbar.selection.annotationRects[anno._id] = this.toolbar.selection.annotationRects[anno.pending];
                 }
 
-                let selectionIDs = Object.keys(this.selecting);
+                /*let selectionIDs = Object.keys(this.selecting);
                 this.toolbar.selection.lastSelections = "";
                 for (let i = 0; i < selectionIDs.length; i++) {
                   this.toolbar.selection.lastSelections += selectionIDs[i];
-                }
+                }*/
               }
             }
           }

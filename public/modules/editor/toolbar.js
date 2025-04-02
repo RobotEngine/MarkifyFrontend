@@ -962,6 +962,8 @@ modules["editor/toolbar"] = class {
     this.selection.scrollOffset = 32;
     this.selection.snapThreshold = 8;
     this.selection.renderSnaps = [];
+    this.selection.checkDistanceXDirection = [];
+    this.selection.checkDistanceYDirection = [];
     this.selection.currentSnapElements = {};
     this.selection.updateBox = async (options = {}) => {
       let removeSelections = [];
@@ -1684,6 +1686,7 @@ modules["editor/toolbar"] = class {
         this.selection.currentSnapElements[checkSnap].remove();
         delete this.selection.currentSnapElements[checkSnap];
       }
+
       return { snapX, snapY };
     }
     this.selection.snapItems = async (event, extra) => {
@@ -1743,10 +1746,18 @@ modules["editor/toolbar"] = class {
         }
         commonParent = original.render.parent;
       }
+      let validRenderSnaps = [];
+      if (extra.recalculateExisting == true) {
+        validRenderSnaps = getObject(this.selection.renderSnaps, "type");
+      }
       this.selection.renderSnaps = [];
       let applySnap = (data, run) => {
         let threshold = Math.abs(data.threshold);
-        if (threshold > this.selection.snapThreshold) {
+        if (extra.recalculateExisting != true) {
+          if (threshold > this.selection.snapThreshold) {
+            return;
+          }
+        } else if (validRenderSnaps[data.type] == null) {
           return;
         }
         if (extra.resizeHandleAxis != null) {
@@ -1795,8 +1806,10 @@ modules["editor/toolbar"] = class {
         this.selection.renderSnaps.push(data);
       }
 
-      let checkDistanceXDirection = [];
-      let checkDistanceYDirection = [];
+      if (extra.recalculateExisting != true) {
+        this.selection.checkDistanceXDirection = [];
+        this.selection.checkDistanceYDirection = [];
+      }
       
       let visibleAnnotations = editor.utils.annotationsInChunks(editor.visibleChunks);
       for (let i = 0; i < visibleAnnotations.length; i++) {
@@ -1937,13 +1950,13 @@ modules["editor/toolbar"] = class {
           };});
 
           // Check for equal distance snap:
-          if (hasCommonParent == true) {
+          if (hasCommonParent == true && extra.recalculateExisting != true) {
             if (topLeftX < selectTopLeftX || topLeftY < selectTopLeftY || bottomRightX > selectBottomRightX || bottomRightY > selectBottomRightY) {
               if (topLeftX < selectBottomRightX && bottomRightX > selectTopLeftX) {
-                checkDistanceYDirection.push({ _id: render._id, topLeftX, topLeftY, bottomRightX, bottomRightY, centerX, centerY });
+                this.selection.checkDistanceYDirection.push({ _id: render._id, topLeftX, topLeftY, bottomRightX, bottomRightY, centerX, centerY });
               }
               if (topLeftY < selectBottomRightY && bottomRightY > selectTopLeftY) {
-                checkDistanceXDirection.push({ _id: render._id, topLeftX, topLeftY, bottomRightX, bottomRightY, centerX, centerY });
+                this.selection.checkDistanceXDirection.push({ _id: render._id, topLeftX, topLeftY, bottomRightX, bottomRightY, centerX, centerY });
               }
             }
           }
@@ -1951,16 +1964,18 @@ modules["editor/toolbar"] = class {
       }
 
       // Check for equal distance snap:
-      checkDistanceXDirection.sort((a, b) => a.centerX - b.centerX);
-      checkDistanceYDirection.sort((a, b) => a.centerY - b.centerY);
+      if (extra.recalculateExisting != true) {
+        this.selection.checkDistanceXDirection.sort((a, b) => a.centerX - b.centerX);
+        this.selection.checkDistanceYDirection.sort((a, b) => a.centerY - b.centerY);
+      }
       let xDistances = {};
       let xDistanceIds = {};
       let yDistances = {};
       let yDistanceIds = {};
-      for (let i = 0; i < checkDistanceXDirection.length; i++) {
-        let el1 = checkDistanceXDirection[i];
-        for (let j = i + 1; j < checkDistanceXDirection.length; j++) {
-          let el2 = checkDistanceXDirection[j];
+      for (let i = 0; i < this.selection.checkDistanceXDirection.length; i++) {
+        let el1 = this.selection.checkDistanceXDirection[i];
+        for (let j = i + 1; j < this.selection.checkDistanceXDirection.length; j++) {
+          let el2 = this.selection.checkDistanceXDirection[j];
           let distance = 0;
           if (el2.topLeftX > el1.bottomRightX) {
             distance = el2.topLeftX - el1.bottomRightX;
@@ -1985,10 +2000,10 @@ modules["editor/toolbar"] = class {
           }
         }
       }
-      for (let i = 0; i < checkDistanceYDirection.length; i++) {
-        let el1 = checkDistanceYDirection[i];
-        for (let j = i + 1; j < checkDistanceYDirection.length; j++) {
-          let el2 = checkDistanceYDirection[j];
+      for (let i = 0; i < this.selection.checkDistanceYDirection.length; i++) {
+        let el1 = this.selection.checkDistanceYDirection[i];
+        for (let j = i + 1; j < this.selection.checkDistanceYDirection.length; j++) {
+          let el2 = this.selection.checkDistanceYDirection[j];
           let distance = 0;
           if (el2.topLeftY > el1.bottomRightY) {
             distance = el2.topLeftY - el1.bottomRightY;
@@ -2047,8 +2062,8 @@ modules["editor/toolbar"] = class {
         let elements = xDistances[key];
         let elemIds = xDistanceIds[key];
 
-        for (let s = 0; s < checkDistanceXDirection.length; s++) {
-          let elem = checkDistanceXDirection[s];
+        for (let s = 0; s < this.selection.checkDistanceXDirection.length; s++) {
+          let elem = this.selection.checkDistanceXDirection[s];
 
           applySnap({ type: "right_left_distance", axis: "x", marker: "x", threshold: elem.topLeftX - selectBottomRightX - distance }, () => { return {
             width: elem.topLeftX - selectBottomRightX,
@@ -2127,8 +2142,8 @@ modules["editor/toolbar"] = class {
         let elements = yDistances[key];
         let elemIds = yDistanceIds[key];
 
-        for (let s = 0; s < checkDistanceYDirection.length; s++) {
-          let elem = checkDistanceYDirection[s];
+        for (let s = 0; s < this.selection.checkDistanceYDirection.length; s++) {
+          let elem = this.selection.checkDistanceYDirection[s];
 
           applySnap({ type: "bottom_top_distance", axis: "y", marker: "y", threshold: elem.topLeftY - selectBottomRightY - distance }, () => { return {
             width: 0,
@@ -2833,7 +2848,7 @@ modules["editor/toolbar"] = class {
         if (snapX != 0 || snapY != 0) {
           await this.selection.moveAction(event, snapX, snapY, fromScroll);
         }
-        await this.selection.snapItems(event, { resizeHandleAxis: snapHandleAxis, scaleWidth: scaleWidth, scaleHeight: scaleHeight });
+        await this.selection.snapItems(event, { resizeHandleAxis: snapHandleAxis, scaleWidth: scaleWidth, scaleHeight: scaleHeight, recalculateExisting: true });
       }
     }
     this.selection.endAction = async (options = {}) => {

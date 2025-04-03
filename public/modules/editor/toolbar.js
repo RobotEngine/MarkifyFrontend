@@ -1410,6 +1410,7 @@ modules["editor/toolbar"] = class {
         return;
       }
 
+      let newActionBar = false;
       if (this.selection.actionBar == null) { // Create UI
         content.insertAdjacentHTML("beforeend", `<div class="eActionBar" style="width: 350px" new>
           <div class="eActionHolder" keeptooltip></div>
@@ -1425,9 +1426,10 @@ modules["editor/toolbar"] = class {
         </div>`);
         this.selection.actionBar = content.querySelector(".eActionBar[new]");
         this.selection.actionBar.removeAttribute("new");
+        newActionBar = true;
       }
 
-      // Update Action UI
+      // Update Action Bar UI
       let annotationRect = editor.utils.localBoundingRect(annotations);
       let pxLeft = annotationRect.left + ((this.selection.minX + ((this.selection.maxX - this.selection.minX) / 2)) * editor.zoom) - (this.selection.actionBar.offsetWidth / 2);
       if (toolbarHolder.hasAttribute("right") == false) {
@@ -1470,8 +1472,16 @@ modules["editor/toolbar"] = class {
         }
       }
 
-      this.selection.actionBar.style.transform = "translateY(0%)";
-      this.selection.actionBar.style.opacity = 1;
+      if (newActionBar == true) {
+        this.selection.actionBar.style.transform = "translateY(0%)";
+        this.selection.actionBar.style.opacity = 1;
+      }
+
+      // Update Action Frame UI
+      let actionFrame = this.selection.actionBar.querySelector(".eActionContainer[module]");
+      if (actionFrame == null) {
+        return;
+      }
     }
     this.selection.clickAction = async (event) => {
       if (event == null) {

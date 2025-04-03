@@ -92,7 +92,7 @@ modules["lesson/board"] = class {
     ".eFileName::-webkit-scrollbar": `display: none`,
     ".eFileDropdown": `padding: 6px 10px; height: 32px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
     ".eCreateCopy": `padding: 6px 10px; height: 32px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
-    ".eTopDivider": `width: 4px; height: 32px; margin: 0 4px; background: var(--hover); border-radius: 2px`,
+    ".eTopDivider": `width: 4px; height: 32px; margin: 0 4px; background: var(--lightGray); border-radius: 2px`,
     ".eSaveProgress": `display: flex; width: 32px; height: 32px; padding: 0; align-items: center; overflow: hidden; background: var(--lightGray)`,
     ".eSaveProgress svg": `width: 24px; height: 24px; margin: 2px`,
     ".eUndo": `margin: 0 2px 0 4px; justify-content: end; border-radius: 16px 0 0 16px`,

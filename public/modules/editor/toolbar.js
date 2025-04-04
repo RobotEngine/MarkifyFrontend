@@ -64,8 +64,8 @@ modules["editor/toolbar"] = class {
     ".eActionBar .eTool": `--hoverColor: var(--hover); width: 46px; height: 50px; flex-shrink: 0; padding: 0; transition: opacity .3s`,
     ".eToolbarHolder[left] .eTool > div": `display: flex; width: 42px; height: 42px; margin: 2px 4px; justify-content: left; align-items: center; border-radius: 8px; transition: .2s; overflow: hidden`,
     ".eToolbarHolder[right] .eTool > div": `display: flex; width: 42px; height: 42px; margin: 2px 4px; justify-content: right; align-items: center; border-radius: 8px; transition: .2s; overflow: hidden`,
-    ".eActionBar[top] .eTool > div": `display: flex; width: 42px; height: 42px; margin: 4px 2px; justify-content: center; align-items: start; border-radius: 8px; transition: .2s; overflow: hidden`,
-    ".eActionBar[bottom] .eTool > div": `display: flex; width: 42px; height: 42px; margin: 4px 2px; justify-content: center; align-items: end; border-radius: 8px; transition: .2s; overflow: hidden`,
+    ".eActionBar[top] .eTool > div": `display: flex; width: 42px; height: 42px; margin: 4px 2px; justify-content: center; align-items: end; border-radius: 8px; transition: .2s; overflow: hidden`,
+    ".eActionBar[bottom] .eTool > div": `display: flex; width: 42px; height: 42px; margin: 4px 2px; justify-content: center; align-items: start; border-radius: 8px; transition: .2s; overflow: hidden`,
     ".eTool > div > svg": `width: 40px; height: 40px; margin: 1px`,
     ".eTool:hover > div": `background: var(--hoverColor)`,
     ".eTool:active": `transform: unset !important`,
@@ -146,10 +146,12 @@ modules["editor/toolbar"] = class {
     ".eActionToolbar::-webkit-scrollbar": `display: none`,
     ".eActionToolbar[locked] > *": `display: none`,
     ".eActionToolbar .eTool[stayonlock]": `display: unset`,
-    ".eActionBar[top] .eActionHolder": `position: absolute; width: 100%; height: 100vh; padding: 12px; left: -12px; bottom: calc(100% - 12px); z-index: 1; overflow: hidden; pointer-events: none`,
-    ".eActionBar[bottom] .eActionHolder": `position: absolute; width: 100%; height: 100vh; padding: 12px; left: -12px; top: calc(100% - 12px); z-index: 1; overflow: hidden; pointer-events: none`,
-    ".eActionBar[top] .eActionContainer": `--shadowPadding: 16px 16px 0; --shadowBottom: 0px; --shadowTop: 16px; position: absolute; width: fit-content; bottom: 12px; padding-bottom: 4px; background: var(--pageColor); border-radius: 12px 12px 0 0; opacity: 0; pointer-events: all; transition: opacity .25s, transform .25s`,
-    ".eActionBar[bottom] .eActionContainer": `--shadowPadding: 0 16px 16px; --shadowBottom: -16px; --shadowTop: 0px; position: absolute; width: fit-content; top: 12px; padding-top: 4px; background: var(--pageColor); border-radius: 0 0 12px 12px; opacity: 0; pointer-events: all; transition: opacity .25s, transform .25s`,
+    ".eActionBar[top] .eActionHolder": `position: absolute; width: fit-content; height: fit-content; padding: 12px; left: -12px; bottom: calc(100% - 12px); z-index: 1; overflow: hidden; pointer-events: none`,
+    ".eActionBar[bottom] .eActionHolder": `position: absolute; width: fit-content; height: fit-content; padding: 12px; left: -12px; top: calc(100% - 12px); z-index: 1; overflow: hidden; pointer-events: none`,
+    ".eActionBar[top] .eActionContainer": `--shadowPadding: 16px 16px 0; --shadowBottom: 0px; --shadowTop: 16px; position: relative; width: fit-content; bottom: 0px; padding-bottom: 4px; background: var(--pageColor); border-radius: 12px 12px 0 0; pointer-events: all; transition: opacity .25s, transform .25s`,
+    ".eActionBar[bottom] .eActionContainer": `--shadowPadding: 0 16px 16px; --shadowBottom: -16px; --shadowTop: 0px; position: relative; width: fit-content; top: 0px; padding-top: 4px; background: var(--pageColor); border-radius: 0 0 12px 12px; pointer-events: all; transition: opacity .25s, transform .25s`,
+    ".eActionBar[top] .eActionContainer[closed]": `transform: translateY(100%); opacity: 0`,
+    ".eActionBar[bottom] .eActionContainer[closed]": `transform: translateY(-100%); opacity: 0`,
     ".eActionBar[top] .eActionContainer:after": `content: ""; position: absolute; width: 100%; height: 4px; left: 0px; botton: 0px; background: var(--theme); z-index: 4`,
     ".eActionBar[bottom] .eActionContainer:after": `content: ""; position: absolute; width: 100%; height: 4px; left: 0px; top: 0px; background: var(--theme); z-index: 4`,
     ".eActionShadow": `position: absolute; width: 100%; height: 100%; padding: var(--shadowPadding); bottom: var(--shadowBottom); left: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
@@ -1435,17 +1437,6 @@ modules["editor/toolbar"] = class {
       if (this.selection.actionBar == null) { // Create UI
         content.insertAdjacentHTML("beforeend", `<div class="eActionBar" top new>
           <div class="eActionToolbar eHorizontalToolsHolder" keeptooltip></div>
-          <div class="eActionHolder">
-            <div class="eActionContainer" keeptooltip>
-              <div class="eActionShadow"></div>
-                <div class="eActionContainerHolder">
-                  <div class="eActionContainerScroll">
-                    <div class="eActionContainerContent"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>`);
         this.selection.actionBar = content.querySelector(".eActionBar[new]");
         this.selection.actionBar.removeAttribute("new");
@@ -1501,10 +1492,10 @@ modules["editor/toolbar"] = class {
         }
         for (let i = 0; i < newActionButtons.length; i++) {
           let newAction = newActionButtons[i];
-          let actionModule = (await this.newModule(newAction.getAttribute("module"))) ?? {};
           if (newAction == null) {
             continue;
           }
+          let actionModule = (await this.newModule(newAction.getAttribute("module"))) ?? {};
           actionModule.editor = editor;
           actionModule.isActionBar = true;
           if (actionModule.SUPPORTS_MULTIPLE_SELECT == false && selections.length > 1) {
@@ -1530,57 +1521,53 @@ modules["editor/toolbar"] = class {
       }
 
       // Update Action Bar UI
-      let annotationRect = editor.utils.localBoundingRect(annotations);
-      let pxLeft = annotationRect.left + ((this.selection.minX + ((this.selection.maxX - this.selection.minX) / 2)) * editor.zoom) - (this.selection.actionBar.offsetWidth / 2);
-      if (toolbarHolder.hasAttribute("right") == false) {
-        if (pxLeft + this.selection.actionBar.offsetWidth + 8 > contentHolder.clientWidth) {
-          pxLeft -= (pxLeft + this.selection.actionBar.offsetWidth + 8) - contentHolder.clientWidth;
-        }
-        pxLeft = Math.max(pxLeft, editor.scrollOffset);
-      } else {
-        if (pxLeft + this.selection.actionBar.offsetWidth + editor.scrollOffset > contentHolder.clientWidth) {
-          pxLeft -= (pxLeft + this.selection.actionBar.offsetWidth + editor.scrollOffset) - contentHolder.clientWidth;
-        }
-        pxLeft = Math.max(pxLeft, 8);
-      }
-      let yPos = annotationRect.top + (this.selection.minY * editor.zoom) - this.selection.actionBar.offsetHeight - this.selection.handlePadding;
-      let isBottom = false;
-      if (yPos < editor.scrollOffset) {
-        let modifiedY = annotationRect.top + (this.selection.maxY * editor.zoom) + this.selection.handlePadding;
-        if (modifiedY + this.selection.actionBar.offsetHeight + editor.scrollOffset > contentHolder.clientHeight) {
-          yPos = editor.scrollOffset;
+      if (options.skipUpdate != true || newActionBar == true) {
+        let annotationRect = editor.utils.localBoundingRect(annotations);
+        let pxLeft = annotationRect.left + ((this.selection.minX + ((this.selection.maxX - this.selection.minX) / 2)) * editor.zoom) - (this.selection.actionBar.offsetWidth / 2);
+        if (toolbarHolder.hasAttribute("right") == false) {
+          if (pxLeft + this.selection.actionBar.offsetWidth + 8 > contentHolder.clientWidth) {
+            pxLeft -= (pxLeft + this.selection.actionBar.offsetWidth + 8) - contentHolder.clientWidth;
+          }
+          pxLeft = Math.max(pxLeft, editor.scrollOffset);
         } else {
-          yPos = modifiedY;
-          isBottom = true;
+          if (pxLeft + this.selection.actionBar.offsetWidth + editor.scrollOffset > contentHolder.clientWidth) {
+            pxLeft -= (pxLeft + this.selection.actionBar.offsetWidth + editor.scrollOffset) - contentHolder.clientWidth;
+          }
+          pxLeft = Math.max(pxLeft, 8);
         }
-      }
-      this.selection.actionBar.style.maxWidth = (contentHolder.clientWidth - editor.scrollOffset - 8) + "px";
-      this.selection.actionBar.style.left = (pxLeft + contentHolder.scrollLeft) + "px";
-      this.selection.actionBar.style.top = (yPos + contentHolder.scrollTop) + "px";
+        let yPos = annotationRect.top + (this.selection.minY * editor.zoom) - this.selection.actionBar.offsetHeight - this.selection.handlePadding;
+        let isBottom = false;
+        if (yPos < editor.scrollOffset) {
+          let modifiedY = annotationRect.top + (this.selection.maxY * editor.zoom) + this.selection.handlePadding;
+          if (modifiedY + this.selection.actionBar.offsetHeight + editor.scrollOffset > contentHolder.clientHeight) {
+            yPos = editor.scrollOffset;
+          } else {
+            yPos = modifiedY;
+            isBottom = true;
+          }
+        }
+        this.selection.actionBar.style.maxWidth = (contentHolder.clientWidth - editor.scrollOffset - 8) + "px";
+        this.selection.actionBar.style.left = (pxLeft + contentHolder.scrollLeft) + "px";
+        this.selection.actionBar.style.top = (yPos + contentHolder.scrollTop) + "px";
 
-      if (isBottom == false) { // Is at top
-        if (yPos - 32 < editor.scrollOffset) {
-          this.selection.actionBar.setAttribute("tooltipbottom", "");
-        } else {
-          this.selection.actionBar.removeAttribute("tooltipbottom");
-        }
-      } else { // Is at bottom
-        if (contentHolder.clientHeight - yPos - this.selection.actionBar.offsetHeight - 32 < editor.scrollOffset) {
-          this.selection.actionBar.removeAttribute("tooltipbottom");
-        } else {
-          this.selection.actionBar.setAttribute("tooltipbottom", "");
+        if (isBottom == false) { // Is at top
+          if (yPos - 32 < editor.scrollOffset) {
+            this.selection.actionBar.setAttribute("tooltipbottom", "");
+          } else {
+            this.selection.actionBar.removeAttribute("tooltipbottom");
+          }
+        } else { // Is at bottom
+          if (contentHolder.clientHeight - yPos - this.selection.actionBar.offsetHeight - 32 < editor.scrollOffset) {
+            this.selection.actionBar.removeAttribute("tooltipbottom");
+          } else {
+            this.selection.actionBar.setAttribute("tooltipbottom", "");
+          }
         }
       }
 
       if (newActionBar == true) {
         this.selection.actionBar.style.transform = "translateY(0%)";
         this.selection.actionBar.style.opacity = 1;
-      }
-
-      // Update Action Frame UI
-      let actionFrame = this.selection.actionBar.querySelector(".eActionHolder[module]");
-      if (actionFrame == null) {
-        return;
       }
     }
     this.selection.clickAction = async (event) => {
@@ -1591,6 +1578,77 @@ modules["editor/toolbar"] = class {
       if (interact == true) {
         return;
       }
+      if (this.selection.actionBar == null) {
+        return;
+      }
+      let actionButton = event.target.closest(".eTool");
+      if (actionButton == null || actionButton.closest(".eActionToolbar") == null) {
+        return;
+      }
+
+      let wasSelected = actionButton.hasAttribute("selected");
+      this.selection.closeActionFrame();
+      if (wasSelected == true) {
+        return;
+      }
+
+      this.selection.actionFrameButton = actionButton;
+      actionButton.setAttribute("selected", "");
+      actionButton.setAttribute("extend", "");
+
+      let actionModule = (await this.newModule(actionButton.getAttribute("module"))) ?? {};
+      if (actionButton.hasAttribute("selected") == false || actionModule.html == null) {
+        return;
+      }
+
+      this.selection.actionBar.insertAdjacentHTML("beforeend", `<div class="eActionHolder" new>
+        <div class="eActionContainer" keeptooltip closed>
+          <div class="eActionShadow"></div>
+            <div class="eActionContainerHolder">
+              <div class="eActionContainerScroll">
+                <div class="eActionContainerContent"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>`);
+      this.selection.actionFrame = this.selection.actionBar.querySelector(".eActionHolder[new]");
+      this.selection.actionFrame.removeAttribute("new");
+      let containerFrame = this.selection.actionFrame.querySelector(".eActionContainer");
+      let contentFrame = containerFrame.querySelector(".eActionContainerContent");
+      contentFrame.innerHTML = actionModule.html;
+
+      containerFrame.offsetHeight;
+      containerFrame.removeAttribute("closed");
+
+      this.selection.updateActionBar({ skipUpdate: true });
+      this.tooltip.update();
+    }
+    this.selection.closeActionFrame = () => {
+      if (this.selection.actionFrameButton != null) {
+        this.selection.actionFrameButton.removeAttribute("extend");
+        this.selection.actionFrameButton.removeAttribute("selected");
+      }
+      if (this.selection.actionFrame == null || this.selection.actionBar == null) {
+        return;
+      }
+      let removeFrame = this.selection.actionFrame;
+      this.selection.actionFrame = null;
+      this.selection.updateActionBar();
+      (async () => {
+        removeFrame.style.zIndex = 1;
+        let contentContainer = removeFrame.querySelector(".eActionContainer");
+        contentContainer.setAttribute("closed", "");
+        this.selection.actionBar.style.removeProperty("border-top-left-radius");
+        this.selection.actionBar.style.removeProperty("border-top-right-radius");
+        this.selection.actionBar.style.removeProperty("border-bottom-left-radius");
+        this.selection.actionBar.style.removeProperty("border-bottom-right-radius");
+        contentContainer.style.opacity = 0;
+        await sleep(300);
+        if (removeFrame != null) {
+          removeFrame.remove();
+        }
+      })();
     }
     this.selection.startAction = (event) => {
       if (this.selection.selectBox == null) {
@@ -5475,9 +5533,10 @@ modules["editor/toolbar/thickness"] = class {
   css = {
     ".eSubToolThicknessButtonHolder": `position: relative; display: flex; width: 100%; height: 100%; justify-content: center; align-items: center; overflow: hidden`,
     ".eSubToolThicknessHolder": `position: absolute; padding: 3px; background: var(--pageColor); border-radius: 14px`,
-    ".eToolbarHolder[left] .eSubToolThicknessHolder": `transform: translateX(-12px)`,
-    ".eToolbarHolder[right] .eSubToolThicknessHolder": `transform: translateX(4px)`,
-    ".eActionBar .eSubToolThicknessHolder": `transform: translateY(10px)`,
+    ".eToolbarHolder[left] .eSubToolThicknessHolder": `transform: translateX(-8px)`,
+    ".eToolbarHolder[right] .eSubToolThicknessHolder": `transform: translateX(8px)`,
+    ".eActionBar[top] .eSubToolThicknessHolder": `transform: translateY(8px)`,
+    ".eActionBar[bottom] .eSubToolThicknessHolder": `transform: translateY(-8px)`,
     ".eSubToolThickness": `border-radius: 10px`,
 
     ".eSubToolThicknessFrame": `box-sizing: border-box; display: flex; width: 188px; height: 50px; padding: 8px; align-items: center`,

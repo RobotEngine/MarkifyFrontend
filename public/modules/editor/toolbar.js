@@ -1066,10 +1066,10 @@ modules["editor/toolbar"] = class {
         if (selections.length > 0) {
           setUserSelect = "none";
           setTouchAction = "pinch-zoom";
-          if (this.selection.originalUserSelect == null) {
+          if (this.selection.originalUserSelect === null) {
             this.selection.originalUserSelect = this.currentToolModule.USER_SELECT;
           }
-          if (this.selection.originalTouchAction == null) {
+          if (this.selection.originalTouchAction === null) {
             this.selection.originalTouchAction = this.currentToolModule.TOUCH_ACTION;
           }
           this.selection.replaceCursorActive = true;

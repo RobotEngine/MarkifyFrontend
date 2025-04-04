@@ -1337,7 +1337,7 @@ modules["editor/toolbar"] = class {
       }
 
       if (options.redrawAction != false) {
-        this.selection.updateActionBar({ redraw: selectionChange || options.redrawActionBar == true, hideSelectBox: options.hideSelectBox, transition: options.transition });
+        this.selection.updateActionBar({ ...options, redraw: selectionChange || options.redraw == true });
       }
 
       let allRealtimeSelections = realtimeHolder.querySelectorAll(".eCollabSelect");
@@ -1384,7 +1384,7 @@ modules["editor/toolbar"] = class {
       }
     }
     this.selection.updateActionBar = async (options = {}) => {
-      let removeSelectBox = true;
+      let removeActionBar = true;
       let selections = Object.keys(editor.selecting);
       let showSelectBox = (
         selections.length > 0 &&
@@ -1392,7 +1392,7 @@ modules["editor/toolbar"] = class {
         options.hideSelectBox != true
       );
       if (showSelectBox == true) {
-        removeSelectBox = (
+        removeActionBar = (
           this.selection.checkX != this.selection.lastCheckX ||
           this.selection.checkY != this.selection.lastCheckY ||
           this.selection.checkX == null || this.selection.checkY == null ||
@@ -1401,7 +1401,7 @@ modules["editor/toolbar"] = class {
         this.selection.lastCheckX = this.selection.checkX;
         this.selection.lastCheckY = this.selection.checkY;
       }
-      if (removeSelectBox == true && this.selection.actionBar != null) {
+      if (removeActionBar == true && this.selection.actionBar != null) {
         let removeActionBar = this.selection.actionBar;
         this.selection.actionBar = null;
         (async () => {
@@ -1416,7 +1416,7 @@ modules["editor/toolbar"] = class {
       if (showSelectBox == false) {
         return;
       }
-
+      
       let newActionBar = false;
       if (this.selection.actionBar == null) { // Create UI
         content.insertAdjacentHTML("beforeend", `<div class="eActionBar" top new>
@@ -1434,7 +1434,9 @@ modules["editor/toolbar"] = class {
         this.selection.actionBar = content.querySelector(".eActionBar[new]");
         this.selection.actionBar.removeAttribute("new");
         newActionBar = true;
+      }
 
+      if (newActionBar == true || options.refresh == true) {
         let combineTools;
         let showLocked = false;
         for (let i = 0; i < selections.length; i++) {
@@ -1470,9 +1472,22 @@ modules["editor/toolbar"] = class {
         } else {
           actionButtonHolder.setAttribute("locked", "");
         }
+        actionButtonHolder.innerHTML = "";
+        let newActionButtons = [];
         for (let i = 0; i < combineTools.length; i++) {
           let actionRef = "editor/toolbar/" + combineTools[i];
-          let actionModule = (await this.newModule(actionRef)) ?? {};
+          actionButtonHolder.insertAdjacentHTML("beforeend", `<button class="eTool" new><div></div></button>`);
+          let newAction = actionButtonHolder.querySelector("[new]");
+          newAction.removeAttribute("new");
+          newAction.setAttribute("module", "editor/toolbar/" + combineTools[i]);
+          newActionButtons.push(newAction);
+        }
+        for (let i = 0; i < newActionButtons.length; i++) {
+          let newAction = newActionButtons[i];
+          let actionModule = (await this.newModule(newAction.getAttribute("module"))) ?? {};
+          if (newAction == null) {
+            continue;
+          }
           actionModule.editor = editor;
           actionModule.isActionBar = true;
           if (actionModule.SUPPORTS_MULTIPLE_SELECT == false && selections.length > 1) {
@@ -1481,16 +1496,12 @@ modules["editor/toolbar"] = class {
           if (actionModule.ADD_DIVIDE_BEFORE == true && actionButtonHolder.lastElementChild != null) {
             actionButtonHolder.insertAdjacentHTML("beforeend", `<div class="eVerticalDivider" keeptoolbar></div>`);
           }
-          actionButtonHolder.insertAdjacentHTML("beforeend", `<button class="eTool" new><div></div></button>`);
-          let newAction = actionButtonHolder.querySelector("[new]");
-          newAction.removeAttribute("new");
-          newAction.setAttribute("action", actionRef);
-          if (actionModule.SHOW_ON_LOCK == true) {
-            newAction.setAttribute("stayonlock", "");
-          }
           let buttonHolder = newAction.querySelector("div");
           if (actionModule.setActionButton != null) {
             actionModule.setActionButton(buttonHolder);
+          }
+          if (actionModule.SHOW_ON_LOCK == true) {
+            newAction.setAttribute("stayonlock", "");
           }
           if (actionModule.TOOLTIP != null) {
             newAction.setAttribute("tooltip", actionModule.TOOLTIP);

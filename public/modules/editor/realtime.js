@@ -678,7 +678,7 @@ modules["editor/realtime"] = class {
           }
           member.selecting = selectKeys;
           if (userSelecting == true && changes == true) { // Only refresh if user is selecting
-            editor.pipeline.publish("redraw_selection", { redrawActionBar: true });
+            editor.pipeline.publish("redraw_selection", { refresh: true });
           } else if (userSelecting == true || refreshSelecting == true) {
             editor.pipeline.publish("redraw_selection", {});
           }

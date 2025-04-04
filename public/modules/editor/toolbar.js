@@ -10,7 +10,7 @@ modules["editor/toolbar"] = class {
     "draw": {
       html: `<div class="eVerticalToolsHolder">
         <button class="eTool" tool="pen" tooltip="Pen" module="editor/toolbar/pen"><div></div></button>
-        <div class="eDivider" keeptoolbar></div>
+        <div class="eDivider" keeptooltip></div>
         <button class="eTool" option="color" tooltip="Color" module="editor/toolbar/color"><div></div></button>
         <button class="eTool" option="thickness" tooltip="Thickness" module="editor/toolbar/thickness"><div></div></button>
         <button class="eTool" option="opacity" tooltip="Opacity" module="editor/toolbar/opacity"><div></div></button>
@@ -20,7 +20,7 @@ modules["editor/toolbar"] = class {
       html: `<div class="eVerticalToolsHolder">
         <button class="eTool" tool="highlighter" tooltip="Highlighter" module="editor/toolbar/highlighter"><div></div></button>
         <button class="eTool" tool="underline" tooltip="Underline" module="editor/toolbar/underline"><div></div></button>
-        <div class="eDivider" keeptoolbar></div>
+        <div class="eDivider" keeptooltip></div>
         <button class="eTool" option="color" tooltip="Color" module="editor/toolbar/color"><div></div></button>
         <button class="eTool" option="thickness" tooltip="Thickness" module="editor/toolbar/thickness"><div></div></button>
         <button class="eTool" option="opacity" tooltip="Opacity" module="editor/toolbar/opacity"><div></div></button>
@@ -237,7 +237,7 @@ modules["editor/toolbar"] = class {
       if (tooltipElement.hasAttribute("selected") == true && (tooltipElement.hasAttribute("option") == true || tooltipElement.hasAttribute("action") == true)) {
         return this.tooltip.close();
       }
-      let parent = tooltipElement.closest(".eToolbarHolder") ?? tooltipElement.closest(".eSelectBar");
+      let parent = tooltipElement.closest(".eToolbarHolder") ?? tooltipElement.closest(".eActionBar");
       if (parent == null) {
         return this.tooltip.close();
       }
@@ -355,9 +355,10 @@ modules["editor/toolbar"] = class {
         return;
       }
       let element = hoverElem.closest("button[tool], button[subtool], button[option], button[action]");
-      if ((element == null || element.hasAttribute("tooltip") == false) && (hoverElem.closest("[keeptooltip]") == null || hoverElem.closest("[closetooltip]") != null)) {
+      let noTooltip = element == null || element.hasAttribute("tooltip") == false;
+      if (noTooltip == true && (hoverElem.closest("[keeptooltip]") == null || hoverElem.closest("[closetooltip]") != null)) {
         return this.tooltip.close();
-      } else if (element == null) {
+      } else if (noTooltip == true) {
         return;
       }
       if (element.hasAttribute("selected") == true && (element.hasAttribute("option") == true || element.hasAttribute("action") == true)) {
@@ -1420,8 +1421,8 @@ modules["editor/toolbar"] = class {
       let newActionBar = false;
       if (this.selection.actionBar == null) { // Create UI
         content.insertAdjacentHTML("beforeend", `<div class="eActionBar" top new>
-          <div class="eActionHolder eHorizontalToolsHolder" keeptoolbar></div>
-          <div class="eActionContainer" keeptoolbar>
+          <div class="eActionHolder eHorizontalToolsHolder" keeptooltip></div>
+          <div class="eActionContainer" keeptooltip>
             <div class="eActionShadow"></div>
               <div class="eActionContainerHolder">
                 <div class="eActionContainerScroll">
@@ -1475,10 +1476,12 @@ modules["editor/toolbar"] = class {
         actionButtonHolder.innerHTML = "";
         let newActionButtons = [];
         for (let i = 0; i < combineTools.length; i++) {
+          let action = combineTools[i];
           actionButtonHolder.insertAdjacentHTML("beforeend", `<button class="eTool" new><div></div></button>`);
           let newAction = actionButtonHolder.querySelector("[new]");
           newAction.removeAttribute("new");
-          newAction.setAttribute("module", "editor/toolbar/" + combineTools[i]);
+          newAction.setAttribute("action", action);
+          newAction.setAttribute("module", "editor/toolbar/" + action);
           newActionButtons.push(newAction);
         }
         for (let i = 0; i < newActionButtons.length; i++) {
@@ -1493,7 +1496,7 @@ modules["editor/toolbar"] = class {
             continue;
           }
           if (actionModule.ADD_DIVIDE_BEFORE == true && actionButtonHolder.lastElementChild != null) {
-            actionButtonHolder.insertAdjacentHTML("beforeend", `<div class="eVerticalDivider" keeptoolbar></div>`);
+            actionButtonHolder.insertAdjacentHTML("beforeend", `<div class="eVerticalDivider" keeptooltip></div>`);
           }
           let buttonHolder = newAction.querySelector("div");
           if (actionModule.setActionButton != null) {
@@ -1506,7 +1509,7 @@ modules["editor/toolbar"] = class {
             newAction.setAttribute("tooltip", actionModule.TOOLTIP);
           }
           if (actionModule.ADD_DIVIDE_AFTER == true) {
-            actionButtonHolder.insertAdjacentHTML("beforeend", `<div class="eVerticalDivider" keeptoolbar></div>`);
+            actionButtonHolder.insertAdjacentHTML("beforeend", `<div class="eVerticalDivider" keeptooltip></div>`);
           }
         }
       }
@@ -5039,6 +5042,8 @@ modules["editor/toolbar/color"] = class {
     color.style.opacity = (preference.o ?? 100) / 100;
   }
 
+  TOOLTIP = "Color";
+
   USER_SELECT = "none";
 
   html = `
@@ -5442,6 +5447,8 @@ modules["editor/toolbar/thickness"] = class {
     thickness.style.opacity = (preference.o ?? 100) / 100;
   }
 
+  TOOLTIP = "Thickness";
+
   USER_SELECT = "none";
 
   html = `
@@ -5584,6 +5591,8 @@ modules["editor/toolbar/opacity"] = class {
       svg.style.setProperty("--toolColor", "#" + preference.c);
     }
   }
+
+  TOOLTIP = "Opacity";
 
   USER_SELECT = "none";
 

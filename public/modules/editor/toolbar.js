@@ -60,24 +60,29 @@ modules["editor/toolbar"] = class {
     ".eToolbarHolder[right] .eToolbar": `right: 0px; border-radius: 12px 0 0 12px; transform-origin: right center`,
     ".eToolbarTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; z-index: 5; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; transform: scale(0); opacity: 0`,
 
-    ".eTool": `--hoverColor: var(--hover); width: 50px; height: 46px; flex-shrink: 0; padding: 0; transition: opacity .3s`,
-    ".eToolbarHolder[left] .eTool > div": `display: flex; width: 42px; height: 42px; margin: 0 4px; justify-content: left; align-items: center; border-radius: 8px; transition: .2s; overflow: hidden`,
-    ".eToolbarHolder[right] .eTool > div": `display: flex; width: 42px; height: 42px; margin: 0 4px; justify-content: right; align-items: center; border-radius: 8px; transition: .2s; overflow: hidden`,
+    ".eToolbarHolder .eTool": `--hoverColor: var(--hover); width: 50px; height: 46px; flex-shrink: 0; padding: 0; transition: opacity .3s`,
+    ".eActionBar .eTool": `--hoverColor: var(--hover); width: 46px; height: 50px; flex-shrink: 0; padding: 0; transition: opacity .3s`,
+    ".eToolbarHolder[left] .eTool > div": `display: flex; width: 42px; height: 42px; margin: 2px 4px; justify-content: left; align-items: center; border-radius: 8px; transition: .2s; overflow: hidden`,
+    ".eToolbarHolder[right] .eTool > div": `display: flex; width: 42px; height: 42px; margin: 2px 4px; justify-content: right; align-items: center; border-radius: 8px; transition: .2s; overflow: hidden`,
+    ".eActionBar[top] .eTool > div": `display: flex; width: 42px; height: 42px; margin: 4px 2px; justify-content: center; align-items: start; border-radius: 8px; transition: .2s; overflow: hidden`,
+    ".eActionBar[bottom] .eTool > div": `display: flex; width: 42px; height: 42px; margin: 4px 2px; justify-content: center; align-items: end; border-radius: 8px; transition: .2s; overflow: hidden`,
     ".eTool > div > svg": `width: 40px; height: 40px; margin: 1px`,
     ".eTool:hover > div": `background: var(--hoverColor)`,
     ".eTool:active": `transform: unset !important`,
-    ".eTool:active > div": `width: 42px !important; margin: 0 4px !important; border-radius: 8px !important; transform: scale(.95)`,
-    //".eTool[selected]:active > div": `width: 42px !important; margin: 0 4px !important; border-radius: 8px !important`,
+    ".eToolbarHolder .eTool:active > div": `width: 42px !important; margin: 2px 4px !important; border-radius: 8px !important; transform: scale(.95)`,
+    ".eActionBar .eTool:active > div": `height: 42px !important; margin: 4px 2px !important; border-radius: 8px !important; transform: scale(.95)`,
     ".eTool[selected] > div": `background: var(--theme)`,
     ".eTool[selected][option] > div": `background: var(--secondary)`,
-    ".eToolbarHolder[left] .eTool[extend] > div": `width: 46px; margin: 0 0 0 4px; border-radius: 8px 0 0 8px; justify-content: left`,
-    ".eToolbarHolder[right] .eTool[extend] > div": `width: 46px; margin: 0 4px 0 0; border-radius: 0 8px 8px 0; justify-content: right`,
+    ".eToolbarHolder[left] .eTool[extend] > div": `width: 46px; margin: 2px 0 2px 4px; border-radius: 8px 0 0 8px; justify-content: left`,
+    ".eToolbarHolder[right] .eTool[extend] > div": `width: 46px; margin: 2px 4px 2px 0; border-radius: 0 8px 8px 0; justify-content: right`,
+    ".eActionBar[top] .eTool[extend] > div": `height: 46px; margin: 0 2px 4px 2px; border-radius: 0 0 8px 8px; align-items: end`,
+    ".eActionBar[bottom] .eTool[extend] > div": `height: 46px; margin: 4px 2px 0 2px; border-radius: 8px 8px 0 0; align-items: start`,
     ".eTool[selecthighlight] > div": `background: var(--theme)`,
     ".eTool[selecthighlight]:active > div": `border-radius: 8px !important`,
     ".eTool[off]": `opacity: 0.5`,
 
     ".eDivider": `width: calc(100% - 8px); height: 4px; margin: 2px 0; background: var(--hover); border-radius: 2px`,
-    ".eVerticalDivider": `flex-shrink: 0; width: 4px; height: calc(100% - 8px); margin: 0 2px; background: var(--hover); border-radius: 2px`,
+    ".eVerticalDivider": `width: 4px; height: calc(100% - 8px); margin: 0 2px; background: var(--hover); border-radius: 2px`,
 
     ".eSubToolHolder": `position: absolute; max-height: 100%; background: var(--pageColor); z-index: 2; opacity: 0; transition: opacity .25s, transform .25s; border-radius: var(--borderRadius)`,
     ".eToolbarHolder[left] .eSubToolHolder": `left: 100%; padding-left: 4px; border-radius: 0 12px 12px 0`,
@@ -94,6 +99,7 @@ modules["editor/toolbar"] = class {
     ".eSubToolContentScroll": `width: fit-content; overflow: auto`,
     ".eSubToolHolder[option] .eSubToolContentScroll": `overflow: visible`,
     ".eVerticalToolsHolder": `display: flex; flex-direction: column; padding: 2px 0; align-items: center`,
+    ".eHorizontalToolsHolder": `display: flex; padding: 0 2px; align-items: center`,
 
     ".eSelect": `position: absolute; left: 0px; top: 0px; opacity: 0; z-index: 101; border-radius: 9px; transition: all .25s, opacity .15s; pointer-events: none`,
     ".eAnnotation[selected] > *": `pointer-events: none`,
@@ -136,7 +142,7 @@ modules["editor/toolbar"] = class {
     '.eSelectSnap div[marker="snapybottom"]': `width: 16px; height: 2px; bottom: 0px; left: 50%; transform: translateX(-50%)`,
 
     ".eActionBar": `position: absolute; display: flex; height: 50px; background: var(--pageColor); box-shadow: var(--lightShadow); z-index: 102; border-radius: 12px; transform: translateY(-10%); opacity: 0; transition: transform .2s, opacity .2s, border-radius .2s`,
-    ".eActionHolder": `display: flex; width: 100%; height: 100%; gap: 6px; overflow: auto; border-radius: inherit`,
+    ".eActionHolder": `display: flex; width: 100%; height: 100%; overflow: auto; border-radius: inherit`,
     ".eActionHolder::-webkit-scrollbar": `display: none`,
     ".eActionHolder[locked] > *": `display: none`,
     ".eActionHolder .eTool[stayonlock]": `display: unset`,
@@ -1331,7 +1337,7 @@ modules["editor/toolbar"] = class {
       }
 
       if (options.redrawAction != false) {
-        this.selection.updateActionBar({ redraw: selectionChange, hideSelectBox: options.hideSelectBox, transition: options.transition });
+        this.selection.updateActionBar({ redraw: selectionChange || options.redrawActionBar == true, hideSelectBox: options.hideSelectBox, transition: options.transition });
       }
 
       let allRealtimeSelections = realtimeHolder.querySelectorAll(".eCollabSelect");
@@ -1379,8 +1385,9 @@ modules["editor/toolbar"] = class {
     }
     this.selection.updateActionBar = async (options = {}) => {
       let removeSelectBox = true;
+      let selections = Object.keys(editor.selecting);
       let showSelectBox = (
-        Object.keys(this.selection.currentSelections).length > 0 &&
+        selections.length > 0 &&
         (this.selection.action == null || this.selection.actionEnabled == false) &&
         options.hideSelectBox != true
       );
@@ -1412,9 +1419,9 @@ modules["editor/toolbar"] = class {
 
       let newActionBar = false;
       if (this.selection.actionBar == null) { // Create UI
-        content.insertAdjacentHTML("beforeend", `<div class="eActionBar" style="width: 350px" new>
-          <div class="eActionHolder" keeptooltip></div>
-          <div class="eActionContainer" keeptooltip>
+        content.insertAdjacentHTML("beforeend", `<div class="eActionBar" top new>
+          <div class="eActionHolder eHorizontalToolsHolder" keeptoolbar></div>
+          <div class="eActionContainer" keeptoolbar>
             <div class="eActionShadow"></div>
               <div class="eActionContainerHolder">
                 <div class="eActionContainerScroll">
@@ -1427,6 +1434,71 @@ modules["editor/toolbar"] = class {
         this.selection.actionBar = content.querySelector(".eActionBar[new]");
         this.selection.actionBar.removeAttribute("new");
         newActionBar = true;
+
+        let combineTools;
+        let showLocked = false;
+        for (let i = 0; i < selections.length; i++) {
+          let render = (editor.annotations[selections[i]] ?? {}).render;
+          if (render == null) {
+            continue;
+          }
+          if (showLocked == false) {
+            showLocked = (editor.utils.canMemberModify(render) == false || editor.utils.isLocked(render) == true);
+          }
+
+          let annoModule = (await editor.render.getModule(render.f)) ?? {};
+          if (annoModule.ACTION_BAR_TOOLS == null) {
+            continue;
+          }
+          if (combineTools == null) {
+            combineTools = copyObject(annoModule.ACTION_BAR_TOOLS);
+          }
+          for (let c = 0; c < combineTools.length; c++) {
+            if (annoModule.ACTION_BAR_TOOLS.includes(combineTools[c]) == false) {
+              combineTools.splice(c, 1);
+              c--;
+            }
+          }
+        }
+        combineTools = combineTools ?? [];
+        combineTools.unshift("collaborator");
+        combineTools.push("more");
+
+        let actionButtonHolder = this.selection.actionBar.querySelector(".eActionHolder");
+        if (showLocked == false) {
+          actionButtonHolder.removeAttribute("locked");
+        } else {
+          actionButtonHolder.setAttribute("locked", "");
+        }
+        for (let i = 0; i < combineTools.length; i++) {
+          let actionRef = "editor/toolbar/" + combineTools[i];
+          let actionModule = (await this.newModule(actionRef)) ?? {};
+          actionModule.editor = editor;
+          actionModule.isActionBar = true;
+          if (actionModule.SUPPORTS_MULTIPLE_SELECT == false && selections.length > 1) {
+            continue;
+          }
+          if (actionModule.ADD_DIVIDE_BEFORE == true && actionButtonHolder.lastElementChild != null) {
+            actionButtonHolder.insertAdjacentHTML("beforeend", `<div class="eVerticalDivider" keeptoolbar></div>`);
+          }
+          actionButtonHolder.insertAdjacentHTML("beforeend", `<button class="eTool" new><div></div></button>`);
+          let newAction = actionButtonHolder.querySelector("[new]");
+          newAction.removeAttribute("new");
+          newAction.setAttribute("action", actionRef);
+          if (actionModule.SHOW_ON_LOCK == true) {
+            newAction.setAttribute("stayonlock", "");
+          }
+          let buttonHolder = newAction.querySelector("div");
+          if (actionModule.setActionButton != null) {
+            actionModule.setActionButton(buttonHolder);
+          }
+          if (actionModule.TOOLTIP != null) {
+            newAction.setAttribute("tooltip", actionModule.TOOLTIP);
+          }
+          if (actionModule.ADD_DIVIDE_AFTER == true) {
+            actionButtonHolder.insertAdjacentHTML("beforeend", `<div class="eVerticalDivider" keeptoolbar></div>`);
+          }
+        }
       }
 
       // Update Action Bar UI
@@ -4949,6 +5021,13 @@ modules["editor/toolbar/color"] = class {
     color.style.background = "#" + (preference.color ?? {}).selected;
     color.style.opacity = preference.opacity / 100;
   }
+  setActionButton = (button) => {
+    button.innerHTML = `<div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div>`;
+    let color = button.querySelector(".eSubToolColor");
+    let preference = this.parent.getPreferenceTool();
+    color.style.background = "#" + preference.c;
+    color.style.opacity = (preference.o ?? 100) / 100;
+  }
 
   USER_SELECT = "none";
 
@@ -5339,8 +5418,18 @@ modules["editor/toolbar/thickness"] = class {
     let thickness = button.querySelector(".eSubToolThickness");
     let preference = this.parent.getToolPreference();
     thickness.style.background = "#" + (preference.color ?? {}).selected;
+    thickness.style.width = "44px";
     thickness.style.height = preference.thickness + "px";
     thickness.style.opacity = preference.opacity / 100;
+  }
+  setActionButton = (button) => {
+    button.innerHTML = `<div class="eSubToolThicknessButtonHolder"><div class="eSubToolThicknessHolder"><div class="eSubToolThickness"></div></div></div>`;
+    let thickness = button.querySelector(".eSubToolThickness");
+    let preference = this.parent.getPreferenceTool();
+    thickness.style.background = "#" + preference.c;
+    thickness.style.width = preference.t + "px";
+    thickness.style.height = "44px";
+    thickness.style.opacity = (preference.o ?? 100) / 100;
   }
 
   USER_SELECT = "none";
@@ -5352,11 +5441,12 @@ modules["editor/toolbar/thickness"] = class {
   </div>
   `;
   css = {
-    ".eSubToolThicknessButtonHolder": `position: relative; display: flex; width: 100%; height: 100%; align-items: center; overflow: hidden`,
+    ".eSubToolThicknessButtonHolder": `position: relative; display: flex; width: 100%; height: 100%; justify-content: center; align-items: center; overflow: hidden`,
     ".eSubToolThicknessHolder": `position: absolute; padding: 3px; background: var(--pageColor); border-radius: 14px`,
     ".eToolbarHolder[left] .eSubToolThicknessHolder": `transform: translateX(-12px)`,
     ".eToolbarHolder[right] .eSubToolThicknessHolder": `transform: translateX(4px)`,
-    ".eSubToolThickness": `width: 44px; border-radius: 10px`,
+    ".eActionBar .eSubToolThicknessHolder": `transform: translateY(10px)`,
+    ".eSubToolThickness": `border-radius: 10px`,
 
     ".eSubToolThicknessFrame": `box-sizing: border-box; display: flex; width: 188px; height: 50px; padding: 8px; align-items: center`,
     ".eSubToolThicknessInput": `width: 40px; height: 26px; border: solid 3px var(--secondary); outline: none; border-radius: 17px; font-family: var(--font); font-size: 18px; font-weight: 700; color: var(--theme); text-align: center`,
@@ -5471,6 +5561,17 @@ modules["editor/toolbar/opacity"] = class {
       let preference = this.parent.getToolPreference();
       svg.querySelector("path").style.opacity = preference.opacity / 100;
       svg.style.setProperty("--toolColor", "#" + (preference.color ?? {}).selected);
+    }
+  }
+  setActionButton = async (button) => {
+    button.innerHTML = `<div class="eSubToolOpacityHolder"></div>`;
+    let opacity = button.querySelector(".eSubToolOpacityHolder");
+    await setSVG(opacity, "./images/editor/toolbar/opacity.svg");
+    let svg = opacity.querySelector("svg");
+    if (svg != null) {
+      let preference = this.parent.getPreferenceTool();
+      svg.querySelector("path").style.opacity = (preference.o ?? 100) / 100;
+      svg.style.setProperty("--toolColor", "#" + preference.c);
     }
   }
 

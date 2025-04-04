@@ -3015,6 +3015,8 @@ modules["editor/render/draw"] = class {
   CAN_ERASE = true;
   RESIZE_PRESERVE_ASPECT = true;
   CAN_BE_SNAPPED_TO = false;
+
+  ACTION_BAR_TOOLS = ["color", "thickness", "opacity", "unlock", "delete"];
   
   render = (anno, element, holder) => {
     let halfT = anno.t / 2;
@@ -3087,6 +3089,8 @@ modules["editor/render/markup"] = class {
   RESIZE_PRESERVE_ASPECT = true;
   CAN_BE_SNAPPED_TO = false;
 
+  ACTION_BAR_TOOLS = ["color", "thickness", "opacity", "unlock", "delete"];
+
   render = (anno, element, holder) => {
     if (element == null) {
       holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
@@ -3152,6 +3156,8 @@ modules["editor/render/text"] = class {
   SHOW_ONLY_WIDTH_HANDLES = true;
   AUTO_TEXT_FIT = true;
   AUTO_SET_HEIGHT = true;
+
+  ACTION_BAR_TOOLS = ["textedit", "color", "opacity", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "unlock", "delete"];
 
   css = {
     ".eAnnotation div[text]": `padding: 4px 6px; margin: 3px; color: var(--themeColor); font-weight: 500; pointer-events: all; outline: none`,
@@ -3233,6 +3239,8 @@ modules["editor/render/text"] = class {
   }
 }
 modules["editor/render/shape"] = class {
+  ACTION_BAR_TOOLS = ["color", "thickness", "opacity", "style", "unlock", "delete"];
+
   render = (anno, element, holder) => {
     if (element == null) {
       holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
@@ -3399,6 +3407,9 @@ modules["editor/render/shape"] = class {
 }
 modules["editor/render/sticky"] = class {
   ALLOW_SELECT_OVERFLOW = true;
+
+  ACTION_BAR_TOOLS = ["textedit", "color", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "unlock", "reactions", "delete"];
+
   SELECTION_FUNCTION = (selection) => {
     if (["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {
       selection.resizePreserveAspect = true;
@@ -3568,6 +3579,8 @@ modules["editor/render/page"] = class {
   //CAN_ROTATE = false;
   CAN_FLIP = false;
   SELECT_BOX_COVER = true;
+
+  ACTION_BAR_TOOLS = ["uploadpage", "resize", "settitle", "color", "hidepage", "rotatepage", "unlock", "delete"];
 
   SELECTION_FUNCTION = (selection, render) => {
     if (render.source != null && ["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {
@@ -3753,6 +3766,8 @@ modules["editor/render/page"] = class {
   }
 }
 modules["editor/render/media"] = class {
+  ACTION_BAR_TOOLS = ["unlock", "delete"];
+
   SELECTION_FUNCTION = (selection) => {
     if (["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {
       selection.resizePreserveAspect = true;
@@ -3810,6 +3825,8 @@ modules["editor/render/media"] = class {
   }
 }
 modules["editor/render/embed"] = class {
+  ACTION_BAR_TOOLS = ["openlink", "enlarge", "setembed", "unlock", "delete"];
+
   css = {
     ".eAnnotation[embed]": `display: flex; background: var(--pageColor); border-radius: 16px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all; text-align: left`,
     ".eAnnotation[embed] div[holder]": `display: flex; flex-direction: column; width: calc(100% - 16px); flex: 1; padding: 8px`,

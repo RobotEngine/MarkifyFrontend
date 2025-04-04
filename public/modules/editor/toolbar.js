@@ -1475,7 +1475,6 @@ modules["editor/toolbar"] = class {
         actionButtonHolder.innerHTML = "";
         let newActionButtons = [];
         for (let i = 0; i < combineTools.length; i++) {
-          let actionRef = "editor/toolbar/" + combineTools[i];
           actionButtonHolder.insertAdjacentHTML("beforeend", `<button class="eTool" new><div></div></button>`);
           let newAction = actionButtonHolder.querySelector("[new]");
           newAction.removeAttribute("new");

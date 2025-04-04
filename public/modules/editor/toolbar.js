@@ -84,19 +84,20 @@ modules["editor/toolbar"] = class {
     ".eDivider": `width: calc(100% - 8px); height: 4px; margin: 2px 0; background: var(--hover); border-radius: 2px`,
     ".eVerticalDivider": `width: 4px; height: calc(100% - 8px); margin: 0 2px; background: var(--hover); border-radius: 2px`,
 
-    ".eSubToolHolder": `position: absolute; max-height: 100%; background: var(--pageColor); z-index: 2; opacity: 0; transition: opacity .25s, transform .25s; border-radius: var(--borderRadius)`,
-    ".eToolbarHolder[left] .eSubToolHolder": `left: 100%; padding-left: 4px; border-radius: 0 12px 12px 0`,
-    ".eToolbarHolder[right] .eSubToolHolder": `right: 100%; padding-right: 4px; border-radius: 12px 0 0 12px`,
-    ".eToolbarHolder[left] .eSubToolHolder:after": `content: ""; position: absolute; width: 4px; height: 100%; left: 0px; top: 0px; background: var(--theme); z-index: 4`,
-    ".eToolbarHolder[right] .eSubToolHolder:after": `content: ""; position: absolute; width: 4px; height: 100%; right: 0px; top: 0px; background: var(--theme); z-index: 4`,
-    ".eSubToolHolder[option]:after": `background: var(--secondary)`,
+    ".eToolbarHolder[left] .eSubToolHolder": `position: absolute; width: 100vw; height: 100%; padding: 12px; left: calc(100% - 12px); top: -12px; z-index: 2; overflow: hidden`,
+    ".eToolbarHolder[right] .eSubToolHolder": `position: absolute; width: 100vw; height: 100%; padding: 12px; right: calc(100% - 12px); top: -12px; z-index: 2; overflow: hidden`,
+    ".eToolbarHolder[left] .eSubToolContainer": `position: absolute; width: fit-content; max-height: 100%; left: 12px; padding-left: 4px; background: var(--pageColor); border-radius: 0 12px 12px 0; opacity: 0; transition: opacity .25s, transform .25s`,
+    ".eToolbarHolder[right] .eSubToolContainer": `position: absolute; width: fit-content; max-height: 100%; right: 12px; padding-right: 4px; background: var(--pageColor); border-radius: 12px 0 0 12px; opacity: 0; transition: opacity .25s, transform .25s`,
+    ".eToolbarHolder[left] .eSubToolContainer:after": `content: ""; position: absolute; width: 4px; height: 100%; left: 0px; top: 0px; background: var(--theme); z-index: 4`,
+    ".eToolbarHolder[right] .eSubToolContainer:after": `content: ""; position: absolute; width: 4px; height: 100%; right: 0px; top: 0px; background: var(--theme); z-index: 4`,
+    ".eSubToolContainer[option]:after": `background: var(--secondary) !important`,
     ".eToolbarHolder[left] .eSubToolShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 16px 16px 0; left: 0px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
     ".eToolbarHolder[right] .eSubToolShadow": `position: absolute; width: 100%; height: 100%; padding: 16px 0 16px 16px; right: 0px; top: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
     ".eToolbarHolder[left] .eSubToolShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); left: 0px; top: 16px; content: ""; box-shadow: var(--lightShadow); border-radius: inherit`,
     ".eToolbarHolder[right] .eSubToolShadow:after": `position: absolute; width: calc(100% - 16px); height: calc(100% - 32px); right: 0px; top: 16px; content: ""; box-shadow: var(--lightShadow); border-radius: inherit`,
     ".eSubToolContentHolder": `position: relative; background: var(--pageColor); z-index: 3; overflow: hidden; border-radius: inherit`,
     ".eSubToolContentScroll": `width: fit-content; overflow: auto`,
-    ".eSubToolHolder[option] .eSubToolContentScroll": `overflow: visible`,
+    ".eSubToolContainer[option] .eSubToolContentScroll": `overflow: visible`,
     ".eVerticalToolsHolder": `display: flex; flex-direction: column; padding: 2px 0; align-items: center`,
     ".eHorizontalToolsHolder": `display: flex; padding: 0 2px; align-items: center`,
 
@@ -140,15 +141,16 @@ modules["editor/toolbar"] = class {
     '.eSelectSnap div[marker="snapytop"]': `width: 16px; height: 2px; top: 0px; left: 50%; transform: translateX(-50%)`,
     '.eSelectSnap div[marker="snapybottom"]': `width: 16px; height: 2px; bottom: 0px; left: 50%; transform: translateX(-50%)`,
 
-    ".eActionBar": `position: absolute; display: flex; height: 50px; background: var(--pageColor); box-shadow: var(--lightShadow); z-index: 102; border-radius: 12px; transform: translateY(-10%); opacity: 0; transition: transform .2s, opacity .2s, border-radius .2s`,
-    ".eActionHolder": `display: flex; width: 100%; height: 100%; overflow: auto; border-radius: inherit`,
-    ".eActionHolder::-webkit-scrollbar": `display: none`,
-    ".eActionHolder[locked] > *": `display: none`,
-    ".eActionHolder .eTool[stayonlock]": `display: unset`,
-    ".eActionContainer": `position: absolute; max-width: 100%; background: var(--pageColor)`,
-    ".eActionBar[top] .eActionContainer": `--shadowPadding: 16px 16px 0; --shadowBottom: 0px; --shadowTop: 16px; bottom: 100%; border-radius: 12px 12px 0 0; padding-bottom: 4px; transform-origin: bottom center`,
-    ".eActionBar[bottom] .eActionContainer": `--shadowPadding: 0 16px 16px; --shadowBottom: -16px; --shadowTop: 0px; top: 100%; border-radius: 0 0 12px 12px; padding-top: 4px; transform-origin: top center`,
-    ".eActionBar[top] .eActionContainer:after": `content: ""; position: absolute; width: 100%; height: 4px; left: 0px; bottom: 0px; background: var(--theme); z-index: 4`,
+    ".eActionBar": `position: absolute; display: flex; height: 50px; box-shadow: var(--lightShadow); z-index: 102; border-radius: 12px; transform: translateY(-10%); opacity: 0; transition: transform .2s, opacity .2s, border-radius .2s`,
+    ".eActionToolbar": `display: flex; width: 100%; height: 100%; background: var(--pageColor); overflow: auto; border-radius: inherit; z-index: 2`,
+    ".eActionToolbar::-webkit-scrollbar": `display: none`,
+    ".eActionToolbar[locked] > *": `display: none`,
+    ".eActionToolbar .eTool[stayonlock]": `display: unset`,
+    ".eActionBar[top] .eActionHolder": `position: absolute; width: 100%; height: 100vh; padding: 12px; left: -12px; bottom: calc(100% - 12px); z-index: 1; overflow: hidden`,
+    ".eActionBar[bottom] .eActionHolder": `position: absolute; width: 100%; height: 100vh; padding: 12px; left: -12px; top: calc(100% - 12px); z-index: 1; overflow: hidden`,
+    ".eActionBar[top] .eActionContainer": `--shadowPadding: 16px 16px 0; --shadowBottom: 0px; --shadowTop: 16px; position: absolute; width: fit-content; bottom: 12px; padding-bottom: 4px; background: var(--pageColor); border-radius: 12px 12px 0 0; opacity: 0; transition: opacity .25s, transform .25s`,
+    ".eActionBar[bottom] .eActionContainer": `--shadowPadding: 0 16px 16px; --shadowBottom: -16px; --shadowTop: 0px; position: absolute; width: fit-content; top: 12px; padding-top: 4px; background: var(--pageColor); border-radius: 0 0 12px 12px; opacity: 0; transition: opacity .25s, transform .25s`,
+    ".eActionBar[top] .eActionContainer:after": `content: ""; position: absolute; width: 100%; height: 4px; left: 0px; botton: 0px; background: var(--theme); z-index: 4`,
     ".eActionBar[bottom] .eActionContainer:after": `content: ""; position: absolute; width: 100%; height: 4px; left: 0px; top: 0px; background: var(--theme); z-index: 4`,
     ".eActionShadow": `position: absolute; width: 100%; height: 100%; padding: var(--shadowPadding); bottom: var(--shadowBottom); left: -16px; pointer-events: none; border-radius: inherit; overflow: hidden; z-index: -1`,
     ".eActionShadow:after": `position: absolute; width: calc(100% - 32px); height: calc(100% - 16px); left: 16px; top: var(--shadowTop); content: ""; box-shadow: var(--lightShadow); border-radius: inherit`,
@@ -508,7 +510,8 @@ modules["editor/toolbar"] = class {
       if (currentToolButton != null) {
         let toolbar = currentToolButton.closest(".eToolbar");
         if (subToolbar != null) {
-          let contentHolder = subToolbar.querySelector(".eSubToolContentHolder");
+          let contentContainer = subToolbar.querySelector(".eSubToolContainer");
+          let contentHolder = contentContainer.querySelector(".eSubToolContentHolder");
           let contentScroll = contentHolder.querySelector(".eSubToolContentScroll");
 
           let toolsRect = toolbar.getBoundingClientRect();
@@ -523,7 +526,7 @@ modules["editor/toolbar"] = class {
           } else if (setSubToolTop < 0) {
             setSubToolTop = 0;
           }
-          subToolbar.style.top = setSubToolTop + "px";
+          contentContainer.style.top = (setSubToolTop + 12) + "px";
 
           if (toolbarHolder.hasAttribute("right") == false) {
             if (setSubToolTop < 13) {
@@ -556,10 +559,10 @@ modules["editor/toolbar"] = class {
           contentHolder.style.width = contentScroll.offsetWidth + "px";
           contentHolder.style.height = contentScroll.offsetHeight + "px";
 
-          subToolbar.style.transform = "translateX(0%)";
-          subToolbar.style.opacity = 1;
+          contentContainer.style.transform = "translateX(0%)";
+          contentContainer.style.opacity = 1;
 
-          subToolbar.style.transition = "top .25s, opacity .25s, transform .25s, border-radius .25s";
+          contentContainer.style.transition = "top .25s, opacity .25s, transform .25s, border-radius .25s";
           contentHolder.style.transition = "width .25s, height .25s";
         } else {
           toolbar.style.removeProperty("border-top-right-radius");
@@ -570,9 +573,10 @@ modules["editor/toolbar"] = class {
       }
 
       if (currentSubToolButton != null) {
-        let toolbar = currentSubToolButton.closest(".eSubToolHolder");
+        let toolbar = currentSubToolButton.closest(".eSubToolContainer");
         if (subSubToolbar != null) {
-          let contentHolder = subSubToolbar.querySelector(".eSubToolContentHolder");
+          let contentContainer = subSubToolbar.querySelector(".eSubToolContainer");
+          let contentHolder = contentContainer.querySelector(".eSubToolContentHolder");
           let contentScroll = contentHolder.querySelector(".eSubToolContentScroll");
 
           let toolsRect = toolbar.getBoundingClientRect();
@@ -587,7 +591,7 @@ modules["editor/toolbar"] = class {
           } else if (setSubToolTop < 0) {
             setSubToolTop = 0;
           }
-          subSubToolbar.style.top = setSubToolTop + "px";
+          contentContainer.style.top = (setSubToolTop + 12) + "px";
 
           if (toolbarHolder.hasAttribute("right") == false) {
             if (setSubToolTop < 13) {
@@ -620,10 +624,10 @@ modules["editor/toolbar"] = class {
           contentHolder.style.width = contentScroll.offsetWidth + "px";
           contentHolder.style.height = contentScroll.offsetHeight + "px";
 
-          subSubToolbar.style.transform = "translateX(0%)";
-          subSubToolbar.style.opacity = 1;
+          contentContainer.style.transform = "translateX(0%)";
+          contentContainer.style.opacity = 1;
 
-          subSubToolbar.style.transition = "top .25s, opacity .25s, transform .25s, border-radius .25s";
+          contentContainer.style.transition = "top .25s, opacity .25s, transform .25s, border-radius .25s";
           contentHolder.style.transition = "width .25s, height .25s";
         } else {
           toolbar.style.removeProperty("border-top-right-radius");
@@ -671,21 +675,24 @@ modules["editor/toolbar"] = class {
       if (currentSubToolButton == null || moduleName == null) {
         return;
       }
-      let toolbar = currentSubToolButton.closest(".eSubToolHolder");
+      let toolbar = currentSubToolButton.closest(".eSubToolContainer");
       toolbar.insertAdjacentHTML("beforeend", `<div class="eSubToolHolder" option new>
-        <div class="eSubToolShadow"></div>
-        <div class="eSubToolContentHolder">
-          <div class="eSubToolContentScroll hideScroll">
-            <div class="eSubToolContent" closetooltip noselect></div>
+        <div class="eSubToolContainer" option>
+          <div class="eSubToolShadow"></div>
+          <div class="eSubToolContentHolder">
+            <div class="eSubToolContentScroll hideScroll">
+              <div class="eSubToolContent" closetooltip noselect></div>
+            </div>
           </div>
         </div>
       </div>`);
       subSubToolbar = toolbar.querySelector(".eSubToolHolder[new]");
       subSubToolbar.removeAttribute("new");
+      let contentContainer = subSubToolbar.querySelector(".eSubToolContainer");
       if (toolbarHolder.hasAttribute("right") == false) {
-        subSubToolbar.style.transform = "translateX(-100%)";
+        contentContainer.style.transform = "translateX(-100%)";
       } else {
-        subSubToolbar.style.transform = "translateX(100%)";
+        contentContainer.style.transform = "translateX(100%)";
       }
       this.applyToolModule(await this.setFrame(moduleName, subSubToolbar.querySelector(".eSubToolContent"), { editor: editor, toolbar: true }));
     }
@@ -705,12 +712,13 @@ modules["editor/toolbar"] = class {
       }
       (async () => {
         removeToolbar.style.zIndex = 1;
+        let contentContainer = removeToolbar.querySelector(".eSubToolContainer");
         if (toolbarHolder.hasAttribute("right") == false) {
-          removeToolbar.style.transform = "translateX(-100%)";
+          contentContainer.style.transform = "translateX(-100%)";
         } else {
-          removeToolbar.style.transform = "translateX(100%)";
+          contentContainer.style.transform = "translateX(100%)";
         }
-        removeToolbar.style.opacity = 0;
+        contentContainer.style.opacity = 0;
         await sleep(300);
         if (removeToolbar != null) {
           removeToolbar.remove();
@@ -727,20 +735,23 @@ modules["editor/toolbar"] = class {
       }
 
       let toolbar = currentToolButton.closest(".eToolbar");
-      toolbar.insertAdjacentHTML("beforeend", `<div class="eSubToolHolder" keeptooltip new>
-        <div class="eSubToolShadow"></div>
-        <div class="eSubToolContentHolder">
-          <div class="eSubToolContentScroll hideScroll">
-            <div class="eSubToolContent" keeptooltip></div>
+      toolbar.insertAdjacentHTML("beforeend", `<div class="eSubToolHolder" new>
+        <div class="eSubToolContainer" keeptooltip>
+          <div class="eSubToolShadow"></div>
+          <div class="eSubToolContentHolder">
+            <div class="eSubToolContentScroll hideScroll">
+              <div class="eSubToolContent" keeptooltip></div>
+            </div>
           </div>
         </div>
       </div>`);
       subToolbar = toolbar.querySelector(".eSubToolHolder[new]");
       subToolbar.removeAttribute("new");
+      let contentContainer = subToolbar.querySelector(".eSubToolContainer");
       if (toolbarHolder.hasAttribute("right") == false) {
-        subToolbar.style.transform = "translateX(-100%)";
+        contentContainer.style.transform = "translateX(-100%)";
       } else {
-        subToolbar.style.transform = "translateX(100%)";
+        contentContainer.style.transform = "translateX(100%)";
       }
 
       let contentHolder = subToolbar.querySelector(".eSubToolContent");
@@ -765,12 +776,13 @@ modules["editor/toolbar"] = class {
       this.toolbar.closeSubSub(false);
       (async () => {
         removeToolbar.style.zIndex = 1;
+        let contentContainer = removeToolbar.querySelector(".eSubToolContainer");
         if (toolbarHolder.hasAttribute("right") == false) {
-          removeToolbar.style.transform = "translateX(-100%)";
+          contentContainer.style.transform = "translateX(-100%)";
         } else {
-          removeToolbar.style.transform = "translateX(100%)";
+          contentContainer.style.transform = "translateX(100%)";
         }
-        removeToolbar.style.opacity = 0;
+        contentContainer.style.opacity = 0;
         await sleep(300);
         if (removeToolbar != null) {
           removeToolbar.remove();
@@ -1422,12 +1434,14 @@ modules["editor/toolbar"] = class {
       let newActionBar = false;
       if (this.selection.actionBar == null) { // Create UI
         content.insertAdjacentHTML("beforeend", `<div class="eActionBar" top new>
-          <div class="eActionHolder eHorizontalToolsHolder" keeptooltip></div>
-          <div class="eActionContainer" keeptooltip>
-            <div class="eActionShadow"></div>
-              <div class="eActionContainerHolder">
-                <div class="eActionContainerScroll">
-                  <div class="eActionContainerContent"></div>
+          <div class="eActionToolbar eHorizontalToolsHolder" keeptooltip></div>
+          <div class="eActionHolder">
+            <div class="eActionContainer" keeptooltip>
+              <div class="eActionShadow"></div>
+                <div class="eActionContainerHolder">
+                  <div class="eActionContainerScroll">
+                    <div class="eActionContainerContent"></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1468,7 +1482,7 @@ modules["editor/toolbar"] = class {
         combineTools.unshift("collaborator");
         combineTools.push("more");
 
-        let actionButtonHolder = this.selection.actionBar.querySelector(".eActionHolder");
+        let actionButtonHolder = this.selection.actionBar.querySelector(".eActionToolbar");
         if (showLocked == false) {
           actionButtonHolder.removeAttribute("locked");
         } else {
@@ -1564,7 +1578,7 @@ modules["editor/toolbar"] = class {
       }
 
       // Update Action Frame UI
-      let actionFrame = this.selection.actionBar.querySelector(".eActionContainer[module]");
+      let actionFrame = this.selection.actionBar.querySelector(".eActionHolder[module]");
       if (actionFrame == null) {
         return;
       }

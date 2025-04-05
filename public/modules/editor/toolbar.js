@@ -1419,7 +1419,8 @@ modules["editor/toolbar"] = class {
         this.selection.lastCheckY = this.selection.checkY;
       }
       if (removeActionBar == true && this.selection.actionBar != null) {
-        this.selection.closeActionFrame();
+        this.selection.actionFrame = null;
+        this.selection.actionFrameButton = null;
         let removeActionBar = this.selection.actionBar;
         this.selection.actionBar = null;
         (async () => {

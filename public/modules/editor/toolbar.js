@@ -954,7 +954,7 @@ modules["editor/toolbar"] = class {
     }
     this.setToolPreference = (path, value) => {
       let split = path.split(".");
-      let check = this.getToolPreference();
+      let check = this.getAnnotationPreference(true) ?? this.getToolPreference();
       for (let i = 0; i < split.length; i++) {
         if (i < split.length - 1) {
           check = check[split[i]];
@@ -972,8 +972,12 @@ modules["editor/toolbar"] = class {
         ...(editor.selecting[annoID] ?? {})
       };
     }
-    this.getAnnotationPreference = () => {
-      return editor.preferences.tools[this.getPreferenceTool().f] ?? {};
+    this.getAnnotationPreference = (returnMissing) => {
+      let result = editor.preferences.tools[this.getPreferenceTool().f];
+      if (returnMissing == true) {
+        return result;
+      }
+      return result ?? {};
     }
 
     this.selection = {};
@@ -1420,6 +1424,9 @@ modules["editor/toolbar"] = class {
         let removeActionBar = this.selection.actionBar;
         this.selection.actionBar = null;
         (async () => {
+          if (removeActionBar == null) {
+            return;
+          }
           removeActionBar.style.transform = "translateY(-10%)";
           removeActionBar.style.opacity = 0;
           await sleep(200);
@@ -1722,7 +1729,7 @@ modules["editor/toolbar"] = class {
         this.selection.actionFrameButton.removeAttribute("selected");
       }
       this.selection.actionFrameButton = null;
-      if (this.selection.actionFrame == null || this.selection.actionBar == null) {
+      if (this.selection.actionFrame == null) {
         return;
       }
       let removeFrame = this.selection.actionFrame;
@@ -1736,10 +1743,12 @@ modules["editor/toolbar"] = class {
         } else {
           contentContainer.style.transform = "translateY(-100%)";
         }
-        this.selection.actionBar.style.removeProperty("border-top-left-radius");
-        this.selection.actionBar.style.removeProperty("border-top-right-radius");
-        this.selection.actionBar.style.removeProperty("border-bottom-left-radius");
-        this.selection.actionBar.style.removeProperty("border-bottom-right-radius");
+        if (this.selection.actionBar != null) {
+          this.selection.actionBar.style.removeProperty("border-top-left-radius");
+          this.selection.actionBar.style.removeProperty("border-top-right-radius");
+          this.selection.actionBar.style.removeProperty("border-bottom-left-radius");
+          this.selection.actionBar.style.removeProperty("border-bottom-right-radius");
+        }
         contentContainer.style.opacity = 0;
         await sleep(300);
         if (removeFrame != null) {
@@ -5255,7 +5264,7 @@ modules["editor/toolbar/color"] = class {
     ".eSubToolColorFrame": `position: relative; width: 188px; min-height: 96px`,
     ".eSubToolColorSelector": `display: flex; flex-wrap: wrap; top: 0px; padding: 2px; justify-content: center; align-items: center; transform: scale(1); opacity: 1; transition: .5s`,
     ".eSubToolColorSelector .eTool": `width: 46px; height: 46px`,
-    ".eSubToolColorSelector .eTool > div": `margin: 2px !important; border-radius: 8px !important`,
+    ".eSubToolColorSelector .eTool > div": `margin: 2px !important !important; border-radius: 8px !important`,
     ".eSubToolColorSelector .eSubToolColor": `width: 28px; height: 28px`,
 
     ".eSubToolColorPicker": `width: 188px; position: absolute; top: 0px; transform: scale(.9); opacity: 0; transition: .5s; pointer-events: none; touch-action: none`,

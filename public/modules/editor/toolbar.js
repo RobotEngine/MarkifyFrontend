@@ -60,23 +60,22 @@ modules["editor/toolbar"] = class {
     ".eToolbarHolder[right] .eToolbar": `right: 0px; border-radius: 12px 0 0 12px; transform-origin: right center`,
     ".eToolbarTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; z-index: 5; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; transform: scale(0); opacity: 0`,
 
-    ".eToolbarHolder .eTool": `--hoverColor: var(--hover); width: 50px; height: 46px; flex-shrink: 0; padding: 0; transition: opacity .3s`,
-    ".eActionBar .eTool": `--hoverColor: var(--hover); width: 46px; height: 50px; flex-shrink: 0; padding: 0; transition: opacity .3s`,
-    ".eToolbarHolder[left] .eTool > div": `display: flex; width: 42px; height: 42px; margin: 2px 4px; justify-content: left; align-items: center; border-radius: 8px; transition: .2s; overflow: hidden`,
-    ".eToolbarHolder[right] .eTool > div": `display: flex; width: 42px; height: 42px; margin: 2px 4px; justify-content: right; align-items: center; border-radius: 8px; transition: .2s; overflow: hidden`,
-    ".eActionBar[top] .eTool > div": `display: flex; width: 42px; height: 42px; margin: 4px 2px; justify-content: center; align-items: end; border-radius: 8px; transition: .2s; overflow: hidden`,
-    ".eActionBar[bottom] .eTool > div": `display: flex; width: 42px; height: 42px; margin: 4px 2px; justify-content: center; align-items: start; border-radius: 8px; transition: .2s; overflow: hidden`,
+    ".eToolbarHolder .eTool": `--hoverColor: var(--hover); display: flex; width: 50px; height: 46px; flex-shrink: 0; padding: 0; justify-content: center; align-items: center; transition: opacity .3s`,
+    ".eActionBar .eTool": `--hoverColor: var(--hover); display: flex; width: 46px; height: 50px; flex-shrink: 0; padding: 0; justify-content: center; align-items: center; transition: opacity .3s`,
+    ".eTool > div": `position: relative; display: flex; width: 42px; height: 42px; border-radius: 8px; transition: .2s`,
+    ".eTool > div:after": `content: ""; position: absolute; width: 42px; height: 42px; left: 0px; top: 0px; border-radius: 8px; z-index: 1; transition: .2s`,
+    ".eTool > div > *": `z-index: 2`,
     ".eTool > div > svg": `width: 40px; height: 40px; margin: 1px`,
-    ".eTool:hover > div": `background: var(--hoverColor)`,
+    ".eTool:hover > div:after": `background: var(--hoverColor)`,
     ".eTool:active": `transform: unset !important`,
-    ".eToolbarHolder .eTool:active > div": `width: 42px !important; margin: 2px 4px !important; border-radius: 8px !important; transform: scale(.95)`,
-    ".eActionBar .eTool:active > div": `height: 42px !important; margin: 4px 2px !important; border-radius: 8px !important; transform: scale(.95)`,
-    ".eTool[selected] > div": `background: var(--theme)`,
-    ".eTool[selected][option] > div": `background: var(--secondary)`,
-    ".eToolbarHolder[left] .eTool[extend] > div": `width: 46px; margin: 2px 0 2px 4px; border-radius: 8px 0 0 8px; justify-content: left`,
-    ".eToolbarHolder[right] .eTool[extend] > div": `width: 46px; margin: 2px 4px 2px 0; border-radius: 0 8px 8px 0; justify-content: right`,
-    ".eActionBar[top] .eTool[extend] > div": `height: 46px; margin: 0 2px 4px 2px; border-radius: 0 0 8px 8px; align-items: end`,
-    ".eActionBar[bottom] .eTool[extend] > div": `height: 46px; margin: 4px 2px 0 2px; border-radius: 8px 8px 0 0; align-items: start`,
+    ".eTool:active > div": `transform: scale(.95)`,
+    ".eTool:active > div:after": `width: 42px !important; height: 42px !important; left: 0px !important; top: 0px !important; border-radius: 8px !important`,
+    ".eTool[selected] > div:after": `background: var(--theme)`,
+    ".eTool[selected][option] > div:after": `background: var(--secondary) !important`,
+    ".eToolbarHolder[left] .eTool[extend] > div:after": `width: 46px; left: 0px; top: 0px; border-radius: 8px 0 0 8px`,
+    ".eToolbarHolder[right] .eTool[extend] > div:after": `width: 46px; left: 4px; top: 0px; border-radius: 0 8px 8px 0`,
+    ".eActionBar[top] .eTool[extend] > div:after": `height: 46px; left: 0px; top: -4px; border-radius: 0 0 8px 8px`,
+    ".eActionBar[bottom] .eTool[extend] > div:after": `height: 46px; left: 0px; top: 0px; border-radius: 8px 8px 0 0`,
     ".eTool[selecthighlight] > div": `background: var(--theme)`,
     ".eTool[selecthighlight]:active > div": `border-radius: 8px !important`,
     ".eTool[off]": `opacity: 0.5`,
@@ -1603,12 +1602,10 @@ modules["editor/toolbar"] = class {
         }
 
         if (alignTop == true) {
-          if (this.selection.actionFrame.hasAttribute("top") == false) {
-            this.selection.actionBar.setAttribute("top", "");
-            this.selection.actionBar.removeAttribute("bottom");
-            this.selection.actionFrame.setAttribute("top", "");
-            this.selection.actionFrame.removeAttribute("bottom");
-          }
+          this.selection.actionBar.setAttribute("top", "");
+          this.selection.actionBar.removeAttribute("bottom");
+          this.selection.actionFrame.setAttribute("top", "");
+          this.selection.actionFrame.removeAttribute("bottom");
 
           if (frameLeft < 16) {
             this.selection.actionBar.style.borderTopLeftRadius = "0px";
@@ -1641,9 +1638,6 @@ modules["editor/toolbar"] = class {
           this.selection.actionBar.style.removeProperty("border-top-left-radius");
           this.selection.actionBar.style.removeProperty("border-top-right-radius");
         }
-      } else {
-        this.selection.actionBar.setAttribute("top", "");
-        this.selection.actionBar.removeAttribute("bottom");
       }
 
       if (newActionBar == true) {

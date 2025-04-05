@@ -73,7 +73,7 @@ modules["editor/toolbar"] = class {
     ".eTool[selected] > div:after": `background: var(--theme)`,
     ".eTool[selected][option] > div:after": `background: var(--secondary) !important`,
     ".eToolbarHolder[left] .eTool[extend] > div:after": `width: 46px; left: 0px; top: 0px; border-radius: 8px 0 0 8px`,
-    ".eToolbarHolder[right] .eTool[extend] > div:after": `width: 46px; left: 4px; top: 0px; border-radius: 0 8px 8px 0`,
+    ".eToolbarHolder[right] .eTool[extend] > div:after": `width: 46px; left: -4px; top: 0px; border-radius: 0 8px 8px 0`,
     ".eActionBar[top] .eTool[extend] > div:after": `height: 46px; left: 0px; top: -4px; border-radius: 0 0 8px 8px`,
     ".eActionBar[bottom] .eTool[extend] > div:after": `height: 46px; left: 0px; top: 0px; border-radius: 8px 8px 0 0`,
     ".eTool[selecthighlight] > div": `background: var(--theme)`,

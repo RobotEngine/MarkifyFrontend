@@ -1573,6 +1573,7 @@ modules["editor/toolbar"] = class {
 
       if (this.selection.actionFrame != null) {
         let actionContent = this.selection.actionFrame.querySelector(".eActionContainerContent");
+        let actionContainer = this.selection.actionFrame.querySelector(".eActionContainer");
         let alignTop;
         if (isBottom == false) {
           alignTop = true;
@@ -1596,9 +1597,9 @@ modules["editor/toolbar"] = class {
             frameLeft = 0;
           }
           this.selection.actionFrame.style.left = (frameLeft - 12) + "px";
-          this.selection.actionFrame.style.width = (actionContent.clientWidth + 4) + "px";
-          this.selection.actionFrame.style.height = (actionContent.clientHeight + 4) + "px";
-          this.selection.actionFrame.style.setProperty("--actionBarWidth", this.selection.actionBar.offsetWidth + "px");
+          actionContainer.style.width = (actionContent.clientWidth + 4) + "px";
+          actionContainer.style.height = (actionContent.clientHeight + 4) + "px";
+          actionContainer.style.setProperty("--actionBarWidth", this.selection.actionBar.offsetWidth + "px");
           //this.selection.actionFrame.querySelector(".eActionContainerScroll").style.maxWidth = this.selection.actionBar.offsetWidth + "px";
         }
 
@@ -1713,7 +1714,7 @@ modules["editor/toolbar"] = class {
           containerFrame.style.transform = "translateY(-100%)";
         }
         containerFrame.offsetHeight;
-        containerFrame.style.transition = "opacity .25s, transform .25s";
+        containerFrame.style.transition = "width .3s, height .3s, opacity .3s, transform .3s";
         containerFrame.style.transform = "translateY(0%)";
         containerFrame.style.opacity = 1;
       }
@@ -5374,6 +5375,7 @@ modules["editor/toolbar/color"] = class {
         if (isToolbar == true) {
           toolbar.toolbar.update();
         } else {
+          toolbar.selection.updateActionBar();
           //extra.updateActionUI();
         }
       }
@@ -5394,7 +5396,7 @@ modules["editor/toolbar/color"] = class {
       if (isToolbar == true) {
         toolbar.toolbar.update();
       } else {
-        //extra.updateActionUI();
+        toolbar.selection.updateActionBar();
       }
     });
 

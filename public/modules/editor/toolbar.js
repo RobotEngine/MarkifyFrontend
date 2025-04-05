@@ -1714,7 +1714,7 @@ modules["editor/toolbar"] = class {
           containerFrame.style.transform = "translateY(-100%)";
         }
         containerFrame.offsetHeight;
-        containerFrame.style.transition = "width .3s, height .3s, opacity .3s, transform .3s";
+        containerFrame.style.transition = "width .25s, height .25s, opacity .25s, transform .25s";
         containerFrame.style.transform = "translateY(0%)";
         containerFrame.style.opacity = 1;
       }

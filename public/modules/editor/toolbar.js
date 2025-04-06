@@ -1577,12 +1577,12 @@ modules["editor/toolbar"] = class {
         let alignTop;
         if (isBottom == false) {
           alignTop = true;
-          if (yPos - actionContent.offsetHeight - 4 < editor.scrollOffset) {
+          if (yPos - actionContent.offsetHeight - 8 < editor.scrollOffset) {
             alignTop = false;
           }
         } else {
           alignTop = false;
-          if (page.offsetHeight - yPos - this.selection.actionFrame.offsetHeight - actionContent.offsetHeight - 4 < editor.scrollOffset) {
+          if (page.offsetHeight - yPos - this.selection.actionFrame.offsetHeight - actionContent.offsetHeight - 8 < editor.scrollOffset) {
             alignTop = true;
           }
         }

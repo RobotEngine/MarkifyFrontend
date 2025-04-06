@@ -1590,8 +1590,8 @@ modules["editor/toolbar"] = class {
           let frameLeft = 0;
           if (this.selection.actionFrameButton != null) {
             frameLeft = (this.selection.actionFrameButton.getBoundingClientRect().left - this.selection.actionBar.getBoundingClientRect().left) + (this.selection.actionFrameButton.offsetWidth / 2) - (actionContent.offsetWidth / 2);
-            if (frameLeft + actionContent.offsetWidth > this.selection.actionBar.offsetWidth) {
-              frameLeft = this.selection.actionBar.offsetWidth - actionContent.offsetWidth;
+            if (frameLeft + actionContent.offsetWidth > this.selection.actionBar.offsetWidth - 4) {
+              frameLeft = this.selection.actionBar.offsetWidth - actionContent.offsetWidth - 4;
             }
             if (frameLeft < 0) {
               frameLeft = 0;

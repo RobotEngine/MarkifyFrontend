@@ -1528,117 +1528,118 @@ modules["editor/toolbar"] = class {
       }
 
       // Update Action Bar UI
-      //if (options.skipUpdate != true || newActionBar == true) {
-      let annotationRect = editor.utils.localBoundingRect(annotations);
-      let pxLeft = annotationRect.left + ((this.selection.minX + ((this.selection.maxX - this.selection.minX) / 2)) * editor.zoom) - (this.selection.actionBar.offsetWidth / 2);
-      if (toolbarHolder.hasAttribute("right") == false) {
-        if (pxLeft + this.selection.actionBar.offsetWidth + 8 > contentHolder.clientWidth) {
-          pxLeft -= (pxLeft + this.selection.actionBar.offsetWidth + 8) - contentHolder.clientWidth;
-        }
-        pxLeft = Math.max(pxLeft, editor.scrollOffset);
-      } else {
-        if (pxLeft + this.selection.actionBar.offsetWidth + editor.scrollOffset > contentHolder.clientWidth) {
-          pxLeft -= (pxLeft + this.selection.actionBar.offsetWidth + editor.scrollOffset) - contentHolder.clientWidth;
-        }
-        pxLeft = Math.max(pxLeft, 8);
-      }
-      let yPos = annotationRect.top + (this.selection.minY * editor.zoom) - this.selection.actionBar.offsetHeight - this.selection.handlePadding;
-      let isBottom = false;
-      if (yPos < editor.scrollOffset) {
-        let modifiedY = annotationRect.top + (this.selection.maxY * editor.zoom) + this.selection.handlePadding;
-        if (modifiedY + this.selection.actionBar.offsetHeight + editor.scrollOffset > contentHolder.clientHeight) {
-          yPos = editor.scrollOffset;
-        } else {
-          yPos = modifiedY;
-          isBottom = true;
-        }
-      }
-      this.selection.actionBar.style.maxWidth = (contentHolder.clientWidth - editor.scrollOffset - 8) + "px";
-      this.selection.actionBar.style.left = (pxLeft + contentHolder.scrollLeft) + "px";
-      this.selection.actionBar.style.top = (yPos + contentHolder.scrollTop) + "px";
-
-      if (isBottom == false) { // Is at top
-        if (yPos - 32 < editor.scrollOffset) {
-          this.selection.actionBar.setAttribute("tooltipbottom", "");
-        } else {
-          this.selection.actionBar.removeAttribute("tooltipbottom");
-        }
-      } else { // Is at bottom
-        if (contentHolder.clientHeight - yPos - this.selection.actionBar.offsetHeight - 32 < editor.scrollOffset) {
-          this.selection.actionBar.removeAttribute("tooltipbottom");
-        } else {
-          this.selection.actionBar.setAttribute("tooltipbottom", "");
-        }
-      }
-
-      if (this.selection.actionFrame != null) {
-        let actionContent = this.selection.actionFrame.querySelector(".eActionContainerContent");
-        let actionContainer = this.selection.actionFrame.querySelector(".eActionContainer");
-        let alignTop;
-        if (isBottom == false) {
-          alignTop = true;
-          if (yPos - actionContent.offsetHeight - 8 < editor.scrollOffset) {
-            alignTop = false;
+      if (options.skipUpdate != true || newActionBar == true) {
+        let annotationRect = editor.utils.localBoundingRect(annotations);
+        let pxLeft = annotationRect.left + ((this.selection.minX + ((this.selection.maxX - this.selection.minX) / 2)) * editor.zoom) - (this.selection.actionBar.offsetWidth / 2);
+        if (toolbarHolder.hasAttribute("right") == false) {
+          if (pxLeft + this.selection.actionBar.offsetWidth + 8 > contentHolder.clientWidth) {
+            pxLeft -= (pxLeft + this.selection.actionBar.offsetWidth + 8) - contentHolder.clientWidth;
           }
+          pxLeft = Math.max(pxLeft, editor.scrollOffset);
         } else {
-          alignTop = false;
-          if (page.offsetHeight - yPos - this.selection.actionFrame.offsetHeight - actionContent.offsetHeight - 8 < editor.scrollOffset) {
+          if (pxLeft + this.selection.actionBar.offsetWidth + editor.scrollOffset > contentHolder.clientWidth) {
+            pxLeft -= (pxLeft + this.selection.actionBar.offsetWidth + editor.scrollOffset) - contentHolder.clientWidth;
+          }
+          pxLeft = Math.max(pxLeft, 8);
+        }
+        let yPos = annotationRect.top + (this.selection.minY * editor.zoom) - this.selection.actionBar.offsetHeight - this.selection.handlePadding;
+        let isBottom = false;
+        if (yPos < editor.scrollOffset) {
+          let modifiedY = annotationRect.top + (this.selection.maxY * editor.zoom) + this.selection.handlePadding;
+          if (modifiedY + this.selection.actionBar.offsetHeight + editor.scrollOffset > contentHolder.clientHeight) {
+            yPos = editor.scrollOffset;
+          } else {
+            yPos = modifiedY;
+            isBottom = true;
+          }
+        }
+        this.selection.actionBar.style.maxWidth = (contentHolder.clientWidth - editor.scrollOffset - 8) + "px";
+        this.selection.actionBar.style.left = (pxLeft + contentHolder.scrollLeft) + "px";
+        this.selection.actionBar.style.top = (yPos + contentHolder.scrollTop) + "px";
+
+        if (isBottom == false) { // Is at top
+          if (yPos - 32 < editor.scrollOffset) {
+            this.selection.actionBar.setAttribute("tooltipbottom", "");
+          } else {
+            this.selection.actionBar.removeAttribute("tooltipbottom");
+          }
+        } else { // Is at bottom
+          if (contentHolder.clientHeight - yPos - this.selection.actionBar.offsetHeight - 32 < editor.scrollOffset) {
+            this.selection.actionBar.removeAttribute("tooltipbottom");
+          } else {
+            this.selection.actionBar.setAttribute("tooltipbottom", "");
+          }
+        }
+
+        if (this.selection.actionFrame != null) {
+          let actionContent = this.selection.actionFrame.querySelector(".eActionContainerContent");
+          let actionContainer = this.selection.actionFrame.querySelector(".eActionContainer");
+          let alignTop;
+          if (isBottom == false) {
             alignTop = true;
-          }
-        }
-
-        let frameLeft = 0;
-        if (this.selection.actionFrameButton != null) {
-          frameLeft = (this.selection.actionFrameButton.getBoundingClientRect().left - this.selection.actionBar.getBoundingClientRect().left) + (this.selection.actionFrameButton.offsetWidth / 2) - (actionContent.offsetWidth / 2);
-          if (frameLeft + actionContent.offsetWidth > this.selection.actionBar.offsetWidth) {
-            frameLeft = this.selection.actionBar.offsetWidth - actionContent.offsetWidth;
-          }
-          if (frameLeft < 0) {
-            frameLeft = 0;
-          }
-          this.selection.actionFrame.style.left = (frameLeft - 12) + "px";
-          actionContainer.style.width = (actionContent.clientWidth + 4) + "px";
-          actionContainer.style.height = (actionContent.clientHeight + 4) + "px";
-          actionContainer.style.setProperty("--actionBarWidth", this.selection.actionBar.offsetWidth + "px");
-          //this.selection.actionFrame.querySelector(".eActionContainerScroll").style.maxWidth = this.selection.actionBar.offsetWidth + "px";
-        }
-
-        if (alignTop == true) {
-          this.selection.actionBar.setAttribute("top", "");
-          this.selection.actionBar.removeAttribute("bottom");
-          this.selection.actionFrame.setAttribute("top", "");
-          this.selection.actionFrame.removeAttribute("bottom");
-
-          if (frameLeft < 16) {
-            this.selection.actionBar.style.borderTopLeftRadius = "0px";
+            if (yPos - actionContent.offsetHeight - 8 < editor.scrollOffset) {
+              alignTop = false;
+            }
           } else {
+            alignTop = false;
+            if (page.offsetHeight - yPos - this.selection.actionFrame.offsetHeight - actionContent.offsetHeight - 8 < editor.scrollOffset) {
+              alignTop = true;
+            }
+          }
+
+          let frameLeft = 0;
+          if (this.selection.actionFrameButton != null) {
+            frameLeft = (this.selection.actionFrameButton.getBoundingClientRect().left - this.selection.actionBar.getBoundingClientRect().left) + (this.selection.actionFrameButton.offsetWidth / 2) - (actionContent.offsetWidth / 2);
+            if (frameLeft + actionContent.offsetWidth > this.selection.actionBar.offsetWidth) {
+              frameLeft = this.selection.actionBar.offsetWidth - actionContent.offsetWidth;
+            }
+            if (frameLeft < 0) {
+              frameLeft = 0;
+            }
+            this.selection.actionFrame.style.left = (frameLeft - 12) + "px";
+            actionContainer.style.width = (actionContent.clientWidth + 4) + "px";
+            actionContainer.style.height = (actionContent.clientHeight + 4) + "px";
+            actionContainer.style.setProperty("--actionBarWidth", this.selection.actionBar.offsetWidth + "px");
+            //this.selection.actionFrame.querySelector(".eActionContainerScroll").style.maxWidth = this.selection.actionBar.offsetWidth + "px";
+          }
+
+          if (alignTop == true) {
+            this.selection.actionBar.setAttribute("top", "");
+            this.selection.actionBar.removeAttribute("bottom");
+            this.selection.actionFrame.setAttribute("top", "");
+            this.selection.actionFrame.removeAttribute("bottom");
+
+            if (frameLeft < 16) {
+              this.selection.actionBar.style.borderTopLeftRadius = "0px";
+            } else {
+              this.selection.actionBar.style.removeProperty("border-top-left-radius");
+            }
+            if (frameLeft + actionContent.offsetWidth > this.selection.actionBar.offsetWidth - 16) {
+              this.selection.actionBar.style.borderTopRightRadius = "0px";
+            } else {
+              this.selection.actionBar.style.removeProperty("border-top-right-radius");
+            }
+            this.selection.actionBar.style.removeProperty("border-bottom-left-radius");
+            this.selection.actionBar.style.removeProperty("border-bottom-right-radius");
+          } else {
+            this.selection.actionBar.setAttribute("bottom", "");
+            this.selection.actionBar.removeAttribute("top");
+            this.selection.actionFrame.setAttribute("bottom", "");
+            this.selection.actionFrame.removeAttribute("top");
+
+            if (frameLeft < 16) {
+              this.selection.actionBar.style.borderBottomLeftRadius = "0px";
+            } else {
+              this.selection.actionBar.style.removeProperty("border-bottom-left-radius");
+            }
+            if (frameLeft + actionContent.offsetWidth > this.selection.actionBar.offsetWidth - 16) {
+              this.selection.actionBar.style.borderBottomRightRadius = "0px";
+            } else {
+              this.selection.actionBar.style.removeProperty("border-bottom-right-radius");
+            }
             this.selection.actionBar.style.removeProperty("border-top-left-radius");
-          }
-          if (frameLeft + actionContent.offsetWidth > this.selection.actionBar.offsetWidth - 16) {
-            this.selection.actionBar.style.borderTopRightRadius = "0px";
-          } else {
             this.selection.actionBar.style.removeProperty("border-top-right-radius");
           }
-          this.selection.actionBar.style.removeProperty("border-bottom-left-radius");
-          this.selection.actionBar.style.removeProperty("border-bottom-right-radius");
-        } else {
-          this.selection.actionBar.setAttribute("bottom", "");
-          this.selection.actionBar.removeAttribute("top");
-          this.selection.actionFrame.setAttribute("bottom", "");
-          this.selection.actionFrame.removeAttribute("top");
-
-          if (frameLeft < 16) {
-            this.selection.actionBar.style.borderBottomLeftRadius = "0px";
-          } else {
-            this.selection.actionBar.style.removeProperty("border-bottom-left-radius");
-          }
-          if (frameLeft + actionContent.offsetWidth > this.selection.actionBar.offsetWidth - 16) {
-            this.selection.actionBar.style.borderBottomRightRadius = "0px";
-          } else {
-            this.selection.actionBar.style.removeProperty("border-bottom-right-radius");
-          }
-          this.selection.actionBar.style.removeProperty("border-top-left-radius");
-          this.selection.actionBar.style.removeProperty("border-top-right-radius");
         }
       }
 

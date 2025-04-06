@@ -40,7 +40,7 @@ modules["lesson/board"] = class {
       <div class="eToolbar" viewer keeptooltip hidden notransition>
         <div class="eToolbarContent eVerticalToolsHolder hideScroll">
           <button class="eTool" tool="raisehand" tooltip="Raise Hand" noselect style="--theme: var(--green); --hoverColor: rgba(var(--greenRGB), .3)"><div></div></button>
-          <div class="eDivider" keeptoolbar></div>
+          <div class="eDivider"></div>
           <button class="eTool" tool="select" tooltip="Select" selected><div></div></button>
           <button class="eTool" tool="pan" tooltip="Pan"><div></div></button>
         </div>

@@ -680,7 +680,7 @@ modules["editor/realtime"] = class {
           if (userSelecting == true && changes == true) { // Only refresh if user is selecting
             editor.pipeline.publish("redraw_selection", { refresh: true });
           } else if (userSelecting == true || refreshSelecting == true) {
-            editor.pipeline.publish("redraw_selection", {});
+            editor.pipeline.publish("redraw_selection", { skipUpdate: true });
           }
           if (member.cursorRender != null && hasCursorAnno == false) {
             delete member.cursorRender;

@@ -10,7 +10,7 @@ modules["editor/toolbar"] = class {
     "draw": {
       html: `<div class="eVerticalToolsHolder">
         <button class="eTool" tool="pen" tooltip="Pen" module="editor/toolbar/pen"><div></div></button>
-        <div class="eDivider" keeptooltip></div>
+        <div class="eDivider"></div>
         <button class="eTool" option="color" tooltip="Color" module="editor/toolbar/color"><div></div></button>
         <button class="eTool" option="thickness" tooltip="Thickness" module="editor/toolbar/thickness"><div></div></button>
         <button class="eTool" option="opacity" tooltip="Opacity" module="editor/toolbar/opacity"><div></div></button>
@@ -20,7 +20,7 @@ modules["editor/toolbar"] = class {
       html: `<div class="eVerticalToolsHolder">
         <button class="eTool" tool="highlighter" tooltip="Highlighter" module="editor/toolbar/highlighter"><div></div></button>
         <button class="eTool" tool="underline" tooltip="Underline" module="editor/toolbar/underline"><div></div></button>
-        <div class="eDivider" keeptooltip></div>
+        <div class="eDivider"></div>
         <button class="eTool" option="color" tooltip="Color" module="editor/toolbar/color"><div></div></button>
         <button class="eTool" option="thickness" tooltip="Thickness" module="editor/toolbar/thickness"><div></div></button>
         <button class="eTool" option="opacity" tooltip="Opacity" module="editor/toolbar/opacity"><div></div></button>
@@ -1450,6 +1450,8 @@ modules["editor/toolbar"] = class {
       }
 
       if (newActionBar == true || options.refresh == true) {
+        let actionButtonHolder = this.selection.actionBar.querySelector(".eActionToolbar");
+        let actionToolbarLoaded = actionButtonHolder.hasAttribute("loaded");
         let combineTools;
         let showLocked = false;
         for (let i = 0; i < selections.length; i++) {
@@ -1461,43 +1463,47 @@ modules["editor/toolbar"] = class {
             showLocked = (editor.utils.canMemberModify(render) == false || editor.utils.isLocked(render) == true);
           }
 
-          let annoModule = (await editor.render.getModule(render.f)) ?? {};
-          if (annoModule.ACTION_BAR_TOOLS == null) {
-            continue;
-          }
-          if (combineTools == null) {
-            combineTools = copyObject(annoModule.ACTION_BAR_TOOLS);
-          }
-          for (let c = 0; c < combineTools.length; c++) {
-            if (annoModule.ACTION_BAR_TOOLS.includes(combineTools[c]) == false) {
-              combineTools.splice(c, 1);
-              c--;
+          if (actionToolbarLoaded == false) {
+            let annoModule = (await editor.render.getModule(render.f)) ?? {};
+            if (annoModule.ACTION_BAR_TOOLS == null) {
+              continue;
+            }
+            if (combineTools == null) {
+              combineTools = copyObject(annoModule.ACTION_BAR_TOOLS);
+            }
+            for (let c = 0; c < combineTools.length; c++) {
+              if (annoModule.ACTION_BAR_TOOLS.includes(combineTools[c]) == false) {
+                combineTools.splice(c, 1);
+                c--;
+              }
             }
           }
         }
-        combineTools = combineTools ?? [];
-        combineTools.unshift("collaborator");
-        combineTools.push("more");
-
-        let actionButtonHolder = this.selection.actionBar.querySelector(".eActionToolbar");
         if (showLocked == false) {
           actionButtonHolder.removeAttribute("locked");
         } else {
           actionButtonHolder.setAttribute("locked", "");
         }
-        actionButtonHolder.innerHTML = "";
-        let newActionButtons = [];
-        for (let i = 0; i < combineTools.length; i++) {
-          let action = combineTools[i];
-          actionButtonHolder.insertAdjacentHTML("beforeend", `<button class="eTool" new><div></div></button>`);
-          let newAction = actionButtonHolder.querySelector("[new]");
-          newAction.removeAttribute("new");
-          newAction.setAttribute("action", action);
-          newAction.setAttribute("module", "editor/toolbar/" + action);
-          newActionButtons.push(newAction);
+
+        if (actionToolbarLoaded == false) {
+          actionButtonHolder.setAttribute("loaded", "");
+          combineTools = combineTools ?? [];
+          combineTools.unshift("collaborator");
+          combineTools.push("more");
+          
+          actionButtonHolder.innerHTML = "";
+          for (let i = 0; i < combineTools.length; i++) {
+            let action = combineTools[i];
+            actionButtonHolder.insertAdjacentHTML("beforeend", `<button class="eTool" new><div></div></button>`);
+            let newAction = actionButtonHolder.querySelector("[new]");
+            newAction.removeAttribute("new");
+            newAction.setAttribute("action", action);
+            newAction.setAttribute("module", "editor/toolbar/" + action);
+          }
         }
-        for (let i = 0; i < newActionButtons.length; i++) {
-          let newAction = newActionButtons[i];
+        
+        for (let i = 0; i < actionButtonHolder.children.length; i++) {
+          let newAction = actionButtonHolder.children[i];
           if (newAction == null) {
             continue;
           }
@@ -1508,22 +1514,48 @@ modules["editor/toolbar"] = class {
           if (actionModule.SUPPORTS_MULTIPLE_SELECT == false && selections.length > 1) {
             continue;
           }
-          if (actionModule.ADD_DIVIDE_BEFORE == true && actionButtonHolder.lastElementChild != null) {
-            actionButtonHolder.insertAdjacentHTML("beforeend", `<div class="eVerticalDivider" keeptooltip></div>`);
-          }
-          let buttonHolder = newAction.querySelector("div");
-          if (actionModule.setActionButton != null) {
-            actionModule.setActionButton(buttonHolder);
-          }
-          if (actionModule.SHOW_ON_LOCK == true) {
-            newAction.setAttribute("stayonlock", "");
-          }
-          if (actionModule.TOOLTIP != null) {
-            newAction.setAttribute("tooltip", actionModule.TOOLTIP);
-          }
-          if (actionModule.ADD_DIVIDE_AFTER == true) {
-            actionButtonHolder.insertAdjacentHTML("beforeend", `<div class="eVerticalDivider" keeptooltip></div>`);
-          }
+          (async () => {
+            let isVisible = true;
+            let buttonHolder = newAction.querySelector("div");
+            if (actionModule.setActionButton != null) {
+              isVisible = (await actionModule.setActionButton(buttonHolder)) != false;
+            }
+            if (newAction == null) {
+              return;
+            }
+            if (actionModule.SHOW_ON_LOCK == true) {
+              newAction.setAttribute("stayonlock", "");
+            }
+            if (actionModule.TOOLTIP != null) {
+              newAction.setAttribute("tooltip", actionModule.TOOLTIP);
+            }
+            if (isVisible == true) {
+              newAction.style.removeProperty("display");
+            } else {
+              newAction.style.display = "none";
+            }
+            let elementBefore = newAction.previousElementSibling;
+            let elementAfter = newAction.nextElementSibling;
+            if (isVisible == true) {
+              if (actionModule.ADD_DIVIDE_BEFORE == true && elementBefore != null && elementBefore.className != "eVerticalDivider") {
+                let newDivider = document.createElement("div");
+                newDivider.className = "eVerticalDivider";
+                actionButtonHolder.insertBefore(newDivider, newAction);
+              }
+              if (actionModule.ADD_DIVIDE_AFTER == true && (elementAfter == null || elementAfter.className != "eVerticalDivider")) {
+                let newDivider = document.createElement("div");
+                newDivider.className = "eVerticalDivider";
+                actionButtonHolder.insertBefore(newDivider, elementAfter);
+              }
+            } else {
+              if (elementBefore != null && elementBefore.className == "eVerticalDivider") {
+                elementBefore.remove();
+              }
+              if (elementAfter != null && elementAfter.className == "eVerticalDivider") {
+                elementAfter.remove();
+              }
+            }
+          })();
         }
       }
 
@@ -1640,6 +1672,10 @@ modules["editor/toolbar"] = class {
             this.selection.actionBar.style.removeProperty("border-top-left-radius");
             this.selection.actionBar.style.removeProperty("border-top-right-radius");
           }
+        }
+
+        if (this.selection.currentActionModule != null && this.selection.currentActionModule.redraw != null) {
+          this.selection.currentActionModule.redraw();
         }
       }
 
@@ -5294,12 +5330,18 @@ modules["editor/toolbar/color"] = class {
     let selecting = editor.selecting;
     let selectKeys = Object.keys(selecting);
     let shouldSave = isToolbar == true || selectKeys.length == 1;
-    let preferenceTool = toolbar.getPreferenceTool();
-    let colorPreference = toolbar.getAnnotationPreference().color ?? toolbar.getToolPreference().color;
-    let selectedColor = colorPreference.selected;
-    if (preferenceTool.c != null) {
-      selectedColor = preferenceTool.c;
+    let preferenceTool;
+    let colorPreference;
+    let selectedColor;
+    let updatePreference = () => {
+      preferenceTool = toolbar.getPreferenceTool();
+      colorPreference = toolbar.getAnnotationPreference().color ?? toolbar.getToolPreference().color;
+      selectedColor = colorPreference.selected;
+      if (preferenceTool.c != null) {
+        selectedColor = preferenceTool.c;
+      }
     }
+    updatePreference();
 
     let selector = frame.querySelector(".eSubToolColorSelector");
     let colorButtons = selector.children;
@@ -5332,6 +5374,10 @@ modules["editor/toolbar/color"] = class {
         }
       }
     }
+    this.redraw = () => {
+      updatePreference();
+      runColorSelections();
+    };
     runColorSelections();
 
     let [h, s, v] = [];
@@ -5364,8 +5410,12 @@ modules["editor/toolbar/color"] = class {
         }
         toolbar.toolbar.updateButtons();
       } else if (element.hasAttribute("enablepicker") == true) {
-        ([h, s, v] = editor.utils.hexToHSV(selectedColor));
-        updatePickerUI();
+        this.redraw = () => {
+          updatePreference();
+          ([h, s, v] = editor.utils.hexToHSV(selectedColor));
+          updatePickerUI();
+        };
+        this.redraw();
         picker.style.position = "relative";
         selector.style.position = "absolute";
         picker.style.transform = "scale(1)";
@@ -5386,6 +5436,10 @@ modules["editor/toolbar/color"] = class {
     }
 
     frame.querySelector(".eSubToolColorPickerTopBack").addEventListener("click", async () => {
+      this.redraw = () => {
+        updatePreference();
+        runColorSelections();
+      };
       selector.style.position = "relative";
       picker.style.position = "absolute";
       selector.style.transform = "scale(1)";
@@ -5463,7 +5517,7 @@ modules["editor/toolbar/color"] = class {
     let updatePickerUI = (updateText) => {
       // Update Colors Shown:
       let hue = "#" + editor.utils.hsvToHex(h, 100, 100);
-      shadePointer.style.background = "#" + colorPreference.selected;
+      shadePointer.style.background = "#" + selectedColor;
       colorPointer.style.background = hue;
       // Update Pointer Positions:
       shadePointer.style.left = (shadeSliderHolder.offsetWidth * (s / 100)) - 10 + "px";
@@ -5664,12 +5718,18 @@ modules["editor/toolbar/thickness"] = class {
     let selecting = editor.selecting;
     let selectKeys = Object.keys(selecting);
     let shouldSave = isToolbar == true || selectKeys.length == 1;
-    let preferenceTool = toolbar.getPreferenceTool();
-    let thicknessPreference = toolbar.getAnnotationPreference().thickness ?? toolbar.getToolPreference().thickness;
-    let selectedThickness = thicknessPreference;
-    if (preferenceTool.t != null) {
-      selectedThickness = preferenceTool.t;
+    let preferenceTool;
+    let thicknessPreference;
+    let selectedThickness;
+    let updatePreference = () => {
+      preferenceTool = toolbar.getPreferenceTool();
+      thicknessPreference = toolbar.getAnnotationPreference().thickness ?? toolbar.getToolPreference().thickness;
+      selectedThickness = thicknessPreference;
+      if (preferenceTool.t != null) {
+        selectedThickness = preferenceTool.t;
+      }
     }
+    updatePreference();
 
     let slider = frame.querySelector(".eSubToolThicknessSlider");
     let pointer = slider.querySelector("button");
@@ -5697,6 +5757,10 @@ modules["editor/toolbar/thickness"] = class {
         }
       }
     }
+    this.redraw = () => {
+      updatePreference();
+      updateUI();
+    };
     let eventBarUpdate = (event) => {
       if (sliderEnabled == false) {
         return;
@@ -5805,12 +5869,18 @@ modules["editor/toolbar/opacity"] = class {
     let selecting = editor.selecting;
     let selectKeys = Object.keys(selecting);
     let shouldSave = isToolbar == true || selectKeys.length == 1;
-    let preferenceTool = toolbar.getPreferenceTool();
-    let opacityPreference = toolbar.getAnnotationPreference().opacity ?? toolbar.getToolPreference().opacity;
-    let selectedOpacity = opacityPreference;
-    if (preferenceTool.t != null) {
-      selectedOpacity = preferenceTool.o;
+    let preferenceTool;
+    let opacityPreference;
+    let selectedOpacity;
+    let updatePreference = () => {
+      preferenceTool = toolbar.getPreferenceTool();
+      opacityPreference = toolbar.getAnnotationPreference().opacity ?? toolbar.getToolPreference().opacity;
+      selectedOpacity = opacityPreference;
+      if (preferenceTool.t != null) {
+        selectedOpacity = preferenceTool.o;
+      }
     }
+    updatePreference();
 
     let slider = frame.querySelector(".eSubToolOpacitySlider");
     let pointer = slider.querySelector("button");
@@ -5838,6 +5908,10 @@ modules["editor/toolbar/opacity"] = class {
         }
       }
     }
+    this.redraw = () => {
+      updatePreference();
+      updateUI();
+    };
     let eventBarUpdate = (event) => {
       if (sliderEnabled == false) {
         return;

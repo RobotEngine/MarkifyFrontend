@@ -278,8 +278,9 @@ modules["editor/toolbar"] = class {
         if (toolbarHolder.hasAttribute("right") == false) {
           let setLeft = toolbarParent.offsetWidth;
           if (subToolbar != null) {
-            let toolbarRect = subToolbar.getBoundingClientRect();
-            let toolbarContentScroll = subToolbar.querySelector(".eSubToolContentScroll");
+            let subToolbarContainer = subToolbar.querySelector(".eSubToolContainer");
+            let toolbarRect = subToolbarContainer.getBoundingClientRect();
+            let toolbarContentScroll = subToolbarContainer.querySelector(".eSubToolContentScroll");
             let subToolWidth = toolbarContentScroll.offsetWidth + 4;
             let subToolTop = toolbarRect.top - toolHolderRect.top;
             if (tooltipElement.closest(".eSubToolHolder") != null) {
@@ -294,8 +295,9 @@ modules["editor/toolbar"] = class {
         } else {
           let setRight = toolbarParent.offsetWidth;
           if (subToolbar != null) {
-            let toolbarRect = subToolbar.getBoundingClientRect();
-            let toolbarContentScroll = subToolbar.querySelector(".eSubToolContentScroll");
+            let subToolbarContainer = subToolbar.querySelector(".eSubToolContainer");
+            let toolbarRect = subToolbarContainer.getBoundingClientRect();
+            let toolbarContentScroll = subToolbarContainer.querySelector(".eSubToolContentScroll");
             let subToolWidth = toolbarContentScroll.offsetWidth + 4;
             let subToolTop = toolbarRect.top - toolHolderRect.top;
             if (tooltipElement.hasAttribute("tool") == false) {

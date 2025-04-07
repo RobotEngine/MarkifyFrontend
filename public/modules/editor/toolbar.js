@@ -1421,6 +1421,7 @@ modules["editor/toolbar"] = class {
       if (removeActionBar == true && this.selection.actionBar != null) {
         this.selection.actionFrame = null;
         this.selection.actionFrameButton = null;
+        this.selection.currentActionModule = null;
         let removeActionBar = this.selection.actionBar;
         this.selection.actionBar = null;
         (async () => {
@@ -1709,16 +1710,16 @@ modules["editor/toolbar"] = class {
       this.selection.actionFrameButton = actionButton;
       actionButton.setAttribute("selected", "");
 
-      this.selection.currentActionModule = (await this.newModule(actionButton.getAttribute("module"))) ?? {};
+      let newActionModule = (await this.newModule(actionButton.getAttribute("module"))) ?? {};
       if (actionButton.hasAttribute("selected") == false) {
         return;
       }
-      this.selection.currentActionModule.editor = editor;
-      this.selection.currentActionModule.toolbar = this;
-      this.selection.currentActionModule.isActionBar = true;
+      newActionModule.editor = editor;
+      newActionModule.toolbar = this;
+      newActionModule.isActionBar = true;
 
       let contentFrame;
-      if (this.selection.currentActionModule.html != null) {
+      if (newActionModule.html != null) {
         actionButton.setAttribute("extend", "");
 
         this.selection.actionBar.insertAdjacentHTML("beforeend", `<div class="eActionHolder" top new>
@@ -1735,14 +1736,15 @@ modules["editor/toolbar"] = class {
         this.selection.actionFrame = this.selection.actionBar.querySelector(".eActionHolder[new]");
         this.selection.actionFrame.removeAttribute("new");
         contentFrame = this.selection.actionFrame.querySelector(".eActionContainerContent");
-        contentFrame.innerHTML = this.selection.currentActionModule.html;
+        contentFrame.innerHTML = newActionModule.html;
 
         await this.selection.updateActionBar();
         this.tooltip.update();
       }
-      if (this.selection.currentActionModule.js != null) {
-        await this.selection.currentActionModule.js(contentFrame);
+      if (newActionModule.js != null) {
+        await newActionModule.js(contentFrame);
       }
+      this.selection.currentActionModule = newActionModule;
       if (this.selection.actionFrame != null) {
         let containerFrame = this.selection.actionFrame.querySelector(".eActionContainer");
         if (this.selection.actionFrame.hasAttribute("top") == true) {
@@ -1762,6 +1764,7 @@ modules["editor/toolbar"] = class {
         this.selection.actionFrameButton.removeAttribute("selected");
       }
       this.selection.actionFrameButton = null;
+      this.selection.currentActionModule = null;
       if (this.selection.actionFrame == null) {
         return;
       }

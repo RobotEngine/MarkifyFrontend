@@ -1025,7 +1025,7 @@ modules["editor/toolbar"] = class {
       this.selection.action = "save";
       await this.selection.endAction({ redrawAction: false, fromHistory: options.saveHistory == false });
       if (options.redrawActionBar != false) {
-        this.selection.updateActionBar({ refresh: true, reuseActionBar: options.reuseActionBar, skipUpdate: options.reuseActionBar != true });
+        await this.selection.updateActionBar({ refresh: true, reuseActionBar: options.reuseActionBar, skipUpdate: options.reuseActionBar != true });
       }
     }
 
@@ -1451,7 +1451,7 @@ modules["editor/toolbar"] = class {
       }
     }
     this.selection.updateActionBar = async (options = {}) => {
-      let removeActionBar = options.reuseActionBar != true;
+      let removeActionBar = (options.reuseActionBar ?? (this.selection.currentActionModule ?? {}).forceCurrentActionBar) != true;
       let showSelectBox = (
         Object.keys(this.selection.currentSelections).length > 0 &&
         (this.selection.action == null || this.selection.actionEnabled == false) &&
@@ -1739,13 +1739,13 @@ modules["editor/toolbar"] = class {
       if (event == null) {
         return;
       }
-      let interact = await this.selection.interactRun(event.target);
+      /*let interact = await this.selection.interactRun(event.target);
       if (interact == true) {
         return;
       }
       if (this.selection.actionBar == null) {
         return;
-      }
+      }*/
       let actionButton = event.target.closest(".eTool");
       if (actionButton == null || actionButton.closest(".eActionToolbar") == null) {
         return;
@@ -4072,7 +4072,7 @@ modules["editor/toolbar/select"] = class {
       return;
     }
     if (target.closest("button") != null || target.closest("a") != null || target.closest(".eActionBar") != null) {
-      return;
+      return this.parent.selection.clickAction(event);
     }
     let annotation = target.closest(".eAnnotation");
     let annoID;
@@ -4186,7 +4186,7 @@ modules["editor/toolbar/select"] = class {
     await this.parent.selection.moveAction();
     await this.parent.selection.updateActionBar();
   }
-  click = async (event) => { await this.parent.selection.clickAction(event); }
+  click = async (event) => { await this.parent.selection.interactRun(event.target); }
 }
 
 modules["editor/toolbar/pan"] = class {
@@ -4253,10 +4253,10 @@ modules["editor/toolbar/drag"] = class {
       return;
     }
     if (target.closest("button") != null || target.closest("a") != null || target.closest(".eActionBar") != null) {
-      return;
+      return this.parent.selection.clickAction(event);
     }
     await this.parent.selection.startAction(event);
-    if (target.closest(".eContent") == null || target.closest(".eSelect") != null || target.closest(".eActionBar") != null) {
+    if (target.closest(".eSelect") != null) {
       return;
     }
     let annotation = target.closest(".eAnnotation");
@@ -4491,7 +4491,7 @@ modules["editor/toolbar/drag"] = class {
     await this.parent.selection.moveAction();
     await this.parent.selection.updateActionBar();
   }
-  click = async (event) => { await this.parent.selection.clickAction(event); }
+  click = async (event) => { await this.parent.selection.interactRun(event.target); }
 }
 
 modules["editor/toolbar/pen"] = class {
@@ -5819,6 +5819,7 @@ modules["editor/toolbar/thickness"] = class {
       }
       if (mouseDown() == false || slider == null) {
         sliderEnabled = false;
+        this.forceCurrentActionBar = false;
         //cursorModule.updateBox();
         editor.pipeline.unsubscribe("thicknessSelectorMouse");
         return;
@@ -5832,6 +5833,7 @@ modules["editor/toolbar/thickness"] = class {
     }
     let enableSlider = (event) => {
       sliderEnabled = true;
+      this.forceCurrentActionBar = true;
       firstChange = true;
       eventBarUpdate(event);
       editor.pipeline.subscribe("thicknessSelectorMouse", "click_move", (data) => { eventBarUpdate(data.event); });
@@ -5842,16 +5844,18 @@ modules["editor/toolbar/thickness"] = class {
       input.value = "";
       input.placeholder = selectedThickness;
       typing = true;
+      this.forceCurrentActionBar = true;
       firstChange = true;
     });
     input.addEventListener("blur", () => {
       input.value = selectedThickness;
       typing = false;
+      this.forceCurrentActionBar = false;
     });
     input.addEventListener("input", () => {
       let value = input.value.replace(/\D/g, "");
       if (value == "") {
-        value = selectedOpacity;
+        value = selectedThickness;
       }
       selectedThickness = Math.max(Math.min(parseInt(value), this.maxValue), this.minValue);
       updateUI(false);
@@ -5859,7 +5863,7 @@ modules["editor/toolbar/thickness"] = class {
     input.addEventListener("change", () => {
       let value = input.value.replace(/\D/g, "");
       if (value == "") {
-        value = selectedOpacity;
+        value = selectedThickness;
       }
       selectedThickness = Math.max(Math.min(parseInt(value), this.maxValue), this.minValue);
       updateUI();

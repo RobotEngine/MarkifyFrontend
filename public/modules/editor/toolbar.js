@@ -1758,10 +1758,9 @@ modules["editor/toolbar"] = class {
       }
 
       this.selection.actionFrameButton = actionButton;
-      actionButton.setAttribute("selected", "");
 
       let newActionModule = (await this.newModule(actionButton.getAttribute("module"))) ?? {};
-      if (actionButton.hasAttribute("selected") == false) {
+      if (actionButton != this.selection.actionFrameButton) {
         return;
       }
       newActionModule.editor = editor;
@@ -1771,6 +1770,7 @@ modules["editor/toolbar"] = class {
 
       let contentFrame;
       if (newActionModule.html != null) {
+        actionButton.setAttribute("selected", "");
         actionButton.setAttribute("extend", "");
 
         this.selection.actionBar.insertAdjacentHTML("beforeend", `<div class="eActionHolder" top new>
@@ -6042,7 +6042,6 @@ modules["editor/toolbar/delete"] = class {
   ADD_DIVIDE_BEFORE = true;
 
   js = async () => {
-    this.button.removeAttribute("selected");
     await this.toolbar.saveSelecting(() => { return { remove: true } });
   }
 };

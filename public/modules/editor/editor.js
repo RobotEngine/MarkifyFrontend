@@ -457,6 +457,7 @@ modules["editor/editor"] = class {
     let savePreference = async () => {
       let tempRevert = copyObject(this.lastSavePreferences);
       let changes = objectUpdate(this.preferences, this.lastSavePreferences);
+      this.lastSavePreferences = copyObject(this.preferences);
       if (Object.keys(changes).length > 0) {
         let [code] = await sendRequest("POST", "lessons/save/preferences", { save: changes });
         if (code != 200) {
@@ -1893,10 +1894,10 @@ modules["editor/editor"] = class {
 
       // IF SELECTING, DO NOT UPDATE THOSE FIELDS
       let redrawAction = false;
-      if (options.ignoreSelecting != true && this.selecting[annoID] != null) {
+      /*if (options.ignoreSelecting != true && this.selecting[annoID] != null) {
         //save = { ...save, ...this.selecting[annoID] };
         redrawAction = true;
-      }
+      }*/
       delete save.resizing;
       if (options.overwrite != true) {
         objectUpdate(save, annotation.render); // Update the annotation
@@ -2483,7 +2484,7 @@ modules["editor/editor"] = class {
           redrawAction = true;
         }
       }
-      this.pipeline.publish("redraw_selection", { redrawAction: redrawAction, fromLong: true });
+      this.pipeline.publish("redraw_selection", { redrawAction: redrawAction, redrawCurrentAction: true, fromLong: true });
     });
     this.pipeline.subscribe("removeAnnotationUpdate", "removeannotations", async (data) => {
       let annoKeys = Object.keys(this.annotations);

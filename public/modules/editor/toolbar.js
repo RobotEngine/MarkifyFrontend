@@ -144,7 +144,7 @@ modules["editor/toolbar"] = class {
     ".eActionToolbar": `display: flex; width: 100%; height: 100%; background: var(--pageColor); overflow: auto; border-radius: inherit; z-index: 2`,
     ".eActionToolbar::-webkit-scrollbar": `display: none`,
     ".eActionToolbar[locked] > *": `display: none`,
-    ".eActionToolbar .eTool[stayonlock]": `display: unset`,
+    //".eActionToolbar .eTool[stayonlock]": `display: flex`,
     ".eActionHolder[top]": `position: absolute; width: fit-content; height: fit-content; padding: 12px; left: -12px; bottom: calc(100% - 12px); z-index: 1; overflow: hidden; pointer-events: none`,
     ".eActionHolder[bottom]": `position: absolute; width: fit-content; height: fit-content; padding: 12px; left: -12px; top: calc(100% - 12px); z-index: 1; overflow: hidden; pointer-events: none`,
     ".eActionHolder[top] .eActionContainer": `--shadowPadding: 16px 16px 0; --shadowBottom: 0px; --shadowTop: 16px; position: relative; width: fit-content; bottom: 0px; padding-bottom: 4px; background: var(--pageColor); border-radius: 12px 12px 0 0; opacity: 0; pointer-events: all`,
@@ -957,7 +957,7 @@ modules["editor/toolbar"] = class {
       for (let i = 0; i < split.length; i++) {
         if (i < split.length - 1) {
           check = check[split[i]];
-        } else {
+        } else if (check != null) {
           check[split[i]] = value;
         }
       }
@@ -977,6 +977,56 @@ modules["editor/toolbar"] = class {
         return result;
       }
       return result ?? {};
+    }
+    this.saveSelecting = async (setFunction, options = {}) => {
+      let keys = Object.keys(editor.selecting);
+      for (let i = 0; i < keys.length; i++) {
+        let annoid = keys[i];
+        let original = editor.annotations[annoid] ?? {};
+        let selecting = editor.selecting[annoid] ?? {};
+        let annoModule = (await editor.render.getModule(selecting.f ?? original.render.f)) ?? {};
+
+        let set = await setFunction(copyObject(original.render), annoModule);
+        if (set.d != null && typeof set.d == "object") {
+          set.d = { ...original.render.d, ...set.d };
+        }
+        if (editor.utils.isLocked(original.render) == true && set.lock == null) {
+          continue;
+        }
+        if (annoModule.AUTO_TEXT_FIT == true || annoModule.AUTO_SET_HEIGHT == true) {
+          await editor.render.create({ ...original, render: { ...original.render, ...selecting }, animate: false });
+          let renderedText = original.element.querySelector("div[edit]");
+          if (renderedText != null) {
+            selecting.s = [(original.render.s ?? [])[0], (original.render.s ?? [])[1]];
+            if (annoModule.AUTO_TEXT_FIT == true && original.render.textfit == true && selecting.textfit != false) {
+              selecting.s[0] = renderedText.offsetWidth + 6;
+              selecting.textfit = false;
+            }
+            if (annoModule.AUTO_SET_HEIGHT == true ) {
+              selecting.s[1] = renderedText.offsetHeight + 6; //Math.max(select.s[1], renderedAnno.offsetHeight + 6);
+            }
+          }
+        }
+        let changes = false;
+        let setKeys = Object.keys(set);
+        for (let c = 0; c < setKeys.length; c++) {
+          let key = setKeys[c];
+          if (set[key] != original.render[key]) {
+            changes = true;
+            break;
+          }
+        }
+        if (changes == false) {
+          continue;
+        }
+        editor.selecting[annoid] = { ...selecting, ...set };
+      }
+
+      this.selection.action = "save";
+      await this.selection.endAction({ redrawAction: false, fromHistory: options.saveHistory == false });
+      if (options.redrawActionBar != false) {
+        this.selection.updateActionBar({ refresh: true, reuseActionBar: options.reuseActionBar, skipUpdate: options.reuseActionBar != true });
+      }
     }
 
     this.selection = {};
@@ -1354,7 +1404,7 @@ modules["editor/toolbar"] = class {
       }
 
       if (options.redrawAction != false) {
-        this.selection.updateActionBar({ ...options, redraw: selectionChange || options.redraw == true });
+        this.selection.updateActionBar({ ...options, redraw: selectionChange || options.redraw == true || options.redrawAction == true });
       }
 
       let allRealtimeSelections = realtimeHolder.querySelectorAll(".eCollabSelect");
@@ -1401,23 +1451,22 @@ modules["editor/toolbar"] = class {
       }
     }
     this.selection.updateActionBar = async (options = {}) => {
-      let removeActionBar = true;
-      let selections = Object.keys(editor.selecting);
+      let removeActionBar = options.reuseActionBar != true;
       let showSelectBox = (
-        selections.length > 0 &&
+        Object.keys(this.selection.currentSelections).length > 0 &&
         (this.selection.action == null || this.selection.actionEnabled == false) &&
         options.hideSelectBox != true
       );
-      if (showSelectBox == true) {
+      if (showSelectBox == true && removeActionBar == true) {
         removeActionBar = (
           this.selection.checkX != this.selection.lastCheckX ||
           this.selection.checkY != this.selection.lastCheckY ||
           this.selection.checkX == null || this.selection.checkY == null ||
           options.redraw == true
         );
-        this.selection.lastCheckX = this.selection.checkX;
-        this.selection.lastCheckY = this.selection.checkY;
       }
+      this.selection.lastCheckX = this.selection.checkX;
+      this.selection.lastCheckY = this.selection.checkY;
       if (removeActionBar == true && this.selection.actionBar != null) {
         this.selection.actionFrame = null;
         this.selection.actionFrameButton = null;
@@ -1428,6 +1477,7 @@ modules["editor/toolbar"] = class {
           if (removeActionBar == null) {
             return;
           }
+          removeActionBar.setAttribute("remove", "");
           removeActionBar.style.transform = "translateY(-10%)";
           removeActionBar.style.opacity = 0;
           await sleep(200);
@@ -1455,6 +1505,7 @@ modules["editor/toolbar"] = class {
         let actionToolbarLoaded = actionButtonHolder.hasAttribute("loaded");
         let combineTools;
         let showLocked = false;
+        let selections = Object.keys(editor.selecting);
         for (let i = 0; i < selections.length; i++) {
           let render = (editor.annotations[selections[i]] ?? {}).render;
           if (render == null) {
@@ -1479,11 +1530,6 @@ modules["editor/toolbar"] = class {
               }
             }
           }
-        }
-        if (showLocked == false) {
-          actionButtonHolder.removeAttribute("locked");
-        } else {
-          actionButtonHolder.setAttribute("locked", "");
         }
 
         if (actionToolbarLoaded == false) {
@@ -1517,6 +1563,7 @@ modules["editor/toolbar"] = class {
           }
           (async () => {
             let isVisible = true;
+            newAction.innerHTML = "<div></div>";
             let buttonHolder = newAction.querySelector("div");
             if (actionModule.setActionButton != null) {
               isVisible = (await actionModule.setActionButton(buttonHolder)) != false;
@@ -1524,8 +1571,8 @@ modules["editor/toolbar"] = class {
             if (newAction == null) {
               return;
             }
-            if (actionModule.SHOW_ON_LOCK == true) {
-              newAction.setAttribute("stayonlock", "");
+            if (actionModule.SHOW_ON_LOCK != true) {
+              isVisible = showLocked == false;
             }
             if (actionModule.TOOLTIP != null) {
               newAction.setAttribute("tooltip", actionModule.TOOLTIP);
@@ -1623,15 +1670,18 @@ modules["editor/toolbar"] = class {
           let frameLeft = 0;
           if (this.selection.actionFrameButton != null) {
             frameLeft = (this.selection.actionFrameButton.getBoundingClientRect().left - this.selection.actionBar.getBoundingClientRect().left) + (this.selection.actionFrameButton.offsetWidth / 2) - (actionContent.offsetWidth / 2);
-            if (frameLeft + actionContent.offsetWidth > this.selection.actionBar.offsetWidth - 4) {
-              frameLeft = this.selection.actionBar.offsetWidth - actionContent.offsetWidth - 4;
+            if (frameLeft + actionContent.offsetWidth > this.selection.actionBar.offsetWidth) {
+              frameLeft = this.selection.actionBar.offsetWidth - actionContent.offsetWidth;
             }
             if (frameLeft < 0) {
               frameLeft = 0;
             }
+            if (actionContent.offsetWidth > this.selection.actionBar.offsetWidth) {
+              frameLeft = (this.selection.actionBar.offsetWidth - actionContent.offsetWidth) / 2;
+            }
             this.selection.actionFrame.style.left = (frameLeft - 12) + "px";
-            actionContainer.style.width = (actionContent.clientWidth + 4) + "px";
-            actionContainer.style.height = (actionContent.clientHeight + 4) + "px";
+            actionContainer.style.width = actionContent.offsetWidth + "px";
+            actionContainer.style.height = actionContent.offsetHeight + "px";
             actionContainer.style.setProperty("--actionBarWidth", this.selection.actionBar.offsetWidth + "px");
             //this.selection.actionFrame.querySelector(".eActionContainerScroll").style.maxWidth = this.selection.actionBar.offsetWidth + "px";
           }
@@ -1675,7 +1725,7 @@ modules["editor/toolbar"] = class {
           }
         }
 
-        if (this.selection.currentActionModule != null && this.selection.currentActionModule.redraw != null) {
+        if (options.redrawCurrentAction == true && this.selection.currentActionModule != null && this.selection.currentActionModule.redraw != null) {
           this.selection.currentActionModule.redraw();
         }
       }
@@ -1717,6 +1767,7 @@ modules["editor/toolbar"] = class {
       newActionModule.editor = editor;
       newActionModule.toolbar = this;
       newActionModule.isActionBar = true;
+      newActionModule.button = actionButton;
 
       let contentFrame;
       if (newActionModule.html != null) {
@@ -2863,7 +2914,7 @@ modules["editor/toolbar"] = class {
         if (original.render == null) {
           continue;
         }
-        if (original.render.lock == true) {
+        if (editor.utils.isLocked(original.render) == true) {
           return this.selection.endAction();
         }
         if (original.revert == null) {
@@ -3276,7 +3327,7 @@ modules["editor/toolbar"] = class {
       this.updateMouse(this.currentToolModule.MOUSE);
       this.selection.usingCustomMouse = false;
 
-      await this.selection.updateBox({ transition: false });
+      await this.selection.updateBox({ redrawAction: options.redrawAction, transition: false });
     }
     this.selection.interactRun = async (target) => {
       if (target == null) {
@@ -3464,7 +3515,7 @@ modules["editor/toolbar"] = class {
       }
       
       this.selection.action = "save";
-      await this.selection.endAction({ sentKeys: keys, fromHistory: true });
+      await this.selection.endAction({ sentKeys: keys, redrawAction: true, fromHistory: true });
 
       if (annoContentTx != null) {
         annoContentTx.setAttribute("contenteditable", "true");
@@ -3548,7 +3599,7 @@ modules["editor/toolbar"] = class {
       }
 
       this.selection.action = "save";
-      await this.selection.endAction({ sentKeys: keys, fromHistory: true });
+      await this.selection.endAction({ sentKeys: keys, redrawAction: true, fromHistory: true });
 
       if (annoContentTx != null) {
         annoContentTx.setAttribute("contenteditable", "true");
@@ -4020,7 +4071,7 @@ modules["editor/toolbar/select"] = class {
     if (this.editor.isEditorContent(target) != true) {
       return;
     }
-    if (target.closest("button") != null || target.closest("a") != null) {
+    if (target.closest("button") != null || target.closest("a") != null || target.closest(".eActionBar") != null) {
       return;
     }
     let annotation = target.closest(".eAnnotation");
@@ -4036,10 +4087,10 @@ modules["editor/toolbar/select"] = class {
         return;
       }
       if (this.editor.selecting[annoID] != null) {
-        if (render.f == "page" && target.closest("div[title]") != null && annotation.querySelector("div[title]").closest(".eAnnotation") == annotation && this.editor.utils.isLocked(render) != true) {
+        if (target.closest("div[title]") != null && annotation.querySelector("div[title]").closest(".eAnnotation") == annotation && this.editor.utils.isLocked(render) != true) {
           if (target.closest("div[title]").hasAttribute("contenteditable") == false) {
             this.parent.selection.clickAction({
-              target: this.editor.page.querySelector('.eSelectBar:not([remove]) .eTool[action="editor/toolbar/settitle"]')
+              target: this.editor.page.querySelector('.eActionBar:not([remove]) .eTool[module="editor/toolbar/settitle"]')
             });
           }
           return;
@@ -4047,7 +4098,7 @@ modules["editor/toolbar/select"] = class {
         if (render.f == "embed" && target.closest("div[input]") != null && annotation.querySelector("div[input]").closest(".eAnnotation") == annotation && this.editor.utils.isLocked(render) != true) {
           if (render.embed == null) {
             this.parent.selection.clickAction({
-              target: this.editor.page.querySelector('.eSelectBar:not([remove]) .eTool[action="editor/toolbar/setembed"]')
+              target: this.editor.page.querySelector('.eActionBar:not([remove]) .eTool[module="editor/toolbar/setembed"]')
             });
           }
           return;
@@ -4121,7 +4172,7 @@ modules["editor/toolbar/select"] = class {
       }
       if (this.wasSelected == null && annotation.querySelector("div[edit]") != null && annotation.querySelector("div[edit]").closest(".eAnnotation") == annotation && annotation.querySelector("div[contenteditable]") == null) {
         this.parent.selection.clickAction({
-          target: this.editor.page.querySelector('.eSelectBar:not([remove]) .eTool[action="editor/toolbar/textedit"]'),
+          target: this.editor.page.querySelector('.eActionBar:not([remove]) .eTool[module="editor/toolbar/textedit"]'),
           setCaretPosition: true,
           clientX: event.clientX,
           clientY: event.clientY
@@ -4201,11 +4252,11 @@ modules["editor/toolbar/drag"] = class {
     if (this.editor.isEditorContent(target) != true) {
       return;
     }
-    if (target.closest("button") != null || target.closest("a") != null) {
+    if (target.closest("button") != null || target.closest("a") != null || target.closest(".eActionBar") != null) {
       return;
     }
     await this.parent.selection.startAction(event);
-    if (target.closest(".eContent") == null || target.closest(".eSelect") != null || target.closest(".eSelectBar") != null) {
+    if (target.closest(".eContent") == null || target.closest(".eSelect") != null || target.closest(".eActionBar") != null) {
       return;
     }
     let annotation = target.closest(".eAnnotation");
@@ -4896,7 +4947,7 @@ modules["editor/toolbar/placement"] = class {
 }
 
 modules["editor/toolbar/text"] = class extends modules["editor/toolbar/placement"] {
-  TARGET_QUERY = '.eSelectBar:not([remove]) .eTool[action="editor/toolbar/textedit"]';
+  TARGET_QUERY = '.eActionBar:not([remove]) .eTool[module="editor/toolbar/textedit"]';
 
   activate = () => {
     let toolPreference = this.parent.getToolPreference();
@@ -5227,7 +5278,7 @@ modules["editor/toolbar/upload"] = class extends modules["editor/toolbar/resize_
 }
 
 modules["editor/toolbar/embed"] = class extends modules["editor/toolbar/placement"] {
-  TARGET_QUERY = '.eSelectBar:not([remove]) .eTool[action="editor/toolbar/setembed"]';
+  TARGET_QUERY = '.eActionBar:not([remove]) .eTool[module="editor/toolbar/setembed"]';
   
   activate = () => {
     this.PROPERTIES = {
@@ -5329,7 +5380,6 @@ modules["editor/toolbar/color"] = class {
     let editor = this.editor;
     let toolbar = this.toolbar;
     let isToolbar = this.isToolbar;
-    let utils = editor.utils;
     let selecting = editor.selecting;
     let selectKeys = Object.keys(selecting);
     let shouldSave = isToolbar == true || selectKeys.length == 1;
@@ -5380,10 +5430,17 @@ modules["editor/toolbar/color"] = class {
     this.redraw = () => {
       updatePreference();
       runColorSelections();
+      if (colorSliderEnabled == true || colorGradientEnabled == true) {
+        return;
+      }
+      ([h, s, v] = editor.utils.hexToHSV(selectedColor));
+      updatePickerUI();
     };
     runColorSelections();
 
     let [h, s, v] = [];
+    let colorGradientEnabled = false;
+    let colorSliderEnabled = false;
     selector.addEventListener("click", async (event) => {
       let element = event.target;
       if (element == null) {
@@ -5402,9 +5459,7 @@ modules["editor/toolbar/color"] = class {
           toolbar.toolbar.closeSubSub(true);
           toolbar.activateTool();
         } else {
-          //await extra.saveSelecting({ c: selectedColor });
-          //utils.forceShort(); // Make sure other users see the color change (no mouse movement)
-          //extra.updateToolActions(extra.frame);
+          await toolbar.saveSelecting(() => { return { c: selectedColor }; });
           let selected = selector.querySelector("button[selected]");
           if (selected != null) {
             selected.removeAttribute("selected");
@@ -5413,12 +5468,9 @@ modules["editor/toolbar/color"] = class {
         }
         toolbar.toolbar.updateButtons();
       } else if (element.hasAttribute("enablepicker") == true) {
-        this.redraw = () => {
-          updatePreference();
-          ([h, s, v] = editor.utils.hexToHSV(selectedColor));
-          updatePickerUI();
-        };
         this.redraw();
+        ([h, s, v] = editor.utils.hexToHSV(selectedColor));
+          updatePickerUI();
         picker.style.position = "relative";
         selector.style.position = "absolute";
         picker.style.transform = "scale(1)";
@@ -5439,10 +5491,6 @@ modules["editor/toolbar/color"] = class {
     }
 
     frame.querySelector(".eSubToolColorPickerTopBack").addEventListener("click", async () => {
-      this.redraw = () => {
-        updatePreference();
-        runColorSelections();
-      };
       selector.style.position = "relative";
       picker.style.position = "absolute";
       selector.style.transform = "scale(1)";
@@ -5466,8 +5514,6 @@ modules["editor/toolbar/color"] = class {
     let shadePointer = shadeSliderHolder.querySelector("button");
     let modeButton = frame.querySelector(".eSubToolColorPickerType");
     let modeInput = frame.querySelector(".eSubToolColorPickerField");
-    let colorGradientEnabled = false;
-    let colorSliderEnabled = false;
     let modes = ["HEX", "RGB", "HSL", "HSB"];
     modeButton.addEventListener("click", () => {
       editor.preferences.tools.options.colorpicker.scale++;
@@ -5564,8 +5610,7 @@ modules["editor/toolbar/color"] = class {
       // Update Toolbar Colors:
       toolbar.toolbar.updateButtons();
     }
-    let firstChange;
-    let updateStoredValues = async (hex, updateText) => {
+    let updateStoredValues = async (hex, updateText, saveHistory) => {
       let newColor = hex ?? editor.utils.hsvToHex(h, s, v);
       if (selectedColor == newColor) {
         return;
@@ -5597,9 +5642,7 @@ modules["editor/toolbar/color"] = class {
       if (isToolbar == true) {
         toolbar.activateTool();
       } else {
-        //await extra.saveSelecting({ c: selectedColor }, null, firstChange);
-        //extra.updateToolActions(extra.frame);
-        //firstChange = false;
+        await toolbar.saveSelecting(() => { return { c: selectedColor }; }, { saveHistory: saveHistory == true });
       }
     }
     let eventGradientUpdate = (event) => {
@@ -5609,7 +5652,7 @@ modules["editor/toolbar/color"] = class {
       if (mouseDown() == false || shadeSliderHolder == null) {
         colorGradientEnabled = false;
         editor.pipeline.unsubscribe("colorSelectorMouse");
-        return;
+        return updateStoredValues();
       }
       let barRect = shadeSliderHolder.getBoundingClientRect();
       s = Math.ceil(Math.max(Math.min((clientPosition(event, "x") - barRect.x - 2) / shadeSliderHolder.offsetWidth, 1), 0) * 100);
@@ -5618,7 +5661,6 @@ modules["editor/toolbar/color"] = class {
     }
     let gradientDown = (event) => {
       colorGradientEnabled = true;
-      firstChange = true;
       app.style.userSelect = "none";
       eventGradientUpdate(event);
       editor.pipeline.subscribe("colorSelectorMouse", "click_move", (data) => { eventGradientUpdate(data.event); });
@@ -5632,7 +5674,7 @@ modules["editor/toolbar/color"] = class {
       if (mouseDown() == false || colorSliderHolder == null) {
         colorSliderEnabled = false;
         editor.pipeline.unsubscribe("colorSelectorMouse");
-        return;
+        return updateStoredValues();
       }
       let barRect = colorSliderHolder.getBoundingClientRect();
       h = Math.ceil(Math.max(Math.min(((event.clientX ?? event.changedTouches[0].clientX) - barRect.x) / colorSliderHolder.offsetWidth, 1), 0) * 360);
@@ -5640,7 +5682,6 @@ modules["editor/toolbar/color"] = class {
     }
     let colorSliderDown = (event) => {
       colorSliderEnabled = true;
-      firstChange = true;
       eventColorUpdate(event);
       editor.pipeline.subscribe("colorSelectorMouse", "click_move", (data) => { eventColorUpdate(data.event); });
     }
@@ -5655,8 +5696,7 @@ modules["editor/toolbar/color"] = class {
       (new EyeDropper())
         .open()
         .then((result) => {
-          firstChange = true;
-          updateStoredValues(result.sRGBHex.substring(1));
+          updateStoredValues(result.sRGBHex.substring(1), null, true);
         })
         .catch(() => { });
     });
@@ -5684,7 +5724,7 @@ modules["editor/toolbar/thickness"] = class {
   }
 
   TOOLTIP = "Thickness";
-
+  SHOW_ON_LOCK = true;
   USER_SELECT = "none";
 
   html = `
@@ -5717,7 +5757,6 @@ modules["editor/toolbar/thickness"] = class {
     let editor = this.editor;
     let toolbar = this.toolbar;
     let isToolbar = this.isToolbar;
-    let utils = editor.utils;
     let selecting = editor.selecting;
     let selectKeys = Object.keys(selecting);
     let shouldSave = isToolbar == true || selectKeys.length == 1;
@@ -5738,7 +5777,8 @@ modules["editor/toolbar/thickness"] = class {
     let pointer = slider.querySelector("button");
     let input = frame.querySelector(".eSubToolThicknessInput");
     let sliderEnabled = false;
-    let firstChange;
+    let typing = false;
+    let firstChange = true;
     let updateUI = async (updateVal, noPref) => {
       if (shouldSave == true && noPref != true) {
         toolbar.setToolPreference("thickness", selectedThickness);
@@ -5752,17 +5792,26 @@ modules["editor/toolbar/thickness"] = class {
         if (isToolbar == true) {
           toolbar.toolbar.updateButtons();
           toolbar.activateTool();
-        } else if (updateVal != null) {
-          //await extra.saveSelecting({ t: selectedThickness }, null, firstChange, null, false);
-          //cursorModule.updateBox(true);
-          //extra.updateToolActions(extra.frame);
+        } else {
+          await toolbar.saveSelecting((render) => {
+            return {
+              t: selectedThickness,
+              p: [
+                render.p[0] + ((render.t - selectedThickness) / 2),
+                render.p[1] + ((render.t - selectedThickness) / 2)
+              ]
+            };
+          }, { reuseActionBar: true, saveHistory: firstChange });
           firstChange = false;
         }
       }
     }
     this.redraw = () => {
+      if (sliderEnabled == true || typing == true) {
+        return;
+      }
       updatePreference();
-      updateUI();
+      updateUI(null, true);
     };
     let eventBarUpdate = (event) => {
       if (sliderEnabled == false) {
@@ -5792,10 +5841,12 @@ modules["editor/toolbar/thickness"] = class {
     input.addEventListener("focus", () => {
       input.value = "";
       input.placeholder = selectedThickness;
+      typing = true;
       firstChange = true;
     });
     input.addEventListener("blur", () => {
       input.value = selectedThickness;
+      typing = false;
     });
     input.addEventListener("input", () => {
       let value = input.value.replace(/\D/g, "");
@@ -5822,23 +5873,29 @@ modules["editor/toolbar/opacity"] = class {
     button.innerHTML = `<div class="eSubToolOpacityHolder"></div>`;
     let opacity = button.querySelector(".eSubToolOpacityHolder");
     await setSVG(opacity, "./images/editor/toolbar/opacity.svg");
-    let svg = opacity.querySelector("svg");
-    if (svg != null) {
-      let preference = this.parent.getToolPreference();
-      svg.querySelector("path").style.opacity = preference.opacity / 100;
-      svg.style.setProperty("--toolColor", "#" + (preference.color ?? {}).selected);
+    if (opacity != null) {
+      let svg = opacity.querySelector("svg");
+      if (svg != null) {
+        let preference = this.parent.getToolPreference();
+        svg.querySelector("path").style.opacity = preference.opacity / 100;
+        svg.style.setProperty("--toolColor", "#" + (preference.color ?? {}).selected);
+      }
     }
   }
   setActionButton = async (button) => {
     button.innerHTML = `<div class="eSubToolOpacityHolder"></div>`;
     let opacity = button.querySelector(".eSubToolOpacityHolder");
-    await setSVG(opacity, "./images/editor/toolbar/opacity.svg");
-    let svg = opacity.querySelector("svg");
-    if (svg != null) {
-      let preference = this.parent.getPreferenceTool();
-      svg.querySelector("path").style.opacity = (preference.o ?? 100) / 100;
-      svg.style.setProperty("--toolColor", "#" + preference.c);
-    }
+    (async () => {
+      await setSVG(opacity, "./images/editor/toolbar/opacity.svg");
+      if (opacity != null) {
+        let svg = opacity.querySelector("svg");
+        if (svg != null) {
+          let preference = this.parent.getPreferenceTool();
+          svg.querySelector("path").style.opacity = (preference.o ?? 100) / 100;
+          svg.style.setProperty("--toolColor", "#" + preference.c);
+        }
+      }
+    })();
   }
 
   TOOLTIP = "Opacity";
@@ -5868,7 +5925,6 @@ modules["editor/toolbar/opacity"] = class {
     let editor = this.editor;
     let toolbar = this.toolbar;
     let isToolbar = this.isToolbar;
-    let utils = editor.utils;
     let selecting = editor.selecting;
     let selectKeys = Object.keys(selecting);
     let shouldSave = isToolbar == true || selectKeys.length == 1;
@@ -5889,6 +5945,7 @@ modules["editor/toolbar/opacity"] = class {
     let pointer = slider.querySelector("button");
     let input = frame.querySelector(".eSubToolOpacityInput");
     let sliderEnabled = false;
+    let typing = false;
     let firstChange;
     let updateUI = async (updateVal, noPref) => {
       if (shouldSave == true && noPref != true) {
@@ -5903,15 +5960,16 @@ modules["editor/toolbar/opacity"] = class {
         if (isToolbar == true) {
           toolbar.toolbar.updateButtons();
           toolbar.activateTool();
-        } else if (updateVal != null) {
-          //await extra.saveSelecting({ o: selectedOpacity }, null, firstChange, null, false);
-          //cursorModule.updateBox(true);
-          //extra.updateToolActions(extra.frame);
+        } else {
+          await toolbar.saveSelecting(() => { return { o: selectedOpacity } }, { saveHistory: firstChange });
           firstChange = false;
         }
       }
     }
     this.redraw = () => {
+      if (sliderEnabled == true || typing == true) {
+        return;
+      }
       updatePreference();
       updateUI();
     };
@@ -5943,10 +6001,12 @@ modules["editor/toolbar/opacity"] = class {
     input.addEventListener("focus", () => {
       input.value = "";
       input.placeholder = selectedOpacity;
+      typing = true;
       firstChange = true;
     });
     input.addEventListener("blur", () => {
       input.value = selectedOpacity;
+      typing = false;
     });
     input.addEventListener("input", () => {
       let value = input.value.replace(/\D/g, "");
@@ -5970,3 +6030,19 @@ modules["editor/toolbar/opacity"] = class {
 
 
 // ACTION BAR MODULES //
+
+modules["editor/toolbar/delete"] = class {
+  setActionButton = async (button) => {
+    button.parentElement.style.setProperty("--hoverColor", "var(--error");
+    button.parentElement.style.setProperty("--hoverTooltip", "var(--error");
+    setSVG(button, "./images/editor/toolbar/delete.svg");
+  }
+
+  TOOLTIP = "Delete";
+  ADD_DIVIDE_BEFORE = true;
+
+  js = async () => {
+    this.button.removeAttribute("selected");
+    await this.toolbar.saveSelecting(() => { return { remove: true } });
+  }
+};

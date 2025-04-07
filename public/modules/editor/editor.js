@@ -2092,14 +2092,14 @@ modules["editor/editor"] = class {
 
           // Delete children if parent is deleted:
           if (isChild == true && data.remove == true && history.fromHistory != true) {
+            if (history.add != null) {
+              history.add.push(copyObject({ ...render, p: [annoX, annoY], r: rotation, parent: null }));
+            }
             let setChildAnno = { _id: render._id, remove: true };
             await this.save.apply(setChildAnno);
             if (connected == true) {
               this.save.pendingSaves[setChildAnno._id] = { ...(this.save.pendingSaves[setChildAnno._id] ?? {}), ...setChildAnno, sync: getEpoch() };
               this.realtimeSelect[setChildAnno._id] = { ...(this.realtimeSelect[setChildAnno._id] ?? {}), ...setChildAnno };
-            }
-            if (history.add != null) {
-              history.add.push(copyObject({ ...render, p: [annoX, annoY], r: rotation, parent: null }));
             }
           }
         }

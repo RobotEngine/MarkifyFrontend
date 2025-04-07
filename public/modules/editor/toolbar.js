@@ -1633,7 +1633,8 @@ modules["editor/toolbar"] = class {
             isBottom = true;
           }
         }
-        this.selection.actionBar.style.maxWidth = (contentHolder.clientWidth - editor.scrollOffset - 8) + "px";
+        let maxActionBarWidth = contentHolder.clientWidth - editor.scrollOffset - 8;
+        this.selection.actionBar.style.maxWidth = maxActionBarWidth + "px";
         this.selection.actionBar.style.left = (pxLeft + contentHolder.scrollLeft) + "px";
         this.selection.actionBar.style.top = (yPos + contentHolder.scrollTop) + "px";
 
@@ -1682,8 +1683,7 @@ modules["editor/toolbar"] = class {
             this.selection.actionFrame.style.left = (frameLeft - 12) + "px";
             actionContainer.style.width = actionContent.offsetWidth + "px";
             actionContainer.style.height = actionContent.offsetHeight + "px";
-            actionContainer.style.setProperty("--actionBarWidth", this.selection.actionBar.offsetWidth + "px");
-            //this.selection.actionFrame.querySelector(".eActionContainerScroll").style.maxWidth = this.selection.actionBar.offsetWidth + "px";
+            this.selection.actionFrame.querySelector(".eActionContainerScroll").style.maxWidth = maxActionBarWidth + "px";
           }
 
           if (alignTop == true) {

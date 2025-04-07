@@ -1893,8 +1893,8 @@ modules["editor/editor"] = class {
       }
 
       // IF SELECTING, DO NOT UPDATE THOSE FIELDS
-      let redrawAction = false;
-      /*if (options.ignoreSelecting != true && this.selecting[annoID] != null) {
+      /*let redrawAction = false;
+      if (options.ignoreSelecting != true && this.selecting[annoID] != null) {
         //save = { ...save, ...this.selecting[annoID] };
         redrawAction = true;
       }*/
@@ -1940,7 +1940,7 @@ modules["editor/editor"] = class {
         await this.render.remove(annotation);
       }
       
-      return { annotation: annotation, redrawAction: redrawAction };
+      return { annotation: annotation }; //, redrawAction: redrawAction
     }
     this.save.push = async (save, options = {}) => {
       let data = copyObject(save);
@@ -2385,7 +2385,7 @@ modules["editor/editor"] = class {
 
     this.pipeline.subscribe("longAnnotationUpdate", "long", async (event) => {
       let data = copyObject(event);
-      let redrawAction = false;
+      //let redrawAction = false;
       for (let i = 0; i < data.length; i++) {
         let anno = data[i];
         let pendingAnno = this.annotations[anno.pending];
@@ -2480,11 +2480,11 @@ modules["editor/editor"] = class {
         }
 
         let result = await this.save.apply(anno, { overwrite: true, timeout: false });
-        if (result.redrawAction == true) {
+        /*if (result.redrawAction == true) {
           redrawAction = true;
-        }
+        }*/
       }
-      this.pipeline.publish("redraw_selection", { redrawAction: redrawAction, redrawCurrentAction: true, fromLong: true });
+      this.pipeline.publish("redraw_selection", { refresh: true, redrawCurrentAction: true, fromLong: true }); //redrawAction: redrawAction,
     });
     this.pipeline.subscribe("removeAnnotationUpdate", "removeannotations", async (data) => {
       let annoKeys = Object.keys(this.annotations);

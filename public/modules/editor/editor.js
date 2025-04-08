@@ -205,7 +205,6 @@ modules["editor/editor"] = class {
       return `${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
     },
     lightenHex: (hexCode, percent) => {
-      console.log(hexCode)
       // Ensure the percent is within the valid range [0, 100]
       percent = Math.max(0, Math.min(100, percent));
 
@@ -250,15 +249,15 @@ modules["editor/editor"] = class {
       bgColor = bgColor ?? this.utils.rgbStringToHex(getComputedStyle(this.page ?? body).getPropertyValue("--pageColor"));
       if (this.utils.contrastCheck(bgColor) == true) {
         if (this.utils.contrastCheck(color) == false) {
-          return bgColor;
+          return "#" + this.utils.lightenHex(color, 60);
         } else {
-          return "#" + this.utils.darkenHex(color, 20);
+          return "#" + this.utils.darkenHex(color, 10);
         }
       } else {
         if (this.utils.contrastCheck(color) == true) {
-          return bgColor;
+          return "#" + this.utils.darkenHex(color, 10);
         } else {
-          return "#" + this.utils.lightenHex(color, 20);
+          return "#" + this.utils.lightenHex(color, 60);
         }
       }
     },

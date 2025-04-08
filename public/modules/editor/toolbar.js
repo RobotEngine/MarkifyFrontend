@@ -5417,13 +5417,13 @@ modules["editor/toolbar/color"] = class {
         let isSelected = false;
         if (setColor != null) {
           button.setAttribute("int", i);
-          //let holder = button.querySelector(".eSubToolColorHolder");
-          button.querySelector(".eSubToolColor").style.background = "#" + setColor;
+          let holder = button.querySelector(".eSubToolColorHolder");
+          holder.style.border = "solid 3px " + this.editor.utils.borderColorBackground(setColor);
+          holder.querySelector(".eSubToolColor").style.background = "#" + setColor;
           if (isToolbar == true) {
             isSelected = setColor == colorPreference.selected;
           } else {
             isSelected = setColor == preferenceTool.c;
-            //holder.style.border = "solid 3px " + this.editor.utils.textColorBackground(setColor);
           }
         }
         if (selected == false) {
@@ -5624,7 +5624,7 @@ modules["editor/toolbar/color"] = class {
     let updateStoredValues = async (hex, updateText, saveHistory) => {
       let newColor = hex ?? editor.utils.hsvToHex(h, s, v);
       if (selectedColor == newColor) {
-        return;
+        return updatePickerUI(updateText);
       }
       selectedColor = newColor;
       let selectedButton = selector.querySelector(".eTool[int][selected]");

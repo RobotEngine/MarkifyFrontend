@@ -577,7 +577,7 @@ modules["lesson/board"] = class {
       }
       let setPage = parseInt(pageTextBox.textContent) ?? 1;
       pageTextBox.innerHTML = "<b>" + setPage + "</b> / " + this.editor.annotationPages.length;
-      this.editor.setPage(setPage);
+      this.editor.setPage(setPage, false);
     });
 
     this.editor.pipeline.subscribe("boardLessonSet", "set", (body) => {

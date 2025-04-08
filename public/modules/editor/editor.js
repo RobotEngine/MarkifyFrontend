@@ -1120,6 +1120,13 @@ modules["editor/editor"] = class {
         this.realtime.module.exitObserve();
       }
     }
+    this.setPage = (pageNumber, animate) => {
+      if (pageNumber < 1 || pageNumber > this.annotationPages.length) {
+        return;
+      }
+      this.currentPage = pageNumber;
+      this.utils.updateAnnotationScroll(this.annotationPages[this.currentPage - 1], animate);
+    }
 
     this.utils.centerWindowWithPage = () => {
       let annotationRect = this.utils.localBoundingRect(annotations);
@@ -1508,8 +1515,7 @@ modules["editor/editor"] = class {
                         if (foundPage == null) {
                           return;
                         }
-                        this.editor.currentPage = foundPage;
-                        this.editor.utils.updateAnnotationScroll(this.editor.annotationPages[this.editor.currentPage - 1], false);
+                        this.editor.setPage(foundPage, false);
                       }
                       goToPage(val) {
                         if (!this.pdfDocument) {
@@ -1527,8 +1533,7 @@ modules["editor/editor"] = class {
                         if (foundPage == null) {
                           return;
                         }
-                        this.editor.currentPage = foundPage;
-                        this.editor.utils.updateAnnotationScroll(this.editor.annotationPages[this.editor.currentPage - 1], false);
+                        this.editor.setPage(foundPage, false);
                       }
                       addLinkAttributes(link, url, newWindow = false) {
                         if (!url || typeof url !== "string") {
@@ -1584,26 +1589,29 @@ modules["editor/editor"] = class {
                         if (this.editor.annotationPages.length < 1) {
                           return;
                         }
+                        let setPage;
                         let animate = true;
                         switch (action) {
                           case "NextPage":
-                            this.editor.currentPage++;
+                            setPage = this.editor.currentPage + 1;
                             break;
                           case "PrevPage":
-                            this.editor.currentPage--;
+                            setPage = this.editor.currentPage - 1;
                             break;
                           case "LastPage":
-                            this.editor.currentPage = editor.annotationPages.length;
+                            setPage = editor.annotationPages.length;
                             animate = false;
                             break;
                           case "FirstPage":
-                            this.editor.currentPage = 1;
+                            setPage = 1;
                             animate = false;
                             break;
                           default:
                             return;
                         }
-                        this.editor.utils.updateAnnotationScroll(this.editor.annotationPages[this.editor.currentPage - 1], animate);
+                        if (setPage != null) {
+                          this.editor.setPage(setPage, animate);
+                        }
                       }
                     }
                     //async executeSetOCGState(action) {}

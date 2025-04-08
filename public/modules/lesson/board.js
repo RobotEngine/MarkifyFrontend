@@ -533,12 +533,10 @@ modules["lesson/board"] = class {
       }
     });
     increasePageButton.addEventListener("click", () => {
-      this.editor.currentPage++;
-      this.editor.utils.updateAnnotationScroll(this.editor.annotationPages[this.editor.currentPage - 1]);
+      this.editor.setPage(this.editor.currentPage + 1);
     });
     decreasePageButton.addEventListener("click", () => {
-      this.editor.currentPage--;
-      this.editor.utils.updateAnnotationScroll(this.editor.annotationPages[this.editor.currentPage - 1]);
+      this.editor.setPage(this.editor.currentPage - 1);
     });
     let alreadyRunningFocus = false;
     pageTextBox.addEventListener("focus", async () => {
@@ -579,7 +577,7 @@ modules["lesson/board"] = class {
       }
       let setPage = parseInt(pageTextBox.textContent) ?? 1;
       pageTextBox.innerHTML = "<b>" + setPage + "</b> / " + this.editor.annotationPages.length;
-      this.editor.utils.updateAnnotationScroll(this.editor.annotationPages[setPage - 1], false);
+      this.editor.setPage(setPage);
     });
 
     this.editor.pipeline.subscribe("boardLessonSet", "set", (body) => {
@@ -809,7 +807,7 @@ modules["dropdowns/lesson/file"] = class {
   <button class="eFileAction" option="moveto" title="Move this lesson into a folder." dropdowntitle="Move To Folder"><img src="./images/dashboard/moveto.svg">Move To Folder</button>
   <div class="eFileLine" option="findjump"></div>
   <button class="eFileAction" disabled option="find" title="Find text on the PDF." style="--themeColor: var(--secondary)"><img src="./images/editor/file/search.svg">Find</button>
-  <button class="eFileAction" option="jumptop" title="Jump to the first page." style="--themeColor: var(--secondary)"><img src="./images/editor/bottom/uparrow.svg">Jump to Top</button>
+  <button class="eFileAction" option="jumptop" title="Jump to the first page." style="--themeColor: var(--secondary)"><img src="./images/editor/bottom/uparrow.svg">Jump to Start</button>
   <button class="eFileAction" option="jump" title="Jump to page number." style="--themeColor: var(--secondary)"><img src="./images/editor/file/jump.svg">Jump to Page</button>
   <button class="eFileAction" option="jumpend" title="Jump to the last page." style="--themeColor: var(--secondary)"><img src="./images/editor/bottom/downarrow.svg">Jump to End</button>
   <div class="eFileLine" option="document"></div>
@@ -876,16 +874,26 @@ modules["dropdowns/lesson/file"] = class {
     let find = frame.querySelector('.eFileAction[option="find"]');
     let jumptop = frame.querySelector('.eFileAction[option="jumptop"]');
     jumptop.addEventListener("click", () => {
-      editor.contentHolder.scrollTo({ top: 0 });
+      if (editor.annotationPages.length > 0) {
+        editor.setPage(1, false);
+        dropdownModule.close();
+      }
+      //editor.contentHolder.scrollTo({ top: 0 });
     });
     let jump = frame.querySelector('.eFileAction[option="jump"]');
     jump.addEventListener("click", () => {
-      editor.page.querySelector(".eCurrentPage").focus();
-      dropdownModule.close();
+      if (editor.annotationPages.length > 0) {
+        editor.page.querySelector(".eCurrentPage").focus();
+        dropdownModule.close();
+      }
     });
     let jumpend = frame.querySelector('.eFileAction[option="jumpend"]');
     jumpend.addEventListener("click", () => {
-      editor.contentHolder.scrollTo({ top: editor.contentHolder.scrollHeight });
+      if (editor.annotationPages.length > 0) {
+        editor.setPage(editor.annotationPages.length, false);
+        dropdownModule.close();
+      }
+      //editor.contentHolder.scrollTo({ top: editor.contentHolder.scrollHeight });
     });
 
     let deleteLessonButton = frame.querySelector('.eFileAction[option="deletelesson"]');
@@ -928,7 +936,10 @@ modules["dropdowns/lesson/file"] = class {
     }
 
     if (editor.annotationPages.length < 1) {
+      frame.querySelector('.eFileLine[option="findjump"]').remove();
+      jumptop.remove();
       jump.remove();
+      jumpend.remove();
     }
 
     find.remove();

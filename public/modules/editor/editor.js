@@ -262,6 +262,9 @@ modules["editor/editor"] = class {
         }
       }
     },
+    borderColorBackgroundRGBA: (color, bgColor, opacity) => {
+      return this.utils.hexToRGBString(this.utils.borderColorBackground(color, bgColor), opacity);
+    },
     textColorBackground: (bgColor) => {
       return (this.utils.contrastCheck(bgColor) > 0.3) ? "#000" : "#fff"; // 0.179
     }

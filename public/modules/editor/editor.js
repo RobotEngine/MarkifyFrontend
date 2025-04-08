@@ -1019,7 +1019,8 @@ modules["editor/editor"] = class {
         this.annotationPages.push([
           anno._id,
           [rect.centerX, rect.centerY],
-          [topLeftX, topLeftY, bottomRightX - topLeftX, bottomRightY - topLeftY]
+          [topLeftX, topLeftY, bottomRightX - topLeftX, bottomRightY - topLeftY],
+          [anno.source, anno.number]
         ]);
         this.annotationPages.sort((a, b) => {
           if (b[1][1] > a[2][1] && b[1][1] < a[2][1] + a[2][3]) {
@@ -1238,9 +1239,8 @@ modules["editor/editor"] = class {
         return;
       }
       this.render.runningPageRender = true;
-      // Load PDFJS
       if (window.pdfjsLib == null) {
-        await loadScript("./libraries/pdfjs/pdf.mjs");
+        await loadScript("./libraries/pdfjs/pdf.mjs"); // Load PDFJS
       }
       if (pdfjsLib.GlobalWorkerOptions.workerSrc == "") {
         pdfjsLib.GlobalWorkerOptions.workerSrc = "./libraries/pdfjs/pdf.worker.mjs";
@@ -1314,7 +1314,7 @@ modules["editor/editor"] = class {
           let viewport = pageRender.getViewport({ scale: 2 });
           //let outputScale = window.devicePixelRatio ?? 1;
           
-          element.insertAdjacentHTML("beforeend", `<canvas></canvas><div textlayer></div>`);
+          element.insertAdjacentHTML("beforeend", `<canvas></canvas><div textlayer></div><div annotationlayer></div>`);
           
           let canvas = element.querySelector("canvas");
           let context = canvas.getContext("2d", { alpha: false, willReadFrequently: true });
@@ -1368,6 +1368,201 @@ modules["editor/editor"] = class {
                     viewport: viewport
                   })).render();
                   resolve();
+                });
+              }
+              let annotationHolder = element.querySelector("div[annotationlayer]");
+              if (annotationHolder != null) {
+                pageRender.getAnnotations().then((annotationsData) => {
+                  annotationsData = annotationsData.filter((value) => { return (value ?? {}).subtype == "Link"; });
+                  const DEFAULT_LINK_REL = "noopener noreferrer nofollow";
+                  const LinkTarget = {
+                    NONE: 0,
+                    SELF: 1,
+                    BLANK: 2,
+                    PARENT: 3,
+                    TOP: 4
+                  };
+                  let setSource = sourceID;
+                  let setEditor = this;
+                  (new pdfjsLib.AnnotationLayer({
+                    div: annotationHolder,
+                    page: pageRender,
+                    viewport: viewport
+                  })).render({
+                    annotations: annotationsData,
+                    linkService: new class {
+                      externalLinkEnabled = true;
+                      constructor({
+                        sourceID = setSource,
+                        editor = setEditor,
+                        pdfDocument = source.pdf,
+                        externalLinkTarget = 2, //null
+                      } = {}) {
+                        this.sourceID = sourceID;
+                        this.editor = editor;
+                        this.externalLinkTarget = externalLinkTarget;
+                        this.externalLinkRel = null;
+                        this._ignoreDestinationZoom = false;
+                        this.baseUrl = null;
+                        this.pdfDocument = pdfDocument;
+                        //this.pdfViewer = null;
+                        //this.pdfHistory = null;
+                      }
+                      //setDocument(pdfDocument, baseUrl = null) {}
+                      //setViewer(pdfViewer) {}
+                      //setHistory(pdfHistory) {}
+                      get pagesCount() {
+                        return this.pdfDocument ? this.pdfDocument.numPages : 0;
+                      }
+                      //get page() {}
+                      //set page(value) {}
+                      //get rotation() {}
+                      //set rotation(value) {}
+                      //get isInPresentationMode() {}
+                      async goToDestination(dest) {
+                        if (!this.pdfDocument) {
+                          return;
+                        }
+                        //let namedDest;
+                        let explicitDest;
+                        let pageNumber;
+                        if (typeof dest === "string") {
+                          //namedDest = dest;
+                          explicitDest = await this.pdfDocument.getDestination(dest);
+                        } else {
+                          //namedDest = null;
+                          explicitDest = await dest;
+                        }
+                        if (!Array.isArray(explicitDest)) {
+                          return;
+                        }
+                        let [destRef] = explicitDest;
+                        if (destRef && typeof destRef === "object") {
+                          pageNumber = this.pdfDocument.cachedPageNumber(destRef);
+                          if (!pageNumber) {
+                            try {
+                              pageNumber = (await this.pdfDocument.getPageIndex(destRef)) + 1;
+                            } catch {
+                              return;
+                            }
+                          }
+                        } else if (Number.isInteger(destRef)) {
+                          pageNumber = destRef + 1;
+                        }
+                        if (!pageNumber || pageNumber < 1 || pageNumber > this.pagesCount) {
+                          return;
+                        }
+                        let foundPage;
+                        for (let i = 0; i < this.editor.annotationPages.length; i++) {
+                          let page = (this.editor.annotationPages[i] ?? [])[3] ?? [];
+                          if (page[0] == this.sourceID && page[1] == pageNumber) {
+                            foundPage = i + 1;
+                            break;
+                          }
+                        }
+                        if (foundPage == null) {
+                          return;
+                        }
+                        this.editor.currentPage = foundPage;
+                        this.editor.utils.updateAnnotationScroll(this.editor.annotationPages[this.editor.currentPage - 1], false);
+                      }
+                      goToPage(val) {
+                        if (!this.pdfDocument) {
+                          return;
+                        }
+                        let pageNumber = typeof val === "string" && parseInt(val) || val | 0;
+                        let foundPage;
+                        for (let i = 0; i < this.editor.annotationPages.length; i++) {
+                          let page = (this.editor.annotationPages[i] ?? [])[3] ?? [];
+                          if (page[0] == this.sourceID && page[1] == pageNumber) {
+                            foundPage = i + 1;
+                            break;
+                          }
+                        }
+                        if (foundPage == null) {
+                          return;
+                        }
+                        this.editor.currentPage = foundPage;
+                        this.editor.utils.updateAnnotationScroll(this.editor.annotationPages[this.editor.currentPage - 1], false);
+                      }
+                      addLinkAttributes(link, url, newWindow = false) {
+                        if (!url || typeof url !== "string") {
+                          return;
+                        }
+                        let target = newWindow ? LinkTarget.BLANK : this.externalLinkTarget;
+                        let rel = this.externalLinkRel;
+                        if (this.externalLinkEnabled == true) {
+                          link.href = link.title = url;
+                        } else {
+                          link.href = "";
+                          link.title = `Disabled: ${url}`;
+                          link.onclick = () => false;
+                        }
+                        let targetStr = "";
+                        switch (target) {
+                          case LinkTarget.NONE:
+                            break;
+                          case LinkTarget.SELF:
+                            targetStr = "_self";
+                            break;
+                          case LinkTarget.BLANK:
+                            targetStr = "_blank";
+                            break;
+                          case LinkTarget.PARENT:
+                            targetStr = "_parent";
+                            break;
+                          case LinkTarget.TOP:
+                            targetStr = "_top";
+                            break;
+                        }
+                        link.target = targetStr;
+                        link.rel = typeof rel === "string" ? rel : DEFAULT_LINK_REL;
+                      }
+                      getDestinationHash(dest) {
+                        if (typeof dest === "string") {
+                          if (dest.length > 0) {
+                            return this.getAnchorUrl("#" + escape(dest));
+                          }
+                        } else if (Array.isArray(dest)) {
+                          const str = JSON.stringify(dest);
+                          if (str.length > 0) {
+                            return this.getAnchorUrl("#" + escape(str));
+                          }
+                        }
+                        return this.getAnchorUrl("");
+                      }
+                      getAnchorUrl(anchor) {
+                        return this.baseUrl ? this.baseUrl + anchor : anchor;
+                      }
+                      //setHash() {}
+                      executeNamedAction(action) {
+                        if (this.editor.annotationPages.length < 1) {
+                          return;
+                        }
+                        let animate = true;
+                        switch (action) {
+                          case "NextPage":
+                            this.editor.currentPage++;
+                            break;
+                          case "PrevPage":
+                            this.editor.currentPage--;
+                            break;
+                          case "LastPage":
+                            this.editor.currentPage = editor.annotationPages.length;
+                            animate = false;
+                            break;
+                          case "FirstPage":
+                            this.editor.currentPage = 1;
+                            animate = false;
+                            break;
+                          default:
+                            return;
+                        }
+                        this.editor.utils.updateAnnotationScroll(this.editor.annotationPages[this.editor.currentPage - 1], animate);
+                      }
+                    }
+                    //async executeSetOCGState(action) {}
+                  });
                 });
               }
             });
@@ -3607,8 +3802,12 @@ modules["editor/render/page"] = class {
     ".eAnnotation[page] > div[hide] div[hidemodal] button": `display: flex; margin-top: 24px; z-index: 1; background: var(--theme); --borderColor: var(--secondary); --borderRadius: 14px; color: #fff`,
     ".eAnnotation[page] > div[content] div[document]": `position: relative; --scale-factor: 2; border-radius: inherit; overflow: hidden; z-index: 1`,
     ".eAnnotation[page] > div[content] div[document] canvas": `position: absolute; width: calc(100% - 8px) !important; height: calc(100% - 8px) !important; left: var(--borderWidth); top: var(--borderWidth); background: var(--themeColor); z-index: 1`,
-    ".eAnnotation[page] > div[content] div[document] div[textlayer]": `position: absolute; width: var(--fullWidth) !important; height: var(--fullHeight) !important; left: var(--borderWidth); top: var(--borderWidth); transform-origin: top left; transform: var(--fullScale); font-family: sans-serif; pointer-events: all !important; z-index: 2`,
-    ".eAnnotation[page] > div[content] div[document] div[textlayer] span": `position: absolute; color: transparent; pointer-events: all; transform-origin: top left`,
+    ".eAnnotation[page] > div[content] div[document] div[annotationlayer]": `position: absolute; width: var(--fullWidth) !important; height: var(--fullHeight) !important; left: var(--borderWidth); top: var(--borderWidth); transform-origin: top left; transform: var(--fullScale); font-family: sans-serif; z-index: 3`,
+    ".eAnnotation[page] > div[content] div[document] div[annotationlayer] > *": `position: absolute; color: transparent; pointer-events: all; transform-origin: top left`,
+    ".eAnnotation[page] > div[content] div[document] div[annotationlayer] > * a": `position: absolute; width: 100%; height: 100%; padding: 4px; left: -4px; top: -4px; border-radius: 6px; transition: .2s; transform: unset !important`,
+    ".eAnnotation[page] > div[content] div[document] div[annotationlayer] > * a:hover": `background: rgba(var(--themeRGB), .2)`,
+    ".eAnnotation[page] > div[content] div[document] div[textlayer]": `position: absolute; width: var(--fullWidth) !important; height: var(--fullHeight) !important; left: var(--borderWidth); top: var(--borderWidth); transform-origin: top left; transform: var(--fullScale); font-family: sans-serif; z-index: 2`,
+    ".eAnnotation[page] > div[content] div[document] div[textlayer] span": `position: absolute; color: transparent; pointer-events: all; transform-origin: top left;`,
     ".eAnnotation[page] > div[content] div[document] div[textlayer] br": `user-select: none`,
     ".hiddenCanvasElement": `display: none`,
   };

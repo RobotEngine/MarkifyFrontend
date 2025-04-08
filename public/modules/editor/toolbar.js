@@ -5297,9 +5297,14 @@ modules["editor/toolbar/embed"] = class extends modules["editor/toolbar/placemen
 modules["editor/toolbar/color"] = class {
   setToolbarButton = (button) => {
     button.innerHTML = `<div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div>`;
-    let color = button.querySelector(".eSubToolColor");
+    let holder = button.querySelector(".eSubToolColorHolder");
+    let color = holder.querySelector(".eSubToolColor");
     let preference = this.parent.getToolPreference();
-    color.style.background = "#" + (preference.color ?? {}).selected;
+    let selectedColor = (preference.color ?? {}).selected;
+    let fillColor = this.editor.utils.borderColorBackground(selectedColor);
+    holder.style.background = fillColor;
+    holder.style.border = "solid 3px " + fillColor;
+    color.style.background = "#" + selectedColor;
     color.style.opacity = preference.opacity / 100;
   }
   setActionButton = (button) => {
@@ -5307,7 +5312,9 @@ modules["editor/toolbar/color"] = class {
     let holder = button.querySelector(".eSubToolColorHolder");
     let color = holder.querySelector(".eSubToolColor");
     let preference = this.parent.getPreferenceTool();
-    holder.style.border = "solid 3px " + this.editor.utils.textColorBackground(preference.c);
+    let fillColor = this.editor.utils.borderColorBackground(preference.c);
+    holder.style.background = fillColor;
+    holder.style.border = "solid 3px " + fillColor;
     color.style.background = "#" + preference.c;
     color.style.opacity = (preference.o ?? 100) / 100;
   }
@@ -5412,13 +5419,13 @@ modules["editor/toolbar/color"] = class {
         let isSelected = false;
         if (setColor != null) {
           button.setAttribute("int", i);
-          let holder = button.querySelector(".eSubToolColorHolder");
-          holder.querySelector(".eSubToolColor").style.background = "#" + setColor;
+          //let holder = button.querySelector(".eSubToolColorHolder");
+          button.querySelector(".eSubToolColor").style.background = "#" + setColor;
           if (isToolbar == true) {
             isSelected = setColor == colorPreference.selected;
           } else {
             isSelected = setColor == preferenceTool.c;
-            holder.style.border = "solid 3px " + this.editor.utils.textColorBackground(setColor);
+            //holder.style.border = "solid 3px " + this.editor.utils.textColorBackground(setColor);
           }
         }
         if (selected == false) {
@@ -5670,6 +5677,7 @@ modules["editor/toolbar/color"] = class {
       app.style.userSelect = "none";
       eventGradientUpdate(event);
       editor.pipeline.subscribe("colorSelectorMouse", "click_move", (data) => { eventGradientUpdate(data.event); });
+      editor.pipeline.subscribe("colorSelectorMouse", "click_end", (data) => { eventGradientUpdate(data.event); });
     }
     shadeSliderHolder.addEventListener("mousedown", gradientDown);
     shadeSliderHolder.addEventListener("touchstart", gradientDown, { passive: true });
@@ -5690,6 +5698,7 @@ modules["editor/toolbar/color"] = class {
       colorSliderEnabled = true;
       eventColorUpdate(event);
       editor.pipeline.subscribe("colorSelectorMouse", "click_move", (data) => { eventColorUpdate(data.event); });
+      editor.pipeline.subscribe("colorSelectorMouse", "click_end", (data) => { eventColorUpdate(data.event); });
     }
     colorSliderHolder.addEventListener("mousedown", colorSliderDown);
     colorSliderHolder.addEventListener("touchstart", colorSliderDown, { passive: true });
@@ -5712,9 +5721,12 @@ modules["editor/toolbar/color"] = class {
 modules["editor/toolbar/thickness"] = class {
   setToolbarButton = (button) => {
     button.innerHTML = `<div class="eSubToolThicknessButtonHolder"><div class="eSubToolThicknessHolder"><div class="eSubToolThickness"></div></div></div>`;
-    let thickness = button.querySelector(".eSubToolThickness");
+    let holder = button.querySelector(".eSubToolThicknessHolder");
+    let thickness = holder.querySelector(".eSubToolThickness");
     let preference = this.parent.getToolPreference();
-    thickness.style.background = "#" + (preference.color ?? {}).selected;
+    let selectedColor = (preference.color ?? {}).selected;
+    holder.style.background = this.editor.utils.borderColorBackground(selectedColor);
+    thickness.style.background = "#" + selectedColor;
     thickness.style.width = "44px";
     thickness.style.height = preference.thickness + "px";
     thickness.style.opacity = preference.opacity / 100;
@@ -5724,7 +5736,7 @@ modules["editor/toolbar/thickness"] = class {
     let holder = button.querySelector(".eSubToolThicknessHolder");
     let thickness = holder.querySelector(".eSubToolThickness");
     let preference = this.parent.getPreferenceTool();
-    holder.style.background = this.editor.utils.textColorBackground(preference.c);
+    holder.style.background = this.editor.utils.borderColorBackground(preference.c);
     thickness.style.background = "#" + preference.c;
     thickness.style.width = preference.t + "px";
     thickness.style.height = "44px";
@@ -5845,6 +5857,7 @@ modules["editor/toolbar/thickness"] = class {
       firstChange = true;
       eventBarUpdate(event);
       editor.pipeline.subscribe("thicknessSelectorMouse", "click_move", (data) => { eventBarUpdate(data.event); });
+      editor.pipeline.subscribe("thicknessSelectorMouse", "click_end", (data) => { eventBarUpdate(data.event); });
     }
     slider.addEventListener("mousedown", enableSlider);
     slider.addEventListener("touchstart", enableSlider, { passive: true });
@@ -5889,8 +5902,12 @@ modules["editor/toolbar/opacity"] = class {
       let svg = opacity.querySelector("svg");
       if (svg != null) {
         let preference = this.parent.getToolPreference();
+        let selectedColor = (preference.color ?? {}).selected;
+        let fillColor = this.editor.utils.borderColorBackground(selectedColor);
+        opacity.style.background = fillColor;
+        opacity.style.border = "solid 3px " + fillColor;
         svg.querySelector("path").style.opacity = preference.opacity / 100;
-        svg.style.setProperty("--toolColor", "#" + (preference.color ?? {}).selected);
+        svg.style.setProperty("--toolColor", "#" + selectedColor);
       }
     }
   }
@@ -5903,7 +5920,7 @@ modules["editor/toolbar/opacity"] = class {
         let svg = opacity.querySelector("svg");
         if (svg != null) {
           let preference = this.parent.getPreferenceTool();
-          let fillColor = this.editor.utils.textColorBackground(preference.c);
+          let fillColor = this.editor.utils.borderColorBackground(preference.c);
           opacity.style.background = fillColor;
           opacity.style.border = "solid 3px " + fillColor;
           svg.querySelector("path").style.opacity = (preference.o ?? 100) / 100;
@@ -6010,6 +6027,7 @@ modules["editor/toolbar/opacity"] = class {
       firstChange = true;
       eventBarUpdate(event);
       editor.pipeline.subscribe("opacitySelectorMouse", "click_move", (data) => { eventBarUpdate(data.event); });
+      editor.pipeline.subscribe("opacitySelectorMouse", "click_end", (data) => { eventBarUpdate(data.event); });
     }
     slider.addEventListener("mousedown", enableSlider);
     slider.addEventListener("touchstart", enableSlider, { passive: true });

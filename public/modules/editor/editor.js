@@ -180,6 +180,10 @@ modules["editor/editor"] = class {
     rgbToHex: (r, g, b) => {
       return (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1);
     },
+    rgbStringToHex: (string) => {
+      let rgb = string.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+      return this.utils.rgbToHex(rgb[1], rgb[2], rgb[3]);
+    },
     darkenHex: (hexCode, percent) => {
       // Ensure the percent is within the valid range [0, 100]
       percent = Math.max(0, Math.min(100, percent));
@@ -198,11 +202,30 @@ modules["editor/editor"] = class {
       b = Math.max(0, Math.floor(b * factor));
 
       // Convert back to hex
-      const darkenedHex = `${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-
-      return darkenedHex;
+      return `${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
     },
-    textColorBackground: (bgColor) => {
+    lightenHex: (hexCode, percent) => {
+      console.log(hexCode)
+      // Ensure the percent is within the valid range [0, 100]
+      percent = Math.max(0, Math.min(100, percent));
+
+      // Convert hex code to RGB
+      let r = parseInt(hexCode.slice(0, 2), 16);
+      let g = parseInt(hexCode.slice(2, 4), 16);
+      let b = parseInt(hexCode.slice(4, 6), 16);
+
+      // Calculate lightening factor
+      let factor = percent / 100;
+
+      // Lighten the color components
+      r = Math.min(255, Math.floor(r + (255 - r) * factor));
+      g = Math.min(255, Math.floor(g + (255 - g) * factor));
+      b = Math.min(255, Math.floor(b + (255 - b) * factor));
+
+      // Convert back to hex
+      return `${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+    },
+    contrastCheck: (bgColor) => {
       if (bgColor == null) {
         return;
       }
@@ -221,7 +244,26 @@ modules["editor/editor"] = class {
         return Math.pow((col + 0.055) / 1.055, 2.4);
       });
       let L = (0.2126 * c[0]) + (0.7152 * c[1]) + (0.0722 * c[2]);
-      return (L > 0.3) ? "#000" : "#fff"; // 0.179
+      return L > 0.3;
+    },
+    borderColorBackground: (color, bgColor) => {
+      bgColor = bgColor ?? this.utils.rgbStringToHex(getComputedStyle(this.page ?? body).getPropertyValue("--pageColor"));
+      if (this.utils.contrastCheck(bgColor) == true) {
+        if (this.utils.contrastCheck(color) == false) {
+          return bgColor;
+        } else {
+          return "#" + this.utils.darkenHex(color, 50);
+        }
+      } else {
+        if (this.utils.contrastCheck(color) == true) {
+          return bgColor;
+        } else {
+          return "#" + this.utils.lightenHex(color, 50);
+        }
+      }
+    },
+    textColorBackground: (bgColor) => {
+      return (this.utils.contrastCheck(bgColor) > 0.3) ? "#000" : "#fff"; // 0.179
     }
   };
   math = {

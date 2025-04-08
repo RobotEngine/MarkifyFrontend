@@ -76,8 +76,7 @@ modules["editor/toolbar"] = class {
     ".eToolbarHolder[right] .eTool[extend] > div:after": `width: 46px; left: -4px; top: 0px; border-radius: 0 8px 8px 0`,
     ".eActionBar[top] .eTool[extend] > div:after": `height: 46px; left: 0px; top: -4px; border-radius: 0 0 8px 8px`,
     ".eActionBar[bottom] .eTool[extend] > div:after": `height: 46px; left: 0px; top: 0px; border-radius: 8px 8px 0 0`,
-    ".eTool[selecthighlight] > div": `background: var(--theme)`,
-    ".eTool[selecthighlight]:active > div": `border-radius: 8px !important`,
+    ".eTool[selecthighlight] > div:after": `background: var(--theme)`,
     ".eTool[off]": `opacity: 0.5`,
 
     ".eDivider": `width: calc(100% - 8px); height: 4px; margin: 2px 0; background: var(--hover); border-radius: 2px`,

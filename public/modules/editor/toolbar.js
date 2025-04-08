@@ -5903,9 +5903,9 @@ modules["editor/toolbar/opacity"] = class {
       if (svg != null) {
         let preference = this.parent.getToolPreference();
         let selectedColor = (preference.color ?? {}).selected;
-        let fillColor = this.editor.utils.borderColorBackground(selectedColor);
-        opacity.style.background = fillColor;
-        opacity.style.border = "solid 3px " + fillColor;
+        //let fillColor = this.editor.utils.borderColorBackground(selectedColor);
+        //opacity.style.background = fillColor;
+        opacity.style.border = "solid 3px " + this.editor.utils.borderColorBackground(selectedColor);
         svg.querySelector("path").style.opacity = preference.opacity / 100;
         svg.style.setProperty("--toolColor", "#" + selectedColor);
       }
@@ -5920,9 +5920,9 @@ modules["editor/toolbar/opacity"] = class {
         let svg = opacity.querySelector("svg");
         if (svg != null) {
           let preference = this.parent.getPreferenceTool();
-          let fillColor = this.editor.utils.borderColorBackground(preference.c);
-          opacity.style.background = fillColor;
-          opacity.style.border = "solid 3px " + fillColor;
+          //let fillColor = this.editor.utils.borderColorBackground(preference.c);
+          //opacity.style.background = fillColor;
+          opacity.style.border = "solid 3px " + this.editor.utils.borderColorBackground(preference.c);
           svg.querySelector("path").style.opacity = (preference.o ?? 100) / 100;
           svg.style.setProperty("--toolColor", "#" + preference.c);
         }

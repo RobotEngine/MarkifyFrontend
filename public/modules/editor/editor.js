@@ -252,13 +252,13 @@ modules["editor/editor"] = class {
         if (this.utils.contrastCheck(color) == false) {
           return bgColor;
         } else {
-          return "#" + this.utils.darkenHex(color, 50);
+          return "#" + this.utils.darkenHex(color, 20);
         }
       } else {
         if (this.utils.contrastCheck(color) == true) {
           return bgColor;
         } else {
-          return "#" + this.utils.lightenHex(color, 50);
+          return "#" + this.utils.lightenHex(color, 20);
         }
       }
     },

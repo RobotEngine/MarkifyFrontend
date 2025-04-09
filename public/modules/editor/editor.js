@@ -1470,10 +1470,7 @@ modules["editor/editor"] = class {
                       //get rotation() {}
                       //set rotation(value) {}
                       //get isInPresentationMode() {}
-                      async goToDestination(dest) {
-                        if (!this.pdfDocument) {
-                          return;
-                        }
+                      async getPDFDestination(dest) {
                         //let namedDest;
                         let explicitDest;
                         let pageNumber;
@@ -1482,7 +1479,7 @@ modules["editor/editor"] = class {
                           explicitDest = await this.pdfDocument.getDestination(dest);
                         } else {
                           //namedDest = null;
-                          explicitDest = await dest;
+                          explicitDest = dest;
                         }
                         if (!Array.isArray(explicitDest)) {
                           return;
@@ -1500,21 +1497,36 @@ modules["editor/editor"] = class {
                         } else if (Number.isInteger(destRef)) {
                           pageNumber = destRef + 1;
                         }
+                        return pageNumber;
+                      }
+                      async getLessonDestination(dest) {
+                        let pageNumber = await this.getPDFDestination(dest);
                         if (!pageNumber || pageNumber < 1 || pageNumber > this.pagesCount) {
                           return;
                         }
                         let foundPage;
                         for (let i = 0; i < this.editor.annotationPages.length; i++) {
-                          let page = (this.editor.annotationPages[i] ?? [])[3] ?? [];
-                          if (page[0] == this.sourceID && page[1] == pageNumber) {
-                            foundPage = i + 1;
+                          let page = this.editor.annotationPages[i] ?? [];
+                          let pdfData = page[3] ?? [];
+                          if (pdfData[0] == this.sourceID && pdfData[1] == pageNumber) {
+                            foundPage = {
+                              number: i + 1,
+                              id: page[0]
+                            };
                             break;
                           }
                         }
+                        return foundPage;
+                      }
+                      async goToDestination(dest) {
+                        if (!this.pdfDocument) {
+                          return;
+                        }
+                        let foundPage = await this.getLessonDestination(dest);
                         if (foundPage == null) {
                           return;
                         }
-                        this.editor.setPage(foundPage, false);
+                        this.editor.setPage(foundPage.number, false);
                       }
                       goToPage(val) {
                         if (!this.pdfDocument) {
@@ -1567,22 +1579,18 @@ modules["editor/editor"] = class {
                         link.target = targetStr;
                         link.rel = typeof rel === "string" ? rel : DEFAULT_LINK_REL;
                       }
-                      getDestinationHash(dest) {
-                        if (typeof dest === "string") {
-                          if (dest.length > 0) {
-                            return this.getAnchorUrl("#" + escape(dest));
-                          }
-                        } else if (Array.isArray(dest)) {
-                          const str = JSON.stringify(dest);
-                          if (str.length > 0) {
-                            return this.getAnchorUrl("#" + escape(str));
-                          }
+                      async getDestinationHash(dest) {
+                        // PLEASE NOTE: Had to modify pdf.mjs to allow for async with promise
+                        if (!this.pdfDocument) {
+                          return;
                         }
-                        return this.getAnchorUrl("");
+                        let foundPage = await this.getLessonDestination(dest);
+                        if (foundPage == null) {
+                          return;
+                        }
+                        return "?lesson=" + this.editor.id + "&page=" + foundPage.id + "#lesson";
                       }
-                      getAnchorUrl(anchor) {
-                        return this.baseUrl ? this.baseUrl + anchor : anchor;
-                      }
+                      //getAnchorUrl(anchor) {}
                       //setHash() {}
                       executeNamedAction(action) {
                         if (this.editor.annotationPages.length < 1) {

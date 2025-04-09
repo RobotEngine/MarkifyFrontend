@@ -1736,7 +1736,7 @@ modules["editor/toolbar"] = class {
         this.selection.actionBar.style.opacity = 1;
       }
     }
-    this.selection.clickAction = async (event) => {
+    this.selection.clickAction = async (event, options = {}) => {
       if (event == null) {
         return;
       }
@@ -1748,10 +1748,21 @@ modules["editor/toolbar"] = class {
         return;
       }*/
       let actionButton = event.target.closest(".eTool");
-      if (actionButton == null || actionButton.closest(".eActionToolbar") == null) {
+      
+      let fullClickModule = this.selection.fullClickActionModule;
+      if (fullClickModule != null) {
+        this.selection.fullClickActionModule = null;
+        if (fullClickModule.button != actionButton) {
+          fullClickModule = null;
+        }
+      } else if (options.clickEnd == true) {
         return;
       }
 
+      if (actionButton == null || actionButton.closest(".eActionToolbar") == null) {
+        return;
+      }
+      
       let wasSelected = actionButton.hasAttribute("selected");
       this.selection.closeActionFrame();
       if (wasSelected == true) {
@@ -1760,7 +1771,7 @@ modules["editor/toolbar"] = class {
 
       this.selection.actionFrameButton = actionButton;
 
-      let newActionModule = (await this.newModule(actionButton.getAttribute("module"))) ?? {};
+      let newActionModule = fullClickModule ?? (await this.newModule(actionButton.getAttribute("module"))) ?? {};
       if (actionButton != this.selection.actionFrameButton) {
         return;
       }
@@ -1768,6 +1779,11 @@ modules["editor/toolbar"] = class {
       newActionModule.toolbar = this;
       newActionModule.isActionBar = true;
       newActionModule.button = actionButton;
+
+      if (newActionModule.FULL_CLICK == true && options.clickEnd != true) {
+        this.selection.fullClickActionModule = newActionModule;
+        return;
+      }
 
       let contentFrame;
       if (newActionModule.html != null) {
@@ -1817,6 +1833,7 @@ modules["editor/toolbar"] = class {
       }
       this.selection.actionFrameButton = null;
       this.selection.currentActionModule = null;
+      this.selection.fullClickActionModule = null;
       if (this.selection.actionFrame == null) {
         return;
       }
@@ -4144,7 +4161,7 @@ modules["editor/toolbar/select"] = class {
       return;
     }
     if (target.closest("button") != null || target.closest("a") != null || target.closest(".eSelect") != null) {
-      return;
+      return this.parent.selection.clickAction(event, { clickEnd: true });
     }
     let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
     if (Math.floor(mouseX - this.startX) == 0 && Math.floor(mouseY - this.startY) == 0) {
@@ -4465,6 +4482,9 @@ modules["editor/toolbar/drag"] = class {
       let target = event.target;
       if (target == null) {
         return;
+      }
+      if (target.closest("button") != null || target.closest("a") != null || target.closest(".eActionBar") != null) {
+        return this.parent.selection.clickAction(event, { clickEnd: true });
       }
       let annotation = target.closest(".eAnnotation");
       let annoID;
@@ -6078,8 +6098,22 @@ modules["editor/toolbar/delete"] = class {
 
   TOOLTIP = "Delete";
   ADD_DIVIDE_BEFORE = true;
+  FULL_CLICK = true;
 
   js = async () => {
     await this.toolbar.saveSelecting(() => { return { remove: true } });
+  }
+};
+
+modules["editor/toolbar/more"] = class {
+  setActionButton = async (button) => {
+    setSVG(button, "./images/editor/toolbar/more.svg");
+  }
+
+  TOOLTIP = "More";
+  FULL_CLICK = true;
+
+  js = async () => {
+    dropdownModule.open(this.button, "dropdowns/lesson/file", { parent: this });
   }
 };

@@ -5296,14 +5296,15 @@ modules["editor/toolbar/embed"] = class extends modules["editor/toolbar/placemen
 modules["editor/toolbar/color"] = class {
   setToolbarButton = (button) => {
     button.innerHTML = `<div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div>`;
-    let holder = button.querySelector(".eSubToolColorHolder");
-    let color = holder.querySelector(".eSubToolColor");
+    //let holder = button.querySelector(".eSubToolColorHolder");
+    let color = button.querySelector(".eSubToolColor");
     let preference = this.parent.getToolPreference();
     let selectedColor = (preference.color ?? {}).selected;
     let selectedOpacity = preference.opacity / 100;
-    holder.style.border = "solid 3px " + this.editor.utils.borderColorBackgroundRGBA(selectedColor, null, selectedOpacity);
+    //holder.style.border = "solid 3px " + this.editor.utils.borderColorBackgroundRGBA(selectedColor, null, selectedOpacity);
     color.style.background = "#" + selectedColor;
     color.style.opacity = selectedOpacity;
+    color.style.boxShadow = "0px 0px 3px 0px " + this.editor.utils.borderColorBackgroundRGBA(selectedColor);
   }
   setActionButton = (button) => {
     button.innerHTML = `<div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div>`;
@@ -5311,9 +5312,10 @@ modules["editor/toolbar/color"] = class {
     let color = holder.querySelector(".eSubToolColor");
     let preference = this.parent.getPreferenceTool();
     let selectedOpacity = (preference.o ?? 100) / 100;
-    holder.style.border = "solid 3px " + this.editor.utils.borderColorBackgroundRGBA(preference.c, null, selectedOpacity);
+    //holder.style.border = "solid 3px " + this.editor.utils.borderColorBackgroundRGBA(preference.c, null, selectedOpacity);
     color.style.background = "#" + preference.c;
     color.style.opacity = selectedOpacity;
+    color.style.boxShadow = "0px 0px 3px 0px " + this.editor.utils.borderColorBackgroundRGBA(preference.c);
   }
 
   TOOLTIP = "Color";
@@ -5416,9 +5418,11 @@ modules["editor/toolbar/color"] = class {
         let isSelected = false;
         if (setColor != null) {
           button.setAttribute("int", i);
-          let holder = button.querySelector(".eSubToolColorHolder");
-          holder.style.border = "solid 3px " + this.editor.utils.borderColorBackground(setColor);
-          holder.querySelector(".eSubToolColor").style.background = "#" + setColor;
+          //let holder = button.querySelector(".eSubToolColorHolder");
+          //holder.style.border = "solid 3px " + this.editor.utils.borderColorBackground(setColor);
+          let color = button.querySelector(".eSubToolColor");
+          color.style.background = "#" + setColor;
+          color.style.boxShadow = "0px 0px 3px 0px " + this.editor.utils.borderColorBackgroundRGBA(setColor);
           if (isToolbar == true) {
             isSelected = setColor == colorPreference.selected;
           } else {
@@ -5718,16 +5722,17 @@ modules["editor/toolbar/color"] = class {
 modules["editor/toolbar/thickness"] = class {
   setToolbarButton = (button) => {
     button.innerHTML = `<div class="eSubToolThicknessButtonHolder"><div class="eSubToolThicknessHolder"><div class="eSubToolThickness"></div></div></div>`;
-    let holder = button.querySelector(".eSubToolThicknessHolder");
-    let thickness = holder.querySelector(".eSubToolThickness");
+    //let holder = button.querySelector(".eSubToolThicknessHolder");
+    let thickness = button.querySelector(".eSubToolThickness");
     let preference = this.parent.getToolPreference();
     let selectedColor = (preference.color ?? {}).selected;
     let selectedOpacity = preference.opacity / 100;
-    holder.style.border = "solid 3px " + this.editor.utils.borderColorBackgroundRGBA(selectedColor, null, selectedOpacity);
+    //holder.style.border = "solid 3px " + this.editor.utils.borderColorBackgroundRGBA(selectedColor, null, selectedOpacity);
     thickness.style.background = "#" + selectedColor;
     thickness.style.width = "44px";
     thickness.style.height = preference.thickness + "px";
     thickness.style.opacity = selectedOpacity;
+    thickness.style.boxShadow = "0px 0px 3px 0px " + this.editor.utils.borderColorBackgroundRGBA(selectedColor);
   }
   setActionButton = (button) => {
     button.innerHTML = `<div class="eSubToolThicknessButtonHolder"><div class="eSubToolThicknessHolder"><div class="eSubToolThickness"></div></div></div>`;
@@ -5735,11 +5740,12 @@ modules["editor/toolbar/thickness"] = class {
     let thickness = holder.querySelector(".eSubToolThickness");
     let preference = this.parent.getPreferenceTool();
     let selectedOpacity = (preference.o ?? 100) / 100;
-    holder.style.border = "solid 3px " + this.editor.utils.borderColorBackgroundRGBA(preference.c, null, selectedOpacity);
+    //holder.style.border = "solid 3px " + this.editor.utils.borderColorBackgroundRGBA(preference.c, null, selectedOpacity);
     thickness.style.background = "#" + preference.c;
     thickness.style.width = preference.t + "px";
     thickness.style.height = "44px";
     thickness.style.opacity = selectedOpacity;
+    thickness.style.boxShadow = "0px 0px 3px 0px " + this.editor.utils.borderColorBackgroundRGBA(preference.c);
   }
 
   TOOLTIP = "Thickness";
@@ -5903,9 +5909,10 @@ modules["editor/toolbar/opacity"] = class {
         let preference = this.parent.getToolPreference();
         let selectedColor = (preference.color ?? {}).selected;
         let selectedOpacity = preference.opacity / 100;
-        opacity.style.border = "solid 3px " + this.editor.utils.borderColorBackgroundRGBA(selectedColor, null, selectedOpacity);
-        svg.querySelector("path").style.opacity = preference.opacity / 100;
+        //opacity.style.border = "solid 3px " + this.editor.utils.borderColorBackgroundRGBA(selectedColor, null, selectedOpacity);
+        svg.querySelector("path").style.opacity = selectedOpacity;
         svg.style.setProperty("--toolColor", "#" + selectedColor);
+        svg.style.boxShadow = "0px 0px 3px 0px " + this.editor.utils.borderColorBackgroundRGBA(selectedColor, null, selectedOpacity);
       }
     }
   }
@@ -5919,9 +5926,10 @@ modules["editor/toolbar/opacity"] = class {
         if (svg != null) {
           let preference = this.parent.getPreferenceTool();
           let selectedOpacity = (preference.o ?? 100) / 100;
-          opacity.style.border = "solid 3px " + this.editor.utils.borderColorBackgroundRGBA(preference.c, null, selectedOpacity);
+          //opacity.style.border = "solid 3px " + this.editor.utils.borderColorBackgroundRGBA(preference.c, null, selectedOpacity);
           svg.querySelector("path").style.opacity = selectedOpacity;
           svg.style.setProperty("--toolColor", "#" + preference.c);
+          svg.style.boxShadow = "0px 0px 3px 0px " + this.editor.utils.borderColorBackgroundRGBA(preference.c, null, selectedOpacity);
         }
       }
     })();
@@ -5939,7 +5947,7 @@ modules["editor/toolbar/opacity"] = class {
   `;
   css = {
     ".eSubToolOpacityHolder": `box-sizing: border-box; display: flex; width: 34px; height: 34px; margin: 4px; background: var(--pageColor); border: solid 3px var(--pageColor); border-radius: 18px; justify-content: center; align-items: center`,
-    ".eSubToolOpacityHolder svg": `width: 100%; height: 100%`,
+    ".eSubToolOpacityHolder svg": `width: 100%; height: 100%; border-radius: 14px`,
 
     ".eSubToolOpacityFrame": `box-sizing: border-box; display: flex; width: 188px; height: 50px; padding: 8px; align-items: center`,
     ".eSubToolOpacityInput": `width: 40px; height: 26px; border: solid 3px var(--secondary); outline: none; border-radius: 17px; font-family: var(--font); font-size: 18px; font-weight: 700; color: var(--theme); text-align: center`,

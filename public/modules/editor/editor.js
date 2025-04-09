@@ -249,20 +249,20 @@ modules["editor/editor"] = class {
       bgColor = bgColor ?? this.utils.rgbStringToHex(getComputedStyle(this.page ?? body).getPropertyValue("--pageColor"));
       if (this.utils.contrastCheck(bgColor) == true) {
         if (this.utils.contrastCheck(color) == false) {
-          return "#" + this.utils.lightenHex(color, 60);
+          return "#" + this.utils.lightenHex(color, 20);
         } else {
-          return "#" + this.utils.darkenHex(color, 10);
+          return "#" + this.utils.darkenHex(color, 20);
         }
       } else {
         if (this.utils.contrastCheck(color) == true) {
-          return "#" + this.utils.darkenHex(color, 10);
+          return "#" + this.utils.darkenHex(color, 20);
         } else {
-          return "#" + this.utils.lightenHex(color, 60);
+          return "#" + this.utils.lightenHex(color, 20);
         }
       }
     },
     borderColorBackgroundRGBA: (color, bgColor, opacity) => {
-      return this.utils.hexToRGBString(this.utils.borderColorBackground(color, bgColor), opacity);
+      return this.utils.hexToRGBString(this.utils.borderColorBackground(color, bgColor), opacity ?? 1);
     },
     textColorBackground: (bgColor) => {
       return (this.utils.contrastCheck(bgColor) > 0.3) ? "#000" : "#fff"; // 0.179

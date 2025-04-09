@@ -441,6 +441,7 @@ modules["editor/toolbar"] = class {
     this.activateTool = async (extra, options = {}) => {
       editor.pinchZoomDisable = false;
       editor.usingStylus = false;
+      this.selection.hideSelectBox = null;
       if (options.resetSelection != false) {
         editor.selecting = {};
         this.selection.updateBox();
@@ -1094,6 +1095,8 @@ modules["editor/toolbar"] = class {
         })();
       }
 
+      options.hideSelectBox = options.hideSelectBox ?? this.selection.hideSelectBox;
+
       this.selection.minX = null;
       this.selection.maxX = null;
       this.selection.minY = null;
@@ -1609,7 +1612,7 @@ modules["editor/toolbar"] = class {
       }
 
       // Update Action Bar UI
-      if (options.skipUpdate != true || newActionBar == true) {
+      if ((options.skipUpdate != true || newActionBar == true) && this.selection.actionBar != null) {
         let annotationRect = editor.utils.localBoundingRect(annotations);
         let pxLeft = annotationRect.left + ((this.selection.minX + ((this.selection.maxX - this.selection.minX) / 2)) * editor.zoom) - (this.selection.actionBar.offsetWidth / 2);
         if (toolbarHolder.hasAttribute("right") == false) {
@@ -4314,6 +4317,8 @@ modules["editor/toolbar/drag"] = class {
     this.selection = content.querySelector(".eSelectDrag[new]");
     this.selection.removeAttribute("new");
 
+    this.parent.selection.hideSelectBox = true;
+
     this.prevSelecting = copyObject(this.editor.selecting);
     await this.parent.selection.updateBox();
     this.clickMove(event);
@@ -4476,6 +4481,7 @@ modules["editor/toolbar/drag"] = class {
         remSelect.remove();
       })();
     }
+    this.parent.selection.hideSelectBox = false;
     if (event != null) {
       await this.parent.selection.endAction(event);
 
@@ -4510,7 +4516,7 @@ modules["editor/toolbar/drag"] = class {
   scroll = async () => {
     await this.clickMove();
     await this.parent.selection.moveAction();
-    await this.parent.selection.updateActionBar();
+    await this.parent.selection.updateActionBar({ hideSelectBox: this.selection != null });
   }
   click = async (event) => { await this.parent.selection.interactRun(event.target); }
 }

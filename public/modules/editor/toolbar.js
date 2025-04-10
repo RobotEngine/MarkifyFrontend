@@ -1854,7 +1854,7 @@ modules["editor/toolbar"] = class {
         }
       })();
     }
-    this.selection.startAction = (event) => {
+    this.selection.startAction = async (event) => {
       if (this.selection.selectBox == null) {
         return;
       }
@@ -1939,7 +1939,12 @@ modules["editor/toolbar"] = class {
           this.updateMouse({ type: "svg", url: "./images/editor/cursors/rotate.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation });
         }
       } else { // Duplicate
-        // MUST DO LATER
+        let moreModule = (await this.newModule("editor/toolbar/more")) ?? {};
+        if (moreModule.duplicate != null) {
+          moreModule.editor = editor;
+          moreModule.toolbar = this;
+          return await moreModule.duplicate(this.selection.handle);
+        }
       }
       event.preventDefault();
     }
@@ -3782,6 +3787,12 @@ modules["editor/toolbar"] = class {
 
       if (event.keyCode == 68 && meta == true) { // Handle Duplicate
         event.preventDefault();
+        let moreModule = (await this.newModule("editor/toolbar/more")) ?? {};
+        if (moreModule.duplicate != null) {
+          moreModule.editor = editor;
+          moreModule.toolbar = this;
+          return await moreModule.duplicate();
+        }
       }
     });
     editor.pipeline.subscribe("toolbarKeyUp", "keyup", (data) => {
@@ -6112,8 +6123,8 @@ modules["editor/toolbar/more"] = class {
   FULL_CLICK = true;
   SHOW_ON_LOCK = true;
 
-  duplicate = async () => {
-
+  duplicate = async (handle) => {
+    
   }
   lock = async () => {
     await this.toolbar.saveSelecting(() => { return { lock: true }; }, { redraw: true });

@@ -1463,9 +1463,9 @@ modules["editor/toolbar"] = class {
       );
       if (showSelectBox == true && removeActionBar == true) {
         removeActionBar = (
-          this.selection.checkX != this.selection.lastCheckX ||
-          this.selection.checkY != this.selection.lastCheckY ||
           this.selection.checkX == null || this.selection.checkY == null ||
+          Math.floor(this.selection.checkX) != Math.floor(this.selection.lastCheckX) ||
+          Math.floor(this.selection.checkY) != Math.floor(this.selection.lastCheckY) ||
           options.redraw == true
         );
       }
@@ -1611,8 +1611,12 @@ modules["editor/toolbar"] = class {
         }
       }
 
+      if (this.selection.actionBar == null) {
+        return;
+      }
+
       // Update Action Bar UI
-      if ((options.skipUpdate != true || newActionBar == true) && this.selection.actionBar != null) {
+      if (options.skipUpdate != true || newActionBar == true) {
         let annotationRect = editor.utils.localBoundingRect(annotations);
         let pxLeft = annotationRect.left + ((this.selection.minX + ((this.selection.maxX - this.selection.minX) / 2)) * editor.zoom) - (this.selection.actionBar.offsetWidth / 2);
         if (toolbarHolder.hasAttribute("right") == false) {
@@ -3918,6 +3922,9 @@ modules["editor/toolbar"] = class {
 
       for (let i = 0; i < annotationData.length; i++) {
         let newAnno = annotationData[i];
+        if (this.checkSubToolEnabled(newAnno.f) == false) {
+          continue;
+        }
         let tempID = editor.render.tempID();
         parentIDs[newAnno._id] = tempID;
         newAnno.old_ID = newAnno._id;
@@ -3945,7 +3952,7 @@ modules["editor/toolbar"] = class {
 
       for (let i = 0; i < annotationData.length; i++) {
         let newAnno = annotationData[i];
-        if (editor.self.access < 4 && this.checkSubToolEnabled(newAnno.f) == false) {
+        if (this.checkSubToolEnabled(newAnno.f) == false) {
           continue;
         }
         let existingAnno = (editor.annotations[newAnno.old_ID] ?? {}).render;
@@ -6134,7 +6141,109 @@ modules["editor/toolbar/more"] = class {
   SHOW_ON_LOCK = true;
 
   duplicate = async (handle) => {
-    
+    let selectKeys = Object.keys(this.editor.selecting);
+    let checkChunks = {};
+    let saveAnnoData = [];
+    let parentIDs = {};
+    let maxZIndex;
+    let minZIndex;
+    let offsetX = 50;
+    let offsetY = 50;
+
+    if (handle != null) {
+      offsetX = 0;
+      offsetY = 0;
+      if (this.parent.selection.rotation == 0) {
+        switch (handle) {
+          case "duplicateleft":
+            offsetX -= (this.parent.selection.maxX - this.parent.selection.minX) + 34;
+            break;
+          case "duplicateright":
+            offsetX += (this.parent.selection.maxX - this.parent.selection.minX) + 34;
+            break;
+          case "duplicatetop":
+            offsetY -= (this.parent.selection.maxY - this.parent.selection.minY) + 34;
+            break;
+          case "duplicatebottom":
+            offsetY += (this.parent.selection.maxY - this.parent.selection.minY) + 34;
+        }
+      } else {
+        switch (handle) {
+          case "duplicateleft":
+            offsetX -= (this.parent.selection.lastRect.endX - this.parent.selection.lastRect.x) + 34;
+            break;
+          case "duplicateright":
+            offsetX += (this.parent.selection.lastRect.endX - this.parent.selection.lastRect.x) + 34;
+            break;
+          case "duplicatetop":
+            offsetY -= (this.parent.selection.lastRect.endY - this.parent.selection.lastRect.y) + 34;
+            break;
+          case "duplicatebottom":
+            offsetY += (this.parent.selection.lastRect.endY - this.parent.selection.lastRect.y) + 34;
+        }
+        [offsetX, offsetY] = this.editor.math.rotatePoint(offsetX, offsetY, this.parent.selection.rotation);
+      }
+    }
+
+    for (let i = 0; i < selectKeys.length; i++) {
+      let annoID = selectKeys[i];
+      let render = (this.editor.annotations[annoID] ?? {}).render;
+      if (render == null || this.parent.checkSubToolEnabled(render.f) == false) {
+        continue;
+      }
+      let addChunks = this.editor.utils.chunksFromAnnotation(render);
+      for (let c = 0; c < addChunks.length; c++) {
+        checkChunks[addChunks[c]] = true;
+      }
+      maxZIndex = Math.max(maxZIndex ?? render.l ?? this.editor.utils.maxLayer, render.l ?? this.editor.utils.maxLayer);
+      minZIndex = Math.min(minZIndex ?? render.l ?? this.editor.utils.minLayer, render.l ?? this.editor.utils.minLayer);
+      let tempID = this.editor.render.tempID();
+      parentIDs[annoID] = tempID;
+      saveAnnoData.push({ ...copyObject(render), _id: tempID });
+    }
+
+    let annotations = this.editor.utils.annotationsInChunks(Object.keys(checkChunks));
+    for (let i = 0; i < annotations.length; i++) {
+      let annotation = annotations[i] ?? {};
+      if (annotation.pointer != null) {
+        annotation = this.editor.annotations[annotation.pointer];
+      }
+      let render = annotation.render;
+      if (render == null || this.editor.selecting[render._id] != null || this.parent.checkSubToolEnabled(render.f) == false) {
+        continue;
+      }
+      let { selectingParent } = this.editor.utils.getRect(render);
+      if (selectingParent == false) {
+        continue;
+      }
+      maxZIndex = Math.max(maxZIndex ?? render.l ?? this.editor.utils.maxLayer, render.l ?? this.editor.utils.maxLayer);
+      minZIndex = Math.min(minZIndex ?? render.l ?? this.editor.utils.minLayer, render.l ?? this.editor.utils.minLayer);
+      let tempID = this.editor.render.tempID();
+      parentIDs[render._id] = tempID;
+      saveAnnoData.push({ ...copyObject(render), _id: tempID });
+    }
+
+    maxZIndex++;
+    this.editor.selecting = {};
+    for (let i = 0; i < saveAnnoData.length; i++) {
+      let newAnno = saveAnnoData[i];
+      let checkParent = parentIDs[newAnno.parent];
+      if (checkParent != null) {
+        newAnno.parent = checkParent;
+      } else {
+        let { annoX, annoY, rotation } = this.editor.utils.getRect(newAnno);
+        delete newAnno.parent;
+        newAnno.p = [annoX + offsetX, annoY + offsetY];
+        newAnno.r = rotation;
+      }
+      newAnno.l = maxZIndex + ((newAnno.l ?? this.editor.utils.maxLayer) - minZIndex);
+      delete newAnno.m;
+      delete newAnno.lock;
+      this.editor.selecting[newAnno._id] = newAnno;
+    }
+
+    this.parent.selection.action = "save";
+    await this.parent.selection.endAction();
   }
   lock = async () => {
     await this.toolbar.saveSelecting(() => { return { lock: true }; }, { redraw: true });

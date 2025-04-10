@@ -1459,7 +1459,8 @@ modules["editor/toolbar"] = class {
       let showSelectBox = (
         Object.keys(this.selection.currentSelections).length > 0 &&
         (this.selection.action == null || this.selection.actionEnabled == false) &&
-        options.hideSelectBox != true
+        options.hideSelectBox != true &&
+        this.selection.saving != true
       );
       if (showSelectBox == true && removeActionBar == true) {
         removeActionBar = (
@@ -3312,9 +3313,10 @@ modules["editor/toolbar"] = class {
           deleteKeys[annoid] = "";
         }
       }
-      
+
       let realtimeSelectSet = copyObject(editor.selecting);
 
+      this.selection.saving = true;
       let savedAnnoIDs = {};
       while (saveUpdates.length > 0) {
         for (let i = 0; i < saveUpdates.length; i++) {
@@ -3328,6 +3330,7 @@ modules["editor/toolbar"] = class {
           }
         }
       }
+      this.selection.saving = false;
 
       if (options.fromHistory != true) {
         if (pushChanges.length > 0) {

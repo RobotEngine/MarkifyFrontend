@@ -3267,7 +3267,7 @@ modules["editor/toolbar"] = class {
         saveAnnotations.push([annoid, original, selecting, { ...(original.render ?? {}), ...selecting }.l ?? 0]);
       }
 
-      saveAnnotations.sort((a, b) => { return b[3] - a[3]; });
+      saveAnnotations.sort((a, b) => { return a[3] - b[3]; });
 
       for (let i = 0; i < saveAnnotations.length; i++) {
         let [annoid, original, selecting] = saveAnnotations[i];
@@ -3494,16 +3494,13 @@ modules["editor/toolbar"] = class {
           break;
         case "remove":
           for (let i = 0; i < event.changes.length; i++) {
-            let change = { remove: true };
             let changeID = event.changes[i]._id;
             let annotation = (editor.annotations[changeID] ?? {}).render ?? {};
             if (addRedo == true) {
-              let rect = editor.utils.getRect(annotation);
-              if (rect != null) {
-                event.redo.push(JSON.parse(JSON.stringify({ ...annotation, parent: null, p: [rect.annoX, rect.annoY] })));
-              }
+              let { annoX, annoY, rotation } = editor.utils.getRect(annotation);
+              event.redo.push(copyObject({ ...annotation, parent: null, p: [annoX, annoY], r: rotation }));
             }
-            editor.selecting[changeID] = { _id: changeID, ...change };
+            editor.selecting[changeID] = { _id: changeID, remove: true };
           }
           break;
         case "add":

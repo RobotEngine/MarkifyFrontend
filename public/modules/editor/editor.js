@@ -1731,7 +1731,7 @@ modules["editor/editor"] = class {
         if (parentAnnotation.render != null) {
           let parentAnnotationElement = parentAnnotation.element;
           if (parentAnnotationElement == null && parentAnnotation.render.parent != _id) {
-            parentAnnotationElement = await this.render.create(parentAnnotation);
+            parentAnnotationElement = (await this.render.create(parentAnnotation)).element;
           }
           if (parentAnnotationElement != null) {
             holder = parentAnnotationElement.querySelector(".eAnnotationHolder");

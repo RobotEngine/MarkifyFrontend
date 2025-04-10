@@ -1755,6 +1755,8 @@ modules["editor/toolbar"] = class {
         return;
       }
 
+      await this.selection.showActionFrame();
+
       let newActionModule = (await this.newModule(actionButton.getAttribute("module"))) ?? {};
       if (newActionModule.FULL_CLICK != true) {
         if (options.clickEnd == true) {
@@ -1798,26 +1800,34 @@ modules["editor/toolbar"] = class {
         this.selection.actionFrame.removeAttribute("new");
         contentFrame = this.selection.actionFrame.querySelector(".eActionContainerContent");
         contentFrame.innerHTML = newActionModule.html;
-
-        await this.selection.updateActionBar();
-        this.tooltip.update();
       }
       if (newActionModule.js != null) {
         await newActionModule.js(contentFrame);
       }
       this.selection.currentActionModule = newActionModule;
-      if (this.selection.actionFrame != null) {
-        let containerFrame = this.selection.actionFrame.querySelector(".eActionContainer");
-        if (this.selection.actionFrame.hasAttribute("top") == true) {
-          containerFrame.style.transform = "translateY(100%)";
-        } else {
-          containerFrame.style.transform = "translateY(-100%)";
-        }
-        containerFrame.offsetHeight;
-        containerFrame.style.transition = "width .25s, height .25s, opacity .25s, transform .25s";
-        containerFrame.style.transform = "translateY(0%)";
-        containerFrame.style.opacity = 1;
+
+      if (newActionModule.FULL_CLICK == true) {
+        await this.selection.showActionFrame();
       }
+    }
+    this.selection.showActionFrame = async () => {
+      if (this.selection.actionFrame == null) {
+        return;
+      }
+
+      await this.selection.updateActionBar();
+      this.tooltip.update();
+      
+      let containerFrame = this.selection.actionFrame.querySelector(".eActionContainer");
+      if (this.selection.actionFrame.hasAttribute("top") == true) {
+        containerFrame.style.transform = "translateY(100%)";
+      } else {
+        containerFrame.style.transform = "translateY(-100%)";
+      }
+      containerFrame.offsetHeight;
+      containerFrame.style.transition = "width .25s, height .25s, opacity .25s, transform .25s";
+      containerFrame.style.transform = "translateY(0%)";
+      containerFrame.style.opacity = 1;
     }
     this.selection.closeActionFrame = () => {
       if (this.selection.actionFrameButton != null) {

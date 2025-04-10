@@ -6190,19 +6190,19 @@ modules["dropdowns/editor/toolbar/more"] = class {
     
     let duplicateButton = frame.querySelector('.eToolbarMoreAction[option="duplicate"]');
     let duplicateLine = frame.querySelector('.eToolbarMoreLine[option="duplicate"]');
-    duplicateButton.addEventListener("click", parent.duplicate);
+    duplicateButton.addEventListener("click", () => { parent.duplicate(); });
 
     let lockButton = frame.querySelector('.eToolbarMoreAction[option="lock"]');
-    lockButton.addEventListener("click", parent.lock);
+    lockButton.addEventListener("click", () => { parent.lock(); });
 
     let layersLine = frame.querySelector('.eToolbarMoreLine[option="layers"]');
     let frontButton = frame.querySelector('.eToolbarMoreAction[option="bringfront"]');
-    frontButton.addEventListener("click", parent.bringToFront);
+    frontButton.addEventListener("click", () => { parent.bringToFront(); });
     let backButton = frame.querySelector('.eToolbarMoreAction[option="sendback"]');
-    backButton.addEventListener("click", parent.sendToBack);
+    backButton.addEventListener("click", () => { parent.sendToBack(); });
 
     let shareButton = frame.querySelector('.eToolbarMoreAction[option="copylink"]');
-    shareButton.addEventListener("click", parent.copyLink);
+    shareButton.addEventListener("click", () => { parent.copyLink(); });
 
     parent.redraw = () => {
       if (frame == null) {

@@ -427,6 +427,9 @@ modules["editor/editor"] = class {
     return element != null && element.closest(".lPage") == this.pageFrame;
   }
   isEditorContent = (target) => {
+    if (target == null) {
+      return false;
+    }
     return target.closest(".eContentHolder") == this.contentHolder;
   }
 
@@ -1588,7 +1591,7 @@ modules["editor/editor"] = class {
                         if (foundPage == null) {
                           return;
                         }
-                        return "?lesson=" + this.editor.id + "&page=" + foundPage.id + "#lesson";
+                        return "?lesson=" + this.editor.lesson.id + "&page=" + foundPage.id + "#lesson";
                       }
                       //getAnchorUrl(anchor) {}
                       //setHash() {}
@@ -1886,7 +1889,7 @@ modules["editor/editor"] = class {
           }
         }
       }
-      return element;
+      return { element: element};
     }
     this.render.hide = (annotation) => {
       if (annotation == null) {
@@ -2734,7 +2737,7 @@ modules["editor/editor"] = class {
           delete this.reactions[anno._id];
         }
 
-        let result = await this.save.apply(anno, { overwrite: true, timeout: false });
+        await this.save.apply(anno, { overwrite: true, timeout: false }); //let result = 
         /*if (result.redrawAction == true) {
           redrawAction = true;
         }*/

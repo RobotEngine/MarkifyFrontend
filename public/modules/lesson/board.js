@@ -123,7 +123,7 @@ modules["lesson/board"] = class {
     ".eAccount img": `width: 100%; height: 100%; object-fit: cover`,
     ".eLogin": `height: 32px; display: none; padding: 6px 10px; margin: 0 4px; background: var(--secondary); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
 
-    ".eToolbarHolder": `position: relative; gap: 8px; flex: 1; visibility: visible`,
+    ".eToolbarHolder": `position: relative; display: block; gap: 8px; flex: 1; visibility: visible`,
 
     ".eBottomHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
     ".eBottom": `position: absolute; display: flex; width: 100%; gap: 8px; padding-top: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,
@@ -194,6 +194,7 @@ modules["lesson/board"] = class {
     this.editor = await this.setFrame("editor/editor", contentHolder, {
       construct: {
         id: this.parent.id,
+        lesson: this.parent,
         self: this.parent.self,
         session: this.parent.session,
         sessionID: this.parent.sessionID,
@@ -628,6 +629,13 @@ modules["lesson/board"] = class {
             this.editor.toolbar.toolbar.startTool(editorToolbar.querySelector('.eTool[tool="selection"]'), true);
           }
         }
+        if (member.hand == null) {
+          handButton.removeAttribute("selected");
+          handButton.setAttribute("tooltip", "Raise Hand");
+        } else {
+          handButton.setAttribute("selected", "");
+          handButton.setAttribute("tooltip", "Lower Hand");
+        }
       }
 
       this.updateMemberCount(membersButton);
@@ -702,6 +710,7 @@ modules["lesson/board"] = class {
     // Fetch Annotations
     let pageParam = getParam("page");
     let checkForJumpLink = getParam("annotation");
+    let redrawSelectionId;
     this.loadAnnotations = async () => {
       if (this.session == null) {
         return;
@@ -752,9 +761,7 @@ modules["lesson/board"] = class {
       let jumpAnnotation = null;
       if (checkForJumpLink != null && checkForJumpLink != "") {
         if (this.editor.annotations[checkForJumpLink] != null) {
-          jumpAnnotation = await this.editor.render.create(this.editor.annotations[checkForJumpLink]);
-          this.editor.selecting[checkForJumpLink] = {};
-          this.pipeline.publish("redraw_selection", {});
+          jumpAnnotation = (await this.editor.render.create(this.editor.annotations[checkForJumpLink])).element;
         }
       }
       if (jumpAnnotation == null) {
@@ -778,17 +785,32 @@ modules["lesson/board"] = class {
       } else {
         await this.editor.utils.scrollToElement(jumpAnnotation);
         await this.editor.updateChunks();
+        if (this.editor.toolbar != null) {
+          this.editor.selecting[checkForJumpLink] = {};
+          this.editor.pipeline.publish("redraw_selection", {});
+        } else {
+          redrawSelectionId = checkForJumpLink;
+        }
       }
       contentHolder.removeAttribute("disabled");
     }
 
     this.loadAnnotations();
-    (await this.newModule("editor/realtime")).js(this.editor);
-    (await this.newModule("editor/toolbar")).js(this.editor);
+
+    (async () => {
+      await (await this.newModule("editor/realtime")).js(this.editor);
+      await (await this.newModule("editor/toolbar")).js(this.editor);
+
+      editorToolbar.removeAttribute("notransition");
+      viewerToolbar.removeAttribute("notransition");
+      
+      if (redrawSelectionId != null) {
+        this.editor.selecting[redrawSelectionId] = {};
+        this.editor.pipeline.publish("redraw_selection", { redraw: true });
+      }
+    })();
 
     this.updateInterface();
-    editorToolbar.removeAttribute("notransition");
-    viewerToolbar.removeAttribute("notransition");
 
     if (this.session == null) { // Create New Lesson
       frame.insertAdjacentHTML("beforeend", `<div class="eCreateBoardHolder"></div>`);

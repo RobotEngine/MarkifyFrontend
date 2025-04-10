@@ -539,7 +539,7 @@ modules["editor/realtime"] = class {
                 prevElem = null;
               }
               merge = { ...anno, _id: memberID + "_cursor" };
-              annoElem = await editor.render.create({ element: prevElem, render: merge });
+              ({ element: annoElem } = await editor.render.create({ element: prevElem, render: merge }));
               member.elements.selection_cursor_annotation = annoElem;
               annoElem.setAttribute("member", memberID);
               annoElem.setAttribute("anno", "cursor");

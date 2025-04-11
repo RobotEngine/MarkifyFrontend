@@ -66,7 +66,7 @@ modules["pages/join"] = class {
     ".jInputHolder": `display: flex; flex-wrap: wrap; margin-top: 16px; justify-content: center; align-items: center; --themeColor: var(--hover); --fontColor: var(--theme)`,
     ".jInputPart": `display: flex; flex-wrap: wrap; margin: 12px; justify-content: center`,
     ".jInputPart div": "display: flex; width: 58px; height: 58px; justify-content: center; align-items: center",
-    ".jInputHolder input": "width: 50px; height: 50px; outline: unset; border: solid 4px var(--themeColor); border-radius: 0px; color: var(--fontColor); font-size: 34px; font-weight: 800; font-family: var(--font); text-align: center; transition: .3s, border-width .1s",
+    ".jInputHolder input": "width: 50px; height: 50px; padding: 2px; outline: unset; border: solid 4px var(--themeColor); border-radius: 0px; color: var(--fontColor); font-size: 34px; font-weight: 800; font-family: var(--font); text-align: center; transition: .3s, border-width .1s",
     ".jInputPart input:focus": `border-color: var(--theme); border-width: 8px; border-radius: 16px !important; z-index: 1`,
     ".jInputPart div:first-child input": "border-radius: 16px 0 0 16px",
     ".jInputPart div:last-child input": "border-radius: 0 16px 16px 0",

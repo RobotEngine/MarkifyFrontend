@@ -4799,7 +4799,9 @@ modules["editor/toolbar/eraser"] = class {
     }
     event.preventDefault();
     
-    let { mouseX: x1, mouseY: y1 } = this.editor.utils.localMousePosition(event);
+    let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
+    let x1 = Math.floor(mouseX);
+    let y1 = Math.floor(mouseY);
     let x0 = this.x0 ?? x1;
     let y0 = this.y0 ?? y1;
     let dx = Math.abs(x1 - x0);
@@ -4879,7 +4881,7 @@ modules["editor/toolbar/eraser"] = class {
         }
       }
 
-      if (x0 === x1 && y0 === y1) {
+      if (x0 == x1 && y0 == y1) {
         break;
       }
       

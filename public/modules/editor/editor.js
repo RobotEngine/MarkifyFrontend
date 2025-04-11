@@ -3016,7 +3016,14 @@ modules["editor/editor"] = class {
     this.pipeline.subscribe("checkPageSwitch", "page_switch", updateActivePage);
     updateActivePage();
 
-    page.addEventListener("mousedown", (event) => {
+    page.addEventListener("pointerdown", (event) => {
+      this.pipeline.publish("pointerdown", { event: event });
+      if (event.pointerType == "mouse") {
+        this.pipeline.publish("click_start", { type: "pointerdown", event: event });
+      }
+    }, { passive: false });
+
+    /*page.addEventListener("mousedown", (event) => {
       this.pipeline.publish("mousedown", { event: event });
       
       let eventSource = "mouse";
@@ -3025,11 +3032,11 @@ modules["editor/editor"] = class {
       } else if (navigator.maxTouchPoints > 0) {
         eventSource = "touch";
       }
-      
+
       if (eventSource == "mouse") { //if (event.buttons != 0) {
         this.pipeline.publish("click_start", { type: "mousedown", event: event });
       }
-    }, { passive: false });
+    }, { passive: false });*/
     /*page.addEventListener("mousemove", (event) => {
       this.pipeline.publish("mousemove", { event: event });
       this.pipeline.publish("click_move", { type: "mousemove", event: event });
@@ -3524,8 +3531,8 @@ modules["editor/render/shape"] = class {
       t = 0;
       halfT = 0;
     }
-    let width = anno.s[0] + anno.t;
-    let height = anno.s[1] + anno.t;
+    let width = anno.s[0] + t;
+    let height = anno.s[1] + t;
     let x = anno.p[0]; // + halfT;
     let y = anno.p[1]; // + halfT;
     let transform = "translate3d(" + x + "px," + y + "px, 0)";

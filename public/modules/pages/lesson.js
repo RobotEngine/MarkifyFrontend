@@ -386,25 +386,37 @@ modules["pages/lesson"] = class {
     }
     tempListen(window, "resize", (event) => {
       sizeUpdate();
+      console.log("GETA")
 
       this.pushToPipelines(null, "resize", { event: event });
       this.pushToPipelines(null, "bounds_change", { type: "resize", event: event });
     });
-    sizeUpdate();
     
-    tempListen(window, "mousemove", (event) => {
+    tempListen(window, "pointermove", (event) => {
+      this.pushToPipelines(null, "pointermove", { event: event });
+      if (event.pointerType == "mouse") {
+        this.pushToPipelines(null, "click_move", { type: "pointermove", event: event });
+      }
+    }, { passive: false });
+    /*tempListen(window, "mousemove", (event) => {
       this.pushToPipelines(null, "mousemove", { event: event });
       this.pushToPipelines(null, "click_move", { type: "mousemove", event: event });
-    }, { passive: false });
+    }, { passive: false });*/
     tempListen(window, "touchmove", (event) => {
       this.pushToPipelines(null, "touchmove", { event: event });
       this.pushToPipelines(null, "click_move", { type: "touchmove", event: event });
     }, { passive: false });
 
-    tempListen(window, "mouseup", (event) => {
+    tempListen(window, "pointerup", (event) => {
+      this.pushToPipelines(null, "pointerup", { event: event });
+      if (event.pointerType == "mouse") {
+        this.pushToPipelines(null, "click_end", { type: "pointerup", event: event });
+      }
+    }, { passive: false });
+    /*tempListen(window, "mouseup", (event) => {
       this.pushToPipelines(null, "mouseup", { event: event });
       this.pushToPipelines(null, "click_end", { type: "mouseup", event: event });
-    }, { passive: false });
+    }, { passive: false });*/
     tempListen(window, "touchend", (event) => {
       this.pushToPipelines(null, "touchend", { event: event });
       this.pushToPipelines(null, "click_end", { type: "touchend", event: event });

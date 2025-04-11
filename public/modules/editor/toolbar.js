@@ -1026,7 +1026,7 @@ modules["editor/toolbar"] = class {
 
       this.selection.action = "save";
       await this.selection.endAction({ redrawAction: false, fromHistory: options.saveHistory == false });
-      if (options.redrawActionBar != false) {
+      if (options.redrawAction != false) {
         await this.selection.updateActionBar({ refresh: true, redraw: options.redraw, reuseActionBar: options.reuseActionBar, skipUpdate: options.reuseActionBar != true });
       }
     }
@@ -1669,12 +1669,12 @@ modules["editor/toolbar"] = class {
           let alignTop;
           if (isBottom == false) {
             alignTop = true;
-            if (yPos - actionContent.offsetHeight - 8 < editor.scrollOffset) {
+            if (yPos - actionContent.offsetHeight - 4 < editor.scrollOffset) {
               alignTop = false;
             }
           } else {
             alignTop = false;
-            if (page.offsetHeight - yPos - this.selection.actionFrame.offsetHeight - actionContent.offsetHeight - 8 < editor.scrollOffset) {
+            if (page.offsetHeight - yPos - this.selection.actionFrame.offsetHeight - actionContent.offsetHeight - 4 < editor.scrollOffset) {
               alignTop = true;
             }
           }
@@ -3821,8 +3821,9 @@ modules["editor/toolbar"] = class {
     editor.pipeline.subscribe("toolbarWheel", "wheel", (data) => {
       this.pushToolEvent("wheel", data.event);
     });
-    editor.pipeline.subscribe("toolbarPageResize", "resize", (data) => {
+    editor.pipeline.subscribe("toolbarPageResize", "bounds_change", (data) => {
       this.toolbar.updateMaxHeight();
+      setTimeout(this.toolbar.updateMaxHeight, 100); // Update again because of SAFARI
       this.toolbar.update();
       this.pushToolEvent("scroll", data.event);
     });
@@ -4251,7 +4252,7 @@ modules["editor/toolbar/pan"] = class {
       return;
     }
     if (event != null) {
-      if ((mouseDown() == false && event.which != 2) || event.touches != null) {
+      if ((mouseDown() == false && event.buttons != 4) || event.touches != null) { //event.which != 2
         return this.clickEnd(event);
       }
       let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
@@ -4591,6 +4592,7 @@ modules["editor/toolbar/pen"] = class {
     if (this.annotation == null) {
       return;
     }
+    console.log(mouseDown())
     if (mouseDown() == false) {
       return this.clickEnd();
     }
@@ -6118,6 +6120,61 @@ modules["editor/toolbar/opacity"] = class {
 
 
 // ACTION BAR MODULES //
+
+modules["editor/toolbar/style"] = class {
+  setActionButton = async (button) => {
+    button.innerHTML = `<div class="eSubToolStyleHolder"><div class="eSubToolStyle"></div></div>`;
+    let buttonElem = button.querySelector(".eSubToolStyle");
+    let preference = this.parent.getPreferenceTool();
+    let selectedOpacity = (preference.o ?? 0) / 100;
+    let color = this.editor.utils.hexToRGBString(preference.c, selectedOpacity);
+    let prefI = preference.i;
+    let prefB = preference.b;
+    if (preference.d == "line") {
+      prefI = false;
+      if (prefB == "none") {
+        prefB = "solid";
+      }
+    }
+    if (prefB != "none") {
+      if (prefI != true) {
+        buttonElem.style.border = (prefB ?? "solid") + " 4px " + color; //var(--darkGray)
+        buttonElem.style.removeProperty("background");
+      } else {
+        buttonElem.style.border = (prefB ?? "solid") + " 4px " + this.editor.utils.hexToRGBString(this.editor.utils.darkenHex(preference.c, 20), selectedOpacity);
+        buttonElem.style.background = color;
+      }
+    } else {
+      buttonElem.style.background = color;
+      buttonElem.style.removeProperty("border");
+    }
+    buttonElem.style.boxShadow = "0px 0px 3px 0px " + this.editor.utils.borderColorBackgroundRGBA(preference.c, null, selectedOpacity);
+  }
+
+  TOOLTIP = "Styling";
+
+  html = `
+    <div class="eSubToolStyleContainer eHorizontalToolsHolder">
+      <button class="eTool" tooltip="Filled" option><div><div class="eSubToolStyleHolder"><div class="eSubToolStyle" fill></div></div></div></button>
+      <div class="eVerticalDivider" keeptooltip></div>
+      <button class="eTool" tooltip="Solid Border" option><div><div class="eSubToolStyleHolder"><div class="eSubToolStyle" solid></div></div></div></button>
+      <button class="eTool" tooltip="Dashed Border" option><div><div class="eSubToolStyleHolder"><div class="eSubToolStyle" dashed></div></div></div></button>
+      <button class="eTool" tooltip="No Border" option><div><div class="eSubToolStyleHolder"><div class="eSubToolStyle" none></div></div></div></button>
+    </div>
+  `;
+  css = {
+    ".eSubToolStyleHolder": `display: flex; width: 28px; height: 28px; margin: 4px; background: #fff; border: solid 3px var(--pageColor); border-radius: 11px; justify-content: center; align-items: center`,
+    ".eSubToolStyle": `box-sizing: border-box; width: 100%; height: 100%; border-radius: 8px`,
+
+    //".eSubToolStyleContainer": `display: flex; width: 100%; height: 50px; gap: 6px; overflow: auto; border-radius: inherit`,
+    //".eSubToolStyleContainer .eTool:active > div": `border-radius: 15.5px !important`,
+    //".eSubToolStyleContainer .eTool[selected]:active > div": `border-radius: 15.5px !important`,
+    //".eSubToolStyleContainer .eTool[selected] > div": `background: var(--theme) !important`
+  };
+  js = async () => {
+    //await this.toolbar.saveSelecting(() => { return {}; }, { redrawAction: false });
+  }
+};
 
 modules["editor/toolbar/delete"] = class {
   setActionButton = async (button) => {

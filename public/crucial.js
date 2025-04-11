@@ -13,7 +13,7 @@ const configs = {
     redirectOnError: false
   },
   prodTesting: {
-    server: "http://localhost:3000/api/",
+    server: "http://10.0.0.106:3000/api/", // "http://localhost:3000/api/",
     exotek_id: "631056064efd34591c5a8e05",
     assets: window.mediaURL ?? "https://static.markifyapp.com/",
     socket: { project_id: "62088fbdfc22489578e94822", project_token: "client_129dbf2cf03edc6fba2aac135fd5ae119af" },
@@ -53,7 +53,18 @@ let userID;
 
 let subscribes = [];
 
-let screenPressed = false;
+let primaryButtonDown = false;
+function mouseDown() {
+  return primaryButtonDown;
+}
+function setPrimaryButtonState(event) {
+  let flags = event.buttons !== undefined ? event.buttons : event.which;
+  primaryButtonDown = (flags & 1) === 1;
+}
+document.addEventListener("pointerdown", setPrimaryButtonState, { capture: true, passive: false });
+document.addEventListener("pointermove", setPrimaryButtonState, { capture: true, passive: false });
+document.addEventListener("pointerup", setPrimaryButtonState, { capture: true, passive: false });
+/*let screenPressed = false;
 document.addEventListener("touchstart", function() {
   screenPressed = true;
 }, { capture: true, passive: true });
@@ -65,12 +76,13 @@ function mouseDown() {
   return primaryButtonDown || screenPressed;
 }
 function setPrimaryButtonState(event) {
+  console.log(event)
   let flags = event.buttons !== undefined ? event.buttons : event.which;
   primaryButtonDown = (flags & 1) === 1;
 }
-document.addEventListener("mousedown", setPrimaryButtonState, { capture: true, passive: true });
-document.addEventListener("mousemove", setPrimaryButtonState, { capture: true, passive: true });
-document.addEventListener("mouseup", setPrimaryButtonState, { capture: true, passive: true });
+document.addEventListener("mousedown", setPrimaryButtonState, { capture: true, passive: false });
+document.addEventListener("mousemove", setPrimaryButtonState, { capture: true, passive: false });
+document.addEventListener("mouseup", setPrimaryButtonState, { capture: true, passive: false });*/
 
 let tempListeners = {};
 function addTempListener(listen) {

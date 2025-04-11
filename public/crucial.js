@@ -1604,10 +1604,6 @@ window.addEventListener("wheel", (event) => {
     event.preventDefault();
   }
 }, { passive: false });
-window.addEventListener("scroll", (event) => {
-  //window.scrollTo(0, 0);
-  event.preventDefault();
-}, { passive: false });
 /*document.addEventListener("touchstart", (event) => {
   event.preventDefault();
 }, { passive: false });

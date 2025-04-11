@@ -5809,10 +5809,10 @@ modules["editor/toolbar/thickness"] = class {
   css = {
     ".eSubToolThicknessButtonHolder": `position: relative; display: flex; width: 100%; height: 100%; justify-content: center; align-items: center; overflow: hidden`,
     ".eSubToolThicknessHolder": `position: absolute; background: var(--pageColor); border: solid 3px var(--pageColor); border-radius: 14px`,
-    ".eToolbarHolder[left] .eSubToolThicknessHolder": `transform: translateX(-8px)`,
-    ".eToolbarHolder[right] .eSubToolThicknessHolder": `transform: translateX(8px)`,
-    ".eActionBar[top] .eSubToolThicknessHolder": `transform: translateY(8px)`,
-    ".eActionBar[bottom] .eSubToolThicknessHolder": `transform: translateY(-8px)`,
+    ".eToolbarHolder[left] .eSubToolThicknessHolder": `margin-right: 16px`,
+    ".eToolbarHolder[right] .eSubToolThicknessHolder": `margin-left: 16px`,
+    ".eActionBar[top] .eSubToolThicknessHolder": `margin-top: 16px`,
+    ".eActionBar[bottom] .eSubToolThicknessHolder": `margin-bottom: 16px`,
     ".eSubToolThickness": `border-radius: 10px`,
 
     ".eSubToolThicknessFrame": `box-sizing: border-box; display: flex; width: 188px; height: 50px; padding: 8px; align-items: center`,

@@ -1184,7 +1184,9 @@ modules["dropdown"] = class {
     await this.runResize(dropdown, content, header, button);
     dropdown.style.transition = "width .4s, height .4s, opacity .3s, border-radius .3s, transform .4s";
     await sleep(300);
-    content.style.pointerEvents = "all";
+    if (content != null) {
+      content.style.pointerEvents = "all";
+    }
     /*let dropTitle = header.querySelector(".dropdownTitle div");
     if (dropTitle != null) {
       dropTitle.style.textOverflow = "ellipsis";

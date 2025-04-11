@@ -80,7 +80,7 @@ modules["editor/toolbar"] = class {
     ".eTool[off]": `opacity: 0.5`,
 
     ".eDivider": `width: calc(100% - 8px); height: 4px; margin: 2px 0; background: var(--hover); border-radius: 2px`,
-    ".eVerticalDivider": `width: 4px; height: calc(100% - 8px); margin: 0 2px; background: var(--hover); border-radius: 2px`,
+    ".eVerticalDivider": `width: 4px; height: calc(100% - 8px); margin: 0 2px; flex-shrink: 0; background: var(--hover); border-radius: 2px`,
 
     ".eToolbarHolder[left] .eSubToolHolder": `position: absolute; width: 100vw; height: 100%; padding: 12px; left: calc(100% - 12px); top: -12px; z-index: 2; overflow: hidden; pointer-events: none`,
     ".eToolbarHolder[right] .eSubToolHolder": `position: absolute; width: 100vw; height: 100%; padding: 12px; right: calc(100% - 12px); top: -12px; z-index: 2; overflow: hidden; pointer-events: none`,

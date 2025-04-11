@@ -3018,7 +3018,15 @@ modules["editor/editor"] = class {
 
     page.addEventListener("mousedown", (event) => {
       this.pipeline.publish("mousedown", { event: event });
-      if (event.buttons != 0) {
+      
+      let eventSource = "mouse";
+      if (window.PointerEvent && event instanceof PointerEvent) {
+        eventSource = event.pointerType;
+      } else if (navigator.maxTouchPoints > 0) {
+        eventSource = "touch";
+      }
+      
+      if (eventSource == "mouse") { //if (event.buttons != 0) {
         this.pipeline.publish("click_start", { type: "mousedown", event: event });
       }
     }, { passive: false });

@@ -1182,9 +1182,9 @@ modules["dropdown"] = class {
     await setFrame(frameName, frame, { dropdown: this, content: content, button: button, origin: button, ...data });
     frame.style.removeProperty("min-height");
     await this.runResize(dropdown, content, header, button);
-    content.style.pointerEvents = "all";
     dropdown.style.transition = "width .4s, height .4s, opacity .3s, border-radius .3s, transform .4s";
-    //await sleep(300);
+    await sleep(300);
+    content.style.pointerEvents = "all";
     /*let dropTitle = header.querySelector(".dropdownTitle div");
     if (dropTitle != null) {
       dropTitle.style.textOverflow = "ellipsis";

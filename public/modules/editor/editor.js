@@ -2937,15 +2937,15 @@ modules["editor/editor"] = class {
     let getDistance = (touches) => {
       let pageWidth = page.offsetWidth;
       let pageHeight = page.offsetHeight;
-      let { touchAX, touchAY } = this.utils.localMousePosition(touches[1]);
-      let { touchBX, touchBY } = this.utils.localMousePosition(touches[0]);
+      let { mouseX: touchAX, mouseY: touchAY } = this.utils.localMousePosition(touches[1]);
+      let { mouseX: touchBX, mouseY: touchBY } = this.utils.localMousePosition(touches[0]);
       let xDiff = (touchAX / pageWidth) - (touchBX / pageWidth);
       let yDiff = (touchAY / pageHeight) - (touchBY / pageHeight);
       return Math.sqrt((xDiff * xDiff) + (yDiff * yDiff));
     }
     let getCenter = (touches) => {
-      let { touchAX, touchAY } = this.utils.localMousePosition(touches[0]);
-      let { touchBX, touchBY } = this.utils.localMousePosition(touches[1]);
+      let { mouseX: touchAX, mouseY: touchAY } = this.utils.localMousePosition(touches[0]);
+      let { mouseX: touchBX, mouseY: touchBY } = this.utils.localMousePosition(touches[1]);
       return { x: (touchAX + touchBX) / 2, y: (touchAY + touchBY) / 2 };
     }
     let running = false;
@@ -3018,7 +3018,9 @@ modules["editor/editor"] = class {
 
     page.addEventListener("mousedown", (event) => {
       this.pipeline.publish("mousedown", { event: event });
-      this.pipeline.publish("click_start", { type: "mousedown", event: event });
+      if (event.buttons != 0) {
+        this.pipeline.publish("click_start", { type: "mousedown", event: event });
+      }
     }, { passive: false });
     /*page.addEventListener("mousemove", (event) => {
       this.pipeline.publish("mousemove", { event: event });

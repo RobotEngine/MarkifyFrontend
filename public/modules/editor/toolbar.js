@@ -433,9 +433,9 @@ modules["editor/toolbar"] = class {
         page.style.removeProperty("user-select");
       }
       if (module.TOUCH_ACTION != null) {
-        page.style.touchAction = module.TOUCH_ACTION;
+        contentHolder.style.touchAction = module.TOUCH_ACTION;
       } else {
-        page.style.removeProperty("touch-action");
+        contentHolder.style.removeProperty("touch-action");
       }
     }
     this.activateTool = async (extra, options = {}) => {
@@ -1119,27 +1119,27 @@ modules["editor/toolbar"] = class {
       let selections = Object.keys(editor.selecting);
       if (this.currentToolModule != null) {
         let setUserSelect = this.currentToolModule.USER_SELECT;
-        let setTouchAction = this.currentToolModule.TOUCH_ACTION;
+        //let setTouchAction = this.currentToolModule.TOUCH_ACTION;
         if (selections.length > 0) {
           setUserSelect = "none";
-          setTouchAction = "pinch-zoom";
+          //setTouchAction = "pinch-zoom";
           if (this.selection.originalUserSelect === null) {
             this.selection.originalUserSelect = this.currentToolModule.USER_SELECT;
           }
-          if (this.selection.originalTouchAction === null) {
+          /*if (this.selection.originalTouchAction === null) {
             this.selection.originalTouchAction = this.currentToolModule.TOUCH_ACTION;
-          }
+          }*/
           this.selection.replaceCursorActive = true;
         } else if (this.selection.replaceCursorActive == true) {
           this.selection.replaceCursorActive = false;
           setUserSelect = this.selection.originalUserSelect;
           this.selection.originalUserSelect = null;
-          setTouchAction = this.selection.originalTouchAction;
-          this.selection.originalTouchAction = null;
+          //setTouchAction = this.selection.originalTouchAction;
+          //this.selection.originalTouchAction = null;
         }
         if (setUserSelect != this.currentToolModule.USER_SELECT) {
           this.currentToolModule.USER_SELECT = setUserSelect;
-          this.currentToolModule.TOUCH_ACTION = setTouchAction;
+          //this.currentToolModule.TOUCH_ACTION = setTouchAction;
           this.applyToolModule();
         }
       }
@@ -1537,78 +1537,80 @@ modules["editor/toolbar"] = class {
           }
         }
 
-        if (actionToolbarLoaded == false) {
-          actionButtonHolder.setAttribute("loaded", "");
-          combineTools = combineTools ?? [];
-          combineTools.unshift("collaborator");
-          combineTools.push("more");
-          
-          actionButtonHolder.innerHTML = "";
-          for (let i = 0; i < combineTools.length; i++) {
-            let action = combineTools[i];
-            actionButtonHolder.insertAdjacentHTML("beforeend", `<button class="eTool" new><div></div></button>`);
-            let newAction = actionButtonHolder.querySelector("[new]");
-            newAction.removeAttribute("new");
-            newAction.setAttribute("action", action);
-            newAction.setAttribute("module", "editor/toolbar/" + action);
+        if (selections.length > 0) {
+          if (actionToolbarLoaded == false) {
+            actionButtonHolder.setAttribute("loaded", "");
+            combineTools = combineTools ?? [];
+            combineTools.unshift("collaborator");
+            combineTools.push("more");
+            
+            actionButtonHolder.innerHTML = "";
+            for (let i = 0; i < combineTools.length; i++) {
+              let action = combineTools[i];
+              actionButtonHolder.insertAdjacentHTML("beforeend", `<button class="eTool" new><div></div></button>`);
+              let newAction = actionButtonHolder.querySelector("[new]");
+              newAction.removeAttribute("new");
+              newAction.setAttribute("action", action);
+              newAction.setAttribute("module", "editor/toolbar/" + action);
+            }
           }
-        }
         
-        for (let i = 0; i < actionButtonHolder.children.length; i++) {
-          let newAction = actionButtonHolder.children[i];
-          if (newAction == null) {
-            continue;
-          }
-          let actionModule = (await this.newModule(newAction.getAttribute("module"))) ?? {};
-          actionModule.editor = editor;
-          actionModule.toolbar = this;
-          actionModule.isActionBar = true;
-          if (actionModule.SUPPORTS_MULTIPLE_SELECT == false && selections.length > 1) {
-            continue;
-          }
-          (async () => {
-            let isVisible = true;
-            newAction.innerHTML = "<div></div>";
-            let buttonHolder = newAction.querySelector("div");
-            if (actionModule.setActionButton != null) {
-              isVisible = (await actionModule.setActionButton(buttonHolder)) != false;
-            }
+          for (let i = 0; i < actionButtonHolder.children.length; i++) {
+            let newAction = actionButtonHolder.children[i];
             if (newAction == null) {
-              return;
+              continue;
             }
-            if (actionModule.SHOW_ON_LOCK != true) {
-              isVisible = showLocked == false;
+            let actionModule = (await this.newModule(newAction.getAttribute("module"))) ?? {};
+            actionModule.editor = editor;
+            actionModule.toolbar = this;
+            actionModule.isActionBar = true;
+            if (actionModule.SUPPORTS_MULTIPLE_SELECT == false && selections.length > 1) {
+              continue;
             }
-            if (actionModule.TOOLTIP != null) {
-              newAction.setAttribute("tooltip", actionModule.TOOLTIP);
-            }
-            if (isVisible == true) {
-              newAction.style.removeProperty("display");
-            } else {
-              newAction.style.display = "none";
-            }
-            let elementBefore = newAction.previousElementSibling;
-            let elementAfter = newAction.nextElementSibling;
-            if (isVisible == true) {
-              if (actionModule.ADD_DIVIDE_BEFORE == true && elementBefore != null && elementBefore.className != "eVerticalDivider") {
-                let newDivider = document.createElement("div");
-                newDivider.className = "eVerticalDivider";
-                actionButtonHolder.insertBefore(newDivider, newAction);
+            (async () => {
+              let isVisible = true;
+              newAction.innerHTML = "<div></div>";
+              let buttonHolder = newAction.querySelector("div");
+              if (actionModule.setActionButton != null) {
+                isVisible = (await actionModule.setActionButton(buttonHolder)) != false;
               }
-              if (actionModule.ADD_DIVIDE_AFTER == true && (elementAfter == null || elementAfter.className != "eVerticalDivider")) {
-                let newDivider = document.createElement("div");
-                newDivider.className = "eVerticalDivider";
-                actionButtonHolder.insertBefore(newDivider, elementAfter);
+              if (newAction == null) {
+                return;
               }
-            } else {
-              if (elementBefore != null && elementBefore.className == "eVerticalDivider") {
-                elementBefore.remove();
+              if (actionModule.SHOW_ON_LOCK != true) {
+                isVisible = showLocked == false;
               }
-              if (elementAfter != null && elementAfter.className == "eVerticalDivider") {
-                elementAfter.remove();
+              if (actionModule.TOOLTIP != null) {
+                newAction.setAttribute("tooltip", actionModule.TOOLTIP);
               }
-            }
-          })();
+              if (isVisible == true) {
+                newAction.style.removeProperty("display");
+              } else {
+                newAction.style.display = "none";
+              }
+              let elementBefore = newAction.previousElementSibling;
+              let elementAfter = newAction.nextElementSibling;
+              if (isVisible == true) {
+                if (actionModule.ADD_DIVIDE_BEFORE == true && elementBefore != null && elementBefore.className != "eVerticalDivider") {
+                  let newDivider = document.createElement("div");
+                  newDivider.className = "eVerticalDivider";
+                  actionButtonHolder.insertBefore(newDivider, newAction);
+                }
+                if (actionModule.ADD_DIVIDE_AFTER == true && (elementAfter == null || elementAfter.className != "eVerticalDivider")) {
+                  let newDivider = document.createElement("div");
+                  newDivider.className = "eVerticalDivider";
+                  actionButtonHolder.insertBefore(newDivider, elementAfter);
+                }
+              } else {
+                if (elementBefore != null && elementBefore.className == "eVerticalDivider") {
+                  elementBefore.remove();
+                }
+                if (elementAfter != null && elementAfter.className == "eVerticalDivider") {
+                  elementAfter.remove();
+                }
+              }
+            })();
+          }
         }
       }
 
@@ -4717,7 +4719,7 @@ modules["editor/toolbar/pen"] = class {
     if (this.editor.options.stylusmode != true) {
       this.TOUCH_ACTION = "pinch-zoom";
     } else {
-      editor.pinchZoomDisable = true;
+      this.editor.pinchZoomDisable = true;
     }
   }
   disable = this.clickEnd;
@@ -4748,7 +4750,7 @@ modules["editor/toolbar/underline"] = class extends modules["editor/toolbar/pen"
     if (this.editor.options.stylusmode != true) {
       this.TOUCH_ACTION = "pinch-zoom";
     } else {
-      editor.pinchZoomDisable = true;
+      this.editor.pinchZoomDisable = true;
     }
   }
 }
@@ -4904,7 +4906,7 @@ modules["editor/toolbar/eraser"] = class {
     if (this.editor.options.stylusmode != true) {
       this.TOUCH_ACTION = "pinch-zoom";
     } else {
-      editor.pinchZoomDisable = true;
+      this.editor.pinchZoomDisable = true;
     }
   }
   disable = this.clickEnd;
@@ -5428,8 +5430,9 @@ modules["editor/toolbar/color"] = class {
     ".eSubToolColorPickerGradient button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; top: -5px; background: var(--theme); box-shadow: var(--lightShadow); border: solid 3px var(--pageColor); border-radius: 10px; transition: transform .2s`,
     ".eSubToolColorPickerGradient button:hover": `transform: scale(1.2) !important`,
     ".eSubToolColorPickerGradient button:active": `transform: scale(1.1) !important`,
-    ".eSubToolColorPickerType": `height: 22px; padding: 3px 6px; margin: 3px; --borderWidth: 3px; --borderRadius: 7px; font-size: 14px; font-weight: 700; color: var(--theme)`,
-    ".eSubToolColorPickerField": `flex: 1; min-width: 0px; height: 19px; margin: 0 6px; border: solid 3px var(--secondary); outline: none; border-radius: 14px; font-family: var(--font); font-size: 14px; font-weight: 700; color: var(--theme); text-align: center`,
+    ".eSubToolColorPickerType": `box-sizing: border-box; height: 22px; padding: 3px 6px; margin: 3px; --borderWidth: 3px; --borderRadius: 8px; font-size: 14px; font-weight: 700; color: var(--theme)`,
+    ".eSubToolColorPickerType:after": `width: 100%; height: 100%`,
+    ".eSubToolColorPickerField": `box-sizing: border-box; flex: 1; min-width: 0px; height: 28px; padding: 0; margin: 0 6px; border: solid 3px var(--secondary); outline: none; border-radius: 14px; font-family: var(--font); font-size: 14px; font-weight: 700; color: var(--theme); text-align: center`,
     ".eSubToolColorPickerField::placeholder": `color: var(--hover)`
   };
   js = (frame) => {

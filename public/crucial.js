@@ -13,7 +13,7 @@ const configs = {
     redirectOnError: false
   },
   prodTesting: {
-    server: "http://localhost:3000/api/",
+    server: "http://10.0.0.106:3000/api/", //"http://localhost:3000/api/",
     exotek_id: "631056064efd34591c5a8e05",
     assets: window.mediaURL ?? "https://static.markifyapp.com/",
     socket: { project_id: "62088fbdfc22489578e94822", project_token: "client_129dbf2cf03edc6fba2aac135fd5ae119af" },
@@ -1604,12 +1604,16 @@ window.addEventListener("wheel", (event) => {
     event.preventDefault();
   }
 }, { passive: false });
-document.addEventListener("touchstart", (event) => {
+window.addEventListener("scroll", (event) => {
+  //window.scrollTo(0, 0);
+  event.preventDefault();
+}, { passive: false });
+/*document.addEventListener("touchstart", (event) => {
   event.preventDefault();
 }, { passive: false });
 document.addEventListener("touchmove", (event) => {
   event.preventDefault();
-}, { passive: false });
+}, { passive: false });*/
 
 // Add CORE CSS:
 addCSS({

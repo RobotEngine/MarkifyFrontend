@@ -23,12 +23,12 @@ modules["pages/lesson"] = class {
     <div class="lPage" active></div>
   </div>`;
   css = {
-    ".lPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100vw; height: 100vh; padding: 8px; left: 0px; top: 0px; justify-content: center`,
+    ".lPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100vw; width: 100dvw; height: 100vh; height: 100dvh; padding: 8px; left: 0px; top: 0px; justify-content: center`,
     ".lPageHolder[maximize]": `padding: 0px !important`,
     ".lPage": `--shadowOpacity: .3; position: relative; display: flex; width: 100%; height: 100%; box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: 12px; overflow: hidden; transition: .2s`,
     ".lPage[active]": `--shadowOpacity: .5 !important`,
     ".lPageHolder[maximize] .lPage": `border-radius: 0px !important`,
-    ".lCustomScroll::-webkit-scrollbar": `width: 16px; background: var(--scrollGray)`,
+    ".lCustomScroll::-webkit-scrollbar": `background: var(--scrollGray)`,
     ".lCustomScroll::-webkit-scrollbar-corner": `background: var(--scrollGray)`,
     ".lCustomScroll::-webkit-scrollbar-thumb": `min-width: 50px; min-height: 50px; border: 4px solid var(--scrollGray); background: var(--gray); border-radius: 8px`,
     ".lCustomScroll::-webkit-scrollbar-thumb:active": `background: var(--activeGray)`

@@ -386,11 +386,11 @@ modules["pages/lesson"] = class {
     }
     tempListen(window, "resize", (event) => {
       sizeUpdate();
-      console.log("GETA")
 
       this.pushToPipelines(null, "resize", { event: event });
       this.pushToPipelines(null, "bounds_change", { type: "resize", event: event });
     });
+    sizeUpdate();
     
     tempListen(window, "pointermove", (event) => {
       this.pushToPipelines(null, "pointermove", { event: event });

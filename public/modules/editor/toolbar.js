@@ -1572,7 +1572,7 @@ modules["editor/toolbar"] = class {
               continue;
             }
             (async () => {
-              let isVisible;
+              let isVisible = true;
               newAction.innerHTML = "<div></div>";
               let buttonHolder = newAction.querySelector("div");
               if (actionModule.setActionButton != null) {
@@ -1598,18 +1598,20 @@ modules["editor/toolbar"] = class {
                 if (actionModule.ADD_DIVIDE_BEFORE == true && elementBefore != null && elementBefore.className != "eVerticalDivider") {
                   let newDivider = document.createElement("div");
                   newDivider.className = "eVerticalDivider";
+                  newDivider.setAttribute("before", "");
                   actionButtonHolder.insertBefore(newDivider, newAction);
                 }
                 if (actionModule.ADD_DIVIDE_AFTER == true && (elementAfter == null || elementAfter.className != "eVerticalDivider")) {
                   let newDivider = document.createElement("div");
                   newDivider.className = "eVerticalDivider";
+                  newDivider.setAttribute("after", "");
                   actionButtonHolder.insertBefore(newDivider, elementAfter);
                 }
               } else {
-                if (elementBefore != null && elementBefore.className == "eVerticalDivider") {
+                if (elementBefore != null && elementBefore.className == "eVerticalDivider" && elementBefore.hasAttribute("before") == true) {
                   elementBefore.remove();
                 }
-                if (elementAfter != null && elementAfter.className == "eVerticalDivider") {
+                if (elementAfter != null && elementAfter.className == "eVerticalDivider" && elementBefore.hasAttribute("after") == true) {
                   elementAfter.remove();
                 }
               }

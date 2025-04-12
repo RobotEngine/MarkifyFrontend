@@ -96,8 +96,10 @@ modules["editor/toolbar"] = class {
     ".eSubToolContentHolder": `position: relative; background: var(--pageColor); z-index: 3; overflow: hidden; border-radius: inherit`,
     ".eSubToolContentScroll": `width: fit-content; overflow: auto`,
     ".eSubToolContainer[option] .eSubToolContentScroll": `overflow: visible`,
-    ".eVerticalToolsHolder": `display: flex; flex-direction: column; padding: 2px 0; align-items: center`,
-    ".eHorizontalToolsHolder": `display: flex; padding: 0 2px; align-items: center`,
+    ".eVerticalToolsHolder": `display: flex; flex-direction: column; padding: 2px 0; align-items: center; scrollbar-width: none`,
+    ".eVerticalToolsHolder::-webkit-scrollbar": `display: none`,
+    ".eHorizontalToolsHolder": `display: flex; padding: 0 2px; align-items: center; scrollbar-width: none`,
+    ".eHorizontalToolsHolder::-webkit-scrollbar": `display: none`,
 
     ".eSelect": `position: absolute; left: 0px; top: 0px; opacity: 0; z-index: 101; border-radius: 9px; transition: all .25s, opacity .15s; pointer-events: none`,
     ".eAnnotation[selected] > *": `pointer-events: none`,
@@ -141,7 +143,6 @@ modules["editor/toolbar"] = class {
 
     ".eActionBar": `position: absolute; display: flex; height: 50px; box-shadow: var(--lightShadow); z-index: 102; border-radius: 12px; transform: translateY(-10%); opacity: 0; transition: transform .2s, opacity .2s, border-radius .2s`,
     ".eActionToolbar": `display: flex; width: 100%; height: 100%; background: var(--pageColor); overflow: auto; border-radius: inherit; z-index: 2`,
-    ".eActionToolbar::-webkit-scrollbar": `display: none`,
     ".eActionToolbar[locked] > *": `display: none`,
     //".eActionToolbar .eTool[stayonlock]": `display: flex`,
     ".eActionHolder[top]": `position: absolute; width: fit-content; height: fit-content; padding: 12px; left: -12px; bottom: calc(100% - 12px); z-index: 1; overflow: hidden; pointer-events: none`,
@@ -1680,6 +1681,8 @@ modules["editor/toolbar"] = class {
 
           let frameLeft = 0;
           if (this.selection.actionFrameButton != null) {
+            this.selection.actionFrame.querySelector(".eActionContainerScroll").style.maxWidth = maxActionBarWidth + "px";
+
             frameLeft = (this.selection.actionFrameButton.getBoundingClientRect().left - this.selection.actionBar.getBoundingClientRect().left) + (this.selection.actionFrameButton.offsetWidth / 2) - (actionContent.offsetWidth / 2);
             if (frameLeft + actionContent.offsetWidth > this.selection.actionBar.offsetWidth) {
               frameLeft = this.selection.actionBar.offsetWidth - actionContent.offsetWidth;
@@ -1693,7 +1696,6 @@ modules["editor/toolbar"] = class {
             this.selection.actionFrame.style.left = (frameLeft - 12) + "px";
             actionContainer.style.width = actionContent.offsetWidth + "px";
             actionContainer.style.height = actionContent.offsetHeight + "px";
-            this.selection.actionFrame.querySelector(".eActionContainerScroll").style.maxWidth = maxActionBarWidth + "px";
           }
 
           if (alignTop == true) {
@@ -1806,6 +1808,8 @@ modules["editor/toolbar"] = class {
         this.selection.actionFrame.removeAttribute("new");
         contentFrame = this.selection.actionFrame.querySelector(".eActionContainerContent");
         contentFrame.innerHTML = newActionModule.html;
+
+        this.selection.actionFrame.querySelector(".eActionContainerScroll").style.maxWidth = (contentHolder.clientWidth - editor.scrollOffset) + "px";
       }
       if (newActionModule.js != null) {
         await newActionModule.js(contentFrame);
@@ -6165,13 +6169,110 @@ modules["editor/toolbar/style"] = class {
     ".eSubToolStyleHolder": `display: flex; width: 28px; height: 28px; margin: 4px; background: #fff; border: solid 3px var(--pageColor); border-radius: 11px; justify-content: center; align-items: center`,
     ".eSubToolStyle": `box-sizing: border-box; width: 100%; height: 100%; border-radius: 8px`,
 
-    //".eSubToolStyleContainer": `display: flex; width: 100%; height: 50px; gap: 6px; overflow: auto; border-radius: inherit`,
-    //".eSubToolStyleContainer .eTool:active > div": `border-radius: 15.5px !important`,
-    //".eSubToolStyleContainer .eTool[selected]:active > div": `border-radius: 15.5px !important`,
-    //".eSubToolStyleContainer .eTool[selected] > div": `background: var(--theme) !important`
+    ".eSubToolStyleContainer": `overflow: auto; border-radius: inherit`,
+    ".eSubToolStyleContainer .eSubToolStyle[none]": `width: calc(100% - 8px); height: calc(100% - 8px); margin: 4px; border-radius: 4px`,
   };
-  js = async () => {
-    //await this.toolbar.saveSelecting(() => { return {}; }, { redrawAction: false });
+  js = async (frame) => {
+    let preference = this.toolbar.getPreferenceTool();
+    let selectedI;
+    let selectedB;
+
+    let fill = frame.querySelector(".eSubToolStyle[fill]");
+    let solid = frame.querySelector(".eSubToolStyle[solid]");
+    let dashed = frame.querySelector(".eSubToolStyle[dashed]");
+    let none = frame.querySelector(".eSubToolStyle[none]");
+
+    let fillButton = fill.closest(".eTool");
+    let solidButton = solid.closest(".eTool");
+    let dashedButton = dashed.closest(".eTool");
+    let noneButton = none.closest(".eTool");
+
+    this.redraw = () => {
+      preference = this.toolbar.getPreferenceTool();
+      selectedI = preference.i;
+      selectedB = preference.b;
+
+      if (preference.d == "line") {
+        fillButton.style.display = "none";
+        frame.querySelector(".eVerticalDivider").style.display = "none";
+        noneButton.style.display = "none";
+        selectedI = false;
+        if (selectedB == "none") {
+          selectedB = "solid";
+        }
+      }
+
+      fillButton.removeAttribute("selected");
+      solidButton.removeAttribute("selected");
+      dashedButton.removeAttribute("selected");
+      noneButton.removeAttribute("selected");
+
+      if (selectedB != "none") {
+        if (selectedI != true) {
+          if ((selectedB ?? "solid") == "solid") {
+            solidButton.setAttribute("selected", "");
+          } else {
+            dashedButton.setAttribute("selected", "");
+          }
+        } else {
+          fillButton.setAttribute("selected", "");
+          if ((selectedB ?? "solid") == "solid") {
+            solidButton.setAttribute("selected", "");
+          } else {
+            dashedButton.setAttribute("selected", "");
+          }
+        }
+      } else {
+        fillButton.setAttribute("selected", "");
+        noneButton.setAttribute("selected", "");
+      }
+
+      let selectedOpacity = (preference.o ?? 0) / 100;
+      let color = this.editor.utils.hexToRGBString(preference.c, selectedOpacity);
+      let borderColor = color;
+      if (selectedI == true || selectedB == "none") {
+        borderColor = this.editor.utils.hexToRGBString(this.editor.utils.darkenHex(preference.c, 20), selectedOpacity);
+      }
+
+      fill.style.background = color;
+      solid.style.border = "solid 4px " + borderColor;
+      dashed.style.border = "dashed 4px " + borderColor;
+      //none.style.border = "solid 4px var(--pageColor)";
+      none.style.background = color;
+      none.parentElement.style.border = "solid 3px " + color;
+
+      fill.style.boxShadow = "0px 0px 3px 0px " + this.editor.utils.borderColorBackgroundRGBA(preference.c, null, selectedOpacity);
+      solid.style.boxShadow = "0px 0px 3px 0px " + this.editor.utils.borderColorBackgroundRGBA(preference.c, null, selectedOpacity);
+      dashed.style.boxShadow = "0px 0px 3px 0px " + this.editor.utils.borderColorBackgroundRGBA(preference.c, null, selectedOpacity);
+      none.style.boxShadow = "0px 0px 3px 0px " + this.editor.utils.borderColorBackgroundRGBA(preference.c, null, selectedOpacity);
+    }
+    this.redraw();
+
+    fillButton.addEventListener("click", async () => {
+      if (selectedI != true) {
+        selectedI = true;
+      } else {
+        selectedI = false;
+      }
+      this.toolbar.setToolPreference("filled", selectedI);
+      await this.toolbar.saveSelecting(() => { return { i: selectedI }; }, { reuseActionBar: true });
+      this.redraw();
+    });
+    solidButton.addEventListener("click", async () => {
+      selectedB = "solid";
+      await this.toolbar.saveSelecting(() => { return { b: selectedB }; }, { reuseActionBar: true });
+      this.redraw();
+    });
+    dashedButton.addEventListener("click", async () => {
+      selectedB = "dashed";
+      await this.toolbar.saveSelecting(() => { return { b: selectedB }; }, { reuseActionBar: true });
+      this.redraw();
+    });
+    noneButton.addEventListener("click", async () => {
+      selectedB = "none";
+      await this.toolbar.saveSelecting(() => { return { b: selectedB }; }, { reuseActionBar: true });
+      this.redraw();
+    });
   }
 };
 
@@ -6367,7 +6468,6 @@ modules["dropdowns/editor/toolbar/more"] = class {
     ".eToolbarMoreShowMe": `color: var(--theme); font-weight: 700`
   };
   js = async (frame, { parent }) => {
-    
     let duplicateButton = frame.querySelector('.eToolbarMoreAction[option="duplicate"]');
     let duplicateLine = frame.querySelector('.eToolbarMoreLine[option="duplicate"]');
     duplicateButton.addEventListener("click", () => { parent.duplicate(); });

@@ -6597,6 +6597,6 @@ modules["editor/toolbar/unlock"] = class {
       if (render.lock == true) {
         return { lock: false };
       }
-    }, { reuseActionBar: true });
+    }, { redraw: true });
   }
 };

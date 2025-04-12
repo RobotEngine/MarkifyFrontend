@@ -4568,7 +4568,7 @@ modules["editor/toolbar/pen"] = class {
       return;
     }
     event.preventDefault();
-    this.clickEnd();
+    this.disable();
     this.parent.toolbar.closeSubSub(true);
     let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
     let position = this.editor.utils.scaleToDoc(mouseX, mouseY);
@@ -4596,12 +4596,11 @@ modules["editor/toolbar/pen"] = class {
     if (this.annotation == null) {
       return;
     }
-    console.log(mouseDown())
+    if (event.touches != null && event.touches.length > 1) {
+      return this.disable();
+    }
     if (mouseDown() == false) {
       return this.clickEnd();
-    }
-    if (event.touches != null && event.touches.length > 1) {
-      return;
     }
     if (this.editor.usingStylus == true) {
       if (event.changedTouches != null && event.changedTouches[0] != null) {
@@ -4711,9 +4710,8 @@ modules["editor/toolbar/pen"] = class {
 
     this.annotation.render.done = true;
     await this.editor.realtime.forceShort();
-    this.editor.render.remove(this.annotation);
-    this.annotation = null;
-    this.editor.usingStylus = false;
+    
+    this.disable();
   }
   activate = () => {
     let toolPreference = this.parent.getToolPreference();
@@ -4728,7 +4726,19 @@ modules["editor/toolbar/pen"] = class {
       this.editor.pinchZoomDisable = true;
     }
   }
-  disable = this.clickEnd;
+  disable = async () => {
+    if (this.annotation == null) {
+      return;
+    }
+    if (this.annotation.render != null && this.annotation.render.done != true) {
+      this.editor.realtimeSelect[this.annotation.render._id] = { remove: true };
+      this.editor.realtime.forceShort();
+      delete this.editor.realtimeSelect[this.annotation.render._id];
+    }
+    this.editor.render.remove(this.annotation);
+    this.annotation = null;
+    this.editor.usingStylus = false;
+  };
 }
 modules["editor/toolbar/highlighter"] = class extends modules["editor/toolbar/pen"] {
   FUNCTION = "markup";

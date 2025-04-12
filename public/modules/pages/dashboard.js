@@ -1469,6 +1469,7 @@ modules["dropdowns/dashboard/options"] = class {
             noLessons.style.removeProperty("display");
           }
         }
+        alertModule.open("worked", "<b>Moved Lesson</b><div>The lesson has been removed from the folder.");
         dropdownModule.close();
       }
     });

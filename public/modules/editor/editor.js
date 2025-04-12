@@ -2108,10 +2108,10 @@ modules["editor/editor"] = class {
 
           if (annotation.render._id.includes("pending_") == false) { // Must be a new anno
             delete annotation.retry;
-            let result = this.save.apply(annotation.revert, { overwrite: true, timeout: false });
-            if (result.redrawAction == true) {
+            this.save.apply(annotation.revert, { overwrite: true, timeout: false }); //let result = 
+            /*if (result.redrawAction == true) {
               redrawAction = true;
-            }
+            }*/
             delete annotation.revert;
             changeOccured = true;
           } else {
@@ -2122,7 +2122,7 @@ modules["editor/editor"] = class {
         }
 
         if (changeOccured == true) {
-          this.pipeline.publish("redraw_selection", { redrawAction: redrawAction });
+          this.pipeline.publish("redraw_selection", {}); //redrawAction: redrawAction
         }
       }
       this.save.runningTimeout = false;
@@ -2993,7 +2993,7 @@ modules["editor/editor"] = class {
     this.pipeline.subscribe("zoomPinchTouchMove", "touchmove", (data) => {
       handlePinch(data.event);
     });
-    this.pipeline.subscribe("zoomPinchTouchEnd", "touchend", (data) => {
+    this.pipeline.subscribe("zoomPinchTouchEnd", "touchend", () => {
       startDistance = null;
       startZoom = null;
       currentCenter = null;

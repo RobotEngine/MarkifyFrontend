@@ -190,6 +190,7 @@ modules["dropdowns/moveto"] = class {
             }
           }
         }
+        alertModule.open("worked", "<b>Moved Lesson</b><div>The lesson has been moved into the folder.");
         dropdownModule.close();
       }
     });

@@ -322,21 +322,20 @@ modules["editor/toolbar"] = class {
         if (tooltipText.parentElement.hasAttribute("tooltipbottom") == false) {
           // Show tooltip on the top
           tooltipText.style.transformOrigin = "center bottom";
-          tooltipText.style.top = -tooltipText.clientHeight - 6 + "px";
+          tooltipText.style.top = -tooltipText.offsetHeight - 6 + "px";
         } else {
           // Show tooltip on the bottom
           tooltipText.style.transformOrigin = "center top";
-          tooltipText.style.top = tooltipText.parentElement.clientHeight + 6 + "px";
+          tooltipText.style.top = tooltipText.parentElement.offsetHeight + 6 + "px";
         }
         return;
       }
 
       let actionRect = actionContainer.getBoundingClientRect();
-
-      if (tooltipText.parentElement.hasAttribute("actionuitop") == true) {
-        if (actionRect.top - tooltipText.clientHeight - 6 > 66) {
+      if (tooltipText.parentElement.hasAttribute("top") == true) {
+        if (actionRect.top - tooltipText.offsetHeight - 6 > editor.scrollOffset + 8) {
           tooltipText.style.transformOrigin = "center bottom";
-          tooltipText.style.top = -actionContainer.offsetHeight - tooltipText.clientHeight - 6 + "px";
+          tooltipText.style.top = -actionContainer.offsetHeight - tooltipText.offsetHeight - 6 + "px";
         } else {
           tooltipText.style.transformOrigin = "center top";
           tooltipText.style.top = "4px";
@@ -344,12 +343,12 @@ modules["editor/toolbar"] = class {
         return;
       }
 
-      if (actionRect.top + actionContainer.clientHeight + tooltipText.clientHeight + 6 < fixed.offsetHeight - 66) {
+      if (actionRect.top + actionContainer.offsetHeight + tooltipText.offsetHeight + 6 < page.offsetHeight - editor.scrollOffset - 8) {
         tooltipText.style.transformOrigin = "center top";
-        tooltipText.style.top = tooltipText.parentElement.clientHeight + actionContainer.offsetHeight + 6 + "px";
+        tooltipText.style.top = tooltipText.parentElement.offsetHeight + actionContainer.offsetHeight + 6 + "px";
       } else {
         tooltipText.style.transformOrigin = "center bottom";
-        tooltipText.style.top = actionContainer.offsetHeight - tooltipText.clientHeight - 6 + "px";
+        tooltipText.style.top = actionContainer.offsetHeight - tooltipText.offsetHeight - 6 + "px";
       }
     }
     this.tooltip.set = (event) => {
@@ -6154,9 +6153,9 @@ modules["editor/toolbar/style"] = class {
   TOOLTIP = "Styling";
 
   html = `
-    <div class="eSubToolStyleContainer eHorizontalToolsHolder">
+    <div class="eSubToolStyleContainer eHorizontalToolsHolder" keeptooltip>
       <button class="eTool" tooltip="Filled" option><div><div class="eSubToolStyleHolder"><div class="eSubToolStyle" fill></div></div></div></button>
-      <div class="eVerticalDivider" keeptooltip></div>
+      <div class="eVerticalDivider"></div>
       <button class="eTool" tooltip="Solid Border" option><div><div class="eSubToolStyleHolder"><div class="eSubToolStyle" solid></div></div></div></button>
       <button class="eTool" tooltip="Dashed Border" option><div><div class="eSubToolStyleHolder"><div class="eSubToolStyle" dashed></div></div></div></button>
       <button class="eTool" tooltip="No Border" option><div><div class="eSubToolStyleHolder"><div class="eSubToolStyle" none></div></div></div></button>

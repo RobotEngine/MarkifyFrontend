@@ -964,6 +964,7 @@ modules["editor/toolbar"] = class {
         }
       }
       editor.savePreferences();
+      this.toolbar.updateButtons();
     }
     this.getPreferenceTool = () => {
       let selectKeys = Object.keys(editor.selecting);

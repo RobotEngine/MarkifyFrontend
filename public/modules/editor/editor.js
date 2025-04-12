@@ -2742,7 +2742,7 @@ modules["editor/editor"] = class {
           redrawAction = true;
         }*/
       }
-      this.pipeline.publish("redraw_selection", { refresh: true, redrawCurrentAction: true, fromLong: true }); //redrawAction: redrawAction,
+      this.pipeline.publish("redraw_selection", { refresh: true, fromLong: true }); //redrawAction: redrawAction, redrawCurrentAction: true,
     });
     this.pipeline.subscribe("removeAnnotationUpdate", "removeannotations", async (data) => {
       let annoKeys = Object.keys(this.annotations);
@@ -2831,6 +2831,7 @@ modules["editor/editor"] = class {
     this.pipeline.subscribe("editorSettingsUpdate", "set", (data) => {
       if (data.settings != null) {
         objectUpdate(data.settings, this.settings);
+        this.pipeline.publish("redraw_selection", { redrawAction: true });
       }
       this.updateInterface();
     });

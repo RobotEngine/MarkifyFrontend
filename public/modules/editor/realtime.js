@@ -595,9 +595,9 @@ modules["editor/realtime"] = class {
                   delete original.render.done;
 
                   if (isNewAnno == false) {
-                    original.render.m = member.modify;
+                    original.render.m = memberData.modify;
                   } else {
-                    original.render.a = member.modify;
+                    original.render.a = memberData.modify;
                   }
                   original.render.sync = time;
 

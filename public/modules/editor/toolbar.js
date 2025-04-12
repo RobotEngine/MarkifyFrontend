@@ -1557,8 +1557,11 @@ modules["editor/toolbar"] = class {
               newAction.setAttribute("action", action);
               newAction.setAttribute("module", "editor/toolbar/" + action);
             }
+
+            this.selection.actionBarButtonCount = 0;
           }
-        
+          
+          let currentButtonCount = 0;
           for (let i = 0; i < actionButtonHolder.children.length; i++) {
             let newAction = actionButtonHolder.children[i];
             if (newAction == null) {
@@ -1571,52 +1574,58 @@ modules["editor/toolbar"] = class {
             if (actionModule.SUPPORTS_MULTIPLE_SELECT == false && selections.length > 1) {
               continue;
             }
-            (async () => {
-              let isVisible = true;
-              newAction.innerHTML = "<div></div>";
-              let buttonHolder = newAction.querySelector("div");
-              if (actionModule.setActionButton != null) {
-                isVisible = (await actionModule.setActionButton(buttonHolder)) != false;
+            //(async () => {
+            let isVisible = true;
+            newAction.innerHTML = "<div></div>";
+            let buttonHolder = newAction.querySelector("div");
+            if (actionModule.setActionButton != null) {
+              isVisible = (await actionModule.setActionButton(buttonHolder)) != false;
+            }
+            if (newAction == null) {
+              return;
+            }
+            if (actionModule.SHOW_ON_LOCK != true) {
+              isVisible = showLocked == false;
+            }
+            if (actionModule.TOOLTIP != null) {
+              newAction.setAttribute("tooltip", actionModule.TOOLTIP);
+            }
+            if (isVisible == true) {
+              currentButtonCount++;
+              newAction.style.removeProperty("display");
+            } else {
+              newAction.style.display = "none";
+            }
+            let elementBefore = newAction.previousElementSibling;
+            let elementAfter = newAction.nextElementSibling;
+            if (isVisible == true) {
+              if (actionModule.ADD_DIVIDE_BEFORE == true && elementBefore != null && elementBefore.className != "eVerticalDivider") {
+                let newDivider = document.createElement("div");
+                newDivider.className = "eVerticalDivider";
+                newDivider.setAttribute("before", "");
+                actionButtonHolder.insertBefore(newDivider, newAction);
               }
-              if (newAction == null) {
-                return;
+              if (actionModule.ADD_DIVIDE_AFTER == true && (elementAfter == null || elementAfter.className != "eVerticalDivider")) {
+                let newDivider = document.createElement("div");
+                newDivider.className = "eVerticalDivider";
+                newDivider.setAttribute("after", "");
+                actionButtonHolder.insertBefore(newDivider, elementAfter);
               }
-              if (actionModule.SHOW_ON_LOCK != true) {
-                isVisible = showLocked == false;
+            } else {
+              if (elementBefore != null && elementBefore.className == "eVerticalDivider" && elementBefore.hasAttribute("before") == true) {
+                elementBefore.remove();
               }
-              if (actionModule.TOOLTIP != null) {
-                newAction.setAttribute("tooltip", actionModule.TOOLTIP);
+              if (elementAfter != null && elementAfter.className == "eVerticalDivider" && elementBefore.hasAttribute("after") == true) {
+                elementAfter.remove();
               }
-              if (isVisible == true) {
-                newAction.style.removeProperty("display");
-              } else {
-                newAction.style.display = "none";
-              }
-              let elementBefore = newAction.previousElementSibling;
-              let elementAfter = newAction.nextElementSibling;
-              if (isVisible == true) {
-                if (actionModule.ADD_DIVIDE_BEFORE == true && elementBefore != null && elementBefore.className != "eVerticalDivider") {
-                  let newDivider = document.createElement("div");
-                  newDivider.className = "eVerticalDivider";
-                  newDivider.setAttribute("before", "");
-                  actionButtonHolder.insertBefore(newDivider, newAction);
-                }
-                if (actionModule.ADD_DIVIDE_AFTER == true && (elementAfter == null || elementAfter.className != "eVerticalDivider")) {
-                  let newDivider = document.createElement("div");
-                  newDivider.className = "eVerticalDivider";
-                  newDivider.setAttribute("after", "");
-                  actionButtonHolder.insertBefore(newDivider, elementAfter);
-                }
-              } else {
-                if (elementBefore != null && elementBefore.className == "eVerticalDivider" && elementBefore.hasAttribute("before") == true) {
-                  elementBefore.remove();
-                }
-                if (elementAfter != null && elementAfter.className == "eVerticalDivider" && elementBefore.hasAttribute("after") == true) {
-                  elementAfter.remove();
-                }
-              }
-            })();
+            }
+            //})();
           }
+
+          if (currentButtonCount != this.selection.actionBarButtonCount) {
+            newActionBar = true;
+          }
+          this.selection.actionBarButtonCount = currentButtonCount;
         }
       }
 
@@ -6598,5 +6607,87 @@ modules["editor/toolbar/unlock"] = class {
         return { lock: false };
       }
     }, { redraw: true });
+  }
+};
+
+modules["editor/toolbar/collaborator"] = class {
+  setActionButton = async (button) => {
+    if (this.editor.settings.anonymousMode == true && this.editor.self.access < 4) {
+      return false;
+    }
+
+    let modifiedBy;
+    let selectKeys = Object.keys(this.editor.selecting);
+    for (let i = 0; i < selectKeys.length; i++) {
+      let annotation = this.editor.annotations[selectKeys[i]].render ?? {};
+      let setModifiedBy = annotation.m ?? annotation.a;
+      if (setModifiedBy == null || (modifiedBy != null && setModifiedBy != modifiedBy)) {
+        return false;
+      }
+      modifiedBy = setModifiedBy;
+    }
+    if (modifiedBy == null || modifiedBy == this.editor.self.modify || modifiedBy.length != 24) {
+      return false;
+    }
+
+    button.innerHTML = `<img class="eSubToolCollaborator" src="./images/profiles/default.svg">`;
+    button.setAttribute("disabled", "");
+    let collaborator = this.editor.collaborators[modifiedBy];
+    if (collaborator == null) { // Fetch to get the collaborator
+      let [code, body] = await sendRequest("GET", "lessons/members/collaborator?modify=" + modifiedBy, null, { session: this.editor.session, allowError: [404] });
+      if (code == 200) {
+        this.editor.collaborators[body._id] = body;
+        collaborator = this.editor.collaborators[body._id];
+      } else {
+        this.editor.collaborators[modifiedBy] = {};
+        collaborator = this.editor.collaborators[modifiedBy];
+      }
+    }
+    if (collaborator._id == null) {
+      return false;
+    }
+
+    button.setAttribute("collaborator", collaborator._id);
+    let image = button.querySelector(".eSubToolCollaborator");
+    if (image.getAttribute("src") != (collaborator.image ?? "./images/profiles/default.svg")) {
+      image.src = collaborator.image ?? "./images/profiles/default.svg";
+    }
+    image.style.border = "solid 3px " + collaborator.color;
+    button.removeAttribute("disabled");
+    this.TOOLTIP = collaborator.name;
+  }
+
+  SHOW_ON_LOCK = true;
+
+  html = `
+  <div class="eSubToolCollaboratorHolder">
+    <div class="eSubToolCollaboratorBackdrop"><div></div></div>
+    <div class="eSubToolCollaboratorContent">
+      <div class="eSubToolCollaboratorCursor"></div>
+      <img class="eSubToolCollaboratorPicture">
+      <div class="eSubToolCollaboratorInfo">
+        <div name></div>
+        <div email></div>
+      </div>
+    </div>
+    <button class="largeButton">Make Viewer</button>
+  </div>
+  `;
+  css = {
+    ".eSubToolCollaborator": `box-sizing: border-box; width: 34px; height: 34px; padding: 2px; margin: 4px; object-fit: cover; background: var(--pageColor); border-radius: 20px`,
+
+    ".eSubToolCollaboratorHolder": `display: flex; flex-direction: column; width: fit-content; max-width: var(--uiwidth); gap: 4px; align-items: center; border-radius: inherit`,
+    ".eSubToolCollaboratorContent": `display: flex; flex-wrap: wrap; width: max-content; max-width: calc(100% - 16px); margin: 8px; gap: 4px; align-items: center; border-radius: inherit`,
+    ".eSubToolCollaboratorBackdrop": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; background: var(--themeColor); transition: .2s; z-index: -1; border-radius: inherit; overflow: hidden`,
+    ".eSubToolCollaboratorBackdrop div": `width: 100%; height: 100%; flex-shrink: 0; opacity: .3; background-image: url(./images/editor/background.svg); background-position: center`,
+    ".eSubToolCollaboratorCursor": `display: none; width: 40px; height: 40px; flex-shrink: 0; margin: 2px; background: var(--themeColor); border: solid 6px var(--pageColor); border-radius: 16px 28px 28px`,
+    ".eSubToolCollaboratorPicture": `display: none; width: 44px; height: 44px; flex-shrink: 0; margin: 2px; background: #fff; border: solid 4px var(--pageColor); object-fit: cover; border-radius: 28px`,
+    ".eSubToolCollaboratorInfo": `margin: 4px; text-align: left`,
+    ".eSubToolCollaboratorInfo div[name]": `max-width: calc(var(--uiwidth) - 24px); font-size: 20px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
+    ".eSubToolCollaboratorInfo div[email]": `display: none; max-width: calc(var(--uiwidth) - 24px); font-size: 15px; font-weight: 500; margin-top: 3px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
+    ".eSubToolCollaboratorHolder .largeButton": `width: fit-content; padding: 6px 10px; margin: 4px 12px 12px; background: var(--theme); text-wrap: nowrap; font-size: 16px; --borderRadius: 12px; color: #fff`
+  };
+  js = async function (frame, toolID, extra) {
+    
   }
 };

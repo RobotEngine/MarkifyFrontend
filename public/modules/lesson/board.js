@@ -199,6 +199,7 @@ modules["lesson/board"] = class {
         session: this.parent.session,
         sessionID: this.parent.sessionID,
         sources: this.parent.sources,
+        collaborators: this.parent.collaborators,
         settings: this.parent.lesson.settings,
         resync: this.resync,
         preferences: JSON.parse(stringPref),

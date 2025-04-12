@@ -990,6 +990,9 @@ modules["editor/toolbar"] = class {
         let annoModule = (await editor.render.getModule(selecting.f ?? original.render.f)) ?? {};
 
         let set = await setFunction(copyObject(original.render), annoModule);
+        if (set == null) {
+          continue;
+        }
         if (set.d != null && typeof set.d == "object") {
           set.d = { ...original.render.d, ...set.d };
         }
@@ -1569,7 +1572,7 @@ modules["editor/toolbar"] = class {
               continue;
             }
             (async () => {
-              let isVisible = true;
+              let isVisible;
               newAction.innerHTML = "<div></div>";
               let buttonHolder = newAction.querySelector("div");
               if (actionModule.setActionButton != null) {
@@ -6541,3 +6544,57 @@ modules["dropdowns/editor/toolbar/more"] = class {
     parent.redraw();
   }
 }
+
+modules["editor/toolbar/unlock"] = class {
+  setActionButton = async (button) => {
+    this.disabled = false;
+    let locked = false;
+    let hideButton = this.editor.self.access < 1;
+    let selectKeys = Object.keys(this.editor.selecting);
+    for (let i = 0; i < selectKeys.length; i++) {
+      let selectID = selectKeys[i];
+      let render = ({ ...((this.editor.annotations[selectID] ?? {}).render ?? {}), ...(this.editor.selecting[selectID] ?? {}) }) ?? {};
+      if (this.editor.utils.isLocked(render) == true) {
+        locked = true;
+      }
+      // This will need to be modified later:
+      if ([render.a, render.m].includes(this.editor.self.modify) == false && this.editor.self.access < 4) {
+        this.disabled = true;
+      }
+      if (this.editor.utils.canMemberModify(render) != true) {
+        hideButton = true;
+        break;
+      }
+    }
+    if (button != null) {
+      setSVG(button, "./images/editor/toolbar/unlock.svg");
+
+      if (this.disabled == false) {
+        button.style.removeProperty("opacity");
+      } else {
+        button.style.opacity = .5;
+      }
+    }
+    if (hideButton == false && locked == true) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  TOOLTIP = "Unlock";
+  SHOW_ON_LOCK = true;
+  FULL_CLICK = true;
+
+  js = async () => {
+    await this.setActionButton();
+    if (this.disabled == true) {
+      return alertModule.open("error", "<b>You Didn't Lock This</b>Only the member who locked this can unlock it.");
+    }
+    await this.toolbar.saveSelecting((render) => {
+      if (render.lock == true) {
+        return { lock: false };
+      }
+    }, { reuseActionBar: true });
+  }
+};

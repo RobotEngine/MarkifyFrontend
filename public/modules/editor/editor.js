@@ -1181,10 +1181,10 @@ modules["editor/editor"] = class {
       if (member.access < 1) {
         return false;
       }
-      if (this.settings.editOthersWork == true) {
+      if (member.access > 3) {
         return true;
       }
-      if (member.access > 3) {
+      if (this.settings.editOthersWork == true) {
         return true;
       }
       if (member.modify != null) {

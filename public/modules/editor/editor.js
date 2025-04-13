@@ -2742,7 +2742,7 @@ modules["editor/editor"] = class {
           redrawAction = true;
         }*/
       }
-      this.pipeline.publish("redraw_selection", { refresh: true, fromLong: true }); //redrawAction: redrawAction, redrawCurrentAction: true,
+      this.pipeline.publish("redraw_selection", { refresh: true, redrawCurrentAction: true, fromLong: true }); //redrawAction: redrawAction,
     });
     this.pipeline.subscribe("removeAnnotationUpdate", "removeannotations", async (data) => {
       let annoKeys = Object.keys(this.annotations);
@@ -2851,8 +2851,7 @@ modules["editor/editor"] = class {
     let lastMouseY;
     let mouseBeforeX;
     let mouseBeforeY;
-    this.setZoom = async (set, observe, mouse) => {
-      mouse = mouse ?? {};
+    this.setZoom = async (set, observe, mouse = {}) => {
       if (observe != true && this.realtime.observing != null && this.realtime.module != null) {
         this.realtime.module.exitObserve();
       }

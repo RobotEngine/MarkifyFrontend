@@ -24,7 +24,7 @@ modules["editor/realtime"] = class {
     ".eCollabSelect[anonymous]": `--themeColor: var(--theme) !important`
   };
   members = {};
-  js = async function (editor) {
+  js = async (editor) => {
     let contentHolder = editor.contentHolder;
     let content = editor.contentHolder.querySelector(".eContent");
     let realtimeHolder = content.querySelector(".eRealtime");
@@ -126,9 +126,6 @@ modules["editor/realtime"] = class {
 
           let mergedSelect = { ...editor.selecting, ...editor.realtimeSelect };
           editor.realtimeSelect = {};
-          if (Object.keys(mergedSelect).length > 0) {
-            sendExtra.select = mergedSelect;
-          }
           if (Object.keys(mergedSelect).length > 0) {
             sendExtra.select = mergedSelect;
           }
@@ -531,8 +528,7 @@ modules["editor/realtime"] = class {
             let merge;
             let annoElem;
             let original;
-            if (annoID == "cursor") {
-              // Just a temporary prop, no saving:
+            if (annoID == "cursor") { // Just a temporary prop, no saving:
               let prevElem = member.elements.selection_cursor_annotation;
               if (prevElem != null && prevElem.getAttribute("type") != anno.f) {
                 prevElem.remove();
@@ -624,7 +620,7 @@ modules["editor/realtime"] = class {
               }
               selection.setAttribute("anno", annoID);
             }
-            
+
             if (annoID != "cursor") {
               merge = original.render;
               if (editor.selecting[annoID] == null) {

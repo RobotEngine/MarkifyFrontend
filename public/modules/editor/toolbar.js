@@ -62,6 +62,7 @@ modules["editor/toolbar"] = class {
 
     ".eToolbarHolder .eTool": `--hoverColor: var(--hover); display: flex; width: 50px; height: 46px; flex-shrink: 0; padding: 0; justify-content: center; align-items: center; transition: opacity .3s`,
     ".eActionBar .eTool": `--hoverColor: var(--hover); display: flex; width: 46px; height: 50px; flex-shrink: 0; padding: 0; justify-content: center; align-items: center; transition: opacity .3s`,
+    ".eTool[hidden]": `display: none !important`,
     ".eTool > div": `position: relative; display: flex; width: 42px; height: 42px; border-radius: 8px; transition: .2s`,
     ".eTool > div:after": `content: ""; position: absolute; width: 42px; height: 42px; left: 0px; top: 0px; border-radius: 8px; z-index: 1; transition: .2s`,
     ".eTool > div > *": `z-index: 2`,
@@ -1592,12 +1593,28 @@ modules["editor/toolbar"] = class {
             }
             if (isVisible == true) {
               currentButtonCount++;
-              newAction.style.removeProperty("display");
+              newAction.removeAttribute("hidden");
             } else {
-              newAction.style.display = "none";
+              newAction.setAttribute("hidden", "");
             }
-            let elementBefore = newAction.previousElementSibling;
-            let elementAfter = newAction.nextElementSibling;
+            let elementBefore;
+            let elementBeforeCheck = newAction;
+            while (elementBeforeCheck.previousElementSibling != null) {
+              elementBeforeCheck = elementBeforeCheck.previousElementSibling;
+              if (elementBeforeCheck.hasAttribute("hidden") == false) {
+                elementBefore = elementBeforeCheck;
+                break;
+              }
+            }
+            let elementAfter;
+            let elementAfterCheck = newAction;
+            while (elementAfterCheck.nextElementSibling != null) {
+              elementAfterCheck = elementAfterCheck.nextElementSibling;
+              if (elementAfterCheck.hasAttribute("hidden") == false) {
+                elementAfter = elementAfterCheck;
+                break;
+              }
+            }
             if (isVisible == true) {
               if (actionModule.ADD_DIVIDE_BEFORE == true && elementBefore != null && elementBefore.className != "eVerticalDivider") {
                 let newDivider = document.createElement("div");
@@ -1615,7 +1632,7 @@ modules["editor/toolbar"] = class {
               if (elementBefore != null && elementBefore.className == "eVerticalDivider" && elementBefore.hasAttribute("before") == true) {
                 elementBefore.remove();
               }
-              if (elementAfter != null && elementAfter.className == "eVerticalDivider" && elementBefore.hasAttribute("after") == true) {
+              if (elementAfter != null && elementAfter.className == "eVerticalDivider" && elementAfter.hasAttribute("after") == true) {
                 elementAfter.remove();
               }
             }
@@ -4603,8 +4620,8 @@ modules["editor/toolbar/pen"] = class {
       },
       animate: false
     };
+    this.editor.realtimeSelect[this.annotation.render._id] = this.annotation.render;
     await this.editor.render.create(this.annotation);
-    this.editor.selecting[this.annotation.render._id] = this.annotation.render;
   }
   clickMove = async (event) => {
     if (this.annotation == null) {
@@ -4694,6 +4711,7 @@ modules["editor/toolbar/pen"] = class {
       }
     }
     await this.editor.render.create(this.annotation);
+    this.editor.realtimeSelect[this.annotation.render._id] = this.annotation.render;
     if (this.annotation.render.d.length > 6150) { // Start new annotation when path too long
       await this.clickEnd();
       this.clickStart(event);
@@ -4717,7 +4735,7 @@ modules["editor/toolbar/pen"] = class {
       }
     }
 
-    delete this.editor.selecting[this.annotation.render._id];
+    delete this.editor.realtimeSelect[this.annotation.render._id];
 
     await this.editor.save.push(this.annotation.render);
     await this.editor.history.push("remove", [{ _id: this.annotation.render._id }]);
@@ -6647,7 +6665,7 @@ modules["editor/toolbar/collaborator"] = class {
       return false;
     }
 
-    button.setAttribute("collaborator", collaborator._id);
+    button.parentElement.setAttribute("collaborator", collaborator._id);
     let image = button.querySelector(".eSubToolCollaborator");
     if (image.getAttribute("src") != (collaborator.image ?? "./images/profiles/default.svg")) {
       image.src = collaborator.image ?? "./images/profiles/default.svg";
@@ -6658,6 +6676,7 @@ modules["editor/toolbar/collaborator"] = class {
   }
 
   SHOW_ON_LOCK = true;
+  ADD_DIVIDE_AFTER = true;
 
   html = `
   <div class="eSubToolCollaboratorHolder">
@@ -6676,7 +6695,7 @@ modules["editor/toolbar/collaborator"] = class {
   css = {
     ".eSubToolCollaborator": `box-sizing: border-box; width: 34px; height: 34px; padding: 2px; margin: 4px; object-fit: cover; background: var(--pageColor); border-radius: 20px`,
 
-    ".eSubToolCollaboratorHolder": `display: flex; flex-direction: column; width: fit-content; max-width: var(--uiwidth); gap: 4px; align-items: center; border-radius: inherit`,
+    ".eSubToolCollaboratorHolder": `display: flex; flex-direction: column; width: fit-content; max-width: 100%; gap: 4px; align-items: center; border-radius: inherit`,
     ".eSubToolCollaboratorContent": `display: flex; flex-wrap: wrap; width: max-content; max-width: calc(100% - 16px); margin: 8px; gap: 4px; align-items: center; border-radius: inherit`,
     ".eSubToolCollaboratorBackdrop": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; background: var(--themeColor); transition: .2s; z-index: -1; border-radius: inherit; overflow: hidden`,
     ".eSubToolCollaboratorBackdrop div": `width: 100%; height: 100%; flex-shrink: 0; opacity: .3; background-image: url(./images/editor/background.svg); background-position: center`,
@@ -6687,7 +6706,75 @@ modules["editor/toolbar/collaborator"] = class {
     ".eSubToolCollaboratorInfo div[email]": `display: none; max-width: calc(var(--uiwidth) - 24px); font-size: 15px; font-weight: 500; margin-top: 3px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
     ".eSubToolCollaboratorHolder .largeButton": `width: fit-content; padding: 6px 10px; margin: 4px 12px 12px; background: var(--theme); text-wrap: nowrap; font-size: 16px; --borderRadius: 12px; color: #fff`
   };
-  js = async function (frame, toolID, extra) {
+  js = async function (frame) {
+    let collaboratorID;
+    let collaborator;
+    let member;
     
+    let holder = frame.querySelector(".eSubToolCollaboratorHolder");
+    let image = holder.querySelector(".eSubToolCollaboratorPicture");
+    let info = holder.querySelector(".eSubToolCollaboratorInfo");
+    let name = info.querySelector("div[name]");
+    let email = info.querySelector("div[email]");
+    let makeViewerButton = holder.querySelector(".largeButton");
+
+    let redraw = (noRefresh, noCheckMember) => {
+      let preference = this.toolbar.getPreferenceTool();
+      collaboratorID = preference.m ?? preference.a;
+      collaborator = this.editor.collaborators[collaboratorID];
+      if (collaborator == null) {
+        return;
+      }
+
+      holder.style.setProperty("--themeColor", collaborator.color);
+      if (collaborator.email == null) {
+        holder.querySelector(".eSubToolCollaboratorCursor").style.display = "unset";
+      } else {
+        if (image.src != (collaborator.image ?? "./images/profiles/default.svg")) {
+          image.src = (collaborator.image ?? "./images/profiles/default.svg");
+        }
+        image.style.display = "unset";
+      }
+      info.style.color = this.editor.utils.textColorBackground(collaborator.color);
+      name.textContent = collaborator.name;
+      name.title = collaborator.name;
+      if (collaborator.email != null) {
+        email.textContent = collaborator.email;
+        email.title = collaborator.email;
+        email.style.display = "unset";
+      }
+
+      member = null;
+      if (this.editor.parent.pageType == "board" && this.editor.self.access > 3 && noCheckMember != true) {
+        let memberIDs = Object.keys(this.editor.parent.parent.members);
+        for (let i = 0; i < memberIDs.length; i++) {
+          let memberCheck = this.editor.parent.parent.members[memberIDs[i]] ?? {};
+          if (memberCheck.modify == collaboratorID) {
+            member = memberCheck;
+            break;
+          }
+        }
+      }
+      if (member != null && member.access == 1) {
+        makeViewerButton.style.removeProperty("display");
+      } else {
+        makeViewerButton.style.display = "none";
+      }
+
+      if (noRefresh != true) {
+        this.toolbar.selection.updateActionBar();
+      }
+    }
+    redraw(true);
+    this.redraw = () => { redraw(); }
+
+    makeViewerButton.addEventListener("click", async () => {
+      makeViewerButton.setAttribute("disabled", "");
+      let [code] = await sendRequest("PUT", "lessons/members/access?member=" + member._id, { access: 0 }, { session: this.editor.session });
+      makeViewerButton.removeAttribute("disabled");
+      if (code == 200) {
+        redraw(null, true);
+      }
+    });
   }
 };

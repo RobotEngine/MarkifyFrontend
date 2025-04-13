@@ -1568,7 +1568,11 @@ modules["editor/toolbar"] = class {
             if (newAction == null) {
               continue;
             }
-            let actionModule = (await this.newModule(newAction.getAttribute("module"))) ?? {};
+            let toolModule = newAction.getAttribute("module");
+            if (toolModule == null) {
+              continue;
+            }
+            let actionModule = (await this.newModule(toolModule)) ?? {};
             actionModule.editor = editor;
             actionModule.toolbar = this;
             actionModule.isActionBar = true;

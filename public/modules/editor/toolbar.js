@@ -6652,31 +6652,37 @@ modules["editor/toolbar/collaborator"] = class {
       return false;
     }
 
-    button.innerHTML = `<img class="eSubToolCollaborator" src="./images/profiles/default.svg">`;
-    button.setAttribute("disabled", "");
     let collaborator = this.editor.collaborators[modifiedBy];
-    if (collaborator == null) { // Fetch to get the collaborator
-      let [code, body] = await sendRequest("GET", "lessons/members/collaborator?modify=" + modifiedBy, null, { session: this.editor.session, allowError: [404] });
-      if (code == 200) {
-        this.editor.collaborators[body._id] = body;
-        collaborator = this.editor.collaborators[body._id];
-      } else {
-        this.editor.collaborators[modifiedBy] = {};
-        collaborator = this.editor.collaborators[modifiedBy];
-      }
-    }
-    if (collaborator._id == null) {
+    if (collaborator != null && collaborator._id == null) {
       return false;
     }
 
-    button.parentElement.setAttribute("collaborator", collaborator._id);
-    let image = button.querySelector(".eSubToolCollaborator");
-    if (image.getAttribute("src") != (collaborator.image ?? "./images/profiles/default.svg")) {
-      image.src = collaborator.image ?? "./images/profiles/default.svg";
-    }
-    image.style.border = "solid 3px " + collaborator.color;
-    button.removeAttribute("disabled");
-    this.TOOLTIP = collaborator.name;
+    button.innerHTML = `<img class="eSubToolCollaborator" src="./images/profiles/default.svg">`;
+
+    (async () => {
+      button.parentElement.setAttribute("disabled", "");
+      if (collaborator == null) { // Fetch to get the collaborator
+        let [code, body] = await sendRequest("GET", "lessons/members/collaborator?modify=" + modifiedBy, null, { session: this.editor.session, allowError: [404] });
+        if (code == 200) {
+          this.editor.collaborators[body._id] = body;
+          collaborator = this.editor.collaborators[body._id];
+        } else {
+          this.editor.collaborators[modifiedBy] = {};
+          collaborator = this.editor.collaborators[modifiedBy];
+        }
+      }
+      if (collaborator._id == null) {
+        return this.toolbar.selection.updateActionBar({ redraw: true });
+      }
+
+      button.parentElement.setAttribute("tooltip", collaborator.name);
+      let image = button.querySelector(".eSubToolCollaborator");
+      if (image.getAttribute("src") != (collaborator.image ?? "./images/profiles/default.svg")) {
+        image.src = collaborator.image ?? "./images/profiles/default.svg";
+      }
+      image.style.border = "solid 3px " + collaborator.color;
+      button.parentElement.removeAttribute("disabled");
+    })();
   }
 
   SHOW_ON_LOCK = true;

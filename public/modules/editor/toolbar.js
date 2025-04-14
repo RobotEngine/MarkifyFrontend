@@ -1574,6 +1574,7 @@ modules["editor/toolbar"] = class {
             actionModule.editor = editor;
             actionModule.toolbar = this;
             actionModule.isActionBar = true;
+            actionModule.button = newAction;
             if (actionModule.SUPPORTS_MULTIPLE_SELECT == false && selections.length > 1) {
               continue;
             }
@@ -1592,6 +1593,11 @@ modules["editor/toolbar"] = class {
             }
             if (actionModule.TOOLTIP != null) {
               newAction.setAttribute("tooltip", actionModule.TOOLTIP);
+            }
+            if (actionModule.FULL_CLICK != true) {
+              newAction.removeAttribute("fullclick");
+            } else {
+              newAction.setAttribute("fullclick", "");
             }
             if (isVisible == true) {
               currentButtonCount++;
@@ -1800,8 +1806,9 @@ modules["editor/toolbar"] = class {
 
       await this.selection.showActionFrame();
 
-      let newActionModule = (await this.newModule(actionButton.getAttribute("module"))) ?? {};
-      if (newActionModule.FULL_CLICK != true) {
+      let fullClick = actionButton.hasAttribute("fullclick") == true;
+
+      if (fullClick != true) {
         if (options.clickEnd == true) {
           return;
         }
@@ -1818,6 +1825,7 @@ modules["editor/toolbar"] = class {
       }
       this.selection.actionFrameButton = actionButton;
       
+      let newActionModule = (await this.newModule(actionButton.getAttribute("module"))) ?? {};
       newActionModule.editor = editor;
       newActionModule.toolbar = this;
       newActionModule.isActionBar = true;
@@ -1851,7 +1859,7 @@ modules["editor/toolbar"] = class {
       }
       this.selection.currentActionModule = newActionModule;
 
-      if (newActionModule.FULL_CLICK == true) {
+      if (fullClick == true) {
         await this.selection.showActionFrame();
       }
     }
@@ -3332,6 +3340,7 @@ modules["editor/toolbar"] = class {
                 pushChanges.push(copyObject({
                   ...pushFields,
                   parent: pushFields.parent ?? originalRender.parent ?? null,
+                  //parent: pushFields.parent,
                   p: pushFields.p,
                   r: pushFields.r,
                   _id: annoid
@@ -6324,8 +6333,8 @@ modules["editor/toolbar/style"] = class {
 
 modules["editor/toolbar/delete"] = class {
   setActionButton = async (button) => {
-    button.parentElement.style.setProperty("--hoverColor", "var(--error");
-    button.parentElement.style.setProperty("--hoverTooltip", "var(--error");
+    this.button.style.setProperty("--hoverColor", "var(--error");
+    this.button.style.setProperty("--hoverTooltip", "var(--error");
     setSVG(button, "./images/editor/toolbar/delete.svg");
   }
 
@@ -6340,7 +6349,7 @@ modules["editor/toolbar/delete"] = class {
 
 modules["editor/toolbar/more"] = class {
   setActionButton = async (button) => {
-    button.parentElement.setAttribute("dropdowntitle", "More");
+    this.button.setAttribute("dropdowntitle", "More");
     setSVG(button, "./images/editor/toolbar/more.svg");
   }
 
@@ -6659,7 +6668,7 @@ modules["editor/toolbar/collaborator"] = class {
     button.innerHTML = `<img class="eSubToolCollaborator" src="./images/profiles/default.svg">`;
 
     (async () => {
-      button.parentElement.setAttribute("disabled", "");
+      this.button.setAttribute("disabled", "");
       if (collaborator == null) { // Fetch to get the collaborator
         let [code, body] = await sendRequest("GET", "lessons/members/collaborator?modify=" + modifiedBy, null, { session: this.editor.session, allowError: [404] });
         if (code == 200) {
@@ -6674,13 +6683,15 @@ modules["editor/toolbar/collaborator"] = class {
         return this.toolbar.selection.updateActionBar({ redraw: true });
       }
 
-      button.parentElement.setAttribute("tooltip", collaborator.name);
       let image = button.querySelector(".eSubToolCollaborator");
       if (image.getAttribute("src") != (collaborator.image ?? "./images/profiles/default.svg")) {
         image.src = collaborator.image ?? "./images/profiles/default.svg";
       }
       image.style.border = "solid 3px " + collaborator.color;
-      button.parentElement.removeAttribute("disabled");
+      if (this.button != null) {
+        this.button.setAttribute("tooltip", collaborator.name);
+        this.button.removeAttribute("disabled");
+      }
     })();
   }
 
@@ -6811,8 +6822,8 @@ modules["editor/toolbar/reactions"] = class {
       if (body.change > 0) {
         cache[reactID] = body.added;
         this.toolbar.reactionsCache.members[body.member._id] = body.member;
-        if (button != null && button.parentElement.hasAttribute("hidden") == true) {
-          button.parentElement.removeAttribute("disabled");
+        if (this.button != null && this.button.hasAttribute("hidden") == true) {
+          this.button.removeAttribute("disabled");
           this.toolbar.selection.updateActionBar({ refresh: true });
         }
       } else if (body.change < 0) {
@@ -6840,7 +6851,7 @@ modules["editor/toolbar/reactions"] = class {
 
     if (this.toolbar.reactionsCache.loaded == false) {
       this.toolbar.reactionsCache.loaded = true;
-      button.parentElement.setAttribute("disabled", "");
+      this.button.setAttribute("disabled", "");
 
       (async () => {
         let [code, body] = await sendRequest("GET", "lessons/members/reaction/members?annotation=" + selectID, null, { session: this.editor.session });
@@ -6858,8 +6869,8 @@ modules["editor/toolbar/reactions"] = class {
           this.toolbar.reactionsCache.error = true;
           return this.toolbar.selection.updateActionBar({ redraw: true });
         }
-        if (button != null) {
-          button.parentElement.removeAttribute("disabled");
+        if (this.button != null) {
+          this.button.removeAttribute("disabled");
         }
       })();
     }
@@ -7079,5 +7090,124 @@ modules["editor/toolbar/reactions"] = class {
     }
 
     updateReactionView(true);
+  }
+};
+
+
+// Page Functions:
+modules["editor/toolbar/uploadpage"] = class {
+  setActionButton = async (button) => {
+    let selectKeys = Object.keys(this.editor.selecting);
+    let preference = this.parent.getPreferenceTool();
+    if (selectKeys.length == 1 && preference.source == null) {
+      this.TOOLTIP = "Upload PDF";
+      setSVG(button, "./images/editor/toolbar/uploadpage.svg");
+    } else {
+      let anyHasDocument = false;
+      for (let i = 0; i < selectKeys.length; i++) {
+        let annotation = this.editor.annotations[selectKeys[i]].render ?? {};
+        if (annotation.source != null) {
+          anyHasDocument = true;
+          break;
+        }
+      }
+      if (anyHasDocument == false) {
+        return false;
+      }
+      this.TOOLTIP = "Remove PDF";
+      this.FULL_CLICK = true;
+      setSVG(button, "./images/editor/toolbar/removepage.svg");
+    }
+  }
+
+  maxFileSize = (500 * 10 * 1024 * 1024) + 1; // 5 GB File Limit // Will be 10 MB per page
+  js = async () => {
+    let preference = this.parent.getPreferenceTool();
+
+    if (Object.keys(this.editor.selecting).length > 1 || preference.source != null) { // Remove Page:
+      return await this.toolbar.saveSelecting((render) => {
+        if (render.source != null) {
+          return { source: null };
+        }
+      });
+    }
+
+    if (preference._id.startsWith("pending_") == true) {
+      await this.editor.save.syncSave(true);
+    }
+
+    let input = this.button.querySelector(".eSubToolUploadPageInput");
+    if (input == null) {
+      this.button.insertAdjacentHTML("beforeend", `<input class="eSubToolUploadPageInput" type="file" accept="application/pdf" multiple="true" hidden="true">`);
+      input = this.button.querySelector(".eSubToolUploadPageInput");
+    }
+    let processUpload = async (files, event) => {
+      event.preventDefault();
+      if (files == null) {
+        return;
+      }
+      if (preference._id.startsWith("pending_") == true) {
+        return;
+      }
+      if (files.length > 50) {
+        return alertModule.open("warning", "<b>File Overload</b>Woah there! Markify only supports bulk uploads of up to 50 files at once.", { time: 10 });
+      }
+      let sendFormData = new FormData();
+      let fileSize = 0;
+      let passedFiles = 0;
+      for (let i = 0; i < files.length; i++) {
+        let file = files[i];
+        if (file.kind == "file") {
+          file = file.getAsFile();
+        }
+        if (file.kind != "string") {
+          if (file.type == "application/pdf") {
+            fileSize += file.size;
+            if (fileSize > this.maxFileSize) {
+              return alertModule.open("error", "<b>Exceeded Size Limit</b><div>Lessons are limited to a max size of <u>3 GB</u> total</div>", { time: 10 });
+            }
+            sendFormData.append("file" + i, file);
+            passedFiles++;
+          } else {
+            alertModule.open("warning", "<b>" + file.name + " Failed to Upload</b>Only PDF files are currently supported", { time: 10 });
+          }
+        }
+        if (passedFiles > 0) {
+          this.button.setAttribute("disabled", "");
+          let uploadAlert = await alertModule.open("info", `<b>Uploading Document${addS(passedFiles)}</b>Uploading your PDF${addS(passedFiles)} and inserting into the lesson!`, { time: "never" });
+          let [code, body] = await sendRequest("POST", "lessons/save/file?annotation=" + preference._id, sendFormData, { session: this.editor.session, noFileType: true });
+          alertModule.close(uploadAlert);
+          this.button.removeAttribute("disabled");
+          if (code == 200) {
+            let historyUpdate = body.historyUpdate ?? [];
+            let historyAdd = body.historyAdd ?? [];
+            let historyRemove = body.historyRemove ?? [];
+            if (body.saves != null) {
+              for (let i = 0; i < body.saves.length; i++) {
+                let save = body.saves[i];
+                await this.editor.save.push(save, { history: { update: historyUpdate, add: historyRemove }, ignoreSelect: true });
+                this.editor.selecting[save._id] = this.editor.selecting[save._id] ?? {};
+              }
+              this.toolbar.selection.updateActionBar();
+            }
+            if (historyUpdate.length > 0) {
+              this.editor.history.push("update", historyUpdate);
+            }
+            if (historyAdd.length > 0) {
+              this.editor.history.push("remove", historyAdd);
+            }
+            if (historyAdd.length > 0) {
+              this.editor.history.push("add", historyRemove);
+            }
+          }
+        }
+      }
+      input.value = "";
+    }
+    input.addEventListener("change", (event) => {
+      processUpload(event.target.files, event);
+    });
+    input.value = "";
+    input.click();
   }
 };

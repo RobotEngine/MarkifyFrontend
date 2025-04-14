@@ -2268,6 +2268,9 @@ modules["editor/editor"] = class {
           if (render == null || render._id == annoID) {
             continue;
           }
+          if (this.selecting[render._id] != null) {
+            continue;
+          }
           if ((render.parent ?? "").startsWith("pending_") == true) {
             let parentAnno = this.annotations[render.parent];
             if (parentAnno != null && parentAnno.pointer != null) {
@@ -2321,7 +2324,7 @@ modules["editor/editor"] = class {
                 r: rotation
               });
               if (historyUpdate == null) {
-                historyUpdate = copyObject({ _id: render._id, parent: render.parent, p: render.p, r: render.r });
+                historyUpdate = copyObject({ _id: render._id, parent: render.parent ?? null, p: render.p, r: render.r });
               }
               let setChildAnno = {
                 _id: render._id,

@@ -2077,7 +2077,7 @@ modules["editor/editor"] = class {
         await sleep(10000);
 
         let changeOccured = false;
-        let redrawAction = false;
+        //let redrawAction = false;
         let epoch = getEpoch();
         for (let i = 0; i < this.save.timeoutAnnotations.length; i++) {
           let annotation = this.save.timeoutAnnotations[i];
@@ -2106,7 +2106,7 @@ modules["editor/editor"] = class {
             continue;
           }
 
-          if (annotation.render._id.includes("pending_") == false) { // Must be a new anno
+          if (annotation.render._id.includes("pending_") == false) { // Must not be a new anno
             delete annotation.retry;
             this.save.apply(annotation.revert, { overwrite: true, timeout: false }); //let result = 
             /*if (result.redrawAction == true) {
@@ -2378,9 +2378,10 @@ modules["editor/editor"] = class {
         for (let i = 0; i < resyncKeys.length; i++) {
           let anno = this.resync.annotations[resyncKeys[i]] ?? {};
           if (anno.save == true && (anno.render._id.includes("pending_") == false || anno.render.remove != true)) {
+            let render = copyObject(anno.render);
             delete anno.expire;
-            this.annotations[anno.render._id] = anno;
-            this.save.pendingSaves[anno.render._id] = { ...this.save.pendingSaves[anno.render._id], ...anno.render };
+            this.annotations[render._id] = { render: render };
+            this.save.pendingSaves[render._id] = { ...this.save.pendingSaves[render._id], ...render };
           }
         }
         this.save.syncSave(true);

@@ -1032,7 +1032,7 @@ modules["editor/toolbar"] = class {
       this.selection.action = "save";
       await this.selection.endAction({ redrawAction: false, fromHistory: options.saveHistory == false });
       if (options.redrawAction != false) {
-        await this.selection.updateActionBar({ refresh: true, redraw: options.redraw, reuseActionBar: options.reuseActionBar, skipUpdate: options.reuseActionBar != true });
+        await this.selection.updateActionBar({ refresh: options.refresh ?? true, redraw: options.redraw, reuseActionBar: options.reuseActionBar, skipUpdate: options.reuseActionBar != true });
       }
     }
 
@@ -1582,6 +1582,7 @@ modules["editor/toolbar"] = class {
             let isVisible = true;
             newAction.innerHTML = "<div></div>";
             let buttonHolder = newAction.querySelector("div");
+            newAction.removeAttribute("selecthighlight");
             if (actionModule.setActionButton != null) {
               isVisible = (await actionModule.setActionButton(buttonHolder)) != false;
             }
@@ -1589,7 +1590,7 @@ modules["editor/toolbar"] = class {
               return;
             }
             if (actionModule.SHOW_ON_LOCK != true) {
-              isVisible = showLocked == false;
+              isVisible = showLocked == false && isVisible;
             }
             if (actionModule.TOOLTIP != null) {
               newAction.setAttribute("tooltip", actionModule.TOOLTIP);
@@ -3488,11 +3489,7 @@ modules["editor/toolbar"] = class {
         if (render == null || editor.utils.canMemberModify(render) == false) {
           return;
         }
-        let keys = Object.keys(editor.selecting);
-        editor.selecting = {};
-        editor.selecting[render._id] = { hidden: false };
-        this.selection.action = "save";
-        await this.selection.endAction({ sentKeys: keys });
+        await this.saveSelecting(() => { return { hidden: false }; });
         return true;
       }
     }
@@ -7098,8 +7095,7 @@ modules["editor/toolbar/reactions"] = class {
 modules["editor/toolbar/uploadpage"] = class {
   setActionButton = async (button) => {
     let selectKeys = Object.keys(this.editor.selecting);
-    let preference = this.parent.getPreferenceTool();
-    if (selectKeys.length == 1 && preference.source == null) {
+    if (selectKeys.length == 1 && this.parent.getPreferenceTool().source == null) {
       this.TOOLTIP = "Upload PDF";
       setSVG(button, "./images/editor/toolbar/uploadpage.svg");
     } else {
@@ -7351,5 +7347,57 @@ modules["editor/toolbar/resize"] = class {
     customSizeHeight.addEventListener("focusout", saveCustomSize);
     
     this.redraw(true);
+  }
+};
+// Set title module goes here!
+modules["editor/toolbar/rotatepage"] = class {
+  setActionButton = async (button) => {
+    let anyHasDocument = false;
+    let selectKeys = Object.keys(this.editor.selecting);
+    for (let i = 0; i < selectKeys.length; i++) {
+      let annotation = this.editor.annotations[selectKeys[i]].render ?? {};
+      if (annotation.source != null) {
+        anyHasDocument = true;
+        break;
+      }
+    }
+    if (anyHasDocument == false) {
+      return false;
+    }
+    
+    setSVG(button, "./images/editor/toolbar/rotatepage.svg");
+  }
+
+  TOOLTIP = "Rotate";
+
+  js = async () => {
+    await this.toolbar.saveSelecting((render) => {
+      let setRotate = render.r ?? 0;
+      setRotate -= 90;
+      if (setRotate < 0) {
+        setRotate = 360 + setRotate;
+      }
+      if (setRotate >= 360) {
+        setRotate = setRotate - 360;
+      }
+      return { r: setRotate };
+    }, { reuseActionBar: true });
+  }
+};
+modules["editor/toolbar/hidepage"] = class {
+  setActionButton = async (button) => {
+    setSVG(button, "./images/editor/toolbar/hidepage.svg");
+    if (this.parent.getPreferenceTool().hidden != true) {
+      this.button.removeAttribute("selecthighlight");
+      this.TOOLTIP = "Hide Page";
+    } else {
+      this.button.setAttribute("selecthighlight", "");
+      this.TOOLTIP = "Reveal Page";
+    }
+  }
+
+  js = async () => {
+    await this.toolbar.saveSelecting(() => { return { hidden: !(this.button.hasAttribute("selecthighlight")) }; }, { refresh: false });
+    this.setActionButton();
   }
 };

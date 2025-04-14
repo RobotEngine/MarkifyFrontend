@@ -3860,7 +3860,7 @@ modules["editor/render/page"] = class {
   CAN_FLIP = false;
   SELECT_BOX_COVER = true;
 
-  ACTION_BAR_TOOLS = ["uploadpage", "resize", "settitle", "color", "hidepage", "rotatepage", "unlock", "delete"];
+  ACTION_BAR_TOOLS = ["uploadpage", "rotatepage", "resize", "settitle", "color", "hidepage", "unlock", "delete"];
 
   SELECTION_FUNCTION = (selection, render) => {
     if (render.source != null && ["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {
@@ -3994,8 +3994,8 @@ modules["editor/render/page"] = class {
           let useWidth = anno.s[0];
           let useHeight = anno.s[1];
           if (rotation == 90 || rotation == 270) {
-            let prevWidth = width;
-            canvasWidth = height;
+            let prevWidth = anno.s[0];
+            canvasWidth = anno.s[1];
             canvasHeight = prevWidth;
             useWidth = anno.s[1];
             useHeight = anno.s[0];

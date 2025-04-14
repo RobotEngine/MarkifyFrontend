@@ -16,7 +16,7 @@ modules["pages/lesson"] = class {
     "./modules/dropdowns/account.js",
     "./modules/dropdowns/moveto.js",
     "./modules/dropdowns/remove.js",
-    "./modules/dropdowns/lesson/editor/tools/emojis.js",
+    "./modules/dropdowns/editor/tools/emojis.js",
     "./modules/dropdowns/lesson/file/export.js"
   ];
   html = `<div class="lPageHolder">

@@ -36,12 +36,12 @@ modules["editor/editor"] = class {
   pipeline = { // PIPELINE : Distributes events across various modules and services:
     pipeline: {}, // All active events
     pipelineSubs: {}, // All active subscribes
-    publish: (event, data) => {
+    publish: async (event, data) => {
       let listeners = this.pipeline.pipeline[event] ?? [];
       for (let i = 0; i < listeners.length; i++) {
         let subscribe = (this.pipeline.pipelineSubs[listeners[i]] ?? {})[event] ?? {};
         if (subscribe.callback != null) {
-          subscribe.callback(data);
+          await subscribe.callback(data);
         }
       }
     },
@@ -1283,7 +1283,7 @@ modules["editor/editor"] = class {
         if (this.realtime.module && this.realtime.module.adjustRealtimeHolder) {
           this.realtime.module.adjustRealtimeHolder();
         }
-        this.pipeline.publish("redraw_selection", { transition: false });
+        await this.pipeline.publish("redraw_selection", { transition: false });
       }
       this.render.lastOffsetWidth = content.offsetWidth;
       this.render.lastOffsetHeight = content.offsetHeight;
@@ -3815,7 +3815,7 @@ modules["editor/render/sticky"] = class {
         if (this.loadingEmojiModule != true && reactionElem.hasAttribute("unloaded") == true) {
           this.loadingEmojiModule = true;
           (async () => {
-            let emojiModule = await this.parent.newModule("dropdowns/lesson/editor/tools/emojis");
+            let emojiModule = await this.parent.newModule("dropdowns/editor/tools/emojis");
             if (emojiModule != null) {
               emojiModule.applyReactions();
             }

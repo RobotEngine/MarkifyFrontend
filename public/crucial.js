@@ -546,7 +546,7 @@ function copyClipboardText(text, type) {
 }
 function clipBoardRead(event) {
   event.preventDefault();
-  document.execCommand("inserttext", false, event.clipboardData.getData("text/plain"));
+  document.execCommand("inserttext", false, event.clipboardData.getData("text/plain")); //.replace(/\n\n/g, "</br>")
 }
 
 let localDataStore = {};

@@ -52,6 +52,22 @@ modules["editor/toolbar"] = class {
     "select": { id: "select", type: "tool", module: "editor/toolbar/select" },
     "pan": { id: "pan", type: "tool", module: "editor/toolbar/pan" }
   };
+  eventListenerStorage = [];
+  clearEventListeners = () => {
+    for (let i = 0; i < this.eventListenerStorage.length; i++) {
+      let remEvent = this.eventListenerStorage[i];
+      if (remEvent.type == "event" && remEvent.parent != null) {
+        remEvent.parent.removeEventListener(remEvent.name, remEvent.listener);
+      }
+    }
+  }
+  addEventListener = (name, parent, listener) => {
+    if (parent == null) {
+      return;
+    }
+    this.eventListenerStorage.push({ type: "event", name, parent, listener });
+    parent.addEventListener(name, listener);
+  }
   css = {
     ".eToolbar": `position: absolute; display: block; width: 50px; height: fit-content; max-height: var(--maxToolbarHeight); top: 50%; transform: translateY(-50%); z-index: 2; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; transition: transform .4s, opacity .4s, border-radius .2s`,
     ".eToolbar[hidden]": `transform: translateY(-50%) scale(0) !important; z-index: 1 !important`,
@@ -1571,26 +1587,29 @@ modules["editor/toolbar"] = class {
               continue;
             }
             let actionModule = (await this.newModule(toolModule)) ?? {};
+            if (this.selection.actionBar == null) {
+              return;
+            }
             actionModule.editor = editor;
             actionModule.toolbar = this;
             actionModule.isActionBar = true;
             actionModule.button = newAction;
+            let isVisible;
             if (actionModule.SUPPORTS_MULTIPLE_SELECT == false && selections.length > 1) {
-              continue;
+              isVisible = false;
             }
             //(async () => {
-            let isVisible = true;
             newAction.innerHTML = "<div></div>";
             let buttonHolder = newAction.querySelector("div");
             newAction.removeAttribute("selecthighlight");
             if (actionModule.setActionButton != null) {
-              isVisible = (await actionModule.setActionButton(buttonHolder)) != false;
+              isVisible = isVisible ?? (await actionModule.setActionButton(buttonHolder));
             }
             if (newAction == null) {
               return;
             }
-            if (actionModule.SHOW_ON_LOCK != true) {
-              isVisible = showLocked == false && isVisible;
+            if (actionModule.SHOW_ON_LOCK != true && showLocked == true) {
+              isVisible = false;
             }
             if (actionModule.TOOLTIP != null) {
               newAction.setAttribute("tooltip", actionModule.TOOLTIP);
@@ -1600,7 +1619,7 @@ modules["editor/toolbar"] = class {
             } else {
               newAction.setAttribute("fullclick", "");
             }
-            if (isVisible == true) {
+            if (isVisible != false) {
               currentButtonCount++;
               newAction.removeAttribute("hidden");
             } else {
@@ -1624,7 +1643,7 @@ modules["editor/toolbar"] = class {
                 break;
               }
             }
-            if (isVisible == true) {
+            if (isVisible != false) {
               if (actionModule.ADD_DIVIDE_BEFORE == true && elementBefore != null && elementBefore.className != "eVerticalDivider") {
                 let newDivider = document.createElement("div");
                 newDivider.className = "eVerticalDivider";
@@ -1790,7 +1809,7 @@ modules["editor/toolbar"] = class {
       }
     }
     this.selection.clickAction = async (event, options = {}) => {
-      if (event == null) {
+      if (event == null || event.target == null) {
         return;
       }
       /*let interact = await this.selection.interactRun(event.target);
@@ -1810,11 +1829,11 @@ modules["editor/toolbar"] = class {
       let fullClick = actionButton.hasAttribute("fullclick") == true;
 
       if (fullClick != true) {
-        if (options.clickEnd == true) {
+        if (options.clickStart != true) {
           return;
         }
       } else {
-        if (options.clickEnd != true) {
+        if (options.clickStart == true) {
           return;
         }
       }
@@ -1856,7 +1875,7 @@ modules["editor/toolbar"] = class {
         this.selection.actionFrame.querySelector(".eActionContainerScroll").style.maxWidth = (contentHolder.clientWidth - editor.scrollOffset) + "px";
       }
       if (newActionModule.js != null) {
-        await newActionModule.js(contentFrame);
+        await newActionModule.js(contentFrame, event);
       }
       this.selection.currentActionModule = newActionModule;
 
@@ -4159,7 +4178,7 @@ modules["editor/toolbar/select"] = class {
     let target = event.target;
     this.lastTarget = target;
     if (target.closest("button") != null || target.closest("a") != null || target.closest(".eActionBar") != null) {
-      return this.parent.selection.clickAction(event);
+      return this.parent.selection.clickAction(event, { clickStart: true });
     }
     if (this.editor.isEditorContent(target) != true) {
       return;
@@ -4177,8 +4196,8 @@ modules["editor/toolbar/select"] = class {
         return;
       }
       if (this.editor.selecting[annoID] != null) {
-        if (target.closest("div[title]") != null && annotation.querySelector("div[title]").closest(".eAnnotation") == annotation && this.editor.utils.isLocked(render) != true) {
-          if (target.closest("div[title]").hasAttribute("contenteditable") == false) {
+        if (target.closest("div[label]") != null && annotation.querySelector("div[label]").closest(".eAnnotation") == annotation && this.editor.utils.isLocked(render) != true) {
+          if (target.closest("div[label]").hasAttribute("contenteditable") == false) {
             this.parent.selection.clickAction({
               target: this.editor.page.querySelector('.eActionBar:not([remove]) .eTool[module="editor/toolbar/settitle"]')
             });
@@ -4204,6 +4223,9 @@ modules["editor/toolbar/select"] = class {
       return await this.parent.selection.startAction(event);
     }
     if (target.closest(".eSelect") == null) {
+      if (this.parent.selection.currentActionModule != null && this.parent.selection.currentActionModule.finish != null) {
+        await this.parent.selection.currentActionModule.finish();
+      }
       if (event.shiftKey == false) {
         this.editor.selecting = {};
         if (annotation == null) {
@@ -4341,7 +4363,7 @@ modules["editor/toolbar/drag"] = class {
     }
     let target = event.target;
     if (target.closest("button") != null || target.closest("a") != null || target.closest(".eActionBar") != null) {
-      return this.parent.selection.clickAction(event);
+      return this.parent.selection.clickAction(event, { clickStart: true });
     }
     if (this.editor.isEditorContent(target) != true) {
       return;
@@ -7146,6 +7168,7 @@ modules["editor/toolbar/uploadpage"] = class {
       if (files == null) {
         return;
       }
+      preference = this.parent.getPreferenceTool();
       if (preference._id.startsWith("pending_") == true) {
         return;
       }
@@ -7353,7 +7376,89 @@ modules["editor/toolbar/resize"] = class {
     this.redraw(true);
   }
 };
-// Set title module goes here!
+modules["editor/toolbar/settitle"] = class {
+  setActionButton = async (button) => {
+    if (button != null) {
+      setSVG(button, "./images/editor/toolbar/settitle.svg");
+    }
+
+    let preference = this.parent.getPreferenceTool();
+    let annoTx = this.editor.contentHolder.querySelector('.eAnnotation[anno="' + preference._id + '"] div[label][contenteditable]');
+    if (annoTx == null) {
+      this.button.removeAttribute("selecthighlight");
+    } else {
+      if (preference.lock == true) {
+        annoTx.removeAttribute("contenteditable");
+      }
+      this.button.setAttribute("selecthighlight", "");
+    }
+  }
+
+  TOOLTIP = "Set Title";
+  SUPPORTS_MULTIPLE_SELECT = false;
+  FULL_CLICK = true;
+
+  js = async (frame, event) => {
+    if (this.button == null || this.button.hasAttribute("hidden") == true) {
+      return;
+    }
+
+    let preference = this.parent.getPreferenceTool();
+    if (preference.lock == true) {
+      return;
+    }
+
+    let annoElem = this.editor.contentHolder.querySelector('.eAnnotation[anno="' + preference._id + '"]');
+    if (annoElem == null) {
+      return;
+    }
+    let annoTx = annoElem.querySelector("div[label]");
+    if (annoTx == null) {
+      return;
+    }
+
+    if (annoTx.hasAttribute("contenteditable") == false) {
+      annoTx.style.display = "unset";
+      annoTx.setAttribute("contenteditable", "true");
+
+      this.editor.text.startTextSelection(annoTx, event);
+    } else {
+      if (annoTx.textContent.length < 1) {
+        annoTx.style.removeProperty("display");
+      }
+      annoTx.scrollTo(0, 0);
+      annoTx.removeAttribute("contenteditable");
+    }
+
+    this.toolbar.clearEventListeners();
+
+    let finishListener = async () => {
+      annoTx.scrollTo(0, 0);
+      annoTx.removeAttribute("contenteditable");
+      if (annoTx.textContent.length < 1) {
+        annoTx.style.removeProperty("display");
+      }
+      this.editor.text.clearSelection();
+      annoTx.textContent = annoTx.textContent.substring(0, 100);
+      await this.toolbar.saveSelecting(() => { return { title: cleanString(annoTx.textContent) }; }, { refreshActionBar: false });
+      this.setActionButton();
+    };
+    this.finish = finishListener;
+    this.toolbar.addEventListener("blur", annoTx, finishListener);
+
+    let keyListener = (event) => {
+      if (event != null && ["Enter"].includes(event.key) == true) {
+        event.preventDefault();
+        finishListener();
+      }
+    }
+    this.toolbar.addEventListener("keydown", annoTx, keyListener);
+
+    this.toolbar.addEventListener("paste", annoTx, clipBoardRead);
+
+    this.setActionButton();
+  }
+};
 modules["editor/toolbar/rotatepage"] = class {
   setActionButton = async (button) => {
     /*let anyHasDocument = false;
@@ -7390,7 +7495,9 @@ modules["editor/toolbar/rotatepage"] = class {
 };
 modules["editor/toolbar/hidepage"] = class {
   setActionButton = async (button) => {
-    setSVG(button, "./images/editor/toolbar/hidepage.svg");
+    if (button != null) {
+      setSVG(button, "./images/editor/toolbar/hidepage.svg");
+    }
     if (this.parent.getPreferenceTool().hidden != true) {
       this.button.removeAttribute("selecthighlight");
       this.TOOLTIP = "Hide Page";

@@ -2502,6 +2502,27 @@ modules["editor/editor"] = class {
         document.selection.empty();
       }
     }
+    this.text.startTextSelection = (text, extra) => {
+      if (extra.setCaretPosition != true || document.caretRangeFromPoint == null) {
+        if (window.getSelection && document.createRange) {
+          let range = document.createRange();
+          range.selectNodeContents(text);
+          let sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        } else if (document.body.createTextRange) {
+          let range = document.body.createTextRange();
+          range.moveToElementText(text);
+          range.select();
+        }
+      } else {
+        let range = document.caretRangeFromPoint(extra.clientX, extra.clientY);
+        let selection = window.getSelection();
+
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    }
 
     this.updateInterface = () => {
       if (this.settings.anonymousMode == true) {

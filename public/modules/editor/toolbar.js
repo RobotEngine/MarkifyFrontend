@@ -1023,7 +1023,6 @@ modules["editor/toolbar"] = class {
             selecting.s = [(original.render.s ?? [])[0], (original.render.s ?? [])[1]];
             if (annoModule.AUTO_TEXT_FIT == true && original.render.textfit == true && selecting.textfit != false) {
               selecting.s[0] = renderedText.offsetWidth + 6;
-              selecting.textfit = false;
             }
             if (annoModule.AUTO_SET_HEIGHT == true ) {
               selecting.s[1] = renderedText.offsetHeight + 6; //Math.max(select.s[1], renderedAnno.offsetHeight + 6);
@@ -1427,7 +1426,7 @@ modules["editor/toolbar"] = class {
       }
 
       if (options.redrawActionBar != false) {
-        this.selection.updateActionBar({ ...options, redrawActionBar: selectionChange || options.redraw == true || options.redrawActionBar == true });
+        await this.selection.updateActionBar({ ...options, redrawActionBar: selectionChange || options.redraw == true || options.redrawActionBar == true });
       }
 
       let allRealtimeSelections = realtimeHolder.querySelectorAll(".eCollabSelect");
@@ -3623,7 +3622,7 @@ modules["editor/toolbar"] = class {
       if (event.caret != null) {
         if (event.caret.undoElement != null) {
           event.caret.undoElement.focus();
-          editor.text.setCaretPosition(event.caret.undoElement, event.caret.undoElement);
+          editor.text.setCaretPosition(event.caret.undoElement, event.caret.undoPosition);
         }
       }
 
@@ -5066,7 +5065,7 @@ modules["editor/toolbar/placement"] = class {
       await this.parent.toolbar.startTool(this.parent.toolbar.toolbar.querySelector('.eTool[tool="selection"]'));
       await this.parent.toolbar.startTool(this.parent.toolbar.toolbar.querySelector('.eTool[tool="select"]'));
       this.editor.selecting[this.annotation.render._id] = {};
-      this.parent.selection.updateBox();
+      await this.parent.selection.updateBox();
 
       if (this.TARGET_QUERY != null) {
         this.parent.selection.clickAction({
@@ -7509,6 +7508,141 @@ modules["editor/toolbar/hidepage"] = class {
 
   js = async () => {
     await this.toolbar.saveSelecting(() => { return { hidden: !(this.button.hasAttribute("selecthighlight")) }; }, { refreshActionBar: false });
+    this.setActionButton();
+  }
+};
+
+
+// Text Functions:
+modules["editor/toolbar/textedit"] = class {
+  setActionButton = async (button) => {
+    if (button != null) {
+      setSVG(button, "./images/editor/toolbar/textedit.svg");
+    }
+
+    let preference = this.parent.getPreferenceTool();
+    let annoTx = this.editor.contentHolder.querySelector('.eAnnotation[anno="' + preference._id + '"] div[contenteditable]');
+    if (annoTx == null) {
+      this.button.removeAttribute("selecthighlight");
+    } else {
+      if (preference.lock == true) {
+        annoTx.removeAttribute("contenteditable");
+      }
+      this.button.setAttribute("selecthighlight", "");
+    }
+  }
+
+  TOOLTIP = "Edit Text";
+  SUPPORTS_MULTIPLE_SELECT = false;
+  FULL_CLICK = true;
+  ADD_DIVIDE_AFTER = true;
+
+  js = async (frame, event) => {
+    if (this.button == null || this.button.hasAttribute("hidden") == true) {
+      return;
+    }
+
+    let preference = this.parent.getPreferenceTool();
+    if (preference.lock == true) {
+      return;
+    }
+
+    let annoElem = this.editor.contentHolder.querySelector('.eAnnotation[anno="' + preference._id + '"]');
+    if (annoElem == null) {
+      return;
+    }
+    let annoTx = annoElem.querySelector("div[edit]");
+    if (annoTx == null) {
+      return;
+    }
+
+    if (annoTx.hasAttribute("contenteditable") == false) {
+      let scrollLeft = annoElem.scrollLeft ?? 0;
+      let scrollTop = annoElem.scrollTop ?? 0;
+      annoTx.setAttribute("contenteditable", "true");
+      annoTx.focus();
+      if (scrollLeft > 0 || scrollTop > 0) {
+        annoElem.scrollTo(scrollLeft, scrollTop);
+      }
+
+      if (event.clearText == true) {
+        annoTx.textContent = "";
+      }
+
+      this.editor.text.startTextSelection(annoTx, event);
+    } else {
+      annoTx.removeAttribute("contenteditable");
+    }
+
+    this.toolbar.clearEventListeners();
+
+    let saveHistory = true;
+    let lastCaret = {};
+    let setLastCaret = (position) => {
+      if (window.getSelection != null) {
+        let textBox = window.getSelection().baseNode.parentElement.closest("div[edit]");
+        if (textBox != null) {
+          lastCaret[position + "Element"] = textBox;
+          lastCaret[position + "Position"] = this.editor.text.getCurrentCaretPosition(textBox);
+        }
+      }
+    }
+
+    let inputListener = async (event) => {
+      preference = this.parent.getPreferenceTool();
+
+      let saveObj = { d: {} };
+      let addText = [];
+      for (let i = 0; i < annoTx.childNodes.length; i++) {
+        let text = annoTx.childNodes[i].textContent;
+        if (text == "") {
+          text = "\n";
+        }
+        addText.push(text);
+      }
+      if (this.editor.selecting[preference._id].d == null) {
+        this.editor.selecting[preference._id].d = copyObject(preference.d ?? {});
+      }
+      saveObj.d.b = addText;
+      if (preference.f == "sticky") {
+        saveObj.sig = this.editor.self.name;
+      }
+      if (event != null && [" ", null].includes(event.data) == true) {
+        saveHistory = true;
+      }
+      await this.toolbar.saveSelecting(() => { return saveObj; }, { refreshActionBar: false, saveHistory: saveHistory });
+      if (saveHistory == true) {
+        let lastHistory = this.editor.history.history[this.editor.history.location];
+        if (lastHistory != null) {
+          lastHistory.caret = lastHistory.caret ?? {};
+          lastHistory.caret.undoElement = lastCaret.undoElement;
+          lastHistory.caret.undoPosition = lastCaret.undoPosition;
+        }
+      }
+      saveHistory = false;
+    }
+    this.toolbar.addEventListener("input", annoTx, inputListener);
+
+    let keydownListener = (event) => {
+      if (event != null && [" ", "Enter", "Backspace"].includes(event.key) == true) {
+        setLastCaret("undo");
+      }
+    }
+    this.toolbar.addEventListener("keydown", annoTx, keydownListener);
+
+    let keyupListener = async () => {
+      let lastHistory = this.editor.history.history[this.editor.history.location];
+      if (lastHistory != null) {
+        lastHistory.caret = lastHistory.caret ?? {};
+        setLastCaret("redo");
+        lastHistory.caret.redoElement = lastCaret.redoElement;
+        lastHistory.caret.redoPosition = lastCaret.redoPosition;
+      }
+    }
+    this.toolbar.addEventListener("keyup", annoTx, keyupListener);
+
+    this.toolbar.addEventListener("paste", annoTx, clipBoardRead);
+
     this.setActionButton();
   }
 };

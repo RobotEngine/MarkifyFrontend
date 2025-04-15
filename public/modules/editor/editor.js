@@ -2472,7 +2472,7 @@ modules["editor/editor"] = class {
           }
         } else {
           for (let lp = 0; lp < node.childNodes.length; lp++) {
-            range = this.createRange(node.childNodes[lp], chars, range);
+            range = this.text.createRange(node.childNodes[lp], chars, range);
             if (chars.count === 0) {
               break;
             }
@@ -2485,9 +2485,9 @@ modules["editor/editor"] = class {
       let selection = window.getSelection();
       let range = null;
       if (chars == "END") {
-        range = this.createRange(element.lastChild, { count: element.lastChild.length - 1 });
+        range = this.text.createRange(element.lastChild, { count: element.lastChild.length - 1 });
       } else {
-        range = this.createRange(element, { count: chars });
+        range = this.text.createRange(element, { count: chars });
       }
       if (range != null) {
         range.collapse(false);
@@ -3912,8 +3912,8 @@ modules["editor/render/page"] = class {
     ".eAnnotation[page] > div[content] div[document] div[annotationlayer] > * a": `position: absolute; width: 100%; height: 100%; padding: 4px; left: -4px; top: -4px; border-radius: 6px; transition: .2s; transform: unset !important`,
     ".eAnnotation[page] > div[content] div[document] div[annotationlayer] > * a:hover": `background: rgba(var(--themeRGB), .2)`,
     ".eAnnotation[page] > div[content] div[document] div[textlayer]": `position: absolute; width: var(--fullWidth) !important; height: var(--fullHeight) !important; left: var(--borderWidth); top: var(--borderWidth); transform-origin: top left; transform: var(--fullScale); font-family: sans-serif; z-index: 2`,
-    ".eAnnotation[page] > div[content] div[document] div[textlayer] span, br": `color: transparent; position: absolute; white-space: pre; cursor: text; transform-origin: 0% 0%; pointer-events: all`,
-    ".eAnnotation[page] > div[content] div[document] div[textlayer] br": `user-select: none`,
+    ".eAnnotation[page] > div[content] div[document] div[textlayer] span": `color: transparent; position: absolute; white-space: pre; cursor: text; transform-origin: 0% 0%; pointer-events: all`,
+    ".eAnnotation[page] > div[content] div[document] div[textlayer] br": `color: transparent; position: absolute; white-space: pre; cursor: text; transform-origin: 0% 0%; pointer-events: all; user-select: none`,
     ".hiddenCanvasElement": `display: none`,
   };
   render = (anno, element, holder) => {

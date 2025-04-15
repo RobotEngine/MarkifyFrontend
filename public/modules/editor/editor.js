@@ -1678,7 +1678,7 @@ modules["editor/editor"] = class {
       */
 
       if (annotation == null) {
-        return;
+        return {};
       }
       if (annotation.pointer != null) { // If synced is availiable, update to it
         annotation = this.annotations[annotation.pointer] ?? annotation;
@@ -1686,7 +1686,7 @@ modules["editor/editor"] = class {
       let render = annotation.render;
       let element = annotation.element;
       if (annotation.render == null) {
-        return;
+        return {};
       }
 
       let { _id, p: position, s: size, parent } = render; // Must combine these back before render function
@@ -1713,7 +1713,7 @@ modules["editor/editor"] = class {
             }
           }
           if (isValid == false) {
-            return;
+            return {};
           }
         } else if (render.parent != null) {
           let { x: absX, y: absY } = this.utils.getAbsolutePosition(render);
@@ -1773,7 +1773,7 @@ modules["editor/editor"] = class {
 
       let renderModule = await this.render.getModule(render.f);
       if (renderModule == null) {
-        return;
+        return {};
       }
       if (renderModule.render != null) {
         let result = (await renderModule.render({ ...render, p: [xPos, yPos], s: [width, height], parent: parent }, element, holder)) ?? {};
@@ -1882,9 +1882,9 @@ modules["editor/editor"] = class {
           element.removeAttribute("hidden");
         } else {
           if (long != true) {
-            this.render.hide(annotation);
+            await this.render.hide(annotation);
           } else {
-            this.utils.setAnnotationChunks({ ...annotation, render: { ...render, remove: true } });
+            await this.utils.setAnnotationChunks({ ...annotation, render: { ...render, remove: true } });
             delete this.annotations[_id];
           }
         }
@@ -1922,19 +1922,21 @@ modules["editor/editor"] = class {
       if (annotation == null) {
         return;
       }
-      let render = annotation.render ?? {};
       if (annotation.element != null) {
         this.render.hide(annotation);
         annotation.element.remove();
         annotation.element = null;
       }
-      (async () => {
-        let renderModule = await this.render.getModule(render.f);
-        if (renderModule != null && renderModule.remove != null) {
-          renderModule.remove(annotation);
-        }
-      })();
-      this.pipeline.unsubscribe("annotation" + render._id);
+      let render = annotation.render;
+      if (render != null) {
+        (async () => {
+          let renderModule = await this.render.getModule(render.f);
+          if (renderModule != null && renderModule.remove != null) {
+            renderModule.remove(annotation);
+          }
+        })();
+        this.pipeline.unsubscribe("annotation" + render._id);
+      }
     }
     this.chunkAnnotations["0_0"] = {};
     this.chunkAnnotations["0_-" + this.chunkHeight] = {};
@@ -2108,14 +2110,14 @@ modules["editor/editor"] = class {
 
           if (annotation.render._id.includes("pending_") == false) { // Must not be a new anno
             delete annotation.retry;
-            this.save.apply(annotation.revert, { overwrite: true, timeout: false }); //let result = 
+            await this.save.apply(annotation.revert, { overwrite: true, timeout: false }); //let result = 
             /*if (result.redrawAction == true) {
               redrawAction = true;
             }*/
             delete annotation.revert;
             changeOccured = true;
           } else {
-            this.utils.setAnnotationChunks({ ...annotation, render: { ...annotation.render, remove: true } });
+            await this.utils.setAnnotationChunks({ ...annotation, render: { ...annotation.render, remove: true } });
             delete this.annotations[annotation.render._id];
             changeOccured = true;
           }
@@ -2193,7 +2195,7 @@ modules["editor/editor"] = class {
         }
       }
       if (allowRender == true) {
-        await this.render.create({ ...annotation, render: { ...annotation.render, ...(options.renderPassthrough ?? {}), ...(this.selecting[annoID] ?? {}) }, ...(options.render ?? {}) }, options.timeout == false);
+        annotation.element = (await this.render.create({ ...annotation, render: { ...annotation.render, ...(options.renderPassthrough ?? {}), ...(this.selecting[annoID] ?? {}) }, ...(options.render ?? {}) }, options.timeout == false)).element;
       } else {
         await this.render.remove(annotation);
       }

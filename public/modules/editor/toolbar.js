@@ -19,7 +19,7 @@ modules["editor/toolbar"] = class {
     "markup": {
       html: `<div class="eVerticalToolsHolder">
         <button class="eTool" tool="highlighter" tooltip="Highlighter" module="editor/toolbar/highlighter"><div></div></button>
-        <button class="eTool" tool="underline" tooltip="Underline" module="editor/toolbar/underline"><div></div></button>
+        <button class="eTool" tool="understrike" tooltip="Underline" module="editor/toolbar/understrike"><div></div></button>
         <div class="eDivider"></div>
         <button class="eTool" option="color" tooltip="Color" module="editor/toolbar/color"><div></div></button>
         <button class="eTool" option="thickness" tooltip="Thickness" module="editor/toolbar/thickness"><div></div></button>
@@ -1010,30 +1010,31 @@ modules["editor/toolbar"] = class {
         if (set == null) {
           continue;
         }
-        if (set.d != null && typeof set.d == "object") {
-          set.d = { ...original.render.d, ...set.d };
+        let merged = { ...selecting, ...set };
+        if (merged.d != null && typeof merged.d == "object") {
+          merged.d = { ...original.render.d, ...merged.d };
         }
-        if (editor.utils.isLocked(original.render) == true && set.lock == null) {
+        if (editor.utils.isLocked(original.render) == true && merged.lock == null) {
           continue;
         }
         if (annoModule.AUTO_TEXT_FIT == true || annoModule.AUTO_SET_HEIGHT == true) {
-          await editor.render.create({ ...original, render: { ...original.render, ...selecting }, animate: false });
+          await editor.render.create({ ...original, render: { ...original.render, ...merged }, animate: false });
           let renderedText = original.element.querySelector("div[edit]");
           if (renderedText != null) {
-            selecting.s = [(original.render.s ?? [])[0], (original.render.s ?? [])[1]];
+            merged.s = [(original.render.s ?? [])[0], (original.render.s ?? [])[1]];
             if (annoModule.AUTO_TEXT_FIT == true && original.render.textfit == true && selecting.textfit != false) {
-              selecting.s[0] = renderedText.offsetWidth + 6;
+              merged.s[0] = renderedText.offsetWidth + 6;
             }
             if (annoModule.AUTO_SET_HEIGHT == true ) {
-              selecting.s[1] = renderedText.offsetHeight + 6; //Math.max(select.s[1], renderedAnno.offsetHeight + 6);
+              merged.s[1] = renderedText.offsetHeight + 6; //Math.max(select.s[1], renderedAnno.offsetHeight + 6);
             }
           }
         }
         let changes = false;
-        let setKeys = Object.keys(set);
+        let setKeys = Object.keys(merged);
         for (let c = 0; c < setKeys.length; c++) {
           let key = setKeys[c];
-          if (set[key] != original.render[key]) {
+          if (merged[key] != original.render[key]) {
             changes = true;
             break;
           }
@@ -1041,7 +1042,7 @@ modules["editor/toolbar"] = class {
         if (changes == false) {
           continue;
         }
-        editor.selecting[annoid] = { ...selecting, ...set };
+        editor.selecting[annoid] = merged;
       }
 
       this.selection.action = "save";
@@ -4812,7 +4813,7 @@ modules["editor/toolbar/highlighter"] = class extends modules["editor/toolbar/pe
   REALTIME_TOOL = 1;
   MOUSE = { type: "svg", url: "./images/editor/cursors/highlighter.svg", translate: { x: 15, y: 30 } };
 }
-modules["editor/toolbar/underline"] = class extends modules["editor/toolbar/pen"] {
+modules["editor/toolbar/understrike"] = class extends modules["editor/toolbar/pen"] {
   FORCE_LINE = true;
   HORIZONTAL_CHECK = true;
   REALTIME_TOOL = 1;
@@ -5257,7 +5258,7 @@ modules["editor/toolbar/shape"] = class extends modules["editor/toolbar/resize_p
 
 modules["editor/toolbar/sticky"] = class extends modules["editor/toolbar/placement"] {
   TARGET_QUERY = '.eActionBar:not([remove]) .eTool[module="editor/toolbar/textedit"]';
-  
+
   activate = () => {
     let toolPreference = this.parent.getToolPreference();
     this.PROPERTIES = {
@@ -7648,3 +7649,89 @@ modules["editor/toolbar/textedit"] = class {
     this.setActionButton();
   }
 };
+// Font size module here
+modules["editor/toolbar/bold"] = class {
+  setActionButton = async (button) => {
+    if (button != null) {
+      setSVG(button, "./images/editor/toolbar/bold.svg");
+    }
+    if ((this.parent.getPreferenceTool().d ?? {}).bo != true) {
+      this.button.removeAttribute("selecthighlight");
+    } else {
+      this.button.setAttribute("selecthighlight", "");
+    }
+  }
+
+  TOOLTIP = "Bold";
+  FULL_CLICK = true;
+
+  js = async () => {
+    this.redraw = this.setActionButton;
+    await this.toolbar.saveSelecting(() => { return { d: { bo: !(this.button.hasAttribute("selecthighlight")) } }; }, { refreshActionBar: false });
+    this.setActionButton();
+  }
+};
+modules["editor/toolbar/italic"] = class {
+  setActionButton = async (button) => {
+    if (button != null) {
+      setSVG(button, "./images/editor/toolbar/italic.svg");
+    }
+    if ((this.parent.getPreferenceTool().d ?? {}).it != true) {
+      this.button.removeAttribute("selecthighlight");
+    } else {
+      this.button.setAttribute("selecthighlight", "");
+    }
+  }
+
+  TOOLTIP = "Italic";
+  FULL_CLICK = true;
+
+  js = async () => {
+    this.redraw = this.setActionButton;
+    await this.toolbar.saveSelecting(() => { return { d: { it: !(this.button.hasAttribute("selecthighlight")) } }; }, { refreshActionBar: false });
+    this.setActionButton();
+  }
+};
+modules["editor/toolbar/underline"] = class {
+  setActionButton = async (button) => {
+    if (button != null) {
+      setSVG(button, "./images/editor/toolbar/underline.svg");
+    }
+    if ((this.parent.getPreferenceTool().d ?? {}).ul != true) {
+      this.button.removeAttribute("selecthighlight");
+    } else {
+      this.button.setAttribute("selecthighlight", "");
+    }
+  }
+
+  TOOLTIP = "Underline";
+  FULL_CLICK = true;
+
+  js = async () => {
+    this.redraw = this.setActionButton;
+    await this.toolbar.saveSelecting(() => { return { d: { ul: !(this.button.hasAttribute("selecthighlight")) } }; }, { refreshActionBar: false });
+    this.setActionButton();
+  }
+};
+modules["editor/toolbar/strikethrough"] = class {
+  setActionButton = async (button) => {
+    if (button != null) {
+      setSVG(button, "./images/editor/toolbar/strikethrough.svg");
+    }
+    if ((this.parent.getPreferenceTool().d ?? {}).st != true) {
+      this.button.removeAttribute("selecthighlight");
+    } else {
+      this.button.setAttribute("selecthighlight", "");
+    }
+  }
+
+  TOOLTIP = "Strikethrough";
+  FULL_CLICK = true;
+
+  js = async () => {
+    this.redraw = this.setActionButton;
+    await this.toolbar.saveSelecting(() => { return { d: { st: !(this.button.hasAttribute("selecthighlight")) } }; }, { refreshActionBar: false });
+    this.setActionButton();
+  }
+};
+// Text align module here

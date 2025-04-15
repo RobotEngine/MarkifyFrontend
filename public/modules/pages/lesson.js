@@ -162,7 +162,7 @@ modules["pages/lesson"] = class {
           options: ["88B4FA", "F49CA9", "FADCA0", "E4B8FB", "A1D8AF", "F285B8", "666666"]
         },
         size: 16,
-        align: "center"
+        align: "left"
       },
       page: {
         color: {

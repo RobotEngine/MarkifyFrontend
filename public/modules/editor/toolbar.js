@@ -980,6 +980,7 @@ modules["editor/toolbar"] = class {
           check[split[i]] = value;
         }
       }
+      console.log(check)
       editor.savePreferences();
       this.toolbar.updateButtons();
     }
@@ -3429,7 +3430,7 @@ modules["editor/toolbar"] = class {
       this.updateMouse(this.currentToolModule.MOUSE);
       this.selection.usingCustomMouse = false;
 
-      await this.selection.updateBox({ refresh: options.refreshActionBar ?? true, redraw: options.redrawActionBar, transition: false });
+      await this.selection.updateBox({ refreshActionBar: options.refreshActionBar ?? true, redrawActionBar: options.redrawActionBar, transition: false });
     }
     this.selection.interactRun = async (target) => {
       if (target == null) {
@@ -5266,6 +5267,7 @@ modules["editor/toolbar/sticky"] = class extends modules["editor/toolbar/placeme
       s: [220, 220],
       c: toolPreference.color.selected,
       l: this.editor.maxLayer + 1,
+      d: { al: toolPreference.align },
       sig: this.editor.self.name
     };
   }
@@ -7649,7 +7651,129 @@ modules["editor/toolbar/textedit"] = class {
     this.setActionButton();
   }
 };
-// Font size module here
+modules["editor/toolbar/fontsize"] = class {
+  setActionButton = async (button) => {
+    button.innerHTML = `<div class="eSubToolFontSizeHolder"><div class="eSubToolFontSize"></div></div>`;
+    let buttonTx = button.querySelector(".eSubToolFontSize");
+    let preference = this.parent.getPreferenceTool();
+    let size = (preference.d ?? {}).s ?? 18;
+    buttonTx.textContent = size;
+  }
+
+  TOOLTIP = "Font Size";
+
+  html = `
+  <div class="eSubToolFontSizeContainer">
+    <button class="eFontSizeOption" small>Small</button>
+    <button class="eFontSizeOption" medium>Medium</button>
+    <button class="eFontSizeOption" large>Large</button>
+    <div class="eFontSizeLine"></div>
+    <div class="eFontSizeInput border"><div class="eFontSizeBox" contenteditable></div></div>
+  </div>
+  `;
+  css = {
+    ".eSubToolFontSizeHolder": `display: flex; width: 42px; height: 42px; justify-content: center; align-items: center; overflow: hidden`,
+    ".eSubToolFontSize": `padding: 0 4px; background: var(--pageColor); border-radius: 6px; color: var(--darkGray); font-size: 24px; font-weight: 700; text-wrap: nowrap`,
+
+    ".eSubToolFontSizeContainer": `display: flex; flex-direction: column; padding: 6px; align-items: center`,
+    ".eFontSizeOption": `display: flex; width: 120px; height: 36px; margin-bottom: 4px; border-radius: 10px; justify-content: center; align-items: center; font-weight: 600; transition: .15s`,
+    ".eFontSizeOption:hover": `background: var(--secondary); color: #fff`,
+    ".eFontSizeOption[selected]": `background: var(--theme) !important; color: #fff`,
+    ".eFontSizeOption[small]": `font-size: 14px`,
+    ".eFontSizeOption[medium]": `font-size: 18px`,
+    ".eFontSizeOption[large]": `font-size: 22px`,
+    ".eFontSizeLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`,
+    ".eFontSizeInput": `display: flex; padding: 3px; margin: 8px; --borderWidth: 3px; --borderColor: var(--secondary); justify-content: center; align-items: center; --borderRadius: 15px; color: var(--theme); font-size: 20px; font-weight: 600`,
+    ".eFontSizeInput div": `max-width: 50px; min-width: 25px; padding: 0 8px; border: none; outline: none; border-radius: 16px; text-align: center; white-space: nowrap; overflow: hidden`
+  };
+  js = async (frame) => {
+    let smallButton = frame.querySelector(".eFontSizeOption[small]"); // 12px
+    let mediumButton = frame.querySelector(".eFontSizeOption[medium]"); // 18px
+    let largeButton = frame.querySelector(".eFontSizeOption[large]"); // 26px
+    let inputSize = frame.querySelector(".eFontSizeBox"); // Custom
+
+    let selectedS;
+    this.redraw = () => {
+      selectedS = (this.parent.getPreferenceTool().d ?? {}).s ?? 18;
+
+      smallButton.removeAttribute("selected");
+      mediumButton.removeAttribute("selected");
+      largeButton.removeAttribute("selected");
+
+      if (selectedS == 12) {
+        smallButton.setAttribute("selected", "");
+      } else if (selectedS == 18) {
+        mediumButton.setAttribute("selected", "");
+      } else if (selectedS == 26) {
+        largeButton.setAttribute("selected", "");
+      }
+      
+      if (document.activeElement != inputSize) {
+        inputSize.textContent = selectedS;
+      }
+    }
+    this.redraw();
+
+    let saveSize = async (set) => {
+      selectedS = set;
+      this.toolbar.setToolPreference("size", selectedS);
+      await this.toolbar.saveSelecting(() => { return { d: { s: selectedS } }; }, { reuseActionBar: true });
+      this.redraw();
+    }
+
+    smallButton.addEventListener("click", () => { saveSize(12); });
+    mediumButton.addEventListener("click", () => { saveSize(18); });
+    largeButton.addEventListener("click", () => { saveSize(26); });
+
+    inputSize.addEventListener("keydown", (event) => {
+      let textBox = event.target.closest("div");
+      if (textBox == null) {
+        return;
+      }
+      if (event.keyCode == 13) {
+        event.preventDefault();
+        saveSize(parseInt(inputSize.textContent));
+        return textBox.blur();
+      }
+      if (String.fromCharCode(event.keyCode).match(/(\w|\s)/g) && event.key.length == 1) {
+        let textInt = parseInt(textBox.textContent + event.key);
+        if (parseInt(event.key) != event.key) {
+          event.preventDefault();
+          textBoxError(textBox, "Must be a number");
+        } else if (textInt > 250) {
+          event.preventDefault();
+          textBoxError(textBox, "Must be less than 250");
+        }
+      }
+    });
+    inputSize.addEventListener("focusout", (event) => {
+      let textBox = event.target.closest("div");
+      if (textBox == null) {
+        return;
+      }
+      if (textBox.textContent == "") {
+        textBox.textContent = selectedS;
+        return;
+      }
+      let textInt = parseInt(textBox.textContent) ?? selectedS;
+      if (textInt == "") {
+        setZoomText();
+      } else if (textInt > 250) {
+        textBox.textContent = "250";
+      } else if (textInt < 1) {
+        textBox.textContent = "1";
+      }
+      saveSize(parseInt(inputSize.textContent));
+    });
+    inputSize.addEventListener("focus", (event) => {
+      let textBox = event.target.closest("div");
+      if (textBox == null) {
+        return;
+      }
+      textBox.textContent = "";
+    });
+  }
+};
 modules["editor/toolbar/bold"] = class {
   setActionButton = async (button) => {
     if (button != null) {
@@ -7784,23 +7908,15 @@ modules["editor/toolbar/textalign"] = class {
     }
     this.redraw();
 
-    leftAlign.addEventListener("click", async () => {
-      selectedAl = "left";
+    let saveAlign = async (align) => {
+      selectedAl = align;
       this.toolbar.setToolPreference("align", selectedAl);
       await this.toolbar.saveSelecting(() => { return { d: { al: selectedAl } }; }, { reuseActionBar: true });
       this.redraw();
-    });
-    centerAlign.addEventListener("click", async () => {
-      selectedAl = "center";
-      this.toolbar.setToolPreference("align", selectedAl);
-      await this.toolbar.saveSelecting(() => { return { d: { al: selectedAl } }; }, { reuseActionBar: true });
-      this.redraw();
-    });
-    rightAlign.addEventListener("click", async () => {
-      selectedAl = "right";
-      this.toolbar.setToolPreference("align", selectedAl);
-      await this.toolbar.saveSelecting(() => { return { d: { al: selectedAl } }; }, { reuseActionBar: true });
-      this.redraw();
-    });
+    }
+
+    leftAlign.addEventListener("click", () => { saveAlign("left"); });
+    centerAlign.addEventListener("click", () => { saveAlign("center"); });
+    rightAlign.addEventListener("click", () => { saveAlign("right"); });
   }
 };

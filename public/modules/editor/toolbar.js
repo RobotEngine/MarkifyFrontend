@@ -980,7 +980,6 @@ modules["editor/toolbar"] = class {
           check[split[i]] = value;
         }
       }
-      console.log(check)
       editor.savePreferences();
       this.toolbar.updateButtons();
     }

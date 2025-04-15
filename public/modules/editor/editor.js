@@ -2482,6 +2482,9 @@ modules["editor/editor"] = class {
       return range;
     }
     this.text.setCaretPosition = (element, chars) => {
+      if (element == null) {
+        return;
+      }
       let selection = window.getSelection();
       let range = null;
       if (chars == "END") {

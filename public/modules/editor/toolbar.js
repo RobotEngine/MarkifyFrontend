@@ -5256,6 +5256,8 @@ modules["editor/toolbar/shape"] = class extends modules["editor/toolbar/resize_p
 }
 
 modules["editor/toolbar/sticky"] = class extends modules["editor/toolbar/placement"] {
+  TARGET_QUERY = '.eActionBar:not([remove]) .eTool[module="editor/toolbar/textedit"]';
+  
   activate = () => {
     let toolPreference = this.parent.getToolPreference();
     this.PROPERTIES = {

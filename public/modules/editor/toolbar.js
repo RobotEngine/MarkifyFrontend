@@ -7730,4 +7730,77 @@ modules["editor/toolbar/strikethrough"] = class {
     this.setActionButton();
   }
 };
-// Text align module here
+modules["editor/toolbar/textalign"] = class {
+  setActionButton = async (button) => {
+    let selectedAl = (this.parent.getPreferenceTool().d ?? {}).al ?? "left";
+    if (selectedAl == "left") {
+      setSVG(button, "./images/editor/toolbar/textalign/left.svg");
+    } else if (selectedAl == "center") {
+      setSVG(button, "./images/editor/toolbar/textalign/center.svg");
+    } else if (selectedAl == "right") {
+      setSVG(button, "./images/editor/toolbar/textalign/right.svg");
+    }
+  }
+
+  TOOLTIP = "Text Alignment";
+
+  html = `
+  <div class="eSubToolTextAlignContainer eHorizontalToolsHolder" keeptooltip>
+    <button class="eTool" tooltip="Left Align" left option><div></div></button>
+    <button class="eTool" tooltip="Center Align" center option><div></div></button>
+    <button class="eTool" tooltip="Right Align" right option><div></div></button>
+  </div>
+  `;
+  css = {
+    ".eSubToolTextAlignContainer": `overflow: auto; border-radius: inherit`,
+    ".eSubToolTextAlignContainer .eTool:active > div": `border-radius: 15.5px !important`,
+    ".eSubToolTextAlignContainer .eTool[selected]:active > div": `border-radius: 15.5px !important`,
+    ".eSubToolTextAlignContainer .eTool[selected] > div": `background: var(--theme) !important`
+  };
+  js = async (frame) => {
+    let leftAlign = frame.querySelector(".eTool[left]");
+    let centerAlign = frame.querySelector(".eTool[center]");
+    let rightAlign = frame.querySelector(".eTool[right]");
+
+    setSVG(leftAlign.querySelector("div"), "./images/editor/toolbar/textalign/left.svg");
+    setSVG(centerAlign.querySelector("div"), "./images/editor/toolbar/textalign/center.svg");
+    setSVG(rightAlign.querySelector("div"), "./images/editor/toolbar/textalign/right.svg");
+
+    let selectedAl;
+    this.redraw = () => {
+      selectedAl = (this.parent.getPreferenceTool().d ?? {}).al ?? "left";
+
+      leftAlign.removeAttribute("selected");
+      centerAlign.removeAttribute("selected");
+      rightAlign.removeAttribute("selected");
+
+      if (selectedAl == "left") {
+        leftAlign.setAttribute("selected", "");
+      } else if (selectedAl == "center") {
+        centerAlign.setAttribute("selected", "");
+      } else if (selectedAl == "right") {
+        rightAlign.setAttribute("selected", "");
+      }
+    }
+    this.redraw();
+
+    leftAlign.addEventListener("click", async () => {
+      selectedAl = "left";
+      this.toolbar.setToolPreference("align", selectedAl);
+      await this.toolbar.saveSelecting(() => { return { d: { al: selectedAl } }; }, { reuseActionBar: true });
+      this.redraw();
+    });
+    centerAlign.addEventListener("click", async () => {
+      selectedAl = "center";
+      this.toolbar.setToolPreference("align", selectedAl);
+      await this.toolbar.saveSelecting(() => { return { d: { al: selectedAl } }; }, { reuseActionBar: true });
+      this.redraw();
+    });
+    rightAlign.addEventListener("click", async () => {
+      selectedAl = "right";
+      this.toolbar.setToolPreference("align", selectedAl);
+      await this.toolbar.saveSelecting(() => { return { d: { al: selectedAl } }; }, { reuseActionBar: true });
+      this.redraw();
+    });
+  }
+};

@@ -2160,7 +2160,12 @@ modules["editor/editor"] = class {
       }*/
       delete save.resizing;
       if (options.overwrite != true) {
-        objectUpdate(save, annotation.render); // Update the annotation
+        let changeKeys = Object.keys(save);
+        for (let f = 0; f < changeKeys.length; f++) {
+          let key = changeKeys[f];
+          annotation.render[key] = save[key] ?? null;
+        }
+        //objectUpdate(save, annotation.render); // Update the annotation
       } else {
         annotation.render = save;
       }

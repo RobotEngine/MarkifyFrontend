@@ -7666,7 +7666,6 @@ modules["editor/toolbar/bold"] = class {
   FULL_CLICK = true;
 
   js = async () => {
-    this.redraw = this.setActionButton;
     await this.toolbar.saveSelecting(() => { return { d: { bo: !(this.button.hasAttribute("selecthighlight")) } }; }, { refreshActionBar: false });
     this.setActionButton();
   }
@@ -7687,7 +7686,6 @@ modules["editor/toolbar/italic"] = class {
   FULL_CLICK = true;
 
   js = async () => {
-    this.redraw = this.setActionButton;
     await this.toolbar.saveSelecting(() => { return { d: { it: !(this.button.hasAttribute("selecthighlight")) } }; }, { refreshActionBar: false });
     this.setActionButton();
   }
@@ -7708,7 +7706,6 @@ modules["editor/toolbar/underline"] = class {
   FULL_CLICK = true;
 
   js = async () => {
-    this.redraw = this.setActionButton;
     await this.toolbar.saveSelecting(() => { return { d: { ul: !(this.button.hasAttribute("selecthighlight")) } }; }, { refreshActionBar: false });
     this.setActionButton();
   }
@@ -7729,7 +7726,6 @@ modules["editor/toolbar/strikethrough"] = class {
   FULL_CLICK = true;
 
   js = async () => {
-    this.redraw = this.setActionButton;
     await this.toolbar.saveSelecting(() => { return { d: { st: !(this.button.hasAttribute("selecthighlight")) } }; }, { refreshActionBar: false });
     this.setActionButton();
   }

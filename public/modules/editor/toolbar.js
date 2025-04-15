@@ -1030,9 +1030,9 @@ modules["editor/toolbar"] = class {
       }
 
       this.selection.action = "save";
-      await this.selection.endAction({ redrawAction: false, fromHistory: options.saveHistory == false });
-      if (options.redrawAction != false) {
-        await this.selection.updateActionBar({ refresh: options.refresh ?? true, redraw: options.redraw, reuseActionBar: options.reuseActionBar, skipUpdate: options.reuseActionBar != true });
+      await this.selection.endAction({ redrawActionBar: false, fromHistory: options.saveHistory == false });
+      if (options.redrawActionBar != false) {
+        await this.selection.updateActionBar({ refreshActionBar: options.refreshActionBar ?? true, redrawActionBar: options.redrawActionBar, reuseActionBar: options.reuseActionBar, skipUpdate: options.reuseActionBar != true });
       }
     }
 
@@ -1410,8 +1410,8 @@ modules["editor/toolbar"] = class {
         }
       }
 
-      if (options.redrawAction != false) {
-        this.selection.updateActionBar({ ...options, redraw: selectionChange || options.redraw == true || options.redrawAction == true });
+      if (options.redrawActionBar != false) {
+        this.selection.updateActionBar({ ...options, redrawActionBar: selectionChange || options.redraw == true || options.redrawActionBar == true });
       }
 
       let allRealtimeSelections = realtimeHolder.querySelectorAll(".eCollabSelect");
@@ -1470,7 +1470,7 @@ modules["editor/toolbar"] = class {
           this.selection.checkX == 0 || this.selection.checkY == 0 ||
           Math.floor(this.selection.checkX) != Math.floor(this.selection.lastCheckX) ||
           Math.floor(this.selection.checkY) != Math.floor(this.selection.lastCheckY) ||
-          options.redraw == true
+          options.redrawActionBar == true
         );
       }
       this.selection.lastCheckX = this.selection.checkX;
@@ -1508,7 +1508,7 @@ modules["editor/toolbar"] = class {
         newActionBar = true;
       }
 
-      if (newActionBar == true || options.refresh == true) {
+      if (newActionBar == true || options.refreshActionBar == true) {
         let actionButtonHolder = this.selection.actionBar.querySelector(".eActionToolbar");
         let actionToolbarLoaded = actionButtonHolder.hasAttribute("loaded");
         let combineTools;
@@ -3410,7 +3410,7 @@ modules["editor/toolbar"] = class {
       this.updateMouse(this.currentToolModule.MOUSE);
       this.selection.usingCustomMouse = false;
 
-      await this.selection.updateBox({ redrawAction: options.redrawAction, transition: false });
+      await this.selection.updateBox({ refresh: options.refreshActionBar ?? true, redraw: options.redrawActionBar, transition: false });
     }
     this.selection.interactRun = async (target) => {
       if (target == null) {
@@ -3489,7 +3489,11 @@ modules["editor/toolbar"] = class {
         if (render == null || editor.utils.canMemberModify(render) == false) {
           return;
         }
-        await this.saveSelecting(() => { return { hidden: false }; });
+        let keys = Object.keys(editor.selecting);
+        editor.selecting = {};
+        editor.selecting[render._id] = { hidden: false };
+        this.selection.action = "save";
+        await this.selection.endAction({ redrawActionBar: true, sentKeys: keys });
         return true;
       }
     }
@@ -3591,7 +3595,7 @@ modules["editor/toolbar"] = class {
       }
       
       this.selection.action = "save";
-      await this.selection.endAction({ sentKeys: keys, redrawAction: true, fromHistory: true });
+      await this.selection.endAction({ sentKeys: keys, redrawActionBar: true, fromHistory: true });
 
       if (annoContentTx != null) {
         annoContentTx.setAttribute("contenteditable", "true");
@@ -3675,7 +3679,7 @@ modules["editor/toolbar"] = class {
       }
 
       this.selection.action = "save";
-      await this.selection.endAction({ sentKeys: keys, redrawAction: true, fromHistory: true });
+      await this.selection.endAction({ sentKeys: keys, redrawActionBar: true, fromHistory: true });
 
       if (annoContentTx != null) {
         annoContentTx.setAttribute("contenteditable", "true");
@@ -6460,7 +6464,7 @@ modules["editor/toolbar/more"] = class {
     await this.parent.selection.endAction();
   }
   lock = async () => {
-    await this.toolbar.saveSelecting(() => { return { lock: true }; }, { redraw: true });
+    await this.toolbar.saveSelecting(() => { return { lock: true }; }, { redrawActionBar: true });
   }
   bringToFront = async () => {
     let newLayers = {};
@@ -6633,7 +6637,7 @@ modules["editor/toolbar/unlock"] = class {
       if (render.lock == true) {
         return { lock: false };
       }
-    }, { redraw: true });
+    }, { redrawActionBar: true });
   }
 };
 
@@ -6677,7 +6681,7 @@ modules["editor/toolbar/collaborator"] = class {
         }
       }
       if (collaborator._id == null) {
-        return this.toolbar.selection.updateActionBar({ redraw: true });
+        return this.toolbar.selection.updateActionBar({ redrawActionBar: true });
       }
 
       let image = button.querySelector(".eSubToolCollaborator");
@@ -6821,7 +6825,7 @@ modules["editor/toolbar/reactions"] = class {
         this.toolbar.reactionsCache.members[body.member._id] = body.member;
         if (this.button != null && this.button.hasAttribute("hidden") == true) {
           this.button.removeAttribute("disabled");
-          this.toolbar.selection.updateActionBar({ refresh: true });
+          this.toolbar.selection.updateActionBar({ refreshActionBar: true });
         }
       } else if (body.change < 0) {
         delete cache[reactID];
@@ -6832,7 +6836,7 @@ modules["editor/toolbar/reactions"] = class {
         delete this.toolbar.reactionsCache.reactions[body.reaction.emoji];
       }
       if (Object.keys(this.toolbar.reactionsCache.reactions).length < 1) {
-        this.toolbar.selection.updateActionBar({ refresh: true });
+        this.toolbar.selection.updateActionBar({ refreshActionBar: true });
       }
       if (this.toolbar.reactionsCache.function != null) {
         this.toolbar.reactionsCache.function(body);
@@ -6864,7 +6868,7 @@ modules["editor/toolbar/reactions"] = class {
           }
         } else {
           this.toolbar.reactionsCache.error = true;
-          return this.toolbar.selection.updateActionBar({ redraw: true });
+          return this.toolbar.selection.updateActionBar({ redrawActionBar: true });
         }
         if (this.button != null) {
           this.button.removeAttribute("disabled");
@@ -7352,7 +7356,7 @@ modules["editor/toolbar/resize"] = class {
 // Set title module goes here!
 modules["editor/toolbar/rotatepage"] = class {
   setActionButton = async (button) => {
-    let anyHasDocument = false;
+    /*let anyHasDocument = false;
     let selectKeys = Object.keys(this.editor.selecting);
     for (let i = 0; i < selectKeys.length; i++) {
       let annotation = this.editor.annotations[selectKeys[i]].render ?? {};
@@ -7363,7 +7367,7 @@ modules["editor/toolbar/rotatepage"] = class {
     }
     if (anyHasDocument == false) {
       return false;
-    }
+    }*/
     
     setSVG(button, "./images/editor/toolbar/rotatepage.svg");
   }
@@ -7397,7 +7401,7 @@ modules["editor/toolbar/hidepage"] = class {
   }
 
   js = async () => {
-    await this.toolbar.saveSelecting(() => { return { hidden: !(this.button.hasAttribute("selecthighlight")) }; }, { refresh: false });
+    await this.toolbar.saveSelecting(() => { return { hidden: !(this.button.hasAttribute("selecthighlight")) }; }, { refreshActionBar: false });
     this.setActionButton();
   }
 };

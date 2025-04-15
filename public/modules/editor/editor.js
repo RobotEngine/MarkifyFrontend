@@ -2122,7 +2122,7 @@ modules["editor/editor"] = class {
         }
 
         if (changeOccured == true) {
-          this.pipeline.publish("redraw_selection", {}); //redrawAction: redrawAction
+          this.pipeline.publish("redraw_selection", {}); //redrawActionBar: redrawAction
         }
       }
       this.save.runningTimeout = false;
@@ -2198,7 +2198,7 @@ modules["editor/editor"] = class {
         await this.render.remove(annotation);
       }
       
-      return { annotation: annotation }; //, redrawAction: redrawAction
+      return { annotation: annotation }; //, redrawActionBar: redrawAction
     }
     this.save.push = async (save, options = {}) => {
       let data = copyObject(save);
@@ -2746,7 +2746,7 @@ modules["editor/editor"] = class {
           redrawAction = true;
         }*/
       }
-      this.pipeline.publish("redraw_selection", { refresh: true, redrawCurrentAction: true, fromLong: true }); //redrawAction: redrawAction,
+      this.pipeline.publish("redraw_selection", { refresh: true, redrawCurrentAction: true, fromLong: true }); //redrawActionBar: redrawAction,
     });
     this.pipeline.subscribe("removeAnnotationUpdate", "removeannotations", async (data) => {
       let annoKeys = Object.keys(this.annotations);
@@ -2835,7 +2835,7 @@ modules["editor/editor"] = class {
     this.pipeline.subscribe("editorSettingsUpdate", "set", (data) => {
       if (data.settings != null) {
         objectUpdate(data.settings, this.settings);
-        this.pipeline.publish("redraw_selection", { redrawAction: true });
+        this.pipeline.publish("redraw_selection", { redrawActionBar: true });
       }
       this.updateInterface();
     });

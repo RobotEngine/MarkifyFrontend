@@ -6355,7 +6355,7 @@ modules["editor/toolbar/style"] = class {
       this.redraw();
     });
   }
-};
+}
 
 modules["editor/toolbar/delete"] = class {
   setActionButton = async (button) => {
@@ -6371,7 +6371,7 @@ modules["editor/toolbar/delete"] = class {
   js = async () => {
     await this.toolbar.saveSelecting(() => { return { remove: true }; });
   }
-};
+}
 
 modules["editor/toolbar/more"] = class {
   setActionButton = async (button) => {
@@ -6529,7 +6529,7 @@ modules["editor/toolbar/more"] = class {
   js = async () => {
     dropdownModule.open(this.button, "dropdowns/editor/toolbar/more", { parent: this });
   }
-};
+}
 modules["dropdowns/editor/toolbar/more"] = class {
   html = `
   <button class="eToolbarMoreAction" option="duplicate" close title="Duplicate"><img src="./images/editor/duplicate.svg">Duplicate</button>
@@ -6664,7 +6664,7 @@ modules["editor/toolbar/unlock"] = class {
       }
     }, { redrawActionBar: true });
   }
-};
+}
 
 modules["editor/toolbar/collaborator"] = class {
   setActionButton = async (button) => {
@@ -6823,7 +6823,7 @@ modules["editor/toolbar/collaborator"] = class {
       }
     });
   }
-};
+}
 
 modules["editor/toolbar/reactions"] = class {
   setActionButton = async (button) => {
@@ -7117,7 +7117,7 @@ modules["editor/toolbar/reactions"] = class {
 
     updateReactionView(true);
   }
-};
+}
 
 
 // Page Functions:
@@ -7236,7 +7236,7 @@ modules["editor/toolbar/uploadpage"] = class {
     input.value = "";
     input.click();
   }
-};
+}
 modules["editor/toolbar/resize"] = class {
   setActionButton = async (button) => {
     setSVG(button, "./images/editor/toolbar/resizepage.svg");
@@ -7377,7 +7377,7 @@ modules["editor/toolbar/resize"] = class {
     
     this.redraw(true);
   }
-};
+}
 modules["editor/toolbar/settitle"] = class {
   setActionButton = async (button) => {
     if (button != null) {
@@ -7460,7 +7460,7 @@ modules["editor/toolbar/settitle"] = class {
 
     this.setActionButton();
   }
-};
+}
 modules["editor/toolbar/rotatepage"] = class {
   setActionButton = async (button) => {
     /*let anyHasDocument = false;
@@ -7495,7 +7495,7 @@ modules["editor/toolbar/rotatepage"] = class {
       return { r: setRotate };
     }, { reuseActionBar: true });
   }
-};
+}
 modules["editor/toolbar/hidepage"] = class {
   setActionButton = async (button) => {
     if (button != null) {
@@ -7514,8 +7514,61 @@ modules["editor/toolbar/hidepage"] = class {
     await this.toolbar.saveSelecting(() => { return { hidden: !(this.button.hasAttribute("selecthighlight")) }; }, { refreshActionBar: false });
     this.setActionButton();
   }
-};
+}
 
+// Embed Functions:
+modules["editor/toolbar/openlink"] = class {
+  setActionButton = async (button) => {
+    setSVG(button, "./images/editor/toolbar/openlink.svg");
+    if (this.parent.getPreferenceTool().d == null) {
+      return false;
+    }
+  }
+
+  TOOLTIP = "Open Link";
+  SUPPORTS_MULTIPLE_SELECT = false;
+  FULL_CLICK = true;
+
+  js = async () => {
+    let preference = this.parent.getPreferenceTool();
+    if (preference.d != null) {
+      window.open(preference.d, "_blank");
+    }
+  }
+}
+modules["editor/toolbar/enlarge"] = class {
+  setActionButton = async (button) => {
+    setSVG(button, "./images/editor/toolbar/enlarge.svg");
+    if ((this.parent.getPreferenceTool().embed ?? {}).url == null) {
+      return false;
+    }
+  }
+
+  TOOLTIP = "Enlarge";
+  SUPPORTS_MULTIPLE_SELECT = false;
+  FULL_CLICK = true;
+
+  js = async () => {
+    let preference = this.parent.getPreferenceTool();
+    modalModule.open("modals/editor/embed", null, this.button, (preference.embed ?? {}).title ?? (new URL(preference.d ?? "")).hostname, false, { preference: preference });
+  }
+}
+modules["modals/editor/embed"] = class {
+  html = `<div class="emFrame"><iframe allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe></div>`;
+  css = {
+    ".emFrame": `width: calc(100vw - 37px); height: calc(100vh - 77px); max-width: 1000px; max-height: 700px`,
+    ".emFrame iframe": `position: absolute; left: 0px; top: 0px; width: 100% !important; height: 100% !important; transform: unset !important; background: var(--pageColor); border: none`
+  };
+  js = async function (frame, extra) {
+    frame.closest(".modalContent").style.padding = "4px 0px 0px";
+    if (extra.preference.embed != null && extra.preference.embed.url != null) {
+      frame.querySelector(".emFrame iframe").src = extra.preference.embed.url;
+    }
+    frame.closest(".fixedItemHolder").addEventListener("click", () => {
+      modalModule.close();
+    });
+  }
+}
 
 // Text Functions:
 modules["editor/toolbar/textedit"] = class {
@@ -7649,7 +7702,7 @@ modules["editor/toolbar/textedit"] = class {
 
     this.setActionButton();
   }
-};
+}
 modules["editor/toolbar/fontsize"] = class {
   setActionButton = async (button) => {
     button.innerHTML = `<div class="eSubToolFontSizeHolder"><div class="eSubToolFontSize"></div></div>`;
@@ -7772,7 +7825,7 @@ modules["editor/toolbar/fontsize"] = class {
       textBox.textContent = "";
     });
   }
-};
+}
 modules["editor/toolbar/bold"] = class {
   setActionButton = async (button) => {
     if (button != null) {
@@ -7792,7 +7845,7 @@ modules["editor/toolbar/bold"] = class {
     await this.toolbar.saveSelecting(() => { return { d: { bo: !(this.button.hasAttribute("selecthighlight")) } }; }, { refreshActionBar: false });
     this.setActionButton();
   }
-};
+}
 modules["editor/toolbar/italic"] = class {
   setActionButton = async (button) => {
     if (button != null) {
@@ -7812,7 +7865,7 @@ modules["editor/toolbar/italic"] = class {
     await this.toolbar.saveSelecting(() => { return { d: { it: !(this.button.hasAttribute("selecthighlight")) } }; }, { refreshActionBar: false });
     this.setActionButton();
   }
-};
+}
 modules["editor/toolbar/underline"] = class {
   setActionButton = async (button) => {
     if (button != null) {
@@ -7832,7 +7885,7 @@ modules["editor/toolbar/underline"] = class {
     await this.toolbar.saveSelecting(() => { return { d: { ul: !(this.button.hasAttribute("selecthighlight")) } }; }, { refreshActionBar: false });
     this.setActionButton();
   }
-};
+}
 modules["editor/toolbar/strikethrough"] = class {
   setActionButton = async (button) => {
     if (button != null) {
@@ -7852,7 +7905,7 @@ modules["editor/toolbar/strikethrough"] = class {
     await this.toolbar.saveSelecting(() => { return { d: { st: !(this.button.hasAttribute("selecthighlight")) } }; }, { refreshActionBar: false });
     this.setActionButton();
   }
-};
+}
 modules["editor/toolbar/textalign"] = class {
   setActionButton = async (button) => {
     let selectedAl = (this.parent.getPreferenceTool().d ?? {}).al ?? "left";
@@ -7918,4 +7971,4 @@ modules["editor/toolbar/textalign"] = class {
     centerAlign.addEventListener("click", () => { saveAlign("center"); });
     rightAlign.addEventListener("click", () => { saveAlign("right"); });
   }
-};
+}

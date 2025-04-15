@@ -1603,7 +1603,8 @@ modules["editor/toolbar"] = class {
             let buttonHolder = newAction.querySelector("div");
             newAction.removeAttribute("selecthighlight");
             if (actionModule.setActionButton != null) {
-              isVisible = isVisible ?? (await actionModule.setActionButton(buttonHolder));
+              let result = await actionModule.setActionButton(buttonHolder);
+              isVisible = isVisible ?? result;
             }
             if (newAction == null) {
               return;
@@ -1825,7 +1826,6 @@ modules["editor/toolbar"] = class {
       }
 
       await this.selection.showActionFrame();
-
       let fullClick = actionButton.hasAttribute("fullclick") == true;
 
       if (fullClick != true) {
@@ -7240,7 +7240,6 @@ modules["editor/toolbar/resize"] = class {
   }
 
   TOOLTIP = "Resize";
-  ADD_DIVIDE_AFTER = true;
 
   html = `
   <div class="eSubToolResizeHolder">
@@ -7478,6 +7477,7 @@ modules["editor/toolbar/rotatepage"] = class {
   }
 
   TOOLTIP = "Rotate";
+  ADD_DIVIDE_AFTER = true;
 
   js = async () => {
     await this.toolbar.saveSelecting((render) => {

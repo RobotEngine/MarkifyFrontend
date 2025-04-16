@@ -5266,7 +5266,7 @@ modules["editor/toolbar/sticky"] = class extends modules["editor/toolbar/placeme
       s: [220, 220],
       c: toolPreference.color.selected,
       l: this.editor.maxLayer + 1,
-      d: { al: toolPreference.align },
+      d: { s: toolPreference.size, al: toolPreference.align },
       sig: this.editor.self.name
     };
   }

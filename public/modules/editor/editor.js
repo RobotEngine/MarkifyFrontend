@@ -2858,7 +2858,6 @@ modules["editor/editor"] = class {
     this.pipeline.subscribe("editorMemberLeave", "leave", (data) => {
       if (this.realtime.module != null) {
         this.realtime.module.removeRealtime(data._id);
-        console.log(data);
         delete this.realtime.module.members[data._id];
         if (this.realtime.observing == data._id) {
           this.realtime.module.exitObserve();

@@ -77,42 +77,44 @@ modules["dropdowns/remove"] = class {
             }
           } else if (option == "deletefolder") {
             let folder = extra.folders[extra.folderID];
-            let parentID = folder.parent;
-            let folderSort = parent.frame.querySelector('.dSidebarFolder[folderid="' + extra.folderID + '"]');
-            if (folderSort != null) {
-              folderSort.remove();
-            }
-            if (folder.folders != null) {
-              for (let i = 0; i < folder.folders.length; i++) {
-                let folderid = folder.folders[i];
-                delete extra.folders[folderid];
-                let changeLessons = extra.records[folderid];
-                for (let c = 0; c < changeLessons.length; c++) {
-                  delete extra.lessons[changeLessons[c].split("_")[0]].record.folder;
+            if (folder != null) {
+              let parentID = folder.parent;
+              let folderSort = parent.frame.querySelector('.dSidebarFolder[folderid="' + extra.folderID + '"]');
+              if (folderSort != null) {
+                folderSort.remove();
+              }
+              if (folder.folders != null) {
+                for (let i = 0; i < folder.folders.length; i++) {
+                  let folderid = folder.folders[i];
+                  delete extra.folders[folderid];
+                  let changeLessons = extra.records[folderid];
+                  for (let c = 0; c < changeLessons.length; c++) {
+                    delete extra.lessons[changeLessons[c].split("_")[0]].record.folder;
+                  }
+                  delete extra.records[folderid];
                 }
-                delete extra.records[folderid];
               }
-            }
-            delete extra.folders[extra.folderID];
-            let changeLessons = extra.records[extra.folderID];
-            for (let c = 0; c < changeLessons.length; c++) {
-              delete extra.lessons[changeLessons[c].split("_")[0]].record.folder;
-            }
-            delete extra.records[extra.folderID];
-            let parentFolder = extra.folders[parentID];
-            if (parentFolder != null) {
-              parentFolder.folders.splice(parentFolder.folders.indexOf(extra.folderID), 1);
-              let parentSort = parent.frame.querySelector('.dSidebarFolder[folderid="' + parentID + '"]');
-              if (parentSort != null) {
-                parent.sort = parentID;
-                parentSort.setAttribute("selected", "");
-                return parent.updateTiles(parentSort);
+              delete extra.folders[extra.folderID];
+              let changeLessons = extra.records[extra.folderID];
+              for (let c = 0; c < changeLessons.length; c++) {
+                delete extra.lessons[changeLessons[c].split("_")[0]].record.folder;
               }
+              delete extra.records[extra.folderID];
+              let parentFolder = extra.folders[parentID];
+              if (parentFolder != null) {
+                parentFolder.folders.splice(parentFolder.folders.indexOf(extra.folderID), 1);
+                let parentSort = parent.frame.querySelector('.dSidebarFolder[folderid="' + parentID + '"]');
+                if (parentSort != null) {
+                  parent.sort = parentID;
+                  parentSort.setAttribute("selected", "");
+                  return parent.updateTiles(parentSort);
+                }
+              }
+              parent.sort = "recent";
+              let recentSort = parent.frame.querySelector('.dSidebarSort[sort="recent"]');
+              recentSort.setAttribute("selected", "");
+              parent.updateTiles(recentSort);
             }
-            parent.sort = "recent";
-            let recentSort = parent.frame.querySelector('.dSidebarSort[sort="recent"]');
-            recentSort.setAttribute("selected", "");
-            parent.updateTiles(recentSort);
           }
         } else if (option == "deletelesson") {
           setFrame("pages/dashboard");

@@ -988,8 +988,20 @@ modules["pages/dashboard"] = class {
         if (lessonTitle != null) {
           return;
         }
+        if (tile.hasAttribute("join")) {
+          let method = tile.getAttribute("join");
+          if (method.startsWith("pin_")) {
+            modifyParams("pin", method.substring(4));
+            setFrame("pages/join");
+            return;
+          } else if (method == "link") {
+            modifyParams("lesson", tile.getAttribute("lesson"));
+            setFrame("pages/join");
+            return;
+          }
+        }
         modifyParams("lesson", tile.getAttribute("lesson"));
-        setFrame("pages/lesson", null);
+        setFrame("pages/lesson");
       }
 
       let button = target.closest("button, a");

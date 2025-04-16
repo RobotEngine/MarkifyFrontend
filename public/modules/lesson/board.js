@@ -628,6 +628,7 @@ modules["lesson/board"] = class {
             this.editor.toolbar.toolbar.startTool(selectButton);
           } else {
             this.editor.toolbar.toolbar.startTool(editorToolbar.querySelector('.eTool[tool="selection"]'), true);
+            alertModule.open("info", "<b>You're Now an Editor</b>You have been granted editing access to the lesson!");
           }
         }
         if (member.hand == null) {

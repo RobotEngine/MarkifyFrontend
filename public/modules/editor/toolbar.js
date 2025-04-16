@@ -5305,12 +5305,12 @@ modules["editor/toolbar/upload"] = class extends modules["editor/toolbar/resize_
       return;
     }
 
-    let toolPreference = this.parent.getToolPreference();
+    //let toolPreference = this.parent.getToolPreference();
     this.PROPERTIES = {
       f: "media",
       s: [200, 200],
-      c: (toolPreference.color ?? {}).selected,
-      o: toolPreference.opacity,
+      //c: (toolPreference.color ?? {}).selected,
+      //o: toolPreference.opacity,
       l: this.editor.maxLayer + 1
     };
 

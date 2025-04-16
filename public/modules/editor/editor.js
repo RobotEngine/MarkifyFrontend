@@ -4116,7 +4116,7 @@ modules["editor/render/media"] = class {
 
     let image = element.querySelector("img");
 
-    image.style.opacity = anno.o / 100;
+    image.style.opacity = (anno.o ?? 100) / 100;
 
     if (this.parent.exporting != true) {
       if (anno.d != null || image.hasAttribute("src") == false) {

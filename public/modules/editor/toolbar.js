@@ -7037,7 +7037,7 @@ modules["editor/toolbar/reactions"] = class {
         <div titlecount></div>
         <div info>Over time, Markify clears out past reaction records.</div>
       </div>`;
-      if (this.editor.self.access > 3 && this.toolbar.getPreferenceTool().lock == false) {
+      if (this.editor.self.access > 3 && this.toolbar.getPreferenceTool().lock != true) {
         removeReactionButton.style.display = "flex";
       }
       let reactionMembers = cache.reactions[emoji];
@@ -7050,6 +7050,7 @@ modules["editor/toolbar/reactions"] = class {
         this.toolbar.selection.updateActionBar();
       }
     }
+    this.redraw = updateReactionView;
 
     emojiButtonSidebar.addEventListener("click", (event) => {
       let target = event.target;

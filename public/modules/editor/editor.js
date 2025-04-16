@@ -464,6 +464,7 @@ modules["editor/editor"] = class {
   realtimeSelect = {};
 
   visibleChunks = [];
+  defaultChunks = {};
   chunkAnnotations = {};
   chunkWidth = 1000;
   chunkHeight = 1000;
@@ -968,7 +969,7 @@ modules["editor/editor"] = class {
         // Remove existing chunks:
         for (let i = 0; i < annotation.chunks.length; i++) {
           let chunk = annotation.chunks[i];
-          if (chunks.includes(chunk) == false) {
+          if (chunks.includes(chunk) == false && this.defaultChunks[chunk] == null) {
             delete this.chunkAnnotations[chunk][render._id];
             if (Object.keys(this.chunkAnnotations[chunk]).length < 1) {
               delete this.chunkAnnotations[chunk];
@@ -1939,10 +1940,11 @@ modules["editor/editor"] = class {
         this.pipeline.unsubscribe("annotation" + render._id);
       }
     }
-    this.chunkAnnotations["0_0"] = {};
-    this.chunkAnnotations["0_-" + this.chunkHeight] = {};
-    this.chunkAnnotations["-" + this.chunkWidth + "_0"] = {};
-    this.chunkAnnotations["-" + this.chunkWidth + "_-" + this.chunkHeight] = {};
+    this.defaultChunks["0_0"] = {};
+    this.defaultChunks["0_-" + this.chunkHeight] = {};
+    this.defaultChunks["-" + this.chunkWidth + "_0"] = {};
+    this.defaultChunks["-" + this.chunkWidth + "_-" + this.chunkHeight] = {};
+    this.chunkAnnotations = { ...this.defaultChunks };
     
     this.save = {};
     this.save.synced = true;

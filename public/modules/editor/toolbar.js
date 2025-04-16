@@ -4510,7 +4510,7 @@ modules["editor/toolbar/drag"] = class {
 
     let selectionChange = false;
     let currentSelections = Object.keys(this.editor.selecting);
-    this.editor.selecting = copyObject(this.prevSelecting);
+    let setSelecting = copyObject(this.prevSelecting);
 
     let bottomRightX = topLeftX + selectWidth;
     let bottomRightY = topLeftY + selectHeight;
@@ -4548,8 +4548,8 @@ modules["editor/toolbar/drag"] = class {
         }
       }
 
-      if (this.editor.selecting[render._id] == null) {
-        this.editor.selecting[render._id] = {};
+      if (setSelecting[render._id] == null) {
+        setSelecting[render._id] = {};
         let currentSelectIndex = currentSelections.indexOf(render._id);
         if (currentSelectIndex > -1) {
           currentSelections.splice(currentSelectIndex, 1);
@@ -4558,6 +4558,8 @@ modules["editor/toolbar/drag"] = class {
         }
       }
     }
+
+    this.editor.selecting = setSelecting;
 
     if (selectionChange == true || currentSelections.length > 0) {
       this.parent.selection.updateBox({ hideSelectBox: true });

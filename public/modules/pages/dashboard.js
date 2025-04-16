@@ -136,9 +136,9 @@ modules["pages/dashboard"] = class {
     ".dTileDropFolderLoadMore button": `display: flex; padding: 6px 8px; align-items: center; --borderRadius: 16px; font-size: 16px; color: var(--theme); font-weight: 700`,
 
     ".dSidebarAccountHolder": `display: flex; flex-direction: column; padding: 8px; bottom: 0px; margin-top: auto; align-items: center; transition: .2s`,
-    ".dAccount": `display: flex; max-width: calc(100% - 16px); width: fit-content; padding: 6px 12px 6px 6px; --borderRadius: 18px`,
+    ".dAccount": `display: flex; max-width: calc(100% - 16px); width: fit-content; min-width: 100px; padding: 6px 12px 6px 6px; --borderRadius: 18px`,
     ".dAccount img[accountimage]": `width: 32px; min-width: 32px; height: 32px; margin-right: 6px; object-fit: cover; border-radius: 16px`,
-    ".dAccount div[accountuser]": `max-width: calc(100% - 38px); height: 100%; line-height: 32px; font-size: 18px; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
+    ".dAccount div[accountuser]": `max-width: calc(100% - 38px); height: 100%; flex: 1; line-height: 32px; font-size: 18px; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
     ".dropdownTitle div[accountuser]": `flex: unset`,
 
     ".dLessonsHolder": `position: relative; display: flex; flex-direction: column; width: 100%; min-height: 100%; overflow-x: hidden; overflow-y: auto; z-index: 1`,
@@ -439,6 +439,10 @@ modules["pages/dashboard"] = class {
             newFolder.remove();
             this.updateScrollShadows();
           } else {
+            let existingFolder = folderHolder.querySelector('.dSidebarFolder[folderid="' + body.folder + '"]');
+            if (existingFolder != null) {
+              existingFolder.remove();
+            }
             let timestamp = getEpoch(); // Just temporary, gets updated by socket
             folders[body.folder] = { ...folderBody, _id: body.folder, created: timestamp, opened: timestamp };
             if (folderBody.parent != null) {

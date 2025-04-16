@@ -7954,8 +7954,8 @@ modules["editor/toolbar/fontsize"] = class {
         return;
       }
       let textInt = parseInt(inputSize.textContent) ?? selectedS;
-      if (textInt == "") {
-        setZoomText();
+      if (textInt === "") {
+        return this.redraw();
       } else if (textInt > 250) {
         inputSize.textContent = "250";
       } else if (textInt < 1) {

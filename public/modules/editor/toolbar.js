@@ -1122,8 +1122,8 @@ modules["editor/toolbar"] = class {
       this.selection.maxX = null;
       this.selection.minY = null;
       this.selection.maxY = null;
-      this.selection.checkX = 0;
-      this.selection.checkY = 0;
+      this.selection.checkX = null;
+      this.selection.checkY = null;
       this.selection.resizePreserveAspect = false;
       this.selection.multiSelectPreserveAspect = false;
 
@@ -1287,8 +1287,8 @@ modules["editor/toolbar"] = class {
         this.selection.maxX = Math.max(this.selection.maxX ?? bottomRightX, bottomRightX);
         this.selection.maxY = Math.max(this.selection.maxY ?? bottomRightY, bottomRightY);
 
-        this.selection.checkX += rect.centerX;
-        this.selection.checkY += rect.centerY;
+        this.selection.checkX = (this.selection.checkX ?? 0) + rect.centerX;
+        this.selection.checkY = (this.selection.checkY ?? 0) + rect.centerY;
 
         if (transition == false && select != null) {
           select.offsetHeight;
@@ -1483,7 +1483,7 @@ modules["editor/toolbar"] = class {
       );
       if (showSelectBox == true && removeActionBar == true) {
         removeActionBar = (
-          this.selection.checkX == 0 || this.selection.checkY == 0 ||
+          this.selection.checkX == null || this.selection.checkY == null ||
           Math.floor(this.selection.checkX) != Math.floor(this.selection.lastCheckX) ||
           Math.floor(this.selection.checkY) != Math.floor(this.selection.lastCheckY) ||
           options.redrawActionBar == true
@@ -6651,6 +6651,7 @@ modules["editor/toolbar/unlock"] = class {
 
   TOOLTIP = "Unlock";
   SHOW_ON_LOCK = true;
+  ADD_DIVIDE_BEFORE = true;
   FULL_CLICK = true;
 
   js = async () => {
@@ -7517,6 +7518,132 @@ modules["editor/toolbar/hidepage"] = class {
 }
 
 // Embed Functions:
+modules["editor/toolbar/setembed"] = class {
+  setActionButton = async (button) => {
+    if (button != null) {
+      setSVG(button, "./images/editor/toolbar/setembed.svg");
+    }
+
+    let preference = this.parent.getPreferenceTool();
+    let inputText = this.editor.contentHolder.querySelector('.eAnnotation[anno="' + preference._id + '"] input');
+    if (document.activeElement != inputText) {
+      this.button.removeAttribute("selecthighlight");
+    } else {
+      this.button.setAttribute("selecthighlight", "");
+    }
+  }
+
+  TOOLTIP = "Set Link";
+  SUPPORTS_MULTIPLE_SELECT = false;
+  FULL_CLICK = true;
+
+  js = async () => {
+    if (this.button == null || this.button.hasAttribute("hidden") == true) {
+      return;
+    }
+
+    let preference;
+    this.redraw = () => {
+      preference = this.parent.getPreferenceTool();
+    }
+    this.redraw();
+    if (preference.lock == true) {
+      return;
+    }
+
+    let annoElem = this.editor.page.querySelector('.eAnnotation[anno="' + preference._id + '"]');
+    if (annoElem == null) {
+      return;
+    }
+    let detailsHolder = annoElem.querySelector("div[details]");
+    if (detailsHolder == null) {
+      return;
+    }
+
+    let linkInputHolder = detailsHolder.querySelector("div[input]");
+    let infoHolder = detailsHolder.querySelector("div[info]");
+
+    if (linkInputHolder.hasAttribute("visible") == true && preference.embed != null && preference.d != null) {
+      linkInputHolder.removeAttribute("visible");
+      infoHolder.style.removeProperty("display");
+      return;
+    }
+
+    linkInputHolder.removeAttribute("disabled");
+
+    let annoTx = linkInputHolder.querySelector("input");
+    if (annoTx.parentElement.hasAttribute("disabled") == true) {
+      return;
+    }
+
+    if (document.activeElement != annoTx) {
+      linkInputHolder.setAttribute("visible", "");
+      infoHolder.style.display = "none";
+      await sleep(1);
+      annoTx.select();
+    }
+
+    let updateEmbedSize = () => {
+      let embedFrame = annoElem.querySelector("iframe");
+      if (embedFrame != null) {
+        let frameWidth = preference.s[0] - 16;
+        let defaultMaxWidth = 800;
+        if (frameWidth < 300) {
+          defaultMaxWidth = 300;
+        }
+        let embedWidth = Math.max(frameWidth, defaultMaxWidth);
+        let scale = frameWidth / embedWidth;
+        embedFrame.style.width = embedWidth + "px";
+        embedFrame.style.height = ((preference.s[1] - 24 - detailsHolder.offsetHeight) * (1 / scale)) + "px";
+        embedFrame.style.transform = "scale(" + scale + ")";
+      }
+    }
+
+    this.toolbar.clearEventListeners();
+
+    let lastText = annoTx.value;
+    let finishListener = async () => {
+      if (lastText == annoTx.value) {
+        return;
+      }
+      lastText = annoTx.value;
+      annoTx.blur();
+      if (annoTx.value.startsWith("http://") == false && annoTx.value.startsWith("https://") == false) {
+        annoTx.value = "https://" + annoTx.value;
+      }
+      if (isValidURL(annoTx.value) == false) {
+        annoTx.select();
+        alertModule.open("error", "<b>Invalid Link</b>That link is invalid, check it and try again.");
+      }
+      await this.toolbar.saveSelecting(() => { return { d: annoTx.value, embed: null }; }, { reuseActionBar: false, redrawActionBar: true });
+      if (connected == true) {
+        linkInputHolder.setAttribute("disabled", "");
+        this.editor.save.syncSave(true);
+      }
+    }
+    this.finish = finishListener;
+    this.toolbar.addEventListener("change", annoTx, finishListener);
+
+    let unselectListener = async () => {
+      if (preference.embed != null) {
+        annoTx.blur();
+        linkInputHolder.removeAttribute("visible");
+        infoHolder.style.removeProperty("display");
+        await sleep(1);
+      }
+      this.setActionButton();
+      updateEmbedSize();
+    }
+    this.toolbar.addEventListener("blur", annoTx, unselectListener);
+    
+    let selectListener = () => {
+      this.setActionButton();
+    }
+    this.toolbar.addEventListener("focus", annoTx, selectListener);
+
+    this.setActionButton();
+  }
+}
 modules["editor/toolbar/openlink"] = class {
   setActionButton = async (button) => {
     setSVG(button, "./images/editor/toolbar/openlink.svg");
@@ -7527,6 +7654,7 @@ modules["editor/toolbar/openlink"] = class {
 
   TOOLTIP = "Open Link";
   SUPPORTS_MULTIPLE_SELECT = false;
+  SHOW_ON_LOCK = true;
   FULL_CLICK = true;
 
   js = async () => {
@@ -7546,6 +7674,7 @@ modules["editor/toolbar/enlarge"] = class {
 
   TOOLTIP = "Enlarge";
   SUPPORTS_MULTIPLE_SELECT = false;
+  SHOW_ON_LOCK = true;
   FULL_CLICK = true;
 
   js = async () => {

@@ -2777,7 +2777,7 @@ modules["editor/editor"] = class {
           redrawAction = true;
         }*/
       }
-      this.pipeline.publish("redraw_selection", { refresh: true, redrawCurrentAction: true, fromLong: true }); //redrawActionBar: redrawAction,
+      this.pipeline.publish("redraw_selection", { refresh: true, redrawCurrentAction: true, refreshActionBar: true, fromLong: true }); //redrawActionBar: redrawAction,
     });
     this.pipeline.subscribe("removeAnnotationUpdate", "removeannotations", async (data) => {
       let annoKeys = Object.keys(this.annotations);
@@ -4279,7 +4279,7 @@ modules["editor/render/embed"] = class {
       let embedWidth = Math.max(frameWidth, defaultMaxWidth);
       let scale = frameWidth / embedWidth;
       embedFrame.style.width = embedWidth + "px";
-      embedFrame.style.height = ((height - 24 - embedDetails.offsetHeight) * (1 / scale)) + "px";
+      embedFrame.style.height = ((anno.s[1] - 24 - embedDetails.offsetHeight) * (1 / scale)) + "px";
       embedFrame.style.transform = "scale(" + scale + ")";
 
       if (embedFrame.getAttribute("currenturl") != (anno.embed ?? {}).url) {

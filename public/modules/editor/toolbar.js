@@ -4618,7 +4618,7 @@ modules["editor/toolbar/drag"] = class {
     await this.parent.selection.moveAction();
     await this.parent.selection.updateActionBar({ hideSelectBox: this.selection != null });
   }
-  click = async (event) => { await this.parent.selection.interactRun(event.target); }
+  click = async (event) => { await this.parent.selection.clickAction(event, { clickEvent: true }); await this.parent.selection.interactRun(event.target); }
 }
 
 modules["editor/toolbar/pen"] = class {

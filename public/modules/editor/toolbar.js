@@ -1943,7 +1943,7 @@ modules["editor/toolbar"] = class {
       })();
     }
     this.selection.startAction = async (event) => {
-      if (this.selection.selectBox == null) {
+      if (this.selection.selectBox == null || this.selection.hideSelectBox == true) {
         return;
       }
       if (editor.self.access < 1) {
@@ -2698,7 +2698,7 @@ modules["editor/toolbar"] = class {
       if (this.selection.action == null) {
         return;
       }
-      if (mouseDown() == false) {
+      if (mouseDown() == false || this.selection.hideSelectBox == true) {
         return this.selection.endAction();
       }
 

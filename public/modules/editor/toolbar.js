@@ -7837,8 +7837,11 @@ modules["editor/toolbar/fontsize"] = class {
     button.innerHTML = `<div class="eSubToolFontSizeHolder"><div class="eSubToolFontSize"></div></div>`;
     let buttonTx = button.querySelector(".eSubToolFontSize");
     let preference = this.parent.getPreferenceTool();
-    let size = (preference.d ?? {}).s ?? 18;
-    buttonTx.textContent = size;
+    let size = (preference.d ?? {}).s;
+    if (size == null) {
+      size = this.parent.getAnnotationPreference().size;
+    }
+    buttonTx.textContent = size ?? 0;
   }
 
   TOOLTIP = "Font Size";
@@ -7875,7 +7878,11 @@ modules["editor/toolbar/fontsize"] = class {
 
     let selectedS;
     this.redraw = () => {
-      selectedS = (this.parent.getPreferenceTool().d ?? {}).s ?? 18;
+      let size = (this.parent.getPreferenceTool().d ?? {}).s;
+      if (size == null) {
+        size = this.parent.getAnnotationPreference().size;
+      }
+      selectedS = size ?? 18;
 
       smallButton.removeAttribute("selected");
       mediumButton.removeAttribute("selected");
@@ -7896,6 +7903,9 @@ modules["editor/toolbar/fontsize"] = class {
     this.redraw();
 
     let saveSize = async (set) => {
+      if (selectedS == set) {
+        return;
+      }
       selectedS = set;
       this.toolbar.setToolPreference("size", selectedS);
       await this.toolbar.saveSelecting(() => { return { d: { s: selectedS } }; }, { reuseActionBar: true });
@@ -7927,25 +7937,25 @@ modules["editor/toolbar/fontsize"] = class {
         }
       }
     });
-    inputSize.addEventListener("focusout", (event) => {
-      let textBox = event.target.closest("div");
-      if (textBox == null) {
+    this.finish = async () => {
+      if (inputSize == null) {
         return;
       }
-      if (textBox.textContent == "") {
-        textBox.textContent = selectedS;
+      if (inputSize.textContent == "") {
+        inputSize.textContent = selectedS;
         return;
       }
-      let textInt = parseInt(textBox.textContent) ?? selectedS;
+      let textInt = parseInt(inputSize.textContent) ?? selectedS;
       if (textInt == "") {
         setZoomText();
       } else if (textInt > 250) {
-        textBox.textContent = "250";
+        inputSize.textContent = "250";
       } else if (textInt < 1) {
-        textBox.textContent = "1";
+        inputSize.textContent = "1";
       }
-      saveSize(parseInt(inputSize.textContent));
-    });
+      await saveSize(parseInt(inputSize.textContent));
+    }
+    inputSize.addEventListener("focusout", this.finish);
     inputSize.addEventListener("focus", (event) => {
       let textBox = event.target.closest("div");
       if (textBox == null) {

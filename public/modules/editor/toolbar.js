@@ -1813,6 +1813,11 @@ modules["editor/toolbar"] = class {
       if (event == null || event.target == null) {
         return;
       }
+      if (event.touches != null) {
+        return;
+      } else if (options.clickEvent == true && event.pointerType != null && event.pointerType != "touch") {
+        return;
+      }
       /*let interact = await this.selection.interactRun(event.target);
       if (interact == true) {
         return;
@@ -1826,7 +1831,7 @@ modules["editor/toolbar"] = class {
       }
 
       await this.selection.showActionFrame();
-      let fullClick = actionButton.hasAttribute("fullclick") == true;
+      let fullClick = actionButton.hasAttribute("fullclick") == true || options.clickEvent == true;
 
       if (fullClick != true) {
         if (options.clickStart != true) {
@@ -4299,7 +4304,7 @@ modules["editor/toolbar/select"] = class {
     await this.parent.selection.moveAction();
     await this.parent.selection.updateActionBar();
   }
-  click = async (event) => { await this.parent.selection.interactRun(event.target); }
+  click = async (event) => { await this.parent.selection.clickAction(event, { clickEvent: true }); await this.parent.selection.interactRun(event.target); }
 }
 
 modules["editor/toolbar/pan"] = class {

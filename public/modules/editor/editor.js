@@ -447,6 +447,7 @@ modules["editor/editor"] = class {
   realtime = {
     subscribes: [],
     tool: 0, // 0: Pointer; 1: Markup; 2: Pen; 3: Erase
+    observed: 0,
     forceShort: async () => {
       if (this.realtime.module != null) {
         await this.realtime.module.publishShort(null, null, true);
@@ -2855,10 +2856,14 @@ modules["editor/editor"] = class {
     this.pipeline.subscribe("editorMemberLeave", "leave", (data) => {
       if (this.realtime.module != null) {
         this.realtime.module.removeRealtime(data._id);
+        console.log(data);
         delete this.realtime.module.members[data._id];
         if (this.realtime.observing == data._id) {
           this.realtime.module.exitObserve();
           alertModule.open("warning", "<b>Member Left</b>The member you were observing left.");
+        }
+        if (data.member.observe == this.sessionID) {
+          this.realtime.observed--;
         }
       }
     });

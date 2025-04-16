@@ -301,6 +301,7 @@ modules["pages/lesson"] = class {
                     this.idleCount--;
                   }
                 }
+                body.member = member;
                 delete this.members[body._id];
                 this.memberCount--;
               }

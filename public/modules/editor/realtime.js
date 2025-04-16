@@ -51,7 +51,7 @@ modules["editor/realtime"] = class {
       if (editor.parent.parent.signalStrength < 3 || connected == false) { // If weak don't send!
         return;
       }
-      if (editor.self.access < 1 && editor.realtime.observed != true) { // Not an editor!
+      if (editor.self.access < 1 && editor.realtime.observed < 1) { // Not an editor!
         return;
       }
       let epoch = getEpoch();
@@ -63,7 +63,7 @@ modules["editor/realtime"] = class {
           }
 
           let standardFilter = { c: "short_" + editor.id };
-          if (editor.realtime.observed && editor.self.access < 1) {
+          if (editor.realtime.observed > 0 && editor.self.access < 1) {
             standardFilter.o = editor.sessionID;
           }
           let filter = { ...standardFilter };
@@ -211,12 +211,12 @@ modules["editor/realtime"] = class {
     editor.pipeline.subscribe("realtimePublishClickEnd", "click_end", () => { this.publishShort(); }, { sort: 2 });
     editor.pipeline.subscribe("realtimePublishScroll", "scroll", () => {
       this.publishShort();
-      if (editor.realtime.observed == true) {
+      if (editor.realtime.observed > 0) {
         this.publishShort(null, "observe");
       }
     });
     editor.pipeline.subscribe("realtimePublishResize", "resize", () => {
-      if (editor.realtime.observed == true) {
+      if (editor.realtime.observed > 0) {
         this.publishShort(null, "observe");
       }
     });

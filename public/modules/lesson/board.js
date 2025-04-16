@@ -602,8 +602,10 @@ modules["lesson/board"] = class {
 
       if (this.editor.realtime.module != null) {
         if (body.observe == this.editor.sessionID) { // Being observed:
-          this.editor.realtime.observed = true;
+          this.editor.realtime.observed++;
           this.editor.realtime.module.publishShort(null, "observe", true);
+        } else if (body.hasOwnProperty("observe") == true && body.observe != this.editor.sessionID) {
+          this.editor.realtime.observed--;
         }
         if (body.weak == true) {
           this.editor.realtime.module.removeRealtime(body._id);

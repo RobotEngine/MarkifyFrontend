@@ -3928,8 +3928,8 @@ modules["editor/render/page"] = class {
     ".eAnnotation[page] > div[content] div[document] div[annotationlayer] > * a": `position: absolute; width: 100%; height: 100%; padding: 4px; left: -4px; top: -4px; border-radius: 6px; transition: .2s; transform: unset !important`,
     ".eAnnotation[page] > div[content] div[document] div[annotationlayer] > * a:hover": `background: rgba(var(--themeRGB), .2)`,
     ".eAnnotation[page] > div[content] div[document] div[textlayer]": `position: absolute; width: var(--fullWidth) !important; height: var(--fullHeight) !important; left: var(--borderWidth); top: var(--borderWidth); transform-origin: top left; transform: var(--fullScale); font-family: sans-serif; z-index: 2`,
-    ".eAnnotation[page] > div[content] div[document] div[textlayer] span": `color: transparent; position: absolute; white-space: pre; cursor: text; transform-origin: 0% 0%; pointer-events: all`,
-    ".eAnnotation[page] > div[content] div[document] div[textlayer] br": `color: transparent; position: absolute; white-space: pre; cursor: text; transform-origin: 0% 0%; pointer-events: all; user-select: none`,
+    ".eAnnotation[page] > div[content] div[document] div[textlayer] span": `color: transparent; position: absolute; white-space: pre; transform-origin: 0% 0%; pointer-events: all`,
+    ".eAnnotation[page] > div[content] div[document] div[textlayer] br": `color: transparent; position: absolute; white-space: pre; transform-origin: 0% 0%; pointer-events: all; user-select: none`,
     ".hiddenCanvasElement": `display: none`,
   };
   render = (anno, element, holder) => {

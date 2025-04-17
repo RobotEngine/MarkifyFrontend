@@ -6695,8 +6695,14 @@ modules["editor/toolbar/collaborator"] = class {
     }
 
     let collaborator = this.editor.collaborators[modifiedBy];
-    if (collaborator != null && collaborator._id == null) {
-      return false;
+    if (collaborator != null) {
+      if (collaborator._id == null) {
+        return false;
+      }
+      if (this.button.getAttribute("collaborator") == collaborator._id) {
+        return;
+      }
+      this.button.setAttribute("collaborator", collaborator._id);
     }
 
     button.innerHTML = `<img class="eSubToolCollaborator" src="./images/profiles/default.svg">`;

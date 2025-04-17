@@ -4253,13 +4253,13 @@ modules["editor/toolbar/select"] = class {
   }
   clickEnd = async (event) => {
     await this.parent.selection.endAction();
-    await this.parent.selection.clickAction(event, { clickEnd: true });
 
     let target = this.lastTarget ?? event.target;
     this.lastTarget = null;
     if (this.editor.isEditorContent(target) != true) {
       return;
     }
+    await this.parent.selection.clickAction(event, { clickEnd: true });
     if (target.closest("button") != null || target.closest("a") != null || target.closest(".eSelect") != null) {
       return;
     }
@@ -4583,12 +4583,15 @@ modules["editor/toolbar/drag"] = class {
     this.parent.selection.hideSelectBox = false;
     if (event != null) {
       await this.parent.selection.endAction(event);
-      await this.parent.selection.clickAction(event, { clickEnd: true });
 
       let target = event.target;
       if (target == null) {
         return;
       }
+      if (this.editor.isEditorContent(target) != true) {
+        return;
+      }
+      await this.parent.selection.clickAction(event, { clickEnd: true });
       if (target.closest("button") != null || target.closest("a") != null || target.closest(".eActionBar") != null) {
         return;
       }

@@ -437,28 +437,32 @@ modules["pages/dashboard"] = class {
           let [code, body] = await sendRequest("POST", "lessons/folders/new", folderBody);
           if (code != 200) {
             newFolder.remove();
-            this.updateScrollShadows();
-          } else {
-            let existingFolder = folderHolder.querySelector('.dSidebarFolder[folderid="' + body.folder + '"]');
-            if (existingFolder != null) {
-              existingFolder.remove();
-            }
-            let timestamp = getEpoch(); // Just temporary, gets updated by socket
-            folders[body.folder] = { ...folderBody, _id: body.folder, created: timestamp, opened: timestamp };
-            if (folderBody.parent != null) {
-              folders[folderBody.parent].folders = folders[folderBody.parent].folders ?? [];
-              folders[folderBody.parent].folders.unshift(body.folder);
-            }
-            parent.setAttribute("lastopened", timestamp);
-            newFolder.removeAttribute("disabled");
-            let folderChild = newFolder.querySelector(".dSidebarFolder");
-            folderChild.setAttribute("folderid", body.folder);
-            folderChild.setAttribute("opened", "");
+            return this.updateScrollShadows();
+          }
+          let existingFolder = folderHolder.querySelector('.dSidebarFolder[folderid="' + body.folder + '"]');
+          if (existingFolder != null) {
             unselectSidebarButton();
             this.sort = body.folder;
-            folderChild.setAttribute("selected", "");
-            this.updateTiles(folderChild);
+            existingFolder.setAttribute("selected", "");
+            this.updateTiles(existingFolder);
+            return newFolder.remove();
           }
+
+          let timestamp = getEpoch(); // Just temporary, gets updated by socket
+          folders[body.folder] = { ...folderBody, _id: body.folder, created: timestamp, opened: timestamp };
+          if (folderBody.parent != null) {
+            folders[folderBody.parent].folders = folders[folderBody.parent].folders ?? [];
+            folders[folderBody.parent].folders.unshift(body.folder);
+          }
+          parent.setAttribute("lastopened", timestamp);
+          newFolder.removeAttribute("disabled");
+          let folderChild = newFolder.querySelector(".dSidebarFolder");
+          folderChild.setAttribute("folderid", body.folder);
+          folderChild.setAttribute("opened", "");
+          unselectSidebarButton();
+          this.sort = body.folder;
+          folderChild.setAttribute("selected", "");
+          this.updateTiles(folderChild);
         };
         folderName.addEventListener("focusout", focusListener);
 
@@ -692,19 +696,25 @@ modules["pages/dashboard"] = class {
               }
               break;
             case "newfolder":
-              folders[body._id] = body;
-              existingFolder = folderHolder.querySelector('.dSidebarFolder[folderid="' + body._id + '"]');
-              if (existingFolder == null) {
-                let parent = folderHolder;
+              if (folders[body._id] == null) {
+                folders[body._id] = body;
                 if (body.parent != null) {
-                  parent = null;
-                  let setParent = folderHolder.querySelector('.dSidebarFolder[folderid="' + body.parent + '"]');
-                  if (setParent != null && setParent.hasAttribute("opened") == true) {
-                    parent = setParent.parentElement;
-                  }
+                  folders[body.parent].folders = folders[body.parent].folders ?? [];
+                  folders[body.parent].folders.unshift(body.folder);
                 }
-                if (parent != null) {
-                  this.addFolderTile(body, parent, true);
+                existingFolder = folderHolder.querySelector('.dSidebarFolder[folderid="' + body._id + '"]');
+                if (existingFolder == null) {
+                  let parent = folderHolder;
+                  if (body.parent != null) {
+                    parent = null;
+                    let setParent = folderHolder.querySelector('.dSidebarFolder[folderid="' + body.parent + '"]');
+                    if (setParent != null && setParent.hasAttribute("opened") == true) {
+                      parent = setParent.parentElement;
+                    }
+                  }
+                  if (parent != null) {
+                    this.addFolderTile(body, parent, true);
+                  }
                 }
               }
               break;

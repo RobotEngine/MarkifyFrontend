@@ -1891,7 +1891,7 @@ modules["editor/editor"] = class {
           }
         }
       }
-      return { element: element};
+      return { element: element };
     }
     this.render.hide = (annotation) => {
       if (annotation == null) {
@@ -2735,6 +2735,10 @@ modules["editor/editor"] = class {
             existingAnno = this.annotations[anno._id];
             existingAnno.pending = anno.pending;
 
+            if (existingAnno.element != null) {
+              existingAnno.element.setAttribute("anno", anno._id);
+            }
+
             // Update Chunk IDs:
             existingAnno.chunks = existingAnno.chunks ?? [];
             for (let i = 0; i < existingAnno.chunks.length; i++) {
@@ -2775,7 +2779,7 @@ modules["editor/editor"] = class {
           delete this.reactions[anno._id];
         }
 
-        await this.save.apply(anno, { overwrite: true, timeout: false }); //let result = 
+        await this.save.apply(anno, { overwrite: true, timeout: false }); //let result =
         /*if (result.redrawAction == true) {
           redrawAction = true;
         }*/

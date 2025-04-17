@@ -557,7 +557,7 @@ modules["editor/realtime"] = class {
               }
               original = original ?? {};
               let originalRender = original.render ?? {};
-              if (editor.utils.canMemberModify(originalRender, memberData) != true) { // Can't edit another member's work:
+              if ((originalRender.a ?? originalRender.m) != null && editor.utils.canMemberModify(originalRender, memberData) != true) { // Can't edit another member's work:
                 delete userSelection[annoID];
                 continue;
               }

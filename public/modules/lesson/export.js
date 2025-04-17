@@ -259,6 +259,7 @@ modules["lesson/export"] = class {
           await this.handleRendering();
           handleRenderPromise = null;
           this.resetAnnotationSize();
+          await sleep();
           return { capture: true, done: true };
       }
 

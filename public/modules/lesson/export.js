@@ -24,6 +24,7 @@ modules["lesson/export"] = class {
     this.editor = await this.setFrame("editor/editor", contentHolder, {
       construct: {
         id: this.parent.id,
+        lesson: this.parent,
         self: this.parent.self,
         session: this.parent.session,
         sessionID: this.parent.sessionID,

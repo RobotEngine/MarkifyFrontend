@@ -79,6 +79,7 @@ modules["editor/toolbar"] = class {
     ".eToolbarHolder .eTool": `--hoverColor: var(--hover); display: flex; width: 50px; height: 46px; flex-shrink: 0; padding: 0; justify-content: center; align-items: center; transition: opacity .3s`,
     ".eActionBar .eTool": `--hoverColor: var(--hover); display: flex; width: 46px; height: 50px; flex-shrink: 0; padding: 0; justify-content: center; align-items: center; transition: opacity .3s`,
     ".eTool[hidden]": `display: none !important`,
+    ".eTool > *": `pointer-events: none`,
     ".eTool > div": `position: relative; display: flex; width: 42px; height: 42px; border-radius: 8px; transition: .2s`,
     ".eTool > div:after": `content: ""; position: absolute; width: 42px; height: 42px; left: 0px; top: 0px; border-radius: 8px; z-index: 1; transition: .2s`,
     ".eTool > div > *": `z-index: 2`,

@@ -3434,8 +3434,7 @@ modules["editor/toolbar"] = class {
         }
       }
 
-      this.updateMouse(this.currentToolModule.MOUSE);
-      this.selection.usingCustomMouse = false;
+      //this.updateMouse(this.currentToolModule.MOUSE);
 
       await this.selection.updateBox({ refreshActionBar: options.refreshActionBar ?? true, redrawActionBar: options.redrawActionBar, transition: false });
     }

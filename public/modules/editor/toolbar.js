@@ -1600,7 +1600,9 @@ modules["editor/toolbar"] = class {
               isVisible = false;
             }
             //(async () => {
-            newAction.innerHTML = "<div></div>";
+            if (actionModule.KEEP_BUTTON_PREVIEW != true) {
+              newAction.innerHTML = "<div></div>";
+            }
             let buttonHolder = newAction.querySelector("div");
             newAction.removeAttribute("selecthighlight");
             if (actionModule.setActionButton != null) {
@@ -5233,7 +5235,7 @@ modules["editor/toolbar/resize_placement"] = class {
     if (event != null && (this.editor.isEditorContent(event.target) == true || this.resizeActive == true)) {
       this.annotation.render._id = this.editor.render.tempID();
       
-      await this.editor.save.push(this.annotation.render);
+      this.newAnnotation = await this.editor.save.push(this.annotation.render);
       await this.editor.history.push("remove", [{ _id: this.annotation.render._id }]);
 
       this.editor.selecting[this.annotation.render._id] = { ...this.annotation.render, done: true };
@@ -5364,15 +5366,13 @@ modules["editor/toolbar/upload"] = class extends modules["editor/toolbar/resize_
               image.src = this.imageBlob;
               let form = new FormData();
               form.append("media", file);
-              let initBlob = this.imageBlob;
               let [code, result] = await sendRequest("POST", "lessons/save/upload", form, { noFileType: true, session: this.editor.session });
-              let blobAnno = this.editor.contentHolder.querySelector('.eAnnotation[src="' + initBlob + '"]');
               if (code == 200) {
                 let preload = new Image();
                 preload.src = assetURL + result.file;
                 preload.onload = () => {
-                  if (blobAnno != null && blobAnno.hasAttribute("anno") == true) {
-                    this.editor.save.push({ _id: blobAnno.getAttribute("anno"), d: result.file });
+                  if (this.newAnnotation != null && this.newAnnotation.render != null) {
+                    this.editor.save.push({ _id: this.newAnnotation.render._id, d: result.file });
                   }
                   if (image.src == this.imageBlob) {
                     this.imageBlob = result.file;
@@ -6741,6 +6741,7 @@ modules["editor/toolbar/collaborator"] = class {
 
   SHOW_ON_LOCK = true;
   ADD_DIVIDE_AFTER = true;
+  KEEP_BUTTON_PREVIEW = true;
 
   html = `
   <div class="eSubToolCollaboratorHolder">

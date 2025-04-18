@@ -2387,6 +2387,7 @@ modules["editor/editor"] = class {
         this.pendingSaves = {};
       }
       this.save.syncSave();
+      return annotation;
     }
     if (this.resync != null && this.resync.save != null && this.resync.save.synced == false && this.resync.annotations != null) {
       if (this.self.access > 0) {

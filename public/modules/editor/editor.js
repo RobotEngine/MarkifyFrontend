@@ -430,7 +430,7 @@ modules["editor/editor"] = class {
     if (target == null) {
       return false;
     }
-    return target.closest(".eContentHolder") == this.contentHolder;
+    return target.closest(".lPage") == this.pageFrame;
   }
 
   options = {
@@ -2688,7 +2688,10 @@ modules["editor/editor"] = class {
       //let redrawAction = false;
       for (let i = 0; i < data.length; i++) {
         let anno = data[i];
-        let pendingAnno = this.annotations[anno.pending];
+        let pendingAnno;
+        if (anno.pending != null) {
+          pendingAnno = this.annotations[anno.pending];
+        }
         let existingAnno = this.annotations[anno._id] ?? pendingAnno;
         if (existingAnno != null) {
           if (existingAnno.serverSync > anno.sync) {
@@ -2739,6 +2742,15 @@ modules["editor/editor"] = class {
             existingAnno = this.annotations[anno._id];
             existingAnno.pending = anno.pending;
 
+            if (this.selecting[anno.pending] != null) {
+              this.selecting[anno._id] = this.selecting[anno.pending];
+              delete this.selecting[anno.pending];
+  
+              if (this.toolbar != null && this.toolbar.selection.annotationRects[anno.pending] != null) {
+                this.toolbar.selection.annotationRects[anno._id] = this.toolbar.selection.annotationRects[anno.pending];
+              }
+            }
+
             if (existingAnno.element != null) {
               existingAnno.element.setAttribute("anno", anno._id);
             }
@@ -2754,23 +2766,6 @@ modules["editor/editor"] = class {
             }
 
             await this.render.setMarginSize();
-
-            if (this.selecting[anno.pending] != null) {
-              this.selecting[anno._id] = this.selecting[anno.pending];
-              delete this.selecting[anno.pending];
-  
-              if (this.toolbar != null) {
-                if (this.toolbar.selection.annotationRects[anno.pending] != null) {
-                  this.toolbar.selection.annotationRects[anno._id] = this.toolbar.selection.annotationRects[anno.pending];
-                }
-
-                /*let selectionIDs = Object.keys(this.selecting);
-                this.toolbar.selection.lastSelections = "";
-                for (let i = 0; i < selectionIDs.length; i++) {
-                  this.toolbar.selection.lastSelections += selectionIDs[i];
-                }*/
-              }
-            }
           }
           
           // CHECKS IF SERVER IS AFTER LAST SHORT EDIT SYNC

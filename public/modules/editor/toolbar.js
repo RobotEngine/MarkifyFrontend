@@ -414,8 +414,9 @@ modules["editor/toolbar"] = class {
     }
 
     let currentMouseSVG;
+    let cursorUpdatePromise;
     this.updateMouse = async (cursor) => {
-      cursor = cursor  ?? { type: "set" };
+      cursor = cursor ?? { type: "set" };
       if (cursor.type == "set") {
         if (cursor.value != null) {
           content.style.cursor = cursor.value;
@@ -431,8 +432,10 @@ modules["editor/toolbar"] = class {
         if (cursor.color != null) {
           insertString += `; --toolColorOpacity: ${editor.utils.hexToRGBString(cursor.color, (cursor.opacity ?? 100) / 100)}`;
         }
-        let setSVG = ((await getSVG(cursor.url)) ?? "").replace(/viewBox=/g, insertString + `" viewBox=`);
-        if (setSVG != currentMouseSVG) {
+        let getCursorPromise = getSVG(cursor.url);
+        cursorUpdatePromise = getCursorPromise;
+        let setSVG = ((await getCursorPromise) ?? "").replace(/viewBox=/g, insertString + `" viewBox=`);
+        if (setSVG != currentMouseSVG && getCursorPromise == cursorUpdatePromise) {
           currentMouseSVG = setSVG;
           let reader = new FileReader();
           reader.readAsDataURL(new Blob([setSVG], { type: "image/svg+xml" }));
@@ -3916,6 +3919,9 @@ modules["editor/toolbar"] = class {
       }
     });
     editor.pipeline.subscribe("toolbarSelectionRedraw", "redraw_selection", async (data) => {
+      if (editor.zooming == true) {
+        return;
+      }
       await this.selection.updateBox(data);
     });
     editor.pipeline.subscribe("toolbarSelectionZoomChange", "zoom_change", async () => {
@@ -4599,8 +4605,11 @@ modules["editor/toolbar/drag"] = class {
         return;
       }
       await this.parent.selection.clickAction(event, { clickEnd: true });
-      if (target.closest("button") != null || target.closest("a") != null || target.closest(".eActionBar") != null) {
+      if (target.closest(".eActionBar") != null) {
         return;
+      }
+      if (target.closest("button") != null || target.closest("a") != null) {
+        return this.parent.selection.updateBox();
       }
       let annotation = target.closest(".eAnnotation");
       let annoID;

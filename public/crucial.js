@@ -22,7 +22,7 @@ const configs = {
 };
 
 const config = configs["public"];
-const version = "1.0.1"; // Big Update . Small Feature Release . Bug Fix
+const version = "1.0.2"; // Big Update . Small Feature Release . Bug Fix
 
 const serverURL = config.server;
 const assetURL = config.assets;
@@ -580,23 +580,28 @@ function getSVG(path) {
     cachedSVGArray.unshift(path);
     return cachedSVGs[path];
   }
-  return new Promise(async (resolve) => {
+  let getPromise = new Promise(async (resolve) => {
     try {
       let response = await fetch(path);
       if (response.ok != true) {
+        delete cachedSVGs[path];
+        cachedSVGArray.splice(cachedSVGArray.indexOf(path), 1);
         return resolve();
       }
       let text = await response.text();
-      cachedSVGs[path] = text;
-      cachedSVGArray.unshift(path);
-      if (cachedSVGArray.length > 100) {
-        delete cachedSVGs[cachedSVGArray.pop()];
-      }
       return resolve(text);
     } catch {
+      delete cachedSVGs[path];
+      cachedSVGArray.splice(cachedSVGArray.indexOf(path), 1);
       return resolve();
     }
   });
+  cachedSVGs[path] = getPromise;
+  cachedSVGArray.unshift(path);
+  if (cachedSVGArray.length > 100) {
+    delete cachedSVGs[cachedSVGArray.pop()];
+  }
+  return getPromise;
 }
 async function setSVG(element, path, replace) {
   let svg = await getSVG(path);

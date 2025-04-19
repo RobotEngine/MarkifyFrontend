@@ -1818,9 +1818,14 @@ modules["editor/toolbar"] = class {
       }
       if (event.touches != null) {
         return;
-      } else if (options.clickEvent == true && event.pointerType != null && event.pointerType != "touch") {
+      } else if (options.clickEvent == true && this.selection.clickActionTriggered == true) {
+        this.selection.clickActionTriggered = false;
         return;
       }
+      if (options.clickStart == true) {
+        this.selection.clickActionTriggered = true;
+      }
+
       /*let interact = await this.selection.interactRun(event.target);
       if (interact == true) {
         return;
@@ -6544,6 +6549,7 @@ modules["dropdowns/editor/toolbar/more"] = class {
   html = `
   <button class="eToolbarMoreAction" option="duplicate" close title="Duplicate"><img src="./images/editor/duplicate.svg">Duplicate</button>
   <button class="eToolbarMoreAction" option="lock" close title="Lock to prevent editing."><img src="./images/editor/lock.svg">Lock</button>
+  <!--<button class="eToolbarMoreAction" option="hidesignature" close title="Hide the sticky note signature text."><img src="./images/editor/signature.svg">Hide Author</button>-->
   <div class="eToolbarMoreLine" option="layers"></div>
   <button class="eToolbarMoreAction" option="bringfront" close title="Bring Forward"><img src="./images/editor/rearrange/up.svg">Bring to Front</button>
   <button class="eToolbarMoreAction" option="sendback" close title="Send Backward"><img src="./images/editor/rearrange/down.svg">Send to Back</button>

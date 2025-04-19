@@ -430,7 +430,7 @@ modules["editor/editor"] = class {
     if (target == null) {
       return false;
     }
-    return target.closest(".lPage") == this.pageFrame;
+    return target.closest(".eContentHolder") == this.contentHolder;
   }
 
   options = {

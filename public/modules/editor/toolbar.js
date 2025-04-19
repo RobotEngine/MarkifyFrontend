@@ -4601,7 +4601,7 @@ modules["editor/toolbar/drag"] = class {
       if (target == null) {
         return;
       }
-      if (this.editor.isEditorContent(target) != true) {
+      if (this.editor.isThisPage(target) != true) {
         return;
       }
       await this.parent.selection.clickAction(event, { clickEnd: true });
@@ -5065,7 +5065,7 @@ modules["editor/toolbar/placement"] = class {
           this.annotation.element.style.opacity = 0;
           this.annotation.element.removeAttribute("hidden");
         }
-        this.annotation.render.s = [textElem.offsetWidth, textElem.offsetHeight];
+        this.annotation.render.s = [148, textElem.offsetHeight]; //textElem.offsetWidth
         if (this.annotation.render.remove == true) {
           delete this.annotation.render.remove;
           await this.clickMove();
@@ -7785,6 +7785,7 @@ modules["editor/toolbar/textedit"] = class {
       }
 
       if (event.clearText == true) {
+        //annoTx.style.minWidth = (annoTx.parentElement.offsetWidth - 14) + "px";
         annoTx.textContent = "";
       }
 

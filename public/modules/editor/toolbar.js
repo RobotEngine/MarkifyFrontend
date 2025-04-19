@@ -295,7 +295,7 @@ modules["editor/toolbar"] = class {
 
         if (toolbarHolder.hasAttribute("right") == false) {
           let setLeft = toolbarParent.offsetWidth;
-          if (subToolbar != null) {
+          if (subToolbar != null && subToolbar.hasAttribute("open") == true) {
             let subToolbarContainer = subToolbar.querySelector(".eSubToolContainer");
             let toolbarRect = subToolbarContainer.getBoundingClientRect();
             let toolbarContentScroll = subToolbarContainer.querySelector(".eSubToolContentScroll");
@@ -312,7 +312,7 @@ modules["editor/toolbar"] = class {
           tooltipText.style.removeProperty("right");
         } else {
           let setRight = toolbarParent.offsetWidth;
-          if (subToolbar != null) {
+          if (subToolbar != null && subToolbar.hasAttribute("open") == true) {
             let subToolbarContainer = subToolbar.querySelector(".eSubToolContainer");
             let toolbarRect = subToolbarContainer.getBoundingClientRect();
             let toolbarContentScroll = subToolbarContainer.querySelector(".eSubToolContentScroll");
@@ -581,6 +581,7 @@ modules["editor/toolbar"] = class {
           contentHolder.style.width = contentScroll.offsetWidth + "px";
           contentHolder.style.height = contentScroll.offsetHeight + "px";
 
+          subToolbar.setAttribute("open", "");
           contentContainer.style.transform = "translateX(0%)";
           contentContainer.style.opacity = 1;
 
@@ -646,6 +647,7 @@ modules["editor/toolbar"] = class {
           contentHolder.style.width = contentScroll.offsetWidth + "px";
           contentHolder.style.height = contentScroll.offsetHeight + "px";
 
+          subSubToolbar.setAttribute("open", "");
           contentContainer.style.transform = "translateX(0%)";
           contentContainer.style.opacity = 1;
 

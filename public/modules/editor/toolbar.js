@@ -6517,6 +6517,9 @@ modules["editor/toolbar/more"] = class {
   lock = async () => {
     await this.toolbar.saveSelecting(() => { return { lock: true }; }, { redrawActionBar: true });
   }
+  signature = async (set) => {
+    await this.toolbar.saveSelecting(() => { return { sigHidden: set }; });
+  }
   bringToFront = async () => {
     let newLayers = {};
     let selectKeys = Object.keys(this.editor.selecting);
@@ -6560,7 +6563,7 @@ modules["dropdowns/editor/toolbar/more"] = class {
   html = `
   <button class="eToolbarMoreAction" option="duplicate" close title="Duplicate"><img src="./images/editor/duplicate.svg">Duplicate</button>
   <button class="eToolbarMoreAction" option="lock" close title="Lock to prevent editing."><img src="./images/editor/lock.svg">Lock</button>
-  <!--<button class="eToolbarMoreAction" option="hidesignature" close title="Hide the sticky note signature text."><img src="./images/editor/signature.svg">Hide Author</button>-->
+  <button class="eToolbarMoreAction" option="signature" close><img src="./images/editor/signature.svg"><span></span></button>
   <div class="eToolbarMoreLine" option="layers"></div>
   <button class="eToolbarMoreAction" option="bringfront" close title="Bring Forward"><img src="./images/editor/rearrange/up.svg">Bring to Front</button>
   <button class="eToolbarMoreAction" option="sendback" close title="Send Backward"><img src="./images/editor/rearrange/down.svg">Send to Back</button>
@@ -6580,6 +6583,9 @@ modules["dropdowns/editor/toolbar/more"] = class {
     let duplicateLine = frame.querySelector('.eToolbarMoreLine[option="duplicate"]');
     duplicateButton.addEventListener("click", () => { parent.duplicate(); });
 
+    let signatureButton = frame.querySelector('.eToolbarMoreAction[option="signature"]');
+    signatureButton.addEventListener("click", () => { parent.signature(signatureButton.hasAttribute("signaturehidden") == false); });
+
     let lockButton = frame.querySelector('.eToolbarMoreAction[option="lock"]');
     lockButton.addEventListener("click", () => { parent.lock(); });
 
@@ -6598,6 +6604,8 @@ modules["dropdowns/editor/toolbar/more"] = class {
       }
       let showLock = parent.editor.self.access > 0;
       let pending = false;
+      let allSticky = true;
+      let isSignatureHidden = false;
       if (showLock != false) {
         let selectKeys = Object.keys(parent.editor.selecting);
         for (let i = 0; i < selectKeys.length; i++) {
@@ -6609,15 +6617,35 @@ modules["dropdowns/editor/toolbar/more"] = class {
           if (parent.editor.utils.canMemberModify(render) == false || parent.editor.utils.isLocked(render) == true) {
             showLock = false;
           }
+          if (render.f != "sticky") {
+            allSticky = false;
+          } else if (render.sigHidden == true) {
+            isSignatureHidden = true;
+          }
         }
       }
       if (showLock == true) {
         lockButton.style.display = "flex";
+        if (allSticky == false) {
+          signatureButton.style.display = "none";
+        } else {
+          if (isSignatureHidden == false) {
+            signatureButton.removeAttribute("signaturehidden");
+            signatureButton.querySelector("span").textContent = "Hide Author";
+            signatureButton.title = "Hide the sticky note signature text."
+          } else {
+            signatureButton.setAttribute("signaturehidden", "");
+            signatureButton.querySelector("span").textContent = "Show Author";
+            signatureButton.title = "Show the sticky note signature text."
+          }
+          signatureButton.style.display = "flex";
+        }
         layersLine.style.display = "block";
         frontButton.style.display = "flex";
         backButton.style.display = "flex";
       } else {
         lockButton.style.display = "none";
+        signatureButton.style.display = "none";
         layersLine.style.display = "none";
         frontButton.style.display = "none";
         backButton.style.display = "none";

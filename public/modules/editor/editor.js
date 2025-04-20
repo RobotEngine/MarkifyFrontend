@@ -3822,7 +3822,7 @@ modules["editor/render/sticky"] = class {
       text.style.removeProperty("text-decoration");
     }
     let signature = element.querySelector("div[signature]");
-    if (anno.sig != null && anno.sig != "") {
+    if (anno.sig != null && anno.sig != "" && anno.sigHidden != true) {
       signature.textContent = cleanString(anno.sig);
       signature.title = signature.textContent;
       signature.removeAttribute("hidden");

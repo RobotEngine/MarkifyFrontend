@@ -6723,7 +6723,7 @@ modules["editor/toolbar/unlock"] = class {
 }
 
 modules["editor/toolbar/collaborator"] = class {
-  setActionButton = async (button, force) => {
+  setActionButton = async (button) => {
     if (this.editor.settings.anonymousMode == true && this.editor.self.access < 4) {
       return false;
     }
@@ -6756,8 +6756,8 @@ modules["editor/toolbar/collaborator"] = class {
     }
 
     (async () => {
-      this.button.setAttribute("disabled", "");
       if (collaborator == null) { // Fetch to get the collaborator
+        this.button.setAttribute("disabled", "");
         let [code, body] = await sendRequest("GET", "lessons/members/collaborator?modify=" + modifiedBy, null, { session: this.editor.session, allowError: [404] });
         if (code == 200) {
           this.editor.collaborators[body._id] = body;

@@ -2866,7 +2866,7 @@ modules["editor/editor"] = class {
           this.realtime.module.exitObserve();
           alertModule.open("warning", "<b>Member Left</b>The member you were observing left.");
         }
-        if (data.member.observe == this.sessionID) {
+        if (data.member != null && data.member.observe == this.sessionID) {
           this.realtime.observed--;
         }
       }

@@ -4289,7 +4289,7 @@ modules["editor/toolbar/select"] = class {
       if (render == null) {
         return;
       }
-      if (this.editor.utils.canMemberModify(render) == false) {
+      if (this.editor.utils.canMemberModify(render) == false && this.editor.self.access > 0) {
         alertModule.close(this.parent.someoneElsesAnnoWarning);
         this.parent.someoneElsesAnnoWarning = await alertModule.open("warning", "<b>Someone Else's Annotation</b>The ability to modify another member's work is disabled.");
       }
@@ -6723,7 +6723,7 @@ modules["editor/toolbar/unlock"] = class {
 }
 
 modules["editor/toolbar/collaborator"] = class {
-  setActionButton = async (button) => {
+  setActionButton = async (button, force) => {
     if (this.editor.settings.anonymousMode == true && this.editor.self.access < 4) {
       return false;
     }
@@ -6747,13 +6747,13 @@ modules["editor/toolbar/collaborator"] = class {
       if (collaborator._id == null) {
         return false;
       }
-      if (this.button.getAttribute("collaborator") == collaborator._id) {
-        return;
-      }
-      this.button.setAttribute("collaborator", collaborator._id);
     }
 
-    button.innerHTML = `<img class="eSubToolCollaborator" src="./images/profiles/default.svg">`;
+    let image = button.querySelector(".eSubToolCollaborator");
+    if (image == null) {
+      button.insertAdjacentHTML("beforeend", `<img class="eSubToolCollaborator" src="./images/profiles/default.svg">`);
+      image = button.querySelector(".eSubToolCollaborator");
+    }
 
     (async () => {
       this.button.setAttribute("disabled", "");
@@ -6771,11 +6771,12 @@ modules["editor/toolbar/collaborator"] = class {
         return this.toolbar.selection.updateActionBar({ redrawActionBar: true });
       }
 
-      let image = button.querySelector(".eSubToolCollaborator");
-      if (image.getAttribute("src") != (collaborator.image ?? "./images/profiles/default.svg")) {
-        image.src = collaborator.image ?? "./images/profiles/default.svg";
+      if (image != null) {
+        if (image.getAttribute("src") != (collaborator.image ?? "./images/profiles/default.svg")) {
+          image.src = collaborator.image ?? "./images/profiles/default.svg";
+        }
+        image.style.border = "solid 3px " + collaborator.color;
       }
-      image.style.border = "solid 3px " + collaborator.color;
       if (this.button != null) {
         this.button.setAttribute("tooltip", collaborator.name);
         this.button.removeAttribute("disabled");
@@ -6885,6 +6886,8 @@ modules["editor/toolbar/collaborator"] = class {
         redraw(null, true);
       }
     });
+
+    this.setActionButton(this.button.querySelector("div"));
   }
 }
 

@@ -497,6 +497,10 @@ modules["pages/lesson"] = class {
         this.session = this.sessionID + ";" + this.sessionToken;
         window.previousLessonSession = this.session;
       }
+
+      if (body.guest != null) {
+        setLocalStore("guest", JSON.stringify(body.guest));
+      }
       
       for (let i = 0; i < body.members.length; i++) {
         let memSet = body.members[i];
@@ -662,6 +666,15 @@ modules["pages/lesson"] = class {
         sendBody.name = joinData.name;
       } else {
         sendBody.name = getParam("name");
+      }
+      let guest = getLocalStore("guest");
+      if (guest != null) {
+        guest = JSON.parse(guest);
+        if (guest.expires > Math.floor(getEpoch() / 1000)) {
+          sendBody.guest = guest._id + ";" + guest.token;
+        } else {
+          removeLocalStore("guest");
+        }
       }
       let paramSession = getParam("member_session") ?? "";
       if (paramSession != "" && this.exporting == true) {

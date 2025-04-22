@@ -1390,25 +1390,30 @@ modules["editor/toolbar"] = class {
         
         if (showHandles == true) {
           this.selection.selectBox.removeAttribute("hidehandles");
+
+          if (showDuplicateHandles != true) {
+            this.selection.handlePadding = 24;
+            this.selection.selectBox.removeAttribute("showduplicate");
+          } else {
+            this.selection.handlePadding = 60;
+            this.selection.selectBox.setAttribute("showduplicate", "");
+          }
+          if (showOnlyWidthHandles != true) {
+            this.selection.selectBox.removeAttribute("showonlywidth");
+          } else {
+            this.selection.selectBox.setAttribute("showonlywidth", "");
+          }
+          if (showRotationHandle == true) {
+            this.selection.selectBox.removeAttribute("hiderotation");
+          } else {
+            this.selection.selectBox.setAttribute("hiderotation", "");
+          }
         } else {
-          this.selection.selectBox.setAttribute("hidehandles", "");
-        }
-        if (showDuplicateHandles != true) {
           this.selection.handlePadding = 24;
+          this.selection.selectBox.setAttribute("hidehandles", "");
           this.selection.selectBox.removeAttribute("showduplicate");
-        } else {
-          this.selection.handlePadding = 60;
-          this.selection.selectBox.setAttribute("showduplicate", "");
-        }
-        if (showOnlyWidthHandles != true) {
           this.selection.selectBox.removeAttribute("showonlywidth");
-        } else {
-          this.selection.selectBox.setAttribute("showonlywidth", "");
-        }
-        if (showRotationHandle == true) {
           this.selection.selectBox.removeAttribute("hiderotation");
-        } else {
-          this.selection.selectBox.setAttribute("hiderotation", "");
         }
         if (boxWidth > 52) {
           this.selection.selectBox.removeAttribute("hideheighthandles");

@@ -47,13 +47,14 @@ modules["dropdowns/account"] = class {
 
     let settingsButton = frame.querySelector(".accountManage");
     settingsButton.addEventListener("click", () => {
+      //return dropdownModule.open(settingsButton, "dropdowns/account/manage");
+
       let a = typeof window.screenX != 'undefined' ? window.screenX : window.screenLeft;
       let i = typeof window.screenY != 'undefined' ? window.screenY : window.screenTop;
       let g = typeof window.outerWidth != 'undefined' ? window.outerWidth : document.documentElement.clientWidth;
       let f = typeof window.outerHeight != 'undefined' ? window.outerHeight : (document.documentElement.clientHeight - 22);
       let h = (a < 0) ? window.screen.width + a : a;
 
-      //dropdownModule.open(settingsButton, "dropdowns/account/accountManage");
       window.open("https://exotek.co/account?userid=" + account.account, "exotek_window_prompt", "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=" + 1000 + ", height=" + 650 + ", top=" + parseInt(i + ((f - 650) / 2.5), 10) + ", left=" + parseInt(h + ((g - 1000) / 2), 10));
     });
     frame.querySelector(".accountLogout").addEventListener("click", async () => {
@@ -124,7 +125,8 @@ modules["dropdowns/account"] = class {
   }
 }
 
-modules["dropdowns/account/accountManage"] = class {
+modules["dropdowns/account/manage"] = class {
+  maxHeight = 500;
   html = `
   <div class="aManageHolder">
     <div class="aManageAccount">
@@ -138,10 +140,10 @@ modules["dropdowns/account/accountManage"] = class {
         </div>
         <div class="aManageInfoHolder">
           <div class="aManageInfo">
-            <div account>Username</div>
-            <div email>test@test.com</div>
+            <div account></div>
+            <div email></div>
           </div>
-          <button class="largeButton">Manage Account</button>
+          <button class="largeButton">Manage Account<div backdrop></div></button>
         </div>
       </div>
     </div>
@@ -151,24 +153,19 @@ modules["dropdowns/account/accountManage"] = class {
         <div divider></div>
       </div>
       <div class="aManageSetting">
-        <div title>Theme</div> 
+        <div title>Theme</div>
         <div setting><button id="themeChange" class="aManageSettingButton">Light</button></div>
       </div>
       <div class="aManageSetting">
-        <div title>Toolbar Side</div> 
+        <div title>Toolbar Position</div>
         <div setting><button id="toolbarSideChange" class="aManageSettingButton">Left</button></div>
       </div>
       <div class="aManageSetting">
-        <div title>Fix Editing Bar to Top</div> 
-        <div setting>
-          <div class="aManageSettingToggle">
-            <input id="editingBarFixToTop" type="checkbox">
-            <div slider></div>
-          </div>
-        </div>
+        <div title>Action Bar Position</div>
+        <div setting><button id="toolbarSideChange" class="aManageSettingButton">Auto</button></div>
       </div>
     </div>
-    <div class="aManageSection">
+    <!--<div class="aManageSection">
       <div class="aManageTitle">
         <div title>Emails</div>
         <div divider></div>
@@ -210,55 +207,62 @@ modules["dropdowns/account/accountManage"] = class {
         </div>
       </div>
       <div class="aManageRaw"><button><u>Unsubscribe from Marketing</u></button></div>
-    </div>
+    </div>-->
   </div>
   `;
   css = {
-    ".aManageHolder": `display: flex; flex-direction: column; flex-wrap: wrap; justify-content: center; padding: 8px; gap: 20px; --setBackground: var(--theme); font-weight: 800; font-size: 18px; max-width: 400px`,
-    ".aManageAccount": `position: sticky; box-sizing: border-box; width: 100%; left: 0px; z-index: 2;`,
+    ".aManageHolder": `display: flex; flex-direction: column; flex-wrap: wrap; justify-content: center; padding: 8px; gap: 20px; --setBackground: var(--theme); font-weight: 700; font-size: 18px; max-width: 350px`,
+    ".aManageAccount": `position: sticky; box-sizing: border-box; width: 100%; left: 0; z-index: 2`,
     ".aManageTitle": `display: flex; gap: 8px; align-items: center`,
-    ".aManageTitle div[title]": `color: var(--secondary);`,
+    ".aManageTitle div[title]": `color: var(--secondary)`,
     ".aManageTitle div[divider]": `flex: 1; height: 4px; background: var(--hover); border-radius: 2px`,
-    ".aManageCard": `display: flex; padding: 12px; margin: 8px; gap: 8px; background: #fff; border-radius: 12px; box-shadow: var(--darkShadow); text-align: center;`,
-    ".aImageHolder": `max-width: min(150px, 35%); aspect-ratio: 1; display: flex; align-items: center; justify-content: center;`,
-    ".aImageHolder img": `border-radius: 50%; max-width: 100%; aspect-ratio: 1; box-sizing: border-box; border: 6px solid #fff; box-shadow: var(--darkShadow); object-fit: cover`,
-    ".aManageInfoHolder": `display: flex; flex-direction: column; flex-wrap: wrap; flex: 1; max-width: 65%;`,
-    ".aManageInfo": `margin: 6px 0px`,
-    ".aManageInfo div[account]": `color: #000; font-size: 22px; font-weight: 800`,
+    ".aManageCard": `display: flex; flex-wrap: wrap; padding: 12px; margin: 8px 0; gap: 8px; background: #fff; border-radius: 12px; box-shadow: var(--darkShadow); justify-content: center; align-items: center; text-align: center`,
+    ".aImageHolder": `width: 120px; height: 120px; display: flex; align-items: center; justify-content: center`,
+    ".aImageHolder img": `border-radius: 80px; max-width: 100%; aspect-ratio: 1; box-sizing: border-box; border: 6px solid #fff; box-shadow: var(--darkShadow); object-fit: cover`,
+    ".aManageInfoHolder": `display: flex; flex-direction: column; flex-wrap: wrap; min-height: 120px; flex: 1 1 180px; align-items: center`,
+    ".aManageInfo": `margin: 6px 0 16px 0`,
+    ".aManageInfo div[account]": `color: #000; font-size: 20px; font-weight: 800`,
     ".aManageInfo div[email]": `color: #48A7FF; font-size: 16px; font-weight: 600; margin-top: 3px`,
-    ".aManageInfoHolder button": `padding: 6px 10px; background-color: #0084FF26; borderRadius: /*14px*/ 9%; margin-top: auto; text-align: center; justify-content: center; font-size: 20px`,
-    ".aManageSection": `display: flex; flex-direction: column; gap: 8px;`, 
+    ".aManageInfoHolder button": `width: fit-content; padding: 6px 10px; --themeColor: var(--theme); --borderRadius: 12px; margin-top: auto; text-align: center; justify-content: center; font-size: 18px`,
+    ".aManageSection": `display: flex; flex-direction: column; gap: 8px`, 
     ".aManageSetting": `display: flex; padding: 6px 6px 6px 10px; background: #fff; border-radius: 12px 22px 22px 12px; box-shadow: var(--darkShadow); text-align: center; align-items: center`,
-    ".aManageSetting div[setting]": "margin-left: auto;",
+    ".aManageSetting div[setting]": "margin-left: auto",
     ".aManageSettingButton": `background-color: #48A7FF; color: #FFF; font-size: 16px; font-weight: 800; padding: 6px 10px; border-radius: 18px`,
-    ".aManageSettingToggle": `height: 32px; width: 54px; display: inline-block; position: relative;`,
+    ".aManageSettingToggle": `height: 32px; width: 54px; display: inline-block; position: relative`,
     ".aManageSettingToggle input": `opacity: 0; width: 100%; height: 100%; position: absolute; z-index: 5; cursor: pointer; left: 0`,
-    ".aManageSettingToggle div[slider]": `position: absolute; background-color: #ccc; border-radius: 18px; top: 0; left: 0; right: 0; bottom: 0;`,
-    ".aManageSettingToggle div[slider]:before": `position: absolute; background-color: #FFF; border-radius: 18px; height: 26px; width: 26px; content: ""; transition: .4s; left: 3px; top: 3px;`,
-    "input:checked + div[slider]:before": `transform: translateX(22px);`,
+    ".aManageSettingToggle div[slider]": `position: absolute; background-color: #ccc; border-radius: 18px; top: 0; left: 0; right: 0; bottom: 0`,
+    ".aManageSettingToggle div[slider]:before": `position: absolute; background-color: #FFF; border-radius: 18px; height: 26px; width: 26px; content: ""; transition: .4s; left: 3px; top: 3px`,
+    "input:checked + div[slider]:before": `transform: translateX(22px)`,
     "input:checked + div[slider]": `background-color: #48A7FF`,
     ".aManageRaw button": `color: #48A7FF; font-size: 20px; font-weight: 600`,
   };
   js = async (frame) => {
     frame.setAttribute("noscrollclose", "");
 
+    if (account.image != null) {
+      frame.querySelector(".aImageHolder img").src = account.image;
+    }
+    frame.querySelector(".aManageInfo div[account]").textContent = account.user;
+    frame.querySelector(".aManageInfo div[email]").textContent = account.email;
+    frame.querySelector(".aManageInfoHolder button").addEventListener("click", () => {
+      let a = typeof window.screenX != 'undefined' ? window.screenX : window.screenLeft;
+      let i = typeof window.screenY != 'undefined' ? window.screenY : window.screenTop;
+      let g = typeof window.outerWidth != 'undefined' ? window.outerWidth : document.documentElement.clientWidth;
+      let f = typeof window.outerHeight != 'undefined' ? window.outerHeight : (document.documentElement.clientHeight - 22);
+      let h = (a < 0) ? window.screen.width + a : a;
+      window.open("https://exotek.co/account?userid=" + account.account, "exotek_window_prompt", "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=" + 1000 + ", height=" + 650 + ", top=" + parseInt(i + ((f - 650) / 2.5), 10) + ", left=" + parseInt(h + ((g - 1000) / 2), 10));
+    });
+
     let themeButton = frame.querySelector("#themeChange");
     let toolbarSideButton = frame.querySelector("#toolbarSideChange");
 
     themeButton.addEventListener("click", () => {
-        themeButton.textContent = themeButton.textContent == "Light" ? "Dark" : "Light";
+      themeButton.textContent = themeButton.textContent == "Light" ? "Dark" : "Light";
     });
 
     toolbarSideButton.addEventListener("click", () => {
-        toolbarSideButton.textContent = toolbarSideButton.textContent == "Left" ? "Right" : "Left";
+      toolbarSideButton.textContent = toolbarSideButton.textContent == "Left" ? "Right" : "Left";
     });
-
-    if (account.image != null) {
-      frame.querySelector(".aImageHolder img").src = account.image;
-    }
-
-    frame.querySelector(".aManageInfo div[account]").textContent = account.user;
-    frame.querySelector(".aManageInfo div[email]").textContent = account.email;
   };
 };
 

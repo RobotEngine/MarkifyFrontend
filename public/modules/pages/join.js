@@ -147,7 +147,7 @@ modules["pages/join"] = class {
           }
         } else {
           textBox.value = text;
-          if (joinTxBoxes[numBox + 1]) {
+          if (joinTxBoxes[numBox + 1] != null) {
             joinTxBoxes[numBox + 1].focus();
           } else {
             processContinue();
@@ -159,11 +159,11 @@ modules["pages/join"] = class {
           textBox.removeAttribute("prev");
         }
         if (event.keyCode == 8 || event.keyCode == 37) { // Backspace of left arrow
-          if (joinTxBoxes[numBox - 1]) {
+          if (joinTxBoxes[numBox - 1] != null) {
             joinTxBoxes[numBox - 1].focus();
           }
-        } else if (e.keyCode == 39) { // Right arrow
-          if (joinTxBoxes[numBox + 1]) {
+        } else if (event.keyCode == 39) { // Right arrow
+          if (joinTxBoxes[numBox + 1] != null) {
             joinTxBoxes[numBox + 1].focus();
           }
         }

@@ -281,7 +281,10 @@ modules["dropdowns/account/manage"] = class {
       while (Object.keys(saveObj).length > 0) {
         let sendObj = saveObj;
         saveObj = {};
-        await sendRequest("POST", "me/setting", { save: sendObj });
+        let [code] = await sendRequest("POST", "me/setting", { save: sendObj });
+        if (code != 200) {
+          window.updateAccountOptionsUI();
+        }
       }
       saving = false;
     }

@@ -1708,7 +1708,10 @@ modules["editor/toolbar"] = class {
           }
           pxLeft = Math.max(pxLeft, 8);
         }
-        let yPos = annotationRect.top + (this.selection.minY * editor.zoom) - this.selection.actionBar.offsetHeight - this.selection.handlePadding;
+        let yPos = editor.scrollOffset;
+        if ((account.settings ?? {}).actionbar != "top") {
+          yPos = annotationRect.top + (this.selection.minY * editor.zoom) - this.selection.actionBar.offsetHeight - this.selection.handlePadding;
+        }
         let isBottom = false;
         if (yPos < editor.scrollOffset) {
           let modifiedY = annotationRect.top + (this.selection.maxY * editor.zoom) + this.selection.handlePadding;

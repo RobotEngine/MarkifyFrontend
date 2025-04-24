@@ -949,6 +949,9 @@ async function initSocket() {
         }
       }
 
+      if (data.data.settings != null && window.updateAccountSettings != null) {
+        window.updateAccountSettings(data.data.settings);
+      }
       if (window.updateAccountOptionsUI != null) {
         window.updateAccountOptionsUI();
       }

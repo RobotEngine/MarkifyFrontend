@@ -468,6 +468,10 @@ modules["pages/lesson"] = class {
     });
     tempListen(window, "beforeunload", (event) => { this.pushToPipelines(null, "beforeunload", { event: event }); });
 
+    window.updateAccountSettings = (change) => {
+      this.pushToPipelines(null, "account_settings", { settings: change ?? account.settings ?? {} });
+    }
+
     window.closeCallback = () => {
       let oldSignalStrength = this.signalStrength;
       this.signalStrength = 1;

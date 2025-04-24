@@ -35,7 +35,7 @@ modules["lesson/board"] = class {
         </div>
       </div>
     </div>
-    <div class="eToolbarHolder" left hidden>
+    <div class="eToolbarHolder" hidden>
       <div class="eToolbar" editor keeptooltip hidden notransition></div>
       <div class="eToolbar" viewer keeptooltip hidden notransition>
         <div class="eToolbarContent eVerticalToolsHolder">
@@ -280,6 +280,13 @@ modules["lesson/board"] = class {
       } else {
         shareButton.style.display = "flex";
         optionsButton.style.display = "flex";
+      }
+      if ((account.settings ?? {}).toolbar != "right") {
+        toolbarHolder.setAttribute("left", "");
+        toolbarHolder.removeAttribute("right");
+      } else {
+        toolbarHolder.setAttribute("right", "");
+        toolbarHolder.removeAttribute("left");
       }
       updateTopBar();
     }
@@ -694,6 +701,14 @@ modules["lesson/board"] = class {
 
     this.editor.pipeline.subscribe("interfaceUpdate", "refresh_interface", () => {
       this.updateInterface();
+    });
+    this.editor.pipeline.subscribe("accountUpdate", "account_settings", (event) => {
+      if (event.settings.hasOwnProperty("toolbar") == true) {
+        this.updateInterface();
+      }
+      if (event.settings.hasOwnProperty("actionbar") == true) {
+        this.editor.pipeline.publish("redraw_selection", { redraw: true });
+      }
     });
 
     this.editor.pipeline.subscribe("updateHistory", "history_update", (data) => {

@@ -934,7 +934,6 @@ async function initSocket() {
     socket_url: window.socketURL ?? config.socket.socket_url
   });
   socket.remotes.account = function (data) {
-    console.log(data);
     if (data.task === "set") {
       objectUpdate(data.data, account);
   
@@ -943,10 +942,15 @@ async function initSocket() {
         let elem = updateElements[i];
         if (elem.hasAttribute("accountuser")) {
           elem.textContent = account.user;
+          elem.title = account.user;
         }
         if (elem.hasAttribute("accountimage")) {
           elem.src = account.image ?? "./images/profiles/default.svg";
         }
+      }
+
+      if (window.updateAccountOptionsUI != null) {
+        window.updateAccountOptionsUI();
       }
     } else if (data.task == "logout") {
       removeLocalStore("userID");

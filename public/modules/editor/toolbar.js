@@ -7590,6 +7590,7 @@ modules["editor/toolbar/hidepage"] = class {
       this.button.setAttribute("selecthighlight", "");
       this.TOOLTIP = "Reveal Page";
     }
+    this.button.setAttribute("tooltip", this.TOOLTIP);
   }
 
   js = async () => {

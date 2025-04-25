@@ -1,6 +1,6 @@
 modules["editor/editor"] = class {
   html = `
-  <div class="eContent" theme="dark">
+  <div class="eContent" theme="light">
     <div class="eRealtime"></div>
     <div class="eEditorContent">
       <div class="eAnnotations"></div>

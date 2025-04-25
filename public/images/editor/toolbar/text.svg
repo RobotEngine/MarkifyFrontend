@@ -4,7 +4,7 @@
 </mask>
 <g mask="url(#mask0_3183_36)">
 <mask id="path-2-outside-1_3183_36" maskUnits="userSpaceOnUse" x="19" y="57" width="229" height="143" fill="black">
-<rect fill="var(--textColor)" x="19" y="57" width="229" height="143"/>
+<rect fill="white" x="19" y="57" width="229" height="143"/>
 <path d="M71.12 188V87.7H31.68V69H132.66V87.7H93.22V188H71.12Z"/>
 <path d="M129.151 188L169.101 135.98L168.761 147.37L130.681 97.22H154.311L181.001 132.92H171.991L198.851 97.22H221.801L183.381 147.37L183.551 135.98L223.331 188H199.361L171.311 150.09L180.151 151.28L152.611 188H129.151Z"/>
 </mask>

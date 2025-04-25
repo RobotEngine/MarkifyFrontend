@@ -48,7 +48,7 @@ modules["pages/join"] = class {
   </div>
   `;
   css = {
-    ".jBackdrop": `position: fixed; min-width: 100%; min-height: 100vh; z-index: 0; background: var(--pageColor)`,
+    ".jBackdrop": `position: fixed; min-width: 100%; min-height: 100vh; z-index: 0; background: #fff`,
     ".jBackground": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background-image: url(./images/editor/backdrop.svg); background-size: 25px; background-position: center; opacity: .075`,
     ".jSplash": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover`,
     
@@ -66,7 +66,7 @@ modules["pages/join"] = class {
     ".jInputHolder": `display: flex; flex-wrap: wrap; margin-top: 16px; justify-content: center; align-items: center; --themeColor: var(--hover); --fontColor: var(--theme)`,
     ".jInputPart": `display: flex; flex-wrap: wrap; margin: 12px; justify-content: center`,
     ".jInputPart div": "display: flex; width: 58px; height: 58px; justify-content: center; align-items: center",
-    ".jInputHolder input": "width: 50px; height: 50px; padding: 2px; outline: unset; border: solid 4px var(--themeColor); border-radius: 0px; color: var(--fontColor); font-size: 34px; font-weight: 800; font-family: var(--font); text-align: center; transition: .3s, border-width .1s",
+    ".jInputHolder input": "width: 50px; height: 50px; padding: 2px; background: unset; outline: unset; border: solid 4px var(--themeColor); border-radius: 0px; color: var(--fontColor); font-size: 34px; font-weight: 800; font-family: var(--font); text-align: center; transition: .3s, border-width .1s",
     ".jInputPart input:focus": `border-color: var(--theme); border-width: 8px; border-radius: 16px !important; z-index: 1`,
     ".jInputPart div:first-child input": "border-radius: 16px 0 0 16px",
     ".jInputPart div:last-child input": "border-radius: 0 16px 16px 0",
@@ -75,7 +75,7 @@ modules["pages/join"] = class {
     ".jModal .largeButton": `margin: 16px 0; background: var(--theme); --borderColor: var(--secondary); --borderRadius: 20px; color: #fff`,
     
     ".jNameInput": `display: none; height: 94px; justify-content: center; align-items: center`,
-    ".jNameInput input": `width: calc(100% - 60px); max-width: 300px; height: 40px; padding: 3px 6px; margin: 24px; outline: unset; border: solid 4px var(--hover); border-radius: 12px; color: var(--secondary); font-size: 24px; font-weight: 700; font-family: var(--font); text-align: center; transition: .1s`,
+    ".jNameInput input": `width: calc(100% - 60px); max-width: 300px; height: 40px; padding: 3px 6px; margin: 24px; background: unset; outline: unset; border: solid 4px var(--hover); border-radius: 12px; color: var(--secondary); font-size: 24px; font-weight: 700; font-family: var(--font); text-align: center; transition: .1s`,
     ".jNameInput input:focus": `border: solid 6px var(--secondary)`,
     ".jUserInfo .jAuthHolder": `display: none; padding: 6px 12px 6px 6px; margin: 24px; justify-content: center; align-items: center; border: solid 4px var(--hover); border-radius: 30px`,
     ".jUserInfo .jAuthHolder img[profile]": `width: 40px; height: 40px; object-fit: cover; border-radius: 20px`,

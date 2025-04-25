@@ -23,7 +23,7 @@ modules["lesson/board"] = class {
           <div class="eTopDivider"></div>
         </div>
         <div class="eTopSection" right>
-          <button class="eMembers"><span class="eMemberHandCount" title="Number of hands raised."></span><span class="eMemberIdleCount" title="Number of idle members."></span><span class="eMemberCount" title="Number of members."></span>Members</button>
+          <button class="eMembers"><span class="eMemberHandCount" membercount title="Number of hands raised."></span><span class="eMemberIdleCount" membercount title="Number of idle members."></span><span class="eMemberCount" membercount title="Number of members."></span>Members</button>
           <button class="eEndSession" title="End Session | Disable all editing access making everyone a viewer."></button>
           <button class="eShare">Share</button>
           <button class="eMemberOptions" dropdowntitle="Member Options" title="Member Options | Configure various member settings and available tools."></button>
@@ -108,7 +108,7 @@ modules["lesson/board"] = class {
     "@keyframes eStatusSpinAnimation": `from { transform: rotate(0deg) } to { transform: rotate(360deg) }`,
 
     ".eMembers": `display: flex; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--hover); border-radius: 16px; align-items: center; font-size: 16px; font-weight: 600`,
-    ".eMembers span": `display: none; min-width: 12px; height: 24px; padding: 0px 6px; margin-right: 5px; justify-content: center; align-items: center; background: #fff; border-radius: 12px; font-weight: 700`,
+    ".eMembers span": `display: none; min-width: 12px; height: 24px; padding: 0px 6px; margin-right: 5px; justify-content: center; align-items: center; background: var(--pageColor); border-radius: 12px; font-weight: 700`,
     ".eMemberCount": `--themeColorRGB: var(--themeRGB); color: rgb(var(--themeColorRGB))`,
     ".eMemberHandCount": `--themeColorRGB: var(--greenRGB); color: rgb(var(--themeColorRGB))`,
     ".eMemberIdleCount": `--themeColorRGB: var(--yellowRGB); color: rgb(var(--themeColorRGB))`,
@@ -1013,14 +1013,14 @@ modules["dropdowns/lesson/board/members"] = class {
   </div>
   `;
   css = {
-    ".dropdownTitle span": `display: none; min-width: 12px; height: 24px; padding: 0px 6px; margin-right: 5px; justify-content: center; align-items: center; background: #fff; box-shadow: 0px 0px 8px 0px rgba(var(--themeColorRGB), .3); border-radius: 12px; font-weight: 700`,
+    ".dropdownTitle span[membercount]": `display: none; min-width: 12px; height: 24px; padding: 0px 6px; margin-right: 5px; justify-content: center; align-items: center; background: var(--pageColor); box-shadow: 0px 0px 8px 0px rgba(var(--themeColorRGB), .3); border-radius: 12px; font-weight: 700`,
 
     ".eMemberHolder": `width: 275px; max-width: 100%`,
     ".eMemberSearchHolder": `display: flex; padding: 8px 8px 4px 8px; align-items: center`,
     ".eMemberSearch": `display: flex; width: 100%; align-items: center; border: solid 2px var(--secondary); border-radius: 18px`,
     ".eMemberSearch div[image]": `width: 24px; height: 24px; margin-left: 4px`,
     ".eMemberSearch div[image] svg": `width: 100%; height: 100%`,
-    ".eMemberSearch input": `width: 100%; padding: 5px; background: unset; border: unset; outline: unset; font-family: var(--font); font-size: 16px; font-weight: 600`,
+    ".eMemberSearch input": `width: 100%; padding: 5px; background: unset; border: unset; outline: unset; color: var(--textColor); font-family: var(--font); font-size: 16px; font-weight: 600`,
     ".eMemberSearch input::placeholder": `color: var(--secondary)`,
 
     ".eMemberMemberHolder": `min-height: 4px`,

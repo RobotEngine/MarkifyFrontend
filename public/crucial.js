@@ -823,7 +823,7 @@ let objectUpdate = (obj, passData, path) => { // obj = Object to apply changes; 
 }
 
 let getTheme = () => {
-  switch ((account.settings ?? {}).theme) {
+  switch ((account.settings ?? {}).theme ?? "auto") {
     case "auto":
       if (window.matchMedia == null || window.matchMedia("(prefers-color-scheme: dark)").matches != true) {
         return "light";

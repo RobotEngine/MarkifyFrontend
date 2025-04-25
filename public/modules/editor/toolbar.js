@@ -754,6 +754,7 @@ modules["editor/toolbar"] = class {
         return;
       }
       let toolData = this.tools[currentTool] ?? {};
+      currentSubTool = toolData.id;
       if (toolData.module != null) {
         return toolData;
       }
@@ -855,7 +856,7 @@ modules["editor/toolbar"] = class {
                 this.toolbar.closeSub();
               }
             } else {
-              currentSubTool = toolData.id;
+              //currentSubTool = toolData.id;
               this.currentToolModulePath = toolData.module;
               this.tooltip.update();
             }

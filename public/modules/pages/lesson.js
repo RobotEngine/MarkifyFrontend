@@ -27,11 +27,7 @@ modules["pages/lesson"] = class {
     ".lPageHolder[maximize]": `padding: 0px !important`,
     ".lPage": `--shadowOpacity: .3; position: relative; display: flex; width: 100%; height: 100%; box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: 12px; overflow: hidden; transition: .2s`,
     ".lPage[active]": `--shadowOpacity: .5 !important`,
-    ".lPageHolder[maximize] .lPage": `border-radius: 0px !important`,
-    ".lCustomScroll::-webkit-scrollbar": `background: var(--scrollGray)`,
-    ".lCustomScroll::-webkit-scrollbar-corner": `background: var(--scrollGray)`,
-    ".lCustomScroll::-webkit-scrollbar-thumb": `min-width: 50px; min-height: 50px; border: 4px solid var(--scrollGray); background: var(--gray); border-radius: 8px`,
-    ".lCustomScroll::-webkit-scrollbar-thumb:active": `background: var(--activeGray)`
+    ".lPageHolder[maximize] .lPage": `border-radius: 0px !important`
   };
 
   pages = {};

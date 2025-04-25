@@ -1,5 +1,6 @@
 modules["pages/launch"] = class {
   title = "Collaboration across the Classroom";
+  theme = "light";
   html = `
   <div class="lBackdrop" dots style="--setOpacity: .075; background-image: url(./images/editor/backdrop.svg); background-size: 25px; background-position: center"></div>
   <img class="lBackdrop" src="./images/launch/backdropside.png" side>

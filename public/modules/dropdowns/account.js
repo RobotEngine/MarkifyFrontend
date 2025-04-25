@@ -32,7 +32,7 @@ modules["dropdowns/account"] = class {
     ".accountDrop:hover img": `filter: brightness(0) invert(1)`,
     ".accountDrop[pwa]": `display: none`,
     ".accountDropLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`,
-    ".accountSocialHolder": `display: flex; flex-wrap: wrap; height: fit-content; padding: 3px; background: #fff; border-radius: 12px; justify-content: space-evenly`,
+    ".accountSocialHolder": `display: flex; flex-wrap: wrap; height: fit-content; padding: 3px; justify-content: space-evenly`,
     ".accountSocialHolder a": `width: 30px; height: 30px; margin: 3px`,
     ".accountSocialHolder a img": `width: 100%; height: 100%`,
     ".accountPolicyHolder": `display: flex; flex-wrap: wrap; justify-content: space-evenly; align-items: center`,
@@ -55,7 +55,7 @@ modules["dropdowns/account"] = class {
 
     let settingsButton = frame.querySelector(".accountManage");
     settingsButton.addEventListener("click", () => {
-      //return dropdownModule.open(settingsButton, "dropdowns/account/manage");
+      return dropdownModule.open(settingsButton, "dropdowns/account/manage");
 
       let a = typeof window.screenX != 'undefined' ? window.screenX : window.screenLeft;
       let i = typeof window.screenY != 'undefined' ? window.screenY : window.screenTop;

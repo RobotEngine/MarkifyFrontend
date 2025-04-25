@@ -54,47 +54,28 @@ let userID;
 let subscribes = [];
 
 let primaryButtonDown = false;
-function mouseDown() {
+let mouseDown = () => {
   return primaryButtonDown;
 }
-function setPrimaryButtonState(event) {
+let setPrimaryButtonState = (event) => {
   let flags = event.buttons !== undefined ? event.buttons : event.which;
   primaryButtonDown = (flags & 1) === 1;
 }
 document.addEventListener("pointerdown", setPrimaryButtonState, { capture: true, passive: false });
 document.addEventListener("pointermove", setPrimaryButtonState, { capture: true, passive: false });
 document.addEventListener("pointerup", setPrimaryButtonState, { capture: true, passive: false });
-/*let screenPressed = false;
-document.addEventListener("touchstart", function() {
-  screenPressed = true;
-}, { capture: true, passive: true });
-document.addEventListener("touchend", function() {
-  screenPressed = false;
-}, { capture: true, passive: true });
-let primaryButtonDown = false;
-function mouseDown() {
-  return primaryButtonDown || screenPressed;
-}
-function setPrimaryButtonState(event) {
-  console.log(event)
-  let flags = event.buttons !== undefined ? event.buttons : event.which;
-  primaryButtonDown = (flags & 1) === 1;
-}
-document.addEventListener("mousedown", setPrimaryButtonState, { capture: true, passive: false });
-document.addEventListener("mousemove", setPrimaryButtonState, { capture: true, passive: false });
-document.addEventListener("mouseup", setPrimaryButtonState, { capture: true, passive: false });*/
 
 let tempListeners = {};
-function addTempListener(listen) {
+let addTempListener = (listen) => {
   let listenID = randomString(10) + Date.now();
   tempListeners[listenID] = listen;
   return listenID;
 }
-function tempListen(parent, listen, runFunc, extra) {
+let tempListen = (parent, listen, runFunc, extra) => {
   parent.addEventListener(listen, runFunc, extra);
   addTempListener({ type: "event", parent: parent, name: listen, listener: runFunc });
 }
-function removeTempListeners() {
+let removeTempListeners = () => {
   let listenKeys = Object.keys(tempListeners);
   for (let i = 0; i < listenKeys.length; i++) {
     let remID = listenKeys[i];
@@ -113,7 +94,7 @@ function removeTempListeners() {
     delete tempListeners[remID];
   }
 }
-async function findModule(element) {
+let findModule = (element) => {
   let content = element.closest(".content[moduleid]");
   if (content == null) {
     return;
@@ -121,21 +102,21 @@ async function findModule(element) {
   return (tempListeners[content.getAttribute("moduleid")] ?? {}).module;
 }
 
-function subscribe(filter, callback, config) {
+let subscribe = (filter, callback, config) => {
   let sub = socket.subscribe(filter, callback, config);
   subscribes.push(sub);
   return sub;
 }
 
-async function sleep(ms) {
+let sleep = (ms) => {
   return new Promise((resolve) => setTimeout(resolve, ms ?? 1));
 }
 
-function getScript(url) {
+let getScript = (url) => {
   return document.querySelector("[src='" + url + "'");
 }
-function loadScript(url) {
-  return new Promise(function (resolve) {
+let loadScript = (url) => {
+  return new Promise((resolve) => {
     let script = getScript(url + "?v=" + version);
     if (script != null) {
       if (script.hasAttribute("loaded") == true) {
@@ -143,12 +124,12 @@ function loadScript(url) {
       } else {
         let loadFunction;
         let errorFunction;
-        loadFunction = function () {
+        loadFunction = () => {
           resolve(script);
           script.removeEventListener("load", loadFunction);
           script.removeEventListener("error", errorFunction);
         }
-        errorFunction = function () {
+        errorFunction = () => {
           resolve(); // No need to clear events (Script is removed)
         }
         script.addEventListener("load", loadFunction);
@@ -161,13 +142,13 @@ function loadScript(url) {
       }
       let loadFunction;
       let errorFunction;
-      loadFunction = function () {
+      loadFunction = () => {
         newScript.setAttribute("loaded", "");
         resolve(newScript);
         newScript.removeEventListener("load", loadFunction);
         newScript.removeEventListener("error", errorFunction);
       }
-      errorFunction = function () {
+      errorFunction = () => {
         newScript.remove();
         resolve();
       }
@@ -179,7 +160,7 @@ function loadScript(url) {
   });
 }
 
-function addCSS(newRules) {
+let addCSS = (newRules) => {
   let ruleKeys = Object.keys(newRules);
   for (let i = 0; i < ruleKeys.length; i++) {
     let rule = ruleKeys[i];
@@ -194,7 +175,8 @@ let cleanup = new FinalizationRegistry((key) => {
 });
 
 let loadedModules = {};
-async function newModule(path, parent) {
+let pageTheme;
+let newModule = async (path, parent) => {
   if (modules[path] == null) {
     await loadScript("./modules/" + path + ".js");
   }
@@ -205,10 +187,10 @@ async function newModule(path, parent) {
   let module = new moduleTemplate;
   //console.log("REGISTER:", path);
   //cleanup.register(module, path);
-  module.newModule = async function (path) {
+  module.newModule = function (path) {
     return newModule(path, this);
   }
-  module.setFrame = async function (path, frame, extra) {
+  module.setFrame = function (path, frame, extra) {
     return setFrame(path, frame, extra, this);
   }
   if (parent != null) {
@@ -228,7 +210,7 @@ async function newModule(path, parent) {
   return module;
 }
 //let currentlyLoadingFrames = {};
-async function setFrame(path, frame, extra, parent) {
+let setFrame = async (path, frame, extra, parent) => {
   let frameSet = frame ?? app;
   extra = extra ?? {};
   /*if (currentlyLoadingFrames[frameSet.className] == "" && extra.override != true) {
@@ -366,6 +348,8 @@ async function setFrame(path, frame, extra, parent) {
       body.style.removeProperty("user-select");
       currentPage = path;
       document.title = module.title + " | Markify";
+      pageTheme = module.theme;
+      updateTheme();
     }
     //frameSet.setAttribute("loaded", "");
     if (module.js != null) {
@@ -405,10 +389,10 @@ async function setFrame(path, frame, extra, parent) {
   //delete currentlyLoadingFrames[frameSet.className];
   return module;
 }
-function goBack() {
+let goBack = () => {
   history.back();
 }
-window.addEventListener("hashchange", function () {
+window.addEventListener("hashchange", () => {
   let setPage = "pages/" + window.location.hash.substring(1);
   if (currentPage == setPage) {
     return;
@@ -416,12 +400,12 @@ window.addEventListener("hashchange", function () {
   setFrame(setPage);
 });
 
-function getParam(key) {
+let getParam = (key) => {
   let queryString = window.location.search;
   let urlParams = new URLSearchParams(queryString);
   return urlParams.get(key);
 }
-function modifyParams(key, value) {
+let modifyParams = (key, value) => {
   if (getParam(key) == value) {
     return;
   }
@@ -437,7 +421,7 @@ function modifyParams(key, value) {
   } catch {}
 }
 
-function getObject(arr, field) {
+let getObject = (arr, field) => {
   if (arr == null) {
     return {};
   }
@@ -449,14 +433,14 @@ function getObject(arr, field) {
   return returnObj;
 }
 
-function copyObject(obj) {
+let copyObject = (obj) => {
   if (window.structuredClone != null) {
     return structuredClone(obj);
   }
   return JSON.parse(JSON.stringify(obj));
 }
 
-function clientPosition(event, type) {
+let clientPosition = (event, type) => {
   switch (type) {
     case "x":
       return Math.floor(event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0);
@@ -465,11 +449,11 @@ function clientPosition(event, type) {
   }
 }
 
-function cleanString(str) {
+let cleanString = (str) => {
   return str.replace(/\>/g, "&#62;").replace(/\</g, "&#60;");
 }
 
-function isValidURL(urlString) {
+let isValidURL = (urlString) => {
   try {
     new URL(urlString);
     return true;
@@ -478,7 +462,7 @@ function isValidURL(urlString) {
   }
 }
 
-function timeSince(time, long) {
+let timeSince = (time, long) => {
   let calcTimestamp = Math.floor((Date.now() - time) / 1000);
   if (calcTimestamp < 1) {
     calcTimestamp = 1;
@@ -514,7 +498,7 @@ function timeSince(time, long) {
     return timeToSet + end;
   }
 }
-function formatAMPM(date) {
+let formatAMPM = (date) => {
   let hours = date.getHours();
   let minutes = date.getMinutes();
   let ampm = hours >= 12 ? 'PM' : 'AM';
@@ -524,46 +508,46 @@ function formatAMPM(date) {
   let strTime = hours + ':' + minutes + ' ' + ampm;
   return strTime;
 }
-function formatFullDate(time) {
+let formatFullDate = (time) => {
   let date = new Date(time + epochOffset);
   let splitDate = date.toLocaleDateString().split("/");
   return week[date.getDay()] + ", " + months[splitDate[0] - 1] + " " + splitDate[1] + ", " + splitDate[2] + " at " + formatAMPM(date);
 }
 
-function addS(num) {
+let addS = (num) => {
   if (num > 1) {
     return "s";
   }
   return "";
 }
 
-function copyClipboardText(text, type) {
+let copyClipboardText = (text, type) => {
   navigator.clipboard.writeText(text).then(async () => {
     alertModule.open("worked", `<b>Copied</b>The ${type ?? "text"} was copied to your clipboard.`);
-  }, function(err) {
+  }, (err) => {
     console.error("Async: Could not copy text: ", err);
   });
 }
-function clipBoardRead(event) {
+let clipBoardRead = (event) => {
   event.preventDefault();
   document.execCommand("inserttext", false, event.clipboardData.getData("text/plain")); //.replace(/\n\n/g, "</br>")
 }
 
 let localDataStore = {};
-function setLocalStore(key, data) {
+let setLocalStore = (key, data) => {
   localDataStore[key] = data;
   try {
     localStorage.setItem(key, data);
   } catch { }
 }
-function getLocalStore(key) {
+let getLocalStore = (key) => {
   let result = localDataStore[key];
   try {
     result = localStorage.getItem(key);
   } catch { }
   return result;
 }
-function removeLocalStore(key) {
+let removeLocalStore = (key) => {
   if (localDataStore[key]) {
     delete localDataStore[key];
   }
@@ -574,7 +558,7 @@ function removeLocalStore(key) {
 
 let cachedSVGs = {};
 let cachedSVGArray = [];
-function getSVG(path) {
+let getSVG = (path) => {
   if (cachedSVGs[path] != null) {
     cachedSVGArray.splice(cachedSVGArray.indexOf(path), 1);
     cachedSVGArray.unshift(path);
@@ -603,7 +587,7 @@ function getSVG(path) {
   }
   return getPromise;
 }
-async function setSVG(element, path, replace) {
+let setSVG = async (element, path, replace) => {
   let svg = await getSVG(path);
   if (svg == null) {
     return;
@@ -617,12 +601,12 @@ async function setSVG(element, path, replace) {
 }
 
 let epochOffset = 0;
-function getEpoch() {
+let getEpoch = () => {
   return Date.now() + epochOffset;
 }
-function randomString(l) {
+let randomString = (l) => {
   var s = "";
-  var randomchar = function () {
+  var randomchar = () => {
     var n = Math.floor(Math.random() * 62);
     if (n < 10) return n; //1-10
     if (n < 36) return String.fromCharCode(n + 55); //A-Z
@@ -631,7 +615,7 @@ function randomString(l) {
   while (s.length < l) s += randomchar();
   return s;
 }
-function promptLogin(page, service) {
+let promptLogin = (page, service) => {
   if (window.promptLoginActivate == true) {
     return;
   }
@@ -654,7 +638,7 @@ function promptLogin(page, service) {
   }
   window.location = endpoint;
 }
-function ensureLogin() {
+let ensureLogin = () => {
   let token = getLocalStore("token");
   if (token == null) {
     promptLogin();
@@ -662,7 +646,7 @@ function ensureLogin() {
   }
   return token;
 }
-async function renewToken() {
+let renewToken = async () => {
   try {
     let token = ensureLogin();
     let sendUserID = userID ?? getLocalStore("userID");
@@ -691,7 +675,7 @@ async function renewToken() {
     console.log("FAILED TO RENEW TOKEN");
   }
 }
-async function checkForAuth(prompt) {
+let checkForAuth = async (prompt) => {
   let token = getLocalStore("token");
   if (token != null) {
     token = JSON.parse(token);
@@ -705,7 +689,7 @@ async function checkForAuth(prompt) {
   }
 }
 
-async function sendRequest(method, path, body, extra) {
+let sendRequest = async (method, path, body, extra) => {
   if (connected == false) {
     return [0, "Not Connected", { took: 0 }];
   }
@@ -784,7 +768,7 @@ async function sendRequest(method, path, body, extra) {
       return [0, "Fetch Error", { took: reqTime }];
     }
     if (path == "me") { // Show error connecting
-      setFrame = function () { }
+      setFrame = () => {}
       app.style.display = "flex";
       app.style.flexDirection = "column";
       app.style.alignItems = "center";
@@ -797,7 +781,7 @@ async function sendRequest(method, path, body, extra) {
   }
 }
 
-function objectUpdate(obj, passData, path) { // obj = Object to apply changes; passData = Object to edit
+let objectUpdate = (obj, passData, path) => { // obj = Object to apply changes; passData = Object to edit
   path = path ?? "";
   if (path.length > 0) {
     path += ".";
@@ -838,11 +822,33 @@ function objectUpdate(obj, passData, path) { // obj = Object to apply changes; p
   return changes;
 }
 
-async function updateToSignedIn(data) {
+let getTheme = () => {
+  switch ((account.settings ?? {}).theme) {
+    case "auto":
+      if (window.matchMedia == null || window.matchMedia("(prefers-color-scheme: dark)").matches != true) {
+        return "light";
+      } else {
+        return "dark";
+      }
+    case "light":
+      return "light";
+    case "dark":
+      return "dark";
+  }
+}
+let updateTheme = () => {
+  document.documentElement.setAttribute("theme", pageTheme ?? getTheme());
+}
+if (window.matchMedia != null) {
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { updateTheme(); });
+}
+
+let updateToSignedIn = (data) => {
   account = data;
   userID = account.id;
+  updateTheme();
 }
-async function auth() {
+let auth = async () => {
   let url = "me?ss=" + socket.secureID;
   if (getParam("from") != null) {
     url += "&from=" + getParam("from");
@@ -859,7 +865,7 @@ async function auth() {
   }
   updateToSignedIn(body);
 }
-async function init() {
+let init = async () => {
   account = {};
   userID = null;
   let paramAuthCode = getParam("code");
@@ -924,7 +930,7 @@ if (authService != null) {
 let wasConnected = false;
 let connected = false;
 let preloadedFiles = false;
-async function initSocket() {
+let initSocket = async () => {
   if (typeof SimpleSocket == "undefined") { // Backup if static fails
     await loadScript("https://simplesocket.net/static/v2/simplesocket.js");
   }
@@ -933,7 +939,7 @@ async function initSocket() {
     project_token: config.socket.project_token,
     socket_url: window.socketURL ?? config.socket.socket_url
   });
-  socket.remotes.account = function (data) {
+  socket.remotes.account = (data) => {
     if (data.task === "set") {
       objectUpdate(data.data, account);
   
@@ -949,8 +955,13 @@ async function initSocket() {
         }
       }
 
-      if (data.data.settings != null && window.updateAccountSettings != null) {
-        window.updateAccountSettings(data.data.settings);
+      if (data.data.settings != null) {
+        if (window.updateAccountSettings != null) {
+          window.updateAccountSettings(data.data.settings);
+        }
+        if (data.data.settings.hasOwnProperty("theme") == true) {
+          updateTheme();
+        }
       }
       if (window.updateAccountOptionsUI != null) {
         window.updateAccountOptionsUI();
@@ -966,7 +977,7 @@ async function initSocket() {
     loadPage = "pages/" + window.location.hash.substring(1);
   }
   loadScript("./modules/" + loadPage + ".js");
-  socket.onopen = async function () {
+  socket.onopen = async () => {
     connected = true;
     if (endStartup == true) {
       return;
@@ -979,7 +990,7 @@ async function initSocket() {
     }
     wasConnected = true;
   };
-  socket.onclose = async function () {
+  socket.onclose = () => {
     connected = false;
     if (window.closeCallback != null) {
       window.closeCallback();
@@ -1005,7 +1016,7 @@ modules["dropdown"] = class {
     ".dropdownTitle div[backdrop]": `display: none`,
     ".dropdownTitle img": `width: 26px; height: 26px; margin-right: 4px; flex-shrink: 0; object-fit: cover; border-radius: 13px`
   };
-  runResize = async function (dropdown, content, header, button) {
+  runResize = async (dropdown, content, header, button) => {
     if (content.hasAttribute("loaded") == false) {
       return;
     }
@@ -1053,11 +1064,11 @@ modules["dropdown"] = class {
       this.close();
     }
   }
-  setResizeLoop = async function (dropdown, content, header, button) {
+  setResizeLoop = async (dropdown, content, header, button) => {
     await this.runResize(dropdown, content, header, button);
     return setInterval(async () => { await this.runResize(dropdown, content, header, button); }, 1);
   };
-  open = async function (button, frameName, data) {
+  open = async (button, frameName, data) => {
     let setTitleHTML;
     if (data != null && data.previous == true) {
       let prev = window.dropdown.frameHistory[window.dropdown.frameHistory.length - 2];
@@ -1072,7 +1083,7 @@ modules["dropdown"] = class {
       let header = dropdown.querySelector(".dropdownHeader");
       let oldContent = dropdown.querySelector(".dropdownContent:not([old])");
       oldContent.setAttribute("old", "");
-      dropdown.querySelector(".dropdownOverflow").insertAdjacentHTML("beforeend", `<div class="dropdownContent" new><div class="dropdownFrame"></div></div>`);
+      dropdown.querySelector(".dropdownOverflow").insertAdjacentHTML("beforeend", `<div class="dropdownContent customScroll" new><div class="dropdownFrame"></div></div>`);
       let content = dropdown.querySelector(".dropdownContent[new]");
       content.removeAttribute("new");
       window.dropdown.content = content;
@@ -1157,7 +1168,7 @@ modules["dropdown"] = class {
             <div class="dropdownTitle"></div>
             <button class="dropdownClose buttonAnim border" close><img src="./images/tooltips/close.svg"></button>
           </div>
-          <div class="dropdownContent">
+          <div class="dropdownContent customScroll">
             <div class="dropdownFrame"></div>
           </div>
         </div>
@@ -1219,7 +1230,7 @@ modules["dropdown"] = class {
     //content.style.overflow = "auto";
     return this;
   };
-  close = async function () {
+  close = async () => {
     if (window.dropdown == null) {
       return;
     }
@@ -1271,7 +1282,7 @@ modules["modal"] = class {
     ".modalTitle div": `flex: 1; margin: 0 4px; white-space: nowrap; overflow: hidden`,
     ".modalTitle img": `width: 26px; height: 26px; object-fit: cover; border-radius: 13px`
   };
-  setResizeLoop = function (modal, content, header) {
+  setResizeLoop = (modal, content, header) => {
     return setInterval(() => {
       if (content.hasAttribute("loaded") == false) {
         return;
@@ -1297,7 +1308,7 @@ modules["modal"] = class {
       }
     }, 1);
   };
-  open = async function (frameName, originalParent, button, title, stack, data) {
+  open = async (frameName, originalParent, button, title, stack, data) => {
     let parent = originalParent ?? this.parent;
     let dataParent = window;
     if (parent != null && this.modal != null) {
@@ -1317,7 +1328,7 @@ modules["modal"] = class {
       let header = modal.querySelector(".modalHeader");
       let oldContent = modal.querySelector(".modalContent:not([old])");
       oldContent.setAttribute("old", "");
-      modal.querySelector(".modalOverflow").insertAdjacentHTML("beforeend", `<div class="modalContent" new><div class="modalFrame"></div></div>`);
+      modal.querySelector(".modalOverflow").insertAdjacentHTML("beforeend", `<div class="modalContent customScroll" new><div class="modalFrame"></div></div>`);
       let content = modal.querySelector(".modalContent[new]");
       content.removeAttribute("new");
       dataParent.modal.content = content;
@@ -1411,7 +1422,7 @@ modules["modal"] = class {
             <div class="modalTitle"></div>
             <button class="modalClose buttonAnim border" close><img src="./images/tooltips/close.svg"></button>
           </div>
-          <div class="modalContent">
+          <div class="modalContent customScroll">
             <div class="modalFrame"></div>
           </div>
         </div>
@@ -1461,7 +1472,7 @@ modules["modal"] = class {
     //content.style.overflow = "auto";
     return this;
   };
-  close = async function () {
+  close = async () => {
     let remModal = this.modal ?? window.modal;
     if (remModal == null) {
       return;
@@ -1508,7 +1519,7 @@ modules["alert"] = class {
     warning: ["var(--yellow", 2],
     error: ["var(--error)", 0]
   };
-  open = async function (type, message, data) {
+  open = async (type, message, data) => {
     data = data ?? {};
     if (fixed.querySelector(".alertHolder") == null) {
       fixed.insertAdjacentHTML("beforeend", `<div class="fixedItemHolder">
@@ -1548,7 +1559,7 @@ modules["alert"] = class {
     })();
     return alert;
   };
-  close = async function (alert) {
+  close = async (alert) => {
     if (alert == null || alert.style == null) {
       return;
     }
@@ -1563,7 +1574,7 @@ modules["alert"] = class {
     await sleep(400);
     alert.remove();
   };
-  finished = function(id) {
+  finished = (id) => {
     let gottenAlerts = fixed.querySelectorAll('.alert[alert="' + id + '_ALERT"]');
     for (let i = 0; i < gottenAlerts.length; i++) {
       this.close(gottenAlerts[i]);
@@ -1579,7 +1590,7 @@ let alertModule = {
   }
 }
 
-async function textBoxError(box, error) {
+let textBoxError = async (box, error) => {
   alertModule.open("error", "<b>Invalid Input</b>" + error);
   if (box != null) {
     box.setAttribute("error", "");
@@ -1588,7 +1599,7 @@ async function textBoxError(box, error) {
   }
 }
 
-body.addEventListener("click", async function (event) {
+body.addEventListener("click", (event) => {
   let element = event.target;
   if (element == null) {
     return;
@@ -1618,7 +1629,7 @@ body.addEventListener("click", async function (event) {
     setFrame("pages/" + page.getAttribute("openpage"));
   }
 });
-window.addEventListener("scroll", async function () {
+window.addEventListener("scroll", () => {
   if (window.dropdown && window.dropdown.button && window.dropdown.button.closest("[noscrollclose]") == null && window.dropdown.dropdown.querySelector(".content[noscrollclose]") == null) {
     dropdownModule.close();
   }
@@ -1630,12 +1641,6 @@ window.addEventListener("wheel", (event) => {
     event.preventDefault();
   }
 }, { passive: false });
-/*document.addEventListener("touchstart", (event) => {
-  event.preventDefault();
-}, { passive: false });
-document.addEventListener("touchmove", (event) => {
-  event.preventDefault();
-}, { passive: false });*/
 
 // Add CORE CSS:
 addCSS({
@@ -1660,6 +1665,10 @@ addCSS({
   ".fixedItemHolder[blur]": `backdrop-filter: blur(4px); background: rgba(var(--hoverRGB), .3); pointer-events: all`,
   "[notransition]": `transition: unset !important`,
   "button > svg": `-webkit-transform: translate3d(0, 0, 0)`,
+  ".customScroll::-webkit-scrollbar": `background: var(--scrollGray)`,
+  ".customScroll::-webkit-scrollbar-corner": `background: var(--scrollGray)`,
+  ".customScroll::-webkit-scrollbar-thumb": `min-width: 50px; min-height: 50px; border: 4px solid var(--scrollGray); background: var(--gray); border-radius: 8px`,
+  ".customScroll::-webkit-scrollbar-thumb:active": `background: var(--activeGray)`,
   ".hideScroll": `scrollbar-width: none`,
   ".hideScroll::-webkit-scrollbar": `display: none`
 });

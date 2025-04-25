@@ -1,6 +1,6 @@
 modules["lesson/board"] = class {
   html = `
-  <div class="eInterface lCustomScroll">
+  <div class="eInterface customScroll">
     <div class="eTopHolder">
       <button class="eTopScroll" left style="left: 7px"><img src="./images/editor/top/leftarrow.svg" /></button>
       <button class="eTopScroll" right style="right: 7px"><img src="./images/editor/top/rightarrow.svg" /></button>
@@ -62,7 +62,7 @@ modules["lesson/board"] = class {
       </div>
     </div>
   </div>
-  <div class="eContentHolder lCustomScroll"></div>
+  <div class="eContentHolder customScroll"></div>
   `;
   css = {
     ".eInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; user-select: none; overflow: scroll; z-index: 2`,

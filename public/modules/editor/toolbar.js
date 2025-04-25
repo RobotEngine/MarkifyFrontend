@@ -6582,7 +6582,7 @@ modules["dropdowns/editor/toolbar/more"] = class {
   css = {
     ".eToolbarMoreAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
     ".eToolbarMoreAction:not(:last-child)": `margin-bottom: 4px`,
-    ".eToolbarMoreAction img": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: #fff; border-radius: 4px`,
+    ".eToolbarMoreAction img": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: var(--pageColor); border-radius: 4px`,
     ".eToolbarMoreAction:hover": `background: var(--themeColor); color: #fff`,
     ".eToolbarMoreLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`,
     ".eToolbarMoreShowMe": `color: var(--theme); font-weight: 700`

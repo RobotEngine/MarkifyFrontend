@@ -1815,9 +1815,6 @@ modules["editor/editor"] = class {
         element.style.transform = transform;
 
         if (_id != null) {
-          if (annotation.element == null && this.toolbar != null && this.toolbar.selection.action != null) {
-            element.offsetHeight; // Prevent strange behavior of new elements flying when editing annotations
-          }
           element.setAttribute("anno", _id);
         }
         annotation.element = element;
@@ -2668,7 +2665,7 @@ modules["editor/editor"] = class {
         ((page.offsetHeight + (page.offsetHeight / 2)) - annotationRect.top) / this.zoom
       );
       if (beforeChunks != JSON.stringify(this.visibleChunks)) {
-        this.runUpdateCycle();
+        await this.runUpdateCycle();
       }
       
       clearTimeout(updatePageTimeout);
@@ -2944,7 +2941,7 @@ modules["editor/editor"] = class {
         contentHolder.scrollTo(contentHolder.scrollLeft + addScrollX, contentHolder.scrollTop + addScrollY);
       }
 
-      await this.updateChunks();
+      //await this.updateChunks();
 
       this.zooming = false;
 

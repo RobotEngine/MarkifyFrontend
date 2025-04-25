@@ -25,7 +25,7 @@ modules["dropdowns/editor/tools/emojis"] = class {
     ".eEmojiHolder": `position: relative`,
     ".eEmojiSearchHolder": `display: flex; padding: 8px 8px 4px 8px; align-items: center`,
     ".eEmojiSearchHolder img": `width: 28px; height: 28px`,
-    ".eEmojiSearchHolder input": `width: 100%; max-width: calc(100% - 54px); padding: 4px 8px; margin-left: 6px; border: solid 2px var(--secondary); outline: unset; border-radius: 17px; font-family: var(--font); font-size: 16px; font-weight: 600`,
+    ".eEmojiSearchHolder input": `width: 100%; max-width: calc(100% - 54px); padding: 4px 8px; margin-left: 6px; background: unset; border: solid 2px var(--secondary); outline: unset; border-radius: 17px; color: var(--textColor); font-family: var(--font); font-size: 16px; font-weight: 600`,
     ".eEmojiSearchHolder input::placeholder": `color: var(--secondary)`,
     ".eEmojiSectionHolder": `margin-top: 8px`,
     ".eEmojiSection": `display: block; margin-bottom: 8px`,

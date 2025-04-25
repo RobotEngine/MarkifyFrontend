@@ -6570,9 +6570,9 @@ modules["editor/toolbar/more"] = class {
 }
 modules["dropdowns/editor/toolbar/more"] = class {
   html = `
-  <button class="eToolbarMoreAction" option="duplicate" close title="Duplicate"><img src="./images/editor/duplicate.svg">Duplicate</button>
-  <button class="eToolbarMoreAction" option="lock" close title="Lock to prevent editing."><img src="./images/editor/lock.svg">Lock</button>
-  <button class="eToolbarMoreAction" option="signature" close><img src="./images/editor/signature.svg"><span></span></button>
+  <button class="eToolbarMoreAction" option="duplicate" close title="Duplicate"><img src="./images/editor/toolbar/duplicate.svg">Duplicate</button>
+  <button class="eToolbarMoreAction" option="lock" close title="Lock to prevent editing."><img src="./images/editor/toolbar/lock.svg">Lock</button>
+  <button class="eToolbarMoreAction" option="signature" close><img src="./images/editor/toolbar/signature.svg"><span></span></button>
   <div class="eToolbarMoreLine" option="layers"></div>
   <button class="eToolbarMoreAction" option="bringfront" close title="Bring Forward"><img src="./images/editor/rearrange/up.svg">Bring to Front</button>
   <button class="eToolbarMoreAction" option="sendback" close title="Send Backward"><img src="./images/editor/rearrange/down.svg">Send to Back</button>

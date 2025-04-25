@@ -1,17 +1,17 @@
 <svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
 <mask id="mask0_673_41" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256">
-<rect width="256" height="256" fill="#D9D9D9"/>
+<rect width="256" height="256" fill="var(--gray)"/>
 </mask>
 <g mask="url(#mask0_673_41)">
-<path fill-rule="evenodd" clip-rule="evenodd" d="M73 65H133C137.418 65 141 68.5817 141 73V94H153V73C153 61.9543 144.046 53 133 53H73C61.9543 53 53 61.9543 53 73V133C53 144.046 61.9543 153 73 153H94V141H73C68.5817 141 65 137.418 65 133V73C65 68.5817 68.5817 65 73 65Z" fill="white"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M133 21H73C44.2812 21 21 44.2812 21 73V133C21 161.719 44.2812 185 73 185H94V153H73C61.9543 153 53 144.046 53 133V73C53 61.9543 61.9543 53 73 53H133C144.046 53 153 61.9543 153 73V94H185V73C185 44.2812 161.719 21 133 21Z" fill="white"/>
-<rect x="87" y="87" width="132" height="132" rx="36" stroke="white" stroke-width="32"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M133 33H73C50.9086 33 33 50.9086 33 73V133C33 155.091 50.9086 173 73 173H94V153H73C61.9543 153 53 144.046 53 133V73C53 61.9543 61.9543 53 73 53H133C144.046 53 153 61.9543 153 73V94H173V73C173 50.9086 155.091 33 133 33Z" fill="#2F2F2F"/>
-<rect x="109" y="109" width="88" height="88" rx="14" stroke="white" stroke-width="12"/>
-<path d="M125 153H182" stroke="white" stroke-width="30" stroke-linecap="round"/>
-<path d="M153 181L153 124" stroke="white" stroke-width="30" stroke-linecap="round"/>
-<path d="M125 153H182" stroke="#2F2F2F" stroke-width="15" stroke-linecap="round"/>
-<path d="M153 181L153 124" stroke="#2F2F2F" stroke-width="15" stroke-linecap="round"/>
-<rect x="93" y="93" width="120" height="120" rx="30" stroke="#2F2F2F" stroke-width="20"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M73 65H133C137.418 65 141 68.5817 141 73V94H153V73C153 61.9543 144.046 53 133 53H73C61.9543 53 53 61.9543 53 73V133C53 144.046 61.9543 153 73 153H94V141H73C68.5817 141 65 137.418 65 133V73C65 68.5817 68.5817 65 73 65Z" fill="var(--pageColor)"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M133 21H73C44.2812 21 21 44.2812 21 73V133C21 161.719 44.2812 185 73 185H94V153H73C61.9543 153 53 144.046 53 133V73C53 61.9543 61.9543 53 73 53H133C144.046 53 153 61.9543 153 73V94H185V73C185 44.2812 161.719 21 133 21Z" fill="var(--pageColor)"/>
+<rect x="87" y="87" width="132" height="132" rx="36" stroke="var(--pageColor)" stroke-width="32"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M133 33H73C50.9086 33 33 50.9086 33 73V133C33 155.091 50.9086 173 73 173H94V153H73C61.9543 153 53 144.046 53 133V73C53 61.9543 61.9543 53 73 53H133C144.046 53 153 61.9543 153 73V94H173V73C173 50.9086 155.091 33 133 33Z" fill="var(--darkGray)"/>
+<rect x="109" y="109" width="88" height="88" rx="14" stroke="var(--pageColor)" stroke-width="12"/>
+<path d="M125 153H182" stroke="var(--pageColor)" stroke-width="30" stroke-linecap="round"/>
+<path d="M153 181L153 124" stroke="var(--pageColor)" stroke-width="30" stroke-linecap="round"/>
+<path d="M125 153H182" stroke="var(--darkGray)" stroke-width="15" stroke-linecap="round"/>
+<path d="M153 181L153 124" stroke="var(--darkGray)" stroke-width="15" stroke-linecap="round"/>
+<rect x="93" y="93" width="120" height="120" rx="30" stroke="var(--darkGray)" stroke-width="20"/>
 </g>
 </svg>

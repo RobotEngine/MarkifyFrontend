@@ -6282,7 +6282,7 @@ modules["editor/toolbar/style"] = class {
     </div>
   `;
   css = {
-    ".eSubToolStyleHolder": `display: flex; width: 28px; height: 28px; margin: 4px; background: #fff; border: solid 3px var(--pageColor); border-radius: 11px; justify-content: center; align-items: center`,
+    ".eSubToolStyleHolder": `display: flex; width: 28px; height: 28px; margin: 4px; background: var(--pageColor); border: solid 3px var(--pageColor); border-radius: 11px; justify-content: center; align-items: center`,
     ".eSubToolStyle": `box-sizing: border-box; width: 100%; height: 100%; border-radius: 8px`,
 
     ".eSubToolStyleContainer": `overflow: auto; border-radius: inherit`,
@@ -6570,9 +6570,9 @@ modules["editor/toolbar/more"] = class {
 }
 modules["dropdowns/editor/toolbar/more"] = class {
   html = `
-  <button class="eToolbarMoreAction" option="duplicate" close title="Duplicate"><img src="./images/editor/toolbar/duplicate.svg">Duplicate</button>
-  <button class="eToolbarMoreAction" option="lock" close title="Lock to prevent editing."><img src="./images/editor/toolbar/lock.svg">Lock</button>
-  <button class="eToolbarMoreAction" option="signature" close><img src="./images/editor/toolbar/signature.svg"><span></span></button>
+  <button class="eToolbarMoreAction" option="duplicate" close title="Duplicate"><div></div>Duplicate</button>
+  <button class="eToolbarMoreAction" option="lock" close title="Lock to prevent editing."><div></div>Lock</button>
+  <button class="eToolbarMoreAction" option="signature" close><div></div><span></span></button>
   <div class="eToolbarMoreLine" option="layers"></div>
   <button class="eToolbarMoreAction" option="bringfront" close title="Bring Forward"><img src="./images/editor/rearrange/up.svg">Bring to Front</button>
   <button class="eToolbarMoreAction" option="sendback" close title="Send Backward"><img src="./images/editor/rearrange/down.svg">Send to Back</button>
@@ -6582,6 +6582,8 @@ modules["dropdowns/editor/toolbar/more"] = class {
   css = {
     ".eToolbarMoreAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
     ".eToolbarMoreAction:not(:last-child)": `margin-bottom: 4px`,
+    ".eToolbarMoreAction div": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: var(--pageColor); border-radius: 4px`,
+    ".eToolbarMoreAction div svg": `width: 100%; height: 100%`,
     ".eToolbarMoreAction img": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: var(--pageColor); border-radius: 4px`,
     ".eToolbarMoreAction:hover": `background: var(--themeColor); color: #fff`,
     ".eToolbarMoreLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`,
@@ -6592,11 +6594,11 @@ modules["dropdowns/editor/toolbar/more"] = class {
     let duplicateLine = frame.querySelector('.eToolbarMoreLine[option="duplicate"]');
     duplicateButton.addEventListener("click", () => { parent.duplicate(); });
 
-    let signatureButton = frame.querySelector('.eToolbarMoreAction[option="signature"]');
-    signatureButton.addEventListener("click", () => { parent.signature(signatureButton.hasAttribute("signaturehidden") == false); });
-
     let lockButton = frame.querySelector('.eToolbarMoreAction[option="lock"]');
     lockButton.addEventListener("click", () => { parent.lock(); });
+
+    let signatureButton = frame.querySelector('.eToolbarMoreAction[option="signature"]');
+    signatureButton.addEventListener("click", () => { parent.signature(signatureButton.hasAttribute("signaturehidden") == false); });
 
     let layersLine = frame.querySelector('.eToolbarMoreLine[option="layers"]');
     let frontButton = frame.querySelector('.eToolbarMoreAction[option="bringfront"]');
@@ -6606,6 +6608,10 @@ modules["dropdowns/editor/toolbar/more"] = class {
 
     let shareButton = frame.querySelector('.eToolbarMoreAction[option="copylink"]');
     shareButton.addEventListener("click", () => { parent.copyLink(); });
+
+    setSVG(duplicateButton.querySelector("div"), "./images/editor/toolbar/duplicate.svg");
+    setSVG(lockButton.querySelector("div"), "./images/editor/toolbar/lock.svg");
+    setSVG(signatureButton.querySelector("div"), "./images/editor/toolbar/signature.svg");
 
     parent.redraw = () => {
       if (frame == null) {

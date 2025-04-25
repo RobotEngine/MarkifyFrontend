@@ -1,11 +1,11 @@
 <svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
 <mask id="mask0_850_2" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256">
-<rect width="256" height="256" fill="#D9D9D9"/>
+<rect width="256" height="256" fill="var(--gray)"/>
 </mask>
 <g mask="url(#mask0_850_2)">
-<path d="M72 38C54.3269 38 40 52.3269 40 70V183.246C40 200.801 54.1418 215.078 71.6952 215.245L145.905 215.952C150.739 215.998 155.387 214.098 158.805 210.68L211.728 157.757C215.104 154.382 217 149.803 217 145.029V70C217 52.3269 202.673 38 185 38H72Z" fill="#2F2F2F" stroke="white" stroke-width="12"/>
-<path d="M211 144H171C156.641 144 145 155.641 145 170V210" stroke="white" stroke-width="12"/>
-<rect x="62" y="60" width="133" height="20" rx="10" fill="white"/>
-<rect x="62" y="88" width="101" height="20" rx="10" fill="white"/>
+<path d="M72 38C54.3269 38 40 52.3269 40 70V183.246C40 200.801 54.1418 215.078 71.6952 215.245L145.905 215.952C150.739 215.998 155.387 214.098 158.805 210.68L211.728 157.757C215.104 154.382 217 149.803 217 145.029V70C217 52.3269 202.673 38 185 38H72Z" fill="var(--darkGray)" stroke="var(--pageColor)" stroke-width="12"/>
+<path d="M211 144H171C156.641 144 145 155.641 145 170V210" stroke="var(--pageColor)" stroke-width="12"/>
+<rect x="62" y="60" width="133" height="20" rx="10" fill="var(--pageColor)"/>
+<rect x="62" y="88" width="101" height="20" rx="10" fill="var(--pageColor)"/>
 </g>
 </svg>

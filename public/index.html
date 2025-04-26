@@ -211,7 +211,10 @@
   <script>
     let lightTheme = window.matchMedia == null || window.matchMedia("(prefers-color-scheme: dark)").matches != true;
     try {
-      lightTheme = localStorage.getItem("theme") == "light";
+      let localTheme = localStorage.getItem("theme") ?? "auto";
+      if (localTheme != "auto") {
+        lightTheme = localTheme == "light";
+      }
     } catch { }
     if (lightTheme == true) {
       document.documentElement.setAttribute("theme", "light");

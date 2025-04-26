@@ -17,7 +17,7 @@ modules["dropdowns/editor/boardstyle"] = class {
   </div>
   `;
   css = {
-    ".eBackgroundStyleHolder": `display: flex; flex-wrap: wrap; width: 324px; max-width: calc(100% - 8px); padding: 4px; gap: 12px; justify-content: center; align-items: center`,
+    ".eBackgroundStyleHolder": `display: flex; flex-wrap: wrap; width: 324px; max-width: calc(100% - 8px); padding: 4px; gap: 12px; justify-content: center; align-items: center; transition: .2s`,
     ".eBackgroundStyleHolder button": `box-sizing: border-box; width: 100px; height: 100px; padding: 0px; --borderWidth: 4px; --borderRadius: 8px`,
     ".eBackgroundStyleHolder button:before": `content: ""; position: absolute; width: calc(100% + 0px); height: calc(100% + 0px); left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: .075; background-image: var(--background); background-size: 32px; background-position: center`,
     ".eBackgroundStyleHolder button:hover": `--borderColor: var(--hover)`,

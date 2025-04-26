@@ -2,6 +2,7 @@ modules["lesson/export"] = class {
   html = `<div class="eExportHolder"></div>`;
   css = {
     ".eExportHolder": `position: relative; width: fit-content; height: fit-content`,
+    ".eExportHolder .eContent": `transition: unset !important`,
     ".eAnnotation[anno][hide] > div[hide]": `background: var(--pageColor)`,
     ".ePage[exporting]": `border-radius: 0px !important; border-top: unset`,
     ".ePage:not([exporting])": `display: none`,
@@ -31,6 +32,7 @@ modules["lesson/export"] = class {
         sources: this.parent.sources,
         settings: this.parent.lesson.settings,
         resync: this.resync,
+        backgroundColor: this.lesson.background ?? "FFFFFF",
         exporting: true
       }
     });

@@ -75,6 +75,7 @@ modules["editor/toolbar"] = class {
     ".eToolbarHolder[left] .eToolbar": `left: 0px; border-radius: 0 12px 12px 0; transform-origin: left center`,
     ".eToolbarHolder[right] .eToolbar": `right: 0px; border-radius: 12px 0 0 12px; transform-origin: right center`,
     ".eToolbarTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; z-index: 5; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; transform: scale(0); opacity: 0`,
+    ".eToolMediaInput": `position: absolute; display: block; left: 0px; top: 0px`,
 
     ".eToolbarHolder .eTool": `--hoverColor: var(--hover); display: flex; width: 50px; height: 46px; flex-shrink: 0; padding: 0; justify-content: center; align-items: center; transition: opacity .3s`,
     ".eActionBar .eTool": `--hoverColor: var(--hover); display: flex; width: 46px; height: 50px; flex-shrink: 0; padding: 0; justify-content: center; align-items: center; transition: opacity .3s`,
@@ -501,6 +502,7 @@ modules["editor/toolbar"] = class {
       if (newModule != null) {
         newModule.editor = editor;
         newModule.tool = currentSubTool ?? currentTool;
+        newModule.button = currentSubToolButton ?? currentToolButton;
         if (newModule.activate != null) {
           newModule.activate(extra ?? {});
         }
@@ -3939,6 +3941,10 @@ modules["editor/toolbar"] = class {
       await this.selection.updateBox({ transition: false });
     });
 
+    this.toolbar.toolbar.addEventListener("click", (event) => {
+      this.pushToolEvent("toolbar_click", event);
+    });
+
     // COPY / PASTE
     let processFileUpload = async (items, event) => {
       if (editor.self.access < 1) {
@@ -5042,6 +5048,7 @@ modules["editor/toolbar/placement"] = class {
   MOUSE = { type: "svg", url: "./images/editor/cursors/insert.svg", translate: { x: 20, y: 20 } };
   PUBLISH = {};
 
+  clickStart = (event) => { this.clickMove(event); }
   clickMove = async (event) => {
     if (this.annotation == null) {
       if (event != null && this.editor.isEditorContent(event.target) != true) {
@@ -5097,8 +5104,8 @@ modules["editor/toolbar/placement"] = class {
       await this.editor.history.push("remove", [{ _id: this.annotation.render._id }]);
 
       this.editor.selecting[this.annotation.render._id] = { ...this.annotation.render, done: true };
-      await this.editor.realtime.forceShort();
       delete this.editor.selecting["cursor"];
+      await this.editor.realtime.forceShort();
 
       await this.parent.toolbar.startTool(this.parent.toolbar.toolbar.querySelector('.eTool[tool="selection"]'));
       await this.parent.toolbar.startTool(this.parent.toolbar.toolbar.querySelector('.eTool[tool="select"]'));
@@ -5158,6 +5165,7 @@ modules["editor/toolbar/resize_placement"] = class {
       this.startX = position.x;
       this.startY = position.y;
     }
+    this.clickMove(event);
   }
   clickMove = async (event) => {
     if (this.ACTIVE == false) {
@@ -5263,8 +5271,8 @@ modules["editor/toolbar/resize_placement"] = class {
       await this.editor.history.push("remove", [{ _id: this.annotation.render._id }]);
 
       this.editor.selecting[this.annotation.render._id] = { ...this.annotation.render, done: true };
-      await this.editor.realtime.forceShort();
       delete this.editor.selecting["cursor"];
+      await this.editor.realtime.forceShort();
 
       await this.parent.toolbar.startTool(this.parent.toolbar.toolbar.querySelector('.eTool[tool="selection"]'));
       await this.parent.toolbar.startTool(this.parent.toolbar.toolbar.querySelector('.eTool[tool="select"]'));
@@ -5344,12 +5352,12 @@ modules["editor/toolbar/upload"] = class extends modules["editor/toolbar/resize_
       l: this.editor.maxLayer + 1
     };
 
-    let uploadInput = this.editor.contentHolder.querySelector(".eToolMediaInput");
+    let uploadInput = this.parent.toolbar.toolbar.querySelector(".eToolMediaInput");
     if (uploadInput != null) {
       uploadInput.remove();
     }
-    this.editor.contentHolder.insertAdjacentHTML("beforeend", `<input class="eToolMediaInput" tooleditor type="file" accept="image/*" multiple="true" hidden="true">`);
-    uploadInput = this.editor.contentHolder.querySelector(".eToolMediaInput");
+    this.parent.toolbar.toolbar.insertAdjacentHTML("beforeend", `<input class="eToolMediaInput" tooleditor type="file" accept="image/*" multiple="true" hidden="true">`);
+    uploadInput = this.parent.toolbar.toolbar.querySelector(".eToolMediaInput");
 
     let reset = () => {
       this.annotation = null;
@@ -5442,9 +5450,14 @@ modules["editor/toolbar/upload"] = class extends modules["editor/toolbar/resize_
       uploadInput.value = null;
     });
     if (extra == null || extra.file == null) {
-      uploadInput.click();
+      this.uploadInput = uploadInput;
     } else {
       startImagePlace(extra.file, extra.event);
+    }
+  }
+  toolbar_click = () => {
+    if (this.uploadInput != null) {
+      this.uploadInput.click();
     }
   }
 }

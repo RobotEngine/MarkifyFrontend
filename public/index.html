@@ -209,7 +209,11 @@
   <div class="fixed"></div>
 
   <script>
-    if (window.matchMedia == null || window.matchMedia("(prefers-color-scheme: dark)").matches != true) {
+    let lightTheme = window.matchMedia == null || window.matchMedia("(prefers-color-scheme: dark)").matches != true;
+    try {
+      lightTheme = localStorage.getItem("theme") == "light";
+    } catch { }
+    if (lightTheme == true) {
       document.documentElement.setAttribute("theme", "light");
     } else {
       document.documentElement.setAttribute("theme", "dark");

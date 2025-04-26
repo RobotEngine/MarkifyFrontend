@@ -823,7 +823,9 @@ let objectUpdate = (obj, passData, path) => { // obj = Object to apply changes; 
 }
 
 let getTheme = () => {
-  switch ((account.settings ?? {}).theme ?? "auto") {
+  let theme = (account.settings ?? {}).theme ?? "auto";
+  setLocalStore("theme", theme);
+  switch (theme) {
     case "auto":
       if (window.matchMedia == null || window.matchMedia("(prefers-color-scheme: dark)").matches != true) {
         return "light";

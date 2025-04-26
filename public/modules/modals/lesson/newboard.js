@@ -50,6 +50,9 @@ modules["modals/lesson/newboard"] = class {
       if (this.folder != null) {
         path += "&folder=" + this.folder;
       }
+      if (getTheme() == "dark") {
+        path += "&background=0A1C2D";
+      }
       let [code, body] = await sendRequest("POST", path);
       alertModule.close(createAlert);
       frame.removeAttribute("disabled");
@@ -99,6 +102,9 @@ modules["modals/lesson/newboard"] = class {
         let path = "lessons/new?ss=" + socket.secureID;
         if (this.folder != null) {
           path += "&folder=" + this.folder;
+        }
+        if (getTheme() == "dark") {
+          path += "&background=0A1C2D";
         }
         let [code, body] = await sendRequest("POST", path, sendFormData, extraData);
         alertModule.close(uploadAlert);
@@ -295,6 +301,9 @@ modules["modals/lesson/newboard/blank"] = class {
       let path = "lessons/new?ss=" + socket.secureID;
       if (parent.folder != null) {
         path += "&folder=" + parent.folder;
+      }
+      if (getTheme() == "dark") {
+        path += "&background=0A1C2D";
       }
       let [code, body] = await sendRequest("POST", path, sendData);
       alertModule.close(createAlert);

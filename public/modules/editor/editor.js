@@ -1,6 +1,6 @@
 modules["editor/editor"] = class {
   html = `
-  <div class="eContent" theme="light">
+  <div class="eContent">
     <div class="eRealtime"></div>
     <div class="eEditorContent">
       <div class="eAnnotations"></div>
@@ -9,15 +9,11 @@ modules["editor/editor"] = class {
   </div>
   `;
   css = {
-    ".eContent": `--interfacePadding: 58px; position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - (var(--interfacePadding) * 2)); min-height: calc(100vh - (var(--interfacePadding) * 2)); padding: var(--interfacePadding); align-items: center; overflow: hidden; pointer-events: all; --zoom: 1`,
-    '.eContent[theme="light"]': `background: rgb(255, 255, 255)`,
-    '.eContent[theme="dark"]': `background: rgb(10, 28, 45)`,
+    ".eContent": `--interfacePadding: 58px; position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - (var(--interfacePadding) * 2)); min-height: calc(100vh - (var(--interfacePadding) * 2)); padding: var(--interfacePadding); align-items: center; overflow: hidden; pointer-events: all; transition: background-color .3s; --zoom: 1`,
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 3; overflow: hidden; pointer-events: none`,
     ".eEditorContent": `position: relative`,
     ".eAnnotations": `--startZIndex: 0; position: relative; width: 1px; height: 1px; transform-origin: 0 0; transform: scale(var(--zoom)); z-index: 2; pointer-events: none`,
-    ".eBackground": `position: absolute; left: 0px; top: 0px; transform-origin: left top; background-position: center; z-index: 1`,
-    '.eContent[theme="light"] .eBackground': `background-image: url(./images/editor/backdrop.svg); opacity: .075`,
-    '.eContent[theme="dark"] .eBackground': `background-image: url(./images/editor/backdroplight.svg); opacity: .05`,
+    ".eBackground": `position: absolute; left: 0px; top: 0px; opacity: .075; transform-origin: left top; background-position: center; z-index: 1`,
 
     ".eAnnotation": `position: absolute; left: 0px; top: 0px; z-index: calc(var(--startZIndex) + var(--zIndex))`,
     ".eAnnotation[hidden]": `display: none !important`,
@@ -481,6 +477,8 @@ modules["editor/editor"] = class {
   zoom = 1;
   maxLayer = 0;
   minLayer = 0;
+
+  backgroundColor = "FFFFFF";
 
   js = async (frame) => {
     let contentHolder = this.contentHolder ?? frame.parentElement;
@@ -2550,6 +2548,18 @@ modules["editor/editor"] = class {
       }
     }
     this.updateInterface();
+    this.updateBackground = (setColor) => {
+      if (setColor != null) {
+        this.backgroundColor = setColor;
+      }
+      if (this.utils.contrastCheck(this.backgroundColor) == true) {
+        background.style.setProperty("background-image", "url(./images/editor/backdropblack.svg)");
+      } else {
+        background.style.setProperty("background-image", "url(./images/editor/backdropwhite.svg)");
+      }
+      content.style.backgroundColor = "#" + this.backgroundColor;
+    }
+    this.updateBackground();
     
     let updateSubTimeout;
     let loadedChunks = {};

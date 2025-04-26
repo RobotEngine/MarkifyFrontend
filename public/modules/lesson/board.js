@@ -203,7 +203,8 @@ modules["lesson/board"] = class {
         settings: this.parent.lesson.settings,
         resync: this.resync,
         preferences: JSON.parse(stringPref),
-        lastSavePreferences: JSON.parse(stringPref)
+        lastSavePreferences: JSON.parse(stringPref),
+        backgroundColor: this.lesson.background ?? "FFFFFF"
       }
     });
 
@@ -600,6 +601,9 @@ modules["lesson/board"] = class {
       } else {
         sharePinButton.style.removeProperty("display");
       }
+      if (body.hasOwnProperty("background") == true) {
+        this.editor.updateBackground(body.background);
+      }
       this.updateInterface();
     });
     this.editor.pipeline.subscribe("boardMemberJoin", "join", () => { this.updateMemberCount(membersButton); });
@@ -855,10 +859,10 @@ modules["dropdowns/lesson/file"] = class {
   <button class="eFileAction" disabled option="properties" title="View lesson properties." style="--themeColor: var(--secondary)"><img src="./images/editor/file/info.svg">Properties</button>
   <button class="eFileAction" disabled option="ocr" title="Run optical character recognition (OCR)."><img src="./images/editor/file/text.svg">Recognize Text</button>
   <div class="eFileLine" option="delete"></div>
+  <button class="eFileAction" option="boardstyle" title="Change the board's background color."><img src="./images/editor/rearrange/fillbucket.svg">Background Color</button>
+  <button class="eFileAction" option="hideshowpage" title="Hide all pages from members."><img src="./images/editor/rearrange/hideshow.svg">Hide All Pages</button>
   <button class="eFileAction" option="deletelesson" title="Remove this lesson from your dashboard." style="--themeColor: var(--error)"><img src="./images/editor/file/delete.svg">Delete Lesson</button>
   <button class="eFileAction" option="deleteannotations" title="Remove all annotations from the lesson." style="--themeColor: var(--error)"><img src="./images/editor/file/delete.svg">Delete Annotations</button>
-  <div class="eFileLine" option="hideshow"></div>
-  <button class="eFileAction" option="hideshowpage" title="Hide this page for all members."><img src="./images/editor/rearrange/hideshow.svg">Hide All Pages</button>
   `;
   css = {
     ".eFileAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
@@ -937,13 +941,9 @@ modules["dropdowns/lesson/file"] = class {
       //editor.contentHolder.scrollTo({ top: editor.contentHolder.scrollHeight });
     });
 
-    let deleteLessonButton = frame.querySelector('.eFileAction[option="deletelesson"]');
-    deleteLessonButton.addEventListener("click", () => {
-      dropdownModule.open(deleteLessonButton, "dropdowns/remove", { type: "deletelesson", lessonID: parent.parent.id, isOwner: editor.self.access == 5, session: editor.session });
-    });
-    let deleteAnnotationsButton = frame.querySelector('.eFileAction[option="deleteannotations"]');
-    deleteAnnotationsButton.addEventListener("click", () => {
-      dropdownModule.open(deleteAnnotationsButton, "dropdowns/remove", { type: "deleteannotations", lessonID: parent.parent.id, session: editor.session });
+    let boardStyleButton = frame.querySelector('.eFileAction[option="boardstyle"]');
+    boardStyleButton.addEventListener("click", async () => {
+      dropdownModule.open(boardStyleButton, "dropdowns/editor/boardstyle", { parent: parent });
     });
 
     let hideshowpage = frame.querySelector('.eFileAction[option="hideshowpage"]');
@@ -961,13 +961,19 @@ modules["dropdowns/lesson/file"] = class {
       dropdownModule.close();
     });
 
+    let deleteLessonButton = frame.querySelector('.eFileAction[option="deletelesson"]');
+    deleteLessonButton.addEventListener("click", () => {
+      dropdownModule.open(deleteLessonButton, "dropdowns/remove", { type: "deletelesson", lessonID: parent.parent.id, isOwner: editor.self.access == 5, session: editor.session });
+    });
+    let deleteAnnotationsButton = frame.querySelector('.eFileAction[option="deleteannotations"]');
+    deleteAnnotationsButton.addEventListener("click", () => {
+      dropdownModule.open(deleteAnnotationsButton, "dropdowns/remove", { type: "deleteannotations", lessonID: parent.parent.id, session: editor.session });
+    });
+
     if (access < 5) {
-      deleteAnnotationsButton.remove();
+      boardStyleButton.remove();
       hideshowpage.remove();
-      let hideshowLine = frame.querySelector('.eFileLine[option="hideshow"]');
-      if (hideshowLine != null) {
-        hideshowLine.remove();
-      }
+      deleteAnnotationsButton.remove();
       if (userID == null) {
         deleteLessonButton.remove();
         frame.querySelector('.eFileLine[option="delete"]').remove();

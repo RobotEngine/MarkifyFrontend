@@ -33,7 +33,7 @@ modules["dropdowns/moveto"] = class {
     ".dTileDropFolder[loaded] div[arrow]": `transform: rotate(90deg)`,
     ".dTileDropFolderActions": `position: sticky; display: flex; flex-wrap: wrap; max-width: calc(var(--dropdownWidth) - 36px); padding: 8px; margin: 4px; gap: 24px; left: 4px; bottom: 4px; justify-content: space-between; align-items: center; background: rgba(var(--background), .7); backdrop-filter: blur(4px); border-radius: 27px; z-index: 2`,
     ".dTileDropFolderNew": `padding: 6px 10px; background: var(--theme); --borderColor: var(--secondary); --borderRadius: 16px; color: #fff; font-size: 16px`,
-    ".dTileDropFolderMoveTo": `padding: 6px 10px; background: #fff; --borderRadius: 16px; color: var(--secondary); font-size: 16px`,
+    ".dTileDropFolderMoveTo": `padding: 6px 10px; --borderRadius: 16px; color: var(--secondary); font-size: 16px`,
     ".dTileDropFolderLoadMore": `display: flex; width: 100%; justify-content: center; margin-bottom: 8px`,
     ".dTileDropFolderLoadMore button": `display: flex; padding: 6px 8px; align-items: center; --borderRadius: 16px; font-size: 16px; color: var(--theme); font-weight: 700`
   };

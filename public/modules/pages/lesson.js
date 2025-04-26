@@ -704,14 +704,19 @@ modules["pages/lesson"] = class {
         checkForAuth(true);
         return;
       }
+      let useBackground = "FFFFFF";
+      if (getTheme() == "dark") {
+        useBackground= "0A1C2D";
+      }
       this.setLesson({
         "lesson": {
-            "_id": null,
-            "owner": userID,
-            "created": getEpoch(),
-            "members": 0,
-            "name": "Untitled Lesson",
-            "access": 0
+          "_id": null,
+          "owner": userID,
+          "created": getEpoch(),
+          "members": 0,
+          "name": "Untitled Lesson",
+          "access": 0,
+          "background": useBackground
         },
         "session": {},
         "members": [],

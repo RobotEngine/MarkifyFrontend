@@ -5568,7 +5568,7 @@ modules["editor/toolbar/color"] = class {
     ".eSubToolColorPickerGradient button:active": `transform: scale(1.1) !important`,
     ".eSubToolColorPickerType": `box-sizing: border-box; height: 22px; padding: 3px 6px; margin: 3px; --borderWidth: 3px; --borderRadius: 8px; font-size: 14px; font-weight: 700; color: var(--theme)`,
     ".eSubToolColorPickerType:after": `width: 100%; height: 100%`,
-    ".eSubToolColorPickerField": `box-sizing: border-box; flex: 1; min-width: 0px; height: 28px; padding: 0; margin: 0 6px; border: solid 3px var(--secondary); outline: none; border-radius: 14px; font-family: var(--font); font-size: 14px; font-weight: 700; color: var(--theme); text-align: center`,
+    ".eSubToolColorPickerField": `box-sizing: border-box; flex: 1; min-width: 0px; height: 28px; padding: 0; margin: 0 6px; background: unset; border: solid 3px var(--secondary); outline: none; border-radius: 14px; font-family: var(--font); font-size: 14px; font-weight: 700; color: var(--theme); text-align: center`,
     ".eSubToolColorPickerField::placeholder": `color: var(--hover)`
   };
   js = (frame) => {
@@ -5952,7 +5952,7 @@ modules["editor/toolbar/thickness"] = class {
     ".eSubToolThickness": `border-radius: 10px`,
 
     ".eSubToolThicknessFrame": `box-sizing: border-box; display: flex; width: 188px; height: 50px; padding: 8px; align-items: center`,
-    ".eSubToolThicknessInput": `width: 40px; height: 26px; border: solid 3px var(--secondary); outline: none; border-radius: 17px; font-family: var(--font); font-size: 18px; font-weight: 700; color: var(--theme); text-align: center`,
+    ".eSubToolThicknessInput": `width: 40px; height: 26px; background: unset; border: solid 3px var(--secondary); outline: none; border-radius: 17px; font-family: var(--font); font-size: 18px; font-weight: 700; color: var(--theme); text-align: center`,
     ".eSubToolThicknessInput::placeholder": `color: var(--hover)`,
     ".eSubToolThicknessSlider": `position: relative; flex: 1; height: 10px; margin: 0 4px 0 12px; background: var(--hover); border-radius: 5px; touch-action: none`,
     ".eSubToolThicknessSlider button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; top: -5px; background: var(--theme); box-shadow: var(--lightShadow); border: solid 5px var(--secondary); border-radius: 10px; transition: transform .2s`,
@@ -6134,7 +6134,7 @@ modules["editor/toolbar/opacity"] = class {
     ".eSubToolOpacityHolder svg": `width: 100%; height: 100%; border-radius: 14px`,
 
     ".eSubToolOpacityFrame": `box-sizing: border-box; display: flex; width: 188px; height: 50px; padding: 8px; align-items: center`,
-    ".eSubToolOpacityInput": `width: 40px; height: 26px; border: solid 3px var(--secondary); outline: none; border-radius: 17px; font-family: var(--font); font-size: 18px; font-weight: 700; color: var(--theme); text-align: center`,
+    ".eSubToolOpacityInput": `width: 40px; height: 26px; background: unset; border: solid 3px var(--secondary); outline: none; border-radius: 17px; font-family: var(--font); font-size: 18px; font-weight: 700; color: var(--theme); text-align: center`,
     ".eSubToolOpacitySlider": `position: relative; flex: 1; height: 10px; margin: 0 4px 0 12px; background: var(--hover); border-radius: 5px; touch-action: none`,
     ".eSubToolOpacitySlider button": `position: absolute; width: 20px; height: 20px; padding: 0px; margin: 0px; top: -5px; background: var(--theme); box-shadow: var(--lightShadow); border: solid 5px var(--secondary); border-radius: 10px; transition: transform .2s`,
     ".eSubToolOpacitySlider button:hover": `transform: scale(1.2) !important`,

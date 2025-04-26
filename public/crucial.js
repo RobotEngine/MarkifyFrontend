@@ -839,7 +839,8 @@ let getTheme = () => {
   }
 }
 let updateTheme = () => {
-  document.documentElement.setAttribute("theme", pageTheme ?? getTheme());
+  let setTheme = getTheme();
+  document.documentElement.setAttribute("theme", pageTheme ?? setTheme);
 }
 if (window.matchMedia != null) {
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { updateTheme(); });

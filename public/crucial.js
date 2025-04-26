@@ -22,7 +22,7 @@ const configs = {
 };
 
 const config = configs["public"];
-const version = "1.1.2"; // Big Update . Small Feature Release . Bug Fix
+const version = "1.1.3"; // Big Update . Small Feature Release . Bug Fix
 
 const serverURL = config.server;
 const assetURL = config.assets;
@@ -984,7 +984,11 @@ let initSocket = async () => {
     }
     dropdownModule.close();
     await init();
-    setFrame(loadPage, null, { unsub: false, missPageRedirect: true });
+    let openPage = defaultPage;
+    if (window.location.hash != "") {
+      openPage = "pages/" + window.location.hash.substring(1);
+    }
+    setFrame(openPage, null, { unsub: false, missPageRedirect: true });
     if (wasConnected == true) {
       alertModule.open("worked", `<b>Connected</b>Reconnected to Markify`, { id: "connection" });
     }

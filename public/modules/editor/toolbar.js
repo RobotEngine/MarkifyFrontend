@@ -1335,10 +1335,10 @@ modules["editor/toolbar"] = class {
         let transition = this.selection.action == null && options.transition != false && this.selection.lastSelectAmount == selectedAnnotations.length;
         if (this.selection.selectBox == null) {
           content.insertAdjacentHTML("beforeend", `<div class="eSelect" new>
-            <div class="eSelectHandle" handle="movetop" ignore></div>
-            <div class="eSelectHandle" handle="movebottom" ignore></div>
-            <div class="eSelectHandle" handle="moveleft" ignore></div>
-            <div class="eSelectHandle" handle="moveright" ignore></div>
+            <div class="eSelectHandle" handle="movetop" move></div>
+            <div class="eSelectHandle" handle="movebottom" move></div>
+            <div class="eSelectHandle" handle="moveleft" move></div>
+            <div class="eSelectHandle" handle="moveright" move></div>
             <svg class="eSelectHandle" handle="topleft" essential width="16" height="16" rotation="180" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M2 14V14C2 7.37258 7.37258 2 14 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
             <svg class="eSelectHandle" handle="topright" width="16" height="16" rotation="270" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M14 14V14C14 7.37258 8.62742 2 2 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
             <svg class="eSelectHandle" handle="bottomleft" width="16" height="16" rotation="90" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M2 2V2C2 8.62742 7.37258 14 14 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
@@ -1979,7 +1979,7 @@ modules["editor/toolbar"] = class {
       this.selection.handle = null;
       let handleElement = event.target.closest(".eSelectHandle");
       if (handleElement != null) {
-        if (handleElement.hasAttribute("ignore") == false) {
+        if (handleElement.hasAttribute("move") == false) {
           this.selection.handle = handleElement.getAttribute("handle");
         }
       }
@@ -2798,6 +2798,7 @@ modules["editor/toolbar"] = class {
       if (this.selection.action == "move") {
         changePositionX = position.x - this.selection.rootX;
         changePositionY = position.y - this.selection.rootY;
+        this.updateMouse({ type: "svg", url: "./images/editor/cursors/move.svg", translate: { x: 22, y: 22 } });
       } else if (this.selection.action == "resize") {
         // Calculate the change in width / height:
         let originalMidpointX = this.selection.originalSize[0] / 2;
@@ -3015,6 +3016,7 @@ modules["editor/toolbar"] = class {
             cursorRotate += 90;
           }
         }
+
         this.updateMouse({ type: "svg", url: "./images/editor/cursors/resize.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation + cursorRotate });
       } else if (this.selection.action == "rotate") {
         let centerX = this.selection.originalSize[0] / 2;
@@ -3788,10 +3790,12 @@ modules["editor/toolbar"] = class {
       if (this.selection.action == null && (this.currentToolModule.MOUSE == null || this.currentToolModule.MOUSE.override != true)) {
         let handle = event.target.closest(".eSelectHandle");
         if (handle != null) {
-          if (handle.getAttribute("handle") == "rotate") {
-            this.updateMouse({ type: "svg", url: "./images/editor/cursors/rotate.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation });
+          if (handle.hasAttribute("move") == true) {
+            this.updateMouse({ type: "svg", url: "./images/editor/cursors/move.svg", translate: { x: 22, y: 22 } });
           } else if (handle.hasAttribute("rotation") == true) {
             this.updateMouse({ type: "svg", url: "./images/editor/cursors/resize.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation + parseInt(handle.getAttribute("rotation")) });
+          } else if (handle.getAttribute("handle") == "rotate") {
+            this.updateMouse({ type: "svg", url: "./images/editor/cursors/rotate.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation });
           } else {
             this.updateMouse(this.currentToolModule.MOUSE);
           }

@@ -1786,6 +1786,8 @@ modules["editor/editor"] = class {
       }
 
       if (element != null) {
+        annotation.element = element;
+
         let zIndex = render.l ?? 0;
         element.style.setProperty("--zIndex", zIndex);
         if (zIndex < this.minLayer) {
@@ -1811,11 +1813,6 @@ modules["editor/editor"] = class {
           transform += " scale(1,-1)";
         }
         element.style.transform = transform;
-
-        if (_id != null) {
-          element.setAttribute("anno", _id);
-        }
-        annotation.element = element;
 
         if (renderModule.CAN_PARENT_CHILDREN == true) { // If it can have children, must check the holder
           let annoAnnotationHolder = element.querySelector(".eAnnotationHolder");
@@ -1881,6 +1878,9 @@ modules["editor/editor"] = class {
           element.removeAttribute("notransition");
         } else {
           element.setAttribute("notransition", "");
+        }
+        if (_id != null) {
+          element.setAttribute("anno", _id);
         }
         if (render.remove != true) {
           element.removeAttribute("hidden");
@@ -2951,9 +2951,9 @@ modules["editor/editor"] = class {
         contentHolder.scrollTo(contentHolder.scrollLeft + addScrollX, contentHolder.scrollTop + addScrollY);
       }
 
-      //await this.updateChunks();
-
       this.zooming = false;
+
+      await this.updateChunks();
 
       this.pipeline.publish("zoom_change", { zoom: this.zoom });
 

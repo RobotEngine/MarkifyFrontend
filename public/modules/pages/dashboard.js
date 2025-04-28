@@ -1153,7 +1153,7 @@ modules["pages/dashboard/lessons"] = class {
     ".dTile": `position: relative; background: var(--pageColor); --shadow: var(--lightShadow); box-shadow: var(--shadow); border-radius: 12px; overflow: hidden`,
     ".dTile:hover": `--shadow: var(--darkShadow)`,
     ".dTileThumbnailHolder": `position: relative; width: 100%; aspect-ratio: 4/3`,
-    ".dTileThumbnail": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; border-radius: 12px; opacity: 0`,
+    ".dTileThumbnail": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; border-radius: 12px; opacity: 0; pointer-events: none`,
     'html[theme="dark"] .dTileThumbnail': `filter: brightness(50%)`,
     ".dTile:hover .dTileThumbnail": `filter: brightness(100%)`,
     ".dTileInfoHolder": `position: absolute; display: flex; box-sizing: border-box; width: 100%; padding: 10px; left: 0px; bottom: 0px; align-items: flex-end; background: var(--pageColor); box-shadow: var(--shadow)`,
@@ -1266,7 +1266,7 @@ modules["pages/dashboard/lessons"] = class {
       if (existingTile != null) {
         existingTile.remove();
       }
-      tileHolder.insertAdjacentHTML(insertAdj, `<a class="dTile" new>
+      tileHolder.insertAdjacentHTML(insertAdj, `<a class="dTile" draggable="false" new>
         <div class="dTileThumbnailHolder">
           <img class="dTileThumbnail" src="./images/dashboard/placeholder.png" />
           <img class="dTileThumbnail" main />

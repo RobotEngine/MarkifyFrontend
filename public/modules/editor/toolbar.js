@@ -147,6 +147,7 @@ modules["editor/toolbar"] = class {
     ".eSelect[showduplicate]:not([notransition]) .eSelectHandle[duplicate]": `opacity: 1; pointer-events: all`,
     ".eSelect[showonlywidth] .eSelectHandle": `opacity: 0; pointer-events: none`,
     ".eSelect[showonlywidth] .eSelectHandle[widthhandle]": `opacity: 1 !important; pointer-events: all !important`,
+    '.eSelect[showonlywidth] .eSelectHandle[move]': `opacity: 1; pointer-events: all`,
     '.eSelect[showonlywidth] .eSelectHandle[handle="rotate"]': `opacity: 1; pointer-events: all`,
     '.eSelect[hiderotation] .eSelectHandle[handle="rotate"]': `opacity: 0 !important; pointer-events: none !important`,
     '.eSelect[hideheighthandles] .eSelectHandle[heighthandle]': `opacity: 0; pointer-events: none`,

@@ -205,6 +205,13 @@ modules["pages/dashboard"] = class {
 
     let scrollEventPass;
 
+    // Handle Onboard:
+    if (account.onboard == null) {
+      modalModule.open("modals/resources", null, null, null, false);
+    } else if (account.lastWhatsNew != null && account.currentWhatsNew != null && account.lastWhatsNew != account.currentWhatsNew) {
+      modalModule.open("modals/updates/" + account.currentWhatsNew, null, null, "What's New", false);
+    }
+
     // Handle Banner:
     const CURRENT_BANNER = "1.0-release";
     let bannerHolder = lessonsHolder.querySelector(".dBannerHolder");

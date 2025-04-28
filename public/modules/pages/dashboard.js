@@ -208,8 +208,6 @@ modules["pages/dashboard"] = class {
     // Handle Onboard:
     if (account.onboard == null) {
       modalModule.open("modals/resources", null, null, null, false);
-    } else if (account.lastWhatsNew != null && account.currentWhatsNew != null && account.lastWhatsNew != account.currentWhatsNew) {
-      modalModule.open("modals/updates/" + account.currentWhatsNew, null, null, "What's New", false);
     }
 
     // Handle Banner:

@@ -186,11 +186,11 @@ modules["dropdowns/account/manage"] = class {
         <div label>Mentions</div>
         <div toggle><div></div></div>
       </button>
-      <button class="aManageSetting" setting="emails.announcements">
+      <button class="aManageSetting" setting="emails.announcements" marketing>
         <div label>Announcements</div>
         <div toggle><div></div></div>
       </button>
-      <button class="aManageSetting" setting="emails.newsletters">
+      <button class="aManageSetting" setting="emails.newsletters" marketing>
         <div label>Newsletters</div>
         <div toggle><div></div></div>
       </button>
@@ -327,7 +327,7 @@ modules["dropdowns/account/manage"] = class {
       let emailOptions = emailSettings.querySelectorAll(".aManageSetting");
       for (let i = 0; i < emailOptions.length; i++) {
         let option = emailOptions[i];
-        if (option.hasAttribute("enabled") == true) {
+        if (option.hasAttribute("marketing") == true && option.hasAttribute("enabled") == true) {
           option.removeAttribute("enabled");
           option.querySelector("div[toggle]").setAttribute("disabled", "");
           saveObj[option.getAttribute("setting")] = false;

@@ -27,7 +27,7 @@
           },
           {
             "key": "Permissions-Policy",
-            "value": "*"
+            "value": "autoplay=*, camera=*, clipboard-read=*, clipboard-write=*, display-capture=*, document-domain=*, fullscreen=*, geolocation=*, microphone=*, picture-in-picture=*"
           }
         ]
       },

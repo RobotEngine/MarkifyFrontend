@@ -15,7 +15,7 @@
         "headers": [
           {
             "key": "Content-Security-Policy",
-            "value": "script-src 'self' 'sha256-nRcgRt3XNN0aZXdzMDUhXYSzvNDbxXeNTBXS8ajcR38=' https://*.simplesocket.net https://*.exotek.co https://storage.googleapis.com; frame-src *"
+            "value": "script-src 'self' 'sha256-nRcgRt3XNN0aZXdzMDUhXYSzvNDbxXeNTBXS8ajcR38=' https://*.simplesocket.net https://*.exotek.co https://storage.googleapis.com; frame-src * blob:"
           },
           {
             "key": "X-Frame-Options",

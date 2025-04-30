@@ -1131,25 +1131,25 @@ modules["pages/dashboard"] = class {
       if (tile == null) {
         return;
       }
+      if (target.closest(".dTileOptions") == null && target.closest(".dTileTitle[contenteditable]") == null) {
+        tile.style.removeProperty("transform");
+      } else {
+        tile.style.transform = "scale(1)";
+        return;
+      }
       let holder = tile.querySelector(".dTileInfoHolder");
       if (holder != null) {
         dragContext.originalElement = holder;
         dragContext.width = holder.clientWidth;
         dragContext.height = holder.clientHeight;
       }
-      let optionButton = target.closest(".dTileOptions");
-      let lessonTitle = target.closest(".dTileTitle[contenteditable]");
-      if (optionButton == null && lessonTitle == null) {
-        tile.style.removeProperty("transform");
-      } else {
-        tile.style.transform = "scale(1)";
-      }
     }
-    page.addEventListener("pointerdown", (event) => {
+    page.addEventListener("mousedown", dragStart);
+    /*page.addEventListener("pointerdown", (event) => {
       if (event.pointerType == "mouse") {
         dragStart(event);
       }
-    });
+    });*/
     //page.addEventListener("touchstart", dragStart);
 
     let removeDrag = (moved) => {

@@ -14,6 +14,10 @@
         "source": "**",
         "headers": [
           {
+            "key": "Content-Security-Policy",
+            "value": "script-src 'self' https://*.simplesocket.net https://*.exotek.co; frame-src *;"
+          },
+          {
             "key": "X-Frame-Options",
             "value": "ALLOWALL"
           },
@@ -23,11 +27,7 @@
           },
           {
             "key": "Referrer-Policy",
-            "value": "strict-origin"
-          },
-          {
-            "key": "Permissions-Policy",
-            "value": "autoplay=*, camera=*, clipboard-read=*, clipboard-write=*, display-capture=*, document-domain=*, fullscreen=*, geolocation=*, microphone=*, picture-in-picture=*"
+            "value": "strict-origin-when-cross-origin"
           }
         ]
       },

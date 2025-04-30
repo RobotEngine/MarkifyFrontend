@@ -1150,7 +1150,7 @@ modules["pages/dashboard"] = class {
         dragStart(event);
       }
     });
-    page.addEventListener("touchstart", dragStart);
+    //page.addEventListener("touchstart", dragStart);
 
     let removeDrag = (moved) => {
       let removeElement = dragContext.element;
@@ -1230,7 +1230,7 @@ modules["pages/dashboard"] = class {
       dragContext.element.style.top = (mouseY - 8) + "px";
     }
     page.addEventListener("mousemove", dragMove);
-    page.addEventListener("touchmove", dragMove);
+    //page.addEventListener("touchmove", dragMove);
 
     let dragEnd = async (event) => {
       if (dragContext.enabled != true || dragContext.originalElement == null) {
@@ -1327,7 +1327,7 @@ modules["pages/dashboard"] = class {
         dragEnd(event);
       }
     });
-    page.addEventListener("touchend", dragEnd);
+    //page.addEventListener("touchend", dragEnd);
 
     // Search Bar
     searchInput.addEventListener("input", () => {

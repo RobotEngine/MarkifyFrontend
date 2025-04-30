@@ -171,12 +171,12 @@ modules["dropdowns/moveto"] = class {
       }
       moveButton.setAttribute("disabled", "");
       let folderID = selected.parentElement.getAttribute("folderid");
-      let [code] = await sendRequest("GET", "lessons/folders/move?folder=" + folderID + "&lesson=" + lessonID);
+      let [code] = await sendRequest("GET", "lessons/folders/move?parent=" + folderID + "&lesson=" + lessonID);
       if (folderFrame.querySelector(".dTileDropFolder[selected]") != null) {
         moveButton.removeAttribute("disabled");
       }
       if (code == 200) {
-        if (extra.lessons != null) {
+        /*if (extra.lessons != null) {
           extra.lessons[lessonID].record.parent = folderID;
           let lessonTile = extra.parent.frame.querySelector('.dTile[lesson="' + extra.lessonID + '"]');
           if (lessonTile != null) {
@@ -189,7 +189,7 @@ modules["dropdowns/moveto"] = class {
               }
             }
           }
-        }
+        }*/
         alertModule.open("worked", "<b>Moved Lesson</b><div>The lesson has been moved into the folder.");
         dropdownModule.close();
       }

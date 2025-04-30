@@ -75,7 +75,7 @@ modules["pages/dashboard"] = class {
   </div>`;
   css = {
     ".dPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100vw; width: 100dvw; height: 100vh; height: 100dvh; padding: 8px; left: 0px; top: 0px; justify-content: center`, //transition: .2s
-    ".dPage": `display: flex; width: 100%; height: 100%; max-width: 1585px; box-shadow: var(--darkShadow); border-radius: 12px; overflow: hidden`, //transition: .2s
+    ".dPage": `position: relative; display: flex; width: 100%; height: 100%; max-width: 1585px; box-shadow: var(--darkShadow); border-radius: 12px; overflow: hidden`, //transition: .2s
     
     ".dSidebarHolder": `position: relative; max-width: min(270px, 100%); height: 100%; flex-shrink: 0; background: var(--pageColor); z-index: 2; transition: .4s`,
     ".dBackdropImage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 1; opacity: .75; object-fit: cover; z-index: 1; pointer-events: none`,
@@ -119,13 +119,13 @@ modules["pages/dashboard"] = class {
 
     ".dSidebarFolderParent": `width: -webkit-fill-available`,
     ".dSidebarFolderParent[child]": `padding-left: 20px`,
-    ".dSidebarFolder": `--fillColor: var(--theme); --themeColor: var(--fillColor); position: relative; display: flex; padding: 4px; margin-bottom: 6px; align-items: center`,
+    ".dSidebarFolder": `--fillColor: var(--theme); --themeColor: var(--fillColor); position: relative; display: flex; padding: 4px; margin-bottom: 6px; border-radius: 8px 18px 18px 8px; align-items: center`,
     ".dSidebarFolder[selected]": `--themeColor: #fff !important`,
     ".dSidebarFolder[selected] div[select]": `opacity: 1 !important`,
     ".dSidebarFolder[selected] div[name]": `color: #fff !important`,
     ".dSidebarFolder[inside]": `--folderFill: var(--themeColor)`,
     ".dSidebarFolder svg[folder]": `width: 28px; height: 28px; margin-left: 2px; z-index: 1`,
-    ".dSidebarFolder div[select]": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--fillColor); border-radius: 8px 18px 18px 8px; opacity: 0; transition: .1s`,
+    ".dSidebarFolder div[select]": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--fillColor); border-radius: inherit; opacity: 0; transition: .1s`,
     ".dSidebarFolder:hover div[select]": `opacity: .2`,
     ".dSidebarFolder div[name]": `flex: 1; margin: 0 8px 0 4px; color: var(--textColor); font-size: 16px; font-weight: 600; z-index: 1; text-align: left`,
     ".dSidebarFolder div[name][contenteditable]": `padding: 2px 4px; outline: solid 3px var(--themeColor); border-radius: 4px; overflow: auto`,
@@ -369,9 +369,9 @@ modules["pages/dashboard"] = class {
       if (parent != folderHolder) {
         newFolder.setAttribute("child", "");
       }
-      let folderName = newFolder.querySelector("div[name]");
+      let folderButton = newFolder.querySelector(".dSidebarFolder");
+      let folderName = folderButton.querySelector("div[name]");
       if (folder != null) {
-        let folderButton = newFolder.querySelector(".dSidebarFolder");
         folderButton.setAttribute("folderid", folder._id);
         folderName.textContent = folder.name;
         folderName.title = folder.name;
@@ -474,6 +474,7 @@ modules["pages/dashboard"] = class {
         await sleep(1);
         folderName.focus();
       }
+      return folderButton;
     }
     sidebar.querySelector(".dSidebarNewFolderButton").addEventListener("click", () => {
       let setParent = folderHolder;
@@ -533,7 +534,7 @@ modules["pages/dashboard"] = class {
       if (this.dashSubscribe) {
         this.dashSubscribe.edit(filter);
       } else {
-        this.dashSubscribe = subscribe(filter, (data) => {
+        this.dashSubscribe = subscribe(filter, async (data) => {
           let body = data.data ?? data.body ?? data;
           let lessonID;
           let lesson;
@@ -724,53 +725,70 @@ modules["pages/dashboard"] = class {
               }
               break;
             case "folderupdate":
+              if (folders[body._id] == null) {
+                folders[body._id] = body;
+              }
               folder = folders[body._id];
-              if (folder != null) {
-                existingFolder = folderHolder.querySelector('.dSidebarFolder[folderid="' + body._id + '"]');
-                if (body.hasOwnProperty("name") == true) {
-                  folder.name = body.name;
-                  let newFolderName = cleanString(body.name ?? "Untitled Folder");
-                  if (existingFolder != null) {
-                    existingFolder.querySelector("div[name]").textContent = newFolderName;
-                  }
-                  if (this.sort == body._id) {
-                    let titleTx = titleHolder.querySelector(".dFolderInfo div[title]");
-                    titleTx.textContent = newFolderName;
-                    titleTx.title = newFolderName;
-                  }
+              existingFolder = folderHolder.querySelector('.dSidebarFolder[folderid="' + body._id + '"]');
+              if (body.hasOwnProperty("name") == true) {
+                folder.name = body.name;
+                let newFolderName = cleanString(body.name ?? "Untitled Folder");
+                if (existingFolder != null) {
+                  existingFolder.querySelector("div[name]").textContent = newFolderName;
                 }
-                if (body.hasOwnProperty("color") == true) {
-                  folder.color = body.color;
-                  let setColor = "var(--theme)";
-                  if (body.color != null) {
-                    setColor = "#" + body.color;
-                  }
-                  if (existingFolder != null) {
-                    existingFolder.style.setProperty("--fillColor", setColor);
-                  }
-                  if (this.sort == body._id) {
-                    titleHolder.querySelector(".dFolderInfo").style.setProperty("--themeColor", setColor);
-                  }
+                if (this.sort == body._id) {
+                  let titleTx = titleHolder.querySelector(".dFolderInfo div[title]");
+                  titleTx.textContent = newFolderName;
+                  titleTx.title = newFolderName;
                 }
-                if (body.hasOwnProperty("parent") == true) { // NOT SURE IF THIS WORKS (ADDED FOR FUTURE)
-                  let oldParentFolder = folders[folder.parent];
-                  if (oldParentFolder != null) {
-                    oldParentFolder.folders.splice(oldParentFolder.folders.indexOf(body._id), 1);
+              }
+              if (body.hasOwnProperty("color") == true) {
+                folder.color = body.color;
+                let setColor = "var(--theme)";
+                if (body.color != null) {
+                  setColor = "#" + body.color;
+                }
+                if (existingFolder != null) {
+                  existingFolder.style.setProperty("--fillColor", setColor);
+                }
+                if (this.sort == body._id) {
+                  titleHolder.querySelector(".dFolderInfo").style.setProperty("--themeColor", setColor);
+                }
+              }
+              if (body.hasOwnProperty("parent") == true) {
+                let oldParentFolder = folders[folder.parent];
+                if (oldParentFolder != null) {
+                  oldParentFolder.folders.splice(oldParentFolder.folders.indexOf(body._id), 1);
+                }
+                folder.parent = body.parent;
+                let newParentFolder = folders[body.parent];
+                let newFolder;
+                let parentSort;
+                if (newParentFolder != null) {
+                  newParentFolder.folders = newParentFolder.folders ?? [];
+                  newParentFolder.folders.unshift(body._id);
+                  parentSort = folderHolder.querySelector('.dSidebarFolder[folderid="' + body.parent + '"]');
+                  if (parentSort != null && parentSort.hasAttribute("opened") == true) {
+                    newFolder = await this.addFolderTile(folder, parentSort.parentElement, true);
                   }
-                  folder.parent = body.parent;
-                  let newParentFolder = folders[body.parent];
-                  if (newParentFolder != null) {
-                    newParentFolder.folders = newParentFolder.folders ?? [];
-                    newParentFolder.folders.unshift(body._id);
-                    let parentSort = parent.frame.querySelector('.dSidebarFolder[folderid="' + parentID + '"]');
-                    if (parentSort != null && parentSort.hasAttribute("opened") == true) {
-                      this.addFolderTile(body, parentSort.parentElement, true);
-                    }
+                } else if (body.parent == null) {
+                  newFolder = await this.addFolderTile(folder, folderHolder, true);
+                }
+                if (existingFolder != null) {
+                  existingFolder.parentElement.remove();
+                }
+                if (this.sort == body._id) {
+                  if (newFolder != null) {
+                    newFolder.setAttribute("selected", "");
+                  } else if (parentSort != null) {
+                    this.sort = body.parent;
+                    parentSort.setAttribute("selected", "");
+                    this.updateTiles(parentSort);
                   } else {
-                    this.addFolderTile(folder, folderHolder, true);
-                  }
-                  if (existingFolder != null) {
-                    existingFolder.remove();
+                    this.sort = "recent";
+                    let button = sidebar.querySelector('.dSidebarSort[sort="recent"]');
+                    button.setAttribute("selected", "");
+                    this.updateTiles(button);
                   }
                 }
               }
@@ -791,7 +809,7 @@ modules["pages/dashboard"] = class {
                   }
                 }
                 delete folders[body._id];
-                let changeLessons = records[body._id];
+                let changeLessons = records[body._id] ?? [];
                 for (let c = 0; c < changeLessons.length; c++) {
                   delete lessons[changeLessons[c].split("_")[0]].record.folder;
                 }
@@ -1089,23 +1107,6 @@ modules["pages/dashboard"] = class {
       }
     });
 
-    // MouseDown Listener
-    page.addEventListener("mousedown", (event) => {
-      let target = event.target;
-      let tile = target.closest(".dTile");
-      if (tile == null) {
-        return;
-      }
-      let optionButton = target.closest(".dTileOptions");
-      let lessonTitle = target.closest(".dTileTitle[contenteditable]");
-      if (optionButton == null && lessonTitle == null) {
-        tile.style.removeProperty("transform");
-      } else {
-        tile.style.transform = "scale(1)";
-      }
-    });
-
-    // Right Click Listener
     page.addEventListener("contextmenu", (event) => {
       let target = event.target;
       let tile = target.closest(".dTile");
@@ -1116,14 +1117,226 @@ modules["pages/dashboard"] = class {
       dropdownModule.open(tile.querySelector(".dTileOptions"), "dropdowns/dashboard/options", { parent: this, tile: tile, lessonID: tile.getAttribute("lesson"), lessons: lessons });
     });
 
+    let dragContext = {};
+    
+    let dragStart = (event) => {
+      let target = event.target;
+      let folder = target.closest(".dSidebarFolder");
+      if (folder != null) {
+        dragContext.originalElement = folder;
+        dragContext.width = folder.clientWidth; //sidebar.clientWidth - 16
+        dragContext.height = folder.clientHeight - 8;
+      }
+      let tile = target.closest(".dTile");
+      if (tile == null) {
+        return;
+      }
+      let holder = tile.querySelector(".dTileInfoHolder");
+      if (holder != null) {
+        dragContext.originalElement = holder;
+        dragContext.width = holder.clientWidth;
+        dragContext.height = holder.clientHeight;
+      }
+      let optionButton = target.closest(".dTileOptions");
+      let lessonTitle = target.closest(".dTileTitle[contenteditable]");
+      if (optionButton == null && lessonTitle == null) {
+        tile.style.removeProperty("transform");
+      } else {
+        tile.style.transform = "scale(1)";
+      }
+    }
+    page.addEventListener("pointerdown", (event) => {
+      if (event.pointerType == "mouse") {
+        dragStart(event);
+      }
+    });
+    page.addEventListener("touchstart", dragStart);
+
+    let removeDrag = (moved) => {
+      let removeElement = dragContext.element;
+      if (removeElement == null) {
+        return;
+      }
+      if (dragContext.originalElement != null) {
+        let button = dragContext.originalElement.closest(".dTile, .dSidebarFolderParent");
+        let pageRect = dashboard.getBoundingClientRect();
+        let originalRect = dragContext.originalElement.getBoundingClientRect();
+        if (moved != true) {
+          removeElement.style.transform = "translate(" + (originalRect.x - pageRect.x - dragContext.lastX + 8) + "px, " + (originalRect.y - pageRect.y - dragContext.lastY + 8) + "px) scale(.975)";
+        }
+        (async () => {
+          await sleep(100);
+          if (button != null) {
+            button.removeAttribute("disabled");
+          }
+        })();
+      } else {
+        removeElement.style.transform = "translate(0px, 0px) scale(0)";
+      }
+      removeElement.style.opacity = 0;
+      (async () => {
+        await sleep(200);
+        if (removeElement != null) {
+          removeElement.remove();
+        }
+      })();
+      dragContext = {};
+    }
+    let dragMove = (event) => {
+      if (dragContext.originalElement == null) {
+        return removeDrag();
+      }
+      if (mouseDown() == false) {
+        return removeDrag();
+      }
+      let pageRect = dashboard.getBoundingClientRect();
+      let mouseX = (event.x ?? event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0) - pageRect.x;
+      let mouseY = (event.y ?? event.clientY ?? ((event.changedTouches ?? [])[0] ?? {}).clientY ?? 0) - pageRect.y;
+      dragContext.startX = dragContext.startX ?? mouseX;
+      dragContext.startY = dragContext.startY ?? mouseY;
+      dragContext.lastX = mouseX;
+      dragContext.lastY = mouseY;
+      if (dragContext.enabled != true) {
+        if (Math.abs(mouseX - dragContext.startX) > 5 || Math.abs(mouseY - dragContext.startY) > 5) {
+          dragContext.enabled = true;
+          dragContext.element = dragContext.originalElement.cloneNode(true);
+          dragContext.element.style.position = "absolute";
+          dragContext.element.style.width = dragContext.width + "px";
+          dragContext.element.style.height = dragContext.height + "px";
+          dragContext.element.style.background = "var(--pageColor)";
+          dragContext.element.style.boxShadow = "var(--shadow)";
+          dragContext.element.style.borderRadius = 8 + "px";
+          dragContext.element.style.zIndex = 10;
+          dragContext.element.style.pointerEvents = "none";
+          let originalRect = dragContext.originalElement.getBoundingClientRect();
+          dragContext.element.style.transform = "translate(" + (originalRect.x - pageRect.x - mouseX) + "px, " + (originalRect.y - pageRect.y - mouseY) + "px) scale(.975)";
+          dragContext.element.style.transformOrigin = "0 0";
+          dragContext.element.style.opacity = 0;
+          dragContext.element.style.transition = "transform .3s, opacity .2s";
+          dashboard.appendChild(dragContext.element);
+          dragContext.originalElement.closest(".dTile, .dSidebarFolderParent").setAttribute("disabled", "");
+          dragContext.element.offsetHeight;
+          dragContext.element.style.transform = "translate(0px, 0px) scale(.975)";
+          dragContext.element.style.opacity = 1;
+          openSidebar();
+        } else {
+          return;
+        }
+      }
+      if (dragContext.element == null) {
+        return;
+      }
+      dragContext.element.style.left = (mouseX - 8) + "px";
+      dragContext.element.style.top = (mouseY - 8) + "px";
+    }
+    page.addEventListener("mousemove", dragMove);
+    page.addEventListener("touchmove", dragMove);
+
+    let dragEnd = async (event) => {
+      if (dragContext.enabled != true || dragContext.originalElement == null) {
+        return removeDrag();
+      }
+      let target = document.elementFromPoint(
+        event.x ?? event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0,
+        event.y ?? event.clientY ?? ((event.changedTouches ?? [])[0] ?? {}).clientY ?? 0
+      );
+      let originalButton = dragContext.originalElement.closest("a");
+      let originalButtonDisable = dragContext.originalElement.closest(".dTile, .dSidebarFolderParent");
+      let parentFolder = target.closest(".dSidebarFolder[folderid]");
+      if (parentFolder != null) {
+        dragContext.originalElement = null;
+        removeDrag();
+        if (originalButton.hasAttribute("lesson") == true) {
+          let parentID = parentFolder.getAttribute("folderid");
+          let lessonID = originalButton.getAttribute("lesson");
+          let lesson = lessons[lessonID];
+          if (lesson.record == null || lesson.record.folder != parentID) { // MOVING LESSON INTO FOLDER:
+            let [code] = await sendRequest("POST", "lessons/folders/move?parent=" + parentID + "&lesson=" + lessonID);
+            if (code == 200) {
+              lesson.record.parent = parentID;
+              let lessonTile = tileHolder.querySelector('.dTile[lesson="' + lessonID + '"]');
+              if (lessonTile != null) {
+                if (this.sort.length > 20 && this.sort != parentID) {
+                  let lessonContent = lessonTile.closest(".content");
+                  let noLessons = lessonContent.querySelector(".dNoLessons");
+                  lessonTile.remove();
+                  if (noLessons != null && lessonContent.querySelector(".dTiles").childElementCount < 1) {
+                    noLessons.style.removeProperty("display");
+                  }
+                }
+              }
+              alertModule.open("worked", "<b>Moved Lesson</b><div>The lesson has been moved into the folder.");
+            }
+          }
+        } else if (originalButton.hasAttribute("folderid") == true) {
+          let parentID = parentFolder.getAttribute("folderid");
+          let folderID = originalButton.getAttribute("folderid");
+          let folder = folders[folderID];
+          if (folder.parent != parentID) { // MOVING FOLDER INTO FOLDER:
+            let [code] = await sendRequest("POST", "lessons/folders/move?parent=" + parentID + "&folder=" + folderID);
+            if (code == 200) {
+              alertModule.open("worked", "<b>Moved Folder</b><div>The folder has been moved into another folder.");
+            }
+          }
+        }
+        if (originalButtonDisable != null) {
+          originalButtonDisable.removeAttribute("disabled");
+        }
+        return;
+      }
+      if (originalButton.hasAttribute("lesson") == true && target.closest(".dSidebarSorts") != null) {
+        dragContext.originalElement = null;
+        removeDrag();
+        if (originalButton.hasAttribute("lesson") == true) {
+          let lessonID = originalButton.getAttribute("lesson");
+          let lesson = lessons[lessonID];
+          if (lesson.record != null && lesson.record.folder != null) { // MOVING LESSON FROM FOLDER:
+            let [code] = await sendRequest("POST", "lessons/folders/movefrom?lesson=" + lessonID);
+            if (code == 200) {
+              alertModule.open("worked", "<b>Moved Lesson</b><div>The lesson has been removed from the folder.");
+            }
+          }
+        }
+        if (originalButtonDisable != null) {
+          originalButtonDisable.removeAttribute("disabled");
+        }
+        return;
+      }
+      if (originalButton.hasAttribute("folderid") == true && target.closest(".dSidebar") != null && target.closest(".dSidebarFolderParent") == null) {
+        dragContext.originalElement = null;
+        removeDrag();
+        if (originalButton.hasAttribute("folderid") == true) {
+          let folderID = originalButton.getAttribute("folderid");
+          let folder = folders[folderID];
+          if (folder.parent != null) { // MOVING FOLDER FROM FOLDER:
+            let [code] = await sendRequest("POST", "lessons/folders/movefrom?folder=" + folderID);
+            if (code == 200) {
+              alertModule.open("worked", "<b>Moved Folder</b><div>The folder has been removed from the parent folder.");
+            }
+          }
+        }
+        if (originalButtonDisable != null) {
+          originalButtonDisable.removeAttribute("disabled");
+        }
+        return;
+      }
+      removeDrag();
+    }
+    page.addEventListener("pointerup", (event) => {
+      if (event.pointerType == "mouse") {
+        dragEnd(event);
+      }
+    });
+    page.addEventListener("touchend", dragEnd);
+
     // Search Bar
     searchInput.addEventListener("input", () => {
       if (searchInput.value == "") {
         unselectSidebarButton();
-        let button = sidebar.querySelector('.dSidebarSort[sort="recent"]');
         let prevSort = this.sort;
         scrollEventPass = null;
         this.sort = "recent";
+        let button = sidebar.querySelector('.dSidebarSort[sort="recent"]');
         button.setAttribute("selected", "");
         return this.updateTiles(button, null, prevSort);
       }
@@ -1493,7 +1706,7 @@ modules["dropdowns/dashboard/options"] = class {
       let [code] = await sendRequest("POST", "lessons/folders/movefrom?lesson=" + lessonID);
       moveFromButton.removeAttribute("disabled");
       if (code == 200) {
-        delete extra.lessons[lessonID].record.parent;
+        /*delete extra.lessons[lessonID].record.parent;
         if (extra.parent.sort.length > 20 && extra.parent.sort != folderID) {
           let lessonContent = tile.closest(".content");
           let noLessons = lessonContent.querySelector(".dNoLessons");
@@ -1501,7 +1714,7 @@ modules["dropdowns/dashboard/options"] = class {
           if (noLessons != null && lessonContent.querySelector(".dTiles").childElementCount < 1) {
             noLessons.style.removeProperty("display");
           }
-        }
+        }*/
         alertModule.open("worked", "<b>Moved Lesson</b><div>The lesson has been removed from the folder.");
         dropdownModule.close();
       }

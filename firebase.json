@@ -9,12 +9,37 @@
     "cleanUrls": true,
     "trailingSlash": true,
     
-    "headers": [ {
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "X-Frame-Options",
+            "value": "ALLOWALL"
+          },
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          },
+          {
+            "key": "Referrer-Policy",
+            "value": "strict-origin"
+          },
+          {
+            "key": "Permissions-Policy",
+            "value": "*"
+          }
+        ]
+      },
+      {
         "source": "**/*.@(eot|otf|ttf|ttc|woff|font.css)",
-        "headers": [ {
-          "key": "Cache-control",
-          "value": "max-age=1800"
-        } ]
-    } ]
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=1800"
+          }
+        ]
+      }
+    ]
   }
 }

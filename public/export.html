@@ -11,16 +11,8 @@
     <script>
       let queryString = window.location.search;
       let urlParams = new URLSearchParams(queryString);
-      console.log(urlParams.get("download"));
       let frame = document.body.querySelector("iframe");
-      console.log(frame)
-      /*
-      frame.addEventListener("load", () => {
-        frame.print();
-      });
-      */
       frame.src = decodeURIComponent(urlParams.get("download"));
-      //window.print();
     </script>
   </body>
 </html>

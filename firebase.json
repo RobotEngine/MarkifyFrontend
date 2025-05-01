@@ -10,32 +10,33 @@
     "trailingSlash": true,
     "headers": [
       {
-        "source": "index.html",
+        "source": "**",
         "headers": [
           {
             "key": "Content-Security-Policy",
-            "value": "script-src 'self' 'sha256-nRcgRt3XNN0aZXdzMDUhXYSzvNDbxXeNTBXS8ajcR38=' https://*.simplesocket.net https://*.exotek.co https://storage.googleapis.com; frame-src * blob:"
-          }
-        ]
-      },
-      {
-        "source": "join.html",
-        "headers": [
+            "value": "script-src 'self' https://*.simplesocket.net https://*.exotek.co https://storage.googleapis.com; frame-src * blob:"
+          },
           {
-            "key": "Content-Security-Policy",
-            "value": "script-src 'self' 'sha256-IOC9xMdBljG7nAznL3DuOXvfgk45MzgJiud2jdhtn1I=' https://*.simplesocket.net https://*.exotek.co https://storage.googleapis.com; frame-src * blob:"
-          }
-        ]
-      },
-      {
-        "source": "export.html",
-        "headers": [
+            "key": "X-Frame-Options",
+            "value": "ALLOWALL"
+          },
           {
-            "key": "Content-Security-Policy",
-            "value": "script-src 'self' 'sha256-qSSHxozBNKfKvOgLPtO/ro40A7Y3wZAYcexAmUY3Ubg=' https://*.simplesocket.net https://*.exotek.co https://storage.googleapis.com; frame-src * blob:"
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          },
+          {
+            "key": "Referrer-Policy",
+            "value": "strict-origin-when-cross-origin"
           }
         ]
       },
+
+      { "source": "/", "headers": [ { "key": "Content-Security-Policy", "value": "script-src 'self' 'sha256-nRcgRt3XNN0aZXdzMDUhXYSzvNDbxXeNTBXS8ajcR38=' https://*.simplesocket.net https://*.exotek.co https://storage.googleapis.com; frame-src * blob:" } ] },
+      
+      { "source": "/join", "headers": [ { "key": "Content-Security-Policy", "value": "script-src 'self' 'sha256-IOC9xMdBljG7nAznL3DuOXvfgk45MzgJiud2jdhtn1I=' https://*.simplesocket.net https://*.exotek.co https://storage.googleapis.com; frame-src * blob:" } ] },
+      
+      { "source": "/export", "headers": [ { "key": "Content-Security-Policy", "value": "script-src 'self' 'sha256-X6mmDHcwJEHs0FGxvR3d1QFcl1gwxvsBwsAZleep9LU=' https://*.simplesocket.net https://*.exotek.co https://storage.googleapis.com; frame-src * blob:" } ] },
+      
       {
         "source": "**/*.@(eot|otf|ttf|ttc|woff|font.css)",
         "headers": [

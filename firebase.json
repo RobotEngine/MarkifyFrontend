@@ -36,7 +36,7 @@
         ]
       },
       {
-        "source": "*/index.html",
+        "source": "index.html",
         "headers": [
           {
             "key": "Content-Security-Policy",
@@ -45,7 +45,7 @@
         ]
       },
       {
-        "source": "*/join.html",
+        "source": "join.html",
         "headers": [
           {
             "key": "Content-Security-Policy",
@@ -54,7 +54,7 @@
         ]
       },
       {
-        "source": "*/export.html",
+        "source": "export.html",
         "headers": [
           {
             "key": "Content-Security-Policy",

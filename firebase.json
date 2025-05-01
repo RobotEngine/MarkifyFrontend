@@ -8,26 +8,57 @@
     ],
     "cleanUrls": true,
     "trailingSlash": true,
-    
     "headers": [
       {
         "source": "**",
         "headers": [
           {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(html|svg|xml)",
+        "headers": [
+          {
             "key": "Content-Security-Policy",
-            "value": "script-src 'self' 'sha256-nRcgRt3XNN0aZXdzMDUhXYSzvNDbxXeNTBXS8ajcR38=' https://*.simplesocket.net https://*.exotek.co https://storage.googleapis.com; frame-src * blob:"
+            "value": "script-src 'self' https://*.simplesocket.net https://*.exotek.co https://storage.googleapis.com; frame-src * blob:"
           },
           {
             "key": "X-Frame-Options",
             "value": "ALLOWALL"
           },
           {
-            "key": "X-Content-Type-Options",
-            "value": "nosniff"
-          },
-          {
             "key": "Referrer-Policy",
             "value": "strict-origin-when-cross-origin"
+          }
+        ]
+      },
+      {
+        "source": "*/index.html",
+        "headers": [
+          {
+            "key": "Content-Security-Policy",
+            "value": "script-src 'self' 'sha256-nRcgRt3XNN0aZXdzMDUhXYSzvNDbxXeNTBXS8ajcR38=' https://*.simplesocket.net https://*.exotek.co https://storage.googleapis.com; frame-src * blob:"
+          }
+        ]
+      },
+      {
+        "source": "*/join.html",
+        "headers": [
+          {
+            "key": "Content-Security-Policy",
+            "value": "script-src 'self' 'sha256-IOC9xMdBljG7nAznL3DuOXvfgk45MzgJiud2jdhtn1I=' https://*.simplesocket.net https://*.exotek.co https://storage.googleapis.com; frame-src * blob:"
+          }
+        ]
+      },
+      {
+        "source": "*/export.html",
+        "headers": [
+          {
+            "key": "Content-Security-Policy",
+            "value": "script-src 'self' 'sha256-qSSHxozBNKfKvOgLPtO/ro40A7Y3wZAYcexAmUY3Ubg=' https://*.simplesocket.net https://*.exotek.co https://storage.googleapis.com; frame-src * blob:"
           }
         ]
       },

@@ -452,8 +452,10 @@ modules["editor/toolbar"] = class {
       let module = { ...(this.currentToolModule ?? {}), ...(moduleData ?? {}) };
       if (module.USER_SELECT != null) {
         page.style.userSelect = module.USER_SELECT;
+        page.style.webkitUserSelect = module.USER_SELECT;
       } else {
         page.style.removeProperty("user-select");
+        page.style.removeProperty("webkit-user-select");
       }
       if (module.TOUCH_ACTION != null) {
         contentHolder.style.touchAction = module.TOUCH_ACTION;

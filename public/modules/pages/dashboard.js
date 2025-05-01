@@ -1123,9 +1123,11 @@ modules["pages/dashboard"] = class {
       let target = event.target;
       let folder = target.closest(".dSidebarFolder");
       if (folder != null) {
-        dragContext.originalElement = folder;
-        dragContext.width = folder.clientWidth; //sidebar.clientWidth - 16
-        dragContext.height = folder.clientHeight - 8;
+        dragContext = {
+          originalElement: folder,
+          width: folder.clientWidth, //sidebar.clientWidth - 16
+          height: folder.clientHeight - 8
+        };
       }
       let tile = target.closest(".dTile");
       if (tile == null) {
@@ -1139,9 +1141,11 @@ modules["pages/dashboard"] = class {
       }
       let holder = tile.querySelector(".dTileInfoHolder");
       if (holder != null) {
-        dragContext.originalElement = holder;
-        dragContext.width = holder.clientWidth;
-        dragContext.height = holder.clientHeight;
+        dragContext = {
+          originalElement: holder,
+          width: holder.clientWidth,
+          height: holder.clientHeight
+        };
       }
     }
     page.addEventListener("mousedown", dragStart);
@@ -1153,6 +1157,8 @@ modules["pages/dashboard"] = class {
     //page.addEventListener("touchstart", dragStart);
 
     let removeDrag = (moved) => {
+      dashboard.style.removeProperty("user-select");
+      dashboard.style.removeProperty("webkit-user-select");
       let removeElement = dragContext.element;
       if (removeElement == null) {
         return;
@@ -1219,6 +1225,8 @@ modules["pages/dashboard"] = class {
           dragContext.element.style.transform = "translate(0px, 0px) scale(.975)";
           dragContext.element.style.opacity = 1;
           openSidebar();
+          dashboard.style.userSelect = "none";
+          dashboard.style.webkitUserSelect = "none";
         } else {
           return;
         }

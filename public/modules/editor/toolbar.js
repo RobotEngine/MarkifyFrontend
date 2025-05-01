@@ -6572,7 +6572,7 @@ modules["editor/toolbar/more"] = class {
       return (selectB.l ?? selectB.sync) - (selectA.l ?? selectA.sync);
     });
     for (let i = 0; i < selectKeys.length; i++) {
-      this.editor.minLayer++;
+      this.editor.minLayer--;
       newLayers[selectKeys[i]] = this.editor.minLayer;
     }
     await this.toolbar.saveSelecting((render) => { return { l: newLayers[render._id] ?? render.l }; });

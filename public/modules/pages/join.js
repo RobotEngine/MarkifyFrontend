@@ -265,6 +265,7 @@ modules["pages/join"] = class {
     let tryingToJoin = false;
     let tryingToJoinAlert;
     let processJoin = async () => {
+      joinButton.removeAttribute("disabled");
       let transferData = { pin: lesson.pin };
       if (lesson.forceLogin != true) {
         let nickname = joinNickname.value;

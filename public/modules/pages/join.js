@@ -281,13 +281,15 @@ modules["pages/join"] = class {
         }
         setLocalStore("nickname", nickname);
         transferData.name = nickname;
-        if (captcha == null) {
-          tryingToJoin = true;
-          joinButton.setAttribute("disabled", "");
-          tryingToJoinAlert = await alertModule.open("info", "<b>Hold On</b>Verifying your device...");
-          return;
+        if (userID == null) {
+          if (captcha == null) {
+            tryingToJoin = true;
+            joinButton.setAttribute("disabled", "");
+            tryingToJoinAlert = await alertModule.open("info", "<b>Hold On</b>Verifying your device...");
+            return;
+          }
+          transferData.captcha = captcha;
         }
-        transferData.captcha = captcha;
       }
       modifyParams("lesson", lesson.id);
       setFrame("pages/lesson", null, transferData);
@@ -312,11 +314,13 @@ modules["pages/join"] = class {
         },
       });
     }
-    if (window.turnstile == null) {
-      window.onloadTurnstileCallback = loadTurnstile;
-      loadScript("https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onloadTurnstileCallback");
-    } else {
-      loadTurnstile();
+    if (userID == null) {
+      if (window.turnstile == null) {
+        window.onloadTurnstileCallback = loadTurnstile;
+        loadScript("https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onloadTurnstileCallback");
+      } else {
+        loadTurnstile();
+      }
     }
 
     let prevNickname = getLocalStore("nickname");

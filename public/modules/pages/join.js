@@ -37,6 +37,7 @@ modules["pages/join"] = class {
             <button class="buttonAnim border" title="Logout and switch account."><img src="./images/tooltips/close.svg"></button>
           </div>
         </div>
+        <div class="jCFTurnstile" hidden></div>
         <button class="largeButton border" join>Join Lesson</button>
         <div class="jPromo">Create your lesson at <a href="#launch" target="_blank">${location.host}</a></div>
         <div class="jPolicies">
@@ -82,6 +83,8 @@ modules["pages/join"] = class {
     ".jUserInfo .jAuthHolder span": `margin-left: 6px; color: var(--secondary); font-size: 20px; font-weight: 600`,
     ".jUserInfo .jAuthHolder button": `position: relative; width: 22px; height: 22px; margin: 0 3px 0 12px; --borderWidth: 3px; --borderRadius: 14px`,
     ".jUserInfo .jAuthHolder button img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
+    
+    ".jCFTurnstile": `margin: 12px`,
     ".jModal .largeButton[join]": `display: none; margin: 12px 0`,
 
     ".jPromo": `margin-top: 24px`,
@@ -216,8 +219,7 @@ modules["pages/join"] = class {
     let secondStepInit = (body) => {
       if (body.skip == true){ 
         modifyParams("lesson", body.id);
-        setFrame("pages/lesson", null);
-        return;
+        return setFrame("pages/lesson", null);
       }
       continueButton.style.display = "none";
       if (body.forceLogin != true) {
@@ -259,9 +261,19 @@ modules["pages/join"] = class {
     }
     continueButton.addEventListener("click", processContinue);
 
-    let processJoin = () => {
+    let captcha;
+    let tryingToJoin = false;
+    let tryingToJoinAlert;
+    let processJoin = async () => {
       let transferData = { pin: lesson.pin };
       if (lesson.forceLogin != true) {
+        if (captcha == null) {
+          tryingToJoin = true;
+          joinButton.setAttribute("disabled", "");
+          tryingToJoinAlert = await alertModule.open("info", "<b>Hold On</b>Verifying your device...");
+          return;
+        }
+        transferData.captcha = captcha;
         let nickname = joinNickname.value;
         if (nickname.length < 1) {
           alertModule.open("error", "<b>Invalid Screen Name</b>The screen name can't be empty.");
@@ -286,6 +298,25 @@ modules["pages/join"] = class {
         processJoin();
       }
     });
+
+    let loadTurnstile = () => {
+      turnstile.render(modal.querySelector(".jCFTurnstile"), {
+        sitekey: "0x4AAAAAABahopZOZ1FRoqHp",
+        callback: (token) => {
+          captcha = token;
+          if (tryingToJoin == true) {
+            alertModule.close(tryingToJoinAlert);
+            processJoin();
+          }
+        },
+      });
+    }
+    if (window.turnstile == null) {
+      window.onloadTurnstileCallback = loadTurnstile;
+      loadScript("https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onloadTurnstileCallback");
+    } else {
+      loadTurnstile();
+    }
 
     let prevNickname = getLocalStore("nickname");
     if (prevNickname && prevNickname.length > 0) {

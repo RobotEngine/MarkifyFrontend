@@ -14,7 +14,7 @@
         "headers": [
           {
             "key": "Content-Security-Policy",
-            "value": "script-src 'self' https://*.simplesocket.net https://*.exotek.co https://storage.googleapis.com; frame-src * blob:"
+            "value": "script-src 'self' https://*.simplesocket.net https://*.exotek.co https://*.googleapis.com https://*.cloudflare.com; frame-src * blob:"
           },
           {
             "key": "X-Frame-Options",
@@ -31,11 +31,11 @@
         ]
       },
 
-      { "source": "/", "headers": [ { "key": "Content-Security-Policy", "value": "script-src 'self' 'sha256-nRcgRt3XNN0aZXdzMDUhXYSzvNDbxXeNTBXS8ajcR38=' https://*.simplesocket.net https://*.exotek.co https://storage.googleapis.com; frame-src * blob:" } ] },
+      { "source": "/", "headers": [ { "key": "Content-Security-Policy", "value": "script-src 'self' 'sha256-nRcgRt3XNN0aZXdzMDUhXYSzvNDbxXeNTBXS8ajcR38=' https://*.simplesocket.net https://*.exotek.co https://*.googleapis.com https://*.cloudflare.com; frame-src * blob:" } ] },
       
-      { "source": "/join", "headers": [ { "key": "Content-Security-Policy", "value": "script-src 'self' 'sha256-IOC9xMdBljG7nAznL3DuOXvfgk45MzgJiud2jdhtn1I=' https://*.simplesocket.net https://*.exotek.co https://storage.googleapis.com; frame-src * blob:" } ] },
+      { "source": "/join", "headers": [ { "key": "Content-Security-Policy", "value": "script-src 'self' 'sha256-IOC9xMdBljG7nAznL3DuOXvfgk45MzgJiud2jdhtn1I=' https://*.simplesocket.net https://*.exotek.co https://*.googleapis.com https://*.cloudflare.com; frame-src * blob:" } ] },
       
-      { "source": "/export", "headers": [ { "key": "Content-Security-Policy", "value": "script-src 'self' 'sha256-X6mmDHcwJEHs0FGxvR3d1QFcl1gwxvsBwsAZleep9LU=' https://*.simplesocket.net https://*.exotek.co https://storage.googleapis.com; frame-src * blob:" } ] },
+      { "source": "/export", "headers": [ { "key": "Content-Security-Policy", "value": "script-src 'self' 'sha256-X6mmDHcwJEHs0FGxvR3d1QFcl1gwxvsBwsAZleep9LU=' https://*.simplesocket.net https://*.exotek.co https://*.googleapis.com https://*.cloudflare.com; frame-src * blob:" } ] },
       
       {
         "source": "**/*.@(eot|otf|ttf|ttc|woff|font.css)",

@@ -667,6 +667,9 @@ modules["pages/lesson"] = class {
       } else {
         sendBody.name = getParam("name");
       }
+      if (joinData.captcha != null) {
+        sendBody.captcha = joinData.captcha;
+      }
       let guest = getLocalStore("guest");
       if (guest != null) {
         guest = JSON.parse(guest);

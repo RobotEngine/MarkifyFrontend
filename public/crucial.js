@@ -879,7 +879,7 @@ let init = async () => {
     }
     removeLocalStore("state");
     modifyParams("state");*/
-    if (document.referrer != null && (new URL(document.referrer)).host != "exotek.co") {
+    if ((document.referrer ?? "") != "" && (new URL(document.referrer)).host != "exotek.co") {
       return promptLogin();
     }
     let sendBody = {

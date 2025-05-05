@@ -267,13 +267,6 @@ modules["pages/join"] = class {
     let processJoin = async () => {
       let transferData = { pin: lesson.pin };
       if (lesson.forceLogin != true) {
-        if (captcha == null) {
-          tryingToJoin = true;
-          joinButton.setAttribute("disabled", "");
-          tryingToJoinAlert = await alertModule.open("info", "<b>Hold On</b>Verifying your device...");
-          return;
-        }
-        transferData.captcha = captcha;
         let nickname = joinNickname.value;
         if (nickname.length < 1) {
           alertModule.open("error", "<b>Invalid Screen Name</b>The screen name can't be empty.");
@@ -287,6 +280,13 @@ modules["pages/join"] = class {
         }
         setLocalStore("nickname", nickname);
         transferData.name = nickname;
+        if (captcha == null) {
+          tryingToJoin = true;
+          joinButton.setAttribute("disabled", "");
+          tryingToJoinAlert = await alertModule.open("info", "<b>Hold On</b>Verifying your device...");
+          return;
+        }
+        transferData.captcha = captcha;
       }
       modifyParams("lesson", lesson.id);
       setFrame("pages/lesson", null, transferData);

@@ -9,7 +9,7 @@ modules["editor/editor"] = class {
   </div>
   `;
   css = {
-    ".eContent": `--interfacePadding: 58px; position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - (var(--interfacePadding) * 2)); min-height: calc(100vh - (var(--interfacePadding) * 2)); padding: var(--interfacePadding); align-items: center; overflow: hidden; pointer-events: all; transition: background-color .3s; --zoom: 1`,
+    ".eContent": `--interfacePadding: 58px; position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - (var(--interfacePadding) * 2)); min-height: calc(100vh - (var(--interfacePadding) * 2)); padding: var(--interfacePadding); align-items: center; overflow: hidden; background-color: var(--backgroundColor); pointer-events: all; transition: background-color .3s; --zoom: 1`,
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 3; overflow: hidden; pointer-events: none`,
     ".eEditorContent": `position: relative`,
     ".eAnnotations": `--startZIndex: 0; position: relative; width: 1px; height: 1px; transform-origin: 0 0; transform: scale(var(--zoom)); z-index: 2; pointer-events: none`,
@@ -2552,12 +2552,15 @@ modules["editor/editor"] = class {
       if (setColor != null) {
         this.backgroundColor = setColor;
       }
+      content.style.setProperty("--backgroundColor", "#" + this.backgroundColor);
       if (this.utils.contrastCheck(this.backgroundColor) == true) {
         background.style.setProperty("background-image", "url(./images/editor/backdropblack.svg)");
+        content.style.setProperty("--secondaryBackgroundColor", "#" + this.utils.darkenHex(this.backgroundColor, 20));
       } else {
         background.style.setProperty("background-image", "url(./images/editor/backdropwhite.svg)");
+        content.style.setProperty("--secondaryBackgroundColor", "#" + this.utils.lightenHex(this.backgroundColor, 20));
       }
-      content.style.backgroundColor = "#" + this.backgroundColor;
+      content.style.setProperty("--backgroundColor", "#" + this.backgroundColor);
     }
     this.updateBackground();
     
@@ -4098,7 +4101,7 @@ modules["editor/render/page"] = class {
   }
 }
 modules["editor/render/media"] = class {
-  ACTION_BAR_TOOLS = ["unlock", "delete"];
+  ACTION_BAR_TOOLS = ["imageborder", "unlock", "delete"];
 
   SELECTION_FUNCTION = (selection) => {
     if (["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {
@@ -4107,7 +4110,10 @@ modules["editor/render/media"] = class {
   }
 
   css = {
-    ".eAnnotation[media] img": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; pointer-events: all; border-radius: 12px`
+    ".eAnnotation[media]": `border-radius: 12px`,
+    ".eAnnotation[media] > img": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; pointer-events: all; border-radius: inherit; transition: all .1s, border-radius 0s`,
+    ".eAnnotation[media][border]:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: all; border-radius: inherit; background: var(--backgroundColor); box-shadow: inset 0px 0px 2px 0px var(--secondaryBackgroundColor)`,
+    ".eAnnotation[media][border] > img": `width: calc(100% - 12px); height: calc(100% - 12px); left: 6px; top: 6px; border-radius: 6px`
   };
   render = (anno, element, holder) => {
     if (element == null) {
@@ -4128,6 +4134,12 @@ modules["editor/render/media"] = class {
     let image = element.querySelector("img");
 
     image.style.opacity = (anno.o ?? 100) / 100;
+
+    if (anno.border != false) {
+      element.setAttribute("border", "");
+    } else {
+      element.removeAttribute("border");
+    }
 
     if (this.parent.exporting != true) {
       if (anno.d != null || image.hasAttribute("src") == false) {

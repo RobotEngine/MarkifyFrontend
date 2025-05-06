@@ -7222,7 +7222,7 @@ modules["editor/toolbar/reactions"] = class {
 }
 
 
-// Page Functions:
+// Page Modules:
 modules["editor/toolbar/uploadpage"] = class {
   setActionButton = async (button) => {
     let selectKeys = Object.keys(this.editor.selecting);
@@ -7619,7 +7619,28 @@ modules["editor/toolbar/hidepage"] = class {
   }
 }
 
-// Embed Functions:
+// Media Modules:
+modules["editor/toolbar/imageborder"] = class {
+  setActionButton = async (button) => {
+    if (button != null) {
+      setSVG(button, "./images/editor/toolbar/imageborder.svg");
+    }
+    if (this.parent.getPreferenceTool().border != false) {
+      this.button.setAttribute("selecthighlight", "");
+    } else {
+      this.button.removeAttribute("selecthighlight");
+    }
+  }
+
+  TOOLTIP = "Image Border";
+
+  js = async () => {
+    await this.toolbar.saveSelecting(() => { return { border: !(this.button.hasAttribute("selecthighlight")) }; }, { refreshActionBar: false });
+    this.setActionButton();
+  }
+}
+
+// Embed Modules:
 modules["editor/toolbar/setembed"] = class {
   setActionButton = async (button) => {
     if (button != null) {
@@ -7801,7 +7822,7 @@ modules["modals/editor/embed"] = class {
   }
 }
 
-// Text Functions:
+// Text Modules:
 modules["editor/toolbar/textedit"] = class {
   setActionButton = async (button) => {
     if (button != null) {

@@ -4690,13 +4690,13 @@ modules["editor/toolbar/pen"] = class {
     let position = this.editor.utils.scaleToDoc(mouseX, mouseY);
     let toolPreference = this.parent.getToolPreference();
     let useThickness = this.THICKNESS ?? toolPreference.thickness;
-    let halfUseThickness = useThickness / 2;
+    let halfUseThickness = this.editor.math.round(useThickness / 2);
     this.annotation = {
       render: {
         _id: this.editor.render.tempID(),
         f: this.FUNCTION,
         p: [this.editor.math.round(position.x - halfUseThickness), this.editor.math.round(position.y - halfUseThickness)],
-        s: [0, 0],
+        s: [useThickness, useThickness],
         l: this.editor.maxLayer + 1,
         c: this.COLOR ?? toolPreference.color.selected,
         t: useThickness,

@@ -3356,11 +3356,9 @@ modules["editor/render/draw"] = class {
     let x = anno.p[0]; // + halfT;
     let y = anno.p[1]; // + halfT;
     let transform = "translate3d(" + x + "px," + y + "px, 0)";
-    let drawSetWidth;
     let drawSetPoints = "";
     if (anno.d.length == 2) {
-      drawSetPoints = (width / 2) + "," + (height / 2) + " " + ((width / 2) + .1) + "," + ((height / 2) + .1);
-      drawSetWidth = width;
+      drawSetPoints = (anno.t / 2) + "," + (anno.t / 2) + " " + ((anno.t / 2) + .1) + "," + ((anno.t / 2) + .1);
     } else {
       let scaleW = 1;
       let scaleH = 1;
@@ -3387,12 +3385,11 @@ modules["editor/render/draw"] = class {
       for (let i = 0; i < anno.d.length; i += 2) {
         drawSetPoints += (halfT + (anno.d[i]) * scaleW) + "," + (halfT + (anno.d[i + 1] * scaleH)) + " ";
       }
-      drawSetWidth = anno.t;
     }
     if (element == null) {
       holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" style="width: ${width}px; height: ${height}px" new>
         <svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
-          <polyline stroke-width="${parseFloat(drawSetWidth)}" points="${drawSetPoints}" stroke="${"#" + cleanString(anno.c)}" opacity="${parseFloat(anno.o) / 100}"/>
+          <polyline stroke-width="${parseFloat(anno.t)}" points="${drawSetPoints}" stroke="${"#" + cleanString(anno.c)}" opacity="${parseFloat(anno.o) / 100}"/>
         </svg>
       </div>`);
       element = holder.querySelector(".eAnnotation[new]");
@@ -3407,7 +3404,7 @@ modules["editor/render/draw"] = class {
       let svg = element.querySelector("svg");
       let path = svg.querySelector("polyline");
       svg.setAttribute("viewBox", "0 0 " + width + " " + height);
-      path.setAttribute("stroke-width", drawSetWidth);
+      path.setAttribute("stroke-width", anno.t);
       path.setAttribute("points", drawSetPoints);
       path.setAttribute("stroke", "#" + anno.c);
       path.setAttribute("opacity", anno.o / 100);

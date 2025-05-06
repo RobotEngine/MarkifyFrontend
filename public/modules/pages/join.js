@@ -102,12 +102,13 @@ modules["pages/join"] = class {
     //modifyParams("lesson");
 
     let modal = page.querySelector(".jModal");
-    let inputHolder = page.querySelector(".jInputHolder");
+    let inputHolder = modal.querySelector(".jInputHolder");
     let joinTxBoxes = inputHolder.querySelectorAll("input");
-    let continueButton = page.querySelector(".jModal .largeButton[continue]");
-    let joinNickname = page.querySelector(".jNameInput input");
-    let joinAccount = page.querySelector(".jUserInfo .jAuthHolder");
-    let joinButton = page.querySelector(".jModal .largeButton[join]");
+    let continueButton = modal.querySelector(".jModal .largeButton[continue]");
+    let joinNickname = modal.querySelector(".jNameInput input");
+    let joinAccount = modal.querySelector(".jUserInfo .jAuthHolder");
+    let cfTurnstile = modal.querySelector(".jCFTurnstile");
+    let joinButton = modal.querySelector(".jModal .largeButton[join]");
 
     page.querySelector(".jLogo").addEventListener("click", (event) => {
       setFrame("pages/launch");
@@ -261,10 +262,8 @@ modules["pages/join"] = class {
     continueButton.addEventListener("click", processContinue);
 
     let captcha;
-    let tryingToJoin = false;
-    let tryingToJoinAlert;
+    let tryingToJoin;
     let processJoin = async () => {
-      joinButton.removeAttribute("disabled");
       let transferData = { pin: lesson.pin };
       if (lesson.forceLogin != true) {
         let nickname = joinNickname.value;
@@ -282,9 +281,9 @@ modules["pages/join"] = class {
         transferData.name = nickname;
         if (userID == null) {
           if (captcha == null) {
-            tryingToJoin = true;
             joinButton.setAttribute("disabled", "");
-            tryingToJoinAlert = await alertModule.open("info", "<b>Hold On</b>Verifying your device...");
+            alertModule.close(tryingToJoin);
+            tryingToJoin = await alertModule.open("info", "<b>Hold On</b>Verifying your device...");
             return;
           }
           transferData.captcha = captcha;
@@ -302,15 +301,27 @@ modules["pages/join"] = class {
     });
 
     let loadTurnstile = () => {
-      turnstile.render(modal.querySelector(".jCFTurnstile"), {
-        sitekey: "0x4AAAAAABahopZOZ1FRoqHp",
-        callback: (token) => {
+      turnstile.render(cfTurnstile, {
+        "sitekey": "0x4AAAAAABahopZOZ1FRoqHp", //2x00000000000000000000BB
+        "theme": getTheme(),
+        "callback": (token) => {
           captcha = token;
-          if (tryingToJoin == true) {
-            alertModule.close(tryingToJoinAlert);
+          joinButton.removeAttribute("disabled");
+          if (tryingToJoin != null) {
+            alertModule.close(tryingToJoin);
+            tryingToJoin = null;
             processJoin();
           }
         },
+        "error-callback": () => {
+          captcha = null;
+          joinButton.removeAttribute("disabled");
+          if (tryingToJoin != null) {
+            alertModule.close(tryingToJoin);
+            tryingToJoin = null;
+            alertModule.open("error", "<b>Challenge Failed</b>Unable to verify your device, please try again later...");
+          }
+        }
       });
     }
     if (userID == null) {

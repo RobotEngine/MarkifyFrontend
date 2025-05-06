@@ -37,7 +37,7 @@ modules["pages/join"] = class {
             <button class="buttonAnim border" title="Logout and switch account."><img src="./images/tooltips/close.svg"></button>
           </div>
         </div>
-        <div class="jCFTurnstile" hidden></div>
+        <div class="jCFTurnstile"></div>
         <button class="largeButton border" join>Join Lesson</button>
         <div class="jPromo">Create your lesson at <a href="#launch" target="_blank">${location.host}</a></div>
         <div class="jPolicies">
@@ -84,7 +84,6 @@ modules["pages/join"] = class {
     ".jUserInfo .jAuthHolder button": `position: relative; width: 22px; height: 22px; margin: 0 3px 0 12px; --borderWidth: 3px; --borderRadius: 14px`,
     ".jUserInfo .jAuthHolder button img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
     
-    ".jCFTurnstile": `margin: 12px`,
     ".jModal .largeButton[join]": `display: none; margin: 12px 0`,
 
     ".jPromo": `margin-top: 24px`,

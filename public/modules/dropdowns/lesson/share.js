@@ -304,7 +304,7 @@ modules["dropdowns/lesson/share/link"] = class {
 modules["dropdowns/lesson/share/email"] = class {
   html = `
   <div class="eShareEmailRow eShareEmailSend">
-    <input class="eShareEmailInput" placeholder="example@example.com"></input>
+    <input class="eShareEmailInput" name="email" placeholder="example@example.com"></input>
     <button class="eShareEmailButton largeButton border" title="Send invite to user.">Send</button>
   </div>
   <div class="eShareEmailRow eShareEmailHolder"></div>

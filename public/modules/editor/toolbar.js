@@ -1832,7 +1832,7 @@ modules["editor/toolbar"] = class {
       }
     }
     this.selection.clickAction = async (event, options = {}) => {
-      if (event == null || event.target == null) {
+      if (event == null || event.target == null || event.target.hasAttribute("hidden") == true) {
         return;
       }
       if (event.touches != null) {
@@ -7247,6 +7247,8 @@ modules["editor/toolbar/uploadpage"] = class {
     }
   }
 
+  FULL_CLICK = true;
+
   maxFileSize = (500 * 10 * 1024 * 1024) + 1; // 5 GB File Limit // Will be 10 MB per page
   js = async () => {
     let preference = this.parent.getPreferenceTool();
@@ -7263,11 +7265,13 @@ modules["editor/toolbar/uploadpage"] = class {
       await this.editor.save.syncSave(true);
     }
 
-    let input = this.button.querySelector(".eSubToolUploadPageInput");
-    if (input == null) {
-      this.button.insertAdjacentHTML("beforeend", `<input class="eSubToolUploadPageInput" type="file" accept="application/pdf" multiple="true" hidden="true">`);
-      input = this.button.querySelector(".eSubToolUploadPageInput");
+    let input = this.toolbar.selection.actionBar.querySelector(".eSubToolUploadPageInput");
+    if (input != null) {
+      input.remove();
     }
+    this.toolbar.selection.actionBar.insertAdjacentHTML("beforeend", `<input class="eSubToolUploadPageInput" type="file" accept="application/pdf" multiple="true" hidden="true">`);
+    input = this.toolbar.selection.actionBar.querySelector(".eSubToolUploadPageInput");
+
     let processUpload = async (files, event) => {
       event.preventDefault();
       if (files == null) {

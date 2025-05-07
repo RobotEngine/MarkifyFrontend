@@ -313,7 +313,7 @@ modules["dropdowns/lesson/share/email"] = class {
     ".eShareEmailRow": `box-sizing: border-box; width: 380px; max-width: 100%; justify-content: center; align-items: center`,
     
     ".eShareEmailSend": `position: sticky; display: flex; flex-wrap: wrap; padding: 16px 14px 8px 14px; top: 0px; background: rgba(var(--background), .7); backdrop-filter: blur(4px); z-index: 1`,
-    ".eShareEmailInput": `box-sizing: border-box; width: calc(100% - 81.81px); height: 42px; margin-right: 8px; border: solid 3px var(--hover); outline: unset; border-radius: 21px; padding: 8px; color: var(--theme); font-size: 18px; font-weight: 700; font-family: var(--font); font-size: 18px`,
+    ".eShareEmailInput": `box-sizing: border-box; width: calc(100% - 81.81px); height: 42px; margin-right: 8px; background: unset; border: solid 3px var(--hover); outline: unset; border-radius: 21px; padding: 8px; color: var(--theme); font-size: 18px; font-weight: 700; font-family: var(--font); font-size: 18px`,
     ".eShareEmailInput::placeholder": `color: var(--hover)`,
     ".eShareEmailButton": `height: 36px; padding: 0 10px; margin: 3px; --borderWidth: 3px; --borderRadius: 18px; color: var(--theme); font-size: 18px`,
 

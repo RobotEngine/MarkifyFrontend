@@ -1645,47 +1645,76 @@ modules["editor/toolbar"] = class {
             } else {
               newAction.setAttribute("hidden", "");
             }
-            let elementBefore;
-            let elementBeforeCheck = newAction;
+            let elementBefore = newAction.previousElementSibling;
+            /*let elementBeforeCheck = newAction;
             while (elementBeforeCheck.previousElementSibling != null) {
               elementBeforeCheck = elementBeforeCheck.previousElementSibling;
               if (elementBeforeCheck.hasAttribute("hidden") == false) {
                 elementBefore = elementBeforeCheck;
                 break;
               }
-            }
-            let elementAfter;
-            let elementAfterCheck = newAction;
+            }*/
+            let elementAfter = newAction.nextElementSibling;
+            /*let elementAfterCheck = newAction;
             while (elementAfterCheck.nextElementSibling != null) {
               elementAfterCheck = elementAfterCheck.nextElementSibling;
               if (elementAfterCheck.hasAttribute("hidden") == false) {
                 elementAfter = elementAfterCheck;
                 break;
               }
-            }
-            if (isVisible != false) {
-              if (actionModule.ADD_DIVIDE_BEFORE == true && elementBefore != null && elementBefore.className != "eVerticalDivider") {
+            }*/
+            if (actionModule.ADD_DIVIDE_BEFORE == true) {
+              if (elementBefore != null && elementBefore.className != "eVerticalDivider") {
                 let newDivider = document.createElement("div");
                 newDivider.className = "eVerticalDivider";
                 newDivider.setAttribute("before", "");
                 actionButtonHolder.insertBefore(newDivider, newAction);
+                elementBefore = newDivider;
                 i++;
               }
-              if (actionModule.ADD_DIVIDE_AFTER == true && (elementAfter == null || elementAfter.className != "eVerticalDivider")) {
+              if (elementBefore.className == "eVerticalDivider") {
+                if (isVisible != false) {
+                  elementBefore.removeAttribute("hidden");
+                } else {
+                  elementBefore.setAttribute("hidden", "");
+                }
+              }
+            }
+            if (actionModule.ADD_DIVIDE_AFTER == true) {
+              if (elementAfter == null || elementAfter.className != "eVerticalDivider") {
                 let newDivider = document.createElement("div");
                 newDivider.className = "eVerticalDivider";
                 newDivider.setAttribute("after", "");
                 actionButtonHolder.insertBefore(newDivider, elementAfter);
+                elementAfter = newDivider;
               }
-            } else {
-              if (elementBefore != null && elementBefore.className == "eVerticalDivider" && elementBefore.hasAttribute("before") == true) {
-                elementBefore.remove();
-              }
-              if (elementAfter != null && elementAfter.className == "eVerticalDivider" && elementAfter.hasAttribute("after") == true) {
-                elementAfter.remove();
+              if (elementAfter.className == "eVerticalDivider") {
+                if (isVisible != false) {
+                  elementAfter.removeAttribute("hidden");
+                } else {
+                  elementAfter.setAttribute("hidden", "");
+                }
               }
             }
             //})();
+          }
+          let actionButtonCount = 0;
+          for (let i = 0; i < actionButtonHolder.children.length; i++) {
+            let divider = actionButtonHolder.children[i];
+            if (divider == null) {
+              continue;
+            }
+            if (divider.className != "eVerticalDivider") {
+              if (divider.hasAttribute("hidden") == false) {
+                actionButtonCount++;
+              }
+              continue;
+            }
+            if (divider.hasAttribute("before") && actionButtonCount < 1) {
+              divider.setAttribute("hidden", "");
+            } else if (divider.hasAttribute("hidden") == false) {
+              actionButtonCount = 0;
+            }
           }
 
           if (currentButtonCount != this.selection.actionBarButtonCount) {

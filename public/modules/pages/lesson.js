@@ -508,7 +508,7 @@ modules["pages/lesson"] = class {
           this.members[memSet._id] = {};
         }
         let member = this.members[memSet._id];
-        if (memSet.access == 1 && member.access < 1) {
+        if (memSet.access == 1 && (member.access == null || member.access < 1)) {
           this.editorCount++;
         } else if (memSet.access == 0 && member.access > 0) {
           this.editorCount--;

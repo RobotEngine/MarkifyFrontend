@@ -2868,8 +2868,10 @@ modules["editor/editor"] = class {
     });
 
     this.pipeline.subscribe("editorMemberUpdate", "update", (data) => {
-      if (data.active == false && this.realtime.module != null) {
-        this.realtime.module.removeRealtime(data._id);
+      if (this.realtime.module != null) {
+        if (data.active == false || (data.hasOwnProperty("access") == true && data.access < 1)) {
+          this.realtime.module.removeRealtime(data._id);
+        }
       }
     });
     this.pipeline.subscribe("editorMemberLeave", "leave", (data) => {

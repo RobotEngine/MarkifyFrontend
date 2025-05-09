@@ -11,7 +11,7 @@ modules["dropdowns/lesson/share"] = class {
     ".eShareOption:hover img": `filter: brightness(0) invert(1)`,
     ".eShareOption:hover b": `color: #fff`,
     ".eShareOption:active": `transform: scale(.95); border-radius: 14px`,
-    ".eShareOption img": `height: 32px; margin: 6px; transition: .15s`,
+    ".eShareOption img": `width: 66px; height: 32px; margin: 6px; transition: .15s`,
     ".eShareOption .eShareInfo": `margin: 6px; text-align: left`,
     ".eShareOption .eShareTitle": `margin-right: 6px; font-size: 18px; font-weight: 600`,
     ".eShareOption b": `color: var(--theme); font-weight: 800; transition: .15s`,

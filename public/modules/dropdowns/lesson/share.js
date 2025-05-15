@@ -5,12 +5,12 @@ modules["dropdowns/lesson/share"] = class {
   <button class="eShareOption" type="email" dropdowntitle="<div>Invite with <b style='color: var(--theme); font-weight: 800'>Email</b></div>" title="Invite members through email."><img src="./images/editor/share/email.svg"><div class="eShareInfo"><div class="eShareTitle">Invite with <b>Email</b></div><div class="eShareDesc">Invite members as a viewer or editor with their email.</div></div></button>
   `;
   css = {
-    ".eShareOption": `display: flex; flex-wrap: wrap; min-width: 100%; padding: 0; border-radius: 8px; align-items: center; transition: .15s`,
+    ".eShareOption": `display: flex; flex-wrap: wrap; min-width: 100%; padding: 0; border-radius: 6px; align-items: center; transition: .15s`,
     ".eShareOption:not(:first-child)": `margin-top: 6px`,
     ".eShareOption:hover": `background: var(--theme); color: #fff`,
     ".eShareOption:hover img": `filter: brightness(0) invert(1)`,
     ".eShareOption:hover b": `color: #fff`,
-    ".eShareOption:active": `transform: scale(.95); border-radius: 14px`,
+    ".eShareOption:active": `transform: scale(.95); border-radius: 12px`,
     ".eShareOption img": `width: 66px; height: 32px; margin: 6px; transition: .15s`,
     ".eShareOption .eShareInfo": `margin: 6px; text-align: left`,
     ".eShareOption .eShareTitle": `margin-right: 6px; font-size: 18px; font-weight: 600`,
@@ -517,7 +517,7 @@ modules["dropdowns/lesson/share/options"] = class {
   <div class="eShareOptionContent">
     <div class="eShareOptionSection" section="settings">
       <button class="eShareActionOption border" option="forceLogin" title="Require those joining to login for verified identites."><div label>Require Login</div><div class="eOptionToggle"><div></div></div></button>
-      <button class="eShareActionOption border" option="editOthersWork" title="Allow members to edit and delete annotations created by other members."><div label>Modify Other's Work</div><div class="eOptionToggle"><div></div></div></button>
+      <button class="eShareActionOption border" option="editOthersWork" title="Controls the default collaborator lock for new annotations."><div label>Modify Other's Work</div><div class="eOptionToggle"><div></div></div></button>
       <button class="eShareActionOption border" option="anonymousMode" title="Hide all member names and colors in cursors."><div label>Anonymous Mode</div><div class="eOptionToggle"><div></div></div></button>
       <button class="eShareActionOption border" option="allowExport" title="Allow members to export, print, or copy the lesson."><div label>Allow Exporting</div><div class="eOptionToggle"><div></div></div></button>
       <button class="eShareActionOption border" option="observeViewers" title="Allow members to observe those who aren't editing."><div label>Observe Viewers</div><div class="eOptionToggle"><div></div></div></button>

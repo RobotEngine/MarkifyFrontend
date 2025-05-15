@@ -802,7 +802,7 @@ modules["editor/editor"] = class {
         if (types[render.f] == null) {
           continue;
         }
-        if ((render.hidden == true || render.lock == true) && prevParent != annoid) {
+        if ((render.hidden == true || this.utils.isLocked(render) == true) && prevParent != annoid) {
           continue;
         }
         if (render.remove == true) {
@@ -1179,29 +1179,70 @@ modules["editor/editor"] = class {
       contentHolder.scrollTo(contentHolder.scrollLeft + jumpRect.left - ((page.offsetWidth - element.offsetWidth) / 2), contentHolder.scrollTop + jumpRect.top - ((page.offsetHeight - element.offsetHeight) / 2));
     }
 
+    this.utils.getLocked = (render) => { // s: standard, c: collaborator, p: placeholder
+      render = render ?? {};
+      if (typeof render.lock != "boolean") {
+        return render.lock ?? [];
+      } else if (render.lock == true) {
+        return ["s"];
+      } else {
+        return [];
+      }
+    }
+    this.utils.isLocked = (render) => {
+      let lock = this.utils.getLocked(render);
+      return lock.includes("s") == true;
+    }
+    this.utils.isPlaceholderLocked = (render, member) => {
+      member = member ?? this.self;
+      if (member.access > 3) {
+        return false;
+      }
+      let lock = this.utils.getLocked(render);
+      return lock.includes("p") == true;
+    }
     this.utils.canMemberModify = (render, member) => {
       render = render ?? {};
       member = member ?? this.self;
-      if (member.access < 1) {
+      if (member.access < 1 || member.modify == null) {
         return false;
       }
       if (member.access > 3) {
         return true;
       }
-      if (this.settings.editOthersWork == true) {
+      /*if (this.settings.editOthersWork == true) {
         return true;
-      }
-      if (member.modify != null) {
-        if ([render.a, render.m].includes(member.modify) == true) {
+      }*/
+      let locked = this.utils.getLocked(render);
+      if (locked.includes("p") == false) {
+        if ([render.a, render.m].includes(member.modify) == true || locked.includes("c") == false) {
+          return true;
+        }
+      } else {
+        if (render.placeholder == true || [render.a, render.m, render.placeholder].includes(member.modify) == true || locked.includes("c") == false) {
           return true;
         }
       }
       return false;
     }
-    this.utils.isLocked = (render, member) => {
+    this.utils.canChangeLock = (render, member) => {
       render = render ?? {};
+      let locks = this.utils.getLocked(render);
       member = member ?? this.self;
-      return render.lock == true;
+      if (member.access < 1 || member.modify == null) {
+        return [];
+      }
+      if (member.access > 3) {
+        return ["s", "c", "p"];
+      }
+      let allowedLock = [];
+      if (this.utils.canMemberModify(render, member) == true && locks.includes("p") == false) {
+        allowedLock.push("s");
+      }
+      if ([render.a].includes(member.modify) == true || (render.placeholder == true && locks.includes("s") == false)) { // Only author can edit collaborator:
+        allowedLock.push("c");
+      }
+      return allowedLock;
     }
 
     this.render = {};
@@ -2129,7 +2170,7 @@ modules["editor/editor"] = class {
         }
 
         if (changeOccured == true) {
-          this.pipeline.publish("redraw_selection", {}); //redrawActionBar: redrawAction
+          this.pipeline.publish("redraw_selection", { redrawCurrentAction: true }); //redrawActionBar: redrawAction
         }
       }
       this.save.runningTimeout = false;
@@ -2217,6 +2258,7 @@ modules["editor/editor"] = class {
       let history = options.history ?? {};
 
       let annotation = this.annotations[data._id] ?? {};
+      let newAnnotation = annotation.render == null;
       if (annotation.pointer != null) {
         data._id = annotation.pointer;
         annotation = this.annotations[data._id] ?? {};
@@ -2261,6 +2303,14 @@ modules["editor/editor"] = class {
       let checkChunks = [ ...this.utils.chunksFromAnnotation(merged), ...this.utils.chunksFromAnnotation(annotation.render ?? {}) ];
 
       data.sync = getEpoch();
+      if (newAnnotation == true) {
+        if (this.settings.editOthersWork != true) {
+          data.lock = data.lock ?? [];
+          if (data.lock.includes("c") == false) {
+            data.lock.push("c"); // Add default collaborator lock
+          }
+        }
+      }
       annotation = (await this.save.apply(data, { ...options, childChunkUpdate: false })).annotation; // Apply Save
 
       if (data.hasOwnProperty("p") || data.hasOwnProperty("s") || data.hasOwnProperty("r") || data.hasOwnProperty("t") || data.hasOwnProperty("l") != null || data.remove == true) {
@@ -2316,7 +2366,7 @@ modules["editor/editor"] = class {
             checkParent = isChild;
           } else if (annotationModule.CAN_PARENT_CHILDREN == true) {
             // Is inside the saved annotation:
-            if (this.utils.canMemberModify(render) == true) {
+            if (this.utils.canMemberModify(render) == true && this.utils.isPlaceholderLocked(render) == false) {
               checkParent = !isChild;
             }
           }
@@ -2379,7 +2429,12 @@ modules["editor/editor"] = class {
       }
 
       annotation.save = true;
+      //if (this.utils.getLocked(annotation.render).includes("p") == false || this.self.access < 4) {
       annotation.render.m = this.self.modify;
+      //}
+      if (newAnnotation == true) {
+        annotation.render.a = this.self.modify;
+      }
       if (connected == true) {
         this.save.pendingSaves[annoID] = { _id: annoID, ...(this.save.pendingSaves[annoID] ?? {}), ...data };
       } else {
@@ -3843,7 +3898,7 @@ modules["editor/render/sticky"] = class {
       signature.setAttribute("hidden", "");
     }
     let reactionHolder = element.querySelector("div[reactions]");
-    if (anno.lock != true) {
+    if (this.parent.utils.isLocked(anno) == false) {
       reactionHolder.removeAttribute("disabled");
     } else {
       reactionHolder.setAttribute("disabled", "");

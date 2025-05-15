@@ -1022,12 +1022,23 @@ modules["editor/toolbar"] = class {
         if (set == null) {
           continue;
         }
+        if (editor.utils.isLocked(original.render) == true && editor.utils.isLocked({ ...selecting, ...set }) == true) {
+          if (set.lock != null) {
+            set = { lock: set.lock };
+          } else {
+            continue;
+          }
+        }
+        if (editor.utils.isPlaceholderLocked(original.render) == true && editor.settings.editOthersWork != true) {
+          let locks = editor.utils.getLocked(original.render);
+          if (locks.includes("c") == false) {
+            set.lock = [...locks, "c"];
+            set.placeholder = editor.self.modify;
+          }
+        }
         let merged = { ...selecting, ...set };
         if (merged.d != null && typeof merged.d == "object") {
           merged.d = { ...original.render.d, ...merged.d };
-        }
-        if (editor.utils.isLocked(original.render) == true && merged.lock == null) {
-          continue;
         }
         if (annoModule.AUTO_TEXT_FIT == true || annoModule.AUTO_SET_HEIGHT == true) {
           await editor.render.create({ ...original, render: { ...original.render, ...merged }, animate: false });
@@ -1139,10 +1150,10 @@ modules["editor/toolbar"] = class {
       this.selection.resizePreserveAspect = false;
       this.selection.multiSelectPreserveAspect = false;
 
-      let showHandles = true;
-      let showDuplicateHandles = true;
-      let showOnlyWidthHandles = true;
-      let showRotationHandle = false;
+      this.selection.showHandles = true;
+      this.selection.showDuplicateHandles = true;
+      this.selection.showOnlyWidthHandles = true;
+      this.selection.showRotationHandle = false;
 
       let selectedAnnotations = [];
       let selectionChange = false;
@@ -1200,19 +1211,19 @@ modules["editor/toolbar"] = class {
           return this.selection.updateBox(options);
         }
 
-        if (editor.utils.canMemberModify(merged) != true || editor.utils.isLocked(merged) == true) {
-          showHandles = false;
+        if (editor.utils.canMemberModify(merged) != true || editor.utils.isLocked(merged) == true || editor.utils.isPlaceholderLocked(merged) == true) {
+          this.selection.showHandles = false;
         }
 
         let annoModule = (await editor.render.getModule(merged.f)) ?? {};
         if (annoModule.SHOW_DUPLICATE_HANDLES != true) {
-          showDuplicateHandles = false;
+          this.selection.showDuplicateHandles = false;
         }
         if (annoModule.SHOW_ONLY_WIDTH_HANDLES != true) {
-          showOnlyWidthHandles = false;
+          this.selection.showOnlyWidthHandles = false;
         }
         if (annoModule.CAN_ROTATE != false) {
-          showRotationHandle = true;
+          this.selection.showRotationHandle = true;
         }
         if (annoModule.RESIZE_PRESERVE_ASPECT == true) {
           this.selection.resizePreserveAspect = true;
@@ -1394,22 +1405,22 @@ modules["editor/toolbar"] = class {
         this.selection.selectBox.style.height = boxHeight + "px";
         this.selection.selectBox.style.transform = "translate(" + boxX + "px," + boxY + "px) rotate(" + this.selection.rotation + "deg)";
         
-        if (showHandles == true) {
+        if (this.selection.showHandles == true) {
           this.selection.selectBox.removeAttribute("hidehandles");
 
-          if (showDuplicateHandles != true) {
+          if (this.selection.showDuplicateHandles != true) {
             this.selection.handlePadding = 24;
             this.selection.selectBox.removeAttribute("showduplicate");
           } else {
             this.selection.handlePadding = 60;
             this.selection.selectBox.setAttribute("showduplicate", "");
           }
-          if (showOnlyWidthHandles != true) {
+          if (this.selection.showOnlyWidthHandles != true) {
             this.selection.selectBox.removeAttribute("showonlywidth");
           } else {
             this.selection.selectBox.setAttribute("showonlywidth", "");
           }
-          if (showRotationHandle == true) {
+          if (this.selection.showRotationHandle == true) {
             this.selection.selectBox.removeAttribute("hiderotation");
           } else {
             this.selection.selectBox.setAttribute("hiderotation", "");
@@ -2003,6 +2014,9 @@ modules["editor/toolbar"] = class {
         return;
       }
       if (editor.self.access < 1) {
+        return;
+      }
+      if (this.selection.showHandles == false) {
         return;
       }
 
@@ -3076,7 +3090,7 @@ modules["editor/toolbar"] = class {
         if (original.render == null) {
           continue;
         }
-        if (editor.utils.isLocked(original.render) == true) {
+        if (editor.utils.isLocked(original.render) == true || editor.utils.isPlaceholderLocked(original.render) == true) {
           return this.selection.endAction();
         }
         if (original.revert == null) {
@@ -3890,7 +3904,7 @@ modules["editor/toolbar"] = class {
           if (editor.utils.canMemberModify(anno) == false) { // Can't edit another member's work:
             continue;
           }
-          if (anno.lock == true) {
+          if (editor.utils.isLocked(anno) == true || editor.utils.isPlaceholderLocked(anno) == true) {
             continue;
           }
           editor.selecting[selectID].remove = true;
@@ -4122,6 +4136,15 @@ modules["editor/toolbar"] = class {
         }
         delete newAnno.old_ID;
         delete newAnno.m;
+        let setLock = [];
+        let canLock = editor.utils.canChangeLock(newAnno);
+        for (let l = 0; l < canLock.length; l++) {
+          let lock = canLock[l];
+          if ((newAnno.lock ?? []).includes(lock) == true) {
+            setLock.push(lock);
+          }
+        }
+        newAnno.lock = setLock;
         editor.selecting[newAnno._id] = newAnno;
       }
 
@@ -4342,7 +4365,7 @@ modules["editor/toolbar/select"] = class {
       }
       if (this.editor.utils.canMemberModify(render) == false && this.editor.self.access > 0) {
         alertModule.close(this.parent.someoneElsesAnnoWarning);
-        this.parent.someoneElsesAnnoWarning = await alertModule.open("warning", "<b>Someone Else's Annotation</b>The ability to modify another member's work is disabled.");
+        this.parent.someoneElsesAnnoWarning = await alertModule.open("warning", "<b>Annotation is Locked</b>Only the author may edit collaborator locked annotations.");
       }
       if (event.shiftKey == true) {
         if (this.wasSelected != annoID && this.editor.selecting[annoID] != null) {
@@ -4992,7 +5015,7 @@ modules["editor/toolbar/eraser"] = class {
         if (this.editor.utils.canMemberModify(render) != true) { // Can't edit another member's work:
           continue;
         }
-        if (render.lock == true) {
+        if (this.editor.utils.isLocked(render) == true) {
           continue;
         }
         let renderModule = await this.editor.render.getModule(render.f);
@@ -6446,6 +6469,15 @@ modules["editor/toolbar/delete"] = class {
     this.button.style.setProperty("--hoverColor", "var(--error");
     this.button.style.setProperty("--hoverTooltip", "var(--error");
     setSVG(button, "./images/editor/toolbar/delete.svg");
+
+    let selectKeys = Object.keys(this.editor.selecting);
+    for (let i = 0; i < selectKeys.length; i++) {
+      let selectID = selectKeys[i];
+      let render = ({ ...((this.editor.annotations[selectID] ?? {}).render ?? {}), ...(this.editor.selecting[selectID] ?? {}) }) ?? {};
+      if (this.editor.utils.isPlaceholderLocked(render) == true) {
+        return false;
+      }
+    }
   }
 
   TOOLTIP = "Delete";
@@ -6565,16 +6597,24 @@ modules["editor/toolbar/more"] = class {
       }
       newAnno.l = maxZIndex + ((newAnno.l ?? this.editor.utils.maxLayer) - minZIndex);
       delete newAnno.m;
-      delete newAnno.lock;
+      let setLock = [];
+      let canLock = this.editor.utils.canChangeLock(newAnno);
+      for (let l = 0; l < canLock.length; l++) {
+        let lock = canLock[l];
+        if ((newAnno.lock ?? []).includes(lock) == true) {
+          setLock.push(lock);
+        }
+      }
+      newAnno.lock = setLock;
       this.editor.selecting[newAnno._id] = newAnno;
     }
 
     this.parent.selection.action = "save";
     await this.parent.selection.endAction();
   }
-  lock = async () => {
+  /*lock = async () => {
     await this.toolbar.saveSelecting(() => { return { lock: true }; }, { redrawActionBar: true });
-  }
+  }*/
   signature = async (set) => {
     await this.toolbar.saveSelecting(() => { return { sigHidden: set }; });
   }
@@ -6620,7 +6660,7 @@ modules["editor/toolbar/more"] = class {
 modules["dropdowns/editor/toolbar/more"] = class {
   html = `
   <button class="eToolbarMoreAction" option="duplicate" close title="Duplicate"><div></div>Duplicate</button>
-  <button class="eToolbarMoreAction" option="lock" close title="Lock to prevent editing."><div></div>Lock</button>
+  <button class="eToolbarMoreAction" option="lock" title="Change the locking options."><div></div>Locking</button>
   <button class="eToolbarMoreAction" option="signature" close><div></div><span></span></button>
   <div class="eToolbarMoreLine" option="layers"></div>
   <button class="eToolbarMoreAction" option="bringfront" close title="Bring Forward"><img src="./images/editor/rearrange/up.svg">Bring to Front</button>
@@ -6644,7 +6684,10 @@ modules["dropdowns/editor/toolbar/more"] = class {
     duplicateButton.addEventListener("click", () => { parent.duplicate(); });
 
     let lockButton = frame.querySelector('.eToolbarMoreAction[option="lock"]');
-    lockButton.addEventListener("click", () => { parent.lock(); });
+    lockButton.addEventListener("click", () => {
+      //parent.lock();
+      dropdownModule.open(lockButton, "dropdowns/editor/toolbar/more/locking", { parent: parent });
+    });
 
     let signatureButton = frame.querySelector('.eToolbarMoreAction[option="signature"]');
     signatureButton.addEventListener("click", () => { parent.signature(signatureButton.hasAttribute("signaturehidden") == false); });
@@ -6689,7 +6732,7 @@ modules["dropdowns/editor/toolbar/more"] = class {
         }
       }
       if (showLock == true) {
-        lockButton.style.display = "flex";
+        //lockButton.style.display = "flex";
         if (allSticky == false) {
           signatureButton.style.display = "none";
         } else {
@@ -6708,7 +6751,7 @@ modules["dropdowns/editor/toolbar/more"] = class {
         frontButton.style.display = "flex";
         backButton.style.display = "flex";
       } else {
-        lockButton.style.display = "none";
+        //lockButton.style.display = "none";
         signatureButton.style.display = "none";
         layersLine.style.display = "none";
         frontButton.style.display = "none";
@@ -6730,50 +6773,195 @@ modules["dropdowns/editor/toolbar/more"] = class {
     parent.redraw();
   }
 }
+modules["dropdowns/editor/toolbar/more/locking"] = class {
+  html = `
+  <div class="eLockingHolder">
+    <button class="eLockingOption" type="standard" style="--themeColor: var(--green)" title="Locked annotations must be unlocked to edit."><img src="./images/editor/locking/standard.svg"><div class="eLockingInfo"><div class="eLockingTitle"><b>Standard</b> Lock</div><div class="eLockingDesc">Locked annotations must be unlocked to edit.</div></div></button>
+    <button class="eLockingOption" type="collaborator" style="--themeColor: var(--theme)" title="Only the author can edit locked annotations."><img src="./images/editor/locking/collaborator.svg"><div class="eLockingInfo"><div class="eLockingTitle"><b>Collaborator</b> Lock</div><div class="eLockingDesc">Only the author can edit locked annotations.</div></div></button>
+    <button class="eLockingOption" type="placeholder" style="--themeColor: var(--purple)" title="Editors cannot move, resize, rotate, or delete annotations."><img src="./images/editor/locking/placeholder.svg"><div class="eLockingInfo"><div class="eLockingTitle"><b>Placeholder</b> Lock</div><div class="eLockingDesc">Editors cannot move, resize, rotate, or delete annotations.</div></div></button>
+  </div>
+  `;
+  css = {
+    ".eLockingHolder": `display: flex; flex-direction: column; width: max-content; max-width: 100%; gap: 6px; align-items: center; border-radius: inherit`,
+    ".eLockingOption": `position: relative; display: flex; flex-wrap: wrap; min-width: 100%; padding: 0; border-radius: 6px; align-items: center; transition: .15s`,
+    ".eLockingOption[selected]": `background: var(--themeColor); color: #fff`,
+    ".eLockingOption[selected] img": `filter: brightness(0) invert(1)`,
+    ".eLockingOption[selected] b": `color: #fff`,
+    ".eLockingOption:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; opacity: .2; border-radius: inherit; transition: .15s`,
+    ".eLockingOption:not([selected]):hover:before": `background: var(--themeColor)`,
+    ".eLockingOption:active": `transform: scale(.95); border-radius: 12px`,
+    ".eLockingOption img": `width: 50px; height: 50px; margin: 6px 6px 6px 10px; transition: .15s`,
+    ".eLockingOption .eLockingInfo": `margin: 6px; text-align: left`,
+    ".eLockingOption .eLockingTitle": `margin-right: 6px; font-size: 18px; font-weight: 600`,
+    ".eLockingOption b": `color: var(--themeColor); font-weight: 800; transition: .15s`,
+    ".eLockingOption .eLockingDesc": `max-width: 202px; font-size: 14px`
+  };
+  js = async (frame, extra) => {
+    extra = extra ?? {};
+    let parent = extra.parent ?? this.parent;
+    let editor = this.editor ?? parent.editor;
+    let toolbar = this.toolbar ?? parent.toolbar;
 
-modules["editor/toolbar/unlock"] = class {
+    let standardLock = frame.querySelector('.eLockingOption[type="standard"]');
+    let collaboratorLock = frame.querySelector('.eLockingOption[type="collaborator"]');
+    let placeholderLock = frame.querySelector('.eLockingOption[type="placeholder"]');
+
+    let redraw = () => {
+      let lockOptions = ["s", "c", "p"];
+      let locks = []; //editor.utils.getLocked(toolbar.getPreferenceTool());
+      let selectKeys = Object.keys(editor.selecting);
+      for (let i = 0; i < selectKeys.length; i++) {
+        let annotation = editor.annotations[selectKeys[i]];
+        let render = annotation.render ?? annotation.revert ?? {};
+        let renderLocks = editor.utils.getLocked(render);
+        for (let l = 0; l < renderLocks.length; l++) {
+          let lock = renderLocks[l];
+          if (locks.includes(lock) == false) {
+            locks.push(lock);
+          }
+        }
+        let canChangeLocks = editor.utils.canChangeLock(render);
+        for (let l = 0; l < lockOptions.length; l++) {
+          if (canChangeLocks.includes(lockOptions[l]) == false) {
+            lockOptions.splice(l, 1);
+            l--;
+          }
+        }
+      }
+      
+      if (lockOptions.includes("s") == true) {
+        standardLock.removeAttribute("disabled");
+      } else {
+        standardLock.setAttribute("disabled", "");
+      }
+      if (locks.includes("s") == false) {
+        standardLock.removeAttribute("selected");
+      } else {
+        standardLock.setAttribute("selected", "");
+      }
+      if (lockOptions.includes("c") == true && (locks.includes("p") == false || locks.includes("c") == true)) {
+        collaboratorLock.removeAttribute("disabled");
+      } else {
+        collaboratorLock.setAttribute("disabled", "");
+      }
+      if (locks.includes("c") == false) {
+        collaboratorLock.removeAttribute("selected");
+      } else {
+        collaboratorLock.setAttribute("selected", "");
+      }
+      if (lockOptions.includes("p") == true) {
+        placeholderLock.removeAttribute("disabled");
+      } else {
+        placeholderLock.setAttribute("disabled", "");
+      }
+      if (locks.includes("p") == false) {
+        placeholderLock.removeAttribute("selected");
+      } else {
+        placeholderLock.setAttribute("selected", "");
+      }
+    }
+    redraw();
+    if (extra.parent != null) {
+      parent.redraw = redraw;
+    } else {
+      this.redraw = redraw;
+      frame.querySelector(".eLockingHolder").style.padding = "6px";
+    }
+
+    standardLock.addEventListener("click", async () => {
+      let setLock = !standardLock.hasAttribute("selected");
+      await toolbar.saveSelecting((render) => {
+        let lock = editor.utils.getLocked(render);
+        let index = lock.indexOf("s");
+        if (index > -1) {
+          lock.splice(index, 1);
+        }
+        if (setLock == true) {
+          lock.push("s");
+        }
+        return { lock: lock };
+      });
+      redraw();
+      editor.save.syncSave(true);
+    });
+    collaboratorLock.addEventListener("click", async () => {
+      let setLock = !collaboratorLock.hasAttribute("selected");
+      await toolbar.saveSelecting((render) => {
+        let lock = editor.utils.getLocked(render);
+        let index = lock.indexOf("c");
+        if (index > -1) {
+          lock.splice(index, 1);
+        }
+        let save = { lock: lock };
+        if (setLock == true) {
+          lock.push("c");
+        } else if (lock.includes("p") == true) {
+          save.placeholder = true;
+        }
+        return save;
+      });
+      redraw();
+      editor.save.syncSave(true);
+    });
+    placeholderLock.addEventListener("click", async () => {
+      let setLock = !placeholderLock.hasAttribute("selected");
+      await toolbar.saveSelecting((render) => {
+        let lock = editor.utils.getLocked(render);
+        let index = lock.indexOf("p");
+        if (index > -1) {
+          lock.splice(index, 1);
+        }
+        let save = {};
+        if (setLock == true) {
+          lock.push("p");
+          let collaboratorLockIndex = lock.indexOf("c");
+          if (collaboratorLockIndex > -1) {
+            lock.splice(collaboratorLockIndex, 1);
+          }
+          if (render.sig != null) {
+            save.sig = null;
+          }
+          save.placeholder = true;
+        } else {
+          save.placeholder = null;
+        }
+        save.lock = lock;
+        return save;
+      });
+      redraw();
+      editor.save.syncSave(true);
+    });
+  }
+}
+
+modules["editor/toolbar/unlock"] = class extends modules["dropdowns/editor/toolbar/more/locking"] {
   setActionButton = async (button) => {
-    this.disabled = false;
-    let locked = false;
-    let hideButton = this.editor.self.access < 1;
+    setSVG(button, "./images/editor/toolbar/lock.svg");
+
+    let showLock = false;
     let selectKeys = Object.keys(this.editor.selecting);
     for (let i = 0; i < selectKeys.length; i++) {
       let selectID = selectKeys[i];
       let render = ({ ...((this.editor.annotations[selectID] ?? {}).render ?? {}), ...(this.editor.selecting[selectID] ?? {}) }) ?? {};
-      if (this.editor.utils.isLocked(render) == true) {
-        locked = true;
-      }
-      // This will need to be modified later:
-      if ([render.a, render.m].includes(this.editor.self.modify) == false && this.editor.self.access < 4) {
-        this.disabled = true;
-      }
-      if (this.editor.utils.canMemberModify(render) != true) {
-        hideButton = true;
-        break;
+      let locks = this.editor.utils.getLocked(render);
+      if (locks.includes("s") == true || locks.includes("p") == true) {
+        showLock = true;
+      } else if (locks.includes("c") == true && this.editor.utils.canMemberModify(render) == false) {
+        showLock = true;
       }
     }
-    if (button != null) {
-      setSVG(button, "./images/editor/toolbar/unlock.svg");
 
-      if (this.disabled == false) {
-        button.style.removeProperty("opacity");
-      } else {
-        button.style.opacity = .5;
-      }
+    if (showLock == false && this.button.hasAttribute("selected") == true) {
+      this.toolbar.selection.closeActionFrame();
     }
-    if (hideButton == false && locked == true) {
-      return true;
-    } else {
-      return false;
-    }
+    return showLock;
   }
 
-  TOOLTIP = "Unlock";
+  TOOLTIP = "Locking";
   SHOW_ON_LOCK = true;
   ADD_DIVIDE_BEFORE = true;
-  FULL_CLICK = true;
 
-  js = async () => {
+  /*js = async () => {
     await this.setActionButton();
     if (this.disabled == true) {
       return alertModule.open("error", "<b>You Didn't Lock This</b>Only the member who locked this can unlock it.");
@@ -6783,7 +6971,7 @@ modules["editor/toolbar/unlock"] = class {
         return { lock: false };
       }
     }, { redrawActionBar: true });
-  }
+  }*/
 }
 
 modules["editor/toolbar/collaborator"] = class {
@@ -7164,7 +7352,7 @@ modules["editor/toolbar/reactions"] = class {
         <div titlecount></div>
         <div info>Over time, Markify clears out past reaction records.</div>
       </div>`;
-      if (this.editor.self.access > 3 && this.toolbar.getPreferenceTool().lock != true) {
+      if (this.editor.self.access > 3 && this.editor.utils.isLocked(this.toolbar.getPreferenceTool()) != true) {
         removeReactionButton.style.display = "flex";
       }
       let reactionMembers = cache.reactions[emoji];
@@ -7524,7 +7712,7 @@ modules["editor/toolbar/settitle"] = class {
     if (annoTx == null) {
       this.button.removeAttribute("selecthighlight");
     } else {
-      if (preference.lock == true) {
+      if (this.editor.utils.isLocked(preference) == true) {
         annoTx.removeAttribute("contenteditable");
       }
       this.button.setAttribute("selecthighlight", "");
@@ -7541,7 +7729,7 @@ modules["editor/toolbar/settitle"] = class {
     }
 
     let preference = this.parent.getPreferenceTool();
-    if (preference.lock == true) {
+    if (this.editor.utils.isLocked(preference) == true) {
       return;
     }
 
@@ -7703,7 +7891,7 @@ modules["editor/toolbar/setembed"] = class {
       preference = this.parent.getPreferenceTool();
     }
     this.redraw();
-    if (preference.lock == true) {
+    if (this.editor.utils.isLocked(preference) == true) {
       return;
     }
 
@@ -7867,7 +8055,7 @@ modules["editor/toolbar/textedit"] = class {
     if (annoTx == null) {
       this.button.removeAttribute("selecthighlight");
     } else {
-      if (preference.lock == true) {
+      if (this.editor.utils.isLocked(preference) == true) {
         annoTx.removeAttribute("contenteditable");
       }
       this.button.setAttribute("selecthighlight", "");
@@ -7885,7 +8073,7 @@ modules["editor/toolbar/textedit"] = class {
     }
 
     let preference = this.parent.getPreferenceTool();
-    if (preference.lock == true) {
+    if (this.editor.utils.isLocked(preference) == true) {
       return;
     }
 

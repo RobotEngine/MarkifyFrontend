@@ -568,37 +568,54 @@ modules["editor/realtime"] = class {
               } else if (setRender.remove == true) {
                 delete userSelection[annoID];
               }
-              if (anno.lock == false) {
-                if (editor.utils.canMemberModify(originalRender, memberData) == false) {
-                  anno.lock = null;
+              let setLock = anno.lock;
+              if (setLock != null) {
+                anno.lock = copyObject(editor.utils.getLocked(originalRender));
+                let validLocks = editor.utils.canChangeLock(originalRender, memberData);
+                for (let l = 0; l < validLocks.length; l++) {
+                  let lock = validLocks[l];
+                  let index = anno.lock.indexOf(lock);
+                  if (index > -1) {
+                    anno.lock.splice(index, 1);
+                  }
+                  if (setLock.includes(lock) == true) {
+                    anno.lock.push(lock);
+                  }
                 }
               }
 
               original.revert = original.revert ?? copyObject(originalRender);
               
-              if (originalRender.lock != true || anno.lock == false) { // Can't edit another member's work:
-                if (anno.remove == true && editor.selecting[annoID] != null) {
-                  delete editor.selecting[annoID];
-                  userSelecting = true;
-                }
-                if (Object.keys(anno).length > 1) {
-                  changes = true;
-                }
-                if (anno.done != true && forced != true) {
-                  original.render = setRender;
-                } else if (changes == true) {
-                  original.render = setRender;
-                  delete original.render.done;
+              //if (editor.utils.isLocked(originalRender) == false || editor.utils.isLocked(setRender) == false) { // Can't edit locked annotation:
+              if (anno.remove == true && editor.selecting[annoID] != null) {
+                delete editor.selecting[annoID];
+                userSelecting = true;
+              }
+              if (Object.keys(anno).length > 1) {
+                changes = true;
+              }
+              if (anno.done != true && forced != true) {
+                original.render = setRender;
+              } else if (changes == true) {
+                original.render = setRender;
+                delete original.render.done;
 
-                  if (isNewAnno == false) {
-                    original.render.m = memberData.modify;
-                  } else {
-                    original.render.a = memberData.modify;
+                if (isNewAnno == false) {
+                  //if (editor.utils.getLocked(original.render).includes("p") == false || memberData.access < 4) {
+                  original.render.m = memberData.modify;
+                  //}
+                } else {
+                  if (editor.settings.editOthersWork != true) {
+                    anno.lock = anno.lock ?? original.render.lock ?? [];
+                    if (anno.lock.includes("c") == false) {
+                      anno.lock.push("c"); // Add default collaborator lock
+                    }
                   }
-                  original.render.sync = time;
-
-                  await editor.save.apply({ ...anno, sync: time });
+                  original.render.a = memberData.modify;
                 }
+                original.render.sync = time;
+
+                await editor.save.apply({ ...anno, sync: time });
               }
             }
 

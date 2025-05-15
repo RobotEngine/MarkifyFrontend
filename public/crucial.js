@@ -22,7 +22,7 @@ const configs = {
 };
 
 const config = configs["public"];
-const version = "1.1.16"; // Big Update . Small Feature Release . Bug Fix
+const version = "1.2.0"; // Big Update . Small Feature Release . Bug Fix
 
 const serverURL = config.server;
 const assetURL = config.assets;
@@ -822,8 +822,11 @@ let objectUpdate = (obj, passData, path) => { // obj = Object to apply changes; 
 }
 
 let getTheme = () => {
-  let theme = (account.settings ?? {}).theme ?? "auto";
-  setLocalStore("theme", theme);
+  let theme = (account.settings ?? {}).theme;
+  if (theme != null) {
+    setLocalStore("theme", theme);
+  }
+  theme = theme ?? getLocalStore("theme") ?? "auto";
   switch (theme) {
     case "auto":
       if (window.matchMedia == null || window.matchMedia("(prefers-color-scheme: dark)").matches != true) {
@@ -831,10 +834,8 @@ let getTheme = () => {
       } else {
         return "dark";
       }
-    case "light":
-      return "light";
-    case "dark":
-      return "dark";
+    default:
+      return theme;
   }
 }
 let updateTheme = () => {

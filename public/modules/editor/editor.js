@@ -1210,9 +1210,9 @@ modules["editor/editor"] = class {
       if (member.access > 3) {
         return true;
       }
-      /*if (this.settings.editOthersWork == true) {
+      if (this.settings.editOthersWork == true) {
         return true;
-      }*/
+      }
       let locked = this.utils.getLocked(render);
       if (locked.includes("p") == false) {
         if ([render.a, render.m].includes(member.modify) == true || locked.includes("c") == false) {
@@ -2304,12 +2304,12 @@ modules["editor/editor"] = class {
 
       data.sync = getEpoch();
       if (newAnnotation == true) {
-        if (this.settings.editOthersWork != true) {
-          data.lock = data.lock ?? [];
-          if (data.lock.includes("c") == false) {
-            data.lock.push("c"); // Add default collaborator lock
-          }
+        //if (this.settings.editOthersWork != true) {
+        data.lock = data.lock ?? [];
+        if (data.lock.includes("c") == false) {
+          data.lock.push("c"); // Add default collaborator lock
         }
+        //}
       }
       annotation = (await this.save.apply(data, { ...options, childChunkUpdate: false })).annotation; // Apply Save
 

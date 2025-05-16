@@ -605,12 +605,12 @@ modules["editor/realtime"] = class {
                   original.render.m = memberData.modify;
                   //}
                 } else {
-                  if (editor.settings.editOthersWork != true) {
-                    anno.lock = anno.lock ?? original.render.lock ?? [];
-                    if (anno.lock.includes("c") == false) {
-                      anno.lock.push("c"); // Add default collaborator lock
-                    }
+                  //if (editor.settings.editOthersWork != true) {
+                  anno.lock = anno.lock ?? original.render.lock ?? [];
+                  if (anno.lock.includes("c") == false) {
+                    anno.lock.push("c"); // Add default collaborator lock
                   }
+                  //}
                   original.render.a = memberData.modify;
                 }
                 original.render.sync = time;

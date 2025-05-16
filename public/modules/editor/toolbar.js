@@ -6839,12 +6839,12 @@ modules["dropdowns/editor/toolbar/more/locking"] = class {
       } else {
         standardLock.setAttribute("selected", "");
       }
-      if (lockOptions.includes("c") == true && (locks.includes("p") == false || locks.includes("c") == true)) {
+      if (lockOptions.includes("c") == true && editor.settings.editOthersWork != true && (locks.includes("p") == false || locks.includes("c") == true)) {
         collaboratorLock.removeAttribute("disabled");
       } else {
         collaboratorLock.setAttribute("disabled", "");
       }
-      if (locks.includes("c") == false) {
+      if (locks.includes("c") == false || editor.settings.editOthersWork == true) {
         collaboratorLock.removeAttribute("selected");
       } else {
         collaboratorLock.setAttribute("selected", "");

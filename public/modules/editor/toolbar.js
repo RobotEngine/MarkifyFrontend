@@ -7521,37 +7521,37 @@ modules["editor/toolbar/uploadpage"] = class {
             alertModule.open("warning", "<b>" + file.name + " Failed to Upload</b>Only PDF files are currently supported", { time: 10 });
           }
         }
-        if (passedFiles > 0) {
-          this.button.setAttribute("disabled", "");
-          let uploadAlert = await alertModule.open("info", `<b>Uploading Document${addS(passedFiles)}</b>Uploading your PDF${addS(passedFiles)} and inserting into the lesson!`, { time: "never" });
-          let [code, body] = await sendRequest("POST", "lessons/save/file?annotation=" + preference._id, sendFormData, { session: this.editor.session, noFileType: true });
-          alertModule.close(uploadAlert);
-          this.button.removeAttribute("disabled");
-          if (code == 200) {
-            let historyUpdate = body.historyUpdate ?? [];
-            let historyAdd = body.historyAdd ?? [];
-            let historyRemove = body.historyRemove ?? [];
-            if (body.saves != null) {
-              for (let i = 0; i < body.saves.length; i++) {
-                let save = body.saves[i];
-                await this.editor.save.push(save, { history: { update: historyUpdate, add: historyRemove }, ignoreSelect: true });
-                this.editor.selecting[save._id] = this.editor.selecting[save._id] ?? {};
-              }
-              this.toolbar.selection.updateActionBar();
+      }
+      input.value = "";
+      if (passedFiles > 0) {
+        this.button.setAttribute("disabled", "");
+        let uploadAlert = await alertModule.open("info", `<b>Uploading Document${addS(passedFiles)}</b>Uploading your PDF${addS(passedFiles)} and inserting into the lesson!`, { time: "never" });
+        let [code, body] = await sendRequest("POST", "lessons/save/file?annotation=" + preference._id, sendFormData, { session: this.editor.session, noFileType: true });
+        alertModule.close(uploadAlert);
+        this.button.removeAttribute("disabled");
+        if (code == 200) {
+          let historyUpdate = body.historyUpdate ?? [];
+          let historyAdd = body.historyAdd ?? [];
+          let historyRemove = body.historyRemove ?? [];
+          if (body.saves != null) {
+            for (let i = 0; i < body.saves.length; i++) {
+              let save = body.saves[i];
+              await this.editor.save.push(save, { history: { update: historyUpdate, add: historyRemove }, ignoreSelect: true });
+              this.editor.selecting[save._id] = this.editor.selecting[save._id] ?? {};
             }
-            if (historyUpdate.length > 0) {
-              this.editor.history.push("update", historyUpdate);
-            }
-            if (historyAdd.length > 0) {
-              this.editor.history.push("remove", historyAdd);
-            }
-            if (historyAdd.length > 0) {
-              this.editor.history.push("add", historyRemove);
-            }
+            this.toolbar.selection.updateActionBar();
+          }
+          if (historyUpdate.length > 0) {
+            this.editor.history.push("update", historyUpdate);
+          }
+          if (historyAdd.length > 0) {
+            this.editor.history.push("remove", historyAdd);
+          }
+          if (historyAdd.length > 0) {
+            this.editor.history.push("add", historyRemove);
           }
         }
       }
-      input.value = "";
     }
     input.addEventListener("change", (event) => {
       processUpload(event.target.files, event);

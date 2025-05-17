@@ -22,7 +22,7 @@ const configs = {
 };
 
 const config = configs["public"];
-const version = "1.2.2"; // Big Update . Small Feature Release . Bug Fix
+const version = "1.2.3"; // Big Update . Small Feature Release . Bug Fix
 
 const serverURL = config.server;
 const assetURL = config.assets;
@@ -329,6 +329,8 @@ let setFrame = async (path, frame, extra, parent) => {
     }
     if (extra.pushHistory != false) {
       window.history.pushState({ page: path, params: params }, "", setURLState.pathname + setURLState.search);
+    } else if (extra.replaceHistory == true) {
+      window.history.replaceState({ page: path, params: params }, "", setURLState.pathname + setURLState.search);
     }
     fixed.style.removeProperty("--floatMargin");
     let currentRemotes = Object.keys(socket.remotes);
@@ -1037,7 +1039,7 @@ let initSocket = async () => {
       let hash = window.location.hash.substring(1);
       openPage = "pages/" + (movedPages[hash] ?? hash);
     }
-    setFrame(openPage, null, { pushHistory: false, passParams: true, unsub: false, missPageRedirect: true });
+    setFrame(openPage, null, { pushHistory: false, replaceHistory: true, passParams: true, unsub: false, missPageRedirect: true });
     if (wasConnected == true) {
       alertModule.open("worked", `<b>Connected</b>Reconnected to Markify`, { id: "connection" });
     }

@@ -8,14 +8,35 @@
     ],
     "cleanUrls": true,
     "trailingSlash": true,
-    
+    "rewrites": [
+     {
+        "source": "/join",
+        "destination": "/join.html"
+      },
+      {
+        "source": "/export",
+        "destination": "/export.html"
+      },
+      {
+        "source": "/tos",
+        "destination": "/tos.html"
+      },
+      {
+        "source": "/privacy",
+        "destination": "/privacy.html"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
     "headers": [
       {
         "source": "**",
         "headers": [
           {
             "key": "Content-Security-Policy",
-            "value": "script-src 'self' https://*.simplesocket.net https://*.exotek.co https://*.googleapis.com https://*.cloudflare.com; frame-src * blob:"
+            "value": "script-src 'self' 'sha256-nRcgRt3XNN0aZXdzMDUhXYSzvNDbxXeNTBXS8ajcR38=' https://*.simplesocket.net https://*.exotek.co https://*.googleapis.com https://*.cloudflare.com; frame-src * blob:"
           },
           {
             "key": "X-Frame-Options",
@@ -32,7 +53,7 @@
         ]
       },
 
-      { "source": "/", "headers": [ { "key": "Content-Security-Policy", "value": "script-src 'self' 'sha256-/oCuvSihiZsklDFtdusCpmAODxa+kAxii73jJ0PBhoU=' https://*.simplesocket.net https://*.exotek.co https://*.googleapis.com https://*.cloudflare.com; frame-src * blob:" } ] },
+      { "source": "/", "headers": [ { "key": "Content-Security-Policy", "value": "script-src 'self' 'sha256-nRcgRt3XNN0aZXdzMDUhXYSzvNDbxXeNTBXS8ajcR38=' https://*.simplesocket.net https://*.exotek.co https://*.googleapis.com https://*.cloudflare.com; frame-src * blob:" } ] },
       
       { "source": "/join", "headers": [ { "key": "Content-Security-Policy", "value": "script-src 'self' 'sha256-viSWilXB5sYlQ+Ga8T8LdsqOzYVlVgZkRO7wmjuwVko=' https://*.simplesocket.net https://*.exotek.co https://*.googleapis.com https://*.cloudflare.com; frame-src * blob:" } ] },
       

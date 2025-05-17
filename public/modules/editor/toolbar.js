@@ -4060,13 +4060,6 @@ modules["editor/toolbar"] = class {
         return;
       }
 
-      let annotationRect = editor.utils.localBoundingRect(annotations);
-      let pageTopLeftX = -annotationRect.left / editor.zoom;
-      let pageTopLeftY = -annotationRect.top / editor.zoom;
-      let pageBottomRightX = (page.offsetWidth - annotationRect.left) / editor.zoom;
-      let pageBottomRightY = (page.offsetHeight - annotationRect.top) / editor.zoom;
-      //let setSelect = {};
-      //let newNewSelect = {};
       let minLeft;
       let minTop;
       let maxLeft;
@@ -4111,15 +4104,9 @@ modules["editor/toolbar"] = class {
           continue;
         }
         let existingAnno = (editor.annotations[newAnno.old_ID] ?? {}).render;
-        if (existingAnno != null) {
-          let existingAnnoRect = editor.utils.getRect(existingAnno);
-          let [topLeftX, topLeftY, bottomRightX, bottomRightY] = editor.math.rotatedBounds(existingAnnoRect.x, existingAnnoRect.y, existingAnnoRect.endX, existingAnnoRect.endY, existingAnnoRect.rotation);
-          if (bottomRightX > pageTopLeftX && topLeftX < pageBottomRightX && bottomRightY > pageTopLeftY && topLeftY < pageBottomRightY) {
-            newAnno.p[0] = (newAnno.p[0] ?? existingAnno.p[0]) + 50;
-            newAnno.p[1] = (newAnno.p[1] ?? existingAnno.p[1]) + 50;
-          } else {
-            existingAnno = null;
-          }
+        if (existingAnno != null && editor.utils.annotationInViewport(existingAnno) == true) {
+          newAnno.p[0] = (newAnno.p[0] ?? existingAnno.p[0]) + 50;
+          newAnno.p[1] = (newAnno.p[1] ?? existingAnno.p[1]) + 50;
         } else {
           newAnno.p[0] += centerPageX + centerX - maxLeft;
           newAnno.p[1] += centerPageY + centerY - maxTop;
@@ -6544,6 +6531,10 @@ modules["editor/toolbar/more"] = class {
       }
     }
 
+    let minLeft;
+    let minTop;
+    let maxLeft;
+    let maxTop;
     for (let i = 0; i < selectKeys.length; i++) {
       let annoID = selectKeys[i];
       let render = (this.editor.annotations[annoID] ?? {}).render;
@@ -6553,6 +6544,20 @@ modules["editor/toolbar/more"] = class {
       let addChunks = this.editor.utils.chunksFromAnnotation(render);
       for (let c = 0; c < addChunks.length; c++) {
         checkChunks[addChunks[c]] = true;
+      }
+      let annoRect = this.editor.utils.getRect(render);
+      let [topLeftX, topLeftY, bottomRightX, bottomRightY] = this.editor.math.rotatedBounds(annoRect.x, annoRect.y, annoRect.endX, annoRect.endY, annoRect.rotation);
+      if (topLeftX < minLeft || minLeft == null) {
+        minLeft = topLeftX;
+      }
+      if (topLeftY < minTop || minTop == null) {
+        minTop = topLeftY;
+      }
+      if (bottomRightX > maxLeft || maxLeft == null) {
+        maxLeft = bottomRightX;
+      }
+      if (bottomRightY > maxTop || maxTop == null) {
+        maxTop = bottomRightY;
       }
       maxZIndex = Math.max(maxZIndex ?? render.l ?? this.editor.utils.maxLayer, render.l ?? this.editor.utils.maxLayer);
       minZIndex = Math.min(minZIndex ?? render.l ?? this.editor.utils.minLayer, render.l ?? this.editor.utils.minLayer);
@@ -6582,6 +6587,10 @@ modules["editor/toolbar/more"] = class {
       saveAnnoData.push({ ...copyObject(render), _id: tempID });
     }
 
+    let { x: centerPageX, y: centerPageY } = this.editor.utils.scaleToDoc(this.editor.page.offsetWidth / 2, this.editor.page.offsetHeight / 2);
+    let centerX = (maxLeft - minLeft) / 2;
+    let centerY = (maxTop - minTop) / 2;
+    
     maxZIndex++;
     this.editor.selecting = {};
     for (let i = 0; i < saveAnnoData.length; i++) {
@@ -6591,9 +6600,15 @@ modules["editor/toolbar/more"] = class {
         newAnno.parent = checkParent;
       } else {
         let { annoX, annoY, rotation } = this.editor.utils.getRect(newAnno);
-        delete newAnno.parent;
-        newAnno.p = [annoX + offsetX, annoY + offsetY];
-        newAnno.r = rotation;
+        let inViewport = this.editor.utils.annotationInViewport(newAnno);
+        if (handle != null || inViewport == true) {
+          delete newAnno.parent;
+          newAnno.p = [annoX + offsetX, annoY + offsetY];
+          newAnno.r = rotation;
+        } else {
+          newAnno.p[0] += centerPageX + centerX - maxLeft;
+          newAnno.p[1] += centerPageY + centerY - maxTop;
+        }
       }
       newAnno.l = maxZIndex + ((newAnno.l ?? this.editor.utils.maxLayer) - minZIndex);
       delete newAnno.m;

@@ -993,6 +993,16 @@ modules["editor/editor"] = class {
     this.utils.pointInChunk = (x, y) => {
       return this.utils.regionInChunks(x, y, x, y)[0];
     }
+    this.utils.annotationInViewport = (render = {}) => {
+      let annotationRect = this.utils.localBoundingRect(annotations);
+      let pageTopLeftX = -annotationRect.left / this.zoom;
+      let pageTopLeftY = -annotationRect.top / this.zoom;
+      let pageBottomRightX = (page.offsetWidth - annotationRect.left) / this.zoom;
+      let pageBottomRightY = (page.offsetHeight - annotationRect.top) / this.zoom;
+      let existingAnnoRect = this.utils.getRect(render);
+      let [topLeftX, topLeftY, bottomRightX, bottomRightY] = this.math.rotatedBounds(existingAnnoRect.x, existingAnnoRect.y, existingAnnoRect.endX, existingAnnoRect.endY, existingAnnoRect.rotation);
+      return bottomRightX > pageTopLeftX && topLeftX < pageBottomRightX && bottomRightY > pageTopLeftY && topLeftY < pageBottomRightY;
+    }
     /*this.utils.topmostChunk = (lockX) => {
       let topmostChunk;
       let highestPoint;

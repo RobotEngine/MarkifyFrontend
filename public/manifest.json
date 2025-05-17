@@ -16,20 +16,20 @@
   ],
   "icons": [
     {
-      "src": "./images/appicon.png",
+      "src": "../images/appicon.png",
       "sizes": "256x256",
       "type": "image/png"
     }
   ],
   "screenshots": [
     {
-      "src": "./images/pwa/narrow.png",
+      "src": "../images/pwa/narrow.png",
       "type": "image/png",
       "sizes": "540x720",
       "form_factor": "narrow"
     },
     {
-      "src": "./images/pwa/wide.png",
+      "src": "../images/pwa/wide.png",
       "type": "image/png",
       "sizes": "720x540",
       "form_factor": "wide"

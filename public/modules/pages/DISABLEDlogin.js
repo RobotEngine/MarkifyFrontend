@@ -33,13 +33,13 @@ modules["pages/login"] = class {
   title = "Login";
   html = `<div class="loginBackdrop">
     <div class="loginBackground"></div>
-    <img class="loginSplash" src="./images/join/splash.svg">
+    <img class="loginSplash" src="../images/join/splash.svg">
   </div>
   <iframe class="loginEmbed" hidden></iframe>
   `;
   css = {
     ".loginBackdrop": `position: fixed; min-width: 100%; min-height: 100vh; left: 0px; top: 0px; background: var(--pageColor)`,
-    ".loginBackground": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background-image: url(./images/editor/backdrop.svg); background-size: 25px; background-position: center; opacity: .075`,
+    ".loginBackground": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background-image: url(../images/editor/backdrop.svg); background-size: 25px; background-position: center; opacity: .075`,
     ".loginSplash": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover`,
     ".loginEmbed": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border: none`
   };

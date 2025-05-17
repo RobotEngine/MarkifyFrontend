@@ -19,15 +19,15 @@ modules["dropdowns/lesson/file/export"] = class {
 
     if (type == "download") {
       frame.innerHTML = `
-      <button class="eFileExportOption" option="pages" title="Export each page separately into a PDF."><img src="./images/editor/file/export/pages.svg"><div class="eFileExportInfo"><div class="eFileExportTitle">Just the <b>Pages</b></div><div class="eFileExportDesc">Export each page separately into a PDF.</div></div></button>
-      <button class="eFileExportOption" option="board" title="Export the entire board as a single page PDF."><img src="./images/editor/file/export/board.svg"><div class="eFileExportInfo"><div class="eFileExportTitle">Entire <b>Document</b></div><div class="eFileExportDesc">Export the entire board as a single page PDF.</div></div></button>
-      <button class="eFileExportOption" option="selected" title="Export only the selected elements into a PDF."><img src="./images/editor/file/export/selected.svg"><div class="eFileExportInfo"><div class="eFileExportTitle">Selected <b>Elements</b></div><div class="eFileExportDesc">Export only the selected elements into a PDF.</div></div></button>
+      <button class="eFileExportOption" option="pages" title="Export each page separately into a PDF."><img src="../images/editor/file/export/pages.svg"><div class="eFileExportInfo"><div class="eFileExportTitle">Just the <b>Pages</b></div><div class="eFileExportDesc">Export each page separately into a PDF.</div></div></button>
+      <button class="eFileExportOption" option="board" title="Export the entire board as a single page PDF."><img src="../images/editor/file/export/board.svg"><div class="eFileExportInfo"><div class="eFileExportTitle">Entire <b>Document</b></div><div class="eFileExportDesc">Export the entire board as a single page PDF.</div></div></button>
+      <button class="eFileExportOption" option="selected" title="Export only the selected elements into a PDF."><img src="../images/editor/file/export/selected.svg"><div class="eFileExportInfo"><div class="eFileExportTitle">Selected <b>Elements</b></div><div class="eFileExportDesc">Export only the selected elements into a PDF.</div></div></button>
       `;
     } else if (type == "print") {
       frame.innerHTML = `
-      <button class="eFileExportOption" option="pages" title="Print each page separately (RECOMENDED)."><img src="./images/editor/file/export/pages.svg"><div class="eFileExportInfo"><div class="eFileExportTitle">Just the <b>Pages</b></div><div class="eFileExportDesc">Print each page separately (RECOMENDED).</div></div></button>
-      <button class="eFileExportOption" option="board" title="Print the entire board as a single page."><img src="./images/editor/file/export/board.svg"><div class="eFileExportInfo"><div class="eFileExportTitle">Entire <b>Document</b></div><div class="eFileExportDesc">Print the entire board as single page.</div></div></button>
-      <button class="eFileExportOption" option="selected" title="Print only the selected elements."><img src="./images/editor/file/export/selected.svg"><div class="eFileExportInfo"><div class="eFileExportTitle">Selected <b>Elements</b></div><div class="eFileExportDesc">Print only the selected elements.</div></div></button>
+      <button class="eFileExportOption" option="pages" title="Print each page separately (RECOMENDED)."><img src="../images/editor/file/export/pages.svg"><div class="eFileExportInfo"><div class="eFileExportTitle">Just the <b>Pages</b></div><div class="eFileExportDesc">Print each page separately (RECOMENDED).</div></div></button>
+      <button class="eFileExportOption" option="board" title="Print the entire board as a single page."><img src="../images/editor/file/export/board.svg"><div class="eFileExportInfo"><div class="eFileExportTitle">Entire <b>Document</b></div><div class="eFileExportDesc">Print the entire board as single page.</div></div></button>
+      <button class="eFileExportOption" option="selected" title="Print only the selected elements."><img src="../images/editor/file/export/selected.svg"><div class="eFileExportInfo"><div class="eFileExportTitle">Selected <b>Elements</b></div><div class="eFileExportDesc">Print only the selected elements.</div></div></button>
       `;
     }
 

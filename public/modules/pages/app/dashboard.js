@@ -1,14 +1,14 @@
-modules["pages/dashboard"] = class {
+modules["pages/app/dashboard"] = class {
   title = "Dashboard";
   preload = [
-    "./modules/pages/lesson.js",
-    "./modules/pages/join.js",
+    "../modules/pages/app/lesson.js",
+    "../modules/pages/app/join.js",
 
-    "./modules/modals/lesson/newboard.js",
+    "../modules/modals/lesson/newboard.js",
     
-    "./modules/dropdowns/account.js",
-    "./modules/dropdowns/moveto.js",
-    "./modules/dropdowns/remove.js"
+    "../modules/dropdowns/account.js",
+    "../modules/dropdowns/moveto.js",
+    "../modules/dropdowns/remove.js"
   ];
   preJs = () => {
     if (userID == null) {
@@ -25,46 +25,46 @@ modules["pages/dashboard"] = class {
   html = `<div class="dPageHolder">
     <div class="dPage">
       <div class="dSidebarHolder">
-        <img class="dBackdropImage" src="./images/dashboard/backdrop.svg" />
+        <img class="dBackdropImage" src="../images/dashboard/backdrop.svg" />
         <div class="dSidebar customScroll">
           <div class="dSidebarSection dSidebarHeader">
-            <a class="dSidebarLogo" href="/#launch"><img src="./images/logo.svg" /></a>
-            <a class="dJoinButton largeButton" href="/#join">Join<img src="./images/tooltips/link.svg" /><div backdrop></div></a>
+            <a class="dSidebarLogo" href="/#launch"><img src="../images/logo.svg" /></a>
+            <a class="dJoinButton largeButton" href="/#join">Join<img src="../images/tooltips/link.svg" /><div backdrop></div></a>
           </div>
           <div class="dSidebarSection dSidebarActions">
             <a class="dCreateLessonButton largeButton" href="/?type=board#lesson">New Lesson<div backdrop></div></a>
           </div>
           <div class="dSidebarSection dSidebarSorts">
             <div class="dSidebarTitle"><div title>Sorts</div><div divider></div></div>
-            <div class="dSidebarSearch border"><img src="./images/dashboard/search.svg" /><input placeholder="Search..."></input></div>
+            <div class="dSidebarSearch border"><img src="../images/dashboard/search.svg" /><input placeholder="Search..."></input></div>
             <button class="dSidebarSort" sort="recent" selected>Recent</button>
             <button class="dSidebarSort" sort="shared">Shared</button>
             <button class="dSidebarSort" sort="owned">Owned</button>
             <button class="dSidebarSort" sort="newest">Newest</button>
           </div>
           <div class="dSidebarSection dSidebarFolderHeading">
-            <div class="dSidebarTitle"><div title>Folders</div><div divider></div><button class="dSidebarNewFolderButton"><img src="./images/dashboard/add.svg" /></button></div>
+            <div class="dSidebarTitle"><div title>Folders</div><div divider></div><button class="dSidebarNewFolderButton"><img src="../images/dashboard/add.svg" /></button></div>
           </div>
           <div class="dSidebarSection dSidebarFolders">
             <div class="dSidebarFolderHolder" opened></div>
           </div>
           <div class="dSidebarSection dSidebarAccountHolder">
-            <button class="dAccount largeButton border"><img src="./images/profiles/default.svg" accountimage /><div accountuser>Username</div><div backdrop></div></button>
+            <button class="dAccount largeButton border"><img src="../images/profiles/default.svg" accountimage /><div accountuser>Username</div><div backdrop></div></button>
           </div>
         </div>
-        <div class="dSidebarOpen"><div shadow><div></div></div><button><img src="./images/dashboard/opensidebar.svg" /></button></div>
+        <div class="dSidebarOpen"><div shadow><div></div></div><button><img src="../images/dashboard/opensidebar.svg" /></button></div>
       </div>
       <div class="dLessonsHolder customScroll">
         <div class="dBannerHolder">
           <div class="dBanner">
-            <img class="dBannerIcon" src="./images/dashboard/banner/version1release.svg" />
+            <img class="dBannerIcon" src="../images/dashboard/banner/version1release.svg" />
             <div class="dBannerContent">
               <div class="dBannerTitle">Welcome to Markify 1.0</div>
               <div class="dBannerText">Introducing the newly released Markify! We hope you enjoy the new touch-ups.</div>
             </div>
             <div class="dBannerButtons">
               <button class="dBannerFeedback buttonAnim border">Feedback</button>
-              <button class="dBannerClose buttonAnim border"><img src="./images/tooltips/close.svg"></button>
+              <button class="dBannerClose buttonAnim border"><img src="../images/tooltips/close.svg"></button>
             </div>
           </div>
         </div>
@@ -244,15 +244,15 @@ modules["pages/dashboard"] = class {
     });
     joinLessonButton.addEventListener("click", (event) => {
       event.preventDefault();
-      setFrame("pages/join");
+      setFrame("pages/app/join");
     });
     newLessonButton.addEventListener("click", (event) => {
       event.preventDefault();
-      modifyParams("type", "board");
+      let params = { type: "board" };
       if (this.sort != null && this.sort.length > 20) {
-        modifyParams("folder", this.sort);
+        params["folder"] = this.sort;
       }
-      setFrame("pages/lesson");
+      setFrame("pages/app/lesson", null, { params: params });
     });
 
     // Display Account Details
@@ -862,7 +862,7 @@ modules["pages/dashboard"] = class {
           </div>
           <div title></div>
           <div class="dFolderInfoActions">
-            <button class="dFolderRemove largeButton" option="deletefolder" dashboard title="Delete this folder." dropdowntitle="Delete Folder"><img src="./images/editor/file/delete.svg"></button>
+            <button class="dFolderRemove largeButton" option="deletefolder" dashboard title="Delete this folder." dropdowntitle="Delete Folder"><img src="../images/editor/file/delete.svg"></button>
           </div>
         </div>`;
         let folderID = this.sort;
@@ -988,7 +988,7 @@ modules["pages/dashboard"] = class {
         firstLoad: firstLoad,
         prevSort: prevSort
       };
-      await this.setFrame("pages/dashboard/lessons", tileHolder, extra);
+      await this.setFrame("pages/app/dashboard/lessons", tileHolder, extra);
       scrollEventPass = extra.scrollEventPass;
     }
     this.updateTiles(null, true);
@@ -1029,16 +1029,14 @@ modules["pages/dashboard"] = class {
           let method = tile.getAttribute("join");
           if (method.startsWith("pin_")) {
             modifyParams("pin", method.substring(4));
-            setFrame("pages/join");
+            setFrame("pages/app/join");
             return;
           } else if (method == "link") {
-            modifyParams("lesson", tile.getAttribute("lesson"));
-            setFrame("pages/join");
+            setFrame("pages/app/join", null, { params: { lesson: tile.getAttribute("lesson") } });
             return;
           }
         }
-        modifyParams("lesson", tile.getAttribute("lesson"));
-        setFrame("pages/lesson");
+        setFrame("pages/app/lesson", null, { params: { lesson: tile.getAttribute("lesson") } });
       }
 
       let button = target.closest("button, a");
@@ -1122,7 +1120,7 @@ modules["pages/dashboard"] = class {
     let dragStart = (event) => {
       let target = event.target;
       let folder = target.closest(".dSidebarFolder");
-      if (folder != null) {
+      if (folder != null && folder.hasAttribute("folderid") == true) {
         dragContext = {
           originalElement: folder,
           width: folder.clientWidth, //sidebar.clientWidth - 16
@@ -1360,11 +1358,11 @@ modules["pages/dashboard"] = class {
   }
 }
 
-modules["pages/dashboard/lessons"] = class {
+modules["pages/app/dashboard/lessons"] = class {
   html = `
   <div class="dTiles"></div>
   <div class="dNoLessons">
-    <img class="dNoLessonsImage" src="./images/dashboard/nolessons.png" />
+    <img class="dNoLessonsImage" src="../images/dashboard/nolessons.png" />
     <div class="dNoLessonsTitle">No Lessons... Yet!</div>
     <div class="dNoLessonsDesc">Try a different sort, or create a new lesson at the top of the sidebar.</div>
   </div>
@@ -1489,7 +1487,7 @@ modules["pages/dashboard/lessons"] = class {
       }
       tileHolder.insertAdjacentHTML(insertAdj, `<a class="dTile" draggable="false" new>
         <div class="dTileThumbnailHolder">
-          <img class="dTileThumbnail" src="./images/dashboard/placeholder.png" />
+          <img class="dTileThumbnail" src="../images/dashboard/placeholder.png" />
           <img class="dTileThumbnail" main />
         </div>
         <div class="dTileInfoHolder">
@@ -1497,10 +1495,10 @@ modules["pages/dashboard/lessons"] = class {
             <div class="dTileTitle"></div>
             <div class="dTileLastOpened"></div>
           </div>
-          <button class="dTileOptions" dropdowntitle="Options"><img src="./images/dashboard/more.svg" /></button>
+          <button class="dTileOptions" dropdowntitle="Options"><img src="../images/dashboard/more.svg" /></button>
         </div>
         <div class="dTileMemberCount" title="Active Members">
-          <img src="./images/profiles/default.svg" />
+          <img src="../images/profiles/default.svg" />
           <div></div>
         </div>
       </a>`);
@@ -1653,15 +1651,15 @@ modules["pages/dashboard/lessons"] = class {
 
 modules["dropdowns/dashboard/options"] = class {
   html = `
-  <button class="dTileDropAction" option="open" title="Open this lesson."><img src="./images/dashboard/open.svg">Open</button>
-  <button class="dTileDropAction" option="opennewtab" title="Open this lesson in a new tab."><img src="./images/dashboard/open.svg">Open in New Tab</button>
+  <button class="dTileDropAction" option="open" title="Open this lesson."><img src="../images/dashboard/open.svg">Open</button>
+  <button class="dTileDropAction" option="opennewtab" title="Open this lesson in a new tab."><img src="../images/dashboard/open.svg">Open in New Tab</button>
   <div class="dTileDropLine"></div>
-  <button class="dTileDropAction" option="moveto" title="Move this lesson into a folder." dropdown="dropdowns/dashboard/moveto" dropdowntitle="<img class='dTileDropActionImage' src='./images/dashboard/moveto.svg'>Move To"><img class="dTileDropActionImage" src="./images/dashboard/moveto.svg">Move To Folder</button>
-  <button class="dTileDropAction" option="movefrom" style="display: none" title="Remove this lesson from the folder."><img class="dTileDropActionImage" src="./images/dashboard/moveto.svg">Move From Folder</button>
+  <button class="dTileDropAction" option="moveto" title="Move this lesson into a folder." dropdown="dropdowns/dashboard/moveto" dropdowntitle="<img class='dTileDropActionImage' src='../images/dashboard/moveto.svg'>Move To"><img class="dTileDropActionImage" src="../images/dashboard/moveto.svg">Move To Folder</button>
+  <button class="dTileDropAction" option="movefrom" style="display: none" title="Remove this lesson from the folder."><img class="dTileDropActionImage" src="../images/dashboard/moveto.svg">Move From Folder</button>
   <div class="dTileDropLine"></div>
-  <button class="dTileDropAction" option="rename" title="Rename this lesson."><img src="./images/dashboard/rename.svg">Rename</button>
-  <button class="dTileDropAction" option="copy" title="Create a duplicate of this lesson."><img src="./images/editor/file/copy.svg">Duplicate</button>
-  <button class="dTileDropAction" option="deletelesson" dashboard dropdown="dropdowns/editor/file/delete" style="--themeColor: var(--error)" title="Remove this lesson from your dashboard."><img class="dTileDropActionImage" src="./images/editor/file/delete.svg">Delete</button>
+  <button class="dTileDropAction" option="rename" title="Rename this lesson."><img src="../images/dashboard/rename.svg">Rename</button>
+  <button class="dTileDropAction" option="copy" title="Create a duplicate of this lesson."><img src="../images/editor/file/copy.svg">Duplicate</button>
+  <button class="dTileDropAction" option="deletelesson" dashboard dropdown="dropdowns/editor/file/delete" style="--themeColor: var(--error)" title="Remove this lesson from your dashboard."><img class="dTileDropActionImage" src="../images/editor/file/delete.svg">Delete</button>
   `;
   css = {
     ".dTileDropAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
@@ -1687,14 +1685,11 @@ modules["dropdowns/dashboard/options"] = class {
     let folderID = record.folder;
     frame.querySelector('.dTileDropAction[option="open"]').addEventListener("click", () => {
       if (joinMethod.startsWith("pin_")) {
-        modifyParams("pin", joinMethod.substring(4));
-        return setFrame("pages/join");
+        setFrame("pages/app/join", null, { params: { pin: joinMethod.substring(4) }});
       } else if (joinMethod == "link") {
-        modifyParams("lesson", lessonID);
-        return setFrame("pages/join");
+        setFrame("pages/app/join", null, { params: { lesson: lessonID } });
       } else {
-        modifyParams("lesson", lessonID);
-        setFrame("pages/lesson");
+        setFrame("pages/app/lesson", null, { params: { lesson: lessonID } });
       }
     });
     let newTabButton = frame.querySelector('.dTileDropAction[option="opennewtab"]');
@@ -1819,7 +1814,7 @@ modules["dropdowns/dashboard/options"] = class {
     if (!isOwner) {
       renameButton.remove();
       copyButton.remove();
-      deleteButton.innerHTML = `<img src="./images/editor/file/delete.svg">Remove`;
+      deleteButton.innerHTML = `<img src="../images/editor/file/delete.svg">Remove`;
     }
   }
 }

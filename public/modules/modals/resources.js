@@ -2,28 +2,28 @@ modules["modals/resources"] = class {
   html = `
   <div class="dmWelcome">
     <div class="dmHeaderTx">Welcome To</div>
-    <img class="dmHeaderMarkify" src="./images/logo.svg">
+    <img class="dmHeaderMarkify" src="../images/logo.svg">
     <div class="dmAbout">Learning new pieces of software can be daunting, so here are some resources to help you get started!</div>
     <div class="dmButtons">
       <button class="dmTutorialButton largeButton" type="usecase" style="--rgbTheme: 255, 185, 56">
-        <img src="./images/tutorial/lightbulb.svg">
+        <img src="../images/tutorial/lightbulb.svg">
         <div>What You Can Use Markify For</div>
       </button>
       <button class="dmTutorialButton largeButton" type="started" style="--rgbTheme: 52, 193, 114">
-        <img src="./images/tutorial/compass.svg">
+        <img src="../images/tutorial/compass.svg">
         <div>Getting Started with Markify</div>
       </button>
       <button class="dmTutorialButton largeButton" type="watchout" style="--rgbTheme: 255, 61, 100">
-        <img src="./images/tutorial/warning.svg">
+        <img src="../images/tutorial/warning.svg">
         <div>Some Things to Watch Out For</div>
       </button>
       <button class="dmSkipButton"><b>Let Me In!</b> <i>— I'm an Expert</i></button>
     </div>
   </div>
-  <img class="dmBackground" default hover src="./images/tutorial/backgrounds/default.svg">
-  <img class="dmBackground" type="usecase" src="./images/tutorial/backgrounds/yellow.svg">
-  <img class="dmBackground" type="started" src="./images/tutorial/backgrounds/green.svg">
-  <img class="dmBackground" type="watchout" src="./images/tutorial/backgrounds/red.svg">
+  <img class="dmBackground" default hover src="../images/tutorial/backgrounds/default.svg">
+  <img class="dmBackground" type="usecase" src="../images/tutorial/backgrounds/yellow.svg">
+  <img class="dmBackground" type="started" src="../images/tutorial/backgrounds/green.svg">
+  <img class="dmBackground" type="watchout" src="../images/tutorial/backgrounds/red.svg">
   `;
   css = {
     ".dmWelcome": `position: relative; display: flex; flex-direction: column; width: 350px; max-width: 100%; text-align: center; align-items: center; z-index: 1`,
@@ -126,32 +126,32 @@ modules["modals/resources/resources"] = class {
       background: "linear-gradient(to bottom right, #FFE4BD, #FFAF3F)",
       pages: [
         {
-          image: "./images/launch/usecases/reading.png",
+          image: "../images/launch/usecases/reading.png",
           title: "Classroom Notetaking",
           description: "Let students see notes up close on their own devices where they can zoom in, review, and download the lesson for later."
         },
         {
-          image: "./images/launch/usecases/study.png",
+          image: "../images/launch/usecases/study.png",
           title: "Collaborative Review",
           description: "Grant editing to several students at a time to answer review questions for everyone to see and understand."
         },
         {
-          image: "./images/launch/usecases/socratic.png",
+          image: "../images/launch/usecases/socratic.png",
           title: "Student-Run Activities",
           description: "Markify gives all students a voice, allowing ideas from seminars and group work to be like putting a puzzle together."
         },
         {
-          image: "./images/launch/usecases/shared.png",
+          image: "../images/launch/usecases/shared.png",
           title: "Freely Roam the Classroom",
           description: "Run the lesson from a tablet that streams in real-time to the front of the class as well as everyone's device."
         },
         {
-          image: "./images/launch/usecases/activity.png",
+          image: "../images/launch/usecases/activity.png",
           title: "Annotating and Discussion",
           description: "Read and annotate texts by having students markup on their device for everyone to see."
         },
         {
-          image: "./images/launch/usecases/group.png",
+          image: "../images/launch/usecases/group.png",
           title: "Group Collaboration",
           description: "Let student groups read, annotate, and work seamlessly on the same document with leading collaborative tools."
         }
@@ -163,27 +163,27 @@ modules["modals/resources/resources"] = class {
       interface: true,
       pages: [
         {
-          image: "./images/tutorial/steps/create.png",
+          image: "../images/tutorial/steps/create.png",
           title: "Create Your Lesson",
           description: "Click the New Lesson button and choose to either upload a PDF or create an endless Freeboard for brainstorming activites."
         },
         {
-          image: "./images/tutorial/steps/share.png",
+          image: "../images/tutorial/steps/share.png",
           title: "Share the Lesson",
           description: "At the beginning of your class, head to Share and choose to Generate a Pin. Your class can head to the link and join in!"
         },
         {
-          image: "./images/tutorial/steps/markup.png",
+          image: "../images/tutorial/steps/markup.png",
           title: "Markup and Annotate",
           description: "Use the side toolbar to annotate your lesson document while the entire class follows along in real-time."
         },
         {
-          image: "./images/tutorial/steps/editing.png",
+          image: "../images/tutorial/steps/editing.png",
           title: "Facilitate the Class",
           description: "Let students teach each other by granting temporary editing. Go to Members and click on a student to grant editing access."
         },
         {
-          image: "./images/tutorial/steps/export.png",
+          image: "../images/tutorial/steps/export.png",
           title: "End Session and Export",
           description: "At the end of your lesson, hit End Session to remove all editing access. Everything is saved and can be exported as a PDF."
         }
@@ -194,24 +194,24 @@ modules["modals/resources/resources"] = class {
       background: "linear-gradient(to bottom right, #FF7E98, #FF3D64)",
       pages: [
         {
-          image: "./images/launch/usecases/mobility.png",
+          image: "../images/launch/usecases/mobility.png",
           title: "Keep Your Eye on Editors",
           description: "When you grant a student editing access, stay cognizant and aware to ensure nothing inappropriate gets drawn."
         },
         {
-          image: "./images/tutorial/steps/revoke.png",
+          image: "../images/tutorial/steps/revoke.png",
           interface: true,
           title: "Limit Concurrent Editors",
           description: "Unless you know what you're doing, utilize features like hand raising to minimize the number of concurrent editors."
         },
         {
-          image: "./images/tutorial/steps/end.png",
+          image: "../images/tutorial/steps/end.png",
           interface: true,
           title: "End Your Lesson Sessions",
           description: "If you're granting students editing access, make sure to revoke all editing access at the end of your lesson."
         },
         {
-          image: "./images/tutorial/steps/report.png",
+          image: "../images/tutorial/steps/report.png",
           interface: true,
           title: "Send your Feedback!",
           description: "If you run into any issues, need help, or have a cool idea, click your profile at the top right corner and let us know!"

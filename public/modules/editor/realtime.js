@@ -420,25 +420,25 @@ modules["editor/realtime"] = class {
                 html = `<div class="pointer" color><div name></div></div>`;
                 break;
               case 1: // Highlighter 
-                html = `${await getSVG("./images/editor/cursors/highlighter.svg")}<div class="pointer" color none><div name></div></div>`;
+                html = `${await getSVG("../images/editor/cursors/highlighter.svg")}<div class="pointer" color none><div name></div></div>`;
                 offsetx = -15;
                 offsety = -30;
                 origin = "bottom center";
                 break;
               case 2: // Pen 
-                html = `${await getSVG("./images/editor/cursors/pen.svg")}<div class="pointer" color none><div name></div></div>`;
+                html = `${await getSVG("../images/editor/cursors/pen.svg")}<div class="pointer" color none><div name></div></div>`;
                 offsetx = -15;
                 offsety = -30;
                 origin = "bottom center";
                 break;
               case 3: // Eraser
-                html = `${await getSVG("./images/editor/cursors/eraser.svg")}<div class="pointer" color none><div name></div></div>`;
+                html = `${await getSVG("../images/editor/cursors/eraser.svg")}<div class="pointer" color none><div name></div></div>`;
                 offsetx = -20;
                 offsety = -20;
                 origin = "center center";
                 break;
               case 4: // Insert
-                html = `${await getSVG("./images/editor/cursors/insert.svg")}<div class="pointer" color none><div name></div></div>`;
+                html = `${await getSVG("../images/editor/cursors/insert.svg")}<div class="pointer" color none><div name></div></div>`;
                 offsetx = -20;
                 offsety = -20;
                 origin = "center center";

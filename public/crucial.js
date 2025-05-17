@@ -178,7 +178,7 @@ let loadedModules = {};
 let pageTheme;
 let newModule = async (path, parent) => {
   if (modules[path] == null) {
-    await loadScript("./modules/" + path + ".js");
+    await loadScript("../modules/" + path + ".js");
   }
   let moduleTemplate = modules[path];
   if (moduleTemplate == null) {
@@ -295,6 +295,9 @@ let setFrame = async (path, frame, extra, parent) => {
       }
       return;
     } else if (path != defaultPage) {
+      if (loading != null) {
+        loading.remove();
+      }
       return setFrame(defaultPage, null, extra);
     }
   }
@@ -306,7 +309,27 @@ let setFrame = async (path, frame, extra, parent) => {
   let continueLoading = true;
   if (frameSet == app) {
     extra.from = currentPage;
-    window.location.hash = "#" + path.substring(path.lastIndexOf("/") + 1);
+    //window.location.hash = "#" + path.substring(path.lastIndexOf("/") + 1);
+    let setURLState = new URL(path.substring(path.indexOf("/")), window.location.origin);
+    let params = {};
+    let originalParams = Object.fromEntries((new URL("", window.location)).searchParams.entries());
+    if (extra.passParams == true) {
+      params = originalParams;
+    }
+    if (extra.params != null) {
+      params = { ...params, ...extra.params };
+    }
+    let keys = Object.keys(params);
+    for (let i = 0; i < keys.length; i++) {
+      let key = keys[i];
+      let value = params[key];
+      if (value != null) {
+        setURLState.searchParams.append(key, value);
+      }
+    }
+    if (extra.pushHistory != false) {
+      window.history.pushState({ page: path, params: params }, "", setURLState.pathname + setURLState.search);
+    }
     fixed.style.removeProperty("--floatMargin");
     let currentRemotes = Object.keys(socket.remotes);
     for (let i = 0; i < currentRemotes.length; i++) {
@@ -392,13 +415,18 @@ let setFrame = async (path, frame, extra, parent) => {
 let goBack = () => {
   history.back();
 }
-window.addEventListener("hashchange", () => {
+window.addEventListener("popstate", (event) => {
+  if (((event.state ?? {}).page ?? "") != "") {
+    setFrame(event.state.page, null, { pushHistory: false, params: event.state.params });
+  }
+});
+/*window.addEventListener("hashchange", () => {
   let setPage = "pages/" + window.location.hash.substring(1);
   if (currentPage == setPage) {
     return;
   }
   setFrame(setPage);
-});
+});*/
 
 let getParam = (key) => {
   let queryString = window.location.search;
@@ -417,7 +445,7 @@ let modifyParams = (key, value) => {
   }
   //window.history.replaceState({}, "", url);
   try {
-    window.history.pushState({}, "", url);
+    window.history.replaceState(window.history.state, "", url);
   } catch {}
 }
 
@@ -885,7 +913,7 @@ let init = async () => {
     }*/
     let sendBody = {
       code: paramAuthCode,
-      page: window.location.hash.substring(1)
+      page: window.location.pathname.substring(1)
     };
     if (getParam("from") != null) {
       sendBody.from = getParam("from");
@@ -944,6 +972,7 @@ if (authService != null) {
 let wasConnected = false;
 let connected = false;
 let preloadedFiles = false;
+const movedPages = { dashboard: "app/dashboard", lesson: "app/lesson", join: "app/join", editor: "app/lesson" };
 let initSocket = async () => {
   if (typeof SimpleSocket == "undefined") { // Backup if static fails
     await loadScript("https://simplesocket.net/static/v2/simplesocket.js");
@@ -965,7 +994,7 @@ let initSocket = async () => {
           elem.title = account.user;
         }
         if (elem.hasAttribute("accountimage")) {
-          elem.src = account.image ?? "./images/profiles/default.svg";
+          elem.src = account.image ?? "../images/profiles/default.svg";
         }
       }
 
@@ -987,10 +1016,13 @@ let initSocket = async () => {
     }
   }
   let loadPage = defaultPage;
-  if (window.location.hash != "") {
-    loadPage = "pages/" + window.location.hash.substring(1);
+  if (window.location.pathname != "/") {
+    loadPage = "pages/" + window.location.pathname.substring(1);
+  } else if (window.location.hash != "") {
+    let hash = window.location.hash.substring(1);
+    loadPage = "pages/" + (movedPages[hash] ?? hash);
   }
-  loadScript("./modules/" + loadPage + ".js");
+  loadScript("../modules/" + loadPage + ".js");
   socket.onopen = async () => {
     connected = true;
     if (endStartup == true) {
@@ -999,10 +1031,13 @@ let initSocket = async () => {
     dropdownModule.close();
     await init();
     let openPage = defaultPage;
-    if (window.location.hash != "") {
-      openPage = "pages/" + window.location.hash.substring(1);
+    if (window.location.pathname != "/") {
+      openPage = "pages/" + window.location.pathname.substring(1);
+    } else if (window.location.hash != "") {
+      let hash = window.location.hash.substring(1);
+      openPage = "pages/" + (movedPages[hash] ?? hash);
     }
-    setFrame(openPage, null, { unsub: false, missPageRedirect: true });
+    setFrame(openPage, null, { pushHistory: false, passParams: true, unsub: false, missPageRedirect: true });
     if (wasConnected == true) {
       alertModule.open("worked", `<b>Connected</b>Reconnected to Markify`, { id: "connection" });
     }
@@ -1182,9 +1217,9 @@ modules["dropdown"] = class {
       <div class="dropdown" new>
         <div class="dropdownOverflow">
           <div class="dropdownHeader">
-            <button class="dropdownBack buttonAnim border" style="display: none"><img src="./images/tooltips/back.svg"></button>
+            <button class="dropdownBack buttonAnim border" style="display: none"><img src="../images/tooltips/back.svg"></button>
             <div class="dropdownTitle"></div>
-            <button class="dropdownClose buttonAnim border" close><img src="./images/tooltips/close.svg"></button>
+            <button class="dropdownClose buttonAnim border" close><img src="../images/tooltips/close.svg"></button>
           </div>
           <div class="dropdownContent customScroll">
             <div class="dropdownFrame"></div>
@@ -1329,7 +1364,7 @@ modules["modal"] = class {
   open = async (frameName, originalParent, button, title, stack, data) => {
     let parent = originalParent ?? this.parent;
     let dataParent = window;
-    if (parent != null && this.modal != null) {
+    if (parent != null && parent != fixed) {
       dataParent = this;
     }
     if (data != null && data.previous == true) {
@@ -1436,9 +1471,9 @@ modules["modal"] = class {
       <div class="modal" new>
         <div class="modalOverflow">
           <div class="modalHeader">
-            <button class="modalBack buttonAnim border" style="display: none"><img src="./images/tooltips/back.svg"></button>
+            <button class="modalBack buttonAnim border" style="display: none"><img src="../images/tooltips/back.svg"></button>
             <div class="modalTitle"></div>
-            <button class="modalClose buttonAnim border" close><img src="./images/tooltips/close.svg"></button>
+            <button class="modalClose buttonAnim border" close><img src="../images/tooltips/close.svg"></button>
           </div>
           <div class="modalContent customScroll">
             <div class="modalFrame"></div>
@@ -1548,9 +1583,9 @@ modules["alert"] = class {
     alertHolder.parentElement.style.display = "flex";
     alertHolder.parentElement.style.justifyContent = "center";
     alertHolder.insertAdjacentHTML("afterbegin", `<div class="alert" new>
-      <img src="./images/tooltips/alerts.svg">
+      <img src="../images/tooltips/alerts.svg">
       <div class="alertText"></div>
-      <button class="alertClose buttonAnim border"><img src="./images/tooltips/close.svg"></button>
+      <button class="alertClose buttonAnim border"><img src="../images/tooltips/close.svg"></button>
     </div>`);
     let alert = fixed.querySelector(".alert[new]");
     alert.removeAttribute("new");
@@ -1690,12 +1725,12 @@ addCSS({
   ".hideScroll": `scrollbar-width: none`,
   ".hideScroll::-webkit-scrollbar": `display: none`
 });
-(new Image()).src = "./images/tooltips/alerts.svg";
-(new Image()).src = "./images/tooltips/close.svg";
+(new Image()).src = "../images/tooltips/alerts.svg";
+(new Image()).src = "../images/tooltips/close.svg";
 
 if ("serviceWorker" in navigator && window.isDiscord != true) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("serviceworker.js");
+    navigator.serviceWorker.register("../serviceworker.js");
   });
 }
 window.addEventListener("beforeinstallprompt", (event) => {

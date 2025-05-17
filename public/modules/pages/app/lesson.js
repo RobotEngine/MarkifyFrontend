@@ -1,23 +1,23 @@
-modules["pages/lesson"] = class {
+modules["pages/app/lesson"] = class {
   title = "Lesson";
   preload = [
-    "./modules/pages/dashboard.js",
+    "../modules/pages/app/dashboard.js",
 
-    "./modules/lesson/board.js",
+    "../modules/lesson/board.js",
 
-    "./modules/editor/editor.js",
-    "./modules/editor/realtime.js",
-    "./modules/editor/toolbar.js",
+    "../modules/editor/editor.js",
+    "../modules/editor/realtime.js",
+    "../modules/editor/toolbar.js",
 
-    "./libraries/pdfjs/pdf.mjs",
-    "./libraries/pdfjs/pdf.worker.mjs",
+    "../libraries/pdfjs/pdf.mjs",
+    "../libraries/pdfjs/pdf.worker.mjs",
 
-    "./modules/dropdowns/lesson/share.js",
-    "./modules/dropdowns/account.js",
-    "./modules/dropdowns/moveto.js",
-    "./modules/dropdowns/remove.js",
-    "./modules/dropdowns/editor/tools/emojis.js",
-    "./modules/dropdowns/lesson/file/export.js"
+    "../modules/dropdowns/lesson/share.js",
+    "../modules/dropdowns/account.js",
+    "../modules/dropdowns/moveto.js",
+    "../modules/dropdowns/remove.js",
+    "../modules/dropdowns/editor/tools/emojis.js",
+    "../modules/dropdowns/lesson/file/export.js"
   ];
   html = `<div class="lPageHolder">
     <div class="lPage" active></div>
@@ -217,14 +217,9 @@ modules["pages/lesson"] = class {
         switch (data.task) {
           case "kick":
             if (userID == null || data.filled == true) {
-              if (data.filled != true) {
-                modifyParams("lesson");
-                modifyParams("page");
-                modifyParams("pin");
-              }
-              setFrame("pages/join");
+              setFrame("pages/app/join", null, { passParams: data.filled == true });
             } else {
-              setFrame("pages/dashboard");
+              setFrame("pages/app/dashboard");
             }
             alertModule.open("error", "<b>You've Been Kicked</b>The lesson owner has removed you from the lesson.");
             break;
@@ -350,7 +345,7 @@ modules["pages/lesson"] = class {
               }
               if (body.settings != null) {
                 if (body.settings.forceLogin == false && this.self.access < 2) {
-                  setFrame("pages/join");
+                  setFrame("pages/app/join", null, { passParams: true });
                 }
               }
               break;
@@ -573,12 +568,12 @@ modules["pages/lesson"] = class {
           let [code] = await sendRequest("GET", path, null, { session: this.session, allowError: [403] });
           if (code == 403) {
             if (sendBody.pin != null) {
-              setFrame("pages/join"); // Send back to join page
+              setFrame("pages/app/join", null, { passParams: true }); // Send back to join page
             } else {
-              setFrame("pages/lesson"); // Refresh to rejoin
+              setFrame("pages/app/lesson", null, { passParams: true }); // Refresh to rejoin
             }
           } else if (code != 200 && code != 0 && code != null) {
-            setFrame("pages/lesson");
+            setFrame("pages/app/lesson", null, { passParams: true });
           }
         }
     
@@ -686,7 +681,7 @@ modules["pages/lesson"] = class {
       let [code, body, extra] = await sendRequest("POST", "lessons/join?lesson=" + this.id, sendBody, { session: this.session, allowError: [403, 406] });
       if (code == 403 || code == 406) {
         page.innerHTML = "";
-        setFrame("pages/join");
+        setFrame("pages/app/join", null, { passParams: true });
       }
       if (code != 200) {
         return;

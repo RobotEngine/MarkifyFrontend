@@ -1,8 +1,8 @@
 modules["dropdowns/lesson/share"] = class {
   html = `
-  <button class="eShareOption" type="pin" dropdowntitle="<div>Present with <b style='color: var(--theme); font-weight: 800'>Pin</b></div>" title="Invite members through a pin."><img src="./images/editor/share/pin.svg"><div class="eShareInfo"><div class="eShareTitle">Present with <b>Pin</b></div><div class="eShareDesc">Allow members to join as a viewer through a 6-digit pin code.</div></div></button>
-  <button class="eShareOption" type="link" dropdowntitle="<div>Share with <b style='color: var(--theme); font-weight: 800'>Link</b></div>" title="Invite members through a link."><img src="./images/editor/share/link.svg"><div class="eShareInfo"><div class="eShareTitle">Share with <b>Link</b></div><div class="eShareDesc">Allow members to join as a viewer or editor through a sendable link.</div></div></button>
-  <button class="eShareOption" type="email" dropdowntitle="<div>Invite with <b style='color: var(--theme); font-weight: 800'>Email</b></div>" title="Invite members through email."><img src="./images/editor/share/email.svg"><div class="eShareInfo"><div class="eShareTitle">Invite with <b>Email</b></div><div class="eShareDesc">Invite members as a viewer or editor with their email.</div></div></button>
+  <button class="eShareOption" type="pin" dropdowntitle="<div>Present with <b style='color: var(--theme); font-weight: 800'>Pin</b></div>" title="Invite members through a pin."><img src="../images/editor/share/pin.svg"><div class="eShareInfo"><div class="eShareTitle">Present with <b>Pin</b></div><div class="eShareDesc">Allow members to join as a viewer through a 6-digit pin code.</div></div></button>
+  <button class="eShareOption" type="link" dropdowntitle="<div>Share with <b style='color: var(--theme); font-weight: 800'>Link</b></div>" title="Invite members through a link."><img src="../images/editor/share/link.svg"><div class="eShareInfo"><div class="eShareTitle">Share with <b>Link</b></div><div class="eShareDesc">Allow members to join as a viewer or editor through a sendable link.</div></div></button>
+  <button class="eShareOption" type="email" dropdowntitle="<div>Invite with <b style='color: var(--theme); font-weight: 800'>Email</b></div>" title="Invite members through email."><img src="../images/editor/share/email.svg"><div class="eShareInfo"><div class="eShareTitle">Invite with <b>Email</b></div><div class="eShareDesc">Invite members as a viewer or editor with their email.</div></div></button>
   `;
   css = {
     ".eShareOption": `display: flex; flex-wrap: wrap; min-width: 100%; padding: 0; border-radius: 6px; align-items: center; transition: .15s`,
@@ -41,7 +41,7 @@ modules["dropdowns/lesson/share/pin"] = class {
   <div class="eSharePinLink">Join with this pin at <a href="https://markify.link" target="_blank">markify.link</a></div>
   <div class="eSharePinDisplay"><span section left></span><div></div><span section right></span></div>
   <div class="eSharePinOptions">
-    <button class="eSharePinCopy largeButton border" title="Copy the pin code."><img src="./images/tooltips/copy.svg"></button>
+    <button class="eSharePinCopy largeButton border" title="Copy the pin code."><img src="../images/tooltips/copy.svg"></button>
     <button class="eSharePinRemove largeButton border" title="Invalidate the pin.">Remove</button>
     <button class="eShareOptionPin largeButton border" title="Configurable options for members who join.">Options</button>
   </div>
@@ -167,7 +167,7 @@ modules["dropdowns/lesson/share/link"] = class {
   </div>
   <div class="eShareLinkRow" style="margin-top: 0px">
     <input class="eShareLinkSection" readonly></input>
-    <button class="eShareLinkCopy border" title="Copy the link."><img src="./images/tooltips/copy.svg"></button>
+    <button class="eShareLinkCopy border" title="Copy the link."><img src="../images/tooltips/copy.svg"></button>
   </div>
   <button class="eShareLinkRow eShareLinkPerm buttonAnim">
     <img class="eShareLinkIcon">
@@ -235,12 +235,12 @@ modules["dropdowns/lesson/share/link"] = class {
       }
       if (lesson.lesson.access != 1) {
         // Viewer:
-        accessIcon.src = "./images/editor/share/viewer.svg";
+        accessIcon.src = "../images/editor/share/viewer.svg";
         accessTitle.textContent = "Public View Access";
         accessDesc.textContent = "Anyone with this link will be able to view the document, but not make any edits.";
       } else {
         // Editor:
-        accessIcon.src = "./images/editor/share/editor.svg";
+        accessIcon.src = "../images/editor/share/editor.svg";
         accessTitle.textContent = "Public Edit Access";
         accessDesc.textContent = "Anyone with this link will be able to view the document and create annotations.";
       }
@@ -395,13 +395,13 @@ modules["dropdowns/lesson/share/email"] = class {
         </div>
         <div class="eShareActionHolder">
           <button class="eSharePerm buttonAnim border"></button>
-          <button class="eShareRemove buttonAnim border" style="margin-left: 9px" title="Unshare document with member."><img src="./images/tooltips/close.svg"></button>
+          <button class="eShareRemove buttonAnim border" style="margin-left: 9px" title="Unshare document with member."><img src="../images/tooltips/close.svg"></button>
         </div>
       </div>`);
       let tile = emailHolder.querySelector(".eShareTile[new]");
       tile.removeAttribute("new");
       tile.setAttribute("userid", data._id);
-      tile.querySelector(".eShareImage").src = data.image ?? "./images/profiles/default.svg";
+      tile.querySelector(".eShareImage").src = data.image ?? "../images/profiles/default.svg";
       let nameTx = tile.querySelector(".eShareName");
       nameTx.innerHTML = data.user ?? "<i>Pending</i>";
       nameTx.title = data.user ?? "Awaiting for the user to open the document...";
@@ -517,7 +517,7 @@ modules["dropdowns/lesson/share/options"] = class {
   <div class="eShareOptionContent">
     <div class="eShareOptionSection" section="settings">
       <button class="eShareActionOption border" option="forceLogin" title="Require those joining to login for verified identites."><div label>Require Login</div><div class="eOptionToggle"><div></div></div></button>
-      <button class="eShareActionOption border" option="editOthersWork" title="Controls the default collaborator lock for new annotations."><div label>Modify Other's Work</div><div class="eOptionToggle"><div></div></div></button>
+      <button class="eShareActionOption border" option="editOthersWork" title="When enabled, disables the collaborator lock on all annotations making everything editable."><div label>Modify Other's Work</div><div class="eOptionToggle"><div></div></div></button>
       <button class="eShareActionOption border" option="anonymousMode" title="Hide all member names and colors in cursors."><div label>Anonymous Mode</div><div class="eOptionToggle"><div></div></div></button>
       <button class="eShareActionOption border" option="allowExport" title="Allow members to export, print, or copy the lesson."><div label>Allow Exporting</div><div class="eOptionToggle"><div></div></div></button>
       <button class="eShareActionOption border" option="observeViewers" title="Allow members to observe those who aren't editing."><div label>Observe Viewers</div><div class="eOptionToggle"><div></div></div></button>
@@ -864,13 +864,13 @@ modules["dropdowns/lesson/share/options"] = class {
     });
 
     // Load Tool Icons:
-    setSVG(toolToggle.querySelector('.eShareToolToggleBarTool[tool="draw"] div'), "./images/editor/toolbar/draw.svg");
-    setSVG(toolToggle.querySelector('.eShareToolToggleBarTool[tool="markup"] div'), "./images/editor/toolbar/markup.svg");
-    setSVG(toolToggle.querySelector('.eShareToolToggleBarTool[tool="erase"] div'), "./images/editor/toolbar/erase.svg");
-    setSVG(toolToggle.querySelector('.eShareToolToggleBarTool[tool="text"] div'), "./images/editor/toolbar/text.svg");
-    setSVG(toolToggle.querySelector('.eShareToolToggleBarTool[tool="shape"] div'), "./images/editor/toolbar/shape.svg");
-    setSVG(toolToggle.querySelector('.eShareToolToggleBarTool[tool="sticky"] div'), "./images/editor/toolbar/sticky.svg");
-    setSVG(toolToggle.querySelector('.eShareToolToggleBarTool[tool="page"] div'), "./images/editor/toolbar/page.svg");
-    setSVG(toolToggle.querySelector('.eShareToolToggleBarTool[tool="media"] div'), "./images/editor/toolbar/media.svg");
+    setSVG(toolToggle.querySelector('.eShareToolToggleBarTool[tool="draw"] div'), "../images/editor/toolbar/draw.svg");
+    setSVG(toolToggle.querySelector('.eShareToolToggleBarTool[tool="markup"] div'), "../images/editor/toolbar/markup.svg");
+    setSVG(toolToggle.querySelector('.eShareToolToggleBarTool[tool="erase"] div'), "../images/editor/toolbar/erase.svg");
+    setSVG(toolToggle.querySelector('.eShareToolToggleBarTool[tool="text"] div'), "../images/editor/toolbar/text.svg");
+    setSVG(toolToggle.querySelector('.eShareToolToggleBarTool[tool="shape"] div'), "../images/editor/toolbar/shape.svg");
+    setSVG(toolToggle.querySelector('.eShareToolToggleBarTool[tool="sticky"] div'), "../images/editor/toolbar/sticky.svg");
+    setSVG(toolToggle.querySelector('.eShareToolToggleBarTool[tool="page"] div'), "../images/editor/toolbar/page.svg");
+    setSVG(toolToggle.querySelector('.eShareToolToggleBarTool[tool="media"] div'), "../images/editor/toolbar/media.svg");
   }
 }

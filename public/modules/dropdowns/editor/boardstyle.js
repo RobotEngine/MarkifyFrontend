@@ -34,9 +34,9 @@ modules["dropdowns/editor/boardstyle"] = class {
       let color = button.getAttribute("color");
       button.style.backgroundColor = "#" + color;
       if (editor.utils.contrastCheck(color) == true) {
-        button.style.setProperty("--background", "url(./images/editor/backdropblack.svg)");
+        button.style.setProperty("--background", "url(../images/editor/backdropblack.svg)");
       } else {
-        button.style.setProperty("--background", "url(./images/editor/backdropwhite.svg)");
+        button.style.setProperty("--background", "url(../images/editor/backdropwhite.svg)");
       }
     }
 

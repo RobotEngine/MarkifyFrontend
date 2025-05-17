@@ -679,7 +679,7 @@ modules["editor/toolbar"] = class {
         if (tool.hasAttribute("tool") == true) {
           let toolType = tool.getAttribute("tool");
           if (div.hasAttribute("loaded") == false) {
-            setSVG(div, "./images/editor/toolbar/" + toolType + ".svg");
+            setSVG(div, "../images/editor/toolbar/" + toolType + ".svg");
             div.setAttribute("loaded", "");
           }
           let toolPreference = editor.preferences.tools[toolType] ?? editor.preferences.tools[currentTool] ?? {};
@@ -2079,7 +2079,7 @@ modules["editor/toolbar"] = class {
           this.selection.rootY = yCoord;
 
           this.selection.resizeCursorRotation = parseInt(handleElement.getAttribute("rotation") ?? "0");
-          this.updateMouse({ type: "svg", url: "./images/editor/cursors/resize.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation + this.selection.resizeCursorRotation });
+          this.updateMouse({ type: "svg", url: "../images/editor/cursors/resize.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation + this.selection.resizeCursorRotation });
         } else { // Rotate
           this.selection.action = "rotate";
 
@@ -2094,7 +2094,7 @@ modules["editor/toolbar"] = class {
             this.selection.originalRotation = 360 + this.selection.originalRotation;
           }
 
-          this.updateMouse({ type: "svg", url: "./images/editor/cursors/rotate.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation });
+          this.updateMouse({ type: "svg", url: "../images/editor/cursors/rotate.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation });
         }
       } else { // Duplicate
         let moreModule = (await this.newModule("editor/toolbar/more")) ?? {};
@@ -2844,7 +2844,7 @@ modules["editor/toolbar"] = class {
       if (this.selection.action == "move") {
         changePositionX = position.x - this.selection.rootX;
         changePositionY = position.y - this.selection.rootY;
-        this.updateMouse({ type: "svg", url: "./images/editor/cursors/move.svg", translate: { x: 22, y: 22 } });
+        this.updateMouse({ type: "svg", url: "../images/editor/cursors/move.svg", translate: { x: 22, y: 22 } });
       } else if (this.selection.action == "resize") {
         // Calculate the change in width / height:
         let originalMidpointX = this.selection.originalSize[0] / 2;
@@ -3063,7 +3063,7 @@ modules["editor/toolbar"] = class {
           }
         }
 
-        this.updateMouse({ type: "svg", url: "./images/editor/cursors/resize.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation + cursorRotate });
+        this.updateMouse({ type: "svg", url: "../images/editor/cursors/resize.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation + cursorRotate });
       } else if (this.selection.action == "rotate") {
         let centerX = this.selection.originalSize[0] / 2;
         let centerY = this.selection.originalSize[1] / 2;
@@ -3081,7 +3081,7 @@ modules["editor/toolbar"] = class {
         let setRotation = Math.round((this.selection.originalRotate + (this.selection.originalRotation - newRotation)) / snapDegree) * snapDegree;
         rotateChange = (Math.round(setRotation / snapDegree) * snapDegree) - this.selection.originalRotate;
 
-        this.updateMouse({ type: "svg", url: "./images/editor/cursors/rotate.svg", translate: { x: 22, y: 22 }, rotate: this.selection.originalRotate + rotateChange });
+        this.updateMouse({ type: "svg", url: "../images/editor/cursors/rotate.svg", translate: { x: 22, y: 22 }, rotate: this.selection.originalRotate + rotateChange });
       }
 
       for (let i = 0; i < keys.length; i++) {
@@ -3837,11 +3837,11 @@ modules["editor/toolbar"] = class {
         let handle = event.target.closest(".eSelectHandle");
         if (handle != null) {
           if (handle.hasAttribute("move") == true) {
-            this.updateMouse({ type: "svg", url: "./images/editor/cursors/move.svg", translate: { x: 22, y: 22 } });
+            this.updateMouse({ type: "svg", url: "../images/editor/cursors/move.svg", translate: { x: 22, y: 22 } });
           } else if (handle.hasAttribute("rotation") == true) {
-            this.updateMouse({ type: "svg", url: "./images/editor/cursors/resize.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation + parseInt(handle.getAttribute("rotation")) });
+            this.updateMouse({ type: "svg", url: "../images/editor/cursors/resize.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation + parseInt(handle.getAttribute("rotation")) });
           } else if (handle.getAttribute("handle") == "rotate") {
-            this.updateMouse({ type: "svg", url: "./images/editor/cursors/rotate.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation });
+            this.updateMouse({ type: "svg", url: "../images/editor/cursors/rotate.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation });
           } else {
             this.updateMouse(this.currentToolModule.MOUSE);
           }
@@ -4263,7 +4263,7 @@ modules["editor/toolbar"] = class {
 // TOOL MODULES //
 
 modules["editor/toolbar/select"] = class {
-  //MOUSE = { type: "svg", url: "./images/editor/cursors/cursor.svg", translate: { x: 22, y: 22 } };
+  //MOUSE = { type: "svg", url: "../images/editor/cursors/cursor.svg", translate: { x: 22, y: 22 } };
 
   clickStart = async (event) => {
     if (event.which === 3 || event.button === 2) {
@@ -4445,7 +4445,7 @@ modules["editor/toolbar/pan"] = class {
 modules["editor/toolbar/drag"] = class {
   USER_SELECT = "none";
   TOUCH_ACTION = "pinch-zoom";
-  MOUSE = { type: "svg", url: "./images/editor/cursors/cursor.svg", translate: { x: 22, y: 22 } };
+  MOUSE = { type: "svg", url: "../images/editor/cursors/cursor.svg", translate: { x: 22, y: 22 } };
 
   css = {
     ".eSelectDrag": `position: absolute; box-sizing: border-box; pointer-events: none; z-index: 99; opacity: .4; background: var(--secondary); border: solid 2px var(--theme); border-radius: 10px; transition: opacity .1s`
@@ -4721,7 +4721,7 @@ modules["editor/toolbar/pen"] = class {
   USER_SELECT = "none";
   TOUCH_ACTION = null;
   REALTIME_TOOL = 2;
-  MOUSE = { type: "svg", url: "./images/editor/cursors/pen.svg", translate: { x: 15, y: 30 } };
+  MOUSE = { type: "svg", url: "../images/editor/cursors/pen.svg", translate: { x: 15, y: 30 } };
   PUBLISH = {};
 
   clickStart = async (event) => {
@@ -4913,13 +4913,13 @@ modules["editor/toolbar/highlighter"] = class extends modules["editor/toolbar/pe
   FUNCTION = "markup";
   STRAITEN_CHECK = true;
   REALTIME_TOOL = 1;
-  MOUSE = { type: "svg", url: "./images/editor/cursors/highlighter.svg", translate: { x: 15, y: 30 } };
+  MOUSE = { type: "svg", url: "../images/editor/cursors/highlighter.svg", translate: { x: 15, y: 30 } };
 }
 modules["editor/toolbar/understrike"] = class extends modules["editor/toolbar/pen"] {
   FORCE_LINE = true;
   HORIZONTAL_CHECK = true;
   REALTIME_TOOL = 1;
-  MOUSE = { type: "svg", url: "./images/editor/cursors/highlighter.svg", translate: { x: 15, y: 30 } };
+  MOUSE = { type: "svg", url: "../images/editor/cursors/highlighter.svg", translate: { x: 15, y: 30 } };
 
   activate = () => {
     let toolPreference = this.parent.getToolPreference();
@@ -4943,7 +4943,7 @@ modules["editor/toolbar/eraser"] = class {
   USER_SELECT = "none";
   TOUCH_ACTION = null;
   REALTIME_TOOL = 3;
-  MOUSE = { type: "svg", url: "./images/editor/cursors/eraser.svg", translate: { x: 20, y: 20 } };
+  MOUSE = { type: "svg", url: "../images/editor/cursors/eraser.svg", translate: { x: 20, y: 20 } };
   PUBLISH = {};
   
   clickStart = async (event) => {
@@ -5104,7 +5104,7 @@ modules["editor/toolbar/placement"] = class {
   USER_SELECT = "none";
   TOUCH_ACTION = "pinch-zoom";
   REALTIME_TOOL = 4;
-  MOUSE = { type: "svg", url: "./images/editor/cursors/insert.svg", translate: { x: 20, y: 20 } };
+  MOUSE = { type: "svg", url: "../images/editor/cursors/insert.svg", translate: { x: 20, y: 20 } };
   PUBLISH = {};
 
   clickStart = (event) => { this.clickMove(event); }
@@ -5211,7 +5211,7 @@ modules["editor/toolbar/resize_placement"] = class {
   USER_SELECT = "none";
   TOUCH_ACTION = "pinch-zoom";
   REALTIME_TOOL = 4;
-  MOUSE = { type: "svg", url: "./images/editor/cursors/insert.svg", translate: { x: 20, y: 20 } };
+  MOUSE = { type: "svg", url: "../images/editor/cursors/insert.svg", translate: { x: 20, y: 20 } };
   PUBLISH = {};
 
   clickStart = async (event) => {
@@ -5575,20 +5575,20 @@ modules["editor/toolbar/color"] = class {
       <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
       <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
       <button class="eTool" option><div><div class="eSubToolColorHolder"><div class="eSubToolColor"></div></div></div></button>
-      <button class="eTool" enablepicker option><div><img class="eSubToolImage" src="./images/editor/picker.svg"></div></button>
+      <button class="eTool" enablepicker option><div><img class="eSubToolImage" src="../images/editor/picker.svg"></div></button>
     </div>
     <div class="eSubToolColorPicker">
       <div class="eSubToolColorPickerTop">
         <button class="eSubToolColorPickerType largeButton border" title="Change Color Scale"></button>
         <input class="eSubToolColorPickerField" name="Color Input" />
-        <button class="eSubToolColorPickerTopBack buttonAnim border"><img src="./images/tooltips/close.svg"></button>
+        <button class="eSubToolColorPickerTopBack buttonAnim border"><img src="../images/tooltips/close.svg"></button>
       </div>
       <div class="eSubToolColorPickerShade">
         <div><canvas></canvas></div>
         <button></button>
       </div>
       <div class="eSubToolColorPickerColorSelector">
-        <button class="eSubToolColorPickerEyedroper buttonAnim border" title="Eyedropper"><img src="./images/editor/eyedropper.svg"></button>
+        <button class="eSubToolColorPickerEyedroper buttonAnim border" title="Eyedropper"><img src="../images/editor/eyedropper.svg"></button>
         <div class="eSubToolColorPickerGradient">
           <div class="eSubToolColorPickerGradientSlider"></div>
           <button></button>
@@ -6145,7 +6145,7 @@ modules["editor/toolbar/opacity"] = class {
   setToolbarButton = async (button) => {
     button.innerHTML = `<div class="eSubToolOpacityHolder"></div>`;
     let opacity = button.querySelector(".eSubToolOpacityHolder");
-    await setSVG(opacity, "./images/editor/toolbar/opacity.svg");
+    await setSVG(opacity, "../images/editor/toolbar/opacity.svg");
     if (opacity != null) {
       let svg = opacity.querySelector("svg");
       if (svg != null) {
@@ -6163,7 +6163,7 @@ modules["editor/toolbar/opacity"] = class {
     button.innerHTML = `<div class="eSubToolOpacityHolder"></div>`;
     let opacity = button.querySelector(".eSubToolOpacityHolder");
     (async () => {
-      await setSVG(opacity, "./images/editor/toolbar/opacity.svg");
+      await setSVG(opacity, "../images/editor/toolbar/opacity.svg");
       if (opacity != null) {
         let svg = opacity.querySelector("svg");
         if (svg != null) {
@@ -6468,7 +6468,7 @@ modules["editor/toolbar/delete"] = class {
   setActionButton = async (button) => {
     this.button.style.setProperty("--hoverColor", "var(--error");
     this.button.style.setProperty("--hoverTooltip", "var(--error");
-    setSVG(button, "./images/editor/toolbar/delete.svg");
+    setSVG(button, "../images/editor/toolbar/delete.svg");
 
     let selectKeys = Object.keys(this.editor.selecting);
     for (let i = 0; i < selectKeys.length; i++) {
@@ -6492,7 +6492,7 @@ modules["editor/toolbar/delete"] = class {
 modules["editor/toolbar/more"] = class {
   setActionButton = async (button) => {
     this.button.setAttribute("dropdowntitle", "More");
-    setSVG(button, "./images/editor/toolbar/more.svg");
+    setSVG(button, "../images/editor/toolbar/more.svg");
   }
 
   TOOLTIP = "More";
@@ -6663,10 +6663,10 @@ modules["dropdowns/editor/toolbar/more"] = class {
   <button class="eToolbarMoreAction" option="lock" title="Change the locking options."><div></div>Locking</button>
   <button class="eToolbarMoreAction" option="signature" close><div></div><span></span></button>
   <div class="eToolbarMoreLine" option="layers"></div>
-  <button class="eToolbarMoreAction" option="bringfront" close title="Bring Forward"><img src="./images/editor/rearrange/up.svg">Bring to Front</button>
-  <button class="eToolbarMoreAction" option="sendback" close title="Send Backward"><img src="./images/editor/rearrange/down.svg">Send to Back</button>
+  <button class="eToolbarMoreAction" option="bringfront" close title="Bring Forward"><img src="../images/editor/rearrange/up.svg">Bring to Front</button>
+  <button class="eToolbarMoreAction" option="sendback" close title="Send Backward"><img src="../images/editor/rearrange/down.svg">Send to Back</button>
   <div class="eToolbarMoreLine" option="duplicate"></div>
-  <button class="eToolbarMoreAction" option="copylink" close title="Copy a share link to element." style="--themeColor: var(--secondary)"><img src="./images/tooltips/copy.svg">Copy Link</button>
+  <button class="eToolbarMoreAction" option="copylink" close title="Copy a share link to element." style="--themeColor: var(--secondary)"><img src="../images/tooltips/copy.svg">Copy Link</button>
   `;
   css = {
     ".eToolbarMoreAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
@@ -6701,9 +6701,9 @@ modules["dropdowns/editor/toolbar/more"] = class {
     let shareButton = frame.querySelector('.eToolbarMoreAction[option="copylink"]');
     shareButton.addEventListener("click", () => { parent.copyLink(); });
 
-    setSVG(duplicateButton.querySelector("div"), "./images/editor/toolbar/duplicate.svg");
-    setSVG(lockButton.querySelector("div"), "./images/editor/toolbar/lock.svg");
-    setSVG(signatureButton.querySelector("div"), "./images/editor/toolbar/signature.svg");
+    setSVG(duplicateButton.querySelector("div"), "../images/editor/toolbar/duplicate.svg");
+    setSVG(lockButton.querySelector("div"), "../images/editor/toolbar/lock.svg");
+    setSVG(signatureButton.querySelector("div"), "../images/editor/toolbar/signature.svg");
 
     parent.redraw = () => {
       if (frame == null) {
@@ -6776,9 +6776,9 @@ modules["dropdowns/editor/toolbar/more"] = class {
 modules["dropdowns/editor/toolbar/more/locking"] = class {
   html = `
   <div class="eLockingHolder">
-    <button class="eLockingOption" type="standard" style="--themeColor: var(--green)" title="Locked annotations must be unlocked to edit."><img src="./images/editor/locking/standard.svg"><div class="eLockingInfo"><div class="eLockingTitle"><b>Standard</b> Lock</div><div class="eLockingDesc">Locked annotations must be unlocked to edit.</div></div></button>
-    <button class="eLockingOption" type="collaborator" style="--themeColor: var(--theme)" title="Only the author can edit locked annotations."><img src="./images/editor/locking/collaborator.svg"><div class="eLockingInfo"><div class="eLockingTitle"><b>Collaborator</b> Lock</div><div class="eLockingDesc">Only the author can edit locked annotations.</div></div></button>
-    <button class="eLockingOption" type="placeholder" style="--themeColor: var(--purple)" title="Editors cannot move, resize, rotate, or delete annotations."><img src="./images/editor/locking/placeholder.svg"><div class="eLockingInfo"><div class="eLockingTitle"><b>Placeholder</b> Lock</div><div class="eLockingDesc">Editors cannot move, resize, rotate, or delete annotations.</div></div></button>
+    <button class="eLockingOption" type="standard" style="--themeColor: var(--green)" title="Locked annotations must be unlocked to edit."><img src="../images/editor/locking/standard.svg"><div class="eLockingInfo"><div class="eLockingTitle"><b>Standard</b> Lock</div><div class="eLockingDesc">Locked annotations must be unlocked to edit.</div></div></button>
+    <button class="eLockingOption" type="collaborator" style="--themeColor: var(--theme)" title="Only the author can edit locked annotations."><img src="../images/editor/locking/collaborator.svg"><div class="eLockingInfo"><div class="eLockingTitle"><b>Collaborator</b> Lock</div><div class="eLockingDesc">Only the author can edit locked annotations.</div></div></button>
+    <button class="eLockingOption" type="placeholder" style="--themeColor: var(--purple)" title="Editors cannot move, resize, rotate, or delete annotations."><img src="../images/editor/locking/placeholder.svg"><div class="eLockingInfo"><div class="eLockingTitle"><b>Placeholder</b> Lock</div><div class="eLockingDesc">Editors cannot move, resize, rotate, or delete annotations.</div></div></button>
   </div>
   `;
   css = {
@@ -6936,7 +6936,7 @@ modules["dropdowns/editor/toolbar/more/locking"] = class {
 
 modules["editor/toolbar/unlock"] = class extends modules["dropdowns/editor/toolbar/more/locking"] {
   setActionButton = async (button) => {
-    setSVG(button, "./images/editor/toolbar/lock.svg");
+    setSVG(button, "../images/editor/toolbar/lock.svg");
 
     let showLock = false;
     let selectKeys = Object.keys(this.editor.selecting);
@@ -7003,7 +7003,7 @@ modules["editor/toolbar/collaborator"] = class {
 
     let image = button.querySelector(".eSubToolCollaborator");
     if (image == null) {
-      button.insertAdjacentHTML("beforeend", `<img class="eSubToolCollaborator" src="./images/profiles/default.svg">`);
+      button.insertAdjacentHTML("beforeend", `<img class="eSubToolCollaborator" src="../images/profiles/default.svg">`);
       image = button.querySelector(".eSubToolCollaborator");
     }
 
@@ -7024,8 +7024,8 @@ modules["editor/toolbar/collaborator"] = class {
       }
 
       if (image != null) {
-        if (image.getAttribute("src") != (collaborator.image ?? "./images/profiles/default.svg")) {
-          image.src = collaborator.image ?? "./images/profiles/default.svg";
+        if (image.getAttribute("src") != (collaborator.image ?? "../images/profiles/default.svg")) {
+          image.src = collaborator.image ?? "../images/profiles/default.svg";
         }
         image.style.border = "solid 3px " + collaborator.color;
       }
@@ -7060,7 +7060,7 @@ modules["editor/toolbar/collaborator"] = class {
     ".eSubToolCollaboratorHolder": `display: flex; flex-direction: column; width: fit-content; max-width: 100%; gap: 4px; align-items: center; border-radius: inherit`,
     ".eSubToolCollaboratorContent": `display: flex; flex-wrap: wrap; width: max-content; max-width: calc(100% - 16px); margin: 8px; gap: 4px; align-items: center; border-radius: inherit`,
     ".eSubToolCollaboratorBackdrop": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; background: var(--themeColor); transition: .2s; z-index: -1; border-radius: inherit; overflow: hidden`,
-    ".eSubToolCollaboratorBackdrop div": `width: 100%; height: 100%; flex-shrink: 0; opacity: .08; background-image: url(./images/editor/backdrop.svg); background-size: 24px; background-position: center`,
+    ".eSubToolCollaboratorBackdrop div": `width: 100%; height: 100%; flex-shrink: 0; opacity: .08; background-image: url(../images/editor/backdrop.svg); background-size: 24px; background-position: center`,
     ".eSubToolCollaboratorCursor": `display: none; width: 40px; height: 40px; flex-shrink: 0; margin: 2px; background: var(--themeColor); border: solid 6px var(--pageColor); border-radius: 16px 28px 28px`,
     ".eSubToolCollaboratorPicture": `display: none; width: 44px; height: 44px; flex-shrink: 0; margin: 2px; background: #fff; border: solid 4px var(--pageColor); object-fit: cover; border-radius: 28px`,
     ".eSubToolCollaboratorInfo": `max-width: calc(100% - 8px); margin: 4px; text-align: left`,
@@ -7092,8 +7092,8 @@ modules["editor/toolbar/collaborator"] = class {
       if (collaborator.email == null) {
         holder.querySelector(".eSubToolCollaboratorCursor").style.display = "unset";
       } else {
-        if (image.src != (collaborator.image ?? "./images/profiles/default.svg")) {
-          image.src = (collaborator.image ?? "./images/profiles/default.svg");
+        if (image.src != (collaborator.image ?? "../images/profiles/default.svg")) {
+          image.src = (collaborator.image ?? "../images/profiles/default.svg");
         }
         image.style.display = "unset";
       }
@@ -7191,7 +7191,7 @@ modules["editor/toolbar/reactions"] = class {
       return false;
     }
 
-    setSVG(button, "./images/editor/toolbar/reactions.svg");
+    setSVG(button, "../images/editor/toolbar/reactions.svg");
 
     if (this.toolbar.reactionsCache.loaded == false) {
       this.toolbar.reactionsCache.loaded = true;
@@ -7231,7 +7231,7 @@ modules["editor/toolbar/reactions"] = class {
     <div class="eSubToolReactionMembers">
       <div class="eSubToolReactionMemberTitle">
         <div title></div>
-        <button remove title="Remove this reaction from the sticky note."><img src="./images/editor/file/delete.svg"></button>
+        <button remove title="Remove this reaction from the sticky note."><img src="../images/editor/file/delete.svg"></button>
       </div>
       <div class="eSubToolReactionMemberSection"></div>
     </div>
@@ -7286,7 +7286,7 @@ modules["editor/toolbar/reactions"] = class {
         return;
       }
       let emoji = emojiObject[emojiName];
-      emojiButtonSidebar.insertAdjacentHTML("afterbegin", `<button emoji="${emojiName}" title="${emoji.short_name.replace(/_/g, " ")}"><img src="./images/editor/emojis/twitter32.png" style="object-position: ${-((emoji.sheet_x * emojiModule.sheetSize) + 1)}px ${-((emoji.sheet_y * emojiModule.sheetSize) + 1)}px"></button>`);
+      emojiButtonSidebar.insertAdjacentHTML("afterbegin", `<button emoji="${emojiName}" title="${emoji.short_name.replace(/_/g, " ")}"><img src="../images/editor/emojis/twitter32.png" style="object-position: ${-((emoji.sheet_x * emojiModule.sheetSize) + 1)}px ${-((emoji.sheet_y * emojiModule.sheetSize) + 1)}px"></button>`);
     }
     let reactionKeys = Object.keys(cache.reactions);
     for (let i = 0; i < reactionKeys.length; i++) {
@@ -7445,7 +7445,7 @@ modules["editor/toolbar/uploadpage"] = class {
     let selectKeys = Object.keys(this.editor.selecting);
     if (selectKeys.length == 1 && this.parent.getPreferenceTool().source == null) {
       this.TOOLTIP = "Upload PDF";
-      setSVG(button, "./images/editor/toolbar/uploadpage.svg");
+      setSVG(button, "../images/editor/toolbar/uploadpage.svg");
     } else {
       let anyHasDocument = false;
       for (let i = 0; i < selectKeys.length; i++) {
@@ -7460,7 +7460,7 @@ modules["editor/toolbar/uploadpage"] = class {
       }
       this.TOOLTIP = "Remove PDF";
       this.FULL_CLICK = true;
-      setSVG(button, "./images/editor/toolbar/removepage.svg");
+      setSVG(button, "../images/editor/toolbar/removepage.svg");
     }
   }
 
@@ -7562,7 +7562,7 @@ modules["editor/toolbar/uploadpage"] = class {
 }
 modules["editor/toolbar/resize"] = class {
   setActionButton = async (button) => {
-    setSVG(button, "./images/editor/toolbar/resizepage.svg");
+    setSVG(button, "../images/editor/toolbar/resizepage.svg");
   }
 
   TOOLTIP = "Resize";
@@ -7704,7 +7704,7 @@ modules["editor/toolbar/resize"] = class {
 modules["editor/toolbar/settitle"] = class {
   setActionButton = async (button) => {
     if (button != null) {
-      setSVG(button, "./images/editor/toolbar/settitle.svg");
+      setSVG(button, "../images/editor/toolbar/settitle.svg");
     }
 
     let preference = this.parent.getPreferenceTool();
@@ -7799,7 +7799,7 @@ modules["editor/toolbar/rotatepage"] = class {
       return false;
     }*/
     
-    setSVG(button, "./images/editor/toolbar/rotatepage.svg");
+    setSVG(button, "../images/editor/toolbar/rotatepage.svg");
   }
 
   TOOLTIP = "Rotate";
@@ -7822,7 +7822,7 @@ modules["editor/toolbar/rotatepage"] = class {
 modules["editor/toolbar/hidepage"] = class {
   setActionButton = async (button) => {
     if (button != null) {
-      setSVG(button, "./images/editor/toolbar/hidepage.svg");
+      setSVG(button, "../images/editor/toolbar/hidepage.svg");
     }
     if (this.parent.getPreferenceTool().hidden != true) {
       this.button.removeAttribute("selecthighlight");
@@ -7844,7 +7844,7 @@ modules["editor/toolbar/hidepage"] = class {
 modules["editor/toolbar/imageborder"] = class {
   setActionButton = async (button) => {
     if (button != null) {
-      setSVG(button, "./images/editor/toolbar/imageborder.svg");
+      setSVG(button, "../images/editor/toolbar/imageborder.svg");
     }
     if (this.parent.getPreferenceTool().border != false) {
       this.button.setAttribute("selecthighlight", "");
@@ -7865,7 +7865,7 @@ modules["editor/toolbar/imageborder"] = class {
 modules["editor/toolbar/setembed"] = class {
   setActionButton = async (button) => {
     if (button != null) {
-      setSVG(button, "./images/editor/toolbar/setembed.svg");
+      setSVG(button, "../images/editor/toolbar/setembed.svg");
     }
 
     let preference = this.parent.getPreferenceTool();
@@ -7990,7 +7990,7 @@ modules["editor/toolbar/setembed"] = class {
 }
 modules["editor/toolbar/openlink"] = class {
   setActionButton = async (button) => {
-    setSVG(button, "./images/editor/toolbar/openlink.svg");
+    setSVG(button, "../images/editor/toolbar/openlink.svg");
     if (this.parent.getPreferenceTool().d == null) {
       return false;
     }
@@ -8010,7 +8010,7 @@ modules["editor/toolbar/openlink"] = class {
 }
 modules["editor/toolbar/enlarge"] = class {
   setActionButton = async (button) => {
-    setSVG(button, "./images/editor/toolbar/enlarge.svg");
+    setSVG(button, "../images/editor/toolbar/enlarge.svg");
     if ((this.parent.getPreferenceTool().embed ?? {}).url == null) {
       return false;
     }
@@ -8047,7 +8047,7 @@ modules["modals/editor/embed"] = class {
 modules["editor/toolbar/textedit"] = class {
   setActionButton = async (button) => {
     if (button != null) {
-      setSVG(button, "./images/editor/toolbar/textedit.svg");
+      setSVG(button, "../images/editor/toolbar/textedit.svg");
     }
 
     let preference = this.parent.getPreferenceTool();
@@ -8313,7 +8313,7 @@ modules["editor/toolbar/fontsize"] = class {
 modules["editor/toolbar/bold"] = class {
   setActionButton = async (button) => {
     if (button != null) {
-      setSVG(button, "./images/editor/toolbar/bold.svg");
+      setSVG(button, "../images/editor/toolbar/bold.svg");
     }
     if ((this.parent.getPreferenceTool().d ?? {}).bo != true) {
       this.button.removeAttribute("selecthighlight");
@@ -8333,7 +8333,7 @@ modules["editor/toolbar/bold"] = class {
 modules["editor/toolbar/italic"] = class {
   setActionButton = async (button) => {
     if (button != null) {
-      setSVG(button, "./images/editor/toolbar/italic.svg");
+      setSVG(button, "../images/editor/toolbar/italic.svg");
     }
     if ((this.parent.getPreferenceTool().d ?? {}).it != true) {
       this.button.removeAttribute("selecthighlight");
@@ -8353,7 +8353,7 @@ modules["editor/toolbar/italic"] = class {
 modules["editor/toolbar/underline"] = class {
   setActionButton = async (button) => {
     if (button != null) {
-      setSVG(button, "./images/editor/toolbar/underline.svg");
+      setSVG(button, "../images/editor/toolbar/underline.svg");
     }
     if ((this.parent.getPreferenceTool().d ?? {}).ul != true) {
       this.button.removeAttribute("selecthighlight");
@@ -8373,7 +8373,7 @@ modules["editor/toolbar/underline"] = class {
 modules["editor/toolbar/strikethrough"] = class {
   setActionButton = async (button) => {
     if (button != null) {
-      setSVG(button, "./images/editor/toolbar/strikethrough.svg");
+      setSVG(button, "../images/editor/toolbar/strikethrough.svg");
     }
     if ((this.parent.getPreferenceTool().d ?? {}).st != true) {
       this.button.removeAttribute("selecthighlight");
@@ -8394,11 +8394,11 @@ modules["editor/toolbar/textalign"] = class {
   setActionButton = async (button) => {
     let selectedAl = (this.parent.getPreferenceTool().d ?? {}).al ?? "left";
     if (selectedAl == "left") {
-      setSVG(button, "./images/editor/toolbar/textalign/left.svg");
+      setSVG(button, "../images/editor/toolbar/textalign/left.svg");
     } else if (selectedAl == "center") {
-      setSVG(button, "./images/editor/toolbar/textalign/center.svg");
+      setSVG(button, "../images/editor/toolbar/textalign/center.svg");
     } else if (selectedAl == "right") {
-      setSVG(button, "./images/editor/toolbar/textalign/right.svg");
+      setSVG(button, "../images/editor/toolbar/textalign/right.svg");
     }
   }
 
@@ -8422,9 +8422,9 @@ modules["editor/toolbar/textalign"] = class {
     let centerAlign = frame.querySelector(".eTool[center]");
     let rightAlign = frame.querySelector(".eTool[right]");
 
-    setSVG(leftAlign.querySelector("div"), "./images/editor/toolbar/textalign/left.svg");
-    setSVG(centerAlign.querySelector("div"), "./images/editor/toolbar/textalign/center.svg");
-    setSVG(rightAlign.querySelector("div"), "./images/editor/toolbar/textalign/right.svg");
+    setSVG(leftAlign.querySelector("div"), "../images/editor/toolbar/textalign/left.svg");
+    setSVG(centerAlign.querySelector("div"), "../images/editor/toolbar/textalign/center.svg");
+    setSVG(rightAlign.querySelector("div"), "../images/editor/toolbar/textalign/right.svg");
 
     let selectedAl;
     this.redraw = () => {

@@ -1,18 +1,18 @@
-modules["pages/join"] = class {
+modules["pages/app/join"] = class {
   title = "Join";
   preload = [
-    "./modules/pages/lesson.js",
-    "./modules/pages/dashboard.js"
+    "../modules/pages/app/lesson.js",
+    "../modules/pages/app/dashboard.js"
   ];
   html = `<div class="jBackdrop">
     <div class="jBackground"></div>
-    <img class="jSplash" src="./images/join/splash.svg">
+    <img class="jSplash" src="../images/join/splash.svg">
   </div>
   <div class="jModalHolder">
     <div class="jModalContainer">
-      <img class="jBack" src="./images/icon.svg">
+      <img class="jBack" src="../images/icon.svg">
       <div class="jModal">
-        <a class="jLogo" href="#launch"><img src="./images/logo.svg"></a>
+        <a class="jLogo" href="#launch"><img src="../images/logo.svg"></a>
         <div class="jTitle">Join the Lesson!</div>
         <div class="jTitleDesc">Enter a pin to join</div>
         <div class="jInputHolder">
@@ -32,9 +32,9 @@ modules["pages/join"] = class {
         <div class="jUserInfo">
           <div class="jNameInput"><input placeholder="Screen Name"></input></div>
           <div class="jAuthHolder">
-            <img src="./images/profiles/default.svg" profile accountimage>
+            <img src="../images/profiles/default.svg" profile accountimage>
             <span accountuser>Robot Engine</span>
-            <button class="buttonAnim border" title="Logout and switch account."><img src="./images/tooltips/close.svg"></button>
+            <button class="buttonAnim border" title="Logout and switch account."><img src="../images/tooltips/close.svg"></button>
           </div>
         </div>
         <div class="jCFTurnstile"></div>
@@ -50,7 +50,7 @@ modules["pages/join"] = class {
   `;
   css = {
     ".jBackdrop": `position: fixed; min-width: 100%; min-height: 100vh; z-index: 0; background: #fff`,
-    ".jBackground": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background-image: url(./images/editor/backdrop.svg); background-size: 25px; background-position: center; opacity: .075`,
+    ".jBackground": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background-image: url(../images/editor/backdrop.svg); background-size: 25px; background-position: center; opacity: .075`,
     ".jSplash": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover`,
     
     ".jModalHolder": `display: flex; width: 100%; min-height: 100vh; left: 0px; top: 0px; justify-content: center; align-items: center; overflow: hidden`,
@@ -217,9 +217,8 @@ modules["pages/join"] = class {
       continueButton.removeAttribute("disabled");
     }
     let secondStepInit = (body) => {
-      if (body.skip == true){ 
-        modifyParams("lesson", body.id);
-        return setFrame("pages/lesson", null);
+      if (body.skip == true){
+        return setFrame("pages/app/lesson", null, { passParams: true, params: { lesson: body.id } });
       }
       continueButton.style.display = "none";
       if (body.forceLogin != true) {
@@ -289,8 +288,7 @@ modules["pages/join"] = class {
           transferData.captcha = captcha;
         }
       }
-      modifyParams("lesson", lesson.id);
-      setFrame("pages/lesson", null, transferData);
+      setFrame("pages/app/lesson", null, { ...transferData, passParams: true, params: { lesson: lesson.id } });
     }
     joinButton.addEventListener("click", processJoin);
     joinNickname.addEventListener("keydown", (event) => {

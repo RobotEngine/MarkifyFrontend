@@ -2,29 +2,29 @@ modules["pages/launch"] = class {
   title = "Collaboration across the Classroom";
   theme = "light";
   html = `
-  <div class="lBackdrop" dots style="--setOpacity: .075; background-image: url(./images/editor/backdrop.svg); background-size: 25px; background-position: center"></div>
-  <img class="lBackdrop" src="./images/launch/backdropside.png" side>
-  <img class="lBackdrop" src="./images/launch/backdrop.png" center>
+  <div class="lBackdrop" dots style="--setOpacity: .075; background-image: url(../images/editor/backdrop.svg); background-size: 25px; background-position: center"></div>
+  <img class="lBackdrop" src="../images/launch/backdropside.png" side>
+  <img class="lBackdrop" src="../images/launch/backdrop.png" center>
   <div class="lSection" header backdrop="center">
     <div class="lHeaderContent">
       <div class="lHeaderRow">
         <div>
-          <img src="./images/launch/tools/draw.svg" low>
-          <img src="./images/launch/tools/markup.svg" high>
+          <img src="../images/launch/tools/draw.svg" low>
+          <img src="../images/launch/tools/markup.svg" high>
         </div>
-        <img class="lHeaderLogo" src="./images/logo.svg">
+        <img class="lHeaderLogo" src="../images/logo.svg">
         <div>
-          <img src="./images/launch/tools/text.svg" high>
-          <img src="./images/launch/tools/shape.svg" low>
+          <img src="../images/launch/tools/text.svg" high>
+          <img src="../images/launch/tools/shape.svg" low>
         </div>
       </div>
       <div class="lHeaderSlogan"><b>Collaboration</b> without <b>Chaos</b></div>
       <div class="lHeaderSummary">Let students work collaboratively across the classroom while you facilitate. Eliminate chaos with robust sharing settings and temporary editing controls.</div>
       <div class="lHeaderActions">
-        <button class="lOpen largeButton" openpage="dashboard">Create Lesson</button>
-        <button class="lJoin largeButton" openpage="join">Join Lesson<img src="./images/tooltips/link.svg"></button>
+        <button class="lOpen largeButton" openpage="app/dashboard">Create Lesson</button>
+        <button class="lJoin largeButton" openpage="app/join">Join Lesson<img src="../images/tooltips/link.svg"></button>
       </div>
-      <img class="lHeaderSplash" src="./images/launch/showcase.png">
+      <img class="lHeaderSplash" src="../images/launch/showcase.png">
     </div>
   </div>
   <div class="lSection" history backdrop="side">
@@ -36,9 +36,9 @@ modules["pages/launch"] = class {
           <div class="lHistoryDesc"></div>
         </div>
         <div class="lHistoryContentPart" style="flex: 1; flex-basis: 500px">
-          <img whiteboard src="./images/launch/history/whiteboard.jpg">
-          <img smartboard src="./images/launch/history/smartboard.jpg">
-          <img markify src="./images/launch/history/markify.png">
+          <img whiteboard src="../images/launch/history/whiteboard.jpg">
+          <img smartboard src="../images/launch/history/smartboard.jpg">
+          <img markify src="../images/launch/history/markify.png">
         </div>
       </div>
       <div class="lHistoryDots">
@@ -75,62 +75,62 @@ modules["pages/launch"] = class {
     <div class="lTitle">Powerful <b>Features</b>, exceeding <b>Simplicity</b></div>
     <div class="lFeatures">
       <div class="lFeature">
-        <img src="./images/launch/features/upload.svg">
+        <img src="../images/launch/features/upload.svg">
         <div title>Upload PDFs</div>
         <div desc>Unlike a traditional whiteboard, upload your worksheets and more—straight into Markify!</div>
       </div>
       <div class="lFeature">
-        <img src="./images/launch/features/freeboard.svg">
+        <img src="../images/launch/features/freeboard.svg">
         <div title style="color: var(--purple)">Freeboard</div>
         <div desc>Alternatively, you can create an infinite canvas with Freeboard! Never run out of space with this digital solution.</div>
       </div>
       <div class="lFeature">
-        <img src="./images/launch/features/pin.svg">
+        <img src="../images/launch/features/pin.svg">
         <div title>Share with Pin</div>
         <div desc>Unlike most editors, there is no need to logon to Markify as a student. You can share lessons with a short pin code.</div>
       </div>
       <div class="lFeature">
-        <img src="./images/launch/features/share.svg">
+        <img src="../images/launch/features/share.svg">
         <div title>Collaboration</div>
         <div desc>Markify has unparalleled real-time capabilities, with everything from annotations to member status synced!</div>
       </div>
       <div class="lFeature">
-        <img src="./images/launch/features/tools.svg">
+        <img src="../images/launch/features/tools.svg">
         <div title>Minimalistic Tools</div>
         <div desc>Get a full suite of tools—completely for free—for marking up your lesson that are simple and effective.</div>
       </div>
       <div class="lFeature">
-        <img src="./images/launch/features/cursors.svg">
+        <img src="../images/launch/features/cursors.svg">
         <div title style="color: var(--error)">Real-time Cursors</div>
         <div desc>Go more in depth during your lessons by pointing to things utilizing your mouse cursor. It all gets synced!</div>
       </div>
       <div class="lFeature">
-        <img src="./images/launch/features/members.svg">
+        <img src="../images/launch/features/members.svg">
         <div title>Members List</div>
         <div desc>Easily view and search all members in the lesson. View their identity and manage their access.</div>
       </div>
       <div class="lFeature">
-        <img src="./images/launch/features/editor.svg">
+        <img src="../images/launch/features/editor.svg">
         <div title>Temporary Editor</div>
         <div desc>Grant temporary edit access to anyone in the lesson, allowing them to markup the lesson.</div>
       </div>
       <div class="lFeature">
-        <img src="./images/launch/features/observe.svg">
+        <img src="../images/launch/features/observe.svg">
         <div title style="color: var(--purple)">Observe Mode</div>
         <div desc>Observe any member's screen position, watching them navigate and markup the lesson.</div>
       </div>
       <div class="lFeature">
-        <img src="./images/launch/features/idle.svg">
+        <img src="../images/launch/features/idle.svg">
         <div title style="color: var(--yellow)">Idle Indicator</div>
         <div desc>Worried students might abuse the device they are using? Worry not! See if they're idle viewing another window.</div>
       </div>
       <div class="lFeature">
-        <img src="./images/launch/features/save.svg">
+        <img src="../images/launch/features/save.svg">
         <div title>Local Save</div>
         <div desc>In the event internet connection is lost, all edits are saved locally automatically, allowing for the lesson to continue.</div>
       </div>
       <div class="lFeature">
-        <img src="./images/launch/features/download.svg">
+        <img src="../images/launch/features/download.svg">
         <div title>Download</div>
         <div desc>Anyone with access (including students) can download the lesson as a PDF to review later.</div>
       </div>
@@ -138,26 +138,26 @@ modules["pages/launch"] = class {
   </div>
   <div class="lSection" footer backdrop="center">
     <div class="lFooterPromote">
-      <img class="lFooterBackdrop" left src="./images/launch/lighticon.svg">
-      <img class="lFooterBackdrop" right src="./images/launch/lighticon.svg">
+      <img class="lFooterBackdrop" left src="../images/launch/lighticon.svg">
+      <img class="lFooterBackdrop" right src="../images/launch/lighticon.svg">
       <div class="dFooterHolder" style="min-height: 300px">
         <div div class="lFooterTitle">Modernize the whiteboard</br><b>with Markify</b></div>
         <div div class="lFooterFree">Get started for <b>FREE</b></div>
       </div>
       <div class="dFooterHolder" style="min-height: 125px">
-        <button class="lOpen largeButton" openpage="dashboard">Create Lesson</button>
+        <button class="lOpen largeButton" openpage="app/dashboard">Create Lesson</button>
       </div>
     </div>
     <div class="lFooterCompliance">
       <div class="footerBadges">
-        <img src="./images/launch/badges/coppa.svg">
-        <img src="./images/launch/badges/ferpa.svg">
+        <img src="../images/launch/badges/coppa.svg">
+        <img src="../images/launch/badges/ferpa.svg">
       </div>
       <div class="footerStatement">Markify is compliant under all <b>COPPA</b> and <b>FERPA</b> rules and regulations.</div>
     </div>
     <div class="lFooterFooter">
       <div class="lFooterCompany">
-        <img class="lFooterLogo" src="./images/logowhite.svg">
+        <img class="lFooterLogo" src="../images/logowhite.svg">
         <a class="lFooterCopyright" href="../" target="_blank">©2025 Markify, LLC</a>
       </div>
       <div class="lFooterPolicies">
@@ -165,10 +165,10 @@ modules["pages/launch"] = class {
         <a href="../privacy" target="_blank">Privacy</a>
       </div>
       <div class="lFooterSocials">
-        <a href="https://twitter.com/markifytool" target="_blank"><img src="./images/launch/socials/twitter.svg"></a>
-        <a href="https://www.instagram.com/markifytool" target="_blank"><img src="./images/launch/socials/instagram.svg"></a>
-        <a href="https://www.linkedin.com/company/markifyapp" target="_blank"><img src="./images/launch/socials/linkedin.svg"></a>
-        <a href="https://www.youtube.com/@markifyexotek" target="_blank"><img src="./images/launch/socials/youtube.svg"></a>
+        <a href="https://twitter.com/markifytool" target="_blank"><img src="../images/launch/socials/twitter.svg"></a>
+        <a href="https://www.instagram.com/markifytool" target="_blank"><img src="../images/launch/socials/instagram.svg"></a>
+        <a href="https://www.linkedin.com/company/markifyapp" target="_blank"><img src="../images/launch/socials/linkedin.svg"></a>
+        <a href="https://www.youtube.com/@markifyexotek" target="_blank"><img src="../images/launch/socials/youtube.svg"></a>
       </div>
     </div>
   </div>
@@ -367,7 +367,7 @@ modules["pages/launch"] = class {
       english: [
         {
           name: "Classwide Reading & Annotating",
-          image: "./images/launch/usecases/reading.png",
+          image: "../images/launch/usecases/reading.png",
           html: `Change how your class goes over new material in class! With Markify, you can <u>read and annotate as a class</u>, discussing key elements and <u>annotating together</u> rather than individually.
           <ul>
             <li>For instance, open a text by <u>uploading it as a PDF</u>.</li>
@@ -378,7 +378,7 @@ modules["pages/launch"] = class {
         },
         {
           name: "Study & Review Sessions",
-          image: "./images/launch/usecases/study.png",
+          image: "../images/launch/usecases/study.png",
           html: `Reviewing for quizzes and tests with individual study guides is so <i>old school!</i> Do it <u>collaboratively</u> across the class with Markify!
           <ul>
             <li>Create a study guide or series of questions and <u>import it into Markify</u>.</li>
@@ -390,7 +390,7 @@ modules["pages/launch"] = class {
         {
           name: "Socratic Seminar",
           desc: "Empower students to contribute not just through speech, but with annotations streamed to everyone around the room.",
-          image: "./images/launch/usecases/socratic.png",
+          image: "../images/launch/usecases/socratic.png",
           html: `Socratic seminars are almost unanimous in English classes. However, why keep it fixed to Socrates's time period? With Markify, you can <u>bolster the conversation</u> with modern <u>real-time collaboration</u>!
           <ul>
             <li>Open your text by <u>uploading it as a PDF</u>.</li>
@@ -402,7 +402,7 @@ modules["pages/launch"] = class {
         },
         {
           name: "Essay & Project Presenting",
-          image: "./images/launch/usecases/present.png",
+          image: "../images/launch/usecases/present.png",
           html: `Students can often understand and empathize more with an author when they can see their <u>writing up close</u>. Let students create essays or projects and <u>upload them into Markify</u>!
           <ul>
             <li>Create a Markify lesson and <u>share a generated pin or link</u> with the class.</li>
@@ -435,7 +435,7 @@ modules["pages/launch"] = class {
         {
           name: "Lectures & Note-taking",
           desc: "Give students the flexibility to see the notes and materials on their own device, where they can review missed content.",
-          image: "./images/launch/usecases/notetaking.png",
+          image: "../images/launch/usecases/notetaking.png",
           html: `Take classic note-taking lectures to the <u>21st century</u>! With Markify, fill out notes <u>digitally</u> and have them <i>magically sync</i> across the room for <u>students to see up close</u>.
           <ul>
             <li>To start, open your note sheet by <u>uploading it as a PDF</u>.</li>
@@ -447,7 +447,7 @@ modules["pages/launch"] = class {
         },
         {
           name: "Study & Review Sessions",
-          image: "./images/launch/usecases/study.png",
+          image: "../images/launch/usecases/study.png",
           html: `Reviewing for quizzes and tests with individual study guides is so <i>old school!</i> Do it <u>collaboratively</u> across the class with Markify!
           <ul>
             <li>Create a study guide or series of questions and <u>import it into Markify</u>.</li>
@@ -458,7 +458,7 @@ modules["pages/launch"] = class {
         },
         {
           name: "Unlimited Canvas",
-          image: "./images/launch/usecases/whiteboarding.png",
+          image: "../images/launch/usecases/whiteboarding.png",
           html: `Classic whiteboards are limited with space; however, using Markify's <u>freeboard lesson type</u>, documents can be <u>endless</u>!
           <ul>
             <li>Create a <u>freeboard lesson</u> to have an endless <u>whiteboard</u>, but <u>digital</u>!</li>
@@ -468,7 +468,7 @@ modules["pages/launch"] = class {
         },
         {
           name: "Teaching Mobility",
-          image: "./images/launch/usecases/mobility.png",
+          image: "../images/launch/usecases/mobility.png",
           html: `It's often limiting being bound to the front of the class lecturing. Use Markify to <u>break away and freely roam the classroom</u>!
           <ul>
             <li>Upon uploading and sharing a lesson with the class. You can open the lesson on a <u>portable laptop or tablet</u>.</li>
@@ -478,7 +478,7 @@ modules["pages/launch"] = class {
         },
         {
           name: "Group Collaboration",
-          image: "./images/launch/usecases/group.png",
+          image: "../images/launch/usecases/group.png",
           html: `Improve <u>group collaboration</u> with an easy-to-share solution like Markify. Allow students to sign up and <u>create Markify lessons on their own</u>!
           <ul>
             <li>Have <u>group leaders</u> go to <a href="./" target="_blank">markifyapp.com</a> to sign up.</li>
@@ -490,7 +490,7 @@ modules["pages/launch"] = class {
       science: [
         {
           name: "Shared Whiteboarding",
-          image: "./images/launch/usecases/shared.png",
+          image: "../images/launch/usecases/shared.png",
           html: `Classic whiteboards are limited with space; however, using Markify's <u>freeboard lesson type</u>, documents can be <u>endless</u>!
           <ul>
             <li>Create a <u>freeboard lesson</u> to have an endless <u>whiteboard</u>, but <u>digital</u>!</li>
@@ -500,7 +500,7 @@ modules["pages/launch"] = class {
         },
         {
           name: "Lectures & Note-taking",
-          image: "./images/launch/usecases/notetaking.png",
+          image: "../images/launch/usecases/notetaking.png",
           html: `Take classic note-taking lectures to the <u>21st century</u>! With Markify, fill out notes <u>digitally</u> and have them <i>magically sync</i> across the room for <u>students to see up close</u>.
           <ul>
             <li>To start, open your note sheet by <u>uploading it as a PDF</u>.</li>
@@ -512,7 +512,7 @@ modules["pages/launch"] = class {
         },
         {
           name: "Shared Lab Reports",
-          image: "./images/launch/usecases/report.png",
+          image: "../images/launch/usecases/report.png",
           html: `Allow students to better <u>collaborate during experiments</u> with Markify!
           <ul>
             <li>Have students go to <a href="./" target="_blank">markifyapp.com</a> to sign up.</li>
@@ -522,7 +522,7 @@ modules["pages/launch"] = class {
         },
         {
           name: "Station Materials",
-          image: "./images/launch/usecases/stations.png",
+          image: "../images/launch/usecases/stations.png",
           html: `Easily <u>distribute materials</u> to stations around the classroom for students to look at and review with.
           <ul>
             <li>Create a <u>PDF containing the resources</u> for the stations, such as instructions, examples, and labs.</li>
@@ -534,7 +534,7 @@ modules["pages/launch"] = class {
       history: [
         {
           name: "Lectures & Note-taking",
-          image: "./images/launch/usecases/notetaking.png",
+          image: "../images/launch/usecases/notetaking.png",
           html: `Take classic note-taking lectures to the <u>21st century</u>! With Markify, fill out notes <u>digitally</u> and have them <i>magically sync</i> across the room for <u>students to see up close</u>.
           <ul>
             <li>To start, open your note sheet by <u>uploading it as a PDF</u>.</li>
@@ -546,7 +546,7 @@ modules["pages/launch"] = class {
         },
         {
           name: "Primary Source Annotating",
-          image: "./images/launch/usecases/source.png",
+          image: "../images/launch/usecases/source.png",
           html: `Change how your class goes over material in class! With Markify, you can <u>read and annotate as a class</u>, discussing key elements and <u>annotating together</u> rather than individually.
           <ul>
             <li>For instance, open a text by <u>uploading it as a PDF</u>.</li>
@@ -557,7 +557,7 @@ modules["pages/launch"] = class {
         },
         {
           name: "Classroom Activities",
-          image: "./images/launch/usecases/activity.png",
+          image: "../images/launch/usecases/activity.png",
           html: `Easily <u>distribute materials</u> to activities around the classroom for students to look at and review with.
           <ul>
             <li>Create a <u>PDF containing the resources</u> for the activities, such as instructions and primary sources.</li>
@@ -567,7 +567,7 @@ modules["pages/launch"] = class {
         },
         {
           name: "Group Projects",
-          image: "./images/launch/usecases/group.png",
+          image: "../images/launch/usecases/group.png",
           html: `Improve <u>group collaboration</u> with an easy-to-share solution like Markify. Allow students to sign up and <u>create Markify lessons on their own</u>!
           <ul>
             <li>Have <u>group leaders</u> go to <a href="./" target="_blank">markifyapp.com</a> to sign up.</li>
@@ -668,10 +668,10 @@ modules["pages/launch"] = class {
       let index = button.getAttribute("index");
       lastClickedButton = section + "_" + index;
       let info = usecases[section][parseInt(index)];
-      usecaseModal.querySelector(".lModalBackdrop").src = "./images/launch/usecases/backdrops/" + section + ".png";
+      usecaseModal.querySelector(".lModalBackdrop").src = "../images/launch/usecases/backdrops/" + section + ".png";
       usecaseModal.querySelector(".lUsecaseModalTitle").textContent = info.name;
       modalClose.style.setProperty("--themeColor", themeColor);
-      modalClose.querySelector("img").src = "./images/launch/usecases/close/" + section + ".svg";
+      modalClose.querySelector("img").src = "../images/launch/usecases/close/" + section + ".svg";
       usecaseModal.querySelector(".lUsecaseModalHTML").innerHTML = info.html;
       if (info.image != null) {
         modalImg.src = info.image;

@@ -8,6 +8,7 @@
     ],
     "cleanUrls": true,
     "trailingSlash": true,
+    
     "headers": [
       {
         "source": "**",

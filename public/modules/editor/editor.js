@@ -2609,10 +2609,10 @@ modules["editor/editor"] = class {
       }
       content.style.setProperty("--backgroundColor", "#" + this.backgroundColor);
       if (this.utils.contrastCheck(this.backgroundColor) == true) {
-        background.style.setProperty("background-image", "url(./images/editor/backdropblack.svg)");
+        background.style.setProperty("background-image", "url(../images/editor/backdropblack.svg)");
         content.style.setProperty("--secondaryBackgroundColor", "#" + this.utils.darkenHex(this.backgroundColor, 50));
       } else {
-        background.style.setProperty("background-image", "url(./images/editor/backdropwhite.svg)");
+        background.style.setProperty("background-image", "url(../images/editor/backdropwhite.svg)");
         content.style.setProperty("--secondaryBackgroundColor", "#" + this.utils.lightenHex(this.backgroundColor, 50));
       }
       content.style.setProperty("--backgroundColor", "#" + this.backgroundColor);
@@ -3824,7 +3824,7 @@ modules["editor/render/sticky"] = class {
           <div edit></div>
           <div footer>
             <div signature></div>
-            <div reactions><button class="eReaction" add dropdowntitle="Reactions" noscrollclose><div imgholder><img src="./images/editor/actions/reaction.svg"></div></button></div>
+            <div reactions><button class="eReaction" add dropdowntitle="Reactions" noscrollclose><div imgholder><img src="../images/editor/actions/reaction.svg"></div></button></div>
           </div>
         </div>
       </div>`);
@@ -3912,7 +3912,7 @@ modules["editor/render/sticky"] = class {
         presentReactions.push(reaction.emoji);
         let reactionElem = reactionHolder.querySelector('.eReaction[emoji="' + reaction.emoji + '"');
         if (reactionElem == null) {
-          reactionHolder.insertAdjacentHTML("beforeend", `<button class="eReaction" unloaded new><div imgholder><img src="./images/editor/actions/reaction.svg"></div><div count></div></button>`);
+          reactionHolder.insertAdjacentHTML("beforeend", `<button class="eReaction" unloaded new><div imgholder><img src="../images/editor/actions/reaction.svg"></div><div count></div></button>`);
           reactionElem = reactionHolder.querySelector(".eReaction[new]");
           reactionHolder.insertBefore(reactionElem, addReactionButton);
           reactionElem.removeAttribute("new");
@@ -4135,11 +4135,11 @@ modules["editor/render/page"] = class {
         element.insertAdjacentHTML("beforeend", `<div hide></div>`);
         let hiddenElem = element.querySelector(":scope > div[hide]");
         if (this.parent.self.access < 4) {
-          hiddenElem.insertAdjacentHTML("beforeend", `<img hideicon src="./images/editor/hidden.svg" draggable="false">`);
+          hiddenElem.insertAdjacentHTML("beforeend", `<img hideicon src="../images/editor/hidden.svg" draggable="false">`);
         } else {
           if (this.exporting != true) {
             hiddenElem.insertAdjacentHTML("beforeend", `<div hidemodal>
-              <img src="./images/editor/hidden.svg" draggable="false">
+              <img src="../images/editor/hidden.svg" draggable="false">
               <div hidemodaltitle>Page Hidden</div>
             </div>`);
             if (this.parent.self.access > 3) {
@@ -4205,8 +4205,8 @@ modules["editor/render/media"] = class {
             image.src = assetURL + anno.d;
           }
         } else {
-          if (image.src != (anno.d ?? "./images/editor/uploading.png")) {
-            image.src = anno.d ?? "./images/editor/uploading.png";
+          if (image.src != (anno.d ?? "../images/editor/uploading.png")) {
+            image.src = anno.d ?? "../images/editor/uploading.png";
           }
         }
       }
@@ -4217,7 +4217,7 @@ modules["editor/render/media"] = class {
           if (anno.d != null && anno.d.startsWith("blob:") == false) {
             image.src = assetURL + anno.d;
           } else {
-            image.src = anno.d ?? "./images/editor/uploading.png";
+            image.src = anno.d ?? "../images/editor/uploading.png";
           }
         }
       }));
@@ -4264,7 +4264,7 @@ modules["editor/render/embed"] = class {
             <div info>
               <div title></div>
               <div description></div>
-              <a link target="_blank"><img src="./images/editor/actions/link.svg"><div></div></a>
+              <a link target="_blank"><img src="../images/editor/actions/link.svg"><div></div></a>
             </div>
           </div>
         </div>
@@ -4298,7 +4298,7 @@ modules["editor/render/embed"] = class {
       if (this.exporting != true) {
         if (anno.embed.url != null) {
           if (embedFrame == null) {
-            embedActivate.querySelector("img").src = "./images/editor/actions/play.svg";
+            embedActivate.querySelector("img").src = "../images/editor/actions/play.svg";
             embedActivate.style.display = "flex";
           }
         } else {

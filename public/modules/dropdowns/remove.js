@@ -1,7 +1,7 @@
 modules["dropdowns/remove"] = class {
   html = `
   <div class="dDeleteHolder">
-    <img src="./images/editor/file/trash.svg">
+    <img src="../images/editor/file/trash.svg">
     <div class="dDeleteContent">
       <div class="dDeleteTitle"></div>
       <div class="dDeleteDesc"></div>
@@ -117,7 +117,7 @@ modules["dropdowns/remove"] = class {
             }
           }
         } else if (option == "deletelesson") {
-          setFrame("pages/dashboard");
+          setFrame("pages/app/dashboard");
         }
       }
     });

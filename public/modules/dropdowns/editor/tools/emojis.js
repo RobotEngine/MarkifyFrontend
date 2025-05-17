@@ -17,7 +17,7 @@ modules["dropdowns/editor/tools/emojis"] = class {
   ];
   html = `
   <div class="eEmojiHolder">
-    <div class="eEmojiSearchHolder"><img src="./images/editor/glass.svg"><input placeholder="Search Emojis"></input></div>
+    <div class="eEmojiSearchHolder"><img src="../images/editor/glass.svg"><input placeholder="Search Emojis"></input></div>
     <div class="eEmojiSectionHolder"></div>
   </div>
   `;
@@ -52,7 +52,7 @@ modules["dropdowns/editor/tools/emojis"] = class {
       reaction.removeAttribute("unloaded");
       reaction.title = emoji.short_name.replace(/_/g, " ");
       let image = reaction.querySelector("img");
-      image.src = "./images/editor/emojis/twitter32.png";
+      image.src = "../images/editor/emojis/twitter32.png";
       image.style.objectPosition = (-((emoji.sheet_x * this.sheetSize) + 1)) + "px " + (-((emoji.sheet_y * this.sheetSize) + 1)) + "px";
       image.style.objectFit = "none";
     }
@@ -79,9 +79,9 @@ modules["dropdowns/editor/tools/emojis"] = class {
       let emojiSearch = emoji.short_names.toString().replace(/_/g, "");
       let emojiX = -((emoji.sheet_x * this.sheetSize) + 1);
       let emojiY = -((emoji.sheet_y * this.sheetSize) + 1);
-      setHTML[emoji.category] += `<button emoji="${emoji.name}" title="${emojiTitle}" search="${emojiSearch}" style="order: ${emoji.sort_order}" shown><img src="./images/editor/emojis/twitter32.png" style="object-position: ${emojiX}px ${emojiY}px"></button>`;
+      setHTML[emoji.category] += `<button emoji="${emoji.name}" title="${emojiTitle}" search="${emojiSearch}" style="order: ${emoji.sort_order}" shown><img src="../images/editor/emojis/twitter32.png" style="object-position: ${emojiX}px ${emojiY}px"></button>`;
       if (editor.parent.parent.recentEmojis.includes(emoji.name)) {
-        setHTML["Recent"] += `<button emoji="${emoji.name}" title="${emojiTitle}" search="${emojiSearch}" style="order: ${editor.parent.parent.recentEmojis.indexOf(emoji.name)}" shown><img src="./images/editor/emojis/twitter32.png" style="object-position: ${emojiX}px ${emojiY}px"></button>`;
+        setHTML["Recent"] += `<button emoji="${emoji.name}" title="${emojiTitle}" search="${emojiSearch}" style="order: ${editor.parent.parent.recentEmojis.indexOf(emoji.name)}" shown><img src="../images/editor/emojis/twitter32.png" style="object-position: ${emojiX}px ${emojiY}px"></button>`;
       }
     }
     setHTMLKeys.push("Recent");

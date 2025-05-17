@@ -1,19 +1,19 @@
 modules["dropdowns/account"] = class {
   html = `
-  <button class="accountDrop accountLogout" style="--setBackground: var(--error)" close><div>Logout</div><img src="./images/tooltips/account/logout.svg"></button>
-  <button class="accountDrop accountManage" dropdowntitle="Settings" noscrollclose><div>Settings</div><img src="./images/tooltips/account/settings.svg"></button>
-  <!--<button class="accountDrop" dropdown="dropdowns/account/preferences"><div>Preferences</div><img src="./images/tooltips/account/preferences.svg"></button>-->
+  <button class="accountDrop accountLogout" style="--setBackground: var(--error)" close><div>Logout</div><img src="../images/tooltips/account/logout.svg"></button>
+  <button class="accountDrop accountManage" dropdowntitle="Settings" noscrollclose><div>Settings</div><img src="../images/tooltips/account/settings.svg"></button>
+  <!--<button class="accountDrop" dropdown="dropdowns/account/preferences"><div>Preferences</div><img src="../images/tooltips/account/preferences.svg"></button>-->
   <div class="accountDropLine"></div>
-  <button class="accountDrop" close pwa dropdowntitle="Add Markify as an app on your device!"><div>Get the App</div><img src="./images/tooltips/account/app.svg"></button>
-  <button class="accountDrop" report dropdowntitle="Report Bugs & Feedback" noscrollclose><div>Report Bug</div><img src="./images/tooltips/account/report.svg"></button>
-  <button class="accountDrop" style="display: none" close whatsnew modaltitle="What's New"><div>What's New</div><img src="./images/tooltips/account/exclamation.svg"></button>
-  <button class="accountDrop" tutorial close modaltitle="Resources"><div>Resources</div><img src="./images/tooltips/account/question.svg"></button>
+  <button class="accountDrop" close pwa dropdowntitle="Add Markify as an app on your device!"><div>Get the App</div><img src="../images/tooltips/account/app.svg"></button>
+  <button class="accountDrop" report dropdowntitle="Report Bugs & Feedback" noscrollclose><div>Report Bug</div><img src="../images/tooltips/account/report.svg"></button>
+  <button class="accountDrop" style="display: none" close whatsnew modaltitle="What's New"><div>What's New</div><img src="../images/tooltips/account/exclamation.svg"></button>
+  <button class="accountDrop" tutorial close modaltitle="Resources"><div>Resources</div><img src="../images/tooltips/account/question.svg"></button>
   <div class="accountDropLine"></div>
   <div class="accountSocialHolder">
-    <a href="https://twitter.com/markifytool" target="_blank"><img src="./images/launch/socials/twitter.svg"></a>
-    <a href="https://www.instagram.com/markifytool" target="_blank"><img src="./images/launch/socials/instagram.svg"></a>
-    <a href="https://www.linkedin.com/company/markifyapp" target="_blank"><img src="./images/launch/socials/linkedin.svg"></a>
-    <a href="https://www.youtube.com/@markifyexotek" target="_blank"><img src="./images/launch/socials/youtube.svg"></a>
+    <a href="https://twitter.com/markifytool" target="_blank"><img src="../images/launch/socials/twitter.svg"></a>
+    <a href="https://www.instagram.com/markifytool" target="_blank"><img src="../images/launch/socials/instagram.svg"></a>
+    <a href="https://www.linkedin.com/company/markifyapp" target="_blank"><img src="../images/launch/socials/linkedin.svg"></a>
+    <a href="https://www.youtube.com/@markifyexotek" target="_blank"><img src="../images/launch/socials/youtube.svg"></a>
   </div>
   <div class="accountPolicyHolder">
     <a href="../tos" target="_blank">Terms</a>
@@ -144,7 +144,7 @@ modules["dropdowns/account/manage"] = class {
       </div>
       <div class="aManageCard">
         <div class="aImageHolder">
-          <img src="./images/profiles/default.svg">
+          <img src="../images/profiles/default.svg">
         </div>
         <div class="aManageInfoHolder">
           <div class="aManageInfo">

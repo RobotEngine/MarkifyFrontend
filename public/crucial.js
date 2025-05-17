@@ -915,7 +915,7 @@ let init = async () => {
     }*/
     let sendBody = {
       code: paramAuthCode,
-      page: window.location.pathname.substring(1)
+      page: window.location.pathname.substring(window.location.pathname.lastIndexOf("/") + 1)
     };
     if (getParam("from") != null) {
       sendBody.from = getParam("from");

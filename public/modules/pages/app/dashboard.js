@@ -1119,12 +1119,17 @@ modules["pages/app/dashboard"] = class {
     
     let dragStart = (event) => {
       let target = event.target;
+      let pageRect = dashboard.getBoundingClientRect();
+      let mouseX = (event.x ?? event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0) - pageRect.x;
+      let mouseY = (event.y ?? event.clientY ?? ((event.changedTouches ?? [])[0] ?? {}).clientY ?? 0) - pageRect.y;
       let folder = target.closest(".dSidebarFolder");
       if (folder != null && folder.hasAttribute("folderid") == true) {
         dragContext = {
           originalElement: folder,
           width: folder.clientWidth, //sidebar.clientWidth - 16
-          height: folder.clientHeight - 8
+          height: folder.clientHeight - 8,
+          startX: mouseX,
+          startY: mouseY
         };
       }
       let tile = target.closest(".dTile");
@@ -1142,7 +1147,9 @@ modules["pages/app/dashboard"] = class {
         dragContext = {
           originalElement: holder,
           width: holder.clientWidth,
-          height: holder.clientHeight
+          height: holder.clientHeight,
+          startX: mouseX,
+          startY: mouseY
         };
       }
     }
@@ -1196,8 +1203,6 @@ modules["pages/app/dashboard"] = class {
       let pageRect = dashboard.getBoundingClientRect();
       let mouseX = (event.x ?? event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0) - pageRect.x;
       let mouseY = (event.y ?? event.clientY ?? ((event.changedTouches ?? [])[0] ?? {}).clientY ?? 0) - pageRect.y;
-      dragContext.startX = dragContext.startX ?? mouseX;
-      dragContext.startY = dragContext.startY ?? mouseY;
       dragContext.lastX = mouseX;
       dragContext.lastY = mouseY;
       if (dragContext.enabled != true) {

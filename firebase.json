@@ -32,9 +32,9 @@
         ]
       },
 
-      { "source": "/", "headers": [ { "key": "Content-Security-Policy", "value": "script-src 'self' 'sha256-nRcgRt3XNN0aZXdzMDUhXYSzvNDbxXeNTBXS8ajcR38=' https://*.simplesocket.net https://*.exotek.co https://*.googleapis.com https://*.cloudflare.com; frame-src * blob:" } ] },
+      { "source": "/", "headers": [ { "key": "Content-Security-Policy", "value": "script-src 'self' 'sha256-/oCuvSihiZsklDFtdusCpmAODxa+kAxii73jJ0PBhoU=' https://*.simplesocket.net https://*.exotek.co https://*.googleapis.com https://*.cloudflare.com; frame-src * blob:" } ] },
       
-      { "source": "/join", "headers": [ { "key": "Content-Security-Policy", "value": "script-src 'self' 'sha256-IOC9xMdBljG7nAznL3DuOXvfgk45MzgJiud2jdhtn1I=' https://*.simplesocket.net https://*.exotek.co https://*.googleapis.com https://*.cloudflare.com; frame-src * blob:" } ] },
+      { "source": "/join", "headers": [ { "key": "Content-Security-Policy", "value": "script-src 'self' 'sha256-viSWilXB5sYlQ+Ga8T8LdsqOzYVlVgZkRO7wmjuwVko=' https://*.simplesocket.net https://*.exotek.co https://*.googleapis.com https://*.cloudflare.com; frame-src * blob:" } ] },
       
       { "source": "/export", "headers": [ { "key": "Content-Security-Policy", "value": "script-src 'self' 'sha256-X6mmDHcwJEHs0FGxvR3d1QFcl1gwxvsBwsAZleep9LU=' https://*.simplesocket.net https://*.exotek.co https://*.googleapis.com https://*.cloudflare.com; frame-src * blob:" } ] },
       

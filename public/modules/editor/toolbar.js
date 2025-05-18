@@ -1158,6 +1158,8 @@ modules["editor/toolbar"] = class {
       let selectedAnnotations = [];
       let selectionChange = false;
 
+      editor.selectingParents = {};
+
       let annotationRect = editor.utils.localBoundingRect(annotations);
 
       let selections = Object.keys(editor.selecting);
@@ -1209,6 +1211,10 @@ modules["editor/toolbar"] = class {
         if (rect.selectingParent == true) {
           delete editor.selecting[annoID];
           return this.selection.updateBox(options);
+        }
+
+        for (let p = 0; p < rect.parents.length; p++) {
+          editor.selectingParents[rect.parents[p]._id] = true;
         }
 
         if (editor.utils.canMemberModify(merged) != true || editor.utils.isLocked(merged) == true || editor.utils.isPlaceholderLocked(merged) == true) {

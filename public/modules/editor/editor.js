@@ -461,6 +461,7 @@ modules["editor/editor"] = class {
   sourceRenders = {};
 
   selecting = {};
+  selectingParents = {};
   realtimeSelect = {};
 
   visibleChunks = [];
@@ -737,6 +738,7 @@ modules["editor/editor"] = class {
         size: [anno.s[0], anno.s[1]],
         thickness: position.thickness,
         rotation: position.rotation,
+        parents: position.parents,
         selectingParent: position.selectingParent
       };
     }
@@ -2670,7 +2672,7 @@ modules["editor/editor"] = class {
             continue;
           }
         }
-        if (this.selecting[annotation.render._id] != null) {
+        if (this.selecting[annotation.render._id] != null || this.selectingParents[annotation.render._id] != null) {
           continue;
         }
         if (annotation.element != null) {

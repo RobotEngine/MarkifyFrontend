@@ -2193,11 +2193,11 @@ modules["editor/editor"] = class {
       }
 
       let existingAnnotation = this.annotations[annoID];
-      let annotation = existingAnnotation ?? { render: {} };
-      if (annotation.pointer != null) {
+      if ((existingAnnotation ?? {}).pointer != null) {
         annoID = annotation.pointer;
-        annotation = this.annotations[annoID] ?? { render: {} };
+        existingAnnotation = this.annotations[annoID];
       }
+      let annotation = existingAnnotation ?? { render: {} };
 
       if (annotation.revert == null && options.timeout != false) {
         annotation.revert = copyObject(annotation.render); // Copy the currents attributes to revert to later
@@ -2228,9 +2228,6 @@ modules["editor/editor"] = class {
       if (options.timeout != false) {
         this.save.enableTimeout(annotation); // Start timer to revert if update isn't server-confirmed
       }
-      if (existingAnnotation == null) {
-        this.annotations[annoID] = annotation;
-      }
 
       await this.utils.setAnnotationChunks(annotation);
       this.utils.updateAnnotationPages(annotation.render);
@@ -2259,6 +2256,10 @@ modules["editor/editor"] = class {
         annotation.element = (await this.render.create({ ...annotation, render: { ...annotation.render, ...(options.renderPassthrough ?? {}), ...(this.selecting[annoID] ?? {}) }, ...(options.render ?? {}) }, options.timeout == false)).element;
       } else {
         await this.render.remove(annotation);
+      }
+
+      if (existingAnnotation == null) {
+        this.annotations[annoID] = annotation;
       }
       
       return { annotation: annotation }; //, redrawActionBar: redrawAction

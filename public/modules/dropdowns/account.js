@@ -56,14 +56,6 @@ modules["dropdowns/account"] = class {
     let settingsButton = frame.querySelector(".accountManage");
     settingsButton.addEventListener("click", () => {
       return dropdownModule.open(settingsButton, "dropdowns/account/manage");
-
-      let a = typeof window.screenX != 'undefined' ? window.screenX : window.screenLeft;
-      let i = typeof window.screenY != 'undefined' ? window.screenY : window.screenTop;
-      let g = typeof window.outerWidth != 'undefined' ? window.outerWidth : document.documentElement.clientWidth;
-      let f = typeof window.outerHeight != 'undefined' ? window.outerHeight : (document.documentElement.clientHeight - 22);
-      let h = (a < 0) ? window.screen.width + a : a;
-
-      window.open("https://exotek.co/account?userid=" + account.account, "exotek_window_prompt", "toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=" + 1000 + ", height=" + 650 + ", top=" + parseInt(i + ((f - 650) / 2.5), 10) + ", left=" + parseInt(h + ((g - 1000) / 2), 10));
     });
     frame.querySelector(".accountLogout").addEventListener("click", async () => {
       let token = getLocalStore("token");
@@ -130,6 +122,10 @@ modules["dropdowns/account"] = class {
     reportButton.addEventListener("click", () => {
       dropdownModule.open(reportButton, "dropdowns/account/report");
     });
+
+    if (account.tenant != null && account.tenant.flags != null && account.tenant.flags.hide_platform_socials == true) {
+      frame.querySelector(".accountSocialHolder").remove();
+    }
   }
 }
 

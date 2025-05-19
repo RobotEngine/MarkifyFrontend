@@ -1694,7 +1694,7 @@ modules["editor/toolbar"] = class {
                 elementBefore = newDivider;
                 i++;
               }
-              if (elementBefore.className == "eVerticalDivider") {
+              if (elementBefore.className == "eVerticalDivider" && elementBefore.hasAttribute("before") == true) {
                 if (isVisible != false) {
                   elementBefore.removeAttribute("hidden");
                 } else {
@@ -1710,7 +1710,7 @@ modules["editor/toolbar"] = class {
                 actionButtonHolder.insertBefore(newDivider, elementAfter);
                 elementAfter = newDivider;
               }
-              if (elementAfter.className == "eVerticalDivider") {
+              if (elementAfter.className == "eVerticalDivider" && elementAfter.hasAttribute("after") == true) {
                 if (isVisible != false) {
                   elementAfter.removeAttribute("hidden");
                 } else {
@@ -3965,6 +3965,16 @@ modules["editor/toolbar"] = class {
           moreModule.toolbar = this;
           return await moreModule.duplicate();
         }
+      }
+      
+      if (event.keyCode == 65 && meta == true) { // Handle Duplicate
+        return event.preventDefault();
+        /* let allAnnotationIDs = Object.keys(editor.annotations);
+        for (let i = 0; i < allAnnotationIDs.length; i++) {
+          let annoID = allAnnotationIDs[i];
+          editor.selecting[annoID] = editor.selecting[annoID] ?? {};
+        }
+        return this.selection.updateBox(); */
       }
     });
     editor.pipeline.subscribe("toolbarKeyUp", "keyup", (data) => {

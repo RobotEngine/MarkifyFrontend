@@ -3972,12 +3972,12 @@ modules["editor/toolbar"] = class {
     editor.pipeline.subscribe("toolbarWheel", "wheel", (data) => {
       this.pushToolEvent("wheel", data.event);
     });
-    editor.pipeline.subscribe("toolbarPageResize", "bounds_change", (data) => {
+    editor.pipeline.subscribe("toolbarBoundChange", "bounds_change", (data) => {
       this.toolbar.updateMaxHeight();
       setTimeout(this.toolbar.updateMaxHeight, 100); // Update again because of SAFARI
       this.toolbar.update();
       this.pushToolEvent("scroll", data.event);
-    });
+    }, { sort: 2 });
     editor.pipeline.subscribe("toolbarPagePageAdd", "page_add", () => {
       this.toolbar.updateMaxHeight();
       this.toolbar.update();

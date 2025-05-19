@@ -209,12 +209,12 @@ modules["editor/realtime"] = class {
       }
     }, { sort: 2 });
     editor.pipeline.subscribe("realtimePublishClickEnd", "click_end", () => { this.publishShort(); }, { sort: 2 });
-    editor.pipeline.subscribe("realtimePublishScroll", "scroll", () => {
+    editor.pipeline.subscribe("realtimePublishBoundChange", "bounds_change", () => {
       this.publishShort();
       if (editor.realtime.observed > 0) {
         this.publishShort(null, "observe");
       }
-    });
+    }, { sort: 2 });
     editor.pipeline.subscribe("realtimePublishResize", "resize", () => {
       if (editor.realtime.observed > 0) {
         this.publishShort(null, "observe");

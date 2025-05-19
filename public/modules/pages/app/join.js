@@ -12,7 +12,7 @@ modules["pages/app/join"] = class {
     <div class="jModalContainer">
       <img class="jBack" src="../images/icon.svg">
       <div class="jModal">
-        <a class="jLogo" href="#launch"><img src="../images/logo.svg"></a>
+        <a class="jLogo" href="/launch"><img src="../images/logo.svg"></a>
         <div class="jTitle">Join the Lesson!</div>
         <div class="jTitleDesc">Enter a pin to join</div>
         <div class="jInputHolder">
@@ -39,7 +39,7 @@ modules["pages/app/join"] = class {
         </div>
         <div class="jCFTurnstile"></div>
         <button class="largeButton border" join>Join Lesson</button>
-        <div class="jPromo">Create your lesson at <a href="#launch" target="_blank">${location.host}</a></div>
+        <div class="jPromo">Create your lesson at <a href="/launch" target="_blank">${location.host}</a></div>
         <div class="jPolicies">
           <a href="../tos" target="_blank">Terms</a>
           <a href="../privacy" target="_blank">Privacy</a>

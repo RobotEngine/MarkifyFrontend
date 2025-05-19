@@ -6,7 +6,7 @@ modules["lesson/board"] = class {
       <button class="eTopScroll" right style="right: 7px"><img src="../images/editor/top/rightarrow.svg" /></button>
       <div class="eTop">
         <div class="eTopSection" left>
-          <a class="eLogo" href="/#dashboard" draggable="false"></a>
+          <a class="eLogo" href="/app/dashboard" draggable="false"></a>
           <div class="eFileNameHolder border"><div class="eFileName" spellcheck="false" onpaste="clipBoardRead(event)"></div></div>
           <button class="eFileDropdown">File</button>
           <button class="eCreateCopy">Create Copy</button>

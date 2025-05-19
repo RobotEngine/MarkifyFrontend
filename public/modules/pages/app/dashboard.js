@@ -28,11 +28,11 @@ modules["pages/app/dashboard"] = class {
         <img class="dBackdropImage" src="../images/dashboard/backdrop.svg" />
         <div class="dSidebar customScroll">
           <div class="dSidebarSection dSidebarHeader">
-            <a class="dSidebarLogo" href="/#launch"><img src="../images/logo.svg" /></a>
-            <a class="dJoinButton largeButton" href="/#join">Join<img src="../images/tooltips/link.svg" /><div backdrop></div></a>
+            <a class="dSidebarLogo" href="/launch"><img src="../images/logo.svg" /></a>
+            <a class="dJoinButton largeButton" href="/app/join">Join<img src="../images/tooltips/link.svg" /><div backdrop></div></a>
           </div>
           <div class="dSidebarSection dSidebarActions">
-            <a class="dCreateLessonButton largeButton" href="/?type=board#lesson">New Lesson<div backdrop></div></a>
+            <a class="dCreateLessonButton largeButton">New Lesson<div backdrop></div></a>
           </div>
           <div class="dSidebarSection dSidebarSorts">
             <div class="dSidebarTitle"><div title>Sorts</div><div divider></div></div>
@@ -972,11 +972,11 @@ modules["pages/app/dashboard"] = class {
           dropdownModule.open(removeButton, "dropdowns/remove", { parent: this, type: "deletefolder", folderID: folderID, folders: folders, records: records, lessons: lessons });
         });
         titleHolder.style.padding = "14px 16px";
-        newLessonButton.href = "?folder=" + this.sort + "#lesson";
+        newLessonButton.href = "/app/lesson?type=board&folder=" + this.sort;
       } else { // Sort
         titleHolder.innerHTML = `<div class="dSelectedTitle">${this.sort[0].toUpperCase() + this.sort.substring(1) + " Lessons"}</div>`;
         titleHolder.style.removeProperty("padding");
-        newLessonButton.href = "#lesson";
+        newLessonButton.href = "/app/lesson?type=board";
       }
       lessonsHolder.scrollTo(0, 0);
       let extra = {

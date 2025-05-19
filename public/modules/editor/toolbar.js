@@ -1158,7 +1158,10 @@ modules["editor/toolbar"] = class {
       let selectedAnnotations = [];
       let selectionChange = false;
 
-      editor.selectingParents = {};
+      let noAction = this.selection.action == null;
+      if (noAction == true) {
+        editor.selectingParents = {};
+      }
 
       let annotationRect = editor.utils.localBoundingRect(annotations);
 
@@ -1213,8 +1216,10 @@ modules["editor/toolbar"] = class {
           return this.selection.updateBox(options);
         }
 
-        for (let p = 0; p < rect.parents.length; p++) {
-          editor.selectingParents[rect.parents[p]._id] = true;
+        if (noAction == true) {
+          for (let p = 0; p < rect.parents.length; p++) {
+            editor.selectingParents[rect.parents[p]._id] = true;
+          }
         }
 
         if (editor.utils.canMemberModify(merged) != true || editor.utils.isLocked(merged) == true || editor.utils.isPlaceholderLocked(merged) == true) {

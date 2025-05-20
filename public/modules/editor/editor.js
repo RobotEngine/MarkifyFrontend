@@ -1119,8 +1119,11 @@ modules["editor/editor"] = class {
           options.left = annotationRect.left + contentHolder.scrollLeft - (contentHolder.clientWidth / 2) + (annoRect.centerX * this.zoom);
         } else {
           // Position page to left corner:
-          options.left = annotationRect.left + contentHolder.scrollLeft - this.scrollOffset + (topLeftX * this.zoom);
-          //options.left = annotationRect.left + contentHolder.scrollLeft - contentHolder.clientWidth + this.scrollOffset + (bottomRightX * this.zoom);
+          if ((account.settings ?? {}).toolbar != "right") {
+            options.left = annotationRect.left + contentHolder.scrollLeft - this.scrollOffset + (topLeftX * this.zoom);
+          } else {
+            options.left = annotationRect.left + contentHolder.scrollLeft - contentHolder.clientWidth + this.scrollOffset + (bottomRightX * this.zoom);
+          }
         }
         if (annoRect.height * this.zoom < contentHolder.clientHeight - (this.scrollOffset * 2)) {
           // Position page to center:

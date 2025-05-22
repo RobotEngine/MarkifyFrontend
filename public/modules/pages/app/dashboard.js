@@ -1554,11 +1554,11 @@ modules["pages/app/dashboard/lessons"] = class {
       let join = record.join ?? "owner";
       tile.setAttribute("join", join);
       if (join.startsWith("pin_")) {
-        tile.href = "?pin=" + join.substring(4) + "#join";
+        tile.href = "/app/lesson?pin=" + join.substring(4);
       } else if (join == "link") {
-        tile.href = "?lesson=" + record.lesson + "#join";
+        tile.href = "/app/lesson?lesson=" + record.lesson;
       } else {
-        tile.href = "?lesson=" + record.lesson + "#lesson";
+        tile.href = "/app/lesson?lesson=" + record.lesson;
       }
     }
     for (let i = 0; i < Math.min(records.length, this.parent.loadAmount); i++) {

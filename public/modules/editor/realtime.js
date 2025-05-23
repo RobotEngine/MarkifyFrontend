@@ -352,7 +352,7 @@ modules["editor/realtime"] = class {
       let data = copyObject(event);
       let memberID = data[0];
       let memberData = editor.parent.parent.members[memberID];
-      if (memberData == null) {
+      if (memberData == null || memberID == editor.self._id) {
         return;
       }
       let member = this.members[memberID];

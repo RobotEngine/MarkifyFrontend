@@ -784,7 +784,7 @@ modules["lesson/board"] = class {
       let jumpAnnotation = null;
       if (checkForJumpLink != null && checkForJumpLink != "") {
         if (this.editor.annotations[checkForJumpLink] != null) {
-          jumpAnnotation = (await this.editor.render.create(this.editor.annotations[checkForJumpLink])).element;
+          jumpAnnotation = (await this.editor.render.create(this.editor.annotations[checkForJumpLink])).component.getElement();
         }
       }
       if (jumpAnnotation == null) {

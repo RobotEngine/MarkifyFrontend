@@ -352,7 +352,7 @@ modules["editor/realtime"] = class {
       let data = copyObject(event);
       let memberID = data[0];
       let memberData = editor.parent.parent.members[memberID];
-      if (memberData == null) {
+      if (memberData == null || memberID == editor.self._id) {
         return;
       }
       let member = this.members[memberID];
@@ -442,6 +442,11 @@ modules["editor/realtime"] = class {
                 offsetx = -20;
                 offsety = -20;
                 origin = "center center";
+              case 5: // Comment
+                html = `${await getSVG("../images/editor/cursors/comment.svg")}<div class="pointer" color none><div name></div></div>`;
+                offsetx = -12;
+                offsety = -32;
+                origin = "center center";
             }
             await sleep(100);
             cursorHolder.innerHTML = html; //.replace(/MEMBER_COLOR_REPLACE/g, "var(--themeColor)");
@@ -529,13 +534,18 @@ modules["editor/realtime"] = class {
             let annoElem;
             let original;
             if (annoID == "cursor") { // Just a temporary prop, no saving:
-              let prevElem = member.elements.selection_cursor_annotation;
-              if (prevElem != null && prevElem.getAttribute("type") != anno.f) {
-                prevElem.remove();
-                prevElem = null;
+              let prevPreview = member.selection_cursor_preview;
+              if (prevPreview != null && prevPreview.properties.f != anno.f) {
+                prevPreview.remove();
+                prevPreview = null;
+              }
+              if (member.elements.selection_cursor_annotation == null) {
+                prevPreview = null;
               }
               merge = { ...anno, _id: memberID + "_cursor" };
-              ({ element: annoElem } = await editor.render.create({ element: prevElem, render: merge }));
+              let annoPreview = (await editor.render.create({ component: prevPreview, render: merge })).component;
+              member.selection_cursor_preview = annoPreview;
+              annoElem = annoPreview.getElement();
               member.elements.selection_cursor_annotation = annoElem;
               annoElem.setAttribute("member", memberID);
               annoElem.setAttribute("anno", "cursor");
@@ -650,7 +660,7 @@ modules["editor/realtime"] = class {
                 userSelecting = true;
               }
               if (merge.f != null) {
-                annoElem = ((await editor.save.apply({ ...merge, sync: time }, { overwrite: true, render: { animate: anno.f == null }, renderPassthrough: { resizing: merge.resizing } })).annotation ?? {}).element;
+                annoElem = ((await editor.save.apply({ ...merge, sync: time }, { overwrite: true, render: { animate: anno.f == null }, renderPassthrough: { resizing: merge.resizing } })).annotation ?? {}).component.getElement();
                 if (annoElem != null) {
                   let annoTx = annoElem.querySelector("div[contenteditable]");
                   if (annoTx != null) {

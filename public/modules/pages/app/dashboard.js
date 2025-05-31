@@ -23,7 +23,7 @@ modules["pages/app/dashboard"] = class {
     modifyParams("type");
   }
   html = `<div class="dPageHolder">
-    <div class="dPage">
+    <div class="dPage" dropdownholder>
       <div class="dSidebarHolder">
         <img class="dBackdropImage" src="../images/dashboard/backdrop.svg" />
         <div class="dSidebar customScroll">
@@ -320,11 +320,9 @@ modules["pages/app/dashboard"] = class {
       if (fixed.offsetWidth > 800 && fixed.offsetHeight > 400) {
         dashboardHolder.style.removeProperty("padding");
         dashboard.style.removeProperty("border-radius");
-        fixed.style.setProperty("--floatMargin", "12px");
       } else {
         dashboardHolder.style.padding = "0px";
         dashboard.style.borderRadius = "0px";
-        fixed.style.removeProperty("--floatMargin");
       }
       if (fixed.offsetWidth > 800) {
         sidebarOpen = true;
@@ -1118,6 +1116,7 @@ modules["pages/app/dashboard"] = class {
     let dragContext = {};
     
     let dragStart = (event) => {
+      dragContext = {};
       let target = event.target;
       let pageRect = dashboard.getBoundingClientRect();
       let mouseX = (event.x ?? event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0) - pageRect.x;

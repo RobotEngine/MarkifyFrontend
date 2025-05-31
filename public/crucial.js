@@ -332,7 +332,6 @@ let setFrame = async (path, frame, extra, parent) => {
     } else if (extra.replaceHistory == true) {
       window.history.replaceState({ page: path, params: params }, "", setURLState.pathname + setURLState.search);
     }
-    fixed.style.removeProperty("--floatMargin");
     let currentRemotes = Object.keys(socket.remotes);
     for (let i = 0; i < currentRemotes.length; i++) {
       let remote = currentRemotes[i];
@@ -1058,7 +1057,7 @@ initSocket();
 // STANDARD MODULES //
 modules["dropdown"] = class {
   css = {
-    ".dropdown": `position: sticky; box-sizing: border-box; max-width: calc(100% - (var(--floatMargin) * 2)); max-height: calc(100% - (var(--floatMargin) * 2)); right: 0px; bottom: 0px; margin: var(--floatMargin); opacity: 0; box-shadow: var(--darkShadow); border-radius: 12px; transform: scale(.25); transform-origin: 0px 0px; pointer-events: all`,
+    ".dropdown": `--floatMargin: 8px; position: sticky; box-sizing: border-box; max-width: calc(100% - (var(--floatMargin) * 2)); max-height: calc(100% - (var(--floatMargin) * 2)); right: 0px; bottom: 0px; margin: var(--floatMargin); opacity: 0; box-shadow: var(--darkShadow); border-radius: 12px; transform: scale(.25); transform-origin: 0px 0px; pointer-events: all`,
     ".dropdown .loading": `pointer-events: none`,
     ".dropdownOverflow": `position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--pageColor); border-radius: inherit; z-index: 0`,
     ".dropdownContent": `position: absolute; box-sizing: border-box; width: max-content; max-width: var(--dropdownWidth); height: max-content; padding: 6px; overflow: auto`, //background: var(--pageColor)
@@ -1075,18 +1074,19 @@ modules["dropdown"] = class {
     if (content.hasAttribute("loaded") == false) {
       return;
     }
-    
+
     content.style.top = header.offsetHeight + "px";
     // We use fixed, not window, so that scrollbars are accounted for:
-    content.style.setProperty("--dropdownWidth", "calc(" + fixed.clientWidth + "px - (var(--floatMargin) * 2))");
+    let parent = dropdown.parentElement;
+    content.style.setProperty("--dropdownWidth", "calc(" + parent.clientWidth + "px - (var(--floatMargin) * 2))");
     if (content.hasAttribute("maxheight") == false) {
-      content.style.maxHeight = "calc(" + (fixed.clientHeight - header.offsetHeight) + "px - (var(--floatMargin) * 2))";
+      content.style.maxHeight = "calc(" + (parent.clientHeight - header.offsetHeight) + "px - (var(--floatMargin) * 2))";
     } else {
-      content.style.maxHeight = "min(" + (fixed.clientHeight - header.offsetHeight) + "px - (var(--floatMargin) * 2), " + parseInt(content.getAttribute("maxheight")) + "px)";
+      content.style.maxHeight = "min(" + (parent.clientHeight - header.offsetHeight) + "px - (var(--floatMargin) * 2), " + parseInt(content.getAttribute("maxheight")) + "px)";
     }
     if (button != null) {
-      content.style.minWidth = "min(" + fixed.clientWidth + "px - (var(--floatMargin) * 2), " + button.offsetWidth + "px)";
-      content.style.minHeight = "min(" + fixed.clientHeight + "px - (var(--floatMargin) * 2), " + button.offsetHeight + "px)";
+      content.style.minWidth = "min(" + parent.clientWidth + "px - (var(--floatMargin) * 2), " + button.offsetWidth + "px)";
+      content.style.minHeight = "min(" + parent.clientHeight + "px - (var(--floatMargin) * 2), " + button.offsetHeight + "px)";
     }
     
     if (dropdown.hasAttribute("closing") == false) {
@@ -1101,14 +1101,15 @@ modules["dropdown"] = class {
     }*/
 
     if (button != null && button.offsetParent != null) {
+      let dropdownParentRect = parent.getBoundingClientRect();
       let buttonRect = button.getBoundingClientRect();
       let addButtonWidth = buttonRect.width / 2;
       let pageHolder = button.closest(".ePageHolder");
       if (pageHolder != null) {
         addButtonWidth *= parseFloat(pageHolder.getAttribute("zoom"));
       }
-      let setLeft = buttonRect.left + addButtonWidth - (dropdown.offsetWidth / 2);
-      let setTop = buttonRect.top - 6;
+      let setLeft = buttonRect.left - dropdownParentRect.left + addButtonWidth - (dropdown.offsetWidth / 2);
+      let setTop = buttonRect.top - dropdownParentRect.top - 6;
       dropdown.style.left = setLeft + "px";
       dropdown.style.top = setTop + "px";
 
@@ -1124,6 +1125,10 @@ modules["dropdown"] = class {
     return setInterval(async () => { await this.runResize(dropdown, content, header, button); }, 1);
   };
   open = async (button, frameName, data) => {
+    if (button == null) {
+      return;
+    }
+    let parent = (data ?? {}).parentElement ?? this.parent ?? button.closest("[dropdownholder]");
     let setTitleHTML;
     if (data != null && data.previous == true) {
       let prev = window.dropdown.frameHistory[window.dropdown.frameHistory.length - 2];
@@ -1215,7 +1220,8 @@ modules["dropdown"] = class {
       return;
     }
     this.close();
-    fixed.insertAdjacentHTML("beforeend", `<div class="fixedItemHolder">
+    this.parent = parent ?? fixed;
+    this.parent.insertAdjacentHTML("beforeend", `<div class="fixedItemHolder">
       <div class="dropdown" new>
         <div class="dropdownOverflow">
           <div class="dropdownHeader">
@@ -1229,7 +1235,7 @@ modules["dropdown"] = class {
         </div>
       </div>
     </div>`);
-    let dropdown = fixed.querySelector(".dropdown[new]");
+    let dropdown = this.parent.querySelector(".dropdown[new]");
     dropdown.removeAttribute("new");
     let header = dropdown.querySelector(".dropdownHeader");
     let content = dropdown.querySelector(".dropdownContent");
@@ -1286,14 +1292,16 @@ modules["dropdown"] = class {
     return this;
   };
   close = async () => {
-    if (window.dropdown == null) {
+    let remDropdown = this.dropdown ?? window.dropdown;
+    if (remDropdown == null) {
       return;
     }
-    if (window.closeDropdown != null) {
-      window.closeDropdown();
+    if (this.dropdown == null) {
+      if (window.closeDropdown != null) {
+        window.closeDropdown();
+      }
+      delete window.dropdown;
     }
-    let remDropdown = window.dropdown;
-    delete window.dropdown;
     remDropdown.button.removeAttribute("activated");
     //remDropdown.button.style.removeProperty("opacity");
     //remDropdown.dropdown.setAttribute("closing", "");
@@ -1558,7 +1566,7 @@ let modalModule = {
 
 modules["alert"] = class {
   css = {
-    ".alertHolder": `position: relative; box-sizing: border-box; display: flex; flex-direction: column; width: 600px; max-width: 100%; height: fit-content; margin: calc(34px + (var(--floatMargin) * 2)) 8px 8px 8px; align-items: center; z-index: 9999`,
+    ".alertHolder": `--floatMargin: 12px; position: relative; box-sizing: border-box; display: flex; flex-direction: column; width: 600px; max-width: 100%; height: fit-content; margin: calc(34px + (var(--floatMargin) * 2)) 8px 8px 8px; align-items: center; z-index: 9999`,
     ".alert": `box-sizing: border-box; display: flex; max-width: 100%; transform: scale(0); opacity: 0; background: var(--pageColor); border-radius: 12px; box-shadow: var(--darkShadow); pointer-events: all; overflow: hidden`,
     ".alert img": `width: 32px; height: 32px; object-fit: cover; margin-right: 6px`,
     ".alertText": `display: flex; flex-wrap: wrap; flex: 1; align-items: center; text-align: left; font-size: 16px`,
@@ -1716,7 +1724,7 @@ addCSS({
   ".buttonAnim:active": `background: var(--pageColor); --borderWidth: 4px; --borderColor: var(--hover)`,
   ".largeButton:hover": `--borderColor: var(--themeColor2)`,
   ".largeButton:active": `--animBorderWidth: calc(var(--borderWidth) * 2); --animBorderRadius: calc(var(--borderRadius) + var(--borderWidth))`,
-  ".fixedItemHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden; transition: .3s`,
+  ".fixedItemHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden; transition: .3s; pointer-events: none; z-index: 100`,
   ".fixedItemHolder[blur]": `backdrop-filter: blur(4px); background: rgba(var(--hoverRGB), .3); pointer-events: all`,
   "[notransition]": `transition: unset !important`,
   "button > svg": `-webkit-transform: translate3d(0, 0, 0)`,

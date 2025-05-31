@@ -1,10 +1,11 @@
-<svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
 <mask id="mask0_850_2" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256">
 <rect width="256" height="256" fill="var(--gray)"/>
 </mask>
 <g mask="url(#mask0_850_2)">
-<path d="M185 38C202.673 38 217 52.3269 217 70V145.971C217 150.797 215.061 155.421 211.62 158.805L158.709 210.834C155.343 214.144 150.81 216 146.089 216H72C54.3269 216 40 201.673 40 184V70C40 52.3269 54.3269 38 72 38H185Z" fill="var(--darkGray)" stroke="var(--pageColor)" stroke-width="12"/>
-<path d="M211 144H171C156.641 144 145 155.641 145 170V210" stroke="var(--pageColor)" stroke-width="12"/>
+<path d="M185 38C202.673 38 217 52.3269 217 70V149.172C217 151.293 216.157 153.328 214.657 154.828L155.828 213.657C154.328 215.157 152.293 216 150.172 216H72C54.3269 216 40 201.673 40 184V70C40 52.3269 54.3269 38 72 38H185Z" fill="var(--pageColor)" stroke="var(--pageColor)" stroke-width="12"/>
+<path d="M209.293 151.707L152.707 208.293C152.077 208.923 151 208.477 151 207.586L151 164C151 156.268 157.268 150 165 150L208.586 150C209.477 150 209.923 151.077 209.293 151.707Z" fill="var(--toolColorOpacity)"/>
+<path d="M185 38C202.673 38 217 52.3269 217 70V144H165C153.954 144 145 152.954 145 164V216H72C54.3269 216 40 201.673 40 184V70C40 52.3269 54.3269 38 72 38H185Z" fill="var(--darkGray)" stroke="var(--pageColor)" stroke-width="12"/>
 <rect x="62" y="60" width="133" height="20" rx="10" fill="var(--pageColor)"/>
 <rect x="62" y="88" width="101" height="20" rx="10" fill="var(--pageColor)"/>
 </g>

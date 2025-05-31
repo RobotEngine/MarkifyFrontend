@@ -40,6 +40,7 @@ modules["editor/toolbar"] = class {
       </div>`
     },
     "sticky": { id: "sticky", type: "tool", module: "editor/toolbar/sticky" },
+    "comment": { id: "comment", type: "tool", module: "editor/toolbar/comment" },
     "page": { id: "page", type: "tool", module: "editor/toolbar/page" },
     "media": {
       html: `<div class="eVerticalToolsHolder">
@@ -192,6 +193,7 @@ modules["editor/toolbar"] = class {
       <button class="eTool" tool="text" tooltip="Text Box"><div></div></button>
       <button class="eTool" tool="shape" tooltip="Shapes"><div></div></button>
       <button class="eTool" tool="sticky" tooltip="Stickies"><div></div></button>
+      <button class="eTool" tool="comment" tooltip="Comments"><div></div></button>
       <button class="eTool" tool="page" tooltip="Page"><div></div></button>
       <button class="eTool" tool="media" tooltip="Media"><div></div></button>
     </div>
@@ -201,7 +203,7 @@ modules["editor/toolbar"] = class {
     toolbarHolder.removeAttribute("hidden");
 
     let contentHolder = editor.contentHolder;
-    let content = editor.contentHolder.querySelector(".eContent");
+    let content = editor.content;
     let realtimeHolder = content.querySelector(".eRealtime");
     let annotations = content.querySelector(".eAnnotations");
 
@@ -504,6 +506,7 @@ modules["editor/toolbar"] = class {
       this.currentToolModule = newModule ?? {};
       if (newModule != null) {
         newModule.editor = editor;
+        newModule.toolbar = this;
         newModule.tool = currentSubTool ?? currentTool;
         newModule.button = currentSubToolButton ?? currentToolButton;
         if (newModule.activate != null) {
@@ -1016,7 +1019,7 @@ modules["editor/toolbar"] = class {
         let annoid = keys[i];
         let original = editor.annotations[annoid] ?? {};
         let selecting = editor.selecting[annoid] ?? {};
-        let annoModule = (await editor.render.getModule(selecting.f ?? original.render.f)) ?? {};
+        let annoModule = (await editor.render.getModule(original, selecting.f ?? original.render.f)) ?? {};
 
         let set = await setFunction(copyObject(original.render), annoModule);
         if (set == null) {
@@ -1042,7 +1045,7 @@ modules["editor/toolbar"] = class {
         }
         if (annoModule.AUTO_TEXT_FIT == true || annoModule.AUTO_SET_HEIGHT == true) {
           await editor.render.create({ ...original, render: { ...original.render, ...merged }, animate: false });
-          let renderedText = original.element.querySelector("div[edit]");
+          let renderedText = original.component.getElement().querySelector("div[edit]");
           if (renderedText != null) {
             merged.s = [(original.render.s ?? [])[0], (original.render.s ?? [])[1]];
             if (annoModule.AUTO_TEXT_FIT == true && original.render.textfit == true && selecting.textfit != false) {
@@ -1102,20 +1105,22 @@ modules["editor/toolbar"] = class {
           continue; // Is valid selection box
         }
         delete this.selection.currentSelections[annoID];
-        let annotation = annoData.element;
-        if (annotation != null) {
-          annotation.removeAttribute("selected");
-          annotation.removeAttribute("notransition");
-          annotation.style.removeProperty("overflow");
-          annotation.style.removeProperty("border-radius");
-          let annoTx = annotation.querySelector("div[edit]");
-          if (annoTx != null) {
-            annoTx.removeAttribute("contenteditable");
-            if (annoTx.hasAttribute("text") == true && annoTx.textContent.trim().length < 1) {
-              await editor.history.push("add", [render]);
-              await editor.save.push({ _id: annoID, remove: true });
-              editor.realtimeSelect[annoID] = { ...editor.realtimeSelect[annoID], _id: annoID, remove: true };
-              await editor.realtime.forceShort();
+        if (annoData.component != null) {
+          let annotation = annoData.component.getElement();
+          if (annotation != null) {
+            annotation.removeAttribute("selected");
+            annoData.component.setAnimate(true);
+            //annotation.style.removeProperty("overflow");
+            annotation.style.removeProperty("border-radius");
+            let annoTx = annotation.querySelector("div[edit]");
+            if (annoTx != null) {
+              annoTx.removeAttribute("contenteditable");
+              if (annoTx.hasAttribute("text") == true && annoTx.textContent.trim().length < 1) {
+                await editor.history.push("add", [render]);
+                await editor.save.push({ _id: annoID, remove: true });
+                editor.realtimeSelect[annoID] = { ...editor.realtimeSelect[annoID], _id: annoID, remove: true };
+                await editor.realtime.forceShort();
+              }
             }
           }
         }
@@ -1150,6 +1155,7 @@ modules["editor/toolbar"] = class {
       this.selection.resizePreserveAspect = false;
       this.selection.multiSelectPreserveAspect = false;
 
+      this.selection.snapping = false;
       this.selection.showHandles = true;
       this.selection.showDuplicateHandles = true;
       this.selection.showOnlyWidthHandles = true;
@@ -1157,11 +1163,6 @@ modules["editor/toolbar"] = class {
 
       let selectedAnnotations = [];
       let selectionChange = false;
-
-      let noAction = this.selection.action == null;
-      if (noAction == true) {
-        editor.selectingParents = {};
-      }
 
       let annotationRect = editor.utils.localBoundingRect(annotations);
 
@@ -1216,17 +1217,18 @@ modules["editor/toolbar"] = class {
           return this.selection.updateBox(options);
         }
 
-        if (noAction == true) {
-          for (let p = 0; p < rect.parents.length; p++) {
-            editor.selectingParents[rect.parents[p]._id] = true;
-          }
-        }
-
         if (editor.utils.canMemberModify(merged) != true || editor.utils.isLocked(merged) == true || editor.utils.isPlaceholderLocked(merged) == true) {
           this.selection.showHandles = false;
         }
 
-        let annoModule = (await editor.render.getModule(merged.f)) ?? {};
+        let annoModule = (await editor.render.getModule(annoData, merged.f)) ?? {};
+        if (annoModule.CAN_BE_MULTISELECT == false && selections.length > 1) {
+          delete editor.selecting[annoID];
+          break;
+        }
+        if (annoModule.DISABLE_SNAPPING != true) {
+          this.selection.snapping = true;
+        }
         if (annoModule.SHOW_DUPLICATE_HANDLES != true) {
           this.selection.showDuplicateHandles = false;
         }
@@ -1243,35 +1245,42 @@ modules["editor/toolbar"] = class {
           annoModule.SELECTION_FUNCTION(this.selection, merged);
         }
         
-        let annotation = annoData.element;
+        let annotation;
+        if (annoData.component != null) {
+          annotation = annoData.component.getElement();
+        }
         if (annotation != null) {
           annotation.setAttribute("selected", "");
           annotation.style.borderRadius = (4 / editor.zoom) + "px";
-          if (annoModule.ALLOW_SELECT_OVERFLOW != true) {
+          /*if (annoModule.ALLOW_SELECT_OVERFLOW != true) {
             annotation.style.overflow = "hidden";
-          }
+          }*/
         }
 
         let select = this.selection.currentSelections[annoID];
         let collabSelect = realtimeHolder.querySelector('.eCollabSelect[anno="' + annoID + '"]');
         
         let transition = this.selection.action == null && options.transition != false;
-
-        if (selections.length > 1 || options.hideSelectBox == true) {
-          if (select == null) {
-            content.insertAdjacentHTML("beforeend", `<div class="eSelect" new></div>`);
-            select = content.querySelector(".eSelect[new]");
-            select.removeAttribute("new");
-            select.style.border = "solid 4px var(--secondary)";
-            select.style.opacity = 1;
-            transition = false;
+        
+        if (annoModule.DISPLAY_SELECT_BOX != false) {
+          if (selections.length > 1 || options.hideSelectBox == true) {
+            if (select == null) {
+              content.insertAdjacentHTML("beforeend", `<div class="eSelect" new></div>`);
+              select = content.querySelector(".eSelect[new]");
+              select.removeAttribute("new");
+              select.style.border = "solid 4px var(--secondary)";
+              select.style.opacity = 1;
+              transition = false;
+            }
+            if (rect.rotation != 0) {
+              this.selection.multiSelectPreserveAspect = true;
+            }
+          } else if (select != null) {
+            select.remove();
+            select = null;
           }
-          if (rect.rotation != 0) {
-            this.selection.multiSelectPreserveAspect = true;
-          }
-        } else if (select != null) {
-          select.remove();
-          select = null;
+        } else {
+          options.hideSelectBox = true;
         }
         if (this.selection.currentSelections.hasOwnProperty(annoID) == false) {
           selectionChange = true;
@@ -1283,8 +1292,8 @@ modules["editor/toolbar"] = class {
           if (select != null) {
             select.setAttribute("notransition", "");
           }
-          if (annotation != null) {
-            annotation.setAttribute("notransition", "");
+          if (annoData.component != null) {
+            annoData.component.setAnimate(false);
           }
           if (collabSelect != null) {
             collabSelect.setAttribute("notransition", "");
@@ -1293,8 +1302,8 @@ modules["editor/toolbar"] = class {
           if (select != null) {
             select.removeAttribute("notransition");
           }
-          if (annotation != null) {
-            annotation.removeAttribute("notransition");
+          if (annoData.component != null) {
+            annoData.component.setAnimate(true);
           }
           if (collabSelect != null) {
             collabSelect.removeAttribute("notransition");
@@ -1372,7 +1381,7 @@ modules["editor/toolbar"] = class {
             <svg class="eSelectHandle" handle="right" widthhandle width="12" height="28" rotation="315" viewBox="0 0 12 28" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M6 6V22" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
             <svg class="eSelectHandle" handle="top" heighthandle width="28" height="12" rotation="225" viewBox="0 0 28 12" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M22 6H6" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
             <svg class="eSelectHandle" handle="bottom" heighthandle width="28" height="12" rotation="45" viewBox="0 0 28 12" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M22 6H6" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-            <svg class="eSelectHandle" handle="rotate" width="26" height="26" viewBox="0 0 31 31" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M3.46244 9.45089C2.67045 10.2429 1.38612 10.2429 0.594123 9.45089C-0.197875 8.65884 -0.197875 7.37466 0.594123 6.58261L3.46244 9.45089ZM9.04395 3.86918L3.46244 9.45089L0.594123 6.58261L6.17562 1.0009L9.04395 3.86918Z" fill="#0084FF"/> <path d="M14.6257 6.58261C15.4177 7.37466 15.4177 8.65884 14.6257 9.45089C13.8337 10.2429 12.5494 10.2429 11.7574 9.45089L14.6257 6.58261ZM9.04373 1.0009L14.6257 6.58261L11.7574 9.45089L6.17541 3.86918L9.04373 1.0009Z" fill="var(--theme)"/> <path d="M21.3783 19.0707C20.5863 18.2786 20.5863 16.9945 21.3783 16.2024C22.1703 15.4104 23.4546 15.4104 24.2466 16.2024L21.3783 19.0707ZM26.9603 24.6523L21.3783 19.0707L24.2466 16.2024L29.8281 21.7841L26.9603 24.6523Z" fill="var(--theme)"/> <path d="M24.2466 30.2341C23.4546 31.0261 22.1703 31.0261 21.3783 30.2341C20.5863 29.442 20.5863 28.1579 21.3783 27.3658L24.2466 30.2341ZM29.8281 24.6524L24.2466 30.2341L21.3783 27.3658L26.9603 21.7841L29.8281 24.6524Z" fill="var(--theme)"/> <path d="M7.63804 2.43607V10.0101C7.63804 17.2905 13.5396 23.1924 20.8203 23.1924H28.394" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="rotate" width="26" height="26" viewBox="0 0 31 31" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M3.46244 9.45089C2.67045 10.2429 1.38612 10.2429 0.594123 9.45089C-0.197875 8.65884 -0.197875 7.37466 0.594123 6.58261L3.46244 9.45089ZM9.04395 3.86918L3.46244 9.45089L0.594123 6.58261L6.17562 1.0009L9.04395 3.86918Z" fill="var(--theme)"/> <path d="M14.6257 6.58261C15.4177 7.37466 15.4177 8.65884 14.6257 9.45089C13.8337 10.2429 12.5494 10.2429 11.7574 9.45089L14.6257 6.58261ZM9.04373 1.0009L14.6257 6.58261L11.7574 9.45089L6.17541 3.86918L9.04373 1.0009Z" fill="var(--theme)"/> <path d="M21.3783 19.0707C20.5863 18.2786 20.5863 16.9945 21.3783 16.2024C22.1703 15.4104 23.4546 15.4104 24.2466 16.2024L21.3783 19.0707ZM26.9603 24.6523L21.3783 19.0707L24.2466 16.2024L29.8281 21.7841L26.9603 24.6523Z" fill="var(--theme)"/> <path d="M24.2466 30.2341C23.4546 31.0261 22.1703 31.0261 21.3783 30.2341C20.5863 29.442 20.5863 28.1579 21.3783 27.3658L24.2466 30.2341ZM29.8281 24.6524L24.2466 30.2341L21.3783 27.3658L26.9603 21.7841L29.8281 24.6524Z" fill="var(--theme)"/> <path d="M7.63804 2.43607V10.0101C7.63804 17.2905 13.5396 23.1924 20.8203 23.1924H28.394" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
             <svg class="eSelectHandle" handle="duplicateleft" duplicate width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10.5" fill="var(--hover)" stroke="var(--theme)" stroke-width="3"/> <path d="M12 16.5L12 7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> <path d="M16.5 12H7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> </svg>
             <svg class="eSelectHandle" handle="duplicateright" duplicate width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10.5" fill="var(--hover)" stroke="var(--theme)" stroke-width="3"/> <path d="M12 16.5L12 7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> <path d="M16.5 12H7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> </svg>
             <svg class="eSelectHandle" handle="duplicatetop" duplicate width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10.5" fill="var(--hover)" stroke="var(--theme)" stroke-width="3"/> <path d="M12 16.5L12 7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> <path d="M16.5 12H7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> </svg>
@@ -1515,7 +1524,7 @@ modules["editor/toolbar"] = class {
     this.selection.updateActionBar = async (options = {}) => {
       let removeActionBar = (options.reuseActionBar ?? (this.selection.currentActionModule ?? {}).forceCurrentActionBar) != true;
       let showSelectBox = (
-        Object.keys(this.selection.currentSelections).length > 0 &&
+        this.selection.selectBox != null && //Object.keys(this.selection.currentSelections).length > 0 &&
         (this.selection.action == null || this.selection.actionEnabled == false) &&
         options.hideSelectBox != true &&
         this.selection.saving != true
@@ -1570,7 +1579,8 @@ modules["editor/toolbar"] = class {
         let showLocked = false;
         let selections = Object.keys(editor.selecting);
         for (let i = 0; i < selections.length; i++) {
-          let render = (editor.annotations[selections[i]] ?? {}).render;
+          let annotation = editor.annotations[selections[i]] ?? {};
+          let render = annotation.render;
           if (render == null) {
             continue;
           }
@@ -1579,7 +1589,7 @@ modules["editor/toolbar"] = class {
           }
 
           if (actionToolbarLoaded == false) {
-            let annoModule = (await editor.render.getModule(render.f)) ?? {};
+            let annoModule = (await editor.render.getModule(annotation, render.f)) ?? {};
             if (annoModule.ACTION_BAR_TOOLS == null) {
               continue;
             }
@@ -2021,7 +2031,7 @@ modules["editor/toolbar"] = class {
       })();
     }
     this.selection.startAction = async (event) => {
-      if (this.selection.selectBox == null || this.selection.hideSelectBox == true) {
+      if (Object.keys(this.selection.currentSelections).length < 1 || this.selection.hideSelectBox == true) { //this.selection.selectBox == null
         return;
       }
       if (editor.self.access < 1) {
@@ -2249,7 +2259,7 @@ modules["editor/toolbar"] = class {
         this.selection.renderSnaps = [];
         return await this.selection.updateSnapLines(extra.render);
       }
-      if (editor.options.snapping == false || event.ctrlKey == true) {
+      if (this.selection.snapping == false || editor.options.snapping == false || event.ctrlKey == true) {
         this.selection.renderSnaps = [];
         return await this.selection.updateSnapLines(extra.render);
       }
@@ -2370,7 +2380,7 @@ modules["editor/toolbar"] = class {
         if (editor.selecting[render._id] != null) {
           continue;
         }
-        let annoModule = (await editor.render.getModule(render.f)) ?? {};
+        let annoModule = (await editor.render.getModule(annotation, render.f)) ?? {};
         if (annoModule.CAN_BE_SNAPPED_TO == false) {
           continue;
         }
@@ -3114,7 +3124,7 @@ modules["editor/toolbar"] = class {
         let select = editor.selecting[annoid];
         delete select.done;
 
-        let annoModule = (await editor.render.getModule(select.f ?? original.render.f)) ?? {};
+        let annoModule = (await editor.render.getModule(original, select.f ?? original.render.f)) ?? {};
 
         let rect = this.selection.annotationRects[annoid];
         if (rect == null) {
@@ -3256,7 +3266,7 @@ modules["editor/toolbar"] = class {
           // Special function cases:
           if (annoModule.AUTO_TEXT_FIT == true || annoModule.AUTO_SET_HEIGHT == true) {
             await editor.render.create({ ...original, render: { ...original.render, ...select }, animate: false });
-            let renderedText = original.element.querySelector("div[edit]");
+            let renderedText = original.component.getElement().querySelector("div[edit]");
             if (renderedText != null) {
               if (annoModule.AUTO_TEXT_FIT == true && original.render.textfit == true && select.textfit != false) {
                 select.s[0] = renderedText.offsetWidth + 6;
@@ -3318,18 +3328,27 @@ modules["editor/toolbar"] = class {
           let resizeAnnoY;
           switch (fixAnnotationHolder) {
             case "bottomright":
-              [resizeAnnoX, resizeAnnoY] = editor.math.rotatePointOrigin(rect.annoX, rect.annoY, rect.centerX, rect.centerY, rect.rotation);
+              [resizeAnnoX, resizeAnnoY] = editor.math.rotatePointOrigin(rect.x, rect.y, rect.centerX, rect.centerY, rect.rotation);
               break;
             case "topleft":
-              [resizeAnnoX, resizeAnnoY] = editor.math.rotatePointOrigin(rect.annoX + rect.width, rect.annoY + rect.height, rect.centerX, rect.centerY, rect.rotation);
+              [resizeAnnoX, resizeAnnoY] = editor.math.rotatePointOrigin(rect.endX, rect.endY, rect.centerX, rect.centerY, rect.rotation);
               break;
             case "topright":
-              [resizeAnnoX, resizeAnnoY] = editor.math.rotatePointOrigin(rect.annoX, rect.annoY + rect.height, rect.centerX, rect.centerY, rect.rotation);
+              [resizeAnnoX, resizeAnnoY] = editor.math.rotatePointOrigin(rect.x, rect.endY, rect.centerX, rect.centerY, rect.rotation);
               break;
             case "bottomleft":
-              [resizeAnnoX, resizeAnnoY] = editor.math.rotatePointOrigin(rect.annoX + rect.width, rect.annoY, rect.centerX, rect.centerY, rect.rotation);
+              [resizeAnnoX, resizeAnnoY] = editor.math.rotatePointOrigin(rect.endX, rect.y, rect.centerX, rect.centerY, rect.rotation);
           }
-          select.resizing = [fixAnnotationHolder, resizeAnnoX, resizeAnnoY];
+          let useX = original.render.p[0];
+          let useY = original.render.p[1];
+          if (original.render.s[0] < 0) {
+            useX += original.render.s[0];
+          }
+          if (original.render.s[1] < 0) {
+            useY += original.render.s[1];
+          }
+          let [defaultAnnoX, defaultAnnoY] = editor.math.rotatePointOrigin(useX, useY, useX + (rect.width / 2), useY + (rect.height / 2), original.render.r ?? 0);
+          select.resizing = [fixAnnotationHolder, resizeAnnoX, resizeAnnoY, defaultAnnoX, defaultAnnoY];
         } else if (this.selection.action == "rotate") {
           if (annoModule.CAN_ROTATE != false) {
             let changeRotate = rect.rotation + rotateChange;
@@ -3386,7 +3405,7 @@ modules["editor/toolbar"] = class {
           select.r = newRotation;
         }
 
-        original.element = (await editor.render.create({ ...original, render: { ...original.render, ...select }, animate: false })).element;
+        original.component = (await editor.render.create({ ...original, render: { ...original.render, ...select }, animate: false })).component;
       }
 
       await this.selection.updateBox();
@@ -3434,7 +3453,8 @@ modules["editor/toolbar"] = class {
         }
         let originalRender = original.render ?? {};
 
-        delete selecting.done;
+        //delete selecting.done;
+        delete selecting.resizing;
 
         let pushFields = { p: originalRender.p, r: originalRender.r };
         for (let f = 0; f < changeKeys.length; f++) {
@@ -3554,7 +3574,8 @@ modules["editor/toolbar"] = class {
         }
       }
       if (runEmbed == true) {
-        let render = (editor.annotations[embedAnno.getAttribute("anno")] ?? {}).render ?? {};
+        let annotation = editor.annotations[embedAnno.getAttribute("anno")] ?? {};
+        let render = annotation.render ?? {};
         if (render.embed != null) {
           if (render.embed.url == null) {
             window.open(render.d);
@@ -3563,6 +3584,9 @@ modules["editor/toolbar"] = class {
           let embedHolder = embedAnno.querySelector("div[content]");
           embedHolder.insertAdjacentHTML("beforeend", `<iframe allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe>`);
           let embedFrame = embedHolder.querySelector("iframe");
+          if (annotation.component != null) {
+            annotation.component.embedFrame = embedFrame;
+          }
           embedFrame.setAttribute("currenturl", render.embed.url);
           if (render.embed.color != null) {
             embedFrame.style.background = cleanString(render.embed.color);
@@ -3642,8 +3666,8 @@ modules["editor/toolbar"] = class {
               }
               event.redo.push(copyObject(redoAnno));
             }
-            if (annotation.element != null) {
-              annoContentTx = annotation.element.querySelector("div[contenteditable]");
+            if (annotation.component != null) {
+              annoContentTx = annotation.component.getElement().querySelector("div[contenteditable]");
               if (annoContentTx != null) {
                 annoContentTx.removeAttribute("contenteditable");
               }
@@ -3656,7 +3680,7 @@ modules["editor/toolbar"] = class {
             let changeID = event.changes[i]._id;
             let annotation = (editor.annotations[changeID] ?? {}).render ?? {};
             if (addRedo == true) {
-              let { annoX, annoY, rotation } = editor.utils.getRect(annotation);
+              let { annoX, annoY, rotation } = editor.utils.getRect(annotation) ?? {};
               event.redo.push(copyObject({ ...annotation, parent: null, p: [annoX, annoY], r: rotation }));
             }
             editor.selecting[changeID] = { _id: changeID, remove: true };
@@ -3735,8 +3759,8 @@ modules["editor/toolbar"] = class {
               }
             }
             let annotation = editor.annotations[change._id] ?? {};
-            if (annotation.element != null) {
-              annoContentTx = annotation.element.querySelector("div[contenteditable]");
+            if (annotation.component != null) {
+              annoContentTx = annotation.component.getElement().querySelector("div[contenteditable]");
               if (annoContentTx != null) {
                 annoContentTx.removeAttribute("contenteditable");
               }
@@ -3893,10 +3917,16 @@ modules["editor/toolbar"] = class {
       let meta = event.ctrlKey || event.metaKey;
 
       if (event.keyCode == 90 && event.shiftKey == true && meta == true) { // Handle Redo
+        if (editor.isThisPage(event.target) == true && document.activeElement == event.target && editor.isEditorContent(event.target) == false) {
+          return;
+        }
         event.preventDefault();
         return this.selection.redo();
       }
       if (event.keyCode == 90 && meta == true) { // Handle Undo
+        if (editor.isThisPage(event.target) == true && document.activeElement == event.target && editor.isEditorContent(event.target) == false) {
+          return;
+        }
         event.preventDefault();
         return this.selection.undo();
       }
@@ -3967,7 +3997,7 @@ modules["editor/toolbar"] = class {
         }
       }
       
-      if (event.keyCode == 65 && meta == true) { // Handle Duplicate
+      if (event.keyCode == 65 && meta == true) { // Handle Select All
         return event.preventDefault();
         /* let allAnnotationIDs = Object.keys(editor.annotations);
         for (let i = 0; i < allAnnotationIDs.length; i++) {
@@ -4132,7 +4162,9 @@ modules["editor/toolbar"] = class {
           newAnno.p[0] += centerPageX + centerX - maxLeft;
           newAnno.p[1] += centerPageY + centerY - maxTop;
         }
-        newAnno.l = editor.maxLayer + 1 + ((newAnno.l ?? editor.maxLayer) - minZIndex);
+        if (newAnno.l != null) {
+          newAnno.l = editor.maxLayer + 1 + ((newAnno.l ?? editor.maxLayer) - minZIndex);
+        }
         if (newAnno.parented != null) {
           let parentCopy = parentIDs[newAnno.parented.parent];
           if (parentCopy != null) {
@@ -4287,10 +4319,12 @@ modules["editor/toolbar/select"] = class {
     }
     let annotation = target.closest(".eAnnotation");
     let annoID;
+    let original;
     let render;
     if (annotation != null) {
       annoID = annotation.getAttribute("anno");
-      render = (this.editor.annotations[annoID] ?? {}).render;
+      original = this.editor.annotations[annoID] ?? {};
+      render = original.render;
       if (render == null) {
         return;
       }
@@ -4335,7 +4369,7 @@ modules["editor/toolbar/select"] = class {
         }
       }
       if (render != null && this.editor.selecting[annoID] == null) {
-        let module = (await this.editor.render.getModule(render.f)) ?? {};
+        let module = (await this.editor.render.getModule(original, render.f)) ?? {};
         if (module.HOLD_FOR_SELECT != true || target.closest("[selectable]") != null) {
           this.wasSelected = annoID;
           this.editor.selecting[annoID] = {};
@@ -4633,7 +4667,7 @@ modules["editor/toolbar/drag"] = class {
         continue;
       }
 
-      let annotationModule = await this.editor.render.getModule(render.f);
+      let annotationModule = await this.editor.render.getModule(annotation, render.f);
       let { x, y, endX, endY, rotation, selectingParent } = this.editor.utils.getRect(render);
       if (selectingParent == true) {
         continue;
@@ -4790,7 +4824,7 @@ modules["editor/toolbar/pen"] = class {
       }
     }
     event.preventDefault();
-    let rect = this.editor.utils.localBoundingRect(this.annotation.element);
+    let rect = this.editor.utils.localBoundingRect(this.annotation.component.getElement());
     let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
     let { x, y } = this.editor.utils.scaleToDoc(mouseX - rect.left, mouseY - rect.top, true);
     let halfT = this.editor.math.round(this.annotation.render.t / 2);
@@ -5008,15 +5042,16 @@ modules["editor/toolbar/eraser"] = class {
       let chunkAnnotations = this.editor.utils.annotationsInChunks([this.editor.utils.pointInChunk(scaledX, scaledY)]);
       for (let i = 0; i < chunkAnnotations.length; i++) {
         let annotation = chunkAnnotations[i] ?? {};
-        let anno = annotation.element;
-        if (annotation.element == null) {
+        if (annotation.component == null) {
           continue;
         }
+        let anno = annotation.component.getElement()
         if (anno == null || anno.hasAttribute("hidden") == true) {
           continue;
         }
         let annoID = anno.getAttribute("anno");
-        let render = (this.editor.annotations[annoID] ?? {}).render;
+        let original = this.editor.annotations[annoID] ?? {};
+        let render = original.render;
         if (render == null || render.remove == true) {
           continue;
         }
@@ -5026,7 +5061,7 @@ modules["editor/toolbar/eraser"] = class {
         if (this.editor.utils.isLocked(render) == true) {
           continue;
         }
-        let renderModule = await this.editor.render.getModule(render.f);
+        let renderModule = await this.editor.render.getModule(original, render.f);
         if (renderModule == null || renderModule.CAN_ERASE != true) {
           continue;
         }
@@ -5144,11 +5179,12 @@ modules["editor/toolbar/placement"] = class {
     ];
     await this.editor.render.create(this.annotation);
     if (this.annotation.render.textfit == true) {
-      let textElem = this.annotation.element.querySelector("div[text]");
+      let element = this.annotation.component.getElement();
+      let textElem = element.querySelector("div[text]");
       if (textElem != null) {
         if (this.annotation.render.remove == true) {
-          this.annotation.element.style.opacity = 0;
-          this.annotation.element.removeAttribute("hidden");
+          element.style.opacity = 0;
+          element.removeAttribute("hidden");
         }
         this.annotation.render.s = [148, textElem.offsetHeight]; //textElem.offsetWidth
         if (this.annotation.render.remove == true) {
@@ -5201,7 +5237,6 @@ modules["editor/toolbar/text"] = class extends modules["editor/toolbar/placement
       s: [0, 0],
       c: toolPreference.color.selected,
       l: this.editor.maxLayer + 1,
-      t: toolPreference.thickness,
       o: toolPreference.opacity,
       d: { s: toolPreference.size, al: toolPreference.align, b: ["Example Text"] },
       remove: true,
@@ -5323,7 +5358,7 @@ modules["editor/toolbar/resize_placement"] = class {
     }
     let renderObject = { ...this.annotation, render: { ...this.annotation.render, ...this.RENDER_INSERT } };
     await this.editor.render.create(renderObject);
-    this.annotation.element = renderObject.element;
+    this.annotation.component = renderObject.component;
     this.editor.selecting["cursor"] = this.annotation.render;
   }
   scroll = () => { this.clickMove(); }
@@ -5382,6 +5417,173 @@ modules["editor/toolbar/sticky"] = class extends modules["editor/toolbar/placeme
       sig: this.editor.self.name
     };
   }
+}
+
+modules["editor/toolbar/comment"] = class {
+  USER_SELECT = "none";
+  TOUCH_ACTION = null;
+  REALTIME_TOOL = 5;
+  MOUSE = { type: "svg", url: "../images/editor/cursors/comment.svg", translate: { x: 12, y: 32 } };
+
+  css = {
+    ".eCommentFrame": `position: absolute; width: 300px; min-height: 48px; left: 0px; top: 0px; opacity: 0; transform: scale(0); z-index: 101; border-radius: 24px; transition: transform .2s, opacity .2s; background: var(--pageColor)`,
+    ".eCommentFrame:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; box-shadow: 0px 0px 6px var(--themeColor); opacity: .6; pointer-events: none`,
+    ".eCommentHolder": `width: 100%; overflow-x: hidden; overflow-y: auto; border-radius: inherit`,
+    ".eCommentItem": `display: flex; box-sizing: border-box; width: 100%; background: var(--pageColor)`,
+    ".eCommentContainer": `display: flex; box-sizing: border-box; flex: 1; min-width: 0; padding: 8px`,
+    ".eCommentContainer img[profile]": `width: 32px; height: 32px; cover; border-radius: 16px`,
+    ".eCommentItem[new] .eCommentContainer img[profile]": `display: none`,
+    ".eCommentContainer div[content]": `flex: 1; min-width: 0; height: 100%; margin-left: 6px; text-align: left; align-content: center`,
+    ".eCommentContainer div[content] div[header]": `display: flex; width: 100%; height: 32px; align-items: center`,
+    ".eCommentItem[new] .eCommentContainer div[content] div[header]": `display: none !important`,
+    ".eCommentContainer div[content] div[header] div[member]": `flex: 1; min-width: 0; max-width: fit-content; font-size: 16px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
+    ".eCommentContainer div[content] div[header] div[time]": `margin-left: 6px; color: var(--darkGray); font-size: 14px; font-weight: 500; white-space: nowrap`,
+    ".eCommentContainer div[content] div[text]": `box-sizing: border-box; width: 100%; height: fit-content; font-size: 14px; outline: none`,
+    ".eCommentItem[new] .eCommentContainer div[content] div[text]": `padding: 6px 0`,
+    ".eCommentItem button": `display: flex; width: 36px; height: 36px; margin: 6px 6px 6px 0; justify-content: center; align-items: center; background: var(--themeColor); border-radius: 18px`,
+    ".eCommentItem button img": `width: 28px; height: 28px`
+  }
+  commentWidth = 32;
+  commentHeight = 32;
+  offset = 28;
+  updateCommentFrame = () => {
+    if (this.frame == null) {
+      return;
+    }
+    if (this.annotation == null) {
+      return this.closeCommentFrame();
+    }
+
+    let annotationRect = this.editor.utils.localBoundingRect(this.editor.annotationHolder);
+    let { x, y } = this.editor.utils.getRect(this.annotation.render);
+    let zoom = 1 / this.editor.zoom;
+    let centerX = x + ((this.commentWidth / 2) * zoom);
+    let centerY = y - ((this.commentHeight / 2) * zoom);
+
+    let frameWidth = this.frame.offsetWidth;
+    let setLeft = annotationRect.left + (centerX * this.editor.zoom) + this.offset + this.editor.contentHolder.scrollLeft;
+    let setRight = annotationRect.left + (centerX * this.editor.zoom) - this.offset - frameWidth + this.editor.contentHolder.scrollLeft;
+    if (setLeft + frameWidth + this.editor.scrollOffset < this.editor.contentHolder.scrollLeft + this.editor.contentHolder.clientWidth || setRight - this.editor.scrollOffset < this.editor.contentHolder.scrollLeft) {
+      this.frame.style.left = setLeft + "px";
+      this.frame.style.transformOrigin = "left 24px";
+    } else {
+      this.frame.style.left = setRight + "px";
+      this.frame.style.transformOrigin = "right 24px";
+    }
+    this.frame.style.top = annotationRect.top + (centerY * this.editor.zoom) - 24 + this.editor.contentHolder.scrollTop + "px";
+    
+    this.frame.style.setProperty("--themeColor", "#0084FF"); // ADD THIS
+  }
+  openCommentFrame = (annotation) => {
+    this.closeCommentFrame();
+    this.annotation = annotation;
+
+    this.editor.content.parentElement.insertAdjacentHTML("beforeend", `<div class="eCommentFrame" new>
+      <div class="eCommentHolder">
+        <div class="eCommentItem">
+          <div class="eCommentContainer">
+            <img profile src="../images/profiles/default.svg" />
+            <div content>
+              <div header>
+                <div member></div>
+                <div time></div>
+              </div>
+              <div text></div>
+            </div>
+          </div>
+          <button><img src="../images/editor/actions/send.svg" /></button>
+        </div>
+      </div>
+    </div>`);
+    this.frame = this.editor.content.parentElement.querySelector(".eCommentFrame[new]");
+    this.frame.removeAttribute("new");
+    this.updateCommentFrame();
+
+    if (annotation.new == true) {
+      let commentItem = this.frame.querySelector(".eCommentItem");
+      let commentText = commentItem.querySelector("div[text]");
+      let commentSendButton = commentItem.querySelector("button");
+      commentItem.setAttribute("new", "");
+      commentSendButton.addEventListener("click", async () => {
+        if (commentText.textContent == "") {
+          return this.closeCommentFrame();
+        }
+        let addText = [];
+        for (let i = 0; i < commentText.childNodes.length; i++) {
+          let text = commentText.childNodes[i].textContent;
+          if (text == "") {
+            text = "\n";
+          }
+          addText.push(text);
+        }
+        annotation.render.d.b = addText;
+        await this.editor.save.push(annotation.render);
+        await this.editor.history.push("remove", [{ _id: annotation.render._id }]);
+
+        this.editor.realtimeSelect[annotation.render._id] = { ...annotation.render, done: true };
+        await this.editor.realtime.forceShort();
+        
+        this.closeCommentFrame();
+      });
+      this.toolbar.addEventListener("paste", commentText, clipBoardRead);
+      commentText.setAttribute("contenteditable", "");
+      commentText.focus();
+    }
+    
+    this.frame.style.transform = "scale(1)";
+    this.frame.style.opacity = 1;
+  }
+  closeCommentFrame = () => {
+    if (this.frame == null) {
+      return;
+    }
+    if (this.annotation != null) {
+      if (this.annotation.new == true) {
+        this.editor.render.remove(this.annotation);
+      }
+      this.annotation = null;
+    }
+    let remFrame = this.frame;
+    this.frame = null;
+    (async () => {
+      remFrame.style.opacity = 0;
+      remFrame.style.transform = "scale(0)";
+      await sleep(300);
+      remFrame.remove();
+    })();
+  }
+
+  clickEnd = async (event) => {
+    if (this.editor.isEditorContent(event.target) == false) {
+      return;
+    }
+
+    let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
+    let position = this.editor.utils.scaleToDoc(mouseX, mouseY);
+
+    let annotation = {
+      render: {
+        _id: this.editor.render.tempID(),
+        f: "comment",
+        p: [this.editor.math.round(position.x) - (1 / this.editor.zoom), this.editor.math.round(position.y) - (1 / this.editor.zoom)],
+        s: [0, 0],
+        d: {}
+      },
+      new: true
+    };
+
+    await this.editor.render.create(annotation);
+    let commentElement = annotation.component.getElement();
+    let commentHead = commentElement.querySelector("div[commentholder] > div[comment]");
+    commentElement.setAttribute("selected", "");
+    commentHead.style.transform = "scale(0)";
+    commentHead.offsetHeight;
+    commentHead.style.transform = "scale(1)";
+
+    this.openCommentFrame(annotation);
+  }
+  scroll = this.updateCommentFrame;
+  disable = this.closeCommentFrame;
 }
 
 modules["editor/toolbar/page"] = class extends modules["editor/toolbar/resize_placement"] {
@@ -6631,7 +6833,9 @@ modules["editor/toolbar/more"] = class {
           newAnno.p[1] += centerPageY + centerY - maxTop;
         }
       }
-      newAnno.l = maxZIndex + ((newAnno.l ?? this.editor.utils.maxLayer) - minZIndex);
+      if (newAnno.l != null) {
+        newAnno.l = maxZIndex + ((newAnno.l ?? this.editor.utils.maxLayer) - minZIndex);
+      }
       delete newAnno.m;
       let setLock = [];
       let canLock = this.editor.utils.canChangeLock(newAnno);

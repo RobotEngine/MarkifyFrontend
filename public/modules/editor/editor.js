@@ -430,7 +430,7 @@ modules["editor/editor"] = class {
     if (target == null) {
       return false;
     }
-    return target.closest(".eContentHolder") == this.contentHolder;
+    return target.closest(".eContent") == this.content;
   }
 
   options = {
@@ -461,7 +461,6 @@ modules["editor/editor"] = class {
   sourceRenders = {};
 
   selecting = {};
-  selectingParents = {};
   realtimeSelect = {};
 
   visibleChunks = [];
@@ -476,8 +475,8 @@ modules["editor/editor"] = class {
   currentPage = 1;
 
   zoom = 1;
-  maxLayer = 0;
-  minLayer = 0;
+  maxLayer = null;
+  minLayer = null;
 
   backgroundColor = "FFFFFF";
 
@@ -493,7 +492,11 @@ modules["editor/editor"] = class {
     this.page = page;
     this.pageFrame = page.closest(".lPage");
     this.contentHolder = contentHolder;
+    this.content = content;
     this.annotationHolder = annotations;
+
+    frame.style.width = "fit-content";
+    frame.style.height = "fit-content";
 
     let localOptions = getLocalStore("options");
     if (localOptions != null) {
@@ -530,10 +533,11 @@ modules["editor/editor"] = class {
 
     this.utils.getParents = (anno, includeSelecting) => {
       let parents = [];
+      let parentIDs = [];
       let currentAnnoCheck = anno ?? {};
       while (currentAnnoCheck.parent != null) {
         let annoid = currentAnnoCheck.parent;
-        if (annoid == null || parents.includes(annoid) == true) {
+        if (annoid == null || parents.includes(parentIDs) == true) {
           break;
         }
         let annotation = this.annotations[annoid];
@@ -550,9 +554,10 @@ modules["editor/editor"] = class {
         if (includeSelecting != true) {
           currentAnnoCheck = annotation.render ?? {};
         } else {
-          currentAnnoCheck = { ...(annotation.render ?? {}), ...(this.selecting[annotation._id] ?? {}) };
+          currentAnnoCheck = { ...(annotation.render ?? {}), ...(this.selecting[annotation.render._id] ?? {}) };
         }
         parents.push(currentAnnoCheck);
+        parentIDs.push(annoid);
       }
       return parents;
     }
@@ -572,46 +577,52 @@ modules["editor/editor"] = class {
       if (anno.p == null) {
         return;
       }
-      let width = anno.s[0];
-      let height = anno.s[1];
+      let thickness = this.utils.getThickness(anno);
+      let width = Math.abs(anno.s[0]) + thickness;
+      let height = Math.abs(anno.s[1]) + thickness;
       let topLeftX = anno.p[0];
       let topLeftY = anno.p[1];
-      let thickness = this.utils.getThickness(anno);
       if (anno.s[0] < 0) {
-        width = -width;
-        topLeftX -= width + thickness;
+        topLeftX -= width;
       }
       if (anno.s[1] < 0) {
-        height = -height;
-        topLeftY -= height + thickness;
+        topLeftY -= height;
       }
-      let bottomRightX = topLeftX + width + thickness;
-      let bottomRightY = topLeftY + height + thickness;
+      let bottomRightX = topLeftX + width;
+      let bottomRightY = topLeftY + height;
       let returnRotation = anno.r ?? 0;
 
       let selectingParent = false;
       let parents = this.utils.getParents(anno, includeSelecting);
       for (let i = 0; i < parents.length; i++) {
         let render = parents[i];
+        /*if (render.resizing != null) {
+          render = (this.annotations[render._id] ?? {}).render ?? render;
+        }*/
         if (this.selecting[render._id] != null) {
           selectingParent = true;
         }
         let rotate = render.r ?? 0;
         let renderThickness = this.utils.getThickness(render);
-        let renderWidth = render.s[0];
-        let renderHeight = render.s[1];
+        let renderWidth = Math.abs(render.s[0]) + renderThickness;
+        let renderHeight = Math.abs(render.s[1]) + renderThickness;
         let renderX = render.p[0];
         let renderY = render.p[1];
-        if (renderWidth < 0) {
-          renderWidth = -renderWidth;
+        if (render.s[0] < 0) {
           renderX -= renderWidth;
         }
-        if (renderHeight < 0) {
-          renderHeight = -renderHeight;
+        if (render.s[1] < 0) {
           renderY -= renderHeight;
         }
-        let centerX = renderX + ((renderWidth + renderThickness) / 2);
-        let centerY = renderY + ((renderHeight + renderThickness) / 2);
+        let centerX = renderX + (renderWidth / 2);
+        let centerY = renderY + (renderHeight / 2);
+
+        if (render.resizing != null) {
+          let [annoX, annoY] = this.math.rotatePointOrigin(renderX, renderY, centerX, centerY, rotate);
+          let [changeX, changeY] = this.math.rotatePoint(render.resizing[3] - annoX, render.resizing[4] - annoY, -rotate);
+          renderX += changeX;
+          renderY += changeY;
+        }
 
         [topLeftX, topLeftY] = this.math.rotatePointOrigin(
           topLeftX + renderX,
@@ -648,20 +659,25 @@ modules["editor/editor"] = class {
         let render = parents[i];
         let rotate = -(render.r ?? 0);
         let renderThickness = this.utils.getThickness(render);
-        let renderWidth = render.s[0];
-        let renderHeight = render.s[1];
+        let renderWidth = Math.abs(render.s[0]) + renderThickness;
+        let renderHeight = Math.abs(render.s[1]) + renderThickness;
         let renderX = render.p[0];
         let renderY = render.p[1];
-        if (renderWidth < 0) {
-          renderWidth = -renderWidth;
+        if (render.s[0] < 0) {
           renderX -= renderWidth;
         }
-        if (renderHeight < 0) {
-          renderHeight = -renderHeight;
+        if (render.s[1] < 0) {
           renderY -= renderHeight;
         }
-        let centerX = renderX + ((renderWidth + renderThickness) / 2);
-        let centerY = renderY + ((renderHeight + renderThickness) / 2);
+        let centerX = renderX + (renderWidth / 2);
+        let centerY = renderY + (renderHeight / 2);
+
+        if (render.resizing != null) {
+          let [annoX, annoY] = this.math.rotatePointOrigin(renderX, renderY, centerX, centerY, rotate);
+          let [changeX, changeY] = this.math.rotatePoint(render.resizing[3] - annoX, render.resizing[4] - annoY, -rotate);
+          renderX += changeX;
+          renderY += changeY;
+        }
 
         [topLeftX, topLeftY] = this.math.rotatePointOrigin(
           topLeftX,
@@ -752,7 +768,7 @@ modules["editor/editor"] = class {
         }
       }
       let { centerX: x, centerY: y } = this.utils.getRect(anno, includeSelecting);
-      let index = anno.l ?? 0;
+      let selfRenderModule = (await this.render.getModule(null, (anno || {}).f)) ?? {};
       let chunk = this.utils.pointInChunk(x, y);
       let annotationIDs = Object.keys(this.chunkAnnotations[chunk] ?? {});
       let viableParents = [];
@@ -782,8 +798,8 @@ modules["editor/editor"] = class {
           continue;
         }
         checkedTypes[type] = true;
-        let renderModule = await this.render.getModule(type);
-        if (renderModule != null && renderModule.CAN_PARENT_CHILDREN == true) {
+        let renderModule = await this.render.getModule(annotation, type);
+        if (renderModule != null && (renderModule.CAN_PARENT_CHILDREN == true || selfRenderModule.CAN_BE_CHILD_ANY_PARENT == true) && renderModule.CAN_BE_CHILD_ANY_PARENT != true) {
           types[type] = true;
         }
       }
@@ -810,9 +826,9 @@ modules["editor/editor"] = class {
         if (render.remove == true) {
           continue;
         }
-        let rect = this.utils.getRect(render, includeSelecting);
+        let rect = this.utils.getRect(render, includeSelecting) ?? {};
         if (this.math.pointInRotatedBounds(x, y, rect.x, rect.y, rect.endX, rect.endY, rect.rotation) == true) {
-          if ((index ?? this.utils.maxLayer) > render.l) {
+          if (anno.l == null || anno.l > render.l) {
             viableParents.push(render);
           }
         }
@@ -985,7 +1001,7 @@ modules["editor/editor"] = class {
       annotation.chunks = chunks;
       
       if (annotationVisible == true) {
-        if (annotation.element == null) {
+        if (annotation.component == null) {
           await this.render.create(annotation);
         }
       } else {
@@ -1110,7 +1126,7 @@ modules["editor/editor"] = class {
       let render = (this.annotations[annoID] ?? {}).render;
       if (render != null) {
         let annoRect = this.utils.getRect(render);
-        let [topLeftX, topLeftY, bottomRightX, bottomRightY] = this.math.rotatedBounds(annoRect.x, annoRect.y, annoRect.endX, annoRect.endY, annoRect.rotation);
+        let [topLeftX, topLeftY, bottomRightX] = this.math.rotatedBounds(annoRect.x, annoRect.y, annoRect.endX, annoRect.endY, annoRect.rotation);
         
         let annotationRect = this.utils.localBoundingRect(annotations);
         let options = {};
@@ -1712,15 +1728,16 @@ modules["editor/editor"] = class {
       return newSVG;
     }
     //this.render.modules = {};
-    this.render.getModule = async (name) => {
+    this.render.getModule = async (annotation, name) => {
+      return (annotation ?? {}).component ?? await this.newModule("editor/render/annotation/" + name);
       /*let module = "editor/render/" + name;
       if (this.render.modules[module] != null) {
         return this.render.modules[module];
       }
       let newModule = await this.newModule(module);
       this.render.modules[module] = newModule;
-      return newModule*/
-      return await this.newModule("editor/render/" + name);
+      return newModule
+      return await this.newModule("editor/render/annotation/" + name);*/
     }
     this.render.create = async (annotation, long) => {
       /*
@@ -1744,7 +1761,6 @@ modules["editor/editor"] = class {
         annotation = this.annotations[annotation.pointer] ?? annotation;
       }
       let render = annotation.render;
-      let element = annotation.element;
       if (annotation.render == null) {
         return {};
       }
@@ -1783,41 +1799,25 @@ modules["editor/editor"] = class {
       }
       
       let holder = annotations;
+      let parentAnnotation
       if (parent != null) {
-        let parentAnnotation = this.annotations[parent] ?? {};
+        parentAnnotation = this.annotations[parent] ?? {};
         if (parentAnnotation.pointer != null) {
           parentAnnotation = this.annotations[parentAnnotation.pointer] ?? parentAnnotation;
         }
         if (parentAnnotation.render != null) {
-          let parentAnnotationElement = parentAnnotation.element;
-          if (parentAnnotationElement == null && parentAnnotation.render.parent != _id) {
-            parentAnnotationElement = (await this.render.create(parentAnnotation)).element;
+          if (parentAnnotation.component == null && parentAnnotation.render.parent != _id) {
+            parentAnnotation = await this.render.create(parentAnnotation);
           }
-          if (parentAnnotationElement != null) {
-            holder = parentAnnotationElement.querySelector(".eAnnotationHolder");
-            if (holder == null) {
-              (parentAnnotationElement.querySelector("div[annoholdercontainer]") ?? parentAnnotationElement).insertAdjacentHTML("beforeend", `<div class="eAnnotationHolder"></div>`);
-              holder = parentAnnotationElement.querySelector(".eAnnotationHolder");
-              holder.style.width = parentAnnotation.render.s[0] + "px";
-              holder.style.height = parentAnnotation.render.s[1] + "px";
-              holder.style.left = "0px";
-              holder.style.top = "0px";
-            } else if (render.resizing == null) {
-              holder.style.width = parentAnnotation.render.s[0] + "px";
-              holder.style.height = parentAnnotation.render.s[1] + "px";
-              holder.style.left = "0px";
-              holder.style.top = "0px";
-              holder.style.removeProperty("right");
-              holder.style.removeProperty("bottom");
-            }
+          if (parentAnnotation.component != null) {
+            holder = parentAnnotation.component.setContainer();
           }
         }
+        if (parentAnnotation.renderedChildren == null) {
+          parentAnnotation.renderedChildren = {};
+        }
+        parentAnnotation.renderedChildren[_id] = annotation;
       }
-      if (element != null && element.parentElement != holder) {
-        holder.appendChild(element); // Change annotation parent to the new parent
-      }
-
-      let transform;
 
       let [xPos, yPos] = position;
       let [width, height] = size;
@@ -1831,135 +1831,180 @@ modules["editor/editor"] = class {
         yPos -= height + thickness;
       }
 
-      let renderModule = await this.render.getModule(render.f);
-      if (renderModule == null) {
+      if (annotation.component == null) {
+        annotation.component = await this.newModule("editor/render/annotation/" + render.f);
+      } else if (annotation.component.parentID != parent && annotation.component.parentID != null) {
+        let prevParentAnnotation = this.annotations[annotation.component.parentID] ?? {};
+        if (prevParentAnnotation.renderedChildren != null) {
+          delete prevParentAnnotation.renderedChildren[_id];
+        }
+      }
+      if (annotation.component == null) {
         return {};
       }
-      if (renderModule.render != null) {
-        let result = (await renderModule.render({ ...render, p: [xPos, yPos], s: [width, height], parent: parent }, element, holder)) ?? {};
-        element = result.element;
-        transform = result.transform;
+
+      annotation.component.editor = this;
+      annotation.component.annotation = annotation;
+      annotation.component.properties = { ...render, p: [xPos, yPos], s: [width, height], parent: parent };
+      annotation.component.holder = holder;
+      annotation.component.parentID = parent;
+
+      annotation.component.animate = annotation.animate;
+
+      if (annotation.component.render != null) {
+        await annotation.component.render();
       }
 
-      if (element != null) {
-        annotation.element = element;
-
-        let zIndex = render.l ?? 0;
-        element.style.setProperty("--zIndex", zIndex);
-        if (zIndex < this.minLayer) {
-          this.minLayer = zIndex;
-          annotations.style.setProperty("--startZIndex", -Math.min(zIndex, 0));
-        }
-        if (zIndex > this.maxLayer) {
-          this.maxLayer = zIndex;
-        }
-
-        let rotate = render.r ?? 0;
-        if (rotate > 0) {
-          if (rotate > 180) {
-            rotate = -(360 - rotate);
+      if (annotation.component.getContainer != null) {
+        let container = annotation.component.getContainer();
+        if (container != null) {
+          if (render.resizing == null) {
+            container.style.width = (width + thickness) + "px";
+            container.style.height = (height + thickness) + "px";
+            if (container.hasAttribute("notransition") == true) {
+              container.removeAttribute("notransition");
+              container.style.left = "0px";
+              container.style.top = "0px";
+              container.style.removeProperty("right");
+              container.style.removeProperty("bottom");
+              container.style.transformOrigin = "center";
+            }
+          } else {
+            container.setAttribute("notransition", "");
+            let rect = this.utils.getRect(render);
+            let [handle, resizeX, resizeY] = render.resizing;
+            let annoX;
+            let annoY;
+            let finishX;
+            let finishY;
+            switch (handle) {
+              case "bottomright":
+                [annoX, annoY] = this.math.rotatePointOrigin(rect.x, rect.y, rect.centerX, rect.centerY, rect.rotation);
+                [finishX, finishY] = this.math.rotatePoint(resizeX - annoX, resizeY - annoY, -rect.rotation);
+                if (render.s[0] > 0) {
+                  container.style.left = finishX + "px";
+                  container.style.removeProperty("right");
+                } else {
+                  container.style.right = finishX + "px";
+                  container.style.removeProperty("left");
+                }
+                if (render.s[1] > 0) {
+                  container.style.top = finishY + "px";
+                  container.style.removeProperty("bottom");
+                } else {
+                  container.style.bottom = finishY + "px";
+                  container.style.removeProperty("top");
+                }
+                break;
+              case "topleft":
+                [annoX, annoY] = this.math.rotatePointOrigin(rect.endX, rect.endY, rect.centerX, rect.centerY, rect.rotation);
+                [finishX, finishY] = this.math.rotatePoint(resizeX - annoX, resizeY - annoY, -rect.rotation);
+                if (render.s[0] > 0) {
+                  container.style.right = -finishX + "px";
+                  container.style.removeProperty("left");
+                } else {
+                  container.style.left = -finishX + "px";
+                  container.style.removeProperty("right");
+                }
+                if (render.s[1] > 0) {
+                  container.style.bottom = -finishY + "px";
+                  container.style.removeProperty("top");
+                } else {
+                  container.style.top = -finishY + "px";
+                  container.style.removeProperty("bottom");
+                }
+                break;
+              case "topright":
+                [annoX, annoY] = this.math.rotatePointOrigin(rect.x, rect.endY, rect.centerX, rect.centerY, rect.rotation);
+                [finishX, finishY] = this.math.rotatePoint(resizeX - annoX, resizeY - annoY, -rect.rotation);
+                if (render.s[0] > 0) {
+                  container.style.left = finishX + "px";
+                  container.style.removeProperty("right");
+                } else {
+                  container.style.right = finishX + "px";
+                  container.style.removeProperty("left");
+                }
+                if (render.s[1] > 0) {
+                  container.style.bottom = -finishY + "px";
+                  container.style.removeProperty("top");
+                } else {
+                  container.style.top = -finishY + "px";
+                  container.style.removeProperty("bottom");
+                }
+                break;
+              case "bottomleft":
+                [annoX, annoY] = this.math.rotatePointOrigin(rect.endX, rect.y, rect.centerX, rect.centerY, rect.rotation);
+                [finishX, finishY] = this.math.rotatePoint(resizeX - annoX, resizeY - annoY, -rect.rotation);
+                if (render.s[0] > 0) {
+                  container.style.right = -finishX + "px";
+                  container.style.removeProperty("left");
+                } else {
+                  container.style.left = -finishX + "px";
+                  container.style.removeProperty("right");
+                }
+                if (render.s[1] > 0) {
+                  container.style.top = finishY + "px";
+                  container.style.removeProperty("bottom");
+                } else {
+                  container.style.bottom = finishY + "px";
+                  container.style.removeProperty("top");
+                }
+            }
           }
-          transform += " rotate(" + rotate + "deg)";
+          if (render.s[0] < 0 && render.s[1] < 0) {
+            container.style.transform = "scale(-1)";
+          } else if (render.s[0] < 0) {
+            container.style.transform = "scale(-1,1)";
+          } else if (render.s[1] < 0) {
+            container.style.transform = "scale(1,-1)";
+          } else {
+            container.style.removeProperty("transform");
+          }
         }
-        if (render.s[0] < 0 && render.s[1] < 0) {
-          transform += " scale(-1)";
-        } else if (render.s[0] < 0) {
-          transform += " scale(-1,1)";
-        } else if (render.s[1] < 0) {
-          transform += " scale(1,-1)";
-        }
-        element.style.transform = transform;
+      }
 
-        if (renderModule.CAN_PARENT_CHILDREN == true) { // If it can have children, must check the holder
-          let annoAnnotationHolder = element.querySelector(".eAnnotationHolder");
-          if (annoAnnotationHolder != null) {
-            if (render.resizing == null) {
-              annoAnnotationHolder.style.width = width + "px";
-              annoAnnotationHolder.style.height = height + "px";
-              annoAnnotationHolder.removeAttribute("notransition");
-              annoAnnotationHolder.style.left = "0px";
-              annoAnnotationHolder.style.top = "0px";
-              annoAnnotationHolder.style.removeProperty("right");
-              annoAnnotationHolder.style.removeProperty("bottom");
-            } else {
-              annoAnnotationHolder.setAttribute("notransition", "");
-              let rect = this.utils.getRect(render);
-              let [handle, resizeX, resizeY] = render.resizing;
-              let annoX;
-              let annoY;
-              let finishX;
-              let finishY;
-              switch (handle) {
-                case "bottomright":
-                  [annoX, annoY] = this.math.rotatePointOrigin(rect.annoX, rect.annoY, rect.centerX, rect.centerY, rect.rotation);
-                  [finishX, finishY] = this.math.rotatePoint(resizeX - annoX, resizeY - annoY, -rect.rotation);
-                  annoAnnotationHolder.style.left = finishX + "px";
-                  annoAnnotationHolder.style.top = finishY + "px";
-                  annoAnnotationHolder.style.removeProperty("right");
-                  annoAnnotationHolder.style.removeProperty("bottom");
-                  break;
-                case "topleft":
-                  [annoX, annoY] = this.math.rotatePointOrigin(rect.annoX + width, rect.annoY + height, rect.centerX, rect.centerY, rect.rotation);
-                  [finishX, finishY] = this.math.rotatePoint(resizeX - annoX, resizeY - annoY, -rect.rotation);
-                  annoAnnotationHolder.style.right = -finishX + "px";
-                  annoAnnotationHolder.style.bottom = -finishY + "px";
-                  annoAnnotationHolder.style.removeProperty("left");
-                  annoAnnotationHolder.style.removeProperty("top");
-                  break;
-                case "topright":
-                  [annoX, annoY] = this.math.rotatePointOrigin(rect.annoX, rect.annoY + height, rect.centerX, rect.centerY, rect.rotation);
-                  [finishX, finishY] = this.math.rotatePoint(resizeX - annoX, resizeY - annoY, -rect.rotation);
-                  annoAnnotationHolder.style.left = finishX + "px";
-                  annoAnnotationHolder.style.bottom = -finishY + "px";
-                  annoAnnotationHolder.style.removeProperty("right");
-                  annoAnnotationHolder.style.removeProperty("top");
-                  break;
-                case "bottomleft":
-                  [annoX, annoY] = this.math.rotatePointOrigin(rect.annoX + width, rect.annoY, rect.centerX, rect.centerY, rect.rotation);
-                  [finishX, finishY] = this.math.rotatePoint(resizeX - annoX, resizeY - annoY, -rect.rotation);
-                  annoAnnotationHolder.style.right = -finishX + "px";
-                  annoAnnotationHolder.style.top = finishY + "px";
-                  annoAnnotationHolder.style.removeProperty("left");
-                  annoAnnotationHolder.style.removeProperty("bottom");
+      if (render.remove != true) {
+        if (annotation.component.show != null) {
+          annotation.component.show();
+        }
+
+        if (annotation.renderedChildren != null) {
+          let redrawChildrenFunction = (children) => {
+            let redrawChildren = Object.values(children);
+            for (let i = 0; i < redrawChildren.length; i++) {
+              let child = redrawChildren[i];
+              if (child.component != null) {
+                if (child.component.REDRAW_ON_PARENT_UPDATE == true) {
+                  this.render.create({ ...child, animate: annotation.animate ?? child.animate });
+                }
+                if (child.renderedChildren != null) {
+                  redrawChildrenFunction(child.renderedChildren);
+                }
               }
             }
           }
+          redrawChildrenFunction(annotation.renderedChildren);
         }
-        if (render.done != true) { // Not sure what this is for?
-          element.removeAttribute("done");
+      } else {
+        if (long != true) {
+          await this.render.hide(annotation);
         } else {
-          element.setAttribute("done", "");
-        }
-        if (annotation.animate != false) {
-          element.removeAttribute("notransition");
-        } else {
-          element.setAttribute("notransition", "");
-        }
-        if (_id != null) {
-          element.setAttribute("anno", _id);
-        }
-        if (render.remove != true) {
-          element.removeAttribute("hidden");
-        } else {
-          if (long != true) {
-            await this.render.hide(annotation);
-          } else {
-            await this.utils.setAnnotationChunks({ ...annotation, render: { ...render, remove: true } });
-            delete this.annotations[_id];
-          }
+          await this.utils.setAnnotationChunks({ ...annotation, render: { ...render, remove: true } });
+          delete this.annotations[_id];
         }
       }
-      return { element: element };
+
+      return annotation;
     }
     this.render.hide = (annotation) => {
-      if (annotation == null) {
+      if (annotation == null || annotation.component == null) {
         return;
       }
       let render = annotation.render ?? {};
-      if (annotation.element == null) {
-        return;
+      annotation.component.hide();
+      if (annotation.component.embedFrame != null) {
+        annotation.component.embedFrame.remove();
       }
-      annotation.element.setAttribute("hidden", "");
       let allSelections = [
         ...annotations.querySelectorAll('.eSelect[anno="' + render._id + '"]'),
         ...realtimeHolder.querySelectorAll('.eCollabSelect[anno="' + render._id + '"]')
@@ -1973,28 +2018,25 @@ modules["editor/editor"] = class {
           select.remove();
         })();
       }
-      let iframePresent = annotation.element.querySelector("iframe");
-      if (iframePresent != null) {
-        iframePresent.remove();
-      }
     }
     this.render.remove = (annotation) => {
       if (annotation == null) {
         return;
       }
-      if (annotation.element != null) {
+      if (annotation.component != null) {
         this.render.hide(annotation);
-        annotation.element.remove();
-        annotation.element = null;
+        annotation.component.remove();
+        annotation.component = null;
       }
       let render = annotation.render;
       if (render != null) {
-        (async () => {
-          let renderModule = await this.render.getModule(render.f);
-          if (renderModule != null && renderModule.remove != null) {
-            renderModule.remove(annotation);
-          }
-        })();
+        let parentAnnotation = this.annotations[render.parent] ?? {};
+        if (parentAnnotation.pointer != null) {
+          parentAnnotation = this.annotations[parentAnnotation.pointer] ?? parentAnnotation;
+        }
+        if (parentAnnotation.renderedChildren != null) {
+          delete parentAnnotation.renderedChildren[render._id];
+        }
         this.pipeline.unsubscribe("annotation" + render._id);
       }
     }
@@ -2219,7 +2261,6 @@ modules["editor/editor"] = class {
         //save = { ...save, ...this.selecting[annoID] };
         redrawAction = true;
       }*/
-      delete save.resizing;
       if (options.overwrite != true) {
         let changeKeys = Object.keys(save);
         for (let f = 0; f < changeKeys.length; f++) {
@@ -2258,7 +2299,7 @@ modules["editor/editor"] = class {
         }
       }
       if (allowRender == true) {
-        annotation.element = (await this.render.create({ ...annotation, render: { ...annotation.render, ...(options.renderPassthrough ?? {}), ...(this.selecting[annoID] ?? {}) }, ...(options.render ?? {}) }, options.timeout == false)).element;
+        annotation.component = (await this.render.create({ ...annotation, render: { ...annotation.render, ...(options.renderPassthrough ?? {}), ...(this.selecting[annoID] ?? {}) }, ...(options.render ?? {}) }, options.timeout == false)).component;
       } else {
         await this.render.remove(annotation);
       }
@@ -2333,13 +2374,20 @@ modules["editor/editor"] = class {
         let resizeChangeX = 0;
         let resizeChangeY = 0;
         if (rect.size[0] != originalRect.size[0] || rect.size[1] != originalRect.size[1]) {
-          let [originalResizeX, originalResizeY] = this.math.rotatePointOrigin(originalRect.annoX, originalRect.annoY, originalRect.centerX, originalRect.centerY, originalRect.rotation);
-          let [newResizeX, newResizeY] = this.math.rotatePointOrigin(rect.annoX, rect.annoY, rect.centerX, rect.centerY, rect.rotation);
+          let [originalResizeX, originalResizeY] = this.math.rotatePointOrigin(originalRect.x, originalRect.y, originalRect.centerX, originalRect.centerY, originalRect.rotation);
+          if (rect.size[0] < 0) {
+            originalResizeX -= rect.thickness;
+          }
+          if (rect.size[1] < 0) {
+            originalResizeY -= rect.thickness;
+          }
+          let [newResizeX, newResizeY] = this.math.rotatePointOrigin(rect.x, rect.y, rect.centerX, rect.centerY, rect.rotation);
           [resizeChangeX, resizeChangeY] = this.math.rotatePoint(originalResizeX - newResizeX, originalResizeY - newResizeY, -rect.rotation);
         }
         
-        let annotationModule = await this.render.getModule(merged.f);
+        let annotationModule = (await this.render.getModule(annotation, merged.f)) ?? {};
         let chunkAnnotations = this.utils.annotationsInChunks(checkChunks);
+        let updateChunkAnnotations = [];
         for (let i = 0; i < chunkAnnotations.length; i++) {
           let anno = chunkAnnotations[i] ?? {};
           let render = anno.render;
@@ -2356,12 +2404,10 @@ modules["editor/editor"] = class {
             }
           }
 
-          let isChild = render.parent == annoID;
-          
           let historyUpdate;
 
           // Update position for parent resize:
-          if (isChild == true && (Math.floor(Math.abs(resizeChangeX)) > 0 || Math.floor(Math.abs(resizeChangeY)) > 0)) {
+          if (render.parent == annoID && (Math.floor(Math.abs(resizeChangeX)) > 0 || Math.floor(Math.abs(resizeChangeY)) > 0)) {
             historyUpdate = copyObject({ _id: render._id, parent: render.parent, p: render.p, r: render.r });
             let setChildAnno = {
               _id: render._id,
@@ -2374,17 +2420,35 @@ modules["editor/editor"] = class {
             }
           }
 
+          updateChunkAnnotations.push([
+            anno, render,
+            (await this.render.getModule(anno, render.f)) ?? {},
+            this.utils.getRect(render),
+            historyUpdate
+          ]);
+        }
+        for (let i = 0; i < updateChunkAnnotations.length; i++) {
+          let [anno, render, annoModule, annoRect, historyUpdate] = updateChunkAnnotations[i];
+          let { annoX, annoY, centerX, centerY, rotation, parents } = annoRect;
+          
+          let isChild = render.parent == annoID;
+          let isAChild = parents.some((parent) => { return parent._id == annoID; });
+          let deleteChild = isAChild == true && data.remove == true && history.fromHistory != true;
+
           // Check for child parent change:
-          let { annoX, annoY, centerX, centerY, rotation } = this.utils.getRect(render);
           let checkParent = false;
-          if (this.math.pointInRotatedBounds(centerX, centerY, rect.x, rect.y, rect.endX, rect.endY, rect.rotation) == false || render.l < merged.l || merged.remove == true) {
+          if (this.math.pointInRotatedBounds(centerX, centerY, rect.x, rect.y, rect.endX, rect.endY, rect.rotation) == false || render.l == null || render.l < merged.l || merged.remove == true) {
             // Is outside the saved annotation:
             checkParent = isChild;
-          } else if (annotationModule.CAN_PARENT_CHILDREN == true) {
+          } else if (annotationModule.CAN_PARENT_CHILDREN == true && annoModule.ONLY_PARENT_CHANGE_ON_EDIT != true) {
             // Is inside the saved annotation:
             if (this.utils.canMemberModify(render) == true && this.utils.isPlaceholderLocked(render) == false) {
               checkParent = !isChild;
             }
+          }
+          if (deleteChild == true && annoModule.KEEP_ON_PARENT_DELETE == true) {
+            checkParent = true;
+            deleteChild = false;
           }
           if (checkParent == true) {
             let { parentID: setParentID } = await this.utils.parentFromAnnotation({
@@ -2420,7 +2484,7 @@ modules["editor/editor"] = class {
                 this.realtimeSelect[setChildAnno._id] = { ...(this.realtimeSelect[setChildAnno._id] ?? {}), ...setChildAnno };
               }
             }
-          } else if (this.utils.getParentIDs(render).includes(annoID) == true) { // Update chunks of child annotations:
+          } else if (isAChild == true) { // Update chunks of child annotations:
             await this.utils.setAnnotationChunks(anno);
             this.utils.updateAnnotationPages(render);
           }
@@ -2430,7 +2494,7 @@ modules["editor/editor"] = class {
           }
 
           // Delete children if parent is deleted:
-          if (isChild == true && data.remove == true && history.fromHistory != true) {
+          if (deleteChild == true) {
             if (history.add != null) {
               history.add.push(copyObject({ ...render, p: [annoX, annoY], r: rotation, parent: null }));
             }
@@ -2637,6 +2701,7 @@ modules["editor/editor"] = class {
     
     let updateSubTimeout;
     let loadedChunks = {};
+    let holdLoadedChunks = {};
     let alreadyRunningUpdateCycle = false;
     this.runUpdateCycle = async () => {
       if (alreadyRunningUpdateCycle == true) {
@@ -2645,7 +2710,8 @@ modules["editor/editor"] = class {
       alreadyRunningUpdateCycle = true;
       let unloadChunkedAnnotations = {};
       let newlyUnloaded = {};
-      let visible = Object.keys(loadedChunks);
+      let visible = Object.keys({ ...loadedChunks, ...holdLoadedChunks });
+      holdLoadedChunks = {};
       for (let i = 0; i < visible.length; i++) {
         let chunk = visible[i];
         if (this.visibleChunks.includes(chunk) == false) {
@@ -2675,10 +2741,19 @@ modules["editor/editor"] = class {
             continue;
           }
         }
-        if (this.selecting[annotation.render._id] != null || this.selectingParents[annotation.render._id] != null) {
+        if (annotation.renderedChildren != null && Object.keys(annotation.renderedChildren).length > 0) {
+          for (let c = 0; c < annotation.chunks.length; c++) {
+            holdLoadedChunks[annotation.chunks[c]] = "";
+          }
           continue;
         }
-        if (annotation.element != null) {
+        if (this.selecting[annotation.render._id] != null) {
+          for (let c = 0; c < annotation.chunks.length; c++) {
+            holdLoadedChunks[annotation.chunks[c]] = "";
+          }
+          continue;
+        }
+        if (annotation.component != null) {
           this.render.remove(annotation);
         }
       }
@@ -2706,7 +2781,7 @@ modules["editor/editor"] = class {
             break;
           }
         }
-        if (render == true && annotation.render != null && annotation.element == null) {
+        if (render == true && annotation.render != null && annotation.component == null) {
           await this.render.create(annotation);
         }
       }
@@ -2836,8 +2911,9 @@ modules["editor/editor"] = class {
               }
             }
 
-            if (existingAnno.element != null) {
-              existingAnno.element.setAttribute("anno", anno._id);
+            if (existingAnno.component != null) {
+              existingAnno.component.properties._id = anno._id;
+              existingAnno.component.setID();
             }
 
             // Update Chunk IDs:
@@ -3418,145 +3494,295 @@ modules["dropdowns/lesson/zoom"] = class {
 }
 
 // Annotation Modules:
-modules["editor/render/draw"] = class {
+modules["editor/render/annotation"] = class {
+  getElement = () => {
+    return this.element;
+  }
+
+  setID = () => {
+    let element = this.getElement();
+    if (element == null) {
+      return;
+    }
+    if (this.properties._id != this.lastSetID) {
+      this.lastSetID = this.properties._id;
+      element.setAttribute("anno", this.properties._id);
+    }
+  }
+  setParent = () => {
+    let element = this.getElement();
+    if (element == null) {
+      return;
+    }
+    if (this.holder != element.parentElement) {
+      this.holder.appendChild(element); // Change annotation parent to the new parent
+    }
+  }
+  setZIndex = () => {
+    let element = this.getElement();
+    if (element == null) {
+      return;
+    }
+    if (this.properties.l == null) {
+      return;
+    }
+    if (this.properties.l < (this.parent.minLayer ?? (this.properties.l + 1))) {
+      this.parent.minLayer = this.properties.l;
+      this.parent.annotationHolder.style.setProperty("--minZIndex", this.properties.l);
+      this.parent.annotationHolder.style.setProperty("--startZIndex", -Math.min(this.properties.l, 0));
+    }
+    if (this.properties.l > (this.parent.maxLayer ?? (this.properties.l - 1))) {
+      this.parent.maxLayer = this.properties.l;
+      this.parent.annotationHolder.style.setProperty("--maxZIndex", this.properties.l);
+    }
+    if (this.properties.l != this.lastSetLayer) {
+      this.lastSetLayer = this.properties.l;
+      element.style.setProperty("--zIndex", this.properties.l);
+    }
+  }
+  setTransform = () => {
+    let element = this.getElement();
+    if (element == null) {
+      return;
+    }
+    let transform = "translate3d(" + this.properties.p[0] + "px," + this.properties.p[1] + "px, 0)";
+    let rotate = this.properties.r ?? 0;
+    if (rotate > 0) {
+      if (rotate > 180) {
+        rotate = -(360 - rotate);
+      }
+      transform += " rotate(" + rotate + "deg)";
+    }
+    if (this.annotation.render.s[0] < 0 && this.annotation.render.s[1] < 0) {
+      transform += " scale(-1)";
+    } else if (this.annotation.render.s[0] < 0) {
+      transform += " scale(-1,1)";
+    } else if (this.annotation.render.s[1] < 0) {
+      transform += " scale(1,-1)";
+    }
+    if (transform != this.lastSetTransform) {
+      this.lastSetTransform = transform;
+      element.style.transform = transform;
+    }
+  }
+  setAnimate = (set) => {
+    let element = this.getElement();
+    if (element == null) {
+      return;
+    }
+    this.animate = set ?? this.animate;
+    if (this.animate == this.lastSetAnimate) {
+      return;
+    }
+    this.lastSetAnimate = this.animate;
+    if (this.animate != false) {
+      element.removeAttribute("notransition");
+    } else {
+      element.setAttribute("notransition", "");
+    }
+  }
+
+  hide = () => {
+    let element = this.getElement();
+    if (element == null) {
+      return;
+    }
+    if (this.hidden != true) {
+      this.hidden = true;
+      element.setAttribute("hidden", "");
+    }
+  }
+  show = () => {
+    let element = this.getElement();
+    if (element == null) {
+      return;
+    }
+    if (this.hidden == true) {
+      this.hidden = false;
+      element.removeAttribute("hidden");
+    }
+  }
+  remove = () => {
+    let element = this.getElement();
+    if (element == null) {
+      return;
+    }
+    element.remove();
+  }
+
+  getContainer = () => {
+    return this.container;
+  }
+  setContainer = () => {
+    let element = this.getElement();
+    if (element == null) {
+      return;
+    }
+    let holder = this.getContainer();
+    let parentRect = this.parent.utils.getRect(this.annotation.render);
+    if (holder == null) {
+      (element.querySelector("div[annoholdercontainer]") ?? element).insertAdjacentHTML("beforeend", `<div class="eAnnotationHolder"></div>`);
+      holder = element.querySelector(".eAnnotationHolder");
+      this.container = holder;
+      holder.style.width = parentRect.width + "px";
+      holder.style.height = parentRect.height + "px";
+      holder.style.left = "0px";
+      holder.style.top = "0px";
+    } else if (this.annotation.render.resizing == null) {
+      holder.style.width = parentRect.width + "px";
+      holder.style.height = parentRect.height + "px";
+      holder.style.left = "0px";
+      holder.style.top = "0px";
+      holder.style.removeProperty("right");
+      holder.style.removeProperty("bottom");
+    }
+    return holder;
+  }
+}
+
+modules["editor/render/annotation/draw"] = class extends modules["editor/render/annotation"] {
   CAN_ERASE = true;
   RESIZE_PRESERVE_ASPECT = true;
   CAN_BE_SNAPPED_TO = false;
 
   ACTION_BAR_TOOLS = ["color", "thickness", "opacity", "unlock", "delete"];
   
-  render = (anno, element, holder) => {
-    let halfT = anno.t / 2;
-    let width = anno.s[0] + anno.t;
-    let height = anno.s[1] + anno.t;
-    let x = anno.p[0]; // + halfT;
-    let y = anno.p[1]; // + halfT;
-    let transform = "translate3d(" + x + "px," + y + "px, 0)";
+  render = () => {
+    let halfT = this.properties.t / 2;
+    let width = this.properties.s[0] + this.properties.t;
+    let height = this.properties.s[1] + this.properties.t;
     let drawSetPoints = "";
-    if (anno.d.length == 2) {
-      drawSetPoints = (anno.t / 2) + "," + (anno.t / 2) + " " + ((anno.t / 2) + .1) + "," + ((anno.t / 2) + .1);
+    if (this.properties.d.length == 2) {
+      drawSetPoints = (this.properties.t / 2) + "," + (this.properties.t / 2) + " " + ((this.properties.t / 2) + .1) + "," + ((this.properties.t / 2) + .1);
     } else {
       let scaleW = 1;
       let scaleH = 1;
-      if (anno.sync != null) {
+      if (this.properties.sync != null) {
         // Allows for greater precision when zoomed in:
-        let largestX = anno.d[0];
-        let largestY = anno.d[1];
-        for (let i = 2; i < anno.d.length; i += 2) {
-          largestX = Math.max(largestX, anno.d[i]);
-          largestY = Math.max(largestY, anno.d[i + 1]);
+        let largestX = this.properties.d[0];
+        let largestY = this.properties.d[1];
+        for (let i = 2; i < this.properties.d.length; i += 2) {
+          largestX = Math.max(largestX, this.properties.d[i]);
+          largestY = Math.max(largestY, this.properties.d[i + 1]);
         }
         let halfT = 0;
         if (largestX - halfT > 0) {
-          scaleW = (width - anno.t) / (largestX - halfT);
+          scaleW = (width - this.properties.t) / (largestX - halfT);
         } else {
-          scaleW = width - anno.t;
+          scaleW = width - this.properties.t;
         }
         if (largestY - halfT > 0) {
-          scaleH = (height - anno.t) / (largestY - halfT);
+          scaleH = (height - this.properties.t) / (largestY - halfT);
         } else {
-          scaleH = height - anno.t;
+          scaleH = height - this.properties.t;
         }
       }
-      for (let i = 0; i < anno.d.length; i += 2) {
-        drawSetPoints += (halfT + (anno.d[i]) * scaleW) + "," + (halfT + (anno.d[i + 1] * scaleH)) + " ";
+      for (let i = 0; i < this.properties.d.length; i += 2) {
+        drawSetPoints += (halfT + (this.properties.d[i]) * scaleW) + "," + (halfT + (this.properties.d[i + 1] * scaleH)) + " ";
       }
     }
-    if (element == null) {
-      holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" style="width: ${width}px; height: ${height}px" new>
+    if (this.element == null) {
+      this.holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" style="width: ${width}px; height: ${height}px" new>
         <svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
-          <polyline stroke-width="${parseFloat(anno.t)}" points="${drawSetPoints}" stroke="${"#" + cleanString(anno.c)}" opacity="${parseFloat(anno.o) / 100}"/>
+          <polyline stroke-width="${parseFloat(this.properties.t)}" points="${drawSetPoints}" stroke="${"#" + cleanString(this.properties.c)}" opacity="${parseFloat(this.properties.o) / 100}"/>
         </svg>
       </div>`);
-      element = holder.querySelector(".eAnnotation[new]");
-      element.removeAttribute("new");
-      let line = element.querySelector("polyline");
+      this.element = this.holder.querySelector(".eAnnotation[new]");
+      this.element.removeAttribute("new");
+      let line = this.element.querySelector("polyline");
       line.setAttribute("fill", "none");
       line.setAttribute("stroke-linecap", "round");
       line.setAttribute("stroke-linejoin", "round");
     } else {
-      element.style.width = width + "px";
-      element.style.height = height + "px";
-      let svg = element.querySelector("svg");
+      this.element.style.width = width + "px";
+      this.element.style.height = height + "px";
+      let svg = this.element.querySelector("svg");
       let path = svg.querySelector("polyline");
       svg.setAttribute("viewBox", "0 0 " + width + " " + height);
-      path.setAttribute("stroke-width", anno.t);
+      path.setAttribute("stroke-width", this.properties.t);
       path.setAttribute("points", drawSetPoints);
-      path.setAttribute("stroke", "#" + anno.c);
-      path.setAttribute("opacity", anno.o / 100);
+      path.setAttribute("stroke", "#" + this.properties.c);
+      path.setAttribute("opacity", this.properties.o / 100);
     }
-    return { element: element, transform: transform };
+
+    this.setID();
+    this.setParent();
+    this.setZIndex();
+    this.setTransform();
+    this.setAnimate();
   }
 }
-modules["editor/render/markup"] = class {
+modules["editor/render/annotation/markup"] = class extends modules["editor/render/annotation"] {
   CAN_ERASE = true;
   RESIZE_PRESERVE_ASPECT = true;
   CAN_BE_SNAPPED_TO = false;
 
   ACTION_BAR_TOOLS = ["color", "thickness", "opacity", "unlock", "delete"];
 
-  render = (anno, element, holder) => {
-    if (element == null) {
-      holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
+  render = () => {
+    if (this.element == null) {
+      this.holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
         <svg xmlns="http://www.w3.org/2000/svg">
           <polyline/>
         </svg>
       </div>`);
-      element = holder.querySelector(".eAnnotation[new]");
-      element.removeAttribute("new");
-      let line = element.querySelector("polyline");
+      this.element = this.holder.querySelector(".eAnnotation[new]");
+      this.element.removeAttribute("new");
+      let line = this.element.querySelector("polyline");
       line.setAttribute("fill", "none");
     }
-    let halfT = anno.t / 2;
-    let width = anno.s[0] + anno.t;
-    let height = anno.s[1] + anno.t;
-    let x = anno.p[0]; // + halfT;
-    let y = anno.p[1]; // + halfT;
-    let transform = "translate3d(" + x + "px," + y + "px, 0)";
-    element.style.width = width + "px";
-    element.style.height = height + "px";
-    let svg = element.querySelector("svg");
+    let halfT = this.properties.t / 2;
+    let width = this.properties.s[0] + this.properties.t;
+    let height = this.properties.s[1] + this.properties.t;
+    this.element.style.width = width + "px";
+    this.element.style.height = height + "px";
+    let svg = this.element.querySelector("svg");
     let path = svg.querySelector("polyline");
     let drawSetPoints = "";
     svg.setAttribute("viewBox", "0 0 " + width + " " + height);
-    if (anno.d.length == 2) {
+    if (this.properties.d.length == 2) {
       drawSetPoints = (width / 2) + "," + (height / 2) + " " + ((width / 2) + .1) + "," + ((height / 2) + .1);
       path.setAttribute("stroke-width", width);
     } else {
       let scaleW = 1;
       let scaleH = 1;
-      if (anno.sync != null) {
+      if (this.properties.sync != null) {
         // Allows for greater precision when zoomed in:
-        let largestX = anno.d[0];
-        let largestY = anno.d[1];
-        for (let i = 2; i < anno.d.length; i += 2) {
-          largestX = Math.max(largestX, anno.d[i]);
-          largestY = Math.max(largestY, anno.d[i + 1]);
+        let largestX = this.properties.d[0];
+        let largestY = this.properties.d[1];
+        for (let i = 2; i < this.properties.d.length; i += 2) {
+          largestX = Math.max(largestX, this.properties.d[i]);
+          largestY = Math.max(largestY, this.properties.d[i + 1]);
         }
         let halfT = 0;//t / 2;
         if (largestX - halfT > 0) {
-          scaleW = (width - anno.t) / (largestX - halfT);
+          scaleW = (width - this.properties.t) / (largestX - halfT);
         } else {
-          scaleW = width - anno.t;
+          scaleW = width - this.properties.t;
         }
         if (largestY - halfT > 0) {
-          scaleH = (height - anno.t) / (largestY - halfT);
+          scaleH = (height - this.properties.t) / (largestY - halfT);
         } else {
-          scaleH = height - anno.t;
+          scaleH = height - this.properties.t;
         }
       }
-      for (let i = 0; i < anno.d.length; i += 2) {
-        drawSetPoints += (halfT + (anno.d[i] * scaleW)) + "," + (halfT + (anno.d[i + 1] * scaleH)) + " ";
+      for (let i = 0; i < this.properties.d.length; i += 2) {
+        drawSetPoints += (halfT + (this.properties.d[i] * scaleW)) + "," + (halfT + (this.properties.d[i + 1] * scaleH)) + " ";
       }
-      path.setAttribute("stroke-width", anno.t);
+      path.setAttribute("stroke-width", this.properties.t);
     }
     path.setAttribute("points", drawSetPoints);
-    path.setAttribute("stroke", "#" + anno.c);
-    path.setAttribute("opacity", anno.o / 100);
-    return { element: element, transform: transform };
+    path.setAttribute("stroke", "#" + this.properties.c);
+    path.setAttribute("opacity", this.properties.o / 100);
+
+    this.setID();
+    this.setParent();
+    this.setZIndex();
+    this.setTransform();
+    this.setAnimate();
   }
 }
-modules["editor/render/text"] = class {
+modules["editor/render/annotation/text"] = class extends modules["editor/render/annotation"] {
   SHOW_ONLY_WIDTH_HANDLES = true;
   AUTO_TEXT_FIT = true;
   AUTO_SET_HEIGHT = true;
@@ -3567,32 +3793,31 @@ modules["editor/render/text"] = class {
     ".eAnnotation div[text]": `padding: 4px 6px; margin: 3px; color: var(--themeColor); font-weight: 500; pointer-events: all; outline: none`,
     ".eAnnotation div[text][placeborder]": `width: max-content; margin: 0px; border: solid 3px var(--themeColor); border-radius: 8px`
   };
-  render = (anno, element, holder) => {
-    if (element == null) {
-      holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
+  render = () => {
+    if (this.element == null) {
+      this.holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
         <div text edit></div>
       </div>`);
-      element = holder.querySelector(".eAnnotation[new]");
-      element.removeAttribute("new");
+      this.element = this.holder.querySelector(".eAnnotation[new]");
+      this.element.removeAttribute("new");
     }
-    element.style.width = anno.s[0] + "px";
-    element.style.height = anno.s[1] + "px";
-    let transform = "translate3d(" + anno.p[0] + "px," + anno.p[1] + "px, 0)";
-    if (anno._id != null) {
-      element.style.opacity = 1;
+    this.element.style.width = this.properties.s[0] + "px";
+    this.element.style.height = this.properties.s[1] + "px";
+    if (this.properties._id != null) {
+      this.element.style.opacity = 1;
     } else {
-      element.setAttribute("tooleditor", "");
-      element.style.opacity = .7;
+      this.element.setAttribute("tooleditor", "");
+      this.element.style.opacity = .7;
     }
-    let text = element.querySelector("div[edit]");
-    if (anno._id != null) {
+    let text = this.element.querySelector("div[edit]");
+    if (this.properties._id != null) {
       text.removeAttribute("placeborder");
     } else {
       text.setAttribute("placeborder", "");
     }
-    element.style.setProperty("--themeColor", "#" + anno.c);
-    text.style.opacity = anno.o / 100;
-    let richText = anno.d ?? {};
+    this.element.style.setProperty("--themeColor", "#" + this.properties.c);
+    text.style.opacity = this.properties.o / 100;
+    let richText = this.properties.d ?? {};
     text.style.fontSize = Math.floor(Math.max(Math.min(richText.s ?? 18, 250), 1)) + "px";
     if (text.hasAttribute("contenteditable") == false) {
       let setHTML = "";
@@ -3609,7 +3834,7 @@ modules["editor/render/text"] = class {
         text.innerHTML = setHTML;
       }
     } else {
-      element.setAttribute("notransition", "");
+      this.element.setAttribute("notransition", "");
     }
     if (richText.bo == true) {
       text.style.fontWeight = 700;
@@ -3631,7 +3856,7 @@ modules["editor/render/text"] = class {
       text.style.removeProperty("text-decoration");
     }
     text.style.textAlign = richText.al ?? "left";
-    if (anno.textfit == true) {
+    if (this.properties.textfit == true) {
       text.style.width = "max-content";
       text.style.minWidth = "130px";
     } else {
@@ -3639,41 +3864,43 @@ modules["editor/render/text"] = class {
       text.style.removeProperty("min-width");
     }
     text.style.height = "fit-content";
-    return { element: element, transform: transform };
+    
+    this.setID();
+    this.setParent();
+    this.setZIndex();
+    this.setTransform();
+    this.setAnimate();
   }
 }
-modules["editor/render/shape"] = class {
+modules["editor/render/annotation/shape"] = class extends modules["editor/render/annotation"] {
   ACTION_BAR_TOOLS = ["color", "thickness", "opacity", "style", "unlock", "delete"];
 
-  render = (anno, element, holder) => {
-    if (element == null) {
-      holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
+  render = () => {
+    if (this.element == null) {
+      this.holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
         <svg xmlns="http://www.w3.org/2000/svg"></svg>
       </div>`);
-      element = holder.querySelector(".eAnnotation[new]");
-      element.removeAttribute("new");
+      this.element = this.holder.querySelector(".eAnnotation[new]");
+      this.element.removeAttribute("new");
     }
-    let t = anno.t;
+    let t = this.properties.t;
     let halfT = t / 2;
-    if (anno.b == "none" && anno.d != "line") {
+    if (this.properties.b == "none" && this.properties.d != "line") {
       t = 0;
       halfT = 0;
     }
-    let width = anno.s[0] + t;
-    let height = anno.s[1] + t;
-    let x = anno.p[0]; // + halfT;
-    let y = anno.p[1]; // + halfT;
-    let transform = "translate3d(" + x + "px," + y + "px, 0)";
-    element.style.width = width + "px";
-    element.style.height = height + "px";
-    if (anno._id != null) {
-      element.style.opacity = 1;
+    let width = this.properties.s[0] + t;
+    let height = this.properties.s[1] + t;
+    this.element.style.width = width + "px";
+    this.element.style.height = height + "px";
+    if (this.properties._id != null) {
+      this.element.style.opacity = 1;
     } else {
-      element.setAttribute("tooleditor", "");
-      element.style.opacity = .7;
+      this.element.setAttribute("tooleditor", "");
+      this.element.style.opacity = .7;
     }
-    let svg = element.querySelector("svg");
-    if (anno.remove != true) {
+    let svg = this.element.querySelector("svg");
+    if (this.properties.remove != true) {
       svg.removeAttribute("hidden");
     } else {
       svg.setAttribute("hidden", "");
@@ -3683,8 +3910,8 @@ modules["editor/render/shape"] = class {
     let elem;
     let widthT;
     let heightT;
-    let i = anno.i;
-    switch (anno.d) {
+    let i = this.properties.i;
+    switch (this.properties.d) {
       case "square":
         elem = svg.querySelector("rect");
         if (elem == null) {
@@ -3760,7 +3987,7 @@ modules["editor/render/shape"] = class {
           elem = svg.querySelector("line");
           elem.setAttribute("stroke-linecap", "round");
         }
-        let b = anno.b;
+        let b = this.properties.b;
         if (b == "none") {
           b = "solid";
         }
@@ -3772,20 +3999,20 @@ modules["editor/render/shape"] = class {
         elem.setAttribute("x2", halfT);
         elem.setAttribute("y2", heightT + halfT);
     }
-    if (anno.b == "none") {
+    if (this.properties.b == "none") {
       i = true;
     }
     if (i != true) {
       elem.setAttribute("fill", "none");
-      elem.setAttribute("stroke", "#" + anno.c);
+      elem.setAttribute("stroke", "#" + this.properties.c);
     } else {
-      elem.setAttribute("fill", "#" + anno.c);
-      elem.setAttribute("stroke", "#" + this.parent.utils.darkenHex(anno.c, 20));
+      elem.setAttribute("fill", "#" + this.properties.c);
+      elem.setAttribute("stroke", "#" + this.parent.utils.darkenHex(this.properties.c, 20));
     }
-    if ((anno.b ?? "solid") == "solid") {
+    if ((this.properties.b ?? "solid") == "solid") {
       elem.setAttribute("stroke-width", t);
       elem.removeAttribute("stroke-dasharray");
-    } else if (anno.b == "dashed") {
+    } else if (this.properties.b == "dashed") {
       elem.setAttribute("stroke-width", t);
       elem.setAttribute("stroke-dasharray", (t * 2) + ", " + (t * 2));
       elem.setAttribute("stroke-linecap", "round");
@@ -3793,7 +4020,7 @@ modules["editor/render/shape"] = class {
       elem.setAttribute("stroke-width", 0);
     }
 
-    elem.setAttribute("opacity", anno.o / 100);
+    elem.setAttribute("opacity", this.properties.o / 100);
 
     let svgtransform;
     if (width < 0 && height < 0) {
@@ -3806,10 +4033,15 @@ modules["editor/render/shape"] = class {
     if (elem != null) {
       elem.style.transform = svgtransform;
     }
-    return { element: element, transform: transform };
+
+    this.setID();
+    this.setParent();
+    this.setZIndex();
+    this.setTransform();
+    this.setAnimate();
   }
 }
-modules["editor/render/sticky"] = class {
+modules["editor/render/annotation/sticky"] = class extends modules["editor/render/annotation"] {
   ALLOW_SELECT_OVERFLOW = true;
 
   ACTION_BAR_TOOLS = ["textedit", "color", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "unlock", "reactions", "delete"];
@@ -3833,9 +4065,9 @@ modules["editor/render/sticky"] = class {
     ".eAnnotation[sticky][selected] .eReaction[add]": `opacity: 1`,
     ".eAnnotation[sticky][selected] button": `pointer-events: all`
   };
-  render = (anno, element, holder) => {
-    if (element == null) {
-      holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" sticky new>
+  render = () => {
+    if (this.element == null) {
+      this.holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" sticky new>
         <div holder>
           <div edit></div>
           <div footer>
@@ -3844,26 +4076,25 @@ modules["editor/render/sticky"] = class {
           </div>
         </div>
       </div>`);
-      element = holder.querySelector(".eAnnotation[new]");
-      element.removeAttribute("new");
+      this.element = this.holder.querySelector(".eAnnotation[new]");
+      this.element.removeAttribute("new");
     }
-    element.style.width = anno.s[0] + "px";
-    element.style.height = anno.s[1] + "px";
-    let transform = "translate3d(" + anno.p[0] + "px," + anno.p[1] + "px, 0)";
-    element.style.setProperty("--themeColor", "#" + anno.c);
-    let text = element.querySelector("div[edit]");
-    if (anno._id != null) {
+    this.element.style.width = this.properties.s[0] + "px";
+    this.element.style.height = this.properties.s[1] + "px";
+    this.element.style.setProperty("--themeColor", "#" + this.properties.c);
+    let text = this.element.querySelector("div[edit]");
+    if (this.properties._id != null) {
       text.removeAttribute("placeborder");
-      element.style.opacity = 1;
+      this.element.style.opacity = 1;
     } else {
       text.setAttribute("placeborder", "");
-      element.setAttribute("tooleditor", "");
-      element.style.opacity = .7;
+      this.element.setAttribute("tooleditor", "");
+      this.element.style.opacity = .7;
     }
-    element.style.color = this.parent.utils.textColorBackground(anno.c);
-    let richText = anno.d ?? {};
-    element.style.textAlign = richText.al ?? "left";
-    text.style.opacity = anno.o / 100;
+    this.element.style.color = this.parent.utils.textColorBackground(this.properties.c);
+    let richText = this.properties.d ?? {};
+    this.element.style.textAlign = richText.al ?? "left";
+    text.style.opacity = this.properties.o / 100;
     let fontSize = Math.floor(Math.max(Math.min(richText.s ?? 16, 250), 1));
     text.style.fontSize = fontSize + "px";
     text.style.lineHeight = fontSize + 6 + "px";
@@ -3884,7 +4115,7 @@ modules["editor/render/sticky"] = class {
         }
       }
     } else {
-      element.setAttribute("notransition", "");
+      this.element.setAttribute("notransition", "");
     }
     if (richText.bo == true) {
       text.style.fontWeight = 700;
@@ -3905,22 +4136,29 @@ modules["editor/render/sticky"] = class {
     } else {
       text.style.removeProperty("text-decoration");
     }
-    let signature = element.querySelector("div[signature]");
-    if (anno.sig != null && anno.sig != "" && anno.sigHidden != true) {
-      signature.textContent = cleanString(anno.sig);
+    let signature = this.element.querySelector("div[signature]");
+    if (this.properties.sig != null && this.properties.sig != "" && this.properties.sigHidden != true) {
+      signature.textContent = cleanString(this.properties.sig);
       signature.title = signature.textContent;
       signature.removeAttribute("hidden");
     } else {
       signature.setAttribute("hidden", "");
     }
-    let reactionHolder = element.querySelector("div[reactions]");
-    if (this.parent.utils.isLocked(anno) == false) {
+
+    this.setID();
+    this.setParent();
+    this.setZIndex();
+    this.setTransform();
+    this.setAnimate();
+
+    let reactionHolder = this.element.querySelector("div[reactions]");
+    if (this.parent.utils.isLocked(this.properties) == false) {
       reactionHolder.removeAttribute("disabled");
     } else {
       reactionHolder.setAttribute("disabled", "");
     }
     let addReactionButton = reactionHolder.querySelector(".eReaction[add]");
-    let reactions = this.parent.reactions[anno._id];
+    let reactions = this.parent.reactions[this.properties._id];
     let presentReactions = [];
     if (reactions != null) {
       for (let i = 0; i < reactions.length; i++) {
@@ -3970,17 +4208,59 @@ modules["editor/render/sticky"] = class {
       reactionHolder.style.width = "unset";
       reactionHolder.style.flex = "1";
     }
-    return { element: element, transform: transform };
   }
 }
-modules["editor/render/page"] = class {
+modules["editor/render/annotation/comment"] = class extends modules["editor/render/annotation"] {
+  DISABLE_SNAPPING = true;
+  CAN_BE_SNAPPED_TO = false;
+  CAN_BE_MULTISELECT = false;
+  CAN_BE_CHILD_ANY_PARENT = true;
+  ONLY_PARENT_CHANGE_ON_EDIT = true;
+  REDRAW_ON_PARENT_UPDATE = true;
+  DISPLAY_SELECT_BOX = false;
+  KEEP_ON_PARENT_DELETE = true;
+
+  css = {
+    ".eAnnotation[comment]": `z-index: calc(var(--maxZIndex) + var(--startZIndex) + 1) !important`,
+    ".eAnnotation[comment] > div[commentholder]": `width: 1px; height: 1px; transform: scale(calc(1 / var(--zoom)))`,
+    ".eAnnotation[comment] > div[commentholder] > div[comment]": `position: absolute; display: flex; width: 32px; height: 32px; left: 0px; top: -32px; background: var(--pageColor); border-radius: 16px 16px 16px 6px; pointer-events: all; transform-origin: bottom left; transition: .2s`,
+    ".eAnnotation[comment][selected] > div[commentholder] > div[comment]": `background: var(--themeColor) !important`,
+    ".eAnnotation[comment] > div[commentholder] > div[comment]:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; box-shadow: 0px 0px 6px var(--themeColor); opacity: .6`,
+    ".eAnnotation[comment] > div[commentholder] > div[comment] > div[profileholder]": `width: 24px; height: 24px; margin: 4px; background: var(--themeColor); border-radius: 12px; overflow: hidden`,
+    ".eAnnotation[comment] > div[commentholder] > div[comment] > div[profileholder] > div[dots]": `display: flex; gap: 2px; width: 100%; height: 100%; justify-content: center; align-items: center`,
+    ".eAnnotation[comment] > div[commentholder] > div[comment] > div[profileholder] > div[dots] > div": `width: 4px; height: 4px; background: var(--pageColor); border-radius: 2px`
+  };
+  render = () => {
+    if (this.element == null) {
+      this.parent.annotationHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" comment new>
+        <div commentholder>
+          <div comment>
+            <div profileholder>
+              <div dots><div></div><div></div><div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>`);
+      this.element = this.parent.annotationHolder.querySelector(".eAnnotation[new]");
+      this.element.removeAttribute("new");
+    }
+    this.element.style.setProperty("--themeColor", "#0084FF"); // ADD THIS
+
+    let absolutePos = this.parent.utils.getAbsolutePosition(this.properties, true);
+    this.element.style.transform = "translate3d(" + absolutePos.x + "px," + absolutePos.y + "px, 0)";
+
+    this.setID();
+    this.setZIndex();
+    this.setAnimate();
+  }
+}
+modules["editor/render/annotation/page"] = class extends modules["editor/render/annotation"] {
   CAN_PARENT_CHILDREN = true;
   HOLD_FOR_SELECT = true;
   ALLOW_SELECT_OVERFLOW = true;
   SHOW_DUPLICATE_HANDLES = true;
   MIN_WIDTH = 100;
   MIN_HEIGHT = 100;
-  //CAN_ROTATE = false;
   CAN_FLIP = false;
   SELECT_BOX_COVER = true;
 
@@ -4019,76 +4299,75 @@ modules["editor/render/page"] = class {
     ".eAnnotation[page] > div[content] div[document] div[textlayer] br": `color: transparent; position: absolute; white-space: pre; transform-origin: 0% 0%; pointer-events: all; user-select: none`,
     ".hiddenCanvasElement": `display: none`,
   };
-  render = (anno, element, holder) => {
-    if (element == null) {
-      holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" page new>
+  render = () => {
+    if (this.element == null) {
+      this.holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" page new>
         <div background></div>
         <div border></div>
         <div label selectable></div>
         <div content annoholdercontainer></div>
       </div>`);
-      element = holder.querySelector(".eAnnotation[new]");
-      element.removeAttribute("new");
+      this.element = this.holder.querySelector(".eAnnotation[new]");
+      this.element.removeAttribute("new");
     }
-    element.style.width = anno.s[0] + "px";
-    element.style.height = anno.s[1] + "px";
-    element.style.setProperty("--themeColor", "#" + anno.c);
-    element.style.color = this.parent.utils.textColorBackground(anno.c);
-    let transform = "translate3d(" + anno.p[0] + "px," + anno.p[1] + "px, 0)";
-    if (anno._id != null) {
-      element.style.opacity = 1;
+    this.element.style.width = this.properties.s[0] + "px";
+    this.element.style.height = this.properties.s[1] + "px";
+    this.element.style.setProperty("--themeColor", "#" + this.properties.c);
+    this.element.style.color = this.parent.utils.textColorBackground(this.properties.c);
+    if (this.properties._id != null) {
+      this.element.style.opacity = 1;
     } else {
-      element.setAttribute("tooleditor", "");
-      element.style.opacity = .7;
+      this.element.setAttribute("tooleditor", "");
+      this.element.style.opacity = .7;
     }
-    let pageLabel = element.querySelector(":scope > div[label]");
+    let pageLabel = this.element.querySelector(":scope > div[label]");
     if (pageLabel.hasAttribute("contenteditable") == false) {
-      if ((anno.title ?? "").length < 1) {
+      if ((this.properties.title ?? "").length < 1) {
         pageLabel.style.removeProperty("display");
         pageLabel.textContent = "";
       } else {
         pageLabel.style.display = "unset";
-        pageLabel.textContent = cleanString(anno.title);
+        pageLabel.textContent = cleanString(this.properties.title);
       }
     }
-    if (anno.r == null || anno.r < 45 || anno.r >= 315) {
+    if (this.properties.r == null || this.properties.r < 45 || this.properties.r >= 315) {
       pageLabel.style.removeProperty("right");
       pageLabel.style.removeProperty("bottom");
       pageLabel.style.left = "0px";
       pageLabel.style.top = "0px";
-      pageLabel.style.maxWidth = (anno.s[0] - 12) + "px";
+      pageLabel.style.maxWidth = (this.properties.s[0] - 12) + "px";
       pageLabel.style.transformOrigin = "center center";
       pageLabel.style.transform = "rotate(0deg)";
-    } else if (anno.r < 135) {
+    } else if (this.properties.r < 135) {
       pageLabel.style.removeProperty("right");
       pageLabel.style.removeProperty("top");
       pageLabel.style.left = "38px";
       pageLabel.style.bottom = "0px";
-      pageLabel.style.maxWidth = (anno.s[1] - 12) + "px";
+      pageLabel.style.maxWidth = (this.properties.s[1] - 12) + "px";
       pageLabel.style.transformOrigin = "left bottom";
       pageLabel.style.transform = "rotate(270deg)";
-    } else if (anno.r < 225) {
+    } else if (this.properties.r < 225) {
       pageLabel.style.removeProperty("left");
       pageLabel.style.removeProperty("top");
       pageLabel.style.right = "0px";
       pageLabel.style.bottom = "0px";
-      pageLabel.style.maxWidth = (anno.s[0] - 12) + "px";
+      pageLabel.style.maxWidth = (this.properties.s[0] - 12) + "px";
       pageLabel.style.transformOrigin = "center center";
       pageLabel.style.transform = "rotate(180deg)";
-    } else if (anno.r < 315) {
+    } else if (this.properties.r < 315) {
       pageLabel.style.removeProperty("right");
       pageLabel.style.removeProperty("bottom");
       pageLabel.style.left = "100%";
       pageLabel.style.top = "0px";
-      pageLabel.style.maxWidth = (anno.s[1] - 12) + "px";
+      pageLabel.style.maxWidth = (this.properties.s[1] - 12) + "px";
       pageLabel.style.transformOrigin = "left top";
       pageLabel.style.transform = "rotate(90deg)";
     }
-    let pageBorder = element.querySelector(":scope > div[border]");
-    let pageContent = element.querySelector(":scope > div[content]");
+    let pageBorder = this.element.querySelector(":scope > div[border]");
+    let pageContent = this.element.querySelector(":scope > div[content]");
     let pdfDocumentHolder = pageContent.querySelector(":scope > div[document]");
-    if (anno.source != null && anno.number != null) {
-      let sourcePageId = anno.source + "_" + anno.number;
+    if (this.properties.source != null && this.properties.number != null) {
+      let sourcePageId = this.properties.source + "_" + this.properties.number;
       if (pdfDocumentHolder != null && pdfDocumentHolder.getAttribute("sourcepage") != sourcePageId) {
         pdfDocumentHolder.remove();
         pdfDocumentHolder = null;
@@ -4097,32 +4376,32 @@ modules["editor/render/page"] = class {
         pageContent.insertAdjacentHTML("beforeend", `<div document></div>`);
         pdfDocumentHolder = pageContent.querySelector(":scope > div[document]");
         pdfDocumentHolder.setAttribute("sourcepage", sourcePageId);
-        pdfDocumentHolder.setAttribute("width", anno.s[0]);
-        pdfDocumentHolder.setAttribute("height", anno.s[1]);
-        pdfDocumentHolder.setAttribute("rotation", anno.rotation);
+        pdfDocumentHolder.setAttribute("width", this.properties.s[0]);
+        pdfDocumentHolder.setAttribute("height", this.properties.s[1]);
+        pdfDocumentHolder.setAttribute("rotation", this.properties.rotation);
         if (this.exporting != true) {
           pdfDocumentHolder.style.opacity = 0;
           pdfDocumentHolder.style.transition = "opacity .3s";
         }
-        this.parent.render.addPageToQueue(anno.source, anno.number);
+        this.parent.render.addPageToQueue(this.properties.source, this.properties.number);
       } else {
         pdfDocumentHolder.setAttribute("sourcepage", sourcePageId);
-        pdfDocumentHolder.setAttribute("width", anno.s[0]);
-        pdfDocumentHolder.setAttribute("height", anno.s[1]);
-        let rotation = anno.rotation ?? 0;
+        pdfDocumentHolder.setAttribute("width", this.properties.s[0]);
+        pdfDocumentHolder.setAttribute("height", this.properties.s[1]);
+        let rotation = this.properties.rotation ?? 0;
         pdfDocumentHolder.setAttribute("rotation", rotation);
         let canvas = pdfDocumentHolder.querySelector("canvas");
         if (canvas != null) {
           let canvasWidth = parseFloat(canvas.getAttribute("width"));
           let canvasHeight = parseFloat(canvas.getAttribute("height"));
-          let useWidth = anno.s[0];
-          let useHeight = anno.s[1];
+          let useWidth = this.properties.s[0];
+          let useHeight = this.properties.s[1];
           if (rotation == 90 || rotation == 270) {
-            let prevWidth = anno.s[0];
-            canvasWidth = anno.s[1];
+            let prevWidth = this.properties.s[0];
+            canvasWidth = this.properties.s[1];
             canvasHeight = prevWidth;
-            useWidth = anno.s[1];
-            useHeight = anno.s[0];
+            useWidth = this.properties.s[1];
+            useHeight = this.properties.s[0];
           }
           pdfDocumentHolder.style.setProperty("--fullWidth", canvasWidth + "px");
           pdfDocumentHolder.style.setProperty("--fullHeight", canvasHeight + "px");
@@ -4144,12 +4423,12 @@ modules["editor/render/page"] = class {
     } else if (pdfDocumentHolder != null) {
       pdfDocumentHolder.remove();
     }
-    let pageHiddenHolder = element.querySelector(":scope > div[hide]");
-    if (anno.hidden == true) {
-      element.setAttribute("hide", "");
+    let pageHiddenHolder = this.element.querySelector(":scope > div[hide]");
+    if (this.properties.hidden == true) {
+      this.element.setAttribute("hide", "");
       if (pageHiddenHolder == null) {
-        element.insertAdjacentHTML("beforeend", `<div hide></div>`);
-        let hiddenElem = element.querySelector(":scope > div[hide]");
+        this.element.insertAdjacentHTML("beforeend", `<div hide></div>`);
+        let hiddenElem = this.element.querySelector(":scope > div[hide]");
         if (this.parent.self.access < 4) {
           hiddenElem.insertAdjacentHTML("beforeend", `<img hideicon src="../images/editor/hidden.svg" draggable="false">`);
         } else {
@@ -4166,14 +4445,19 @@ modules["editor/render/page"] = class {
       }
       pageBorder.style.pointerEvents = "none";
     } else if (pageHiddenHolder != null) {
-      element.removeAttribute("hide");
+      this.element.removeAttribute("hide");
       pageHiddenHolder.remove();
       pageBorder.style.removeProperty("pointer-events");
     }
-    return { element: element, transform: transform };
+
+    this.setID();
+    this.setParent();
+    this.setZIndex();
+    this.setTransform();
+    this.setAnimate();
   }
 }
-modules["editor/render/media"] = class {
+modules["editor/render/annotation/media"] = class extends modules["editor/render/annotation"] {
   ACTION_BAR_TOOLS = ["imageborder", "unlock", "delete"];
 
   SELECTION_FUNCTION = (selection) => {
@@ -4188,60 +4472,64 @@ modules["editor/render/media"] = class {
     ".eAnnotation[media][border]:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: all; border-radius: inherit; background: var(--backgroundColor); box-shadow: inset 0px 0px 2px 0px var(--secondaryBackgroundColor)`,
     ".eAnnotation[media][border] > img": `width: calc(100% - 16px); height: calc(100% - 16px); left: 8px; top: 8px; border-radius: 4px`
   };
-  render = (anno, element, holder) => {
-    if (element == null) {
-      holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" media new><img draggable="false" /></div>`);
-      element = holder.querySelector(".eAnnotation[new]");
-      element.removeAttribute("new");
+  render = () => {
+    if (this.element == null) {
+      this.holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" media new><img draggable="false" /></div>`);
+      this.element = this.holder.querySelector(".eAnnotation[new]");
+      this.element.removeAttribute("new");
     }
-    element.style.width = anno.s[0] + "px";
-    element.style.height = anno.s[1] + "px";
-    let transform = "translate3d(" + anno.p[0] + "px," + anno.p[1] + "px, 0)";
-    if (anno._id != null) {
-      element.style.opacity = 1;
+    this.element.style.width = this.properties.s[0] + "px";
+    this.element.style.height = this.properties.s[1] + "px";
+    if (this.properties._id != null) {
+      this.element.style.opacity = 1;
     } else {
-      element.setAttribute("tooleditor", "");
-      element.style.opacity = .7;
+      this.element.setAttribute("tooleditor", "");
+      this.element.style.opacity = .7;
     }
 
-    let image = element.querySelector("img");
+    let image = this.element.querySelector("img");
 
-    image.style.opacity = (anno.o ?? 100) / 100;
+    image.style.opacity = (this.properties.o ?? 100) / 100;
 
-    if (anno.border != false) {
-      element.setAttribute("border", "");
+    if (this.properties.border != false) {
+      this.element.setAttribute("border", "");
     } else {
-      element.removeAttribute("border");
+      this.element.removeAttribute("border");
     }
 
     if (this.parent.exporting != true) {
-      if (anno.d != null || image.hasAttribute("src") == false) {
-        if (anno.d != null && anno.d.startsWith("blob:") == false) {
-          if (image.src != assetURL + anno.d) {
-            image.src = assetURL + anno.d;
+      if (this.properties.d != null || image.hasAttribute("src") == false) {
+        if (this.properties.d != null && this.properties.d.startsWith("blob:") == false) {
+          if (image.src != assetURL + this.properties.d) {
+            image.src = assetURL + this.properties.d;
           }
         } else {
-          if (image.src != (anno.d ?? "../images/editor/uploading.png")) {
-            image.src = anno.d ?? "../images/editor/uploading.png";
+          if (image.src != (this.properties.d ?? "../images/editor/uploading.png")) {
+            image.src = this.properties.d ?? "../images/editor/uploading.png";
           }
         }
       }
     } else {
       this.parent.exportPromises.push(new Promise(async (resolve) => {
         image.addEventListener("load", resolve);
-        if (anno.d != null || image.hasAttribute("src") == false) {
-          if (anno.d != null && anno.d.startsWith("blob:") == false) {
-            image.src = assetURL + anno.d;
+        if (this.properties.d != null || image.hasAttribute("src") == false) {
+          if (this.properties.d != null && this.properties.d.startsWith("blob:") == false) {
+            image.src = assetURL + this.properties.d;
           } else {
-            image.src = anno.d ?? "../images/editor/uploading.png";
+            image.src = this.properties.d ?? "../images/editor/uploading.png";
           }
         }
       }));
     }
-    return { element: element, transform: transform };
+
+    this.setID();
+    this.setParent();
+    this.setZIndex();
+    this.setTransform();
+    this.setAnimate();
   }
 }
-modules["editor/render/embed"] = class {
+modules["editor/render/annotation/embed"] = class extends modules["editor/render/annotation"] {
   ACTION_BAR_TOOLS = ["openlink", "enlarge", "setembed", "unlock", "delete"];
 
   css = {
@@ -4265,9 +4553,9 @@ modules["editor/render/embed"] = class {
     ".eAnnotation[embed] div[details] div[info] a[link]": `display: flex; width: fit-content; max-width: 100%; align-items: center; font-size: 16px; font-weight: 600; text-decoration: underline; color: var(--theme); text-wrap: nowrap; overflow: hidden; pointer-events: all`,
     ".eAnnotation[embed] div[details] div[info] a[link] img": `width: 32px; height: 32px; margin-right: 2px`
   };
-  render = (anno, element, holder) => {
-    if (element == null) {
-      holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" embed new>
+  render = () => {
+    if (this.element == null) {
+      this.holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" embed new>
         <div holder>
           <div content>
             <img thumbnail>
@@ -4285,34 +4573,33 @@ modules["editor/render/embed"] = class {
           </div>
         </div>
       </div>`);
-      element = holder.querySelector(".eAnnotation[new]");
-      element.removeAttribute("new");
+      this.element = this.holder.querySelector(".eAnnotation[new]");
+      this.element.removeAttribute("new");
     }
-    element.style.width = anno.s[0] + "px";
-    element.style.height = anno.s[1] + "px";
-    let transform = "translate3d(" + anno.p[0] + "px," + anno.p[1] + "px, 0)";
-    if (anno._id != null) {
-      element.style.opacity = 1;
+    this.element.style.width = this.properties.s[0] + "px";
+    this.element.style.height = this.properties.s[1] + "px";
+    if (this.properties._id != null) {
+      this.element.style.opacity = 1;
     } else {
-      element.setAttribute("tooleditor", "");
-      element.style.opacity = .7;
+      this.element.setAttribute("tooleditor", "");
+      this.element.style.opacity = .7;
     }
 
-    let embedHolder = element.querySelector("div[content]");
+    let embedHolder = this.element.querySelector("div[content]");
     let thumbnail = embedHolder.querySelector("img[thumbnail]");
-    let embedActivate = element.querySelector("div[activate]");
-    let embedFrame = element.querySelector("iframe");
-    let embedDetails = element.querySelector("div[details]");
+    let embedActivate = this.element.querySelector("div[activate]");
+    let embedFrame = this.element.querySelector("iframe");
+    let embedDetails = this.element.querySelector("div[details]");
     let linkInputHolder = embedDetails.querySelector("div[input]");
     let linkInput = linkInputHolder.querySelector("input");
     let infoHolder = embedDetails.querySelector("div[info]");
     let embedTitle = infoHolder.querySelector("div[title]");
     let embedDesc = infoHolder.querySelector("div[description]");
     let embedLink = infoHolder.querySelector("a[link]");
-    if (anno.d != null && anno.embed != null) {
+    if (this.properties.d != null && this.properties.embed != null) {
       linkInputHolder.removeAttribute("visible");
       if (this.exporting != true) {
-        if (anno.embed.url != null) {
+        if (this.properties.embed.url != null) {
           if (embedFrame == null) {
             embedActivate.querySelector("img").src = "../images/editor/actions/play.svg";
             embedActivate.style.display = "flex";
@@ -4321,14 +4608,14 @@ modules["editor/render/embed"] = class {
           embedActivate.style.display = "none";
         }
       }
-      if (anno.embed.image != null) {
+      if (this.properties.embed.image != null) {
         if (embedFrame == null) {
           if (this.exporting != true) {
-            thumbnail.src = anno.embed.image;
+            thumbnail.src = this.properties.embed.image;
           } else {
             this.parent.exportPromises.push(new Promise(async (resolve) => {
               thumbnail.addEventListener("load", resolve);
-              thumbnail.src = anno.embed.image;
+              thumbnail.src = this.properties.embed.image;
             }));
           }
           thumbnail.style.display = "unset";
@@ -4337,20 +4624,20 @@ modules["editor/render/embed"] = class {
         thumbnail.style.removeProperty("display");
         thumbnail.removeAttribute("src");
       }
-      if (anno.embed.color != null) {
-        embedHolder.style.background = cleanString(anno.embed.color);
+      if (this.properties.embed.color != null) {
+        embedHolder.style.background = cleanString(this.properties.embed.color);
       } else {
         embedHolder.style.removeProperty("background");
       }
-      if (anno.embed.title != null || anno.embed.site != null) {
-        embedTitle.textContent = cleanString(anno.embed.title ?? anno.embed.site);
+      if (this.properties.embed.title != null || this.properties.embed.site != null) {
+        embedTitle.textContent = cleanString(this.properties.embed.title ?? this.properties.embed.site);
         embedTitle.title = embedTitle.textContent;
         embedTitle.style.display = "unset";
       } else {
         embedTitle.style.removeProperty("display");
       }
-      if (anno.embed.description != null) {
-        embedDesc.textContent = cleanString(anno.embed.description);
+      if (this.properties.embed.description != null) {
+        embedDesc.textContent = cleanString(this.properties.embed.description);
         embedDesc.title = embedDesc.textContent;
         embedDesc.style.display = "unset";
       } else {
@@ -4364,16 +4651,16 @@ modules["editor/render/embed"] = class {
       infoHolder.style.display = "none";
     }
     if (document.activeElement != linkInput) {
-      linkInput.value = anno.d ?? "";
+      linkInput.value = this.properties.d ?? "";
     }
-    if (anno.d != null) {
-      embedLink.querySelector("div").textContent = (new URL(anno.d)).hostname;
-      embedLink.title = anno.d;
-      embedLink.href = anno.d;
+    if (this.properties.d != null) {
+      embedLink.querySelector("div").textContent = (new URL(this.properties.d)).hostname;
+      embedLink.title = this.properties.d;
+      embedLink.href = this.properties.d;
     }
 
     if (embedFrame != null) {
-      let frameWidth = anno.s[0] - 16;
+      let frameWidth = this.properties.s[0] - 16;
       let defaultMaxWidth = 800;
       if (frameWidth < 300) {
         defaultMaxWidth = 300;
@@ -4381,14 +4668,19 @@ modules["editor/render/embed"] = class {
       let embedWidth = Math.max(frameWidth, defaultMaxWidth);
       let scale = frameWidth / embedWidth;
       embedFrame.style.width = embedWidth + "px";
-      embedFrame.style.height = ((anno.s[1] - 24 - embedDetails.offsetHeight) * (1 / scale)) + "px";
+      embedFrame.style.height = ((this.properties.s[1] - 24 - embedDetails.offsetHeight) * (1 / scale)) + "px";
       embedFrame.style.transform = "scale(" + scale + ")";
 
-      if (embedFrame.getAttribute("currenturl") != (anno.embed ?? {}).url) {
+      if (embedFrame.getAttribute("currenturl") != (this.properties.embed ?? {}).url) {
         embedFrame.remove();
         embedActivate.style.opacity = 1;
       }
     }
-    return { element: element, transform: transform };
+
+    this.setID();
+    this.setParent();
+    this.setZIndex();
+    this.setTransform();
+    this.setAnimate();
   }
 }

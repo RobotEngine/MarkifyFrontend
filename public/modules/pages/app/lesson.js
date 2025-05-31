@@ -38,6 +38,9 @@ modules["pages/app/lesson"] = class {
     if (typePages[id] != null) {
       this.removePage(id, type);
     }
+    if (this.activePageID == null) {
+      this.activePageID = id;
+    }
     let construct = {
       pageID: id,
       pageType: type,
@@ -46,6 +49,7 @@ modules["pages/app/lesson"] = class {
     if (this.resyncPages != null && this.resyncPages[id] != null) {
       construct.resync = this.resyncPages[id];
     }
+    holder.setAttribute("dropdownholder", "");
     let newPage = await this.setFrame("lesson/" + type, holder, { construct: construct });
     if (newPage == null) {
       return;
@@ -202,7 +206,7 @@ modules["pages/app/lesson"] = class {
     this.exporting = getParam("export_browser") == "true";
     if (this.exporting == true) {
       addCSS({ ".loading": `display: none` });
-      loadScript("./modules/lesson/export.js");
+      loadScript("../modules/lesson/export.js");
     }
 
     let pageHolder = page.querySelector(".lPageHolder");
@@ -370,10 +374,8 @@ modules["pages/app/lesson"] = class {
     let sizeUpdate = () => {
       if (fixed.offsetWidth > 800 && fixed.offsetHeight > 400 && this.exporting != true) {
         pageHolder.removeAttribute("maximize");
-        fixed.style.setProperty("--floatMargin", "12px");
       } else {
         pageHolder.setAttribute("maximize", "");
-        fixed.style.removeProperty("--floatMargin");
       }
     }
     tempListen(window, "resize", (event) => {

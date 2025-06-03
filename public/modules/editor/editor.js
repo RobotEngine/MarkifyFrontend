@@ -1276,6 +1276,40 @@ modules["editor/editor"] = class {
       return allowedLock;
     }
 
+    this.utils.getCollaboratorSync = {};
+    this.utils.getCollaborator = async (modify, callback) => {
+      if (modify == null) {
+        if (callback) await callback({});
+        return {};
+      }
+
+      let collaborator = this.collaborators[modify];
+      if (collaborator != null) {
+        if (callback) await callback(collaborator);
+        return collaborator;
+      }
+
+      if (this.utils.getCollaboratorSync[modify] == null) {
+        this.utils.getCollaboratorSync[modify] = (async () => {
+          let [code, body] = await sendRequest("GET", "lessons/members/collaborator?modify=" + modify, null, { session: this.session, allowError: [404] });
+          if (code == 200) {
+            this.collaborators[body._id] = body;
+            return body;
+          } else if (code == 404) {
+            this.collaborators[modify] = {};
+            return {};
+          }
+        })();
+      }
+
+      let result = await this.utils.getCollaboratorSync[modify];
+      
+      delete this.utils.getCollaboratorSync[modify];
+
+      if (callback) await callback(result);
+      return result;
+    }
+
     this.render = {};
     this.render.pdfPageQueue = [];
     this.render.pdfPageStorage = {};
@@ -3582,6 +3616,10 @@ modules["editor/render/annotation"] = class {
     }
   }
 
+  subscribe = (event, callback, extra) => {
+    this.parent.pipeline.subscribe("annotation_" + this.properties._id, event, callback, extra);
+  }
+
   hide = () => {
     let element = this.getElement();
     if (element == null) {
@@ -3608,6 +3646,7 @@ modules["editor/render/annotation"] = class {
       return;
     }
     element.remove();
+    this.parent.pipeline.unsubscribe("annotation_" + this.properties._id);
   }
 
   getContainer = () => {
@@ -4221,14 +4260,15 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
   KEEP_ON_PARENT_DELETE = true;
 
   css = {
-    ".eAnnotation[comment]": `z-index: calc(var(--maxZIndex) + var(--startZIndex) + 1) !important`,
+    ".eAnnotation[comment]": `--themeColor: var(--theme); z-index: calc(var(--maxZIndex) + var(--startZIndex) + 1) !important`,
     ".eAnnotation[comment] > div[commentholder]": `width: 1px; height: 1px; transform: scale(calc(1 / var(--zoom)))`,
     ".eAnnotation[comment] > div[commentholder] > div[comment]": `position: absolute; display: flex; width: 32px; height: 32px; left: 0px; top: -32px; background: var(--pageColor); border-radius: 16px 16px 16px 6px; pointer-events: all; transform-origin: bottom left; transition: .2s`,
     ".eAnnotation[comment][selected] > div[commentholder] > div[comment]": `background: var(--themeColor) !important`,
     ".eAnnotation[comment] > div[commentholder] > div[comment]:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; box-shadow: 0px 0px 6px var(--themeColor); opacity: .6`,
     ".eAnnotation[comment] > div[commentholder] > div[comment] > div[profileholder]": `width: 24px; height: 24px; margin: 4px; background: var(--themeColor); border-radius: 12px; overflow: hidden`,
     ".eAnnotation[comment] > div[commentholder] > div[comment] > div[profileholder] > div[dots]": `display: flex; gap: 2px; width: 100%; height: 100%; justify-content: center; align-items: center`,
-    ".eAnnotation[comment] > div[commentholder] > div[comment] > div[profileholder] > div[dots] > div": `width: 4px; height: 4px; background: var(--pageColor); border-radius: 2px`
+    ".eAnnotation[comment] > div[commentholder] > div[comment] > div[profileholder] > div[dots] > div": `width: 4px; height: 4px; background: var(--pageColor); border-radius: 2px`,
+    ".eAnnotation[comment] > div[commentholder] > div[comment] > div[profileholder] > img": `width: 100%; height: 100%; border-radius: 12px; object-fit: cover`
   };
   render = () => {
     if (this.element == null) {
@@ -4244,10 +4284,29 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
       this.element = this.parent.annotationHolder.querySelector(".eAnnotation[new]");
       this.element.removeAttribute("new");
     }
-    this.element.style.setProperty("--themeColor", "#0084FF"); // ADD THIS
 
     let absolutePos = this.parent.utils.getAbsolutePosition(this.properties, true);
     this.element.style.transform = "translate3d(" + absolutePos.x + "px," + absolutePos.y + "px, 0)";
+
+    let setCollaborator = (collaborator) => {
+      if (this.element == null) {
+        return;
+      }
+      this.element.style.setProperty("--themeColor", collaborator.color);
+      if (collaborator.image != null) {
+        let profileHolder = this.element.querySelector("div[profileholder]");
+        profileHolder.innerHTML = `<img src="../images/profiles/default.svg" />`;
+        profileHolder.querySelector("img").src = collaborator.image;
+      }
+    }
+    let modifyID = this.properties.a ?? this.properties.m;
+    this.parent.utils.getCollaborator(modifyID, (collaborator) => {
+      if (collaborator._id == null) {
+        return;
+      }
+      setCollaborator(collaborator);
+    });
+    this.subscribe("collaborator_update_" + modifyID, setCollaborator);
 
     this.setID();
     this.setZIndex();

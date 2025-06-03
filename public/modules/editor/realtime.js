@@ -442,13 +442,13 @@ modules["editor/realtime"] = class {
                 offsetx = -20;
                 offsety = -20;
                 origin = "center center";
+                break;
               case 5: // Comment
                 html = `${await getSVG("../images/editor/cursors/comment.svg")}<div class="pointer" color none><div name></div></div>`;
                 offsetx = -12;
                 offsety = -32;
                 origin = "center center";
             }
-            await sleep(100);
             cursorHolder.innerHTML = html; //.replace(/MEMBER_COLOR_REPLACE/g, "var(--themeColor)");
             cursorHolder.setAttribute("offsetx", offsetx);
             cursorHolder.setAttribute("offsety", offsety);

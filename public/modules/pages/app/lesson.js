@@ -261,14 +261,20 @@ modules["pages/app/lesson"] = class {
                 this.memberCount++;
               }
               objectUpdate(body, this.members[body._id] ?? {});
-              let collaborator = this.collaborators[body.modify];
-              if (collaborator != null) {
-                collaborator.name = body.name;
-                collaborator.color = body.color;
+              let collaborator = this.collaborators[body.modify] ?? {};
+              collaborator.name = body.name;
+              collaborator.color = body.color;
+              if (body.hasOwnProperty("email") == true) {
                 collaborator.email = body.email;
-                if (body.hasOwnProperty("image") == true) {
-                  collaborator.image = body.image;
-                }
+              }
+              if (body.hasOwnProperty("image") == true) {
+                collaborator.image = body.image;
+              }
+              if (collaborator._id == null) {
+                this.collaborators[body.modify] = { _id: body.modify, ...collaborator };
+              } else {
+                this.pushToPipelines(null, "collaborator_update", collaborator);
+                this.pushToPipelines(null, "collaborator_update_" + body.modify, collaborator);
               }
               if (body.access == 1) {
                 this.editorCount++;
@@ -328,15 +334,20 @@ modules["pages/app/lesson"] = class {
                 }
                 let collaborator = this.collaborators[member.modify];
                 if (collaborator != null) {
-                  if (body.name != null) {
+                  if (body.hasOwnProperty("name") == true) {
                     collaborator.name = body.name;
                   }
-                  if (body.email != null) {
+                  if (body.hasOwnProperty("color") == true) {
+                    collaborator.color = body.color;
+                  }
+                  if (body.hasOwnProperty("email") == true) {
                     collaborator.email = body.email;
                   }
                   if (body.hasOwnProperty("image") == true) {
                     collaborator.image = body.image;
                   }
+                  this.pushToPipelines(null, "collaborator_update", collaborator);
+                  this.pushToPipelines(null, "collaborator_update_" + member.modify, collaborator);
                 }
               } else {
                 return;
@@ -504,6 +515,16 @@ modules["pages/app/lesson"] = class {
         if (this.members[memSet._id] == null) {
           this.members[memSet._id] = {};
         }
+        let collaborator = {};
+        collaborator.name = memSet.name;
+        collaborator.color = memSet.color;
+        if (memSet.hasOwnProperty("email") == true) {
+          collaborator.email = memSet.email;
+        }
+        if (memSet.hasOwnProperty("image") == true) {
+          collaborator.image = memSet.image;
+        }
+        this.collaborators[memSet.modify] = { _id: memSet.modify, ...collaborator };
         let member = this.members[memSet._id];
         if (memSet.access == 1 && (member.access == null || member.access < 1)) {
           this.editorCount++;

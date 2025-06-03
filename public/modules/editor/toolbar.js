@@ -3917,14 +3917,14 @@ modules["editor/toolbar"] = class {
       let meta = event.ctrlKey || event.metaKey;
 
       if (event.keyCode == 90 && event.shiftKey == true && meta == true) { // Handle Redo
-        if (editor.isThisPage(event.target) == true && document.activeElement == event.target && editor.isEditorContent(event.target) == false) {
+        if (event.target != null && editor.isEditorContent(event.target) == false && (["INPUT", "TEXTAREA"].includes(event.target.tagName) == true || event.target.isContentEditable == true)) {
           return;
         }
         event.preventDefault();
         return this.selection.redo();
       }
       if (event.keyCode == 90 && meta == true) { // Handle Undo
-        if (editor.isThisPage(event.target) == true && document.activeElement == event.target && editor.isEditorContent(event.target) == false) {
+        if (event.target != null && editor.isEditorContent(event.target) == false && (["INPUT", "TEXTAREA"].includes(event.target.tagName) == true || event.target.isContentEditable == true)) {
           return;
         }
         event.preventDefault();
@@ -3963,25 +3963,31 @@ modules["editor/toolbar"] = class {
         event.preventDefault();
         for (let i = 0; i < selectKeys.length; i++) {
           let selectID = selectKeys[i];
-          let selecting = editor.selecting[selectID];
+          let selecting = editor.selecting[selectID] ?? {};
           let anno = (editor.annotations[selectID] ?? {}).render;
           if (editor.utils.canMemberModify(anno) == false) { // Can't edit another member's work:
             continue;
           }
-          selecting.p = selecting.p ?? [anno.p[0] ?? 0, anno.p[1] ?? 0];
           let nudge = 1;
           if (event.shiftKey == true) {
             nudge = 10;
           }
+          let { annoX, annoY } = editor.utils.getRect(anno);
           if (event.keyCode == 37) {
-            selecting.p[0] -= nudge;
+            annoX -= nudge;
           } else if (event.keyCode == 38) {
-            selecting.p[1] -= nudge;
+            annoY -= nudge;
           } else if (event.keyCode == 39) {
-            selecting.p[0] += nudge;
+            annoX += nudge;
           } else if (event.keyCode == 40) {
-            selecting.p[1] += nudge;
+            annoY += nudge;
           }
+          let { x: newX, y: newY } = editor.utils.getRelativePosition({
+            ...anno,
+            ...selecting,
+            p: [annoX, annoY],
+          });
+          selecting.p = [newX, newY];
         }
         this.selection.action = "save";
         return await this.selection.endAction();
@@ -5431,7 +5437,7 @@ modules["editor/toolbar/comment"] = class {
     ".eCommentHolder": `width: 100%; overflow-x: hidden; overflow-y: auto; border-radius: inherit`,
     ".eCommentItem": `display: flex; box-sizing: border-box; width: 100%; background: var(--pageColor)`,
     ".eCommentContainer": `display: flex; box-sizing: border-box; flex: 1; min-width: 0; padding: 8px`,
-    ".eCommentContainer img[profile]": `width: 32px; height: 32px; cover; border-radius: 16px`,
+    ".eCommentContainer img[profile]": `width: 32px; height: 32px; object-fit: cover; border-radius: 16px`,
     ".eCommentItem[new] .eCommentContainer img[profile]": `display: none`,
     ".eCommentContainer div[content]": `flex: 1; min-width: 0; height: 100%; margin-left: 6px; text-align: left; align-content: center`,
     ".eCommentContainer div[content] div[header]": `display: flex; width: 100%; height: 32px; align-items: center`,
@@ -5471,10 +5477,8 @@ modules["editor/toolbar/comment"] = class {
       this.frame.style.transformOrigin = "right 24px";
     }
     this.frame.style.top = annotationRect.top + (centerY * this.editor.zoom) - 24 + this.editor.contentHolder.scrollTop + "px";
-    
-    this.frame.style.setProperty("--themeColor", "#0084FF"); // ADD THIS
   }
-  openCommentFrame = (annotation) => {
+  openCommentFrame = async (annotation) => {
     this.closeCommentFrame();
     this.annotation = annotation;
 
@@ -5499,6 +5503,9 @@ modules["editor/toolbar/comment"] = class {
     this.frame.removeAttribute("new");
     this.updateCommentFrame();
 
+    let collaborator = await this.editor.utils.getCollaborator(annotation.render.a ?? annotation.render.m);
+    this.frame.style.setProperty("--themeColor", collaborator.color);
+    
     if (annotation.new == true) {
       let commentItem = this.frame.querySelector(".eCommentItem");
       let commentText = commentItem.querySelector("div[text]");
@@ -5567,7 +5574,8 @@ modules["editor/toolbar/comment"] = class {
         f: "comment",
         p: [this.editor.math.round(position.x) - (1 / this.editor.zoom), this.editor.math.round(position.y) - (1 / this.editor.zoom)],
         s: [0, 0],
-        d: {}
+        d: {},
+        a: this.editor.self.modify
       },
       new: true
     };
@@ -7250,14 +7258,7 @@ modules["editor/toolbar/collaborator"] = class {
     (async () => {
       if (collaborator == null) { // Fetch to get the collaborator
         this.button.setAttribute("disabled", "");
-        let [code, body] = await sendRequest("GET", "lessons/members/collaborator?modify=" + modifiedBy, null, { session: this.editor.session, allowError: [404] });
-        if (code == 200) {
-          this.editor.collaborators[body._id] = body;
-          collaborator = this.editor.collaborators[body._id];
-        } else {
-          this.editor.collaborators[modifiedBy] = {};
-          collaborator = this.editor.collaborators[modifiedBy];
-        }
+        collaborator = await this.editor.utils.getCollaborator(modifiedBy);
       }
       if (collaborator._id == null) {
         return this.toolbar.selection.updateActionBar({ redrawActionBar: true });

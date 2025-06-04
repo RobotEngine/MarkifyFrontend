@@ -5433,7 +5433,7 @@ modules["editor/toolbar/comment"] = class {
 
   css = {
     ".eCommentFrame": `position: absolute; width: 300px; min-height: 48px; left: 0px; top: 0px; opacity: 0; transform: scale(0); z-index: 101; border-radius: 24px; transition: transform .2s, opacity .2s; background: var(--pageColor)`,
-    ".eCommentFrame:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; box-shadow: 0px 0px 6px var(--themeColor); opacity: .6; pointer-events: none`,
+    ".eCommentFrame:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; box-shadow: 0px 0px 6px var(--theme); opacity: .6; pointer-events: none`,
     ".eCommentHolder": `width: 100%; overflow-x: hidden; overflow-y: auto; border-radius: inherit`,
     ".eCommentItem": `display: flex; box-sizing: border-box; width: 100%; background: var(--pageColor)`,
     ".eCommentContainer": `display: flex; box-sizing: border-box; flex: 1; min-width: 0; padding: 8px`,
@@ -5446,7 +5446,7 @@ modules["editor/toolbar/comment"] = class {
     ".eCommentContainer div[content] div[header] div[time]": `margin-left: 6px; color: var(--darkGray); font-size: 14px; font-weight: 500; white-space: nowrap`,
     ".eCommentContainer div[content] div[text]": `box-sizing: border-box; width: 100%; height: fit-content; font-size: 14px; outline: none`,
     ".eCommentItem[new] .eCommentContainer div[content] div[text]": `padding: 6px 0`,
-    ".eCommentItem button": `display: flex; width: 36px; height: 36px; margin: 6px 6px 6px 0; justify-content: center; align-items: center; background: var(--themeColor); border-radius: 18px`,
+    ".eCommentItem button": `display: flex; width: 36px; height: 36px; margin: 6px 6px 6px 0; justify-content: center; align-items: center; background: var(--theme); border-radius: 18px`,
     ".eCommentItem button img": `width: 28px; height: 28px`
   }
   commentWidth = 32;
@@ -5503,8 +5503,8 @@ modules["editor/toolbar/comment"] = class {
     this.frame.removeAttribute("new");
     this.updateCommentFrame();
 
-    let collaborator = await this.editor.utils.getCollaborator(annotation.render.a ?? annotation.render.m);
-    this.frame.style.setProperty("--themeColor", collaborator.color);
+    //let collaborator = await this.editor.utils.getCollaborator(annotation.render.a ?? annotation.render.m);
+    //this.frame.style.setProperty("--themeColor", collaborator.color);
     
     if (annotation.new == true) {
       let commentItem = this.frame.querySelector(".eCommentItem");
@@ -5524,6 +5524,7 @@ modules["editor/toolbar/comment"] = class {
           addText.push(text);
         }
         annotation.render.d.b = addText;
+        annotation.render.time = getEpoch();
         await this.editor.save.push(annotation.render);
         await this.editor.history.push("remove", [{ _id: annotation.render._id }]);
 

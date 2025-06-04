@@ -17,7 +17,7 @@ modules["editor/editor"] = class {
 
     ".eAnnotation": `position: absolute; left: 0px; top: 0px; z-index: calc(var(--startZIndex) + var(--zIndex))`,
     ".eAnnotation[hidden]": `display: none !important`,
-    ".eAnnotation[anno]": `transition: .25s`,
+    ".eAnnotation[anno]": `transition: all .25s, z-index 0s`,
     //".eAnnotation:not([anno])": `display: none !important`,
     ".eAnnotationHolder": `position: absolute; z-index: 10`,
     //".eAnnotationHolder[notransition] > .eAnnotation": `transition: unset !important`,
@@ -1303,7 +1303,7 @@ modules["editor/editor"] = class {
       }
 
       let result = await this.utils.getCollaboratorSync[modify];
-      
+
       delete this.utils.getCollaboratorSync[modify];
 
       if (callback) await callback(result);
@@ -3829,12 +3829,12 @@ modules["editor/render/annotation/text"] = class extends modules["editor/render/
   ACTION_BAR_TOOLS = ["textedit", "color", "opacity", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "unlock", "delete"];
 
   css = {
-    ".eAnnotation div[text]": `padding: 4px 6px; margin: 3px; color: var(--themeColor); font-weight: 500; pointer-events: all; outline: none`,
-    ".eAnnotation div[text][placeborder]": `width: max-content; margin: 0px; border: solid 3px var(--themeColor); border-radius: 8px`
+    ".eAnnotation[text] div[text]": `padding: 4px 6px; margin: 3px; color: var(--themeColor); font-weight: 500; pointer-events: all; outline: none`,
+    ".eAnnotation[text] div[text][placeborder]": `width: max-content; margin: 0px; border: solid 3px var(--themeColor); border-radius: 8px`
   };
   render = () => {
     if (this.element == null) {
-      this.holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
+      this.holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" text new>
         <div text edit></div>
       </div>`);
       this.element = this.holder.querySelector(".eAnnotation[new]");
@@ -4260,23 +4260,42 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
   KEEP_ON_PARENT_DELETE = true;
 
   css = {
-    ".eAnnotation[comment]": `--themeColor: var(--theme); z-index: calc(var(--maxZIndex) + var(--startZIndex) + 1) !important`,
+    ".eAnnotation[comment]": `--themeColor: var(--theme); z-index: calc(var(--maxZIndex) + var(--startZIndex) + 1) !important; `,
+    ".eAnnotation[comment][selected]": `z-index: calc(var(--maxZIndex) + var(--startZIndex) + 2) !important`,
+    ".eAnnotation[comment]:not([selected]):hover": `z-index: calc(var(--maxZIndex) + var(--startZIndex) + 2) !important`,
     ".eAnnotation[comment] > div[commentholder]": `width: 1px; height: 1px; transform: scale(calc(1 / var(--zoom)))`,
-    ".eAnnotation[comment] > div[commentholder] > div[comment]": `position: absolute; display: flex; width: 32px; height: 32px; left: 0px; top: -32px; background: var(--pageColor); border-radius: 16px 16px 16px 6px; pointer-events: all; transform-origin: bottom left; transition: .2s`,
+    ".eAnnotation[comment] > div[commentholder] > div[comment]": `position: absolute; display: flex; width: 32px; height: 32px; left: 0px; bottom: 0px; background: var(--pageColor); border-radius: 16px 16px 16px 6px; pointer-events: all; transform-origin: bottom left; transition: .2s`,
     ".eAnnotation[comment][selected] > div[commentholder] > div[comment]": `background: var(--themeColor) !important`,
-    ".eAnnotation[comment] > div[commentholder] > div[comment]:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; box-shadow: 0px 0px 6px var(--themeColor); opacity: .6`,
-    ".eAnnotation[comment] > div[commentholder] > div[comment] > div[profileholder]": `width: 24px; height: 24px; margin: 4px; background: var(--themeColor); border-radius: 12px; overflow: hidden`,
-    ".eAnnotation[comment] > div[commentholder] > div[comment] > div[profileholder] > div[dots]": `display: flex; gap: 2px; width: 100%; height: 100%; justify-content: center; align-items: center`,
-    ".eAnnotation[comment] > div[commentholder] > div[comment] > div[profileholder] > div[dots] > div": `width: 4px; height: 4px; background: var(--pageColor); border-radius: 2px`,
-    ".eAnnotation[comment] > div[commentholder] > div[comment] > div[profileholder] > img": `width: 100%; height: 100%; border-radius: 12px; object-fit: cover`
+    ".eAnnotation[comment] > div[commentholder] > div[comment]:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; box-shadow: 0px 0px 6px var(--themeColor); opacity: .6; transition: .2s`,
+    ".eAnnotation[comment]:not([selected]):hover > div[commentholder] > div[comment]": `width: var(--animateWidth); height: var(--animateHeight); padding: 4px`,
+    ".eAnnotation[comment]:not([selected]):hover > div[commentholder] > div[comment]:after": `box-shadow: 0px 0px 10px var(--themeColor)`,
+    ".eAnnotation[comment] > div[commentholder] > div[comment] div[container]": `display: flex; box-sizing: border-box; width: 100%; height: 100%; padding: 4px; border-radius: inherit; overflow: hidden`,
+    ".eAnnotation[comment] > div[commentholder] > div[comment] div[profileholder]": `flex-shrink: 0; width: 24px; height: 24px; background: var(--themeColor); border-radius: 12px; overflow: hidden`,
+    ".eAnnotation[comment] > div[commentholder] > div[comment] div[profileholder] > div[dots]": `display: flex; gap: 2px; width: 100%; height: 100%; justify-content: center; align-items: center`,
+    ".eAnnotation[comment] > div[commentholder] > div[comment] div[profileholder] > div[dots] > div": `width: 4px; height: 4px; background: var(--pageColor); border-radius: 2px`,
+    ".eAnnotation[comment] > div[commentholder] > div[comment] div[profileholder] > img": `width: 100%; height: 100%; border-radius: 12px; object-fit: cover`,
+    ".eAnnotation[comment] > div[commentholder] > div[comment] div[content]": `min-width: max-content; height: fit-content; margin-left: 6px; text-align: left`,
+    ".eAnnotation[comment] > div[commentholder] > div[comment] div[memberholder]": `display: flex; max-width: 200px; height: 24px; align-items: center`,
+    ".eAnnotation[comment] > div[commentholder] > div[comment] div[member]": `flex: 1; min-width: 0; max-width: fit-content; font-size: 14px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
+    ".eAnnotation[comment] > div[commentholder] > div[comment] div[time]": `margin-left: 6px; color: var(--darkGray); font-size: 12px; font-weight: 500; white-space: nowrap`,
+    ".eAnnotation[comment] > div[commentholder] > div[comment] div[text]": `box-sizing: border-box; width: 100%; max-width: 200px; height: fit-content; font-size: 12px; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden`,
   };
   render = () => {
     if (this.element == null) {
       this.parent.annotationHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" comment new>
         <div commentholder>
           <div comment>
-            <div profileholder>
-              <div dots><div></div><div></div><div></div></div>
+            <div container>
+              <div profileholder>
+                <div dots><div></div><div></div><div></div></div>
+              </div>
+              <div content>
+                <div memberholder>
+                  <div member></div>
+                  <div time></div>
+                </div>
+                <div text></div>
+              </div>
             </div>
           </div>
         </div>
@@ -4288,16 +4307,45 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
     let absolutePos = this.parent.utils.getAbsolutePosition(this.properties, true);
     this.element.style.transform = "translate3d(" + absolutePos.x + "px," + absolutePos.y + "px, 0)";
 
+    let comment = this.element.querySelector("div[commentholder] > div[comment]");
+    let content = comment.querySelector("div[content]");
+    let setTime = this.properties.time ?? this.properties.sync;
+    if (setTime != null) {
+      content.querySelector("div[time]").textContent = timeSince(this.properties.time ?? this.properties.sync);
+    }
+    let richText = this.properties.d ?? {};
+    let setHTML = "";
+    for (let i = 0; i < (richText.b ?? []).length; i++) {
+      let addHTML = "";
+      if (richText.b[i] != "\n") {
+        addHTML = "<div>" + cleanString(richText.b[i]) + "</div>";
+      } else {
+        addHTML = "<br>";
+      }
+      setHTML += addHTML;
+    }
+    content.querySelector("div[text]").innerHTML = setHTML;
+
+    let updateCommentSize = () => {
+      if (this.annotation.new != true) {
+        comment.style.setProperty("--animateWidth", (content.clientWidth + 40) + "px"); //38
+        comment.style.setProperty("--animateHeight", (content.clientHeight + 8) + "px");
+      }
+    }
+    updateCommentSize();
+
     let setCollaborator = (collaborator) => {
       if (this.element == null) {
         return;
       }
       this.element.style.setProperty("--themeColor", collaborator.color);
       if (collaborator.image != null) {
-        let profileHolder = this.element.querySelector("div[profileholder]");
+        let profileHolder = comment.querySelector("div[profileholder]");
         profileHolder.innerHTML = `<img src="../images/profiles/default.svg" />`;
         profileHolder.querySelector("img").src = collaborator.image;
       }
+      comment.querySelector("div[member]").textContent = collaborator.name;
+      updateCommentSize();
     }
     let modifyID = this.properties.a ?? this.properties.m;
     this.parent.utils.getCollaborator(modifyID, (collaborator) => {

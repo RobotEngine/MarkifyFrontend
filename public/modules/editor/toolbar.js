@@ -4148,7 +4148,7 @@ modules["editor/toolbar"] = class {
         if (bottomRightY > maxTop || maxTop == null) {
           maxTop = bottomRightY;
         }
-        minZIndex = Math.min(minZIndex ?? newAnno.l ?? editor.minLayer, newAnno.l ?? editor.minLayer);
+        minZIndex = Math.min(minZIndex ?? newAnno.l ?? editor.minLayer, newAnno.l ?? minZIndex ?? editor.minLayer);
       }
 
       let { x: centerPageX, y: centerPageY } = editor.utils.scaleToDoc(page.offsetWidth / 2, page.offsetHeight / 2);
@@ -6791,8 +6791,8 @@ modules["editor/toolbar/more"] = class {
       if (bottomRightY > maxTop || maxTop == null) {
         maxTop = bottomRightY;
       }
-      maxZIndex = Math.max(maxZIndex ?? render.l ?? this.editor.utils.maxLayer, render.l ?? this.editor.utils.maxLayer);
-      minZIndex = Math.min(minZIndex ?? render.l ?? this.editor.utils.minLayer, render.l ?? this.editor.utils.minLayer);
+      maxZIndex = Math.max(maxZIndex ?? render.l ?? this.editor.utils.maxLayer, render.l ?? maxZIndex ?? this.editor.utils.maxLayer);
+      minZIndex = Math.min(minZIndex ?? render.l ?? this.editor.utils.minLayer, render.l ?? minZIndex ?? this.editor.utils.minLayer);
       let tempID = this.editor.render.tempID();
       parentIDs[annoID] = tempID;
       saveAnnoData.push({ ...copyObject(render), _id: tempID });
@@ -6812,8 +6812,8 @@ modules["editor/toolbar/more"] = class {
       if (selectingParent == false) {
         continue;
       }
-      maxZIndex = Math.max(maxZIndex ?? render.l ?? this.editor.utils.maxLayer, render.l ?? this.editor.utils.maxLayer);
-      minZIndex = Math.min(minZIndex ?? render.l ?? this.editor.utils.minLayer, render.l ?? this.editor.utils.minLayer);
+      maxZIndex = Math.max(maxZIndex ?? render.l ?? this.editor.utils.maxLayer, render.l ?? maxZIndex ?? this.editor.utils.maxLayer);
+      minZIndex = Math.min(minZIndex ?? render.l ?? this.editor.utils.minLayer, render.l ?? minZIndex ?? this.editor.utils.minLayer);
       let tempID = this.editor.render.tempID();
       parentIDs[render._id] = tempID;
       saveAnnoData.push({ ...copyObject(render), _id: tempID });

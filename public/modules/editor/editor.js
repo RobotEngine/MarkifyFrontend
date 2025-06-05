@@ -4256,6 +4256,7 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
   DISABLE_SNAPPING = true;
   CAN_BE_SNAPPED_TO = false;
   CAN_BE_MULTISELECT = false;
+  CAN_DRAG_SELECT = false;
   CAN_BE_CHILD_ANY_PARENT = true;
   ONLY_PARENT_CHANGE_ON_EDIT = true;
   REDRAW_ON_PARENT_UPDATE = true;
@@ -4310,7 +4311,7 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
   render = () => {
     let newAnnotation = this.element == null;
     if (newAnnotation == true) {
-      this.parent.annotationHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" comment new>
+      this.parent.annotationHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" comment new style="display: none">
         <div commentholder>
           <div comment>
             <div container>
@@ -4373,10 +4374,10 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
     }
     let modifyID = this.properties.a ?? this.properties.m;
     this.parent.utils.getCollaborator(modifyID, (collaborator) => {
-      if (collaborator._id == null) {
-        return;
+      if (collaborator._id != null) {
+        setCollaborator(collaborator);
       }
-      setCollaborator(collaborator);
+      this.element.style.removeProperty("display");
     });
 
     if (newAnnotation == true) {
@@ -4399,7 +4400,6 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
     }
     
     this.setID();
-    this.setZIndex();
     this.setAnimate();
 
     if (this.commentModule != null) {

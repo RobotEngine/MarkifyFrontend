@@ -4679,7 +4679,10 @@ modules["editor/toolbar/drag"] = class {
         continue;
       }
 
-      let annotationModule = await this.editor.render.getModule(annotation, render.f);
+      let annotationModule = (await this.editor.render.getModule(annotation, render.f)) ?? {};
+      if (annotationModule.CAN_DRAG_SELECT == false) {
+        continue;
+      }
       let { x, y, endX, endY, rotation, selectingParent } = this.editor.utils.getRect(render);
       if (selectingParent == true) {
         continue;
@@ -5441,10 +5444,22 @@ modules["editor/toolbar/comment"] = class {
     ".eCommentFrame": `position: absolute; width: 300px; min-height: 48px; left: 0px; top: 0px; opacity: 0; transform: scale(0); z-index: 101; border-radius: 24px; transition: transform .2s, opacity .2s; background: var(--pageColor); user-select: text`,
     ".eCommentFrame:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; box-shadow: 0px 0px 6px var(--theme); opacity: .6; pointer-events: none`,
     ".eCommentScrollContainer": `width: 100%; height: fit-content; overflow: hidden; border-radius: inherit`,
-    ".eCommentHolder": `display: flex; flex-direction: column; box-sizing: border-box; width: 100%; height: fit-content; max-height: min(var(--maxToolbarHeight), 500px); padding: 8px; gap: 8px; overflow-y: auto`,
-    ".eCommentItem": `display: flex; box-sizing: border-box; width: 100%; background: var(--pageColor)`,
+    ".eCommentHolder": `display: flex; flex-direction: column; box-sizing: border-box; width: 100%; height: fit-content; max-height: min(var(--maxToolbarHeight), 500px); padding: 0 8px; gap: 16px; overflow-y: auto`,
+    ".eCommentItem": `position: relative; display: flex; box-sizing: border-box; width: 100%`,
+    ".eCommentItem:not([new]):first-child": `padding-top: 8px`,
+    ".eCommentItem:not([new]):last-child": `padding-bottom: 8px`,
+    ".eCommentItem div[threadindicator]": `position: absolute; width: 36px; height: 100%`,
+    ".eCommentItem:first-child div[threadindicator]": `display: none`,
+    ".eCommentItem div[threadindicator] div[passthrough]": `position: absolute; width: 4px; height: calc(100% + 18px); left: 14px; top: -18px; background: var(--hover); border-radius: 2px`,
+    ".eCommentItem:last-child div[threadindicator] div[passthrough]": `height: 22px`,
+    ".eCommentItem div[threadindicator] div[dash]": `position: absolute; width: 12px; height: 4px; left: 14px; top: 10px; border-style: solid; border-width: 0 0 4px 4px; border-color: var(--hover); border-bottom-left-radius: 12px`,
+    ".eCommentItem:last-child div[threadindicator] div[dash]": `height: 12px; top: 2px`,
+    ".eCommentItem div[threadindicator] div[ending]": `position: absolute; width: 4px; height: 4px; left: 28px; top: 14px; background: var(--hover); border-radius: 2px`,
     ".eCommentContainer": `display: flex; box-sizing: border-box; flex: 1; min-width: 0`,
+    ".eCommentItem:not(:first-child) .eCommentContainer": `margin-left: 36px`,
+    ".eCommentContainer div[profileholder]": `display: flex; flex-direction: column; align-items: center`,
     ".eCommentContainer img[profile]": `width: 32px; height: 32px; object-fit: cover; border-radius: 16px`,
+    ".eCommentItem:not(:only-child):first-child .eCommentContainer div[profileholder]:after": `content: ""; flex: 1; width: 4px; margin-top: 4px; background: var(--hover); border-radius: 2px 2px 0`,
     ".eCommentContainer div[content]": `flex: 1; min-width: 0; height: 100%; margin-left: 6px; text-align: left; align-content: center`,
     ".eCommentContainer div[content] div[header]": `display: flex; width: 100%; height: 32px; align-items: center`,
     ".eCommentContainer div[content] div[header] div[member]": `flex: 1; min-width: 0; max-width: fit-content; font-size: 16px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
@@ -5474,17 +5489,29 @@ modules["editor/toolbar/comment"] = class {
     let frameWidth = this.frame.offsetWidth;
     let setLeft = annotationRect.left + (centerX * this.editor.zoom) + this.offset + this.editor.contentHolder.scrollLeft;
     let setRight = annotationRect.left + (centerX * this.editor.zoom) - this.offset - frameWidth + this.editor.contentHolder.scrollLeft;
+    let setTransformOrigin = "";
     if (setLeft + frameWidth + this.editor.scrollOffset < this.editor.contentHolder.scrollLeft + this.editor.contentHolder.clientWidth || setRight - this.editor.scrollOffset < this.editor.contentHolder.scrollLeft) {
       this.frame.style.left = setLeft + "px";
-      this.frame.style.transformOrigin = "left 24px";
+      setTransformOrigin += "left";
     } else {
       this.frame.style.left = setRight + "px";
-      this.frame.style.transformOrigin = "right 24px";
+      setTransformOrigin += "right";
     }
-    this.frame.style.top = annotationRect.top + (centerY * this.editor.zoom) - 24 + this.editor.contentHolder.scrollTop + "px";
+    let frameHeight = this.frame.offsetHeight;
+    let annoY = annotationRect.top + (centerY * this.editor.zoom);
+    let setTop = annoY - 24 + this.editor.contentHolder.scrollTop;
+    let useTop = setTop + Math.min(this.editor.contentHolder.scrollTop + this.editor.contentHolder.clientHeight - this.editor.scrollOffset - setTop - frameHeight, 0);
+    if (useTop + frameHeight < annoY + 24 + this.editor.contentHolder.scrollTop) {
+      useTop = annoY + 24 + this.editor.contentHolder.scrollTop - frameHeight;
+    }
+    this.frame.style.top = useTop + "px";
+    this.frame.style.transformOrigin = setTransformOrigin + " " + (this.editor.contentHolder.scrollTop + annoY - useTop) + "px";
   }
   openCommentFrame = async (annotation) => {
     this.closeCommentFrame();
+    if (annotation == null) {
+      return;
+    }
     this.annotation = annotation;
 
     this.editor.content.parentElement.insertAdjacentHTML("beforeend", `<div class="eCommentFrame" new><div class="eCommentScrollContainer"><div class="eCommentHolder"></div></div></div>`);
@@ -5554,8 +5581,15 @@ modules["editor/toolbar/comment"] = class {
 
     let addComment = async (render) => {
       holder.insertAdjacentHTML("beforeend", `<div class="eCommentItem" new>
+        <div threadindicator>
+          <div passthrough></div>
+          <div dash></div>
+          <div ending></div>
+        </div>
         <div class="eCommentContainer">
-          <img profile src="../images/profiles/default.svg" />
+          <div profileholder>
+            <img profile src="../images/profiles/default.svg" />
+          </div>
           <div content>
             <div header>
               <div member></div>
@@ -5587,7 +5621,7 @@ modules["editor/toolbar/comment"] = class {
       }
       newComment.querySelector("div[text]").innerHTML = setHTML;
 
-      let collaborator = await this.parent.utils.getCollaborator(render.a ?? render.m);
+      let collaborator = await this.editor.utils.getCollaborator(render.a ?? render.m);
       if (collaborator.image != null) {
         newComment.querySelector("img[profile]").src = collaborator.image;
       }
@@ -5596,7 +5630,9 @@ modules["editor/toolbar/comment"] = class {
       memberTx.title = collaborator.name;
     }
 
-    addComment(this.annotation.render);
+    for (let i = 0; i < 4; i++) {
+      addComment(this.annotation.render);
+    }
 
     this.updateCommentFrame();
     
@@ -5627,6 +5663,22 @@ modules["editor/toolbar/comment"] = class {
     if (this.editor.isEditorContent(event.target) == false) {
       return;
     }
+
+    let commentTarget = event.target.closest(".eAnnotation[comment]");
+    if (commentTarget != null) {
+      let annotation = this.editor.annotations[commentTarget.getAttribute("anno")];
+      if (annotation == null) {
+        return;
+      }
+      this.editor.selecting = {};
+      this.editor.selecting[annotation.render._id] = {};
+      this.toolbar.selection.updateBox();
+      return this.openCommentFrame(annotation);
+    }
+
+    /*if (this.annotation != null) {
+      return this.closeCommentFrame();
+    }*/
 
     let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
     let position = this.editor.utils.scaleToDoc(mouseX, mouseY);

@@ -5521,6 +5521,12 @@ modules["editor/toolbar/comment"] = class {
           }
           addText.push(text);
         }
+        while (addText[0].trim() == "") {
+          addText.splice(0, 1);
+        }
+        while (addText[addText.length - 1].trim() == "") {
+          addText.splice(addText.length - 1, 1);
+        }
         annotation.render.d.b = addText;
         annotation.render.time = getEpoch();
         await this.editor.save.push(annotation.render);
@@ -5564,7 +5570,9 @@ modules["editor/toolbar/comment"] = class {
 
       let setTime = render.time ?? render.sync;
       if (setTime != null) {
-        newComment.querySelector("div[time]").textContent = timeSince(setTime);
+        let timeTx = newComment.querySelector("div[time]");
+        timeTx.textContent = timeSince(setTime);
+        timeTx.title = formatFullDate(setTime);
       }
       let richText = render.d ?? {};
       let setHTML = "";
@@ -5583,12 +5591,12 @@ modules["editor/toolbar/comment"] = class {
       if (collaborator.image != null) {
         newComment.querySelector("img[profile]").src = collaborator.image;
       }
-      newComment.querySelector("div[member]").textContent = collaborator.name;
+      let memberTx = newComment.querySelector("div[member]");
+      memberTx.textContent = collaborator.name;
+      memberTx.title = collaborator.name;
     }
 
-    for (let i = 0; i < 15; i++) {
-      addComment(this.annotation.render);
-    }
+    addComment(this.annotation.render);
 
     this.updateCommentFrame();
     

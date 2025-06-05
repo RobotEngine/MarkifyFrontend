@@ -4277,6 +4277,9 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
     this.subscribe("click_move", this.commentModule.updateCommentFrame);
   }
   SELECTION_END = () => {
+    if (this.commentModule == null) {
+      return;
+    }
     this.commentModule.closeCommentFrame();
     this.commentModule = null;
     this.unsubscribe("bounds_change");

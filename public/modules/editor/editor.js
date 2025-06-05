@@ -3619,6 +3619,9 @@ modules["editor/render/annotation"] = class {
   subscribe = (event, callback, extra) => {
     this.parent.pipeline.subscribe("annotation_" + this.properties._id, event, callback, extra);
   }
+  unsubscribe = (event) => {
+    this.parent.pipeline.unsubscribe("annotation_" + this.properties._id, event);
+  }
 
   hide = () => {
     let element = this.getElement();
@@ -4259,6 +4262,27 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
   DISPLAY_SELECT_BOX = false;
   KEEP_ON_PARENT_DELETE = true;
 
+  SELECTION_START = async () => {
+    if (this.annotation == null) {
+      return;
+    }
+    this.commentModule = await this.parent.newModule("editor/toolbar/comment");
+    if (this.commentModule == null) {
+      return;
+    }
+    this.commentModule.editor = this.parent;
+    this.commentModule.toolbar = this.parent.toolbar;
+    this.commentModule.openCommentFrame(this.annotation);
+    this.subscribe("bounds_change", this.commentModule.updateCommentFrame);
+    this.subscribe("click_move", this.commentModule.updateCommentFrame);
+  }
+  SELECTION_END = () => {
+    this.commentModule.closeCommentFrame();
+    this.commentModule = null;
+    this.unsubscribe("bounds_change");
+    this.unsubscribe("click_move");
+  }
+
   css = {
     ".eAnnotation[comment]": `--themeColor: var(--theme); z-index: calc(var(--maxZIndex) + var(--startZIndex) + 1) !important; `,
     ".eAnnotation[comment][selected]": `z-index: calc(var(--maxZIndex) + var(--startZIndex) + 2) !important`,
@@ -4281,7 +4305,8 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
     ".eAnnotation[comment] > div[commentholder] > div[comment] div[text]": `box-sizing: border-box; width: 100%; max-width: 200px; height: fit-content; font-size: 12px; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden`,
   };
   render = () => {
-    if (this.element == null) {
+    let newAnnotation = this.element == null;
+    if (newAnnotation == true) {
       this.parent.annotationHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" comment new>
         <div commentholder>
           <div comment>
@@ -4309,10 +4334,6 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
 
     let comment = this.element.querySelector("div[commentholder] > div[comment]");
     let content = comment.querySelector("div[content]");
-    let setTime = this.properties.time ?? this.properties.sync;
-    if (setTime != null) {
-      content.querySelector("div[time]").textContent = timeSince(this.properties.time ?? this.properties.sync);
-    }
     let richText = this.properties.d ?? {};
     let setHTML = "";
     for (let i = 0; i < (richText.b ?? []).length; i++) {
@@ -4354,11 +4375,34 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
       }
       setCollaborator(collaborator);
     });
-    this.subscribe("collaborator_update_" + modifyID, setCollaborator);
 
+    if (newAnnotation == true) {
+      this.element.addEventListener("mouseover", () => {
+        if (comment == null) {
+          return;
+        }
+        if (comment != null) {
+          let setTime = this.properties.time ?? this.properties.sync;
+          if (setTime != null) {
+            comment.querySelector("div[time]").textContent = timeSince(setTime);
+          }
+          if (this.annotation.new != true) {
+            updateCommentSize();
+          }
+        }
+      });
+
+      this.subscribe("collaborator_update_" + modifyID, setCollaborator);
+    }
+    
     this.setID();
     this.setZIndex();
     this.setAnimate();
+
+    if (this.commentModule != null) {
+      this.commentModule.annotation = this.annotation;
+      this.commentModule.updateCommentFrame();
+    }
   }
 }
 modules["editor/render/annotation/page"] = class extends modules["editor/render/annotation"] {

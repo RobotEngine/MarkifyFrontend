@@ -979,7 +979,7 @@ modules["editor/toolbar"] = class {
     this.toolbar.checkToolToggle();
 
     this.toolbar.updateMaxHeight = () => {
-      toolbarHolder.style.setProperty("--maxToolbarHeight", toolbarHolder.offsetHeight + "px"); // Have to add this solution because FIREFOX
+      page.style.setProperty("--maxToolbarHeight", toolbarHolder.offsetHeight + "px"); // Have to add this solution because FIREFOX
     }
 
     this.getToolPreference = () => {
@@ -1122,6 +1122,9 @@ modules["editor/toolbar"] = class {
                 await editor.realtime.forceShort();
               }
             }
+          }
+          if (annoData.component.SELECTION_END != null) {
+            annoData.component.SELECTION_END();
           }
         }
         if (selection != null) {
@@ -1284,6 +1287,9 @@ modules["editor/toolbar"] = class {
         }
         if (this.selection.currentSelections.hasOwnProperty(annoID) == false) {
           selectionChange = true;
+          if (annoModule.SELECTION_START != null) {
+            annoModule.SELECTION_START();
+          }
         }
         this.selection.currentSelections[annoID] = select;
         selectedAnnotations.push(annoID);
@@ -5432,20 +5438,19 @@ modules["editor/toolbar/comment"] = class {
   MOUSE = { type: "svg", url: "../images/editor/cursors/comment.svg", translate: { x: 12, y: 32 } };
 
   css = {
-    ".eCommentFrame": `position: absolute; width: 300px; min-height: 48px; left: 0px; top: 0px; opacity: 0; transform: scale(0); z-index: 101; border-radius: 24px; transition: transform .2s, opacity .2s; background: var(--pageColor)`,
+    ".eCommentFrame": `position: absolute; width: 300px; min-height: 48px; left: 0px; top: 0px; opacity: 0; transform: scale(0); z-index: 101; border-radius: 24px; transition: transform .2s, opacity .2s; background: var(--pageColor); user-select: text`,
     ".eCommentFrame:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; box-shadow: 0px 0px 6px var(--theme); opacity: .6; pointer-events: none`,
-    ".eCommentHolder": `width: 100%; overflow-x: hidden; overflow-y: auto; border-radius: inherit`,
+    ".eCommentScrollContainer": `width: 100%; height: fit-content; overflow: hidden; border-radius: inherit`,
+    ".eCommentHolder": `display: flex; flex-direction: column; box-sizing: border-box; width: 100%; height: fit-content; max-height: min(var(--maxToolbarHeight), 500px); padding: 8px; gap: 8px; overflow-y: auto`,
     ".eCommentItem": `display: flex; box-sizing: border-box; width: 100%; background: var(--pageColor)`,
-    ".eCommentContainer": `display: flex; box-sizing: border-box; flex: 1; min-width: 0; padding: 8px`,
+    ".eCommentContainer": `display: flex; box-sizing: border-box; flex: 1; min-width: 0`,
     ".eCommentContainer img[profile]": `width: 32px; height: 32px; object-fit: cover; border-radius: 16px`,
-    ".eCommentItem[new] .eCommentContainer img[profile]": `display: none`,
     ".eCommentContainer div[content]": `flex: 1; min-width: 0; height: 100%; margin-left: 6px; text-align: left; align-content: center`,
     ".eCommentContainer div[content] div[header]": `display: flex; width: 100%; height: 32px; align-items: center`,
-    ".eCommentItem[new] .eCommentContainer div[content] div[header]": `display: none !important`,
     ".eCommentContainer div[content] div[header] div[member]": `flex: 1; min-width: 0; max-width: fit-content; font-size: 16px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
     ".eCommentContainer div[content] div[header] div[time]": `margin-left: 6px; color: var(--darkGray); font-size: 14px; font-weight: 500; white-space: nowrap`,
     ".eCommentContainer div[content] div[text]": `box-sizing: border-box; width: 100%; height: fit-content; font-size: 14px; outline: none`,
-    ".eCommentItem[new] .eCommentContainer div[content] div[text]": `padding: 6px 0`,
+    ".eCommentItem[new] .eCommentContainer div[content] div[text]": `padding: 6px`,
     ".eCommentItem button": `display: flex; width: 36px; height: 36px; margin: 6px 6px 6px 0; justify-content: center; align-items: center; background: var(--theme); border-radius: 18px`,
     ".eCommentItem button img": `width: 28px; height: 28px`
   }
@@ -5482,35 +5487,28 @@ modules["editor/toolbar/comment"] = class {
     this.closeCommentFrame();
     this.annotation = annotation;
 
-    this.editor.content.parentElement.insertAdjacentHTML("beforeend", `<div class="eCommentFrame" new>
-      <div class="eCommentHolder">
-        <div class="eCommentItem">
-          <div class="eCommentContainer">
-            <img profile src="../images/profiles/default.svg" />
-            <div content>
-              <div header>
-                <div member></div>
-                <div time></div>
-              </div>
-              <div text></div>
-            </div>
-          </div>
-          <button><img src="../images/editor/actions/send.svg" /></button>
-        </div>
-      </div>
-    </div>`);
+    this.editor.content.parentElement.insertAdjacentHTML("beforeend", `<div class="eCommentFrame" new><div class="eCommentScrollContainer"><div class="eCommentHolder"></div></div></div>`);
     this.frame = this.editor.content.parentElement.querySelector(".eCommentFrame[new]");
     this.frame.removeAttribute("new");
-    this.updateCommentFrame();
 
     //let collaborator = await this.editor.utils.getCollaborator(annotation.render.a ?? annotation.render.m);
     //this.frame.style.setProperty("--themeColor", collaborator.color);
-    
+
+    let holder = this.frame.querySelector(".eCommentHolder")
+
     if (annotation.new == true) {
-      let commentItem = this.frame.querySelector(".eCommentItem");
+      holder.style.padding = "0px";
+      holder.innerHTML = `<div class="eCommentItem" new>
+        <div class="eCommentContainer">
+          <div content>
+            <div text></div>
+          </div>
+        </div>
+        <button><img src="../images/editor/actions/send.svg" /></button>
+      </div>`;
+      let commentItem = holder.querySelector(".eCommentItem");
       let commentText = commentItem.querySelector("div[text]");
       let commentSendButton = commentItem.querySelector("button");
-      commentItem.setAttribute("new", "");
       commentSendButton.addEventListener("click", async () => {
         if (commentText.textContent == "") {
           return this.closeCommentFrame();
@@ -5534,9 +5532,65 @@ modules["editor/toolbar/comment"] = class {
         this.closeCommentFrame();
       });
       this.toolbar.addEventListener("paste", commentText, clipBoardRead);
+
+      this.updateCommentFrame();
+
       commentText.setAttribute("contenteditable", "");
       commentText.focus();
+
+      this.frame.style.transform = "scale(1)";
+      this.frame.style.opacity = 1;
+
+      return;
     }
+
+    this.frame.style.width = "350px";
+
+    let addComment = async (render) => {
+      holder.insertAdjacentHTML("beforeend", `<div class="eCommentItem" new>
+        <div class="eCommentContainer">
+          <img profile src="../images/profiles/default.svg" />
+          <div content>
+            <div header>
+              <div member></div>
+              <div time></div>
+            </div>
+            <div text></div>
+          </div>
+        </div>
+      </div>`);
+      let newComment = holder.querySelector(".eCommentItem[new]");
+      newComment.removeAttribute("new");
+
+      let setTime = render.time ?? render.sync;
+      if (setTime != null) {
+        newComment.querySelector("div[time]").textContent = timeSince(setTime);
+      }
+      let richText = render.d ?? {};
+      let setHTML = "";
+      for (let i = 0; i < (richText.b ?? []).length; i++) {
+        let addHTML = "";
+        if (richText.b[i] != "\n") {
+          addHTML = "<div>" + cleanString(richText.b[i]) + "</div>";
+        } else {
+          addHTML = "<br>";
+        }
+        setHTML += addHTML;
+      }
+      newComment.querySelector("div[text]").innerHTML = setHTML;
+
+      let collaborator = await this.parent.utils.getCollaborator(render.a ?? render.m);
+      if (collaborator.image != null) {
+        newComment.querySelector("img[profile]").src = collaborator.image;
+      }
+      newComment.querySelector("div[member]").textContent = collaborator.name;
+    }
+
+    for (let i = 0; i < 15; i++) {
+      addComment(this.annotation.render);
+    }
+
+    this.updateCommentFrame();
     
     this.frame.style.transform = "scale(1)";
     this.frame.style.opacity = 1;

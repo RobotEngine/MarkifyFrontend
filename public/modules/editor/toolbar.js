@@ -5458,6 +5458,7 @@ modules["editor/toolbar/comment"] = class {
     ".eCommentContainer": `display: flex; box-sizing: border-box; flex: 1; min-width: 0`,
     ".eCommentItem:not(:first-child) .eCommentContainer": `margin-left: 36px`,
     ".eCommentContainer div[profileholder]": `display: flex; flex-direction: column; align-items: center`,
+    ".eCommentContainer div[profileholder] div[cursor]": `width: 24px; height: 24px; background: var(--themeColor); border: solid 4px var(--pageColor); overflow: hidden; border-radius: 10px 16px 16px; box-shadow: var(--shadow)`,
     ".eCommentContainer img[profile]": `width: 32px; height: 32px; object-fit: cover; border-radius: 16px`,
     ".eCommentItem:not(:only-child):first-child .eCommentContainer div[profileholder]:after": `content: ""; flex: 1; width: 4px; margin-top: 4px; background: var(--hover); border-radius: 2px 2px 0`,
     ".eCommentContainer div[content]": `flex: 1; min-width: 0; height: 100%; margin-left: 6px; text-align: left; align-content: center`,
@@ -5588,7 +5589,7 @@ modules["editor/toolbar/comment"] = class {
         </div>
         <div class="eCommentContainer">
           <div profileholder>
-            <img profile src="../images/profiles/default.svg" />
+            <div cursor></div>
           </div>
           <div content>
             <div header>
@@ -5622,8 +5623,11 @@ modules["editor/toolbar/comment"] = class {
       newComment.querySelector("div[text]").innerHTML = setHTML;
 
       let collaborator = await this.editor.utils.getCollaborator(render.a ?? render.m);
+      let profileHolder = newComment.querySelector("div[profileholder]");
+      profileHolder.style.setProperty("--themeColor", collaborator.color);
       if (collaborator.image != null) {
-        newComment.querySelector("img[profile]").src = collaborator.image;
+        profileHolder.innerHTML = `<img profile src="../images/profiles/default.svg" />`;
+        profileHolder.querySelector("img[profile]").src = collaborator.image;
       }
       let memberTx = newComment.querySelector("div[member]");
       memberTx.textContent = collaborator.name;

@@ -5471,17 +5471,19 @@ modules["editor/toolbar/comment"] = class {
     ".eCommentContainer div[content] div[header] div[time]": `margin-left: 6px; color: var(--darkGray); font-size: 14px; font-weight: 500; white-space: nowrap`,
     ".eCommentContainer div[content] div[text]": `box-sizing: border-box; width: 100%; height: fit-content; font-size: 14px; outline: none`,
     ".eCommentItem[new] .eCommentContainer div[content] div[text]": `padding: 6px`,
+    ".eCommentItem[new] .eCommentContainer div[content] div[text]:empty:before": `content: "Write your Comment"; display: block; opacity: .5; pointer-events: none`,
     ".eCommentItem > button": `display: flex; width: 36px; height: 36px; margin: 6px 6px 6px 0; justify-content: center; align-items: center; background: var(--theme); border-radius: 18px`,
     ".eCommentItem > button img": `width: 28px; height: 28px`,
     ".eCommentReply": `position: sticky; display: flex; box-sizing: border-box; width: 100%; padding: 8px; bottom: 0px; background: var(--pageColor); z-index: 2; transition: .2s`,
-    ".eCommentReply > div[profileholder]": `display: flex; height: fit-content`,
+    ".eCommentReply > div[profileholder]": `display: flex; height: fit-content; margin-right: 6px`,
     ".eCommentReply > div[profileholder] div[cursor]": `position: relative; width: 22px; height: 22px; margin: 2px; background: var(--themeColor); border: solid 3px var(--pageColor); border-radius: 8px 14px 14px`,
     ".eCommentReply > div[profileholder] div[cursor]:after": `content: ""; position: absolute; width: 100%; height: 100%; padding: 3px; left: -3px; top: -3px; border-radius: inherit; box-shadow: 0 0 6px var(--themeColor); opacity: .6`,
     ".eCommentReply > div[profileholder] div[profile]": `position: relative; width: 26px; height: 26px; border: solid 3px var(--pageColor); border-radius: 16px`,
     ".eCommentReply > div[profileholder] div[profile] img": `width: 100%; height: 100%; object-fit: cover; border-radius: inherit`,
     ".eCommentReply > div[profileholder] div[profile]:after": `content: ""; position: absolute; width: 100%; height: 100%; padding: 3px; left: -3px; top: -3px; border-radius: inherit; box-shadow: 0 0 4px var(--themeColor); opacity: .6`,
-    ".eCommentReply > div[text]": `box-sizing: border-box; flex: 1; padding: 6px 10px; min-height: 32px; margin: 0 6px; background: rgba(var(--hoverRGB), .3); outline: none; border-radius: 16px; font-size: 14px; text-align: left; align-content: center`,
-    ".eCommentReply > button": `display: flex; width: 32px; height: 32px; margin-top: auto; justify-content: center; align-items: center; background: var(--theme); border-radius: 16px`,
+    ".eCommentReply > div[text]": `box-sizing: border-box; flex: 1; padding: 6px 10px; min-height: 32px; max-height: 120px; background: rgba(var(--hoverRGB), .3); outline: none; border-radius: 16px; font-size: 14px; text-align: left; align-content: center; overflow: auto`,
+    ".eCommentReply > div[text]:empty:before": `content: "Add a Reply"; display: block; opacity: .5; pointer-events: none`,
+    ".eCommentReply > button": `display: flex; width: 32px; height: 32px; margin: auto 0 0 6px; justify-content: center; align-items: center; background: var(--theme); border-radius: 16px`,
     ".eCommentReply > button img": `width: 26px; height: 26px`
   }
   commentWidth = 32;
@@ -5514,13 +5516,17 @@ modules["editor/toolbar/comment"] = class {
     }
     let frameHeight = this.frame.offsetHeight;
     let annoY = annotationRect.top + (centerY * this.editor.zoom);
-    let setTop = annoY - 24 + this.editor.contentHolder.scrollTop;
+    let setTop = annoY - 22 + this.editor.contentHolder.scrollTop;
     let useTop = setTop + Math.min(this.editor.contentHolder.scrollTop + this.editor.contentHolder.clientHeight - this.editor.scrollOffset - setTop - frameHeight, 0);
-    if (useTop + frameHeight < annoY + 24 + this.editor.contentHolder.scrollTop) {
-      useTop = annoY + 24 + this.editor.contentHolder.scrollTop - frameHeight;
+    if (useTop + frameHeight < annoY + 22 + this.editor.contentHolder.scrollTop) {
+      useTop = annoY + 22 + this.editor.contentHolder.scrollTop - frameHeight;
     }
     this.frame.style.top = useTop + "px";
     this.frame.style.transformOrigin = setTransformOrigin + " " + (this.editor.contentHolder.scrollTop + annoY - useTop) + "px";
+
+    if (this.updateReplyShadow != null) {
+      this.updateReplyShadow();
+    }
   }
   openCommentFrame = async (annotation) => {
     this.closeCommentFrame();
@@ -5648,7 +5654,7 @@ modules["editor/toolbar/comment"] = class {
       memberTx.title = collaborator.name;
     }
 
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 1; i++) {
       await addComment(this.annotation.render);
     }
 
@@ -5656,7 +5662,7 @@ modules["editor/toolbar/comment"] = class {
       <div profileholder>
         <div cursor></div>
       </div>
-      <div text contenteditable></div>
+      <div class="customScroll" text contenteditable></div>
       <button><img src="../images/editor/actions/send.svg" /></button>
     </div>`);
     let commentReply = scrollHolder.querySelector(".eCommentReply");
@@ -5669,16 +5675,19 @@ modules["editor/toolbar/comment"] = class {
     }
     let replyTx = commentReply.querySelector("div[text]");
     this.toolbar.addEventListener("paste", replyTx, clipBoardRead);
+    this.toolbar.addEventListener("input", replyTx, this.updateCommentFrame);
 
-    let updateReplyShadow = () => {
+    this.updateReplyShadow = () => {
+      if (scrollHolder == null || commentReply == null) {
+        return;
+      }
       if (scrollHolder.scrollTop < scrollHolder.scrollHeight - scrollHolder.offsetHeight) {
         commentReply.style.boxShadow = "var(--lightShadow)";
       } else {
         commentReply.style.removeProperty("box-shadow");
       }
     }
-    scrollHolder.addEventListener("scroll", updateReplyShadow);
-    updateReplyShadow();
+    scrollHolder.addEventListener("scroll", this.updateReplyShadow);
 
     this.updateCommentFrame();
 

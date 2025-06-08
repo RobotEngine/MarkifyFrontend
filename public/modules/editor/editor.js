@@ -574,7 +574,7 @@ modules["editor/editor"] = class {
       return thickness;
     }
     this.utils.getAbsolutePosition = (anno, includeSelecting) => {
-      let [sizeWidth, sizeHeight] = [(anno.s ?? [])[0] ?? 1, (anno.s ?? [])[0] ?? 1];
+      let [sizeWidth, sizeHeight] = [(anno.s ?? [])[0] ?? 1, (anno.s ?? [])[1] ?? 1];
       let thickness = this.utils.getThickness(anno);
       let width = Math.abs(sizeWidth) + thickness;
       let height = Math.abs(sizeHeight) + thickness;
@@ -601,7 +601,7 @@ modules["editor/editor"] = class {
           selectingParent = true;
         }
         let rotate = render.r ?? 0;
-        let [renderSizeWidth, renderSizeHeight] = [(render.s ?? [])[0] ?? 1, (render.s ?? [])[0] ?? 1];
+        let [renderSizeWidth, renderSizeHeight] = [(render.s ?? [])[0] ?? 1, (render.s ?? [])[1] ?? 1];
         let renderThickness = this.utils.getThickness(render);
         let renderWidth = Math.abs(renderSizeWidth) + renderThickness;
         let renderHeight = Math.abs(renderSizeHeight) + renderThickness;
@@ -657,7 +657,7 @@ modules["editor/editor"] = class {
       for (let i = parents.length - 1; i > -1; i--) {
         let render = parents[i];
         let rotate = -(render.r ?? 0);
-        let [renderSizeWidth, renderSizeHeight] = [(render.s ?? [])[0] ?? 1, (render.s ?? [])[0] ?? 1];
+        let [renderSizeWidth, renderSizeHeight] = [(render.s ?? [])[0] ?? 1, (render.s ?? [])[1] ?? 1];
         let renderThickness = this.utils.getThickness(render);
         let renderWidth = Math.abs(renderSizeWidth) + renderThickness;
         let renderHeight = Math.abs(renderSizeHeight) + renderThickness;
@@ -701,7 +701,7 @@ modules["editor/editor"] = class {
         returnRotation += rotate;
       }
       
-      let [sizeWidth, sizeHeight] = [(anno.s ?? [])[0] ?? 1, (anno.s ?? [])[0] ?? 1];
+      let [sizeWidth, sizeHeight] = [(anno.s ?? [])[0] ?? 1, (anno.s ?? [])[1] ?? 1];
       let width = (Math.abs(sizeWidth) + position.thickness) / 2;
       let height = (Math.abs(sizeHeight) + position.thickness) / 2;
       let x = ((bottomRightX + topLeftX) / 2);
@@ -721,7 +721,7 @@ modules["editor/editor"] = class {
     this.utils.getRect = (anno, includeSelecting) => {
       anno = anno ?? {};
       let position = this.utils.getAbsolutePosition(anno, includeSelecting);
-      let [sizeWidth, sizeHeight] = [(anno.s ?? [])[0] ?? 1, (anno.s ?? [])[0] ?? 1];
+      let [sizeWidth, sizeHeight] = [(anno.s ?? [])[0] ?? 1, (anno.s ?? [])[1] ?? 1];
       let width = Math.abs(sizeWidth) + position.thickness;
       let height = Math.abs(sizeHeight) + position.thickness;
       let halfWidth = width / 2;

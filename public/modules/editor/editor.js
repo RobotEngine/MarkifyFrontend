@@ -4319,6 +4319,21 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
           if (parentAnnotation.component.commentModule != null && parentAnnotation.component.commentModule.updateComment != null) {
             parentAnnotation.component.commentModule.updateComment({ ...this.properties, pending: this.annotation.pending });
           }
+          if (parentAnnotation.component.replyCount != null) {
+            let replyCount = Object.keys(parentAnnotation.component.commentThreads).length;
+            if (replyCount > 0) {
+              if (replyCount > 1) {
+                parentAnnotation.component.replyCount.textContent = replyCount + " Replies";
+              } else {
+                parentAnnotation.component.replyCount.textContent = "1 Reply";
+                parentAnnotation.component.updateCommentSize();
+              }
+              parentAnnotation.component.replyCount.style.display = "unset";
+            } else {
+              parentAnnotation.component.replyCount.style.removeProperty("display");
+              parentAnnotation.component.updateCommentSize();
+            }
+          }
         }
         return true;
       }
@@ -4345,6 +4360,7 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
     ".eAnnotation[comment] > div[commentholder] > div[comment] div[member]": `flex: 1; min-width: 0; max-width: fit-content; font-size: 14px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
     ".eAnnotation[comment] > div[commentholder] > div[comment] div[time]": `margin-left: 6px; color: var(--darkGray); font-size: 12px; font-weight: 500; white-space: nowrap`,
     ".eAnnotation[comment] > div[commentholder] > div[comment] div[text]": `box-sizing: border-box; width: 100%; max-width: 200px; height: fit-content; font-size: 12px; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden`,
+    ".eAnnotation[comment] > div[commentholder] > div[comment] div[replycount]": `display: none; width: 100%; max-width: 200px; margin-top: 4px; color: var(--theme); font-size: 12px; font-weight: 600`,
   };
   render = () => {
     if (this.handleParentThread() == true) {
@@ -4366,6 +4382,7 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
                   <div time></div>
                 </div>
                 <div text></div>
+                <div replycount></div>
               </div>
             </div>
           </div>
@@ -4392,14 +4409,15 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
       setHTML += addHTML;
     }
     content.querySelector("div[text]").innerHTML = setHTML;
+    this.replyCount = content.querySelector("div[replycount");
 
-    let updateCommentSize = () => {
+    this.updateCommentSize = () => {
       if (this.annotation.new != true) {
         comment.style.setProperty("--animateWidth", (content.clientWidth + 40) + "px"); //38
         comment.style.setProperty("--animateHeight", (content.clientHeight + 8) + "px");
       }
     }
-    updateCommentSize();
+    this.updateCommentSize();
 
     let setCollaborator = (collaborator) => {
       if (this.element == null) {
@@ -4412,7 +4430,7 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
         profileHolder.querySelector("img").src = collaborator.image;
       }
       comment.querySelector("div[member]").textContent = collaborator.name;
-      updateCommentSize();
+      this.updateCommentSize();
     }
     let modifyID = this.properties.a ?? this.properties.m;
     this.parent.utils.getCollaborator(modifyID, (collaborator) => {
@@ -4433,7 +4451,7 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
             comment.querySelector("div[time]").textContent = timeSince(setTime);
           }
           if (this.annotation.new != true) {
-            updateCommentSize();
+            this.updateCommentSize();
           }
         }
       });

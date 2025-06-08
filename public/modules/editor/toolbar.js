@@ -5673,20 +5673,25 @@ modules["editor/toolbar/comment"] = class {
       }
       comment.querySelector("div[text]").innerHTML = setHTML;
 
-      let collaborator = await this.editor.utils.getCollaborator(render.a ?? render.m);
-      let profileHolder = comment.querySelector("div[profileholder]");
-      profileHolder.style.setProperty("--themeColor", collaborator.color);
-      if (collaborator.image == null) {
-        profileHolder.querySelector("div[cursor]").style.removeProperty("display");
-        profileHolder.querySelector("div[profile]").style.display = "none";
-      } else {
-        profileHolder.querySelector("div[profile] img").src = collaborator.image;
-        profileHolder.querySelector("div[profile]").style.removeProperty("display");
-        profileHolder.querySelector("div[cursor]").style.display = "none";
-      }
-      let memberTx = comment.querySelector("div[member]");
-      memberTx.textContent = collaborator.name;
-      memberTx.title = collaborator.name;
+      this.editor.utils.getCollaborator(render.a ?? render.m, (collaborator) => {
+        if (comment == null) {
+          return;
+        }
+        
+        let profileHolder = comment.querySelector("div[profileholder]");
+        profileHolder.style.setProperty("--themeColor", collaborator.color);
+        if (collaborator.image == null) {
+          profileHolder.querySelector("div[cursor]").style.removeProperty("display");
+          profileHolder.querySelector("div[profile]").style.display = "none";
+        } else {
+          profileHolder.querySelector("div[profile] img").src = collaborator.image;
+          profileHolder.querySelector("div[profile]").style.removeProperty("display");
+          profileHolder.querySelector("div[cursor]").style.display = "none";
+        }
+        let memberTx = comment.querySelector("div[member]");
+        memberTx.textContent = collaborator.name;
+        memberTx.title = collaborator.name;
+      });
 
       if (render.remove == true) {
         comment.remove();
@@ -5697,9 +5702,9 @@ modules["editor/toolbar/comment"] = class {
       }
     }
 
-    this.updateComment(this.annotation.render, { new: true });
+    await this.updateComment(this.annotation.render, { new: true });
     for (let i = 0; i < thread.length; i++) {
-      this.updateComment(thread[i], { new: true });
+      await this.updateComment(thread[i], { new: true });
     }
 
     scrollHolder.insertAdjacentHTML("beforeend", `<div class="eCommentReply">

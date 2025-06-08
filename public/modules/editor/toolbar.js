@@ -5613,7 +5613,10 @@ modules["editor/toolbar/comment"] = class {
     this.updateComment = async (render, options = {}) => {
       let comment;
       if (options.new != true) {
-        comment = holder.querySelector('.eCommentItem[comment="' + (render.pending ?? render._id) + '"]');
+        comment = holder.querySelector('.eCommentItem[comment="' + render._id + '"]');
+        if (comment == null && render.pending != null) {
+          comment = holder.querySelector('.eCommentItem[comment="' + render.pending + '"]');
+        }
       }
       if (comment == null) {
         holder.insertAdjacentHTML("beforeend", `<div class="eCommentItem" new>

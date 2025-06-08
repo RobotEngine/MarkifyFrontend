@@ -5751,15 +5751,16 @@ modules["editor/toolbar/comment"] = class {
         a: this.editor.self.modify,
         time: getEpoch()
       };
+
+      replyTx.textContent = "";
+      replyTx.focus();
+      replySendButton.style.display = "none";
+      
       await this.editor.save.push(newComment);
       //await this.editor.history.push("remove", [{ _id: newComment._id }]);
 
       this.editor.realtimeSelect[newComment._id] = { ...newComment, done: true };
       await this.editor.realtime.forceShort();
-
-      replyTx.textContent = "";
-      replyTx.focus();
-      replySendButton.style.display = "none";
     });
 
     this.updateReplyShadow = () => {

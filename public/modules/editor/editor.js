@@ -2044,6 +2044,8 @@ modules["editor/editor"] = class {
         return;
       }
       let render = annotation.render ?? {};
+      annotation.component.properties = render;
+      annotation.component.annotation = annotation;
       annotation.component.hide();
       if (annotation.component.embedFrame != null) {
         annotation.component.embedFrame.remove();
@@ -4468,8 +4470,9 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
     }
   }
   remove = () => {
-    this.properties.remove = true;
-    this.handleParentThread();
+    if (this.properties.remove == true) {
+      this.handleParentThread();
+    }
     if (this.commentModule != null && this.commentModule.closeCommentFrame != null) {
       this.commentModule.closeCommentFrame();
     }

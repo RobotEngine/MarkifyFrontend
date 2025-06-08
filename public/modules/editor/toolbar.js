@@ -5458,7 +5458,7 @@ modules["editor/toolbar/comment"] = class {
     ".eCommentItem div[threadindicator] div[ending]": `position: absolute; width: 4px; height: 4px; left: 28px; top: 14px; background: var(--hover); border-radius: 2px`,
     ".eCommentContainer": `display: flex; box-sizing: border-box; flex: 1; min-width: 0`,
     ".eCommentItem:not(:first-child) .eCommentContainer": `margin-left: 36px`,
-    ".eCommentContainer div[profileholder]": `display: flex; flex-direction: column; align-items: center`,
+    ".eCommentContainer div[profileholder]": `display: flex; flex-direction: column; width: 32px; min-height: 32px; align-items: center`,
     ".eCommentContainer div[profileholder] div[cursor]": `position: relative; width: 22px; height: 22px; margin: 2px; background: var(--themeColor); border: solid 3px var(--pageColor); border-radius: 8px 14px 14px`,
     ".eCommentContainer div[profileholder] div[cursor]:after": `content: ""; position: absolute; width: 100%; height: 100%; padding: 3px; left: -3px; top: -3px; border-radius: inherit; box-shadow: 0 0 6px var(--themeColor); opacity: .6`,
     ".eCommentContainer div[profileholder] div[profile]": `position: relative; width: 26px; height: 26px; border: solid 3px var(--pageColor); border-radius: 16px`,
@@ -5531,7 +5531,7 @@ modules["editor/toolbar/comment"] = class {
       this.updateReplyShadow();
     }
   }
-  openCommentFrame = async (annotation) => {
+  openCommentFrame = async (annotation, thread = []) => {
     this.closeCommentFrame();
     if (annotation == null) {
       return;
@@ -5556,11 +5556,19 @@ modules["editor/toolbar/comment"] = class {
             <div text contenteditable></div>
           </div>
         </div>
-        <button><img src="../images/editor/actions/send.svg" /></button>
+        <button disabled><img src="../images/editor/actions/send.svg" /></button>
       </div>`;
       let commentItem = holder.querySelector(".eCommentItem");
       let commentText = commentItem.querySelector("div[text]");
       let commentSendButton = commentItem.querySelector("button");
+      commentText.addEventListener("input", () => {
+        if (commentText.textContent != "") {
+          commentSendButton.removeAttribute("disabled");
+        } else {
+          commentSendButton.setAttribute("disabled", "");
+        }
+      });
+      commentText.addEventListener("paste", clipBoardRead);
       commentSendButton.addEventListener("click", async () => {
         if (commentText.textContent == "") {
           return this.closeCommentFrame();
@@ -5582,14 +5590,13 @@ modules["editor/toolbar/comment"] = class {
         annotation.render.d.b = addText;
         annotation.render.time = getEpoch();
         await this.editor.save.push(annotation.render);
-        await this.editor.history.push("remove", [{ _id: annotation.render._id }]);
+        //await this.editor.history.push("remove", [{ _id: annotation.render._id }]);
 
         this.editor.realtimeSelect[annotation.render._id] = { ...annotation.render, done: true };
         await this.editor.realtime.forceShort();
         
         this.closeCommentFrame();
       });
-      this.toolbar.addEventListener("paste", commentText, clipBoardRead);
 
       this.updateCommentFrame();
 
@@ -5603,32 +5610,50 @@ modules["editor/toolbar/comment"] = class {
 
     this.frame.style.width = "350px";
 
-    let addComment = async (render) => {
-      holder.insertAdjacentHTML("beforeend", `<div class="eCommentItem" new>
-        <div threadindicator>
-          <div passthrough></div>
-          <div dash></div>
-          <div ending></div>
-        </div>
-        <div class="eCommentContainer">
-          <div profileholder>
-            <div cursor></div>
+    this.updateComment = async (render, options = {}) => {
+      let comment;
+      if (options.new != true) {
+        comment = holder.querySelector('.eCommentItem[comment="' + (render.pending ?? render._id) + '"]');
+      }
+      if (comment == null) {
+        holder.insertAdjacentHTML("beforeend", `<div class="eCommentItem" new>
+          <div threadindicator>
+            <div passthrough></div>
+            <div dash></div>
+            <div ending></div>
           </div>
-          <div content>
-            <div header>
-              <div member></div>
-              <div time></div>
+          <div class="eCommentContainer">
+            <div profileholder>
+              <div cursor style="display: none"></div>
+              <div profile style="display: none"><img src="../images/profiles/default.svg" /></div>
             </div>
-            <div text></div>
+            <div content>
+              <div header>
+                <div member></div>
+                <div time></div>
+              </div>
+              <div text></div>
+            </div>
           </div>
-        </div>
-      </div>`);
-      let newComment = holder.querySelector(".eCommentItem[new]");
-      newComment.removeAttribute("new");
+        </div>`);
+        comment = holder.querySelector(".eCommentItem[new]");
+        comment.removeAttribute("new");
+        comment.setAttribute("time", render.time ?? render.sync);
+        if (options.new != true) {
+          let holderChildren = holder.children;
+          for (let i = holderChildren.length - 1; i >= 0; i--) {
+            let child = holderChildren[i];
+            if (parseInt(child.getAttribute("time")) > (render.time ?? render.sync)) {
+              holder.insertBefore(comment, child);
+            }
+          }
+        }
+      }
+      comment.setAttribute("comment", render._id);
 
       let setTime = render.time ?? render.sync;
       if (setTime != null) {
-        let timeTx = newComment.querySelector("div[time]");
+        let timeTx = comment.querySelector("div[time]");
         timeTx.textContent = timeSince(setTime);
         timeTx.title = formatFullDate(setTime);
       }
@@ -5643,22 +5668,35 @@ modules["editor/toolbar/comment"] = class {
         }
         setHTML += addHTML;
       }
-      newComment.querySelector("div[text]").innerHTML = setHTML;
+      comment.querySelector("div[text]").innerHTML = setHTML;
 
       let collaborator = await this.editor.utils.getCollaborator(render.a ?? render.m);
-      let profileHolder = newComment.querySelector("div[profileholder]");
+      let profileHolder = comment.querySelector("div[profileholder]");
       profileHolder.style.setProperty("--themeColor", collaborator.color);
-      if (collaborator.image != null) {
-        profileHolder.innerHTML = `<div profile><img src="../images/profiles/default.svg" /></div>`;
+      if (collaborator.image == null) {
+        profileHolder.querySelector("div[cursor]").style.removeProperty("display");
+        profileHolder.querySelector("div[profile]").style.display = "none";
+      } else {
         profileHolder.querySelector("div[profile] img").src = collaborator.image;
+        profileHolder.querySelector("div[profile]").style.removeProperty("display");
+        profileHolder.querySelector("div[cursor]").style.display = "none";
       }
-      let memberTx = newComment.querySelector("div[member]");
+      let memberTx = comment.querySelector("div[member]");
       memberTx.textContent = collaborator.name;
       memberTx.title = collaborator.name;
+
+      if (render.remove == true) {
+        comment.remove();
+      }
+      if (options.new != true) {
+        this.updateCommentFrame();
+        scrollHolder.scrollTo(0, scrollHolder.scrollHeight);
+      }
     }
 
-    for (let i = 0; i < 1; i++) {
-      await addComment(this.annotation.render);
+    this.updateComment(this.annotation.render, { new: true });
+    for (let i = 0; i < thread.length; i++) {
+      this.updateComment(thread[i], { new: true });
     }
 
     scrollHolder.insertAdjacentHTML("beforeend", `<div class="eCommentReply">
@@ -5666,19 +5704,63 @@ modules["editor/toolbar/comment"] = class {
         <div cursor></div>
       </div>
       <div class="customScroll" text contenteditable></div>
-      <button><img src="../images/editor/actions/send.svg" /></button>
+      <button style="display: none"><img src="../images/editor/actions/send.svg" /></button>
     </div>`);
     let commentReply = scrollHolder.querySelector(".eCommentReply");
-    let selfCollaborator = await this.editor.utils.getCollaborator(this.editor.self.modify);
     let profileHolder = commentReply.querySelector("div[profileholder]");
+    let replyTx = commentReply.querySelector("div[text]");
+    let replySendButton = commentReply.querySelector("button");
+    let selfCollaborator = await this.editor.utils.getCollaborator(this.editor.self.modify);
     profileHolder.style.setProperty("--themeColor", selfCollaborator.color);
     if (selfCollaborator.image != null) {
       profileHolder.innerHTML = `<div profile><img src="../images/profiles/default.svg" /></div>`;
       profileHolder.querySelector("div[profile] img").src = selfCollaborator.image;
     }
-    let replyTx = commentReply.querySelector("div[text]");
-    this.toolbar.addEventListener("paste", replyTx, clipBoardRead);
-    this.toolbar.addEventListener("input", replyTx, this.updateCommentFrame);
+    replyTx.addEventListener("input", () => {
+      if (replyTx.textContent != "") {
+        replySendButton.style.removeProperty("display");
+      } else {
+        replySendButton.style.display = "none";
+      }
+      this.updateCommentFrame();
+    });
+    replyTx.addEventListener("paste", clipBoardRead);
+    replySendButton.addEventListener("click", async () => {
+      if (replyTx.textContent == "") {
+        return;
+      }
+      let addText = [];
+      for (let i = 0; i < replyTx.childNodes.length; i++) {
+        let text = replyTx.childNodes[i].textContent;
+        if (text == "") {
+          text = "\n";
+        }
+        addText.push(text);
+      }
+      while (addText[0].trim() == "") {
+        addText.splice(0, 1);
+      }
+      while (addText[addText.length - 1].trim() == "") {
+        addText.splice(addText.length - 1, 1);
+      }
+      let newComment = {
+        _id: this.editor.render.tempID(),
+        f: "comment",
+        parent: this.annotation.render._id,
+        d: { b: addText },
+        a: this.editor.self.modify,
+        time: getEpoch()
+      };
+      await this.editor.save.push(newComment);
+      //await this.editor.history.push("remove", [{ _id: newComment._id }]);
+
+      this.editor.realtimeSelect[newComment._id] = { ...newComment, done: true };
+      await this.editor.realtime.forceShort();
+
+      replyTx.textContent = "";
+      replyTx.focus();
+      replySendButton.style.display = "none";
+    });
 
     this.updateReplyShadow = () => {
       if (scrollHolder == null || commentReply == null) {

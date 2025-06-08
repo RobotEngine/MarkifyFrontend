@@ -574,18 +574,16 @@ modules["editor/editor"] = class {
       return thickness;
     }
     this.utils.getAbsolutePosition = (anno, includeSelecting) => {
-      if (anno.p == null) {
-        return;
-      }
+      let [sizeWidth, sizeHeight] = [(anno.s ?? [])[0] ?? 1, (anno.s ?? [])[0] ?? 1];
       let thickness = this.utils.getThickness(anno);
-      let width = Math.abs(anno.s[0]) + thickness;
-      let height = Math.abs(anno.s[1]) + thickness;
-      let topLeftX = anno.p[0];
-      let topLeftY = anno.p[1];
-      if (anno.s[0] < 0) {
+      let width = Math.abs(sizeWidth) + thickness;
+      let height = Math.abs(sizeHeight) + thickness;
+      let topLeftX = (anno.p ?? [])[0] ?? 0;
+      let topLeftY = (anno.p ?? [])[1] ?? 0;
+      if (sizeWidth < 0) {
         topLeftX -= width;
       }
-      if (anno.s[1] < 0) {
+      if (sizeHeight < 0) {
         topLeftY -= height;
       }
       let bottomRightX = topLeftX + width;
@@ -603,15 +601,16 @@ modules["editor/editor"] = class {
           selectingParent = true;
         }
         let rotate = render.r ?? 0;
+        let [renderSizeWidth, renderSizeHeight] = [(render.s ?? [])[0] ?? 1, (render.s ?? [])[0] ?? 1];
         let renderThickness = this.utils.getThickness(render);
-        let renderWidth = Math.abs(render.s[0]) + renderThickness;
-        let renderHeight = Math.abs(render.s[1]) + renderThickness;
-        let renderX = render.p[0];
-        let renderY = render.p[1];
-        if (render.s[0] < 0) {
+        let renderWidth = Math.abs(renderSizeWidth) + renderThickness;
+        let renderHeight = Math.abs(renderSizeHeight) + renderThickness;
+        let renderX = (render.p ?? [])[0] ?? 0;
+        let renderY = (render.p ?? [])[1] ?? 0;
+        if (renderSizeWidth < 0) {
           renderX -= renderWidth;
         }
-        if (render.s[1] < 0) {
+        if (renderSizeHeight < 0) {
           renderY -= renderHeight;
         }
         let centerX = renderX + (renderWidth / 2);
@@ -658,15 +657,16 @@ modules["editor/editor"] = class {
       for (let i = parents.length - 1; i > -1; i--) {
         let render = parents[i];
         let rotate = -(render.r ?? 0);
+        let [renderSizeWidth, renderSizeHeight] = [(render.s ?? [])[0] ?? 1, (render.s ?? [])[0] ?? 1];
         let renderThickness = this.utils.getThickness(render);
-        let renderWidth = Math.abs(render.s[0]) + renderThickness;
-        let renderHeight = Math.abs(render.s[1]) + renderThickness;
-        let renderX = render.p[0];
-        let renderY = render.p[1];
-        if (render.s[0] < 0) {
+        let renderWidth = Math.abs(renderSizeWidth) + renderThickness;
+        let renderHeight = Math.abs(renderSizeHeight) + renderThickness;
+        let renderX = (render.p ?? [])[0] ?? 0;
+        let renderY = (render.p ?? [])[1] ?? 0;
+        if (renderSizeWidth < 0) {
           renderX -= renderWidth;
         }
-        if (render.s[1] < 0) {
+        if (renderSizeHeight < 0) {
           renderY -= renderHeight;
         }
         let centerX = renderX + (renderWidth / 2);
@@ -701,16 +701,17 @@ modules["editor/editor"] = class {
         returnRotation += rotate;
       }
       
-      let width = (Math.abs(anno.s[0]) + position.thickness) / 2;
-      let height = (Math.abs(anno.s[1]) + position.thickness) / 2;
+      let [sizeWidth, sizeHeight] = [(anno.s ?? [])[0] ?? 1, (anno.s ?? [])[0] ?? 1];
+      let width = (Math.abs(sizeWidth) + position.thickness) / 2;
+      let height = (Math.abs(sizeHeight) + position.thickness) / 2;
       let x = ((bottomRightX + topLeftX) / 2);
       let y = ((bottomRightY + topLeftY) / 2);
-      if (anno.s[0] > 0) {
+      if (sizeWidth > 0) {
         x -= width;
       } else {
         x += width;
       }
-      if (anno.s[1] > 0) {
+      if (sizeHeight > 0) {
         y -= height;
       } else {
         y += height;
@@ -719,12 +720,10 @@ modules["editor/editor"] = class {
     }
     this.utils.getRect = (anno, includeSelecting) => {
       anno = anno ?? {};
-      if (anno.p == null) {
-        return;
-      }
       let position = this.utils.getAbsolutePosition(anno, includeSelecting);
-      let width = Math.abs(anno.s[0]) + position.thickness;
-      let height = Math.abs(anno.s[1]) + position.thickness;
+      let [sizeWidth, sizeHeight] = [(anno.s ?? [])[0] ?? 1, (anno.s ?? [])[0] ?? 1];
+      let width = Math.abs(sizeWidth) + position.thickness;
+      let height = Math.abs(sizeHeight) + position.thickness;
       let halfWidth = width / 2;
       let halfHeight = height / 2;
       let centerX = (position.endX + position.x) / 2;
@@ -737,10 +736,10 @@ modules["editor/editor"] = class {
 
       let annoX = x;
       let annoY = y;
-      if (anno.s[0] < 0) {
+      if (sizeWidth < 0) {
         annoX = endX;
       }
-      if (anno.s[1] < 0) {
+      if (sizeHeight < 0) {
         annoY = endY;
       }
 
@@ -751,7 +750,7 @@ modules["editor/editor"] = class {
         centerY: centerY,
         endX, endY,
         width, height,
-        size: [anno.s[0], anno.s[1]],
+        size: [sizeWidth, sizeHeight],
         thickness: position.thickness,
         rotation: position.rotation,
         parents: position.parents,
@@ -824,6 +823,9 @@ modules["editor/editor"] = class {
           continue;
         }
         if (render.remove == true) {
+          continue;
+        }
+        if (render.p == null || render.s == null) {
           continue;
         }
         let rect = this.utils.getRect(render, includeSelecting) ?? {};
@@ -1285,25 +1287,36 @@ modules["editor/editor"] = class {
         return collaborator;
       }
 
-      if (this.utils.getCollaboratorSync[modify] == null) {
-        this.utils.getCollaboratorSync[modify] = (async () => {
-          let [code, body] = await sendRequest("GET", "lessons/members/collaborator?modify=" + modify, null, { session: this.session, allowError: [404] });
+      this.utils.getCollaboratorSync[modify] = true;
+
+      if (this.utils.requestCollaborators == null) {
+        this.utils.requestCollaborators = (async () => {
+          await sleep(5);
+
+          let modifyIDs = Object.keys(this.utils.getCollaboratorSync);
+          this.utils.getCollaboratorSync = {};
+          let [code, body] = await sendRequest("GET", "lessons/members/collaborator?modify=" + modifyIDs.join(), null, { session: this.session });
           if (code == 200) {
-            this.collaborators[body._id] = body;
-            return body;
-          } else if (code == 404) {
-            this.collaborators[modify] = {};
-            return {};
+            for (let i = 0; i < body.length; i++) {
+              let collaborator = body[i];
+              this.collaborators[collaborator._id] = collaborator;
+              modifyIDs.splice(modifyIDs.indexOf(collaborator._id), 1);
+            }
+            for (let i = 0; i < modifyIDs.length; i++) {
+              let collaborator = modifyIDs[i];
+              this.collaborators[collaborator._id] = {};
+            }
           }
+          this.utils.requestCollaborators = null;
         })();
       }
 
-      let result = await this.utils.getCollaboratorSync[modify];
+      await this.utils.requestCollaborators;
 
-      delete this.utils.getCollaboratorSync[modify];
+      collaborator = this.collaborators[modify] ?? {};
 
-      if (callback) await callback(result);
-      return result;
+      if (callback) await callback(collaborator);
+      return collaborator;
     }
 
     this.render = {};
@@ -1849,8 +1862,8 @@ modules["editor/editor"] = class {
         parentAnnotation.renderedChildren[_id] = annotation;
       }
 
-      let [xPos, yPos] = position;
-      let [width, height] = size;
+      let [xPos, yPos] = position ?? [0, 0];
+      let [width, height] = size ?? [1, 1];
       let thickness = this.utils.getThickness(render);
       if (width < 0) {
         width = -width;
@@ -2351,7 +2364,7 @@ modules["editor/editor"] = class {
       let annoID = data._id;
 
       let merged = { ...(annotation.render ?? {}), ...data };
-      if (merged.p == null || merged.s == null) {
+      if (merged._id == null) {
         return;
       }
 
@@ -2359,30 +2372,32 @@ modules["editor/editor"] = class {
       let rect = this.utils.getRect(merged);
 
       // Check for a new parent:
-      let { parentID } = await this.utils.parentFromAnnotation({
-        ...merged,
-        p: [rect.annoX, rect.annoY],
-        r: rect.rotation,
-        parent: null,
-        prevParent: merged.parent
-      }, true);
-      if (parentID != merged.parent) {
-        data.parent = parentID ?? null;
-
-        let { x: newX, y: newY, rotation: newRotation } = this.utils.getRelativePosition({
+      if (merged.p != null && merged.s != null) {
+        let { parentID } = await this.utils.parentFromAnnotation({
           ...merged,
-          parent: data.parent,
           p: [rect.annoX, rect.annoY],
-          r: rect.rotation
-        });
-        data.p = [newX, newY];
-        if (merged.r != null || newRotation != 0) {
-          data.r = newRotation;
-        }
+          r: rect.rotation,
+          parent: null,
+          prevParent: merged.parent
+        }, true);
+        if (parentID != merged.parent) {
+          data.parent = parentID ?? null;
 
-        this.realtimeSelect[data._id] = { ...(this.realtimeSelect[data._id] ?? {}), ...data };
-        merged = { ...merged, ...data };
-        rect = this.utils.getRect(merged);
+          let { x: newX, y: newY, rotation: newRotation } = this.utils.getRelativePosition({
+            ...merged,
+            parent: data.parent,
+            p: [rect.annoX, rect.annoY],
+            r: rect.rotation
+          });
+          data.p = [newX, newY];
+          if (merged.r != null || newRotation != 0) {
+            data.r = newRotation;
+          }
+
+          this.realtimeSelect[data._id] = { ...(this.realtimeSelect[data._id] ?? {}), ...data };
+          merged = { ...merged, ...data };
+          rect = this.utils.getRect(merged);
+        }
       }
 
       let checkChunks = [ ...this.utils.chunksFromAnnotation(merged), ...this.utils.chunksFromAnnotation(annotation.render ?? {}) ];
@@ -2446,6 +2461,10 @@ modules["editor/editor"] = class {
               this.save.pendingSaves[setChildAnno._id] = { ...(this.save.pendingSaves[setChildAnno._id] ?? {}), ...setChildAnno, sync: getEpoch() };
               this.realtimeSelect[setChildAnno._id] = { ...(this.realtimeSelect[setChildAnno._id] ?? {}), ...setChildAnno };
             }
+          }
+
+          if (render.p == null || render.s == null) {
+            continue;
           }
 
           updateChunkAnnotations.push([
@@ -2774,7 +2793,7 @@ modules["editor/editor"] = class {
           }
           continue;
         }
-        if (this.selecting[annotation.render._id] != null) {
+        if (this.selecting[annotation.render._id] != null) { // || this.utils.getParents(annotation.render).some((parent) => { return this.selecting[parent._id] != null }) == true
           for (let c = 0; c < annotation.chunks.length; c++) {
             holdLoadedChunks[annotation.chunks[c]] = "";
           }
@@ -4255,6 +4274,7 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
   REDRAW_ON_PARENT_UPDATE = true;
   DISPLAY_SELECT_BOX = false;
   KEEP_ON_PARENT_DELETE = true;
+  RENDER_CHILDREN_WHEN_SELECTED = true;
 
   SELECTION_START = async () => {
     if (this.annotation == null) {
@@ -4266,7 +4286,7 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
     }
     this.commentModule.editor = this.parent;
     this.commentModule.toolbar = this.parent.toolbar;
-    this.commentModule.openCommentFrame(this.annotation);
+    await this.commentModule.openCommentFrame(this.annotation, Object.values(this.commentThreads).sort((a, b) => { return (a.time ?? a.sync) - (b.time ?? b.sync); }));
     this.subscribe("bounds_change", this.commentModule.updateCommentFrame);
     this.subscribe("click_move", this.commentModule.updateCommentFrame);
   }
@@ -4278,6 +4298,31 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
     this.commentModule = null;
     this.unsubscribe("bounds_change");
     this.unsubscribe("click_move");
+  }
+  commentThreads = {};
+  handleParentThread = () => {
+    let parentAnnotation = this.parent.annotations[this.properties.parent];
+    if (parentAnnotation != null) {
+      if (parentAnnotation.pointer != null) {
+        parentAnnotation = this.annotations[parentAnnotation.pointer];
+      }
+      if (parentAnnotation.render.f == "comment") { // Use for comment thread
+        if (parentAnnotation.component != null) {
+          if (this.annotation.pending != null) {
+            delete parentAnnotation.component.commentThreads[this.annotation.pending];
+          }
+          if (this.properties.remove != true) {
+            parentAnnotation.component.commentThreads[this.properties._id] = this.properties;
+          } else {
+            delete parentAnnotation.component.commentThreads[this.properties._id];
+          }
+          if (parentAnnotation.component.commentModule != null && parentAnnotation.component.commentModule.updateComment != null) {
+            parentAnnotation.component.commentModule.updateComment({ ...this.properties, pending: this.annotation.pending });
+          }
+        }
+        return true;
+      }
+    }
   }
 
   css = {
@@ -4302,6 +4347,10 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
     ".eAnnotation[comment] > div[commentholder] > div[comment] div[text]": `box-sizing: border-box; width: 100%; max-width: 200px; height: fit-content; font-size: 12px; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden`,
   };
   render = () => {
+    if (this.handleParentThread() == true) {
+      return;
+    }
+    
     let newAnnotation = this.element == null;
     if (newAnnotation == true) {
       this.parent.annotationHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" comment new style="display: none">
@@ -4399,6 +4448,19 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
       this.commentModule.annotation = this.annotation;
       this.commentModule.updateCommentFrame();
     }
+  }
+  remove = () => {
+    this.properties.remove = true;
+    this.handleParentThread();
+    if (this.commentModule != null && this.commentModule.closeCommentFrame != null) {
+      this.commentModule.closeCommentFrame();
+    }
+    let element = this.getElement();
+    if (element == null) {
+      return;
+    }
+    element.remove();
+    this.parent.pipeline.unsubscribe("annotation_" + this.properties._id);
   }
 }
 modules["editor/render/annotation/page"] = class extends modules["editor/render/annotation"] {

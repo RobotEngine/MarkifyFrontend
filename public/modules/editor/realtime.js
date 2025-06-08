@@ -572,7 +572,7 @@ modules["editor/realtime"] = class {
                 continue;
               }
               let setRender = { ...originalRender, ...anno };
-              if (setRender._id == null || setRender.p == null || setRender.s == null) {
+              if (setRender._id == null) { // || setRender.p == null || setRender.s == null
                 delete userSelection[annoID];
                 continue;
               } else if (setRender.remove == true) {
@@ -660,11 +660,14 @@ modules["editor/realtime"] = class {
                 userSelecting = true;
               }
               if (merge.f != null) {
-                annoElem = ((await editor.save.apply({ ...merge, sync: time }, { overwrite: true, render: { animate: anno.f == null }, renderPassthrough: { resizing: merge.resizing } })).annotation ?? {}).component.getElement();
-                if (annoElem != null) {
-                  let annoTx = annoElem.querySelector("div[contenteditable]");
-                  if (annoTx != null) {
-                    annoTx.removeAttribute("contenteditable");
+                let component = ((await editor.save.apply({ ...merge, sync: time }, { overwrite: true, render: { animate: anno.f == null }, renderPassthrough: { resizing: merge.resizing } })).annotation ?? {}).component;
+                if (component != null) {
+                  let annoElem = component.getElement();
+                  if (annoElem != null) {
+                    let annoTx = annoElem.querySelector("div[contenteditable]");
+                    if (annoTx != null) {
+                      annoTx.removeAttribute("contenteditable");
+                    }
                   }
                 }
               }

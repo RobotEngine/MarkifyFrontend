@@ -5488,7 +5488,8 @@ modules["editor/toolbar/comment"] = class {
   }
   commentWidth = 32;
   commentHeight = 32;
-  offset = 28;
+  offsetX = 24; //28
+  offsetY = 23; //23; //22
   updateCommentFrame = () => {
     if (this.frame == null) {
       return;
@@ -5504,8 +5505,8 @@ modules["editor/toolbar/comment"] = class {
     let centerY = y - ((this.commentHeight / 2) * zoom);
 
     let frameWidth = this.frame.offsetWidth;
-    let setLeft = annotationRect.left + (centerX * this.editor.zoom) + this.offset + this.editor.contentHolder.scrollLeft;
-    let setRight = annotationRect.left + (centerX * this.editor.zoom) - this.offset - frameWidth + this.editor.contentHolder.scrollLeft;
+    let setLeft = annotationRect.left + (centerX * this.editor.zoom) + this.offsetX + this.editor.contentHolder.scrollLeft;
+    let setRight = annotationRect.left + (centerX * this.editor.zoom) - this.offsetX - frameWidth + this.editor.contentHolder.scrollLeft;
     let setTransformOrigin = "";
     if (setLeft + frameWidth + this.editor.scrollOffset < this.editor.contentHolder.scrollLeft + this.editor.contentHolder.clientWidth || setRight - this.editor.scrollOffset < this.editor.contentHolder.scrollLeft) {
       this.frame.style.left = setLeft + "px";
@@ -5516,13 +5517,15 @@ modules["editor/toolbar/comment"] = class {
     }
     let frameHeight = this.frame.offsetHeight;
     let annoY = annotationRect.top + (centerY * this.editor.zoom);
-    let setTop = annoY - 22 + this.editor.contentHolder.scrollTop;
-    let useTop = setTop + Math.min(this.editor.contentHolder.scrollTop + this.editor.contentHolder.clientHeight - this.editor.scrollOffset - setTop - frameHeight, 0);
-    if (useTop + frameHeight < annoY + 22 + this.editor.contentHolder.scrollTop) {
-      useTop = annoY + 22 + this.editor.contentHolder.scrollTop - frameHeight;
+    let setTop;
+    if (annoY + this.offsetY < this.editor.contentHolder.clientHeight - this.editor.scrollOffset) {
+      setTop = annoY + this.editor.contentHolder.scrollTop - this.offsetY;
+      setTop += Math.min(this.editor.contentHolder.scrollTop + this.editor.contentHolder.clientHeight - this.editor.scrollOffset - setTop - frameHeight, 0);
+    } else {
+      setTop = annoY - frameHeight + this.editor.contentHolder.scrollTop + this.offsetY;
     }
-    this.frame.style.top = useTop + "px";
-    this.frame.style.transformOrigin = setTransformOrigin + " " + (this.editor.contentHolder.scrollTop + annoY - useTop) + "px";
+    this.frame.style.top = setTop + "px";
+    this.frame.style.transformOrigin = setTransformOrigin + " " + (this.editor.contentHolder.scrollTop + annoY - setTop) + "px";
 
     if (this.updateReplyShadow != null) {
       this.updateReplyShadow();

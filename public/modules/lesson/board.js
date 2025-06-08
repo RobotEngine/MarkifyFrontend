@@ -771,7 +771,6 @@ modules["lesson/board"] = class {
         let existingAnno = this.editor.annotations[annoBody.annotations[i]._id];
         if (existingAnno != null) {
           await this.editor.utils.setAnnotationChunks(existingAnno);
-          this.editor.utils.updateAnnotationPages(existingAnno.render);
         }
       }
 

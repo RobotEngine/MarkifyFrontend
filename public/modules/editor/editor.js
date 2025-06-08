@@ -999,6 +999,42 @@ modules["editor/editor"] = class {
         }
       }
       annotation.chunks = chunks;
+
+      if (render.f == "page") { // Update Annotation Pages
+        for (let i = 0; i < this.annotationPages.length; i++) {
+          let annoid = this.annotationPages[i][0];
+          if ((annoid ?? "").startsWith("pending_") == true) {
+            let anno = this.annotations[annoid] ?? {};
+            if (anno.pointer != null) {
+              annoid = anno.pointer;
+            }
+          }
+          if (annoid == render._id) {
+            this.annotationPages.splice(i, 1);
+            break;
+          }
+        }
+        if (render.remove != true && (render._id ?? "").startsWith("pending_") == false) {
+          if (render.parent == null) {
+            let rect = this.utils.getRect(render);
+            let [topLeftX, topLeftY, bottomRightX, bottomRightY] = this.math.rotatedBounds(rect.x, rect.y, rect.endX, rect.endY, rect.rotation);
+            this.annotationPages.push([
+              render._id,
+              [rect.centerX, rect.centerY],
+              [topLeftX, topLeftY, bottomRightX - topLeftX, bottomRightY - topLeftY],
+              [render.source, render.number]
+            ]);
+            this.annotationPages.sort((a, b) => {
+              if (b[1][1] > a[2][1] && b[1][1] < a[2][1] + a[2][3]) {
+                return a[2][0] - b[2][0];
+              }
+              return a[2][1] - b[2][1];
+            });
+          }
+        }
+        clearTimeout(this.updatePageTimeout);
+        this.updatePageTimeout = setTimeout(() => { this.utils.updateCurrentPage(true); }, 100);
+      }
       
       if (annotationVisible == true) {
         if (annotation.component == null) {
@@ -1043,7 +1079,6 @@ modules["editor/editor"] = class {
       return topmostChunk;
     }*/
 
-    let updatePageTimeout;
     this.utils.updateCurrentPage = (force) => {
       let activeElement = document.activeElement;
       if (activeElement != null) {
@@ -1071,45 +1106,6 @@ modules["editor/editor"] = class {
         this.currentPage = minPage;
         this.pipeline.publish("page_change", { page: this.currentPage, pageId: minPageId });
       }
-    }
-    this.utils.updateAnnotationPages = (anno) => {
-      if (anno.f != "page") {
-        return;
-      }
-      for (let i = 0; i < this.annotationPages.length; i++) {
-        let annoid = this.annotationPages[i][0];
-        if ((annoid ?? "").startsWith("pending_") == true) {
-          let anno = this.annotations[annoid] ?? {};
-          if (anno.pointer != null) {
-            annoid = anno.pointer;
-          }
-        }
-        if (annoid == anno._id) {
-          this.annotationPages.splice(i, 1);
-          break;
-        }
-      }
-      if (anno.remove != true && (anno._id ?? "").startsWith("pending_") == false) {
-        if (anno.parent != null) {
-          return;
-        }
-        let rect = this.utils.getRect(anno);
-        let [topLeftX, topLeftY, bottomRightX, bottomRightY] = this.math.rotatedBounds(rect.x, rect.y, rect.endX, rect.endY, rect.rotation);
-        this.annotationPages.push([
-          anno._id,
-          [rect.centerX, rect.centerY],
-          [topLeftX, topLeftY, bottomRightX - topLeftX, bottomRightY - topLeftY],
-          [anno.source, anno.number]
-        ]);
-        this.annotationPages.sort((a, b) => {
-          if (b[1][1] > a[2][1] && b[1][1] < a[2][1] + a[2][3]) {
-            return a[2][0] - b[2][0];
-          }
-          return a[2][1] - b[2][1];
-        });
-      }
-      clearTimeout(updatePageTimeout);
-      updatePageTimeout = setTimeout(() => { this.utils.updateCurrentPage(true); }, 100);
     }
     this.utils.updateAnnotationScroll = (pageData, animation) => {
       if (pageData == null) {
@@ -2310,7 +2306,6 @@ modules["editor/editor"] = class {
       }
 
       await this.utils.setAnnotationChunks(annotation);
-      this.utils.updateAnnotationPages(annotation.render);
 
       let chunkAnnotations = this.utils.annotationsInChunks(checkChunks);
       for (let i = 0; i < chunkAnnotations.length; i++) {
@@ -2321,7 +2316,6 @@ modules["editor/editor"] = class {
         }
         if (this.utils.getParentIDs(render).includes(annoID) == true) { // Update chunks of child annotations:
           await this.utils.setAnnotationChunks(anno);
-          this.utils.updateAnnotationPages(render);
         }
       }
 
@@ -2520,7 +2514,6 @@ modules["editor/editor"] = class {
             }
           } else if (isAChild == true) { // Update chunks of child annotations:
             await this.utils.setAnnotationChunks(anno);
-            this.utils.updateAnnotationPages(render);
           }
 
           if (history.update != null && historyUpdate != null) {
@@ -2861,8 +2854,8 @@ modules["editor/editor"] = class {
         await this.runUpdateCycle();
       }
       
-      clearTimeout(updatePageTimeout);
-      updatePageTimeout = setTimeout(this.utils.updateCurrentPage, 100);
+      clearTimeout(this.updatePageTimeout);
+      this.updatePageTimeout = setTimeout(this.utils.updateCurrentPage, 100);
       clearTimeout(updateSubTimeout);
       updateSubTimeout = setTimeout(() => {
         if (this.realtime.module != null) {

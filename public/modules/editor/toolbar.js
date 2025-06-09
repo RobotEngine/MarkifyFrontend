@@ -5672,7 +5672,7 @@ modules["editor/toolbar/comment"] = class {
 
         let actionsHolder = comment.querySelector("div[actions]");
         if (options.root == true) {
-          actionsHolder.insertAdjacentHTML("afterbegin", `<button resolve></button>`);
+          actionsHolder.insertAdjacentHTML("afterbegin", `<button resolve title="Resolve the comment thread."></button>`);
           let resolveButton = actionsHolder.querySelector("button[resolve]");
           setSVG(resolveButton, "../images/editor/actions/resolve.svg");
           if (render.resolved == true) {

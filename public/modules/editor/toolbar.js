@@ -3673,9 +3673,12 @@ modules["editor/toolbar"] = class {
               event.redo.push(copyObject(redoAnno));
             }
             if (annotation.component != null) {
-              annoContentTx = annotation.component.getElement().querySelector("div[contenteditable]");
-              if (annoContentTx != null) {
-                annoContentTx.removeAttribute("contenteditable");
+              let element = annotation.component.getElement();
+              if (element != null) {
+                annoContentTx = element.querySelector("div[contenteditable]");
+                if (annoContentTx != null) {
+                  annoContentTx.removeAttribute("contenteditable");
+                }
               }
             }
             editor.selecting[change._id] = change;
@@ -3766,9 +3769,12 @@ modules["editor/toolbar"] = class {
             }
             let annotation = editor.annotations[change._id] ?? {};
             if (annotation.component != null) {
-              annoContentTx = annotation.component.getElement().querySelector("div[contenteditable]");
-              if (annoContentTx != null) {
-                annoContentTx.removeAttribute("contenteditable");
+              let element = annotation.component.getElement();
+              if (element != null) {
+                annoContentTx = element.querySelector("div[contenteditable]");
+                if (annoContentTx != null) {
+                  annoContentTx.removeAttribute("contenteditable");
+                }
               }
             }
             editor.selecting[change._id] = change;
@@ -5730,7 +5736,7 @@ modules["editor/toolbar/comment"] = class {
       await this.updateComment(thread[i], { new: true });
     }
 
-    holder.addEventListener("click", async (event) => {
+    holder.addEventListener("click", (event) => {
       let button = event.target.closest("button");
       if (button == null) {
         return;
@@ -5741,10 +5747,7 @@ modules["editor/toolbar/comment"] = class {
         return dropdownModule.open(button, "dropdowns/editor/toolbar/comment/more", { parent: this, commentID: comment.getAttribute("comment"), root: holder.firstElementChild == comment });
       }
       if (comment != null && button.hasAttribute("resolve") == true) {
-        let save = { _id: comment.getAttribute("comment"), resolved: !button.hasAttribute("selected") };
-        await this.editor.save.push(save);
-        this.editor.realtimeSelect[save._id] = save;
-        return await this.editor.realtime.forceShort();
+        return this.toolbar.saveSelecting(() => { return { resolved: !button.hasAttribute("selected") }; });
       }
     });
 

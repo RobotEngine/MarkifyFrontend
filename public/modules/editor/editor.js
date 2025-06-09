@@ -3544,6 +3544,7 @@ modules["dropdowns/lesson/zoom"] = class {
 
 // Annotation Modules:
 modules["editor/render/annotation"] = class {
+  cache = {};
   getElement = () => {
     return this.element;
   }
@@ -3553,8 +3554,8 @@ modules["editor/render/annotation"] = class {
     if (element == null) {
       return;
     }
-    if (this.properties._id != this.lastSetID) {
-      this.lastSetID = this.properties._id;
+    if (this.properties._id != this.cache.lastSetID) {
+      this.cache.lastSetID = this.properties._id;
       element.setAttribute("anno", this.properties._id);
     }
   }
@@ -3584,8 +3585,8 @@ modules["editor/render/annotation"] = class {
       this.parent.maxLayer = this.properties.l;
       this.parent.annotationHolder.style.setProperty("--maxZIndex", this.properties.l);
     }
-    if (this.properties.l != this.lastSetLayer) {
-      this.lastSetLayer = this.properties.l;
+    if (this.properties.l != this.cache.lastSetLayer) {
+      this.cache.lastSetLayer = this.properties.l;
       element.style.setProperty("--zIndex", this.properties.l);
     }
   }
@@ -3610,8 +3611,8 @@ modules["editor/render/annotation"] = class {
     } else if (sizeHeight < 0) {
       transform += " scale(1,-1)";
     }
-    if (transform != this.lastSetTransform) {
-      this.lastSetTransform = transform;
+    if (transform != this.cache.lastSetTransform) {
+      this.cache.lastSetTransform = transform;
       element.style.transform = transform;
     }
   }
@@ -3621,10 +3622,10 @@ modules["editor/render/annotation"] = class {
       return;
     }
     this.animate = set ?? this.animate;
-    if (this.animate == this.lastSetAnimate) {
+    if (this.animate == this.cache.lastSetAnimate) {
       return;
     }
-    this.lastSetAnimate = this.animate;
+    this.cache.lastSetAnimate = this.animate;
     if (this.animate != false) {
       element.removeAttribute("notransition");
     } else {
@@ -3633,10 +3634,11 @@ modules["editor/render/annotation"] = class {
   }
 
   subscribe = (event, callback, extra) => {
-    this.parent.pipeline.subscribe("annotation_" + this.properties._id, event, callback, extra);
+    this.cache.originalID = this.cache.originalID ?? this.properties._id;
+    this.parent.pipeline.subscribe("annotation_" + this.originalID, event, callback, extra);
   }
   unsubscribe = (event) => {
-    this.parent.pipeline.unsubscribe("annotation_" + this.properties._id, event);
+    this.parent.pipeline.unsubscribe("annotation_" + (this.cache.originalID ?? this.properties._id), event);
   }
 
   hide = () => {
@@ -3644,8 +3646,8 @@ modules["editor/render/annotation"] = class {
     if (element == null) {
       return;
     }
-    if (this.hidden != true) {
-      this.hidden = true;
+    if (this.cache.hidden != true) {
+      this.cache.hidden = true;
       element.setAttribute("hidden", "");
     }
   }
@@ -3654,18 +3656,20 @@ modules["editor/render/annotation"] = class {
     if (element == null) {
       return;
     }
-    if (this.hidden == true) {
-      this.hidden = false;
+    if (this.cache.hidden == true) {
+      this.cache.hidden = false;
       element.removeAttribute("hidden");
     }
   }
   remove = () => {
     let element = this.getElement();
+    this.element = null;
+    this.cache = {};
     if (element == null) {
       return;
     }
     element.remove();
-    this.parent.pipeline.unsubscribe("annotation_" + this.properties._id);
+    this.parent.pipeline.unsubscribe("annotation_" + (this.cache.originalID ?? this.properties._id));
   }
 
   getContainer = () => {
@@ -4367,11 +4371,11 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
     ".eAnnotation[comment] > div[commentholder] > div[comment] div[replycount]": `display: none; width: 100%; max-width: 200px; margin-top: 4px; color: var(--theme); font-size: 12px; font-weight: 600`,
   };
   render = () => {
-    if (this.handleParentThread() == true) {
-      return;
-    }
     if (this.properties.resolved == true) {
       return this.remove();
+    }
+    if (this.handleParentThread() == true) {
+      return;
     }
     
     let newAnnotation = this.element == null;
@@ -4482,11 +4486,13 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
       this.commentModule.closeCommentFrame();
     }
     let element = this.getElement();
+    this.element = null;
+    this.cache = {};
     if (element == null) {
       return;
     }
     element.remove();
-    this.parent.pipeline.unsubscribe("annotation_" + this.properties._id);
+    this.parent.pipeline.unsubscribe("annotation_" + (this.cache.originalID ?? this.properties._id));
   }
 }
 modules["editor/render/annotation/page"] = class extends modules["editor/render/annotation"] {

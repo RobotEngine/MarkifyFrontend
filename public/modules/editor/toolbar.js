@@ -4278,9 +4278,11 @@ modules["editor/toolbar"] = class {
         if (renderCopy.parent != null) {
           renderCopy.parented = {
             parent: renderCopy.parent,
-            p: [render.p[0], render.p[1]],
             r: render.r
           };
+          if (render.p != null) {
+            renderCopy.parented.p = [render.p[0], render.p[1]];
+          }
         }
         delete renderCopy.parent;
         renderCopy.p = [annoX, annoY];
@@ -5468,7 +5470,14 @@ modules["editor/toolbar/comment"] = class {
     ".eCommentContainer div[content]": `flex: 1; min-width: 0; height: 100%; margin-left: 6px; text-align: left; align-content: center`,
     ".eCommentContainer div[content] div[header]": `display: flex; width: 100%; height: 32px; align-items: center`,
     ".eCommentContainer div[content] div[header] div[member]": `flex: 1; min-width: 0; max-width: fit-content; font-size: 16px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
-    ".eCommentContainer div[content] div[header] div[time]": `margin-left: 6px; color: var(--darkGray); font-size: 14px; font-weight: 500; white-space: nowrap`,
+    ".eCommentContainer div[content] div[header] div[time]": `margin: 0 6px; color: var(--darkGray); font-size: 14px; font-weight: 500; white-space: nowrap`,
+    ".eCommentContainer div[content] div[header] div[actions]": `display: flex; gap: 4px; margin-left: auto`,
+    ".eCommentContainer div[content] div[header] div[actions] button": `position: relative; display: flex; width: 32px; height: 32px; padding: 0; border-radius: 16px; justify-content: center; align-items: center`,
+    ".eCommentContainer div[content] div[header] div[actions] button:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--secondary); opacity: 0; border-radius: inherit; transition: .2s`,
+    ".eCommentContainer div[content] div[header] div[actions] button:hover:before": `opacity: .4`,
+    ".eCommentContainer div[content] div[header] div[actions] button > svg": `width: 24px; height: 24px; z-index: 2`,
+    ".eCommentContainer div[content] div[header] div[actions] button[selected]:before": `opacity: 1 !important`,
+    ".eCommentContainer div[content] div[header] div[actions] button[selected] > svg": `filter: brightness(0) invert(1)`,
     ".eCommentContainer div[content] div[text]": `box-sizing: border-box; width: 100%; height: fit-content; font-size: 14px; outline: none`,
     ".eCommentItem[new] .eCommentContainer div[content] div[text]": `padding: 6px`,
     ".eCommentItem[new] .eCommentContainer div[content] div[text]:empty:before": `content: "Write your Comment"; display: block; opacity: .5; pointer-events: none`,
@@ -5482,7 +5491,7 @@ modules["editor/toolbar/comment"] = class {
     ".eCommentReply > div[profileholder] div[profile] img": `width: 100%; height: 100%; object-fit: cover; border-radius: inherit`,
     ".eCommentReply > div[profileholder] div[profile]:after": `content: ""; position: absolute; width: 100%; height: 100%; padding: 3px; left: -3px; top: -3px; border-radius: inherit; box-shadow: 0 0 4px var(--themeColor); opacity: .6`,
     ".eCommentReply > div[text]": `box-sizing: border-box; flex: 1; padding: 6px 10px; min-height: 32px; max-height: 120px; background: rgba(var(--hoverRGB), .3); outline: none; border-radius: 16px; font-size: 14px; text-align: left; align-content: center; overflow: auto`,
-    ".eCommentReply > div[text]:empty:before": `content: "Add a Reply"; display: block; opacity: .5; pointer-events: none`,
+    ".eCommentReply > div[text]:empty:before": `content: "Write a Reply"; display: block; opacity: .5; pointer-events: none`,
     ".eCommentReply > button": `display: flex; width: 32px; height: 32px; margin: auto 0 0 6px; justify-content: center; align-items: center; background: var(--theme); border-radius: 16px`,
     ".eCommentReply > button img": `width: 26px; height: 26px`
   }
@@ -5634,6 +5643,9 @@ modules["editor/toolbar/comment"] = class {
               <div header>
                 <div member></div>
                 <div time></div>
+                <div actions>
+                  <button more></button>
+                </div>
               </div>
               <div text></div>
             </div>
@@ -5651,6 +5663,17 @@ modules["editor/toolbar/comment"] = class {
             }
           }
         }
+
+        let actionsHolder = comment.querySelector("div[actions]");
+        if (options.root == true) {
+          actionsHolder.insertAdjacentHTML("afterbegin", `<button resolve></button>`);
+          let resolveButton = actionsHolder.querySelector("button[resolve]");
+          setSVG(resolveButton, "../images/editor/actions/resolve.svg");
+          if (render.resolved == true) {
+            resolveButton.setAttribute("selected", "");
+          }
+        }
+        setSVG(actionsHolder.querySelector("button[more]"), "../images/editor/actions/more.svg");
       }
       comment.setAttribute("comment", render._id);
 
@@ -5677,7 +5700,7 @@ modules["editor/toolbar/comment"] = class {
         if (comment == null) {
           return;
         }
-        
+
         let profileHolder = comment.querySelector("div[profileholder]");
         profileHolder.style.setProperty("--themeColor", collaborator.color);
         if (collaborator.image == null) {
@@ -5702,10 +5725,28 @@ modules["editor/toolbar/comment"] = class {
       }
     }
 
-    await this.updateComment(this.annotation.render, { new: true });
+    await this.updateComment(this.annotation.render, { root: true, new: true });
     for (let i = 0; i < thread.length; i++) {
       await this.updateComment(thread[i], { new: true });
     }
+
+    holder.addEventListener("click", async (event) => {
+      let button = event.target.closest("button");
+      if (button == null) {
+        return;
+      }
+      let comment = button.closest(".eCommentItem");
+      if (comment != null && button.hasAttribute("more") == true) {
+        button.setAttribute("dropdowntitle", "Options");
+        return dropdownModule.open(button, "dropdowns/editor/toolbar/comment/more", { parent: this, commentID: comment.getAttribute("comment"), root: holder.firstElementChild == comment });
+      }
+      if (comment != null && button.hasAttribute("resolve") == true) {
+        let save = { _id: comment.getAttribute("comment"), resolved: !button.hasAttribute("selected") };
+        await this.editor.save.push(save);
+        this.editor.realtimeSelect[save._id] = save;
+        return await this.editor.realtime.forceShort();
+      }
+    });
 
     scrollHolder.insertAdjacentHTML("beforeend", `<div class="eCommentReply">
       <div profileholder>
@@ -5828,7 +5869,7 @@ modules["editor/toolbar/comment"] = class {
       this.editor.selecting = {};
       this.editor.selecting[annotation.render._id] = {};
       this.toolbar.selection.updateBox();
-      return this.openCommentFrame(annotation);
+      return;
     }
 
     /*if (this.annotation != null) {
@@ -5862,6 +5903,53 @@ modules["editor/toolbar/comment"] = class {
   }
   scroll = this.updateCommentFrame;
   disable = this.closeCommentFrame;
+}
+modules["dropdowns/editor/toolbar/comment/more"] = class {
+  html = `
+  <button class="eToolbarCommentMoreAction" option="edit" close title="Edit the comment."><img src="../images/tooltips/copy.svg">Edit Comment</button>
+  <button class="eToolbarCommentMoreAction" option="copylink" close title="Copy a share link to the comment thread." style="--themeColor: var(--secondary)"><img src="../images/tooltips/copy.svg">Copy Link</button>
+  <button class="eToolbarCommentMoreAction" option="delete" close style="--themeColor: var(--red)"></button>
+  `;
+  css = {
+    ".eToolbarCommentMoreAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
+    ".eToolbarCommentMoreAction:not(:last-child)": `margin-bottom: 4px`,
+    ".eToolbarCommentMoreAction div": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: var(--pageColor); border-radius: 4px`,
+    ".eToolbarCommentMoreAction div svg": `width: 100%; height: 100%`,
+    ".eToolbarCommentMoreAction img": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: var(--pageColor); border-radius: 4px`,
+    ".eToolbarCommentMoreAction:hover": `background: var(--themeColor); color: #fff`
+  };
+  js = async (frame, { parent, commentID, root }) => {
+    let editButton = frame.querySelector('.eToolbarCommentMoreAction[option="edit"]');
+    editButton.addEventListener("click", () => {
+      
+    });
+
+    let copyButton = frame.querySelector('.eToolbarCommentMoreAction[option="copylink"]');
+    copyButton.addEventListener("click", () => {
+      if (commentID.startsWith("pending_") == true) {
+        return;
+      }
+      copyClipboardText("https://markify.link/join?lesson=" + parent.editor.lesson.id + "&annotation=" + commentID, "link");
+    });
+    if (root == false) {
+      copyButton.remove();
+    }
+
+    let deleteButton = frame.querySelector('.eToolbarCommentMoreAction[option="delete"]');
+    if (root == true) {
+      deleteButton.title = "Delete the entire comment thread.";
+      deleteButton.innerHTML = `<img src="../images/editor/file/delete.svg">Delete Thread`;
+    } else {
+      deleteButton.title = "Delete this comment.";
+      deleteButton.innerHTML = `<img src="../images/editor/file/delete.svg">Delete Comment`;
+    }
+    deleteButton.addEventListener("click", async () => {
+      let save = { _id: commentID, remove: true };
+      await parent.editor.save.push(save);
+      parent.editor.realtimeSelect[save._id] = save;
+      await parent.editor.realtime.forceShort();
+    });
+  }
 }
 
 modules["editor/toolbar/page"] = class extends modules["editor/toolbar/resize_placement"] {

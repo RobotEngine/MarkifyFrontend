@@ -3187,6 +3187,10 @@ modules["editor/editor"] = class {
     });
     this.options.fullscreen = document.fullscreenElement != null;
 
+    if (this.options.comments == false) {
+      annotations.setAttribute("hidecomments", "");
+    }
+
     let startDistance;
     let startZoom;
     let currentCenter;
@@ -3333,8 +3337,8 @@ modules["dropdowns/lesson/zoom"] = class {
   <button class="eZoomAction" option="snapping" local title="Snap elements to guides while moving and resizing."><div label>Snapping</div><div class="eZoomToggle"><div></div></div></button>
   <button class="eZoomAction" option="cursors"><div label>Show Cursors</div><div class="eZoomToggle"><div></div></div></button>
   <button class="eZoomAction" option="cursornames" local title="Show the member's name when they're annotating."><div label>Cursor Names</div><div class="eZoomToggle"><div></div></div></button>
+  <button class="eZoomAction" option="comments" local title="Show comments on the document."><div label>Comments</div><div class="eZoomToggle"><div></div></div></button>
   <button class="eZoomAction" option="stylusmode" local title="Only write on the document when using an active stylus, such as the Apple Pencil."><div label>Stylus Mode</div><div class="eZoomToggle"><div></div></div></button>
-  <!--<button class="eZoomAction" option="comments" title="Show comments on the document."><div label>Comments</div><div class="eZoomToggle"><div></div></div></button>-->
   <button class="eZoomAction" option="fullscreen" title="Use Markify in full screen mode."><div label>Full Screen</div><div class="eZoomToggle"><div></div></div></button>
   `;
   css = {
@@ -3514,6 +3518,13 @@ modules["dropdowns/lesson/zoom"] = class {
             namesZoomAction.setAttribute("disabled", "");
           }
         }
+        if (option == "comments") {
+          if (toggle.hasAttribute("on") == true) {
+            editor.annotationHolder.removeAttribute("hidecomments");
+          } else {
+            editor.annotationHolder.setAttribute("hidecomments", "");
+          }
+        }
         if (option == "fullscreen") {
           if (toggle.hasAttribute("on") == true) {
             body.requestFullscreen();
@@ -3635,7 +3646,7 @@ modules["editor/render/annotation"] = class {
 
   subscribe = (event, callback, extra) => {
     this.cache.originalID = this.cache.originalID ?? this.properties._id;
-    this.parent.pipeline.subscribe("annotation_" + this.originalID, event, callback, extra);
+    this.parent.pipeline.subscribe("annotation_" + this.cache.originalID, event, callback, extra);
   }
   unsubscribe = (event) => {
     this.parent.pipeline.unsubscribe("annotation_" + (this.cache.originalID ?? this.properties._id), event);
@@ -4357,6 +4368,7 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
   css = {
     ".eAnnotation[comment]": `--themeColor: var(--theme); z-index: calc(var(--maxZIndex) + var(--startZIndex) + 1) !important; `,
     ".eAnnotation[comment][selected]": `z-index: calc(var(--maxZIndex) + var(--startZIndex) + 2) !important`,
+    ".eAnnotations[hidecomments] .eAnnotation[comment]:not([selected])": `display: none`,
     ".eAnnotation[comment]:not([selected]):hover": `z-index: calc(var(--maxZIndex) + var(--startZIndex) + 2) !important`,
     ".eAnnotation[comment] > div[commentholder]": `width: 1px; height: 1px; transform: scale(calc(1 / var(--zoom)))`,
     ".eAnnotation[comment] > div[commentholder] > div[comment]": `position: absolute; display: flex; width: 32px; height: 32px; left: 0px; bottom: 0px; background: var(--pageColor); border-radius: 16px 16px 16px 6px; pointer-events: all; transform-origin: bottom left; transition: .2s`,

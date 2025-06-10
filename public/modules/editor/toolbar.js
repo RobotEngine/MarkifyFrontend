@@ -5707,7 +5707,9 @@ modules["editor/toolbar/comment"] = class {
         commentTx.innerHTML = setHTML;
       }
 
-      this.editor.utils.getCollaborator(render.a ?? render.m, (collaborator) => {
+      let modify = render.a ?? render.m;
+      comment.setAttribute("modify", modify);
+      this.editor.utils.getCollaborator(modify, (collaborator) => {
         if (comment == null) {
           return;
         }
@@ -5754,7 +5756,14 @@ modules["editor/toolbar/comment"] = class {
       }
       if (options.new != true) {
         this.updateCommentFrame();
-        scrollHolder.scrollTo(0, scrollHolder.scrollHeight);
+        if (scrollHolder.scrollTop + scrollHolder.clientHeight + holder.lastElementChild.clientHeight + 50 > scrollHolder.scrollHeight) {
+          let scrollToParams = { top: scrollHolder.scrollHeight };
+          if (this.editor.parent.parent.active != false) {
+            scrollToParams.behavior = "smooth";
+          }
+          scrollHolder.scrollTo(scrollToParams);
+        }
+        //scrollHolder.scrollTo(0, scrollHolder.scrollHeight);
       }
     }
 
@@ -5864,7 +5873,32 @@ modules["editor/toolbar/comment"] = class {
         this.openCommentFrame(annotation, thread);
       }
     });*/
+    this.editor.pipeline.subscribe("toolbarCommentCollaboratorUpdate", "collaborator_update", (data) => {
+      if (this.frame == null) {
+        return;
+      }
+      let updateComments = holder.querySelectorAll('.eCommentItem[modify="' + data._id + '"]');
+      for (let i = 0; i < updateComments.length; i++) {
+        let comment = updateComments[i];
+        let profileHolder = comment.querySelector("div[profileholder]");
+        profileHolder.style.setProperty("--themeColor", data.color);
+        if (data.image == null) {
+          profileHolder.querySelector("div[cursor]").style.removeProperty("display");
+          profileHolder.querySelector("div[profile]").style.display = "none";
+        } else {
+          profileHolder.querySelector("div[profile] img").src = data.image;
+          profileHolder.querySelector("div[profile]").style.removeProperty("display");
+          profileHolder.querySelector("div[cursor]").style.display = "none";
+        }
+        let memberTx = comment.querySelector("div[member]");
+        memberTx.textContent = data.name;
+        memberTx.title = data.name;
+      }
+    });
     this.editor.pipeline.subscribe("toolbarCommentMemberUpdate", "set", (data) => {
+      if (this.frame == null) {
+        return;
+      }
       if (data.settings != null && this.editor.selecting[(this.annotation.render ?? {})._id] != null) {
         this.openCommentFrame(this.annotation, thread);
       }
@@ -5952,7 +5986,15 @@ modules["editor/toolbar/comment"] = class {
     this.openCommentFrame(annotation);
   }
   scroll = this.updateCommentFrame;
-  disable = this.closeCommentFrame;
+  activate = () => {
+    this.editor.annotationHolder.removeAttribute("hidecomments");
+  }
+  disable = () => {
+    this.closeCommentFrame();
+    if (this.editor.options.comments == false) {
+      this.editor.annotationHolder.setAttribute("hidecomments", "");
+    }
+  };
 }
 modules["dropdowns/editor/toolbar/comment/more"] = class {
   html = `

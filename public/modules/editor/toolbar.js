@@ -5485,10 +5485,13 @@ modules["editor/toolbar/comment"] = class {
     ".eCommentContainer div[content] div[header] div[actions] button[selected]:before": `opacity: 1 !important`,
     ".eCommentContainer div[content] div[header] div[actions] button[selected] > svg": `filter: brightness(0) invert(1)`,
     ".eCommentContainer div[content] div[text]": `box-sizing: border-box; width: 100%; height: fit-content; font-size: 14px; outline: none`,
-    ".eCommentItem[new] .eCommentContainer div[content] div[text]": `padding: 6px`,
     ".eCommentItem[new] .eCommentContainer div[content] div[text]:empty:before": `content: "Write your Comment"; display: block; opacity: .5; pointer-events: none`,
+    ".eCommentItem:not([new]) .eCommentContainer div[content] div[text][contenteditable]": `padding: 4px; border: solid 3px var(--secondary); border-radius: 8px`,
     ".eCommentItem > button": `display: flex; width: 36px; height: 36px; margin: 6px 6px 6px 0; justify-content: center; align-items: center; background: var(--theme); border-radius: 18px`,
     ".eCommentItem > button img": `width: 28px; height: 28px`,
+    ".eCommentItem .eCommentEditActions": `display: flex; margin-top: 4px; justify-content: space-between`,
+    ".eCommentItem .eCommentEditActions button[save]": `font-weight: 700; font-size: 14px; color: var(--theme)`,
+    ".eCommentItem .eCommentEditActions button[cancel]": `font-weight: 500; font-size: 14px; color: var(--darkGray)`,
     ".eCommentReply": `position: sticky; display: flex; box-sizing: border-box; width: 100%; padding: 8px; bottom: 0px; background: var(--pageColor); z-index: 2; transition: .2s`,
     ".eCommentReply > div[profileholder]": `display: flex; height: fit-content; margin-right: 6px`,
     ".eCommentReply > div[profileholder] div[cursor]": `position: relative; width: 22px; height: 22px; margin: 2px; background: var(--themeColor); border: solid 3px var(--pageColor); border-radius: 8px 14px 14px`,
@@ -5744,7 +5747,7 @@ modules["editor/toolbar/comment"] = class {
       let comment = button.closest(".eCommentItem");
       if (comment != null && button.hasAttribute("more") == true) {
         button.setAttribute("dropdowntitle", "Options");
-        return dropdownModule.open(button, "dropdowns/editor/toolbar/comment/more", { parent: this, commentID: comment.getAttribute("comment"), root: holder.firstElementChild == comment });
+        return dropdownModule.open(button, "dropdowns/editor/toolbar/comment/more", { parent: this, comment: comment, root: holder.firstElementChild == comment });
       }
       if (comment != null && button.hasAttribute("resolve") == true) {
         return this.toolbar.saveSelecting(() => { return { resolved: !button.hasAttribute("selected") }; });
@@ -5921,10 +5924,67 @@ modules["dropdowns/editor/toolbar/comment/more"] = class {
     ".eToolbarCommentMoreAction img": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: var(--pageColor); border-radius: 4px`,
     ".eToolbarCommentMoreAction:hover": `background: var(--themeColor); color: #fff`
   };
-  js = async (frame, { parent, commentID, root }) => {
+  js = async (frame, { parent, comment, root }) => {
+    let commentID = comment.getAttribute("comment");
+
     let editButton = frame.querySelector('.eToolbarCommentMoreAction[option="edit"]');
-    editButton.addEventListener("click", () => {
-      
+    editButton.addEventListener("click", (event) => {
+      let commentContent = comment.querySelector(".eCommentContainer > div[content]");
+      let commentTx = commentContent.querySelector("div[text]");
+
+      if (parent.lastEditComment != null) {
+        parent.lastEditComment.querySelector("div[text]").removeAttribute("contenteditable");
+        let actions = parent.lastEditComment.querySelector(".eCommentEditActions");
+        if (actions != null) {
+          actions.remove();
+        }
+        parent.updateComment((parent.editor.annotations[parent.lastEditComment.getAttribute("comment")] ?? {}).render);
+      }
+      parent.lastEditComment = comment;
+
+      commentTx.removeEventListener("paste", parent.pasteListener);
+      parent.pasteListener = (event) => { clipBoardRead(event); }
+      commentTx.addEventListener("paste", parent.pasteListener);
+
+      commentContent.insertAdjacentHTML("beforeend", `<div class="eCommentEditActions"><button save>Save</button><button cancel>Cancel</button></div>`);
+      commentContent.querySelector(".eCommentEditActions button[save]").addEventListener("click", async () => {
+        commentTx.removeAttribute("contenteditable");
+        let actions = comment.querySelector(".eCommentEditActions");
+        if (actions != null) {
+          actions.remove();
+        }
+        if (commentTx.textContent == "") {
+          return parent.updateComment((parent.editor.annotations[comment.getAttribute("comment")] ?? {}).render);
+        }
+        let addText = [];
+        for (let i = 0; i < commentTx.childNodes.length; i++) {
+          let text = commentTx.childNodes[i].textContent;
+          if (text == "") {
+            text = "\n";
+          }
+          addText.push(text);
+        }
+        while (addText[0].trim() == "") {
+          addText.splice(0, 1);
+        }
+        while (addText[addText.length - 1].trim() == "") {
+          addText.splice(addText.length - 1, 1);
+        }
+        let save = { _id: commentID, d: { b: addText } };
+        await parent.editor.save.push(save);
+        parent.editor.realtimeSelect[save._id] = save;
+        await parent.editor.realtime.forceShort();
+      });
+      commentContent.querySelector(".eCommentEditActions button[cancel]").addEventListener("click", () => {
+        commentTx.removeAttribute("contenteditable");
+        let actions = comment.querySelector(".eCommentEditActions");
+        if (actions != null) {
+          actions.remove();
+        }
+        parent.updateComment((parent.editor.annotations[comment.getAttribute("comment")] ?? {}).render);
+      });
+      commentTx.setAttribute("contenteditable", "");
+      parent.editor.text.startTextSelection(commentTx, event);
     });
 
     let copyButton = frame.querySelector('.eToolbarCommentMoreAction[option="copylink"]');
@@ -5948,7 +6008,10 @@ modules["dropdowns/editor/toolbar/comment/more"] = class {
     }
     deleteButton.addEventListener("click", async () => {
       let save = { _id: commentID, remove: true };
-      await parent.editor.save.push(save);
+      //let pushRemoves = [];
+      //pushRemoves.push(copyObject((parent.editor.annotations[commentID] ?? {}).render));
+      await parent.editor.save.push(save); //, { history: { add: pushRemoves } }
+      //await parent.editor.history.push("add", pushRemoves);
       parent.editor.realtimeSelect[save._id] = save;
       await parent.editor.realtime.forceShort();
     });

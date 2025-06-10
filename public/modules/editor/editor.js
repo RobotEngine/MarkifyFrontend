@@ -4283,6 +4283,7 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
   DISPLAY_SELECT_BOX = false;
   KEEP_ON_PARENT_DELETE = true;
   RENDER_CHILDREN_WHEN_SELECTED = true;
+  IGNORE_LOCKED_WARNING = true;
 
   SELECTION_START = async () => {
     if (this.annotation == null) {
@@ -4306,6 +4307,9 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
     this.commentModule = null;
     this.unsubscribe("bounds_change");
     //this.unsubscribe("click_move");
+    if (this.properties.resolved == true) {
+      return this.remove();
+    }
   }
   commentThreads = {};
   handleParentThread = () => {
@@ -4344,6 +4348,8 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
           }
         }
         return true;
+      } else if (this.commentModule != null && this.commentModule.updateComment != null) {
+        this.commentModule.updateComment({ ...this.properties, pending: this.annotation.pending });
       }
     }
   }
@@ -4371,7 +4377,7 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
     ".eAnnotation[comment] > div[commentholder] > div[comment] div[replycount]": `display: none; width: 100%; max-width: 200px; margin-top: 4px; color: var(--theme); font-size: 12px; font-weight: 600`,
   };
   render = () => {
-    if (this.properties.resolved == true) {
+    if (this.properties.resolved == true && this.parent.selecting[this.properties._id] == null) {
       return this.remove();
     }
     if (this.handleParentThread() == true) {

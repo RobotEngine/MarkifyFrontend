@@ -536,6 +536,7 @@ modules["dropdowns/lesson/share/options"] = class {
           <button class="eShareToolToggleBarTool" tool="text" style="--toolColor: #0084FF; --toolColorOpacity: rgba(0, 132, 255, 1); --toolOpacity: 1"><div></div></button>
           <button class="eShareToolToggleBarTool" tool="shape" style="--toolColor: #fb4c6c; --toolColorOpacity: rgba(251, 76, 108, 1); --toolOpacity: 1"><div></div></button>
           <button class="eShareToolToggleBarTool" tool="sticky"><div></div></button>
+          <button class="eShareToolToggleBarTool" tool="comment"><div></div></button>
           <button class="eShareToolToggleBarTool" tool="page"><div></div></button>
           <button class="eShareToolToggleBarTool" tool="media"><div></div></button>
         </div>
@@ -569,6 +570,11 @@ modules["dropdowns/lesson/share/options"] = class {
             <div title>Stickies</div>
             <div line></div>
             <button class="eShareActionOption border" option="sticky"><div class="eOptionToggle"><div></div></div></button>
+          </div>
+          <div class="eShareToolToggleRow">
+            <div title>Comments</div>
+            <div line></div>
+            <button class="eShareActionOption border" option="comment"><div class="eOptionToggle"><div></div></div></button>
           </div>
           <div class="eShareToolToggleRow" tool="page">
             <div title>Page</div>
@@ -870,6 +876,7 @@ modules["dropdowns/lesson/share/options"] = class {
     setSVG(toolToggle.querySelector('.eShareToolToggleBarTool[tool="text"] div'), "../images/editor/toolbar/text.svg");
     setSVG(toolToggle.querySelector('.eShareToolToggleBarTool[tool="shape"] div'), "../images/editor/toolbar/shape.svg");
     setSVG(toolToggle.querySelector('.eShareToolToggleBarTool[tool="sticky"] div'), "../images/editor/toolbar/sticky.svg");
+    setSVG(toolToggle.querySelector('.eShareToolToggleBarTool[tool="comment"] div'), "../images/editor/toolbar/comment.svg");
     setSVG(toolToggle.querySelector('.eShareToolToggleBarTool[tool="page"] div'), "../images/editor/toolbar/page.svg");
     setSVG(toolToggle.querySelector('.eShareToolToggleBarTool[tool="media"] div'), "../images/editor/toolbar/media.svg");
   }

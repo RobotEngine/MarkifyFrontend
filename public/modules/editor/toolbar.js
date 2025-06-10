@@ -4421,11 +4421,13 @@ modules["editor/toolbar/select"] = class {
         return;
       }
       let annoID = annotation.getAttribute("anno");
-      let render = (this.editor.annotations[annoID] ?? {}).render;
+      let component = this.editor.annotations[annoID] ?? {};
+      let render = component.render;
       if (render == null) {
         return;
       }
-      if (this.editor.utils.canMemberModify(render) == false && this.editor.self.access > 0) {
+      let annoModule = (await this.editor.render.getModule(component, render.f)) ?? {};
+      if (this.editor.utils.canMemberModify(render) == false && this.editor.self.access > 0 && annoModule.IGNORE_LOCKED_WARNING != true) {
         alertModule.close(this.parent.someoneElsesAnnoWarning);
         this.parent.someoneElsesAnnoWarning = await alertModule.open("warning", "<b>Annotation is Locked</b>Only the author may edit collaborator locked annotations.");
       }
@@ -5485,6 +5487,7 @@ modules["editor/toolbar/comment"] = class {
     ".eCommentContainer div[content] div[header] div[actions] button[selected]:before": `opacity: 1 !important`,
     ".eCommentContainer div[content] div[header] div[actions] button[selected] > svg": `filter: brightness(0) invert(1)`,
     ".eCommentContainer div[content] div[text]": `box-sizing: border-box; width: 100%; height: fit-content; font-size: 14px; outline: none`,
+    ".eCommentItem[new] .eCommentContainer div[content] div[text]": `padding: 6px`,
     ".eCommentItem[new] .eCommentContainer div[content] div[text]:empty:before": `content: "Write your Comment"; display: block; opacity: .5; pointer-events: none`,
     ".eCommentItem:not([new]) .eCommentContainer div[content] div[text][contenteditable]": `padding: 4px; border: solid 3px var(--secondary); border-radius: 8px`,
     ".eCommentItem > button": `display: flex; width: 36px; height: 36px; margin: 6px 6px 6px 0; justify-content: center; align-items: center; background: var(--theme); border-radius: 18px`,
@@ -5676,34 +5679,33 @@ modules["editor/toolbar/comment"] = class {
         let actionsHolder = comment.querySelector("div[actions]");
         if (options.root == true) {
           actionsHolder.insertAdjacentHTML("afterbegin", `<button resolve title="Resolve the comment thread."></button>`);
-          let resolveButton = actionsHolder.querySelector("button[resolve]");
-          setSVG(resolveButton, "../images/editor/actions/resolve.svg");
-          if (render.resolved == true) {
-            resolveButton.setAttribute("selected", "");
-          }
+          setSVG(actionsHolder.querySelector("button[resolve]"), "../images/editor/actions/resolve.svg");
         }
         setSVG(actionsHolder.querySelector("button[more]"), "../images/editor/actions/more.svg");
       }
       comment.setAttribute("comment", render._id);
 
-      let setTime = render.time ?? render.sync;
-      if (setTime != null) {
-        let timeTx = comment.querySelector("div[time]");
-        timeTx.textContent = timeSince(setTime);
-        timeTx.title = formatFullDate(setTime);
-      }
-      let richText = render.d ?? {};
-      let setHTML = "";
-      for (let i = 0; i < (richText.b ?? []).length; i++) {
-        let addHTML = "";
-        if (richText.b[i] != "\n") {
-          addHTML = "<div>" + cleanString(richText.b[i]) + "</div>";
-        } else {
-          addHTML = "<br>";
+      let commentTx = comment.querySelector("div[text]");
+      if (commentTx.hasAttribute("contenteditable") == false) {
+        let setTime = render.time ?? render.sync;
+        if (setTime != null) {
+          let timeTx = comment.querySelector("div[time]");
+          timeTx.textContent = timeSince(setTime);
+          timeTx.title = formatFullDate(setTime);
         }
-        setHTML += addHTML;
+        let richText = render.d ?? {};
+        let setHTML = "";
+        for (let i = 0; i < (richText.b ?? []).length; i++) {
+          let addHTML = "";
+          if (richText.b[i] != "\n") {
+            addHTML = "<div>" + cleanString(richText.b[i]) + "</div>";
+          } else {
+            addHTML = "<br>";
+          }
+          setHTML += addHTML;
+        }
+        commentTx.innerHTML = setHTML;
       }
-      comment.querySelector("div[text]").innerHTML = setHTML;
 
       this.editor.utils.getCollaborator(render.a ?? render.m, (collaborator) => {
         if (comment == null) {
@@ -5724,6 +5726,28 @@ modules["editor/toolbar/comment"] = class {
         memberTx.textContent = collaborator.name;
         memberTx.title = collaborator.name;
       });
+
+      let canModify = this.editor.utils.canMemberModify(render) == true;
+      let resolveButton = comment.querySelector("button[resolve]");
+      let moreButton = comment.querySelector("button[more]");
+      if (resolveButton != null) {
+        if (render.resolved != true) {
+          resolveButton.removeAttribute("selected");
+        } else {
+          resolveButton.setAttribute("selected", "");
+        }
+        if (canModify == true) {
+          resolveButton.removeAttribute("disabled");
+        } else {
+          resolveButton.setAttribute("disabled", "");
+        }
+      } else {
+        if (canModify == true) {
+          moreButton.removeAttribute("hidden");
+        } else {
+          moreButton.setAttribute("hidden", "");
+        }
+      }
 
       if (render.remove == true) {
         comment.remove();
@@ -5754,87 +5778,103 @@ modules["editor/toolbar/comment"] = class {
       }
     });
 
-    scrollHolder.insertAdjacentHTML("beforeend", `<div class="eCommentReply">
-      <div profileholder>
-        <div cursor></div>
-      </div>
-      <div class="customScroll" text contenteditable></div>
-      <button style="display: none"><img src="../images/editor/actions/send.svg" /></button>
-    </div>`);
-    let commentReply = scrollHolder.querySelector(".eCommentReply");
-    let profileHolder = commentReply.querySelector("div[profileholder]");
-    let replyTx = commentReply.querySelector("div[text]");
-    let replySendButton = commentReply.querySelector("button");
-    let selfCollaborator = await this.editor.utils.getCollaborator(this.editor.self.modify);
-    profileHolder.style.setProperty("--themeColor", selfCollaborator.color);
-    if (selfCollaborator.image != null) {
-      profileHolder.innerHTML = `<div profile><img src="../images/profiles/default.svg" /></div>`;
-      profileHolder.querySelector("div[profile] img").src = selfCollaborator.image;
-    }
-    replyTx.addEventListener("input", () => {
-      if (replyTx.textContent != "") {
-        replySendButton.style.removeProperty("display");
-      } else {
-        replySendButton.style.display = "none";
+    let replyTx;
+    if (this.editor.self.access > 0 && this.toolbar.checkToolEnabled("comment") == true) {
+      scrollHolder.insertAdjacentHTML("beforeend", `<div class="eCommentReply">
+        <div profileholder>
+          <div cursor></div>
+        </div>
+        <div class="customScroll" text contenteditable></div>
+        <button style="display: none"><img src="../images/editor/actions/send.svg" /></button>
+      </div>`);
+      let commentReply = scrollHolder.querySelector(".eCommentReply");
+      let profileHolder = commentReply.querySelector("div[profileholder]");
+      replyTx = commentReply.querySelector("div[text]");
+      let replySendButton = commentReply.querySelector("button");
+      let selfCollaborator = await this.editor.utils.getCollaborator(this.editor.self.modify);
+      profileHolder.style.setProperty("--themeColor", selfCollaborator.color);
+      if (selfCollaborator.image != null) {
+        profileHolder.innerHTML = `<div profile><img src="../images/profiles/default.svg" /></div>`;
+        profileHolder.querySelector("div[profile] img").src = selfCollaborator.image;
       }
-      this.updateCommentFrame();
-    });
-    replyTx.addEventListener("paste", clipBoardRead);
-    replySendButton.addEventListener("click", async () => {
-      if (replyTx.textContent == "") {
-        return;
-      }
-      let addText = [];
-      for (let i = 0; i < replyTx.childNodes.length; i++) {
-        let text = replyTx.childNodes[i].textContent;
-        if (text == "") {
-          text = "\n";
+      replyTx.addEventListener("input", () => {
+        if (replyTx.textContent != "") {
+          replySendButton.style.removeProperty("display");
+        } else {
+          replySendButton.style.display = "none";
         }
-        addText.push(text);
-      }
-      while (addText[0].trim() == "") {
-        addText.splice(0, 1);
-      }
-      while (addText[addText.length - 1].trim() == "") {
-        addText.splice(addText.length - 1, 1);
-      }
-      let newComment = {
-        _id: this.editor.render.tempID(),
-        f: "comment",
-        parent: this.annotation.render._id,
-        d: { b: addText },
-        a: this.editor.self.modify,
-        time: getEpoch()
-      };
+        this.updateCommentFrame();
+      });
+      replyTx.addEventListener("paste", clipBoardRead);
+      replySendButton.addEventListener("click", async () => {
+        if (replyTx.textContent == "") {
+          return;
+        }
+        let addText = [];
+        for (let i = 0; i < replyTx.childNodes.length; i++) {
+          let text = replyTx.childNodes[i].textContent;
+          if (text == "") {
+            text = "\n";
+          }
+          addText.push(text);
+        }
+        while (addText[0].trim() == "") {
+          addText.splice(0, 1);
+        }
+        while (addText[addText.length - 1].trim() == "") {
+          addText.splice(addText.length - 1, 1);
+        }
+        let newComment = {
+          _id: this.editor.render.tempID(),
+          f: "comment",
+          parent: this.annotation.render._id,
+          d: { b: addText },
+          a: this.editor.self.modify,
+          time: getEpoch()
+        };
 
-      replyTx.textContent = "";
-      replyTx.focus();
-      replySendButton.style.display = "none";
-      
-      await this.editor.save.push(newComment);
-      //await this.editor.history.push("remove", [{ _id: newComment._id }]);
+        replyTx.textContent = "";
+        replyTx.focus();
+        replySendButton.style.display = "none";
+        
+        await this.editor.save.push(newComment);
+        //await this.editor.history.push("remove", [{ _id: newComment._id }]);
 
-      this.editor.realtimeSelect[newComment._id] = { ...newComment, done: true };
-      await this.editor.realtime.forceShort();
-    });
+        this.editor.realtimeSelect[newComment._id] = { ...newComment, done: true };
+        await this.editor.realtime.forceShort();
+      });
 
-    this.updateReplyShadow = () => {
-      if (scrollHolder == null || commentReply == null) {
-        return;
+      this.updateReplyShadow = () => {
+        if (scrollHolder == null || commentReply == null) {
+          return;
+        }
+        if (scrollHolder.scrollTop < scrollHolder.scrollHeight - scrollHolder.offsetHeight) {
+          commentReply.style.boxShadow = "var(--lightShadow)";
+        } else {
+          commentReply.style.removeProperty("box-shadow");
+        }
       }
-      if (scrollHolder.scrollTop < scrollHolder.scrollHeight - scrollHolder.offsetHeight) {
-        commentReply.style.boxShadow = "var(--lightShadow)";
-      } else {
-        commentReply.style.removeProperty("box-shadow");
-      }
+      scrollHolder.addEventListener("scroll", this.updateReplyShadow);
     }
-    scrollHolder.addEventListener("scroll", this.updateReplyShadow);
 
     this.updateCommentFrame();
 
+    /*this.editor.pipeline.subscribe("toolbarCommentMemberUpdate", "update", (data) => {
+      if (data._id == this.editor.self) {
+        this.openCommentFrame(annotation, thread);
+      }
+    });*/
+    this.editor.pipeline.subscribe("toolbarCommentMemberUpdate", "set", (data) => {
+      if (data.settings != null && this.editor.selecting[(this.annotation.render ?? {})._id] != null) {
+        this.openCommentFrame(this.annotation, thread);
+      }
+    });
+
     (async () => {
       await sleep(1);
-      replyTx.focus();
+      if (replyTx != null) {
+        replyTx.focus();
+      }
       scrollHolder.scrollTo(0, scrollHolder.scrollHeight);
     })();
     
@@ -5872,6 +5912,7 @@ modules["editor/toolbar/comment"] = class {
       if (annotation == null) {
         return;
       }
+      this.closeCommentFrame();
       this.editor.selecting = {};
       this.editor.selecting[annotation.render._id] = {};
       this.toolbar.selection.updateBox();
@@ -5905,6 +5946,9 @@ modules["editor/toolbar/comment"] = class {
     commentHead.offsetHeight;
     commentHead.style.transform = "scale(1)";
 
+    this.editor.selecting = {};
+    this.toolbar.selection.updateBox();
+
     this.openCommentFrame(annotation);
   }
   scroll = this.updateCommentFrame;
@@ -5912,7 +5956,7 @@ modules["editor/toolbar/comment"] = class {
 }
 modules["dropdowns/editor/toolbar/comment/more"] = class {
   html = `
-  <button class="eToolbarCommentMoreAction" option="edit" close title="Edit the comment."><img src="../images/tooltips/copy.svg">Edit Comment</button>
+  <button class="eToolbarCommentMoreAction" option="edit" close title="Edit the comment."><img src="../images/tooltips/edit.svg">Edit Comment</button>
   <button class="eToolbarCommentMoreAction" option="copylink" close title="Copy a share link to the comment thread." style="--themeColor: var(--secondary)"><img src="../images/tooltips/copy.svg">Copy Link</button>
   <button class="eToolbarCommentMoreAction" option="delete" close style="--themeColor: var(--red)"></button>
   `;
@@ -5926,6 +5970,7 @@ modules["dropdowns/editor/toolbar/comment/more"] = class {
   };
   js = async (frame, { parent, comment, root }) => {
     let commentID = comment.getAttribute("comment");
+    let render = (parent.editor.annotations[commentID] ?? {}).render ?? {};
 
     let editButton = frame.querySelector('.eToolbarCommentMoreAction[option="edit"]');
     editButton.addEventListener("click", (event) => {
@@ -5954,7 +5999,7 @@ modules["dropdowns/editor/toolbar/comment/more"] = class {
           actions.remove();
         }
         if (commentTx.textContent == "") {
-          return parent.updateComment((parent.editor.annotations[comment.getAttribute("comment")] ?? {}).render);
+          return parent.updateComment((parent.editor.annotations[commentID] ?? {}).render);
         }
         let addText = [];
         for (let i = 0; i < commentTx.childNodes.length; i++) {
@@ -5981,11 +6026,14 @@ modules["dropdowns/editor/toolbar/comment/more"] = class {
         if (actions != null) {
           actions.remove();
         }
-        parent.updateComment((parent.editor.annotations[comment.getAttribute("comment")] ?? {}).render);
+        parent.updateComment((parent.editor.annotations[commentID] ?? {}).render);
       });
       commentTx.setAttribute("contenteditable", "");
       parent.editor.text.startTextSelection(commentTx, event);
     });
+    if (render.a != parent.editor.self.modify) {
+      editButton.remove();
+    }
 
     let copyButton = frame.querySelector('.eToolbarCommentMoreAction[option="copylink"]');
     copyButton.addEventListener("click", () => {
@@ -6015,6 +6063,9 @@ modules["dropdowns/editor/toolbar/comment/more"] = class {
       parent.editor.realtimeSelect[save._id] = save;
       await parent.editor.realtime.forceShort();
     });
+    if (parent.editor.utils.canMemberModify(render) != true) {
+      deleteButton.remove();
+    }
   }
 }
 

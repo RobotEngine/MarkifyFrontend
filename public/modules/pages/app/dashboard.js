@@ -275,7 +275,7 @@ modules["pages/app/dashboard"] = class {
         titleHolder.style.removeProperty("box-shadow");
       }
 
-      if (sidebar.scrollTop < sidebar.scrollHeight - dashboard.offsetHeight) { // Account Holder Shadow:
+      if (Math.round(sidebar.scrollTop) <= Math.round(sidebar.scrollHeight - dashboard.offsetHeight)) { // Account Holder Shadow:
         accountHolder.style.background = "var(--pageColor)";
         accountHolder.style.boxShadow = "var(--lightShadow)";
       } else {

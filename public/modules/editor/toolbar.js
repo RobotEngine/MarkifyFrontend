@@ -5857,7 +5857,7 @@ modules["editor/toolbar/comment"] = class {
         if (scrollHolder == null || commentReply == null) {
           return;
         }
-        if (scrollHolder.scrollTop < scrollHolder.scrollHeight - scrollHolder.offsetHeight) {
+        if (Math.round(scrollHolder.scrollTop) < Math.round(scrollHolder.scrollHeight - scrollHolder.offsetHeight)) {
           commentReply.style.boxShadow = "var(--lightShadow)";
         } else {
           commentReply.style.removeProperty("box-shadow");
@@ -6108,6 +6108,17 @@ modules["dropdowns/editor/toolbar/comment/more"] = class {
     if (parent.editor.utils.canMemberModify(render) != true) {
       deleteButton.remove();
     }
+  }
+}
+modules["editor/toolbar/sideview/comment"] = class {
+  html = `
+  
+  `;
+  css = {
+    
+  };
+  js = async (frame) => {
+    
   }
 }
 

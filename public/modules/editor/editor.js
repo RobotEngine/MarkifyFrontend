@@ -3518,7 +3518,7 @@ modules["dropdowns/lesson/zoom"] = class {
             namesZoomAction.setAttribute("disabled", "");
           }
         }
-        if (option == "comments") {
+        if (option == "comments" && (editor.toolbar ?? {}).currentToolModulePath != "editor/toolbar/comment") {
           if (toggle.hasAttribute("on") == true) {
             editor.annotationHolder.removeAttribute("hidecomments");
           } else {

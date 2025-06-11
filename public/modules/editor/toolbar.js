@@ -5811,7 +5811,7 @@ modules["editor/toolbar/comment"] = class {
       }
       if (options.new != true) {
         this.updateCommentFrame();
-        if (scrollHolder.scrollTop + scrollHolder.clientHeight + holder.lastElementChild.clientHeight + 50 > scrollHolder.scrollHeight) {
+        if (holder.lastElementChild != null && scrollHolder.scrollTop + scrollHolder.clientHeight + holder.lastElementChild.clientHeight + 50 > scrollHolder.scrollHeight) {
           let scrollToParams = { top: scrollHolder.scrollHeight };
           if (this.editor.parent.parent.active != false) {
             scrollToParams.behavior = "smooth";

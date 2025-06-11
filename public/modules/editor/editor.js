@@ -474,6 +474,8 @@ modules["editor/editor"] = class {
   annotationPages = [];
   currentPage = 1;
 
+  comments = {};
+
   zoom = 1;
   maxLayer = null;
   minLayer = null;
@@ -1036,6 +1038,17 @@ modules["editor/editor"] = class {
         }
         clearTimeout(this.updatePageTimeout);
         this.updatePageTimeout = setTimeout(() => { this.utils.updateCurrentPage(true); }, 100);
+      }
+
+      if (render.f == "comment") {
+        if (render.pending != null && (render._id ?? "").startsWith("pending_") == false) {
+          delete this.comments[render.pending];
+        }
+        if (render.remove != true && (render.parent == null || ((this.annotations[render.parent] ?? {}).render ?? {}).f != "comment")) {
+          this.comments[render._id] = render;
+        } else {
+          delete this.comments[render._id];
+        }
       }
       
       if (annotationVisible == true) {

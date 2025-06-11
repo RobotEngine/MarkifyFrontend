@@ -4395,6 +4395,9 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
     if (this.handleParentThread() == true) {
       return;
     }
+    if (this.parent.exporting == true) {
+      return;
+    }
     
     let newAnnotation = this.element == null;
     if (newAnnotation == true) {

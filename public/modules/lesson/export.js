@@ -30,6 +30,7 @@ modules["lesson/export"] = class {
         session: this.parent.session,
         sessionID: this.parent.sessionID,
         sources: this.parent.sources,
+        collaborators: this.parent.collaborators,
         settings: this.parent.lesson.settings,
         resync: this.resync,
         backgroundColor: this.lesson.background ?? "FFFFFF",

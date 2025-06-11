@@ -71,10 +71,10 @@ modules["editor/toolbar"] = class {
   }
   css = {
     ".eToolbar": `position: absolute; display: block; width: 50px; height: fit-content; max-height: var(--maxToolbarHeight); top: 50%; transform: translateY(-50%); z-index: 2; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; transition: transform .4s, opacity .4s, border-radius .2s`,
-    ".eToolbar[hidden]": `transform: translateY(-50%) scale(0) !important; z-index: 1 !important`,
+    ".eToolbar[hidden]": `transform: translate(var(--translate), -50%) !important; z-index: 1 !important`,
     ".eToolbarContent": `position: relative; box-sizing: border-box; max-height: var(--maxToolbarHeight); background: var(--pageColor); overflow: auto; z-index: 3; border-radius: inherit`,
-    ".eToolbarHolder[left] .eToolbar": `left: 0px; border-radius: 0 12px 12px 0; transform-origin: left center`,
-    ".eToolbarHolder[right] .eToolbar": `right: 0px; border-radius: 12px 0 0 12px; transform-origin: right center`,
+    ".eToolbarHolder[left] .eToolbar": `--translate: -100%; left: 0px; border-radius: 0 12px 12px 0; transform-origin: left center`,
+    ".eToolbarHolder[right] .eToolbar": `--translate: 100%; right: 0px; border-radius: 12px 0 0 12px; transform-origin: right center`,
     ".eToolbarTooltip": `position: absolute; display: flex; width: max-content; padding: 3px 6px; z-index: 5; background: var(--pageColor); border-radius: 6px; box-shadow: var(--lightShadow); pointer-events: none; user-select: none; text-wrap: nowrap; font-size: 16px; font-weight: 600; transform: scale(0); opacity: 0`,
     ".eToolMediaInput": `position: absolute; display: block; left: 0px; top: 0px`,
 
@@ -120,6 +120,10 @@ modules["editor/toolbar"] = class {
     ".eVerticalToolsHolder::-webkit-scrollbar": `display: none`,
     ".eHorizontalToolsHolder": `display: flex; padding: 0 2px; align-items: center; scrollbar-width: none`,
     ".eHorizontalToolsHolder::-webkit-scrollbar": `display: none`,
+
+    ".eSideMenu": `position: absolute; display: block; width: 200px; max-width: calc(100% - 8px); height: 600px; max-height: var(--maxToolbarHeight); top: 50%; z-index: 3; transform: translate(var(--translate), -50%); opacity: 0; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; transition: transform .4s, opacity .4s, border-radius .2s`,
+    ".eToolbarHolder[left] .eSideMenu": `--translate: 100%; right: 0px; border-radius: 12px 0 0 12px; transform-origin: right center`,
+    ".eToolbarHolder[right] .eSideMenu": `--translate: -100%; left: 0px; border-radius: 0 12px 12px 0; transform-origin: left center`,
 
     ".eSelect": `position: absolute; left: 0px; top: 0px; opacity: 0; z-index: 101; border-radius: 9px; transition: all .25s, opacity .15s; pointer-events: none`,
     ".eAnnotation[selected] > *": `pointer-events: none`,
@@ -417,6 +421,37 @@ modules["editor/toolbar"] = class {
       })();
     }
 
+    // Handle Side Menu
+    this.sidemenu = {};
+    this.sidemenu.open = (path, extra = {}) => {
+      this.sidemenu.close();
+
+      toolbarHolder.insertAdjacentHTML("beforeend", `<div class="eSideMenu" new></div>`);
+      this.sidemenu.frame = toolbarHolder.querySelector(".eSideMenu[new]");
+      this.sidemenu.frame.removeAttribute("new");
+
+      this.sidemenu.frame.offsetHeight;
+      this.sidemenu.frame.style.zIndex = "4";
+      this.sidemenu.frame.style.transform = "translate(0%, -50%)";
+      this.sidemenu.frame.style.opacity = "1";
+    }
+    this.sidemenu.close = () => {
+      if (this.sidemenu.frame == null) {
+        return;
+      }
+      let remFrame = this.sidemenu.frame;
+      this.sidemenu.frame = null;
+      (async () => {
+        remFrame.style.zIndex = "3";
+        remFrame.style.transform = "translate(var(--translate), -50%)";
+        remFrame.style.opacity = "0";
+        await sleep(400);
+        if (remFrame != null) {
+          remFrame.remove();
+        }
+      })();
+    }
+
     let currentMouseSVG;
     let cursorUpdatePromise;
     this.updateMouse = async (cursor) => {
@@ -509,8 +544,8 @@ modules["editor/toolbar"] = class {
         newModule.toolbar = this;
         newModule.tool = currentSubTool ?? currentTool;
         newModule.button = currentSubToolButton ?? currentToolButton;
-        if (newModule.activate != null) {
-          newModule.activate(extra ?? {});
+        if (newModule.enable != null) {
+          newModule.enable(extra ?? {});
         }
       } else {
         newModule = {};
@@ -4949,7 +4984,7 @@ modules["editor/toolbar/pen"] = class {
     
     this.disable();
   }
-  activate = () => {
+  enable = () => {
     let toolPreference = this.parent.getToolPreference();
     this.MOUSE.color = toolPreference.color.selected;
     this.MOUSE.opacity = toolPreference.opacity;
@@ -4988,7 +5023,7 @@ modules["editor/toolbar/understrike"] = class extends modules["editor/toolbar/pe
   REALTIME_TOOL = 1;
   MOUSE = { type: "svg", url: "../images/editor/cursors/highlighter.svg", translate: { x: 15, y: 30 } };
 
-  activate = () => {
+  enable = () => {
     let toolPreference = this.parent.getToolPreference();
 
     this.OPACITY = 100;
@@ -5157,7 +5192,7 @@ modules["editor/toolbar/eraser"] = class {
     this.y0 = null;
     this.editor.usingStylus = false;
   }
-  activate = () => {
+  enable = () => {
     if (this.editor.options.stylusmode != true) {
       this.TOUCH_ACTION = "pinch-zoom";
     } else {
@@ -5181,8 +5216,8 @@ modules["editor/toolbar/placement"] = class {
       if (event != null && this.editor.isEditorContent(event.target) != true) {
         return;
       }
-      if (this.activate != null) {
-        this.activate();
+      if (this.enable != null) {
+        this.enable();
       }
       this.annotation = {
         render: this.PROPERTIES,
@@ -5255,7 +5290,7 @@ modules["editor/toolbar/placement"] = class {
 modules["editor/toolbar/text"] = class extends modules["editor/toolbar/placement"] {
   TARGET_QUERY = '.eActionBar:not([remove]) .eTool[module="editor/toolbar/textedit"]';
 
-  activate = () => {
+  enable = () => {
     let toolPreference = this.parent.getToolPreference();
     this.PROPERTIES = {
       f: "text",
@@ -5302,8 +5337,8 @@ modules["editor/toolbar/resize_placement"] = class {
       if (event != null && this.editor.isEditorContent(event.target) != true) {
         return;
       }
-      if (this.activate != null) {
-        this.activate();
+      if (this.enable != null) {
+        this.enable();
       }
       this.annotation = {
         render: this.PROPERTIES,
@@ -5414,7 +5449,7 @@ modules["editor/toolbar/resize_placement"] = class {
 modules["editor/toolbar/shape"] = class extends modules["editor/toolbar/resize_placement"] {
   MINIMUM_SIZE = 25;
   
-  activate = () => {
+  enable = () => {
     let toolPreference = this.parent.getToolPreference();
     this.PROPERTIES = {
       f: "shape",
@@ -5431,7 +5466,7 @@ modules["editor/toolbar/shape"] = class extends modules["editor/toolbar/resize_p
 modules["editor/toolbar/sticky"] = class extends modules["editor/toolbar/placement"] {
   TARGET_QUERY = '.eActionBar:not([remove]) .eTool[module="editor/toolbar/textedit"]';
 
-  activate = () => {
+  enable = () => {
     let toolPreference = this.parent.getToolPreference();
     this.PROPERTIES = {
       f: "sticky",
@@ -5986,7 +6021,7 @@ modules["editor/toolbar/comment"] = class {
     this.openCommentFrame(annotation);
   }
   scroll = this.updateCommentFrame;
-  activate = () => {
+  enable = () => {
     this.editor.annotationHolder.removeAttribute("hidecomments");
   }
   disable = () => {
@@ -6110,7 +6145,7 @@ modules["dropdowns/editor/toolbar/comment/more"] = class {
     }
   }
 }
-modules["editor/toolbar/sideview/comment"] = class {
+modules["editor/toolbar/sidemenu/comment"] = class {
   html = `
   
   `;
@@ -6126,7 +6161,7 @@ modules["editor/toolbar/page"] = class extends modules["editor/toolbar/resize_pl
   CAN_FLIP = false;
   MINIMUM_SIZE = 100;
 
-  activate = () => {
+  enable = () => {
     let toolPreference = this.parent.getToolPreference();
     this.PROPERTIES = {
       f: "page",
@@ -6143,7 +6178,7 @@ modules["editor/toolbar/upload"] = class extends modules["editor/toolbar/resize_
   MINIMUM_SIZE = 100;
   EVEN_SCALE = true;
 
-  activate = (extra) => {
+  enable = (extra) => {
     if (this.imageBlob != null) {
       return;
     }
@@ -6270,7 +6305,7 @@ modules["editor/toolbar/upload"] = class extends modules["editor/toolbar/resize_
 modules["editor/toolbar/embed"] = class extends modules["editor/toolbar/placement"] {
   TARGET_QUERY = '.eActionBar:not([remove]) .eTool[module="editor/toolbar/setembed"]';
   
-  activate = () => {
+  enable = () => {
     this.PROPERTIES = {
       f: "embed",
       s: [400, 350],

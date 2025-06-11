@@ -233,7 +233,7 @@ let setFrame = async (path, frame, extra, parent) => {
       remContent.remove();
     })();
   }
-  if (modules[path] == null || frameSet == app || (frameSet.closest(".dropdown") == null && frameSet.closest(".modal") == null)) {
+  if (modules[path] == null || frameSet == app || (frameSet.closest(".dropdown") == null && frameSet.closest(".modal") == null && extra.hideLoading != true)) {
     if (loadingPlacement.querySelector(".loading:not([old])") == null && extra.showLoading != false) {
       if (frameSet.closest(".dropdown") == null && frameSet.closest(".modal") == null && oldContent.length > 0) {
         for (let i = 0; i < oldContent.length; i++) {

@@ -121,9 +121,14 @@ modules["editor/toolbar"] = class {
     ".eHorizontalToolsHolder": `display: flex; padding: 0 2px; align-items: center; scrollbar-width: none`,
     ".eHorizontalToolsHolder::-webkit-scrollbar": `display: none`,
 
-    ".eSideMenu": `position: absolute; display: block; width: 200px; max-width: calc(100% - 8px); height: 600px; max-height: var(--maxToolbarHeight); top: 50%; z-index: 3; transform: translate(var(--translate), -50%); opacity: 0; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; transition: transform .4s, opacity .4s, border-radius .2s`,
+    ".eSideMenu": `position: absolute; display: flex; flex-direction: column; width: fit-content; max-width: calc(100% - 8px); height: fit-content; max-height: var(--maxToolbarHeight); top: 50%; z-index: 3; transform: translate(var(--translate), -50%); opacity: 0; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; transition: transform .4s, opacity .4s, border-radius .2s`,
     ".eToolbarHolder[left] .eSideMenu": `--translate: 100%; right: 0px; border-radius: 12px 0 0 12px; transform-origin: right center`,
     ".eToolbarHolder[right] .eSideMenu": `--translate: -100%; left: 0px; border-radius: 0 12px 12px 0; transform-origin: left center`,
+    ".eSideMenu .eSideMenuHeader": `display: flex; padding: 6px; gap: 6px; justify-content: space-between`,
+    ".eSideMenu .eSideMenuHeaderTitle": `box-sizing: border-box; padding: 4px; flex: 1; max-width: fit-content; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; font-weight: 500; font-size: 18px`,
+    ".eSideMenu .eSideMenuHeaderClose": `position: relative; width: 22px; height: 22px; margin: 3px; --borderWidth: 3px; --borderRadius: 14px`,
+    ".eSideMenu .eSideMenuHeaderClose img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
+    ".eSideMenu .eSideMenuContent": `box-sizing: border-box; width: 100%; max-width: fit-content; height: min-content; max-height: calc(var(--maxToolbarHeight) - 42px); padding: 6px; overflow: auto`,
 
     ".eSelect": `position: absolute; left: 0px; top: 0px; opacity: 0; z-index: 101; border-radius: 9px; transition: all .25s, opacity .15s; pointer-events: none`,
     ".eAnnotation[selected] > *": `pointer-events: none`,
@@ -255,9 +260,9 @@ modules["editor/toolbar"] = class {
     }
 
     // Handle Tooltip:
+    let tooltipElement;
     let tooltipText;
     this.tooltip = {};
-    let tooltipElement;
     this.tooltip.update = () => {
       if (tooltipElement == null) {
         return;
@@ -421,14 +426,26 @@ modules["editor/toolbar"] = class {
       })();
     }
 
-    // Handle Side Menu
+    // Handle Side Menu:
     this.sidemenu = {};
-    this.sidemenu.open = (path, extra = {}) => {
+    this.sidemenu.open = async (path, extra = {}) => {
       this.sidemenu.close();
 
-      toolbarHolder.insertAdjacentHTML("beforeend", `<div class="eSideMenu" new></div>`);
+      toolbarHolder.insertAdjacentHTML("beforeend", `<div class="eSideMenu" new>
+        <div class="eSideMenuHeader">
+          <div class="eSideMenuHeaderTitle">Testing</div>
+          <button class="eSideMenuHeaderClose buttonAnim border"><img src="../images/tooltips/close.svg"></button>
+        </div>
+        <div class="eSideMenuContent customScroll"></div>
+      </div>`);
       this.sidemenu.frame = toolbarHolder.querySelector(".eSideMenu[new]");
       this.sidemenu.frame.removeAttribute("new");
+
+      this.sidemenu.frame.querySelector(".eSideMenuHeaderClose").addEventListener("click", this.sidemenu.close);
+
+      let newModule = await this.parent.setFrame(path, this.sidemenu.frame.querySelector(".eSideMenuContent"), { ...extra, construct: { editor: editor, toolbar: this }, hideLoading: true });
+      
+      this.sidemenu.frame.querySelector(".eSideMenuHeaderTitle").innerHTML = extra.title ?? newModule.title ?? "";
 
       this.sidemenu.frame.offsetHeight;
       this.sidemenu.frame.style.zIndex = "4";
@@ -533,6 +550,8 @@ modules["editor/toolbar"] = class {
       if (this.currentToolModule != null && this.currentToolModule.disable != null) {
         await this.currentToolModule.disable();
       }
+
+      this.sidemenu.close();
 
       let newModule;
       if (this.currentToolModulePath != null) {
@@ -6022,6 +6041,7 @@ modules["editor/toolbar/comment"] = class {
   }
   scroll = this.updateCommentFrame;
   enable = () => {
+    this.toolbar.sidemenu.open("editor/toolbar/sidemenu/comment");
     this.editor.annotationHolder.removeAttribute("hidecomments");
   }
   disable = () => {
@@ -6146,14 +6166,13 @@ modules["dropdowns/editor/toolbar/comment/more"] = class {
   }
 }
 modules["editor/toolbar/sidemenu/comment"] = class {
-  html = `
-  
-  `;
+  title = "Comments";
+  html = ``;
   css = {
     
   };
   js = async (frame) => {
-    
+
   }
 }
 

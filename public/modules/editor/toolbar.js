@@ -121,14 +121,14 @@ modules["editor/toolbar"] = class {
     ".eHorizontalToolsHolder": `display: flex; padding: 0 2px; align-items: center; scrollbar-width: none`,
     ".eHorizontalToolsHolder::-webkit-scrollbar": `display: none`,
 
-    ".eSideMenu": `position: absolute; display: flex; flex-direction: column; width: fit-content; max-width: calc(100% - 8px); height: fit-content; max-height: var(--maxToolbarHeight); top: 50%; z-index: 3; transform: translate(var(--translate), -50%); opacity: 0; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; transition: transform .4s, opacity .4s, border-radius .2s`,
+    ".eSideMenu": `position: absolute; display: flex; flex-direction: column; width: fit-content; max-width: calc(100% - 8px); height: fit-content; max-height: var(--maxToolbarHeight); top: 50%; z-index: 3; transform: translate(var(--translate), -50%); opacity: 0; background: var(--pageColor); box-shadow: var(--lightShadow); overflow: hidden; pointer-events: all; transition: transform .4s, opacity .4s, border-radius .2s`,
     ".eToolbarHolder[left] .eSideMenu": `--translate: 100%; right: 0px; border-radius: 12px 0 0 12px; transform-origin: right center`,
     ".eToolbarHolder[right] .eSideMenu": `--translate: -100%; left: 0px; border-radius: 0 12px 12px 0; transform-origin: left center`,
     ".eSideMenu .eSideMenuHeader": `display: flex; padding: 6px; gap: 6px; justify-content: space-between`,
     ".eSideMenu .eSideMenuHeaderTitle": `box-sizing: border-box; padding: 4px; flex: 1; max-width: fit-content; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; font-weight: 500; font-size: 18px`,
     ".eSideMenu .eSideMenuHeaderClose": `position: relative; width: 22px; height: 22px; margin: 3px; --borderWidth: 3px; --borderRadius: 14px`,
     ".eSideMenu .eSideMenuHeaderClose img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
-    ".eSideMenu .eSideMenuContent": `box-sizing: border-box; width: 100%; max-width: fit-content; height: min-content; max-height: calc(var(--maxToolbarHeight) - 42px); padding: 6px; overflow: auto`,
+    ".eSideMenu .eSideMenuContent": `box-sizing: border-box; min-width: fit-content; width: 100%; height: min-content; max-height: calc(var(--maxToolbarHeight) - 42px); overflow: auto; border-bottom-left-radius: inherit; border-bottom-right-radius: inherit`,
 
     ".eSelect": `position: absolute; left: 0px; top: 0px; opacity: 0; z-index: 101; border-radius: 9px; transition: all .25s, opacity .15s; pointer-events: none`,
     ".eAnnotation[selected] > *": `pointer-events: none`,
@@ -443,8 +443,9 @@ modules["editor/toolbar"] = class {
 
       this.sidemenu.frame.querySelector(".eSideMenuHeaderClose").addEventListener("click", this.sidemenu.close);
 
-      let newModule = await this.parent.setFrame(path, this.sidemenu.frame.querySelector(".eSideMenuContent"), { ...extra, construct: { editor: editor, toolbar: this }, hideLoading: true });
-      
+      let contentHolder = this.sidemenu.frame.querySelector(".eSideMenuContent");
+      let newModule = await this.parent.setFrame(path, contentHolder, { ...extra, construct: { editor: editor, toolbar: this }, hideLoading: true });
+      contentHolder.style.padding = (newModule.padding ?? 6) + "px";
       this.sidemenu.frame.querySelector(".eSideMenuHeaderTitle").innerHTML = extra.title ?? newModule.title ?? "";
 
       this.sidemenu.frame.offsetHeight;
@@ -6166,10 +6167,29 @@ modules["dropdowns/editor/toolbar/comment/more"] = class {
   }
 }
 modules["editor/toolbar/sidemenu/comment"] = class {
-  title = "Comments";
-  html = ``;
+  title = "Comment Threads";
+  padding = 0;
+
+  html = `<div class="eSideMenuCommentHolder">
+    <div class="eSideMenuCommentOptions">
+      <div class="eSideMenuCommentOptionsSwitcher" sort>
+        <button all selected title="Show comment threads from everyone.">All</button>
+        <button mine title="Show only comment threads you created.">Mine</button>
+      </div>
+      <div class="eSideMenuCommentOptionsSwitcher" resolve>
+        <button resolved title="Include resolved comments in the list.">Resolved</button>
+      </div>
+    </div>
+    <div class="eSideMenuCommentContainer"></div>
+  </div>`;
   css = {
-    
+    //".eSideMenuCommentHolder": `position: relative`,
+    ".eSideMenuCommentOptions": `position: sticky; box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; padding: 8px 8px; gap: 8px; left: 0px; top: 0px; background: rgba(var(--background), .8); backdrop-filter: blur(4px); z-index: 2; justify-content: center`,
+    ".eSideMenuCommentOptionsSwitcher": `box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 4px; flex-shrink: 0; width: fit-content; max-width: 100%; padding: 4px; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 20px; justify-content: center`,
+    ".eSideMenuCommentOptionsSwitcher button": `flex: auto; padding: 6px 10px; border-radius: 16px; font-size: 16px; font-weight: 600`,
+    ".eSideMenuCommentOptionsSwitcher button:hover": `background: var(--hover)`,
+    ".eSideMenuCommentOptionsSwitcher button[selected]": `background: var(--theme); color: #fff`,
+    ".eSideMenuCommentContainer": `box-sizing: border-box; display: flex; flex-direction: column; width: 100%; padding: 6px; align-items: center`
   };
   js = async (frame) => {
 

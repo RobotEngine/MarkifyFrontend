@@ -6183,7 +6183,6 @@ modules["editor/toolbar/sidemenu/comment"] = class {
     <div class="eSideMenuCommentContainer"></div>
   </div>`;
   css = {
-    //".eSideMenuCommentHolder": `position: relative`,
     ".eSideMenuCommentOptions": `position: sticky; box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; padding: 8px 8px; gap: 8px; left: 0px; top: 0px; background: rgba(var(--background), .8); backdrop-filter: blur(4px); z-index: 2; justify-content: center`,
     ".eSideMenuCommentOptionsSwitcher": `box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 4px; flex-shrink: 0; width: fit-content; max-width: 100%; padding: 4px; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 20px; justify-content: center`,
     ".eSideMenuCommentOptionsSwitcher button": `flex: auto; padding: 6px 10px; border-radius: 16px; font-size: 16px; font-weight: 600`,

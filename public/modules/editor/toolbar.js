@@ -428,6 +428,12 @@ modules["editor/toolbar"] = class {
 
     // Handle Side Menu:
     this.sidemenu = {};
+    this.sidemenu.subscribe = (event, callback, extra) => {
+      editor.pipeline.subscribe("sidemenu", event, callback, extra);
+    }
+    this.sidemenu.unsubscribe = (event) => {
+      this.parent.pipeline.unsubscribe("sidemenu", event);
+    }
     this.sidemenu.open = async (path, extra = {}) => {
       this.sidemenu.close();
 
@@ -468,6 +474,7 @@ modules["editor/toolbar"] = class {
           remFrame.remove();
         }
       })();
+      editor.pipeline.unsubscribe("sidemenu");
     }
 
     let currentMouseSVG;
@@ -4066,7 +4073,7 @@ modules["editor/toolbar"] = class {
         if (moreModule.duplicate != null) {
           moreModule.editor = editor;
           moreModule.toolbar = this;
-          return await moreModule.duplicate();
+          return await moreModule.duplicate(null, true);
         }
       }
       
@@ -4264,7 +4271,7 @@ modules["editor/toolbar"] = class {
       this.selection.action = "save";
       await this.selection.endAction();
     });
-    editor.pipeline.subscribe("toolbarCopy", "copy", (data) => {
+    editor.pipeline.subscribe("toolbarCopy", "copy", async (data) => {
       if (editor.isPageActive() == false) {
         return;
       }
@@ -4282,8 +4289,13 @@ modules["editor/toolbar"] = class {
       let checkChunks = {};
       for (let i = 0; i < selectKeys.length; i++) {
         let annoID = selectKeys[i];
-        let render = (editor.annotations[annoID] ?? {}).render;
+        let annotation = editor.annotations[annoID] ?? {};
+        let render = annotation.render;
         if (render == null) {
+          continue;
+        }
+        let annoModule = (await editor.render.getModule(annotation, render.f)) ?? {};
+        if (annoModule.KEYBINDS_ENABLED == false) {
           continue;
         }
         let addChunks = editor.utils.chunksFromAnnotation(render);
@@ -5720,13 +5732,14 @@ modules["editor/toolbar/comment"] = class {
         </div>`);
         comment = holder.querySelector(".eCommentItem[new]");
         comment.removeAttribute("new");
-        comment.setAttribute("time", render.time ?? render.sync);
         if (options.new != true) {
           let holderChildren = holder.children;
           for (let i = holderChildren.length - 1; i >= 0; i--) {
             let child = holderChildren[i];
             if (parseInt(child.getAttribute("time")) > (render.time ?? render.sync)) {
               holder.insertBefore(comment, child);
+            } else {
+              break;
             }
           }
         }
@@ -5740,9 +5753,11 @@ modules["editor/toolbar/comment"] = class {
       }
       comment.setAttribute("comment", render._id);
 
+      let setTime = render.time ?? render.sync;
+      comment.setAttribute("time", setTime);
+
       let commentTx = comment.querySelector("div[text]");
       if (commentTx.hasAttribute("contenteditable") == false) {
-        let setTime = render.time ?? render.sync;
         if (setTime != null) {
           let timeTx = comment.querySelector("div[time]");
           timeTx.textContent = timeSince(setTime);
@@ -6128,6 +6143,7 @@ modules["dropdowns/editor/toolbar/comment/more"] = class {
       });
       commentTx.setAttribute("contenteditable", "");
       parent.editor.text.startTextSelection(commentTx, event);
+      parent.updateCommentFrame();
     });
     if (render.a != parent.editor.self.modify) {
       editButton.remove();
@@ -6183,15 +6199,230 @@ modules["editor/toolbar/sidemenu/comment"] = class {
     <div class="eSideMenuCommentContainer"></div>
   </div>`;
   css = {
-    ".eSideMenuCommentOptions": `position: sticky; box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; padding: 8px 8px; gap: 8px; left: 0px; top: 0px; background: rgba(var(--background), .8); backdrop-filter: blur(4px); z-index: 2; justify-content: center`,
+    ".eSideMenuCommentOptions": `position: sticky; box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; padding: 8px 8px; gap: 8px; left: 0px; top: 0px; background: rgba(var(--background), .8); backdrop-filter: blur(4px); z-index: 2; justify-content: space-between`,
     ".eSideMenuCommentOptionsSwitcher": `box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 4px; flex-shrink: 0; width: fit-content; max-width: 100%; padding: 4px; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 20px; justify-content: center`,
     ".eSideMenuCommentOptionsSwitcher button": `flex: auto; padding: 6px 10px; border-radius: 16px; font-size: 16px; font-weight: 600`,
     ".eSideMenuCommentOptionsSwitcher button:hover": `background: var(--hover)`,
     ".eSideMenuCommentOptionsSwitcher button[selected]": `background: var(--theme); color: #fff`,
-    ".eSideMenuCommentContainer": `box-sizing: border-box; display: flex; flex-direction: column; width: 100%; padding: 6px; align-items: center`
-  };
-  js = async (frame) => {
+    ".eSideMenuCommentContainer": `position: relative; box-sizing: border-box; display: flex; flex-direction: column; width: 100%; padding: 10px; gap: 10px; z-index: 1; align-items: center`,
 
+    ".eSideMenuCommentItem": `position: relative; width: 100%; border-radius: 16px 16px 16px 16px`, //6px
+    ".eSideMenuCommentItem:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; opacity: .2; z-index: 1; pointer-events: none; transition: .2s`,
+    ".eSideMenuCommentItem[selected]:before": `background: var(--themeColor)`,
+    ".eSideMenuCommentItem:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; opacity: .6; z-index: 1; pointer-events: none; transition: .2s`,
+    ".eSideMenuCommentItem:hover:after": `box-shadow: 0px 0px 6px var(--themeColor)`,
+    ".eSideMenuCommentItem div[container]": `position: relative; display: flex; box-sizing: border-box; width: 100%; height: 100%; padding: 4px; border-radius: inherit; overflow: hidden; z-index: 2`,
+    ".eSideMenuCommentItem div[profileholder]": `flex-shrink: 0; width: 24px; height: 24px; background: var(--themeColor); border-radius: 12px; overflow: hidden`,
+    ".eSideMenuCommentItem div[profileholder] > div[dots]": `display: flex; gap: 2px; width: 100%; height: 100%; justify-content: center; align-items: center`,
+    ".eSideMenuCommentItem div[profileholder] > div[dots] > div": `width: 4px; height: 4px; background: var(--pageColor); border-radius: 2px`,
+    ".eSideMenuCommentItem div[profileholder] > img": `width: 100%; height: 100%; border-radius: 12px; object-fit: cover`,
+    ".eSideMenuCommentItem div[content]": `width: 100%; height: fit-content; margin-left: 6px; text-align: left`,
+    ".eSideMenuCommentItem div[memberholder]": `display: flex; width: 100%; max-width: 220px; height: 24px; align-items: center`,
+    ".eSideMenuCommentItem div[member]": `flex: 1; min-width: 0; max-width: fit-content; font-size: 14px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
+    ".eSideMenuCommentItem div[time]": `margin: 0 6px; color: var(--darkGray); font-size: 12px; font-weight: 500; white-space: nowrap`,
+    ".eSideMenuCommentItem button": `pointer-events: none; position: relative; display: flex; width: 24px; height: 24px; padding: 0; margin-left: auto; border-radius: 16px; justify-content: center; align-items: center`,
+    ".eSideMenuCommentItem button:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--secondary); opacity: 0; border-radius: inherit; transition: .2s`,
+    ".eSideMenuCommentItem button:hover:before": `opacity: .4`,
+    ".eSideMenuCommentItem button > svg": `width: 18px; height: 18px; z-index: 2`,
+    ".eSideMenuCommentItem button[selected]:before": `opacity: 1 !important`,
+    ".eSideMenuCommentItem button[selected] > svg": `filter: brightness(0) invert(1)`,
+    ".eSideMenuCommentItem div[text]": `box-sizing: border-box; width: 100%; max-width: 220px; height: fit-content; font-size: 12px; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden`,
+    ".eSideMenuCommentItem div[replycount]": `display: none; width: 100%; max-width: 220px; margin-top: 4px; color: var(--theme); font-size: 12px; font-weight: 600`
+  };
+  //maxLoadAmount = 100;
+  js = async (frame) => {
+    let sideMenu = frame.closest(".eSideMenu");
+    let holder = frame.querySelector(".eSideMenuCommentContainer");
+
+    this.updateComment = async (render, options = {}) => {
+      let comment;
+      if (options.new != true) {
+        comment = holder.querySelector('.eSideMenuCommentItem[comment="' + render._id + '"]');
+        if (comment == null && render.pending != null) {
+          comment = holder.querySelector('.eSideMenuCommentItem[comment="' + render.pending + '"]');
+        }
+      }
+      if (comment == null) {
+        let insertPosition = "afterbegin";
+        if (options.new == true) {
+          insertPosition = "beforeend";
+        }
+        holder.insertAdjacentHTML(insertPosition, `<a class="eSideMenuCommentItem" new>
+          <div container>
+            <div profileholder></div>
+            <div content>
+              <div memberholder>
+                <div member></div>
+                <div time></div>
+                <button resolve></button>
+              </div>
+              <div text></div>
+              <div replycount></div>
+            </div>
+          </div>
+        </a>`);
+        comment = holder.querySelector(".eSideMenuCommentItem[new]");
+        comment.removeAttribute("new");
+        if (options.new != true) {
+          let holderChildren = holder.children;
+          for (let i = 0; i < holderChildren.length; i++) {
+            let child = holderChildren[i];
+            if (parseInt(child.getAttribute("time")) > (render.time ?? render.sync)) {
+              holder.insertBefore(comment, child);
+            } else {
+              break;
+            }
+          }
+          sideMenu.removeAttribute("hidden");
+        }
+
+        setSVG(comment.querySelector("button[resolve]"), "../images/editor/actions/resolve.svg");
+      }
+      comment.setAttribute("comment", render._id);
+
+      let setTime = render.time ?? render.sync;
+      if (setTime != null) {
+        comment.setAttribute("time", setTime);
+        let timeTx = comment.querySelector("div[time]");
+        timeTx.textContent = timeSince(setTime);
+        timeTx.title = formatFullDate(setTime);
+      }
+
+      let commentTx = comment.querySelector("div[text]");
+      let richText = render.d ?? {};
+      let setHTML = "";
+      for (let i = 0; i < (richText.b ?? []).length; i++) {
+        let addHTML = "";
+        if (richText.b[i] != "\n") {
+          addHTML = "<div>" + cleanString(richText.b[i]) + "</div>";
+        } else {
+          addHTML = "<br>";
+        }
+        setHTML += addHTML;
+      }
+      commentTx.innerHTML = setHTML;
+
+      let replyTx = comment.querySelector("div[replycount]");
+      let replyCount = Object.keys((this.editor.comments[render._id] ?? {}).replies ?? {}).length;
+      if (replyCount > 0) {
+        if (replyCount > 1) {
+          replyTx.textContent = replyCount + " Replies";
+        } else {
+          replyTx.textContent = "1 Reply";
+        }
+        replyTx.style.display = "unset";
+      } else {
+        replyTx.style.removeProperty("display");
+      }
+
+      let modify = render.a ?? render.m;
+      comment.setAttribute("modify", modify);
+      this.editor.utils.getCollaborator(modify, (collaborator) => {
+        if (comment == null) {
+          return;
+        }
+
+        comment.style.setProperty("--themeColor", collaborator.color);
+        let profileHolder = comment.querySelector("div[profileholder]");
+        if (collaborator.image != null) {
+          profileHolder.innerHTML = `<img src="../images/profiles/default.svg" />`;
+          profileHolder.querySelector("img").src = collaborator.image;
+        } else {
+          profileHolder.innerHTML = `<div dots><div></div><div></div><div></div></div>`;
+        }
+        let memberTx = comment.querySelector("div[member]");
+        memberTx.textContent = collaborator.name;
+        memberTx.title = collaborator.name;
+      });
+
+      let resolveButton = comment.querySelector("button[resolve]");
+      if (render.resolved != true) {
+        resolveButton.style.display = "none";
+        //resolveButton.removeAttribute("selected");
+      } else {
+        resolveButton.style.removeProperty("display");
+        //resolveButton.setAttribute("selected", "");
+      }
+
+      if (this.editor.selecting[render._id] == null) {
+        comment.removeAttribute("selected");
+      } else {
+        comment.setAttribute("selected", "");
+      }
+
+      if (render.remove == true) {
+        comment.remove();
+        if (holder.childElementCount < 1) {
+          sideMenu.setAttribute("hidden", "");
+        }
+      }
+    }
+
+    frame.addEventListener("click", async (event) => {
+      let target = event.target;
+      let comment = target.closest(".eSideMenuCommentItem");
+      if (comment != null) {
+        let annotation = this.editor.annotations[comment.getAttribute("comment")] ?? {};
+        let render = annotation.render ?? {};
+        if (render._id != null) {
+          await this.editor.render.create(annotation);
+          this.editor.selecting = {};
+          this.editor.selecting[render._id] = {};
+          this.toolbar.selection.updateBox();
+          this.editor.utils.scrollToAnnotation(render, { animation: false });
+        }
+        return;
+      }
+    });
+    
+    //let currentComments = { ...this.editor.comments };
+    let comments = Object.values(this.editor.comments).sort((a, b) => { return (b.render.time ?? b.render.sync) - (a.render.time ?? a.render.sync); });
+    //let renderAmount = Math.min(comments.length, this.maxLoadAmount);
+    for (let i = 0; i < comments.length; i++) {
+      this.updateComment(comments[i].render, { new: true });
+    }
+    let handleCommentChange = (render) => {
+      let rootComment;
+      if (render.parent != null) {
+        let parent = (this.editor.annotations[render.parent] ?? {}).render;
+        if (parent != null) {
+          if (parent.f == "comment") {
+            rootComment = parent;
+          }
+        } else {
+          return;
+        }
+      }
+      if (rootComment == null) {
+        this.updateComment(render);
+      } else {
+        this.updateComment(rootComment);
+      }
+    } 
+    this.toolbar.sidemenu.subscribe("comment_update", handleCommentChange);
+    this.toolbar.sidemenu.subscribe("comment_select_start", handleCommentChange);
+    this.toolbar.sidemenu.subscribe("comment_select_end", handleCommentChange);
+    this.toolbar.sidemenu.subscribe("collaborator_update", (collaborator) => {
+      let updateComments = holder.querySelectorAll('.eSideMenuCommentItem[modify="' + collaborator._id + '"]');
+      for (let i = 0; i < updateComments.length; i++) {
+        let comment = updateComments[i];
+        comment.style.setProperty("--themeColor", collaborator.color);
+        let profileHolder = comment.querySelector("div[profileholder]");
+        if (collaborator.image != null) {
+          profileHolder.innerHTML = `<img src="../images/profiles/default.svg" />`;
+          profileHolder.querySelector("img").src = collaborator.image;
+        } else {
+          profileHolder.innerHTML = `<div dots><div></div><div></div><div></div></div>`;
+        }
+        let memberTx = comment.querySelector("div[member]");
+        memberTx.textContent = collaborator.name;
+        memberTx.title = collaborator.name;
+      }
+    });
+
+    if (holder.childElementCount < 1) {
+      sideMenu.setAttribute("hidden", "");
+    }
   }
 }
 
@@ -7318,7 +7549,7 @@ modules["editor/toolbar/more"] = class {
   FULL_CLICK = true;
   SHOW_ON_LOCK = true;
 
-  duplicate = async (handle) => {
+  duplicate = async (handle, fromKeybind) => {
     let selectKeys = Object.keys(this.editor.selecting);
     let checkChunks = {};
     let saveAnnoData = [];
@@ -7369,9 +7600,16 @@ modules["editor/toolbar/more"] = class {
     let maxTop;
     for (let i = 0; i < selectKeys.length; i++) {
       let annoID = selectKeys[i];
-      let render = (this.editor.annotations[annoID] ?? {}).render;
+      let annotation = this.editor.annotations[annoID] ?? {};
+      let render = annotation.render;
       if (render == null || this.parent.checkSubToolEnabled(render.f) == false) {
         continue;
+      }
+      if (fromKeybind == true) {
+        let annoModule = (await this.editor.render.getModule(annotation, render.f)) ?? {};
+        if (annoModule.KEYBINDS_ENABLED == false) {
+          continue;
+        }
       }
       let addChunks = this.editor.utils.chunksFromAnnotation(render);
       for (let c = 0; c < addChunks.length; c++) {

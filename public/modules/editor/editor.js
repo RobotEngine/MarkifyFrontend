@@ -1041,13 +1041,44 @@ modules["editor/editor"] = class {
       }
 
       if (render.f == "comment") {
-        if (render.pending != null && (render._id ?? "").startsWith("pending_") == false) {
-          delete this.comments[render.pending];
+        let rootComment;
+        let missingParent = false;
+        if (render.parent != null) {
+          let parent = (this.annotations[render.parent] ?? {}).render;
+          if (parent != null) {
+            if (parent.f == "comment") {
+              rootComment = parent;
+            }
+          } else {
+            missingParent = true;
+          }
         }
-        if (render.remove != true && (render.parent == null || ((this.annotations[render.parent] ?? {}).render ?? {}).f != "comment")) {
-          this.comments[render._id] = render;
-        } else {
-          delete this.comments[render._id];
+        if (missingParent == false) {
+          if (rootComment == null) { // IS a root comment:
+            if (render.pending != null && (render._id ?? "").startsWith("pending_") == false) {
+              delete this.comments[render.pending];
+            }
+            if (render.remove != true) {
+              this.comments[render._id] = { render, replies: {} };
+            } else {
+              delete this.comments[render._id];
+            }
+          } else { // Is a reply:
+            let rootData = this.comments[rootComment._id];
+            if (rootData == null) {
+              this.comments[rootComment._id] = { render: rootComment, replies: {} };
+              rootData = this.comments[rootComment._id];
+            }
+            if (render.pending != null && (render._id ?? "").startsWith("pending_") == false) {
+              delete rootData.replies[render.pending];
+            }
+            if (render.remove != true) {
+              rootData.replies[render._id] = true;
+            } else {
+              delete rootData.replies[render._id];
+            }
+          }
+          this.pipeline.publish("comment_update", render);
         }
       }
       
@@ -1122,6 +1153,41 @@ modules["editor/editor"] = class {
         this.pipeline.publish("page_change", { page: this.currentPage, pageId: minPageId });
       }
     }
+    this.utils.scrollToAnnotation = (render, options = {}) => {
+      if (this.realtime.observing != null && this.realtime.module != null) {
+        this.realtime.module.exitObserve();
+      }
+      if (render == null) {
+        return;
+      }
+      let annoRect = this.utils.getRect(render);
+      let [topLeftX, topLeftY, bottomRightX] = this.math.rotatedBounds(annoRect.x, annoRect.y, annoRect.endX, annoRect.endY, annoRect.rotation);
+      
+      let annotationRect = this.utils.localBoundingRect(annotations);
+      let scrollOptions = {};
+      if (annoRect.width * this.zoom < contentHolder.clientWidth - (this.scrollOffset * 2)) {
+        // Position page to center:
+        scrollOptions.left = annotationRect.left + contentHolder.scrollLeft - (contentHolder.clientWidth / 2) + (annoRect.centerX * this.zoom);
+      } else {
+        // Position page to left corner:
+        if ((account.settings ?? {}).toolbar != "right") {
+          scrollOptions.left = annotationRect.left + contentHolder.scrollLeft - this.scrollOffset + (topLeftX * this.zoom);
+        } else {
+          scrollOptions.left = annotationRect.left + contentHolder.scrollLeft - contentHolder.clientWidth + this.scrollOffset + (bottomRightX * this.zoom);
+        }
+      }
+      if (annoRect.height * this.zoom < contentHolder.clientHeight - (this.scrollOffset * 2)) {
+        // Position page to center:
+        scrollOptions.top = annotationRect.top + contentHolder.scrollTop - (contentHolder.clientHeight / 2) + (annoRect.centerY * this.zoom);
+      } else {
+        // Position page to top:
+        scrollOptions.top = annotationRect.top + contentHolder.scrollTop - this.scrollOffset + (topLeftY * this.zoom);
+      }
+      if (options.animation != false) {
+        scrollOptions.behavior = "smooth";
+      }
+      contentHolder.scrollTo(scrollOptions);
+    }
     this.utils.updateAnnotationScroll = (pageData, animation) => {
       if (pageData == null) {
         return;
@@ -1134,36 +1200,7 @@ modules["editor/editor"] = class {
           annoID = anno.pointer;
         }
       }
-      let render = (this.annotations[annoID] ?? {}).render;
-      if (render != null) {
-        let annoRect = this.utils.getRect(render);
-        let [topLeftX, topLeftY, bottomRightX] = this.math.rotatedBounds(annoRect.x, annoRect.y, annoRect.endX, annoRect.endY, annoRect.rotation);
-        
-        let annotationRect = this.utils.localBoundingRect(annotations);
-        let options = {};
-        if (annoRect.width * this.zoom < contentHolder.clientWidth - (this.scrollOffset * 2)) {
-          // Position page to center:
-          options.left = annotationRect.left + contentHolder.scrollLeft - (contentHolder.clientWidth / 2) + (annoRect.centerX * this.zoom);
-        } else {
-          // Position page to left corner:
-          if ((account.settings ?? {}).toolbar != "right") {
-            options.left = annotationRect.left + contentHolder.scrollLeft - this.scrollOffset + (topLeftX * this.zoom);
-          } else {
-            options.left = annotationRect.left + contentHolder.scrollLeft - contentHolder.clientWidth + this.scrollOffset + (bottomRightX * this.zoom);
-          }
-        }
-        if (annoRect.height * this.zoom < contentHolder.clientHeight - (this.scrollOffset * 2)) {
-          // Position page to center:
-          options.top = annotationRect.top + contentHolder.scrollTop - (contentHolder.clientHeight / 2) + (annoRect.centerY * this.zoom);
-        } else {
-          // Position page to top:
-          options.top = annotationRect.top + contentHolder.scrollTop - this.scrollOffset + (topLeftY * this.zoom);
-        }
-        if (animation != false) {
-          options.behavior = "smooth";
-        }
-        contentHolder.scrollTo(options);
-      }
+      this.utils.scrollToAnnotation((this.annotations[annoID] ?? {}).render, { animation });
       if (this.realtime.observing != null && this.realtime.module != null) {
         this.realtime.module.exitObserve();
       }
@@ -4308,6 +4345,7 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
   KEEP_ON_PARENT_DELETE = true;
   RENDER_CHILDREN_WHEN_SELECTED = true;
   IGNORE_LOCKED_WARNING = true;
+  KEYBINDS_ENABLED = false;
 
   SELECTION_START = async () => {
     if (this.annotation == null) {
@@ -4321,6 +4359,7 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
     this.commentModule.toolbar = this.parent.toolbar;
     await this.commentModule.openCommentFrame(this.annotation, Object.values(this.commentThreads).sort((a, b) => { return (a.time ?? a.sync) - (b.time ?? b.sync); }));
     this.subscribe("bounds_change", this.commentModule.updateCommentFrame);
+    this.parent.pipeline.publish("comment_select_start", this.properties);
     //this.subscribe("click_move", this.commentModule.updateCommentFrame);
   }
   SELECTION_END = () => {
@@ -4331,6 +4370,7 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
     this.commentModule = null;
     this.unsubscribe("bounds_change");
     //this.unsubscribe("click_move");
+    this.parent.pipeline.publish("comment_select_end", this.properties);
     if (this.properties.resolved == true) {
       return this.remove();
     }
@@ -4399,7 +4439,7 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
     ".eAnnotation[comment] > div[commentholder] > div[comment] div[member]": `flex: 1; min-width: 0; max-width: fit-content; font-size: 14px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
     ".eAnnotation[comment] > div[commentholder] > div[comment] div[time]": `margin-left: 6px; color: var(--darkGray); font-size: 12px; font-weight: 500; white-space: nowrap`,
     ".eAnnotation[comment] > div[commentholder] > div[comment] div[text]": `box-sizing: border-box; width: 100%; max-width: 200px; height: fit-content; font-size: 12px; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden`,
-    ".eAnnotation[comment] > div[commentholder] > div[comment] div[replycount]": `display: none; width: 100%; max-width: 200px; margin-top: 4px; color: var(--theme); font-size: 12px; font-weight: 600`,
+    ".eAnnotation[comment] > div[commentholder] > div[comment] div[replycount]": `display: none; width: 100%; max-width: 200px; margin-top: 4px; color: var(--theme); font-size: 12px; font-weight: 600`
   };
   render = () => {
     if (this.properties.resolved == true && this.parent.selecting[this.properties._id] == null) {
@@ -4418,9 +4458,7 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
         <div commentholder>
           <div comment>
             <div container>
-              <div profileholder>
-                <div dots><div></div><div></div><div></div></div>
-              </div>
+              <div profileholder></div>
               <div content>
                 <div memberholder>
                   <div member></div>
@@ -4469,10 +4507,12 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
         return;
       }
       this.element.style.setProperty("--themeColor", collaborator.color);
+      let profileHolder = comment.querySelector("div[profileholder]");
       if (collaborator.image != null) {
-        let profileHolder = comment.querySelector("div[profileholder]");
         profileHolder.innerHTML = `<img src="../images/profiles/default.svg" />`;
         profileHolder.querySelector("img").src = collaborator.image;
+      } else {
+        profileHolder.innerHTML = `<div dots><div></div><div></div><div></div></div>`;
       }
       comment.querySelector("div[member]").textContent = collaborator.name;
       this.updateCommentSize();

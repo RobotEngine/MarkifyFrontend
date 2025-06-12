@@ -211,32 +211,33 @@ modules["pages/app/dashboard"] = class {
     }
 
     // Handle Banner:
-    const CURRENT_BANNER = "1.0-release";
-    let bannerHolder = lessonsHolder.querySelector(".dBannerHolder");
-    let banner = bannerHolder.querySelector(".dBanner");
-    let bannerCloseButton = banner.querySelector(".dBannerClose");
-    let seenBanners = JSON.parse(getLocalStore("seenDashboardBanners") ?? "[]");
-    if (seenBanners.includes(CURRENT_BANNER) == false) {
-      bannerHolder.style.display = "flex";
+    const CURRENT_BANNER = null; // "1.0-release"
+    if (CURRENT_BANNER != null) {
+      let bannerHolder = lessonsHolder.querySelector(".dBannerHolder");
+      let banner = bannerHolder.querySelector(".dBanner");
+      let bannerCloseButton = banner.querySelector(".dBannerClose");
+      let seenBanners = JSON.parse(getLocalStore("seenDashboardBanners") ?? "[]");
+      if (seenBanners.includes(CURRENT_BANNER) == false) {
+        bannerHolder.style.display = "flex";
+      }
+      bannerCloseButton.addEventListener("click", async () => {
+        seenBanners.push(CURRENT_BANNER);
+        setLocalStore("seenDashboardBanners", JSON.stringify(seenBanners));
+        lessonsHolder.scrollTo({ top: 0, behavior: "smooth" });
+        bannerHolder.style.height = bannerHolder.offsetHeight + "px";
+        bannerHolder.offsetHeight;
+        banner.style.opacity = 0;
+        banner.style.transform = "translateY(calc(-100% - 16px)";
+        bannerHolder.style.height = "0px";
+      });
+      let bannerFeedbackButton = banner.querySelector(".dBannerFeedback");
+      bannerFeedbackButton.addEventListener("click", async () => {
+        bannerFeedbackButton.setAttribute("disabled", "");
+        await loadScript("./modules/dropdowns/account.js");
+        await dropdownModule.open(bannerFeedbackButton, "dropdowns/account/report");
+        bannerFeedbackButton.removeAttribute("disabled");
+      });
     }
-    bannerCloseButton.addEventListener("click", async () => {
-      seenBanners.push(CURRENT_BANNER);
-      setLocalStore("seenDashboardBanners", JSON.stringify(seenBanners));
-      lessonsHolder.scrollTo({ top: 0, behavior: "smooth" });
-      bannerHolder.style.height = bannerHolder.offsetHeight + "px";
-      bannerHolder.offsetHeight;
-      banner.style.opacity = 0;
-      banner.style.transform = "translateY(calc(-100% - 16px)";
-      bannerHolder.style.height = "0px";
-    });
-
-    let bannerFeedbackButton = banner.querySelector(".dBannerFeedback");
-    bannerFeedbackButton.addEventListener("click", async () => {
-      bannerFeedbackButton.setAttribute("disabled", "");
-      await loadScript("./modules/dropdowns/account.js");
-      await dropdownModule.open(bannerFeedbackButton, "dropdowns/account/report");
-      bannerFeedbackButton.removeAttribute("disabled");
-    });
     
     logoButton.addEventListener("click", (event) => {
       event.preventDefault();

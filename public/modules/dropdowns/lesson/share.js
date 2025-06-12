@@ -535,7 +535,7 @@ modules["dropdowns/lesson/share/options"] = class {
           <button class="eShareToolToggleBarTool" tool="erase"><div></div></button>
           <button class="eShareToolToggleBarTool" tool="text" style="--toolColor: #0084FF; --toolColorOpacity: rgba(0, 132, 255, 1); --toolOpacity: 1"><div></div></button>
           <button class="eShareToolToggleBarTool" tool="shape" style="--toolColor: #fb4c6c; --toolColorOpacity: rgba(251, 76, 108, 1); --toolOpacity: 1"><div></div></button>
-          <button class="eShareToolToggleBarTool" tool="sticky"><div></div></button>
+          <button class="eShareToolToggleBarTool" tool="sticky" style="--toolColor: #fadca0; --toolColorOpacity: rgba(250, 220, 160, 1); --toolOpacity: 1"><div></div></button>
           <button class="eShareToolToggleBarTool" tool="comment"><div></div></button>
           <button class="eShareToolToggleBarTool" tool="page"><div></div></button>
           <button class="eShareToolToggleBarTool" tool="media"><div></div></button>

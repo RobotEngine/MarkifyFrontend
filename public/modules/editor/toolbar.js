@@ -5566,7 +5566,7 @@ modules["editor/toolbar/comment"] = class {
     ".eCommentItem[new] .eCommentContainer div[content] div[text]": `padding: 6px`,
     ".eCommentItem[new] .eCommentContainer div[content] div[text]:empty:before": `content: "Write your Comment"; display: block; opacity: .5; pointer-events: none`,
     ".eCommentItem:not([new]) .eCommentContainer div[content] div[text][contenteditable]": `padding: 4px; border: solid 3px var(--secondary); border-radius: 8px`,
-    ".eCommentItem > button": `display: flex; width: 36px; height: 36px; margin: 6px 6px 6px 0; justify-content: center; align-items: center; background: var(--theme); border-radius: 18px`,
+    ".eCommentItem > button": `position: sticky; display: flex; width: 36px; height: 36px; top: 6px; margin: 6px 6px 6px 0; justify-content: center; align-items: center; background: var(--theme); border-radius: 18px`,
     ".eCommentItem > button img": `width: 28px; height: 28px`,
     ".eCommentItem .eCommentEditActions": `display: flex; margin-top: 4px; justify-content: space-between`,
     ".eCommentItem .eCommentEditActions button[save]": `font-weight: 700; font-size: 14px; color: var(--theme)`,

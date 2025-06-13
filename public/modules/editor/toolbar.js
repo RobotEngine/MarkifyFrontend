@@ -1186,7 +1186,7 @@ modules["editor/toolbar"] = class {
             }
           }
           if (annoData.component.SELECTION_END != null) {
-            annoData.component.SELECTION_END();
+            await annoData.component.SELECTION_END();
           }
         }
         if (selection != null) {
@@ -1314,6 +1314,10 @@ modules["editor/toolbar"] = class {
         if (annoData.component != null) {
           annotation = annoData.component.getElement();
         }
+        if (annotation == null) {
+          await editor.render.create(annoData);
+          annotation = annoData.component.getElement();
+        }
         if (annotation != null) {
           annotation.setAttribute("selected", "");
           annotation.style.borderRadius = (4 / editor.zoom) + "px";
@@ -1350,7 +1354,7 @@ modules["editor/toolbar"] = class {
         if (this.selection.currentSelections.hasOwnProperty(annoID) == false) {
           selectionChange = true;
           if (annoModule.SELECTION_START != null) {
-            annoModule.SELECTION_START();
+            await annoModule.SELECTION_START();
           }
         }
         this.selection.currentSelections[annoID] = select;
@@ -4015,11 +4019,16 @@ modules["editor/toolbar"] = class {
         let selectKeys = Object.keys(editor.selecting);
         for (let i = 0; i < selectKeys.length; i++) {
           let selectID = selectKeys[i];
-          let anno = ({ ...((editor.annotations[selectID] ?? {}).render ?? {}), ...(editor.selecting[selectID] ?? {}) }) ?? {};
+          let annotation = editor.annotations[selectID] ?? {};
+          let anno = ({ ...(annotation.render ?? {}), ...(editor.selecting[selectID] ?? {}) }) ?? {};
           if (editor.utils.canMemberModify(anno) == false) { // Can't edit another member's work:
             continue;
           }
           if (editor.utils.isLocked(anno) == true || editor.utils.isPlaceholderLocked(anno) == true) {
+            continue;
+          }
+          let annoModule = (await this.editor.render.getModule(annotation, anno.f)) ?? {};
+          if (annoModule.KEYBINDS_ENABLED == false) {
             continue;
           }
           editor.selecting[selectID].remove = true;
@@ -5706,7 +5715,8 @@ modules["editor/toolbar/comment"] = class {
           comment = holder.querySelector('.eCommentItem[comment="' + render.pending + '"]');
         }
       }
-      if (comment == null) {
+      let newComment = comment == null;
+      if (newComment == true) {
         holder.insertAdjacentHTML("beforeend", `<div class="eCommentItem" new>
           <div threadindicator>
             <div passthrough></div>
@@ -5826,7 +5836,7 @@ modules["editor/toolbar/comment"] = class {
       }
       if (options.new != true) {
         this.updateCommentFrame();
-        if (holder.lastElementChild != null && scrollHolder.scrollTop + scrollHolder.clientHeight + holder.lastElementChild.clientHeight + 50 > scrollHolder.scrollHeight) {
+        if (newComment == true && holder.lastElementChild != null && scrollHolder.scrollTop + scrollHolder.clientHeight + holder.lastElementChild.clientHeight + 50 > scrollHolder.scrollHeight) {
           let scrollToParams = { top: scrollHolder.scrollHeight };
           if (this.editor.parent.parent.active != false) {
             scrollToParams.behavior = "smooth";
@@ -6189,24 +6199,26 @@ modules["editor/toolbar/sidemenu/comment"] = class {
   html = `<div class="eSideMenuCommentHolder">
     <div class="eSideMenuCommentOptions">
       <div class="eSideMenuCommentOptionsSwitcher" sort>
-        <button all selected title="Show comment threads from everyone.">All</button>
-        <button mine title="Show only comment threads you created.">Mine</button>
+        <button filter="all" selected title="Show comment threads from everyone.">All</button>
+        <button filter="mine" title="Show only comment threads you created.">Mine</button>
       </div>
       <div class="eSideMenuCommentOptionsSwitcher" resolve>
-        <button resolved title="Include resolved comments in the list.">Resolved</button>
+        <button filter="resolved" title="Include resolved comments in the list.">Resolved</button>
       </div>
     </div>
-    <div class="eSideMenuCommentContainer"></div>
+    <div class="eSideMenuCommentContainer" sort="all"></div>
   </div>`;
   css = {
-    ".eSideMenuCommentOptions": `position: sticky; box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; padding: 8px 8px; gap: 8px; left: 0px; top: 0px; background: rgba(var(--background), .8); backdrop-filter: blur(4px); z-index: 2; justify-content: space-between`,
+    ".eSideMenuCommentOptions": `position: sticky; box-sizing: border-box; display: flex; flex-wrap: wrap; width: 278px; max-width: 100%; padding: 8px 8px; gap: 8px; left: 0px; top: 0px; background: rgba(var(--background), .8); backdrop-filter: blur(4px); z-index: 2; justify-content: space-between`,
     ".eSideMenuCommentOptionsSwitcher": `box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 4px; flex-shrink: 0; width: fit-content; max-width: 100%; padding: 4px; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 20px; justify-content: center`,
     ".eSideMenuCommentOptionsSwitcher button": `flex: auto; padding: 6px 10px; border-radius: 16px; font-size: 16px; font-weight: 600`,
     ".eSideMenuCommentOptionsSwitcher button:hover": `background: var(--hover)`,
     ".eSideMenuCommentOptionsSwitcher button[selected]": `background: var(--theme); color: #fff`,
-    ".eSideMenuCommentContainer": `position: relative; box-sizing: border-box; display: flex; flex-direction: column; width: 100%; padding: 10px; gap: 10px; z-index: 1; align-items: center`,
+    ".eSideMenuCommentContainer": `position: relative; box-sizing: border-box; display: flex; flex-direction: column; width: 100%; min-height: 200px; padding: 10px; gap: 10px; z-index: 1; align-items: center`,
 
     ".eSideMenuCommentItem": `position: relative; width: 100%; border-radius: 16px 16px 16px 16px`, //6px
+    '.eSideMenuCommentContainer[sort="mine"] .eSideMenuCommentItem:not([mine])': `display: none`,
+    ".eSideMenuCommentContainer:not([resolved]) .eSideMenuCommentItem[resolved]": `display: none`,
     ".eSideMenuCommentItem:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; opacity: .2; z-index: 1; pointer-events: none; transition: .2s`,
     ".eSideMenuCommentItem[selected]:before": `background: var(--themeColor)`,
     ".eSideMenuCommentItem:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; opacity: .6; z-index: 1; pointer-events: none; transition: .2s`,
@@ -6317,6 +6329,9 @@ modules["editor/toolbar/sidemenu/comment"] = class {
 
       let modify = render.a ?? render.m;
       comment.setAttribute("modify", modify);
+      if (modify == this.editor.self.modify) {
+        comment.setAttribute("mine", "");
+      }
       this.editor.utils.getCollaborator(modify, (collaborator) => {
         if (comment == null) {
           return;
@@ -6338,9 +6353,11 @@ modules["editor/toolbar/sidemenu/comment"] = class {
       let resolveButton = comment.querySelector("button[resolve]");
       if (render.resolved != true) {
         resolveButton.style.display = "none";
+        comment.removeAttribute("resolved");
         //resolveButton.removeAttribute("selected");
       } else {
         resolveButton.style.removeProperty("display");
+        comment.setAttribute("resolved", "");
         //resolveButton.setAttribute("selected", "");
       }
 
@@ -6370,6 +6387,30 @@ modules["editor/toolbar/sidemenu/comment"] = class {
           this.editor.selecting[render._id] = {};
           this.toolbar.selection.updateBox();
           this.editor.utils.scrollToAnnotation(render, { animation: false });
+        }
+        return;
+      }
+      let filterHolder = target.closest(".eSideMenuCommentOptionsSwitcher");
+      if (filterHolder != null) {
+        let filterButton = target.closest("button");
+        if (filterButton != null) {
+          let currentSelected = filterHolder.querySelector("button[selected]");
+          if (currentSelected != null) {
+            currentSelected.removeAttribute("selected");
+          }
+          if (filterButton != currentSelected || filterHolder.childElementCount > 1) {
+            filterButton.setAttribute("selected", "");
+            if (filterHolder.hasAttribute("sort") == true) {
+              holder.setAttribute("sort", filterButton.getAttribute("filter"));
+            }
+          }
+          if (filterHolder.hasAttribute("resolve") == true) {
+            if (filterButton.hasAttribute("selected") == true) {
+              holder.setAttribute("resolved", "");
+            } else {
+              holder.removeAttribute("resolved");
+            }
+          }
         }
         return;
       }

@@ -4354,6 +4354,10 @@ modules["editor/toolbar"] = class {
         if (render == null || editor.selecting[render._id] != null) {
           continue;
         }
+        let annoModule = (await editor.render.getModule(annotation, render.f)) ?? {};
+        if (annoModule.KEEP_ON_PARENT_DELETE == true) {
+          continue;
+        }
         let { selectingParent, annoX, annoY, rotation } = editor.utils.getRect(render);
         if (selectingParent == false) {
           continue;
@@ -7702,6 +7706,10 @@ modules["editor/toolbar/more"] = class {
       }
       let render = annotation.render;
       if (render == null || this.editor.selecting[render._id] != null || this.parent.checkSubToolEnabled(render.f) == false) {
+        continue;
+      }
+      let annoModule = (await this.editor.render.getModule(annotation, render.f)) ?? {};
+      if (annoModule.KEEP_ON_PARENT_DELETE == true) {
         continue;
       }
       let { selectingParent } = this.editor.utils.getRect(render);

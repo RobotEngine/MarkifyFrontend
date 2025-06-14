@@ -54,6 +54,7 @@ modules["lesson/board"] = class {
           <div class="eObserveCursor"></div>
           <button class="eObserveExit buttonAnim border"><img src="../images/tooltips/close.svg"></button>
         </div>
+        <div class="eBottomSectionSpacer"></div>
         <div class="eBottomSection" right>
           <button class="ePageNav" down></button>
           <div class="eCurrentPage border" contenteditable></div>
@@ -128,14 +129,16 @@ modules["lesson/board"] = class {
     ".eBottomHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
     ".eBottom": `position: absolute; display: flex; width: 100%; gap: 8px; padding-top: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,
     ".eBottom::-webkit-scrollbar": `display: none`,
-    ".eBottomSection": `display: none; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
-    ".eBottomSection[left]": `border-top-right-radius: 12px`,
+    ".eBottomSection": `display: none; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 12px 12px 0 0; pointer-events: all`,
+    ".eBottomSection[hidden]": `display: none`,
+    ".eBottomSection:first-child": `border-top-left-radius: 0`,
+    ".eBottomSection:last-child": `border-top-right-radius: 0`,
+    ".eBottomSectionSpacer": `flex: 1`,
     ".eObserveIcon": `width: 34px; height: 34px; margin: 2px`,
     ".eObserveText": `margin: 0 6px`,
     ".eObserveCursor": `box-sizing: border-box; display: flex; padding: 2px 6px; margin-right: 4px; background: var(--theme); color: #fff; border: solid 3px var(--pageColor); box-shadow: 0 0 6px rgb(0 0 0 / 25%); border-radius: 8px 14px 14px; font-size: 14px; font-weight: 700`,
     ".eObserveExit": `display: flex; position: relative; width: 22px; height: 22px; margin: 8px; justify-content: center; align-items: center; --borderWidth: 3px; --borderRadius: 14px`,
     ".eObserveExit img": `width: 12px; height: 12px`,
-    ".eBottomSection[right]": `margin-left: auto; border-top-left-radius: 12px`,
     ".ePageNav": `display: flex; width: 32px; height: 32px; padding: 6px; margin: 0 4px; justify-content: center; align-items: center; background: var(--lightGray); border-radius: 16px`,
     ".ePageNav svg": `width: 100%; height: 100%`,
     ".eCurrentPage": `min-width: 8px; max-height: 24px; padding: 4px 0; margin: 0 6px; font-size: 20px; outline: unset`,

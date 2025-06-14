@@ -458,6 +458,8 @@ modules["editor/toolbar"] = class {
       this.sidemenu.frame.style.zIndex = "4";
       this.sidemenu.frame.style.transform = "translate(0%, -50%)";
       this.sidemenu.frame.style.opacity = "1";
+
+      return this.sidemenu;
     }
     this.sidemenu.close = () => {
       if (this.sidemenu.frame == null) {
@@ -5605,12 +5607,27 @@ modules["editor/toolbar/comment"] = class {
     let setLeft = annotationRect.left + (centerX * this.editor.zoom) + this.offsetX + this.editor.contentHolder.scrollLeft;
     let setRight = annotationRect.left + (centerX * this.editor.zoom) - this.offsetX - frameWidth + this.editor.contentHolder.scrollLeft;
     let setTransformOrigin = "";
-    if (setLeft + frameWidth + this.editor.scrollOffset < this.editor.contentHolder.scrollLeft + this.editor.contentHolder.clientWidth || setRight - this.editor.scrollOffset < this.editor.contentHolder.scrollLeft) {
+    let sidemenuLeftOffset = this.editor.scrollOffset;
+    let sidemenuRightOffset = 8;
+    if (this.toolbar.sidemenu.frame != null && this.toolbar.sidemenu.frame.hasAttribute("hidden") == false) {
+      sidemenuRightOffset = this.toolbar.sidemenu.frame.offsetWidth + 8;
+    }
+    if ((account.settings ?? {}).toolbar == "right") {
+      [sidemenuLeftOffset, sidemenuRightOffset] = [sidemenuRightOffset, sidemenuLeftOffset];
+    }
+    let leftPageOffset = (this.editor.contentHolder.scrollLeft + this.editor.contentHolder.clientWidth) - (setLeft + frameWidth + sidemenuRightOffset);
+    let rightPageOffset = (setRight - sidemenuLeftOffset) - (this.editor.contentHolder.scrollLeft);
+    if (leftPageOffset > 0) {
       this.frame.style.left = setLeft + "px";
       setTransformOrigin += "left";
     } else {
-      this.frame.style.left = setRight + "px";
-      setTransformOrigin += "right";
+      if (leftPageOffset < 0 && rightPageOffset > leftPageOffset) {
+        this.frame.style.left = setRight + "px";
+        setTransformOrigin += "right";
+      } else {
+        this.frame.style.left = setLeft + "px";
+        setTransformOrigin += "left";
+      }
     }
     let frameHeight = this.frame.offsetHeight;
     let annoY = annotationRect.top + (centerY * this.editor.zoom);

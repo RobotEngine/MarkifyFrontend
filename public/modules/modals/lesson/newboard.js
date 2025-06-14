@@ -46,7 +46,7 @@ modules["modals/lesson/newboard"] = class {
     freeboardButton.addEventListener("click", async () => {
       frame.setAttribute("disabled", "");
       let createAlert = await alertModule.open("info", `<b>Creating Lesson</b>Setting up freeboard, an unlimited whiteboard space!`, { time: "never" });
-      let path = "lessons/new?ss=" + socket.secureID;
+      let path = "lessons/new/board?ss=" + socket.secureID;
       if (this.folder != null) {
         path += "&folder=" + this.folder;
       }
@@ -99,7 +99,7 @@ modules["modals/lesson/newboard"] = class {
         let alertText = `<b>Uploading Lesson</b>Uploading your PDF${addS(passedFiles)} and creating the lesson.`;
         let extraData = { noFileType: true };
         let uploadAlert = await alertModule.open("info", alertText, { time: "never" });
-        let path = "lessons/new?ss=" + socket.secureID;
+        let path = "lessons/new/board?ss=" + socket.secureID;
         if (this.folder != null) {
           path += "&folder=" + this.folder;
         }
@@ -298,7 +298,7 @@ modules["modals/lesson/newboard/blank"] = class {
       frame.setAttribute("disabled", "");
       let alertText = `<b>Creating Lesson</b>Setting up your lesson!`;
       let createAlert = await alertModule.open("info", alertText, { time: "never" });
-      let path = "lessons/new?ss=" + socket.secureID;
+      let path = "lessons/new/board?ss=" + socket.secureID;
       if (parent.folder != null) {
         path += "&folder=" + parent.folder;
       }

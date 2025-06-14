@@ -50,6 +50,7 @@ let defaultPage = "pages/launch";
 
 let account = {};
 let userID;
+let hasFeatureEnabled = (feature) => { return (account.featureFlags ?? []).includes(feature) == true; };
 
 let subscribes = [];
 
@@ -1733,7 +1734,10 @@ addCSS({
   ".customScroll::-webkit-scrollbar-thumb": `min-width: 50px; min-height: 50px; border: 4px solid var(--scrollGray); background: var(--gray); border-radius: 8px`,
   ".customScroll::-webkit-scrollbar-thumb:active": `background: var(--activeGray)`,
   ".hideScroll": `scrollbar-width: none`,
-  ".hideScroll::-webkit-scrollbar": `display: none`
+  ".hideScroll::-webkit-scrollbar": `display: none`,
+
+  'html[theme="light"]': `--breakoutThemeRGB: 255, 76, 108; --breakoutTheme: rgb(var(--breakoutThemeRGB)); --breakoutSecondaryRGB: 255, 122, 147; --breakoutSecondary: rgb(var(--breakoutSecondaryRGB)); --breakoutHoverRGB: 255, 166, 182; --breakoutHover: rgb(var(--breakoutHoverRGB))`,
+  'html[theme="dark"]': `--breakoutThemeRGB: 255, 76, 108; --breakoutTheme: rgb(var(--breakoutThemeRGB)); --breakoutSecondaryRGB: 255, 122, 147; --breakoutSecondary: rgb(var(--breakoutSecondaryRGB)); --breakoutHoverRGB: 112, 33, 46; --breakoutHover: rgb(var(--breakoutHoverRGB))`,
 });
 (new Image()).src = "../images/tooltips/alerts.svg";
 (new Image()).src = "../images/tooltips/close.svg";

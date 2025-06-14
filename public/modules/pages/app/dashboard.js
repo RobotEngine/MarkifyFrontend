@@ -31,9 +31,7 @@ modules["pages/app/dashboard"] = class {
             <a class="dSidebarLogo" href="/launch"><img src="../images/logo.svg" /></a>
             <a class="dJoinButton largeButton" href="/app/join">Join<img src="../images/tooltips/link.svg" /><div backdrop></div></a>
           </div>
-          <div class="dSidebarSection dSidebarActions">
-            <a class="dCreateLessonButton largeButton">New Lesson<div backdrop></div></a>
-          </div>
+          <div class="dSidebarSection dSidebarActions"></div>
           <div class="dSidebarSection dSidebarSorts">
             <div class="dSidebarTitle"><div title>Sorts</div><div divider></div></div>
             <div class="dSidebarSearch border"><img src="../images/dashboard/search.svg" /><input placeholder="Search..."></input></div>
@@ -81,7 +79,7 @@ modules["pages/app/dashboard"] = class {
     ".dBackdropImage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 1; opacity: .75; object-fit: cover; z-index: 1; pointer-events: none`,
     ".dSidebar": `position: relative; display: flex; flex-direction: column; width: 100%; height: 100%; box-shadow: var(--darkShadow); overflow: auto; overscroll-behavior: none; z-index: 2`,
     ".dSidebarSection": `position: sticky; box-sizing: border-box; width: 100%; left: 0px; z-index: 2`,
-    ".dSidebarTitle": `display: flex; gap: 8px; align-items: center`,
+    ".dSidebarTitle": `display: flex; width: 100%; gap: 8px; align-items: center`,
     ".dSidebarTitle div[title]": `color: var(--secondary); font-weight: 600; font-size: 16px`,
     ".dSidebarTitle div[divider]": `flex: 1; height: 4px; background: var(--hover); border-radius: 2px`,
 
@@ -99,7 +97,11 @@ modules["pages/app/dashboard"] = class {
     ".dJoinButton img": `width: 22px; height: 22px; margin-left: 4px`,
 
     ".dSidebarActions": `display: flex; flex-direction: column; gap: 8px; padding: 8px; margin: 8px 0; align-items: center`,
-    ".dCreateLessonButton": `--themeColor: var(--theme); --borderRadius: 14px`,
+    ".dCreateLessonButtonHolder": `display: flex; flex-direction: column; width: fit-content; gap: 6px`,
+    ".dCreateLessonButtonHolder > a > div[image]": `position: relative; width: 24px; height: 24px; margin-right: 8px`,
+    ".dCreateLessonButtonHolder > a > div[image] > svg": `position: absolute; width: 28px; height: 28px; left: 50%; top: 50%; transform: translate(-50%, -50%)`,
+    ".dCreateBoardLessonButton": `--themeColor: var(--theme); --borderRadius: 14px`,
+    ".dCreateBreakoutLessonButton": `--themeColor: var(--breakoutTheme); --hover: var(--breakoutHover); --borderRadius: 14px`,
 
     ".dSidebarSorts": `display: flex; flex-direction: column; gap: 8px; padding: 8px`,
     ".dSidebarSearch": `display: flex; box-sizing: border-box; width: calc(100% - 8px); margin: 4px; align-items: center; background: rgba(var(--background), .5); --borderColor: var(--hover); --borderWidth: 4px; --borderRadius: 12px`,
@@ -194,7 +196,7 @@ modules["pages/app/dashboard"] = class {
     let sidebar = sidebarHolder.querySelector(".dSidebar");
     let logoButton = sidebar.querySelector(".dSidebarLogo");
     let joinLessonButton = sidebar.querySelector(".dJoinButton");
-    let newLessonButton = sidebar.querySelector(".dCreateLessonButton");
+    let actionHolder = sidebar.querySelector(".dSidebarActions");
     let searchInput = sidebar.querySelector(".dSidebarSearch input");
     let folderHolder = sidebar.querySelector(".dSidebarFolderHolder");
     let lessonsHolder = dashboard.querySelector(".dLessonsHolder");
@@ -202,6 +204,24 @@ modules["pages/app/dashboard"] = class {
     let tileHolder = dashboard.querySelector(".dTilesHolder");
     let accountHolder = sidebar.querySelector(".dSidebarAccountHolder");
     let accountButton = accountHolder.querySelector(".dAccount");
+
+    if (hasFeatureEnabled("breakout") == true) {
+      actionHolder.innerHTML = `
+      <div class="dSidebarTitle"><div title>New Lesson</div><div divider></div></div>
+      <div class="dCreateLessonButtonHolder">
+        <a class="dCreateBoardLessonButton largeButton"><div image></div>Board<div backdrop></div></a>
+        <a class="dCreateBreakoutLessonButton largeButton"><div image></div>Breakout<div backdrop></div></a>
+      </div>
+      `;
+      setSVG(actionHolder.querySelector(".dCreateBoardLessonButton div[image]"), "../images/icon.svg");
+      setSVG(actionHolder.querySelector(".dCreateBreakoutLessonButton div[image]"), "../images/breakout.svg");
+    } else {
+      actionHolder.innerHTML = `
+      <a class="dCreateBoardLessonButton largeButton">New Lesson<div backdrop></div></a>
+      `;
+    }
+    let newBoardLessonButton = actionHolder.querySelector(".dCreateBoardLessonButton");
+    let newBreakoutLessonButton = actionHolder.querySelector(".dCreateBreakoutLessonButton");
 
     let scrollEventPass;
 
@@ -247,14 +267,26 @@ modules["pages/app/dashboard"] = class {
       event.preventDefault();
       setFrame("pages/app/join");
     });
-    newLessonButton.addEventListener("click", (event) => {
-      event.preventDefault();
-      let params = { type: "board" };
-      if (this.sort != null && this.sort.length > 20) {
-        params["folder"] = this.sort;
-      }
-      setFrame("pages/app/lesson", null, { params: params });
-    });
+    if (newBoardLessonButton != null) {
+      newBoardLessonButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        let params = { type: "board" };
+        if (this.sort != null && this.sort.length > 20) {
+          params["folder"] = this.sort;
+        }
+        setFrame("pages/app/lesson", null, { params: params });
+      });
+    }
+    if (newBreakoutLessonButton != null) {
+      newBreakoutLessonButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        let params = { type: "breakout" };
+        if (this.sort != null && this.sort.length > 20) {
+          params["folder"] = this.sort;
+        }
+        setFrame("pages/app/lesson", null, { params: params });
+      });
+    }
 
     // Display Account Details
     if (account.image != null) {
@@ -971,11 +1003,21 @@ modules["pages/app/dashboard"] = class {
           dropdownModule.open(removeButton, "dropdowns/remove", { parent: this, type: "deletefolder", folderID: folderID, folders: folders, records: records, lessons: lessons });
         });
         titleHolder.style.padding = "14px 16px";
-        newLessonButton.href = "/app/lesson?type=board&folder=" + this.sort;
+        if (newBoardLessonButton != null) {
+          newBoardLessonButton.href = "/app/lesson?type=board&folder=" + this.sort;
+        }
+        if (newBreakoutLessonButton != null) {
+          newBreakoutLessonButton.href = "/app/lesson?type=breakout&folder=" + this.sort;
+        }
       } else { // Sort
         titleHolder.innerHTML = `<div class="dSelectedTitle">${this.sort[0].toUpperCase() + this.sort.substring(1) + " Lessons"}</div>`;
         titleHolder.style.removeProperty("padding");
-        newLessonButton.href = "/app/lesson?type=board";
+        if (newBoardLessonButton != null) {
+          newBoardLessonButton.href = "/app/lesson?type=board";
+        }
+        if (newBreakoutLessonButton != null) {
+          newBreakoutLessonButton.href = "/app/lesson?type=breakout";
+        }
       }
       lessonsHolder.scrollTo(0, 0);
       let extra = {

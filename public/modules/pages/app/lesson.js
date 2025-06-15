@@ -43,8 +43,8 @@ modules["pages/app/lesson"] = class {
     if (typePages[id] != null) {
       this.removePage(id, type);
     }
+    let pageHolder = this.frame.querySelector(".lPageHolder");
     if (holder == null) {
-      let pageHolder = this.frame.querySelector(".lPageHolder");
       if (pageHolder.childElementCount > 0) {
         pageHolder.insertAdjacentHTML("beforeend", `<div class="lPageDivider" draggable="false"><div></div></div>`);
       }
@@ -52,8 +52,8 @@ modules["pages/app/lesson"] = class {
       holder = pageHolder.querySelector(".lPage[new]");
       holder.removeAttribute("new");
     }
-    if (extra.size != null) {
-      holder.style.flex = "1 1 " + (extra.size * 100) + "%";
+    if (extra.totalPages != null) {
+      holder.style.flex = "1 1 " + ((((pageHolder.offsetWidth - ((extra.totalPages - 1) * 8)) / extra.totalPages) / pageHolder.offsetWidth) * 100) + "%";
     }
     if (this.activePageID == null) {
       this.activePageID = id;
@@ -449,9 +449,16 @@ modules["pages/app/lesson"] = class {
         changeX -= this.minWindowSize - (afterPageWidth - changeX);
       }
 
+      let setBeforeWidth = beforePageWidth + changeX;
+      let setAfterWidth = afterPageWidth - changeX;
+      if (Math.round(Math.round(setBeforeWidth / 20) * 20) == Math.round(Math.round(setAfterWidth / 20) * 20)) {
+        let setWidth = (beforePageWidth + afterPageWidth) / 2;
+        setBeforeWidth = setWidth;
+        setAfterWidth = setWidth;
+      }
       let holderWidth = pageHolder.offsetWidth - (pageHolder.querySelectorAll(":scope > .lPageDivider").length * 8);
-      beforePage.style.flex = "1 1 " + (((beforePageWidth + changeX) / holderWidth) * 100) + "%";
-      afterPage.style.flex = "1 1 " + (((afterPageWidth - changeX) / holderWidth) * 100) + "%";
+      beforePage.style.flex = "1 1 " + ((setBeforeWidth / holderWidth) * 100) + "%";
+      afterPage.style.flex = "1 1 " + ((setAfterWidth / holderWidth) * 100) + "%";
 
       this.pushToPipelines(null, "resize", { event: event });
       this.pushToPipelines(null, "bounds_change", { type: "resize", event: event });
@@ -763,7 +770,7 @@ modules["pages/app/lesson"] = class {
 
       for (let i = 0 ; i < this.lesson.tool.length; i++) {
         let tool = this.lesson.tool[i];
-        await await this.addPage(tool, "board", { size: 1 / this.lesson.tool.length });
+        await await this.addPage(tool, "board", { totalPages: this.lesson.tool.length });
       }
     }
 

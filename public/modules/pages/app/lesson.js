@@ -19,24 +19,41 @@ modules["pages/app/lesson"] = class {
     "../modules/dropdowns/editor/tools/emojis.js",
     "../modules/dropdowns/lesson/file/export.js"
   ];
-  html = `<div class="lPageHolder">
-    <div class="lPage" active></div>
-  </div>`;
+  html = `<div class="lPageHolder"></div>`;
   css = {
     ".lPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100vw; width: 100dvw; height: 100vh; height: 100dvh; padding: 8px; left: 0px; top: 0px; justify-content: center`,
     ".lPageHolder[maximize]": `padding: 0px !important`,
-    ".lPage": `--shadowOpacity: .3; position: relative; display: flex; width: 100%; height: 100%; box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: 12px; overflow: hidden; transition: .2s`,
+    ".lPage": `--shadowOpacity: .3; position: relative; display: flex; width: 100%; height: 100%; box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: 12px; overflow: hidden; transition: all .2s, flex: 0s`,
     ".lPage[active]": `--shadowOpacity: .5 !important`,
-    ".lPageHolder[maximize] .lPage": `border-radius: 0px !important`
+    ".lPageHolder[maximize] .lPage": `border-radius: 0px !important`,
+
+    ".lPageDivider": `display: flex; flex-shrink: 0; width: 8px; height: 100%; justify-content: center; align-items: center; cursor: col-resize`,
+    ".lPageDivider div": `width: 2px; height: calc(min(50px, 100%) - 8px); background: var(--gray); border-radius: 2px; transition: .2s`,
+    ".lPageDivider:hover div": `height: calc(100% - 8px)`,
+    ".lPageDivider:active div": `width: 4px; height: calc(100% - 8px); background: var(--activeGray)`
   };
 
   pages = {};
-  addPage = async (id, type, holder) => {
+  minWindowSize = 150;
+  addPage = async (id, type, extra) => {
     id = id ?? type;
+    let holder = extra.holder;
     this.pages[type] = this.pages[type] ?? {};
     let typePages = this.pages[type];
     if (typePages[id] != null) {
       this.removePage(id, type);
+    }
+    if (holder == null) {
+      let pageHolder = this.frame.querySelector(".lPageHolder");
+      if (pageHolder.childElementCount > 0) {
+        pageHolder.insertAdjacentHTML("beforeend", `<div class="lPageDivider" draggable="false"><div></div></div>`);
+      }
+      pageHolder.insertAdjacentHTML("beforeend", `<div class="lPage" new></div>`);
+      holder = pageHolder.querySelector(".lPage[new]");
+      holder.removeAttribute("new");
+    }
+    if (extra.size != null) {
+      holder.style.flex = "1 1 " + (extra.size * 100) + "%";
     }
     if (this.activePageID == null) {
       this.activePageID = id;
@@ -66,6 +83,16 @@ modules["pages/app/lesson"] = class {
     let page = typePages[id];
     if (page == null) {
       return;
+    }
+    if (page.pageHolder != null) {
+      page.pageHolder.remove();
+      let dividers = this.frame.querySelector(".lPageHolder").querySelectorAll(":scope > .lPageDivider");
+      for (let i = 0; i < dividers.length; i++) {
+        let divider = dividers[i];
+        if (divider.previousElementSibling == null || divider.nextElementSibling == null) {
+          divider.remove();
+        }
+      }
     }
     let editor = page.editor;
     if (editor != null) {
@@ -382,6 +409,60 @@ modules["pages/app/lesson"] = class {
       }
     }
 
+    let divider;
+    let dividerStartX;
+    let beforePage;
+    let beforePageWidth = this.minWindowSize;
+    let afterPage;
+    let afterPageWidth = this.minWindowSize;
+    let startDivider = (event) => {
+      divider = event.target.closest(".lPageDivider");
+      if (divider != null) {
+        beforePage = divider.previousElementSibling;
+        if (beforePage != null) {
+          beforePageWidth = beforePage.offsetWidth;
+        }
+        afterPage = divider.nextElementSibling;
+        if (afterPage != null) {
+          afterPageWidth = afterPage.offsetWidth;
+        }
+      }
+    }
+    let updateDivider = (event) => {
+      if (divider == null) {
+        return endDivider();
+      }
+      if (beforePage == null || afterPage == null) {
+        return endDivider();
+      }
+      pageHolder.style.userSelect = "none";
+      pageHolder.style.cursor = "col-resize";
+
+      let mouseX = event.x ?? event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0;
+      dividerStartX = dividerStartX ?? mouseX;
+      let changeX = mouseX - dividerStartX;
+
+      if (beforePageWidth + changeX < this.minWindowSize) {
+        changeX += this.minWindowSize - (beforePageWidth + changeX);
+      }
+      if (afterPageWidth - changeX < this.minWindowSize) {
+        changeX -= this.minWindowSize - (afterPageWidth - changeX);
+      }
+
+      let holderWidth = pageHolder.offsetWidth - (pageHolder.querySelectorAll(":scope > .lPageDivider").length * 8);
+      beforePage.style.flex = "1 1 " + (((beforePageWidth + changeX) / holderWidth) * 100) + "%";
+      afterPage.style.flex = "1 1 " + (((afterPageWidth - changeX) / holderWidth) * 100) + "%";
+
+      this.pushToPipelines(null, "resize", { event: event });
+      this.pushToPipelines(null, "bounds_change", { type: "resize", event: event });
+    }
+    let endDivider = () => {
+      divider = null;
+      dividerStartX = null;
+      pageHolder.style.removeProperty("user-select");
+      pageHolder.style.removeProperty("cursor");
+    }
+
     let sizeUpdate = () => {
       if (fixed.offsetWidth > 800 && fixed.offsetHeight > 400 && this.exporting != true) {
         pageHolder.removeAttribute("maximize");
@@ -397,10 +478,20 @@ modules["pages/app/lesson"] = class {
     });
     sizeUpdate();
     
+    tempListen(window, "pointerdown", (event) => {
+      if (event.pointerType == "mouse") {
+        startDivider(event);
+      }
+    }, { passive: false });
+    tempListen(window, "touchstart", (event) => {
+      startDivider(event);
+    }, { passive: false });
+
     tempListen(window, "pointermove", (event) => {
       this.pushToPipelines(null, "pointermove", { event: event });
       if (event.pointerType == "mouse") {
         this.pushToPipelines(null, "click_move", { type: "pointermove", event: event });
+        updateDivider(event);
       }
     }, { passive: false });
     /*tempListen(window, "mousemove", (event) => {
@@ -410,12 +501,14 @@ modules["pages/app/lesson"] = class {
     tempListen(window, "touchmove", (event) => {
       this.pushToPipelines(null, "touchmove", { event: event });
       this.pushToPipelines(null, "click_move", { type: "touchmove", event: event });
+      updateDivider(event);
     }, { passive: false });
 
     tempListen(window, "pointerup", (event) => {
       this.pushToPipelines(null, "pointerup", { event: event });
       if (event.pointerType == "mouse") {
         this.pushToPipelines(null, "click_end", { type: "pointerup", event: event });
+        endDivider();
       }
     }, { passive: false });
     /*tempListen(window, "mouseup", (event) => {
@@ -425,6 +518,7 @@ modules["pages/app/lesson"] = class {
     tempListen(window, "touchend", (event) => {
       this.pushToPipelines(null, "touchend", { event: event });
       this.pushToPipelines(null, "click_end", { type: "touchend", event: event });
+      endDivider();
     }, { passive: false });
 
     tempListen(window, "keydown", (event) => {
@@ -488,7 +582,7 @@ modules["pages/app/lesson"] = class {
 
     let sendBody = { ss: socket.secureID };
 
-    this.setLesson = (body) => {
+    this.setLesson = async (body) => {
       this.lesson = { ...this.lesson, ...body.lesson };
       if (this.id != this.lesson._id) {
         this.id = this.lesson._id;
@@ -664,10 +758,13 @@ modules["pages/app/lesson"] = class {
       }
 
       if (this.exporting == true) {
-        return this.addPage("export", "export", page.querySelector(".lPage"));
+        return await this.addPage("export", "export");
       }
 
-      this.addPage("board", "board", page.querySelector(".lPage"));
+      for (let i = 0 ; i < this.lesson.tool.length; i++) {
+        let tool = this.lesson.tool[i];
+        await await this.addPage(tool, "board", { size: 1 / this.lesson.tool.length });
+      }
     }
 
     if (isNewLesson == false) {
@@ -709,13 +806,13 @@ modules["pages/app/lesson"] = class {
       if (code != 200) {
         return;
       }
-      this.setLesson(body);
       if (extra.took < 2500) {
         this.signalStrength = 3;
       } else {
         this.signalStrength = 2;
         this.sendPing();
       }
+      await this.setLesson(body);
   
       if (this.active != sendBody.active) {
         this.sendPing();
@@ -729,9 +826,10 @@ modules["pages/app/lesson"] = class {
       if (getTheme() == "dark") {
         useBackground= "0A1C2D";
       }
-      this.setLesson({
+      await this.setLesson({
         "lesson": {
           "_id": null,
+          "tool": [getParam("type")],
           "owner": userID,
           "created": getEpoch(),
           "members": 0,

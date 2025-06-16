@@ -22,9 +22,11 @@ modules["pages/app/lesson"] = class {
   html = `<div class="lPageHolder"></div>`;
   css = {
     ".lPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100vw; width: 100dvw; height: 100vh; height: 100dvh; padding: 8px; left: 0px; top: 0px; justify-content: center`,
+    ".lPageHolder[resize]": `user-select: none; cursor: col-select`,
     ".lPageHolder[maximize]": `padding: 0px !important`,
-    ".lPage": `--shadowOpacity: .3; position: relative; display: flex; width: 100%; height: 100%; box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: 12px; overflow: hidden; transition: all .2s, flex: 0s`,
+    ".lPage": `--shadowOpacity: .3; position: relative; display: flex; width: 100%; height: 100%; flex: 1; box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: 12px; overflow: hidden; transition: all .2s, flex .5s`,
     ".lPage[active]": `--shadowOpacity: .5 !important`,
+    ".lPageHolder[resize] .lPage": `transition: all .2s, flex 0s`,
     ".lPageHolder[maximize] .lPage": `border-radius: 0px !important`,
 
     ".lPageDivider": `display: flex; flex-shrink: 0; width: 8px; height: 100%; justify-content: center; align-items: center; cursor: col-resize`,
@@ -73,6 +75,13 @@ modules["pages/app/lesson"] = class {
     }
     typePages[id] = newPage;
     this.pushToPipelines(null, "page_add", { type: type, page: newPage });
+    (async () => {
+      await sleep(500);
+      if (newPage != null && newPage.editor != null) {
+        newPage.editor.pipeline.publish("resize", {});
+        newPage.editor.pipeline.publish("bounds_change", { event: "resize" });
+      }
+    })();
     return newPage;
   }
   removePage = (id, type) => {
@@ -435,8 +444,7 @@ modules["pages/app/lesson"] = class {
       if (beforePage == null || afterPage == null) {
         return endDivider();
       }
-      pageHolder.style.userSelect = "none";
-      pageHolder.style.cursor = "col-resize";
+      pageHolder.setAttribute("resize", "");
 
       let mouseX = event.x ?? event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0;
       dividerStartX = dividerStartX ?? mouseX;
@@ -466,8 +474,7 @@ modules["pages/app/lesson"] = class {
     let endDivider = () => {
       divider = null;
       dividerStartX = null;
-      pageHolder.style.removeProperty("user-select");
-      pageHolder.style.removeProperty("cursor");
+      pageHolder.removeAttribute("resize");
     }
 
     let sizeUpdate = () => {
@@ -768,10 +775,16 @@ modules["pages/app/lesson"] = class {
         return await this.addPage("export", "export");
       }
 
-      for (let i = 0 ; i < this.lesson.tool.length; i++) {
+      /*for (let i = 0 ; i < this.lesson.tool.length; i++) {
         let tool = this.lesson.tool[i];
         await await this.addPage(tool, "board", { totalPages: this.lesson.tool.length });
-      }
+      }*/
+      (async () => {
+        for (let i = 0 ; i < this.lesson.tool.length; i++) {
+          let tool = this.lesson.tool[i];
+          await await this.addPage(tool, "board", { totalPages: this.lesson.tool.length });
+        }
+      })();
     }
 
     if (isNewLesson == false) {

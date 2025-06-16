@@ -37,7 +37,7 @@ modules["pages/app/lesson"] = class {
   };
 
   pages = {};
-  minPageSize = 150;
+  minPageSize = 200;
   addPage = async (id, type, extra) => {
     id = id ?? type;
     let holder = extra.holder;

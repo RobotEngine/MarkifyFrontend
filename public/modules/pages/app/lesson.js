@@ -4,6 +4,7 @@ modules["pages/app/lesson"] = class {
     "../modules/pages/app/dashboard.js",
 
     "../modules/lesson/board.js",
+    "../modules/lesson/breakout.js",
 
     "../modules/editor/editor.js",
     "../modules/editor/realtime.js",
@@ -131,18 +132,18 @@ modules["pages/app/lesson"] = class {
         typeBefore = child.className;
       }
       if (extra.animate == true) {
-        await sleep(500);
+        await sleep(200);
       }
-      if (page.pageHolder == null) {
-        return;
-      }
-      page.pageHolder.remove();
       for (let i = 0; i < removeDividers.length; i++) {
         let divider = removeDividers[i];
         if (divider != null) {
           divider.remove();
         }
       }
+      if (page.pageHolder == null) {
+        return;
+      }
+      page.pageHolder.remove();
     })();
     let editor = page.editor;
     if (editor != null) {
@@ -175,7 +176,9 @@ modules["pages/app/lesson"] = class {
       let pageKeys = Object.keys(typePages);
       for (let i = 0; i < pageKeys.length; i++) {
         let page = typePages[pageKeys[i]];
-        page.editor.pipeline.publish(event, data);
+        if (page.editor != null && page.editor.pipeline != null) {
+          page.editor.pipeline.publish(event, data);
+        }
       }
     }
   }
@@ -471,6 +474,9 @@ modules["pages/app/lesson"] = class {
     let startDivider = (event) => {
       divider = event.target.closest(".lPageDivider");
       if (divider != null) {
+        removeBeforePage = false;
+        removeAfterPage = false;
+
         beforePage = divider.previousElementSibling;
         if (beforePage != null) {
           beforePageWidth = beforePage.offsetWidth;
@@ -496,9 +502,10 @@ modules["pages/app/lesson"] = class {
 
       if (beforePageWidth + changeX < this.minPageSize) {
         let correct = this.minPageSize - (beforePageWidth + changeX);
-        //changeX += correct;
+        changeX += correct;
         beforePage.style.transform = "scale(" + ((this.minPageSize - correct) / this.minPageSize) + ")";
         beforePage.style.transformOrigin = "left";
+        beforePage.style.minWidth = "var(--minPageSize)";
         let setOpacity = ((this.minPageSize / 2) - correct) / (this.minPageSize / 2);
         if (setOpacity > 0) {
           removeBeforePage = false;
@@ -510,15 +517,16 @@ modules["pages/app/lesson"] = class {
       } else {
         removeBeforePage = false;
         beforePage.style.removeProperty("transform");
+        beforePage.style.removeProperty("min-width");
         beforePage.style.removeProperty("opacity");
       }
       if (afterPageWidth - changeX < this.minPageSize) {
         let correct = this.minPageSize - (afterPageWidth - changeX);
-        //changeX -= correct;
+        changeX -= correct;
         removeAfterPage = true;
         afterPage.style.transform = "scale(" + ((this.minPageSize - correct) / this.minPageSize) + ")";
-        afterPage.style.opacity = ((this.minPageSize / 2) - correct) / (this.minPageSize / 2);
         afterPage.style.transformOrigin = "right";
+        afterPage.style.minWidth = "var(--minPageSize)";
         let setOpacity = ((this.minPageSize / 2) - correct) / (this.minPageSize / 2);
         if (setOpacity > 0) {
           removeAfterPage = false;
@@ -530,12 +538,13 @@ modules["pages/app/lesson"] = class {
       } else {
         removeAfterPage = false;
         afterPage.style.removeProperty("transform");
+        afterPage.style.removeProperty("min-width");
         afterPage.style.removeProperty("opacity");
       }
 
       let setBeforeWidth = beforePageWidth + changeX;
       let setAfterWidth = afterPageWidth - changeX;
-      if (Math.floor(setBeforeWidth / 20) == Math.floor(setAfterWidth / 20)) {
+      if (Math.floor(setBeforeWidth / 30) == Math.floor(setAfterWidth / 30)) {
         let setWidth = (beforePageWidth + afterPageWidth) / 2;
         setBeforeWidth = setWidth;
         setAfterWidth = setWidth;
@@ -561,7 +570,7 @@ modules["pages/app/lesson"] = class {
       }
       divider = null;
       dividerStartX = null;
-
+      
       pageHolder.removeAttribute("resize");
 
       let holderWidth = pageHolder.offsetWidth - (pageHolder.querySelectorAll(":scope > .lPageDivider").length * 8) - 16;
@@ -569,14 +578,15 @@ modules["pages/app/lesson"] = class {
         beforePage.style.removeProperty("transform");
         beforePage.style.removeProperty("opacity");
         if (removeBeforePage == true) {
-          beforePage.style.minWidth = "unset";
-          beforePage.style.flex = "0";
+          beforePage.style.minWidth = "0px";
+          beforePage.style.maxWidth = "0px";
+          //beforePage.style.flex = "0";
           beforePage.style.opacity = 0;
           if (afterPage != null) {
             afterPage.style.flex = "1 1 " + (((afterPageWidth + beforePageWidth) / holderWidth) * 100) + "%";
           }
           this.removePage(beforePage.getAttribute("pageid"), beforePage.getAttribute("pagetype"), { animate: true });
-        } else {
+        } else if (removeAfterPage != true) {
           beforePage.style.flex = "1 1 " + ((Math.max(beforePage.offsetWidth, this.minPageSize) / holderWidth) * 100) + "%";
         }
       }
@@ -584,14 +594,15 @@ modules["pages/app/lesson"] = class {
         afterPage.style.removeProperty("transform");
         afterPage.style.removeProperty("opacity");
         if (removeAfterPage == true) {
-          afterPage.style.minWidth = "unset";
-          afterPage.style.flex = "0";
+          afterPage.style.minWidth = "0px";
+          afterPage.style.maxWidth = "0px";
+          //afterPage.style.flex = "0";
           afterPage.style.opacity = 0;
           if (beforePage != null) {
             beforePage.style.flex = "1 1 " + (((beforePageWidth + afterPageWidth) / holderWidth) * 100) + "%";
           }
           this.removePage(afterPage.getAttribute("pageid"), afterPage.getAttribute("pagetype"), { animate: true });
-        } else {
+        } else if (removeBeforePage != true) {
           afterPage.style.flex = "1 1 " + ((Math.max(afterPage.offsetWidth, this.minPageSize) / holderWidth) * 100) + "%";
         }
       }
@@ -902,7 +913,7 @@ modules["pages/app/lesson"] = class {
 
       for (let i = 0 ; i < this.lesson.tool.length; i++) {
         let tool = this.lesson.tool[i];
-        await await this.addPage(tool, "board", { totalPages: this.lesson.tool.length });
+        await this.addPage(tool, tool, { totalPages: this.lesson.tool.length });
       }
     }
 

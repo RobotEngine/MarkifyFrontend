@@ -4029,7 +4029,7 @@ modules["editor/toolbar"] = class {
           if (editor.utils.isLocked(anno) == true || editor.utils.isPlaceholderLocked(anno) == true) {
             continue;
           }
-          let annoModule = (await this.editor.render.getModule(annotation, anno.f)) ?? {};
+          let annoModule = (await editor.render.getModule(annotation, anno.f)) ?? {};
           if (annoModule.KEYBINDS_ENABLED == false) {
             continue;
           }

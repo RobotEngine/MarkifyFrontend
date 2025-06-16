@@ -255,68 +255,70 @@ modules["editor/realtime"] = class {
     }
 
     let observeHolder = editor.page.querySelector(".eBottomSection[left]");
-    let observeCursor = observeHolder.querySelector(".eObserveCursor");
-    let observeExit = editor.page.querySelector(".eObserveExit");
-    this.setObserveFrame = (member) => {
-      observeCursor.textContent = member.name;
-      observeCursor.style.color = editor.utils.textColorBackground(member.color);
-      observeCursor.style.background = member.color;
-      observeHolder.style.display = "flex";
-      //editor.page.style.setProperty("--lightShadow", "0px 0px 8px 0px " + editor.utils.hexToRGBString(member.color, .3));
-      editor.page.style.boxShadow = "0px 0px 8px 0px " + editor.utils.hexToRGBString(member.color, "var(--shadowOpacity)");
+    if (observeHolder != null) {
+      let observeCursor = observeHolder.querySelector(".eObserveCursor");
+      let observeExit = editor.page.querySelector(".eObserveExit");
+      this.setObserveFrame = (member) => {
+        observeCursor.textContent = member.name;
+        observeCursor.style.color = editor.utils.textColorBackground(member.color);
+        observeCursor.style.background = member.color;
+        observeHolder.style.display = "flex";
+        //editor.page.style.setProperty("--lightShadow", "0px 0px 8px 0px " + editor.utils.hexToRGBString(member.color, .3));
+        editor.page.style.boxShadow = "0px 0px 8px 0px " + editor.utils.hexToRGBString(member.color, "var(--shadowOpacity)");
+      }
+      this.enableObserve = async (member) => {
+        alertModule.close(editor.realtime.observeLoading);
+        editor.realtime.observeLoading = null;
+
+        clearTimeout(editor.realtime.observeTimeout);
+        
+        this.setObserveFrame(member);
+
+        editor.pipeline.publish("observe_enable", { memberID: member._id });
+        editor.pipeline.publish("refresh_interface", {});
+      }
+      this.exitObserve = async () => {
+        let prevObservID = editor.realtime.observing;
+        if (prevObservID == null) {
+          return;
+        }
+
+        editor.realtime.observing = null;
+        
+        alertModule.close(editor.realtime.observeLoading);
+        clearTimeout(editor.realtime.observeTimeout);
+
+        observeHolder.style.removeProperty("display");
+        //editor.page.style.removeProperty("--lightShadow");
+        editor.page.style.removeProperty("box-shadow");
+
+        cancelAnimationFrame(animationFrameId);
+
+        if (editor.lastZoom != null) {
+          editor.setZoom(editor.lastZoom, true);
+          editor.lastZoom = null;
+        }
+
+        let member = editor.parent.parent.members[prevObservID];
+        if (member == null) {
+          return;
+        }
+        if (member.access < 1) {
+          this.removeRealtime(member._id);
+        }
+        sendRequest("DELETE", "lessons/members/observe/exit?member=" + member._id, null, { session: editor.session });
+        editor.pipeline.publish("observe_exit", { memberID: member._id });
+        editor.pipeline.publish("refresh_interface", {});
+      }
+      observeExit.addEventListener("click", () => { this.exitObserve(); });
+      editor.pipeline.subscribe("realtimeWheelEvent", "wheel", () => { this.exitObserve(); });
+      editor.pipeline.subscribe("realtimeSignalUpdate", "signal_strength", (data) => {
+        if (data.signalStrength < 3) {
+          this.exitObserve();
+        }
+        this.setShortSub(editor.visibleChunks);
+      });
     }
-    this.enableObserve = async (member) => {
-      alertModule.close(editor.realtime.observeLoading);
-      editor.realtime.observeLoading = null;
-
-      clearTimeout(editor.realtime.observeTimeout);
-      
-      this.setObserveFrame(member);
-
-      editor.pipeline.publish("observe_enable", { memberID: member._id });
-      editor.pipeline.publish("refresh_interface", {});
-    }
-    this.exitObserve = async () => {
-      let prevObservID = editor.realtime.observing;
-      if (prevObservID == null) {
-        return;
-      }
-
-      editor.realtime.observing = null;
-      
-      alertModule.close(editor.realtime.observeLoading);
-      clearTimeout(editor.realtime.observeTimeout);
-
-      observeHolder.style.removeProperty("display");
-      //editor.page.style.removeProperty("--lightShadow");
-      editor.page.style.removeProperty("box-shadow");
-
-      cancelAnimationFrame(animationFrameId);
-
-      if (editor.lastZoom != null) {
-        editor.setZoom(editor.lastZoom, true);
-        editor.lastZoom = null;
-      }
-
-      let member = editor.parent.parent.members[prevObservID];
-      if (member == null) {
-        return;
-      }
-      if (member.access < 1) {
-        this.removeRealtime(member._id);
-      }
-      sendRequest("DELETE", "lessons/members/observe/exit?member=" + member._id, null, { session: editor.session });
-      editor.pipeline.publish("observe_exit", { memberID: member._id });
-      editor.pipeline.publish("refresh_interface", {});
-    }
-    observeExit.addEventListener("click", () => { this.exitObserve(); });
-    editor.pipeline.subscribe("realtimeWheelEvent", "wheel", () => { this.exitObserve(); });
-    editor.pipeline.subscribe("realtimeSignalUpdate", "signal_strength", (data) => {
-      if (data.signalStrength < 3) {
-        this.exitObserve();
-      }
-      this.setShortSub(editor.visibleChunks);
-    });
 
     let targetScrollPositionX = 0;
     let targetScrollPositionY = 0;

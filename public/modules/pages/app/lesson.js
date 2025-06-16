@@ -107,7 +107,7 @@ modules["pages/app/lesson"] = class {
       let dividers = this.frame.querySelector(".lPageHolder").querySelectorAll(":scope > .lPageDivider");
       for (let i = 0; i < dividers.length; i++) {
         let divider = dividers[i];
-        if (divider.previousElementSibling == null || divider.nextElementSibling == null) {
+        if (divider.previousElementSibling == null || divider.previousElementSibling.className != "lPage" || divider.nextElementSibling == null || divider.nextElementSibling.className != "lPage") {
           divider.remove();
         }
       }
@@ -853,16 +853,10 @@ modules["pages/app/lesson"] = class {
         return await this.addPage("export", "export");
       }
 
-      /*for (let i = 0 ; i < this.lesson.tool.length; i++) {
+      for (let i = 0 ; i < this.lesson.tool.length; i++) {
         let tool = this.lesson.tool[i];
         await await this.addPage(tool, "board", { totalPages: this.lesson.tool.length });
-      }*/
-      (async () => {
-        for (let i = 0 ; i < this.lesson.tool.length; i++) {
-          let tool = this.lesson.tool[i];
-          await await this.addPage(tool, "board", { totalPages: this.lesson.tool.length });
-        }
-      })();
+      }
     }
 
     if (isNewLesson == false) {

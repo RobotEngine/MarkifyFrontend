@@ -758,8 +758,7 @@ let sendRequest = async (method, path, body, extra) => {
     }
     reqTime = getEpoch() - reqTimeStart;
     let serverTimeMillisGMT = new Date(response.headers.get("Date")).getTime();
-    let localMillisUTC = new Date().getTime();
-    epochOffset = serverTimeMillisGMT - localMillisUTC;
+    epochOffset = serverTimeMillisGMT - (new Date()).getTime();
     switch (response.status) {
       case 401:
         await renewToken();

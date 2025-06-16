@@ -24,19 +24,20 @@ modules["pages/app/lesson"] = class {
     ".lPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100vw; width: 100dvw; height: 100vh; height: 100dvh; padding: 8px; left: 0px; top: 0px; justify-content: center`,
     ".lPageHolder[resize]": `user-select: none; cursor: col-select`,
     ".lPageHolder[maximize]": `padding: 0px !important`,
-    ".lPage": `--shadowOpacity: .3; position: relative; display: flex; width: 100%; height: 100%; flex: 1; box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: 12px; overflow: hidden; transition: all .2s, flex .5s`,
+    ".lPage": `--shadowOpacity: .3; position: relative; display: flex; width: 100%; min-width: min(var(--minPageSize), 100%); height: 100%; flex: 1; z-index: 1; box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: 12px; overflow: hidden; transition: all .2s, flex .5s`,
     ".lPage[active]": `--shadowOpacity: .5 !important`,
-    ".lPageHolder[resize] .lPage": `transition: all .2s, flex 0s`,
+    ".lPageHolder[resize] .lPage": `min-width: unset; transition: unset`,
     ".lPageHolder[maximize] .lPage": `border-radius: 0px !important`,
+    ".lPageHolder[maximize] > div:not([active])": `display: none`,
 
-    ".lPageDivider": `display: flex; flex-shrink: 0; width: 8px; height: 100%; justify-content: center; align-items: center; cursor: col-resize`,
+    ".lPageDivider": `display: flex; flex-shrink: 0; width: 8px; height: 100%; z-index: 2; justify-content: center; align-items: center; cursor: col-resize`,
     ".lPageDivider div": `width: 2px; height: calc(min(50px, 100%) - 8px); background: var(--gray); border-radius: 2px; transition: .2s`,
     ".lPageDivider:hover div": `height: calc(100% - 8px)`,
     ".lPageDivider:active div": `width: 4px; height: calc(100% - 8px); background: var(--activeGray)`
   };
 
   pages = {};
-  minWindowSize = 150;
+  minPageSize = 150;
   addPage = async (id, type, extra) => {
     id = id ?? type;
     let holder = extra.holder;
@@ -47,15 +48,21 @@ modules["pages/app/lesson"] = class {
     }
     let pageHolder = this.frame.querySelector(".lPageHolder");
     if (holder == null) {
-      if (pageHolder.childElementCount > 0) {
-        pageHolder.insertAdjacentHTML("beforeend", `<div class="lPageDivider" draggable="false"><div></div></div>`);
-      }
       pageHolder.insertAdjacentHTML("beforeend", `<div class="lPage" new></div>`);
       holder = pageHolder.querySelector(".lPage[new]");
       holder.removeAttribute("new");
+      if (pageHolder.childElementCount > 1) {
+        pageHolder.insertAdjacentHTML("beforeend", `<div class="lPageDivider" draggable="false" new><div></div></div>`);
+        let newDivider = pageHolder.querySelector(".lPageDivider[new]");
+        newDivider.removeAttribute("new");
+        pageHolder.insertBefore(newDivider, holder);
+      }
     }
     if (extra.totalPages != null) {
       holder.style.flex = "1 1 " + ((((pageHolder.offsetWidth - ((extra.totalPages - 1) * 8)) / extra.totalPages) / pageHolder.offsetWidth) * 100) + "%";
+    }
+    if (extra.insertBefore != null) {
+      pageHolder.insertBefore(holder, extra.insertBefore);
     }
     if (this.activePageID == null) {
       this.activePageID = id;
@@ -68,6 +75,8 @@ modules["pages/app/lesson"] = class {
     if (this.resyncPages != null && this.resyncPages[id] != null) {
       construct.resync = this.resyncPages[id];
     }
+    holder.setAttribute("pageid", id);
+    holder.setAttribute("pagetype", type);
     holder.setAttribute("dropdownholder", "");
     let newPage = await this.setFrame("lesson/" + type, holder, { construct: construct });
     if (newPage == null) {
@@ -421,9 +430,12 @@ modules["pages/app/lesson"] = class {
     let divider;
     let dividerStartX;
     let beforePage;
-    let beforePageWidth = this.minWindowSize;
+    let beforePageWidth = this.minPageSize;
+    let removeBeforePage = false;
     let afterPage;
-    let afterPageWidth = this.minWindowSize;
+    let afterPageWidth = this.minPageSize;
+    let removeAfterPage = false;
+    pageHolder.style.setProperty("--minPageSize", this.minPageSize + "px");
     let startDivider = (event) => {
       divider = event.target.closest(".lPageDivider");
       if (divider != null) {
@@ -450,30 +462,96 @@ modules["pages/app/lesson"] = class {
       dividerStartX = dividerStartX ?? mouseX;
       let changeX = mouseX - dividerStartX;
 
-      if (beforePageWidth + changeX < this.minWindowSize) {
-        changeX += this.minWindowSize - (beforePageWidth + changeX);
+      if (beforePageWidth + changeX < this.minPageSize) {
+        let correct = this.minPageSize - (beforePageWidth + changeX);
+        //changeX += correct;
+        beforePage.style.transform = "scale(" + ((this.minPageSize - correct) / this.minPageSize) + ")";
+        beforePage.style.transformOrigin = "left";
+        let setOpacity = ((this.minPageSize / 2) - correct) / (this.minPageSize / 2);
+        if (setOpacity > 0) {
+          removeBeforePage = false;
+          beforePage.style.opacity = ((this.minPageSize / 2) - correct) / (this.minPageSize / 2);
+        } else {
+          removeBeforePage = true;
+          beforePage.style.opacity = 0;
+        }
+      } else {
+        removeBeforePage = false;
+        beforePage.style.removeProperty("transform");
+        beforePage.style.removeProperty("opacity");
       }
-      if (afterPageWidth - changeX < this.minWindowSize) {
-        changeX -= this.minWindowSize - (afterPageWidth - changeX);
+      if (afterPageWidth - changeX < this.minPageSize) {
+        let correct = this.minPageSize - (afterPageWidth - changeX);
+        //changeX -= correct;
+        removeAfterPage = true;
+        afterPage.style.transform = "scale(" + ((this.minPageSize - correct) / this.minPageSize) + ")";
+        afterPage.style.opacity = ((this.minPageSize / 2) - correct) / (this.minPageSize / 2);
+        afterPage.style.transformOrigin = "right";
+        let setOpacity = ((this.minPageSize / 2) - correct) / (this.minPageSize / 2);
+        if (setOpacity > 0) {
+          removeAfterPage = false;
+          afterPage.style.opacity = ((this.minPageSize / 2) - correct) / (this.minPageSize / 2);
+        } else {
+          removeAfterPage = true;
+          afterPage.style.opacity = 0;
+        }
+      } else {
+        removeAfterPage = false;
+        afterPage.style.removeProperty("transform");
+        afterPage.style.removeProperty("opacity");
       }
 
       let setBeforeWidth = beforePageWidth + changeX;
       let setAfterWidth = afterPageWidth - changeX;
-      if (Math.round(Math.round(setBeforeWidth / 20) * 20) == Math.round(Math.round(setAfterWidth / 20) * 20)) {
+      if (Math.round(setBeforeWidth / 35) == Math.round(setAfterWidth / 35)) {
         let setWidth = (beforePageWidth + afterPageWidth) / 2;
         setBeforeWidth = setWidth;
         setAfterWidth = setWidth;
       }
-      let holderWidth = pageHolder.offsetWidth - (pageHolder.querySelectorAll(":scope > .lPageDivider").length * 8);
+      let holderWidth = pageHolder.offsetWidth - (pageHolder.querySelectorAll(":scope > .lPageDivider").length * 8) - 16;
       beforePage.style.flex = "1 1 " + ((setBeforeWidth / holderWidth) * 100) + "%";
       afterPage.style.flex = "1 1 " + ((setAfterWidth / holderWidth) * 100) + "%";
 
       this.pushToPipelines(null, "resize", { event: event });
       this.pushToPipelines(null, "bounds_change", { type: "resize", event: event });
     }
-    let endDivider = () => {
+    let endDivider = async () => {
+      if (divider == null) {
+        return;
+      }
       divider = null;
       dividerStartX = null;
+
+      let holderWidth = pageHolder.offsetWidth - (pageHolder.querySelectorAll(":scope > .lPageDivider").length * 8) - 16;
+      if (beforePage != null) {
+        beforePage.style.removeProperty("transform");
+        beforePage.style.removeProperty("opacity");
+        if (removeBeforePage == true) {
+          let prevWidth = beforePage.offsetWidth;
+          this.removePage(beforePage.getAttribute("pageid"), beforePage.getAttribute("pagetype"));
+          if (afterPage != null) {
+            holderWidth = pageHolder.offsetWidth - (pageHolder.querySelectorAll(":scope > .lPageDivider").length * 8) - 16;
+            afterPage.style.flex = "1 1 " + (((afterPage.offsetWidth + prevWidth) / holderWidth) * 100) + "%";
+          }
+        } else {
+          beforePage.style.flex = "1 1 " + ((Math.max(beforePage.offsetWidth, this.minPageSize) / holderWidth) * 100) + "%";
+        }
+      }
+      if (afterPage != null) {
+        afterPage.style.removeProperty("transform");
+        afterPage.style.removeProperty("opacity");
+        if (removeAfterPage == true && afterPage != null) {
+          let prevWidth = afterPage.offsetWidth;
+          this.removePage(afterPage.getAttribute("pageid"), afterPage.getAttribute("pagetype"));
+          if (beforePage != null) {
+            holderWidth = pageHolder.offsetWidth - (pageHolder.querySelectorAll(":scope > .lPageDivider").length * 8) - 16;
+            beforePage.style.flex = "1 1 " + (((beforePage.offsetWidth + prevWidth) / holderWidth) * 100) + "%";
+          }
+        } else {
+          afterPage.style.flex = "1 1 " + ((Math.max(afterPage.offsetWidth, this.minPageSize) / holderWidth) * 100) + "%";
+        }
+      }
+
       pageHolder.removeAttribute("resize");
     }
 

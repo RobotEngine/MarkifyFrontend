@@ -30,8 +30,9 @@ modules["pages/app/lesson"] = class {
     ".lPageHolder[maximize] .lPage": `border-radius: 0px !important`,
     ".lPageHolder[maximize] > div:not([active])": `display: none`,
 
-    ".lPageDivider": `display: flex; flex-shrink: 0; width: 8px; height: 100%; z-index: 2; justify-content: center; align-items: center; cursor: col-resize; transition: .2s`,
+    ".lPageDivider": `display: flex; flex-shrink: 0; width: 8px; max-width: 8px; height: 100%; z-index: 2; justify-content: center; align-items: center; cursor: col-resize; transition: .2s`,
     ".lPageDivider div": `width: 2px; height: calc(min(50px, 100%) - 8px); background: var(--gray); border-radius: 2px; transition: .2s`,
+    ".lPageDivider[remove]": `width: 0px; opacity: 0`,
     ".lPageDivider:hover div": `height: calc(100% - 8px)`,
     ".lPageDivider:active div": `width: 4px; height: calc(100% - 8px); background: var(--activeGray)`
   };
@@ -102,7 +103,33 @@ modules["pages/app/lesson"] = class {
     if (page == null) {
       return;
     }
+    if (page.pageHolder != null) {
+      page.pageHolder.setAttribute("remove", "");
+    }
     (async () => {
+      let removeDividers = [];
+      let children = this.frame.querySelector(".lPageHolder").children;
+      let typeBefore;
+      for (let i = 0; i < children.length; i++) {
+        let child = children[i];
+        if (child.hasAttribute("remove") == true) {
+          continue;
+        }
+        if (child.className == "lPageDivider") {
+          if (typeBefore != "lPage") {
+            child.setAttribute("remove", "");
+            removeDividers.push(child);
+            continue;
+          }
+          let nextChild = children[i + 1];
+          if (nextChild == null || nextChild.className != "lPage" || nextChild.hasAttribute("remove") == true) {
+            child.setAttribute("remove", "");
+            removeDividers.push(child);
+            continue;
+          }
+        }
+        typeBefore = child.className;
+      }
       if (extra.animate == true) {
         await sleep(500);
       }
@@ -110,15 +137,12 @@ modules["pages/app/lesson"] = class {
         return;
       }
       page.pageHolder.remove();
-      let dividers = this.frame.querySelector(".lPageHolder").querySelectorAll(":scope > .lPageDivider");
-      for (let i = 0; i < dividers.length; i++) {
-        let divider = dividers[i];
-        if (divider.previousElementSibling == null || divider.previousElementSibling.className != "lPage" || divider.nextElementSibling == null || divider.nextElementSibling.className != "lPage") {
+      for (let i = 0; i < removeDividers.length; i++) {
+        let divider = removeDividers[i];
+        if (divider != null) {
           divider.remove();
         }
       }
-      this.pushToPipelines(null, "resize", { event: "page_remove" });
-      this.pushToPipelines(null, "bounds_change", { event: "page_remove" });
     })();
     let editor = page.editor;
     if (editor != null) {
@@ -511,10 +535,18 @@ modules["pages/app/lesson"] = class {
 
       let setBeforeWidth = beforePageWidth + changeX;
       let setAfterWidth = afterPageWidth - changeX;
-      if (Math.round(setBeforeWidth / 35) == Math.round(setAfterWidth / 35)) {
+      if (Math.floor(setBeforeWidth / 20) == Math.floor(setAfterWidth / 20)) {
         let setWidth = (beforePageWidth + afterPageWidth) / 2;
         setBeforeWidth = setWidth;
         setAfterWidth = setWidth;
+      }
+      if (setBeforeWidth < 0) {
+        setAfterWidth += setBeforeWidth;
+        setBeforeWidth = 0;
+      }
+      if (setAfterWidth < 0) {
+        setBeforeWidth += setAfterWidth;
+        setAfterWidth = 0;
       }
       let holderWidth = pageHolder.offsetWidth - (pageHolder.querySelectorAll(":scope > .lPageDivider").length * 8) - 16;
       beforePage.style.flex = "1 1 " + ((setBeforeWidth / holderWidth) * 100) + "%";
@@ -527,7 +559,6 @@ modules["pages/app/lesson"] = class {
       if (divider == null) {
         return;
       }
-      let prevDivider = divider;
       divider = null;
       dividerStartX = null;
 
@@ -538,15 +569,12 @@ modules["pages/app/lesson"] = class {
         beforePage.style.removeProperty("transform");
         beforePage.style.removeProperty("opacity");
         if (removeBeforePage == true) {
-          let prevWidth = beforePage.offsetWidth;
           beforePage.style.minWidth = "unset";
           beforePage.style.flex = "0";
           beforePage.style.opacity = 0;
           if (afterPage != null) {
-            afterPage.style.flex = "1 1 " + (((afterPage.offsetWidth + prevWidth) / holderWidth) * 100) + "%";
+            afterPage.style.flex = "1 1 " + (((afterPageWidth + beforePageWidth) / holderWidth) * 100) + "%";
           }
-          prevDivider.style.width = "0px";
-          prevDivider.style.opacity = "0px";
           this.removePage(beforePage.getAttribute("pageid"), beforePage.getAttribute("pagetype"), { animate: true });
         } else {
           beforePage.style.flex = "1 1 " + ((Math.max(beforePage.offsetWidth, this.minPageSize) / holderWidth) * 100) + "%";
@@ -556,20 +584,22 @@ modules["pages/app/lesson"] = class {
         afterPage.style.removeProperty("transform");
         afterPage.style.removeProperty("opacity");
         if (removeAfterPage == true) {
-          let prevWidth = afterPage.offsetWidth;
           afterPage.style.minWidth = "unset";
           afterPage.style.flex = "0";
           afterPage.style.opacity = 0;
           if (beforePage != null) {
-            beforePage.style.flex = "1 1 " + (((beforePage.offsetWidth + prevWidth) / holderWidth) * 100) + "%";
+            beforePage.style.flex = "1 1 " + (((beforePageWidth + afterPageWidth) / holderWidth) * 100) + "%";
           }
-          prevDivider.style.width = "0px";
-          prevDivider.style.opacity = "0px";
           this.removePage(afterPage.getAttribute("pageid"), afterPage.getAttribute("pagetype"), { animate: true });
         } else {
           afterPage.style.flex = "1 1 " + ((Math.max(afterPage.offsetWidth, this.minPageSize) / holderWidth) * 100) + "%";
         }
       }
+      (async () => {
+        await sleep(500);
+        this.pushToPipelines(null, "resize", { event: "page_remove" });
+        this.pushToPipelines(null, "bounds_change", { event: "page_remove" });
+      })();
     }
 
     let sizeUpdate = () => {

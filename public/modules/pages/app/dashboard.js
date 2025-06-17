@@ -300,7 +300,7 @@ modules["pages/app/dashboard"] = class {
     });
 
     this.updateScrollShadows = () => {
-      if (lessonsHolder.scrollTop > 0 && Math.round(lessonsHolder.scrollTop) >= Math.round(titleHolder.offsetTop)) { // Lesson Topbar Shadow:
+      if (lessonsHolder.scrollTop > 0 && Math.floor(lessonsHolder.scrollTop) >= Math.floor(titleHolder.offsetTop)) { // Lesson Topbar Shadow:
         titleHolder.style.background = "var(--pageColor)";
         titleHolder.style.boxShadow = "var(--lightShadow)";
       } else {
@@ -308,7 +308,7 @@ modules["pages/app/dashboard"] = class {
         titleHolder.style.removeProperty("box-shadow");
       }
 
-      if (Math.round(sidebar.scrollTop) <= Math.round(sidebar.scrollHeight - dashboard.offsetHeight)) { // Account Holder Shadow:
+      if (Math.floor(sidebar.scrollTop) < Math.floor(sidebar.scrollHeight - dashboard.offsetHeight)) { // Account Holder Shadow:
         accountHolder.style.background = "var(--pageColor)";
         accountHolder.style.boxShadow = "var(--lightShadow)";
       } else {

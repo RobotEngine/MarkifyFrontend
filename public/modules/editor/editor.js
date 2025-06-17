@@ -4415,6 +4415,8 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
       } else if (this.commentModule != null && this.commentModule.updateComment != null) {
         this.commentModule.updateComment({ ...this.properties, pending: this.annotation.pending });
       }
+    } else if (this.commentModule != null && this.commentModule.updateComment != null) {
+      this.commentModule.updateComment({ ...this.properties, pending: this.annotation.pending });
     }
   }
 

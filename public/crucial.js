@@ -950,7 +950,7 @@ let authEndpoints = () => {
     classlink: "https://launchpad.classlink.com/oauth2/v2/auth?scope=full,profile,openid&redirect_uri=https%3A%2F%2Fexotek.co%2Flogin%3Fclient_id%3D631056064efd34591c5a8e05%26redirect_uri%3D" + currentLocationURI + "%26response_type%3Dcode%26scope%3Duserinfo%26method%3Dclasslink&client_id=c1693431815669c9e8fa52973e526ee4da0d1a1141cc&response_type=code",
     
     //https://exotek.co/login?client_id=631056064efd34591c5a8e05&redirect_uri=https%3A%2F%2Fmarkifyapp.com%2F%23dashboard&response_type=code&scope=userinfo&method=clever
-    clever: "https://clever.com/oauth/authorize?response_type=code&redirect_uri=https%3A%2F%2Fexotek.co%2Flogin%3Fclient_id%3D631056064efd34591c5a8e05%26redirect_uri%3Dhttps%253A%252F%252Fmarkifyapp.com%252F%2523dashboard%26response_type%3Dcode%26scope%3Duserinfo%26method%3Dclever&client_id=f3136cc44e6912d94b39&state=" + getParam("state")
+    clever: "https://clever.com/oauth/authorize?response_type=code&redirect_uri=https%3A%2F%2Fexotek.co%2Flogin%3Fclient_id%97afe7146a3017919a40%26redirect_uri%3Dhttps%253A%252F%252Fmarkifyapp.com%252F%2523dashboard%26response_type%3Dcode%26scope%3Duserinfo%26method%3Dclever&client_id=f3136cc44e6912d94b39&state=" + getParam("state")
   };
 }
 if (authService != null) {

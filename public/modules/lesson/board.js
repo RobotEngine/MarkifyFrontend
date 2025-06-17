@@ -733,6 +733,15 @@ modules["lesson/board"] = class {
     undoButton.addEventListener("click", () => { this.editor.history.undo(); });
     redoButton.addEventListener("click", () => { this.editor.history.redo(); });
 
+    // Handle SplitScreen Swap:
+    let updateSplitScreenButtons = () => {
+      // this.parent.pages // board / breakout
+    }
+    this.editor.pipeline.subscribe("boardPageAdd", "page_add", () => { updateSplitScreenButtons(); });
+    this.editor.pipeline.subscribe("boardPageRemove", "page_remove", () => { updateSplitScreenButtons(); });
+    this.editor.pipeline.subscribe("boardPageMaximize", "maximize", () => { updateSplitScreenButtons(); });
+    updateSplitScreenButtons();
+
     // Fetch Annotations
     let pageParam = getParam("page");
     let checkForJumpLink = getParam("annotation");

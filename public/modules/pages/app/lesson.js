@@ -66,6 +66,9 @@ modules["pages/app/lesson"] = class {
     if (extra.insertBefore != null) {
       pageHolder.insertBefore(holder, extra.insertBefore);
     }
+    if (extra.insertAfter != null && extra.insertAfter.nextElementSibling != null) {
+      pageHolder.insertBefore(holder, extra.insertAfter.nextElementSibling);
+    }
     if (this.activePageID == null) {
       this.activePageID = id;
     }
@@ -162,7 +165,7 @@ modules["pages/app/lesson"] = class {
         }
       }
     }
-    delete typePages[id];
+    delete this.pages[type];
     this.pushToPipelines(null, "page_remove", { type: type });
   }
   pushToPipelines = (type, event, data) => {
@@ -494,6 +497,9 @@ modules["pages/app/lesson"] = class {
       if (beforePage == null || afterPage == null) {
         return endDivider();
       }
+      if (mouseDown() == false) {
+        return endDivider();
+      }
       pageHolder.setAttribute("resize", "");
 
       let mouseX = event.x ?? event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0;
@@ -613,11 +619,20 @@ modules["pages/app/lesson"] = class {
       })();
     }
 
+    let isMaximize = false;
     let sizeUpdate = () => {
       if (fixed.offsetWidth > 800 && fixed.offsetHeight > 400 && this.exporting != true) {
-        pageHolder.removeAttribute("maximize");
+        if (isMaximize == true) {
+          isMaximize = false;
+          pageHolder.removeAttribute("maximize");
+          this.pushToPipelines(null, "maximize", { maximize: false });
+        }
       } else {
-        pageHolder.setAttribute("maximize", "");
+        if (isMaximize == false) {
+          isMaximize = true;
+          pageHolder.setAttribute("maximize", "");
+          this.pushToPipelines(null, "maximize", { maximize: true });
+        }
       }
     }
     tempListen(window, "resize", (event) => {

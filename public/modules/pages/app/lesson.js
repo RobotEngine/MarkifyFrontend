@@ -550,7 +550,7 @@ modules["pages/app/lesson"] = class {
 
       let setBeforeWidth = beforePageWidth + changeX;
       let setAfterWidth = afterPageWidth - changeX;
-      if (Math.floor(setBeforeWidth / 30) == Math.floor(setAfterWidth / 30)) {
+      if (Math.abs(setBeforeWidth - setAfterWidth) < 20) {
         let setWidth = (beforePageWidth + afterPageWidth) / 2;
         setBeforeWidth = setWidth;
         setAfterWidth = setWidth;

@@ -25,7 +25,7 @@ modules["pages/app/lesson"] = class {
     ".lPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100vw; width: 100dvw; height: 100vh; height: 100dvh; padding: 8px; left: 0px; top: 0px; justify-content: center`,
     ".lPageHolder[resize]": `user-select: none; cursor: col-select`,
     ".lPageHolder[maximize]": `padding: 0px !important`,
-    ".lPage": `--shadowOpacity: .3; position: relative; display: flex; width: 100%; min-width: min(var(--minPageSize), 100%); height: 100%; flex: 1; z-index: 1; box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: 12px; overflow: hidden; transition: all .2s, flex .5s`,
+    ".lPage": `--shadowOpacity: .3; position: relative; display: flex; width: 100%; min-width: min(var(--minPageSize), 100%); height: 100%; flex: 1; z-index: 1; box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: 12px; overflow: hidden; transition: all .2s, flex .4s`,
     ".lPage[active]": `--shadowOpacity: .5 !important`,
     ".lPageHolder[resize] .lPage": `min-width: unset; transition: unset`,
     ".lPageHolder[maximize] .lPage": `border-radius: 0px !important`,
@@ -63,6 +63,20 @@ modules["pages/app/lesson"] = class {
     if (extra.totalPages != null) {
       holder.style.flex = "1 1 " + ((((pageHolder.offsetWidth - ((extra.totalPages - 1) * 8)) / extra.totalPages) / pageHolder.offsetWidth) * 100) + "%";
     }
+    if (extra.percent != null) {
+      let adjustPercent = extra.percent * 100;
+      holder.style.flex = "1 1 " + adjustPercent + "%";
+      let otherPages = pageHolder.querySelectorAll(".lPage");
+      for (let i = 0; i < otherPages.length; i++) {
+        let page = otherPages[i];
+        if (page == holder) {
+          continue;
+        }
+        let style = window.getComputedStyle(page).getPropertyValue("flex");
+        let percent = parseFloat(style.substring(4, style.lastIndexOf("%")));
+        page.style.flex = "1 1 " + (percent * ((100 - adjustPercent) / 100)) + "%";
+      }
+    }
     if (extra.insertBefore != null) {
       pageHolder.insertBefore(holder, extra.insertBefore);
     }
@@ -90,7 +104,7 @@ modules["pages/app/lesson"] = class {
     typePages[id] = newPage;
     this.pushToPipelines(null, "page_add", { type: type, page: newPage });
     (async () => {
-      await sleep(500);
+      await sleep(400);
       if (newPage != null && newPage.editor != null) {
         this.pushToPipelines(null, "resize", { event: "page_add" });
       this.pushToPipelines(null, "bounds_change", { event: "page_add" });
@@ -281,6 +295,8 @@ modules["pages/app/lesson"] = class {
   recentEmojis = [];
 
   signalStrength = 1;
+
+  maximized = false;
   
   // LESSON PAGE : Loads lessons, members, and configs before creating editor modules:
   js = async (page, joinData) => {
@@ -619,17 +635,16 @@ modules["pages/app/lesson"] = class {
       })();
     }
 
-    let isMaximize = false;
     let sizeUpdate = () => {
       if (fixed.offsetWidth > 800 && fixed.offsetHeight > 400 && this.exporting != true) {
-        if (isMaximize == true) {
-          isMaximize = false;
+        if (this.maximized == true) {
+          this.maximized = false;
           pageHolder.removeAttribute("maximize");
           this.pushToPipelines(null, "maximize", { maximize: false });
         }
       } else {
-        if (isMaximize == false) {
-          isMaximize = true;
+        if (this.maximized == false) {
+          this.maximized = true;
           pageHolder.setAttribute("maximize", "");
           this.pushToPipelines(null, "maximize", { maximize: true });
         }

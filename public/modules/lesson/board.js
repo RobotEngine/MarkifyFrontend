@@ -85,8 +85,9 @@ modules["lesson/board"] = class {
     ".eTopSection[right]": `border-bottom-left-radius: 12px`,
 
     ".eLogo": `display: flex; width: 38px; height: 38px; padding: 0; margin-right: 4px; user-select: none; justify-content: center; align-items: center; border-radius: 6px`,
-    ".eLogo svg": `width: 32px; height: 32px`,
-    //".eLogo:hover": `background: var(--hover)`,
+    ".eLogo:hover": `background: var(--hover)`,
+    ".eLogo svg": `width: 32px; height: 32px; transition: .2s`,
+    ".eLogo:hover svg": `transform: scale(.9)`,
     ".eFileNameHolder": `margin: 0 4px; --borderRadius: 4px; --borderColor: var(--secondary); --borderWidth: 0px; --transition: .05s`,
     ".eFileName": `max-width: 350px; padding: 0px; outline: unset; font-size: 20px; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; scrollbar-width: none`,
     ".eFileName:focus": `padding: 4px 6px !important; overflow-x: auto !important; text-overflow: unset !important`,
@@ -142,7 +143,12 @@ modules["lesson/board"] = class {
     ".ePageNav": `display: flex; width: 32px; height: 32px; padding: 6px; margin: 0 4px; justify-content: center; align-items: center; background: var(--lightGray); border-radius: 16px`,
     ".ePageNav svg": `width: 100%; height: 100%`,
     ".eCurrentPage": `min-width: 8px; max-height: 24px; padding: 4px 0; margin: 0 6px; font-size: 20px; outline: unset`,
-    ".eCurrentPage:focus": `padding: 4px 12px; --borderWidth: 3px; --borderColor: var(--secondary); --borderRadius: 12px`
+    ".eCurrentPage:focus": `padding: 4px 12px; --borderWidth: 3px; --borderColor: var(--secondary); --borderRadius: 12px`,
+    ".eBottomSection[breakout]": `display: flex; box-shadow: var(--breakoutLightShadow)`,
+    ".eBottomSection[breakout] button": `display: flex; width: 38px; height: 38px; padding: 0; border-radius: 6px; justify-content: center; align-items: center`,
+    ".eBottomSection[breakout] button:hover": `background: var(--breakoutHover)`,
+    ".eBottomSection[breakout] button svg": `width: 32px; height: 32px; transition: .2s`,
+    ".eBottomSection[breakout] button:hover svg": `transform: scale(.9)`
   };
   js = async (frame, extra) => {
     frame.style.position = "relative";
@@ -156,6 +162,7 @@ modules["lesson/board"] = class {
 
     let eTopHolder = frame.querySelector(".eTopHolder");
     let eTop = eTopHolder.querySelector(".eTop");
+    let eBottom = frame.querySelector(".eBottom");
 
     let leftTop = eTop.querySelector(".eTopSection[left]");
     let lessonName = leftTop.querySelector(".eFileName");
@@ -187,7 +194,7 @@ modules["lesson/board"] = class {
     let selectButton = viewerToolbar.querySelector('.eTool[tool="select"]');
     let panButton = viewerToolbar.querySelector('.eTool[tool="pan"]');
 
-    let currentPageHolder = frame.querySelector(".eBottomSection[right]");
+    let currentPageHolder = eBottom.querySelector(".eBottomSection[right]");
     let pageTextBox = currentPageHolder.querySelector(".eCurrentPage");
     let increasePageButton = currentPageHolder.querySelector(".ePageNav[down]");
     let decreasePageButton = currentPageHolder.querySelector(".ePageNav[up]");
@@ -593,6 +600,60 @@ modules["lesson/board"] = class {
       this.editor.setPage(setPage, false);
     });
 
+    // Handle SplitScreen Swap:
+    let breakoutEnabled = false;
+    let breakoutOpen = false;
+    let breakoutVisible = false;
+    let breakoutButton;
+    let updateSplitScreenButton = () => {
+      breakoutEnabled = this.lesson.tool.includes("breakout");
+      breakoutOpen = this.parent.pages["breakout"] != null;
+      breakoutVisible = this.parent.maximized != true || this.parent.activePageID == "breakout";
+
+      let showBreakoutButton = false;
+      if (breakoutEnabled == true) {
+        if (breakoutOpen == false || breakoutVisible == false) {
+          showBreakoutButton = true;
+        }
+      } else {
+        if (hasFeatureEnabled("breakout") == true) {
+          showBreakoutButton = true;
+        }
+      }
+
+      if (showBreakoutButton == true) {
+        if (breakoutButton == null) {
+          eBottom.insertAdjacentHTML("beforeend", `<div class="eBottomSection" breakout new><button class="eBreakoutOpen"></button></div>`);
+          breakoutButton = eBottom.querySelector(".eBottomSection[new]");
+          breakoutButton.removeAttribute("new");
+          setSVG(breakoutButton.querySelector("button"), "../images/breakout.svg");
+
+          breakoutButton.addEventListener("click", async () => {
+            if (breakoutEnabled == false) {
+              // Create new breakout - SOON
+              return;
+            }
+            if (breakoutOpen == false) {
+              await this.parent.addPage("breakout", "breakout", { percent: .5 });
+            }
+            if (breakoutVisible == false) {
+              this.parent.activePageID = "breakout";
+              this.parent.pushToPipelines(null, "page_switch", { pageID: "breakout" });
+            }
+          });
+        }
+      } else {
+        if (breakoutButton != null) {
+          breakoutButton.remove();
+          breakoutButton = null;
+        }
+      }
+    }
+    this.editor.pipeline.subscribe("boardPageAdd", "page_add", () => { updateSplitScreenButton(); });
+    this.editor.pipeline.subscribe("boardPageRemove", "page_remove", () => { updateSplitScreenButton(); });
+    this.editor.pipeline.subscribe("boardPageMaximize", "maximize", () => { updateSplitScreenButton(); });
+    updateSplitScreenButton();
+
     this.editor.pipeline.subscribe("boardLessonSet", "set", (body) => {
       if (body.name != null && document.activeElement.closest(".eFileName") != lessonName) {
         lessonName.textContent = this.lesson.name ?? "Untitled Lesson";
@@ -606,6 +667,9 @@ modules["lesson/board"] = class {
       }
       if (body.hasOwnProperty("background") == true) {
         this.editor.updateBackground(body.background);
+      }
+      if (body.hasOwnProperty("tool") == true) {
+        updateSplitScreenButton();
       }
       this.updateInterface();
     });
@@ -732,15 +796,6 @@ modules["lesson/board"] = class {
     });
     undoButton.addEventListener("click", () => { this.editor.history.undo(); });
     redoButton.addEventListener("click", () => { this.editor.history.redo(); });
-
-    // Handle SplitScreen Swap:
-    let updateSplitScreenButtons = () => {
-      // this.parent.pages // board / breakout
-    }
-    this.editor.pipeline.subscribe("boardPageAdd", "page_add", () => { updateSplitScreenButtons(); });
-    this.editor.pipeline.subscribe("boardPageRemove", "page_remove", () => { updateSplitScreenButtons(); });
-    this.editor.pipeline.subscribe("boardPageMaximize", "maximize", () => { updateSplitScreenButtons(); });
-    updateSplitScreenButtons();
 
     // Fetch Annotations
     let pageParam = getParam("page");

@@ -1735,8 +1735,8 @@ addCSS({
   ".hideScroll": `scrollbar-width: none`,
   ".hideScroll::-webkit-scrollbar": `display: none`,
 
-  'html[theme="light"]': `--breakoutThemeRGB: 255, 76, 108; --breakoutTheme: rgb(var(--breakoutThemeRGB)); --breakoutSecondaryRGB: 255, 122, 147; --breakoutSecondary: rgb(var(--breakoutSecondaryRGB)); --breakoutHoverRGB: 255, 166, 182; --breakoutHover: rgb(var(--breakoutHoverRGB))`,
-  'html[theme="dark"]': `--breakoutThemeRGB: 255, 76, 108; --breakoutTheme: rgb(var(--breakoutThemeRGB)); --breakoutSecondaryRGB: 255, 122, 147; --breakoutSecondary: rgb(var(--breakoutSecondaryRGB)); --breakoutHoverRGB: 112, 33, 46; --breakoutHover: rgb(var(--breakoutHoverRGB))`,
+  'html[theme="light"]': `--breakoutThemeRGB: 255, 76, 108; --breakoutTheme: rgb(var(--breakoutThemeRGB)); --breakoutSecondaryRGB: 255, 122, 147; --breakoutSecondary: rgb(var(--breakoutSecondaryRGB)); --breakoutHoverRGB: 255, 205, 214; --breakoutHover: rgb(var(--breakoutHoverRGB)); --breakoutLightShadow: 0px 0px 8px 0px rgba(var(--breakoutThemeRGB), .3); --breakoutDarkShadow: 0px 0px 8px 0px rgba(var(--breakoutThemeRGB), .5)`,
+  'html[theme="dark"]': `--breakoutThemeRGB: 255, 76, 108; --breakoutTheme: rgb(var(--breakoutThemeRGB)); --breakoutSecondaryRGB: 255, 122, 147; --breakoutSecondary: rgb(var(--breakoutSecondaryRGB)); --breakoutHoverRGB: 112, 33, 46; --breakoutHover: rgb(var(--breakoutHoverRGB)); --breakoutLightShadow: 0px 0px 8px 0px rgba(var(--breakoutThemeRGB), .3); --breakoutDarkShadow: 0px 0px 8px 0px rgba(var(--breakoutThemeRGB), .5)`,
 });
 (new Image()).src = "../images/tooltips/alerts.svg";
 (new Image()).src = "../images/tooltips/close.svg";

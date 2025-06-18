@@ -12,6 +12,8 @@ modules["lesson/breakout"] = class {
     this.pageHolder.style.setProperty("--secondary", "var(--breakoutSecondary)");
     this.pageHolder.style.setProperty("--hoverRGB", "var(--breakoutHoverRGB)");
     this.pageHolder.style.setProperty("--hover", "var(--breakoutHover)");
+    this.pageHolder.style.setProperty("--lightShadow", "var(--breakoutLightShadow)");
+    this.pageHolder.style.setProperty("--darkShadow", "var(--breakoutDarkShadow)");
     
     let page = frame;
 

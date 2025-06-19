@@ -60,11 +60,21 @@ modules["pages/app/lesson"] = class {
         pageHolder.insertBefore(newDivider, holder);
       }
     }
+    if (extra.insertBefore != null) {
+      pageHolder.insertBefore(holder, extra.insertBefore);
+    }
+    if (extra.insertAfter != null && extra.insertAfter.nextElementSibling != null) {
+      pageHolder.insertBefore(holder, extra.insertAfter.nextElementSibling);
+    }
+    if (this.activePageID == null) {
+      this.activePageID = id;
+    }
     if (extra.totalPages != null) {
       holder.style.flex = "1 1 " + ((((pageHolder.offsetWidth - ((extra.totalPages - 1) * 8)) / extra.totalPages) / pageHolder.offsetWidth) * 100) + "%";
     }
     if (extra.percent != null) {
       let adjustPercent = extra.percent * 100;
+      holder.offsetHeight;
       holder.style.flex = "1 1 " + adjustPercent + "%";
       let otherPages = pageHolder.querySelectorAll(".lPage");
       for (let i = 0; i < otherPages.length; i++) {
@@ -76,15 +86,6 @@ modules["pages/app/lesson"] = class {
         let percent = parseFloat(style.substring(4, style.lastIndexOf("%")));
         page.style.flex = "1 1 " + (percent * ((100 - adjustPercent) / 100)) + "%";
       }
-    }
-    if (extra.insertBefore != null) {
-      pageHolder.insertBefore(holder, extra.insertBefore);
-    }
-    if (extra.insertAfter != null && extra.insertAfter.nextElementSibling != null) {
-      pageHolder.insertBefore(holder, extra.insertAfter.nextElementSibling);
-    }
-    if (this.activePageID == null) {
-      this.activePageID = id;
     }
     let construct = {
       pageID: id,

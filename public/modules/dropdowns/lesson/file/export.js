@@ -4,10 +4,11 @@ modules["dropdowns/lesson/file/export"] = class {
     ".eFileExportOption": `display: flex; flex-wrap: wrap; min-width: 100%; padding: 0; border-radius: 8px; align-items: center; transition: .15s`,
     ".eFileExportOption:not(:first-child)": `margin-top: 6px`,
     ".eFileExportOption:hover": `background: var(--theme); color: #fff`,
-    ".eFileExportOption:hover img": `filter: brightness(0) invert(1)`,
+    ".eFileExportOption:hover div[image]": `filter: brightness(0) invert(1)`,
     ".eFileExportOption:hover b": `color: #fff`,
     ".eFileExportOption:active": `transform: scale(.95); border-radius: 14px`,
-    ".eFileExportOption img": `width: 60px; height: 60px; margin: 6px; transition: .15s`,
+    ".eFileExportOption div[image]": `width: 60px; height: 60px; margin: 6px; transition: .15s`,
+    ".eFileExportOption div[image] svg": `width: 100%; height: 100%`,
     ".eFileExportOption .eFileExportInfo": `margin: 6px; text-align: left`,
     ".eFileExportOption .eFileExportTitle": `margin-right: 6px; font-size: 18px; font-weight: 600`,
     ".eFileExportOption b": `color: var(--theme); font-weight: 800; transition: .15s`,
@@ -19,15 +20,15 @@ modules["dropdowns/lesson/file/export"] = class {
 
     if (type == "download") {
       frame.innerHTML = `
-      <button class="eFileExportOption" option="pages" title="Export each page separately into a PDF."><img src="../images/editor/file/export/pages.svg"><div class="eFileExportInfo"><div class="eFileExportTitle">Just the <b>Pages</b></div><div class="eFileExportDesc">Export each page separately into a PDF.</div></div></button>
-      <button class="eFileExportOption" option="board" title="Export the entire board as a single page PDF."><img src="../images/editor/file/export/board.svg"><div class="eFileExportInfo"><div class="eFileExportTitle">Entire <b>Document</b></div><div class="eFileExportDesc">Export the entire board as a single page PDF.</div></div></button>
-      <button class="eFileExportOption" option="selected" title="Export only the selected elements into a PDF."><img src="../images/editor/file/export/selected.svg"><div class="eFileExportInfo"><div class="eFileExportTitle">Selected <b>Elements</b></div><div class="eFileExportDesc">Export only the selected elements into a PDF.</div></div></button>
+      <button class="eFileExportOption" option="pages" title="Export each page separately into a PDF."><div image></div><div class="eFileExportInfo"><div class="eFileExportTitle">Just the <b>Pages</b></div><div class="eFileExportDesc">Export each page separately into a PDF.</div></div></button>
+      <button class="eFileExportOption" option="board" title="Export the entire board as a single page PDF."><div image></div><div class="eFileExportInfo"><div class="eFileExportTitle">Entire <b>Document</b></div><div class="eFileExportDesc">Export the entire board as a single page PDF.</div></div></button>
+      <button class="eFileExportOption" option="selected" title="Export only the selected elements into a PDF."><div image></div><div class="eFileExportInfo"><div class="eFileExportTitle">Selected <b>Elements</b></div><div class="eFileExportDesc">Export only the selected elements into a PDF.</div></div></button>
       `;
     } else if (type == "print") {
       frame.innerHTML = `
-      <button class="eFileExportOption" option="pages" title="Print each page separately (RECOMENDED)."><img src="../images/editor/file/export/pages.svg"><div class="eFileExportInfo"><div class="eFileExportTitle">Just the <b>Pages</b></div><div class="eFileExportDesc">Print each page separately (RECOMENDED).</div></div></button>
-      <button class="eFileExportOption" option="board" title="Print the entire board as a single page."><img src="../images/editor/file/export/board.svg"><div class="eFileExportInfo"><div class="eFileExportTitle">Entire <b>Document</b></div><div class="eFileExportDesc">Print the entire board as single page.</div></div></button>
-      <button class="eFileExportOption" option="selected" title="Print only the selected elements."><img src="../images/editor/file/export/selected.svg"><div class="eFileExportInfo"><div class="eFileExportTitle">Selected <b>Elements</b></div><div class="eFileExportDesc">Print only the selected elements.</div></div></button>
+      <button class="eFileExportOption" option="pages" title="Print each page separately (RECOMENDED)."><div image></div><div class="eFileExportInfo"><div class="eFileExportTitle">Just the <b>Pages</b></div><div class="eFileExportDesc">Print each page separately (RECOMENDED).</div></div></button>
+      <button class="eFileExportOption" option="board" title="Print the entire board as a single page."><div image></div><div class="eFileExportInfo"><div class="eFileExportTitle">Entire <b>Document</b></div><div class="eFileExportDesc">Print the entire board as single page.</div></div></button>
+      <button class="eFileExportOption" option="selected" title="Print only the selected elements."><div image></div><div class="eFileExportInfo"><div class="eFileExportTitle">Selected <b>Elements</b></div><div class="eFileExportDesc">Print only the selected elements.</div></div></button>
       `;
     }
 
@@ -78,6 +79,10 @@ modules["dropdowns/lesson/file/export"] = class {
     selectedButton.addEventListener("click", () => {
       runExport("selected");
     });
+
+    setSVG(pagesButton.querySelector("div[image]"), "../images/editor/file/export/pages.svg");
+    setSVG(boardButton.querySelector("div[image]"), "../images/editor/file/export/board.svg");
+    setSVG(selectedButton.querySelector("div[image]"), "../images/editor/file/export/selected.svg");
 
     let frameParent = app.querySelector(".content");
     editor.pipeline.subscribe("exportDropdownUpdate", "exportstatus", async (body) => {

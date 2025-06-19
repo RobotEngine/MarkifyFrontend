@@ -1064,7 +1064,7 @@ modules["dropdown"] = class {
     ".dropdownFrame": `position: relative`,
     ".dropdownHeader": `position: relative; display: flex; gap: 6px; padding: 6px 6px 0 6px; justify-content: space-between; transition: .4s; z-index: 2`,
     ".dropdownHeader button": `position: relative; width: 22px; height: 22px; margin: 3px; --borderWidth: 3px; --borderRadius: 14px`,
-    ".dropdownHeader button img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
+    ".dropdownHeader button svg": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
     ".dropdownTitle": `box-sizing: border-box; display: flex; padding: 3px; flex: 1; max-width: fit-content; justify-content: center; align-items: center; white-space: nowrap; overflow: hidden; font-size: 18px; font-weight: 500`,
     ".dropdownTitle div": `flex: 1; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
     ".dropdownTitle div[backdrop]": `display: none`,
@@ -1225,9 +1225,9 @@ modules["dropdown"] = class {
       <div class="dropdown" new>
         <div class="dropdownOverflow">
           <div class="dropdownHeader">
-            <button class="dropdownBack buttonAnim border" style="display: none"><img src="../images/tooltips/back.svg"></button>
+            <button class="dropdownBack buttonAnim border" style="display: none"></button>
             <div class="dropdownTitle"></div>
-            <button class="dropdownClose buttonAnim border" close><img src="../images/tooltips/close.svg"></button>
+            <button class="dropdownClose buttonAnim border" close></button>
           </div>
           <div class="dropdownContent customScroll">
             <div class="dropdownFrame"></div>
@@ -1246,6 +1246,8 @@ modules["dropdown"] = class {
     backButton.addEventListener("click", () => {
       this.open(backButton, null, { previous: true });
     });
+    setSVG(backButton, "../images/tooltips/back.svg");
+    setSVG(header.querySelector(".dropdownClose"), "../images/tooltips/close.svg");
     if (loaded == false) {
       frame.style.minHeight = "200px";
     }
@@ -1340,7 +1342,7 @@ modules["modal"] = class {
     ".modalFrame": `position: relative`,
     ".modalHeader": `position: relative; display: flex; gap: 6px; padding: 6px 6px 0 6px; justify-content: space-between; transition: .4s; z-index: 2`,
     ".modalHeader button": `position: relative; width: 22px; height: 22px; margin: 3px; --borderWidth: 3px; --borderRadius: 14px`,
-    ".modalHeader button img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
+    ".modalHeader button svg": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
     ".modalTitle": `box-sizing: border-box; display: flex; padding: 3px; flex: 1; max-width: fit-content; justify-content: center; align-items: center; white-space: nowrap; overflow: hidden; font-size: 18px; font-weight: 500`,
     ".modalTitle div": `flex: 1; margin: 0 4px; white-space: nowrap; overflow: hidden`,
     ".modalTitle img": `width: 26px; height: 26px; object-fit: cover; border-radius: 13px`
@@ -1481,9 +1483,9 @@ modules["modal"] = class {
       <div class="modal" new>
         <div class="modalOverflow">
           <div class="modalHeader">
-            <button class="modalBack buttonAnim border" style="display: none"><img src="../images/tooltips/back.svg"></button>
+            <button class="modalBack buttonAnim border" style="display: none"></button>
             <div class="modalTitle"></div>
-            <button class="modalClose buttonAnim border" close><img src="../images/tooltips/close.svg"></button>
+            <button class="modalClose buttonAnim border" close></button>
           </div>
           <div class="modalContent customScroll">
             <div class="modalFrame"></div>
@@ -1500,9 +1502,12 @@ modules["modal"] = class {
     backButton.addEventListener("click", () => {
       this.open(frameName, parent, backButton, title, stack, { ...data, previous: true });
     });
+    let closeButton = modal.querySelector(".modalClose");
     modal.querySelector(".modalClose").addEventListener("click", () => {
       this.close();
     });
+    setSVG(backButton, "../images/tooltips/back.svg");
+    setSVG(closeButton, "../images/tooltips/close.svg");
     if (loaded == false) {
       frame.style.minHeight = "200px";
     }
@@ -1574,7 +1579,7 @@ modules["alert"] = class {
     ".alertText div b": `margin-right: unset; color: unset; font-size: unset`,
     ".alertText i": `margin-left: 4px`,
     ".alertClose": `position: relative; width: 22px; height: 22px; margin: 5px 5px 5px 12px; --borderWidth: 3px; --borderRadius: 11px`,
-    ".alertClose img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`
+    ".alertClose svg": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`
   };
   themes = {
     info: ["var(--theme)", 1],
@@ -1595,10 +1600,11 @@ modules["alert"] = class {
     alertHolder.insertAdjacentHTML("afterbegin", `<div class="alert" new>
       <img src="../images/tooltips/alerts.svg">
       <div class="alertText"></div>
-      <button class="alertClose buttonAnim border"><img src="../images/tooltips/close.svg"></button>
+      <button class="alertClose buttonAnim border"></button>
     </div>`);
     let alert = fixed.querySelector(".alert[new]");
     alert.removeAttribute("new");
+    setSVG(alert.querySelector(".alertClose"), "../images/tooltips/close.svg");
     (async () => {
       if (data.id) {
         this.finished("connection");
@@ -1739,7 +1745,6 @@ addCSS({
   'html[theme="dark"]': `--breakoutThemeRGB: 255, 76, 108; --breakoutTheme: rgb(var(--breakoutThemeRGB)); --breakoutSecondaryRGB: 255, 122, 147; --breakoutSecondary: rgb(var(--breakoutSecondaryRGB)); --breakoutHoverRGB: 112, 33, 46; --breakoutHover: rgb(var(--breakoutHoverRGB)); --breakoutLightShadow: 0px 0px 8px 0px rgba(var(--breakoutThemeRGB), .3); --breakoutDarkShadow: 0px 0px 8px 0px rgba(var(--breakoutThemeRGB), .5)`,
 });
 (new Image()).src = "../images/tooltips/alerts.svg";
-(new Image()).src = "../images/tooltips/close.svg";
 
 if ("serviceWorker" in navigator && window.isDiscord != true) {
   window.addEventListener("load", () => {

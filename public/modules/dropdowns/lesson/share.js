@@ -1,17 +1,18 @@
 modules["dropdowns/lesson/share"] = class {
   html = `
-  <button class="eShareOption" type="pin" dropdowntitle="<div>Present with <b style='color: var(--theme); font-weight: 800'>Pin</b></div>" title="Invite members through a pin."><img src="../images/editor/share/pin.svg"><div class="eShareInfo"><div class="eShareTitle">Present with <b>Pin</b></div><div class="eShareDesc">Allow members to join as a viewer through a 6-digit pin code.</div></div></button>
-  <button class="eShareOption" type="link" dropdowntitle="<div>Share with <b style='color: var(--theme); font-weight: 800'>Link</b></div>" title="Invite members through a link."><img src="../images/editor/share/link.svg"><div class="eShareInfo"><div class="eShareTitle">Share with <b>Link</b></div><div class="eShareDesc">Allow members to join as a viewer or editor through a sendable link.</div></div></button>
-  <button class="eShareOption" type="email" dropdowntitle="<div>Invite with <b style='color: var(--theme); font-weight: 800'>Email</b></div>" title="Invite members through email."><img src="../images/editor/share/email.svg"><div class="eShareInfo"><div class="eShareTitle">Invite with <b>Email</b></div><div class="eShareDesc">Invite members as a viewer or editor with their email.</div></div></button>
+  <button class="eShareOption" type="pin" dropdowntitle="<div>Present with <b style='color: var(--theme); font-weight: 800'>Pin</b></div>" title="Invite members through a pin."><div image></div><div class="eShareInfo"><div class="eShareTitle">Present with <b>Pin</b></div><div class="eShareDesc">Allow members to join as a viewer through a 6-digit pin code.</div></div></button>
+  <button class="eShareOption" type="link" dropdowntitle="<div>Share with <b style='color: var(--theme); font-weight: 800'>Link</b></div>" title="Invite members through a link."><div image></div><div class="eShareInfo"><div class="eShareTitle">Share with <b>Link</b></div><div class="eShareDesc">Allow members to join as a viewer or editor through a sendable link.</div></div></button>
+  <button class="eShareOption" type="email" dropdowntitle="<div>Invite with <b style='color: var(--theme); font-weight: 800'>Email</b></div>" title="Invite members through email."><div image></div><div class="eShareInfo"><div class="eShareTitle">Invite with <b>Email</b></div><div class="eShareDesc">Invite members as a viewer or editor with their email.</div></div></button>
   `;
   css = {
     ".eShareOption": `display: flex; flex-wrap: wrap; min-width: 100%; padding: 0; border-radius: 6px; align-items: center; transition: .15s`,
     ".eShareOption:not(:first-child)": `margin-top: 6px`,
     ".eShareOption:hover": `background: var(--theme); color: #fff`,
-    ".eShareOption:hover img": `filter: brightness(0) invert(1)`,
+    ".eShareOption:hover div[image]": `filter: brightness(0) invert(1)`,
     ".eShareOption:hover b": `color: #fff`,
     ".eShareOption:active": `transform: scale(.95); border-radius: 12px`,
-    ".eShareOption img": `width: 66px; height: 32px; margin: 6px; transition: .15s`,
+    ".eShareOption div[image]": `width: 66px; height: 32px; margin: 6px; transition: .15s`,
+    ".eShareOption div[image] svg": `width: 100%; height: 100%`,
     ".eShareOption .eShareInfo": `margin: 6px; text-align: left`,
     ".eShareOption .eShareTitle": `margin-right: 6px; font-size: 18px; font-weight: 600`,
     ".eShareOption b": `color: var(--theme); font-weight: 800; transition: .15s`,
@@ -30,6 +31,10 @@ modules["dropdowns/lesson/share"] = class {
     emailShare.addEventListener("click", () => {
       dropdownModule.open(emailShare, "dropdowns/lesson/share/email", { parent: extra.parent });
     });
+
+    setSVG(pinShare.querySelector("div[image]"), "../images/editor/share/pin.svg");
+    setSVG(linkShare.querySelector("div[image]"), "../images/editor/share/link.svg");
+    setSVG(emailShare.querySelector("div[image]"), "../images/editor/share/email.svg");
   }
 }
 
@@ -41,7 +46,7 @@ modules["dropdowns/lesson/share/pin"] = class {
   <div class="eSharePinLink">Join with this pin at <a href="https://markify.link" target="_blank">markify.link</a></div>
   <div class="eSharePinDisplay"><span section left></span><div></div><span section right></span></div>
   <div class="eSharePinOptions">
-    <button class="eSharePinCopy largeButton border" title="Copy the pin code."><img src="../images/tooltips/copy.svg"></button>
+    <button class="eSharePinCopy largeButton border" title="Copy the pin code."></button>
     <button class="eSharePinRemove largeButton border" title="Invalidate the pin.">Remove</button>
     <button class="eShareOptionPin largeButton border" title="Configurable options for members who join.">Options</button>
   </div>
@@ -63,9 +68,9 @@ modules["dropdowns/lesson/share/pin"] = class {
     ".eSharePinOptions button:active": `transform: scale(.98)`,
 
     ".eSharePinCopy": `width: 36px; height: 36px; padding: 0; margin: 7px; --borderWidth: 3px`,
-    ".eSharePinCopy img": `width: 30px; transition: .1s`,
+    ".eSharePinCopy svg": `width: 30px; transition: .1s`,
     ".eSharePinCopy:hover": `background: var(--theme); --borderWidth: 0px; transform: scale(1.1)`,
-    ".eSharePinCopy:hover img": `filter: brightness(0) invert(1)`,
+    ".eSharePinCopy:hover svg": `filter: brightness(0) invert(1)`,
 
     ".eSharePinRemove": `height: fit-content; min-height: 36px; padding: 0 12px; margin: 7px 14px 7px 7px; --borderWidth: 3px; --borderRadius: 18px; color: var(--error); font-size: 18px`,
     ".eSharePinRemove:hover": `background: var(--error); --borderWidth: 0px; transform: scale(1.1); color: #fff`,
@@ -131,9 +136,11 @@ modules["dropdowns/lesson/share/pin"] = class {
       }
       createButton.removeAttribute("disabled");
     });
-    frame.querySelector(".eSharePinCopy").addEventListener("click", async () => {
+    let copyButton = frame.querySelector(".eSharePinCopy");
+    copyButton.addEventListener("click", async () => {
       copyClipboardText(lesson.lesson.pin, "pin");
     });
+    setSVG(copyButton, "../images/tooltips/copy.svg");
     let removeButton = frame.querySelector(".eSharePinRemove");
     removeButton.addEventListener("click", async () => {
       removeButton.setAttribute("disabled", "");
@@ -167,10 +174,10 @@ modules["dropdowns/lesson/share/link"] = class {
   </div>
   <div class="eShareLinkRow" style="margin-top: 0px">
     <input class="eShareLinkSection" readonly></input>
-    <button class="eShareLinkCopy border" title="Copy the link."><img src="../images/tooltips/copy.svg"></button>
+    <button class="eShareLinkCopy border" title="Copy the link."></button>
   </div>
   <button class="eShareLinkRow eShareLinkPerm buttonAnim">
-    <img class="eShareLinkIcon">
+    <div class="eShareLinkIcon"></div>
     <div class="eShareDetailsHolder">
       <div class="eShareDetailTitle"></div>
       <div class="eShareDetailDesc"></div>
@@ -191,12 +198,13 @@ modules["dropdowns/lesson/share/link"] = class {
 
     ".eShareLinkSection": `box-sizing: border-box; width: calc(100% - 50px); height: 42px; margin-right: 8px; border: solid 3px var(--hover); outline: unset; border-radius: 21px; padding: 8px; color: var(--theme); font-size: 18px; font-weight: 700; font-family: var(--theme); cursor: copy; user-select: all`,
     ".eShareLinkCopy": `width: 36px; height: 36px; padding: 0; margin: 3px; --borderWidth: 3px`,
-    ".eShareLinkCopy img": `width: 30px; transition: .1s`,
+    ".eShareLinkCopy svg": `width: 30px; transition: .1s`,
     ".eShareLinkCopy:hover": `background: var(--theme); --borderWidth: 0px; transform: scale(1.1)`,
-    ".eShareLinkCopy:hover img": `filter: brightness(0) invert(1)`,
+    ".eShareLinkCopy:hover svg": `filter: brightness(0) invert(1)`,
 
     ".eShareLinkPerm": `box-sizing: border-box; max-width: 360px; padding: 6px; align-items: flex-start; border-radius: 24px`,
     ".eShareLinkIcon": `width: 36px; height: 36px`,
+    ".eShareLinkIcon svg": `width: 100%; height: 100%`,
     ".eShareDetailsHolder": `flex: 1; margin-left: 8px; text-align: left`,
     ".eShareDetailTitle": `color: var(--theme); font-size: 16px; font-weight: 600`,
 
@@ -221,9 +229,11 @@ modules["dropdowns/lesson/share/link"] = class {
     let accessTitle = accessButton.querySelector(".eShareDetailTitle");
     let accessDesc = accessButton.querySelector(".eShareDetailDesc");
 
-    frame.querySelector(".eShareLinkCopy").addEventListener("click", async () => {
+    let copyButton = frame.querySelector(".eShareLinkCopy");
+    copyButton.addEventListener("click", async () => {
       copyClipboardText("https://" + linkTx.value, "link");
     });
+    setSVG(copyButton, "../images/tooltips/copy.svg");
 
     let updateLink = async () => {
       if (lesson.lesson.access != null && lesson.lesson.access > -1) {
@@ -233,14 +243,15 @@ modules["dropdowns/lesson/share/link"] = class {
         createHolder.style.opacity = 1;
         createHolder.style.pointerEvents = "all";
       }
+      accessIcon.innerHTML = "";
       if (lesson.lesson.access != 1) {
         // Viewer:
-        accessIcon.src = "../images/editor/share/viewer.svg";
+        setSVG(accessIcon, "../images/editor/share/viewer.svg");
         accessTitle.textContent = "Public View Access";
         accessDesc.textContent = "Anyone with this link will be able to view the document, but not make any edits.";
       } else {
         // Editor:
-        accessIcon.src = "../images/editor/share/editor.svg";
+        setSVG(accessIcon, "../images/editor/share/editor.svg");
         accessTitle.textContent = "Public Edit Access";
         accessDesc.textContent = "Anyone with this link will be able to view the document and create annotations.";
       }
@@ -329,7 +340,7 @@ modules["dropdowns/lesson/share/email"] = class {
     ".eShareActionHolder button": `position: relative; height: 22px; margin: 3px; --borderWidth: 3px; --borderRadius: 14px`,
     ".eSharePerm": `color: var(--theme); font-weight: 600`,
     ".eShareRemove": `width: 22px`,
-    ".eShareRemove img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`
+    ".eShareRemove svg": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`
   };
   js = async function (frame, extra) {
     frame.closest(".dropdownContent").style.padding = "0px";
@@ -395,7 +406,7 @@ modules["dropdowns/lesson/share/email"] = class {
         </div>
         <div class="eShareActionHolder">
           <button class="eSharePerm buttonAnim border"></button>
-          <button class="eShareRemove buttonAnim border" style="margin-left: 9px" title="Unshare document with member."><img src="../images/tooltips/close.svg"></button>
+          <button class="eShareRemove buttonAnim border" style="margin-left: 9px" title="Unshare document with member."></button>
         </div>
       </div>`);
       let tile = emailHolder.querySelector(".eShareTile[new]");
@@ -408,6 +419,7 @@ modules["dropdowns/lesson/share/email"] = class {
       let emailTx = tile.querySelector(".eShareEmail");
       emailTx.textContent = data.email;
       emailTx.title = data.email;
+      setSVG(tile.querySelector(".eShareRemove"), "../images/tooltips/close.svg");
       updatePermButton(tile.querySelector(".eSharePerm"), data.access ?? 0);
       return tile;
     }

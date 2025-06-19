@@ -311,6 +311,7 @@ modules["editor/realtime"] = class {
         editor.pipeline.publish("refresh_interface", {});
       }
       observeExit.addEventListener("click", () => { this.exitObserve(); });
+      setSVG(observeExit, "../images/tooltips/close.svg");
       editor.pipeline.subscribe("realtimeWheelEvent", "wheel", () => { this.exitObserve(); });
       editor.pipeline.subscribe("realtimeSignalUpdate", "signal_strength", (data) => {
         if (data.signalStrength < 3) {

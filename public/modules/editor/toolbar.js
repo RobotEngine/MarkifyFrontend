@@ -127,7 +127,7 @@ modules["editor/toolbar"] = class {
     ".eSideMenu .eSideMenuHeader": `display: flex; padding: 6px; gap: 6px; justify-content: space-between`,
     ".eSideMenu .eSideMenuHeaderTitle": `box-sizing: border-box; padding: 4px; flex: 1; max-width: fit-content; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; font-weight: 500; font-size: 18px`,
     ".eSideMenu .eSideMenuHeaderClose": `position: relative; width: 22px; height: 22px; margin: 3px; --borderWidth: 3px; --borderRadius: 14px`,
-    ".eSideMenu .eSideMenuHeaderClose img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
+    ".eSideMenu .eSideMenuHeaderClose svg": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
     ".eSideMenu .eSideMenuContent": `box-sizing: border-box; min-width: fit-content; width: 100%; height: min-content; max-height: calc(var(--maxToolbarHeight) - 42px); overflow: auto; border-bottom-left-radius: inherit; border-bottom-right-radius: inherit`,
 
     ".eSelect": `position: absolute; left: 0px; top: 0px; opacity: 0; z-index: 101; border-radius: 9px; transition: all .25s, opacity .15s; pointer-events: none`,
@@ -440,14 +440,16 @@ modules["editor/toolbar"] = class {
       toolbarHolder.insertAdjacentHTML("beforeend", `<div class="eSideMenu" new>
         <div class="eSideMenuHeader">
           <div class="eSideMenuHeaderTitle">Testing</div>
-          <button class="eSideMenuHeaderClose buttonAnim border"><img src="../images/tooltips/close.svg"></button>
+          <button class="eSideMenuHeaderClose buttonAnim border"></button>
         </div>
         <div class="eSideMenuContent customScroll"></div>
       </div>`);
       this.sidemenu.frame = toolbarHolder.querySelector(".eSideMenu[new]");
       this.sidemenu.frame.removeAttribute("new");
 
-      this.sidemenu.frame.querySelector(".eSideMenuHeaderClose").addEventListener("click", this.sidemenu.close);
+      let closeButton = this.sidemenu.frame.querySelector(".eSideMenuHeaderClose");
+      closeButton.addEventListener("click", this.sidemenu.close);
+      setSVG(closeButton, "../images/tooltips/close.svg");
 
       let contentHolder = this.sidemenu.frame.querySelector(".eSideMenuContent");
       let newModule = await this.parent.setFrame(path, contentHolder, { ...extra, construct: { editor: editor, toolbar: this }, hideLoading: true });
@@ -6100,8 +6102,8 @@ modules["editor/toolbar/comment"] = class {
 }
 modules["dropdowns/editor/toolbar/comment/more"] = class {
   html = `
-  <button class="eToolbarCommentMoreAction" option="edit" close title="Edit the comment."><img src="../images/tooltips/edit.svg">Edit Comment</button>
-  <button class="eToolbarCommentMoreAction" option="copylink" close title="Copy a share link to the comment thread." style="--themeColor: var(--secondary)"><img src="../images/tooltips/copy.svg">Copy Link</button>
+  <button class="eToolbarCommentMoreAction" option="edit" close title="Edit the comment."><div></div>Edit Comment</button>
+  <button class="eToolbarCommentMoreAction" option="copylink" close title="Copy a share link to the comment thread." style="--themeColor: var(--secondary)"><div></div>Copy Link</button>
   <button class="eToolbarCommentMoreAction" option="delete" close style="--themeColor: var(--red)"></button>
   `;
   css = {
@@ -6109,7 +6111,6 @@ modules["dropdowns/editor/toolbar/comment/more"] = class {
     ".eToolbarCommentMoreAction:not(:last-child)": `margin-bottom: 4px`,
     ".eToolbarCommentMoreAction div": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: var(--pageColor); border-radius: 4px`,
     ".eToolbarCommentMoreAction div svg": `width: 100%; height: 100%`,
-    ".eToolbarCommentMoreAction img": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: var(--pageColor); border-radius: 4px`,
     ".eToolbarCommentMoreAction:hover": `background: var(--themeColor); color: #fff`
   };
   js = async (frame, { parent, comment, root }) => {
@@ -6176,6 +6177,7 @@ modules["dropdowns/editor/toolbar/comment/more"] = class {
       parent.editor.text.startTextSelection(commentTx, event);
       parent.updateCommentFrame();
     });
+    setSVG(editButton.querySelector("div"), "../images/tooltips/edit.svg");
     if (render.a != parent.editor.self.modify) {
       editButton.remove();
     }
@@ -6187,6 +6189,7 @@ modules["dropdowns/editor/toolbar/comment/more"] = class {
       }
       copyClipboardText("https://markify.link/join?lesson=" + parent.editor.lesson.id + "&annotation=" + commentID, "link");
     });
+    setSVG(copyButton.querySelector("div"), "../images/tooltips/copy.svg");
     if (root == false) {
       copyButton.remove();
     }
@@ -6194,10 +6197,10 @@ modules["dropdowns/editor/toolbar/comment/more"] = class {
     let deleteButton = frame.querySelector('.eToolbarCommentMoreAction[option="delete"]');
     if (root == true) {
       deleteButton.title = "Delete the entire comment thread.";
-      deleteButton.innerHTML = `<img src="../images/editor/file/delete.svg">Delete Thread`;
+      deleteButton.innerHTML = `<div></div>Delete Thread`;
     } else {
       deleteButton.title = "Delete this comment.";
-      deleteButton.innerHTML = `<img src="../images/editor/file/delete.svg">Delete Comment`;
+      deleteButton.innerHTML = `<div></div>Delete Comment`;
     }
     deleteButton.addEventListener("click", async () => {
       let save = { _id: commentID, remove: true };
@@ -6208,6 +6211,7 @@ modules["dropdowns/editor/toolbar/comment/more"] = class {
       parent.editor.realtimeSelect[save._id] = save;
       await parent.editor.realtime.forceShort();
     });
+    setSVG(deleteButton.querySelector("div"), "../images/editor/file/delete.svg");
     if (parent.editor.utils.canMemberModify(render) != true) {
       deleteButton.remove();
     }
@@ -6693,7 +6697,7 @@ modules["editor/toolbar/color"] = class {
       <div class="eSubToolColorPickerTop">
         <button class="eSubToolColorPickerType largeButton border" title="Change Color Scale"></button>
         <input class="eSubToolColorPickerField" name="Color Input" />
-        <button class="eSubToolColorPickerTopBack buttonAnim border"><img src="../images/tooltips/close.svg"></button>
+        <button class="eSubToolColorPickerTopBack buttonAnim border"></button>
       </div>
       <div class="eSubToolColorPickerShade">
         <div><canvas></canvas></div>
@@ -6722,7 +6726,7 @@ modules["editor/toolbar/color"] = class {
     ".eSubToolColorPicker": `width: 188px; position: absolute; top: 0px; transform: scale(.9); opacity: 0; transition: .5s; pointer-events: none; touch-action: none`,
     ".eSubToolColorPickerTop": `position: relative; display: flex; box-sizing: border-box; width: 100%; padding: 6px`,
     ".eSubToolColorPickerTopBack": `position: relative; width: 22px; height: 22px; margin: 3px; --borderWidth: 3px; --borderRadius: 11px`,
-    ".eSubToolColorPickerTopBack img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
+    ".eSubToolColorPickerTopBack svg": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
     ".eSubToolColorPickerShade": `position: relative; width: calc(100% - 20px); height: 112px; margin: 4px 10px 8px`,
     ".eSubToolColorPickerShade div": `width: 100%; height: 100%; border-radius: 10px; overflow: hidden`,
     ".eSubToolColorPickerShade canvas": `width: 100%; height: 100%; background: #000`,
@@ -6860,7 +6864,8 @@ modules["editor/toolbar/color"] = class {
       //this.updateActionUI();
     }
 
-    frame.querySelector(".eSubToolColorPickerTopBack").addEventListener("click", async () => {
+    let closeButton = frame.querySelector(".eSubToolColorPickerTopBack");
+    closeButton.addEventListener("click", async () => {
       selector.style.position = "relative";
       picker.style.position = "absolute";
       selector.style.transform = "scale(1)";
@@ -6875,6 +6880,7 @@ modules["editor/toolbar/color"] = class {
         toolbar.selection.updateActionBar();
       }
     });
+    setSVG(closeButton, "../images/tooltips/close.svg");
 
     let colorSliderHolder = frame.querySelector(".eSubToolColorPickerGradient");
     let colorPointer = colorSliderHolder.querySelector("button");
@@ -7816,17 +7822,16 @@ modules["dropdowns/editor/toolbar/more"] = class {
   <button class="eToolbarMoreAction" option="lock" title="Change the locking options."><div></div>Locking</button>
   <button class="eToolbarMoreAction" option="signature" close><div></div><span></span></button>
   <div class="eToolbarMoreLine" option="layers"></div>
-  <button class="eToolbarMoreAction" option="bringfront" close title="Bring Forward"><img src="../images/editor/rearrange/up.svg">Bring to Front</button>
-  <button class="eToolbarMoreAction" option="sendback" close title="Send Backward"><img src="../images/editor/rearrange/down.svg">Send to Back</button>
+  <button class="eToolbarMoreAction" option="bringfront" close title="Bring Forward"><div></div>Bring to Front</button>
+  <button class="eToolbarMoreAction" option="sendback" close title="Send Backward"><div></div>Send to Back</button>
   <div class="eToolbarMoreLine" option="duplicate"></div>
-  <button class="eToolbarMoreAction" option="copylink" close title="Copy a share link to element." style="--themeColor: var(--secondary)"><img src="../images/tooltips/copy.svg">Copy Link</button>
+  <button class="eToolbarMoreAction" option="copylink" close title="Copy a share link to element." style="--themeColor: var(--secondary)"><div></div>Copy Link</button>
   `;
   css = {
     ".eToolbarMoreAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
     ".eToolbarMoreAction:not(:last-child)": `margin-bottom: 4px`,
     ".eToolbarMoreAction div": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: var(--pageColor); border-radius: 4px`,
     ".eToolbarMoreAction div svg": `width: 100%; height: 100%`,
-    ".eToolbarMoreAction img": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: var(--pageColor); border-radius: 4px`,
     ".eToolbarMoreAction:hover": `background: var(--themeColor); color: #fff`,
     ".eToolbarMoreLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`,
     ".eToolbarMoreShowMe": `color: var(--theme); font-weight: 700`
@@ -7857,6 +7862,9 @@ modules["dropdowns/editor/toolbar/more"] = class {
     setSVG(duplicateButton.querySelector("div"), "../images/editor/toolbar/duplicate.svg");
     setSVG(lockButton.querySelector("div"), "../images/editor/toolbar/lock.svg");
     setSVG(signatureButton.querySelector("div"), "../images/editor/toolbar/signature.svg");
+    setSVG(frontButton.querySelector("div"), "../images/editor/rearrange/up.svg");
+    setSVG(backButton.querySelector("div"), "../images/editor/rearrange/down.svg");
+    setSVG(shareButton.querySelector("div"), "../images/tooltips/copy.svg");
 
     parent.redraw = () => {
       if (frame == null) {

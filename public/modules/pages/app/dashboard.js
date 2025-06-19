@@ -62,7 +62,7 @@ modules["pages/app/dashboard"] = class {
             </div>
             <div class="dBannerButtons">
               <button class="dBannerFeedback buttonAnim border">Feedback</button>
-              <button class="dBannerClose buttonAnim border"><img src="../images/tooltips/close.svg"></button>
+              <button class="dBannerClose buttonAnim border"></button>
             </div>
           </div>
         </div>
@@ -154,6 +154,7 @@ modules["pages/app/dashboard"] = class {
     ".dBannerText": `margin-top: 4px; font-size: 14px`,
     ".dBannerButtons": `display: flex; gap: 8px; height: fit-content; min-height: 50px; padding: 0 8px 0 0; align-items: center`,
     ".dBannerButtons button": `position: relative; --borderWidth: 3px; --borderRadius: 14px`,
+    ".dBannerButtons button svg": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
     ".dBannerButtons button img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
     ".dBannerClose": `width: 22px; height: 22px; margin: 3px`,
     ".dBannerFeedback": `--themeColor: var(--theme); padding: 0 8px; font-size: 16px; font-weight: 600; color: var(--theme); height: 28px; margin: 3px`,
@@ -250,6 +251,7 @@ modules["pages/app/dashboard"] = class {
         banner.style.transform = "translateY(calc(-100% - 16px)";
         bannerHolder.style.height = "0px";
       });
+      setSVG(bannerCloseButton, "../images/tooltips/close.svg");
       let bannerFeedbackButton = banner.querySelector(".dBannerFeedback");
       bannerFeedbackButton.addEventListener("click", async () => {
         bannerFeedbackButton.setAttribute("disabled", "");

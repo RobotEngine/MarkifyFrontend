@@ -1,9 +1,9 @@
 <svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
 <mask id="mask0_524_134" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256">
-<rect width="256" height="256" fill="#C4C4C4"/>
+<rect width="256" height="256" fill="var(--gray)"/>
 </mask>
 <g mask="url(#mask0_524_134)">
-<circle cx="108.615" cy="98.6145" r="69.1145" stroke="#48A7FF" stroke-width="35"/>
-<rect x="134.683" y="159.901" width="40.3641" height="108.209" rx="20.182" transform="rotate(-38.5 134.683 159.901)" fill="#48A7FF"/>
+<circle cx="108.615" cy="98.6145" r="69.1145" stroke="var(--secondary)" stroke-width="35"/>
+<rect x="134.683" y="159.901" width="40.3641" height="108.209" rx="20.182" transform="rotate(-38.5 134.683 159.901)" fill="var(--secondary)"/>
 </g>
 </svg>

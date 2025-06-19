@@ -1,11 +1,11 @@
 <svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
 <mask id="mask0_527_178" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256">
-<rect width="256" height="256" fill="#C4C4C4"/>
+<rect width="256" height="256" fill="var(--gray)"/>
 </mask>
 <g mask="url(#mask0_527_178)">
-<path d="M128.918 186L128.918 68" stroke="#FF3D64" stroke-width="20" stroke-linecap="round"/>
-<path d="M91.4033 187.528L84.0002 69.1286" stroke="#FF3D64" stroke-width="20" stroke-linecap="round"/>
-<path d="M165.434 187.528L172.837 69.1286" stroke="#FF3D64" stroke-width="20" stroke-linecap="round"/>
-<path d="M189.654 25H66.3463C49.7953 25 36.856 39.2792 38.4817 55.7503L53.1882 204.75C54.6025 219.079 66.6539 230 81.0528 230H174.947C189.346 230 201.398 219.08 202.812 204.75L217.518 55.7503C219.144 39.2793 206.205 25 189.654 25Z" stroke="#FF3D64" stroke-width="30"/>
+<path d="M128.918 186L128.918 68" stroke="var(--themeColor)" stroke-width="20" stroke-linecap="round"/>
+<path d="M91.4033 187.528L84.0002 69.1286" stroke="var(--themeColor)" stroke-width="20" stroke-linecap="round"/>
+<path d="M165.434 187.528L172.837 69.1286" stroke="var(--themeColor)" stroke-width="20" stroke-linecap="round"/>
+<path d="M189.654 25H66.3463C49.7953 25 36.856 39.2792 38.4817 55.7503L53.1882 204.75C54.6025 219.079 66.6539 230 81.0528 230H174.947C189.346 230 201.398 219.08 202.812 204.75L217.518 55.7503C219.144 39.2793 206.205 25 189.654 25Z" stroke="var(--themeColor)" stroke-width="30"/>
 </g>
 </svg>

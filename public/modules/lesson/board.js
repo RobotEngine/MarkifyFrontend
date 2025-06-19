@@ -52,7 +52,7 @@ modules["lesson/board"] = class {
           <img class="eObserveIcon" src="../images/editor/members/observe.svg" />
           <div class="eObserveText">Observing</div>
           <div class="eObserveCursor"></div>
-          <button class="eObserveExit buttonAnim border"><img src="../images/tooltips/close.svg"></button>
+          <button class="eObserveExit buttonAnim border"></button>
         </div>
         <div class="eBottomSectionSpacer"></div>
         <div class="eBottomSection" right>
@@ -139,7 +139,7 @@ modules["lesson/board"] = class {
     ".eObserveText": `margin: 0 6px`,
     ".eObserveCursor": `box-sizing: border-box; display: flex; padding: 2px 6px; margin-right: 4px; background: var(--theme); color: #fff; border: solid 3px var(--pageColor); box-shadow: 0 0 6px rgb(0 0 0 / 25%); border-radius: 8px 14px 14px; font-size: 14px; font-weight: 700`,
     ".eObserveExit": `display: flex; position: relative; width: 22px; height: 22px; margin: 8px; justify-content: center; align-items: center; --borderWidth: 3px; --borderRadius: 14px`,
-    ".eObserveExit img": `width: 12px; height: 12px`,
+    ".eObserveExit svg": `width: 12px; height: 12px; flex-shrink: 0`,
     ".ePageNav": `display: flex; width: 32px; height: 32px; padding: 6px; margin: 0 4px; justify-content: center; align-items: center; background: var(--lightGray); border-radius: 16px`,
     ".ePageNav svg": `width: 100%; height: 100%`,
     ".eCurrentPage": `min-width: 8px; max-height: 24px; padding: 4px 0; margin: 0 6px; font-size: 20px; outline: unset`,
@@ -910,30 +910,31 @@ modules["lesson/board"] = class {
 
 modules["dropdowns/lesson/file"] = class {
   html = `
-  <button class="eFileAction" option="dashboard" title="Return to the Dashboard" style="--themeColor: var(--secondary)"><img src="../images/tooltips/back.svg">Dashboard</button>
+  <button class="eFileAction" option="dashboard" title="Return to the Dashboard" style="--themeColor: var(--secondary)"><div></div>Dashboard</button>
   <div class="eFileLine"></div>
-  <button class="eFileAction" option="export" dropdowntitle="Export" title="Export the lesson as a PDF."><img src="../images/editor/file/export.svg">Export</button>
-  <button class="eFileAction" option="print" dropdowntitle="Print" title="Export the lesson and print."><img src="../images/editor/file/print.svg">Print</button>
-  <button class="eFileAction" option="copy" title="Create a copy of the lesson."><img src="../images/editor/file/copy.svg">Create Copy</button>
-  <button class="eFileAction" option="moveto" title="Move this lesson into a folder." dropdowntitle="Move To Folder"><img src="../images/dashboard/moveto.svg">Move To Folder</button>
+  <button class="eFileAction" option="export" dropdowntitle="Export" title="Export the lesson as a PDF."><div></div>Export</button>
+  <button class="eFileAction" option="print" dropdowntitle="Print" title="Export the lesson and print."><div></div>Print</button>
+  <button class="eFileAction" option="copy" title="Create a copy of the lesson."><div></div>Create Copy</button>
+  <button class="eFileAction" option="moveto" title="Move this lesson into a folder." dropdowntitle="Move To Folder"><div></div>Move To Folder</button>
   <div class="eFileLine" option="findjump"></div>
-  <button class="eFileAction" disabled option="find" title="Find text on the PDF." style="--themeColor: var(--secondary)"><img src="../images/editor/file/search.svg">Find</button>
-  <button class="eFileAction" option="jumptop" title="Jump to the first page." style="--themeColor: var(--secondary)"><img src="../images/editor/bottom/uparrow.svg">Jump to Start</button>
-  <button class="eFileAction" option="jump" title="Jump to page number." style="--themeColor: var(--secondary)"><img src="../images/editor/file/jump.svg">Jump to Page</button>
-  <button class="eFileAction" option="jumpend" title="Jump to the last page." style="--themeColor: var(--secondary)"><img src="../images/editor/bottom/downarrow.svg">Jump to End</button>
+  <button class="eFileAction" disabled option="find" title="Find text on the PDF." style="--themeColor: var(--secondary)"><div></div>Find</button>
+  <button class="eFileAction" option="jumptop" title="Jump to the first page." style="--themeColor: var(--secondary)"><div></div>Jump to Start</button>
+  <button class="eFileAction" option="jump" title="Jump to page number." style="--themeColor: var(--secondary)"><div></div>Jump to Page</button>
+  <button class="eFileAction" option="jumpend" title="Jump to the last page." style="--themeColor: var(--secondary)"><div></div>Jump to End</button>
   <div class="eFileLine" option="document"></div>
-  <button class="eFileAction" disabled option="properties" title="View lesson properties." style="--themeColor: var(--secondary)"><img src="../images/editor/file/info.svg">Properties</button>
-  <button class="eFileAction" disabled option="ocr" title="Run optical character recognition (OCR)."><img src="../images/editor/file/text.svg">Recognize Text</button>
+  <button class="eFileAction" disabled option="properties" title="View lesson properties." style="--themeColor: var(--secondary)"><div></div>Properties</button>
+  <button class="eFileAction" disabled option="ocr" title="Run optical character recognition (OCR)."><div></div>Recognize Text</button>
   <div class="eFileLine" option="delete"></div>
-  <button class="eFileAction" option="boardstyle" title="Change the board's background color."><img src="../images/editor/rearrange/fillbucket.svg">Background Color</button>
-  <button class="eFileAction" option="hideshowpage" title="Hide all pages from members."><img src="../images/editor/rearrange/hideshow.svg">Hide All Pages</button>
-  <button class="eFileAction" option="deletelesson" title="Remove this lesson from your dashboard." style="--themeColor: var(--error)"><img src="../images/editor/file/delete.svg">Delete Lesson</button>
-  <button class="eFileAction" option="deleteannotations" title="Remove all annotations from the lesson." style="--themeColor: var(--error)"><img src="../images/editor/file/delete.svg">Delete Annotations</button>
+  <button class="eFileAction" option="boardstyle" title="Change the board's background color."><div></div>Background Color</button>
+  <button class="eFileAction" option="hideshowpage" title="Hide all pages from members."><div></div>Hide All Pages</button>
+  <button class="eFileAction" option="deletelesson" title="Remove this lesson from your dashboard." style="--themeColor: var(--error)"><div></div>Delete Lesson</button>
+  <button class="eFileAction" option="deleteannotations" title="Remove all annotations from the lesson." style="--themeColor: var(--error)"><div></div>Delete Annotations</button>
   `;
   css = {
     ".eFileAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
     ".eFileAction:not(:last-child)": `margin-bottom: 4px`,
-    ".eFileAction img": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: var(--pageColor); border-radius: 4px`,
+    ".eFileAction div": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: var(--pageColor); border-radius: 4px`,
+    ".eFileAction div svg": `width: 100%; height: 100%`,
     ".eFileAction:hover": `background: var(--themeColor); color: #fff`,
     ".eFileLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`
   };
@@ -942,7 +943,8 @@ modules["dropdowns/lesson/file"] = class {
     let editor = parent.editor;
     let access = editor.self.access;
 
-    frame.querySelector('.eFileAction[option="dashboard"]').addEventListener("click", async () => {
+    let dashboardButton = frame.querySelector('.eFileAction[option="dashboard"]');
+    dashboardButton.addEventListener("click", async () => {
       //utils.syncSave(true);
       setFrame("pages/app/dashboard");
     });
@@ -1007,6 +1009,9 @@ modules["dropdowns/lesson/file"] = class {
       //editor.contentHolder.scrollTo({ top: editor.contentHolder.scrollHeight });
     });
 
+    let propertiesButton = frame.querySelector('.eFileAction[option="properties"]');
+    let ocrButton = frame.querySelector('.eFileAction[option="ocr"]');
+
     let boardStyleButton = frame.querySelector('.eFileAction[option="boardstyle"]');
     boardStyleButton.addEventListener("click", async () => {
       dropdownModule.open(boardStyleButton, "dropdowns/editor/boardstyle", { parent: parent });
@@ -1036,6 +1041,22 @@ modules["dropdowns/lesson/file"] = class {
       dropdownModule.open(deleteAnnotationsButton, "dropdowns/remove", { type: "deleteannotations", lessonID: parent.parent.id, session: editor.session });
     });
 
+    setSVG(dashboardButton.querySelector("div"), "../images/tooltips/back.svg");
+    setSVG(exportButton.querySelector("div"), "../images/editor/file/export.svg");
+    setSVG(printButton.querySelector("div"), "../images/editor/file/print.svg");
+    setSVG(copyButton.querySelector("div"), "../images/editor/file/copy.svg");
+    setSVG(fileButton.querySelector("div"), "../images/editor/file/moveto.svg");
+    setSVG(find.querySelector("div"), "../images/editor/file/search.svg");
+    setSVG(jumptop.querySelector("div"), "../images/editor/file/uparrow.svg");
+    setSVG(jump.querySelector("div"), "../images/editor/file/jump.svg");
+    setSVG(jumpend.querySelector("div"), "../images/editor/file/downarrow.svg");
+    setSVG(propertiesButton.querySelector("div"), "../images/editor/file/info.svg");
+    setSVG(ocrButton.querySelector("div"), "../images/editor/file/text.svg");
+    setSVG(boardStyleButton.querySelector("div"), "../images/editor/file/fillbucket.svg");
+    setSVG(hideshowpage.querySelector("div"), "../images/editor/file/hideshow.svg");
+    setSVG(deleteLessonButton.querySelector("div"), "../images/editor/file/delete.svg");
+    setSVG(deleteAnnotationsButton.querySelector("div"), "../images/editor/file/delete.svg");
+
     if (access < 5) {
       boardStyleButton.remove();
       hideshowpage.remove();
@@ -1057,8 +1078,8 @@ modules["dropdowns/lesson/file"] = class {
 
     find.remove();
     frame.querySelector('.eFileLine[option="document"]').remove();
-    frame.querySelector('.eFileAction[option="properties"]').remove();
-    frame.querySelector('.eFileAction[option="ocr"]').remove();
+    propertiesButton.remove();
+    ocrButton.remove();
   }
 }
 
@@ -1147,7 +1168,7 @@ modules["dropdowns/lesson/board/members"] = class {
     ".eMemberFrameInfoHolder div[email]": `width: 100%; font-size: 15px; font-weight: 500; margin-top: 3px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
     ".eMemberFrameInfoHolder div[joined]": `font-size: 14px; font-weight: 500; text-align: right; margin: auto 6px 2px 0; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
     ".eMemberClose": `position: absolute; width: 22px; height: 22px; top: 4px; right: 0px; margin: 5px 5px 5px 12px; background: var(--pageColor); --borderWidth: 3px; --borderRadius: 14px`,
-    ".eMemberClose img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
+    ".eMemberClose svg": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
     ".eMemberSectionDesc": `box-sizing: border-box; padding: 12px 12px 0; font-size: 14px`,
     ".eMemberSectionEvents": `flex-direction: column`,
     ".eMemberEventHolder": `display: none; width: calc(100% - 24px); margin: 12px 12px 0px; justify-content: space-between; align-items: center`,
@@ -1532,7 +1553,7 @@ modules["dropdowns/lesson/board/members"] = class {
                   <div name></div>
                   <div email></div>
                 </div>
-                <button class="eMemberClose buttonAnim border"><img src="../images/tooltips/close.svg"></button>
+                <button class="eMemberClose buttonAnim border"></button>
               </div>
               <div class="eMemberSection eMemberSectionDesc"></div>
               <div class="eMemberSection eMemberSectionEvents">
@@ -1579,7 +1600,9 @@ modules["dropdowns/lesson/board/members"] = class {
           </div>
         </div></div>`);
         memberFrameHolder = dropdown.querySelector(".eMemberFrameHolder");
-        memberFrameHolder.querySelector(".eMemberClose").addEventListener("click", closeDropdown);
+        let closeButton = memberFrameHolder.querySelector(".eMemberClose");
+        closeButton.addEventListener("click", closeDropdown);
+        setSVG(closeButton, "../images/tooltips/close.svg");
         memberFrameHolder.offsetHeight;
 
         editorButton = memberFrameHolder.querySelector(".eMemberSectionActions button[editor]");

@@ -34,7 +34,7 @@ modules["pages/app/join"] = class {
           <div class="jAuthHolder">
             <img src="../images/profiles/default.svg" profile accountimage>
             <span accountuser>Robot Engine</span>
-            <button class="buttonAnim border" title="Logout and switch account."><img src="../images/tooltips/close.svg"></button>
+            <button class="buttonAnim border" title="Logout and switch account."></button>
           </div>
         </div>
         <div class="jCFTurnstile"></div>
@@ -82,7 +82,7 @@ modules["pages/app/join"] = class {
     ".jUserInfo .jAuthHolder img[profile]": `width: 40px; height: 40px; object-fit: cover; border-radius: 20px`,
     ".jUserInfo .jAuthHolder span": `margin-left: 6px; color: var(--secondary); font-size: 20px; font-weight: 600`,
     ".jUserInfo .jAuthHolder button": `position: relative; width: 22px; height: 22px; margin: 0 3px 0 12px; --borderWidth: 3px; --borderRadius: 14px`,
-    ".jUserInfo .jAuthHolder button img": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
+    ".jUserInfo .jAuthHolder button svg": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
     
     ".jModal .largeButton[join]": `display: none; margin: 12px 0`,
 
@@ -237,7 +237,8 @@ modules["pages/app/join"] = class {
           joinAccount.querySelector("img").src = account.image;
         }
         joinAccount.querySelector("span").textContent = account.user;
-        joinAccount.querySelector("button").addEventListener("click", async () => {
+        let switchAccountButton = joinAccount.querySelector("button");
+        switchAccountButton.addEventListener("click", async () => {
           joinAccount.setAttribute("disabled", "");
           let token = getLocalStore("token");
           if (token == null) {
@@ -252,6 +253,7 @@ modules["pages/app/join"] = class {
             promptLogin();
           }
         });
+        setSVG(switchAccountButton, "../images/tooltips/close.svg");
         joinAccount.style.display = "flex";
         joinNickname.parentElement.style.display = "none";
       }

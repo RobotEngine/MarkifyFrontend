@@ -1,13 +1,12 @@
 modules["dropdowns/account"] = class {
   html = `
-  <button class="accountDrop accountLogout" style="--setBackground: var(--error)" close><div>Logout</div><img src="../images/tooltips/account/logout.svg"></button>
-  <button class="accountDrop accountManage" dropdowntitle="Settings" noscrollclose><div>Settings</div><img src="../images/tooltips/account/settings.svg"></button>
-  <!--<button class="accountDrop" dropdown="dropdowns/account/preferences"><div>Preferences</div><img src="../images/tooltips/account/preferences.svg"></button>-->
+  <button class="accountDrop accountLogout" style="--setBackground: var(--error)" close><div>Logout</div><div image></div></button>
+  <button class="accountDrop accountManage" dropdowntitle="Settings" noscrollclose><div>Settings</div><div image></div></button>
   <div class="accountDropLine"></div>
-  <button class="accountDrop" close pwa dropdowntitle="Add Markify as an app on your device!"><div>Get the App</div><img src="../images/tooltips/account/app.svg"></button>
-  <button class="accountDrop" report dropdowntitle="Report Bugs & Feedback" noscrollclose><div>Report Bug</div><img src="../images/tooltips/account/report.svg"></button>
-  <button class="accountDrop" style="display: none" close whatsnew modaltitle="What's New"><div>What's New</div><img src="../images/tooltips/account/exclamation.svg"></button>
-  <button class="accountDrop" tutorial close modaltitle="Resources"><div>Resources</div><img src="../images/tooltips/account/question.svg"></button>
+  <button class="accountDrop" close pwa dropdowntitle="Add Markify as an app on your device!"><div>Get the App</div><div image></div></button>
+  <button class="accountDrop" report dropdowntitle="Report Bugs & Feedback" noscrollclose><div>Report Bug</div><div image></div></button>
+  <button class="accountDrop" style="display: none" close whatsnew modaltitle="What's New"><div>What's New</div><div image></div></button>
+  <button class="accountDrop" tutorial close modaltitle="Resources"><div>Resources</div><div image></div></button>
   <div class="accountDropLine"></div>
   <div class="accountSocialHolder">
     <a href="https://twitter.com/markifytool" target="_blank"><img src="../images/launch/socials/twitter.svg"></a>
@@ -27,9 +26,10 @@ modules["dropdowns/account"] = class {
     ".accountDrop": `display: flex; width: 100%; padding: 6px; border-radius: 8px; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s; --setBackground: var(--theme)`,
     ".accountDrop:not(:last-child)": `margin-bottom: 4px`,
     ".accountDrop div": `flex: 1; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
-    ".accountDrop img": `width: 24px; height: 24px; margin-left: 6px; object-fit: cover; transition: .15s`,
+    ".accountDrop div[image]": `max-width: 24px; height: 24px; margin-left: 6px; transition: .15s`,
+    ".accountDrop div[image] svg": `width: 100%; height: 100%`,
     ".accountDrop:hover": `background: var(--setBackground); color: #fff`,
-    ".accountDrop:hover img": `filter: brightness(0) invert(1)`,
+    ".accountDrop:hover div[image]": `filter: brightness(0) invert(1)`,
     ".accountDrop[pwa]": `display: none`,
     ".accountDropLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`,
     ".accountSocialHolder": `display: flex; flex-wrap: wrap; height: fit-content; padding: 3px; justify-content: space-evenly`,
@@ -53,11 +53,8 @@ modules["dropdowns/account"] = class {
     username.textContent = account.user;
     username.title = account.user;
 
-    let settingsButton = frame.querySelector(".accountManage");
-    settingsButton.addEventListener("click", () => {
-      return dropdownModule.open(settingsButton, "dropdowns/account/manage");
-    });
-    frame.querySelector(".accountLogout").addEventListener("click", async () => {
+    let logoutButton = frame.querySelector(".accountLogout");
+    logoutButton.addEventListener("click", async () => {
       let token = getLocalStore("token");
       if (token == null) {
         return;
@@ -71,10 +68,17 @@ modules["dropdowns/account"] = class {
         promptLogin();
       }
     });
+    setSVG(logoutButton.querySelector("div[image]"), "../images/tooltips/account/logout.svg");
+    let settingsButton = frame.querySelector(".accountManage");
+    settingsButton.addEventListener("click", () => {
+      return dropdownModule.open(settingsButton, "dropdowns/account/manage");
+    });
+    setSVG(settingsButton.querySelector("div[image]"), "../images/tooltips/account/settings.svg");
     let tutorialButton = frame.querySelector(".accountDrop[tutorial]");
     tutorialButton.addEventListener("click", async () => {
       modalModule.open("modals/resources", null, tutorialButton, "Resources");
     });
+    setSVG(tutorialButton.querySelector("div[image]"), "../images/tooltips/account/question.svg");
     let isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
     let checkForPrompt = () => {
       if (window.matchMedia("(display-mode: standalone)").matches == true || window.navigator.standalone == true || document.referrer.includes("android-app://") == true) {
@@ -111,17 +115,20 @@ modules["dropdowns/account"] = class {
     if (checkForPrompt() == true) {
       installpwa.style.display = "flex";
     }
+    setSVG(installpwa.querySelector("div[image]"), "../images/tooltips/account/app.svg");
     let whatsNew = frame.querySelector(".accountDrop[whatsnew]");
     if (account.currentWhatsNew != null) {
       whatsNew.setAttribute("modal", "modals/updates/" + account.currentWhatsNew);
     } else {
       whatsNew.remove();
     }
+    setSVG(whatsNew.querySelector("div[image]"), "../images/tooltips/account/exclamation.svg");
 
     let reportButton = frame.querySelector(".accountDrop[report]");
     reportButton.addEventListener("click", () => {
       dropdownModule.open(reportButton, "dropdowns/account/report");
     });
+    setSVG(reportButton.querySelector("div[image]"), "../images/tooltips/account/report.svg");
 
     if (account.tenant != null && account.tenant.flags != null && account.tenant.flags.hide_platform_socials == true) {
       frame.querySelector(".accountSocialHolder").remove();

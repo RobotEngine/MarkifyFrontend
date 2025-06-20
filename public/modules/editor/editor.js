@@ -3405,12 +3405,13 @@ modules["dropdowns/lesson/zoom"] = class {
     ".eZoomAction:not(:last-child)": `margin-bottom: 4px`,
     ".eZoomAction div[label]": `flex: 1; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
     ".eZoomAction[on]": `--themeColor: var(--theme)`,
-    ".eZoomAction[off]": `--themeColor: var(--error)`,
+    ".eZoomAction[off]": `--themeColor: var(--gray)`,
     ".eZoomToggle": `position: relative; width: 36px; height: 20px; padding: 2px; margin-left: 12px; background: var(--themeColor); border-radius: 12px; transition: .2s`,
     ".eZoomToggle div": `position: absolute; width: 20px; height: 20px; background: #fff; border-radius: 10px; transition: .2s`,
     ".eZoomAction[on] .eZoomToggle div": `right: 2px`,
     ".eZoomAction[off] .eZoomToggle div": `right: calc(100% - 22px)`,
-    ".eZoomAction:hover": `background: var(--themeColor); color: #fff`,
+    ".eZoomAction:hover": `background: var(--themeColor)`,
+    ".eZoomAction[on]:hover": `color: #fff`,
     ".eZoomAction:hover .eZoomToggle": `background: #fff`,
     ".eZoomAction:hover .eZoomToggle div": `background: var(--themeColor)`
   };

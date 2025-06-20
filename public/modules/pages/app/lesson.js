@@ -105,11 +105,11 @@ modules["pages/app/lesson"] = class {
     typePages[id] = newPage;
     this.pushToPipelines(null, "page_add", { type: type, page: newPage });
     (async () => {
-      await sleep(400);
-      if (newPage != null && newPage.editor != null) {
-        this.pushToPipelines(null, "resize", { event: "page_add" });
+      this.pushToPipelines(null, "resize", { event: "page_add" });
       this.pushToPipelines(null, "bounds_change", { event: "page_add" });
-      }
+      await sleep(400);
+      this.pushToPipelines(null, "resize", { event: "page_add" });
+      this.pushToPipelines(null, "bounds_change", { event: "page_add" });
     })();
     return newPage;
   }

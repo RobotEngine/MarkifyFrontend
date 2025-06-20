@@ -2,8 +2,8 @@ modules["lesson/board"] = class {
   html = `
   <div class="eInterface customScroll">
     <div class="eTopHolder">
-      <button class="eTopScroll" left style="left: 7px"><img src="../images/editor/top/leftarrow.svg" /></button>
-      <button class="eTopScroll" right style="right: 7px"><img src="../images/editor/top/rightarrow.svg" /></button>
+      <button class="eTopScroll" left style="left: 7px"></button>
+      <button class="eTopScroll" right style="right: 7px"></button>
       <div class="eTop">
         <div class="eTopSection" left>
           <a class="eLogo" href="/app/dashboard" draggable="false"></a>
@@ -76,8 +76,8 @@ modules["lesson/board"] = class {
     ".eTop::-webkit-scrollbar": `display: none`,
     ".eTopSection[scroll]": `display: none`,
     ".eTopHolder[scroll] .eTopSection[scroll]": `display: flex !important`,
-    ".eTopScroll": `position: absolute; display: flex; width: 36px; height: 36px; top: 50%; transform: translateY(-50%); background: rgba(180, 218, 253, .75); opacity: 0; backdrop-filter: blur(2px); border-radius: 18px; justify-content: center; align-items: center; z-index: 200`,
-    ".eTopScroll img": `width: 22px`,
+    ".eTopScroll": `position: absolute; display: flex; width: 36px; height: 36px; top: 50%; transform: translateY(-50%); background: rgba(var(--hoverRGB), .75); opacity: 0; backdrop-filter: blur(2px); border-radius: 18px; justify-content: center; align-items: center; z-index: 200`,
+    ".eTopScroll svg": `width: 22px`,
     ".eTopScroll:active": `transform: translateY(-50%) scale(.85) !important`,
     ".eTopSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
     ".eTopHolder[scroll] .eTopSection": `padding: 6px 0px !important; box-shadow: unset !important`,
@@ -495,6 +495,8 @@ modules["lesson/board"] = class {
     });
 
     // Load Images:
+    setSVG(eTopScrollLeft, "../images/editor/top/leftarrow.svg");
+    setSVG(eTopScrollRight, "../images/editor/top/rightarrow.svg");
     setSVG(icon, "../images/icon.svg", (svg) => { return svg.replace(/"#0084FF"/g, '"var(--theme)"'); });
     setSVG(undoButton, "../images/tooltips/progress/undo.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
     setSVG(redoButton, "../images/tooltips/progress/redo.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
@@ -623,7 +625,7 @@ modules["lesson/board"] = class {
 
       if (showBreakoutButton == true) {
         if (breakoutButton == null) {
-          eBottom.insertAdjacentHTML("beforeend", `<div class="eBottomSection" breakout new><button class="eBreakoutOpen"></button></div>`);
+          eBottom.insertAdjacentHTML("beforeend", `<div class="eBottomSection" breakout title="Open Markify Breakout" new><button class="eBreakoutOpen"></button></div>`);
           breakoutButton = eBottom.querySelector(".eBottomSection[new]");
           breakoutButton.removeAttribute("new");
           setSVG(breakoutButton.querySelector("button"), "../images/breakout.svg");

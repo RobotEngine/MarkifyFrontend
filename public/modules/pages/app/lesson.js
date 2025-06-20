@@ -40,6 +40,23 @@ modules["pages/app/lesson"] = class {
 
   pages = {};
   minPageSize = 200;
+  updateFavicon = () => {
+    clearTimeout(this.updateFaviconTimeout);
+    this.updateFaviconTimeout = setTimeout(() => {
+      let pages = Object.keys(this.pages);
+      let setFavicon = favicon.href;
+      if (pages.includes("board") == true && pages.includes("breakout") == true) {
+        setFavicon = "../images/boardbreakoutbluricon.png";
+      } else if (pages.includes("board") == true) {
+        setFavicon = "../images/bluricon.png";
+      } else if (pages.includes("breakout") == true) {
+        setFavicon = "../images/breakoutbluricon.png";
+      }
+      if (setFavicon != favicon.href) {
+        favicon.href = setFavicon;
+      }
+    }, 10);
+  }
   addPage = async (id, type, extra = {}) => {
     id = id ?? type;
     let holder = extra.holder;
@@ -111,6 +128,7 @@ modules["pages/app/lesson"] = class {
       this.pushToPipelines(null, "resize", { event: "page_add" });
       this.pushToPipelines(null, "bounds_change", { event: "page_add" });
     })();
+    this.updateFavicon();
     return newPage;
   }
   removePage = (id, type, extra = {}) => {
@@ -182,6 +200,7 @@ modules["pages/app/lesson"] = class {
     }
     delete this.pages[type];
     this.pushToPipelines(null, "page_remove", { type: type });
+    this.updateFavicon();
   }
   pushToPipelines = (type, event, data) => {
     let pageTypeKeys = Object.keys(this.pages);

@@ -41,6 +41,7 @@ let body = document.body;
 let app = body.querySelector(".app");
 let fixed = body.querySelector(".fixed");
 let stylesheet = document.querySelector("style").sheet;
+let favicon = document.querySelector('link[rel="icon"]');
 
 let loadingAnim = app.innerHTML;
 app.querySelector(".loading[new]").setAttribute("appload", "");
@@ -373,6 +374,9 @@ let setFrame = async (path, frame, extra, parent) => {
       body.style.removeProperty("user-select");
       currentPage = path;
       document.title = module.title + " | Markify";
+      if (favicon.href != "https://markifyapp.com/images/favicon.png") {
+        favicon.href = "https://markifyapp.com/images/favicon.png";
+      }
       pageTheme = module.theme;
       updateTheme();
     }

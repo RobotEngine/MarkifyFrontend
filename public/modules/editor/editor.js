@@ -3323,7 +3323,7 @@ modules["editor/editor"] = class {
         page.parentElement.setAttribute("active", "");
       }
     }
-    this.pipeline.subscribe("checkPageSwitch", "page_switch", updateActivePage);
+    this.pipeline.subscribe("checkPageSwitch", "page_switch", updateActivePage, { sort: 1 });
     updateActivePage();
 
     page.addEventListener("pointerdown", (event) => {

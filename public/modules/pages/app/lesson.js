@@ -60,11 +60,11 @@ modules["pages/app/lesson"] = class {
   addPage = async (id, type, extra = {}) => {
     id = id ?? type;
     let holder = extra.holder;
-    this.pages[type] = this.pages[type] ?? {};
-    let typePages = this.pages[type];
-    if (typePages[id] != null) {
+    if ((this.pages[type] ?? {})[id] != null) {
       this.removePage(id, type);
     }
+    this.pages[type] = this.pages[type] ?? {};
+    let typePages = this.pages[type];
     let pageHolder = this.frame.querySelector(".lPageHolder");
     if (holder == null) {
       pageHolder.insertAdjacentHTML("beforeend", `<div class="lPage" new></div>`);

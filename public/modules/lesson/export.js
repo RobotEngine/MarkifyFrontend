@@ -14,6 +14,9 @@ modules["lesson/export"] = class {
     this.session = this.parent.session;
 
     let page = frame.closest(".content");
+    let pageFrame = page.closest(".lPage");
+    pageFrame.style.width = "fit-content";
+    pageFrame.style.height = "fit-content";
 
     let pageHolder = page.closest(".lPageHolder");
     pageHolder.style.position = "absolute";

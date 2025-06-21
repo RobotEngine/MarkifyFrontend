@@ -158,7 +158,7 @@ modules["lesson/board"] = class {
     this.lesson = this.parent.lesson;
     this.session = this.parent.session;
     
-    let page = frame; //.closest(".content");
+    let page = frame.closest(".content");
 
     let eTopHolder = frame.querySelector(".eTopHolder");
     let eTop = eTopHolder.querySelector(".eTop");

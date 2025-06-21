@@ -202,6 +202,9 @@ modules["pages/app/lesson"] = class {
       }
     }
     delete (this.pages[type] ?? {})[id];
+    if (Object.keys(this.pages[type] ?? {}).length < 1) {
+      delete this.pages[type];
+    }
     this.pushToPipelines(null, "page_remove", { type: type });
     this.updateFavicon();
   }

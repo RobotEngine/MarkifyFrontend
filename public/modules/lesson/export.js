@@ -94,24 +94,7 @@ modules["lesson/export"] = class {
           continue;
         }
         
-        let [width, height] = anno.s;
-        let { x, y } = this.editor.utils.getAbsolutePosition(anno);
-        let rotate = anno.r ?? 0;
-        if (rotate > 180) {
-          rotate = -(360 - rotate);
-        }
-        if (width < 0) {
-          width = -width;
-          x -= width;
-        }
-        if (height < 0) {
-          height = -height;
-          y -= height;
-        }
-        let t = anno.t ?? 0;
-        if (anno.b == "none" && anno.d != "line") {
-          t = 0;
-        }
+        let { x, y, width, height, rotation: rotate, thickness: t } = this.editor.utils.getRect(anno);
         let halfT = t / 2;
     
         let radian = rotate * (Math.PI / 180);

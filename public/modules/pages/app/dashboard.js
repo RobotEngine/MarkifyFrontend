@@ -173,7 +173,7 @@ modules["pages/app/dashboard"] = class {
     ".dFolderInfo div[contenteditable]": `padding: 4px 6px; border: solid 3px var(--themeColor); cursor: unset; text-overflow: unset !important; overflow: auto !important`,
     ".dFolderInfoActions": `display: flex; margin-left: 8px`,
     ".dFolderRemove": `display: flex; padding: 6px; --themeColor: var(--error); --themeColor2: var(--error); --borderWidth: 3px; --borderRadius: 20px; color: #fff; justify-content: center; align-items: center`,
-    ".dFolderRemove img": `width: 22px; height: 22px`
+    ".dFolderRemove svg": `width: 22px; height: 22px`
   };
   loadAmount = 25;
   checkTime = (sort, record) => {
@@ -895,7 +895,7 @@ modules["pages/app/dashboard"] = class {
           </div>
           <div title></div>
           <div class="dFolderInfoActions">
-            <button class="dFolderRemove largeButton" option="deletefolder" dashboard title="Delete this folder." dropdowntitle="Delete Folder"><img src="../images/editor/file/delete.svg"></button>
+            <button class="dFolderRemove largeButton" option="deletefolder" dashboard title="Delete this folder." dropdowntitle="Delete Folder"></button>
           </div>
         </div>`;
         let folderID = this.sort;
@@ -1004,6 +1004,7 @@ modules["pages/app/dashboard"] = class {
         removeButton.addEventListener("click", () => {
           dropdownModule.open(removeButton, "dropdowns/remove", { parent: this, type: "deletefolder", folderID: folderID, folders: folders, records: records, lessons: lessons });
         });
+        setSVG(removeButton, "../images/editor/file/delete.svg");
         titleHolder.style.padding = "14px 16px";
         if (newBoardLessonButton != null) {
           newBoardLessonButton.href = "/app/lesson?type=board&folder=" + this.sort;
@@ -1707,8 +1708,8 @@ modules["dropdowns/dashboard/options"] = class {
   <button class="dTileDropAction" option="movefrom" style="display: none" title="Remove this lesson from the folder."><img class="dTileDropActionImage" src="../images/dashboard/moveto.svg">Move From Folder</button>
   <div class="dTileDropLine"></div>
   <button class="dTileDropAction" option="rename" title="Rename this lesson."><img src="../images/dashboard/rename.svg">Rename</button>
-  <button class="dTileDropAction" option="copy" title="Create a duplicate of this lesson."><img src="../images/editor/file/copy.svg">Duplicate</button>
-  <button class="dTileDropAction" option="deletelesson" dashboard dropdown="dropdowns/editor/file/delete" style="--themeColor: var(--error)" title="Remove this lesson from your dashboard."><img class="dTileDropActionImage" src="../images/editor/file/delete.svg">Delete</button>
+  <button class="dTileDropAction" option="copy" title="Create a duplicate of this lesson."><img src="../images/dashboard/copy.svg">Duplicate</button>
+  <button class="dTileDropAction" option="deletelesson" dashboard dropdown="dropdowns/editor/file/delete" style="--themeColor: var(--error)" title="Remove this lesson from your dashboard."><img class="dTileDropActionImage" src="/images/dashboard/delete.svg">Delete</button>
   `;
   css = {
     ".dTileDropAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
@@ -1732,7 +1733,8 @@ modules["dropdowns/dashboard/options"] = class {
     let joinMethod = record.join ?? "owner";
     let isOwner = joinMethod == "owner";
     let folderID = record.folder;
-    frame.querySelector('.dTileDropAction[option="open"]').addEventListener("click", () => {
+    let openButton = frame.querySelector('.dTileDropAction[option="open"]');
+    openButton.addEventListener("click", () => {
       if (joinMethod.startsWith("pin_")) {
         setFrame("pages/app/join", null, { params: { pin: joinMethod.substring(4) }});
       } else if (joinMethod == "link") {
@@ -1860,6 +1862,7 @@ modules["dropdowns/dashboard/options"] = class {
     deleteButton.addEventListener("click", () => {
       dropdownModule.open(deleteButton, "dropdowns/remove", { parent: extra.parent, type: "deletelesson", lessons: lessons, lessonID: lessonID, lesson: lesson, record: record, isOwner: isOwner });
     });
+    
     if (!isOwner) {
       renameButton.remove();
       copyButton.remove();

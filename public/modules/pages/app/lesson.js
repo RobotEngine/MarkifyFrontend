@@ -136,6 +136,9 @@ modules["pages/app/lesson"] = class {
     if (typePages[id] == null) {
       return;
     }
+    if (this.activePageID == id) {
+      this.activePageID = null;
+    }
     let page = typePages[id];
     if (page == null) {
       return;
@@ -198,7 +201,7 @@ modules["pages/app/lesson"] = class {
         }
       }
     }
-    delete this.pages[type];
+    delete (this.pages[type] ?? {})[id];
     this.pushToPipelines(null, "page_remove", { type: type });
     this.updateFavicon();
   }
@@ -345,6 +348,13 @@ modules["pages/app/lesson"] = class {
               setFrame("pages/app/dashboard");
             }
             alertModule.open("error", "<b>You've Been Kicked</b>The lesson owner has removed you from the lesson.");
+            break;
+          case "delete":
+            if (userID == null || data.filled == true) {
+              setFrame("pages/app/join", null, { passParams: data.filled == true });
+            } else {
+              setFrame("pages/app/dashboard");
+            }
             break;
           case "preference":
             switch (data.type) {
@@ -1026,6 +1036,7 @@ modules["pages/app/lesson"] = class {
       if (getTheme() == "dark") {
         useBackground= "0A1C2D";
       }
+      this.signalStrength = 3;
       await this.setLesson({
         "lesson": {
           "_id": null,
@@ -1041,7 +1052,6 @@ modules["pages/app/lesson"] = class {
         "members": [],
         "sources": []
       });
-      this.signalStrength = 3;
     }
   }
 }

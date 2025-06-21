@@ -653,18 +653,9 @@ modules["lesson/board"] = class {
     }
     this.editor.pipeline.subscribe("boardPageAdd", "page_add", () => { updateSplitScreenButton(); });
     this.editor.pipeline.subscribe("boardPageRemove", "page_remove", () => { updateSplitScreenButton(); });
-    let updateMaximize = (event) => {
-      if (event.maximize != true) {
-        if (this.parent.activePageID != this.pageID) {
-          this.editor.setPage(this.editor.currentPage ?? 1, false);
-        }
-      }
-    }
     this.editor.pipeline.subscribe("boardPageMaximize", "maximize", (event) => {
       updateSplitScreenButton();
-      //updateMaximize(event);
     });
-    //this.editor.pipeline.subscribe("boardPageSwitch", "page_switch", updateMaximize, { sort: 2 });
     updateSplitScreenButton();
 
     this.editor.pipeline.subscribe("boardLessonSet", "set", (body) => {

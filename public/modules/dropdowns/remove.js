@@ -1,7 +1,7 @@
 modules["dropdowns/remove"] = class {
   html = `
   <div class="dDeleteHolder">
-    <img src="../images/editor/file/trash.svg">
+    <div class="dDeleteImage"></div>
     <div class="dDeleteContent">
       <div class="dDeleteTitle"></div>
       <div class="dDeleteDesc"></div>
@@ -14,7 +14,8 @@ modules["dropdowns/remove"] = class {
   `;
   css = {
     ".dDeleteHolder": `display: flex; flex-wrap: wrap; gap: 6px; justify-content: center`,
-    ".dDeleteHolder img": `width: 64px; height: 64px`,
+    ".dDeleteImage": `--themeColor: var(--error); width: 64px; height: 64px`,
+    ".dDeleteImage svg": `width: 100%; height: 100%`,
     ".dDeleteTitle": `color: var(--error); font-size: 20px; font-weight: 700; text-align: left`,
     ".dDeleteDesc": `max-width: 240px; font-size: 14px; text-align: left`,
     ".dDeleteOptions": `display: flex; flex-wrap: wrap; width: 100%; margin-top: 12px; justify-content: space-around`,
@@ -124,5 +125,7 @@ modules["dropdowns/remove"] = class {
     frame.querySelector(".dDeleteCancel").addEventListener("click", () => {
       dropdownModule.close();
     });
+
+    setSVG(frame.querySelector(".dDeleteImage"), "../images/editor/file/trash.svg");
   }
 }

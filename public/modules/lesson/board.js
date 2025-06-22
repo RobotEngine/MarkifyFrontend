@@ -629,8 +629,10 @@ modules["lesson/board"] = class {
           breakoutButton = eBottom.querySelector(".eBottomSection[new]");
           breakoutButton.removeAttribute("new");
           setSVG(breakoutButton.querySelector("button"), "../images/breakout.svg");
-
           breakoutButton.addEventListener("click", async () => {
+            breakoutButton.remove();
+            breakoutButton = null;
+
             if (breakoutEnabled == false) {
               // Create new breakout - SOON
               return;
@@ -653,9 +655,7 @@ modules["lesson/board"] = class {
     }
     this.editor.pipeline.subscribe("boardPageAdd", "page_add", () => { updateSplitScreenButton(); });
     this.editor.pipeline.subscribe("boardPageRemove", "page_remove", () => { updateSplitScreenButton(); });
-    this.editor.pipeline.subscribe("boardPageMaximize", "maximize", (event) => {
-      updateSplitScreenButton();
-    });
+    this.editor.pipeline.subscribe("boardPageMaximize", "maximize", () => { updateSplitScreenButton(); });
     updateSplitScreenButton();
 
     this.editor.pipeline.subscribe("boardLessonSet", "set", (body) => {

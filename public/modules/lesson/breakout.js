@@ -17,12 +17,6 @@ modules["lesson/breakout"] = class {
     
     let page = frame;
 
-    let testBoard = await this.parent.setFrame("lesson/board", this.pageHolder, { construct: {
-        pageID: this.pageID,
-        pageType: this.pageType,
-        pageHolder: this.pageHolder
-      }
-    });
-    this.editor = testBoard.editor;
+    //this.editor = (await this.parent.setFrame("lesson/board", this.pageHolder, { construct: { pageID: this.pageID, pageType: this.pageType, pageHolder: this.pageHolder } })).editor;
   }
 }

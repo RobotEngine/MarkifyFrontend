@@ -868,8 +868,12 @@ modules["editor/editor"] = class {
     }
     this.utils.convertBoundingRect = (frameRect) => {
       let pageRect = page.getBoundingClientRect();
-      let diffX = frameRect.x - pageRect.x;
-      let diffY = frameRect.y - pageRect.y;
+      let transform = 1;
+      if (this.pageFrame.hasAttribute("scale") == true) {
+        transform = 1 / parseFloat(this.pageFrame.getAttribute("scale"));
+      }
+      let diffX = (frameRect.x - pageRect.x) * transform;
+      let diffY = (frameRect.y - pageRect.y) * transform;
       return {
         width: frameRect.width,
         height: frameRect.height,

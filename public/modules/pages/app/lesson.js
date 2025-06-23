@@ -558,7 +558,9 @@ modules["pages/app/lesson"] = class {
       if (beforePageWidth + changeX < this.minPageSize) {
         let correct = this.minPageSize - (beforePageWidth + changeX);
         changeX += correct;
-        beforePage.style.transform = "scale(" + ((this.minPageSize - correct) / this.minPageSize) + ")";
+        let setScale = (this.minPageSize - correct) / this.minPageSize;
+        beforePage.setAttribute("scale", setScale);
+        beforePage.style.transform = "scale(" + setScale + ")";
         beforePage.style.transformOrigin = "left";
         beforePage.style.minWidth = "var(--minPageSize)";
         let setOpacity = ((this.minPageSize / 2) - correct) / (this.minPageSize / 2);
@@ -571,6 +573,7 @@ modules["pages/app/lesson"] = class {
         }
       } else {
         removeBeforePage = false;
+        beforePage.removeAttribute("scale");
         beforePage.style.removeProperty("transform");
         beforePage.style.removeProperty("min-width");
         beforePage.style.removeProperty("opacity");
@@ -579,7 +582,9 @@ modules["pages/app/lesson"] = class {
         let correct = this.minPageSize - (afterPageWidth - changeX);
         changeX -= correct;
         removeAfterPage = true;
-        afterPage.style.transform = "scale(" + ((this.minPageSize - correct) / this.minPageSize) + ")";
+        let setScale = (this.minPageSize - correct) / this.minPageSize;
+        afterPage.setAttribute("scale", setScale);
+        afterPage.style.transform = "scale(" + setScale + ")";
         afterPage.style.transformOrigin = "right";
         afterPage.style.minWidth = "var(--minPageSize)";
         let setOpacity = ((this.minPageSize / 2) - correct) / (this.minPageSize / 2);
@@ -592,6 +597,7 @@ modules["pages/app/lesson"] = class {
         }
       } else {
         removeAfterPage = false;
+        afterPage.removeAttribute("scale");
         afterPage.style.removeProperty("transform");
         afterPage.style.removeProperty("min-width");
         afterPage.style.removeProperty("opacity");
@@ -630,6 +636,7 @@ modules["pages/app/lesson"] = class {
 
       let holderWidth = pageHolder.offsetWidth - (pageHolder.querySelectorAll(":scope > .lPageDivider").length * 8) - 16;
       if (beforePage != null) {
+        beforePage.removeAttribute("scale");
         beforePage.style.removeProperty("transform");
         beforePage.style.removeProperty("opacity");
         if (removeBeforePage == true) {
@@ -646,6 +653,7 @@ modules["pages/app/lesson"] = class {
         }
       }
       if (afterPage != null) {
+        afterPage.removeAttribute("scale");
         afterPage.style.removeProperty("transform");
         afterPage.style.removeProperty("opacity");
         if (removeAfterPage == true) {

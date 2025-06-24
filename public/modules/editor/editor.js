@@ -3313,23 +3313,6 @@ modules["editor/editor"] = class {
       currentCenter = null;
     });
 
-    this.pipeline.subscribe("checkActivePage", "click_start", () => {
-      if (this.parent.parent.activePageID != this.parent.pageID) {
-        this.parent.parent.activePageID = this.parent.pageID;
-        this.parent.parent.pushToPipelines(null, "page_switch", { pageID: this.parent.pageID });
-      }
-    });
-    let updateActivePage = () => {
-      this.active = this.parent.parent.activePageID == this.parent.pageID;
-      if (this.active == false) {
-        page.parentElement.removeAttribute("active");
-      } else {
-        page.parentElement.setAttribute("active", "");
-      }
-    }
-    this.pipeline.subscribe("checkPageSwitch", "page_switch", updateActivePage, { sort: 1 });
-    updateActivePage();
-
     page.addEventListener("pointerdown", (event) => {
       this.pipeline.publish("pointerdown", { event: event });
       if (event.pointerType == "mouse") {

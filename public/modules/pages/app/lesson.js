@@ -219,8 +219,8 @@ modules["pages/app/lesson"] = class {
       let pageKeys = Object.keys(typePages);
       for (let i = 0; i < pageKeys.length; i++) {
         let page = typePages[pageKeys[i]];
-        if (page.editor != null && page.editor.pipeline != null) {
-          page.editor.pipeline.publish(event, data);
+        if (page.pipeline != null) {
+          page.pipeline.publish(event, data);
         }
       }
     }

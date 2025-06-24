@@ -217,6 +217,7 @@ modules["lesson/board"] = class {
         backgroundColor: this.lesson.background ?? "FFFFFF"
       }
     });
+    this.pipeline = this.editor.pipeline;
 
     let updateTopBar = (ignoreAttr) => {
       if (ignoreAttr != true) {
@@ -255,9 +256,9 @@ modules["lesson/board"] = class {
       eTop.scrollTo({ left: eTop.scrollLeft + 200, behavior: "smooth" });
       updateTopBar();
     });
-    this.editor.pipeline.subscribe("topbarResize", "resize", updateTopBar);
-    this.editor.pipeline.subscribe("topbarScroll", "topbar_scroll", () => { updateTopBar(true); });
-    this.editor.pipeline.subscribe("topbarVisibilityChange", "visibilitychange", updateTopBar);
+    this.pipeline.subscribe("topbarResize", "resize", updateTopBar);
+    this.pipeline.subscribe("topbarScroll", "topbar_scroll", () => { updateTopBar(true); });
+    this.pipeline.subscribe("topbarVisibilityChange", "visibilitychange", updateTopBar);
     updateTopBar();
 
     this.updateInterface = async () => {
@@ -364,7 +365,7 @@ modules["lesson/board"] = class {
     this.updateMemberCount(membersButton);
 
     eTop.addEventListener("scroll", (event) => {
-      this.editor.pipeline.publish("topbar_scroll", { event: event });
+      this.pipeline.publish("topbar_scroll", { event: event });
     });
 
     let icon = eTop.querySelector(".eLogo");
@@ -508,10 +509,10 @@ modules["lesson/board"] = class {
     setSVG(increasePageButton, "../images/editor/bottom/plus.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
     setSVG(decreasePageButton, "../images/editor/bottom/minus.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
 
-    this.editor.pipeline.subscribe("statusSignalStrengthUpdate", "signal_strength", () => { this.updateStatus(); });
-    this.editor.pipeline.subscribe("statusSavingUpdate", "save_status", (event) => { this.updateStatus(event.saving); });
+    this.pipeline.subscribe("statusSignalStrengthUpdate", "signal_strength", () => { this.updateStatus(); });
+    this.pipeline.subscribe("statusSavingUpdate", "save_status", (event) => { this.updateStatus(event.saving); });
 
-    this.editor.pipeline.subscribe("zoomTextUpdate", "zoom_change", (event) => {
+    this.pipeline.subscribe("zoomTextUpdate", "zoom_change", (event) => {
       zoomButton.textContent = Math.round(event.zoom * 100) + "%";
       updateTopBar();
     });
@@ -533,7 +534,7 @@ modules["lesson/board"] = class {
       loginButton.addEventListener("click", () => { promptLogin(); });
     }
 
-    this.editor.pipeline.subscribe("pageTextUpdate", "page_change", (event) => {
+    this.pipeline.subscribe("pageTextUpdate", "page_change", (event) => {
       if (this.editor.currentPage > 0) {
         currentPageHolder.style.display = "flex";
         modifyParams("page", event.pageId);
@@ -653,12 +654,12 @@ modules["lesson/board"] = class {
         }
       }
     }
-    this.editor.pipeline.subscribe("boardPageAdd", "page_add", () => { updateSplitScreenButton(); });
-    this.editor.pipeline.subscribe("boardPageRemove", "page_remove", () => { updateSplitScreenButton(); });
-    this.editor.pipeline.subscribe("boardPageMaximize", "maximize", () => { updateSplitScreenButton(); });
+    this.pipeline.subscribe("boardPageAdd", "page_add", () => { updateSplitScreenButton(); });
+    this.pipeline.subscribe("boardPageRemove", "page_remove", () => { updateSplitScreenButton(); });
+    this.pipeline.subscribe("boardPageMaximize", "maximize", () => { updateSplitScreenButton(); });
     updateSplitScreenButton();
 
-    this.editor.pipeline.subscribe("boardLessonSet", "set", (body) => {
+    this.pipeline.subscribe("boardLessonSet", "set", (body) => {
       if (body.name != null && document.activeElement.closest(".eFileName") != lessonName) {
         lessonName.textContent = this.lesson.name ?? "Untitled Lesson";
         lessonName.title = lessonName.textContent;
@@ -677,9 +678,9 @@ modules["lesson/board"] = class {
       }
       this.updateInterface();
     });
-    this.editor.pipeline.subscribe("boardMemberJoin", "join", () => { this.updateMemberCount(membersButton); });
-    this.editor.pipeline.subscribe("boardMemberLeave", "leave", () => { this.updateMemberCount(membersButton); });
-    this.editor.pipeline.subscribe("boardMemberUpdate", "update", async (body) => {
+    this.pipeline.subscribe("boardMemberJoin", "join", () => { this.updateMemberCount(membersButton); });
+    this.pipeline.subscribe("boardMemberLeave", "leave", () => { this.updateMemberCount(membersButton); });
+    this.pipeline.subscribe("boardMemberUpdate", "update", async (body) => {
       let member = this.parent.members[body._id];
 
       if (this.editor.realtime.module != null) {
@@ -727,7 +728,7 @@ modules["lesson/board"] = class {
       this.updateMemberCount(membersButton);
     });
 
-    this.editor.pipeline.subscribe("spotlightStart", "spotlight", async (body) => {
+    this.pipeline.subscribe("spotlightStart", "spotlight", async (body) => {
       if (this.editor.realtime.module == null || this.parent.signalStrength < 3) {
         return;
       }
@@ -747,7 +748,7 @@ modules["lesson/board"] = class {
       let prevObserve = this.editor.realtime.observing;
       this.editor.realtime.observing = body.member;
       this.editor.realtime.module.setShortSub(this.editor.visibleChunks);
-      this.editor.pipeline.publish("observe_enable", { memberID: body.member });
+      this.pipeline.publish("observe_enable", { memberID: body.member });
       alertModule.close(this.editor.realtime.observeLoading);
       clearTimeout(this.editor.realtime.observeTimeout);
       let [code] = await sendRequest("GET", "lessons/members/observe?member=" + body.member, null, { session: this.editor.session });
@@ -765,7 +766,7 @@ modules["lesson/board"] = class {
         }
         this.editor.realtime.observing = null;
         this.editor.realtime.module.setShortSub(this.visibleChunks);
-        this.editor.pipeline.publish("observe_exit", { memberID: body.member });
+        this.pipeline.publish("observe_exit", { memberID: body.member });
       }
     });
 
@@ -774,19 +775,19 @@ modules["lesson/board"] = class {
       sharePinButton.textContent = this.lesson.pin;
     }
 
-    this.editor.pipeline.subscribe("interfaceUpdate", "refresh_interface", () => {
+    this.pipeline.subscribe("interfaceUpdate", "refresh_interface", () => {
       this.updateInterface();
     });
-    this.editor.pipeline.subscribe("accountUpdate", "account_settings", (event) => {
+    this.pipeline.subscribe("accountUpdate", "account_settings", (event) => {
       if (event.settings.hasOwnProperty("toolbar") == true) {
         this.updateInterface();
       }
       if (event.settings.hasOwnProperty("actionbar") == true) {
-        this.editor.pipeline.publish("redraw_selection", { redraw: true });
+        this.pipeline.publish("redraw_selection", { redraw: true });
       }
     });
 
-    this.editor.pipeline.subscribe("updateHistory", "history_update", (data) => {
+    this.pipeline.subscribe("updateHistory", "history_update", (data) => {
       if (data.history.length > 0 && data.location > -1 && this.editor.self.access > 0) {
         undoButton.removeAttribute("disabled");
       } else {
@@ -800,6 +801,23 @@ modules["lesson/board"] = class {
     });
     undoButton.addEventListener("click", () => { this.editor.history.undo(); });
     redoButton.addEventListener("click", () => { this.editor.history.redo(); });
+
+    this.pipeline.subscribe("checkActivePage", "click_start", () => {
+      if (this.parent.activePageID != this.pageID) {
+        this.parent.activePageID = this.pageID;
+        this.parent.pushToPipelines(null, "page_switch", { pageID: this.pageID });
+      }
+    });
+    let updateActivePage = () => {
+      this.active = this.parent.activePageID == this.pageID;
+      if (this.active == false) {
+        this.pageHolder.removeAttribute("active");
+      } else {
+        this.pageHolder.setAttribute("active", "");
+      }
+    }
+    this.pipeline.subscribe("checkPageSwitch", "page_switch", updateActivePage, { sort: 1 });
+    updateActivePage();
 
     // Fetch Annotations
     let pageParam = getParam("page");
@@ -880,7 +898,7 @@ modules["lesson/board"] = class {
         await this.editor.updateChunks();
         if (this.editor.toolbar != null) {
           this.editor.selecting[checkForJumpLink] = {};
-          this.editor.pipeline.publish("redraw_selection", {});
+          this.pipeline.publish("redraw_selection", {});
         } else {
           redrawSelectionId = checkForJumpLink;
         }
@@ -899,7 +917,7 @@ modules["lesson/board"] = class {
       
       if (redrawSelectionId != null) {
         this.editor.selecting[redrawSelectionId] = {};
-        this.editor.pipeline.publish("redraw_selection", { redraw: true });
+        this.pipeline.publish("redraw_selection", { redraw: true });
       }
     })();
 

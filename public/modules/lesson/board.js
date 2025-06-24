@@ -1198,9 +1198,10 @@ modules["dropdowns/lesson/board/members"] = class {
     ".eMemberEventDesc": `font-size: 14px; text-align: right`,
     ".eMemberSectionActions": `flex-wrap: wrap; width: calc(100% - 12px); padding: 6px; margin-top: 6px; justify-content: space-around`,
     ".eMemberSectionActions button": `display: flex; flex-direction: column; width: 86.33px; padding: 6px 12px; align-items: center; border-radius: 14px; color: var(--themeColor); overflow: visible`,
-    ".eMemberSectionActions button img": `width: 55px; height: 55px; transition: .15s`,
-    ".eMemberSectionActions button div": `margin-top: 6px; font-size: 14px; font-weight: 600; white-space: nowrap`,
-    ".eMemberSectionActions button:hover img": `transform: scale(1.15) translateY(-2px)`,
+    ".eMemberSectionActions button div[image]": `width: 55px; height: 55px; transition: .15s`,
+    ".eMemberSectionActions button div[image] svg": `width: 100%; height: 100%`,
+    ".eMemberSectionActions button div[text]": `margin-top: 6px; font-size: 14px; font-weight: 600; white-space: nowrap`,
+    ".eMemberSectionActions button:hover div[image]": `transform: scale(1.15) translateY(-2px)`,
     ".eMemberSectionActions button:active": `background: var(--themeColor); color: #fff`,
     ".eMemberSectionActions button:active img": `filter: brightness(0) invert(1); transform: scale(1)`
   };
@@ -1526,8 +1527,10 @@ modules["dropdowns/lesson/board/members"] = class {
           obvText = "Exit";
           obvDesc = "Stop watching this member's screen."
         }
-        button.querySelector("img").src = obvImg;
-        button.querySelector("div").textContent = obvText;
+        let imageHolder = button.querySelector("div[image]");
+        imageHolder.innerHTML = "";
+        setSVG(imageHolder, obvImg);
+        button.querySelector("div[text]").textContent = obvText;
         button.title = obvDesc;
         if (member.weak != true && lesson.signalStrength > 2 && member.observe == null) {
           observeButton.style.opacity = 1;
@@ -1598,24 +1601,24 @@ modules["dropdowns/lesson/board/members"] = class {
               </div>
               <div class="eMemberSection eMemberSectionActions">
                 <button editor style="--themeColor: var(--theme)">
-                  <img>
-                  <div></div>
+                  <div image></div>
+                  <div text></div>
                 </button>
                 <button hand style="--themeColor: var(--green)" title="Lower this member's hand.">
-                  <img src="../images/editor/members/lowerhand.svg">
-                  <div>Lower</div>
+                  <div image></div>
+                  <div text>Lower</div>
                 </button>
                 <button observe style="--themeColor: var(--purple)">
-                  <img>
-                  <div>Observe</div>
+                  <div image></div>
+                  <div text>Observe</div>
                 </button>
                 <button spotlight style="--themeColor: var(--purple)" title="Bring members to your location.">
-                  <img src="../images/editor/members/spotlight.svg">
-                  <div>Spotlight</div>
+                  <div image></div>
+                  <div text>Spotlight</div>
                 </button>
                 <button kick style="--themeColor: var(--error)" title="Revoke all viewing and editing privileges.">
-                  <img src="../images/editor/members/kick.svg">
-                  <div>Kick</div>
+                  <div image></div>
+                  <div text>Kick</div>
                 </button>
               </div>
             </div>
@@ -1762,6 +1765,10 @@ modules["dropdowns/lesson/board/members"] = class {
           }
           kickButton.removeAttribute("disabled");
         });
+
+        setSVG(handButton.querySelector("div[image]"), "../images/editor/members/lowerhand.svg");
+        setSVG(spotlightButton.querySelector("div[image]"), "../images/editor/members/spotlight.svg");
+        setSVG(kickButton.querySelector("div[image]"), "../images/editor/members/kick.svg");
       }
 
       let memberFrame = memberFrameHolder.querySelector(".eMemberFrame");
@@ -1856,8 +1863,10 @@ modules["dropdowns/lesson/board/members"] = class {
           text = "Viewer";
           desc = "Revoke temporary editing privileges, granting viewer.";
         }
-        editorButton.querySelector("img").src = image;
-        editorButton.querySelector("div").textContent = text;
+        let imageHolder = editorButton.querySelector("div[image]");
+        imageHolder.innerHTML = "";
+        setSVG(imageHolder, image);
+        editorButton.querySelector("div[text]").textContent = text;
         editorButton.title = desc;
         editorButton.style.display = "flex";
       } else {

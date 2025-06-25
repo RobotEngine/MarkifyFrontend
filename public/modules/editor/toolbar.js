@@ -4197,6 +4197,12 @@ modules["editor/toolbar"] = class {
       let startIndex = html.indexOf("(markify+copypaste)"); // 19 chars
       let endIndex = html.indexOf("(/markify+copypaste)");
       if (startIndex < 0 || endIndex < 0) {
+        let text = clipboardData.getData("text");
+        if (isValidURL(text) == true) {
+          await this.toolbar.startTool(toolbar.querySelector('.eTool[tool="media"]'));
+          await this.toolbar.startTool(toolbar.querySelector('.eTool[tool="embed"]'), null, { link: text });
+          return event.preventDefault();
+        }
         return;
       }
       let annotationData = JSON.parse(decodeURIComponent(html.substring(startIndex + 19, endIndex)));
@@ -5330,6 +5336,10 @@ modules["editor/toolbar/placement"] = class {
           clearText: true
         });
       }
+
+      if (this.FORCE_SAVE == true) {
+        this.editor.save.syncSave(true);
+      }
     }
     this.editor.render.remove(this.annotation);
     this.annotation = null;
@@ -5489,6 +5499,10 @@ modules["editor/toolbar/resize_placement"] = class {
       await this.parent.toolbar.startTool(this.parent.toolbar.toolbar.querySelector('.eTool[tool="select"]'));
       this.editor.selecting[this.annotation.render._id] = {};
       this.parent.selection.updateBox();
+
+      if (this.FORCE_SAVE == true) {
+        this.editor.save.syncSave(true);
+      }
     }
     this.editor.render.remove(this.annotation);
     this.annotation = null;
@@ -6640,12 +6654,19 @@ modules["editor/toolbar/upload"] = class extends modules["editor/toolbar/resize_
 modules["editor/toolbar/embed"] = class extends modules["editor/toolbar/placement"] {
   TARGET_QUERY = '.eActionBar:not([remove]) .eTool[module="editor/toolbar/setembed"]';
   
-  enable = () => {
+  enable = (extra) => {
     this.PROPERTIES = {
       f: "embed",
       s: [400, 350],
       l: this.editor.maxLayer + 1
     };
+    if (extra != null && extra.link != null) {
+      this.link = extra.link;
+      this.FORCE_SAVE = true;
+    }
+    if (this.link != null) {
+      this.PROPERTIES.d = this.link;
+    }
   }
 }
 

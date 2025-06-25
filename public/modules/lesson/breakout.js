@@ -177,6 +177,7 @@ modules["lesson/breakout/overview"] = class {
   css = {
     ".boInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; user-select: none; overflow-y: scroll; z-index: 2`,
     ".boGroupHolder": `position: relative; width: 100%; height: 100%; overflow-y: scroll; z-index: 1; transition: .5s`,
+    ".boCreateBreakoutHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden; z-index: 3; pointer-events: none`,
 
     ".boTopHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
     ".boTop": `position: absolute; display: flex; box-sizing: border-box; width: 100%; gap: 8px; padding-bottom: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,
@@ -219,8 +220,7 @@ modules["lesson/breakout/overview"] = class {
     ".boOpenBoard button": `display: flex; width: 38px; height: 38px; padding: 0; border-radius: 6px; justify-content: center; align-items: center`,
     ".boOpenBoard button:hover": `background: var(--boardHover)`,
     ".boOpenBoard button svg": `width: 32px; height: 32px; transition: .2s`,
-    ".boOpenBoard button:hover svg": `transform: scale(.9)`
-
+    ".boOpenBoard button:hover svg": `transform: scale(.9)`,
   };
   js = async (frame) => {
     frame.style.position = "relative";
@@ -469,6 +469,11 @@ modules["lesson/breakout/overview"] = class {
     this.parent.pipeline.subscribe("pageSwitch", "page_switch", updateSplitScreenButton);
     this.parent.pipeline.subscribe("pageMaximize", "maximize", updateSplitScreenButton);
     updateSplitScreenButton();
+
+    if (this.session == null || this.lesson.tool.includes("breakout") == false) { // Create New Lesson
+      frame.insertAdjacentHTML("beforeend", `<div class="boCreateBreakoutHolder"></div>`);
+      await modalModule.open("modals/lesson/newbreakout", frame.querySelector(".boCreateBreakoutHolder"), null, "Start Breakout", null, { parent: this });
+    }
   }
 }
 

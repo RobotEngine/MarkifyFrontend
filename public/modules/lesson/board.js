@@ -921,7 +921,7 @@ modules["lesson/board"] = class {
 
     this.updateInterface();
 
-    if (this.session == null) { // Create New Lesson
+    if (this.session == null || this.lesson.tool.includes("board") == false) { // Create New Lesson
       frame.insertAdjacentHTML("beforeend", `<div class="eCreateBoardHolder"></div>`);
       await modalModule.open("modals/lesson/newboard", frame.querySelector(".eCreateBoardHolder"), null, "Create Board", null, { parent: this });
     }
@@ -965,7 +965,7 @@ modules["dropdowns/lesson/file"] = class {
 
     let dashboardButton = frame.querySelector('.eFileAction[option="dashboard"]');
     dashboardButton.addEventListener("click", async () => {
-      //utils.syncSave(true);
+      editor.save.syncSave(true);
       setFrame("pages/app/dashboard");
     });
     let exportButton = frame.querySelector('.eFileAction[option="export"]');

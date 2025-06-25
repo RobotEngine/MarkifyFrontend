@@ -90,13 +90,14 @@ modules["lesson/breakout"] = class {
     this.pageHolder.style.setProperty("--secondaryRGB", "var(--breakoutSecondaryRGB)");
     this.pageHolder.style.setProperty("--secondary", "var(--breakoutSecondary)");
     this.pageHolder.style.setProperty("--hoverRGB", "var(--breakoutHoverRGB)");
+    this.pageHolder.style.setProperty("--hover", "var(--breakoutHover)");
+    this.pageHolder.style.setProperty("--lightShadow", "var(--breakoutLightShadow)");
+    this.pageHolder.style.setProperty("--darkShadow", "var(--breakoutDarkShadow)");
 
-    this.pageHolder.style.setProperty("--boardHover", "var(--hover)");
-    this.pageHolder.style.setProperty("--boardLightShadow", "var(--lightShadow)");
-    this.pageHolder.style.setProperty("--boardDarkShadow", "var(--darkShadow)");
-    page.style.setProperty("--hover", "var(--breakoutHover)");
-    page.style.setProperty("--lightShadow", "var(--breakoutLightShadow)");
-    page.style.setProperty("--darkShadow", "var(--breakoutDarkShadow)");
+    let bodyStyle = window.getComputedStyle(body);
+    page.style.setProperty("--boardHover", bodyStyle.getPropertyValue("--hover"));
+    page.style.setProperty("--boardLightShadow", bodyStyle.getPropertyValue("--lightShadow"));
+    page.style.setProperty("--boardDarkShadow", bodyStyle.getPropertyValue("--darkShadow"));
 
     this.pipeline.subscribe("checkActivePage", "click_start", () => {
       if (this.parent.activePageID != this.pageID) {

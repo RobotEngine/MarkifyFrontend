@@ -421,7 +421,7 @@ modules["editor/editor"] = class {
   };
 
   isPageActive = () => {
-    return this.active == true;
+    return this.parent.active == true;
   }
   isThisPage = (element) => {
     return element != null && element.closest(".lPage") == this.pageFrame;

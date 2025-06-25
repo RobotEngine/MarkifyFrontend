@@ -126,11 +126,11 @@ modules["pages/app/lesson"] = class {
     typePages[id] = newPage;
     this.pushToPipelines(null, "page_add", { type: type, page: newPage });
     (async () => {
-      this.pushToPipelines(null, "resize", { event: "page_add" });
-      this.pushToPipelines(null, "bounds_change", { event: "page_add" });
-      await sleep(400);
-      this.pushToPipelines(null, "resize", { event: "page_add" });
-      this.pushToPipelines(null, "bounds_change", { event: "page_add" });
+      for (let i = 0; i < 10; i++) {
+        this.pushToPipelines(null, "resize", { event: "page_add" });
+        this.pushToPipelines(null, "bounds_change", { event: "page_add" });
+        await sleep(40);
+      }
     })();
     this.updateFavicon();
     return newPage;
@@ -196,8 +196,13 @@ modules["pages/app/lesson"] = class {
       if (page.pageHolder != null) {
         page.pageHolder.remove();
       }
-      this.pushToPipelines(null, "resize", { event: "page_add" });
-      this.pushToPipelines(null, "bounds_change", { event: "page_add" });
+    })();
+    (async () => {
+      for (let i = 0; i < 10; i++) {
+        this.pushToPipelines(null, "resize", { event: "page_add" });
+        this.pushToPipelines(null, "bounds_change", { event: "page_add" });
+        await sleep(40);
+      }
     })();
     let editor = page.editor;
     if (editor != null) {

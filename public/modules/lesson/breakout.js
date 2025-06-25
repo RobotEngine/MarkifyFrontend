@@ -472,7 +472,7 @@ modules["lesson/breakout/overview"] = class {
 
     if (this.session == null || this.lesson.tool.includes("breakout") == false) { // Create New Lesson
       frame.insertAdjacentHTML("beforeend", `<div class="boCreateBreakoutHolder"></div>`);
-      await modalModule.open("modals/lesson/newbreakout", frame.querySelector(".boCreateBreakoutHolder"), null, "Start Breakout", null, { parent: this });
+      await modalModule.open("modals/lesson/newbreakout", frame.querySelector(".boCreateBreakoutHolder"), null, "Start a Breakout", null, { parent: this });
     }
   }
 }

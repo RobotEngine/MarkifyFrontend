@@ -27,15 +27,16 @@ modules["modals/lesson/newboard"] = class {
     this.folder = getParam("folder");
 
     let modal = frame.closest(".modal");
-    let input = frame.querySelector("input");
-    let uploadButton = frame.querySelector(".lessonUpload");
-    let uploadBImg = uploadButton.querySelector("img");
 
     if (extra.button == null) {
       modal.querySelector(".modalClose").addEventListener("click", () => {
-        setFrame("pages/app/dashboard");
+        this.parent.parent.removePage(this.parent.pageID, this.parent.pageType, { animate: true });
       });
     }
+
+    let input = frame.querySelector("input");
+    let uploadButton = frame.querySelector(".lessonUpload");
+    let uploadBImg = uploadButton.querySelector("img");
 
     let blankButton = frame.querySelector(".lessonBlank");
     blankButton.addEventListener("click", () => {

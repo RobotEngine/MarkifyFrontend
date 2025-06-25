@@ -49,6 +49,14 @@ modules["modals/lesson/newbreakout"] = class {
   js = async (frame, extra) => {
     this.parent = extra.parent;
 
+    let modal = frame.closest(".modal");
+
+    if (extra.button == null) {
+      modal.querySelector(".modalClose").addEventListener("click", () => {
+        this.parent.parent.parent.removePage(this.parent.parent.pageID, this.parent.parent.pageType, { animate: true });
+      });
+    }
+
     let blankButton = frame.querySelector('.brtButton[type="blank"]');
     let cloneButton = frame.querySelector('.brtButton[type="clone"]');
     let duplicateButton = frame.querySelector('.brtButton[type="duplicate"]');

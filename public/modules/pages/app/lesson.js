@@ -27,6 +27,7 @@ modules["pages/app/lesson"] = class {
     ".lPageHolder[maximize]": `padding: 0px !important`,
     ".lPage": `--shadowOpacity: .3; position: relative; display: flex; width: 100%; height: 100%; flex: 1; z-index: 1; box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: 12px; overflow: hidden; transition: all .2s, flex .4s`, //min-width: min(var(--minPageSize), 100%);
     ".lPage[active]": `--shadowOpacity: .5 !important`,
+    ".lPage[remove]": `flex: 0 !important; opacity: 0 !important`,
     ".lPageHolder[resize] .lPage": `min-width: unset; transition: unset`,
     ".lPageHolder[maximize] .lPage": `opacity: 0 !important; transition: none !important; pointer-events: all`,
     ".lPageHolder[maximize] .lPage[active]": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 3 !important; border-radius: 0px !important; opacity: 1 !important`,
@@ -146,8 +147,14 @@ modules["pages/app/lesson"] = class {
     if (page == null) {
       return;
     }
+    let adjustPercent = 100;
     if (page.pageHolder != null) {
+      if (page.pageHolder.parentElement.childElementCount < 2) {
+        return setFrame("pages/app/dashboard");
+      }
       page.pageHolder.setAttribute("remove", "");
+      let style = window.getComputedStyle(page.pageHolder).getPropertyValue("flex");
+      adjustPercent = parseFloat(style.substring(4, style.lastIndexOf("%")));
     }
     (async () => {
       let removeDividers = [];
@@ -170,11 +177,15 @@ modules["pages/app/lesson"] = class {
             removeDividers.push(child);
             continue;
           }
+        } else if (child.className == "lPage") {
+          let style = window.getComputedStyle(child).getPropertyValue("flex");
+          let percent = parseFloat(style.substring(4, style.lastIndexOf("%")));
+          child.style.flex = "1 1 " + (percent * (100 / (100 - adjustPercent))) + "%";
         }
         typeBefore = child.className;
       }
       if (extra.animate == true) {
-        await sleep(200);
+        await sleep(400);
       }
       for (let i = 0; i < removeDividers.length; i++) {
         let divider = removeDividers[i];
@@ -182,10 +193,11 @@ modules["pages/app/lesson"] = class {
           divider.remove();
         }
       }
-      if (page.pageHolder == null) {
-        return;
+      if (page.pageHolder != null) {
+        page.pageHolder.remove();
       }
-      page.pageHolder.remove();
+      this.pushToPipelines(null, "resize", { event: "page_add" });
+      this.pushToPipelines(null, "bounds_change", { event: "page_add" });
     })();
     let editor = page.editor;
     if (editor != null) {

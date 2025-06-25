@@ -15,6 +15,7 @@ modules["lesson/export"] = class {
 
     let page = frame.closest(".content");
     let pageFrame = page.closest(".lPage");
+    pageFrame.setAttribute("active", "");
     pageFrame.style.width = "fit-content";
     pageFrame.style.height = "fit-content";
 

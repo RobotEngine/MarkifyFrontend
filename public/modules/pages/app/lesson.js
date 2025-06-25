@@ -70,18 +70,21 @@ modules["pages/app/lesson"] = class {
       pageHolder.insertAdjacentHTML("beforeend", `<div class="lPage" new></div>`);
       holder = pageHolder.querySelector(".lPage[new]");
       holder.removeAttribute("new");
+      let newDivider;
       if (pageHolder.childElementCount > 1) {
         pageHolder.insertAdjacentHTML("beforeend", `<div class="lPageDivider" draggable="false" new><div></div></div>`);
-        let newDivider = pageHolder.querySelector(".lPageDivider[new]");
+        newDivider = pageHolder.querySelector(".lPageDivider[new]");
         newDivider.removeAttribute("new");
         pageHolder.insertBefore(newDivider, holder);
       }
-    }
-    if (extra.insertBefore != null) {
-      pageHolder.insertBefore(holder, extra.insertBefore);
-    }
-    if (extra.insertAfter != null && extra.insertAfter.nextElementSibling != null) {
-      pageHolder.insertBefore(holder, extra.insertAfter.nextElementSibling);
+      if (extra.insertBefore != null) {
+        pageHolder.insertBefore(holder, extra.insertBefore);
+        pageHolder.insertBefore(newDivider, extra.insertBefore);
+      }
+      if (extra.insertAfter != null && extra.insertAfter.nextElementSibling != null) {
+        pageHolder.insertBefore(holder, extra.insertAfter.nextElementSibling);
+        pageHolder.insertBefore(newDivider, holder);
+      }
     }
     if (this.activePageID == null) {
       this.activePageID = id;
@@ -382,8 +385,6 @@ modules["pages/app/lesson"] = class {
           events = data.data;
         }
 
-        let page = data.page ?? "board";
-
         for (let i = 0; i < events.length; i++) {
           let body = events[i];
           switch (data.task) {
@@ -503,7 +504,7 @@ modules["pages/app/lesson"] = class {
               this.folder = body.folder;
           }
 
-          this.pushToPipelines(page, data.task, body);
+          this.pushToPipelines(data.page, data.task, body);
         }
       }
       socket.remotes["long_" + this.id] = async (data) => {

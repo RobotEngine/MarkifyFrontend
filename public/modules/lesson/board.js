@@ -165,6 +165,7 @@ modules["lesson/board"] = class {
     let eBottom = frame.querySelector(".eBottom");
 
     let leftTop = eTop.querySelector(".eTopSection[left]");
+    let icon = leftTop.querySelector(".eLogo");
     let lessonName = leftTop.querySelector(".eFileName");
     let fileButton = leftTop.querySelector(".eFileDropdown");
     let createCopyButton = leftTop.querySelector(".eCreateCopy");
@@ -260,6 +261,10 @@ modules["lesson/board"] = class {
     this.pipeline.subscribe("topbarScroll", "topbar_scroll", () => { updateTopBar(true); });
     this.pipeline.subscribe("topbarVisibilityChange", "visibilitychange", updateTopBar);
     updateTopBar();
+
+    eTop.addEventListener("scroll", (event) => {
+      this.pipeline.publish("topbar_scroll", { event: event });
+    });
 
     this.updateInterface = async () => {
       let access = this.editor.self.access;
@@ -364,11 +369,6 @@ modules["lesson/board"] = class {
     }
     this.updateMemberCount(membersButton);
 
-    eTop.addEventListener("scroll", (event) => {
-      this.pipeline.publish("topbar_scroll", { event: event });
-    });
-
-    let icon = eTop.querySelector(".eLogo");
     icon.addEventListener("click", (event) => {
       event.preventDefault();
       this.editor.save.syncSave(true);
@@ -447,6 +447,10 @@ modules["lesson/board"] = class {
         dropdownModule.open(sharePinButton, "dropdowns/lesson/share/pin", { parent: this });
       }
     });
+    if (this.lesson.pin != null) {
+      sharePinButton.style.display = "unset";
+      sharePinButton.textContent = this.lesson.pin;
+    }
     optionsButton.addEventListener("click", () => {
       if (modules["dropdowns/lesson/share/options"] != null) {
         dropdownModule.open(optionsButton, "dropdowns/lesson/share/options", { title: "Options", parent: this });
@@ -498,7 +502,7 @@ modules["lesson/board"] = class {
     // Load Images:
     setSVG(eTopScrollLeft, "../images/editor/top/leftarrow.svg");
     setSVG(eTopScrollRight, "../images/editor/top/rightarrow.svg");
-    setSVG(icon, "../images/icon.svg", (svg) => { return svg.replace(/"#0084FF"/g, '"var(--theme)"'); });
+    setSVG(icon, "../images/icon.svg");
     setSVG(undoButton, "../images/tooltips/progress/undo.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
     setSVG(redoButton, "../images/tooltips/progress/redo.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
     setSVG(status.querySelector('div[strength="3"]'), "../images/editor/status/full.svg");
@@ -620,7 +624,9 @@ modules["lesson/board"] = class {
         }
       } else {
         if (hasFeatureEnabled("breakout") == true) {
-          showBreakoutButton = true;
+          if (breakoutOpen == false || breakoutVisible == false) {
+            showBreakoutButton = true;
+          }
         }
       }
 
@@ -633,11 +639,7 @@ modules["lesson/board"] = class {
           breakoutButton.addEventListener("click", async () => {
             breakoutButton.remove();
             breakoutButton = null;
-
-            if (breakoutEnabled == false) {
-              // Create new breakout - SOON
-              return;
-            }
+            
             if (breakoutOpen == false) {
               await this.parent.addPage("breakout", "breakout", { percent: .5 });
             }
@@ -654,9 +656,9 @@ modules["lesson/board"] = class {
         }
       }
     }
-    this.pipeline.subscribe("boardPageAdd", "page_add", () => { updateSplitScreenButton(); });
-    this.pipeline.subscribe("boardPageRemove", "page_remove", () => { updateSplitScreenButton(); });
-    this.pipeline.subscribe("boardPageMaximize", "maximize", () => { updateSplitScreenButton(); });
+    this.pipeline.subscribe("pageAdd", "page_add", () => { updateSplitScreenButton(); });
+    this.pipeline.subscribe("pageRemove", "page_remove", () => { updateSplitScreenButton(); });
+    this.pipeline.subscribe("pageMaximize", "maximize", () => { updateSplitScreenButton(); });
     updateSplitScreenButton();
 
     this.pipeline.subscribe("boardLessonSet", "set", (body) => {
@@ -769,11 +771,6 @@ modules["lesson/board"] = class {
         this.pipeline.publish("observe_exit", { memberID: body.member });
       }
     });
-
-    if (this.parent.lesson.pin != null) {
-      sharePinButton.style.display = "unset";
-      sharePinButton.textContent = this.lesson.pin;
-    }
 
     this.pipeline.subscribe("interfaceUpdate", "refresh_interface", () => {
       this.updateInterface();

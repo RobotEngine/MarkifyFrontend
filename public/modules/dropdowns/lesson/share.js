@@ -81,7 +81,7 @@ modules["dropdowns/lesson/share/pin"] = class {
   js = async (frame, extra) => {
     let parent = extra.parent;
     let lesson = parent.parent;
-    let editor = parent.editor;
+    let editor = parent.editor ?? parent;
 
     let createHolder = frame.querySelector(".eSharePinCreate");
     let createButton = createHolder.querySelector("button");
@@ -120,7 +120,7 @@ modules["dropdowns/lesson/share/pin"] = class {
         titleTx.innerHTML = lesson.lesson.pin ?? "";
       }
     }
-    editor.pipeline.subscribe("shareLessonSet", "set", (body) => {
+    parent.pipeline.subscribe("shareLessonSet", "set", (body) => {
       if (body.hasOwnProperty("pin") == true) {
         updatePin();
       }
@@ -129,7 +129,7 @@ modules["dropdowns/lesson/share/pin"] = class {
     
     createButton.addEventListener("click", async () => {
       createButton.setAttribute("disabled", "");
-      let [code, body] = await sendRequest("PUT", "lessons/share/pin/generate", null, { session: editor.session });
+      let [code, body] = await sendRequest("PUT", "lessons/share/pin/generate", null, { session: lesson.session });
       if (code == 200) {
         lesson.lesson.pin = body.pin;
         updatePin();
@@ -144,7 +144,7 @@ modules["dropdowns/lesson/share/pin"] = class {
     let removeButton = frame.querySelector(".eSharePinRemove");
     removeButton.addEventListener("click", async () => {
       removeButton.setAttribute("disabled", "");
-      let [code] = await sendRequest("DELETE", "lessons/share/pin/remove", null, { session: editor.session });
+      let [code] = await sendRequest("DELETE", "lessons/share/pin/remove", null, { session: lesson.session });
       if (code == 200) {
         lesson.lesson.pin = null;
         updatePin();
@@ -160,7 +160,7 @@ modules["dropdowns/lesson/share/pin"] = class {
       dropdownModule.open(optionsButton, "dropdowns/lesson/share/options", { parent: parent });
     });
 
-    if (editor.self.access < 2) {
+    if (editor.self != null && editor.self.access < 2) {
       createButton.setAttribute("disabled", "");
       optionHolder.remove();
     }
@@ -219,7 +219,6 @@ modules["dropdowns/lesson/share/link"] = class {
 
     let parent = extra.parent;
     let lesson = parent.parent;
-    let editor = parent.editor;
 
     let createHolder = frame.querySelector(".eShareLinkCreate");
     let createButton = createHolder.querySelector("button");
@@ -261,7 +260,7 @@ modules["dropdowns/lesson/share/link"] = class {
         linkTx.value = "markify.link/join?lesson=" + lesson.id + "&auth=classlink";
       }
     }
-    editor.pipeline.subscribe("shareLessonSet", "set", (body) => {
+    parent.pipeline.subscribe("shareLessonSet", "set", (body) => {
       if (body.hasOwnProperty("access") == true) {
         updateLink();
       }
@@ -270,7 +269,7 @@ modules["dropdowns/lesson/share/link"] = class {
     
     createButton.addEventListener("click", async () => {
       createButton.setAttribute("disabled", "");
-      let [code, body] = await sendRequest("PUT", "lessons/share/link/enable", null, { session: editor.session });
+      let [code, body] = await sendRequest("PUT", "lessons/share/link/enable", null, { session: lesson.session });
       if (code == 200) {
         lesson.lesson.access = body.access;
         updateLink();
@@ -286,7 +285,7 @@ modules["dropdowns/lesson/share/link"] = class {
       }
       lesson.lesson.access = newValue;
       updateLink();
-      let [code] = await sendRequest("PUT", "lessons/setting", { set: "publicAccess", value: newValue }, { session: editor.session });
+      let [code] = await sendRequest("PUT", "lessons/setting", { set: "publicAccess", value: newValue }, { session: lesson.session });
       if (code != 200) {
         lesson.lesson.access = existingValue;
         updateLink();
@@ -297,7 +296,7 @@ modules["dropdowns/lesson/share/link"] = class {
     let removeButton = frame.querySelector(".eShareLinkRemove");
     removeButton.addEventListener("click", async () => {
       removeButton.setAttribute("disabled", "");
-      let [code] = await sendRequest("DELETE", "lessons/share/link/remove", null, { session: editor.session });
+      let [code] = await sendRequest("DELETE", "lessons/share/link/remove", null, { session: lesson.session });
       if (code == 200) {
         delete lesson.lesson.access;
         updateLink();
@@ -346,7 +345,7 @@ modules["dropdowns/lesson/share/email"] = class {
     frame.closest(".dropdownContent").style.padding = "0px";
 
     let parent = extra.parent;
-    let editor = parent.editor;
+    let lesson = parent.parent;
     
     let inputField = frame.querySelector(".eShareEmailInput");
     let sendButton = frame.querySelector(".eShareEmailButton");
@@ -373,7 +372,7 @@ modules["dropdowns/lesson/share/email"] = class {
       }
       inputField.setAttribute("disabled", "");
       sendButton.setAttribute("disabled", "");
-      let [code, response] = await sendRequest("POST", "lessons/share/email/send", { email: email }, { session: editor.session });
+      let [code, response] = await sendRequest("POST", "lessons/share/email/send", { email: email }, { session: lesson.session });
       if (code == 200) {
         addNewTile(response);
         inputField.value = "";
@@ -447,8 +446,8 @@ modules["dropdowns/lesson/share/email"] = class {
       }
       updateEmptyTx();
     }
-    editor.pipeline.subscribe("shareLessonSet", "invite", emailInvite, { unsubscribe: true });
-    editor.pipeline.subscribe("shareLessonJoin", "join", (body) => {
+    parent.pipeline.subscribe("shareLessonSet", "invite", emailInvite, { unsubscribe: true });
+    parent.pipeline.subscribe("shareLessonJoin", "join", (body) => {
       if (body.method == "shared") {
         emailInvite({ subTask: "join", _id: body.user, email: body.email, user: body.name, image: body.image, access: body.access });
       }
@@ -482,7 +481,7 @@ modules["dropdowns/lesson/share/email"] = class {
           existingAccess = 1;
         }
         updatePermButton(permSet, access);
-        let [code] = await sendRequest("PUT", "lessons/share/email/update?userid=" + tile.getAttribute("userid"), { access: access }, { session: editor.session });
+        let [code] = await sendRequest("PUT", "lessons/share/email/update?userid=" + tile.getAttribute("userid"), { access: access }, { session: lesson.session });
         if (code != 200) {
           updatePermButton(permSet, existingAccess);
         }
@@ -492,7 +491,7 @@ modules["dropdowns/lesson/share/email"] = class {
       let remUser = element.closest(".eShareRemove");
       if (remUser) {
         remUser.parentElement.setAttribute("disabled", "");
-        let [code] = await sendRequest("DELETE", "lessons/share/email/remove?userid=" + tile.getAttribute("userid"), null, { session: editor.session });
+        let [code] = await sendRequest("DELETE", "lessons/share/email/remove?userid=" + tile.getAttribute("userid"), null, { session: lesson.session });
         if (code == 200) {
           tile.remove();
         } else {
@@ -501,7 +500,7 @@ modules["dropdowns/lesson/share/email"] = class {
       }
     });
 
-    let [code, response] = await sendRequest("GET", "lessons/share/email/invited", null, { session: editor.session });
+    let [code, response] = await sendRequest("GET", "lessons/share/email/invited", null, { session: lesson.session });
     if (code == 200) {
       let records = response.records;
       let users = getObject(response.users, "_id");
@@ -658,7 +657,7 @@ modules["dropdowns/lesson/share/options"] = class {
 
     let parent = extra.parent;
     let lesson = parent.parent;
-    let editor = parent.editor;
+    let editor = parent.editor ?? parent;
 
     let switcher = frame.querySelector(".eShareOptionSwitcher");
     let contentHolder = frame.querySelector(".eShareOptionContent");
@@ -791,7 +790,7 @@ modules["dropdowns/lesson/share/options"] = class {
         observeViewersButton.removeAttribute("on");
       }
     }
-    editor.pipeline.subscribe("shareLessonSet", "set", (body) => {
+    parent.pipeline.subscribe("shareLessonSet", "set", (body) => {
       if (body.hasOwnProperty("settings") == true) {
         updateOptions();
       }
@@ -800,40 +799,40 @@ modules["dropdowns/lesson/share/options"] = class {
 
     forceLoginButton.addEventListener("click", async () => {
       forceLoginButton.setAttribute("disabled", "");
-      await sendRequest("PUT", "lessons/setting", { set: "forceLogin", value: !forceLoginButton.hasAttribute("on") }, { session: editor.session });
+      await sendRequest("PUT", "lessons/setting", { set: "forceLogin", value: !forceLoginButton.hasAttribute("on") }, { session: lesson.session });
       forceLoginButton.removeAttribute("disabled");
     });
     editOthersWorkButton.addEventListener("click", async () => {
       editOthersWorkButton.setAttribute("disabled", "");
-      await sendRequest("PUT", "lessons/setting", { set: "editOthersWork", value: !editOthersWorkButton.hasAttribute("on") }, { session: editor.session });
+      await sendRequest("PUT", "lessons/setting", { set: "editOthersWork", value: !editOthersWorkButton.hasAttribute("on") }, { session: lesson.session });
       editOthersWorkButton.removeAttribute("disabled");
     });
     anonymousModeButton.addEventListener("click", async () => {
       anonymousModeButton.setAttribute("disabled", "");
-      await sendRequest("PUT", "lessons/setting", { set: "anonymousMode", value: !anonymousModeButton.hasAttribute("on") }, { session: editor.session });
+      await sendRequest("PUT", "lessons/setting", { set: "anonymousMode", value: !anonymousModeButton.hasAttribute("on") }, { session: lesson.session });
       anonymousModeButton.removeAttribute("disabled");
     });
     allowExportButton.addEventListener("click", async () => {
       allowExportButton.setAttribute("disabled", "");
-      await sendRequest("PUT", "lessons/setting", { set: "allowExport", value: !allowExportButton.hasAttribute("on") }, { session: editor.session });
+      await sendRequest("PUT", "lessons/setting", { set: "allowExport", value: !allowExportButton.hasAttribute("on") }, { session: lesson.session });
       allowExportButton.removeAttribute("disabled");
     });
     observeViewersButton.addEventListener("click", async () => {
       observeViewersButton.setAttribute("disabled", "");
-      await sendRequest("PUT", "lessons/setting", { set: "observeViewers", value: !observeViewersButton.hasAttribute("on") }, { session: editor.session });
+      await sendRequest("PUT", "lessons/setting", { set: "observeViewers", value: !observeViewersButton.hasAttribute("on") }, { session: lesson.session });
       observeViewersButton.removeAttribute("disabled");
     });
 
     let toolToggleAllOnButton = frame.querySelector(".eShareToolToggleAll[on]");
     toolToggleAllOnButton.addEventListener("click", async () => {
       toolToggleAllOnButton.setAttribute("disabled", "");
-      await sendRequest("PUT", "lessons/setting/tool", { set: "all", value: true }, { session: editor.session });
+      await sendRequest("PUT", "lessons/setting/tool", { set: "all", value: true }, { session: lesson.session });
       toolToggleAllOnButton.removeAttribute("disabled");
     });
     let toolToggleAllOffButton = frame.querySelector(".eShareToolToggleAll[off]");
     toolToggleAllOffButton.addEventListener("click", async () => {
       toolToggleAllOffButton.setAttribute("disabled", "");
-      await sendRequest("PUT", "lessons/setting/tool", { set: "all", value: false }, { session: editor.session });
+      await sendRequest("PUT", "lessons/setting/tool", { set: "all", value: false }, { session: lesson.session });
       toolToggleAllOffButton.removeAttribute("disabled");
     });
 
@@ -847,7 +846,7 @@ modules["dropdowns/lesson/share/options"] = class {
         return;
       }
       button.setAttribute("disabled", "");
-      await sendRequest("PUT", "lessons/setting/tool", { set: button.getAttribute("option"), value: !(button.hasAttribute("on")) }, { session: editor.session });
+      await sendRequest("PUT", "lessons/setting/tool", { set: button.getAttribute("option"), value: !(button.hasAttribute("on")) }, { session: lesson.session });
       button.removeAttribute("disabled");
     });
 

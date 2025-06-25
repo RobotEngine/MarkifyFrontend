@@ -428,11 +428,11 @@ modules["lesson/breakout/overview"] = class {
     setSVG(icon, "../images/breakout.svg");
     setSVG(optionsButton, "../images/editor/share/setting.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
 
-    let boardEnabled = false;
+    //let boardEnabled = false;
     let boardOpen = false;
     let boardVisible = false;
     let updateSplitScreenButton = () => {
-      boardEnabled = this.parent.parent.lesson.tool.includes("board");
+      //boardEnabled = this.parent.parent.lesson.tool.includes("board");
       boardOpen = this.parent.parent.pages["board"] != null;
       boardVisible = this.parent.parent.maximized != true || this.parent.parent.activePageID == "board";
 
@@ -463,9 +463,10 @@ modules["lesson/breakout/overview"] = class {
       }
     });
     setSVG(openBoard, "../images/icon.svg");
-    this.parent.pipeline.subscribe("pageAdd", "page_add", () => { updateSplitScreenButton(); });
-    this.parent.pipeline.subscribe("pageRemove", "page_remove", () => { updateSplitScreenButton(); });
-    this.parent.pipeline.subscribe("pageMaximize", "maximize", () => { updateSplitScreenButton(); });
+    this.parent.pipeline.subscribe("pageAdd", "page_add", updateSplitScreenButton);
+    this.parent.pipeline.subscribe("pageRemove", "page_remove", updateSplitScreenButton);
+    this.parent.pipeline.subscribe("pageSwitch", "page_switch", updateSplitScreenButton);
+    this.parent.pipeline.subscribe("pageMaximize", "maximize", updateSplitScreenButton);
     updateSplitScreenButton();
   }
 }

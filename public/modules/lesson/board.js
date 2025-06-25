@@ -656,9 +656,10 @@ modules["lesson/board"] = class {
         }
       }
     }
-    this.pipeline.subscribe("pageAdd", "page_add", () => { updateSplitScreenButton(); });
-    this.pipeline.subscribe("pageRemove", "page_remove", () => { updateSplitScreenButton(); });
-    this.pipeline.subscribe("pageMaximize", "maximize", () => { updateSplitScreenButton(); });
+    this.pipeline.subscribe("pageAdd", "page_add", updateSplitScreenButton);
+    this.pipeline.subscribe("pageRemove", "page_remove", updateSplitScreenButton);
+    this.pipeline.subscribe("pageSwitch", "page_switch", updateSplitScreenButton);
+    this.pipeline.subscribe("pageMaximize", "maximize", updateSplitScreenButton);
     updateSplitScreenButton();
 
     this.pipeline.subscribe("boardLessonSet", "set", (body) => {

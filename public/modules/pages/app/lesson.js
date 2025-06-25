@@ -149,6 +149,8 @@ modules["pages/app/lesson"] = class {
     }
     let adjustPercent = 100;
     if (page.pageHolder != null) {
+      let style = window.getComputedStyle(page.pageHolder).getPropertyValue("flex");
+      adjustPercent = parseFloat(style.substring(4, style.lastIndexOf("%")));
       page.pageHolder.setAttribute("remove", "");
       let newActivePage = this.frame.querySelector(".lPage:not([remove])");
       if (newActivePage == null) {
@@ -158,8 +160,6 @@ modules["pages/app/lesson"] = class {
         newActivePage.setAttribute("active", "");
         page.pageHolder.removeAttribute("active");
       }
-      let style = window.getComputedStyle(page.pageHolder).getPropertyValue("flex");
-      adjustPercent = parseFloat(style.substring(4, style.lastIndexOf("%")));
     }
     (async () => {
       let removeDividers = [];

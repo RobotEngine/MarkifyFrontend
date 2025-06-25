@@ -152,7 +152,8 @@ modules["lesson/breakout/overview"] = class {
         <div class="boTopSection" left>
           <a class="boLogo" href="/app/dashboard" draggable="false"></a>
           <div class="boFileNameHolder border"><div class="boFileName" spellcheck="false" onpaste="clipBoardRead(event)" contenteditable></div></div>
-          <button class="boEditDropdown">Manage</button>
+          <button class="boFileDropdown">File</button>
+          <button class="boManageDropdown">Manage</button>
         </div>
         <div class="boTopSection" scroll>
           <div class="boTopDivider"></div>
@@ -161,7 +162,6 @@ modules["lesson/breakout/overview"] = class {
           <button class="boStart"></button>
           <button class="boPause">Pause</button>
           <button class="boStop">Stop</button>
-          <div class="boTopDivider"></div>
           <button class="boShare">Share</button>
           <button class="boMemberOptions" dropdowntitle="Member Options" title="Member Options | Configure various member settings."></button>
           <button class="boSharePin"></button>
@@ -200,7 +200,8 @@ modules["lesson/breakout/overview"] = class {
     ".boFileName": `max-width: 350px; padding: 0px; outline: unset; font-size: 20px; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; scrollbar-width: none`,
     ".boFileName:focus": `padding: 4px 6px !important; overflow-x: auto !important; text-overflow: unset !important`,
     ".boFileName::-webkit-scrollbar": `display: none`,
-    ".boEditDropdown": `padding: 6px 10px; height: 32px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
+    ".boFileDropdown": `padding: 6px 10px; height: 32px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
+    ".boManageDropdown": `padding: 6px 10px; height: 32px; margin: 0 4px; background: var(--hover); border-radius: 16px; font-size: 16px; font-weight: 600`,
     ".boTopDivider": `width: 4px; height: 32px; margin: 0 4px; background: var(--lightGray); border-radius: 2px`,
 
     ".boShare": `display: flex; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
@@ -345,15 +346,15 @@ modules["lesson/breakout/overview"] = class {
       startButton.style.removeProperty("display");
       pauseButton.style.removeProperty("display");
       stopButton.style.removeProperty("display");
-      switch (breakout.status ?? "stop") {
-        case "stop":
+      switch (breakout.status ?? "disabled") {
+        case "disabled":
           startButton.textContent = "Start";
           startButton.style.display = "unset";
           break;
-        case "start":
+        case "enabled":
           pauseButton.style.display = "unset";
           break;
-        case "pause":
+        case "paused":
           startButton.textContent = "Resume";
           startButton.style.display = "unset";
           stopButton.style.display = "unset";

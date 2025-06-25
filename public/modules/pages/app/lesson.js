@@ -149,10 +149,15 @@ modules["pages/app/lesson"] = class {
     }
     let adjustPercent = 100;
     if (page.pageHolder != null) {
-      if (page.pageHolder.parentElement.childElementCount < 2) {
+      page.pageHolder.setAttribute("remove", "");
+      let newActivePage = this.frame.querySelector(".lPage:not([remove])");
+      if (newActivePage == null) {
         return setFrame("pages/app/dashboard");
       }
-      page.pageHolder.setAttribute("remove", "");
+      if (page.pageHolder.hasAttribute("active") == true) {
+        newActivePage.setAttribute("active", "");
+        page.pageHolder.removeAttribute("active");
+      }
       let style = window.getComputedStyle(page.pageHolder).getPropertyValue("flex");
       adjustPercent = parseFloat(style.substring(4, style.lastIndexOf("%")));
     }

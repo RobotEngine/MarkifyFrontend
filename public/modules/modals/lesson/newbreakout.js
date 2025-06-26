@@ -58,6 +58,10 @@ modules["modals/lesson/newbreakout"] = class {
     }
 
     let blankButton = frame.querySelector('.brtButton[type="blank"]');
+    blankButton.addEventListener("click", () => {
+      extra.modal.open("modals/lesson/newboard", null, blankButton, "Create the Template", null, { parent: this });
+    });
+
     let cloneButton = frame.querySelector('.brtButton[type="clone"]');
     let duplicateButton = frame.querySelector('.brtButton[type="duplicate"]');
 

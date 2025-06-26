@@ -62,7 +62,7 @@ modules["pages/app/lesson"] = class {
     id = id ?? type;
     let holder = extra.holder;
     if ((this.pages[type] ?? {})[id] != null) {
-      this.removePage(id, type);
+      this.removePage(id, type, { skipExitCheck: true });
     }
     this.pages[type] = this.pages[type] ?? {};
     let typePages = this.pages[type];
@@ -153,11 +153,13 @@ modules["pages/app/lesson"] = class {
       adjustPercent = parseFloat(style.substring(4, style.lastIndexOf("%")));
       page.pageHolder.setAttribute("remove", "");
       let newActivePage = this.frame.querySelector(".lPage:not([remove])");
-      if (newActivePage == null) {
+      if (newActivePage == null && extra.skipExitCheck != true) {
         return setFrame("pages/app/dashboard");
       }
       if (page.pageHolder.hasAttribute("active") == true) {
-        newActivePage.setAttribute("active", "");
+        if (newActivePage != null) {
+          newActivePage.setAttribute("active", "");
+        }
         page.pageHolder.removeAttribute("active");
       }
     }

@@ -27,7 +27,7 @@ modules["pages/app/lesson"] = class {
     ".lPageHolder[maximize]": `padding: 0px !important`,
     ".lPage": `--shadowOpacity: .3; position: relative; display: flex; width: 100%; height: 100%; flex: 1; z-index: 1; box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: 12px; overflow: hidden; transition: all .2s, flex .4s`, //min-width: min(var(--minPageSize), 100%);
     ".lPage[active]": `--shadowOpacity: .5 !important`,
-    ".lPage[remove]": `flex: 0 !important; opacity: 0 !important`,
+    ".lPage[remove]": `flex: 0 !important; opacity: 0 !important; min-width: unset !important`,
     ".lPageHolder[resize] .lPage": `min-width: unset; transition: unset`,
     ".lPageHolder[maximize] .lPage": `opacity: 0 !important; transition: none !important; pointer-events: all`,
     ".lPageHolder[maximize] .lPage[active]": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 3 !important; border-radius: 0px !important; opacity: 1 !important`,

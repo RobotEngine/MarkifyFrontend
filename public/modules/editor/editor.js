@@ -420,8 +420,9 @@ modules["editor/editor"] = class {
     }
   };
 
+  active = true;
   isPageActive = () => {
-    return this.parent.active == true;
+    return this.active == true;
   }
   isThisPage = (element) => {
     return element != null && element.closest(".lPage") == this.pageFrame;
@@ -2641,8 +2642,8 @@ modules["editor/editor"] = class {
         this.save.syncSave(true);
       }
     }
-    if (this.parent != null && this.parent.pageID != null && (window.resync ?? {}).pageSync != null) {
-      window.resync.pageSync[this.parent.pageID] = { save: this.save, annotations: this.annotations };
+    if (this.pageID != null && (window.resync ?? {}).pageSync != null) {
+      window.resync.pageSync[this.pageID] = { save: this.save, annotations: this.annotations };
     }
 
     this.history = {};
@@ -3359,6 +3360,79 @@ modules["editor/editor"] = class {
     await this.render.setMarginSize();
     this.utils.centerWindowWithPage();
     this.updateChunks();
+
+    this.loadAnnotations = async (body, extra = {}) => {
+      for (let i = 0; i < body.annotations.length; i++) {
+        let addAnno = body.annotations[i];
+        let existingAnno = this.annotations[addAnno._id];
+        if (existingAnno == null || existingAnno.render.sync < addAnno.sync) {
+          this.annotations[addAnno._id] = { render: addAnno };
+        }
+      }
+      if (body.reactions != null) {
+        let reactedToObject = getObject(body.reactedTo ?? [], "_id");
+        for (let i = 0; i < body.reactions.length; i++) {
+          let addReaction = body.reactions[i];
+          let existingAnnoRecord = this.reactions[addReaction.annotation];
+          if (existingAnnoRecord == null) {
+            this.reactions[addReaction.annotation] = [];
+            existingAnnoRecord = this.reactions[addReaction.annotation];
+          }
+          delete addReaction.annotation;
+          if (reactedToObject[addReaction._id + "_" + this.self.modify] != null) {
+            addReaction.reacted = true;
+          }
+          existingAnnoRecord.push(addReaction);
+        }
+      }
+      for (let i = 0; i < body.annotations.length; i++) {
+        let existingAnno = this.annotations[body.annotations[i]._id];
+        if (existingAnno != null) {
+          await this.utils.setAnnotationChunks(existingAnno);
+        }
+      }
+
+      await this.render.setMarginSize();
+
+      if (this.exporting == true) {
+        return;
+      }
+
+      let jumpAnnotation = null;
+      if (extra.jumpID != null && extra.jumpID != "") {
+        if (this.annotations[extra.jumpID] != null) {
+          jumpAnnotation = (await this.render.create(this.annotations[extra.jumpID])).component.getElement();
+        }
+      }
+      if (jumpAnnotation == null) {
+        if (extra.pageID == null) {
+          if (this.annotationPages.length > 0) {
+            this.utils.updateAnnotationScroll([this.annotationPages[0][0]], false);
+          } else {
+            this.utils.centerWindowWithPage();
+          }
+          //this.utils.centerWindowWithPage();
+          /*let startingPos = this.utils.findStartingPoint();
+          if (startingPos != null) {
+            this.utils.scrollToPoint(startingPos.x, startingPos.y, false);
+          } else {
+            this.utils.centerWindowWithPage();
+          }*/
+        } else {
+          this.utils.updateAnnotationScroll([extra.pageID], false);
+        }
+        await this.updateChunks();
+      } else {
+        await this.utils.scrollToElement(jumpAnnotation);
+        await this.updateChunks();
+        if (this.toolbar != null) {
+          this.selecting[extra.jumpID] = {};
+          this.pipeline.publish("redraw_selection", {});
+        } else {
+          redrawSelectionId = extra.jumpID;
+        }
+      }
+    }
   }
 }
 

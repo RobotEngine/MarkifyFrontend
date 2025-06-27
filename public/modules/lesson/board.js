@@ -625,7 +625,7 @@ modules["lesson/board"] = class {
           showBreakoutButton = true;
         }
       } else {
-        if (hasFeatureEnabled("breakout") == true) {
+        if (this.parent.self.access > 3 && hasFeatureEnabled("breakout") == true) {
           if (breakoutOpen == false || breakoutVisible == false) {
             showBreakoutButton = true;
           }

@@ -429,24 +429,24 @@ modules["lesson/breakout/overview"] = class {
     setSVG(icon, "../images/breakout.svg");
     setSVG(optionsButton, "../images/editor/share/setting.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
 
-    //let boardEnabled = false;
+    let boardEnabled = false;
     let boardOpen = false;
     let boardVisible = false;
     let updateSplitScreenButton = () => {
-      //boardEnabled = this.parent.parent.lesson.tool.includes("board");
+      boardEnabled = this.parent.parent.lesson.tool.includes("board");
       boardOpen = this.parent.parent.pages["board"] != null;
       boardVisible = this.parent.parent.maximized != true || this.parent.parent.activePageID == "board";
 
-      /*let showBoardButton = false;
+      let showBoardButton = false;
       if (boardEnabled == true) {
         if (boardOpen == false || boardVisible == false) {
           showBoardButton = true;
         }
-      } else {
+      } else if (this.parent.parent.parent.self.access > 3) {
         showBoardButton = true;
-      }*/
+      }
 
-      if (boardOpen == false || boardVisible == false) {
+      if (showBoardButton == true) {
         openBoardHolder.style.display = "flex";
       } else {
         openBoardHolder.style.removeProperty("display");

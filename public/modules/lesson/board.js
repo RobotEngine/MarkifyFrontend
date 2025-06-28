@@ -638,7 +638,7 @@ modules["lesson/board"] = class {
           breakoutButton = eBottom.querySelector(".eBottomSection[new]");
           breakoutButton.removeAttribute("new");
           let button = breakoutButton.querySelector("button");
-          setSVG(button.querySelector("button"), "../images/breakout.svg");
+          setSVG(button, "../images/breakout.svg");
           button.addEventListener("click", async () => {
             breakoutButton.remove();
             breakoutButton = null;

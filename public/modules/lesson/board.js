@@ -637,8 +637,9 @@ modules["lesson/board"] = class {
           eBottom.insertAdjacentHTML("beforeend", `<div class="eBottomSection" breakout title="Open Markify Breakout" new><button class="eBreakoutOpen"></button></div>`);
           breakoutButton = eBottom.querySelector(".eBottomSection[new]");
           breakoutButton.removeAttribute("new");
-          setSVG(breakoutButton.querySelector("button"), "../images/breakout.svg");
-          breakoutButton.addEventListener("click", async () => {
+          let button = breakoutButton.querySelector("button");
+          setSVG(button.querySelector("button"), "../images/breakout.svg");
+          button.addEventListener("click", async () => {
             breakoutButton.remove();
             breakoutButton = null;
             

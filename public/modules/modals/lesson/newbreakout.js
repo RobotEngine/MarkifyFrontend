@@ -1,5 +1,8 @@
 modules["modals/lesson/newbreakout"] = class {
   maxHeight = 400;
+  preload = [
+    "../modules/modals/lesson/newboard.js"
+  ];
   html = `
   <div class="brtCreationHolder">
     <div class="brtInstructions">

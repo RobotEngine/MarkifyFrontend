@@ -1009,7 +1009,6 @@ modules["dropdowns/lesson/file"] = class {
     setSVG(ocrButton.querySelector("div"), "../images/editor/file/text.svg");
     setSVG(boardStyleButton.querySelector("div"), "../images/editor/file/fillbucket.svg");
     setSVG(hideshowpage.querySelector("div"), "../images/editor/file/hideshow.svg");
-    setSVG(deleteLessonButton.querySelector("div"), "../images/editor/file/delete.svg");
     setSVG(deleteAnnotationsButton.querySelector("div"), "../images/editor/file/delete.svg");
 
     if (access < 5) {
@@ -1020,8 +1019,12 @@ modules["dropdowns/lesson/file"] = class {
         deleteLessonButton.remove();
         frame.querySelector('.eFileLine[option="delete"]').remove();
       } else {
-        deleteLessonButton.innerHTML = `<img src="../images/editor/file/delete.svg">Remove Lesson`;
+        deleteLessonButton.innerHTML = `<div></div>Remove Lesson`;
       }
+    }
+
+    if (deleteLessonButton != null) {
+      setSVG(deleteLessonButton.querySelector("div"), "../images/editor/file/delete.svg");
     }
 
     if (editor.annotationPages.length < 1) {

@@ -302,7 +302,7 @@ modules["pages/app/dashboard"] = class {
     });
 
     this.updateScrollShadows = () => {
-      if (lessonsHolder.scrollTop > 0 && Math.floor(lessonsHolder.scrollTop) >= Math.floor(titleHolder.offsetTop)) { // Lesson Topbar Shadow:
+      if (lessonsHolder.scrollTop > 0 && titleHolder.offsetTop - lessonsHolder.scrollTop <= 1) { // Lesson Topbar Shadow:
         titleHolder.style.background = "var(--pageColor)";
         titleHolder.style.boxShadow = "var(--lightShadow)";
       } else {

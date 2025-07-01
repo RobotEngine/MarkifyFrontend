@@ -1352,14 +1352,12 @@ modules["editor/editor"] = class {
           this.utils.getCollaboratorSync = {};
           let [code, body] = await sendRequest("GET", "lessons/members/collaborator?modify=" + modifyIDs.join(), null, { session: this.session });
           if (code == 200) {
-            for (let i = 0; i < body.length; i++) {
-              let collaborator = body[i];
-              this.collaborators[collaborator._id] = collaborator;
-              modifyIDs.splice(modifyIDs.indexOf(collaborator._id), 1);
-            }
+            let memberObject = getObject(body, "_id");
             for (let i = 0; i < modifyIDs.length; i++) {
-              let collaborator = modifyIDs[i];
-              this.collaborators[collaborator._id] = {};
+              let collaboratorID = modifyIDs[i];
+              let collaborator = memberObject[collaboratorID] ?? {};
+              this.collaborators[collaboratorID] = collaborator;
+              modifyIDs.splice(modifyIDs.indexOf(collaboratorID), 1);
             }
           }
           this.utils.requestCollaborators = null;

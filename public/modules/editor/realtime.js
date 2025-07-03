@@ -58,6 +58,9 @@ modules["editor/realtime"] = class {
       if (type == "cursor") {
         clearTimeout(endSyncTimeout);
         if (lastCursorPublish < epoch - 80 || ignoreSame == true) { // One event every 80 ms
+          if (editor.isPageActive() != true) {
+            return;
+          }
           if (mouseX == null || mouseY == null) {
             return;
           }
@@ -203,11 +206,7 @@ modules["editor/realtime"] = class {
       }
     }
     editor.pipeline.subscribe("realtimePublishClickStart", "click_start", (data) => { this.publishShort(data.event); }, { sort: 2 });
-    editor.pipeline.subscribe("realtimePublishClickMove", "click_move", (data) => {
-      if (editor.isPageActive() == true) {
-        this.publishShort(data.event);
-      }
-    }, { sort: 2 });
+    editor.pipeline.subscribe("realtimePublishClickMove", "click_move", (data) => { this.publishShort(data.event); }, { sort: 2 });
     editor.pipeline.subscribe("realtimePublishClickEnd", "click_end", () => { this.publishShort(); }, { sort: 2 });
     editor.pipeline.subscribe("realtimePublishBoundChange", "bounds_change", () => {
       this.publishShort();
@@ -228,10 +227,10 @@ modules["editor/realtime"] = class {
       }
     });
     editor.pipeline.subscribe("realtimePublishPageSwitch", "page_switch", (data) => {
-      if (data.pageID != editor.parent.pageID) {
+      if (editor.isPageActive() != true) {
         this.publishShort(null, "exit");
       }
-    });
+    }, { sort: 2 });
 
     this.setShortSub = (chunks) => {
       if (editor.parent.parent.signalStrength < 3 || editor.options.cursors == false) {
@@ -373,6 +372,12 @@ modules["editor/realtime"] = class {
           return;
         }
         member.lastShort = time;
+        if (time == null) { // Must be for a page leave event:
+          if (tool == null || editor.visibleChunks.includes(tool) == true) {
+            return;
+          }
+          return this.removeRealtime(memberID);
+        }
         clearInterval(member.interval);
         member.interval = setInterval(() => {
           this.removeRealtime(memberID);
@@ -393,6 +398,7 @@ modules["editor/realtime"] = class {
         // Set x and y:
         cursorHolder.setAttribute("x", x);
         cursorHolder.setAttribute("y", y);
+        cursorHolder.style.opacity = 1;
         x *= editor.zoom;
         y *= editor.zoom;
         let annotationRect = editor.utils.localBoundingRect(annotations);
@@ -400,16 +406,7 @@ modules["editor/realtime"] = class {
         y += annotationRect.top;
         member.x = x;
         member.y = y;
-        if (time == null) { // Must be for a page leave event:
-          if (tool == null || editor.visibleChunks.includes(tool) == true) {
-            return;
-          }
-          this.removeRealtime(memberID);
-          return;
-        } else {
-          cursorHolder.style.opacity = 1;
-        }
-        if (parseInt(cursorHolder.getAttribute("mode") ?? -1) != tool) {
+        if (parseInt(cursorHolder.getAttribute("mode") ?? "-1") != tool) {
           cursorHolder.setAttribute("hidden", "");
           cursorHolder.style.transform = "translate(" + (member.x + (parseInt(cursorHolder.getAttribute("offsetx") ?? "0")) + contentHolder.scrollLeft) + "px," + (member.y + (parseInt(cursorHolder.getAttribute("offsety") ?? "0")) + contentHolder.scrollTop) + "px) scale(0)";
           cursorHolder.setAttribute("mode", tool);

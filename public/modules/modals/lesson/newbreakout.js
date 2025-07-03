@@ -13,21 +13,21 @@ modules["modals/lesson/newbreakout"] = class {
       <button selected class="brtButton largeButton" type="blank">
         <div image></div>
         <div content>
-          <div text>Blank Document</div>
-          <div detail>Start fresh with a new document.</div>
+          <div text>Start Fresh</div>
+          <div detail>Upload a PDF or make a blank board.</div>
         </div>
       </button>
       <button class="brtButton largeButton" type="clone">
         <div image></div>
         <div content>
-          <div text>Clone Board</div>
-          <div detail>Copy the existing board document.</div>
+          <div text>Copy Existing Board</div>
+          <div detail>Easily give member's their own copy.</div>
         </div>
       </button>
       <button class="brtButton largeButton" type="duplicate">
         <div image></div>
         <div content>
-          <div text>Use Another Lesson</div>
+          <div text>Clone Another Lesson</div>
           <div detail>Reuse another lesson's template.</div>
         </div>
       </button>

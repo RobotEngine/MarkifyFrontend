@@ -135,12 +135,12 @@ modules["lesson/breakout"] = class {
 
     // Initialize Breakout:
     if (this.parent.self.access > 3 || this.session == null) { // Open to Overview:
-      //await this.setFrame("lesson/breakout/overview", page);
+      await this.setFrame("lesson/breakout/overview", page);
     }
     
-    let testBoard = await this.parent.setFrame("lesson/board", this.pageHolder, { construct: { pageID: this.pageID, pageType: this.pageType, pageHolder: this.pageHolder } });
+    /*let testBoard = await this.parent.setFrame("lesson/board", this.pageHolder, { construct: { pageID: this.pageID, pageType: this.pageType, pageHolder: this.pageHolder } });
     this.editor = testBoard.editor;
-    this.pipeline = testBoard.pipeline;
+    this.pipeline = testBoard.pipeline;*/
   }
 }
 

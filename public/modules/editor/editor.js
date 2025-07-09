@@ -485,7 +485,7 @@ modules["editor/editor"] = class {
 
   js = async (frame) => {
     let contentHolder = this.contentHolder ?? frame.parentElement;
-    let page = contentHolder.closest(".content");
+    let page = contentHolder.closest(".boPage"); //.content
     let content = contentHolder.querySelector(".eContent");
     let realtimeHolder = content.querySelector(".eRealtime");
     let editorContent = content.querySelector(".eEditorContent");
@@ -3360,13 +3360,6 @@ modules["editor/editor"] = class {
     this.updateChunks();
 
     this.loadAnnotations = async (body, extra = {}) => {
-      for (let i = 0; i < body.annotations.length; i++) {
-        let addAnno = body.annotations[i];
-        let existingAnno = this.annotations[addAnno._id];
-        if (existingAnno == null || existingAnno.render.sync < addAnno.sync) {
-          this.annotations[addAnno._id] = { render: addAnno };
-        }
-      }
       if (body.reactions != null) {
         let reactedToObject = getObject(body.reactedTo ?? [], "_id");
         for (let i = 0; i < body.reactions.length; i++) {
@@ -3384,10 +3377,13 @@ modules["editor/editor"] = class {
         }
       }
       for (let i = 0; i < body.annotations.length; i++) {
-        let existingAnno = this.annotations[body.annotations[i]._id];
-        if (existingAnno != null) {
-          await this.utils.setAnnotationChunks(existingAnno);
+        let addAnno = body.annotations[i];
+        let existingAnno = this.annotations[addAnno._id];
+        if (existingAnno == null || existingAnno.render.sync < addAnno.sync) {
+          this.annotations[addAnno._id] = { render: addAnno };
+          existingAnno = this.annotations[addAnno._id];
         }
+        await this.utils.setAnnotationChunks(existingAnno);
       }
 
       await this.render.setMarginSize();

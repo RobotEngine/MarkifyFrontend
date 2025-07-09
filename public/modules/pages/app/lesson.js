@@ -8,7 +8,6 @@ modules["pages/app/lesson"] = class {
 
     "../modules/editor/editor.js",
     "../modules/editor/realtime.js",
-    "../modules/editor/timeline.js",
     "../modules/editor/toolbar.js",
 
     "../libraries/pdfjs/pdf.mjs",

@@ -8406,7 +8406,7 @@ modules["editor/toolbar/reactions"] = class {
     <div class="eSubToolReactionMembers">
       <div class="eSubToolReactionMemberTitle">
         <div title></div>
-        <button remove title="Remove this reaction from the sticky note."></button>
+        <button remove title="Remove this reaction from the sticky note."><img src="../images/editor/file/delete.svg"></button>
       </div>
       <div class="eSubToolReactionMemberSection"></div>
     </div>
@@ -8423,8 +8423,8 @@ modules["editor/toolbar/reactions"] = class {
     ".eSubToolReactionMembers": `max-width: 100%; max-height: 250px; overflow: auto`,
     ".eSubToolReactionMemberTitle": `position: sticky; display: flex; width: 100%; top: 0px; background: var(--theme); justify-content: space-between; align-items: center`,
     ".eSubToolReactionMemberTitle div[title]": `width: 100%; margin: 8px; font-size: 18px; font-weight: 600; color: #fff; text-align: left; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
-    ".eSubToolReactionMemberTitle button": `--themeColor: var(--error); display: none; width: 32px; height: 32px; margin: 6px; background: var(--pageColor); color: #fff; border-radius: 8px; justify-content: center; align-items: center`,
-    ".eSubToolReactionMemberTitle button svg": `width: 22px; height: 22px; flex-shrink: 0`,
+    ".eSubToolReactionMemberTitle button": `display: none; width: 32px; height: 32px; margin: 6px; background: var(--pageColor); color: #fff; border-radius: 8px; justify-content: center; align-items: center`,
+    ".eSubToolReactionMemberTitle button img": `width: 22px; height: 22px`,
     ".eSubToolReactionMemberSection": `display: flex; flex-direction: column; min-height: 163px; height: calc(100% - 44px)`,
     ".eSubToolReactionMember": `display: flex; padding: 4px; align-items: center`,
     ".eSubToolReactionMember div[cursor]": `width: 22px; min-width: 22px; height: 22px; margin: 3px; background: var(--pageColor); border-radius: 10px 18px 18px`,
@@ -8455,7 +8455,6 @@ modules["editor/toolbar/reactions"] = class {
       await sendRequest("DELETE", "lessons/members/reaction/delete?annotation=" + cache.id + "&emoji=" + emojiButtonSidebar.querySelector("button[selected]").getAttribute("emoji").replace(/ /g, "_"), null, { session: this.editor.session });
       removeReactionButton.removeAttribute("disabled");
     });
-    setSVG(removeReactionButton, "../images/editor/file/delete.svg");
 
     let insertReactionButton = (emojiName) => {
       if (emojiButtonSidebar.querySelector('.eSubToolReaction[emoji="' + emojiName + '"]') != null) {

@@ -1,76 +1,71 @@
 modules["lesson/board"] = class {
   html = `
-  <div class="boPage" main>
-    <div class="eInterface customScroll">
-      <div class="eTopHolder">
-        <button class="eTopScroll" left style="left: 7px"></button>
-        <button class="eTopScroll" right style="right: 7px"></button>
-        <div class="eTop">
-          <div class="eTopSection" left>
-            <a class="eLogo" href="/app/dashboard" draggable="false"></a>
-            <div class="eFileNameHolder border"><div class="eFileName" spellcheck="false" onpaste="clipBoardRead(event)"></div></div>
-            <button class="eFileDropdown">File</button>
-            <button class="eCreateCopy">Create Copy</button>
-            <div class="eTopDivider"></div>
-            <button class="eSaveProgress eUndo" disabled></button>
-            <button class="eSaveProgress eRedo" disabled></button>
-            <div class="eStatusHolder"><div class="eStatus">
-              <div strength="3" title="Strong Connection | All features seamlessly synced to the cloud."></div>
-              <div strength="2" title="Weak Connection | Cloud-saved annotations, limited real-time features."></div>
-              <div strength="1" title="No Connection | Changes stored on-device, synced to cloud upon reconnecting."></div>
-            </div></div>
-          </div>
-          <div class="eTopSection" scroll>
-            <div class="eTopDivider"></div>
-          </div>
-          <div class="eTopSection" right>
-            <button class="eMembers"><span class="eMemberHandCount" membercount title="Number of hands raised."></span><span class="eMemberIdleCount" membercount title="Number of idle members."></span><span class="eMemberCount" membercount title="Number of members."></span>Members</button>
-            <button class="eEndSession" title="End Session | Disable all editing access making everyone a viewer."></button>
-            <button class="eShare">Share</button>
-            <button class="eMemberOptions" dropdowntitle="Member Options" title="Member Options | Configure various member settings and available tools."></button>
-            <button class="eSharePin"></button>
-            <div class="eTopDivider"></div>
-            <button class="eZoom">100%</button>
-            <button class="eAccount"><img src="../images/profiles/default.svg" accountimage /><div accountuser></div></button>
-            <button class="eLogin">Login</button>
-          </div>
+  <div class="eInterface customScroll">
+    <div class="eTopHolder">
+      <button class="eTopScroll" left style="left: 7px"></button>
+      <button class="eTopScroll" right style="right: 7px"></button>
+      <div class="eTop">
+        <div class="eTopSection" left>
+          <a class="eLogo" href="/app/dashboard" draggable="false"></a>
+          <div class="eFileNameHolder border"><div class="eFileName" spellcheck="false" onpaste="clipBoardRead(event)"></div></div>
+          <button class="eFileDropdown">File</button>
+          <button class="eCreateCopy">Create Copy</button>
+          <div class="eTopDivider"></div>
+          <button class="eSaveProgress eUndo" disabled></button>
+          <button class="eSaveProgress eRedo" disabled></button>
+          <div class="eStatusHolder"><div class="eStatus">
+            <div strength="3" title="Strong Connection | All features seamlessly synced to the cloud."></div>
+            <div strength="2" title="Weak Connection | Cloud-saved annotations, limited real-time features."></div>
+            <div strength="1" title="No Connection | Changes stored on-device, synced to cloud upon reconnecting."></div>
+          </div></div>
         </div>
-      </div>
-      <div class="eToolbarHolder" hidden>
-        <div class="eToolbar" editor keeptooltip hidden notransition></div>
-        <div class="eToolbar" viewer keeptooltip hidden notransition>
-          <div class="eToolbarContent eVerticalToolsHolder">
-            <button class="eTool" tool="raisehand" tooltip="Raise Hand" noselect style="--theme: var(--green); --hoverColor: rgba(var(--greenRGB), .3)"><div></div></button>
-            <div class="eDivider"></div>
-            <button class="eTool" tool="select" tooltip="Select" selected><div></div></button>
-            <button class="eTool" tool="pan" tooltip="Pan"><div></div></button>
-          </div>
+        <div class="eTopSection" scroll>
+          <div class="eTopDivider"></div>
         </div>
-      </div>
-      <div class="eBottomHolder">
-        <div class="eBottom">
-          <div class="eBottomSection" left>
-            <img class="eObserveIcon" src="../images/editor/members/observe.svg" />
-            <div class="eObserveText">Observing</div>
-            <div class="eObserveCursor"></div>
-            <button class="eObserveExit buttonAnim border"></button>
-          </div>
-          <div class="eBottomSectionSpacer"></div>
-          <div class="eBottomSection" right>
-            <button class="ePageNav" down></button>
-            <div class="eCurrentPage border" contenteditable></div>
-            <button class="ePageNav" up></button>
-          </div>
+        <div class="eTopSection" right>
+          <button class="eMembers"><span class="eMemberHandCount" membercount title="Number of hands raised."></span><span class="eMemberIdleCount" membercount title="Number of idle members."></span><span class="eMemberCount" membercount title="Number of members."></span>Members</button>
+          <button class="eEndSession" title="End Session | Disable all editing access making everyone a viewer."></button>
+          <button class="eShare">Share</button>
+          <button class="eMemberOptions" dropdowntitle="Member Options" title="Member Options | Configure various member settings and available tools."></button>
+          <button class="eSharePin"></button>
+          <div class="eTopDivider"></div>
+          <button class="eZoom">100%</button>
+          <button class="eAccount"><img src="../images/profiles/default.svg" accountimage /><div accountuser></div></button>
+          <button class="eLogin">Login</button>
         </div>
       </div>
     </div>
-    <div class="eContentHolder customScroll"></div>
+    <div class="eToolbarHolder" hidden>
+      <div class="eToolbar" editor keeptooltip hidden notransition></div>
+      <div class="eToolbar" viewer keeptooltip hidden notransition>
+        <div class="eToolbarContent eVerticalToolsHolder">
+          <button class="eTool" tool="raisehand" tooltip="Raise Hand" noselect style="--theme: var(--green); --hoverColor: rgba(var(--greenRGB), .3)"><div></div></button>
+          <div class="eDivider"></div>
+          <button class="eTool" tool="select" tooltip="Select" selected><div></div></button>
+          <button class="eTool" tool="pan" tooltip="Pan"><div></div></button>
+        </div>
+      </div>
+    </div>
+    <div class="eBottomHolder">
+      <div class="eBottom">
+        <div class="eBottomSection" left>
+          <img class="eObserveIcon" src="../images/editor/members/observe.svg" />
+          <div class="eObserveText">Observing</div>
+          <div class="eObserveCursor"></div>
+          <button class="eObserveExit buttonAnim border"></button>
+        </div>
+        <div class="eBottomSectionSpacer"></div>
+        <div class="eBottomSection" right>
+          <button class="ePageNav" down></button>
+          <div class="eCurrentPage border" contenteditable></div>
+          <button class="ePageNav" up></button>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="boPage" timeline hidden></div>
+  <div class="eContentHolder customScroll"></div>
   `;
   css = {
-    ".boPage": `position: absolute; display: block; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 2; pointer-events: all; transition: .2s`,
-    ".boPage[hidden]": `z-index: 1`,
     ".eInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; user-select: none; overflow: scroll; z-index: 2`,
     ".eContentHolder": `position: relative; width: 100%; height: 100%; overflow: scroll; z-index: 1; transition: .5s`,
     ".eCreateBoardHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden; z-index: 3; pointer-events: none`,
@@ -164,12 +159,10 @@ modules["lesson/board"] = class {
     this.session = this.parent.session;
     
     let page = frame.closest(".content");
-    let mainPage = page.querySelector(".boPage[main]");
-    let timelinePage = page.querySelector(".boPage[timeline]");
 
-    let eTopHolder = mainPage.querySelector(".eTopHolder");
+    let eTopHolder = frame.querySelector(".eTopHolder");
     let eTop = eTopHolder.querySelector(".eTop");
-    let eBottom = mainPage.querySelector(".eBottom");
+    let eBottom = frame.querySelector(".eBottom");
 
     let leftTop = eTop.querySelector(".eTopSection[left]");
     let icon = leftTop.querySelector(".eLogo");
@@ -193,7 +186,7 @@ modules["lesson/board"] = class {
     let eTopScrollLeft = eTopHolder.querySelector(".eTopScroll[left]");
     let eTopScrollRight = eTopHolder.querySelector(".eTopScroll[right]");
 
-    let contentHolder = mainPage.querySelector(".eContentHolder");
+    let contentHolder = frame.querySelector(".eContentHolder");
 
     let toolbarHolder = page.querySelector(".eToolbarHolder");
     let editorToolbar = toolbarHolder.querySelector(".eToolbar[editor]");
@@ -828,35 +821,6 @@ modules["lesson/board"] = class {
     this.pipeline.subscribe("checkPageSwitch", "page_switch", updateActivePage, { sort: 1 });
     updateActivePage();
 
-    this.openTimeline = async () => {
-      mainPage.setAttribute("hidden", "");
-
-      this.timeline = await this.setFrame("editor/timeline", timelinePage, {
-        construct: {
-          close: this.closeTimeline,
-
-          self: this.parent.self,
-          session: this.parent.session,
-          sessionID: this.parent.sessionID,
-          sources: this.parent.sources,
-          collaborators: this.parent.collaborators,
-          backgroundColor: this.editor.backgroundColor,
-
-          //reactions: this.editor.reactions,
-          annotations: this.editor.annotations
-        }
-      });
-      this.pipeline = this.timeline.pipeline;
-
-      timelinePage.removeAttribute("hidden");
-    }
-    this.closeTimeline = async () => {
-      this.pipeline = this.editor.pipeline;
-
-      timelinePage.setAttribute("hidden", "");
-      mainPage.removeAttribute("hidden");
-    }
-
     // Fetch Annotations:
     let pageParam = getParam("page");
     let checkForJumpLink = getParam("annotation");
@@ -871,11 +835,8 @@ modules["lesson/board"] = class {
         alertModule.open("error", `<b>Error Loading Annotations</b>Please try again later...`);
         return;
       }
-      await this.editor.loadAnnotations(annoBody, { pageID: pageParam, jumpID: checkForJumpLink });
+      this.editor.loadAnnotations(annoBody, { pageID: pageParam, jumpID: checkForJumpLink });
       contentHolder.removeAttribute("disabled");
-
-      //await sleep(2000);
-      //this.openTimeline();
     }
 
     this.loadAnnotations();
@@ -896,8 +857,8 @@ modules["lesson/board"] = class {
     this.updateInterface();
 
     if (this.session == null || this.lesson.tool.includes("board") == false) { // Create New Lesson
-      mainPage.insertAdjacentHTML("beforeend", `<div class="eCreateBoardHolder"></div>`);
-      modalModule.open("modals/lesson/newboard", mainPage.querySelector(".eCreateBoardHolder"), null, "Create Board", null, { parent: this });
+      frame.insertAdjacentHTML("beforeend", `<div class="eCreateBoardHolder"></div>`);
+      modalModule.open("modals/lesson/newboard", frame.querySelector(".eCreateBoardHolder"), null, "Create Board", null, { parent: this });
     }
   }
 }

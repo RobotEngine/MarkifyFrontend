@@ -7,6 +7,11 @@ modules["pages/launch"] = class {
   <img class="lBackdrop" src="../images/launch/backdrop.png" center>
   <div class="lSection" header backdrop="center">
     <div class="lHeaderContent">
+      <nav class="lHeaderNav">
+        <div class="lHeaderNavMenu">
+          <button class="lLoginBtn largeButton" openpage="app/dashboard">Log In</button>
+        </div>
+      </nav>
       <div class="lHeaderRow">
         <div>
           <img src="../images/launch/tools/draw.svg" low>
@@ -190,6 +195,8 @@ modules["pages/launch"] = class {
     ".lHeaderSlogan": `margin-top: 16px; font-size: 35px; line-height: 55px`,
     ".lHeaderSlogan b": `margin: 0 4px; color: var(--theme); font-size: 45px; font-weight: 700`,
     ".lHeaderSummary": `max-width: 700px; margin-top: 24px; line-height: 26px`,
+    ".lHeaderNav": `width: 100%;`,
+    ".lLoginBtn": `background: var(--theme); --borderRadius: 20.25px; color: #fff; float: right; font-size: 18px`,
     ".lHeaderActions": `display: flex; flex-wrap: wrap; gap: 24px; margin-top: 40px; justify-content: center`,
     ".lOpen": `background: var(--theme); --themeColor: var(--secondary); --borderRadius: 20.25px; color: #fff`,
     ".lJoin": `background: #fff; --borderRadius: 20.25px; color: var(--secondary)`,
@@ -277,7 +284,22 @@ modules["pages/launch"] = class {
     ".lFooterSocials a": `width: 30px; height: 30px; margin: 3px`,
     ".lFooterSocials a img": `width: 100%; height: 100%`
   };
-  js = async (page) => {
+
+
+js = async (page) => {
+
+    // Update login button text based on login status
+    const loginBtn = page.querySelector(".lLoginBtn");
+    let token = getLocalStore("token");
+    let username = account.user; // adjust as needed
+
+    if (token) {
+      loginBtn.textContent = `Welcome ${username}!`;
+    } else {
+      loginBtn.textContent = "Log In";
+    }
+
+
     // SECTION 2 | History
     let historySection = page.querySelector(".lSection[history]");
     let historyContent = historySection.querySelector(".lHistoryContent");

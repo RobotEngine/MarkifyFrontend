@@ -1038,23 +1038,21 @@ let initSocket = async () => {
     await init();
 
 
-    //When a user is logged in, route to dashboard by default and allow deep linking
-    //when a user is not logged in, route to launch page by default and disallow deep linking
-    let token = getLocalStore("token");
+  //Routing
     let openPage = defaultPage;
-    if ((token && userID) && window.location.pathname != "") {
-      openPage = "pages/app/dashboard";
-
-      if (window.location.pathname != "/") {
-        openPage = "pages/" + window.location.pathname.substring(1);
-      } else if (window.location.hash != "") {
-        let hash = window.location.hash.substring(1);
-        openPage = "pages/" + (movedPages[hash] ?? hash);
-      }
+    
+    if (window.location.pathname != "/") {
+      openPage = "pages/" + window.location.pathname.substring(1);
+    } else if (window.location.hash != "") {
+      let hash = window.location.hash.substring(1);
+      openPage = "pages/" + (movedPages[hash] ?? hash);
     }
-    window.location.hash = "";
-    window.history.replaceState({}, "", window.location.pathname);
-
+    
+    if (userID && window.location.pathname.substring(1) == "") {
+      openPage = "pages/app/dashboard";
+    } else if (window.location.pathname.substring(1) == "") {
+      openPage = "pages/launch";
+    }
 
     setFrame(openPage, null, { pushHistory: false, replaceHistory: true, passParams: true, unsub: false, missPageRedirect: true });
     if (wasConnected == true) {

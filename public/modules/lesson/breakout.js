@@ -444,7 +444,7 @@ modules["lesson/breakout/overview"] = class {
         if (boardOpen == false || boardVisible == false) {
           showBoardButton = true;
         }
-      } else if (this.parent.parent.parent.self.access > 3) {
+      } else if (this.parent.parent.self.access > 3) {
         showBoardButton = true;
       }
 

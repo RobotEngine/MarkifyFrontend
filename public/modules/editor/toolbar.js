@@ -70,6 +70,7 @@ modules["editor/toolbar"] = class {
     parent.addEventListener(name, listener);
   }
   css = {
+    ".eToolbarHolder": `position: relative; display: block; flex: 1; visibility: visible`,
     ".eToolbar": `position: absolute; display: block; width: 50px; height: fit-content; max-height: var(--maxToolbarHeight); top: 50%; transform: translateY(-50%); z-index: 2; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all; transition: transform .4s, opacity .4s, border-radius .2s`,
     ".eToolbar[hidden]": `transform: translate(var(--translate), -50%) !important; z-index: 1 !important`,
     ".eToolbarContent": `position: relative; box-sizing: border-box; max-height: var(--maxToolbarHeight); background: var(--pageColor); overflow: auto; z-index: 3; border-radius: inherit`,
@@ -190,24 +191,27 @@ modules["editor/toolbar"] = class {
   js = async (editor) => {
     let page = editor.page;
 
-    let toolbarHolder = page.querySelector(".eToolbarHolder");
+    let toolbarHolder = page.querySelector("div[toolbarholder]");
     let toolbar = toolbarHolder.querySelector(".eToolbar[editor]");
-    
-    toolbar.innerHTML = `
-    <div class="eToolbarContent eVerticalToolsHolder hideScroll">
-      <button class="eTool" tool="selection" tooltip="Selection" selected><div></div></button>
-      <button class="eTool" tool="draw" tooltip="Draw"><div></div></button>
-      <button class="eTool" tool="markup" tooltip="Markup"><div></div></button>
-      <button class="eTool" tool="erase" tooltip="Erase"><div></div></button>
-      <button class="eTool" tool="text" tooltip="Text Box"><div></div></button>
-      <button class="eTool" tool="shape" tooltip="Shapes"><div></div></button>
-      <button class="eTool" tool="sticky" tooltip="Stickies"><div></div></button>
-      <button class="eTool" tool="comment" tooltip="Comments"><div></div></button>
-      <button class="eTool" tool="page" tooltip="Page"><div></div></button>
-      <button class="eTool" tool="media" tooltip="Media"><div></div></button>
-    </div>
-    `;
-    let toolbarContent = toolbar.querySelector(".eToolbarContent");
+    let toolbarContent;
+
+    if (toolbar != null) {
+      toolbar.innerHTML = `
+      <div class="eToolbarContent eVerticalToolsHolder hideScroll">
+        <button class="eTool" tool="selection" tooltip="Selection" selected><div></div></button>
+        <button class="eTool" tool="draw" tooltip="Draw"><div></div></button>
+        <button class="eTool" tool="markup" tooltip="Markup"><div></div></button>
+        <button class="eTool" tool="erase" tooltip="Erase"><div></div></button>
+        <button class="eTool" tool="text" tooltip="Text Box"><div></div></button>
+        <button class="eTool" tool="shape" tooltip="Shapes"><div></div></button>
+        <button class="eTool" tool="sticky" tooltip="Stickies"><div></div></button>
+        <button class="eTool" tool="comment" tooltip="Comments"><div></div></button>
+        <button class="eTool" tool="page" tooltip="Page"><div></div></button>
+        <button class="eTool" tool="media" tooltip="Media"><div></div></button>
+      </div>
+      `;
+      toolbarContent = toolbar.querySelector(".eToolbarContent");
+    }
 
     toolbarHolder.removeAttribute("hidden");
 
@@ -739,7 +743,9 @@ modules["editor/toolbar"] = class {
         this.tooltip.update();
       }
     }
-    toolbarContent.addEventListener("scroll", () => { this.toolbar.update(); });
+    if (toolbarContent != null) {
+      toolbarContent.addEventListener("scroll", () => { this.toolbar.update(); });
+    }
     this.toolbar.updateButtons = async (contentHolder) => {
       let gottenTools = (contentHolder ?? toolbar).querySelectorAll(".eTool");
       for (let i = 0; i < gottenTools.length; i++) {
@@ -1025,6 +1031,10 @@ modules["editor/toolbar"] = class {
       }
     });
     this.toolbar.checkToolToggle = () => {
+      if (toolbarContent == null) {
+        return;
+      }
+
       let disabledTools = (editor.settings ?? {}).disabled ?? [];
 
       let toolElements = toolbarContent.querySelectorAll(".eTool[tool]");
@@ -4135,9 +4145,11 @@ modules["editor/toolbar"] = class {
       await this.selection.updateBox({ transition: false });
     });
 
-    this.toolbar.toolbar.addEventListener("click", (event) => {
-      this.pushToolEvent("toolbar_click", event);
-    });
+    if (this.toolbar.toolbar != null) {
+      this.toolbar.toolbar.addEventListener("click", (event) => {
+        this.pushToolEvent("toolbar_click", event);
+      });
+    }
 
     // COPY / PASTE
     let processFileUpload = async (items, event) => {

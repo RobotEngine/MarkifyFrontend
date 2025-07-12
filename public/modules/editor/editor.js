@@ -27,7 +27,7 @@ modules["editor/editor"] = class {
     ".eReaction": `display: flex; padding: 2px; background: rgba(255, 255, 255, .8); border: solid 2px rgba(0, 0, 0, 0); border-radius: 8px; align-items: center; overflow: hidden; color: #2F2F2F`,
     ".eReaction[selected]": `padding: 2px; background: rgba(180, 218, 253, .8); border: solid 2px var(--theme); color: var(--theme)`,
     ".eReaction[add]": `opacity: 0; border-radius: 14px`,
-    ".eContentHolder[viewer] .eReaction[add]": "display: none !important",
+    ".customScroll[viewer] .eReaction[add]": "display: none !important",
     ".eReaction div[imgholder]": `display: flex; width: 20px; height: 20px; justify-content: center; align-items: center`,
     ".eReaction img": `width: 32px; height: 32px; transform: scale(0.65); border-radius: 7px; filter: drop-shadow(0px 0px 8px #fff)`,
     ".eReaction div[count]": `margin: 0 5px 0 6px; font-size: 16px; font-weight: 700`
@@ -485,7 +485,7 @@ modules["editor/editor"] = class {
 
   js = async (frame) => {
     let contentHolder = this.contentHolder ?? frame.parentElement;
-    let page = contentHolder.closest(".content");
+    let page = contentHolder.closest(".boPage"); //.content
     let content = contentHolder.querySelector(".eContent");
     let realtimeHolder = content.querySelector(".eRealtime");
     let editorContent = content.querySelector(".eEditorContent");
@@ -3360,13 +3360,6 @@ modules["editor/editor"] = class {
     this.updateChunks();
 
     this.loadAnnotations = async (body, extra = {}) => {
-      for (let i = 0; i < body.annotations.length; i++) {
-        let addAnno = body.annotations[i];
-        let existingAnno = this.annotations[addAnno._id];
-        if (existingAnno == null || existingAnno.render.sync < addAnno.sync) {
-          this.annotations[addAnno._id] = { render: addAnno };
-        }
-      }
       if (body.reactions != null) {
         let reactedToObject = getObject(body.reactedTo ?? [], "_id");
         for (let i = 0; i < body.reactions.length; i++) {
@@ -3384,10 +3377,13 @@ modules["editor/editor"] = class {
         }
       }
       for (let i = 0; i < body.annotations.length; i++) {
-        let existingAnno = this.annotations[body.annotations[i]._id];
-        if (existingAnno != null) {
-          await this.utils.setAnnotationChunks(existingAnno);
+        let addAnno = body.annotations[i];
+        let existingAnno = this.annotations[addAnno._id];
+        if (existingAnno == null || existingAnno.render.sync < addAnno.sync) {
+          this.annotations[addAnno._id] = { render: addAnno };
+          existingAnno = this.annotations[addAnno._id];
         }
+        await this.utils.setAnnotationChunks(existingAnno);
       }
 
       await this.render.setMarginSize();

@@ -30,13 +30,14 @@ modules["editor/toolbar"] = class {
     "text": { id: "text", type: "tool", module: "editor/toolbar/text" },
     "shape": {
       html: `<div class="eVerticalToolsHolder">
-        <button class="eTool" tool="square" tooltip="Square" module="editor/toolbar/shape"><div></div></button>
         <button class="eTool" tool="ellipse" tooltip="Ellipse" module="editor/toolbar/shape"><div></div></button>
         <button class="eTool" tool="triangle" tooltip="Triangle" module="editor/toolbar/shape"><div></div></button>
+        <button class="eTool" tool="square" tooltip="Square" module="editor/toolbar/shape"><div></div></button>
         <button class="eTool" tool="parallelogram" tooltip="Parallelogram" module="editor/toolbar/shape"><div></div></button>
         <button class="eTool" tool="trapezoid" tooltip="Trapezoid" module="editor/toolbar/shape"><div></div></button>
         <button class="eTool" tool="rhombus" tooltip="Rhombus" module="editor/toolbar/shape"><div></div></button>
         <button class="eTool" tool="line" tooltip="Line" module="editor/toolbar/shape"><div></div></button>
+        <button class="eTool" tool="star" tooltip="Star" module="editor/toolbar/shape"><div></div></button>
       </div>`
     },
     "sticky": { id: "sticky", type: "tool", module: "editor/toolbar/sticky" },

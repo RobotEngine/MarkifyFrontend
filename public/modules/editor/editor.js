@@ -4177,7 +4177,34 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
         elem.setAttribute("y1", halfT);
         elem.setAttribute("x2", halfT);
         elem.setAttribute("y2", heightT + halfT);
+        break;
+      case "star":
+        elem = svg.querySelector("polygon");
+        if (elem == null) {
+          svg.innerHTML = "<polygon/>";
+          elem = svg.querySelector("polygon");
+          elem.setAttribute("stroke-linejoin", "round");
+        }
+        widthT = width - t;
+        heightT = height - t;
+        // Calculate star points:
+        let cx = width / 2;
+        let cy = height / 2;
+        let spikes = 5;
+        let outerRadius = Math.min(widthT, heightT) / 2;
+        let innerRadius = outerRadius * 0.5;
+        let starPoints = "";
+        for (let i = 0; i < spikes * 2; i++) {
+          let angle = (Math.PI / spikes) * i;
+          let r = (i % 2 === 0) ? outerRadius : innerRadius;
+          let x = cx + Math.cos(angle - Math.PI/2) * r;
+          let y = cy + Math.sin(angle - Math.PI/2) * r;
+          starPoints += x + "," + y + " ";
+        }
+        elem.setAttribute("points", starPoints.trim());
+        break;
     }
+
     if (this.properties.b == "none") {
       i = true;
     }

@@ -7,11 +7,6 @@ modules["pages/launch"] = class {
   <img class="lBackdrop" src="../images/launch/backdrop.png" center>
   <div class="lSection" header backdrop="center">
     <div class="lHeaderContent">
-      <nav class="lHeaderNav">
-        <div class="lHeaderNavMenu">
-          <button class="lLoginBtn largeButton" openpage="app/dashboard">Log In</button>
-        </div>
-      </nav>
       <div class="lHeaderRow">
         <div>
           <img src="../images/launch/tools/draw.svg" low>
@@ -26,7 +21,7 @@ modules["pages/launch"] = class {
       <div class="lHeaderSlogan"><b>Collaboration</b> without <b>Chaos</b></div>
       <div class="lHeaderSummary">Let students work collaboratively across the classroom while you facilitate. Eliminate chaos with robust sharing settings and temporary editing controls.</div>
       <div class="lHeaderActions">
-        <button class="lOpen largeButton" openpage="app/dashboard">Create Lesson</button>
+        <button class="lOpen largeButton" openpage="app/dashboard"><div id="loginBtn"></div></button>
         <button class="lJoin largeButton" openpage="app/join">Join Lesson<img src="../images/tooltips/link.svg"></button>
       </div>
       <img class="lHeaderSplash" src="../images/launch/showcase.png">
@@ -199,6 +194,8 @@ modules["pages/launch"] = class {
     ".lLoginBtn": `background: var(--theme); --borderRadius: 20.25px; color: #fff; float: right; font-size: 18px`,
     ".lHeaderActions": `display: flex; flex-wrap: wrap; gap: 24px; margin-top: 40px; justify-content: center`,
     ".lOpen": `background: var(--theme); --themeColor: var(--secondary); --borderRadius: 20.25px; color: #fff`,
+    ".lOpen img": `width: 24px; height: 24px; margin-right: 8px; display: inline-block; vertical-align: middle`,
+    ".loginBtnText": `display: inline-block; vertical-align: middle; font-size: 18px; line-height: 24px;`,
     ".lJoin": `background: #fff; --borderRadius: 20.25px; color: var(--secondary)`,
     ".lJoin img": `width: 24px; height: 24px; margin-left: 8px`,
     ".lHeaderSplash": `width: 100%; margin-top: 40px; max-width: 1000px; transform: perspective(75em) rotateX(20deg)`, //; transition: .5s
@@ -289,14 +286,14 @@ modules["pages/launch"] = class {
 js = async (page) => {
 
     // Update login button text based on login status
-    const loginBtn = page.querySelector(".lLoginBtn");
+    const loginBtn = page.querySelector("#loginBtn");
     let token = getLocalStore("token");
-    let username = account.user; // adjust as needed
 
     if (token) {
-      loginBtn.textContent = `Welcome ${username}!`;
+      let profilePhoto = account.image ?? "../images/profiles/defaultWhite.svg";
+      loginBtn.innerHTML = `<img src="${profilePhoto}"><span class="loginBtnText">Dashboard</span>`;
     } else {
-      loginBtn.textContent = "Log In";
+      loginBtn.innerHTML = `Open Markify`;
     }
 
 

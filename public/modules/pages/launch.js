@@ -21,7 +21,7 @@ modules["pages/launch"] = class {
       <div class="lHeaderSlogan"><b>Collaboration</b> without <b>Chaos</b></div>
       <div class="lHeaderSummary">Let students work collaboratively across the classroom while you facilitate. Eliminate chaos with robust sharing settings and temporary editing controls.</div>
       <div class="lHeaderActions">
-        <button class="lOpen largeButton" openpage="app/dashboard"><div id="loginBtn"></div></button>
+        <button class="lOpen largeButton" openpage="app/dashboard" id="loginBtn"></button>
         <button class="lJoin largeButton" openpage="app/join">Join Lesson<img src="../images/tooltips/link.svg"></button>
       </div>
       <img class="lHeaderSplash" src="../images/launch/showcase.png">
@@ -190,16 +190,17 @@ modules["pages/launch"] = class {
     ".lHeaderSlogan": `margin-top: 16px; font-size: 35px; line-height: 55px`,
     ".lHeaderSlogan b": `margin: 0 4px; color: var(--theme); font-size: 45px; font-weight: 700`,
     ".lHeaderSummary": `max-width: 700px; margin-top: 24px; line-height: 26px`,
-    ".lHeaderNav": `width: 100%;`,
-    ".lLoginBtn": `background: var(--theme); --borderRadius: 20.25px; color: #fff; float: right; font-size: 18px`,
     ".lHeaderActions": `display: flex; flex-wrap: wrap; gap: 24px; margin-top: 40px; justify-content: center`,
-    ".lOpen": `background: var(--theme); --themeColor: var(--secondary); --borderRadius: 20.25px; color: #fff`,
-    ".lOpen img": `width: 24px; height: 24px; margin-right: 8px; display: inline-block; vertical-align: middle`,
-    ".loginBtnText": `display: inline-block; vertical-align: middle; font-size: 18px; line-height: 24px;`,
+
+    ".lOpen": `display: flex; flex-direction: row; padding: 8px; bottom: 0px; margin-top: auto; align-items: center; --borderRadius: 20.25px; background: var(--theme); color: #fff;`,
+    ".lOpen img[loginBtnBeforeImg]": `width: 24px; height: 24px; margin-right: 8px; object-fit: cover; border-radius: 16px; border: 3.5px solid var(--themeColor); background: #0084FF;`,
+    ".lOpen img[defaultLoginBtnBeforeImg]": `width: 24px; height: 24px; margin-right: 8px; object-fit: cover; border-radius: 16px; border: 3.5px solid #0084FF; background: #0084FF;`,
+    ".lOpen img[loginBtnAfterImg]": `width: 24px; height: 24px; margin-left: 8px; filter: brightness(0) invert(1);`,
+    ".lOpen div[accountuser]": `white-space: nowrap; flex: 1;`,
     ".lJoin": `background: #fff; --borderRadius: 20.25px; color: var(--secondary)`,
     ".lJoin img": `width: 24px; height: 24px; margin-left: 8px`,
-    ".lHeaderSplash": `width: 100%; margin-top: 40px; max-width: 1000px; transform: perspective(75em) rotateX(20deg)`, //; transition: .5s
 
+    ".lHeaderSplash": `width: 100%; margin-top: 40px; max-width: 1000px; transform: perspective(75em) rotateX(20deg)`, //; transition: .5s
     ".lSection[history]": `width: 100%; height: 200vh`,
     ".lHistoryStuck": `position: sticky; display: flex; flex-direction: column; width: 100%; height: 100vh; top: 0px; align-items: center; overflow: hidden`,
     ".lTitle": `margin: 36px; font-size: 35px; line-height: 55px; text-align: left`,
@@ -285,16 +286,22 @@ modules["pages/launch"] = class {
 
 js = async (page) => {
 
-    // Update login button text based on login status
-    const loginBtn = page.querySelector("#loginBtn");
-    let token = getLocalStore("token");
-
-    if (token) {
-      let profilePhoto = account.image ?? "../images/profiles/defaultWhite.svg";
-      loginBtn.innerHTML = `<img src="${profilePhoto}"><span class="loginBtnText">Dashboard</span>`;
-    } else {
-      loginBtn.innerHTML = `Open Markify`;
+  //Lauch page login button
+  const loginBtn = page.querySelector('#loginBtn');
+  let token = getLocalStore("token");
+  if (token) {
+      let arrowBtnImg = "../images/tooltips/link.svg";
+    if (account.image) {
+      let loginBtnImg = account.image;
+      loginBtn.innerHTML = `<img src=${loginBtnImg} loginBtnBeforeImg /><div accountuser>Dashboard</div><img src=${arrowBtnImg} loginBtnAfterImg />`;
     }
+    else {
+      let loginBtnImg = account.image ?? "../images/profiles/defaultWhite.svg";
+      loginBtn.innerHTML = `<img src=${loginBtnImg} defaultLoginBtnBeforeImg /><div accountuser>Dashboard</div><img src=${arrowBtnImg} loginBtnAfterImg />`;
+    }
+  } else {
+    loginBtn.innerHTML = `<div accountuser>Open Markify</div>`;
+  }
 
 
     // SECTION 2 | History

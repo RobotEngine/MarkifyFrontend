@@ -4203,6 +4203,15 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
         }
         elem.setAttribute("points", starPoints.trim());
         break;
+      /*case "arrow":
+        elem = svg.querySelector("polygon");
+        if (elem == null) {
+          svg.innerHTML = "<polygon/>";
+          elem = svg.querySelector("polygon");
+          elem.setAttribute("stroke-linejoin", "round");
+        }
+
+        break;*/
     }
 
     if (this.properties.b == "none") {

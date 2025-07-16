@@ -284,22 +284,22 @@ modules["pages/launch"] = class {
   };
 
 
-js = async (page) => {
+  js = async (page) => {
 
-  //Lauch page login button
-  const loginBtn = page.querySelector('#loginBtn');
-  if (userID) {
-    if (account.image) {
-      loginBtn.innerHTML = `<img loginBtnBeforeImg /><div accountuser>Dashboard</div><img src="../images/tooltips/link.svg" loginBtnAfterImg />`;
-      loginBtn.querySelector("[loginBtnBeforeImg]").src = account.image;
+    //Lauch page login button
+    const loginBtn = page.querySelector('#loginBtn');
+    if (userID) {
+      if (account.image) {
+        loginBtn.innerHTML = `<img loginBtnBeforeImg /><div accountuser>Dashboard</div><img src="../images/tooltips/link.svg" loginBtnAfterImg />`;
+        loginBtn.querySelector("[loginBtnBeforeImg]").src = account.image;
+      }
+      else {
+        loginBtn.innerHTML = `<img src="../images/profiles/defaultWhite.svg" defaultLoginBtnBeforeImg /><div accountuser>Dashboard</div><img src="../images/tooltips/link.svg" loginBtnAfterImg />`;
+      }
+    } else {
+      loginBtn.innerHTML = `<div accountuser>Open Markify</div>`;
+      loginBtn.style.removeProperty("padding");
     }
-    else {
-      loginBtn.innerHTML = `<img src="../images/profiles/defaultWhite.svg" defaultLoginBtnBeforeImg /><div accountuser>Dashboard</div><img src="../images/tooltips/link.svg" loginBtnAfterImg />`;
-    }
-  } else {
-    loginBtn.innerHTML = `<div accountuser>Open Markify</div>`;
-    loginBtn.style.padding = "";
-  }
 
 
     // SECTION 2 | History
@@ -358,7 +358,7 @@ js = async (page) => {
             }
             dotButtons.querySelector("button[" + sectionName + "]").setAttribute("selected", "");
 
-            let nextSection = sections[i-1];
+            let nextSection = sections[i - 1];
             if (nextSection != null && stickyPercent > nextSection.percent - .1) {
               historyContent.style.transform = "scale(" + (stickyPercent / (nextSection.percent - .1)) + ")";
               historyContent.style.opacity = (nextSection.percent - stickyPercent) * 10;
@@ -377,7 +377,7 @@ js = async (page) => {
         historyContent.style.opacity = 1;
       }
     }
-    dotButtons.addEventListener("click", function(event) {
+    dotButtons.addEventListener("click", function (event) {
       let target = event.target.closest("button");
       if (target == null) {
         return;
@@ -652,7 +652,7 @@ js = async (page) => {
         newTile.style.opacity = 1;
       }
     }
-    usecaseToolbar.addEventListener("click", function(event) {
+    usecaseToolbar.addEventListener("click", function (event) {
       let button = event.target.closest("button");
       if (button == null) {
         return;
@@ -670,7 +670,7 @@ js = async (page) => {
     let modalImg = usecaseModal.querySelector(".lUsecaseModalImage");
     let lastClickedButton;
     let modalOpen = false;
-    sectionHolder.addEventListener("click", async function(event) {
+    sectionHolder.addEventListener("click", async function (event) {
       let button = event.target.closest(".lUsecaseTile");
       if (button == null) {
         return;
@@ -687,7 +687,7 @@ js = async (page) => {
       usecaseModal.style.top = buttonRect.top + "px";
       let themeColor = window.getComputedStyle(button).getPropertyValue("--themeColor");
       usecaseModal.style.setProperty("--themeColor", themeColor);
-      
+
       let section = button.getAttribute("section");
       let index = button.getAttribute("index");
       lastClickedButton = section + "_" + index;

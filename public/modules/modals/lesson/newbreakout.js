@@ -21,7 +21,7 @@ modules["modals/lesson/newbreakout"] = class {
         <div image></div>
         <div content>
           <div text>Copy Existing Board</div>
-          <div detail>Easily give member's their own copy.</div>
+          <div detail>Give member's their own board copy.</div>
         </div>
       </button>
       <button class="brtButton largeButton" type="duplicate">

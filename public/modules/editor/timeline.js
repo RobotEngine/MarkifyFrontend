@@ -22,8 +22,36 @@ modules["editor/timeline"] = class {
       </div>
     </div>
     <div class="timelineBottomHolder">
-      <div class="timelineHistory">
-
+      <div class="timelineHistory" disabled>
+        <div class="timelineHistorySliderHolder">
+          <div class="timelineHistorySlider">
+            <div class="timelineHistoryBar"><div class="timelineHistoryBarTrack"><div progress></div><div loader></div></div></div>
+            <div class="timelineHistoryTrack"><button></button></div>
+          </div>
+        </div>
+        <div class="timelineHistoryInfo">
+          <div class="timelineHistoryDetail" style="display: none">
+            <div class="timelineHistoryMemberHolder">
+              <div class="timelineHistoryMember">
+                <div profileholder>
+                  <div cursor></div>
+                  <div profile><img src="../images/profiles/default.svg" /></div>
+                </div>
+                <div content>
+                  <div name></div>
+                  <div email></div>
+                </div>
+              </div>
+            </div>
+            <div class="timelineHistoryTime"></div>
+          </div>
+          <div class="timelineHistoryChange">
+            <button class="timelineHistorySkim" back disabled></button>
+            <div class="timelineHistoryCurrentChange"><b>0</b> / 0</div>
+            <button class="timelineHistorySkim" next disabled></button>
+            <button class="timelineHistorySkim" play></button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -50,7 +78,40 @@ modules["editor/timeline"] = class {
     ".timelineToolbarHolder": `position: relative; display: block; flex: 1; visibility: visible`,
 
     ".timelineBottomHolder": `position: relative; display: flex; width: 100%; height: fit-content; margin-top: 8px; justify-content: center; visibility: visible`,
-    ".timelineHistory": `box-sizing: border-box; width: calc(100% - 16px); max-width: 600px; height: 100px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 12px 12px 0 0; pointer-events: all`
+    ".timelineHistory": `position: relative; box-sizing: border-box; width: calc(100% - 16px); max-width: 600px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); opacity: 1 !important; box-shadow: var(--lightShadow); border-radius: 12px 12px 0 0; overflow: hidden; pointer-events: all !important`,
+    ".timelineHistory[disabled] > div": `opacity: .5; pointer-events: none`,
+    ".timelineHistorySliderHolder": `box-sizing: border-box; display: flex; width: 100%; align-items: center; z-index: 1; transition: .2s`,
+    ".timelineHistorySlider": `position: relative; flex: 1; height: 10px; margin: 12px; touch-action: none`,
+    ".timelineHistoryTrack": `position: absolute; width: calc(100% - 10px); height: 100%; left: 5px; top: 0px; z-index: 2`,
+    ".timelineHistoryTrack button": `--percent: 100%; position: absolute; width: 22px; height: 22px; padding: 0px; left: calc(var(--percent) - 11px); top: -6px; margin: 0px; background: var(--theme); box-shadow: var(--darkShadow); border: solid 4px var(--pageColor); border-radius: 11px; transition: transform .2s`,
+    ".timelineHistoryTrack button:hover": `transform: scale(1.2) !important`,
+    ".timelineHistoryTrack button:active": `transform: scale(1.1) !important`,
+    ".timelineHistoryBar": `position: relative; width: 100%; height: 100%; background: var(--gray); border-radius: 5px; overflow: hidden; transition: .2s`,
+    ".timelineHistoryBarTrack": `position: absolute; width: calc(100% - 10px); height: 100%; left: 5px; top: 0px; z-index: 1`,
+    ".timelineHistoryBarTrack div[progress]": `--percent: 100%; position: absolute; width: calc(var(--percent) + 5px); height: 100%; left: -5px; top: 0px; background: var(--theme); z-index: 2`,
+    ".timelineHistoryBarTrack div[loader]": `--percent: 0%; position: absolute; width: calc(var(--percent) + 5px); height: 100%; right: -5px; top: 0px; background: var(--hover); z-index: 1`,
+    ".timelineHistoryInfo": `position: relative; box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; margin-bottom: 2px; gap: 6px; align-items: center; z-index: 2`,
+    ".timelineHistoryDetail": `display: flex; flex: 1 1 100px; min-width: 0px; margin: 0 8px 0 6px; align-items: center; z-index: 2; transition: .2s`,
+    ".timelineHistoryMemberHolder": `position: relative; height: 28px; padding: 6px 0 6px 6px`,
+    ".timelineHistoryMemberHolder:not([extend])": `flex: 1; min-width: 0px; max-width: var(--width); overflow: hidden`,
+    ".timelineHistoryMemberHolder[extend]": `width: var(--width)`,
+    ".timelineHistoryMember": `position: absolute; display: flex; height: 28px; padding: 6px; left: 0px; top: 50%; transform: translateY(-50%); border-radius: 8px; transition: .2s`,
+    ".timelineHistoryMemberHolder[extend] .timelineHistoryMember": `background: var(--pageColor)`,
+    ".timelineHistoryMember:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; box-shadow: 0 0 6px var(--themeColor); opacity: 0; transition: .2s`,
+    ".timelineHistoryMemberHolder[extend] .timelineHistoryMember:after": `opacity: .6`,
+    ".timelineHistoryMember div[profileholder] div[cursor]": `position: relative; display: none; width: 22px; height: 22px; background: var(--themeColor); border: solid 3px var(--pageColor); border-radius: 8px 14px 14px`,
+    ".timelineHistoryMember div[profileholder] div[cursor]:after": `content: ""; position: absolute; width: 100%; height: 100%; padding: 3px; left: -3px; top: -3px; border-radius: inherit; box-shadow: 0 0 6px var(--themeColor); opacity: .6`,
+    ".timelineHistoryMember div[profileholder] div[profile]": `position: relative; display: none; width: 22px; height: 22px; border: solid 3px var(--pageColor); border-radius: 14px`,
+    ".timelineHistoryMember div[profileholder] div[profile] img": `width: 100%; height: 100%; object-fit: cover; border-radius: inherit`,
+    ".timelineHistoryMember div[profileholder] div[profile]:after": `content: ""; position: absolute; width: 100%; height: 100%; padding: 3px; left: -3px; top: -3px; border-radius: inherit; box-shadow: 0 0 4px var(--themeColor); opacity: .6`,
+    ".timelineHistoryMember div[content]": `display: flex; flex: 1; min-width: 0; max-width: calc(var(--width) - 34px); height: 28px; margin-left: 6px; text-align: left; overflow: hidden; align-items: center; transition: .2s`,
+    ".timelineHistoryMember div[content] div[name]": `font-size: 16px; font-weight: 600; white-space: nowrap`,
+    ".timelineHistoryMember div[content] div[email]": `margin: 0 6px 0 8px; font-size: 15px; font-weight: 500; white-space: nowrap`,
+    ".timelineHistoryTime": `margin-left: 6px; color: var(--darkGray); font-size: 16px; font-weight: 500; white-space: nowrap`,
+    ".timelineHistoryChange": `display: flex; margin: 0 8px 0 auto; align-items: center; z-index: 1`,
+    ".timelineHistoryChange button": `display: flex; flex-shrink: 0; width: 28px; height: 28px; padding: 4px; margin: 0 4px; justify-content: center; align-items: center; background: var(--lightGray); border-radius: 14px`,
+    ".timelineHistoryChange button svg": `flex-shrink: 0; width: 22px; height: 22px`,
+    ".timelineHistoryCurrentChange": `flex-shrink: 0; margin: 0 6px; font-size: 16px`
   };
   js = async (frame) => {
     frame.style.position = "relative";
@@ -66,6 +127,24 @@ modules["editor/timeline"] = class {
     let toolbarHolder = main.querySelector(".timelineToolbarHolder");
     let selectButton = toolbarHolder.querySelector('.eTool[tool="select"]');
     let panButton = toolbarHolder.querySelector('.eTool[tool="pan"]');
+
+    let timeline = main.querySelector(".timelineHistory");
+
+    let timelineDetail = timeline.querySelector(".timelineHistoryDetail");
+    let memberHolder = timelineDetail.querySelector(".timelineHistoryMemberHolder");
+    let memberFrame = memberHolder.querySelector(".timelineHistoryMember");
+    let memberCursor = memberFrame.querySelector("div[profileholder] > div[cursor]");
+    let memberProfilePicture = memberFrame.querySelector("div[profileholder] > div[profile]");
+    let memberContent = memberFrame.querySelector("div[content]");
+    let memberName = memberContent.querySelector("div[content] > div[name]");
+    let memberEmail = memberContent.querySelector("div[content] > div[email]");
+    let changeTime = timelineDetail.querySelector(".timelineHistoryTime");
+
+    let timelineChange = timeline.querySelector(".timelineHistoryChange");
+    let skimBackButton = timelineChange.querySelector(".timelineHistorySkim[back]");
+    let currentChangeText = timelineChange.querySelector(".timelineHistoryCurrentChange");
+    let skimNextButton = timelineChange.querySelector(".timelineHistorySkim[next]");
+    let skimPlayButton = timelineChange.querySelector(".timelineHistorySkim[play]");
 
     this.editor = await this.setFrame("editor/editor", contentHolder, {
       construct: {
@@ -134,11 +213,74 @@ modules["editor/timeline"] = class {
     });
     this.updateInterface();
 
+    //memberHolder.style.setProperty("--width", (memberName.offsetWidth + 36) + "px");
+    let closing = false;
+    memberFrame.addEventListener("mouseover", () => {
+      closing = false;
+      memberHolder.style.overflow = "unset";
+      memberHolder.setAttribute("extend", "");
+      memberFrame.style.setProperty("--width", (memberName.offsetWidth + memberEmail.offsetWidth + 48) + "px");
+    });
+    memberFrame.addEventListener("mouseout", async () => {
+      closing = true;
+      memberFrame.style.removeProperty("--width");
+      memberHolder.removeAttribute("extend");
+      await sleep(200);
+      if (closing == true) {
+        memberHolder.style.removeProperty("overflow");
+      }
+    });
+
     // Load Images:
     setSVG(closeButton, "../images/tooltips/close.svg");
-
+    setSVG(skimBackButton, "../images/editor/timeline/back.svg");
+    setSVG(skimNextButton, "../images/editor/timeline/next.svg");
+    setSVG(skimPlayButton, "../images/editor/timeline/play.svg");
+    
     (async () => {
       await (await this.newModule("editor/toolbar")).js(this.editor);
+    })();
+
+    let changes = [];
+    let currentChange = 0;
+    let totalChanges;
+    let lastBefore;
+    
+    this.updateCurrentChange = () => {
+      currentChangeText.innerHTML = "<b>" + currentChange + "</b> / " + totalChanges;
+    }
+    this.updateTimeline = () => {
+
+      this.updateCurrentChange();
+    }
+
+    this.loadChanges = async () => {
+      let path = "lessons/join/history";
+      if (lastBefore != null) {
+        path += "?amount=250&before=" + lastBefore;
+      }
+      let [code, body] = await sendRequest("GET", path, null, { session: this.parent.session });
+      if (code != 200) {
+        return;
+      }
+      for (let i = 0; i < body.changes.length; i++) {
+        changes.unshift(body.changes[i]);
+      }
+      totalChanges = Math.max(totalChanges ?? 0, changes.length);
+      this.updateTimeline();
+    }
+
+    (async () => {
+      await this.loadChanges();
+      timeline.removeAttribute("disabled");
+    })();
+    (async () => {
+      let [code, body] = await sendRequest("GET", "lessons/join/history/count", null, { session: this.parent.session });
+      await sleep(2000);
+      if (code == 200) {
+        totalChanges += body.count;
+        this.updateCurrentChange();
+      }
     })();
   }
 }

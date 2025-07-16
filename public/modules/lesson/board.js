@@ -64,7 +64,7 @@ modules["lesson/board"] = class {
         </div>
       </div>
     </div>
-    <div class="eContentHolder customScroll"></div>
+    <div class="eContentHolder customScroll" disabled></div>
   </div>
   <div class="boPage" timeline hidden></div>
   `;
@@ -868,7 +868,6 @@ modules["lesson/board"] = class {
       if (this.session == null) {
         return;
       }
-      contentHolder.setAttribute("disabled", "");
       let [annoCode, annoBody] = await sendRequest("GET", "lessons/join/annotations", null, { session: this.parent.session }, { allowError: true });
       if (annoCode != 200 && connected == true) {
         alertModule.open("error", `<b>Error Loading Annotations</b>Please try again later...`);
@@ -966,8 +965,7 @@ modules["dropdowns/lesson/file"] = class {
       alertModule.close(copyAlert);
       if (code == 200) {
         dropdownModule.close();
-        modifyParams("lesson", body.lesson);
-        setFrame("pages/app/lesson");
+        setFrame("pages/app/lesson", null, { params: { lesson: body.lesson } });
       }
     });
     if (editor.settings.allowExport == false && access < 4) {

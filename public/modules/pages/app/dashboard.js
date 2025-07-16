@@ -624,7 +624,7 @@ modules["pages/app/dashboard"] = class {
                     tile.remove();
                   }
                 }
-                let existingSectionRecord = records[lesson.record.folder];
+                let existingSectionRecord = records[(lesson.record ?? {}).folder];
                 if (existingSectionRecord != null) {
                   existingSectionRecord.splice(existingSectionRecord.indexOf(lesson.record._id), 1);
                 }

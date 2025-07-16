@@ -21,7 +21,7 @@ const configs = {
   }
 };
 
-const config = configs["public"];
+const config = configs["prodTesting"];
 const version = "1.3.17"; // Big Update . Small Feature Release . Bug Fix
 
 const serverURL = config.server;
@@ -1037,18 +1037,18 @@ let initSocket = async () => {
     dropdownModule.close();
     await init();
 
-
-  //Routing
+    // Handle Routing:
     let openPage = defaultPage;
-
-    if (userID && window.location.pathname.substring(1) == "") {
-      openPage = "pages/app/dashboard";
-    } else if (window.location.pathname.substring(1) == "") {
-      openPage = "pages/launch";
+    let path = window.location.pathname.substring(1);
+    if (path == "") {
+      if (userID != null && path == "") {
+        openPage = "pages/app/dashboard";
+      } else {
+        openPage = "pages/launch";
+      }
     }
-    
     if (window.location.pathname != "/") {
-      openPage = "pages/" + window.location.pathname.substring(1);
+      openPage = "pages/" + path;
     } else if (window.location.hash != "") {
       let hash = window.location.hash.substring(1);
       openPage = "pages/" + (movedPages[hash] ?? hash);

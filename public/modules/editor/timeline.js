@@ -279,16 +279,19 @@ modules["editor/timeline"] = class {
       sliderLoaderBar.style.setProperty("--percent", ((loadedChanges / totalChanges) * 100) + "%");
       sliderButton.style.setProperty("--percent", stylePercent + "%");
 
-      changeTime.textContent = timeSince(changeData.added);
-      changeTime.title = formatFullDate(changeData.added);
-
-      let collaborator = this.editor.collaborators[changeData.collaborator];
-      if (collaborator == null) {
-        timelineDetail.style.removeProperty("display");
-        let currentLoadChange = currentChange;
-        collaborator = await this.editor.utils.getCollaborator(changeData.collaborator);
-        if (currentLoadChange != currentChange) {
-          return;
+      let collaborator;
+      if (changeData != null) {
+        changeTime.textContent = timeSince(changeData.added);
+        changeTime.title = formatFullDate(changeData.added);
+        
+        collaborator = this.editor.collaborators[changeData.collaborator];
+        if (collaborator == null) {
+          timelineDetail.style.removeProperty("display");
+          let currentLoadChange = currentChange;
+          collaborator = await this.editor.utils.getCollaborator(changeData.collaborator);
+          if (currentLoadChange != currentChange) {
+            return;
+          }
         }
       }
       if (collaborator != null) {

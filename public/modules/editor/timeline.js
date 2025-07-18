@@ -30,7 +30,7 @@ modules["editor/timeline"] = class {
           </div>
         </div>
         <div class="timelineHistoryInfo">
-          <div class="timelineHistoryDetail" style="display: none">
+          <div class="timelineHistoryDetail">
             <div class="timelineHistoryMemberHolder">
               <div class="timelineHistoryMember">
                 <div profileholder>
@@ -91,24 +91,24 @@ modules["editor/timeline"] = class {
     ".timelineHistoryBarTrack div[progress]": `--percent: 100%; position: absolute; width: calc(var(--percent) + 5px); height: 100%; left: -5px; top: 0px; background: var(--theme); z-index: 2`,
     ".timelineHistoryBarTrack div[loader]": `--percent: 0%; position: absolute; width: calc(var(--percent) + 5px); height: 100%; right: -5px; top: 0px; background: var(--hover); z-index: 1`,
     ".timelineHistoryInfo": `position: relative; box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; margin-bottom: 2px; gap: 6px; align-items: center; z-index: 2`,
-    ".timelineHistoryDetail": `display: flex; flex: 1 1 100px; min-width: 0px; margin: 0 8px 0 6px; align-items: center; z-index: 2; transition: .2s`,
+    ".timelineHistoryDetail": `display: none; flex: 1 1 100px; min-width: 0px; margin: 0 8px 0 6px; align-items: center; z-index: 2; transition: .2s`,
     ".timelineHistoryMemberHolder": `position: relative; height: 28px; padding: 6px 0 6px 6px`,
     ".timelineHistoryMemberHolder:not([extend])": `flex: 1; min-width: 0px; max-width: var(--width); overflow: hidden`,
     ".timelineHistoryMemberHolder[extend]": `width: var(--width)`,
-    ".timelineHistoryMember": `position: absolute; display: flex; height: 28px; padding: 6px; left: 0px; top: 50%; transform: translateY(-50%); border-radius: 8px; transition: .2s`,
-    ".timelineHistoryMemberHolder[extend] .timelineHistoryMember": `background: var(--pageColor)`,
-    ".timelineHistoryMember:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; box-shadow: 0 0 6px var(--themeColor); opacity: 0; transition: .2s`,
+    ".timelineHistoryMember": `position: absolute; display: flex; height: 28px; padding: 6px; left: 0px; top: 50%; transform: translateY(-50%); background: var(--pageColor); border-radius: 8px; transition: .2s`,
+    ".timelineHistoryMember:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; box-shadow: 0 0 6px var(--themeColor); opacity: 0; z-index: 1; transition: .2s`,
     ".timelineHistoryMemberHolder[extend] .timelineHistoryMember:after": `opacity: .6`,
-    ".timelineHistoryMember div[profileholder] div[cursor]": `position: relative; display: none; width: 22px; height: 22px; background: var(--themeColor); border: solid 3px var(--pageColor); border-radius: 8px 14px 14px`,
+    ".timelineHistoryMember div[profileholder]": `z-index: 2`,
+    ".timelineHistoryMember div[profileholder] div[cursor]": `position: relative; width: 22px; height: 22px; background: var(--themeColor); border: solid 3px var(--pageColor); border-radius: 8px 14px 14px`,
     ".timelineHistoryMember div[profileholder] div[cursor]:after": `content: ""; position: absolute; width: 100%; height: 100%; padding: 3px; left: -3px; top: -3px; border-radius: inherit; box-shadow: 0 0 6px var(--themeColor); opacity: .6`,
-    ".timelineHistoryMember div[profileholder] div[profile]": `position: relative; display: none; width: 22px; height: 22px; border: solid 3px var(--pageColor); border-radius: 14px`,
+    ".timelineHistoryMember div[profileholder] div[profile]": `position: relative; width: 22px; height: 22px; border: solid 3px var(--pageColor); border-radius: 14px`,
     ".timelineHistoryMember div[profileholder] div[profile] img": `width: 100%; height: 100%; object-fit: cover; border-radius: inherit`,
     ".timelineHistoryMember div[profileholder] div[profile]:after": `content: ""; position: absolute; width: 100%; height: 100%; padding: 3px; left: -3px; top: -3px; border-radius: inherit; box-shadow: 0 0 4px var(--themeColor); opacity: .6`,
-    ".timelineHistoryMember div[content]": `display: flex; flex: 1; min-width: 0; max-width: calc(var(--width) - 34px); height: 28px; margin-left: 6px; text-align: left; overflow: hidden; align-items: center; transition: .2s`,
+    ".timelineHistoryMember div[content]": `display: flex; flex: 1; min-width: 0; max-width: calc(var(--width) - 34px); height: 28px; margin-left: 6px; text-align: left; overflow: hidden; align-items: center; z-index: 2; transition: .2s`,
     ".timelineHistoryMember div[content] div[name]": `font-size: 16px; font-weight: 600; white-space: nowrap`,
-    ".timelineHistoryMember div[content] div[email]": `margin: 0 6px 0 8px; font-size: 15px; font-weight: 500; white-space: nowrap`,
+    ".timelineHistoryMember div[content] div[email]": `display: none; margin: 0 6px 0 8px; font-size: 15px; font-weight: 500; white-space: nowrap`,
     ".timelineHistoryTime": `margin-left: 6px; color: var(--darkGray); font-size: 16px; font-weight: 500; white-space: nowrap`,
-    ".timelineHistoryChange": `display: flex; margin: 0 8px 0 auto; align-items: center; z-index: 1`,
+    ".timelineHistoryChange": `display: flex; margin: 6px 8px 6px auto; align-items: center; z-index: 1`,
     ".timelineHistoryChange button": `display: flex; flex-shrink: 0; width: 28px; height: 28px; padding: 4px; margin: 0 4px; justify-content: center; align-items: center; background: var(--lightGray); border-radius: 14px`,
     ".timelineHistoryChange button svg": `flex-shrink: 0; width: 22px; height: 22px`,
     ".timelineHistoryCurrentChange": `flex-shrink: 0; margin: 0 6px; font-size: 16px`
@@ -130,11 +130,18 @@ modules["editor/timeline"] = class {
 
     let timeline = main.querySelector(".timelineHistory");
 
+    let sliderBar = timeline.querySelector(".timelineHistorySlider");
+    let sliderBarTrack = sliderBar.querySelector(".timelineHistoryBarTrack");
+    let sliderProgressBar = sliderBarTrack.querySelector("div[progress]");
+    let sliderLoaderBar = sliderBarTrack.querySelector("div[loader]");
+    let sliderButton = sliderBar.querySelector(".timelineHistoryTrack button");
+
     let timelineDetail = timeline.querySelector(".timelineHistoryDetail");
     let memberHolder = timelineDetail.querySelector(".timelineHistoryMemberHolder");
     let memberFrame = memberHolder.querySelector(".timelineHistoryMember");
-    let memberCursor = memberFrame.querySelector("div[profileholder] > div[cursor]");
-    let memberProfilePicture = memberFrame.querySelector("div[profileholder] > div[profile]");
+    let memberProfileHolder = memberFrame.querySelector("div[profileholder]");
+    let memberCursor = memberProfileHolder.querySelector("div[cursor]");
+    let memberProfilePicture = memberProfileHolder.querySelector("div[profile]");
     let memberContent = memberFrame.querySelector("div[content]");
     let memberName = memberContent.querySelector("div[content] > div[name]");
     let memberEmail = memberContent.querySelector("div[content] > div[email]");
@@ -213,7 +220,6 @@ modules["editor/timeline"] = class {
     });
     this.updateInterface();
 
-    //memberHolder.style.setProperty("--width", (memberName.offsetWidth + 36) + "px");
     let closing = false;
     memberFrame.addEventListener("mouseover", () => {
       closing = false;
@@ -243,21 +249,79 @@ modules["editor/timeline"] = class {
 
     let changes = [];
     let currentChange = 0;
-    let totalChanges;
-    let lastBefore;
+    let totalChanges = 0;
     
     this.updateCurrentChange = () => {
-      currentChangeText.innerHTML = "<b>" + currentChange + "</b> / " + totalChanges;
-    }
-    this.updateTimeline = () => {
+      let useTotalChanges = Math.max(totalChanges, changes.length);
 
+      currentChangeText.innerHTML = "<b>" + currentChange + "</b> / " + useTotalChanges;
+
+      if (currentChange > 0) {
+        skimBackButton.removeAttribute("disabled");
+      } else {
+        skimBackButton.setAttribute("disabled", "");
+      }
+      if (currentChange < useTotalChanges) {
+        skimNextButton.removeAttribute("disabled");
+      } else {
+        skimNextButton.setAttribute("disabled", "");
+      }
+    }
+    this.updateTimeline = async () => {
       this.updateCurrentChange();
+
+      let changeData = changes[currentChange - 1];
+      let loadedChanges = changes.length;
+      let percent = currentChange / Math.max(totalChanges, loadedChanges);
+      let stylePercent = percent * 100;
+
+      sliderProgressBar.style.setProperty("--percent", stylePercent + "%");
+      sliderLoaderBar.style.setProperty("--percent", ((loadedChanges / totalChanges) * 100) + "%");
+      sliderButton.style.setProperty("--percent", stylePercent + "%");
+
+      changeTime.textContent = timeSince(changeData.added);
+      changeTime.title = formatFullDate(changeData.added);
+
+      let collaborator = this.editor.collaborators[changeData.collaborator];
+      if (collaborator == null) {
+        timelineDetail.style.removeProperty("display");
+        let currentLoadChange = currentChange;
+        collaborator = await this.editor.utils.getCollaborator(changeData.collaborator);
+        if (currentLoadChange != currentChange) {
+          return;
+        }
+      }
+      if (collaborator != null) {
+        memberFrame.style.setProperty("--themeColor", collaborator.color);
+        if (collaborator.image == null) {
+          memberCursor.style.removeProperty("display");
+          memberProfilePicture.style.display = "none";
+        } else {
+          memberProfilePicture.querySelector("img").src = collaborator.image;
+          memberProfilePicture.style.removeProperty("display");
+          memberCursor.style.display = "none";
+        }
+        memberName.textContent = collaborator.name;
+        memberName.title = collaborator.name;
+        if (collaborator.email != null) {
+          memberEmail.textContent = collaborator.email;
+          memberEmail.title = collaborator.email;
+          memberEmail.style.display = "flex";
+        } else {
+          memberEmail.style.removeProperty("display");
+        }
+
+        timelineDetail.style.display = "flex";
+        memberHolder.style.setProperty("--width", (memberName.offsetWidth + 36) + "px");
+      } else {
+        timelineDetail.style.removeProperty("display");
+      }
     }
 
     this.loadChanges = async () => {
       let path = "lessons/join/history";
-      if (lastBefore != null) {
-        path += "?amount=250&before=" + lastBefore;
+      if (changes.length > 0) {
+        path += "?amount=250&before=" + ((changes[0] ?? {}).added ?? getEpoch());
       }
       let [code, body] = await sendRequest("GET", path, null, { session: this.parent.session });
       if (code != 200) {
@@ -266,19 +330,59 @@ modules["editor/timeline"] = class {
       for (let i = 0; i < body.changes.length; i++) {
         changes.unshift(body.changes[i]);
       }
-      totalChanges = Math.max(totalChanges ?? 0, changes.length);
-      this.updateTimeline();
     }
+
+    skimBackButton.addEventListener("click", () => {
+      if (currentChange > 0) {
+        currentChange--;
+        this.updateTimeline();
+      }
+    });
+    skimNextButton.addEventListener("click", () => {
+      if (currentChange < Math.max(totalChanges, changes.length)) {
+        currentChange++;
+        this.updateTimeline();
+      }
+    });
+
+    let sliderEnabled = true;
+    let eventBarUpdate = (event) => {
+      if (sliderEnabled == false) {
+        return;
+      }
+      if (mouseDown() == false) {
+        sliderEnabled = false;
+        this.pipeline.unsubscribe("timelineSelectorMouse");
+        return;
+      }
+      let useTotalChanges = Math.max(totalChanges, changes.length);
+      let barRect = sliderBar.getBoundingClientRect();
+      let newCurrentChange = Math.round((Math.max(Math.min((clientPosition(event, "x") - barRect.x - 6) / (sliderBar.offsetWidth - 10), 1), 0)) * useTotalChanges);
+      if (currentChange != newCurrentChange) {
+        currentChange = newCurrentChange;
+        this.updateTimeline();
+      }
+    }
+    let enableSlider = (event) => {
+      sliderEnabled = true;
+      eventBarUpdate(event);
+      this.pipeline.subscribe("timelineSelectorMouse", "click_move", (data) => { eventBarUpdate(data.event); });
+      this.pipeline.subscribe("timelineSelectorMouse", "click_end", (data) => { eventBarUpdate(data.event); });
+    }
+    sliderBar.addEventListener("mousedown", enableSlider);
+    sliderBar.addEventListener("touchstart", enableSlider, { passive: true });
 
     (async () => {
       await this.loadChanges();
+      currentChange = changes.length;
+      await this.updateTimeline();
       timeline.removeAttribute("disabled");
     })();
     (async () => {
       let [code, body] = await sendRequest("GET", "lessons/join/history/count", null, { session: this.parent.session });
-      await sleep(2000);
       if (code == 200) {
         totalChanges += body.count;
+        currentChange += body.count - changes.length;
         this.updateCurrentChange();
       }
     })();

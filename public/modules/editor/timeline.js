@@ -223,6 +223,7 @@ modules["editor/timeline"] = class {
     let closing = false;
     memberFrame.addEventListener("mouseover", () => {
       closing = false;
+      memberContent.removeAttribute("notransition");
       memberHolder.style.overflow = "unset";
       memberHolder.setAttribute("extend", "");
       memberFrame.style.setProperty("--width", (memberName.offsetWidth + memberEmail.offsetWidth + 48) + "px");
@@ -249,6 +250,7 @@ modules["editor/timeline"] = class {
 
     let changes = [];
     let currentChange = 0;
+    let lastRenderChange;
     let totalChanges = 0;
     
     this.updateCurrentChange = () => {
@@ -271,6 +273,46 @@ modules["editor/timeline"] = class {
       this.updateCurrentChange();
 
       let changeData = changes[currentChange - 1];
+
+      if (lastRenderChange == null) {
+        lastRenderChange = currentChange;
+      }
+      while (lastRenderChange != currentChange) {
+        let useChangeType;
+        let prevChangeData;
+        let annoChanges;
+        if (lastRenderChange > currentChange) {
+          lastRenderChange--;
+          useChangeType = "changes";
+
+          prevChangeData = changes[lastRenderChange] ?? {};
+          annoChanges = prevChangeData.changes;
+        } else if (lastRenderChange < currentChange) {
+          prevChangeData = changes[lastRenderChange] ?? {};
+          annoChanges = prevChangeData.redoChanges;
+
+          lastRenderChange++;
+          useChangeType = "redoChanges";
+        }
+        
+        if (annoChanges != null) {
+          let addRedoChanges = prevChangeData.redoChanges == null && useChangeType == "changes";
+          if (addRedoChanges == true) {
+            prevChangeData.redoChanges = [];
+          }
+          for (let i = 0; i < annoChanges.length; i++) {
+            let annotation = annoChanges[i];
+            let original = (this.editor.annotations[annotation._id] ?? {}).render;
+            if (addRedoChanges == true) {
+              prevChangeData.redoChanges.push(copyObject(original ?? { _id: annotation._id, remove: true }));
+            }
+            await this.editor.save.apply({ ...(original ?? {}), ...annotation }, { overwrite: true, timeout: false, render: false });
+          }
+        }
+      }
+
+      await this.pipeline.publish("redraw_selection", { transition: false });
+
       let loadedChanges = changes.length;
       let percent = currentChange / Math.max(totalChanges, loadedChanges);
       let stylePercent = percent * 100;
@@ -279,6 +321,8 @@ modules["editor/timeline"] = class {
       sliderLoaderBar.style.setProperty("--percent", ((loadedChanges / totalChanges) * 100) + "%");
       sliderButton.style.setProperty("--percent", stylePercent + "%");
 
+      memberContent.setAttribute("notransition", "");
+      
       let collaborator;
       if (changeData != null) {
         changeTime.textContent = timeSince(changeData.added);

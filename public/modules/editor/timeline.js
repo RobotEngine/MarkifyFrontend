@@ -49,7 +49,7 @@ modules["editor/timeline"] = class {
             <button class="timelineHistorySkim" back disabled></button>
             <div class="timelineHistoryCurrentChange"><b>0</b> / 0</div>
             <button class="timelineHistorySkim" next disabled></button>
-            <button class="timelineHistorySkim" play></button>
+            <button class="timelineHistorySkim" play><div play></div><div pause hidden></div></button>
           </div>
         </div>
       </div>
@@ -110,7 +110,10 @@ modules["editor/timeline"] = class {
     ".timelineHistoryTime": `margin-left: 6px; color: var(--darkGray); font-size: 16px; font-weight: 500; white-space: nowrap`,
     ".timelineHistoryChange": `display: flex; margin: 6px 8px 6px auto; align-items: center; z-index: 1`,
     ".timelineHistoryChange button": `display: flex; flex-shrink: 0; width: 28px; height: 28px; padding: 4px; margin: 0 4px; justify-content: center; align-items: center; background: var(--lightGray); border-radius: 14px`,
-    ".timelineHistoryChange button svg": `flex-shrink: 0; width: 22px; height: 22px`,
+    ".timelineHistoryChange button > svg": `flex-shrink: 0; width: 22px; height: 22px`,
+    ".timelineHistoryChange button > div": `flex-shrink: 0; width: 22px; height: 22px`,
+    ".timelineHistoryChange button > div[hidden]": `display: none`,
+    ".timelineHistoryChange button > div > svg": `width: 100%; height: 100%`,
     ".timelineHistoryCurrentChange": `flex-shrink: 0; margin: 0 6px; font-size: 16px`
   };
   js = async (frame) => {
@@ -242,7 +245,8 @@ modules["editor/timeline"] = class {
     setSVG(closeButton, "../images/tooltips/close.svg");
     setSVG(skimBackButton, "../images/editor/timeline/back.svg");
     setSVG(skimNextButton, "../images/editor/timeline/next.svg");
-    setSVG(skimPlayButton, "../images/editor/timeline/play.svg");
+    setSVG(skimPlayButton.querySelector("div[play]"), "../images/editor/timeline/play.svg");
+    setSVG(skimPlayButton.querySelector("div[pause]"), "../images/editor/timeline/pause.svg");
     
     (async () => {
       await (await this.newModule("editor/toolbar")).js(this.editor);
@@ -252,6 +256,38 @@ modules["editor/timeline"] = class {
     let currentChange = 0;
     let lastRenderChange;
     let totalChanges = 0;
+    let playing = false;
+    let playInterval;
+    
+    let startPlaying = () => {
+      if (playing == true) {
+        return;
+      }
+      playing = true;
+      skimPlayButton.querySelector("div[play]").setAttribute("hidden", "");
+      skimPlayButton.querySelector("div[pause]").removeAttribute("hidden");
+      if (currentChange >= Math.max(totalChanges, changes.length)) {
+        currentChange = 0;
+        this.updateTimeline();
+      }
+      playInterval = setInterval(() => {
+        currentChange++;
+        this.updateTimeline({ fromPlayLoop: true });
+        if (currentChange >= Math.max(totalChanges, changes.length)) {
+          return stopPlaying();
+        }
+      }, 150);
+    }
+    let stopPlaying = () => {
+      if (playInterval == null) {
+        return;
+      }
+      clearInterval(playInterval);
+      playInterval = null;
+      playing = false;
+      skimPlayButton.querySelector("div[pause]").setAttribute("hidden", "");
+      skimPlayButton.querySelector("div[play]").removeAttribute("hidden");
+    }
     
     this.updateCurrentChange = () => {
       let useTotalChanges = Math.max(totalChanges, changes.length);
@@ -269,7 +305,11 @@ modules["editor/timeline"] = class {
         skimNextButton.setAttribute("disabled", "");
       }
     }
-    this.updateTimeline = async () => {
+    this.updateTimeline = async (options = {}) => {
+      if (options.fromPlayLoop != true) {
+        stopPlaying();
+      }
+
       this.updateCurrentChange();
 
       let changeData = changes[currentChange - 1];
@@ -393,6 +433,13 @@ modules["editor/timeline"] = class {
       if (currentChange < Math.max(totalChanges, changes.length)) {
         currentChange++;
         this.updateTimeline();
+      }
+    });
+    skimPlayButton.addEventListener("click", () => {
+      if (playing == false) {
+        startPlaying();
+      } else {
+        stopPlaying();
       }
     });
 

@@ -257,9 +257,9 @@ modules["editor/timeline"] = class {
     let lastRenderChange;
     let totalChanges = 0;
     let playing = false;
-    let playInterval;
+    let loading = false;
     
-    let startPlaying = () => {
+    let startPlaying = async () => {
       if (playing == true) {
         return;
       }
@@ -268,22 +268,18 @@ modules["editor/timeline"] = class {
       skimPlayButton.querySelector("div[pause]").removeAttribute("hidden");
       if (currentChange >= Math.max(totalChanges, changes.length)) {
         currentChange = 0;
-        this.updateTimeline();
+        await this.updateTimeline({ fromPlayLoop: true });
       }
-      playInterval = setInterval(() => {
+      while (playing == true) {
+        await sleep(150);
         currentChange++;
-        this.updateTimeline({ fromPlayLoop: true });
+        await this.updateTimeline({ fromPlayLoop: true });
         if (currentChange >= Math.max(totalChanges, changes.length)) {
           return stopPlaying();
         }
-      }, 150);
+      }
     }
     let stopPlaying = () => {
-      if (playInterval == null) {
-        return;
-      }
-      clearInterval(playInterval);
-      playInterval = null;
       playing = false;
       skimPlayButton.querySelector("div[pause]").setAttribute("hidden", "");
       skimPlayButton.querySelector("div[play]").removeAttribute("hidden");
@@ -291,6 +287,11 @@ modules["editor/timeline"] = class {
     
     this.updateCurrentChange = () => {
       let useTotalChanges = Math.max(totalChanges, changes.length);
+
+      let percent = currentChange / useTotalChanges;
+      let stylePercent = percent * 100;
+      sliderProgressBar.style.setProperty("--percent", stylePercent + "%");
+      sliderButton.style.setProperty("--percent", stylePercent + "%");
 
       currentChangeText.innerHTML = "<b>" + currentChange + "</b> / " + useTotalChanges;
 
@@ -312,11 +313,26 @@ modules["editor/timeline"] = class {
 
       this.updateCurrentChange();
 
-      let changeData = changes[currentChange - 1];
-
+      let loadedChanges = changes.length;
+      let useTotalChanges = Math.max(totalChanges, changes.length);
       if (lastRenderChange == null) {
         lastRenderChange = currentChange;
       }
+      
+      if (loading == true) {
+        return;
+      }
+      let currentChangeIndex = -1;
+      while (currentChangeIndex < 0 && changes.length < useTotalChanges) {
+        currentChangeIndex = loadedChanges - (useTotalChanges - currentChange) - 1;
+        if (currentChangeIndex < 0) {
+          await this.loadChanges();
+        }
+        loadedChanges = changes.length;
+        useTotalChanges = Math.max(totalChanges, changes.length);
+      }
+      let changeData = changes[currentChangeIndex];
+
       let updateAnnotations = {};
       while (lastRenderChange != currentChange) {
         let useChangeType;
@@ -326,10 +342,10 @@ modules["editor/timeline"] = class {
           lastRenderChange--;
           useChangeType = "changes";
 
-          prevChangeData = changes[lastRenderChange] ?? {};
+          prevChangeData = changes[loadedChanges - (useTotalChanges - lastRenderChange)] ?? {};
           annoChanges = prevChangeData.changes;
         } else if (lastRenderChange < currentChange) {
-          prevChangeData = changes[lastRenderChange] ?? {};
+          prevChangeData = changes[loadedChanges - (useTotalChanges - lastRenderChange)] ?? {};
           annoChanges = prevChangeData.redoChanges;
 
           lastRenderChange++;
@@ -356,14 +372,6 @@ modules["editor/timeline"] = class {
         await this.editor.save.apply(updateAnnotations[updateAnnotationKeys[i]], { overwrite: true, timeout: false, render: false });
       }
       await this.pipeline.publish("redraw_selection", { transition: false });
-
-      let loadedChanges = changes.length;
-      let percent = currentChange / Math.max(totalChanges, loadedChanges);
-      let stylePercent = percent * 100;
-
-      sliderProgressBar.style.setProperty("--percent", stylePercent + "%");
-      sliderLoaderBar.style.setProperty("--percent", ((loadedChanges / totalChanges) * 100) + "%");
-      sliderButton.style.setProperty("--percent", stylePercent + "%");
 
       memberContent.setAttribute("notransition", "");
       
@@ -410,6 +418,10 @@ modules["editor/timeline"] = class {
     }
 
     this.loadChanges = async () => {
+      if (loading == true) {
+        return;
+      }
+      loading = true;
       let path = "lessons/join/history";
       if (changes.length > 0) {
         path += "?amount=250&before=" + ((changes[0] ?? {}).added ?? getEpoch());
@@ -421,6 +433,8 @@ modules["editor/timeline"] = class {
       for (let i = 0; i < body.changes.length; i++) {
         changes.unshift(body.changes[i]);
       }
+      sliderLoaderBar.style.setProperty("--percent", ((changes.length / totalChanges) * 100) + "%");
+      loading = false;
     }
 
     skimBackButton.addEventListener("click", () => {
@@ -472,7 +486,7 @@ modules["editor/timeline"] = class {
 
     (async () => {
       await this.loadChanges();
-      currentChange = changes.length;
+      currentChange = Math.max(totalChanges, changes.length);
       await this.updateTimeline();
       timeline.removeAttribute("disabled");
     })();
@@ -480,7 +494,11 @@ modules["editor/timeline"] = class {
       let [code, body] = await sendRequest("GET", "lessons/join/history/count", null, { session: this.parent.session });
       if (code == 200) {
         totalChanges += body.count;
-        currentChange += body.count - changes.length;
+        let loadChange = body.count - changes.length;
+        currentChange += loadChange;
+        if (lastRenderChange != null) {
+          lastRenderChange += loadChange;
+        }
         this.updateCurrentChange();
       }
     })();

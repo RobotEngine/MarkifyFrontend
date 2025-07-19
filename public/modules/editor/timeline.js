@@ -277,6 +277,7 @@ modules["editor/timeline"] = class {
       if (lastRenderChange == null) {
         lastRenderChange = currentChange;
       }
+      let updateAnnotations = {};
       while (lastRenderChange != currentChange) {
         let useChangeType;
         let prevChangeData;
@@ -302,15 +303,18 @@ modules["editor/timeline"] = class {
           }
           for (let i = 0; i < annoChanges.length; i++) {
             let annotation = annoChanges[i];
-            let original = (this.editor.annotations[annotation._id] ?? {}).render;
+            let original = updateAnnotations[annotation._id] ?? (this.editor.annotations[annotation._id] ?? {}).render;
             if (addRedoChanges == true) {
               prevChangeData.redoChanges.push(copyObject(original ?? { _id: annotation._id, remove: true }));
             }
-            await this.editor.save.apply({ ...(original ?? {}), ...annotation }, { overwrite: true, timeout: false, render: false });
+            updateAnnotations[annotation._id] = { ...(original ?? {}), ...annotation };
           }
         }
       }
-
+      let updateAnnotationKeys = Object.keys(updateAnnotations);
+      for (let i = 0; i < updateAnnotationKeys.length; i++) {
+        await this.editor.save.apply(updateAnnotations[updateAnnotationKeys[i]], { overwrite: true, timeout: false, render: false });
+      }
       await this.pipeline.publish("redraw_selection", { transition: false });
 
       let loadedChanges = changes.length;

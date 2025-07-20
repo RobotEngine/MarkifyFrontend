@@ -266,6 +266,37 @@ modules["editor/editor"] = class {
     },
     textColorBackground: (bgColor) => {
       return (this.utils.contrastCheck(bgColor) > 0.3) ? "#000" : "#fff"; // 0.179
+    },
+    smoothScrollTo: (element, x, y, duration = 500) => {
+      let startX = element.scrollLeft;
+      let startY = element.scrollTop;
+      let dx = x - startX;
+      let dy = y - startY;
+      let startTime = performance.now();
+    
+      let easeInOutQuad = (t) => {
+        return t < 0.5
+          ? 2 * t * t
+          : -1 + (4 - 2 * t) * t;
+      }
+    
+      let scroll = () => {
+        let now = performance.now();
+        let elapsed = now - startTime;
+        let progress = Math.min(elapsed / duration, 1);
+        let easedProgress = easeInOutQuad(progress);
+    
+        element.scrollTo(
+          startX + dx * easedProgress,
+          startY + dy * easedProgress
+        );
+    
+        if (progress < 1) {
+          requestAnimationFrame(scroll);
+        }
+      }
+    
+      requestAnimationFrame(scroll);
     }
   };
   math = {
@@ -1098,13 +1129,13 @@ modules["editor/editor"] = class {
     this.utils.pointInChunk = (x, y) => {
       return this.utils.regionInChunks(x, y, x, y)[0];
     }
-    this.utils.annotationInViewport = (render = {}) => {
+    this.utils.annotationInViewport = (render = {}, rect) => {
       let annotationRect = this.utils.localBoundingRect(annotations);
       let pageTopLeftX = -annotationRect.left / this.zoom;
       let pageTopLeftY = -annotationRect.top / this.zoom;
       let pageBottomRightX = (page.offsetWidth - annotationRect.left) / this.zoom;
       let pageBottomRightY = (page.offsetHeight - annotationRect.top) / this.zoom;
-      let existingAnnoRect = this.utils.getRect(render);
+      let existingAnnoRect = rect ?? this.utils.getRect(render);
       let [topLeftX, topLeftY, bottomRightX, bottomRightY] = this.math.rotatedBounds(existingAnnoRect.x, existingAnnoRect.y, existingAnnoRect.endX, existingAnnoRect.endY, existingAnnoRect.rotation);
       return bottomRightX > pageTopLeftX && topLeftX < pageBottomRightX && bottomRightY > pageTopLeftY && topLeftY < pageBottomRightY;
     }
@@ -1188,10 +1219,14 @@ modules["editor/editor"] = class {
         // Position page to top:
         scrollOptions.top = annotationRect.top + contentHolder.scrollTop - this.scrollOffset + (topLeftY * this.zoom);
       }
-      if (options.animation != false) {
-        scrollOptions.behavior = "smooth";
+      if (options.duration == null || options.animation == false) {
+        if (options.animation != false) {
+          scrollOptions.behavior = "smooth";
+        }
+        contentHolder.scrollTo(scrollOptions);
+      } else {
+        this.utils.smoothScrollTo(contentHolder, scrollOptions.left, scrollOptions.top, options.duration);
       }
-      contentHolder.scrollTo(scrollOptions);
     }
     this.utils.updateAnnotationScroll = (pageData, animation) => {
       if (pageData == null) {

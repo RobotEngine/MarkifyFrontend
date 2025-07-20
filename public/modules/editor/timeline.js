@@ -272,12 +272,12 @@ modules["editor/timeline"] = class {
         await this.updateTimeline({ fromPlayLoop: true });
       }
       while (playing == true) {
-        await sleep(150);
         currentChange++;
         await this.updateTimeline({ fromPlayLoop: true });
         if (currentChange >= Math.max(totalChanges, changes.length)) {
           return stopPlaying();
         }
+        await sleep(350);
       }
     }
     let stopPlaying = () => {
@@ -319,9 +319,6 @@ modules["editor/timeline"] = class {
         lastRenderChange = currentChange;
       }
       
-      if (loading == true) {
-        return;
-      }
       let loadedChanges = 0;
       let useTotalChanges = 0;
       let currentChangeIndex = -1;
@@ -333,12 +330,19 @@ modules["editor/timeline"] = class {
           break;
         }
         if (currentChangeIndex < 50) {
+          if (loading == true) {
+            break;
+          }
           await this.loadChanges();
           continue;
         }
         if (currentChangeIndex >= 0) {
           break;
         }
+      }
+
+      if (currentChangeIndex < -1) {
+        return;
       }
       changeData = changes[currentChangeIndex];
 
@@ -376,11 +380,35 @@ modules["editor/timeline"] = class {
           }
         }
       }
+      let isOffScreen = false;
+      let centerTotalX = 0;
+      let centerTotalY = 0;
       let updateAnnotationKeys = Object.keys(updateAnnotations);
-      for (let i = 0; i < updateAnnotationKeys.length; i++) {
-        await this.editor.save.apply(updateAnnotations[updateAnnotationKeys[i]], { overwrite: true, timeout: false, render: false });
+      let totalAnnotationUpdates = updateAnnotationKeys.length;
+      for (let i = 0; i < totalAnnotationUpdates; i++) {
+        let updateAnno = updateAnnotations[updateAnnotationKeys[i]];
+
+        if (changeData != null) {
+          if (updateAnno.a == null) {
+            updateAnno.a = changeData.collaborator;
+          }
+          updateAnno.m = changeData.collaborator;
+        }
+
+        let annoRect = this.editor.utils.getRect(updateAnno);
+        if (isOffScreen == false) {
+          isOffScreen = this.editor.utils.annotationInViewport(null, annoRect) == false;
+        }
+        centerTotalX += annoRect.centerX;
+        centerTotalY += annoRect.centerY;
+        
+        await this.editor.save.apply(updateAnno, { overwrite: true, timeout: false, render: false });
       }
       this.pipeline.publish("redraw_selection", { transition: false });
+
+      if (isOffScreen == true && totalAnnotationUpdates > 0) {
+        this.editor.utils.scrollToAnnotation({ p: [centerTotalX / totalAnnotationUpdates, centerTotalY / totalAnnotationUpdates] }, { duration: 250 });
+      }
 
       memberContent.setAttribute("notransition", "");
       

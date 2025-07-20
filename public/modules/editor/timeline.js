@@ -325,7 +325,7 @@ modules["editor/timeline"] = class {
       let loadedChanges = 0;
       let useTotalChanges = 0;
       let currentChangeIndex = -1;
-      while (currentChangeIndex < 0) {
+      while (true) {
         loadedChanges = changes.length;
         useTotalChanges = Math.max(totalChanges, changes.length);
         currentChangeIndex = loadedChanges - (useTotalChanges - currentChange) - 1;
@@ -334,7 +334,10 @@ modules["editor/timeline"] = class {
         }
         if (currentChangeIndex < 50) {
           await this.loadChanges();
-          currentChangeIndex = loadedChanges - (useTotalChanges - currentChange) - 1;
+          continue;
+        }
+        if (currentChangeIndex >= 0) {
+          break;
         }
       }
       changeData = changes[currentChangeIndex];

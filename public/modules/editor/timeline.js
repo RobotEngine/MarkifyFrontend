@@ -323,10 +323,14 @@ modules["editor/timeline"] = class {
         return;
       }
       let currentChangeIndex = -1;
-      while (currentChangeIndex < 0 && changes.length < useTotalChanges) {
+      while (currentChangeIndex < 0) {
         currentChangeIndex = loadedChanges - (useTotalChanges - currentChange) - 1;
-        if (currentChangeIndex < 0) {
+        if (changes.length >= useTotalChanges) {
+          break;
+        }
+        if (currentChangeIndex < 25) {
           await this.loadChanges();
+          currentChangeIndex = loadedChanges - (useTotalChanges - currentChange) - 1;
         }
         loadedChanges = changes.length;
         useTotalChanges = Math.max(totalChanges, changes.length);
@@ -433,7 +437,7 @@ modules["editor/timeline"] = class {
       for (let i = 0; i < body.changes.length; i++) {
         changes.unshift(body.changes[i]);
       }
-      sliderLoaderBar.style.setProperty("--percent", ((changes.length / totalChanges) * 100) + "%");
+      sliderLoaderBar.style.setProperty("--percent", ((changes.length / Math.max(totalChanges, changes.length)) * 100) + "%");
       loading = false;
     }
 

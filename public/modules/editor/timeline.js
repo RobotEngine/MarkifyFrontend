@@ -254,6 +254,7 @@ modules["editor/timeline"] = class {
 
     let changes = [];
     let currentChange = 0;
+    let changeData;
     let lastRenderChange;
     let totalChanges = 0;
     let playing = false;
@@ -292,6 +293,7 @@ modules["editor/timeline"] = class {
       let stylePercent = percent * 100;
       sliderProgressBar.style.setProperty("--percent", stylePercent + "%");
       sliderButton.style.setProperty("--percent", stylePercent + "%");
+      sliderLoaderBar.style.setProperty("--percent", ((changes.length / useTotalChanges) * 100) + "%");
 
       currentChangeText.innerHTML = "<b>" + currentChange + "</b> / " + useTotalChanges;
 
@@ -313,8 +315,6 @@ modules["editor/timeline"] = class {
 
       this.updateCurrentChange();
 
-      let loadedChanges = changes.length;
-      let useTotalChanges = Math.max(totalChanges, changes.length);
       if (lastRenderChange == null) {
         lastRenderChange = currentChange;
       }
@@ -322,20 +322,22 @@ modules["editor/timeline"] = class {
       if (loading == true) {
         return;
       }
+      let loadedChanges = 0;
+      let useTotalChanges = 0;
       let currentChangeIndex = -1;
       while (currentChangeIndex < 0) {
+        loadedChanges = changes.length;
+        useTotalChanges = Math.max(totalChanges, changes.length);
         currentChangeIndex = loadedChanges - (useTotalChanges - currentChange) - 1;
         if (changes.length >= useTotalChanges) {
           break;
         }
-        if (currentChangeIndex < 25) {
+        if (currentChangeIndex < 50) {
           await this.loadChanges();
           currentChangeIndex = loadedChanges - (useTotalChanges - currentChange) - 1;
         }
-        loadedChanges = changes.length;
-        useTotalChanges = Math.max(totalChanges, changes.length);
       }
-      let changeData = changes[currentChangeIndex];
+      changeData = changes[currentChangeIndex];
 
       let updateAnnotations = {};
       while (lastRenderChange != currentChange) {
@@ -375,7 +377,7 @@ modules["editor/timeline"] = class {
       for (let i = 0; i < updateAnnotationKeys.length; i++) {
         await this.editor.save.apply(updateAnnotations[updateAnnotationKeys[i]], { overwrite: true, timeout: false, render: false });
       }
-      await this.pipeline.publish("redraw_selection", { transition: false });
+      this.pipeline.publish("redraw_selection", { transition: false });
 
       memberContent.setAttribute("notransition", "");
       
@@ -387,9 +389,9 @@ modules["editor/timeline"] = class {
         collaborator = this.editor.collaborators[changeData.collaborator];
         if (collaborator == null) {
           timelineDetail.style.removeProperty("display");
-          let currentLoadChange = currentChange;
+          let currentChangeID = changeData._id;
           collaborator = await this.editor.utils.getCollaborator(changeData.collaborator);
-          if (currentLoadChange != currentChange) {
+          if (currentChangeID != (changeData ?? {})._id) {
             return;
           }
         }

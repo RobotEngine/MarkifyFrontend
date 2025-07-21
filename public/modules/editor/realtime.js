@@ -20,7 +20,7 @@ modules["editor/realtime"] = class {
     ".eSelection": `opacity: 0; z-index: 10; transition: .25s`,
     ".eSelection div": `position: absolute; background: var(--themeColor); opacity: .4; border-radius: 4px`,
 
-    ".eCollabSelect": `position: absolute; left: 0px; top: 0px; border: solid 3px var(--themeColor); opacity: 0; z-index: 9; border-radius: 9px; opacity .15s; pointer-events: none`,
+    ".eCollabSelect": `position: absolute; left: 0px; top: 0px; border-style: solid; border-width: 3px; border-color: var(--themeColor); opacity: 0; z-index: 9; border-radius: 9px; opacity .15s; pointer-events: none`,
     ".eCollabSelect[anonymous]": `--themeColor: var(--theme) !important`
   };
   members = {};

@@ -92,9 +92,9 @@ modules["editor/timeline"] = class {
     ".timelineHistoryBarTrack div[loader]": `--percent: 0%; position: absolute; width: calc(var(--percent) + 5px); height: 100%; right: -5px; top: 0px; background: var(--hover); z-index: 1`,
     ".timelineHistoryInfo": `position: relative; box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; margin-bottom: 2px; gap: 6px; align-items: center; z-index: 2`,
     ".timelineHistoryDetail": `display: none; flex: 1 1 100px; min-width: 0px; margin: 0 8px 0 6px; align-items: center; z-index: 2; transition: .2s`,
-    ".timelineHistoryMemberHolder": `position: relative; height: 28px; padding: 6px 0 6px 6px`,
+    ".timelineHistoryMemberHolder": `position: relative; height: 28px; padding: 6px 0 6px 6px; transition: margin .2s`,
     ".timelineHistoryMemberHolder:not([extend])": `flex: 1; min-width: 0px; max-width: var(--width); overflow: hidden`,
-    ".timelineHistoryMemberHolder[extend]": `width: var(--width)`,
+    ".timelineHistoryMemberHolder[extend]": `width: var(--width); margin-right: 6px`,
     ".timelineHistoryMember": `position: absolute; display: flex; height: 28px; padding: 6px; left: 0px; top: 50%; transform: translateY(-50%); background: var(--pageColor); border-radius: 8px; transition: .2s`,
     ".timelineHistoryMember:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; box-shadow: 0 0 6px var(--themeColor); opacity: 0; z-index: 1; transition: .2s`,
     ".timelineHistoryMemberHolder[extend] .timelineHistoryMember:after": `opacity: .6`,
@@ -114,7 +114,9 @@ modules["editor/timeline"] = class {
     ".timelineHistoryChange button > div": `flex-shrink: 0; width: 22px; height: 22px`,
     ".timelineHistoryChange button > div[hidden]": `display: none`,
     ".timelineHistoryChange button > div > svg": `width: 100%; height: 100%`,
-    ".timelineHistoryCurrentChange": `flex-shrink: 0; margin: 0 6px; font-size: 16px`
+    ".timelineHistoryCurrentChange": `flex-shrink: 0; margin: 0 6px; font-size: 16px`,
+
+    ".timelineSelect": `position: absolute; left: 0px; top: 0px; border-style: solid; border-width: 3px; border-color: var(--themeColor); opacity: 0; z-index: 9; border-radius: 9px; opacity .15s; pointer-events: none`
   };
   js = async (frame) => {
     frame.style.position = "relative";
@@ -183,6 +185,8 @@ modules["editor/timeline"] = class {
     await this.editor.render.setMarginSize();
     await this.editor.updateChunks();
     await this.editor.utils.centerWindowWithPage();
+
+    let realtimeHolder = this.editor.content.querySelector(".eRealtime");
     
     closeButton.addEventListener("click", () => {
       if (this.close != null) {
@@ -259,6 +263,7 @@ modules["editor/timeline"] = class {
     let totalChanges = 0;
     let playing = false;
     let loading = false;
+    let selectionBoxes = {};
     
     let startPlaying = async () => {
       if (playing == true) {
@@ -345,7 +350,7 @@ modules["editor/timeline"] = class {
         return;
       }
       changeData = changes[currentChangeIndex];
-
+      
       let updateAnnotations = {};
       while (lastRenderChange != currentChange) {
         let useChangeType;
@@ -376,6 +381,10 @@ modules["editor/timeline"] = class {
             if (addRedoChanges == true) {
               prevChangeData.redoChanges.push(copyObject(original ?? { _id: annotation._id, remove: true }));
             }
+            if (annotation.a == null) {
+              annotation.a = prevChangeData.collaborator;
+            }
+            annotation.m = prevChangeData.collaborator;
             updateAnnotations[annotation._id] = { ...(original ?? {}), ...annotation };
           }
         }
@@ -383,19 +392,48 @@ modules["editor/timeline"] = class {
       let isOffScreen = false;
       let centerTotalX = 0;
       let centerTotalY = 0;
+      let setSelectionBoxes = {};
+      let annotationRect = this.editor.utils.localBoundingRect(this.editor.annotationHolder);
       let updateAnnotationKeys = Object.keys(updateAnnotations);
       let totalAnnotationUpdates = updateAnnotationKeys.length;
       for (let i = 0; i < totalAnnotationUpdates; i++) {
         let updateAnno = updateAnnotations[updateAnnotationKeys[i]];
-
-        if (changeData != null) {
-          if (updateAnno.a == null) {
-            updateAnno.a = changeData.collaborator;
-          }
-          updateAnno.m = changeData.collaborator;
-        }
-
         let annoRect = this.editor.utils.getRect(updateAnno);
+
+        let modifyID = updateAnno.m ?? updateAnno.a;
+        if (modifyID != null && updateAnno.remove != true) {
+          let mergedID = updateAnno._id + "_" + modifyID;
+          let selection = selectionBoxes[mergedID];
+          delete selectionBoxes[mergedID];
+          let newSelection = selection == null;
+          if (newSelection == true) {
+            realtimeHolder.insertAdjacentHTML("beforeend", `<div class="timelineSelect" merged="${mergedID}" new></div>`);
+            selection = realtimeHolder.querySelector('.timelineSelect[merged="' + mergedID + '"][new]');
+            setSelectionBoxes[mergedID] = selection;
+            selection.removeAttribute("new");
+            (async (element, modifyid) => {
+              let collaborator = await this.editor.utils.getCollaborator(modifyid);
+              if (collaborator != null && element != null) {
+                element.style.setProperty("--themeColor", collaborator.color);
+              }
+            })(selection, modifyID);
+          } else {
+            setSelectionBoxes[mergedID] = selection;
+          }
+          let rotate = annoRect.rotation;
+          if (rotate > 180) {
+            rotate = -(360 - rotate);
+          }
+          selection.style.width = ((annoRect.width * this.editor.zoom) - 3) + "px";
+          selection.style.height = ((annoRect.height * this.editor.zoom) - 3) + "px";
+          selection.style.transform = "translate(" + (annotationRect.left + (annoRect.x * this.editor.zoom) + this.editor.contentHolder.scrollLeft - 1.5) + "px," + (annotationRect.top + (annoRect.y * this.editor.zoom) + this.editor.contentHolder.scrollTop - 1.5) + "px) rotate(" + rotate + "deg)";
+          if (newSelection == true) {
+            selection.offsetHeight;
+            selection.style.transition = "all .25s, opacity .15s, border-color 0s";
+            selection.style.opacity = 1;
+          }
+        }
+        
         if (isOffScreen == false) {
           isOffScreen = this.editor.utils.annotationInViewport(null, annoRect) == false;
         }
@@ -405,6 +443,25 @@ modules["editor/timeline"] = class {
         await this.editor.save.apply(updateAnno, { overwrite: true, timeout: false, render: false });
       }
       this.pipeline.publish("redraw_selection", { transition: false });
+
+      let removeSelectBoxes = Object.values(selectionBoxes);
+      (async function () {
+        for (let i = 0; i < removeSelectBoxes.length; i++) {
+          let elem = removeSelectBoxes[i];
+          if (elem != null) {
+            elem.style.opacity = 0;
+          }
+        }
+        await sleep(300);
+        for (let i = 0; i < removeSelectBoxes.length; i++) {
+          let elem = removeSelectBoxes[i];
+          if (elem != null) {
+            elem.remove();
+          }
+        }
+      })();
+
+      selectionBoxes = setSelectionBoxes;
 
       if (isOffScreen == true && totalAnnotationUpdates > 0) {
         this.editor.utils.scrollToAnnotation({ p: [centerTotalX / totalAnnotationUpdates, centerTotalY / totalAnnotationUpdates] }, { duration: 250 });
@@ -453,6 +510,35 @@ modules["editor/timeline"] = class {
         timelineDetail.style.removeProperty("display");
       }
     }
+
+    this.pipeline.subscribe("timelineZoomUpdate", "zoom_change", () => {
+      let annotationRect = this.editor.utils.localBoundingRect(this.editor.annotationHolder);
+      let allRealtimeSelections = realtimeHolder.querySelectorAll(".timelineSelect");
+      for (let i = 0; i < allRealtimeSelections.length; i++) {
+        let selection = allRealtimeSelections[i];
+        let [annoID] = selection.getAttribute("merged").split("_");
+        let render = {};
+        if (this.editor.annotations[annoID] == null) {
+          selection.remove();
+          continue;
+        }
+        render = { ...((this.editor.annotations[annoID]).render ?? {}), ...(this.editor.selecting[annoID] ?? {}) };
+        if (render.f == null) {
+          continue;
+        }
+        let rect = this.editor.utils.getRect(render);
+        selection.setAttribute("notransition", "");
+        let rotate = rect.rotation;
+        if (rotate > 180) {
+          rotate = -(360 - rotate);
+        }
+        selection.style.width = ((rect.width * this.editor.zoom) - 3) + "px";
+        selection.style.height = ((rect.height * this.editor.zoom) - 3) + "px";
+        selection.style.transform = "translate(" + (annotationRect.left + (rect.x * this.editor.zoom) + this.editor.contentHolder.scrollLeft - 1.5) + "px," + (annotationRect.top + (rect.y * this.editor.zoom) + this.editor.contentHolder.scrollTop - 1.5) + "px) rotate(" + rotate + "deg)";
+        selection.offsetHeight;
+        selection.removeAttribute("notransition");
+      }
+    })
 
     this.loadChanges = async () => {
       if (loading == true) {

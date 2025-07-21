@@ -352,6 +352,7 @@ modules["editor/timeline"] = class {
       changeData = changes[currentChangeIndex];
       
       let updateAnnotations = {};
+      let currentChangeAnnotations = {};
       while (lastRenderChange != currentChange) {
         let useChangeType;
         let prevChangeData;
@@ -386,6 +387,9 @@ modules["editor/timeline"] = class {
             }
             annotation.m = prevChangeData.collaborator;
             updateAnnotations[annotation._id] = { ...(original ?? {}), ...annotation };
+            if (lastRenderChange == currentChange) {
+              currentChangeAnnotations[annotation._id] = true;
+            }
           }
         }
       }
@@ -393,6 +397,7 @@ modules["editor/timeline"] = class {
       let centerTotalX = 0;
       let centerTotalY = 0;
       let setSelectionBoxes = {};
+      let tempSelections = [];
       let annotationRect = this.editor.utils.localBoundingRect(this.editor.annotationHolder);
       let updateAnnotationKeys = Object.keys(updateAnnotations);
       let totalAnnotationUpdates = updateAnnotationKeys.length;
@@ -409,7 +414,6 @@ modules["editor/timeline"] = class {
           if (newSelection == true) {
             realtimeHolder.insertAdjacentHTML("beforeend", `<div class="timelineSelect" merged="${mergedID}" new></div>`);
             selection = realtimeHolder.querySelector('.timelineSelect[merged="' + mergedID + '"][new]');
-            setSelectionBoxes[mergedID] = selection;
             selection.removeAttribute("new");
             (async (element, modifyid) => {
               let collaborator = await this.editor.utils.getCollaborator(modifyid);
@@ -417,8 +421,10 @@ modules["editor/timeline"] = class {
                 element.style.setProperty("--themeColor", collaborator.color);
               }
             })(selection, modifyID);
-          } else {
-            setSelectionBoxes[mergedID] = selection;
+          }
+          setSelectionBoxes[mergedID] = selection;
+          if (currentChangeAnnotations[updateAnno._id] == null) {
+            tempSelections.push(selection);
           }
           let rotate = annoRect.rotation;
           if (rotate > 180) {
@@ -460,6 +466,22 @@ modules["editor/timeline"] = class {
           }
         }
       })();
+      (async function (elements) {
+        await sleep(500);
+        for (let i = 0; i < elements.length; i++) {
+          let elem = elements[i];
+          if (elem != null) {
+            elem.style.opacity = 0;
+          }
+        }
+        await sleep(300);
+        for (let i = 0; i < elements.length; i++) {
+          let elem = elements[i];
+          if (elem != null) {
+            elem.remove();
+          }
+        }
+      })(tempSelections);
 
       selectionBoxes = setSelectionBoxes;
 

@@ -876,7 +876,7 @@ modules["lesson/board"] = class {
       await this.editor.loadAnnotations(annoBody, { pageID: pageParam, jumpID: checkForJumpLink });
       contentHolder.removeAttribute("disabled");
 
-      this.openTimeline();
+      //this.openTimeline();
     }
 
     this.loadAnnotations();
@@ -1178,7 +1178,7 @@ modules["dropdowns/lesson/board/members"] = class {
     ".eMemberSectionActions button div[text]": `margin-top: 6px; font-size: 14px; font-weight: 600; white-space: nowrap`,
     ".eMemberSectionActions button:hover div[image]": `transform: scale(1.15) translateY(-2px)`,
     ".eMemberSectionActions button:active": `background: var(--themeColor); color: #fff`,
-    ".eMemberSectionActions button:active img": `filter: brightness(0) invert(1); transform: scale(1)`
+    ".eMemberSectionActions button:active div[image]": `filter: brightness(0) invert(1); transform: scale(1)`
   };
   js = async function (frame, extra) {
     frame.closest(".dropdownContent").style.padding = "0px";

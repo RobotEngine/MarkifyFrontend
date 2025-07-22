@@ -21,7 +21,7 @@ modules["pages/launch"] = class {
       <div class="lHeaderSlogan"><b>Collaboration</b> without <b>Chaos</b></div>
       <div class="lHeaderSummary">Let students work collaboratively across the classroom while you facilitate. Eliminate chaos with robust sharing settings and temporary editing controls.</div>
       <div class="lHeaderActions">
-        <button class="lOpen largeButton" openpage="app/dashboard" id="loginBtn"></button>
+        <button class="lOpen largeButton" openpage="app/dashboard" loginbtn></button>
         <button class="lJoin largeButton" openpage="app/join">Join Lesson<img src="../images/tooltips/link.svg"></button>
       </div>
       <img class="lHeaderSplash" src="../images/launch/showcase.png">
@@ -286,14 +286,13 @@ modules["pages/launch"] = class {
 
   js = async (page) => {
 
-    //Lauch page login button
-    const loginBtn = page.querySelector('#loginBtn');
-    if (userID) {
-      if (account.image) {
+    // Launch page login button
+    const loginBtn = page.querySelector("button[loginbtn]");
+    if (userID != null) {
+      if (account.image != null) {
         loginBtn.innerHTML = `<img loginBtnBeforeImg /><div accountuser>Dashboard</div><img src="../images/tooltips/link.svg" loginBtnAfterImg />`;
         loginBtn.querySelector("[loginBtnBeforeImg]").src = account.image;
-      }
-      else {
+      } else {
         loginBtn.innerHTML = `<img src="../images/profiles/defaultWhite.svg" defaultLoginBtnBeforeImg /><div accountuser>Dashboard</div><img src="../images/tooltips/link.svg" loginBtnAfterImg />`;
       }
     } else {

@@ -21,7 +21,7 @@ modules["pages/launch"] = class {
       <div class="lHeaderSlogan"><b>Collaboration</b> without <b>Chaos</b></div>
       <div class="lHeaderSummary">Let students work collaboratively across the classroom while you facilitate. Eliminate chaos with robust sharing settings and temporary editing controls.</div>
       <div class="lHeaderActions">
-        <button class="lOpen largeButton" openpage="app/dashboard" loginbtn></button>
+        <button class="lOpen largeButton" openpage="app/dashboard"></button>
         <button class="lJoin largeButton" openpage="app/join">Join Lesson<img src="../images/tooltips/link.svg"></button>
       </div>
       <img class="lHeaderSplash" src="../images/launch/showcase.png">
@@ -192,7 +192,7 @@ modules["pages/launch"] = class {
     ".lHeaderSummary": `max-width: 700px; margin-top: 24px; line-height: 26px`,
     ".lHeaderActions": `display: flex; flex-wrap: wrap; gap: 24px; margin-top: 40px; justify-content: center`,
 
-    ".lOpen": `display: flex; flex-direction: row; padding: 8px 14px 8px 8px; bottom: 0px; align-items: center; --borderRadius: 20.25px; background: var(--theme); color: #fff;`,
+    ".lOpen": `display: flex; flex-direction: row; bottom: 0px; align-items: center; --borderRadius: 20.25px; background: var(--theme); color: #fff;`,
     ".lOpen img[loginBtnBeforeImg]": `width: 24px; height: 24px; margin-right: 8px; object-fit: cover; border-radius: 16px; border: 4px solid var(--themeColor); background: #0084FF;`,
     ".lOpen img[defaultLoginBtnBeforeImg]": `width: 24px; height: 24px; margin-right: 8px; object-fit: cover; border-radius: 16px; border: 4px solid #0084FF; background: #0084FF;`,
     ".lOpen img[loginBtnAfterImg]": `width: 24px; height: 24px; margin-left: 8px; filter: brightness(0) invert(1);`,
@@ -287,7 +287,7 @@ modules["pages/launch"] = class {
   js = async (page) => {
 
     // Launch page login button
-    const loginBtn = page.querySelector("button[loginbtn]");
+    const loginBtn = page.querySelector(".lOpen");
     if (userID != null) {
       if (account.image != null) {
         loginBtn.innerHTML = `<img loginBtnBeforeImg /><div accountuser>Dashboard</div><img src="../images/tooltips/link.svg" loginBtnAfterImg />`;
@@ -295,9 +295,9 @@ modules["pages/launch"] = class {
       } else {
         loginBtn.innerHTML = `<img src="../images/profiles/defaultWhite.svg" defaultLoginBtnBeforeImg /><div accountuser>Dashboard</div><img src="../images/tooltips/link.svg" loginBtnAfterImg />`;
       }
+      loginBtn.style.padding = "8px 14px 8px 8px";
     } else {
       loginBtn.innerHTML = `<div accountuser>Open Markify</div>`;
-      loginBtn.style.removeProperty("padding");
     }
 
 

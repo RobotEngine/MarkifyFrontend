@@ -516,7 +516,7 @@ modules["editor/editor"] = class {
 
   js = async (frame) => {
     let contentHolder = this.contentHolder ?? frame.parentElement;
-    let page = contentHolder.closest(".boPage"); //.content
+    let page = this.page ?? contentHolder.closest(".content");
     let content = contentHolder.querySelector(".eContent");
     let realtimeHolder = content.querySelector(".eRealtime");
     let editorContent = content.querySelector(".eEditorContent");

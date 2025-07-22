@@ -160,6 +160,7 @@ modules["editor/timeline"] = class {
 
     this.editor = await this.setFrame("editor/editor", contentHolder, {
       construct: {
+        page: this.page,
         lesson: this.lesson,
         self: { access: 0 }, //this.self,
         session: this.session,

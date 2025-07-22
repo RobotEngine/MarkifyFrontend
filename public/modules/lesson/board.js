@@ -211,6 +211,7 @@ modules["lesson/board"] = class {
 
     this.editor = await this.setFrame("editor/editor", contentHolder, {
       construct: {
+        page: mainPage,
         pageID: this.pageID,
         pageType: this.pageType,
         id: this.parent.id,
@@ -833,6 +834,7 @@ modules["lesson/board"] = class {
 
       this.timeline = await this.setFrame("editor/timeline", timelinePage, {
         construct: {
+          page: timelinePage,
           close: this.closeTimeline,
 
           lesson: this.parent,

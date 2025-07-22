@@ -285,7 +285,6 @@ modules["pages/launch"] = class {
 
 
   js = async (page) => {
-
     // Launch page login button
     const loginBtn = page.querySelector(".lOpen");
     if (userID != null) {
@@ -299,7 +298,6 @@ modules["pages/launch"] = class {
     } else {
       loginBtn.innerHTML = `<div accountuser>Open Markify</div>`;
     }
-
 
     // SECTION 2 | History
     let historySection = page.querySelector(".lSection[history]");

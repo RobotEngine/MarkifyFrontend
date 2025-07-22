@@ -1082,7 +1082,6 @@ modules["pages/app/lesson"] = class {
           "created": getEpoch(),
           "members": 0,
           "name": "Untitled Lesson",
-          "access": 0,
           "background": useBackground
         },
         "session": {},

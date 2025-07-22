@@ -174,12 +174,14 @@ modules["editor/timeline"] = class {
     /*if (this.reactions != null) {
       this.editor.reactions = copyObject(this.reactions);
     }*/
+    let presentAnnotations = {};
     if (this.annotations != null) {
       let annotations = Object.entries(this.annotations);
       for (let i = 0; i < annotations.length; i++) {
         let [annoID, annotation] = annotations[i];
         this.editor.annotations[annoID] = { render: copyObject(annotation.render) };
         await this.editor.utils.setAnnotationChunks(this.editor.annotations[annoID]);
+        presentAnnotations[annoID] = true;
       }
     }
     await this.editor.render.setMarginSize();
@@ -318,8 +320,6 @@ modules["editor/timeline"] = class {
         stopPlaying();
       }
 
-      this.updateCurrentChange();
-
       if (lastRenderChange == null) {
         lastRenderChange = currentChange;
       }
@@ -338,6 +338,7 @@ modules["editor/timeline"] = class {
           if (loading == true) {
             break;
           }
+          this.updateCurrentChange();
           await this.loadChanges();
           continue;
         }
@@ -353,8 +354,9 @@ modules["editor/timeline"] = class {
       
       let updateAnnotations = {};
       let currentChangeAnnotations = {};
+      let allMissingAnnotations = true;
+      let useChangeType;
       while (lastRenderChange != currentChange) {
-        let useChangeType;
         let prevChangeData;
         let annoChanges;
         if (lastRenderChange > currentChange) {
@@ -378,7 +380,13 @@ modules["editor/timeline"] = class {
           }
           for (let i = 0; i < annoChanges.length; i++) {
             let annotation = annoChanges[i];
+            if (this.self.access < 4 && presentAnnotations[annotation._id] == null) {
+              continue;
+            }
             let original = updateAnnotations[annotation._id] ?? (this.editor.annotations[annotation._id] ?? {}).render;
+            if (original != null && original.remove == true) {
+              delete original.remove;
+            }
             if (addRedoChanges == true) {
               prevChangeData.redoChanges.push(copyObject(original ?? { _id: annotation._id, remove: true }));
             }
@@ -390,9 +398,27 @@ modules["editor/timeline"] = class {
             if (lastRenderChange == currentChange) {
               currentChangeAnnotations[annotation._id] = true;
             }
+            allMissingAnnotations = false;
           }
         }
       }
+      if (useChangeType != null) {
+        if (allMissingAnnotations == true && this.self.access < 4 && currentChange > 0) {
+          if (useChangeType == "changes") {
+            currentChange--;
+          } else if (useChangeType == "redoChanges") {
+            currentChange++;
+          }
+          if (options.fromSlider == true) {
+            lastRenderChange = currentChange;
+          }
+          return await this.updateTimeline(options);
+        }
+        if (allMissingAnnotations == false || currentChange < 1) {
+          this.updateCurrentChange();
+        }
+      }
+
       let isOffScreen = false;
       let centerTotalX = 0;
       let centerTotalY = 0;
@@ -405,8 +431,10 @@ modules["editor/timeline"] = class {
         let updateAnno = updateAnnotations[updateAnnotationKeys[i]];
         let annoRect = this.editor.utils.getRect(updateAnno);
 
+        await this.editor.save.apply(updateAnno, { overwrite: true, timeout: false, render: false });
+
         let modifyID = updateAnno.m ?? updateAnno.a;
-        if (modifyID != null && updateAnno.remove != true) {
+        if (modifyID != null) {
           let mergedID = updateAnno._id + "_" + modifyID;
           let selection = selectionBoxes[mergedID];
           delete selectionBoxes[mergedID];
@@ -423,7 +451,7 @@ modules["editor/timeline"] = class {
             })(selection, modifyID);
           }
           setSelectionBoxes[mergedID] = selection;
-          if (currentChangeAnnotations[updateAnno._id] == null) {
+          if (currentChangeAnnotations[updateAnno._id] == null || updateAnno.remove == true) {
             tempSelections.push(selection);
           }
           let rotate = annoRect.rotation;
@@ -445,8 +473,6 @@ modules["editor/timeline"] = class {
         }
         centerTotalX += annoRect.centerX;
         centerTotalY += annoRect.centerY;
-        
-        await this.editor.save.apply(updateAnno, { overwrite: true, timeout: false, render: false });
       }
       this.pipeline.publish("redraw_selection", { transition: false });
 
@@ -617,7 +643,7 @@ modules["editor/timeline"] = class {
       let newCurrentChange = Math.round((Math.max(Math.min((clientPosition(event, "x") - barRect.x - 6) / (sliderBar.offsetWidth - 10), 1), 0)) * useTotalChanges);
       if (currentChange != newCurrentChange) {
         currentChange = newCurrentChange;
-        this.updateTimeline();
+        this.updateTimeline({ fromSlider: true });
       }
     }
     let enableSlider = (event) => {

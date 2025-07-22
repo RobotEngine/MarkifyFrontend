@@ -3671,7 +3671,7 @@ modules["editor/toolbar"] = class {
             return;
           }
           let embedHolder = embedAnno.querySelector("div[content]");
-          embedHolder.insertAdjacentHTML("beforeend", `<iframe allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe>`);
+          embedHolder.insertAdjacentHTML("beforeend", `<iframe allowfullscreen allow="microphone; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe>`);
           let embedFrame = embedHolder.querySelector("iframe");
           if (annotation.component != null) {
             annotation.component.embedFrame = embedFrame;

@@ -9008,6 +9008,45 @@ modules["editor/toolbar/rotatepage"] = class {
     }, { reuseActionBar: true });
   }
 }
+modules["editor/toolbar/pagetype"] = class {
+  setActionButton = async (button) => {
+    setSVG(button, "../images/editor/toolbar/pagetype.svg");
+    let type = (this.parent.getPreferenceTool().backgroundType ?? "blank");
+    button.setAttribute("tooltip", "Type: " + type.charAt(0).toUpperCase() + type.slice(1));
+  }
+
+  TOOLTIP = "Type";
+
+  html = `
+    <div class="eSubToolTypeHolder">
+      <button class="border" type="blank"><div class="eSubToolTypeTitle">Blank</div></button>
+      <button class="border" type="lined"><div class="eSubToolTypeTitle">Lined</div></button>
+      <button class="border" type="grid"><div class="eSubToolTypeTitle">Grid</div></button>
+    </div>
+  `;
+  css = {
+    ".eSubToolTypeHolder": `box-sizing: border-box; max-width: 100%; padding: 6px; display: flex; flex-wrap: wrap; width: 336px; max-width: 100%; justify-content: center`,
+    ".eSubToolTypeHolder button": `box-sizing: border-box; display: flex; flex-direction: column; width: 100px; padding: 6px; margin: 6px; justify-content: center; align-items: center; --borderWidth: 3px; --borderRadius: 12px`,
+    ".eSubToolTypeHolder button .eSubToolTypeTitle": `color: var(--theme); font-size: 18px; font-weight: 600`,
+    ".eSubToolTypeHolder button:hover": `--borderColor: var(--hover)`,
+    ".eSubToolTypeHolder button[selected]": `--borderColor: var(--theme); background: var(--hover)`
+  };
+  js = async (frame) => {
+    let toolbar = this.toolbar;
+    let preference = this.parent.getPreferenceTool();
+    let currentType = preference.backgroundType ?? "blank";
+    let buttons = frame.querySelectorAll("button[type]");
+    buttons.forEach(btn => {
+      btn.removeAttribute("selected");
+      if (btn.getAttribute("type") === currentType) btn.setAttribute("selected", "");
+      btn.onclick = async () => {
+        await toolbar.saveSelecting(() => ({ backgroundType: btn.getAttribute("type") }), { reuseActionBar: true });
+        buttons.forEach(b => b.removeAttribute("selected"));
+        btn.setAttribute("selected", "");
+      };
+    });
+  }
+}
 modules["editor/toolbar/hidepage"] = class {
   setActionButton = async (button) => {
     if (button != null) {

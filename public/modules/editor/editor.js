@@ -4708,7 +4708,7 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
   CAN_FLIP = false;
   SELECT_BOX_COVER = true;
 
-  ACTION_BAR_TOOLS = ["uploadpage", "resize", "rotatepage", "settitle", "hidepage", "color", "unlock", "delete"];
+  ACTION_BAR_TOOLS = ["uploadpage", "resize", "pagetype", "rotatepage", "settitle", "hidepage", "color", "unlock", "delete"];
 
   SELECTION_FUNCTION = (selection, render) => {
     if (render.source != null && ["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {

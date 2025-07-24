@@ -4756,6 +4756,61 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
     }
     this.element.style.width = this.properties.s[0] + "px";
     this.element.style.height = this.properties.s[1] + "px";
+
+
+
+    // Find or create a canvas for the background
+    let backgroundCanvas = this.element.querySelector("canvas[background]");
+    if (!backgroundCanvas) {
+      backgroundCanvas = document.createElement("canvas");
+      backgroundCanvas.setAttribute("background", "");
+      backgroundCanvas.style.position = "absolute";
+      backgroundCanvas.style.left = "0";
+      backgroundCanvas.style.top = "0";
+      backgroundCanvas.style.zIndex = "0";
+      this.element.insertBefore(backgroundCanvas, this.element.firstChild);
+    }
+    backgroundCanvas.width = this.properties.s[0];
+    backgroundCanvas.height = this.properties.s[1];
+
+    let ctx = backgroundCanvas.getContext("2d");
+    ctx.clearRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
+
+    // Draw background based on backgroundType
+    let type = this.properties.backgroundType || "blank";
+    if (type === "blank") {
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
+    } else if (type === "lined") {
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
+      ctx.strokeStyle = "#e0e0e0";
+      for (let y = 40; y < backgroundCanvas.height; y += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(backgroundCanvas.width, y);
+        ctx.stroke();
+      }
+    } else if (type === "grid") {
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
+      ctx.strokeStyle = "#e0e0e0";
+      for (let y = 40; y < backgroundCanvas.height; y += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(backgroundCanvas.width, y);
+        ctx.stroke();
+      }
+      for (let x = 40; x < backgroundCanvas.width; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, backgroundCanvas.height);
+        ctx.stroke();
+      }
+    }
+
+
+
     this.element.style.setProperty("--themeColor", "#" + this.properties.c);
     this.element.style.color = this.parent.utils.textColorBackground(this.properties.c);
     if (this.properties._id != null) {

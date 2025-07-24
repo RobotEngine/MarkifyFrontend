@@ -9011,7 +9011,7 @@ modules["editor/toolbar/rotatepage"] = class {
 modules["editor/toolbar/pagetype"] = class {
   setActionButton = async (button) => {
     setSVG(button, "../images/editor/toolbar/pagetype.svg");
-    let type = (this.parent.getPreferenceTool().backgroundType ?? "blank");
+    let type = (this.parent.getPreferenceTool().background ?? "blank");
     button.setAttribute("tooltip", "Type: " + type.charAt(0).toUpperCase() + type.slice(1));
   }
 
@@ -9034,13 +9034,13 @@ modules["editor/toolbar/pagetype"] = class {
   js = async (frame) => {
     let toolbar = this.toolbar;
     let preference = this.parent.getPreferenceTool();
-    let currentType = preference.backgroundType ?? "blank";
+    let currentType = preference.background ?? "blank";
     let buttons = frame.querySelectorAll("button[type]");
     buttons.forEach(btn => {
       btn.removeAttribute("selected");
       if (btn.getAttribute("type") === currentType) btn.setAttribute("selected", "");
       btn.onclick = async () => {
-        await toolbar.saveSelecting(() => ({ backgroundType: btn.getAttribute("type") }), { reuseActionBar: true });
+        await toolbar.saveSelecting(() => ({ background: btn.getAttribute("type") }), { reuseActionBar: true });
         buttons.forEach(b => b.removeAttribute("selected"));
         btn.setAttribute("selected", "");
       };

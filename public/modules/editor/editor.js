@@ -4777,7 +4777,7 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
     ctx.clearRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
 
     // Draw background based on backgroundType
-    let type = this.properties.backgroundType || "blank";
+    let type = this.properties.background || "blank";
     if (type === "blank") {
       ctx.fillStyle = "#fff";
       ctx.fillRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);

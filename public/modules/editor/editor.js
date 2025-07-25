@@ -4776,12 +4776,12 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
     let ctx = backgroundCanvas.getContext("2d");
     ctx.clearRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
 
-    // Draw background based on backgroundType
+    // Draw background based on background type
     let type = this.properties.background || "blank";
     if (type === "blank") {
       ctx.fillStyle = "#fff";
       ctx.fillRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
-    } else if (type === "lined") {
+    } else if (type === "line") {
       ctx.fillStyle = "#fff";
       ctx.fillRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
       ctx.strokeStyle = "#e0e0e0";

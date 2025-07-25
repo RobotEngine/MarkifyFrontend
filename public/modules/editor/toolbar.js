@@ -9020,7 +9020,7 @@ modules["editor/toolbar/pagetype"] = class {
   html = `
     <div class="eSubToolTypeHolder">
       <button class="border" type="blank"><div class="eSubToolTypeTitle">Blank</div><div>(blank image insert)</div></button>
-      <button class="border" type="lined"><div class="eSubToolTypeTitle">Lined</div><div>(lined image insert)</div></button>
+      <button class="border" type="line"><div class="eSubToolTypeTitle">Lined</div><div>(lined image insert)</div></button>
       <button class="border" type="grid"><div class="eSubToolTypeTitle">Grid</div><div>(grid image insert)</div></button>
     </div>
   `;

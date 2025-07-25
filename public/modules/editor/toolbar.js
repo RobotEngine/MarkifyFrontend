@@ -9019,18 +9019,23 @@ modules["editor/toolbar/pagetype"] = class {
 
   html = `
     <div class="eSubToolTypeHolder">
-      <button class="border" type="blank"><div class="eSubToolTypeTitle">Blank</div><div>(blank image insert)</div></button>
-      <button class="border" type="line"><div class="eSubToolTypeTitle">Lined</div><div>(lined image insert)</div></button>
-      <button class="border" type="grid"><div class="eSubToolTypeTitle">Grid</div><div>(grid image insert)</div></button>
+      <button class="border eTypeBlank" type="blank"><div class="eSubToolTypeTitle">Blank</div></button>
+      <button class="border eTypeLined" type="line"><div class="eSubToolTypeTitle">Lined</div></button>
+      <button class="border eTypeGrid" type="grid"><div class="eSubToolTypeTitle">Grid</div></button>
     </div>
   `;
   css = {
     ".eSubToolTypeHolder": `box-sizing: border-box; max-width: 100%; padding: 6px; display: flex; flex-wrap: wrap; width: 336px; max-width: 100%; justify-content: center`,
-    ".eSubToolTypeHolder button": `box-sizing: border-box; display: flex; flex-direction: column; width: 100px; padding: 6px; margin: 6px; justify-content: center; align-items: center; --borderWidth: 3px; --borderRadius: 12px`,
-    ".eSubToolTypeHolder button .eSubToolTypeTitle": `color: var(--theme); font-size: 18px; font-weight: 600`,
+    ".eSubToolTypeHolder button": `box-sizing: border-box; display: flex; flex-direction: column; width: 100px; height: 60px; padding: 6px; margin: 6px; justify-content: center; align-items: center; --borderWidth: 3px; --borderRadius: 12px; background-size: cover; background-position: center;`,
+    ".eSubToolTypeHolder button .eSubToolTypeTitle": `color: var(--theme); font-size: 18px; font-weight: 600; border-radius: 6px; padding: 2px 6px; margin-bottom: 2px;`,
     ".eSubToolTypeHolder button:hover": `--borderColor: var(--hover)`,
-    ".eSubToolTypeHolder button[selected]": `--borderColor: var(--theme); background: var(--hover)`
-  };
+    ".eSubToolTypeHolder button[selected]": `--borderColor: var(--theme); background: var(--hover)`,
+    ".eTypeBlank": `background: #fff;`,
+    ".eTypeLined": `background: repeating-linear-gradient(to bottom, #fff, #fff 10px, #e0e0e0 11px, #fff 12px);`,
+    ".eTypeGrid": `background: 
+      repeating-linear-gradient(to bottom, transparent, transparent 10px, #e0e0e0 11px, transparent 12px),
+      repeating-linear-gradient(to right, #fff, #fff 10px, #e0e0e0 11px, #fff 12px);`
+  }
   js = async (frame) => {
     let toolbar = this.toolbar;
     let preference = this.parent.getPreferenceTool();

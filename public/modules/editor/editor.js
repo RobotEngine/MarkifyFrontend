@@ -4778,14 +4778,17 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
 
     // Draw background based on background type
     let type = this.properties.background || "blank";
+    const MM_TO_PX = mm => mm * 96 / 25.4;
+    const gridSpacing = MM_TO_PX(5);    // ≈ 18.9px
+    const lineSpacing = MM_TO_PX(7.1);  // ≈ 26.9px
     if (type === "blank") {
       ctx.fillStyle = "#fff";
       ctx.fillRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
     } else if (type === "line") {
       ctx.fillStyle = "#fff";
       ctx.fillRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
-      ctx.strokeStyle = "#e0e0e0";
-      for (let y = 40; y < backgroundCanvas.height; y += 40) {
+      ctx.strokeStyle = "#" + (this.properties.c ?? "e0e0e0");
+      for (let y = lineSpacing; y < backgroundCanvas.height; y += lineSpacing) {
         ctx.beginPath();
         ctx.moveTo(0, y);
         ctx.lineTo(backgroundCanvas.width, y);
@@ -4794,14 +4797,14 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
     } else if (type === "grid") {
       ctx.fillStyle = "#fff";
       ctx.fillRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
-      ctx.strokeStyle = "#e0e0e0";
-      for (let y = 40; y < backgroundCanvas.height; y += 40) {
+      ctx.strokeStyle = "#" + (this.properties.c ?? "e0e0e0");
+      for (let y = gridSpacing; y < backgroundCanvas.height; y += gridSpacing) {
         ctx.beginPath();
         ctx.moveTo(0, y);
         ctx.lineTo(backgroundCanvas.width, y);
         ctx.stroke();
       }
-      for (let x = 40; x < backgroundCanvas.width; x += 40) {
+      for (let x = gridSpacing; x < backgroundCanvas.width; x += gridSpacing) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, backgroundCanvas.height);

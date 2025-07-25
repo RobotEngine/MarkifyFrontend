@@ -4768,7 +4768,12 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
       backgroundCanvas.style.left = "0";
       backgroundCanvas.style.top = "0";
       backgroundCanvas.style.zIndex = "0";
+      backgroundCanvas.style.borderRadius = "inherit";
+      backgroundCanvas.style.overflow = "hidden";
       this.element.insertBefore(backgroundCanvas, this.element.firstChild);
+    } else {
+      backgroundCanvas.style.borderRadius = "inherit";
+      backgroundCanvas.style.overflow = "hidden";
     }
     backgroundCanvas.width = this.properties.s[0];
     backgroundCanvas.height = this.properties.s[1];

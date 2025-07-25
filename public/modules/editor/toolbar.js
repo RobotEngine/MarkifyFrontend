@@ -9026,7 +9026,7 @@ modules["editor/toolbar/pagetype"] = class {
   `;
   css = {
     ".eSubToolTypeHolder": `box-sizing: border-box; max-width: 100%; padding: 6px; display: flex; flex-wrap: wrap; width: 336px; max-width: 100%; justify-content: center`,
-    ".eSubToolTypeHolder button": `box-sizing: border-box; display: flex; flex-direction: column; width: 100px; height: 60px; padding: 6px; margin: 6px; justify-content: center; align-items: center; --borderWidth: 3px; --borderRadius: 12px; background-size: cover; background-position: center;`,
+    ".eSubToolTypeHolder button": `box-sizing: border-box; display: flex; flex-direction: column; width: 100px; height: 60px; padding: 6px; margin: 6px; justify-content: center; align-items: center; --borderWidth: 4px; --borderRadius: 12px; background-size: cover; background-position: center;`,
     ".eSubToolTypeHolder button .eSubToolTypeTitle": `color: var(--theme); font-size: 18px; font-weight: 600; border-radius: 6px; padding: 2px 6px; margin-bottom: 2px;`,
     ".eSubToolTypeHolder button:hover": `--borderColor: var(--hover)`,
     ".eSubToolTypeHolder button[selected]": `--borderColor: var(--theme); background: var(--hover)`,

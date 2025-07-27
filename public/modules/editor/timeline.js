@@ -299,8 +299,7 @@ modules["editor/timeline"] = class {
     }
 
     let updatingState = false;
-    this.updateCurrentState = async (setChange) => {
-      currentChange = setChange;
+    this.updateCurrentState = async () => {
       if (lastRenderChange == currentChange) {
         return;
       }
@@ -512,6 +511,7 @@ modules["editor/timeline"] = class {
       updatingState = false;
     }
 
+    let updateStateCaller;
     this.updateTimeline = async (options = {}) => {
       if (options.fromPlayLoop != true) {
         this.stopPlaying();
@@ -538,14 +538,22 @@ modules["editor/timeline"] = class {
         skimNextButton.setAttribute("disabled", "");
       }
 
+      let callUpdateState = async () => {
+        currentChange = (changes[sortedChanges[currentSortedChange - (totalSortedChanges - sortedChanges.length) - 1]] ?? {})._id;
+        await this.updateCurrentState();
+      };
+      updateStateCaller = callUpdateState;
+
       if (sortedChanges.length > 0) {
         let sortedChangeIndex = currentSortedChange - (totalSortedChanges - sortedChanges.length) - 1;
         if (sortedChangeIndex >= 0) {
-          await this.updateCurrentState((changes[sortedChanges[currentSortedChange - (totalSortedChanges - sortedChanges.length) - 1]] ?? {})._id);
+          await updateStateCaller();
         }
         if (sortedChangeIndex < 50) {
           await this.loopLoadAnnotations();
-          await this.updateCurrentState((changes[sortedChanges[currentSortedChange - (totalSortedChanges - sortedChanges.length) - 1]] ?? {})._id);
+          if (updateStateCaller == callUpdateState) {
+            updateStateCaller();
+          }
         }
       }
     }

@@ -272,6 +272,32 @@ modules["editor/timeline"] = class {
     let currentSortedChange = 0;
     let playing = false;
 
+    this.startPlaying = async () => {
+      if (playing == true) {
+        return;
+      }
+      playing = true;
+      skimPlayButton.querySelector("div[play]").setAttribute("hidden", "");
+      skimPlayButton.querySelector("div[pause]").removeAttribute("hidden");
+      if (currentSortedChange >= Math.max(totalSortedChanges, sortedChanges.length)) {
+        currentSortedChange = 0;
+        await this.updateTimeline({ fromPlayLoop: true });
+      }
+      while (playing == true) {
+        currentSortedChange++;
+        await this.updateTimeline({ fromPlayLoop: true });
+        if (currentSortedChange >= Math.max(totalSortedChanges, sortedChanges.length)) {
+          return this.stopPlaying();
+        }
+        await sleep(350);
+      }
+    }
+    this.stopPlaying = () => {
+      playing = false;
+      skimPlayButton.querySelector("div[pause]").setAttribute("hidden", "");
+      skimPlayButton.querySelector("div[play]").removeAttribute("hidden");
+    }
+
     let updatingState = false;
     this.updateCurrentState = async (setChange) => {
       currentChange = setChange;
@@ -486,8 +512,11 @@ modules["editor/timeline"] = class {
       updatingState = false;
     }
 
-    let updateStateCaller;
-    this.updateTimeline = () => {
+    this.updateTimeline = async (options = {}) => {
+      if (options.fromPlayLoop != true) {
+        this.stopPlaying();
+      }
+
       let useTotalChanges = Math.max(totalSortedChanges, sortedChanges.length);
 
       let percent = currentSortedChange / useTotalChanges;
@@ -509,21 +538,15 @@ modules["editor/timeline"] = class {
         skimNextButton.setAttribute("disabled", "");
       }
 
-      let callUpdateState = () => {
-        this.updateCurrentState((changes[sortedChanges[currentSortedChange - (totalSortedChanges - sortedChanges.length) - 1]] ?? {})._id);
-      };
-      updateStateCaller = callUpdateState;
-
-      let sortedChangeIndex = currentSortedChange - (totalSortedChanges - sortedChanges.length) - 1;
-      if (sortedChangeIndex < 50 && sortedChanges.length > 0) {
-        (async () => {
+      if (sortedChanges.length > 0) {
+        let sortedChangeIndex = currentSortedChange - (totalSortedChanges - sortedChanges.length) - 1;
+        if (sortedChangeIndex >= 0) {
+          await this.updateCurrentState((changes[sortedChanges[currentSortedChange - (totalSortedChanges - sortedChanges.length) - 1]] ?? {})._id);
+        }
+        if (sortedChangeIndex < 50) {
           await this.loopLoadAnnotations();
-          if (updateStateCaller == callUpdateState) {
-            updateStateCaller();
-          }
-        })();
-      } else {
-        updateStateCaller();
+          await this.updateCurrentState((changes[sortedChanges[currentSortedChange - (totalSortedChanges - sortedChanges.length) - 1]] ?? {})._id);
+        }
       }
     }
 
@@ -646,9 +669,9 @@ modules["editor/timeline"] = class {
     });
     skimPlayButton.addEventListener("click", () => {
       if (playing == false) {
-        startPlaying();
+        this.startPlaying();
       } else {
-        stopPlaying();
+        this.stopPlaying();
       }
     });
 

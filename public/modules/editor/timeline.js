@@ -116,7 +116,7 @@ modules["editor/timeline"] = class {
     ".timelineHistoryChange button > div > svg": `width: 100%; height: 100%`,
     ".timelineHistoryCurrentChange": `flex-shrink: 0; margin: 0 6px; font-size: 16px`,
 
-    ".timelineSelect": `position: absolute; left: 0px; top: 0px; border-style: solid; border-width: 3px; border-color: var(--themeColor); opacity: 0; z-index: 9; border-radius: 9px; opacity .15s; pointer-events: none`
+    ".timelineSelect": `--themeColor: var(--theme); position: absolute; left: 0px; top: 0px; border-style: solid; border-width: 3px; border-color: var(--themeColor); opacity: 0; z-index: 9; border-radius: 9px; opacity .15s; pointer-events: none`
   };
   js = async (frame) => {
     frame.style.position = "relative";
@@ -299,19 +299,23 @@ modules["editor/timeline"] = class {
     }
 
     let updatingState = false;
+    let currentChangeIndex = -1;
+    let lastRenderChangeIndex = -1;
+    let orderedChangesLength = 0;
     this.updateCurrentState = async () => {
       if (lastRenderChange == currentChange) {
         return;
       }
+
+      currentChangeIndex = orderedChanges.indexOf(currentChange);
+      lastRenderChangeIndex = orderedChanges.indexOf(lastRenderChange);
+      orderedChangesLength = orderedChanges.length;
 
       if (updatingState == true) {
         return;
       }
       updatingState = true;
 
-      let currentChangeIndex = orderedChanges.indexOf(currentChange);
-      let lastRenderChangeIndex = orderedChanges.indexOf(lastRenderChange);
-      let orderedChangesLength = orderedChanges.length;
       let useChangeType;
       let updatedAnnotations = {};
       let currentChangeAnnotations = {};
@@ -322,21 +326,21 @@ modules["editor/timeline"] = class {
         let loadChangeCountDifference = orderedChanges.length - orderedChangesLength;
         if (loadChangeCountDifference != 0) {
           currentChangeIndex -= loadChangeCountDifference;
-          lastRenderChange -= loadChangeCountDifference;
+          lastRenderChangeIndex -= loadChangeCountDifference;
           orderedChangesLength += loadChangeCountDifference;
         }
         if (lastRenderChangeIndex > currentChangeIndex) {
-          lastRenderChangeIndex--;
-          useChangeType = "changes";
-
           applyChange = changes[orderedChanges[lastRenderChangeIndex]] ?? {};
           applyChangeChanges = applyChange.changes ?? [];
-        } else if (lastRenderChangeIndex < currentChangeIndex) {
-          applyChange = changes[orderedChanges[lastRenderChangeIndex]] ?? {};
-          applyChangeChanges = applyChange.redoChanges ?? [];
 
+          lastRenderChangeIndex--;
+          useChangeType = "changes";
+        } else if (lastRenderChangeIndex < currentChangeIndex) {
           lastRenderChangeIndex++;
           useChangeType = "redoChanges";
+
+          applyChange = changes[orderedChanges[lastRenderChangeIndex]] ?? {};
+          applyChangeChanges = applyChange.redoChanges ?? [];
         } else {
           lastRenderChange = currentChange;
           break;
@@ -502,7 +506,7 @@ modules["editor/timeline"] = class {
 
       selectionBoxes = setSelectionBoxes;
 
-      if (isOffScreen == true && totalAnnotationUpdates > 0) {
+      if (isOffScreen == true) {
         this.editor.utils.scrollToAnnotation({ p: [centerTotalX / totalAnnotationUpdates, centerTotalY / totalAnnotationUpdates] }, { duration: 250 });
       }
 
@@ -539,7 +543,7 @@ modules["editor/timeline"] = class {
       }
 
       let callUpdateState = async () => {
-        currentChange = (changes[sortedChanges[currentSortedChange - (totalSortedChanges - sortedChanges.length) - 1]] ?? {})._id;
+        currentChange = sortedChanges[currentSortedChange - (totalSortedChanges - sortedChanges.length) - 1];
         await this.updateCurrentState();
       };
       updateStateCaller = callUpdateState;
@@ -657,7 +661,29 @@ modules["editor/timeline"] = class {
       }
 
       currentSortedChange = Math.max(totalSortedChanges, sortedChanges.length);
+      lastRenderChange = sortedChanges[currentSortedChange - (totalSortedChanges - sortedChanges.length) - 1];
       this.updateTimeline();
+
+      let isOffScreen = false;
+      let centerTotalX = 0;
+      let centerTotalY = 0;
+      let lastChangeChanges = (changes[lastRenderChange] ?? {}).changes;
+      let totalAnnotationUpdates = lastChangeChanges.length;
+      for (let i = 0; i < totalAnnotationUpdates; i++) {
+        let annotation = (this.editor.annotations[(lastChangeChanges[i] ?? {})._id] ?? {}).render;
+        if (annotation != null) {
+          let annoRect = this.editor.utils.getRect(annotation);
+          if (isOffScreen == false) {
+            isOffScreen = this.editor.utils.annotationInViewport(null, annoRect) == false;
+          }
+          centerTotalX += annoRect.centerX;
+          centerTotalY += annoRect.centerY;
+        }
+      }
+      if (isOffScreen == true) {
+        this.editor.utils.scrollToAnnotation({ p: [centerTotalX / totalAnnotationUpdates, centerTotalY / totalAnnotationUpdates] }, { animation: false });
+      }
+
       timeline.removeAttribute("disabled");
     }
 

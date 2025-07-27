@@ -268,6 +268,10 @@ modules["editor/editor"] = class {
       return (this.utils.contrastCheck(bgColor) > 0.3) ? "#000" : "#fff"; // 0.179
     },
     smoothScrollTo: (element, x, y, duration = 500) => {
+      if (element == null) {
+        return;
+      }
+      
       let startX = element.scrollLeft;
       let startY = element.scrollTop;
       let dx = x - startX;
@@ -281,6 +285,10 @@ modules["editor/editor"] = class {
       }
     
       let scroll = () => {
+        if (element == null || element.getAttribute("scrollanimateid") != startTime) {
+          return;
+        }
+
         let now = performance.now();
         let elapsed = now - startTime;
         let progress = Math.min(elapsed / duration, 1);
@@ -293,10 +301,13 @@ modules["editor/editor"] = class {
     
         if (progress < 1) {
           requestAnimationFrame(scroll);
+        } else {
+          element.removeAttribute("scrollanimateid");
         }
       }
-    
-      requestAnimationFrame(scroll);
+
+      element.setAttribute("scrollanimateid", startTime);
+      requestAnimationFrame(scroll)
     }
   };
   math = {

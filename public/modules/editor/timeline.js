@@ -298,11 +298,35 @@ modules["editor/timeline"] = class {
       skimPlayButton.querySelector("div[play]").removeAttribute("hidden");
     }
 
+    this.updateInterface = () => {
+      let useTotalChanges = Math.max(totalSortedChanges, sortedChanges.length);
+
+      let percent = currentSortedChange / useTotalChanges;
+      let stylePercent = percent * 100;
+      sliderProgressBar.style.setProperty("--percent", stylePercent + "%");
+      sliderButton.style.setProperty("--percent", stylePercent + "%");
+      sliderLoaderBar.style.setProperty("--percent", ((sortedChanges.length / useTotalChanges) * 100) + "%");
+
+      currentChangeText.innerHTML = "<b>" + currentSortedChange + "</b> / " + useTotalChanges;
+
+      if (currentSortedChange > 0) {
+        skimBackButton.removeAttribute("disabled");
+      } else {
+        skimBackButton.setAttribute("disabled", "");
+      }
+      if (currentSortedChange < useTotalChanges) {
+        skimNextButton.removeAttribute("disabled");
+      } else {
+        skimNextButton.setAttribute("disabled", "");
+      }
+    }
+    
     let updatingState = false;
     let currentChangeIndex = -1;
     let lastRenderChangeIndex = -1;
     let orderedChangesLength = 0;
-    this.updateCurrentState = async () => {
+    let changeData;
+    this.updateCurrentState = async (options = {}) => {
       if (lastRenderChange == currentChange) {
         return;
       }
@@ -321,7 +345,6 @@ modules["editor/timeline"] = class {
       let currentChangeAnnotations = {};
       let allMissingAnnotations = true;
       while (currentChange != lastRenderChange) {
-        let applyChange;
         let applyChangeChanges;
         let loadChangeCountDifference = orderedChanges.length - orderedChangesLength;
         if (loadChangeCountDifference != 0) {
@@ -330,8 +353,8 @@ modules["editor/timeline"] = class {
           orderedChangesLength += loadChangeCountDifference;
         }
         if (lastRenderChangeIndex > currentChangeIndex) {
-          applyChange = changes[orderedChanges[lastRenderChangeIndex]] ?? {};
-          applyChangeChanges = applyChange.changes ?? [];
+          changeData = changes[orderedChanges[lastRenderChangeIndex]] ?? {};
+          applyChangeChanges = changeData.changes ?? [];
 
           lastRenderChangeIndex--;
           useChangeType = "changes";
@@ -339,22 +362,22 @@ modules["editor/timeline"] = class {
           lastRenderChangeIndex++;
           useChangeType = "redoChanges";
 
-          applyChange = changes[orderedChanges[lastRenderChangeIndex]] ?? {};
-          applyChangeChanges = applyChange.redoChanges ?? [];
+          changeData = changes[orderedChanges[lastRenderChangeIndex]] ?? {};
+          applyChangeChanges = changeData.redoChanges ?? [];
         } else {
           lastRenderChange = currentChange;
           break;
         }
 
-        lastRenderChange = applyChange._id;
+        lastRenderChange = changeData._id;
 
         if (applyChangeChanges.length > 0) {
           currentChangeAnnotations = {};
         }
 
-        let addRedoChanges = applyChange.redoChanges == null && useChangeType == "changes";
+        let addRedoChanges = changeData.redoChanges == null && useChangeType == "changes";
         if (addRedoChanges == true) {
-          applyChange.redoChanges = [];
+          changeData.redoChanges = [];
         }
         for (let i = 0; i < applyChangeChanges.length; i++) {
           let annotation = applyChangeChanges[i];
@@ -366,12 +389,12 @@ modules["editor/timeline"] = class {
             delete original.remove;
           }
           if (addRedoChanges == true) {
-            applyChange.redoChanges.push(copyObject(original ?? { _id: annotation._id, remove: true }));
+            changeData.redoChanges.push(copyObject(original ?? { _id: annotation._id, remove: true }));
           }
           if (annotation.a == null) {
-            annotation.a = applyChange.collaborator;
+            annotation.a = changeData.collaborator;
           }
-          annotation.m = applyChange.collaborator;
+          annotation.m = changeData.collaborator;
           
           let checkChunks = this.editor.utils.chunksFromAnnotation(annotation);
           if (this.editor.annotations[annotation._id] == null) {
@@ -385,19 +408,29 @@ modules["editor/timeline"] = class {
           allMissingAnnotations = false;
         }
       }
+      if (useChangeType != null && allMissingAnnotations == true && this.self.access < 4 && currentSortedChange > 0 && options.skipMissingCheck != true) {
+        if (useChangeType == "changes") {
+          currentSortedChange--;
+        } else if (useChangeType == "redoChanges") {
+          currentSortedChange++;
+        }
+        updatingState = false;
+        return await this.updateTimeline(options);
+      }
 
       let isOffScreen = false;
       let centerTotalX = 0;
       let centerTotalY = 0;
+      let centerTotalCount = 0;
       let setSelectionBoxes = {};
       let tempSelections = [];
       let annotationRect = this.editor.utils.localBoundingRect(this.editor.annotationHolder);
       let updateAnnotationKeys = Object.keys(updatedAnnotations);
-      let totalAnnotationUpdates = updateAnnotationKeys.length;
-      for (let i = 0; i < totalAnnotationUpdates; i++) {
+      for (let i = 0; i < updateAnnotationKeys.length; i++) {
         let annoID = updateAnnotationKeys[i];
         let { annotation, checkChunks } = updatedAnnotations[annoID];
         let annoRect = this.editor.utils.getRect(annotation.render);
+        let isCurrentChange = currentChangeAnnotations[annotation.render._id] != null;
 
         await this.editor.utils.setAnnotationChunks(annotation);
 
@@ -427,7 +460,7 @@ modules["editor/timeline"] = class {
         }
 
         let modifyID = annotation.render.m ?? annotation.render.a;
-        if (modifyID != null && (annotation.render.remove != true || currentChangeAnnotations[annotation.render._id] != null)) {
+        if (modifyID != null && (annotation.render.remove != true || isCurrentChange == true)) {
           let mergedID = annotation.render._id + "_" + modifyID;
           let selection = selectionBoxes[mergedID];
           delete selectionBoxes[mergedID];
@@ -444,7 +477,7 @@ modules["editor/timeline"] = class {
               }
             })(selection, modifyID);
           }
-          if (currentChangeAnnotations[annotation.render._id] != null && annotation.render.remove != true) {
+          if (isCurrentChange == true && annotation.render.remove != true) {
             setSelectionBoxes[mergedID] = selection;
           } else {
             tempSelections.push(selection);
@@ -463,11 +496,14 @@ modules["editor/timeline"] = class {
           }
         }
         
-        if (isOffScreen == false) {
-          isOffScreen = this.editor.utils.annotationInViewport(null, annoRect) == false;
+        if (isCurrentChange == true) {
+          if (isOffScreen == false) {
+            isOffScreen = this.editor.utils.annotationInViewport(null, annoRect) == false;
+          }
+          centerTotalX += annoRect.centerX;
+          centerTotalY += annoRect.centerY;
+          centerTotalCount++;
         }
-        centerTotalX += annoRect.centerX;
-        centerTotalY += annoRect.centerY;
       }
       this.pipeline.publish("redraw_selection", { transition: false });
 
@@ -507,11 +543,52 @@ modules["editor/timeline"] = class {
       selectionBoxes = setSelectionBoxes;
 
       if (isOffScreen == true) {
-        this.editor.utils.scrollToAnnotation({ p: [centerTotalX / totalAnnotationUpdates, centerTotalY / totalAnnotationUpdates] }, { duration: 250 });
+        this.editor.utils.scrollToAnnotation({ p: [centerTotalX / centerTotalCount, centerTotalY / centerTotalCount] }, { duration: 250 });
       }
 
       memberContent.setAttribute("notransition", "");
       
+      let collaborator;
+      if (changeData != null && allMissingAnnotations == false) {
+        changeTime.textContent = timeSince(changeData.added);
+        changeTime.title = formatFullDate(changeData.added);
+        
+        collaborator = this.editor.collaborators[changeData.collaborator];
+        if (collaborator == null) {
+          timelineDetail.style.removeProperty("display");
+          let currentChangeID = changeData._id;
+          collaborator = await this.editor.utils.getCollaborator(changeData.collaborator);
+          if (currentChangeID != (changeData ?? {})._id) {
+            return;
+          }
+        }
+      }
+      if (collaborator != null) {
+        memberFrame.style.setProperty("--themeColor", collaborator.color);
+        if (collaborator.image == null) {
+          memberCursor.style.removeProperty("display");
+          memberProfilePicture.style.display = "none";
+        } else {
+          memberProfilePicture.querySelector("img").src = collaborator.image;
+          memberProfilePicture.style.removeProperty("display");
+          memberCursor.style.display = "none";
+        }
+        memberName.textContent = collaborator.name;
+        memberName.title = collaborator.name;
+        if (collaborator.email != null) {
+          memberEmail.textContent = collaborator.email;
+          memberEmail.title = collaborator.email;
+          memberEmail.style.display = "flex";
+        } else {
+          memberEmail.style.removeProperty("display");
+        }
+
+        timelineDetail.style.display = "flex";
+        memberHolder.style.setProperty("--width", (memberName.offsetWidth + 36) + "px");
+      } else {
+        timelineDetail.style.removeProperty("display");
+      }
+
       updatingState = false;
     }
 
@@ -521,30 +598,11 @@ modules["editor/timeline"] = class {
         this.stopPlaying();
       }
 
-      let useTotalChanges = Math.max(totalSortedChanges, sortedChanges.length);
-
-      let percent = currentSortedChange / useTotalChanges;
-      let stylePercent = percent * 100;
-      sliderProgressBar.style.setProperty("--percent", stylePercent + "%");
-      sliderButton.style.setProperty("--percent", stylePercent + "%");
-      sliderLoaderBar.style.setProperty("--percent", ((sortedChanges.length / useTotalChanges) * 100) + "%");
-
-      currentChangeText.innerHTML = "<b>" + currentSortedChange + "</b> / " + useTotalChanges;
-
-      if (currentSortedChange > 0) {
-        skimBackButton.removeAttribute("disabled");
-      } else {
-        skimBackButton.setAttribute("disabled", "");
-      }
-      if (currentSortedChange < useTotalChanges) {
-        skimNextButton.removeAttribute("disabled");
-      } else {
-        skimNextButton.setAttribute("disabled", "");
-      }
-
+      this.updateInterface();
+      
       let callUpdateState = async () => {
         currentChange = sortedChanges[currentSortedChange - (totalSortedChanges - sortedChanges.length) - 1];
-        await this.updateCurrentState();
+        await this.updateCurrentState(options);
       };
       updateStateCaller = callUpdateState;
 
@@ -667,7 +725,7 @@ modules["editor/timeline"] = class {
       let isOffScreen = false;
       let centerTotalX = 0;
       let centerTotalY = 0;
-      let lastChangeChanges = (changes[lastRenderChange] ?? {}).changes;
+      let lastChangeChanges = (changes[lastRenderChange] ?? {}).changes ?? [];
       let totalAnnotationUpdates = lastChangeChanges.length;
       for (let i = 0; i < totalAnnotationUpdates; i++) {
         let annotation = (this.editor.annotations[(lastChangeChanges[i] ?? {})._id] ?? {}).render;
@@ -724,7 +782,7 @@ modules["editor/timeline"] = class {
       let newCurrentChange = Math.round((Math.max(Math.min((clientPosition(event, "x") - barRect.x - 6) / (sliderBar.offsetWidth - 10), 1), 0)) * useTotalChanges);
       if (currentSortedChange != newCurrentChange) {
         currentSortedChange = newCurrentChange;
-        this.updateTimeline();
+        this.updateTimeline({ skipMissingCheck: true });
       }
     }
     let enableSlider = (event) => {

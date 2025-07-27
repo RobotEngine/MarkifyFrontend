@@ -30,6 +30,7 @@ modules["pages/app/lesson"] = class {
     ".lPage[active]": `--shadowOpacity: .5 !important`,
     ".lPage[remove]": `flex: 0 !important; opacity: 0 !important; min-width: 0px !important`,
     ".lPageHolder[resize] .lPage": `min-width: unset; transition: unset`,
+    ".lPageHolder[resize] .lPage *": `pointer-events: none !important`,
     ".lPageHolder[maximize] .lPage": `opacity: 0 !important; transition: none !important; pointer-events: all`,
     ".lPageHolder[maximize] .lPage[active]": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 3 !important; border-radius: 0px !important; opacity: 1 !important`,
 

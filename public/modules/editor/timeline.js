@@ -259,6 +259,456 @@ modules["editor/timeline"] = class {
       await (await this.newModule("editor/toolbar")).js(this.editor);
     })();
 
+    let changes = {};
+    let orderedChanges = [];
+    let allChangesLoaded = false;
+    let currentChange;
+    let lastRenderChange;
+    let selectionBoxes = {};
+
+    let filterMembers;
+    let sortedChanges = [];
+    let totalSortedChanges = 0;
+    let currentSortedChange = 0;
+    let playing = false;
+
+    let updatingState = false;
+    this.updateCurrentState = async (setChange) => {
+      currentChange = setChange;
+      if (lastRenderChange == currentChange) {
+        return;
+      }
+
+      if (updatingState == true) {
+        return;
+      }
+      updatingState = true;
+
+      let currentChangeIndex = orderedChanges.indexOf(currentChange);
+      let lastRenderChangeIndex = orderedChanges.indexOf(lastRenderChange);
+      let orderedChangesLength = orderedChanges.length;
+      let useChangeType;
+      let updatedAnnotations = {};
+      let currentChangeAnnotations = {};
+      let allMissingAnnotations = true;
+      while (currentChange != lastRenderChange) {
+        let applyChange;
+        let applyChangeChanges;
+        let loadChangeCountDifference = orderedChanges.length - orderedChangesLength;
+        if (loadChangeCountDifference != 0) {
+          currentChangeIndex -= loadChangeCountDifference;
+          lastRenderChange -= loadChangeCountDifference;
+          orderedChangesLength += loadChangeCountDifference;
+        }
+        if (lastRenderChangeIndex > currentChangeIndex) {
+          lastRenderChangeIndex--;
+          useChangeType = "changes";
+
+          applyChange = changes[orderedChanges[lastRenderChangeIndex]] ?? {};
+          applyChangeChanges = applyChange.changes ?? [];
+        } else if (lastRenderChangeIndex < currentChangeIndex) {
+          applyChange = changes[orderedChanges[lastRenderChangeIndex]] ?? {};
+          applyChangeChanges = applyChange.redoChanges ?? [];
+
+          lastRenderChangeIndex++;
+          useChangeType = "redoChanges";
+        } else {
+          lastRenderChange = currentChange;
+          break;
+        }
+
+        lastRenderChange = applyChange._id;
+
+        if (applyChangeChanges.length > 0) {
+          currentChangeAnnotations = {};
+        }
+
+        let addRedoChanges = applyChange.redoChanges == null && useChangeType == "changes";
+        if (addRedoChanges == true) {
+          applyChange.redoChanges = [];
+        }
+        for (let i = 0; i < applyChangeChanges.length; i++) {
+          let annotation = applyChangeChanges[i];
+          if (this.self.access < 4 && presentAnnotations[annotation._id] == null) {
+            continue;
+          }
+          let original = (this.editor.annotations[annotation._id] ?? {}).render;
+          if (original != null && original.remove == true) {
+            delete original.remove;
+          }
+          if (addRedoChanges == true) {
+            applyChange.redoChanges.push(copyObject(original ?? { _id: annotation._id, remove: true }));
+          }
+          if (annotation.a == null) {
+            annotation.a = applyChange.collaborator;
+          }
+          annotation.m = applyChange.collaborator;
+          
+          let checkChunks = this.editor.utils.chunksFromAnnotation(annotation);
+          if (this.editor.annotations[annotation._id] == null) {
+            this.editor.annotations[annotation._id] = { render: { ...(original ?? {}), ...annotation } };
+          } else {
+            this.editor.annotations[annotation._id].render = { ...(original ?? {}), ...annotation };
+          }
+          updatedAnnotations[annotation._id] = { annotation: this.editor.annotations[annotation._id], checkChunks: checkChunks };
+
+          currentChangeAnnotations[annotation._id] = true;
+          allMissingAnnotations = false;
+        }
+      }
+
+      let isOffScreen = false;
+      let centerTotalX = 0;
+      let centerTotalY = 0;
+      let setSelectionBoxes = {};
+      let tempSelections = [];
+      let annotationRect = this.editor.utils.localBoundingRect(this.editor.annotationHolder);
+      let updateAnnotationKeys = Object.keys(updatedAnnotations);
+      let totalAnnotationUpdates = updateAnnotationKeys.length;
+      for (let i = 0; i < totalAnnotationUpdates; i++) {
+        let annoID = updateAnnotationKeys[i];
+        let { annotation, checkChunks } = updatedAnnotations[annoID];
+        let annoRect = this.editor.utils.getRect(annotation.render);
+
+        await this.editor.utils.setAnnotationChunks(annotation);
+
+        let chunkAnnotations = this.editor.utils.annotationsInChunks(checkChunks);
+        for (let i = 0; i < chunkAnnotations.length; i++) {
+          let anno = chunkAnnotations[i] ?? {};
+          let render = anno.render;
+          if (render == null || render._id == annoID) {
+            continue;
+          }
+          if (this.editor.utils.getParentIDs(render).includes(annoID) == true) { // Update chunks of child annotations:
+            await this.editor.utils.setAnnotationChunks(anno);
+          }
+        }
+
+        let allowRender = annotation.render.remove == true;
+        for (let i = 0; i < annotation.chunks.length; i++) {
+          if (this.editor.visibleChunks.includes(annotation.chunks[i]) == true) {
+            allowRender = true;
+            break;
+          }
+        }
+        if (allowRender == true) {
+          annotation.component = (await this.editor.render.create(annotation)).component;
+        } else {
+          await this.editor.render.remove(annotation);
+        }
+
+        let modifyID = annotation.render.m ?? annotation.render.a;
+        if (modifyID != null && (annotation.render.remove != true || currentChangeAnnotations[annotation.render._id] != null)) {
+          let mergedID = annotation.render._id + "_" + modifyID;
+          let selection = selectionBoxes[mergedID];
+          delete selectionBoxes[mergedID];
+          let newSelection = selection == null;
+          if (newSelection == true) {
+            realtimeHolder.insertAdjacentHTML("beforeend", `<div class="timelineSelect" new></div>`);
+            selection = realtimeHolder.querySelector('.timelineSelect[new]');
+            selection.removeAttribute("new");
+            selection.setAttribute("merged", mergedID);
+            (async (element, modifyid) => {
+              let collaborator = await this.editor.utils.getCollaborator(modifyid);
+              if (collaborator != null && element != null) {
+                element.style.setProperty("--themeColor", collaborator.color);
+              }
+            })(selection, modifyID);
+          }
+          if (currentChangeAnnotations[annotation.render._id] != null && annotation.render.remove != true) {
+            setSelectionBoxes[mergedID] = selection;
+          } else {
+            tempSelections.push(selection);
+          }
+          let rotate = annoRect.rotation;
+          if (rotate > 180) {
+            rotate = -(360 - rotate);
+          }
+          selection.style.width = ((annoRect.width * this.editor.zoom) - 3) + "px";
+          selection.style.height = ((annoRect.height * this.editor.zoom) - 3) + "px";
+          selection.style.transform = "translate(" + (annotationRect.left + (annoRect.x * this.editor.zoom) + this.editor.contentHolder.scrollLeft - 1.5) + "px," + (annotationRect.top + (annoRect.y * this.editor.zoom) + this.editor.contentHolder.scrollTop - 1.5) + "px) rotate(" + rotate + "deg)";
+          if (newSelection == true) {
+            selection.offsetHeight;
+            selection.style.transition = "all .25s, opacity .15s, border-color 0s";
+            selection.style.opacity = 1;
+          }
+        }
+        
+        if (isOffScreen == false) {
+          isOffScreen = this.editor.utils.annotationInViewport(null, annoRect) == false;
+        }
+        centerTotalX += annoRect.centerX;
+        centerTotalY += annoRect.centerY;
+      }
+      this.pipeline.publish("redraw_selection", { transition: false });
+
+      let removeSelectBoxes = Object.values(selectionBoxes);
+      (async function () {
+        for (let i = 0; i < removeSelectBoxes.length; i++) {
+          let elem = removeSelectBoxes[i];
+          if (elem != null) {
+            elem.style.opacity = 0;
+          }
+        }
+        await sleep(300);
+        for (let i = 0; i < removeSelectBoxes.length; i++) {
+          let elem = removeSelectBoxes[i];
+          if (elem != null) {
+            elem.remove();
+          }
+        }
+      })();
+      (async function (elements) {
+        await sleep(500);
+        for (let i = 0; i < elements.length; i++) {
+          let elem = elements[i];
+          if (elem != null) {
+            elem.style.opacity = 0;
+          }
+        }
+        await sleep(300);
+        for (let i = 0; i < elements.length; i++) {
+          let elem = elements[i];
+          if (elem != null) {
+            elem.remove();
+          }
+        }
+      })(tempSelections);
+
+      selectionBoxes = setSelectionBoxes;
+
+      if (isOffScreen == true && totalAnnotationUpdates > 0) {
+        this.editor.utils.scrollToAnnotation({ p: [centerTotalX / totalAnnotationUpdates, centerTotalY / totalAnnotationUpdates] }, { duration: 250 });
+      }
+
+      memberContent.setAttribute("notransition", "");
+      
+      updatingState = false;
+    }
+
+    let updateStateCaller;
+    this.updateTimeline = () => {
+      let useTotalChanges = Math.max(totalSortedChanges, sortedChanges.length);
+
+      let percent = currentSortedChange / useTotalChanges;
+      let stylePercent = percent * 100;
+      sliderProgressBar.style.setProperty("--percent", stylePercent + "%");
+      sliderButton.style.setProperty("--percent", stylePercent + "%");
+      sliderLoaderBar.style.setProperty("--percent", ((sortedChanges.length / useTotalChanges) * 100) + "%");
+
+      currentChangeText.innerHTML = "<b>" + currentSortedChange + "</b> / " + useTotalChanges;
+
+      if (currentSortedChange > 0) {
+        skimBackButton.removeAttribute("disabled");
+      } else {
+        skimBackButton.setAttribute("disabled", "");
+      }
+      if (currentSortedChange < useTotalChanges) {
+        skimNextButton.removeAttribute("disabled");
+      } else {
+        skimNextButton.setAttribute("disabled", "");
+      }
+
+      let callUpdateState = () => {
+        this.updateCurrentState((changes[sortedChanges[currentSortedChange - (totalSortedChanges - sortedChanges.length) - 1]] ?? {})._id);
+      };
+      updateStateCaller = callUpdateState;
+
+      let sortedChangeIndex = currentSortedChange - (totalSortedChanges - sortedChanges.length) - 1;
+      if (sortedChangeIndex < 50 && sortedChanges.length > 0) {
+        (async () => {
+          await this.loopLoadAnnotations();
+          if (updateStateCaller == callUpdateState) {
+            updateStateCaller();
+          }
+        })();
+      } else {
+        updateStateCaller();
+      }
+    }
+
+    let applyChange = (change, insert) => {
+      changes[change._id] = change;
+      if (insert != "end") {
+        orderedChanges.unshift(change._id);
+      } else {
+        orderedChanges.push(change._id);
+      }
+      
+      if (filterMembers != null && filterMembers.includes(change.collaborator) == false) {
+        return;
+      }
+      
+      if (insert != "end") {
+        sortedChanges.unshift(change._id);
+      } else {
+        sortedChanges.push(change._id);
+      }
+    }
+
+    let loadAmount = 250;
+    let loadFunction;
+    this.loadChanges = async () => {
+      if (loadFunction == null) {
+        loadFunction = (async () => {
+          let path = "lessons/join/history"; //allChangesLoaded
+          let getAmount = 100;
+          if (orderedChanges.length > 0) {
+            path += "?amount=" + loadAmount + "&before=" + ((changes[orderedChanges[0]] ?? {}).added ?? getEpoch());
+            getAmount = loadAmount;
+          }
+          let [code, body] = await sendRequest("GET", path, null, { session: this.parent.session });
+          if (code == 200) {
+            for (let i = 0; i < body.changes.length; i++) {
+              applyChange(body.changes[i]);
+            }
+            if (body.changes.length < getAmount) {
+              allChangesLoaded = true;
+            }
+            sliderLoaderBar.style.setProperty("--percent", ((sortedChanges.length / Math.max(totalSortedChanges, sortedChanges.length)) * 100) + "%");
+          }
+          
+          loadFunction = null;
+        })();
+      }
+
+      await loadFunction;
+    }
+    let loopLoadFunction;
+    this.loopLoadAnnotations = async () => {
+      if (loopLoadFunction == null) {
+        loopLoadFunction = (async () => {
+          while (allChangesLoaded != true) {
+            await this.loadChanges();
+            if (currentSortedChange - (totalSortedChanges - sortedChanges.length) - 1 >= 50) {
+              break;
+            }
+          }
+          loopLoadFunction = null;
+        })();
+      }
+
+      await loopLoadFunction;
+    }
+
+    this.updateFilter = async (setFilter) => {
+      if (setFilter != null) {
+        filterMembers = setFilter;
+      }
+
+      sortedChanges = [];
+      totalSortedChanges = 0;
+
+      for (let i = 0; i < orderedChanges.length; i++) {
+        let key = orderedChanges[i];
+        let change = changes[key];
+        if (filterMembers == null || filterMembers.includes(change) == true) {
+          sortedChanges.push(key);
+        }
+      }
+
+      (async () => {
+        let path = "lessons/join/history/count";
+        if (filterMembers != null) {
+          path += "?collaborators=" + filterMembers.join();
+        }
+        let [code, body] = await sendRequest("GET", path, null, { session: this.parent.session });
+        if (code == 200) {
+          totalSortedChanges += body.count;
+          let loadChange = body.count - sortedChanges.length;
+          currentSortedChange += loadChange;
+          this.updateTimeline();
+        }
+      })();
+
+      if (sortedChanges.length < loadAmount) {
+        await this.loadChanges();
+      }
+
+      currentSortedChange = Math.max(totalSortedChanges, sortedChanges.length);
+      this.updateTimeline();
+      timeline.removeAttribute("disabled");
+    }
+
+    this.updateFilter(this.filterMembers);
+
+    skimBackButton.addEventListener("click", () => {
+      if (currentSortedChange > 0) {
+        currentSortedChange--;
+        this.updateTimeline();
+      }
+    });
+    skimNextButton.addEventListener("click", () => {
+      if (currentSortedChange < Math.max(totalSortedChanges, sortedChanges.length)) {
+        currentSortedChange++;
+        this.updateTimeline();
+      }
+    });
+    skimPlayButton.addEventListener("click", () => {
+      if (playing == false) {
+        startPlaying();
+      } else {
+        stopPlaying();
+      }
+    });
+
+    let sliderEnabled = true;
+    let eventBarUpdate = (event) => {
+      if (sliderEnabled == false) {
+        return;
+      }
+      if (mouseDown() == false) {
+        sliderEnabled = false;
+        this.pipeline.unsubscribe("timelineSelectorMouse");
+        return;
+      }
+      let useTotalChanges = Math.max(totalSortedChanges, sortedChanges.length);
+      let barRect = sliderBar.getBoundingClientRect();
+      let newCurrentChange = Math.round((Math.max(Math.min((clientPosition(event, "x") - barRect.x - 6) / (sliderBar.offsetWidth - 10), 1), 0)) * useTotalChanges);
+      if (currentSortedChange != newCurrentChange) {
+        currentSortedChange = newCurrentChange;
+        this.updateTimeline();
+      }
+    }
+    let enableSlider = (event) => {
+      sliderEnabled = true;
+      eventBarUpdate(event);
+      this.pipeline.subscribe("timelineSelectorMouse", "click_move", (data) => { eventBarUpdate(data.event); });
+      this.pipeline.subscribe("timelineSelectorMouse", "click_end", (data) => { eventBarUpdate(data.event); });
+    }
+    sliderBar.addEventListener("mousedown", enableSlider);
+    sliderBar.addEventListener("touchstart", enableSlider, { passive: true });
+
+    this.pipeline.subscribe("timelineZoomUpdate", "zoom_change", () => {
+      let annotationRect = this.editor.utils.localBoundingRect(this.editor.annotationHolder);
+      let allRealtimeSelections = realtimeHolder.querySelectorAll(".timelineSelect");
+      for (let i = 0; i < allRealtimeSelections.length; i++) {
+        let selection = allRealtimeSelections[i];
+        let [annoID] = selection.getAttribute("merged").split("_");
+        let render = {};
+        if (this.editor.annotations[annoID] == null) {
+          selection.remove();
+          continue;
+        }
+        render = { ...((this.editor.annotations[annoID]).render ?? {}), ...(this.editor.selecting[annoID] ?? {}) };
+        if (render.f == null) {
+          continue;
+        }
+        let rect = this.editor.utils.getRect(render);
+        selection.setAttribute("notransition", "");
+        let rotate = rect.rotation;
+        if (rotate > 180) {
+          rotate = -(360 - rotate);
+        }
+        selection.style.width = ((rect.width * this.editor.zoom) - 3) + "px";
+        selection.style.height = ((rect.height * this.editor.zoom) - 3) + "px";
+        selection.style.transform = "translate(" + (annotationRect.left + (rect.x * this.editor.zoom) + this.editor.contentHolder.scrollLeft - 1.5) + "px," + (annotationRect.top + (rect.y * this.editor.zoom) + this.editor.contentHolder.scrollTop - 1.5) + "px) rotate(" + rotate + "deg)";
+        selection.offsetHeight;
+        selection.removeAttribute("notransition");
+      }
+    });
+
+    /*
     let changes = [];
     let currentChange = 0;
     let changeData;
@@ -674,5 +1124,6 @@ modules["editor/timeline"] = class {
         this.updateCurrentChange();
       }
     })();
+    */
   }
 }

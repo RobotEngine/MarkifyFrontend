@@ -325,8 +325,10 @@ modules["editor/timeline"] = class {
     let currentChangeIndex = -1;
     let lastRenderChangeIndex = -1;
     let orderedChangesLength = 0;
-    let changeData;
     this.updateCurrentState = async (options = {}) => {
+      if (currentChange == null) {
+        currentChange = orderedChanges[orderedChanges.indexOf(sortedChanges[0]) - 1];
+      }
       if (lastRenderChange == currentChange) {
         return;
       }
@@ -344,6 +346,7 @@ modules["editor/timeline"] = class {
       let updatedAnnotations = {};
       let currentChangeAnnotations = {};
       let allMissingAnnotations = true;
+      let changeData;
       while (currentChange != lastRenderChange) {
         let applyChangeChanges;
         let loadChangeCountDifference = orderedChanges.length - orderedChangesLength;
@@ -460,6 +463,9 @@ modules["editor/timeline"] = class {
         }
 
         let modifyID = annotation.render.m ?? annotation.render.a;
+        if (filterMembers != null && filterMembers.includes(modifyID) == false) {
+          continue;
+        }
         if (modifyID != null && (annotation.render.remove != true || isCurrentChange == true)) {
           let mergedID = annotation.render._id + "_" + modifyID;
           let selection = selectionBoxes[mergedID];
@@ -548,6 +554,10 @@ modules["editor/timeline"] = class {
 
       memberContent.setAttribute("notransition", "");
       
+      if (changeData != null && filterMembers != null && filterMembers.includes(changeData.collaborator) == false) {
+        changeData = changes[currentChange];
+      }
+
       let collaborator;
       if (changeData != null && allMissingAnnotations == false) {
         changeTime.textContent = timeSince(changeData.added);
@@ -601,13 +611,13 @@ modules["editor/timeline"] = class {
       this.updateInterface();
       
       let callUpdateState = async () => {
-        currentChange = sortedChanges[currentSortedChange - (totalSortedChanges - sortedChanges.length) - 1];
+        currentChange = sortedChanges[currentSortedChange - (Math.max(totalSortedChanges, sortedChanges.length) - sortedChanges.length) - 1];
         await this.updateCurrentState(options);
       };
       updateStateCaller = callUpdateState;
 
       if (sortedChanges.length > 0) {
-        let sortedChangeIndex = currentSortedChange - (totalSortedChanges - sortedChanges.length) - 1;
+        let sortedChangeIndex = currentSortedChange - (Math.max(totalSortedChanges, sortedChanges.length) - sortedChanges.length) - 1;
         if (sortedChangeIndex >= 0) {
           await updateStateCaller();
         }
@@ -673,7 +683,7 @@ modules["editor/timeline"] = class {
         loopLoadFunction = (async () => {
           while (allChangesLoaded != true) {
             await this.loadChanges();
-            if (currentSortedChange - (totalSortedChanges - sortedChanges.length) - 1 >= 50) {
+            if (currentSortedChange - (Math.max(totalSortedChanges, sortedChanges.length) - sortedChanges.length) - 1 >= 50) {
               break;
             }
           }
@@ -687,6 +697,8 @@ modules["editor/timeline"] = class {
     this.updateFilter = async (setFilter) => {
       if (setFilter != null) {
         filterMembers = setFilter;
+      } else {
+        filterMembers = null;
       }
 
       sortedChanges = [];

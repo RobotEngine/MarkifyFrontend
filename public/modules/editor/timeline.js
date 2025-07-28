@@ -5,10 +5,12 @@ modules["editor/timeline"] = class {
       <div class="timelineTop">
         <div class="timelineTopSection" left>
           <a class="timelineClose"></a>
-          <div class="timelineTopDivider"></div>
+          <div class="timelineTopDivider" revert></div>
           <button class="timelineRevert" title="Restore the document back to this state. Reverting does not overwrite later changes, but instead inserts a new change." disabled>Revert</button>
         </div>
         <div class="timelineTopSection" right>
+          <button class="timelineFilter" title="Filter by specific collaborators to see their contributions." disabled>Filter<span title="Number of selected collaborators."></span></button>
+          <div class="timelineTopDivider"></div>
           <button class="timelineZoom">100%</button>
         </div>
       </div>
@@ -67,12 +69,15 @@ modules["editor/timeline"] = class {
     ".timelineTopSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
     ".timelineTopSection[left]": `border-bottom-right-radius: 12px`,
     ".timelineTopSection[right]": `border-bottom-left-radius: 12px`,
-    ".timelineClose": `display: flex; width: 38px; height: 38px; padding: 0; margin-right: 4px; user-select: none; justify-content: center; align-items: center; border-radius: 6px`,
+    ".timelineClose": `display: flex; width: 38px; height: 38px; padding: 0; user-select: none; justify-content: center; align-items: center; border-radius: 6px`,
     ".timelineClose:hover": `background: var(--hover)`,
     ".timelineClose svg": `width: 24px; height: 24px; transition: .2s`,
     ".timelineClose:hover svg": `transform: scale(.9)`,
     ".timelineTopDivider": `width: 4px; height: 32px; margin: 0 4px; background: var(--lightGray); border-radius: 2px`,
-    ".timelineRevert": `height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
+    ".timelineTopDivider[revert]": `display: none; margin-left: 8px`,
+    ".timelineRevert": `display: none; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
+    ".timelineFilter": `display: flex; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--hover); border-radius: 16px; align-items: center; font-size: 16px; font-weight: 600`,
+    ".timelineFilter span": `--themeColorRGB: var(--themeRGB); display: none; min-width: 12px; height: 24px; padding: 0px 6px; margin-left: 5px; justify-content: center; align-items: center; background: var(--pageColor); color: rgb(var(--themeColorRGB)); border-radius: 12px; font-weight: 700`,
     ".timelineZoom": `height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
 
     ".timelineToolbarHolder": `position: relative; display: block; flex: 1; visibility: visible`,
@@ -127,6 +132,10 @@ modules["editor/timeline"] = class {
     let contentHolder = frame.querySelector(".timelineContentHolder");
 
     let closeButton = main.querySelector(".timelineClose");
+    let revertDivider = main.querySelector(".timelineTopDivider[revert]");
+    let revertButton = main.querySelector(".timelineRevert");
+    let filterButton = main.querySelector(".timelineFilter");
+    let filterCollaboratorCount = filterButton.querySelector("span");
     let zoomButton = main.querySelector(".timelineZoom");
 
     let toolbarHolder = main.querySelector(".timelineToolbarHolder");
@@ -215,6 +224,13 @@ modules["editor/timeline"] = class {
     });
 
     this.updateInterface = () => {
+      if (this.self.access > 3) {
+        revertDivider.style.display = "block";
+        revertButton.style.display = "flex";
+      } else {
+        revertDivider.style.removeProperty("display");
+        revertButton.style.removeProperty("display");
+      }
       if ((account.settings ?? {}).toolbar != "right") {
         toolbarHolder.setAttribute("left", "");
         toolbarHolder.removeAttribute("right");
@@ -301,6 +317,12 @@ modules["editor/timeline"] = class {
     this.updateInterface = () => {
       let useTotalChanges = Math.max(totalSortedChanges, sortedChanges.length);
 
+      if (useTotalChanges > 0) {
+        timeline.parentElement.removeAttribute("hidden");
+      } else {
+        timeline.parentElement.setAttribute("hidden", "");
+      }
+
       let percent = currentSortedChange / useTotalChanges;
       let stylePercent = percent * 100;
       sliderProgressBar.style.setProperty("--percent", stylePercent + "%");
@@ -316,8 +338,10 @@ modules["editor/timeline"] = class {
       }
       if (currentSortedChange < useTotalChanges) {
         skimNextButton.removeAttribute("disabled");
+        revertButton.removeAttribute("disabled");
       } else {
         skimNextButton.setAttribute("disabled", "");
+        revertButton.setAttribute("disabled", "");
       }
     }
     
@@ -411,13 +435,13 @@ modules["editor/timeline"] = class {
           allMissingAnnotations = false;
         }
       }
+      updatingState = false;
       if (useChangeType != null && allMissingAnnotations == true && this.self.access < 4 && currentSortedChange > 0 && options.skipMissingCheck != true) {
         if (useChangeType == "changes") {
           currentSortedChange--;
         } else if (useChangeType == "redoChanges") {
           currentSortedChange++;
         }
-        updatingState = false;
         return await this.updateTimeline(options);
       }
 
@@ -598,8 +622,6 @@ modules["editor/timeline"] = class {
       } else {
         timelineDetail.style.removeProperty("display");
       }
-
-      updatingState = false;
     }
 
     let updateStateCaller;
@@ -695,10 +717,18 @@ modules["editor/timeline"] = class {
     }
 
     this.updateFilter = async (setFilter) => {
+      timeline.setAttribute("disabled", "");
+      filterButton.setAttribute("disabled", "");
+
       if (setFilter != null) {
         filterMembers = setFilter;
+        filterCollaboratorCount.textContent = filterMembers.length;
+        filterCollaboratorCount.style.display = "flex";
+        filterButton.style.padding = "4px 4px 4px 10px";
       } else {
         filterMembers = null;
+        filterCollaboratorCount.style.removeProperty("display");
+        filterButton.style.removeProperty("padding");
       }
 
       sortedChanges = [];
@@ -712,49 +742,55 @@ modules["editor/timeline"] = class {
         }
       }
 
-      (async () => {
-        let path = "lessons/join/history/count";
-        if (filterMembers != null) {
-          path += "?collaborators=" + filterMembers.join();
-        }
-        let [code, body] = await sendRequest("GET", path, null, { session: this.parent.session });
-        if (code == 200) {
-          totalSortedChanges += body.count;
-          let loadChange = body.count - sortedChanges.length;
-          currentSortedChange += loadChange;
-          this.updateTimeline();
-        }
-      })();
-
-      if (sortedChanges.length < loadAmount) {
-        await this.loadChanges();
-      }
-
-      currentSortedChange = Math.max(totalSortedChanges, sortedChanges.length);
-      lastRenderChange = sortedChanges[currentSortedChange - (totalSortedChanges - sortedChanges.length) - 1];
-      this.updateTimeline();
-
-      let isOffScreen = false;
-      let centerTotalX = 0;
-      let centerTotalY = 0;
-      let lastChangeChanges = (changes[lastRenderChange] ?? {}).changes ?? [];
-      let totalAnnotationUpdates = lastChangeChanges.length;
-      for (let i = 0; i < totalAnnotationUpdates; i++) {
-        let annotation = (this.editor.annotations[(lastChangeChanges[i] ?? {})._id] ?? {}).render;
-        if (annotation != null) {
-          let annoRect = this.editor.utils.getRect(annotation);
-          if (isOffScreen == false) {
-            isOffScreen = this.editor.utils.annotationInViewport(null, annoRect) == false;
+      await Promise.all([
+        new Promise(async (resolve) => {
+          let path = "lessons/join/history/count";
+          if (filterMembers != null) {
+            path += "?collaborators=" + filterMembers.join();
           }
-          centerTotalX += annoRect.centerX;
-          centerTotalY += annoRect.centerY;
-        }
-      }
-      if (isOffScreen == true) {
-        this.editor.utils.scrollToAnnotation({ p: [centerTotalX / totalAnnotationUpdates, centerTotalY / totalAnnotationUpdates] }, { animation: false });
-      }
+          let [code, body] = await sendRequest("GET", path, null, { session: this.parent.session });
+          if (code == 200) {
+            totalSortedChanges += body.count;
+            let loadChange = body.count - sortedChanges.length;
+            currentSortedChange += loadChange;
+            this.updateTimeline();
+          }
+          resolve();
+        }),
+        new Promise(async (resolve) => {
+          if (sortedChanges.length < loadAmount) {
+            await this.loadChanges();
+          }
+    
+          currentSortedChange = Math.max(totalSortedChanges, sortedChanges.length);
+          lastRenderChange = sortedChanges[currentSortedChange - (totalSortedChanges - sortedChanges.length) - 1];
+          this.updateTimeline();
+    
+          let isOffScreen = false;
+          let centerTotalX = 0;
+          let centerTotalY = 0;
+          let lastChangeChanges = (changes[lastRenderChange] ?? {}).changes ?? [];
+          let totalAnnotationUpdates = lastChangeChanges.length;
+          for (let i = 0; i < totalAnnotationUpdates; i++) {
+            let annotation = (this.editor.annotations[(lastChangeChanges[i] ?? {})._id] ?? {}).render;
+            if (annotation != null) {
+              let annoRect = this.editor.utils.getRect(annotation);
+              if (isOffScreen == false) {
+                isOffScreen = this.editor.utils.annotationInViewport(null, annoRect) == false;
+              }
+              centerTotalX += annoRect.centerX;
+              centerTotalY += annoRect.centerY;
+            }
+          }
+          if (isOffScreen == true) {
+            this.editor.utils.scrollToAnnotation({ p: [centerTotalX / totalAnnotationUpdates, centerTotalY / totalAnnotationUpdates] }, { animation: false });
+          }
 
-      timeline.removeAttribute("disabled");
+          timeline.removeAttribute("disabled");
+          filterButton.removeAttribute("disabled");
+          resolve();
+        })
+      ]);
     }
 
     this.updateFilter(this.filterMembers);

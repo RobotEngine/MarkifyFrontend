@@ -442,6 +442,13 @@ modules["editor/timeline"] = class {
         } else if (useChangeType == "redoChanges") {
           currentSortedChange++;
         }
+        if (currentSortedChange < 0) {
+          currentSortedChange = 0;
+        }
+        let useTotalChanges = Math.max(totalSortedChanges, sortedChanges.length);
+        if (currentSortedChange > useTotalChanges) {
+          currentSortedChange = useTotalChanges;
+        }
         return await this.updateTimeline(options);
       }
 

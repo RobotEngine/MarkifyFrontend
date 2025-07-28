@@ -4803,7 +4803,9 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
     } else if (type === "line") {
       ctx.fillStyle = "#fff";
       ctx.fillRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
-      ctx.strokeStyle = "#" + (this.properties.c ?? "e0e0e0");
+      let baseLineColor = this.properties.c ?? "e0e0e0";
+      let lightLineColor = this.parent.utils.lightenHex(baseLineColor, 40); // 40% lighter
+      ctx.strokeStyle = "#" + lightLineColor;
       for (let y = lineSpacing; y < backgroundCanvas.height; y += lineSpacing) {
         ctx.beginPath();
         ctx.moveTo(0, y);
@@ -4813,7 +4815,9 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
     } else if (type === "grid") {
       ctx.fillStyle = "#fff";
       ctx.fillRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
-      ctx.strokeStyle = "#" + (this.properties.c ?? "e0e0e0");
+      let baseLineColor = this.properties.c ?? "e0e0e0";
+      let lightLineColor = this.parent.utils.lightenHex(baseLineColor, 40); // 40% lighter
+      ctx.strokeStyle = "#" + lightLineColor;
       for (let y = gridSpacing; y < backgroundCanvas.height; y += gridSpacing) {
         ctx.beginPath();
         ctx.moveTo(0, y);

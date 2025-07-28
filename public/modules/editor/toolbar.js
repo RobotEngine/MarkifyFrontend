@@ -8725,6 +8725,10 @@ modules["editor/toolbar/uploadpage"] = class {
           if (body.saves != null) {
             for (let i = 0; i < body.saves.length; i++) {
               let save = body.saves[i];
+              //Remove background type whem PDF is added
+              if (save.background && save.source) {
+                save.background = null;
+              }
               await this.editor.save.push(save, { history: { update: historyUpdate, add: historyRemove }, ignoreSelect: true });
               this.editor.selecting[save._id] = this.editor.selecting[save._id] ?? {};
             }
@@ -9045,7 +9049,15 @@ modules["editor/toolbar/pagetype"] = class {
       btn.removeAttribute("selected");
       if (btn.getAttribute("type") === currentType) btn.setAttribute("selected", "");
       btn.onclick = async () => {
-        await toolbar.saveSelecting(() => ({ background: btn.getAttribute("type") }), { reuseActionBar: true });
+        let selectedType = btn.getAttribute("type");
+        await toolbar.saveSelecting((render) => {
+          let updates = { background: selectedType };
+          if (render.source) {
+            updates.source = null;
+            updates.number = null;
+          }
+          return updates;
+        }, { reuseActionBar: true });
         buttons.forEach(b => b.removeAttribute("selected"));
         btn.setAttribute("selected", "");
       };

@@ -9043,9 +9043,17 @@ modules["editor/toolbar/pagetype"] = class {
   }
   js = async (frame) => {
     let toolbar = this.toolbar;
+    let buttons = frame.querySelectorAll("button[type]");
+
+    this.redraw = () => {
+      // Put the code that updates which button is selected here:
+    }
+    this.redraw();
+
+    // Put the code that handles clicking a button and saving the change here:
+
     let preference = this.parent.getPreferenceTool();
     let currentType = preference.background ?? "blank";
-    let buttons = frame.querySelectorAll("button[type]");
     buttons.forEach(btn => {
       btn.removeAttribute("selected");
       if (btn.getAttribute("type") === currentType) btn.setAttribute("selected", "");

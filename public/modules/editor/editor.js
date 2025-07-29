@@ -224,7 +224,7 @@ modules["editor/editor"] = class {
       // Convert back to hex
       return `${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
     },
-    contrastCheck: (bgColor) => {
+    contrastCheck: (bgColor, check = .3) => {
       if (bgColor == null) {
         return;
       }
@@ -243,7 +243,7 @@ modules["editor/editor"] = class {
         return Math.pow((col + 0.055) / 1.055, 2.4);
       });
       let L = (0.2126 * c[0]) + (0.7152 * c[1]) + (0.0722 * c[2]);
-      return L > 0.3;
+      return L > check;
     },
     borderColorBackground: (color, bgColor, percent = 20) => {
       bgColor = bgColor ?? this.utils.rgbStringToHex(getComputedStyle(this.page ?? body).getPropertyValue("--pageColor"));
@@ -4793,12 +4793,11 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
       ctx.fillRect(0, 0, this.properties.s[0], this.properties.s[1]);
       
       let baseColor = this.properties.c ?? "e0e0e0";
-      let contrastValue = this.parent.utils.contrastCheck(baseColor);
       let lineColor;
-      if (contrastValue > 0.4) {
-        lineColor = this.parent.utils.darkenHex(baseColor, 40);
+      if (this.parent.utils.contrastCheck(baseColor, .5) == true) {
+        lineColor = this.parent.utils.darkenHex(baseColor, 25);
       } else {
-        lineColor = this.parent.utils.lightenHex(baseColor, 40);
+        lineColor = this.parent.utils.lightenHex(baseColor, 25);
       }
       ctx.strokeStyle = "#" + lineColor;
 

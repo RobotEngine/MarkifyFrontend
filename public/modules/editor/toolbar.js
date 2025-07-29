@@ -1121,7 +1121,7 @@ modules["editor/toolbar"] = class {
         if (merged.d != null && typeof merged.d == "object") {
           merged.d = { ...original.render.d, ...merged.d };
         }
-        if (annoModule.AUTO_TEXT_FIT == true || annoModule.AUTO_SET_HEIGHT == true) {
+        if ((annoModule.AUTO_TEXT_FIT == true || annoModule.AUTO_SET_HEIGHT == true) && merged.remove != true) {
           await editor.render.create({ ...original, render: { ...original.render, ...merged }, animate: false });
           let renderedText = original.component.getElement().querySelector("div[edit]");
           if (renderedText != null) {

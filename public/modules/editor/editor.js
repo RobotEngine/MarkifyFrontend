@@ -4791,9 +4791,17 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
       const lineSpacing = MM_TO_PX(7.1);  // ≈ 26.9px
       ctx.fillStyle = "#fff";
       ctx.fillRect(0, 0, this.properties.s[0], this.properties.s[1]);
+      
       let baseColor = this.properties.c ?? "e0e0e0";
-      let lightColor = this.parent.utils.lightenHex(baseColor, 40); // 40% lighter
-      ctx.strokeStyle = "#" + lightColor;
+      let contrastValue = this.parent.utils.contrastCheck(baseColor);
+      let lineColor;
+      if (contrastValue > 0.4) {
+        lineColor = this.parent.utils.darkenHex(baseColor, 40);
+      } else {
+        lineColor = this.parent.utils.lightenHex(baseColor, 40);
+      }
+      ctx.strokeStyle = "#" + lineColor;
+
       if (type === "line") {
         for (let y = lineSpacing; y < this.properties.s[1]; y += lineSpacing) {
           ctx.beginPath();

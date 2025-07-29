@@ -245,19 +245,19 @@ modules["editor/editor"] = class {
       let L = (0.2126 * c[0]) + (0.7152 * c[1]) + (0.0722 * c[2]);
       return L > 0.3;
     },
-    borderColorBackground: (color, bgColor) => {
+    borderColorBackground: (color, bgColor, percent = 20) => {
       bgColor = bgColor ?? this.utils.rgbStringToHex(getComputedStyle(this.page ?? body).getPropertyValue("--pageColor"));
       if (this.utils.contrastCheck(bgColor) == true) {
         if (this.utils.contrastCheck(color) == false) {
-          return "#" + this.utils.lightenHex(color, 20);
+          return "#" + this.utils.lightenHex(color, percent);
         } else {
-          return "#" + this.utils.darkenHex(color, 20);
+          return "#" + this.utils.darkenHex(color, percent);
         }
       } else {
         if (this.utils.contrastCheck(color) == true) {
-          return "#" + this.utils.darkenHex(color, 20);
+          return "#" + this.utils.darkenHex(color, percent);
         } else {
-          return "#" + this.utils.lightenHex(color, 20);
+          return "#" + this.utils.lightenHex(color, percent);
         }
       }
     },

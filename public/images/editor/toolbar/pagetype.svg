@@ -1,6 +1,18 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-<svg width="800px" height="800px" viewBox="0 0 76 76" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" baseProfile="full" enable-background="new 0 0 76.00 76.00" xml:space="preserve">
-	<path fill="#000000" fill-opacity="1" stroke-width="0.2" stroke-linejoin="round" d="M 57,19L 8.60117,19C 7.57586,20.5832 6.67496,22.2545 5.91232,24L 52,24L 52,70.0877C 53.7455,69.3251 55.4168,68.4242 57,67.3988L 57,19 Z M 46,30L 3.91849,30C 3.5383,31.626 3.27147,33.2956 3.12678,35L 46,35L 46,30 Z M 46,40L 3.05619,40C 3.15208,41.702 3.36958,43.3715 3.70014,45L 46,45L 46,40 Z M 46,50L 5.11131,50C 5.74451,51.735 6.51108,53.4058 7.39861,55L 46,55L 46,50 Z M 46,60L 10.7772,60C 12.256,61.8276 13.9151,63.5033 15.7274,65L 46,65L 46,60 Z "/>
+<svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="mask0_4043_2" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256">
+<rect width="256" height="256" fill="var(--gray)"/>
+</mask>
+<g mask="url(#mask0_4043_2)">
+<path d="M170 65V190" stroke="var(--pageColor)" stroke-width="24" stroke-linecap="round"/>
+<path d="M143 65V190" stroke="var(--pageColor)" stroke-width="24" stroke-linecap="round"/>
+<path d="M191 169L66 169" stroke="var(--pageColor)" stroke-width="24" stroke-linecap="round"/>
+<path d="M191 142L66 142" stroke="var(--pageColor)" stroke-width="24" stroke-linecap="round"/>
+<rect x="50" y="49" width="157" height="157" rx="36" stroke="var(--pageColor)" stroke-width="32"/>
+<rect x="72" y="71" width="113" height="113" rx="14" stroke="var(--pageColor)" stroke-width="12"/>
+<rect x="56" y="55" width="145" height="145" rx="30" stroke="var(--darkGray)" stroke-width="20"/>
+<path d="M170 65V190" stroke="var(--darkGray)" stroke-width="12" stroke-linecap="round"/>
+<path d="M143 65V190" stroke="var(--darkGray)" stroke-width="12" stroke-linecap="round"/>
+<path d="M191 169L66 169" stroke="var(--darkGray)" stroke-width="12" stroke-linecap="round"/>
+<path d="M191 142L66 142" stroke="var(--darkGray)" stroke-width="12" stroke-linecap="round"/>
+</g>
 </svg>

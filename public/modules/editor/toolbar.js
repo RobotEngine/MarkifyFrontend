@@ -9029,8 +9029,8 @@ modules["editor/toolbar/pagetype"] = class {
     </div>
   `;
   css = {
-    ".eSubToolTypeHolder": `box-sizing: border-box; max-width: 100%; padding: 6px; display: flex; flex-wrap: wrap; width: 336px; max-width: 100%; justify-content: center`,
-    ".eSubToolTypeHolder button": `box-sizing: border-box; display: flex; flex-direction: column; width: 100px; height: 60px; padding: 6px; margin: 6px; justify-content: center; align-items: center; --borderWidth: 4px; --borderRadius: 12px; background-size: cover; background-position: center;`,
+    ".eSubToolTypeHolder": `box-sizing: border-box; max-width: 100%; padding: 6px; display: flex; flex-wrap: nowrap; width: 336px; max-width: 100%; justify-content: center`,
+    ".eSubToolTypeHolder button": `box-sizing: border-box; display: flex; flex-direction: row; width: 100px; height: 96px; padding: 6px; margin: 6px; justify-content: center; align-items: center; --borderWidth: 4px; --borderRadius: 12px; background-size: cover; background-position: center;`,
     ".eSubToolTypeHolder button .eSubToolTypeTitle": `color: var(--theme); font-size: 18px; font-weight: 600; border-radius: 6px; padding: 2px 6px; margin-bottom: 2px;`,
     ".eSubToolTypeHolder button:hover": `--borderColor: var(--hover)`,
     ".eSubToolTypeHolder button[selected]": `--borderColor: var(--theme); background: var(--hover)`,
@@ -9038,7 +9038,8 @@ modules["editor/toolbar/pagetype"] = class {
     ".eTypeLined": `background: repeating-linear-gradient(to bottom, #fff, #fff 10px, #e0e0e0 11px, #fff 12px);`,
     ".eTypeGrid": `background: 
       repeating-linear-gradient(to bottom, transparent, transparent 10px, #e0e0e0 11px, transparent 12px),
-      repeating-linear-gradient(to right, #fff, #fff 10px, #e0e0e0 11px, #fff 12px);`
+      repeating-linear-gradient(to right, #fff, #fff 10px, #e0e0e0 11px, #fff 12px);`,
+    ".ePageBackgroundCanvas": `position: absolute; left: 0; top: 0; z-index: 0; border-radius: inherit; overflow: hidden;`,
   }
   js = async (frame) => {
     let toolbar = this.toolbar;

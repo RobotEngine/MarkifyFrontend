@@ -297,7 +297,7 @@ modules["pages/app/join"] = class {
               tryingToJoin = await alertModule.open("info", "<b>Hold On</b>Verifying your device...");
             } else {
               alertModule.close(tryingToJoin);
-              tryingToJoin = await alertModule.open("info", "<b>Hold Up</b>We need to verify you're not a robot.");
+              tryingToJoin = await alertModule.open("info", "<b>Hold Up</b>Please verify you're not a robot to continue.");
               captchaHolder.removeAttribute("hidden");
             }
             return;
@@ -335,7 +335,7 @@ modules["pages/app/join"] = class {
             return;
           }
           alertModule.close(tryingToJoin);
-          tryingToJoin = await alertModule.open("info", "<b>Hold Up</b>We need to verify you're not a robot.");
+          tryingToJoin = await alertModule.open("info", "<b>Hold Up</b>Please verify you're not a robot to continue.");
           captchaHolder.removeAttribute("hidden");
         },
         "error-callback": () => {

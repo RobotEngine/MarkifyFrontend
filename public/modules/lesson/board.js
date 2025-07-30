@@ -878,7 +878,7 @@ modules["lesson/board"] = class {
       await this.editor.loadAnnotations(annoBody, { pageID: pageParam, jumpID: checkForJumpLink });
       contentHolder.removeAttribute("disabled");
 
-      this.openTimeline();
+      //this.openTimeline();
     }
 
     this.loadAnnotations();

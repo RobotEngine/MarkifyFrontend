@@ -21,8 +21,8 @@ const configs = {
   }
 };
 
-const config = configs["public"];
-const version = "1.3.19"; // Big Update . Small Feature Release . Bug Fix
+const config = configs["prodTesting"];
+const version = "1.3.20"; // Big Update . Small Feature Release . Bug Fix
 
 const serverURL = config.server;
 const assetURL = config.assets;
@@ -119,7 +119,9 @@ let getScript = (url) => {
 }
 let loadScript = (url) => {
   return new Promise((resolve) => {
-    let script = getScript(url + "?v=" + version);
+    let srcURL = new URL(url, window.location.origin + window.location.pathname);
+    srcURL.searchParams.append("v", version);
+    let script = getScript(srcURL.href);
     if (script != null) {
       if (script.hasAttribute("loaded") == true) {
         resolve(script);
@@ -156,7 +158,7 @@ let loadScript = (url) => {
       }
       newScript.addEventListener("load", loadFunction);
       newScript.addEventListener("error", errorFunction);
-      newScript.src = url + "?v=" + version;
+      newScript.src = srcURL.href;
       document.head.appendChild(newScript);
     }
   });

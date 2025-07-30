@@ -37,12 +37,14 @@ modules["pages/app/join"] = class {
             <button class="buttonAnim border" title="Logout and switch account."></button>
           </div>
         </div>
-        <div class="jCFTurnstile"></div>
         <button class="largeButton border" join>Join Lesson</button>
         <div class="jPromo">Create your lesson at <a href="/launch" target="_blank">${location.host}</a></div>
         <div class="jPolicies">
           <a href="../tos" target="_blank">Terms</a>
           <a href="../privacy" target="_blank">Privacy</a>
+        </div>
+        <div class="jCaptchaHolder" hidden>
+          <div class="jCFTurnstile"></div>
         </div>
       </div>
     </div>
@@ -55,7 +57,7 @@ modules["pages/app/join"] = class {
     
     ".jModalHolder": `display: flex; width: 100%; min-height: 100vh; left: 0px; top: 0px; justify-content: center; align-items: center; overflow: hidden`,
     ".jModalContainer": `position: relative`,
-    ".jModal": `position: relative; display: flex; flex-direction: column; width: fit-content; max-width: 100%; height: fit-content; padding: 16px; margin: 8px; background: var(--pageColor); transform: scale(.9); opacity: 0; align-items: center; border-radius: 16px; box-shadow: var(--lightShadow); transition: .3s`,
+    ".jModal": `position: relative; display: flex; flex-direction: column; width: fit-content; max-width: 100%; height: fit-content; padding: 16px; margin: 8px; overflow: hidden; background: var(--pageColor); transform: scale(.9); opacity: 0; align-items: center; border-radius: 16px; box-shadow: var(--lightShadow); transition: .3s`,
     ".jBack": `position: absolute; width: 150%; left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: .1`,
 
     ".jLogo": `max-width: 100%; height: 60px`,
@@ -92,7 +94,11 @@ modules["pages/app/join"] = class {
     ".jPolicies": `display: flex; flex-wrap: wrap; width: 100%; max-width: 200px; margin-top: 6px; justify-content: space-around`,
     ".jPolicies a": `padding: 4px 8px; margin: 4px; border-radius: 15px; color: var(--textColor); font-weight: 600; text-decoration: none`,
     ".jPolicies a:hover": `transform: scale(1.1); background: var(--theme); color: #fff`,
-    ".jPolicies a:active": `transform: scale(.95)`
+    ".jPolicies a:active": `transform: scale(.95)`,
+
+    ".jCaptchaHolder": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; background: rgba(var(--background), .6); backdrop-filter: blur(6px); justify-content: center; align-items: center; transition: .4s`,
+    //".jCaptchaHolder[hidden]": `display: none`
+    //".jCFTurnstile": ``
   };
   js = async (page) => {
     let code = getParam("pin") ?? "";
@@ -107,8 +113,10 @@ modules["pages/app/join"] = class {
     let continueButton = modal.querySelector(".jModal .largeButton[continue]");
     let joinNickname = modal.querySelector(".jNameInput input");
     let joinAccount = modal.querySelector(".jUserInfo .jAuthHolder");
-    let cfTurnstile = modal.querySelector(".jCFTurnstile");
     let joinButton = modal.querySelector(".jModal .largeButton[join]");
+
+    let captchaHolder = modal.querySelector(".jCaptchaHolder");
+    let cfTurnstile = captchaHolder.querySelector(".jCFTurnstile");
 
     page.querySelector(".jLogo").addEventListener("click", (event) => {
       setFrame("pages/launch");
@@ -264,6 +272,7 @@ modules["pages/app/join"] = class {
 
     let captcha;
     let tryingToJoin;
+    let needsInteractive = false;
     let processJoin = async () => {
       let transferData = { pin: lesson.pin };
       if (lesson.forceLogin != true) {
@@ -283,8 +292,14 @@ modules["pages/app/join"] = class {
         if (userID == null) {
           if (captcha == null) {
             joinButton.setAttribute("disabled", "");
-            alertModule.close(tryingToJoin);
-            tryingToJoin = await alertModule.open("info", "<b>Hold On</b>Verifying your device...");
+            if (needsInteractive != true) {
+              alertModule.close(tryingToJoin);
+              tryingToJoin = await alertModule.open("info", "<b>Hold On</b>Verifying your device...");
+            } else {
+              alertModule.close(tryingToJoin);
+              tryingToJoin = await alertModule.open("info", "<b>Hold Up</b>We need to verify you're not a robot.");
+              captchaHolder.removeAttribute("hidden");
+            }
             return;
           }
           transferData.captcha = captcha;
@@ -306,12 +321,22 @@ modules["pages/app/join"] = class {
         "theme": getTheme(),
         "callback": (token) => {
           captcha = token;
+          needsInteractive = false;
           joinButton.removeAttribute("disabled");
-          if (tryingToJoin != null) {
+          if (tryingToJoin != null || captchaHolder.hasAttribute("hidden") == false) {
             alertModule.close(tryingToJoin);
             tryingToJoin = null;
             processJoin();
           }
+        },
+        "before-interactive-callback": async () => {
+          needsInteractive = true;
+          if (tryingToJoin == null) {
+            return;
+          }
+          alertModule.close(tryingToJoin);
+          tryingToJoin = await alertModule.open("info", "<b>Hold Up</b>We need to verify you're not a robot.");
+          captchaHolder.removeAttribute("hidden");
         },
         "error-callback": () => {
           captcha = null;

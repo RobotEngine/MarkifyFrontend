@@ -9285,7 +9285,7 @@ modules["editor/toolbar/enlarge"] = class {
   }
 }
 modules["modals/editor/embed"] = class {
-  html = `<div class="emFrame"><iframe allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe></div>`;
+  html = `<div class="emFrame"><iframe allowfullscreen allow="microphone; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe></div>`;
   css = {
     ".emFrame": `width: calc(100vw - 37px); height: calc(100vh - 77px); max-width: 1000px; max-height: 700px`,
     ".emFrame iframe": `position: absolute; left: 0px; top: 0px; width: 100% !important; height: 100% !important; transform: unset !important; background: var(--pageColor); border: none`

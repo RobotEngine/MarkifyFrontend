@@ -316,8 +316,8 @@ modules["pages/app/join"] = class {
     });
 
     let loadTurnstile = () => {
-      turnstile.render(cfTurnstile, {
-        "sitekey": "0x4AAAAAABahopZOZ1FRoqHp", //2x00000000000000000000BB
+      window.turnstile.render(cfTurnstile, {
+        "sitekey": "0x4AAAAAABahopZOZ1FRoqHp", // 3x00000000000000000000FF 2x00000000000000000000BB
         "theme": getTheme(),
         "callback": (token) => {
           captcha = token;

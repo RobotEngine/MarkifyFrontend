@@ -4729,6 +4729,7 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
 
   css = {
     ".eAnnotation[page]": `display: flex; flex-direction: column; background: white; border-radius: 12px; --borderWidth: 4px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2)`,
+    ".eAnnotation[page] > canvas[background]": `position: absolute; left: 0; top: 0; z-index: 0; border-radius: inherit; overflow: hidden;`,
     ".eAnnotation[page] > div[background]": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--themeColor); opacity: .1; border-radius: inherit; z-index: 0; pointer-events: all`,
     ".eAnnotation[page] > div[border]": `position: absolute; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; border: solid var(--borderWidth) var(--themeColor); border-radius: inherit; z-index: 4; pointer-events: none`,
     ".eAnnotation[page] > div[label]": `position: absolute; display: none; box-sizing: border-box; padding: 8px 10px; background: var(--themeColor); border-radius: 0px; border-top-left-radius: inherit; border-bottom-right-radius: 12px;  font-weight: 600; font-size: 18px; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; outline: none; scrollbar-width: none; z-index: 3; pointer-events: all`,
@@ -4752,7 +4753,7 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
     ".eAnnotation[page] > div[content] div[document] div[textlayer]": `position: absolute; width: var(--fullWidth) !important; height: var(--fullHeight) !important; left: var(--borderWidth); top: var(--borderWidth); transform-origin: top left; transform: var(--fullScale); font-family: sans-serif; z-index: 2`,
     ".eAnnotation[page] > div[content] div[document] div[textlayer] span": `color: transparent; position: absolute; white-space: pre; transform-origin: 0% 0%; pointer-events: all`,
     ".eAnnotation[page] > div[content] div[document] div[textlayer] br": `color: transparent; position: absolute; white-space: pre; transform-origin: 0% 0%; pointer-events: all; user-select: none`,
-    ".hiddenCanvasElement": `display: none`,
+    ".hiddenCanvasElement": `display: none`
   };
   render = () => {
     if (this.element == null) {
@@ -4768,15 +4769,15 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
     this.element.style.width = this.properties.s[0] + "px";
     this.element.style.height = this.properties.s[1] + "px";
 
+    let hasDocument = this.properties.source != null && this.properties.number != null;
 
     // Only add a canvas for lined or grid backgrounds
-    let type = this.properties.background || "blank";
+    let type = this.properties.background ?? "blank";
     let backgroundCanvas = this.element.querySelector("canvas[background]");
-    if (type === "line" || type === "grid") {
+    if (hasDocument == false && ["line", "grid"].includes(type)) {
       if (!backgroundCanvas) {
         backgroundCanvas = document.createElement("canvas");
         backgroundCanvas.setAttribute("background", "");
-        backgroundCanvas.className = "ePageBackgroundCanvas";
         this.element.insertBefore(backgroundCanvas, this.element.firstChild);
       }
       // Use page width/height directly
@@ -4883,7 +4884,7 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
     let pageBorder = this.element.querySelector(":scope > div[border]");
     let pageContent = this.element.querySelector(":scope > div[content]");
     let pdfDocumentHolder = pageContent.querySelector(":scope > div[document]");
-    if (this.properties.source != null && this.properties.number != null) {
+    if (hasDocument == true) {
       let sourcePageId = this.properties.source + "_" + this.properties.number;
       if (pdfDocumentHolder != null && pdfDocumentHolder.getAttribute("sourcepage") != sourcePageId) {
         pdfDocumentHolder.remove();

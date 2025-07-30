@@ -8725,10 +8725,6 @@ modules["editor/toolbar/uploadpage"] = class {
           if (body.saves != null) {
             for (let i = 0; i < body.saves.length; i++) {
               let save = body.saves[i];
-              //Remove background type whem PDF is added
-              if (save.background && save.source) {
-                save.background = null;
-              }
               await this.editor.save.push(save, { history: { update: historyUpdate, add: historyRemove }, ignoreSelect: true });
               this.editor.selecting[save._id] = this.editor.selecting[save._id] ?? {};
             }
@@ -9015,61 +9011,69 @@ modules["editor/toolbar/rotatepage"] = class {
 modules["editor/toolbar/pagetype"] = class {
   setActionButton = async (button) => {
     setSVG(button, "../images/editor/toolbar/pagetype.svg");
-    let type = (this.parent.getPreferenceTool().background ?? "blank");
-    button.setAttribute("tooltip", "Type: " + type.charAt(0).toUpperCase() + type.slice(1));
   }
 
   TOOLTIP = "Type";
 
   html = `
-    <div class="eSubToolTypeHolder">
+    <div class="eSubToolPageTypeHolder">
       <button class="border eTypeBlank" type="blank"><div class="eSubToolTypeTitle">Blank</div></button>
       <button class="border eTypeLined" type="line"><div class="eSubToolTypeTitle">Lined</div></button>
       <button class="border eTypeGrid" type="grid"><div class="eSubToolTypeTitle">Grid</div></button>
     </div>
   `;
   css = {
-    ".eSubToolTypeHolder": `box-sizing: border-box; max-width: 100%; padding: 6px; display: flex; flex-wrap: nowrap; width: 336px; max-width: 100%; justify-content: center`,
-    ".eSubToolTypeHolder button": `box-sizing: border-box; display: flex; flex-direction: row; width: 100px; height: 96px; padding: 6px; margin: 6px; justify-content: center; align-items: center; --borderWidth: 4px; --borderRadius: 12px; background-size: cover; background-position: center;`,
-    ".eSubToolTypeHolder button .eSubToolTypeTitle": `color: var(--theme); font-size: 18px; font-weight: 600; border-radius: 6px; padding: 2px 6px; margin-bottom: 2px;`,
-    ".eSubToolTypeHolder button:hover": `--borderColor: var(--hover)`,
-    ".eSubToolTypeHolder button[selected]": `--borderColor: var(--theme); background: var(--hover)`,
+    ".eSubToolPageTypeHolder": `box-sizing: border-box; max-width: 100%; padding: 6px; display: flex; flex-wrap: nowrap; width: 336px; max-width: 100%; justify-content: center`,
+    ".eSubToolPageTypeHolder button": `box-sizing: border-box; display: flex; flex-direction: row; width: 100px; height: 96px; padding: 6px; margin: 6px; justify-content: center; align-items: center; --borderWidth: 4px; --borderRadius: 12px; background-size: cover; background-position: center`,
+    ".eSubToolPageTypeHolder button .eSubToolTypeTitle": `color: var(--theme); font-size: 18px; font-weight: 600; border-radius: 6px; padding: 2px 6px; margin-bottom: 2px`,
+    ".eSubToolPageTypeHolder button:hover": `--borderColor: var(--hover)`,
+    ".eSubToolPageTypeHolder button[selected]": `--borderColor: var(--theme); background: var(--hover)`,
     ".eTypeBlank": `background: #fff;`,
-    ".eTypeLined": `background: repeating-linear-gradient(to bottom, #fff, #fff 10px, #e0e0e0 11px, #fff 12px);`,
+    ".eTypeLined": `background: repeating-linear-gradient(to bottom, #fff, #fff 10px, #e0e0e0 11px, #fff 12px)`,
     ".eTypeGrid": `background: 
       repeating-linear-gradient(to bottom, transparent, transparent 10px, #e0e0e0 11px, transparent 12px),
-      repeating-linear-gradient(to right, #fff, #fff 10px, #e0e0e0 11px, #fff 12px);`,
-    ".ePageBackgroundCanvas": `position: absolute; left: 0; top: 0; z-index: 0; border-radius: inherit; overflow: hidden;`,
+      repeating-linear-gradient(to right, #fff, #fff 10px, #e0e0e0 11px, #fff 12px)`,
   }
   js = async (frame) => {
     let toolbar = this.toolbar;
-    let buttons = frame.querySelectorAll("button[type]");
+    let buttonHolder = frame.querySelector(".eSubToolPageTypeHolder");
+    let buttons = buttonHolder.querySelectorAll("button[type]");
 
     this.redraw = () => {
       // Put the code that updates which button is selected here:
+      let preference = this.parent.getPreferenceTool();
+      let currentType = preference.background ?? "blank";
+      if (preference.source != null && preference.number != null) {
+        currentType = "blank";
+      }
+      buttons.forEach(btn => {
+        btn.removeAttribute("selected");
+        if (btn.getAttribute("type") === currentType) btn.setAttribute("selected", "");
+      });
     }
     this.redraw();
 
     // Put the code that handles clicking a button and saving the change here:
 
-    let preference = this.parent.getPreferenceTool();
-    let currentType = preference.background ?? "blank";
-    buttons.forEach(btn => {
-      btn.removeAttribute("selected");
-      if (btn.getAttribute("type") === currentType) btn.setAttribute("selected", "");
-      btn.onclick = async () => {
-        let selectedType = btn.getAttribute("type");
-        await toolbar.saveSelecting((render) => {
-          let updates = { background: selectedType };
-          if (render.source) {
-            updates.source = null;
-            updates.number = null;
-          }
-          return updates;
-        }, { reuseActionBar: true });
-        buttons.forEach(b => b.removeAttribute("selected"));
-        btn.setAttribute("selected", "");
-      };
+    buttonHolder.addEventListener("click", async (event) => {
+      let target = event.target;
+      if (target == null) {
+        return;
+      }
+      let btn = target.closest("button");
+      if (btn == null) {
+        return;
+      }
+      let selectedType = btn.getAttribute("type");
+      await toolbar.saveSelecting((render) => {
+        let updates = { background: selectedType };
+        if (render.source) {
+          updates.source = null;
+          updates.number = null;
+        }
+        return updates;
+      }, { reuseActionBar: true });
+      this.redraw();
     });
   }
 }

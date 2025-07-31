@@ -180,6 +180,7 @@ modules["editor/timeline"] = class {
         preferences: this.preferences
       }
     });
+    this.editor.realtime.enabled = false;
     this.pipeline = this.editor.pipeline;
     /*if (this.reactions != null) {
       this.editor.reactions = copyObject(this.reactions);
@@ -875,6 +876,13 @@ modules["editor/timeline"] = class {
         selection.style.transform = "translate(" + (annotationRect.left + (rect.x * this.editor.zoom) + this.editor.contentHolder.scrollLeft - 1.5) + "px," + (annotationRect.top + (rect.y * this.editor.zoom) + this.editor.contentHolder.scrollTop - 1.5) + "px) rotate(" + rotate + "deg)";
         selection.offsetHeight;
         selection.removeAttribute("notransition");
+      }
+    });
+
+    this.pipeline.subscribe("longAnnotationUpdate", "long", async (event) => {
+      let data = copyObject(event);
+      for (let i = 0; i < data.length; i++) {
+        let anno = data[i];
       }
     });
 

@@ -2992,6 +2992,9 @@ modules["editor/editor"] = class {
     });
 
     this.pipeline.subscribe("longAnnotationUpdate", "long", async (event) => {
+      if (this.realtime.enabled == false) {
+        return;
+      }
       let data = copyObject(event);
       //let redrawAction = false;
       for (let i = 0; i < data.length; i++) {
@@ -3095,6 +3098,9 @@ modules["editor/editor"] = class {
       this.pipeline.publish("redraw_selection", { refresh: true, redrawCurrentAction: true, refreshActionBar: true, fromLong: true }); //redrawActionBar: redrawAction,
     });
     this.pipeline.subscribe("removeAnnotationUpdate", "removeannotations", async (data) => {
+      if (this.realtime.enabled == false) {
+        return;
+      }
       let annoKeys = Object.keys(this.annotations);
       for (let i = 0; i < annoKeys.length; i++) {
         let anno = this.annotations[annoKeys[i]] ?? {};
@@ -3111,6 +3117,9 @@ modules["editor/editor"] = class {
       this.pipeline.publish("redraw_selection", { fromLong: true });
     });
     this.pipeline.subscribe("reactionAnnotation", "reaction", async (event) => {
+      if (this.realtime.enabled == false) {
+        return;
+      }
       let data = copyObject(event);
       let annotation = this.annotations[data.reaction.annotation];
       if (annotation == null) {

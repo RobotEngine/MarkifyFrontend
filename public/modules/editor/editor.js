@@ -4233,21 +4233,7 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
         }
         widthT = width - t;
         heightT = height - t;
-        // Calculate star points:
-        let cx = width / 2;
-        let cy = height / 2;
-        let spikes = 5;
-        let outerRadius = Math.min(widthT, heightT) / 2;
-        let innerRadius = outerRadius * 0.5;
-        let starPoints = "";
-        for (let i = 0; i < spikes * 2; i++) {
-          let angle = (Math.PI / spikes) * i;
-          let r = (i % 2 === 0) ? outerRadius : innerRadius;
-          let x = cx + Math.cos(angle - Math.PI/2) * r;
-          let y = cy + Math.sin(angle - Math.PI/2) * r;
-          starPoints += x + "," + y + " ";
-        }
-        elem.setAttribute("points", starPoints.trim());
+        elem.setAttribute("points", (halfT + (widthT * .5)) + "," + halfT + " " + (widthT + halfT) + "," + (halfT + (heightT * .5)) + " " + (halfT + (widthT * .5)) + "," + (heightT + halfT) + " " + halfT + "," + (halfT + (heightT * .5)));
         break;
       /*case "arrow":
         elem = svg.querySelector("polygon");

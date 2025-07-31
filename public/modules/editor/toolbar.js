@@ -37,7 +37,7 @@ modules["editor/toolbar"] = class {
         <button class="eTool" tool="trapezoid" tooltip="Trapezoid" module="editor/toolbar/shape"><div></div></button>
         <button class="eTool" tool="rhombus" tooltip="Rhombus" module="editor/toolbar/shape"><div></div></button>
         <button class="eTool" tool="line" tooltip="Line" module="editor/toolbar/shape"><div></div></button>
-        <!--<button class="eTool" tool="star" tooltip="Star" module="editor/toolbar/shape"><div></div></button>-->
+        <button class="eTool" tool="star" tooltip="Star" module="editor/toolbar/shape"><div></div></button>
         <!--<button class="eTool" tool="arrow" tooltip="Arrow" module="editor/toolbar/shape"><div></div></button>-->
       </div>`
     },

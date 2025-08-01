@@ -924,7 +924,7 @@ modules["dropdowns/editor/timeline/filter"] = class {
     ".timelineFilterCollaborator:active": `transform: scale(1) !important`,
     ".timelineFilterCollaborator div[holder]": `position: relative; display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 6px; overflow: hidden; align-items: center; transition: .1s`, //; margin: 4px 0
     ".timelineFilterCollaborator[selected] div[holder]": `background: var(--theme) !important; color: #fff`,
-    ".timelineFilterCollaborator:hover div[holder]": `background: var(--secondary)`,
+    ".timelineFilterCollaborator:hover div[holder]": `background: var(--hover)`,
     ".timelineFilterCollaborator:active div[holder]": `transform: scale(.95)`,
     ".timelineFilterCollaborator div[profileholder] div[cursor]": `position: relative; width: 22px; height: 22px; background: var(--themeColor); border: solid 3px var(--pageColor); border-radius: 8px 14px 14px`,
     ".timelineFilterCollaborator div[profileholder] div[cursor]:after": `content: ""; position: absolute; width: 100%; height: 100%; padding: 3px; left: -3px; top: -3px; border-radius: inherit; box-shadow: 0 0 6px var(--themeColor); opacity: .6`,

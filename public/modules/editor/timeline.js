@@ -9,7 +9,7 @@ modules["editor/timeline"] = class {
           <button class="timelineRevert" title="Restore the document back to this state. Reverting does not overwrite later changes, but instead inserts a new change." disabled>Revert</button>
         </div>
         <div class="timelineTopSection" right>
-          <button class="timelineFilter" title="Filter by specific collaborators to see their contributions." disabled>Filter<span title="Number of selected collaborators."></span></button>
+          <button class="timelineFilter" title="Filter by specific collaborators to see their contributions." dropdowntitle="Filter" disabled>Filter<span title="Number of selected collaborators."></span></button>
           <div class="timelineTopDivider"></div>
           <button class="timelineZoom">100%</button>
         </div>
@@ -681,13 +681,19 @@ modules["editor/timeline"] = class {
 
     let loadAmount = 250;
     let loadFunction;
+    this.getFirstChange = () => {
+      return changes[orderedChanges[0]] ?? {};
+    }
+    this.getLastChange = () => {
+      return changes[orderedChanges[orderedChanges.length - 1]] ?? {};
+    }
     this.loadChanges = async () => {
       if (loadFunction == null) {
         loadFunction = (async () => {
-          let path = "lessons/join/history"; //allChangesLoaded
+          let path = "lessons/history"; //allChangesLoaded
           let getAmount = 100;
           if (orderedChanges.length > 0) {
-            path += "?amount=" + loadAmount + "&before=" + ((changes[orderedChanges[0]] ?? {}).added ?? getEpoch());
+            path += "?amount=" + loadAmount + "&before=" + (this.getFirstChange().added ?? getEpoch());
             getAmount = loadAmount;
           }
           let [code, body] = await sendRequest("GET", path, null, { session: this.parent.session });
@@ -752,7 +758,7 @@ modules["editor/timeline"] = class {
 
       await Promise.all([
         new Promise(async (resolve) => {
-          let path = "lessons/join/history/count";
+          let path = "lessons/history/count";
           if (filterMembers != null) {
             path += "?collaborators=" + filterMembers.join();
           }
@@ -878,5 +884,108 @@ modules["editor/timeline"] = class {
         selection.removeAttribute("notransition");
       }
     });
+
+    revertButton.addEventListener("click", () => {
+      
+    });
+
+    filterButton.addEventListener("click", () => {
+      dropdownModule.open(filterButton, "dropdowns/editor/timeline/filter", { parent: this });
+    });
+  }
+}
+
+modules["dropdowns/editor/timeline/filter"] = class {
+  html = `
+  <div class="timelineFilterHolder">
+    <div class="timelineFilterSearchHolder">
+      <div class="timelineFilterSearch">
+        <div image></div>
+        <input placeholder="Search..."></input>
+      </div>
+    </div>
+    <div class="timelineFilterCollaboratorHolder"></div>
+    <div class="timelineFilterApplyHolder">
+      <button class="largeButton border">Update Filter</button>
+    </div>
+  </div>
+  `;
+  css = {
+    ".timelineFilterHolder": `width: 275px; max-width: 100%`,
+    ".timelineFilterSearchHolder": `display: flex; padding: 8px 8px 4px 8px; align-items: center; z-index: 1`,
+    ".timelineFilterSearch": `display: flex; width: 100%; align-items: center; border: solid 2px var(--secondary); border-radius: 18px`,
+    ".timelineFilterSearch div[image]": `width: 24px; height: 24px; margin-left: 4px`,
+    ".timelineFilterSearch div[image] svg": `width: 100%; height: 100%`,
+    ".timelineFilterSearch input": `width: 100%; padding: 5px; background: unset; border: unset; outline: unset; color: var(--textColor); font-family: var(--font); font-size: 16px; font-weight: 600`,
+    ".timelineFilterSearch input::placeholder": `color: var(--secondary)`,
+
+    ".timelineFilterCollaboratorHolder": `display: flex; flex-direction: column; margin-top: 6px; z-index: 1`,
+    ".timelineFilterCollaborator": `position: relative; display: flex; width: calc(100% - 12px); padding: 0px; margin: 0 6px 6px 6px; justify-content: center; align-items: center`,
+    ".timelineFilterCollaborator:active": `transform: scale(1) !important`,
+    ".timelineFilterCollaborator div[holder]": `position: relative; display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 6px; overflow: hidden; align-items: center; transition: .1s`, //; margin: 4px 0
+    ".timelineFilterCollaborator[selected] div[holder]": `background: var(--theme) !important; color: #fff`,
+    ".timelineFilterCollaborator:hover div[holder]": `background: var(--secondary)`,
+    ".timelineFilterCollaborator:active div[holder]": `transform: scale(.95)`,
+    ".timelineFilterCollaborator div[profileholder] div[cursor]": `position: relative; width: 22px; height: 22px; background: var(--themeColor); border: solid 3px var(--pageColor); border-radius: 8px 14px 14px`,
+    ".timelineFilterCollaborator div[profileholder] div[cursor]:after": `content: ""; position: absolute; width: 100%; height: 100%; padding: 3px; left: -3px; top: -3px; border-radius: inherit; box-shadow: 0 0 6px var(--themeColor); opacity: .6`,
+    ".timelineFilterCollaborator div[profileholder] div[profile]": `position: relative; width: 22px; height: 22px; border: solid 3px var(--pageColor); border-radius: 14px`,
+    ".timelineFilterCollaborator div[profileholder] div[profile] img": `width: 100%; height: 100%; object-fit: cover; border-radius: inherit`,
+    ".timelineFilterCollaborator div[profileholder] div[profile]:after": `content: ""; position: absolute; width: 100%; height: 100%; padding: 3px; left: -3px; top: -3px; border-radius: inherit; box-shadow: 0 0 4px var(--themeColor); opacity: .6`,
+    ".timelineFilterCollaborator div[content]": `display: flex; flex: 1; min-width: 0; max-width: calc(var(--width) - 34px); height: 28px; margin-left: 6px; text-align: left; overflow: hidden; align-items: center; z-index: 2; transition: .2s`,
+    ".timelineFilterCollaborator div[content] div[name]": `font-size: 16px; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
+
+    ".timelineFilterApplyHolder": `position: sticky; display: flex; flex-wrap: wrap; max-width: var(--dropdownWidth); padding: 8px; gap: 24px; left: 0px; bottom: 0px; justify-content: center; align-items: center; background: rgba(var(--background), .7); backdrop-filter: blur(4px); border-radius: 0px 0px 12px 12px; z-index: 2`,
+    ".timelineFilterApplyHolder button": `padding: 6px 10px; background: var(--theme); --borderColor: var(--secondary); --borderRadius: 16px; color: #fff; font-size: 16px`,
+  };
+  js = async function (frame, extra) {
+    frame.closest(".dropdownContent").style.padding = "0px";
+
+    let parent = extra.parent;
+
+    let searchHolder = frame.querySelector(".timelineFilterSearch");
+    let searchField = searchHolder.querySelector("input");
+    let collaboratorHolder = frame.querySelector(".timelineFilterCollaboratorHolder");
+    let applyButton = frame.querySelector(".timelineFilterApplyHolder .largeButton");
+
+    setSVG(searchHolder.querySelector("div[image]"), "../images/editor/glass.svg", (svg) => { return svg.replace(/"#0084FF"/g, '"var(--secondary)"'); });
+
+    let [code, body] = await sendRequest("GET", "lessons/history/collaborators?before=" + (parent.getLastChange().added ?? getEpoch()), null, { session: parent.session });
+    if (code != 200 && frame != null) {
+      return dropdownModule.close();
+    }
+
+    for (let i = 0; i < body.length; i++) {
+      let collaborator = body[i];
+      collaboratorHolder.insertAdjacentHTML("beforeend", `<button class="timelineFilterCollaborator" new>
+        <div holder>
+          <div profileholder>
+            <div cursor></div>
+            <div profile><img src="../images/profiles/default.svg" /></div>
+          </div>
+          <div content>
+            <div name></div>
+          </div>
+        </div>
+      </button>`);
+      let tile = collaboratorHolder.querySelector(".timelineFilterCollaborator[new]");
+      tile.removeAttribute("new");
+      tile.setAttribute("collaborator", collaborator._id);
+      let memberProfileHolder = tile.querySelector("div[profileholder]");
+      let memberCursor = memberProfileHolder.querySelector("div[cursor]");
+      let memberProfilePicture = memberProfileHolder.querySelector("div[profile]");
+      let memberContent = tile.querySelector("div[content]");
+      let memberName = memberContent.querySelector("div[content] > div[name]");
+      tile.style.setProperty("--themeColor", collaborator.color);
+      if (collaborator.image == null) {
+        memberCursor.style.removeProperty("display");
+        memberProfilePicture.style.display = "none";
+      } else {
+        memberProfilePicture.querySelector("img").src = collaborator.image;
+        memberProfilePicture.style.removeProperty("display");
+        memberCursor.style.display = "none";
+      }
+      memberName.textContent = collaborator.name;
+      memberName.title = collaborator.name;
+    }
   }
 }

@@ -1196,7 +1196,7 @@ modules["dropdowns/lesson/board/members"] = class {
     let accessHolders = frame.querySelectorAll(".eMemberAccessHolder");
 
     // Load Images:
-    setSVG(searchHolder.querySelector(".eMemberSearch div[image]"), "../images/editor/glass.svg", (svg) => { return svg.replace(/"#0084FF"/g, '"var(--secondary)"'); });
+    setSVG(searchHolder.querySelector("div[image]"), "../images/editor/glass.svg", (svg) => { return svg.replace(/"#0084FF"/g, '"var(--secondary)"'); });
 
     let getSection = (access) => {
       return frame.querySelector('.eMemberAccessHolder[access="' + access + '"]');

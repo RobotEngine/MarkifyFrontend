@@ -2992,9 +2992,6 @@ modules["editor/editor"] = class {
     });
 
     this.pipeline.subscribe("longAnnotationUpdate", "long", async (event) => {
-      if (this.realtime.enabled == false) {
-        return;
-      }
       let data = copyObject(event);
       //let redrawAction = false;
       for (let i = 0; i < data.length; i++) {
@@ -3098,9 +3095,6 @@ modules["editor/editor"] = class {
       this.pipeline.publish("redraw_selection", { refresh: true, redrawCurrentAction: true, refreshActionBar: true, fromLong: true }); //redrawActionBar: redrawAction,
     });
     this.pipeline.subscribe("removeAnnotationUpdate", "removeannotations", async (data) => {
-      if (this.realtime.enabled == false) {
-        return;
-      }
       let annoKeys = Object.keys(this.annotations);
       for (let i = 0; i < annoKeys.length; i++) {
         let anno = this.annotations[annoKeys[i]] ?? {};
@@ -3117,9 +3111,6 @@ modules["editor/editor"] = class {
       this.pipeline.publish("redraw_selection", { fromLong: true });
     });
     this.pipeline.subscribe("reactionAnnotation", "reaction", async (event) => {
-      if (this.realtime.enabled == false) {
-        return;
-      }
       let data = copyObject(event);
       let annotation = this.annotations[data.reaction.annotation];
       if (annotation == null) {
@@ -4236,23 +4227,192 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
       case "star":
         elem = svg.querySelector("polygon");
         if (elem == null) {
-          svg.innerHTML = "<polygon/>";
-          elem = svg.querySelector("polygon");
-          elem.setAttribute("stroke-linejoin", "round");
+            svg.innerHTML = "<polygon/>";
+            elem = svg.querySelector("polygon");
+            elem.setAttribute("stroke-linejoin", "round");
         }
         widthT = width - t;
         heightT = height - t;
-        elem.setAttribute("points", (halfT + (widthT * .5)) + "," + halfT + " " + (widthT + halfT) + "," + (halfT + (heightT * .5)) + " " + (halfT + (widthT * .5)) + "," + (heightT + halfT) + " " + halfT + "," + (halfT + (heightT * .5)));
+        // Calculate star points that touch the edges:
+        let cx = halfT + widthT / 2;
+        let cy = halfT + heightT / 2; 
+        let spikes = 5;
+        let outerRadiusX = widthT / 2;    
+        let outerRadiusY = heightT / 2;           let innerRadiusX = outerRadiusX * 0.5;
+        let innerRadiusY = outerRadiusY * 0.5;
+        let starPoints = "";
+        for (let i = 0; i < spikes * 2; i++) {
+            let angle = (Math.PI / spikes) * i;
+            let rX = (i % 2 === 0) ? outerRadiusX : innerRadiusX;
+            let rY = (i % 2 === 0) ? outerRadiusY : innerRadiusY;
+            let x = cx + Math.cos(angle - Math.PI/2) * rX;
+            let y = cy + Math.sin(angle - Math.PI/2) * rY;
+            starPoints += x + "," + y + " ";
+        }
+        elem.setAttribute("points", starPoints.trim());
         break;
-      /*case "arrow":
+      case "arrow":
         elem = svg.querySelector("polygon");
         if (elem == null) {
           svg.innerHTML = "<polygon/>";
           elem = svg.querySelector("polygon");
           elem.setAttribute("stroke-linejoin", "round");
         }
+        widthT = width - t;
+        heightT = height - t;
+        // Arrow points: shaft and head
+        elem.setAttribute("points",
+          (halfT) + "," + (heightT * 0.35 + halfT) + " " +
+          (widthT * 0.6 + halfT) + "," + (heightT * 0.35 + halfT) + " " +
+          (widthT * 0.6 + halfT) + "," + (halfT) + " " +
+          (widthT + halfT) + "," + (heightT / 2 + halfT) + " " +
+          (widthT * 0.6 + halfT) + "," + (heightT + halfT) + " " +
+          (widthT * 0.6 + halfT) + "," + (heightT * 0.65 + halfT) + " " +
+          (halfT) + "," + (heightT * 0.65 + halfT)
+        );
+        break;
+      case "heart":
+        elem = svg.querySelector("path");
+        if (elem == null) {
+            svg.innerHTML = "<path/>";
+            elem = svg.querySelector("path");
+            elem.setAttribute("stroke-linejoin", "round");
+        }
+        widthT = width - t;
+        heightT = height - t;
+        
+        // Heart shape touching all edges
+        let centerX = halfT + widthT / 2;
+        let bottomY = halfT + heightT; 
+        let topY = halfT;              
+        let leftX = halfT;             
+        let rightX = halfT + widthT;   
+        let middleY = halfT + heightT * 0.3;  
+        
+        // Build path string - curves that form complete heart shape
+        let pathString = "M " + centerX + "," + bottomY + " " +
+            "C " + (centerX - widthT * 0.3) + "," + (bottomY - heightT * 0.4) + " " + 
+            leftX + "," + (topY + heightT * 0.3) + " " + 
+            leftX + "," + (topY + heightT * 0.15) + " " +
+            "C " + leftX + "," + topY + " " + 
+            (centerX - widthT * 0.15) + "," + topY + " " + 
+            centerX + "," + middleY + " " +
+            "C " + (centerX + widthT * 0.15) + "," + topY + " " + 
+            rightX + "," + topY + " " + 
+            rightX + "," + (topY + heightT * 0.15) + " " +
+            "C " + rightX + "," + (topY + heightT * 0.3) + " " + 
+            (centerX + widthT * 0.3) + "," + (bottomY - heightT * 0.4) + " " + 
+            centerX + "," + bottomY + " Z";
+        
+        elem.setAttribute("d", pathString);
+        break;
+      case "oval":
+        elem = svg.querySelector("ellipse");
+        if (elem == null) {
+            svg.innerHTML = "<ellipse/>";
+            elem = svg.querySelector("ellipse");
+        }
+        widthT = width - t;
+        heightT = height - t;
+        elem.setAttribute("cx", halfT + widthT / 2);
+        elem.setAttribute("cy", halfT + heightT / 2);
+        elem.setAttribute("rx", Math.max(widthT / 3, 5));
+        elem.setAttribute("ry", Math.max(heightT / 2, 5));
+        break;
+      case "speech":
+        elem = svg.querySelector("path");
+        if (elem == null) {
+          svg.innerHTML = "<path/>";
+          elem = svg.querySelector("path");
+          elem.setAttribute("stroke-linejoin", "round");
+        }
+        widthT = width - t;
+        heightT = height - t;
 
+        let bubbleWidth = widthT * 0.85;    // Main bubble is 85% of width
+        let bubbleHeight = heightT * 0.75;  // Main bubble is 75% of height
+        let bubbleX = halfT + widthT * 0.075; // Offset from left
+        let bubbleY = halfT;                // Top of bubble
+        let cornerRadius = Math.min(bubbleWidth, bubbleHeight) * 0.15; // Rounded corners
+        
+        // Tail positioning
+        let tailStartX = bubbleX + bubbleWidth * 0.2;  // Tail starts 20% across bubble
+        let tailStartY = bubbleY + bubbleHeight;       // At bottom of bubble
+        let tailPointX = halfT + widthT * 0.2;        // Tail point at left edge
+        let tailPointY = halfT + heightT * .95;        // Tail point near bottom
+        let tailEndX = bubbleX + bubbleWidth * 0.5;   // Tail ends 35% across bubble
+        let tailEndY = bubbleY + bubbleHeight;         // At bottom of bubble
+        
+        // Build speech bubble path
+        let stringPath = "M " + (bubbleX + cornerRadius) + "," + bubbleY + " " +
+            // Top edge with rounded corners
+            "L " + (bubbleX + bubbleWidth - cornerRadius) + "," + bubbleY + " " +
+            "Q " + (bubbleX + bubbleWidth) + "," + bubbleY + " " + (bubbleX + bubbleWidth) + "," + (bubbleY + cornerRadius) + " " +
+            // Right edge
+            "L " + (bubbleX + bubbleWidth) + "," + (bubbleY + bubbleHeight - cornerRadius) + " " +
+            "Q " + (bubbleX + bubbleWidth) + "," + (bubbleY + bubbleHeight) + " " + (bubbleX + bubbleWidth - cornerRadius) + "," + (bubbleY + bubbleHeight) + " " +
+            // Bottom edge to tail start
+            "L " + tailEndX + "," + tailEndY + " " +
+            // Tail
+            "L " + tailPointX + "," + tailPointY + " " +
+            "L " + tailStartX + "," + tailStartY + " " +
+            // Rest of bottom edge
+            "L " + (bubbleX + cornerRadius) + "," + (bubbleY + bubbleHeight) + " " +
+            "Q " + bubbleX + "," + (bubbleY + bubbleHeight) + " " + bubbleX + "," + (bubbleY + bubbleHeight - cornerRadius) + " " +
+            // Left edge
+            "L " + bubbleX + "," + (bubbleY + cornerRadius) + " " +
+            "Q " + bubbleX + "," + bubbleY + " " + (bubbleX + cornerRadius) + "," + bubbleY + " Z";
+        
+        elem.setAttribute("d", stringPath);
+        break;
+      /*case "thoughtbubble":
+        elem = svg.querySelector("g");
+        if (elem == null) {
+          svg.innerHTML = "<g/>";
+          elem = svg.querySelector("g");
+        }
+        widthT = width - t;
+        heightT = height - t;
+        // Main bubble
+        let mainBubble = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+        mainBubble.setAttribute("cx", width / 2);
+        mainBubble.setAttribute("cy", height / 2);
+        mainBubble.setAttribute("rx", Math.max(widthT / 2.2, 5));
+        mainBubble.setAttribute("ry", Math.max(heightT / 2.2, 5));
+        // Small bubbles
+        let small1 = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+        small1.setAttribute("cx", widthT * 0.7 + halfT);
+        small1.setAttribute("cy", heightT + halfT);
+        small1.setAttribute("rx", widthT * 0.08);
+        small1.setAttribute("ry", heightT * 0.08);
+        let small2 = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+        small2.setAttribute("cx", widthT * 0.8 + halfT);
+        small2.setAttribute("cy", heightT + halfT + 15);
+        small2.setAttribute("rx", widthT * 0.05);
+        small2.setAttribute("ry", heightT * 0.05);
+        elem.innerHTML = "";
+        elem.appendChild(mainBubble);
+        elem.appendChild(small1);
+        elem.appendChild(small2);
         break;*/
+      case "polygon":
+        elem = svg.querySelector("polygon");
+        if (elem == null) {
+          svg.innerHTML = "<polygon/>";
+          elem = svg.querySelector("polygon");
+          elem.setAttribute("stroke-linejoin", "round");
+        }
+        widthT = width - t;
+        heightT = height - t;
+        let hexPoints = "";
+        for (let i = 0; i < 6; i++) {
+            let angle = Math.PI / 3 * i;
+            let x = halfT + widthT / 2 + Math.cos(angle) * widthT / 2; 
+            let y = halfT + heightT / 2 + Math.sin(angle) * heightT / 2;
+            hexPoints += x + "," + y + " ";
+        }
+        elem.setAttribute("points", hexPoints.trim());
+        break;
     }
 
     if (this.properties.b == "none") {

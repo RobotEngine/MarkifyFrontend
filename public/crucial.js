@@ -120,7 +120,9 @@ let getScript = (url) => {
 let loadScript = (url) => {
   return new Promise((resolve) => {
     let srcURL = new URL(url, window.location.origin + window.location.pathname);
-    srcURL.searchParams.append("v", version);
+    if (srcURL.host == window.location.host) {
+      srcURL.searchParams.append("v", version);
+    }
     let script = getScript(srcURL.href);
     if (script != null) {
       if (script.hasAttribute("loaded") == true) {

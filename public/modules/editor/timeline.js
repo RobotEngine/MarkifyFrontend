@@ -502,7 +502,7 @@ modules["editor/timeline"] = class {
           let mergedID = annotation.render._id + "_" + modifyID;
           let selection = selectionBoxes[mergedID];
           delete selectionBoxes[mergedID];
-          let newSelection = selection == null;
+          let newSelection = selection == null || selection.hasAttribute("remove");
           if (newSelection == true) {
             realtimeHolder.insertAdjacentHTML("beforeend", `<div class="timelineSelect" new></div>`);
             selection = realtimeHolder.querySelector('.timelineSelect[new]');
@@ -515,11 +515,14 @@ modules["editor/timeline"] = class {
               }
             })(selection, modifyID);
           }
-          if (isCurrentChange == true && annotation.render.remove != true) {
-            setSelectionBoxes[mergedID] = selection;
-          } else {
+          setSelectionBoxes[mergedID] = selection;
+          if (isCurrentChange == false ||annotation.render.remove == true) {
+            selection.setAttribute("remove", "");
             tempSelections.push(selection);
           }
+          //if (isCurrentChange == true && annotation.render.remove != true) {
+          //  setSelectionBoxes[mergedID] = selection;
+          //} else {
           let rotate = annoRect.rotation;
           if (rotate > 180) {
             rotate = -(360 - rotate);

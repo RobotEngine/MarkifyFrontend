@@ -4235,10 +4235,11 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
         heightT = height - t;
         // Calculate star points that touch the edges:
         let cx = halfT + widthT / 2;
-        let cy = halfT + heightT / 2; 
+        let cy = t + heightT / 2;  //keep or change back to halfT?
         let spikes = 5;
-        let outerRadiusX = widthT / 2;    
-        let outerRadiusY = heightT / 2;           let innerRadiusX = outerRadiusX * 0.5;
+        let outerRadiusX = (widthT + halfT) / 2;
+        let outerRadiusY = (heightT + halfT) / 2;           
+        let innerRadiusX = outerRadiusX * 0.5;
         let innerRadiusY = outerRadiusY * 0.5;
         let starPoints = "";
         for (let i = 0; i < spikes * 2; i++) {
@@ -4254,21 +4255,27 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
       case "arrow":
         elem = svg.querySelector("polygon");
         if (elem == null) {
-          svg.innerHTML = "<polygon/>";
-          elem = svg.querySelector("polygon");
-          elem.setAttribute("stroke-linejoin", "round");
+            svg.innerHTML = "<polygon/>";
+            elem = svg.querySelector("polygon");
+            elem.setAttribute("stroke-linejoin", "round");
         }
         widthT = width - t;
         heightT = height - t;
-        // Arrow points: shaft and head
+        // Arrowhead grows at 1/3 the rate of the shaft
+        let baseArrowheadWidth = widthT * 0.2;
+        let extraWidth = widthT * 0.2;
+        let arrowheadGrowth = extraWidth * (1/3);
+        let arrowheadWidth = baseArrowheadWidth + arrowheadGrowth;
+        let shaftEnd = (widthT + halfT) - arrowheadWidth;
+        // Arrow points: shaft with fixed-size head
         elem.setAttribute("points",
-          (halfT) + "," + (heightT * 0.35 + halfT) + " " +
-          (widthT * 0.6 + halfT) + "," + (heightT * 0.35 + halfT) + " " +
-          (widthT * 0.6 + halfT) + "," + (halfT) + " " +
-          (widthT + halfT) + "," + (heightT / 2 + halfT) + " " +
-          (widthT * 0.6 + halfT) + "," + (heightT + halfT) + " " +
-          (widthT * 0.6 + halfT) + "," + (heightT * 0.65 + halfT) + " " +
-          (halfT) + "," + (heightT * 0.65 + halfT)
+            (halfT) + "," + (heightT * 0.2 + halfT) + " " +
+            (shaftEnd) + "," + (heightT * 0.2 + halfT) + " " + 
+            (shaftEnd) + "," + (halfT) + " " + 
+            (widthT + halfT) + "," + (heightT / 2 + halfT) + " " +
+            (shaftEnd) + "," + (heightT + halfT) + " " + 
+            (shaftEnd) + "," + (heightT * 0.8 + halfT) + " " + 
+            (halfT) + "," + (heightT * 0.8 + halfT)
         );
         break;
       case "heart":

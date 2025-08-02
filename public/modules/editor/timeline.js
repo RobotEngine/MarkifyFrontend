@@ -303,12 +303,12 @@ modules["editor/timeline"] = class {
         await this.updateTimeline({ fromPlayLoop: true });
       }
       while (playing == true) {
-        currentSortedChange++;
         await this.updateTimeline({ fromPlayLoop: true });
         if (currentSortedChange >= Math.max(totalSortedChanges, sortedChanges.length)) {
           return this.stopPlaying();
         }
         await sleep(350);
+        currentSortedChange++;
       }
     }
     this.stopPlaying = () => {
@@ -800,7 +800,8 @@ modules["editor/timeline"] = class {
           let isOffScreen = false;
           let centerTotalX = 0;
           let centerTotalY = 0;
-          let lastChangeChanges = (changes[lastRenderChange] ?? {}).changes ?? [];
+          let lastChange = changes[lastRenderChange] ?? {};
+          let lastChangeChanges = lastChange.changes ?? [];
           let totalAnnotationUpdates = lastChangeChanges.length;
           for (let i = 0; i < totalAnnotationUpdates; i++) {
             let annotation = (this.editor.annotations[(lastChangeChanges[i] ?? {})._id] ?? {}).render;
@@ -816,6 +817,12 @@ modules["editor/timeline"] = class {
           if (isOffScreen == true) {
             this.editor.utils.scrollToAnnotation({ p: [centerTotalX / totalAnnotationUpdates, centerTotalY / totalAnnotationUpdates] }, { animation: false });
           }
+          (async (change = {}) => {
+            let collaborator = await this.editor.utils.getCollaborator(change.collaborator);
+            if (currentChange == change._id) {
+              this.updateCollaboratorDisplay(collaborator);
+            }
+          })(lastChange);
 
           timeline.removeAttribute("disabled");
           if (this.collaboratorIDs != null) {

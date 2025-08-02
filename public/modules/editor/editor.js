@@ -2235,7 +2235,7 @@ modules["editor/editor"] = class {
             delete this.annotations[mutt._id];
             continue;
           }
-          if (mutations.length > 249) {
+          if (mutations.length > 499) {
             setPendingSave[mutt._id] = mutt;
             this.save.enableTimeout(anno);
             continue;

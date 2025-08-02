@@ -493,20 +493,27 @@ modules["pages/app/lesson"] = class {
                 }
                 let collaborator = this.collaborators[member.modify];
                 if (collaborator != null) {
+                  let change = false;
                   if (body.hasOwnProperty("name") == true) {
                     collaborator.name = body.name;
+                    change = true;
                   }
                   if (body.hasOwnProperty("color") == true) {
                     collaborator.color = body.color;
+                    change = true;
                   }
                   if (body.hasOwnProperty("email") == true) {
                     collaborator.email = body.email;
+                    change = true;
                   }
                   if (body.hasOwnProperty("image") == true) {
                     collaborator.image = body.image;
+                    change = true;
                   }
-                  this.pushToPipelines(null, "collaborator_update", collaborator);
-                  this.pushToPipelines(null, "collaborator_update_" + member.modify, collaborator);
+                  if (change == true) {
+                    this.pushToPipelines(null, "collaborator_update", collaborator);
+                    this.pushToPipelines(null, "collaborator_update_" + member.modify, collaborator);
+                  }
                 }
               } else {
                 return;

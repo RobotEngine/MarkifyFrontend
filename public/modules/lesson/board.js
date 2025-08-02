@@ -1263,9 +1263,10 @@ modules["dropdowns/lesson/board/members"] = class {
       section.style.display = "block";
     }
     let createMemberList = (search) => {
+      search = (search ?? "").toLowerCase();
       let keys = Object.keys(lesson.members);
       keys = keys.filter((value) => {
-        if (lesson.members[value].name.toLowerCase().includes((search ?? "").toLowerCase())) {
+        if (lesson.members[value].name.toLowerCase().includes(search) == true) {
           return -1;
         }
         return false;

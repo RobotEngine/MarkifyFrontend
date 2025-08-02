@@ -276,6 +276,8 @@ modules["editor/timeline"] = class {
       await (await this.newModule("editor/toolbar")).js(this.editor);
     })();
 
+    let loadEpoch = getEpoch();
+
     let changes = {};
     let orderedChanges = [];
     let allChangesLoaded = false;
@@ -339,11 +341,34 @@ modules["editor/timeline"] = class {
       }
       if (currentSortedChange < useTotalChanges) {
         skimNextButton.removeAttribute("disabled");
-        revertButton.removeAttribute("disabled");
       } else {
         skimNextButton.setAttribute("disabled", "");
-        revertButton.setAttribute("disabled", "");
       }
+    }
+    let currentCollaboratorID;
+    this.updateCollaboratorDisplay = (collaborator) => {
+      currentCollaboratorID = collaborator._id;
+      memberFrame.style.setProperty("--themeColor", collaborator.color);
+      if (collaborator.image == null) {
+        memberCursor.style.removeProperty("display");
+        memberProfilePicture.style.display = "none";
+      } else {
+        memberProfilePicture.querySelector("img").src = collaborator.image;
+        memberProfilePicture.style.removeProperty("display");
+        memberCursor.style.display = "none";
+      }
+      memberName.textContent = collaborator.name;
+      memberName.title = collaborator.name;
+      if (collaborator.email != null) {
+        memberEmail.textContent = collaborator.email;
+        memberEmail.title = collaborator.email;
+        memberEmail.style.display = "flex";
+      } else {
+        memberEmail.style.removeProperty("display");
+      }
+
+      timelineDetail.style.display = "flex";
+      memberHolder.style.setProperty("--width", (memberName.offsetWidth + 36) + "px");
     }
     
     let updatingState = false;
@@ -353,6 +378,9 @@ modules["editor/timeline"] = class {
     this.updateCurrentState = async (options = {}) => {
       if (currentChange == null) {
         currentChange = orderedChanges[orderedChanges.indexOf(sortedChanges[0]) - 1];
+      }
+      if (currentChange != orderedChanges[orderedChanges.length - 1]) {
+        revertButton.removeAttribute("disabled");
       }
       if (lastRenderChange == currentChange) {
         return;
@@ -366,7 +394,6 @@ modules["editor/timeline"] = class {
         return;
       }
       updatingState = true;
-
       let useChangeType;
       let updatedAnnotations = {};
       let currentChangeAnnotations = {};
@@ -609,31 +636,17 @@ modules["editor/timeline"] = class {
         }
       }
       if (collaborator != null) {
-        memberFrame.style.setProperty("--themeColor", collaborator.color);
-        if (collaborator.image == null) {
-          memberCursor.style.removeProperty("display");
-          memberProfilePicture.style.display = "none";
-        } else {
-          memberProfilePicture.querySelector("img").src = collaborator.image;
-          memberProfilePicture.style.removeProperty("display");
-          memberCursor.style.display = "none";
-        }
-        memberName.textContent = collaborator.name;
-        memberName.title = collaborator.name;
-        if (collaborator.email != null) {
-          memberEmail.textContent = collaborator.email;
-          memberEmail.title = collaborator.email;
-          memberEmail.style.display = "flex";
-        } else {
-          memberEmail.style.removeProperty("display");
-        }
-
-        timelineDetail.style.display = "flex";
-        memberHolder.style.setProperty("--width", (memberName.offsetWidth + 36) + "px");
+        this.updateCollaboratorDisplay(collaborator);
       } else {
         timelineDetail.style.removeProperty("display");
       }
     }
+
+    this.pipeline.subscribe("timelineFilterDropdown", "collaborator_update", (collaborator) => {
+      if (currentCollaboratorID == collaborator._id) {
+        this.updateCollaboratorDisplay(collaborator);
+      }
+    });
 
     let updateStateCaller;
     this.updateTimeline = async (options = {}) => {
@@ -650,6 +663,7 @@ modules["editor/timeline"] = class {
       updateStateCaller = callUpdateState;
 
       if (sortedChanges.length > 0) {
+        revertButton.setAttribute("disabled", "");
         let sortedChangeIndex = currentSortedChange - (Math.max(totalSortedChanges, sortedChanges.length) - sortedChanges.length) - 1;
         if (sortedChangeIndex >= 0) {
           await updateStateCaller();
@@ -684,20 +698,20 @@ modules["editor/timeline"] = class {
 
     let loadAmount = 250;
     let loadFunction;
-    this.getFirstChange = () => {
-      return changes[orderedChanges[0]] ?? {};
-    }
-    this.getLastChange = () => {
-      return changes[orderedChanges[orderedChanges.length - 1]] ?? {};
-    }
     this.loadChanges = async () => {
       if (loadFunction == null) {
         loadFunction = (async () => {
+          if (allChangesLoaded == true) {
+            loadFunction = null;
+            return;
+          }
           let path = "lessons/history"; //allChangesLoaded
           let getAmount = 100;
           if (orderedChanges.length > 0) {
-            path += "?amount=" + loadAmount + "&before=" + (this.getFirstChange().added ?? getEpoch());
+            path += "?amount=" + loadAmount + "&before=" + ((changes[orderedChanges[0]] ?? {}).added ?? getEpoch());
             getAmount = loadAmount;
+          } else {
+            path += "?before=" + loadEpoch;
           }
           let [code, body] = await sendRequest("GET", path, null, { session: this.parent.session });
           if (code == 200) {
@@ -754,7 +768,7 @@ modules["editor/timeline"] = class {
       for (let i = 0; i < orderedChanges.length; i++) {
         let key = orderedChanges[i];
         let change = changes[key];
-        if (filterMembers == null || filterMembers.includes(change) == true) {
+        if (filterMembers == null || filterMembers.includes(change.collaborator) == true) {
           sortedChanges.push(key);
         }
       }
@@ -780,7 +794,7 @@ modules["editor/timeline"] = class {
           }
     
           currentSortedChange = Math.max(totalSortedChanges, sortedChanges.length);
-          lastRenderChange = sortedChanges[currentSortedChange - (totalSortedChanges - sortedChanges.length) - 1];
+          //lastRenderChange = lastRenderChange ?? sortedChanges[currentSortedChange - (totalSortedChanges - sortedChanges.length) - 1];
           this.updateTimeline();
     
           let isOffScreen = false;
@@ -804,7 +818,9 @@ modules["editor/timeline"] = class {
           }
 
           timeline.removeAttribute("disabled");
-          filterButton.removeAttribute("disabled");
+          if (this.collaboratorIDs != null) {
+            filterButton.removeAttribute("disabled");
+          }
           resolve();
         })
       ]);
@@ -888,6 +904,22 @@ modules["editor/timeline"] = class {
       }
     });
 
+    (async () => {
+      let [code, body] = await sendRequest("GET", "lessons/history/collaborators?before=" + loadEpoch, null, { session: this.session });
+      if (code != 200 && frame != null) {
+        return dropdownModule.close();
+      }
+      this.collaboratorIDs = [];
+      for (let i = 0; i < body.length; i++) {
+        let collaborator = body[i];
+        if (this.editor.collaborators[collaborator._id] == null) {
+          this.editor.collaborators[collaborator._id] = collaborator;
+        }
+        this.collaboratorIDs.push(collaborator._id);
+      }
+      filterButton.removeAttribute("disabled");
+    })();
+
     revertButton.addEventListener("click", () => {
       
     });
@@ -909,7 +941,7 @@ modules["dropdowns/editor/timeline/filter"] = class {
     </div>
     <div class="timelineFilterCollaboratorHolder"></div>
     <div class="timelineFilterApplyHolder">
-      <button class="largeButton border">Update Filter</button>
+      <button class="largeButton border"></button>
     </div>
   </div>
   `;
@@ -924,6 +956,7 @@ modules["dropdowns/editor/timeline/filter"] = class {
 
     ".timelineFilterCollaboratorHolder": `display: flex; flex-direction: column; margin-top: 6px; z-index: 1`,
     ".timelineFilterCollaborator": `position: relative; display: flex; width: calc(100% - 12px); padding: 0px; margin: 0 6px 6px 6px; justify-content: center; align-items: center`,
+    ".timelineFilterCollaborator[hidden]": `display: none !important`,
     ".timelineFilterCollaborator:active": `transform: scale(1) !important`,
     ".timelineFilterCollaborator div[holder]": `position: relative; display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 6px; overflow: hidden; align-items: center; transition: .1s`, //; margin: 4px 0
     ".timelineFilterCollaborator[selected] div[holder]": `background: var(--theme) !important; color: #fff`,
@@ -939,11 +972,14 @@ modules["dropdowns/editor/timeline/filter"] = class {
 
     ".timelineFilterApplyHolder": `position: sticky; display: flex; flex-wrap: wrap; max-width: var(--dropdownWidth); padding: 8px; gap: 24px; left: 0px; bottom: 0px; justify-content: center; align-items: center; background: rgba(var(--background), .7); backdrop-filter: blur(4px); border-radius: 0px 0px 12px 12px; z-index: 2`,
     ".timelineFilterApplyHolder button": `padding: 6px 10px; background: var(--theme); --borderColor: var(--secondary); --borderRadius: 16px; color: #fff; font-size: 16px`,
+    ".timelineFilterApplyHolder button[remove]": `background: unset !important; --borderColor: var(--error); color: var(--error)`,
   };
   js = async function (frame, extra) {
     frame.closest(".dropdownContent").style.padding = "0px";
 
     let parent = extra.parent;
+    let filter = parent.filterMembers ?? [];
+    let applyFilter = copyObject(filter);
 
     let searchHolder = frame.querySelector(".timelineFilterSearch");
     let searchField = searchHolder.querySelector("input");
@@ -952,13 +988,71 @@ modules["dropdowns/editor/timeline/filter"] = class {
 
     setSVG(searchHolder.querySelector("div[image]"), "../images/editor/glass.svg", (svg) => { return svg.replace(/"#0084FF"/g, '"var(--secondary)"'); });
 
-    let [code, body] = await sendRequest("GET", "lessons/history/collaborators?before=" + (parent.getLastChange().added ?? getEpoch()), null, { session: parent.session });
-    if (code != 200 && frame != null) {
-      return dropdownModule.close();
+    let updatingApply = false;
+    let updateApplyButton = () => {
+      if (updatingApply == true) {
+        return;
+      }
+      if (filter.sort().join(",") == applyFilter.sort().join(",")) {
+        if (applyFilter.length > 0) {
+          applyButton.setAttribute("remove", "");
+          applyButton.textContent = "Remove Filter";
+          applyButton.removeAttribute("disabled");
+        } else {
+          applyButton.textContent = "Update Filter";
+          applyButton.removeAttribute("remove");
+          applyButton.setAttribute("disabled", "");
+        }
+      } else {
+        applyButton.textContent = "Update Filter";
+        applyButton.removeAttribute("remove");
+        applyButton.removeAttribute("disabled");
+      }
     }
+    updateApplyButton();
 
-    for (let i = 0; i < body.length; i++) {
-      let collaborator = body[i];
+    applyButton.addEventListener("click", async () => {
+      if (applyButton.hasAttribute("remove") == true) {
+        let selected = collaboratorHolder.querySelectorAll(".timelineFilterCollaborator[selected]");
+        for (let i = 0; i < selected.length; i++) {
+          selected[i].removeAttribute("selected");
+        }
+        applyFilter = [];
+      }
+      updatingApply = true;
+      applyButton.setAttribute("disabled", "");
+      if (applyFilter.length > 0) {
+        parent.filterMembers = copyObject(applyFilter);
+      } else {
+        parent.filterMembers = null;
+      }
+      await parent.updateFilter(parent.filterMembers);
+      filter = parent.filterMembers ?? [];
+      updatingApply = false;
+      updateApplyButton();
+    });
+    
+    collaboratorHolder.addEventListener("click", (event) => {
+      let tile = event.target.closest(".timelineFilterCollaborator");
+      if (tile == null) {
+        return;
+      }
+      let collabID = tile.getAttribute("collaborator");
+      if (tile.hasAttribute("selected") == false) {
+        tile.setAttribute("selected", "");
+        applyFilter.push(collabID);
+      } else {
+        tile.removeAttribute("selected");
+        let index = applyFilter.indexOf(collabID);
+        if (index > -1) {
+          applyFilter.splice(index, 1);
+        }
+      }
+      updateApplyButton();
+    });
+
+    for (let i = 0; i < parent.collaboratorIDs.length; i++) {
+      let collaborator = await parent.editor.utils.getCollaborator(parent.collaboratorIDs[i]);
       collaboratorHolder.insertAdjacentHTML("beforeend", `<button class="timelineFilterCollaborator" new>
         <div holder>
           <div profileholder>
@@ -989,6 +1083,50 @@ modules["dropdowns/editor/timeline/filter"] = class {
       }
       memberName.textContent = collaborator.name;
       memberName.title = collaborator.name;
+      if (filter.includes(collaborator._id) == true) {
+        tile.setAttribute("selected", "");
+      }
     }
+
+    parent.pipeline.subscribe("timelineFilterDropdown", "collaborator_update", (collaborator) => {
+      let tile = collaboratorHolder.querySelector('.timelineFilterCollaborator[collaborator="' + collaborator._id + '"]');
+      if (tile != null) {
+        let memberProfileHolder = tile.querySelector("div[profileholder]");
+        let memberCursor = memberProfileHolder.querySelector("div[cursor]");
+        let memberProfilePicture = memberProfileHolder.querySelector("div[profile]");
+        let memberContent = tile.querySelector("div[content]");
+        let memberName = memberContent.querySelector("div[content] > div[name]");
+        tile.style.setProperty("--themeColor", collaborator.color);
+        if (collaborator.image == null) {
+          memberCursor.style.removeProperty("display");
+          memberProfilePicture.style.display = "none";
+        } else {
+          memberProfilePicture.querySelector("img").src = collaborator.image;
+          memberProfilePicture.style.removeProperty("display");
+          memberCursor.style.display = "none";
+        }
+        memberName.textContent = collaborator.name;
+        memberName.title = collaborator.name;
+      }
+    });
+
+    searchField.addEventListener("input", async () => {
+      let search = (searchField.value ?? "").toLowerCase();
+
+      let children = collaboratorHolder.children;
+      for (let i = 0; i < children.length; i++) {
+        let child = children[i];
+        let collaborator = await parent.editor.utils.getCollaborator(child.getAttribute("collaborator"));
+        if (collaborator == null) {
+          child.remove();
+          continue;
+        }
+        if ((collaborator.name ?? "").toLowerCase().includes(search) == true) {
+          child.removeAttribute("hidden");
+        } else {
+          child.setAttribute("hidden", "");
+        }
+      }
+    });
   }
 }

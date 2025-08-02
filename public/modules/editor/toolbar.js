@@ -4009,6 +4009,15 @@ modules["editor/toolbar"] = class {
       if (editor.isPageActive() == false) {
         return;
       }
+      if (event.keyCode == 32 && event.target == document.body) {
+        event.preventDefault();
+        if (this.currentToolModulePath != "editor/toolbar/pan") {
+          prevToolModule = this.currentToolModulePath;
+          this.currentToolModulePath = "editor/toolbar/pan";
+          await this.activateTool(null, { resetSelection: false });
+        }
+        return;
+      }
       if (editor.self.access < 1) {
         return;
       }
@@ -4118,6 +4127,12 @@ modules["editor/toolbar"] = class {
     });
     editor.pipeline.subscribe("toolbarKeyUp", "keyup", (data) => {
       checkShift(data.event);
+      if (prevToolModule != null && prevToolModule != "editor/toolbar/pan" && (this.currentToolModule ?? {}).dragging != true) {
+        data.event.preventDefault();
+        this.currentToolModulePath = prevToolModule;
+        prevToolModule = null;
+        return this.activateTool(null, { resetSelection: false });
+      }
       this.pushToolEvent("keyup", data.event);
     });
     editor.pipeline.subscribe("toolbarScroll", "scroll", (data) => {

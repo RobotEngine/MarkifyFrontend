@@ -832,6 +832,7 @@ modules["lesson/board"] = class {
     this.openTimeline = async () => {
       mainPage.setAttribute("hidden", "");
 
+      timelinePage.innerHTML = "";
       this.timeline = await this.setFrame("editor/timeline", timelinePage, {
         construct: {
           page: timelinePage,
@@ -877,8 +878,6 @@ modules["lesson/board"] = class {
       }
       await this.editor.loadAnnotations(annoBody, { pageID: pageParam, jumpID: checkForJumpLink });
       contentHolder.removeAttribute("disabled");
-
-      //this.openTimeline();
     }
 
     this.loadAnnotations();
@@ -913,6 +912,8 @@ modules["dropdowns/lesson/file"] = class {
   <button class="eFileAction" option="print" dropdowntitle="Print" title="Export the lesson and print."><div></div>Print</button>
   <button class="eFileAction" option="copy" title="Create a copy of the lesson."><div></div>Create Copy</button>
   <button class="eFileAction" option="moveto" title="Move this lesson into a folder." dropdowntitle="Move To Folder"><div></div>Move To Folder</button>
+  <div class="eFileLine" option="timeline"></div>
+  <button class="eFileAction" option="history" title="See the lesson's version history as a timeline."><div></div>Timeline History</button>
   <div class="eFileLine" option="findjump"></div>
   <button class="eFileAction" disabled option="find" title="Find text on the PDF." style="--themeColor: var(--secondary)"><div></div>Find</button>
   <button class="eFileAction" option="jumptop" title="Jump to the first page." style="--themeColor: var(--secondary)"><div></div>Jump to Start</button>
@@ -980,6 +981,12 @@ modules["dropdowns/lesson/file"] = class {
       dropdownModule.open(fileButton, "dropdowns/moveto", { lessonID: parent.parent.id, folderID: parent.parent.folder });
     });
 
+    let historyButton = frame.querySelector('.eFileAction[option="history"]');
+    historyButton.addEventListener("click", () => {
+      dropdownModule.close();
+      return parent.openTimeline();
+    });
+
     let find = frame.querySelector('.eFileAction[option="find"]');
     let jumptop = frame.querySelector('.eFileAction[option="jumptop"]');
     jumptop.addEventListener("click", () => {
@@ -1042,6 +1049,7 @@ modules["dropdowns/lesson/file"] = class {
     setSVG(printButton.querySelector("div"), "../images/editor/file/print.svg");
     setSVG(copyButton.querySelector("div"), "../images/editor/file/copy.svg");
     setSVG(fileButton.querySelector("div"), "../images/editor/file/moveto.svg");
+    setSVG(historyButton.querySelector("div"), "../images/editor/file/history.svg");
     setSVG(find.querySelector("div"), "../images/editor/file/search.svg");
     setSVG(jumptop.querySelector("div"), "../images/editor/file/uparrow.svg");
     setSVG(jump.querySelector("div"), "../images/editor/file/jump.svg");

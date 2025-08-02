@@ -1072,12 +1072,9 @@ modules["pages/app/dashboard"] = class {
         if (tile.hasAttribute("join")) {
           let method = tile.getAttribute("join");
           if (method.startsWith("pin_")) {
-            modifyParams("pin", method.substring(4));
-            setFrame("pages/app/join");
-            return;
+            return setFrame("pages/app/join", null, { params: { pin: method.substring(4) }});
           } else if (method == "link") {
-            setFrame("pages/app/join", null, { params: { lesson: tile.getAttribute("lesson") } });
-            return;
+            return setFrame("pages/app/join", null, { params: { lesson: tile.getAttribute("lesson") } });
           }
         }
         setFrame("pages/app/lesson", null, { params: { lesson: tile.getAttribute("lesson") } });
@@ -1599,7 +1596,7 @@ modules["pages/app/dashboard/lessons"] = class {
       let join = record.join ?? "owner";
       tile.setAttribute("join", join);
       if (join.startsWith("pin_")) {
-        tile.href = "/app/lesson?pin=" + join.substring(4);
+        tile.href = "/app/join?pin=" + join.substring(4);
       } else if (join == "link") {
         tile.href = "/app/lesson?lesson=" + record.lesson;
       } else {
@@ -1709,7 +1706,7 @@ modules["dropdowns/dashboard/options"] = class {
   <div class="dTileDropLine"></div>
   <button class="dTileDropAction" option="rename" title="Rename this lesson."><img src="../images/dashboard/rename.svg">Rename</button>
   <button class="dTileDropAction" option="copy" title="Create a duplicate of this lesson."><img src="../images/dashboard/copy.svg">Duplicate</button>
-  <button class="dTileDropAction" option="deletelesson" dashboard dropdown="dropdowns/editor/file/delete" style="--themeColor: var(--error)" title="Remove this lesson from your dashboard."><img class="dTileDropActionImage" src="/images/dashboard/delete.svg">Delete</button>
+  <button class="dTileDropAction" option="deletelesson" dashboard dropdown="dropdowns/editor/file/delete" style="--themeColor: var(--error)" title="Remove this lesson from your dashboard."><img class="dTileDropActionImage" src="/images/dashboard/delete.svg"><span>Delete</span></button>
   `;
   css = {
     ".dTileDropAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
@@ -1735,7 +1732,7 @@ modules["dropdowns/dashboard/options"] = class {
     let folderID = record.folder;
     let openButton = frame.querySelector('.dTileDropAction[option="open"]');
     openButton.addEventListener("click", () => {
-      if (joinMethod.startsWith("pin_")) {
+      if (joinMethod.startsWith("pin_") == true) {
         setFrame("pages/app/join", null, { params: { pin: joinMethod.substring(4) }});
       } else if (joinMethod == "link") {
         setFrame("pages/app/join", null, { params: { lesson: lessonID } });
@@ -1866,7 +1863,7 @@ modules["dropdowns/dashboard/options"] = class {
     if (!isOwner) {
       renameButton.remove();
       copyButton.remove();
-      deleteButton.innerHTML = `<img src="../images/editor/file/delete.svg">Remove`;
+      deleteButton.querySelector("span").textContent = "Remove";
     }
   }
 }

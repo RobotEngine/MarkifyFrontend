@@ -535,6 +535,7 @@ modules["editor/timeline"] = class {
             selection = realtimeHolder.querySelector('.timelineSelect[new]');
             selection.removeAttribute("new");
             selection.setAttribute("merged", mergedID);
+            selection.setAttribute("collaborator", modifyID);
             (async (element, modifyid) => {
               let collaborator = await this.editor.utils.getCollaborator(modifyid);
               if (collaborator != null && element != null) {
@@ -645,6 +646,14 @@ modules["editor/timeline"] = class {
     this.pipeline.subscribe("timelineFilterDropdown", "collaborator_update", (collaborator) => {
       if (currentCollaboratorID == collaborator._id) {
         this.updateCollaboratorDisplay(collaborator);
+
+        let allSelections = realtimeHolder.querySelectorAll('.timelineSelect[collaborator="' + collaborator._id + '"]');
+        for (let i = 0; i < allSelections.length; i++) {
+          let selection = allSelections[i];
+          if (selection != null) {
+            selection.style.setProperty("--themeColor", collaborator.color);
+          }
+        }
       }
     });
 
@@ -884,9 +893,9 @@ modules["editor/timeline"] = class {
 
     this.pipeline.subscribe("timelineZoomUpdate", "zoom_change", () => {
       let annotationRect = this.editor.utils.localBoundingRect(this.editor.annotationHolder);
-      let allRealtimeSelections = realtimeHolder.querySelectorAll(".timelineSelect");
-      for (let i = 0; i < allRealtimeSelections.length; i++) {
-        let selection = allRealtimeSelections[i];
+      let allSelections = realtimeHolder.querySelectorAll(".timelineSelect");
+      for (let i = 0; i < allSelections.length; i++) {
+        let selection = allSelections[i];
         let [annoID] = selection.getAttribute("merged").split("_");
         let render = {};
         if (this.editor.annotations[annoID] == null) {

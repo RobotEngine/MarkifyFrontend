@@ -41,7 +41,7 @@ modules["dropdowns/remove"] = class {
         break;
       case "deleteannotations":
         title.textContent = "Delete Annotations?";
-        desc.innerHTML = "Are you sure you want to permanently delete all annotations? <b>This cannot be undone!</b>";
+        desc.innerHTML = "Are you sure you want to delete all annotations? You can undo this in timeline history!";
         break;
       case "deletefolder":
         title.textContent = "Delete Folder?";

@@ -234,7 +234,8 @@ modules["editor/timeline"] = class {
       if (annoCode != 200) {
         return alertModule.open("error", `<b>Error Loading Annotations</b>Please try again later...`);
       }
-      await this.editor.loadAnnotations(annoBody);
+      await this.editor.loadAnnotations({ annotations: annoBody.annotations });
+      presentAnnotations = Object.keys(annoBody.annotations);
     }
     await this.editor.render.setMarginSize();
     await this.editor.updateChunks();
@@ -323,7 +324,9 @@ modules["editor/timeline"] = class {
     let orderedChanges = [];
     let allChangesLoaded = false;
     let currentChange;
+    let lastValidCurrentChange;
     let lastRenderChange;
+    let storedAnnotationStates = {};
     let selectionBoxes = {};
 
     let filterMembers;
@@ -421,6 +424,7 @@ modules["editor/timeline"] = class {
         currentChange = orderedChanges[orderedChanges.indexOf(sortedChanges[0]) - 1];
       }
       if (currentChange != orderedChanges[orderedChanges.length - 1]) {
+        lastValidCurrentChange = currentChange ?? lastValidCurrentChange;
         revertButton.removeAttribute("disabled");
       }
       if (lastRenderChange == currentChange) {
@@ -480,23 +484,25 @@ modules["editor/timeline"] = class {
           if (this.self.access < 4 && presentAnnotations[annotation._id] == null) {
             continue;
           }
-          let original = (this.editor.annotations[annotation._id] ?? {}).render;
-          if (original != null && original.remove == true) {
-            delete original.remove;
-          }
+          let original = storedAnnotationStates[annotation._id] ?? (this.editor.annotations[annotation._id] ?? {}).render;
           if (addRedoChanges == true) {
             changeData.redoChanges.push(copyObject(original ?? { _id: annotation._id, remove: true }));
+          }
+          if (original != null && original.remove == true) {
+            delete original.remove;
           }
           if ((original ?? {}).a == null && annotation.a == null) {
             annotation.a = changeData.collaborator;
           }
           annotation.m = changeData.collaborator;
           
+          storedAnnotationStates[annotation._id] = { ...(original ?? {}), ...annotation };
+
           let checkChunks = this.editor.utils.chunksFromAnnotation(annotation);
           if (this.editor.annotations[annotation._id] == null) {
-            this.editor.annotations[annotation._id] = { render: { ...(original ?? {}), ...annotation } };
+            this.editor.annotations[annotation._id] = { render: storedAnnotationStates[annotation._id] };
           } else {
-            this.editor.annotations[annotation._id].render = { ...(original ?? {}), ...annotation };
+            this.editor.annotations[annotation._id].render = storedAnnotationStates[annotation._id];
           }
           updatedAnnotations[annotation._id] = { annotation: this.editor.annotations[annotation._id], checkChunks: checkChunks };
 
@@ -557,7 +563,7 @@ modules["editor/timeline"] = class {
           }
         }
         if (allowRender == true) {
-          annotation.component = (await this.editor.render.create(annotation)).component;
+          annotation.component = (await this.editor.render.create(annotation, true)).component;
         } else {
           await this.editor.render.remove(annotation);
         }
@@ -978,11 +984,11 @@ modules["editor/timeline"] = class {
     })();
 
     revertButton.addEventListener("click", async () => {
-      if (currentChange == null) {
+      if (lastValidCurrentChange == null) {
         return;
       }
       frame.setAttribute("disabled", "");
-      let [code] = await sendRequest("GET", "lessons/history/revert?change=" + currentChange, null, { session: this.parent.session });
+      let [code] = await sendRequest("GET", "lessons/history/revert?change=" + lastValidCurrentChange, null, { session: this.parent.session });
       if (code == 200) {
         if (this.close != null) {
           return this.close();

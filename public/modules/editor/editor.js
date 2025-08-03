@@ -2217,7 +2217,7 @@ modules["editor/editor"] = class {
         }
         keys = Object.keys(this.save.pendingSaves);
         let setPendingSave = {};
-        let mutations = [];
+        let mutationObject = {};
         for (let i = 0; i < keys.length; i++) {
           let mutt = this.save.pendingSaves[keys[i]];
           if (mutt.annoRefresh != null && mutt.annoRefresh.render != null) {
@@ -2236,7 +2236,7 @@ modules["editor/editor"] = class {
             delete this.annotations[mutt._id];
             continue;
           }
-          if (mutations.length > 499) {
+          if (Object.keys(mutationObject).length > 499) {
             setPendingSave[mutt._id] = mutt;
             this.save.enableTimeout(anno);
             continue;
@@ -2273,9 +2273,10 @@ modules["editor/editor"] = class {
               continue;
             }
           }
-          mutations.push(mutt);
+          mutationObject[mutt._id] = { ...(mutationObject[mutt._id] ?? {}), ...mutt };
         }
         this.save.pendingSaves = {};
+        let mutations = Object.values(mutationObject);
         if (mutations.length > 0) {
           let saveSuccess = false;
           try {
@@ -3435,6 +3436,7 @@ modules["editor/editor"] = class {
           existingAnnoRecord.push(addReaction);
         }
       }
+      let addedAnnotations = [];
       for (let i = 0; i < body.annotations.length; i++) {
         let addAnno = body.annotations[i];
         let existingAnno = this.annotations[addAnno._id];
@@ -3442,7 +3444,10 @@ modules["editor/editor"] = class {
           this.annotations[addAnno._id] = { render: addAnno };
           existingAnno = this.annotations[addAnno._id];
         }
-        await this.utils.setAnnotationChunks(existingAnno);
+        addedAnnotations.push(existingAnno);
+      }
+      for (let i = 0; i < addedAnnotations.length; i++) {
+        await this.utils.setAnnotationChunks(addedAnnotations[i]);
       }
 
       await this.render.setMarginSize();
@@ -4261,7 +4266,7 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
     let widthT;
     let heightT;
     let i = this.properties.i;
-    switch (this.properties.d) {
+    switch (this.properties.d ?? "square") {
       case "square":
         elem = svg.querySelector("rect");
         if (elem == null) {

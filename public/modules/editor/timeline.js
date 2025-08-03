@@ -58,10 +58,13 @@ modules["editor/timeline"] = class {
     </div>
   </div>
   <div class="timelineContentHolder customScroll" viewer></div>
+  <div class="timelineDisable"></div>
   `;
   css = {
     ".timelineInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; user-select: none; overflow: scroll; z-index: 2`,
     ".timelineContentHolder": `position: relative; width: 100%; height: 100%; overflow: scroll; z-index: 1; transition: .5s`,
+    ".timelineDisable": `position: absolute; display: none; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 3; pointer-events: all !important`,
+    ".content[disabled] .timelineDisable": `display: block !important`,
 
     ".timelineTopHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
     ".timelineTop": `position: absolute; display: flex; box-sizing: border-box; width: 100%; gap: 8px; padding-bottom: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,
@@ -123,6 +126,35 @@ modules["editor/timeline"] = class {
 
     ".timelineSelect": `--themeColor: var(--theme); position: absolute; left: 0px; top: 0px; border-style: solid; border-width: 3px; border-color: var(--themeColor); opacity: 0; z-index: 9; border-radius: 9px; opacity .15s; pointer-events: none`
   };
+
+  pipeline = {
+    pipelines: [],
+    publish: async (event, data) => {
+      for (let i = 0; i < this.pipeline.pipelines.length; i++) {
+        let pipeline = this.pipeline.pipelines[i];
+        if (pipeline != null) {
+          await pipeline.publish(event, data);
+        }
+      }
+    },
+    subscribe: (id, event, callback, extra) => {
+      for (let i = 0; i < this.pipeline.pipelines.length; i++) {
+        let pipeline = this.pipeline.pipelines[i];
+        if (pipeline != null) {
+          pipeline.subscribe(id, event, callback, extra);
+        }
+      }
+    },
+    unsubscribe: (id, event) => {
+      for (let i = 0; i < this.pipeline.pipelines.length; i++) {
+        let pipeline = this.pipeline.pipelines[i];
+        if (pipeline != null) {
+          pipeline.unsubscribe(id, event);
+        }
+      }
+    }
+  };
+
   js = async (frame) => {
     frame.style.position = "relative";
     frame.style.width = "100%";
@@ -167,9 +199,12 @@ modules["editor/timeline"] = class {
     let skimNextButton = timelineChange.querySelector(".timelineHistorySkim[next]");
     let skimPlayButton = timelineChange.querySelector(".timelineHistorySkim[play]");
 
+    if (this.parentPipeline != null) {
+      this.pipeline.pipelines.push(this.parentPipeline);
+    }
     this.editor = await this.setFrame("editor/editor", contentHolder, {
       construct: {
-        page: this.page,
+        page: frame,
         lesson: this.lesson,
         self: { access: 0 }, //this.self,
         session: this.session,
@@ -181,7 +216,7 @@ modules["editor/timeline"] = class {
       }
     });
     this.editor.realtime.enabled = false;
-    this.pipeline = this.editor.pipeline;
+    this.pipeline.pipelines.push(this.editor.pipeline);
     /*if (this.reactions != null) {
       this.editor.reactions = copyObject(this.reactions);
     }*/
@@ -194,6 +229,12 @@ modules["editor/timeline"] = class {
         await this.editor.utils.setAnnotationChunks(this.editor.annotations[annoID]);
         presentAnnotations[annoID] = true;
       }
+    } else {
+      let [annoCode, annoBody] = await sendRequest("GET", "lessons/join/annotations", null, { session: this.parent.session }, { allowError: true });
+      if (annoCode != 200) {
+        return alertModule.open("error", `<b>Error Loading Annotations</b>Please try again later...`);
+      }
+      await this.editor.loadAnnotations(annoBody);
     }
     await this.editor.render.setMarginSize();
     await this.editor.updateChunks();
@@ -206,11 +247,11 @@ modules["editor/timeline"] = class {
         this.close();
       }
     });
-    this.pipeline.subscribe("zoomTextUpdate", "zoom_change", (event) => {
+    this.editor.pipeline.subscribe("zoomTextUpdate", "zoom_change", (event) => {
       zoomButton.textContent = Math.round(event.zoom * 100) + "%";
     });
     zoomButton.addEventListener("click", () => {
-      dropdownModule.open(zoomButton, "dropdowns/lesson/zoom", { parent: this });
+      dropdownModule.open(zoomButton, "dropdowns/lesson/basiczoom", { parent: this });
     });
 
     selectButton.addEventListener("click", async () => {
@@ -240,7 +281,7 @@ modules["editor/timeline"] = class {
         toolbarHolder.removeAttribute("left");
       }
     }
-    this.pipeline.subscribe("accountUpdate", "account_settings", (event) => {
+    this.editor.pipeline.subscribe("accountUpdate", "account_settings", (event) => {
       if (event.settings.hasOwnProperty("toolbar") == true) {
         this.updateInterface();
       }
@@ -446,7 +487,7 @@ modules["editor/timeline"] = class {
           if (addRedoChanges == true) {
             changeData.redoChanges.push(copyObject(original ?? { _id: annotation._id, remove: true }));
           }
-          if (annotation.a == null) {
+          if ((original ?? {}).a == null && annotation.a == null) {
             annotation.a = changeData.collaborator;
           }
           annotation.m = changeData.collaborator;
@@ -574,7 +615,7 @@ modules["editor/timeline"] = class {
           centerTotalCount++;
         }
       }
-      this.pipeline.publish("redraw_selection", { transition: false });
+      this.editor.pipeline.publish("redraw_selection", { transition: false });
 
       let removeSelectBoxes = Object.values(selectionBoxes);
       (async function () {
@@ -643,7 +684,7 @@ modules["editor/timeline"] = class {
       }
     }
 
-    this.pipeline.subscribe("timelineFilterDropdown", "collaborator_update", (collaborator) => {
+    this.editor.pipeline.subscribe("timelineFilterDropdown", "collaborator_update", (collaborator) => {
       if (currentCollaboratorID == collaborator._id) {
         this.updateCollaboratorDisplay(collaborator);
 
@@ -871,7 +912,7 @@ modules["editor/timeline"] = class {
       }
       if (mouseDown() == false) {
         sliderEnabled = false;
-        this.pipeline.unsubscribe("timelineSelectorMouse");
+        this.editor.pipeline.unsubscribe("timelineSelectorMouse");
         return;
       }
       let useTotalChanges = Math.max(totalSortedChanges, sortedChanges.length);
@@ -885,13 +926,13 @@ modules["editor/timeline"] = class {
     let enableSlider = (event) => {
       sliderEnabled = true;
       eventBarUpdate(event);
-      this.pipeline.subscribe("timelineSelectorMouse", "click_move", (data) => { eventBarUpdate(data.event); });
-      this.pipeline.subscribe("timelineSelectorMouse", "click_end", (data) => { eventBarUpdate(data.event); });
+      this.editor.pipeline.subscribe("timelineSelectorMouse", "click_move", (data) => { eventBarUpdate(data.event); });
+      this.editor.pipeline.subscribe("timelineSelectorMouse", "click_end", (data) => { eventBarUpdate(data.event); });
     }
     sliderBar.addEventListener("mousedown", enableSlider);
     sliderBar.addEventListener("touchstart", enableSlider, { passive: true });
 
-    this.pipeline.subscribe("timelineZoomUpdate", "zoom_change", () => {
+    this.editor.pipeline.subscribe("timelineZoomUpdate", "zoom_change", () => {
       let annotationRect = this.editor.utils.localBoundingRect(this.editor.annotationHolder);
       let allSelections = realtimeHolder.querySelectorAll(".timelineSelect");
       for (let i = 0; i < allSelections.length; i++) {
@@ -936,8 +977,19 @@ modules["editor/timeline"] = class {
       filterButton.removeAttribute("disabled");
     })();
 
-    revertButton.addEventListener("click", () => {
-      
+    revertButton.addEventListener("click", async () => {
+      if (currentChange == null) {
+        return;
+      }
+      frame.setAttribute("disabled", "");
+      let [code] = await sendRequest("GET", "lessons/history/revert?change=" + currentChange, null, { session: this.parent.session });
+      if (code == 200) {
+        if (this.close != null) {
+          return this.close();
+          //return this.open({ includeAnnotations: false });
+        }
+      }
+      frame.removeAttribute("disabled", "");
     });
 
     filterButton.addEventListener("click", () => {
@@ -1104,7 +1156,7 @@ modules["dropdowns/editor/timeline/filter"] = class {
       }
     }
 
-    parent.pipeline.subscribe("timelineFilterDropdown", "collaborator_update", (collaborator) => {
+    parent.editor.pipeline.subscribe("timelineFilterDropdown", "collaborator_update", (collaborator) => {
       let tile = collaboratorHolder.querySelector('.timelineFilterCollaborator[collaborator="' + collaborator._id + '"]');
       if (tile != null) {
         let memberProfileHolder = tile.querySelector("div[profileholder]");

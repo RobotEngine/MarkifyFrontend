@@ -829,28 +829,31 @@ modules["lesson/board"] = class {
     this.pipeline.subscribe("checkPageSwitch", "page_switch", updateActivePage, { sort: 1 });
     updateActivePage();
 
-    this.openTimeline = async () => {
+    this.openTimeline = async (options = {}) => {
       mainPage.setAttribute("hidden", "");
 
       timelinePage.innerHTML = "";
-      this.timeline = await this.setFrame("editor/timeline", timelinePage, {
-        construct: {
-          page: timelinePage,
-          close: this.closeTimeline,
 
-          lesson: this.parent,
-          self: this.parent.self,
-          session: this.parent.session,
-          sessionID: this.parent.sessionID,
-          sources: this.parent.sources,
-          collaborators: this.parent.collaborators,
-          backgroundColor: this.editor.backgroundColor,
-          preferences: this.editor.preferences,
+      let construct = {
+        page: timelinePage,
+        //open: this.openTimeline,
+        close: this.closeTimeline,
+        parentPipeline: this.editor.pipeline,
 
-          //reactions: this.editor.reactions,
-          annotations: this.editor.annotations
-        }
-      });
+        lesson: this.parent,
+        self: this.parent.self,
+        session: this.parent.session,
+        sessionID: this.parent.sessionID,
+        sources: this.parent.sources,
+        collaborators: this.parent.collaborators,
+        backgroundColor: this.editor.backgroundColor,
+        preferences: this.editor.preferences,
+        //reactions: this.editor.reactions
+      };
+      if (options.includeAnnotations != false) {
+        construct.annotations = this.editor.annotations;
+      }
+      this.timeline = await this.setFrame("editor/timeline", timelinePage, { construct });
       this.pipeline = this.timeline.pipeline;
 
       timelinePage.removeAttribute("hidden");
@@ -873,8 +876,7 @@ modules["lesson/board"] = class {
       }
       let [annoCode, annoBody] = await sendRequest("GET", "lessons/join/annotations", null, { session: this.parent.session }, { allowError: true });
       if (annoCode != 200 && connected == true) {
-        alertModule.open("error", `<b>Error Loading Annotations</b>Please try again later...`);
-        return;
+        return alertModule.open("error", `<b>Error Loading Annotations</b>Please try again later...`);
       }
       await this.editor.loadAnnotations(annoBody, { pageID: pageParam, jumpID: checkForJumpLink });
       contentHolder.removeAttribute("disabled");

@@ -488,6 +488,7 @@ modules["editor/editor"] = class {
   self = {};
 
   realtime = {
+    enabled: true,
     subscribes: [],
     tool: 0, // 0: Pointer; 1: Markup; 2: Pen; 3: Erase
     observed: 0,
@@ -2992,6 +2993,10 @@ modules["editor/editor"] = class {
     });
 
     this.pipeline.subscribe("longAnnotationUpdate", "long", async (event) => {
+      if (this.realtime.enabled == false) {
+        return;
+      }
+
       let data = copyObject(event);
       //let redrawAction = false;
       for (let i = 0; i < data.length; i++) {
@@ -3095,6 +3100,10 @@ modules["editor/editor"] = class {
       this.pipeline.publish("redraw_selection", { refresh: true, redrawCurrentAction: true, refreshActionBar: true, fromLong: true }); //redrawActionBar: redrawAction,
     });
     this.pipeline.subscribe("removeAnnotationUpdate", "removeannotations", async (data) => {
+      if (this.realtime.enabled == false) {
+        return;
+      }
+
       let annoKeys = Object.keys(this.annotations);
       for (let i = 0; i < annoKeys.length; i++) {
         let anno = this.annotations[annoKeys[i]] ?? {};
@@ -3111,6 +3120,10 @@ modules["editor/editor"] = class {
       this.pipeline.publish("redraw_selection", { fromLong: true });
     });
     this.pipeline.subscribe("reactionAnnotation", "reaction", async (event) => {
+      if (this.realtime.enabled == false) {
+        return;
+      }
+
       let data = copyObject(event);
       let annotation = this.annotations[data.reaction.annotation];
       if (annotation == null) {
@@ -3477,6 +3490,118 @@ modules["editor/editor"] = class {
 }
 
 // Dropdown Modules:
+modules["dropdowns/lesson/basiczoom"] = class {
+  html = `
+  <div class="eBasicZoomHolder">
+    <button class="eBasicZoomButton buttonAnim border" sub change="-20">-</button>
+    <div class="eBasicZoomLevel border"><div class="eZoomBox" contenteditable>100</div>%</div>
+    <button class="eBasicZoomButton buttonAnim border" add change="20">+</button>
+  </div>
+  `;
+  css = {
+    ".eBasicZoomHolder": `display: flex; flex-wrap: wrap; justify-content: center; align-items: center`,
+    ".eBasicZoomButton": `position: relative; display: flex; width: 22px; height: 22px; margin: 16px 3px; justify-content: center; align-items: center; --borderWidth: 3px; --borderRadius: 8px; color: var(--theme); font-size: 24px; font-weight: 600; line-height: 0`,
+    '.eBasicZoomButton[sub]': `cursor: zoom-out`,
+    '.eBasicZoomButton[add]': `cursor: zoom-in`,
+    ".eBasicZoomLevel": `display: flex; padding: 3px 6px 3px 3px; margin: 0 12px; --borderWidth: 3px; --borderColor: var(--secondary); justify-content: center; align-items: center; --borderRadius: 15px; color: var(--theme); font-size: 20px; font-weight: 600`,
+    ".eBasicZoomLevel div": `max-width: 50px; min-width: 25px; padding: 3px 6px; margin-right: 3px; border: none; outline: none; border-radius: 16px; text-align: center; white-space: nowrap; overflow: hidden`,
+  };
+  js = async function (frame, extra) {
+    let editor = extra.parent.editor;
+
+    let zoomPercentage = frame.querySelector(".eBasicZoomLevel div");
+    let zoomAdd = frame.querySelector(".eBasicZoomButton[add]");
+    let zoomSub = frame.querySelector(".eBasicZoomButton[sub]");
+    let setZoomText = () => {
+      zoomPercentage.textContent = Math.round(editor.zoom * 100);
+      if (editor.zoom >= 5) {
+        zoomAdd.setAttribute("disabled", "");
+      } else {
+        zoomAdd.removeAttribute("disabled");
+      }
+      if (editor.zoom <= .2) {
+        zoomSub.setAttribute("disabled", "");
+      } else {
+        zoomSub.removeAttribute("disabled");
+      }
+      frame.closest(".dropdown").querySelector(".dropdownTitle").textContent = zoomPercentage.textContent + "%";
+    }
+    editor.pipeline.subscribe("zoomDropdownUpdate", "zoom_change", setZoomText);
+    setZoomText();
+    let forceSetZoom = () => {
+      editor.setZoom(parseInt(zoomPercentage.textContent) / 100, null, { clientX: editor.contentHolder.offsetWidth / 2, clientY: editor.contentHolder.offsetHeight / 2 });
+    }
+    zoomPercentage.addEventListener("keydown", (event) => {
+      let textBox = event.target.closest("div");
+      if (textBox == null) {
+        return;
+      }
+      if (event.keyCode == 13) {
+        event.preventDefault();
+        zoomPercentage.blur();
+        return;
+      }
+      if (String.fromCharCode(event.keyCode).match(/(\w|\s)/g) && event.key.length == 1) {
+        let textInt = parseInt(textBox.textContent + event.key);
+        if (parseInt(event.key) != event.key) {
+          event.preventDefault();
+          textBoxError(textBox, "Must be a number");
+        } else if (textInt > 500) {
+          event.preventDefault();
+          textBoxError(textBox, "Must be less than 500%");
+        }
+      }
+    });
+    let alreadyRunningFocus = false;
+    zoomPercentage.addEventListener("focus", () => {
+      if (alreadyRunningFocus == true) {
+        return;
+      }
+      alreadyRunningFocus = true;
+      zoomPercentage.blur();
+      zoomPercentage.innerHTML = "";
+      zoomPercentage.focus();
+      alreadyRunningFocus = false;
+    });
+    zoomPercentage.addEventListener("focusout", (event) => {
+      if (alreadyRunningFocus == true) {
+        return;
+      }
+      let textBox = event.target.closest("div");
+      if (textBox == null) {
+        return;
+      }
+      let textInt = parseInt(textBox.textContent);
+      if (isNaN(textInt) == true) {
+        setZoomText();
+      } else if (textInt > 500) {
+        textBox.textContent = "500";
+      } else if (textInt < 20) {
+        textBox.textContent = "20";
+      }
+      forceSetZoom();
+    });
+    frame.addEventListener("click", (event) => {
+      let element = event.target;
+      if (element == null) {
+        return;
+      }
+      let zoomChange = element.closest(".eBasicZoomButton");
+      if (zoomChange != null) {
+        (Math.floor(((editor.zoom + parseFloat(zoomChange.getAttribute("change"))) * 100) / 5) * 5) / 100
+        editor.setZoom(
+          (
+            Math.round(
+              (
+                Math.round(editor.zoom * 100) + parseInt(zoomChange.getAttribute("change"))
+              ) / 20
+          ) * 20
+        ) / 100, null, { clientX: editor.contentHolder.offsetWidth / 2, clientY: editor.contentHolder.offsetHeight / 2 });
+        return;
+      }
+    });
+  }
+}
 modules["dropdowns/lesson/zoom"] = class {
   html = `
   <div class="eZoomHolder">
@@ -3625,7 +3750,7 @@ modules["dropdowns/lesson/zoom"] = class {
         return;
       }
       let zoomChange = element.closest(".eZoomButton");
-      if (zoomChange) {
+      if (zoomChange != null) {
         (Math.floor(((editor.zoom + parseFloat(zoomChange.getAttribute("change"))) * 100) / 5) * 5) / 100
         editor.setZoom(
           (

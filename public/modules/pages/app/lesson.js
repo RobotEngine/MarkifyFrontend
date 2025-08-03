@@ -368,6 +368,10 @@ modules["pages/app/lesson"] = class {
     let isNewLesson = this.id == "" && joinData.pin == null;
 
     let setSubscribes = () => {
+      if (this.exporting == true) {
+        return;
+      }
+      
       socket.remotes["member"] = (data) => {
         if (data.lesson != null && data.lesson != this.id) {
           return;

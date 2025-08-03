@@ -226,8 +226,10 @@ modules["editor/timeline"] = class {
       for (let i = 0; i < annotations.length; i++) {
         let [annoID, annotation] = annotations[i];
         this.editor.annotations[annoID] = { render: copyObject(annotation.render) };
-        await this.editor.utils.setAnnotationChunks(this.editor.annotations[annoID]);
         presentAnnotations[annoID] = true;
+      }
+      for (let i = 0; i < annotations.length; i++) {
+        await this.editor.utils.setAnnotationChunks(this.editor.annotations[annotations[i][0]]);
       }
     } else {
       let [annoCode, annoBody] = await sendRequest("GET", "lessons/join/annotations", null, { session: this.parent.session }, { allowError: true });
@@ -324,7 +326,6 @@ modules["editor/timeline"] = class {
     let orderedChanges = [];
     let allChangesLoaded = false;
     let currentChange;
-    let lastValidCurrentChange;
     let lastRenderChange;
     let storedAnnotationStates = {};
     let selectionBoxes = {};
@@ -424,7 +425,6 @@ modules["editor/timeline"] = class {
         currentChange = orderedChanges[orderedChanges.indexOf(sortedChanges[0]) - 1];
       }
       if (currentChange != orderedChanges[orderedChanges.length - 1]) {
-        lastValidCurrentChange = currentChange ?? lastValidCurrentChange;
         revertButton.removeAttribute("disabled");
       }
       if (lastRenderChange == currentChange) {
@@ -984,11 +984,12 @@ modules["editor/timeline"] = class {
     })();
 
     revertButton.addEventListener("click", async () => {
-      if (lastValidCurrentChange == null) {
-        return;
-      }
       frame.setAttribute("disabled", "");
-      let [code] = await sendRequest("GET", "lessons/history/revert?change=" + lastValidCurrentChange, null, { session: this.parent.session });
+      let path = "lessons/history/revert";
+      if (currentChange != null) {
+        path += "?change=" + currentChange;
+      }
+      let [code] = await sendRequest("GET", path, null, { session: this.parent.session });
       if (code == 200) {
         if (this.close != null) {
           return this.close();

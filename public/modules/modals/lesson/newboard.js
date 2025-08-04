@@ -37,7 +37,7 @@ modules["modals/lesson/newboard"] = class {
 
     let input = frame.querySelector("input");
     let uploadButton = frame.querySelector(".lessonUpload");
-    let uploadBImg = uploadButton.querySelector("img");
+    let uploadBImg = uploadButton.querySelector("div[image]");
 
     let blankButton = frame.querySelector(".lessonBlank");
     blankButton.addEventListener("click", () => {

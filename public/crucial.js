@@ -22,7 +22,7 @@ const configs = {
 };
 
 const config = configs["public"];
-const version = "1.4.2"; // Big Update . Small Feature Release . Bug Fix
+const version = "1.4.3"; // Big Update . Small Feature Release . Bug Fix
 
 const serverURL = config.server;
 const assetURL = config.assets;
@@ -1766,9 +1766,11 @@ addCSS({
 });
 (new Image()).src = "../images/tooltips/alerts.svg";
 
-if ("serviceWorker" in navigator && window.isDiscord != true) {
+if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("../serviceworker.js");
+    try {
+      navigator.serviceWorker.register("../serviceworker.js");
+    } catch(err) { console.log(err); }
   });
 }
 window.addEventListener("beforeinstallprompt", (event) => {

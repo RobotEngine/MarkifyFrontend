@@ -371,7 +371,7 @@ modules["pages/app/lesson"] = class {
       if (this.exporting == true) {
         return;
       }
-      
+
       socket.remotes["member"] = (data) => {
         if (data.lesson != null && data.lesson != this.id) {
           return;
@@ -1069,11 +1069,10 @@ modules["pages/app/lesson"] = class {
         this.signalStrength = 3;
       } else {
         this.signalStrength = 2;
-        this.sendPing();
       }
       await this.setLesson(body);
-  
-      if (this.active != sendBody.active) {
+      
+      if (this.active != sendBody.active || this.signalStrength == 2) {
         this.sendPing();
       }
     } else {

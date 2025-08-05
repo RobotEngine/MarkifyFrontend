@@ -4408,41 +4408,63 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
             (halfT) + "," + (heightT * 0.8 + halfT)
         );
         break;
-      case "heart":
+
+
+
+case "heart":
+    elem = svg.querySelector("path");
+    if (elem == null) {
+        svg.innerHTML = "<path/>";
         elem = svg.querySelector("path");
-        if (elem == null) {
-            svg.innerHTML = "<path/>";
-            elem = svg.querySelector("path");
-            elem.setAttribute("stroke-linejoin", "round");
-        }
-        widthT = width - t;
-        heightT = height - t;
-        
-        // Heart shape touching all edges
-        let centerX = halfT + widthT / 2;
-        let bottomY = halfT + heightT; 
-        let topY = halfT;              
-        let leftX = halfT;             
-        let rightX = halfT + widthT;   
-        let middleY = halfT + heightT * 0.3;  
-        
-        // Build path string - curves that form complete heart shape
-        let pathString = "M " + centerX + "," + bottomY + " " +
-            "C " + (centerX - widthT * 0.3) + "," + (bottomY - heightT * 0.4) + " " + 
-            leftX + "," + (topY + heightT * 0.3) + " " + 
-            leftX + "," + (topY + heightT * 0.15) + " " +
-            "C " + leftX + "," + topY + " " + 
-            (centerX - widthT * 0.15) + "," + topY + " " + 
-            centerX + "," + middleY + " " +
-            "C " + (centerX + widthT * 0.15) + "," + topY + " " + 
-            rightX + "," + topY + " " + 
-            rightX + "," + (topY + heightT * 0.15) + " " +
-            "C " + rightX + "," + (topY + heightT * 0.3) + " " + 
-            (centerX + widthT * 0.3) + "," + (bottomY - heightT * 0.4) + " " + 
-            centerX + "," + bottomY + " Z";
-        
-        elem.setAttribute("d", pathString);
-        break;
+        elem.setAttribute("stroke-linejoin", "round");
+    }
+    widthT = width - t;
+    heightT = height - t;
+    
+    // Rhombus points - 15% smaller
+    let shrinkFactor = 0.85;                // 85% of original size (15% smaller)
+    let centerX = (halfT + widthT / 2);       // Center point horizontally
+    let centerY = (halfT + heightT / 2);      // Center point vertically
+    
+    let topX = centerX;                                    // Top point (center horizontally)
+    let topY = centerY - (heightT / 2);    // Top point (85% of distance from center)
+    let rightX = centerX + (widthT / 2);   // Right point (85% of distance from center)
+    let rightY = centerY;                                 // Right point (center vertically)
+    let bottomX = centerX;                                // Bottom point (center horizontally)
+    let bottomY = centerY + (heightT / 2); // Bottom point (85% of distance from center)
+    let leftX = centerX - (widthT / 2);    // Left point (85% of distance from center)
+    let leftY = centerY;                                  // Left point (center vertically)
+    /*
+    // Build path string
+    let pathString = "M " + topX + "," + topY + " " +         // Move to top point
+        "L " + rightX + "," + rightY + " " +                  // Line to right point
+        "L " + bottomX + "," + bottomY + " " +                // Line to bottom point
+        "L " + leftX + "," + leftY + " " +                    // Line to left point
+        "Z";                                                  // Close path back to start
+    
+    elem.setAttribute("d", pathString);*/
+
+    // Semicircle parameters
+    let leftLobeCenterX = centerX / 2; // Center of semicircle
+    let rightLobeCenterX = centerX + (widthT / 2); // Center of semicircle
+    let lobesCenterY = centerY / 2; // Center at bottom edge
+    let radiusX = Math.max(widthT / 2, 5);
+    let radiusY = radiusX;   // Full height for radius
+    
+    // Draw semicircle (top half) using arc path
+    let leftLobePathString = "M " + (leftLobeCenterX - radiusX) + "," + lobesCenterY + " " +  // Start at left edge
+        "A " + radiusX + "," + radiusY + " -45 0,1 " + (leftLobeCenterX + radiusX) + "," + lobesCenterY;// + " "
+        //"A " + radiusX + "," + radiusY + "";// Arc to right edge  // Close path with straight line
+    
+    elem.setAttribute("d", leftLobePathString);
+    //elem.setAttribute("transform", "rotate(-45 " + leftLobeCenterX + " " + lobesCenterY + ")");
+
+
+
+    break;
+
+
+
       case "oval":
         elem = svg.querySelector("ellipse");
         if (elem == null) {
@@ -4466,18 +4488,18 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
         widthT = width - t;
         heightT = height - t;
 
-        let bubbleWidth = widthT * 0.85;    // Main bubble is 85% of width
+        let bubbleWidth = widthT;    // Main bubble is 85% of width
         let bubbleHeight = heightT * 0.75;  // Main bubble is 75% of height
-        let bubbleX = halfT + widthT * 0.075; // Offset from left
+        let bubbleX = halfT + widthT * 0.01; // Offset from left
         let bubbleY = halfT;                // Top of bubble
         let cornerRadius = Math.min(bubbleWidth, bubbleHeight) * 0.15; // Rounded corners
         
         // Tail positioning
         let tailStartX = bubbleX + bubbleWidth * 0.2;  // Tail starts 20% across bubble
         let tailStartY = bubbleY + bubbleHeight;       // At bottom of bubble
-        let tailPointX = halfT + widthT * 0.2;        // Tail point at left edge
-        let tailPointY = halfT + heightT * .95;        // Tail point near bottom
-        let tailEndX = bubbleX + bubbleWidth * 0.5;   // Tail ends 35% across bubble
+        let tailPointX = halfT + widthT * 0.1;        // Tail point at left edge
+        let tailPointY = halfT + heightT;        // Tail point at bottom
+        let tailEndX = bubbleX + bubbleWidth * 0.5;   // Tail ends 50% across bubble
         let tailEndY = bubbleY + bubbleHeight;         // At bottom of bubble
         
         // Build speech bubble path

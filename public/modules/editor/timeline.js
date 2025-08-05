@@ -226,7 +226,7 @@ modules["editor/timeline"] = class {
       for (let i = 0; i < annotations.length; i++) {
         let [annoID, annotation] = annotations[i];
         this.editor.annotations[annoID] = { render: copyObject(annotation.render) };
-        presentAnnotations[annoID] = true;
+        presentAnnotations[annoID] = { hidden: annotation.render.hidden == true };
       }
       for (let i = 0; i < annotations.length; i++) {
         await this.editor.utils.setAnnotationChunks(this.editor.annotations[annotations[i][0]]);
@@ -237,7 +237,10 @@ modules["editor/timeline"] = class {
         return alertModule.open("error", `<b>Error Loading Annotations</b>Please try again later...`);
       }
       await this.editor.loadAnnotations({ annotations: annoBody.annotations });
-      presentAnnotations = Object.keys(annoBody.annotations);
+      let annotations = Object.keys(annoBody.annotations);
+      for (let i = 0; i < annotations.length; i++) {
+        presentAnnotations[annotations[i]] = { hidden: (annoBody.annotations[annotations[i]] ?? {}).hidden == true };
+      }
     }
     await this.editor.render.setMarginSize();
     await this.editor.updateChunks();
@@ -481,10 +484,15 @@ modules["editor/timeline"] = class {
         }
         for (let i = 0; i < applyChangeChanges.length; i++) {
           let annotation = applyChangeChanges[i];
-          if (this.self.access < 4 && presentAnnotations[annotation._id] == null) {
-            continue;
-          }
           let original = storedAnnotationStates[annotation._id] ?? (this.editor.annotations[annotation._id] ?? {}).render;
+          if (this.self.access < 4) {
+            let presentAnnotation = presentAnnotations[annotation._id];
+            if (presentAnnotation == null) {
+              continue;
+            } else if (["page"].includes(original.f) == true && presentAnnotation.hidden == true) {
+              delete annotation.hidden;
+            }
+          }
           if (addRedoChanges == true) {
             changeData.redoChanges.push(copyObject(original ?? { _id: annotation._id, remove: true }));
           }

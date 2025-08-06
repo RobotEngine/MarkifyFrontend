@@ -225,8 +225,10 @@ modules["editor/timeline"] = class {
       let annotations = Object.entries(this.annotations);
       for (let i = 0; i < annotations.length; i++) {
         let [annoID, annotation] = annotations[i];
-        this.editor.annotations[annoID] = { render: copyObject(annotation.render) };
-        presentAnnotations[annoID] = { hidden: annotation.render.hidden == true };
+        if (annotation.render != null) {
+          this.editor.annotations[annoID] = { render: copyObject(annotation.render) };
+          presentAnnotations[annoID] = { hidden: annotation.render.hidden == true };
+        }
       }
       for (let i = 0; i < annotations.length; i++) {
         await this.editor.utils.setAnnotationChunks(this.editor.annotations[annotations[i][0]]);

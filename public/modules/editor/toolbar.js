@@ -29,20 +29,20 @@ modules["editor/toolbar"] = class {
     "erase": { id: "erase", type: "tool", module: "editor/toolbar/eraser" },
     "text": { id: "text", type: "tool", module: "editor/toolbar/text" },
     "shape": {
-      html: `<div class="eVerticalToolsHolder">
+      html: `<div class="eVerticalToolsHolder eVerticalToolsShapeContainer">
         <button class="eTool" tool="square" tooltip="Square" module="editor/toolbar/shape"><div></div></button>
         <button class="eTool" tool="ellipse" tooltip="Ellipse" module="editor/toolbar/shape"><div></div></button>
         <button class="eTool" tool="triangle" tooltip="Triangle" module="editor/toolbar/shape"><div></div></button>
         <button class="eTool" tool="parallelogram" tooltip="Parallelogram" module="editor/toolbar/shape"><div></div></button>
         <button class="eTool" tool="trapezoid" tooltip="Trapezoid" module="editor/toolbar/shape"><div></div></button>
         <button class="eTool" tool="rhombus" tooltip="Rhombus" module="editor/toolbar/shape"><div></div></button>
+        <button class="eTool" tool="star" tooltip="Star" module="editor/toolbar/shape/star"><div></div></button>
+        <button class="eTool" tool="arrow" tooltip="Arrow" module="editor/toolbar/shape/arrow"><div></div></button>
+        <button class="eTool" tool="heart" tooltip="Heart" module="editor/toolbar/shape"><div></div></button>
+        <button class="eTool" tool="oval" tooltip="Oval" module="editor/toolbar/shape/oval"><div></div></button>
+        <button class="eTool" tool="speech" tooltip="Speech" module="editor/toolbar/shape"><div></div></button>
+        <button class="eTool" tool="polygon" tooltip="Polygon" module="editor/toolbar/shape/polygon"><div></div></button>
         <button class="eTool" tool="line" tooltip="Line" module="editor/toolbar/shape"><div></div></button>
-        <!--<button class="eTool" tool="star" tooltip="Star" module="editor/toolbar/shape"><div></div></button>-->
-        <!--<button class="eTool" tool="arrow" tooltip="Arrow" module="editor/toolbar/shape"><div></div></button>-->
-        <!--<button class="eTool" tool="heart" tooltip="Heart" module="editor/toolbar/shape"><div></div></button>-->
-        <!--<button class="eTool" tool="oval" tooltip="Oval" module="editor/toolbar/shape"><div></div></button>-->
-        <!--<button class="eTool" tool="speech" tooltip="Speech" module="editor/toolbar/shape"><div></div></button>-->
-        <!--<button class="eTool" tool="polygon" tooltip="Polygon" module="editor/toolbar/shape"><div></div></button>-->
       </div>`
     },
     "sticky": { id: "sticky", type: "tool", module: "editor/toolbar/sticky" },
@@ -123,10 +123,13 @@ modules["editor/toolbar"] = class {
     ".eSubToolContentHolder": `position: relative; background: var(--pageColor); z-index: 3; overflow: hidden; border-radius: inherit`,
     ".eSubToolContentScroll": `width: fit-content; overflow: auto`,
     ".eSubToolContainer[option] .eSubToolContentScroll": `overflow: visible`,
-    ".eVerticalToolsHolder": `display: flex; flex-direction: column; padding: 2px 0; align-items: center; scrollbar-width: none`,
+    ".eVerticalToolsHolder": `display: flex; flex-wrap: wrap; width: 50px; padding: 2px 0; justify-content: center; scrollbar-width: none`,
     ".eVerticalToolsHolder::-webkit-scrollbar": `display: none`,
     ".eHorizontalToolsHolder": `display: flex; padding: 0 2px; align-items: center; scrollbar-width: none`,
     ".eHorizontalToolsHolder::-webkit-scrollbar": `display: none`,
+
+    ".eVerticalToolsShapeContainer": `width: 92px !important; padding: 2px !important`,
+    ".eVerticalToolsShapeContainer > .eTool": `width: 46px !important`,
 
     ".eSideMenu": `position: absolute; display: flex; flex-direction: column; width: fit-content; max-width: calc(100% - 8px); height: fit-content; max-height: var(--maxToolbarHeight); top: 50%; z-index: 3; transform: translate(var(--translate), -50%); opacity: 0; background: var(--pageColor); box-shadow: var(--lightShadow); overflow: hidden; pointer-events: all; transition: transform .4s, opacity .4s, border-radius .2s`,
     ".eToolbarHolder[left] .eSideMenu": `--translate: 100%; right: 0px; border-radius: 12px 0 0 12px; transform-origin: right center`,
@@ -5544,12 +5547,14 @@ modules["editor/toolbar/resize_placement"] = class {
 
 modules["editor/toolbar/shape"] = class extends modules["editor/toolbar/resize_placement"] {
   MINIMUM_SIZE = 25;
+  DEFAULT_WIDTH = 125;
+  DEFAULT_HEIGHT = 125;
   
   enable = () => {
     let toolPreference = this.parent.getToolPreference();
     this.PROPERTIES = {
       f: "shape",
-      s: [125, 125],
+      s: [this.DEFAULT_WIDTH, this.DEFAULT_HEIGHT],
       c: toolPreference.color.selected,
       t: toolPreference.thickness,
       o: toolPreference.opacity,
@@ -5557,6 +5562,22 @@ modules["editor/toolbar/shape"] = class extends modules["editor/toolbar/resize_p
       d: this.tool
     };
   }
+}
+modules["editor/toolbar/shape/star"] = class extends modules["editor/toolbar/shape"] {
+  DEFAULT_WIDTH = 125;
+  DEFAULT_HEIGHT = 116;
+}
+modules["editor/toolbar/shape/arrow"] = class extends modules["editor/toolbar/shape"] {
+  DEFAULT_WIDTH = 175;
+  DEFAULT_HEIGHT = 125;
+}
+modules["editor/toolbar/shape/oval"] = class extends modules["editor/toolbar/shape"] {
+  DEFAULT_WIDTH = 250;
+  DEFAULT_HEIGHT = 125;
+}
+modules["editor/toolbar/shape/polygon"] = class extends modules["editor/toolbar/shape"] {
+  DEFAULT_WIDTH = 125;
+  DEFAULT_HEIGHT = 108;
 }
 
 modules["editor/toolbar/sticky"] = class extends modules["editor/toolbar/placement"] {
@@ -6552,6 +6573,9 @@ modules["editor/toolbar/page"] = class extends modules["editor/toolbar/resize_pl
       s: [200, 275],
       l: this.editor.minLayer - 1
     };
+    if ((toolPreference.background ?? "blank") != "blank") {
+      this.PROPERTIES.background = toolPreference.background;
+    }
   }
 }
 
@@ -9084,6 +9108,7 @@ modules["editor/toolbar/pagetype"] = class {
         return;
       }
       let selectedType = btn.getAttribute("type");
+      this.toolbar.setToolPreference("background", selectedType);
       await toolbar.saveSelecting((render) => {
         let updates = { background: selectedType };
         if (render.source) {

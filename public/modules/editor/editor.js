@@ -4266,8 +4266,8 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
     let widthT;
     let heightT;
     let i = this.properties.i;
-    switch (this.properties.d ?? "square") {
-      case "square":
+    let shapes = {
+      "square": () => {
         elem = svg.querySelector("rect");
         if (elem == null) {
           svg.innerHTML = "<rect/>";
@@ -4279,8 +4279,8 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
         elem.setAttribute("height", Math.max(Math.abs(height - t), 5));
         elem.setAttribute("x", halfT);
         elem.setAttribute("y", halfT);
-        break;
-      case "ellipse":
+      },
+      "ellipse": () => {
         elem = svg.querySelector("ellipse");
         if (elem == null) {
           svg.innerHTML = "<ellipse/>";
@@ -4290,8 +4290,8 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
         elem.setAttribute("cy", height / 2);
         elem.setAttribute("rx", Math.max(Math.abs(width - t) / 2, 5));
         elem.setAttribute("ry", Math.max(Math.abs(height - t) / 2, 5));
-        break;
-      case "triangle":
+      },
+      "triangle": () => {
         elem = svg.querySelector("polygon");
         if (elem == null) {
           svg.innerHTML = "<polygon/>";
@@ -4301,8 +4301,8 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
         widthT = width - t;
         heightT = height - t;
         elem.setAttribute("points", ((widthT / 2) + halfT) + "," + halfT + " " + halfT + "," + (heightT + halfT) + " " + (widthT + halfT) + "," + (heightT + halfT));
-        break;
-      case "parallelogram":
+      },
+      "parallelogram": () => {
         elem = svg.querySelector("polygon");
         if (elem == null) {
           svg.innerHTML = "<polygon/>";
@@ -4312,8 +4312,8 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
         widthT = width - t;
         heightT = height - t;
         elem.setAttribute("points", (halfT + (widthT * .2)) + "," + halfT + " " + (widthT + halfT) + "," + halfT + " " + (widthT + halfT - (widthT * .2)) + "," + (heightT + halfT) + " " + halfT + "," + (heightT + halfT));
-        break;
-      case "trapezoid":
+      },
+      "trapezoid": () => {
         elem = svg.querySelector("polygon");
         if (elem == null) {
           svg.innerHTML = "<polygon/>";
@@ -4323,8 +4323,8 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
         widthT = width - t;
         heightT = height - t;
         elem.setAttribute("points", (halfT + (widthT * .2)) + "," + halfT + " " + (widthT + halfT - (widthT * .2)) + "," + halfT + " " + (widthT + halfT) + "," + (heightT + halfT) + " " + halfT + "," + (heightT + halfT));
-        break;
-      case "rhombus":
+      },
+      "rhombus": () => {
         elem = svg.querySelector("polygon");
         if (elem == null) {
           svg.innerHTML = "<polygon/>";
@@ -4334,8 +4334,8 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
         widthT = width - t;
         heightT = height - t;
         elem.setAttribute("points", (halfT + (widthT * .5)) + "," + halfT + " " + (widthT + halfT) + "," + (halfT + (heightT * .5)) + " " + (halfT + (widthT * .5)) + "," + (heightT + halfT) + " " + halfT + "," + (halfT + (heightT * .5)));
-        break;
-      case "line":
+      },
+      "line": () => {
         elem = svg.querySelector("line");
         if (elem == null) {
           svg.innerHTML = "<line/>";
@@ -4353,132 +4353,201 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
         elem.setAttribute("y1", halfT);
         elem.setAttribute("x2", halfT);
         elem.setAttribute("y2", heightT + halfT);
-        break;
-      case "star":
+      },
+      "star": () => {
         elem = svg.querySelector("polygon");
         if (elem == null) {
-            svg.innerHTML = "<polygon/>";
-            elem = svg.querySelector("polygon");
-            elem.setAttribute("stroke-linejoin", "round");
+          svg.innerHTML = "<polygon/>";
+          elem = svg.querySelector("polygon");
+          elem.setAttribute("stroke-linejoin", "round");
         }
         widthT = width - t;
         heightT = height - t;
         // Calculate star points that touch the edges:
-        let cx = halfT + widthT / 2;
-        let cy = t + heightT / 2;  //keep or change back to halfT?
+        let cx = (widthT / 2) + halfT; //halfT + widthT / 2;
+        let cy = (heightT / 2) + halfT; //halfT + heightT / 2;  //keep or change back to halfT?
         let spikes = 5;
-        let outerRadiusX = (widthT + halfT) / 2;
-        let outerRadiusY = (heightT + halfT) / 2;           
+        let outerRadiusX = (width - t) / 2;
+        let outerRadiusY = (height - t) / 2;           
         let innerRadiusX = outerRadiusX * 0.5;
         let innerRadiusY = outerRadiusY * 0.5;
-        let starPoints = "";
+        let rawPoints = [];
+        let minX;
+        let maxX;
+        let minY;
+        let maxY;
         for (let i = 0; i < spikes * 2; i++) {
-            let angle = (Math.PI / spikes) * i;
-            let rX = (i % 2 === 0) ? outerRadiusX : innerRadiusX;
-            let rY = (i % 2 === 0) ? outerRadiusY : innerRadiusY;
-            let x = cx + Math.cos(angle - Math.PI/2) * rX;
-            let y = cy + Math.sin(angle - Math.PI/2) * rY;
-            starPoints += x + "," + y + " ";
+          let angle = (Math.PI / spikes) * i;
+          let rX = (i % 2 === 0) ? outerRadiusX : innerRadiusX;
+          let rY = (i % 2 === 0) ? outerRadiusY : innerRadiusY;
+          let x = cx + Math.cos(angle - Math.PI/2) * rX;
+          let y = cy + Math.sin(angle - Math.PI/2) * rY;
+          rawPoints.push([x, y]);
+          minX = Math.min(minX ?? x, x);
+          maxX = Math.max(maxX ?? x, x);
+          minY = Math.min(minY ?? y, y);
+          maxY = Math.max(maxY ?? y, y);
         }
-        elem.setAttribute("points", starPoints.trim());
-        break;
-      case "arrow":
+        let scaleX = widthT / (maxX - minX);
+        let scaleY = heightT / (maxY - minY);
+        let starPoints = "";
+        for (let [xNorm, yNorm] of rawPoints) {
+          let x = cx + (xNorm - (minX + maxX) / 2) * scaleX;
+          let y = cy + (yNorm - (minY + maxY) / 2) * scaleY;
+          starPoints += x + "," + y + " ";
+        }
+        elem.setAttribute("points", starPoints.substring(0, starPoints.length - 1));
+      },
+      "arrow": () => {
         elem = svg.querySelector("polygon");
         if (elem == null) {
-            svg.innerHTML = "<polygon/>";
-            elem = svg.querySelector("polygon");
-            elem.setAttribute("stroke-linejoin", "round");
+          svg.innerHTML = "<polygon/>";
+          elem = svg.querySelector("polygon");
+          elem.setAttribute("stroke-linejoin", "round");
         }
         widthT = width - t;
         heightT = height - t;
         // Arrowhead grows at 1/3 the rate of the shaft
-        let baseArrowheadWidth = widthT * 0.2;
-        let extraWidth = widthT * 0.2;
-        let arrowheadGrowth = extraWidth * (1/3);
-        let arrowheadWidth = baseArrowheadWidth + arrowheadGrowth;
+        //let baseArrowheadWidth = widthT * 0.2;
+        //let extraWidth = widthT * 0.2;
+        //let arrowheadGrowth = extraWidth * (1/3);
+        let arrowheadWidth = Math.max(Math.min(widthT - 25, 60), 10); //baseArrowheadWidth + arrowheadGrowth;
         let shaftEnd = (widthT + halfT) - arrowheadWidth;
         // Arrow points: shaft with fixed-size head
         elem.setAttribute("points",
-            (halfT) + "," + (heightT * 0.2 + halfT) + " " +
-            (shaftEnd) + "," + (heightT * 0.2 + halfT) + " " + 
-            (shaftEnd) + "," + (halfT) + " " + 
-            (widthT + halfT) + "," + (heightT / 2 + halfT) + " " +
-            (shaftEnd) + "," + (heightT + halfT) + " " + 
-            (shaftEnd) + "," + (heightT * 0.8 + halfT) + " " + 
-            (halfT) + "," + (heightT * 0.8 + halfT)
+          (halfT) + "," + (heightT * 0.2 + halfT) + " " +
+          (shaftEnd) + "," + (heightT * 0.2 + halfT) + " " + 
+          (shaftEnd) + "," + (halfT) + " " + 
+          (widthT + halfT) + "," + (heightT / 2 + halfT) + " " +
+          (shaftEnd) + "," + (heightT + halfT) + " " + 
+          (shaftEnd) + "," + (heightT * 0.8 + halfT) + " " + 
+          (halfT) + "," + (heightT * 0.8 + halfT)
         );
-        break;
-
-
-
-case "heart":
-    elem = svg.querySelector("path");
-    if (elem == null) {
-        svg.innerHTML = "<path/>";
-        elem = svg.querySelector("path");
-        elem.setAttribute("stroke-linejoin", "round");
-    }
-    widthT = width - t;
-    heightT = height - t;
-    
-    // Rhombus points - 15% smaller
-    let shrinkFactor = 0.85;                // 85% of original size (15% smaller)
-    let centerX = (halfT + widthT / 2);       // Center point horizontally
-    let centerY = (halfT + heightT / 2);      // Center point vertically
-    
-    let topX = centerX;                                    // Top point (center horizontally)
-    let topY = centerY - (heightT / 2);    // Top point (85% of distance from center)
-    let rightX = centerX + (widthT / 2);   // Right point (85% of distance from center)
-    let rightY = centerY;                                 // Right point (center vertically)
-    let bottomX = centerX;                                // Bottom point (center horizontally)
-    let bottomY = centerY + (heightT / 2); // Bottom point (85% of distance from center)
-    let leftX = centerX - (widthT / 2);    // Left point (85% of distance from center)
-    let leftY = centerY;                                  // Left point (center vertically)
-    /*
-    // Build path string
-    let pathString = "M " + topX + "," + topY + " " +         // Move to top point
-        "L " + rightX + "," + rightY + " " +                  // Line to right point
-        "L " + bottomX + "," + bottomY + " " +                // Line to bottom point
-        "L " + leftX + "," + leftY + " " +                    // Line to left point
-        "Z";                                                  // Close path back to start
-    
-    elem.setAttribute("d", pathString);*/
-
-    // Semicircle parameters
-    let leftLobeCenterX = centerX / 2; // Center of semicircle
-    let rightLobeCenterX = centerX + (widthT / 2); // Center of semicircle
-    let lobesCenterY = centerY / 2; // Center at bottom edge
-    let radiusX = Math.max(widthT / 2, 5);
-    let radiusY = radiusX;   // Full height for radius
-    
-    // Draw semicircle (top half) using arc path
-    let leftLobePathString = "M " + (leftLobeCenterX - radiusX) + "," + lobesCenterY + " " +  // Start at left edge
-        "A " + radiusX + "," + radiusY + " -45 0,1 " + (leftLobeCenterX + radiusX) + "," + lobesCenterY;// + " "
-        //"A " + radiusX + "," + radiusY + "";// Arc to right edge  // Close path with straight line
-    
-    elem.setAttribute("d", leftLobePathString);
-    //elem.setAttribute("transform", "rotate(-45 " + leftLobeCenterX + " " + lobesCenterY + ")");
-
-
-
-    break;
-
-
-
-      case "oval":
-        elem = svg.querySelector("ellipse");
+      },
+      "heart": () => {
+        elem = svg.querySelector("polygon");
         if (elem == null) {
-            svg.innerHTML = "<ellipse/>";
-            elem = svg.querySelector("ellipse");
+          svg.innerHTML = "<polygon/>";
+          elem = svg.querySelector("polygon");
+          elem.setAttribute("stroke-linejoin", "round");
         }
         widthT = width - t;
         heightT = height - t;
-        elem.setAttribute("cx", halfT + widthT / 2);
-        elem.setAttribute("cy", halfT + heightT / 2);
-        elem.setAttribute("rx", Math.max(widthT / 3, 5));
-        elem.setAttribute("ry", Math.max(heightT / 2, 5));
-        break;
-      case "speech":
+
+        let rawPoints = [];
+        let minX;
+        let maxX;
+        let minY;
+        let maxY;
+
+        let steps = 100;
+        for (let i = 0; i <= steps; i++) {
+          let t = Math.PI - (i / steps) * 2 * Math.PI;
+          let x = 16 * Math.pow(Math.sin(t), 3);
+          let y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+          rawPoints.push([x, y]);
+          minX = Math.min(minX ?? x, x);
+          maxX = Math.max(maxX ?? x, x);
+          minY = Math.min(minY ?? y, y);
+          maxY = Math.max(maxY ?? y, y);
+        }
+
+        let scaleX = widthT / (maxX - minX);
+        let scaleY = heightT / (maxY - minY);
+
+        let cx = width / 2;
+        let cy = height / 2;
+
+        let heartPoints = "";
+        for (let [xNorm, yNorm] of rawPoints) {
+          let x = cx + (xNorm - (minX + maxX) / 2) * scaleX;
+          let y = cy + (yNorm - (minY + maxY) / 2) * scaleY;
+          heartPoints += `${x},${y} `;
+        }
+
+        elem.setAttribute("points", heartPoints.trim());
+      },
+      "oval": () => {
+        elem = svg.querySelector("polygon");
+        if (elem == null) {
+          svg.innerHTML = "<polygon/>";
+          elem = svg.querySelector("polygon");
+          elem.setAttribute("stroke-linejoin", "round");
+        }
+
+        widthT = width - t;
+        heightT = height - t;
+
+        let segments = 20; // smoothness
+        let halfT = t / 2; // Make sure halfT is defined
+
+        let cx = (widthT / 2) + halfT;
+        let cy = (heightT / 2) + halfT;
+
+        // Pill radius for rounded ends is half the smaller dimension
+        let radiusX = heightT / 2;  // For horizontal pill, radius X = half height
+        let radiusY = heightT / 2;  // For horizontal pill, radius Y = half height
+
+        let rectHalfLenX = 0;
+        let rectHalfLenY = 0;
+
+        if (width >= height) {
+          // Horizontal pill
+          rectHalfLenX = (widthT / 2) - radiusX;
+          rectHalfLenY = 0;
+          segments = Math.max(widthT / 10, 10);
+        } else {
+          // Vertical pill
+          rectHalfLenX = 0;
+          rectHalfLenY = (heightT / 2) - (widthT / 2); // rectangle length along Y axis, subtract radius which is half width for vertical pill
+          segments = Math.max(heightT / 10, 10);
+        }
+
+        // For vertical pill, radiusX and radiusY swap roles because the semicircles are vertical
+
+        let pillPoints = [];
+
+        if (width >= height) {
+          // Horizontal pill — semicircle on left and right ends
+          // Left semicircle (top to bottom)
+          for (let i = 0; i <= segments; i++) {
+            let angle = Math.PI / 2 + (i / segments) * Math.PI;
+            let x = cx - rectHalfLenX + Math.cos(angle) * radiusX;
+            let y = cy + Math.sin(angle) * radiusY;
+            pillPoints.push(`${x},${y}`);
+          }
+
+          // Right semicircle (bottom to top)
+          for (let i = 0; i <= segments; i++) {
+            let angle = (3 * Math.PI) / 2 + (i / segments) * Math.PI;
+            let x = cx + rectHalfLenX + Math.cos(angle) * radiusX;
+            let y = cy + Math.sin(angle) * radiusY;
+            pillPoints.push(`${x},${y}`);
+          }
+        } else {
+          // Vertical pill — semicircle on top and bottom ends
+          let radius = widthT / 2; // radius is half the width for vertical pill
+
+          // Top semicircle (left to right)
+          for (let i = 0; i <= segments; i++) {
+            let angle = Math.PI + (i / segments) * Math.PI;
+            let x = cx + Math.cos(angle) * radius;
+            let y = cy - rectHalfLenY + Math.sin(angle) * radius;
+            pillPoints.push(`${x},${y}`);
+          }
+
+          // Bottom semicircle (right to left)
+          for (let i = 0; i <= segments; i++) {
+            let angle = 0 + (i / segments) * Math.PI;
+            let x = cx + Math.cos(angle) * radius;
+            let y = cy + rectHalfLenY + Math.sin(angle) * radius;
+            pillPoints.push(`${x},${y}`);
+          }
+        }
+
+        elem.setAttribute("points", pillPoints.join(" "));
+      },
+      "speech": () => {
         elem = svg.querySelector("path");
         if (elem == null) {
           svg.innerHTML = "<path/>";
@@ -4489,42 +4558,42 @@ case "heart":
         heightT = height - t;
 
         let bubbleWidth = widthT;    // Main bubble is 85% of width
-        let bubbleHeight = heightT * 0.75;  // Main bubble is 75% of height
-        let bubbleX = halfT + widthT * 0.01; // Offset from left
+        let bubbleHeight = heightT * 0.8;  // Main bubble is 75% of height
+        let bubbleX = halfT; // + widthT * 0.01; // Offset from left
         let bubbleY = halfT;                // Top of bubble
         let cornerRadius = Math.min(bubbleWidth, bubbleHeight) * 0.15; // Rounded corners
         
         // Tail positioning
         let tailStartX = bubbleX + bubbleWidth * 0.2;  // Tail starts 20% across bubble
         let tailStartY = bubbleY + bubbleHeight;       // At bottom of bubble
-        let tailPointX = halfT + widthT * 0.1;        // Tail point at left edge
+        let tailPointX = halfT + widthT * 0.15;        // Tail point at left edge
         let tailPointY = halfT + heightT;        // Tail point at bottom
-        let tailEndX = bubbleX + bubbleWidth * 0.5;   // Tail ends 50% across bubble
+        let tailEndX = bubbleX + bubbleWidth * 0.4;   // Tail ends 50% across bubble
         let tailEndY = bubbleY + bubbleHeight;         // At bottom of bubble
         
         // Build speech bubble path
         let stringPath = "M " + (bubbleX + cornerRadius) + "," + bubbleY + " " +
-            // Top edge with rounded corners
-            "L " + (bubbleX + bubbleWidth - cornerRadius) + "," + bubbleY + " " +
-            "Q " + (bubbleX + bubbleWidth) + "," + bubbleY + " " + (bubbleX + bubbleWidth) + "," + (bubbleY + cornerRadius) + " " +
-            // Right edge
-            "L " + (bubbleX + bubbleWidth) + "," + (bubbleY + bubbleHeight - cornerRadius) + " " +
-            "Q " + (bubbleX + bubbleWidth) + "," + (bubbleY + bubbleHeight) + " " + (bubbleX + bubbleWidth - cornerRadius) + "," + (bubbleY + bubbleHeight) + " " +
-            // Bottom edge to tail start
-            "L " + tailEndX + "," + tailEndY + " " +
-            // Tail
-            "L " + tailPointX + "," + tailPointY + " " +
-            "L " + tailStartX + "," + tailStartY + " " +
-            // Rest of bottom edge
-            "L " + (bubbleX + cornerRadius) + "," + (bubbleY + bubbleHeight) + " " +
-            "Q " + bubbleX + "," + (bubbleY + bubbleHeight) + " " + bubbleX + "," + (bubbleY + bubbleHeight - cornerRadius) + " " +
-            // Left edge
-            "L " + bubbleX + "," + (bubbleY + cornerRadius) + " " +
-            "Q " + bubbleX + "," + bubbleY + " " + (bubbleX + cornerRadius) + "," + bubbleY + " Z";
+        // Top edge with rounded corners
+        "L " + (bubbleX + bubbleWidth - cornerRadius) + "," + bubbleY + " " +
+        "Q " + (bubbleX + bubbleWidth) + "," + bubbleY + " " + (bubbleX + bubbleWidth) + "," + (bubbleY + cornerRadius) + " " +
+        // Right edge
+        "L " + (bubbleX + bubbleWidth) + "," + (bubbleY + bubbleHeight - cornerRadius) + " " +
+        "Q " + (bubbleX + bubbleWidth) + "," + (bubbleY + bubbleHeight) + " " + (bubbleX + bubbleWidth - cornerRadius) + "," + (bubbleY + bubbleHeight) + " " +
+        // Bottom edge to tail start
+        "L " + tailEndX + "," + tailEndY + " " +
+        // Tail
+        "L " + tailPointX + "," + tailPointY + " " +
+        "L " + tailStartX + "," + tailStartY + " " +
+        // Rest of bottom edge
+        "L " + (bubbleX + cornerRadius) + "," + (bubbleY + bubbleHeight) + " " +
+        "Q " + bubbleX + "," + (bubbleY + bubbleHeight) + " " + bubbleX + "," + (bubbleY + bubbleHeight - cornerRadius) + " " +
+        // Left edge
+        "L " + bubbleX + "," + (bubbleY + cornerRadius) + " " +
+        "Q " + bubbleX + "," + bubbleY + " " + (bubbleX + cornerRadius) + "," + bubbleY + " Z";
         
         elem.setAttribute("d", stringPath);
-        break;
-      /*case "thoughtbubble":
+      },
+      /*"thoughtbubble": () => {
         elem = svg.querySelector("g");
         if (elem == null) {
           svg.innerHTML = "<g/>";
@@ -4553,8 +4622,8 @@ case "heart":
         elem.appendChild(mainBubble);
         elem.appendChild(small1);
         elem.appendChild(small2);
-        break;*/
-      case "polygon":
+      },*/
+      "polygon": () => {
         elem = svg.querySelector("polygon");
         if (elem == null) {
           svg.innerHTML = "<polygon/>";
@@ -4563,16 +4632,35 @@ case "heart":
         }
         widthT = width - t;
         heightT = height - t;
-        let hexPoints = "";
+        let rawPoints = [];
+        let minX;
+        let maxX;
+        let minY;
+        let maxY;
         for (let i = 0; i < 6; i++) {
-            let angle = Math.PI / 3 * i;
-            let x = halfT + widthT / 2 + Math.cos(angle) * widthT / 2; 
-            let y = halfT + heightT / 2 + Math.sin(angle) * heightT / 2;
-            hexPoints += x + "," + y + " ";
+          let angle = Math.PI / 3 * i;
+          let x = halfT + widthT / 2 + Math.cos(angle) * widthT / 2; 
+          let y = halfT + heightT / 2 + Math.sin(angle) * heightT / 2;
+          rawPoints.push([x, y]);
+          minX = Math.min(minX ?? x, x);
+          maxX = Math.max(maxX ?? x, x);
+          minY = Math.min(minY ?? y, y);
+          maxY = Math.max(maxY ?? y, y);
         }
-        elem.setAttribute("points", hexPoints.trim());
-        break;
-    }
+        let cx = (widthT / 2) + halfT;
+        let cy = (heightT / 2) + halfT;
+        let scaleX = widthT / (maxX - minX);
+        let scaleY = heightT / (maxY - minY);
+        let polygonPoints = "";
+        for (let [xNorm, yNorm] of rawPoints) {
+          let x = cx + (xNorm - (minX + maxX) / 2) * scaleX;
+          let y = cy + (yNorm - (minY + maxY) / 2) * scaleY;
+          polygonPoints += x + "," + y + " ";
+        }
+        elem.setAttribute("points", polygonPoints.trim());
+      }
+    };
+    shapes[this.properties.d ?? "square"]();
 
     if (this.properties.b == "none") {
       i = true;

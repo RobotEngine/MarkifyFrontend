@@ -4335,138 +4335,6 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
         heightT = height - t;
         elem.setAttribute("points", (halfT + (widthT * .5)) + "," + halfT + " " + (widthT + halfT) + "," + (halfT + (heightT * .5)) + " " + (halfT + (widthT * .5)) + "," + (heightT + halfT) + " " + halfT + "," + (halfT + (heightT * .5)));
       },
-      "line": () => {
-        elem = svg.querySelector("line");
-        if (elem == null) {
-          svg.innerHTML = "<line/>";
-          elem = svg.querySelector("line");
-          elem.setAttribute("stroke-linecap", "round");
-        }
-        let b = this.properties.b;
-        if (b == "none") {
-          b = "solid";
-        }
-        i = false;
-        widthT = width - t;
-        heightT = height - t;
-        elem.setAttribute("x1", widthT + halfT);
-        elem.setAttribute("y1", halfT);
-        elem.setAttribute("x2", halfT);
-        elem.setAttribute("y2", heightT + halfT);
-      },
-      "star": () => {
-        elem = svg.querySelector("polygon");
-        if (elem == null) {
-          svg.innerHTML = "<polygon/>";
-          elem = svg.querySelector("polygon");
-          elem.setAttribute("stroke-linejoin", "round");
-        }
-        widthT = width - t;
-        heightT = height - t;
-        // Calculate star points that touch the edges:
-        let cx = (widthT / 2) + halfT; //halfT + widthT / 2;
-        let cy = (heightT / 2) + halfT; //halfT + heightT / 2;  //keep or change back to halfT?
-        let spikes = 5;
-        let outerRadiusX = (width - t) / 2;
-        let outerRadiusY = (height - t) / 2;           
-        let innerRadiusX = outerRadiusX * 0.5;
-        let innerRadiusY = outerRadiusY * 0.5;
-        let rawPoints = [];
-        let minX;
-        let maxX;
-        let minY;
-        let maxY;
-        for (let i = 0; i < spikes * 2; i++) {
-          let angle = (Math.PI / spikes) * i;
-          let rX = (i % 2 === 0) ? outerRadiusX : innerRadiusX;
-          let rY = (i % 2 === 0) ? outerRadiusY : innerRadiusY;
-          let x = cx + Math.cos(angle - Math.PI/2) * rX;
-          let y = cy + Math.sin(angle - Math.PI/2) * rY;
-          rawPoints.push([x, y]);
-          minX = Math.min(minX ?? x, x);
-          maxX = Math.max(maxX ?? x, x);
-          minY = Math.min(minY ?? y, y);
-          maxY = Math.max(maxY ?? y, y);
-        }
-        let scaleX = widthT / (maxX - minX);
-        let scaleY = heightT / (maxY - minY);
-        let starPoints = "";
-        for (let [xNorm, yNorm] of rawPoints) {
-          let x = cx + (xNorm - (minX + maxX) / 2) * scaleX;
-          let y = cy + (yNorm - (minY + maxY) / 2) * scaleY;
-          starPoints += x + "," + y + " ";
-        }
-        elem.setAttribute("points", starPoints.substring(0, starPoints.length - 1));
-      },
-      "arrow": () => {
-        elem = svg.querySelector("polygon");
-        if (elem == null) {
-          svg.innerHTML = "<polygon/>";
-          elem = svg.querySelector("polygon");
-          elem.setAttribute("stroke-linejoin", "round");
-        }
-        widthT = width - t;
-        heightT = height - t;
-        // Arrowhead grows at 1/3 the rate of the shaft
-        //let baseArrowheadWidth = widthT * 0.2;
-        //let extraWidth = widthT * 0.2;
-        //let arrowheadGrowth = extraWidth * (1/3);
-        let arrowheadWidth = Math.max(Math.min(widthT - 25, 60), 10); //baseArrowheadWidth + arrowheadGrowth;
-        let shaftEnd = (widthT + halfT) - arrowheadWidth;
-        // Arrow points: shaft with fixed-size head
-        elem.setAttribute("points",
-          (halfT) + "," + (heightT * 0.2 + halfT) + " " +
-          (shaftEnd) + "," + (heightT * 0.2 + halfT) + " " + 
-          (shaftEnd) + "," + (halfT) + " " + 
-          (widthT + halfT) + "," + (heightT / 2 + halfT) + " " +
-          (shaftEnd) + "," + (heightT + halfT) + " " + 
-          (shaftEnd) + "," + (heightT * 0.8 + halfT) + " " + 
-          (halfT) + "," + (heightT * 0.8 + halfT)
-        );
-      },
-      "heart": () => {
-        elem = svg.querySelector("polygon");
-        if (elem == null) {
-          svg.innerHTML = "<polygon/>";
-          elem = svg.querySelector("polygon");
-          elem.setAttribute("stroke-linejoin", "round");
-        }
-        widthT = width - t;
-        heightT = height - t;
-
-        let rawPoints = [];
-        let minX;
-        let maxX;
-        let minY;
-        let maxY;
-
-        let steps = 100;
-        for (let i = 0; i <= steps; i++) {
-          let t = Math.PI - (i / steps) * 2 * Math.PI;
-          let x = 16 * Math.pow(Math.sin(t), 3);
-          let y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
-          rawPoints.push([x, y]);
-          minX = Math.min(minX ?? x, x);
-          maxX = Math.max(maxX ?? x, x);
-          minY = Math.min(minY ?? y, y);
-          maxY = Math.max(maxY ?? y, y);
-        }
-
-        let scaleX = widthT / (maxX - minX);
-        let scaleY = heightT / (maxY - minY);
-
-        let cx = width / 2;
-        let cy = height / 2;
-
-        let heartPoints = "";
-        for (let [xNorm, yNorm] of rawPoints) {
-          let x = cx + (xNorm - (minX + maxX) / 2) * scaleX;
-          let y = cy + (yNorm - (minY + maxY) / 2) * scaleY;
-          heartPoints += `${x},${y} `;
-        }
-
-        elem.setAttribute("points", heartPoints.trim());
-      },
       "oval": () => {
         elem = svg.querySelector("polygon");
         if (elem == null) {
@@ -4546,6 +4414,161 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
         }
 
         elem.setAttribute("points", pillPoints.join(" "));
+      },
+      "arrow": () => {
+        elem = svg.querySelector("polygon");
+        if (elem == null) {
+          svg.innerHTML = "<polygon/>";
+          elem = svg.querySelector("polygon");
+          elem.setAttribute("stroke-linejoin", "round");
+        }
+        widthT = width - t;
+        heightT = height - t;
+        // Arrowhead grows at 1/3 the rate of the shaft
+        //let baseArrowheadWidth = widthT * 0.2;
+        //let extraWidth = widthT * 0.2;
+        //let arrowheadGrowth = extraWidth * (1/3);
+        let arrowheadWidth = Math.max(Math.min(widthT - 25, 60), 10); //baseArrowheadWidth + arrowheadGrowth;
+        let shaftEnd = (widthT + halfT) - arrowheadWidth;
+        // Arrow points: shaft with fixed-size head
+        elem.setAttribute("points",
+          (halfT) + "," + (heightT * 0.2 + halfT) + " " +
+          (shaftEnd) + "," + (heightT * 0.2 + halfT) + " " + 
+          (shaftEnd) + "," + (halfT) + " " + 
+          (widthT + halfT) + "," + (heightT / 2 + halfT) + " " +
+          (shaftEnd) + "," + (heightT + halfT) + " " + 
+          (shaftEnd) + "," + (heightT * 0.8 + halfT) + " " + 
+          (halfT) + "," + (heightT * 0.8 + halfT)
+        );
+      },
+      "star": () => {
+        elem = svg.querySelector("polygon");
+        if (elem == null) {
+          svg.innerHTML = "<polygon/>";
+          elem = svg.querySelector("polygon");
+          elem.setAttribute("stroke-linejoin", "round");
+        }
+        widthT = width - t;
+        heightT = height - t;
+        // Calculate star points that touch the edges:
+        let cx = (widthT / 2) + halfT; //halfT + widthT / 2;
+        let cy = (heightT / 2) + halfT; //halfT + heightT / 2;  //keep or change back to halfT?
+        let spikes = 5;
+        let outerRadiusX = (width - t) / 2;
+        let outerRadiusY = (height - t) / 2;           
+        let innerRadiusX = outerRadiusX * 0.5;
+        let innerRadiusY = outerRadiusY * 0.5;
+        let rawPoints = [];
+        let minX;
+        let maxX;
+        let minY;
+        let maxY;
+        for (let i = 0; i < spikes * 2; i++) {
+          let angle = (Math.PI / spikes) * i;
+          let rX = (i % 2 === 0) ? outerRadiusX : innerRadiusX;
+          let rY = (i % 2 === 0) ? outerRadiusY : innerRadiusY;
+          let x = cx + Math.cos(angle - Math.PI/2) * rX;
+          let y = cy + Math.sin(angle - Math.PI/2) * rY;
+          rawPoints.push([x, y]);
+          minX = Math.min(minX ?? x, x);
+          maxX = Math.max(maxX ?? x, x);
+          minY = Math.min(minY ?? y, y);
+          maxY = Math.max(maxY ?? y, y);
+        }
+        let scaleX = widthT / (maxX - minX);
+        let scaleY = heightT / (maxY - minY);
+        let starPoints = "";
+        for (let [xNorm, yNorm] of rawPoints) {
+          let x = cx + (xNorm - (minX + maxX) / 2) * scaleX;
+          let y = cy + (yNorm - (minY + maxY) / 2) * scaleY;
+          starPoints += x + "," + y + " ";
+        }
+        elem.setAttribute("points", starPoints.substring(0, starPoints.length - 1));
+      },
+      "plus": () => {
+        elem = svg.querySelector("path");
+        if (elem == null) {
+          svg.innerHTML = "<path/>";
+          elem = svg.querySelector("path");
+          elem.setAttribute("stroke-linejoin", "round");
+        }
+
+        widthT = width - t;
+        heightT = height - t;
+
+        let halfT = t / 2;
+        let cx = (widthT / 2) + halfT;
+        let cy = (heightT / 2) + halfT;
+
+        // Thickness of each arm
+        let armThickness = Math.min(widthT, heightT) / 2.5;
+        let halfArm = armThickness / 2;
+
+        // Half width/height of the full shape
+        let halfW = widthT / 2;
+        let halfH = heightT / 2;
+
+        let commands = [];
+
+        // Top left of vertical arm
+        commands.push("M", cx - halfArm, cy - halfH);
+        commands.push("L", cx + halfArm, cy - halfH);
+        commands.push("L", cx + halfArm, cy - halfArm);
+        commands.push("L", cx + halfW, cy - halfArm);
+        commands.push("L", cx + halfW, cy + halfArm);
+        commands.push("L", cx + halfArm, cy + halfArm);
+        commands.push("L", cx + halfArm, cy + halfH);
+        commands.push("L", cx - halfArm, cy + halfH);
+        commands.push("L", cx - halfArm, cy + halfArm);
+        commands.push("L", cx - halfW, cy + halfArm);
+        commands.push("L", cx - halfW, cy - halfArm);
+        commands.push("L", cx - halfArm, cy - halfArm);
+        commands.push("Z");
+
+        elem.setAttribute("d", commands.join(" "));
+      },
+      "heart": () => {
+        elem = svg.querySelector("polygon");
+        if (elem == null) {
+          svg.innerHTML = "<polygon/>";
+          elem = svg.querySelector("polygon");
+          elem.setAttribute("stroke-linejoin", "round");
+        }
+        widthT = width - t;
+        heightT = height - t;
+
+        let rawPoints = [];
+        let minX;
+        let maxX;
+        let minY;
+        let maxY;
+
+        let steps = 100;
+        for (let i = 0; i <= steps; i++) {
+          let t = Math.PI - (i / steps) * 2 * Math.PI;
+          let x = 16 * Math.pow(Math.sin(t), 3);
+          let y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+          rawPoints.push([x, y]);
+          minX = Math.min(minX ?? x, x);
+          maxX = Math.max(maxX ?? x, x);
+          minY = Math.min(minY ?? y, y);
+          maxY = Math.max(maxY ?? y, y);
+        }
+
+        let scaleX = widthT / (maxX - minX);
+        let scaleY = heightT / (maxY - minY);
+
+        let cx = width / 2;
+        let cy = height / 2;
+
+        let heartPoints = "";
+        for (let [xNorm, yNorm] of rawPoints) {
+          let x = cx + (xNorm - (minX + maxX) / 2) * scaleX;
+          let y = cy + (yNorm - (minY + maxY) / 2) * scaleY;
+          heartPoints += `${x},${y} `;
+        }
+
+        elem.setAttribute("points", heartPoints.trim());
       },
       "speech": () => {
         elem = svg.querySelector("path");
@@ -4658,6 +4681,25 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
           polygonPoints += x + "," + y + " ";
         }
         elem.setAttribute("points", polygonPoints.trim());
+      },
+      "line": () => {
+        elem = svg.querySelector("line");
+        if (elem == null) {
+          svg.innerHTML = "<line/>";
+          elem = svg.querySelector("line");
+          elem.setAttribute("stroke-linecap", "round");
+        }
+        let b = this.properties.b;
+        if (b == "none") {
+          b = "solid";
+        }
+        i = false;
+        widthT = width - t;
+        heightT = height - t;
+        elem.setAttribute("x1", widthT + halfT);
+        elem.setAttribute("y1", halfT);
+        elem.setAttribute("x2", halfT);
+        elem.setAttribute("y2", heightT + halfT);
       }
     };
     shapes[this.properties.d ?? "square"]();

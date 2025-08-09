@@ -308,12 +308,18 @@ modules["lesson/board"] = class {
         shareButton.style.display = "flex";
         optionsButton.style.display = "flex";
       }
-      if ((account.settings ?? {}).toolbar != "right") {
-        toolbarHolder.setAttribute("left", "");
-        toolbarHolder.removeAttribute("right");
-      } else {
-        toolbarHolder.setAttribute("right", "");
-        toolbarHolder.removeAttribute("left");
+      let toolbarSetting = (account.settings ?? {}).toolbar ?? "left";
+      if (toolbarHolder.hasAttribute(toolbarSetting) == false) {
+        if (toolbarSetting != "right") {
+          toolbarHolder.setAttribute("left", "");
+          toolbarHolder.removeAttribute("right");
+        } else {
+          toolbarHolder.setAttribute("right", "");
+          toolbarHolder.removeAttribute("left");
+        }
+        if (this.editor.toolbar != null) {
+          this.editor.toolbar.toolbar.update();
+        }
       }
       updateTopBar();
     }

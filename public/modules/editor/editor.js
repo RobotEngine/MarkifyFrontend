@@ -4428,7 +4428,7 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
         //let baseArrowheadWidth = widthT * 0.2;
         //let extraWidth = widthT * 0.2;
         //let arrowheadGrowth = extraWidth * (1/3);
-        let arrowheadWidth = Math.max(Math.min(widthT - 25, 60), 10); //baseArrowheadWidth + arrowheadGrowth;
+        let arrowheadWidth = Math.max(Math.min(widthT - 25, heightT / 2), 10); //baseArrowheadWidth + arrowheadGrowth;
         let shaftEnd = (widthT + halfT) - arrowheadWidth;
         // Arrow points: shaft with fixed-size head
         elem.setAttribute("points",
@@ -4501,7 +4501,7 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
         let cy = (heightT / 2) + halfT;
 
         // Thickness of each arm
-        let armThickness = Math.min(widthT, heightT) / 2.5;
+        let armThickness = Math.min(widthT, heightT) / 2.5; //3
         let halfArm = armThickness / 2;
 
         // Half width/height of the full shape

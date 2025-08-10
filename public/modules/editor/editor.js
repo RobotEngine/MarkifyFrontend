@@ -3239,7 +3239,12 @@ modules["editor/editor"] = class {
       if (set != null) {
         this.zoom = set;
       } else {
-        this.zoom += Math.min(mouse.deltaY ?? 0, 50) * -0.01;
+        let delta = mouse.deltaY ?? 0;
+        if (delta > 0) {
+          this.zoom += Math.min(delta, 20) * -0.01;
+        } else {
+          this.zoom += Math.max(delta, -20) * -0.01;
+        }
       }
       this.zoomChanged = true;
 

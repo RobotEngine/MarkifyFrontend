@@ -544,7 +544,7 @@ modules["editor/toolbar"] = class {
       }
     }
     this.activateTool = async (extra, options = {}) => {
-      editor.pinchZoomDisable = false;
+      //editor.pinchZoomDisable = false;
       editor.usingStylus = false;
       this.selection.hideSelectBox = null;
       if (options.resetSelection != false) {
@@ -5085,9 +5085,9 @@ modules["editor/toolbar/pen"] = class {
 
     if (this.editor.options.stylusmode != true) {
       this.TOUCH_ACTION = "pinch-zoom";
-    } else {
+    }/* else {
       this.editor.pinchZoomDisable = true;
-    }
+    }*/
   }
   disable = async () => {
     if (this.annotation == null) {
@@ -5128,9 +5128,9 @@ modules["editor/toolbar/understrike"] = class extends modules["editor/toolbar/pe
 
     if (this.editor.options.stylusmode != true) {
       this.TOUCH_ACTION = "pinch-zoom";
-    } else {
+    }/* else {
       this.editor.pinchZoomDisable = true;
-    }
+    }*/
   }
 }
 modules["editor/toolbar/eraser"] = class {
@@ -5287,9 +5287,9 @@ modules["editor/toolbar/eraser"] = class {
   enable = () => {
     if (this.editor.options.stylusmode != true) {
       this.TOUCH_ACTION = "pinch-zoom";
-    } else {
+    }/* else {
       this.editor.pinchZoomDisable = true;
-    }
+    }*/
   }
   disable = this.clickEnd;
 }

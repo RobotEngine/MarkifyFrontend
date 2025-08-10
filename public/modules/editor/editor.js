@@ -523,6 +523,8 @@ modules["editor/editor"] = class {
   zoom = 1;
   maxLayer = null;
   minLayer = null;
+  zooming = false;
+  pinching = false;
 
   backgroundColor = "FFFFFF";
 
@@ -3265,9 +3267,11 @@ modules["editor/editor"] = class {
         let annotationHolderRect = this.utils.localBoundingRect(annotations);
         let addScrollX = (mouseBeforeX * this.zoom) - (mouseX - annotationHolderRect.left);
         let addScrollY = (mouseBeforeY * this.zoom) - (mouseY - annotationHolderRect.top);
+
+        //changeScrollX
         
         // Set the new scroll position
-        contentHolder.scrollTo(contentHolder.scrollLeft + addScrollX, contentHolder.scrollTop + addScrollY);
+        contentHolder.scrollTo(contentHolder.scrollLeft + addScrollX + (mouse.changeScrollX ?? 0), contentHolder.scrollTop + addScrollY + (mouse.changeScrollY ?? 0));
       }
 
       this.zooming = false;
@@ -3311,7 +3315,7 @@ modules["editor/editor"] = class {
 
     let startDistance;
     let startZoom;
-    let currentCenter;
+    let originCenter;
     let getDistance = (touches) => {
       let pageWidth = page.offsetWidth;
       let pageHeight = page.offsetHeight;
@@ -3326,55 +3330,69 @@ modules["editor/editor"] = class {
       let { mouseX: touchBX, mouseY: touchBY } = this.utils.localMousePosition(touches[1]);
       return { x: (touchAX + touchBX) / 2, y: (touchAY + touchBY) / 2 };
     }
-    let running = false;
     let handlePinch = async (event) => {
-      if (event.touches.length > 1 && this.pinchZoomDisable != true) {
-        event.preventDefault();
-        if (running == true) {
-          return;
-        }
-        running = true;
-        let selectKeys = Object.keys(this.selecting);
-        this.selecting = {};
-        for (let i = 0; i < selectKeys.length; i++) {
-          let existingAnno = this.annotations[selectKeys[i]];
-          if (existingAnno != null) {
-            let allowRender = false;
-            for (let i = 0; i < existingAnno.chunks.length; i++) {
-              if (this.visibleChunks.includes(existingAnno.chunks[i]) == true) {
-                allowRender = true;
-                break;
-              }
-            }
-            if (allowRender == true) {
-              await this.render.create(existingAnno);
+      if (this.pinching != true) {
+        return;
+      }
+      let selectKeys = Object.keys(this.selecting);
+      this.selecting = {};
+      for (let i = 0; i < selectKeys.length; i++) {
+        let existingAnno = this.annotations[selectKeys[i]];
+        if (existingAnno != null) {
+          let allowRender = false;
+          for (let i = 0; i < existingAnno.chunks.length; i++) {
+            if (this.visibleChunks.includes(existingAnno.chunks[i]) == true) {
+              allowRender = true;
+              break;
             }
           }
+          if (allowRender == true) {
+            await this.render.create(existingAnno);
+          }
         }
-        let currentDistance = getDistance(event.touches);
-        if (startDistance == null) {
-          startDistance = currentDistance;
-        }
-        if (startZoom == null) {
-          startZoom = this.zoom;
-        }
-        if (currentCenter == null) {
-          currentCenter = getCenter(event.touches);
-        }
-        await this.setZoom(startZoom * (currentDistance / startDistance), null, { clientX: currentCenter.x, clientY: currentCenter.y, updatePages: false });
-        running = false;
       }
+      let currentDistance = getDistance(event.touches);
+      if (startDistance == null) {
+        startDistance = currentDistance;
+      }
+      if (startZoom == null) {
+        startZoom = this.zoom;
+      }
+      let center = getCenter(event.touches);
+      if (originCenter == null) {
+        originCenter = { x: center.x, y: center.y };
+      }
+      await this.setZoom(startZoom * (currentDistance / startDistance), null, {
+        clientX: originCenter.x,
+        clientY: originCenter.y,
+        changeScrollX: originCenter.x - center.x,
+        changeScrollY: originCenter.y - center.y,
+        updatePages: false
+      });
     }
     this.pipeline.subscribe("zoomPinchTouchStart", "touchstart", (data) => {
-      handlePinch(data.event);
+      let event = data.event;
+      if (event.touches.length > 1) { // && this.pinchZoomDisable != true
+        this.pinching = true;
+      }
+      handlePinch(event);
     });
     this.pipeline.subscribe("zoomPinchTouchMove", "touchmove", (data) => {
+      if (this.pinching == true) {
+        data.event.preventDefault();
+        data.event.stopPropagation();
+      }
       handlePinch(data.event);
     });
-    this.pipeline.subscribe("zoomPinchTouchEnd", "touchend", () => {
+    this.pipeline.subscribe("zoomPinchTouchEnd", "touchend", (data) => {
+      if (data.event.touches.length < 2) {
+        this.pinching = false;
+      }
       startDistance = null;
       startZoom = null;
-      currentCenter = null;
+      originCenter = null;
+      lastMouseX = null;
+      lastMouseY = null;
     });
 
     page.addEventListener("pointerdown", (event) => {

@@ -1431,9 +1431,20 @@ modules["editor/editor"] = class {
       return "pending_" + randomString(10) + Date.now();
     }
     this.render.setMarginSize = async (force) => {
-      if (this.exporting == true && force != true) {
-        return;
+      if (force != true) {
+        if (this.exporting == true) {
+          return;
+        }
+        if (this.pinching == true && force != true) {
+          if (this.render.setMarginSizeTimeout == null) {
+            this.render.setMarginSizeTimeout = setTimeout(() => {
+              this.render.setMarginSize(true);
+            }, 100);
+          }
+          return;
+        }
       }
+      this.render.setMarginSizeTimeout = null;
   
       this.render.farLeft = 0;
       this.render.farRight = 0;
@@ -2855,10 +2866,22 @@ modules["editor/editor"] = class {
     let loadedChunks = {};
     let holdLoadedChunks = {};
     let alreadyRunningUpdateCycle = false;
-    this.runUpdateCycle = async () => {
+    let pinchingUpdateTimeout;
+    this.runUpdateCycle = async (force) => {
       if (alreadyRunningUpdateCycle == true) {
         return;
       }
+
+      if (this.pinching == true && force != true) {
+        if (pinchingUpdateTimeout == null) {
+          pinchingUpdateTimeout = setTimeout(() => {
+            this.runUpdateCycle(true);
+          }, 200);
+        }
+        return;
+      }
+      pinchingUpdateTimeout = null;
+
       alreadyRunningUpdateCycle = true;
       let unloadChunkedAnnotations = {};
       let newlyUnloaded = {};
@@ -3238,16 +3261,15 @@ modules["editor/editor"] = class {
         mouseBeforeY = (mouseY - annotationHolderRect.top) / this.zoom;
       }
 
-      if (set != null) {
-        this.zoom = set;
-      } else {
+      if (set == null) {
         let delta = mouse.deltaY ?? 0;
         if (delta > 0) {
-          this.zoom += ((Math.min(delta, 20) ?? 0) * -0.01) * this.zoom; //Math.min(delta, 20) * -0.01;
+          set = this.zoom + (((Math.min(delta, 20) ?? 0) * -0.01) * this.zoom); //Math.min(delta, 20) * -0.01;
         } else {
-          this.zoom += ((Math.max(delta, -20) ?? 0) * -0.01) * this.zoom; //Math.max(delta, -20) * -0.01;
+          set = this.zoom + (((Math.max(delta, -20) ?? 0) * -0.01) * this.zoom); //Math.max(delta, -20) * -0.01;
         }
       }
+      this.zoom = set;
       this.zoomChanged = true;
 
       if (this.zoom > 5) {

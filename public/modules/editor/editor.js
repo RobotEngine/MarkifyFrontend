@@ -13,7 +13,7 @@ modules["editor/editor"] = class {
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 3; overflow: hidden; pointer-events: none`,
     ".eEditorContent": `position: relative`,
     ".eAnnotations": `--startZIndex: 0; position: relative; width: 1px; height: 1px; transform-origin: 0 0; transform: scale(var(--zoom)); z-index: 2; pointer-events: none`,
-    ".eBackground": `position: absolute; left: 0px; top: 0px; opacity: .075; transform-origin: left top; background-position: center; z-index: 1`,
+    ".eBackground": `position: absolute; left: 0px; top: 0px; opacity: .075; transform-origin: left top; background-position: center; z-index: 1; pointer-events: none`,
 
     ".eAnnotation": `position: absolute; left: 0px; top: 0px; z-index: calc(var(--startZIndex) + var(--zIndex))`,
     ".eAnnotation[hidden]": `display: none !important`,
@@ -2985,7 +2985,7 @@ modules["editor/editor"] = class {
       let annotationRect = this.utils.localBoundingRect(annotations);
       let originCorrectX = (annotationRect.left - (backgroundWidth / 2)) % scaledDotSize;
       let originCorrectY = (annotationRect.top - (backgroundHeight / 2)) % scaledDotSize;
-      background.style.transform = "translate3d(" + (contentHolder.scrollLeft + originCorrectX - backgroundPaddingWidth) + "px, " + (contentHolder.scrollTop + originCorrectY - backgroundPaddingHeight) + "px, 0) scale(var(--zoom))";
+      background.style.transform = "matrix(1,0,0,1," + (contentHolder.scrollLeft + originCorrectX - backgroundPaddingWidth) + "," + (contentHolder.scrollTop + originCorrectY - backgroundPaddingHeight) + ") scale(var(--zoom))";
 
       if (this.zooming == true) {
         return;
@@ -3933,14 +3933,30 @@ modules["editor/render/annotation"] = class {
     if (element == null) {
       return;
     }
-    let transform = "translate3d(" + this.properties.p[0] + "px," + this.properties.p[1] + "px, 0)";
+    // matrix(scaleX(), skewY(), skewX(), scaleY(), translateX(), translateY())
+    // matrix(cos(X), sin(X), -sin(X), cos(X), 0, 0)
     let rotate = this.properties.r ?? 0;
-    if (rotate > 0) {
-      if (rotate > 180) {
-        rotate = -(360 - rotate);
-      }
-      transform += " rotate(" + rotate + "deg)";
+    if (rotate > 180) {
+      rotate = -(360 - rotate);
     }
+    let radian = rotate * (Math.PI / 180);
+    let a = Math.cos(radian);
+    let b = Math.sin(radian);
+    let c = -Math.sin(radian);
+    let d = Math.cos(radian);
+    let size = this.annotation.render.s ?? [];
+    if ((size[0] ?? 1) < 0) {
+      a *= -1;
+    }
+    if ((size[1] ?? 1) < 0) {
+      d *= -1;
+    }
+    let transform = "matrix(" + a + "," + b + "," + c + "," + d + "," + this.properties.p[0] + "," + this.properties.p[1] + ")";
+    if (transform != this.cache.lastSetTransform) {
+      this.cache.lastSetTransform = transform;
+      element.style.transform = transform;
+    }
+    /*let transform = "translate3d(" + this.properties.p[0] + "px," + this.properties.p[1] + "px, 0)";
     let [sizeWidth, sizeHeight] = [(this.annotation.render.s ?? [])[0] ?? 1, (this.annotation.render.s ?? [])[1] ?? 1];
     if (sizeWidth < 0 && sizeHeight < 0) {
       transform += " scale(-1)";
@@ -3948,11 +3964,7 @@ modules["editor/render/annotation"] = class {
       transform += " scale(-1,1)";
     } else if (sizeHeight < 0) {
       transform += " scale(1,-1)";
-    }
-    if (transform != this.cache.lastSetTransform) {
-      this.cache.lastSetTransform = transform;
-      element.style.transform = transform;
-    }
+    }*/
   }
   setAnimate = (set) => {
     let element = this.getElement();
@@ -4083,10 +4095,10 @@ modules["editor/render/annotation/draw"] = class extends modules["editor/render/
     }
     if (this.element == null) {
       this.holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" style="width: ${width}px; height: ${height}px" new>
-        <svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+        <svg>
           <polyline stroke-width="${parseFloat(this.properties.t)}" points="${drawSetPoints}" stroke="${"#" + cleanString(this.properties.c)}" opacity="${parseFloat(this.properties.o) / 100}"/>
         </svg>
-      </div>`);
+      </div>`); // viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg"
       this.element = this.holder.querySelector(".eAnnotation[new]");
       this.element.removeAttribute("new");
       let line = this.element.querySelector("polyline");
@@ -4098,7 +4110,7 @@ modules["editor/render/annotation/draw"] = class extends modules["editor/render/
       this.element.style.height = height + "px";
       let svg = this.element.querySelector("svg");
       let path = svg.querySelector("polyline");
-      svg.setAttribute("viewBox", "0 0 " + width + " " + height);
+      //svg.setAttribute("viewBox", "0 0 " + width + " " + height);
       path.setAttribute("stroke-width", this.properties.t);
       path.setAttribute("points", drawSetPoints);
       path.setAttribute("stroke", "#" + this.properties.c);
@@ -4122,10 +4134,10 @@ modules["editor/render/annotation/markup"] = class extends modules["editor/rende
   render = () => {
     if (this.element == null) {
       this.holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
-        <svg xmlns="http://www.w3.org/2000/svg">
+        <svg>
           <polyline/>
         </svg>
-      </div>`);
+      </div>`); // xmlns="http://www.w3.org/2000/svg"
       this.element = this.holder.querySelector(".eAnnotation[new]");
       this.element.removeAttribute("new");
       let line = this.element.querySelector("polyline");
@@ -4139,7 +4151,7 @@ modules["editor/render/annotation/markup"] = class extends modules["editor/rende
     let svg = this.element.querySelector("svg");
     let path = svg.querySelector("polyline");
     let drawSetPoints = "";
-    svg.setAttribute("viewBox", "0 0 " + width + " " + height);
+    //svg.setAttribute("viewBox", "0 0 " + width + " " + height);
     if (this.properties.d.length == 2) {
       drawSetPoints = (width / 2) + "," + (height / 2) + " " + ((width / 2) + .1) + "," + ((height / 2) + .1);
       path.setAttribute("stroke-width", width);
@@ -4278,8 +4290,8 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
   render = () => {
     if (this.element == null) {
       this.holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
-        <svg xmlns="http://www.w3.org/2000/svg"></svg>
-      </div>`);
+        <svg></svg>
+      </div>`); // xmlns="http://www.w3.org/2000/svg"
       this.element = this.holder.querySelector(".eAnnotation[new]");
       this.element.removeAttribute("new");
     }
@@ -4305,7 +4317,7 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
     } else {
       svg.setAttribute("hidden", "");
     }
-    svg.setAttribute("viewBox", "0 0 " + width + " " + height);
+    //svg.setAttribute("viewBox", "0 0 " + width + " " + height);
 
     let elem;
     let widthT;
@@ -5105,7 +5117,7 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
     }
 
     let absolutePos = this.parent.utils.getAbsolutePosition(this.properties, true);
-    this.element.style.transform = "translate3d(" + absolutePos.x + "px," + absolutePos.y + "px, 0)";
+    this.element.style.transform = "matrix(1,0,0,1," + absolutePos.x + "," + absolutePos.y + ")";
 
     let comment = this.element.querySelector("div[commentholder] > div[comment]");
     let content = comment.querySelector("div[content]");

@@ -12,10 +12,10 @@ modules["editor/editor"] = class {
     ".eContent": `--interfacePadding: 58px; position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - (var(--interfacePadding) * 2)); min-height: calc(100vh - (var(--interfacePadding) * 2)); padding: var(--interfacePadding); align-items: center; overflow: hidden; background-color: var(--backgroundColor); pointer-events: all; transition: background-color .3s; --zoom: 1`,
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 3; overflow: hidden; pointer-events: none`,
     ".eEditorContent": `position: relative`,
-    ".eAnnotations": `--startZIndex: 0; position: relative; width: 1px; height: 1px; transform-origin: 0 0; transform: scale(var(--zoom)); z-index: 2; pointer-events: none`,
+    ".eAnnotations": `--startZIndex: 0; position: relative; width: 1px; height: 1px; transform-origin: 0 0; transform: scale(var(--zoom)); z-index: 2; pointer-events: none; contain: layout style size`,
     ".eBackground": `position: absolute; left: 0px; top: 0px; opacity: .075; transform-origin: left top; background-position: center; z-index: 1; pointer-events: none`,
 
-    ".eAnnotation": `position: absolute; left: 0px; top: 0px; z-index: calc(var(--startZIndex) + var(--zIndex))`,
+    ".eAnnotation": `position: absolute; left: 0px; top: 0px; z-index: calc(var(--startZIndex) + var(--zIndex)); contain: size layout`,
     ".eAnnotation[hidden]": `display: none !important`,
     ".eAnnotation[anno]": `transition: all .25s, z-index 0s`,
     //".eAnnotation:not([anno])": `display: none !important`,
@@ -4067,31 +4067,30 @@ modules["editor/render/annotation/draw"] = class extends modules["editor/render/
     let height = this.properties.s[1] + this.properties.t;
     let drawSetPoints = "";
     if (this.properties.d.length == 2) {
-      drawSetPoints = (this.properties.t / 2) + "," + (this.properties.t / 2) + " " + ((this.properties.t / 2) + .1) + "," + ((this.properties.t / 2) + .1);
+      drawSetPoints = halfT + "," + halfT + " " + (halfT + .01) + "," + (halfT + .01);
     } else {
-      /*let scaleW = 1;
+      let scaleW = 1;
       let scaleH = 1;
       if (this.properties.sync != null) {
-        // Allows for greater precision when zoomed in:
         let largestX = this.properties.d[0];
         let largestY = this.properties.d[1];
         for (let i = 2; i < this.properties.d.length; i += 2) {
           largestX = Math.max(largestX, this.properties.d[i]);
           largestY = Math.max(largestY, this.properties.d[i + 1]);
         }
-        if (largestX - halfT > 0) {
-          scaleW = (width - this.properties.t) / (largestX - halfT);
+        if (largestX > 0) {
+          scaleW = this.properties.s[0] / largestX;
         } else {
-          scaleW = width - this.properties.t;
+          scaleW = this.properties.s[0];
         }
-        if (largestY - halfT > 0) {
-          scaleH = (height - this.properties.t) / (largestY - halfT);
+        if (largestY > 0) {
+          scaleH = this.properties.s[1] / largestY;
         } else {
-          scaleH = height - this.properties.t;
+          scaleH = this.properties.s[1];
         }
-      }*/
+      }
       for (let i = 0; i < this.properties.d.length; i += 2) {
-        drawSetPoints += (halfT + this.properties.d[i]) + "," + (halfT + this.properties.d[i + 1]) + " ";
+        drawSetPoints += (halfT + (this.properties.d[i] * scaleW)) + "," + (halfT + (this.properties.d[i + 1] * scaleH)) + " ";
       }
     }
     if (this.element == null) {
@@ -4160,30 +4159,28 @@ modules["editor/render/annotation/markup"] = class extends modules["editor/rende
       drawSetPoints = (width / 2) + "," + (height / 2) + " " + ((width / 2) + .1) + "," + ((height / 2) + .1);
       path.setAttribute("stroke-width", width);
     } else {
-      /*let scaleW = 1;
+      let scaleW = 1;
       let scaleH = 1;
       if (this.properties.sync != null) {
-        // Allows for greater precision when zoomed in:
         let largestX = this.properties.d[0];
         let largestY = this.properties.d[1];
         for (let i = 2; i < this.properties.d.length; i += 2) {
           largestX = Math.max(largestX, this.properties.d[i]);
           largestY = Math.max(largestY, this.properties.d[i + 1]);
         }
-        let halfT = 0;//t / 2;
-        if (largestX - halfT > 0) {
-          scaleW = (width - this.properties.t) / (largestX - halfT);
+        if (largestX > 0) {
+          scaleW = this.properties.s[0] / largestX;
         } else {
-          scaleW = width - this.properties.t;
+          scaleW = this.properties.s[0];
         }
-        if (largestY - halfT > 0) {
-          scaleH = (height - this.properties.t) / (largestY - halfT);
+        if (largestY > 0) {
+          scaleH = this.properties.s[1] / largestY;
         } else {
-          scaleH = height - this.properties.t;
+          scaleH = this.properties.s[1];
         }
-      }*/
+      }
       for (let i = 0; i < this.properties.d.length; i += 2) {
-        drawSetPoints += (halfT + this.properties.d[i]) + "," + (halfT + this.properties.d[i + 1]) + " ";
+        drawSetPoints += (halfT + (this.properties.d[i] * scaleW)) + "," + (halfT + (this.properties.d[i + 1] * scaleH)) + " ";
       }
       path.setAttribute("stroke-width", this.properties.t);
     }
@@ -5234,12 +5231,12 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
 
   css = {
     ".eAnnotation[page]": `display: flex; flex-direction: column; background: white; border-radius: 12px; --borderWidth: 4px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2)`,
-    ".eAnnotation[page] > canvas[background]": `position: absolute; left: 0; top: 0; z-index: 0; border-radius: inherit; overflow: hidden`,
+    ".eAnnotation[page] > canvas[background]": `position: absolute;left: 0; top: 0; z-index: 0; border-radius: inherit; overflow: hidden; z-index: 1`,
     ".eAnnotation[page] > div[background]": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--themeColor); opacity: .1; border-radius: inherit; z-index: 0; pointer-events: all`,
     ".eAnnotation[page] > div[border]": `position: absolute; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; border: solid var(--borderWidth) var(--themeColor); border-radius: inherit; z-index: 4; pointer-events: none`,
     ".eAnnotation[page] > div[label]": `position: absolute; display: none; box-sizing: border-box; padding: 8px 10px; background: var(--themeColor); border-radius: 0px; border-top-left-radius: inherit; border-bottom-right-radius: 12px;  font-weight: 600; font-size: 18px; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; outline: none; scrollbar-width: none; z-index: 3; pointer-events: all`,
     ".eAnnotation[page] > div[label]::-webkit-scrollbar": `display: none`,
-    ".eAnnotation[page] > div[content]": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; justify-content: center; align-items: center`,
+    ".eAnnotation[page] > div[content]": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; justify-content: center; align-items: center; z-index: 2; contain: layout style size`,
     ".eAnnotation[page][hide] > div[content] .eAnnotationHolder": `z-index: 2 !important`,
     ".eAnnotation[page][selected] > div[label]": `pointer-events: all !important`,
     ".eAnnotation[page] > div[label][contenteditable]": `overflow-x: auto !important; text-overflow: unset !important`,
@@ -5401,7 +5398,7 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
         pdfDocumentHolder.setAttribute("sourcepage", sourcePageId);
         pdfDocumentHolder.setAttribute("width", this.properties.s[0]);
         pdfDocumentHolder.setAttribute("height", this.properties.s[1]);
-        pdfDocumentHolder.setAttribute("rotation", this.properties.rotation);
+        pdfDocumentHolder.setAttribute("rotation", this.properties.rotation ?? 0);
         if (this.exporting != true) {
           pdfDocumentHolder.style.opacity = 0;
           pdfDocumentHolder.style.transition = "opacity .3s";

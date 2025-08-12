@@ -3944,6 +3944,8 @@ modules["editor/render/annotation"] = class {
     let b = Math.sin(radian);
     let c = -Math.sin(radian);
     let d = Math.cos(radian);
+    let x = this.editor.math.round(this.properties.p[0]);
+    let y = this.editor.math.round(this.properties.p[1]);
     let size = this.annotation.render.s ?? [];
     if ((size[0] ?? 1) < 0) {
       a *= -1;
@@ -3951,7 +3953,7 @@ modules["editor/render/annotation"] = class {
     if ((size[1] ?? 1) < 0) {
       d *= -1;
     }
-    let transform = "matrix(" + a + "," + b + "," + c + "," + d + "," + this.properties.p[0] + "," + this.properties.p[1] + ")";
+    let transform = "matrix(" + a + "," + b + "," + c + "," + d + "," + x + "," + y + ")";
     if (transform != this.cache.lastSetTransform) {
       this.cache.lastSetTransform = transform;
       element.style.transform = transform;
@@ -5232,7 +5234,7 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
 
   css = {
     ".eAnnotation[page]": `display: flex; flex-direction: column; background: white; border-radius: 12px; --borderWidth: 4px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2)`,
-    ".eAnnotation[page] > canvas[background]": `position: absolute; left: 0; top: 0; z-index: 0; border-radius: inherit; overflow: hidden;`,
+    ".eAnnotation[page] > canvas[background]": `position: absolute; left: 0; top: 0; z-index: 0; border-radius: inherit; overflow: hidden`,
     ".eAnnotation[page] > div[background]": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--themeColor); opacity: .1; border-radius: inherit; z-index: 0; pointer-events: all`,
     ".eAnnotation[page] > div[border]": `position: absolute; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; border: solid var(--borderWidth) var(--themeColor); border-radius: inherit; z-index: 4; pointer-events: none`,
     ".eAnnotation[page] > div[label]": `position: absolute; display: none; box-sizing: border-box; padding: 8px 10px; background: var(--themeColor); border-radius: 0px; border-top-left-radius: inherit; border-bottom-right-radius: 12px;  font-weight: 600; font-size: 18px; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; outline: none; scrollbar-width: none; z-index: 3; pointer-events: all`,

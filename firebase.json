@@ -8,6 +8,17 @@
     ],
     "cleanUrls": true,
     "trailingSlash": true,
+    "redirects": [
+      {
+        "source": "/tos",
+        "destination": "https://exotek.co/tos",
+        "type": 303
+      }, {
+        "source": "/privacy",
+        "destination": "https://exotek.co/privacy",
+        "type": 303
+      }
+    ],
     "rewrites": [
      {
         "source": "/join",

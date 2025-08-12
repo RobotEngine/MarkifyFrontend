@@ -4067,7 +4067,7 @@ modules["editor/render/annotation/draw"] = class extends modules["editor/render/
     if (this.properties.d.length == 2) {
       drawSetPoints = (this.properties.t / 2) + "," + (this.properties.t / 2) + " " + ((this.properties.t / 2) + .1) + "," + ((this.properties.t / 2) + .1);
     } else {
-      let scaleW = 1;
+      /*let scaleW = 1;
       let scaleH = 1;
       if (this.properties.sync != null) {
         // Allows for greater precision when zoomed in:
@@ -4077,7 +4077,6 @@ modules["editor/render/annotation/draw"] = class extends modules["editor/render/
           largestX = Math.max(largestX, this.properties.d[i]);
           largestY = Math.max(largestY, this.properties.d[i + 1]);
         }
-        let halfT = 0;
         if (largestX - halfT > 0) {
           scaleW = (width - this.properties.t) / (largestX - halfT);
         } else {
@@ -4088,9 +4087,9 @@ modules["editor/render/annotation/draw"] = class extends modules["editor/render/
         } else {
           scaleH = height - this.properties.t;
         }
-      }
+      }*/
       for (let i = 0; i < this.properties.d.length; i += 2) {
-        drawSetPoints += (halfT + (this.properties.d[i]) * scaleW) + "," + (halfT + (this.properties.d[i + 1] * scaleH)) + " ";
+        drawSetPoints += (halfT + this.properties.d[i]) + "," + (halfT + this.properties.d[i + 1]) + " ";
       }
     }
     if (this.element == null) {
@@ -4112,7 +4111,10 @@ modules["editor/render/annotation/draw"] = class extends modules["editor/render/
       let path = svg.querySelector("polyline");
       //svg.setAttribute("viewBox", "0 0 " + width + " " + height);
       path.setAttribute("stroke-width", this.properties.t);
-      path.setAttribute("points", drawSetPoints);
+      if (this.cache.lastDrawSetPoints != drawSetPoints) {
+        this.cache.lastDrawSetPoints = drawSetPoints;
+        path.setAttribute("points", drawSetPoints);
+      }
       path.setAttribute("stroke", "#" + this.properties.c);
       path.setAttribute("opacity", this.properties.o / 100);
     }
@@ -4156,7 +4158,7 @@ modules["editor/render/annotation/markup"] = class extends modules["editor/rende
       drawSetPoints = (width / 2) + "," + (height / 2) + " " + ((width / 2) + .1) + "," + ((height / 2) + .1);
       path.setAttribute("stroke-width", width);
     } else {
-      let scaleW = 1;
+      /*let scaleW = 1;
       let scaleH = 1;
       if (this.properties.sync != null) {
         // Allows for greater precision when zoomed in:
@@ -4177,9 +4179,9 @@ modules["editor/render/annotation/markup"] = class extends modules["editor/rende
         } else {
           scaleH = height - this.properties.t;
         }
-      }
+      }*/
       for (let i = 0; i < this.properties.d.length; i += 2) {
-        drawSetPoints += (halfT + (this.properties.d[i] * scaleW)) + "," + (halfT + (this.properties.d[i + 1] * scaleH)) + " ";
+        drawSetPoints += (halfT + this.properties.d[i]) + "," + (halfT + this.properties.d[i + 1]) + " ";
       }
       path.setAttribute("stroke-width", this.properties.t);
     }

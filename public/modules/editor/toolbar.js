@@ -4984,31 +4984,31 @@ modules["editor/toolbar/pen"] = class {
     y -= halfT;
     if (this.FORCE_LINE != true && event.shiftKey == false) {
       if (x > this.annotation.render.s[0]) {
-        this.annotation.render.s[0] = this.editor.math.round(x);
+        this.annotation.render.s[0] = x; //this.editor.math.round(x);
       }
       if (y > this.annotation.render.s[1]) {
-        this.annotation.render.s[1] = this.editor.math.round(y);
+        this.annotation.render.s[1] = y; //this.editor.math.round(y);
       }
-      let sizeIncX = this.editor.math.round(x);
-      if (sizeIncX < 0) {
+      //let sizeIncX = this.editor.math.round(x);
+      if (x < 0) {
         for (let i = 0; i < this.annotation.render.d.length; i += 2) {
-          this.annotation.render.d[i] = this.editor.math.round(this.annotation.render.d[i] - sizeIncX);
+          this.annotation.render.d[i] -= x; //this.editor.math.round(this.annotation.render.d[i] - x);
         }
-        this.annotation.render.s[0] = this.editor.math.round(this.annotation.render.s[0] - sizeIncX);
-        this.annotation.render.p[0] = this.editor.math.round(this.annotation.render.p[0] + sizeIncX);
-        sizeIncX = 0;
+        this.annotation.render.s[0] -= x; //this.editor.math.round(this.annotation.render.s[0] - x);
+        this.annotation.render.p[0] += x; //this.editor.math.round(this.annotation.render.p[0] + x);
+        x = 0;
       }
-      let sizeIncY = this.editor.math.round(y);
-      if (sizeIncY < 0) {
+      //let sizeIncY = this.editor.math.round(y);
+      if (y < 0) {
         for (let i = 1; i < this.annotation.render.d.length; i += 2) {
-          this.annotation.render.d[i] = this.editor.math.round(this.annotation.render.d[i] - sizeIncY);
+          this.annotation.render.d[i] -= y; //this.editor.math.round(this.annotation.render.d[i] - y);
         }
-        this.annotation.render.s[1] = this.editor.math.round(this.annotation.render.s[1] - sizeIncY);
-        this.annotation.render.p[1] = this.editor.math.round(this.annotation.render.p[1] + sizeIncY);
-        sizeIncY = 0;
+        this.annotation.render.s[1] -= y; //this.editor.math.round(this.annotation.render.s[1] - y);
+        this.annotation.render.p[1] += y; //this.editor.math.round(this.annotation.render.p[1] + y);
+        y = 0;
       }
-      this.annotation.render.d.push(sizeIncX);
-      this.annotation.render.d.push(sizeIncY);
+      this.annotation.render.d.push(x);
+      this.annotation.render.d.push(y);
     } else {
       this.annotation.render.d = [this.annotation.render.d[0], this.annotation.render.d[1]];
       let sizeIncX = x;

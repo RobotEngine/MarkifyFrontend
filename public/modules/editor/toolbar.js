@@ -4025,6 +4025,12 @@ modules["editor/toolbar"] = class {
       if (editor.self.access < 1) {
         return;
       }
+
+      if (event.keyCode == 27 && this.selection.action == null) {
+        editor.selecting = {};
+        return this.selection.updateBox();
+      }
+
       let meta = event.ctrlKey || event.metaKey;
 
       if (event.keyCode == 90 && event.shiftKey == true && meta == true) { // Handle Redo
@@ -9458,7 +9464,10 @@ modules["editor/toolbar/textedit"] = class {
     this.toolbar.addEventListener("input", annoTx, inputListener);
 
     let keydownListener = (event) => {
-      if (event != null && [" ", "Enter", "Backspace"].includes(event.key) == true) {
+      if (event == null) {
+        return;
+      }
+      if ([8, 13, 32].includes(event.keyCode) == true) {
         setLastCaret("undo");
       }
     }

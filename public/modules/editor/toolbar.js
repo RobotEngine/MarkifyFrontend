@@ -5018,7 +5018,7 @@ modules["editor/toolbar/pen"] = class {
         this.annotation.render.p[0] = this.editor.math.round(this.annotation.render.p[0] + sizeIncX);
         x = 0;
       } else {
-        this.annotation.render.s[0] = Math.ceil(x);
+        this.annotation.render.s[0] = this.editor.math.round(x);
       }
       let sizeIncY = y;
       if (sizeIncY < this.annotation.render.d[1]) {
@@ -5027,7 +5027,7 @@ modules["editor/toolbar/pen"] = class {
         this.annotation.render.p[1] = this.editor.math.round(this.annotation.render.p[1] + sizeIncY);
         y = 0;
       } else {
-        this.annotation.render.s[1] = Math.ceil(y);
+        this.annotation.render.s[1] = this.editor.math.round(y);
       }
       this.annotation.render.d[2] = x;
       this.annotation.render.d[3] = y;

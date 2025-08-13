@@ -1,4 +1,6 @@
 modules["pages/app/join"] = class {
+  turnstileEnabled = false;
+
   title = "Join";
   preload = [
     "../modules/pages/app/lesson.js",
@@ -289,7 +291,7 @@ modules["pages/app/join"] = class {
         }
         setLocalStore("nickname", nickname);
         transferData.name = nickname;
-        if (userID == null) {
+        if (userID == null && this.turnstileEnabled != false) {
           if (captcha == null) {
             joinButton.setAttribute("disabled", "");
             if (needsInteractive != true) {
@@ -349,7 +351,7 @@ modules["pages/app/join"] = class {
         }
       });
     }
-    if (userID == null) {
+    if (userID == null && this.turnstileEnabled != false) {
       if (window.turnstile == null) {
         window.onloadTurnstileCallback = loadTurnstile;
         loadScript("https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onloadTurnstileCallback");

@@ -949,7 +949,7 @@ modules["pages/app/lesson"] = class {
               setFrame("pages/app/lesson", null, { passParams: true }); // Refresh to rejoin
             }
           } else if (code != 200 && code != 0 && code != null) {
-            setFrame("pages/app/lesson", null, { passParams: true });
+            setFrame("pages/app/lesson", null, { construct: { session: this.session }, passParams: true });
           }
         }
     

@@ -3944,8 +3944,8 @@ modules["editor/render/annotation"] = class {
     let b = Math.sin(radian);
     let c = -Math.sin(radian);
     let d = Math.cos(radian);
-    let x = this.editor.math.round(this.properties.p[0]);
-    let y = this.editor.math.round(this.properties.p[1]);
+    let x = this.properties.p[0];
+    let y = this.properties.p[1];
     let size = this.annotation.render.s ?? [];
     if ((size[0] ?? 1) < 0) {
       a *= -1;

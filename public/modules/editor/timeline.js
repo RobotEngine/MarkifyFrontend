@@ -845,7 +845,7 @@ modules["editor/timeline"] = class {
           if (filterMembers != null) {
             path += "?collaborators=" + filterMembers.join();
           }
-          let [code, body] = await sendRequest("GET", path, null, { session: this.parent.session });
+          let [code, body] = await sendRequest("GET", path, null, { session: this.parent.session, allowError: [403] });
           if (code == 200) {
             totalSortedChanges += body.count;
             let loadChange = body.count - sortedChanges.length;
@@ -978,7 +978,7 @@ modules["editor/timeline"] = class {
     });
 
     (async () => {
-      let [code, body] = await sendRequest("GET", "lessons/history/collaborators?before=" + loadEpoch, null, { session: this.session });
+      let [code, body] = await sendRequest("GET", "lessons/history/collaborators?before=" + loadEpoch, null, { session: this.session, allowError: [403] });
       if (code != 200 && frame != null) {
         return dropdownModule.close();
       }

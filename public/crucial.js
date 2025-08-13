@@ -1085,6 +1085,7 @@ modules["dropdown"] = class {
     ".dropdownHeader": `position: relative; display: flex; gap: 6px; padding: 6px 6px 0 6px; justify-content: space-between; transition: .4s; z-index: 2`,
     ".dropdownHeader button": `position: relative; width: 22px; height: 22px; margin: 3px; --borderWidth: 3px; --borderRadius: 14px`,
     ".dropdownHeader button svg": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
+    ".dropdownHeader button:focus-visible": `--borderWidth: 4px`,
     ".dropdownTitle": `box-sizing: border-box; display: flex; padding: 3px; flex: 1; max-width: fit-content; justify-content: center; align-items: center; white-space: nowrap; overflow: hidden; font-size: 18px; font-weight: 500`,
     ".dropdownTitle div": `flex: 1; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
     ".dropdownTitle div[backdrop]": `display: none`,
@@ -1363,6 +1364,7 @@ modules["modal"] = class {
     ".modalHeader": `position: relative; display: flex; gap: 6px; padding: 6px 6px 0 6px; justify-content: space-between; transition: .4s; z-index: 2`,
     ".modalHeader button": `position: relative; width: 22px; height: 22px; margin: 3px; --borderWidth: 3px; --borderRadius: 14px`,
     ".modalHeader button svg": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
+    ".modalHeader button:focus-visible": `--borderWidth: 4px`,
     ".modalTitle": `box-sizing: border-box; display: flex; padding: 3px; flex: 1; max-width: fit-content; justify-content: center; align-items: center; white-space: nowrap; overflow: hidden; font-size: 18px; font-weight: 500`,
     ".modalTitle div": `flex: 1; margin: 0 4px; white-space: nowrap; overflow: hidden`,
     ".modalTitle img": `width: 26px; height: 26px; object-fit: cover; border-radius: 13px`
@@ -1599,6 +1601,7 @@ modules["alert"] = class {
     ".alertText div b": `margin-right: unset; color: unset; font-size: unset`,
     ".alertText i": `margin-left: 4px`,
     ".alertClose": `position: relative; width: 22px; height: 22px; margin: 5px 5px 5px 12px; --borderWidth: 3px; --borderRadius: 11px`,
+    ".alertClose:focus-visible": `--borderWidth: 4px`,
     ".alertClose svg": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`
   };
   themes = {

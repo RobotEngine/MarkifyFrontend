@@ -11,7 +11,7 @@ modules["editor/editor"] = class {
   css = {
     ".eContent": `--interfacePadding: 58px; position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - (var(--interfacePadding) * 2)); min-height: calc(100vh - (var(--interfacePadding) * 2)); padding: var(--interfacePadding); align-items: center; overflow: hidden; background-color: var(--backgroundColor); pointer-events: all; transition: background-color .3s; --zoom: 1`,
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 3; overflow: hidden; pointer-events: none`,
-    ".eEditorContent": `position: relative`,
+    ".eEditorContent": `position: relative; will-change: margin`,
     ".eAnnotations": `--startZIndex: 0; position: relative; width: 1px; height: 1px; transform-origin: 0 0; transform: scale(var(--zoom)); z-index: 2; pointer-events: none; contain: layout style size`,
     ".eBackground": `position: absolute; left: 0px; top: 0px; opacity: .075; transform-origin: left top; background-position: center; z-index: 1; pointer-events: none`,
 
@@ -1446,42 +1446,47 @@ modules["editor/editor"] = class {
       }
       this.render.setMarginSizeTimeout = null;
   
-      this.render.farLeft = 0;
-      this.render.farRight = 0;
-      this.render.setLeftMargin = 0;
-      this.render.setRightMargin = 0;
-      this.render.farTop = 0;
-      this.render.farBottom = 0;
-      this.render.setTopMargin = 0;
-      this.render.setBottomMargin = 0;
-      
       let chunks = Object.keys(this.chunkAnnotations);
-      for (let i = 0; i < chunks.length; i++) {
-        let splitPos = chunks[i].split("_");
-        let [x, y] = [parseInt(splitPos[0]), parseInt(splitPos[1])];
-        let left = -x;
-        let right = x + this.chunkWidth;
-        let top = -y;
-        let bottom = y + this.chunkHeight;
-        if (left > this.render.farLeft) {
-          this.render.setLeftMargin = Math.ceil(left / 400) * 400;
-          this.render.farLeft = this.render.setLeftMargin - 120;
-        }
-        if (right > this.render.farRight) {
-          this.render.setRightMargin = Math.ceil(right / 400) * 400;
-          this.render.farRight = this.render.setRightMargin - 120;
-        }
-        if (top > this.render.farTop) {
-          this.render.setTopMargin = Math.ceil(top / 400) * 400;
-          this.render.farTop = this.render.setTopMargin - 120;
-        }
-        if (bottom > this.render.farBottom) {
-          this.render.setBottomMargin = Math.ceil(bottom / 400) * 400;
-          this.render.farBottom = this.render.setBottomMargin - 120;
+      let joinedChunks = chunks.join();
+      if (joinedChunks != this.render.joinedChunks) {
+        this.render.joinedChunks = joinedChunks;
+
+        this.render.farLeft = 0;
+        this.render.farRight = 0;
+        this.render.setLeftMargin = 0;
+        this.render.setRightMargin = 0;
+        this.render.farTop = 0;
+        this.render.farBottom = 0;
+        this.render.setTopMargin = 0;
+        this.render.setBottomMargin = 0;
+        
+        for (let i = 0; i < chunks.length; i++) {
+          let splitPos = chunks[i].split("_");
+          let [x, y] = [parseInt(splitPos[0]), parseInt(splitPos[1])];
+          let left = -x;
+          let right = x + this.chunkWidth;
+          let top = -y;
+          let bottom = y + this.chunkHeight;
+          if (left > this.render.farLeft) {
+            this.render.setLeftMargin = Math.ceil(left / 400) * 400;
+            this.render.farLeft = this.render.setLeftMargin - 120;
+          }
+          if (right > this.render.farRight) {
+            this.render.setRightMargin = Math.ceil(right / 400) * 400;
+            this.render.farRight = this.render.setRightMargin - 120;
+          }
+          if (top > this.render.farTop) {
+            this.render.setTopMargin = Math.ceil(top / 400) * 400;
+            this.render.farTop = this.render.setTopMargin - 120;
+          }
+          if (bottom > this.render.farBottom) {
+            this.render.setBottomMargin = Math.ceil(bottom / 400) * 400;
+            this.render.farBottom = this.render.setBottomMargin - 120;
+          }
         }
       }
   
-     /*if (mouseDown() == true) {
+      /*if (mouseDown() == true) {
         if (this.render.runCheckSizeReset != null) {
           return;
         }
@@ -1495,30 +1500,47 @@ modules["editor/editor"] = class {
         this.pipeline.unsubscribe("marginSizeUpdateDelay");
         this.render.runCheckSizeReset = null;
       }*/
+
+      let addMarginLeftRight = page.offsetWidth / 2;
+      let addMarginTopBottom = page.offsetHeight / 2;
+      let setMarginLeft = Math.ceil((this.render.setLeftMargin * this.zoom) + addMarginLeftRight);
+      let setMarginRight = Math.ceil((this.render.setRightMargin * this.zoom) + addMarginLeftRight);
+      let setMarginTop = Math.ceil((this.render.setTopMargin * this.zoom) + addMarginTopBottom);
+      let setMarginBottom = Math.ceil((this.render.setBottomMargin * this.zoom) + addMarginTopBottom);
+
+      let checkWidth = false;
+      let checkHeight = false;
+
+      if (this.render.marginLeft != setMarginLeft) {
+        this.render.marginLeft = setMarginLeft;
+        editorContent.style.marginLeft = setMarginLeft + "px";
+        checkWidth = true;
+      }
+      if (this.render.marginRight != setMarginRight) {
+        this.render.marginRight = setMarginRight;
+        editorContent.style.marginRight = setMarginRight + "px";
+        checkWidth = true;
+      }
+      if (this.render.marginTop != setMarginTop) {
+        this.render.marginTop = setMarginTop;
+        editorContent.style.marginTop = setMarginTop + "px";
+        checkHeight = true;
+      }
+      if (this.render.marginBottom != setMarginBottom) {
+        this.render.marginBottom = setMarginBottom;
+        editorContent.style.marginBottom = setMarginBottom + "px";
+        checkHeight = true;
+      }
       
-      let scrollPosX = contentHolder.scrollLeft;
-      let scrollPosY = contentHolder.scrollTop;
-      let contentLeft = this.render.marginLeft ?? 0;
-      let contentTop = this.render.marginTop ?? 0;
-      let addMarginLeftRight = fixed.offsetWidth / 2;
-      let addMarginTopBottom = fixed.offsetHeight / 2;
-      this.render.marginLeft = (this.render.setLeftMargin * this.zoom) + addMarginLeftRight;
-      this.render.marginRight = (this.render.setRightMargin * this.zoom) + addMarginLeftRight;
-      this.render.marginTop = (this.render.setTopMargin * this.zoom) + addMarginTopBottom;
-      this.render.marginBottom = (this.render.setBottomMargin * this.zoom) + addMarginTopBottom;
-      editorContent.style.marginLeft = this.render.marginLeft + "px";
-      editorContent.style.marginRight = this.render.marginRight + "px";
-      editorContent.style.marginTop = this.render.marginTop + "px";
-      editorContent.style.marginBottom = this.render.marginBottom + "px";
-      if (content.offsetWidth != this.render.lastOffsetWidth || content.offsetHeight != this.render.lastOffsetHeight) {
-        contentHolder.scrollTo(scrollPosX + (this.render.marginLeft - contentLeft), scrollPosY + (this.render.marginTop - contentTop));
+      if ((checkWidth == true && content.offsetWidth != this.render.lastOffsetWidth) || (checkHeight == true && content.offsetHeight != this.render.lastOffsetHeight)) {
+        this.render.lastOffsetWidth = content.offsetWidth;
+        this.render.lastOffsetHeight = content.offsetHeight;
+        contentHolder.scrollTo(contentHolder.scrollLeft + (this.render.marginLeft - (this.render.marginLeft ?? 0)), contentHolder.scrollTop + (this.render.marginTop - (this.render.marginTop ?? 0)));
         if (this.realtime.module && this.realtime.module.adjustRealtimeHolder) {
           this.realtime.module.adjustRealtimeHolder();
         }
         await this.pipeline.publish("redraw_selection", { transition: false });
       }
-      this.render.lastOffsetWidth = content.offsetWidth;
-      this.render.lastOffsetHeight = content.offsetHeight;
     }
     this.render.processPageRenders = async () => {
       if (this.render.runningPageRender == true) {

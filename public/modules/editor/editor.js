@@ -3428,6 +3428,7 @@ modules["editor/editor"] = class {
       let event = data.event;
       if (event.touches.length > 1) { // && this.pinchZoomDisable != true
         this.pinching = true;
+        annotations.style.willChange = "transform";
       }
       handlePinch(event);
     });
@@ -3441,6 +3442,7 @@ modules["editor/editor"] = class {
     this.pipeline.subscribe("zoomPinchTouchEnd", "touchend", (data) => {
       if (data.event.touches.length < 2) {
         this.pinching = false;
+        annotations.style.removeProperty("will-change");
       }
       startDistance = null;
       startZoom = null;

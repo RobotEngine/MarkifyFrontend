@@ -1435,16 +1435,16 @@ modules["editor/editor"] = class {
         if (this.exporting == true) {
           return;
         }
-        if (this.pinching == true && force != true) {
+        /*if (this.pinching == true && force != true) {
           if (this.render.setMarginSizeTimeout == null) {
             this.render.setMarginSizeTimeout = setTimeout(() => {
               this.render.setMarginSize(true);
             }, 100);
           }
           return;
-        }
+        }*/
       }
-      this.render.setMarginSizeTimeout = null;
+      //this.render.setMarginSizeTimeout = null;
   
       let chunks = Object.keys(this.chunkAnnotations);
       let joinedChunks = chunks.join();
@@ -1510,36 +1510,46 @@ modules["editor/editor"] = class {
 
       let checkWidth = false;
       let checkHeight = false;
+      let scrollPosX;
+      let scrollPosY;
+      let contentLeft = 0;
+      let contentTop = 0;
 
       if (this.render.marginLeft != setMarginLeft) {
+        scrollPosX = contentHolder.scrollLeft;
         this.render.marginLeft = setMarginLeft;
         editorContent.style.marginLeft = setMarginLeft + "px";
+        contentLeft = this.render.marginLeft ?? 0;
         checkWidth = true;
       }
       if (this.render.marginRight != setMarginRight) {
+        scrollPosX = scrollPosX ?? contentHolder.scrollLeft;
         this.render.marginRight = setMarginRight;
         editorContent.style.marginRight = setMarginRight + "px";
         checkWidth = true;
       }
       if (this.render.marginTop != setMarginTop) {
+        scrollPosY = contentHolder.scrollTop;
         this.render.marginTop = setMarginTop;
         editorContent.style.marginTop = setMarginTop + "px";
+        contentTop = this.render.marginTop ?? 0;
         checkHeight = true;
       }
       if (this.render.marginBottom != setMarginBottom) {
+        scrollPosY = scrollPosY ?? contentHolder.scrollTop;
         this.render.marginBottom = setMarginBottom;
         editorContent.style.marginBottom = setMarginBottom + "px";
         checkHeight = true;
       }
       
       if ((checkWidth == true && content.offsetWidth != this.render.lastOffsetWidth) || (checkHeight == true && content.offsetHeight != this.render.lastOffsetHeight)) {
-        this.render.lastOffsetWidth = content.offsetWidth;
-        this.render.lastOffsetHeight = content.offsetHeight;
-        contentHolder.scrollTo(contentHolder.scrollLeft + (this.render.marginLeft - (this.render.marginLeft ?? 0)), contentHolder.scrollTop + (this.render.marginTop - (this.render.marginTop ?? 0)));
+        contentHolder.scrollTo(scrollPosX + (this.render.marginLeft - contentLeft), scrollPosY + (this.render.marginTop - contentTop));
         if (this.realtime.module && this.realtime.module.adjustRealtimeHolder) {
           this.realtime.module.adjustRealtimeHolder();
         }
         await this.pipeline.publish("redraw_selection", { transition: false });
+        this.render.lastOffsetWidth = content.offsetWidth;
+        this.render.lastOffsetHeight = content.offsetHeight;
       }
     }
     this.render.processPageRenders = async () => {

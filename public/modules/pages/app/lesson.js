@@ -23,7 +23,7 @@ modules["pages/app/lesson"] = class {
   ];
   html = `<div class="lPageHolder"></div>`;
   css = {
-    ".lPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100vw; width: 100dvw; height: 100vh; height: 100dvh; padding: 8px; left: 0px; top: 0px; justify-content: center`,
+    ".lPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100vw; width: 100dvw; height: 100vh; height: 100dvh; padding: 8px; left: 0px; top: 0px; justify-content: center; touch-action: none`,
     ".lPageHolder[resize]": `user-select: none; cursor: col-select`,
     ".lPageHolder[maximize]": `padding: 0px !important`,
     ".lPage": `--shadowOpacity: .3; position: relative; display: flex; width: 100%; height: 100%; flex: 1; z-index: 1; box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: 12px; overflow: hidden; transition: all .2s, flex .4s`, //min-width: min(var(--minPageSize), 100%);
@@ -587,6 +587,7 @@ modules["pages/app/lesson"] = class {
       if (mouseDown() == false) {
         return endDivider();
       }
+      event.preventDefault();
       pageHolder.setAttribute("resize", "");
 
       let mouseX = event.x ?? event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0;
@@ -738,20 +739,23 @@ modules["pages/app/lesson"] = class {
     sizeUpdate();
     
     tempListen(window, "pointerdown", (event) => {
-      if (event.pointerType == "mouse") {
+      startDivider(event);
+      /*if (event.pointerType == "mouse") {
         startDivider(event);
-      }
+      }*/
     }, { passive: false });
     tempListen(window, "touchstart", (event) => {
-      startDivider(event);
+      //startDivider(event);
     }, { passive: false });
 
     tempListen(window, "pointermove", (event) => {
       this.pushToPipelines(null, "pointermove", { event: event });
-      if (event.pointerType == "mouse") {
+      this.pushToPipelines(null, "click_move", { type: "pointermove", event: event });
+      updateDivider(event);
+      /*if (event.pointerType == "mouse") {
         this.pushToPipelines(null, "click_move", { type: "pointermove", event: event });
         updateDivider(event);
-      }
+      }*/
     }, { passive: false });
     /*tempListen(window, "mousemove", (event) => {
       this.pushToPipelines(null, "mousemove", { event: event });
@@ -759,16 +763,18 @@ modules["pages/app/lesson"] = class {
     }, { passive: false });*/
     tempListen(window, "touchmove", (event) => {
       this.pushToPipelines(null, "touchmove", { event: event });
-      this.pushToPipelines(null, "click_move", { type: "touchmove", event: event });
-      updateDivider(event);
+      //this.pushToPipelines(null, "click_move", { type: "touchmove", event: event });
+      //updateDivider(event);
     }, { passive: false });
 
     tempListen(window, "pointerup", (event) => {
       this.pushToPipelines(null, "pointerup", { event: event });
-      if (event.pointerType == "mouse") {
+      this.pushToPipelines(null, "click_end", { type: "pointerup", event: event });
+      endDivider();
+      /*if (event.pointerType == "mouse") {
         this.pushToPipelines(null, "click_end", { type: "pointerup", event: event });
         endDivider();
-      }
+      }*/
     }, { passive: false });
     /*tempListen(window, "mouseup", (event) => {
       this.pushToPipelines(null, "mouseup", { event: event });
@@ -776,8 +782,8 @@ modules["pages/app/lesson"] = class {
     }, { passive: false });*/
     tempListen(window, "touchend", (event) => {
       this.pushToPipelines(null, "touchend", { event: event });
-      this.pushToPipelines(null, "click_end", { type: "touchend", event: event });
-      endDivider();
+      //this.pushToPipelines(null, "click_end", { type: "touchend", event: event });
+      //endDivider();
     }, { passive: false });
 
     tempListen(window, "keydown", (event) => {

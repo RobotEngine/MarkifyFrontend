@@ -1153,6 +1153,25 @@ modules["editor/editor"] = class {
       let [topLeftX, topLeftY, bottomRightX, bottomRightY] = this.math.rotatedBounds(existingAnnoRect.x, existingAnnoRect.y, existingAnnoRect.endX, existingAnnoRect.endY, existingAnnoRect.rotation);
       return bottomRightX > pageTopLeftX && topLeftX < pageBottomRightX && bottomRightY > pageTopLeftY && topLeftY < pageBottomRightY;
     }
+    this.utils.resetSelecting = async () => {
+      let selectKeys = Object.keys(this.selecting);
+      this.selecting = {};
+      for (let i = 0; i < selectKeys.length; i++) {
+        let existingAnno = this.annotations[selectKeys[i]];
+        if (existingAnno != null) {
+          let allowRender = false;
+          for (let i = 0; i < existingAnno.chunks.length; i++) {
+            if (this.visibleChunks.includes(existingAnno.chunks[i]) == true) {
+              allowRender = true;
+              break;
+            }
+          }
+          if (allowRender == true) {
+            await this.render.create(existingAnno);
+          }
+        }
+      }
+    }
     /*this.utils.topmostChunk = (lockX) => {
       let topmostChunk;
       let highestPoint;
@@ -3373,37 +3392,20 @@ modules["editor/editor"] = class {
     let getDistance = (touches) => {
       let pageWidth = page.offsetWidth;
       let pageHeight = page.offsetHeight;
-      let { mouseX: touchAX, mouseY: touchAY } = this.utils.localMousePosition(touches[1]);
-      let { mouseX: touchBX, mouseY: touchBY } = this.utils.localMousePosition(touches[0]);
+      let { mouseX: touchAX, mouseY: touchAY } = this.utils.localMousePosition(touches[1] ?? {});
+      let { mouseX: touchBX, mouseY: touchBY } = this.utils.localMousePosition(touches[0] ?? {});
       let xDiff = (touchAX / pageWidth) - (touchBX / pageWidth);
       let yDiff = (touchAY / pageHeight) - (touchBY / pageHeight);
       return Math.sqrt((xDiff * xDiff) + (yDiff * yDiff));
     }
     let getCenter = (touches) => {
-      let { mouseX: touchAX, mouseY: touchAY } = this.utils.localMousePosition(touches[0]);
-      let { mouseX: touchBX, mouseY: touchBY } = this.utils.localMousePosition(touches[1]);
+      let { mouseX: touchAX, mouseY: touchAY } = this.utils.localMousePosition(touches[0] ?? {});
+      let { mouseX: touchBX, mouseY: touchBY } = this.utils.localMousePosition(touches[1] ?? {});
       return { x: (touchAX + touchBX) / 2, y: (touchAY + touchBY) / 2 };
     }
     let handlePinch = async (event) => {
       if (this.pinching != true) {
         return;
-      }
-      let selectKeys = Object.keys(this.selecting);
-      this.selecting = {};
-      for (let i = 0; i < selectKeys.length; i++) {
-        let existingAnno = this.annotations[selectKeys[i]];
-        if (existingAnno != null) {
-          let allowRender = false;
-          for (let i = 0; i < existingAnno.chunks.length; i++) {
-            if (this.visibleChunks.includes(existingAnno.chunks[i]) == true) {
-              allowRender = true;
-              break;
-            }
-          }
-          if (allowRender == true) {
-            await this.render.create(existingAnno);
-          }
-        }
       }
       let currentDistance = getDistance(event.touches);
       if (startDistance == null) {
@@ -3424,11 +3426,12 @@ modules["editor/editor"] = class {
         updatePages: false
       });
     }
-    this.pipeline.subscribe("zoomPinchTouchStart", "touchstart", (data) => {
+    this.pipeline.subscribe("zoomPinchTouchStart", "touchstart", async (data) => {
       let event = data.event;
       if (event.touches.length > 1) { // && this.pinchZoomDisable != true
         this.pinching = true;
         annotations.style.willChange = "transform";
+        this.utils.resetSelecting();
       }
       handlePinch(event);
     });
@@ -3453,9 +3456,10 @@ modules["editor/editor"] = class {
 
     page.addEventListener("pointerdown", (event) => {
       this.pipeline.publish("pointerdown", { event: event });
-      if (event.pointerType == "mouse") {
+      this.pipeline.publish("click_start", { type: "pointerdown", event: event });
+      /*if (event.pointerType == "mouse") {
         this.pipeline.publish("click_start", { type: "pointerdown", event: event });
-      }
+      }*/
     }, { passive: false });
 
     /*page.addEventListener("mousedown", (event) => {
@@ -3479,7 +3483,7 @@ modules["editor/editor"] = class {
 
     page.addEventListener("touchstart", (event) => {
       this.pipeline.publish("touchstart", { event: event });
-      this.pipeline.publish("click_start", { type: "touchstart", event: event });
+      //this.pipeline.publish("click_start", { type: "touchstart", event: event });
     }, { passive: false });
     /*page.addEventListener("touchmove", (event) => {
       this.pipeline.publish("touchmove", { event: event });
@@ -3983,8 +3987,10 @@ modules["editor/render/annotation"] = class {
     let size = this.annotation.render.s ?? [];
     if ((size[0] ?? 1) < 0) {
       a *= -1;
+      b *= -1;
     }
     if ((size[1] ?? 1) < 0) {
+      c *= -1;
       d *= -1;
     }
     let transform = "matrix(" + a + "," + b + "," + c + "," + d + "," + x + "," + y + ")";

@@ -1258,27 +1258,27 @@ modules["editor/toolbar"] = class {
       let selections = Object.keys(editor.selecting);
       if (this.currentToolModule != null) {
         let setUserSelect = this.currentToolModule.USER_SELECT;
-        //let setTouchAction = this.currentToolModule.TOUCH_ACTION;
+        let setTouchAction = this.currentToolModule.TOUCH_ACTION;
         if (selections.length > 0) {
           setUserSelect = "none";
-          //setTouchAction = "pinch-zoom";
+          setTouchAction = "none";
           if (this.selection.originalUserSelect === null) {
             this.selection.originalUserSelect = this.currentToolModule.USER_SELECT;
           }
-          /*if (this.selection.originalTouchAction === null) {
+          if (this.selection.originalTouchAction === null) {
             this.selection.originalTouchAction = this.currentToolModule.TOUCH_ACTION;
-          }*/
+          }
           this.selection.replaceCursorActive = true;
         } else if (this.selection.replaceCursorActive == true) {
           this.selection.replaceCursorActive = false;
           setUserSelect = this.selection.originalUserSelect;
           this.selection.originalUserSelect = null;
-          //setTouchAction = this.selection.originalTouchAction;
-          //this.selection.originalTouchAction = null;
+          setTouchAction = this.selection.originalTouchAction;
+          this.selection.originalTouchAction = null;
         }
         if (setUserSelect != this.currentToolModule.USER_SELECT) {
           this.currentToolModule.USER_SELECT = setUserSelect;
-          //this.currentToolModule.TOUCH_ACTION = setTouchAction;
+          this.currentToolModule.TOUCH_ACTION = setTouchAction;
           this.applyToolModule();
         }
       }
@@ -4459,7 +4459,8 @@ modules["editor/toolbar/select"] = class {
   //MOUSE = { type: "svg", url: "../images/editor/cursors/cursor.svg", translate: { x: 22, y: 22 } };
 
   clickStart = async (event) => {
-    if (event.which === 3 || event.button === 2) {
+    console.log(event)
+    if (event.which === 3 || event.button === 2 || this.editor.pinching == true) {
       return;
     }
     let target = event.target;
@@ -4516,7 +4517,7 @@ modules["editor/toolbar/select"] = class {
         await this.parent.selection.currentActionModule.finish();
       }
       if (event.shiftKey == false) {
-        this.editor.selecting = {};
+        await this.editor.utils.resetSelecting();
         if (annotation == null) {
           return this.parent.selection.updateBox();
         }
@@ -4722,7 +4723,7 @@ modules["editor/toolbar/drag"] = class {
     if (this.selection == null) {
       return await this.parent.selection.moveAction(event);
     }
-    if (mouseDown() == false) {
+    if (mouseDown() == false || this.editor.pinching == true) {
       return this.clickEnd();
     }
 
@@ -4919,7 +4920,7 @@ modules["editor/toolbar/drag"] = class {
 modules["editor/toolbar/pen"] = class {
   FUNCTION = "draw";
   USER_SELECT = "none";
-  TOUCH_ACTION = null;
+  TOUCH_ACTION = "none";
   REALTIME_TOOL = 2;
   MOUSE = { type: "svg", url: "../images/editor/cursors/pen.svg", translate: { x: 15, y: 30 } };
   PUBLISH = {};
@@ -4927,7 +4928,7 @@ modules["editor/toolbar/pen"] = class {
   clickStart = async (event) => {
     if (event.changedTouches != null && event.changedTouches[0] != null) {
       let touch = event.changedTouches[0];
-      if (touch.touchType == "stylus") {
+      if (touch.touchType == "stylus") { // ["pen", "stylus"]
         this.editor.usingStylus = true;
       } else if (this.editor.options.stylusmode == true) {
         return;
@@ -4964,7 +4965,8 @@ modules["editor/toolbar/pen"] = class {
     if (this.annotation == null) {
       return;
     }
-    if (event.touches != null && event.touches.length > 1) {
+    //if (event.touches != null && event.touches.length > 1) {
+    if (this.editor.pinching == true) {
       return this.disable();
     }
     if (mouseDown() == false) {
@@ -5089,11 +5091,9 @@ modules["editor/toolbar/pen"] = class {
     this.PUBLISH.c = toolPreference.color.selected;
     this.PUBLISH.o = toolPreference.opacity;
 
-    if (this.editor.options.stylusmode != true) {
-      this.TOUCH_ACTION = "pinch-zoom";
-    }/* else {
-      this.editor.pinchZoomDisable = true;
-    }*/
+    if (this.editor.options.stylusmode == true) {
+      this.TOUCH_ACTION = null;
+    }
   }
   disable = async () => {
     if (this.annotation == null) {
@@ -5121,7 +5121,7 @@ modules["editor/toolbar/understrike"] = class extends modules["editor/toolbar/pe
   REALTIME_TOOL = 1;
   MOUSE = { type: "svg", url: "../images/editor/cursors/highlighter.svg", translate: { x: 15, y: 30 } };
 
-  enable = () => {
+  /*enable = () => {
     let toolPreference = this.parent.getToolPreference();
 
     this.OPACITY = 100;
@@ -5134,14 +5134,14 @@ modules["editor/toolbar/understrike"] = class extends modules["editor/toolbar/pe
 
     if (this.editor.options.stylusmode != true) {
       this.TOUCH_ACTION = "pinch-zoom";
-    }/* else {
-      this.editor.pinchZoomDisable = true;
-    }*/
-  }
+    } else {
+      //this.editor.pinchZoomDisable = true;
+    }
+  }*/
 }
 modules["editor/toolbar/eraser"] = class {
   USER_SELECT = "none";
-  TOUCH_ACTION = null;
+  TOUCH_ACTION = "none";
   REALTIME_TOOL = 3;
   MOUSE = { type: "svg", url: "../images/editor/cursors/eraser.svg", translate: { x: 20, y: 20 } };
   PUBLISH = {};
@@ -5169,7 +5169,8 @@ modules["editor/toolbar/eraser"] = class {
     if (mouseDown() == false || this.editor.isEditorContent(event.target) != true) {
       return this.clickEnd();
     }
-    if (event.touches != null && event.touches.length > 1) {
+    //if (event.touches != null && event.touches.length > 1) {
+    if (this.editor.pinching == true) {
       return;
     }
     if (this.editor.usingStylus == true) {
@@ -5290,20 +5291,20 @@ modules["editor/toolbar/eraser"] = class {
     this.y0 = null;
     this.editor.usingStylus = false;
   }
-  enable = () => {
+  /*enable = () => {
     if (this.editor.options.stylusmode != true) {
       this.TOUCH_ACTION = "pinch-zoom";
-    }/* else {
-      this.editor.pinchZoomDisable = true;
-    }*/
-  }
+    } else {
+      //this.editor.pinchZoomDisable = true;
+    }
+  }*/
   disable = this.clickEnd;
 }
 
 modules["editor/toolbar/placement"] = class {
   PROPERTIES = {};
   USER_SELECT = "none";
-  TOUCH_ACTION = "pinch-zoom";
+  TOUCH_ACTION = "none";
   REALTIME_TOOL = 4;
   MOUSE = { type: "svg", url: "../images/editor/cursors/insert.svg", translate: { x: 20, y: 20 } };
   PUBLISH = {};
@@ -5414,7 +5415,7 @@ modules["editor/toolbar/resize_placement"] = class {
   CAN_FLIP = true;
   MINIMUM_SIZE = 0;
   USER_SELECT = "none";
-  TOUCH_ACTION = "pinch-zoom";
+  TOUCH_ACTION = "none";
   REALTIME_TOOL = 4;
   MOUSE = { type: "svg", url: "../images/editor/cursors/insert.svg", translate: { x: 20, y: 20 } };
   PUBLISH = {};
@@ -5605,7 +5606,7 @@ modules["editor/toolbar/sticky"] = class extends modules["editor/toolbar/placeme
 
 modules["editor/toolbar/comment"] = class {
   USER_SELECT = "none";
-  TOUCH_ACTION = null;
+  TOUCH_ACTION = "none";
   REALTIME_TOOL = 5;
   MOUSE = { type: "svg", url: "../images/editor/cursors/comment.svg", translate: { x: 12, y: 32 } };
 

@@ -22,7 +22,7 @@ const configs = {
 };
 
 const config = configs["public"];
-const version = "1.4.18"; // Big Update . Small Feature Release . Bug Fix
+const version = "1.4.19"; // Big Update . Small Feature Release . Bug Fix
 
 const serverURL = config.server;
 const assetURL = config.assets;
@@ -1083,7 +1083,7 @@ modules["dropdown"] = class {
     ".dropdownContent": `position: absolute; box-sizing: border-box; width: max-content; max-width: var(--dropdownWidth); height: max-content; padding: 6px; overflow: auto`, //background: var(--pageColor)
     ".dropdownFrame": `position: relative`,
     ".dropdownHeader": `position: relative; display: flex; gap: 6px; padding: 6px 6px 0 6px; justify-content: space-between; transition: .4s; z-index: 2`,
-    ".dropdownHeader button": `position: relative; width: 22px; height: 22px; margin: 3px; --borderWidth: 3px; --borderRadius: 14px`,
+    ".dropdownHeader button": `position: relative; width: 24px; height: 24px; margin: 3px; --borderWidth: 3px; --borderRadius: 14px`,
     ".dropdownHeader button svg": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
     ".dropdownHeader button:focus-visible": `--borderWidth: 4px`,
     ".dropdownTitle": `box-sizing: border-box; display: flex; padding: 3px; flex: 1; max-width: fit-content; justify-content: center; align-items: center; white-space: nowrap; overflow: hidden; font-size: 18px; font-weight: 500`,
@@ -1362,7 +1362,7 @@ modules["modal"] = class {
     ".modalContent": `position: absolute; box-sizing: border-box; width: max-content; height: max-content; padding: 6px; overflow: auto`, //background: var(--pageColor)
     ".modalFrame": `position: relative`,
     ".modalHeader": `position: relative; display: flex; gap: 6px; padding: 6px 6px 0 6px; justify-content: space-between; transition: .4s; z-index: 2`,
-    ".modalHeader button": `position: relative; width: 22px; height: 22px; margin: 3px; --borderWidth: 3px; --borderRadius: 14px`,
+    ".modalHeader button": `position: relative; width: 24px; height: 24px; margin: 3px; --borderWidth: 3px; --borderRadius: 14px`,
     ".modalHeader button svg": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
     ".modalHeader button:focus-visible": `--borderWidth: 4px`,
     ".modalTitle": `box-sizing: border-box; display: flex; padding: 3px; flex: 1; max-width: fit-content; justify-content: center; align-items: center; white-space: nowrap; overflow: hidden; font-size: 18px; font-weight: 500`,
@@ -1600,15 +1600,15 @@ modules["alert"] = class {
     ".alertText b": `margin-right: 6px; color: var(--themeColor); font-size: 18px`,
     ".alertText div b": `margin-right: unset; color: unset; font-size: unset`,
     ".alertText i": `margin-left: 4px`,
-    ".alertClose": `position: relative; width: 22px; height: 22px; margin: 5px 5px 5px 12px; --borderWidth: 3px; --borderRadius: 11px`,
+    ".alertClose": `position: relative; width: 24px; height: 24px; margin: 5px 5px 5px 12px; --borderWidth: 3px; --borderRadius: 11px`,
     ".alertClose:focus-visible": `--borderWidth: 4px`,
     ".alertClose svg": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`
   };
   themes = {
-    info: ["var(--theme)", 1],
-    worked: ["var(--green)", 3],
-    warning: ["var(--yellow", 2],
-    error: ["var(--error)", 0]
+    info: ["var(--theme)", 1, "polite"],
+    worked: ["var(--green)", 3, "polite"],
+    warning: ["var(--yellow", 2, "assertive"],
+    error: ["var(--error)", 0, "assertive"]
   };
   open = async (type, message, data) => {
     data = data ?? {};
@@ -1633,9 +1633,11 @@ modules["alert"] = class {
         this.finished("connection");
         alert.setAttribute("alert", data.id + "_ALERT");
       }
-      alert.style.setProperty("--themeColor", this.themes[type][0]);
-      alert.querySelector("img").style.objectPosition = -this.themes[type][1]*32 + "px 0px";
+      let theme = this.themes[type ?? "info"];
+      alert.style.setProperty("--themeColor", theme[0]);
+      alert.querySelector("img").style.objectPosition = -theme[1]*32 + "px 0px";
       alert.querySelector(".alertText").innerHTML = message;
+      alert.setAttribute("aria-live", theme[2] ?? "polite");
       alert.style.transition = "transform .25s var(--bounce), opacity .25s, padding .25s, margin .25s";
       alert.offsetHeight;
       alert.style.transform = "scale(1)";

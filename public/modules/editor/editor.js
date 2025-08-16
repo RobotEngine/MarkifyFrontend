@@ -3983,8 +3983,10 @@ modules["editor/render/annotation"] = class {
     let size = this.annotation.render.s ?? [];
     if ((size[0] ?? 1) < 0) {
       a *= -1;
+      b *= -1;
     }
     if ((size[1] ?? 1) < 0) {
+      c *= -1;
       d *= -1;
     }
     let transform = "matrix(" + a + "," + b + "," + c + "," + d + "," + x + "," + y + ")";

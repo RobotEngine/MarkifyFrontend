@@ -19,7 +19,7 @@ modules["dropdowns/account"] = class {
     <a href="../privacy" target="_blank">Privacy</a>
   </div>
   <div class="accountCopyrightHolder">
-    <a href="../" target="_blank">©2025 Markify, LLC</a>
+    <a href="../launch" target="_blank">©2025 Markify, LLC</a>
   </div>
   `;
   css = {

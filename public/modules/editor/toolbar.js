@@ -4941,7 +4941,7 @@ modules["editor/toolbar/pen"] = class {
   PUBLISH = {};
 
   clickStart = async (event) => {
-    if (event.pointerType != "pen") {
+    if (["pen", "mouse"].includes(event.pointerType) == false) {
       if (this.editor.options.stylusmode == true) {
         return;
       }
@@ -4984,7 +4984,7 @@ modules["editor/toolbar/pen"] = class {
     if (mouseDown() == false) {
       return this.clickEnd();
     }
-    if (this.editor.usingStylus == true && event.pointerType != "pen") {
+    if (this.editor.usingStylus == true && ["pen", "mouse"].includes(event.pointerType) == false) {
       return;
     }
     event.preventDefault();
@@ -5127,7 +5127,7 @@ modules["editor/toolbar/understrike"] = class extends modules["editor/toolbar/pe
   REALTIME_TOOL = 1;
   MOUSE = { type: "svg", url: "../images/editor/cursors/highlighter.svg", translate: { x: 15, y: 30 } };
 
-  /*enable = () => {
+  enable = () => {
     let toolPreference = this.parent.getToolPreference();
 
     this.OPACITY = 100;
@@ -5137,13 +5137,7 @@ modules["editor/toolbar/understrike"] = class extends modules["editor/toolbar/pe
     this.MOUSE.opacity = this.OPACITY;
     this.PUBLISH.c = toolPreference.color.selected;
     this.PUBLISH.o = toolPreference.opacity;
-
-    if (this.editor.options.stylusmode != true) {
-      this.TOUCH_ACTION = "pinch-zoom";
-    } else {
-      //this.editor.pinchZoomDisable = true;
-    }
-  }*/
+  }
 }
 modules["editor/toolbar/eraser"] = class {
   USER_SELECT = "none";
@@ -5153,7 +5147,7 @@ modules["editor/toolbar/eraser"] = class {
   PUBLISH = {};
   
   clickStart = async (event) => {
-    if (event.pointerType != "pen") {
+    if (["pen", "mouse"].includes(event.pointerType) == false) {
       if (this.editor.options.stylusmode == true) {
         return;
       }
@@ -5176,7 +5170,7 @@ modules["editor/toolbar/eraser"] = class {
     if (this.editor.pinching == true) {
       return;
     }
-    if (this.editor.usingStylus == true && event.pointerType != "pen") {
+    if (this.editor.usingStylus == true && ["pen", "mouse"].includes(event.pointerType) == false) {
       return;
     }
     event.preventDefault();

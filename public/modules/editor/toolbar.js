@@ -4924,6 +4924,11 @@ modules["editor/toolbar/drag"] = class {
       this.wasSelected = null;
     }
   }
+  touchmove = (event) => {
+    if (this.editor.isEditorContent(event.target) == true) {
+      event.preventDefault();
+    }
+  }
   scroll = async () => {
     await this.clickMove();
     await this.parent.selection.moveAction();
@@ -4940,13 +4945,33 @@ modules["editor/toolbar/pen"] = class {
   MOUSE = { type: "svg", url: "../images/editor/cursors/pen.svg", translate: { x: 15, y: 30 } };
   PUBLISH = {};
 
+  stylusButtonA = (event) => { return 5 == event.button || 32 == (32 & event.buttons); };
+  stylusButtonB = (event) => { return 2 == event.button || 2 == (2 & event.buttons); };
+
   clickStart = async (event) => {
+    this.passthroughModule = null;
     if (["pen", "mouse"].includes(event.pointerType) == false) {
       if (this.editor.options.stylusmode == true) {
         return;
       }
     } else {
       this.editor.usingStylus = true;
+      if (this.stylusButtonA(event) == true) { // 1st Stylus Button (Eraser)
+        this.passthroughType = "eraser";
+        this.passthroughModule = await this.toolbar.newModule("editor/toolbar/eraser");
+      } else if (this.stylusButtonB(event) == true) { // 2nd Stylus Button (Drag Select Box)
+        this.passthroughType = "drag";
+        this.passthroughModule = await this.toolbar.newModule("editor/toolbar/drag");
+      }
+      if (this.passthroughModule != null) {
+        this.passthroughModule.editor = this.editor;
+        this.passthroughModule.toolbar = this.toolbar;
+        if (this.passthroughModule.enable != null) {
+          this.passthroughModule.enable();
+        }
+        this.toolbar.applyToolModule(this.passthroughModule);
+        return this.passthroughModule.clickStart(event);
+      }
     }
     event.preventDefault();
     this.disable();
@@ -4974,6 +4999,17 @@ modules["editor/toolbar/pen"] = class {
     await this.editor.render.create(this.annotation);
   }
   clickMove = async (event) => {
+    if (this.passthroughModule != null) {
+      if (this.passthroughType == "eraser" && this.stylusButtonA(event) == false) {
+        return this.clickStart();
+      }
+      if (this.passthroughType == "drag" && this.stylusButtonA(event) == false) {
+        return this.clickStart();
+      }
+      if ((this.passthroughModule ?? {}).clickMove != null) {
+        return this.passthroughModule.clickMove(event);
+      }
+    }
     if (this.annotation == null) {
       return;
     }
@@ -5062,6 +5098,9 @@ modules["editor/toolbar/pen"] = class {
     }
   }
   clickEnd = async () => {
+    if (this.passthroughModule != null && this.passthroughModule.clickMove != null) {
+      return this.passthroughModule.clickMove(event);
+    }
     if (this.annotation == null) {
       return;
     }
@@ -5090,6 +5129,9 @@ modules["editor/toolbar/pen"] = class {
     this.disable();
   }
   touchmove = (event) => {
+    if (this.passthroughModule != null && this.passthroughModule.clickMove != null) {
+      return this.passthroughModule.touchmove(event);
+    }
     if (this.editor.isEditorContent(event.target) != true) {
       return;
     }

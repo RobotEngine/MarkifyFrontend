@@ -4949,7 +4949,12 @@ modules["editor/toolbar/pen"] = class {
   stylusButtonB = (event) => { return 2 == event.button || 2 == (2 & event.buttons); };
 
   clickStart = async (event) => {
-    this.passthroughModule = null;
+    if (this.passthroughModule != null) {
+      this.toolbar.applyToolModule(this);
+      this.toolbar.updateMouse(this.MOUSE);
+      this.REALTIME_TOOL = 2;
+      this.passthroughModule = null;
+    }
     if (["pen", "mouse"].includes(event.pointerType) == false) {
       if (this.editor.options.stylusmode == true) {
         return;
@@ -4970,6 +4975,8 @@ modules["editor/toolbar/pen"] = class {
           this.passthroughModule.enable();
         }
         this.toolbar.applyToolModule(this.passthroughModule);
+        this.toolbar.updateMouse(this.passthroughModule.MOUSE);
+        this.REALTIME_TOOL = this.passthroughModule.REALTIME_TOOL;
         return this.passthroughModule.clickStart(event);
       }
     }
@@ -5001,10 +5008,10 @@ modules["editor/toolbar/pen"] = class {
   clickMove = async (event) => {
     if (this.passthroughModule != null) {
       if (this.passthroughType == "eraser" && this.stylusButtonA(event) == false) {
-        return this.clickStart();
+        return this.clickStart(event);
       }
       if (this.passthroughType == "drag" && this.stylusButtonA(event) == false) {
-        return this.clickStart();
+        return this.clickStart(event);
       }
       if ((this.passthroughModule ?? {}).clickMove != null) {
         return this.passthroughModule.clickMove(event);

@@ -59,15 +59,29 @@ let primaryButtonDown = false;
 let isStylusActive = false;
 let mouseDown = () => { return primaryButtonDown; }
 let stylusActive = () => { return isStylusActive; }
-let setPrimaryButtonState = (event) => {
+document.addEventListener("pointerdown", (event) => {
+  primaryButtonDown = true;
+  isStylusActive = event.pointerType === "pen";
+}, { capture: true, passive: false });
+document.addEventListener("pointermove", (event) => {
+  isStylusActive = event.pointerType === "pen";
+}, { capture: true, passive: false });
+document.addEventListener("pointerup", () => {
+  primaryButtonDown = false;
+  isStylusActive = false;
+}, { capture: true, passive: false });
+document.addEventListener("pointercancel", () => {
+  primaryButtonDown = false;
+  isStylusActive = false;
+}, { capture: true, passive: false });
+/*let setPrimaryButtonState = (event) => {
   let flags = event.buttons !== undefined ? event.buttons : event.which;
   primaryButtonDown = (flags & 1) === 1;
   isStylusActive = event.pointerType == "pen";
 }
 document.addEventListener("pointerdown", setPrimaryButtonState, { capture: true, passive: false });
 document.addEventListener("pointermove", setPrimaryButtonState, { capture: true, passive: false });
-document.addEventListener("pointerup", setPrimaryButtonState, { capture: true, passive: false });
-//document.addEventListener("pointermove", (event) => { if (event.pointerType != "pen") { setPrimaryButtonState(event); } }, { capture: true, passive: false });
+document.addEventListener("pointerup", setPrimaryButtonState, { capture: true, passive: false });*/
 
 let tempListeners = {};
 let addTempListener = (listen) => {

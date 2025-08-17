@@ -5093,7 +5093,7 @@ modules["editor/toolbar/pen"] = class {
     if (this.editor.isEditorContent(event.target) != true) {
       return;
     }
-    if (this.editor.options.stylusmode != true || stylusActive() == true) {
+    if (this.editor.options.stylusmode != true || stylusActive() == true || this.annotation != null) {
       event.preventDefault();
     }
   }
@@ -5288,7 +5288,7 @@ modules["editor/toolbar/eraser"] = class {
     if (this.editor.isEditorContent(event.target) != true) {
       return;
     }
-    if (this.editor.options.stylusmode != true || stylusActive() == true) {
+    if (this.editor.options.stylusmode != true || stylusActive() == true || this.annotation != null) {
       event.preventDefault();
     }
   }

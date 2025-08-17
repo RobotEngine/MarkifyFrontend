@@ -56,16 +56,18 @@ let hasFeatureEnabled = (feature) => { return (account.featureFlags ?? []).inclu
 let subscribes = [];
 
 let primaryButtonDown = false;
-let mouseDown = () => {
-  return primaryButtonDown;
-}
+let isStylusActive = false;
+let mouseDown = () => { return primaryButtonDown; }
+let stylusActive = () => { return isStylusActive; }
 let setPrimaryButtonState = (event) => {
   let flags = event.buttons !== undefined ? event.buttons : event.which;
   primaryButtonDown = (flags & 1) === 1;
+  isStylusActive = event.pointerType == "pen";
 }
 document.addEventListener("pointerdown", setPrimaryButtonState, { capture: true, passive: false });
 document.addEventListener("pointermove", setPrimaryButtonState, { capture: true, passive: false });
 document.addEventListener("pointerup", setPrimaryButtonState, { capture: true, passive: false });
+//document.addEventListener("pointermove", (event) => { if (event.pointerType != "pen") { setPrimaryButtonState(event); } }, { capture: true, passive: false });
 
 let tempListeners = {};
 let addTempListener = (listen) => {

@@ -1276,9 +1276,16 @@ modules["editor/toolbar"] = class {
           setTouchAction = this.selection.originalTouchAction;
           this.selection.originalTouchAction = null;
         }
+        let propertyChange = false;
         if (setUserSelect != this.currentToolModule.USER_SELECT) {
           this.currentToolModule.USER_SELECT = setUserSelect;
+          propertyChange = true;
+        }
+        if (setTouchAction != this.currentToolModule.TOUCH_ACTION) {
           this.currentToolModule.TOUCH_ACTION = setTouchAction;
+          propertyChange = true;
+        }
+        if (propertyChange == true) {
           this.applyToolModule();
         }
       }
@@ -4001,6 +4008,15 @@ modules["editor/toolbar"] = class {
     editor.pipeline.subscribe("toolbarMouse", "click", (data) => {
       this.pushToolEvent("click", data.event);
     }, { sort: 1 });
+    editor.pipeline.subscribe("toolbarMouse", "touchstart", (data) => {
+      this.pushToolEvent("touchstart", data.event);
+    }, { sort: 1 });
+    editor.pipeline.subscribe("toolbarMouse", "touchmove", (data) => {
+      this.pushToolEvent("touchmove", data.event);
+    }, { sort: 1 });
+    editor.pipeline.subscribe("toolbarMouse", "touchend", (data) => {
+      this.pushToolEvent("touchend", data.event);
+    }, { sort: 1 });
     editor.pipeline.subscribe("toolbarMouse", "mouseleave", () => {
       this.tooltip.close();
     });
@@ -4459,7 +4475,6 @@ modules["editor/toolbar/select"] = class {
   //MOUSE = { type: "svg", url: "../images/editor/cursors/cursor.svg", translate: { x: 22, y: 22 } };
 
   clickStart = async (event) => {
-    console.log(event)
     if (event.which === 3 || event.button === 2 || this.editor.pinching == true) {
       return;
     }
@@ -4642,7 +4657,7 @@ modules["editor/toolbar/pan"] = class {
 
 modules["editor/toolbar/drag"] = class {
   USER_SELECT = "none";
-  TOUCH_ACTION = "pinch-zoom";
+  TOUCH_ACTION = "none";
   MOUSE = { type: "svg", url: "../images/editor/cursors/cursor.svg", translate: { x: 22, y: 22 } };
 
   css = {
@@ -4920,21 +4935,18 @@ modules["editor/toolbar/drag"] = class {
 modules["editor/toolbar/pen"] = class {
   FUNCTION = "draw";
   USER_SELECT = "none";
-  TOUCH_ACTION = "none";
+  //TOUCH_ACTION = "none";
   REALTIME_TOOL = 2;
   MOUSE = { type: "svg", url: "../images/editor/cursors/pen.svg", translate: { x: 15, y: 30 } };
   PUBLISH = {};
 
   clickStart = async (event) => {
-    if (event.changedTouches != null && event.changedTouches[0] != null) {
-      let touch = event.changedTouches[0];
-      if (touch.touchType == "stylus") { // ["pen", "stylus"]
-        this.editor.usingStylus = true;
-      } else if (this.editor.options.stylusmode == true) {
+    if (event.pointerType != "pen") {
+      if (this.editor.options.stylusmode == true) {
         return;
       }
-    } else if (this.editor.options.stylusmode == true) {
-      return;
+    } else {
+      this.editor.usingStylus = true;
     }
     event.preventDefault();
     this.disable();
@@ -4972,18 +4984,11 @@ modules["editor/toolbar/pen"] = class {
     if (mouseDown() == false) {
       return this.clickEnd();
     }
-    if (this.editor.usingStylus == true) {
-      if (event.changedTouches != null && event.changedTouches[0] != null) {
-        let touch = event.changedTouches[0];
-        if (touch.touchType != "stylus") {
-          return;
-        }
-        //touch.force = the force of the touch - useful for later ;)
-      } else {
-        return;
-      }
+    if (this.editor.usingStylus == true && event.pointerType != "pen") {
+      return;
     }
     event.preventDefault();
+    //touch.force = the force of the touch - useful for later ;)
     let rect = this.editor.utils.localBoundingRect(this.annotation.component.getElement());
     let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
     let { x, y } = this.editor.utils.scaleToDoc(mouseX - rect.left, mouseY - rect.top, true);
@@ -5084,16 +5089,17 @@ modules["editor/toolbar/pen"] = class {
     
     this.disable();
   }
+  touchmove = (event) => {
+    if (this.editor.options.stylusmode != true || stylusActive() == true) {
+      event.preventDefault();
+    }
+  }
   enable = () => {
     let toolPreference = this.parent.getToolPreference();
     this.MOUSE.color = toolPreference.color.selected;
     this.MOUSE.opacity = toolPreference.opacity;
     this.PUBLISH.c = toolPreference.color.selected;
     this.PUBLISH.o = toolPreference.opacity;
-
-    if (this.editor.options.stylusmode == true) {
-      this.TOUCH_ACTION = null;
-    }
   }
   disable = async () => {
     if (this.annotation == null) {
@@ -5141,21 +5147,18 @@ modules["editor/toolbar/understrike"] = class extends modules["editor/toolbar/pe
 }
 modules["editor/toolbar/eraser"] = class {
   USER_SELECT = "none";
-  TOUCH_ACTION = "none";
+  //TOUCH_ACTION = "none";
   REALTIME_TOOL = 3;
   MOUSE = { type: "svg", url: "../images/editor/cursors/eraser.svg", translate: { x: 20, y: 20 } };
   PUBLISH = {};
   
   clickStart = async (event) => {
-    if (event.changedTouches != null && event.changedTouches[0] != null) {
-      let touch = event.changedTouches[0];
-      if (touch.touchType == "stylus") {
-        this.editor.usingStylus = true;
-      } else if (this.editor.options.stylusmode == true) {
+    if (event.pointerType != "pen") {
+      if (this.editor.options.stylusmode == true) {
         return;
       }
-    } else if (this.editor.options.stylusmode == true) {
-      return;
+    } else {
+      this.editor.usingStylus = true;
     }
     event.preventDefault();
     this.erasing = true;
@@ -5173,15 +5176,8 @@ modules["editor/toolbar/eraser"] = class {
     if (this.editor.pinching == true) {
       return;
     }
-    if (this.editor.usingStylus == true) {
-      if (event.changedTouches != null && event.changedTouches[0] != null) {
-        let touch = event.changedTouches[0];
-        if (touch.touchType != "stylus") {
-          return;
-        }
-      } else {
-        return;
-      }
+    if (this.editor.usingStylus == true && event.pointerType != "pen") {
+      return;
     }
     event.preventDefault();
     
@@ -5290,6 +5286,11 @@ modules["editor/toolbar/eraser"] = class {
     this.x0 = null;
     this.y0 = null;
     this.editor.usingStylus = false;
+  }
+  touchmove = (event) => {
+    if (this.editor.options.stylusmode != true || stylusActive() == true) {
+      event.preventDefault();
+    }
   }
   /*enable = () => {
     if (this.editor.options.stylusmode != true) {

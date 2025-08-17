@@ -5090,6 +5090,9 @@ modules["editor/toolbar/pen"] = class {
     this.disable();
   }
   touchmove = (event) => {
+    if (this.editor.isEditorContent(event.target) != true) {
+      return;
+    }
     if (this.editor.options.stylusmode != true || stylusActive() == true) {
       event.preventDefault();
     }
@@ -5282,6 +5285,9 @@ modules["editor/toolbar/eraser"] = class {
     this.editor.usingStylus = false;
   }
   touchmove = (event) => {
+    if (this.editor.isEditorContent(event.target) != true) {
+      return;
+    }
     if (this.editor.options.stylusmode != true || stylusActive() == true) {
       event.preventDefault();
     }

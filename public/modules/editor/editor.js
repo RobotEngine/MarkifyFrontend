@@ -1529,16 +1529,15 @@ modules["editor/editor"] = class {
 
       let checkWidth = false;
       let checkHeight = false;
-      let scrollPosX;
-      let scrollPosY;
-      let contentLeft = 0;
-      let contentTop = 0;
+      let scrollPosX = contentHolder.scrollLeft;
+      let scrollPosY = contentHolder.scrollTop;
+      let contentLeft = this.render.marginLeft ?? 0;
+      let contentTop = this.render.marginTop ?? 0;
 
       if (this.render.marginLeft != setMarginLeft) {
         scrollPosX = contentHolder.scrollLeft;
         this.render.marginLeft = setMarginLeft;
         editorContent.style.marginLeft = setMarginLeft + "px";
-        contentLeft = this.render.marginLeft ?? 0;
         checkWidth = true;
       }
       if (this.render.marginRight != setMarginRight) {
@@ -1551,7 +1550,6 @@ modules["editor/editor"] = class {
         scrollPosY = contentHolder.scrollTop;
         this.render.marginTop = setMarginTop;
         editorContent.style.marginTop = setMarginTop + "px";
-        contentTop = this.render.marginTop ?? 0;
         checkHeight = true;
       }
       if (this.render.marginBottom != setMarginBottom) {
@@ -1562,7 +1560,14 @@ modules["editor/editor"] = class {
       }
       
       if ((checkWidth == true && content.offsetWidth != this.render.lastOffsetWidth) || (checkHeight == true && content.offsetHeight != this.render.lastOffsetHeight)) {
-        contentHolder.scrollTo(scrollPosX + (this.render.marginLeft - contentLeft), scrollPosY + (this.render.marginTop - contentTop));
+        let updateScroll = {};
+        if (scrollPosX != null) {
+          updateScroll.left = scrollPosX + (this.render.marginLeft - contentLeft);
+        }
+        if (scrollPosY != null) {
+          updateScroll.top = scrollPosY + (this.render.marginTop - contentTop);
+        }
+        contentHolder.scrollTo(updateScroll);
         if (this.realtime.module && this.realtime.module.adjustRealtimeHolder) {
           this.realtime.module.adjustRealtimeHolder();
         }
@@ -3437,8 +3442,12 @@ modules["editor/editor"] = class {
     });
     this.pipeline.subscribe("zoomPinchTouchMove", "touchmove", (data) => {
       if (this.pinching == true) {
-        data.event.preventDefault();
-        data.event.stopPropagation();
+        let event = data.event;
+        if (event.length > 1) {
+          this.pinching = false;
+          annotations.style.removeProperty("will-change");
+        }
+        event.preventDefault();
       }
       handlePinch(data.event);
     });

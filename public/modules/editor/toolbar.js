@@ -4928,7 +4928,7 @@ modules["editor/toolbar/drag"] = class {
     }
   }
   touchmove = (event) => {
-    if (this.editor.isEditorContent(event.target) == true) {
+    if (this.isPassthrough == true && this.editor.isEditorContent(event.target) == true) {
       event.preventDefault();
     }
   }
@@ -5012,6 +5012,7 @@ modules["editor/toolbar/pen"] = class {
       this.passthroughModule = await this.toolbar.newModule(newPassthrough);
       this.passthroughModule.editor = this.editor;
       this.passthroughModule.toolbar = this.toolbar;
+      this.passthroughModule.isPassthrough = true;
       if (this.passthroughModule.enable != null) {
         this.passthroughModule.enable();
       }

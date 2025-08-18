@@ -22,7 +22,7 @@ const configs = {
 };
 
 const config = configs["public"];
-const version = "1.4.23"; // Big Update . Small Feature Release . Bug Fix
+const version = "1.4.24"; // Big Update . Small Feature Release . Bug Fix
 
 const serverURL = config.server;
 const assetURL = config.assets;
@@ -64,7 +64,12 @@ document.addEventListener("pointerdown", (event) => {
   isStylusActive = event.pointerType === "pen";
 }, { capture: true, passive: false });
 document.addEventListener("pointermove", (event) => {
-  isStylusActive = event.pointerType === "pen";
+  if (event.pointerType != "pen") {
+    let flags = event.buttons !== undefined ? event.buttons : event.which;
+    primaryButtonDown = (flags & 1) === 1;
+  } else {
+    isStylusActive = true;
+  }
 }, { capture: true, passive: false });
 document.addEventListener("pointerup", () => {
   primaryButtonDown = false;

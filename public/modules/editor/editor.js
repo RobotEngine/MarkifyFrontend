@@ -3498,6 +3498,10 @@ modules["editor/editor"] = class {
       this.pipeline.publish("mouseleave", { event: event });
     });
 
+    page.addEventListener("contextmenu", (event) => {
+      this.pipeline.publish("contextmenu", { event: event });
+    });
+
     await this.render.setMarginSize();
     this.utils.centerWindowWithPage();
     this.updateChunks();

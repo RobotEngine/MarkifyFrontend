@@ -4017,6 +4017,9 @@ modules["editor/toolbar"] = class {
     editor.pipeline.subscribe("toolbarMouse", "touchend", (data) => {
       this.pushToolEvent("touchend", data.event);
     }, { sort: 1 });
+    editor.pipeline.subscribe("toolbarMouse", "contextmenu", (data) => {
+      this.pushToolEvent("contextmenu", data.event);
+    }, { sort: 1 });
     editor.pipeline.subscribe("toolbarMouse", "mouseleave", () => {
       this.tooltip.close();
     });
@@ -4945,14 +4948,14 @@ modules["editor/toolbar/pen"] = class {
   MOUSE = { type: "svg", url: "../images/editor/cursors/pen.svg", translate: { x: 15, y: 30 } };
   PUBLISH = {};
 
-  stylusButtonA = (event) => { return 5 == event.button || 32 == (32 & event.buttons); };
-  stylusButtonB = (event) => { return 2 == event.button || 2 == (2 & event.buttons); };
+  stylusButtonA = (event) => { return 5 == event.button || 32 == (32 & event.buttons); }; // 1st Stylus Button (Eraser)
+  stylusButtonB = (event) => { return 2 == event.button || 2 == (2 & event.buttons); }; // 2nd Stylus Button (Drag Select Box)
 
   clickStart = async (event) => {
     if (this.passthroughModule != null) {
       this.toolbar.applyToolModule(this);
-      this.toolbar.updateMouse(this.MOUSE);
-      this.REALTIME_TOOL = 2;
+      //this.toolbar.updateMouse(this.MOUSE);
+      //this.REALTIME_TOOL = 2;
       this.passthroughModule = null;
     }
     if (["pen", "mouse"].includes(event.pointerType) == false) {
@@ -4960,25 +4963,10 @@ modules["editor/toolbar/pen"] = class {
         return;
       }
     } else {
+      if (this.stylusButtonA(event) == true || this.stylusButtonB(event) == true) {
+        return;
+      }
       this.editor.usingStylus = true;
-      if (this.stylusButtonA(event) == true) { // 1st Stylus Button (Eraser)
-        this.passthroughType = "eraser";
-        this.passthroughModule = await this.toolbar.newModule("editor/toolbar/eraser");
-      } else if (this.stylusButtonB(event) == true) { // 2nd Stylus Button (Drag Select Box)
-        this.passthroughType = "drag";
-        this.passthroughModule = await this.toolbar.newModule("editor/toolbar/drag");
-      }
-      if (this.passthroughModule != null) {
-        this.passthroughModule.editor = this.editor;
-        this.passthroughModule.toolbar = this.toolbar;
-        if (this.passthroughModule.enable != null) {
-          this.passthroughModule.enable();
-        }
-        this.toolbar.applyToolModule(this.passthroughModule);
-        this.toolbar.updateMouse(this.passthroughModule.MOUSE);
-        this.REALTIME_TOOL = this.passthroughModule.REALTIME_TOOL;
-        return this.passthroughModule.clickStart(event);
-      }
     }
     event.preventDefault();
     this.disable();
@@ -5006,17 +4994,37 @@ modules["editor/toolbar/pen"] = class {
     await this.editor.render.create(this.annotation);
   }
   clickMove = async (event) => {
-    if (this.passthroughModule != null) {
-      if (this.passthroughType == "eraser" && this.stylusButtonA(event) == false) {
-        return this.clickStart(event);
-      }
-      if (this.passthroughType == "drag" && this.stylusButtonA(event) == false) {
-        return this.clickStart(event);
-      }
-      if ((this.passthroughModule ?? {}).clickMove != null) {
-        return this.passthroughModule.clickMove(event);
-      }
+    let newPassthroughType;
+    let newPassthrough;
+    if (this.stylusButtonA(event) == true) {
+      newPassthroughType = "eraser";
+      newPassthrough = "editor/toolbar/eraser";
+    } else if (this.stylusButtonB(event) == true) {
+      newPassthroughType = "drag";
+      newPassthrough = "editor/toolbar/drag";
+    } else if (this.passthroughModule != null) {
+      this.passthroughType = null;
+      this.passthroughModule = null;
+      return;
     }
+    if (newPassthrough != null && newPassthroughType != this.passthroughType) {
+      this.passthroughType = newPassthroughType;
+      this.passthroughModule = await this.toolbar.newModule(newPassthrough);
+      this.passthroughModule.editor = this.editor;
+      this.passthroughModule.toolbar = this.toolbar;
+      if (this.passthroughModule.enable != null) {
+        this.passthroughModule.enable();
+      }
+      this.toolbar.applyToolModule(this.passthroughModule);
+      //this.toolbar.updateMouse(this.passthroughModule.MOUSE);
+      //this.REALTIME_TOOL = this.passthroughModule.REALTIME_TOOL;
+      this.disable();
+      await this.passthroughModule.clickStart(event);
+    }
+    if ((this.passthroughModule ?? {}).clickMove != null) {
+      await this.passthroughModule.clickMove(event);
+    }
+    
     if (this.annotation == null) {
       return;
     }
@@ -5104,9 +5112,9 @@ modules["editor/toolbar/pen"] = class {
       this.clickStart(event);
     }
   }
-  clickEnd = async () => {
-    if (this.passthroughModule != null && this.passthroughModule.clickMove != null) {
-      return this.passthroughModule.clickMove(event);
+  clickEnd = async (event) => {
+    if (this.passthroughModule != null && this.passthroughModule.clickEnd != null) {
+      return this.passthroughModule.clickEnd(event);
     }
     if (this.annotation == null) {
       return;
@@ -5136,13 +5144,18 @@ modules["editor/toolbar/pen"] = class {
     this.disable();
   }
   touchmove = (event) => {
-    if (this.passthroughModule != null && this.passthroughModule.clickMove != null) {
+    if (this.passthroughModule != null && this.passthroughModule.touchmove != null) {
       return this.passthroughModule.touchmove(event);
     }
     if (this.editor.isEditorContent(event.target) != true) {
       return;
     }
     if (this.editor.options.stylusmode != true || stylusActive() == true || this.annotation != null) {
+      event.preventDefault();
+    }
+  }
+  contextmenu = (event) => {
+    if (this.passthroughType != null) {
       event.preventDefault();
     }
   }
@@ -5166,6 +5179,11 @@ modules["editor/toolbar/pen"] = class {
     this.annotation = null;
     this.editor.usingStylus = false;
   };
+  click = async (event) => {
+    if (this.passthroughModule != null && this.passthroughModule.click != null) {
+      return await this.passthroughModule.click(event);
+    }
+  }
 }
 modules["editor/toolbar/highlighter"] = class extends modules["editor/toolbar/pen"] {
   FUNCTION = "markup";
@@ -5337,7 +5355,7 @@ modules["editor/toolbar/eraser"] = class {
     if (this.editor.isEditorContent(event.target) != true) {
       return;
     }
-    if (this.editor.options.stylusmode != true || stylusActive() == true || this.annotation != null) {
+    if (this.editor.options.stylusmode != true || stylusActive() == true || this.erasing == true) {
       event.preventDefault();
     }
   }

@@ -445,7 +445,8 @@ modules["lesson/board"] = class {
       createCopyButton.removeAttribute("disabled");
       alertModule.close(copyAlert);
       if (code == 200) {
-        window.open("?lesson=" + body.lesson + "#lesson", "_blank").focus();
+        setFrame("pages/app/lesson", null, { params: { lesson: body.lesson } });
+        //window.open("?lesson=" + body.lesson + "#lesson", "_blank").focus();
         //modifyParams("lesson", body.lesson);
         //setFrame("pages/app/lesson");
       }

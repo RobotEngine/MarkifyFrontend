@@ -4938,6 +4938,7 @@ modules["editor/toolbar/drag"] = class {
     await this.parent.selection.updateActionBar({ hideSelectBox: this.selection != null });
   }
   click = async (event) => { await this.parent.selection.clickAction(event, { clickEvent: true }); await this.parent.selection.interactRun(event.target); }
+  disable = this.clickEnd;
 }
 
 modules["editor/toolbar/pen"] = class {
@@ -4952,11 +4953,10 @@ modules["editor/toolbar/pen"] = class {
   stylusButtonB = (event) => { return 2 == event.button || 2 == (2 & event.buttons); }; // 2nd Stylus Button (Drag Select Box)
 
   clickStart = async (event) => {
-    if (this.passthroughModule != null && this.passthroughModule.clickStart != null) {
-      await this.passthroughModule.clickStart(event);
-    }
     if (event.target.closest(".eActionBar") != null) {
-      return;
+      if (this.passthroughModule != null && this.passthroughModule.clickStart != null) {
+        return await this.passthroughModule.clickStart(event);
+      }
     }
     if (["pen", "mouse"].includes(event.pointerType) == false) {
       if (this.editor.options.stylusmode == true) {
@@ -5014,7 +5014,7 @@ modules["editor/toolbar/pen"] = class {
     } else if (this.stylusButtonB(event) == true) {
       newPassthroughType = "drag";
       newPassthrough = "editor/toolbar/drag";
-    } else if (this.passthroughModule != null) {
+    } else if (this.passthroughType != null) {
       if ((this.passthroughModule ?? {}).disable != null) {
         await this.passthroughModule.disable();
       }
@@ -5128,7 +5128,7 @@ modules["editor/toolbar/pen"] = class {
     }
   }
   clickEnd = async (event) => {
-    if (this.passthroughType != null && (this.passthroughModule ?? {}).clickEnd != null) {
+    if ((this.passthroughModule ?? {}).clickEnd != null) {
       return this.passthroughModule.clickEnd(event);
     }
     if (this.annotation == null) {
@@ -5195,7 +5195,7 @@ modules["editor/toolbar/pen"] = class {
     this.editor.usingStylus = false;
   };
   click = async (event) => {
-    if (this.passthroughType != null && (this.passthroughModule ?? {}).click != null) {
+    if ((this.passthroughModule ?? {}).click != null) {
       await this.passthroughModule.click(event);
     }
   }

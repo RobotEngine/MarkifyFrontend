@@ -4955,6 +4955,9 @@ modules["editor/toolbar/pen"] = class {
     if (this.passthroughModule != null && this.passthroughModule.clickStart != null) {
       await this.passthroughModule.clickStart(event);
     }
+    if (this.editor.isEditorContent(event.target) != true) {
+      return;
+    }
     if (["pen", "mouse"].includes(event.pointerType) == false) {
       if (this.editor.options.stylusmode == true) {
         return;
@@ -4965,11 +4968,11 @@ modules["editor/toolbar/pen"] = class {
       }
       this.editor.usingStylus = true;
     }
-    if (this.passthroughType != null) {
-      this.passthroughType = null;
+    if (this.passthroughModule != null) {
       if ((this.passthroughModule ?? {}).disable != null) {
         this.passthroughModule.disable();
       }
+      this.passthroughModule = null;
       this.toolbar.applyToolModule(this);
       //this.toolbar.updateMouse(this.MOUSE);
       //this.REALTIME_TOOL = 2;
@@ -5010,11 +5013,12 @@ modules["editor/toolbar/pen"] = class {
     } else if (this.stylusButtonB(event) == true) {
       newPassthroughType = "drag";
       newPassthrough = "editor/toolbar/drag";
-    } else if (this.passthroughType != null) {
-      this.passthroughType = null;
+    } else if (this.passthroughModule != null) {
       if ((this.passthroughModule ?? {}).disable != null) {
         await this.passthroughModule.disable();
       }
+      this.passthroughType = null;
+      this.passthroughModule = null;
       return this.toolbar.applyToolModule(this);
     }
     if (newPassthrough != null && newPassthroughType != this.passthroughType) {

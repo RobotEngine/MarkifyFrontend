@@ -4949,14 +4949,11 @@ modules["editor/toolbar/pen"] = class {
   PUBLISH = {};
 
   stylusButtonA = (event) => { return 5 == event.button || 32 == (32 & event.buttons); }; // 1st Stylus Button (Eraser)
-  stylusButtonB = (event) => { return 2 == event.button || 2 == (2 & event.buttons); }; // 2nd Stylus Button (Drag Select Box)
+  stylusButtonB = (event) => { return true; return 2 == event.button || 2 == (2 & event.buttons); }; // 2nd Stylus Button (Drag Select Box)
 
   clickStart = async (event) => {
-    if (this.passthroughModule != null) {
-      this.toolbar.applyToolModule(this);
-      //this.toolbar.updateMouse(this.MOUSE);
-      //this.REALTIME_TOOL = 2;
-      this.passthroughModule = null;
+    if (this.passthroughModule != null && this.passthroughModule.clickStart != null) {
+      await this.passthroughModule.clickStart(event);
     }
     if (["pen", "mouse"].includes(event.pointerType) == false) {
       if (this.editor.options.stylusmode == true) {
@@ -4967,6 +4964,12 @@ modules["editor/toolbar/pen"] = class {
         return;
       }
       this.editor.usingStylus = true;
+    }
+    if (this.passthroughModule != null) {
+      this.toolbar.applyToolModule(this);
+      //this.toolbar.updateMouse(this.MOUSE);
+      //this.REALTIME_TOOL = 2;
+      this.passthroughModule = null;
     }
     event.preventDefault();
     this.disable();
@@ -5003,11 +5006,15 @@ modules["editor/toolbar/pen"] = class {
       newPassthroughType = "drag";
       newPassthrough = "editor/toolbar/drag";
     } else if (this.passthroughModule != null) {
+      if ((this.passthroughModule ?? {}).disable != null) {
+        await this.passthroughModule.disable();
+      }
       this.passthroughType = null;
       this.passthroughModule = null;
       return;
     }
     if (newPassthrough != null && newPassthroughType != this.passthroughType) {
+      this.disable();
       this.passthroughType = newPassthroughType;
       this.passthroughModule = await this.toolbar.newModule(newPassthrough);
       this.passthroughModule.editor = this.editor;
@@ -5019,7 +5026,6 @@ modules["editor/toolbar/pen"] = class {
       this.toolbar.applyToolModule(this.passthroughModule);
       //this.toolbar.updateMouse(this.passthroughModule.MOUSE);
       //this.REALTIME_TOOL = this.passthroughModule.REALTIME_TOOL;
-      this.disable();
       await this.passthroughModule.clickStart(event);
     }
     if ((this.passthroughModule ?? {}).clickMove != null) {
@@ -5182,7 +5188,7 @@ modules["editor/toolbar/pen"] = class {
   };
   click = async (event) => {
     if (this.passthroughModule != null && this.passthroughModule.click != null) {
-      return await this.passthroughModule.click(event);
+      await this.passthroughModule.click(event);
     }
   }
 }

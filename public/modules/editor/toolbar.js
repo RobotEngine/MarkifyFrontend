@@ -5019,7 +5019,6 @@ modules["editor/toolbar/pen"] = class {
         await this.passthroughModule.disable();
       }
       this.passthroughType = null;
-      this.passthroughModule = null;
       return this.toolbar.applyToolModule(this);
     }
     if (newPassthrough != null && newPassthroughType != this.passthroughType) {
@@ -5037,7 +5036,7 @@ modules["editor/toolbar/pen"] = class {
       //this.REALTIME_TOOL = this.passthroughModule.REALTIME_TOOL;
       await this.passthroughModule.clickStart(event);
     }
-    if ((this.passthroughModule ?? {}).clickMove != null) {
+    if (this.passthroughType != null && (this.passthroughModule ?? {}).clickMove != null) {
       await this.passthroughModule.clickMove(event);
     }
     
@@ -5129,7 +5128,7 @@ modules["editor/toolbar/pen"] = class {
     }
   }
   clickEnd = async (event) => {
-    if (this.passthroughModule != null && this.passthroughModule.clickEnd != null) {
+    if (this.passthroughType != null && (this.passthroughModule ?? {}).clickEnd != null) {
       return this.passthroughModule.clickEnd(event);
     }
     if (this.annotation == null) {
@@ -5160,7 +5159,7 @@ modules["editor/toolbar/pen"] = class {
     this.disable();
   }
   touchmove = (event) => {
-    if (this.passthroughModule != null && this.passthroughModule.touchmove != null) {
+    if (this.passthroughType != null && (this.passthroughModule ?? {}).touchmove != null) {
       return this.passthroughModule.touchmove(event);
     }
     if (this.editor.isEditorContent(event.target) != true) {
@@ -5196,7 +5195,7 @@ modules["editor/toolbar/pen"] = class {
     this.editor.usingStylus = false;
   };
   click = async (event) => {
-    if (this.passthroughModule != null && this.passthroughModule.click != null) {
+    if (this.passthroughType != null && (this.passthroughModule ?? {}).click != null) {
       await this.passthroughModule.click(event);
     }
   }

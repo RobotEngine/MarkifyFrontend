@@ -4928,7 +4928,7 @@ modules["editor/toolbar/drag"] = class {
     }
   }
   touchmove = (event) => {
-    if (this.isPassthrough == true && this.editor.isEditorContent(event.target) == true) {
+    if (this.editor.isEditorContent(event.target) == true) { //this.isPassthrough == true && 
       event.preventDefault();
     }
   }
@@ -4949,7 +4949,7 @@ modules["editor/toolbar/pen"] = class {
   PUBLISH = {};
 
   stylusButtonA = (event) => { return 5 == event.button || 32 == (32 & event.buttons); }; // 1st Stylus Button (Eraser)
-  stylusButtonB = (event) => { return true; return 2 == event.button || 2 == (2 & event.buttons); }; // 2nd Stylus Button (Drag Select Box)
+  stylusButtonB = (event) => { return 2 == event.button || 2 == (2 & event.buttons); }; // 2nd Stylus Button (Drag Select Box)
 
   clickStart = async (event) => {
     if (this.passthroughModule != null && this.passthroughModule.clickStart != null) {
@@ -5126,7 +5126,7 @@ modules["editor/toolbar/pen"] = class {
     if (this.annotation == null) {
       return;
     }
-    this.annotation.render.d = this.editor.math.simplifyPath(this.annotation.render.d, .75 / this.editor.zoom);
+    this.annotation.render.d = this.editor.math.simplifyPath(this.annotation.render.d, .5 / this.editor.zoom);
     if (this.STRAITEN_CHECK == true) {
       if (this.editor.math.relativelyStraight(this.annotation.render.d, 5 * this.editor.zoom) == true) {
         this.annotation.render.d = [this.annotation.render.d[0], this.annotation.render.d[1], this.annotation.render.d[this.annotation.render.d.length - 2], this.annotation.render.d[this.annotation.render.d.length - 1]]; // Strait line

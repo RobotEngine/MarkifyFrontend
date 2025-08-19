@@ -4955,7 +4955,7 @@ modules["editor/toolbar/pen"] = class {
     if (this.passthroughModule != null && this.passthroughModule.clickStart != null) {
       await this.passthroughModule.clickStart(event);
     }
-    if (this.editor.isEditorContent(event.target) != true) {
+    if (event.target.closest(".eActionBar") != null) {
       return;
     }
     if (["pen", "mouse"].includes(event.pointerType) == false) {
@@ -4969,6 +4969,7 @@ modules["editor/toolbar/pen"] = class {
       this.editor.usingStylus = true;
     }
     if (this.passthroughModule != null) {
+      this.passthroughType = null;
       if ((this.passthroughModule ?? {}).disable != null) {
         this.passthroughModule.disable();
       }

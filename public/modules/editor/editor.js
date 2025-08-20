@@ -3441,15 +3441,19 @@ modules["editor/editor"] = class {
       handlePinch(event);
     });
     this.pipeline.subscribe("zoomPinchTouchMove", "touchmove", (data) => {
+      let event = data.event;
+      if (event.cancelable == false) {
+        this.pinching = false;
+        annotations.style.removeProperty("will-change");
+        return;
+      }
       if (this.pinching == true) {
-        let event = data.event;
-        if (event.length > 1) {
-          this.pinching = false;
-          annotations.style.removeProperty("will-change");
-        }
         event.preventDefault();
       }
-      handlePinch(data.event);
+      if (event.touches.length > 2) {
+        return;
+      }
+      handlePinch(event);
     });
     this.pipeline.subscribe("zoomPinchTouchEnd", "touchend", (data) => {
       if (data.event.touches.length < 2) {

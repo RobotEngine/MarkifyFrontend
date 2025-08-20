@@ -2390,7 +2390,11 @@ modules["editor/editor"] = class {
       if (anno.expire == null) {
         this.save.timeoutAnnotations.push(anno);
       }
-      anno.expire = getEpoch() + 10000; // 10 seconds until expire
+      if (anno.render != null && [anno.render.a ?? this.self.modify, anno.render.m].includes(this.self.modify) == true) {
+        anno.expire = getEpoch() + 30000; // 30 seconds until expire
+      } else {
+        anno.expire = getEpoch() + 10000; // 10 seconds until expire
+      }
       anno.collab = (collab == true);
       if (this.save.runningTimeout == true) {
         return;
@@ -3408,9 +3412,21 @@ modules["editor/editor"] = class {
       let { mouseX: touchBX, mouseY: touchBY } = this.utils.localMousePosition(touches[1] ?? {});
       return { x: (touchAX + touchBX) / 2, y: (touchAY + touchBY) / 2 };
     }
+    let endPinch = () => {
+      this.pinching = false;
+      startDistance = null;
+      startZoom = null;
+      originCenter = null;
+      lastMouseX = null;
+      lastMouseY = null;
+      annotations.style.removeProperty("will-change");
+    }
     let handlePinch = async (event) => {
       if (this.pinching != true) {
         return;
+      }
+      if (event.touches.length != 2 || ["stylus", "pen"].includes(event.touches[0].touchType) == true || ["stylus", "pen"].includes(event.touches[1].touchType) == true) {
+        return endPinch();
       }
       let currentDistance = getDistance(event.touches);
       if (startDistance == null) {
@@ -3433,7 +3449,10 @@ modules["editor/editor"] = class {
     }
     this.pipeline.subscribe("zoomPinchTouchStart", "touchstart", async (data) => {
       let event = data.event;
-      if (event.touches.length > 1) { // && this.pinchZoomDisable != true
+      if (event.touches.length > 1) {
+        event.preventDefault();
+      }
+      if (event.touches.length == 2) { // && this.pinchZoomDisable != true
         this.pinching = true;
         annotations.style.willChange = "transform";
         this.utils.resetSelecting();
@@ -3443,9 +3462,7 @@ modules["editor/editor"] = class {
     this.pipeline.subscribe("zoomPinchTouchMove", "touchmove", (data) => {
       let event = data.event;
       if (event.cancelable == false) {
-        this.pinching = false;
-        annotations.style.removeProperty("will-change");
-        return;
+        return endPinch();
       }
       if (this.pinching == true) {
         event.preventDefault();
@@ -3457,14 +3474,8 @@ modules["editor/editor"] = class {
     });
     this.pipeline.subscribe("zoomPinchTouchEnd", "touchend", (data) => {
       if (data.event.touches.length < 2) {
-        this.pinching = false;
-        annotations.style.removeProperty("will-change");
+        endPinch();
       }
-      startDistance = null;
-      startZoom = null;
-      originCenter = null;
-      lastMouseX = null;
-      lastMouseY = null;
     });
 
     page.addEventListener("pointerdown", (event) => {

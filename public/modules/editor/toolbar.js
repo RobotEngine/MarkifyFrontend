@@ -4928,9 +4928,13 @@ modules["editor/toolbar/drag"] = class {
     }
   }
   touchmove = (event) => {
-    if (this.editor.isEditorContent(event.target) == true) { //this.isPassthrough == true && 
-      event.preventDefault();
+    if (this.editor.isEditorContent(event.target) != true) { //this.isPassthrough == true && 
+      return;
     }
+    if (target.closest("button") != null || target.closest("a") != null || target.closest(".eActionBar") != null) {
+      return;
+    }
+    event.preventDefault();
   }
   scroll = async () => {
     await this.clickMove();
@@ -5158,6 +5162,11 @@ modules["editor/toolbar/pen"] = class {
     
     this.disable();
   }
+  touchstart = (event) => { // Added due to Safari
+    if (this.graceful == true) {
+      event.preventDefault();
+    }
+  }
   touchmove = (event) => {
     if (this.passthroughType != null && (this.passthroughModule ?? {}).touchmove != null) {
       return this.passthroughModule.touchmove(event);
@@ -5174,12 +5183,16 @@ modules["editor/toolbar/pen"] = class {
       event.preventDefault();
     }
   }
-  enable = () => {
+  enable = async () => {
     let toolPreference = this.parent.getToolPreference();
     this.MOUSE.color = toolPreference.color.selected;
     this.MOUSE.opacity = toolPreference.opacity;
     this.PUBLISH.c = toolPreference.color.selected;
     this.PUBLISH.o = toolPreference.opacity;
+
+    this.graceful = true;
+    await sleep(100);
+    this.graceful = false;
   }
   disable = async () => {
     if (this.annotation == null) {
@@ -5366,6 +5379,11 @@ modules["editor/toolbar/eraser"] = class {
     this.y0 = null;
     this.editor.usingStylus = false;
   }
+  touchstart = (event) => { // Added due to Safari
+    if (this.graceful == true) {
+      event.preventDefault();
+    }
+  }
   touchmove = (event) => {
     if (this.editor.isEditorContent(event.target) != true) {
       return;
@@ -5374,13 +5392,11 @@ modules["editor/toolbar/eraser"] = class {
       event.preventDefault();
     }
   }
-  /*enable = () => {
-    if (this.editor.options.stylusmode != true) {
-      this.TOUCH_ACTION = "pinch-zoom";
-    } else {
-      //this.editor.pinchZoomDisable = true;
-    }
-  }*/
+  enable = async () => {
+    this.graceful = true;
+    await sleep(100);
+    this.graceful = false;
+  }
   disable = this.clickEnd;
 }
 
@@ -7029,9 +7045,9 @@ modules["editor/toolbar/color"] = class {
         }
       }
     });
-    if (isToolbar == false) {
-      //this.updateActionUI();
-    }
+    /*if (isToolbar == false) {
+      this.updateActionUI();
+    }*/
 
     let closeButton = frame.querySelector(".eSubToolColorPickerTopBack");
     closeButton.addEventListener("click", async () => {

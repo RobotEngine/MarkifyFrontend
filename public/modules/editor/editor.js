@@ -13,6 +13,7 @@ modules["editor/editor"] = class {
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 3; overflow: hidden; pointer-events: none`,
     ".eEditorContent": `position: relative; will-change: margin`,
     ".eAnnotations": `--startZIndex: 0; position: relative; width: 1px; height: 1px; transform-origin: 0 0; transform: scale(var(--zoom)); z-index: 2; pointer-events: none; contain: layout style size`,
+    ".eAnnotations[pointereventsdisabled] *": `pointer-events: none !important`,
     ".eBackground": `position: absolute; left: 0px; top: 0px; opacity: .075; transform-origin: left top; background-position: center; z-index: 1; pointer-events: none`,
 
     ".eAnnotation": `position: absolute; left: 0px; top: 0px; z-index: calc(var(--startZIndex) + var(--zIndex)); contain: size layout`,
@@ -835,12 +836,12 @@ modules["editor/editor"] = class {
         if (annoid == null || annoid == id) {
           continue;
         }
-        let annotation = this.annotations[annoid] || {};
+        let annotation = this.annotations[annoid] ?? {};
         if (annotation.pointer != null) {
           annoid = annotation.pointer;
-          annotation = this.annotations[annoid];
+          annotation = this.annotations[annoid] ?? {};
         }
-        let type = (annotation.render || {}).f;
+        let type = (annotation.render ?? {}).f;
         if (type == null || checkedTypes[type] != null) {
           continue;
         }
@@ -855,12 +856,12 @@ modules["editor/editor"] = class {
         if (annoid == null || annoid == id) {
           continue;
         }
-        let annotation = this.annotations[annoid] || {};
+        let annotation = this.annotations[annoid] ?? {};
         if (annotation.pointer != null) {
           annoid = annotation.pointer;
-          annotation = this.annotations[annoid];
+          annotation = this.annotations[annoid] ?? {};
         }
-        let render = annotation.render || {}; // { ...(annotation.render ?? {}), ...(this.selecting[annoid] ?? {}) };
+        let render = annotation.render ?? {}; // { ...(annotation.render ?? {}), ...(this.selecting[annoid] ?? {}) };
         if (includeSelecting == true) {
           render = { ...render, ...(this.selecting[annoid] ?? {}) };
         }
@@ -2387,15 +2388,17 @@ modules["editor/editor"] = class {
       if (anno == null) {
         return;
       }
+      anno.collab = collab == true;
+      let setExpire = getEpoch();
+      if (anno.render != null && [anno.render.a ?? this.self.modify, anno.render.m].includes(this.self.modify) == true) {
+        setExpire += 30000; // 30 seconds until expire
+      } else {
+        setExpire += 10000; // 10 seconds until expire
+      }
       if (anno.expire == null) {
+        anno.expire = setExpire;
         this.save.timeoutAnnotations.push(anno);
       }
-      if (anno.render != null && [anno.render.a ?? this.self.modify, anno.render.m].includes(this.self.modify) == true) {
-        anno.expire = getEpoch() + 30000; // 30 seconds until expire
-      } else {
-        anno.expire = getEpoch() + 10000; // 10 seconds until expire
-      }
-      anno.collab = (collab == true);
       if (this.save.runningTimeout == true) {
         return;
       }

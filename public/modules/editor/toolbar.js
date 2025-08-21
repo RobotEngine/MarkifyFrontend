@@ -542,6 +542,11 @@ modules["editor/toolbar"] = class {
       } else {
         contentHolder.style.removeProperty("touch-action");
       }
+      if (module.DISABLE_POINTER_EVENTS != true) {
+        annotations.removeAttribute("pointereventsdisabled");
+      } else {
+        annotations.setAttribute("pointereventsdisabled", "");
+      }
     }
     this.activateTool = async (extra, options = {}) => {
       //editor.pinchZoomDisable = false;
@@ -4949,6 +4954,7 @@ modules["editor/toolbar/pen"] = class {
   FUNCTION = "draw";
   USER_SELECT = "none";
   //TOUCH_ACTION = "none";
+  DISABLE_POINTER_EVENTS = true;
   REALTIME_TOOL = 2;
   MOUSE = { type: "svg", url: "../images/editor/cursors/pen.svg", translate: { x: 15, y: 30 } };
   PUBLISH = {};
@@ -5133,7 +5139,7 @@ modules["editor/toolbar/pen"] = class {
   }
   clickEnd = async (event) => {
     if ((this.passthroughModule ?? {}).clickEnd != null) {
-      return this.passthroughModule.clickEnd(event);
+      this.passthroughModule.clickEnd(event);
     }
     if (this.annotation == null) {
       return;
@@ -5240,6 +5246,7 @@ modules["editor/toolbar/understrike"] = class extends modules["editor/toolbar/pe
 modules["editor/toolbar/eraser"] = class {
   USER_SELECT = "none";
   //TOUCH_ACTION = "none";
+  DISABLE_POINTER_EVENTS = true;
   REALTIME_TOOL = 3;
   MOUSE = { type: "svg", url: "../images/editor/cursors/eraser.svg", translate: { x: 20, y: 20 } };
   PUBLISH = {};
@@ -5344,7 +5351,7 @@ modules["editor/toolbar/eraser"] = class {
           }
           let [prevPointX, prevPointY] = this.editor.math.rotatePoint(prevRelativeX, prevRelativeY, rect.rotation);
           let [pointX, pointY] = this.editor.math.rotatePoint(pRelativeX, pRelativeY, rect.rotation);
-          if (this.editor.math.isPointOnLine(xPos, yPos, prevPointX + halfWidth, prevPointY + halfHeight, pointX + halfWidth, pointY + halfHeight, Math.max(strokeWidth / 2, Math.min(4 / this.editor.zoom, 8))) == true) {
+          if (this.editor.math.isPointOnLine(xPos, yPos, prevPointX + halfWidth, prevPointY + halfHeight, pointX + halfWidth, pointY + halfHeight, Math.max(strokeWidth / 2, Math.min(4 / this.editor.zoom, 8))) == true && render.remove != true) {
             await this.editor.history.push("add", [render]);
             let updateAnno = { _id: annoID, remove: true };
             await this.editor.save.push(updateAnno);

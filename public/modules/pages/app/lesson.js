@@ -947,7 +947,7 @@ modules["pages/app/lesson"] = class {
             path += "?" + params.join("&");
           }
           sentPing = true;
-          let [code] = await sendRequest("GET", path, null, { session: this.session, allowError: [403] });
+          let [code] = await sendRequest("GET", path, null, { session: this.session, allowError: [403, 419] });
           if (code == 403) {
             if (sendBody.pin != null) {
               setFrame("pages/app/join", null, { passParams: true }); // Send back to join page

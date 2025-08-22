@@ -5073,7 +5073,7 @@ modules["editor/toolbar/pen"] = class {
       //this.REALTIME_TOOL = this.passthroughModule.REALTIME_TOOL;
       await this.passthroughModule.clickStart(event);
     }
-    if (this.passthroughType != null && (this.passthroughModule ?? {}).clickMove != null) {
+    if ((this.passthroughModule ?? {}).clickMove != null) { // this.passthroughType != null &&
       await this.passthroughModule.clickMove(event);
     }
     
@@ -5286,6 +5286,8 @@ modules["editor/toolbar/eraser"] = class {
       this.editor.usingStylus = true;
     }
     event.preventDefault();
+    this.editor.selecting = {};
+    this.parent.selection.updateBox();
     this.erasing = true;
     this.clickMove(event);
     this.parent.toolbar.closeSubSub(true);

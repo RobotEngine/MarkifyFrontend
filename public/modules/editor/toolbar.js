@@ -6737,7 +6737,7 @@ modules["editor/toolbar/sidemenu/comment"] = class {
   }
 }
 
-modules["editor/toolbar/page"] = class extends modules["editor/toolbar/placement"] {
+modules["editor/toolbar/page"] = class extends modules["editor/toolbar/resize_placement"] {
   CAN_FLIP = false;
   MINIMUM_SIZE = 100;
   FLOAT_TO_HOVERED_LAYER = true;

@@ -11,16 +11,16 @@ modules["editor/editor"] = class {
   css = {
     ".eContent": `--interfacePadding: 58px; position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - (var(--interfacePadding) * 2)); min-height: calc(100vh - (var(--interfacePadding) * 2)); padding: var(--interfacePadding); align-items: center; overflow: hidden; background-color: var(--backgroundColor); pointer-events: all; transition: background-color .3s; --zoom: 1`,
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 3; overflow: hidden; pointer-events: none`,
-    ".eEditorContent": `position: relative; will-change: margin`,
-    ".eAnnotations": `--startZIndex: 0; position: relative; width: 1px; height: 1px; transform-origin: 0 0; transform: scale(var(--zoom)); z-index: 2; pointer-events: none; contain: layout style size`,
+    ".eEditorContent": `position: relative`, // will-change: margin
+    ".eAnnotations": `--startZIndex: 0; position: relative; width: 1px; height: 1px; transform-origin: 0 0; transform: scale(var(--zoom)); z-index: 2; pointer-events: none; contain: layout style size`, // will-change: contents
     ".eAnnotations[pointereventsdisabled] *": `pointer-events: none !important`,
-    ".eBackground": `position: absolute; left: 0px; top: 0px; opacity: .075; transform-origin: left top; background-position: center; z-index: 1; pointer-events: none`,
+    ".eBackground": `position: absolute; left: 0px; top: 0px; opacity: .075; transform-origin: left top; background-position: center; z-index: 1; pointer-events: none; contain: strict`,
 
     ".eAnnotation": `position: absolute; left: 0px; top: 0px; z-index: calc(var(--startZIndex) + var(--zIndex)); contain: size layout`,
     ".eAnnotation[hidden]": `display: none !important`,
     ".eAnnotation[anno]": `transition: all .25s, z-index 0s`,
     //".eAnnotation:not([anno])": `display: none !important`,
-    ".eAnnotationHolder": `position: absolute; z-index: 10`,
+    ".eAnnotationHolder": `position: absolute; z-index: 10; contain: layout style size`, // will-change: contents
     //".eAnnotationHolder[notransition] > .eAnnotation": `transition: unset !important`,
     ".eAnnotation > svg": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: none; overflow: visible`,
     ".eAnnotation > svg > *": `pointer-events: visiblepainted`,
@@ -546,6 +546,7 @@ modules["editor/editor"] = class {
 
     frame.style.width = "fit-content";
     frame.style.height = "fit-content";
+    //contentHolder.style.willChange = "scroll-position";
 
     let localOptions = getLocalStore("options");
     if (localOptions != null) {
@@ -3034,10 +3035,12 @@ modules["editor/editor"] = class {
       }
       background.style.backgroundSize = dotSize + "px " + dotSize + "px";
       let scaledDotSize = dotSize * this.zoom;
-      let backgroundPaddingWidth = Math.ceil((page.offsetWidth / 2) / scaledDotSize) * scaledDotSize;
-      let backgroundPaddingHeight = Math.ceil((page.offsetHeight / 2) / scaledDotSize) * scaledDotSize;
-      let backgroundWidth = Math.ceil((page.offsetWidth + (backgroundPaddingWidth * 2)) / scaledDotSize) * scaledDotSize;
-      let backgroundHeight = Math.ceil((page.offsetHeight + (backgroundPaddingHeight * 2)) / scaledDotSize) * scaledDotSize;
+      let pageWidth = page.offsetWidth;
+      let pageHeight = page.offsetHeight;
+      let backgroundPaddingWidth = Math.ceil((pageWidth / 2) / scaledDotSize) * scaledDotSize;
+      let backgroundPaddingHeight = Math.ceil((pageHeight / 2) / scaledDotSize) * scaledDotSize;
+      let backgroundWidth = Math.ceil((pageWidth + (backgroundPaddingWidth * 2)) / scaledDotSize) * scaledDotSize;
+      let backgroundHeight = Math.ceil((pageHeight + (backgroundPaddingHeight * 2)) / scaledDotSize) * scaledDotSize;
       background.style.width = (backgroundWidth / this.zoom) + "px";
       background.style.height = (backgroundHeight / this.zoom) + "px";
       let annotationRect = this.utils.localBoundingRect(annotations);
@@ -3051,10 +3054,10 @@ modules["editor/editor"] = class {
 
       let beforeChunks = JSON.stringify(this.visibleChunks);
       this.visibleChunks = this.utils.regionInChunks(
-        ((page.offsetWidth / -2) - annotationRect.left) / this.zoom,
-        ((page.offsetHeight / -2) - annotationRect.top) / this.zoom,
-        ((page.offsetWidth + (page.offsetWidth / 2)) - annotationRect.left) / this.zoom,
-        ((page.offsetHeight + (page.offsetHeight / 2)) - annotationRect.top) / this.zoom
+        ((pageWidth / -2) - annotationRect.left) / this.zoom,
+        ((pageHeight / -2) - annotationRect.top) / this.zoom,
+        ((pageWidth + (pageWidth / 2)) - annotationRect.left) / this.zoom,
+        ((pageHeight + (pageHeight / 2)) - annotationRect.top) / this.zoom
       );
       if (beforeChunks != JSON.stringify(this.visibleChunks)) {
         await this.runUpdateCycle();
@@ -3417,7 +3420,7 @@ modules["editor/editor"] = class {
       originCenter = null;
       lastMouseX = null;
       lastMouseY = null;
-      annotations.style.removeProperty("will-change");
+      //annotations.style.removeProperty("will-change");
     }
     let handlePinch = async (event) => {
       if (this.pinching != true) {
@@ -3452,7 +3455,7 @@ modules["editor/editor"] = class {
       }
       if (event.touches.length == 2) { // && this.pinchZoomDisable != true
         this.pinching = true;
-        annotations.style.willChange = "transform";
+        //annotations.style.willChange = "transform";
         this.utils.resetSelecting();
       }
       handlePinch(event);

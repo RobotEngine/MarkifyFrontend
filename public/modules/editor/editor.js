@@ -901,11 +901,6 @@ modules["editor/editor"] = class {
     this.utils.parentFromPoint = async (x, y, index) => {
       return await this.utils.parentFromAnnotation({ p: [x, y], l: index });
     }
-    this.utils.applyRelativePosition = (anno) => {
-      let { x: setX, y: setY } = this.utils.getRelativePosition(anno);
-      anno.p = [setX, setY];
-      return anno;
-    }
 
     this.utils.localMousePosition = (mouse) => {
       let mouseX = mouse.x ?? mouse.clientX ?? ((mouse.changedTouches ?? [])[0] ?? {}).clientX ?? 0;

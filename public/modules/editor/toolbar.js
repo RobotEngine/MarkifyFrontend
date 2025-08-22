@@ -5624,6 +5624,22 @@ modules["editor/toolbar/resize_placement"] = class {
           this.annotation.render.p[1] += setY;
         }
       }
+    } else if (this.FLOAT_TO_HOVERED_LAYER == true) {
+      let highestLayer = this.editor.minLayer - 2;
+      let annotations = this.editor.utils.annotationsInChunks([this.editor.utils.pointInChunk(position.x, position.y)]);
+      for (let i = 0; i < annotations.length; i++) {
+        let render = (annotations[i] ?? {}).render ?? {};
+        if (render.f != "page") {
+          continue;
+        }
+        let rect = this.editor.utils.getRect(render) ?? {};
+        if (this.editor.math.pointInRotatedBounds(position.x, position.y, rect.x, rect.y, rect.endX, rect.endY, rect.rotation) == false) {
+          continue;
+        }
+        let layer = render.l ?? render.sync ?? highestLayer;
+        highestLayer = Math.max(layer, highestLayer ?? layer);
+      }
+      this.annotation.render.l = highestLayer + 1;
     }
     let renderObject = { ...this.annotation, render: { ...this.annotation.render, ...this.RENDER_INSERT } };
     await this.editor.render.create(renderObject);
@@ -6677,6 +6693,7 @@ modules["editor/toolbar/sidemenu/comment"] = class {
 modules["editor/toolbar/page"] = class extends modules["editor/toolbar/resize_placement"] {
   CAN_FLIP = false;
   MINIMUM_SIZE = 100;
+  FLOAT_TO_HOVERED_LAYER = true;
 
   enable = () => {
     let toolPreference = this.parent.getToolPreference();

@@ -5442,6 +5442,23 @@ modules["editor/toolbar/placement"] = class {
       this.editor.math.round(position.x - (this.annotation.render.s[0] / 2)),
       this.editor.math.round(position.y - (this.annotation.render.s[1] / 2))
     ];
+    if (this.FLOAT_TO_HOVERED_LAYER == true) {
+      let highestLayer = this.editor.minLayer - 2;
+      let annotations = this.editor.utils.annotationsInChunks([this.editor.utils.pointInChunk(position.x, position.y)]);
+      for (let i = 0; i < annotations.length; i++) {
+        let render = (annotations[i] ?? {}).render ?? {};
+        if (render.f != "page") {
+          continue;
+        }
+        let rect = this.editor.utils.getRect(render) ?? {};
+        if (this.editor.math.pointInRotatedBounds(position.x, position.y, rect.x, rect.y, rect.endX, rect.endY, rect.rotation) == false) {
+          continue;
+        }
+        let layer = render.l ?? render.sync ?? highestLayer;
+        highestLayer = Math.max(layer, highestLayer ?? layer);
+      }
+      this.annotation.render.l = highestLayer + 1;
+    }
     await this.editor.render.create(this.annotation);
     if (this.annotation.render.textfit == true) {
       let element = this.annotation.component.getElement();

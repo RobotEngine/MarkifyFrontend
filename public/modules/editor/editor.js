@@ -11,7 +11,7 @@ modules["editor/editor"] = class {
   css = {
     ".eContent": `--interfacePadding: 58px; position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - (var(--interfacePadding) * 2)); min-height: calc(100vh - (var(--interfacePadding) * 2)); padding: var(--interfacePadding); align-items: center; overflow: hidden; background-color: var(--backgroundColor); pointer-events: all; transition: background-color .3s; --zoom: 1`,
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 3; overflow: hidden; pointer-events: none`,
-    ".eEditorContent": `position: relative`, // will-change: margin
+    ".eEditorContent": `position: relative; will-change: margin`,
     ".eAnnotations": `--startZIndex: 0; position: relative; width: 1px; height: 1px; transform-origin: 0 0; transform: scale(var(--zoom)); z-index: 2; pointer-events: none; contain: layout style size`, // will-change: contents
     ".eAnnotations[pointereventsdisabled] *": `pointer-events: none !important`,
     ".eBackground": `position: absolute; left: 0px; top: 0px; opacity: .075; transform-origin: left top; background-position: center; z-index: 1; pointer-events: none; contain: strict`,
@@ -3420,7 +3420,7 @@ modules["editor/editor"] = class {
       originCenter = null;
       lastMouseX = null;
       lastMouseY = null;
-      //annotations.style.removeProperty("will-change");
+      annotations.style.removeProperty("will-change");
     }
     let handlePinch = async (event) => {
       if (this.pinching != true) {
@@ -3455,7 +3455,7 @@ modules["editor/editor"] = class {
       }
       if (event.touches.length == 2) { // && this.pinchZoomDisable != true
         this.pinching = true;
-        //annotations.style.willChange = "transform";
+        annotations.style.willChange = "transform";
         this.utils.resetSelecting();
       }
       handlePinch(event);

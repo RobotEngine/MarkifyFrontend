@@ -2054,7 +2054,7 @@ modules["editor/editor"] = class {
       annotation.component.editor = this;
       annotation.component.annotation = annotation;
       annotation.component.properties = { ...render, p: [xPos, yPos], s: [width, height], parent: parent };
-      annotation.component.holder = holder;
+      annotation.component.holder = holder ?? annotations;
       annotation.component.parentID = parent;
 
       annotation.component.animate = annotation.animate;

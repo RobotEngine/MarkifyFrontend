@@ -5471,8 +5471,8 @@ modules["editor/toolbar/placement"] = class {
       this.editor.math.round(position.y - (this.annotation.render.s[1] / 2))
     ];
     if (this.FLOAT_TO_HOVERED_LAYER == true) {
-      let highestLayer = this.editor.minLayer - 2;
       let annotations = this.editor.utils.annotationsInChunks([this.editor.utils.pointInChunk(position.x, position.y)]);
+      let viableAnnotations = [];
       for (let i = 0; i < annotations.length; i++) {
         let render = (annotations[i] ?? {}).render ?? {};
         if (render.f != "page") {
@@ -5482,10 +5482,11 @@ modules["editor/toolbar/placement"] = class {
         if (this.editor.math.pointInRotatedBounds(position.x, position.y, rect.x, rect.y, rect.endX, rect.endY, rect.rotation) == false) {
           continue;
         }
-        let layer = render.l ?? render.sync ?? highestLayer;
-        highestLayer = Math.max(layer, highestLayer ?? layer);
+        viableAnnotations.push(render);
       }
-      this.annotation.render.l = highestLayer + 1;
+      let minLayer = this.editor.minLayer - 2;
+      let topAnnotation = viableAnnotations.sort((a, b) => { return (b.l ?? b.sync ?? minLayer) - (a.l ?? a.sync ?? minLayer); })[0] ?? { l: minLayer };
+      this.annotation.render.l = (topAnnotation.l ?? topAnnotation.sync ?? minLayer) + 1;
     }
     await this.editor.render.create(this.annotation);
     if (this.annotation.render.textfit == true) {
@@ -5670,8 +5671,8 @@ modules["editor/toolbar/resize_placement"] = class {
         }
       }
     } else if (this.FLOAT_TO_HOVERED_LAYER == true) {
-      let highestLayer = this.editor.minLayer - 2;
       let annotations = this.editor.utils.annotationsInChunks([this.editor.utils.pointInChunk(position.x, position.y)]);
+      let viableAnnotations = [];
       for (let i = 0; i < annotations.length; i++) {
         let render = (annotations[i] ?? {}).render ?? {};
         if (render.f != "page") {
@@ -5681,10 +5682,11 @@ modules["editor/toolbar/resize_placement"] = class {
         if (this.editor.math.pointInRotatedBounds(position.x, position.y, rect.x, rect.y, rect.endX, rect.endY, rect.rotation) == false) {
           continue;
         }
-        let layer = render.l ?? render.sync ?? highestLayer;
-        highestLayer = Math.max(layer, highestLayer ?? layer);
+        viableAnnotations.push(render);
       }
-      this.annotation.render.l = highestLayer + 1;
+      let minLayer = this.editor.minLayer - 2;
+      let topAnnotation = viableAnnotations.sort((a, b) => { return (b.l ?? b.sync ?? minLayer) - (a.l ?? a.sync ?? minLayer); })[0] ?? { l: minLayer };
+      this.annotation.render.l = (topAnnotation.l ?? topAnnotation.sync ?? minLayer) + 1;
     }
     let renderObject = { ...this.annotation, render: { ...this.annotation.render, ...this.RENDER_INSERT } };
     await this.editor.render.create(renderObject);
@@ -6735,7 +6737,7 @@ modules["editor/toolbar/sidemenu/comment"] = class {
   }
 }
 
-modules["editor/toolbar/page"] = class extends modules["editor/toolbar/resize_placement"] {
+modules["editor/toolbar/page"] = class extends modules["editor/toolbar/placement"] {
   CAN_FLIP = false;
   MINIMUM_SIZE = 100;
   FLOAT_TO_HOVERED_LAYER = true;

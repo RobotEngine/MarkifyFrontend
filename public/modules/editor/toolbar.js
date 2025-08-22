@@ -4933,7 +4933,8 @@ modules["editor/toolbar/drag"] = class {
     }
   }
   touchmove = (event) => {
-    if (this.editor.isEditorContent(event.target) != true) { //this.isPassthrough == true && 
+    let target = event.target;
+    if (this.editor.isEditorContent(target) != true) { //this.isPassthrough == true && 
       return;
     }
     if (target.closest("button") != null || target.closest("a") != null || target.closest(".eActionBar") != null) {
@@ -4963,8 +4964,21 @@ modules["editor/toolbar/pen"] = class {
   stylusButtonB = (event) => { return 2 == event.button || 2 == (2 & event.buttons); }; // 2nd Stylus Button (Drag Select Box)
 
   clickStart = async (event) => {
-    if (event.target.closest(".eActionBar") != null) {
-      if (this.passthroughModule != null && this.passthroughModule.clickStart != null) {
+    let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
+    if (this.passthroughModule != null && this.passthroughModule.clickStart != null) {
+      let runPassthrough = false;
+      let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
+      if (this.parent.selection.action != null) {
+        runPassthrough = true;
+      } else if (event.target.closest(".eSelect") != null || event.target.closest(".eActionBar") != null) {
+        runPassthrough = true;
+      } else {
+        let position = this.editor.utils.scaleToDoc(mouseX, mouseY);
+        if (this.parent.selection.pointInSelectBox(position.x, position.y) == true) {
+          runPassthrough = true
+        }
+      }
+      if (runPassthrough == true) {
         return await this.passthroughModule.clickStart(event);
       }
     }
@@ -4993,7 +5007,6 @@ modules["editor/toolbar/pen"] = class {
     this.editor.selecting = {};
     this.parent.selection.updateBox();
     this.parent.toolbar.closeSubSub(true);
-    let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
     let position = this.editor.utils.scaleToDoc(mouseX, mouseY);
     let toolPreference = this.parent.getToolPreference();
     let useThickness = this.THICKNESS ?? toolPreference.thickness;
@@ -5018,18 +5031,32 @@ modules["editor/toolbar/pen"] = class {
   clickMove = async (event) => {
     let newPassthroughType;
     let newPassthrough;
-    if (this.stylusButtonA(event) == true) {
-      newPassthroughType = "eraser";
-      newPassthrough = "editor/toolbar/eraser";
-    } else if (this.stylusButtonB(event) == true) {
-      newPassthroughType = "drag";
-      newPassthrough = "editor/toolbar/drag";
-    } else if (this.passthroughType != null) {
-      if ((this.passthroughModule ?? {}).disable != null) {
-        await this.passthroughModule.disable();
+    let skipCheck = false;
+    let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
+    if (this.parent.selection.action != null) {
+      skipCheck = true;
+    } else if (event.target.closest(".eSelect") != null) {
+      skipCheck = true;
+    } else {
+      let position = this.editor.utils.scaleToDoc(mouseX, mouseY);
+      if (this.parent.selection.pointInSelectBox(position.x, position.y) == true) {
+        skipCheck = true
       }
-      this.passthroughType = null;
-      return this.toolbar.applyToolModule(this);
+    }
+    if (skipCheck != true) {
+      if (this.stylusButtonA(event) == true) {
+        newPassthroughType = "eraser";
+        newPassthrough = "editor/toolbar/eraser";
+      } else if (this.stylusButtonB(event) == true) {
+        newPassthroughType = "drag";
+        newPassthrough = "editor/toolbar/drag";
+      } else if (this.passthroughType != null) {
+        if ((this.passthroughModule ?? {}).disable != null) {
+          await this.passthroughModule.disable();
+        }
+        this.passthroughType = null;
+        this.toolbar.applyToolModule(this);
+      }
     }
     if (newPassthrough != null && newPassthroughType != this.passthroughType) {
       this.disable();
@@ -5066,7 +5093,6 @@ modules["editor/toolbar/pen"] = class {
     event.preventDefault();
     //touch.force = the force of the touch - useful for later ;)
     let rect = this.editor.utils.localBoundingRect(this.annotation.component.getElement());
-    let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
     let { x, y } = this.editor.utils.scaleToDoc(mouseX - rect.left, mouseY - rect.top, true);
     let halfT = this.editor.math.round(this.annotation.render.t / 2);
     x -= halfT;

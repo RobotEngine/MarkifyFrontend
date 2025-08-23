@@ -3243,14 +3243,10 @@ modules["editor/toolbar"] = class {
 
         if (this.selection.action == "move") {
           select.p = [
-            editor.math.round(rect.annoX + changePositionX + offsetSnapX),
-            editor.math.round(rect.annoY + changePositionY + offsetSnapY)
+            editor.math.round(original.render.p[0] + changePositionX + offsetSnapX),
+            editor.math.round(original.render.p[1] + changePositionY + offsetSnapY)
           ];
         } else if (this.selection.action == "resize") {
-          if (rect.size[0] == 0 || rect.size[1] == 0) {
-            continue;
-          }
-
           let rotate = rect.rotation;
           if (rotate > 180) {
             rotate = -(360 - rotate);
@@ -3307,12 +3303,18 @@ modules["editor/toolbar"] = class {
           }
 
           if (keys.length > 1) {
-            if (setWidth < 25) {
+            if (rect.size[0] == 0) {
+              setWidth = 0;
+            } else if (setWidth < 25) {
               setWidth = 25;
             }
-            if (setHeight < 25) {
+            if (rect.size[1] == 0) {
+              setHeight = 0;
+            } else if (setHeight < 25) {
               setHeight = 25;
             }
+          } else if (rect.size[0] == 0 || rect.size[1] == 0) {
+            continue;
           }
 
           // Preserve original sign:
@@ -3336,7 +3338,7 @@ modules["editor/toolbar"] = class {
           let originalSetWidth = setWidth;
           let originalSetHeight = setHeight;
 
-          let minWidth = annoModule.MIN_WIDTH ?? rect.thickness;
+          let minWidth = annoModule.MIN_WIDTH ?? 0;
           if (absWidth < minWidth) {
             if (setWidth > 0) {
               setWidth = minWidth;
@@ -3347,7 +3349,7 @@ modules["editor/toolbar"] = class {
               maintainSizeWidth = true;
             }
           }
-          let minHeight = annoModule.MIN_HEIGHT ?? rect.thickness;
+          let minHeight = annoModule.MIN_HEIGHT ?? 0;
           if (absHeight < minHeight) {
             if (setHeight > 0) {
               setHeight = minHeight;

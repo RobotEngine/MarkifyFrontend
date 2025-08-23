@@ -756,12 +756,12 @@ modules["editor/editor"] = class {
       let height = (Math.abs(sizeHeight) + position.thickness) / 2;
       let x = ((bottomRightX + topLeftX) / 2);
       let y = ((bottomRightY + topLeftY) / 2);
-      if (sizeWidth > 0) {
+      if (sizeWidth >= 0) {
         x -= width;
       } else {
         x += width;
       }
-      if (sizeHeight > 0) {
+      if (sizeHeight >= 0) {
         y -= height;
       } else {
         y += height;

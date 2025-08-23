@@ -60,7 +60,8 @@ modules["dropdowns/lesson/share/pin"] = class {
     
     ".eSharePinHolder": `display: flex`,
     ".eSharePinDisplay": `display: flex; flex-wrap: wrap; justify-content: center; align-items: center; color: var(--theme); font-size: 60px; font-weight: 700; letter-width: 8px; transition: .3s`,
-    ".eSharePinDisplay span[section]": `display: block; min-height: 81px; padding: 0 16px; margin: 10px; border: solid 4px var(--hover); border-radius: 20px; letter-spacing: 10px`,
+    ".eSharePinDisplay span[section]": `display: block; min-height: 74px; padding: 0 12px; margin: 10px; border: solid 4px var(--hover); border-radius: 20px`,
+    ".eSharePinDisplay span[section] span": `display: inline-block; height: 74px; margin: 0 4px`,
     ".eSharePinDisplay div": `width: 12px; height: 12px; background: var(--hover); border-radius: 12px`,
     
     ".eSharePinOptions": `display: none; flex-wrap: wrap; width: calc(100% - 16px); margin: 0 8px 8px 8px; justify-content: center`,
@@ -95,9 +96,11 @@ modules["dropdowns/lesson/share/pin"] = class {
       let right = "";
       for (let i = 0; i < currentPin.length; i++) {
         let char = currentPin[i];
-        let charHTML = char;
+        let charHTML = "";
         if (parseInt(char) < 10) {
-          charHTML = `<span style="color: var(--secondary)">${char}</span>`;
+          charHTML = '<span style="color: var(--secondary)">' + char + '</span>';
+        } else {
+          charHTML = '<span>' + char + '</span>';
         }
         if (i < 3) {
           left += charHTML;

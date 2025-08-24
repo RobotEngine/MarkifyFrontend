@@ -3243,8 +3243,8 @@ modules["editor/toolbar"] = class {
 
         if (this.selection.action == "move") {
           select.p = [
-            editor.math.round(original.render.p[0] + changePositionX + offsetSnapX),
-            editor.math.round(original.render.p[1] + changePositionY + offsetSnapY)
+            editor.math.round(rect.annoX + changePositionX + offsetSnapX),
+            editor.math.round(rect.annoY + changePositionY + offsetSnapY)
           ];
         } else if (this.selection.action == "resize") {
           let rotate = rect.rotation;

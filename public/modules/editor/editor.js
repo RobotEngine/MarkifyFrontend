@@ -1403,7 +1403,9 @@ modules["editor/editor"] = class {
 
       let collaborator = this.collaborators[modify];
       if (collaborator != null) {
-        if (callback) await callback(collaborator);
+        if (callback != null) {
+          await callback(collaborator);
+        }
         return collaborator;
       }
 
@@ -1415,6 +1417,7 @@ modules["editor/editor"] = class {
 
           let modifyIDs = Object.keys(this.utils.getCollaboratorSync);
           this.utils.getCollaboratorSync = {};
+          this.utils.requestCollaborators = null;
           let [code, body] = await sendRequest("GET", "lessons/members/collaborator?modify=" + modifyIDs.join(), null, { session: this.session });
           if (code == 200) {
             let memberObject = getObject(body, "_id");
@@ -1422,10 +1425,8 @@ modules["editor/editor"] = class {
               let collaboratorID = modifyIDs[i];
               let collaborator = memberObject[collaboratorID] ?? {};
               this.collaborators[collaboratorID] = collaborator;
-              modifyIDs.splice(modifyIDs.indexOf(collaboratorID), 1);
             }
           }
-          this.utils.requestCollaborators = null;
         })();
       }
 
@@ -1433,7 +1434,10 @@ modules["editor/editor"] = class {
 
       collaborator = this.collaborators[modify] ?? {};
 
-      if (callback) await callback(collaborator);
+      if (callback != null) {
+        await callback(collaborator);
+      }
+
       return collaborator;
     }
 

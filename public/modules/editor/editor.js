@@ -12,7 +12,7 @@ modules["editor/editor"] = class {
     ".eContent": `--interfacePadding: 58px; position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - (var(--interfacePadding) * 2)); min-height: calc(100vh - (var(--interfacePadding) * 2)); padding: var(--interfacePadding); align-items: center; overflow: hidden; background-color: var(--backgroundColor); pointer-events: all; transition: background-color .3s; --zoom: 1`,
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 3; overflow: hidden; pointer-events: none`,
     ".eEditorContent": `position: relative; will-change: margin`,
-    ".eAnnotations": `--startZIndex: 0; position: relative; width: 1px; height: 1px; transform-origin: 0 0; transform: scale(var(--zoom)); z-index: 2; pointer-events: none; contain: layout style size`, // will-change: contents
+    ".eAnnotations": `--startZIndex: 0; position: relative; width: 1px; height: 1px; transform-origin: 0 0; transform: scale(var(--zoom)); z-index: 2; pointer-events: none; contain: size layout style`, // will-change: contents
     ".eAnnotations[pointereventsdisabled] *": `pointer-events: none !important`,
     ".eBackground": `position: absolute; left: 0px; top: 0px; opacity: .075; transform-origin: left top; background-position: center; z-index: 1; pointer-events: none; contain: strict`,
 
@@ -20,7 +20,7 @@ modules["editor/editor"] = class {
     ".eAnnotation[hidden]": `display: none !important`,
     ".eAnnotation[anno]": `transition: all .25s, z-index 0s`,
     //".eAnnotation:not([anno])": `display: none !important`,
-    ".eAnnotationHolder": `position: absolute; z-index: 10; contain: layout style size`, // will-change: contents
+    ".eAnnotationHolder": `position: absolute; z-index: 10; contain: size style`, // layout will-change: contents
     //".eAnnotationHolder[notransition] > .eAnnotation": `transition: unset !important`,
     ".eAnnotation > svg": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: none; overflow: visible`,
     ".eAnnotation > svg > *": `pointer-events: visiblepainted`,
@@ -5304,13 +5304,13 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
 
   css = {
     ".eAnnotation[page]": `display: flex; flex-direction: column; background: white; border-radius: 12px; --borderWidth: 4px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2)`,
-    ".eAnnotation[page] > canvas[background]": `position: absolute;left: 0; top: 0; border-radius: inherit; overflow: hidden; z-index: 1`,
-    ".eAnnotation[page] > div[background]": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--themeColor); opacity: .1; border-radius: inherit; z-index: 0; pointer-events: all`,
+    ".eAnnotation[page] > canvas[background]": `position: absolute;left: 0; top: 0; border-radius: inherit; overflow: hidden; z-index: 0`,
+    ".eAnnotation[page] > div[background]": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--themeColor); opacity: .1; border-radius: inherit; z-index: 1; pointer-events: all`,
     ".eAnnotation[page] > div[border]": `position: absolute; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; border: solid var(--borderWidth) var(--themeColor); border-radius: inherit; z-index: 3; pointer-events: none`,
-    ".eAnnotation[page] > div[label]": `position: absolute; display: none; box-sizing: border-box; padding: 8px 10px; background: var(--themeColor); border-radius: 0px; border-top-left-radius: inherit; border-bottom-right-radius: 12px;  font-weight: 600; font-size: 18px; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; outline: none; scrollbar-width: none; z-index: 2; pointer-events: all`,
+    ".eAnnotation[page] > div[label]": `position: absolute; display: none; box-sizing: border-box; padding: 8px 10px; background: var(--themeColor); border-radius: 0px; border-top-left-radius: inherit; border-bottom-right-radius: 12px;  font-weight: 600; font-size: 18px; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; outline: none; scrollbar-width: none; z-index: 4; pointer-events: all`,
     ".eAnnotation[page] > div[label]::-webkit-scrollbar": `display: none`,
-    ".eAnnotation[page] > div[content]": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; justify-content: center; align-items: center; z-index: 4; contain: layout style size`,
-    ".eAnnotation[page][hide] > div[content] .eAnnotationHolder": `z-index: 2 !important`,
+    ".eAnnotation[page] > div[content]": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; justify-content: center; align-items: center; contain: size style`,
+    ".eAnnotation[page][hide] > div[content] .eAnnotationHolder": `z-index: 3 !important`,
     ".eAnnotation[page][selected] > div[label]": `pointer-events: all !important`,
     ".eAnnotation[page] > div[label][contenteditable]": `overflow-x: auto !important; text-overflow: unset !important`,
     ".eAnnotation[page] > div[hide]": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: inherit; z-index: 2; pointer-events: all`,
@@ -5319,7 +5319,7 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
     ".eAnnotation[page] > div[hide] div[hidemodal] img": `margin-bottom: 12px; width: calc(100% - 24px); max-width: 80px`,
     ".eAnnotation[page] > div[hide] div[hidemodal] div[hidemodaltitle]": `font-size: 28px; font-weight: 700; color: var(--theme)`,
     ".eAnnotation[page] > div[hide] div[hidemodal] button": `display: flex; margin-top: 24px; z-index: 1; background: var(--theme); --borderColor: var(--secondary); --borderRadius: 14px; color: #fff`,
-    ".eAnnotation[page] > div[content] div[document]": `position: relative; --scale-factor: 2; --user-unit: 1; --total-scale-factor: calc(var(--scale-factor) * var(--user-unit)); border-radius: inherit; overflow: hidden; z-index: 1`,
+    ".eAnnotation[page] > div[content] div[document]": `position: relative; --scale-factor: 2; --user-unit: 1; --total-scale-factor: calc(var(--scale-factor) * var(--user-unit)); border-radius: inherit; overflow: hidden; z-index: 1; contain: size layout style`,
     ".eAnnotation[page] > div[content] div[document] canvas": `position: absolute; width: calc(100% - 8px) !important; height: calc(100% - 8px) !important; left: var(--borderWidth); top: var(--borderWidth); background: var(--themeColor); z-index: 1`,
     ".eAnnotation[page] > div[content] div[document] div[annotationlayer]": `position: absolute; width: var(--fullWidth) !important; height: var(--fullHeight) !important; left: var(--borderWidth); top: var(--borderWidth); transform-origin: top left; transform: var(--fullScale); font-family: sans-serif; z-index: 3`,
     ".eAnnotation[page] > div[content] div[document] div[annotationlayer] > *": `position: absolute; color: transparent; pointer-events: all; transform-origin: top left`,

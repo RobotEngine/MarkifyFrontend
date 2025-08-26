@@ -1537,8 +1537,8 @@ modules["dropdowns/lesson/board/members"] = class {
           obvDesc = "Stop watching this member's screen."
         }
         let imageHolder = button.querySelector("div[image]");
-        imageHolder.innerHTML = "";
-        setSVG(imageHolder, obvImg);
+        imageHolder.innerHTML = "<div></div>";
+        setSVG(imageHolder.querySelector("div"), obvImg);
         button.querySelector("div[text]").textContent = obvText;
         button.title = obvDesc;
         if (member.weak != true && lesson.signalStrength > 2 && member.observe == null) {
@@ -1873,8 +1873,8 @@ modules["dropdowns/lesson/board/members"] = class {
           desc = "Revoke temporary editing privileges, granting viewer.";
         }
         let imageHolder = editorButton.querySelector("div[image]");
-        imageHolder.innerHTML = "";
-        setSVG(imageHolder, image);
+        imageHolder.innerHTML = "<div></div>";
+        setSVG(imageHolder.querySelector("div"), image);
         editorButton.querySelector("div[text]").textContent = text;
         editorButton.title = desc;
         editorButton.style.display = "flex";

@@ -245,15 +245,15 @@ modules["dropdowns/lesson/share/link"] = class {
         createHolder.style.opacity = 1;
         createHolder.style.pointerEvents = "all";
       }
-      accessIcon.innerHTML = "";
+      accessIcon.innerHTML = "<div></div>";
       if (lesson.lesson.access != 1) {
         // Viewer:
-        setSVG(accessIcon, "../images/editor/share/viewer.svg");
+        setSVG(accessIcon.querySelector("div"), "../images/editor/share/viewer.svg");
         accessTitle.textContent = "Public View Access";
         accessDesc.textContent = "Anyone with this link will be able to view the document, but not make any edits.";
       } else {
         // Editor:
-        setSVG(accessIcon, "../images/editor/share/editor.svg");
+        setSVG(accessIcon.querySelector("div"), "../images/editor/share/editor.svg");
         accessTitle.textContent = "Public Edit Access";
         accessDesc.textContent = "Anyone with this link will be able to view the document and create annotations.";
       }

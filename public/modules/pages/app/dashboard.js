@@ -8,7 +8,8 @@ modules["pages/app/dashboard"] = class {
     
     "../modules/dropdowns/account.js",
     "../modules/dropdowns/moveto.js",
-    "../modules/dropdowns/remove.js"
+    "../modules/dropdowns/remove.js",
+    "../modules/dropdowns/gift.js"
   ];
   preJs = () => {
     if (userID == null) {
@@ -47,6 +48,15 @@ modules["pages/app/dashboard"] = class {
             <div class="dSidebarFolderHolder" opened></div>
           </div>
           <div class="dSidebarSection dSidebarAccountHolder">
+            <div class="dSidebarUpdateAlert" closed>
+              <div class="dSidebarUpdateAlertTitle">
+                <div>Markify Updated!</div>
+                <button class="buttonAnim border"></button>
+              </div>
+              <div divider></div>
+              <a opennew style="--themeColor: var(--theme)"><div image></div>See What's New</a>
+              <button share style="--themeColor: var(--purple)"><div image></div>Share Markify</button>
+            </div>
             <button class="dAccount largeButton border"><img src="../images/profiles/default.svg" accountimage /><div accountuser>Username</div><div backdrop></div></button>
           </div>
         </div>
@@ -138,6 +148,20 @@ modules["pages/app/dashboard"] = class {
     ".dTileDropFolderLoadMore button": `display: flex; padding: 6px 8px; align-items: center; --borderRadius: 16px; font-size: 16px; color: var(--theme); font-weight: 700`,
 
     ".dSidebarAccountHolder": `display: flex; flex-direction: column; padding: 8px; bottom: 0px; margin-top: auto; align-items: center; transition: .2s`,
+    ".dSidebarUpdateAlert": `display: none; flex-direction: column; width: calc(100% - 16px); margin: 8px; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 18px; transition: .2s`,
+    ".dSidebarUpdateAlert[closed]": `pointer-events: none; opacity: 0; transform: scale(.8)`,
+    ".dSidebarUpdateAlertTitle": `box-sizing: border-box; display: flex; width: 100%; padding: 6px; gap: 8px; justify-content: space-between; align-items: center`,
+    ".dSidebarUpdateAlertTitle > div": `margin-left: 6px; font-size: 16px; font-weight: 600`,
+    ".dSidebarUpdateAlertTitle > button": `position: relative; flex-shrink: 0; width: 24px; height: 24px; margin-bottom: auto; --borderWidth: 3px; --borderRadius: 14px`,
+    ".dSidebarUpdateAlertTitle > button svg": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
+    ".dSidebarUpdateAlertTitle > button:focus-visible": `--borderWidth: 4px`,
+    ".dSidebarUpdateAlert div[divider]": `width: calc(100% - 12px); height: 2px; margin-bottom: 6px; background: var(--hover); border-radius: 1px`,
+    ".dSidebarUpdateAlert > a, .dSidebarUpdateAlert > button": `box-sizing: border-box; display: flex; width: calc(100% - 12px); padding: 6px; margin-bottom: 6px; border-radius: 6px; font-size: 16px; font-weight: 600; align-items: center; text-align: left; text-decoration: none`,
+    ".dSidebarUpdateAlert > a div[image], .dSidebarUpdateAlert > button div[image]": `width: 24px; height: 24px; margin-right: 4px; transition: .1s`,
+    ".dSidebarUpdateAlert > a div[image] svg, .dSidebarUpdateAlert > button div[image] svg": `width: 100%; height: 100%`,
+    ".dSidebarUpdateAlert > a:last-child, .dSidebarUpdateAlert > button:last-child": `border-bottom-left-radius: 12px; border-bottom-right-radius: 12px`,
+    ".dSidebarUpdateAlert > a:hover, .dSidebarUpdateAlert > button:hover": `background: var(--themeColor); color: #fff`,
+    ".dSidebarUpdateAlert > a:hover div[image], .dSidebarUpdateAlert > button:hover div[image]": `filter: brightness(0) invert(1)`,
     ".dAccount": `display: flex; max-width: calc(100% - 16px); width: fit-content; min-width: 100px; padding: 6px 12px 6px 6px; --borderRadius: 18px`,
     ".dAccount img[accountimage]": `width: 32px; min-width: 32px; height: 32px; margin-right: 6px; object-fit: cover; border-radius: 16px`,
     ".dAccount div[accountuser]": `max-width: calc(100% - 38px); height: 100%; flex: 1; line-height: 32px; font-size: 18px; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
@@ -204,6 +228,7 @@ modules["pages/app/dashboard"] = class {
     let titleHolder = lessonsHolder.querySelector(".dSelectedTitleHolder");
     let tileHolder = dashboard.querySelector(".dTilesHolder");
     let accountHolder = sidebar.querySelector(".dSidebarAccountHolder");
+    let updateAlert = accountHolder.querySelector(".dSidebarUpdateAlert");
     let accountButton = accountHolder.querySelector(".dAccount");
 
     if (hasFeatureEnabled("breakout") == true) {
@@ -229,6 +254,30 @@ modules["pages/app/dashboard"] = class {
     // Handle Onboard:
     if (account.onboard == null) {
       modalModule.open("modals/resources", null, null, null, false);
+    } else if (account.lastWhatsNew != null && account.currentWhatsNew != null && account.lastWhatsNew != account.currentWhatsNew) {
+      let closeButton = updateAlert.querySelector(".dSidebarUpdateAlertTitle > button");
+      setSVG(closeButton, "../images/tooltips/close.svg");
+      closeButton.addEventListener("click", async () => {
+        sendRequest("POST", "me/read?seen=whatsnew");
+        updateAlert.setAttribute("closed", "");
+        await sleep(200);
+        updateAlert.style.display = "none";
+        this.updateScrollShadows();
+      });
+      let openButton = updateAlert.querySelector("a[opennew]");
+      setSVG(openButton.querySelector("div[image]"), "../images/tooltips/account/exclamation.svg");
+      openButton.href = "/app/lesson?lesson=" + account.currentWhatsNew;
+      openButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        setFrame("pages/app/lesson", null, { params: { lesson: account.currentWhatsNew } });
+      });
+      let shareButton = updateAlert.querySelector("button[share]");
+      setSVG(shareButton.querySelector("div[image]"), "../images/editor/actions/send.svg");
+      shareButton.addEventListener("click", () => {
+        dropdownModule.open(shareButton, "dropdowns/gift");
+      });
+
+      updateAlert.style.display = "flex";
     }
 
     // Handle Banner:
@@ -310,7 +359,7 @@ modules["pages/app/dashboard"] = class {
         titleHolder.style.removeProperty("box-shadow");
       }
 
-      if (Math.floor(sidebar.scrollTop) < Math.floor(sidebar.scrollHeight - dashboard.offsetHeight)) { // Account Holder Shadow:
+      if (Math.floor(sidebar.scrollTop) < Math.floor(sidebar.scrollHeight - sidebar.clientHeight)) { // Account Holder Shadow:
         accountHolder.style.background = "var(--pageColor)";
         accountHolder.style.boxShadow = "var(--lightShadow)";
       } else {
@@ -560,6 +609,8 @@ modules["pages/app/dashboard"] = class {
     //records.shared = body.shared;
     //records.owned = body.owned;
     //records.newest = body.newest;
+
+    updateAlert.removeAttribute("closed");
 
     this.dashSubscribe = null;
     this.updateDashSub = () => {

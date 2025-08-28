@@ -5,8 +5,9 @@ modules["dropdowns/account"] = class {
   <div class="accountDropLine"></div>
   <button class="accountDrop" close pwa dropdowntitle="Add Markify as an app on your device!"><div>Get the App</div><div image></div></button>
   <button class="accountDrop" report dropdowntitle="Send Feedback" noscrollclose><div>Send Feedback</div><div image></div></button>
-  <button class="accountDrop" style="display: none" close whatsnew modaltitle="What's New"><div>What's New</div><div image></div></button>
+  <button class="accountDrop" close whatsnew><div>What's New</div><div image></div></button>
   <button class="accountDrop" tutorial close modaltitle="Resources"><div>Resources</div><div image></div></button>
+  <button class="accountDrop" share dropdowntitle="Share Markify" style="--themeColor: var(--purple)"><div>Share Markify</div><div image></div></button>
   <div class="accountDropLine"></div>
   <div class="accountSocialHolder">
     <a href="https://twitter.com/markifytool" target="_blank"><img src="../images/launch/socials/twitter.svg"></a>
@@ -23,12 +24,12 @@ modules["dropdowns/account"] = class {
   </div>
   `;
   css = {
-    ".accountDrop": `display: flex; width: 100%; padding: 6px; border-radius: 8px; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s; --setBackground: var(--theme)`,
+    ".accountDrop": `display: flex; width: 100%; padding: 6px; border-radius: 8px; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s; --themeColor: var(--theme)`,
     ".accountDrop:not(:last-child)": `margin-bottom: 4px`,
     ".accountDrop div": `flex: 1; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
     ".accountDrop div[image]": `max-width: 24px; height: 24px; margin-left: 6px; transition: .15s`,
     ".accountDrop div[image] svg": `width: 100%; height: 100%`,
-    ".accountDrop:hover": `background: var(--setBackground); color: #fff`,
+    ".accountDrop:hover": `background: var(--themeColor); color: #fff`,
     ".accountDrop:hover div[image]": `filter: brightness(0) invert(1)`,
     ".accountDrop[pwa]": `display: none`,
     ".accountDropLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`,
@@ -71,7 +72,7 @@ modules["dropdowns/account"] = class {
     setSVG(logoutButton.querySelector("div[image]"), "../images/tooltips/account/logout.svg");
     let settingsButton = frame.querySelector(".accountManage");
     settingsButton.addEventListener("click", () => {
-      return dropdownModule.open(settingsButton, "dropdowns/account/manage");
+      dropdownModule.open(settingsButton, "dropdowns/account/manage");
     });
     setSVG(settingsButton.querySelector("div[image]"), "../images/tooltips/account/settings.svg");
     let tutorialButton = frame.querySelector(".accountDrop[tutorial]");
@@ -117,13 +118,18 @@ modules["dropdowns/account"] = class {
     }
     setSVG(installpwa.querySelector("div[image]"), "../images/tooltips/account/app.svg");
     let whatsNew = frame.querySelector(".accountDrop[whatsnew]");
-    if (account.currentWhatsNew != null) {
-      whatsNew.setAttribute("modal", "modals/updates/" + account.currentWhatsNew);
-    } else {
+    whatsNew.addEventListener("click", () => {
+      setFrame("pages/app/lesson", null, { params: { lesson: account.currentWhatsNew } });
+    });
+    if (account.currentWhatsNew == null) {
       whatsNew.remove();
     }
     setSVG(whatsNew.querySelector("div[image]"), "../images/tooltips/account/exclamation.svg");
-
+    let shareButton = frame.querySelector(".accountDrop[share]");
+    shareButton.addEventListener("click", () => {
+      dropdownModule.open(shareButton, "dropdowns/gift");
+    });
+    setSVG(shareButton.querySelector("div[image]"), "../images/editor/actions/send.svg");
     let reportButton = frame.querySelector(".accountDrop[report]");
     reportButton.addEventListener("click", () => {
       dropdownModule.open(reportButton, "dropdowns/account/report");

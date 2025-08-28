@@ -5822,7 +5822,8 @@ modules["editor/toolbar/comment"] = class {
     ".eCommentItem[new] .eCommentContainer div[content] div[text]:empty:before": `content: "Write your Comment"; display: block; opacity: .5; pointer-events: none`,
     ".eCommentItem:not([new]) .eCommentContainer div[content] div[text][contenteditable]": `padding: 4px; border: solid 3px var(--secondary); border-radius: 8px`,
     ".eCommentItem > button": `position: sticky; display: flex; width: 36px; height: 36px; top: 6px; margin: 6px 6px 6px 0; justify-content: center; align-items: center; background: var(--theme); border-radius: 18px`,
-    ".eCommentItem > button img": `width: 28px; height: 28px`,
+    ".eCommentItem > button div[image]": `--themeColor: #fff; flex-shrink: 0; width: 28px; height: 28px`,
+    ".eCommentItem > button div[image] svg": `width: 100%; height: 100%`,
     ".eCommentItem .eCommentEditActions": `display: flex; margin-top: 4px; justify-content: space-between`,
     ".eCommentItem .eCommentEditActions button[save]": `font-weight: 700; font-size: 14px; color: var(--theme)`,
     ".eCommentItem .eCommentEditActions button[cancel]": `font-weight: 500; font-size: 14px; color: var(--darkGray)`,
@@ -5836,7 +5837,8 @@ modules["editor/toolbar/comment"] = class {
     ".eCommentReply > div[text]": `box-sizing: border-box; flex: 1; padding: 6px 10px; min-height: 32px; max-height: 120px; background: rgba(var(--hoverRGB), .3); outline: none; border-radius: 16px; font-size: 14px; text-align: left; align-content: center; overflow: auto`,
     ".eCommentReply > div[text]:empty:before": `content: "Write a Reply"; display: block; opacity: .5; pointer-events: none`,
     ".eCommentReply > button": `display: flex; width: 32px; height: 32px; margin: auto 0 0 6px; justify-content: center; align-items: center; background: var(--theme); border-radius: 16px`,
-    ".eCommentReply > button img": `width: 26px; height: 26px`
+    ".eCommentReply > button div[image]": `--themeColor: #fff; flex-shrink: 0; width: 26px; height: 26px`,
+    ".eCommentReply > button div[image] svg": `width: 100%; height: 100%`
   }
   commentWidth = 32;
   commentHeight = 32;
@@ -5923,11 +5925,12 @@ modules["editor/toolbar/comment"] = class {
             <div text contenteditable></div>
           </div>
         </div>
-        <button disabled><img src="../images/editor/actions/send.svg" /></button>
+        <button disabled><div image></div></button>
       </div>`;
       let commentItem = holder.querySelector(".eCommentItem");
       let commentText = commentItem.querySelector("div[text]");
       let commentSendButton = commentItem.querySelector("button");
+      setSVG(commentSendButton.querySelector("div[image]"), "../images/editor/actions/send.svg");
       commentText.addEventListener("input", () => {
         if (commentText.textContent != "") {
           commentSendButton.removeAttribute("disabled");
@@ -6144,12 +6147,13 @@ modules["editor/toolbar/comment"] = class {
           <div cursor></div>
         </div>
         <div class="customScroll" text contenteditable></div>
-        <button style="display: none"><img src="../images/editor/actions/send.svg" /></button>
+        <button style="display: none"><div image></div></button>
       </div>`);
       let commentReply = scrollHolder.querySelector(".eCommentReply");
       let profileHolder = commentReply.querySelector("div[profileholder]");
       replyTx = commentReply.querySelector("div[text]");
       let replySendButton = commentReply.querySelector("button");
+      setSVG(replySendButton.querySelector("div[image]"), "../images/editor/actions/send.svg");
       let selfCollaborator = await this.editor.utils.getCollaborator(this.editor.self.modify);
       profileHolder.style.setProperty("--themeColor", selfCollaborator.color);
       if (selfCollaborator.image != null) {

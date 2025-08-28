@@ -22,7 +22,7 @@ const configs = {
 };
 
 const config = configs["public"];
-const version = "1.4.45"; // Big Update . Small Feature Release . Bug Fix
+const version = "1.4.46"; // Big Update . Small Feature Release . Bug Fix
 
 const serverURL = config.server;
 const assetURL = config.assets;
@@ -948,6 +948,10 @@ let init = async () => {
     if (getParam("from") != null) {
       sendBody.from = getParam("from");
       modifyParams("from");
+    }
+    let affiliate = getLocalStore("affiliate") ?? "";
+    if (affiliate.length > 0) {
+      sendBody.affiliate = affiliate;
     }
     let [code, body] = await sendRequest("POST", "auth?ss=" + socket.secureID, sendBody);
     modifyParams("code");

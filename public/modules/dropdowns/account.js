@@ -1,6 +1,6 @@
 modules["dropdowns/account"] = class {
   html = `
-  <button class="accountDrop accountLogout" style="--setBackground: var(--error)" close><div>Logout</div><div image></div></button>
+  <button class="accountDrop accountLogout" style="--themeColor: var(--error)" close><div>Logout</div><div image></div></button>
   <button class="accountDrop accountManage" dropdowntitle="Settings" noscrollclose><div>Settings</div><div image></div></button>
   <div class="accountDropLine"></div>
   <button class="accountDrop" close pwa dropdowntitle="Add Markify as an app on your device!"><div>Get the App</div><div image></div></button>

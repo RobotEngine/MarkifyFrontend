@@ -24,7 +24,7 @@ modules["dropdowns/gift"] = class {
     ".giftLogo": `max-width: 100%; height: 50px`,
     ".giftTitle": `max-width: 300px; margin-top: 16px; font-size: 32px; font-weight: 700`,
     ".giftDescription": `max-width: 300px; margin-top: 8px; font-size: 16px`,
-    ".giftSelect": `position: relative; width: calc(100% - 32px); max-width: 300px; margin: 24px 16px; border: solid 4px var(--purple); border-radius: 9px`,
+    ".giftSelect": `position: relative; width: calc(100% - 32px); max-width: 310px; margin: 24px 16px; border: solid 4px var(--purple); border-radius: 9px`,
     ".giftSelectShareText": `box-sizing: border-box; width: 100%; padding: 8px; font-size: 16px; font-weight: 500`,
     ".giftSelectShareText span": `display: block`,
     ".giftSelectShareText a": `display: block; margin-top: 16px; color: var(--purple); text-decoration: none; font-weight: 600`,

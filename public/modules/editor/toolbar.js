@@ -4359,19 +4359,9 @@ modules["editor/toolbar"] = class {
       this.selection.action = "save";
       await this.selection.endAction();
     });
-    editor.pipeline.subscribe("toolbarCopy", "copy", async (data) => {
-      if (editor.isPageActive() == false) {
-        return;
-      }
-      let selection = document.getSelection();
-      if (selection.toString().length > 0) {
-        return; // User it selecting text, ignore event
-      }
-      let event = data.event;
-      let clipboardData = event.clipboardData ?? event.originalEvent.clipboardData ?? {};
+    this.processCopy = async () => {
       let saveTextData = "";
       let saveAnnoData = [];
-      event.preventDefault();
 
       let selectKeys = Object.keys(editor.selecting);
       let checkChunks = {};
@@ -4471,6 +4461,20 @@ modules["editor/toolbar"] = class {
         }
       }
 
+      return [saveTextData, saveAnnoData];
+    }
+    editor.pipeline.subscribe("toolbarCopy", "copy", async (data) => {
+      if (editor.isPageActive() == false) {
+        return;
+      }
+      let selection = document.getSelection();
+      if (selection.toString().length > 0) {
+        return; // User it selecting text, ignore event
+      }
+      let event = data.event;
+      event.preventDefault();
+      let [saveTextData, saveAnnoData] = await this.processCopy();
+      let clipboardData = event.clipboardData ?? event.originalEvent.clipboardData ?? {};
       clipboardData.setData("text/html", `<meta charset="utf-8"><html><head></head><body><span data-meta="<!--(markify+copypaste)${encodeURIComponent(JSON.stringify(saveAnnoData))}(/markify+copypaste)-->"></span><div>${saveTextData}</div></body></html>`);
       clipboardData.setData("text/plain", saveTextData);
     });
@@ -7879,6 +7883,15 @@ modules["editor/toolbar/more"] = class {
   FULL_CLICK = true;
   SHOW_ON_LOCK = true;
 
+  copy = async () => {
+    let [saveTextData, saveAnnoData] = await this.toolbar.processCopy();
+    copyClipboardData([
+      new ClipboardItem({
+        "text/html": new Blob([`<meta charset="utf-8"><html><head></head><body><span data-meta="<!--(markify+copypaste)${encodeURIComponent(JSON.stringify(saveAnnoData))}(/markify+copypaste)-->"></span><div>${saveTextData}</div></body></html>`], { type: "text/html" }),
+        "text/plain": new Blob([saveTextData], { type: "text/plain" })
+      })
+    ]);
+  }
   duplicate = async (handle, fromKeybind) => {
     let selectKeys = Object.keys(this.editor.selecting);
     let checkChunks = {};
@@ -8080,6 +8093,7 @@ modules["editor/toolbar/more"] = class {
 }
 modules["dropdowns/editor/toolbar/more"] = class {
   html = `
+  <button class="eToolbarMoreAction" option="copy" close title="Copy selected elements."><div></div>Copy</button>
   <button class="eToolbarMoreAction" option="duplicate" close title="Duplicate"><div></div>Duplicate</button>
   <button class="eToolbarMoreAction" option="lock" title="Change the locking options."><div></div>Locking</button>
   <button class="eToolbarMoreAction" option="signature" close><div></div><span></span></button>
@@ -8099,6 +8113,9 @@ modules["dropdowns/editor/toolbar/more"] = class {
     ".eToolbarMoreShowMe": `color: var(--theme); font-weight: 700`
   };
   js = async (frame, { parent }) => {
+    let copyButton = frame.querySelector('.eToolbarMoreAction[option="copy"]');
+    copyButton.addEventListener("click", () => { parent.copy(); });
+
     let duplicateButton = frame.querySelector('.eToolbarMoreAction[option="duplicate"]');
     let duplicateLine = frame.querySelector('.eToolbarMoreLine[option="duplicate"]');
     duplicateButton.addEventListener("click", () => { parent.duplicate(); });
@@ -8121,6 +8138,7 @@ modules["dropdowns/editor/toolbar/more"] = class {
     let shareButton = frame.querySelector('.eToolbarMoreAction[option="copylink"]');
     shareButton.addEventListener("click", () => { parent.copyLink(); });
 
+    setSVG(copyButton.querySelector("div"), "../images/editor/toolbar/copy.svg");
     setSVG(duplicateButton.querySelector("div"), "../images/editor/toolbar/duplicate.svg");
     setSVG(lockButton.querySelector("div"), "../images/editor/toolbar/lock.svg");
     setSVG(signatureButton.querySelector("div"), "../images/editor/toolbar/signature.svg");

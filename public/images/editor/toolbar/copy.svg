@@ -1,0 +1,13 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="mask0_4213_2" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256">
+<rect width="256" height="256" fill="var(--gray)"/>
+</mask>
+<g mask="url(#mask0_4213_2)">
+<path d="M133 53C144.046 53 153 61.9543 153 73V94H141V73C141 68.5817 137.418 65 133 65H73C68.5817 65 65 68.5817 65 73V133C65 137.418 68.5817 141 73 141H94V153H73L72.4834 152.993C61.8481 152.724 53.2765 144.152 53.0068 133.517L53 133V73C53 61.9543 61.9543 53 73 53H133Z" fill="var(--pageColor)"/>
+<path d="M133 21C161.719 21 185 44.2812 185 73V94H153V73C153 61.9543 144.046 53 133 53H73C61.9543 53 53 61.9543 53 73V133L53.0068 133.517C53.2765 144.152 61.8481 152.724 72.4834 152.993L73 153H94V185H73C44.2812 185 21 161.719 21 133V73C21 44.2812 44.2812 21 73 21H133Z" fill="var(--pageColor)"/>
+<rect x="87" y="87" width="132" height="132" rx="36" stroke="var(--pageColor)" stroke-width="32"/>
+<path d="M133 33C155.091 33 173 50.9086 173 73V94H153V73C153 61.9543 144.046 53 133 53H73C61.9543 53 53 61.9543 53 73V133L53.0068 133.517C53.2765 144.152 61.8481 152.724 72.4834 152.993L73 153H94V173H73C50.9086 173 33 155.091 33 133V73C33 50.9086 50.9086 33 73 33H133Z" fill="var(--darkGray)"/>
+<rect x="109" y="109" width="88" height="88" rx="14" stroke="var(--pageColor)" stroke-width="12"/>
+<rect x="93" y="93" width="120" height="120" rx="30" stroke="var(--darkGray)" stroke-width="20"/>
+</g>
+</svg>

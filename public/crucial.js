@@ -22,7 +22,7 @@ const configs = {
 };
 
 const config = configs["public"];
-const version = "1.4.46"; // Big Update . Small Feature Release . Bug Fix
+const version = "1.4.47"; // Big Update . Small Feature Release . Bug Fix
 
 const serverURL = config.server;
 const assetURL = config.assets;
@@ -585,6 +585,12 @@ let copyClipboardText = (text, type) => {
     alertModule.open("worked", `<b>Copied</b>The ${type ?? "text"} was copied to your clipboard.`);
   }, (err) => {
     console.error("Async: Could not copy text: ", err);
+  });
+}
+let copyClipboardData = (data) => {
+  console.log(data)
+  navigator.clipboard.write(data).catch((err) => {
+    console.error("Async: Could not copy: ", err);
   });
 }
 let clipBoardRead = (event) => {

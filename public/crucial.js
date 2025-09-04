@@ -588,7 +588,6 @@ let copyClipboardText = (text, type) => {
   });
 }
 let copyClipboardData = (data) => {
-  console.log(data)
   navigator.clipboard.write(data).catch((err) => {
     console.error("Async: Could not copy: ", err);
   });

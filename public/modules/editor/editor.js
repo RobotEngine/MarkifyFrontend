@@ -1521,8 +1521,8 @@ modules["editor/editor"] = class {
         this.render.runCheckSizeReset = null;
       }*/
 
-      let addMarginLeftRight = page.offsetWidth / 2;
-      let addMarginTopBottom = page.offsetHeight / 2;
+      let addMarginLeftRight = this.pageOffsetWidth / 2;
+      let addMarginTopBottom = this.pageOffsetHeight / 2;
       let setMarginLeft = Math.ceil((this.render.setLeftMargin * this.zoom) + addMarginLeftRight);
       let setMarginRight = Math.ceil((this.render.setRightMargin * this.zoom) + addMarginLeftRight);
       let setMarginTop = Math.ceil((this.render.setTopMargin * this.zoom) + addMarginTopBottom);
@@ -1530,8 +1530,8 @@ modules["editor/editor"] = class {
 
       let checkWidth = false;
       let checkHeight = false;
-      let scrollPosX = contentHolder.scrollLeft;
-      let scrollPosY = contentHolder.scrollTop;
+      let scrollPosX; // = contentHolder.scrollLeft;
+      let scrollPosY; // = contentHolder.scrollTop;
       let contentLeft = this.render.marginLeft ?? 0;
       let contentTop = this.render.marginTop ?? 0;
 
@@ -3087,6 +3087,12 @@ modules["editor/editor"] = class {
       }, 750);
     }
     this.pipeline.subscribe("boundChange", "bounds_change", this.updateChunks, { sort: 1 });
+    this.updatePageSize = () => {
+      this.pageOffsetWidth = page.offsetWidth;
+      this.pageOffsetHeight = page.offsetHeight;
+    }
+    this.pipeline.subscribe("resizeChange", "resize", this.updatePageSize, { sort: 1 });
+    this.updatePageSize();
     
     contentHolder.addEventListener("scroll", (event) => {
       this.pipeline.publish("scroll", { event: event });

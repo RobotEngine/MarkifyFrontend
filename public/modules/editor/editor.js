@@ -2957,7 +2957,12 @@ modules["editor/editor"] = class {
           newlyUnloaded[chunk] = "";
 
           // Remove annotations in unloaded chunks:
-          unloadChunkedAnnotations = { ...unloadChunkedAnnotations, ...(this.chunkAnnotations[chunk] ?? {}) };
+          let addAnnotations = this.chunkAnnotations[chunk] ?? {};
+          let addAnnotationsKeys = Object.keys(addAnnotations);
+          for (let i = 0; i < addAnnotationsKeys.length; i++) {
+            let key = addAnnotationsKeys[i];
+            unloadChunkedAnnotations[key] = addAnnotations[key];
+          }
         }
       }
       let chunkUnloadAnnos = Object.keys(unloadChunkedAnnotations);
@@ -3005,7 +3010,12 @@ modules["editor/editor"] = class {
           newlyLoaded[chunk] = "";
 
           // Load annotations in these chunks:
-          loadChunkedAnnotations = { ...loadChunkedAnnotations, ...(this.chunkAnnotations[chunk] ?? {}) };
+          let addAnnotations = this.chunkAnnotations[chunk] ?? {};
+          let addAnnotationsKeys = Object.keys(addAnnotations);
+          for (let i = 0; i < addAnnotationsKeys.length; i++) {
+            let key = addAnnotationsKeys[i];
+            loadChunkedAnnotations[key] = addAnnotations[key];
+          }
         }
       }
       let chunkAnnos = Object.keys(loadChunkedAnnotations);

@@ -5366,8 +5366,8 @@ modules["editor/toolbar/eraser"] = class {
         let yPos = scaledY - rect.y;
 
         let points = drawing.points;
-        let halfWidth = svg.viewBox.baseVal.width / 2;
-        let halfHeight = svg.viewBox.baseVal.height / 2;
+        let halfWidth = svg.width.baseVal.value / 2;
+        let halfHeight = svg.height.baseVal.value / 2;
         for (let i = 1; i < points.numberOfItems; i++) {
           let prevPoint = points.getItem(i - 1);
           let prevRelativeX = prevPoint.x - halfWidth;

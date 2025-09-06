@@ -16,7 +16,7 @@ modules["editor/editor"] = class {
     ".eAnnotations[pointereventsdisabled] *": `pointer-events: none !important`,
     ".eBackground": `position: absolute; left: 0px; top: 0px; opacity: .075; transform-origin: left top; background-position: center; z-index: 1; pointer-events: none; contain: strict`,
 
-    ".eAnnotation": `position: absolute; left: 0px; top: 0px; z-index: calc(var(--startZIndex) + var(--zIndex)); contain: size layout`,
+    ".eAnnotation": `position: absolute; display: block; left: 0px; top: 0px; z-index: calc(var(--startZIndex) + var(--zIndex)); contain: size layout`,
     ".eAnnotation[hidden]": `display: none !important`,
     ".eAnnotation[anno]": `transition: all .25s, z-index 0s`,
     //".eAnnotation:not([anno])": `display: none !important`,
@@ -3320,6 +3320,7 @@ modules["editor/editor"] = class {
     let lastMouseY;
     let mouseBeforeX;
     let mouseBeforeY;
+    //let willChangeReset;
     this.setZoom = async (set, observe, mouse = {}) => {
       if (observe != true && this.realtime.observing != null && this.realtime.module != null) {
         this.realtime.module.exitObserve();
@@ -3355,6 +3356,16 @@ modules["editor/editor"] = class {
 
       this.zooming = true;
 
+      /*if (willChangeReset == null) {
+        annotations.style.willChange = "transform";
+      } else {
+        clearTimeout(willChangeReset);
+      }
+      willChangeReset = setTimeout(() => {
+        annotations.style.removeProperty("will-change");
+        willChangeReset = null;
+      }, 100);*/
+
       content.style.setProperty("--zoom", this.zoom);
 
       await this.render.setMarginSize();
@@ -3373,7 +3384,7 @@ modules["editor/editor"] = class {
 
       this.zooming = false;
 
-      await this.updateChunks();
+      //await this.updateChunks();
 
       this.pipeline.publish("zoom_change", { zoom: this.zoom });
 
@@ -4139,10 +4150,15 @@ modules["editor/render/annotation"] = class {
 
 modules["editor/render/annotation/draw"] = class extends modules["editor/render/annotation"] {
   CAN_ERASE = true;
-  RESIZE_PRESERVE_ASPECT = true;
   CAN_BE_SNAPPED_TO = false;
 
   ACTION_BAR_TOOLS = ["color", "thickness", "opacity", "unlock", "delete"];
+
+  SELECTION_FUNCTION = (selection) => {
+    if (["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {
+      selection.resizePreserveAspect = true;
+    }
+  }
   
   render = () => {
     let halfT = this.properties.t / 2;

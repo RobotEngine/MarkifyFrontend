@@ -618,7 +618,7 @@ modules["editor/toolbar"] = class {
         return;
       }
       let events = [];
-      if (event.getCoalescedEvents != null) {
+      if (event.getCoalescedEvents != null && this.currentToolModule.DISABLE_COALESCED_EVENTS != true) {
         events = event.getCoalescedEvents();
       }
       if (events.length < 1) {
@@ -5290,6 +5290,7 @@ modules["editor/toolbar/eraser"] = class {
   USER_SELECT = "none";
   //TOUCH_ACTION = "none";
   DISABLE_POINTER_EVENTS = true;
+  DISABLE_COALESCED_EVENTS = true;
   REALTIME_TOOL = 3;
   MOUSE = { type: "svg", url: "../images/editor/cursors/eraser.svg", translate: { x: 20, y: 20 } };
   PUBLISH = {};
@@ -5377,8 +5378,8 @@ modules["editor/toolbar/eraser"] = class {
         let yPos = scaledY - rect.y;
 
         let points = drawing.points;
-        let halfWidth = svg.width.baseVal.value / 2;
-        let halfHeight = svg.height.baseVal.value / 2;
+        let halfWidth = rect.width / 2; //svg.width.baseVal.value / 2;
+        let halfHeight = rect.height / 2; //svg.height.baseVal.value / 2;
         for (let i = 1; i < points.numberOfItems; i++) {
           let prevPoint = points.getItem(i - 1);
           let prevRelativeX = prevPoint.x - halfWidth;

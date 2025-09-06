@@ -613,8 +613,19 @@ modules["editor/toolbar"] = class {
       if (this.currentToolModule == null) {
         return;
       }
-      if (this.currentToolModule[type] != null) {
-        this.currentToolModule[type](event);
+      let callback = this.currentToolModule[type];
+      if (callback == null) {
+        return;
+      }
+      let events = [];
+      if (event.getCoalescedEvents != null) {
+        events = event.getCoalescedEvents();
+      }
+      if (events.length < 1) {
+        events.push(event);
+      }
+      for (let i = 0; i < events.length; i++) {
+        callback(events[i]);
       }
     }
     

@@ -609,7 +609,8 @@ modules["editor/toolbar"] = class {
       this.currentToolModulePath = null;
       return await this.activateTool();
     }
-    let lastEventTimeStamp;
+    let lastEventTimeStamps = {};
+    let disableCoalescedEvents = false;
     this.pushToolEvent = (type, event) => {
       if (this.currentToolModule == null) {
         return;
@@ -619,19 +620,24 @@ modules["editor/toolbar"] = class {
         return;
       }
       let events = [];
-      if (this.currentToolModule.USE_COALESCED_EVENTS == true && event.getCoalescedEvents != null) {
+      if (this.currentToolModule.USE_COALESCED_EVENTS == true && event.getCoalescedEvents != null && disableCoalescedEvents != true) {
         events = event.getCoalescedEvents();
       }
       if (events.length < 1) {
         events.push(event);
       }
       for (let i = 0; i < events.length; i++) {
-        let event = events[i];
-        if ((lastEventTimeStamp ?? event.timeStamp) > event.timeStamp) { // Safari unorders coalesced events!?
-          continue;
+        let specificEvent = events[i];
+        let timeStamp = specificEvent.timeStamp;
+        if (timeStamp != null) {
+          let type = specificEvent.type ?? event;
+          if ((lastEventTimeStamps[type] ?? timeStamp) > timeStamp) { // Safari unorders coalesced events!?
+            disableCoalescedEvents = true;
+            continue;
+          }
+          lastEventTimeStamps[type] = timeStamp;
         }
-        lastEventTimeStamp = event.timeStamp;
-        callback(event);
+        callback(specificEvent);
       }
     }
     

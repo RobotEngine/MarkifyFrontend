@@ -5336,10 +5336,13 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
       selection.resizePreserveAspect = true;
     }
   }
+  MM_TO_PX = (mm) => {
+    return mm * 96 / 25.4;
+  }
 
   css = {
     ".eAnnotation[page]": `display: flex; flex-direction: column; background: white; border-radius: 12px; --borderWidth: 4px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2)`,
-    ".eAnnotation[page] > canvas[background]": `position: absolute;left: 0; top: 0; border-radius: inherit; overflow: hidden; z-index: 0`,
+    ".eAnnotation[page] > svg[background]": `position: absolute;left: 0; top: 0; border-radius: inherit; overflow: hidden; z-index: 0`,
     ".eAnnotation[page] > div[background]": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--themeColor); opacity: .1; border-radius: inherit; z-index: 1; pointer-events: all`,
     ".eAnnotation[page] > div[border]": `position: absolute; box-sizing: border-box; width: 100%; height: 100%; left: 0px; top: 0px; border: solid var(--borderWidth) var(--themeColor); border-radius: inherit; z-index: 3; pointer-events: none`,
     ".eAnnotation[page] > div[label]": `position: absolute; display: none; box-sizing: border-box; padding: 8px 10px; background: var(--themeColor); border-radius: 0px; border-top-left-radius: inherit; border-bottom-right-radius: 12px;  font-weight: 600; font-size: 18px; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; outline: none; scrollbar-width: none; z-index: 4; pointer-events: all`,
@@ -5381,7 +5384,48 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
 
     let hasDocument = this.properties.source != null && this.properties.number != null;
 
-    // Only add a canvas for lined or grid backgrounds
+    let type = this.properties.background ?? "blank";
+    let backgroundSVG = this.element.querySelector("svg[background]");
+    if (hasDocument == false && ["line", "grid"].includes(type) == true) {
+      if (backgroundSVG == null) {
+        this.element.insertAdjacentHTML("beforeend", `<svg background>
+          <defs></defs>
+          <rect width="100%" height="100%" fill="url(#background_pattern)"></rect>
+        </svg>`);
+        backgroundSVG = this.element.querySelector("svg[background]");
+      }
+      let svgDefinition = backgroundSVG.querySelector("defs");
+      if (svgDefinition.getAttribute("type") != type) {
+        svgDefinition.setAttribute("type", type);
+
+        let baseColor = this.properties.c ?? "e0e0e0";
+        let lineColor;
+        if (this.parent.utils.contrastCheck(baseColor, .5) == true) {
+          lineColor = this.parent.utils.darkenHex(baseColor, 25);
+        } else {
+          lineColor = this.parent.utils.lightenHex(baseColor, 25);
+        }
+
+        if (type == "line") {
+          let lineSpacing = this.MM_TO_PX(7.1);  // ≈ 26.9px
+          svgDefinition.innerHTML = `
+          <pattern id="background_pattern" width="100%" height="${lineSpacing}" patternUnits="userSpaceOnUse">
+            <line x1="0" y1="${lineSpacing}" x2="100%" y2="${lineSpacing}" stroke-width="2" stroke="#${lineColor}"></line>
+          </pattern>`;
+        } else if (type == "grid") {
+          let gridSpacing = this.MM_TO_PX(5);    // ≈ 18.9px
+          svgDefinition.innerHTML = `
+          <pattern id="background_pattern" width="${gridSpacing}" height="${gridSpacing}" patternUnits="userSpaceOnUse">
+            <line x1="0" y1="${gridSpacing}" x2="${gridSpacing}" y2="${gridSpacing}" stroke-width="2" stroke="#${lineColor}"></line>
+            <line x1="${gridSpacing}" y1="0" x2="${gridSpacing}" y2="${gridSpacing}" stroke-width="2" stroke="#${lineColor}"></line>
+          </pattern>`;
+        }
+      }
+    } else if (backgroundSVG != null) {
+      backgroundSVG.remove();
+    }
+
+    /*// Only add a canvas for lined or grid backgrounds
     let type = this.properties.background ?? "blank";
     let backgroundCanvas = this.element.querySelector("canvas[background]");
     if (hasDocument == false && ["line", "grid"].includes(type)) {
@@ -5438,7 +5482,7 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
       if (backgroundCanvas) {
         backgroundCanvas.remove();
       }
-    }
+    }*/
 
     this.element.style.setProperty("--themeColor", "#" + this.properties.c);
     this.element.style.color = this.parent.utils.textColorBackground(this.properties.c);

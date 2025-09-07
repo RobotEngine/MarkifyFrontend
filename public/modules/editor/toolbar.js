@@ -618,7 +618,7 @@ modules["editor/toolbar"] = class {
         return;
       }
       let events = [];
-      if (event.getCoalescedEvents != null && this.currentToolModule.DISABLE_COALESCED_EVENTS != true) {
+      if (this.currentToolModule.USE_COALESCED_EVENTS == true && event.getCoalescedEvents != null) {
         events = event.getCoalescedEvents();
       }
       if (events.length < 1) {
@@ -5042,6 +5042,7 @@ modules["editor/toolbar/pen"] = class {
       },
       animate: false
     };
+    this.USE_COALESCED_EVENTS = true;
     this.editor.realtimeSelect[this.annotation.render._id] = this.annotation.render;
     await this.editor.render.create(this.annotation);
   }
@@ -5088,6 +5089,7 @@ modules["editor/toolbar/pen"] = class {
       this.toolbar.applyToolModule(this.passthroughModule);
       //this.toolbar.updateMouse(this.passthroughModule.MOUSE);
       //this.REALTIME_TOOL = this.passthroughModule.REALTIME_TOOL;
+      this.USE_COALESCED_EVENTS = false;
       await this.passthroughModule.clickStart(event);
     }
     if ((this.passthroughModule ?? {}).clickMove != null) { // this.passthroughType != null &&
@@ -5298,7 +5300,6 @@ modules["editor/toolbar/eraser"] = class {
   USER_SELECT = "none";
   //TOUCH_ACTION = "none";
   DISABLE_POINTER_EVENTS = true;
-  DISABLE_COALESCED_EVENTS = true;
   REALTIME_TOOL = 3;
   MOUSE = { type: "svg", url: "../images/editor/cursors/eraser.svg", translate: { x: 20, y: 20 } };
   PUBLISH = {};

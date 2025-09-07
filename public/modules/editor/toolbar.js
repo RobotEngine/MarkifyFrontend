@@ -609,6 +609,7 @@ modules["editor/toolbar"] = class {
       this.currentToolModulePath = null;
       return await this.activateTool();
     }
+    let lastEventTimeStamp;
     this.pushToolEvent = (type, event) => {
       if (this.currentToolModule == null) {
         return;
@@ -625,7 +626,12 @@ modules["editor/toolbar"] = class {
         events.push(event);
       }
       for (let i = 0; i < events.length; i++) {
-        callback(events[i]);
+        let event = events[i];
+        if ((lastEventTimeStamp ?? event.timeStamp) > event.timeStamp) { // Safari unorders coalesced events!?
+          continue;
+        }
+        lastEventTimeStamp = event.timeStamp;
+        callback(event);
       }
     }
     
@@ -5050,7 +5056,14 @@ modules["editor/toolbar/pen"] = class {
     let newPassthroughType;
     let newPassthrough;
     let skipCheck = false;
-    let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
+
+    let { mouseX, mouseY } = this.editor.utils.localMousePosition(event); // Remove duplicated events
+    if (this.lastMouseX == mouseX && this.lastMouseY == mouseY) {
+      return;
+    }
+    this.lastMouseX = mouseX;
+    this.lastMouseY = mouseY;
+
     if (this.parent.selection.action != null) {
       skipCheck = true;
     } else if (event.target.closest(".eSelect") != null) {
@@ -5141,11 +5154,10 @@ modules["editor/toolbar/pen"] = class {
         this.annotation.render.p[1] += y; //this.editor.math.round(this.annotation.render.p[1] + y);
         y = 0;
       }
-      let lastPoint = this.lastInsertedPoint ?? {};
-      if (this.editor.math.distance(lastPoint.x ?? 0, lastPoint.y ?? 0, x, y) >= 1 / this.editor.zoom) { // Add Point:
+      if (this.annotation.render.d.length < 3 || this.editor.math.distance((this.lastInsertedPoint ?? {}).x ?? x, (this.lastInsertedPoint ?? {}).y ?? y, mouseX, mouseY) >= 1 / this.editor.zoom) { // Add Point:
         this.annotation.render.d.push(x);
         this.annotation.render.d.push(y);
-        this.lastInsertedPoint = { x, y };
+        this.lastInsertedPoint = { x: mouseX, y: mouseY };
       } else { // Merge Point:
         let pointEndIndex = this.annotation.render.d.length - 1;
         this.annotation.render.d[pointEndIndex - 1] = x;

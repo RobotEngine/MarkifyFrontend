@@ -610,7 +610,6 @@ modules["editor/toolbar"] = class {
       return await this.activateTool();
     }
     let lastEventTimeStamps = {};
-    let disableCoalescedEvents = false;
     this.pushToolEvent = (type, event) => {
       if (this.currentToolModule == null) {
         return;
@@ -620,7 +619,7 @@ modules["editor/toolbar"] = class {
         return;
       }
       let events = [];
-      if (this.currentToolModule.USE_COALESCED_EVENTS == true && event.getCoalescedEvents != null && disableCoalescedEvents != true) {
+      if (this.currentToolModule.USE_COALESCED_EVENTS == true && event.getCoalescedEvents != null) {
         events = event.getCoalescedEvents();
       }
       if (events.length < 1) {
@@ -632,7 +631,6 @@ modules["editor/toolbar"] = class {
         if (timeStamp != null) {
           let type = specificEvent.type ?? event;
           if ((lastEventTimeStamps[type] ?? timeStamp) > timeStamp) { // Safari unorders coalesced events!?
-            disableCoalescedEvents = true;
             continue;
           }
           lastEventTimeStamps[type] = timeStamp;

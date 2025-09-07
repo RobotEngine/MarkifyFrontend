@@ -5139,8 +5139,16 @@ modules["editor/toolbar/pen"] = class {
         this.annotation.render.p[1] += y; //this.editor.math.round(this.annotation.render.p[1] + y);
         y = 0;
       }
-      this.annotation.render.d.push(x);
-      this.annotation.render.d.push(y);
+      let lastPoint = this.lastInsertedPoint ?? {};
+      if (this.editor.math.distance(lastPoint.x ?? 0, lastPoint.y ?? 0, x, y) >= 1 / this.editor.zoom) { // Add Point:
+        this.annotation.render.d.push(x);
+        this.annotation.render.d.push(y);
+        this.lastInsertedPoint = { x, y };
+      } else { // Merge Point:
+        let pointEndIndex = this.annotation.render.d.length - 1;
+        this.annotation.render.d[pointEndIndex - 1] = x;
+        this.annotation.render.d[pointEndIndex] = y;
+      }
     } else {
       this.annotation.render.d = [this.annotation.render.d[0], this.annotation.render.d[1]];
       let sizeIncX = x;

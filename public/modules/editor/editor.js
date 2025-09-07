@@ -344,6 +344,9 @@ modules["editor/editor"] = class {
         }
       }
     },
+    distance: (ax, ay, bx, by) => {
+      return ((ay - by) ** 2 + (ax - bx) ** 2) ** 0.5;
+    },
     perpendicularDistance: (point, lineStart, lineEnd) => {
       return Math.abs((lineEnd[1] - lineStart[1]) * point[0] - (lineEnd[0] - lineStart[0]) * point[1] +
         lineEnd[0] * lineStart[1] - lineEnd[1] * lineStart[0]) /

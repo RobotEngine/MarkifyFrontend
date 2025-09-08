@@ -5394,30 +5394,31 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
         </svg>`);
         backgroundSVG = this.element.querySelector("svg[background]");
       }
+
+      let baseColor = this.properties.c ?? "e0e0e0";
+      let lineColor;
+      if (this.parent.utils.contrastCheck(baseColor, .5) == true) {
+        lineColor = this.parent.utils.darkenHex(baseColor, 25);
+      } else {
+        lineColor = this.parent.utils.lightenHex(baseColor, 25);
+      }
+      backgroundSVG.style.setProperty("--themeColor", "#" + lineColor);
+
       let svgDefinition = backgroundSVG.querySelector("defs");
       if (svgDefinition.getAttribute("type") != type) {
         svgDefinition.setAttribute("type", type);
-
-        let baseColor = this.properties.c ?? "e0e0e0";
-        let lineColor;
-        if (this.parent.utils.contrastCheck(baseColor, .5) == true) {
-          lineColor = this.parent.utils.darkenHex(baseColor, 25);
-        } else {
-          lineColor = this.parent.utils.lightenHex(baseColor, 25);
-        }
-
         if (type == "line") {
           let lineSpacing = this.MM_TO_PX(7.1);  // ≈ 26.9px
           svgDefinition.innerHTML = `
           <pattern id="background_pattern" width="100%" height="${lineSpacing}" patternUnits="userSpaceOnUse">
-            <line x1="0" y1="${lineSpacing}" x2="100%" y2="${lineSpacing}" stroke-width="2" stroke="#${lineColor}"></line>
+            <line x1="0" y1="${lineSpacing}" x2="100%" y2="${lineSpacing}" stroke-width="2" stroke="var(--themeColor)"></line>
           </pattern>`;
         } else if (type == "grid") {
           let gridSpacing = this.MM_TO_PX(5);    // ≈ 18.9px
           svgDefinition.innerHTML = `
           <pattern id="background_pattern" width="${gridSpacing}" height="${gridSpacing}" patternUnits="userSpaceOnUse">
-            <line x1="0" y1="${gridSpacing}" x2="${gridSpacing}" y2="${gridSpacing}" stroke-width="2" stroke="#${lineColor}"></line>
-            <line x1="${gridSpacing}" y1="0" x2="${gridSpacing}" y2="${gridSpacing}" stroke-width="2" stroke="#${lineColor}"></line>
+            <line x1="0" y1="${gridSpacing}" x2="${gridSpacing}" y2="${gridSpacing}" stroke-width="2" stroke="var(--themeColor)"></line>
+            <line x1="${gridSpacing}" y1="0" x2="${gridSpacing}" y2="${gridSpacing}" stroke-width="2" stroke="var(--themeColor)"></line>
           </pattern>`;
         }
       }

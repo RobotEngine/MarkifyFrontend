@@ -147,7 +147,7 @@ modules["pages/app/dashboard"] = class {
     ".dTileDropFolderLoadMore": `display: flex; width: 100%; justify-content: center; margin-bottom: 8px`,
     ".dTileDropFolderLoadMore button": `display: flex; padding: 6px 8px; align-items: center; --borderRadius: 16px; font-size: 16px; color: var(--theme); font-weight: 700`,
 
-    ".dSidebarAccountHolder": `display: flex; flex-direction: column; padding: 8px; bottom: 0px; margin-top: auto; align-items: center; transition: .2s`,
+    ".dSidebarAccountHolder": `--percent: 0; display: flex; flex-direction: column; padding: 8px; bottom: 0px; margin-top: auto; align-items: center; background: rgba(var(--background), calc(.7 * var(--percent))); backdrop-filter: blur(calc(4px * var(--percent))); transition: .2s`,
     ".dSidebarUpdateAlert": `display: none; flex-direction: column; width: calc(100% - 16px); margin: 8px; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 18px; transition: .2s`,
     ".dSidebarUpdateAlert[closed]": `pointer-events: none; opacity: 0; transform: scale(.8)`,
     ".dSidebarUpdateAlertTitle": `box-sizing: border-box; display: flex; width: 100%; padding: 6px; gap: 8px; justify-content: space-between; align-items: center`,
@@ -360,10 +360,11 @@ modules["pages/app/dashboard"] = class {
       }
 
       if (Math.floor(sidebar.scrollTop) < Math.floor(sidebar.scrollHeight - sidebar.clientHeight)) { // Account Holder Shadow:
-        accountHolder.style.background = "var(--pageColor)";
+        //accountHolder.style.background = "var(--pageColor)";
+        accountHolder.style.setProperty("--percent", "1");
         accountHolder.style.boxShadow = "var(--lightShadow)";
       } else {
-        accountHolder.style.removeProperty("background");
+        accountHolder.style.removeProperty("--percent");
         accountHolder.style.removeProperty("box-shadow");
       }
     }

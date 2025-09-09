@@ -576,7 +576,7 @@ modules["pages/app/dashboard"] = class {
     let path = "lessons";
     if (window.previousLessonSession != null) {
       path += "?leave=" + window.previousLessonSession;
-      window.previousLessonSession = null;
+      delete window.previousLessonSession;
     }
     let [code, body] = await sendRequest("GET", path);
     if (code != 200) {

@@ -120,6 +120,10 @@ modules["pages/app/join"] = class {
     let captchaHolder = modal.querySelector(".jCaptchaHolder");
     let cfTurnstile = captchaHolder.querySelector(".jCFTurnstile");
 
+    if (window.previousLessonSession != null) {
+      delete window.previousLessonSession;
+    }
+
     page.querySelector(".jLogo").addEventListener("click", (event) => {
       setFrame("pages/launch");
       event.preventDefault();

@@ -1059,6 +1059,9 @@ modules["pages/app/lesson"] = class {
           removeLocalStore("guest");
         }
       }
+      if (joinData.pin == null && joinData.name == null && this.session == null && window.previousLessonSession != null) {
+        this.session = window.previousLessonSession;
+      }
       let paramSession = getParam("member_session") ?? "";
       if (paramSession != "" && this.exporting == true) {
         this.session = paramSession;

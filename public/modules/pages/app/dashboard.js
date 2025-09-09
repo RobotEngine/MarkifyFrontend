@@ -168,7 +168,7 @@ modules["pages/app/dashboard"] = class {
     ".dropdownTitle div[accountuser]": `flex: unset`,
 
     ".dLessonsHolder": `position: relative; display: flex; flex-direction: column; width: 100%; min-height: 100%; overflow-x: hidden; overflow-y: auto; z-index: 1`,
-    ".dSelectedTitleHolder": `position: sticky; display: flex; box-sizing: border-box; width: 100%; padding: 20px; top: 0px; z-index: 2; transition: background .2s, box-shadow .2s`,
+    ".dSelectedTitleHolder": `--percent: 0; position: sticky; display: flex; box-sizing: border-box; width: 100%; padding: 20px; top: 0px; background: rgba(var(--background), calc(.7 * var(--percent))); backdrop-filter: blur(calc(4px * var(--percent))); z-index: 2; transition: background .2s, backdrop-filter .2s, box-shadow .2s`,
     ".dSelectedTitle": `font-size: 28px; font-weight: 600; text-align: left`,
     ".dBannerHolder": `display: none; box-sizing: border-box; width: 100%; height: fit-content; transition: .4s`,
     ".dBanner": `display: flex; gap: 8px; width: 100%; height: fit-content; padding: 6px; margin: 8px; box-shadow: var(--darkShadow); border-radius: 4px 4px 12px 12px; transition: .4s`,
@@ -281,7 +281,7 @@ modules["pages/app/dashboard"] = class {
     }
 
     // Handle Banner:
-    const CURRENT_BANNER = null; // "1.0-release"
+    const CURRENT_BANNER = null; // "1.0-release";
     if (CURRENT_BANNER != null) {
       let bannerHolder = lessonsHolder.querySelector(".dBannerHolder");
       let banner = bannerHolder.querySelector(".dBanner");
@@ -352,15 +352,14 @@ modules["pages/app/dashboard"] = class {
 
     this.updateScrollShadows = () => {
       if (lessonsHolder.scrollTop > 0 && titleHolder.offsetTop - lessonsHolder.scrollTop <= 1) { // Lesson Topbar Shadow:
-        titleHolder.style.background = "var(--pageColor)";
+        titleHolder.style.setProperty("--percent", "1");
         titleHolder.style.boxShadow = "var(--lightShadow)";
       } else {
-        titleHolder.style.removeProperty("background");
+        titleHolder.style.removeProperty("--percent");
         titleHolder.style.removeProperty("box-shadow");
       }
 
       if (Math.floor(sidebar.scrollTop) < Math.floor(sidebar.scrollHeight - sidebar.clientHeight)) { // Account Holder Shadow:
-        //accountHolder.style.background = "var(--pageColor)";
         accountHolder.style.setProperty("--percent", "1");
         accountHolder.style.boxShadow = "var(--lightShadow)";
       } else {

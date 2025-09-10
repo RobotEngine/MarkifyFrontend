@@ -3428,16 +3428,15 @@ modules["editor/editor"] = class {
       annotations.setAttribute("hidecomments", "");
     }
 
+    let originalStartDistance;
     let startDistance;
     let startZoom;
     let originCenter;
     let getDistance = (touches) => {
-      let pageWidth = page.offsetWidth;
-      let pageHeight = page.offsetHeight;
       let { mouseX: touchAX, mouseY: touchAY } = this.utils.localMousePosition(touches[1] ?? {});
       let { mouseX: touchBX, mouseY: touchBY } = this.utils.localMousePosition(touches[0] ?? {});
-      let xDiff = (touchAX / pageWidth) - (touchBX / pageWidth);
-      let yDiff = (touchAY / pageHeight) - (touchBY / pageHeight);
+      let xDiff = ((touchAX / this.pageOffsetWidth) - (touchBX / this.pageOffsetWidth)) * this.pageOffsetWidth;
+      let yDiff = ((touchAY / this.pageOffsetHeight) - (touchBY / this.pageOffsetHeight)) * this.pageOffsetHeight;
       return Math.sqrt((xDiff * xDiff) + (yDiff * yDiff));
     }
     let getCenter = (touches) => {
@@ -3447,6 +3446,7 @@ modules["editor/editor"] = class {
     }
     let endPinch = () => {
       this.pinching = false;
+      originalStartDistance = null;
       startDistance = null;
       startZoom = null;
       originCenter = null;
@@ -3462,11 +3462,18 @@ modules["editor/editor"] = class {
         return endPinch();
       }
       let currentDistance = getDistance(event.touches);
-      if (startDistance == null) {
-        startDistance = currentDistance;
+      if (originalStartDistance == null) {
+        originalStartDistance = currentDistance;
       }
       if (startZoom == null) {
         startZoom = this.zoom;
+      }
+      if (startDistance == null) {
+        if (Math.abs(currentDistance - originalStartDistance) < 10) {
+          return;
+        } else {
+          startDistance = currentDistance;
+        }
       }
       let center = getCenter(event.touches);
       if (originCenter == null) {

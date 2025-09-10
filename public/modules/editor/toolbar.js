@@ -5161,7 +5161,7 @@ modules["editor/toolbar/pen"] = class {
         this.annotation.render.p[1] += y; //this.editor.math.round(this.annotation.render.p[1] + y);
         y = 0;
       }
-      if (this.annotation.render.d.length < 3 || this.editor.math.distance((this.lastInsertedPoint ?? {}).x ?? x, (this.lastInsertedPoint ?? {}).y ?? y, mouseX, mouseY) >= 1 / this.editor.zoom) { // Add Point:
+      if (this.annotation.render.d.length < 5 || this.editor.math.distance((this.lastInsertedPoint ?? {}).x ?? x, (this.lastInsertedPoint ?? {}).y ?? y, mouseX, mouseY) >= 1 / this.editor.zoom) { // Add Point:
         this.annotation.render.d.push(x);
         this.annotation.render.d.push(y);
         this.lastInsertedPoint = { x: mouseX, y: mouseY };

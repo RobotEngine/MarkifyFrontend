@@ -1524,12 +1524,10 @@ modules["editor/editor"] = class {
         this.render.runCheckSizeReset = null;
       }*/
 
-      let addMarginLeftRight = this.pageOffsetWidth / 2;
-      let addMarginTopBottom = this.pageOffsetHeight / 2;
-      let setMarginLeft = Math.ceil((this.render.setLeftMargin * this.zoom) + addMarginLeftRight);
-      let setMarginRight = Math.ceil((this.render.setRightMargin * this.zoom) + addMarginLeftRight);
-      let setMarginTop = Math.ceil((this.render.setTopMargin * this.zoom) + addMarginTopBottom);
-      let setMarginBottom = Math.ceil((this.render.setBottomMargin * this.zoom) + addMarginTopBottom);
+      let setMarginLeft = Math.ceil((this.render.setLeftMargin + this.pageOffsetWidth) * this.zoom);
+      let setMarginRight = Math.ceil((this.render.setRightMargin + this.pageOffsetWidth) * this.zoom);
+      let setMarginTop = Math.ceil((this.render.setTopMargin + this.pageOffsetHeight) * this.zoom);
+      let setMarginBottom = Math.ceil((this.render.setBottomMargin + this.pageOffsetHeight) * this.zoom);
 
       let checkWidth = false;
       let checkHeight = false;

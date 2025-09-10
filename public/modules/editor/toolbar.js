@@ -625,17 +625,20 @@ modules["editor/toolbar"] = class {
       if (events.length < 1) {
         events.push(event);
       }
-      for (let i = 0; i < events.length; i++) {
+      for (let i = 0; i < events.length; i++) { // Safari just breaks coalesced events!?
         let specificEvent = events[i];
         let timeStamp = specificEvent.timeStamp;
         if (timeStamp != null) {
           let type = specificEvent.type ?? event;
           if ((lastEventTimeStamps[type] ?? timeStamp) > timeStamp) { // Safari unorders coalesced events!?
-            continue;
+            events = [event]; // Just use the main event if it's broken
+            break;
           }
           lastEventTimeStamps[type] = timeStamp;
         }
-        callback(specificEvent);
+      }
+      for (let i = 0; i < events.length; i++) {
+        callback(events[i]);
       }
     }
     

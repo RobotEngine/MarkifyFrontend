@@ -3470,18 +3470,19 @@ modules["editor/editor"] = class {
       if (startZoom == null) {
         startZoom = this.zoom;
       }
-      if (startDistance == null) {
-        if (Math.abs(currentDistance - originalStartDistance) < 10) {
-          return;
-        } else {
-          startDistance = currentDistance;
-        }
-      }
       let center = getCenter(event.touches);
       if (originCenter == null) {
         originCenter = { x: center.x, y: center.y };
       }
-      await this.setZoom(startZoom * (currentDistance / startDistance), null, {
+      let zoomFactor = 1;
+      if (startDistance != null) {
+        zoomFactor = (currentDistance / startDistance);
+      } else {
+        if (Math.abs(currentDistance - originalStartDistance) > 10) {
+          startDistance = currentDistance;
+        }
+      }
+      await this.setZoom(startZoom * zoomFactor, null, {
         clientX: originCenter.x,
         clientY: originCenter.y,
         changeScrollX: originCenter.x - center.x,

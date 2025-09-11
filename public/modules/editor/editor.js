@@ -5418,17 +5418,20 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
         if (type == "line") {
           let lineSpacing = this.MM_TO_PX(7.1);  // ≈ 26.9px
           svgDefinition.innerHTML = `
-          <pattern id="background_pattern" width="100%" height="${lineSpacing}" patternUnits="userSpaceOnUse">
+          <pattern width="100%" height="${lineSpacing}" patternUnits="userSpaceOnUse">
             <line x1="0" y1="${lineSpacing}" x2="100%" y2="${lineSpacing}" stroke-width="2" stroke="var(--themeColor)"></line>
           </pattern>`;
+          svgDefinition.querySelector("pattern").setAttribute("id", "background_pattern_" + this.properties._id);
         } else if (type == "grid") {
           let gridSpacing = this.MM_TO_PX(5);    // ≈ 18.9px
           svgDefinition.innerHTML = `
-          <pattern id="background_pattern" width="${gridSpacing}" height="${gridSpacing}" patternUnits="userSpaceOnUse">
+          <pattern width="${gridSpacing}" height="${gridSpacing}" patternUnits="userSpaceOnUse">
             <line x1="0" y1="${gridSpacing}" x2="${gridSpacing}" y2="${gridSpacing}" stroke-width="2" stroke="var(--themeColor)"></line>
             <line x1="${gridSpacing}" y1="0" x2="${gridSpacing}" y2="${gridSpacing}" stroke-width="2" stroke="var(--themeColor)"></line>
           </pattern>`;
+          svgDefinition.querySelector("pattern").setAttribute("id", "background_pattern_" + this.properties._id);
         }
+        backgroundSVG.querySelector("rect").setAttribute("fill", "url(#background_pattern_" + this.properties._id + ")");
       }
     } else if (backgroundSVG != null) {
       backgroundSVG.remove();

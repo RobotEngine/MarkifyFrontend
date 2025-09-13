@@ -1,0 +1,5 @@
+1. Find the folder: /Users/anthonybeckett/Documents/GitHub/QuillJS
+2. Update using sudo npm install quill
+3. Find ./node_modules/quill/dist
+4. Copy all of the files
+5. Paste into this "quilljs" folder

@@ -661,13 +661,9 @@ modules["editor/realtime"] = class {
               }
               if (merge.f != null) {
                 let component = ((await editor.save.apply({ ...merge, sync: time }, { overwrite: true, render: { animate: anno.f == null }, renderPassthrough: { resizing: merge.resizing } })).annotation ?? {}).component;
-                if (component != null) {
-                  let annoElem = component.getElement();
-                  if (annoElem != null) {
-                    let annoTx = annoElem.querySelector("div[contenteditable]");
-                    if (annoTx != null) {
-                      annoTx.removeAttribute("contenteditable");
-                    }
+                if (merge.d != null && component != null) {
+                  if (component.quill != null && component.quill.isEnabled() == true) {
+                    component.quill.disable();
                   }
                 }
               }

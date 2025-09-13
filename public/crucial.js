@@ -21,7 +21,7 @@ const configs = {
   }
 };
 
-const config = configs["public"];
+const config = configs["prodTesting"];
 const version = "1.4.58"; // Big Update . Small Feature Release . Bug Fix
 
 const serverURL = config.server;
@@ -37,6 +37,7 @@ let supportedImageTypes = ["png", "jpeg", "jpg", "webp", "svg+xml", "tiff", "tif
 
 let modules = {};
 
+let head = document.head;
 let body = document.body;
 let app = body.querySelector(".app");
 let fixed = body.querySelector(".fixed");

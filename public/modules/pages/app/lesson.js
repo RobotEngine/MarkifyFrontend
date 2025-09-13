@@ -13,6 +13,7 @@ modules["pages/app/lesson"] = class {
 
     "../libraries/pdfjs/pdf.mjs",
     "../libraries/pdfjs/pdf.worker.mjs",
+    "../libraries/quilljs/quill.core.js",
 
     "../modules/dropdowns/lesson/share.js",
     "../modules/dropdowns/account.js",
@@ -356,6 +357,16 @@ modules["pages/app/lesson"] = class {
   // LESSON PAGE : Loads lessons, members, and configs before creating editor modules:
   js = async (page, joinData) => {
     this.id = getParam("lesson") ?? "";
+
+    // Preload QuillJS CSS:
+    this.quillCSSPreload = document.createElement("link");
+    this.quillCSSPreload.type = "text/css";
+    this.quillCSSPreload.rel = "stylesheet";
+    head.appendChild(this.quillCSSPreload);
+    this.quillCSSPreload.addEventListener("load", () => {
+      this.quillJSLoaded = true;
+    });
+    this.quillCSSPreload.href = "../libraries/quilljs/quill.core.css";
 
     this.exporting = getParam("export_browser") == "true";
     if (this.exporting == true) {

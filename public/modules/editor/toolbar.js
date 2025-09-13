@@ -67,7 +67,11 @@ modules["editor/toolbar"] = class {
       if (remEvent.type == "event" && remEvent.parent != null) {
         remEvent.parent.removeEventListener(remEvent.name, remEvent.listener);
       }
+      if (remEvent.type == "quill" && remEvent.quill != null) {
+        remEvent.quill.off(remEvent.name, remEvent.handler);
+      }
     }
+    this.eventListenerStorage = [];
   }
   addEventListener = (name, parent, listener) => {
     if (parent == null) {
@@ -75,6 +79,13 @@ modules["editor/toolbar"] = class {
     }
     this.eventListenerStorage.push({ type: "event", name, parent, listener });
     parent.addEventListener(name, listener);
+  }
+  addQuillEventListener = (quill, name, handler) => {
+    if (quill == null) {
+      return;
+    }
+    this.eventListenerStorage.push({ quill: quill, type: "quill", name, handler });
+    quill.on(name, handler);
   }
   css = {
     ".eToolbarHolder": `position: relative; display: block; flex: 1; visibility: visible`,
@@ -1155,9 +1166,9 @@ modules["editor/toolbar"] = class {
           }
         }
         let merged = { ...selecting, ...set };
-        if (merged.d != null && typeof merged.d == "object") {
+        /*if (merged.d != null && typeof merged.d == "object") {
           merged.d = { ...original.render.d, ...merged.d };
-        }
+        }*/
         if ((annoModule.AUTO_TEXT_FIT == true || annoModule.AUTO_SET_HEIGHT == true) && merged.remove != true) {
           await editor.render.create({ ...original, render: { ...original.render, ...merged }, animate: false });
           let renderedText = original.component.getElement().querySelector("div[edit]");
@@ -1227,10 +1238,9 @@ modules["editor/toolbar"] = class {
             annoData.component.setAnimate(true);
             //annotation.style.removeProperty("overflow");
             annotation.style.removeProperty("border-radius");
-            let annoTx = annotation.querySelector("div[edit]");
-            if (annoTx != null) {
-              annoTx.removeAttribute("contenteditable");
-              if (annoTx.hasAttribute("text") == true && annoTx.textContent.trim().length < 1) {
+            if (annoData.component.quill != null && annoData.component.quill.isEnabled() == true) {
+              annoData.component.quill.disable();
+              if (annoData.component.REMOVE_IF_NO_TEXT == true && annoData.component.quill.getText().trim().length < 1) {
                 await editor.history.push("add", [render]);
                 await editor.save.push({ _id: annoID, remove: true });
                 editor.realtimeSelect[annoID] = { ...editor.realtimeSelect[annoID], _id: annoID, remove: true };
@@ -3801,12 +3811,8 @@ modules["editor/toolbar"] = class {
               event.redo.push(copyObject(redoAnno));
             }
             if (annotation.component != null) {
-              let element = annotation.component.getElement();
-              if (element != null) {
-                annoContentTx = element.querySelector("div[contenteditable]");
-                if (annoContentTx != null) {
-                  annoContentTx.removeAttribute("contenteditable");
-                }
+              if (annotation.component.quill != null && annotation.component.quill.isEnabled() == true) {
+                annotation.component.quill.disable();
               }
             }
             editor.selecting[change._id] = change;
@@ -3897,12 +3903,8 @@ modules["editor/toolbar"] = class {
             }
             let annotation = editor.annotations[change._id] ?? {};
             if (annotation.component != null) {
-              let element = annotation.component.getElement();
-              if (element != null) {
-                annoContentTx = element.querySelector("div[contenteditable]");
-                if (annoContentTx != null) {
-                  annoContentTx.removeAttribute("contenteditable");
-                }
+              if (annotation.component.quill != null && annotation.component.quill.isEnabled() == true) {
+                annotation.component.quill.disable();
               }
             }
             editor.selecting[change._id] = change;
@@ -4099,7 +4101,7 @@ modules["editor/toolbar"] = class {
       }
 
       if (document.activeElement != null) {
-        if (document.activeElement.closest("[contenteditable]") != null || document.activeElement.closest("input") != null) {
+        if (document.activeElement.closest('[contenteditable="true"]') != null || document.activeElement.closest("input") != null) {
           return;
         }
       }
@@ -4272,7 +4274,7 @@ modules["editor/toolbar"] = class {
         return;
       }
       if (document.activeElement != null) {
-        if (document.activeElement.closest("[contenteditable]") != null || document.activeElement.closest("input") != null) {
+        if (document.activeElement.closest('[contenteditable="true"]') != null || document.activeElement.closest("input") != null) {
           return;
         }
       }
@@ -4535,12 +4537,12 @@ modules["editor/toolbar/select"] = class {
       if (render == null) {
         return;
       }
-      if (annotation.querySelector("div[edit]") != null && annotation.querySelector("div[edit]").closest(".eAnnotation") == annotation && annotation.querySelector("div[contenteditable]") != null) {
+      if (annotation.querySelector("div[edit]") != null && annotation.querySelector("div[edit]").closest(".eAnnotation") == annotation && annotation.querySelector('div[contenteditable="true"]') != null) {
         return;
       }
       if (this.editor.selecting[annoID] != null) {
         if (target.closest("div[label]") != null && annotation.querySelector("div[label]").closest(".eAnnotation") == annotation && this.editor.utils.isLocked(render) != true) {
-          if (target.closest("div[label]").hasAttribute("contenteditable") == false) {
+          if (target.closest("div[label]").getAttribute("contenteditable") != "true") {
             this.parent.selection.clickAction({
               target: this.editor.page.querySelector('.eActionBar:not([remove]) .eTool[module="editor/toolbar/settitle"]')
             });
@@ -4628,7 +4630,7 @@ modules["editor/toolbar/select"] = class {
         this.editor.selecting = {};
         this.editor.selecting[annoID] = {};
       }
-      if (this.wasSelected == null && annotation.querySelector("div[edit]") != null && annotation.querySelector("div[edit]").closest(".eAnnotation") == annotation && annotation.querySelector("div[contenteditable]") == null) {
+      if (this.wasSelected == null && annotation.querySelector("div[edit]") != null && annotation.querySelector("div[edit]").closest(".eAnnotation") == annotation && annotation.querySelector('div[contenteditable="true"]') == null) {
         this.parent.selection.clickAction({
           target: this.editor.page.querySelector('.eActionBar:not([remove]) .eTool[module="editor/toolbar/textedit"]'),
           setCaretPosition: true,
@@ -9595,12 +9597,13 @@ modules["editor/toolbar/textedit"] = class {
     }
 
     let preference = this.parent.getPreferenceTool();
-    let annoTx = this.editor.contentHolder.querySelector('.eAnnotation[anno="' + preference._id + '"] div[contenteditable]');
-    if (annoTx == null) {
+    
+    let quill = ((this.editor.annotations[preference._id] ?? {}).component ?? {}).quill;
+    if (quill == null || quill.isEnabled() == false) {
       this.button.removeAttribute("selecthighlight");
     } else {
       if (this.editor.utils.isLocked(preference) == true) {
-        annoTx.removeAttribute("contenteditable");
+        quill.disable();
       }
       this.button.setAttribute("selecthighlight", "");
     }
@@ -9612,6 +9615,118 @@ modules["editor/toolbar/textedit"] = class {
   ADD_DIVIDE_AFTER = true;
 
   js = async (frame, event) => {
+    if (this.button == null || this.button.hasAttribute("hidden") == true) {
+      return;
+    }
+
+    let preference = this.parent.getPreferenceTool();
+    if (this.editor.utils.isLocked(preference) == true) {
+      return;
+    }
+
+    let annotation = this.editor.annotations[preference._id];
+    if (annotation == null) {
+      return;
+    }
+    let quill = (annotation.component ?? {}).quill;
+    if (quill == null) {
+      return;
+    }
+
+    let annoElem = this.editor.contentHolder.querySelector('.eAnnotation[anno="' + preference._id + '"]');
+    if (annoElem == null) {
+      return;
+    }
+    let annoTx = annoElem.querySelector("div[edit]");
+    if (annoTx == null) {
+      return;
+    }
+
+    if (quill.isEnabled() == false) {
+      let scrollLeft = annoElem.scrollLeft ?? 0;
+      let scrollTop = annoElem.scrollTop ?? 0;
+      
+      quill.enable();
+
+      quill.focus();
+
+      if (scrollLeft > 0 || scrollTop > 0) {
+        annoElem.scrollTo(scrollLeft, scrollTop);
+      }
+
+      if (event.clearText != true) {
+        //quill.setSelection(0, quill.getLength());
+        this.editor.text.startTextSelection(annoTx, event);
+      } else {
+        quill.deleteText(0, quill.getLength());
+        quill.setSelection(0);
+      }
+    } else {
+      quill.disable();
+    }
+
+    this.toolbar.clearEventListeners();
+
+    let saveHistory = true;
+    let lastCaret = {};
+    let setLastCaret = (position) => {
+      let { index, length } = quill.getSelection();
+      lastCaret[position] = { index, length };
+    }
+
+    let textChange = async (delta, oldDelta, source) => {
+      if (source != "user") {
+        return;
+      }
+
+      preference = this.parent.getPreferenceTool();
+
+      let saveObj = { d: {} };
+      if (this.editor.selecting[preference._id].d == null) {
+        this.editor.selecting[preference._id].d = copyObject(preference.d ?? {});
+      }
+      saveObj.d = quill.getContents().ops;
+      if (preference.f == "sticky") {
+        saveObj.sig = this.editor.self.name;
+      }
+      if (event != null && [" ", null].includes(event.data) == true) {
+        saveHistory = true;
+      }
+      await this.toolbar.saveSelecting(() => { return saveObj; }, { refreshActionBar: false, saveHistory: saveHistory });
+      if (saveHistory == true) {
+        let lastHistory = this.editor.history.history[this.editor.history.location];
+        if (lastHistory != null) {
+          lastHistory.caret = lastHistory.caret ?? {};
+          lastHistory.caret.undoPosition = lastCaret.undo;
+        }
+      }
+      saveHistory = false;
+    };
+    this.toolbar.addQuillEventListener(quill, "text-change", textChange);
+
+    let keydownListener = (event) => {
+      if (event == null) {
+        return;
+      }
+      if ([8, 13, 32].includes(event.keyCode) == true) {
+        setLastCaret("undo");
+      }
+    }
+    this.toolbar.addEventListener("keydown", annoTx, keydownListener);
+
+    let keyupListener = async () => {
+      let lastHistory = this.editor.history.history[this.editor.history.location];
+      if (lastHistory != null) {
+        lastHistory.caret = lastHistory.caret ?? {};
+        setLastCaret("redo");
+        lastHistory.caret.redoPosition = lastCaret.redo;
+      }
+    }
+    this.toolbar.addEventListener("keyup", annoTx, keyupListener);
+
+    this.setActionButton();
+  }
+  /*js = async (frame, event) => {
     if (this.button == null || this.button.hasAttribute("hidden") == true) {
       return;
     }
@@ -9722,7 +9837,7 @@ modules["editor/toolbar/textedit"] = class {
     this.toolbar.addEventListener("paste", annoTx, clipBoardRead);
 
     this.setActionButton();
-  }
+  }*/
 }
 modules["editor/toolbar/fontsize"] = class {
   setActionButton = async (button) => {

@@ -24,6 +24,9 @@ modules["editor/editor"] = class {
     //".eAnnotationHolder[notransition] > .eAnnotation": `transition: unset !important`,
     ".eAnnotation > svg": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: none; overflow: visible`,
     ".eAnnotation > svg > *": `pointer-events: visiblepainted`,
+
+    ".eAnnotation .ql-editor": `padding: 0 !important; font-family: var(--font); font-size: 14px`,
+    ".eAnnotation .ql-editor > *": `cursor: unset`,
     
     ".eReaction": `display: flex; padding: 2px; background: rgba(255, 255, 255, .8); border: solid 2px rgba(0, 0, 0, 0); border-radius: 8px; align-items: center; overflow: hidden; color: #2F2F2F`,
     ".eReaction[selected]": `padding: 2px; background: rgba(180, 218, 253, .8); border: solid 2px var(--theme); color: var(--theme)`,
@@ -2814,6 +2817,35 @@ modules["editor/editor"] = class {
     }
 
     this.text = {};
+    this.text.getQuill = async () => {
+      if (window.Quill == null) {
+        await loadScript("../libraries/quilljs/quill.core.js");
+      }
+      return Quill;
+    }
+    if (window.QuillSetup != true) {
+      window.QuillSetup = true;
+      (async () => { // Setup blots:
+        let quill = await this.text.getQuill();
+        const Inline = quill.import("blots/inline");
+        quill.register(class BoldBlot extends Inline {
+          static blotName = "bold";
+          static tagName = "strong";
+        });
+        quill.register(class ItalicBlot extends Inline {
+          static blotName = "italic";
+          static tagName = "em";
+        });
+        quill.register(class StrikeBlot extends Inline {
+          static blotName = "underline";
+          static tagName = "U";
+        });
+        quill.register(class StrikeBlot extends Inline {
+          static blotName = "strike";
+          static tagName = ["S", "STRIKE"];
+        });
+      })();
+    }
     this.text.getCurrentCaretPosition = (element) => {
       let position = 0;
       if (typeof window.getSelection !== "undefined") {
@@ -4315,6 +4347,7 @@ modules["editor/render/annotation/text"] = class extends modules["editor/render/
   SHOW_ONLY_WIDTH_HANDLES = true;
   AUTO_TEXT_FIT = true;
   AUTO_SET_HEIGHT = true;
+  REMOVE_IF_NO_TEXT = true;
 
   ACTION_BAR_TOOLS = ["textedit", "color", "opacity", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "unlock", "delete"];
 
@@ -4346,7 +4379,7 @@ modules["editor/render/annotation/text"] = class extends modules["editor/render/
     }
     this.element.style.setProperty("--themeColor", "#" + this.properties.c);
     text.style.opacity = this.properties.o / 100;
-    let richText = this.properties.d ?? {};
+    /*let richText = this.properties.d ?? {};
     text.style.fontSize = Math.floor(Math.max(Math.min(richText.s ?? 18, 250), 1)) + "px";
     if (text.hasAttribute("contenteditable") == false) {
       let setHTML = "";
@@ -4384,7 +4417,7 @@ modules["editor/render/annotation/text"] = class extends modules["editor/render/
     } else {
       text.style.removeProperty("text-decoration");
     }
-    text.style.textAlign = richText.al ?? "left";
+    text.style.textAlign = richText.al ?? "left";*/
     if (this.properties.textfit == true) {
       text.style.width = "max-content";
       text.style.minWidth = "130px";
@@ -4399,6 +4432,21 @@ modules["editor/render/annotation/text"] = class extends modules["editor/render/
     this.setZIndex();
     this.setTransform();
     this.setAnimate();
+
+    if (this.quill == null || this.quill.isEnabled() == false) {
+      (async () => {
+        let quill = await this.parent.text.getQuill();
+        this.quill = new quill(text, {
+          modules: {
+            history: { maxStack: 0 }
+          },
+          readOnly: true
+          //placeholder: "Double click to type..."
+        }); //formats
+        this.quill.setContents(this.properties.d ?? []);
+        window.test = this.quill;
+      })();
+    }
   }
 }
 modules["editor/render/annotation/shape"] = class extends modules["editor/render/annotation"] {
@@ -4923,7 +4971,8 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
 modules["editor/render/annotation/sticky"] = class extends modules["editor/render/annotation"] {
   ALLOW_SELECT_OVERFLOW = true;
 
-  ACTION_BAR_TOOLS = ["textedit", "color", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "unlock", "reactions", "delete"];
+  //ACTION_BAR_TOOLS = ["textedit", "color", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "unlock", "reactions", "delete"];
+  ACTION_BAR_TOOLS = ["textedit", "color", "typeface", "fontsize", "format", "list", "link", "textalign", "unlock", "reactions", "delete"];
 
   SELECTION_FUNCTION = (selection) => {
     if (["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {
@@ -4971,9 +5020,9 @@ modules["editor/render/annotation/sticky"] = class extends modules["editor/rende
       this.element.style.opacity = .7;
     }
     this.element.style.color = this.parent.utils.textColorBackground(this.properties.c);
-    let richText = this.properties.d ?? {};
-    this.element.style.textAlign = richText.al ?? "left";
     text.style.opacity = this.properties.o / 100;
+    /*let richText = this.properties.d ?? {};
+    this.element.style.textAlign = richText.al ?? "left";
     let fontSize = Math.floor(Math.max(Math.min(richText.s ?? 16, 250), 1));
     text.style.fontSize = fontSize + "px";
     text.style.lineHeight = fontSize + 6 + "px";
@@ -5014,7 +5063,7 @@ modules["editor/render/annotation/sticky"] = class extends modules["editor/rende
       text.style.textDecoration = "underline";
     } else {
       text.style.removeProperty("text-decoration");
-    }
+    }*/
     let signature = this.element.querySelector("div[signature]");
     if (this.properties.sig != null && this.properties.sig != "" && this.properties.sigHidden != true) {
       signature.textContent = cleanString(this.properties.sig);
@@ -5029,6 +5078,21 @@ modules["editor/render/annotation/sticky"] = class extends modules["editor/rende
     this.setZIndex();
     this.setTransform();
     this.setAnimate();
+
+    if (this.quill == null || this.quill.isEnabled() == false) {
+      (async () => {
+        let quill = await this.parent.text.getQuill();
+        this.quill = new quill(text, {
+          modules: {
+            history: { maxStack: 0 }
+          },
+          readOnly: true
+          //placeholder: "Double click to type..."
+        }); //formats
+        this.quill.setContents(this.properties.d ?? []);
+        window.test = this.quill;
+      })();
+    }
 
     let reactionHolder = this.element.querySelector("div[reactions]");
     if (this.parent.utils.isLocked(this.properties) == false) {
@@ -5418,17 +5482,20 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
         if (type == "line") {
           let lineSpacing = this.MM_TO_PX(7.1);  // ≈ 26.9px
           svgDefinition.innerHTML = `
-          <pattern id="background_pattern" width="100%" height="${lineSpacing}" patternUnits="userSpaceOnUse">
+          <pattern width="100%" height="${lineSpacing}" patternUnits="userSpaceOnUse">
             <line x1="0" y1="${lineSpacing}" x2="100%" y2="${lineSpacing}" stroke-width="2" stroke="var(--themeColor)"></line>
           </pattern>`;
+          svgDefinition.querySelector("pattern").setAttribute("id", "background_pattern_" + this.properties._id);
         } else if (type == "grid") {
           let gridSpacing = this.MM_TO_PX(5);    // ≈ 18.9px
           svgDefinition.innerHTML = `
-          <pattern id="background_pattern" width="${gridSpacing}" height="${gridSpacing}" patternUnits="userSpaceOnUse">
+          <pattern width="${gridSpacing}" height="${gridSpacing}" patternUnits="userSpaceOnUse">
             <line x1="0" y1="${gridSpacing}" x2="${gridSpacing}" y2="${gridSpacing}" stroke-width="2" stroke="var(--themeColor)"></line>
             <line x1="${gridSpacing}" y1="0" x2="${gridSpacing}" y2="${gridSpacing}" stroke-width="2" stroke="var(--themeColor)"></line>
           </pattern>`;
+          svgDefinition.querySelector("pattern").setAttribute("id", "background_pattern_" + this.properties._id);
         }
+        backgroundSVG.querySelector("rect").setAttribute("fill", "url(#background_pattern_" + this.properties._id + ")");
       }
     } else if (backgroundSVG != null) {
       backgroundSVG.remove();

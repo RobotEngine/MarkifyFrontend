@@ -142,7 +142,13 @@ modules["lesson/export"] = class {
         if (this.editor.exportPromises.length > 0) {
           await Promise.all(this.editor.exportPromises);
         }
-        resolve();
+        if (this.parent.quillJSLoaded != true) {
+          this.parent.quillCSSPreload.addEventListener("load", () => {
+            resolve();
+          });
+        } else {
+          resolve();
+        }
       });
       return handleRenderPromise;
     }

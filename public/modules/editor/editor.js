@@ -2842,7 +2842,7 @@ modules["editor/editor"] = class {
         });
         quill.register(class StrikeBlot extends Inline {
           static blotName = "strike";
-          static tagName = ["S", "STRIKE"];
+          static tagName = "STRIKE";
         });
       })();
     }
@@ -4444,7 +4444,7 @@ modules["editor/render/annotation/text"] = class extends modules["editor/render/
         }); //formats
       }
       if (this.quill.isEnabled() == false) {
-        this.quill.setContents(this.properties.d ?? []);
+        this.quill.setContents(this.properties.d ?? [], "silent");
       }
     })();
   }
@@ -5090,7 +5090,7 @@ modules["editor/render/annotation/sticky"] = class extends modules["editor/rende
         }); //formats
       }
       if (this.quill.isEnabled() == false) {
-        this.quill.setContents(this.properties.d ?? []);
+        this.quill.setContents(this.properties.d ?? [], "silent");
       }
     })();
 

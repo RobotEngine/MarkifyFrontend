@@ -9666,8 +9666,12 @@ modules["editor/toolbar/textedit"] = class {
     let saveHistory = true;
     let lastCaret = {};
     let setLastCaret = (position) => {
-      let { index, length } = quill.getSelection();
-      lastCaret[position] = { index, length };
+      let selection = quill.getSelection();
+      if (selection == null) {
+        lastCaret[position] = null;
+        return;
+      }
+      lastCaret[position] = { index: selection.index, length: selection.length };
     }
 
     let textChange = async (delta, oldDelta, source) => {
@@ -9706,6 +9710,11 @@ modules["editor/toolbar/textedit"] = class {
       saveHistory = false;
     };
     this.toolbar.addQuillEventListener(quill, "text-change", textChange);
+
+    let selectionChange = (range, oldRange, source) => {
+      this.editor.pipeline.publish("quill_selection_change", { range, oldRange, source, format: quill.getFormat() });
+    }
+    this.toolbar.addQuillEventListener(quill, "selection-change", selectionChange);
 
     let keydownListener = (event) => {
       if (event == null) {
@@ -9844,8 +9853,35 @@ modules["editor/toolbar/textedit"] = class {
   }*/
 }
 modules["editor/toolbar/format"] = class {
+  updateButtonSelections = (attributes) => {
+    if (this.buttons == null) {
+      return;
+    }
+    if (attributes == null) {
+      attributes = {};
+      let preference = this.parent.getPreferenceTool();
+      let quill = ((this.editor.annotations[preference._id] ?? {}).component ?? {}).quill;
+      if (quill != null) {
+        if (quill.getSelection() != null) {
+          attributes = quill.getFormat();
+        } else {
+          attributes = quill.getFormat(0, quill.getLength());
+        }
+      }
+    }
+    for (let i = 0; i < this.buttons.length; i++) {
+      let button = this.buttons[i];
+      if (attributes[button.getAttribute("format")] != true) {
+        button.removeAttribute("selected");
+      } else {
+        button.setAttribute("selected", "");
+      }
+    }
+  }
   setActionButton = async (button) => {
     setSVG(button, "../images/editor/toolbar/format.svg");
+
+    this.updateButtonSelections();
   }
 
   TOOLTIP = "Format";
@@ -9865,7 +9901,7 @@ modules["editor/toolbar/format"] = class {
     ".eSubToolFormatContainer .eTool[selected] > div": `background: var(--theme) !important`
   };
   js = async (frame) => {
-    let applyButtons = frame.querySelectorAll(".eTool");
+    this.buttons = frame.querySelectorAll(".eTool");
 
     let preference = this.parent.getPreferenceTool();
     let annotation = this.editor.annotations[preference._id];
@@ -9877,16 +9913,26 @@ modules["editor/toolbar/format"] = class {
       return;
     }
     
-    for (let i = 0; i < applyButtons.length; i++) {
-      let button = applyButtons[i];
+    for (let i = 0; i < this.buttons.length; i++) {
+      let button = this.buttons[i];
       let format = button.getAttribute("format");
       
-      button.addEventListener("click", () => {
-        quill.format(format, !button.hasAttribute("selected"), "user");
+      button.addEventListener("click", async () => {
+        if (quill.getSelection() != null) {
+          quill.format(format, !button.hasAttribute("selected"), "api");
+        } else {
+          console.log(!button.hasAttribute("selected"));
+          quill.formatText(0, quill.getLength(), format, !button.hasAttribute("selected"), "api");
+        }
+        await this.toolbar.saveSelecting(() => { return { d: quill.getContents().ops } }, { refreshActionBar: false });
+        this.updateButtonSelections();
       });
 
       setSVG(button.querySelector("div"), "../images/editor/toolbar/" + format + ".svg");
     }
+
+    this.editor.pipeline.subscribe("formatModule", "quill_selection_change", (event) => { this.updateButtonSelections(event.format); });
+    this.updateButtonSelections();
   }
 }
 modules["editor/toolbar/fontsize"] = class {

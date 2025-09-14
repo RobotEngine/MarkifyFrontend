@@ -364,7 +364,7 @@ modules["pages/app/lesson"] = class {
     this.quillCSSPreload.rel = "stylesheet";
     head.appendChild(this.quillCSSPreload);
     this.quillCSSPreload.addEventListener("load", () => {
-      this.quillJSLoaded = true;
+      this.quillCSSLoaded = true;
     });
     this.quillCSSPreload.href = "../libraries/quilljs/quill.core.css";
 

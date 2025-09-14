@@ -9937,11 +9937,18 @@ modules["editor/toolbar/fontsize"] = class {
     }
     this.redraw();
 
+    let useSelection;
     let saveSize = async (set) => {
       if (selectedS == set) {
         return;
       }
-      let selection = quill.getSelection();
+      let selection;
+      if (useSelection == null) {
+        selection = quill.getSelection();
+      } else {
+        selection = useSelection;
+        useSelection = null;
+      }
       let source = "api";
       let enabled = quill.isEnabled();
       if (enabled == true) {
@@ -10011,6 +10018,7 @@ modules["editor/toolbar/fontsize"] = class {
       if (textBox == null) {
         return;
       }
+      useSelection = quill.getSelection() ?? useSelection;
       textBox.textContent = "";
     });
   }

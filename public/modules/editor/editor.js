@@ -4437,7 +4437,7 @@ modules["editor/render/annotation/text"] = class extends modules["editor/render/
     this.setTransform();
     this.setAnimate();
 
-    (async () => {
+    let loadText = async () => {
       if (this.quill == null) {
         this.quill = new (await this.parent.text.getQuill())(text, {
           modules: {
@@ -4450,7 +4450,12 @@ modules["editor/render/annotation/text"] = class extends modules["editor/render/
       if (this.quill.isEnabled() == false) {
         this.quill.setContents(this.properties.d ?? [], "silent");
       }
-    })();
+    }
+    if (this.parent.exporting != true) {
+      loadText();
+    } else {
+      this.parent.exportPromises.push(new Promise(async (resolve) => { resolve(await loadText()); }));
+    }
   }
 }
 modules["editor/render/annotation/shape"] = class extends modules["editor/render/annotation"] {
@@ -5083,7 +5088,7 @@ modules["editor/render/annotation/sticky"] = class extends modules["editor/rende
     this.setTransform();
     this.setAnimate();
     
-    (async () => {
+    let loadText = async () => {
       if (this.quill == null) {
         this.quill = new (await this.parent.text.getQuill())(text, {
           modules: {
@@ -5096,7 +5101,12 @@ modules["editor/render/annotation/sticky"] = class extends modules["editor/rende
       if (this.quill.isEnabled() == false) {
         this.quill.setContents(this.properties.d ?? [], "silent");
       }
-    })();
+    }
+    if (this.parent.exporting != true) {
+      loadText();
+    } else {
+      this.parent.exportPromises.push(new Promise(async (resolve) => { resolve(await loadText()); }));
+    }
 
     let reactionHolder = this.element.querySelector("div[reactions]");
     if (this.parent.utils.isLocked(this.properties) == false) {

@@ -3790,7 +3790,7 @@ modules["editor/toolbar"] = class {
 
       let addRedo = event.redo.length < 1;
       let keys = Object.keys(editor.selecting);
-      let annoContentTx;
+      let quill;
       switch (event.type) {
         case "update":
           for (let i = 0; i < event.changes.length; i++) {
@@ -3810,9 +3810,11 @@ modules["editor/toolbar"] = class {
               }
               event.redo.push(copyObject(redoAnno));
             }
-            if (annotation.component != null) {
-              if (annotation.component.quill != null && annotation.component.quill.isEnabled() == true) {
-                annotation.component.quill.disable();
+            if (annotation.component != null && annotation.component.quill != null) {
+              quill = annotation.component.quill;
+              if (quill.isEnabled() == true) {
+                quill.keepTextSelectionActive = true;
+                quill.disable();
               }
             }
             editor.selecting[change._id] = change;
@@ -3870,15 +3872,11 @@ modules["editor/toolbar"] = class {
       this.selection.action = "save";
       await this.selection.endAction({ sentKeys: keys, redrawActionBar: true, fromHistory: true });
 
-      if (annoContentTx != null) {
-        annoContentTx.setAttribute("contenteditable", "true");
-        await sleep(1);
-      }
-      if (event.caret != null) {
-        if (event.caret.undoElement != null) {
-          event.caret.undoElement.focus();
-          editor.text.setCaretPosition(event.caret.undoElement, event.caret.undoPosition);
-        }
+      let caretPosition = (event.caret ?? {}).undoPosition;
+      if (caretPosition != null && quill != null) {
+        quill.enable();
+        quill.setSelection(caretPosition.index, caretPosition.length);
+        delete quill.keepTextSelectionActive;
       }
 
       editor.pipeline.publish("history_update", { history: editor.history.history, location: editor.history.location });
@@ -3891,7 +3889,7 @@ modules["editor/toolbar"] = class {
       editor.history.location++;
 
       let keys = Object.keys(editor.selecting);
-      let annoContentTx;
+      let quill;
       switch (event.type) {
         case "update":
           for (let i = 0; i < event.redo.length; i++) {
@@ -3902,9 +3900,11 @@ modules["editor/toolbar"] = class {
               }
             }
             let annotation = editor.annotations[change._id] ?? {};
-            if (annotation.component != null) {
-              if (annotation.component.quill != null && annotation.component.quill.isEnabled() == true) {
-                annotation.component.quill.disable();
+            if (annotation.component != null && annotation.component.quill != null) {
+              quill = annotation.component.quill;
+              if (quill.isEnabled() == true) {
+                quill.keepTextSelectionActive = true;
+                quill.disable();
               }
             }
             editor.selecting[change._id] = change;
@@ -3953,15 +3953,11 @@ modules["editor/toolbar"] = class {
       this.selection.action = "save";
       await this.selection.endAction({ sentKeys: keys, redrawActionBar: true, fromHistory: true });
 
-      if (annoContentTx != null) {
-        annoContentTx.setAttribute("contenteditable", "true");
-        await sleep(1);
-      }
-      if (event.caret != null) {
-        if (event.caret.redoElement != null) {
-          event.caret.redoElement.focus();
-          editor.text.setCaretPosition(event.caret.redoElement, event.caret.redoPosition);
-        }
+      let caretPosition = (event.caret ?? {}).redoPosition;
+      if (caretPosition != null && quill != null) {
+        quill.enable();
+        quill.setSelection(caretPosition.index, caretPosition.length);
+        delete quill.keepTextSelectionActive;
       }
 
       editor.pipeline.publish("history_update", { history: editor.history.history, location: editor.history.location });
@@ -9599,7 +9595,7 @@ modules["editor/toolbar/textedit"] = class {
     let preference = this.parent.getPreferenceTool();
     
     let quill = ((this.editor.annotations[preference._id] ?? {}).component ?? {}).quill;
-    if (quill == null || quill.isEnabled() == false) {
+    if (quill == null || (quill.isEnabled() == false && quill.keepTextSelectionActive != true)) {
       this.button.removeAttribute("selecthighlight");
     } else {
       if (this.editor.utils.isLocked(preference) == true) {
@@ -9689,8 +9685,15 @@ modules["editor/toolbar/textedit"] = class {
       if (preference.f == "sticky") {
         saveObj.sig = this.editor.self.name;
       }
-      if (event != null && [" ", null].includes(event.data) == true) {
+      let onlyRetains = true;
+      for (let i = 0; i < delta.ops.length; i++) {
+        if (delta.ops[i].retain == null) {
+          onlyRetains = false;
+        }
+      }
+      if (onlyRetains == true) {
         saveHistory = true;
+        setLastCaret("undo");
       }
       await this.toolbar.saveSelecting(() => { return saveObj; }, { refreshActionBar: false, saveHistory: saveHistory });
       if (saveHistory == true) {
@@ -9710,6 +9713,7 @@ modules["editor/toolbar/textedit"] = class {
       }
       if ([8, 13, 32].includes(event.keyCode) == true) {
         setLastCaret("undo");
+        saveHistory = true;
       }
     }
     this.toolbar.addEventListener("keydown", annoTx, keydownListener);
@@ -9838,6 +9842,52 @@ modules["editor/toolbar/textedit"] = class {
 
     this.setActionButton();
   }*/
+}
+modules["editor/toolbar/format"] = class {
+  setActionButton = async (button) => {
+    setSVG(button, "../images/editor/toolbar/format.svg");
+  }
+
+  TOOLTIP = "Format";
+
+  html = `
+  <div class="eSubToolFormatContainer eHorizontalToolsHolder" keeptooltip>
+    <button class="eTool" tooltip="Bold" format="bold" option><div></div></button>
+    <button class="eTool" tooltip="Italic" format="italic" option><div></div></button>
+    <button class="eTool" tooltip="Underline" format="underline" option><div></div></button>
+    <button class="eTool" tooltip="Strikethrough" format="strike" option><div></div></button>
+  </div>
+  `;
+  css = {
+    ".eSubToolFormatContainer": `overflow: auto; border-radius: inherit`,
+    ".eSubToolFormatContainer .eTool:active > div": `border-radius: 15.5px !important`,
+    ".eSubToolFormatContainer .eTool[selected]:active > div": `border-radius: 15.5px !important`,
+    ".eSubToolFormatContainer .eTool[selected] > div": `background: var(--theme) !important`
+  };
+  js = async (frame) => {
+    let applyButtons = frame.querySelectorAll(".eTool");
+
+    let preference = this.parent.getPreferenceTool();
+    let annotation = this.editor.annotations[preference._id];
+    if (annotation == null) {
+      return;
+    }
+    let quill = (annotation.component ?? {}).quill;
+    if (quill == null) {
+      return;
+    }
+    
+    for (let i = 0; i < applyButtons.length; i++) {
+      let button = applyButtons[i];
+      let format = button.getAttribute("format");
+      
+      button.addEventListener("click", () => {
+        quill.format(format, !button.hasAttribute("selected"), "user");
+      });
+
+      setSVG(button.querySelector("div"), "../images/editor/toolbar/" + format + ".svg");
+    }
+  }
 }
 modules["editor/toolbar/fontsize"] = class {
   setActionButton = async (button) => {
@@ -10064,7 +10114,7 @@ modules["editor/toolbar/textalign"] = class {
     }
   }
 
-  TOOLTIP = "Text Alignment";
+  TOOLTIP = "Align";
 
   html = `
   <div class="eSubToolTextAlignContainer eHorizontalToolsHolder" keeptooltip>

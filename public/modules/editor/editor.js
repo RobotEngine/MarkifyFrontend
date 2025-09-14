@@ -4433,20 +4433,20 @@ modules["editor/render/annotation/text"] = class extends modules["editor/render/
     this.setTransform();
     this.setAnimate();
 
-    if (this.quill == null || this.quill.isEnabled() == false) {
-      (async () => {
-        let quill = await this.parent.text.getQuill();
-        this.quill = new quill(text, {
+    (async () => {
+      if (this.quill == null) {
+        this.quill = new (await this.parent.text.getQuill())(text, {
           modules: {
             history: { maxStack: 0 }
           },
           readOnly: true
           //placeholder: "Double click to type..."
         }); //formats
+      }
+      if (this.quill.isEnabled() == false) {
         this.quill.setContents(this.properties.d ?? []);
-        window.test = this.quill;
-      })();
-    }
+      }
+    })();
   }
 }
 modules["editor/render/annotation/shape"] = class extends modules["editor/render/annotation"] {
@@ -5078,21 +5078,21 @@ modules["editor/render/annotation/sticky"] = class extends modules["editor/rende
     this.setZIndex();
     this.setTransform();
     this.setAnimate();
-
-    if (this.quill == null || this.quill.isEnabled() == false) {
-      (async () => {
-        let quill = await this.parent.text.getQuill();
-        this.quill = new quill(text, {
+    
+    (async () => {
+      if (this.quill == null) {
+        this.quill = new (await this.parent.text.getQuill())(text, {
           modules: {
             history: { maxStack: 0 }
           },
           readOnly: true
           //placeholder: "Double click to type..."
         }); //formats
+      }
+      if (this.quill.isEnabled() == false) {
         this.quill.setContents(this.properties.d ?? []);
-        window.test = this.quill;
-      })();
-    }
+      }
+    })();
 
     let reactionHolder = this.element.querySelector("div[reactions]");
     if (this.parent.utils.isLocked(this.properties) == false) {

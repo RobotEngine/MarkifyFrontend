@@ -5811,7 +5811,7 @@ modules["editor/toolbar/sticky"] = class extends modules["editor/toolbar/placeme
       s: [220, 220],
       c: toolPreference.color.selected,
       l: this.editor.maxLayer + 1,
-      d: { s: toolPreference.size, al: toolPreference.align },
+      d: [{ insert: "why", attributes: { size: toolPreference.size + "px", align: toolPreference.align } }],
       sig: this.editor.self.name
     };
   }
@@ -8703,7 +8703,7 @@ modules["editor/toolbar/reactions"] = class {
     <div class="eSubToolReactionMembers">
       <div class="eSubToolReactionMemberTitle">
         <div title></div>
-        <button remove title="Remove this reaction from the sticky note."><img src="../images/editor/file/delete.svg"></button>
+        <button remove title="Remove this reaction from the sticky note."><div image></div></button>
       </div>
       <div class="eSubToolReactionMemberSection"></div>
     </div>
@@ -8721,7 +8721,8 @@ modules["editor/toolbar/reactions"] = class {
     ".eSubToolReactionMemberTitle": `position: sticky; display: flex; width: 100%; top: 0px; background: var(--theme); justify-content: space-between; align-items: center`,
     ".eSubToolReactionMemberTitle div[title]": `width: 100%; margin: 8px; font-size: 18px; font-weight: 600; color: #fff; text-align: left; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
     ".eSubToolReactionMemberTitle button": `display: none; width: 32px; height: 32px; margin: 6px; background: var(--pageColor); color: #fff; border-radius: 8px; justify-content: center; align-items: center`,
-    ".eSubToolReactionMemberTitle button img": `width: 22px; height: 22px`,
+    ".eSubToolReactionMemberTitle button div[image]": `--themeColor: var(--error); width: 22px; height: 22px`,
+    ".eSubToolReactionMemberTitle button div[image] svg": `width: 22px; height: 22px`,
     ".eSubToolReactionMemberSection": `display: flex; flex-direction: column; min-height: 163px; height: calc(100% - 44px)`,
     ".eSubToolReactionMember": `display: flex; padding: 4px; align-items: center`,
     ".eSubToolReactionMember div[cursor]": `width: 22px; min-width: 22px; height: 22px; margin: 3px; background: var(--pageColor); border-radius: 10px 18px 18px`,
@@ -8752,6 +8753,7 @@ modules["editor/toolbar/reactions"] = class {
       await sendRequest("DELETE", "lessons/members/reaction/delete?annotation=" + cache.id + "&emoji=" + emojiButtonSidebar.querySelector("button[selected]").getAttribute("emoji").replace(/ /g, "_"), null, { session: this.editor.session });
       removeReactionButton.removeAttribute("disabled");
     });
+    setSVG(removeReactionButton.querySelector("div"), "../images/editor/file/delete.svg");
 
     let insertReactionButton = (emojiName) => {
       if (emojiButtonSidebar.querySelector('.eSubToolReaction[emoji="' + emojiName + '"]') != null) {
@@ -9593,7 +9595,6 @@ modules["editor/toolbar/textedit"] = class {
     }
 
     let preference = this.parent.getPreferenceTool();
-    
     let quill = ((this.editor.annotations[preference._id] ?? {}).component ?? {}).quill;
     if (quill == null || (quill.isEnabled() == false && quill.keepTextSelectionActive != true)) {
       this.button.removeAttribute("selecthighlight");
@@ -9654,8 +9655,14 @@ modules["editor/toolbar/textedit"] = class {
         //quill.setSelection(0, quill.getLength());
         this.editor.text.startTextSelection(annoTx, event);
       } else {
+        let format = (quill.getContents().ops[0] ?? {}).attributes ?? {};
         quill.deleteText(0, quill.getLength());
         quill.setSelection(0);
+        let keys = Object.keys(format);
+        for (let i = 0; i < keys.length; i++) {
+          let key = keys[i];
+          quill.format(key, format[key]);
+        }
       }
     } else {
       quill.disable();
@@ -9711,10 +9718,16 @@ modules["editor/toolbar/textedit"] = class {
     };
     this.toolbar.addQuillEventListener(quill, "text-change", textChange);
 
-    let selectionChange = (range, oldRange, source) => {
-      this.editor.pipeline.publish("quill_selection_change", { range, oldRange, source, format: quill.getFormat() });
-    }
-    this.toolbar.addQuillEventListener(quill, "selection-change", selectionChange);
+    /*let selectionChange = (range, oldRange, source) => {
+      let format = {};
+      if (range != null) {
+        format = quill.getFormat(range);
+      }
+      this.editor.pipeline.publish("quill_selection_change", { range, oldRange, source, format });
+    }*/
+    this.toolbar.addQuillEventListener(quill, "selection-change", () => {
+      this.toolbar.selection.updateActionBar({ refreshActionBar: true, redrawCurrentAction: true });
+    });
 
     let keydownListener = (event) => {
       if (event == null) {
@@ -9739,149 +9752,10 @@ modules["editor/toolbar/textedit"] = class {
 
     this.setActionButton();
   }
-  /*js = async (frame, event) => {
-    if (this.button == null || this.button.hasAttribute("hidden") == true) {
-      return;
-    }
-
-    let preference = this.parent.getPreferenceTool();
-    if (this.editor.utils.isLocked(preference) == true) {
-      return;
-    }
-
-    let annoElem = this.editor.contentHolder.querySelector('.eAnnotation[anno="' + preference._id + '"]');
-    if (annoElem == null) {
-      return;
-    }
-    let annoTx = annoElem.querySelector("div[edit]");
-    if (annoTx == null) {
-      return;
-    }
-
-    if (annoTx.hasAttribute("contenteditable") == false) {
-      let scrollLeft = annoElem.scrollLeft ?? 0;
-      let scrollTop = annoElem.scrollTop ?? 0;
-      annoTx.setAttribute("contenteditable", "true");
-      annoTx.focus();
-      if (scrollLeft > 0 || scrollTop > 0) {
-        annoElem.scrollTo(scrollLeft, scrollTop);
-      }
-
-      if (event.clearText == true) {
-        //annoTx.style.minWidth = (annoTx.parentElement.offsetWidth - 14) + "px";
-        annoTx.textContent = "";
-      }
-
-      this.editor.text.startTextSelection(annoTx, event);
-    } else {
-      annoTx.removeAttribute("contenteditable");
-    }
-
-    this.toolbar.clearEventListeners();
-
-    let saveHistory = true;
-    let lastCaret = {};
-    let setLastCaret = (position) => {
-      if (window.getSelection != null) {
-        let textBox = window.getSelection().baseNode.parentElement.closest("div[edit]");
-        if (textBox != null) {
-          lastCaret[position + "Element"] = textBox;
-          lastCaret[position + "Position"] = this.editor.text.getCurrentCaretPosition(textBox);
-        }
-      }
-    }
-
-    let inputListener = async (event) => {
-      preference = this.parent.getPreferenceTool();
-
-      let saveObj = { d: {} };
-      let addText = [];
-      for (let i = 0; i < annoTx.childNodes.length; i++) {
-        let text = annoTx.childNodes[i].textContent;
-        if (text == "") {
-          text = "\n";
-        }
-        addText.push(text);
-      }
-      if (this.editor.selecting[preference._id].d == null) {
-        this.editor.selecting[preference._id].d = copyObject(preference.d ?? {});
-      }
-      saveObj.d.b = addText;
-      if (preference.f == "sticky") {
-        saveObj.sig = this.editor.self.name;
-      }
-      if (event != null && [" ", null].includes(event.data) == true) {
-        saveHistory = true;
-      }
-      await this.toolbar.saveSelecting(() => { return saveObj; }, { refreshActionBar: false, saveHistory: saveHistory });
-      if (saveHistory == true) {
-        let lastHistory = this.editor.history.history[this.editor.history.location];
-        if (lastHistory != null) {
-          lastHistory.caret = lastHistory.caret ?? {};
-          lastHistory.caret.undoElement = lastCaret.undoElement;
-          lastHistory.caret.undoPosition = lastCaret.undoPosition;
-        }
-      }
-      saveHistory = false;
-    }
-    this.toolbar.addEventListener("input", annoTx, inputListener);
-
-    let keydownListener = (event) => {
-      if (event == null) {
-        return;
-      }
-      if ([8, 13, 32].includes(event.keyCode) == true) {
-        setLastCaret("undo");
-      }
-    }
-    this.toolbar.addEventListener("keydown", annoTx, keydownListener);
-
-    let keyupListener = async () => {
-      let lastHistory = this.editor.history.history[this.editor.history.location];
-      if (lastHistory != null) {
-        lastHistory.caret = lastHistory.caret ?? {};
-        setLastCaret("redo");
-        lastHistory.caret.redoElement = lastCaret.redoElement;
-        lastHistory.caret.redoPosition = lastCaret.redoPosition;
-      }
-    }
-    this.toolbar.addEventListener("keyup", annoTx, keyupListener);
-
-    this.toolbar.addEventListener("paste", annoTx, clipBoardRead);
-
-    this.setActionButton();
-  }*/
 }
 modules["editor/toolbar/format"] = class {
-  updateButtonSelections = (attributes) => {
-    if (this.buttons == null) {
-      return;
-    }
-    if (attributes == null) {
-      attributes = {};
-      let preference = this.parent.getPreferenceTool();
-      let quill = ((this.editor.annotations[preference._id] ?? {}).component ?? {}).quill;
-      if (quill != null) {
-        if (quill.getSelection() != null) {
-          attributes = quill.getFormat();
-        } else {
-          attributes = quill.getFormat(0, quill.getLength());
-        }
-      }
-    }
-    for (let i = 0; i < this.buttons.length; i++) {
-      let button = this.buttons[i];
-      if (attributes[button.getAttribute("format")] != true) {
-        button.removeAttribute("selected");
-      } else {
-        button.setAttribute("selected", "");
-      }
-    }
-  }
   setActionButton = async (button) => {
     setSVG(button, "../images/editor/toolbar/format.svg");
-
-    this.updateButtonSelections();
   }
 
   TOOLTIP = "Format";
@@ -9901,50 +9775,87 @@ modules["editor/toolbar/format"] = class {
     ".eSubToolFormatContainer .eTool[selected] > div": `background: var(--theme) !important`
   };
   js = async (frame) => {
-    this.buttons = frame.querySelectorAll(".eTool");
+    let formatButtons = frame.querySelectorAll(".eTool");
 
-    let preference = this.parent.getPreferenceTool();
-    let annotation = this.editor.annotations[preference._id];
-    if (annotation == null) {
-      return;
+    let quill;
+    let attributes = {};
+    this.redraw = () => {
+      let preference = this.parent.getPreferenceTool();
+      let annotation = this.editor.annotations[preference._id];
+      if (annotation == null) {
+        return;
+      }
+      quill = (annotation.component ?? {}).quill;
+      if (quill == null) {
+        return;
+      }
+      let selection = quill.getSelection();
+      if (selection != null) {
+        attributes = quill.getFormat(selection.index, selection.length);
+      } else {
+        attributes = quill.getFormat(0, quill.getLength());
+      }
+      for (let i = 0; i < formatButtons.length; i++) {
+        let button = formatButtons[i];
+        if (attributes[button.getAttribute("format")] != true) {
+          button.removeAttribute("selected");
+        } else {
+          button.setAttribute("selected", "");
+        }
+      }
     }
-    let quill = (annotation.component ?? {}).quill;
-    if (quill == null) {
-      return;
-    }
+    this.redraw();
     
-    for (let i = 0; i < this.buttons.length; i++) {
-      let button = this.buttons[i];
+    for (let i = 0; i < formatButtons.length; i++) {
+      let button = formatButtons[i];
       let format = button.getAttribute("format");
       
       button.addEventListener("click", async () => {
-        if (quill.getSelection() != null) {
-          quill.format(format, !button.hasAttribute("selected"), "api");
-        } else {
-          console.log(!button.hasAttribute("selected"));
-          quill.formatText(0, quill.getLength(), format, !button.hasAttribute("selected"), "api");
+        let selection = quill.getSelection();
+        let source = "api";
+        let enabled = quill.isEnabled();
+        if (enabled == true) {
+          source = "user";
         }
-        await this.toolbar.saveSelecting(() => { return { d: quill.getContents().ops } }, { refreshActionBar: false });
-        this.updateButtonSelections();
+        if (selection != null && enabled == true) {
+          quill.format(format, !button.hasAttribute("selected"), source);
+        } else {
+          quill.formatText(0, quill.getLength(), format, !button.hasAttribute("selected"), source);
+        }
+        if (enabled == false) {
+          if (selection == null || selection.length > 0) {
+            await this.toolbar.saveSelecting(() => { return { d: quill.getContents().ops } }, { refreshActionBar: false });
+          }
+        }
+        this.redraw();
       });
 
       setSVG(button.querySelector("div"), "../images/editor/toolbar/" + format + ".svg");
     }
-
-    this.editor.pipeline.subscribe("formatModule", "quill_selection_change", (event) => { this.updateButtonSelections(event.format); });
-    this.updateButtonSelections();
   }
 }
 modules["editor/toolbar/fontsize"] = class {
   setActionButton = async (button) => {
-    button.innerHTML = `<div class="eSubToolFontSizeHolder"><div class="eSubToolFontSize"></div></div>`;
-    let buttonTx = button.querySelector(".eSubToolFontSize");
-    let preference = this.parent.getPreferenceTool();
-    let size = (preference.d ?? {}).s;
-    if (size == null) {
-      size = this.parent.getAnnotationPreference().size;
+    if (button != null) {
+      button.innerHTML = `<div class="eSubToolFontSizeHolder"><div class="eSubToolFontSize"></div></div>`;
     }
-    buttonTx.textContent = size ?? 0;
+
+    let preference = this.parent.getPreferenceTool();
+    let quill = ((this.editor.annotations[preference._id] ?? {}).component ?? {}).quill;
+    let size;
+    if (quill != null) {
+      let selection = quill.getSelection();
+      if (selection != null) {
+        size = quill.getFormat(selection.index, selection.length).size;
+      } else {
+        size = quill.getFormat(0, quill.getLength()).size;
+      }
+    }
+    if (Array.isArray(size) == true) {
+      size = size[0];
+    }
+    size = size ?? "14px";
+    this.button.querySelector(".eSubToolFontSize").textContent = size.substring(0, size.indexOf("px"));
   }
 
   TOOLTIP = "Font Size";
@@ -9955,7 +9866,7 @@ modules["editor/toolbar/fontsize"] = class {
     <button class="eFontSizeOption" medium>Medium</button>
     <button class="eFontSizeOption" large>Large</button>
     <div class="eFontSizeLine"></div>
-    <div class="eFontSizeInput border"><div class="eFontSizeBox" contenteditable></div></div>
+    <div class="eFontSizeInput border"><div class="eFontSizeBox" contenteditable="true"></div></div>
   </div>
   `;
   css = {
@@ -9979,18 +9890,39 @@ modules["editor/toolbar/fontsize"] = class {
     let largeButton = frame.querySelector(".eFontSizeOption[large]"); // 26px
     let inputSize = frame.querySelector(".eFontSizeBox"); // Custom
 
+    let quill;
     let selectedS;
-    this.redraw = () => {
-      let size = (this.parent.getPreferenceTool().d ?? {}).s;
-      if (size == null) {
-        size = this.parent.getAnnotationPreference().size;
+    this.redraw = (size) => {
+      let preference = this.parent.getPreferenceTool();
+      let annotation = this.editor.annotations[preference._id];
+      if (annotation == null) {
+        return;
       }
-      selectedS = size ?? 18;
+      quill = (annotation.component ?? {}).quill;
+      if (quill == null) {
+        return;
+      }
+      if (size == null) {
+        let selection = quill.getSelection();
+        if (selection != null) {
+          selectedS = quill.getFormat(selection.index, selection.length).size;
+        } else {
+          selectedS = quill.getFormat(0, quill.getLength()).size;
+        }
+      } else {
+        selectedS = size;
+      }
+      if (Array.isArray(selectedS) == true) {
+        selectedS = selectedS[0];
+      }
+      selectedS = selectedS ?? 14;
+      if (typeof selectedS == "string") {
+        selectedS = parseFloat(selectedS.substring(0, selectedS.indexOf("px")));
+      }
 
       smallButton.removeAttribute("selected");
       mediumButton.removeAttribute("selected");
       largeButton.removeAttribute("selected");
-
       if (selectedS == 12) {
         smallButton.setAttribute("selected", "");
       } else if (selectedS == 18) {
@@ -10009,10 +9941,25 @@ modules["editor/toolbar/fontsize"] = class {
       if (selectedS == set) {
         return;
       }
-      selectedS = set;
-      this.toolbar.setToolPreference("size", selectedS);
-      await this.toolbar.saveSelecting(() => { return { d: { s: selectedS } }; }, { reuseActionBar: true });
-      this.redraw();
+      let selection = quill.getSelection();
+      let source = "api";
+      let enabled = quill.isEnabled();
+      if (enabled == true) {
+        source = "user";
+      }
+      if (selection != null && enabled == true) {
+        quill.format("size", set + "px", source);
+      } else {
+        quill.formatText(0, quill.getLength(), "size", set + "px", source);
+      }
+      if (enabled == false) {
+        if (selection == null || selection.length > 0) {
+          await this.toolbar.saveSelecting(() => { return { d: quill.getContents().ops } }, { reuseActionBar: true });
+        }
+      }
+      this.toolbar.setToolPreference("size", set);
+      this.redraw(set + "px");
+      this.setActionButton();
     }
 
     smallButton.addEventListener("click", () => { saveSize(12); });
@@ -10066,86 +10013,6 @@ modules["editor/toolbar/fontsize"] = class {
       }
       textBox.textContent = "";
     });
-  }
-}
-modules["editor/toolbar/bold"] = class {
-  setActionButton = async (button) => {
-    if (button != null) {
-      setSVG(button, "../images/editor/toolbar/bold.svg");
-    }
-    if ((this.parent.getPreferenceTool().d ?? {}).bo != true) {
-      this.button.removeAttribute("selecthighlight");
-    } else {
-      this.button.setAttribute("selecthighlight", "");
-    }
-  }
-
-  TOOLTIP = "Bold";
-  FULL_CLICK = true;
-
-  js = async () => {
-    await this.toolbar.saveSelecting(() => { return { d: { bo: !(this.button.hasAttribute("selecthighlight")) } }; }, { refreshActionBar: false });
-    this.setActionButton();
-  }
-}
-modules["editor/toolbar/italic"] = class {
-  setActionButton = async (button) => {
-    if (button != null) {
-      setSVG(button, "../images/editor/toolbar/italic.svg");
-    }
-    if ((this.parent.getPreferenceTool().d ?? {}).it != true) {
-      this.button.removeAttribute("selecthighlight");
-    } else {
-      this.button.setAttribute("selecthighlight", "");
-    }
-  }
-
-  TOOLTIP = "Italic";
-  FULL_CLICK = true;
-
-  js = async () => {
-    await this.toolbar.saveSelecting(() => { return { d: { it: !(this.button.hasAttribute("selecthighlight")) } }; }, { refreshActionBar: false });
-    this.setActionButton();
-  }
-}
-modules["editor/toolbar/underline"] = class {
-  setActionButton = async (button) => {
-    if (button != null) {
-      setSVG(button, "../images/editor/toolbar/underline.svg");
-    }
-    if ((this.parent.getPreferenceTool().d ?? {}).ul != true) {
-      this.button.removeAttribute("selecthighlight");
-    } else {
-      this.button.setAttribute("selecthighlight", "");
-    }
-  }
-
-  TOOLTIP = "Underline";
-  FULL_CLICK = true;
-
-  js = async () => {
-    await this.toolbar.saveSelecting(() => { return { d: { ul: !(this.button.hasAttribute("selecthighlight")) } }; }, { refreshActionBar: false });
-    this.setActionButton();
-  }
-}
-modules["editor/toolbar/strikethrough"] = class {
-  setActionButton = async (button) => {
-    if (button != null) {
-      setSVG(button, "../images/editor/toolbar/strikethrough.svg");
-    }
-    if ((this.parent.getPreferenceTool().d ?? {}).st != true) {
-      this.button.removeAttribute("selecthighlight");
-    } else {
-      this.button.setAttribute("selecthighlight", "");
-    }
-  }
-
-  TOOLTIP = "Strikethrough";
-  FULL_CLICK = true;
-
-  js = async () => {
-    await this.toolbar.saveSelecting(() => { return { d: { st: !(this.button.hasAttribute("selecthighlight")) } }; }, { refreshActionBar: false });
-    this.setActionButton();
   }
 }
 modules["editor/toolbar/textalign"] = class {

@@ -2828,6 +2828,7 @@ modules["editor/editor"] = class {
       (async () => { // Setup blots:
         let quill = await this.text.getQuill();
         const Inline = quill.import("blots/inline");
+        const Parchment = quill.import("parchment");
         quill.register(class BoldBlot extends Inline {
           static blotName = "bold";
           static tagName = "strong";
@@ -2844,6 +2845,9 @@ modules["editor/editor"] = class {
           static blotName = "strike";
           static tagName = "STRIKE";
         });
+        quill.register(new Parchment.StyleAttributor('size', 'font-size', {
+          scope: Parchment.Scope.INLINE
+        }));
       })();
     }
     this.text.getCurrentCaretPosition = (element) => {

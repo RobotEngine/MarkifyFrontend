@@ -9718,16 +9718,16 @@ modules["editor/toolbar/textedit"] = class {
     };
     this.toolbar.addQuillEventListener(quill, "text-change", textChange);
 
-    /*let selectionChange = (range, oldRange, source) => {
-      let format = {};
+    let selectionChange = () => { //range, oldRange, source
+      this.toolbar.selection.updateActionBar({ refreshActionBar: true, redrawCurrentAction: true });
+      /*let format = {};
       if (range != null) {
         format = quill.getFormat(range);
       }
-      this.editor.pipeline.publish("quill_selection_change", { range, oldRange, source, format });
-    }*/
-    this.toolbar.addQuillEventListener(quill, "selection-change", () => {
-      this.toolbar.selection.updateActionBar({ refreshActionBar: true, redrawCurrentAction: true });
-    });
+      this.editor.pipeline.publish("quill_selection_change", { range, oldRange, source, format });*/
+    }
+    this.toolbar.addQuillEventListener(quill, "selection-change", selectionChange);
+    selectionChange();
 
     let keydownListener = (event) => {
       if (event == null) {

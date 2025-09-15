@@ -3811,8 +3811,8 @@ modules["editor/toolbar"] = class {
               event.redo.push(copyObject(redoAnno));
             }
             if (annotation.component != null && annotation.component.quill != null) {
-              quill = annotation.component.quill;
-              if (quill.isEnabled() == true) {
+              if (annotation.component.quill.isEnabled() == true) {
+                quill = annotation.component.quill;
                 quill.keepTextSelectionActive = true;
                 quill.disable();
               }
@@ -3901,8 +3901,8 @@ modules["editor/toolbar"] = class {
             }
             let annotation = editor.annotations[change._id] ?? {};
             if (annotation.component != null && annotation.component.quill != null) {
-              quill = annotation.component.quill;
-              if (quill.isEnabled() == true) {
+              if (annotation.component.quill.isEnabled() == true) {
+                quill = annotation.component.quill;
                 quill.keepTextSelectionActive = true;
                 quill.disable();
               }
@@ -5597,7 +5597,7 @@ modules["editor/toolbar/text"] = class extends modules["editor/toolbar/placement
       c: toolPreference.color.selected,
       l: this.editor.maxLayer + 1,
       o: toolPreference.opacity,
-      d: { s: toolPreference.size, al: toolPreference.align, b: ["Example Text"] },
+      d: [{ insert: "Example Text", attributes: { size: toolPreference.size + "px", align: toolPreference.align } }],
       remove: true,
       textfit: true
     };
@@ -5811,7 +5811,7 @@ modules["editor/toolbar/sticky"] = class extends modules["editor/toolbar/placeme
       s: [220, 220],
       c: toolPreference.color.selected,
       l: this.editor.maxLayer + 1,
-      d: [{ insert: "why", attributes: { size: toolPreference.size + "px", align: toolPreference.align } }],
+      d: [{ attributes: { size: toolPreference.size + "px", align: toolPreference.align } }],
       sig: this.editor.self.name
     };
   }
@@ -9655,7 +9655,7 @@ modules["editor/toolbar/textedit"] = class {
         //quill.setSelection(0, quill.getLength());
         this.editor.text.startTextSelection(annoTx, event);
       } else {
-        let format = (quill.getContents().ops[0] ?? {}).attributes ?? {};
+        let format = (((annotation.render ?? {}).d ?? [])[0] ?? {}).attributes ?? {}; //(quill.getContents().ops[0] ?? {}).attributes ?? {};
         quill.deleteText(0, quill.getLength());
         quill.setSelection(0);
         let keys = Object.keys(format);

@@ -9939,9 +9939,6 @@ modules["editor/toolbar/fontsize"] = class {
 
     let useSelection;
     let saveSize = async (set) => {
-      if (selectedS == set) {
-        return;
-      }
       let selection;
       if (useSelection == null) {
         selection = quill.getSelection();
@@ -10024,14 +10021,33 @@ modules["editor/toolbar/fontsize"] = class {
   }
 }
 modules["editor/toolbar/textalign"] = class {
-  setActionButton = async (button) => {
-    let selectedAl = (this.parent.getPreferenceTool().d ?? {}).al ?? "left";
-    if (selectedAl == "left") {
-      setSVG(button, "../images/editor/toolbar/textalign/left.svg");
-    } else if (selectedAl == "center") {
-      setSVG(button, "../images/editor/toolbar/textalign/center.svg");
-    } else if (selectedAl == "right") {
-      setSVG(button, "../images/editor/toolbar/textalign/right.svg");
+  setActionButton = async () => {
+    let preference = this.parent.getPreferenceTool();
+    let quill = ((this.editor.annotations[preference._id] ?? {}).component ?? {}).quill;
+    let align;
+    if (quill != null) {
+      let selection = quill.getSelection();
+      if (selection != null) {
+        align = quill.getFormat(selection.index, selection.length).align;
+      } else {
+        align = quill.getFormat(0, quill.getLength()).align;
+      }
+    }
+    if (Array.isArray(align) == true) {
+      align = align[0];
+    }
+    align = align ?? "left";
+    let buttonIcon = this.button.querySelector("div");
+    if (buttonIcon != null && align != buttonIcon.getAttribute("align")) {
+      buttonIcon.setAttribute("align", align);
+      buttonIcon.innerHTML = "";
+      if (align == "left") {
+        setSVG(buttonIcon, "../images/editor/toolbar/textalign/left.svg");
+      } else if (align == "center") {
+        setSVG(buttonIcon, "../images/editor/toolbar/textalign/center.svg");
+      } else if (align == "right") {
+        setSVG(buttonIcon, "../images/editor/toolbar/textalign/right.svg");
+      }
     }
   }
 
@@ -10059,9 +10075,32 @@ modules["editor/toolbar/textalign"] = class {
     setSVG(centerAlign.querySelector("div"), "../images/editor/toolbar/textalign/center.svg");
     setSVG(rightAlign.querySelector("div"), "../images/editor/toolbar/textalign/right.svg");
 
+    let quill;
     let selectedAl;
-    this.redraw = () => {
-      selectedAl = (this.parent.getPreferenceTool().d ?? {}).al ?? "left";
+    this.redraw = (align) => {
+      let preference = this.parent.getPreferenceTool();
+      let annotation = this.editor.annotations[preference._id];
+      if (annotation == null) {
+        return;
+      }
+      quill = (annotation.component ?? {}).quill;
+      if (quill == null) {
+        return;
+      }
+      if (align == null) {
+        let selection = quill.getSelection();
+        if (selection != null) {
+          selectedAl = quill.getFormat(selection.index, selection.length).align;
+        } else {
+          selectedAl = quill.getFormat(0, quill.getLength()).align;
+        }
+      } else {
+        selectedAl = align;
+      }
+      if (Array.isArray(selectedAl) == true) {
+        selectedAl = selectedAl[0];
+      }
+      selectedAl = selectedAl ?? "left";
 
       leftAlign.removeAttribute("selected");
       centerAlign.removeAttribute("selected");
@@ -10078,10 +10117,25 @@ modules["editor/toolbar/textalign"] = class {
     this.redraw();
 
     let saveAlign = async (align) => {
-      selectedAl = align;
-      this.toolbar.setToolPreference("align", selectedAl);
-      await this.toolbar.saveSelecting(() => { return { d: { al: selectedAl } }; }, { reuseActionBar: true });
-      this.redraw();
+      let selection = quill.getSelection();
+      let source = "api";
+      let enabled = quill.isEnabled();
+      if (enabled == true) {
+        source = "user";
+      }
+      if (selection != null && enabled == true) {
+        quill.format("align", align, source);
+      } else {
+        quill.formatLine(0, quill.getLength(), "align", align, source);
+      }
+      if (enabled == false) {
+        if (selection == null || selection.length > 0) {
+          await this.toolbar.saveSelecting(() => { return { d: quill.getContents().ops } }, { reuseActionBar: true });
+        }
+      }
+      this.toolbar.setToolPreference("align", align);
+      this.redraw(align);
+      this.setActionButton();
     }
 
     leftAlign.addEventListener("click", () => { saveAlign("left"); });

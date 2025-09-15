@@ -2845,8 +2845,11 @@ modules["editor/editor"] = class {
           static blotName = "strike";
           static tagName = "STRIKE";
         });
-        quill.register(new Parchment.StyleAttributor('size', 'font-size', {
+        quill.register(new Parchment.StyleAttributor("size", "font-size", {
           scope: Parchment.Scope.INLINE
+        }));
+        quill.register(new Parchment.StyleAttributor("align", "text-align", {
+          scope: Parchment.Scope.BLOCK
         }));
       })();
     }

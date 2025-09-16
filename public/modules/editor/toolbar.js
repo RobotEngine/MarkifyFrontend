@@ -9871,6 +9871,7 @@ modules["editor/toolbar/font"] = class {
       let newButton = fontContainer.querySelector(".eFontOption[new]");
       newButton.removeAttribute("new");
       newButton.setAttribute("font", newFont);
+      newButton.title = this.editor.text.fonts[newFont][0];
       setSVG(newButton, "../images/editor/toolbar/fonts/" + newFont + ".svg");
     }
 

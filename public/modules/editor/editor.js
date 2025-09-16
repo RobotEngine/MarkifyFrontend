@@ -2817,6 +2817,16 @@ modules["editor/editor"] = class {
     }
 
     this.text = {};
+    this.text.fonts = {
+      "montserrat": ["Montserrat", 0],
+      "notosans": ["Noto Sans", 1],
+      "playfairdisplay": ["Playfair Display", 2],
+      "sourcecodepro": ["Source Code Pro", 3],
+      "comfortaa": ["Comfortaa", 4],
+      "caveat": ["Caveat", 5]
+    };
+    this.text.loadedFonts = { "Montserrat": true };
+    this.text.loadingFonts = {};
     this.text.getQuill = async () => {
       if (window.Quill == null) {
         await loadScript("../libraries/quilljs/quill.core.js");
@@ -2845,6 +2855,29 @@ modules["editor/editor"] = class {
           static blotName = "strike";
           static tagName = "STRIKE";
         });
+        let fontMapping = this.text.fonts;
+        class FontAttributor extends Parchment.StyleAttributor {
+          add(node, value) {
+            if (fontMapping[value] != null) {
+              return super.add(node, fontMapping[value][0]);
+            } else {
+              return super.add(node, value);
+            }
+          }
+          value(node) {
+            let value = super.value(node);
+            if (!value) return null;
+            value = value.replace(/["']/g, "");
+            let fontName = Object.keys(fontMapping).find(
+              key => (fontMapping[key] ?? [])[0] == value
+            );
+            return fontName || value;
+          }
+        }
+        quill.register(new FontAttributor("font", "font-family", {
+          scope: Parchment.Scope.INLINE,
+          whitelist: Object.values(this.text.fonts).map((value) => { return value[0]; })
+        }));
         quill.register(new Parchment.StyleAttributor("size", "font-size", {
           scope: Parchment.Scope.INLINE
         }));
@@ -2852,6 +2885,54 @@ modules["editor/editor"] = class {
           scope: Parchment.Scope.BLOCK
         }));
       })();
+    }
+    this.text.loadFont = (font) => {
+      let fontInfo = this.text.fonts[font];
+      if (fontInfo == null) {
+        return;
+      }
+      return new Promise(async (resolve) => {
+        let newFontLink = document.createElement("link");
+        newFontLink.rel = "stylesheet";
+        head.appendChild(newFontLink);
+        newFontLink.addEventListener("load", resolve);
+        newFontLink.addEventListener("error", resolve);
+        newFontLink.href = "https://fonts.googleapis.com/css?family=" + fontInfo[0].replace(/ /g, "+") + "&display=swap";
+        /*let newFont = new FontFace(font, "url(https://fonts.googleapis.com/css?family=" + fontInfo[0].replace(/ /g, "+") + ":400,500,600,700,800&display=swap)");
+        document.fonts.add(newFont);
+        newFont.load().then(() => {
+          delete this.text.loadingFonts[font];
+          this.text.loadedFonts[font] = true;
+          resolve();
+        }).catch((error) => {
+          delete this.text.loadingFonts[font];
+          console.error("Failed to load font: " + font, error);
+          resolve();
+        });*/
+      });
+    }
+    this.text.checkFonts = (type, delta) => {
+      if (type != "text-change") {
+        return;
+      }
+      for (let i = 0; i < delta.ops.length; i++) {
+        let font = ((delta.ops[i] ?? {}).attributes ?? {}).font;
+        if (font == null) {
+          continue;
+        }
+        if (this.text.loadedFonts[font] != null) {
+          continue;
+        }
+        if (this.text.loadingFonts[font] != null) {
+          continue;
+        }
+        this.text.loadingFonts[font] = true;
+        if (this.exporting != true) {
+          this.text.loadFont(font);
+        } else {
+          this.exportPromises.push(this.text.loadFont(font));
+        }
+      }
     }
     this.text.getCurrentCaretPosition = (element) => {
       let position = 0;
@@ -4984,7 +5065,7 @@ modules["editor/render/annotation/sticky"] = class extends modules["editor/rende
   ALLOW_SELECT_OVERFLOW = true;
 
   //ACTION_BAR_TOOLS = ["textedit", "color", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "unlock", "reactions", "delete"];
-  ACTION_BAR_TOOLS = ["textedit", "color", "typeface", "fontsize", "format", "list", "link", "textalign", "unlock", "reactions", "delete"];
+  ACTION_BAR_TOOLS = ["textedit", "color", "font", "fontsize", "format", "list", "link", "textalign", "unlock", "reactions", "delete"];
 
   SELECTION_FUNCTION = (selection) => {
     if (["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {
@@ -5100,6 +5181,7 @@ modules["editor/render/annotation/sticky"] = class extends modules["editor/rende
           readOnly: true
           //placeholder: "Double click to type..."
         }); //formats
+        this.quill.on("editor-change", this.parent.text.checkFonts);
       }
       if (this.quill.isEnabled() == false) {
         this.quill.setContents(this.properties.d ?? [], "silent");

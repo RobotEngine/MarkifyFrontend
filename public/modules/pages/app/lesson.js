@@ -287,6 +287,7 @@ modules["pages/app/lesson"] = class {
           options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "000"]
         },
         opacity: 100,
+        font: "montserrat",
         size: 18,
         align: "center"
       },
@@ -314,6 +315,7 @@ modules["pages/app/lesson"] = class {
           selected: "FADCA0",
           options: ["88B4FA", "F49CA9", "FADCA0", "E4B8FB", "A1D8AF", "F285B8", "666666"]
         },
+        font: "montserrat",
         size: 16,
         align: "left"
       },

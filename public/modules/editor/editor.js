@@ -27,6 +27,7 @@ modules["editor/editor"] = class {
 
     ".eAnnotation .ql-editor": `padding: 0 !important; font-family: var(--font); font-size: 14px`,
     ".eAnnotation .ql-editor > *": `cursor: unset`,
+    ".eAnnotation .ql-editor > ol": `padding: unset`,
     
     ".eReaction": `display: flex; padding: 2px; background: rgba(255, 255, 255, .8); border: solid 2px rgba(0, 0, 0, 0); border-radius: 8px; align-items: center; overflow: hidden; color: #2F2F2F`,
     ".eReaction[selected]": `padding: 2px; background: rgba(180, 218, 253, .8); border: solid 2px var(--theme); color: var(--theme)`,
@@ -2823,7 +2824,7 @@ modules["editor/editor"] = class {
       "playfairdisplay": ["Playfair Display", 2],
       "sourcecodepro": ["Source Code Pro", 3],
       "comfortaa": ["Comfortaa", 4],
-      "caveat": ["Caveat", 5]
+      "playpensans": ["Playpen Sans", 5]
     };
     this.text.loadedFonts = { "Montserrat": true };
     this.text.loadingFonts = {};
@@ -2837,8 +2838,10 @@ modules["editor/editor"] = class {
       window.QuillSetup = true;
       (async () => { // Setup blots:
         let quill = await this.text.getQuill();
-        const Inline = quill.import("blots/inline");
-        const Parchment = quill.import("parchment");
+        let Parchment = quill.import("parchment");
+        let Inline = quill.import("blots/inline");
+        let Block = quill.import("blots/block");
+        let Container = quill.import("blots/container");
         quill.register(class BoldBlot extends Inline {
           static blotName = "bold";
           static tagName = "strong";
@@ -2871,7 +2874,7 @@ modules["editor/editor"] = class {
             let fontName = Object.keys(fontMapping).find(
               key => (fontMapping[key] ?? [])[0] == value
             );
-            return fontName || value;
+            return fontName ?? value;
           }
         }
         quill.register(new FontAttributor("font", "font-family", {
@@ -2884,6 +2887,75 @@ modules["editor/editor"] = class {
         quill.register(new Parchment.StyleAttributor("align", "text-align", {
           scope: Parchment.Scope.BLOCK
         }));
+        quill.register(new Parchment.StyleAttributor("custom-family-attributor", "font-family"));
+        quill.register(new Parchment.StyleAttributor("custom-size-attributor", "font-size"));
+        quill.register(new Parchment.StyleAttributor("custom-color-attributor", "color"));
+        class ListContainer extends Container {}
+        ListContainer.blotName = "list-container";
+        ListContainer.tagName = "OL";
+        class ListItem extends Block {
+          static create(value) {
+            let node = super.create();
+            node.setAttribute("data-list", value);
+            return node;
+          }
+          static formats(domNode) {
+            return domNode.getAttribute("data-list") || undefined;
+          }
+          static register() {
+            Quill.register(ListContainer);
+          }
+          constructor(scroll, domNode) {
+            super(scroll, domNode);
+            const ui = domNode.ownerDocument.createElement("span");
+            /*const listEventHandler = (e) => {
+              if (!scroll.isEnabled()) return;
+              const format = this.statics.formats(domNode, scroll);
+              if (format == "checked") {
+                this.format("list", "unchecked");
+                e.preventDefault();
+              } else if (format == "unchecked") {
+                this.format("list", "checked");
+                e.preventDefault();
+              }
+            };
+            ui.addEventListener("mousedown", listEventHandler);
+            ui.addEventListener("touchstart", listEventHandler);*/
+            this.attachUI(ui);
+          }
+          format(name, value) {
+            if (name == this.statics.blotName && value) {
+              this.domNode.setAttribute("data-list", value);
+            } else {
+              super.format(name, value);
+            }
+          }
+          optimize(context) {
+            super.optimize(context);
+
+            if (this.children.length >= 1) {
+              let child = this.children.head;
+              let attributes = child?.attributes?.attributes;
+
+              if (attributes) {
+                for (let key in attributes) {
+                  let element = attributes[key];
+                  let name = element.keyName;
+                  let value = element.value(child.domNode);
+
+                  if (name === "color") { super.format("custom-color-attributor", value); }
+                  else if (name === "font-family") { super.format("custom-family-attributor", value); }
+                  else if (name === "font-size") { super.format("custom-size-attributor", value); }
+                }
+              }
+            }
+          }
+        }
+        ListItem.blotName = "list";
+        ListItem.tagName = "LI";
+        ListContainer.allowedChildren = [ListItem];
+        ListItem.requiredContainer = ListContainer;
+        quill.register(ListItem);
       })();
     }
     this.text.loadFont = (font) => {

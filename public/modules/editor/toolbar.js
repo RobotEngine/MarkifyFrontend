@@ -3877,6 +3877,9 @@ modules["editor/toolbar"] = class {
         quill.enable();
         quill.setSelection(caretPosition.index, caretPosition.length);
         delete quill.keepTextSelectionActive;
+        if (addRedo == true) {
+          event.caret.redoPosition = { index: caretPosition.index, length: caretPosition.length };
+        }
       }
 
       editor.pipeline.publish("history_update", { history: editor.history.history, location: editor.history.location });
@@ -9774,7 +9777,7 @@ modules["editor/toolbar/font"] = class {
     if (buttonIcon != null && font != buttonIcon.getAttribute("font")) {
       buttonIcon.setAttribute("font", font);
       buttonIcon.innerHTML = "";
-      setSVG(buttonIcon, "../images/editor/toolbar/fonts/" + font + "icon.svg");
+      setSVG(buttonIcon, "../images/editor/toolbar/font/" + font + "icon.svg");
     }
   }
 
@@ -9854,9 +9857,7 @@ modules["editor/toolbar/font"] = class {
         quill.formatText(0, quill.getLength(), "font", font, source);
       }
       if (enabled == false) {
-        if (selection == null || selection.length > 0) {
-          await this.toolbar.saveSelecting(() => { return { d: quill.getContents().ops } }, { refreshActionBar: false });
-        }
+        await this.toolbar.saveSelecting(() => { return { d: quill.getContents().ops } }, { refreshActionBar: false });
       }
       this.toolbar.setToolPreference("font", font);
       this.redraw(font);
@@ -9872,7 +9873,7 @@ modules["editor/toolbar/font"] = class {
       newButton.removeAttribute("new");
       newButton.setAttribute("font", newFont);
       newButton.title = this.editor.text.fonts[newFont][0];
-      setSVG(newButton, "../images/editor/toolbar/fonts/" + newFont + ".svg");
+      setSVG(newButton, "../images/editor/toolbar/font/" + newFont + ".svg");
     }
 
     this.redraw();
@@ -10001,9 +10002,7 @@ modules["editor/toolbar/fontsize"] = class {
         quill.formatText(0, quill.getLength(), "size", set + "px", source);
       }
       if (enabled == false) {
-        if (selection == null || selection.length > 0) {
-          await this.toolbar.saveSelecting(() => { return { d: quill.getContents().ops } }, { reuseActionBar: true });
-        }
+        await this.toolbar.saveSelecting(() => { return { d: quill.getContents().ops } }, { reuseActionBar: true });
       }
       this.toolbar.setToolPreference("size", set);
       this.redraw(set + "px");
@@ -10138,14 +10137,126 @@ modules["editor/toolbar/format"] = class {
           quill.formatText(0, quill.getLength(), format, !button.hasAttribute("selected"), source);
         }
         if (enabled == false) {
-          if (selection == null || selection.length > 0) {
-            await this.toolbar.saveSelecting(() => { return { d: quill.getContents().ops } }, { refreshActionBar: false });
-          }
+          await this.toolbar.saveSelecting(() => { return { d: quill.getContents().ops } }, { refreshActionBar: false });
         }
         this.redraw();
       });
 
       setSVG(button.querySelector("div"), "../images/editor/toolbar/" + format + ".svg");
+    }
+  }
+}
+modules["editor/toolbar/list"] = class {
+  setActionButton = async () => {
+    let preference = this.parent.getPreferenceTool();
+    let quill = ((this.editor.annotations[preference._id] ?? {}).component ?? {}).quill;
+    let list;
+    if (quill != null) {
+      let selection = quill.getSelection();
+      if (selection != null) {
+        list = quill.getFormat(selection.index, selection.length).list;
+      } else {
+        list = quill.getFormat(0, quill.getLength()).list;
+      }
+    }
+    if (Array.isArray(list) == true) {
+      list = list[0];
+    }
+    list = list ?? "bullet";
+    let buttonIcon = this.button.querySelector("div");
+    if (buttonIcon != null && list != buttonIcon.getAttribute("list")) {
+      buttonIcon.setAttribute("list", list);
+      buttonIcon.innerHTML = "";
+      setSVG(buttonIcon, "../images/editor/toolbar/list/" + list + ".svg");
+    }
+  }
+
+  TOOLTIP = "Lists";
+
+  html = `
+  <div class="eSubToolListContainer eHorizontalToolsHolder" keeptooltip>
+    <button class="eTool" tooltip="Bullet List" list="bullet" option><div></div></button>
+    <button class="eTool" tooltip="Numbered List" list="ordered" option><div></div></button>
+  </div>
+  `;
+  css = {
+    ".eSubToolListContainer": `overflow: auto; border-radius: inherit`,
+    ".eSubToolListContainer .eTool:active > div": `border-radius: 15.5px !important`,
+    ".eSubToolListContainer .eTool[selected]:active > div": `border-radius: 15.5px !important`,
+    ".eSubToolListContainer .eTool[selected] > div": `background: var(--theme) !important`
+  };
+  js = async (frame) => {
+    let listContainer = frame.querySelector(".eSubToolListContainer");
+    let listButtons = listContainer.querySelectorAll(".eTool");
+
+    let quill;
+    let selectedL;
+    this.redraw = (list) => {
+      let preference = this.parent.getPreferenceTool();
+      let annotation = this.editor.annotations[preference._id];
+      if (annotation == null) {
+        return;
+      }
+      quill = (annotation.component ?? {}).quill;
+      if (quill == null) {
+        return;
+      }
+      if (list == null) {
+        let selection = quill.getSelection();
+        if (selection != null) {
+          selectedL = quill.getFormat(selection.index, selection.length).list;
+        } else {
+          selectedL = quill.getFormat(0, quill.getLength()).list;
+        }
+      } else {
+        selectedL = list;
+      }
+      if (Array.isArray(selectedL) == true) {
+        selectedL = selectedL[0];
+      }
+      selectedL = selectedL;
+      
+      let selectedButton = listContainer.querySelector(".eTool[selected]");
+      if (selectedButton != null) {
+        selectedButton.removeAttribute("selected");
+      }
+      if (selectedL != null) {
+        let selectButton = listContainer.querySelector('.eTool[list="' + selectedL + '"]');
+        if (selectButton != null) {
+          selectButton.setAttribute("selected", "");
+        }
+      }
+    }
+    this.redraw();
+    
+    for (let i = 0; i < listButtons.length; i++) {
+      let button = listButtons[i];
+      let list = button.getAttribute("list");
+      
+      button.addEventListener("click", async () => {
+        let selection = quill.getSelection();
+        let source = "api";
+        let enabled = quill.isEnabled();
+        if (enabled == true) {
+          source = "user";
+        }
+        let useList = list;
+        if (button.hasAttribute("selected") == true) {
+          useList = null;
+        }
+        if (selection != null && enabled == true) {
+          quill.format("list", useList, source);
+        } else {
+          quill.formatText(0, quill.getLength(), "list", useList, source);
+        }
+        if (enabled == false) {
+          await this.toolbar.saveSelecting(() => { return { d: quill.getContents().ops } }, { refreshActionBar: false });
+        }
+        this.redraw();
+        this.setActionButton();
+      });
+
+      setSVG(button.querySelector("div"), "../images/editor/toolbar/list/" + list + ".svg");
     }
   }
 }

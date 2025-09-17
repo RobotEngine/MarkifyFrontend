@@ -2897,7 +2897,8 @@ modules["editor/editor"] = class {
           scope: Parchment.Scope.INLINE
         }));
         quill.register(new Parchment.StyleAttributor("align", "text-align", {
-          scope: Parchment.Scope.BLOCK
+          scope: Parchment.Scope.BLOCK,
+          whitelist: ["left", "center", "right"]
         }));
         //quill.register(new Parchment.StyleAttributor("custom-family-attributor", "font-family"));
         //quill.register(new Parchment.StyleAttributor("custom-size-attributor", "font-size"));

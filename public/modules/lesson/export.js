@@ -225,7 +225,7 @@ modules["lesson/export"] = class {
               window.scrollTo(0, 0);
               pageContent.style.removeProperty("transform");
               let pageRect = pageContent.getBoundingClientRect();
-              pageContent.style.transform = `translate(-${pageRect.left + ((topLeftX + pageBorderSize) * this.editor.zoom)}px, -${pageRect.top + ((topLeftY + pageBorderSize) * this.editor.zoom)}px) scale(var(--zoom))`;
+              pageContent.style.transform = `translate(${-(pageRect.left + ((topLeftX + pageBorderSize) * this.editor.zoom))}px, ${-(pageRect.top + ((topLeftY + pageBorderSize) * this.editor.zoom))}px) scale(var(--zoom))`;
               let element = pageContent.querySelector('.eAnnotation[anno="' + pageID + '"]');
               if (element != null) {
                 element.setAttribute("notransition", "");

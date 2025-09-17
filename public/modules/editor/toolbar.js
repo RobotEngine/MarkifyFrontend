@@ -9766,7 +9766,7 @@ modules["editor/toolbar/textedit"] = class {
         let key = keys[i];
         quill.format(key, formats[key]);
       }
-      this.toolbar.selection.updateActionBar({ refreshActionBar: true, redrawCurrentAction: true });
+      this.toolbar.selection.updateActionBar({ refreshActionBar: true });
     }
 
     if (quill.isEnabled() == false) {

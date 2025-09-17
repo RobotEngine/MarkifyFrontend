@@ -6977,11 +6977,40 @@ modules["editor/toolbar/color"] = class {
     let holder = button.querySelector(".eSubToolColorHolder");
     let color = holder.querySelector(".eSubToolColor");
     let preference = this.parent.getPreferenceTool();
+    let selectedColor = preference.c;
     let selectedOpacity = (preference.o ?? 100) / 100;
+    let annotation = this.editor.annotations[preference._id];
+    if (annotation != null) {
+      let component = annotation.component ?? {};
+      let quill = component.quill;
+      if (quill != null && Object.keys(this.editor.selecting).length == 1 && component.ALLOW_RICHTEXT_COLOR != false) {
+        let selection = quill.getSelection();
+        let attributes;
+        if (selection != null) {
+          attributes = quill.getFormat(selection.index, selection.length);
+        } else {
+          attributes = quill.getFormat(0, quill.getLength());
+        }
+        if (attributes.color != null) {
+          if (Array.isArray(attributes.color) == true) {
+            attributes.color = attributes.color[0];
+          }
+          if (attributes.color.startsWith("rgb(") == true) {
+            let rgbValues = attributes.color.match(/\d+/g);
+            selectedColor = this.editor.utils.rgbToHex(rgbValues[0], rgbValues[1], rgbValues[2]).toUpperCase();
+          } else if (attributes.color.startsWith("#") == true) {
+            selectedColor = attributes.color.substring(1).toUpperCase();
+          }
+        }
+        if (attributes.opacity != null) {
+          selectedOpacity = (attributes.opacity ?? 100) / 100;
+        }
+      }
+    }
     //holder.style.border = "solid 3px " + this.editor.utils.borderColorBackgroundRGBA(preference.c, null, selectedOpacity);
-    color.style.background = "#" + preference.c;
+    color.style.background = "#" + selectedColor;
     color.style.opacity = selectedOpacity;
-    color.style.boxShadow = "0px 0px 3px 0px " + this.editor.utils.borderColorBackgroundRGBA(preference.c);
+    color.style.boxShadow = "0px 0px 3px 0px " + this.editor.utils.borderColorBackgroundRGBA(selectedColor);
   }
 
   TOOLTIP = "Color";
@@ -7063,12 +7092,37 @@ modules["editor/toolbar/color"] = class {
     let preferenceTool;
     let colorPreference;
     let selectedColor;
+    let quill;
     let updatePreference = () => {
       preferenceTool = toolbar.getPreferenceTool();
       colorPreference = toolbar.getAnnotationPreference().color ?? toolbar.getToolPreference().color;
       selectedColor = colorPreference.selected;
       if (preferenceTool.c != null) {
         selectedColor = preferenceTool.c;
+      }
+      let annotation = this.editor.annotations[preferenceTool._id];
+      if (annotation != null) {
+        quill = (annotation.component ?? {}).quill;
+        let component = annotation.component ?? {};
+        if (quill != null && selectKeys.length == 1 && component.ALLOW_RICHTEXT_COLOR != false) {
+          let selection = quill.getSelection();
+          let setSelectedColor;
+          if (selection != null) {
+            setSelectedColor = quill.getFormat(selection.index, selection.length).color;
+          } else {
+            setSelectedColor = quill.getFormat(0, quill.getLength()).color;
+          }
+          if (setSelectedColor != null) {
+            if (setSelectedColor.startsWith("rgb(") == true) {
+              let rgbValues = setSelectedColor.match(/\d+/g);
+              selectedColor = editor.utils.rgbToHex(rgbValues[0], rgbValues[1], rgbValues[2]).toUpperCase();
+            } else if (setSelectedColor.startsWith("#") == true) {
+              selectedColor = setSelectedColor.substring(1).toUpperCase();
+            }
+          }
+        } else {
+          quill = null;
+        }
       }
     }
     updatePreference();
@@ -7093,7 +7147,7 @@ modules["editor/toolbar/color"] = class {
           if (isToolbar == true) {
             isSelected = setColor == colorPreference.selected;
           } else {
-            isSelected = setColor == preferenceTool.c;
+            isSelected = setColor == selectedColor; //preferenceTool.c;
           }
         }
         if (selected == false) {
@@ -7140,7 +7194,25 @@ modules["editor/toolbar/color"] = class {
           toolbar.toolbar.closeSubSub(true);
           toolbar.activateTool();
         } else {
-          await toolbar.saveSelecting(() => { return { c: selectedColor }; });
+          if (quill != null) {
+            let selection = quill.getSelection();
+            let source = "api";
+            let enabled = quill.isEnabled();
+            if (enabled == true) {
+              source = "user";
+            }
+            if (selection != null && enabled == true) {
+              quill.format("color", "#" + selectedColor, source);
+            } else {
+              quill.formatText(0, quill.getLength(), "color", "#" + selectedColor, source);
+            }
+            if (enabled == false) {
+              await this.toolbar.saveSelecting(() => { return { d: quill.getContents().ops } }, { refreshActionBar: false });
+            }
+          } else {
+            await toolbar.saveSelecting(() => { return { c: selectedColor }; });
+          }
+
           let selected = selector.querySelector("button[selected]");
           if (selected != null) {
             selected.removeAttribute("selected");
@@ -7325,7 +7397,24 @@ modules["editor/toolbar/color"] = class {
       if (isToolbar == true) {
         toolbar.activateTool();
       } else {
-        await toolbar.saveSelecting(() => { return { c: selectedColor }; }, { saveHistory: saveHistory == true });
+        if (quill != null) {
+          let selection = quill.getSelection();
+          let source = "api";
+          let enabled = quill.isEnabled();
+          if (enabled == true) {
+            source = "user";
+          }
+          if (selection != null && enabled == true) {
+            quill.format("color", "#" + selectedColor, source);
+          } else {
+            quill.formatText(0, quill.getLength(), "color", "#" + selectedColor, source);
+          }
+          if (enabled == false) {
+            await this.toolbar.saveSelecting(() => { return { d: quill.getContents().ops } }, { refreshActionBar: false });
+          }
+        } else {
+          await toolbar.saveSelecting(() => { return { c: selectedColor }; }, { saveHistory: saveHistory == true });
+        }
       }
     }
     let eventGradientUpdate = (event) => {
@@ -7593,11 +7682,40 @@ modules["editor/toolbar/opacity"] = class {
         let svg = opacity.querySelector("svg");
         if (svg != null) {
           let preference = this.parent.getPreferenceTool();
+          let selectedColor = preference.c;
           let selectedOpacity = (preference.o ?? 100) / 100;
+          let annotation = this.editor.annotations[preference._id];
+          if (annotation != null) {
+            let component = annotation.component ?? {};
+            let quill = component.quill;
+            if (quill != null && Object.keys(this.editor.selecting).length == 1 && component.ALLOW_RICHTEXT_COLOR != false) {
+              let selection = quill.getSelection();
+              let attributes;
+              if (selection != null) {
+                attributes = quill.getFormat(selection.index, selection.length);
+              } else {
+                attributes = quill.getFormat(0, quill.getLength());
+              }
+              if (attributes.color != null) {
+                if (Array.isArray(attributes.color) == true) {
+                  attributes.color = attributes.color[0];
+                }
+                if (attributes.color.startsWith("rgb(") == true) {
+                  let rgbValues = attributes.color.match(/\d+/g);
+                  selectedColor = this.editor.utils.rgbToHex(rgbValues[0], rgbValues[1], rgbValues[2]).toUpperCase();
+                } else if (attributes.color.startsWith("#") == true) {
+                  selectedColor = attributes.color.substring(1).toUpperCase();
+                }
+              }
+              if (attributes.opacity != null) {
+                selectedOpacity = (attributes.opacity ?? 100) / 100;
+              }
+            }
+          }
           //opacity.style.border = "solid 3px " + this.editor.utils.borderColorBackgroundRGBA(preference.c, null, selectedOpacity);
           svg.querySelector("path").style.opacity = selectedOpacity;
-          svg.style.setProperty("--toolColor", "#" + preference.c);
-          svg.style.boxShadow = "0px 0px 3px 0px " + this.editor.utils.borderColorBackgroundRGBA(preference.c, null, selectedOpacity);
+          svg.style.setProperty("--toolColor", "#" + selectedColor);
+          svg.style.boxShadow = "0px 0px 3px 0px " + this.editor.utils.borderColorBackgroundRGBA(selectedColor, null, selectedOpacity);
         }
       }
     })();

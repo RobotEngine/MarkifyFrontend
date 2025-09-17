@@ -2842,22 +2842,9 @@ modules["editor/editor"] = class {
         let Inline = quill.import("blots/inline");
         let Block = quill.import("blots/block");
         let Container = quill.import("blots/container");
-        quill.register(class BoldBlot extends Inline {
-          static blotName = "bold";
-          static tagName = "strong";
-        });
-        quill.register(class ItalicBlot extends Inline {
-          static blotName = "italic";
-          static tagName = "em";
-        });
-        quill.register(class StrikeBlot extends Inline {
-          static blotName = "underline";
-          static tagName = "U";
-        });
-        quill.register(class StrikeBlot extends Inline {
-          static blotName = "strike";
-          static tagName = "STRIKE";
-        });
+        quill.register(new Parchment.StyleAttributor("color", "color", {
+          scope: Parchment.Scope.INLINE
+        }));
         let fontMapping = this.text.fonts;
         /*class FontAttributor extends Parchment.StyleAttributor {
           add(node, value) {
@@ -2888,10 +2875,22 @@ modules["editor/editor"] = class {
         quill.register(new Parchment.StyleAttributor("size", "font-size", {
           scope: Parchment.Scope.INLINE
         }));
-        quill.register(new Parchment.StyleAttributor("align", "text-align", {
-          scope: Parchment.Scope.BLOCK,
-          whitelist: ["left", "center", "right"]
-        }));
+        quill.register(class BoldBlot extends Inline {
+          static blotName = "bold";
+          static tagName = "strong";
+        });
+        quill.register(class ItalicBlot extends Inline {
+          static blotName = "italic";
+          static tagName = "em";
+        });
+        quill.register(class UnderlineBlot extends Inline {
+          static blotName = "underline";
+          static tagName = "U";
+        });
+        quill.register(class StrikeBlot extends Inline {
+          static blotName = "strike";
+          static tagName = "STRIKE";
+        });
         //quill.register(new Parchment.StyleAttributor("custom-family-attributor", "font-family"));
         //quill.register(new Parchment.StyleAttributor("custom-size-attributor", "font-size"));
         //quill.register(new Parchment.StyleAttributor("custom-color-attributor", "color"));
@@ -2968,6 +2967,46 @@ modules["editor/editor"] = class {
         ListContainer.allowedChildren = [ListItem];
         ListItem.requiredContainer = ListContainer;
         quill.register(ListItem);
+        quill.register(new Parchment.StyleAttributor("align", "text-align", {
+          scope: Parchment.Scope.BLOCK,
+          whitelist: ["left", "center", "right"]
+        }));
+        let sanitize = (url, protocols) => {
+          let anchor = document.createElement("a");
+          anchor.href = url;
+          let protocol = anchor.href.slice(0, anchor.href.indexOf(':'));
+          return protocols.indexOf(protocol) > -1;
+        }
+        quill.register(class Link extends Inline {
+          static blotName = "link";
+          static tagName = "A";
+          static SANITIZED_URL = "about:blank";
+          static PROTOCOL_WHITELIST = ["http", "https", "mailto", "tel", "sms"];
+
+          static create(value) {
+            let node = super.create(value);
+            node.setAttribute("href", this.sanitize(value));
+            node.setAttribute("rel", "noopener noreferrer");
+            node.setAttribute("target", "_blank");
+            return node;
+          }
+
+          static formats(domNode) {
+            return domNode.getAttribute("href");
+          }
+
+          static sanitize(url) {
+            return sanitize(url, this.PROTOCOL_WHITELIST) ? url : this.SANITIZED_URL;
+          }
+
+          format(name, value) {
+            if (name !== this.statics.blotName || !value) {
+              super.format(name, value);
+            } else {
+              this.domNode.setAttribute("href", this.constructor.sanitize(value));
+            }
+          }
+        });
       })();
     }
     this.text.loadFont = (font) => {
@@ -4530,10 +4569,11 @@ modules["editor/render/annotation/text"] = class extends modules["editor/render/
   AUTO_SET_HEIGHT = true;
   REMOVE_IF_NO_TEXT = true;
 
-  ACTION_BAR_TOOLS = ["textedit", "color", "opacity", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "unlock", "delete"];
+  //ACTION_BAR_TOOLS = ["textedit", "color", "opacity", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "unlock", "delete"];
+  ACTION_BAR_TOOLS = ["textedit", "color", "opacity", "font", "fontsize", "format", "list", "link", "textalign", "unlock", "delete"];
 
   css = {
-    ".eAnnotation[text] div[text]": `padding: 4px 6px; margin: 3px; color: var(--themeColor); font-weight: 500; pointer-events: all; outline: none`,
+    ".eAnnotation[text] div[text]": `box-sizing: unset !important; padding: 4px 6px; margin: 3px; color: var(--themeColor); font-weight: 500; pointer-events: all; outline: none`,
     ".eAnnotation[text] div[text][placeborder]": `width: max-content; margin: 0px; border: solid 3px var(--themeColor); border-radius: 8px`
   };
   render = () => {
@@ -4617,6 +4657,7 @@ modules["editor/render/annotation/text"] = class extends modules["editor/render/
     let loadText = async () => {
       if (this.quill == null) {
         this.quill = new (await this.parent.text.getQuill())(text, {
+          formats: ["color", "font", "size", "bold", "italic", "underline", "strike", "list", "link", "align"],
           modules: {
             history: { maxStack: 0 }
           },
@@ -5156,6 +5197,7 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
 }
 modules["editor/render/annotation/sticky"] = class extends modules["editor/render/annotation"] {
   ALLOW_SELECT_OVERFLOW = true;
+  ALLOW_RICHTEXT_COLOR = false;
 
   //ACTION_BAR_TOOLS = ["textedit", "color", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "unlock", "reactions", "delete"];
   ACTION_BAR_TOOLS = ["textedit", "color", "font", "fontsize", "format", "list", "link", "textalign", "unlock", "reactions", "delete"];
@@ -5268,12 +5310,13 @@ modules["editor/render/annotation/sticky"] = class extends modules["editor/rende
     let loadText = async () => {
       if (this.quill == null) {
         this.quill = new (await this.parent.text.getQuill())(text, {
+          formats: ["font", "size", "bold", "italic", "underline", "strike", "list", "link", "align"],
           modules: {
             history: { maxStack: 0 }
           },
+          //placeholder: "Double click to type...",
           readOnly: true
-          //placeholder: "Double click to type..."
-        }); //formats
+        });
         this.quill.on("editor-change", this.parent.text.checkFonts);
       }
       if (this.quill.isEnabled() == false) {

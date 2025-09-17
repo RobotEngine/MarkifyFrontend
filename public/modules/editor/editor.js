@@ -2826,6 +2826,14 @@ modules["editor/editor"] = class {
       "comfortaa": ["Comfortaa", 4],
       "playpensans": ["Playpen Sans", 5]
     };
+    /*this.text.fonts = {
+      "Montserrat": ["montserrat", 0],
+      "Noto Sans": ["notosans", 1],
+      "Playfair Display": ["playfairdisplay", 2],
+      "Source Code Pro": ["sourcecodepro", 3],
+      "Comfortaa": ["comfortaa", 4],
+      "Playpen Sans": ["playpensans", 5]
+    };*/
     this.text.loadedFonts = { "Montserrat": true };
     this.text.loadingFonts = {};
     this.text.getQuill = async () => {
@@ -2859,7 +2867,7 @@ modules["editor/editor"] = class {
           static tagName = "STRIKE";
         });
         let fontMapping = this.text.fonts;
-        class FontAttributor extends Parchment.StyleAttributor {
+        /*class FontAttributor extends Parchment.StyleAttributor {
           add(node, value) {
             if (fontMapping[value] != null) {
               return super.add(node, fontMapping[value][0]);
@@ -2880,6 +2888,10 @@ modules["editor/editor"] = class {
         quill.register(new FontAttributor("font", "font-family", {
           scope: Parchment.Scope.INLINE,
           whitelist: Object.values(this.text.fonts).map((value) => { return value[0]; })
+        }));*/
+        quill.register(new Parchment.ClassAttributor("font", "ql-font", {
+          scope: Parchment.Scope.INLINE,
+          whitelist: Object.keys(this.text.fonts)
         }));
         quill.register(new Parchment.StyleAttributor("size", "font-size", {
           scope: Parchment.Scope.INLINE
@@ -2887,9 +2899,9 @@ modules["editor/editor"] = class {
         quill.register(new Parchment.StyleAttributor("align", "text-align", {
           scope: Parchment.Scope.BLOCK
         }));
-        quill.register(new Parchment.StyleAttributor("custom-family-attributor", "font-family"));
-        quill.register(new Parchment.StyleAttributor("custom-size-attributor", "font-size"));
-        quill.register(new Parchment.StyleAttributor("custom-color-attributor", "color"));
+        //quill.register(new Parchment.StyleAttributor("custom-family-attributor", "font-family"));
+        //quill.register(new Parchment.StyleAttributor("custom-size-attributor", "font-size"));
+        //quill.register(new Parchment.StyleAttributor("custom-color-attributor", "color"));
         class ListContainer extends Container {}
         ListContainer.blotName = "list-container";
         ListContainer.tagName = "OL";
@@ -2937,15 +2949,22 @@ modules["editor/editor"] = class {
               let child = this.children.head;
               let attributes = child?.attributes?.attributes;
 
-              if (attributes) {
+              if (attributes != null) {
                 for (let key in attributes) {
                   let element = attributes[key];
                   let name = element.keyName;
                   let value = element.value(child.domNode);
 
-                  if (name === "color") { super.format("custom-color-attributor", value); }
-                  else if (name === "font-family") { super.format("custom-family-attributor", value); }
-                  else if (name === "font-size") { super.format("custom-size-attributor", value); }
+                  if (name == "color") {
+                    this.domNode.style.color = value;
+                    //super.format("custom-color-attributor", value);
+                  } else if (name == "ql-font") {
+                    this.domNode.style.fontFamily = (fontMapping[value] ?? [])[0] ?? "var(--font)";
+                    //super.format("custom-family-attributor", value);
+                  } else if (name == "font-size") {
+                    this.domNode.style.fontSize = value;
+                    //super.format("custom-size-attributor", value);
+                  }
                 }
               }
             }
@@ -2967,8 +2986,17 @@ modules["editor/editor"] = class {
         let newFontLink = document.createElement("link");
         newFontLink.rel = "stylesheet";
         head.appendChild(newFontLink);
-        newFontLink.addEventListener("load", resolve);
-        newFontLink.addEventListener("error", resolve);
+        newFontLink.addEventListener("load", () => {
+          let newRules = {};
+          newRules[".ql-editor .ql-font-" + font] = "font-family: " + '"' + fontInfo[0] + '"';
+          addCSS(newRules);
+          resolve();
+        });
+        newFontLink.addEventListener("error", (error) => {
+          delete this.text.loadingFonts[font];
+          console.error("Failed to load font: " + font, error);
+          resolve();
+        });
         newFontLink.href = "https://fonts.googleapis.com/css?family=" + fontInfo[0].replace(/ /g, "+") + "&display=swap";
         /*let newFont = new FontFace(font, "url(https://fonts.googleapis.com/css?family=" + fontInfo[0].replace(/ /g, "+") + ":400,500,600,700,800&display=swap)");
         document.fonts.add(newFont);

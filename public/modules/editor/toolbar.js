@@ -9900,7 +9900,7 @@ modules["editor/toolbar/fontsize"] = class {
       size = size[0];
     }
     size = size ?? "14px";
-    this.button.querySelector(".eSubToolFontSize").textContent = size.substring(0, size.indexOf("px"));
+    this.button.querySelector(".eSubToolFontSize").textContent = size.substring(0, size.length - 2);
   }
 
   TOOLTIP = "Font Size";
@@ -9962,7 +9962,7 @@ modules["editor/toolbar/fontsize"] = class {
       }
       selectedS = selectedS ?? 14;
       if (typeof selectedS == "string") {
-        selectedS = parseFloat(selectedS.substring(0, selectedS.indexOf("px")));
+        selectedS = parseFloat(selectedS.substring(0, selectedS.length - 2));
       }
 
       smallButton.removeAttribute("selected");
@@ -10162,7 +10162,9 @@ modules["editor/toolbar/list"] = class {
     if (Array.isArray(list) == true) {
       list = list[0];
     }
-    list = list ?? "bullet";
+    if (list == null || list == "false") {
+      list = "bullet"
+    }
     let buttonIcon = this.button.querySelector("div");
     if (buttonIcon != null && list != buttonIcon.getAttribute("list")) {
       buttonIcon.setAttribute("list", list);

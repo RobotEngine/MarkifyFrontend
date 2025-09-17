@@ -9689,6 +9689,18 @@ modules["editor/toolbar/textedit"] = class {
         return;
       }
 
+      let change = delta.ops[delta.ops.length - 1];
+      if (change != null && change.insert != null && change.insert == "\n") {
+        let currentFormats = quill.getFormat(quill.getSelection().index - 1, 1);
+        setTimeout(() => {
+          let keys = Object.keys(currentFormats);
+          for (let i = 0; i < keys.length; i++) {
+            let key = keys[i];
+            quill.format(key, currentFormats[key]);
+          }
+        }, 0);
+      }
+
       preference = this.parent.getPreferenceTool();
 
       let saveObj = { d: {} };

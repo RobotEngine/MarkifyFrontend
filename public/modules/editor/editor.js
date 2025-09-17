@@ -2826,15 +2826,7 @@ modules["editor/editor"] = class {
       "comfortaa": ["Comfortaa", 4],
       "playpensans": ["Playpen Sans", 5]
     };
-    /*this.text.fonts = {
-      "Montserrat": ["montserrat", 0],
-      "Noto Sans": ["notosans", 1],
-      "Playfair Display": ["playfairdisplay", 2],
-      "Source Code Pro": ["sourcecodepro", 3],
-      "Comfortaa": ["comfortaa", 4],
-      "Playpen Sans": ["playpensans", 5]
-    };*/
-    this.text.loadedFonts = { "Montserrat": true };
+    this.text.loadedFonts = { "montserrat": true };
     this.text.loadingFonts = {};
     this.text.getQuill = async () => {
       if (window.Quill == null) {

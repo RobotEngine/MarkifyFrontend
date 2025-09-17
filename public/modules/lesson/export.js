@@ -218,10 +218,10 @@ modules["lesson/export"] = class {
               this.editor.visibleChunks = annotation.chunks;
               await this.handleRendering();
               handleRenderPromise = null;
+              await this.editor.setZoom(pageScale); //((annotation.render.s[0] - (pageBorderSize * 2)) * pageScale) / annotation.render.s[0]);
               await this.editor.render.setMarginSize(true);
               let rect = this.editor.utils.getRect(annotation.render);
               let [topLeftX, topLeftY, bottomRightX, bottomRightY] = this.editor.math.rotatedBounds(rect.x, rect.y, rect.endX, rect.endY, rect.rotation);
-              await this.editor.setZoom(pageScale); //((annotation.render.s[0] - (pageBorderSize * 2)) * pageScale) / annotation.render.s[0]);
               window.scrollTo(0, 0);
               pageContent.style.removeProperty("transform");
               let pageRect = pageContent.getBoundingClientRect();

@@ -142,7 +142,7 @@ modules["lesson/export"] = class {
         if (this.editor.exportPromises.length > 0) {
           await Promise.all(this.editor.exportPromises);
         }
-        if (this.parent.quillCSSLoaded != true) {
+        if (this.parent.quillCSSLoaded != true && this.parent.quillCSSPreload != null) {
           this.parent.quillCSSPreload.addEventListener("load", () => {
             resolve();
           });

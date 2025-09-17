@@ -5597,10 +5597,9 @@ modules["editor/toolbar/text"] = class extends modules["editor/toolbar/placement
     this.PROPERTIES = {
       f: "text",
       s: [0, 0],
-      c: toolPreference.color.selected,
       l: this.editor.maxLayer + 1,
       o: toolPreference.opacity,
-      d: [{ insert: "Example Text", attributes: { font: toolPreference.font, size: toolPreference.size + "px", align: toolPreference.align } }],
+      d: [{ insert: "Example Text", attributes: { color: "#" + toolPreference.color.selected, font: toolPreference.font, size: toolPreference.size + "px", align: toolPreference.align } }],
       remove: true,
       textfit: true
     };
@@ -6977,7 +6976,7 @@ modules["editor/toolbar/color"] = class {
     let holder = button.querySelector(".eSubToolColorHolder");
     let color = holder.querySelector(".eSubToolColor");
     let preference = this.parent.getPreferenceTool();
-    let selectedColor = preference.c;
+    let selectedColor = preference.c ?? "228EF2";
     let selectedOpacity = (preference.o ?? 100) / 100;
     let annotation = this.editor.annotations[preference._id];
     if (annotation != null) {
@@ -7091,7 +7090,7 @@ modules["editor/toolbar/color"] = class {
     let shouldSave = isToolbar == true || selectKeys.length == 1;
     let preferenceTool;
     let colorPreference;
-    let selectedColor;
+    let selectedColor = "228EF2";
     let quill;
     let updatePreference = () => {
       preferenceTool = toolbar.getPreferenceTool();
@@ -7682,7 +7681,7 @@ modules["editor/toolbar/opacity"] = class {
         let svg = opacity.querySelector("svg");
         if (svg != null) {
           let preference = this.parent.getPreferenceTool();
-          let selectedColor = preference.c;
+          let selectedColor = preference.c ?? "228EF2";
           let selectedOpacity = (preference.o ?? 100) / 100;
           let annotation = this.editor.annotations[preference._id];
           if (annotation != null) {
@@ -9760,6 +9759,16 @@ modules["editor/toolbar/textedit"] = class {
       return;
     }
 
+    let applyFormats = async (formats) => {
+      await sleep(0);
+      let keys = Object.keys(formats);
+      for (let i = 0; i < keys.length; i++) {
+        let key = keys[i];
+        quill.format(key, formats[key]);
+      }
+      this.toolbar.selection.updateActionBar({ refreshActionBar: true, redrawCurrentAction: true });
+    }
+
     if (quill.isEnabled() == false) {
       let scrollLeft = annoElem.scrollLeft ?? 0;
       let scrollTop = annoElem.scrollTop ?? 0;
@@ -9779,11 +9788,8 @@ modules["editor/toolbar/textedit"] = class {
         let format = (((annotation.render ?? {}).d ?? [])[0] ?? {}).attributes ?? {}; //(quill.getContents().ops[0] ?? {}).attributes ?? {};
         quill.deleteText(0, quill.getLength());
         quill.setSelection(0);
-        let keys = Object.keys(format);
-        for (let i = 0; i < keys.length; i++) {
-          let key = keys[i];
-          quill.format(key, format[key]);
-        }
+        await applyFormats(format);
+        this.toolbar.saveSelecting(() => { return { d: quill.getContents().ops }; }, { refreshActionBar: false, saveHistory: false });
       }
     } else {
       quill.disable();
@@ -9802,21 +9808,18 @@ modules["editor/toolbar/textedit"] = class {
       lastCaret[position] = { index: selection.index, length: selection.length };
     }
 
+    let lastFormatting = {};
     let textChange = async (delta, oldDelta, source) => {
       if (source != "user") {
         return;
       }
 
       let change = delta.ops[delta.ops.length - 1];
-      if (change != null && change.insert != null && change.insert == "\n") {
-        let currentFormats = quill.getFormat(quill.getSelection().index - 1, 1);
-        setTimeout(() => {
-          let keys = Object.keys(currentFormats);
-          for (let i = 0; i < keys.length; i++) {
-            let key = keys[i];
-            quill.format(key, currentFormats[key]);
-          }
-        }, 0);
+      if (change != null) {
+        if (change.insert != null && change.insert == "\n") {
+          let currentFormats = quill.getFormat(quill.getSelection().index - 1, 1);
+          await applyFormats(currentFormats);
+        }
       }
 
       preference = this.parent.getPreferenceTool();
@@ -9825,19 +9828,30 @@ modules["editor/toolbar/textedit"] = class {
       if (this.editor.selecting[preference._id].d == null) {
         this.editor.selecting[preference._id].d = copyObject(preference.d ?? {});
       }
-      saveObj.d = quill.getContents().ops;
+      let ops = quill.getContents().ops;
+      saveObj.d = ops;
       if (preference.f == "sticky") {
         saveObj.sig = this.editor.self.name;
       }
+      let hasInsert = false;
       let onlyRetains = true;
       for (let i = 0; i < delta.ops.length; i++) {
-        if (delta.ops[i].retain == null) {
+        let oper = delta.ops[i];
+        if (oper.retain == null) {
           onlyRetains = false;
+        }
+        if (oper.insert != null) {
+          hasInsert = true;
         }
       }
       if (onlyRetains == true) {
         saveHistory = true;
         setLastCaret("undo");
+      }
+      if (hasInsert == true) {
+        lastFormatting = quill.getFormat();
+      } else if ((delta.ops[delta.ops.length - 1] ?? {}).delete != null) {
+        await applyFormats(lastFormatting);
       }
       await this.toolbar.saveSelecting(() => { return saveObj; }, { refreshActionBar: false, saveHistory: saveHistory });
       if (saveHistory == true) {

@@ -4598,7 +4598,11 @@ modules["editor/render/annotation/text"] = class extends modules["editor/render/
     } else {
       text.setAttribute("placeborder", "");
     }
-    this.element.style.setProperty("--themeColor", "#" + this.properties.c);
+    if (this.properties.c == null) {
+      this.element.style.setProperty("--themeColor", "var(--theme)");
+    } else {
+      this.element.style.setProperty("--themeColor", "#" + this.properties.c);
+    }
     text.style.opacity = this.properties.o / 100;
     /*let richText = this.properties.d ?? {};
     text.style.fontSize = Math.floor(Math.max(Math.min(richText.s ?? 18, 250), 1)) + "px";
@@ -4664,9 +4668,18 @@ modules["editor/render/annotation/text"] = class extends modules["editor/render/
           readOnly: true
           //placeholder: "Double click to type..."
         }); //formats
+        this.quill.on("editor-change", this.parent.text.checkFonts);
       }
       if (this.quill.isEnabled() == false) {
         this.quill.setContents(this.properties.d ?? [], "silent");
+        if (this.properties._id == null) {
+          let format = ((this.properties.d ?? [])[0] ?? {}).attributes ?? {}; //(quill.getContents().ops[0] ?? {}).attributes ?? {};
+          let keys = Object.keys(format);
+          for (let i = 0; i < keys.length; i++) {
+            let key = keys[i];
+            this.quill.formatText(0, this.quill.getLength(), key, format[key]);
+          }
+        }
       }
     }
     if (this.parent.exporting != true) {

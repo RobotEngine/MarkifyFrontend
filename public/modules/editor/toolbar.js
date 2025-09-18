@@ -9926,6 +9926,7 @@ modules["editor/toolbar/font"] = class {
   }
 
   TOOLTIP = "Font";
+  SUPPORTS_MULTIPLE_SELECT = false;
 
   html = `<div class="eSubToolFontContainer"></div>`;
   css = {
@@ -10002,6 +10003,8 @@ modules["editor/toolbar/font"] = class {
       }
       if (enabled == false) {
         await this.toolbar.saveSelecting(() => { return { d: quill.getContents().ops } }, { refreshActionBar: false });
+      } else {
+        this.toolbar.saveSelecting(() => { return {}; }, { saveHistory: false });
       }
       this.toolbar.setToolPreference("font", font);
       this.redraw(font);
@@ -10048,6 +10051,7 @@ modules["editor/toolbar/fontsize"] = class {
   }
 
   TOOLTIP = "Font Size";
+  SUPPORTS_MULTIPLE_SELECT = false;
 
   html = `
   <div class="eSubToolFontSizeContainer">
@@ -10147,6 +10151,8 @@ modules["editor/toolbar/fontsize"] = class {
       }
       if (enabled == false) {
         await this.toolbar.saveSelecting(() => { return { d: quill.getContents().ops } }, { reuseActionBar: true });
+      } else {
+        this.toolbar.saveSelecting(() => { return {}; }, { saveHistory: false });
       }
       this.toolbar.setToolPreference("size", set);
       this.redraw(set + "px");
@@ -10217,6 +10223,7 @@ modules["editor/toolbar/format"] = class {
   }
 
   TOOLTIP = "Format";
+  SUPPORTS_MULTIPLE_SELECT = false;
 
   html = `
   <div class="eSubToolFormatContainer eHorizontalToolsHolder" keeptooltip>
@@ -10318,6 +10325,7 @@ modules["editor/toolbar/list"] = class {
   }
 
   TOOLTIP = "Lists";
+  SUPPORTS_MULTIPLE_SELECT = false;
 
   html = `
   <div class="eSubToolListContainer eHorizontalToolsHolder" keeptooltip>
@@ -10438,6 +10446,7 @@ modules["editor/toolbar/textalign"] = class {
   }
 
   TOOLTIP = "Align";
+  SUPPORTS_MULTIPLE_SELECT = false;
 
   html = `
   <div class="eSubToolTextAlignContainer eHorizontalToolsHolder" keeptooltip>

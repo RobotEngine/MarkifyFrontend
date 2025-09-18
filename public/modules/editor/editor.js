@@ -27,7 +27,8 @@ modules["editor/editor"] = class {
 
     ".eAnnotation .ql-editor": `padding: 0 !important; overflow-y: unset !important; font-family: var(--font); font-size: 14px`,
     ".eAnnotation .ql-editor > *": `cursor: unset`,
-    ".eAnnotation .ql-editor > ol": `padding: unset`,
+    ".eAnnotation .ql-editor ol": `padding: unset`,
+    ".eAnnotation:not([selected]) .ql-editor a": `pointer-events: none !important`,
     
     ".eReaction": `display: flex; padding: 2px; background: rgba(255, 255, 255, .8); border: solid 2px rgba(0, 0, 0, 0); border-radius: 8px; align-items: center; overflow: hidden; color: #2F2F2F`,
     ".eReaction[selected]": `padding: 2px; background: rgba(180, 218, 253, .8); border: solid 2px var(--theme); color: var(--theme)`,

@@ -1274,20 +1274,20 @@ modules["editor/toolbar"] = class {
 
       options.hideSelectBox = options.hideSelectBox ?? this.selection.hideSelectBox;
 
-      this.selection.minX = null;
-      this.selection.maxX = null;
-      this.selection.minY = null;
-      this.selection.maxY = null;
-      this.selection.checkX = null;
-      this.selection.checkY = null;
-      this.selection.resizePreserveAspect = false;
-      this.selection.multiSelectPreserveAspect = false;
+      let setMinX = null;
+      let setMaxX = null;
+      let setMinY = null;
+      let setMaxY = null;
+      let setCheckX = null;
+      let setCheckY = null;
+      let setResizePreserveAspect = false;
+      let setMultiSelectPreserveAspect = false;
 
-      this.selection.snapping = false;
-      this.selection.showHandles = true;
-      this.selection.showDuplicateHandles = true;
-      this.selection.showOnlyWidthHandles = true;
-      this.selection.showRotationHandle = false;
+      let setSnapping = false;
+      let setShowHandles = true;
+      let setShowDuplicateHandles = true;
+      let setShowOnlyWidthHandles = true;
+      let setShowRotationHandle = false;
 
       let selectedAnnotations = [];
       let selectionChange = false;
@@ -1353,7 +1353,7 @@ modules["editor/toolbar"] = class {
         }
 
         if (editor.utils.canMemberModify(merged) != true || editor.utils.isLocked(merged) == true || editor.utils.isPlaceholderLocked(merged) == true) {
-          this.selection.showHandles = false;
+          setShowHandles = false;
         }
 
         let annoModule = (await editor.render.getModule(annoData, merged.f)) ?? {};
@@ -1362,19 +1362,19 @@ modules["editor/toolbar"] = class {
           break;
         }
         if (annoModule.DISABLE_SNAPPING != true) {
-          this.selection.snapping = true;
+          setSnapping = true;
         }
         if (annoModule.SHOW_DUPLICATE_HANDLES != true) {
-          this.selection.showDuplicateHandles = false;
+          setShowDuplicateHandles = false;
         }
         if (annoModule.SHOW_ONLY_WIDTH_HANDLES != true) {
-          this.selection.showOnlyWidthHandles = false;
+          setShowOnlyWidthHandles = false;
         }
         if (annoModule.CAN_ROTATE != false) {
-          this.selection.showRotationHandle = true;
+          setShowRotationHandle = true;
         }
         if (annoModule.RESIZE_PRESERVE_ASPECT == true) {
-          this.selection.resizePreserveAspect = true;
+          setResizePreserveAspect = true;
         }
         if (annoModule.SELECTION_FUNCTION != null) {
           annoModule.SELECTION_FUNCTION(this.selection, merged);
@@ -1412,7 +1412,7 @@ modules["editor/toolbar"] = class {
               transition = false;
             }
             if (rect.rotation != 0) {
-              this.selection.multiSelectPreserveAspect = true;
+              setMultiSelectPreserveAspect = true;
             }
           } else if (select != null) {
             select.remove();
@@ -1467,13 +1467,13 @@ modules["editor/toolbar"] = class {
 
         let [topLeftX, topLeftY, bottomRightX, bottomRightY] = editor.math.rotatedBounds(rect.x, rect.y, rect.endX, rect.endY, rect.rotation);
 
-        this.selection.minX = Math.min(this.selection.minX ?? topLeftX, topLeftX);
-        this.selection.minY = Math.min(this.selection.minY ?? topLeftY, topLeftY);
-        this.selection.maxX = Math.max(this.selection.maxX ?? bottomRightX, bottomRightX);
-        this.selection.maxY = Math.max(this.selection.maxY ?? bottomRightY, bottomRightY);
+        setMinX = Math.min(setMinX ?? topLeftX, topLeftX);
+        setMinY = Math.min(setMinY ?? topLeftY, topLeftY);
+        setMaxX = Math.max(setMaxX ?? bottomRightX, bottomRightX);
+        setMaxY = Math.max(setMaxY ?? bottomRightY, bottomRightY);
 
-        this.selection.checkX = (this.selection.checkX ?? 0) + rect.centerX;
-        this.selection.checkY = (this.selection.checkY ?? 0) + rect.centerY;
+        setCheckX = (setCheckX ?? 0) + rect.centerX;
+        setCheckY = (setCheckY ?? 0) + rect.centerY;
 
         if (transition == false && select != null) {
           select.offsetHeight;
@@ -1490,6 +1490,21 @@ modules["editor/toolbar"] = class {
           collabSelect.style.transform = "translate(" + (annotationRect.left + (rect.x * editor.zoom) + contentHolder.scrollLeft - 1.5) + "px," + (annotationRect.top + (rect.y * editor.zoom) + contentHolder.scrollTop - 1.5) + "px) rotate(" + rotate + "deg)";
         }
       }
+
+      this.selection.minX = setMinX;
+      this.selection.maxX = setMaxX;
+      this.selection.minY = setMinY;
+      this.selection.maxY = setMaxY;
+      this.selection.checkX = setCheckX;
+      this.selection.checkY = setCheckY;
+      this.selection.resizePreserveAspect = setResizePreserveAspect;
+      this.selection.multiSelectPreserveAspect = setMultiSelectPreserveAspect;
+
+      this.selection.snapping = setSnapping;
+      this.selection.showHandles = setShowHandles;
+      this.selection.showDuplicateHandles = setShowDuplicateHandles;
+      this.selection.showOnlyWidthHandles = setShowOnlyWidthHandles;
+      this.selection.showRotationHandle = setShowRotationHandle;
 
       let showSelectBox = selectedAnnotations.length > 0 && options.hideSelectBox != true;
       let refreshSelectBox = this.selection.lastSelectAmount == selectedAnnotations.length && selectionChange == true;
@@ -1904,27 +1919,29 @@ modules["editor/toolbar"] = class {
 
       // Update Action Bar UI
       if (options.skipUpdate != true || newActionBar == true) {
+        let actionBarWidth = this.selection.actionBar.offsetWidth;
+        let actionBarHeight = this.selection.actionBar.offsetHeight;
         let annotationRect = editor.utils.localBoundingRect(annotations);
-        let pxLeft = annotationRect.left + ((this.selection.minX + ((this.selection.maxX - this.selection.minX) / 2)) * editor.zoom) - (this.selection.actionBar.offsetWidth / 2);
+        let pxLeft = annotationRect.left + ((this.selection.minX + ((this.selection.maxX - this.selection.minX) / 2)) * editor.zoom) - (actionBarWidth / 2);
         if (toolbarHolder.hasAttribute("right") == false) {
-          if (pxLeft + this.selection.actionBar.offsetWidth + 8 > contentHolder.clientWidth) {
-            pxLeft -= (pxLeft + this.selection.actionBar.offsetWidth + 8) - contentHolder.clientWidth;
+          if (pxLeft + actionBarWidth + 8 > contentHolder.clientWidth) {
+            pxLeft -= (pxLeft + actionBarWidth + 8) - contentHolder.clientWidth;
           }
           pxLeft = Math.max(pxLeft, editor.scrollOffset);
         } else {
-          if (pxLeft + this.selection.actionBar.offsetWidth + editor.scrollOffset > contentHolder.clientWidth) {
-            pxLeft -= (pxLeft + this.selection.actionBar.offsetWidth + editor.scrollOffset) - contentHolder.clientWidth;
+          if (pxLeft + actionBarWidth + editor.scrollOffset > contentHolder.clientWidth) {
+            pxLeft -= (pxLeft + actionBarWidth + editor.scrollOffset) - contentHolder.clientWidth;
           }
           pxLeft = Math.max(pxLeft, 8);
         }
         let yPos = editor.scrollOffset;
         if ((account.settings ?? {}).actionbar != "top") {
-          yPos = annotationRect.top + (this.selection.minY * editor.zoom) - this.selection.actionBar.offsetHeight - this.selection.handlePadding;
+          yPos = annotationRect.top + (this.selection.minY * editor.zoom) - actionBarHeight - this.selection.handlePadding;
         }
         let isBottom = false;
         if (yPos < editor.scrollOffset) {
           let modifiedY = annotationRect.top + (this.selection.maxY * editor.zoom) + this.selection.handlePadding;
-          if (modifiedY + this.selection.actionBar.offsetHeight + editor.scrollOffset > contentHolder.clientHeight) {
+          if (modifiedY + actionBarHeight + editor.scrollOffset > contentHolder.clientHeight) {
             yPos = editor.scrollOffset;
           } else {
             yPos = modifiedY;

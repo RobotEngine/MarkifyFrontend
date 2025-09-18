@@ -10498,11 +10498,11 @@ modules["editor/toolbar/link"] = class {
       }
       if (lastSelection != null && lastSelection.length < 1) {
         let text = quill.getText();
-        let startIndex = text.lastIndexOf(" ", lastSelection.index - 1) + 1;
+        let startIndex = Math.max(text.lastIndexOf(" ", lastSelection.index - 1), text.lastIndexOf("\n", lastSelection.index - 1)) + 1;
         if (startIndex < 0) {
           startIndex = 0;
         }
-        let endIndex = text.indexOf(" ", lastSelection.index);
+        let endIndex = Math.min(text.indexOf(" ", lastSelection.index), text.indexOf("\n", lastSelection.index));
         if (endIndex < 0) {
           endIndex = text.length;
         }

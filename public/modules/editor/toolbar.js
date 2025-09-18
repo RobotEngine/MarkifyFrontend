@@ -9759,8 +9759,7 @@ modules["editor/toolbar/textedit"] = class {
       return;
     }
 
-    let applyFormats = async (formats) => {
-      await sleep(0);
+    let applyFormats = (formats) => {
       let keys = Object.keys(formats);
       for (let i = 0; i < keys.length; i++) {
         let key = keys[i];
@@ -9774,7 +9773,6 @@ modules["editor/toolbar/textedit"] = class {
       let scrollTop = annoElem.scrollTop ?? 0;
       
       quill.enable();
-
       quill.focus();
 
       if (scrollLeft > 0 || scrollTop > 0) {
@@ -9788,7 +9786,7 @@ modules["editor/toolbar/textedit"] = class {
         let format = (((annotation.render ?? {}).d ?? [])[0] ?? {}).attributes ?? {}; //(quill.getContents().ops[0] ?? {}).attributes ?? {};
         quill.deleteText(0, quill.getLength());
         quill.setSelection(0);
-        await applyFormats(format);
+        applyFormats(format);
         this.toolbar.saveSelecting(() => { return { d: quill.getContents().ops }; }, { refreshActionBar: false, saveHistory: false });
       }
     } else {
@@ -9814,11 +9812,13 @@ modules["editor/toolbar/textedit"] = class {
         return;
       }
 
+      await sleep(0); // Tiny delay so text is finished updating
+
       let change = delta.ops[delta.ops.length - 1];
       if (change != null) {
         if (change.insert != null && change.insert == "\n") {
           let currentFormats = quill.getFormat(quill.getSelection().index - 1, 1);
-          await applyFormats(currentFormats);
+          applyFormats(currentFormats);
         }
       }
 
@@ -9851,7 +9851,7 @@ modules["editor/toolbar/textedit"] = class {
       if (hasInsert == true) {
         lastFormatting = quill.getFormat();
       } else if ((delta.ops[delta.ops.length - 1] ?? {}).delete != null) {
-        await applyFormats(lastFormatting);
+        applyFormats(lastFormatting);
       }
       await this.toolbar.saveSelecting(() => { return saveObj; }, { refreshActionBar: false, saveHistory: saveHistory });
       if (saveHistory == true) {
@@ -10003,7 +10003,7 @@ modules["editor/toolbar/font"] = class {
       }
       if (enabled == false) {
         await this.toolbar.saveSelecting(() => { return { d: quill.getContents().ops } }, { refreshActionBar: false });
-      } else {
+      } else if (selection != null && selection.length < 1) {
         this.toolbar.saveSelecting(() => { return {}; }, { saveHistory: false });
       }
       this.toolbar.setToolPreference("font", font);
@@ -10151,7 +10151,7 @@ modules["editor/toolbar/fontsize"] = class {
       }
       if (enabled == false) {
         await this.toolbar.saveSelecting(() => { return { d: quill.getContents().ops } }, { reuseActionBar: true });
-      } else {
+      } else if (selection != null && selection.length < 1) {
         this.toolbar.saveSelecting(() => { return {}; }, { saveHistory: false });
       }
       this.toolbar.setToolPreference("size", set);

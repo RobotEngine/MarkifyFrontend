@@ -5615,8 +5615,9 @@ modules["editor/toolbar/text"] = class extends modules["editor/toolbar/placement
       f: "text",
       s: [0, 0],
       l: this.editor.maxLayer + 1,
+      c: toolPreference.color.selected,
       o: toolPreference.opacity,
-      d: [{ insert: "Example Text", attributes: { color: "#" + toolPreference.color.selected, font: toolPreference.font, size: toolPreference.size + "px", align: toolPreference.align } }],
+      d: [{ insert: "Example Text", attributes: { font: toolPreference.font, size: toolPreference.size + "px", align: toolPreference.align } }],
       remove: true,
       textfit: true
     };
@@ -9830,10 +9831,12 @@ modules["editor/toolbar/textedit"] = class {
         return;
       }
 
+      let selection = quill.getSelection();
+
       let change = delta.ops[delta.ops.length - 1];
       if (change != null) {
-        if (change.insert != null && change.insert == "\n") {
-          let currentFormats = quill.getFormat(quill.getSelection().index - 1, 1);
+        if (change.insert != null && change.insert == "\n" && selection != null) {
+          let currentFormats = quill.getFormat(selection.index - 1, 1);
           await applyFormats(currentFormats);
         }
       }
@@ -9868,7 +9871,7 @@ modules["editor/toolbar/textedit"] = class {
       }
       if (hasInsert == true) {
         lastFormatting = quill.getFormat();
-      } else if ((delta.ops[delta.ops.length - 1] ?? {}).delete != null) {
+      } else if ((delta.ops[delta.ops.length - 1] ?? {}).delete != null && (selection ?? {}).length < 1) {
         await applyFormats(lastFormatting);
       }
       await this.toolbar.saveSelecting(() => { return saveObj; }, { refreshActionBar: false, saveHistory: saveHistory });

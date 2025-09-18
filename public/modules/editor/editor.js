@@ -25,7 +25,7 @@ modules["editor/editor"] = class {
     ".eAnnotation > svg": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: none; overflow: visible`,
     ".eAnnotation > svg > *": `pointer-events: visiblepainted`,
 
-    ".eAnnotation .ql-editor": `padding: 0 !important; overflow-y: unset !important; font-family: var(--font); font-size: 14px`,
+    ".eAnnotation .ql-editor": `padding: 0 !important; overflow-y: unset !important; font-family: var(--font); font-size: 14px; line-height: unset`,
     ".eAnnotation .ql-editor > *": `cursor: unset`,
     ".eAnnotation .ql-editor ol": `padding: unset`,
     ".eAnnotation:not([selected]) .ql-editor a": `pointer-events: none !important`,

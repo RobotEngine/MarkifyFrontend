@@ -5234,7 +5234,9 @@ modules["editor/toolbar/pen"] = class {
     if (this.annotation == null) {
       return;
     }
-    this.annotation.render.d = this.editor.math.simplifyPath(this.annotation.render.d, .5 / this.editor.zoom);
+    let original = this.annotation.render.d.length;
+    this.annotation.render.d = this.editor.math.simplifyPath(this.annotation.render.d, 1 / (2.5 * Math.pow(Math.E, .5 * this.editor.zoom))); //.5 / this.editor.zoom
+    console.log(original, this.annotation.render.d.length);
     if (this.STRAITEN_CHECK == true) {
       if (this.editor.math.relativelyStraight(this.annotation.render.d, 5 * this.editor.zoom) == true) {
         this.annotation.render.d = [this.annotation.render.d[0], this.annotation.render.d[1], this.annotation.render.d[this.annotation.render.d.length - 2], this.annotation.render.d[this.annotation.render.d.length - 1]]; // Strait line

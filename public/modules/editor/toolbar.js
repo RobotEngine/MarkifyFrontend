@@ -10003,7 +10003,7 @@ modules["editor/toolbar/font"] = class {
     ".eSubToolFontSize": `padding: 0 4px; background: var(--pageColor); border-radius: 6px; color: var(--darkGray); font-size: 24px; font-weight: 700; text-wrap: nowrap`,
 
     ".eSubToolFontContainer": `box-sizing: border-box; display: flex; flex-direction: column; gap: 6px; max-width: 100%; padding: 6px; align-items: center`,
-    ".eFontOption": `display: flex; width: 100%; height: 36px; padding: 4px; border-radius: 6px; font-weight: 600; transition: .15s`,
+    ".eFontOption": `display: flex; max-width: 100%; width: 154px; height: 36px; padding: 4px; border-radius: 6px; font-weight: 600; transition: .15s`,
     ".eFontOption svg": `height: 100%; transition: .1s`,
     ".eFontOption:hover": `background: var(--hover)`,
     ".eFontOption[selected]": `background: var(--theme) !important`,
@@ -10065,6 +10065,7 @@ modules["editor/toolbar/font"] = class {
       if (enabled == true) {
         source = "user";
       }
+      await this.editor.text.loadFont(font);
       if (selection != null && enabled == true) {
         quill.format("font", font, source);
       } else {

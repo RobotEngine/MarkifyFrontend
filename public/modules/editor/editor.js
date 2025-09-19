@@ -28,6 +28,7 @@ modules["editor/editor"] = class {
     ".eAnnotation .ql-editor": `padding: 0 !important; overflow-y: unset !important; font-family: var(--font); font-size: 14px; line-height: inherit`,
     ".eAnnotation .ql-editor > *": `cursor: unset`,
     ".eAnnotation .ql-editor ol": `padding: unset`,
+    ".eAnnotation .ql-editor a": `color: var(--theme) !important`,
     ".eAnnotation:not([selected]) .ql-editor a": `pointer-events: none !important`,
     
     ".eReaction": `display: flex; padding: 2px; background: rgba(255, 255, 255, .8); border: solid 2px rgba(0, 0, 0, 0); border-radius: 8px; align-items: center; overflow: hidden; color: #2F2F2F`,
@@ -3020,11 +3021,18 @@ modules["editor/editor"] = class {
       if (fontInfo == null) {
         return;
       }
-      return new Promise(async (resolve) => {
+      if (this.text.loadedFonts[font] != null) {
+        return;
+      }
+      if (this.text.loadingFonts[font] != null) {
+        return this.text.loadingFonts[font];
+      }
+      let fetchFont = new Promise(async (resolve) => {
         let newFontLink = document.createElement("link");
+        this.text.loadingFonts[font] = newFontLink;
         newFontLink.rel = "stylesheet";
         head.appendChild(newFontLink);
-        newFontLink.addEventListener("load", () => {
+        newFontLink.addEventListener("load", async () => {
           let newRules = {};
           newRules[".ql-editor .ql-font-" + font] = "font-family: " + '"' + fontInfo[0] + '"';
           addCSS(newRules);
@@ -3048,6 +3056,10 @@ modules["editor/editor"] = class {
           resolve();
         });*/
       });
+      if (this.exporting == true) {
+        this.exportPromises.push(fetchFont);
+      }
+      return fetchFont;
     }
     this.text.checkFonts = (type, delta) => {
       if (type != "text-change") {
@@ -3058,18 +3070,7 @@ modules["editor/editor"] = class {
         if (font == null) {
           continue;
         }
-        if (this.text.loadedFonts[font] != null) {
-          continue;
-        }
-        if (this.text.loadingFonts[font] != null) {
-          continue;
-        }
-        this.text.loadingFonts[font] = true;
-        if (this.exporting != true) {
-          this.text.loadFont(font);
-        } else {
-          this.exportPromises.push(this.text.loadFont(font));
-        }
+        this.text.loadFont(font);
       }
     }
     this.text.getCurrentCaretPosition = (element) => {

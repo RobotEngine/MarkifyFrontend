@@ -22,7 +22,7 @@ const configs = {
 };
 
 const config = configs["prodTesting"];
-const version = "1.4.58"; // Big Update . Small Feature Release . Bug Fix
+const version = "1.5.0"; // Big Update . Small Feature Release . Bug Fix
 
 const serverURL = config.server;
 const assetURL = config.assets;
@@ -511,6 +511,9 @@ let clientPosition = (event, type) => {
 
 let cleanString = (str) => {
   return str.replace(/\>/g, "&#62;").replace(/\</g, "&#60;");
+}
+let uncleanString = (str) => {
+  return str.replace(/&#62;/g, ">").replace(/&#60;/g, "<");
 }
 
 let isValidURL = (urlString) => {

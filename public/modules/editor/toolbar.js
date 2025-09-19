@@ -5846,6 +5846,7 @@ modules["editor/toolbar/comment"] = class {
   css = {
     ".eCommentFrame": `position: absolute; width: 300px; min-height: 48px; left: 0px; top: 0px; opacity: 0; transform: scale(0); z-index: 101; border-radius: 24px; transition: transform .2s, opacity .2s; background: var(--pageColor); user-select: text`,
     ".eCommentFrame:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; box-shadow: 0px 0px 6px var(--theme); opacity: .6; pointer-events: none`,
+    ".eCommentFrame .ql-editor": `padding: 0 !important; overflow-y: unset !important; font-family: var(--font); font-size: inherit; line-height: inherit`,
     ".eCommentScrollContainer": `width: 100%; height: fit-content; overflow: hidden; border-radius: inherit`,
     ".eCommentScroll": `width: 100%; height: fit-content; max-height: min(var(--maxToolbarHeight), 500px); overflow-y: auto`,
     ".eCommentHolder": `display: flex; flex-direction: column; box-sizing: border-box; width: 100%; height: fit-content; padding: 0 8px; gap: 16px`,
@@ -5881,8 +5882,7 @@ modules["editor/toolbar/comment"] = class {
     ".eCommentContainer div[content] div[header] div[actions] button[selected] > svg": `filter: brightness(0) invert(1)`,
     ".eCommentContainer div[content] div[text]": `box-sizing: border-box; width: 100%; height: fit-content; font-size: 14px; outline: none`,
     ".eCommentItem[new] .eCommentContainer div[content] div[text]": `padding: 6px`,
-    ".eCommentItem[new] .eCommentContainer div[content] div[text]:empty:before": `content: "Write your Comment"; display: block; opacity: .5; pointer-events: none`,
-    ".eCommentItem:not([new]) .eCommentContainer div[content] div[text][contenteditable]": `padding: 4px; border: solid 3px var(--secondary); border-radius: 8px`,
+    ".eCommentItem:not([new]) .eCommentContainer div[content] div[text][active]": `padding: 4px; border: solid 3px var(--secondary); border-radius: 8px`,
     ".eCommentItem > button": `position: sticky; display: flex; width: 36px; height: 36px; top: 6px; margin: 6px 6px 6px 0; justify-content: center; align-items: center; background: var(--theme); border-radius: 18px`,
     ".eCommentItem > button div[image]": `--themeColor: #fff; flex-shrink: 0; width: 28px; height: 28px`,
     ".eCommentItem > button div[image] svg": `width: 100%; height: 100%`,
@@ -5897,7 +5897,6 @@ modules["editor/toolbar/comment"] = class {
     ".eCommentReply > div[profileholder] div[profile] img": `width: 100%; height: 100%; object-fit: cover; border-radius: inherit`,
     ".eCommentReply > div[profileholder] div[profile]:after": `content: ""; position: absolute; width: 100%; height: 100%; padding: 3px; left: -3px; top: -3px; border-radius: inherit; box-shadow: 0 0 4px var(--themeColor); opacity: .6`,
     ".eCommentReply > div[text]": `box-sizing: border-box; flex: 1; padding: 6px 10px; min-height: 32px; max-height: 120px; background: rgba(var(--hoverRGB), .3); outline: none; border-radius: 16px; font-size: 14px; text-align: left; align-content: center; overflow: auto`,
-    ".eCommentReply > div[text]:empty:before": `content: "Write a Reply"; display: block; opacity: .5; pointer-events: none`,
     ".eCommentReply > button": `display: flex; width: 32px; height: 32px; margin: auto 0 0 6px; justify-content: center; align-items: center; background: var(--theme); border-radius: 16px`,
     ".eCommentReply > button div[image]": `--themeColor: #fff; flex-shrink: 0; width: 26px; height: 26px`,
     ".eCommentReply > button div[image] svg": `width: 100%; height: 100%`
@@ -5984,7 +5983,7 @@ modules["editor/toolbar/comment"] = class {
       holder.innerHTML = `<div class="eCommentItem" new>
         <div class="eCommentContainer">
           <div content>
-            <div text contenteditable></div>
+            <div text></div>
           </div>
         </div>
         <button disabled><div image></div></button>
@@ -5993,19 +5992,30 @@ modules["editor/toolbar/comment"] = class {
       let commentText = commentItem.querySelector("div[text]");
       let commentSendButton = commentItem.querySelector("button");
       setSVG(commentSendButton.querySelector("div[image]"), "../images/editor/actions/send.svg");
-      commentText.addEventListener("input", () => {
+      /*commentText.addEventListener("input", () => {
         if (commentText.textContent != "") {
           commentSendButton.removeAttribute("disabled");
         } else {
           commentSendButton.setAttribute("disabled", "");
         }
+      });*/
+      //commentText.addEventListener("paste", clipBoardRead);
+      let quill = new (await this.editor.text.getQuill())(commentText, {
+        formats: ["bold", "italic", "underline", "strike", "link"],
+        placeholder: "Write your Comment"
       });
-      commentText.addEventListener("paste", clipBoardRead);
+      quill.on("text-change", () => {
+        if (commentText.textContent.length > 0) {
+          commentSendButton.removeAttribute("disabled");
+        } else {
+          commentSendButton.setAttribute("disabled", "");
+        }
+      });
       commentSendButton.addEventListener("click", async () => {
         if (commentText.textContent == "") {
           return this.closeCommentFrame();
         }
-        let addText = [];
+        /*let addText = [];
         for (let i = 0; i < commentText.childNodes.length; i++) {
           let text = commentText.childNodes[i].textContent;
           if (text == "") {
@@ -6019,7 +6029,8 @@ modules["editor/toolbar/comment"] = class {
         while (addText[addText.length - 1].trim() == "") {
           addText.splice(addText.length - 1, 1);
         }
-        annotation.render.d.b = addText;
+        annotation.render.d.b = addText;*/
+        annotation.render.d = quill.getContents().ops;
         annotation.render.time = getEpoch();
         await this.editor.save.push(annotation.render);
         //await this.editor.history.push("remove", [{ _id: annotation.render._id }]);
@@ -6032,7 +6043,7 @@ modules["editor/toolbar/comment"] = class {
 
       this.updateCommentFrame();
 
-      commentText.focus();
+      quill.focus();
 
       this.frame.style.transform = "scale(1)";
       this.frame.style.opacity = 1;
@@ -6102,7 +6113,7 @@ modules["editor/toolbar/comment"] = class {
       comment.setAttribute("time", setTime);
 
       let commentTx = comment.querySelector("div[text]");
-      if (commentTx.hasAttribute("contenteditable") == false) {
+      /*if (commentTx.hasAttribute("contenteditable") == false) {
         if (setTime != null) {
           let timeTx = comment.querySelector("div[time]");
           timeTx.textContent = timeSince(setTime);
@@ -6120,6 +6131,13 @@ modules["editor/toolbar/comment"] = class {
           setHTML += addHTML;
         }
         commentTx.innerHTML = setHTML;
+      }*/
+      if (commentTx.querySelector('.ql-editor[contenteditable="true"]') == null) {
+        let quill = new (await this.editor.text.getQuill())(commentTx, {
+          formats: ["bold", "italic", "underline", "strike", "link"],
+          readOnly: true
+        });
+        quill.setContents(this.editor.text.uncleanQuill(render.d ?? []));
       }
 
       let modify = render.a ?? render.m;
@@ -6208,7 +6226,7 @@ modules["editor/toolbar/comment"] = class {
         <div profileholder>
           <div cursor></div>
         </div>
-        <div class="customScroll" text contenteditable></div>
+        <div class="customScroll" text></div>
         <button style="display: none"><div image></div></button>
       </div>`);
       let commentReply = scrollHolder.querySelector(".eCommentReply");
@@ -6222,7 +6240,7 @@ modules["editor/toolbar/comment"] = class {
         profileHolder.innerHTML = `<div profile><img src="../images/profiles/default.svg" /></div>`;
         profileHolder.querySelector("div[profile] img").src = selfCollaborator.image;
       }
-      replyTx.addEventListener("input", () => {
+      /*replyTx.addEventListener("input", () => {
         if (replyTx.textContent != "") {
           replySendButton.style.removeProperty("display");
         } else {
@@ -6230,12 +6248,23 @@ modules["editor/toolbar/comment"] = class {
         }
         this.updateCommentFrame();
       });
-      replyTx.addEventListener("paste", clipBoardRead);
+      replyTx.addEventListener("paste", clipBoardRead);*/
+      let replyQuill = new (await this.editor.text.getQuill())(replyTx, {
+        formats: ["bold", "italic", "underline", "strike", "link"],
+        placeholder: "Write a Reply"
+      });
+      replyQuill.on("text-change", () => {
+        if (replyTx.textContent.length > 0) {
+          replySendButton.style.removeProperty("display");
+        } else {
+          replySendButton.style.display = "none";
+        }
+      });
       replySendButton.addEventListener("click", async () => {
         if (replyTx.textContent == "") {
           return;
         }
-        let addText = [];
+        /*let addText = [];
         for (let i = 0; i < replyTx.childNodes.length; i++) {
           let text = replyTx.childNodes[i].textContent;
           if (text == "") {
@@ -6248,18 +6277,18 @@ modules["editor/toolbar/comment"] = class {
         }
         while (addText[addText.length - 1].trim() == "") {
           addText.splice(addText.length - 1, 1);
-        }
+        }*/
         let newComment = {
           _id: this.editor.render.tempID(),
           f: "comment",
           parent: this.annotation.render._id,
-          d: { b: addText },
+          d: replyQuill.getContents().ops, //{ b: addText },
           a: this.editor.self.modify,
           time: getEpoch()
         };
 
-        replyTx.textContent = "";
-        replyTx.focus();
+        replyQuill.setContents([]);
+        replyQuill.focus();
         replySendButton.style.display = "none";
         
         await this.editor.save.push(newComment);
@@ -6382,7 +6411,7 @@ modules["editor/toolbar/comment"] = class {
         f: "comment",
         p: [this.editor.math.round(position.x) - (1 / this.editor.zoom), this.editor.math.round(position.y) - (1 / this.editor.zoom)],
         s: [0, 0],
-        d: {},
+        d: [],
         a: this.editor.self.modify
       },
       new: true
@@ -6431,27 +6460,35 @@ modules["dropdowns/editor/toolbar/comment/more"] = class {
     let render = (parent.editor.annotations[commentID] ?? {}).render ?? {};
 
     let editButton = frame.querySelector('.eToolbarCommentMoreAction[option="edit"]');
-    editButton.addEventListener("click", (event) => {
+    editButton.addEventListener("click", async (event) => {
       let commentContent = comment.querySelector(".eCommentContainer > div[content]");
       let commentTx = commentContent.querySelector("div[text]");
 
+      if (parent.lastEditQuill != null) {
+        parent.lastEditQuill.disable();
+        parent.lastEditQuill = null;
+      }
       if (parent.lastEditComment != null) {
-        parent.lastEditComment.querySelector("div[text]").removeAttribute("contenteditable");
+        parent.lastEditComment.querySelector("div[text]").removeAttribute("active");
         let actions = parent.lastEditComment.querySelector(".eCommentEditActions");
         if (actions != null) {
           actions.remove();
         }
         parent.updateComment((parent.editor.annotations[parent.lastEditComment.getAttribute("comment")] ?? {}).render);
+        parent.lastEditComment = null;
       }
-      parent.lastEditComment = comment;
 
-      commentTx.removeEventListener("paste", parent.pasteListener);
-      parent.pasteListener = (event) => { clipBoardRead(event); }
-      commentTx.addEventListener("paste", parent.pasteListener);
+      parent.lastEditQuill = new (await parent.editor.text.getQuill())(commentTx, {
+        formats: ["bold", "italic", "underline", "strike", "link"]
+      });
+      parent.lastEditComment = comment;
 
       commentContent.insertAdjacentHTML("beforeend", `<div class="eCommentEditActions"><button save>Save</button><button cancel>Cancel</button></div>`);
       commentContent.querySelector(".eCommentEditActions button[save]").addEventListener("click", async () => {
-        commentTx.removeAttribute("contenteditable");
+        let save = { _id: commentID, d: parent.lastEditQuill.getContents().ops };
+        parent.lastEditQuill.disable();
+        parent.lastEditQuill = null;
+        commentTx.removeAttribute("active");
         let actions = comment.querySelector(".eCommentEditActions");
         if (actions != null) {
           actions.remove();
@@ -6459,7 +6496,7 @@ modules["dropdowns/editor/toolbar/comment/more"] = class {
         if (commentTx.textContent == "") {
           return parent.updateComment((parent.editor.annotations[commentID] ?? {}).render);
         }
-        let addText = [];
+        /*let addText = [];
         for (let i = 0; i < commentTx.childNodes.length; i++) {
           let text = commentTx.childNodes[i].textContent;
           if (text == "") {
@@ -6473,21 +6510,26 @@ modules["dropdowns/editor/toolbar/comment/more"] = class {
         while (addText[addText.length - 1].trim() == "") {
           addText.splice(addText.length - 1, 1);
         }
-        let save = { _id: commentID, d: { b: addText } };
+        let save = { _id: commentID, d: { b: addText } };*/
         await parent.editor.save.push(save);
         parent.editor.realtimeSelect[save._id] = save;
         await parent.editor.realtime.forceShort();
       });
       commentContent.querySelector(".eCommentEditActions button[cancel]").addEventListener("click", () => {
-        commentTx.removeAttribute("contenteditable");
+        parent.lastEditQuill.disable();
+        parent.lastEditQuill = null;
+        commentTx.removeAttribute("active");
         let actions = comment.querySelector(".eCommentEditActions");
         if (actions != null) {
           actions.remove();
         }
         parent.updateComment((parent.editor.annotations[commentID] ?? {}).render);
       });
-      commentTx.setAttribute("contenteditable", "");
-      parent.editor.text.startTextSelection(commentTx, event);
+      
+      parent.lastEditQuill.focus();
+      parent.lastEditQuill.setSelection(0, parent.lastEditQuill.getLength());
+      commentTx.setAttribute("active", "");
+
       parent.updateCommentFrame();
     });
     setSVG(editButton.querySelector("div"), "../images/tooltips/edit.svg");
@@ -6577,6 +6619,7 @@ modules["editor/toolbar/sidemenu/comment"] = class {
     ".eSideMenuCommentItem button[selected]:before": `opacity: 1 !important`,
     ".eSideMenuCommentItem button[selected] > svg": `filter: brightness(0) invert(1)`,
     ".eSideMenuCommentItem div[text]": `box-sizing: border-box; width: 100%; max-width: 220px; height: fit-content; font-size: 12px; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden`,
+    ".eSideMenuCommentItem div[text] .ql-editor": `padding: 0 !important; overflow-y: unset !important; font-family: var(--font); font-size: inherit; line-height: inherit; pointer-events: none`,
     ".eSideMenuCommentItem div[replycount]": `display: none; width: 100%; max-width: 220px; margin-top: 4px; color: var(--theme); font-size: 12px; font-weight: 600`
   };
   //maxLoadAmount = 100;
@@ -6639,7 +6682,7 @@ modules["editor/toolbar/sidemenu/comment"] = class {
       }
 
       let commentTx = comment.querySelector("div[text]");
-      let richText = render.d ?? {};
+      /*let richText = render.d ?? {};
       let setHTML = "";
       for (let i = 0; i < (richText.b ?? []).length; i++) {
         let addHTML = "";
@@ -6650,7 +6693,12 @@ modules["editor/toolbar/sidemenu/comment"] = class {
         }
         setHTML += addHTML;
       }
-      commentTx.innerHTML = setHTML;
+      commentTx.innerHTML = setHTML;*/
+      let quill = new (await this.editor.text.getQuill())(commentTx, {
+        formats: ["bold", "italic", "underline", "strike", "link"],
+        readOnly: true
+      });
+      quill.setContents(this.editor.text.uncleanQuill(render.d ?? []));
 
       let replyTx = comment.querySelector("div[replycount]");
       let replyCount = Object.keys((this.editor.comments[render._id] ?? {}).replies ?? {}).length;

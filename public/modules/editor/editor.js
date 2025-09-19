@@ -2835,6 +2835,11 @@ modules["editor/editor"] = class {
       }
       return Quill;
     }
+    this.text.uncleanQuill = (content) => {
+      return content.map((value) => {
+        return { ...value, insert: uncleanString(value.insert ?? "") };
+      });
+    }
     if (window.QuillSetup != true) {
       window.QuillSetup = true;
       (async () => { // Setup blots:
@@ -4672,7 +4677,7 @@ modules["editor/render/annotation/text"] = class extends modules["editor/render/
         this.quill.on("editor-change", this.parent.text.checkFonts);
       }
       if (this.quill.isEnabled() == false) {
-        this.quill.setContents(this.properties.d ?? [], "silent");
+        this.quill.setContents(this.parent.text.uncleanQuill(this.properties.d ?? []), "silent");
         if (this.properties._id == null) {
           let format = ((this.properties.d ?? [])[0] ?? {}).attributes ?? {}; //(quill.getContents().ops[0] ?? {}).attributes ?? {};
           let keys = Object.keys(format);
@@ -5334,7 +5339,7 @@ modules["editor/render/annotation/sticky"] = class extends modules["editor/rende
         this.quill.on("editor-change", this.parent.text.checkFonts);
       }
       if (this.quill.isEnabled() == false) {
-        this.quill.setContents(this.properties.d ?? [], "silent");
+        this.quill.setContents(this.parent.text.uncleanQuill(this.properties.d ?? []), "silent");
       }
     }
     if (this.parent.exporting != true) {
@@ -5551,7 +5556,7 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
 
     let comment = this.element.querySelector("div[commentholder] > div[comment]");
     let content = comment.querySelector("div[content]");
-    let richText = this.properties.d ?? {};
+    /*let richText = this.properties.d ?? {};
     let setHTML = "";
     for (let i = 0; i < (richText.b ?? []).length; i++) {
       let addHTML = "";
@@ -5562,7 +5567,8 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
       }
       setHTML += addHTML;
     }
-    content.querySelector("div[text]").innerHTML = setHTML;
+    content.querySelector("div[text]").innerHTML = setHTML;*/
+
     this.replyCount = content.querySelector("div[replycount");
 
     this.updateCommentSize = () => {
@@ -5617,6 +5623,27 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
     
     this.setID();
     this.setAnimate();
+
+    let loadText = async () => {
+      if (this.quill == null) {
+        this.quill = new (await this.parent.text.getQuill())(content.querySelector("div[text]"), {
+          formats: ["bold", "italic", "underline", "strike", "link"],
+          modules: {
+            history: { maxStack: 0 }
+          },
+          readOnly: true
+        });
+        this.quill.on("editor-change", this.parent.text.checkFonts);
+      }
+      if (this.quill.isEnabled() == false) {
+        this.quill.setContents(this.parent.text.uncleanQuill(this.properties.d ?? []), "silent");
+      }
+    }
+    if (this.parent.exporting != true) {
+      loadText();
+    } else {
+      this.parent.exportPromises.push(new Promise(async (resolve) => { resolve(await loadText()); }));
+    }
 
     if (this.commentModule != null) {
       this.commentModule.annotation = this.annotation;

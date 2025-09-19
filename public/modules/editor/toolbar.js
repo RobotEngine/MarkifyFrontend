@@ -10553,8 +10553,15 @@ modules["editor/toolbar/link"] = class {
     }
     this.redraw();
 
+    let originalValue;
+    linkInput.addEventListener("focus", () => {
+      originalValue = linkInput.value;
+    });
     let finish = async () => {
       let value = linkInput.value;
+      if (value == originalValue) {
+        return;
+      }
       if (value.length > 0 && value.startsWith("http://") == false && value.startsWith("https://") == false) {
         value = "https://" + value;
       }

@@ -5155,35 +5155,15 @@ modules["editor/toolbar/pen"] = class {
     x -= halfT;
     y -= halfT;
     if (this.FORCE_LINE != true && event.shiftKey == false) {
-      if (x > this.annotation.render.s[0]) {
-        this.annotation.render.s[0] = x; //this.editor.math.round(x);
-      }
-      if (y > this.annotation.render.s[1]) {
-        this.annotation.render.s[1] = y; //this.editor.math.round(y);
-      }
-      //let sizeIncX = this.editor.math.round(x);
-      if (x < 0) {
-        for (let i = 0; i < this.annotation.render.d.length; i += 2) {
-          this.annotation.render.d[i] -= x; //this.editor.math.round(this.annotation.render.d[i] - x);
+      if (this.annotation.render.d.length < 5 || this.editor.math.distance((this.lastInsertedPoint ?? {}).x ?? x, (this.lastInsertedPoint ?? {}).y ?? y, x, y) >= .5) { // Add Point:
+        if (this.annotation.render.d.length > 2) {
+          let pointEndIndex = this.annotation.render.d.length - 1;
+          ([x, y] = this.editor.math.lowPassFilter([x, y], [this.annotation.render.d[pointEndIndex - 1], this.annotation.render.d[pointEndIndex]]));
         }
-        this.annotation.render.s[0] -= x; //this.editor.math.round(this.annotation.render.s[0] - x);
-        this.annotation.render.p[0] += x; //this.editor.math.round(this.annotation.render.p[0] + x);
-        x = 0;
-      }
-      //let sizeIncY = this.editor.math.round(y);
-      if (y < 0) {
-        for (let i = 1; i < this.annotation.render.d.length; i += 2) {
-          this.annotation.render.d[i] -= y; //this.editor.math.round(this.annotation.render.d[i] - y);
-        }
-        this.annotation.render.s[1] -= y; //this.editor.math.round(this.annotation.render.s[1] - y);
-        this.annotation.render.p[1] += y; //this.editor.math.round(this.annotation.render.p[1] + y);
-        y = 0;
-      }
-      if (this.annotation.render.d.length < 5 || this.editor.math.distance((this.lastInsertedPoint ?? {}).x ?? x, (this.lastInsertedPoint ?? {}).y ?? y, mouseX, mouseY) >= .2 / this.editor.zoom) { // Add Point:
         this.annotation.render.d.push(x);
         this.annotation.render.d.push(y);
-        this.lastInsertedPoint = { x: mouseX, y: mouseY };
-      } else { // Merge Point:
+        this.lastInsertedPoint = { x, y };
+      } else { // Reuse Point
         let pointEndIndex = this.annotation.render.d.length - 1;
         this.annotation.render.d[pointEndIndex - 1] = x;
         this.annotation.render.d[pointEndIndex] = y;
@@ -5234,9 +5214,7 @@ modules["editor/toolbar/pen"] = class {
     if (this.annotation == null) {
       return;
     }
-    let original = this.annotation.render.d.length;
     this.annotation.render.d = this.editor.math.simplifyPath(this.annotation.render.d, 1 / (2.5 * Math.pow(Math.E, .5 * this.editor.zoom))); //.5 / this.editor.zoom
-    console.log(original, this.annotation.render.d.length);
     if (this.STRAITEN_CHECK == true) {
       if (this.editor.math.relativelyStraight(this.annotation.render.d, 5 * this.editor.zoom) == true) {
         this.annotation.render.d = [this.annotation.render.d[0], this.annotation.render.d[1], this.annotation.render.d[this.annotation.render.d.length - 2], this.annotation.render.d[this.annotation.render.d.length - 1]]; // Strait line
@@ -5248,6 +5226,42 @@ modules["editor/toolbar/pen"] = class {
           this.annotation.render.d[3] = 0;
         }
       }
+    }
+
+    let maxX;
+    let minX;
+    let maxY;
+    let minY;
+    for (let i = 0; i < this.annotation.render.d.length; i++) {
+      if (i % 2 == 0) {
+        let x = this.annotation.render.d[i];
+        maxX = Math.max(x, maxX ?? x);
+        minX = Math.min(x, minX ?? x);
+      } else {
+        let y = this.annotation.render.d[i];
+        maxY = Math.max(y, maxY ?? y);
+        minY = Math.min(y, minY ?? y);
+      }
+    }
+    if (maxX > this.annotation.render.s[0]) {
+      this.annotation.render.s[0] = maxX;
+    }
+    if (maxY > this.annotation.render.s[1]) {
+      this.annotation.render.s[1] = maxY;
+    }
+    if (minX < 0) {
+      for (let i = 0; i < this.annotation.render.d.length; i += 2) {
+        this.annotation.render.d[i] -= minX;
+      }
+      this.annotation.render.s[0] -= minX;
+      this.annotation.render.p[0] += minX;
+    }
+    if (minY < 0) {
+      for (let i = 1; i < this.annotation.render.d.length; i += 2) {
+        this.annotation.render.d[i] -= minY;
+      }
+      this.annotation.render.s[1] -= minY;
+      this.annotation.render.p[1] += minY;
     }
 
     delete this.editor.realtimeSelect[this.annotation.render._id];

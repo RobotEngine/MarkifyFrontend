@@ -4452,7 +4452,7 @@ modules["editor/render/annotation/draw"] = class extends modules["editor/render/
     } else {
       let scaleW = 1;
       let scaleH = 1;
-      if (this.properties.sync != null) {
+      if (this.properties.s[0] > 0 || this.properties.s[1] > 0) {
         let largestX = this.properties.d[0];
         let largestY = this.properties.d[1];
         for (let i = 2; i < this.properties.d.length; i += 2) {
@@ -4542,7 +4542,7 @@ modules["editor/render/annotation/markup"] = class extends modules["editor/rende
     } else {
       let scaleW = 1;
       let scaleH = 1;
-      if (this.properties.sync != null) {
+      if (this.properties.s[0] > 0 || this.properties.s[1] > 0) {
         let largestX = this.properties.d[0];
         let largestY = this.properties.d[1];
         for (let i = 2; i < this.properties.d.length; i += 2) {

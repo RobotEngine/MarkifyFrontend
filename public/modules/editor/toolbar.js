@@ -5264,12 +5264,11 @@ modules["editor/toolbar/pen"] = class {
       this.annotation.render.p[1] += minY;
     }
 
-    delete this.editor.realtimeSelect[this.annotation.render._id];
-
     await this.editor.save.push(this.annotation.render);
     await this.editor.history.push("remove", [{ _id: this.annotation.render._id }]);
 
     this.annotation.render.done = true;
+    this.editor.realtimeSelect[this.annotation.render._id] = this.annotation.render;
     await this.editor.realtime.forceShort();
     
     this.disable();

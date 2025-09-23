@@ -5169,10 +5169,14 @@ modules["editor/toolbar/pen"] = class {
         this.drawPoints[pointEndIndex] = y;
       }
       if (this.drawPoints.length > 4) {
-        for (let i = this.annotation.render.d.length - 2; i < this.drawPoints.length; i += 2) {
+        for (let i = this.annotation.render.d.length - 2; i < this.drawPoints.length - 4; i += 2) {
           let [updateX, updateY] = this.editor.math.lowPassFilter([this.drawPoints[i], this.drawPoints[i + 1]], [this.annotation.render.d[i - 2], this.annotation.render.d[i - 1]]);
           this.annotation.render.d[i] = updateX;
           this.annotation.render.d[i + 1] = updateY;
+        }
+        for (let i = this.drawPoints.length - 4; i < this.drawPoints.length; i += 2) {
+          this.annotation.render.d[i] = this.drawPoints[i];
+          this.annotation.render.d[i + 1] = this.drawPoints[i + 1];
         }
       } else {
         this.annotation.render.d = [...this.drawPoints];

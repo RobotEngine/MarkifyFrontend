@@ -5073,6 +5073,7 @@ modules["editor/toolbar/pen"] = class {
       },
       animate: false
     };
+    this.drawPoints = [];
     this.USE_COALESCED_EVENTS = true;
     this.editor.realtimeSelect[this.annotation.render._id] = this.annotation.render;
     await this.editor.render.create(this.annotation);
@@ -5155,18 +5156,17 @@ modules["editor/toolbar/pen"] = class {
     x -= halfT;
     y -= halfT;
     if (this.FORCE_LINE != true && event.shiftKey == false) {
-      if (this.annotation.render.d.length < 5 || this.editor.math.distance((this.lastInsertedPoint ?? {}).x ?? x, (this.lastInsertedPoint ?? {}).y ?? y, x, y) >= .5) { // Add Point:
-        if (this.annotation.render.d.length > 2) {
+      if (this.drawPoints.length < 5 || this.editor.math.distance((this.lastInsertedPoint ?? {}).x ?? x, (this.lastInsertedPoint ?? {}).y ?? y, x, y) >= .5) { // Add Point:
+        /*if (this.annotation.render.d.length > 2) {
           let pointEndIndex = this.annotation.render.d.length - 1;
           ([x, y] = this.editor.math.lowPassFilter([x, y], [this.annotation.render.d[pointEndIndex - 1], this.annotation.render.d[pointEndIndex]]));
-        }
-        this.annotation.render.d.push(x);
-        this.annotation.render.d.push(y);
+        }*/
+        this.drawPoints.push(x, y);
         this.lastInsertedPoint = { x, y };
       } else { // Reuse Point
-        let pointEndIndex = this.annotation.render.d.length - 1;
-        this.annotation.render.d[pointEndIndex - 1] = x;
-        this.annotation.render.d[pointEndIndex] = y;
+        let pointEndIndex = this.drawPoints.length - 1;
+        this.drawPoints[pointEndIndex - 1] = x;
+        this.drawPoints[pointEndIndex] = y;
       }
     } else {
       this.annotation.render.d = [this.annotation.render.d[0], this.annotation.render.d[1]];
@@ -5199,6 +5199,15 @@ modules["editor/toolbar/pen"] = class {
         this.annotation.render.d[1] = 0;
         this.annotation.render.d[3] = 0;
       }
+    }
+    if (this.drawPoints.length > 4) {
+      for (let i = this.annotation.render.d.length - 2; i < this.drawPoints.length; i += 2) {
+        let [updateX, updateY] = this.editor.math.lowPassFilter([this.drawPoints[i], this.drawPoints[i + 1]], [this.drawPoints[i - 2], this.drawPoints[i - 1]]);
+        this.annotation.render.d[i] = updateX;
+        this.annotation.render.d[i + 1] = updateY;
+      }
+    } else {
+      this.annotation.render.d = [...this.drawPoints];
     }
     await this.editor.render.create(this.annotation);
     this.editor.realtimeSelect[this.annotation.render._id] = this.annotation.render;

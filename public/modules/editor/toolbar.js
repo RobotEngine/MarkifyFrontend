@@ -5435,11 +5435,15 @@ modules["editor/toolbar/eraser"] = class {
         let scaleWidth = annotation.component.cache.scaleWidth ?? 1;
         let scaleHeight = annotation.component.cache.scaleHeight ?? 1;
         let halfThickness = rect.thickness / 2;
-        for (let i = 2; i < (render.d ?? []).length; i += 2) {
-          let prevRelativeX = (render.d[i - 2] * scaleWidth) - halfWidth + halfThickness;
-          let prevRelativeY = (render.d[i - 1] * scaleHeight) - halfHeight + halfThickness;
-          let pRelativeX = (render.d[i] * scaleWidth) - halfWidth + halfThickness;
-          let pRelativeY = (render.d[i + 1] * scaleHeight) - halfHeight + halfThickness;
+        let points = render.d ?? [];
+        if (points.length < 4) {
+          points = [0, 0, .01, .01];
+        }
+        for (let i = 2; i < points.length; i += 2) {
+          let prevRelativeX = (points[i - 2] * scaleWidth) - halfWidth + halfThickness;
+          let prevRelativeY = (points[i - 1] * scaleHeight) - halfHeight + halfThickness;
+          let pRelativeX = (points[i] * scaleWidth) - halfWidth + halfThickness;
+          let pRelativeY = (points[i + 1] * scaleHeight) - halfHeight + halfThickness;
           if (render.s[0] < 0) {
             prevRelativeX *= -1;
             pRelativeX *= -1;

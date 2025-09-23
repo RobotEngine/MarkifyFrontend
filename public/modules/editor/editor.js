@@ -2843,7 +2843,7 @@ modules["editor/editor"] = class {
       return Quill;
     }
     this.text.uncleanQuill = (content) => {
-      return content.map((value) => {
+      return (content ?? []).map((value) => {
         return { ...value, insert: uncleanString(value.insert ?? "") };
       });
     }
@@ -4447,11 +4447,9 @@ modules["editor/render/annotation/draw"] = class extends modules["editor/render/
     let width = this.properties.s[0] + this.properties.t;
     let height = this.properties.s[1] + this.properties.t;
     let drawSetPoints = "";
-    if (this.properties.d.length == 2) {
-      drawSetPoints = halfT + "," + halfT + " " + (halfT + .01) + "," + (halfT + .01);
-    } else {
-      let scaleW = 1;
-      let scaleH = 1;
+    if (this.properties.d.length > 2) {
+      this.cache.scaleWidth = 1;
+      this.cache.scaleHeight = 1;
       if (this.properties.s[0] > 0 || this.properties.s[1] > 0) {
         let largestX = this.properties.d[0];
         let largestY = this.properties.d[1];
@@ -4460,42 +4458,64 @@ modules["editor/render/annotation/draw"] = class extends modules["editor/render/
           largestY = Math.max(largestY, this.properties.d[i + 1]);
         }
         if (largestX > 0) {
-          scaleW = this.properties.s[0] / largestX;
+          this.cache.scaleWidth = this.properties.s[0] / largestX;
         } else {
-          scaleW = this.properties.s[0];
+          this.cache.scaleWidth = this.properties.s[0];
         }
         if (largestY > 0) {
-          scaleH = this.properties.s[1] / largestY;
+          this.cache.scaleHeight = this.properties.s[1] / largestY;
         } else {
-          scaleH = this.properties.s[1];
+          this.cache.scaleHeight = this.properties.s[1];
         }
       }
-      for (let i = 0; i < this.properties.d.length; i += 2) {
-        drawSetPoints += (halfT + (this.properties.d[i] * scaleW)) + "," + (halfT + (this.properties.d[i + 1] * scaleH)) + " ";
+      drawSetPoints = "M " + (halfT + (this.properties.d[0] * this.cache.scaleWidth)) + "," + (halfT + (this.properties.d[1] * this.cache.scaleHeight));
+      if (this.properties.d.length > 4) {
+        drawSetPoints += " Q ";
+        for (let i = 2; i < this.properties.d.length; i += 2) {
+          //drawSetPoints += (halfT + (this.properties.d[i] * this.cache.scaleWidth)) + "," + (halfT + (this.properties.d[i + 1] * this.cache.scaleHeight)) + " ";
+          let pointX = this.properties.d[i];
+          let pointY = this.properties.d[i + 1];
+          let nextX = this.properties.d[i + 2] ?? pointX;
+          let nextY = this.properties.d[i + 3] ?? pointY;
+          drawSetPoints +=
+            (halfT + (pointX * this.cache.scaleWidth)) + "," + (halfT + (pointY * this.cache.scaleHeight)) + " " +
+            (halfT + (((pointX + nextX) / 2) * this.cache.scaleWidth)) + "," + (halfT + (((pointY + nextY) / 2) * this.cache.scaleHeight)) + " ";
+        }
+      } else {
+        drawSetPoints += " L " + (halfT + (this.properties.d[2] * this.cache.scaleWidth)) + "," + (halfT + (this.properties.d[3] * this.cache.scaleHeight));
       }
+    } else {
+      //drawSetPoints = halfT + "," + halfT + " " + (halfT + .01) + "," + (halfT + .01);
+      drawSetPoints = "M " + halfT + "," + halfT + " L " + (halfT + .01) + "," + (halfT + .01);
     }
     if (this.element == null) {
+      // <polyline stroke-width="${parseFloat(this.properties.t)}" points="${drawSetPoints}" stroke="${"#" + cleanString(this.properties.c)}" opacity="${parseFloat(this.properties.o) / 100}"/>
       this.holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" style="width: ${width}px; height: ${height}px" new>
         <svg>
-          <polyline stroke-width="${parseFloat(this.properties.t)}" points="${drawSetPoints}" stroke="${"#" + cleanString(this.properties.c)}" opacity="${parseFloat(this.properties.o) / 100}"/>
+          <path stroke-width="${parseFloat(this.properties.t)}" d="${drawSetPoints}" stroke="${"#" + cleanString(this.properties.c)}" opacity="${parseFloat(this.properties.o) / 100}"/>
         </svg>
       </div>`); // viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg"
       this.element = this.holder.querySelector(".eAnnotation[new]");
       this.element.removeAttribute("new");
-      let line = this.element.querySelector("polyline");
+      /*let line = this.element.querySelector("polyline");
       line.setAttribute("fill", "none");
       line.setAttribute("stroke-linecap", "round");
-      line.setAttribute("stroke-linejoin", "round");
+      line.setAttribute("stroke-linejoin", "round");*/
+      let path = this.element.querySelector("path");
+      path.setAttribute("fill", "none");
+      path.setAttribute("stroke-linecap", "round");
+      path.setAttribute("stroke-linejoin", "round");
     } else {
       this.element.style.width = width + "px";
       this.element.style.height = height + "px";
       let svg = this.element.querySelector("svg");
-      let path = svg.querySelector("polyline");
+      let path = svg.querySelector("path"); //svg.querySelector("polyline");
       //svg.setAttribute("viewBox", "0 0 " + width + " " + height);
       path.setAttribute("stroke-width", this.properties.t);
       if (this.cache.lastDrawSetPoints != drawSetPoints) {
         this.cache.lastDrawSetPoints = drawSetPoints;
-        path.setAttribute("points", drawSetPoints);
+        //path.setAttribute("points", drawSetPoints);
+        path.setAttribute("d", drawSetPoints);
       }
       path.setAttribute("stroke", "#" + this.properties.c);
       path.setAttribute("opacity", this.properties.o / 100);
@@ -4540,8 +4560,8 @@ modules["editor/render/annotation/markup"] = class extends modules["editor/rende
       drawSetPoints = (width / 2) + "," + (height / 2) + " " + ((width / 2) + .1) + "," + ((height / 2) + .1);
       path.setAttribute("stroke-width", width);
     } else {
-      let scaleW = 1;
-      let scaleH = 1;
+      this.cache.scaleWidth = 1;
+      this.cache.scaleHeight = 1;
       if (this.properties.s[0] > 0 || this.properties.s[1] > 0) {
         let largestX = this.properties.d[0];
         let largestY = this.properties.d[1];
@@ -4550,18 +4570,18 @@ modules["editor/render/annotation/markup"] = class extends modules["editor/rende
           largestY = Math.max(largestY, this.properties.d[i + 1]);
         }
         if (largestX > 0) {
-          scaleW = this.properties.s[0] / largestX;
+          this.cache.scaleWidth = this.properties.s[0] / largestX;
         } else {
-          scaleW = this.properties.s[0];
+          this.cache.scaleWidth = this.properties.s[0];
         }
         if (largestY > 0) {
-          scaleH = this.properties.s[1] / largestY;
+          this.cache.scaleHeight = this.properties.s[1] / largestY;
         } else {
-          scaleH = this.properties.s[1];
+          this.cache.scaleHeight = this.properties.s[1];
         }
       }
       for (let i = 0; i < this.properties.d.length; i += 2) {
-        drawSetPoints += (halfT + (this.properties.d[i] * scaleW)) + "," + (halfT + (this.properties.d[i + 1] * scaleH)) + " ";
+        drawSetPoints += (halfT + (this.properties.d[i] * this.cache.scaleWidth)) + "," + (halfT + (this.properties.d[i + 1] * this.cache.scaleHeight)) + " ";
       }
       path.setAttribute("stroke-width", this.properties.t);
     }

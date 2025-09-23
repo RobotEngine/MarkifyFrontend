@@ -5410,9 +5410,9 @@ modules["editor/toolbar/eraser"] = class {
         if (anno == null || anno.hasAttribute("hidden") == true) {
           continue;
         }
-        let annoID = anno.getAttribute("anno");
-        let original = this.editor.annotations[annoID] ?? {};
-        let render = original.render;
+        //let annoID = anno.getAttribute("anno");
+        //let original = this.editor.annotations[annoID] ?? {};
+        let render = annotation.render; //original.render;
         if (render == null || render.remove == true) {
           continue;
         }
@@ -5422,15 +5422,48 @@ modules["editor/toolbar/eraser"] = class {
         if (this.editor.utils.isLocked(render) == true) {
           continue;
         }
-        let renderModule = await this.editor.render.getModule(original, render.f);
+        let renderModule = await this.editor.render.getModule(annotation, render.f);
         if (renderModule == null || renderModule.CAN_ERASE != true) {
           continue;
         }
-        let drawing = anno.querySelector(":scope > svg > polyline");
+        // See if valid drawing is by eraser line:
+        let rect = this.editor.utils.getRect(render);
+        let xPos = scaledX - rect.x;
+        let yPos = scaledY - rect.y;
+        let halfWidth = rect.width / 2;
+        let halfHeight = rect.height / 2;
+        let scaleWidth = annotation.component.cache.scaleWidth ?? 1;
+        let scaleHeight = annotation.component.cache.scaleHeight ?? 1;
+        let halfThickness = rect.thickness / 2;
+        for (let i = 2; i < (render.d ?? []).length; i += 2) {
+          let prevRelativeX = (render.d[i - 2] * scaleWidth) - halfWidth + halfThickness;
+          let prevRelativeY = (render.d[i - 1] * scaleHeight) - halfHeight + halfThickness;
+          let pRelativeX = (render.d[i] * scaleWidth) - halfWidth + halfThickness;
+          let pRelativeY = (render.d[i + 1] * scaleHeight) - halfHeight + halfThickness;
+          if (render.s[0] < 0) {
+            prevRelativeX *= -1;
+            pRelativeX *= -1;
+          }
+          if (render.s[1] < 0) {
+            prevRelativeY *= -1;
+            pRelativeY *= -1;
+          }
+          let [prevPointX, prevPointY] = this.editor.math.rotatePoint(prevRelativeX, prevRelativeY, rect.rotation);
+          let [pointX, pointY] = this.editor.math.rotatePoint(pRelativeX, pRelativeY, rect.rotation);
+          if (this.editor.math.isPointOnLine(xPos, yPos, prevPointX + halfWidth, prevPointY + halfHeight, pointX + halfWidth, pointY + halfHeight, Math.max(halfThickness, Math.min(4 / this.editor.zoom, 8))) == true && render.remove != true) {
+            await this.editor.history.push("add", [render]);
+            let updateAnno = { _id: annotation.render._id, remove: true };
+            await this.editor.save.push(updateAnno);
+            this.PUBLISH.u = updateAnno;
+            await this.editor.realtime.forceShort();
+            delete this.PUBLISH.u;
+            continue;
+          }
+        }
+        /*let drawing = anno.querySelector(":scope > svg > polyline");
         if (drawing == null || drawing.hasAttribute("points") == false) {
           continue;
         }
-        let svg = drawing.closest("svg");
         let strokeWidth = parseInt(drawing.getAttribute("stroke-width"));
 
         // See if valid drawing is by eraser line:
@@ -5467,7 +5500,7 @@ modules["editor/toolbar/eraser"] = class {
             delete this.PUBLISH.u;
             continue;
           }
-        }
+        }*/
       }
 
       if (x0 == x1 && y0 == y1) {

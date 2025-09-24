@@ -102,7 +102,7 @@ modules["dropdowns/lesson/file/export"] = class {
       clearTimeout(exportStatus.exportAlertTimeout);
       exportStatus.exportAlertTimeout = setTimeout(() => {
         alertModule.close(exportStatus.exportAlert);
-      }, 30000);
+      }, 60000);
       if (body.type != null && exportStatus.exportAlert != null && exportStatus.exportAlert.hasAttribute("complete") == false) {
         exportStatus.exportAlert.setAttribute("complete", "");
         alertModule.close(exportStatus.exportAlert);

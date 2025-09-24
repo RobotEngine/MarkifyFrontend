@@ -2842,8 +2842,11 @@ modules["editor/editor"] = class {
       }
       return Quill;
     }
-    this.text.uncleanQuill = (content) => {
-      return (content ?? []).map((value) => {
+    this.text.uncleanQuill = (content = []) => {
+      if (content.map == null) {
+        return;
+      }
+      return content.map((value) => {
         return { ...value, insert: uncleanString(value.insert ?? "") };
       });
     }

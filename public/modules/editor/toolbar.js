@@ -5073,18 +5073,95 @@ modules["editor/toolbar/pen"] = class {
       },
       animate: false
     };
-    this.drawPoints = [];
     this.USE_COALESCED_EVENTS = true;
     this.editor.realtimeSelect[this.annotation.render._id] = this.annotation.render;
     await this.editor.render.create(this.annotation);
+  }
+  handleDraw = async (event, mouseX, mouseY) => {
+    if (this.annotation == null) {
+      return;
+    }
+    
+    let rect = this.editor.utils.localBoundingRect(this.annotation.component.getElement());
+    let { x, y } = this.editor.utils.scaleToDoc(mouseX - rect.left, mouseY - rect.top, true);
+    let halfT = this.editor.math.round(this.annotation.render.t / 2);
+    x -= halfT;
+    y -= halfT;
+    if (this.FORCE_LINE != true && event.shiftKey == false) {
+      let drawX = x;
+      let drawY = y;
+      let pointEndIndex = this.annotation.render.d.length - 1;
+      if (this.annotation.render.d.length < 5 || this.editor.math.distance((this.lastInsertedPoint ?? {}).x ?? x, (this.lastInsertedPoint ?? {}).y ?? y, x, y) >= .5) { // Add Point:
+        if (this.annotation.render.d.length > 2) {
+          ([drawX, drawY] = this.editor.math.lowPassFilter([x, y], [this.annotation.render.d[pointEndIndex - 1], this.annotation.render.d[pointEndIndex]]));
+        }
+        this.annotation.render.d.push(drawX, drawY);
+        this.lastInsertedPoint = { x, y };
+      } else { // Reuse Point
+        this.annotation.render.d[pointEndIndex - 1] = drawX;
+        this.annotation.render.d[pointEndIndex] = drawY;
+      }
+      /*if (this.drawPoints.length > 6) {
+        for (let i = this.annotation.render.d.length - 4; i < this.drawPoints.length - 4; i += 2) {
+          let [updateX, updateY] = this.editor.math.lowPassFilter([this.drawPoints[i], this.drawPoints[i + 1]], [this.annotation.render.d[i - 2], this.annotation.render.d[i - 1]]);
+          this.annotation.render.d[i] = updateX;
+          this.annotation.render.d[i + 1] = updateY;
+        }
+      }
+      for (let i = Math.max(this.drawPoints.length - 4, 0); i < this.drawPoints.length; i += 2) {
+        this.annotation.render.d[i] = this.drawPoints[i];
+        this.annotation.render.d[i + 1] = this.drawPoints[i + 1];
+      }*/
+    } else {
+      this.annotation.render.d = [this.annotation.render.d[0], this.annotation.render.d[1]];
+      let sizeIncX = x;
+      if (sizeIncX < this.annotation.render.d[0]) {
+        this.annotation.render.d[0] = this.editor.math.round(this.annotation.render.d[0] - sizeIncX);
+        this.annotation.render.s[0] = this.editor.math.round(this.annotation.render.s[0] - sizeIncX);
+        this.annotation.render.p[0] = this.editor.math.round(this.annotation.render.p[0] + sizeIncX);
+        x = 0;
+      } else {
+        this.annotation.render.s[0] = this.editor.math.round(x);
+      }
+      let sizeIncY = y;
+      if (sizeIncY < this.annotation.render.d[1]) {
+        this.annotation.render.d[1] = this.editor.math.round(this.annotation.render.d[1] - sizeIncY);
+        this.annotation.render.s[1] = this.editor.math.round(this.annotation.render.s[1] - sizeIncY);
+        this.annotation.render.p[1] = this.editor.math.round(this.annotation.render.p[1] + sizeIncY);
+        y = 0;
+      } else {
+        this.annotation.render.s[1] = this.editor.math.round(y);
+      }
+      this.annotation.render.d[2] = x;
+      this.annotation.render.d[3] = y;
+    }
+    if (this.HORIZONTAL_CHECK == true) {
+      if (this.editor.math.horizontalLine(this.annotation.render.d) == true) {
+        this.annotation.render.d[3] = this.annotation.render.d[1];
+        this.annotation.render.s[1] = this.annotation.render.t;
+        this.annotation.render.p[1] = this.editor.math.round(this.annotation.render.p[1] + this.annotation.render.d[1]);
+        this.annotation.render.d[1] = 0;
+        this.annotation.render.d[3] = 0;
+      }
+    }
+
+    await this.editor.render.create(this.annotation);
+    this.editor.realtimeSelect[this.annotation.render._id] = this.annotation.render;
+    if (this.annotation.render.d.length > 6150) { // Start new annotation when path too long
+      await this.clickEnd();
+      this.clickStart(event);
+    }
+
+    clearTimeout(this.lastDrawTimeout);
+    this.lastDrawTimeout = setTimeout(() => { this.handleDraw(event, mouseX, mouseY); }, 25);
   }
   clickMove = async (event) => {
     let newPassthroughType;
     let newPassthrough;
     let skipCheck = false;
 
-    let { mouseX, mouseY } = this.editor.utils.localMousePosition(event); // Remove duplicated events
-    if (this.lastMouseX == mouseX && this.lastMouseY == mouseY) {
+    let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
+    if (this.lastMouseX == mouseX && this.lastMouseY == mouseY) { // Remove duplicated events
       return;
     }
     this.lastMouseX = mouseX;
@@ -5097,7 +5174,7 @@ modules["editor/toolbar/pen"] = class {
     } else {
       let position = this.editor.utils.scaleToDoc(mouseX, mouseY);
       if (this.parent.selection.pointInSelectBox(position.x, position.y) == true) {
-        skipCheck = true
+        skipCheck = true;
       }
     }
     if (skipCheck != true) {
@@ -5149,76 +5226,10 @@ modules["editor/toolbar/pen"] = class {
       return;
     }
     event.preventDefault();
+    
     //touch.force = the force of the touch - useful for later ;)
-    let rect = this.editor.utils.localBoundingRect(this.annotation.component.getElement());
-    let { x, y } = this.editor.utils.scaleToDoc(mouseX - rect.left, mouseY - rect.top, true);
-    let halfT = this.editor.math.round(this.annotation.render.t / 2);
-    x -= halfT;
-    y -= halfT;
-    if (this.FORCE_LINE != true && event.shiftKey == false) {
-      if (this.drawPoints.length < 5 || this.editor.math.distance((this.lastInsertedPoint ?? {}).x ?? x, (this.lastInsertedPoint ?? {}).y ?? y, x, y) >= .5) { // Add Point:
-        /*if (this.annotation.render.d.length > 2) {
-          let pointEndIndex = this.annotation.render.d.length - 1;
-          ([x, y] = this.editor.math.lowPassFilter([x, y], [this.annotation.render.d[pointEndIndex - 1], this.annotation.render.d[pointEndIndex]]));
-        }*/
-        this.drawPoints.push(x, y);
-        this.lastInsertedPoint = { x, y };
-      } else { // Reuse Point
-        let pointEndIndex = this.drawPoints.length - 1;
-        this.drawPoints[pointEndIndex - 1] = x;
-        this.drawPoints[pointEndIndex] = y;
-      }
-      if (this.drawPoints.length > 4) {
-        for (let i = this.annotation.render.d.length - 2; i < this.drawPoints.length - 4; i += 2) {
-          let [updateX, updateY] = this.editor.math.lowPassFilter([this.drawPoints[i], this.drawPoints[i + 1]], [this.annotation.render.d[i - 2], this.annotation.render.d[i - 1]]);
-          this.annotation.render.d[i] = updateX;
-          this.annotation.render.d[i + 1] = updateY;
-        }
-        for (let i = this.drawPoints.length - 4; i < this.drawPoints.length; i += 2) {
-          this.annotation.render.d[i] = this.drawPoints[i];
-          this.annotation.render.d[i + 1] = this.drawPoints[i + 1];
-        }
-      } else {
-        this.annotation.render.d = [...this.drawPoints];
-      }
-    } else {
-      this.annotation.render.d = [this.annotation.render.d[0], this.annotation.render.d[1]];
-      let sizeIncX = x;
-      if (sizeIncX < this.annotation.render.d[0]) {
-        this.annotation.render.d[0] = this.editor.math.round(this.annotation.render.d[0] - sizeIncX);
-        this.annotation.render.s[0] = this.editor.math.round(this.annotation.render.s[0] - sizeIncX);
-        this.annotation.render.p[0] = this.editor.math.round(this.annotation.render.p[0] + sizeIncX);
-        x = 0;
-      } else {
-        this.annotation.render.s[0] = this.editor.math.round(x);
-      }
-      let sizeIncY = y;
-      if (sizeIncY < this.annotation.render.d[1]) {
-        this.annotation.render.d[1] = this.editor.math.round(this.annotation.render.d[1] - sizeIncY);
-        this.annotation.render.s[1] = this.editor.math.round(this.annotation.render.s[1] - sizeIncY);
-        this.annotation.render.p[1] = this.editor.math.round(this.annotation.render.p[1] + sizeIncY);
-        y = 0;
-      } else {
-        this.annotation.render.s[1] = this.editor.math.round(y);
-      }
-      this.annotation.render.d[2] = x;
-      this.annotation.render.d[3] = y;
-    }
-    if (this.HORIZONTAL_CHECK == true) {
-      if (this.editor.math.horizontalLine(this.annotation.render.d) == true) {
-        this.annotation.render.d[3] = this.annotation.render.d[1];
-        this.annotation.render.s[1] = this.annotation.render.t;
-        this.annotation.render.p[1] = this.editor.math.round(this.annotation.render.p[1] + this.annotation.render.d[1]);
-        this.annotation.render.d[1] = 0;
-        this.annotation.render.d[3] = 0;
-      }
-    }
-    await this.editor.render.create(this.annotation);
-    this.editor.realtimeSelect[this.annotation.render._id] = this.annotation.render;
-    if (this.annotation.render.d.length > 6150) { // Start new annotation when path too long
-      await this.clickEnd();
-      this.clickStart(event);
-    }
+
+    await this.handleDraw(event, mouseX, mouseY);
   }
   clickEnd = async (event) => {
     if ((this.passthroughModule ?? {}).clickEnd != null) {

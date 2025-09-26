@@ -914,9 +914,9 @@ modules["pages/app/lesson"] = class {
           } else if (memSet.active != false && member.active == false) {
             this.idleCount--;
           }
-        } else if (member.active == false) {
+        } /*else if (member.active == false) {
           this.idleCount--;
-        }
+        }*/
         objectUpdate(memSet, member);
       }
       if (this.members[this.sessionID] == null && this.session != null) {

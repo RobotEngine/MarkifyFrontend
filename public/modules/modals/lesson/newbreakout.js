@@ -21,14 +21,14 @@ modules["modals/lesson/newbreakout"] = class {
         <div image></div>
         <div content>
           <div text>Copy Existing Board</div>
-          <div detail>Give member's their own board copy.</div>
+          <div detail>Create a copy of the existing board.</div>
         </div>
       </button>
       <button class="brtButton largeButton" type="duplicate">
         <div image></div>
         <div content>
-          <div text>Clone Another Lesson</div>
-          <div detail>Reuse another lesson's template.</div>
+          <div text>Reuse Another Template</div>
+          <div detail>Use a template from another session.</div>
         </div>
       </button>
     </div>
@@ -42,11 +42,11 @@ modules["modals/lesson/newbreakout"] = class {
     ".brtTitle b": `color: var(--theme); font-weight: 700`,
     ".brtDesc": `width: 325px; max-width: 100%; margin-top: 6px; font-size: 16px`,
     ".brtOptions": `box-sizing: border-box; display: flex; flex-direction: column; width: fit-content; max-width: 100%; padding: 8px; gap: 6px; align-items: center`,
-    ".brtButton": `--themeColor: var(--theme); --borderRadius: 24px; width: 100%; padding: 8px; justify-content: center; text-align: left`,
+    ".brtButton": `--themeColor: var(--theme); --borderRadius: 26px; width: 100%; padding: 8px; justify-content: center; text-align: left`,
     ".brtButton div[image]": `width: 32px; height: 32px`,
     ".brtButton div[image] svg": `width: 100%; height: 100%`,
-    ".brtButton div[content]": `flex: 1; margin-left: 6px`,
-    ".brtButton div[detail]": `color: var(--textColor); font-size: 14px; font-weight: 500`,
+    ".brtButton div[content]": `flex: 1; margin-left: 8px`,
+    ".brtButton div[detail]": `margin-top: 4px; color: var(--textColor); font-size: 14px; font-weight: 500`,
     ".brtProgress": `width: 100%; margin: 12px; font-size: 16px`
   };
   js = async (frame, extra) => {

@@ -53,6 +53,7 @@ modules["modals/lesson/newbreakout"] = class {
     ".brtButton div[detail]": `margin-top: 4px; color: var(--textColor); font-size: 14px; font-weight: 500`,
     ".brtProgress": `display: flex; flex-wrap: wrap; gap: 8px; width: calc(100% - 24px); margin: 12px; font-size: 16px; justify-content: center; align-items: center`,
     ".brtProgress .largeButton": `--themeColor: var(--theme); --themeColor2: var(--themeColor); --borderRadius: 10px; max-width: 100%; padding: 6px 10px; margin: 0; justify-content: center`,
+    ".brtProgress .largeButton[hidden]": `display: none`,
     ".brtProgress .largeButton svg": `width: 24px`,
     ".brtProgress .largeButton[back] svg": `transform: scaleX(-1)`,
     ".brtProgress div[dots]": `display: flex; flex-wrap: wrap; margin: 0 auto; justify-content: center; align-items: center`,

@@ -211,6 +211,7 @@ modules["editor/timeline"] = class {
         sessionID: this.sessionID,
         sources: this.sources,
         collaborators: this.collaborators,
+        settings: this.lesson.lesson.settings,
         backgroundColor: this.backgroundColor,
         preferences: this.preferences
       }
@@ -396,8 +397,14 @@ modules["editor/timeline"] = class {
       }
     }
     let currentCollaboratorID;
-    this.updateCollaboratorDisplay = (collaborator) => {
+    this.updateCollaboratorDisplay = (collaborator = {}) => {
+      if ((this.lesson.lesson.settings ?? {}).anonymousMode == true && this.self.access < 4) {
+        collaborator = {};
+      }
       currentCollaboratorID = collaborator._id;
+      if (currentCollaboratorID == null) {
+        return timelineDetail.style.removeProperty("display");
+      }
       memberFrame.style.setProperty("--themeColor", collaborator.color);
       if (collaborator.image == null) {
         memberCursor.style.removeProperty("display");
@@ -693,11 +700,7 @@ modules["editor/timeline"] = class {
           }
         }
       }
-      if (collaborator != null) {
-        this.updateCollaboratorDisplay(collaborator);
-      } else {
-        timelineDetail.style.removeProperty("display");
-      }
+      this.updateCollaboratorDisplay(collaborator);
     }
 
     this.editor.pipeline.subscribe("timelineFilterDropdown", "collaborator_update", (collaborator) => {
@@ -817,6 +820,10 @@ modules["editor/timeline"] = class {
       timeline.setAttribute("disabled", "");
       filterButton.setAttribute("disabled", "");
 
+      if ((this.lesson.lesson.settings ?? {}).anonymousMode == true && this.self.access < 4) {
+        setFilter = null;
+      }
+
       if (setFilter != null) {
         filterMembers = setFilter;
         filterCollaboratorCount.textContent = filterMembers.length;
@@ -892,7 +899,9 @@ modules["editor/timeline"] = class {
 
           timeline.removeAttribute("disabled");
           if (this.collaboratorIDs != null) {
-            filterButton.removeAttribute("disabled");
+            if ((this.lesson.lesson.settings ?? {}).anonymousMode != true || this.self.access > 3) {
+              filterButton.removeAttribute("disabled");
+            }
           }
           resolve();
         })
@@ -990,7 +999,9 @@ modules["editor/timeline"] = class {
         }
         this.collaboratorIDs.push(collaborator._id);
       }
-      filterButton.removeAttribute("disabled");
+      if ((this.lesson.lesson.settings ?? {}).anonymousMode != true || this.self.access > 3) {
+        filterButton.removeAttribute("disabled");
+      }
     })();
 
     revertButton.addEventListener("click", async () => {

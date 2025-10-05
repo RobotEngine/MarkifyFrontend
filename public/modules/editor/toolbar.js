@@ -1619,7 +1619,7 @@ modules["editor/toolbar"] = class {
         } else {
           this.selection.selectBox.setAttribute("hidewidthhandles", "");
         }
-        if (boxHeight > 20) {
+        if (boxWidth > 20 && boxHeight > 20) {
           this.selection.selectBox.removeAttribute("hidenonessential");
         } else {
           this.selection.selectBox.setAttribute("hidenonessential", "");

@@ -33,9 +33,9 @@ modules["modals/lesson/newbreakout"] = class {
       </button>
     </div>
     <div class="brtProgress">
-      <button class="largeButton" back hidden></button>
+      <button class="largeButton" back hidden>Back</button>
       <div dots></div>
-      <button class="largeButton" next hidden></button>
+      <button class="largeButton" next hidden>Next</button>
     </div>
   </div>
   `;
@@ -52,7 +52,7 @@ modules["modals/lesson/newbreakout"] = class {
     ".brtButton div[content]": `flex: 1; margin-left: 8px`,
     ".brtButton div[detail]": `margin-top: 4px; color: var(--textColor); font-size: 14px; font-weight: 500`,
     ".brtProgress": `display: flex; flex-wrap: wrap; gap: 8px; width: calc(100% - 24px); margin: 12px; font-size: 16px; justify-content: center; align-items: center`,
-    ".brtProgress .largeButton": `--themeColor: var(--theme); --themeColor2: var(--themeColor); --borderRadius: 10px; max-width: 100%; padding: 6px 10px; margin: 0; justify-content: center`,
+    ".brtProgress .largeButton": `--themeColor: var(--theme); --themeColor2: var(--themeColor); --borderRadius: 12px; max-width: 100%; padding: 6px 10px; margin: 0; justify-content: center; font-size: 18px`,
     ".brtProgress .largeButton[hidden]": `display: none`,
     ".brtProgress .largeButton svg": `width: 24px`,
     ".brtProgress .largeButton[back] svg": `transform: scaleX(-1)`,
@@ -89,8 +89,8 @@ modules["modals/lesson/newbreakout"] = class {
     let backButton = progressHolder.querySelector("button[back]");
     let progressDots = progressHolder.querySelector("div[dots]");
     let nextButton = progressHolder.querySelector("button[next]");
-    setSVG(backButton, "../images/tooltips/arrow.svg");
-    progressDots.innerHTML = "<button selected></button><button></button><button></button>";
-    setSVG(nextButton, "../images/tooltips/arrow.svg");
+    //setSVG(backButton, "../images/tooltips/arrow.svg");
+    progressDots.innerHTML = "<button selected></button><button></button><button></button><button></button>";
+    //setSVG(nextButton, "../images/tooltips/arrow.svg");
   }
 }

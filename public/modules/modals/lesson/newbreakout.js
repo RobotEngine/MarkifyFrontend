@@ -20,7 +20,7 @@ modules["modals/lesson/newbreakout"] = class {
       <button class="brtButton largeButton" type="clone">
         <div image></div>
         <div content>
-          <div text>Copy Existing Board</div>
+          <div text>Duplicate Board</div>
           <div detail>Create a copy of the existing board.</div>
         </div>
       </button>
@@ -28,7 +28,7 @@ modules["modals/lesson/newbreakout"] = class {
         <div image></div>
         <div content>
           <div text>Reuse Another Template</div>
-          <div detail>Use a template from another session.</div>
+          <div detail>Use a template from another lesson.</div>
         </div>
       </button>
     </div>

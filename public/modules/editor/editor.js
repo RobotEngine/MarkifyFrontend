@@ -1617,6 +1617,12 @@ modules["editor/editor"] = class {
       this.render.runningParentingRender = false;
     }
     this.render.addParentToQueue = async (annotation = { render: {} }, holder = annotations) => {
+      if ((annotation.component ?? {}).holder != null) {
+        return holder;
+      }
+      if (annotation.render._id == null || annotation.render._id.startsWith("pending_") == true) {
+        return holder;
+      }
       if (this.exporting == true) {
         return holder;
       }
@@ -2112,11 +2118,7 @@ modules["editor/editor"] = class {
       annotation.component.editor = this;
       annotation.component.annotation = annotation;
       annotation.component.properties = { ...render, p: [xPos, yPos], s: [width, height], parent: parent };
-      if (annotation.component.holder == null) {
-        annotation.component.holder = await this.render.addParentToQueue(annotation, holder); //holder ?? annotations;
-      } else {
-        annotation.component.holder = holder ?? annotations;
-      }
+      annotation.component.holder = await this.render.addParentToQueue(annotation, holder); //holder ?? annotations;
       annotation.component.parentID = parent;
 
       annotation.component.animate = annotation.animate;

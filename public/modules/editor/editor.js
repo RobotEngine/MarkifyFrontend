@@ -1457,6 +1457,8 @@ modules["editor/editor"] = class {
     }
 
     this.render = {};
+    this.render.fragmentQueue = [];
+    this.render.fragmentStorage = {};
     this.render.pdfPageQueue = [];
     this.render.pdfPageStorage = {};
     this.render.pdfFileLoading = {};
@@ -1592,6 +1594,42 @@ modules["editor/editor"] = class {
         this.render.lastOffsetHeight = content.offsetHeight;
       }
     }
+    this.render.pushParentingRender = async () => {
+      if (this.render.runningParentingRender == true) {
+        return;
+      }
+      this.render.runningParentingRender = true;
+
+      while (this.render.fragmentQueue.length > 0) {
+        let currentQueue = [...this.render.fragmentQueue];
+        this.render.fragmentQueue = [];
+        while (currentQueue.length > 0) {
+          let fragmentID = currentQueue.pop();
+          let [fragment, holder] = this.render.fragmentStorage[fragmentID] ?? [];
+          delete this.render.fragmentStorage[fragmentID];
+          if (holder == null || fragment == null) {
+            continue;
+          }
+          holder.appendChild(fragment);
+        }
+        await sleep(25);
+      }
+      this.render.runningParentingRender = false;
+    }
+    this.render.addParentToQueue = async (annotation = { render: {} }, holder = annotations) => {
+      if (this.exporting == true) {
+        return holder;
+      }
+      let fragmentID = annotation.render.parent ?? "annotations";
+      let fragmentData = this.render.fragmentStorage[fragmentID];
+      if (fragmentData == null) {
+        this.render.fragmentStorage[fragmentID] = [document.createDocumentFragment(), holder];
+        fragmentData = this.render.fragmentStorage[fragmentID];
+        this.render.fragmentQueue.push(fragmentID);
+        setTimeout(this.render.pushParentingRender, 0);
+      }
+      return fragmentData[0];
+    }
     this.render.processPageRenders = async () => {
       if (this.render.runningPageRender == true) {
         return;
@@ -1610,7 +1648,7 @@ modules["editor/editor"] = class {
           await sleep(100);
           continue;
         }
-        let [sourceID, pageNumber] = this.render.pdfPageStorage[sourcePageId];
+        let [sourceID, pageNumber] = this.render.pdfPageStorage[sourcePageId] ?? [];
         delete this.render.pdfPageStorage[sourcePageId];
   
         let source = this.sources[sourceID] ?? {};
@@ -2074,7 +2112,11 @@ modules["editor/editor"] = class {
       annotation.component.editor = this;
       annotation.component.annotation = annotation;
       annotation.component.properties = { ...render, p: [xPos, yPos], s: [width, height], parent: parent };
-      annotation.component.holder = holder ?? annotations;
+      if (annotation.component.holder == null) {
+        annotation.component.holder = await this.render.addParentToQueue(annotation, holder); //holder ?? annotations;
+      } else {
+        annotation.component.holder = holder ?? annotations;
+      }
       annotation.component.parentID = parent;
 
       annotation.component.animate = annotation.animate;
@@ -4493,13 +4535,13 @@ modules["editor/render/annotation/draw"] = class extends modules["editor/render/
     }
     if (this.element == null) {
       // <polyline stroke-width="${parseFloat(this.properties.t)}" points="${drawSetPoints}" stroke="${"#" + cleanString(this.properties.c)}" opacity="${parseFloat(this.properties.o) / 100}"/>
-      this.holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" style="width: ${width}px; height: ${height}px" new>
-        <svg>
-          <path stroke-width="${parseFloat(this.properties.t)}" d="${drawSetPoints}" stroke="${"#" + cleanString(this.properties.c)}" opacity="${parseFloat(this.properties.o) / 100}"/>
-        </svg>
-      </div>`); // viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg"
-      this.element = this.holder.querySelector(".eAnnotation[new]");
-      this.element.removeAttribute("new");
+      this.element = document.createElement("div");
+      this.element.className = "eAnnotation";
+      this.element.style.width = width + "px";
+      this.element.style.height = height + "px";
+      this.element.innerHTML = `<svg>
+        <path stroke-width="${parseFloat(this.properties.t)}" d="${drawSetPoints}" stroke="${"#" + cleanString(this.properties.c)}" opacity="${parseFloat(this.properties.o) / 100}"/>
+      </svg>`; // viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg"
       /*let line = this.element.querySelector("polyline");
       line.setAttribute("fill", "none");
       line.setAttribute("stroke-linecap", "round");
@@ -4508,6 +4550,7 @@ modules["editor/render/annotation/draw"] = class extends modules["editor/render/
       path.setAttribute("fill", "none");
       path.setAttribute("stroke-linecap", "round");
       path.setAttribute("stroke-linejoin", "round");
+      this.holder.appendChild(this.element);
     } else {
       this.element.style.width = width + "px";
       this.element.style.height = height + "px";
@@ -4540,15 +4583,14 @@ modules["editor/render/annotation/markup"] = class extends modules["editor/rende
 
   render = () => {
     if (this.element == null) {
-      this.holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
-        <svg>
-          <polyline/>
-        </svg>
-      </div>`); // xmlns="http://www.w3.org/2000/svg"
-      this.element = this.holder.querySelector(".eAnnotation[new]");
-      this.element.removeAttribute("new");
+      this.element = document.createElement("div");
+      this.element.className = "eAnnotation";
+      this.element.innerHTML = `<svg>
+        <polyline/>
+      </svg>`; // xmlns="http://www.w3.org/2000/svg"
       let line = this.element.querySelector("polyline");
       line.setAttribute("fill", "none");
+      this.holder.appendChild(this.element);
     }
     let halfT = this.properties.t / 2;
     let width = this.properties.s[0] + this.properties.t;
@@ -4614,11 +4656,11 @@ modules["editor/render/annotation/text"] = class extends modules["editor/render/
   };
   render = () => {
     if (this.element == null) {
-      this.holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" text new>
-        <div text edit></div>
-      </div>`);
-      this.element = this.holder.querySelector(".eAnnotation[new]");
-      this.element.removeAttribute("new");
+      this.element = document.createElement("div");
+      this.element.className = "eAnnotation";
+      this.element.setAttribute("text", "");
+      this.element.innerHTML = `<div text edit></div>`;
+      this.holder.appendChild(this.element);
     }
     this.element.style.width = this.properties.s[0] + "px";
     this.element.style.height = this.properties.s[1] + "px";
@@ -4730,11 +4772,10 @@ modules["editor/render/annotation/shape"] = class extends modules["editor/render
 
   render = () => {
     if (this.element == null) {
-      this.holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" new>
-        <svg></svg>
-      </div>`); // xmlns="http://www.w3.org/2000/svg"
-      this.element = this.holder.querySelector(".eAnnotation[new]");
-      this.element.removeAttribute("new");
+      this.element = document.createElement("div");
+      this.element.className = "eAnnotation";
+      this.element.innerHTML = `<svg></svg>`; // xmlns="http://www.w3.org/2000/svg"
+      this.holder.appendChild(this.element);
     }
     let t = this.properties.t;
     let halfT = t / 2;
@@ -5272,17 +5313,17 @@ modules["editor/render/annotation/sticky"] = class extends modules["editor/rende
   };
   render = () => {
     if (this.element == null) {
-      this.holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" sticky new>
-        <div holder>
-          <div edit></div>
-          <div footer>
-            <div signature></div>
-            <div reactions><button class="eReaction" add dropdowntitle="Reactions" noscrollclose><div imgholder><img src="../images/editor/actions/reaction.svg"></div></button></div>
-          </div>
+      this.element = document.createElement("div");
+      this.element.className = "eAnnotation";
+      this.element.setAttribute("sticky", "");
+      this.element.innerHTML = `<div holder>
+        <div edit></div>
+        <div footer>
+          <div signature></div>
+          <div reactions><button class="eReaction" add dropdowntitle="Reactions" noscrollclose><div imgholder><img src="../images/editor/actions/reaction.svg"></div></button></div>
         </div>
-      </div>`);
-      this.element = this.holder.querySelector(".eAnnotation[new]");
-      this.element.removeAttribute("new");
+      </div>`;
+      this.holder.appendChild(this.element);
     }
     this.element.style.width = this.properties.s[0] + "px";
     this.element.style.height = this.properties.s[1] + "px";
@@ -5560,8 +5601,11 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
     
     let newAnnotation = this.element == null;
     if (newAnnotation == true) {
-      this.parent.annotationHolder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" comment new style="display: none">
-        <div commentholder>
+      this.element = document.createElement("div");
+      this.element.className = "eAnnotation";
+      this.element.setAttribute("comment", "");
+      this.element.style.display = "none";
+      this.element.innerHTML = `<div commentholder>
           <div comment>
             <div container>
               <div profileholder></div>
@@ -5576,9 +5620,8 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
             </div>
           </div>
         </div>
-      </div>`);
-      this.element = this.parent.annotationHolder.querySelector(".eAnnotation[new]");
-      this.element.removeAttribute("new");
+      </div>`;
+      this.parent.annotationHolder.appendChild(this.element);
     }
 
     let absolutePos = this.parent.utils.getAbsolutePosition(this.properties, true);
@@ -5748,14 +5791,14 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
   };
   render = () => {
     if (this.element == null) {
-      this.holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" page new>
-        <div background></div>
-        <div border></div>
-        <div label selectable></div>
-        <div content annoholdercontainer></div>
-      </div>`);
-      this.element = this.holder.querySelector(".eAnnotation[new]");
-      this.element.removeAttribute("new");
+      this.element = document.createElement("div");
+      this.element.className = "eAnnotation";
+      this.element.setAttribute("page", "");
+      this.element.innerHTML = `<div background></div>
+      <div border></div>
+      <div label selectable></div>
+      <div content annoholdercontainer></div>`;
+      this.holder.appendChild(this.element);
     }
     this.element.style.width = this.properties.s[0] + "px";
     this.element.style.height = this.properties.s[1] + "px";
@@ -6028,9 +6071,11 @@ modules["editor/render/annotation/media"] = class extends modules["editor/render
   };
   render = () => {
     if (this.element == null) {
-      this.holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" media new><img draggable="false" /></div>`);
-      this.element = this.holder.querySelector(".eAnnotation[new]");
-      this.element.removeAttribute("new");
+      this.element = document.createElement("div");
+      this.element.className = "eAnnotation";
+      this.element.setAttribute("media", "");
+      this.element.innerHTML = `<img draggable="false" />`;
+      this.holder.appendChild(this.element);
     }
     this.element.style.width = this.properties.s[0] + "px";
     this.element.style.height = this.properties.s[1] + "px";
@@ -6109,26 +6154,26 @@ modules["editor/render/annotation/embed"] = class extends modules["editor/render
   };
   render = () => {
     if (this.element == null) {
-      this.holder.insertAdjacentHTML("beforeend", `<div class="eAnnotation" embed new>
-        <div holder>
-          <div content>
-            <img thumbnail>
-            <div activate><button><img></button></div>
+      this.element = document.createElement("div");
+      this.element.className = "eAnnotation";
+      this.element.setAttribute("embed", "");
+      this.element.innerHTML = `<div holder>
+        <div content>
+          <img thumbnail>
+          <div activate><button><img></button></div>
+        </div>
+        <div details>
+          <div input>
+            <input placeholder="https://markifyapp.com" nodelete></input>
           </div>
-          <div details>
-            <div input>
-              <input placeholder="https://markifyapp.com" nodelete></input>
-            </div>
-            <div info>
-              <div title></div>
-              <div description></div>
-              <a link target="_blank"><img src="../images/editor/actions/link.svg"><div></div></a>
-            </div>
+          <div info>
+            <div title></div>
+            <div description></div>
+            <a link target="_blank"><img src="../images/editor/actions/link.svg"><div></div></a>
           </div>
         </div>
-      </div>`);
-      this.element = this.holder.querySelector(".eAnnotation[new]");
-      this.element.removeAttribute("new");
+      </div>`;
+      this.holder.appendChild(this.element);
     }
     this.element.style.width = this.properties.s[0] + "px";
     this.element.style.height = this.properties.s[1] + "px";

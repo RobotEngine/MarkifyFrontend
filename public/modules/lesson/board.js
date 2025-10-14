@@ -8,7 +8,7 @@ modules["lesson/board"] = class {
         <div class="eTop">
           <div class="eTopSection" left>
             <a class="eLogo" href="/app/dashboard" draggable="false"></a>
-            <div class="eFileNameHolder border"><div class="eFileName" spellcheck="false" onpaste="clipBoardRead(event)"></div></div>
+            <div class="eFileNameHolder border"><div class="eFileName" spellcheck="false"></div></div>
             <button class="eFileDropdown">File</button>
             <button class="eCreateCopy">Create Copy</button>
             <div class="eTopDivider"></div>
@@ -396,7 +396,6 @@ modules["lesson/board"] = class {
       if (event.keyCode == 13) {
         event.preventDefault();
         lessonName.blur();
-        return;
       }
     });
     lessonName.addEventListener("input", updateTopBar);
@@ -429,6 +428,7 @@ modules["lesson/board"] = class {
       lessonName.parentElement.style.setProperty("--borderWidth", "4px");
       updateTopBar();
     });
+    lessonName.addEventListener("paste", clipBoardRead);
 
     fileButton.addEventListener("click", () => {
       dropdownModule.open(fileButton, "dropdowns/lesson/file", { parent: this });

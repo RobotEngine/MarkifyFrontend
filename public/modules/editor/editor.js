@@ -921,17 +921,15 @@ modules["editor/editor"] = class {
     this.utils.localMousePosition = (mouse) => {
       let mouseX = mouse.x ?? mouse.clientX ?? ((mouse.changedTouches ?? [])[0] ?? {}).clientX ?? 0;
       let mouseY = mouse.y ?? mouse.clientY ?? ((mouse.changedTouches ?? [])[0] ?? {}).clientY ?? 0;
-      let pageRect = page.getBoundingClientRect();
-      return { mouseX: mouseX - pageRect.x, mouseY: mouseY - pageRect.y };
+      return { mouseX: mouseX - this.pageRect.x, mouseY: mouseY - this.pageRect.y };
     }
     this.utils.convertBoundingRect = (frameRect) => {
-      let pageRect = page.getBoundingClientRect();
       let transform = 1;
       if (this.pageFrame.hasAttribute("scale") == true) {
         transform = 1 / parseFloat(this.pageFrame.getAttribute("scale"));
       }
-      let diffX = (frameRect.x - pageRect.x) * transform;
-      let diffY = (frameRect.y - pageRect.y) * transform;
+      let diffX = (frameRect.x - this.pageRect.x) * transform;
+      let diffY = (frameRect.y - this.pageRect.y) * transform;
       return {
         width: frameRect.width,
         height: frameRect.height,
@@ -944,8 +942,13 @@ modules["editor/editor"] = class {
     this.utils.localBoundingRect = (frame) => {
       return this.utils.convertBoundingRect(frame.getBoundingClientRect());
     }
+    this.utils.annotationsRect = () => {
+      let x = this.render.marginLeft + this.scrollOffset;
+      let y = this.render.marginTop + this.scrollOffset;
+      return { x, y, left: x - contentHolder.scrollLeft, top: y - contentHolder.scrollTop };
+    }
     this.utils.scaleToDoc = (x, y, noOrigin) => {
-      let pageRect = this.utils.localBoundingRect(annotations);
+      let pageRect = this.utils.annotationsRect();
       if (noOrigin != true) {
         x -= pageRect.left;
         y -= pageRect.top;
@@ -957,7 +960,7 @@ modules["editor/editor"] = class {
       }
     };
     this.utils.scaleToZoom = (x, y) => {
-      let pageRect = this.utils.localBoundingRect(annotations);
+      let pageRect = this.utils.annotationsRect();
       return {
         x: (x * this.zoom) + pageRect.left,
         y: (y * this.zoom) + pageRect.top
@@ -1156,7 +1159,7 @@ modules["editor/editor"] = class {
       return this.utils.regionInChunks(x, y, x, y)[0];
     }
     this.utils.annotationInViewport = (render = {}, rect) => {
-      let annotationRect = this.utils.localBoundingRect(annotations);
+      let annotationRect = this.utils.annotationsRect();
       let pageTopLeftX = -annotationRect.left / this.zoom;
       let pageTopLeftY = -annotationRect.top / this.zoom;
       let pageBottomRightX = (page.offsetWidth - annotationRect.left) / this.zoom;
@@ -1214,9 +1217,9 @@ modules["editor/editor"] = class {
           return;
         }
       }
-      let pageRect = this.utils.localBoundingRect(editorContent);
-      let centerPointX = ((page.offsetWidth / 2) - pageRect.left) / this.zoom;
-      let centerPointY = ((page.offsetHeight / 2) - pageRect.top) / this.zoom;
+      let annotationsRect = this.utils.annotationsRect();
+      let centerPointX = ((page.offsetWidth / 2) - annotationsRect.left) / this.zoom;
+      let centerPointY = ((page.offsetHeight / 2) - annotationsRect.top) / this.zoom;
       let minPage = 0;
       let minPageId;
       let minDistance;
@@ -1244,7 +1247,7 @@ modules["editor/editor"] = class {
       let annoRect = this.utils.getRect(render);
       let [topLeftX, topLeftY, bottomRightX] = this.math.rotatedBounds(annoRect.x, annoRect.y, annoRect.endX, annoRect.endY, annoRect.rotation);
       
-      let annotationRect = this.utils.localBoundingRect(annotations);
+      let annotationRect = this.utils.annotationsRect();
       let scrollOptions = {};
       if (annoRect.width * this.zoom < contentHolder.clientWidth - (this.scrollOffset * 2)) {
         // Position page to center:
@@ -1299,7 +1302,7 @@ modules["editor/editor"] = class {
     }
 
     this.utils.centerWindowWithPage = () => {
-      let annotationRect = this.utils.localBoundingRect(annotations);
+      let annotationRect = this.utils.annotationsRect();
       contentHolder.scrollTo(contentHolder.scrollLeft + annotationRect.left - ((page.offsetWidth - annotations.offsetWidth) / 2), contentHolder.scrollTop + annotationRect.top - this.scrollOffset);
     }
     /*this.utils.findStartingPoint = () => {
@@ -1328,7 +1331,7 @@ modules["editor/editor"] = class {
       return this.utils.getRect(annotations[0].render);
     }*/
     /*this.utils.scrollToPoint = (x, y, animation) => {
-      let annotationRect = this.utils.localBoundingRect(annotations);
+      let annotationRect = this.utils.annotationsRect();
       let options = {
         left: annotationRect.left + contentHolder.scrollLeft - this.scrollOffset + (x * this.zoom),
         top: annotationRect.top + contentHolder.scrollTop - this.scrollOffset + (y * this.zoom)
@@ -3372,7 +3375,7 @@ modules["editor/editor"] = class {
       let backgroundHeight = Math.ceil((pageHeight + (backgroundPaddingHeight * 2)) / scaledDotSize) * scaledDotSize;
       background.style.width = (backgroundWidth / this.zoom) + "px";
       background.style.height = (backgroundHeight / this.zoom) + "px";
-      let annotationRect = this.utils.localBoundingRect(annotations);
+      let annotationRect = this.utils.annotationsRect();
       let originCorrectX = (annotationRect.left - (backgroundWidth / 2)) % scaledDotSize;
       let originCorrectY = (annotationRect.top - (backgroundHeight / 2)) % scaledDotSize;
       background.style.transform = "matrix(1,0,0,1," + (contentHolder.scrollLeft + originCorrectX - backgroundPaddingWidth) + "," + (contentHolder.scrollTop + originCorrectY - backgroundPaddingHeight) + ") scale(var(--zoom))";
@@ -3405,6 +3408,8 @@ modules["editor/editor"] = class {
     this.updatePageSize = () => {
       this.pageOffsetWidth = page.offsetWidth;
       this.pageOffsetHeight = page.offsetHeight;
+
+      this.pageRect = page.getBoundingClientRect();
     }
     this.pipeline.subscribe("resizeChange", "resize", this.updatePageSize, { sort: 1 });
     this.updatePageSize();
@@ -3653,7 +3658,7 @@ modules["editor/editor"] = class {
         lastMouseX = mouseX;
         lastMouseY = mouseY;
         // Get Page Rect:
-        let annotationHolderRect = this.utils.localBoundingRect(annotations);
+        let annotationHolderRect = this.utils.annotationsRect();
         mouseBeforeX = (mouseX - annotationHolderRect.left) / this.zoom;
         mouseBeforeY = (mouseY - annotationHolderRect.top) / this.zoom;
       }
@@ -3693,7 +3698,7 @@ modules["editor/editor"] = class {
 
       if (observe != true) {
         // Get Page Rect:
-        let annotationHolderRect = this.utils.localBoundingRect(annotations);
+        let annotationHolderRect = this.utils.annotationsRect();
         let addScrollX = (mouseBeforeX * this.zoom) - (mouseX - annotationHolderRect.left);
         let addScrollY = (mouseBeforeY * this.zoom) - (mouseY - annotationHolderRect.top);
 

@@ -72,7 +72,7 @@ modules["editor/realtime"] = class {
           let filter = { ...standardFilter };
 
           // Figure out where the cursor is:
-          let annotationRect = editor.utils.localBoundingRect(annotations);
+          let annotationRect = editor.utils.annotationsRect();
           let sendX = (mouseX - annotationRect.left) / editor.zoom;
           let sendY = (mouseY - annotationRect.top) / editor.zoom;
           filter.p = editor.utils.pointInChunk(sendX, sendY);
@@ -163,7 +163,7 @@ modules["editor/realtime"] = class {
         if (lastObservePublish < epoch - 250) { // One event every 250 ms
           let filter = { c: "short_" + editor.id, o: editor.sessionID };
 
-          let annotationRect = editor.utils.localBoundingRect(annotations);
+          let annotationRect = editor.utils.annotationsRect();
           let sendX = ((editor.page.offsetWidth / 2) - annotationRect.left) / editor.zoom;
           let sendY = ((editor.page.offsetHeight / 2) - annotationRect.top) / editor.zoom;
 
@@ -401,7 +401,7 @@ modules["editor/realtime"] = class {
         cursorHolder.style.opacity = 1;
         x *= editor.zoom;
         y *= editor.zoom;
-        let annotationRect = editor.utils.localBoundingRect(annotations);
+        let annotationRect = editor.utils.annotationsRect();
         x += annotationRect.left;
         y += annotationRect.top;
         member.x = x;
@@ -768,7 +768,7 @@ modules["editor/realtime"] = class {
         }
         scrollX *= editor.zoom;
         scrollY *= editor.zoom;
-        let annotationRect = editor.utils.localBoundingRect(annotations);
+        let annotationRect = editor.utils.annotationsRect();
         let setX = contentHolder.scrollLeft + annotationRect.left;
         let setY = contentHolder.scrollTop + annotationRect.top;
         setX += scrollX;
@@ -785,7 +785,7 @@ modules["editor/realtime"] = class {
 
     this.adjustRealtimeHolder = () => {
       let adjustElements = realtimeHolder.querySelectorAll("div[scale]");
-      let annotationRect = editor.utils.localBoundingRect(annotations);
+      let annotationRect = editor.utils.annotationsRect();
       for (let i = 0; i < adjustElements.length; i++) {
         let element = adjustElements[i];
         if (element.hasAttribute("scale") == true) {

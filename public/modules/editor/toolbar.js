@@ -511,12 +511,14 @@ modules["editor/toolbar"] = class {
     this.updateMouse = async (cursor) => {
       cursor = cursor ?? { type: "set" };
       if (cursor.type == "set") {
-        if (cursor.value != null) {
-          content.style.cursor = cursor.value;
-        } else {
-          content.style.removeProperty("cursor");
+        if (cursor.value != currentMouseSVG) {
+          if (cursor.value != null) {
+            content.style.cursor = cursor.value;
+          } else {
+            content.style.removeProperty("cursor");
+          }
+          currentMouseSVG = cursor.value;
         }
-        currentMouseSVG = null;
       } else if (cursor.type == "svg") {
         let insertString = `style="--themeColor: #2F2F2F`;
         if (cursor.rotate != null) {
@@ -1292,7 +1294,7 @@ modules["editor/toolbar"] = class {
       let selectedAnnotations = [];
       let selectionChange = false;
 
-      let annotationRect = editor.utils.localBoundingRect(annotations);
+      let annotationRect = editor.utils.annotationsRect();
 
       let selections = Object.keys(editor.selecting);
       if (this.currentToolModule != null) {
@@ -1921,7 +1923,7 @@ modules["editor/toolbar"] = class {
       if (options.skipUpdate != true || newActionBar == true) {
         let actionBarWidth = this.selection.actionBar.offsetWidth;
         let actionBarHeight = this.selection.actionBar.offsetHeight;
-        let annotationRect = editor.utils.localBoundingRect(annotations);
+        let annotationRect = editor.utils.annotationsRect();
         let pxLeft = annotationRect.left + ((this.selection.minX + ((this.selection.maxX - this.selection.minX) / 2)) * editor.zoom) - (actionBarWidth / 2);
         if (toolbarHolder.hasAttribute("right") == false) {
           if (pxLeft + actionBarWidth + 8 > contentHolder.clientWidth) {
@@ -2287,7 +2289,7 @@ modules["editor/toolbar"] = class {
       event.preventDefault();
     }
     this.selection.updateSnapLines = async (render) => {
-      let annotationRect = editor.utils.localBoundingRect(annotations);
+      let annotationRect = editor.utils.annotationsRect();
 
       let validSnaps = {};
       let snapX = 0;
@@ -2440,7 +2442,7 @@ modules["editor/toolbar"] = class {
         selectTopLeftY = this.selection.maxY;
         selectBottomRightY = this.selection.minY;
       }
-      let annotationRect = editor.utils.localBoundingRect(annotations);
+      let annotationRect = editor.utils.annotationsRect();
       let pageTopLeftX = -annotationRect.left / editor.zoom;
       let pageTopLeftY = -annotationRect.top / editor.zoom;
       let pageBottomRightX = (page.offsetWidth - annotationRect.left) / editor.zoom;

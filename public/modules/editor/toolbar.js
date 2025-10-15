@@ -6611,7 +6611,7 @@ modules["dropdowns/editor/toolbar/comment/more"] = class {
       parent.updateCommentFrame();
     });
     setSVG(editButton.querySelector("div"), "../images/tooltips/edit.svg");
-    if (render.a != parent.editor.self.modify) {
+    if (parent.editor.self.access < 1 || render.a != parent.editor.self.modify) {
       editButton.remove();
     }
 

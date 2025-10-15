@@ -1626,6 +1626,9 @@ modules["editor/editor"] = class {
       if (annotation.render._id == null || annotation.render._id.startsWith("pending_") == true) {
         return holder;
       }
+      if (annotation.render.f == "page") {
+        return holder;
+      }
       if (this.exporting == true) {
         return holder;
       }

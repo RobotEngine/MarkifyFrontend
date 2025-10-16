@@ -4014,6 +4014,10 @@ modules["editor/toolbar"] = class {
       if (event.buttons > 1) {
         return;
       }
+      if (["pen", "mouse"].includes(event.pointerType) == true && (editor.localOptions ?? {}).stylusmode == null) {
+        editor.options.stylusmode = true;
+        editor.pipeline.publish("stylusmodechange", { stylusmode: true });
+      }
       let target = event.target;
       if (target.closest(".eToolbar") == toolbar) {
         this.toolbar.setTool(target.closest("button"), true);
@@ -5053,7 +5057,7 @@ modules["editor/toolbar/pen"] = class {
       //this.REALTIME_TOOL = 2;
     }
     event.preventDefault();
-    this.disable();
+    await this.disable();
     this.editor.selecting = {};
     this.parent.selection.updateBox();
     this.parent.toolbar.closeSubSub(true);
@@ -5089,12 +5093,13 @@ modules["editor/toolbar/pen"] = class {
     let halfT = this.editor.math.round(this.annotation.render.t / 2);
     x -= halfT;
     y -= halfT;
+    let pointLength = this.annotation.render.d.length;
     if (this.FORCE_LINE != true && event.shiftKey == false) {
       let drawX = x;
       let drawY = y;
-      let pointEndIndex = this.annotation.render.d.length - 1;
-      if (this.annotation.render.d.length < 5 || this.editor.math.distance((this.lastInsertedPoint ?? {}).x ?? x, (this.lastInsertedPoint ?? {}).y ?? y, x, y) >= .5) { // Add Point:
-        if (this.annotation.render.d.length > 2) {
+      let pointEndIndex = pointLength - 1;
+      if (pointLength < 5 || this.editor.math.distance((this.lastInsertedPoint ?? {}).x ?? x, (this.lastInsertedPoint ?? {}).y ?? y, x, y) >= .5) { // Add Point:
+        if (pointLength > 2) {
           ([drawX, drawY] = this.editor.math.lowPassFilter([x, y], [this.annotation.render.d[pointEndIndex - 1], this.annotation.render.d[pointEndIndex]]));
         }
         this.annotation.render.d.push(drawX, drawY);
@@ -5104,7 +5109,7 @@ modules["editor/toolbar/pen"] = class {
         this.annotation.render.d[pointEndIndex] = drawY;
       }
       /*if (this.drawPoints.length > 6) {
-        for (let i = this.annotation.render.d.length - 4; i < this.drawPoints.length - 4; i += 2) {
+        for (let i = pointLength - 4; i < this.drawPoints.length - 4; i += 2) {
           let [updateX, updateY] = this.editor.math.lowPassFilter([this.drawPoints[i], this.drawPoints[i + 1]], [this.annotation.render.d[i - 2], this.annotation.render.d[i - 1]]);
           this.annotation.render.d[i] = updateX;
           this.annotation.render.d[i + 1] = updateY;
@@ -5154,8 +5159,10 @@ modules["editor/toolbar/pen"] = class {
       this.clickStart(event);
     }
 
-    clearTimeout(this.lastDrawTimeout);
-    this.lastDrawTimeout = setTimeout(() => { this.handleDraw(event, mouseX, mouseY); }, 25);
+    if (this.annotation.render.d.length > pointLength) {
+      clearTimeout(this.lastDrawTimeout);
+      this.lastDrawTimeout = setTimeout(() => { this.handleDraw(event, mouseX, mouseY); }, 25);
+    }
   }
   clickMove = async (event) => {
     let newPassthroughType;
@@ -5393,6 +5400,7 @@ modules["editor/toolbar/eraser"] = class {
     event.preventDefault();
     this.editor.selecting = {};
     this.parent.selection.updateBox();
+    this.removeAnnotaions = {};
     this.erasing = true;
     this.clickMove(event);
     this.parent.toolbar.closeSubSub(true);
@@ -5480,11 +5488,10 @@ modules["editor/toolbar/eraser"] = class {
           }
           let [prevPointX, prevPointY] = this.editor.math.rotatePoint(prevRelativeX, prevRelativeY, rect.rotation);
           let [pointX, pointY] = this.editor.math.rotatePoint(pRelativeX, pRelativeY, rect.rotation);
-          if (this.editor.math.isPointOnLine(xPos, yPos, prevPointX + halfWidth, prevPointY + halfHeight, pointX + halfWidth, pointY + halfHeight, Math.max(halfThickness, Math.min(4 / this.editor.zoom, 8))) == true && render.remove != true) {
-            await this.editor.history.push("add", [render]);
-            let updateAnno = { _id: annotation.render._id, remove: true };
-            await this.editor.save.push(updateAnno);
-            this.PUBLISH.u = updateAnno;
+          if (this.editor.math.isPointOnLine(xPos, yPos, prevPointX + halfWidth, prevPointY + halfHeight, pointX + halfWidth, pointY + halfHeight, Math.max(halfThickness, Math.min(4 / this.editor.zoom, 8))) == true && this.removeAnnotaions[render._id] == null) {
+            this.removeAnnotaions[render._id] = render;
+            this.editor.render.hide(annotation);
+            this.PUBLISH.u = { _id: render._id, remove: true };
             await this.editor.realtime.forceShort();
             delete this.PUBLISH.u;
             continue;
@@ -5550,11 +5557,20 @@ modules["editor/toolbar/eraser"] = class {
     this.x0 = x1;
     this.y0 = y1;
   }
-  clickEnd = () => {
+  clickEnd = async () => {
     this.erasing = false;
     this.x0 = null;
     this.y0 = null;
     this.editor.usingStylus = false;
+
+    let removeArray = Object.values(this.removeAnnotaions ?? {});
+    if (removeArray.length > 0) {
+      await this.editor.history.push("add", removeArray);
+      for (let i = 0; i < removeArray.length; i++) {
+        await this.editor.save.push({ _id: removeArray[i]._id, remove: true });
+      }
+      this.removeAnnotaions = {};
+    }
   }
   touchstart = (event) => { // Added due to Safari
     if (this.graceful == true) {

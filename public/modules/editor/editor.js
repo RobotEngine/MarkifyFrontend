@@ -2531,7 +2531,7 @@ modules["editor/editor"] = class {
 
       let existingAnnotation = this.annotations[annoID];
       if ((existingAnnotation ?? {}).pointer != null) {
-        annoID = annotation.pointer;
+        annoID = existingAnnotation.pointer;
         existingAnnotation = this.annotations[annoID];
       }
       let annotation = existingAnnotation ?? { render: {} };
@@ -4206,6 +4206,7 @@ modules["dropdowns/lesson/zoom"] = class {
     });
     let cursorZoomAction = frame.querySelector('.eZoomAction[option="cursors"]');
     let namesZoomAction = frame.querySelector('.eZoomAction[option="cursornames"]');
+    let stylusModeZoomAction = frame.querySelector('.eZoomAction[option="stylusmode"]');
     let fullscreenZoomAction = frame.querySelector('.eZoomAction[option="fullscreen"]');
     let updateZoomActions = () => {
       if (editor.parent.parent.signalStrength < 3) {
@@ -4295,6 +4296,17 @@ modules["dropdowns/lesson/zoom"] = class {
       fullscreenZoomAction.remove();
     }
 
+    editor.pipeline.subscribe("zoomDropdownStylusMode", "stylusmodechange", (event) => {
+      if (stylusModeZoomAction != null) {
+        if (event.stylusmode == true) {
+          stylusModeZoomAction.setAttribute("on", "");
+          stylusModeZoomAction.removeAttribute("off");
+        } else {
+          stylusModeZoomAction.setAttribute("off", "");
+          stylusModeZoomAction.removeAttribute("on");
+        }
+      }
+    });
     editor.pipeline.subscribe("zoomDropdownFullscreen", "fullscreenchange", (event) => {
       if (fullscreenZoomAction != null) {
         if (event.fullscreen == true) {

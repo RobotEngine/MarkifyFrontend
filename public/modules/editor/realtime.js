@@ -659,7 +659,7 @@ modules["editor/realtime"] = class {
                 //merge = { ...original.render, ...(editor.selecting[annoID] ?? {}) };
                 userSelecting = true;
               }
-              if (merge.f != null) {
+              if ((merge ?? {}).f != null) {
                 let component = ((await editor.save.apply({ ...merge, sync: time }, { overwrite: true, render: { animate: anno.f == null }, renderPassthrough: { resizing: merge.resizing } })).annotation ?? {}).component;
                 if (merge.d != null && component != null) {
                   if (component.quill != null && component.quill.isEnabled() == true) {

@@ -1293,6 +1293,81 @@ modules["dropdowns/lesson/board/members"] = class {
       title.querySelector("div[count]").textContent = section.childElementCount - 1; // -1 for title
       section.style.display = "block";
     }
+    let updateMemberTile = (member) => {
+      if (member == null) {
+        return false;
+      }
+      let tile = frame.querySelector('.eMemberTile div[holder][member="' + member._id + '"]');
+      if (tile == null) {
+        return false;
+      }
+
+      // Handle User / Color Updates:
+      tile.style.setProperty("--themeColor", member.color);
+      tile.querySelector(".eMemberName").textContent = member.name;
+      tile.querySelector(".eMemberName").title = member.name;
+
+      // Handle access changes:
+      let section = getSection(member.access);
+      let oldSection = tile.parentElement.parentElement;
+      if (section != oldSection) {
+        section.appendChild(tile.parentElement);
+
+        // Update new section:
+        section.querySelector(".eMemberAccessTitle div[count]").textContent = section.childElementCount - 1; // -1 for title
+        section.style.display = "block";
+
+        // Update old section:
+        let newOldCount = oldSection.childElementCount - 1; // -1 for title
+        oldSection.querySelector(".eMemberAccessTitle div[count]").textContent = newOldCount;
+        if (newOldCount < 1) {
+          oldSection.style.display = "none";
+        }
+      }
+
+      // Update order:
+      updateOrder(section, tile.parentElement, member);
+
+      // Handle event state:
+      if (member._id != editor.sessionID) {
+        let eventsHolder = tile.querySelector(".eMemberEvents");
+        let existingHand = eventsHolder.querySelector(".eMemberEvent[hand]");
+        if (member.hand != null) {
+          if (existingHand == null) {
+            eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" hand title="This member is asking to contribute to the lesson.">HAND</div>`);
+          }
+        } else if (existingHand != null) {
+          existingHand.remove();
+        }
+        let existingIdle = eventsHolder.querySelector(".eMemberEvent[idle]");
+        if (member.active == false) {
+          if (existingIdle == null) {
+            eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" idle title="This member is currently viewing a different window.">IDLE</div>`);
+          }
+        } else if (existingIdle != null) {
+          existingIdle.remove();
+        }
+        let existingObserve = eventsHolder.querySelector(".eMemberEvent[observe]");
+        if (member.observe == editor.sessionID) {
+          if (existingObserve == null) {
+            eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" observe title="This member is observing you on the document.">OBSERVE</div>`);
+          }
+        } else if (existingObserve != null) {
+          existingObserve.remove();
+        }
+      }
+
+      // Update member dropdown:
+      if (dropdownButton != null) {
+        if (dropdownButton.getAttribute("member") == member._id) {
+          openDropdown(tile, true);
+        } else if (dropdownButton.querySelector("div[title]") != null) {
+          openDropdown(dropdownButton, true);
+        }
+      }
+      
+      return true;
+    }
     let createMemberList = (search) => {
       search = (search ?? "").toLowerCase();
       let keys = Object.keys(lesson.members);
@@ -1307,13 +1382,15 @@ modules["dropdowns/lesson/board/members"] = class {
       }
     }
     createMemberList();
-
+    
     let dropdown;
     let memberFrameHolder;
     let dropdownButton;
 
     editor.pipeline.subscribe("membersDropdownJoin", "join", (body) => {
-      addMemberTile(lesson.members[body._id]);
+      if (updateMemberTile(lesson.members[body._id]) == false) {
+        addMemberTile(lesson.members[body._id]);
+      }
       parent.updateMemberCount(dropdownTitle);
       if (this.checkSpotlightUpdate != null) {
         this.checkSpotlightUpdate();
@@ -1340,74 +1417,7 @@ modules["dropdowns/lesson/board/members"] = class {
       }
     });
     editor.pipeline.subscribe("membersDropdownUpdate", "update", (body) => {
-      let updateTile = frame.querySelector('.eMemberTile div[holder][member="' + body._id + '"]');
-      if (updateTile != null) {
-        let member = lesson.members[body._id];
-
-        // Handle User / Color Updates:
-        updateTile.style.setProperty("--themeColor", member.color);
-        updateTile.querySelector(".eMemberName").textContent = member.name;
-        updateTile.querySelector(".eMemberName").title = member.name;
-
-        // Handle access changes:
-        let section = getSection(member.access);
-        let oldSection = updateTile.parentElement.parentElement;
-        if (section != oldSection) {
-          section.appendChild(updateTile.parentElement);
-
-          // Update new section:
-          section.querySelector(".eMemberAccessTitle div[count]").textContent = section.childElementCount - 1; // -1 for title
-          section.style.display = "block";
-
-          // Update old section:
-          let newOldCount = oldSection.childElementCount - 1; // -1 for title
-          oldSection.querySelector(".eMemberAccessTitle div[count]").textContent = newOldCount;
-          if (newOldCount < 1) {
-            oldSection.style.display = "none";
-          }
-        }
-
-        // Update order:
-        updateOrder(section, updateTile.parentElement, member);
-
-        // Handle event state:
-        if (member._id != editor.sessionID) {
-          let eventsHolder = updateTile.querySelector(".eMemberEvents");
-          let existingHand = eventsHolder.querySelector(".eMemberEvent[hand]");
-          if (member.hand != null) {
-            if (existingHand == null) {
-              eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" hand title="This member is asking to contribute to the lesson.">HAND</div>`);
-            }
-          } else if (existingHand != null) {
-            existingHand.remove();
-          }
-          let existingIdle = eventsHolder.querySelector(".eMemberEvent[idle]");
-          if (member.active == false) {
-            if (existingIdle == null) {
-              eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" idle title="This member is currently viewing a different window.">IDLE</div>`);
-            }
-          } else if (existingIdle != null) {
-            existingIdle.remove();
-          }
-          let existingObserve = eventsHolder.querySelector(".eMemberEvent[observe]");
-          if (member.observe == editor.sessionID) {
-            if (existingObserve == null) {
-              eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" observe title="This member is observing you on the document.">OBSERVE</div>`);
-            }
-          } else if (existingObserve != null) {
-            existingObserve.remove();
-          }
-        }
-
-        // Update member dropdown:
-        if (dropdownButton != null) {
-          if (dropdownButton.getAttribute("member") == member._id) {
-            openDropdown(updateTile, true);
-          } else if (dropdownButton.querySelector("div[title]") != null) {
-            openDropdown(dropdownButton, true);
-          }
-        }
-      }
+      updateMemberTile(lesson.members[body._id]);
       parent.updateMemberCount(dropdownTitle);
       if (this.checkSpotlightUpdate != null) {
         this.checkSpotlightUpdate();

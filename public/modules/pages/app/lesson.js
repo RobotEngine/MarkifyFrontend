@@ -24,7 +24,7 @@ modules["pages/app/lesson"] = class {
   ];
   html = `<div class="lPageHolder"></div>`;
   css = {
-    ".lPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100vw; width: 100dvw; height: 100vh; height: 100dvh; padding: 8px; left: 0px; top: 0px; justify-content: center; touch-action: none`,
+    ".lPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100vw; width: 100dvw; height: 100vh; height: 100dvh; padding: 8px; left: 0px; top: 0px; contain: strict; justify-content: center; touch-action: none`,
     ".lPageHolder[resize]": `user-select: none; cursor: col-select`,
     ".lPageHolder[maximize]": `padding: 0px !important`,
     ".lPage": `--shadowOpacity: .3; position: relative; display: flex; width: 100%; height: 100%; flex: 1; z-index: 1; box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: 12px; overflow: hidden; transition: all .2s, flex .4s`, //min-width: min(var(--minPageSize), 100%);

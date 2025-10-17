@@ -10165,6 +10165,7 @@ modules["editor/toolbar/font"] = class {
       } else {
         quill.formatText(0, quill.getLength(), "font", font, source);
       }
+      await document.fonts.ready;
       if (enabled == false) {
         await this.toolbar.saveSelecting(() => { return { d: quill.getContents().ops } }, { refreshActionBar: false });
       } else if (selection != null && selection.length < 1) {

@@ -3088,10 +3088,10 @@ modules["editor/editor"] = class {
       }
       let fetchFont = new Promise(async (resolve) => {
         let newFontLink = document.createElement("link");
-        this.text.loadingFonts[font] = newFontLink;
         newFontLink.rel = "stylesheet";
         head.appendChild(newFontLink);
         newFontLink.addEventListener("load", async () => {
+          delete this.text.loadingFonts[font];
           let newRules = {};
           newRules[".ql-editor .ql-font-" + font] = "font-family: " + '"' + fontInfo[0] + '"';
           addCSS(newRules);
@@ -3115,6 +3115,7 @@ modules["editor/editor"] = class {
           resolve();
         });*/
       });
+      this.text.loadingFonts[font] = fetchFont;
       if (this.exporting == true) {
         this.exportPromises.push(fetchFont);
       }

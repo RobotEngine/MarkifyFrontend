@@ -193,7 +193,7 @@ modules["editor/toolbar"] = class {
     '.eSelectSnap div[marker="snapytop"]': `width: 16px; height: 2px; top: 0px; left: 50%; transform: translateX(-50%)`,
     '.eSelectSnap div[marker="snapybottom"]': `width: 16px; height: 2px; bottom: 0px; left: 50%; transform: translateX(-50%)`,
 
-    ".eActionBar": `position: absolute; display: flex; height: 50px; box-shadow: var(--lightShadow); z-index: 102; border-radius: 12px; transform: translateY(-10%); opacity: 0; transition: transform .2s, opacity .2s, border-radius .2s`,
+    ".eActionBar": `position: absolute; display: flex; height: 50px; box-shadow: var(--lightShadow); z-index: 102; border-radius: 12px; transform: translate(-50%, -10%); opacity: 0; transition: transform .2s, opacity .2s, border-radius .2s`,
     ".eActionToolbar": `display: flex; width: 100%; height: 100%; background: var(--pageColor); overflow: auto; border-radius: inherit; z-index: 2`,
     ".eActionToolbar[locked] > *": `display: none`,
     //".eActionToolbar .eTool[stayonlock]": `display: flex`,
@@ -1709,7 +1709,7 @@ modules["editor/toolbar"] = class {
             return;
           }
           removeActionBar.setAttribute("remove", "");
-          removeActionBar.style.transform = "translateY(-10%)";
+          removeActionBar.style.transform = "translate(-50%, -10%)";
           removeActionBar.style.opacity = 0;
           await sleep(200);
           if (removeActionBar != null) {
@@ -1921,20 +1921,20 @@ modules["editor/toolbar"] = class {
 
       // Update Action Bar UI
       if (options.skipUpdate != true || newActionBar == true) {
-        let actionBarWidth = this.selection.actionBar.offsetWidth;
+        let actionBarWidth = this.selection.actionBar.offsetWidth / 2;
         let actionBarHeight = this.selection.actionBar.offsetHeight;
         let annotationRect = editor.utils.annotationsRect();
-        let pxLeft = annotationRect.left + ((this.selection.minX + ((this.selection.maxX - this.selection.minX) / 2)) * editor.zoom) - (actionBarWidth / 2);
+        let pxCenter = annotationRect.left + ((this.selection.minX + ((this.selection.maxX - this.selection.minX) / 2)) * editor.zoom); // - (actionBarWidth / 2);
         if (toolbarHolder.hasAttribute("right") == false) {
-          if (pxLeft + actionBarWidth + 8 > contentHolder.clientWidth) {
-            pxLeft -= (pxLeft + actionBarWidth + 8) - contentHolder.clientWidth;
+          if (pxCenter + actionBarWidth + 8 > contentHolder.clientWidth) {
+            pxCenter -= (pxCenter + actionBarWidth + 8) - contentHolder.clientWidth;
           }
-          pxLeft = Math.max(pxLeft, editor.scrollOffset);
+          pxCenter = Math.max(pxCenter, editor.scrollOffset + actionBarWidth);
         } else {
-          if (pxLeft + actionBarWidth + editor.scrollOffset > contentHolder.clientWidth) {
-            pxLeft -= (pxLeft + actionBarWidth + editor.scrollOffset) - contentHolder.clientWidth;
+          if (pxCenter - actionBarWidth + editor.scrollOffset > contentHolder.clientWidth) {
+            pxCenter -= (pxCenter - actionBarWidth + editor.scrollOffset) - contentHolder.clientWidth;
           }
-          pxLeft = Math.max(pxLeft, 8);
+          pxCenter = Math.max(pxCenter, 8);
         }
         let yPos = editor.scrollOffset;
         if ((account.settings ?? {}).actionbar != "top") {
@@ -1952,7 +1952,7 @@ modules["editor/toolbar"] = class {
         }
         let maxActionBarWidth = contentHolder.clientWidth - editor.scrollOffset - 8;
         this.selection.actionBar.style.maxWidth = maxActionBarWidth + "px";
-        this.selection.actionBar.style.left = (pxLeft + contentHolder.scrollLeft) + "px";
+        this.selection.actionBar.style.left = (pxCenter + contentHolder.scrollLeft) + "px";
         this.selection.actionBar.style.top = (yPos + contentHolder.scrollTop) + "px";
 
         if (isBottom == false) { // Is at top
@@ -2049,7 +2049,7 @@ modules["editor/toolbar"] = class {
       }
 
       if (newActionBar == true) {
-        this.selection.actionBar.style.transform = "translateY(0%)";
+        this.selection.actionBar.style.transform = "translate(-50%, 0%)";
         this.selection.actionBar.style.opacity = 1;
       }
     }

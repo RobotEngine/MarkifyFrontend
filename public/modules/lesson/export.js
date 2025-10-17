@@ -23,6 +23,7 @@ modules["lesson/export"] = class {
     pageHolder.style.position = "absolute";
     pageHolder.style.width = "fit-content";
     pageHolder.style.height = "fit-content";
+    pageHolder.style.contain = "unset";
 
     let contentHolder = frame.querySelector(".eExportHolder");
 

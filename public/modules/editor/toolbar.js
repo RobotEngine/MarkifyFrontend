@@ -1921,20 +1921,22 @@ modules["editor/toolbar"] = class {
 
       // Update Action Bar UI
       if (options.skipUpdate != true || newActionBar == true) {
-        let actionBarWidth = this.selection.actionBar.offsetWidth / 2;
+        let contentHolderWidth = contentHolder.clientWidth;
+        let contentHolderHeight = contentHolder.clientHeight;
+        let actionBarWidth = Math.min(this.selection.actionBar.offsetWidth, contentHolderWidth - editor.scrollOffset - 8) / 2;
         let actionBarHeight = this.selection.actionBar.offsetHeight;
         let annotationRect = editor.utils.annotationsRect();
         let pxCenter = annotationRect.left + ((this.selection.minX + ((this.selection.maxX - this.selection.minX) / 2)) * editor.zoom); // - (actionBarWidth / 2);
         if (toolbarHolder.hasAttribute("right") == false) {
-          if (pxCenter + actionBarWidth + 8 > contentHolder.clientWidth) {
-            pxCenter -= (pxCenter + actionBarWidth + 8) - contentHolder.clientWidth;
+          if (pxCenter + actionBarWidth + 8 > contentHolderWidth) {
+            pxCenter -= (pxCenter + actionBarWidth + 8) - contentHolderWidth;
           }
           pxCenter = Math.max(pxCenter, editor.scrollOffset + actionBarWidth);
         } else {
-          if (pxCenter - actionBarWidth + editor.scrollOffset > contentHolder.clientWidth) {
-            pxCenter -= (pxCenter - actionBarWidth + editor.scrollOffset) - contentHolder.clientWidth;
+          if (pxCenter + actionBarWidth + editor.scrollOffset > contentHolderWidth) {
+            pxCenter -= (pxCenter + actionBarWidth + editor.scrollOffset) - contentHolderWidth;
           }
-          pxCenter = Math.max(pxCenter, 8);
+          pxCenter = Math.max(pxCenter, actionBarWidth + 8);
         }
         let yPos = editor.scrollOffset;
         if ((account.settings ?? {}).actionbar != "top") {
@@ -1943,7 +1945,7 @@ modules["editor/toolbar"] = class {
         let isBottom = false;
         if (yPos < editor.scrollOffset) {
           let modifiedY = annotationRect.top + (this.selection.maxY * editor.zoom) + this.selection.handlePadding;
-          if (modifiedY + actionBarHeight + editor.scrollOffset > contentHolder.clientHeight) {
+          if (modifiedY + actionBarHeight + editor.scrollOffset > contentHolderHeight) {
             yPos = editor.scrollOffset;
           } else {
             yPos = modifiedY;
@@ -10853,5 +10855,17 @@ modules["editor/toolbar/textalign"] = class {
     leftAlign.addEventListener("click", () => { saveAlign("left"); });
     centerAlign.addEventListener("click", () => { saveAlign("center"); });
     rightAlign.addEventListener("click", () => { saveAlign("right"); });
+  }
+}
+modules["editor/toolbar/formula"] = class {
+  setActionButton = async (button) => {
+    setSVG(button, "../images/editor/toolbar/formula/formula.svg");
+  }
+
+  TOOLTIP = "Formula";
+  SUPPORTS_MULTIPLE_SELECT = false;
+
+  js = async (frame) => {
+    
   }
 }

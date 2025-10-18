@@ -2890,25 +2890,14 @@ modules["editor/editor"] = class {
       if (window.Quill == null) {
         await loadScript("../libraries/quilljs/quill.core.js");
       }
-      return Quill;
-    }
-    this.text.uncleanQuill = (content = []) => {
-      if (content.map == null) {
-        return;
-      }
-      return content.map((value) => {
-        return { ...value, insert: uncleanString(value.insert ?? "") };
-      });
-    }
-    if (window.QuillSetup != true) {
-      window.QuillSetup = true;
-      (async () => { // Setup blots:
-        let quill = await this.text.getQuill();
-        let Parchment = quill.import("parchment");
-        let Inline = quill.import("blots/inline");
-        let Block = quill.import("blots/block");
-        let Container = quill.import("blots/container");
-        quill.register(new Parchment.StyleAttributor("color", "color", {
+      if (window.QuillSetup != true) {
+        window.QuillSetup = true;
+        let Parchment = Quill.import("parchment");
+        let Inline = Quill.import("blots/inline");
+        let Block = Quill.import("blots/block");
+        let Container = Quill.import("blots/container");
+        let Embed = Quill.import("blots/embed");
+        Quill.register(new Parchment.StyleAttributor("color", "color", {
           scope: Parchment.Scope.INLINE
         }));
         let fontMapping = this.text.fonts;
@@ -2930,36 +2919,36 @@ modules["editor/editor"] = class {
             return fontName ?? value;
           }
         }
-        quill.register(new FontAttributor("font", "font-family", {
+        Quill.register(new FontAttributor("font", "font-family", {
           scope: Parchment.Scope.INLINE,
           whitelist: Object.values(this.text.fonts).map((value) => { return value[0]; })
         }));*/
-        quill.register(new Parchment.ClassAttributor("font", "ql-font", {
+        Quill.register(new Parchment.ClassAttributor("font", "ql-font", {
           scope: Parchment.Scope.INLINE,
           whitelist: Object.keys(this.text.fonts)
         }));
-        quill.register(new Parchment.StyleAttributor("size", "font-size", {
+        Quill.register(new Parchment.StyleAttributor("size", "font-size", {
           scope: Parchment.Scope.INLINE
         }));
-        quill.register(class BoldBlot extends Inline {
+        Quill.register(class BoldBlot extends Inline {
           static blotName = "bold";
-          static tagName = "strong";
+          static tagName = "STRONG";
         });
-        quill.register(class ItalicBlot extends Inline {
+        Quill.register(class ItalicBlot extends Inline {
           static blotName = "italic";
-          static tagName = "em";
+          static tagName = "EM";
         });
-        quill.register(class UnderlineBlot extends Inline {
+        Quill.register(class UnderlineBlot extends Inline {
           static blotName = "underline";
           static tagName = "U";
         });
-        quill.register(class StrikeBlot extends Inline {
+        Quill.register(class StrikeBlot extends Inline {
           static blotName = "strike";
           static tagName = "STRIKE";
         });
-        //quill.register(new Parchment.StyleAttributor("custom-family-attributor", "font-family"));
-        //quill.register(new Parchment.StyleAttributor("custom-size-attributor", "font-size"));
-        //quill.register(new Parchment.StyleAttributor("custom-color-attributor", "color"));
+        //Quill.register(new Parchment.StyleAttributor("custom-family-attributor", "font-family"));
+        //Quill.register(new Parchment.StyleAttributor("custom-size-attributor", "font-size"));
+        //Quill.register(new Parchment.StyleAttributor("custom-color-attributor", "color"));
         class ListContainer extends Container {}
         ListContainer.blotName = "list-container";
         ListContainer.tagName = "OL";
@@ -3032,8 +3021,8 @@ modules["editor/editor"] = class {
         ListItem.tagName = "LI";
         ListContainer.allowedChildren = [ListItem];
         ListItem.requiredContainer = ListContainer;
-        quill.register(ListItem);
-        quill.register(new Parchment.StyleAttributor("align", "text-align", {
+        Quill.register(ListItem);
+        Quill.register(new Parchment.StyleAttributor("align", "text-align", {
           scope: Parchment.Scope.BLOCK,
           whitelist: ["left", "center", "right"]
         }));
@@ -3043,7 +3032,7 @@ modules["editor/editor"] = class {
           let protocol = anchor.href.slice(0, anchor.href.indexOf(':'));
           return protocols.indexOf(protocol) > -1;
         }
-        quill.register(class Link extends Inline {
+        Quill.register(class LinkBlot extends Inline {
           static blotName = "link";
           static tagName = "A";
           static SANITIZED_URL = "about:blank";
@@ -3073,7 +3062,45 @@ modules["editor/editor"] = class {
             }
           }
         });
-      })();
+        Quill.register("formats/formula", class FormulaBlot extends Embed {
+          static blotName = "formula";
+          static className = "ql-formula";
+          static tagName = "SPAN";
+
+          static create(value) {
+            let node = super.create();
+            let formula = String(value || '');
+            node.setAttribute("data-value", formula);
+            // Render with KaTeX if available:
+            if (window.katex != null && typeof window.katex.renderToString == "function") {
+              try {
+                node.innerHTML = window.katex.renderToString(formula);
+              } catch {
+                node.textContent = formula;
+              }
+            } else {
+              node.textContent = formula;
+            }
+            return node;
+          }
+
+          static value(node) {
+            return node.getAttribute("data-value");
+          }
+        });
+      }
+      return Quill;
+    }
+    this.text.uncleanQuill = (content = []) => {
+      if (content.map == null) {
+        return;
+      }
+      return content.map((value) => {
+        if (typeof value.insert != "string") {
+          return value;
+        }
+        return { ...value, insert: uncleanString(value.insert) };
+      });
     }
     this.text.loadFont = (font) => {
       let fontInfo = this.text.fonts[font];
@@ -4762,7 +4789,7 @@ modules["editor/render/annotation/text"] = class extends modules["editor/render/
     let loadText = async () => {
       if (this.quill == null) {
         this.quill = new (await this.parent.text.getQuill())(text, {
-          formats: ["color", "font", "size", "bold", "italic", "underline", "strike", "list", "link", "align"],
+          formats: ["color", "font", "size", "bold", "italic", "underline", "strike", "list", "link", "align", "formula"],
           modules: {
             history: { maxStack: 0 }
           },
@@ -5423,7 +5450,7 @@ modules["editor/render/annotation/sticky"] = class extends modules["editor/rende
     let loadText = async () => {
       if (this.quill == null) {
         this.quill = new (await this.parent.text.getQuill())(text, {
-          formats: ["font", "size", "bold", "italic", "underline", "strike", "list", "link", "align"],
+          formats: ["font", "size", "bold", "italic", "underline", "strike", "list", "link", "align", "formula"],
           modules: {
             history: { maxStack: 0 }
           },

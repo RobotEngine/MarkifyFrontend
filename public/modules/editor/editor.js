@@ -30,6 +30,9 @@ modules["editor/editor"] = class {
     ".eAnnotation .ql-editor ol": `padding: unset`,
     ".eAnnotation .ql-editor a": `color: var(--theme) !important`,
     ".eAnnotation:not([selected]) > .ql-container .ql-editor a": `pointer-events: none !important`,
+    ".eAnnotation .ql-formula": `position: relative; border: none; background: unset !important; box-shadow: unset !important`,
+    '.eAnnotation[selected] .ql-editor .ql-formula:before': `content: ""; position: absolute; box-sizing: border-box; width: calc(100% * var(--zoom)); height: calc(100% * var(--zoom)); left: 50%; top: 50%; transform: translate(-50%, -50%) scale(calc(1 / var(--zoom))); border: solid 2px var(--secondary); border-radius: 6px; opacity: 0; pointer-events: none; transition: opacity .15s`,
+    '.eAnnotation[selected] .ql-editor[contenteditable="true"] .ql-formula:before': `opacity: 1`,
     
     ".eReaction": `display: flex; padding: 2px; background: rgba(255, 255, 255, .8); border: solid 2px rgba(0, 0, 0, 0); border-radius: 8px; align-items: center; overflow: hidden; color: #2F2F2F`,
     ".eReaction[selected]": `padding: 2px; background: rgba(180, 218, 253, .8); border: solid 2px var(--theme); color: var(--theme)`,
@@ -3062,6 +3065,7 @@ modules["editor/editor"] = class {
             }
           }
         });
+        let editor = this;
         Quill.register(class FormulaBlot extends Embed {
           static blotName = "formula";
           static className = "ql-formula";
@@ -3069,18 +3073,42 @@ modules["editor/editor"] = class {
 
           static create(value) {
             let node = super.create();
-            let formula = String(value || '');
+            let formula = String(value ?? "");
             node.setAttribute("data-value", formula);
-            // Render with KaTeX if available:
-            if (window.katex != null && typeof window.katex.renderToString == "function") {
-              try {
-                node.innerHTML = window.katex.renderToString(formula);
-              } catch {
-                node.textContent = formula;
+            //node.textContent = formula;
+            
+            (async () => {
+              if (window.mathquill == null) {
+                let mathquillScript = loadScript("../libraries/mathquill/mathquill.min.js");
+                if (window.loadingMathQuill != true) {
+                  window.loadingMathQuill = true;
+                  let mathquillCSS = document.createElement("link");
+                  mathquillCSS.type = "text/css";
+                  mathquillCSS.rel = "stylesheet";
+                  head.appendChild(mathquillCSS);
+                  if (editor.exporting == true) {
+                    editor.exportPromises.push(mathquillScript);
+                    editor.exportPromises.push(new Promise(async (resolve) => {
+                      mathquillCSS.addEventListener("load", resolve);
+                      mathquillCSS.addEventListener("error", resolve);
+                    }));
+                  }
+                  mathquillCSS.href = "../libraries/mathquill/mathquill.css";
+                }
+                await mathquillScript;
+                window.mathquill = MathQuill.getInterface(3);
               }
-            } else {
-              node.textContent = formula;
-            }
+              this.mathquill = window.mathquill.MathField(node, {
+                spaceBehavesLikeTab: true,
+                handlers: {
+                  edit: () => {
+                    node.setAttribute("data-value", this.mathquill.latex());
+                  }
+                }
+              });
+              this.mathquill.latex(node.getAttribute("data-value"));
+            })();
+
             return node;
           }
 

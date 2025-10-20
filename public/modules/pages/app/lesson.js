@@ -14,6 +14,7 @@ modules["pages/app/lesson"] = class {
     "../libraries/pdfjs/pdf.mjs",
     "../libraries/pdfjs/pdf.worker.mjs",
     "../libraries/quilljs/quill.core.js",
+    "../libraries/mathquill/mathquill.min.js",
 
     "../modules/dropdowns/lesson/share.js",
     "../modules/dropdowns/account.js",
@@ -610,10 +611,10 @@ modules["pages/app/lesson"] = class {
       if (beforePageWidth + changeX < this.minPageSize) {
         let correct = this.minPageSize - (beforePageWidth + changeX);
         changeX += correct;
-        let setScale = (this.minPageSize - correct) / this.minPageSize;
-        beforePage.setAttribute("scale", setScale);
-        beforePage.style.transform = "scale(" + setScale + ")";
-        beforePage.style.transformOrigin = "left";
+        //let setScale = (this.minPageSize - correct) / this.minPageSize;
+        //beforePage.setAttribute("scale", setScale);
+        beforePage.style.transform = "translateX(" + (-1 * correct) + "px)"; //"scale(" + setScale + ")";
+        //beforePage.style.transformOrigin = "left";
         beforePage.style.minWidth = "var(--minPageSize)";
         let setOpacity = ((this.minPageSize / 2) - correct) / (this.minPageSize / 2);
         if (setOpacity > 0) {
@@ -634,10 +635,10 @@ modules["pages/app/lesson"] = class {
         let correct = this.minPageSize - (afterPageWidth - changeX);
         changeX -= correct;
         removeAfterPage = true;
-        let setScale = (this.minPageSize - correct) / this.minPageSize;
-        afterPage.setAttribute("scale", setScale);
-        afterPage.style.transform = "scale(" + setScale + ")";
-        afterPage.style.transformOrigin = "right";
+        //let setScale = (this.minPageSize - correct) / this.minPageSize;
+        //afterPage.setAttribute("scale", setScale);
+        afterPage.style.transform = "translateX(" + correct + "px)"; //"scale(" + setScale + ")";
+        //afterPage.style.transformOrigin = "right";
         afterPage.style.minWidth = "var(--minPageSize)";
         let setOpacity = ((this.minPageSize / 2) - correct) / (this.minPageSize / 2);
         if (setOpacity > 0) {

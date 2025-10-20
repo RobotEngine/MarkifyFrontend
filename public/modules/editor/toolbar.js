@@ -7368,7 +7368,7 @@ modules["editor/toolbar/color"] = class {
               quill.formatText(0, quill.getLength(), "color", "#" + selectedColor, source);
             }
             if (enabled == false) {
-              await this.toolbar.saveSelecting(() => { return { d: quill.getContents().ops } }, { refreshActionBar: false });
+              await this.toolbar.saveSelecting(() => { return { c: selectedColor, d: quill.getContents().ops } }, { refreshActionBar: false });
             }
           } else {
             await toolbar.saveSelecting(() => { return { c: selectedColor }; });
@@ -7571,7 +7571,7 @@ modules["editor/toolbar/color"] = class {
             quill.formatText(0, quill.getLength(), "color", "#" + selectedColor, source);
           }
           if (enabled == false) {
-            await this.toolbar.saveSelecting(() => { return { d: quill.getContents().ops } }, { refreshActionBar: false });
+            await this.toolbar.saveSelecting(() => { return { c: selectedColor, d: quill.getContents().ops } }, { refreshActionBar: false });
           }
         } else {
           await toolbar.saveSelecting(() => { return { c: selectedColor }; }, { saveHistory: saveHistory == true });
@@ -10030,7 +10030,25 @@ modules["editor/toolbar/textedit"] = class {
     };
     this.toolbar.addQuillEventListener(quill, "text-change", textChange);
 
-    let selectionChange = () => { //range, oldRange, source
+    let selectionChange = async (range, oldRange) => { //range, oldRange, source
+      if (range != null && range.length < 1) {
+        let direction = range.index - ((oldRange ?? {}).index ?? 0);
+        let [content] = (quill.getContents(range.index, 1) ?? {}).ops ?? [];
+        if (content != null && typeof content.insert == "object" && content.insert.formula != null) {
+          let element = quill.container.querySelector('.ql-formula[data-value="' + CSS.escape(content.insert.formula) + '"]');
+          let mathquill = this.editor.mathquill(element);
+          if (mathquill != null) {
+            //quill.blur();
+            mathquill.focus();
+            if (direction > 0) {
+              mathquill.moveToLeftEnd();
+            } else {
+              mathquill.moveToRightEnd();
+            }
+          }
+        }
+      }
+
       this.toolbar.selection.updateActionBar({ refreshActionBar: true, redrawCurrentAction: true });
       /*let format = {};
       if (range != null) {

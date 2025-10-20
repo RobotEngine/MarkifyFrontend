@@ -3075,11 +3075,11 @@ modules["editor/editor"] = class {
             let node = super.create();
             let formula = String(value ?? "");
             node.setAttribute("data-value", formula);
+            node.setAttribute("contenteditable", "false");
             //node.textContent = formula;
             
             (async () => {
-              if (window.mathquill == null) {
-                let mathquillScript = loadScript("../libraries/mathquill/mathquill.min.js");
+              if (editor.mathquill == null) {
                 if (window.loadingMathQuill != true) {
                   window.loadingMathQuill = true;
                   let mathquillCSS = document.createElement("link");
@@ -3087,7 +3087,6 @@ modules["editor/editor"] = class {
                   mathquillCSS.rel = "stylesheet";
                   head.appendChild(mathquillCSS);
                   if (editor.exporting == true) {
-                    editor.exportPromises.push(mathquillScript);
                     editor.exportPromises.push(new Promise(async (resolve) => {
                       mathquillCSS.addEventListener("load", resolve);
                       mathquillCSS.addEventListener("error", resolve);
@@ -3095,10 +3094,17 @@ modules["editor/editor"] = class {
                   }
                   mathquillCSS.href = "../libraries/mathquill/mathquill.css";
                 }
-                await mathquillScript;
-                window.mathquill = MathQuill.getInterface(3);
+                if (window.MathQuill == null) {
+                  let mathquillScript = loadScript("../libraries/mathquill/mathquill.min.js");
+                  if (editor.exporting == true) {
+                    editor.exportPromises.push(mathquillScript);
+                  }
+                  await mathquillScript;
+                }
+                await sleep();
+                editor.mathquill = MathQuill.getInterface(3);
               }
-              this.mathquill = window.mathquill.MathField(node, {
+              this.mathquill = editor.mathquill.MathField(node, {
                 spaceBehavesLikeTab: true,
                 handlers: {
                   edit: () => {
@@ -3106,6 +3112,7 @@ modules["editor/editor"] = class {
                   }
                 }
               });
+              //this.mathquill = editor.mathquill.StaticMath(node);
               this.mathquill.latex(node.getAttribute("data-value"));
             })();
 

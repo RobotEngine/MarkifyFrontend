@@ -187,7 +187,8 @@ modules["dropdowns/lesson/share/link"] = class {
     </div>
   </button>
   <div class="eShareLinkRow">
-    <button class="eShareLinkRemove border" title="Invalidate the link.">Private Link</button>
+    <button class="eShareLinkRemove border" title="Invalidate the link.">Private</button>
+    <button class="eShareLinkEmbed border" title="Get the embed code for a lesson.">Embed</button>
     <button class="eShareOptionLink border" title="Configurable options for members who join.">Options</button>
   </div>
   `;
@@ -213,8 +214,9 @@ modules["dropdowns/lesson/share/link"] = class {
 
     ".eShareLinkRemove": `height: fit-content; min-height: 36px; padding: 0 12px; margin: 7px 14px 7px 7px; --borderWidth: 3px; --borderRadius: 18px; color: var(--error); font-size: 18px`,
     ".eShareLinkRemove:hover": `background: var(--error); --borderWidth: 0px; transform: scale(1.1); color: #fff`,
-
-    ".eShareOptionLink": `height: fit-content; min-height: 36px; padding: 0 12px; margin: 7px 7px 7px auto; --borderWidth: 3px; --borderRadius: 18px; color: var(--secondary); font-size: 18px`,
+    ".eShareLinkEmbed": `height: fit-content; min-height: 36px; padding: 0 12px; margin: 7px 7px 7px auto; --borderWidth: 3px; --borderRadius: 18px; color: var(--secondary); font-size: 18px`,
+    ".eShareLinkEmbed:hover": `background: var(--secondary); --borderWidth: 0px; transform: scale(1.1); color: #fff`,
+    ".eShareOptionLink": `height: fit-content; min-height: 36px; padding: 0 12px; margin: 7px; --borderWidth: 3px; --borderRadius: 18px; color: var(--secondary); font-size: 18px`,
     ".eShareOptionLink:hover": `background: var(--secondary); --borderWidth: 0px; transform: scale(1.1); color: #fff`
   };
   js = async (frame, extra) => {

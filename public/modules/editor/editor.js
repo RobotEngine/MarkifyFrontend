@@ -3097,7 +3097,7 @@ modules["editor/editor"] = class {
                   mathquillCSS.href = "../libraries/mathquill/mathquill.css";
                 }
                 if (window.MathQuill == null) {
-                  let mathquillScript = loadScript("../libraries/mathquill/mathquill.min.js");
+                  let mathquillScript = loadScript("../libraries/mathquill/mathquill.js");
                   if (editor.exporting == true) {
                     editor.exportPromises.push(mathquillScript);
                   }
@@ -3143,11 +3143,13 @@ modules["editor/editor"] = class {
                 }
               });
 
-              node.addEventListener("focusin", () => {
+              let forceSelectFn = () => {
                 if (node.mathquillAPI != null) {
                   node.mathquillAPI.__controller.selectFn("&nbsp;");
                 }
-              });
+              }
+              node.addEventListener("focusin", forceSelectFn);
+              node.addEventListener("keydown", forceSelectFn);
             })();
 
             return node;

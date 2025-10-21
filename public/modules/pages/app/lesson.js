@@ -14,7 +14,7 @@ modules["pages/app/lesson"] = class {
     "../libraries/pdfjs/pdf.mjs",
     "../libraries/pdfjs/pdf.worker.mjs",
     "../libraries/quilljs/quill.core.js",
-    "../libraries/mathquill/mathquill.js",
+    "../libraries/mathquill/mathquill.min.js",
 
     "../modules/dropdowns/lesson/share.js",
     "../modules/dropdowns/account.js",

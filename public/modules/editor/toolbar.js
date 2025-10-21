@@ -1242,7 +1242,7 @@ modules["editor/toolbar"] = class {
             annotation.style.removeProperty("border-radius");
             if (annoData.component.quill != null && annoData.component.quill.isEnabled() == true) {
               annoData.component.quill.disable();
-              if (annoData.component.REMOVE_IF_NO_TEXT == true && annoData.component.quill.getText().trim().length < 1) {
+              if (annoData.component.REMOVE_IF_NO_TEXT == true && annoData.component.quill.getText().trim().length < 1 && annoData.component.quill.getContents().ops.length < 2) {
                 await editor.history.push("add", [render]);
                 await editor.save.push({ _id: annoID, remove: true });
                 editor.realtimeSelect[annoID] = { ...editor.realtimeSelect[annoID], _id: annoID, remove: true };
@@ -10030,13 +10030,16 @@ modules["editor/toolbar/textedit"] = class {
     };
     this.toolbar.addQuillEventListener(quill, "text-change", textChange);
 
-    let selectionChange = async (range, oldRange) => { //range, oldRange, source
-      if (range != null && range.length < 1) {
-        let direction = range.index - ((oldRange ?? {}).index ?? 0);
-        let [content] = (quill.getContents(range.index, 1) ?? {}).ops ?? [];
-        if (content != null && typeof content.insert == "object" && content.insert.formula != null) {
-          let element = quill.container.querySelector('.ql-formula[data-value="' + CSS.escape(content.insert.formula) + '"]');
-          let mathquill = this.editor.mathquill(element);
+    let selectionChange = async (range, oldRange, source) => {
+      if (range != null && range.length < 1 && source != "api") {
+        let index = range.index;
+        let direction = index - ((oldRange ?? {}).index ?? 0);
+        if (direction < 0) {
+          index++;
+        }
+        let element = (quill.getLeaf(index)[0] ?? {}).domNode; //(quill.getContents(index, 1) ?? {}).ops ?? [];
+        if (element != null) {
+          let mathquill = element.mathquillAPI;
           if (mathquill != null) {
             //quill.blur();
             mathquill.focus();

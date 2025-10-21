@@ -31,9 +31,12 @@ modules["editor/editor"] = class {
     ".eAnnotation .ql-editor a": `color: var(--theme) !important`,
     ".eAnnotation:not([selected]) > .ql-container .ql-editor a": `pointer-events: none !important`,
     ".eAnnotation .ql-formula": `position: relative; border: none; background: unset !important; box-shadow: unset !important`,
+    '.eAnnotation .ql-editor[contenteditable="false"] .ql-formula': `pointer-events: none !important`,
     '.eAnnotation[selected] .ql-editor .ql-formula:before': `content: ""; position: absolute; box-sizing: border-box; width: calc(100% * var(--zoom)); height: calc(100% * var(--zoom)); left: 50%; top: 50%; transform: translate(-50%, -50%) scale(calc(1 / var(--zoom))); border: solid 2px var(--secondary); border-radius: 6px; opacity: 0; pointer-events: none; transition: opacity .15s`,
     '.eAnnotation[selected] .ql-editor[contenteditable="true"] .ql-formula:before': `opacity: 1`,
     
+    //".ql-formula textarea": `transform: unset !important; clip: unset !important; width: unset !important; height: unset !important; outline: none !important`,
+
     ".eReaction": `display: flex; padding: 2px; background: rgba(255, 255, 255, .8); border: solid 2px rgba(0, 0, 0, 0); border-radius: 8px; align-items: center; overflow: hidden; color: #2F2F2F`,
     ".eReaction[selected]": `padding: 2px; background: rgba(180, 218, 253, .8); border: solid 2px var(--theme); color: var(--theme)`,
     ".eReaction[add]": `opacity: 0; border-radius: 14px`,
@@ -3079,7 +3082,7 @@ modules["editor/editor"] = class {
             //node.textContent = formula;
             
             (async () => {
-              if (editor.mathquill == null) {
+              if (this.mathquillInterface == null) {
                 if (window.loadingMathQuill != true) {
                   window.loadingMathQuill = true;
                   let mathquillCSS = document.createElement("link");
@@ -3102,18 +3105,60 @@ modules["editor/editor"] = class {
                   await mathquillScript;
                 }
                 await sleep();
-                editor.mathquill = MathQuill.getInterface(3);
+                this.mathquillInterface = window.MathQuill.getInterface(3);
               }
-              this.mathquill = editor.mathquill.MathField(node, {
+              node.mathquillAPI = this.mathquillInterface.MathField(node);
+              //this.mathquill = this.mathquillInterface.StaticMath(node);
+              node.mathquillAPI.latex(node.getAttribute("data-value"));
+              node.mathquillAPI.config({
                 spaceBehavesLikeTab: true,
                 handlers: {
                   edit: () => {
-                    node.setAttribute("data-value", this.mathquill.latex());
+                    node.setAttribute("data-value", node.mathquillAPI.latex());
+                  },
+                  moveOutOf: async (direction = 0) => {
+                    let blot = Quill.find(node);
+                    if (blot == null) {
+                      return;
+                    }
+                    let quill = Quill.find(blot.scroll.domNode.parentElement);
+                    if (quill == null) {
+                      return;
+                    }
+                    let setIndex = (quill.getIndex(blot) ?? 0) + direction;
+                    let length = quill.getLength();
+                    if (setIndex < length - 1) {
+                      if (direction < 0) {
+                        quill.setSelection(setIndex + 1, 0, "api");
+                      } else {
+                        quill.setSelection(setIndex, 0, "api");
+                      }
+                    } else {
+                      //quill.insertText(length - 1, "", "silent");
+                      quill.setSelection(length - 1, 0, "api");
+                    }
+                    await sleep();
+                    quill.deleteText(length - 1, 0, "silent");
                   }
                 }
               });
-              //this.mathquill = editor.mathquill.StaticMath(node);
-              this.mathquill.latex(node.getAttribute("data-value"));
+              
+              //let textarea = node.querySelector(".mq-editable-field textarea");
+              //body.appendChild(textarea);
+              
+              /*let ignoreFocus = false;
+              textarea.addEventListener("focusin", async () => {
+                if (ignoreFocus == true || node.mathquillAPI == null) {
+                  return;
+                }
+                //console.log(node.mathquillAPI.__controller.selectFn())
+                ignoreFocus = true;
+                await sleep(100);
+                textarea.select(0);
+                ignoreFocus = false;
+              });*/
+              //textarea.select();
+              //textarea.blur();
             })();
 
             return node;

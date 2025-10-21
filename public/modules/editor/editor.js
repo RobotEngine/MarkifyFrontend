@@ -3098,7 +3098,7 @@ modules["editor/editor"] = class {
                   mathquillCSS.href = "../libraries/mathquill/mathquill.css";
                 }
                 if (window.MathQuill == null) {
-                  let mathquillScript = loadScript("../libraries/mathquill/mathquill.min.js");
+                  let mathquillScript = loadScript("../libraries/mathquill/mathquill.js");
                   if (editor.exporting == true) {
                     editor.exportPromises.push(mathquillScript);
                   }
@@ -3142,20 +3142,38 @@ modules["editor/editor"] = class {
                   }
                 }
               });
+
+              //seperation.appendChild(node.querySelector(".mq-textarea"));
+              //seperation.appendChild(node.querySelector(".mq-root-block"));
               
               //let textarea = node.querySelector(".mq-editable-field textarea");
               //body.appendChild(textarea);
               
               /*let ignoreFocus = false;
-              textarea.addEventListener("focusin", async () => {
+              node.addEventListener("focusin", async () => {
                 if (ignoreFocus == true || node.mathquillAPI == null) {
                   return;
                 }
                 //console.log(node.mathquillAPI.__controller.selectFn())
                 ignoreFocus = true;
-                await sleep(100);
-                textarea.select(0);
-                ignoreFocus = false;
+                
+                let blot = Quill.find(node);
+                if (blot == null) {
+                  return;
+                }
+                let quill = Quill.find(blot.scroll.domNode.parentElement);
+                if (quill == null) {
+                  return;
+                }
+                let index = quill.getIndex(blot) ?? 0;
+                quill.setSelection(index + 1);
+                setTimeout(() => {
+                  node.mathquillAPI.focus();
+                  ignoreFocus = false;
+                }, 0);
+              });
+              node.addEventListener("keydown", (event) => {
+                event.stopImmediatePropagation();
               });*/
               //textarea.select();
               //textarea.blur();

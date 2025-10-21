@@ -3078,7 +3078,6 @@ modules["editor/editor"] = class {
             let node = super.create();
             let formula = String(value ?? "");
             node.setAttribute("data-value", formula);
-            node.setAttribute("contenteditable", "false");
             //node.textContent = formula;
             
             (async () => {
@@ -3107,6 +3106,7 @@ modules["editor/editor"] = class {
                 await sleep();
                 this.mathquillInterface = window.MathQuill.getInterface(3);
               }
+              node.setAttribute("contenteditable", "false");
               node.mathquillAPI = this.mathquillInterface.MathField(node);
               //this.mathquill = this.mathquillInterface.StaticMath(node);
               node.mathquillAPI.latex(node.getAttribute("data-value"));

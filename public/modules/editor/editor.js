@@ -2859,10 +2859,10 @@ modules["editor/editor"] = class {
       };
       if (caret != null) {
         newHistory.caret = {
-          undoElement: caret.undoElement,
+          //undoElement: caret.undoElement,
           undoPosition: caret.undoPosition,
           //redoElement: caret.redoElement,
-          //redoPosition: caret.redoPosition
+          redoPosition: caret.redoPosition
         };
       }
       this.history.history.push(newHistory);

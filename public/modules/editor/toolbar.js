@@ -3898,7 +3898,7 @@ modules["editor/toolbar"] = class {
         quill.enable();
         quill.setSelection(caretPosition.index, caretPosition.length);
         delete quill.keepTextSelectionActive;
-        if (addRedo == true) {
+        if (addRedo == true && event.caret.redoPosition == null) {
           event.caret.redoPosition = { index: caretPosition.index, length: caretPosition.length };
         }
       }
@@ -10026,6 +10026,7 @@ modules["editor/toolbar/textedit"] = class {
         if (lastHistory != null) {
           lastHistory.caret = lastHistory.caret ?? {};
           lastHistory.caret.undoPosition = lastCaret.undo;
+          lastHistory.caret.redoPosition = lastCaret.redo;
         }
       }
       saveHistory = false;

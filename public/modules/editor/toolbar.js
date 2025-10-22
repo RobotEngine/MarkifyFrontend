@@ -10881,12 +10881,36 @@ modules["editor/toolbar/textalign"] = class {
 modules["editor/toolbar/formula"] = class {
   setActionButton = async (button) => {
     setSVG(button, "../images/editor/toolbar/formula/formula.svg");
+
+    button.closest("button").style.display = "none";
   }
 
   TOOLTIP = "Formula";
   SUPPORTS_MULTIPLE_SELECT = false;
 
-  js = async (frame) => {
-    
+  js = () => {
+    let preference = this.parent.getPreferenceTool();
+    let annotation = this.editor.annotations[preference._id];
+    if (annotation == null) {
+      return;
+    }
+    let quill = (annotation.component ?? {}).quill;
+    if (quill == null) {
+      return;
+    }
+    let index = quill.getSelection().index ?? 0;
+    let format = quill.getFormat();
+    quill.insertEmbed(index, "formula", "");
+    quill.formatText(index, 1, format);
+    setTimeout(() => {
+      let element = (quill.getLeaf(index + 1)[0] ?? {}).domNode;
+      if (element != null) {
+        let mathquill = element.mathquillAPI;
+        if (mathquill != null) {
+          mathquill.focus();
+          mathquill.moveToLeftEnd();
+        }
+      }
+    }, 0);
   }
 }

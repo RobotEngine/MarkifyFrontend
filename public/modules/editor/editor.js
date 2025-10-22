@@ -3078,7 +3078,6 @@ modules["editor/editor"] = class {
             let node = super.create();
             let formula = String(value ?? "");
             node.setAttribute("data-value", formula);
-            //node.textContent = formula;
             
             (async () => {
               if (this.mathquillInterface == null) {
@@ -4773,7 +4772,7 @@ modules["editor/render/annotation/text"] = class extends modules["editor/render/
   REMOVE_IF_NO_TEXT = true;
 
   //ACTION_BAR_TOOLS = ["textedit", "color", "opacity", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "unlock", "delete"];
-  ACTION_BAR_TOOLS = ["textedit", "color", "opacity", "font", "fontsize", "format", "list", "link", "textalign", "unlock", "delete"];
+  ACTION_BAR_TOOLS = ["textedit", "color", "opacity", "font", "fontsize", "format", "list", "link", "textalign", "formula", "unlock", "delete"];
 
   css = {
     ".eAnnotation[text] div[text]": `box-sizing: unset !important; padding: 4px 6px; margin: 3px; color: var(--themeColor); font-weight: 500; pointer-events: all; outline: none`,
@@ -4874,13 +4873,17 @@ modules["editor/render/annotation/text"] = class extends modules["editor/render/
         this.quill.on("editor-change", this.parent.text.checkFonts);
       }
       if (this.quill.isEnabled() == false) {
-        this.quill.setContents(this.parent.text.uncleanQuill(this.properties.d ?? []), "silent");
-        if (this.properties._id == null) {
-          let format = ((this.properties.d ?? [])[0] ?? {}).attributes ?? {}; //(quill.getContents().ops[0] ?? {}).attributes ?? {};
-          let keys = Object.keys(format);
-          for (let i = 0; i < keys.length; i++) {
-            let key = keys[i];
-            this.quill.formatText(0, this.quill.getLength(), key, format[key]);
+        let setContent = this.parent.text.uncleanQuill(this.properties.d ?? []);
+        if (objectEqual(setContent, this.cache.textContent) == false) {
+          this.cache.textContent = setContent;
+          this.quill.setContents(setContent, "silent");
+          if (this.properties._id == null) {
+            let format = ((this.properties.d ?? [])[0] ?? {}).attributes ?? {}; //(quill.getContents().ops[0] ?? {}).attributes ?? {};
+            let keys = Object.keys(format);
+            for (let i = 0; i < keys.length; i++) {
+              let key = keys[i];
+              this.quill.formatText(0, this.quill.getLength(), key, format[key]);
+            }
           }
         }
       }
@@ -5415,7 +5418,7 @@ modules["editor/render/annotation/sticky"] = class extends modules["editor/rende
   ALLOW_RICHTEXT_COLOR = false;
 
   //ACTION_BAR_TOOLS = ["textedit", "color", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "unlock", "reactions", "delete"];
-  ACTION_BAR_TOOLS = ["textedit", "color", "font", "fontsize", "format", "list", "link", "textalign", "unlock", "reactions", "delete"];
+  ACTION_BAR_TOOLS = ["textedit", "color", "font", "fontsize", "format", "list", "link", "textalign", "formula", "unlock", "reactions", "delete"];
 
   SELECTION_FUNCTION = (selection) => {
     if (["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {
@@ -5535,7 +5538,11 @@ modules["editor/render/annotation/sticky"] = class extends modules["editor/rende
         this.quill.on("editor-change", this.parent.text.checkFonts);
       }
       if (this.quill.isEnabled() == false) {
-        this.quill.setContents(this.parent.text.uncleanQuill(this.properties.d ?? []), "silent");
+        let setContent = this.parent.text.uncleanQuill(this.properties.d ?? []);
+        if (objectEqual(setContent, this.cache.textContent) == false) {
+          this.cache.textContent = setContent;
+          this.quill.setContents(setContent, "silent");
+        }
       }
     }
     if (this.parent.exporting != true) {
@@ -5834,7 +5841,11 @@ modules["editor/render/annotation/comment"] = class extends modules["editor/rend
         this.quill.on("editor-change", this.parent.text.checkFonts);
       }
       if (this.quill.isEnabled() == false) {
-        this.quill.setContents(this.parent.text.uncleanQuill(this.properties.d ?? []), "silent");
+        let setContent = this.parent.text.uncleanQuill(this.properties.d ?? []);
+        if (objectEqual(setContent, this.cache.textContent) == false) {
+          this.cache.textContent = setContent;
+          this.quill.setContents(setContent, "silent");
+        }
       }
     }
     if (this.parent.exporting != true) {

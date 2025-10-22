@@ -22,7 +22,7 @@ const configs = {
 };
 
 const config = configs["public"];
-const version = "1.5.19"; // Big Update . Small Feature Release . Bug Fix
+const version = "1.5.20"; // Big Update . Small Feature Release . Bug Fix
 
 const serverURL = config.server;
 const assetURL = config.assets;
@@ -907,6 +907,9 @@ let getTheme = () => {
 }
 let updateTheme = () => {
   let setTheme = getTheme();
+  if (getParam("embed") != null) {
+    setTheme = "light";
+  }
   document.documentElement.setAttribute("theme", pageTheme ?? setTheme);
 }
 if (window.matchMedia != null) {

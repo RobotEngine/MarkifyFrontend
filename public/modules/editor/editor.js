@@ -3149,7 +3149,11 @@ modules["editor/editor"] = class {
                 }
               }
               node.addEventListener("focusin", forceSelectFn);
-              node.addEventListener("keydown", forceSelectFn);
+              node.addEventListener("keydown", (event) => {
+                if ((event.key ?? {}).toLowerCase().startsWith("arrow") == false) {
+                  forceSelectFn();
+                }
+              });
             })();
 
             return node;
@@ -4769,7 +4773,7 @@ modules["editor/render/annotation/text"] = class extends modules["editor/render/
   REMOVE_IF_NO_TEXT = true;
 
   //ACTION_BAR_TOOLS = ["textedit", "color", "opacity", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "unlock", "delete"];
-  ACTION_BAR_TOOLS = ["textedit", "color", "opacity", "font", "fontsize", "format", "list", "link", "textalign", "formula", "unlock", "delete"];
+  ACTION_BAR_TOOLS = ["textedit", "color", "opacity", "font", "fontsize", "format", "list", "link", "textalign", "unlock", "delete"];
 
   css = {
     ".eAnnotation[text] div[text]": `box-sizing: unset !important; padding: 4px 6px; margin: 3px; color: var(--themeColor); font-weight: 500; pointer-events: all; outline: none`,
@@ -5411,7 +5415,7 @@ modules["editor/render/annotation/sticky"] = class extends modules["editor/rende
   ALLOW_RICHTEXT_COLOR = false;
 
   //ACTION_BAR_TOOLS = ["textedit", "color", "fontsize", "bold", "italic", "underline", "strikethrough", "textalign", "unlock", "reactions", "delete"];
-  ACTION_BAR_TOOLS = ["textedit", "color", "font", "fontsize", "format", "list", "link", "textalign", "formula", "unlock", "reactions", "delete"];
+  ACTION_BAR_TOOLS = ["textedit", "color", "font", "fontsize", "format", "list", "link", "textalign", "unlock", "reactions", "delete"];
 
   SELECTION_FUNCTION = (selection) => {
     if (["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {

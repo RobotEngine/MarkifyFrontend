@@ -729,8 +729,9 @@ modules["pages/app/lesson"] = class {
       })();
     }
 
+    let isEmbed = getParam("embed") != null;
     let sizeUpdate = () => {
-      if (fixed.offsetWidth > 800 && fixed.offsetHeight > 400 && this.exporting != true) {
+      if ((fixed.offsetWidth > 800 && fixed.offsetHeight > 400 && this.exporting != true) || isEmbed == true) {
         if (this.maximized == true) {
           this.maximized = false;
           pageHolder.removeAttribute("maximize");

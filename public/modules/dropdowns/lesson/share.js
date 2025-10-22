@@ -52,7 +52,7 @@ modules["dropdowns/lesson/share/pin"] = class {
   </div>
   `;
   css = {
-    ".eSharePinCreate": "position: absolute; display: flex; width: 100%; height: 100%; justify-content: center; align-items: center; z-index: 1; background: rgba(var(--background), .7); transition: .3s",
+    ".eSharePinCreate": "position: absolute; display: flex; width: 100%; height: 100%; justify-content: center; align-items: center; z-index: 1; background: rgba(var(--background), .85); transition: .3s",
     ".eSharePinCreate button": `background: var(--theme); --borderRadius: 14px; color: #fff`,
     
     ".eSharePinLink": "margin-top: 8p; transition: .3s",
@@ -176,7 +176,7 @@ modules["dropdowns/lesson/share/link"] = class {
     <button class="largeButton border">Enable Link</button>
   </div>
   <div class="eShareLinkRow" style="margin-top: 0px">
-    <input class="eShareLinkSection" readonly></input>
+    <input class="eShareLinkSection" readonly spellcheck="false"></input>
     <button class="eShareLinkCopy border" title="Copy the link."></button>
   </div>
   <button class="eShareLinkRow eShareLinkPerm buttonAnim">
@@ -193,7 +193,7 @@ modules["dropdowns/lesson/share/link"] = class {
   </div>
   `;
   css = {
-    ".eShareLinkCreate": "position: absolute; display: flex; width: calc(100% - 16px); height: calc(100% - 16px); justify-content: center; align-items: center; z-index: 1; background: rgba(var(--background), .7); transition: .3s",
+    ".eShareLinkCreate": "position: absolute; display: flex; width: calc(100% - 16px); height: calc(100% - 16px); justify-content: center; align-items: center; z-index: 1; background: rgba(var(--background), .85); transition: .3s",
     ".eShareLinkCreate button": `background: var(--theme); --borderRadius: 14px; color: #fff`,
 
     ".eShareLinkRow": `display: flex; flex-wrap: wrap; width: 100%; margin-top: 16px; justify-content: center; align-items: center`,
@@ -309,9 +309,69 @@ modules["dropdowns/lesson/share/link"] = class {
       removeButton.removeAttribute("disabled");
     });
 
+    let embedButton = frame.querySelector(".eShareLinkEmbed");
+    embedButton.addEventListener("click", async () => {
+      dropdownModule.open(embedButton, "dropdowns/lesson/share/link/embed", { parent: parent });
+    });
+
     let optionsButton = frame.querySelector(".eShareOptionLink");
     optionsButton.addEventListener("click", async () => {
       dropdownModule.open(optionsButton, "dropdowns/lesson/share/options", { parent: parent });
+    });
+  }
+}
+modules["dropdowns/lesson/share/link/embed"] = class {
+  html = `
+  <div class="eShareLinkEmbedLocked">
+    <div>Embedding only works on lessons when "Require Login" is disabled</div>
+    <button class="largeButton border">Turn Off Require Login</button>
+  </div>
+  <div class="eShareLinkEmbedHolder">
+    <textarea class="eShareLinkEmbedText" readonly spellcheck="false"></textarea>
+    <div class="eShareLinkEmbedInstructions">Click above to copy the embed code</div>
+  </div>
+  `;
+  css = {
+    ".eShareLinkEmbedLocked": "position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; justify-content: center; align-items: center; z-index: 1; background: rgba(var(--background), .85); transition: .3s",
+    ".eShareLinkEmbedLocked div": `margin-bottom: 12px; font-size: 16px; font-weight: 600`,
+    ".eShareLinkEmbedLocked button": `background: var(--theme); --borderRadius: 14px; color: #fff`,
+    ".eShareLinkEmbedHolder": `display: flex; flex-direction: column; width: 364px; max-width: 100%; margin: 6px`,
+    ".eShareLinkEmbedText": `box-sizing: border-box; width: 100%; height: 126px; border: solid 3px var(--hover); outline: unset; border-radius: 21px; padding: 8px; background: var(--pageColor); color: var(--theme); font-size: 14px; font-weight: 600; font-family: var(--font); resize: none; cursor: copy; user-select: all`,
+    ".eShareLinkEmbedInstructions": `margin-top: 6px; font-size: 15px; font-weight: 500`
+  };
+  js = async (frame, extra) => {
+    let lesson = extra.parent.parent;
+    let disabledHolder = frame.querySelector(".eShareLinkEmbedLocked");
+    let disableRequireLogin = disabledHolder.querySelector(".largeButton");
+    let holder = frame.querySelector(".eShareLinkEmbedHolder");
+    let linkTx = holder.querySelector(".eShareLinkEmbedText");
+
+    let updateEnabled = async () => {
+      if (lesson.lesson.settings != null && lesson.lesson.settings.forceLogin != true) {
+        disabledHolder.style.opacity = 0;
+        disabledHolder.style.pointerEvents = "none";
+      } else {
+        disabledHolder.style.opacity = 1;
+        disabledHolder.style.pointerEvents = "all";
+      }
+    }
+    extra.parent.pipeline.subscribe("shareLessonSet", "set", (body) => {
+      if (body.settings != null && body.settings.hasOwnProperty("forceLogin") == true) {
+        updateEnabled();
+      }
+    }, { unsubscribe: true });
+    updateEnabled();
+    
+    holder.addEventListener("click", () => {
+      copyClipboardText(linkTx.value, "code");
+      linkTx.select();
+    });
+    linkTx.value = `<iframe width="600" height="400" style="border: unset" src="https://markifyapp.com/app/join?embed=true&lesson=${lesson.id}" allowfullscreen></iframe>`;
+
+    disableRequireLogin.addEventListener("click", async () => {
+      disableRequireLogin.setAttribute("disabled", "");
+      await sendRequest("PUT", "lessons/setting", { set: "forceLogin", value: false }, { session: lesson.session });
+      disableRequireLogin.removeAttribute("disabled");
     });
   }
 }

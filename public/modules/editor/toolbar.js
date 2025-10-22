@@ -10903,8 +10903,8 @@ modules["editor/toolbar/formula"] = class {
     }
     let index = quill.getSelection().index ?? 0;
     let format = quill.getFormat();
-    quill.insertEmbed(index, "formula", "");
-    quill.formatText(index, 1, format);
+    quill.insertEmbed(index, "formula", "", "user");
+    quill.formatText(index, 1, format, "user");
     setTimeout(() => {
       let element = (quill.getLeaf(index + 1)[0] ?? {}).domNode;
       if (element != null) {

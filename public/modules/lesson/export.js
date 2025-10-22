@@ -140,16 +140,22 @@ modules["lesson/export"] = class {
       handleRenderPromise = new Promise(async (resolve) => {
         await this.editor.runUpdateCycle();
         await this.editor.render.processPageRenders(this.editor);
+        if (window.quillCSSLoad != true && window.quillCSSLoad != null) {
+          this.editor.exportPromises.push(new Promise(async (resolve) => {
+            window.quillCSSLoad.addEventListener("load", resolve);
+            window.quillCSSLoad.addEventListener("error", resolve);
+          }));
+        }
+        if (window.mathquillCSSLoad != true && window.mathquillCSSLoad != null) {
+          this.editor.exportPromises.push(new Promise(async (resolve) => {
+            window.mathquillCSSLoad.addEventListener("load", resolve);
+            window.mathquillCSSLoad.addEventListener("error", resolve);
+          }));
+        }
         if (this.editor.exportPromises.length > 0) {
           await Promise.all(this.editor.exportPromises);
         }
-        if (this.parent.quillCSSLoaded != true && this.parent.quillCSSPreload != null) {
-          this.parent.quillCSSPreload.addEventListener("load", () => {
-            resolve();
-          });
-        } else {
-          resolve();
-        }
+        resolve();
       });
       return handleRenderPromise;
     }

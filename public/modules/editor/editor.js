@@ -427,7 +427,7 @@ modules["editor/editor"] = class {
 
       let dx = x - closestX;
       let dy = y - closestY;
-      let distance = Math.hypot(dx, dy); // Math.sqrt(dx * dx + dy * dy);
+      //let distance = Math.hypot(dx, dy); // Math.sqrt(dx * dx + dy * dy);
 
       return dx * dx + dy * dy <= tolerance * tolerance; // return distance <= tolerance;
     },
@@ -2892,6 +2892,9 @@ modules["editor/editor"] = class {
     };
     this.text.loadedFonts = { "montserrat": true };
     this.text.loadingFonts = {};
+    this.text.getMathQuill = async () => {
+
+    }
     this.text.getQuill = async () => {
       if (window.Quill == null) {
         await loadScript("../libraries/quilljs/quill.core.js");
@@ -3081,20 +3084,6 @@ modules["editor/editor"] = class {
             
             (async () => {
               if (this.mathquillInterface == null) {
-                if (window.loadingMathQuill != true) {
-                  window.loadingMathQuill = true;
-                  let mathquillCSS = document.createElement("link");
-                  mathquillCSS.type = "text/css";
-                  mathquillCSS.rel = "stylesheet";
-                  head.appendChild(mathquillCSS);
-                  if (editor.exporting == true) {
-                    editor.exportPromises.push(new Promise(async (resolve) => {
-                      mathquillCSS.addEventListener("load", resolve);
-                      mathquillCSS.addEventListener("error", resolve);
-                    }));
-                  }
-                  mathquillCSS.href = "../libraries/mathquill/mathquill.css";
-                }
                 if (window.MathQuill == null) {
                   let mathquillScript = loadScript("../libraries/mathquill/mathquill.min.js");
                   if (editor.exporting == true) {

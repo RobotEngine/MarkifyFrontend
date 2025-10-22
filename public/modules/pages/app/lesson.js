@@ -362,14 +362,30 @@ modules["pages/app/lesson"] = class {
     this.id = getParam("lesson") ?? "";
 
     // Preload QuillJS CSS:
-    this.quillCSSPreload = document.createElement("link");
-    this.quillCSSPreload.type = "text/css";
-    this.quillCSSPreload.rel = "stylesheet";
-    head.appendChild(this.quillCSSPreload);
-    this.quillCSSPreload.addEventListener("load", () => {
-      this.quillCSSLoaded = true;
-    });
-    this.quillCSSPreload.href = "../libraries/quilljs/quill.core.css";
+    let quillCSSHREF = "../libraries/quilljs/quill.core.css";
+    if (head.querySelector('link[href="' + quillCSSHREF + '"]') == null) {
+      window.quillCSSLoad = document.createElement("link");
+      window.quillCSSLoad.type = "text/css";
+      window.quillCSSLoad.rel = "stylesheet";
+      head.appendChild(window.quillCSSLoad);
+      window.quillCSSLoad.addEventListener("load", () => {
+        window.quillCSSLoad = true;
+      });
+      window.quillCSSLoad.href = quillCSSHREF;
+    }
+
+    // Preload MathQuill CSS:
+    let mathquillCSSHREF = "../libraries/mathquill/mathquill.css";
+    if (head.querySelector('link[href="' + mathquillCSSHREF + '"]') == null) {
+      window.mathquillCSSLoad = document.createElement("link");
+      window.mathquillCSSLoad.type = "text/css";
+      window.mathquillCSSLoad.rel = "stylesheet";
+      head.appendChild(window.mathquillCSSLoad);
+      window.mathquillCSSLoad.addEventListener("load", () => {
+        window.mathquillCSSLoad = true;
+      });
+      window.mathquillCSSLoad.href = mathquillCSSHREF;
+    }
 
     this.exporting = getParam("export_browser") == "true";
     if (this.exporting == true) {

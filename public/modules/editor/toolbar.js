@@ -9989,6 +9989,8 @@ modules["editor/toolbar/textedit"] = class {
 
       preference = this.parent.getPreferenceTool();
 
+      this.toolbar.selection.updateActionBar({ refreshActionBar: true, redrawCurrentAction: true });
+
       let saveObj = { d: {} };
       if (this.editor.selecting[preference._id].d == null) {
         this.editor.selecting[preference._id].d = copyObject(preference.d ?? {});
@@ -10027,8 +10029,6 @@ modules["editor/toolbar/textedit"] = class {
         }
       }
       saveHistory = false;
-
-      this.toolbar.selection.updateActionBar({ refreshActionBar: true, redrawCurrentAction: true });
     };
     this.toolbar.addQuillEventListener(quill, "text-change", textChange);
 

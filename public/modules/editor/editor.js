@@ -3113,7 +3113,21 @@ modules["editor/editor"] = class {
                 spaceBehavesLikeTab: true,
                 handlers: {
                   edit: () => {
-                    node.setAttribute("data-value", node.mathquillAPI.latex());
+                    let latex = node.mathquillAPI.latex();
+                    if (latex.length > 0) {
+                      node.setAttribute("data-value", latex);
+                    } else {
+                      let blot = Quill.find(node);
+                      if (blot == null) {
+                        return;
+                      }
+                      let quill = Quill.find(blot.scroll.domNode.parentElement);
+                      if (quill == null) {
+                        return;
+                      }
+                      let setIndex = (quill.getIndex(blot) ?? 0);
+                      quill.deleteText(quill.getIndex(blot) ?? 0, 1);
+                    }
                   },
                   moveOutOf: async (direction = 0) => {
                     let blot = Quill.find(node);

@@ -3125,7 +3125,6 @@ modules["editor/editor"] = class {
                       if (quill == null) {
                         return;
                       }
-                      let setIndex = (quill.getIndex(blot) ?? 0);
                       quill.deleteText(quill.getIndex(blot) ?? 0, 1);
                     }
                   },

@@ -10027,6 +10027,8 @@ modules["editor/toolbar/textedit"] = class {
         }
       }
       saveHistory = false;
+
+      this.toolbar.selection.updateActionBar({ refreshActionBar: true, redrawCurrentAction: true });
     };
     this.toolbar.addQuillEventListener(quill, "text-change", textChange);
 

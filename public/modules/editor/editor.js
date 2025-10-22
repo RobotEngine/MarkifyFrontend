@@ -3097,7 +3097,7 @@ modules["editor/editor"] = class {
                   mathquillCSS.href = "../libraries/mathquill/mathquill.css";
                 }
                 if (window.MathQuill == null) {
-                  let mathquillScript = loadScript("../libraries/mathquill/mathquill.js");
+                  let mathquillScript = loadScript("../libraries/mathquill/mathquill.min.js");
                   if (editor.exporting == true) {
                     editor.exportPromises.push(mathquillScript);
                   }

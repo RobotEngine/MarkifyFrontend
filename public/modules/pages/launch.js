@@ -168,7 +168,7 @@ modules["pages/launch"] = class {
         <a href="https://twitter.com/markifytool" target="_blank"><img src="../images/launch/socials/twitter.svg"></a>
         <a href="https://www.instagram.com/markifytool" target="_blank"><img src="../images/launch/socials/instagram.svg"></a>
         <a href="https://www.linkedin.com/company/markifyapp" target="_blank"><img src="../images/launch/socials/linkedin.svg"></a>
-        <a href="https://www.youtube.com/@markifyexotek" target="_blank"><img src="../images/launch/socials/youtube.svg"></a>
+        <a href="https://www.youtube.com/channel/UCoOM6y6FxPG_tBpZD3CynRg" target="_blank"><img src="../images/launch/socials/youtube.svg"></a>
       </div>
     </div>
   </div>

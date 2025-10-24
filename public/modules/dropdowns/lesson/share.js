@@ -323,7 +323,7 @@ modules["dropdowns/lesson/share/link"] = class {
 modules["dropdowns/lesson/share/link/embed"] = class {
   html = `
   <div class="eShareLinkEmbedLocked">
-    <div>Embedding only works on lessons when "Require Login" is disabled</div>
+    <div>Embedding only works when "Require Login" is disabled</div>
     <button class="largeButton border">Turn Off Require Login</button>
   </div>
   <div class="eShareLinkEmbedHolder">
@@ -333,7 +333,7 @@ modules["dropdowns/lesson/share/link/embed"] = class {
   `;
   css = {
     ".eShareLinkEmbedLocked": "position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; justify-content: center; align-items: center; z-index: 1; background: rgba(var(--background), .85); transition: .3s",
-    ".eShareLinkEmbedLocked div": `margin-bottom: 12px; font-size: 16px; font-weight: 600`,
+    ".eShareLinkEmbedLocked div": `max-width: 350px; margin-bottom: 18px; font-size: 18px; font-weight: 600`,
     ".eShareLinkEmbedLocked button": `background: var(--theme); --borderRadius: 14px; color: #fff`,
     ".eShareLinkEmbedHolder": `display: flex; flex-direction: column; width: 364px; max-width: 100%; margin: 6px`,
     ".eShareLinkEmbedText": `box-sizing: border-box; width: 100%; height: 126px; border: solid 3px var(--hover); outline: unset; border-radius: 21px; padding: 8px; background: var(--pageColor); color: var(--theme); font-size: 14px; font-weight: 600; font-family: var(--font); resize: none; cursor: copy; user-select: all`,

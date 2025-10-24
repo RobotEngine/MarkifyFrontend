@@ -2893,7 +2893,18 @@ modules["editor/editor"] = class {
     this.text.loadedFonts = { "montserrat": true };
     this.text.loadingFonts = {};
     this.text.getMathQuill = async () => {
-
+      if (this.text.mathquillInterface == null) {
+        if (window.MathQuill == null) {
+          let mathquillScript = loadScript("../libraries/mathquill/mathquill.min.js");
+          if (editor.exporting == true) {
+            editor.exportPromises.push(mathquillScript);
+          }
+          await mathquillScript;
+        }
+        await sleep();
+        this.text.mathquillInterface = window.MathQuill.getInterface(3);
+      }
+      return this.text.mathquillInterface;
     }
     this.text.getQuill = async () => {
       if (window.Quill == null) {
@@ -3083,19 +3094,8 @@ modules["editor/editor"] = class {
             node.setAttribute("data-value", formula);
             
             (async () => {
-              if (this.mathquillInterface == null) {
-                if (window.MathQuill == null) {
-                  let mathquillScript = loadScript("../libraries/mathquill/mathquill.min.js");
-                  if (editor.exporting == true) {
-                    editor.exportPromises.push(mathquillScript);
-                  }
-                  await mathquillScript;
-                }
-                await sleep();
-                this.mathquillInterface = window.MathQuill.getInterface(3);
-              }
               node.setAttribute("contenteditable", "false");
-              node.mathquillAPI = this.mathquillInterface.MathField(node);
+              node.mathquillAPI = (await editor.text.getMathQuill()).MathField(node);
               //this.mathquill = this.mathquillInterface.StaticMath(node);
               node.mathquillAPI.latex(node.getAttribute("data-value"));
               node.mathquillAPI.config({
@@ -3135,11 +3135,9 @@ modules["editor/editor"] = class {
                         quill.setSelection(setIndex, 0, "api");
                       }
                     } else {
-                      //quill.insertText(length - 1, "", "silent");
-                      quill.setSelection(length - 1, 0, "api");
+                      quill.insertText(length - 1, " ", "silent");
+                      quill.setSelection(length, 0, "api");
                     }
-                    await sleep();
-                    quill.deleteText(length - 1, 0, "silent");
                   }
                 }
               });

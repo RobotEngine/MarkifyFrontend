@@ -10885,7 +10885,7 @@ modules["editor/toolbar/formula"] = class {
   setActionButton = async (button) => {
     setSVG(button, "../images/editor/toolbar/formula/formula.svg");
 
-    button.closest("button").style.display = "none";
+    //button.closest("button").style.display = "none";
   }
 
   TOOLTIP = "Formula";
@@ -10909,6 +10909,7 @@ modules["editor/toolbar/formula"] = class {
       let element = (quill.getLeaf(index + 1)[0] ?? {}).domNode;
       if (element != null) {
         let mathquill = element.mathquillAPI;
+        console.log(mathquill)
         if (mathquill != null) {
           mathquill.focus();
           mathquill.moveToLeftEnd();

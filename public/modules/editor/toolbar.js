@@ -1830,6 +1830,13 @@ modules["editor/toolbar"] = class {
             } else {
               newAction.setAttribute("fullclick", "");
             }
+            if (actionModule.ATTRIBUTES != null) {
+              let attributes = Object.keys(actionModule.ATTRIBUTES);
+              for (let a = 0; a < attributes.length; a++) {
+                let setAttribute = attributes[a];
+                newAction.setAttribute(setAttribute, actionModule.ATTRIBUTES[setAttribute]);
+              }
+            }
             if (isVisible != false) {
               currentButtonCount++;
               newAction.removeAttribute("hidden");
@@ -10116,6 +10123,7 @@ modules["editor/toolbar/font"] = class {
 
   TOOLTIP = "Font";
   SUPPORTS_MULTIPLE_SELECT = false;
+  ATTRIBUTES = { hideformulamode: "" };
 
   html = `<div class="eSubToolFontContainer"></div>`;
   css = {
@@ -10414,6 +10422,7 @@ modules["editor/toolbar/format"] = class {
 
   TOOLTIP = "Format";
   SUPPORTS_MULTIPLE_SELECT = false;
+  ATTRIBUTES = { hideformulamode: "" };
 
   html = `
   <div class="eSubToolFormatContainer eHorizontalToolsHolder" keeptooltip>
@@ -10516,6 +10525,7 @@ modules["editor/toolbar/list"] = class {
 
   TOOLTIP = "Lists";
   SUPPORTS_MULTIPLE_SELECT = false;
+  ATTRIBUTES = { hideformulamode: "" };
 
   html = `
   <div class="eSubToolListContainer eHorizontalToolsHolder" keeptooltip>
@@ -10610,6 +10620,7 @@ modules["editor/toolbar/link"] = class {
 
   TOOLTIP = "Link";
   SUPPORTS_MULTIPLE_SELECT = false;
+  ATTRIBUTES = { hideformulamode: "" };
 
   html = `
   <div class="eSubToolLinkContainer">
@@ -10790,6 +10801,7 @@ modules["editor/toolbar/textalign"] = class {
 
   TOOLTIP = "Align";
   SUPPORTS_MULTIPLE_SELECT = false;
+  ATTRIBUTES = { hideformulamode: "" };
 
   html = `
   <div class="eSubToolTextAlignContainer eHorizontalToolsHolder" keeptooltip>
@@ -10890,6 +10902,7 @@ modules["editor/toolbar/formula"] = class {
 
   TOOLTIP = "Formula";
   SUPPORTS_MULTIPLE_SELECT = false;
+  ATTRIBUTES = { hideformulamode: "" };
 
   js = () => {
     let preference = this.parent.getPreferenceTool();
@@ -10901,7 +10914,11 @@ modules["editor/toolbar/formula"] = class {
     if (quill == null) {
       return;
     }
-    let index = quill.getSelection().index ?? 0;
+    let selection = quill.getSelection();
+    if (selection == null) {
+      return;
+    }
+    let index = selection.index ?? 0;
     let format = quill.getFormat();
     quill.insertEmbed(index, "formula", "", "user");
     quill.formatText(index, 1, format, "user");

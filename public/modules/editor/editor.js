@@ -3090,6 +3090,10 @@ modules["editor/editor"] = class {
 
           static create(value) {
             let node = super.create();
+            
+            if (value == true) {
+              value = "";
+            }
             let formula = String(value ?? "");
             node.setAttribute("data-value", formula);
             

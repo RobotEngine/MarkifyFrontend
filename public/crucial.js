@@ -22,7 +22,7 @@ const configs = {
 };
 
 const config = configs["public"];
-const version = "1.5.22"; // Big Update . Small Feature Release . Bug Fix
+const version = "1.5.23"; // Big Update . Small Feature Release . Bug Fix
 
 const serverURL = config.server;
 const assetURL = config.assets;

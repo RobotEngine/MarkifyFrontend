@@ -10897,7 +10897,9 @@ modules["editor/toolbar/formula"] = class {
   setActionButton = async (button) => {
     setSVG(button, "../images/editor/toolbar/formula/formula.svg");
 
-    button.closest("button").style.display = "none";
+    if (hasFeatureEnabled("formula") != true) {
+      button.closest("button").style.display = "none";
+    }
   }
 
   TOOLTIP = "Formula";

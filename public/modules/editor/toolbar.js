@@ -10916,10 +10916,10 @@ modules["editor/toolbar/formula"] = class {
     if (quill == null) {
       return;
     }
-    let selection = quill.getSelection();
-    if (selection == null) {
-      return;
+    if (quill.isEnabled() == false) {
+      return alertModule.open("warning", "<b>Start Editing Text</b>Place your cursor inside the text box to insert a formula.");
     }
+    let selection = quill.getSelection() ?? {};
     let index = selection.index ?? 0;
     let format = quill.getFormat();
     quill.insertEmbed(index, "formula", "", "user");

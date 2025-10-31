@@ -1,182 +1,37 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+  <head>
+    <meta http-equiv="refresh" content="7; url='/#join'" />
+    <meta charset="utf-8" />
 
-<head>
-  <meta charset="utf-8" />
+    <title>Embedded Markify Lesson</title>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Markify Embed" />
+    <meta property="og:site_name" content="Markify" />
+    <meta property="og:url" content="https://markifyapp.com" />
+    <meta property="og:description" content="Join the classroom lesson and collaborate with Markify!" />
+    <meta property="og:image" content="https://markifyapp.com/images/favicon.png" />
 
-  <title>Markify</title>
-  <meta property="og:type" content="website" />
-  <meta property="og:title" content="Markify | Collaboration across the Classroom" />
-  <meta property="og:site_name" content="Markify" />
-  <meta property="og:url" content="https://markifyapp.com" />
-  <meta property="og:description" content="Share and collaborate on documents across the classroom with Markify!" />
-  <meta property="og:image" content="https://markifyapp.com/images/favicon.png" />
+    <meta name="description" content="Join the classroom lesson and collaborate with Markify!" />
+    <meta name="author" content="Exotek LLC (https://exotek.co)" />
+    <link rel="shortcut icon" href="../images/favicon.png" type="image/x-icon" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
 
-  <meta name="description" content="Share and collaborate on documents across the classroom with Markify!" />
-  <meta name="keywords" content="edtech, whiteboard, education, classroom, realtime, collaboration" />
-  <meta name="author" content="Exotek LLC (https://exotek.co)" />
-  <link rel="shortcut icon" href="../images/favicon.png" type="image/x-icon" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <meta name="theme-color" content="#0084FF" />
 
-  <meta name="theme-color" content="#0084FF" />
+    <link rel="icon" href="../images/favicon.png" />
+    <link rel="apple-touch-icon" href="../images/favicon.png" />
 
-  <link rel="icon" href="../images/favicon.png" />
-  <link rel="apple-touch-icon" href="../images/favicon.png" />
+    <link rel="manifest" href="./manifest.json" />
 
-  <link rel="manifest" href="./manifest.json" />
-
-  <meta http-equiv="Cache-control" content="public, max-age=1800" />
-  <meta http-equiv="Content-Type" content="text/html; charset= ISO-8859-1" />
-</head>
-<style>
-  /* Font Start */
-  @import url("/proxy/?q=https://fonts.googleapis.com/css?family=Montserrat:400,500,600,700,800&display=swap");
-  @import url("/proxy/?q=https://fonts.googleapis.com/css?family=Roboto:400,500,600,700,800&display=swap");
-  /* Font End */
-
-  :root {
-    --theme: #0084FF;
-    --secondary: #48A7FF;
-    --hover: #B4DAFD;
-    --purple: #DF84FF;
-    --yellow: #FFB938;
-    --green: #34C172;
-    --lightGray: #E7E7E7;
-    --gray: #CCC;
-    --darkGray: #2F2F2F;
-    --textColor: #000;
-    --background: 255, 255, 255;
-    --pageColor: rgb(var(--background));
-    --shadow: 0px 0px 8px #AAA;
-    --shadowColor: #E1E1E1;
-    --lightShadow: 0px 0px 8px 0px var(--shadowColor);
-    --bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    --error: #FF3D64;
-    --font: "Montserrat", sans-serif;
-  }
-
-  html, body {
-    overscroll-behavior-x: none;
-  }
-
-  body {
-    margin: 0px;
-    padding: 0px;
-    background: var(--pageColor);
-    touch-action: pan-x pan-y;
-
-    color: var(--textColor);
-    font-family: var(--font);
-    font-size: 18px;
-    text-align: center;
-    overflow-wrap: anywhere;
-  }
-
-  .app {
-    min-height: 100vh;
-    z-index: 0;
-    background: var(--pageColor);
-  }
-
-  .fixed {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    top: 0px;
-    left: 0px;
-    overflow: auto;
-    z-index: 999;
-    pointer-events: none;
-  }
-
-  .loading {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    left: 0px;
-    top: 0px;
-    /* background: var(--pageColor); */
-    transition: opacity .5s;
-    z-index: 999;
-    overflow: hidden;
-  }
-
-  .loadingSvgHolder {
-    display: flex;
-    width: 100%;
-    height: 100%;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .loadsvg {
-    width: min(100%, 120px);
-    height: min(100%, 120px);
-    margin: 64px;
-  }
-
-  .loadsvg path {
-    animation: var(--anim) 2.7s cubic-bezier(0.46, 0.03, 0.52, 0.96) infinite;
-  }
-  @keyframes loadinga {
-    0% { transform: translate(0) }
-    25% { transform: translate(0, -94.73px) }
-    50% { transform: translate(94.73px, -94.73px) }
-    75% { transform: translate(94.73px, 0) }
-    100% { transform: translate(0) }
-  }
-  @keyframes loadingb {
-    0% { transform: translate(0) rotate(0) }
-    25% { transform: translate(94.73px, 0) rotate(90deg) }
-    50% { transform: translate(94.73px, 94.73px) rotate(180deg) }
-    75% { transform: translate(0, 94.73px) rotate(270deg) }
-    100% { transform: translate(0) rotate(360deg) }
-  }
-  @keyframes loadingc {
-    0% { transform: translate(0) rotate(0) }
-    25% { transform: translate(-94.73px, 0) rotate(90deg) }
-    50% { transform: translate(-94.73px, -94.73px) rotate(180deg) }
-    75% { transform: translate(0, -94.73px) rotate(270deg) }
-    100% { transform: translate(0) rotate(360deg) }
-  }
-  @keyframes loadingd {
-    0% { transform: translate(0) }
-    25% { transform: translate(0, 94.73px) }
-    50% { transform: translate(-94.73px, 94.73px) }
-    75% { transform: translate(-94.73px, 0) }
-    100% { transform: translate(0) }
-  }
-</style>
-
-<body>
-  <img src="../images/tooltips/alerts.svg" hidden>
-  <noscript>Please enable JavaScript to use this app.</noscript>
-  <div class="app">
-    <div class="loading" new>
-      <div class="loadingSvgHolder">
-        <svg class="loadsvg" viewBox="0 0 175 175" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path style="--anim: loadinga" d="M10 134.734C10 118.166 23.4315 104.734 40 104.734C56.5685 104.734 70 118.166 70 134.734C70 151.303 56.5685 164.734 40 164.734C23.4315 164.734 10 151.303 10 134.734Z" stroke="#0084FF" stroke-width="20"/>
-          <path style="--anim: loadingb; transform-origin: 40px 40px" d="M10.1685 40C10.1685 56.5685 23.5999 70 40.1685 70H60.1685C65.6913 70 70.1685 65.5228 70.1685 60V40C70.1685 23.4315 56.737 10 40.1685 10C23.5999 10 10.1685 23.4315 10.1685 40Z" stroke="#0084FF" stroke-width="20"/>
-          <path style="--anim: loadingc; transform-origin: 135px 135px" d="M165 134.996C165 118.428 151.569 104.996 135 104.996H115C109.477 104.996 105 109.473 105 114.996V134.996C105 151.565 118.431 164.996 135 164.996C151.569 164.996 165 151.565 165 134.996Z" stroke="#0084FF" stroke-width="20"/>
-          <path style="--anim: loadingd" d="M165 40C165 56.5685 151.569 70 135 70C118.431 70 105 56.5685 105 40C105 23.4315 118.431 10 135 10C151.569 10 165 23.4315 165 40Z" stroke="#0084FF" stroke-width="20"/>
-        </svg>
-      </div>
-    </div>
-  </div>
-  <div class="fixed"></div>
-
-  <script>
-    window.isDiscord = true;
-    window.serverURL = "https://1221300896294768762.discordsays.com/api/";
-    window.mediaURL = "/proxy/?q=https://static.markifyapp.com/";
-    window.socketURL = "wss://1221300896294768762.discordsays.com/socket/v2";
-    const Url = new URL(window.location);
-    Url.searchParams.set("lesson", "65ffae1dc8cb93361e1e4739");
-    window.history.pushState({}, "", Url);
-    window.location.hash = "#join";
-  </script>
-
-  <script src="/proxy/?q=https://simplesocket.net/static/v2/simplesocket.js"></script>
-  <script src="./crucial.js"></script>
-</body>
+    <meta http-equiv="Cache-control" content="public, max-age=1800" />
+    <meta http-equiv="Content-Type" content="text/html; charset= ISO-8859-1" />
+  </head>
+  <body>
+    <script>
+      let url = new URL(window.location);
+      url.searchParams.append("embed", "true");
+      location.href = "/app/join" + url.search;
+    </script>
+  </body>
 </html>

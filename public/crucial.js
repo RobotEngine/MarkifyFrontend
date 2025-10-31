@@ -923,6 +923,7 @@ let getTheme = () => {
       return theme;
   }
 }
+let themeParam = getParam("theme");
 let isEmbed = getParam("embed") != null;
 if (isEmbed == true) {
   body.style.background = "unset";
@@ -930,7 +931,9 @@ if (isEmbed == true) {
 }
 let updateTheme = () => {
   let setTheme = getTheme();
-  if (isEmbed == true) {
+  if (themeParam != null && ["dark", "light"].includes(themeParam) == true) {
+    setTheme = themeParam;
+  } else if (isEmbed == true) {
     setTheme = "light";
   }
   document.documentElement.setAttribute("theme", pageTheme ?? setTheme);

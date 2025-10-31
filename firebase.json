@@ -37,6 +37,10 @@
         "destination": "/privacy.html"
       },
       {
+        "source": "/embed",
+        "destination": "/embed.html"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
@@ -70,6 +74,16 @@
       
       { "source": "/export", "headers": [ { "key": "Content-Security-Policy", "value": "script-src 'self' 'sha256-X6mmDHcwJEHs0FGxvR3d1QFcl1gwxvsBwsAZleep9LU=' https://*.simplesocket.net https://*.exotek.co https://*.googleapis.com https://*.cloudflare.com; frame-src * blob:" } ] },
       
+      {
+        "source": "/embed",
+        "headers": [
+          { "key": "Content-Security-Policy", "value": "" },
+          { "key": "X-Frame-Options", "value": "" },
+          { "key": "X-Content-Type-Options", "value": "" },
+          { "key": "Referrer-Policy", "value": "" }
+        ]
+      },
+
       {
         "source": "**/*.@(eot|otf|ttf|ttc|woff|font.css)",
         "headers": [

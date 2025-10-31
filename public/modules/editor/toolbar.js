@@ -1393,6 +1393,10 @@ modules["editor/toolbar"] = class {
         if (annotation != null) {
           annotation.setAttribute("selected", "");
           annotation.style.borderRadius = (4 / editor.zoom) + "px";
+
+          if (annoData.component.quill != null && selections.length > 1 && annoData.component.quill.isEnabled() == true) {
+            annoData.component.quill.disable();
+          }
           /*if (annoModule.ALLOW_SELECT_OVERFLOW != true) {
             annotation.style.overflow = "hidden";
           }*/
@@ -9900,6 +9904,9 @@ modules["editor/toolbar/textedit"] = class {
   FULL_CLICK = true;
   ADD_DIVIDE_AFTER = true;
 
+  css = {
+    '.eActionBar[mode="formula"] .eTool[hideformulamode]': `display: none !important`
+  };
   js = async (frame, event) => {
     if (this.button == null || this.button.hasAttribute("hidden") == true) {
       return;
@@ -10092,6 +10099,22 @@ modules["editor/toolbar/textedit"] = class {
       }
     }
     this.toolbar.addEventListener("keyup", annoTx, keyupListener);
+
+    let focusListener = (event) => {
+      if (this.toolbar.selection.actionBar != null) {
+        let setMode;
+        if (event.target.closest(".ql-formula") == null) {
+          setMode = "";
+        } else {
+          setMode = "formula";
+        }
+        if (setMode != this.toolbar.selection.actionBar.getAttribute("mode")) {
+          this.toolbar.selection.actionBar.setAttribute("mode", setMode);
+          this.toolbar.selection.updateActionBar();
+        }
+      }
+    }
+    this.toolbar.addEventListener("focusin", annoTx, focusListener);
 
     this.setActionButton();
   }

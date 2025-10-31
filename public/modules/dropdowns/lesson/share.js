@@ -366,7 +366,7 @@ modules["dropdowns/lesson/share/link/embed"] = class {
       copyClipboardText(linkTx.value, "code");
       linkTx.select();
     });
-    linkTx.value = `<iframe width="600" height="400" style="border: unset" src="https://markifyapp.com/embed?lesson=${lesson.id}" allowfullscreen></iframe>`;
+    linkTx.value = `<iframe width="600" height="400" style="border: unset" src="https://markifyapp.com/embed/?lesson=${lesson.id}" allowfullscreen></iframe>`;
 
     disableRequireLogin.addEventListener("click", async () => {
       disableRequireLogin.setAttribute("disabled", "");

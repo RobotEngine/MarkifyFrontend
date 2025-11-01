@@ -2586,7 +2586,7 @@ modules["editor/editor"] = class {
       }
 
       let allowRender = annotation.render.remove == true;
-      for (let i = 0; i < annotation.chunks.length; i++) {
+      for (let i = 0; i < (annotation.chunks ?? []).length; i++) {
         if (this.visibleChunks.includes(annotation.chunks[i]) == true) {
           allowRender = true;
           break;
@@ -3410,18 +3410,18 @@ modules["editor/editor"] = class {
           if (remove == false) {
             continue;
           }
-        }
-        if (annotation.renderedChildren != null && Object.keys(annotation.renderedChildren).length > 0) {
-          for (let c = 0; c < annotation.chunks.length; c++) {
-            holdLoadedChunks[annotation.chunks[c]] = "";
+          if (annotation.renderedChildren != null && Object.keys(annotation.renderedChildren).length > 0) {
+            for (let c = 0; c < annotation.chunks.length; c++) {
+              holdLoadedChunks[annotation.chunks[c]] = "";
+            }
+            continue;
           }
-          continue;
-        }
-        if (this.selecting[annotation.render._id] != null) { // || this.utils.getParents(annotation.render).some((parent) => { return this.selecting[parent._id] != null }) == true
-          for (let c = 0; c < annotation.chunks.length; c++) {
-            holdLoadedChunks[annotation.chunks[c]] = "";
+          if (this.selecting[annotation.render._id] != null) { // || this.utils.getParents(annotation.render).some((parent) => { return this.selecting[parent._id] != null }) == true
+            for (let c = 0; c < annotation.chunks.length; c++) {
+              holdLoadedChunks[annotation.chunks[c]] = "";
+            }
+            continue;
           }
-          continue;
         }
         if (annotation.component != null) {
           this.render.remove(annotation);
@@ -3449,7 +3449,7 @@ modules["editor/editor"] = class {
       for (let a = 0; a < chunkAnnos.length; a++) {
         let annotation = this.annotations[chunkAnnos[a]] ?? { chunks: [] };
         let render = true;
-        for (let i = 0; i < annotation.chunks.length; i++) {
+        for (let i = 0; i < (annotation.chunks ?? []).length; i++) {
           let chunk = annotation.chunks[i];
           if (loadedChunks[chunk] != null && newlyLoaded[chunk] == null) {
             render = false;

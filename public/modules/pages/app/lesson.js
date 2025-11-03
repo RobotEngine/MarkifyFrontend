@@ -20,6 +20,7 @@ modules["pages/app/lesson"] = class {
     "../modules/dropdowns/account.js",
     "../modules/dropdowns/moveto.js",
     "../modules/dropdowns/remove.js",
+    "../modules/dropdowns/editor/boardstyle.js",
     "../modules/dropdowns/editor/tools/emojis.js",
     "../modules/dropdowns/lesson/file/export.js"
   ];

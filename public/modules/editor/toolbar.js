@@ -10164,8 +10164,8 @@ modules["editor/toolbar/textedit"] = class {
         this.toolbar.selection.actionBar.setAttribute("mode", setMode);
         this.toolbar.selection.closeActionFrame();
         await sleep();
-        this.toolbar.selection.updateActionBar({ refreshActionBar: true, redrawCurrentAction: true });
       }
+      this.toolbar.selection.updateActionBar({ refreshActionBar: true, redrawCurrentAction: true });
     }
     this.toolbar.addEventListener("focusin", annoTx, focusInListener);
     this.toolbar.addEventListener("mousedown", annoTx, focusInListener);
@@ -11010,7 +11010,7 @@ modules["editor/toolbar/formula"] = class {
   TOOLTIP = "Formula";
   SUPPORTS_MULTIPLE_SELECT = false;
   ATTRIBUTES = { hideformulamode: "" };
-  ADD_TOOLBAR_TOOLS = ["formula/operations", "formula/greek"];
+  ADD_TOOLBAR_TOOLS = ["formula/operations"]; //, "formula/greek"
 
   js = () => {
     let preference = this.parent.getPreferenceTool();

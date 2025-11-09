@@ -1,5 +1,6 @@
 modules["pages/app/dashboard"] = class {
   title = "Dashboard";
+  allowBackgroundChange = true;
   preload = [
     "../modules/pages/app/lesson.js",
     "../modules/pages/app/join.js",
@@ -167,7 +168,7 @@ modules["pages/app/dashboard"] = class {
     ".dAccount div[accountuser]": `max-width: calc(100% - 38px); height: 100%; flex: 1; line-height: 32px; font-size: 18px; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; overflow: hidden`,
     ".dropdownTitle div[accountuser]": `flex: unset`,
 
-    ".dLessonsHolder": `position: relative; display: flex; flex-direction: column; width: 100%; min-height: 100%; overflow-x: hidden; overflow-y: auto; z-index: 1`,
+    ".dLessonsHolder": `position: relative; display: flex; flex-direction: column; width: 100%; min-height: 100%; background: var(--pageColor); overflow-x: hidden; overflow-y: auto; z-index: 1`,
     ".dSelectedTitleHolder": `--percent: 0; position: sticky; display: flex; box-sizing: border-box; width: 100%; padding: 20px; top: 0px; background: rgba(var(--background), calc(.7 * var(--percent))); backdrop-filter: blur(calc(4px * var(--percent))); z-index: 2; transition: background .2s, backdrop-filter .2s, box-shadow .2s`,
     ".dSelectedTitle": `font-size: 28px; font-weight: 600; text-align: left`,
     ".dBannerHolder": `display: none; box-sizing: border-box; width: 100%; height: fit-content; transition: .4s`,

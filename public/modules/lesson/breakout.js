@@ -178,7 +178,7 @@ modules["lesson/breakout/overview"] = class {
   <div class="boGroupHolder customScroll"></div>`;
   css = {
     ".boInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; user-select: none; overflow-y: scroll; z-index: 2`,
-    ".boGroupHolder": `position: relative; width: 100%; height: 100%; overflow-y: scroll; z-index: 1; transition: .5s`,
+    ".boGroupHolder": `position: relative; width: 100%; height: 100%; background: var(--pageColor); overflow-y: scroll; z-index: 1; transition: .5s`,
     ".boCreateBreakoutHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden; z-index: 3; pointer-events: none`,
 
     ".boTopHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,

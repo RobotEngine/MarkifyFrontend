@@ -22,7 +22,7 @@ const configs = {
 };
 
 const config = configs["public"];
-const version = "1.5.25"; // Big Update . Small Feature Release . Bug Fix
+const version = "1.5.26"; // Big Update . Small Feature Release . Bug Fix
 
 const serverURL = config.server;
 const assetURL = config.assets;
@@ -204,6 +204,7 @@ let cleanup = new FinalizationRegistry((key) => {
 
 let loadedModules = {};
 let pageTheme;
+let pageAllowsBackgroundChange = false;
 let newModule = async (path, parent) => {
   if (modules[path] == null) {
     await loadScript("../modules/" + path + ".js");
@@ -404,6 +405,7 @@ let setFrame = async (path, frame, extra, parent) => {
         favicon.href = "https://markifyapp.com/images/favicon.png";
       }
       pageTheme = module.theme;
+      pageAllowsBackgroundChange = module.allowBackgroundChange ?? false;
       updateTheme();
     }
     //frameSet.setAttribute("loaded", "");
@@ -906,6 +908,18 @@ let objectEqual = (obj1, obj2) => {
   return true;
 }
 
+let isEmbed = getParam("embed") != null;
+let updateBackground = () => {
+  if ((pageAllowsBackgroundChange == false || document.fullscreenElement == null) && isEmbed == false) {
+    body.style.removeProperty("background");
+    app.style.removeProperty("background");
+  } else {
+    body.style.background = "unset";
+    app.style.background = "unset";
+  }
+}
+document.addEventListener("fullscreenchange", updateBackground);
+updateBackground();
 let getTheme = () => {
   let theme = (account.settings ?? {}).theme;
   if (theme != null) {
@@ -924,11 +938,6 @@ let getTheme = () => {
   }
 }
 let themeParam = getParam("theme");
-let isEmbed = getParam("embed") != null;
-if (isEmbed == true) {
-  body.style.background = "unset";
-  app.style.background = "unset";
-}
 let updateTheme = () => {
   let setTheme = getTheme();
   if (themeParam != null && ["dark", "light"].includes(themeParam) == true) {
@@ -937,6 +946,7 @@ let updateTheme = () => {
     setTheme = "light";
   }
   document.documentElement.setAttribute("theme", pageTheme ?? setTheme);
+  updateBackground();
 }
 if (window.matchMedia != null) {
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { updateTheme(); });

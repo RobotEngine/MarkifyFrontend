@@ -1,5 +1,6 @@
 modules["pages/app/lesson"] = class {
   title = "Lesson";
+  allowBackgroundChange = true;
   preload = [
     "../modules/pages/app/dashboard.js",
 

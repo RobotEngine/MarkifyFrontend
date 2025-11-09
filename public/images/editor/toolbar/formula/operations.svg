@@ -1,0 +1,23 @@
+<svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="mask0_4_71" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256">
+<rect width="256" height="256" fill="var(--gray)"/>
+</mask>
+<g mask="url(#mask0_4_71)">
+<path d="M75 50V100" stroke="var(--pageColor)" stroke-width="44" stroke-linecap="round"/>
+<path d="M50 75H100" stroke="var(--pageColor)" stroke-width="44" stroke-linecap="round"/>
+<path d="M75 50V100" stroke="var(--darkGray)" stroke-width="20" stroke-linecap="round"/>
+<path d="M50 75H100" stroke="var(--darkGray)" stroke-width="20" stroke-linecap="round"/>
+<path d="M156 75H206" stroke="var(--pageColor)" stroke-width="44" stroke-linecap="round"/>
+<path d="M156 75H206" stroke="var(--darkGray)" stroke-width="20" stroke-linecap="round"/>
+<path d="M50.2513 205.749L99.7487 156.251" stroke="var(--pageColor)" stroke-width="44" stroke-linecap="round"/>
+<path d="M50.2513 156.251L99.7487 205.749" stroke="var(--pageColor)" stroke-width="44" stroke-linecap="round"/>
+<path d="M50.2513 205.749L99.7487 156.251" stroke="var(--darkGray)" stroke-width="20" stroke-linecap="round"/>
+<path d="M50.2513 156.251L99.7487 205.749" stroke="var(--darkGray)" stroke-width="20" stroke-linecap="round"/>
+<rect x="140" y="140" width="32" height="32" rx="16" fill="var(--pageColor)" stroke="var(--pageColor)" stroke-width="12"/>
+<rect x="190" y="190" width="32" height="32" rx="16" fill="var(--pageColor)" stroke="var(--pageColor)" stroke-width="12"/>
+<path d="M156 205.497L205.497 156" stroke="var(--pageColor)" stroke-width="44" stroke-linecap="round"/>
+<rect x="146" y="146" width="20" height="20" rx="10" fill="var(--darkGray)"/>
+<rect x="196" y="196" width="20" height="20" rx="10" fill="var(--darkGray)"/>
+<path d="M156 205.497L205.497 156" stroke="var(--darkGray)" stroke-width="20" stroke-linecap="round"/>
+</g>
+</svg>

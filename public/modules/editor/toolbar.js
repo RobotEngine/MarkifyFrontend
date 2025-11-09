@@ -1778,11 +1778,24 @@ modules["editor/toolbar"] = class {
             actionButtonHolder.innerHTML = "";
             for (let i = 0; i < combineTools.length; i++) {
               let action = combineTools[i];
+              let actionPath = "editor/toolbar/" + action;
+              let actionModule = await this.newModule(actionPath);
+              if (actionModule == null) {
+                continue;
+              }
+              if (actionModule.ADD_TOOLBAR_TOOLS != null) {
+                for (let a = 0; a < actionModule.ADD_TOOLBAR_TOOLS.length; a++) {
+                  let addAction = actionModule.ADD_TOOLBAR_TOOLS[a];
+                  if (combineTools.includes(addAction) == false) {
+                    combineTools.splice(i + a + 1, 0, addAction);
+                  }
+                }
+              }
               actionButtonHolder.insertAdjacentHTML("beforeend", `<button class="eTool" new><div></div></button>`);
               let newAction = actionButtonHolder.querySelector("[new]");
               newAction.removeAttribute("new");
               newAction.setAttribute("action", action);
-              newAction.setAttribute("module", "editor/toolbar/" + action);
+              newAction.setAttribute("module", actionPath);
             }
 
             this.selection.actionBarButtonCount = 0;
@@ -7159,7 +7172,12 @@ modules["editor/toolbar/color"] = class {
         let selection = quill.getSelection();
         let attributes;
         if (selection != null) {
-          attributes = quill.getFormat(selection.index, selection.length);
+          let content = quill.getContents(selection.index, Math.max(selection.length, 1)) ?? {};
+          if (content.ops == null || content.ops.length > 1 || (content.ops[0].insert ?? {}).formula == null) {
+            attributes = quill.getFormat(selection.index, selection.length);
+          } else {
+            attributes = quill.getFormat(selection.index, 1);
+          }
         } else {
           attributes = quill.getFormat(0, quill.getLength());
         }
@@ -7280,7 +7298,12 @@ modules["editor/toolbar/color"] = class {
           let selection = quill.getSelection();
           let setSelectedColor;
           if (selection != null) {
-            setSelectedColor = quill.getFormat(selection.index, selection.length).color;
+            let content = quill.getContents(selection.index, Math.max(selection.length, 1)) ?? {};
+            if (content.ops == null || content.ops.length > 1 || (content.ops[0].insert ?? {}).formula == null) {
+              setSelectedColor = quill.getFormat(selection.index, selection.length).color;
+            } else {
+              setSelectedColor = quill.getFormat(selection.index, 1).color;
+            }
           } else {
             setSelectedColor = quill.getFormat(0, quill.getLength()).color;
           }
@@ -7374,7 +7397,12 @@ modules["editor/toolbar/color"] = class {
               source = "user";
             }
             if (selection != null && enabled == true) {
-              quill.format("color", "#" + selectedColor, source);
+              let content = quill.getContents(selection.index, Math.max(selection.length, 1)) ?? {};
+              if (content.ops == null || content.ops.length > 1 || (content.ops[0].insert ?? {}).formula == null) {
+                quill.format("color", "#" + selectedColor, source);
+              } else {
+                quill.formatText(selection.index, 1, "color", "#" + selectedColor, source);
+              }
             } else {
               quill.formatText(0, quill.getLength(), "color", "#" + selectedColor, source);
             }
@@ -7577,7 +7605,12 @@ modules["editor/toolbar/color"] = class {
             source = "user";
           }
           if (selection != null && enabled == true) {
-            quill.format("color", "#" + selectedColor, source);
+            let content = quill.getContents(selection.index, Math.max(selection.length, 1)) ?? {};
+            if (content.ops == null || content.ops.length > 1 || (content.ops[0].insert ?? {}).formula == null) {
+              quill.format("color", "#" + selectedColor, source);
+            } else {
+              quill.formatText(selection.index, 1, "color", "#" + selectedColor, source);
+            }
           } else {
             quill.formatText(0, quill.getLength(), "color", "#" + selectedColor, source);
           }
@@ -7864,7 +7897,12 @@ modules["editor/toolbar/opacity"] = class {
               let selection = quill.getSelection();
               let attributes;
               if (selection != null) {
-                attributes = quill.getFormat(selection.index, selection.length);
+                let content = quill.getContents(selection.index, Math.max(selection.length, 1)) ?? {};
+                if (content.ops == null || content.ops.length > 1 || (content.ops[0].insert ?? {}).formula == null) {
+                  attributes = quill.getFormat(selection.index, selection.length);
+                } else {
+                  attributes = quill.getFormat(selection.index, 1);
+                }
               } else {
                 attributes = quill.getFormat(0, quill.getLength());
               }
@@ -9905,7 +9943,8 @@ modules["editor/toolbar/textedit"] = class {
   ADD_DIVIDE_AFTER = true;
 
   css = {
-    '.eActionBar[mode="formula"] .eTool[hideformulamode]': `display: none !important`
+    '.eActionBar[mode="formula"] .eTool[hideformulamode]': `display: none !important`,
+    '.eActionBar:not([mode="formula"]) .eTool[showformulamode]': `display: none !important`
   };
   js = async (frame, event) => {
     if (this.button == null || this.button.hasAttribute("hidden") == true) {
@@ -10034,7 +10073,7 @@ modules["editor/toolbar/textedit"] = class {
       } else if ((delta.ops[delta.ops.length - 1] ?? {}).delete != null && (selection ?? {}).length < 1) {
         await applyFormats(lastFormatting);
       }
-      await this.toolbar.saveSelecting(() => { return saveObj; }, { refreshActionBar: false, saveHistory: saveHistory });
+      await this.toolbar.saveSelecting(() => { return saveObj; }, { reuseActionBar: true, refreshActionBar: false, saveHistory: saveHistory });
       if (saveHistory == true) {
         let lastHistory = this.editor.history.history[this.editor.history.location];
         if (lastHistory != null) {
@@ -10048,7 +10087,11 @@ modules["editor/toolbar/textedit"] = class {
     this.toolbar.addQuillEventListener(quill, "text-change", textChange);
 
     let selectionChange = async (range, oldRange, source) => {
-      if (range != null && range.length < 1 && source != "api") {
+      if (range == null) {
+        return;
+      }
+      
+      if (range.length < 1 && source != "api") {
         let index = range.index;
         let direction = index - ((oldRange ?? {}).index ?? 0);
         if (direction < 0) {
@@ -10100,21 +10143,45 @@ modules["editor/toolbar/textedit"] = class {
     }
     this.toolbar.addEventListener("keyup", annoTx, keyupListener);
 
-    let focusListener = (event) => {
-      if (this.toolbar.selection.actionBar != null) {
-        let setMode;
-        if (event.target.closest(".ql-formula") == null) {
-          setMode = "";
-        } else {
-          setMode = "formula";
+    let focusInListener = async (event) => {
+      if (this.toolbar.selection.actionBar == null) {
+        return;
+      }
+      let setMode;
+      if (event.target.closest(".ql-formula") == null) {
+        setMode = "";
+      } else {
+        setMode = "formula";
+      }
+      if (event.relatedTarget != null) {
+        if (event.relatedTarget.closest(".eActionBar") != null) {
+          return;
         }
-        if (setMode != this.toolbar.selection.actionBar.getAttribute("mode")) {
-          this.toolbar.selection.actionBar.setAttribute("mode", setMode);
-          this.toolbar.selection.updateActionBar();
-        }
+      } else if (setMode == "" && event.type != "mousedown") {
+        return;
+      }
+      if (setMode != this.toolbar.selection.actionBar.getAttribute("mode")) {
+        this.toolbar.selection.actionBar.setAttribute("mode", setMode);
+        this.toolbar.selection.closeActionFrame();
+        await sleep();
+        this.toolbar.selection.updateActionBar({ refreshActionBar: true, redrawCurrentAction: true });
       }
     }
-    this.toolbar.addEventListener("focusin", annoTx, focusListener);
+    this.toolbar.addEventListener("focusin", annoTx, focusInListener);
+    this.toolbar.addEventListener("mousedown", annoTx, focusInListener);
+
+    let focusOutListener = async (event) => {
+      if (this.toolbar.selection.actionBar == null) {
+        return;
+      }
+      await sleep();
+      if (event.target == null || document.body.contains(event.target) == false) {
+        this.toolbar.selection.actionBar.setAttribute("mode", "");
+        this.toolbar.selection.closeActionFrame();
+        this.toolbar.selection.updateActionBar({ refreshActionBar: true, redrawCurrentAction: true });
+      }
+    }
+    this.toolbar.addEventListener("focusout", annoTx, focusOutListener);
 
     this.setActionButton();
   }
@@ -10260,7 +10327,12 @@ modules["editor/toolbar/fontsize"] = class {
     if (quill != null) {
       let selection = quill.getSelection();
       if (selection != null) {
-        size = quill.getFormat(selection.index, selection.length).size;
+        let content = quill.getContents(selection.index, Math.max(selection.length, 1)) ?? {};
+        if (content.ops == null || content.ops.length > 1 || (content.ops[0].insert ?? {}).formula == null) {
+          size = quill.getFormat(selection.index, selection.length).size;
+        } else {
+          size = quill.getFormat(selection.index, 1).size;
+        }
       } else {
         size = quill.getFormat(0, quill.getLength()).size;
       }
@@ -10320,7 +10392,12 @@ modules["editor/toolbar/fontsize"] = class {
       if (size == null) {
         let selection = quill.getSelection();
         if (selection != null) {
-          selectedS = quill.getFormat(selection.index, selection.length).size;
+          let content = quill.getContents(selection.index, Math.max(selection.length, 1)) ?? {};
+          if (content.ops == null || content.ops.length > 1 || (content.ops[0].insert ?? {}).formula == null) {
+            selectedS = quill.getFormat(selection.index, selection.length).size;
+          } else {
+            selectedS = quill.getFormat(selection.index, 1).size;
+          }
         } else {
           selectedS = quill.getFormat(0, quill.getLength()).size;
         }
@@ -10366,7 +10443,12 @@ modules["editor/toolbar/fontsize"] = class {
         source = "user";
       }
       if (selection != null && enabled == true) {
-        quill.format("size", set + "px", source);
+        let content = quill.getContents(selection.index, Math.max(selection.length, 1)) ?? {};
+        if (content.ops == null || content.ops.length > 1 || (content.ops[0].insert ?? {}).formula == null) {
+          quill.format("size", set + "px", source);
+        } else {
+          quill.formatText(selection.index, 1, "size", set + "px", source);
+        }
       } else {
         quill.formatText(0, quill.getLength(), "size", set + "px", source);
       }
@@ -10395,7 +10477,7 @@ modules["editor/toolbar/fontsize"] = class {
       }
       if (event.keyCode == 13) {
         event.preventDefault();
-        saveSize(parseInt(inputSize.textContent));
+        //saveSize(parseInt(inputSize.textContent));
         return textBox.blur();
       }
       if (String.fromCharCode(event.keyCode).match(/(\w|\s)/g) && event.key.length == 1) {
@@ -10928,6 +11010,7 @@ modules["editor/toolbar/formula"] = class {
   TOOLTIP = "Formula";
   SUPPORTS_MULTIPLE_SELECT = false;
   ATTRIBUTES = { hideformulamode: "" };
+  ADD_TOOLBAR_TOOLS = ["formula/operations", "formula/greek"];
 
   js = () => {
     let preference = this.parent.getPreferenceTool();
@@ -10957,5 +11040,83 @@ modules["editor/toolbar/formula"] = class {
         }
       }
     }, 0);
+  }
+}
+
+modules["editor/toolbar/formula/operations"] = class {
+  setActionButton = async (button) => {
+    setSVG(button, "../images/editor/toolbar/formula/operations.svg");
+  }
+
+  TOOLTIP = "Operations";
+  SUPPORTS_MULTIPLE_SELECT = false;
+  ATTRIBUTES = { showformulamode: "" };
+
+  html = `
+  <div class="eSubToolFormulaOperationsContainer eHorizontalToolsHolder" keeptooltip>
+    <button class="eTool" tooltip="A TEST" option><div></div></button>
+    <button class="eTool" tooltip="B TEST" option><div></div></button>
+    <button class="eTool" tooltip="C TEST" option><div></div></button>
+    <button class="eTool" tooltip="D TEST" option><div></div></button>
+    <button class="eTool" tooltip="E TEST" option><div></div></button>
+  </div>
+  `;
+  css = {
+    ".eSubToolFormulaOperationsContainer": `overflow: auto; border-radius: inherit`,
+    ".eSubToolFormulaOperationsContainer .eTool:active > div": `border-radius: 15.5px !important`,
+    ".eSubToolFormulaOperationsContainer .eTool[selected]:active > div": `border-radius: 15.5px !important`,
+    ".eSubToolFormulaOperationsContainer .eTool[selected] > div": `background: var(--theme) !important`
+  };
+  js = () => {
+    
+  }
+}
+
+modules["editor/toolbar/formula/greek"] = class {
+  setActionButton = async (button) => {
+    setSVG(button, "../images/editor/toolbar/formula/operations.svg");
+  }
+
+  TOOLTIP = "Greek";
+  SUPPORTS_MULTIPLE_SELECT = false;
+  ATTRIBUTES = { showformulamode: "" };
+
+  html = `
+  <div class="eSubToolFormulaGreekContainer eHorizontalToolsHolder" keeptooltip>
+    <button class="eTool" tooltip="A TEST" option><div></div></button>
+    <button class="eTool" tooltip="B TEST" option><div></div></button>
+    <button class="eTool" tooltip="C TEST" option><div></div></button>
+    <button class="eTool" tooltip="D TEST" option><div></div></button>
+    <button class="eTool" tooltip="E TEST" option><div></div></button>
+    <button class="eTool" tooltip="F TEST" option><div></div></button>
+    <button class="eTool" tooltip="G TEST" option><div></div></button>
+    <button class="eTool" tooltip="H TEST" option><div></div></button>
+    <button class="eTool" tooltip="I TEST" option><div></div></button>
+    <button class="eTool" tooltip="J TEST" option><div></div></button>
+    <button class="eTool" tooltip="K TEST" option><div></div></button>
+    <button class="eTool" tooltip="L TEST" option><div></div></button>
+    <button class="eTool" tooltip="M TEST" option><div></div></button>
+    <button class="eTool" tooltip="N TEST" option><div></div></button>
+    <button class="eTool" tooltip="O TEST" option><div></div></button>
+    <button class="eTool" tooltip="P TEST" option><div></div></button>
+    <button class="eTool" tooltip="Q TEST" option><div></div></button>
+    <button class="eTool" tooltip="R TEST" option><div></div></button>
+    <button class="eTool" tooltip="S TEST" option><div></div></button>
+    <button class="eTool" tooltip="T TEST" option><div></div></button>
+    <button class="eTool" tooltip="U TEST" option><div></div></button>
+    <button class="eTool" tooltip="V TEST" option><div></div></button>
+    <button class="eTool" tooltip="W TEST" option><div></div></button>
+    <button class="eTool" tooltip="X TEST" option><div></div></button>
+  </div>
+  `;
+  css = {
+    ".eSubToolFormulaGreekContainer": `flex-wrap: wrap; width: 276px; height: 94px; padding: 2px; overflow: auto; border-radius: inherit; justify-content: center`,
+    ".eSubToolFormulaGreekContainer .eTool": `height: 46px !important`,
+    ".eSubToolFormulaGreekContainer .eTool:active > div": `border-radius: 15.5px !important`,
+    ".eSubToolFormulaGreekContainer .eTool[selected]:active > div": `border-radius: 15.5px !important`,
+    ".eSubToolFormulaGreekContainer .eTool[selected] > div": `background: var(--theme) !important`
+  };
+  js = () => {
+    
   }
 }

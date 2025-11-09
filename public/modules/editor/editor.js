@@ -34,6 +34,10 @@ modules["editor/editor"] = class {
     '.eAnnotation .ql-editor[contenteditable="false"] .ql-formula': `pointer-events: none !important`,
     '.eAnnotation[selected] .ql-editor .ql-formula:before': `content: ""; position: absolute; box-sizing: border-box; width: calc((100% + 2px) * var(--zoom)); height: calc((100% + 2px) * var(--zoom)); left: 50%; top: 50%; transform: translate(-50%, -50%) scale(calc(1 / var(--zoom))); border: solid 2px var(--secondary); border-radius: 6px; opacity: 0; pointer-events: none; transition: opacity .15s`,
     '.eAnnotation[selected] .ql-editor[contenteditable="true"] .ql-formula:before': `opacity: 1`,
+    ".eAnnotation[selected] .ql-editor .ql-formula .mq-latex-command-input-wrapper": ``,
+    ".eAnnotation[selected] .ql-editor .ql-formula .mq-latex-command-input": `position: relative; border: unset !important`,
+    ".eAnnotation[selected] .ql-editor .ql-formula .mq-latex-command-input:before": `content: ""; position: absolute; box-sizing: border-box; width: calc((100% + 2px) * var(--zoom)); height: calc((100% + 2px) * var(--zoom)); left: 50%; top: 50%; transform: translate(-50%, -50%) scale(calc(1 / var(--zoom))); border: solid 2px var(--secondary); border-radius: 6px; pointer-events: none`,
+    ".eAnnotation[selected] .ql-editor .ql-formula .mq-text-mode.mq-hasCursor": `box-shadow: inset var(--lightShadow); border-radius: 2px`,
     
     //".ql-formula textarea": `transform: unset !important; clip: unset !important; width: unset !important; height: unset !important; outline: none !important`,
 

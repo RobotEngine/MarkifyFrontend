@@ -7428,6 +7428,12 @@ modules["editor/toolbar/color"] = class {
                 quill.format("color", "#" + selectedColor, source);
               } else {
                 quill.formatText(selection.index, 1, "color", "#" + selectedColor, source);
+                let element = (quill.getLeaf(selection.index + 1)[0] ?? {}).domNode;
+                setTimeout(() => {
+                  if (element != null && element.mathquillAPI != null) {
+                    element.mathquillAPI.focus();
+                  }
+                }, 1);
               }
             } else {
               quill.formatText(0, quill.getLength(), "color", "#" + selectedColor, source);
@@ -10492,6 +10498,12 @@ modules["editor/toolbar/fontsize"] = class {
           quill.format("size", set + "px", source);
         } else {
           quill.formatText(selection.index, 1, "size", set + "px", source);
+          let element = (quill.getLeaf(selection.index + 1)[0] ?? {}).domNode;
+          setTimeout(() => {
+            if (element != null && element.mathquillAPI != null) {
+              element.mathquillAPI.focus();
+            }
+          }, 1);
         }
       } else {
         quill.formatText(0, quill.getLength(), "size", set + "px", source);
@@ -11094,10 +11106,10 @@ modules["editor/toolbar/formula/operations"] = class {
     { key: "minus", tooltip: "Minus", write: "-" },
     { key: "multiply", tooltip: "Multipy", command: "\\times" },
     { key: "divide", tooltip: "Divide", command: "\\divide" },
-    { key: "fraction", tooltip: "Fraction", command: "\\frac" },
-    { key: "exponent", tooltip: "Exponent", command: "\\superscript" },
-    { key: "root", tooltip: "Square Root", command: "\\sqrt" },
-    { key: "factorial", tooltip: "Factorial", write: "!" }
+    //{ key: "fraction", tooltip: "Fraction", command: "\\frac" },
+    //{ key: "exponent", tooltip: "Exponent", command: "\\superscript" },
+    //{ key: "root", tooltip: "Square Root", command: "\\sqrt" },
+    //{ key: "factorial", tooltip: "Factorial", write: "!" }
   ];
 
   setActionButton = async (button) => {

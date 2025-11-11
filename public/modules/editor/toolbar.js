@@ -27,7 +27,13 @@ modules["editor/toolbar"] = class {
       </div>`
     },
     "erase": { id: "erase", type: "tool", module: "editor/toolbar/eraser" },
-    "text": { id: "text", type: "tool", module: "editor/toolbar/text" },
+    //"text": { id: "text", type: "tool", module: "editor/toolbar/text" },
+    "text": {
+      html: `<div class="eVerticalToolsHolder">
+        <button class="eTool" tool="text" tooltip="Text" module="editor/toolbar/text"><div></div></button>
+        <button class="eTool" tool="equation" tooltip="Equation" module="editor/toolbar/equation"><div></div></button>
+      </div>`
+    },
     "shape": {
       html: `<div class="eVerticalToolsHolder eVerticalToolsShapeContainer">
         <button class="eTool" tool="square" tooltip="Square" module="editor/toolbar/shape"><div></div></button>
@@ -3860,6 +3866,7 @@ modules["editor/toolbar"] = class {
                 quill = annotation.component.quill;
                 quill.keepTextSelectionActive = true;
                 quill.disable();
+                await sleep(10);
               }
             }
             editor.selecting[change._id] = change;
@@ -3953,6 +3960,7 @@ modules["editor/toolbar"] = class {
                 quill = annotation.component.quill;
                 quill.keepTextSelectionActive = true;
                 quill.disable();
+                await sleep();
               }
             }
             editor.selecting[change._id] = change;
@@ -5738,6 +5746,24 @@ modules["editor/toolbar/text"] = class extends modules["editor/toolbar/placement
       c: toolPreference.color.selected,
       o: toolPreference.opacity,
       d: [{ insert: "Example Text", attributes: { font: toolPreference.font, size: toolPreference.size + "px", align: toolPreference.align } }],
+      remove: true,
+      textfit: true
+    };
+  }
+}
+
+modules["editor/toolbar/equation"] = class extends modules["editor/toolbar/placement"] {
+  TARGET_QUERY = '.eActionBar:not([remove]) .eTool[module="editor/toolbar/textedit"]';
+
+  enable = () => {
+    let toolPreference = this.parent.getToolPreference();
+    this.PROPERTIES = {
+      f: "text",
+      s: [0, 0],
+      l: this.editor.maxLayer + 1,
+      c: toolPreference.color.selected,
+      o: toolPreference.opacity,
+      d: [{ insert: { formula: "y=\\frac{1}{2}x+3" }, attributes: { font: toolPreference.font, size: toolPreference.size + "px", align: toolPreference.align } }],
       remove: true,
       textfit: true
     };
@@ -9999,11 +10025,29 @@ modules["editor/toolbar/textedit"] = class {
         //quill.setSelection(0, quill.getLength());
         this.editor.text.startTextSelection(annoTx, event);
       } else {
-        let format = (((annotation.render ?? {}).d ?? [])[0] ?? {}).attributes ?? {}; //(quill.getContents().ops[0] ?? {}).attributes ?? {};
+        let content = (((annotation.render ?? {}).d ?? [])[0] ?? {});
+        let isEquationTool = (content.insert ?? {}).formula != null;
         quill.deleteText(0, quill.getLength());
         quill.setSelection(0);
-        await applyFormats(format);
-        this.toolbar.saveSelecting(() => { return { d: quill.getContents().ops }; }, { refreshActionBar: false, saveHistory: false });
+        if (isEquationTool == true) {
+          quill.setContents([{ attributes: content.attributes ?? {}, insert: { formula: "" } }]);
+        }
+        await applyFormats(content.attributes ?? {});
+        await this.toolbar.saveSelecting(() => { return { d: quill.getContents().ops }; }, { refreshActionBar: false, saveHistory: false });
+        if (isEquationTool == true) {
+          //setTimeout(async () => {
+          let element = (quill.getLeaf(1)[0] ?? {}).domNode;
+          if (element != null) {
+            let mathquill = element.mathquillAPI;
+            if (mathquill != null) {
+              mathquill.focus();
+              mathquill.moveToLeftEnd();
+            }
+          }
+          this.toolbar.selection.actionBar.setAttribute("mode", "formula");
+          this.toolbar.selection.updateActionBar({ refreshActionBar: true, redrawCurrentAction: true });
+          //}, 10);
+        }
       }
     } else {
       quill.disable();
@@ -10097,7 +10141,7 @@ modules["editor/toolbar/textedit"] = class {
         if (direction < 0) {
           index++;
         }
-        let element = (quill.getLeaf(index)[0] ?? {}).domNode; //(quill.getContents(index, 1) ?? {}).ops ?? [];
+        let element = (quill.getLeaf(index)[0] ?? {}).domNode;
         if (element != null) {
           let mathquill = element.mathquillAPI;
           if (mathquill != null) {
@@ -10171,6 +10215,7 @@ modules["editor/toolbar/textedit"] = class {
     this.toolbar.addEventListener("mousedown", annoTx, focusInListener);
 
     let focusOutListener = async (event) => {
+      await sleep();
       if (this.toolbar.selection.actionBar == null) {
         return;
       }
@@ -11065,6 +11110,13 @@ modules["editor/toolbar/formula/operations"] = class {
   ATTRIBUTES = { showformulamode: "" };
 
   html = `<div class="eSubToolFormulaOperationsContainer eHorizontalToolsHolder" keeptooltip></div>`;
+  /*css = {
+    ".eSubToolFormulaOperationsContainer": `flex-wrap: wrap; width: 276px; height: 94px; padding: 2px; overflow: auto; border-radius: inherit; justify-content: center`,
+    ".eSubToolFormulaOperationsContainer .eTool": `height: 46px !important`,
+    ".eSubToolFormulaOperationsContainer .eTool:active > div": `border-radius: 15.5px !important`,
+    ".eSubToolFormulaOperationsContainer .eTool[selected]:active > div": `border-radius: 15.5px !important`,
+    ".eSubToolFormulaOperationsContainer .eTool[selected] > div": `background: var(--theme) !important`
+  };*/
   css = {
     ".eSubToolFormulaOperationsContainer": `overflow: auto; border-radius: inherit`,
     ".eSubToolFormulaOperationsContainer .eTool:active > div": `border-radius: 15.5px !important`,

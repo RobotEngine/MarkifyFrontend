@@ -285,6 +285,7 @@ modules["pages/app/lesson"] = class {
         opacity: 50
       },
       text: {
+        subtool: "text",
         color: {
           selected: "0084FF",
           options: ["0084FF", "FF4C6C", "FFC24A", "DF84FF", "34C172", "FF008A", "000"]

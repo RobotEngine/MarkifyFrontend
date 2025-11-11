@@ -11044,8 +11044,20 @@ modules["editor/toolbar/formula"] = class {
 }
 
 modules["editor/toolbar/formula/operations"] = class {
+  BUTTON_SVG = "../images/editor/toolbar/formula/operations/operations.svg";
+  TOOLS = [
+    { key: "plus", tooltip: "Plus", write: "+" },
+    { key: "minus", tooltip: "Minus", write: "-" },
+    { key: "multiply", tooltip: "Multipy", command: "\\times" },
+    { key: "divide", tooltip: "Divide", command: "\\divide" },
+    { key: "fraction", tooltip: "Fraction", command: "\\frac" },
+    { key: "exponent", tooltip: "Exponent", command: "\\superscript" },
+    { key: "root", tooltip: "Square Root", command: "\\sqrt" },
+    { key: "factorial", tooltip: "Factorial", write: "!" }
+  ];
+
   setActionButton = async (button) => {
-    setSVG(button, "../images/editor/toolbar/formula/operations/operations.svg");
+    setSVG(button, this.BUTTON_SVG);
   }
 
   TOOLTIP = "Operations";
@@ -11060,17 +11072,6 @@ modules["editor/toolbar/formula/operations"] = class {
     ".eSubToolFormulaOperationsContainer .eTool[selected] > div": `background: var(--theme) !important`
   };
   js = (frame) => {
-    let tools = [
-      { key: "plus", tooltip: "Plus", write: "+" },
-      { key: "minus", tooltip: "Minus", write: "-" },
-      { key: "multiply", tooltip: "Multipy", command: "\\times" },
-      { key: "divide", tooltip: "Divide", command: "\\divide" },
-      { key: "fraction", tooltip: "Fraction", command: "\\frac" },
-      { key: "root", tooltip: "Square Root", command: "\\sqrt" },
-      { key: "exponent", tooltip: "Exponent", command: "\\superscript" }
-    ];
-    let toolObject = getObject(tools, "key");
-
     let toolHolder = frame.querySelector(".eHorizontalToolsHolder");
 
     let mathquill;
@@ -11095,6 +11096,8 @@ modules["editor/toolbar/formula/operations"] = class {
     }
     this.redraw();
 
+    let toolObject = getObject(this.TOOLS, "key");
+
     toolHolder.addEventListener("click", (event) => {
       let toolButton = event.target.closest(".eTool");
       if (toolButton == null) {
@@ -11112,8 +11115,8 @@ modules["editor/toolbar/formula/operations"] = class {
     });
 
     toolHolder.innerHTML = "";
-    for (let i = 0; i < tools.length; i++) {
-      let tool = tools[i];
+    for (let i = 0; i < this.TOOLS.length; i++) {
+      let tool = this.TOOLS[i];
       toolHolder.insertAdjacentHTML("beforeend", `<button class="eTool" option new><div></div></button>`);
       let toolButton = toolHolder.querySelector(".eTool[new]");
       toolButton.removeAttribute("new");

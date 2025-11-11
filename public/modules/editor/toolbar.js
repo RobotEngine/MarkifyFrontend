@@ -7292,8 +7292,8 @@ modules["editor/toolbar/color"] = class {
       }
       let annotation = this.editor.annotations[preferenceTool._id];
       if (annotation != null) {
-        quill = (annotation.component ?? {}).quill;
         let component = annotation.component ?? {};
+        quill = component.quill;
         if (quill != null && selectKeys.length == 1 && component.ALLOW_RICHTEXT_COLOR != false) {
           let selection = quill.getSelection();
           let setSelectedColor;
@@ -11045,30 +11045,82 @@ modules["editor/toolbar/formula"] = class {
 
 modules["editor/toolbar/formula/operations"] = class {
   setActionButton = async (button) => {
-    setSVG(button, "../images/editor/toolbar/formula/operations.svg");
+    setSVG(button, "../images/editor/toolbar/formula/operations/operations.svg");
   }
 
   TOOLTIP = "Operations";
   SUPPORTS_MULTIPLE_SELECT = false;
   ATTRIBUTES = { showformulamode: "" };
 
-  html = `
-  <div class="eSubToolFormulaOperationsContainer eHorizontalToolsHolder" keeptooltip>
-    <button class="eTool" tooltip="A TEST" option><div></div></button>
-    <button class="eTool" tooltip="B TEST" option><div></div></button>
-    <button class="eTool" tooltip="C TEST" option><div></div></button>
-    <button class="eTool" tooltip="D TEST" option><div></div></button>
-    <button class="eTool" tooltip="E TEST" option><div></div></button>
-  </div>
-  `;
+  html = `<div class="eSubToolFormulaOperationsContainer eHorizontalToolsHolder" keeptooltip></div>`;
   css = {
     ".eSubToolFormulaOperationsContainer": `overflow: auto; border-radius: inherit`,
     ".eSubToolFormulaOperationsContainer .eTool:active > div": `border-radius: 15.5px !important`,
     ".eSubToolFormulaOperationsContainer .eTool[selected]:active > div": `border-radius: 15.5px !important`,
     ".eSubToolFormulaOperationsContainer .eTool[selected] > div": `background: var(--theme) !important`
   };
-  js = () => {
-    
+  js = (frame) => {
+    let tools = [
+      { key: "plus", tooltip: "Plus", write: "+" },
+      { key: "minus", tooltip: "Minus", write: "-" },
+      { key: "multiply", tooltip: "Multipy", command: "\\times" },
+      { key: "divide", tooltip: "Divide", command: "\\divide" },
+      { key: "fraction", tooltip: "Fraction", command: "\\frac" },
+      { key: "root", tooltip: "Square Root", command: "\\sqrt" },
+      { key: "exponent", tooltip: "Exponent", command: "\\superscript" }
+    ];
+    let toolObject = getObject(tools, "key");
+
+    let toolHolder = frame.querySelector(".eHorizontalToolsHolder");
+
+    let mathquill;
+    let quill;
+    this.redraw = () => {
+      let preferenceTool = this.parent.getPreferenceTool();
+      let annotation = this.editor.annotations[preferenceTool._id];
+      if (annotation != null) {
+        let component = annotation.component ?? {};
+        quill = component.quill;
+        if (quill != null) {
+          let selection = quill.getSelection();
+          if (selection != null && quill.isEnabled() == true) {
+            //let content = quill.getContents(selection.index, Math.max(selection.length, 1)) ?? {};
+            let element = (quill.getLeaf(selection.index + 1)[0] ?? {}).domNode;
+            if (element != null) {
+              mathquill = element.mathquillAPI;
+            }
+          }
+        }
+      }
+    }
+    this.redraw();
+
+    toolHolder.addEventListener("click", (event) => {
+      let toolButton = event.target.closest(".eTool");
+      if (toolButton == null) {
+        return;
+      }
+      let toolData = toolObject[toolButton.getAttribute("tool")] ?? {};
+      if (mathquill != null) {
+        if (toolData.command != null) {
+          mathquill.cmd(toolData.command);
+        } else if (toolData.write != null) {
+          mathquill.write(toolData.write);
+        }
+        mathquill.focus();
+      }
+    });
+
+    toolHolder.innerHTML = "";
+    for (let i = 0; i < tools.length; i++) {
+      let tool = tools[i];
+      toolHolder.insertAdjacentHTML("beforeend", `<button class="eTool" option new><div></div></button>`);
+      let toolButton = toolHolder.querySelector(".eTool[new]");
+      toolButton.removeAttribute("new");
+      toolButton.setAttribute("tool", tool.key);
+      toolButton.setAttribute("tooltip", tool.tooltip);
+      setSVG(toolButton.querySelector("div"), "../images/editor/toolbar/formula/operations/" + tool.key + ".svg");
+    }
   }
 }
 

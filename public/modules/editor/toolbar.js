@@ -11106,6 +11106,17 @@ modules["editor/toolbar/formula/operations"] = class {
     { key: "minus", tooltip: "Minus", write: "-" },
     { key: "multiply", tooltip: "Multipy", command: "\\times" },
     { key: "divide", tooltip: "Divide", command: "\\divide" },
+    { key: "equal", tooltip: "Equal", write: "=" },
+    { key: "notequal", tooltip: "Not Equal", command: "\\neq" },
+    { key: "lessthan", tooltip: "Less Than", write: "<" },
+    { key: "lessthanequalto", tooltip: "Less Than Equal To", command: "\\leq" },
+    { key: "greaterthan", tooltip: "Greater Than", write: ">" },
+    { key: "greaterthanequalto", tooltip: "Greater Than Equal To", command: "\\geq" },
+    { key: "parentheses", tooltip: "Parentheses", write: "\\left(\\right)", moveLeft: true },
+    { key: "brackets", tooltip: "Brackets", write: "\\left[\\right]", moveLeft: true },
+    { key: "braces", tooltip: "Braces", write: "\\left\\{\\right\\}", moveLeft: true },
+    { key: "absolutevalue", tooltip: "Absolute Value", write: "\\left|\\right|", moveLeft: true },
+    { key: "decimalpoint", tooltip: "Decimal Point", write: "." },
     //{ key: "fraction", tooltip: "Fraction", command: "\\frac" },
     //{ key: "exponent", tooltip: "Exponent", command: "\\superscript" },
     //{ key: "root", tooltip: "Square Root", command: "\\sqrt" },
@@ -11121,19 +11132,19 @@ modules["editor/toolbar/formula/operations"] = class {
   ATTRIBUTES = { showformulamode: "" };
 
   html = `<div class="eSubToolFormulaOperationsContainer eHorizontalToolsHolder" keeptooltip></div>`;
-  /*css = {
-    ".eSubToolFormulaOperationsContainer": `flex-wrap: wrap; width: 276px; height: 94px; padding: 2px; overflow: auto; border-radius: inherit; justify-content: center`,
+  css = {
+    ".eSubToolFormulaOperationsContainer": `flex-wrap: wrap; width: 230px; height: 138px; padding: 2px; overflow: auto; border-radius: inherit; justify-content: center`,
     ".eSubToolFormulaOperationsContainer .eTool": `height: 46px !important`,
     ".eSubToolFormulaOperationsContainer .eTool:active > div": `border-radius: 15.5px !important`,
     ".eSubToolFormulaOperationsContainer .eTool[selected]:active > div": `border-radius: 15.5px !important`,
     ".eSubToolFormulaOperationsContainer .eTool[selected] > div": `background: var(--theme) !important`
-  };*/
-  css = {
+  };
+  /*css = {
     ".eSubToolFormulaOperationsContainer": `overflow: auto; border-radius: inherit`,
     ".eSubToolFormulaOperationsContainer .eTool:active > div": `border-radius: 15.5px !important`,
     ".eSubToolFormulaOperationsContainer .eTool[selected]:active > div": `border-radius: 15.5px !important`,
     ".eSubToolFormulaOperationsContainer .eTool[selected] > div": `background: var(--theme) !important`
-  };
+  };*/
   js = (frame) => {
     let toolHolder = frame.querySelector(".eHorizontalToolsHolder");
 
@@ -11174,6 +11185,9 @@ modules["editor/toolbar/formula/operations"] = class {
           mathquill.write(toolData.write);
         }
         mathquill.focus();
+        if (toolData.moveLeft == true) {
+          mathquill.keystroke("Left");
+        }
       }
     });
 

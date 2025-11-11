@@ -3,9 +3,9 @@
 <rect width="256" height="256" fill="var(--gray)"/>
 </mask>
 <g mask="url(#mask0_13_146)">
-<path d="M53 203L203 53.0001" stroke="var(--pageColor)" stroke-width="44" stroke-linecap="round"/>
-<path d="M53 53L203 203" stroke="var(--pageColor)" stroke-width="44" stroke-linecap="round"/>
-<path d="M53 203L203 53.0001" stroke="var(--darkGray)" stroke-width="20" stroke-linecap="round"/>
-<path d="M53 53L203 203" stroke="var(--darkGray)" stroke-width="20" stroke-linecap="round"/>
+<path d="M74.967 74.967L181.033 181.033" stroke="var(--pageColor)" stroke-width="44" stroke-linecap="round"/>
+<path d="M74.967 181.033L181.033 74.9669" stroke="var(--pageColor)" stroke-width="44" stroke-linecap="round"/>
+<path d="M74.967 74.967L181.033 181.033" stroke="var(--darkGray)" stroke-width="20" stroke-linecap="round"/>
+<path d="M74.967 181.033L181.033 74.9669" stroke="var(--darkGray)" stroke-width="20" stroke-linecap="round"/>
 </g>
 </svg>

@@ -25,7 +25,7 @@ modules["editor/editor"] = class {
     ".eAnnotation > svg": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: none; overflow: visible`,
     ".eAnnotation > svg > *": `pointer-events: visiblepainted`,
 
-    ".eAnnotation .ql-editor": `padding: 0 !important; overflow-y: unset !important; font-family: var(--font); font-size: 14px; line-height: inherit`,
+    ".eAnnotation .ql-editor": `padding: 0 !important; overflow-y: unset !important; font-family: var(--font); font-size: inherit; line-height: inherit`,
     ".eAnnotation .ql-editor > *": `cursor: unset`,
     ".eAnnotation .ql-editor ol": `padding: unset`,
     ".eAnnotation .ql-editor a": `color: var(--theme) !important`,
@@ -4784,9 +4784,10 @@ modules["editor/render/annotation/text"] = class extends modules["editor/render/
   ACTION_BAR_TOOLS = ["textedit", "color", "opacity", "font", "fontsize", "format", "list", "link", "textalign", "formula", "unlock", "delete"];
 
   css = {
-    ".eAnnotation[text] div[text]": `box-sizing: unset !important; padding: 4px 6px; margin: 3px; color: var(--themeColor); font-weight: 500; pointer-events: all; outline: none`,
+    ".eAnnotation[text] div[text]": `box-sizing: unset !important; padding: 4px 6px; margin: 3px; color: var(--themeColor); font-size: 18px; font-weight: 500; pointer-events: all; outline: none`,
     ".eAnnotation[text] div[text][placeborder]": `width: max-content; margin: 0px; border: solid 3px var(--themeColor); border-radius: 8px`
   };
+  DEFAULT_FONT_SIZE = 18;
   render = () => {
     if (this.element == null) {
       this.element = document.createElement("div");
@@ -5439,7 +5440,7 @@ modules["editor/render/annotation/sticky"] = class extends modules["editor/rende
     ".eAnnotation[sticky]": `display: flex; flex-direction: column; background: var(--themeColor); border-radius: 12px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all; overflow: auto; text-align: left`,
     //".eAnnotation[sticky]::-webkit-scrollbar": `display: none`, ; scrollbar-width: none
     ".eAnnotation[sticky] div[holder]": `display: flex; flex-direction: column; width: calc(100% - 20px); flex: 1; padding: 16px 10px 10px 10px`,
-    ".eAnnotation[sticky] div[edit]": `width: 100%; flex: 1; font-weight: 400; line-height: 1.5; pointer-events: all; outline: none`,
+    ".eAnnotation[sticky] div[edit]": `width: 100%; flex: 1; font-size: 16px; font-weight: 400; line-height: 1.5; pointer-events: all; outline: none`,
     ".eAnnotation[sticky] div[footer]": `display: flex; flex-wrap: wrap; flex-direction: row-reverse; width: 100%; margin-top: 8px; gap: 8px; align-items: flex-end`,
     ".eContent[anonymous] .eAnnotation[sticky] div[signature]": `filter: blur(4px); pointer-events: none`,
     ".eAnnotation[sticky] div[signature]": `margin-left: auto; opacity: .5; font-size: 14px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; taxt-align: right`,
@@ -5448,6 +5449,7 @@ modules["editor/render/annotation/sticky"] = class extends modules["editor/rende
     ".eAnnotation[sticky][selected] .eReaction[add]": `opacity: 1`,
     ".eAnnotation[sticky][selected] button": `pointer-events: all`
   };
+  DEFAULT_FONT_SIZE = 16;
   render = () => {
     if (this.element == null) {
       this.element = document.createElement("div");

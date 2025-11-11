@@ -10262,9 +10262,6 @@ modules["editor/toolbar/font"] = class {
 
   html = `<div class="eSubToolFontContainer"></div>`;
   css = {
-    ".eSubToolFontSizeHolder": `display: flex; width: 42px; height: 42px; justify-content: center; align-items: center; overflow: hidden`,
-    ".eSubToolFontSize": `padding: 0 4px; background: var(--pageColor); border-radius: 6px; color: var(--darkGray); font-size: 24px; font-weight: 700; text-wrap: nowrap`,
-
     ".eSubToolFontContainer": `box-sizing: border-box; display: flex; flex-direction: column; gap: 6px; max-width: 100%; padding: 6px; align-items: center`,
     ".eFontOption": `display: flex; max-width: 100%; width: 154px; height: 36px; padding: 4px; border-radius: 6px; font-weight: 600; transition: .15s`,
     ".eFontOption svg": `height: 100%; transition: .1s`,
@@ -10367,7 +10364,8 @@ modules["editor/toolbar/fontsize"] = class {
     }
 
     let preference = this.parent.getPreferenceTool();
-    let quill = ((this.editor.annotations[preference._id] ?? {}).component ?? {}).quill;
+    let component = (this.editor.annotations[preference._id] ?? {}).component ?? {};
+    let quill = component.quill;
     let size;
     if (quill != null) {
       let selection = quill.getSelection();
@@ -10385,7 +10383,7 @@ modules["editor/toolbar/fontsize"] = class {
     if (Array.isArray(size) == true) {
       size = size[0];
     }
-    size = size ?? "14px";
+    size = size ?? ((component.DEFAULT_FONT_SIZE ?? 14) + "px");
     this.button.querySelector(".eSubToolFontSize").textContent = size.substring(0, size.length - 2);
   }
 
@@ -10430,7 +10428,8 @@ modules["editor/toolbar/fontsize"] = class {
       if (annotation == null) {
         return;
       }
-      quill = (annotation.component ?? {}).quill;
+      let component = annotation.component ?? {};
+      quill = component.quill;
       if (quill == null) {
         return;
       }
@@ -10452,7 +10451,7 @@ modules["editor/toolbar/fontsize"] = class {
       if (Array.isArray(selectedS) == true) {
         selectedS = selectedS[0];
       }
-      selectedS = selectedS ?? 14;
+      selectedS = selectedS ?? component.DEFAULT_FONT_SIZE ?? 14;
       if (typeof selectedS == "string") {
         selectedS = parseFloat(selectedS.substring(0, selectedS.length - 2));
       }

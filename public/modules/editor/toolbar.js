@@ -11066,7 +11066,7 @@ modules["editor/toolbar/formula"] = class {
   TOOLTIP = "Formula";
   SUPPORTS_MULTIPLE_SELECT = false;
   ATTRIBUTES = { hideformulamode: "" };
-  ADD_TOOLBAR_TOOLS = ["formula/operations"]; //, "formula/greek"
+  ADD_TOOLBAR_TOOLS = ["formula/operations", "formula/algebra"]; //, "formula/greek"
 
   js = () => {
     let preference = this.parent.getPreferenceTool();
@@ -11100,6 +11100,7 @@ modules["editor/toolbar/formula"] = class {
 }
 
 modules["editor/toolbar/formula/operations"] = class {
+  FORMULA_TYPE = "operations";
   BUTTON_SVG = "../images/editor/toolbar/formula/operations/operations.svg";
   TOOLS = [
     { key: "plus", tooltip: "Plus", write: "+" },
@@ -11124,7 +11125,7 @@ modules["editor/toolbar/formula/operations"] = class {
   ];
 
   setActionButton = async (button) => {
-    setSVG(button, this.BUTTON_SVG);
+    setSVG(button, "../images/editor/toolbar/formula/" + this.FORMULA_TYPE + "/" + this.FORMULA_TYPE + ".svg");
   }
 
   TOOLTIP = "Operations";
@@ -11199,9 +11200,38 @@ modules["editor/toolbar/formula/operations"] = class {
       toolButton.removeAttribute("new");
       toolButton.setAttribute("tool", tool.key);
       toolButton.setAttribute("tooltip", tool.tooltip);
-      setSVG(toolButton.querySelector("div"), "../images/editor/toolbar/formula/operations/" + tool.key + ".svg");
+      setSVG(toolButton.querySelector("div"), "../images/editor/toolbar/formula/" + this.FORMULA_TYPE + "/" + tool.key + ".svg");
     }
   }
+}
+
+modules["editor/toolbar/formula/algebra"] = class extends modules["editor/toolbar/formula/operations"] {
+  FORMULA_TYPE = "algebra";
+  TOOLS = [
+    { key: "fraction", tooltip: "Fraction", command: "\\frac" },
+    { key: "exponent", tooltip: "Exponent", command: "\\superscript" },
+    { key: "subscript", tooltip: "Subscript", command: "\\subscript" },
+    { key: "root", tooltip: "Square Root", command: "\\sqrt" },
+    { key: "nroot", tooltip: "nth Root", command: "\\nthroot" },
+    { key: "function", tooltip: "Function of X", write: "f\\left(x\\right)" },
+    { key: "sin", tooltip: "Sine", write: "sin" },
+    { key: "cos", tooltip: "Cosine", write: "cos" },
+    { key: "tan", tooltip: "Tangent", write: "tan" },
+    { key: "log", tooltip: "Log", write: "log" },
+    { key: "ln", tooltip: "Natural Log", write: "ln" },
+    { key: "exp", tooltip: "Exponential", write: "exp" }
+  ];
+
+  TOOLTIP = "Algebra";
+
+  html = `<div class="eSubToolFormulaAlgebraContainer eHorizontalToolsHolder" keeptooltip></div>`;
+  css = {
+    ".eSubToolFormulaAlgebraContainer": `flex-wrap: wrap; width: 276px; height: 94px; padding: 2px; overflow: auto; border-radius: inherit; justify-content: center`,
+    ".eSubToolFormulaAlgebraContainer .eTool": `height: 46px !important`,
+    ".eSubToolFormulaAlgebraContainer .eTool:active > div": `border-radius: 15.5px !important`,
+    ".eSubToolFormulaAlgebraContainer .eTool[selected]:active > div": `border-radius: 15.5px !important`,
+    ".eSubToolFormulaAlgebraContainer .eTool[selected] > div": `background: var(--theme) !important`
+  };
 }
 
 modules["editor/toolbar/formula/greek"] = class {

@@ -1,0 +1,19 @@
+<svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="mask0_32_454" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256">
+<rect width="256" height="256" fill="var(--gray)"/>
+</mask>
+<g mask="url(#mask0_32_454)">
+<mask id="path-2-inside-1_32_454" fill="var(--pageColor)">
+<rect x="171" y="167" width="28" height="44" rx="4"/>
+</mask>
+<rect x="171" y="167" width="28" height="44" rx="4" stroke="var(--pageColor)" stroke-width="24" mask="url(#path-2-inside-1_32_454)"/>
+<rect x="155" y="151" width="60" height="76" rx="20" stroke="var(--pageColor)" stroke-width="32"/>
+<mask id="path-4-inside-2_32_454" fill="var(--pageColor)">
+<rect x="57" y="89" width="60" height="100" rx="4"/>
+</mask>
+<rect x="57" y="89" width="60" height="100" rx="4" stroke="var(--pageColor)" stroke-width="24" mask="url(#path-4-inside-2_32_454)"/>
+<rect x="41" y="73" width="92" height="132" rx="20" stroke="var(--pageColor)" stroke-width="32"/>
+<rect x="47" y="79" width="80" height="120" rx="14" stroke="var(--darkGray)" stroke-width="20"/>
+<rect x="161" y="157" width="48" height="64" rx="14" stroke="var(--darkGray)" stroke-width="20"/>
+</g>
+</svg>

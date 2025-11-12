@@ -652,7 +652,7 @@ let getSVG = (path) => {
   });
   cachedSVGs[path] = getPromise;
   cachedSVGArray.unshift(path);
-  if (cachedSVGArray.length > 100) {
+  if (cachedSVGArray.length > 250) {
     delete cachedSVGs[cachedSVGArray.pop()];
   }
   return getPromise;

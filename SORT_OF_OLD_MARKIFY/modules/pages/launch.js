@@ -292,7 +292,7 @@ modules["pages/launch"] = {
         percent: .6,
         name: "smartboard",
         title: "Then came the <b>Smartboard</b>",
-        desc: "With the advent of technology in the classroom, whiteboards began moving digital with the smartboard.</br></br>However, many smartboards dissapointed with less-than-ideal performence and the same problems that plauged traditional whiteboards.",
+        desc: "With the advent of technology in the classroom, whiteboards began moving digital with the smartboard.</br></br>However, many smartboards dissapointed with less-than-ideal performence and the same problems that plagued traditional whiteboards.",
         image: "smartboard",
         rotate: -3
       },

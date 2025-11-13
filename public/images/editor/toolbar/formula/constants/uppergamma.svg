@@ -1,0 +1,14 @@
+<svg viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="mask0_57_886" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256">
+<rect width="256" height="256" fill="var(--gray)"/>
+</mask>
+<g mask="url(#mask0_57_886)">
+<mask id="path-2-outside-1_57_886" maskUnits="userSpaceOnUse" x="82" y="44" width="99" height="167" fill="black">
+<rect fill="var(--pageColor)" x="82" y="44" width="99" height="167"/>
+<path d="M94.5813 199V56.2H168.781V81H126.381V199H94.5813Z"/>
+</mask>
+<path d="M94.5813 199V56.2H168.781V81H126.381V199H94.5813Z" fill="var(--pageColor)"/>
+<path d="M94.5813 199H82.5813V211H94.5813V199ZM94.5813 56.2V44.2H82.5813V56.2H94.5813ZM168.781 56.2H180.781V44.2H168.781V56.2ZM168.781 81V93H180.781V81H168.781ZM126.381 81V69H114.381V81H126.381ZM126.381 199V211H138.381V199H126.381ZM94.5813 199H106.581V56.2H94.5813H82.5813V199H94.5813ZM94.5813 56.2V68.2H168.781V56.2V44.2H94.5813V56.2ZM168.781 56.2H156.781V81H168.781H180.781V56.2H168.781ZM168.781 81V69H126.381V81V93H168.781V81ZM126.381 81H114.381V199H126.381H138.381V81H126.381ZM126.381 199V187H94.5813V199V211H126.381V199Z" fill="var(--pageColor)" mask="url(#path-2-outside-1_57_886)"/>
+<path d="M94.5813 199V56.2H168.781V81H126.381V199H94.5813Z" fill="var(--darkGray)"/>
+</g>
+</svg>

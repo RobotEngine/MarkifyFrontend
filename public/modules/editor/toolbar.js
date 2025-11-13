@@ -11057,16 +11057,12 @@ modules["editor/toolbar/textalign"] = class {
 modules["editor/toolbar/formula"] = class {
   setActionButton = async (button) => {
     setSVG(button, "../images/editor/toolbar/formula/formula.svg");
-
-    if (hasFeatureEnabled("formula") != true) {
-      button.closest("button").style.display = "none";
-    }
   }
 
   TOOLTIP = "Formula";
   SUPPORTS_MULTIPLE_SELECT = false;
   ATTRIBUTES = { hideformulamode: "" };
-  ADD_TOOLBAR_TOOLS = ["formula/operations", "formula/algebra"]; //, "formula/greek"
+  ADD_TOOLBAR_TOOLS = ["formula/operations", "formula/algebra", "formula/calculus", "formula/constants"];
 
   js = () => {
     let preference = this.parent.getPreferenceTool();
@@ -11098,7 +11094,6 @@ modules["editor/toolbar/formula"] = class {
     }, 0);
   }
 }
-
 modules["editor/toolbar/formula/operations"] = class {
   FORMULA_TYPE = "operations";
   BUTTON_SVG = "../images/editor/toolbar/formula/operations/operations.svg";
@@ -11204,7 +11199,6 @@ modules["editor/toolbar/formula/operations"] = class {
     }
   }
 }
-
 modules["editor/toolbar/formula/algebra"] = class extends modules["editor/toolbar/formula/operations"] {
   FORMULA_TYPE = "algebra";
   TOOLS = [
@@ -11233,52 +11227,61 @@ modules["editor/toolbar/formula/algebra"] = class extends modules["editor/toolba
     ".eSubToolFormulaAlgebraContainer .eTool[selected] > div": `background: var(--theme) !important`
   };
 }
+modules["editor/toolbar/formula/calculus"] = class extends modules["editor/toolbar/formula/operations"] {
+  FORMULA_TYPE = "calculus";
+  TOOLS = [
+    { key: "doverdx", tooltip: "d/dx", write: "\\frac{d}{dx}" },
+    { key: "interval", tooltip: "Interval", command: "\\int" },
+    { key: "limit", tooltip: "Limit", write: "lim" },
+    { key: "summation", tooltip: "Summation", command: "\\sum" },
+    { key: "product", tooltip: "Product", command: "\\prod" },
+    { key: "factorial", tooltip: "Factorial", write: "!" },
+    { key: "dx", tooltip: "dx", write: "dx" },
+    { key: "dy", tooltip: "dy", write: "dy" }
+  ];
 
-modules["editor/toolbar/formula/greek"] = class {
-  setActionButton = async (button) => {
-    setSVG(button, "../images/editor/toolbar/formula/operations.svg");
-  }
+  TOOLTIP = "Calculus";
 
-  TOOLTIP = "Greek";
-  SUPPORTS_MULTIPLE_SELECT = false;
-  ATTRIBUTES = { showformulamode: "" };
-
-  html = `
-  <div class="eSubToolFormulaGreekContainer eHorizontalToolsHolder" keeptooltip>
-    <button class="eTool" tooltip="A TEST" option><div></div></button>
-    <button class="eTool" tooltip="B TEST" option><div></div></button>
-    <button class="eTool" tooltip="C TEST" option><div></div></button>
-    <button class="eTool" tooltip="D TEST" option><div></div></button>
-    <button class="eTool" tooltip="E TEST" option><div></div></button>
-    <button class="eTool" tooltip="F TEST" option><div></div></button>
-    <button class="eTool" tooltip="G TEST" option><div></div></button>
-    <button class="eTool" tooltip="H TEST" option><div></div></button>
-    <button class="eTool" tooltip="I TEST" option><div></div></button>
-    <button class="eTool" tooltip="J TEST" option><div></div></button>
-    <button class="eTool" tooltip="K TEST" option><div></div></button>
-    <button class="eTool" tooltip="L TEST" option><div></div></button>
-    <button class="eTool" tooltip="M TEST" option><div></div></button>
-    <button class="eTool" tooltip="N TEST" option><div></div></button>
-    <button class="eTool" tooltip="O TEST" option><div></div></button>
-    <button class="eTool" tooltip="P TEST" option><div></div></button>
-    <button class="eTool" tooltip="Q TEST" option><div></div></button>
-    <button class="eTool" tooltip="R TEST" option><div></div></button>
-    <button class="eTool" tooltip="S TEST" option><div></div></button>
-    <button class="eTool" tooltip="T TEST" option><div></div></button>
-    <button class="eTool" tooltip="U TEST" option><div></div></button>
-    <button class="eTool" tooltip="V TEST" option><div></div></button>
-    <button class="eTool" tooltip="W TEST" option><div></div></button>
-    <button class="eTool" tooltip="X TEST" option><div></div></button>
-  </div>
-  `;
+  html = `<div class="eSubToolFormulaCalculusContainer eHorizontalToolsHolder" keeptooltip></div>`;
   css = {
-    ".eSubToolFormulaGreekContainer": `flex-wrap: wrap; width: 276px; height: 94px; padding: 2px; overflow: auto; border-radius: inherit; justify-content: center`,
+    ".eSubToolFormulaCalculusContainer": `flex-wrap: wrap; width: 184px; height: 94px; padding: 2px; overflow: auto; border-radius: inherit; justify-content: center`,
+    ".eSubToolFormulaCalculusContainer .eTool": `height: 46px !important`,
+    ".eSubToolFormulaCalculusContainer .eTool:active > div": `border-radius: 15.5px !important`,
+    ".eSubToolFormulaCalculusContainer .eTool[selected]:active > div": `border-radius: 15.5px !important`,
+    ".eSubToolFormulaCalculusContainer .eTool[selected] > div": `background: var(--theme) !important`
+  };
+}
+modules["editor/toolbar/formula/constants"] = class extends modules["editor/toolbar/formula/operations"] {
+  FORMULA_TYPE = "constants";
+  TOOLS = [
+    { key: "alpha", tooltip: "Alpha", command: "\\alpha" },
+    { key: "beta", tooltip: "Beta", command: "\\beta" },
+    { key: "gamma", tooltip: "Gamma", command: "\\gamma" },
+    { key: "delta", tooltip: "Delta", command: "\\delta" },
+    { key: "theta", tooltip: "Theta", command: "\\theta" },
+    { key: "lambda", tooltip: "Lambda", command: "\\lambda" },
+    { key: "mu", tooltip: "Mu", command: "\\mu" },
+    { key: "sigma", tooltip: "Sigma", command: "\\sigma" },
+    { key: "phi", tooltip: "Phi", command: "\\phi" },
+    { key: "omega", tooltip: "Omega", command: "\\omega" },
+    { key: "upperGamma", tooltip: "Gamma", command: "\\Gamma" },
+    { key: "upperDelta", tooltip: "Delta", command: "\\Delta" },
+    { key: "upperSigma", tooltip: "Sigma", command: "\\Sigma" },
+    { key: "upperOmega", tooltip: "Omega", command: "\\Omega" },
+    { key: "pi", tooltip: "Pi", command: "\\pi" },
+    { key: "e", tooltip: "e", write: "e" },
+    { key: "i", tooltip: "i", write: "i" },
+    { key: "infinity", tooltip: "Infinity", command: "\\infty" }
+  ];
+
+  TOOLTIP = "Constants";
+
+  html = `<div class="eSubToolFormulaGreekContainer eHorizontalToolsHolder" keeptooltip></div>`;
+  css = {
+    ".eSubToolFormulaGreekContainer": `flex-wrap: wrap; width: 276px; height: 138px; padding: 2px; overflow: auto; border-radius: inherit; justify-content: center`,
     ".eSubToolFormulaGreekContainer .eTool": `height: 46px !important`,
     ".eSubToolFormulaGreekContainer .eTool:active > div": `border-radius: 15.5px !important`,
     ".eSubToolFormulaGreekContainer .eTool[selected]:active > div": `border-radius: 15.5px !important`,
     ".eSubToolFormulaGreekContainer .eTool[selected] > div": `background: var(--theme) !important`
   };
-  js = () => {
-    
-  }
 }

@@ -5437,7 +5437,7 @@ modules["editor/render/annotation/sticky"] = class extends modules["editor/rende
   }
   
   css = {
-    ".eAnnotation[sticky]": `display: flex; flex-direction: column; background: var(--themeColor); border-radius: 12px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all; overflow: auto; text-align: left`,
+    ".eAnnotation[sticky]": `display: flex; flex-direction: column; background: var(--themeColor); border-radius: 12px; box-shadow: 0px 0px 8px rgba(0, 0, 0, .2); pointer-events: all; overflow-y: auto; overflow-x: hidden; text-align: left`,
     //".eAnnotation[sticky]::-webkit-scrollbar": `display: none`, ; scrollbar-width: none
     ".eAnnotation[sticky] div[holder]": `display: flex; flex-direction: column; width: calc(100% - 20px); flex: 1; padding: 16px 10px 10px 10px`,
     ".eAnnotation[sticky] div[edit]": `width: 100%; flex: 1; font-size: 16px; font-weight: 400; line-height: 1.5; pointer-events: all; outline: none`,

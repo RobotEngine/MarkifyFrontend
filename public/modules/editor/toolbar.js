@@ -1385,7 +1385,14 @@ modules["editor/toolbar"] = class {
           setResizePreserveAspect = true;
         }
         if (annoModule.SELECTION_FUNCTION != null) {
-          annoModule.SELECTION_FUNCTION(this.selection, merged);
+          let update = annoModule.SELECTION_FUNCTION(this.selection, merged) ?? {};
+          setResizePreserveAspect = update.resizePreserveAspect ?? setResizePreserveAspect;
+          setMultiSelectPreserveAspect = update.multiSelectPreserveAspect ?? setMultiSelectPreserveAspect;
+          setSnapping = update.snapping ?? setSnapping;
+          setShowHandles = update.showHandles ?? setShowHandles;
+          setShowDuplicateHandles = update.showDuplicateHandles ?? setShowDuplicateHandles;
+          setShowOnlyWidthHandles = update.showOnlyWidthHandles ?? setShowOnlyWidthHandles;
+          setShowRotationHandle = update.showRotationHandle ?? setShowRotationHandle;
         }
         
         let annotation;

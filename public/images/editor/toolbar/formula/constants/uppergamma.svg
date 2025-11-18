@@ -3,8 +3,8 @@
 <rect width="256" height="256" fill="var(--gray)"/>
 </mask>
 <g mask="url(#mask0_57_886)">
-<mask id="path-2-outside-1_57_886" maskUnits="userSpaceOnUse" x="82" y="44" width="99" height="167" fill="black">
-<rect fill="var(--pageColor)" x="82" y="44" width="99" height="167"/>
+<mask id="path-2-outside-1_57_886" maskUnits="userSpaceOnUse" x="82" y="44" width="99" height="167" fill="white">
+<rect x="82" y="44" width="99" height="167"/>
 <path d="M94.5813 199V56.2H168.781V81H126.381V199H94.5813Z"/>
 </mask>
 <path d="M94.5813 199V56.2H168.781V81H126.381V199H94.5813Z" fill="var(--pageColor)"/>

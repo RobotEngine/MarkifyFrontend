@@ -4616,7 +4616,7 @@ modules["editor/render/annotation/draw"] = class extends modules["editor/render/
 
   SELECTION_FUNCTION = (selection) => {
     if (["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {
-      selection.resizePreserveAspect = true;
+      return { resizePreserveAspect: true };
     }
   }
   
@@ -5432,7 +5432,7 @@ modules["editor/render/annotation/sticky"] = class extends modules["editor/rende
 
   SELECTION_FUNCTION = (selection) => {
     if (["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {
-      selection.resizePreserveAspect = true;
+      return { resizePreserveAspect: true };
     }
   }
   
@@ -5901,7 +5901,7 @@ modules["editor/render/annotation/page"] = class extends modules["editor/render/
 
   SELECTION_FUNCTION = (selection, render) => {
     if (render.source != null && ["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {
-      selection.resizePreserveAspect = true;
+      return { resizePreserveAspect: true };
     }
   }
   MM_TO_PX = (mm) => {
@@ -6206,7 +6206,7 @@ modules["editor/render/annotation/media"] = class extends modules["editor/render
 
   SELECTION_FUNCTION = (selection) => {
     if (["bottomright", "topleft", "topright", "bottomleft"].includes(selection.handle) == true) {
-      selection.resizePreserveAspect = true;
+      return { resizePreserveAspect: true };
     }
   }
 

@@ -3,14 +3,14 @@
 <rect width="256" height="256" fill="var(--gray)"/>
 </mask>
 <g mask="url(#mask0_26_376)">
-<mask id="path-2-outside-1_26_376" maskUnits="userSpaceOnUse" x="29" y="29" width="70" height="199" fill="black">
-<rect fill="var(--pageColor)" x="29" y="29" width="70" height="199"/>
+<mask id="path-2-outside-1_26_376" maskUnits="userSpaceOnUse" x="29" y="29" width="70" height="199" fill="white">
+<rect x="29" y="29" width="70" height="199"/>
 <path d="M86.4813 215.6H41.2813V41.2H86.4813V61.8H67.6813V195H86.4813V215.6Z"/>
 </mask>
 <path d="M86.4813 215.6H41.2813V41.2H86.4813V61.8H67.6813V195H86.4813V215.6Z" fill="var(--pageColor)"/>
 <path d="M86.4813 215.6V227.6H98.4813V215.6H86.4813ZM41.2813 215.6H29.2813V227.6H41.2813V215.6ZM41.2813 41.2V29.2H29.2813V41.2H41.2813ZM86.4813 41.2H98.4813V29.2H86.4813V41.2ZM86.4813 61.8V73.8H98.4813V61.8H86.4813ZM67.6813 61.8V49.8H55.6813V61.8H67.6813ZM67.6813 195H55.6813V207H67.6813V195ZM86.4813 195H98.4813V183H86.4813V195ZM86.4813 215.6V203.6H41.2813V215.6V227.6H86.4813V215.6ZM41.2813 215.6H53.2813V41.2H41.2813H29.2813V215.6H41.2813ZM41.2813 41.2V53.2H86.4813V41.2V29.2H41.2813V41.2ZM86.4813 41.2H74.4813V61.8H86.4813H98.4813V41.2H86.4813ZM86.4813 61.8V49.8H67.6813V61.8V73.8H86.4813V61.8ZM67.6813 61.8H55.6813V195H67.6813H79.6813V61.8H67.6813ZM67.6813 195V207H86.4813V195V183H67.6813V195ZM86.4813 195H74.4813V215.6H86.4813H98.4813V195H86.4813Z" fill="var(--pageColor)" mask="url(#path-2-outside-1_26_376)"/>
-<mask id="path-4-outside-2_26_376" maskUnits="userSpaceOnUse" x="157" y="29" width="70" height="199" fill="black">
-<rect fill="var(--pageColor)" x="157" y="29" width="70" height="199"/>
+<mask id="path-4-outside-2_26_376" maskUnits="userSpaceOnUse" x="157" y="29" width="70" height="199" fill="white">
+<rect x="157" y="29" width="70" height="199"/>
 <path d="M169.6 195H188.2V61.8H169.6V41.2H214.8V215.6H169.6V195Z"/>
 </mask>
 <path d="M169.6 195H188.2V61.8H169.6V41.2H214.8V215.6H169.6V195Z" fill="var(--pageColor)"/>

@@ -3,14 +3,14 @@
 <rect width="256" height="256" fill="var(--gray)"/>
 </mask>
 <g mask="url(#mask0_26_397)">
-<mask id="path-2-outside-1_26_397" maskUnits="userSpaceOnUse" x="37" y="20" width="48" height="222" fill="black">
-<rect fill="var(--pageColor)" x="37" y="20" width="48" height="222"/>
+<mask id="path-2-outside-1_26_397" maskUnits="userSpaceOnUse" x="37" y="20" width="48" height="222" fill="white">
+<rect x="37" y="20" width="48" height="222"/>
 <path d="M49.9906 32.6H72.3906V229.4H49.9906V32.6Z"/>
 </mask>
 <path d="M49.9906 32.6H72.3906V229.4H49.9906V32.6Z" fill="var(--pageColor)"/>
 <path d="M49.9906 32.6V20.6H37.9906V32.6H49.9906ZM72.3906 32.6H84.3906V20.6H72.3906V32.6ZM72.3906 229.4V241.4H84.3906V229.4H72.3906ZM49.9906 229.4H37.9906V241.4H49.9906V229.4ZM49.9906 32.6V44.6H72.3906V32.6V20.6H49.9906V32.6ZM72.3906 32.6H60.3906V229.4H72.3906H84.3906V32.6H72.3906ZM72.3906 229.4V217.4H49.9906V229.4V241.4H72.3906V229.4ZM49.9906 229.4H61.9906V32.6H49.9906H37.9906V229.4H49.9906Z" fill="var(--pageColor)" mask="url(#path-2-outside-1_26_397)"/>
-<mask id="path-4-outside-2_26_397" maskUnits="userSpaceOnUse" x="171" y="20" width="47" height="222" fill="black">
-<rect fill="var(--pageColor)" x="171" y="20" width="47" height="222"/>
+<mask id="path-4-outside-2_26_397" maskUnits="userSpaceOnUse" x="171" y="20" width="47" height="222" fill="white">
+<rect x="171" y="20" width="47" height="222"/>
 <path d="M183.6 32.6H206V229.4H183.6V32.6Z"/>
 </mask>
 <path d="M183.6 32.6H206V229.4H183.6V32.6Z" fill="var(--pageColor)"/>

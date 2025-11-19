@@ -2127,6 +2127,10 @@ modules["editor/toolbar"] = class {
         }
       } else {
         if (options.clickStart == true) {
+          this.selection.fullClickActionFrameButton = actionButton;
+          return;
+        }
+        if (event.type != null && this.selection.fullClickActionFrameButton != actionButton) {
           return;
         }
       }

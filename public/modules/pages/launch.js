@@ -165,7 +165,7 @@ modules["pages/launch"] = class {
         <a href="../privacy" target="_blank">Privacy</a>
       </div>
       <div class="lFooterSocials">
-        <a href="https://twitter.com/markifytool" target="_blank"><img src="../images/launch/socials/twitter.svg"></a>
+        <a href="https://x.com/markifytool" target="_blank"><img src="../images/launch/socials/twitter.svg"></a>
         <a href="https://www.instagram.com/markifytool" target="_blank"><img src="../images/launch/socials/instagram.svg"></a>
         <a href="https://www.linkedin.com/company/markifyapp" target="_blank"><img src="../images/launch/socials/linkedin.svg"></a>
         <a href="https://www.facebook.com/groups/1140371071626764" target="_blank"><img src="../images/launch/socials/facebook.svg"></a>

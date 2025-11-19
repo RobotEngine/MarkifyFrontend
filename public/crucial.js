@@ -22,7 +22,7 @@ const configs = {
 };
 
 const config = configs["public"];
-const version = "1.6.0"; // Big Update . Small Feature Release . Bug Fix
+const version = "1.6.1"; // Big Update . Small Feature Release . Bug Fix
 
 const serverURL = config.server;
 const assetURL = config.assets;
@@ -1847,7 +1847,9 @@ addCSS({
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     try {
-      navigator.serviceWorker.register("../serviceworker.js");
+      navigator.serviceWorker.register("../serviceworker.js").catch((err) => {
+        console.log("Service Worker failed to register:", err);
+      });
     } catch(err) { console.log(err); }
   });
 }

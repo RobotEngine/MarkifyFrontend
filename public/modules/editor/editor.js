@@ -3115,6 +3115,7 @@ modules["editor/editor"] = class {
                     if (latex.length > 0) {
                       node.setAttribute("data-value", latex);
                     } else {
+                      node.mathquillAPI.blur();
                       let blot = Quill.find(node);
                       if (blot == null) {
                         return;
@@ -3123,7 +3124,7 @@ modules["editor/editor"] = class {
                       if (quill == null) {
                         return;
                       }
-                      quill.deleteText(quill.getIndex(blot) ?? 0, 1);
+                      quill.deleteText(quill.getIndex(blot) ?? 0, 1, "user");
                     }
                   },
                   moveOutOf: async (direction = 0) => {

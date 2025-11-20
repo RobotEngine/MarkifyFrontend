@@ -10103,11 +10103,6 @@ modules["editor/toolbar/textedit"] = class {
 
       preference = this.parent.getPreferenceTool();
 
-      if (document.activeElement != null && document.activeElement.closest(".ql-formula") == null) {
-        this.toolbar.selection.actionBar.setAttribute("mode", "");
-        this.toolbar.selection.closeActionFrame();
-      }
-
       this.toolbar.selection.updateActionBar({ refreshActionBar: true, redrawCurrentAction: true });
 
       let saveObj = { d: {} };

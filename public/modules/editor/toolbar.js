@@ -11073,7 +11073,7 @@ modules["editor/toolbar/formula"] = class {
   TOOLTIP = "Formula";
   SUPPORTS_MULTIPLE_SELECT = false;
   ATTRIBUTES = { hideformulamode: "" };
-  ADD_TOOLBAR_TOOLS = ["formula/operations", "formula/algebra", "formula/calculus", "formula/constants"];
+  ADD_TOOLBAR_TOOLS = ["formula/operations", "formula/algebra", "formula/calculus", "formula/constants", "formula/relations", "formula/notation"];
 
   js = () => {
     let preference = this.parent.getPreferenceTool();
@@ -11109,21 +11109,22 @@ modules["editor/toolbar/formula/operations"] = class {
   FORMULA_TYPE = "operations";
   BUTTON_SVG = "../images/editor/toolbar/formula/operations/operations.svg";
   TOOLS = [
+    { key: "equal", tooltip: "Equal", write: "=" },
     { key: "plus", tooltip: "Plus", write: "+" },
     { key: "minus", tooltip: "Minus", write: "-" },
     { key: "multiply", tooltip: "Multipy", command: "\\times" },
     { key: "divide", tooltip: "Divide", command: "\\divide" },
-    { key: "equal", tooltip: "Equal", write: "=" },
     { key: "notequal", tooltip: "Not Equal", command: "\\neq" },
     { key: "lessthan", tooltip: "Less Than", write: "<" },
     { key: "lessthanequalto", tooltip: "Less Than Equal To", command: "\\leq" },
     { key: "greaterthan", tooltip: "Greater Than", write: ">" },
     { key: "greaterthanequalto", tooltip: "Greater Than Equal To", command: "\\geq" },
+    { key: "approxequal", tooltip: "Approximately Equal", command: "\\approx" },
     { key: "parentheses", tooltip: "Parentheses", write: "\\left(\\right)", moveLeft: true },
     { key: "brackets", tooltip: "Brackets", write: "\\left[\\right]", moveLeft: true },
     { key: "braces", tooltip: "Braces", write: "\\left\\{\\right\\}", moveLeft: true },
     { key: "absolutevalue", tooltip: "Absolute Value", write: "\\left|\\right|", moveLeft: true },
-    { key: "decimalpoint", tooltip: "Decimal Point", write: "." },
+    //{ key: "decimalpoint", tooltip: "Decimal Point", write: "." },
     //{ key: "fraction", tooltip: "Fraction", command: "\\frac" },
     //{ key: "exponent", tooltip: "Exponent", command: "\\superscript" },
     //{ key: "root", tooltip: "Square Root", command: "\\sqrt" },
@@ -11294,5 +11295,67 @@ modules["editor/toolbar/formula/constants"] = class extends modules["editor/tool
     ".eSubToolFormulaGreekContainer .eTool:active > div": `border-radius: 15.5px !important`,
     ".eSubToolFormulaGreekContainer .eTool[selected]:active > div": `border-radius: 15.5px !important`,
     ".eSubToolFormulaGreekContainer .eTool[selected] > div": `background: var(--theme) !important`
+  };
+}
+modules["editor/toolbar/formula/relations"] = class extends modules["editor/toolbar/formula/operations"] {
+  FORMULA_TYPE = "relations";
+  TOOLS = [
+    { key: "in", tooltip: "Element Of", command: "\\in" },
+    { key: "notin", tooltip: "Not an Element Of", command: "\\notin" },
+    { key: "subset", tooltip: "Subset", command: "\\subset" },
+    { key: "subsetequal", tooltip: "Subset or Equal To", command: "\\subseteq" },
+    { key: "cup", tooltip: "Union", command: "\\cup" },
+    { key: "cap", tooltip: "Intersection", command: "\\cap" },
+    { key: "empty", tooltip: "Empty Set", command: "\\emptyset" },
+    { key: "land", tooltip: "AND", command: "\\land" },
+    { key: "lor", tooltip: "OR", command: "\\lor" },
+    { key: "neg", tooltip: "NOT", command: "\\neg" },
+    { key: "rightarrow", tooltip: "Implies", command: "\\Rightarrow" },
+    { key: "leftarrow", tooltip: "Implied By", command: "\\Leftarrow" },
+    { key: "leftrightarrow", tooltip: "If and Only If", command: "\\Leftrightarrow" },
+    { key: "therefore", tooltip: "Therefore", command: "\\therefore" }
+  ];
+
+  TOOLTIP = "Relations";
+
+  html = `<div class="eSubToolFormulaRelationsContainer eHorizontalToolsHolder" keeptooltip></div>`;
+  css = {
+    ".eSubToolFormulaRelationsContainer": `flex-wrap: wrap; width: 322px; height: 92px; padding: 2px; overflow: auto; border-radius: inherit; justify-content: center`,
+    ".eSubToolFormulaRelationsContainer .eTool": `height: 46px !important`,
+    ".eSubToolFormulaRelationsContainer .eTool:active > div": `border-radius: 15.5px !important`,
+    ".eSubToolFormulaRelationsContainer .eTool[selected]:active > div": `border-radius: 15.5px !important`,
+    ".eSubToolFormulaRelationsContainer .eTool[selected] > div": `background: var(--theme) !important`
+  };
+}
+modules["editor/toolbar/formula/notation"] = class extends modules["editor/toolbar/formula/operations"] {
+  FORMULA_TYPE = "notation";
+  TOOLS = [
+    { key: "bar", tooltip: "Bar", command: "\\bar" },
+    { key: "hat", tooltip: "Hat", command: "\\hat" },
+    { key: "vector", tooltip: "Vector", command: "\\vec" },
+    { key: "rightarrow", tooltip: "Right Arrow", command: "\\rightarrow" },
+    { key: "leftarrow", tooltip: "Left Arrow", command: "\\leftarrow" },
+    { key: "leftrightarrow", tooltip: "Double Arrow", command: "\\leftrightarrow" },
+    { key: "equivalent", tooltip: "Equivalent", command: "\\equiv" },
+    { key: "congruent", tooltip: "Congruent", command: "\\cong" },
+    { key: "notcongruent", tooltip: "Not Congruent", command: "\\ncong" },
+    { key: "degree", tooltip: "Degree", command: "\\degree" },
+    { key: "angle", tooltip: "Angle", command: "\\angle" },
+    { key: "rightangle", tooltip: "Right Angle", write: "∟" },
+    { key: "sphericalangle", tooltip: "Spherical Angle", write: "∢" },
+    { key: "measuredangle", tooltip: "Measured Angle", command: "\\measuredangle" },
+    { key: "perpendicular", tooltip: "Perpendicular", command: "\\perp" },
+    { key: "parallel", tooltip: "Parallel", command: "\\parallel" }
+  ];
+
+  TOOLTIP = "Notation";
+
+  html = `<div class="eSubToolFormulaNotationContainer eHorizontalToolsHolder" keeptooltip></div>`;
+  css = {
+    ".eSubToolFormulaNotationContainer": `flex-wrap: wrap; width: 184px; height: 184px; padding: 2px; overflow: auto; border-radius: inherit; justify-content: center`,
+    ".eSubToolFormulaNotationContainer .eTool": `height: 46px !important`,
+    ".eSubToolFormulaNotationContainer .eTool:active > div": `border-radius: 15.5px !important`,
+    ".eSubToolFormulaNotationContainer .eTool[selected]:active > div": `border-radius: 15.5px !important`,
+    ".eSubToolFormulaNotationContainer .eTool[selected] > div": `background: var(--theme) !important`
   };
 }

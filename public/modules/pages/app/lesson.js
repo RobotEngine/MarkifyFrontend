@@ -452,11 +452,13 @@ modules["pages/app/lesson"] = class {
           let body = events[i];
           switch (data.task) {
             case "join":
-              if (this.members[body._id] == null) {
+              let member = this.members[body._id];
+              if (member == null) {
                 this.members[body._id] = {};
+                member = this.members[body._id];
                 this.memberCount++;
               }
-              objectUpdate(body, this.members[body._id] ?? {});
+              objectUpdate(body, member);
               let collaborator = this.collaborators[body.modify] ?? {};
               collaborator.name = body.name;
               collaborator.color = body.color;
@@ -472,15 +474,21 @@ modules["pages/app/lesson"] = class {
                 this.pushToPipelines(null, "collaborator_update", collaborator);
                 this.pushToPipelines(null, "collaborator_update_" + body.modify, collaborator);
               }
-              if (body.access == 1) {
+              if (body.access == 1 && (member.access == null || member.access < 1)) {
                 this.editorCount++;
+              } else if (body.access == 0 && member.access > 0) {
+                this.editorCount--;
               }
-              if (body.hand != null) {
+              if (body.hand != null && member.hand == null) {
                 this.handCount++;
+              } else if (body.hand == null && member.hand != null) {
+                this.handCount--;
               }
               if (body._id != this.sessionID) {
-                if (body.active == false) {
+                if (body.active == false && member.active != false) {
                   this.idleCount++;
+                } else if (body.active != false && member.active == false) {
+                  this.idleCount--;
                 }
               }
               break;
@@ -516,7 +524,7 @@ modules["pages/app/lesson"] = class {
                 } else if (body.hasOwnProperty("hand") == true && member.hand != null) {
                   this.handCount--;
                 }
-                if (body._id != this.sessionID) {
+                if (body.hasOwnProperty("active") == true && body._id != this.sessionID) {
                   if (body.active == false && member.active != false) {
                     this.idleCount++;
                   } else if (body.active != false && member.active == false) {
@@ -935,9 +943,7 @@ modules["pages/app/lesson"] = class {
           } else if (memSet.active != false && member.active == false) {
             this.idleCount--;
           }
-        } /*else if (member.active == false) {
-          this.idleCount--;
-        }*/
+        }
         objectUpdate(memSet, member);
       }
       if (this.members[this.sessionID] == null && this.session != null) {

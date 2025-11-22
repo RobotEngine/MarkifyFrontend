@@ -2760,7 +2760,7 @@ modules["editor/editor"] = class {
               r: rotation,
               parent: null,
               prevParent: render.parent
-            }, true);
+            });
             if (setParentID != render.parent) {
               let { x: newX, y: newY, rotation: newRotation } = this.utils.getRelativePosition({
                 ...render,

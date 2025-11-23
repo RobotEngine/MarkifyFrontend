@@ -1,4 +1,4 @@
-modules["pages/app/lesson"] = class {
+modules["pages/app/lesson"] = class extends page {
   title = "Lesson";
   allowBackgroundChange = true;
   preload = [
@@ -772,7 +772,7 @@ modules["pages/app/lesson"] = class {
         }
       }
     }
-    tempListen(window, "resize", (event) => {
+    this.addEventListener(window, "resize", (event) => {
       sizeUpdate();
 
       this.pushToPipelines(null, "resize", { event: event });
@@ -780,17 +780,17 @@ modules["pages/app/lesson"] = class {
     });
     sizeUpdate();
     
-    tempListen(window, "pointerdown", (event) => {
+    this.addEventListener(window, "pointerdown", (event) => {
       startDivider(event);
       /*if (event.pointerType == "mouse") {
         startDivider(event);
       }*/
     }, { passive: false });
-    tempListen(window, "touchstart", (event) => {
+    this.addEventListener(window, "touchstart", (event) => {
       //startDivider(event);
     }, { passive: false });
 
-    tempListen(window, "pointermove", (event) => {
+    this.addEventListener(window, "pointermove", (event) => {
       this.pushToPipelines(null, "pointermove", { event: event });
       this.pushToPipelines(null, "click_move", { type: "pointermove", event: event });
       updateDivider(event);
@@ -799,17 +799,17 @@ modules["pages/app/lesson"] = class {
         updateDivider(event);
       }*/
     }, { passive: false });
-    /*tempListen(window, "mousemove", (event) => {
+    /*this.addEventListener(window, "mousemove", (event) => {
       this.pushToPipelines(null, "mousemove", { event: event });
       this.pushToPipelines(null, "click_move", { type: "mousemove", event: event });
     }, { passive: false });*/
-    tempListen(window, "touchmove", (event) => {
+    this.addEventListener(window, "touchmove", (event) => {
       this.pushToPipelines(null, "touchmove", { event: event });
       //this.pushToPipelines(null, "click_move", { type: "touchmove", event: event });
       //updateDivider(event);
     }, { passive: false });
 
-    tempListen(window, "pointerup", (event) => {
+    this.addEventListener(window, "pointerup", (event) => {
       this.pushToPipelines(null, "pointerup", { event: event });
       this.pushToPipelines(null, "click_end", { type: "pointerup", event: event });
       endDivider();
@@ -818,32 +818,32 @@ modules["pages/app/lesson"] = class {
         endDivider();
       }*/
     }, { passive: false });
-    /*tempListen(window, "mouseup", (event) => {
+    /*this.addEventListener(window, "mouseup", (event) => {
       this.pushToPipelines(null, "mouseup", { event: event });
       this.pushToPipelines(null, "click_end", { type: "mouseup", event: event });
     }, { passive: false });*/
-    tempListen(window, "touchend", (event) => {
+    this.addEventListener(window, "touchend", (event) => {
       this.pushToPipelines(null, "touchend", { event: event });
       //this.pushToPipelines(null, "click_end", { type: "touchend", event: event });
       //endDivider();
     }, { passive: false });
 
-    tempListen(window, "keydown", (event) => {
+    this.addEventListener(window, "keydown", (event) => {
       this.pushToPipelines(null, "keydown", { event: event });
     }, { passive: false });
-    tempListen(window, "keyup", (event) => {
+    this.addEventListener(window, "keyup", (event) => {
       this.pushToPipelines(null, "keyup", { event: event });
     }, { passive: false });
 
-    tempListen(window, "paste", (event) => {
+    this.addEventListener(window, "paste", (event) => {
       this.pushToPipelines(null, "paste", { event: event });
     }, { passive: false });
-    tempListen(window, "copy", (event) => {
+    this.addEventListener(window, "copy", (event) => {
       this.pushToPipelines(null, "copy", { event: event });
     }, { passive: false });
 
     this.active = document.visibilityState == "visible";
-    /*tempListen(document, "visibilitychange", () => {
+    /*this.addEventListener(document, "visibilitychange", () => {
       this.active = document.visibilityState == "visible";
       
       if (this.sendPing != null) {
@@ -859,7 +859,7 @@ modules["pages/app/lesson"] = class {
       }
       this.pushToPipelines(null, "visibilitychange", { active: this.active });
     }
-    tempListen(window, "focus", () => {
+    this.addEventListener(window, "focus", () => {
       visibilityChange(true);
 
       let oldExportAction = page.querySelector(".eFileActionExport");
@@ -867,11 +867,11 @@ modules["pages/app/lesson"] = class {
         oldExportAction.remove();
       }
     });
-    tempListen(window, "blur", () => { visibilityChange(false); });
-    tempListen(document, "fullscreenchange", () => {
+    this.addEventListener(window, "blur", () => { visibilityChange(false); });
+    this.addEventListener(document, "fullscreenchange", () => {
       this.pushToPipelines(null, "fullscreenchange", { fullscreen: document.fullscreenElement != null });
     });
-    tempListen(window, "beforeunload", (event) => { this.pushToPipelines(null, "beforeunload", { event: event }); });
+    this.addEventListener(window, "beforeunload", (event) => { this.pushToPipelines(null, "beforeunload", { event: event }); });
 
     window.updateAccountSettings = (change) => {
       this.pushToPipelines(null, "account_settings", { settings: change ?? account.settings ?? {} });
@@ -1053,7 +1053,7 @@ modules["pages/app/lesson"] = class {
           socket.publish(pingSocketFilter, pingID, { publishToSelf: true });
         }
         
-        addTempListener({ type: "interval", interval: setInterval(async () => {
+        this.addListener({ type: "interval", interval: setInterval(async () => {
           if (sentPing == false) {
             this.sendPing();
           }

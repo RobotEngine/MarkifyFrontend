@@ -22,7 +22,7 @@ const configs = {
 };
 
 const config = configs["public"];
-const version = "1.6.3"; // Big Update . Small Feature Release . Bug Fix
+const version = "1.6.4"; // Big Update . Small Feature Release . Bug Fix
 
 const serverURL = config.server;
 const assetURL = config.assets;
@@ -48,6 +48,7 @@ let loadingAnim = app.innerHTML;
 app.querySelector(".loading[new]").setAttribute("appload", "");
 
 let currentPage = "";
+let currentPageLoadId;
 let defaultPage = "pages/launch";
 
 let account = {};
@@ -238,6 +239,23 @@ let newModule = async (path, parent) => {
   }
   return module;
 }
+class page {
+  isActive = () => {
+    return this.loadId == currentPageLoadId;
+  }
+  addListener = (listen) => {
+    if (this.isActive() == false) {
+      return;
+    }
+    return addTempListener(listen);
+  }
+  addEventListener = (parent, listen, runFunc, extra) => {
+    if (this.isActive() == false) {
+      return;
+    }
+    return tempListen(parent, listen, runFunc, extra);
+  }
+}
 //let currentlyLoadingFrames = {};
 let setFrame = async (path, frame, extra, parent) => {
   let frameSet = frame ?? app;
@@ -308,6 +326,7 @@ let setFrame = async (path, frame, extra, parent) => {
     }
   }
   let module = await newModule(path, parent);
+  module.loadId = loadId;
   if (frameSet == null || frameSet.getAttribute("moduleloadid") != loadId) {
     return;
   }
@@ -400,6 +419,7 @@ let setFrame = async (path, frame, extra, parent) => {
       //window.scrollTo(0, 0);
       body.style.removeProperty("user-select");
       currentPage = path;
+      currentPageLoadId = loadId;
       document.title = module.title + " | Markify";
       if (favicon.href != "https://markifyapp.com/images/favicon.png") {
         favicon.href = "https://markifyapp.com/images/favicon.png";

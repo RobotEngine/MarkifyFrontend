@@ -268,7 +268,7 @@ modules["lesson/export"] = class {
       return { capture: false, done: true };
     }
 
-    tempListen(window, "message", async (event) => {
+    this.parent.addEventListener(window, "message", async (event) => {
       if (event.data && event.data.type === "FROM_NODE") {
         if (window.navigationReady != null) {
           window.navigationReady(await this.exportStep(event.data.message));

@@ -1,4 +1,4 @@
-modules["pages/app/join"] = class {
+modules["pages/app/join"] = class extends page {
   turnstileEnabled = false;
 
   title = "Join";

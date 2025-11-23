@@ -1,4 +1,4 @@
-modules["pages/gift"] = class {
+modules["pages/gift"] = class extends page {
   html = "";
   js = () => {
     let from = getParam("user") ?? "";

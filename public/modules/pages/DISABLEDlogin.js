@@ -29,7 +29,7 @@
   window.location = endpoint;
 }*/
 
-modules["pages/login"] = class {
+modules["pages/login"] = class extends page {
   title = "Login";
   html = `<div class="loginBackdrop">
     <div class="loginBackground"></div>
@@ -49,7 +49,7 @@ modules["pages/login"] = class {
 
     let embedFrame = page.querySelector(".loginEmbed");
 
-    tempListen(window, "message", async (event) => {
+    this.addEventListener(window, "message", async (event) => {
       if (event.source != embedFrame.contentWindow) {
         return;
       }

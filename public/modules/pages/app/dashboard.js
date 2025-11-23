@@ -1,4 +1,4 @@
-modules["pages/app/dashboard"] = class {
+modules["pages/app/dashboard"] = class extends page {
   title = "Dashboard";
   allowBackgroundChange = true;
   preload = [
@@ -427,7 +427,7 @@ modules["pages/app/dashboard"] = class {
       }
       this.updateScrollShadows();
     }
-    tempListen(window, "resize", sizeUpdate);
+    this.addEventListener(window, "resize", sizeUpdate);
 
     let unselectSidebarButton = () => {
       let currentSelected = sidebar.querySelector("button[selected], a[selected]");

@@ -1,4 +1,4 @@
-modules["pages/launch"] = class {
+modules["pages/launch"] = class extends page {
   title = "Collaboration across the Classroom";
   theme = "light";
   html = `
@@ -793,8 +793,8 @@ modules["pages/launch"] = class {
       }
       splashImage.style.transform = "perspective(75em) rotateX(" + Math.max(splashRotate, 0) + "deg)";
     }
-    tempListen(window, "scroll", updateSections);
-    tempListen(window, "resize", updateSections);
+    this.addEventListener(window, "scroll", updateSections);
+    this.addEventListener(window, "resize", updateSections);
     setTimeout(updateSections, 1);
     page.querySelector(".lHeaderContent").style.minHeight = "0px";
 

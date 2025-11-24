@@ -96,6 +96,19 @@ let addTempListener = (listen) => {
   tempListeners[listenID] = listen;
   return listenID;
 }
+let removeTempListener = (remEvent) => {
+  if (remEvent.type == "event") {
+    if (remEvent.parent != null) {
+      remEvent.parent.removeEventListener(remEvent.name, remEvent.listener);
+    }
+  } else if (remEvent.type == "interval") {
+    clearInterval(remEvent.interval);
+  } else if (remEvent.type == "animation") {
+    cancelAnimationFrame(remEvent.frame);
+  } else if (remEvent.type == "pdf") {
+    remEvent.document.destroy();
+  }
+}
 let tempListen = (parent, listen, runFunc, extra) => {
   parent.addEventListener(listen, runFunc, extra);
   addTempListener({ type: "event", parent: parent, name: listen, listener: runFunc });
@@ -104,18 +117,7 @@ let removeTempListeners = () => {
   let listenKeys = Object.keys(tempListeners);
   for (let i = 0; i < listenKeys.length; i++) {
     let remID = listenKeys[i];
-    let remEvent = tempListeners[remID];
-    if (remEvent.type == "event") {
-      if (remEvent.parent != null) {
-        remEvent.parent.removeEventListener(remEvent.name, remEvent.listener);
-      }
-    } else if (remEvent.type == "interval") {
-      clearInterval(remEvent.interval);
-    } else if (remEvent.type == "animation") {
-      cancelAnimationFrame(remEvent.frame);
-    } else if (remEvent.type == "pdf") {
-      remEvent.document.destroy();
-    }
+    removeTempListener(tempListeners[remID]);
     delete tempListeners[remID];
   }
 }
@@ -245,7 +247,7 @@ class page {
   }
   addListener = (listen) => {
     if (this.isActive() == false) {
-      return;
+      return removeTempListener(listen);
     }
     return addTempListener(listen);
   }

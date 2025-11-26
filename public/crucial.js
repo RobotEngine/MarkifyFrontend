@@ -22,7 +22,7 @@ const configs = {
 };
 
 const config = configs["public"];
-const version = "1.6.4"; // Big Update . Small Feature Release . Bug Fix
+const version = "1.6.5"; // Big Update . Small Feature Release . Bug Fix
 
 const serverURL = config.server;
 const assetURL = config.assets;
@@ -328,7 +328,6 @@ let setFrame = async (path, frame, extra, parent) => {
     }
   }
   let module = await newModule(path, parent);
-  module.loadId = loadId;
   if (frameSet == null || frameSet.getAttribute("moduleloadid") != loadId) {
     return;
   }
@@ -351,6 +350,7 @@ let setFrame = async (path, frame, extra, parent) => {
       return setFrame(defaultPage, null, extra);
     }
   }
+  module.loadId = loadId;
   if (extra.content != null) {
     if (module.maxHeight != null) {
       extra.content.setAttribute("maxheight", module.maxHeight);

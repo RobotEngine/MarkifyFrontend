@@ -2130,7 +2130,7 @@ modules["editor/toolbar"] = class {
           this.selection.fullClickActionFrameButton = actionButton;
           return;
         }
-        if (event.type != null && this.selection.fullClickActionFrameButton != actionButton) {
+        if (event.type != null && this.selection.fullClickActionFrameButton != actionButton && event.pointerType != "") {
           return;
         }
       }

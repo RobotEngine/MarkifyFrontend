@@ -30,16 +30,10 @@
   @import url("https://fonts.googleapis.com/css?family=Montserrat:400,500,600,700,800&display=swap");
 
   :root {
-    --bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    --font: "Montserrat", sans-serif;
-  }
-
-  html[theme="light"] {
     --themeRGB: 0, 132, 255;
     --theme: rgb(var(--themeRGB));
     --secondaryRGB: 72, 167, 255;
     --secondary: rgb(var(--secondaryRGB));
-    --hoverRGB: 180, 218, 253;
     --hover: rgb(var(--hoverRGB));
     --purpleRGB: 223, 132, 255;
     --purple: rgb(var(--purpleRGB));
@@ -50,6 +44,16 @@
     --redRGB: 220, 20, 60;
     --red: rgb(var(--redRGB));
     --error: rgb(var(--redRGB));
+    --pageColor: rgb(var(--background));
+    --lightShadow: 0px 0px 8px 0px rgba(var(--themeRGB), .3);
+    --darkShadow: 0px 0px 8px 0px rgba(var(--themeRGB), .5);
+    --shadow: 0px 0px 8px 0px var(--gray);
+    --bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    --font: "Montserrat", sans-serif;
+  }
+  html[theme="light"] {
+    --hoverRGB: 180, 218, 253;
+    
     --lightGray: #E7E7E7;
     --scrollGray: #F6F6F6;
     --activeGray: #7C7C7C;
@@ -57,27 +61,9 @@
     --darkGray: #2F2F2F;
     --textColor: #000;
     --background: 255, 255, 255;
-    --pageColor: rgb(var(--background));
-    --lightShadow: 0px 0px 8px 0px rgba(var(--themeRGB), .3);
-    --darkShadow: 0px 0px 8px 0px rgba(var(--themeRGB), .5);
-    --shadow: 0px 0px 8px 0px var(--gray);
   }
   html[theme="dark"] {
-    --themeRGB: 0, 132, 255;
-    --theme: rgb(var(--themeRGB));
-    --secondaryRGB: 72, 167, 255;
-    --secondary: rgb(var(--secondaryRGB));
     --hoverRGB: 12, 63, 111;
-    --hover: rgb(var(--hoverRGB));
-    --purpleRGB: 223, 132, 255;
-    --purple: rgb(var(--purpleRGB));
-    --yellowRGB: 255, 185, 56;
-    --yellow: rgb(var(--yellowRGB));
-    --greenRGB: 52, 193, 114;
-    --green: rgb(var(--greenRGB));
-    --redRGB: 220, 20, 60;
-    --red: rgb(var(--redRGB));
-    --error: rgb(var(--redRGB));
     --lightGray: #00355E;
     --scrollGray: #001D34;
     --activeGray: #005CA7;
@@ -85,10 +71,6 @@
     --darkGray: #E7E7E7;
     --textColor: #fff;
     --background: 10, 28, 45;
-    --pageColor: rgb(var(--background));
-    --lightShadow: 0px 0px 8px 0px rgba(var(--themeRGB), .3);
-    --darkShadow: 0px 0px 8px 0px rgba(var(--themeRGB), .5);
-    --shadow: 0px 0px 8px 0px var(--gray);
   }
 
   html, body {

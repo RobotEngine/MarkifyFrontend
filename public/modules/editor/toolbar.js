@@ -7345,6 +7345,9 @@ modules["editor/toolbar/color"] = class {
             setSelectedColor = quill.getFormat(0, quill.getLength()).color;
           }
           if (setSelectedColor != null) {
+            if (Array.isArray(setSelectedColor) == true) {
+              setSelectedColor = setSelectedColor[0];
+            }
             if (setSelectedColor.startsWith("rgb(") == true) {
               let rgbValues = setSelectedColor.match(/\d+/g);
               selectedColor = editor.utils.rgbToHex(rgbValues[0], rgbValues[1], rgbValues[2]).toUpperCase();

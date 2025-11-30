@@ -5124,6 +5124,7 @@ modules["editor/toolbar/pen"] = class {
       },
       animate: false
     };
+    this.shiftKeyEnabled = event.shiftKey == true;
     this.USE_COALESCED_EVENTS = true;
     this.editor.realtimeSelect[this.annotation.render._id] = this.annotation.render;
     await this.editor.render.create(this.annotation);
@@ -5132,14 +5133,19 @@ modules["editor/toolbar/pen"] = class {
     if (this.annotation == null) {
       return;
     }
+    if (event.shiftKey == true) {
+      this.shiftKeyEnabled = true;
+    }
     
     let rect = this.editor.utils.localBoundingRect(this.annotation.component.getElement());
     let { x, y } = this.editor.utils.scaleToDoc(mouseX - rect.left, mouseY - rect.top, true);
     let halfT = this.editor.math.round(this.annotation.render.t / 2);
     x -= halfT;
     y -= halfT;
-    let pointLength = this.annotation.render.d.length;
-    if (this.FORCE_LINE != true && event.shiftKey == false) {
+    let pointLength;
+    if (this.FORCE_LINE != true && this.shiftKeyEnabled == false) {
+      pointLength = this.annotation.render.d.length;
+
       let drawX = x;
       let drawY = y;
       let pointEndIndex = pointLength - 1;
@@ -5168,20 +5174,34 @@ modules["editor/toolbar/pen"] = class {
       this.annotation.render.d = [this.annotation.render.d[0], this.annotation.render.d[1]];
       let sizeIncX = x;
       if (sizeIncX < this.annotation.render.d[0]) {
+        if (this.annotation.render.d[0] == 0) {
+          this.annotation.render.s[0] = 0;
+        }
         this.annotation.render.d[0] = this.editor.math.round(this.annotation.render.d[0] - sizeIncX);
         this.annotation.render.s[0] = this.editor.math.round(this.annotation.render.s[0] - sizeIncX);
         this.annotation.render.p[0] = this.editor.math.round(this.annotation.render.p[0] + sizeIncX);
         x = 0;
       } else {
+        if (this.annotation.render.d[0] > 0) {
+          this.annotation.render.p[0] = this.editor.math.round(this.annotation.render.p[0] + this.annotation.render.d[0]);
+          this.annotation.render.d[0] = 0;
+        }
         this.annotation.render.s[0] = this.editor.math.round(x);
       }
       let sizeIncY = y;
       if (sizeIncY < this.annotation.render.d[1]) {
+        if (this.annotation.render.d[1] == 0) {
+          this.annotation.render.s[1] = 0;
+        }
         this.annotation.render.d[1] = this.editor.math.round(this.annotation.render.d[1] - sizeIncY);
         this.annotation.render.s[1] = this.editor.math.round(this.annotation.render.s[1] - sizeIncY);
         this.annotation.render.p[1] = this.editor.math.round(this.annotation.render.p[1] + sizeIncY);
         y = 0;
       } else {
+        if (this.annotation.render.d[1] > 0) {
+          this.annotation.render.p[1] = this.editor.math.round(this.annotation.render.p[1] + this.annotation.render.d[1]);
+          this.annotation.render.d[1] = 0;
+        }
         this.annotation.render.s[1] = this.editor.math.round(y);
       }
       this.annotation.render.d[2] = x;
@@ -5204,7 +5224,7 @@ modules["editor/toolbar/pen"] = class {
       this.clickStart(event);
     }
 
-    if (this.annotation.render.d.length > pointLength) {
+    if (pointLength != null && this.annotation.render.d.length > pointLength) {
       clearTimeout(this.lastDrawTimeout);
       this.lastDrawTimeout = setTimeout(() => { this.handleDraw(event, mouseX, mouseY); }, 25);
     }

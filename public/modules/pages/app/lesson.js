@@ -371,9 +371,11 @@ modules["pages/app/lesson"] = class extends page {
       window.quillCSSLoad.type = "text/css";
       window.quillCSSLoad.rel = "stylesheet";
       head.appendChild(window.quillCSSLoad);
-      window.quillCSSLoad.addEventListener("load", () => {
+      let loadFunction = () => {
+        window.quillCSSLoad.removeEventListener("load", loadFunction);
         window.quillCSSLoad = true;
-      });
+      }
+      window.quillCSSLoad.addEventListener("load", loadFunction);
       window.quillCSSLoad.href = quillCSSHREF;
     }
 
@@ -384,9 +386,11 @@ modules["pages/app/lesson"] = class extends page {
       window.mathquillCSSLoad.type = "text/css";
       window.mathquillCSSLoad.rel = "stylesheet";
       head.appendChild(window.mathquillCSSLoad);
-      window.mathquillCSSLoad.addEventListener("load", () => {
+      let loadFunction = () => {
+        window.mathquillCSSLoad.removeEventListener("load", loadFunction);
         window.mathquillCSSLoad = true;
-      });
+      }
+      window.mathquillCSSLoad.addEventListener("load", loadFunction);
       window.mathquillCSSLoad.href = mathquillCSSHREF;
     }
 
@@ -873,9 +877,9 @@ modules["pages/app/lesson"] = class extends page {
     });
     this.addEventListener(window, "beforeunload", (event) => { this.pushToPipelines(null, "beforeunload", { event: event }); });
 
-    window.updateAccountSettings = (change) => {
+    /*window.updateAccountSettings = (change) => {
       this.pushToPipelines(null, "account_settings", { settings: change ?? account.settings ?? {} });
-    }
+    }*/
 
     window.closeCallback = () => {
       let oldSignalStrength = this.signalStrength;

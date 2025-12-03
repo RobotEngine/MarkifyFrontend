@@ -2895,8 +2895,12 @@ modules["editor/editor"] = class {
       "comfortaa": ["Comfortaa", 4],
       "playpensans": ["Playpen Sans", 5]
     };
-    this.text.loadedFonts = { "montserrat": true };
-    this.text.loadingFonts = {};
+    if (window.loadedFonts == null) {
+      window.loadedFonts = { "montserrat": true };
+    }
+    if (window.loadingFonts == null) {
+      window.loadingFonts = {};
+    }
     this.text.getMathQuill = async () => {
       if (this.text.mathquillInterface == null) {
         if (window.MathQuill == null) {
@@ -3191,42 +3195,51 @@ modules["editor/editor"] = class {
       if (fontInfo == null) {
         return;
       }
-      if (this.text.loadedFonts[font] != null) {
+      if (window.loadedFonts[font] != null) {
         return;
       }
-      if (this.text.loadingFonts[font] != null) {
-        return this.text.loadingFonts[font];
+      if (window.loadingFonts[font] != null) {
+        return window.loadingFonts[font];
       }
       let fetchFont = new Promise(async (resolve) => {
         let newFontLink = document.createElement("link");
         newFontLink.rel = "stylesheet";
         head.appendChild(newFontLink);
-        newFontLink.addEventListener("load", async () => {
-          delete this.text.loadingFonts[font];
+        let loadFunction;
+        let errorFunction;
+        loadFunction = () => {
+          window.loadedFonts[font] = true;
+          delete window.loadingFonts[font];
           let newRules = {};
           newRules[".ql-editor .ql-font-" + font] = "font-family: " + '"' + fontInfo[0] + '"';
           addCSS(newRules);
+          newFontLink.removeEventListener("load", loadFunction);
+          newFontLink.removeEventListener("error", errorFunction);
           resolve();
-        });
-        newFontLink.addEventListener("error", (error) => {
-          delete this.text.loadingFonts[font];
+        }
+        newFontLink.addEventListener("load", loadFunction);
+        errorFunction = (error) => {
+          delete window.loadingFonts[font];
           console.error("Failed to load font: " + font, error);
+          newFontLink.removeEventListener("load", loadFunction);
+          newFontLink.removeEventListener("error", errorFunction);
           resolve();
-        });
+        }
+        newFontLink.addEventListener("error", errorFunction);
         newFontLink.href = "https://fonts.googleapis.com/css?family=" + fontInfo[0].replace(/ /g, "+") + "&display=swap";
         /*let newFont = new FontFace(font, "url(https://fonts.googleapis.com/css?family=" + fontInfo[0].replace(/ /g, "+") + ":400,500,600,700,800&display=swap)");
         document.fonts.add(newFont);
         newFont.load().then(() => {
-          delete this.text.loadingFonts[font];
-          this.text.loadedFonts[font] = true;
+          delete window.loadingFonts[font];
+          window.loadedFonts[font] = true;
           resolve();
         }).catch((error) => {
-          delete this.text.loadingFonts[font];
+          delete window.loadingFonts[font];
           console.error("Failed to load font: " + font, error);
           resolve();
         });*/
       });
-      this.text.loadingFonts[font] = fetchFont;
+      window.loadingFonts[font] = fetchFont;
       if (this.exporting == true) {
         this.exportPromises.push(fetchFont);
       }

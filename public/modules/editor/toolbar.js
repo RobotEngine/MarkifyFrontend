@@ -320,7 +320,10 @@ modules["editor/toolbar"] = class {
       } else {
         tooltipText.style.color = tooltipElementStyle.getPropertyValue("--theme");
       }
-      tooltipText.textContent = tooltipElement.getAttribute("tooltip");
+      let setText = tooltipElement.getAttribute("tooltip");
+      if (tooltipText.textContent != setText) {
+        tooltipText.textContent = setText;
+      }
 
       let toolbarParent = tooltipElement.closest(".eToolbar");
       if (toolbarParent != null) {

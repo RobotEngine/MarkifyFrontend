@@ -877,9 +877,9 @@ modules["pages/app/lesson"] = class extends page {
     });
     this.addEventListener(window, "beforeunload", (event) => { this.pushToPipelines(null, "beforeunload", { event: event }); });
 
-    /*window.updateAccountSettings = (change) => {
+    window.updateAccountSettings = (change) => {
       this.pushToPipelines(null, "account_settings", { settings: change ?? account.settings ?? {} });
-    }*/
+    }
 
     window.closeCallback = () => {
       let oldSignalStrength = this.signalStrength;

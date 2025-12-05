@@ -85,7 +85,7 @@ modules["pages/app/join"] = class extends page {
     ".jUserInfo .jAuthHolder": `display: none; padding: 6px 12px 6px 6px; margin: 24px; justify-content: center; align-items: center; border: solid 4px var(--hover); border-radius: 30px`,
     ".jUserInfo .jAuthHolder img[profile]": `width: 40px; height: 40px; object-fit: cover; border-radius: 20px`,
     ".jUserInfo .jAuthHolder span": `margin-left: 6px; color: var(--secondary); font-size: 20px; font-weight: 600`,
-    ".jUserInfo .jAuthHolder button": `position: relative; width: 22px; height: 22px; margin: 0 3px 0 12px; --borderWidth: 3px; --borderRadius: 14px`,
+    ".jUserInfo .jAuthHolder button": `position: relative; flex-shrink: 0; width: 22px; height: 22px; margin: 0 3px 0 12px; --borderWidth: 3px; --borderRadius: 14px`,
     ".jUserInfo .jAuthHolder button svg": `position: absolute; width: calc(100% - 10px); height: calc(100% - 10px); left: 5px; top: 5px`,
     
     ".jModal .largeButton[join]": `display: none; margin: 12px 0`,

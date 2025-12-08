@@ -886,10 +886,6 @@ modules["pages/app/lesson"] = class extends page {
       this.signalStrength = 1;
       this.pushToPipelines(null, "signal_strength", { oldSignalStrength: oldSignalStrength, signalStrength: 1 });
     }
-    if (window.resync != null && window.resync.lesson == this.id) {
-      this.resyncPages = window.resync.pageSync;
-    }
-    window.resync = { lesson: this.id, pageSync: {} };
 
     let sendBody = { ss: socket.secureID };
 
@@ -910,6 +906,11 @@ modules["pages/app/lesson"] = class extends page {
         this.session = this.sessionID + ";" + this.sessionToken;
         window.previousLessonSession = this.session;
       }
+
+      if (window.resync != null && window.resync.session == this.sessionID) {
+        this.resyncPages = window.resync.pageSync;
+      }
+      window.resync = { lesson: this.id, session: this.sessionID, pageSync: {} };
 
       if (body.guest != null) {
         setLocalStore("guest", JSON.stringify(body.guest));

@@ -163,6 +163,7 @@ modules["pages/launch"] = class extends page {
       <div class="lFooterPolicies">
         <a href="../tos" target="_blank">Terms</a>
         <a href="../privacy" target="_blank">Privacy</a>
+        <a href="mailto:support@markifyapp.com">Contact</a>
       </div>
       <div class="lFooterSocials">
         <a href="https://x.com/markifytool" target="_blank"><img src="../images/launch/socials/twitter.svg"></a>
@@ -283,7 +284,6 @@ modules["pages/launch"] = class extends page {
     ".lFooterSocials a": `width: 30px; height: 30px; margin: 3px`,
     ".lFooterSocials a img": `width: 100%; height: 100%`
   };
-
 
   js = async (page) => {
     // Launch page login button

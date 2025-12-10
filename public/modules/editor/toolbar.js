@@ -5240,7 +5240,6 @@ modules["editor/toolbar/pen"] = class {
     let newPassthroughType;
     let newPassthrough;
     let skipCheck = false;
-    console.log(event)
 
     let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
     if (this.lastMouseX == mouseX && this.lastMouseY == mouseY) { // Remove duplicated events

@@ -3902,9 +3902,9 @@ modules["editor/editor"] = class {
       annotations.style.removeProperty("will-change");
     }
     let handlePinch = async (event) => {
-      if (this.pinching != true) {
+      /*if (this.pinching != true) {
         return;
-      }
+      }*/
       if (event.touches.length != 2 || ["stylus", "pen"].includes(event.touches[0].touchType) == true || ["stylus", "pen"].includes(event.touches[1].touchType) == true) {
         return endPinch();
       }
@@ -3923,8 +3923,9 @@ modules["editor/editor"] = class {
       if (startDistance != null) {
         zoomFactor = (currentDistance / startDistance);
       } else {
-        if (Math.abs(currentDistance - originalStartDistance) > 10) {
+        if (Math.abs(currentDistance - originalStartDistance) > 20) {
           startDistance = currentDistance;
+          this.pinching = true;
         }
       }
       await this.setZoom(startZoom * zoomFactor, null, {
@@ -3941,7 +3942,7 @@ modules["editor/editor"] = class {
         event.preventDefault();
       }
       if (event.touches.length == 2) { // && this.pinchZoomDisable != true
-        this.pinching = true;
+        //this.pinching = true;
         annotations.style.willChange = "transform";
         this.utils.resetSelecting();
       }

@@ -5105,6 +5105,9 @@ modules["editor/toolbar/pen"] = class {
       //this.REALTIME_TOOL = 2;
     }
     event.preventDefault();
+    if (this.annotation != null) {
+      return;
+    }
     await this.disable();
     this.editor.selecting = {};
     this.parent.selection.updateBox();
@@ -5127,6 +5130,7 @@ modules["editor/toolbar/pen"] = class {
       },
       animate: false
     };
+    this.pointerId = event.pointerId;
     this.shiftKeyEnabled = event.shiftKey == true;
     this.USE_COALESCED_EVENTS = true;
     this.editor.realtimeSelect[this.annotation.render._id] = this.annotation.render;
@@ -5303,6 +5307,11 @@ modules["editor/toolbar/pen"] = class {
       return;
     }
     event.preventDefault();
+
+    if (event.pointerId != this.pointerId) {
+      return;
+    }
+    this.pointerId = event.pointerId;
     
     //touch.force = the force of the touch - useful for later ;)
 

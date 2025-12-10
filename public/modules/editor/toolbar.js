@@ -5308,10 +5308,10 @@ modules["editor/toolbar/pen"] = class {
     }
     event.preventDefault();
 
-    if (event.pointerId != null && event.pointerId != this.pointerId) {
+    /*if (event.pointerId != null && event.pointerId != this.pointerId) {
       return;
     }
-    this.pointerId = event.pointerId;
+    this.pointerId = event.pointerId;*/
     
     //touch.force = the force of the touch - useful for later ;)
 
@@ -5324,9 +5324,9 @@ modules["editor/toolbar/pen"] = class {
     if (this.annotation == null) {
       return;
     }
-    if (event.pointerId != null && event.pointerId != this.pointerId) {
+    /*if (event.pointerId != null && event.pointerId != this.pointerId) {
       return;
-    }
+    }*/
     this.annotation.render.d = this.editor.math.simplifyPath(this.annotation.render.d, 1 / (2.5 * Math.pow(Math.E, .5 * this.editor.zoom))); //.5 / this.editor.zoom
     if (this.STRAITEN_CHECK == true) {
       if (this.editor.math.relativelyStraight(this.annotation.render.d, 5 * this.editor.zoom) == true) {

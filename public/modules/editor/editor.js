@@ -3923,18 +3923,20 @@ modules["editor/editor"] = class {
       if (startDistance != null) {
         zoomFactor = (currentDistance / startDistance);
       } else {
-        if (Math.abs(currentDistance - originalStartDistance) > 20) {
+        if (Math.abs(currentDistance - originalStartDistance) > 25) {
           startDistance = currentDistance;
           this.pinching = true;
         }
       }
-      await this.setZoom(startZoom * zoomFactor, null, {
-        clientX: originCenter.x,
-        clientY: originCenter.y,
-        changeScrollX: originCenter.x - center.x,
-        changeScrollY: originCenter.y - center.y,
-        updatePages: false
-      });
+      if (this.pinching == true) {
+        await this.setZoom(startZoom * zoomFactor, null, {
+          clientX: originCenter.x,
+          clientY: originCenter.y,
+          changeScrollX: originCenter.x - center.x,
+          changeScrollY: originCenter.y - center.y,
+          updatePages: false
+        });
+      }
     }
     this.pipeline.subscribe("zoomPinchTouchStart", "touchstart", async (data) => {
       let event = data.event;

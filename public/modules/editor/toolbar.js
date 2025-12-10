@@ -5308,7 +5308,7 @@ modules["editor/toolbar/pen"] = class {
     }
     event.preventDefault();
 
-    if (event.pointerId != this.pointerId) {
+    if (event.pointerId != null && event.pointerId != this.pointerId) {
       return;
     }
     this.pointerId = event.pointerId;
@@ -5321,7 +5321,7 @@ modules["editor/toolbar/pen"] = class {
     if ((this.passthroughModule ?? {}).clickEnd != null) {
       this.passthroughModule.clickEnd(event);
     }
-    if (this.annotation == null) {
+    if (this.annotation == null || (event.pointerId == null || event.pointerId != this.pointerId)) {
       return;
     }
     this.annotation.render.d = this.editor.math.simplifyPath(this.annotation.render.d, 1 / (2.5 * Math.pow(Math.E, .5 * this.editor.zoom))); //.5 / this.editor.zoom

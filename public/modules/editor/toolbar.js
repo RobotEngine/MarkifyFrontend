@@ -5240,6 +5240,7 @@ modules["editor/toolbar/pen"] = class {
     let newPassthroughType;
     let newPassthrough;
     let skipCheck = false;
+    console.log(event)
 
     let { mouseX, mouseY } = this.editor.utils.localMousePosition(event);
     if (this.lastMouseX == mouseX && this.lastMouseY == mouseY) { // Remove duplicated events
@@ -5321,7 +5322,10 @@ modules["editor/toolbar/pen"] = class {
     if ((this.passthroughModule ?? {}).clickEnd != null) {
       this.passthroughModule.clickEnd(event);
     }
-    if (this.annotation == null || (event.pointerId == null || event.pointerId != this.pointerId)) {
+    if (this.annotation == null) {
+      return;
+    }
+    if (event.pointerId != null && event.pointerId != this.pointerId) {
       return;
     }
     this.annotation.render.d = this.editor.math.simplifyPath(this.annotation.render.d, 1 / (2.5 * Math.pow(Math.E, .5 * this.editor.zoom))); //.5 / this.editor.zoom

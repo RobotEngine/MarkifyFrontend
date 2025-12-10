@@ -22,6 +22,7 @@ modules["dropdowns/account"] = class {
   </div>
   <div class="accountCopyrightHolder">
     <a href="../launch" target="_blank">©2025 Markify, LLC</a>
+    <div class="accountVersion"></div>
   </div>
   `;
   css = {
@@ -39,8 +40,8 @@ modules["dropdowns/account"] = class {
     ".accountSocialHolder a img": `width: 100%; height: 100%`,
     ".accountPolicyHolder": `display: flex; flex-wrap: wrap; justify-content: space-evenly; align-items: center`,
     ".accountPolicyHolder a": `margin: 4px; color: var(--darkGray); font-size: 16px; font-weight: 600; text-decoration: none`,
-    ".accountCopyrightHolder": `display: flex; flex-wrap: wrap; margin: 2px 0; justify-content: center; align-items: center`,
-    ".accountCopyrightHolder a": `color: var(--darkGray); font-size: 14px; font-weight: 500; text-decoration: none`
+    ".accountCopyrightHolder": `display: flex; flex-wrap: wrap; margin: 2px 0; justify-content: space-between; align-items: center; color: var(--darkGray); font-size: 14px; font-weight: 500`,
+    ".accountCopyrightHolder a": `text-decoration: none`,
   };
   js = async (frame) => {
     frame.style.width = "200px";
@@ -140,6 +141,8 @@ modules["dropdowns/account"] = class {
     if (account.tenant != null && account.tenant.flags != null && account.tenant.flags.hide_platform_socials == true) {
       frame.querySelector(".accountSocialHolder").remove();
     }
+
+    frame.querySelector(".accountVersion").textContent = "v" + version;
   }
 }
 

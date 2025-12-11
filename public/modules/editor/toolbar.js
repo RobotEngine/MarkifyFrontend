@@ -3880,7 +3880,6 @@ modules["editor/toolbar"] = class {
                 quill = annotation.component.quill;
                 quill.keepTextSelectionActive = true;
                 quill.disable();
-                await sleep(10);
               }
             }
             editor.selecting[change._id] = change;
@@ -3974,7 +3973,7 @@ modules["editor/toolbar"] = class {
                 quill = annotation.component.quill;
                 quill.keepTextSelectionActive = true;
                 quill.disable();
-                await sleep();
+                //await sleep(10);
               }
             }
             editor.selecting[change._id] = change;

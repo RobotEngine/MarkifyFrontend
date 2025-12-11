@@ -620,6 +620,8 @@ modules["pages/app/lesson"] = class extends page {
         if (afterPage != null) {
           afterPageWidth = afterPage.offsetWidth;
         }
+
+        pageHolder.setAttribute("resize", "");
       }
     }
     let updateDivider = (event) => {
@@ -633,7 +635,6 @@ modules["pages/app/lesson"] = class extends page {
         return endDivider();
       }
       event.preventDefault();
-      pageHolder.setAttribute("resize", "");
 
       let mouseX = event.x ?? event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0;
       dividerStartX = dividerStartX ?? mouseX;

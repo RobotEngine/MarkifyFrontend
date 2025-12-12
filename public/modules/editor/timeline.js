@@ -100,9 +100,9 @@ modules["editor/timeline"] = class {
     ".timelineHistoryBarTrack div[loader]": `--percent: 0%; position: absolute; width: calc(var(--percent) + 5px); height: 100%; right: -5px; top: 0px; background: var(--hover); z-index: 1`,
     ".timelineHistoryInfo": `position: relative; box-sizing: border-box; display: flex; flex-wrap: wrap; width: 100%; margin-bottom: 2px; gap: 6px; align-items: center; z-index: 2`,
     ".timelineHistoryDetail": `display: none; flex: 1 1 100px; min-width: 0px; margin: 0 8px 0 6px; align-items: center; z-index: 2; transition: .2s`,
-    ".timelineHistoryMemberHolder": `position: relative; height: 28px; padding: 6px 0 6px 6px; transition: margin .2s`,
+    ".timelineHistoryMemberHolder": `--useWidth: var(--width); position: relative; height: 28px; padding: 6px 0 6px 6px; transition: margin .2s`,
     ".timelineHistoryMemberHolder:not([extend])": `flex: 1; min-width: 0px; max-width: var(--width); overflow: hidden`,
-    ".timelineHistoryMemberHolder[extend]": `width: var(--width); margin-right: 6px`,
+    ".timelineHistoryMemberHolder[extend]": `--useWidth: var(--fullWidth); width: var(--width); margin-right: 6px`,
     ".timelineHistoryMember": `position: absolute; display: flex; height: 28px; padding: 6px; left: 0px; top: 50%; transform: translateY(-50%); background: var(--pageColor); border-radius: 8px; transition: .2s`,
     ".timelineHistoryMember:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; box-shadow: 0 0 6px var(--themeColor); opacity: 0; z-index: 1; transition: .2s`,
     ".timelineHistoryMemberHolder[extend] .timelineHistoryMember:after": `opacity: .6`,
@@ -112,7 +112,7 @@ modules["editor/timeline"] = class {
     ".timelineHistoryMember div[profileholder] div[profile]": `position: relative; width: 22px; height: 22px; border: solid 3px var(--pageColor); border-radius: 14px`,
     ".timelineHistoryMember div[profileholder] div[profile] img": `width: 100%; height: 100%; object-fit: cover; border-radius: inherit`,
     ".timelineHistoryMember div[profileholder] div[profile]:after": `content: ""; position: absolute; width: 100%; height: 100%; padding: 3px; left: -3px; top: -3px; border-radius: inherit; box-shadow: 0 0 4px var(--themeColor); opacity: .6`,
-    ".timelineHistoryMember div[content]": `display: flex; flex: 1; min-width: 0; max-width: calc(var(--width) - 34px); height: 28px; margin-left: 6px; text-align: left; overflow: hidden; align-items: center; z-index: 2; transition: .2s`,
+    ".timelineHistoryMember div[content]": `display: flex; flex: 1; min-width: 0; max-width: calc(var(--useWidth) - 34px); height: 28px; margin-left: 6px; text-align: left; overflow: hidden; align-items: center; z-index: 2; transition: .2s`,
     ".timelineHistoryMember div[content] div[name]": `font-size: 16px; font-weight: 600; white-space: nowrap`,
     ".timelineHistoryMember div[content] div[email]": `display: none; margin: 0 6px 0 8px; font-size: 15px; font-weight: 500; white-space: nowrap`,
     ".timelineHistoryTime": `margin-left: 6px; color: var(--darkGray); font-size: 16px; font-weight: 500; white-space: nowrap`,
@@ -303,11 +303,11 @@ modules["editor/timeline"] = class {
       memberContent.removeAttribute("notransition");
       memberHolder.style.overflow = "unset";
       memberHolder.setAttribute("extend", "");
-      memberFrame.style.setProperty("--width", (memberName.offsetWidth + memberEmail.offsetWidth + 48) + "px");
+      //memberFrame.style.setProperty("--width", (memberName.offsetWidth + memberEmail.offsetWidth + 48) + "px");
     });
     memberFrame.addEventListener("mouseout", async () => {
       closing = true;
-      memberFrame.style.removeProperty("--width");
+      //memberFrame.style.removeProperty("--width");
       memberHolder.removeAttribute("extend");
       await sleep(200);
       if (closing == true) {
@@ -425,7 +425,9 @@ modules["editor/timeline"] = class {
       }
 
       timelineDetail.style.display = "flex";
-      memberHolder.style.setProperty("--width", (memberName.offsetWidth + 36) + "px");
+      let memberNameWidth = memberName.offsetWidth;
+      memberHolder.style.setProperty("--width", (memberNameWidth + 36) + "px");
+      memberHolder.style.setProperty("--fullWidth", (memberNameWidth + memberEmail.offsetWidth + 48) + "px");
     }
     
     let updatingState = false;

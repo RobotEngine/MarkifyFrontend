@@ -146,110 +146,112 @@ modules["lesson/breakout"] = class {
 
 modules["lesson/breakout/overview"] = class {
   html = `
-  <div class="boInterface customScroll">
-    <div class="boTopHolder">
-      <button class="boTopScroll" left style="left: 7px"></button>
-      <button class="boTopScroll" right style="right: 7px"></button>
-      <div class="boTop">
-        <div class="boTopSection" left>
-          <a class="boLogo" href="/app/dashboard" draggable="false"></a>
-          <div class="boFileNameHolder border"><div class="boFileName" spellcheck="false" onpaste="clipBoardRead(event)" contenteditable></div></div>
-          <button class="boFileDropdown">File</button>
-          <button class="boManageDropdown">Manage</button>
+  <div class="broInterface customScroll">
+    <div class="broTopHolder">
+      <button class="broTopScroll" left style="left: 7px"></button>
+      <button class="broTopScroll" right style="right: 7px"></button>
+      <div class="broTop">
+        <div class="broTopSection" left>
+          <a class="broLogo" href="/app/dashboard" draggable="false"></a>
+          <div class="broFileNameHolder border"><div class="broFileName" spellcheck="false" onpaste="clipBoardRead(event)" contenteditable></div></div>
+          <button class="broFileDropdown">File</button>
+          <button class="broStart"></button>
+          <button class="broPause">Pause</button>
         </div>
-        <div class="boTopSection" scroll>
-          <div class="boTopDivider"></div>
+        <div class="broTopSection" scroll>
+          <div class="broTopDivider"></div>
         </div>
-        <div class="boTopSection" right>
-          <button class="boStart"></button>
-          <button class="boPause">Pause</button>
-          <button class="boStop">Stop</button>
-          <button class="boShare">Share</button>
-          <button class="boMemberOptions" dropdowntitle="Member Options" title="Member Options | Configure various member settings."></button>
-          <button class="boSharePin"></button>
-          <div class="boTopDivider"></div>
-          <button class="boAccount"><img src="../images/profiles/default.svg" accountimage /><div accountuser></div></button>
-          <button class="boLogin">Login</button>
+        <div class="broTopSection" right>
+          <button class="broManageDropdown">Manage</button>
+          <button class="broShare">Share</button>
+          <button class="broMemberOptions" dropdowntitle="Member Options" title="Member Options | Configure various member settings."></button>
+          <button class="broSharePin"></button>
+          <div class="broTopDivider"></div>
+          <button class="broAccount"><img src="../images/profiles/default.svg" accountimage /><div accountuser></div></button>
+          <button class="broLogin">Login</button>
         </div>
       </div>
     </div>
-    <div class="boOpenBoard" title="Open Markify Board"><button></button></div>
+    <div class="broOpenBoard" title="Open Markify Board"><button></button></div>
   </div>
-  <div class="boGroupHolder customScroll"></div>`;
+  <div class="broGroupHolder customScroll">
+    <div class="broBackground"></div>
+  </div>`;
   css = {
-    ".boInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; user-select: none; overflow-y: scroll; z-index: 2`,
-    ".boGroupHolder": `position: relative; width: 100%; height: 100%; background: var(--pageColor); overflow-y: scroll; z-index: 1; transition: .5s`,
-    ".boCreateBreakoutHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden; z-index: 3; pointer-events: none`,
+    ".broInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; user-select: none; overflow-y: scroll; z-index: 2`,
+    ".broGroupHolder": `position: relative; width: 100%; height: 100%; background: var(--pageColor); overflow-y: scroll; z-index: 1; transition: .5s`,
+    ".broBackground": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; opacity: .075; background-image: url("../images/editor/backdropblack.svg"); background-size: 25px 25px; background-position: center 50px; z-index: 1; pointer-events: none; contain: strict`,
+    ".broCreateBreakoutHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden; z-index: 3; pointer-events: none`,
 
-    ".boTopHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
-    ".boTop": `position: absolute; display: flex; box-sizing: border-box; width: 100%; gap: 8px; padding-bottom: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,
-    ".boTopHolder[scroll] .boTop": `gap: 0px !important; padding: 0 6px !important; padding-bottom: 0px !important; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
-    ".boTop::-webkit-scrollbar": `display: none`,
-    ".boTopSection[scroll]": `display: none`,
-    ".boTopHolder[scroll] .boTopSection[scroll]": `display: flex !important`,
-    ".boTopScroll": `position: absolute; display: flex; width: 36px; height: 36px; top: 50%; transform: translateY(-50%); background: rgba(var(--hoverRGB), .75); opacity: 0; backdrop-filter: blur(2px); border-radius: 18px; justify-content: center; align-items: center; z-index: 200`,
-    ".boTopScroll svg": `width: 22px`,
-    ".boTopScroll:active": `transform: translateY(-50%) scale(.85) !important`,
-    ".boTopSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
-    ".boTopHolder[scroll] .boTopSection": `padding: 6px 0px !important; box-shadow: unset !important`,
-    ".boTopSection[left]": `border-bottom-right-radius: 12px`,
-    ".boTopSection[right]": `border-bottom-left-radius: 12px`,
+    ".broTopHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
+    ".broTop": `position: absolute; display: flex; box-sizing: border-box; width: 100%; gap: 8px; padding-bottom: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,
+    ".broTopHolder[scroll] .broTop": `gap: 0px !important; padding: 0 6px !important; padding-bottom: 0px !important; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
+    ".broTop::-webkit-scrollbar": `display: none`,
+    ".broTopSection[scroll]": `display: none`,
+    ".broTopHolder[scroll] .broTopSection[scroll]": `display: flex !important`,
+    ".broTopScroll": `position: absolute; display: flex; width: 36px; height: 36px; top: 50%; transform: translateY(-50%); background: rgba(var(--hoverRGB), .75); opacity: 0; backdrop-filter: blur(2px); border-radius: 18px; justify-content: center; align-items: center; z-index: 200`,
+    ".broTopScroll svg": `width: 22px`,
+    ".broTopScroll:active": `transform: translateY(-50%) scale(.85) !important`,
+    ".broTopSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
+    ".broTopHolder[scroll] .broTopSection": `padding: 6px 0px !important; box-shadow: unset !important`,
+    ".broTopSection[left]": `border-bottom-right-radius: 12px`,
+    ".broTopSection[right]": `border-bottom-left-radius: 12px`,
 
-    ".boLogo": `display: flex; width: 38px; height: 38px; padding: 0; margin-right: 4px; user-select: none; justify-content: center; align-items: center; border-radius: 6px`,
-    ".boLogo:hover": `background: var(--hover)`,
-    ".boLogo svg": `width: 32px; height: 32px; transition: .2s`,
-    ".boLogo:hover svg": `transform: scale(.9)`,
-    ".boFileNameHolder": `margin: 0 4px; --borderRadius: 4px; --borderColor: var(--secondary); --borderWidth: 0px; --transition: .05s`,
-    ".boFileName": `max-width: 350px; padding: 0px; outline: unset; font-size: 20px; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; scrollbar-width: none`,
-    ".boFileName:focus": `padding: 4px 6px !important; overflow-x: auto !important; text-overflow: unset !important`,
-    ".boFileName::-webkit-scrollbar": `display: none`,
-    ".boFileDropdown": `padding: 6px 10px; height: 32px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
-    ".boManageDropdown": `padding: 6px 10px; height: 32px; margin: 0 4px; background: var(--hover); border-radius: 16px; font-size: 16px; font-weight: 600`,
-    ".boTopDivider": `width: 4px; height: 32px; margin: 0 4px; background: var(--lightGray); border-radius: 2px`,
+    ".broLogo": `display: flex; width: 38px; height: 38px; padding: 0; margin-right: 4px; user-select: none; justify-content: center; align-items: center; border-radius: 6px`,
+    ".broLogo:hover": `background: var(--hover)`,
+    ".broLogo svg": `width: 32px; height: 32px; transition: .2s`,
+    ".broLogo:hover svg": `transform: scale(.9)`,
+    ".broFileNameHolder": `margin: 0 4px; --borderRadius: 4px; --borderColor: var(--secondary); --borderWidth: 0px; --transition: .05s`,
+    ".broFileName": `max-width: 350px; padding: 0px; outline: unset; font-size: 20px; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; scrollbar-width: none`,
+    ".broFileName:focus": `padding: 4px 6px !important; overflow-x: auto !important; text-overflow: unset !important`,
+    ".broFileName::-webkit-scrollbar": `display: none`,
+    ".broFileDropdown": `padding: 6px 10px; height: 32px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
+    ".broStart": `display: none; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
+    ".broPause": `display: none; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--secondary); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
+    ".broManageDropdown": `display: none; padding: 6px 10px; height: 32px; margin: 0 4px; background: var(--hover); border-radius: 16px; font-size: 16px; font-weight: 600`,
+    ".broShare": `display: flex; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
+    ".broTopDivider": `width: 4px; height: 32px; margin: 0 4px; background: var(--lightGray); border-radius: 2px`,
 
-    ".boShare": `display: flex; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
-    ".boStart": `display: none; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--green); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
-    ".boPause": `display: none; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--yellow); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
-    ".boStop": `display: none; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--red); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
-    ".boMemberOptions": `display: flex; width: 32px; height: 32px; padding: 0px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; justify-content: center; align-items: center; color: #fff; font-size: 16px; font-weight: 600`,
-    ".boMemberOptions svg": `width: 32px; height: 32px`,
-    ".boSharePin": `display: none; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
-    ".boAccount": `padding: 0; width: 32px; height: 32px; margin: 0 4px; border-radius: 16px; overflow: hidden`,
-    ".boAccount img": `width: 100%; height: 100%; object-fit: cover`,
-    ".boLogin": `height: 32px; display: none; padding: 6px 10px; margin: 0 4px; background: var(--secondary); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
+    ".broMemberOptions": `display: flex; width: 32px; height: 32px; padding: 0px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; justify-content: center; align-items: center; color: #fff; font-size: 16px; font-weight: 600`,
+    ".broMemberOptions svg": `width: 32px; height: 32px`,
+    ".broSharePin": `display: none; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
+    ".broAccount": `padding: 0; width: 32px; height: 32px; margin: 0 4px; border-radius: 16px; overflow: hidden`,
+    ".broAccount img": `width: 100%; height: 100%; object-fit: cover`,
+    ".broLogin": `height: 32px; display: none; padding: 6px 10px; margin: 0 4px; background: var(--secondary); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
   
-    ".boOpenBoard": `position: absolute; display: none; width: 50px; height: 50px; left: 0px; bottom: 0px; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--boardLightShadow); border-radius: 0 12px 0 0; pointer-events: all; visibility: visible`,
-    ".boOpenBoard button": `display: flex; width: 38px; height: 38px; padding: 0; border-radius: 6px; justify-content: center; align-items: center`,
-    ".boOpenBoard button:hover": `background: var(--boardHover)`,
-    ".boOpenBoard button svg": `width: 32px; height: 32px; transition: .2s`,
-    ".boOpenBoard button:hover svg": `transform: scale(.9)`,
+    ".broOpenBoard": `position: absolute; display: none; width: 50px; height: 50px; left: 0px; bottom: 0px; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--boardLightShadow); border-radius: 0 12px 0 0; pointer-events: all; visibility: visible`,
+    ".broOpenBoard button": `display: flex; width: 38px; height: 38px; padding: 0; border-radius: 6px; justify-content: center; align-items: center`,
+    ".broOpenBoard button:hover": `background: var(--boardHover)`,
+    ".broOpenBoard button svg": `width: 32px; height: 32px; transition: .2s`,
+    ".broOpenBoard button:hover svg": `transform: scale(.9)`,
   };
   js = async (frame) => {
     frame.style.position = "relative";
     frame.style.width = "100%";
     frame.style.height = "100%";
 
-    let topHolder = frame.querySelector(".boTopHolder");
-    let top = topHolder.querySelector(".boTop");
+    let topHolder = frame.querySelector(".broTopHolder");
+    let top = topHolder.querySelector(".broTop");
 
-    let leftTop = top.querySelector(".boTopSection[left]");
-    let icon = leftTop.querySelector(".boLogo");
-    let lessonName = leftTop.querySelector(".boFileName");
+    let leftTop = top.querySelector(".broTopSection[left]");
+    let icon = leftTop.querySelector(".broLogo");
+    let lessonName = leftTop.querySelector(".broFileName");
+    let fileButton = leftTop.querySelector(".broFileDropdown");
+    let startButton = leftTop.querySelector(".broStart");
+    let pauseButton = leftTop.querySelector(".broPause");
 
-    let rightTop = top.querySelector(".boTopSection[right]");
-    let startButton = rightTop.querySelector(".boStart");
-    let pauseButton = rightTop.querySelector(".boPause");
-    let stopButton = rightTop.querySelector(".boStop");
-    let shareButton = rightTop.querySelector(".boShare");
-    let optionsButton = rightTop.querySelector(".boMemberOptions");
-    let sharePinButton = rightTop.querySelector(".boSharePin");
-    let accountButton = rightTop.querySelector(".boAccount");
-    let loginButton = rightTop.querySelector(".boLogin");
+    let rightTop = top.querySelector(".broTopSection[right]");
+    let manageButton = rightTop.querySelector(".broManageDropdown");
+    let shareButton = rightTop.querySelector(".broShare");
+    let optionsButton = rightTop.querySelector(".broMemberOptions");
+    let sharePinButton = rightTop.querySelector(".broSharePin");
+    let accountButton = rightTop.querySelector(".broAccount");
+    let loginButton = rightTop.querySelector(".broLogin");
 
-    let topScrollLeft = topHolder.querySelector(".boTopScroll[left]");
-    let topScrollRight = topHolder.querySelector(".boTopScroll[right]");
+    let topScrollLeft = topHolder.querySelector(".broTopScroll[left]");
+    let topScrollRight = topHolder.querySelector(".broTopScroll[right]");
 
-    let openBoardHolder = frame.querySelector(".boOpenBoard");
+    let openBoardHolder = frame.querySelector(".broOpenBoard");
     let openBoard = openBoardHolder.querySelector("button");
 
     let updateTopBar = (ignoreAttr) => {
@@ -347,28 +349,31 @@ modules["lesson/breakout/overview"] = class {
 
       startButton.style.removeProperty("display");
       pauseButton.style.removeProperty("display");
-      stopButton.style.removeProperty("display");
-      switch (breakout.status ?? "disabled") {
+      manageButton.style.removeProperty("display");
+      switch (breakout.status) {
         case "disabled":
           startButton.textContent = "Start";
           startButton.style.display = "unset";
+          manageButton.style.display = "unset";
           break;
         case "enabled":
           pauseButton.style.display = "unset";
+          manageButton.style.display = "unset";
           break;
         case "paused":
           startButton.textContent = "Resume";
           startButton.style.display = "unset";
-          stopButton.style.display = "unset";
+          manageButton.style.display = "unset";
+          break;
+        default:
+          startButton.textContent = "Setup";
+          startButton.style.display = "unset";
       }
     }
     startButton.addEventListener("click", () => {
       
     });
     pauseButton.addEventListener("click", () => {
-      
-    });
-    stopButton.addEventListener("click", () => {
       
     });
     updateStatus();

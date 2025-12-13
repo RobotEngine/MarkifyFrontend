@@ -35,12 +35,13 @@ modules["pages/app/lesson"] = class extends page {
     ".lPage[remove]": `flex: 0 !important; opacity: 0 !important; min-width: 0px !important`,
     ".lPageHolder[resize] .lPage": `min-width: unset; transition: unset`,
     ".lPageHolder[resize] .lPage *": `pointer-events: none !important`,
-    ".lPageHolder[maximize] .lPage": `opacity: 0 !important; transition: none !important; pointer-events: all`,
-    ".lPageHolder[maximize] .lPage[active]": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 3 !important; border-radius: 0px !important; opacity: 1 !important`,
+    ".lPageHolder[maximize] .lPage": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; transform: scale(.95) !important; opacity: 0 !important; pointer-events: all`,
+    ".lPageHolder[maximize] .lPage[active]": `transform: scale(1) !important; z-index: 3 !important; border-radius: 0px !important; opacity: 1 !important`,
 
     ".lPageDivider": `display: flex; flex-shrink: 0; width: 8px; max-width: 8px; height: 100%; z-index: 2; justify-content: center; align-items: center; cursor: col-resize; transition: .2s`,
     ".lPageDivider div": `width: 2px; height: calc(min(50px, 100%) - 8px); background: var(--gray); border-radius: 2px; transition: .2s`,
     ".lPageDivider[remove]": `width: 0px; opacity: 0`,
+    ".lPageHolder[maximize] .lPageDivider": "display: none",
     ".lPageDivider:hover div": `height: calc(100% - 8px)`,
     ".lPageDivider:active div": `width: 4px; height: calc(100% - 8px); background: var(--activeGray)`
   };
@@ -83,6 +84,8 @@ modules["pages/app/lesson"] = class extends page {
         newDivider = pageHolder.querySelector(".lPageDivider[new]");
         newDivider.removeAttribute("new");
         pageHolder.insertBefore(newDivider, holder);
+      } else {
+        holder.setAttribute("active", "");
       }
       if (extra.insertBefore != null) {
         pageHolder.insertBefore(holder, extra.insertBefore);

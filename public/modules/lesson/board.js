@@ -865,12 +865,19 @@ modules["lesson/board"] = class {
 
       timelinePage.removeAttribute("hidden");
     }
-    this.closeTimeline = async () => {
+    this.closeTimeline = () => {
       this.pipeline = this.editor.pipeline;
       delete this.timeline;
 
       timelinePage.setAttribute("hidden", "");
       mainPage.removeAttribute("hidden");
+
+      let timelineContent = timelinePage.querySelector(".content");
+      setTimeout(() => {
+        if (timelineContent != null) {
+          timelineContent.remove();
+        }
+      }, 200);
     }
 
     // Fetch Annotations:

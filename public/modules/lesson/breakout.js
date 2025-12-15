@@ -1,6 +1,49 @@
 modules["lesson/breakout"] = class {
   html = ``;
-  css = {};
+  css = {
+    ".brPage": `position: absolute; display: block; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 2; pointer-events: all; transition: .2s`,
+    ".brPage[hidden]": `z-index: 1`,
+  };
+
+  pages = {};
+  openPage = async (id, path) => {
+    let otherPages = this.frame.querySelectorAll(".brPage:not([hidden])");
+    for (let i = 0; i < otherPages.length; i++) {
+      let otherPage = otherPages[i];
+      if (otherPage.getAttribute("pageid") != id || otherPage.getAttribute("path") != path) {
+        otherPage.setAttribute("hidden", "");
+      }
+    }
+    
+    let existingPage = this.frame.querySelector('.brPage[pageid="' + id + '"][path="' + path + '"]');
+    if (existingPage != null) {
+      existingPage.removeAttribute("hidden");
+      return this.pages[id];
+    }
+
+    this.closePage(id);
+
+    this.frame.insertAdjacentHTML("beforeend", `<div class="brPage" new></div>`);
+    let newPage = this.frame.querySelector(".brPage[new]");
+    newPage.removeAttribute("new");
+    newPage.setAttribute("pageid", id);
+    newPage.setAttribute("path", path);
+
+    this.pages[id] = await this.setFrame(path, newPage);
+    return this.pages[id];
+  }
+  closePage = (id) => {
+    let page = this.frame.querySelector('.brPage[pageid="' + id + '"]');
+    if (page == null) {
+      return;
+    }
+    page.setAttribute("hidden", "");
+    setTimeout(() => {
+      if (page != null) {
+        page.remove();
+      }
+    }, 200);
+  }
 
   pipeline = { // PIPELINE : Distributes events across various modules and services:
     pipeline: {}, // All active events
@@ -135,7 +178,7 @@ modules["lesson/breakout"] = class {
 
     // Initialize Breakout:
     if (this.parent.self.access > 3 || this.session == null) { // Open to Overview:
-      await this.setFrame("lesson/breakout/overview", page);
+      await this.openPage("main", "lesson/breakout/overview");
     }
     
     /*let testBoard = await this.parent.setFrame("lesson/board", this.pageHolder, { construct: { pageID: this.pageID, pageType: this.pageType, pageHolder: this.pageHolder } });

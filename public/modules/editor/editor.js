@@ -3190,6 +3190,21 @@ modules["editor/editor"] = class {
         return { ...value, insert: uncleanString(value.insert) };
       });
     }
+    this.text.quillDeltaToString = (delta) => {
+      if (Array.isArray(delta) == false) {
+        return "";
+      }
+      let plainText = "";
+      for (let op of delta) {
+        if (typeof op.insert === "string") {
+          plainText += op.insert;
+        }
+      }
+      if (plainText.endsWith('\n')) {
+        plainText = plainText.slice(0, -1);
+      }
+      return plainText;
+    }
     this.text.loadFont = (font) => {
       let fontInfo = this.text.fonts[font];
       if (fontInfo == null) {

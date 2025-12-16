@@ -4489,20 +4489,9 @@ modules["editor/toolbar"] = class {
         renderCopy.r = rotation;
         saveAnnoData.push(renderCopy);
 
-        let richText = render.d ?? {};
-        if (richText.b != null) {
-          if (saveTextData.length > 0) {
-            saveTextData += "\n";
-          }
-          for (let t = 0; t < richText.b.length; t++) {
-            let addText = "";
-            if (richText.b[t] != "\n") {
-              addText = richText.b[t];
-            } else {
-              addText = "\n";
-            }
-            saveTextData += addText;
-          }
+        let text = editor.text.quillDeltaToString(render.d ?? []) ?? "";
+        if (text.length > 0) {
+          saveTextData += text;
         }
       }
 

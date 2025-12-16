@@ -5,7 +5,7 @@
   "theme_color": "#0084FF",
   "background_color": "#0084FF",
   "description": "Share and collaborate on documents across the classroom with Markify. Putting Markify on your home screen will not grant any access to your device.",
-  "orientation": "portrait",
+  "orientation": "any",
   "display": "fullscreen",
   "display_override": ["standalone", "minimal-ui"],
   "categories": [

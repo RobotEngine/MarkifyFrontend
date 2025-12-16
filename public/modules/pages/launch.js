@@ -37,13 +37,13 @@ modules["pages/launch"] = class extends page {
         </div>
         <div class="lHistoryContentPart" style="flex: 1; flex-basis: 500px">
           <img whiteboard src="../images/launch/history/whiteboard.jpg">
-          <img smartboard src="../images/launch/history/smartboard.jpg">
+          <img interactiveboard src="../images/launch/history/interactiveboard.jpg">
           <img markify src="../images/launch/history/markify.png">
         </div>
       </div>
       <div class="lHistoryDots">
         <button whiteboard></button>
-        <button smartboard></button>
+        <button interactiveboard></button>
         <button markify></button>
       </div>
       <div class="lSpacer"></div>
@@ -210,8 +210,8 @@ modules["pages/launch"] = class extends page {
     ".lHistoryContent": `display: flex; flex-wrap: wrap; gap: 0px 30px; margin: auto 0; max-width: 1000px; align-items: center`,
     ".lHistoryContentPart": `margin: 16px`,
     ".lHistoryContentPart img": `display: none; width: calc(100% - 18px); max-width: 600px; max-height: 400px; border-radius: 20px; box-shadow: var(--blueShadow); object-fit: cover`,
-    ".lHistoryTitle": `max-width: 250px; font-size: 24px; line-height: 40px; text-align: left`,
-    ".lHistoryTitle b": `color: var(--theme); font-size: 35px; font-weight: 700`,
+    ".lHistoryTitle": `max-width: 350px; font-size: 24px; line-height: 40px; text-align: left`,
+    ".lHistoryTitle b": `display: block; color: var(--theme); font-size: 35px; font-weight: 700`,
     ".lHistoryDesc": `margin-top: 24px; text-align: left`,
     ".lHistoryDots": `position: absolute; display: flex; padding: 4px; left: 50%; bottom: 5%; transform: translate(-50%, 50%); background: rgba(var(--background), .7); backdrop-filter: blur(4px); border-radius: 16px`,
     ".lHistoryDots button": `width: 16px; height: 16px; margin: 4px; background: var(--secondary); border-radius: 8px`,
@@ -315,10 +315,10 @@ modules["pages/launch"] = class extends page {
       },
       {
         percent: .6,
-        name: "smartboard",
-        title: "Then came the <b>Smartboard</b>",
-        desc: "With the advent of technology in the classroom, whiteboards began moving digital with the smartboard.</br></br>However, many smartboards dissapointed with less-than-ideal performence and the same problems that plagued traditional whiteboards.",
-        image: "smartboard",
+        name: "interactiveboard",
+        title: "Then came the <b>Interactive Board</b>",
+        desc: "With the advent of technology in the classroom, whiteboards began moving digital with the interactive board.</br></br>However, many interactive boards dissapointed with less-than-ideal performence and the same problems that plagued traditional whiteboards.",
+        image: "interactiveboard",
         rotate: -3
       },
       {
@@ -462,7 +462,7 @@ modules["pages/launch"] = class extends page {
           <ul>
             <li>To start, open your note sheet by <u>uploading it as a PDF</u>.</li>
             <li>Start a class by <u>presenting with a pin</u> and sharing it. Everyone in the class can then join and <u>see the notes on their device</u>!</li>
-            <li>Begin the lecture, filling out notes on a <u>computer, tablet, or even smartboard</u>. Anything written gets shown <u>real-time to students on their device</u>, even your <u>mouse cursor</u>!</li>
+            <li>Begin the lecture, filling out notes on a <u>computer, tablet, or even interactive board</u>. Anything written gets shown <u>real-time to students on their device</u>, even your <u>mouse cursor</u>!</li>
             <li>Optionally, let students <u>answer problems</u> by granting them <u>temporary editing access</u>.</li>
             <li>Students can <u>navigate to any part of the notes</u>, so say goodbye to wasted time from a student <u>unable to write fast enough</u>!</li>
           </ul>`
@@ -527,7 +527,7 @@ modules["pages/launch"] = class extends page {
           <ul>
             <li>To start, open your note sheet by <u>uploading it as a PDF</u>.</li>
             <li>Start a class by <u>presenting with a pin</u> and sharing it. Everyone in the class can then join and <u>see the notes on their device</u>!</li>
-            <li>Begin the lecture, filling out notes on a <u>computer, tablet, or even smartboard</u>. Anything written gets shown <u>real-time to students on their device</u>, even your <u>mouse cursor</u>!</li>
+            <li>Begin the lecture, filling out notes on a <u>computer, tablet, or even interactive board</u>. Anything written gets shown <u>real-time to students on their device</u>, even your <u>mouse cursor</u>!</li>
             <li>Optionally, let students <u>answer problems</u> by granting them <u>temporary editing access</u>.</li>
             <li>Students can <u>navigate to any part of the notes</u>, so say goodbye to wasted time from a student <u>unable to write fast enough</u>!</li>
           </ul>`
@@ -561,7 +561,7 @@ modules["pages/launch"] = class extends page {
           <ul>
             <li>To start, open your note sheet by <u>uploading it as a PDF</u>.</li>
             <li>Start a class by <u>presenting with a pin</u> and sharing it. Everyone in the class can then join and <u>see the notes on their device</u>!</li>
-            <li>Begin the lecture, filling out notes on a <u>computer, tablet, or even smartboard</u>. Anything written gets shown <u>real-time to students on their device</u>, even your <u>mouse cursor</u>!</li>
+            <li>Begin the lecture, filling out notes on a <u>computer, tablet, or even interactive board</u>. Anything written gets shown <u>real-time to students on their device</u>, even your <u>mouse cursor</u>!</li>
             <li>Optionally, let students <u>answer questions</u> by granting them <u>temporary editing access</u>.</li>
             <li>Students can <u>navigate to any part of the notes</u>, so say goodbye to wasted time from a student <u>unable to write fast enough</u>!</li>
           </ul>`

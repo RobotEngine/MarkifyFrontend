@@ -219,7 +219,7 @@ modules["editor/toolbar"] = class {
     let page = editor.page;
 
     let toolbarHolder = page.querySelector("div[toolbarholder]");
-    let toolbar = toolbarHolder.querySelector(".eToolbar[editor]");
+    let toolbar = toolbarHolder.querySelector("div[editor]");
     let toolbarContent;
 
     if (toolbar != null) {

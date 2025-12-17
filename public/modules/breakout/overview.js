@@ -79,6 +79,78 @@ modules["breakout/overview"] = class {
     ".broOpenBoard button svg": `width: 32px; height: 32px; transition: .2s`,
     ".broOpenBoard button:hover svg": `transform: scale(.9)`,
   };
+
+  pipeline = { // PIPELINE : Distributes events across various modules and services:
+    pipeline: {}, // All active events
+    pipelineSubs: {}, // All active subscribes
+    publish: async (event, data) => {
+      let listeners = this.pipeline.pipeline[event] ?? [];
+      for (let i = 0; i < listeners.length; i++) {
+        let subscribe = (this.pipeline.pipelineSubs[listeners[i]] ?? {})[event] ?? {};
+        if (subscribe.callback != null) {
+          await subscribe.callback(data);
+        }
+      }
+    },
+    subscribe: (id, event, callback, extra) => {
+      extra = extra ?? {};
+
+      if (extra.unsubscribe != true) {
+        this.pipeline.unsubscribe(id, event);
+      } else {
+        this.pipeline.unsubscribe(id);
+      }
+
+      let pipelineSubs = this.pipeline.pipelineSubs[id];
+      if (pipelineSubs == null) {
+        this.pipeline.pipelineSubs[id] = {};
+        pipelineSubs = this.pipeline.pipelineSubs[id];
+      }
+      let subData = { callback: callback };
+      pipelineSubs[event] = subData;
+
+      let pipelineEvent = this.pipeline.pipeline[event];
+      if (pipelineEvent == null) {
+        this.pipeline.pipeline[event] = [];
+        pipelineEvent = this.pipeline.pipeline[event];
+      }
+      pipelineEvent.push(id);
+      if (extra.sort != null) {
+        subData.sort = extra.sort;
+        pipelineEvent.sort((a, b) => {
+          return (((this.pipeline.pipelineSubs[a] ?? {})[event] ?? {}).sort ?? 0) - (((this.pipeline.pipelineSubs[b] ?? {})[event] ?? {}).sort ?? 0);
+        });
+      }
+    },
+    unsubscribe: (id, event) => {
+      let pipelineSubs = this.pipeline.pipelineSubs[id];
+      if (pipelineSubs == null) {
+        return;
+      }
+      let checkEvents;
+      if (event != null) {
+        checkEvents = [event];
+      } else {
+        checkEvents = Object.keys(pipelineSubs);
+      }
+      for (let i = 0; i < checkEvents.length; i++) {
+        let check = checkEvents[i];
+        let pipelineEvents = this.pipeline.pipeline[check] ?? [];
+        let index = pipelineEvents.indexOf(id);
+        if (index > -1) {
+          pipelineEvents.splice(index, 1);
+        }
+        if (pipelineEvents.length < 1) {
+          delete this.pipeline.pipeline[check];
+        }
+        delete this.pipeline.pipelineSubs[id][check];
+      }
+      if (Object.keys(pipelineSubs).length < 1) {
+        delete this.pipeline.pipelineSubs[id];
+      }
+    }
+  };
+
   js = async (frame) => {
     frame.style.position = "relative";
     frame.style.width = "100%";
@@ -145,13 +217,13 @@ modules["breakout/overview"] = class {
       top.scrollTo({ left: top.scrollLeft + 200, behavior: "smooth" });
       updateTopBar();
     });
-    this.parent.pipeline.subscribe("topbarResize", "resize", updateTopBar);
-    this.parent.pipeline.subscribe("topbarScroll", "topbar_scroll", () => { updateTopBar(true); });
-    this.parent.pipeline.subscribe("topbarVisibilityChange", "visibilitychange", updateTopBar);
+    this.pipeline.subscribe("topbarResize", "resize", updateTopBar);
+    this.pipeline.subscribe("topbarScroll", "topbar_scroll", () => { updateTopBar(true); });
+    this.pipeline.subscribe("topbarVisibilityChange", "visibilitychange", updateTopBar);
     updateTopBar();
 
     top.addEventListener("scroll", (event) => {
-      this.parent.pipeline.publish("topbar_scroll", { event: event });
+      this.pipeline.publish("topbar_scroll", { event: event });
     });
 
     icon.addEventListener("click", (event) => {
@@ -264,7 +336,7 @@ modules["breakout/overview"] = class {
       loginButton.addEventListener("click", () => { promptLogin(); });
     }
 
-    this.parent.pipeline.subscribe("overviewLessonSet", "set", (body) => {
+    this.pipeline.subscribe("overviewLessonSet", "set", (body) => {
       if (body.hasOwnProperty("breakout") == true) {
         updateStatus();
       }
@@ -325,10 +397,10 @@ modules["breakout/overview"] = class {
       }
     });
     setSVG(openBoard, "../images/icon.svg");
-    this.parent.pipeline.subscribe("pageAdd", "page_add", updateSplitScreenButton);
-    this.parent.pipeline.subscribe("pageRemove", "page_remove", updateSplitScreenButton);
-    this.parent.pipeline.subscribe("pageSwitch", "page_switch", updateSplitScreenButton);
-    this.parent.pipeline.subscribe("pageMaximize", "maximize", updateSplitScreenButton);
+    this.pipeline.subscribe("pageAdd", "page_add", updateSplitScreenButton);
+    this.pipeline.subscribe("pageRemove", "page_remove", updateSplitScreenButton);
+    this.pipeline.subscribe("pageSwitch", "page_switch", updateSplitScreenButton);
+    this.pipeline.subscribe("pageMaximize", "maximize", updateSplitScreenButton);
     updateSplitScreenButton();
 
     if (this.session == null || this.lesson.tool.includes("breakout") == false) { // Create New Lesson

@@ -9,7 +9,7 @@ modules["lesson/breakout"] = class {
   };
 
   pages = {};
-  openPage = async (id, path) => {
+  openPage = async (id, path, extra) => {
     let otherPages = this.frame.querySelectorAll(".brPage:not([hidden])");
     for (let i = 0; i < otherPages.length; i++) {
       let otherPage = otherPages[i];
@@ -32,7 +32,7 @@ modules["lesson/breakout"] = class {
     newPage.setAttribute("pageid", id);
     newPage.setAttribute("path", path);
 
-    this.pages[id] = await this.setFrame(path, newPage);
+    this.pages[id] = await this.setFrame(path, newPage, extra);
     return this.pages[id];
   }
   closePage = (id) => {
@@ -59,8 +59,12 @@ modules["lesson/breakout"] = class {
           await subscribe.callback(data);
         }
       }
-      if (this.pipelinePublishPassthrough != null) {
-        this.pipelinePublishPassthrough(event, data);
+      let pages = Object.keys(this.pages);
+      for (let i = 0; i < pages.length; i++) {
+        let page = this.pages[pages[i]] ?? {};
+        if (page.pipeline != null && page.pipeline.publish != null) {
+          page.pipeline.publish(event, data);
+        }
       }
     },
     subscribe: (id, event, callback, extra) => {
@@ -181,7 +185,7 @@ modules["lesson/breakout"] = class {
 
     // Initialize Breakout:
     if (this.parent.self.access > 3 || this.session == null) { // Open to Overview:
-      await this.openPage("main", "breakout/overview");
+      await this.openPage("primary", "breakout/overview");
     }
     
     /*let testBoard = await this.parent.setFrame("lesson/board", this.pageHolder, { construct: { pageID: this.pageID, pageType: this.pageType, pageHolder: this.pageHolder } });

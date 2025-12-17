@@ -25,6 +25,8 @@ modules["modals/lesson/newboard"] = class {
   maxFileSize = (500 * 10 * 1024 * 1024) + 1; // 5 GB File Limit // Will be 10 MB per page
   js = async (frame, extra) => {
     this.parent = extra.parent;
+    this.callback = extra.callback;
+    this.requestPath = extra.requestPath ?? "lessons/new/board";
     this.folder = getParam("folder");
 
     let modal = frame.closest(".modal");
@@ -49,7 +51,7 @@ modules["modals/lesson/newboard"] = class {
     freeboardButton.addEventListener("click", async () => {
       frame.setAttribute("disabled", "");
       let createAlert = await alertModule.open("info", `<b>Creating Lesson</b>Setting up freeboard, an unlimited whiteboard space!`, { time: "never" });
-      let path = "lessons/new/board?ss=" + socket.secureID;
+      let path = this.requestPath + "?ss=" + socket.secureID;
       if (this.folder != null) {
         path += "&folder=" + this.folder;
       }
@@ -60,10 +62,9 @@ modules["modals/lesson/newboard"] = class {
       alertModule.close(createAlert);
       frame.removeAttribute("disabled");
       if (code == 200) {
-        this.parent.parent.setLesson(body);
-        extra.modal.close();
-        modifyParams("folder");
-        modifyParams("type");
+        if (this.callback != null) {
+          this.callback(body, extra.modal);
+        }
       }
     });
     setSVG(freeboardButton.querySelector("div[image]"), "../images/dashboard/lesson/freeboard.svg");
@@ -103,7 +104,7 @@ modules["modals/lesson/newboard"] = class {
         let alertText = `<b>Uploading Lesson</b>Uploading your PDF${addS(passedFiles)} and creating the lesson.`;
         let extraData = { noFileType: true };
         let uploadAlert = await alertModule.open("info", alertText, { time: "never" });
-        let path = "lessons/new/board?ss=" + socket.secureID;
+        let path = this.requestPath + "?ss=" + socket.secureID;
         if (this.folder != null) {
           path += "&folder=" + this.folder;
         }
@@ -114,10 +115,9 @@ modules["modals/lesson/newboard"] = class {
         alertModule.close(uploadAlert);
         frame.removeAttribute("disabled");
         if (code == 200) {
-          this.parent.parent.setLesson(body);
-          extra.modal.close();
-          modifyParams("folder");
-          modifyParams("type");
+          if (this.callback != null) {
+            this.callback(body, extra.modal);
+          }
         }
       }
       resetUI();
@@ -303,7 +303,7 @@ modules["modals/lesson/newboard/blank"] = class {
       frame.setAttribute("disabled", "");
       let alertText = `<b>Creating Lesson</b>Setting up your lesson!`;
       let createAlert = await alertModule.open("info", alertText, { time: "never" });
-      let path = "lessons/new/board?ss=" + socket.secureID;
+      let path = parent.requestPath + "?ss=" + socket.secureID;
       if (parent.folder != null) {
         path += "&folder=" + parent.folder;
       }
@@ -314,10 +314,9 @@ modules["modals/lesson/newboard/blank"] = class {
       alertModule.close(createAlert);
       frame.removeAttribute("disabled");
       if (code == 200) {
-        parent.parent.parent.setLesson(body);
-        extra.modal.close();
-        modifyParams("folder");
-        modifyParams("type");
+        if (parent.callback != null) {
+          parent.callback(body, extra.modal);
+        }
       }
     });
   }

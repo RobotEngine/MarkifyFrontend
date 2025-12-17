@@ -270,7 +270,6 @@ modules["lesson/board"] = class {
     this.pipeline.subscribe("topbarResize", "resize", updateTopBar);
     this.pipeline.subscribe("topbarScroll", "topbar_scroll", () => { updateTopBar(true); });
     this.pipeline.subscribe("topbarVisibilityChange", "visibilitychange", updateTopBar);
-    updateTopBar();
 
     eTop.addEventListener("scroll", (event) => {
       this.pipeline.publish("topbar_scroll", { event: event });
@@ -916,7 +915,12 @@ modules["lesson/board"] = class {
     if (this.session == null || this.lesson.tool.includes("board") == false) { // Create New Lesson
       contentHolder.removeAttribute("disabled");
       mainPage.insertAdjacentHTML("beforeend", `<div class="eCreateBoardHolder"></div>`);
-      modalModule.open("modals/lesson/newboard", mainPage.querySelector(".eCreateBoardHolder"), null, "Create Board", null, { parent: this });
+      modalModule.open("modals/lesson/newboard", mainPage.querySelector(".eCreateBoardHolder"), null, "Create Board", null, { parent: this, callback: (body, extra) => {
+        this.parent.setLesson(body);
+        extra.modal.close();
+        modifyParams("folder");
+        modifyParams("type");
+      } });
     }
   }
 }

@@ -73,16 +73,24 @@ modules["modals/lesson/newbreakout"] = class {
 
     let blankButton = frame.querySelector('.brtButton[type="blank"]');
     blankButton.addEventListener("click", () => {
-      extra.modal.open("modals/lesson/newboard", null, blankButton, "Create the Template", null, { parent: this });
+      extra.modal.open("modals/lesson/newboard", null, blankButton, "Create the Template", null, { parent: this, requestPath: "lessons/new/template", callback: (body) => {
+        this.parent.parent.openPage("secondary", "breakout/template", { template: body });
+      } });
     });
 
     let cloneButton = frame.querySelector('.brtButton[type="clone"]');
     let duplicateButton = frame.querySelector('.brtButton[type="duplicate"]');
+    duplicateButton.addEventListener("click", () => {
+      this.parent.parent.openPage("secondary", "breakout/template", { id: "6941ea73853d7c9543ec24f3" }); // TESTING
+    });
 
     setSVG(blankButton.querySelector("div[image]"), "../images/editor/breakout/blank.svg");
     setSVG(cloneButton.querySelector("div[image]"), "../images/editor/breakout/clone.svg");
     setSVG(duplicateButton.querySelector("div[image]"), "../images/editor/breakout/duplicate.svg");
 
+    if ((this.parent.parent.parent.lesson.tool ?? []).includes("board") == false) {
+      cloneButton.style.display = "none";
+    }
 
     // Progess Bar:
     let progressHolder = frame.querySelector(".brtProgress");

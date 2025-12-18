@@ -166,22 +166,22 @@ modules["lesson/breakout"] = class {
     this.pipeline.subscribe("checkPageSwitch", "page_switch", updateActivePage, { sort: 1 });
     updateActivePage();
 
-    /*page.addEventListener("pointerdown", (event) => {
+    page.addEventListener("pointerdown", (event) => {
       this.pipeline.publish("pointerdown", { event: event });
-      if (event.pointerType == "mouse") {
-        this.pipeline.publish("click_start", { type: "pointerdown", event: event });
-      }
+      this.pipeline.publish("click_start", { type: "pointerdown", event: event });
     }, { passive: false });
     page.addEventListener("touchstart", (event) => {
       this.pipeline.publish("touchstart", { event: event });
-      this.pipeline.publish("click_start", { type: "touchstart", event: event });
     }, { passive: false });
     page.addEventListener("click", (event) => {
       this.pipeline.publish("click", { event: event });
     }, { passive: false });
     page.addEventListener("mouseleave", (event) => {
       this.pipeline.publish("mouseleave", { event: event });
-    });*/
+    });
+    page.addEventListener("contextmenu", (event) => {
+      this.pipeline.publish("contextmenu", { event: event });
+    });
 
     // Initialize Breakout:
     if (this.parent.self.access > 3 || this.session == null) { // Open to Overview:

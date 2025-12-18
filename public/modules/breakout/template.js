@@ -208,7 +208,8 @@ modules["breakout/template"] = class {
         resync: this.parent.resync,
         preferences: JSON.parse(stringPref),
         lastSavePreferences: JSON.parse(stringPref),
-        backgroundColor: this.lesson.background ?? "FFFFFF"
+        backgroundColor: this.lesson.background ?? "FFFFFF",
+        disablePointerEvents: true
       }
     });
     this.pipeline = this.editor.pipeline;

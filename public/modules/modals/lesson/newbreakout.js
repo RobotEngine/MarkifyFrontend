@@ -81,7 +81,7 @@ modules["modals/lesson/newbreakout"] = class {
     let cloneButton = frame.querySelector('.brtButton[type="clone"]');
     let duplicateButton = frame.querySelector('.brtButton[type="duplicate"]');
     duplicateButton.addEventListener("click", () => {
-      this.parent.parent.openPage("secondary", "breakout/template", { id: "6941ea73853d7c9543ec24f3" }); // TESTING
+      this.parent.parent.openPage("secondary", "breakout/template", { id: "6941ea73853d7c9543ec24f3" }); // TESTING - REMOVE LATER
     });
 
     setSVG(blankButton.querySelector("div[image]"), "../images/editor/breakout/blank.svg");

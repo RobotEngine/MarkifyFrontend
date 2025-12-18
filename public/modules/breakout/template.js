@@ -155,6 +155,42 @@ modules["breakout/template"] = class {
 
     let stringPref = JSON.stringify(this.parent.parent.preferences); // Must be duplicated
 
+    closeButton.addEventListener("click", () => {
+      this.parent.openPage("primary", "breakout/overview");
+    });
+
+    // Load Images:
+    setSVG(scrollLeft, "../images/editor/top/leftarrow.svg");
+    setSVG(scrollRight, "../images/editor/top/rightarrow.svg");
+    setSVG(closeButton, "../images/tooltips/close.svg");
+    setSVG(undoButton, "../images/tooltips/progress/undo.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
+    setSVG(redoButton, "../images/tooltips/progress/redo.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
+    setSVG(status.querySelector('div[strength="3"]'), "../images/editor/status/full.svg");
+    setSVG(status.querySelector('div[strength="2"]'), "../images/editor/status/weak.svg");
+    setSVG(status.querySelector('div[strength="1"]'), "../images/editor/status/none.svg");
+    setSVG(increasePageButton, "../images/editor/bottom/plus.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
+    setSVG(decreasePageButton, "../images/editor/bottom/minus.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
+    
+    /*let setLesson = (body) => {
+      this.lesson = body.lesson;
+      
+    }
+    if (extra.template != null) {
+      setLesson(extra.template);
+    } else if (extra.id != null) {
+      let [code, body, meta] = await sendRequest("POST", "lessons/join/template?lesson=" + this.parent.parent.id + "&template=" + extra.id, { ss: socket.secureID }, { session: this.parent.parent.session, allowError: [403, 406] });
+      if (code != 200) {
+        return;
+      }
+      if (meta.took < 2500) {
+        this.parent.parent.signalStrength = 3;
+      } else {
+        this.parent.parent.signalStrength = 2;
+      }
+      setLesson(body);
+    } else {
+      return;
+    }*/
     this.lesson = {};
 
     this.editor = await this.setFrame("editor/editor", contentHolder, {
@@ -162,8 +198,8 @@ modules["breakout/template"] = class {
         page: page,
         pageID: this.parent.pageID,
         pageType: this.parent.pageType,
-        id: this.parent.parent.id,
-        lesson: this.parent.parent,
+        id: this.lesson.id,
+        lesson: this.lesson,
         self: this.parent.parent.self,
         session: this.parent.parent.session,
         sessionID: this.parent.parent.sessionID,
@@ -265,9 +301,6 @@ modules["breakout/template"] = class {
     this.pipeline.subscribe("statusSavingUpdate", "save_status", (event) => { this.updateStatus(event.saving); });
     this.updateStatus();
 
-    closeButton.addEventListener("click", () => {
-      this.parent.openPage("primary", "breakout/overview");
-    });
     lessonName.textContent = this.lesson.name ?? "Untitled Lesson";
     lessonName.title = lessonName.textContent;
     lessonName.addEventListener("keydown", (event) => {
@@ -360,18 +393,6 @@ modules["breakout/template"] = class {
     this.pipeline.subscribe("pageSwitch", "page_switch", updateSplitScreenButton);
     this.pipeline.subscribe("pageMaximize", "maximize", updateSplitScreenButton);
     updateSplitScreenButton();
-
-    // Load Images:
-    setSVG(scrollLeft, "../images/editor/top/leftarrow.svg");
-    setSVG(scrollRight, "../images/editor/top/rightarrow.svg");
-    setSVG(closeButton, "../images/tooltips/close.svg");
-    setSVG(undoButton, "../images/tooltips/progress/undo.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
-    setSVG(redoButton, "../images/tooltips/progress/redo.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
-    setSVG(status.querySelector('div[strength="3"]'), "../images/editor/status/full.svg");
-    setSVG(status.querySelector('div[strength="2"]'), "../images/editor/status/weak.svg");
-    setSVG(status.querySelector('div[strength="1"]'), "../images/editor/status/none.svg");
-    setSVG(increasePageButton, "../images/editor/bottom/plus.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
-    setSVG(decreasePageButton, "../images/editor/bottom/minus.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
 
     this.updateInterface();
 

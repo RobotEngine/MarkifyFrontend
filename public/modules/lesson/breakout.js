@@ -166,7 +166,7 @@ modules["lesson/breakout"] = class {
     this.pipeline.subscribe("checkPageSwitch", "page_switch", updateActivePage, { sort: 1 });
     updateActivePage();
 
-    page.addEventListener("pointerdown", (event) => {
+    /*page.addEventListener("pointerdown", (event) => {
       this.pipeline.publish("pointerdown", { event: event });
       if (event.pointerType == "mouse") {
         this.pipeline.publish("click_start", { type: "pointerdown", event: event });
@@ -181,7 +181,7 @@ modules["lesson/breakout"] = class {
     }, { passive: false });
     page.addEventListener("mouseleave", (event) => {
       this.pipeline.publish("mouseleave", { event: event });
-    });
+    });*/
 
     // Initialize Breakout:
     if (this.parent.self.access > 3 || this.session == null) { // Open to Overview:

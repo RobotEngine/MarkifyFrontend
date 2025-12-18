@@ -173,7 +173,6 @@ modules["breakout/template"] = class {
     
     /*let setLesson = (body) => {
       this.lesson = body.lesson;
-      
     }
     if (extra.template != null) {
       setLesson(extra.template);

@@ -376,7 +376,9 @@ modules["breakout/overview"] = class {
           showBoardButton = true;
         }
       } else if (this.parent.parent.self.access > 3) {
-        showBoardButton = true;
+        if (boardOpen == false || boardVisible == false) {
+          showBoardButton = true;
+        }
       }
 
       if (showBoardButton == true) {

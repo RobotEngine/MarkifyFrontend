@@ -30,7 +30,7 @@ modules["breakout/template"] = class {
       </div>
     </div>
     <div class="brtToolbarHolder eToolbarHolder" toolbarholder hidden>
-      <div class="brtToolbar eToolbar" editor keeptooltip></div>
+      <div class="brtToolbar eToolbar" editor keeptooltip notransition></div>
     </div>
     <div class="brtBottomHolder">
       <div class="brtBottom">
@@ -367,7 +367,9 @@ modules["breakout/template"] = class {
           showBoardButton = true;
         }
       } else if (this.parent.parent.self.access > 3) {
-        showBoardButton = true;
+        if (boardOpen == false || boardVisible == false) {
+          showBoardButton = true;
+        }
       }
 
       if (showBoardButton == true) {
@@ -399,6 +401,8 @@ modules["breakout/template"] = class {
     (async () => {
       await (await this.newModule("editor/realtime")).js(this.editor);
       await (await this.newModule("editor/toolbar")).js(this.editor);
+
+      editorToolbar.removeAttribute("notransition");
     })();
   }
 }

@@ -915,9 +915,12 @@ modules["lesson/board"] = class {
     if (this.session == null || this.lesson.tool.includes("board") == false) { // Create New Lesson
       contentHolder.removeAttribute("disabled");
       mainPage.insertAdjacentHTML("beforeend", `<div class="eCreateBoardHolder"></div>`);
-      modalModule.open("modals/lesson/newboard", mainPage.querySelector(".eCreateBoardHolder"), null, "Create Board", null, { parent: this, callback: (body, extra) => {
-        this.parent.setLesson(body);
-        extra.modal.close();
+      modalModule.open("modals/lesson/newboard", mainPage.querySelector(".eCreateBoardHolder"), null, "Create Board", null, { parent: this, callback: (modal) => {
+        if (this.lesson.tool.includes("board") == false) {
+          this.lesson.tool.unshift("board");
+        }
+        modifyParams("lesson", this.parent.id);
+        modal.close();
         modifyParams("folder");
         modifyParams("type");
       } });

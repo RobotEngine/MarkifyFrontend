@@ -405,6 +405,7 @@ modules["pages/app/lesson"] = class extends page {
 
     let pageHolder = page.querySelector(".lPageHolder");
 
+    let newTools = (getParam("type") ?? "board").split(",");
     let isNewLesson = this.id == "" && joinData.pin == null;
 
     let setSubscribes = () => {
@@ -892,271 +893,268 @@ modules["pages/app/lesson"] = class extends page {
     }
 
     let sendBody = { ss: socket.secureID };
+    
+    setSubscribes();
 
-    this.setLesson = async (body) => {
-      this.lesson = { ...this.lesson, ...body.lesson };
-      if (this.id != this.lesson._id) {
-        this.id = this.lesson._id;
+    joinData = joinData ?? {};
+    if (this.active == false) {
+      sendBody.active = false;
+    }
+    if (joinData.pin != null) {
+      sendBody.pin = joinData.pin;
+    }
+    if (joinData.name != null) {
+      sendBody.name = joinData.name;
+    } else {
+      sendBody.name = getParam("name");
+    }
+    if (joinData.captcha != null) {
+      sendBody.captcha = joinData.captcha;
+    }
+    let guest = getLocalStore("guest");
+    if (guest != null) {
+      guest = JSON.parse(guest);
+      if (guest.expires > Math.floor(getEpoch() / 1000)) {
+        sendBody.guest = guest._id + ";" + guest.token;
+      } else {
+        removeLocalStore("guest");
+      }
+    }
+    if (joinData.pin == null && joinData.name == null && this.session == null && window.previousLessonSession != null) {
+      this.session = window.previousLessonSession;
+    }
+    let paramSession = getParam("member_session") ?? "";
+    if (paramSession != "" && this.exporting == true) {
+      this.session = paramSession;
+    }
+    let path = "lessons/join";
+    if (isNewLesson == false) {
+      path += "?lesson=" + this.id;
+    } else {
+      if (userID == null) {
+        return checkForAuth(true);
+      }
+      /*if (tools != "") {
+        sendBody.tools = tools.split(",");
+      }*/
+      if (getTheme() == "dark") {
+        sendBody.background = "0A1C2D";
+      }
+    }
+    let [code, body, extra] = await sendRequest("POST", path, sendBody, { session: this.session, allowError: [403, 406] });
+    if (code == 403 || code == 406) {
+      page.innerHTML = "";
+      setFrame("pages/app/join", null, { passParams: true });
+    }
+    if (code != 200) {
+      return;
+    }
+    if (extra.took < 2500) {
+      this.signalStrength = 3;
+    } else {
+      this.signalStrength = 2;
+    }
+    
+    this.lesson = { ...this.lesson, ...body.lesson };
+    if (this.id != this.lesson._id) {
+      this.id = this.lesson._id;
+      if (this.lesson.tool.length > 0) {
         modifyParams("lesson", this.id);
-        setSubscribes();
       }
-      this.lesson.settings = this.lesson.settings ?? {};
-  
-      this.folder = body.folder;
-  
-      this.sessionID = body.session._id;
-      this.sessionToken = body.session.token;
-      if (body.session._id != null && body.session.token != null) {
-        this.session = this.sessionID + ";" + this.sessionToken;
-        window.previousLessonSession = this.session;
-      }
+      setSubscribes();
+    }
+    this.lesson.settings = this.lesson.settings ?? {};
 
-      if (window.resync != null && window.resync.session == this.sessionID) {
-        this.resyncPages = window.resync.pageSync;
-      }
-      window.resync = { lesson: this.id, session: this.sessionID, pageSync: {} };
+    this.folder = body.folder;
 
-      if (body.guest != null) {
-        setLocalStore("guest", JSON.stringify(body.guest));
-      }
-      
-      for (let i = 0; i < body.members.length; i++) {
-        let memSet = body.members[i];
-        if (this.members[memSet._id] == null) {
-          this.members[memSet._id] = {};
-        }
-        let collaborator = {};
-        collaborator.name = memSet.name;
-        collaborator.color = memSet.color;
-        if (memSet.hasOwnProperty("email") == true) {
-          collaborator.email = memSet.email;
-        }
-        if (memSet.hasOwnProperty("image") == true) {
-          collaborator.image = memSet.image;
-        }
-        this.collaborators[memSet.modify] = { _id: memSet.modify, ...collaborator };
-        let member = this.members[memSet._id];
-        if (memSet.access == 1 && (member.access == null || member.access < 1)) {
-          this.editorCount++;
-        } else if (memSet.access == 0 && member.access > 0) {
-          this.editorCount--;
-        }
-        if (memSet.hand != null && member.hand == null) {
-          this.handCount++;
-        } else if (memSet.hand == null && member.hand != null) {
-          this.handCount--;
-        }
-        if (memSet._id != this.sessionID) {
-          if (memSet.active == false && member.active != false) {
-            this.idleCount++;
-          } else if (memSet.active != false && member.active == false) {
-            this.idleCount--;
-          }
-        }
-        objectUpdate(memSet, member);
-      }
-      if (this.members[this.sessionID] == null && this.session != null) {
-        this.members[this.sessionID] = {};
-      }
-      this.self = this.members[this.sessionID] ?? {};
-      this.memberCount = Object.keys(this.members).length;
-  
-      this.sources = { ...this.sources, ...getObject(body.sources ?? [], "_id") };
-  
-      document.title = (this.lesson.name ?? "Untitled Lesson") + " | Markify";
-  
-      if (body.preferences != null) {
-        if (body.preferences.emojis != null) {
-          this.recentEmojis = body.preferences.emojis;
-          delete body.preferences.emojis;
-        }
-        objectUpdate(body.preferences, this.preferences);
-      }
-      for (let i = 0; (i < this.defaultEmojis.length && this.recentEmojis.length < 21); i++) {
-        if (this.recentEmojis.includes(this.defaultEmojis[i]) == false) {
-          this.recentEmojis.push(this.defaultEmojis[i]);
-        }
-      }
+    this.sessionID = body.session._id;
+    this.sessionToken = body.session.token;
+    if (body.session._id != null && body.session.token != null) {
+      this.session = this.sessionID + ";" + this.sessionToken;
+      window.previousLessonSession = this.session;
+    }
 
-      if (this.session != null) {
-        let sentPing = false;
-        this.sendPing = async () => {
-          if (connected == false) {
-            return;
-          }
-          let params = [];
-          if (this.active == false && this.exporting != true) {
-            params.push("idle");
-          }
-          if (this.signalStrength == 2) {
-            params.push("weak");
-          }
-          let path = "lessons/ping";
-          if (params.length > 0) {
-            path += "?" + params.join("&");
-          }
-          sentPing = true;
-          let [code] = await sendRequest("GET", path, null, { session: this.session, allowError: [403, 419] });
-          if (code == 403) {
-            if (sendBody.pin != null) {
-              setFrame("pages/app/join", null, { passParams: true }); // Send back to join page
-            } else {
-              setFrame("pages/app/lesson", null, { passParams: true }); // Refresh to rejoin
-            }
-          } else if (code != 200 && code != 0 && code != null) {
-            setFrame("pages/app/lesson", null, { construct: { session: this.session }, passParams: true });
-          }
-        }
+    if (window.resync != null && window.resync.session == this.sessionID) {
+      this.resyncPages = window.resync.pageSync;
+    }
+    window.resync = { lesson: this.id, session: this.sessionID, pageSync: {} };
+
+    if (body.guest != null) {
+      setLocalStore("guest", JSON.stringify(body.guest));
+    }
     
-        let pingSocketFilter = { c: "short_" + this.id, o: this.sessionID, t: this.sessionToken };
-        let awaitingPongs = {};
-        let pongTimeoutTime = 500; // ms
-        subscribe(pingSocketFilter, (pingID) => {
-          if (getEpoch() - pingID < pongTimeoutTime) {
-            awaitingPongs[pingID] = "";
-          }
-        });
-        let sendSocketPing = (attempt) => {
-          if (connected == false || document.visibilityState != "visible") {
-            return;
-          }
-          attempt = attempt ?? 1;
-          let pingID = getEpoch();
-          setTimeout(() => {
-            let updateSignalStrength;
-            if (awaitingPongs[pingID] == "") {
-              delete awaitingPongs[pingID];
-    
-              // STRONG INTERNET
-              if (this.signalStrength != 3) {
-                if (attempt < 3) {
-                  // Try 2 more times to make sure:
-                  return sendSocketPing(attempt + 1);
-                } else {
-                  // Enable everything:
-                  updateSignalStrength = { oldSignalStrength: this.signalStrength, signalStrength: 3 };
-                  this.signalStrength = 3;
-                  this.sendPing();
-                  alertModule.open("info", "<b>Connection Restored</b>A strong connection has been established, all features enabled.");
-                }
-              }
-            } else {
-              // WEAK INTERNET
-              if (this.signalStrength != 2) {
-                if (attempt < 3) {
-                  // Try 2 more times to make sure:
-                  return sendSocketPing(attempt + 1);
-                } else {
-                  // Disable the stuff:
-                  updateSignalStrength = { oldSignalStrength: this.signalStrength, signalStrength: 2 };
-                  this.signalStrength = 2;
-                  this.sendPing();
-                  alertModule.open("info", "<b>Weak Connection</b>While you're still connected, real-time collaboration is disabled to save bandwidth.");
-                }
-              }
-            }
-            if (updateSignalStrength != null) {
-              this.pushToPipelines(null, "signal_strength", updateSignalStrength);
-            }
-          }, pongTimeoutTime);
-          socket.publish(pingSocketFilter, pingID, { publishToSelf: true });
+    for (let i = 0; i < body.members.length; i++) {
+      let memSet = body.members[i];
+      if (this.members[memSet._id] == null) {
+        this.members[memSet._id] = {};
+      }
+      let collaborator = {};
+      collaborator.name = memSet.name;
+      collaborator.color = memSet.color;
+      if (memSet.hasOwnProperty("email") == true) {
+        collaborator.email = memSet.email;
+      }
+      if (memSet.hasOwnProperty("image") == true) {
+        collaborator.image = memSet.image;
+      }
+      this.collaborators[memSet.modify] = { _id: memSet.modify, ...collaborator };
+      let member = this.members[memSet._id];
+      if (memSet.access == 1 && (member.access == null || member.access < 1)) {
+        this.editorCount++;
+      } else if (memSet.access == 0 && member.access > 0) {
+        this.editorCount--;
+      }
+      if (memSet.hand != null && member.hand == null) {
+        this.handCount++;
+      } else if (memSet.hand == null && member.hand != null) {
+        this.handCount--;
+      }
+      if (memSet._id != this.sessionID) {
+        if (memSet.active == false && member.active != false) {
+          this.idleCount++;
+        } else if (memSet.active != false && member.active == false) {
+          this.idleCount--;
         }
-        
-        this.addListener({ type: "interval", interval: setInterval(async () => {
-          if (sentPing == false) {
-            this.sendPing();
-          }
-          sentPing = false;
-          sendSocketPing();
-        }, 60000) }); // PING every minute
       }
+      objectUpdate(memSet, member);
+    }
+    if (this.members[this.sessionID] == null && this.session != null) {
+      this.members[this.sessionID] = {};
+    }
+    this.self = this.members[this.sessionID] ?? {};
+    this.memberCount = Object.keys(this.members).length;
 
-      if (this.exporting == true) {
-        return await this.addPage("export", "export");
+    this.sources = { ...this.sources, ...getObject(body.sources ?? [], "_id") };
+
+    document.title = (this.lesson.name ?? "Untitled Lesson") + " | Markify";
+
+    if (body.preferences != null) {
+      if (body.preferences.emojis != null) {
+        this.recentEmojis = body.preferences.emojis;
+        delete body.preferences.emojis;
       }
-
-      for (let i = 0 ; i < this.lesson.tool.length; i++) {
-        let tool = this.lesson.tool[i];
-        await this.addPage(tool, tool, { totalPages: this.lesson.tool.length });
+      objectUpdate(body.preferences, this.preferences);
+    }
+    for (let i = 0; (i < this.defaultEmojis.length && this.recentEmojis.length < 21); i++) {
+      if (this.recentEmojis.includes(this.defaultEmojis[i]) == false) {
+        this.recentEmojis.push(this.defaultEmojis[i]);
       }
     }
 
-    if (isNewLesson == false) {
-      setSubscribes();
-
-      joinData = joinData ?? {};
-      if (this.active == false) {
-        sendBody.active = false;
-      }
-      if (joinData.pin != null) {
-        sendBody.pin = joinData.pin;
-      }
-      if (joinData.name != null) {
-        sendBody.name = joinData.name;
-      } else {
-        sendBody.name = getParam("name");
-      }
-      if (joinData.captcha != null) {
-        sendBody.captcha = joinData.captcha;
-      }
-      let guest = getLocalStore("guest");
-      if (guest != null) {
-        guest = JSON.parse(guest);
-        if (guest.expires > Math.floor(getEpoch() / 1000)) {
-          sendBody.guest = guest._id + ";" + guest.token;
-        } else {
-          removeLocalStore("guest");
+    if (this.session != null) {
+      let sentPing = false;
+      this.sendPing = async () => {
+        if (connected == false) {
+          return;
+        }
+        let params = [];
+        if (this.active == false && this.exporting != true) {
+          params.push("idle");
+        }
+        if (this.signalStrength == 2) {
+          params.push("weak");
+        }
+        if (this.lesson.tool.length < 1) {
+          params.push("newlesson");
+        }
+        let path = "lessons/ping";
+        if (params.length > 0) {
+          path += "?" + params.join("&");
+        }
+        sentPing = true;
+        let [code] = await sendRequest("GET", path, null, { session: this.session, allowError: [403, 419] });
+        if (code == 403) {
+          if (sendBody.pin != null) {
+            setFrame("pages/app/join", null, { passParams: true }); // Send back to join page
+          } else {
+            setFrame("pages/app/lesson", null, { passParams: true }); // Refresh to rejoin
+          }
+        } else if (code != 200 && code != 0 && code != null) {
+          setFrame("pages/app/lesson", null, { construct: { session: this.session }, passParams: true });
         }
       }
-      if (joinData.pin == null && joinData.name == null && this.session == null && window.previousLessonSession != null) {
-        this.session = window.previousLessonSession;
-      }
-      let paramSession = getParam("member_session") ?? "";
-      if (paramSession != "" && this.exporting == true) {
-        this.session = paramSession;
-      }
-      let [code, body, extra] = await sendRequest("POST", "lessons/join?lesson=" + this.id, sendBody, { session: this.session, allowError: [403, 406] });
-      if (code == 403 || code == 406) {
-        page.innerHTML = "";
-        setFrame("pages/app/join", null, { passParams: true });
-      }
-      if (code != 200) {
-        return;
-      }
-      if (extra.took < 2500) {
-        this.signalStrength = 3;
-      } else {
-        this.signalStrength = 2;
-      }
-      await this.setLesson(body);
-      
-      if (this.active != sendBody.active || this.signalStrength == 2) {
-        this.sendPing();
-      }
-    } else {
-      if (userID == null) {
-        checkForAuth(true);
-        return;
-      }
-      let useBackground = "FFFFFF";
-      if (getTheme() == "dark") {
-        useBackground= "0A1C2D";
-      }
-      this.signalStrength = 3;
-      await this.setLesson({
-        "lesson": {
-          "_id": null,
-          "tool": [getParam("type")],
-          "owner": userID,
-          "created": getEpoch(),
-          "members": 0,
-          "name": "Untitled Lesson",
-          "background": useBackground
-        },
-        "session": {},
-        "members": [],
-        "sources": []
+  
+      let pingSocketFilter = { c: "short_" + this.id, o: this.sessionID, t: this.sessionToken };
+      let awaitingPongs = {};
+      let pongTimeoutTime = 500; // ms
+      subscribe(pingSocketFilter, (pingID) => {
+        if (getEpoch() - pingID < pongTimeoutTime) {
+          awaitingPongs[pingID] = "";
+        }
       });
+      let sendSocketPing = (attempt) => {
+        if (connected == false || document.visibilityState != "visible") {
+          return;
+        }
+        attempt = attempt ?? 1;
+        let pingID = getEpoch();
+        setTimeout(() => {
+          let updateSignalStrength;
+          if (awaitingPongs[pingID] == "") {
+            delete awaitingPongs[pingID];
+  
+            // STRONG INTERNET
+            if (this.signalStrength != 3) {
+              if (attempt < 3) {
+                // Try 2 more times to make sure:
+                return sendSocketPing(attempt + 1);
+              } else {
+                // Enable everything:
+                updateSignalStrength = { oldSignalStrength: this.signalStrength, signalStrength: 3 };
+                this.signalStrength = 3;
+                this.sendPing();
+                alertModule.open("info", "<b>Connection Restored</b>A strong connection has been established, all features enabled.");
+              }
+            }
+          } else {
+            // WEAK INTERNET
+            if (this.signalStrength != 2) {
+              if (attempt < 3) {
+                // Try 2 more times to make sure:
+                return sendSocketPing(attempt + 1);
+              } else {
+                // Disable the stuff:
+                updateSignalStrength = { oldSignalStrength: this.signalStrength, signalStrength: 2 };
+                this.signalStrength = 2;
+                this.sendPing();
+                alertModule.open("info", "<b>Weak Connection</b>While you're still connected, real-time collaboration is disabled to save bandwidth.");
+              }
+            }
+          }
+          if (updateSignalStrength != null) {
+            this.pushToPipelines(null, "signal_strength", updateSignalStrength);
+          }
+        }, pongTimeoutTime);
+        socket.publish(pingSocketFilter, pingID, { publishToSelf: true });
+      }
+      
+      this.addListener({ type: "interval", interval: setInterval(async () => {
+        if (sentPing == false) {
+          this.sendPing();
+        }
+        sentPing = false;
+        sendSocketPing();
+      }, 60000) }); // PING every minute
+    }
+
+    if (this.exporting == true) {
+      return await this.addPage("export", "export");
+    }
+
+    let addPageTools = [];
+    if (this.lesson.tool.length > 0) {
+      addPageTools = this.lesson.tool;
+    } else {
+      addPageTools = newTools;
+    }
+
+    for (let i = 0 ; i < addPageTools.length; i++) {
+      let tool = addPageTools[i];
+      await this.addPage(tool, tool, { totalPages: addPageTools.length });
+    }
+    
+    if (this.active != sendBody.active || this.signalStrength == 2) {
+      this.sendPing();
     }
   }
 }

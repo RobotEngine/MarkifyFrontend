@@ -51,19 +51,16 @@ modules["modals/lesson/newboard"] = class {
     freeboardButton.addEventListener("click", async () => {
       frame.setAttribute("disabled", "");
       let createAlert = await alertModule.open("info", `<b>Creating Lesson</b>Setting up freeboard, an unlimited whiteboard space!`, { time: "never" });
-      let path = this.requestPath + "?ss=" + socket.secureID;
+      let path = this.requestPath;
       if (this.folder != null) {
-        path += "&folder=" + this.folder;
+        path += "?folder=" + this.folder;
       }
-      if (getTheme() == "dark") {
-        path += "&background=0A1C2D";
-      }
-      let [code, body] = await sendRequest("POST", path);
+      let [code] = await sendRequest("POST", path, null, { session: this.parent.parent.session });
       alertModule.close(createAlert);
       frame.removeAttribute("disabled");
       if (code == 200) {
         if (this.callback != null) {
-          this.callback(body, extra.modal);
+          this.callback(extra.modal);
         }
       }
     });
@@ -102,21 +99,18 @@ modules["modals/lesson/newboard"] = class {
       if (passedFiles > 0) {
         frame.setAttribute("disabled", "");
         let alertText = `<b>Uploading Lesson</b>Uploading your PDF${addS(passedFiles)} and creating the lesson.`;
-        let extraData = { noFileType: true };
+        let extraData = { noFileType: true, session: this.parent.parent.session };
         let uploadAlert = await alertModule.open("info", alertText, { time: "never" });
-        let path = this.requestPath + "?ss=" + socket.secureID;
+        let path = this.requestPath;
         if (this.folder != null) {
-          path += "&folder=" + this.folder;
+          path += "?folder=" + this.folder;
         }
-        if (getTheme() == "dark") {
-          path += "&background=0A1C2D";
-        }
-        let [code, body] = await sendRequest("POST", path, sendFormData, extraData);
+        let [code] = await sendRequest("POST", path, sendFormData, extraData);
         alertModule.close(uploadAlert);
         frame.removeAttribute("disabled");
         if (code == 200) {
           if (this.callback != null) {
-            this.callback(body, extra.modal);
+            this.callback(extra.modal);
           }
         }
       }
@@ -303,19 +297,16 @@ modules["modals/lesson/newboard/blank"] = class {
       frame.setAttribute("disabled", "");
       let alertText = `<b>Creating Lesson</b>Setting up your lesson!`;
       let createAlert = await alertModule.open("info", alertText, { time: "never" });
-      let path = parent.requestPath + "?ss=" + socket.secureID;
+      let path = parent.requestPath;
       if (parent.folder != null) {
-        path += "&folder=" + parent.folder;
+        path += "?folder=" + parent.folder;
       }
-      if (getTheme() == "dark") {
-        path += "&background=0A1C2D";
-      }
-      let [code, body] = await sendRequest("POST", path, sendData);
+      let [code] = await sendRequest("POST", path, sendData, { session: parent.parent.parent.session });
       alertModule.close(createAlert);
       frame.removeAttribute("disabled");
       if (code == 200) {
         if (parent.callback != null) {
-          parent.callback(body, extra.modal);
+          parent.callback(extra.modal);
         }
       }
     });

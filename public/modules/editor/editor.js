@@ -4039,6 +4039,12 @@ modules["editor/editor"] = class {
     this.updateChunks();
 
     this.loadAnnotations = async (body, extra = {}) => {
+      if (body.sources != null) {
+        for (let i = 0; i < body.sources.length; i++) {
+          let source = body.sources[i];
+          this.lesson.sources[source._id] = source;
+        }
+      }
       if (body.reactions != null) {
         let reactedToObject = getObject(body.reactedTo ?? [], "_id");
         for (let i = 0; i < body.reactions.length; i++) {

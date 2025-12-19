@@ -1024,8 +1024,6 @@ modules["pages/app/lesson"] = class extends page {
     this.self = this.members[this.sessionID] ?? {};
     this.memberCount = Object.keys(this.members).length;
 
-    this.sources = { ...this.sources, ...getObject(body.sources ?? [], "_id") };
-
     document.title = (this.lesson.name ?? "Untitled Lesson") + " | Markify";
 
     if (body.preferences != null) {

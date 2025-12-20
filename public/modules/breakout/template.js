@@ -301,7 +301,7 @@ modules["breakout/template"] = class {
     this.pipeline.subscribe("statusSavingUpdate", "save_status", (event) => { this.updateStatus(event.saving); });
     this.updateStatus();
 
-    lessonName.textContent = this.lesson.name ?? "Untitled Lesson";
+    lessonName.textContent = this.lesson.name ?? "Untitled Template";
     lessonName.title = lessonName.textContent;
     lessonName.addEventListener("keydown", (event) => {
       if (event.keyCode == 13) {
@@ -352,6 +352,16 @@ modules["breakout/template"] = class {
     zoomButton.addEventListener("click", () => {
       dropdownModule.open(zoomButton, "dropdowns/lesson/zoom", { parent: this });
     });
+
+    if (userID != null) {
+      accountButton.querySelector("div").textContent = account.user;
+      if (account.image != null) {
+        accountButton.querySelector("img").src = account.image;
+      }
+      accountButton.addEventListener("click", () => {
+        dropdownModule.open(accountButton, "dropdowns/account", { parent: this });
+      });
+    }
 
     let boardEnabled = false;
     let boardOpen = false;

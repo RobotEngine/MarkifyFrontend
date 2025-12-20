@@ -260,7 +260,7 @@ modules["editor/timeline"] = class {
       zoomButton.textContent = Math.round(event.zoom * 100) + "%";
     });
     zoomButton.addEventListener("click", () => {
-      dropdownModule.open(zoomButton, "dropdowns/lesson/basiczoom", { parent: this });
+      dropdownModule.open(zoomButton, "dropdowns/lesson/zoom", { parent: this, remove: ["snapping", "cursors", "cursornames", "comments", "stylusmode"] });
     });
 
     selectButton.addEventListener("click", async () => {

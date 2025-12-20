@@ -27,8 +27,8 @@ modules["modals/lesson/newbreakout"] = class {
       <button class="brtButton largeButton" type="duplicate">
         <div image></div>
         <div content>
-          <div text>Reuse Another Template</div>
-          <div detail>Use a template from another lesson.</div>
+          <div text>Use Another Template</div>
+          <div detail>Use a template from a past lesson.</div>
         </div>
       </button>
     </div>
@@ -81,7 +81,7 @@ modules["modals/lesson/newbreakout"] = class {
     let cloneButton = frame.querySelector('.brtButton[type="clone"]');
     let duplicateButton = frame.querySelector('.brtButton[type="duplicate"]');
     duplicateButton.addEventListener("click", () => {
-      this.parent.parent.openPage("secondary", "breakout/template", { id: "6941ea73853d7c9543ec24f3" }); // TESTING - REMOVE LATER
+      this.parent.parent.openPage("secondary", "breakout/template", { id: "" }); // TESTING - REMOVE LATER
     });
 
     setSVG(blankButton.querySelector("div[image]"), "../images/editor/breakout/blank.svg");

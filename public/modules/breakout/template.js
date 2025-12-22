@@ -114,6 +114,13 @@ modules["breakout/template"] = class {
     ".brtBottomSection[board] button:hover svg": `transform: scale(.9)`
   };
   js = async (frame, extra) => {
+    if (extra.template == null) {
+      return;
+    }
+    if (this.parent.parent.session == null) {
+      return;
+    }
+
     frame.style.position = "relative";
     frame.style.width = "100%";
     frame.style.height = "100%";
@@ -156,6 +163,7 @@ modules["breakout/template"] = class {
     let stringPref = JSON.stringify(this.parent.parent.preferences); // Must be duplicated
 
     closeButton.addEventListener("click", () => {
+      this.parent.closePage("secondary");
       this.parent.openPage("primary", "breakout/overview");
     });
 
@@ -171,34 +179,25 @@ modules["breakout/template"] = class {
     setSVG(increasePageButton, "../images/editor/bottom/plus.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
     setSVG(decreasePageButton, "../images/editor/bottom/minus.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
     
-    /*let setLesson = (body) => {
-      this.lesson = body.lesson;
-    }
-    if (extra.template != null) {
-      setLesson(extra.template);
-    } else if (extra.id != null) {
-      let [code, body, meta] = await sendRequest("POST", "lessons/join/template?lesson=" + this.parent.parent.id + "&template=" + extra.id, { ss: socket.secureID }, { session: this.parent.parent.session, allowError: [403, 406] });
+    this.template = extra.template;
+    
+    let fetchAnnotations = sendRequest("GET", "lessons/join/annotations?template=" + this.template._id, null, { session: this.parent.parent.session }, { allowError: true });
+
+    if (this.template.created == null) {
+      let [code, body] = await sendRequest("GET", "lessons/join/template?template=" + this.template._id, null, { session: this.parent.parent.session }, { allowError: true });
       if (code != 200) {
         return;
       }
-      if (meta.took < 2500) {
-        this.parent.parent.signalStrength = 3;
-      } else {
-        this.parent.parent.signalStrength = 2;
-      }
-      setLesson(body);
-    } else {
-      return;
-    }*/
-    this.lesson = {};
+      this.template = body;
+    }
 
     this.editor = await this.setFrame("editor/editor", contentHolder, {
       construct: {
         page: page,
         pageID: this.parent.pageID,
         pageType: this.parent.pageType,
-        id: this.lesson.id,
-        lesson: this.lesson,
+        id: this.parent.parent.lesson.id,
+        lesson: this.parent.parent,
         self: this.parent.parent.self,
         session: this.parent.parent.session,
         sessionID: this.parent.parent.sessionID,
@@ -208,8 +207,11 @@ modules["breakout/template"] = class {
         resync: this.parent.resync,
         preferences: JSON.parse(stringPref),
         lastSavePreferences: JSON.parse(stringPref),
-        backgroundColor: this.lesson.background ?? "FFFFFF",
-        disablePointerEvents: true
+        backgroundColor: this.template.background ?? "FFFFFF",
+        disablePointerEvents: true,
+
+        identifier: this.template._id,
+        saveParameters: [("template=" + this.template._id)]
       }
     });
     this.pipeline = this.editor.pipeline;
@@ -276,6 +278,18 @@ modules["breakout/template"] = class {
       updateTopBar();
     }
 
+    this.pipeline.subscribe("interfaceUpdate", "refresh_interface", () => {
+      this.updateInterface();
+    });
+    this.pipeline.subscribe("accountUpdate", "account_settings", (event) => {
+      if (event.settings.hasOwnProperty("toolbar") == true) {
+        this.updateInterface();
+      }
+      if (event.settings.hasOwnProperty("actionbar") == true) {
+        this.pipeline.publish("redraw_selection", { redraw: true });
+      }
+    });
+
     let currentStatusStrength;
     let currentStatusSaving = false;
     this.updateStatus = (saving) => {
@@ -301,7 +315,7 @@ modules["breakout/template"] = class {
     this.pipeline.subscribe("statusSavingUpdate", "save_status", (event) => { this.updateStatus(event.saving); });
     this.updateStatus();
 
-    lessonName.textContent = this.lesson.name ?? "Untitled Template";
+    lessonName.textContent = this.template.name ?? "Untitled Template";
     lessonName.title = lessonName.textContent;
     lessonName.addEventListener("keydown", (event) => {
       if (event.keyCode == 13) {
@@ -317,20 +331,20 @@ modules["breakout/template"] = class {
 
       let name = lessonName.textContent.substring(0, 100).replace(/[^A-Za-z0-9.,_|/\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
       if (name.replace(/ /g, "").length < 1) {
-        lessonName.textContent = this.lesson.name;
+        lessonName.textContent = this.template.name;
         return;
       }
-      if (lessonName.textContent == this.lesson.name) {
-        lessonName.textContent = this.lesson.name;
+      if (lessonName.textContent == this.template.name) {
+        lessonName.textContent = this.template.name;
         return;
       }
-      let oldName = this.lesson.name;
-      this.lesson.name = name;
+      let oldName = this.template.name;
+      this.template.name = name;
       lessonName.textContent = name;
       lessonName.title = name;
-      let [code] = await sendRequest("POST", "lessons/name", { name: name }, { session: this.session });
+      let [code] = await sendRequest("POST", "lessons/name?template=" + this.template._id, { name: name }, { session: this.session });
       if (code != 200) {
-        this.lesson.name = oldName;
+        this.template.name = oldName;
         lessonName.textContent = oldName;
         lessonName.title = oldName;
       }
@@ -340,10 +354,28 @@ modules["breakout/template"] = class {
       updateTopBar();
     });
     lessonName.addEventListener("paste", clipBoardRead);
+    if (this.parent.parent.self.access > 4) {
+      lessonName.setAttribute("contenteditable", "");
+    }
 
     fileButton.addEventListener("click", () => {
       dropdownModule.open(fileButton, "dropdowns/lesson/file", { parent: this });
     });
+
+    this.pipeline.subscribe("updateHistory", "history_update", (data) => {
+      if (data.history.length > 0 && data.location > -1 && this.editor.self.access > 0) {
+        undoButton.removeAttribute("disabled");
+      } else {
+        undoButton.setAttribute("disabled", "");
+      }
+      if (data.history.length > data.location + 1 && this.editor.self.access > 0) {
+        redoButton.removeAttribute("disabled");
+      } else {
+        redoButton.setAttribute("disabled", "");
+      }
+    });
+    undoButton.addEventListener("click", () => { this.editor.history.undo(); });
+    redoButton.addEventListener("click", () => { this.editor.history.redo(); });
 
     this.pipeline.subscribe("zoomTextUpdate", "zoom_change", (event) => {
       zoomButton.textContent = Math.round(event.zoom * 100) + "%";
@@ -362,6 +394,75 @@ modules["breakout/template"] = class {
         dropdownModule.open(accountButton, "dropdowns/account", { parent: this });
       });
     }
+
+    this.pipeline.subscribe("pageTextUpdate", "page_change", (event) => {
+      if (this.editor.currentPage > 0) {
+        currentPageHolder.style.display = "flex";
+        modifyParams("page", event.pageId);
+      } else {
+        currentPageHolder.style.display = "none";
+        modifyParams("page");
+        return;
+      }
+      pageTextBox.innerHTML = "<b>" + this.editor.currentPage + "</b> / " + this.editor.annotationPages.length;
+      if (this.editor.currentPage > this.editor.annotationPages.length - 1) {
+        increasePageButton.setAttribute("disabled", "");
+      } else {
+        increasePageButton.removeAttribute("disabled");
+      }
+      if (this.editor.currentPage < 2) {
+        decreasePageButton.setAttribute("disabled", "");
+      } else {
+        decreasePageButton.removeAttribute("disabled");
+      }
+    });
+    increasePageButton.addEventListener("click", () => {
+      this.editor.setPage(this.editor.currentPage + 1);
+    });
+    decreasePageButton.addEventListener("click", () => {
+      this.editor.setPage(this.editor.currentPage - 1);
+    });
+    let alreadyRunningFocus = false;
+    pageTextBox.addEventListener("focus", async () => {
+      if (alreadyRunningFocus == true) {
+        return;
+      }
+      alreadyRunningFocus = true;
+      pageTextBox.blur();
+      pageTextBox.innerHTML = "";
+      pageTextBox.focus();
+      alreadyRunningFocus = false;
+    });
+    pageTextBox.addEventListener("keydown", (event) => {
+      if (event.keyCode == 13) {
+        event.preventDefault();
+        pageTextBox.blur();
+        return;
+      }
+      if (String.fromCharCode(event.keyCode).match(/(\w|\s)/g) && event.key.length == 1) {
+        let textInt = parseInt(pageTextBox.textContent + event.key);
+        if (parseInt(event.key) != event.key) {
+          event.preventDefault();
+          textBoxError(pageTextBox, "Must be a number");
+        } else if (textInt > this.editor.annotationPages.length) {
+          event.preventDefault();
+          textBoxError(pageTextBox, "Maximum of page number " + this.editor.annotationPages.length);
+        } else if (textInt < 1) {
+          event.preventDefault();
+          textBoxError(pageTextBox, "Minimum of the first page");
+        }
+      }
+    });
+    pageTextBox.addEventListener("focusout", () => {
+      //pageBoxFocus = false;
+      if (pageTextBox.textContent == "") {
+        pageTextBox.innerHTML = "<b>" + this.editor.currentPage + "</b> / " + this.editor.annotationPages.length;
+        return;
+      }
+      let setPage = parseInt(pageTextBox.textContent) ?? 1;
+      pageTextBox.innerHTML = "<b>" + setPage + "</b> / " + this.editor.annotationPages.length;
+      this.editor.setPage(setPage, false);
+    });
 
     let boardEnabled = false;
     let boardOpen = false;
@@ -406,7 +507,17 @@ modules["breakout/template"] = class {
     this.pipeline.subscribe("pageMaximize", "maximize", updateSplitScreenButton);
     updateSplitScreenButton();
 
-    this.updateInterface();
+    // Fetch Annotations:
+    let pageParam = getParam("page");
+    let checkForJumpLink = getParam("annotation");
+    (async () => {
+      let [annoCode, annoBody] = await fetchAnnotations;
+      if (annoCode != 200 && connected == true) {
+        return alertModule.open("error", `<b>Error Loading Annotations</b>Please try again later...`);
+      }
+      await this.editor.loadAnnotations(annoBody, { pageID: pageParam, jumpID: checkForJumpLink });
+      contentHolder.removeAttribute("disabled");
+    })();
 
     (async () => {
       await (await this.newModule("editor/realtime")).js(this.editor);
@@ -414,5 +525,7 @@ modules["breakout/template"] = class {
 
       editorToolbar.removeAttribute("notransition");
     })();
+
+    this.updateInterface();
   }
 }

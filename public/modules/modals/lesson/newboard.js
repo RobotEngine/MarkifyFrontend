@@ -26,6 +26,7 @@ modules["modals/lesson/newboard"] = class {
   js = async (frame, extra) => {
     this.parent = extra.parent;
     this.callback = extra.callback;
+    this.session = this.parent.parent.session ?? this.parent.parent.parent.session;
     this.requestPath = extra.requestPath ?? "lessons/new/board";
     this.folder = getParam("folder");
 
@@ -51,16 +52,23 @@ modules["modals/lesson/newboard"] = class {
     freeboardButton.addEventListener("click", async () => {
       frame.setAttribute("disabled", "");
       let createAlert = await alertModule.open("info", `<b>Creating Lesson</b>Setting up freeboard, an unlimited whiteboard space!`, { time: "never" });
-      let path = this.requestPath;
+      let params = [];
       if (this.folder != null) {
-        path += "?folder=" + this.folder;
+        params.push("folder=" + this.folder);
       }
-      let [code] = await sendRequest("POST", path, null, { session: this.parent.parent.session });
+      if (getTheme() == "dark") {
+        params.push("background=0A1C2D");
+      }
+      let path = this.requestPath;
+      if (params.length > 0) {
+        path += "?" + params.join("&");
+      }
+      let [code, body] = await sendRequest("POST", path, null, { session: this.session });
       alertModule.close(createAlert);
       frame.removeAttribute("disabled");
       if (code == 200) {
         if (this.callback != null) {
-          this.callback(extra.modal);
+          this.callback({ modal: extra.modal, body: body });
         }
       }
     });
@@ -99,25 +107,32 @@ modules["modals/lesson/newboard"] = class {
       if (passedFiles > 0) {
         frame.setAttribute("disabled", "");
         let alertText = `<b>Uploading Lesson</b>Uploading your PDF${addS(passedFiles)} and creating the lesson.`;
-        let extraData = { noFileType: true, session: this.parent.parent.session };
+        let extraData = { noFileType: true, session: this.session };
         let uploadAlert = await alertModule.open("info", alertText, { time: "never" });
-        let path = this.requestPath;
+        let params = [];
         if (this.folder != null) {
-          path += "?folder=" + this.folder;
+          params.push("folder=" + this.folder);
         }
-        let [code] = await sendRequest("POST", path, sendFormData, extraData);
+        if (getTheme() == "dark") {
+          params.push("background=0A1C2D");
+        }
+        let path = this.requestPath;
+        if (params.length > 0) {
+          path += "?" + params.join("&");
+        }
+        let [code, body] = await sendRequest("POST", path, sendFormData, extraData);
         alertModule.close(uploadAlert);
         frame.removeAttribute("disabled");
         if (code == 200) {
           if (this.callback != null) {
-            this.callback(extra.modal);
+            this.callback({ modal: extra.modal, body: body });
           }
         }
       }
       resetUI();
     }
     frame.addEventListener("drop", (event) => {
-      processUpload(event.dataTransfer.items, event)
+      processUpload(event.dataTransfer.items, event);
     });
     frame.addEventListener("dragover", (event) => {
       modal.style.outline = "dashed 4px var(--theme)";
@@ -297,16 +312,23 @@ modules["modals/lesson/newboard/blank"] = class {
       frame.setAttribute("disabled", "");
       let alertText = `<b>Creating Lesson</b>Setting up your lesson!`;
       let createAlert = await alertModule.open("info", alertText, { time: "never" });
-      let path = parent.requestPath;
+      let params = [];
       if (parent.folder != null) {
-        path += "?folder=" + parent.folder;
+        params.push("folder=" + parent.folder);
       }
-      let [code] = await sendRequest("POST", path, sendData, { session: parent.parent.parent.session });
+      if (getTheme() == "dark") {
+        params.push("background=0A1C2D");
+      }
+      let path = parent.requestPath;
+      if (params.length > 0) {
+        path += "?" + params.join("&");
+      }
+      let [code, body] = await sendRequest("POST", path, sendData, { session: parent.session });
       alertModule.close(createAlert);
       frame.removeAttribute("disabled");
       if (code == 200) {
         if (parent.callback != null) {
-          parent.callback(extra.modal);
+          parent.callback({ modal: extra.modal, body: body });
         }
       }
     });

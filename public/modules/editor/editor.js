@@ -2427,7 +2427,11 @@ modules["editor/editor"] = class {
           let saveSuccess = false;
           try {
             //mutations = [];
-            let [result] = await sendRequest("POST", "lessons/save", { mutations: mutations }, { session: this.session });
+            let path = "lessons/save";
+            if ((this.saveParameters ?? []).length > 0) {
+              path += "?" + this.saveParameters.join("&");
+            }
+            let [result] = await sendRequest("POST", path, { mutations: mutations }, { session: this.session });
             saveSuccess = result == 200;
           } catch (err) {
             console.log("SAVE ERROR:", err);
@@ -3566,8 +3570,11 @@ modules["editor/editor"] = class {
       if (this.realtime.enabled == false) {
         return;
       }
+      if (this.identifier != null && event.id != this.identifier) {
+        return;
+      }
 
-      let data = copyObject(event);
+      let data = copyObject(event.push);
       //let redrawAction = false;
       for (let i = 0; i < data.length; i++) {
         let anno = data[i];
@@ -4088,7 +4095,7 @@ modules["editor/editor"] = class {
         }
       }
       if (jumpAnnotation == null) {
-        if (extra.pageID == null) {
+        if (extra.pageID == null || this.annotations[extra.pageID] == null) {
           if (this.annotationPages.length > 0) {
             this.utils.updateAnnotationScroll([this.annotationPages[0][0]], false);
           } else {

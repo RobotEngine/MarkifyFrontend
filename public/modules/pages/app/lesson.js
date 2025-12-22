@@ -597,7 +597,7 @@ modules["pages/app/lesson"] = class extends page {
         if (this.exporting == true) {
           return;
         }
-        this.pushToPipelines(data.page ?? "board", "long", data.annotations ?? data);
+        this.pushToPipelines(data.page ?? "board", "long", data);
       }
     }
 

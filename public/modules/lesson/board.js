@@ -882,7 +882,6 @@ modules["lesson/board"] = class {
     // Fetch Annotations:
     let pageParam = getParam("page");
     let checkForJumpLink = getParam("annotation");
-    let redrawSelectionId;
     this.loadAnnotations = async () => {
       if (this.session == null) {
         return;
@@ -903,11 +902,6 @@ modules["lesson/board"] = class {
 
       editorToolbar.removeAttribute("notransition");
       viewerToolbar.removeAttribute("notransition");
-      
-      if (redrawSelectionId != null) {
-        this.editor.selecting[redrawSelectionId] = {};
-        this.pipeline.publish("redraw_selection", { redraw: true });
-      }
     })();
 
     this.updateInterface();
@@ -915,11 +909,16 @@ modules["lesson/board"] = class {
     if (this.session == null || this.lesson.tool.includes("board") == false) { // Create New Lesson
       contentHolder.removeAttribute("disabled");
       mainPage.insertAdjacentHTML("beforeend", `<div class="eCreateBoardHolder"></div>`);
-      modalModule.open("modals/lesson/newboard", mainPage.querySelector(".eCreateBoardHolder"), null, "Create Board", null, { parent: this, callback: (modal) => {
+      modalModule.open("modals/lesson/newboard", mainPage.querySelector(".eCreateBoardHolder"), null, "Create Board", null, { parent: this, callback: ({ modal }) => {
         if (this.lesson.tool.includes("board") == false) {
           this.lesson.tool.unshift("board");
         }
         modifyParams("lesson", this.parent.id);
+        if (this.editor.annotationPages.length > 0) {
+          this.editor.utils.updateAnnotationScroll([this.editor.annotationPages[0][0]], false);
+        } else {
+          this.editor.utils.centerWindowWithPage();
+        }
         modal.close();
         modifyParams("folder");
         modifyParams("type");

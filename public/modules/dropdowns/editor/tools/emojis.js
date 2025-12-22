@@ -80,8 +80,8 @@ modules["dropdowns/editor/tools/emojis"] = class {
       let emojiX = -((emoji.sheet_x * this.sheetSize) + 1);
       let emojiY = -((emoji.sheet_y * this.sheetSize) + 1);
       setHTML[emoji.category] += `<button emoji="${emoji.name}" title="${emojiTitle}" search="${emojiSearch}" style="order: ${emoji.sort_order}" shown><img src="../images/editor/emojis/twitter32.png" style="object-position: ${emojiX}px ${emojiY}px"></button>`;
-      if (editor.parent.parent.recentEmojis.includes(emoji.name)) {
-        setHTML["Recent"] += `<button emoji="${emoji.name}" title="${emojiTitle}" search="${emojiSearch}" style="order: ${editor.parent.parent.recentEmojis.indexOf(emoji.name)}" shown><img src="../images/editor/emojis/twitter32.png" style="object-position: ${emojiX}px ${emojiY}px"></button>`;
+      if (editor.lesson.recentEmojis.includes(emoji.name)) {
+        setHTML["Recent"] += `<button emoji="${emoji.name}" title="${emojiTitle}" search="${emojiSearch}" style="order: ${editor.lesson.recentEmojis.indexOf(emoji.name)}" shown><img src="../images/editor/emojis/twitter32.png" style="object-position: ${emojiX}px ${emojiY}px"></button>`;
       }
     }
     setHTMLKeys.push("Recent");

@@ -21,7 +21,7 @@ const configs = {
   }
 };
 
-const config = configs["prodTesting"];
+const config = configs["public"];
 const version = "1.6.23"; // Big Update . Small Feature Release . Bug Fix
 
 const serverURL = config.server;

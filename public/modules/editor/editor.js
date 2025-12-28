@@ -929,9 +929,14 @@ modules["editor/editor"] = class {
       return await this.utils.parentFromAnnotation({ p: [x, y], l: index });
     }
 
+    this.utils.mousePosition = (mouse) => {
+      return [
+        mouse.x ?? mouse.clientX ?? ((mouse.changedTouches ?? [])[0] ?? {}).clientX ?? 0,
+        mouse.y ?? mouse.clientY ?? ((mouse.changedTouches ?? [])[0] ?? {}).clientY ?? 0
+      ];
+    }
     this.utils.localMousePosition = (mouse) => {
-      let mouseX = mouse.x ?? mouse.clientX ?? ((mouse.changedTouches ?? [])[0] ?? {}).clientX ?? 0;
-      let mouseY = mouse.y ?? mouse.clientY ?? ((mouse.changedTouches ?? [])[0] ?? {}).clientY ?? 0;
+      let [mouseX, mouseY] = this.utils.mousePosition(mouse);
       return { mouseX: mouseX - this.pageRect.x, mouseY: mouseY - this.pageRect.y };
     }
     this.utils.convertBoundingRect = (frameRect) => {
@@ -3900,15 +3905,15 @@ modules["editor/editor"] = class {
     let startZoom;
     let originCenter;
     let getDistance = (touches) => {
-      let { mouseX: touchAX, mouseY: touchAY } = this.utils.localMousePosition(touches[1] ?? {});
-      let { mouseX: touchBX, mouseY: touchBY } = this.utils.localMousePosition(touches[0] ?? {});
+      let [touchAX, touchAY] = this.utils.mousePosition(touches[1] ?? {});
+      let [touchBX, touchBY] = this.utils.mousePosition(touches[0] ?? {});
       let xDiff = ((touchAX / this.pageOffsetWidth) - (touchBX / this.pageOffsetWidth)) * this.pageOffsetWidth;
       let yDiff = ((touchAY / this.pageOffsetHeight) - (touchBY / this.pageOffsetHeight)) * this.pageOffsetHeight;
       return Math.sqrt((xDiff * xDiff) + (yDiff * yDiff));
     }
     let getCenter = (touches) => {
-      let { mouseX: touchAX, mouseY: touchAY } = this.utils.localMousePosition(touches[0] ?? {});
-      let { mouseX: touchBX, mouseY: touchBY } = this.utils.localMousePosition(touches[1] ?? {});
+      let [touchAX, touchAY] = this.utils.mousePosition(touches[0] ?? {});
+      let [touchBX, touchBY] = this.utils.mousePosition(touches[1] ?? {});
       return { x: (touchAX + touchBX) / 2, y: (touchAY + touchBY) / 2 };
     }
     let endPinch = () => {
@@ -3925,6 +3930,9 @@ modules["editor/editor"] = class {
       /*if (this.pinching != true) {
         return;
       }*/
+      if (this.isThisPage(event.target) == false) {
+        return;
+      }
       if (event.touches.length != 2 || ["stylus", "pen"].includes(event.touches[0].touchType) == true || ["stylus", "pen"].includes(event.touches[1].touchType) == true) {
         return endPinch();
       }

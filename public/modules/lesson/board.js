@@ -623,6 +623,54 @@ modules["lesson/board"] = class {
       this.editor.setPage(setPage, false);
     });
 
+    page.addEventListener("pointerdown", (event) => {
+      this.pipeline.publish("pointerdown", { event: event });
+      this.pipeline.publish("click_start", { type: "pointerdown", event: event });
+      /*if (event.pointerType == "mouse") {
+        this.pipeline.publish("click_start", { type: "pointerdown", event: event });
+      }*/
+    }, { passive: false });
+
+    /*page.addEventListener("mousedown", (event) => {
+      this.pipeline.publish("mousedown", { event: event });
+      
+      let eventSource = "mouse";
+      if (window.PointerEvent && event instanceof PointerEvent) {
+        eventSource = event.pointerType;
+      } else if (navigator.maxTouchPoints > 0) {
+        eventSource = "touch";
+      }
+
+      if (eventSource == "mouse") { //if (event.buttons != 0) {
+        this.pipeline.publish("click_start", { type: "mousedown", event: event });
+      }
+    }, { passive: false });*/
+    /*page.addEventListener("mousemove", (event) => {
+      this.pipeline.publish("mousemove", { event: event });
+      this.pipeline.publish("click_move", { type: "mousemove", event: event });
+    }, { passive: false });*/
+
+    page.addEventListener("touchstart", (event) => {
+      this.pipeline.publish("touchstart", { event: event });
+      //this.pipeline.publish("click_start", { type: "touchstart", event: event });
+    }, { passive: false });
+    /*page.addEventListener("touchmove", (event) => {
+      this.pipeline.publish("touchmove", { event: event });
+      this.pipeline.publish("click_move", { type: "touchmove", event: event });
+    }, { passive: false });*/
+
+    page.addEventListener("click", (event) => {
+      this.pipeline.publish("click", { event: event });
+    }, { passive: false });
+
+    page.addEventListener("mouseleave", (event) => {
+      this.pipeline.publish("mouseleave", { event: event });
+    });
+
+    page.addEventListener("contextmenu", (event) => {
+      this.pipeline.publish("contextmenu", { event: event });
+    });
+
     // Handle SplitScreen Swap:
     let breakoutEnabled = false;
     let breakoutOpen = false;
@@ -1001,8 +1049,8 @@ modules["dropdowns/lesson/file"] = class {
 
     let historyButton = frame.querySelector('.eFileAction[option="history"]');
     historyButton.addEventListener("click", () => {
+      parent.openTimeline();
       dropdownModule.close();
-      return parent.openTimeline();
     });
 
     let find = frame.querySelector('.eFileAction[option="find"]');

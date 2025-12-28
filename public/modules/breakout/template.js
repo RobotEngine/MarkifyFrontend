@@ -216,10 +216,9 @@ modules["breakout/template"] = class {
         preferences: JSON.parse(stringPref),
         lastSavePreferences: JSON.parse(stringPref),
         backgroundColor: this.template.background ?? "FFFFFF",
-        disablePointerEvents: true,
 
         identifier: this.template._id,
-        saveParameters: [("template=" + this.template._id)]
+        parameters: [("template=" + this.template._id)]
       }
     });
     this.pipeline = this.editor.pipeline;
@@ -555,7 +554,7 @@ modules["breakout/template"] = class {
 
 modules["dropdowns/lesson/breakout/template/file"] = class {
   html = `
-  <button class="brtFileAction" option="dashboard" title="Return to the Dashboard" style="--themeColor: var(--secondary)"><div></div>Dashboard</button>
+  <button class="brtFileAction" option="overview" title="Return to the main overview page." style="--themeColor: var(--secondary)"><div></div>Overview</button>
   <div class="brtFileLine"></div>
   <button class="brtFileAction" option="export" dropdowntitle="Export" title="Export the lesson as a PDF."><div></div>Export</button>
   <button class="brtFileAction" option="print" dropdowntitle="Print" title="Export the lesson and print."><div></div>Print</button>
@@ -586,10 +585,12 @@ modules["dropdowns/lesson/breakout/template/file"] = class {
     let parent = extra.parent;
     let editor = parent.editor;
 
-    let dashboardButton = frame.querySelector('.brtFileAction[option="dashboard"]');
-    dashboardButton.addEventListener("click", async () => {
+    let overviewButton = frame.querySelector('.brtFileAction[option="overview"]');
+    overviewButton.addEventListener("click", async () => {
       editor.save.syncSave(true);
-      setFrame("pages/app/dashboard");
+      parent.parent.closePage("secondary");
+      parent.parent.openPage("primary", "breakout/overview");
+      dropdownModule.close();
     });
     let exportButton = frame.querySelector('.brtFileAction[option="export"]');
     exportButton.addEventListener("click", () => {
@@ -601,9 +602,31 @@ modules["dropdowns/lesson/breakout/template/file"] = class {
     });
 
     let historyButton = frame.querySelector('.brtFileAction[option="history"]');
-    historyButton.addEventListener("click", () => {
+    historyButton.addEventListener("click", async () => {
       dropdownModule.close();
-      return parent.openTimeline();
+
+      let construct = {
+        close: () => {
+          parent.parent.closePage("tertiary");
+          parent.parent.openPage("secondary", "breakout/template");
+        },
+
+        lesson: parent.parent.parent,
+        self: parent.parent.parent.self,
+        session: parent.parent.parent.session,
+        sessionID: parent.parent.parent.sessionID,
+        sources: parent.parent.parent.sources,
+        collaborators: parent.parent.parent.collaborators,
+        backgroundColor: parent.editor.backgroundColor,
+        preferences: parent.editor.preferences,
+        //reactions: parent.parent.editor.reactions,
+
+        annotations: parent.editor.annotations,
+
+        identifier: parent.template._id,
+        parameters: [("template=" + parent.template._id)]
+      };
+      this.timeline = await parent.parent.openPage("tertiary", "editor/timeline", { construct });
     });
 
     let find = frame.querySelector('.brtFileAction[option="find"]');
@@ -659,7 +682,7 @@ modules["dropdowns/lesson/breakout/template/file"] = class {
       dropdownModule.open(deleteAnnotationsButton, "dropdowns/remove", { type: "deleteannotations", lessonID: parent.parent.id, session: editor.session });
     });
 
-    setSVG(dashboardButton.querySelector("div"), "../images/tooltips/back.svg");
+    setSVG(overviewButton.querySelector("div"), "../images/tooltips/back.svg");
     setSVG(exportButton.querySelector("div"), "../images/editor/file/export.svg");
     setSVG(printButton.querySelector("div"), "../images/editor/file/print.svg");
     setSVG(historyButton.querySelector("div"), "../images/editor/file/history.svg");

@@ -2428,8 +2428,8 @@ modules["editor/editor"] = class {
           try {
             //mutations = [];
             let path = "lessons/save";
-            if ((this.saveParameters ?? []).length > 0) {
-              path += "?" + this.saveParameters.join("&");
+            if ((this.parameters ?? []).length > 0) {
+              path += "?" + this.parameters.join("&");
             }
             let [result] = await sendRequest("POST", path, { mutations: mutations }, { session: this.session });
             saveSuccess = result == 200;
@@ -3989,55 +3989,7 @@ modules["editor/editor"] = class {
       }
     });
 
-    if (this.disablePointerEvents != true) {
-      page.addEventListener("pointerdown", (event) => {
-        this.pipeline.publish("pointerdown", { event: event });
-        this.pipeline.publish("click_start", { type: "pointerdown", event: event });
-        /*if (event.pointerType == "mouse") {
-          this.pipeline.publish("click_start", { type: "pointerdown", event: event });
-        }*/
-      }, { passive: false });
-
-      /*page.addEventListener("mousedown", (event) => {
-        this.pipeline.publish("mousedown", { event: event });
-        
-        let eventSource = "mouse";
-        if (window.PointerEvent && event instanceof PointerEvent) {
-          eventSource = event.pointerType;
-        } else if (navigator.maxTouchPoints > 0) {
-          eventSource = "touch";
-        }
-
-        if (eventSource == "mouse") { //if (event.buttons != 0) {
-          this.pipeline.publish("click_start", { type: "mousedown", event: event });
-        }
-      }, { passive: false });*/
-      /*page.addEventListener("mousemove", (event) => {
-        this.pipeline.publish("mousemove", { event: event });
-        this.pipeline.publish("click_move", { type: "mousemove", event: event });
-      }, { passive: false });*/
-
-      page.addEventListener("touchstart", (event) => {
-        this.pipeline.publish("touchstart", { event: event });
-        //this.pipeline.publish("click_start", { type: "touchstart", event: event });
-      }, { passive: false });
-      /*page.addEventListener("touchmove", (event) => {
-        this.pipeline.publish("touchmove", { event: event });
-        this.pipeline.publish("click_move", { type: "touchmove", event: event });
-      }, { passive: false });*/
-
-      page.addEventListener("click", (event) => {
-        this.pipeline.publish("click", { event: event });
-      }, { passive: false });
-
-      page.addEventListener("mouseleave", (event) => {
-        this.pipeline.publish("mouseleave", { event: event });
-      });
-
-      page.addEventListener("contextmenu", (event) => {
-        this.pipeline.publish("contextmenu", { event: event });
-      });
-    }
+    // Click events used to be here
 
     await this.render.setMarginSize();
     this.utils.centerWindowWithPage();

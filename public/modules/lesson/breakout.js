@@ -9,7 +9,7 @@ modules["lesson/breakout"] = class {
   };
 
   pages = {};
-  openPage = async (id, path, extra) => {
+  openPage = async (id, path, extra) => { // primary, secondary, tertiary
     let otherPages = this.frame.querySelectorAll(".brPage:not([hidden])");
     for (let i = 0; i < otherPages.length; i++) {
       let otherPage = otherPages[i];
@@ -36,6 +36,7 @@ modules["lesson/breakout"] = class {
     return this.pages[id];
   }
   closePage = (id) => {
+    delete this.pages[id];
     let page = this.frame.querySelector('.brPage[pageid="' + id + '"]');
     if (page == null) {
       return;

@@ -3514,12 +3514,10 @@ modules["editor/editor"] = class {
       }
       background.style.backgroundSize = dotSize + "px " + dotSize + "px";
       let scaledDotSize = dotSize * this.zoom;
-      let pageWidth = page.offsetWidth;
-      let pageHeight = page.offsetHeight;
-      let backgroundPaddingWidth = Math.ceil((pageWidth / 2) / scaledDotSize) * scaledDotSize;
-      let backgroundPaddingHeight = Math.ceil((pageHeight / 2) / scaledDotSize) * scaledDotSize;
-      let backgroundWidth = Math.ceil((pageWidth + (backgroundPaddingWidth * 2)) / scaledDotSize) * scaledDotSize;
-      let backgroundHeight = Math.ceil((pageHeight + (backgroundPaddingHeight * 2)) / scaledDotSize) * scaledDotSize;
+      let backgroundPaddingWidth = Math.ceil((this.pageOffsetWidth / 2) / scaledDotSize) * scaledDotSize;
+      let backgroundPaddingHeight = Math.ceil((this.pageOffsetHeight / 2) / scaledDotSize) * scaledDotSize;
+      let backgroundWidth = Math.ceil((this.pageOffsetWidth + (backgroundPaddingWidth * 2)) / scaledDotSize) * scaledDotSize;
+      let backgroundHeight = Math.ceil((this.pageOffsetHeight + (backgroundPaddingHeight * 2)) / scaledDotSize) * scaledDotSize;
       background.style.width = (backgroundWidth / this.zoom) + "px";
       background.style.height = (backgroundHeight / this.zoom) + "px";
       let annotationRect = this.utils.annotationsRect();
@@ -3533,10 +3531,10 @@ modules["editor/editor"] = class {
 
       let beforeChunks = JSON.stringify(this.visibleChunks);
       this.visibleChunks = this.utils.regionInChunks(
-        ((pageWidth / -2) - annotationRect.left) / this.zoom,
-        ((pageHeight / -2) - annotationRect.top) / this.zoom,
-        ((pageWidth + (pageWidth / 2)) - annotationRect.left) / this.zoom,
-        ((pageHeight + (pageHeight / 2)) - annotationRect.top) / this.zoom
+        ((this.pageOffsetWidth / -2) - annotationRect.left) / this.zoom,
+        ((this.pageOffsetHeight / -2) - annotationRect.top) / this.zoom,
+        ((this.pageOffsetWidth + (this.pageOffsetWidth / 2)) - annotationRect.left) / this.zoom,
+        ((this.pageOffsetHeight + (this.pageOffsetHeight / 2)) - annotationRect.top) / this.zoom
       );
       if (beforeChunks != JSON.stringify(this.visibleChunks)) {
         await this.runUpdateCycle();
@@ -4198,7 +4196,7 @@ modules["dropdowns/lesson/zoom"] = class {
       }
     }
     let forceSetZoom = () => {
-      editor.setZoom(parseInt(zoomPercentage.textContent) / 100, null, { clientX: editor.contentHolder.offsetWidth / 2, clientY: editor.contentHolder.offsetHeight / 2 });
+      editor.setZoom(parseInt(zoomPercentage.textContent) / 100, null, { clientX: editor.pageRect.left + (editor.pageOffsetWidth / 2), clientY: editor.pageRect.top + (editor.pageOffsetHeight / 2) });
     }
     zoomPercentage.addEventListener("keydown", (event) => {
       let textBox = event.target.closest("div");
@@ -4277,7 +4275,6 @@ modules["dropdowns/lesson/zoom"] = class {
       }
       let zoomChange = element.closest(".eZoomButton");
       if (zoomChange != null) {
-        (Math.floor(((editor.zoom + parseFloat(zoomChange.getAttribute("change"))) * 100) / 5) * 5) / 100
         editor.setZoom(
           (
             Math.round(
@@ -4285,7 +4282,7 @@ modules["dropdowns/lesson/zoom"] = class {
                 Math.round(editor.zoom * 100) + parseInt(zoomChange.getAttribute("change"))
               ) / 20
           ) * 20
-        ) / 100, null, { clientX: editor.contentHolder.offsetWidth / 2, clientY: editor.contentHolder.offsetHeight / 2 });
+        ) / 100, null, { clientX: editor.pageRect.left + (editor.pageOffsetWidth / 2), clientY: editor.pageRect.top + (editor.pageOffsetHeight / 2) });
         return;
       }
       let toggle = element.closest(".eZoomAction");

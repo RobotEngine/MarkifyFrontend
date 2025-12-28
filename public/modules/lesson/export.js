@@ -46,7 +46,12 @@ modules["lesson/export"] = class {
 
     let pageContent = contentHolder.querySelector(".eAnnotations");
 
-    let [annoCode, annoBody] = await sendRequest("GET", "lessons/join/annotations", null, { session: this.parent.session }, { allowError: true });
+    let path = "lessons/join/annotations";
+    let templateID = getParam("template");
+    if (templateID != null) {
+      path += "?template=" + templateID;
+    }
+    let [annoCode, annoBody] = await sendRequest("GET", path, null, { session: this.parent.session }, { allowError: true });
     if (annoCode != 200 && connected == true) {
       return;
     }

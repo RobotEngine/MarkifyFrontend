@@ -27,7 +27,7 @@ modules["modals/lesson/newboard"] = class {
     this.parent = extra.parent;
     this.callback = extra.callback;
     this.session = this.parent.parent.session ?? this.parent.parent.parent.session;
-    this.requestPath = extra.requestPath ?? "lessons/new/board";
+    this.requestPath = extra.requestPath ?? "lessons/board/new";
     this.folder = getParam("folder");
 
     let modal = frame.closest(".modal");

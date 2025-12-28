@@ -73,7 +73,7 @@ modules["modals/lesson/newbreakout"] = class {
 
     let blankButton = frame.querySelector('.brtButton[type="blank"]');
     blankButton.addEventListener("click", () => {
-      extra.modal.open("modals/lesson/newboard", null, blankButton, "Create the Template", null, { parent: this, requestPath: "lessons/new/template", callback: ({ body }) => {
+      extra.modal.open("modals/lesson/newboard", null, blankButton, "Create the Template", null, { parent: this, requestPath: "lessons/breakout/template/new", callback: ({ body }) => {
         this.parent.parent.openPage("secondary", "breakout/template", { template: body });
       } });
     });
@@ -81,7 +81,7 @@ modules["modals/lesson/newbreakout"] = class {
     let cloneButton = frame.querySelector('.brtButton[type="clone"]');
     cloneButton.addEventListener("click", async () => {
       cloneButton.setAttribute("disabled", "");
-      let [code, body] = await sendRequest("POST", "lessons/new/template", { duplicate: true }, { session: this.parent.parent.session });
+      let [code, body] = await sendRequest("POST", "lessons/breakout/template/new", { duplicate: true }, { session: this.parent.parent.session });
       if (code == 200) {
         this.parent.parent.openPage("secondary", "breakout/template", { template: body });
       }
@@ -90,7 +90,7 @@ modules["modals/lesson/newbreakout"] = class {
 
     let duplicateButton = frame.querySelector('.brtButton[type="duplicate"]');
     duplicateButton.addEventListener("click", () => {
-      this.parent.parent.openPage("secondary", "breakout/template", { template: { _id: "6948ec9ef07e1e994cd09002" } }); // TESTING - REMOVE LATER
+      this.parent.parent.openPage("secondary", "breakout/template"); // TESTING - REMOVE LATER
     });
 
     setSVG(blankButton.querySelector("div[image]"), "../images/editor/breakout/blank.svg");

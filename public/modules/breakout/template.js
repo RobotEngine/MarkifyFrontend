@@ -113,9 +113,13 @@ modules["breakout/template"] = class {
     ".brtBottomSection[board] button svg": `width: 32px; height: 32px; transition: .2s`,
     ".brtBottomSection[board] button:hover svg": `transform: scale(.9)`
   };
-  js = async (frame, extra) => {
+  js = async (frame, extra = {}) => {
     if (extra.template == null) {
-      return;
+      let setTemplateID = ((this.parent.parent.lesson ?? {}).breakout ?? {}).template;
+      if (setTemplateID == null) {
+        return;
+      }
+      extra.template = { _id: setTemplateID };
     }
     if (this.parent.parent.session == null) {
       return;
@@ -133,7 +137,7 @@ modules["breakout/template"] = class {
 
     let leftTop = top.querySelector(".brtTopSection[left]");
     let closeButton = leftTop.querySelector(".brtClose");
-    let lessonName = leftTop.querySelector(".brtFileName");
+    let templateName = leftTop.querySelector(".brtFileName");
     let fileButton = leftTop.querySelector(".brtFileDropdown");
     let undoButton = leftTop.querySelector(".brtUndo");
     let redoButton = leftTop.querySelector(".brtRedo");
@@ -189,6 +193,10 @@ modules["breakout/template"] = class {
         return;
       }
       this.template = body;
+    } else {
+      this.parent.parent.lesson.breakout = this.parent.parent.lesson.breakout ?? {};
+      this.parent.parent.lesson.breakout.template = this.template._id;
+      this.parent.parent.pushToPipelines(null, "set", { breakout: { template: this.template._id } });
     }
 
     this.editor = await this.setFrame("editor/editor", contentHolder, {
@@ -315,47 +323,47 @@ modules["breakout/template"] = class {
     this.pipeline.subscribe("statusSavingUpdate", "save_status", (event) => { this.updateStatus(event.saving); });
     this.updateStatus();
 
-    lessonName.textContent = this.template.name ?? "Untitled Template";
-    lessonName.title = lessonName.textContent;
-    lessonName.addEventListener("keydown", (event) => {
+    templateName.textContent = this.template.name ?? "Untitled Template";
+    templateName.title = templateName.textContent;
+    templateName.addEventListener("keydown", (event) => {
       if (event.keyCode == 13) {
         event.preventDefault();
-        lessonName.blur();
+        templateName.blur();
       }
     });
-    lessonName.addEventListener("input", updateTopBar);
-    lessonName.addEventListener("focusout", async () => {
-      lessonName.scrollTo(0, 0);
-      lessonName.parentElement.style.setProperty("--borderWidth", "0px");
+    templateName.addEventListener("input", updateTopBar);
+    templateName.addEventListener("focusout", async () => {
+      templateName.scrollTo(0, 0);
+      templateName.parentElement.style.setProperty("--borderWidth", "0px");
       updateTopBar();
 
-      let name = lessonName.textContent.substring(0, 100).replace(/[^A-Za-z0-9.,_|/\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
+      let name = templateName.textContent.substring(0, 100).replace(/[^A-Za-z0-9.,_|/\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
       if (name.replace(/ /g, "").length < 1) {
-        lessonName.textContent = this.template.name;
+        templateName.textContent = this.template.name;
         return;
       }
-      if (lessonName.textContent == this.template.name) {
-        lessonName.textContent = this.template.name;
+      if (templateName.textContent == this.template.name) {
+        templateName.textContent = this.template.name;
         return;
       }
       let oldName = this.template.name;
       this.template.name = name;
-      lessonName.textContent = name;
-      lessonName.title = name;
-      let [code] = await sendRequest("POST", "lessons/name?template=" + this.template._id, { name: name }, { session: this.session });
+      templateName.textContent = name;
+      templateName.title = name;
+      let [code] = await sendRequest("POST", "lessons/breakout/template/name?template=" + this.template._id, { name: name }, { session: this.parent.parent.session });
       if (code != 200) {
         this.template.name = oldName;
-        lessonName.textContent = oldName;
-        lessonName.title = oldName;
+        templateName.textContent = oldName;
+        templateName.title = oldName;
       }
     });
-    lessonName.addEventListener("focus", async () => {
-      lessonName.parentElement.style.setProperty("--borderWidth", "4px");
+    templateName.addEventListener("focus", async () => {
+      templateName.parentElement.style.setProperty("--borderWidth", "4px");
       updateTopBar();
     });
-    lessonName.addEventListener("paste", clipBoardRead);
+    templateName.addEventListener("paste", clipBoardRead);
     if (this.parent.parent.self.access > 4) {
-      lessonName.setAttribute("contenteditable", "");
+      templateName.setAttribute("contenteditable", "");
     }
 
     fileButton.addEventListener("click", () => {
@@ -506,6 +514,21 @@ modules["breakout/template"] = class {
     this.pipeline.subscribe("pageSwitch", "page_switch", updateSplitScreenButton);
     this.pipeline.subscribe("pageMaximize", "maximize", updateSplitScreenButton);
     updateSplitScreenButton();
+
+    this.pipeline.subscribe("templateSet", "templateset", (body) => {
+      objectUpdate(body, this.template);
+      if (body.hasOwnProperty("name") == true && document.activeElement.closest(".eFileName") != templateName) {
+        templateName.textContent = this.template.name ?? "Untitled Template";
+        templateName.title = templateName.textContent;
+      }
+      if (body.hasOwnProperty("background") == true) {
+        this.editor.updateBackground(body.background);
+      }
+      if (body.hasOwnProperty("tool") == true) {
+        updateSplitScreenButton();
+      }
+      this.updateInterface();
+    });
 
     // Fetch Annotations:
     let pageParam = getParam("page");

@@ -680,7 +680,7 @@ modules["lesson/board"] = class {
     updateSplitScreenButton();
 
     this.pipeline.subscribe("boardLessonSet", "set", (body) => {
-      if (body.name != null && document.activeElement.closest(".eFileName") != lessonName) {
+      if (body.hasOwnProperty("name") == true && document.activeElement.closest(".eFileName") != lessonName) {
         lessonName.textContent = this.lesson.name ?? "Untitled Lesson";
         lessonName.title = lessonName.textContent;
       }

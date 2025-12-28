@@ -450,10 +450,12 @@ modules["pages/app/lesson"] = class extends page {
       }
       socket.remotes["lesson_" + this.id] = async (data) => {
         let events = [];
-        if (Array.isArray(data.data) == false) {
-          events.push(data.data);
-        } else {
-          events = data.data;
+        if (data.tool == null) {
+          if (Array.isArray(data.data) == false) {
+            events.push(data.data);
+          } else {
+            events = data.data;
+          }
         }
 
         for (let i = 0; i < events.length; i++) {
@@ -590,14 +592,14 @@ modules["pages/app/lesson"] = class extends page {
               this.folder = body.folder;
           }
 
-          this.pushToPipelines(data.page, data.task, body);
+          this.pushToPipelines(data.tool, data.task, body);
         }
       }
       socket.remotes["long_" + this.id] = async (data) => {
         if (this.exporting == true) {
           return;
         }
-        this.pushToPipelines(data.page ?? "board", "long", data);
+        this.pushToPipelines(data.tool ?? "board", "long", data);
       }
     }
 

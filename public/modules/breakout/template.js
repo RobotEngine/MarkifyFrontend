@@ -367,7 +367,7 @@ modules["breakout/template"] = class {
     }
 
     fileButton.addEventListener("click", () => {
-      dropdownModule.open(fileButton, "dropdowns/lesson/file", { parent: this });
+      dropdownModule.open(fileButton, "dropdowns/lesson/breakout/template/file", { parent: this });
     });
 
     this.pipeline.subscribe("updateHistory", "history_update", (data) => {
@@ -550,5 +550,139 @@ modules["breakout/template"] = class {
     })();
 
     this.updateInterface();
+  }
+}
+
+modules["dropdowns/lesson/breakout/template/file"] = class {
+  html = `
+  <button class="brtFileAction" option="dashboard" title="Return to the Dashboard" style="--themeColor: var(--secondary)"><div></div>Dashboard</button>
+  <div class="brtFileLine"></div>
+  <button class="brtFileAction" option="export" dropdowntitle="Export" title="Export the lesson as a PDF."><div></div>Export</button>
+  <button class="brtFileAction" option="print" dropdowntitle="Print" title="Export the lesson and print."><div></div>Print</button>
+  <div class="brtFileLine" option="timeline"></div>
+  <button class="brtFileAction" option="history" title="See the lesson's version history as a timeline."><div></div>Timeline History</button>
+  <div class="brtFileLine" option="findjump"></div>
+  <button class="brtFileAction" disabled option="find" title="Find text on the PDF." style="--themeColor: var(--secondary)"><div></div>Find</button>
+  <button class="brtFileAction" option="jumptop" title="Jump to the first page." style="--themeColor: var(--secondary)"><div></div>Jump to Start</button>
+  <button class="brtFileAction" option="jump" title="Jump to page number." style="--themeColor: var(--secondary)"><div></div>Jump to Page</button>
+  <button class="brtFileAction" option="jumpend" title="Jump to the last page." style="--themeColor: var(--secondary)"><div></div>Jump to End</button>
+  <div class="brtFileLine" option="document"></div>
+  <button class="brtFileAction" disabled option="properties" title="View lesson properties." style="--themeColor: var(--secondary)"><div></div>Properties</button>
+  <button class="brtFileAction" disabled option="ocr" title="Run optical character recognition (OCR)."><div></div>Recognize Text</button>
+  <div class="brtFileLine" option="delete"></div>
+  <button class="brtFileAction" option="boardstyle" title="Change the board's background color."><div></div>Background Color</button>
+  <button class="brtFileAction" option="hideshowpage" title="Hide all pages from members."><div></div>Hide All Pages</button>
+  <button class="brtFileAction" option="deleteannotations" title="Remove all annotations from the lesson." style="--themeColor: var(--error)"><div></div>Delete Annotations</button>
+  `;
+  css = {
+    ".brtFileAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
+    ".brtFileAction:not(:last-child)": `margin-bottom: 4px`,
+    ".brtFileAction div": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: var(--pageColor); border-radius: 4px`,
+    ".brtFileAction div svg": `width: 100%; height: 100%`,
+    ".brtFileAction:hover": `background: var(--themeColor); color: #fff`,
+    ".brtFileLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`
+  };
+  js = async function (frame, extra) {
+    let parent = extra.parent;
+    let editor = parent.editor;
+
+    let dashboardButton = frame.querySelector('.brtFileAction[option="dashboard"]');
+    dashboardButton.addEventListener("click", async () => {
+      editor.save.syncSave(true);
+      setFrame("pages/app/dashboard");
+    });
+    let exportButton = frame.querySelector('.brtFileAction[option="export"]');
+    exportButton.addEventListener("click", () => {
+      dropdownModule.open(exportButton, "dropdowns/lesson/file/export", { type: "download", editor: editor });
+    });
+    let printButton = frame.querySelector('.brtFileAction[option="print"]');
+    printButton.addEventListener("click", () => {
+      dropdownModule.open(printButton, "dropdowns/lesson/file/export", { type: "print", editor: editor });
+    });
+
+    let historyButton = frame.querySelector('.brtFileAction[option="history"]');
+    historyButton.addEventListener("click", () => {
+      dropdownModule.close();
+      return parent.openTimeline();
+    });
+
+    let find = frame.querySelector('.brtFileAction[option="find"]');
+    let jumptop = frame.querySelector('.brtFileAction[option="jumptop"]');
+    jumptop.addEventListener("click", () => {
+      if (editor.annotationPages.length > 0) {
+        editor.setPage(1, false);
+        dropdownModule.close();
+      }
+      //editor.contentHolder.scrollTo({ top: 0 });
+    });
+    let jump = frame.querySelector('.brtFileAction[option="jump"]');
+    jump.addEventListener("click", () => {
+      if (editor.annotationPages.length > 0) {
+        editor.page.querySelector(".brtCurrentPage").focus();
+        dropdownModule.close();
+      }
+    });
+    let jumpend = frame.querySelector('.brtFileAction[option="jumpend"]');
+    jumpend.addEventListener("click", () => {
+      if (editor.annotationPages.length > 0) {
+        editor.setPage(editor.annotationPages.length, false);
+        dropdownModule.close();
+      }
+      //editor.contentHolder.scrollTo({ top: editor.contentHolder.scrollHeight });
+    });
+
+    let propertiesButton = frame.querySelector('.brtFileAction[option="properties"]');
+    let ocrButton = frame.querySelector('.brtFileAction[option="ocr"]');
+
+    let boardStyleButton = frame.querySelector('.brtFileAction[option="boardstyle"]');
+    boardStyleButton.addEventListener("click", async () => {
+      dropdownModule.open(boardStyleButton, "dropdowns/editor/boardstyle", { parent: parent });
+    });
+
+    let hideshowpage = frame.querySelector('.brtFileAction[option="hideshowpage"]');
+    hideshowpage.addEventListener("click", async () => {
+      hideshowpage.setAttribute("disabled", "");
+      for (let i = 0; i < parent.editor.annotationPages.length; i++) {
+        let pageID = parent.editor.annotationPages[i][0];
+        let render = (parent.editor.annotations[pageID] ?? {}).render;
+        if (render != null && render.hidden != true) {
+          await parent.editor.save.push({ _id: pageID, hidden: true });
+        }
+      }
+      await parent.editor.save.syncSave(true);
+      hideshowpage.removeAttribute("disabled");
+      dropdownModule.close();
+    });
+
+    let deleteAnnotationsButton = frame.querySelector('.brtFileAction[option="deleteannotations"]');
+    deleteAnnotationsButton.addEventListener("click", () => {
+      dropdownModule.open(deleteAnnotationsButton, "dropdowns/remove", { type: "deleteannotations", lessonID: parent.parent.id, session: editor.session });
+    });
+
+    setSVG(dashboardButton.querySelector("div"), "../images/tooltips/back.svg");
+    setSVG(exportButton.querySelector("div"), "../images/editor/file/export.svg");
+    setSVG(printButton.querySelector("div"), "../images/editor/file/print.svg");
+    setSVG(historyButton.querySelector("div"), "../images/editor/file/history.svg");
+    setSVG(find.querySelector("div"), "../images/editor/file/search.svg");
+    setSVG(jumptop.querySelector("div"), "../images/editor/file/uparrow.svg");
+    setSVG(jump.querySelector("div"), "../images/editor/file/jump.svg");
+    setSVG(jumpend.querySelector("div"), "../images/editor/file/downarrow.svg");
+    setSVG(propertiesButton.querySelector("div"), "../images/editor/file/info.svg");
+    setSVG(ocrButton.querySelector("div"), "../images/editor/file/text.svg");
+    setSVG(boardStyleButton.querySelector("div"), "../images/editor/file/fillbucket.svg");
+    setSVG(hideshowpage.querySelector("div"), "../images/editor/file/hideshow.svg");
+    setSVG(deleteAnnotationsButton.querySelector("div"), "../images/editor/file/delete.svg");
+
+    if (editor.annotationPages.length < 1) {
+      frame.querySelector('.brtFileLine[option="findjump"]').remove();
+      jumptop.remove();
+      jump.remove();
+      jumpend.remove();
+    }
+
+    find.remove();
+    frame.querySelector('.brtFileLine[option="document"]').remove();
+    propertiesButton.remove();
+    ocrButton.remove();
   }
 }

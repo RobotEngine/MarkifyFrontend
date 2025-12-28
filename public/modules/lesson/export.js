@@ -47,6 +47,10 @@ modules["lesson/export"] = class {
     let pageContent = contentHolder.querySelector(".eAnnotations");
 
     let path = "lessons/join/annotations";
+    let groupID = getParam("group");
+    if (groupID != null) {
+      path += "?group=" + groupID;
+    }
     let templateID = getParam("template");
     if (templateID != null) {
       path += "?template=" + templateID;

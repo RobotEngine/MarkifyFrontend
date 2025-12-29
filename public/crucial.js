@@ -26,7 +26,7 @@ const version = "1.6.26"; // Big Update . Small Feature Release . Bug Fix
 const domain = "markifyapp.com";
 
 let config = configurations[configuration];
-if (window.location.hostname == domain) {
+if (configuration != "public" && window.location.hostname == domain) {
   config = configurations["public"];
 }
 const serverURL = config.server;

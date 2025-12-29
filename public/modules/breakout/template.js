@@ -188,7 +188,7 @@ modules["breakout/template"] = class {
     let fetchAnnotations = sendRequest("GET", "lessons/join/annotations?template=" + this.template._id, null, { session: this.parent.parent.session }, { allowError: true });
 
     if (this.template.created == null) {
-      let [code, body] = await sendRequest("GET", "lessons/join/template?template=" + this.template._id, null, { session: this.parent.parent.session }, { allowError: true });
+      let [code, body] = await sendRequest("GET", "lessons/breakout/template?template=" + this.template._id, null, { session: this.parent.parent.session }, { allowError: true });
       if (code != 200) {
         return;
       }
@@ -682,7 +682,7 @@ modules["dropdowns/lesson/breakout/template/file"] = class {
 
     let deleteAnnotationsButton = frame.querySelector('.brtFileAction[option="deleteannotations"]');
     deleteAnnotationsButton.addEventListener("click", () => {
-      dropdownModule.open(deleteAnnotationsButton, "dropdowns/remove", { type: "deleteannotations", lessonID: parent.parent.id, session: editor.session });
+      dropdownModule.open(deleteAnnotationsButton, "dropdowns/remove", { type: "deleteannotations", lessonID: parent.parent.id, session: editor.session, parameters: editor.parameters });
     });
 
     setSVG(overviewButton.querySelector("div"), "../images/tooltips/back.svg");

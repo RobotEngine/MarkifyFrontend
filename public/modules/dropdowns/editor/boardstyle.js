@@ -21,7 +21,7 @@ modules["dropdowns/editor/boardstyle"] = class {
     ".eBackgroundStyleHolder button": `box-sizing: border-box; width: 100px; height: 100px; padding: 0px; --borderWidth: 4px; --borderRadius: 8px`,
     ".eBackgroundStyleHolder button:before": `content: ""; position: absolute; width: calc(100% + 0px); height: calc(100% + 0px); left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: .075; background-image: var(--background); background-size: 32px; background-position: center`,
     ".eBackgroundStyleHolder button:hover": `--borderColor: var(--hover)`,
-    ".eBackgroundStyleHolder button[selected]": `--borderColor: var(--theme)`,
+    ".eBackgroundStyleHolder button[selected]": `--borderWidth: 6px; --borderColor: var(--theme)`,
   };
   js = async (frame, extra) => {
     let parent = extra.parent;
@@ -45,7 +45,7 @@ modules["dropdowns/editor/boardstyle"] = class {
       if (currentSelect != null) {
         currentSelect.removeAttribute("selected");
       }
-      let newSelect = styleHolder.querySelector('button[color="' + (parent.lesson.background ?? "FFFFFF").toUpperCase() + '"]');
+      let newSelect = styleHolder.querySelector('button[color="' + (editor.backgroundColor ?? "FFFFFF").toUpperCase() + '"]');
       if (newSelect != null) {
         newSelect.setAttribute("selected", "");
       }
@@ -63,11 +63,15 @@ modules["dropdowns/editor/boardstyle"] = class {
         return;
       }
       let color = button.getAttribute("color");
-      if (color == parent.lesson.background ?? "FFFFFF") {
+      if (color == (editor.backgroundColor ?? "FFFFFF")) {
         return;
       }
       styleHolder.setAttribute("disabled", "");
-      await sendRequest("POST", "lessons/background", { color: color }, { session: editor.session });
+      let path = "lessons/save/background";
+      if ((editor.parameters ?? []).length > 0) {
+        path += "?" + editor.parameters.join("&");
+      }
+      await sendRequest("POST", path, { color: color }, { session: editor.session });
       styleHolder.removeAttribute("disabled");
     });
   }

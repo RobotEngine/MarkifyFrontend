@@ -39,7 +39,7 @@ modules["lesson/export"] = class {
         collaborators: this.parent.collaborators,
         settings: this.parent.lesson.settings,
         resync: this.resync,
-        backgroundColor: this.lesson.background ?? "FFFFFF",
+        backgroundColor: getParam("background") ?? this.lesson.background ?? "FFFFFF",
         exporting: true
       }
     });

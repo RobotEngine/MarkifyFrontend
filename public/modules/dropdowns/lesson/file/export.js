@@ -59,7 +59,11 @@ modules["dropdowns/lesson/file/export"] = class {
       if (method == "selected") {
         sendBody.selecting = Object.keys(editor.selecting);
       }
-      let [code, body] = await sendRequest("POST", "lessons/exportv2", sendBody, { session: editor.session });
+      let path = "lessons/export";
+      if ((editor.parameters ?? []).length > 0) {
+        path += "?" + editor.parameters.join("&");
+      }
+      let [code, body] = await sendRequest("POST", path, sendBody, { session: editor.session });
       if (frame != null) {
         frame.removeAttribute("disabled");
       }

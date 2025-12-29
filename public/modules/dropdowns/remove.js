@@ -56,6 +56,9 @@ modules["dropdowns/remove"] = class {
         pathAdd += "?lesson=" + extra.lessonID;
       } else if (option == "deleteannotations") {
         pathAdd += "/annotations";
+        if ((extra.parameters ?? []).length > 0) {
+          pathAdd += "?" + extra.parameters.join("&");
+        }
       } else if (option == "deletefolder") {
         pathAdd += "/folder?folder=" + extra.folderID;
       }

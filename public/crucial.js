@@ -1,4 +1,4 @@
-const configs = {
+const configurations = {
   public: {
     server: window.serverURL ?? "https://api.markifyapp.com/",
     exotek_id: "631056064efd34591c5a8e05",
@@ -21,9 +21,14 @@ const configs = {
   }
 };
 
-const config = configs["prodTesting"];
+const configuration = "public";
 const version = "1.6.26"; // Big Update . Small Feature Release . Bug Fix
+const domain = "markifyapp.com";
 
+let config = configurations[configuration];
+if (window.location.hostname == domain) {
+  config = configurations["public"];
+}
 const serverURL = config.server;
 const assetURL = config.assets;
 const isLocal = ["localhost", "127.0.0.1"].includes(location.hostname);

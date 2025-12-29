@@ -514,7 +514,10 @@ modules["breakout/template"] = class {
     this.pipeline.subscribe("pageMaximize", "maximize", updateSplitScreenButton);
     updateSplitScreenButton();
 
-    this.pipeline.subscribe("templateSet", "templateset", (body) => {
+    this.pipeline.subscribe("templateSet", "set", (body) => {
+      if (body._id != this.template._id) {
+        return;
+      }
       objectUpdate(body, this.template);
       if (body.hasOwnProperty("name") == true && document.activeElement.closest(".eFileName") != templateName) {
         templateName.textContent = this.template.name ?? "Untitled Template";

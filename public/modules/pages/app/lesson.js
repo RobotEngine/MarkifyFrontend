@@ -450,148 +450,147 @@ modules["pages/app/lesson"] = class extends page {
       }
       socket.remotes["lesson_" + this.id] = async (data) => {
         let events = [];
-        if (data.tool == null) {
-          if (Array.isArray(data.data) == false) {
-            events.push(data.data);
-          } else {
-            events = data.data;
-          }
+        if (Array.isArray(data.data) == false) {
+          events.push(data.data);
+        } else {
+          events = data.data;
         }
 
         for (let i = 0; i < events.length; i++) {
           let body = events[i];
-          switch (data.task) {
-            case "join":
-              let member = this.members[body._id];
-              if (member == null) {
-                this.members[body._id] = {};
-                member = this.members[body._id];
-                this.memberCount++;
-              }
-              objectUpdate(body, member);
-              let collaborator = this.collaborators[body.modify] ?? {};
-              collaborator.name = body.name;
-              collaborator.color = body.color;
-              if (body.hasOwnProperty("email") == true) {
-                collaborator.email = body.email;
-              }
-              if (body.hasOwnProperty("image") == true) {
-                collaborator.image = body.image;
-              }
-              if (collaborator._id == null) {
-                this.collaborators[body.modify] = { _id: body.modify, ...collaborator };
-              } else {
-                this.pushToPipelines(null, "collaborator_update", collaborator);
-                this.pushToPipelines(null, "collaborator_update_" + body.modify, collaborator);
-              }
-              if (body.access == 1 && (member.access == null || member.access < 1)) {
-                this.editorCount++;
-              } else if (body.access == 0 && member.access > 0) {
-                this.editorCount--;
-              }
-              if (body.hand != null && member.hand == null) {
-                this.handCount++;
-              } else if (body.hand == null && member.hand != null) {
-                this.handCount--;
-              }
-              if (body._id != this.sessionID) {
-                if (body.active == false && member.active != false) {
-                  this.idleCount++;
-                } else if (body.active != false && member.active == false) {
-                  this.idleCount--;
-                }
-              }
-              break;
-            case "leave":
-              if (this.members[body._id] != null) {
+          if (data.tool == null) {
+            switch (data.task) {
+              case "join":
                 let member = this.members[body._id];
-                if (member.access == 1) {
-                  this.editorCount--;
+                if (member == null) {
+                  this.members[body._id] = {};
+                  member = this.members[body._id];
+                  this.memberCount++;
                 }
-                if (member.hand != null) {
-                  this.handCount--;
+                objectUpdate(body, member);
+                let collaborator = this.collaborators[body.modify] ?? {};
+                collaborator.name = body.name;
+                collaborator.color = body.color;
+                if (body.hasOwnProperty("email") == true) {
+                  collaborator.email = body.email;
                 }
-                if (body._id != this.sessionID) {
-                  if (member.active == false) {
-                    this.idleCount--;
-                  }
+                if (body.hasOwnProperty("image") == true) {
+                  collaborator.image = body.image;
                 }
-                body.member = member;
-                delete this.members[body._id];
-                this.memberCount--;
-              }
-              break;
-            case "update":
-              if (this.members[body._id] != null) {
-                let member = this.members[body._id];
-                if (body.access == 1 && member.access < 1) {
+                if (collaborator._id == null) {
+                  this.collaborators[body.modify] = { _id: body.modify, ...collaborator };
+                } else {
+                  this.pushToPipelines(null, "collaborator_update", collaborator);
+                  this.pushToPipelines(null, "collaborator_update_" + body.modify, collaborator);
+                }
+                if (body.access == 1 && (member.access == null || member.access < 1)) {
                   this.editorCount++;
                 } else if (body.access == 0 && member.access > 0) {
                   this.editorCount--;
                 }
                 if (body.hand != null && member.hand == null) {
                   this.handCount++;
-                } else if (body.hasOwnProperty("hand") == true && member.hand != null) {
+                } else if (body.hand == null && member.hand != null) {
                   this.handCount--;
                 }
-                if (body.hasOwnProperty("active") == true && body._id != this.sessionID) {
+                if (body._id != this.sessionID) {
                   if (body.active == false && member.active != false) {
                     this.idleCount++;
                   } else if (body.active != false && member.active == false) {
                     this.idleCount--;
                   }
                 }
-                objectUpdate(body, member);
-                if (member.access > 0 && member.hand != null) {
-                  member.hand = null;
-                  this.handCount--;
+                break;
+              case "leave":
+                if (this.members[body._id] != null) {
+                  let member = this.members[body._id];
+                  if (member.access == 1) {
+                    this.editorCount--;
+                  }
+                  if (member.hand != null) {
+                    this.handCount--;
+                  }
+                  if (body._id != this.sessionID) {
+                    if (member.active == false) {
+                      this.idleCount--;
+                    }
+                  }
+                  body.member = member;
+                  delete this.members[body._id];
+                  this.memberCount--;
                 }
-                let collaborator = this.collaborators[member.modify];
-                if (collaborator != null) {
-                  let change = false;
-                  if (body.hasOwnProperty("name") == true) {
-                    collaborator.name = body.name;
-                    change = true;
+                break;
+              case "update":
+                if (this.members[body._id] != null) {
+                  let member = this.members[body._id];
+                  if (body.access == 1 && member.access < 1) {
+                    this.editorCount++;
+                  } else if (body.access == 0 && member.access > 0) {
+                    this.editorCount--;
                   }
-                  if (body.hasOwnProperty("color") == true) {
-                    collaborator.color = body.color;
-                    change = true;
+                  if (body.hand != null && member.hand == null) {
+                    this.handCount++;
+                  } else if (body.hasOwnProperty("hand") == true && member.hand != null) {
+                    this.handCount--;
                   }
-                  if (body.hasOwnProperty("email") == true) {
-                    collaborator.email = body.email;
-                    change = true;
+                  if (body.hasOwnProperty("active") == true && body._id != this.sessionID) {
+                    if (body.active == false && member.active != false) {
+                      this.idleCount++;
+                    } else if (body.active != false && member.active == false) {
+                      this.idleCount--;
+                    }
                   }
-                  if (body.hasOwnProperty("image") == true) {
-                    collaborator.image = body.image;
-                    change = true;
+                  objectUpdate(body, member);
+                  if (member.access > 0 && member.hand != null) {
+                    member.hand = null;
+                    this.handCount--;
                   }
-                  if (change == true) {
-                    this.pushToPipelines(null, "collaborator_update", collaborator);
-                    this.pushToPipelines(null, "collaborator_update_" + member.modify, collaborator);
+                  let collaborator = this.collaborators[member.modify];
+                  if (collaborator != null) {
+                    let change = false;
+                    if (body.hasOwnProperty("name") == true) {
+                      collaborator.name = body.name;
+                      change = true;
+                    }
+                    if (body.hasOwnProperty("color") == true) {
+                      collaborator.color = body.color;
+                      change = true;
+                    }
+                    if (body.hasOwnProperty("email") == true) {
+                      collaborator.email = body.email;
+                      change = true;
+                    }
+                    if (body.hasOwnProperty("image") == true) {
+                      collaborator.image = body.image;
+                      change = true;
+                    }
+                    if (change == true) {
+                      this.pushToPipelines(null, "collaborator_update", collaborator);
+                      this.pushToPipelines(null, "collaborator_update_" + member.modify, collaborator);
+                    }
+                  }
+                } else {
+                  return;
+                }
+                break;
+              case "set":
+                objectUpdate(body, this.lesson);
+                if (body.hasOwnProperty("name") == true) {
+                  document.title = (this.lesson.name ?? "Untitled Lesson") + " | Markify";
+                }
+                if (body.settings != null) {
+                  if (body.settings.forceLogin == false && this.self.access < 2) {
+                    setFrame("pages/app/join", null, { passParams: true });
                   }
                 }
-              } else {
-                return;
-              }
-              break;
-            case "set":
-              objectUpdate(body, this.lesson);
-              if (body.hasOwnProperty("name") == true) {
-                document.title = (this.lesson.name ?? "Untitled Lesson") + " | Markify";
-              }
-              if (body.settings != null) {
-                if (body.settings.forceLogin == false && this.self.access < 2) {
-                  setFrame("pages/app/join", null, { passParams: true });
-                }
-              }
-              break;
-            case "addsources":
-              this.sources = { ...this.sources, ...getObject(body.sources ?? [], "_id") };
-              break;
-            case "folderset":
-              this.folder = body.folder;
+                break;
+              case "addsources":
+                this.sources = { ...this.sources, ...getObject(body.sources ?? [], "_id") };
+                break;
+              case "folderset":
+                this.folder = body.folder;
+            }
           }
-
           this.pushToPipelines(data.tool, data.task, body);
         }
       }

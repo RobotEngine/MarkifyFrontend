@@ -235,7 +235,11 @@ modules["editor/timeline"] = class {
         await this.editor.utils.setAnnotationChunks(this.editor.annotations[annotations[i][0]]);
       }
     } else {
-      let [annoCode, annoBody] = await sendRequest("GET", "lessons/join/annotations", null, { session: this.parent.session }, { allowError: true });
+      let path = "lessons/join/annotations";
+      if ((this.parameters ?? []).length > 0) {
+        path += "?" + this.parameters.join("&");
+      }
+      let [annoCode, annoBody] = await sendRequest("GET", path, null, { session: this.parent.session }, { allowError: true });
       if (annoCode != 200) {
         return alertModule.open("error", `<b>Error Loading Annotations</b>Please try again later...`);
       }
@@ -776,13 +780,17 @@ modules["editor/timeline"] = class {
             loadFunction = null;
             return;
           }
-          let path = "lessons/history"; //allChangesLoaded
+          let parameters = [...(this.parameters ?? [])];
           let getAmount = 100;
           if (orderedChanges.length > 0) {
-            path += "?amount=" + loadAmount + "&before=" + ((changes[orderedChanges[0]] ?? {}).added ?? getEpoch());
+            parameters.push("amount=" + loadAmount + "&before=" + ((changes[orderedChanges[0]] ?? {}).added ?? getEpoch()));
             getAmount = loadAmount;
           } else {
-            path += "?before=" + loadEpoch;
+            parameters.push("before=" + loadEpoch);
+          }
+          let path = "lessons/history";
+          if (parameters.length > 0) {
+            path += "?" + parameters.join("&");
           }
           let [code, body] = await sendRequest("GET", path, null, { session: this.parent.session });
           if (code == 200) {
@@ -850,9 +858,13 @@ modules["editor/timeline"] = class {
 
       await Promise.all([
         new Promise(async (resolve) => {
-          let path = "lessons/history/count";
+          let parameters = [...(this.parameters ?? [])];
           if (filterMembers != null) {
-            path += "?collaborators=" + filterMembers.join();
+            parameters.push("collaborators=" + filterMembers.join());
+          }
+          let path = "lessons/history/count";
+          if (parameters.length > 0) {
+            path += "?" + parameters.join("&");
           }
           let [code, body] = await sendRequest("GET", path, null, { session: this.parent.session, allowError: [403] });
           if (code == 200) {
@@ -989,7 +1001,7 @@ modules["editor/timeline"] = class {
     });
 
     (async () => {
-      let [code, body] = await sendRequest("GET", "lessons/history/collaborators?before=" + loadEpoch, null, { session: this.session, allowError: [403] });
+      let [code, body] = await sendRequest("GET", "lessons/history/collaborators?" + [...(this.parameters ?? []), ("before=" + loadEpoch)].join("&"), null, { session: this.session, allowError: [403] });
       if (code != 200 && frame != null) {
         return dropdownModule.close();
       }
@@ -1008,9 +1020,13 @@ modules["editor/timeline"] = class {
 
     revertButton.addEventListener("click", async () => {
       frame.setAttribute("disabled", "");
-      let path = "lessons/history/revert";
+      let parameters = [...(this.parameters ?? [])];
       if (currentChange != null) {
-        path += "?change=" + currentChange;
+        parameters.push("change=" + currentChange);
+      }
+      let path = "lessons/history/revert";
+      if (parameters.length > 0) {
+        path += "?" + parameters.join("&");
       }
       let [code] = await sendRequest("GET", path, null, { session: this.parent.session });
       if (code == 200) {

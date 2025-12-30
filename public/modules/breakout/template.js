@@ -204,7 +204,7 @@ modules["breakout/template"] = class {
         page: page,
         pageID: this.parent.pageID,
         pageType: this.parent.pageType,
-        id: this.parent.parent.lesson.id,
+        
         lesson: this.parent.parent,
         self: this.parent.parent.self,
         session: this.parent.parent.session,
@@ -217,7 +217,7 @@ modules["breakout/template"] = class {
         lastSavePreferences: JSON.parse(stringPref),
         backgroundColor: this.template.background ?? "FFFFFF",
 
-        identifier: this.template._id,
+        id: this.template._id,
         parameters: [("template=" + this.template._id)]
       }
     });
@@ -626,7 +626,7 @@ modules["dropdowns/lesson/breakout/template/file"] = class {
 
         annotations: parent.editor.annotations,
 
-        identifier: parent.template._id,
+        id: parent.template._id,
         parameters: [("template=" + parent.template._id)]
       };
       this.timeline = await parent.parent.openPage("tertiary", "editor/timeline", { construct });

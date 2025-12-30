@@ -30,7 +30,7 @@ modules["pages/app/lesson"] = class extends page {
     ".lPageHolder": `position: fixed; display: flex; box-sizing: border-box; width: 100vw; width: 100dvw; height: 100vh; height: 100dvh; padding: 8px; left: 0px; top: 0px; contain: strict; justify-content: center; touch-action: none`,
     ".lPageHolder[resize]": `user-select: none; cursor: col-select`,
     ".lPageHolder[maximize]": `padding: 0px !important`,
-    ".lPage": `--shadowOpacity: .3; position: relative; display: flex; width: 100%; height: 100%; flex: 1; z-index: 1; background: var(--pageColor); box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: 12px; overflow: hidden; transition: all .2s, flex .4s`, //min-width: min(var(--minPageSize), 100%);
+    ".lPage": `--shadowOpacity: .3; position: relative; display: flex; width: 100%; height: 100%; flex: 1; z-index: 1; background: var(--pageColor); box-shadow: 0px 0px 8px 0px rgba(var(--themeRGB), var(--shadowOpacity)); border-radius: 12px; overflow: hidden; transition: all .2s, flex .4s; contain: strict; will-change: flex`, //min-width: min(var(--minPageSize), 100%);
     ".lPage[active]": `--shadowOpacity: .5 !important`,
     ".lPage[remove]": `flex: 0 !important; opacity: 0 !important; min-width: 0px !important`,
     ".lPageHolder[resize] .lPage": `min-width: unset; transition: unset`,
@@ -39,11 +39,11 @@ modules["pages/app/lesson"] = class extends page {
     ".lPageHolder[maximize] .lPage[active]": `transform: scale(1) !important; z-index: 3 !important; border-radius: 0px !important; opacity: 1 !important`,
 
     ".lPageDivider": `display: flex; flex-shrink: 0; width: 8px; max-width: 8px; height: 100%; z-index: 2; justify-content: center; align-items: center; cursor: col-resize; transition: .2s`,
-    ".lPageDivider div": `width: 2px; height: calc(min(50px, 100%) - 8px); background: var(--gray); border-radius: 2px; transition: .2s`,
+    ".lPageDivider div": `--color: var(--gray); width: 2px; height: calc(min(50px, 100%) - 8px); background-color: var(--color); background-image: linear-gradient(0, transparent, var(--color) 25%, var(--color) 75%, transparent); border-radius: 2px; transition: .2s`,
     ".lPageDivider[remove]": `width: 0px; opacity: 0`,
     ".lPageHolder[maximize] .lPageDivider": "display: none",
-    ".lPageDivider:hover div": `height: calc(100% - 8px)`,
-    ".lPageDivider:active div": `width: 4px; height: calc(100% - 8px); background: var(--activeGray)`
+    ".lPageDivider:hover div": `height: calc(100% - 8px); background-color: unset !important`,
+    ".lPageDivider:active div": `--color: var(--activeGray); width: 4px; height: calc(100% - 8px); background-color: unset !important`
   };
 
   pages = {};

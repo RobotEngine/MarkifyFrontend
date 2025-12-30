@@ -90,6 +90,9 @@ modules["dropdowns/lesson/file/export"] = class {
 
     let frameParent = app.querySelector(".content");
     editor.pipeline.subscribe("exportDropdownUpdate", "exportstatus", async (body) => {
+      if (body.id != null && body.id != editor.id) {
+        return;
+      }
       let exportStatus = editor.exportStatus;
       if (exportStatus == null || exportStatus.exportAlert == null) {
         return;

@@ -3573,7 +3573,7 @@ modules["editor/editor"] = class {
       if (this.realtime.enabled == false) {
         return;
       }
-      if (this.identifier != null && event.id != this.identifier) {
+      if (event.id != null && event.id != this.id) {
         return;
       }
 

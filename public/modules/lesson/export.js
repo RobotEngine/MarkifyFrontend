@@ -2,6 +2,7 @@ modules["lesson/export"] = class {
   html = `<div class="eExportHolder"></div>`;
   css = {
     ".content": `transition: unset !important`,
+    '.lPage[pagetype="export"]': `contain: unset !important; will-change: unset !important`,
     ".eExportHolder": `position: relative; width: fit-content; height: fit-content`,
     ".eExportHolder .eContent": `transition: unset !important`,
     ".eAnnotation[anno][hide] > div[hide]": `background: var(--pageColor)`,

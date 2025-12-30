@@ -204,6 +204,7 @@ modules["breakout/template"] = class {
         page: page,
         pageID: this.parent.pageID,
         pageType: this.parent.pageType,
+        active: this.parent.parent.active,
         
         lesson: this.parent.parent,
         self: this.parent.parent.self,
@@ -514,8 +515,12 @@ modules["breakout/template"] = class {
     this.pipeline.subscribe("pageMaximize", "maximize", updateSplitScreenButton);
     updateSplitScreenButton();
 
+    this.pipeline.subscribe("checkPageSwitch", "page_switch", (data) => {
+      this.editor.active = data.pageType == "breakout";
+    });
+
     this.pipeline.subscribe("templateSet", "set", (body) => {
-      if (body._id != this.template._id) {
+      if (body.id != this.template._id) {
         return;
       }
       objectUpdate(body, this.template);
@@ -525,9 +530,6 @@ modules["breakout/template"] = class {
       }
       if (body.hasOwnProperty("background") == true) {
         this.editor.updateBackground(body.background);
-      }
-      if (body.hasOwnProperty("tool") == true) {
-        updateSplitScreenButton();
       }
       this.updateInterface();
     });

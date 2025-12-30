@@ -45,10 +45,10 @@ modules["editor/realtime"] = class {
       if (event != null) {
         ({ mouseX, mouseY } = editor.utils.localMousePosition(event));
       }
-      if (editor.parent.parent.memberCount < 2) { // No one to send cursor events too!
+      if (editor.lesson.memberCount < 2) { // No one to send cursor events too!
         return;
       }
-      if (editor.parent.parent.signalStrength < 3 || connected == false) { // If weak don't send!
+      if (editor.lesson.signalStrength < 3 || connected == false) { // If weak don't send!
         return;
       }
       if (editor.self.access < 1 && editor.realtime.observed < 1) { // Not an editor!
@@ -57,16 +57,18 @@ modules["editor/realtime"] = class {
       let epoch = getEpoch();
       if (type == "cursor") {
         clearTimeout(endSyncTimeout);
+        if (editor.isPageActive() != true) {
+          return;
+        }
         if (lastCursorPublish < epoch - 80 || ignoreSame == true) { // One event every 80 ms
-          if (editor.isPageActive() != true) {
-            return;
-          }
           if (mouseX == null || mouseY == null) {
             return;
           }
 
-          let standardFilter = { c: "short_" + editor.id };
-          if (editor.realtime.observed > 0 && editor.self.access < 1) {
+          let standardFilter = { c: "member" };
+          if (editor.self.access > 0) {
+            standardFilter.c = "short_" + editor.id;
+          } else if (editor.realtime.observed > 0) {
             standardFilter.o = editor.sessionID;
           }
           let filter = { ...standardFilter };
@@ -161,7 +163,7 @@ modules["editor/realtime"] = class {
       } else if (type == "observe") {
         clearTimeout(endSyncObserveTimeout);
         if (lastObservePublish < epoch - 250) { // One event every 250 ms
-          let filter = { c: "short_" + editor.id, o: editor.sessionID };
+          let filter = { c: "member", o: editor.sessionID };
 
           let annotationRect = editor.utils.annotationsRect();
           let sendX = ((editor.page.offsetWidth / 2) - annotationRect.left) / editor.zoom;
@@ -233,13 +235,10 @@ modules["editor/realtime"] = class {
     }, { sort: 2 });
 
     this.setShortSub = (chunks) => {
-      if (editor.parent.parent.signalStrength < 3 || editor.options.cursors == false) {
+      if (editor.lesson.signalStrength < 3 || editor.options.cursors == false) {
         chunks = null;
       }
       let filter = { c: "short_" + editor.id, p: chunks };
-      if (editor.realtime.observing != null) {
-        filter.o = editor.realtime.observing;
-      }
       if (this.shortSub != null) {
         this.shortSub.edit(filter);
       } else {
@@ -250,6 +249,20 @@ modules["editor/realtime"] = class {
           editor.pipeline.publish("short", data); // Dump onto the pipeline
         });
         editor.realtime.subscribes.push(this.shortSub);
+      }
+      if (editor.realtime.observing != null) {
+        let observeFilter = { c: "member", o: editor.realtime.observing, p: chunks };
+        if (this.observeSub != null) {
+          this.observeSub.edit(observeFilter);
+        } else {
+          this.observeSub = subscribe(observeFilter, async (data) => {
+            editor.pipeline.publish("short", data); // Dump onto the pipeline
+          });
+          editor.realtime.subscribes.push(this.observeSub);
+        }
+      } else if (this.observeSub != null) {
+        this.observeSub.close();
+        this.observeSub = null;
       }
     }
 
@@ -298,7 +311,7 @@ modules["editor/realtime"] = class {
           editor.lastZoom = null;
         }
 
-        let member = editor.parent.parent.members[prevObservID];
+        let member = editor.lesson.members[prevObservID];
         if (member == null) {
           return;
         }
@@ -353,7 +366,7 @@ modules["editor/realtime"] = class {
     editor.pipeline.subscribe("realtimeShortSub", "short", async (event) => {
       let data = copyObject(event);
       let memberID = data[0];
-      let memberData = editor.parent.parent.members[memberID];
+      let memberData = editor.lesson.members[memberID];
       if (memberData == null || memberID == editor.self._id) {
         return;
       }

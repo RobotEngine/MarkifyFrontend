@@ -1073,7 +1073,7 @@ modules["pages/app/lesson"] = class extends page {
         }
       }
   
-      let pingSocketFilter = { c: "short_" + this.id, o: this.sessionID, t: this.sessionToken };
+      let pingSocketFilter = { c: "member", o: this.sessionID, t: this.sessionToken };
       let awaitingPongs = {};
       let pongTimeoutTime = 500; // ms
       subscribe(pingSocketFilter, (pingID) => {

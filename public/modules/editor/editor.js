@@ -3679,7 +3679,7 @@ modules["editor/editor"] = class {
       }
       this.pipeline.publish("redraw_selection", { refresh: true, redrawCurrentAction: true, refreshActionBar: true, fromLong: true }); //redrawActionBar: redrawAction,
     });
-    this.pipeline.subscribe("removeAnnotationUpdate", "removeannotations", async (data) => {
+    /*this.pipeline.subscribe("removeAnnotationUpdate", "removeannotations", async (data) => {
       if (this.realtime.enabled == false) {
         return;
       }
@@ -3698,7 +3698,7 @@ modules["editor/editor"] = class {
         }
       }
       this.pipeline.publish("redraw_selection", { fromLong: true });
-    });
+    });*/
     this.pipeline.subscribe("reactionAnnotation", "reaction", async (event) => {
       if (this.realtime.enabled == false) {
         return;

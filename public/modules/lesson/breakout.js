@@ -153,7 +153,7 @@ modules["lesson/breakout"] = class {
     this.pipeline.subscribe("checkActivePage", "click_start", () => {
       if (this.parent.activePageID != this.pageID) {
         this.parent.activePageID = this.pageID;
-        this.parent.pushToPipelines(null, "page_switch", { pageID: this.pageID });
+        this.parent.pushToPipelines(null, "page_switch", { pageType: this.pageType, pageID: this.pageID });
       }
     });
     let updateActivePage = () => {

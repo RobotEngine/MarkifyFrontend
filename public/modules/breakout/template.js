@@ -516,7 +516,7 @@ modules["breakout/template"] = class {
     updateSplitScreenButton();
 
     this.pipeline.subscribe("checkPageSwitch", "page_switch", (data) => {
-      this.editor.active = data.pageType == "breakout";
+      this.editor.active = data.pageID == "breakout";
     });
 
     this.pipeline.subscribe("templateSet", "set", (body) => {

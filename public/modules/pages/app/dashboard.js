@@ -1606,7 +1606,7 @@ modules["pages/app/dashboard/lessons"] = class {
       tile.setAttribute("lesson", record.lesson);
       tile.setAttribute("time", time);
       let placeholderThumbnail = tile.querySelector(".dTileThumbnail[src]");
-      let thumbnail = tile.querySelector(".dTileThumbnail[main");
+      let thumbnail = tile.querySelector(".dTileThumbnail[main]");
       if (lesson.thumbnail != null) {
         let loadingTimeout = setTimeout(() => {
           placeholderThumbnail.style.transition = ".4s";
@@ -1632,8 +1632,9 @@ modules["pages/app/dashboard/lessons"] = class {
         thumbnail.style.transition = ".4s";
       }
       let title = tile.querySelector(".dTileTitle");
-      title.textContent = lesson.name ?? "Untitled Lesson";
-      title.title = lesson.name ?? "Untitled Lesson";
+      let titleText = lesson.name ?? "Untitled Lesson";
+      title.textContent = titleText;
+      title.title = titleText;
       let openedTx = tile.querySelector(".dTileLastOpened");
       openedTx.textContent = timeSince(time, true);
       openedTx.title = formatFullDate(time);

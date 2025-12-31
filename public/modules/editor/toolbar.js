@@ -3765,9 +3765,17 @@ modules["editor/toolbar"] = class {
           annotation: reaction.closest(".eAnnotation").getAttribute("anno")
         };
         if (reaction.hasAttribute("selected") == false) {
-          await sendRequest("PUT", "lessons/members/reaction", body, { session: editor.session });
+          let path = "lessons/members/reaction";
+          if ((editor.parameters ?? []).length > 0) {
+            path += "?" + editor.parameters.join("&");
+          }
+          await sendRequest("PUT", path, body, { session: editor.session });
         } else {
-          await sendRequest("PUT", "lessons/members/reaction/remove", body, { session: editor.session });
+          let path = "lessons/members/reaction/remove";
+          if ((editor.parameters ?? []).length > 0) {
+            path += "?" + editor.parameters.join("&");
+          }
+          await sendRequest("PUT", path, body, { session: editor.session });
         }
         reaction.removeAttribute("disabled");
         return true;
@@ -7118,7 +7126,11 @@ modules["editor/toolbar/upload"] = class extends modules["editor/toolbar/resize_
               image.src = this.imageBlob;
               let form = new FormData();
               form.append("media", file);
-              let [code, result] = await sendRequest("POST", "lessons/save/upload", form, { noFileType: true, session: this.editor.session });
+              let path = "lessons/save/upload";
+              if ((this.editor.parameters ?? []).length > 0) {
+                path += "?" + this.editor.parameters.join("&");
+              }
+              let [code, result] = await sendRequest("POST", path, form, { noFileType: true, session: this.editor.session });
               if (code == 200) {
                 let preload = new Image();
                 preload.src = assetURL + result.file;
@@ -9070,7 +9082,11 @@ modules["editor/toolbar/reactions"] = class {
       this.button.setAttribute("disabled", "");
 
       (async () => {
-        let [code, body] = await sendRequest("GET", "lessons/members/reaction/members?annotation=" + selectID, null, { session: this.editor.session });
+        let path = "lessons/members/reaction/members?annotation=" + selectID;
+        if ((this.editor.parameters ?? []).length > 0) {
+          path += "&" + this.editor.parameters.join("&");
+        }
+        let [code, body] = await sendRequest("GET", path, null, { session: this.editor.session });
         if (code == 200 && this.toolbar.reactionsCache.id == selectID) {
           for (let i = 0; i < body.reactions.length; i++) {
             let reaction = body.reactions[i];
@@ -9150,7 +9166,11 @@ modules["editor/toolbar/reactions"] = class {
 
     removeReactionButton.addEventListener("click", async () => {
       removeReactionButton.setAttribute("disabled", "");
-      await sendRequest("DELETE", "lessons/members/reaction/delete?annotation=" + cache.id + "&emoji=" + emojiButtonSidebar.querySelector("button[selected]").getAttribute("emoji").replace(/ /g, "_"), null, { session: this.editor.session });
+      let path = "lessons/members/reaction/delete?annotation=" + cache.id + "&emoji=" + emojiButtonSidebar.querySelector("button[selected]").getAttribute("emoji").replace(/ /g, "_");
+      if ((this.editor.parameters ?? []).length > 0) {
+        path += "&" + this.editor.parameters.join("&");
+      }
+      await sendRequest("DELETE", path, null, { session: this.editor.session });
       removeReactionButton.removeAttribute("disabled");
     });
     setSVG(removeReactionButton.querySelector("div"), "../images/editor/file/delete.svg");
@@ -9400,7 +9420,11 @@ modules["editor/toolbar/uploadpage"] = class {
       if (passedFiles > 0) {
         this.button.setAttribute("disabled", "");
         let uploadAlert = await alertModule.open("info", `<b>Uploading Document${addS(passedFiles)}</b>Uploading your PDF${addS(passedFiles)} and inserting into the lesson!`, { time: "never" });
-        let [code, body] = await sendRequest("POST", "lessons/save/file?annotation=" + preference._id, sendFormData, { session: this.editor.session, noFileType: true });
+        let path = "lessons/save/file?annotation=" + preference._id;
+        if ((this.editor.parameters ?? []).length > 0) {
+          path += "&" + this.editor.parameters.join("&");
+        }
+        let [code, body] = await sendRequest("POST", path, sendFormData, { session: this.editor.session, noFileType: true });
         alertModule.close(uploadAlert);
         this.button.removeAttribute("disabled");
         if (code == 200) {

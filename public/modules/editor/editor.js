@@ -43,7 +43,7 @@ modules["editor/editor"] = class {
     //".ql-formula textarea": `transform: unset !important; clip: unset !important; width: unset !important; height: unset !important; outline: none !important`,
 
     ".eReaction": `display: flex; padding: 2px; background: rgba(255, 255, 255, .8); border: solid 2px rgba(0, 0, 0, 0); border-radius: 8px; align-items: center; overflow: hidden; color: #2F2F2F`,
-    ".eReaction[selected]": `padding: 2px; background: rgba(180, 218, 253, .8); border: solid 2px var(--theme); color: var(--theme)`,
+    ".eReaction[selected]": `padding: 2px; background: rgba(var(--hoverRGB), .8); border: solid 2px var(--theme); color: var(--theme)`,
     ".eReaction[add]": `opacity: 0; border-radius: 14px`,
     ".customScroll[viewer] .eReaction[add]": "display: none !important",
     ".eReaction div[imgholder]": `display: flex; width: 20px; height: 20px; justify-content: center; align-items: center`,
@@ -5496,15 +5496,22 @@ modules["editor/render/annotation/sticky"] = class extends modules["editor/rende
           reactionElem.removeAttribute("selected");
         }
         reactionElem.querySelector("div[count]").textContent = Math.max(reaction.count, 1);
-        if (this.loadingEmojiModule != true && reactionElem.hasAttribute("unloaded") == true) {
-          this.loadingEmojiModule = true;
-          (async () => {
-            let emojiModule = await this.parent.newModule("dropdowns/editor/tools/emojis");
-            if (emojiModule != null) {
-              emojiModule.applyReactions();
+        if (reactionElem.hasAttribute("unloaded") == true) {
+          if (this.parent.emojiModule != null) {
+            this.parent.emojiModule.applyReaction(reactionElem);
+          } else {
+            if (this.parent.pendingReactions == null) {
+              this.parent.pendingReactions = [];
+              (async () => {
+                this.parent.emojiModule = await this.parent.newModule("dropdowns/editor/tools/emojis");
+                if (this.parent.emojiModule != null) {
+                  this.parent.emojiModule.applyReactions(this.parent.pendingReactions);
+                }
+                delete this.parent.pendingReactions;
+              })();
             }
-            this.loadingEmojiModule = false;
-          })();
+            this.parent.pendingReactions.push(reactionElem);
+          }
         }
       }
     }

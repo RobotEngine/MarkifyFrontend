@@ -43,18 +43,22 @@ modules["dropdowns/editor/tools/emojis"] = class {
     }
     return this.emojiObject;
   }
-  applyReactions = async () => {
+  applyReaction = (reaction) => {
+    if (reaction == null) {
+      return;
+    }
     this.createEmojiObject();
-    let unloadedReactions = this.parent.contentHolder.querySelectorAll(".eReaction[unloaded]");
-    for (let i = 0; i < unloadedReactions.length; i++) {
-      let reaction = unloadedReactions[i];
-      let emoji = this.emojiObject[reaction.getAttribute("emoji")];
-      reaction.removeAttribute("unloaded");
-      reaction.title = emoji.short_name.replace(/_/g, " ");
-      let image = reaction.querySelector("img");
-      image.src = "../images/editor/emojis/twitter32.png";
-      image.style.objectPosition = (-((emoji.sheet_x * this.sheetSize) + 1)) + "px " + (-((emoji.sheet_y * this.sheetSize) + 1)) + "px";
-      image.style.objectFit = "none";
+    let emoji = this.emojiObject[reaction.getAttribute("emoji")];
+    reaction.removeAttribute("unloaded");
+    reaction.title = emoji.short_name.replace(/_/g, " ");
+    let image = reaction.querySelector("img");
+    image.src = "../images/editor/emojis/twitter32.png";
+    image.style.objectPosition = (-((emoji.sheet_x * this.sheetSize) + 1)) + "px " + (-((emoji.sheet_y * this.sheetSize) + 1)) + "px";
+    image.style.objectFit = "none";
+  }
+  applyReactions = async (reactions) => {
+    for (let i = 0; i < reactions.length; i++) {
+      this.applyReaction(reactions[i]);
     }
   }
   js = async (frame, extra) => {
@@ -139,7 +143,11 @@ modules["dropdowns/editor/tools/emojis"] = class {
         return;
       }
       frame.setAttribute("disabled", "");
-      let [code] = await sendRequest("POST", "lessons/members/reaction", {
+      let path = "lessons/members/reaction";
+      if ((editor.parameters ?? []).length > 0) {
+        path += "?" + editor.parameters.join("&");
+      }
+      let [code] = await sendRequest("POST", path, {
         emoji: target.getAttribute("emoji"),
         annotation: annoID
       }, { session: editor.session });

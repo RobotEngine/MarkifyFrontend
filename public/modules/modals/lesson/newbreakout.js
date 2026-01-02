@@ -79,7 +79,6 @@ modules["modals/lesson/newbreakout"] = class {
     ".brtTemplateTileInfoHolder": `position: absolute; display: flex; box-sizing: border-box; width: 100%; padding: 10px; left: 0px; bottom: 0px; align-items: flex-end; background: var(--pageColor); box-shadow: var(--shadow)`,
     ".brtTemplateTileInfo": `width: 100%`,
     ".brtTemplateTileTitle": `box-sizing: border-box; width: 100%; font-size: 18px; font-weight: 600; text-align: left`,
-    ".brtTemplateTileTitle[contenteditable]": `padding: 2px 4px; margin-bottom: 4px; max-height: 100px; outline: solid 2px var(--theme); border-radius: 4px; overflow: auto; cursor: text`,
     ".brtTemplateTileLastChanged": `width: 100%; color: var(--theme); margin-top: 2px; font-size: 14px; font-weight: 600; text-align: left`,
     ".brtTemplateRow": `display: flex; flex-wrap: wrap; width: 100%; margin-top: 8px; justify-content: space-between; align-items: center`,
     ".brtTemplateRow button": `--borderRadius: 16px; display: flex; height: fit-content; min-height: 32px; padding: 0 10px; margin: 6px; justify-content: center; align-items: center; font-weight: 700`,
@@ -249,5 +248,165 @@ modules["modals/lesson/newbreakout"] = class {
     //setSVG(nextButton, "../images/tooltips/arrow.svg");
 
     await updateDisplayState();
+  }
+}
+
+modules["modals/lesson/newbreakout/templates"] = class {
+  maxHeight = 600;
+  html = `<div class="brttTemplateTilesHolder">
+    <div class="brttTemplateTiles"></div>
+    <div class="brttNoTemplates">
+      <img class="brttNoTemplatesImage" src="../images/dashboard/nolessons.png" />
+      <div class="brttNoTemplatesTitle">No Templates... Yet!</div>
+    </div>
+  </div>`;
+  css = {
+    ".brttTemplateTilesHolder": `position: relative; display: flex; flex-direction: column; width: 500px; max-width: 100%; min-height: 100px; text-align: center; align-items: center; z-index: 1`,
+    ".brttTemplateTiles": `position: relative; display: grid; box-sizing: border-box; width: 100%; padding: 8px; grid-gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(234px, 100%), 1fr)); transition: .4s`, // min-height: 100%;
+    ".brttTemplateTile": `position: relative; background: var(--pageColor); --shadow: var(--lightShadow); box-shadow: var(--shadow); border-radius: 12px; overflow: hidden`,
+    ".brttTemplateTile:hover": `--shadow: var(--darkShadow)`,
+    ".brttTemplateTileThumbnailHolder": `position: relative; width: 100%; aspect-ratio: 4/3`,
+    ".brttTemplateTileThumbnail": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; object-fit: cover; border-radius: 12px; opacity: 0; pointer-events: none`,
+    'html[theme="dark"] .brttTemplateTileThumbnail': `filter: brightness(50%)`,
+    ".brttTemplateTile:hover .brttTemplateTileThumbnail": `filter: brightness(100%)`,
+    ".brttTemplateTileInfoHolder": `position: absolute; display: flex; box-sizing: border-box; width: 100%; padding: 10px; left: 0px; bottom: 0px; align-items: flex-end; background: var(--pageColor); box-shadow: var(--shadow)`,
+    ".brttTemplateTileInfo": `width: 100%`,
+    ".brttTemplateTileTitle": `box-sizing: border-box; width: 100%; font-size: 18px; font-weight: 600; text-align: left`,
+    ".brttTemplateTileLastOpened": `width: 100%; color: var(--theme); margin-top: 2px; font-size: 14px; font-weight: 600; text-align: left`,
+    ".brttNoTemplates": `display: none; flex-direction: column; width: 100%; height: fit-content; margin: 16px; align-items: center`,
+    ".brttNoTemplatesImage": `width: 100%; max-width: 300px`,
+    ".brttNoTemplatesTitle": `margin-top: 24px; font-size: 20px; font-weight: 700; color: var(--theme)`
+  };
+  js = async (frame, extra) => {
+    this.parent = extra.parent;
+
+    let scrollContainer = frame.closest(".modalContent");
+    let tileHolder = frame.querySelector(".brttTemplateTiles");
+    let noTemplates = frame.querySelector(".brttNoTemplates");
+
+    let addTile = (template, insertFirst) => {
+      if (template == null) {
+        return;
+      }
+      let time = template.created;
+      let insertAdj = "beforeend";
+      if (insertFirst == true) {
+        insertAdj = "afterbegin";
+      }
+      if (insertFirst == true && tileHolder.firstChild != null && time < parseInt(tileHolder.firstChild.getAttribute("time"))) {
+        return;
+      }
+      let existingTile = tileHolder.querySelector('.dTile[template="' + template._id + '"');
+      if (existingTile != null) {
+        existingTile.remove();
+      }
+      tileHolder.insertAdjacentHTML(insertAdj, `<a class="brttTemplateTile" draggable="false" new>
+        <div class="brttTemplateTileThumbnailHolder">
+          <img class="brttTemplateTileThumbnail" src="../images/dashboard/placeholder.png" />
+          <img class="brttTemplateTileThumbnail" main />
+        </div>
+        <div class="brttTemplateTileInfoHolder">
+          <div class="brttTemplateTileInfo">
+            <div class="brttTemplateTileTitle"></div>
+            <div class="brttTemplateTileLastOpened"></div>
+          </div>
+        </div>
+        </div>
+      </a>`);
+      let tile = tileHolder.querySelector(".brttTemplateTile[new]");
+      tile.removeAttribute("new");
+      tile.setAttribute("template", template._id);
+      tile.setAttribute("time", time);
+      let placeholderThumbnail = tile.querySelector(".brttTemplateTileThumbnail[src]");
+      let thumbnail = tile.querySelector(".brttTemplateTileThumbnail[main]");
+      if (template.thumbnail != null) {
+        let loadingTimeout = setTimeout(() => {
+          placeholderThumbnail.style.transition = ".4s";
+          placeholderThumbnail.style.opacity = 1;
+        }, 10);
+        let completeListener = async () => {
+          thumbnail.removeEventListener("error", errorListener);
+          thumbnail.removeEventListener("load", completeListener);
+
+          clearTimeout(loadingTimeout);
+          thumbnail.style.opacity = 1;
+          placeholderThumbnail.style.opacity = 0;
+          await sleep(400);
+          placeholderThumbnail.remove();
+        }
+        let errorListener = () => {
+          clearTimeout(loadingTimeout);
+          thumbnail.remove();
+        }
+        thumbnail.addEventListener("error", errorListener);
+        thumbnail.addEventListener("load", completeListener);
+        thumbnail.src = assetURL + template.thumbnail;
+        thumbnail.style.transition = ".4s";
+      }
+      let title = tile.querySelector(".brttTemplateTileTitle");
+      let titleText = template.name ?? "Untitled Template";
+      title.textContent = titleText;
+      title.title = titleText;
+      let openedTx = tile.querySelector(".brttTemplateTileLastOpened");
+      openedTx.textContent = timeSince(time, true);
+      openedTx.title = formatFullDate(time);
+    }
+
+    let allLoaded = false;
+    let loading = false;
+    let fetchTemplates = async () => {
+      if (allLoaded == true || loading == true) {
+        return;
+      }
+      loading = true;
+      tileHolder.setAttribute("disabled", "");
+      let path = "lessons/breakout/template";
+      let lastTile = tileHolder.lastElementChild;
+      if (lastTile != null) {
+        path += "?before=" + lastTile.getAttribute("time");
+      }
+      let [code, body] = await sendRequest("GET", path);
+      tileHolder.removeAttribute("disabled");
+      loading = false;
+      if (code != 200) {
+        return;
+      }
+      if (body.length < 25) {
+        allLoaded = true;
+      }
+      for (let i = 0; i < body.length; i++) {
+        addTile(body[i]);
+      }
+      if (tileHolder.childElementCount > 0) {
+        noTemplates.style.removeProperty("display");
+      } else {
+        noTemplates.style.display = "flex";
+      }
+    }
+
+    scrollContainer.addEventListener("scroll", () => {
+      if (scrollContainer.scrollTop + scrollContainer.clientHeight + 250 > scrollContainer.scrollHeight && tileHolder.clientHeight > scrollContainer.clientHeight) {
+        fetchTemplates();
+      }
+    });
+
+    tileHolder.addEventListener("click", async (event) => {
+      let tile = event.target.closest(".brttTemplateTile");
+      if (tile == null) {
+        return;
+      }
+      let templateID = tile.getAttribute("template");
+      if (templateID == null) {
+        return;
+      }
+      tileHolder.setAttribute("disabled", "");
+      let [code, body] = await sendRequest("PUT", "lessons/breakout/template/set", { template: templateID }, { session: this.parent.parent.parent.session });
+      tileHolder.removeAttribute("disabled");
+      if (code == 200) {
+        extra.modal.open("modals/lesson/newbreakout", null, tile, "Start a Breakout", false, { parent: this.parent.parent, template: body });
+      }
+    });
+
+    await fetchTemplates();
   }
 }

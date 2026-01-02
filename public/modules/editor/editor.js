@@ -1273,7 +1273,8 @@ modules["editor/editor"] = class {
         if ((account.settings ?? {}).toolbar != "right") {
           scrollOptions.left = annotationRect.left + contentHolder.scrollLeft - this.scrollOffset + (topLeftX * this.zoom);
         } else {
-          scrollOptions.left = annotationRect.left + contentHolder.scrollLeft - contentHolder.clientWidth + this.scrollOffset + (bottomRightX * this.zoom);
+          scrollOptions.left = annotationRect.left + contentHolder.scrollLeft - 8 + (topLeftX * this.zoom);
+          //scrollOptions.left = annotationRect.left + contentHolder.scrollLeft - contentHolder.clientWidth + this.scrollOffset + (bottomRightX * this.zoom);
         }
       }
       if (annoRect.height * this.zoom < contentHolder.clientHeight - (this.scrollOffset * 2)) {

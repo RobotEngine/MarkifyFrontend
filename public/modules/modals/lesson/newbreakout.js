@@ -100,6 +100,7 @@ modules["modals/lesson/newbreakout"] = class {
   };
   js = async (frame, extra) => {
     this.parent = extra.parent;
+    this.template = extra.template;
 
     let modal = frame.closest(".modal");
 
@@ -178,25 +179,30 @@ modules["modals/lesson/newbreakout"] = class {
         currentTemplate.style.display = "flex";
       }
     }
-    await updateDisplayState();
 
-    this.parent.parent.pipeline.subscribe("newBreakoutModalTemplateSet", "set", (body) => {
-      if (body.breakout != null && body.breakout.hasOwnProperty("template") == true) {
-        if ((this.template ?? {})._id != body.breakout.template) {
-          this.template = null;
-          return updateDisplayState();
+    let handleSet = (body) => {
+      let set = body.set ?? body;
+      if (set != null && (set.breakout ?? {}).hasOwnProperty("template") == true) {
+        this.template = body.template;
+        if (this.parent.parent.currentPagePath == "breakout/template" && ((this.parent.parent.pages["secondary"] ?? {}).template ?? {})._id != (this.template ?? {})._id) {
+          this.parent.parent.closePage("secondary");
+          this.parent.parent.openPage("primary", "breakout/overview");
         }
+        return updateDisplayState();
       }
-      if (this.template == null || body.id != this.template._id) {
+      if (this.template == null || set.id != this.template._id) {
         return;
       }
-      objectUpdate(body, this.template);
+      objectUpdate(set, this.template);
       updateTemplateTile();
-    });
+    }
+    this.parent.parent.pipeline.subscribe("newBreakoutModalTemplateSet", "set", handleSet);
+    this.parent.parent.pipeline.subscribe("newBreakoutModalTemplateSubSet", "subset", handleSet);
     
     let blankButton = newOptions.querySelector('.brtButton[type="blank"]');
     blankButton.addEventListener("click", () => {
-      extra.modal.open("modals/lesson/newboard", null, blankButton, "Create the Template", null, { parent: this, requestPath: "lessons/breakout/template/new", callback: ({ body }) => {
+      extra.modal.open("modals/lesson/newboard", null, blankButton, "Create the Template", null, { parent: this, requestPath: "lessons/breakout/template/new", callback: async ({ body }) => {
+        extra.modal.open("modals/lesson/newbreakout", null, blankButton, "Start a Breakout", false, { parent: this.parent, template: body });
         this.parent.parent.openPage("secondary", "breakout/template", { template: body });
       } });
     });
@@ -204,16 +210,13 @@ modules["modals/lesson/newbreakout"] = class {
     let cloneButton = newOptions.querySelector('.brtButton[type="clone"]');
     cloneButton.addEventListener("click", async () => {
       cloneButton.setAttribute("disabled", "");
-      let [code, body] = await sendRequest("POST", "lessons/breakout/template/new", { duplicate: true }, { session: this.parent.parent.session });
-      if (code == 200) {
-        this.parent.parent.openPage("secondary", "breakout/template", { template: body });
-      }
+      await sendRequest("POST", "lessons/breakout/template/new", { duplicate: true }, { session: this.parent.parent.session });
       cloneButton.removeAttribute("disabled");
     });
 
     let duplicateButton = newOptions.querySelector('.brtButton[type="duplicate"]');
     duplicateButton.addEventListener("click", () => {
-      
+      extra.modal.open("modals/lesson/newbreakout/templates", null, duplicateButton, "Past Templates", null, { parent: this });
     });
 
     currentTemplateTile.addEventListener("click", () => {
@@ -244,5 +247,7 @@ modules["modals/lesson/newbreakout"] = class {
     //setSVG(backButton, "../images/tooltips/arrow.svg");
     progressDots.innerHTML = "<button selected></button><button></button><button></button><button></button>";
     //setSVG(nextButton, "../images/tooltips/arrow.svg");
+
+    await updateDisplayState();
   }
 }

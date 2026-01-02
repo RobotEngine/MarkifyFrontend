@@ -158,7 +158,7 @@ modules["pages/launch"] = class extends page {
     <div class="lFooterFooter">
       <div class="lFooterCompany">
         <img class="lFooterLogo" src="../images/logowhite.svg">
-        <a class="lFooterCopyright" href="../" target="_blank">©2025 Markify, LLC</a>
+        <a class="lFooterCopyright" href="../" target="_blank">©2026 Markify, LLC</a>
       </div>
       <div class="lFooterPolicies">
         <a href="../tos" target="_blank">Terms</a>

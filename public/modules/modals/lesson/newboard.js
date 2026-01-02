@@ -190,7 +190,7 @@ modules["modals/lesson/newboard/blank"] = class {
       </div>
       <div class="blankTitle">Page Amount</div>
       <div class="blankNumberHolder blankPage"><div default="1" max="500" nodecimal contenteditable>1</div> pages</div>
-      <button class="blankCreate largeButton">Create Lesson</button>
+      <button class="blankCreate largeButton">Create</button>
     </div>
   </div>
   `;

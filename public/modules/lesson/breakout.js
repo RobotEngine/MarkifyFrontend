@@ -17,6 +17,9 @@ modules["lesson/breakout"] = class {
         otherPage.setAttribute("hidden", "");
       }
     }
+
+    this.currentPage = id;
+    this.currentPagePath = path;
     
     let existingPage = this.frame.querySelector('.brPage[pageid="' + id + '"][path="' + path + '"]');
     if (existingPage != null) {
@@ -36,6 +39,12 @@ modules["lesson/breakout"] = class {
     return this.pages[id];
   }
   closePage = (id) => {
+    if (this.currentPage == id) {
+      this.currentPage;
+    }
+    if (this.currentPagePath == id) {
+      this.currentPagePath;
+    }
     delete this.pages[id];
     let page = this.frame.querySelector('.brPage[pageid="' + id + '"]');
     if (page == null) {

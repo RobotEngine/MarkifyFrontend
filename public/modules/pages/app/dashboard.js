@@ -660,8 +660,11 @@ modules["pages/app/dashboard"] = class extends page {
               }
               break;
             case "set":
+              if (data.tool != null) {
+                return;
+              }
               body.record = body.record ?? {};
-              lessonID = body.record.lesson ?? body.lesson;
+              lessonID = body.record.lesson ?? body._id;
               if (lessons[lessonID] == null) {
                 lessons[lessonID] = body.lesson;
               }

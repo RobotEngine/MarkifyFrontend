@@ -584,6 +584,9 @@ modules["pages/app/lesson"] = class extends page {
                   }
                 }
                 break;
+              case "subset":
+                objectUpdate(body.set, this.lesson);
+                break;
               case "addsources":
                 this.sources = { ...this.sources, ...getObject(body.sources ?? [], "_id") };
                 break;

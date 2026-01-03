@@ -40,8 +40,8 @@ modules["modals/lesson/newbreakout"] = class {
         </div>
         <div class="brtTemplateTileInfoHolder">
           <div class="brtTemplateTileInfo">
-            <div class="brtTemplateTileTitle"></div>
-            <div class="brtTemplateTileLastChanged"></div>
+            <div class="brtTemplateTileTitle">Loading...</div>
+            <div class="brtTemplateTileLastChanged">Loading...</div>
           </div>
         </div>
       </a>
@@ -50,9 +50,9 @@ modules["modals/lesson/newbreakout"] = class {
         <button class="brtTemplateRowChange border" title="Change the template.">Change</button>
       </div>
     </div>
-    <div class="brtProgress">
+    <div class="brSetupProgress">
       <button class="largeButton" back hidden>Back</button>
-      <div dots></div>
+      <div dots><button selected></button><button></button><button></button><button></button></div>
       <button class="largeButton" next hidden>Next</button>
     </div>
   </div>
@@ -88,14 +88,18 @@ modules["modals/lesson/newbreakout"] = class {
     ".brtTemplateRowChange": `--borderWidth: 3px; --borderColor: var(--secondary); color: var(--secondary); font-size: 18px`,
     ".brtTemplateRowChange:hover": `background: var(--secondary); --borderWidth: 0px; transform: scale(1.1); color: #fff`,
     
-    ".brtProgress": `display: flex; flex-wrap: wrap; gap: 8px; width: calc(100% - 24px); margin: 12px; font-size: 16px; justify-content: center; align-items: center`,
-    ".brtProgress .largeButton": `--themeColor: var(--theme); --themeColor2: var(--themeColor); --borderRadius: 12px; max-width: 100%; padding: 6px 10px; margin: 0; justify-content: center; font-size: 18px`,
-    ".brtProgress .largeButton[hidden]": `display: none`,
-    ".brtProgress .largeButton svg": `width: 24px`,
-    ".brtProgress .largeButton[back] svg": `transform: scaleX(-1)`,
-    ".brtProgress div[dots]": `display: flex; flex-wrap: wrap; margin: 0 auto; justify-content: center; align-items: center`,
-    ".brtProgress div[dots] button": `display: flex; width: 16px; height: 16px; margin: 6px; background: var(--hover); border-radius: 8px`,
-    ".brtProgress div[dots] button[selected]": `width: 32px; background: var(--theme); pointer-events: none`
+    ".brSetupProgress": `display: flex; flex-wrap: wrap; gap: 12px; width: calc(100% - 24px); margin: 24px 12px 12px; font-size: 16px; justify-content: center; align-items: center`,
+    ".brSetupProgress .largeButton": `--themeColor: var(--theme); --themeColor2: var(--themeColor); --borderRadius: 12px; max-width: 100%; padding: 6px 10px; margin: 0; justify-content: center; font-size: 18px`,
+    ".brSetupProgress .largeButton svg": `width: 24px`,
+    ".brSetupProgress .largeButton[back] svg": `transform: scaleX(-1)`,
+    ".brSetupProgress div[dots]": `display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; margin: 0 auto; justify-content: center; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 20px`,
+    ".brSetupProgress div[dots] button": `position: relative; display: flex; width: 28px; height: 28px; background: var(--hover); border-radius: 6px; pointer-events: none`,
+    ".brSetupProgress div[dots] button:first-child": `border-radius: 14px 6px 6px 14px`,
+    ".brSetupProgress div[dots] button:last-child": `border-radius: 6px 14px 14px 6px`,
+    ".brSetupProgress div[dots] button[selected]": `background: var(--secondary); border-radius: 14px !important`,
+    ".brSetupProgress div[dots] button[selected]:before": `content: ""; position: absolute; width: 40%; height: 40%; left: 50%; top: 50%; transform: translate(-50%, -50%); background: var(--pageColor); border-radius: inherit`,
+    ".brSetupProgress div[dots] button[done]": `background: var(--theme) !important`,
+    ".brSetupProgress div[dots] button[done]:not([selected])": `pointer-events: all`
   };
   js = async (frame, extra) => {
     this.parent = extra.parent;
@@ -114,6 +118,14 @@ modules["modals/lesson/newbreakout"] = class {
     let currentTemplateTile = currentTemplate.querySelector(".brtTemplateTile");
     let currentTemplateEdit = currentTemplate.querySelector(".brtTemplateRowEdit");
     let currentTemplateChange = currentTemplate.querySelector(".brtTemplateRowChange");
+
+    let progressHolder = frame.querySelector(".brSetupProgress");
+    //let backButton = progressHolder.querySelector("button[back]");
+    let progressDot = progressHolder.querySelector("div[dots]").children[0];
+    let nextButton = progressHolder.querySelector("button[next]");
+    nextButton.addEventListener("click", () => {
+      extra.modal.open("modals/lesson/newbreakout/setuptype", null, nextButton, "Start a Breakout", null, { parent: this });
+    });
 
     let updateTemplateTile = () => {
       if (this.template == null) {
@@ -165,17 +177,22 @@ modules["modals/lesson/newbreakout"] = class {
       if (templateID == null) {
         newOptions.style.display = "flex";
         currentTemplate.style.removeProperty("display");
+        progressDot.removeAttribute("done");
+        nextButton.setAttribute("hidden", "");
       } else {
         newOptions.style.removeProperty("display");
+        currentTemplate.style.display = "flex";
+        progressDot.setAttribute("done", "");
+        nextButton.removeAttribute("hidden");
         if (this.template == null) {
           let [code, body] = await sendRequest("GET", "lessons/breakout/template?template=" + templateID, null, { session: this.parent.parent.session });
           if (code != 200) {
             return;
           }
           this.template = body;
+          return updateDisplayState();
         }
         updateTemplateTile();
-        currentTemplate.style.display = "flex";
       }
     }
 
@@ -238,16 +255,7 @@ modules["modals/lesson/newbreakout"] = class {
       cloneButton.style.display = "none";
     }
 
-    // Progess Bar:
-    let progressHolder = frame.querySelector(".brtProgress");
-    let backButton = progressHolder.querySelector("button[back]");
-    let progressDots = progressHolder.querySelector("div[dots]");
-    let nextButton = progressHolder.querySelector("button[next]");
-    //setSVG(backButton, "../images/tooltips/arrow.svg");
-    progressDots.innerHTML = "<button selected></button><button></button><button></button><button></button>";
-    //setSVG(nextButton, "../images/tooltips/arrow.svg");
-
-    await updateDisplayState();
+    updateDisplayState();
   }
 }
 
@@ -288,69 +296,80 @@ modules["modals/lesson/newbreakout/templates"] = class {
       if (template == null) {
         return;
       }
-      let time = template.created;
-      let insertAdj = "beforeend";
-      if (insertFirst == true) {
-        insertAdj = "afterbegin";
-      }
-      if (insertFirst == true && tileHolder.firstChild != null && time < parseInt(tileHolder.firstChild.getAttribute("time"))) {
-        return;
-      }
-      let existingTile = tileHolder.querySelector('.dTile[template="' + template._id + '"');
-      if (existingTile != null) {
-        existingTile.remove();
-      }
-      tileHolder.insertAdjacentHTML(insertAdj, `<a class="brttTemplateTile" draggable="false" new>
-        <div class="brttTemplateTileThumbnailHolder">
-          <img class="brttTemplateTileThumbnail" src="../images/dashboard/placeholder.png" />
-          <img class="brttTemplateTileThumbnail" main />
-        </div>
-        <div class="brttTemplateTileInfoHolder">
-          <div class="brttTemplateTileInfo">
-            <div class="brttTemplateTileTitle"></div>
-            <div class="brttTemplateTileLastOpened"></div>
+      let tile = tileHolder.querySelector('.brttTemplateTile[template="' + template._id + '"');
+      if (tile == null) {
+        let insertAdj = "beforeend";
+        if (insertFirst == true) {
+          insertAdj = "afterbegin";
+        }
+        if (insertFirst == true && tileHolder.firstChild != null && template.created < parseInt(tileHolder.firstChild.getAttribute("time"))) {
+          return;
+        }
+        tileHolder.insertAdjacentHTML(insertAdj, `<a class="brttTemplateTile" draggable="false" new>
+          <div class="brttTemplateTileThumbnailHolder">
+            <img class="brttTemplateTileThumbnail" src="../images/dashboard/placeholder.png" />
+            <img class="brttTemplateTileThumbnail" main />
           </div>
-        </div>
-        </div>
-      </a>`);
-      let tile = tileHolder.querySelector(".brttTemplateTile[new]");
-      tile.removeAttribute("new");
-      tile.setAttribute("template", template._id);
-      tile.setAttribute("time", time);
+          <div class="brttTemplateTileInfoHolder">
+            <div class="brttTemplateTileInfo">
+              <div class="brttTemplateTileTitle"></div>
+              <div class="brttTemplateTileLastOpened"></div>
+            </div>
+          </div>
+          </div>
+        </a>`);
+        tile = tileHolder.querySelector(".brttTemplateTile[new]");
+        tile.removeAttribute("new");
+        tile.setAttribute("template", template._id);
+      }
       let placeholderThumbnail = tile.querySelector(".brttTemplateTileThumbnail[src]");
       let thumbnail = tile.querySelector(".brttTemplateTileThumbnail[main]");
       if (template.thumbnail != null) {
-        let loadingTimeout = setTimeout(() => {
-          placeholderThumbnail.style.transition = ".4s";
-          placeholderThumbnail.style.opacity = 1;
-        }, 10);
-        let completeListener = async () => {
-          thumbnail.removeEventListener("error", errorListener);
-          thumbnail.removeEventListener("load", completeListener);
+        let setThumbnail = assetURL + template.thumbnail;
+        let thumbnailSrc = thumbnail.getAttribute("src");
+        if (thumbnailSrc == null) {
+          let loadingTimeout = setTimeout(() => {
+            placeholderThumbnail.style.transition = ".4s";
+            placeholderThumbnail.style.opacity = 1;
+          }, 10);
+          let completeListener = async () => {
+            thumbnail.removeEventListener("error", errorListener);
+            thumbnail.removeEventListener("load", completeListener);
 
-          clearTimeout(loadingTimeout);
-          thumbnail.style.opacity = 1;
-          placeholderThumbnail.style.opacity = 0;
-          await sleep(400);
-          placeholderThumbnail.remove();
+            clearTimeout(loadingTimeout);
+            thumbnail.style.opacity = 1;
+            placeholderThumbnail.style.opacity = 0;
+            await sleep(400);
+            placeholderThumbnail.remove();
+          }
+          let errorListener = () => {
+            clearTimeout(loadingTimeout);
+            thumbnail.remove();
+          }
+          thumbnail.addEventListener("error", errorListener);
+          thumbnail.addEventListener("load", completeListener);
+          thumbnail.src = setThumbnail;
+          thumbnail.style.transition = ".4s";
+        } else if (thumbnailSrc != setThumbnail) {
+          thumbnail.src = setThumbnail;
         }
-        let errorListener = () => {
-          clearTimeout(loadingTimeout);
-          thumbnail.remove();
-        }
-        thumbnail.addEventListener("error", errorListener);
-        thumbnail.addEventListener("load", completeListener);
-        thumbnail.src = assetURL + template.thumbnail;
-        thumbnail.style.transition = ".4s";
       }
       let title = tile.querySelector(".brttTemplateTileTitle");
-      let titleText = template.name ?? "Untitled Template";
-      title.textContent = titleText;
-      title.title = titleText;
-      let openedTx = tile.querySelector(".brttTemplateTileLastOpened");
-      openedTx.textContent = timeSince(time, true);
-      openedTx.title = formatFullDate(time);
+      if (template.hasOwnProperty("name") == true || title.textContent == "") {
+        let titleText = template.name ?? "Untitled Template";
+        title.textContent = titleText;
+        title.title = titleText;
+      }
+      if (template.hasOwnProperty("created") == true) {
+        let time = template.created;
+        tile.setAttribute("time", time);
+        let openedTx = tile.querySelector(".brttTemplateTileLastOpened");
+        openedTx.textContent = timeSince(time, true);
+        openedTx.title = formatFullDate(time);
+      }
     }
+
+    this.parent.parent.parent.pipeline.subscribe("newBreakoutModalTemplatesUpdate", "templateset", (body) => { addTile({ ...body, _id: (body._id ?? body.id) }, body.created != null); });
 
     let allLoaded = false;
     let loading = false;
@@ -408,5 +427,30 @@ modules["modals/lesson/newbreakout/templates"] = class {
     });
 
     await fetchTemplates();
+  }
+}
+
+modules["modals/lesson/newbreakout/setuptype"] = class {
+  html = `
+  <div class="brosCreationHolder">
+    <div class="brosInstructions">
+      <div class="brosTitle">How to <b>Create the Groups</b>?</div>
+    </div>
+    <div class="brSetupProgress">
+      <button class="largeButton" back hidden>Back</button>
+      <div dots><button done></button><button selected></button><button></button><button></button></div>
+      <button class="largeButton" next hidden>Next</button>
+    </div>
+  </div>
+  `;
+  css = {
+    ".brosCreationHolder": `position: relative; display: flex; flex-direction: column; width: 500px; max-width: 100%; text-align: center; align-items: center; z-index: 1`,
+    ".brosInstructions": `box-sizing: border-box; display: flex; flex-direction: column; width: 100%; padding: 8px; align-items: center`,
+    ".brosTitle": `max-width: 100%; font-size: 24px; font-weight: 500`,
+    ".brosTitle b": `color: var(--theme); font-weight: 700`
+    
+  };
+  js = async (frame, extra) => {
+
   }
 }

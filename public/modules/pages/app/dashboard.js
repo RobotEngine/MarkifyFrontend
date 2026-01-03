@@ -664,7 +664,7 @@ modules["pages/app/dashboard"] = class extends page {
                 return;
               }
               body.record = body.record ?? {};
-              lessonID = body.record.lesson ?? body._id;
+              lessonID = body.record.lesson ?? body._id ?? body.id;
               if (lessons[lessonID] == null) {
                 lessons[lessonID] = body.lesson;
               }

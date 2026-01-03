@@ -166,9 +166,20 @@ modules["breakout/template"] = class {
 
     let stringPref = JSON.stringify(this.parent.parent.preferences); // Must be duplicated
 
-    closeButton.addEventListener("click", () => {
+    let close = async (skipThumbnail) => {
       this.parent.closePage("secondary");
       this.parent.openPage("primary", "breakout/overview");
+      if (skipThumbnail != true) {
+        if (this.editor != null && this.editor.save.synced != true) {
+          await this.editor.save.syncSave(true);
+        }
+        sendRequest("PUT", "lessons/breakout/template/refreshthumbnail?template=" + this.template._id, null, { session: this.parent.parent.session });
+      }
+    }
+    closeButton.addEventListener("click", close);
+    finishButton.addEventListener("click", () => {
+      // Add code for updating existing template root
+      close();
     });
 
     // Load Images:
@@ -193,11 +204,12 @@ modules["breakout/template"] = class {
         return;
       }
       this.template = body;
-    } else {
+    }
+    /* else {
       this.parent.parent.lesson.breakout = this.parent.parent.lesson.breakout ?? {};
       this.parent.parent.lesson.breakout.template = this.template._id;
       this.parent.parent.pushToPipelines(null, "set", { breakout: { template: this.template._id } });
-    }
+    }*/
 
     this.editor = await this.setFrame("editor/editor", contentHolder, {
       construct: {

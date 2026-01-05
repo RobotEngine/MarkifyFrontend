@@ -589,7 +589,7 @@ modules["modals/lesson/newbreakout/setuptype"] = class extends modules["breakout
 modules["modals/lesson/newbreakout/options"] = class extends modules["breakout/overview/setup"] {
   step = 2;
   html = `
-  tester 1
+    Test 1
     ${this.progressFooter}
   `;
   css = {
@@ -605,7 +605,7 @@ modules["modals/lesson/newbreakout/options"] = class extends modules["breakout/o
 modules["modals/lesson/newbreakout/review"] = class extends modules["breakout/overview/setup"] {
   step = 3;
   html = `
-  testy 2
+    Test 2
     ${this.progressFooter}
   `;
   css = {

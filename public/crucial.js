@@ -22,7 +22,7 @@ const configurations = {
 };
 
 const configuration = "public";
-const version = "1.6.34"; // Big Update . Small Feature Release . Bug Fix
+const version = "1.6.35"; // Big Update . Small Feature Release . Bug Fix
 const domain = "markifyapp.com";
 
 let config = configurations[configuration];
@@ -1280,7 +1280,7 @@ modules["dropdown"] = class {
         content.style.left = (dropdown.offsetWidth / 1) + "px";
       } else {
         window.dropdown.frameHistory.pop();
-        setTitleHTML = window.dropdown.frameHistory.pop()[1];
+        setTitleHTML = (window.dropdown.frameHistory.pop() ?? [])[1] ?? setTitleHTML;
 
         oldContent.style.removeProperty("left");
         oldContent.style.right = "0%";
@@ -1537,7 +1537,7 @@ modules["modal"] = class {
         content.style.left = (modal.offsetWidth / 1) + "px";
       } else {
         dataParent.modal.frameHistory.pop();
-        title = dataParent.modal.frameHistory.pop()[3];
+        title = (dataParent.modal.frameHistory.pop() ?? [])[3] ?? title;
 
         oldContent.style.removeProperty("left");
         oldContent.style.right = "0%";

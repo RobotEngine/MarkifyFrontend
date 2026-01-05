@@ -1,4 +1,91 @@
-modules["modals/lesson/newbreakout"] = class {
+modules["breakout/overview/setup"] = class {
+  progressFooter = `
+  <div class="brSetupProgress">
+    <button class="largeButton" back hidden>Back</button>
+    <div dots><button></button><button></button><button></button><button></button></div>
+    <button class="largeButton" next hidden>Next</button>
+  </div>`;
+  progressFooterStyles = {
+    ".brSetupProgress": `position: sticky; display: flex; flex-wrap: wrap; gap: 12px; width: calc(100% - 24px); bottom: 0; padding: 12px; font-size: 16px; background: rgba(var(--background), .7); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 2`,
+    ".brSetupProgress .largeButton": `--themeColor: var(--theme); --themeColor2: var(--themeColor); --borderRadius: 12px; max-width: 100%; padding: 6px 10px; margin: 3px; justify-content: center; font-size: 18px`,
+    ".brSetupProgress .largeButton svg": `width: 24px`,
+    ".brSetupProgress .largeButton[back] svg": `transform: scaleX(-1)`,
+    ".brSetupProgress div[dots]": `display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; margin: 0 auto; justify-content: center; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 20px`,
+    ".brSetupProgress div[dots] button": `position: relative; display: flex; width: 28px; height: 28px; background: var(--hover); border-radius: 6px; pointer-events: none`,
+    ".brSetupProgress div[dots] button:first-child": `border-radius: 14px 6px 6px 14px`,
+    ".brSetupProgress div[dots] button:last-child": `border-radius: 6px 14px 14px 6px`,
+    ".brSetupProgress div[dots] button[selected]": `background: var(--secondary); border-radius: 14px !important`,
+    ".brSetupProgress div[dots] button[selected]:before": `content: ""; position: absolute; width: 40%; height: 40%; left: 50%; top: 50%; transform: translate(-50%, -50%); background: var(--pageColor); border-radius: inherit`,
+    ".brSetupProgress div[dots] button[done]": `background: var(--theme) !important`,
+    ".brSetupProgress div[dots] button:not([selected])": `pointer-events: all`
+  };
+  steps = [
+    "modals/lesson/newbreakout/template",
+    "modals/lesson/newbreakout/setuptype",
+    "modals/lesson/newbreakout/options",
+    "modals/lesson/newbreakout/review"
+  ];
+  updateFooter = () => {
+    let backButton = this.progressFooter.querySelector("button[back]");
+    let dots = this.progressFooter.querySelector("div[dots]").children;
+    let nextButton = this.progressFooter.querySelector("button[next]");
+    let config = this.parent.parent.parent.lesson.breakout ?? {};
+    if (config.template == null) {
+      dots[0].removeAttribute("done");
+    } else {
+      dots[0].setAttribute("done", "");
+    }
+    if (config.mode == null) {
+      dots[1].removeAttribute("done");
+    } else {
+      dots[1].setAttribute("done", "");
+    }
+
+    if (this.step > 0) {
+      backButton.removeAttribute("hidden");
+    } else {
+      backButton.setAttribute("hidden", "");
+    }
+    if (dots[this.step].hasAttribute("done") == true && this.step < (this.steps.length - 1)) {
+      nextButton.removeAttribute("hidden");
+    } else {
+      nextButton.setAttribute("hidden", "");
+    }
+  }
+  setupFooter = (extra) => {
+    this.frame.closest(".modalContent").style.padding = "0px";
+
+    this.progressFooter = this.frame.querySelector(".brSetupProgress");
+    let backButton = this.progressFooter.querySelector("button[back]");
+    let dots = this.progressFooter.querySelector("div[dots]");
+    let progressDot = dots.children[this.step];
+    let nextButton = this.progressFooter.querySelector("button[next]");
+    let modalBackButton = extra.modal.modal.modal.querySelector(".modalBack")
+    backButton.addEventListener("click", () => {
+      extra.modal.open(this.steps[this.step - 1], null, modalBackButton, "Start a Breakout", null, { parent: this.parent });
+    });
+    nextButton.addEventListener("click", () => {
+      extra.modal.open(this.steps[this.step + 1], null, nextButton, "Start a Breakout", null, { parent: this.parent });
+    });
+    dots.addEventListener("click", (event) => {
+      let dot = event.target.closest("button");
+      if (dot == null) {
+        return;
+      }
+      let dotIndex = [...dots.children].indexOf(dot);
+      let useButton = dot;
+      if (dotIndex < this.step) {
+        useButton = modalBackButton;
+      }
+      extra.modal.open(this.steps[dotIndex], null, useButton, "Start a Breakout", false, { parent: this.parent });
+    });
+    this.updateFooter();
+    progressDot.setAttribute("selected", "");
+  }
+}
+
+modules["modals/lesson/newbreakout/template"] = class extends modules["breakout/overview/setup"] {
+  step = 0;
   //maxHeight = 400;
   preload = [
     "../modules/modals/lesson/newboard.js"
@@ -50,15 +137,11 @@ modules["modals/lesson/newbreakout"] = class {
         <button class="brtTemplateRowChange border" title="Change the template.">Change</button>
       </div>
     </div>
-    <div class="brSetupProgress">
-      <button class="largeButton" back hidden>Back</button>
-      <div dots><button selected></button><button></button><button></button><button></button></div>
-      <button class="largeButton" next hidden>Next</button>
-    </div>
   </div>
+  ${this.progressFooter}
   `;
   css = {
-    ".brtCreationHolder": `position: relative; display: flex; flex-direction: column; width: 350px; max-width: 100%; text-align: center; align-items: center; z-index: 1`,
+    ".brtCreationHolder": `position: relative; display: flex; flex-direction: column; width: 350px; max-width: calc(100% - 16px); padding: 8px; text-align: center; align-items: center; z-index: 1`,
     ".brtInstructions": `box-sizing: border-box; display: flex; flex-direction: column; width: 100%; padding: 8px; align-items: center`,
     ".brtTitle": `max-width: 100%; font-size: 24px; font-weight: 500`,
     ".brtTitle b": `color: var(--theme); font-weight: 700`,
@@ -87,23 +170,13 @@ modules["modals/lesson/newbreakout"] = class {
     ".brtTemplateRowEdit:hover": `background: var(--theme); --borderWidth: 0px; transform: scale(1.1); color: #fff`,
     ".brtTemplateRowChange": `--borderWidth: 3px; --borderColor: var(--secondary); color: var(--secondary); font-size: 18px`,
     ".brtTemplateRowChange:hover": `background: var(--secondary); --borderWidth: 0px; transform: scale(1.1); color: #fff`,
-    
-    ".brSetupProgress": `display: flex; flex-wrap: wrap; gap: 12px; width: calc(100% - 24px); margin: 24px 12px 12px; font-size: 16px; justify-content: center; align-items: center`,
-    ".brSetupProgress .largeButton": `--themeColor: var(--theme); --themeColor2: var(--themeColor); --borderRadius: 12px; max-width: 100%; padding: 6px 10px; margin: 0; justify-content: center; font-size: 18px`,
-    ".brSetupProgress .largeButton svg": `width: 24px`,
-    ".brSetupProgress .largeButton[back] svg": `transform: scaleX(-1)`,
-    ".brSetupProgress div[dots]": `display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; margin: 0 auto; justify-content: center; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 20px`,
-    ".brSetupProgress div[dots] button": `position: relative; display: flex; width: 28px; height: 28px; background: var(--hover); border-radius: 6px; pointer-events: none`,
-    ".brSetupProgress div[dots] button:first-child": `border-radius: 14px 6px 6px 14px`,
-    ".brSetupProgress div[dots] button:last-child": `border-radius: 6px 14px 14px 6px`,
-    ".brSetupProgress div[dots] button[selected]": `background: var(--secondary); border-radius: 14px !important`,
-    ".brSetupProgress div[dots] button[selected]:before": `content: ""; position: absolute; width: 40%; height: 40%; left: 50%; top: 50%; transform: translate(-50%, -50%); background: var(--pageColor); border-radius: inherit`,
-    ".brSetupProgress div[dots] button[done]": `background: var(--theme) !important`,
-    ".brSetupProgress div[dots] button[done]:not([selected])": `pointer-events: all`
+    ...this.progressFooterStyles
   };
   js = async (frame, extra) => {
     this.parent = extra.parent;
     this.template = extra.template;
+
+    this.setupFooter(extra);
 
     let modal = frame.closest(".modal");
 
@@ -118,14 +191,6 @@ modules["modals/lesson/newbreakout"] = class {
     let currentTemplateTile = currentTemplate.querySelector(".brtTemplateTile");
     let currentTemplateEdit = currentTemplate.querySelector(".brtTemplateRowEdit");
     let currentTemplateChange = currentTemplate.querySelector(".brtTemplateRowChange");
-
-    let progressHolder = frame.querySelector(".brSetupProgress");
-    //let backButton = progressHolder.querySelector("button[back]");
-    let progressDot = progressHolder.querySelector("div[dots]").children[0];
-    let nextButton = progressHolder.querySelector("button[next]");
-    nextButton.addEventListener("click", () => {
-      extra.modal.open("modals/lesson/newbreakout/setuptype", null, nextButton, "Start a Breakout", null, { parent: this });
-    });
 
     let updateTemplateTile = () => {
       if (this.template == null) {
@@ -173,17 +238,14 @@ modules["modals/lesson/newbreakout"] = class {
       changedTx.title = formatFullDate(time);
     }
     let updateDisplayState = async () => {
+      this.updateFooter();
       let templateID = (this.parent.parent.parent.lesson.breakout ?? {}).template;
       if (templateID == null) {
         newOptions.style.display = "flex";
         currentTemplate.style.removeProperty("display");
-        progressDot.removeAttribute("done");
-        nextButton.setAttribute("hidden", "");
       } else {
         newOptions.style.removeProperty("display");
         currentTemplate.style.display = "flex";
-        progressDot.setAttribute("done", "");
-        nextButton.removeAttribute("hidden");
         if (this.template == null) {
           let [code, body] = await sendRequest("GET", "lessons/breakout/template?template=" + templateID, null, { session: this.parent.parent.session });
           if (code != 200) {
@@ -212,8 +274,8 @@ modules["modals/lesson/newbreakout"] = class {
       objectUpdate(set, this.template);
       updateTemplateTile();
     }
-    this.parent.parent.pipeline.subscribe("newBreakoutModalTemplateSet", "set", handleSet);
-    this.parent.parent.pipeline.subscribe("newBreakoutModalTemplateSubSet", "subset", handleSet);
+    this.parent.parent.pipeline.subscribe("newBreakoutModalSet", "set", handleSet);
+    this.parent.parent.pipeline.subscribe("newBreakoutModalSubSet", "subset", handleSet);
     
     let blankButton = newOptions.querySelector('.brtButton[type="blank"]');
     blankButton.addEventListener("click", () => {
@@ -258,6 +320,7 @@ modules["modals/lesson/newbreakout"] = class {
     updateDisplayState();
   }
 }
+modules["modals/lesson/newbreakout"] = class extends modules["modals/lesson/newbreakout/template"] {}
 
 modules["modals/lesson/newbreakout/templates"] = class {
   maxHeight = 600;
@@ -430,27 +493,127 @@ modules["modals/lesson/newbreakout/templates"] = class {
   }
 }
 
-modules["modals/lesson/newbreakout/setuptype"] = class {
+modules["modals/lesson/newbreakout/setuptype"] = class extends modules["breakout/overview/setup"] {
+  step = 1;
   html = `
   <div class="brosCreationHolder">
     <div class="brosInstructions">
-      <div class="brosTitle">How to <b>Create the Groups</b>?</div>
+      <div class="brosTitle">How to <b>Setup the Teams</b>?</div>
     </div>
-    <div class="brSetupProgress">
-      <button class="largeButton" back hidden>Back</button>
-      <div dots><button done></button><button selected></button><button></button><button></button></div>
-      <button class="largeButton" next hidden>Next</button>
+    <div class="brosOptions">
+      <button class="brosOption" type="auto">
+        <div image style="--image: url('../images/editor/breakout/autopair.png')"></div>
+        <div content>
+          <div title>AutoPair</div>
+          <div info>Automatically distribute members into solo boards or teams of same size.</div>
+        </div>
+      </button>
+      <button class="brosOption" type="teamup">
+        <div image style="--image: url('../images/editor/breakout/teamup.png')"></div>
+        <div content>
+          <div title>Team Up</div>
+          <div info>Allow members to create or join a team of their choosing.</div>
+        </div>
+      </button>
+      <button class="brosOption" type="manual">
+        <div image style="--image: url('../images/editor/breakout/manual.png')"></div>
+        <div content>
+          <div title>Manual</div>
+          <div info>Create groupings and assign members to each one-by-one.</div>
+        </div>
+      </button>
     </div>
   </div>
+  ${this.progressFooter}
   `;
   css = {
-    ".brosCreationHolder": `position: relative; display: flex; flex-direction: column; width: 500px; max-width: 100%; text-align: center; align-items: center; z-index: 1`,
+    ".brosCreationHolder": `position: relative; display: flex; flex-direction: column; width: 598px; max-width: calc(100% - 16px); padding: 8px; text-align: center; align-items: center; z-index: 1`,
     ".brosInstructions": `box-sizing: border-box; display: flex; flex-direction: column; width: 100%; padding: 8px; align-items: center`,
     ".brosTitle": `max-width: 100%; font-size: 24px; font-weight: 500`,
-    ".brosTitle b": `color: var(--theme); font-weight: 700`
+    ".brosTitle b": `color: var(--theme); font-weight: 700`,
+    ".brosOptions": `box-sizing: border-box; display: flex; flex-wrap: wrap; width: fit-content; width: 100%; padding: 4px; gap: 10px; justify-content: center`,
+    ".brosOption": `position: relative; display: flex; flex-direction: column; flex: 1 1 190px; max-width: 190px; height: 278px; padding: 4px; overflow: hidden; background: var(--pageColor); box-shadow: inset var(--lightShadow); border-radius: 16px`,
+    ".brosOption[selected]": `background: var(--theme)`,
+    ".brosOption:hover": `box-shadow: inset var(--darkShadow)`,
+    ".brosOption div[image]": `position: relative; width: 100%; height: 182px`,
+    ".brosOption div[image]:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background-image: var(--image); background-size: contain`,
+    ".brosOption[selected] div[image]:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background-image: var(--image); background-size: contain; filter: brightness(0) invert(1)`,
+    //".brosOption[selected] img[test]": `filter: brightness(0) invert(1)`,
+    ".brosOption div[content]": `position: absolute; box-sizing: border-box; width: calc(100% - 12px); left: 6px; bottom: 6px; padding: 6px; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 10px`,
+    ".brosOption[selected] div[content]": `box-shadow: inset var(--lightShadow);`,
+    ".brosOption div[content] div[title]": `width: 100%; font-size: 18px; font-weight: 700; color: var(--theme); transition: .2s`,
+    ".brosOption:hover div[content] div[title]": `padding: 2px 0; transform: scale(1.2)`,
+    ".brosOption div[content] div[info]": `width: 100%; margin-top: 4px; font-size: 12px`,
+
+    ...this.progressFooterStyles
+  };
+  js = async (frame, extra) => {
+    this.parent = extra.parent;
+
+    this.setupFooter(extra);
+
+    let optionHolder = frame.querySelector(".brosOptions");
+
+    let updateDisplayState = (set) => {
+      this.updateFooter();
+      let prevSelected = optionHolder.querySelector(".brosOption[selected]");
+      if (prevSelected != null) {
+        prevSelected.removeAttribute("selected");
+      }
+      let newSelect = optionHolder.querySelector('.brosOption[type="' + (set ?? (this.parent.parent.parent.lesson.breakout ?? {}).mode) + '"]');
+      if (newSelect != null) {
+        newSelect.setAttribute("selected", "");
+      }
+    }
+    this.parent.parent.pipeline.subscribe("newBreakoutModalSet", "set", () => { updateDisplayState(); });
+
+    optionHolder.addEventListener("click", async (event) => {
+      let option = event.target.closest(".brosOption");
+      if (option == null || option.hasAttribute("selected") == true) {
+        return;
+      }
+      optionHolder.setAttribute("disabled", "");
+      let type = option.getAttribute("type");
+      updateDisplayState(type);
+      let [code] = await sendRequest("PUT", "lessons/breakout/mode", { mode: type }, { session: this.parent.parent.session });
+      if (code != 200) {
+        updateDisplayState();
+      }
+      optionHolder.removeAttribute("disabled");
+    });
+
+    updateDisplayState();
+  }
+}
+
+modules["modals/lesson/newbreakout/options"] = class extends modules["breakout/overview/setup"] {
+  step = 2;
+  html = `
+  tester 1
+    ${this.progressFooter}
+  `;
+  css = {
+    ...this.progressFooterStyles
+  };
+  js = async (frame, extra) => {
+    this.parent = extra.parent;
+
+    this.setupFooter(extra);
+  }
+}
+
+modules["modals/lesson/newbreakout/review"] = class extends modules["breakout/overview/setup"] {
+  step = 3;
+  html = `
+  testy 2
+    ${this.progressFooter}
+  `;
+  css = {
     
   };
   js = async (frame, extra) => {
+    this.parent = extra.parent;
 
+    this.setupFooter(extra);
   }
 }

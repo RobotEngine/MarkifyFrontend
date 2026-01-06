@@ -22,7 +22,7 @@ const configurations = {
 };
 
 const configuration = "public";
-const version = "1.6.35"; // Big Update . Small Feature Release . Bug Fix
+const version = "1.6.36"; // Big Update . Small Feature Release . Bug Fix
 const domain = "markifyapp.com";
 
 let config = configurations[configuration];

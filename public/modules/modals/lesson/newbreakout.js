@@ -52,7 +52,15 @@ modules["breakout/overview/setup"] = class {
       nextButton.setAttribute("hidden", "");
     }
   }
+  goBack = () => {
+    this.modal.open(this.steps[this.step - 1], null, this.modal.modal.modal.querySelector(".modalBack"), "Start a Breakout", null, { parent: this.parent });
+  }
+  goNext = () => {
+    this.modal.open(this.steps[this.step + 1], null, this.progressFooter.querySelector("button[next]"), "Start a Breakout", null, { parent: this.parent });
+  }
   setupFooter = (extra) => {
+    this.modal = extra.modal;
+
     this.frame.closest(".modalContent").style.padding = "0px";
 
     this.progressFooter = this.frame.querySelector(".brSetupProgress");
@@ -60,13 +68,9 @@ modules["breakout/overview/setup"] = class {
     let dots = this.progressFooter.querySelector("div[dots]");
     let progressDot = dots.children[this.step];
     let nextButton = this.progressFooter.querySelector("button[next]");
-    let modalBackButton = extra.modal.modal.modal.querySelector(".modalBack")
-    backButton.addEventListener("click", () => {
-      extra.modal.open(this.steps[this.step - 1], null, modalBackButton, "Start a Breakout", null, { parent: this.parent });
-    });
-    nextButton.addEventListener("click", () => {
-      extra.modal.open(this.steps[this.step + 1], null, nextButton, "Start a Breakout", null, { parent: this.parent });
-    });
+    let modalBackButton = this.modal.modal.modal.querySelector(".modalBack");
+    backButton.addEventListener("click", this.goBack);
+    nextButton.addEventListener("click", this.goNext);
     dots.addEventListener("click", (event) => {
       let dot = event.target.closest("button");
       if (dot == null) {
@@ -77,7 +81,7 @@ modules["breakout/overview/setup"] = class {
       if (dotIndex < this.step) {
         useButton = modalBackButton;
       }
-      extra.modal.open(this.steps[dotIndex], null, useButton, "Start a Breakout", false, { parent: this.parent });
+      this.modal.open(this.steps[dotIndex], null, useButton, "Start a Breakout", false, { parent: this.parent });
     });
     this.updateFooter();
     progressDot.setAttribute("selected", "");
@@ -496,7 +500,7 @@ modules["modals/lesson/newbreakout/templates"] = class {
 modules["modals/lesson/newbreakout/setuptype"] = class extends modules["breakout/overview/setup"] {
   step = 1;
   html = `
-  <div class="brosCreationHolder">
+  <div class="brosOptionsHolder">
     <div class="brosInstructions">
       <div class="brosTitle">How to <b>Setup the Teams</b>?</div>
     </div>
@@ -527,7 +531,7 @@ modules["modals/lesson/newbreakout/setuptype"] = class extends modules["breakout
   ${this.progressFooter}
   `;
   css = {
-    ".brosCreationHolder": `position: relative; display: flex; flex-direction: column; width: 598px; max-width: calc(100% - 16px); padding: 8px; text-align: center; align-items: center; z-index: 1`,
+    ".brosOptionsHolder": `position: relative; display: flex; flex-direction: column; width: 598px; max-width: calc(100% - 16px); padding: 8px; text-align: center; align-items: center; z-index: 1`,
     ".brosInstructions": `box-sizing: border-box; display: flex; flex-direction: column; width: 100%; padding: 8px; align-items: center`,
     ".brosTitle": `max-width: 100%; font-size: 24px; font-weight: 500`,
     ".brosTitle b": `color: var(--theme); font-weight: 700`,
@@ -570,7 +574,7 @@ modules["modals/lesson/newbreakout/setuptype"] = class extends modules["breakout
     optionHolder.addEventListener("click", async (event) => {
       let option = event.target.closest(".brosOption");
       if (option == null || option.hasAttribute("selected") == true) {
-        return;
+        return this.goNext();
       }
       optionHolder.setAttribute("disabled", "");
       let type = option.getAttribute("type");
@@ -580,6 +584,7 @@ modules["modals/lesson/newbreakout/setuptype"] = class extends modules["breakout
         updateDisplayState();
       }
       optionHolder.removeAttribute("disabled");
+      this.goNext();
     });
 
     updateDisplayState();
@@ -588,15 +593,130 @@ modules["modals/lesson/newbreakout/setuptype"] = class extends modules["breakout
 
 modules["modals/lesson/newbreakout/options"] = class extends modules["breakout/overview/setup"] {
   step = 2;
+  maxHeight = 520;
   html = `
-    Test 1
+    <div class="brooSettingsHolder">
+      <div class="brooSetting" open>
+        <button class="brooSettingButton" enabled>
+          <div class="brooSettingDetails">
+            <div title>AutoPair</div>
+            <div info>Configure Markify to scale teams and members automatically.</div>
+          </div>
+          <div class="brooSettingToggleHolder">
+            <div toggle><div></div></div>
+          </div>
+        </button>
+        <div class="brooSettingButton">
+          <div class="brooSettingDetails">
+            <div title>Mode</div>
+          </div>
+          <div class="brooSettingToggleHolder">
+            <div class="brooOptionSelector"><button selected>Scale Teams</button><button>Assign Members</button></div>
+          </div>
+        </div>
+        <div class="brooSettingButton">
+          <div class="brooSettingDetails">
+            <div title>Team Size</div>
+          </div>
+          <div class="brooSettingToggleHolder">
+            <div class="brooOptionSelector"><button>Solo</button><button selected>Duo</button><button>Trio</button><button>Custom</button></div>
+            <div class="brooCounterSelector"><button minus>-</button><div count contenteditable>2</div><button plus>+</button></div>
+          </div>
+        </div>
+        <button class="brooSettingButton">
+          <div class="brooSettingDetails">
+            <div title>Use Past Groupings</div>
+            <div info>Uses data from past Breakout sessions to pair the same members together.</div>
+          </div>
+          <div class="brooSettingToggleHolder">
+            <div toggle><div></div></div>
+          </div>
+        </button>
+      </div>
+      <div class="brooSetting">
+        <button class="brooSettingButton">
+          <div class="brooSettingDetails">
+            <div title>Join Any Team</div>
+            <div info>Allow members to change between different teams.</div>
+          </div>
+          <div class="brooSettingToggleHolder">
+            <div toggle><div></div></div>
+          </div>
+        </button>
+      </div>
+      <div class="brooSetting">
+        <button class="brooSettingButton">
+          <div class="brooSettingDetails">
+            <div title>Create a Team</div>
+            <div info>Allow members to create their own team.</div>
+          </div>
+          <div class="brooSettingToggleHolder">
+            <div toggle><div></div></div>
+          </div>
+        </button>
+      </div>
+      <div class="brooSetting">
+        <button class="brooSettingButton">
+          <div class="brooSettingDetails">
+            <div title>Gallery Walk</div>
+            <div info>Allow members to see other team's work for ideas and inspiration.</div>
+          </div>
+          <div class="brooSettingToggleHolder">
+            <div toggle><div></div></div>
+          </div>
+        </button>
+      </div>
+      <div class="brooSetting">
+        <button class="brooSettingButton">
+          <div class="brooSettingDetails">
+            <div title>Change Team Name</div>
+            <div info>Allow members to change the team's name.</div>
+          </div>
+          <div class="brooSettingToggleHolder">
+            <div toggle><div></div></div>
+          </div>
+        </button>
+      </div>
+    </div>
     ${this.progressFooter}
   `;
   css = {
+    ".brooSettingsHolder": `position: relative; display: flex; flex-direction: column; gap: 16px; width: 400px; max-width: calc(100% - 32px); padding: 16px; text-align: center; align-items: center; z-index: 1`,
+    ".brooSetting": `display: flex; flex-direction: column; box-sizing: border-box; width: 100%`,
+    ".brooSettingButton": `display: flex; flex-wrap: wrap; gap: 8px; flex: 1; padding: 8px; justify-content: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 24px`,
+    ".brooSettingButton[enabled]": `--themeColor: var(--theme); --titleBackground: var(--theme); --titleColor: #fff`,
+    ".brooSettingButton:not([enabled])": `--themeColor: var(--gray); --titleBackground: var(--pageColor); --titleColor: var(--theme)`,
+    ".brooSetting[open] .brooSettingButton:not(:last-child)": `margin-bottom: 8px; border-bottom-right-radius: 8px`,
+    ".brooSetting .brooSettingButton:not(:first-child)": `margin-left: 24px; border-top-left-radius: 8px; border-top-right-radius: 8px`,
+    ".brooSetting .brooSettingButton:not(:first-child):not(:last-child)": `border-bottom-left-radius: 8px`,
+    ".brooSetting:not([open]) .brooSettingButton:not(:first-child)": `display: none`,
+    ".brooSettingDetails": `display: flex; flex-direction: column; flex: 1 1 100px; text-align: left`,
+    ".brooSettingDetails div[title]": `width: fit-content; padding: 4px 8px; background: var(--titleBackground); box-shadow: var(--lightShadow); font-size: 20px; font-weight: 700; color: var(--titleColor); word-wrap: break-word; border-radius: 16px; transition: .2s`,
+    ".brooSettingDetails div[info]": `margin: 6px 0 0 12px; font-size: 14px`,
+    ".brooSettingToggleHolder div[toggle]": `position: relative; box-sizing: border-box; width: 50px; height: 32px; padding: 4px; background: var(--themeColor); border-radius: 16px; transition: .2s`,
+    ".brooSettingToggleHolder div[toggle] div": `position: absolute; width: 24px; height: 24px; background: var(--pageColor); border-radius: 12px; transition: .2s`,
+    ".brooSettingButton[enabled] .brooSettingToggleHolder div[toggle] div": `right: 4px`,
+    ".brooSettingButton:not([enabled]) .brooSettingToggleHolder div[toggle] div": `right: calc(100% - 28px)`,
+    ".brooOptionSelector": `display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px; justify-content: center`,
+    ".brooOptionSelector button": `height: 24px; padding: 0 6px; align-content: center; border-radius: 12px; font-size: 14px; font-weight: 600`,
+    ".brooOptionSelector button:hover": `background: var(--hover)`,
+    ".brooOptionSelector button[selected]": `background: var(--theme) !important; color: #fff !important`,
+    ".brooCounterSelector": `display: none; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px; justify-content: center`,
+    ".brooCounterSelector button": `display: flex; width: 24px; height: 24px; justify-content: center; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); color: var(--theme); font-size: 26px; font-weight: 600; line-height: 0`,
+    ".brooCounterSelector button:hover": `background: var(--theme); color: #fff`,
+    ".brooCounterSelector button[minus]": `border-radius: 12px 6px 6px 12px`,
+    ".brooCounterSelector button[plus]": `border-radius: 6px 12px 12px 6px`,
+    ".brooCounterSelector div[count]": `min-width: 16px; max-width: 100px; height: 24px; padding: 0 8px; align-content: center; background: var(--theme); border-radius: 6px; outline: unset; color: #fff; font-size: 16px; font-weight: 700; white-space: nowrap; overflow-x: auto; scrollbar-width: none`,
     ...this.progressFooterStyles
   };
   js = async (frame, extra) => {
     this.parent = extra.parent;
+
+    let updateDisplayState = (set) => {
+      this.updateFooter();
+      
+    }
+    this.parent.parent.pipeline.subscribe("newBreakoutModalSet", "set", () => { updateDisplayState(); });
 
     this.setupFooter(extra);
   }
@@ -613,6 +733,12 @@ modules["modals/lesson/newbreakout/review"] = class extends modules["breakout/ov
   };
   js = async (frame, extra) => {
     this.parent = extra.parent;
+
+    let updateDisplayState = (set) => {
+      this.updateFooter();
+      
+    }
+    this.parent.parent.pipeline.subscribe("newBreakoutModalSet", "set", () => { updateDisplayState(); });
 
     this.setupFooter(extra);
   }

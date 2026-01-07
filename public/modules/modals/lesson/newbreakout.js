@@ -633,8 +633,8 @@ modules["modals/lesson/newbreakout/options"] = class extends modules["breakout/o
           </div>
         </button>
       </div>
-      <div class="brooSetting">
-        <button class="brooSettingButton">
+      <div class="brooSetting" open>
+        <button class="brooSettingButton" enabled>
           <div class="brooSettingDetails">
             <div title>Join Any Team</div>
             <div info>Allow members to change between different teams.</div>
@@ -643,6 +643,14 @@ modules["modals/lesson/newbreakout/options"] = class extends modules["breakout/o
             <div toggle><div></div></div>
           </div>
         </button>
+        <div class="brooSettingButton">
+          <div class="brooSettingDetails">
+            <div title>Max Team Size</div>
+          </div>
+          <div class="brooSettingToggleHolder">
+            <div class="brooCounterSelector"><button reset>Reset</button><button minus>-</button><div count contenteditable disabled>0</div><button plus>+</button></div>
+          </div>
+        </div>
       </div>
       <div class="brooSetting">
         <button class="brooSettingButton">
@@ -687,7 +695,7 @@ modules["modals/lesson/newbreakout/options"] = class extends modules["breakout/o
     ".brooSettingButton[enabled]": `--themeColor: var(--theme); --titleBackground: var(--theme); --titleColor: #fff`,
     ".brooSettingButton:not([enabled])": `--themeColor: var(--gray); --titleBackground: var(--pageColor); --titleColor: var(--theme)`,
     ".brooSetting[open] .brooSettingButton:not(:last-child)": `margin-bottom: 8px; border-bottom-right-radius: 8px`,
-    ".brooSetting .brooSettingButton:not(:first-child)": `margin-left: 24px; border-top-left-radius: 8px; border-top-right-radius: 8px`,
+    ".brooSetting .brooSettingButton:not(:first-child)": `margin-left: min(25px, 10%); border-top-left-radius: 8px; border-top-right-radius: 8px`,
     ".brooSetting .brooSettingButton:not(:first-child):not(:last-child)": `border-bottom-left-radius: 8px`,
     ".brooSetting:not([open]) .brooSettingButton:not(:first-child)": `display: none`,
     ".brooSettingDetails": `display: flex; flex-direction: column; flex: 1 1 100px; text-align: left`,
@@ -698,15 +706,16 @@ modules["modals/lesson/newbreakout/options"] = class extends modules["breakout/o
     ".brooSettingButton[enabled] .brooSettingToggleHolder div[toggle] div": `right: 4px`,
     ".brooSettingButton:not([enabled]) .brooSettingToggleHolder div[toggle] div": `right: calc(100% - 28px)`,
     ".brooOptionSelector": `display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px; justify-content: center`,
-    ".brooOptionSelector button": `height: 24px; padding: 0 6px; align-content: center; border-radius: 12px; font-size: 14px; font-weight: 600`,
+    ".brooOptionSelector button": `min-height: 24px; padding: 0 6px; align-content: center; border-radius: 12px; font-size: 14px; font-weight: 600`,
     ".brooOptionSelector button:hover": `background: var(--hover)`,
     ".brooOptionSelector button[selected]": `background: var(--theme) !important; color: #fff !important`,
     ".brooCounterSelector": `display: none; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px; justify-content: center`,
     ".brooCounterSelector button": `display: flex; width: 24px; height: 24px; justify-content: center; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); color: var(--theme); font-size: 26px; font-weight: 600; line-height: 0`,
-    ".brooCounterSelector button:hover": `background: var(--theme); color: #fff`,
+    ".brooCounterSelector button:hover": `background: var(--theme); color: #fff !important`,
+    ".brooCounterSelector button[reset]": `display: none; width: fit-content; border-radius: 12px; color: var(--textColor); font-size: 14px; font-weight: 600`,
     ".brooCounterSelector button[minus]": `border-radius: 12px 6px 6px 12px`,
     ".brooCounterSelector button[plus]": `border-radius: 6px 12px 12px 6px`,
-    ".brooCounterSelector div[count]": `min-width: 16px; max-width: 100px; height: 24px; padding: 0 8px; align-content: center; background: var(--theme); border-radius: 6px; outline: unset; color: #fff; font-size: 16px; font-weight: 700; white-space: nowrap; overflow-x: auto; scrollbar-width: none`,
+    ".brooCounterSelector div[count]": `min-width: 16px; max-width: 32px; height: 24px; padding: 0 8px; align-content: center; background: var(--theme); border-radius: 6px; outline: unset; color: #fff; font-size: 16px; font-weight: 700; white-space: nowrap; overflow-x: auto; scrollbar-width: none`,
     ...this.progressFooterStyles
   };
   js = async (frame, extra) => {

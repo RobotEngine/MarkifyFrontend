@@ -218,6 +218,8 @@ modules["modals/lesson/newbreakout/template"] = class extends modules["breakout/
     let currentTemplateEdit = currentTemplate.querySelector(".brtTemplateRowEdit");
     let currentTemplateChange = currentTemplate.querySelector(".brtTemplateRowChange");
 
+    let nextButton = frame.querySelector(".brSetupProgress button[next]");
+
     let updateTemplateTile = () => {
       if (this.template == null) {
         return;
@@ -269,9 +271,11 @@ modules["modals/lesson/newbreakout/template"] = class extends modules["breakout/
       if (templateID == null) {
         newOptions.style.display = "flex";
         currentTemplate.style.removeProperty("display");
+        nextButton.setAttribute("hidden", "");
       } else {
         newOptions.style.removeProperty("display");
         currentTemplate.style.display = "flex";
+        nextButton.removeAttribute("hidden");
         if (this.template == null) {
           let [code, body] = await sendRequest("GET", "lessons/breakout/template?template=" + templateID, null, { session: this.parent.parent.session });
           if (code != 200) {

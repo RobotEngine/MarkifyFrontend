@@ -1,9 +1,9 @@
 modules["breakout/overview/setup"] = class {
   progressFooter = `
   <div class="brSetupProgress">
-    <button class="largeButton" back hidden>Back</button>
+    <button class="largeButton" back>Back</button>
     <div dots><button></button><button></button><button></button><button></button></div>
-    <button class="largeButton" next hidden>Next</button>
+    <button class="largeButton" next>Next</button>
   </div>`;
   progressFooterStyles = {
     ".brSetupProgress": `position: sticky; display: flex; flex-wrap: wrap; gap: 12px; width: calc(100% - 24px); bottom: 0; padding: 12px; font-size: 16px; background: rgba(var(--background), .7); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 2`,
@@ -14,9 +14,9 @@ modules["breakout/overview/setup"] = class {
     ".brSetupProgress div[dots] button": `position: relative; display: flex; width: 28px; height: 28px; background: var(--hover); border-radius: 6px; pointer-events: none`,
     ".brSetupProgress div[dots] button:first-child": `border-radius: 14px 6px 6px 14px`,
     ".brSetupProgress div[dots] button:last-child": `border-radius: 6px 14px 14px 6px`,
-    ".brSetupProgress div[dots] button[selected]": `background: var(--secondary); border-radius: 14px !important`,
+    ".brSetupProgress div[dots] button[selected]": `background: var(--theme); border-radius: 14px !important`,
     ".brSetupProgress div[dots] button[selected]:before": `content: ""; position: absolute; width: 40%; height: 40%; left: 50%; top: 50%; transform: translate(-50%, -50%); background: var(--pageColor); border-radius: inherit`,
-    ".brSetupProgress div[dots] button[done]": `background: var(--theme) !important`,
+    ".brSetupProgress div[dots] button[past]": `background: var(--theme) !important`,
     ".brSetupProgress div[dots] button:not([selected])": `pointer-events: all`
   };
   steps = [
@@ -25,7 +25,7 @@ modules["breakout/overview/setup"] = class {
     "modals/lesson/newbreakout/options",
     "modals/lesson/newbreakout/review"
   ];
-  updateFooter = () => {
+  /*updateFooter = () => {
     let backButton = this.progressFooter.querySelector("button[back]");
     let dots = this.progressFooter.querySelector("div[dots]").children;
     let nextButton = this.progressFooter.querySelector("button[next]");
@@ -40,6 +40,11 @@ modules["breakout/overview/setup"] = class {
     } else {
       dots[1].setAttribute("done", "");
     }
+    if (config.mode == null || !(config.auto == null || config.auto.enabled == false || config.auto.type == null || (config.auto.type == "scale" && (config.auto.size ?? 0) > 0) || (config.auto.type == "assign" && (config.auto.groups ?? 0) > 0))) {
+      dots[2].removeAttribute("done");
+    } else {
+      dots[2].setAttribute("done", "");
+    }
 
     if (this.step > 0) {
       backButton.removeAttribute("hidden");
@@ -51,7 +56,7 @@ modules["breakout/overview/setup"] = class {
     } else {
       nextButton.setAttribute("hidden", "");
     }
-  }
+  }*/
   goBack = () => {
     this.modal.open(this.steps[this.step - 1], null, this.modal.modal.modal.querySelector(".modalBack"), "Start a Breakout", null, { parent: this.parent });
   }
@@ -66,25 +71,42 @@ modules["breakout/overview/setup"] = class {
     this.progressFooter = this.frame.querySelector(".brSetupProgress");
     let backButton = this.progressFooter.querySelector("button[back]");
     let dots = this.progressFooter.querySelector("div[dots]");
-    let progressDot = dots.children[this.step];
+    let dotChildren = dots.children;
+    let progressDot = dotChildren[this.step];
     let nextButton = this.progressFooter.querySelector("button[next]");
     let modalBackButton = this.modal.modal.modal.querySelector(".modalBack");
     backButton.addEventListener("click", this.goBack);
+    if (this.step < 1) {
+      backButton.setAttribute("hidden", "");
+    }
     nextButton.addEventListener("click", this.goNext);
+    if (this.step > (this.steps.length - 2)) {
+      nextButton.setAttribute("hidden", "");
+    }
     dots.addEventListener("click", (event) => {
       let dot = event.target.closest("button");
       if (dot == null) {
         return;
       }
-      let dotIndex = [...dots.children].indexOf(dot);
+      let dotIndex = [...dotChildren].indexOf(dot);
       let useButton = dot;
       if (dotIndex < this.step) {
         useButton = modalBackButton;
       }
       this.modal.open(this.steps[dotIndex], null, useButton, "Start a Breakout", false, { parent: this.parent });
     });
-    this.updateFooter();
+
+    for (let i = 0; i < dotChildren.length; i++) {
+      let child = dotChildren[i];
+      if (i < this.step) {
+        child.setAttribute("past", "");
+      } else {
+        break;
+      }
+    }
     progressDot.setAttribute("selected", "");
+
+    //this.updateFooter();
   }
 }
 
@@ -242,7 +264,7 @@ modules["modals/lesson/newbreakout/template"] = class extends modules["breakout/
       changedTx.title = formatFullDate(time);
     }
     let updateDisplayState = async () => {
-      this.updateFooter();
+      //this.updateFooter();
       let templateID = (this.parent.parent.parent.lesson.breakout ?? {}).template;
       if (templateID == null) {
         newOptions.style.display = "flex";
@@ -558,8 +580,8 @@ modules["modals/lesson/newbreakout/setuptype"] = class extends modules["breakout
 
     let optionHolder = frame.querySelector(".brosOptions");
 
-    let updateDisplayState = (set) => {
-      this.updateFooter();
+    /*let updateDisplayState = (set) => {
+      //this.updateFooter();
       let prevSelected = optionHolder.querySelector(".brosOption[selected]");
       if (prevSelected != null) {
         prevSelected.removeAttribute("selected");
@@ -569,25 +591,26 @@ modules["modals/lesson/newbreakout/setuptype"] = class extends modules["breakout
         newSelect.setAttribute("selected", "");
       }
     }
-    this.parent.parent.pipeline.subscribe("newBreakoutModalSet", "set", () => { updateDisplayState(); });
+    this.parent.parent.pipeline.subscribe("newBreakoutModalSet", "set", () => { updateDisplayState(); });*/
 
     optionHolder.addEventListener("click", async (event) => {
       let option = event.target.closest(".brosOption");
-      if (option == null || option.hasAttribute("selected") == true) {
+      if (option == null) { // || option.hasAttribute("selected") == true) {
         return this.goNext();
       }
       optionHolder.setAttribute("disabled", "");
       let type = option.getAttribute("type");
-      updateDisplayState(type);
-      let [code] = await sendRequest("PUT", "lessons/breakout/mode", { mode: type }, { session: this.parent.parent.session });
+      //updateDisplayState(type);
+      await sendRequest("PUT", "lessons/breakout/mode", { mode: type }, { session: this.parent.parent.session });
+      /*let [code] = 
       if (code != 200) {
         updateDisplayState();
-      }
+      }*/
       optionHolder.removeAttribute("disabled");
       this.goNext();
     });
 
-    updateDisplayState();
+    //updateDisplayState();
   }
 }
 
@@ -596,8 +619,8 @@ modules["modals/lesson/newbreakout/options"] = class extends modules["breakout/o
   maxHeight = 520;
   html = `
     <div class="brooSettingsHolder">
-      <div class="brooSetting" open>
-        <button class="brooSettingButton" enabled>
+      <div class="brooSetting" section="autopair">
+        <button class="brooSettingButton" option="autopair">
           <div class="brooSettingDetails">
             <div title>AutoPair</div>
             <div info>Configure Markify to scale teams and members automatically.</div>
@@ -606,24 +629,32 @@ modules["modals/lesson/newbreakout/options"] = class extends modules["breakout/o
             <div toggle><div></div></div>
           </div>
         </button>
-        <div class="brooSettingButton">
+        <div class="brooSettingButton" option="autopairtype">
           <div class="brooSettingDetails">
             <div title>Mode</div>
           </div>
           <div class="brooSettingToggleHolder">
-            <div class="brooOptionSelector"><button selected>Scale Teams</button><button>Assign Members</button></div>
+            <div class="brooOptionSelector"><button set="scale">Scale Teams</button><button set="assign">Assign Members</button></div>
           </div>
         </div>
-        <div class="brooSettingButton">
+        <div class="brooSettingButton" option="autopairsize">
           <div class="brooSettingDetails">
             <div title>Team Size</div>
           </div>
           <div class="brooSettingToggleHolder">
-            <div class="brooOptionSelector"><button>Solo</button><button selected>Duo</button><button>Trio</button><button>Custom</button></div>
-            <div class="brooCounterSelector"><button minus>-</button><div count contenteditable>2</div><button plus>+</button></div>
+            <div class="brooOptionSelector"><button set="1">Solo</button><button set="2">Duo</button><button set="3">Trio</button><button set="4">Custom</button></div>
+            <div class="brooCounterSelector"><button minus>-</button><div count contenteditable></div><button plus>+</button></div>
           </div>
         </div>
-        <button class="brooSettingButton">
+        <div class="brooSettingButton" option="autopairgroups">
+          <div class="brooSettingDetails">
+            <div title>Number of Groups</div>
+          </div>
+          <div class="brooSettingToggleHolder">
+            <div class="brooCounterSelector"><button minus>-</button><div count max="100" contenteditable></div><button plus>+</button></div>
+          </div>
+        </div>
+        <!--<button class="brooSettingButton" option="autopairpastgrouping">
           <div class="brooSettingDetails">
             <div title>Use Past Groupings</div>
             <div info>Uses data from past Breakout sessions to pair the same members together.</div>
@@ -631,29 +662,28 @@ modules["modals/lesson/newbreakout/options"] = class extends modules["breakout/o
           <div class="brooSettingToggleHolder">
             <div toggle><div></div></div>
           </div>
-        </button>
+        </button>-->
       </div>
-      <div class="brooSetting" open>
-        <button class="brooSettingButton" enabled>
+      <div class="brooSetting" section="pickteam">
+        <button class="brooSettingButton" option="pickteam">
           <div class="brooSettingDetails">
-            <div title>Join Any Team</div>
-            <div info>Allow members to change between different teams.</div>
+            <div title>Pick Team</div>
+            <div info>Let members choose their team.</div>
           </div>
           <div class="brooSettingToggleHolder">
             <div toggle><div></div></div>
           </div>
         </button>
-        <div class="brooSettingButton">
+        <button class="brooSettingButton" option="changeteam">
           <div class="brooSettingDetails">
-            <div title>Max Team Size</div>
+            <div title>Change Teams</div>
+            <div info>Allow members to change between teams after joining.</div>
           </div>
           <div class="brooSettingToggleHolder">
-            <div class="brooCounterSelector"><button reset>Reset</button><button minus>-</button><div count contenteditable disabled>0</div><button plus>+</button></div>
+            <div toggle><div></div></div>
           </div>
-        </div>
-      </div>
-      <div class="brooSetting">
-        <button class="brooSettingButton">
+        </button>
+        <button class="brooSettingButton" option="createteam">
           <div class="brooSettingDetails">
             <div title>Create a Team</div>
             <div info>Allow members to create their own team.</div>
@@ -662,9 +692,17 @@ modules["modals/lesson/newbreakout/options"] = class extends modules["breakout/o
             <div toggle><div></div></div>
           </div>
         </button>
+        <div class="brooSettingButton" option="maxteamsize">
+          <div class="brooSettingDetails">
+            <div title>Max Team Size</div>
+          </div>
+          <div class="brooSettingToggleHolder">
+            <div class="brooCounterSelector"><button reset>Reset</button><button minus>-</button><div count min="0" contenteditable></div><button plus>+</button></div>
+          </div>
+        </div>
       </div>
       <div class="brooSetting">
-        <button class="brooSettingButton">
+        <button class="brooSettingButton" option="gallerywalk">
           <div class="brooSettingDetails">
             <div title>Gallery Walk</div>
             <div info>Allow members to see other team's work for ideas and inspiration.</div>
@@ -675,7 +713,7 @@ modules["modals/lesson/newbreakout/options"] = class extends modules["breakout/o
         </button>
       </div>
       <div class="brooSetting">
-        <button class="brooSettingButton">
+        <button class="brooSettingButton" option="setteamname">
           <div class="brooSettingDetails">
             <div title>Change Team Name</div>
             <div info>Allow members to change the team's name.</div>
@@ -698,9 +736,9 @@ modules["modals/lesson/newbreakout/options"] = class extends modules["breakout/o
     ".brooSetting .brooSettingButton:not(:first-child)": `margin-left: min(25px, 10%); border-top-left-radius: 8px; border-top-right-radius: 8px`,
     ".brooSetting .brooSettingButton:not(:first-child):not(:last-child)": `border-bottom-left-radius: 8px`,
     ".brooSetting:not([open]) .brooSettingButton:not(:first-child)": `display: none`,
-    ".brooSettingDetails": `display: flex; flex-direction: column; flex: 1 1 100px; text-align: left`,
+    ".brooSettingDetails": `display: flex; flex-direction: column; flex: 1 1 100px`,
     ".brooSettingDetails div[title]": `width: fit-content; padding: 4px 8px; background: var(--titleBackground); box-shadow: var(--lightShadow); font-size: 20px; font-weight: 700; color: var(--titleColor); word-wrap: break-word; border-radius: 16px; transition: .2s`,
-    ".brooSettingDetails div[info]": `margin: 6px 0 0 12px; font-size: 14px`,
+    ".brooSettingDetails div[info]": `margin: 6px 0 0 12px; font-size: 14px; text-align: left`,
     ".brooSettingToggleHolder div[toggle]": `position: relative; box-sizing: border-box; width: 50px; height: 32px; padding: 4px; background: var(--themeColor); border-radius: 16px; transition: .2s`,
     ".brooSettingToggleHolder div[toggle] div": `position: absolute; width: 24px; height: 24px; background: var(--pageColor); border-radius: 12px; transition: .2s`,
     ".brooSettingButton[enabled] .brooSettingToggleHolder div[toggle] div": `right: 4px`,
@@ -709,25 +747,353 @@ modules["modals/lesson/newbreakout/options"] = class extends modules["breakout/o
     ".brooOptionSelector button": `min-height: 24px; padding: 0 6px; align-content: center; border-radius: 12px; font-size: 14px; font-weight: 600`,
     ".brooOptionSelector button:hover": `background: var(--hover)`,
     ".brooOptionSelector button[selected]": `background: var(--theme) !important; color: #fff !important`,
-    ".brooCounterSelector": `display: none; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px; justify-content: center`,
+    ".brooCounterSelector": `display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px; justify-content: center`,
     ".brooCounterSelector button": `display: flex; width: 24px; height: 24px; justify-content: center; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); color: var(--theme); font-size: 26px; font-weight: 600; line-height: 0`,
     ".brooCounterSelector button:hover": `background: var(--theme); color: #fff !important`,
     ".brooCounterSelector button[reset]": `display: none; width: fit-content; border-radius: 12px; color: var(--textColor); font-size: 14px; font-weight: 600`,
     ".brooCounterSelector button[minus]": `border-radius: 12px 6px 6px 12px`,
     ".brooCounterSelector button[plus]": `border-radius: 6px 12px 12px 6px`,
-    ".brooCounterSelector div[count]": `min-width: 16px; max-width: 32px; height: 24px; padding: 0 8px; align-content: center; background: var(--theme); border-radius: 6px; outline: unset; color: #fff; font-size: 16px; font-weight: 700; white-space: nowrap; overflow-x: auto; scrollbar-width: none`,
+    ".brooCounterSelector div[count]": `min-width: 16px; max-width: 32px; height: 24px; padding: 0 8px; align-content: center; background: var(--theme); border-radius: 6px; outline: unset; color: #fff; font-size: 16px; font-weight: 700; white-space: nowrap; overflow-x: auto; scrollbar-width: none; pointer-events: all !important`,
     ...this.progressFooterStyles
   };
   js = async (frame, extra) => {
     this.parent = extra.parent;
 
-    let updateDisplayState = (set) => {
-      this.updateFooter();
-      
-    }
-    this.parent.parent.pipeline.subscribe("newBreakoutModalSet", "set", () => { updateDisplayState(); });
-
     this.setupFooter(extra);
+
+    let holder = frame.querySelector(".brooSettingsHolder");
+
+    let autoPairSection = holder.querySelector('.brooSetting[section="autopair"]');
+    let autoPairOption = autoPairSection.querySelector('.brooSettingButton[option="autopair"]');
+    let autoPairTypeOption = autoPairSection.querySelector('.brooSettingButton[option="autopairtype"]');
+    let autoPairSizeOption = autoPairSection.querySelector('.brooSettingButton[option="autopairsize"]');
+    let autoPairSizeOptions = autoPairSizeOption.querySelector(".brooOptionSelector");
+    let autoPairSizeCounter = autoPairSizeOption.querySelector(".brooCounterSelector");
+    let autoPairSizeCount = autoPairSizeCounter.querySelector("div[count]");
+    let autoPairGroupsOption = autoPairSection.querySelector('.brooSettingButton[option="autopairgroups"]');
+    let autoPairGroupsCounter = autoPairGroupsOption.querySelector(".brooCounterSelector");
+    let autoPairGroupsCount = autoPairGroupsCounter.querySelector("div[count]");
+    //let autoPairUsePastGroupingOption = autoPairSection.querySelector('.brooSettingButton[option="autopairpastgrouping"]');
+
+    let pickTeamSection = holder.querySelector('.brooSetting[section="pickteam"]');
+    let pickTeamOption = pickTeamSection.querySelector('.brooSettingButton[option="pickteam"]');
+    let changeTeamOption = pickTeamSection.querySelector('.brooSettingButton[option="changeteam"]');
+    let createTeamOption = pickTeamSection.querySelector('.brooSettingButton[option="createteam"]');
+    let maxTeamSizeOption = pickTeamSection.querySelector('.brooSettingButton[option="maxteamsize"]');
+    let maxTeamSizeCounter = maxTeamSizeOption.querySelector(".brooCounterSelector");
+    let maxTeamSizeCount = maxTeamSizeCounter.querySelector("div[count]");
+
+    let galleryWalkOption = frame.querySelector('.brooSettingButton[option="gallerywalk"]');
+
+    let setTeamNameOption = frame.querySelector('.brooSettingButton[option="setteamname"]');
+
+    let config = copyObject(this.parent.parent.parent.lesson.breakout ?? {});
+    let updateDisplayState = (set = {}) => {
+      //this.updateFooter();
+      
+      if (set.breakout != null) {
+        objectUpdate(set.breakout, config);
+      }
+
+      if (config.auto != null && config.auto.enabled != false) {
+        autoPairOption.setAttribute("enabled", "");
+        
+        let type = config.auto.type ?? "scale";
+        let prevSelectedTypeOption = autoPairTypeOption.querySelector("button[set][selected]");
+        if (prevSelectedTypeOption != null) {
+          prevSelectedTypeOption.removeAttribute("selected");
+        }
+        if (type != null) {
+          let selectedTypeOption = autoPairTypeOption.querySelector('button[set="' + type + '"]');
+          if (selectedTypeOption != null) {
+            selectedTypeOption.setAttribute("selected", "");
+          }
+        }
+        if (type == "scale") {
+          let size = config.auto.size ?? 1;
+          let prevSelectedSizeOption = autoPairSizeOptions.querySelector("button[set][selected]");
+          if (prevSelectedSizeOption != null) {
+            prevSelectedSizeOption.removeAttribute("selected");
+          }
+          if (size < 4) {
+            let selectedOption = autoPairSizeOptions.querySelector('button[set="' + size + '"]');
+            if (selectedOption != null) {
+              selectedOption.setAttribute("selected", "");
+            }
+            autoPairSizeCounter.style.display = "none";
+            autoPairSizeOptions.style.removeProperty("display");
+          } else {
+            if (document.activeElement != autoPairSizeCount) {
+              autoPairSizeCount.textContent = size;
+            }
+            autoPairSizeOptions.style.display = "none";
+            autoPairSizeCounter.style.removeProperty("display");
+          }
+
+          autoPairSection.insertBefore(autoPairGroupsOption, autoPairSizeOption);
+          autoPairGroupsOption.style.display = "none";
+          autoPairSizeOption.style.removeProperty("display");
+        } else if (type == "assign") {
+          let groups = config.auto.groups ?? 1;
+          if (document.activeElement != autoPairGroupsCount) {
+            autoPairGroupsCount.textContent = groups;
+          }
+          if (groups < 2) {
+            autoPairGroupsCounter.querySelector("button[minus]").setAttribute("disabled", "");
+          } else {
+            autoPairGroupsCounter.querySelector("button[minus]").removeAttribute("disabled");
+          }
+          if (groups > 99) {
+            autoPairGroupsCounter.querySelector("button[plus]").setAttribute("disabled", "");
+          } else {
+            autoPairGroupsCounter.querySelector("button[plus]").removeAttribute("disabled");
+          }
+
+          autoPairSection.insertBefore(autoPairSizeOption, autoPairGroupsOption);
+          autoPairSizeOption.style.display = "none";
+          autoPairGroupsOption.style.removeProperty("display");
+        }
+
+        /*if (config.auto.usePastGrouping == true) {
+          autoPairUsePastGroupingOption.setAttribute("enabled", "");
+        } else {
+          autoPairUsePastGroupingOption.removeAttribute("enabled");
+        }*/
+
+        autoPairSection.setAttribute("open", "");
+      } else {
+        autoPairSection.removeAttribute("open");
+        autoPairOption.removeAttribute("enabled");
+      }
+
+      if ((config.options ?? {}).pickTeam == true) {
+        pickTeamOption.setAttribute("enabled", "");
+
+        if (config.options.changeTeam == true) {
+          changeTeamOption.setAttribute("enabled", "");
+        } else {
+          changeTeamOption.removeAttribute("enabled");
+        }
+        if (config.options.createTeam == true) {
+          createTeamOption.setAttribute("enabled", "");
+        } else {
+          createTeamOption.removeAttribute("enabled");
+        }
+        let maxSize = config.options.maxSize ?? 0;
+        if (document.activeElement != maxTeamSizeCount) {
+          maxTeamSizeCount.textContent = maxSize;
+        }
+        if (maxSize < 1) {
+          maxTeamSizeCount.setAttribute("disabled", "");
+          maxTeamSizeCounter.querySelector("button[minus]").setAttribute("disabled", "");
+          maxTeamSizeCounter.querySelector("button[reset]").style.removeProperty("display");
+        } else {
+          maxTeamSizeCount.removeAttribute("disabled");
+          maxTeamSizeCounter.querySelector("button[minus]").removeAttribute("disabled");
+          maxTeamSizeCounter.querySelector("button[reset]").style.display = "flex";
+        }
+
+        pickTeamSection.setAttribute("open", "");
+      } else {
+        pickTeamSection.removeAttribute("open");
+        pickTeamOption.removeAttribute("enabled");
+      }
+
+      if ((config.options ?? {}).galleryWalk == true) {
+        galleryWalkOption.setAttribute("enabled", "");
+      } else {
+        galleryWalkOption.removeAttribute("enabled");
+      }
+
+      if ((config.options ?? {}).setTeamName == true) {
+        setTeamNameOption.setAttribute("enabled", "");
+      } else {
+        setTeamNameOption.removeAttribute("enabled");
+      }
+    }
+    this.parent.parent.pipeline.subscribe("newBreakoutModalSet", "set", updateDisplayState);
+
+    let saveOptionsTimeout;
+    let saveOption = async () => {
+      let currentConfig = this.parent.parent.parent.lesson.breakout ?? {};
+      let tempRevert = copyObject(currentConfig);
+      let changes = objectUpdate(config, copyObject(currentConfig));
+      if (Object.keys(changes).length > 0) {
+        let [code] = await sendRequest("PUT", "lessons/breakout/settings", { save: changes }, { session: this.parent.parent.session });
+        if (code != 200) {
+          config = tempRevert;
+          objectUpdate(config, this.parent.parent.parent.lesson.breakout);
+          updateDisplayState();
+        }
+      }
+    }
+    this.savePreferences = async (delay) => {
+      updateDisplayState();
+      clearTimeout(saveOptionsTimeout);
+      if (delay != true) {
+        return await saveOption();
+      }
+      saveOptionsTimeout = setTimeout(saveOption, 2000); // Save after 2 seconds of no changes
+    }
+
+    autoPairOption.addEventListener("click", () => {
+      config.auto = config.auto ?? {};
+      config.auto.enabled = !autoPairOption.hasAttribute("enabled");
+      this.savePreferences();
+    });
+    autoPairTypeOption.addEventListener("click", (event) => {
+      let option = event.target.closest("button[set]");
+      if (option == null) {
+        return;
+      }
+      config.auto = config.auto ?? {};
+      config.auto.type = option.getAttribute("set");
+      this.savePreferences();
+    });
+    autoPairSizeOption.addEventListener("click", (event) => {
+      let option = event.target.closest("button[set]");
+      if (option == null) {
+        return;
+      }
+      config.auto = config.auto ?? {};
+      config.auto.size = parseInt(option.getAttribute("set"));
+      this.savePreferences();
+    });
+    autoPairSizeCounter.querySelector("button[minus]").addEventListener("click", () => {
+      config.auto = config.auto ?? {};
+      config.auto.size = (config.auto.size ?? 0) - 1;
+      this.savePreferences(true);
+    });
+    autoPairSizeCount.addEventListener("focusout", () => {
+      config.auto = config.auto ?? {};
+      let textInt = parseFloat(autoPairSizeCount.textContent) || (config.auto.size ?? 0);
+      if (autoPairSizeCount.hasAttribute("max") == true && textInt > parseFloat(autoPairSizeCount.getAttribute("max"))) {
+        textInt = autoPairSizeCount.getAttribute("max");
+      } else if (textInt < 1) {
+        textInt = 1;
+      }
+      config.auto.size = textInt;
+      this.savePreferences();
+    });
+    autoPairSizeCounter.querySelector("button[plus]").addEventListener("click", () => {
+      config.auto = config.auto ?? {};
+      config.auto.size = (config.auto.size ?? 0) + 1;
+      this.savePreferences(true);
+    });
+    autoPairGroupsCounter.querySelector("button[minus]").addEventListener("click", () => {
+      config.auto = config.auto ?? {};
+      config.auto.groups = (config.auto.groups ?? 0) - 1;
+      this.savePreferences(true);
+    });
+    autoPairGroupsCount.addEventListener("focusout", () => {
+      config.auto = config.auto ?? {};
+      let textInt = parseFloat(autoPairGroupsCount.textContent) || (config.auto.groups ?? 0);
+      if (autoPairGroupsCount.hasAttribute("max") == true && textInt > parseFloat(autoPairGroupsCount.getAttribute("max"))) {
+        textInt = autoPairGroupsCount.getAttribute("max");
+      } else if (textInt < 1) {
+        textInt = 1;
+      }
+      config.auto.groups = textInt;
+      this.savePreferences();
+    });
+    autoPairGroupsCounter.querySelector("button[plus]").addEventListener("click", () => {
+      config.auto = config.auto ?? {};
+      config.auto.groups = (config.auto.groups ?? 0) + 1;
+      this.savePreferences(true);
+    });
+    /*autoPairUsePastGroupingOption.addEventListener("click", () => {
+      config.auto = config.auto ?? {};
+      config.auto.usePastGrouping = !autoPairUsePastGroupingOption.hasAttribute("enabled");
+      this.savePreferences();
+    });*/
+
+    pickTeamOption.addEventListener("click", () => {
+      config.options = config.options ?? {};
+      config.options.pickTeam = !pickTeamOption.hasAttribute("enabled");
+      this.savePreferences();
+    });
+    changeTeamOption.addEventListener("click", () => {
+      config.options = config.options ?? {};
+      config.options.changeTeam = !changeTeamOption.hasAttribute("enabled");
+      this.savePreferences();
+    });
+    createTeamOption.addEventListener("click", () => {
+      config.options = config.options ?? {};
+      config.options.createTeam = !createTeamOption.hasAttribute("enabled");
+      this.savePreferences();
+    });
+    maxTeamSizeCounter.querySelector("button[reset]").addEventListener("click", () => {
+      config.options = config.options ?? {};
+      config.options.maxSize = 0;
+      this.savePreferences(true);
+    });
+    maxTeamSizeCounter.querySelector("button[minus]").addEventListener("click", () => {
+      config.options = config.options ?? {};
+      config.options.maxSize = (config.options.maxSize ?? 0) - 1;
+      this.savePreferences(true);
+    });
+    maxTeamSizeCount.addEventListener("focusout", () => {
+      config.options = config.options ?? {};
+      let textInt = parseFloat(maxTeamSizeCount.textContent) || (config.options.maxSize ?? 0);
+      if (maxTeamSizeCount.hasAttribute("max") == true && textInt > parseFloat(maxTeamSizeCount.getAttribute("max"))) {
+        textInt = maxTeamSizeCount.getAttribute("max");
+      } else if (textInt < 1) {
+        textInt = 0;
+      }
+      config.options.maxSize = textInt;
+      this.savePreferences();
+    });
+    maxTeamSizeCounter.querySelector("button[plus]").addEventListener("click", () => {
+      config.options = config.options ?? {};
+      config.options.maxSize = (config.options.maxSize ?? 0) + 1;
+      this.savePreferences(true);
+    });
+
+    galleryWalkOption.addEventListener("click", () => {
+      config.options = config.options ?? {};
+      config.options.galleryWalk = !galleryWalkOption.hasAttribute("enabled");
+      this.savePreferences();
+    });
+
+    setTeamNameOption.addEventListener("click", () => {
+      config.options = config.options ?? {};
+      config.options.setTeamName = !setTeamNameOption.hasAttribute("enabled");
+      this.savePreferences();
+    });
+
+    holder.addEventListener("mousedown", (event) => {
+      let textBox = event.target.closest("div[count]");
+      if (textBox == null) {
+        return;
+      }
+      textBox.textContent = "";
+      textBox.removeAttribute("disabled");
+    });
+    holder.addEventListener("keydown", (event) => {
+      let textBox = event.target.closest("div[count]");
+      if (textBox == null) {
+        return;
+      }
+      if (event.key == "Enter") {
+        event.preventDefault();
+        return;
+      }
+      if (String.fromCharCode(event.keyCode).match(/(\w|\s)/g) && event.key.length == 1) {
+        let textInt = parseInt(textBox.textContent + event.key);
+        if (parseInt(event.key) != event.key && (event.keyCode != 190 || textBox.hasAttribute("nodecimal"))) {
+          event.preventDefault();
+          textBoxError(textBox, "Must be a number");
+        } else if (textBox.hasAttribute("max") == true && textInt > parseFloat(textBox.getAttribute("max"))) {
+          event.preventDefault();
+          textBoxError(textBox, "Must be less than " + textBox.getAttribute("max"));
+        } else if (textInt < parseFloat(textBox.getAttribute("min") ?? "1")) {
+          event.preventDefault();
+          textBoxError(textBox, "Must be greater than 1");
+        }
+      }
+    });
+
+    updateDisplayState();
   }
 }
 
@@ -744,7 +1110,7 @@ modules["modals/lesson/newbreakout/review"] = class extends modules["breakout/ov
     this.parent = extra.parent;
 
     let updateDisplayState = (set) => {
-      this.updateFooter();
+      //this.updateFooter();
       
     }
     this.parent.parent.pipeline.subscribe("newBreakoutModalSet", "set", () => { updateDisplayState(); });

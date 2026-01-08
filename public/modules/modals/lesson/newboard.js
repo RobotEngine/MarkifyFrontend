@@ -280,7 +280,7 @@ modules["modals/lesson/newboard/blank"] = class {
       if (textBox == null) {
         return;
       }
-      let textInt = parseFloat(textBox.textContent) ?? 0;
+      let textInt = parseFloat(textBox.textContent) || 0;
       if (textInt > parseFloat(textBox.getAttribute("max"))) {
         textBox.textContent = textBox.getAttribute("max");
       } else if (textInt < 1) {

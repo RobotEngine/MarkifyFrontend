@@ -22,7 +22,7 @@ const configurations = {
 };
 
 const configuration = "public";
-const version = "1.6.37"; // Big Update . Small Feature Release . Bug Fix
+const version = "1.6.38"; // Big Update . Small Feature Release . Bug Fix
 const domain = "markifyapp.com";
 
 let config = configurations[configuration];
@@ -510,6 +510,74 @@ let modifyParams = (key, value) => {
   } catch {}
 }
 
+let objectUpdate = (obj, passData, path) => { // obj = Object to apply changes; passData = Object to edit
+  path = path ?? "";
+  if (path.length > 0) {
+    path += ".";
+  }
+  let keys = Object.keys(obj);
+  let changes = {};
+  for (let i = 0; i < keys.length; i++) {
+    let key = keys[i];
+    let setValue = obj[key];
+    let isObject = typeof setValue === "object" && Array.isArray(setValue) === false && setValue != null;
+    if (isObject == true && setValue._ == true) {
+      isObject = false;
+      setValue = { ...setValue };
+      delete setValue._;
+    }
+    if (isObject == false) {
+      let checkValue = passData[key];
+      if (Array.isArray(checkValue)) {
+        checkValue = JSON.stringify(checkValue);
+      }
+      let checkNewValue = setValue;
+      if (Array.isArray(checkNewValue)) {
+        checkNewValue = JSON.stringify(checkNewValue);
+      }
+      if (checkValue != checkNewValue) {
+        passData[key] = setValue;
+        changes[path + key] = passData[key];
+      }
+    } else {
+      /*
+      if (passData[key] != passData[key] ?? {}) {
+        passData[key] = passData[key] ?? {};
+        changes[path + key] = passData[key];
+      }
+      */
+      passData[key] = passData[key] ?? {};
+      changes = { ...changes, ...objectUpdate(obj[key], passData[key] ?? {}, path + key) };
+    }
+  }
+  return changes;
+}
+
+let objectEqual = (obj1, obj2) => {
+  if (obj1 === obj2) return true;
+  if (typeof obj1 !== "object" || obj1 === null || typeof obj2 !== "object" || obj2 === null) {
+    return false;
+  }
+  let keys1 = Object.keys(obj1);
+  let keys2 = Object.keys(obj2);
+  if (keys1.length != keys2.length) {
+    return false;
+  }
+  for (let key of keys1) {
+    if (keys2.includes(key) == false || objectEqual(obj1[key], obj2[key]) == false) {
+      return false;
+    }
+  }
+  return true;
+}
+
+let copyObject = (obj) => {
+  if (window.structuredClone != null) {
+    return structuredClone(obj);
+  }
+  return JSON.parse(JSON.stringify(obj));
+}
+
 let getObject = (arr, field) => {
   if (arr == null) {
     return {};
@@ -520,13 +588,6 @@ let getObject = (arr, field) => {
     returnObj[setObject[field]] = setObject;
   }
   return returnObj;
-}
-
-let copyObject = (obj) => {
-  if (window.structuredClone != null) {
-    return structuredClone(obj);
-  }
-  return JSON.parse(JSON.stringify(obj));
 }
 
 let clientPosition = (event, type) => {
@@ -874,65 +935,6 @@ let sendRequest = async (method, path, body, extra) => {
     }
     return [0, "Fetch Error", { took: reqTime }];
   }
-}
-
-let objectUpdate = (obj, passData, path) => { // obj = Object to apply changes; passData = Object to edit
-  path = path ?? "";
-  if (path.length > 0) {
-    path += ".";
-  }
-  let keys = Object.keys(obj);
-  let changes = {};
-  for (let i = 0; i < keys.length; i++) {
-    let key = keys[i];
-    if (
-      typeof obj[key] !== "object" ||
-      Array.isArray(obj[key]) === true ||
-      obj[key] === null
-    ) {
-      let checkValue = passData[key];
-      if (Array.isArray(checkValue)) {
-        checkValue = JSON.stringify(checkValue);
-      }
-      let setValue = obj[key];
-      let checkNewValue = obj[key];
-      if (Array.isArray(checkNewValue)) {
-        checkNewValue = JSON.stringify(checkNewValue);
-      }
-      if (checkValue != checkNewValue) {
-        passData[key] = setValue;
-        changes[path + key] = passData[key];
-      }
-    } else {
-      /*
-      if (passData[key] != passData[key] ?? {}) {
-        passData[key] = passData[key] ?? {};
-        changes[path + key] = passData[key];
-      }
-      */
-      passData[key] = passData[key] ?? {};
-      changes = { ...changes, ...objectUpdate(obj[key], passData[key] ?? {}, path + key) };
-    }
-  }
-  return changes;
-}
-
-let objectEqual = (obj1, obj2) => {
-  if (obj1 === obj2) return true;
-  if (typeof obj1 !== "object" || obj1 === null || typeof obj2 !== "object" || obj2 === null) {
-    return false;
-  }
-  let keys1 = Object.keys(obj1);
-  let keys2 = Object.keys(obj2);
-  if (keys1.length != keys2.length) {
-    return false;
-  }
-  for (let key of keys1) {
-    if (keys2.includes(key) == false || objectEqual(obj1[key], obj2[key]) == false) {
-      return false;
-    }
-  }
-  return true;
 }
 
 let isEmbed = getParam("embed") != null;

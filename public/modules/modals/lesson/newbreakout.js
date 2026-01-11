@@ -200,7 +200,6 @@ modules["modals/lesson/newbreakout/template"] = class extends modules["breakout/
   };
   js = async (frame, extra) => {
     this.parent = extra.parent;
-    this.template = extra.template;
 
     this.setupFooter(extra);
 
@@ -221,13 +220,13 @@ modules["modals/lesson/newbreakout/template"] = class extends modules["breakout/
     let nextButton = frame.querySelector(".brSetupProgress button[next]");
 
     let updateTemplateTile = () => {
-      if (this.template == null) {
+      if (this.parent.template == null) {
         return;
       }
       let placeholderThumbnail = currentTemplateTile.querySelector(".brtTemplateTileThumbnail[src]");
       let thumbnail = currentTemplateTile.querySelector(".brtTemplateTileThumbnail[main]");
-      if (this.template.thumbnail != null) {
-        let setThumbnail = assetURL + this.template.thumbnail;
+      if (this.parent.template.thumbnail != null) {
+        let setThumbnail = assetURL + this.parent.template.thumbnail;
         let thumbnailSrc = thumbnail.getAttribute("src");
         if (thumbnailSrc == null) {
           let loadingTimeout = setTimeout(() => {
@@ -257,11 +256,11 @@ modules["modals/lesson/newbreakout/template"] = class extends modules["breakout/
         }
       }
       let title = currentTemplateTile.querySelector(".brtTemplateTileTitle");
-      let titleText = this.template.name ?? "Untitled Template";
+      let titleText = this.parent.template.name ?? "Untitled Template";
       title.textContent = titleText;
       title.title = titleText;
       let changedTx = currentTemplateTile.querySelector(".brtTemplateTileLastChanged");
-      let time = this.template.lastThumbnail ?? this.template.created;
+      let time = this.parent.template.lastThumbnail ?? this.parent.template.created;
       changedTx.textContent = timeSince(time, true);
       changedTx.title = formatFullDate(time);
     }
@@ -269,6 +268,9 @@ modules["modals/lesson/newbreakout/template"] = class extends modules["breakout/
       //this.updateFooter();
       let templateID = (this.parent.parent.parent.lesson.breakout ?? {}).template;
       if (templateID == null) {
+        if ((this.parent.parent.parent.lesson.tool ?? []).includes("board") == false) {
+          cloneButton.style.display = "none";
+        }
         newOptions.style.display = "flex";
         currentTemplate.style.removeProperty("display");
         nextButton.setAttribute("hidden", "");
@@ -276,12 +278,8 @@ modules["modals/lesson/newbreakout/template"] = class extends modules["breakout/
         newOptions.style.removeProperty("display");
         currentTemplate.style.display = "flex";
         nextButton.removeAttribute("hidden");
-        if (this.template == null) {
-          let [code, body] = await sendRequest("GET", "lessons/breakout/template?template=" + templateID, null, { session: this.parent.parent.session });
-          if (code != 200) {
-            return;
-          }
-          this.template = body;
+        if (this.parent.template == null) {
+          await this.parent.getTemplate();
           return updateDisplayState();
         }
         updateTemplateTile();
@@ -291,21 +289,16 @@ modules["modals/lesson/newbreakout/template"] = class extends modules["breakout/
     let handleSet = (body) => {
       let set = body.set ?? body;
       if (set != null && (set.breakout ?? {}).hasOwnProperty("template") == true) {
-        this.template = body.template;
-        if (this.parent.parent.currentPagePath == "breakout/template" && ((this.parent.parent.pages["secondary"] ?? {}).template ?? {})._id != (this.template ?? {})._id) {
+        if (this.parent.parent.currentPagePath == "breakout/template" && ((this.parent.parent.pages["secondary"] ?? {}).template ?? {})._id != (this.parent.template ?? {})._id) {
           this.parent.parent.closePage("secondary");
           this.parent.parent.openPage("primary", "breakout/overview");
         }
         return updateDisplayState();
       }
-      if (this.template == null || set.id != this.template._id) {
-        return;
-      }
-      objectUpdate(set, this.template);
       updateTemplateTile();
     }
-    this.parent.parent.pipeline.subscribe("newBreakoutModalSet", "set", handleSet);
-    this.parent.parent.pipeline.subscribe("newBreakoutModalSubSet", "subset", handleSet);
+    this.parent.pipeline.subscribe("newBreakoutModalSet", "set", handleSet, { sort: 2 });
+    this.parent.pipeline.subscribe("newBreakoutModalSubSet", "subset", handleSet, { sort: 2 });
     
     let blankButton = newOptions.querySelector('.brtButton[type="blank"]');
     blankButton.addEventListener("click", () => {
@@ -328,24 +321,20 @@ modules["modals/lesson/newbreakout/template"] = class extends modules["breakout/
     });
 
     currentTemplateTile.addEventListener("click", () => {
-      this.parent.parent.openPage("secondary", "breakout/template", { template: this.template });
+      this.parent.parent.openPage("secondary", "breakout/template", { template: this.parent.template });
     });
     currentTemplateEdit.addEventListener("click", () => {
-      this.parent.parent.openPage("secondary", "breakout/template", { template: this.template });
+      this.parent.parent.openPage("secondary", "breakout/template", { template: this.parent.template });
     });
     currentTemplateChange.addEventListener("click", async () => {
       currentTemplateChange.setAttribute("disabled", "");
-      await sendRequest("DELETE", "lessons/breakout/template/remove?template=" + this.template._id, null, { session: this.parent.parent.session });
+      await sendRequest("DELETE", "lessons/breakout/template/remove?template=" + this.parent.template._id, null, { session: this.parent.parent.session });
       currentTemplateChange.removeAttribute("disabled", "");
     });
 
     setSVG(blankButton.querySelector("div[image]"), "../images/editor/breakout/blank.svg");
     setSVG(cloneButton.querySelector("div[image]"), "../images/editor/breakout/clone.svg");
     setSVG(duplicateButton.querySelector("div[image]"), "../images/editor/breakout/duplicate.svg");
-
-    if ((this.parent.parent.parent.lesson.tool ?? []).includes("board") == false) {
-      cloneButton.style.display = "none";
-    }
 
     updateDisplayState();
   }
@@ -595,7 +584,7 @@ modules["modals/lesson/newbreakout/setuptype"] = class extends modules["breakout
         newSelect.setAttribute("selected", "");
       }
     }
-    this.parent.parent.pipeline.subscribe("newBreakoutModalSet", "set", () => { updateDisplayState(); });*/
+    this.parent.pipeline.subscribe("newBreakoutModalSet", "set", () => { updateDisplayState(); }, { sort: 2 });*/
 
     optionHolder.addEventListener("click", async (event) => {
       let option = event.target.closest(".brosOption");
@@ -915,7 +904,7 @@ modules["modals/lesson/newbreakout/options"] = class extends modules["breakout/o
         setTeamNameOption.removeAttribute("enabled");
       }
     }
-    this.parent.parent.pipeline.subscribe("newBreakoutModalSet", "set", updateDisplayState);
+    this.parent.pipeline.subscribe("newBreakoutModalSet", "set", updateDisplayState, { sort: 2 });
 
     let saveOptionsTimeout;
     let saveOption = async () => {
@@ -1104,20 +1093,49 @@ modules["modals/lesson/newbreakout/options"] = class extends modules["breakout/o
 modules["modals/lesson/newbreakout/review"] = class extends modules["breakout/overview/setup"] {
   step = 3;
   html = `
-    Test 2
+    <div class="brorHolder">
+      <div class="brorInstructions">
+        <div class="brorTitle">Review & <b>Breakout</b></div>
+        <div class="brorDesc">Does everything look good?</div>
+      </div>
+      <div class="brorTiles">
+        <button class="brorTile">
+        
+        </button>
+        <button class="brorTile">
+        
+        </button>
+        <button class="brorTile">
+        
+        </button>
+      </div>
+      <button selected class="brorCreateTeams largeButton">Create Breakouts</button>
+    </div>
     ${this.progressFooter}
   `;
   css = {
-    
+    ".brorHolder": `position: relative; display: flex; flex-direction: column; max-width: calc(100% - 16px); padding: 8px; text-align: center; align-items: center; z-index: 1`,
+    ".brorInstructions": `box-sizing: border-box; display: flex; flex-direction: column; width: 100%; padding: 8px; align-items: center`,
+    ".brorTitle": `max-width: 100%; font-size: 24px; font-weight: 500`,
+    ".brorTitle b": `color: var(--theme); font-weight: 700`,
+    ".brorDesc": `width: 325px; max-width: 100%; margin-top: 6px; font-size: 16px`,
+    ".brorTiles": `box-sizing: border-box; display: flex; flex-direction: column; width: fit-content; max-width: 100%; padding: 8px; gap: 8px; align-items: center`,
+    ".brorTile": `width: 300px; max-width: 100%; height: 100px; padding: 8px; text-align: left; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 12px`,
+    ".brorTile:first-child": `border-top-left-radius: 24px; border-top-right-radius: 24px`,
+    ".brorTile:last-child": `border-bottom-left-radius: 24px; border-bottom-right-radius: 24px`,
+
+    ".brorCreateTeams": `--themeColor: var(--theme); --borderRadius: 14px; margin: 16px 0 8px 0`,
+    ...this.progressFooterStyles
   };
   js = async (frame, extra) => {
     this.parent = extra.parent;
 
-    let updateDisplayState = (set) => {
+    let updateDisplayState = async (set) => {
       //this.updateFooter();
-      
+      //await this.parent.getTemplate();
     }
-    this.parent.parent.pipeline.subscribe("newBreakoutModalSet", "set", () => { updateDisplayState(); });
+    this.parent.pipeline.subscribe("newBreakoutModalSet", "set", () => { updateDisplayState(); }, { sort: 2 });
+    updateDisplayState();
 
     this.setupFooter(extra);
   }

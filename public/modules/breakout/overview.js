@@ -151,6 +151,28 @@ modules["breakout/overview"] = class {
     }
   };
 
+  getTemplate = () => {
+    if (this.template != null) {
+      return this.template;
+    }
+    let templateID = (this.parent.parent.lesson.breakout ?? {}).template;
+    if (templateID == null) {
+      return;
+    }
+    if (this.fetchTemplatePromise != null) {
+      return this.fetchTemplatePromise;
+    }
+    this.fetchTemplatePromise = new Promise(async (resolve) => {
+      let [code, body] = await sendRequest("GET", "lessons/breakout/template?template=" + templateID, null, { session: this.parent.parent.session });
+      if (code != 200) {
+        return resolve({});
+      }
+      this.template = body;
+      resolve(body);
+    });
+    return this.fetchTemplatePromise;
+  }
+
   js = async (frame) => {
     frame.style.position = "relative";
     frame.style.width = "100%";
@@ -340,6 +362,9 @@ modules["breakout/overview"] = class {
       if (body.hasOwnProperty("breakout") == true) {
         updateStatus();
       }
+      if (this.template != null && (body.id ?? body._id) == this.template._id) {
+        objectUpdate(body, this.template);
+      }
       if (body.name != null && document.activeElement.closest(".boFileName") != lessonName) {
         lessonName.textContent = this.parent.parent.lesson.name ?? "Untitled Lesson";
         lessonName.title = lessonName.textContent;
@@ -354,7 +379,14 @@ modules["breakout/overview"] = class {
         //updateSplitScreenButton();
       }
       updateTopBar();
-    });
+    }, { sort: 1 });
+    this.pipeline.subscribe("overviewLessonSubSet", "subset", (body) => {
+      let set = body.set ?? body;
+      if (set != null && (set.breakout ?? {}).hasOwnProperty("template") == true) {
+        this.template = body.template;
+      }
+    }, { sort: 1 });
+
 
     // Load Images:
     setSVG(topScrollLeft, "../images/editor/top/leftarrow.svg");

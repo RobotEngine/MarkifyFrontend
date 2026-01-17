@@ -1099,17 +1099,24 @@ modules["modals/lesson/newbreakout/review"] = class extends modules["breakout/ov
         <div class="brorDesc">Does everything look good?</div>
       </div>
       <div class="brorTiles">
-        <button class="brorTile">
-        
+        <button class="brorTile" type="template">
+          <div missing><div image></div><div><b>Template Missing</b> Please add a template to continue.</div></div>
+          <div template hidden><div image><img src="../images/dashboard/placeholder.png"></div><div content><div name></div><div info></div></div></div>
         </button>
-        <button class="brorTile">
-        
+        <button class="brorTile" type="setup">
+          <div></div>
         </button>
-        <button class="brorTile">
-        
+        <button class="brorTile" type="settings">
+          <div unset>No additional options enabled...</div>
+          <div option="pickTeam"><div check></div><div>Members can choose their team.</div></div>
+          <div option="changeTeam"><div check></div><div>Members can change teams.</div></div>
+          <div option="createTeam"><div check></div><div>Members can create a new team.</div></div>
+          <div option="maxSize"><div check></div><div>Max team size of <b></b>.</div></div>
+          <div option="galleryWalk"><div check></div><div>Members can see other team's work.</div></div>
+          <div option="setTeamName"><div check></div><div>Members can change the team name.</div></div>
         </button>
       </div>
-      <button selected class="brorCreateTeams largeButton">Create Breakouts</button>
+      <button class="brorCreateTeams largeButton" disabled>Create Breakouts</button>
     </div>
     ${this.progressFooter}
   `;
@@ -1120,9 +1127,29 @@ modules["modals/lesson/newbreakout/review"] = class extends modules["breakout/ov
     ".brorTitle b": `color: var(--theme); font-weight: 700`,
     ".brorDesc": `width: 325px; max-width: 100%; margin-top: 6px; font-size: 16px`,
     ".brorTiles": `box-sizing: border-box; display: flex; flex-direction: column; width: fit-content; max-width: 100%; padding: 8px; gap: 8px; align-items: center`,
-    ".brorTile": `width: 300px; max-width: 100%; height: 100px; padding: 8px; text-align: left; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 12px`,
+    ".brorTile": `width: 300px; max-width: 100%; padding: 8px; text-align: left; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 12px`,
+    ".brorTile:hover": `box-shadow: var(--darkShadow)`,
     ".brorTile:first-child": `border-top-left-radius: 24px; border-top-right-radius: 24px`,
     ".brorTile:last-child": `border-bottom-left-radius: 24px; border-bottom-right-radius: 24px`,
+
+    '.brorTile[type="template"] div[missing]': `display: none; gap: 4px; align-items: center`,
+    '.brorTile[type="template"] div[missing] div[image]': `width: 32px; height: 32px; margin: 4px; flex-shrink: 0`,
+    '.brorTile[type="template"] div[missing] div[image] svg': `width: 100%; height: 100%`,
+    '.brorTile[type="template"] div[missing] div b': `display: block; margin-bottom: 2px; font-size: 16px; color: var(--error)`,
+    '.brorTile[type="template"] div[template]': `display: none; flex-wrap: wrap; gap: 12px; transition: .2s`,
+    '.brorTile[type="template"] div[template] div[image]': `height: fit-content; padding: 4px; box-shadow: inset var(--lightShadow); border-radius: 16px`,
+    '.brorTile[type="template"] div[template] div[image] img': `display: block; width: 80px; height: 60px; object-fit: cover; border-radius: 12px`,
+    '.brorTile[type="template"] div[template] div[content]': `display: flex; flex: 1 1 100px; flex-direction: column; gap: 4px; justify-content: center`,
+    '.brorTile[type="template"] div[template] div[content] div[name]': `font-size: 18px; font-weight: 700; color: var(--theme)`,
+    '.brorTile[type="template"] div[template] div[content] div[info]': `font-weight: 600`,
+
+    '.brorTile[type="setup"] div': `font-size: 14px; text-align: center`,
+    '.brorTile[type="setup"] div b': `color: var(--theme)`,
+
+    '.brorTile[type="settings"] div[unset]': `display: none; text-align: center`,
+    '.brorTile[type="settings"] div[option]': `display: none; gap: 4px; align-items: center`,
+    '.brorTile[type="settings"] div[option] div[check]': `width: 20px; height: 20px; flex-shrink: 0`,
+    '.brorTile[type="settings"] div[option] div[check] svg': `width: 100%; height: 100%`,
 
     ".brorCreateTeams": `--themeColor: var(--theme); --borderRadius: 14px; margin: 16px 0 8px 0`,
     ...this.progressFooterStyles
@@ -1130,12 +1157,126 @@ modules["modals/lesson/newbreakout/review"] = class extends modules["breakout/ov
   js = async (frame, extra) => {
     this.parent = extra.parent;
 
-    let updateDisplayState = async (set) => {
+    let sections = frame.querySelector(".brorTiles");
+    let templateSection = sections.querySelector('.brorTile[type="template"]');
+    let templateMissing = templateSection.querySelector("div[missing]");
+    let templateHolder = templateSection.querySelector("div[template]");
+    let templateImage = templateHolder.querySelector("div[image] img");
+    let templateName = templateHolder.querySelector("div[name]");
+    let templateInfo = templateHolder.querySelector("div[info]");
+    let setupSection = sections.querySelector('.brorTile[type="setup"]');
+    let setupContent = setupSection.querySelector("div");
+    let settingsSection = sections.querySelector('.brorTile[type="settings"]');
+    let settingsUnset = settingsSection.querySelector("div[unset]");
+    let settingsOptions = settingsSection.querySelectorAll("div[option]");
+
+    let createTeamsButton = frame.querySelector(".brorCreateTeams");
+
+    let updateDisplayState = async () => {
       //this.updateFooter();
-      //await this.parent.getTemplate();
+      let config = this.parent.parent.parent.lesson.breakout ?? {};
+
+      if (config.template != null) {
+        (async () => {
+          let template = await this.parent.getTemplate();
+          if (template.thumbnail != null) {
+            templateImage.src = assetURL + template.thumbnail;
+          }
+          let titleText = template.name ?? "Untitled Template";
+          templateName.textContent = titleText;
+          templateName.title = titleText;
+          let time = template.lastThumbnail ?? template.created;
+          templateInfo.textContent = timeSince(time, true);
+          templateInfo.title = formatFullDate(time);
+          templateHolder.removeAttribute("hidden");
+        })();
+        templateMissing.style.removeProperty("display");
+        templateHolder.style.display = "flex";
+        createTeamsButton.removeAttribute("disabled");
+      } else {
+        templateHolder.style.removeProperty("display");
+        templateMissing.style.display = "flex";
+        createTeamsButton.setAttribute("disabled", "");
+      }
+
+      let options = config.options ?? {};
+
+      if (options.pickTeam != true) {
+        if (config.auto != null && config.auto.enabled != false) {
+          if (config.auto.type != "assign") {
+            setupContent.innerHTML = "Markify will put <b size></b> into a team and create new teams <b>automatically</b>.";
+            let size = config.auto.size ?? 1;
+            setupContent.querySelector("b[size]").textContent = size + " member" + addS(size);
+          } else {
+            setupContent.innerHTML = "Markify will create <b groups>10 teams</b> and assign members <b>equally</b> into them.";
+            let groups = config.auto.groups ?? 1;
+            setupContent.querySelector("b[groups]").textContent = groups + " team" + addS(groups);
+          }
+        } else {
+          setupContent.innerHTML = "You will be required to <b>create teams</b> and <b>assign members</b> into each.";
+        }
+      } else {
+        if (config.auto != null && config.auto.enabled != false) {
+          if (config.auto.type != "assign") {
+            setupContent.innerHTML = "Markify will create enough teams to fit <b size></b> in each, then allow members to <b>choose their team</b>.";
+            let size = config.auto.size ?? 1;
+            setupContent.querySelector("b[size]").textContent = size + " member" + addS(size);
+          } else {
+            setupContent.innerHTML = "Markify will create <b groups></b>, then allow members to <b>choose their team</b>.";
+            let groups = config.auto.groups ?? 1;
+            setupContent.querySelector("b[groups]").textContent = groups + " team" + addS(groups);
+          }
+        } else {
+          setupContent.innerHTML = "<div>Members will be asked to <b>create a team</b> or join an <b>existing team</b>.</div>";
+        }
+      }
+
+      let enabledCount = 0;
+      for (let i = 0; i < settingsOptions.length; i++) {
+        let option = settingsOptions[i];
+        let setting = option.getAttribute("option");
+        if ((options[setting] ?? false) == false) {
+          option.style.removeProperty("display");
+        } else {
+          option.style.display = "flex";
+          if (setting == "maxSize") {
+            let maxSize = options.maxSize ?? 1;
+            option.querySelector("b").textContent = maxSize + " member" + addS(maxSize);
+          }
+          enabledCount++;
+        }
+      }
+      if (enabledCount > 0) {
+        settingsUnset.style.removeProperty("display");
+      } else {
+        settingsUnset.style.display = "block";
+      }
     }
-    this.parent.pipeline.subscribe("newBreakoutModalSet", "set", () => { updateDisplayState(); }, { sort: 2 });
+    this.parent.pipeline.subscribe("newBreakoutModalSet", "set", updateDisplayState, { sort: 2 });
+    this.parent.pipeline.subscribe("newBreakoutModalSubSet", "subset", updateDisplayState, { sort: 2 });
     updateDisplayState();
+
+    // Handle Buttons:
+    templateSection.addEventListener("click", () => {
+      this.modal.open(this.steps[0], null, this.modal.modal.modal.querySelector(".modalBack"), "Start a Breakout", null, { parent: this.parent });
+    });
+    setupSection.addEventListener("click", () => {
+      this.modal.open(this.steps[1], null, this.modal.modal.modal.querySelector(".modalBack"), "Start a Breakout", null, { parent: this.parent });
+    });
+    settingsSection.addEventListener("click", () => {
+      this.modal.open(this.steps[2], null, this.modal.modal.modal.querySelector(".modalBack"), "Start a Breakout", null, { parent: this.parent });
+    });
+
+    createTeamsButton.addEventListener("click", () => {
+      
+    });
+
+    // Load SVGs:
+    setSVG(templateMissing.querySelector("div[image]"), "../images/editor/breakout/error.svg");
+    let settingOptions = settingsSection.querySelectorAll("div[check]");
+    for (let i = 0; i < settingOptions.length; i++) {
+      setSVG(settingOptions[i], "../images/editor/breakout/check.svg");
+    }
 
     this.setupFooter(extra);
   }

@@ -3007,6 +3007,7 @@ modules["editor/toolbar"] = class {
         this.selection.lastMouseX = mouseX;
         this.selection.lastMouseY = mouseY;
         this.selection.scrollLastEvent = event;
+        event.preventDefault();
       } else {
         event = this.selection.scrollLastEvent ?? {};
       }

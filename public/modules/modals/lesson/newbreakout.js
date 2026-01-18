@@ -1127,7 +1127,7 @@ modules["modals/lesson/newbreakout/review"] = class extends modules["breakout/ov
     ".brorTitle b": `color: var(--theme); font-weight: 700`,
     ".brorDesc": `width: 325px; max-width: 100%; margin-top: 6px; font-size: 16px`,
     ".brorTiles": `box-sizing: border-box; display: flex; flex-direction: column; width: fit-content; max-width: 100%; padding: 8px; gap: 8px; align-items: center`,
-    ".brorTile": `width: 300px; max-width: 100%; padding: 8px; text-align: left; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 12px`,
+    ".brorTile": `width: 300px; max-width: 100%; padding: 12px; text-align: left; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 12px`,
     ".brorTile:hover": `box-shadow: var(--darkShadow)`,
     ".brorTile:first-child": `border-top-left-radius: 24px; border-top-right-radius: 24px`,
     ".brorTile:last-child": `border-bottom-left-radius: 24px; border-bottom-right-radius: 24px`,
@@ -1137,8 +1137,8 @@ modules["modals/lesson/newbreakout/review"] = class extends modules["breakout/ov
     '.brorTile[type="template"] div[missing] div[image] svg': `width: 100%; height: 100%`,
     '.brorTile[type="template"] div[missing] div b': `display: block; margin-bottom: 2px; font-size: 16px; color: var(--error)`,
     '.brorTile[type="template"] div[template]': `display: none; flex-wrap: wrap; gap: 12px; transition: .2s`,
-    '.brorTile[type="template"] div[template] div[image]': `height: fit-content; padding: 4px; box-shadow: inset var(--lightShadow); border-radius: 16px`,
-    '.brorTile[type="template"] div[template] div[image] img': `display: block; width: 80px; height: 60px; object-fit: cover; border-radius: 12px`,
+    '.brorTile[type="template"] div[template] div[image]': `height: fit-content; padding: 4px; box-shadow: inset var(--lightShadow); border-radius: 12px`,
+    '.brorTile[type="template"] div[template] div[image] img': `display: block; width: 80px; height: 60px; object-fit: cover; border-radius: 8px`,
     '.brorTile[type="template"] div[template] div[content]': `display: flex; flex: 1 1 100px; flex-direction: column; gap: 4px; justify-content: center`,
     '.brorTile[type="template"] div[template] div[content] div[name]': `font-size: 18px; font-weight: 700; color: var(--theme)`,
     '.brorTile[type="template"] div[template] div[content] div[info]': `font-weight: 600`,
@@ -1146,10 +1146,11 @@ modules["modals/lesson/newbreakout/review"] = class extends modules["breakout/ov
     '.brorTile[type="setup"] div': `font-size: 14px; text-align: center`,
     '.brorTile[type="setup"] div b': `color: var(--theme)`,
 
-    '.brorTile[type="settings"] div[unset]': `display: none; text-align: center`,
-    '.brorTile[type="settings"] div[option]': `display: none; gap: 4px; align-items: center`,
+    '.brorTile[type="settings"] div[unset]': `display: none; font-size: 14px; text-align: center`,
+    '.brorTile[type="settings"] div[option]': `display: none; gap: 4px; align-items: flex-start`,
     '.brorTile[type="settings"] div[option] div[check]': `width: 20px; height: 20px; flex-shrink: 0`,
     '.brorTile[type="settings"] div[option] div[check] svg': `width: 100%; height: 100%`,
+    '.brorTile[type="settings"] div[option] div': `min-height: 20px; font-size: 13px; align-content: center`,
 
     ".brorCreateTeams": `--themeColor: var(--theme); --borderRadius: 14px; margin: 16px 0 8px 0`,
     ...this.progressFooterStyles
@@ -1199,9 +1200,12 @@ modules["modals/lesson/newbreakout/review"] = class extends modules["breakout/ov
         createTeamsButton.setAttribute("disabled", "");
       }
 
-      let options = config.options ?? {};
+      let options = { ...(config.options ?? {}) };
 
       if (options.pickTeam != true) {
+        delete options.changeTeam;
+        delete options.createTeam;
+        delete options.maxSize;
         if (config.auto != null && config.auto.enabled != false) {
           if (config.auto.type != "assign") {
             setupContent.innerHTML = "Markify will put <b size></b> into a team and create new teams <b>automatically</b>.";
@@ -1268,7 +1272,7 @@ modules["modals/lesson/newbreakout/review"] = class extends modules["breakout/ov
     });
 
     createTeamsButton.addEventListener("click", () => {
-      
+
     });
 
     // Load SVGs:

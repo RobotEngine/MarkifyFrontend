@@ -136,6 +136,17 @@ let findModule = (element) => {
 
 let subscribe = (filter, callback, config) => {
   let sub = socket.subscribe(filter, callback, config);
+  let callClose = sub.close;
+  sub.close = () => {
+    callClose();
+    for (let i = 0; i < subscribes.length; i++) {
+      let test = subscribes[i];
+      if (test.id == sub.id) {
+        subscribes.splice(i, 1);
+        break;
+      }
+    }
+  }
   subscribes.push(sub);
   return sub;
 }

@@ -28,7 +28,6 @@ modules["editor/realtime"] = class {
     let contentHolder = editor.contentHolder;
     let content = editor.contentHolder.querySelector(".eContent");
     let realtimeHolder = content.querySelector(".eRealtime");
-    let annotations = content.querySelector(".eAnnotations");
 
     let lastCursorPublish = 0;
     let lastObservePublish = 0;
@@ -248,7 +247,7 @@ modules["editor/realtime"] = class {
         this.shortSub = subscribe(filter, async (data) => {
           editor.pipeline.publish("short", data); // Dump onto the pipeline
         });
-        editor.realtime.subscribes.push(this.shortSub);
+        //editor.realtime.subscribes.push(this.shortSub);
       }
       if (editor.realtime.observing != null) {
         let observeFilter = { c: "member", o: editor.realtime.observing, p: chunks };
@@ -258,13 +257,21 @@ modules["editor/realtime"] = class {
           this.observeSub = subscribe(observeFilter, async (data) => {
             editor.pipeline.publish("short", data); // Dump onto the pipeline
           });
-          editor.realtime.subscribes.push(this.observeSub);
+          //editor.realtime.subscribes.push(this.observeSub);
         }
       } else if (this.observeSub != null) {
         this.observeSub.close();
         this.observeSub = null;
       }
     }
+    editor.pipeline.subscribe("realtimePubishPageClose", "page_close", () => {
+      if (this.shortSub != null) {
+        this.shortSub.close();
+      }
+      if (this.observeSub != null) {
+        this.observeSub.close();
+      }
+    });
 
     let observeHolder = editor.page.querySelector(".eBottomSection[left]");
     if (observeHolder != null) {

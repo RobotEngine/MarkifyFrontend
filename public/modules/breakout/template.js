@@ -167,6 +167,9 @@ modules["breakout/template"] = class {
     let stringPref = JSON.stringify(this.parent.parent.preferences); // Must be duplicated
 
     let close = async (skipThumbnail) => {
+      if (this.editor != null) {
+        this.editor.pipeline.publish("page_close");
+      }
       this.parent.closePage("secondary");
       this.parent.openPage("primary", "breakout/overview");
       if (skipThumbnail != true) {

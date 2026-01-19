@@ -1271,8 +1271,19 @@ modules["modals/lesson/newbreakout/review"] = class extends modules["breakout/ov
       this.modal.open(this.steps[2], null, this.modal.modal.modal.querySelector(".modalBack"), "Start a Breakout", null, { parent: this.parent });
     });
 
-    createTeamsButton.addEventListener("click", () => {
-
+    createTeamsButton.addEventListener("click", async () => {
+      createTeamsButton.setAttribute("disabled", "");
+      let params = [];
+      let folder = getParam("folder");
+      if (folder != null) {
+        params.push("folder=" + folder);
+      }
+      let path = "lessons/breakout/enable";
+      if (params.length > 0) {
+        path += "?" + params.join("&");
+      }
+      await sendRequest("PUT", path, null, { session: this.parent.parent.session });
+      createTeamsButton.removeAttribute("disabled");
     });
 
     // Load SVGs:

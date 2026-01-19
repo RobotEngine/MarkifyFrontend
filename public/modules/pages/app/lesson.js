@@ -220,7 +220,7 @@ modules["pages/app/lesson"] = class extends page {
         await sleep(40);
       }
     })();
-    let editor = page.editor;
+    /*let editor = page.editor;
     if (editor != null) {
       let editorSubscribes = editor.realtime.subscribes;
       let removeIDs = [];
@@ -236,6 +236,9 @@ modules["pages/app/lesson"] = class extends page {
           i--;
         }
       }
+    }*/
+    if (page.pipeline != null) {
+      page.pipeline.publish("page_close");
     }
     delete (this.pages[type] ?? {})[id];
     if (Object.keys(this.pages[type] ?? {}).length < 1) {

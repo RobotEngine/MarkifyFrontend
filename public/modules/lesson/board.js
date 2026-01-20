@@ -954,7 +954,7 @@ modules["lesson/board"] = class {
 
     this.updateInterface();
 
-    if (this.session == null || this.lesson.tool.includes("board") == false) { // Create New Lesson
+    if (this.lesson.tool.includes("board") == false) { // Create New Lesson
       contentHolder.removeAttribute("disabled");
       mainPage.insertAdjacentHTML("beforeend", `<div class="eCreateBoardHolder"></div>`);
       modalModule.open("modals/lesson/newboard", mainPage.querySelector(".eCreateBoardHolder"), null, "Create Board", null, { parent: this, callback: ({ modal }) => {

@@ -668,7 +668,7 @@ modules["pages/app/dashboard"] = class extends page {
               if (lessons[lessonID] == null) {
                 lessons[lessonID] = body.lesson;
               }
-              lesson = lessons[lessonID];
+              lesson = lessons[lessonID] ?? {};
               tile = tileHolder.querySelector('.dTile[lesson="' + lessonID + '"]');
               if (body.hasOwnProperty("folder") == true) {
                 //if (lesson.record != null) {

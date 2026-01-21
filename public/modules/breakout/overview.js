@@ -298,7 +298,7 @@ modules["breakout/overview"] = class {
       startButton.style.removeProperty("display");
       pauseButton.style.removeProperty("display");
       manageButton.style.removeProperty("display");
-      switch (breakout.status) {
+      switch (breakout.status ?? "disabled") {
         case "disabled":
           startButton.textContent = "Start";
           startButton.style.display = "unset";
@@ -313,7 +313,7 @@ modules["breakout/overview"] = class {
           startButton.style.display = "unset";
           manageButton.style.display = "unset";
           break;
-        default:
+        case "ended":
           startButton.textContent = "Setup";
           startButton.style.display = "unset";
       }

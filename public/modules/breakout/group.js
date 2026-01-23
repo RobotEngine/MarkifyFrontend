@@ -27,6 +27,7 @@ modules["breakout/group"] = class {
           <div class="brgTopDivider"></div>
           <button class="brgZoom">100%</button>
           <button class="brgAccount"><img src="../images/profiles/default.svg" accountimage /><div accountuser></div></button>
+          <button class="brgLogin">Login</button>
         </div>
       </div>
     </div>
@@ -95,6 +96,7 @@ modules["breakout/group"] = class {
     ".brgZoom": `height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
     ".brgAccount": `padding: 0; width: 32px; height: 32px; margin: 0 4px; border-radius: 16px; overflow: hidden`,
     ".brgAccount img": `width: 100%; height: 100%; object-fit: cover`,
+    ".brgLogin": `height: 32px; display: none; padding: 6px 10px; margin: 0 4px; background: var(--secondary); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
     
     ".brgToolbarHolder": `position: relative; display: block; flex: 1; visibility: visible`,
 
@@ -144,6 +146,7 @@ modules["breakout/group"] = class {
     let finishButton = rightTop.querySelector(".brgMembers");
     let zoomButton = rightTop.querySelector(".brgZoom");
     let accountButton = rightTop.querySelector(".brgAccount");
+    let loginButton = rightTop.querySelector(".brgLogin");
 
     let scrollLeft = topHolder.querySelector(".brgTopScroll[left]");
     let scrollRight = topHolder.querySelector(".brgTopScroll[right]");
@@ -376,6 +379,10 @@ modules["breakout/group"] = class {
       accountButton.addEventListener("click", () => {
         dropdownModule.open(accountButton, "dropdowns/account", { parent: this });
       });
+    } else {
+      accountButton.remove();
+      loginButton.style.display = "block";
+      loginButton.addEventListener("click", () => { promptLogin(); });
     }
 
     this.pipeline.subscribe("pageTextUpdate", "page_change", (event) => {
@@ -495,7 +502,7 @@ modules["breakout/group"] = class {
     });
 
     // Load annotations here...
-    
+
     (async () => {
       await (await this.newModule("editor/realtime")).js(this.editor);
       await (await this.newModule("editor/toolbar")).js(this.editor);

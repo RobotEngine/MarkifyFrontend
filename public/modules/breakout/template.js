@@ -7,7 +7,7 @@ modules["breakout/template"] = class {
       <div class="brtTop">
         <div class="brtTopSection" left>
           <a class="brtClose"></a>
-          <div class="brtFileNameHolder border"><div class="brtFileName" spellcheck="false"></div></div>
+          <div class="brtFileNameHolder border"><div class="brtFileName" spellcheck="false" contenteditable></div></div>
           <button class="brtFileDropdown">File</button>
           <div class="brtTopDivider"></div>
           <button class="brtSaveProgress brtUndo" disabled></button>
@@ -377,9 +377,6 @@ modules["breakout/template"] = class {
       updateTopBar();
     });
     templateName.addEventListener("paste", clipBoardRead);
-    if (this.parent.parent.self.access > 4) {
-      templateName.setAttribute("contenteditable", "");
-    }
 
     fileButton.addEventListener("click", () => {
       dropdownModule.open(fileButton, "dropdowns/lesson/breakout/template/file", { parent: this });

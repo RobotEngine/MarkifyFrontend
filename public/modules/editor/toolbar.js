@@ -2156,6 +2156,9 @@ modules["editor/toolbar"] = class {
         actionButton.setAttribute("selected", "");
         actionButton.setAttribute("extend", "");
 
+        if (this.selection.actionBar == null) {
+          return;
+        }
         this.selection.actionBar.insertAdjacentHTML("beforeend", `<div class="eActionHolder" top new>
           <div class="eActionContainer">
             <div class="eActionShadow"></div>
@@ -4587,11 +4590,11 @@ modules["editor/toolbar/select"] = class {
     }
     let target = event.target;
     this.lastTarget = target;
-    if (target.closest("button") != null || target.closest("a") != null || target.closest(".eActionBar") != null) {
-      return this.parent.selection.clickAction(event, { clickStart: true });
-    }
     if (this.editor.isEditorContent(target) != true) {
       return;
+    }
+    if (target.closest("button") != null || target.closest("a") != null || target.closest(".eActionBar") != null) {
+      return this.parent.selection.clickAction(event, { clickStart: true });
     }
     let annotation = target.closest(".eAnnotation");
     let annoID;

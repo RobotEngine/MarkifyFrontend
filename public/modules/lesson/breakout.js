@@ -194,7 +194,15 @@ modules["lesson/breakout"] = class {
     });
 
     // Initialize Breakout:
-    if (this.parent.self.access > 3 || this.session == null) { // Open to Overview:
+    if (this.parent.self.access < 4) { // Open to a Member View:
+      if (this.parent.self.group != null) { // Open to the Group:
+        await this.openPage("primary", "breakout/group");
+      } else if (((this.parent.lesson.breakout ?? {}).options ?? {}).pickTeam == true) { // Open to the Select Group:
+        await this.openPage("primary", "breakout/selectgroup");
+      } else { // Open to Waiting Room:
+        await this.openPage("primary", "breakout/waiting");
+      }
+    } else { // Open to Overview:
       await this.openPage("primary", "breakout/overview");
     }
     

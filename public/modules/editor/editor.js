@@ -2672,7 +2672,7 @@ modules["editor/editor"] = class {
       let checkChunks = [ ...this.utils.chunksFromAnnotation(merged), ...this.utils.chunksFromAnnotation(annotation.render ?? {}) ];
 
       data.sync = getEpoch();
-      if (newAnnotation == true) {
+      if (newAnnotation == true && data.hasOwnProperty("lock") == false) {
         //if (this.settings.editOthersWork != true) {
         data.lock = data.lock ?? [];
         if (data.lock.includes("c") == false) {

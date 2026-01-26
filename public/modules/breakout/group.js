@@ -645,7 +645,7 @@ modules["dropdowns/lesson/breakout/group/file"] = class {
     let jump = frame.querySelector('.brgFileAction[option="jump"]');
     jump.addEventListener("click", () => {
       if (editor.annotationPages.length > 0) {
-        editor.page.querySelector(".brtCurrentPage").focus();
+        editor.page.querySelector(".brgCurrentPage").focus();
         dropdownModule.close();
       }
     });

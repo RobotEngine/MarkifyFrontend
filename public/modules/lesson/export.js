@@ -60,7 +60,7 @@ modules["lesson/export"] = class {
     if (annoCode != 200 && connected == true) {
       return;
     }
-    for (let i = 0; i < annoBody.annotations.length; i++) {
+    /*for (let i = 0; i < annoBody.annotations.length; i++) {
       let addAnno = annoBody.annotations[i];
       let existingAnno = this.editor.annotations[addAnno._id];
       if (existingAnno == null || existingAnno.render.sync < addAnno.sync) {
@@ -90,7 +90,8 @@ modules["lesson/export"] = class {
       }
     }
 
-    await this.editor.render.setMarginSize();
+    await this.editor.render.setMarginSize();*/
+    await this.editor.loadAnnotations(annoBody);
 
     this.resetAnnotationSize = () => {
       this.minX = null;

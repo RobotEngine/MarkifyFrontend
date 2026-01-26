@@ -163,7 +163,7 @@ modules["breakout/overview"] = class {
       return this.fetchTemplatePromise;
     }
     this.fetchTemplatePromise = new Promise(async (resolve) => {
-      let [code, body] = await sendRequest("GET", "lessons/breakout/template?template=" + templateID, null, { session: this.parent.parent.session });
+      let [code, body] = await sendRequest("GET", "lessons/breakout/templates?template=" + templateID, null, { session: this.parent.parent.session });
       if (code != 200) {
         return resolve({});
       }

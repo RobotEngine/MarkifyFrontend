@@ -2244,7 +2244,7 @@ modules["editor/toolbar"] = class {
       if (Object.keys(this.selection.currentSelections).length < 1 || this.selection.hideSelectBox == true) { //this.selection.selectBox == null
         return;
       }
-      if (editor.self.access < 1) {
+      if (editor.self.access < editor.minimumEditingAccess) {
         return;
       }
       if (this.selection.showHandles == false) {
@@ -3328,7 +3328,7 @@ modules["editor/toolbar"] = class {
         if (original.revert == null) {
           original.revert = copyObject(original.render);
         }
-        if (editor.self.access < 1 || editor.utils.canMemberModify(original.render) == false) {
+        if (editor.self.access < editor.minimumEditingAccess || editor.utils.canMemberModify(original.render) == false) {
           delete editor.selecting[annoid];
           continue;
         }
@@ -4155,7 +4155,7 @@ modules["editor/toolbar"] = class {
         }
         return;
       }
-      if (editor.self.access < 1) {
+      if (editor.self.access < editor.minimumEditingAccess) {
         return;
       }
 
@@ -4317,7 +4317,7 @@ modules["editor/toolbar"] = class {
 
     // COPY / PASTE
     let processFileUpload = async (items, event) => {
-      if (editor.self.access < 1) {
+      if (editor.self.access < editor.minimumEditingAccess) {
         return;
       }
       for (let i = 0; i < items.length; i++) {
@@ -4351,7 +4351,7 @@ modules["editor/toolbar"] = class {
       if (editor.isPageActive() == false) {
         return;
       }
-      if (editor.self.access < 1) {
+      if (editor.self.access < editor.minimumEditingAccess) {
         return;
       }
       if (document.activeElement != null) {
@@ -6725,7 +6725,7 @@ modules["dropdowns/editor/toolbar/comment/more"] = class {
       parent.updateCommentFrame();
     });
     setSVG(editButton.querySelector("div"), "../images/tooltips/edit.svg");
-    if (parent.editor.self.access < 1 || render.a != parent.editor.self.modify) {
+    if (parent.editor.self.access < parent.editor.minimumEditingAccess || render.a != parent.editor.self.modify) {
       editButton.remove();
     }
 

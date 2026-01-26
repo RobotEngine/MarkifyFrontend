@@ -533,6 +533,7 @@ modules["editor/editor"] = class {
 
   selecting = {};
   realtimeSelect = {};
+  minimumEditingAccess = 0;
 
   visibleChunks = [];
   defaultChunks = {};
@@ -1099,7 +1100,7 @@ modules["editor/editor"] = class {
             break;
           }
         }
-        if (render.remove != true && (render._id ?? "").startsWith("pending_") == false) {
+        if (render.remove != true && (render._id ?? "").startsWith("pending_-") == false) {
           if (render.parent == null) {
             let rect = this.utils.getRect(render);
             let [topLeftX, topLeftY, bottomRightX, bottomRightY] = this.math.rotatedBounds(rect.x, rect.y, rect.endX, rect.endY, rect.rotation);
@@ -1388,7 +1389,7 @@ modules["editor/editor"] = class {
     this.utils.canMemberModify = (render, member) => {
       render = render ?? {};
       member = member ?? this.self;
-      if (member.access < 1 || member.modify == null) {
+      if (member.access < this.minimumEditingAccess || member.modify == null) {
         return false;
       }
       if (member.access > 3) {
@@ -1413,7 +1414,7 @@ modules["editor/editor"] = class {
       render = render ?? {};
       let locks = this.utils.getLocked(render);
       member = member ?? this.self;
-      if (member.access < 1 || member.modify == null) {
+      if (member.access < this.minimumEditingAccess || member.modify == null) {
         return [];
       }
       if (member.access > 3) {
@@ -3557,10 +3558,23 @@ modules["editor/editor"] = class {
     }
     this.pipeline.subscribe("boundChange", "bounds_change", this.updateChunks, { sort: 1 });
     this.updatePageSize = () => {
-      this.pageOffsetWidth = page.offsetWidth;
-      this.pageOffsetHeight = page.offsetHeight;
-
-      this.pageRect = page.getBoundingClientRect();
+      let rect = page.getBoundingClientRect();
+      this.pageOffsetWidth = rect.width;
+      this.pageOffsetHeight = rect.height;
+      let scaleWidth = page.offsetWidth - rect.width;
+      let halfScaleWidth = scaleWidth / 2
+      let scaleHeight = page.offsetHeight - rect.height;
+      let halfScaleHeight = scaleHeight / 2;
+      this.pageRect = {
+        x: rect.x - halfScaleWidth,
+        y: rect.y - halfScaleHeight,
+        width: rect.width,
+        height: rect.height,
+        left: rect.left - halfScaleWidth,
+        right: rect.right + halfScaleWidth,
+        top: rect.top - halfScaleHeight,
+        bottom: rect.bottom + halfScaleHeight
+      };
     }
     this.pipeline.subscribe("resizeChange", "resize", this.updatePageSize, { sort: 1 });
     this.updatePageSize();
@@ -3758,7 +3772,7 @@ modules["editor/editor"] = class {
 
     this.pipeline.subscribe("editorMemberUpdate", "update", (data) => {
       if (this.realtime.module != null) {
-        if (data.active == false || (data.hasOwnProperty("access") == true && data.access < 1)) {
+        if (data.active == false || (data.hasOwnProperty("access") == true && data.access < this.minimumEditingAccess)) {
           this.realtime.module.removeRealtime(data._id);
         }
       }
@@ -4004,11 +4018,81 @@ modules["editor/editor"] = class {
     this.utils.centerWindowWithPage();
     this.updateChunks();
 
+    this.currentRootAnnotations = {};
+    this.applyRootTemplate = async (rootAnnotations = []) => {
+      let rootAnnotationChanges = {};
+      for (let i = 0; i < rootAnnotations.length; i++) {
+        let rootAnno = rootAnnotations[i];
+        let prevAnno = this.currentRootAnnotations[rootAnno._id];
+        if (prevAnno == null) {
+          rootAnnotationChanges[rootAnno._id] = { new: rootAnno, old: rootAnno };
+          this.currentRootAnnotations[rootAnno._id] = rootAnno;
+          continue;
+        }
+        let fields = Object.keys(rootAnno);
+        for (let f = 0; f < fields.length; f++) {
+          let field = fields[f];
+          let setField = rootAnno[field];
+          let prevField = prevAnno[field];
+          if (objectEqual(setField, prevField) == false) {
+            let rootAnnoChange = rootAnnotationChanges[rootAnno._id];
+            if (rootAnnoChange == null) {
+              rootAnnotationChanges[rootAnno._id] = { new: {}, old: {} };
+              rootAnnoChange = rootAnnotationChanges[rootAnno._id];
+            }
+            rootAnnoChange.new[field] = setField;
+            rootAnnoChange.old[field] = prevField;
+            this.currentRootAnnotations[rootAnno._id][field] = setField;
+          }
+        }
+      }
+      let checkAnnotations = Object.keys(this.annotations);
+      let changedAnnotations = [];
+      for (let i = 0; i < checkAnnotations.length; i++) {
+        let annoID = checkAnnotations[i];
+        let anno = this.annotations[annoID] ?? {};
+        let render = anno.render ?? {};
+        if (render.from == null) {
+          continue;
+        }
+        let rootAnno = rootAnnotationChanges[render.from];
+        if (rootAnno == null) {
+          continue;
+        }
+        let fields = Object.keys(rootAnno.new);
+        for (let f = 0; f < fields.length; f++) {
+          let field = fields[f];
+          if (objectEqual(render[field], rootAnno.old[field]) == true) {
+            render[field] = setField;
+            delete rootAnnotationChanges[render.from];
+            changedAnnotations.push(anno);
+          }
+        }
+      }
+      let newRootAnnotions = Object.keys(rootAnnotationChanges);
+      for (let i = 0; i < newRootAnnotions.length; i++) {
+        let addAnno = copyObject(this.currentRootAnnotations[newRootAnnotions[i]] ?? {});
+        addAnno._id = "root_" + addAnno._id;
+        if (addAnno.parent != null) {
+          addAnno.parent = "root_" + addAnno.parent;
+        }
+        let existingAnno = this.annotations[addAnno._id];
+        if (existingAnno == null || existingAnno.render.sync < addAnno.sync) {
+          this.annotations[addAnno._id] = { render: addAnno };
+          existingAnno = this.annotations[addAnno._id];
+        }
+        changedAnnotations.push(existingAnno);
+      }
+
+      for (let i = 0; i < changedAnnotations.length; i++) {
+        await this.utils.setAnnotationChunks(changedAnnotations[i]);
+      }
+    }
     this.loadAnnotations = async (body, extra = {}) => {
       if (body.sources != null) {
         for (let i = 0; i < body.sources.length; i++) {
           let source = body.sources[i];
-          this.lesson.sources[source._id] = source;
+          this.lesson.sources[source._id] = this.lesson.sources[source._id] ?? source;
         }
       }
       if (body.reactions != null) {
@@ -4036,6 +4120,9 @@ modules["editor/editor"] = class {
           existingAnno = this.annotations[addAnno._id];
         }
         addedAnnotations.push(existingAnno);
+      }
+      if (body.rootAnnotations != null) {
+        await this.applyRootTemplate(body.rootAnnotations);
       }
       for (let i = 0; i < addedAnnotations.length; i++) {
         await this.utils.setAnnotationChunks(addedAnnotations[i]);

@@ -198,7 +198,7 @@ modules["lesson/breakout"] = class {
       if (this.parent.self.group != null) { // Open to the Group:
         await this.openPage("primary", "breakout/group");
       } else if (((this.parent.lesson.breakout ?? {}).options ?? {}).pickTeam == true) { // Open to the Select Group:
-        await this.openPage("primary", "breakout/selectgroup");
+        await this.openPage("primary", "breakout/groups");
       } else { // Open to Waiting Room:
         await this.openPage("primary", "breakout/waiting");
       }

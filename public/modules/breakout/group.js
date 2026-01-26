@@ -122,6 +122,13 @@ modules["breakout/group"] = class {
     if (this.parent.parent.session == null) {
       return;
     }
+    if (extra.group == null) {
+      let setGroupID = this.parent.parent.self.group;
+      if (setGroupID == null) {
+        return;
+      }
+      extra.group = { _id: setGroupID };
+    }
 
     frame.style.position = "relative";
     frame.style.width = "100%";
@@ -177,8 +184,18 @@ modules["breakout/group"] = class {
     setSVG(status.querySelector('div[strength="1"]'), "../images/editor/status/none.svg");
     setSVG(increasePageButton, "../images/editor/bottom/plus.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
     setSVG(decreasePageButton, "../images/editor/bottom/minus.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
+
+    this.group = extra.group ?? {};
+
+    let fetchAnnotations = sendRequest("GET", "lessons/join/annotations?group=" + this.group._id, null, { session: this.parent.parent.session }, { allowError: true });
     
-    this.group = {};
+    if ((this.group ?? {}).created == null) {
+      let [code, body] = await sendRequest("GET", "lessons/breakout/groups?group=" + this.group._id, null, { session: this.parent.parent.session }, { allowError: true });
+      if (code != 200) {
+        return;
+      }
+      this.group = body;
+    }
 
     this.editor = await this.setFrame("editor/editor", contentHolder, {
       construct: {
@@ -194,7 +211,7 @@ modules["breakout/group"] = class {
         sources: this.parent.parent.sources,
         collaborators: this.parent.parent.collaborators,
         settings: this.parent.parent.lesson.settings,
-        resync: this.parent.resync,
+        resync: this.parent.parent.resync,
         preferences: JSON.parse(stringPref),
         lastSavePreferences: JSON.parse(stringPref),
         backgroundColor: this.group.background ?? "FFFFFF",
@@ -345,16 +362,16 @@ modules["breakout/group"] = class {
     groupName.addEventListener("paste", clipBoardRead);
 
     fileButton.addEventListener("click", () => {
-      dropdownModule.open(fileButton, "dropdowns/lesson/breakout/template/file", { parent: this });
+      dropdownModule.open(fileButton, "dropdowns/lesson/breakout/group/file", { parent: this });
     });
 
     this.pipeline.subscribe("updateHistory", "history_update", (data) => {
-      if (data.history.length > 0 && data.location > -1 && this.editor.self.access > 0) {
+      if (data.history.length > 0 && data.location > -1) {
         undoButton.removeAttribute("disabled");
       } else {
         undoButton.setAttribute("disabled", "");
       }
-      if (data.history.length > data.location + 1 && this.editor.self.access > 0) {
+      if (data.history.length > data.location + 1) {
         redoButton.removeAttribute("disabled");
       } else {
         redoButton.setAttribute("disabled", "");
@@ -501,7 +518,32 @@ modules["breakout/group"] = class {
       this.editor.active = data.pageID == "breakout";
     });
 
-    // Load annotations here...
+    this.pipeline.subscribe("templateSet", "set", (body) => {
+      if (body.id != this.group._id) {
+        return;
+      }
+      objectUpdate(body, this.group);
+      if (body.hasOwnProperty("name") == true && document.activeElement.closest(".brgGroupName") != groupName) {
+        groupName.textContent = this.group.name ?? "Untitled Template";
+        groupName.title = groupName.textContent;
+      }
+      if (body.hasOwnProperty("background") == true) {
+        this.editor.updateBackground(body.background);
+      }
+      this.updateInterface();
+    });
+
+    // Fetch Annotations:
+    let pageParam = getParam("page");
+    let checkForJumpLink = getParam("annotation");
+    (async () => {
+      let [annoCode, annoBody] = await fetchAnnotations;
+      if (annoCode != 200 && connected == true) {
+        return alertModule.open("error", `<b>Error Loading Annotations</b>Please try again later...`);
+      }
+      await this.editor.loadAnnotations(annoBody, { pageID: pageParam, jumpID: checkForJumpLink });
+      contentHolder.removeAttribute("disabled");
+    })();
 
     (async () => {
       await (await this.newModule("editor/realtime")).js(this.editor);
@@ -511,5 +553,163 @@ modules["breakout/group"] = class {
     })();
 
     this.updateInterface();
+  }
+}
+
+modules["dropdowns/lesson/breakout/group/file"] = class {
+  html = `
+  <button class="brgFileAction" option="groups" title="See all of the other groups." style="--themeColor: var(--secondary)"><div></div>Groups</button>
+  <div class="brgFileLine"></div>
+  <button class="brgFileAction" option="export" dropdowntitle="Export" title="Export the lesson as a PDF."><div></div>Export</button>
+  <button class="brgFileAction" option="print" dropdowntitle="Print" title="Export the lesson and print."><div></div>Print</button>
+  <div class="brgFileLine" option="timeline"></div>
+  <button class="brgFileAction" option="history" title="See the lesson's version history as a timeline."><div></div>Timeline History</button>
+  <div class="brgFileLine" option="findjump"></div>
+  <button class="brgFileAction" disabled option="find" title="Find text on the PDF." style="--themeColor: var(--secondary)"><div></div>Find</button>
+  <button class="brgFileAction" option="jumptop" title="Jump to the first page." style="--themeColor: var(--secondary)"><div></div>Jump to Start</button>
+  <button class="brgFileAction" option="jump" title="Jump to page number." style="--themeColor: var(--secondary)"><div></div>Jump to Page</button>
+  <button class="brgFileAction" option="jumpend" title="Jump to the last page." style="--themeColor: var(--secondary)"><div></div>Jump to End</button>
+  <div class="brgFileLine" option="document"></div>
+  <button class="brgFileAction" disabled option="properties" title="View lesson properties." style="--themeColor: var(--secondary)"><div></div>Properties</button>
+  <button class="brgFileAction" disabled option="ocr" title="Run optical character recognition (OCR)."><div></div>Recognize Text</button>
+  <div class="brgFileLine" option="delete"></div>
+  <button class="brgFileAction" option="boardstyle" title="Change the board's background color."><div></div>Background Color</button>
+  <button class="brgFileAction" option="hideshowpage" title="Hide all pages from members."><div></div>Hide All Pages</button>
+  <button class="brgFileAction" option="deleteannotations" title="Remove all annotations from the lesson." style="--themeColor: var(--error)"><div></div>Delete Annotations</button>
+  `;
+  css = {
+    ".brgFileAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
+    ".brgFileAction:not(:last-child)": `margin-bottom: 4px`,
+    ".brgFileAction div": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: var(--pageColor); border-radius: 4px`,
+    ".brgFileAction div svg": `width: 100%; height: 100%`,
+    ".brgFileAction:hover": `background: var(--themeColor); color: #fff`,
+    ".brgFileLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`
+  };
+  js = async function (frame, extra) {
+    let parent = extra.parent;
+    let editor = parent.editor;
+
+    let overviewButton = frame.querySelector('.brgFileAction[option="groups"]');
+    overviewButton.addEventListener("click", async () => {
+      editor.save.syncSave(true);
+      parent.parent.closePage("secondary");
+      parent.parent.openPage("primary", "breakout/groups");
+      dropdownModule.close();
+    });
+    let exportButton = frame.querySelector('.brgFileAction[option="export"]');
+    exportButton.addEventListener("click", () => {
+      dropdownModule.open(exportButton, "dropdowns/lesson/file/export", { type: "download", editor: editor });
+    });
+    let printButton = frame.querySelector('.brgFileAction[option="print"]');
+    printButton.addEventListener("click", () => {
+      dropdownModule.open(printButton, "dropdowns/lesson/file/export", { type: "print", editor: editor });
+    });
+
+    let historyButton = frame.querySelector('.brgFileAction[option="history"]');
+    historyButton.addEventListener("click", async () => {
+      dropdownModule.close();
+
+      let construct = {
+        close: () => {
+          parent.parent.closePage("tertiary");
+          parent.parent.openPage("secondary", "breakout/group");
+        },
+
+        lesson: parent.parent.parent,
+        self: parent.parent.parent.self,
+        session: parent.parent.parent.session,
+        sessionID: parent.parent.parent.sessionID,
+        sources: parent.parent.parent.sources,
+        collaborators: parent.parent.parent.collaborators,
+        backgroundColor: parent.editor.backgroundColor,
+        preferences: parent.editor.preferences,
+        //reactions: parent.parent.editor.reactions,
+
+        annotations: parent.editor.annotations,
+
+        id: parent.group._id,
+        parameters: [("group=" + parent.group._id)]
+      };
+      this.timeline = await parent.parent.openPage("tertiary", "editor/timeline", { construct });
+    });
+
+    let find = frame.querySelector('.brgFileAction[option="find"]');
+    let jumptop = frame.querySelector('.brgFileAction[option="jumptop"]');
+    jumptop.addEventListener("click", () => {
+      if (editor.annotationPages.length > 0) {
+        editor.setPage(1, false);
+        dropdownModule.close();
+      }
+      //editor.contentHolder.scrollTo({ top: 0 });
+    });
+    let jump = frame.querySelector('.brgFileAction[option="jump"]');
+    jump.addEventListener("click", () => {
+      if (editor.annotationPages.length > 0) {
+        editor.page.querySelector(".brtCurrentPage").focus();
+        dropdownModule.close();
+      }
+    });
+    let jumpend = frame.querySelector('.brgFileAction[option="jumpend"]');
+    jumpend.addEventListener("click", () => {
+      if (editor.annotationPages.length > 0) {
+        editor.setPage(editor.annotationPages.length, false);
+        dropdownModule.close();
+      }
+      //editor.contentHolder.scrollTo({ top: editor.contentHolder.scrollHeight });
+    });
+
+    let propertiesButton = frame.querySelector('.brgFileAction[option="properties"]');
+    let ocrButton = frame.querySelector('.brgFileAction[option="ocr"]');
+
+    let boardStyleButton = frame.querySelector('.brgFileAction[option="boardstyle"]');
+    boardStyleButton.addEventListener("click", async () => {
+      dropdownModule.open(boardStyleButton, "dropdowns/editor/boardstyle", { parent: parent });
+    });
+
+    let hideshowpage = frame.querySelector('.brgFileAction[option="hideshowpage"]');
+    hideshowpage.addEventListener("click", async () => {
+      hideshowpage.setAttribute("disabled", "");
+      for (let i = 0; i < parent.editor.annotationPages.length; i++) {
+        let pageID = parent.editor.annotationPages[i][0];
+        let render = (parent.editor.annotations[pageID] ?? {}).render;
+        if (render != null && render.hidden != true) {
+          await parent.editor.save.push({ _id: pageID, hidden: true });
+        }
+      }
+      await parent.editor.save.syncSave(true);
+      hideshowpage.removeAttribute("disabled");
+      dropdownModule.close();
+    });
+
+    let deleteAnnotationsButton = frame.querySelector('.brgFileAction[option="deleteannotations"]');
+    deleteAnnotationsButton.addEventListener("click", () => {
+      dropdownModule.open(deleteAnnotationsButton, "dropdowns/remove", { type: "deleteannotations", lessonID: parent.parent.id, session: editor.session, parameters: editor.parameters });
+    });
+
+    setSVG(overviewButton.querySelector("div"), "../images/tooltips/back.svg");
+    setSVG(exportButton.querySelector("div"), "../images/editor/file/export.svg");
+    setSVG(printButton.querySelector("div"), "../images/editor/file/print.svg");
+    setSVG(historyButton.querySelector("div"), "../images/editor/file/history.svg");
+    setSVG(find.querySelector("div"), "../images/editor/file/search.svg");
+    setSVG(jumptop.querySelector("div"), "../images/editor/file/uparrow.svg");
+    setSVG(jump.querySelector("div"), "../images/editor/file/jump.svg");
+    setSVG(jumpend.querySelector("div"), "../images/editor/file/downarrow.svg");
+    setSVG(propertiesButton.querySelector("div"), "../images/editor/file/info.svg");
+    setSVG(ocrButton.querySelector("div"), "../images/editor/file/text.svg");
+    setSVG(boardStyleButton.querySelector("div"), "../images/editor/file/fillbucket.svg");
+    setSVG(hideshowpage.querySelector("div"), "../images/editor/file/hideshow.svg");
+    setSVG(deleteAnnotationsButton.querySelector("div"), "../images/editor/file/delete.svg");
+
+    if (editor.annotationPages.length < 1) {
+      frame.querySelector('.brgFileLine[option="findjump"]').remove();
+      jumptop.remove();
+      jump.remove();
+      jumpend.remove();
+    }
+
+    find.remove();
+    frame.querySelector('.brgFileLine[option="document"]').remove();
+    propertiesButton.remove();
+    ocrButton.remove();
   }
 }

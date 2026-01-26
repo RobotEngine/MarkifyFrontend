@@ -50,7 +50,7 @@ modules["editor/realtime"] = class {
       if (editor.lesson.signalStrength < 3 || connected == false) { // If weak don't send!
         return;
       }
-      if (editor.self.access < 1 && editor.realtime.observed < 1) { // Not an editor!
+      if (editor.self.access < editor.minimumEditingAccess && editor.realtime.observed < 1) { // Not an editor!
         return;
       }
       let epoch = getEpoch();
@@ -65,7 +65,7 @@ modules["editor/realtime"] = class {
           }
 
           let standardFilter = { c: "member" };
-          if (editor.self.access > 0) {
+          if (editor.self.access >= editor.minimumEditingAccess) {
             standardFilter.c = "short_" + editor.id;
           } else if (editor.realtime.observed > 0) {
             standardFilter.o = editor.sessionID;
@@ -193,7 +193,7 @@ modules["editor/realtime"] = class {
             return;
           }
           let standardFilter = { c: "short_" + editor.id };
-          if (editor.realtime.observed && editor.self.access < 1) {
+          if (editor.realtime.observed && editor.self.access < editor.minimumEditingAccess) {
             standardFilter.o = editor.sessionID;
           }
           socket.publish({ ...standardFilter, p: lastCursorChunk }, [ editor.sessionID, "" ]);
@@ -322,7 +322,7 @@ modules["editor/realtime"] = class {
         if (member == null) {
           return;
         }
-        if (member.access < 1) {
+        if (member.access < editor.minimumEditingAccess) {
           this.removeRealtime(member._id);
         }
         sendRequest("DELETE", "lessons/members/observe/exit?member=" + member._id, null, { session: editor.session });

@@ -176,7 +176,7 @@ modules["breakout/template"] = class {
         if (this.editor != null && this.editor.save.synced != true) {
           await this.editor.save.syncSave(true);
         }
-        sendRequest("PUT", "lessons/breakout/template/refreshthumbnail?template=" + this.template._id, null, { session: this.parent.parent.session });
+        sendRequest("PUT", "lessons/breakout/templates/refreshthumbnail?template=" + this.template._id, null, { session: this.parent.parent.session });
       }
     }
     closeButton.addEventListener("click", close);
@@ -197,12 +197,12 @@ modules["breakout/template"] = class {
     setSVG(increasePageButton, "../images/editor/bottom/plus.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
     setSVG(decreasePageButton, "../images/editor/bottom/minus.svg", (svg) => { return svg.replace(/"#48A7FF"/g, '"var(--secondary)"'); });
     
-    this.template = extra.template;
+    this.template = extra.template ?? {};
     
     let fetchAnnotations = sendRequest("GET", "lessons/join/annotations?template=" + this.template._id, null, { session: this.parent.parent.session }, { allowError: true });
 
     if (this.template.created == null) {
-      let [code, body] = await sendRequest("GET", "lessons/breakout/template?template=" + this.template._id, null, { session: this.parent.parent.session }, { allowError: true });
+      let [code, body] = await sendRequest("GET", "lessons/breakout/templates?template=" + this.template._id, null, { session: this.parent.parent.session }, { allowError: true });
       if (code != 200) {
         return;
       }
@@ -228,7 +228,7 @@ modules["breakout/template"] = class {
         sources: this.parent.parent.sources,
         collaborators: this.parent.parent.collaborators,
         settings: this.parent.parent.lesson.settings,
-        resync: this.parent.resync,
+        resync: this.parent.parent.resync,
         preferences: JSON.parse(stringPref),
         lastSavePreferences: JSON.parse(stringPref),
         backgroundColor: this.template.background ?? "FFFFFF",
@@ -365,7 +365,7 @@ modules["breakout/template"] = class {
       this.template.name = name;
       templateName.textContent = name;
       templateName.title = name;
-      let [code] = await sendRequest("POST", "lessons/breakout/template/name?template=" + this.template._id, { name: name }, { session: this.parent.parent.session });
+      let [code] = await sendRequest("POST", "lessons/breakout/templates/name?template=" + this.template._id, { name: name }, { session: this.parent.parent.session });
       if (code != 200) {
         this.template.name = oldName;
         templateName.textContent = oldName;
@@ -383,12 +383,12 @@ modules["breakout/template"] = class {
     });
 
     this.pipeline.subscribe("updateHistory", "history_update", (data) => {
-      if (data.history.length > 0 && data.location > -1 && this.editor.self.access > 0) {
+      if (data.history.length > 0 && data.location > -1) {
         undoButton.removeAttribute("disabled");
       } else {
         undoButton.setAttribute("disabled", "");
       }
-      if (data.history.length > data.location + 1 && this.editor.self.access > 0) {
+      if (data.history.length > data.location + 1) {
         redoButton.removeAttribute("disabled");
       } else {
         redoButton.setAttribute("disabled", "");
@@ -536,7 +536,7 @@ modules["breakout/template"] = class {
         return;
       }
       objectUpdate(body, this.template);
-      if (body.hasOwnProperty("name") == true && document.activeElement.closest(".eFileName") != templateName) {
+      if (body.hasOwnProperty("name") == true && document.activeElement.closest(".brtFileName") != templateName) {
         templateName.textContent = this.template.name ?? "Untitled Template";
         templateName.title = templateName.textContent;
       }

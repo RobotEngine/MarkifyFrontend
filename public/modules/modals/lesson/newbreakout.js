@@ -302,7 +302,7 @@ modules["modals/lesson/newbreakout/template"] = class extends modules["breakout/
     
     let blankButton = newOptions.querySelector('.brtButton[type="blank"]');
     blankButton.addEventListener("click", () => {
-      extra.modal.open("modals/lesson/newboard", null, blankButton, "Create the Template", null, { parent: this, requestPath: "lessons/breakout/template/new", callback: async ({ body }) => {
+      extra.modal.open("modals/lesson/newboard", null, blankButton, "Create the Template", null, { parent: this, requestPath: "lessons/breakout/templates/new", callback: async ({ body }) => {
         extra.modal.open("modals/lesson/newbreakout", null, blankButton, "Start a Breakout", false, { parent: this.parent, template: body });
         this.parent.parent.openPage("secondary", "breakout/template", { template: body });
       } });
@@ -311,7 +311,7 @@ modules["modals/lesson/newbreakout/template"] = class extends modules["breakout/
     let cloneButton = newOptions.querySelector('.brtButton[type="clone"]');
     cloneButton.addEventListener("click", async () => {
       cloneButton.setAttribute("disabled", "");
-      await sendRequest("POST", "lessons/breakout/template/new", { duplicate: true }, { session: this.parent.parent.session });
+      await sendRequest("POST", "lessons/breakout/templates/new", { duplicate: true }, { session: this.parent.parent.session });
       cloneButton.removeAttribute("disabled");
     });
 
@@ -328,7 +328,7 @@ modules["modals/lesson/newbreakout/template"] = class extends modules["breakout/
     });
     currentTemplateChange.addEventListener("click", async () => {
       currentTemplateChange.setAttribute("disabled", "");
-      await sendRequest("DELETE", "lessons/breakout/template/remove?template=" + this.parent.template._id, null, { session: this.parent.parent.session });
+      await sendRequest("DELETE", "lessons/breakout/templates/remove?template=" + this.parent.template._id, null, { session: this.parent.parent.session });
       currentTemplateChange.removeAttribute("disabled", "");
     });
 
@@ -461,7 +461,7 @@ modules["modals/lesson/newbreakout/templates"] = class {
       }
       loading = true;
       tileHolder.setAttribute("disabled", "");
-      let path = "lessons/breakout/template";
+      let path = "lessons/breakout/templates";
       let lastTile = tileHolder.lastElementChild;
       if (lastTile != null) {
         path += "?before=" + lastTile.getAttribute("time");
@@ -501,7 +501,7 @@ modules["modals/lesson/newbreakout/templates"] = class {
         return;
       }
       tileHolder.setAttribute("disabled", "");
-      let [code, body] = await sendRequest("PUT", "lessons/breakout/template/set", { template: templateID }, { session: this.parent.parent.parent.session });
+      let [code, body] = await sendRequest("PUT", "lessons/breakout/templates/set", { template: templateID }, { session: this.parent.parent.parent.session });
       tileHolder.removeAttribute("disabled");
       if (code == 200) {
         extra.modal.open("modals/lesson/newbreakout", null, tile, "Start a Breakout", false, { parent: this.parent.parent, template: body });

@@ -225,7 +225,8 @@ modules["lesson/board"] = class {
         resync: this.resync,
         preferences: JSON.parse(stringPref),
         lastSavePreferences: JSON.parse(stringPref),
-        backgroundColor: this.lesson.background ?? "FFFFFF"
+        backgroundColor: this.lesson.background ?? "FFFFFF",
+        minimumEditingAccess: 1
       }
     });
     this.pipeline = this.editor.pipeline;

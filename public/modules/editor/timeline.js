@@ -499,7 +499,7 @@ modules["editor/timeline"] = class {
         }
         for (let i = 0; i < applyChangeChanges.length; i++) {
           let annotation = applyChangeChanges[i];
-          let original = storedAnnotationStates[annotation._id] ?? (this.editor.annotations[annotation._id] ?? {}).render;
+          let original = storedAnnotationStates[annotation._id] ?? (this.editor.annotations[annotation._id] ?? {}).render ?? {};
           if (this.self.access < 4) {
             let presentAnnotation = presentAnnotations[annotation._id];
             if (presentAnnotation == null) {
@@ -511,7 +511,7 @@ modules["editor/timeline"] = class {
           if (addRedoChanges == true) {
             changeData.redoChanges.push(copyObject(original ?? { _id: annotation._id, remove: true }));
           }
-          if (original != null && original.remove == true) {
+          if (original.remove == true) {
             delete original.remove;
           }
           if ((original ?? {}).a == null && annotation.a == null) {

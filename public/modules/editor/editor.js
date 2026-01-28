@@ -2426,6 +2426,16 @@ modules["editor/editor"] = class {
               continue;
             }
           }
+          console.log(mutt, anno.render);
+          if (anno.render.from == "root") {
+            if (mutt.from == null) {
+              mutt.annoRefresh = anno;
+              setPendingSave[mutt._id] = mutt;
+              continue;
+            } else if (mutt.remove == true) {
+              continue;
+            }
+          }
           mutationObject[mutt._id] = { ...(mutationObject[mutt._id] ?? {}), ...mutt };
         }
         this.save.pendingSaves = {};
@@ -2635,6 +2645,10 @@ modules["editor/editor"] = class {
       let merged = { ...(annotation.render ?? {}), ...data };
       if (merged._id == null) {
         return;
+      }
+
+      if (merged.from == "root") { // Claim a template annotation:
+        data.from = merged._id;
       }
 
       let originalRect = this.utils.getRect(annotation.render ?? merged);
@@ -4025,7 +4039,7 @@ modules["editor/editor"] = class {
         let rootAnno = rootAnnotations[i];
         let prevAnno = this.currentRootAnnotations[rootAnno._id];
         if (prevAnno == null) {
-          rootAnnotationChanges[rootAnno._id] = { new: rootAnno, old: rootAnno };
+          rootAnnotationChanges[rootAnno._id] = { new: rootAnno, old: rootAnno, load: true };
           this.currentRootAnnotations[rootAnno._id] = rootAnno;
           continue;
         }
@@ -4059,23 +4073,30 @@ modules["editor/editor"] = class {
         if (rootAnno == null) {
           continue;
         }
-        let fields = Object.keys(rootAnno.new);
-        for (let f = 0; f < fields.length; f++) {
-          let field = fields[f];
-          if (objectEqual(render[field], rootAnno.old[field]) == true) {
-            render[field] = setField;
-            delete rootAnnotationChanges[render.from];
-            changedAnnotations.push(anno);
+        if (rootAnno.load == true) {
+          anno.render = { ...rootAnno.new, ...render };
+          delete rootAnnotationChanges[render.from];
+          changedAnnotations.push(anno);
+        } else {
+          let fields = Object.keys(rootAnno.new);
+          for (let f = 0; f < fields.length; f++) {
+            let field = fields[f];
+            if (objectEqual(render[field], rootAnno.old[field]) == true) {
+              render[field] = setField;
+              delete rootAnnotationChanges[render.from];
+              changedAnnotations.push(anno);
+            }
           }
         }
       }
       let newRootAnnotions = Object.keys(rootAnnotationChanges);
       for (let i = 0; i < newRootAnnotions.length; i++) {
         let addAnno = copyObject(this.currentRootAnnotations[newRootAnnotions[i]] ?? {});
-        addAnno._id = "root_" + addAnno._id;
+        /*addAnno._id = "root_" + addAnno._id;
         if (addAnno.parent != null) {
           addAnno.parent = "root_" + addAnno.parent;
-        }
+        }*/
+        addAnno.from = "root";
         let existingAnno = this.annotations[addAnno._id];
         if (existingAnno == null || existingAnno.render.sync < addAnno.sync) {
           this.annotations[addAnno._id] = { render: addAnno };

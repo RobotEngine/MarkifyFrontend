@@ -611,8 +611,8 @@ modules["dropdowns/lesson/breakout/group/file"] = class {
 
       let construct = {
         close: () => {
-          parent.parent.closePage("tertiary");
-          parent.parent.openPage("secondary", "breakout/group");
+          parent.parent.closePage("secondary");
+          parent.parent.openPage("primary", "breakout/group");
         },
 
         lesson: parent.parent.parent,
@@ -630,7 +630,7 @@ modules["dropdowns/lesson/breakout/group/file"] = class {
         id: parent.group._id,
         parameters: [("group=" + parent.group._id)]
       };
-      this.timeline = await parent.parent.openPage("tertiary", "editor/timeline", { construct });
+      this.timeline = await parent.parent.openPage("secondary", "editor/timeline", { construct });
     });
 
     let find = frame.querySelector('.brgFileAction[option="find"]');

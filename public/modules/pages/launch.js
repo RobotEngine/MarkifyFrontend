@@ -24,6 +24,7 @@ modules["pages/launch"] = class extends page {
         <button class="lOpen largeButton" openpage="app/dashboard"></button>
         <button class="lJoin largeButton" openpage="app/join">Join Lesson<img src="../images/tooltips/link.svg"></button>
       </div>
+      <div class="lHeaderPrice">Markify is <b>FREE</b> for educators and students.</div>
       <img class="lHeaderSplash" src="../images/launch/showcase.png">
     </div>
   </div>
@@ -193,6 +194,8 @@ modules["pages/launch"] = class extends page {
     ".lHeaderSlogan b": `margin: 0 4px; color: var(--theme); font-size: 45px; font-weight: 700`,
     ".lHeaderSummary": `max-width: 700px; margin-top: 24px; line-height: 26px`,
     ".lHeaderActions": `display: flex; flex-wrap: wrap; gap: 24px; margin-top: 40px; justify-content: center`,
+    ".lHeaderPrice": `margin-top: 24px; font-size: 16px`,
+    ".lHeaderPrice b": `color: var(--theme); font-weight: 700`,
 
     ".lOpen": `display: flex; flex-direction: row; bottom: 0px; align-items: center; --borderRadius: 20.25px; background: var(--theme); color: #fff;`,
     ".lOpen img[loginBtnBeforeImg]": `width: 24px; height: 24px; margin-right: 8px; object-fit: cover; border-radius: 16px; border: 4px solid var(--themeColor); background: #0084FF;`,
@@ -202,7 +205,7 @@ modules["pages/launch"] = class extends page {
     ".lJoin": `background: #fff; --borderRadius: 20.25px; color: var(--secondary)`,
     ".lJoin img": `width: 24px; height: 24px; margin-left: 8px`,
 
-    ".lHeaderSplash": `width: 100%; margin-top: 40px; max-width: 1000px; transform: perspective(75em) rotateX(20deg)`, //; transition: .5s
+    ".lHeaderSplash": `width: 100%; margin-top: 16px; max-width: 1000px; transform: perspective(75em) rotateX(20deg)`, //; transition: .5s
     ".lSection[history]": `width: 100%; height: 200vh`,
     ".lHistoryStuck": `position: sticky; display: flex; flex-direction: column; width: 100%; height: 100vh; top: 0px; align-items: center; overflow: hidden`,
     ".lTitle": `margin: 36px; font-size: 35px; line-height: 55px; text-align: left`,

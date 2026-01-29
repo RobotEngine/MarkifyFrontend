@@ -533,7 +533,9 @@ modules["editor/editor"] = class {
 
   selecting = {};
   realtimeSelect = {};
+
   minimumEditingAccess = 0;
+  defaultLocks = [];
 
   visibleChunks = [];
   defaultChunks = {};
@@ -2689,8 +2691,11 @@ modules["editor/editor"] = class {
       if (newAnnotation == true && data.hasOwnProperty("lock") == false) {
         //if (this.settings.editOthersWork != true) {
         data.lock = data.lock ?? [];
-        if (data.lock.includes("c") == false) {
-          data.lock.push("c"); // Add default collaborator lock
+        for (let i = 0; i < this.defaultLocks.length; i++) {
+          let lock = this.defaultLocks[i];
+          if (data.lock.includes(lock) == false) {
+            data.lock.push(lock); // Add default lock
+          }
         }
         //}
       }

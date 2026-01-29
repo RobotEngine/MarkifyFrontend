@@ -195,6 +195,16 @@ modules["breakout/group"] = class {
 
     this.group = extra.group ?? {};
 
+    let fetchAnnotations = sendRequest("GET", "lessons/join/annotations?group=" + this.group._id, null, { session: this.parent.parent.session }, { allowError: true });
+    
+    if ((this.group ?? {}).created == null) {
+      let [code, body] = await sendRequest("GET", "lessons/breakout/groups?group=" + this.group._id, null, { session: this.parent.parent.session }, { allowError: true });
+      if (code != 200) {
+        return;
+      }
+      this.group = body;
+    }
+
     if (extra.members == null) {
       this.members = {};
       this.memberCount = 0;
@@ -209,16 +219,6 @@ modules["breakout/group"] = class {
     } else {
       this.members = extra.members;
       this.memberCount = Object.keys(this.members).length;
-    }
-
-    let fetchAnnotations = sendRequest("GET", "lessons/join/annotations?group=" + this.group._id, null, { session: this.parent.parent.session }, { allowError: true });
-    
-    if ((this.group ?? {}).created == null) {
-      let [code, body] = await sendRequest("GET", "lessons/breakout/groups?group=" + this.group._id, null, { session: this.parent.parent.session }, { allowError: true });
-      if (code != 200) {
-        return;
-      }
-      this.group = body;
     }
 
     this.editor = await this.setFrame("editor/editor", contentHolder, {

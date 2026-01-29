@@ -4181,8 +4181,9 @@ modules["editor/toolbar"] = class {
         return this.selection.undo();
       }
 
-      if (document.activeElement != null) {
-        if (document.activeElement.closest('[contenteditable="true"]') != null || document.activeElement.closest("input") != null) {
+      let activeElement = document.activeElement;
+      if (activeElement != null) {
+        if (activeElement.closest("[contenteditable]") != null || activeElement.closest("input") != null) {
           return;
         }
       }

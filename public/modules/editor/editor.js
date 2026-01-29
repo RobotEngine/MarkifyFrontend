@@ -2428,7 +2428,6 @@ modules["editor/editor"] = class {
               continue;
             }
           }
-          console.log(mutt, anno.render);
           if (anno.render.from == "root") {
             if (mutt.from == null) {
               mutt.annoRefresh = anno;

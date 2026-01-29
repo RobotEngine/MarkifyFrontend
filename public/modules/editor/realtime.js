@@ -273,10 +273,10 @@ modules["editor/realtime"] = class {
       }
     });
 
-    let observeHolder = editor.page.querySelector(".eBottomSection[left]");
+    let observeHolder = editor.page.querySelector("div[observebottomsection]");
     if (observeHolder != null) {
-      let observeCursor = observeHolder.querySelector(".eObserveCursor");
-      let observeExit = editor.page.querySelector(".eObserveExit");
+      let observeCursor = observeHolder.querySelector("div[observecursor]");
+      let observeExit = editor.page.querySelector("button[observeexit]");
       this.setObserveFrame = (member) => {
         observeCursor.textContent = member.name;
         observeCursor.style.color = editor.utils.textColorBackground(member.color);

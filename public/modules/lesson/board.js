@@ -49,11 +49,11 @@ modules["lesson/board"] = class {
       </div>
       <div class="eBottomHolder">
         <div class="eBottom">
-          <div class="eBottomSection" left>
+          <div class="eBottomSection" observebottomsection left>
             <img class="eObserveIcon" src="../images/editor/members/observe.svg" />
             <div class="eObserveText">Observing</div>
-            <div class="eObserveCursor"></div>
-            <button class="eObserveExit buttonAnim border"></button>
+            <div class="eObserveCursor" observecursor></div>
+            <button class="eObserveExit buttonAnim border" observeexit></button>
           </div>
           <div class="eBottomSectionSpacer"></div>
           <div class="eBottomSection" right>

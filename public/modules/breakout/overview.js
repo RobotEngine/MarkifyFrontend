@@ -361,6 +361,9 @@ modules["breakout/overview"] = class {
     this.pipeline.subscribe("overviewLessonSet", "set", (body) => {
       if (body.hasOwnProperty("breakout") == true) {
         updateStatus();
+        if (body.breakout.hasOwnProperty("status") == true && this.setupModal != null) {
+          this.setupModal.close();
+        }
       }
       if (this.template != null && (body.id ?? body._id) == this.template._id) {
         objectUpdate(body, this.template);
@@ -437,9 +440,9 @@ modules["breakout/overview"] = class {
     this.pipeline.subscribe("pageMaximize", "maximize", updateSplitScreenButton);
     updateSplitScreenButton();
 
-    if (this.parent.parent.lesson.tool.includes("breakout") == false && ((this.parent.parent.lesson.breakout ?? {}).status ?? "ended") == "ended") { // Create New Lesson
+    if (this.parent.parent.lesson.tool.includes("breakout") == false && (this.parent.parent.lesson.breakout ?? {}).status == null) { // Create New Lesson
       frame.insertAdjacentHTML("beforeend", `<div class="boCreateBreakoutHolder"></div>`);
-      modalModule.open("modals/lesson/newbreakout", frame.querySelector(".boCreateBreakoutHolder"), null, "Start a Breakout", null, { parent: this });
+      this.setupModal = await modalModule.open("modals/lesson/newbreakout", frame.querySelector(".boCreateBreakoutHolder"), null, "Start a Breakout", null, { parent: this });
     }
   }
 }

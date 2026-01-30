@@ -1282,8 +1282,11 @@ modules["modals/lesson/newbreakout/review"] = class extends modules["breakout/ov
       if (params.length > 0) {
         path += "?" + params.join("&");
       }
-      await sendRequest("PUT", path, null, { session: this.parent.parent.session });
+      let [code] = await sendRequest("PUT", path, null, { session: this.parent.parent.session });
       createTeamsButton.removeAttribute("disabled");
+      if (code == 200 && this.modal != null) {
+        this.modal.close();
+      }
     });
 
     // Load SVGs:

@@ -298,7 +298,7 @@ modules["breakout/overview"] = class {
       startButton.style.removeProperty("display");
       pauseButton.style.removeProperty("display");
       manageButton.style.removeProperty("display");
-      switch (breakout.status ?? "disabled") {
+      switch (breakout.status ?? "ended") {
         case "disabled":
           startButton.textContent = "Start";
           startButton.style.display = "unset";
@@ -437,7 +437,7 @@ modules["breakout/overview"] = class {
     this.pipeline.subscribe("pageMaximize", "maximize", updateSplitScreenButton);
     updateSplitScreenButton();
 
-    if (this.parent.parent.lesson.tool.includes("breakout") == false) { // Create New Lesson
+    if (this.parent.parent.lesson.tool.includes("breakout") == false && ((this.parent.parent.lesson.breakout ?? {}).status ?? "ended") == "ended") { // Create New Lesson
       frame.insertAdjacentHTML("beforeend", `<div class="boCreateBreakoutHolder"></div>`);
       modalModule.open("modals/lesson/newbreakout", frame.querySelector(".boCreateBreakoutHolder"), null, "Start a Breakout", null, { parent: this });
     }

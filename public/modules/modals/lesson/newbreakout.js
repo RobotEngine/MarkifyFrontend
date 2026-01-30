@@ -1278,7 +1278,7 @@ modules["modals/lesson/newbreakout/review"] = class extends modules["breakout/ov
       if (folder != null) {
         params.push("folder=" + folder);
       }
-      let path = "lessons/breakout/enable";
+      let path = "lessons/breakout/create";
       if (params.length > 0) {
         path += "?" + params.join("&");
       }

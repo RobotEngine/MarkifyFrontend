@@ -292,6 +292,10 @@ modules["breakout/overview"] = class {
       updateTopBar();
     });
 
+    fileButton.addEventListener("click", () => {
+      dropdownModule.open(fileButton, "dropdowns/lesson/breakout/overview/file", { parent: this });
+    });
+
     let updateStatus = () => {
       let breakout = this.parent.parent.lesson.breakout ?? {};
 
@@ -444,5 +448,62 @@ modules["breakout/overview"] = class {
       frame.insertAdjacentHTML("beforeend", `<div class="boCreateBreakoutHolder"></div>`);
       this.setupModal = await modalModule.open("modals/lesson/newbreakout", frame.querySelector(".boCreateBreakoutHolder"), null, "Start a Breakout", null, { parent: this });
     }
+  }
+}
+
+modules["dropdowns/lesson/breakout/overview/file"] = class {
+  html = `
+  <button class="broFileAction" option="dashboard" title="Return to the Dashboard" style="--themeColor: var(--secondary)"><div></div>Dashboard</button>
+  <div class="broFileLine"></div>
+  <button class="broFileAction" option="copy" title="Create a copy of the lesson."><div></div>Create Copy</button>
+  <button class="broFileAction" option="moveto" title="Move this lesson into a folder." dropdowntitle="Move To Folder"><div></div>Move To Folder</button>
+  <button class="broFileAction" option="deletelesson" title="Remove this lesson from your dashboard." style="--themeColor: var(--error)"><div></div>Delete Lesson</button>
+  `;
+  css = {
+    ".broFileAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
+    ".broFileAction:not(:last-child)": `margin-bottom: 4px`,
+    ".broFileAction div": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: var(--pageColor); border-radius: 4px`,
+    ".broFileAction div svg": `width: 100%; height: 100%`,
+    ".broFileAction:hover": `background: var(--themeColor); color: #fff`,
+    ".broFileLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`
+  };
+  js = async function (frame, extra) {
+    let parent = extra.parent;
+
+    let dashboardButton = frame.querySelector('.broFileAction[option="dashboard"]');
+    dashboardButton.addEventListener("click", async () => {
+      setFrame("pages/app/dashboard");
+    });
+    let copyButton = frame.querySelector('.broFileAction[option="copy"]');
+    copyButton.addEventListener("click", async () => {
+      if (userID == null) {
+        promptLogin();
+        return;
+      }
+      copyButton.setAttribute("disabled", "");
+      let copyAlert = await alertModule.open("info", "<b>Creating Copy</b><div>Creating a copy of this lesson.", { time: "never" });
+      let [code, body] = await sendRequest("POST", "lessons/copy", null, { session: parent.parent.parent.session });
+      copyButton.removeAttribute("disabled");
+      alertModule.close(copyAlert);
+      if (code == 200) {
+        dropdownModule.close();
+        setFrame("pages/app/lesson", null, { params: { lesson: body.lesson } });
+      }
+    });
+
+    let fileButton = frame.querySelector('.broFileAction[option="moveto"]');
+    fileButton.addEventListener("click", () => {
+      dropdownModule.open(fileButton, "dropdowns/moveto", { lessonID: parent.parent.id, folderID: parent.parent.folder });
+    });
+
+    let deleteLessonButton = frame.querySelector('.broFileAction[option="deletelesson"]');
+    deleteLessonButton.addEventListener("click", () => {
+      dropdownModule.open(deleteLessonButton, "dropdowns/remove", { type: "deletelesson", lessonID: parent.parent.parent.id, isOwner: true, session: parent.parent.parent.session });
+    });
+
+    setSVG(dashboardButton.querySelector("div"), "../images/tooltips/back.svg");
+    setSVG(copyButton.querySelector("div"), "../images/editor/file/copy.svg");
+    setSVG(fileButton.querySelector("div"), "../images/editor/file/moveto.svg");
+    setSVG(deleteLessonButton.querySelector("div"), "../images/editor/file/delete.svg");
   }
 }

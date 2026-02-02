@@ -191,7 +191,7 @@ modules["editor/toolbar"] = class {
     '.eSelect[hideheighthandles] .eSelectHandle[heighthandle]': `opacity: 0; pointer-events: none`,
     '.eSelect[hidewidthhandles] .eSelectHandle[widthhandle]': `opacity: 0; pointer-events: none`,
     '.eSelect[hidenonessential] .eSelectHandle:not([essential])': `opacity: 0; pointer-events: none`,
-    ".eSelectHandle:not(svg), .eSelectHandle > *": `pointer-events: all`,
+    ".eSelectHandle:not(svg), .eSelectHandle:not([duplicate]) > *": `pointer-events: all`,
 
     ".eSelectSnap": `position: absolute; left: 0px; top: 0px; z-index: 102; background: var(--secondary); border-radius: 1px; pointer-events: none`,
     ".eSelectSnap div[marker]": `position: absolute; z-index: 102; background: var(--secondary); border-radius: 1px; pointer-events: none`,

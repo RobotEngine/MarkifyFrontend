@@ -160,22 +160,22 @@ modules["editor/toolbar"] = class {
 
     ".eSelect": `position: absolute; left: 0px; top: 0px; opacity: 0; z-index: 101; border-radius: 9px; transition: all .25s, opacity .15s; pointer-events: none`,
     ".eAnnotation[selected] > *": `pointer-events: none`,
-    ".eSelectHandle": `position: absolute; transition: .1s; pointer-events: all; --scale: 1`,
+    ".eSelectHandle": `position: absolute; transition: .1s; --scale: 1`,
     '.eSelectHandle:hover': `--scale: 1.3`,
     '.eSelectHandle:active': `--scale: 1.1 !important`,
     '.eSelectHandle[handle="movetop"]': `width: 100%; height: 10px; top: -10px`,
     '.eSelectHandle[handle="movebottom"]': `width: 100%; height: 10px; bottom: -10px`,
     '.eSelectHandle[handle="moveleft"]': `width: 10px; height: 100%; left: -10px`,
     '.eSelectHandle[handle="moveright"]': `width: 10px; height: 100%; right: -10px`,
-    '.eSelectHandle[handle="topleft"]': `left: -10px; top: -10px`,
-    '.eSelectHandle[handle="topright"]': `right: -10px; top: -10px`,
-    '.eSelectHandle[handle="bottomleft"]': `left: -10px; bottom: -10px`,
-    '.eSelectHandle[handle="bottomright"]': `right: -10px; bottom: -10px`,
+    '.eSelectHandle[handle="topleft"]': `left: -14px; top: -14px`,
+    '.eSelectHandle[handle="topright"]': `right: -14px; top: -14px`,
+    '.eSelectHandle[handle="bottomleft"]': `left: -14px; bottom: -14px`,
+    '.eSelectHandle[handle="bottomright"]': `right: -14px; bottom: -14px`,
     '.eSelectHandle[handle="left"]': `left: -14px; top: 50%; transform: translateY(-50%)`,
     '.eSelectHandle[handle="right"]': `right: -14px; top: 50%; transform: translateY(-50%)`,
     '.eSelectHandle[handle="top"]': `left: 50%; top: -14px; transform: translateX(-50%)`,
     '.eSelectHandle[handle="bottom"]': `left: 50%; bottom: -14px; transform: translateX(-50%)`,
-    '.eSelectHandle[handle="rotate"]': `left: -28px; bottom: -28px`,
+    '.eSelectHandle[handle="rotate"]': `left: -30px; bottom: -30px`,
     ".eSelectHandle[duplicate]": `opacity: 0; pointer-events: none`,
     '.eSelectHandle[handle="duplicateleft"]': `left: -50px; top: 50%; transform: translateY(-50%) scale(var(--scale)); cursor: pointer`,
     '.eSelectHandle[handle="duplicateright"]': `right: -50px; top: 50%; transform: translateY(-50%) scale(var(--scale)); cursor: pointer`,
@@ -191,6 +191,7 @@ modules["editor/toolbar"] = class {
     '.eSelect[hideheighthandles] .eSelectHandle[heighthandle]': `opacity: 0; pointer-events: none`,
     '.eSelect[hidewidthhandles] .eSelectHandle[widthhandle]': `opacity: 0; pointer-events: none`,
     '.eSelect[hidenonessential] .eSelectHandle:not([essential])': `opacity: 0; pointer-events: none`,
+    ".eSelectHandle:not(svg), .eSelectHandle > *": `pointer-events: all`,
 
     ".eSelectSnap": `position: absolute; left: 0px; top: 0px; z-index: 102; background: var(--secondary); border-radius: 1px; pointer-events: none`,
     ".eSelectSnap div[marker]": `position: absolute; z-index: 102; background: var(--secondary); border-radius: 1px; pointer-events: none`,
@@ -1552,15 +1553,15 @@ modules["editor/toolbar"] = class {
             <div class="eSelectHandle" handle="movebottom" move></div>
             <div class="eSelectHandle" handle="moveleft" move></div>
             <div class="eSelectHandle" handle="moveright" move></div>
-            <svg class="eSelectHandle" handle="topleft" essential width="16" height="16" rotation="180" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M2 14V14C2 7.37258 7.37258 2 14 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-            <svg class="eSelectHandle" handle="topright" width="16" height="16" rotation="270" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M14 14V14C14 7.37258 8.62742 2 2 2V2" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-            <svg class="eSelectHandle" handle="bottomleft" width="16" height="16" rotation="90" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M2 2V2C2 8.62742 7.37258 14 14 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-            <svg class="eSelectHandle" handle="bottomright" essential width="16" height="16" rotation="0" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M14 2V2C14 8.62742 8.62742 14 2 14V14" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-            <svg class="eSelectHandle" handle="left" widthhandle width="12" height="28" rotation="135" viewBox="0 0 12 28" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M6 6V22" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-            <svg class="eSelectHandle" handle="right" widthhandle width="12" height="28" rotation="315" viewBox="0 0 12 28" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M6 6V22" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-            <svg class="eSelectHandle" handle="top" heighthandle width="28" height="12" rotation="225" viewBox="0 0 28 12" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M22 6H6" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-            <svg class="eSelectHandle" handle="bottom" heighthandle width="28" height="12" rotation="45" viewBox="0 0 28 12" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M22 6H6" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
-            <svg class="eSelectHandle" handle="rotate" width="26" height="26" viewBox="0 0 31 31" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M3.46244 9.45089C2.67045 10.2429 1.38612 10.2429 0.594123 9.45089C-0.197875 8.65884 -0.197875 7.37466 0.594123 6.58261L3.46244 9.45089ZM9.04395 3.86918L3.46244 9.45089L0.594123 6.58261L6.17562 1.0009L9.04395 3.86918Z" fill="var(--theme)"/> <path d="M14.6257 6.58261C15.4177 7.37466 15.4177 8.65884 14.6257 9.45089C13.8337 10.2429 12.5494 10.2429 11.7574 9.45089L14.6257 6.58261ZM9.04373 1.0009L14.6257 6.58261L11.7574 9.45089L6.17541 3.86918L9.04373 1.0009Z" fill="var(--theme)"/> <path d="M21.3783 19.0707C20.5863 18.2786 20.5863 16.9945 21.3783 16.2024C22.1703 15.4104 23.4546 15.4104 24.2466 16.2024L21.3783 19.0707ZM26.9603 24.6523L21.3783 19.0707L24.2466 16.2024L29.8281 21.7841L26.9603 24.6523Z" fill="var(--theme)"/> <path d="M24.2466 30.2341C23.4546 31.0261 22.1703 31.0261 21.3783 30.2341C20.5863 29.442 20.5863 28.1579 21.3783 27.3658L24.2466 30.2341ZM29.8281 24.6524L24.2466 30.2341L21.3783 27.3658L26.9603 21.7841L29.8281 24.6524Z" fill="var(--theme)"/> <path d="M7.63804 2.43607V10.0101C7.63804 17.2905 13.5396 23.1924 20.8203 23.1924H28.394" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="topleft" essential width="24" height="24" rotation="180" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M6 18C6 11.3726 11.3726 6 18 6" stroke-width="12" stroke-linecap="round"/> <path d="M6 18C6 11.3726 11.3726 6 18 6" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="topright" width="24" height="24" rotation="270" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M18 18C18 11.3726 12.6274 6 6 6" stroke-width="12" stroke-linecap="round"/> <path d="M18 18C18 11.3726 12.6274 6 6 6" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="bottomleft" width="24" height="24" rotation="90" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M6 6C6 12.6274 11.3726 18 18 18" stroke-width="12" stroke-linecap="round"/> <path d="M6 6C6 12.6274 11.3726 18 18 18" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="bottomright" essential width="24" height="24" rotation="0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M18 6C18 12.6274 12.6274 18 6 18" stroke-width="12" stroke-linecap="round"/> <path d="M18 6C18 12.6274 12.6274 18 6 18" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="left" widthhandle width="12" height="28" rotation="135" viewBox="0 0 12 28" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M6 6V22" stroke-width="12" stroke-linecap="round"/> <path d="M6 6V22" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="right" widthhandle width="12" height="28" rotation="315" viewBox="0 0 12 28" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M6 6V22" stroke-width="12" stroke-linecap="round"/> <path d="M6 6V22" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="top" heighthandle width="28" height="12" rotation="225" viewBox="0 0 28 12" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M22 6H6" stroke-width="12" stroke-linecap="round"/> <path d="M22 6H6" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="bottom" heighthandle width="28" height="12" rotation="45" viewBox="0 0 28 12" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M22 6H6" stroke-width="12" stroke-linecap="round"/> <path d="M22 6H6" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
+            <svg class="eSelectHandle" handle="rotate" width="30" height="30" viewBox="0 0 39 39" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M8.87695 14.4287C7.3039 16.0019 4.75274 16.0019 3.17969 14.4287C1.6067 12.8556 1.6067 10.3045 3.17969 8.73145L8.76172 3.15039C9.13678 2.77535 9.64538 2.56446 10.1758 2.56445C10.7062 2.56449 11.2148 2.77536 11.5898 3.15039L14.458 6.01855C15.2391 6.79959 15.239 8.06562 14.458 8.84668L8.87695 14.4287Z" stroke-width="4" stroke-linejoin="round"/> <path d="M20.04 14.4287C18.467 16.0018 15.9158 16.0018 14.3428 14.4287L8.76172 8.84668C8.38663 8.47161 8.17579 7.96306 8.17578 7.43262C8.17579 6.90233 8.38586 6.39359 8.76074 6.01855L11.6299 3.15039C12.4109 2.36943 13.677 2.3694 14.458 3.15039L20.04 8.73145C21.613 10.3045 21.613 12.8556 20.04 14.4287Z" stroke-width="4" stroke-linejoin="round"/> <path d="M30.96 30.2158C30.4297 30.2157 29.9209 30.0049 29.5459 29.6299L23.9639 24.0488V24.0479C22.3912 22.4747 22.391 19.9245 23.9639 18.3516C25.5369 16.7784 28.0881 16.7784 29.6611 18.3516L35.2422 23.9336C36.0232 24.7146 36.0231 25.9807 35.2422 26.7617L32.375 29.6299C31.9999 30.005 31.4904 30.2158 30.96 30.2158Z" stroke-width="4" stroke-linejoin="round"/> <path d="M29.6611 35.2119C28.0881 36.7851 25.5369 36.7851 23.9639 35.2119C22.391 33.6389 22.3912 31.0887 23.9639 29.5156V29.5146L29.5459 23.9336C29.9209 23.5586 30.4297 23.3477 30.96 23.3477C31.4904 23.3477 31.9999 23.5585 32.375 23.9336L35.2422 26.8018C36.0231 27.5828 36.0232 28.8489 35.2422 29.6299L29.6611 35.2119Z" stroke-width="4" stroke-linejoin="round"/> <path d="M11.638 5.99955V13.5736C11.638 20.854 17.5396 26.7559 24.8203 26.7559H32.394" stroke-width="12" stroke-linecap="round"/> <path d="M7.46244 13.0144C6.67045 13.8064 5.38612 13.8064 4.59412 13.0144C3.80213 12.2223 3.80213 10.9381 4.59412 10.1461L7.46244 13.0144ZM13.0439 7.43266L7.46244 13.0144L4.59412 10.1461L10.1756 4.56438L13.0439 7.43266Z" fill="var(--theme)"/> <path d="M18.6257 10.1461C19.4177 10.9381 19.4177 12.2223 18.6257 13.0144C17.8337 13.8064 16.5494 13.8064 15.7574 13.0144L18.6257 10.1461ZM13.0437 4.56438L18.6257 10.1461L15.7574 13.0144L10.1754 7.43266L13.0437 4.56438Z" fill="var(--theme)"/> <path d="M25.3783 22.6342C24.5863 21.8421 24.5863 20.5579 25.3783 19.7659C26.1703 18.9738 27.4546 18.9738 28.2466 19.7659L25.3783 22.6342ZM30.9603 28.2158L25.3783 22.6342L28.2466 19.7659L33.8281 25.3476L30.9603 28.2158Z" fill="var(--theme)"/> <path d="M28.2466 33.7976C27.4546 34.5896 26.1703 34.5896 25.3783 33.7976C24.5863 33.0055 24.5863 31.7214 25.3783 30.9293L28.2466 33.7976ZM33.8281 28.2158L28.2466 33.7976L25.3783 30.9293L30.9603 25.3476L33.8281 28.2158Z" fill="var(--theme)"/> <path d="M11.638 5.99955V13.5736C11.638 20.854 17.5396 26.7559 24.8203 26.7559H32.394" stroke="var(--theme)" stroke-width="4" stroke-linecap="round"/> </svg>
             <svg class="eSelectHandle" handle="duplicateleft" duplicate width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10.5" fill="var(--hover)" stroke="var(--theme)" stroke-width="3"/> <path d="M12 16.5L12 7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> <path d="M16.5 12H7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> </svg>
             <svg class="eSelectHandle" handle="duplicateright" duplicate width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10.5" fill="var(--hover)" stroke="var(--theme)" stroke-width="3"/> <path d="M12 16.5L12 7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> <path d="M16.5 12H7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> </svg>
             <svg class="eSelectHandle" handle="duplicatetop" duplicate width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="12" cy="12" r="10.5" fill="var(--hover)" stroke="var(--theme)" stroke-width="3"/> <path d="M12 16.5L12 7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> <path d="M16.5 12H7.5" stroke="var(--theme)" stroke-width="3" stroke-linecap="round"/> </svg>
@@ -4091,20 +4092,22 @@ modules["editor/toolbar"] = class {
       this.tooltip.set(event);
       this.pushToolEvent("clickMove", event);
 
-      if (this.selection.action == null && (this.currentToolModule.MOUSE == null || this.currentToolModule.MOUSE.override != true)) {
-        let handle = event.target.closest(".eSelectHandle");
-        if (handle != null) {
-          if (handle.hasAttribute("move") == true) {
-            this.updateMouse({ type: "svg", url: "../images/editor/cursors/move.svg", translate: { x: 22, y: 22 } });
-          } else if (handle.hasAttribute("rotation") == true) {
-            this.updateMouse({ type: "svg", url: "../images/editor/cursors/resize.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation + parseInt(handle.getAttribute("rotation")) });
-          } else if (handle.getAttribute("handle") == "rotate") {
-            this.updateMouse({ type: "svg", url: "../images/editor/cursors/rotate.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation });
+      if (this.currentToolModule.MOUSE == null || this.currentToolModule.MOUSE.override != true) {
+        if (this.selection.action == null) {
+          let handle = event.target.closest(".eSelectHandle");
+          if (handle != null) {
+            if (handle.hasAttribute("move") == true) {
+              this.updateMouse({ type: "svg", url: "../images/editor/cursors/move.svg", translate: { x: 22, y: 22 } });
+            } else if (handle.hasAttribute("rotation") == true) {
+              this.updateMouse({ type: "svg", url: "../images/editor/cursors/resize.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation + parseInt(handle.getAttribute("rotation")) });
+            } else if (handle.getAttribute("handle") == "rotate") {
+              this.updateMouse({ type: "svg", url: "../images/editor/cursors/rotate.svg", translate: { x: 22, y: 22 }, rotate: this.selection.rotation });
+            } else {
+              this.updateMouse(this.currentToolModule.MOUSE);
+            }
           } else {
             this.updateMouse(this.currentToolModule.MOUSE);
           }
-        } else {
-          this.updateMouse(this.currentToolModule.MOUSE);
         }
       }
     }, { sort: 1 });

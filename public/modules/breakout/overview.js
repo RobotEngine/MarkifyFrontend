@@ -394,6 +394,45 @@ modules["breakout/overview"] = class {
       }
     }, { sort: 1 });
 
+    // Handle Tile Masonry Layout:
+    let minTileWidth = 200;
+    let maxTileWidth = 400;
+    let tilePadding = 16;
+    let columnCount = 0;
+    let columnWidth = 0;
+    let columns = {};
+    let addTileToColumn = () => {
+
+    }
+    let setupColumns = () => {
+      // Determine the number and width of columns:
+      let usableWidth = frame.clientWidth - (tilePadding * 2);
+
+      let maxPossibleColumns = Math.floor(
+        (usableWidth + tilePadding) / (minTileWidth + tilePadding)
+      );
+      let newColumnCount = Math.max(1, maxPossibleColumns);
+
+      while (newColumnCount > 1) {
+        let totalInterPadding = tilePadding * (newColumnCount - 1);
+        columnWidth = (usableWidth - totalInterPadding) / newColumnCount;
+        if (columnWidth <= maxTileWidth) break;
+        newColumnCount--;
+      }
+
+      columnWidth = Math.min(
+        maxTileWidth,
+        Math.max(minTileWidth, columnWidth)
+      );
+
+      if (columnCount != newColumnCount) {
+        // Reorganize tiles to new columns:
+        console.log(newColumnCount);
+        columnCount = newColumnCount;
+      }
+    }
+    this.pipeline.subscribe("tilesResize", "resize", setupColumns);
+    setupColumns();
 
     // Load Images:
     setSVG(topScrollLeft, "../images/editor/top/leftarrow.svg");

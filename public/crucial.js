@@ -22,7 +22,7 @@ const configurations = {
 };
 
 const configuration = "public";
-const version = "1.6.47"; // Big Update . Small Feature Release . Bug Fix
+const version = "1.6.48"; // Big Update . Small Feature Release . Bug Fix
 const domain = "markifyapp.com";
 
 let config = configurations[configuration];
@@ -462,7 +462,7 @@ let setFrame = async (path, frame, extra, parent) => {
     loading.style.pointerEvents = "none";
     loading.style.opacity = 0;
     (async () => {
-      await sleep(300);
+      await sleep(400);
       if (loading != null) {
         loading.remove();
       }

@@ -29,11 +29,13 @@ modules["breakout/overview"] = class {
     <div class="broOpenBoard" title="Open Markify Board"><button></button></div>
   </div>
   <div class="broGroupHolder customScroll">
+    <div class="broGroups"></div>
     <div class="broBackground"></div>
   </div>`;
   css = {
     ".broInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; user-select: none; overflow-y: scroll; z-index: 2`,
     ".broGroupHolder": `position: relative; width: 100%; height: 100%; background: var(--pageColor); overflow-y: scroll; z-index: 1; transition: .5s`,
+    ".broGroups": `--interfacePadding: 58px; position: relative; box-sizing: border-box; width: 100%; padding: 8px 16px; margin: var(--interfacePadding) 0; contain: strict; z-index: 2`,
     ".broBackground": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; opacity: .075; background-image: url("../images/editor/backdropblack.svg"); background-size: 25px 25px; background-position: center 50px; z-index: 1; pointer-events: none; contain: strict`,
     ".broCreateBreakoutHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden; z-index: 3; pointer-events: none`,
 
@@ -198,6 +200,9 @@ modules["breakout/overview"] = class {
 
     let topScrollLeft = topHolder.querySelector(".broTopScroll[left]");
     let topScrollRight = topHolder.querySelector(".broTopScroll[right]");
+
+    let groupHolder = frame.querySelector(".broGroupHolder");
+    let groups = groupHolder.querySelector(".broGroups");
 
     let openBoardHolder = frame.querySelector(".broOpenBoard");
     let openBoard = openBoardHolder.querySelector("button");
@@ -395,44 +400,102 @@ modules["breakout/overview"] = class {
     }, { sort: 1 });
 
     // Handle Tile Masonry Layout:
-    let minTileWidth = 200;
-    let maxTileWidth = 400;
-    let tilePadding = 16;
-    let columnCount = 0;
-    let columnWidth = 0;
-    let columns = {};
-    let addTileToColumn = () => {
-
+    this.layout = {};
+    this.layout.minTileWidth = 250;
+    this.layout.maxTileWidth = 400;
+    this.layout.tilePadding = 16;
+    this.layout.columnCount = 0;
+    this.layout.columnWidth = 0;
+    this.layout.tileBaseHeight = 16; // Base padding around tile
+    this.layout.tileHeightRatio = 3/4; // Ratio for getting height from width of thumbnail
+    this.layout.tileMemberHeight = 36; // Height of each member list item
+    this.layout.tileMemberGap = 6; // Gap between each member list item
+    this.layout.columns = {};
+    this.layout.tiles = {};
+    this.layout.getTileHeight = (tile) => {
+      let memberCount = tile.members ?? 0;
+      return this.layout.tileBaseHeight
+      + ((this.layout.columnWidth - this.layout.tileBaseHeight) * this.layout.tileHeightRatio)
+      + (this.layout.tileMemberHeight * memberCount)
+      + Math.max(this.layout.tileMemberGap * (memberCount - 1), 0);
     }
-    let setupColumns = () => {
+    this.layout.addTileToColumn = (tile) => {
+      if (tile == null) {
+        return;
+      }
+
+      let column;
+      let minHeight;
+      for (let i = 0; i < this.layout.columnCount; i++) {
+        let checkColumn = this.layout.columns[i + 1];
+        if (checkColumn != null && checkColumn.height < (minHeight ?? (checkColumn.height + 1))) {
+          column = checkColumn;
+          minHeight = column.height;
+        }
+      }
+
+      column.tiles.push(tile);
+      column.height += this.layout.getTileHeight(tile);
+    }
+    this.layout.setupColumns = () => {
       // Determine the number and width of columns:
-      let usableWidth = frame.clientWidth - (tilePadding * 2);
+      this.containerWidth = groups.clientWidth; //frame.clientWidth - (tilePadding * 2);
 
       let maxPossibleColumns = Math.floor(
-        (usableWidth + tilePadding) / (minTileWidth + tilePadding)
+        (this.containerWidth + this.layout.tilePadding) / (this.layout.minTileWidth + this.layout.tilePadding)
       );
       let newColumnCount = Math.max(1, maxPossibleColumns);
 
       while (newColumnCount > 1) {
-        let totalInterPadding = tilePadding * (newColumnCount - 1);
-        columnWidth = (usableWidth - totalInterPadding) / newColumnCount;
-        if (columnWidth <= maxTileWidth) break;
+        let totalInterPadding = this.layout.tilePadding * (newColumnCount - 1);
+        this.layout.columnWidth = (this.containerWidth - totalInterPadding) / newColumnCount;
+        if (this.layout.columnWidth <= this.layout.maxTileWidth) break;
         newColumnCount--;
       }
 
-      columnWidth = Math.min(
-        maxTileWidth,
-        Math.max(minTileWidth, columnWidth)
+      this.layout.columnWidth = Math.min(
+        this.layout.maxTileWidth,
+        Math.max(this.layout.minTileWidth, this.layout.columnWidth)
       );
 
-      if (columnCount != newColumnCount) {
-        // Reorganize tiles to new columns:
-        console.log(newColumnCount);
-        columnCount = newColumnCount;
+      // Reorganize tiles to new columns:
+      while (this.layout.columnCount != newColumnCount) {
+        if (this.layout.columnCount < newColumnCount) { // Add a new column:
+          let newColumn = {
+            number: this.layout.columnCount + 1,
+            height: 0,
+            tiles: []
+          };
+          this.layout.columns[newColumn.number] = newColumn;
+
+          this.layout.columnCount = Math.ceil(this.layout.columnCount + 1);
+        } else { // Remove a column:
+          let column = this.layout.columns[this.layout.columnCount];
+          if (column != null) {
+            delete this.layout.columns[this.layout.columnCount];
+          }
+
+          this.layout.columnCount = Math.floor(this.layout.columnCount - 1);
+        }
       }
     }
-    this.pipeline.subscribe("tilesResize", "resize", setupColumns);
-    setupColumns();
+    this.pipeline.subscribe("tilesResize", "resize", this.layout.setupColumns);
+    this.layout.setupColumns();
+    this.layout.addTile = (data) => {
+      let tileInfo = { render: data, members: Math.round(Math.random() * (5 - 1) + 1) };
+      this.layout.tiles[data._id] = tileInfo;
+      this.layout.addTileToColumn(tileInfo);
+    }
+    for (let i = 0; i < 12; i++) { this.layout.addTile({ _id: i }); } // Just as a test!
+    console.log(this.layout.columns)
+    this.layout.runUpdateCycle = () => {
+
+    }
+    this.layout.updateRender = () => {
+
+    }
+    this.pipeline.subscribe("updateTileRender", "bounds_change", this.layout.updateRender, { sort: 1 });
+    
 
     // Load Images:
     setSVG(topScrollLeft, "../images/editor/top/leftarrow.svg");

@@ -1285,7 +1285,13 @@ modules["modals/lesson/newbreakout/review"] = class extends modules["breakout/ov
       let [code] = await sendRequest("PUT", path, null, { session: this.parent.parent.session });
       createTeamsButton.removeAttribute("disabled");
       if (code == 200 && this.modal != null) {
+        if (this.parent.parent.parent.lesson.tool.includes("breakout") == false) {
+          this.parent.parent.parent.lesson.tool.push("breakout");
+        }
+        modifyParams("lesson", this.parent.parent.parent.id);
         this.modal.close();
+        modifyParams("folder");
+        modifyParams("type");
       }
     });
 

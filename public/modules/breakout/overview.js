@@ -34,9 +34,9 @@ modules["breakout/overview"] = class {
   </div>`;
   css = {
     ".broInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; user-select: none; overflow-y: scroll; z-index: 2`,
-    ".broGroupHolder": `position: relative; width: 100%; height: 100%; background: var(--pageColor); overflow-y: scroll; z-index: 1; transition: .5s`,
-    ".broGroups": `--interfacePadding: 58px; position: relative; box-sizing: border-box; width: 100%; padding: 8px 16px; margin: var(--interfacePadding) 0; contain: strict; z-index: 2`,
-    ".broBackground": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; opacity: .075; background-image: url("../images/editor/backdropblack.svg"); background-size: 25px 25px; background-position: center 50px; z-index: 1; pointer-events: none; contain: strict`,
+    ".broGroupHolder": `--interfacePadding: 58px; position: relative; display: flex; width: 100%; height: 100%; background: var(--pageColor); overflow-y: scroll; z-index: 1; justify-content: center; transition: .5s`,
+    ".broGroups": `position: relative; box-sizing: border-box; width: var(--totalWidth); height: var(--totalHeight); margin: calc(var(--interfacePadding) + 8px) 0; contain: strict; z-index: 2`,
+    ".broBackground": `position: absolute; width: 100%; height: 100%; min-height: calc(var(--totalHeight) + (var(--interfacePadding) * 2)); left: 0px; top: 0px; opacity: .075; background-image: url("../images/editor/backdropblack.svg"); background-size: 25px 25px; background-position: center 50px; z-index: 1; pointer-events: none; contain: strict`,
     ".broCreateBreakoutHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden; z-index: 3; pointer-events: none`,
 
     ".broTopHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
@@ -412,6 +412,7 @@ modules["breakout/overview"] = class {
     this.layout.tileMemberGap = 6; // Gap between each member list item
     this.layout.columns = {};
     this.layout.tiles = {};
+    this.layout.tileLayout = [];
     this.layout.getTileHeight = (tile) => {
       let memberCount = tile.members ?? 0;
       return this.layout.tileBaseHeight
@@ -419,27 +420,95 @@ modules["breakout/overview"] = class {
       + (this.layout.tileMemberHeight * memberCount)
       + Math.max(this.layout.tileMemberGap * (memberCount - 1), 0);
     }
-    this.layout.addTileToColumn = (tile) => {
-      if (tile == null) {
-        return;
+    this.layout.shortestColumn = (tile = {}) => {
+      if (tile.section == null) {
+        return [null, null];
       }
 
       let column;
+      let section;
       let minHeight;
       for (let i = 0; i < this.layout.columnCount; i++) {
-        let checkColumn = this.layout.columns[i + 1];
-        if (checkColumn != null && checkColumn.height < (minHeight ?? (checkColumn.height + 1))) {
+        let checkColumn = this.layout.columns[i + 1] ?? {};
+        if (checkColumn.sections == null) {
+          continue;
+        }
+        let checkSection = checkColumn.sections[tile.section];
+        if (checkSection == null) {
+          checkColumn.sections[tile.section] = { height: 0 };
+          checkSection = checkColumn.sections[tile.section];
+        }
+        if (checkSection.height < (minHeight ?? (checkSection.height + 1))) {
           column = checkColumn;
-          minHeight = column.height;
+          section = checkSection;
+          minHeight = checkSection.height;
         }
       }
 
-      column.tiles.push(tile);
-      column.height += this.layout.getTileHeight(tile);
+      return [column, section];
+    }
+    this.layout.runUpdateCycle = () => {
+
+    }
+    this.layout.refreshTotalColumnHeight = () => {
+      let longestColumn = 0;
+      for (let i = 0; i < this.layout.columnCount; i++) {
+        let checkColumn = this.layout.columns[i + 1] ?? {};
+        if (checkColumn.sections == null) {
+          continue;
+        }
+        let totalHeight = 0;
+        let sectionKeys = Object.keys(checkColumn.sections);
+        for (let s = 0; s < sectionKeys.length; s++) {
+          let section = checkColumn.sections[sectionKeys[s]] ?? {};
+          if (section.height != null) {
+            totalHeight += section.height;
+          }
+        }
+        if (totalHeight > longestColumn) {
+          longestColumn = totalHeight;
+        }
+      }
+      groupHolder.style.setProperty("--totalHeight", longestColumn + "px");
+    }
+    this.layout.refreshTileSpots = (offset = 0) => {
+      for (let i = offset; i < this.layout.tileLayout.length; i++) {
+        let tileID = this.layout.tileLayout[i];
+        let tileData = this.layout.tiles[tileID];
+        if (tileData == null) {
+          this.layout.tileLayout.splice(i, 1);
+          i--;
+          continue;
+        }
+        if (tileData.height == null) {
+          continue;
+        }
+        let column = this.layout.columns[tileData.column] ?? {};
+        if (column.sections != null) {
+          let section = column.sections[tileData.section] ?? {};
+          if (section.height != null) {
+            section.height -= tileData.height;
+          }
+        }
+      }
+      for (let i = offset; i < this.layout.tileLayout.length; i++) {
+        let tileID = this.layout.tileLayout[i];
+        let tileData = this.layout.tiles[tileID];
+        let [column, section] = this.layout.shortestColumn(tileData);
+        if (column == null) {
+          continue;
+        }
+        tileData.column = column.number;
+        tileData.height = this.layout.getTileHeight(tileData);
+        section.height += tileData.height;
+      }
+
+      this.layout.runUpdateCycle();
+      this.layout.refreshTotalColumnHeight();
     }
     this.layout.setupColumns = () => {
       // Determine the number and width of columns:
-      this.containerWidth = groups.clientWidth; //frame.clientWidth - (tilePadding * 2);
+      this.containerWidth = groupHolder.clientWidth - (this.layout.tilePadding * 2);
 
       let maxPossibleColumns = Math.floor(
         (this.containerWidth + this.layout.tilePadding) / (this.layout.minTileWidth + this.layout.tilePadding)
@@ -463,8 +532,7 @@ modules["breakout/overview"] = class {
         if (this.layout.columnCount < newColumnCount) { // Add a new column:
           let newColumn = {
             number: this.layout.columnCount + 1,
-            height: 0,
-            tiles: []
+            sections: {}
           };
           this.layout.columns[newColumn.number] = newColumn;
 
@@ -478,22 +546,28 @@ modules["breakout/overview"] = class {
           this.layout.columnCount = Math.floor(this.layout.columnCount - 1);
         }
       }
+      
+      clearTimeout(this.layout.refreshTilesTimeout);
+      this.layout.refreshTilesTimeout = setTimeout(() => {
+        this.layout.refreshTileSpots();
+        this.layout.refreshTotalColumnHeight();
+        console.log(this.layout.columnWidth, this.layout.columnCount)
+        groupHolder.style.setProperty("--totalWidth", this.containerWidth + "px");
+        groupHolder.style.setProperty("--columnWidth", this.layout.columnWidth + "px");
+      }, 200);
     }
     this.pipeline.subscribe("tilesResize", "resize", this.layout.setupColumns);
     this.layout.setupColumns();
     this.layout.addTile = (data) => {
-      let tileInfo = { render: data, members: Math.round(Math.random() * (5 - 1) + 1) };
+      if (data == null) {
+        return;
+      }
+      let tileInfo = { section: "ABC", render: data, members: Math.round(Math.random() * (5 - 1) + 1) };
       this.layout.tiles[data._id] = tileInfo;
-      this.layout.addTileToColumn(tileInfo);
+      this.layout.tileLayout.push(data._id);
+      this.layout.refreshTileSpots(this.layout.tileLayout.length - 1);
     }
     for (let i = 0; i < 12; i++) { this.layout.addTile({ _id: i }); } // Just as a test!
-    console.log(this.layout.columns)
-    this.layout.runUpdateCycle = () => {
-
-    }
-    this.layout.updateRender = () => {
-
-    }
     this.pipeline.subscribe("updateTileRender", "bounds_change", this.layout.updateRender, { sort: 1 });
     
 

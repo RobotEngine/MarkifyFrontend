@@ -135,10 +135,15 @@ modules["pages/app/lesson"] = class extends page {
     typePages[id] = newPage;
     this.pushToPipelines(null, "page_add", { type: type, page: newPage });
     (async () => {
-      for (let i = 0; i < 10; i++) {
+      if (extra.totalPages == null) {
+        for (let i = 0; i < 10; i++) {
+          this.pushToPipelines(null, "resize", { event: "page_add" });
+          this.pushToPipelines(null, "bounds_change", { event: "page_add" });
+          await sleep(40);
+        }
+      } else {
         this.pushToPipelines(null, "resize", { event: "page_add" });
         this.pushToPipelines(null, "bounds_change", { event: "page_add" });
-        await sleep(40);
       }
     })();
     this.updateFavicon();

@@ -36,7 +36,7 @@ modules["breakout/overview"] = class {
     ".broInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; user-select: none; overflow-y: scroll; z-index: 2`,
     ".broGroupHolder": `--interfacePadding: 58px; position: relative; display: flex; width: 100%; height: 100%; background: var(--pageColor); overflow-y: scroll; z-index: 1; justify-content: center; transition: .5s`,
     ".broGroups": `position: relative; box-sizing: border-box; width: var(--totalWidth); height: var(--totalHeight); margin: calc(var(--interfacePadding) + 8px) 0; contain: strict; z-index: 2`,
-    ".broBackground": `position: absolute; width: 100%; height: 100%; min-height: calc(var(--totalHeight) + (var(--interfacePadding) * 2)); left: 0px; top: 0px; opacity: .075; background-image: url("../images/editor/backdropblack.svg"); background-size: 25px 25px; background-position: center 50px; z-index: 1; pointer-events: none; contain: strict`,
+    ".broBackground": `position: absolute; width: 100%; height: 100%; min-height: calc(var(--totalHeight) + (var(--interfacePadding) * 2) + 16px); left: 0px; top: 0px; opacity: .075; background-image: url("../images/editor/backdropblack.svg"); background-size: 25px 25px; background-position: center 50px; z-index: 1; pointer-events: none; contain: strict`,
     ".broCreateBreakoutHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden; z-index: 3; pointer-events: none`,
 
     ".broTopHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,

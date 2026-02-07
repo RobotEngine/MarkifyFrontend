@@ -34,7 +34,7 @@ modules["breakout/overview"] = class {
   </div>`;
   css = {
     ".broInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; user-select: none; overflow-y: scroll; z-index: 2`,
-    ".broGroupHolder": `--interfacePadding: 58px; position: relative; display: flex; width: 100%; height: 100%; background: var(--pageColor); overflow-y: scroll; z-index: 1; justify-content: center; transition: .5s`,
+    ".broGroupHolder": `--interfacePadding: 58px; --tilePadding: 16px; --totalWidth: calc((var(--columnWidth) * var(--columnCount)) + (var(--tilePadding) * (var(--columnCount) - 1))); position: relative; display: flex; width: 100%; height: 100%; background: var(--pageColor); overflow-y: scroll; z-index: 1; justify-content: center; transition: .5s`,
     ".broGroups": `position: relative; box-sizing: border-box; width: var(--totalWidth); height: var(--totalHeight); margin: calc(var(--interfacePadding) + 8px) 0; contain: strict; z-index: 2`,
     ".broBackground": `position: absolute; width: 100%; height: 100%; min-height: calc(var(--totalHeight) + (var(--interfacePadding) * 2) + 16px); left: 0px; top: 0px; opacity: .075; background-image: url("../images/editor/backdropblack.svg"); background-size: 25px 25px; background-position: center 50px; z-index: 1; pointer-events: none; contain: strict`,
     ".broCreateBreakoutHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden; z-index: 3; pointer-events: none`,
@@ -413,6 +413,7 @@ modules["breakout/overview"] = class {
     this.layout.columns = {};
     this.layout.tiles = {};
     this.layout.tileLayout = [];
+    this.layout.loadedTiles = [];
     this.layout.getTileHeight = (tile) => {
       let memberCount = tile.members ?? 0;
       return this.layout.tileBaseHeight
@@ -448,7 +449,27 @@ modules["breakout/overview"] = class {
       return [column, section];
     }
     this.layout.runUpdateCycle = () => {
+      if (this.layout.runningUpdateCycle == true) {
+        return;
+      }
+      this.layout.runningUpdateCycle = true;
 
+      let centerScroll = groupHolder.scrollTop + (this.containerHeight / 2);
+      let minLoadBound = centerScroll - this.containerHeight;
+      let maxLoadBound = centerScroll + this.containerHeight;
+
+      for (let i = 0; i < this.layout.columnCount; i++) {
+        let column = this.layout.columns[i + 1] ?? {};
+        if (column.sections == null) {
+          continue;
+        }
+      }
+
+      for (let i = 0; i < this.layout.loadedTiles.length; i++) {
+        
+      }
+
+      this.layout.runningUpdateCycle = false;
     }
     this.layout.refreshTotalColumnHeight = () => {
       let longestColumn = 0;
@@ -469,7 +490,7 @@ modules["breakout/overview"] = class {
           longestColumn = totalHeight;
         }
       }
-      groupHolder.style.setProperty("--totalHeight", longestColumn + "px");
+      groupHolder.style.setProperty("--totalHeight", (longestColumn - this.layout.tilePadding) + "px");
     }
     this.layout.refreshTileSpots = (offset = 0) => {
       for (let i = offset; i < this.layout.tileLayout.length; i++) {
@@ -499,32 +520,42 @@ modules["breakout/overview"] = class {
           continue;
         }
         tileData.column = column.number;
+        tileData.x = (column.number * this.layout.columnWidth) + (this.layout.tilePadding * (column.number - 1));
+        tileData.y = section.height;
         tileData.height = this.layout.getTileHeight(tileData);
-        section.height += tileData.height;
+        section.height += tileData.height + this.layout.tilePadding;
       }
 
       this.layout.runUpdateCycle();
       this.layout.refreshTotalColumnHeight();
     }
-    this.layout.setupColumns = () => {
+    this.layout.updateColumns = () => {
+      this.layout.refreshTileSpots();
+      this.layout.refreshTotalColumnHeight();
+      groupHolder.style.setProperty("--columnCount", this.layout.columnCount);
+      groupHolder.style.setProperty("--columnWidth", this.layout.columnWidth + "px");
+    }
+    this.layout.setupColumns = (force) => {
       // Determine the number and width of columns:
       this.containerWidth = groupHolder.clientWidth - (this.layout.tilePadding * 2);
+      this.containerHeight = groupHolder.clientHeight;
 
       let maxPossibleColumns = Math.floor(
         (this.containerWidth + this.layout.tilePadding) / (this.layout.minTileWidth + this.layout.tilePadding)
       );
       let newColumnCount = Math.max(1, maxPossibleColumns);
 
-      while (newColumnCount > 1) {
+      while (true) {
         let totalInterPadding = this.layout.tilePadding * (newColumnCount - 1);
         this.layout.columnWidth = (this.containerWidth - totalInterPadding) / newColumnCount;
-        if (this.layout.columnWidth <= this.layout.maxTileWidth) break;
+        if (this.layout.columnWidth <= this.layout.maxTileWidth || newColumnCount < 2) break;
         newColumnCount--;
       }
 
       this.layout.columnWidth = Math.min(
         this.layout.maxTileWidth,
-        Math.max(this.layout.minTileWidth, this.layout.columnWidth)
+        Math.max(this.layout.minTileWidth, this.layout.columnWidth),
+        this.containerWidth
       );
 
       // Reorganize tiles to new columns:
@@ -548,16 +579,15 @@ modules["breakout/overview"] = class {
       }
       
       clearTimeout(this.layout.refreshTilesTimeout);
-      this.layout.refreshTilesTimeout = setTimeout(() => {
-        this.layout.refreshTileSpots();
-        this.layout.refreshTotalColumnHeight();
-        console.log(this.layout.columnWidth, this.layout.columnCount)
-        groupHolder.style.setProperty("--totalWidth", this.containerWidth + "px");
-        groupHolder.style.setProperty("--columnWidth", this.layout.columnWidth + "px");
-      }, 200);
+      if (force != true) {
+        this.layout.refreshTilesTimeout = setTimeout(this.layout.updateColumns, 200);
+      } else {
+        this.layout.updateColumns();
+      }
     }
     this.pipeline.subscribe("tilesResize", "resize", this.layout.setupColumns);
-    this.layout.setupColumns();
+    this.pipeline.subscribe("updateTileRender", "scroll", this.layout.runUpdateCycle, { sort: 1 });
+    this.layout.setupColumns(true);
     this.layout.addTile = (data) => {
       if (data == null) {
         return;
@@ -568,8 +598,11 @@ modules["breakout/overview"] = class {
       this.layout.refreshTileSpots(this.layout.tileLayout.length - 1);
     }
     for (let i = 0; i < 12; i++) { this.layout.addTile({ _id: i }); } // Just as a test!
-    this.pipeline.subscribe("updateTileRender", "bounds_change", this.layout.updateRender, { sort: 1 });
     
+    groupHolder.addEventListener("scroll", (event) => {
+      this.pipeline.publish("scroll", { event: event });
+      this.pipeline.publish("bounds_change", { type: "scroll", event: event });
+    });
 
     // Load Images:
     setSVG(topScrollLeft, "../images/editor/top/leftarrow.svg");

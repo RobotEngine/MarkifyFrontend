@@ -421,6 +421,31 @@ modules["breakout/overview"] = class {
       + (this.layout.tileMemberHeight * memberCount)
       + Math.max(this.layout.tileMemberGap * (memberCount - 1), 0);
     }
+    this.layout.getSectionTop = (sectionID) => {
+      let longestColumn = 0;
+      for (let i = 0; i < this.layout.columnCount; i++) {
+        let checkColumn = this.layout.columns[i + 1] ?? {};
+        if (checkColumn.sections == null) {
+          continue;
+        }
+        let totalHeight = 0;
+        let sectionKeys = Object.keys(checkColumn.sections);
+        for (let s = 0; s < sectionKeys.length; s++) {
+          let checkID = sectionKeys[s];
+          if (checkID == sectionID) {
+            break;
+          }
+          let section = checkColumn.sections[checkID] ?? {};
+          if (section.height != null) {
+            totalHeight += section.height;
+          }
+        }
+        if (totalHeight > longestColumn) {
+          longestColumn = totalHeight;
+        }
+      }
+      return longestColumn;
+    }
     this.layout.shortestColumn = (tile = {}) => {
       if (tile.section == null) {
         return [null, null];
@@ -438,6 +463,7 @@ modules["breakout/overview"] = class {
         if (checkSection == null) {
           checkColumn.sections[tile.section] = { height: 0 };
           checkSection = checkColumn.sections[tile.section];
+          checkSection.top = this.layout.getSectionTop(tile.section);
         }
         if (checkSection.height < (minHeight ?? (checkSection.height + 1))) {
           column = checkColumn;
@@ -458,39 +484,116 @@ modules["breakout/overview"] = class {
       let minLoadBound = centerScroll - this.containerHeight;
       let maxLoadBound = centerScroll + this.containerHeight;
 
-      for (let i = 0; i < this.layout.columnCount; i++) {
-        let column = this.layout.columns[i + 1] ?? {};
-        if (column.sections == null) {
-          continue;
+      let minLoadedBound;
+      let minTileID;
+      let maxLoadedBound;
+      let maxTileID;
+      let loadedTileKeys = Object.keys(this.layout.loadedTiles);
+      for (let i = 0; i < loadedTileKeys.length; i++) {
+        let tileID = loadedTileKeys[i];
+        let tile = this.layout.tiles[tileID];
+        if (tile.y < minLoadedBound || minLoadedBound == null) {
+          minLoadedBound = tile.y;
+          minTileID = tileID;
+        }
+        if ((tile.y + tile.height) > maxLoadedBound || maxLoadedBound == null) {
+          maxLoadedBound = (tile.y + tile.height);
+          maxTileID = tileID;
         }
       }
 
-      for (let i = 0; i < this.layout.loadedTiles.length; i++) {
-        
+      let startIndex = 0;
+      if (minTileID != null) {
+        startIndex = this.layout.tileLayout.indexOf(minTileID);
       }
+      let endIndex = startIndex;
+      if (maxTileID != null) {
+        endIndex = this.layout.tileLayout.indexOf(maxTileID);
+      }
+      let useIndex = Math.floor((startIndex + endIndex) / 2);
+
+      let lowerIndex = useIndex;
+      let higherIndex = useIndex;
+      let iteration = 0;
+      let loadTiles = {};
+      while (lowerIndex != null || higherIndex != null) {
+        /*if (iteration > 100) {
+          console.log("BREAK BREAK BREAK");
+          break;
+        }*/
+
+        let index;
+        if ((iteration % 2) == 0) {
+          if (lowerIndex != null) {
+            index = lowerIndex;
+            lowerIndex--;
+          }
+        } else {
+          if (higherIndex != null) {
+            index = higherIndex;
+            higherIndex++;
+          }
+        }
+        iteration++;
+        if (index < 0) {
+          lowerIndex = null;
+          continue;
+        }
+        if (index > this.layout.tileLayout.length) {
+          higherIndex = null;
+          continue;
+        }
+
+        let tileID = this.layout.tileLayout[index];
+        let tileData = this.layout.tiles[tileID];
+
+        if (tileData == null) {
+          continue;
+        }
+
+        let minLoaded = (tileData.y + tileData.height) > minLoadBound;
+        if (minLoaded == false) {
+          lowerIndex = null;
+        }
+        let maxLoaded = tileData.y < maxLoadBound;
+        if (maxLoaded == false) {
+          higherIndex = null;
+        }
+
+        if (!(minLoaded == true && maxLoaded == true)) {
+          continue;
+        }
+
+        loadTiles[tileID] = tileID;
+      }
+
+      // Unload Tiles:
+      for (let i = 0; i < loadedTileKeys.length; i++) {
+        let tileID = loadedTileKeys[i];
+        if (loadTiles[tileID] == null) {
+          let tile = this.layout.tiles[tileID];
+
+          delete this.layout.loadedTiles[tileID];
+        }
+      }
+      this.layout.loadedTiles = {};
+
+      // Load New Tiles:
+      let loadTileKeys = Object.keys(loadTiles);
+      for (let i = 0; i < loadTileKeys.length; i++) {
+        let tileID = loadTileKeys[i];
+        let tile = this.layout.tiles[tileID];
+
+        this.layout.loadedTiles[tileID] = tile;
+      }
+      
+      console.log(Object.keys(this.layout.loadedTiles));
 
       this.layout.runningUpdateCycle = false;
     }
     this.layout.refreshTotalColumnHeight = () => {
-      let longestColumn = 0;
-      for (let i = 0; i < this.layout.columnCount; i++) {
-        let checkColumn = this.layout.columns[i + 1] ?? {};
-        if (checkColumn.sections == null) {
-          continue;
-        }
-        let totalHeight = 0;
-        let sectionKeys = Object.keys(checkColumn.sections);
-        for (let s = 0; s < sectionKeys.length; s++) {
-          let section = checkColumn.sections[sectionKeys[s]] ?? {};
-          if (section.height != null) {
-            totalHeight += section.height;
-          }
-        }
-        if (totalHeight > longestColumn) {
-          longestColumn = totalHeight;
-        }
-      }
-      groupHolder.style.setProperty("--totalHeight", (longestColumn - this.layout.tilePadding) + "px");
+      this.layout.longestColumn = this.layout.getSectionTop();
+      groupHolder.style.setProperty("--totalHeight", (this.layout.longestColumn - this.layout.tilePadding) + "px");
     }
     this.layout.refreshTileSpots = (offset = 0) => {
       for (let i = offset; i < this.layout.tileLayout.length; i++) {
@@ -508,7 +611,10 @@ modules["breakout/overview"] = class {
         if (column.sections != null) {
           let section = column.sections[tileData.section] ?? {};
           if (section.height != null) {
-            section.height -= tileData.height;
+            section.height -= (tileData.height + this.layout.tilePadding);
+          }
+          if (section.top != null) {
+            section.top = this.layout.getSectionTop(tileData.column);
           }
         }
       }
@@ -521,7 +627,7 @@ modules["breakout/overview"] = class {
         }
         tileData.column = column.number;
         tileData.x = (column.number * this.layout.columnWidth) + (this.layout.tilePadding * (column.number - 1));
-        tileData.y = section.height;
+        tileData.y = section.top + section.height;
         tileData.height = this.layout.getTileHeight(tileData);
         section.height += tileData.height + this.layout.tilePadding;
       }
@@ -531,7 +637,6 @@ modules["breakout/overview"] = class {
     }
     this.layout.updateColumns = () => {
       this.layout.refreshTileSpots();
-      this.layout.refreshTotalColumnHeight();
       groupHolder.style.setProperty("--columnCount", this.layout.columnCount);
       groupHolder.style.setProperty("--columnWidth", this.layout.columnWidth + "px");
     }
@@ -597,7 +702,7 @@ modules["breakout/overview"] = class {
       this.layout.tileLayout.push(data._id);
       this.layout.refreshTileSpots(this.layout.tileLayout.length - 1);
     }
-    for (let i = 0; i < 12; i++) { this.layout.addTile({ _id: i }); } // Just as a test!
+    for (let i = 0; i < 100; i++) { this.layout.addTile({ _id: i.toString() }); } // Just as a test!
     
     groupHolder.addEventListener("scroll", (event) => {
       this.pipeline.publish("scroll", { event: event });

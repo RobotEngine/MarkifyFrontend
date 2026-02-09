@@ -33,9 +33,9 @@ modules["breakout/overview"] = class {
     <div class="broBackground"></div>
   </div>`;
   css = {
-    ".broInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; user-select: none; overflow-y: scroll; z-index: 2`,
-    ".broGroupHolder": `--interfacePadding: 58px; --tilePadding: 16px; --totalWidth: calc((var(--columnWidth) * var(--columnCount)) + (var(--tilePadding) * (var(--columnCount) - 1))); position: relative; display: flex; width: 100%; height: 100%; background: var(--pageColor); overflow-y: scroll; z-index: 1; justify-content: center; transition: .5s`,
-    ".broGroups": `position: relative; box-sizing: border-box; width: var(--totalWidth); height: var(--totalHeight); margin: calc(var(--interfacePadding) + 8px) 0; contain: strict; z-index: 2`,
+    ".broInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; user-select: none; contain: strict; overflow-y: scroll; z-index: 2`,
+    ".broGroupHolder": `--interfacePadding: 58px; --tilePadding: 16px; --totalWidth: calc((var(--columnWidth) * var(--columnCount)) + (var(--tilePadding) * (var(--columnCount) - 1))); position: relative; display: flex; width: 100%; height: 100%; background: var(--pageColor); contain: strict; overflow-x: hidden; overflow-y: scroll; z-index: 1; justify-content: center; transition: .5s`,
+    ".broGroups": `position: relative; box-sizing: border-box; width: var(--totalWidth); height: var(--totalHeight); margin: calc(var(--interfacePadding) + 8px) 0; z-index: 2`,
     ".broBackground": `position: absolute; width: 100%; height: 100%; min-height: calc(var(--totalHeight) + (var(--interfacePadding) * 2) + 16px); left: 0px; top: 0px; opacity: .075; background-image: url("../images/editor/backdropblack.svg"); background-size: 25px 25px; background-position: center 50px; z-index: 1; pointer-events: none; contain: strict`,
     ".broCreateBreakoutHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden; z-index: 3; pointer-events: none`,
 
@@ -80,6 +80,10 @@ modules["breakout/overview"] = class {
     ".broOpenBoard button:hover": `background: var(--boardHover)`,
     ".broOpenBoard button svg": `width: 32px; height: 32px; transition: .2s`,
     ".broOpenBoard button:hover svg": `transform: scale(.9)`,
+
+    ".broTile": `position: absolute; width: var(--columnWidth); height: fit-content; left: 0px; top: 0px; transition: .3s`,
+    ".broTileContent": `position: relative; width: 100%; height: 100%; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px; transition: .1s`,
+    ".broTile:active .broTileContent": `transform: scale(.95); box-shadow: var(--darkShadow)`
   };
 
   pipeline = { // PIPELINE : Distributes events across various modules and services:
@@ -429,7 +433,8 @@ modules["breakout/overview"] = class {
           continue;
         }
         let totalHeight = 0;
-        let sectionKeys = Object.keys(checkColumn.sections);
+        let sectionKeys = Object.keys(checkColumn.sections).sort();
+        console.log(sectionKeys)
         for (let s = 0; s < sectionKeys.length; s++) {
           let checkID = sectionKeys[s];
           if (checkID == sectionID) {
@@ -463,7 +468,6 @@ modules["breakout/overview"] = class {
         if (checkSection == null) {
           checkColumn.sections[tile.section] = { height: 0 };
           checkSection = checkColumn.sections[tile.section];
-          checkSection.top = this.layout.getSectionTop(tile.section);
         }
         if (checkSection.height < (minHeight ?? (checkSection.height + 1))) {
           column = checkColumn;
@@ -567,27 +571,61 @@ modules["breakout/overview"] = class {
         loadTiles[tileID] = tileID;
       }
 
-      // Unload Tiles:
-      for (let i = 0; i < loadedTileKeys.length; i++) {
-        let tileID = loadedTileKeys[i];
-        if (loadTiles[tileID] == null) {
-          let tile = this.layout.tiles[tileID];
-
-          delete this.layout.loadedTiles[tileID];
-        }
-      }
-      this.layout.loadedTiles = {};
-
       // Load New Tiles:
+      let newTilesFragment = document.createDocumentFragment();
       let loadTileKeys = Object.keys(loadTiles);
       for (let i = 0; i < loadTileKeys.length; i++) {
         let tileID = loadTileKeys[i];
         let tile = this.layout.tiles[tileID];
 
-        this.layout.loadedTiles[tileID] = tile;
+        if (tile.element == null) {
+          tile.element = document.createElement("a");
+          tile.element.className = "broTile";
+          tile.element.setAttribute("tileid", tileID);
+          tile.element.innerHTML = `<div class="broTileContent"></div>`;
+          newTilesFragment.appendChild(tile.element);
+        }
+
+        if (tile.cache == null) {
+          tile.cache = {};
+        }
+        
+        if (tile.cache.height != tile.height) {
+          tile.cache.height = tile.height;
+          tile.element.style.setProperty("height", tile.height + "px");
+        }
+
+        let pushTransform = false;
+        if (tile.cache.left != tile.x) {
+          tile.cache.left = tile.x;
+          pushTransform = true;
+        }
+        if (tile.cache.top != tile.y) {
+          tile.cache.top = tile.y;
+          pushTransform = true;
+        }
+        if (pushTransform == true) {
+          tile.element.style.setProperty("transform", "translate(" + tile.x + "px, " + tile.y + "px)");
+        }
+
+        delete this.layout.loadedTiles[tileID];
       }
-      
-      console.log(Object.keys(this.layout.loadedTiles));
+      groups.appendChild(newTilesFragment);
+
+      // Unload Tiles:
+      let unloadTileKeys = Object.keys(this.layout.loadedTiles);
+      for (let i = 0; i < unloadTileKeys.length; i++) {
+        let tileID = unloadTileKeys[i];
+        let tile = this.layout.tiles[tileID];
+
+        if (tile.element != null) {
+          tile.element.remove();
+          tile.element = null;
+          tile.cache = null;
+        }
+      }
+
+      this.layout.loadedTiles = loadTiles;
 
       this.layout.runningUpdateCycle = false;
     }
@@ -613,9 +651,7 @@ modules["breakout/overview"] = class {
           if (section.height != null) {
             section.height -= (tileData.height + this.layout.tilePadding);
           }
-          if (section.top != null) {
-            section.top = this.layout.getSectionTop(tileData.column);
-          }
+          section.top = null;
         }
       }
       for (let i = offset; i < this.layout.tileLayout.length; i++) {
@@ -625,9 +661,12 @@ modules["breakout/overview"] = class {
         if (column == null) {
           continue;
         }
+        if (section.top == null) {
+          section.top = this.layout.getSectionTop(tileData.section);
+        }
         tileData.column = column.number;
-        tileData.x = (column.number * this.layout.columnWidth) + (this.layout.tilePadding * (column.number - 1));
-        tileData.y = section.top + section.height;
+        tileData.x = (this.layout.columnWidth * (column.number - 1)) + (this.layout.tilePadding * (column.number - 1));
+        tileData.y = section.height + section.top;
         tileData.height = this.layout.getTileHeight(tileData);
         section.height += tileData.height + this.layout.tilePadding;
       }
@@ -693,16 +732,16 @@ modules["breakout/overview"] = class {
     this.pipeline.subscribe("tilesResize", "resize", this.layout.setupColumns);
     this.pipeline.subscribe("updateTileRender", "scroll", this.layout.runUpdateCycle, { sort: 1 });
     this.layout.setupColumns(true);
-    this.layout.addTile = (data) => {
+    this.layout.addTile = (data, section) => {
       if (data == null) {
         return;
       }
-      let tileInfo = { section: "ABC", render: data, members: Math.round(Math.random() * (5 - 1) + 1) };
+      let tileInfo = { section, render: data, members: Math.round(Math.random() * (5 - 1) + 1) };
       this.layout.tiles[data._id] = tileInfo;
       this.layout.tileLayout.push(data._id);
       this.layout.refreshTileSpots(this.layout.tileLayout.length - 1);
     }
-    for (let i = 0; i < 100; i++) { this.layout.addTile({ _id: i.toString() }); } // Just as a test!
+    for (let i = 0; i < 100; i++) { this.layout.addTile({ _id: i.toString() }, 0); } // Just as a test!
     
     groupHolder.addEventListener("scroll", (event) => {
       this.pipeline.publish("scroll", { event: event });

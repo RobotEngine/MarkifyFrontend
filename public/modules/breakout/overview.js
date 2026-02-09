@@ -83,7 +83,8 @@ modules["breakout/overview"] = class {
 
     ".broTile": `position: absolute; width: var(--columnWidth); height: fit-content; left: 0px; top: 0px; transition: .3s`,
     ".broTileContent": `position: relative; width: 100%; height: 100%; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px; transition: .1s`,
-    ".broTile:active .broTileContent": `transform: scale(.95); box-shadow: var(--darkShadow)`
+    ".broTile:hover .broTileContent": `box-shadow: var(--darkShadow)`,
+    ".broTile:active .broTileContent": `transform: scale(.95)`
   };
 
   pipeline = { // PIPELINE : Distributes events across various modules and services:

@@ -3403,7 +3403,6 @@ modules["editor/editor"] = class {
       if (setColor != null) {
         this.backgroundColor = setColor;
       }
-      content.style.setProperty("--backgroundColor", "#" + this.backgroundColor);
       if (this.utils.contrastCheck(this.backgroundColor) == true) {
         background.style.setProperty("background-image", "url(../images/editor/backdropblack.svg)");
         content.style.setProperty("--secondaryBackgroundColor", "#" + this.utils.darkenHex(this.backgroundColor, 50));

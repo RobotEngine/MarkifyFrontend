@@ -209,6 +209,7 @@ modules["breakout/overview"] = class {
 
     let groupHolder = frame.querySelector(".broGroupHolder");
     let groups = groupHolder.querySelector(".broGroups");
+    let background = groupHolder.querySelector(".broBackground");
 
     let openBoardHolder = frame.querySelector(".broOpenBoard");
     let openBoard = openBoardHolder.querySelector("button");
@@ -404,6 +405,24 @@ modules["breakout/overview"] = class {
         this.template = body.template;
       }
     }, { sort: 1 });
+
+    this.updateBackground = () => {
+      if (getTheme() != "dark") {
+        groupHolder.style.setProperty("--backgroundColor", "#FFFFFF");
+        background.style.setProperty("background-image", "url(../images/editor/backdropblack.svg)");
+        groupHolder.style.setProperty("--secondaryBackgroundColor", "#7f7f7f");
+      } else {
+        groupHolder.style.setProperty("--backgroundColor", "#0a1c2d");
+        background.style.setProperty("background-image", "url(../images/editor/backdropwhite.svg)");
+        groupHolder.style.setProperty("--secondaryBackgroundColor", "#848d96");
+      }
+    }
+    this.pipeline.subscribe("accountUpdate", "account_settings", (event) => {
+      if (event.settings.hasOwnProperty("theme") == true) {
+        this.updateBackground();
+      }
+    });
+    this.updateBackground();
 
     // Handle Tile Masonry Layout:
     this.layout = {};

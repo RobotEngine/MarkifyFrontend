@@ -82,9 +82,10 @@ modules["breakout/overview"] = class {
     ".broOpenBoard button:hover svg": `transform: scale(.9)`,
 
     ".broTile": `position: absolute; width: var(--columnWidth); height: fit-content; left: 0px; top: 0px; transition: .3s`,
-    ".broTileContent": `position: relative; width: 100%; height: 100%; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px; transition: .1s`,
+    ".broTileContent": `position: relative; width: 100%; height: 100%; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px; overflow: hidden; transition: .1s`,
     ".broTile:hover .broTileContent": `box-shadow: var(--darkShadow)`,
-    ".broTile:active .broTileContent": `transform: scale(.95)`
+    ".broTile:active .broTileContent": `transform: scale(.95)`,
+    ".broTilePreview": `width: 100%; height: calc(var(--columnWidth) * (3/4)); left: 0px; top: 0px`
   };
 
   pipeline = { // PIPELINE : Distributes events across various modules and services:
@@ -422,7 +423,7 @@ modules["breakout/overview"] = class {
     this.layout.getTileHeight = (tile) => {
       let memberCount = tile.members ?? 0;
       return this.layout.tileBaseHeight
-      + ((this.layout.columnWidth - this.layout.tileBaseHeight) * this.layout.tileHeightRatio)
+      + (this.layout.columnWidth * this.layout.tileHeightRatio)
       + (this.layout.tileMemberHeight * memberCount)
       + Math.max(this.layout.tileMemberGap * (memberCount - 1), 0);
     }
@@ -435,7 +436,6 @@ modules["breakout/overview"] = class {
         }
         let totalHeight = 0;
         let sectionKeys = Object.keys(checkColumn.sections).sort();
-        console.log(sectionKeys)
         for (let s = 0; s < sectionKeys.length; s++) {
           let checkID = sectionKeys[s];
           if (checkID == sectionID) {
@@ -583,7 +583,9 @@ modules["breakout/overview"] = class {
           tile.element = document.createElement("a");
           tile.element.className = "broTile";
           tile.element.setAttribute("tileid", tileID);
-          tile.element.innerHTML = `<div class="broTileContent"></div>`;
+          tile.element.innerHTML = `<div class="broTileContent">
+            <div class="broTilePreview"></div>
+          </div>`;
           newTilesFragment.appendChild(tile.element);
         }
 
@@ -733,16 +735,17 @@ modules["breakout/overview"] = class {
     this.pipeline.subscribe("tilesResize", "resize", this.layout.setupColumns);
     this.pipeline.subscribe("updateTileRender", "scroll", this.layout.runUpdateCycle, { sort: 1 });
     this.layout.setupColumns(true);
-    this.layout.addTile = (data, section) => {
+    this.layout.addTile = (data) => {
       if (data == null) {
         return;
       }
-      let tileInfo = { section, render: data, members: Math.round(Math.random() * (5 - 1) + 1) };
+      let tileInfo = { section: data.version, render: data, members: Math.round(Math.random() * (5 - 1) + 1) };
       this.layout.tiles[data._id] = tileInfo;
       this.layout.tileLayout.push(data._id);
-      this.layout.refreshTileSpots(this.layout.tileLayout.length - 1);
+      // this.layout.refreshTileSpots(this.layout.tileLayout.length - 1);
     }
-    for (let i = 0; i < 100; i++) { this.layout.addTile({ _id: i.toString() }, 0); } // Just as a test!
+    for (let i = 0; i < 100; i++) { this.layout.addTile({ _id: i.toString(), version: 1 }); } // Just as a test!
+    this.layout.refreshTileSpots();
     
     groupHolder.addEventListener("scroll", (event) => {
       this.pipeline.publish("scroll", { event: event });

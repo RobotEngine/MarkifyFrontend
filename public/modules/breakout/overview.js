@@ -88,12 +88,12 @@ modules["breakout/overview"] = class {
     ".broTilePreview": `width: 100%; height: calc(var(--columnWidth) * (3/4))`,
     ".broTileHeader": `position: absolute; display: flex; gap: 8px; width: 100%; left: 0px; top: 0px; justify-content: space-between`,
     ".broTileHeaderName": `display: flex; min-width: 0; box-sizing: border-box; padding: 6px; align-items: center; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 0 0 16px 0; overflow: hidden; transition: .2s`,
-    ".broTileHeaderName img": `flex-shrink: 0; width: 32px; height: 32px; border-radius: 10px; background: red`,
-    ".broTileHeaderName div": `height: 32px; margin: 0 6px; align-content: center; font-size: 20px; font-weight: 500; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;`,
+    ".broTileHeaderName img": `flex-shrink: 0; width: 30px; height: 30px; border-radius: 10px; background: red`,
+    ".broTileHeaderName div": `height: 30px; margin: 0 6px; align-content: center; font-size: 18px; font-weight: 500; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;`,
     ".broTileHeaderOptions": `display: flex; box-sizing: border-box; padding: 2px; justify-content: center; align-items: center; background: var(--pageColor); opacity: 0; box-shadow: var(--shadow); border-radius: 0 0 0 16px; transition: .2s`,
     ".broTile:hover .broTileHeaderOptions": `opacity: 1 !important`,
-    ".broTileHeaderOptions button": `display: flex; width: 32px; height: 32px; margin: 4px; flex-shrink: 0; justify-content: center; align-items: center; border-radius: 16px`,
-    ".broTileHeaderOptions button svg": `flex-shrink: 0; width: 26px; height: 26px`,
+    ".broTileHeaderOptions button": `display: flex; width: 30px; height: 30px; margin: 4px; flex-shrink: 0; justify-content: center; align-items: center; border-radius: 16px`,
+    ".broTileHeaderOptions button svg": `flex-shrink: 0; width: 24px; height: 24px`,
     ".broTileHeaderOptions button:hover": `background: var(--hover)`,
   };
 

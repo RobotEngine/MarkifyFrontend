@@ -82,10 +82,19 @@ modules["breakout/overview"] = class {
     ".broOpenBoard button:hover svg": `transform: scale(.9)`,
 
     ".broTile": `position: absolute; width: var(--columnWidth); height: fit-content; left: 0px; top: 0px; transition: .3s`,
-    ".broTileContent": `position: relative; width: 100%; height: 100%; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 16px; overflow: hidden; transition: .1s`,
-    ".broTile:hover .broTileContent": `box-shadow: var(--darkShadow)`,
+    ".broTileContent": `--shadow: var(--lightShadow); position: relative; width: 100%; height: 100%; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 16px; overflow: hidden; transition: .2s, transform .1s`,
+    ".broTile:hover .broTileContent": `--shadow: var(--darkShadow) !important`,
     ".broTile:active .broTileContent": `transform: scale(.95)`,
-    ".broTilePreview": `width: 100%; height: calc(var(--columnWidth) * (3/4)); left: 0px; top: 0px`
+    ".broTilePreview": `width: 100%; height: calc(var(--columnWidth) * (3/4))`,
+    ".broTileHeader": `position: absolute; display: flex; gap: 8px; width: 100%; left: 0px; top: 0px; justify-content: space-between`,
+    ".broTileHeaderName": `display: flex; min-width: 0; box-sizing: border-box; padding: 6px; align-items: center; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 0 0 16px 0; overflow: hidden; transition: .2s`,
+    ".broTileHeaderName img": `flex-shrink: 0; width: 32px; height: 32px; border-radius: 10px; background: red`,
+    ".broTileHeaderName div": `height: 32px; margin: 0 6px; align-content: center; font-size: 20px; font-weight: 500; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;`,
+    ".broTileHeaderOptions": `display: flex; box-sizing: border-box; padding: 2px; justify-content: center; align-items: center; background: var(--pageColor); opacity: 0; box-shadow: var(--shadow); border-radius: 0 0 0 16px; transition: .2s`,
+    ".broTile:hover .broTileHeaderOptions": `opacity: 1 !important`,
+    ".broTileHeaderOptions button": `display: flex; width: 32px; height: 32px; margin: 4px; flex-shrink: 0; justify-content: center; align-items: center; border-radius: 16px`,
+    ".broTileHeaderOptions button svg": `flex-shrink: 0; width: 26px; height: 26px`,
+    ".broTileHeaderOptions button:hover": `background: var(--hover)`,
   };
 
   pipeline = { // PIPELINE : Distributes events across various modules and services:
@@ -604,7 +613,20 @@ modules["breakout/overview"] = class {
           tile.element.setAttribute("tileid", tileID);
           tile.element.innerHTML = `<div class="broTileContent">
             <div class="broTilePreview"></div>
+            <div class="broTileHeader">
+              <div class="broTileHeaderName">
+                <img />
+                <div>Untitled Group</div>
+              </div>
+              <div class="broTileHeaderOptions">
+                <button></button>
+              </div>
+            </div>
+            <div class="broTileMembers">
+
+            </div>
           </div>`;
+          setSVG(tile.element.querySelector(".broTileHeaderOptions button"), "../images/editor/actions/more.svg");
           newTilesFragment.appendChild(tile.element);
         }
 

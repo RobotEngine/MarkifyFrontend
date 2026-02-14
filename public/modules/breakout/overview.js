@@ -460,6 +460,7 @@ modules["breakout/overview"] = class {
     this.layout.minTileWidth = 250;
     this.layout.maxTileWidth = 400;
     this.layout.tilePadding = 16;
+    this.layout.maxContainerWidth = (this.layout.minTileWidth * 6) + (this.layout.tilePadding * 5) - 1;
     this.layout.columnCount = 0;
     this.layout.columnWidth = 0;
     this.layout.tileBaseHeight = 12; // Base padding around tile
@@ -762,7 +763,7 @@ modules["breakout/overview"] = class {
     }
     this.layout.setupColumns = (force) => {
       // Determine the number and width of columns:
-      this.containerWidth = groupHolder.clientWidth - (this.layout.tilePadding * 2);
+      this.containerWidth = Math.min(groupHolder.clientWidth - (this.layout.tilePadding * 2), this.layout.maxContainerWidth);
       this.containerHeight = groupHolder.clientHeight;
 
       let maxPossibleColumns = Math.floor(

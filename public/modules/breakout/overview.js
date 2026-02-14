@@ -85,8 +85,11 @@ modules["breakout/overview"] = class {
     ".broTileContent": `--shadow: var(--lightShadow); position: relative; width: 100%; height: 100%; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 16px; contain: strict; overflow: hidden; transition: .2s, transform .1s`,
     ".broTile:hover .broTileContent": `--shadow: var(--darkShadow) !important`,
     ".broTile:active .broTileContent": `transform: scale(.95)`,
-    ".broTilePreview": `width: 100%; height: calc(var(--columnWidth) * (3/4))`,
-    ".broTileHeader": `position: absolute; display: flex; gap: 8px; width: 100%; left: 0px; top: 0px; justify-content: space-between`,
+    ".broTilePreviewContainer": `position: relative; width: 100%; height: calc(var(--columnWidth) * (3/4)); z-index: 1`,
+    ".broTilePreviewContainer:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px`,
+    ".broTilePreview": `width: 100%; height: 100%; background: var(--pageColor); contain: strict; overflow: scroll; scrollbar-width: none`,
+    ".broTilePreview::-webkit-scrollbar": `display: none`,
+    ".broTileHeader": `position: absolute; display: flex; gap: 8px; width: 100%; left: 0px; top: 0px; justify-content: space-between; z-index: 3`,
     ".broTileHeaderName": `display: flex; box-sizing: border-box; gap: 0; min-width: 0; padding: 6px; align-items: center; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 0 0 16px 0; overflow: hidden; transition: .2s`,
     ".broTileHeaderName:focus-within": `gap: 6px`,
     ".broTileHeaderNameImage": `flex-shrink: 0; width: 30px; height: 30px; border-radius: 10px; object-fit: cover`,
@@ -100,7 +103,8 @@ modules["breakout/overview"] = class {
     ".broTileHeaderOptionsButton": `display: flex; width: 30px; height: 30px; margin: 4px; flex-shrink: 0; justify-content: center; align-items: center; border-radius: 16px`,
     ".broTileHeaderOptionsButton > svg": `flex-shrink: 0; width: 24px; height: 24px`,
     ".broTileHeaderOptionsButton:hover": `background: var(--hover)`,
-    ".broTileMembers": `width: 100%`,
+    ".broTileMembers": `position: relative; width: 100%; padding-bottom: 6px; z-index: 2`,
+    ".broTileMembers:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: var(--shadow)`,
     ".broTileMember": `--shadow: var(--lightShadow); position: relative; width: calc(100% - 12px); padding: 0; margin: 6px 6px 0; background: var(--pageColor); border-radius: 10px; cursor: grab`,
     ".broTileMember:hover, .broTileMember:active, .broTileMember[dragging]": `--shadow: var(--darkShadow)`,
     ".broTileMember:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: var(--shadow)`,
@@ -110,13 +114,13 @@ modules["breakout/overview"] = class {
     ".broTileMember:hover .broTileMemberNameDragHolder, .broTileMember:active .broTileMemberNameDragHolder, .broTileMember[dragging] .broTileMemberNameDragHolder": `--transformTranslate: translateX(0px); width: 16px; margin-right: 6px`,
     ".broTileMemberNameDragHandle": `display: flex; flex-direction: column; box-sizing: border-box; width: 16px; height: 28px; padding: 4px 0; justify-content: space-between; align-items: center; transform: var(--transformTranslate); transition: .2s`,
     ".broTileMemberNameDragHandleDot": `width: 100%; height: 4px; border-radius: 2px; background: var(--gray)`,
-    ".broTileMemberNameCursor": `flex-shrink: 0; position: relative; box-sizing: border-box; width: 28px; height: 28px; margin-right: 6px; background: var(--theme); border: solid 3px var(--pageColor); border-radius: 8px 14px 14px`,
-    ".broTileMemberNameCursor:before": `content: ""; position: absolute; width: calc(100% + 6px); height: calc(100% + 6px); left: -3px; top: -3px; border-radius: inherit; contain: strict; box-shadow: 0 0 6px rgb(0 0 0 / 25%)`,
+    ".broTileMemberNameCursor": `flex-shrink: 0; position: relative; box-sizing: border-box; width: 28px; height: 28px; margin-right: 6px; background: var(--pageColor); border: solid 4px var(--theme); border-radius: 8px 14px 14px`,
+    //".broTileMemberNameCursor:before": `content: ""; position: absolute; width: calc(100% + 6px); height: calc(100% + 6px); left: -3px; top: -3px; border-radius: inherit; contain: strict; box-shadow: 0 0 6px rgb(0 0 0 / 25%)`,
     ".broTileMemberNameText": `font-size: 16px; font-weight: 500; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis`,
-    ".broTileMemberPercent": `--percent: 0; --themeRGB: var(--redRGB); flex-shrink: 0; position: relative; width: 36px; height: 20px; margin: 4px; border-radius: 10px`,
-    ".broTileMemberPercent:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: inset 0px 0px 8px 0px rgba(var(--themeRGB), .3)`,
-    ".broTileMemberPercentBarHolder": `position: absolute; width: calc(100% - 8px); height: calc(100% - 8px); left: 4px; top: 4px; border-radius: 6px; overflow: hidden`,
-    ".broTileMemberPercentBar": `width: 100%; height: 100%; transform: translateX(calc(-100% + (100% * var(--percent)))); background: rgb(var(--themeRGB)); border-radius: 2px; transition: .2s`
+    ".broTileMemberPercent": `--percent: .5; --theme: var(--red); flex-shrink: 0; position: relative; width: 36px; height: 20px; margin: 2px; border: solid 2px var(--theme); border-radius: 12px; transition: .2s`,
+    //".broTileMemberPercent:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: inset 0px 0px 8px 0px rgba(var(--themeRGB), .3)`,
+    ".broTileMemberPercentBarHolder": `position: absolute; width: calc(100% - 4px); height: calc(100% - 4px); left: 2px; top: 2px; border-radius: 8px; overflow: hidden`,
+    ".broTileMemberPercentBar": `width: 100%; height: 100%; transform: translateX(calc(-100% + (100% * var(--percent)))); background: var(--theme); border-radius: 2px; transition: .2s`
   };
 
   pipeline = { // PIPELINE : Distributes events across various modules and services:
@@ -455,6 +459,9 @@ modules["breakout/overview"] = class {
     });
     this.updateBackground();
 
+    // TESTING TESTING TESTING TESTING TESTING REMOVE LATER
+    let [testGroupAnnotationCode, testGroupAnnotationBody] = await sendRequest("GET", "lessons/join/annotations?group=6970849accd1dd07a187b0c0", null, { session: this.parent.session }, { allowError: true });
+
     // Handle Tile Masonry Layout:
     this.layout = {};
     this.layout.minTileWidth = 250;
@@ -635,7 +642,9 @@ modules["breakout/overview"] = class {
           tile.element.className = "broTile";
           tile.element.setAttribute("tileid", tileID);
           tile.element.innerHTML = `<div class="broTileContent">
-            <div class="broTilePreview"></div>
+            <div class="broTilePreviewContainer">
+              <div class="broTilePreview"></div>
+            </div>
             <div class="broTileHeader">
               <div class="broTileHeaderName">
                 <img class="broTileHeaderNameImage" src="../images/breakoutbluricon.png" />
@@ -659,12 +668,29 @@ modules["breakout/overview"] = class {
                     <div class="broTileMemberNameDragHandleDot"></div>
                   </div></div>
                   <div class="broTileMemberNameCursor"></div>
-                  <div class="broTileMemberNameText">Mamber Name</div>
+                  <div class="broTileMemberNameText">Member Name</div>
                 </div>
                 <div class="broTileMemberPercent"><div class="broTileMemberPercentBarHolder"><div class="broTileMemberPercentBar"></div></div></div>
               </div>
             </button>`);
           }
+          (async () => { // Load preview document:
+            let previewContainer = tile.element.querySelector(".broTilePreviewContainer");
+            let previewHolder = previewContainer.querySelector(".broTilePreview");
+            tile.editor = await this.setFrame("editor/editor", previewHolder, {
+              construct: {
+                page: previewContainer
+              }
+            });
+            tile.editor.updatePageSize = () => {
+              
+            }
+            tile.editor.updatePageSize();
+            if (testGroupAnnotationCode == 200) {
+              tile.editor.loadAnnotations(testGroupAnnotationBody);
+            }
+            tile.editor.setZoom(.5);
+          })();
           newTilesFragment.appendChild(tile.element);
         }
 

@@ -9,7 +9,7 @@ modules["editor/editor"] = class {
   </div>
   `;
   css = {
-    ".eContent": `--interfacePadding: 58px; position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - (var(--interfacePadding) * 2)); min-height: calc(100vh - (var(--interfacePadding) * 2)); padding: var(--interfacePadding); contain: paint; align-items: center; overflow: hidden; background-color: var(--backgroundColor); pointer-events: all; transition: background-color .3s; --zoom: 1`,
+    ".eContent": `position: relative; display: flex; flex-direction: column; width: fit-content; min-width: calc(100% - (var(--interfacePadding) * 2)); min-height: calc(100vh - (var(--interfacePadding) * 2)); padding: var(--interfacePadding); contain: paint; align-items: center; overflow: hidden; background-color: var(--backgroundColor); pointer-events: all; transition: background-color .3s; --zoom: 1`,
     ".eRealtime": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 3; overflow: hidden; pointer-events: none`,
     ".eEditorContent": `position: relative; will-change: margin`,
     ".eAnnotations": `--startZIndex: 0; position: relative; width: 1px; height: 1px; transform-origin: 0 0; transform: scale(var(--zoom)); z-index: 2; pointer-events: none; contain: size layout style`, // will-change: contents
@@ -3578,20 +3578,21 @@ modules["editor/editor"] = class {
       let rect = page.getBoundingClientRect();
       this.pageOffsetWidth = rect.width;
       this.pageOffsetHeight = rect.height;
-      let scaleWidth = page.offsetWidth - rect.width;
+      let scaleWidth = page.offsetWidth - this.pageOffsetWidth;
       let halfScaleWidth = scaleWidth / 2
-      let scaleHeight = page.offsetHeight - rect.height;
+      let scaleHeight = page.offsetHeight - this.pageOffsetHeight;
       let halfScaleHeight = scaleHeight / 2;
       this.pageRect = {
         x: rect.x - halfScaleWidth,
         y: rect.y - halfScaleHeight,
-        width: rect.width,
-        height: rect.height,
+        width: this.pageOffsetWidth,
+        height: this.pageOffsetHeight,
         left: rect.left - halfScaleWidth,
         right: rect.right + halfScaleWidth,
         top: rect.top - halfScaleHeight,
         bottom: rect.bottom + halfScaleHeight
       };
+      frame.style.setProperty("--interfacePadding", this.scrollOffset + "px");
     }
     this.pipeline.subscribe("resizeChange", "resize", this.updatePageSize, { sort: 1 });
     this.updatePageSize();

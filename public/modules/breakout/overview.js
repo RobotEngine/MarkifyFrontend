@@ -117,10 +117,10 @@ modules["breakout/overview"] = class {
     ".broTileMemberNameCursor": `flex-shrink: 0; position: relative; box-sizing: border-box; width: 28px; height: 28px; margin-right: 6px; background: var(--pageColor); border: solid 4px var(--theme); border-radius: 8px 14px 14px`,
     //".broTileMemberNameCursor:before": `content: ""; position: absolute; width: calc(100% + 6px); height: calc(100% + 6px); left: -3px; top: -3px; border-radius: inherit; contain: strict; box-shadow: 0 0 6px rgb(0 0 0 / 25%)`,
     ".broTileMemberNameText": `font-size: 16px; font-weight: 500; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis`,
-    ".broTileMemberPercent": `--percent: .5; --theme: var(--red); flex-shrink: 0; position: relative; width: 36px; height: 20px; margin: 2px; border: solid 2px var(--theme); border-radius: 12px; transition: .2s`,
+    ".broTileMemberPercent": `--percent: .5; --themeColor: var(--theme); flex-shrink: 0; position: relative; width: 36px; height: 20px; margin: 2px; border: solid 2px var(--themeColor); border-radius: 12px; transition: .2s`,
     //".broTileMemberPercent:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: inset 0px 0px 8px 0px rgba(var(--themeRGB), .3)`,
     ".broTileMemberPercentBarHolder": `position: absolute; width: calc(100% - 4px); height: calc(100% - 4px); left: 2px; top: 2px; border-radius: 8px; overflow: hidden`,
-    ".broTileMemberPercentBar": `width: 100%; height: 100%; transform: translateX(calc(-100% + (100% * var(--percent)))); background: var(--theme); border-radius: 2px; transition: .2s`
+    ".broTileMemberPercentBar": `width: 100%; height: 100%; transform: translateX(calc(-100% + (100% * var(--percent)))); background: var(--themeColor); border-radius: 2px; transition: .2s`
   };
 
   pipeline = { // PIPELINE : Distributes events across various modules and services:
@@ -215,6 +215,8 @@ modules["breakout/overview"] = class {
     });
     return this.fetchTemplatePromise;
   }
+
+  scrollOffset = 58;
 
   js = async (frame) => {
     frame.style.position = "relative";
@@ -543,7 +545,8 @@ modules["breakout/overview"] = class {
       }
       this.layout.runningUpdateCycle = true;
 
-      let centerScroll = groupHolder.scrollTop + (this.containerHeight / 2);
+      this.layout.scrollTop = groupHolder.scrollTop;
+      let centerScroll = this.layout.scrollTop + (this.containerHeight / 2);
       let minLoadBound = centerScroll - this.containerHeight;
       let maxLoadBound = centerScroll + this.containerHeight;
 
@@ -679,17 +682,36 @@ modules["breakout/overview"] = class {
             let previewHolder = previewContainer.querySelector(".broTilePreview");
             tile.editor = await this.setFrame("editor/editor", previewHolder, {
               construct: {
-                page: previewContainer
+                page: previewContainer,
+                scrollOffset: 50
               }
             });
             tile.editor.updatePageSize = () => {
-              
+              tile.editor.pageOffsetWidth = this.layout.columnWidth;
+              tile.editor.pageOffsetHeight = this.layout.columnWidth * this.layout.tileHeightRatio;
+              let scaleWidth = 0; // tile.editor.page.offsetWidth - tile.editor.pageOffsetWidth;
+              let halfScaleWidth = scaleWidth / 2
+              let scaleHeight = 0; // tile.editor.page.offsetHeight - tile.editor.pageOffsetHeight;
+              let halfScaleHeight = scaleHeight / 2;
+              let parentRectX = this.groupHolderRect.x + ((this.groupHolderClientWidth - this.containerWidth) / 2);
+              let parentRectY = this.groupHolderRect.y + this.scrollOffset + (this.layout.tilePadding - 8) - this.layout.scrollTop;
+              tile.editor.pageRect = {
+                x: parentRectX + tile.x - halfScaleWidth,
+                y: parentRectY + tile.y - halfScaleHeight,
+                width: tile.editor.pageOffsetWidth,
+                height: tile.editor.pageOffsetHeight,
+                left: parentRectX + tile.x - halfScaleWidth,
+                right: parentRectX + tile.x + this.layout.columnWidth - halfScaleWidth,
+                top: parentRectY + tile.y - halfScaleHeight,
+                bottom: parentRectY + tile.y + tile.height - halfScaleHeight
+              };
             }
             tile.editor.updatePageSize();
             if (testGroupAnnotationCode == 200) {
-              tile.editor.loadAnnotations(testGroupAnnotationBody);
+              await tile.editor.loadAnnotations(testGroupAnnotationBody);
             }
-            tile.editor.setZoom(.5);
+            await tile.editor.setZoom(.4);
+            tile.editor.utils.centerWindowWithPage();
           })();
           newTilesFragment.appendChild(tile.element);
         }
@@ -714,6 +736,10 @@ modules["breakout/overview"] = class {
         }
         if (pushTransform == true) {
           tile.element.style.setProperty("transform", "matrix(1, 0, 0, 1, " + tile.x + ", " + tile.y + ")");
+        }
+
+        if (tile.editor != null) {
+          tile.editor.updatePageSize();
         }
 
         delete this.layout.loadedTiles[tileID];
@@ -788,9 +814,13 @@ modules["breakout/overview"] = class {
       groupHolder.style.setProperty("--columnWidth", this.layout.columnWidth + "px");
     }
     this.layout.setupColumns = (force) => {
+      this.groupHolderRect = groupHolder.getBoundingClientRect();
+      this.groupHolderClientWidth = groupHolder.clientWidth;
+      this.groupHolderClientHeight = groupHolder.clientHeight;
+
       // Determine the number and width of columns:
-      this.containerWidth = Math.min(groupHolder.clientWidth - (this.layout.tilePadding * 2), this.layout.maxContainerWidth);
-      this.containerHeight = groupHolder.clientHeight;
+      this.containerWidth = Math.min(this.groupHolderClientWidth - (this.layout.tilePadding * 2), this.layout.maxContainerWidth);
+      this.containerHeight = this.groupHolderClientHeight;
 
       let maxPossibleColumns = Math.floor(
         (this.containerWidth + this.layout.tilePadding) / (this.layout.minTileWidth + this.layout.tilePadding)

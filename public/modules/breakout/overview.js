@@ -81,20 +81,42 @@ modules["breakout/overview"] = class {
     ".broOpenBoard button svg": `width: 32px; height: 32px; transition: .2s`,
     ".broOpenBoard button:hover svg": `transform: scale(.9)`,
 
-    ".broTile": `position: absolute; width: var(--columnWidth); height: fit-content; left: 0px; top: 0px; transition: .3s`,
-    ".broTileContent": `--shadow: var(--lightShadow); position: relative; width: 100%; height: 100%; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 16px; overflow: hidden; transition: .2s, transform .1s`,
+    ".broTile": `position: absolute; width: var(--columnWidth); height: fit-content; left: 0px; top: 0px; will-change: transform; transition: .3s`,
+    ".broTileContent": `--shadow: var(--lightShadow); position: relative; width: 100%; height: 100%; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 16px; contain: strict; overflow: hidden; transition: .2s, transform .1s`,
     ".broTile:hover .broTileContent": `--shadow: var(--darkShadow) !important`,
     ".broTile:active .broTileContent": `transform: scale(.95)`,
     ".broTilePreview": `width: 100%; height: calc(var(--columnWidth) * (3/4))`,
     ".broTileHeader": `position: absolute; display: flex; gap: 8px; width: 100%; left: 0px; top: 0px; justify-content: space-between`,
-    ".broTileHeaderName": `display: flex; min-width: 0; box-sizing: border-box; padding: 6px; align-items: center; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 0 0 16px 0; overflow: hidden; transition: .2s`,
-    ".broTileHeaderName img": `flex-shrink: 0; width: 30px; height: 30px; border-radius: 10px; background: red`,
-    ".broTileHeaderName div": `height: 30px; margin: 0 6px; align-content: center; font-size: 18px; font-weight: 500; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;`,
+    ".broTileHeaderName": `display: flex; box-sizing: border-box; gap: 0; min-width: 0; padding: 6px; align-items: center; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 0 0 16px 0; overflow: hidden; transition: .2s`,
+    ".broTileHeaderName:focus-within": `gap: 6px`,
+    ".broTileHeaderNameImage": `flex-shrink: 0; width: 30px; height: 30px; border-radius: 10px; object-fit: cover`,
+    ".broTileHeaderNameHolder": `--borderRadius: 6px; --borderColor: var(--secondary); --borderWidth: 0px; --transition: .05s; min-width: 0; height: 30px; align-content: center`,
+    ".broTileHeaderNameHolder:focus-within": `--borderWidth: 2px !important`,
+    ".broTileHeaderNameHolderText": `max-width: 100%; padding: 0 6px; outline: unset; font-size: 18px; font-weight: 500; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; scrollbar-width: none`,
+    ".broTileHeaderNameHolderText:focus": `padding: 4px 6px !important; overflow-x: auto !important; text-overflow: unset !important; cursor: text`,
+    ".broTileHeaderNameHolderText::-webkit-scrollbar": `display: none`,
     ".broTileHeaderOptions": `display: flex; box-sizing: border-box; padding: 2px; justify-content: center; align-items: center; background: var(--pageColor); opacity: 0; box-shadow: var(--shadow); border-radius: 0 0 0 16px; transition: .2s`,
     ".broTile:hover .broTileHeaderOptions": `opacity: 1 !important`,
-    ".broTileHeaderOptions button": `display: flex; width: 30px; height: 30px; margin: 4px; flex-shrink: 0; justify-content: center; align-items: center; border-radius: 16px`,
-    ".broTileHeaderOptions button svg": `flex-shrink: 0; width: 24px; height: 24px`,
-    ".broTileHeaderOptions button:hover": `background: var(--hover)`,
+    ".broTileHeaderOptionsButton": `display: flex; width: 30px; height: 30px; margin: 4px; flex-shrink: 0; justify-content: center; align-items: center; border-radius: 16px`,
+    ".broTileHeaderOptionsButton > svg": `flex-shrink: 0; width: 24px; height: 24px`,
+    ".broTileHeaderOptionsButton:hover": `background: var(--hover)`,
+    ".broTileMembers": `width: 100%`,
+    ".broTileMember": `--shadow: var(--lightShadow); position: relative; width: calc(100% - 12px); padding: 0; margin: 6px 6px 0; background: var(--pageColor); border-radius: 10px; cursor: grab`,
+    ".broTileMember:hover, .broTileMember:active, .broTileMember[dragging]": `--shadow: var(--darkShadow)`,
+    ".broTileMember:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: var(--shadow)`,
+    ".broTileMemberContent": `display: flex; box-sizing: border-box; width: 100%; gap: 6px; padding: 6px; overflow: hidden; justify-content: space-between`,
+    ".broTileMemberNameHolder": `display: flex; min-width: 0; align-items: center`,
+    ".broTileMemberNameDragHolder": `--transformTranslate: translateX(calc(-6px - 100%)); width: 0px; height: 28px; margin-right: 0px; transition: .2s`,
+    ".broTileMember:hover .broTileMemberNameDragHolder, .broTileMember:active .broTileMemberNameDragHolder, .broTileMember[dragging] .broTileMemberNameDragHolder": `--transformTranslate: translateX(0px); width: 16px; margin-right: 6px`,
+    ".broTileMemberNameDragHandle": `display: flex; flex-direction: column; box-sizing: border-box; width: 16px; height: 28px; padding: 4px 0; justify-content: space-between; align-items: center; transform: var(--transformTranslate); transition: .2s`,
+    ".broTileMemberNameDragHandleDot": `width: 100%; height: 4px; border-radius: 2px; background: var(--gray)`,
+    ".broTileMemberNameCursor": `flex-shrink: 0; position: relative; box-sizing: border-box; width: 28px; height: 28px; margin-right: 6px; background: var(--theme); border: solid 3px var(--pageColor); border-radius: 8px 14px 14px`,
+    ".broTileMemberNameCursor:before": `content: ""; position: absolute; width: calc(100% + 6px); height: calc(100% + 6px); left: -3px; top: -3px; border-radius: inherit; contain: strict; box-shadow: 0 0 6px rgb(0 0 0 / 25%)`,
+    ".broTileMemberNameText": `font-size: 16px; font-weight: 500; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis`,
+    ".broTileMemberPercent": `--percent: 0; --themeRGB: var(--redRGB); flex-shrink: 0; position: relative; width: 36px; height: 20px; margin: 4px; border-radius: 10px`,
+    ".broTileMemberPercent:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: inset 0px 0px 8px 0px rgba(var(--themeRGB), .3)`,
+    ".broTileMemberPercentBarHolder": `position: absolute; width: calc(100% - 8px); height: calc(100% - 8px); left: 4px; top: 4px; border-radius: 6px; overflow: hidden`,
+    ".broTileMemberPercentBar": `width: 100%; height: 100%; transform: translateX(calc(-100% + (100% * var(--percent)))); background: rgb(var(--themeRGB)); border-radius: 2px; transition: .2s`
   };
 
   pipeline = { // PIPELINE : Distributes events across various modules and services:
@@ -440,9 +462,9 @@ modules["breakout/overview"] = class {
     this.layout.tilePadding = 16;
     this.layout.columnCount = 0;
     this.layout.columnWidth = 0;
-    this.layout.tileBaseHeight = 16; // Base padding around tile
+    this.layout.tileBaseHeight = 12; // Base padding around tile
     this.layout.tileHeightRatio = 3/4; // Ratio for getting height from width of thumbnail
-    this.layout.tileMemberHeight = 36; // Height of each member list item
+    this.layout.tileMemberHeight = 40; // Height of each member list item
     this.layout.tileMemberGap = 6; // Gap between each member list item
     this.layout.columns = {};
     this.layout.tiles = {};
@@ -615,18 +637,33 @@ modules["breakout/overview"] = class {
             <div class="broTilePreview"></div>
             <div class="broTileHeader">
               <div class="broTileHeaderName">
-                <img />
-                <div>Untitled Group</div>
+                <img class="broTileHeaderNameImage" src="../images/breakoutbluricon.png" />
+                <div class="broTileHeaderNameHolder border"><div class="broTileHeaderNameHolderText" contenteditable>Untitled Group</div></div>
               </div>
               <div class="broTileHeaderOptions">
-                <button></button>
+                <button class="broTileHeaderOptionsButton"></button>
               </div>
             </div>
-            <div class="broTileMembers">
-
-            </div>
+            <div class="broTileMembers"></div>
           </div>`;
           setSVG(tile.element.querySelector(".broTileHeaderOptions button"), "../images/editor/actions/more.svg");
+          let membersHolder = tile.element.querySelector(".broTileMembers");
+          for (let i = 0; i < tile.members; i++) {
+            membersHolder.insertAdjacentHTML("beforeend", `<button class="broTileMember">
+              <div class="broTileMemberContent">
+                <div class="broTileMemberNameHolder">
+                  <div class="broTileMemberNameDragHolder"><div class="broTileMemberNameDragHandle">
+                    <div class="broTileMemberNameDragHandleDot"></div>
+                    <div class="broTileMemberNameDragHandleDot"></div>
+                    <div class="broTileMemberNameDragHandleDot"></div>
+                  </div></div>
+                  <div class="broTileMemberNameCursor"></div>
+                  <div class="broTileMemberNameText">Mamber Name</div>
+                </div>
+                <div class="broTileMemberPercent"><div class="broTileMemberPercentBarHolder"><div class="broTileMemberPercentBar"></div></div></div>
+              </div>
+            </button>`);
+          }
           newTilesFragment.appendChild(tile.element);
         }
 
@@ -649,7 +686,7 @@ modules["breakout/overview"] = class {
           pushTransform = true;
         }
         if (pushTransform == true) {
-          tile.element.style.setProperty("transform", "translate(" + tile.x + "px, " + tile.y + "px)");
+          tile.element.style.setProperty("transform", "matrix(1, 0, 0, 1, " + tile.x + ", " + tile.y + ")");
         }
 
         delete this.layout.loadedTiles[tileID];
@@ -791,6 +828,57 @@ modules["breakout/overview"] = class {
     groupHolder.addEventListener("scroll", (event) => {
       this.pipeline.publish("scroll", { event: event });
       this.pipeline.publish("bounds_change", { type: "scroll", event: event });
+    });
+
+    groups.addEventListener("click", (event) => {
+
+    });
+
+    groups.addEventListener("contextmenu", (event) => {
+
+    });
+
+    groups.addEventListener("pointerdown", (event) => {
+      let target = event.target;
+      let tile = target.closest(".broTile");
+      if (tile == null) {
+        return;
+      }
+      let tileContent = tile.querySelector(".broTileContent");
+      if (target.closest("button") == null && target.closest("div[contenteditable]") == null) {
+        tileContent.style.removeProperty("transform");
+      } else {
+        return tileContent.style.transform = "scale(1)";
+      }
+    });
+
+    groups.addEventListener("pointermove", (event) => {
+      
+    });
+
+    groups.addEventListener("keydown", (event) => {
+      let target = event.target;
+      let tileNameHolder = target.closest(".broTileHeaderName");
+      if (tileNameHolder != null) {
+        if (event.keyCode == 13) {
+          let tileNameText = tileNameHolder.querySelector("div[holder] div");
+          if (tileNameText != null) {
+            event.preventDefault();
+            tileNameText.blur();
+          }
+          return;
+        }
+      }
+    });
+    groups.addEventListener("focusout", (event) => {
+      let target = event.target;
+      let tileNameHolder = target.closest(".broTileHeaderName");
+      if (tileNameHolder != null) {
+        let tileNameText = tileNameHolder.querySelector("div[holder] div");
+        if (tileNameText != null) {
+          tileNameText.scrollTo(0, 0);
+        }
+      }
     });
 
     // Load Images:

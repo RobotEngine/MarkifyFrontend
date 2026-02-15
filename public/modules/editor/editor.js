@@ -3575,6 +3575,8 @@ modules["editor/editor"] = class {
     }
     this.pipeline.subscribe("boundChange", "bounds_change", this.updateChunks, { sort: 1 });
     this.updatePageSize = () => {
+      //let pageWidth = page.offsetWidth;
+      //let pageHeight = page.offsetHeight;
       let rect = page.getBoundingClientRect();
       this.pageOffsetWidth = rect.width;
       this.pageOffsetHeight = rect.height;
@@ -3582,6 +3584,10 @@ modules["editor/editor"] = class {
       let halfScaleWidth = scaleWidth / 2;
       let scaleHeight = page.offsetHeight - this.pageOffsetHeight;
       let halfScaleHeight = scaleHeight / 2;
+      /*let scale = 1;
+      if (scaleWidth > 0 || scaleHeight > 0) {
+        scale = ((pageWidth / this.pageOffsetWidth) + (pageHeight / this.pageOffsetHeight)) / 2;
+      }*/
       this.pageRect = {
         scale: 1,
         x: rect.x - halfScaleWidth,

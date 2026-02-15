@@ -940,13 +940,13 @@ modules["editor/editor"] = class {
     }
     this.utils.localMousePosition = (mouse) => {
       let [mouseX, mouseY] = this.utils.mousePosition(mouse);
-      return { mouseX: mouseX - this.pageRect.x, mouseY: mouseY - this.pageRect.y };
+      return { mouseX: (mouseX - this.pageRect.x) * this.pageRect.scale, mouseY: (mouseY - this.pageRect.y) * this.pageRect.scale };
     }
     this.utils.convertBoundingRect = (frameRect) => {
-      let transform = 1;
-      if (this.pageFrame.hasAttribute("scale") == true) {
+      let transform = this.pageRect.scale;
+      /*if (this.pageFrame.hasAttribute("scale") == true) {
         transform = 1 / parseFloat(this.pageFrame.getAttribute("scale"));
-      }
+      }*/
       let diffX = (frameRect.x - this.pageRect.x) * transform;
       let diffY = (frameRect.y - this.pageRect.y) * transform;
       return {
@@ -3579,10 +3579,11 @@ modules["editor/editor"] = class {
       this.pageOffsetWidth = rect.width;
       this.pageOffsetHeight = rect.height;
       let scaleWidth = page.offsetWidth - this.pageOffsetWidth;
-      let halfScaleWidth = scaleWidth / 2
+      let halfScaleWidth = scaleWidth / 2;
       let scaleHeight = page.offsetHeight - this.pageOffsetHeight;
       let halfScaleHeight = scaleHeight / 2;
       this.pageRect = {
+        scale: 1,
         x: rect.x - halfScaleWidth,
         y: rect.y - halfScaleHeight,
         width: this.pageOffsetWidth,

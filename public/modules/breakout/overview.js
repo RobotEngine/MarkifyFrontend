@@ -34,7 +34,7 @@ modules["breakout/overview"] = class {
   </div>`;
   css = {
     ".broInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; user-select: none; contain: strict; overflow-y: scroll; z-index: 2`,
-    ".broGroupHolder": `--interfacePadding: 58px; --tilePadding: 16px; --totalWidth: calc((var(--columnWidth) * var(--columnCount)) + (var(--tilePadding) * (var(--columnCount) - 1))); position: relative; display: flex; width: 100%; height: 100%; background: var(--pageColor); contain: strict; overflow-x: hidden; overflow-y: scroll; z-index: 1; justify-content: center; transition: .5s`,
+    ".broGroupHolder": `--interfacePadding: 58px; --tilePadding: 16px; --totalWidth: calc((var(--columnWidth) * var(--columnCount)) + (var(--tilePadding) * (var(--columnCount) - 1))); position: relative; display: flex; width: 100%; height: 100%; background: var(--pageColor); contain: strict; overflow-x: hidden; overflow-y: scroll; overflow-anchor: none; z-index: 1; justify-content: center; transition: .5s`,
     ".broGroups": `position: absolute; box-sizing: border-box; width: var(--totalWidth); height: var(--totalHeight); margin: calc(var(--interfacePadding) + 8px) 0; z-index: 2; transition: width .3s`,
     ".broBackground": `position: absolute; width: 100%; height: 100%; min-height: calc(var(--totalHeight) + (var(--interfacePadding) * 2) + 16px); left: 0px; top: 0px; opacity: .075; background-image: url("../images/editor/backdropblack.svg"); background-size: 25px 25px; background-position: center 50px; z-index: 1; pointer-events: none; contain: strict`,
     ".broCreateBreakoutHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden; z-index: 3; pointer-events: none`,
@@ -87,10 +87,10 @@ modules["breakout/overview"] = class {
     ".broTile:active .broTileContent": `transform: scale(.95)`,
     ".broTilePreviewContainer": `position: relative; width: 100%; height: calc(var(--columnWidth) * (3/4)); z-index: 1`,
     ".broTilePreviewContainer:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px`,
-    ".broTilePreview": `width: 100%; height: 100%; background: var(--pageColor); contain: strict; overflow: scroll; scrollbar-width: none`,
+    ".broTilePreview": `--scale: .2; position: absolute; width: calc(100% * (1 / var(--scale))); height: calc(100% * (1 / var(--scale))); left: 0px; top: 0px; transform: scale(var(--scale)); transform-origin: left top; background: var(--pageColor); contain: strict; overflow: scroll; scrollbar-width: none`,
     ".broTilePreview::-webkit-scrollbar": `display: none`,
-    ".broTileHeader": `position: absolute; display: flex; gap: 8px; width: 100%; left: 0px; top: 0px; justify-content: space-between; z-index: 3`,
-    ".broTileHeaderName": `display: flex; box-sizing: border-box; gap: 0; min-width: 0; padding: 6px; align-items: center; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 0 0 16px 0; overflow: hidden; transition: .2s`,
+    ".broTileHeader": `position: absolute; display: flex; gap: 8px; width: 100%; left: 0px; top: 0px; justify-content: space-between; z-index: 3; pointer-events: none`,
+    ".broTileHeaderName": `display: flex; box-sizing: border-box; gap: 0; min-width: 0; padding: 6px; align-items: center; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 0 0 16px 0; overflow: hidden; pointer-events: all; transition: .2s`,
     ".broTileHeaderName:focus-within": `gap: 6px`,
     ".broTileHeaderNameImage": `flex-shrink: 0; width: 30px; height: 30px; border-radius: 10px; object-fit: cover`,
     ".broTileHeaderNameHolder": `--borderRadius: 6px; --borderColor: var(--secondary); --borderWidth: 0px; --transition: .05s; min-width: 0; height: 30px; align-content: center`,
@@ -98,7 +98,7 @@ modules["breakout/overview"] = class {
     ".broTileHeaderNameHolderText": `max-width: 100%; padding: 0 6px; outline: unset; font-size: 18px; font-weight: 500; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; scrollbar-width: none`,
     ".broTileHeaderNameHolderText:focus": `padding: 4px 6px !important; overflow-x: auto !important; text-overflow: unset !important; cursor: text`,
     ".broTileHeaderNameHolderText::-webkit-scrollbar": `display: none`,
-    ".broTileHeaderOptions": `display: flex; box-sizing: border-box; padding: 2px; justify-content: center; align-items: center; background: var(--pageColor); opacity: 0; box-shadow: var(--shadow); border-radius: 0 0 0 16px; transition: .2s`,
+    ".broTileHeaderOptions": `display: flex; box-sizing: border-box; padding: 2px; justify-content: center; align-items: center; background: var(--pageColor); opacity: 0; box-shadow: var(--shadow); border-radius: 0 0 0 16px; pointer-events: all; transition: .2s`,
     ".broTile:hover .broTileHeaderOptions": `opacity: 1 !important`,
     ".broTileHeaderOptionsButton": `display: flex; width: 30px; height: 30px; margin: 4px; flex-shrink: 0; justify-content: center; align-items: center; border-radius: 16px`,
     ".broTileHeaderOptionsButton > svg": `flex-shrink: 0; width: 24px; height: 24px`,
@@ -117,7 +117,7 @@ modules["breakout/overview"] = class {
     ".broTileMemberNameCursor": `flex-shrink: 0; position: relative; box-sizing: border-box; width: 28px; height: 28px; margin-right: 6px; background: var(--pageColor); border: solid 4px var(--theme); border-radius: 8px 14px 14px`,
     //".broTileMemberNameCursor:before": `content: ""; position: absolute; width: calc(100% + 6px); height: calc(100% + 6px); left: -3px; top: -3px; border-radius: inherit; contain: strict; box-shadow: 0 0 6px rgb(0 0 0 / 25%)`,
     ".broTileMemberNameText": `font-size: 16px; font-weight: 500; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis`,
-    ".broTileMemberPercent": `--percent: .5; --themeColor: var(--theme); flex-shrink: 0; position: relative; width: 36px; height: 20px; margin: 2px; border: solid 2px var(--themeColor); border-radius: 12px; transition: .2s`,
+    ".broTileMemberPercent": `--percent: .25; --themeColor: var(--theme); flex-shrink: 0; position: relative; width: 36px; height: 20px; margin: 2px; border: solid 2px var(--themeColor); border-radius: 12px; transition: .2s`,
     //".broTileMemberPercent:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: inset 0px 0px 8px 0px rgba(var(--themeRGB), .3)`,
     ".broTileMemberPercentBarHolder": `position: absolute; width: calc(100% - 4px); height: calc(100% - 4px); left: 2px; top: 2px; border-radius: 8px; overflow: hidden`,
     ".broTileMemberPercentBar": `width: 100%; height: 100%; transform: translateX(calc(-100% + (100% * var(--percent)))); background: var(--themeColor); border-radius: 2px; transition: .2s`
@@ -462,7 +462,7 @@ modules["breakout/overview"] = class {
     this.updateBackground();
 
     // TESTING TESTING TESTING TESTING TESTING REMOVE LATER
-    let [testGroupAnnotationCode, testGroupAnnotationBody] = await sendRequest("GET", "lessons/join/annotations?group=6970849accd1dd07a187b0c0", null, { session: this.parent.session }, { allowError: true });
+    let [testGroupAnnotationCode, testGroupAnnotationBody] = await sendRequest("GET", "lessons/join/annotations?template=694632d6855f52042ebf8ff2", null, { session: this.parent.session }, { allowError: true });
 
     // Handle Tile Masonry Layout:
     this.layout = {};
@@ -472,6 +472,7 @@ modules["breakout/overview"] = class {
     this.layout.maxContainerWidth = (this.layout.minTileWidth * 6) + (this.layout.tilePadding * 5) - 1;
     this.layout.columnCount = 0;
     this.layout.columnWidth = 0;
+    this.layout.previewScale = .2;
     this.layout.tileBaseHeight = 12; // Base padding around tile
     this.layout.tileHeightRatio = 3/4; // Ratio for getting height from width of thumbnail
     this.layout.tileMemberHeight = 40; // Height of each member list item
@@ -480,6 +481,7 @@ modules["breakout/overview"] = class {
     this.layout.tiles = {};
     this.layout.tileLayout = [];
     this.layout.loadedTiles = [];
+    this.layout.pendingEditors = [];
     this.layout.getTileHeight = (tile) => {
       let memberCount = tile.members ?? 0;
       return this.layout.tileBaseHeight
@@ -539,16 +541,41 @@ modules["breakout/overview"] = class {
 
       return [column, section];
     }
-    this.layout.runUpdateCycle = () => {
+    this.layout.setupEditors = async () => {
+      if (this.layout.runningEditorSetup == true) {
+        return;
+      }
+      this.layout.runningEditorSetup = true;
+
+      while (this.layout.pendingEditors.length > 0 && this.layout.runningEditorSetup == true) {
+        let tile = this.layout.pendingEditors.shift();
+        if (tile.editor == null || tile.element == null) {
+          continue;
+        }
+        tile.editor.updatePageSize();
+        await tile.editor.render.setMarginSize();
+        if (testGroupAnnotationCode == 200) {
+          await tile.editor.loadAnnotations(testGroupAnnotationBody);
+        }
+        //await tile.editor.setZoom(.318);
+        //tile.editor.utils.centerWindowWithPage();
+        await sleep(10);
+      }
+
+      this.layout.runningEditorSetup = false;
+    }
+    this.layout.runUpdateCycle = async () => {
       if (this.layout.runningUpdateCycle == true) {
         return;
       }
       this.layout.runningUpdateCycle = true;
+      this.layout.runningEditorSetup = false;
 
       this.layout.scrollTop = groupHolder.scrollTop;
       let centerScroll = this.layout.scrollTop + (this.containerHeight / 2);
-      let minLoadBound = centerScroll - this.containerHeight;
-      let maxLoadBound = centerScroll + this.containerHeight;
+      let renderDistance = this.containerHeight;
+      let minLoadBound = centerScroll - renderDistance;
+      let maxLoadBound = centerScroll + renderDistance;
 
       let minLoadedBound;
       let minTileID;
@@ -635,6 +662,7 @@ modules["breakout/overview"] = class {
 
       // Load New Tiles:
       let newTilesFragment = document.createDocumentFragment();
+      let newTilesPendingEditors = [];
       let loadTileKeys = Object.keys(loadTiles);
       for (let i = 0; i < loadTileKeys.length; i++) {
         let tileID = loadTileKeys[i];
@@ -677,42 +705,7 @@ modules["breakout/overview"] = class {
               </div>
             </button>`);
           }
-          (async () => { // Load preview document:
-            let previewContainer = tile.element.querySelector(".broTilePreviewContainer");
-            let previewHolder = previewContainer.querySelector(".broTilePreview");
-            tile.editor = await this.setFrame("editor/editor", previewHolder, {
-              construct: {
-                page: previewContainer,
-                scrollOffset: 50
-              }
-            });
-            tile.editor.updatePageSize = () => {
-              tile.editor.pageOffsetWidth = this.layout.columnWidth;
-              tile.editor.pageOffsetHeight = this.layout.columnWidth * this.layout.tileHeightRatio;
-              let scaleWidth = 0; // tile.editor.page.offsetWidth - tile.editor.pageOffsetWidth;
-              let halfScaleWidth = scaleWidth / 2
-              let scaleHeight = 0; // tile.editor.page.offsetHeight - tile.editor.pageOffsetHeight;
-              let halfScaleHeight = scaleHeight / 2;
-              let parentRectX = this.groupHolderRect.x + ((this.groupHolderClientWidth - this.containerWidth) / 2);
-              let parentRectY = this.groupHolderRect.y + this.scrollOffset + (this.layout.tilePadding - 8) - this.layout.scrollTop;
-              tile.editor.pageRect = {
-                x: parentRectX + tile.x - halfScaleWidth,
-                y: parentRectY + tile.y - halfScaleHeight,
-                width: tile.editor.pageOffsetWidth,
-                height: tile.editor.pageOffsetHeight,
-                left: parentRectX + tile.x - halfScaleWidth,
-                right: parentRectX + tile.x + this.layout.columnWidth - halfScaleWidth,
-                top: parentRectY + tile.y - halfScaleHeight,
-                bottom: parentRectY + tile.y + tile.height - halfScaleHeight
-              };
-            }
-            tile.editor.updatePageSize();
-            if (testGroupAnnotationCode == 200) {
-              await tile.editor.loadAnnotations(testGroupAnnotationBody);
-            }
-            await tile.editor.setZoom(.4);
-            tile.editor.utils.centerWindowWithPage();
-          })();
+          newTilesPendingEditors.push(tile);
           newTilesFragment.appendChild(tile.element);
         }
 
@@ -744,7 +737,59 @@ modules["breakout/overview"] = class {
 
         delete this.layout.loadedTiles[tileID];
       }
+
+      // Load Editors:
+      for (let i = 0; i < newTilesPendingEditors.length; i++) {
+        let tile = newTilesPendingEditors[i];
+        if (tile.element == null) {
+          continue;
+        }
+        let previewContainer = tile.element.querySelector(".broTilePreviewContainer");
+        let previewHolder = previewContainer.querySelector(".broTilePreview");
+        tile.editor = await this.setFrame("editor/editor", previewHolder, {
+          construct: {
+            page: previewContainer,
+            pageID: this.parent.pageID,
+            pageType: this.parent.pageType,
+            id: this.parent.parent.id,
+            lesson: this.parent.parent,
+            self: this.parent.parent.self,
+            session: this.parent.parent.session,
+            sessionID: this.parent.parent.sessionID,
+            sources: this.parent.parent.sources,
+            scrollOffset: 50 * (1 / this.layout.previewScale)
+          }
+        });
+        tile.editor.updatePageSize = () => {
+          let invertedScale = 1 / this.layout.previewScale;
+          let standardWidth = this.layout.columnWidth;
+          let standardHeight = this.layout.columnWidth * this.layout.tileHeightRatio;
+          tile.editor.pageOffsetWidth = standardWidth * invertedScale;
+          tile.editor.pageOffsetHeight = standardHeight * invertedScale;
+          let parentRectX = this.groupHolderRect.x + ((this.containerWidth - this.layout.groupsWidth) / 2);
+          let parentRectY = this.groupHolderRect.y + this.scrollOffset + (this.layout.tilePadding - 8) - this.layout.scrollTop;
+          tile.editor.pageRect = {
+            scale: invertedScale,
+            x: parentRectX + tile.x,
+            y: parentRectY + tile.y,
+            width: tile.editor.pageOffsetWidth,
+            height: tile.editor.pageOffsetHeight,
+            left: parentRectX + tile.x,
+            right: parentRectX + tile.x + this.layout.columnWidth,
+            top: parentRectY + tile.y,
+            bottom: parentRectY + tile.y + tile.height
+          };
+        }
+        this.layout.pendingEditors.push(tile);
+      }
+
+      // Bulk Apply Elements:
       groups.appendChild(newTilesFragment);
+
+      // Configure Editor Viewports:
+      //this.layout.setupEditors();
+      clearTimeout(this.layout.setupEditorsTimeout);
+      this.layout.setupEditorsTimeout = setTimeout(this.layout.setupEditors, 50);
 
       // Unload Tiles:
       let unloadTileKeys = Object.keys(this.layout.loadedTiles);
@@ -815,21 +860,20 @@ modules["breakout/overview"] = class {
     }
     this.layout.setupColumns = (force) => {
       this.groupHolderRect = groupHolder.getBoundingClientRect();
-      this.groupHolderClientWidth = groupHolder.clientWidth;
-      this.groupHolderClientHeight = groupHolder.clientHeight;
+      this.containerWidth = groupHolder.clientWidth;
+      this.containerHeight = groupHolder.clientHeight;
 
       // Determine the number and width of columns:
-      this.containerWidth = Math.min(this.groupHolderClientWidth - (this.layout.tilePadding * 2), this.layout.maxContainerWidth);
-      this.containerHeight = this.groupHolderClientHeight;
+      let groupsWidth = Math.min(this.containerWidth - (this.layout.tilePadding * 2), this.layout.maxContainerWidth);
 
       let maxPossibleColumns = Math.floor(
-        (this.containerWidth + this.layout.tilePadding) / (this.layout.minTileWidth + this.layout.tilePadding)
+        (groupsWidth + this.layout.tilePadding) / (this.layout.minTileWidth + this.layout.tilePadding)
       );
       let newColumnCount = Math.max(1, maxPossibleColumns);
 
       while (true) {
         let totalInterPadding = this.layout.tilePadding * (newColumnCount - 1);
-        this.layout.columnWidth = (this.containerWidth - totalInterPadding) / newColumnCount;
+        this.layout.columnWidth = (groupsWidth - totalInterPadding) / newColumnCount;
         if (this.layout.columnWidth <= this.layout.maxTileWidth || newColumnCount < 2) break;
         newColumnCount--;
       }
@@ -837,8 +881,10 @@ modules["breakout/overview"] = class {
       this.layout.columnWidth = Math.min(
         this.layout.maxTileWidth,
         Math.max(this.layout.minTileWidth, this.layout.columnWidth),
-        this.containerWidth
+        groupsWidth
       );
+
+      this.layout.groupsWidth = (this.layout.columnWidth * newColumnCount) + (this.layout.tilePadding * (newColumnCount - 1));
 
       // Reorganize tiles to new columns:
       while (this.layout.columnCount != newColumnCount) {
@@ -874,7 +920,7 @@ modules["breakout/overview"] = class {
       if (data == null) {
         return;
       }
-      let tileInfo = { section: data.version, render: data, members: Math.round(Math.random() * (5 - 1) + 1) };
+      let tileInfo = { section: data.version, render: data, members: 4 }; //Math.round(Math.random() * (5 - 1) + 1)
       this.layout.tiles[data._id] = tileInfo;
       this.layout.tileLayout.push(data._id);
       // this.layout.refreshTileSpots(this.layout.tileLayout.length - 1);

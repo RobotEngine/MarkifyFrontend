@@ -280,6 +280,7 @@ modules["pages/app/lesson"] = class extends page {
   self = {};
 
   sources = {};
+  pageRenderPipeline = { running: false, queue: [] };
 
   preferences = {
     tools: {

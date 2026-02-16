@@ -233,6 +233,7 @@ modules["breakout/group"] = class {
         session: this.parent.parent.session,
         sessionID: this.parent.parent.sessionID,
         sources: this.parent.parent.sources,
+        pageRenderPipeline: this.parent.parent.pageRenderPipeline,
         collaborators: this.parent.parent.collaborators,
         settings: this.parent.parent.lesson.settings,
         resync: this.parent.parent.resync,

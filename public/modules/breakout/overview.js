@@ -30,13 +30,13 @@ modules["breakout/overview"] = class {
   </div>
   <div class="broGroupHolder customScroll">
     <div class="broGroups"></div>
-    <div class="broBackground"></div>
+    <!--<div class="broBackground"></div>-->
   </div>`;
   css = {
     ".broInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; user-select: none; contain: strict; overflow-y: scroll; z-index: 2`,
     ".broGroupHolder": `--interfacePadding: 58px; --tilePadding: 16px; --totalWidth: calc((var(--columnWidth) * var(--columnCount)) + (var(--tilePadding) * (var(--columnCount) - 1))); position: relative; display: flex; width: 100%; height: 100%; background: var(--pageColor); contain: strict; overflow-x: hidden; overflow-y: scroll; overflow-anchor: none; z-index: 1; justify-content: center; transition: .5s`,
     ".broGroups": `position: absolute; box-sizing: border-box; width: var(--totalWidth); height: var(--totalHeight); margin: calc(var(--interfacePadding) + 8px) 0; z-index: 2; transition: width .3s`,
-    ".broBackground": `position: absolute; width: 100%; height: 100%; min-height: calc(var(--totalHeight) + (var(--interfacePadding) * 2) + 16px); left: 0px; top: 0px; opacity: .075; background-image: url("../images/editor/backdropblack.svg"); background-size: 25px 25px; background-position: center 50px; z-index: 1; pointer-events: none; contain: strict`,
+    //".broBackground": `position: absolute; width: 100%; height: 100%; min-height: calc(var(--totalHeight) + (var(--interfacePadding) * 2) + 16px); left: 0px; top: 0px; opacity: .075; background-image: url("../images/editor/backdropblack.svg"); background-size: 25px 25px; background-position: center 50px; z-index: 1; pointer-events: none; contain: strict`,
     ".broCreateBreakoutHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden; z-index: 3; pointer-events: none`,
 
     ".broTopHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
@@ -87,7 +87,7 @@ modules["breakout/overview"] = class {
     ".broTile:active .broTileContent": `transform: scale(.95)`,
     ".broTilePreviewContainer": `position: relative; width: 100%; height: calc(var(--columnWidth) * (3/4)); z-index: 1`,
     ".broTilePreviewContainer:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px`,
-    ".broTilePreview": `--scale: .2; position: absolute; width: calc(100% * (1 / var(--scale))); height: calc(100% * (1 / var(--scale))); left: 0px; top: 0px; transform: scale(var(--scale)); transform-origin: left top; background: var(--pageColor); contain: strict; overflow: scroll; scrollbar-width: none`,
+    ".broTilePreview": `--scale: .3; position: absolute; width: calc(100% * (1 / var(--scale))); height: calc(100% * (1 / var(--scale))); left: 0px; top: 0px; transform: scale(var(--scale)); transform-origin: left top; background: var(--pageColor); contain: strict; overflow: scroll; scrollbar-width: none`,
     ".broTilePreview::-webkit-scrollbar": `display: none`,
     ".broTileHeader": `position: absolute; display: flex; gap: 8px; width: 100%; left: 0px; top: 0px; justify-content: space-between; z-index: 3; pointer-events: none`,
     ".broTileHeaderName": `display: flex; box-sizing: border-box; gap: 0; min-width: 0; padding: 6px; align-items: center; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 0 0 16px 0; overflow: hidden; pointer-events: all; transition: .2s`,
@@ -117,10 +117,10 @@ modules["breakout/overview"] = class {
     ".broTileMemberNameCursor": `flex-shrink: 0; position: relative; box-sizing: border-box; width: 28px; height: 28px; margin-right: 6px; background: var(--pageColor); border: solid 4px var(--theme); border-radius: 8px 14px 14px`,
     //".broTileMemberNameCursor:before": `content: ""; position: absolute; width: calc(100% + 6px); height: calc(100% + 6px); left: -3px; top: -3px; border-radius: inherit; contain: strict; box-shadow: 0 0 6px rgb(0 0 0 / 25%)`,
     ".broTileMemberNameText": `font-size: 16px; font-weight: 500; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis`,
-    ".broTileMemberPercent": `--percent: .25; --themeColor: var(--theme); flex-shrink: 0; position: relative; width: 36px; height: 20px; margin: 2px; border: solid 2px var(--themeColor); border-radius: 12px; transition: .2s`,
+    ".broTileMemberPercent": `--percent: 0; --invert: 0; --themeColor: var(--theme); flex-shrink: 0; position: relative; width: 36px; height: 16px; margin: 4px; border: solid 2px var(--themeColor); border-radius: 12px; transition: .2s`,
     //".broTileMemberPercent:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: inset 0px 0px 8px 0px rgba(var(--themeRGB), .3)`,
     ".broTileMemberPercentBarHolder": `position: absolute; width: calc(100% - 4px); height: calc(100% - 4px); left: 2px; top: 2px; border-radius: 8px; overflow: hidden`,
-    ".broTileMemberPercentBar": `width: 100%; height: 100%; transform: translateX(calc(-100% + (100% * var(--percent)))); background: var(--themeColor); border-radius: 2px; transition: .2s`
+    ".broTileMemberPercentBar": `--width: calc((var(--percent) * ((32px / 2) - 6px))); position: absolute; width: calc(12px + var(--width)); height: 100%; left: calc((100% / 2) - 6px); transform: translateX(calc(var(--invert) * var(--width) * -1)); background: var(--themeColor); border-radius: 6px; transition: .2s`
   };
 
   pipeline = { // PIPELINE : Distributes events across various modules and services:
@@ -246,7 +246,7 @@ modules["breakout/overview"] = class {
 
     let groupHolder = frame.querySelector(".broGroupHolder");
     let groups = groupHolder.querySelector(".broGroups");
-    let background = groupHolder.querySelector(".broBackground");
+    //let background = groupHolder.querySelector(".broBackground");
 
     let openBoardHolder = frame.querySelector(".broOpenBoard");
     let openBoard = openBoardHolder.querySelector("button");
@@ -443,7 +443,7 @@ modules["breakout/overview"] = class {
       }
     }, { sort: 1 });
 
-    this.updateBackground = () => {
+    /*this.updateBackground = () => {
       if (getTheme() != "dark") {
         groupHolder.style.setProperty("--backgroundColor", "#FFFFFF");
         background.style.setProperty("background-image", "url(../images/editor/backdropblack.svg)");
@@ -453,16 +453,16 @@ modules["breakout/overview"] = class {
         background.style.setProperty("background-image", "url(../images/editor/backdropwhite.svg)");
         groupHolder.style.setProperty("--secondaryBackgroundColor", "#848d96");
       }
-    }
+    }*/
     this.pipeline.subscribe("accountUpdate", "account_settings", (event) => {
-      if (event.settings.hasOwnProperty("theme") == true) {
+      /*if (event.settings.hasOwnProperty("theme") == true) {
         this.updateBackground();
-      }
+      }*/
     });
-    this.updateBackground();
+    //this.updateBackground();
 
     // TESTING TESTING TESTING TESTING TESTING REMOVE LATER
-    let [testGroupAnnotationCode, testGroupAnnotationBody] = await sendRequest("GET", "lessons/join/annotations?template=694632d6855f52042ebf8ff2", null, { session: this.parent.session }, { allowError: true });
+    let [testGroupAnnotationCode, testGroupAnnotationBody] = await sendRequest("GET", "lessons/join/annotations?template=6951be49332ec21eb05cdbff", null, { session: this.parent.session }, { allowError: true });
 
     // Handle Tile Masonry Layout:
     this.layout = {};
@@ -472,7 +472,7 @@ modules["breakout/overview"] = class {
     this.layout.maxContainerWidth = (this.layout.minTileWidth * 6) + (this.layout.tilePadding * 5) - 1;
     this.layout.columnCount = 0;
     this.layout.columnWidth = 0;
-    this.layout.previewScale = .2;
+    this.layout.previewScale = .3;
     this.layout.tileBaseHeight = 12; // Base padding around tile
     this.layout.tileHeightRatio = 3/4; // Ratio for getting height from width of thumbnail
     this.layout.tileMemberHeight = 40; // Height of each member list item
@@ -559,7 +559,6 @@ modules["breakout/overview"] = class {
         }
         //await tile.editor.setZoom(.318);
         //tile.editor.utils.centerWindowWithPage();
-        await sleep(10);
       }
 
       this.layout.runningEditorSetup = false;
@@ -757,7 +756,9 @@ modules["breakout/overview"] = class {
             session: this.parent.parent.session,
             sessionID: this.parent.parent.sessionID,
             sources: this.parent.parent.sources,
-            scrollOffset: 50 * (1 / this.layout.previewScale)
+            pageRenderPipeline: this.parent.parent.pageRenderPipeline,
+            scrollOffset: 50 * (1 / this.layout.previewScale),
+            sideScrollOffset: 8 * (1 / this.layout.previewScale)
           }
         });
         tile.editor.updatePageSize = () => {
@@ -796,7 +797,10 @@ modules["breakout/overview"] = class {
       for (let i = 0; i < unloadTileKeys.length; i++) {
         let tileID = unloadTileKeys[i];
         let tile = this.layout.tiles[tileID];
-
+        if (tile.editor != null) {
+          tile.editor.destroy();
+          tile.editor = null;
+        }
         if (tile.element != null) {
           tile.element.remove();
           tile.element = null;

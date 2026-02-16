@@ -503,6 +503,11 @@ modules["editor/editor"] = class {
     return target.closest(".eContent") == this.content;
   }
 
+  running = true;
+  destroy = () => {
+    this.running = false;
+  }
+
   options = {
     snapping: true,
     cursors: true,
@@ -547,6 +552,8 @@ modules["editor/editor"] = class {
   visiblePages = [0];
   annotationPages = [];
   currentPage = 1;
+
+  pageRenderPipeline = { running: false, queue: [] };
 
   comments = {};
 
@@ -1268,16 +1275,17 @@ modules["editor/editor"] = class {
       
       let annotationRect = this.utils.annotationsRect();
       let scrollOptions = {};
-      if (annoRect.width * this.zoom < contentHolder.clientWidth - (this.scrollOffset * 2)) {
+      let sideScrollOffset = this.sideScrollOffset ?? this.scrollOffset;
+      if (annoRect.width * this.zoom < contentHolder.clientWidth - (sideScrollOffset * 2)) {
         // Position page to center:
         scrollOptions.left = annotationRect.left + contentHolder.scrollLeft - (contentHolder.clientWidth / 2) + (annoRect.centerX * this.zoom);
       } else {
         // Position page to left corner:
         if ((account.settings ?? {}).toolbar != "right") {
-          scrollOptions.left = annotationRect.left + contentHolder.scrollLeft - this.scrollOffset + (topLeftX * this.zoom);
+          scrollOptions.left = annotationRect.left + contentHolder.scrollLeft - sideScrollOffset + (topLeftX * this.zoom);
         } else {
           scrollOptions.left = annotationRect.left + contentHolder.scrollLeft - 8 + (topLeftX * this.zoom);
-          //scrollOptions.left = annotationRect.left + contentHolder.scrollLeft - contentHolder.clientWidth + this.scrollOffset + (bottomRightX * this.zoom);
+          //scrollOptions.left = annotationRect.left + contentHolder.scrollLeft - contentHolder.clientWidth + sideScrollOffset + (bottomRightX * this.zoom);
         }
       }
       if (annoRect.height * this.zoom < contentHolder.clientHeight - (this.scrollOffset * 2)) {
@@ -1482,10 +1490,8 @@ modules["editor/editor"] = class {
     this.render = {};
     this.render.fragmentQueue = [];
     this.render.fragmentStorage = {};
-    this.render.pdfPageQueue = [];
     this.render.pdfPageStorage = {};
     this.render.pdfFileLoading = {};
-    this.render.runningPageRender = false;
     // Default Chunks:
     this.render.tempID = () => {
       return "pending_" + randomString(10) + Date.now();
@@ -1663,10 +1669,10 @@ modules["editor/editor"] = class {
       return fragmentData[0];
     }
     this.render.processPageRenders = async () => {
-      if (this.render.runningPageRender == true) {
+      if (this.pageRenderPipeline.running == true) {
         return;
       }
-      this.render.runningPageRender = true;
+      this.pageRenderPipeline.running = true;
       if (window.pdfjsLib == null) {
         await loadScript("./libraries/pdfjs/pdf.mjs"); // Load PDFJS
       }
@@ -1674,347 +1680,352 @@ modules["editor/editor"] = class {
         pdfjsLib.GlobalWorkerOptions.workerSrc = "./libraries/pdfjs/pdf.worker.mjs";
       }
   
-      while (this.render.pdfPageQueue.length > 0 || (this.exporting == true && Object.keys(this.render.pdfFileLoading).length > 0)) {
-        let sourcePageId = this.render.pdfPageQueue.shift();
-        if (sourcePageId == null) {
-          await sleep(100);
-          continue;
-        }
-        let [sourceID, pageNumber] = this.render.pdfPageStorage[sourcePageId] ?? [];
-        delete this.render.pdfPageStorage[sourcePageId];
-  
-        let source = this.sources[sourceID] ?? {};
-        if (source.error == true) {
-          continue;
-        }
-        if (source.pdf == null) {
-          if (this.render.pdfFileLoading[sourceID] == null) {
-            this.render.pdfFileLoading[sourceID] = {};
-            (async () => {
-              if (source.source == null) {
-                let [code, body] = await sendRequest("GET", "lessons/join/source?source=" + sourceID, null, { session: this.session });
-                if (code == 200) {
-                  this.sources[sourceID] = { source: body.source };
-                } else {
-                  this.sources[sourceID] = { error: true };
-                }
-              }
-              source = this.sources[sourceID] ?? {};
-              if (source.source != null) {
-                let loadingTask = pdfjsLib.getDocument(assetURL + source.source)
-                addTempListener({ type: "pdf", document: loadingTask });
-                loadingTask.promise.then(async (pdf) => {
-                  source.pdf = pdf;
-                  let loadingPageKeys = Object.keys(this.render.pdfFileLoading[sourceID])
-                  for (let b = 0; b < loadingPageKeys.length; b++) {
-                    let pageAdd = this.render.pdfFileLoading[sourceID][loadingPageKeys[b]];
-                    this.render.addPageToQueue(pageAdd[0], pageAdd[1], true);
-                  }
-                  delete this.render.pdfFileLoading[sourceID];
-                });
-              }
-            })();
-          }
-          this.render.pdfFileLoading[sourceID][sourcePageId] = [sourceID, pageNumber];
-          continue;
-        }
-  
-        let pageRender = this.sourceRenders[sourcePageId];
-        if (pageRender == null) {
-          pageRender = await new Promise(async (resolve) => {
-            source.pdf.getPage(pageNumber).then(async (pageRender) => {
-              resolve(pageRender);
-            });
-          });
-          this.sourceRenders[sourcePageId] = pageRender;
-        }
-  
-        let loadDocumentFrames = annotations.querySelectorAll('.eAnnotation[page] div[content] div[document][sourcepage="' + sourcePageId + '"]');
-        for (let e = 0; e < loadDocumentFrames.length; e++) {
-          let element = loadDocumentFrames[e];
-          if (element == null) {
-            continue;
-          }
-          if (element.childElementCount > 0) {
-            continue;
-          }
-  
-          let viewport = pageRender.getViewport({ scale: 2 });
-          //let outputScale = window.devicePixelRatio ?? 1;
-          
-          element.insertAdjacentHTML("beforeend", `<canvas></canvas><div textlayer></div><div annotationlayer></div>`);
-          
-          let canvas = element.querySelector("canvas");
-          let context = canvas.getContext("2d", { alpha: false, willReadFrequently: true });
-  
-          let setWidth = viewport.width;// * outputScale;
-          let setHeight = viewport.height;// * outputScale;
-          canvas.width = setWidth;
-          canvas.height = setHeight;
-          let annoWidth = parseFloat(element.getAttribute("width"));
-          let annoHeight = parseFloat(element.getAttribute("height"));
-          let annoRotation = parseInt(element.getAttribute("rotation"));
-          if (annoRotation == 90 || annoRotation == 270) {
-            //let prevSetWidth = setWidth;
-            //setWidth = setHeight;
-            //setHeight = prevSetWidth;
-            let prevAnnoWidth = annoWidth;
-            annoWidth = annoHeight;
-            annoHeight = prevAnnoWidth;
-          }
-          element.style.setProperty("--fullWidth", setWidth + "px");
-          element.style.setProperty("--fullHeight", setHeight + "px");
-          element.style.transform = "rotate(" + annoRotation + "deg)";
-          let ratio = setWidth / setHeight;
-          let ratioedWidth = (annoHeight - 8) * ratio;
-          let ratioedHeight = (annoWidth - 8) / ratio;
-          if (ratioedWidth < annoWidth - 8) {
-            element.style.width = (ratioedWidth + 8) + "px";
-            element.style.height = annoHeight + "px";
-            element.style.setProperty("--fullScale", "scale(" + ((annoHeight - 8) / setHeight) + ")");
-          } else {
-            element.style.width = annoWidth + "px";
-            element.style.height = (ratioedHeight + 8) + "px";
-            element.style.setProperty("--fullScale", "scale(" + ((annoWidth - 8) / setWidth) + ")");
-          }
-  
-          //let transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
-          
-          await new Promise(async (resolve) => {
-            pageRender.render({
-              canvasContext: context,
-              //transform: transform,
-              viewport: viewport
-            }).promise.then(() => {
-              element.style.opacity = "1";
-              let textHolder = element.querySelector("div[textlayer]");
-              if (textHolder != null) {
-                pageRender.getTextContent().then((textContent) => {
-                  (new pdfjsLib.TextLayer({
-                    textContentSource: textContent,
-                    container: textHolder,
-                    viewport: viewport
-                  })).render();
-                  resolve();
-                });
-              }
-              let annotationHolder = element.querySelector("div[annotationlayer]");
-              if (annotationHolder != null) {
-                pageRender.getAnnotations().then((annotationsData) => {
-                  annotationsData = annotationsData.filter((value) => { return (value ?? {}).subtype == "Link"; });
-                  const DEFAULT_LINK_REL = "noopener noreferrer nofollow";
-                  const LinkTarget = {
-                    NONE: 0,
-                    SELF: 1,
-                    BLANK: 2,
-                    PARENT: 3,
-                    TOP: 4
-                  };
-                  let setSource = sourceID;
-                  let setEditor = this;
-                  (new pdfjsLib.AnnotationLayer({
-                    div: annotationHolder,
-                    page: pageRender,
-                    viewport: viewport
-                  })).render({
-                    annotations: annotationsData,
-                    linkService: new class {
-                      externalLinkEnabled = true;
-                      constructor({
-                        sourceID = setSource,
-                        editor = setEditor,
-                        pdfDocument = source.pdf,
-                        externalLinkTarget = 2, //null
-                      } = {}) {
-                        this.sourceID = sourceID;
-                        this.editor = editor;
-                        this.externalLinkTarget = externalLinkTarget;
-                        this.externalLinkRel = null;
-                        this._ignoreDestinationZoom = false;
-                        this.baseUrl = null;
-                        this.pdfDocument = pdfDocument;
-                        //this.pdfViewer = null;
-                        //this.pdfHistory = null;
-                      }
-                      //setDocument(pdfDocument, baseUrl = null) {}
-                      //setViewer(pdfViewer) {}
-                      //setHistory(pdfHistory) {}
-                      get pagesCount() {
-                        return this.pdfDocument ? this.pdfDocument.numPages : 0;
-                      }
-                      //get page() {}
-                      //set page(value) {}
-                      //get rotation() {}
-                      //set rotation(value) {}
-                      //get isInPresentationMode() {}
-                      async getPDFDestination(dest) {
-                        //let namedDest;
-                        let explicitDest;
-                        let pageNumber;
-                        if (typeof dest === "string") {
-                          //namedDest = dest;
-                          explicitDest = await this.pdfDocument.getDestination(dest);
-                        } else {
-                          //namedDest = null;
-                          explicitDest = dest;
-                        }
-                        if (!Array.isArray(explicitDest)) {
-                          return;
-                        }
-                        let [destRef] = explicitDest;
-                        if (destRef && typeof destRef === "object") {
-                          pageNumber = this.pdfDocument.cachedPageNumber(destRef);
-                          if (!pageNumber) {
-                            try {
-                              pageNumber = (await this.pdfDocument.getPageIndex(destRef)) + 1;
-                            } catch {
-                              return;
-                            }
-                          }
-                        } else if (Number.isInteger(destRef)) {
-                          pageNumber = destRef + 1;
-                        }
-                        return pageNumber;
-                      }
-                      async getLessonDestination(dest) {
-                        let pageNumber = await this.getPDFDestination(dest);
-                        if (!pageNumber || pageNumber < 1 || pageNumber > this.pagesCount) {
-                          return;
-                        }
-                        let foundPage;
-                        for (let i = 0; i < this.editor.annotationPages.length; i++) {
-                          let page = this.editor.annotationPages[i] ?? [];
-                          let pdfData = page[3] ?? [];
-                          if (pdfData[0] == this.sourceID && pdfData[1] == pageNumber) {
-                            foundPage = {
-                              number: i + 1,
-                              id: page[0]
-                            };
-                            break;
-                          }
-                        }
-                        return foundPage;
-                      }
-                      async goToDestination(dest) {
-                        if (!this.pdfDocument) {
-                          return;
-                        }
-                        let foundPage = await this.getLessonDestination(dest);
-                        if (foundPage == null) {
-                          return;
-                        }
-                        this.editor.setPage(foundPage.number, false);
-                      }
-                      goToPage(val) {
-                        if (!this.pdfDocument) {
-                          return;
-                        }
-                        let pageNumber = typeof val === "string" && parseInt(val) || val | 0;
-                        let foundPage;
-                        for (let i = 0; i < this.editor.annotationPages.length; i++) {
-                          let page = (this.editor.annotationPages[i] ?? [])[3] ?? [];
-                          if (page[0] == this.sourceID && page[1] == pageNumber) {
-                            foundPage = i + 1;
-                            break;
-                          }
-                        }
-                        if (foundPage == null) {
-                          return;
-                        }
-                        this.editor.setPage(foundPage, false);
-                      }
-                      addLinkAttributes(link, url, newWindow = false) {
-                        if (!url || typeof url !== "string") {
-                          return;
-                        }
-                        let target = newWindow ? LinkTarget.BLANK : this.externalLinkTarget;
-                        let rel = this.externalLinkRel;
-                        if (this.externalLinkEnabled == true) {
-                          link.href = link.title = url;
-                        } else {
-                          link.href = "";
-                          link.title = `Disabled: ${url}`;
-                          link.onclick = () => false;
-                        }
-                        let targetStr = "";
-                        switch (target) {
-                          case LinkTarget.NONE:
-                            break;
-                          case LinkTarget.SELF:
-                            targetStr = "_self";
-                            break;
-                          case LinkTarget.BLANK:
-                            targetStr = "_blank";
-                            break;
-                          case LinkTarget.PARENT:
-                            targetStr = "_parent";
-                            break;
-                          case LinkTarget.TOP:
-                            targetStr = "_top";
-                            break;
-                        }
-                        link.target = targetStr;
-                        link.rel = typeof rel === "string" ? rel : DEFAULT_LINK_REL;
-                      }
-                      async getDestinationHash(dest) {
-                        // PLEASE NOTE: Had to modify pdf.mjs to allow for async with promise
-                        if (!this.pdfDocument) {
-                          return;
-                        }
-                        let foundPage = await this.getLessonDestination(dest);
-                        if (foundPage == null) {
-                          return;
-                        }
-                        return "?lesson=" + this.editor.lesson.id + "&page=" + foundPage.id + "#lesson";
-                      }
-                      //getAnchorUrl(anchor) {}
-                      //setHash() {}
-                      executeNamedAction(action) {
-                        if (this.editor.annotationPages.length < 1) {
-                          return;
-                        }
-                        let setPage;
-                        let animate = true;
-                        switch (action) {
-                          case "NextPage":
-                            setPage = this.editor.currentPage + 1;
-                            break;
-                          case "PrevPage":
-                            setPage = this.editor.currentPage - 1;
-                            break;
-                          case "LastPage":
-                            setPage = editor.annotationPages.length;
-                            animate = false;
-                            break;
-                          case "FirstPage":
-                            setPage = 1;
-                            animate = false;
-                            break;
-                          default:
-                            return;
-                        }
-                        if (setPage != null) {
-                          this.editor.setPage(setPage, animate);
-                        }
-                      }
-                    }
-                    //async executeSetOCGState(action) {}
-                  });
-                });
-              }
-            });
-          });
-          await sleep(10);
-        }
+      while (this.pageRenderPipeline.queue.length > 0 || (this.exporting == true && Object.keys(this.render.pdfFileLoading).length > 0)) {
+        let [sourcePageId, scopedFunction] = this.pageRenderPipeline.queue.shift();
+        await scopedFunction(sourcePageId);
         await sleep(1);
       }
-      this.render.runningPageRender = false;
+      this.pageRenderPipeline.running = false;
+    }
+    this.render.renderPage = async (sourcePageId) => {
+      if (this.running == false) {
+        return;
+      }
+      if (sourcePageId == null) {
+        return await sleep(100);
+      }
+      let [sourceID, pageNumber] = this.render.pdfPageStorage[sourcePageId] ?? [];
+      delete this.render.pdfPageStorage[sourcePageId];
+
+      let source = this.sources[sourceID] ?? {};
+      if (source.error == true) {
+        return;
+      }
+      if (source.pdf == null) {
+        if (this.render.pdfFileLoading[sourceID] == null) {
+          this.render.pdfFileLoading[sourceID] = {};
+          (async () => {
+            if (source.source == null) {
+              let [code, body] = await sendRequest("GET", "lessons/join/source?source=" + sourceID, null, { session: this.session });
+              if (code == 200) {
+                this.sources[sourceID] = { source: body.source };
+              } else {
+                this.sources[sourceID] = { error: true };
+              }
+            }
+            source = this.sources[sourceID] ?? {};
+            if (source.source != null) {
+              let loadingTask = pdfjsLib.getDocument(assetURL + source.source)
+              addTempListener({ type: "pdf", document: loadingTask });
+              loadingTask.promise.then(async (pdf) => {
+                source.pdf = pdf;
+                let loadingPageKeys = Object.keys(this.render.pdfFileLoading[sourceID])
+                for (let b = 0; b < loadingPageKeys.length; b++) {
+                  let pageAdd = this.render.pdfFileLoading[sourceID][loadingPageKeys[b]];
+                  this.render.addPageToQueue(pageAdd[0], pageAdd[1], true);
+                }
+                delete this.render.pdfFileLoading[sourceID];
+              });
+            }
+          })();
+        }
+        this.render.pdfFileLoading[sourceID][sourcePageId] = [sourceID, pageNumber];
+        return;
+      }
+
+      let pageRender = this.sourceRenders[sourcePageId];
+      if (pageRender == null) {
+        pageRender = await new Promise(async (resolve) => {
+          source.pdf.getPage(pageNumber).then(async (pageRender) => {
+            resolve(pageRender);
+          });
+        });
+        this.sourceRenders[sourcePageId] = pageRender;
+      }
+
+      let loadDocumentFrames = annotations.querySelectorAll('.eAnnotation[page] div[content] div[document][sourcepage="' + sourcePageId + '"]');
+      for (let e = 0; e < loadDocumentFrames.length; e++) {
+        let element = loadDocumentFrames[e];
+        if (element == null) {
+          continue;
+        }
+        if (element.childElementCount > 0) {
+          continue;
+        }
+
+        let viewport = pageRender.getViewport({ scale: 2 });
+        //let outputScale = window.devicePixelRatio ?? 1;
+        
+        element.insertAdjacentHTML("beforeend", `<canvas></canvas><div textlayer></div><div annotationlayer></div>`);
+        
+        let canvas = element.querySelector("canvas");
+        let context = canvas.getContext("2d", { alpha: false, willReadFrequently: true });
+
+        let setWidth = viewport.width;// * outputScale;
+        let setHeight = viewport.height;// * outputScale;
+        canvas.width = setWidth;
+        canvas.height = setHeight;
+        let annoWidth = parseFloat(element.getAttribute("width"));
+        let annoHeight = parseFloat(element.getAttribute("height"));
+        let annoRotation = parseInt(element.getAttribute("rotation"));
+        if (annoRotation == 90 || annoRotation == 270) {
+          //let prevSetWidth = setWidth;
+          //setWidth = setHeight;
+          //setHeight = prevSetWidth;
+          let prevAnnoWidth = annoWidth;
+          annoWidth = annoHeight;
+          annoHeight = prevAnnoWidth;
+        }
+        element.style.setProperty("--fullWidth", setWidth + "px");
+        element.style.setProperty("--fullHeight", setHeight + "px");
+        element.style.transform = "rotate(" + annoRotation + "deg)";
+        let ratio = setWidth / setHeight;
+        let ratioedWidth = (annoHeight - 8) * ratio;
+        let ratioedHeight = (annoWidth - 8) / ratio;
+        if (ratioedWidth < annoWidth - 8) {
+          element.style.width = (ratioedWidth + 8) + "px";
+          element.style.height = annoHeight + "px";
+          element.style.setProperty("--fullScale", "scale(" + ((annoHeight - 8) / setHeight) + ")");
+        } else {
+          element.style.width = annoWidth + "px";
+          element.style.height = (ratioedHeight + 8) + "px";
+          element.style.setProperty("--fullScale", "scale(" + ((annoWidth - 8) / setWidth) + ")");
+        }
+
+        //let transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
+        
+        await new Promise(async (resolve) => {
+          pageRender.render({
+            canvasContext: context,
+            //transform: transform,
+            viewport: viewport
+          }).promise.then(() => {
+            element.style.opacity = "1";
+            let textHolder = element.querySelector("div[textlayer]");
+            if (textHolder != null) {
+              pageRender.getTextContent().then((textContent) => {
+                (new pdfjsLib.TextLayer({
+                  textContentSource: textContent,
+                  container: textHolder,
+                  viewport: viewport
+                })).render();
+                resolve();
+              });
+            }
+            let annotationHolder = element.querySelector("div[annotationlayer]");
+            if (annotationHolder != null) {
+              pageRender.getAnnotations().then((annotationsData) => {
+                annotationsData = annotationsData.filter((value) => { return (value ?? {}).subtype == "Link"; });
+                const DEFAULT_LINK_REL = "noopener noreferrer nofollow";
+                const LinkTarget = {
+                  NONE: 0,
+                  SELF: 1,
+                  BLANK: 2,
+                  PARENT: 3,
+                  TOP: 4
+                };
+                let setSource = sourceID;
+                let setEditor = this;
+                (new pdfjsLib.AnnotationLayer({
+                  div: annotationHolder,
+                  page: pageRender,
+                  viewport: viewport
+                })).render({
+                  annotations: annotationsData,
+                  linkService: new class {
+                    externalLinkEnabled = true;
+                    constructor({
+                      sourceID = setSource,
+                      editor = setEditor,
+                      pdfDocument = source.pdf,
+                      externalLinkTarget = 2, //null
+                    } = {}) {
+                      this.sourceID = sourceID;
+                      this.editor = editor;
+                      this.externalLinkTarget = externalLinkTarget;
+                      this.externalLinkRel = null;
+                      this._ignoreDestinationZoom = false;
+                      this.baseUrl = null;
+                      this.pdfDocument = pdfDocument;
+                      //this.pdfViewer = null;
+                      //this.pdfHistory = null;
+                    }
+                    //setDocument(pdfDocument, baseUrl = null) {}
+                    //setViewer(pdfViewer) {}
+                    //setHistory(pdfHistory) {}
+                    get pagesCount() {
+                      return this.pdfDocument ? this.pdfDocument.numPages : 0;
+                    }
+                    //get page() {}
+                    //set page(value) {}
+                    //get rotation() {}
+                    //set rotation(value) {}
+                    //get isInPresentationMode() {}
+                    async getPDFDestination(dest) {
+                      //let namedDest;
+                      let explicitDest;
+                      let pageNumber;
+                      if (typeof dest === "string") {
+                        //namedDest = dest;
+                        explicitDest = await this.pdfDocument.getDestination(dest);
+                      } else {
+                        //namedDest = null;
+                        explicitDest = dest;
+                      }
+                      if (!Array.isArray(explicitDest)) {
+                        return;
+                      }
+                      let [destRef] = explicitDest;
+                      if (destRef && typeof destRef === "object") {
+                        pageNumber = this.pdfDocument.cachedPageNumber(destRef);
+                        if (!pageNumber) {
+                          try {
+                            pageNumber = (await this.pdfDocument.getPageIndex(destRef)) + 1;
+                          } catch {
+                            return;
+                          }
+                        }
+                      } else if (Number.isInteger(destRef)) {
+                        pageNumber = destRef + 1;
+                      }
+                      return pageNumber;
+                    }
+                    async getLessonDestination(dest) {
+                      let pageNumber = await this.getPDFDestination(dest);
+                      if (!pageNumber || pageNumber < 1 || pageNumber > this.pagesCount) {
+                        return;
+                      }
+                      let foundPage;
+                      for (let i = 0; i < this.editor.annotationPages.length; i++) {
+                        let page = this.editor.annotationPages[i] ?? [];
+                        let pdfData = page[3] ?? [];
+                        if (pdfData[0] == this.sourceID && pdfData[1] == pageNumber) {
+                          foundPage = {
+                            number: i + 1,
+                            id: page[0]
+                          };
+                          break;
+                        }
+                      }
+                      return foundPage;
+                    }
+                    async goToDestination(dest) {
+                      if (!this.pdfDocument) {
+                        return;
+                      }
+                      let foundPage = await this.getLessonDestination(dest);
+                      if (foundPage == null) {
+                        return;
+                      }
+                      this.editor.setPage(foundPage.number, false);
+                    }
+                    goToPage(val) {
+                      if (!this.pdfDocument) {
+                        return;
+                      }
+                      let pageNumber = typeof val === "string" && parseInt(val) || val | 0;
+                      let foundPage;
+                      for (let i = 0; i < this.editor.annotationPages.length; i++) {
+                        let page = (this.editor.annotationPages[i] ?? [])[3] ?? [];
+                        if (page[0] == this.sourceID && page[1] == pageNumber) {
+                          foundPage = i + 1;
+                          break;
+                        }
+                      }
+                      if (foundPage == null) {
+                        return;
+                      }
+                      this.editor.setPage(foundPage, false);
+                    }
+                    addLinkAttributes(link, url, newWindow = false) {
+                      if (!url || typeof url !== "string") {
+                        return;
+                      }
+                      let target = newWindow ? LinkTarget.BLANK : this.externalLinkTarget;
+                      let rel = this.externalLinkRel;
+                      if (this.externalLinkEnabled == true) {
+                        link.href = link.title = url;
+                      } else {
+                        link.href = "";
+                        link.title = `Disabled: ${url}`;
+                        link.onclick = () => false;
+                      }
+                      let targetStr = "";
+                      switch (target) {
+                        case LinkTarget.NONE:
+                          break;
+                        case LinkTarget.SELF:
+                          targetStr = "_self";
+                          break;
+                        case LinkTarget.BLANK:
+                          targetStr = "_blank";
+                          break;
+                        case LinkTarget.PARENT:
+                          targetStr = "_parent";
+                          break;
+                        case LinkTarget.TOP:
+                          targetStr = "_top";
+                          break;
+                      }
+                      link.target = targetStr;
+                      link.rel = typeof rel === "string" ? rel : DEFAULT_LINK_REL;
+                    }
+                    async getDestinationHash(dest) {
+                      // PLEASE NOTE: Had to modify pdf.mjs to allow for async with promise
+                      if (!this.pdfDocument) {
+                        return;
+                      }
+                      let foundPage = await this.getLessonDestination(dest);
+                      if (foundPage == null) {
+                        return;
+                      }
+                      return "?lesson=" + this.editor.lesson.id + "&page=" + foundPage.id + "#lesson";
+                    }
+                    //getAnchorUrl(anchor) {}
+                    //setHash() {}
+                    executeNamedAction(action) {
+                      if (this.editor.annotationPages.length < 1) {
+                        return;
+                      }
+                      let setPage;
+                      let animate = true;
+                      switch (action) {
+                        case "NextPage":
+                          setPage = this.editor.currentPage + 1;
+                          break;
+                        case "PrevPage":
+                          setPage = this.editor.currentPage - 1;
+                          break;
+                        case "LastPage":
+                          setPage = editor.annotationPages.length;
+                          animate = false;
+                          break;
+                        case "FirstPage":
+                          setPage = 1;
+                          animate = false;
+                          break;
+                        default:
+                          return;
+                      }
+                      if (setPage != null) {
+                        this.editor.setPage(setPage, animate);
+                      }
+                    }
+                  }
+                  //async executeSetOCGState(action) {}
+                });
+              });
+            }
+          });
+        });
+        await sleep(10);
+      }
     }
     this.render.addPageToQueue = async (sourceID, pageNumber, forceRunRender) => {
       let sourcePageId = sourceID + "_" + pageNumber;
       if (this.render.pdfPageStorage[sourcePageId] == null) {
         this.render.pdfPageStorage[sourcePageId] = [sourceID, pageNumber];
-        this.render.pdfPageQueue.push(sourcePageId);
+        this.pageRenderPipeline.queue.push([sourcePageId, this.render.renderPage]);
         if (this.exporting != true || forceRunRender == true) {
           setTimeout(this.render.processPageRenders, 0);
         }

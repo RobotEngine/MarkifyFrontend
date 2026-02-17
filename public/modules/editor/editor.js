@@ -506,6 +506,8 @@ modules["editor/editor"] = class {
   running = true;
   destroy = () => {
     this.running = false;
+    this.visibleChunks = [];
+    this.runUpdateCycle(true);
   }
 
   options = {
@@ -1687,7 +1689,7 @@ modules["editor/editor"] = class {
         }
         await sleep(1);
       }
-      
+
       this.pageRenderPipeline.running = false;
     }
     this.render.renderPage = async (sourcePageId) => {
@@ -3539,7 +3541,7 @@ modules["editor/editor"] = class {
       alreadyRunningUpdateCycle = false;
     }
     this.updateChunks = async () => {
-      if (this.exporting == true) {
+      if (this.running == false || this.exporting == true) {
         return;
       }
 

@@ -1681,10 +1681,13 @@ modules["editor/editor"] = class {
       }
   
       while (this.pageRenderPipeline.queue.length > 0 || (this.exporting == true && Object.keys(this.render.pdfFileLoading).length > 0)) {
-        let [sourcePageId, scopedFunction] = this.pageRenderPipeline.queue.shift();
-        await scopedFunction(sourcePageId);
+        let [sourcePageId, scopedFunction] = this.pageRenderPipeline.queue.shift() ?? [];
+        if (scopedFunction != null) {
+          await scopedFunction(sourcePageId);
+        }
         await sleep(1);
       }
+      
       this.pageRenderPipeline.running = false;
     }
     this.render.renderPage = async (sourcePageId) => {

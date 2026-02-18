@@ -1806,6 +1806,9 @@ modules["editor/editor"] = class {
             viewport: viewport
           }).promise.then(() => {
             element.style.opacity = "1";
+            if (this.skipPDFTextAnnotationLayer == true) {
+              return resolve();
+            }
             let textHolder = element.querySelector("div[textlayer]");
             if (textHolder != null) {
               pageRender.getTextContent().then((textContent) => {

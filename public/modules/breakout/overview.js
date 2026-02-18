@@ -758,7 +758,8 @@ modules["breakout/overview"] = class {
             sources: this.parent.parent.sources,
             pageRenderPipeline: this.parent.parent.pageRenderPipeline,
             scrollOffset: 50 * (1 / this.layout.previewScale),
-            sideScrollOffset: 8 * (1 / this.layout.previewScale)
+            sideScrollOffset: 8 * (1 / this.layout.previewScale),
+            skipPDFTextAnnotationLayer: true
           }
         });
         tile.editor.updatePageSize = () => {

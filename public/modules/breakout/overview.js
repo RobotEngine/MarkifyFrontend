@@ -104,7 +104,7 @@ modules["breakout/overview"] = class {
     ".broTileHeaderOptionsButton > svg": `flex-shrink: 0; width: 24px; height: 24px`,
     ".broTileHeaderOptionsButton:hover": `background: var(--hover)`,
     ".broTileMembers": `position: relative; width: 100%; padding-bottom: 6px; z-index: 2`,
-    ".broTileMembers:has(> *):before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: var(--shadow)`,
+    ".broTileMembers:has(> .broTileMember):before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: var(--shadow)`,
     ".broTileMember": `--shadow: var(--lightShadow); position: relative; width: calc(100% - 12px); padding: 0; margin: 6px 6px 0; background: var(--pageColor); border-radius: 10px; cursor: grab`,
     ".broTileMember:hover, .broTileMember:active, .broTileMember[dragging]": `--shadow: var(--darkShadow)`,
     ".broTileMember:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: var(--shadow)`,
@@ -466,8 +466,8 @@ modules["breakout/overview"] = class {
 
     // Handle Tile Masonry Layout:
     this.layout = {};
-    this.layout.minTileWidth = 250;
-    this.layout.maxTileWidth = 400;
+    this.layout.minTileWidth = 260;
+    this.layout.maxTileWidth = 450;
     this.layout.tilePadding = 16;
     this.layout.maxContainerWidth = (this.layout.minTileWidth * 6) + (this.layout.tilePadding * 5) - 1;
     this.layout.columnCount = 0;
@@ -962,13 +962,16 @@ modules["breakout/overview"] = class {
 
       loadingGroups = false;
     }
-    this.loadGroups();
-    
-    this.pipeline.subscribe("tilesLoadMore", "bounds_change", () => {
-      if (groupHolder.scrollTop + this.containerHeight + 500 > groupHolder.scrollHeight) {
-        this.loadGroups();
+    let checkLoadGroups = async () => {
+      if (groupHolder.scrollTop + this.containerHeight + 500 > groupHolder.scrollHeight || groups.clientHeight < this.containerHeight) {
+        await this.loadGroups();
+        if (loadingGroups != true && allGroupsLoaded != true) {
+          checkLoadGroups();
+        }
       }
-    });
+    }
+    this.pipeline.subscribe("tilesLoadMore", "bounds_change", checkLoadGroups);
+    checkLoadGroups();
     
     groupHolder.addEventListener("scroll", (event) => {
       this.pipeline.publish("scroll", { event: event });

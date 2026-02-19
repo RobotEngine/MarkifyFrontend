@@ -195,10 +195,10 @@ modules["breakout/group"] = class {
 
     this.group = extra.group ?? {};
 
-    let fetchAnnotations = sendRequest("GET", "lessons/join/annotations?group=" + this.group._id, null, { session: this.parent.parent.session }, { allowError: true });
+    let fetchAnnotations = sendRequest("GET", "lessons/join/annotations?group=" + this.group._id, null, { session: this.parent.parent.session });
     
     if ((this.group ?? {}).created == null) {
-      let [code, body] = await sendRequest("GET", "lessons/breakout/groups?group=" + this.group._id, null, { session: this.parent.parent.session }, { allowError: true });
+      let [code, body] = await sendRequest("GET", "lessons/breakout/groups?group=" + this.group._id, null, { session: this.parent.parent.session });
       if (code != 200) {
         return;
       }

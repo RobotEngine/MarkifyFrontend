@@ -57,7 +57,7 @@ modules["lesson/export"] = class {
     if (templateID != null) {
       path += "?template=" + templateID;
     }
-    let [annoCode, annoBody] = await sendRequest("GET", path, null, { session: this.parent.session }, { allowError: true });
+    let [annoCode, annoBody] = await sendRequest("GET", path, null, { session: this.parent.session });
     if (annoCode != 200 && connected == true) {
       return;
     }

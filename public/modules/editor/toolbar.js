@@ -9570,7 +9570,7 @@ modules["editor/toolbar/resize"] = class {
           return textBoxError(textBox, "Must be a number");
         } else if (textInt > parseFloat(textBox.getAttribute("max"))) {
           event.preventDefault();
-          return textBoxError(textBox, "Must be less than " + textBox.getAttribute("max"));
+          return textBoxError(textBox, "Must be less than or equal to " + textBox.getAttribute("max"));
         } else if (textInt < 1) {
           event.preventDefault();
           return textBoxError(textBox, "Must be greater than 1");

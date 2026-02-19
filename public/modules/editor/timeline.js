@@ -239,7 +239,7 @@ modules["editor/timeline"] = class {
       if ((this.parameters ?? []).length > 0) {
         path += "?" + this.parameters.join("&");
       }
-      let [annoCode, annoBody] = await sendRequest("GET", path, null, { session: this.parent.session }, { allowError: true });
+      let [annoCode, annoBody] = await sendRequest("GET", path, null, { session: this.parent.session });
       if (annoCode != 200) {
         return alertModule.open("error", `<b>Error Loading Annotations</b>Please try again later...`);
       }

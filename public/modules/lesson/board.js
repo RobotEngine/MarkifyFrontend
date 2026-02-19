@@ -937,7 +937,7 @@ modules["lesson/board"] = class {
       if (this.session == null) {
         return;
       }
-      let [annoCode, annoBody] = await sendRequest("GET", "lessons/join/annotations", null, { session: this.parent.session }, { allowError: true });
+      let [annoCode, annoBody] = await sendRequest("GET", "lessons/join/annotations", null, { session: this.parent.session });
       if (annoCode != 200 && connected == true) {
         return alertModule.open("error", `<b>Error Loading Annotations</b>Please try again later...`);
       }

@@ -35,7 +35,7 @@ modules["breakout/overview"] = class {
   css = {
     ".broInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; user-select: none; contain: strict; overflow-y: scroll; z-index: 2`,
     ".broGroupHolder": `--interfacePadding: 58px; --tilePadding: 16px; --totalWidth: calc((var(--columnWidth) * var(--columnCount)) + (var(--tilePadding) * (var(--columnCount) - 1))); position: relative; display: flex; width: 100%; height: 100%; background: var(--pageColor); contain: strict; overflow-x: hidden; overflow-y: scroll; overflow-anchor: none; z-index: 1; justify-content: center; transition: .5s`,
-    ".broGroups": `position: absolute; box-sizing: border-box; width: var(--totalWidth); height: var(--totalHeight); margin: calc(var(--interfacePadding) + 8px) 0; z-index: 2; transition: width .3s`,
+    ".broGroups": `position: relative; box-sizing: border-box; width: var(--totalWidth); height: var(--totalHeight); margin: calc(var(--interfacePadding) + 8px) 0; z-index: 2; transition: width .3s`,
     //".broBackground": `position: absolute; width: 100%; height: 100%; min-height: calc(var(--totalHeight) + (var(--interfacePadding) * 2) + 16px); left: 0px; top: 0px; opacity: .075; background-image: url("../images/editor/backdropblack.svg"); background-size: 25px 25px; background-position: center 50px; z-index: 1; pointer-events: none; contain: strict`,
     ".broCreateBreakoutHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden; z-index: 3; pointer-events: none`,
 
@@ -104,7 +104,7 @@ modules["breakout/overview"] = class {
     ".broTileHeaderOptionsButton > svg": `flex-shrink: 0; width: 24px; height: 24px`,
     ".broTileHeaderOptionsButton:hover": `background: var(--hover)`,
     ".broTileMembers": `position: relative; width: 100%; padding-bottom: 6px; z-index: 2`,
-    ".broTileMembers:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: var(--shadow)`,
+    ".broTileMembers:has(> *):before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: var(--shadow)`,
     ".broTileMember": `--shadow: var(--lightShadow); position: relative; width: calc(100% - 12px); padding: 0; margin: 6px 6px 0; background: var(--pageColor); border-radius: 10px; cursor: grab`,
     ".broTileMember:hover, .broTileMember:active, .broTileMember[dragging]": `--shadow: var(--darkShadow)`,
     ".broTileMember:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: var(--shadow)`,
@@ -462,7 +462,7 @@ modules["breakout/overview"] = class {
     //this.updateBackground();
 
     // TESTING TESTING TESTING TESTING TESTING REMOVE LATER
-    let [testGroupAnnotationCode, testGroupAnnotationBody] = await sendRequest("GET", "lessons/join/annotations?template=6951be49332ec21eb05cdbff", null, { session: this.parent.session }, { allowError: true });
+    let [testGroupAnnotationCode, testGroupAnnotationBody] = await sendRequest("GET", "lessons/join/annotations?template=6951be49332ec21eb05cdbff", null, { session: this.parent.session });
 
     // Handle Tile Masonry Layout:
     this.layout = {};
@@ -483,8 +483,8 @@ modules["breakout/overview"] = class {
     this.layout.loadedTiles = [];
     this.layout.pendingEditors = [];
     this.layout.getTileHeight = (tile) => {
-      let memberCount = tile.members ?? 0;
-      return this.layout.tileBaseHeight
+      let memberCount = (tile.render.members ?? []).length;
+      return (this.layout.tileBaseHeight * Math.min(memberCount, 1))
       + (this.layout.columnWidth * this.layout.tileHeightRatio)
       + (this.layout.tileMemberHeight * memberCount)
       + Math.max(this.layout.tileMemberGap * (memberCount - 1), 0);
@@ -688,7 +688,8 @@ modules["breakout/overview"] = class {
           </div>`;
           setSVG(tile.element.querySelector(".broTileHeaderOptions button"), "../images/editor/actions/more.svg");
           let membersHolder = tile.element.querySelector(".broTileMembers");
-          for (let i = 0; i < tile.members; i++) {
+          let members = tile.render.members ?? [];
+          for (let i = 0; i < members.length; i++) {
             membersHolder.insertAdjacentHTML("beforeend", `<button class="broTileMember">
               <div class="broTileMemberContent">
                 <div class="broTileMemberNameHolder">
@@ -919,7 +920,7 @@ modules["breakout/overview"] = class {
       }
     }
     this.pipeline.subscribe("tilesResize", "resize", this.layout.setupColumns);
-    this.pipeline.subscribe("updateTileRender", "scroll", this.layout.runUpdateCycle, { sort: 1 });
+    this.pipeline.subscribe("tilesScroll", "scroll", this.layout.runUpdateCycle, { sort: 1 });
     this.layout.setupColumns(true);
     this.layout.addTile = (data) => {
       if (data == null) {
@@ -930,8 +931,44 @@ modules["breakout/overview"] = class {
       this.layout.tileLayout.push(data._id);
       // this.layout.refreshTileSpots(this.layout.tileLayout.length - 1);
     }
-    for (let i = 0; i < 100; i++) { this.layout.addTile({ _id: i.toString(), version: 1 }); } // Just as a test!
-    this.layout.refreshTileSpots();
+
+    let loadingGroups = false;
+    let allGroupsLoaded = false;
+    let lastGroupTime;
+    this.loadGroups = async () => {
+      if (loadingGroups == true || allGroupsLoaded == true) {
+        return;
+      }
+      loadingGroups = true;
+
+      let path = "lessons/breakout/groups";
+      if (lastGroupTime != null) {
+        path += "?before=" + lastGroupTime;
+      }
+      let [code, body] = await sendRequest("GET", path, null, { session: this.parent.parent.session });
+      if (code != 200) {
+        return;
+      }
+      let beforeTileLength = this.layout.tileLayout.length;
+      let bodyItems = body.length;
+      if (bodyItems < 25) {
+        allGroupsLoaded = true;
+      }
+      for (let i = 0; i < bodyItems; i++) {
+        this.layout.addTile(body[i]);
+      }
+      this.layout.refreshTileSpots(beforeTileLength);
+      lastGroupTime = (body[bodyItems - 1] ?? {}).created;
+
+      loadingGroups = false;
+    }
+    this.loadGroups();
+    
+    this.pipeline.subscribe("tilesLoadMore", "bounds_change", () => {
+      if (groupHolder.scrollTop + this.containerHeight + 500 > groupHolder.scrollHeight) {
+        this.loadGroups();
+      }
+    });
     
     groupHolder.addEventListener("scroll", (event) => {
       this.pipeline.publish("scroll", { event: event });

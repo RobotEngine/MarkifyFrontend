@@ -268,7 +268,7 @@ modules["modals/lesson/newboard/blank"] = class {
           textBoxError(textBox, "Must be a number");
         } else if (textInt > parseFloat(textBox.getAttribute("max"))) {
           event.preventDefault();
-          textBoxError(textBox, "Must be less than " + textBox.getAttribute("max"));
+          textBoxError(textBox, "Must be less than or equal to " + textBox.getAttribute("max"));
         } else if (textInt < 1) {
           event.preventDefault();
           textBoxError(textBox, "Must be greater than 1");

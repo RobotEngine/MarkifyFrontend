@@ -1078,7 +1078,7 @@ modules["modals/lesson/newbreakout/options"] = class extends modules["breakout/o
           textBoxError(textBox, "Must be a number");
         } else if (textBox.hasAttribute("max") == true && textInt > parseFloat(textBox.getAttribute("max"))) {
           event.preventDefault();
-          textBoxError(textBox, "Must be less than " + textBox.getAttribute("max"));
+          textBoxError(textBox, "Must be less than or equal to " + textBox.getAttribute("max"));
         } else if (textInt < parseFloat(textBox.getAttribute("min") ?? "1")) {
           event.preventDefault();
           textBoxError(textBox, "Must be greater than 1");

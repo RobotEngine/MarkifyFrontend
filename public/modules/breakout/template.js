@@ -199,10 +199,10 @@ modules["breakout/template"] = class {
     
     this.template = extra.template ?? {};
     
-    let fetchAnnotations = sendRequest("GET", "lessons/join/annotations?template=" + this.template._id, null, { session: this.parent.parent.session }, { allowError: true });
+    let fetchAnnotations = sendRequest("GET", "lessons/join/annotations?template=" + this.template._id, null, { session: this.parent.parent.session });
 
     if (this.template.created == null) {
-      let [code, body] = await sendRequest("GET", "lessons/breakout/templates?template=" + this.template._id, null, { session: this.parent.parent.session }, { allowError: true });
+      let [code, body] = await sendRequest("GET", "lessons/breakout/templates?template=" + this.template._id, null, { session: this.parent.parent.session });
       if (code != 200) {
         return;
       }

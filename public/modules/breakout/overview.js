@@ -654,7 +654,14 @@ modules["breakout/overview"] = class {
                   }
                 }
               }
-            });
+            }
+          );
+          for (let i = 0; i < getGroupAnnotations.length; i++) {
+            delete this.layout.loadingAnnotations[getGroupAnnotations[i]];
+          }
+          for (let i = 0; i < getGroupRoots.length; i++) {
+            delete this.layout.loadingAnnotations[getGroupRoots[i]];
+          }
         })();
       }
 

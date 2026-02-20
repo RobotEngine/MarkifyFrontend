@@ -114,7 +114,7 @@ modules["breakout/overview"] = class {
     ".broTileMember:hover .broTileMemberNameDragHolder, .broTileMember:active .broTileMemberNameDragHolder, .broTileMember[dragging] .broTileMemberNameDragHolder": `--transformTranslate: translateX(0px); width: 16px; margin-right: 6px`,
     ".broTileMemberNameDragHandle": `display: flex; flex-direction: column; box-sizing: border-box; width: 16px; height: 28px; padding: 4px 0; justify-content: space-between; align-items: center; transform: var(--transformTranslate); transition: .2s`,
     ".broTileMemberNameDragHandleDot": `width: 100%; height: 4px; border-radius: 2px; background: var(--gray)`,
-    ".broTileMemberNameCursor": `flex-shrink: 0; position: relative; box-sizing: border-box; width: 28px; height: 28px; margin-right: 6px; background: var(--pageColor); border: solid 4px var(--theme); border-radius: 8px 14px 14px`,
+    ".broTileMemberNameCursor": `flex-shrink: 0; position: relative; box-sizing: border-box; width: 28px; height: 28px; margin-right: 6px; background: var(--pageColor); border: solid 4px var(--themeColor); border-radius: 8px 14px 14px`,
     //".broTileMemberNameCursor:before": `content: ""; position: absolute; width: calc(100% + 6px); height: calc(100% + 6px); left: -3px; top: -3px; border-radius: inherit; contain: strict; box-shadow: 0 0 6px rgb(0 0 0 / 25%)`,
     ".broTileMemberNameText": `font-size: 16px; font-weight: 500; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis`,
     ".broTileMemberPercent": `--percent: 0; --invert: 0; --themeColor: var(--theme); --opacity: .5; flex-shrink: 0; position: relative; width: 36px; height: 16px; margin: 4px; border: solid 2px var(--themeColor); border-radius: 12px; opacity: var(--opacity); transition: .2s`,
@@ -794,7 +794,7 @@ modules["breakout/overview"] = class {
             <div class="broTileHeader">
               <div class="broTileHeaderName">
                 <img class="broTileHeaderNameImage" src="../images/breakoutbluricon.png" />
-                <div class="broTileHeaderNameHolder border"><div class="broTileHeaderNameHolderText" contenteditable>Untitled Group</div></div>
+                <div class="broTileHeaderNameHolder border"><div class="broTileHeaderNameHolderText" contenteditable></div></div>
               </div>
               <div class="broTileHeaderOptions">
                 <button class="broTileHeaderOptionsButton"></button>
@@ -802,24 +802,36 @@ modules["breakout/overview"] = class {
             </div>
             <div class="broTileMembers"></div>
           </div>`;
+          tile.element.querySelector(".broTileHeaderNameHolderText").textContent = tile.render.name ?? "Untitled Group";
           setSVG(tile.element.querySelector(".broTileHeaderOptions button"), "../images/editor/actions/more.svg");
           let membersHolder = tile.element.querySelector(".broTileMembers");
           let members = tile.render.members ?? [];
           for (let i = 0; i < members.length; i++) {
-            membersHolder.insertAdjacentHTML("beforeend", `<button class="broTileMember">
-              <div class="broTileMemberContent">
-                <div class="broTileMemberNameHolder">
-                  <div class="broTileMemberNameDragHolder"><div class="broTileMemberNameDragHandle">
-                    <div class="broTileMemberNameDragHandleDot"></div>
-                    <div class="broTileMemberNameDragHandleDot"></div>
-                    <div class="broTileMemberNameDragHandleDot"></div>
-                  </div></div>
-                  <div class="broTileMemberNameCursor"></div>
-                  <div class="broTileMemberNameText">Member Name</div>
-                </div>
-                <div class="broTileMemberPercent"><div class="broTileMemberPercentBarHolder"><div class="broTileMemberPercentBar"></div></div></div>
+            let member = members[i];
+            let collaborator = this.parent.parent.collaborators[member.modify];
+            if (collaborator == null) {
+              continue;
+            }
+            let memberTile = document.createElement("button");
+            memberTile.className = "broTileMember";
+            memberTile.setAttribute("collaborator", tileID);
+            memberTile.innerHTML = `
+            <div class="broTileMemberContent">
+              <div class="broTileMemberNameHolder">
+                <div class="broTileMemberNameDragHolder"><div class="broTileMemberNameDragHandle">
+                  <div class="broTileMemberNameDragHandleDot"></div>
+                  <div class="broTileMemberNameDragHandleDot"></div>
+                  <div class="broTileMemberNameDragHandleDot"></div>
+                </div></div>
+                <div class="broTileMemberNameCursor"></div>
+                <div class="broTileMemberNameText"></div>
               </div>
-            </button>`);
+              <div class="broTileMemberPercent"><div class="broTileMemberPercentBarHolder"><div class="broTileMemberPercentBar"></div></div></div>
+            </div>
+            `;
+            memberTile.style.setProperty("--themeColor", collaborator.color);
+            memberTile.querySelector(".broTileMemberNameText").textContent = collaborator.name;
+            membersHolder.appendChild(memberTile);
           }
           newTilesPendingEditors.push(tile);
           newTilesFragment.appendChild(tile.element);
@@ -1028,6 +1040,11 @@ modules["breakout/overview"] = class {
       if (data == null) {
         return;
       }
+      data.members.map((member) => {
+        this.parent.parent.collaborators[member.modify] = { ...(member.collaborator ?? {}), ...(this.parent.parent.collaborators[member.modify] ?? {}) };
+        delete member.collaborator;
+        return member;
+      });
       let tileInfo = { section: data.version, render: data, members: 4 }; //Math.round(Math.random() * (5 - 1) + 1)
       this.layout.tiles[data._id] = tileInfo;
       this.layout.tileLayout.push(data._id);

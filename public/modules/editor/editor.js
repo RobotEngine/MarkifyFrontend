@@ -538,6 +538,8 @@ modules["editor/editor"] = class {
   sources = {};
   sourceRenders = {};
 
+  currentRootAnnotations = {};
+
   selecting = {};
   realtimeSelect = {};
 
@@ -566,6 +568,22 @@ modules["editor/editor"] = class {
   pinching = false;
 
   backgroundColor = "FFFFFF";
+
+  preserveState = () => {
+    return {
+      annotations: this.annotations,
+      reactions: this.reactions,
+      //sources: this.sources,
+      //sourceRenders: this.sourceRenders,
+      currentRootAnnotations: this.currentRootAnnotations,
+      chunkAnnotations: this.chunkAnnotations,
+      visiblePages: this.visiblePages,
+      annotationPages: this.annotationPages,
+      currentPage: this.currentPage,
+      comments: this.comments,
+      //zoom: this.zoom
+    };
+  }
 
   js = async (frame) => {
     let contentHolder = this.contentHolder ?? frame.parentElement;
@@ -2366,7 +2384,7 @@ modules["editor/editor"] = class {
     this.defaultChunks["0_-" + this.chunkHeight] = {};
     this.defaultChunks["-" + this.chunkWidth + "_0"] = {};
     this.defaultChunks["-" + this.chunkWidth + "_-" + this.chunkHeight] = {};
-    this.chunkAnnotations = { ...this.defaultChunks };
+    this.chunkAnnotations = { ...this.defaultChunks, ...this.chunkAnnotations };
     
     this.save = {};
     this.save.synced = true;
@@ -3454,6 +3472,7 @@ modules["editor/editor"] = class {
       pinchingUpdateTimeout = null;
 
       alreadyRunningUpdateCycle = true;
+      
       let unloadChunkedAnnotations = {};
       let newlyUnloaded = {};
       let visible = Object.keys({ ...loadedChunks, ...holdLoadedChunks });
@@ -3479,7 +3498,7 @@ modules["editor/editor"] = class {
         if (annotation.render == null) {
           continue;
         }
-        if (annotation.chunks != null) {
+        if (annotation.chunks != null && this.running != false) {
           // Annotation may still be visible in another chunk, we must check
           let remove = true;
           for (let c = 0; c < annotation.chunks.length; c++) {
@@ -4062,7 +4081,6 @@ modules["editor/editor"] = class {
     this.utils.centerWindowWithPage();
     this.updateChunks();
 
-    this.currentRootAnnotations = {};
     this.applyRootTemplate = async (rootAnnotations = []) => {
       let rootAnnotationChanges = {};
       for (let i = 0; i < rootAnnotations.length; i++) {
@@ -4139,7 +4157,7 @@ modules["editor/editor"] = class {
         await this.utils.setAnnotationChunks(changedAnnotations[i]);
       }
     }
-    this.loadAnnotations = async (body, extra = {}) => {
+    this.loadAnnotations = async (body = {}, extra = {}) => {
       if (body.sources != null) {
         for (let i = 0; i < body.sources.length; i++) {
           let source = body.sources[i];
@@ -4163,14 +4181,16 @@ modules["editor/editor"] = class {
         }
       }
       let addedAnnotations = [];
-      for (let i = 0; i < body.annotations.length; i++) {
-        let addAnno = body.annotations[i];
-        let existingAnno = this.annotations[addAnno._id];
-        if (existingAnno == null || existingAnno.render.sync < addAnno.sync) {
-          this.annotations[addAnno._id] = { render: addAnno };
-          existingAnno = this.annotations[addAnno._id];
+      if (body.annotations != null) {
+        for (let i = 0; i < body.annotations.length; i++) {
+          let addAnno = body.annotations[i];
+          let existingAnno = this.annotations[addAnno._id];
+          if (existingAnno == null || existingAnno.render.sync < addAnno.sync) {
+            this.annotations[addAnno._id] = { render: addAnno };
+            existingAnno = this.annotations[addAnno._id];
+          }
+          addedAnnotations.push(existingAnno);
         }
-        addedAnnotations.push(existingAnno);
       }
       if (body.rootAnnotations != null) {
         await this.applyRootTemplate(body.rootAnnotations);

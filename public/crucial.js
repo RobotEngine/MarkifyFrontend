@@ -22,7 +22,7 @@ const configurations = {
 };
 
 const configuration = "public";
-const version = "1.6.49"; // Big Update . Small Feature Release . Bug Fix
+const version = "1.6.50"; // Big Update . Small Feature Release . Bug Fix
 const domain = "markifyapp.com";
 
 let config = configurations[configuration];
@@ -857,7 +857,7 @@ let checkForAuth = async (prompt) => {
   }
 }
 
-let sendRequest = async (method, path, body, extra) => {
+let sendRequest = async (method, path, body, extra = {}) => {
   if (connected == false) {
     return [0, "Not Connected", { took: 0 }];
   }
@@ -870,7 +870,6 @@ let sendRequest = async (method, path, body, extra) => {
         cache: "no-cache"
       }
     };
-    extra = extra ?? {};
     if (extra.noFileType != true) {
       sendData.headers["Content-Type"] = "text/plain";
     }
@@ -898,6 +897,17 @@ let sendRequest = async (method, path, body, extra) => {
     reqTime = getEpoch() - reqTimeStart;
     let serverTimeMillisGMT = new Date(response.headers.get("Date")).getTime();
     epochOffset = serverTimeMillisGMT - (new Date()).getTime();
+    if (extra.streaming == true && extra.onChunk != null) {
+      let reader = response.clone().body.getReader();
+      let decoder = new TextDecoder();
+      while (true) {
+        let { value, done } = await reader.read();
+        if (done == true) {
+          break;
+        } 
+        await extra.onChunk(decoder.decode(value, { stream: true }));
+      }
+    }
     switch (response.status) {
       case 401:
         await renewToken();
@@ -905,24 +915,28 @@ let sendRequest = async (method, path, body, extra) => {
       case 304:
         return [response.status, null, { took: reqTime }];
       default:
-        let body = await response.json();
-        if ((extra.allowError ?? []).includes(response.status) == false) {
-          if (body.errors && body.errors.length > 0) {
-            for (let i = 0; i < body.errors.length; i++) {
-              let message = body.errors[i];
-              if (message.includes("<b>") == false) {
-                message = "<b>Oops! Something Broke</b>" + message;
+        if (response.headers.get("content-type") == "application/json") {
+          let body = await response.json();
+          if ((extra.allowError ?? []).includes(response.status) == false) {
+            if (body.errors != null && body.errors.length > 0) {
+              for (let i = 0; i < body.errors.length; i++) {
+                let message = body.errors[i];
+                if (message.includes("<b>") == false) {
+                  message = "<b>Oops! Something Broke</b>" + message;
+                }
+                alertModule.open("error", message);
               }
-              alertModule.open("error", message);
+            }
+            if (body.warnings && body.warnings.length > 0) {
+              for (let i = 0; i < body.warnings.length; i++) {
+                alertModule.open("warning", body.warnings[i]);
+              }
             }
           }
-          if (body.warnings && body.warnings.length > 0) {
-            for (let i = 0; i < body.warnings.length; i++) {
-              alertModule.open("warning", body.warnings[i]);
-            }
-          }
+          return [response.status, body, { took: reqTime }];
+        } else {
+          return [response.status, response, { took: reqTime }];
         }
-        return [response.status, body, { took: reqTime }];
     }
   } catch (err) {
     console.log("FETCH ERROR: " + err);

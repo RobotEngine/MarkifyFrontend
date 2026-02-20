@@ -129,7 +129,7 @@ modules["breakout/group"] = class {
     ".brgBottomSection[board] button svg": `width: 32px; height: 32px; transition: .2s`,
     ".brgBottomSection[board] button:hover svg": `transform: scale(.9)`
   };
-  js = async (frame, extra) => {
+  js = async (frame, extra = {}) => {
     if (this.parent.parent.session == null) {
       return;
     }
@@ -138,7 +138,7 @@ modules["breakout/group"] = class {
       if (setGroupID == null) {
         return;
       }
-      extra.group = { _id: setGroupID };
+      extra.group = { _id: setGroupID, fetch: true };
     }
 
     frame.style.position = "relative";
@@ -195,9 +195,13 @@ modules["breakout/group"] = class {
 
     this.group = extra.group ?? {};
 
-    let fetchAnnotations = sendRequest("GET", "lessons/join/annotations?group=" + this.group._id, null, { session: this.parent.parent.session });
+    let fetchAnnotations;
+    if (extra.editorState == null) {
+      fetchAnnotations = sendRequest("GET", "lessons/join/annotations?group=" + this.group._id, null, { session: this.parent.parent.session });
+    }
     
-    if ((this.group ?? {}).created == null) {
+    if ((this.group ?? {}).fetch == true) {
+      delete this.group.fetch;
       let [code, body] = await sendRequest("GET", "lessons/breakout/groups?group=" + this.group._id, null, { session: this.parent.parent.session });
       if (code != 200) {
         return;
@@ -221,6 +225,18 @@ modules["breakout/group"] = class {
       this.memberCount = Object.keys(this.members).length;
     }
 
+    let editorState = {};
+    if (extra.editorState != null) {
+      let annotations = {};
+      let annoKeys = Object.keys(extra.editorState.annotations);
+      for (let i = 0; i < annoKeys.length; i++) { // Copy annotations:
+        let annoID = annoKeys[i];
+        let anno = extra.editorState.annotations[annoID];
+        annotations[annoID] = copyObject({ chunks: anno.chunks, render: anno.render });
+      }
+      editorState = copyObject({ ...extra.editorState, annotations });
+    }
+
     this.editor = await this.setFrame("editor/editor", contentHolder, {
       construct: {
         page: page,
@@ -242,7 +258,9 @@ modules["breakout/group"] = class {
         backgroundColor: this.group.background ?? "FFFFFF",
 
         id: this.group._id,
-        parameters: [("group=" + this.group._id)]
+        parameters: [("group=" + this.group._id)],
+
+        ...editorState
       }
     });
     this.pipeline = this.editor.pipeline;
@@ -363,6 +381,15 @@ modules["breakout/group"] = class {
     }
     this.updateMemberCount();
 
+    icon.addEventListener("click", (event) => {
+      event.preventDefault();
+      if (this.parent.parent.self.access < 4) { // Open to Group View:
+        this.parent.openPage("secondary", "breakout/groups");
+      } else { // Open to Overview:
+        this.parent.openPage("primary", "breakout/overview");
+        this.parent.closePage("secondary");
+      }
+    });
     groupName.textContent = this.group.name ?? "Untitled Group";
     groupName.title = groupName.textContent;
     groupName.addEventListener("keydown", (event) => {
@@ -626,9 +653,16 @@ modules["breakout/group"] = class {
     let pageParam = getParam("page");
     let checkForJumpLink = getParam("annotation");
     (async () => {
-      let [annoCode, annoBody] = await fetchAnnotations;
-      if (annoCode != 200 && connected == true) {
-        return alertModule.open("error", `<b>Error Loading Annotations</b>Please try again later...`);
+      let annoBody;
+      if (extra.editorState == null) {
+        let result = await fetchAnnotations;
+        if (result[0] != 200 && connected == true) {
+          return alertModule.open("error", `<b>Error Loading Annotations</b>Please try again later...`);
+        }
+        annoBody = result[1];
+      } else {
+        this.editor.updatePageSize();
+        await this.editor.updateChunks();
       }
       await this.editor.loadAnnotations(annoBody, { pageID: pageParam, jumpID: checkForJumpLink });
       contentHolder.removeAttribute("disabled");

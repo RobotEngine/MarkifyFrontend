@@ -81,7 +81,7 @@ modules["breakout/overview"] = class {
     ".broOpenBoard button svg": `width: 32px; height: 32px; transition: .2s`,
     ".broOpenBoard button:hover svg": `transform: scale(.9)`,
 
-    ".broTile": `position: absolute; width: var(--columnWidth); height: fit-content; left: 0px; top: 0px; will-change: transform; transition: .3s`,
+    ".broTile": `position: absolute; width: var(--columnWidth); height: fit-content; left: 0px; top: 0px; transition: .3s`, // will-change: transform;
     ".broTileContent": `--shadow: var(--lightShadow); position: relative; width: 100%; height: 100%; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 16px; contain: strict; overflow: hidden; transition: .2s, transform .1s`,
     ".broTile:hover .broTileContent": `--shadow: var(--darkShadow) !important`,
     ".broTile:active .broTileContent": `transform: scale(.95)`,
@@ -194,6 +194,8 @@ modules["breakout/overview"] = class {
     }
   };
 
+  templateRoots = {};
+
   getTemplate = () => {
     if (this.template != null) {
       return this.template;
@@ -217,6 +219,27 @@ modules["breakout/overview"] = class {
   }
 
   scrollOffset = 58;
+
+  previewEditorPageSizeFunction = (tile) => {
+    let invertedScale = 1 / this.layout.previewScale;
+    let standardWidth = this.layout.columnWidth;
+    let standardHeight = this.layout.columnWidth * this.layout.tileHeightRatio;
+    tile.editor.pageOffsetWidth = standardWidth * invertedScale;
+    tile.editor.pageOffsetHeight = standardHeight * invertedScale;
+    let parentRectX = this.groupHolderRect.x + ((this.containerWidth - this.layout.groupsWidth) / 2);
+    let parentRectY = this.groupHolderRect.y + this.scrollOffset + (this.layout.tilePadding - 8) - this.layout.scrollTop;
+    tile.editor.pageRect = {
+      scale: invertedScale,
+      x: parentRectX + tile.x,
+      y: parentRectY + tile.y,
+      width: tile.editor.pageOffsetWidth,
+      height: tile.editor.pageOffsetHeight,
+      left: parentRectX + tile.x,
+      right: parentRectX + tile.x + this.layout.columnWidth,
+      top: parentRectY + tile.y,
+      bottom: parentRectY + tile.y + tile.height
+    };
+  }
 
   js = async (frame) => {
     frame.style.position = "relative";
@@ -461,9 +484,6 @@ modules["breakout/overview"] = class {
     });
     //this.updateBackground();
 
-    // TESTING TESTING TESTING TESTING TESTING REMOVE LATER
-    let [testGroupAnnotationCode, testGroupAnnotationBody] = await sendRequest("GET", "lessons/join/annotations?template=6951be49332ec21eb05cdbff", null, { session: this.parent.session });
-
     // Handle Tile Masonry Layout:
     this.layout = {};
     this.layout.minTileWidth = 260;
@@ -482,6 +502,7 @@ modules["breakout/overview"] = class {
     this.layout.tileLayout = [];
     this.layout.loadedTiles = [];
     this.layout.pendingEditors = [];
+    this.layout.loadingAnnotations = {};
     this.layout.getTileHeight = (tile) => {
       let memberCount = (tile.render.members ?? []).length;
       return (this.layout.tileBaseHeight * Math.min(memberCount, 1))
@@ -541,11 +562,101 @@ modules["breakout/overview"] = class {
 
       return [column, section];
     }
+    this.layout.loadEditorAnnotations = async (tile = {}, body = {}, root = {}) => {
+      if (tile.editor == null) {
+        return;
+      }
+      await tile.editor.loadAnnotations({
+        annotations: body.annotations ?? [],
+        rootAnnotations: root.annotations ?? [],
+        sources: [ ...(body.sources ?? []), ...(root.sources ?? []) ],
+        reactions: [ ...(body.reactions ?? []), ...(root.reactions ?? []) ],
+        reactedTo: [ ...(body.reactedTo ?? []), ...(root.reactedTo ?? []) ],
+      });
+    }
     this.layout.setupEditors = async () => {
       if (this.layout.runningEditorSetup == true) {
         return;
       }
       this.layout.runningEditorSetup = true;
+
+      let getGroupAnnotations = [];
+      let getGroupRoots = [];
+      for (let i = 0; i < this.layout.pendingEditors.length; i++) {
+        let tile = this.layout.pendingEditors[i];
+        if (tile.loadedAnnotations != true && this.layout.loadingAnnotations[tile.render._id] == null) {
+          this.layout.loadingAnnotations[tile.render._id] = [];
+          getGroupAnnotations.push(tile.render._id);
+        }
+        if (tile.render.template != null) {
+          let rootID = tile.render.version + "_" + tile.render.template;
+          if (this.templateRoots[rootID] == null && this.layout.loadingAnnotations[rootID] == null) {
+            this.layout.loadingAnnotations[rootID] = [];
+            getGroupRoots.push(rootID);
+          }
+        }
+      }
+
+      // Bulk Fetch Annotations for Groups:
+      if (getGroupAnnotations.length > 0) {
+        (async () => {
+          let buffer = "";
+          await sendRequest(
+            "POST",
+            "lessons/breakout/groups/bulkannotations",
+            {
+              groups: getGroupAnnotations,
+              roots: getGroupRoots
+            }, {
+              session: this.parent.session,
+              streaming: true,
+              onChunk: async (data) => {
+                buffer += data;
+                let lines = buffer.split("\n");
+                buffer = lines.pop();
+                for (let i = 0; i < lines.length; i++) {
+                  let line = lines[i];
+                  if (line.trim()) {
+                    try {
+                      let [type, id, body] = JSON.parse(line);
+                      switch (type) {
+                        case "group":
+                          let tile = this.layout.tiles[id];
+                          tile.loadedAnnotations = true;
+                          if (tile.render.template != null) {
+                            let rootID = tile.render.version + "_" + tile.render.template;
+                            let root = this.templateRoots[rootID];
+                            if (root != null) {
+                              await this.layout.loadEditorAnnotations(tile, body, root);
+                            } else {
+                              let rootLoad = this.layout.loadingAnnotations[rootID];
+                              if (rootLoad != null) {
+                                rootLoad.push([tile, body]);
+                              }
+                            }
+                          }
+                          delete this.layout.loadingAnnotations[id];
+                          break;
+                        case "root":
+                          this.templateRoots[id] = body;
+                          let rootLoad = this.layout.loadingAnnotations[id];
+                          if (rootLoad != null) {
+                            for (let r = 0; r < rootLoad.length; r++) {
+                              let [tile, groupBody] = rootLoad[r];
+                              await this.layout.loadEditorAnnotations(tile, groupBody, body);
+                            }
+                            delete this.layout.loadingAnnotations[id];
+                          }
+                      }
+                    } catch (error) {
+                      console.error("Error parsing line:", error);
+                    }
+                  }
+                }
+              }
+            });
+        })();
+      }
 
       while (this.layout.pendingEditors.length > 0 && this.layout.runningEditorSetup == true) {
         let tile = this.layout.pendingEditors.shift();
@@ -553,11 +664,9 @@ modules["breakout/overview"] = class {
           continue;
         }
         tile.editor.updatePageSize();
+        await tile.editor.updateChunks();
         await tile.editor.render.setMarginSize();
-        if (testGroupAnnotationCode == 200) {
-          await tile.editor.loadAnnotations(testGroupAnnotationBody);
-        }
-        //await tile.editor.setZoom(.318);
+        await tile.editor.loadAnnotations();
         //tile.editor.utils.centerWindowWithPage();
       }
 
@@ -746,6 +855,10 @@ modules["breakout/overview"] = class {
         }
         let previewContainer = tile.element.querySelector(".broTilePreviewContainer");
         let previewHolder = previewContainer.querySelector(".broTilePreview");
+        let existingState = {};
+        if (tile.editor != null) {
+          existingState = tile.editor.preserveState();
+        }
         tile.editor = await this.setFrame("editor/editor", previewHolder, {
           construct: {
             page: previewContainer,
@@ -760,29 +873,11 @@ modules["breakout/overview"] = class {
             pageRenderPipeline: this.parent.parent.pageRenderPipeline,
             scrollOffset: 50 * (1 / this.layout.previewScale),
             sideScrollOffset: 8 * (1 / this.layout.previewScale),
-            skipPDFTextAnnotationLayer: true
+            skipPDFTextAnnotationLayer: true,
+            ...existingState
           }
         });
-        tile.editor.updatePageSize = () => {
-          let invertedScale = 1 / this.layout.previewScale;
-          let standardWidth = this.layout.columnWidth;
-          let standardHeight = this.layout.columnWidth * this.layout.tileHeightRatio;
-          tile.editor.pageOffsetWidth = standardWidth * invertedScale;
-          tile.editor.pageOffsetHeight = standardHeight * invertedScale;
-          let parentRectX = this.groupHolderRect.x + ((this.containerWidth - this.layout.groupsWidth) / 2);
-          let parentRectY = this.groupHolderRect.y + this.scrollOffset + (this.layout.tilePadding - 8) - this.layout.scrollTop;
-          tile.editor.pageRect = {
-            scale: invertedScale,
-            x: parentRectX + tile.x,
-            y: parentRectY + tile.y,
-            width: tile.editor.pageOffsetWidth,
-            height: tile.editor.pageOffsetHeight,
-            left: parentRectX + tile.x,
-            right: parentRectX + tile.x + this.layout.columnWidth,
-            top: parentRectY + tile.y,
-            bottom: parentRectY + tile.y + tile.height
-          };
-        }
+        tile.editor.updatePageSize = () => { this.previewEditorPageSizeFunction(tile); }
         this.layout.pendingEditors.push(tile);
       }
 
@@ -801,7 +896,7 @@ modules["breakout/overview"] = class {
         let tile = this.layout.tiles[tileID];
         if (tile.editor != null) {
           tile.editor.destroy();
-          tile.editor = null;
+          //tile.editor = null;
         }
         if (tile.element != null) {
           tile.element.remove();
@@ -979,7 +1074,20 @@ modules["breakout/overview"] = class {
     });
 
     groups.addEventListener("click", (event) => {
-
+      let target = event.target;
+      let tile = target.closest(".broTile");
+      if (tile == null) {
+        return;
+      }
+      if (target.closest("button") != null || target.closest("div[contenteditable]") != null) {
+        return;
+      }
+      let tileData = this.layout.tiles[tile.getAttribute("tileid")];
+      let editorState = null;
+      if (tileData.editor != null && tileData.loadedAnnotations == true) {
+        editorState = tileData.editor.preserveState();
+      }
+      this.parent.openPage("secondary", "breakout/group", { group: tileData.render, editorState });
     });
 
     groups.addEventListener("contextmenu", (event) => {

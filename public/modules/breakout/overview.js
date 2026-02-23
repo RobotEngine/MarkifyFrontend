@@ -87,7 +87,7 @@ modules["breakout/overview"] = class {
     ".broTile:active .broTileContent": `transform: scale(.95)`,
     ".broTilePreviewContainer": `position: relative; width: 100%; height: calc(var(--columnWidth) * var(--previewHeightRatio)); z-index: 1`,
     ".broTilePreviewContainer:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px`,
-    ".broTilePreview": `position: absolute; width: calc(100% * (1 / var(--previewScale))); height: calc(100% * (1 / var(--previewScale))); left: 50%; top: 50%; transform: translate(-50%, -50%) scale(var(--previewScale)); transform-origin: center; background: var(--pageColor); contain: strict; overflow: scroll; scrollbar-width: none`,
+    ".broTilePreview": `position: absolute; width: calc(100% * (1 / var(--previewScale))); height: calc(100% * (1 / var(--previewScale))); left: 50%; top: 50%; transform: translate(-50%, -50%) scale(var(--previewScale)); transform-origin: center; background: var(--pageColor); contain: strict; overflow: scroll; scrollbar-width: none; transition: opacity .4s`,
     ".broTilePreview::-webkit-scrollbar": `display: none`,
     ".broTileHeader": `position: absolute; display: flex; gap: 8px; width: 100%; left: 0px; top: 0px; justify-content: space-between; z-index: 3; pointer-events: none`,
     ".broTileHeaderName": `display: flex; box-sizing: border-box; gap: 0; min-width: 0; padding: 6px; align-items: center; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 0 0 16px 0; overflow: hidden; pointer-events: all; transition: .2s`,
@@ -575,6 +575,12 @@ modules["breakout/overview"] = class {
         reactions: [ ...(body.reactions ?? []), ...(root.reactions ?? []) ],
         reactedTo: [ ...(body.reactedTo ?? []), ...(root.reactedTo ?? []) ],
       });
+      if (tile.element != null) {
+        let previewHolder = tile.element.querySelector(".broTilePreview");
+        if (previewHolder != null) {
+          previewHolder.removeAttribute("disabled");
+        }
+      }
     }
     this.layout.setupEditors = async () => {
       if (this.layout.runningEditorSetup == true) {
@@ -876,6 +882,9 @@ modules["breakout/overview"] = class {
           </div>`;
           tile.element.querySelector(".broTileHeaderNameHolderText").textContent = tile.render.name ?? "Untitled Group";
           setSVG(tile.element.querySelector(".broTileHeaderOptions button"), "../images/editor/actions/more.svg");
+          if (tile.loadedAnnotations != true) {
+            tile.element.querySelector(".broTilePreview").setAttribute("disabled", "");
+          }
           let members = tile.members ?? [];
           for (let i = 0; i < members.length; i++) {
             this.layout.addMemberTile(members[i], false);

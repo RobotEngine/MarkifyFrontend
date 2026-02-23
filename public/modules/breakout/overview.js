@@ -85,7 +85,7 @@ modules["breakout/overview"] = class {
     ".broTileContent": `--shadow: var(--lightShadow); position: relative; width: 100%; height: 100%; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 16px; contain: strict; overflow: hidden; transition: .2s, transform .1s`,
     ".broTile:hover .broTileContent": `--shadow: var(--darkShadow) !important`,
     ".broTile:active .broTileContent": `transform: scale(.95)`,
-    ".broTilePreviewContainer": `position: relative; width: 100%; height: calc(var(--columnWidth) * (3/4)); z-index: 1`,
+    ".broTilePreviewContainer": `position: relative; width: 100%; height: calc(var(--columnWidth) * var(--previewHeightRatio)); z-index: 1`,
     ".broTilePreviewContainer:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px`,
     ".broTilePreview": `position: absolute; width: calc(100% * (1 / var(--previewScale))); height: calc(100% * (1 / var(--previewScale))); left: 50%; top: 50%; transform: translate(-50%, -50%) scale(var(--previewScale)); transform-origin: center; background: var(--pageColor); contain: strict; overflow: scroll; scrollbar-width: none`,
     ".broTilePreview::-webkit-scrollbar": `display: none`,
@@ -495,7 +495,7 @@ modules["breakout/overview"] = class {
     this.layout.columnWidth = 0;
     this.layout.previewScale = 1;
     this.layout.tileBaseHeight = 12; // Base padding around tile
-    this.layout.tileHeightRatio = 3/4; // Ratio for getting height from width of thumbnail
+    //this.layout.tileHeightRatio = 3/4; // Ratio for getting height from width of thumbnail
     this.layout.tileMemberHeight = 40; // Height of each member list item
     this.layout.tileMemberGap = 6; // Gap between each member list item
     this.layout.columns = {};
@@ -1031,6 +1031,7 @@ modules["breakout/overview"] = class {
       this.layout.refreshTileSpots();
       groupHolder.style.setProperty("--columnCount", this.layout.columnCount);
       groupHolder.style.setProperty("--columnWidth", this.layout.columnWidth + "px");
+      groupHolder.style.setProperty("--previewHeightRatio", this.layout.tileHeightRatio);
       groupHolder.style.setProperty("--previewScale", this.layout.previewScale);
     }
     this.layout.setupColumns = (force) => {
@@ -1080,6 +1081,8 @@ modules["breakout/overview"] = class {
           this.layout.columnCount = Math.floor(this.layout.columnCount - 1);
         }
       }
+
+      this.layout.tileHeightRatio = Math.min(Math.max(this.containerHeight / this.containerWidth, .6), 1.25);
 
       this.layout.previewScale = (this.layout.columnWidth * this.layout.tileHeightRatio) / this.containerHeight;
       /*Math.min(

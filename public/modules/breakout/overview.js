@@ -34,8 +34,8 @@ modules["breakout/overview"] = class {
   </div>`;
   css = {
     ".broInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; user-select: none; contain: strict; overflow-y: scroll; z-index: 2`,
-    ".broGroupHolder": `--interfacePadding: 58px; --tilePadding: 16px; --totalWidth: calc((var(--columnWidth) * var(--columnCount)) + (var(--tilePadding) * (var(--columnCount) - 1))); position: relative; display: flex; width: 100%; height: 100%; background: var(--pageColor); contain: strict; overflow-x: hidden; overflow-y: scroll; overflow-anchor: none; z-index: 1; justify-content: center; transition: .5s`,
-    ".broGroups": `position: relative; box-sizing: border-box; width: var(--totalWidth); height: var(--totalHeight); margin: calc(var(--interfacePadding) + 8px) 0; z-index: 2; transition: width .3s`,
+    ".broGroupHolder": `--interfacePadding: 58px; --tilePadding: 16px; --totalWidth: calc((var(--columnWidth) * var(--columnCount)) + (var(--tilePadding) * (var(--columnCount) - 1))); position: relative; display: flex; box-sizing: border-box; width: 100%; height: 100%; padding-top: calc(var(--interfacePadding) + 8px); background: var(--pageColor); contain: strict; overflow-x: hidden; overflow-y: scroll; overflow-anchor: none; z-index: 1; justify-content: center; transition: .5s`,
+    ".broGroups": `position: absolute; box-sizing: border-box; width: var(--totalWidth); height: calc(var(--totalHeight) + var(--interfacePadding) + 8px); z-index: 2; transition: width .3s`,
     //".broBackground": `position: absolute; width: 100%; height: 100%; min-height: calc(var(--totalHeight) + (var(--interfacePadding) * 2) + 16px); left: 0px; top: 0px; opacity: .075; background-image: url("../images/editor/backdropblack.svg"); background-size: 25px 25px; background-position: center 50px; z-index: 1; pointer-events: none; contain: strict`,
     ".broCreateBreakoutHolder": `position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: hidden; z-index: 3; pointer-events: none`,
 
@@ -87,7 +87,7 @@ modules["breakout/overview"] = class {
     ".broTile:active .broTileContent": `transform: scale(.95)`,
     ".broTilePreviewContainer": `position: relative; width: 100%; height: calc(var(--columnWidth) * (3/4)); z-index: 1`,
     ".broTilePreviewContainer:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px`,
-    ".broTilePreview": `--scale: .3; position: absolute; width: calc(100% * (1 / var(--scale))); height: calc(100% * (1 / var(--scale))); left: 0px; top: 0px; transform: scale(var(--scale)); transform-origin: left top; background: var(--pageColor); contain: strict; overflow: scroll; scrollbar-width: none`,
+    ".broTilePreview": `position: absolute; width: calc(100% * (1 / var(--previewScale))); height: calc(100% * (1 / var(--previewScale))); left: 50%; top: 50%; transform: translate(-50%, -50%) scale(var(--previewScale)); transform-origin: center; background: var(--pageColor); contain: strict; overflow: scroll; scrollbar-width: none`,
     ".broTilePreview::-webkit-scrollbar": `display: none`,
     ".broTileHeader": `position: absolute; display: flex; gap: 8px; width: 100%; left: 0px; top: 0px; justify-content: space-between; z-index: 3; pointer-events: none`,
     ".broTileHeaderName": `display: flex; box-sizing: border-box; gap: 0; min-width: 0; padding: 6px; align-items: center; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 0 0 16px 0; overflow: hidden; pointer-events: all; transition: .2s`,
@@ -103,11 +103,11 @@ modules["breakout/overview"] = class {
     ".broTileHeaderOptionsButton": `display: flex; width: 30px; height: 30px; margin: 4px; flex-shrink: 0; justify-content: center; align-items: center; border-radius: 16px`,
     ".broTileHeaderOptionsButton > svg": `flex-shrink: 0; width: 24px; height: 24px`,
     ".broTileHeaderOptionsButton:hover": `background: var(--hover)`,
-    ".broTileMembers": `position: relative; width: 100%; padding-bottom: 6px; z-index: 2`,
+    ".broTileMembers": `position: relative; width: 100%; padding-bottom: 6px; background: var(--pageColor); z-index: 2`,
     ".broTileMembers:has(> .broTileMember):before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: var(--shadow)`,
     ".broTileMember": `--shadow: var(--lightShadow); position: relative; width: calc(100% - 12px); padding: 0; margin: 6px 6px 0; background: var(--pageColor); border-radius: 10px; cursor: grab`,
     ".broTileMember:hover, .broTileMember:active, .broTileMember[dragging]": `--shadow: var(--darkShadow)`,
-    ".broTileMember:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: var(--shadow)`,
+    ".broTileMember:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; pointer-events: none; box-shadow: var(--shadow)`,
     ".broTileMemberContent": `display: flex; box-sizing: border-box; width: 100%; gap: 6px; padding: 6px; overflow: hidden; justify-content: space-between`,
     ".broTileMemberNameHolder": `display: flex; min-width: 0; align-items: center`,
     ".broTileMemberNameDragHolder": `--transformTranslate: translateX(calc(-6px - 100%)); width: 0px; height: 28px; margin-right: 0px; transition: .2s`,
@@ -239,6 +239,7 @@ modules["breakout/overview"] = class {
       top: parentRectY + tile.y,
       bottom: parentRectY + tile.y + tile.height
     };
+    tile.editor.updateChunks();
   }
 
   js = async (frame) => {
@@ -492,19 +493,20 @@ modules["breakout/overview"] = class {
     this.layout.maxContainerWidth = (this.layout.minTileWidth * 6) + (this.layout.tilePadding * 5) - 1;
     this.layout.columnCount = 0;
     this.layout.columnWidth = 0;
-    this.layout.previewScale = .3;
+    this.layout.previewScale = 1;
     this.layout.tileBaseHeight = 12; // Base padding around tile
     this.layout.tileHeightRatio = 3/4; // Ratio for getting height from width of thumbnail
     this.layout.tileMemberHeight = 40; // Height of each member list item
     this.layout.tileMemberGap = 6; // Gap between each member list item
     this.layout.columns = {};
     this.layout.tiles = {};
+    this.layout.members = {};
     this.layout.tileLayout = [];
     this.layout.loadedTiles = [];
     this.layout.pendingEditors = [];
     this.layout.loadingAnnotations = {};
     this.layout.getTileHeight = (tile) => {
-      let memberCount = (tile.render.members ?? []).length;
+      let memberCount = (tile.members ?? []).length;
       return (this.layout.tileBaseHeight * Math.min(memberCount, 1))
       + (this.layout.columnWidth * this.layout.tileHeightRatio)
       + (this.layout.tileMemberHeight * memberCount)
@@ -671,13 +673,83 @@ modules["breakout/overview"] = class {
           continue;
         }
         tile.editor.updatePageSize();
-        await tile.editor.updateChunks();
-        await tile.editor.render.setMarginSize();
-        await tile.editor.loadAnnotations();
-        //tile.editor.utils.centerWindowWithPage();
+        
+        if (tile.editorState != null) {
+          await tile.editor.setState(tile.editorState);
+        } else {
+          await tile.editor.updateChunks();
+          await tile.editor.loadAnnotations();
+        }
+        tile.editor.previewLoaded = true;
       }
 
       this.layout.runningEditorSetup = false;
+    }
+    this.layout.addMemberTile = (memberID, refresh) => {
+      let tile = this.layout.tiles[(this.layout.members[memberID] ?? {}).group] ?? {};
+      if (tile.element == null) {
+        return;
+      }
+      let collaborator = this.parent.parent.collaborators[memberID];
+      if (collaborator == null) {
+        return;
+      }
+      let memberTile = document.createElement("button");
+      memberTile.className = "broTileMember";
+      memberTile.setAttribute("collaborator", memberID);
+      memberTile.innerHTML = `
+      <div class="broTileMemberContent">
+        <div class="broTileMemberNameHolder">
+          <div class="broTileMemberNameDragHolder"><div class="broTileMemberNameDragHandle">
+            <div class="broTileMemberNameDragHandleDot"></div>
+            <div class="broTileMemberNameDragHandleDot"></div>
+            <div class="broTileMemberNameDragHandleDot"></div>
+          </div></div>
+          <div class="broTileMemberNameCursor"></div>
+          <div class="broTileMemberNameText"></div>
+        </div>
+        <div class="broTileMemberPercent"><div class="broTileMemberPercentBarHolder"><div class="broTileMemberPercentBar"></div></div></div>
+      </div>
+      `;
+      memberTile.style.setProperty("--themeColor", collaborator.color);
+      let memberName = memberTile.querySelector(".broTileMemberNameText");
+      memberName.textContent = collaborator.name;
+      memberName.title = collaborator.name;
+      tile.element.querySelector(".broTileMembers").appendChild(memberTile);
+      if (refresh != false) {
+        this.layout.refreshTileSpots(this.layout.tileLayout.indexOf(tile.render._id));
+      }
+    }
+    this.layout.updateMemberTile = (collaborator, memberTile) => {
+      if (collaborator._id == null) {
+        return;
+      }
+      if (memberTile == null) {
+        memberTile = groups.querySelector('.broTileMember[collaborator="' + collaborator._id + '"]');
+      }
+      if (memberTile == null) {
+        return this.layout.addMemberTile();
+      }
+      if (collaborator.hasOwnProperty("color") == true) {
+        memberTile.style.setProperty("--themeColor", collaborator.color);
+      }
+      if (collaborator.hasOwnProperty("name") == true) {
+        let memberName = memberTile.querySelector(".broTileMemberNameText");
+        memberName.textContent = collaborator.name;
+        memberName.title = collaborator.name;
+      }
+    }
+    this.layout.removeMemberTile = (member = {}, memberTile, refresh) => {
+      if (memberTile == null) {
+        memberTile = groups.querySelector('.broTileMember[collaborator="' + member.modify + '"]');
+        if (memberTile == null) {
+          return;
+        }
+      }
+      memberTile.remove();
+      if (refresh != false) {
+        this.layout.refreshTileSpots(this.layout.tileLayout.indexOf(member.group));
+      }
     }
     this.layout.runUpdateCycle = async () => {
       if (this.layout.runningUpdateCycle == true) {
@@ -786,7 +858,7 @@ modules["breakout/overview"] = class {
         if (tile.element == null) {
           tile.element = document.createElement("a");
           tile.element.className = "broTile";
-          tile.element.setAttribute("tileid", tileID);
+          tile.element.setAttribute("group", tileID);
           tile.element.innerHTML = `<div class="broTileContent">
             <div class="broTilePreviewContainer">
               <div class="broTilePreview"></div>
@@ -804,34 +876,9 @@ modules["breakout/overview"] = class {
           </div>`;
           tile.element.querySelector(".broTileHeaderNameHolderText").textContent = tile.render.name ?? "Untitled Group";
           setSVG(tile.element.querySelector(".broTileHeaderOptions button"), "../images/editor/actions/more.svg");
-          let membersHolder = tile.element.querySelector(".broTileMembers");
-          let members = tile.render.members ?? [];
+          let members = tile.members ?? [];
           for (let i = 0; i < members.length; i++) {
-            let member = members[i];
-            let collaborator = this.parent.parent.collaborators[member.modify];
-            if (collaborator == null) {
-              continue;
-            }
-            let memberTile = document.createElement("button");
-            memberTile.className = "broTileMember";
-            memberTile.setAttribute("collaborator", tileID);
-            memberTile.innerHTML = `
-            <div class="broTileMemberContent">
-              <div class="broTileMemberNameHolder">
-                <div class="broTileMemberNameDragHolder"><div class="broTileMemberNameDragHandle">
-                  <div class="broTileMemberNameDragHandleDot"></div>
-                  <div class="broTileMemberNameDragHandleDot"></div>
-                  <div class="broTileMemberNameDragHandleDot"></div>
-                </div></div>
-                <div class="broTileMemberNameCursor"></div>
-                <div class="broTileMemberNameText"></div>
-              </div>
-              <div class="broTileMemberPercent"><div class="broTileMemberPercentBarHolder"><div class="broTileMemberPercentBar"></div></div></div>
-            </div>
-            `;
-            memberTile.style.setProperty("--themeColor", collaborator.color);
-            memberTile.querySelector(".broTileMemberNameText").textContent = collaborator.name;
-            membersHolder.appendChild(memberTile);
+            this.layout.addMemberTile(members[i], false);
           }
           newTilesPendingEditors.push(tile);
           newTilesFragment.appendChild(tile.element);
@@ -876,7 +923,9 @@ modules["breakout/overview"] = class {
         let previewHolder = previewContainer.querySelector(".broTilePreview");
         let existingState = {};
         if (tile.editor != null) {
-          existingState = tile.editor.preserveState();
+          existingState = tile.editor.getState();
+          delete existingState.zoom;
+          delete existingState.centerPosition;
         }
         tile.editor = await this.setFrame("editor/editor", previewHolder, {
           construct: {
@@ -890,8 +939,9 @@ modules["breakout/overview"] = class {
             sessionID: this.parent.parent.sessionID,
             sources: this.parent.parent.sources,
             pageRenderPipeline: this.parent.parent.pageRenderPipeline,
-            scrollOffset: 50 * (1 / this.layout.previewScale),
-            sideScrollOffset: 8 * (1 / this.layout.previewScale),
+            backgroundColor: tile.render.background ?? "FFFFFF",
+            //scrollOffset: 50, //* (1 / this.layout.previewScale),
+            sideScrollOffset: 8, //* (1 / this.layout.previewScale),
             skipPDFTextAnnotationLayer: true,
             ...existingState
           }
@@ -914,6 +964,10 @@ modules["breakout/overview"] = class {
         let tileID = unloadTileKeys[i];
         let tile = this.layout.tiles[tileID];
         if (tile.editor != null) {
+          if (tile.editor.previewLoaded == true) {
+            let existingState = tile.editor.getState();
+            tile.editorState = { zoom: existingState.zoom, centerPosition: existingState.centerPosition };
+          }
           tile.editor.destroy();
           //tile.editor = null;
         }
@@ -977,6 +1031,7 @@ modules["breakout/overview"] = class {
       this.layout.refreshTileSpots();
       groupHolder.style.setProperty("--columnCount", this.layout.columnCount);
       groupHolder.style.setProperty("--columnWidth", this.layout.columnWidth + "px");
+      groupHolder.style.setProperty("--previewScale", this.layout.previewScale);
     }
     this.layout.setupColumns = (force) => {
       this.groupHolderRect = groupHolder.getBoundingClientRect();
@@ -1025,6 +1080,12 @@ modules["breakout/overview"] = class {
           this.layout.columnCount = Math.floor(this.layout.columnCount - 1);
         }
       }
+
+      this.layout.previewScale = (this.layout.columnWidth * this.layout.tileHeightRatio) / this.containerHeight;
+      /*Math.min(
+        this.layout.columnWidth / this.containerWidth,
+        (this.layout.columnWidth * this.layout.tileHeightRatio) / this.containerHeight
+      );*/
       
       clearTimeout(this.layout.refreshTilesTimeout);
       if (force != true) {
@@ -1036,16 +1097,15 @@ modules["breakout/overview"] = class {
     this.pipeline.subscribe("tilesResize", "resize", this.layout.setupColumns);
     this.pipeline.subscribe("tilesScroll", "scroll", this.layout.runUpdateCycle, { sort: 1 });
     this.layout.setupColumns(true);
-    this.layout.addTile = (data) => {
+    this.layout.addTile = (data, members) => {
       if (data == null) {
         return;
       }
-      data.members.map((member) => {
-        this.parent.parent.collaborators[member.modify] = { ...(member.collaborator ?? {}), ...(this.parent.parent.collaborators[member.modify] ?? {}) };
-        delete member.collaborator;
-        return member;
-      });
-      let tileInfo = { section: data.version, render: data, members: 4 }; //Math.round(Math.random() * (5 - 1) + 1)
+      let tileInfo = {
+        section: data.version,
+        render: data,
+        members: members ?? []
+      };
       this.layout.tiles[data._id] = tileInfo;
       this.layout.tileLayout.push(data._id);
       // this.layout.refreshTileSpots(this.layout.tileLayout.length - 1);
@@ -1062,22 +1122,34 @@ modules["breakout/overview"] = class {
 
       let path = "lessons/breakout/groups";
       if (lastGroupTime != null) {
-        path += "?before=" + lastGroupTime;
+        path += "?after=" + lastGroupTime;
       }
       let [code, body] = await sendRequest("GET", path, null, { session: this.parent.parent.session });
       if (code != 200) {
         return;
       }
+      for (let i = 0; i < body.collaborators.length; i++) {
+        let collaborator = body.collaborators[i];
+        this.parent.parent.collaborators[collaborator._id] = collaborator;
+      }
       let beforeTileLength = this.layout.tileLayout.length;
-      let bodyItems = body.length;
+      let bodyItems = body.groups.length;
       if (bodyItems < 25) {
         allGroupsLoaded = true;
       }
       for (let i = 0; i < bodyItems; i++) {
-        this.layout.addTile(body[i]);
+        let group = body.groups[i];
+        let members = [];
+        for (let m = 0; m < group.members.length; m++) {
+          let member = group.members[m];
+          this.layout.members[member.modify] = { group: group._id, ...member };
+          members.push(member.modify);
+        }
+        delete group.members;
+        this.layout.addTile(group, members);
       }
       this.layout.refreshTileSpots(beforeTileLength);
-      lastGroupTime = (body[bodyItems - 1] ?? {}).created;
+      lastGroupTime = (body.groups[bodyItems - 1] ?? {}).created;
 
       loadingGroups = false;
     }
@@ -1091,6 +1163,31 @@ modules["breakout/overview"] = class {
     }
     this.pipeline.subscribe("tilesLoadMore", "bounds_change", checkLoadGroups);
     checkLoadGroups();
+
+    this.pipeline.subscribe("memberJoin", "join", (data) => {
+      if (data.group != null) {
+        let existingMember = this.layout.members[data.modify];
+        if (existingMember != null && existingMember.group != data.group) {
+          this.layout.removeMemberTile(data.modify);
+        }
+        this.layout.members[data.modify] = { group: data.group, modify: data.modify };
+        let groupTile = this.layout.tiles[data.group] ?? {};
+        if (groupTile.members != null && groupTile.members.includes(data.modify) == false) {
+          groupTile.members.push(data.modify);
+          this.layout.addMemberTile(data.modify);
+        }
+      }
+    }, { sort: 1 });
+    this.pipeline.subscribe("memberUpdate", "update", (data) => {
+      
+    }, { sort: 1 });
+    this.pipeline.subscribe("memberLeave", "leave", (data) => {
+      
+    }, { sort: 1 });
+
+    this.pipeline.subscribe("collaboratorUpdate", "collaborator_update", (data) => {
+      this.layout.updateMemberTile(data);
+    }, { sort: 1 });
     
     groupHolder.addEventListener("scroll", (event) => {
       this.pipeline.publish("scroll", { event: event });
@@ -1106,12 +1203,12 @@ modules["breakout/overview"] = class {
       if (target.closest("button") != null || target.closest("div[contenteditable]") != null) {
         return;
       }
-      let tileData = this.layout.tiles[tile.getAttribute("tileid")];
-      let editorState = null;
+      let tileData = this.layout.tiles[tile.getAttribute("group")];
+      let editor;
       if (tileData.editor != null && tileData.loadedAnnotations == true) {
-        editorState = tileData.editor.preserveState();
+        editor = tileData.editor;
       }
-      this.parent.openPage("secondary", "breakout/group", { group: tileData.render, editorState });
+      this.parent.openPage("secondary", "breakout/group", { group: tileData.render, editor });
     });
 
     groups.addEventListener("contextmenu", (event) => {

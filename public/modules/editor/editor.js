@@ -547,6 +547,7 @@ modules["editor/editor"] = class {
   defaultLocks = [];
 
   visibleChunks = [];
+  loadedChunks = {};
   defaultChunks = {};
   chunkAnnotations = {};
   chunkWidth = 1000;
@@ -569,7 +570,7 @@ modules["editor/editor"] = class {
 
   backgroundColor = "FFFFFF";
 
-  preserveState = () => {
+  getState = () => {
     return {
       annotations: this.annotations,
       reactions: this.reactions,
@@ -577,12 +578,32 @@ modules["editor/editor"] = class {
       //sourceRenders: this.sourceRenders,
       currentRootAnnotations: this.currentRootAnnotations,
       chunkAnnotations: this.chunkAnnotations,
-      visiblePages: this.visiblePages,
+      //visiblePages: this.visiblePages,
       annotationPages: this.annotationPages,
-      currentPage: this.currentPage,
+      //currentPage: this.currentPage,
       comments: this.comments,
-      //zoom: this.zoom
+      zoom: this.zoom,
+      centerPosition: this.getCenterPosition()
     };
+  }
+  setState = async (state = {}) => {
+    this.visibleChunks = [];
+    this.loadedChunks = {};
+    this.annotations = state.annotations ?? this.annotations;
+    this.reactions = state.reactions ?? this.reactions;
+    this.currentRootAnnotations = state.currentRootAnnotations ?? this.currentRootAnnotations;
+    this.chunkAnnotations = state.chunkAnnotations ?? this.chunkAnnotations;
+    this.annotationPages = state.annotationPages ?? this.annotationPages;
+    this.comments = state.comments ?? this.comments;
+    await this.render.setMarginSize();
+    if (state.zoom != null) {
+      await this.setZoom(state.zoom);
+    }
+    if (state.centerPosition != null) {
+      this.goToCenterPosition(state.centerPosition.x, state.centerPosition.y);
+    }
+    await this.updateChunks();
+    await this.utils.updateCurrentPage(true);
   }
 
   js = async (frame) => {
@@ -1259,7 +1280,7 @@ modules["editor/editor"] = class {
       let activeElement = document.activeElement;
       if (activeElement != null) {
         let currentPageBox = activeElement.closest(".eCurrentPage");
-        if (currentPageBox != null) { //== pageTextBox
+        if (currentPageBox != null && this.isThisPage(currentPageBox) == true) { //== pageTextBox
           return;
         }
       }
@@ -1738,9 +1759,11 @@ modules["editor/editor"] = class {
             }
             source = this.sources[sourceID] ?? {};
             if (source.source != null) {
-              let loadingTask = pdfjsLib.getDocument(assetURL + source.source)
-              addTempListener({ type: "pdf", document: loadingTask });
-              loadingTask.promise.then(async (pdf) => {
+              if (source.loadingTask == null) {
+                source.loadingTask = pdfjsLib.getDocument(assetURL + source.source);
+                addTempListener({ type: "pdf", document: source.loadingTask });
+              }
+              source.loadingTask.promise.then(async (pdf) => {
                 source.pdf = pdf;
                 let loadingPageKeys = Object.keys(this.render.pdfFileLoading[sourceID])
                 for (let b = 0; b < loadingPageKeys.length; b++) {
@@ -3452,7 +3475,6 @@ modules["editor/editor"] = class {
     this.updateBackground();
     
     let updateSubTimeout;
-    let loadedChunks = {};
     let holdLoadedChunks = {};
     let alreadyRunningUpdateCycle = false;
     let pinchingUpdateTimeout;
@@ -3475,12 +3497,12 @@ modules["editor/editor"] = class {
       
       let unloadChunkedAnnotations = {};
       let newlyUnloaded = {};
-      let visible = Object.keys({ ...loadedChunks, ...holdLoadedChunks });
+      let visible = Object.keys({ ...this.loadedChunks, ...holdLoadedChunks });
       holdLoadedChunks = {};
       for (let i = 0; i < visible.length; i++) {
         let chunk = visible[i];
         if (this.visibleChunks.includes(chunk) == false) {
-          delete loadedChunks[chunk];
+          delete this.loadedChunks[chunk];
           newlyUnloaded[chunk] = "";
 
           // Remove annotations in unloaded chunks:
@@ -3502,7 +3524,7 @@ modules["editor/editor"] = class {
           // Annotation may still be visible in another chunk, we must check
           let remove = true;
           for (let c = 0; c < annotation.chunks.length; c++) {
-            if (loadedChunks[annotation.chunks[c]] != null) {
+            if (this.loadedChunks[annotation.chunks[c]] != null) {
               remove = false;
               break;
             }
@@ -3532,8 +3554,8 @@ modules["editor/editor"] = class {
       let newlyLoaded = {};
       for (let i = 0; i < this.visibleChunks.length; i++) {
         let chunk = this.visibleChunks[i];
-        if (loadedChunks[chunk] == null) {
-          loadedChunks[chunk] = "";
+        if (this.loadedChunks[chunk] == null) {
+          this.loadedChunks[chunk] = "";
           newlyLoaded[chunk] = "";
 
           // Load annotations in these chunks:
@@ -3551,7 +3573,7 @@ modules["editor/editor"] = class {
         let render = true;
         for (let i = 0; i < (annotation.chunks ?? []).length; i++) {
           let chunk = annotation.chunks[i];
-          if (loadedChunks[chunk] != null && newlyLoaded[chunk] == null) {
+          if (this.loadedChunks[chunk] != null && newlyLoaded[chunk] == null) {
             render = false;
             break;
           }
@@ -3641,6 +3663,21 @@ modules["editor/editor"] = class {
     }
     this.pipeline.subscribe("resizeChange", "resize", this.updatePageSize, { sort: 1 });
     this.updatePageSize();
+
+    this.getCenterPosition = () => {
+      let annotationRect = this.utils.annotationsRect();
+      return {
+        x: (((this.pageOffsetWidth / 2) - annotationRect.left) / this.zoom),
+        y: (((this.pageOffsetHeight / 2) - annotationRect.top) / this.zoom)
+      };
+    }
+    this.goToCenterPosition = (x, y) => {
+      let annotationRect = this.utils.annotationsRect();
+      contentHolder.scrollTo({
+        left: (contentHolder.scrollLeft + annotationRect.left) + (x * this.zoom) - (this.pageOffsetWidth / 2),
+        top: (contentHolder.scrollTop + annotationRect.top) + (y * this.zoom) - (this.pageOffsetHeight / 2)
+      });
+    }
     
     contentHolder.addEventListener("scroll", (event) => {
       this.pipeline.publish("scroll", { event: event });

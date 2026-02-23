@@ -1339,8 +1339,9 @@ modules["dropdowns/lesson/board/members"] = class {
       updateOrder(section, tile.parentElement, member);
       tile.style.setProperty("--themeColor", member.color);
       tile.style.setProperty("--hoverTextColor", editor.utils.textColorBackground(member.color));
-      tile.querySelector(".eMemberName").textContent = member.name;
-      tile.querySelector(".eMemberName").title = member.name;
+      let memberName = tile.querySelector(".eMemberName");
+      memberName.textContent = member.name;
+      memberName.title = member.name;
       let eventsHolder = tile.querySelector(".eMemberEvents");
       if (member._id == editor.sessionID) {
         eventsHolder.insertAdjacentHTML("afterbegin", `<div class="eMemberEvent" self title="This member is you.">YOU</div>`);

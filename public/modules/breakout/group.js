@@ -196,7 +196,7 @@ modules["breakout/group"] = class {
     this.group = extra.group ?? {};
 
     let fetchAnnotations;
-    if (extra.editorState == null) {
+    if (extra.editor == null) {
       fetchAnnotations = sendRequest("GET", "lessons/join/annotations?group=" + this.group._id, null, { session: this.parent.parent.session });
     }
     
@@ -215,7 +215,7 @@ modules["breakout/group"] = class {
       let memberKeys = Object.keys(this.parent.parent.members);
       for (let i = 0; i < memberKeys.length; i++) {
         let member = this.parent.parent.members[memberKeys[i]] ?? {};
-        if (member.group == this.group._id) {
+        if (member.group == this.group._id || member._id == this.parent.parent.self._id) {
           this.members[member._id] = member;
           this.memberCount++;
         }
@@ -223,18 +223,6 @@ modules["breakout/group"] = class {
     } else {
       this.members = extra.members;
       this.memberCount = Object.keys(this.members).length;
-    }
-
-    let editorState = {};
-    if (extra.editorState != null) {
-      let annotations = {};
-      let annoKeys = Object.keys(extra.editorState.annotations);
-      for (let i = 0; i < annoKeys.length; i++) { // Copy annotations:
-        let annoID = annoKeys[i];
-        let anno = extra.editorState.annotations[annoID];
-        annotations[annoID] = copyObject({ chunks: anno.chunks, render: anno.render });
-      }
-      editorState = copyObject({ ...extra.editorState, annotations });
     }
 
     this.editor = await this.setFrame("editor/editor", contentHolder, {
@@ -258,9 +246,7 @@ modules["breakout/group"] = class {
         backgroundColor: this.group.background ?? "FFFFFF",
 
         id: this.group._id,
-        parameters: [("group=" + this.group._id)],
-
-        ...editorState
+        parameters: [("group=" + this.group._id)]
       }
     });
     this.pipeline = this.editor.pipeline;
@@ -386,8 +372,15 @@ modules["breakout/group"] = class {
       if (this.parent.parent.self.access < 4) { // Open to Group View:
         this.parent.openPage("secondary", "breakout/groups");
       } else { // Open to Overview:
+        if (extra.editor != null) {
+          let state = this.editor.getState();
+          extra.editor.setState({ zoom: state.zoom, centerPosition: state.centerPosition });
+        }
         this.parent.openPage("primary", "breakout/overview");
         this.parent.closePage("secondary");
+        if (this.editor.realtime.module != null) {
+          this.editor.realtime.module.closeShortSub();
+        }
       }
     });
     groupName.textContent = this.group.name ?? "Untitled Group";
@@ -654,17 +647,24 @@ modules["breakout/group"] = class {
     let checkForJumpLink = getParam("annotation");
     (async () => {
       let annoBody;
-      if (extra.editorState == null) {
+      if (fetchAnnotations != null) {
         let result = await fetchAnnotations;
         if (result[0] != 200 && connected == true) {
           return alertModule.open("error", `<b>Error Loading Annotations</b>Please try again later...`);
         }
         annoBody = result[1];
+        await this.editor.loadAnnotations(annoBody, { pageID: pageParam, jumpID: checkForJumpLink });
       } else {
-        this.editor.updatePageSize();
-        await this.editor.updateChunks();
+        let state = extra.editor.getState();
+        let annotations = {};
+        let annoKeys = Object.keys(state.annotations);
+        for (let i = 0; i < annoKeys.length; i++) { // Copy annotations:
+          let annoID = annoKeys[i];
+          let anno = state.annotations[annoID];
+          annotations[annoID] = { chunks: anno.chunks, render: anno.render };
+        }
+        await this.editor.setState(copyObject({ ...state, annotations }));
       }
-      await this.editor.loadAnnotations(annoBody, { pageID: pageParam, jumpID: checkForJumpLink });
       contentHolder.removeAttribute("disabled");
     })();
 

@@ -35,7 +35,7 @@ modules["lesson/breakout"] = class {
     newPage.setAttribute("pageid", id);
     newPage.setAttribute("path", path);
 
-    this.pages[id] = await this.setFrame(path, newPage, extra);
+    this.pages[id] = await this.setFrame(path, newPage, { ...extra, showLoading: false });
     return this.pages[id];
   }
   closePage = (id) => {

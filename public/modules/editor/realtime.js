@@ -164,12 +164,10 @@ modules["editor/realtime"] = class {
         if (lastObservePublish < epoch - 250) { // One event every 250 ms
           let filter = { c: "member", o: editor.sessionID };
 
-          let annotationRect = editor.utils.annotationsRect();
-          let sendX = ((editor.page.offsetWidth / 2) - annotationRect.left) / editor.zoom;
-          let sendY = ((editor.page.offsetHeight / 2) - annotationRect.top) / editor.zoom;
+          let { x, y } = editor.getCenterPosition();
 
           // [ memberID, NULL, zoom, centerx, centery, time ]
-          let pubData = [ editor.sessionID, null, Math.floor(editor.zoom * 100) / 100, Math.floor(sendX), Math.floor(sendY) ];
+          let pubData = [ editor.sessionID, null, Math.floor(editor.zoom * 100) / 100, Math.floor(x), Math.floor(y) ];
 
           let updJSONContent = JSON.stringify([filter, pubData]);
           if (updJSONContent == lastObserveContent && ignoreSame != true) {
@@ -264,14 +262,15 @@ modules["editor/realtime"] = class {
         this.observeSub = null;
       }
     }
-    editor.pipeline.subscribe("realtimePubishPageClose", "page_close", () => {
+    this.closeShortSub = () => {
       if (this.shortSub != null) {
         this.shortSub.close();
       }
       if (this.observeSub != null) {
         this.observeSub.close();
       }
-    });
+    }
+    editor.pipeline.subscribe("realtimePubishPageClose", "page_close", this.closeShortSub);
 
     let observeHolder = editor.page.querySelector("div[observebottomsection]");
     if (observeHolder != null) {
@@ -786,15 +785,9 @@ modules["editor/realtime"] = class {
         if (editor.zoom != zoom) {
           await editor.setZoom(zoom, true);
         }
-        scrollX *= editor.zoom;
-        scrollY *= editor.zoom;
         let annotationRect = editor.utils.annotationsRect();
-        let setX = contentHolder.scrollLeft + annotationRect.left;
-        let setY = contentHolder.scrollTop + annotationRect.top;
-        setX += scrollX;
-        setY += scrollY;
-        setX -= editor.page.offsetWidth / 2;
-        setY -= editor.page.offsetHeight / 2;
+        let setX = (contentHolder.scrollLeft + annotationRect.left) + (scrollX * editor.zoom) - (editor.pageOffsetWidth / 2);
+        let setY = (contentHolder.scrollTop + annotationRect.top) + (scrollY * editor.zoom) - (editor.pageOffsetHeight / 2);
         if (editor.realtime.observeLoading == null) {
           startScroll(setX, setY);
         } else {

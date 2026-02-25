@@ -9,7 +9,7 @@ modules["lesson/breakout"] = class {
   };
 
   pages = {};
-  openPage = async (id, path, extra) => { // primary, secondary, tertiary
+  openPage = async (id, path, extra = {}) => { // primary, secondary, tertiary
     let otherPages = this.frame.querySelectorAll(".brPage:not([hidden])");
     for (let i = 0; i < otherPages.length; i++) {
       let otherPage = otherPages[i];
@@ -35,7 +35,15 @@ modules["lesson/breakout"] = class {
     newPage.setAttribute("pageid", id);
     newPage.setAttribute("path", path);
 
-    this.pages[id] = await this.setFrame(path, newPage, { ...extra, showLoading: false });
+    this.pages[id] = await this.setFrame(path, newPage, {
+      ...extra,
+      construct: {
+        pageID: id,
+        pagePath: path,
+        ...(extra.construct ?? {})
+      },
+      showLoading: false
+    });
     return this.pages[id];
   }
   closePage = (id) => {

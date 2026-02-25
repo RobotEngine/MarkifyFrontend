@@ -247,7 +247,8 @@ modules["breakout/group"] = class {
 
         id: this.group._id,
         parameters: [("group=" + this.group._id)]
-      }
+      },
+      showLoading: extra.editor == null
     });
     this.pipeline = this.editor.pipeline;
 
@@ -734,8 +735,8 @@ modules["dropdowns/lesson/breakout/group/file"] = class {
 
       let construct = {
         close: () => {
-          parent.parent.closePage("secondary");
-          parent.parent.openPage("primary", "breakout/group");
+          parent.parent.closePage("timeline");
+          parent.parent.openPage(parent.pageID, parent.pagePath);
         },
 
         lesson: parent.parent.parent,
@@ -753,7 +754,7 @@ modules["dropdowns/lesson/breakout/group/file"] = class {
         id: parent.group._id,
         parameters: [("group=" + parent.group._id)]
       };
-      this.timeline = await parent.parent.openPage("secondary", "editor/timeline", { construct });
+      this.timeline = await parent.parent.openPage("timeline", "editor/timeline", { construct });
     });
 
     let find = frame.querySelector('.brgFileAction[option="find"]');
@@ -795,6 +796,9 @@ modules["dropdowns/lesson/breakout/group/file"] = class {
       for (let i = 0; i < parent.editor.annotationPages.length; i++) {
         let pageID = parent.editor.annotationPages[i][0];
         let render = (parent.editor.annotations[pageID] ?? {}).render;
+        if (parent.editor.utils.canMemberModify(render) == false) {
+          continue;
+        }
         if (render != null && render.hidden != true) {
           await parent.editor.save.push({ _id: pageID, hidden: true });
         }

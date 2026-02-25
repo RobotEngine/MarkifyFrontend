@@ -85,14 +85,14 @@ modules["breakout/overview"] = class {
     ".broTileContent": `--shadow: var(--lightShadow); position: relative; width: 100%; height: 100%; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 16px; contain: strict; overflow: hidden; transition: .2s, transform .1s`,
     ".broTile:hover .broTileContent": `--shadow: var(--darkShadow) !important`,
     ".broTile:active .broTileContent": `transform: scale(.95)`,
-    ".broTilePreviewContainer": `position: relative; width: 100%; height: calc(var(--columnWidth) * var(--previewHeightRatio)); z-index: 1`,
+    ".broTilePreviewContainer": `position: relative; width: 100%; height: calc(var(--columnWidth) * var(--previewHeightRatio)); min-height: 100px; max-height: 300px; z-index: 1`,
     ".broTilePreviewContainer:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px`,
-    ".broTilePreview": `position: absolute; width: calc(100% * (1 / var(--previewScale))); height: calc(100% * (1 / var(--previewScale))); left: 50%; top: 50%; transform: translate(-50%, -50%) scale(var(--previewScale)); transform-origin: center; background: var(--pageColor); contain: strict; overflow: scroll; scrollbar-width: none; transition: opacity .4s`,
+    ".broTilePreview": `position: absolute; width: calc(var(--columnWidth) * (1 / var(--previewScale))); height: calc(var(--columnWidth) * var(--previewHeightRatio) * (1 / var(--previewScale))); left: 50%; top: 50%; transform: translate(-50%, -50%) scale(var(--previewScale)); transform-origin: center; background: var(--pageColor); contain: strict; overflow: scroll; scrollbar-width: none; transition: opacity .4s`,
     ".broTilePreview::-webkit-scrollbar": `display: none`,
     ".broTileHeader": `position: absolute; display: flex; gap: 8px; width: 100%; left: 0px; top: 0px; justify-content: space-between; z-index: 3; pointer-events: none`,
     ".broTileHeaderName": `display: flex; box-sizing: border-box; gap: 0; min-width: 0; padding: 6px; align-items: center; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 0 0 16px 0; overflow: hidden; pointer-events: all; transition: .2s`,
     ".broTileHeaderName:focus-within": `gap: 6px`,
-    ".broTileHeaderNameImage": `flex-shrink: 0; width: 30px; height: 30px; border-radius: 10px; object-fit: cover`,
+    ".broTileHeaderNameImage": `display: none; flex-shrink: 0; width: 30px; height: 30px; border-radius: 10px; object-fit: cover`,
     ".broTileHeaderNameHolder": `--borderRadius: 6px; --borderColor: var(--secondary); --borderWidth: 0px; --transition: .05s; min-width: 0; height: 30px; align-content: center`,
     ".broTileHeaderNameHolder:focus-within": `--borderWidth: 2px !important`,
     ".broTileHeaderNameHolderText": `max-width: 100%; padding: 0 6px; outline: unset; font-size: 18px; font-weight: 500; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; scrollbar-width: none`,
@@ -110,14 +110,15 @@ modules["breakout/overview"] = class {
     ".broTileMember:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; pointer-events: none; box-shadow: var(--shadow)`,
     ".broTileMemberContent": `display: flex; box-sizing: border-box; width: 100%; gap: 6px; padding: 6px; overflow: hidden; justify-content: space-between`,
     ".broTileMemberNameHolder": `display: flex; min-width: 0; align-items: center`,
+    ".broTileMember:not([active]) .broTileMemberNameHolder > div:not(.broTileMemberNameDragHolder)": `opacity: .5 !important`,
     ".broTileMemberNameDragHolder": `--transformTranslate: translateX(calc(-6px - 100%)); width: 0px; height: 28px; margin-right: 0px; transition: .2s`,
     ".broTileMember:hover .broTileMemberNameDragHolder, .broTileMember:active .broTileMemberNameDragHolder, .broTileMember[dragging] .broTileMemberNameDragHolder": `--transformTranslate: translateX(0px); width: 16px; margin-right: 6px`,
     ".broTileMemberNameDragHandle": `display: flex; flex-direction: column; box-sizing: border-box; width: 16px; height: 28px; padding: 4px 0; justify-content: space-between; align-items: center; transform: var(--transformTranslate); transition: .2s`,
     ".broTileMemberNameDragHandleDot": `width: 100%; height: 4px; border-radius: 2px; background: var(--gray)`,
-    ".broTileMemberNameCursor": `flex-shrink: 0; position: relative; box-sizing: border-box; width: 28px; height: 28px; margin-right: 6px; background: var(--pageColor); border: solid 4px var(--themeColor); border-radius: 8px 14px 14px`,
+    ".broTileMemberNameCursor": `flex-shrink: 0; position: relative; box-sizing: border-box; width: 28px; height: 28px; margin-right: 6px; background: var(--pageColor); border: solid 4px var(--themeColor); border-radius: 8px 14px 14px; transition: .2s`,
     //".broTileMemberNameCursor:before": `content: ""; position: absolute; width: calc(100% + 6px); height: calc(100% + 6px); left: -3px; top: -3px; border-radius: inherit; contain: strict; box-shadow: 0 0 6px rgb(0 0 0 / 25%)`,
-    ".broTileMemberNameText": `font-size: 16px; font-weight: 500; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis`,
-    ".broTileMemberPercent": `--percent: 0; --invert: 0; --themeColor: var(--theme); --opacity: .5; flex-shrink: 0; position: relative; width: 36px; height: 16px; margin: 4px; border: solid 2px var(--themeColor); border-radius: 12px; opacity: var(--opacity); transition: .2s`,
+    ".broTileMemberNameText": `font-size: 16px; font-weight: 500; white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; transition: .2s`,
+    ".broTileMemberPercent": `--percent: 0; --invert: 0; --themeColor: var(--theme); flex-shrink: 0; position: relative; width: 36px; height: 16px; margin: 4px; border: solid 2px var(--themeColor); border-radius: 12px; transition: .2s`,
     //".broTileMemberPercent:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: inset 0px 0px 8px 0px rgba(var(--themeRGB), .3)`,
     ".broTileMemberPercentBarHolder": `position: absolute; width: calc(100% - 4px); height: calc(100% - 4px); left: 2px; top: 2px; border-radius: 8px; overflow: hidden`,
     ".broTileMemberPercentBar": `--width: calc((var(--percent) * ((32px / 2) - 6px))); position: absolute; width: calc(12px + var(--width)); height: 100%; left: calc((100% / 2) - 6px); transform: translateX(calc(var(--invert) * var(--width) * -1)); background: var(--themeColor); border-radius: 6px; transition: .2s`
@@ -227,7 +228,7 @@ modules["breakout/overview"] = class {
     tile.editor.pageOffsetWidth = standardWidth * invertedScale;
     tile.editor.pageOffsetHeight = standardHeight * invertedScale;
     let parentRectX = this.groupHolderRect.x + ((this.containerWidth - this.layout.groupsWidth) / 2);
-    let parentRectY = this.groupHolderRect.y + this.scrollOffset + (this.layout.tilePadding - 8) - this.layout.scrollTop;
+    let parentRectY = this.groupHolderRect.y + this.scrollOffset + (this.layout.tilePadding - 8) - this.layout.scrollTop - ((standardHeight - this.layout.previewHeight) / 2);
     tile.editor.pageRect = {
       scale: invertedScale,
       x: parentRectX + tile.x,
@@ -496,19 +497,24 @@ modules["breakout/overview"] = class {
     this.layout.previewScale = 1;
     this.layout.tileBaseHeight = 12; // Base padding around tile
     //this.layout.tileHeightRatio = 3/4; // Ratio for getting height from width of thumbnail
+    //this.layout.previewHeight // Height of preview
     this.layout.tileMemberHeight = 40; // Height of each member list item
     this.layout.tileMemberGap = 6; // Gap between each member list item
     this.layout.columns = {};
     this.layout.tiles = {};
     this.layout.members = {};
+    this.layout.memberSessions = {};
     this.layout.tileLayout = [];
     this.layout.loadedTiles = [];
     this.layout.pendingEditors = [];
     this.layout.loadingAnnotations = {};
+    this.layout.longSubscribedGroups = [];
+    this.layout.maxLongSubscribedGroups = 100;
     this.layout.getTileHeight = (tile) => {
       let memberCount = (tile.members ?? []).length;
       return (this.layout.tileBaseHeight * Math.min(memberCount, 1))
-      + (this.layout.columnWidth * this.layout.tileHeightRatio)
+      //+ (this.layout.columnWidth * this.layout.tileHeightRatio)
+      + this.layout.previewHeight
       + (this.layout.tileMemberHeight * memberCount)
       + Math.max(this.layout.tileMemberGap * (memberCount - 1), 0);
     }
@@ -568,13 +574,23 @@ modules["breakout/overview"] = class {
       if (tile.editor == null) {
         return;
       }
+      if (this.layout.loadingAnnotations[tile.render._id] == null) {
+        return;
+      }
+      delete this.layout.loadingAnnotations[tile.render._id];
+      let skipPositioning = tile.editorState != null;
       await tile.editor.loadAnnotations({
         annotations: body.annotations ?? [],
         rootAnnotations: root.annotations ?? [],
         sources: [ ...(body.sources ?? []), ...(root.sources ?? []) ],
         reactions: [ ...(body.reactions ?? []), ...(root.reactions ?? []) ],
-        reactedTo: [ ...(body.reactedTo ?? []), ...(root.reactedTo ?? []) ],
-      });
+        reactedTo: [ ...(body.reactedTo ?? []), ...(root.reactedTo ?? []) ]
+      }, { skipPositioning });
+      if (skipPositioning != null) {
+        if (tile.editorState != null) {
+          await tile.editor.setState(tile.editorState);
+        }
+      }
       if (tile.element != null) {
         let previewHolder = tile.element.querySelector(".broTilePreview");
         if (previewHolder != null) {
@@ -595,6 +611,19 @@ modules["breakout/overview"] = class {
         if (tile.loadedAnnotations != true && this.layout.loadingAnnotations[tile.render._id] == null) {
           this.layout.loadingAnnotations[tile.render._id] = [];
           getGroupAnnotations.push(tile.render._id);
+
+          this.layout.longSubscribedGroups.push(tile.render._id);
+          if (this.layout.longSubscribedGroups.length > this.layout.maxLongSubscribedGroups) {
+            let unloadTileID = this.layout.longSubscribedGroups.shift();
+            let unloadTile = this.layout.tiles[unloadTileID];
+            if (unloadTile != null) {
+              if (unloadTile.editor != null) {
+                unloadTile.editor.reset();
+              }
+              delete unloadTile.loadedAnnotations;
+              delete this.layout.loadingAnnotations[unloadTileID];
+            }
+          }
         }
         if (tile.render.template != null) {
           let rootID = tile.render.version + "_" + tile.render.template;
@@ -643,7 +672,6 @@ modules["breakout/overview"] = class {
                               }
                             }
                           }
-                          delete this.layout.loadingAnnotations[id];
                           break;
                         case "root":
                           this.templateRoots[id] = body;
@@ -653,7 +681,6 @@ modules["breakout/overview"] = class {
                               let [tile, groupBody] = rootLoad[r];
                               await this.layout.loadEditorAnnotations(tile, groupBody, body);
                             }
-                            delete this.layout.loadingAnnotations[id];
                           }
                       }
                     } catch (error) {
@@ -691,18 +718,43 @@ modules["breakout/overview"] = class {
 
       this.layout.runningEditorSetup = false;
     }
-    this.layout.addMemberTile = (memberID, refresh) => {
-      let tile = this.layout.tiles[(this.layout.members[memberID] ?? {}).group] ?? {};
+    this.layout.updateMemberTile = (collaborator = {}, memberTile) => {
+      if (collaborator._id == null) {
+        return;
+      }
+      if (memberTile == null) {
+        let groupMember = this.layout.members[collaborator._id] ?? {};
+        if (groupMember.tile == null) {
+          return this.layout.addMemberTile(collaborator._id);
+        }
+        memberTile = groupMember.tile;
+      }
+      if (collaborator.hasOwnProperty("color") == true) {
+        memberTile.style.setProperty("--themeColor", collaborator.color);
+      }
+      if ((this.layout.memberSessions[collaborator._id] ?? []).length > 0) {
+        memberTile.setAttribute("active", "");
+      } else {
+        memberTile.removeAttribute("active");
+      }
+      if (collaborator.hasOwnProperty("name") == true) {
+        let memberName = memberTile.querySelector(".broTileMemberNameText");
+        memberName.textContent = collaborator.name;
+        memberName.title = collaborator.name;
+      }
+    }
+    this.layout.addMemberTile = (collaboratorID, refresh) => {
+      let tile = this.layout.tiles[(this.layout.members[collaboratorID] ?? {}).group] ?? {};
       if (tile.element == null) {
         return;
       }
-      let collaborator = this.parent.parent.collaborators[memberID];
+      let collaborator = this.parent.parent.collaborators[collaboratorID];
       if (collaborator == null) {
         return;
       }
       let memberTile = document.createElement("button");
       memberTile.className = "broTileMember";
-      memberTile.setAttribute("collaborator", memberID);
+      memberTile.setAttribute("collaborator", collaboratorID);
       memberTile.innerHTML = `
       <div class="broTileMemberContent">
         <div class="broTileMemberNameHolder">
@@ -717,44 +769,24 @@ modules["breakout/overview"] = class {
         <div class="broTileMemberPercent"><div class="broTileMemberPercentBarHolder"><div class="broTileMemberPercentBar"></div></div></div>
       </div>
       `;
-      memberTile.style.setProperty("--themeColor", collaborator.color);
-      let memberName = memberTile.querySelector(".broTileMemberNameText");
-      memberName.textContent = collaborator.name;
-      memberName.title = collaborator.name;
+      let groupMember = this.layout.members[collaboratorID];
+      if (groupMember != null) {
+        groupMember.tile = memberTile;
+      }
+      this.layout.updateMemberTile(collaborator, memberTile);
       tile.element.querySelector(".broTileMembers").appendChild(memberTile);
       if (refresh != false) {
         this.layout.refreshTileSpots(this.layout.tileLayout.indexOf(tile.render._id));
       }
     }
-    this.layout.updateMemberTile = (collaborator, memberTile) => {
-      if (collaborator._id == null) {
+    this.layout.removeMemberTile = (collaboratorID, refresh) => {
+      let groupMember = this.layout.members[collaboratorID] ?? {};
+      if (groupMember.tile == null) {
         return;
       }
-      if (memberTile == null) {
-        memberTile = groups.querySelector('.broTileMember[collaborator="' + collaborator._id + '"]');
-      }
-      if (memberTile == null) {
-        return this.layout.addMemberTile();
-      }
-      if (collaborator.hasOwnProperty("color") == true) {
-        memberTile.style.setProperty("--themeColor", collaborator.color);
-      }
-      if (collaborator.hasOwnProperty("name") == true) {
-        let memberName = memberTile.querySelector(".broTileMemberNameText");
-        memberName.textContent = collaborator.name;
-        memberName.title = collaborator.name;
-      }
-    }
-    this.layout.removeMemberTile = (member = {}, memberTile, refresh) => {
-      if (memberTile == null) {
-        memberTile = groups.querySelector('.broTileMember[collaborator="' + member.modify + '"]');
-        if (memberTile == null) {
-          return;
-        }
-      }
-      memberTile.remove();
+      groupMember.tile.remove();
       if (refresh != false) {
-        this.layout.refreshTileSpots(this.layout.tileLayout.indexOf(member.group));
+        this.layout.refreshTileSpots(this.layout.tileLayout.indexOf(groupMember.group));
       }
     }
     this.layout.runUpdateCycle = async () => {
@@ -871,7 +903,7 @@ modules["breakout/overview"] = class {
             </div>
             <div class="broTileHeader">
               <div class="broTileHeaderName">
-                <img class="broTileHeaderNameImage" src="../images/breakoutbluricon.png" />
+                <img class="broTileHeaderNameImage" />
                 <div class="broTileHeaderNameHolder border"><div class="broTileHeaderNameHolderText" contenteditable></div></div>
               </div>
               <div class="broTileHeaderOptions">
@@ -880,7 +912,13 @@ modules["breakout/overview"] = class {
             </div>
             <div class="broTileMembers"></div>
           </div>`;
-          tile.element.querySelector(".broTileHeaderNameHolderText").textContent = tile.render.name ?? "Untitled Group";
+          let tileNameHeader = tile.element.querySelector(".broTileHeaderName");
+          if (tile.render.image != null) {
+            let tileNameImage = tileNameHeader.querySelector(".broTileHeaderNameImage");
+            tileNameImage.src = assetURL + tile.render.image;
+            tileNameImage.style.display = "block";
+          }
+          tileNameHeader.querySelector(".broTileHeaderNameHolderText").textContent = tile.render.name ?? "Untitled Group";
           setSVG(tile.element.querySelector(".broTileHeaderOptions button"), "../images/editor/actions/more.svg");
           if (tile.loadedAnnotations != true) {
             tile.element.querySelector(".broTilePreview").setAttribute("disabled", "");
@@ -916,7 +954,20 @@ modules["breakout/overview"] = class {
         }
 
         if (tile.editor != null) {
+          let centerPosition = tile.editor.getCenterPosition();
           tile.editor.updatePageSize();
+          if (this.lastResizeWasSimulated != true) {
+            tile.editor.goToCenterPosition(centerPosition.x, centerPosition.y);
+          } else {
+            if (tile.editorState != null) {
+              tile.editorState = null;
+            }
+            if (tile.editor.annotationPages.length > 0) {
+              tile.editor.utils.updateAnnotationScroll(tile.editor.annotationPages[tile.editor.currentPage - 1], false);
+            } else {
+              tile.editor.utils.centerWindowWithPage();
+            }
+          }
         }
 
         delete this.layout.loadedTiles[tileID];
@@ -941,7 +992,7 @@ modules["breakout/overview"] = class {
             page: previewContainer,
             pageID: this.parent.pageID,
             pageType: this.parent.pageType,
-            id: this.parent.parent.id,
+            id: tile.render._id,
             lesson: this.parent.parent,
             self: this.parent.parent.self,
             session: this.parent.parent.session,
@@ -950,7 +1001,7 @@ modules["breakout/overview"] = class {
             pageRenderPipeline: this.parent.parent.pageRenderPipeline,
             backgroundColor: tile.render.background ?? "FFFFFF",
             //scrollOffset: 50, //* (1 / this.layout.previewScale),
-            sideScrollOffset: 8, //* (1 / this.layout.previewScale),
+            //sideScrollOffset: 8, //* (1 / this.layout.previewScale),
             skipPDFTextAnnotationLayer: true,
             ...existingState
           }
@@ -988,6 +1039,8 @@ modules["breakout/overview"] = class {
       }
 
       this.layout.loadedTiles = loadTiles;
+
+      this.lastResizeWasSimulated = false;
 
       this.layout.runningUpdateCycle = false;
     }
@@ -1037,14 +1090,19 @@ modules["breakout/overview"] = class {
       this.layout.refreshTotalColumnHeight();
     }
     this.layout.updateColumns = () => {
-      this.layout.refreshTileSpots();
       groupHolder.style.setProperty("--columnCount", this.layout.columnCount);
       groupHolder.style.setProperty("--columnWidth", this.layout.columnWidth + "px");
       groupHolder.style.setProperty("--previewHeightRatio", this.layout.tileHeightRatio);
       groupHolder.style.setProperty("--previewScale", this.layout.previewScale);
+
+      this.groupHolderRect = groupHolder.getBoundingClientRect();
+
+      this.layout.refreshTileSpots();
     }
     this.layout.setupColumns = (force) => {
-      this.groupHolderRect = groupHolder.getBoundingClientRect();
+      this.pageOffsetWidth = frame.offsetWidth;
+      this.pageOffsetHeight = frame.offsetHeight;
+
       this.containerWidth = groupHolder.clientWidth;
       this.containerHeight = groupHolder.clientHeight;
 
@@ -1091,7 +1149,9 @@ modules["breakout/overview"] = class {
         }
       }
 
-      this.layout.tileHeightRatio = Math.min(Math.max(this.containerHeight / this.containerWidth, .6), 1.25);
+      //this.layout.tileHeightRatio = Math.min(Math.max(this.pageOffsetHeight / this.pageOffsetWidth, .6), 1.25);
+      this.layout.tileHeightRatio = this.pageOffsetHeight / this.pageOffsetWidth;
+      this.layout.previewHeight = Math.min(Math.max(this.layout.columnWidth * this.layout.tileHeightRatio, 100), 300);
 
       this.layout.previewScale = (this.layout.columnWidth * this.layout.tileHeightRatio) / this.containerHeight;
       /*Math.min(
@@ -1106,7 +1166,10 @@ modules["breakout/overview"] = class {
         this.layout.updateColumns();
       }
     }
-    this.pipeline.subscribe("tilesResize", "resize", this.layout.setupColumns);
+    this.pipeline.subscribe("tilesResize", "resize", (event) => {
+      this.lastResizeWasSimulated = event.simulated == true;
+      this.layout.setupColumns();
+    });
     this.pipeline.subscribe("tilesScroll", "scroll", this.layout.runUpdateCycle, { sort: 1 });
     this.layout.setupColumns(true);
     this.layout.addTile = (data, members) => {
@@ -1121,6 +1184,18 @@ modules["breakout/overview"] = class {
       this.layout.tiles[data._id] = tileInfo;
       this.layout.tileLayout.push(data._id);
       // this.layout.refreshTileSpots(this.layout.tileLayout.length - 1);
+    }
+
+    let memberKeys = Object.keys(this.parent.parent.members);
+    for (let i = 0; i < memberKeys.length; i++) {
+      let memberID = memberKeys[i];
+      let member = this.parent.parent.members[memberID];
+      let session = this.layout.memberSessions[member.modify];
+      if (session == null) {
+        this.layout.memberSessions[member.modify] = [];
+        session = this.layout.memberSessions[member.modify];
+      }
+      session.push(memberID);
     }
 
     let loadingGroups = false;
@@ -1163,6 +1238,26 @@ modules["breakout/overview"] = class {
       this.layout.refreshTileSpots(beforeTileLength);
       lastGroupTime = (body.groups[bodyItems - 1] ?? {}).created;
 
+      let filter = { type: "lesson", id: this.parent.parent.id, group: this.layout.tileLayout };
+      if (this.layout.groupUpdateSub != null) {
+        this.layout.groupUpdateSub.edit(filter);
+      } else {
+        this.layout.groupUpdateSub = subscribe(filter, (data) => {
+          if ((data.data ?? {}).id == null) {
+            return;
+          }
+          let tile = this.layout.tiles[data.data.id];
+          if (tile == null) {
+            return;
+          }
+          objectUpdate(data.data, tile.render);
+          if (tile.editor != null) {
+            tile.editor.pipeline.publish("set", data.data);
+          }
+          this.parent.pipeline.publish("set", data.data);
+        });
+      }
+
       loadingGroups = false;
     }
     let checkLoadGroups = async () => {
@@ -1177,29 +1272,106 @@ modules["breakout/overview"] = class {
     checkLoadGroups();
 
     this.pipeline.subscribe("memberJoin", "join", (data) => {
+      let session = this.layout.memberSessions[data.modify];
+      if (session == null) {
+        this.layout.memberSessions[data.modify] = [];
+        session = this.layout.memberSessions[data.modify];
+      }
+      if (session.includes(data._id) == false) {
+        session.push(data._id);
+      }
+
       if (data.group != null) {
         let existingMember = this.layout.members[data.modify];
         if (existingMember != null && existingMember.group != data.group) {
+          let groupTile = this.layout.tiles[existingMember.group] ?? {};
+          if (groupTile.members != null) {
+            let index = groupTile.members.indexOf(data.modify);
+            if (index > -1) {
+              groupTile.members.splice(index, 1);
+            }
+          }
           this.layout.removeMemberTile(data.modify);
         }
-        this.layout.members[data.modify] = { group: data.group, modify: data.modify };
+        this.layout.members[data.modify] = { ...(existingMember ?? {}), group: data.group, modify: data.modify };
         let groupTile = this.layout.tiles[data.group] ?? {};
         if (groupTile.members != null && groupTile.members.includes(data.modify) == false) {
           groupTile.members.push(data.modify);
           this.layout.addMemberTile(data.modify);
+        } else {
+          this.layout.updateMemberTile(this.parent.parent.collaborators[data.modify]);
         }
       }
     }, { sort: 1 });
     this.pipeline.subscribe("memberUpdate", "update", (data) => {
-      
+      let member = this.parent.parent.members[data._id];
+      if (member == null) {
+        return;
+      }
+      let groupMember = this.layout.members[member.modify];
+      if (groupMember == null) {
+        return;
+      }
+      if (data.hasOwnProperty("group") && data.group != groupMember.group) {
+        if (groupMember.group != null) {
+          let oldGroupTile = this.layout.tiles[groupMember.group] ?? {};
+          if (oldGroupTile.members != null) {
+            let index = oldGroupTile.members.indexOf(member.modify);
+            if (index > -1) {
+              oldGroupTile.members.splice(index, 1);
+            }
+          }
+          this.layout.removeMemberTile(member.modify);
+        }
+        if (data.group != null) {
+          let groupTile = this.layout.tiles[data.group] ?? {};
+          if (groupTile.members != null && groupTile.members.includes(member.modify) == false) {
+            groupTile.members.push(member.modify);
+            this.layout.addMemberTile(member.modify);
+          }
+        }
+      } else {
+        this.layout.updateMemberTile(member);
+      }
     }, { sort: 1 });
     this.pipeline.subscribe("memberLeave", "leave", (data) => {
-      
+      if (data.member != null) {
+        let session = this.layout.memberSessions[data.member.modify];
+        if (session != null) {
+          let index = session.indexOf(data.member._id);
+          if (index > -1) {
+            session.splice(index, 1);
+          }
+          if (session.length < 1) {
+            delete this.layout.memberSessions[data.member.modify];
+            this.layout.updateMemberTile(this.parent.parent.collaborators[data.member.modify]);
+          }
+        }
+      }
     }, { sort: 1 });
 
     this.pipeline.subscribe("collaboratorUpdate", "collaborator_update", (data) => {
       this.layout.updateMemberTile(data);
     }, { sort: 1 });
+
+    this.pipeline.subscribe("previewLongAnnotationUpdate", "long", async (event) => {
+      if (event.id == null) {
+        return;
+      }
+      let tile = this.layout.tiles[event.id];
+      if (tile == null) {
+        return;
+      }
+      if (tile.editor != null) {
+        tile.editor.pipeline.publish("long", event);
+      }
+    });
+
+    this.pipeline.subscribe("groupUpdatePageClose", "page_close", () => {
+      if (this.layout.groupUpdateSub != null) {
+        this.layout.groupUpdateSub.close();
+      }
+    });
     
     groupHolder.addEventListener("scroll", (event) => {
       this.pipeline.publish("scroll", { event: event });

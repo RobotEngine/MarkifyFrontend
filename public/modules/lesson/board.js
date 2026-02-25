@@ -741,9 +741,6 @@ modules["lesson/board"] = class {
       } else {
         sharePinButton.style.removeProperty("display");
       }
-      if (body.hasOwnProperty("background") == true) {
-        this.editor.updateBackground(body.background);
-      }
       if (body.hasOwnProperty("tool") == true) {
         updateSplitScreenButton();
       }

@@ -137,13 +137,13 @@ modules["pages/app/lesson"] = class extends page {
     (async () => {
       if (extra.totalPages == null) {
         for (let i = 0; i < 10; i++) {
-          this.pushToPipelines(null, "resize", { event: "page_add" });
-          this.pushToPipelines(null, "bounds_change", { event: "page_add" });
+          this.pushToPipelines(null, "resize", { event: "page_add", simulated: true });
+          this.pushToPipelines(null, "bounds_change", { event: "page_add", simulated: true });
           await sleep(40);
         }
       } else {
-        this.pushToPipelines(null, "resize", { event: "page_add" });
-        this.pushToPipelines(null, "bounds_change", { event: "page_add" });
+        this.pushToPipelines(null, "resize", { event: "page_add", simulated: true });
+        this.pushToPipelines(null, "bounds_change", { event: "page_add", simulated: true });
       }
     })();
     this.updateFavicon();
@@ -220,8 +220,8 @@ modules["pages/app/lesson"] = class extends page {
     })();
     (async () => {
       for (let i = 0; i < 10; i++) {
-        this.pushToPipelines(null, "resize", { event: "page_add" });
-        this.pushToPipelines(null, "bounds_change", { event: "page_add" });
+        this.pushToPipelines(null, "resize", { event: "page_remove", simulated: true });
+        this.pushToPipelines(null, "bounds_change", { event: "page_remove", simulated: true });
         await sleep(40);
       }
     })();
@@ -612,6 +612,12 @@ modules["pages/app/lesson"] = class extends page {
         }
         this.pushToPipelines(data.tool ?? "board", "long", data);
       }
+      socket.remotes["breakout_" + this.id] = async (data) => {
+        if (this.exporting == true) {
+          return;
+        }
+        this.pushToPipelines(data.tool ?? "board", "long", data);
+      }
     }
 
     let divider;
@@ -771,11 +777,8 @@ modules["pages/app/lesson"] = class extends page {
           afterPage.style.flex = "1 1 " + ((Math.max(afterPage.offsetWidth, this.minPageSize) / holderWidth) * 100) + "%";
         }
       }
-      (async () => {
-        await sleep(500);
-        this.pushToPipelines(null, "resize", { event: "page_remove" });
-        this.pushToPipelines(null, "bounds_change", { event: "page_remove" });
-      })();
+      this.pushToPipelines(null, "resize", { event: "page_remove" });
+      this.pushToPipelines(null, "bounds_change", { event: "page_remove" });
     }
 
     let isEmbed = getParam("embed") != null;

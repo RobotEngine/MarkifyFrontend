@@ -605,6 +605,16 @@ modules["editor/editor"] = class {
     await this.updateChunks();
     await this.utils.updateCurrentPage(true);
   }
+  reset = () => {
+    //this.visibleChunks = [];
+    //this.loadedChunks = {};
+    this.annotations = {};
+    this.reactions = {};
+    this.currentRootAnnotations = {};
+    this.chunkAnnotations = {};
+    this.annotationPages = [];
+    this.comments = {};
+  }
 
   js = async (frame) => {
     let contentHolder = this.contentHolder ?? frame.parentElement;
@@ -1012,7 +1022,14 @@ modules["editor/editor"] = class {
     this.utils.annotationsRect = () => {
       let x = this.render.marginLeft + this.scrollOffset;
       let y = this.render.marginTop + this.scrollOffset;
-      return { x, y, left: x - contentHolder.scrollLeft, top: y - contentHolder.scrollTop };
+      return {
+        x,
+        y,
+        left: x - contentHolder.scrollLeft,
+        top: y - contentHolder.scrollTop,
+        width: this.render.marginLeft + this.render.marginRight,
+        height: this.render.marginTop + this.render.marginBottom
+      };
     }
     this.utils.scaleToDoc = (x, y, noOrigin) => {
       let pageRect = this.utils.annotationsRect();
@@ -1317,21 +1334,21 @@ modules["editor/editor"] = class {
       let annotationRect = this.utils.annotationsRect();
       let scrollOptions = {};
       let sideScrollOffset = this.sideScrollOffset ?? this.scrollOffset;
-      if (annoRect.width * this.zoom < contentHolder.clientWidth - (sideScrollOffset * 2)) {
+      if (annoRect.width * this.zoom < this.pageOffsetWidth - (sideScrollOffset * 2)) {
         // Position page to center:
-        scrollOptions.left = annotationRect.left + contentHolder.scrollLeft - (contentHolder.clientWidth / 2) + (annoRect.centerX * this.zoom);
+        scrollOptions.left = annotationRect.left + contentHolder.scrollLeft - (this.pageOffsetWidth / 2) + (annoRect.centerX * this.zoom);
       } else {
         // Position page to left corner:
         if ((account.settings ?? {}).toolbar != "right") {
           scrollOptions.left = annotationRect.left + contentHolder.scrollLeft - sideScrollOffset + (topLeftX * this.zoom);
         } else {
           scrollOptions.left = annotationRect.left + contentHolder.scrollLeft - 8 + (topLeftX * this.zoom);
-          //scrollOptions.left = annotationRect.left + contentHolder.scrollLeft - contentHolder.clientWidth + sideScrollOffset + (bottomRightX * this.zoom);
+          //scrollOptions.left = annotationRect.left + contentHolder.scrollLeft - this.pageOffsetWidth + sideScrollOffset + (bottomRightX * this.zoom);
         }
       }
-      if (annoRect.height * this.zoom < contentHolder.clientHeight - (this.scrollOffset * 2)) {
+      if (annoRect.height * this.zoom < this.pageOffsetHeight - (this.scrollOffset * 2)) {
         // Position page to center:
-        scrollOptions.top = annotationRect.top + contentHolder.scrollTop - (contentHolder.clientHeight / 2) + (annoRect.centerY * this.zoom);
+        scrollOptions.top = annotationRect.top + contentHolder.scrollTop - (this.pageOffsetHeight / 2) + (annoRect.centerY * this.zoom);
       } else {
         // Position page to top:
         scrollOptions.top = annotationRect.top + contentHolder.scrollTop - this.scrollOffset + (topLeftY * this.zoom);
@@ -1372,7 +1389,10 @@ modules["editor/editor"] = class {
 
     this.utils.centerWindowWithPage = () => {
       let annotationRect = this.utils.annotationsRect();
-      contentHolder.scrollTo(contentHolder.scrollLeft + annotationRect.left - ((page.offsetWidth - annotations.offsetWidth) / 2), contentHolder.scrollTop + annotationRect.top - this.scrollOffset);
+      contentHolder.scrollTo(
+        contentHolder.scrollLeft + annotationRect.left - (this.pageOffsetWidth / 2),
+        contentHolder.scrollTop + annotationRect.top - this.scrollOffset
+      );
     }
     /*this.utils.findStartingPoint = () => {
       let topmostChunkY = parseFloat(this.utils.topmostChunk().split("_")[1]);
@@ -1439,7 +1459,7 @@ modules["editor/editor"] = class {
     }
     this.utils.canMemberModify = (render, member) => {
       render = render ?? {};
-      member = member ?? this.self;
+      member = member ?? this.self ?? {};
       if (member.access < this.minimumEditingAccess || member.modify == null) {
         return false;
       }
@@ -3661,7 +3681,25 @@ modules["editor/editor"] = class {
       };
       frame.style.setProperty("--interfacePadding", this.scrollOffset + "px");
     }
-    this.pipeline.subscribe("resizeChange", "resize", this.updatePageSize, { sort: 1 });
+    let recenterTimeoutFromSimulatedResize;
+    this.pipeline.subscribe("resizeChange", "resize", (event) => {
+      let centerPosition = this.getCenterPosition();
+      
+      this.updatePageSize();
+
+      if (event.simulated != true) {
+        this.goToCenterPosition(centerPosition.x, centerPosition.y);
+      } else {
+        clearTimeout(recenterTimeoutFromSimulatedResize);
+        recenterTimeoutFromSimulatedResize = setTimeout(() => {
+          if (this.annotationPages.length > 0) {
+            this.utils.updateAnnotationScroll([this.annotationPages[0][0]]);
+          } else {
+            this.utils.centerWindowWithPage();
+          }
+        }, 100);
+      }
+    }, { sort: 1 });
     this.updatePageSize();
 
     this.getCenterPosition = () => {
@@ -3671,12 +3709,16 @@ modules["editor/editor"] = class {
         y: (((this.pageOffsetHeight / 2) - annotationRect.top) / this.zoom)
       };
     }
-    this.goToCenterPosition = (x, y) => {
+    this.goToCenterPosition = (x, y, animate) => {
       let annotationRect = this.utils.annotationsRect();
-      contentHolder.scrollTo({
+      let options = {
         left: (contentHolder.scrollLeft + annotationRect.left) + (x * this.zoom) - (this.pageOffsetWidth / 2),
         top: (contentHolder.scrollTop + annotationRect.top) + (y * this.zoom) - (this.pageOffsetHeight / 2)
-      });
+      };
+      if (animate == true) {
+        options.behavior = "smooth";
+      }
+      contentHolder.scrollTo(options);
     }
     
     contentHolder.addEventListener("scroll", (event) => {
@@ -3895,6 +3937,9 @@ modules["editor/editor"] = class {
       if (data.settings != null) {
         objectUpdate(data.settings, this.settings);
         this.pipeline.publish("redraw_selection", { redrawActionBar: true });
+      }
+      if (data.hasOwnProperty("background") == true) {
+        this.updateBackground(data.background);
       }
       this.updateInterface();
     });
@@ -4240,6 +4285,10 @@ modules["editor/editor"] = class {
 
       if (this.exporting == true) {
         return;
+      }
+
+      if (extra.skipPositioning == true) {
+        return this.updateChunks();
       }
 
       let jumpAnnotation = null;

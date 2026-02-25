@@ -85,7 +85,7 @@ modules["breakout/overview"] = class {
     ".broTileContent": `--shadow: var(--lightShadow); position: relative; width: 100%; height: 100%; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 16px; contain: strict; overflow: hidden; transition: .2s, transform .1s`,
     ".broTile:hover .broTileContent": `--shadow: var(--darkShadow) !important`,
     ".broTile:active .broTileContent": `transform: scale(.95)`,
-    ".broTilePreviewContainer": `position: relative; width: 100%; height: calc(var(--columnWidth) * var(--previewHeightRatio)); min-height: 100px; max-height: 300px; z-index: 1`,
+    ".broTilePreviewContainer": `position: relative; width: var(--previewWidth); height: var(--previewHeight); z-index: 1`,
     ".broTilePreviewContainer:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px`,
     ".broTilePreview": `position: absolute; width: calc(var(--columnWidth) * (1 / var(--previewScale))); height: calc(var(--columnWidth) * var(--previewHeightRatio) * (1 / var(--previewScale))); left: 50%; top: 50%; transform: translate(-50%, -50%) scale(var(--previewScale)); transform-origin: center; background: var(--pageColor); contain: strict; overflow: scroll; scrollbar-width: none; transition: opacity .4s`,
     ".broTilePreview::-webkit-scrollbar": `display: none`,
@@ -223,12 +223,12 @@ modules["breakout/overview"] = class {
 
   previewEditorPageSizeFunction = (tile) => {
     let invertedScale = 1 / this.layout.previewScale;
-    let standardWidth = this.layout.columnWidth;
-    let standardHeight = this.layout.columnWidth * this.layout.tileHeightRatio;
-    tile.editor.pageOffsetWidth = standardWidth * invertedScale;
-    tile.editor.pageOffsetHeight = standardHeight * invertedScale;
-    let parentRectX = this.groupHolderRect.x + ((this.containerWidth - this.layout.groupsWidth) / 2);
-    let parentRectY = this.groupHolderRect.y + this.scrollOffset + (this.layout.tilePadding - 8) - this.layout.scrollTop - ((standardHeight - this.layout.previewHeight) / 2);
+    //let standardWidth = this.layout.columnWidth;
+    //let standardHeight = this.layout.columnWidth * this.layout.tileHeightRatio;
+    tile.editor.pageOffsetWidth = this.layout.previewWidth * invertedScale;
+    tile.editor.pageOffsetHeight = this.layout.previewHeight * invertedScale;
+    let parentRectX = this.groupHolderRect.x + ((this.containerWidth - this.layout.groupsWidth) / 2); // - ((standardWidth - this.layout.previewWidth) / 2);
+    let parentRectY = this.groupHolderRect.y + this.scrollOffset + (this.layout.tilePadding - 8) - this.layout.scrollTop - (((this.layout.columnWidth * this.layout.tileHeightRatio) - this.layout.previewHeight) / 2);
     tile.editor.pageRect = {
       scale: invertedScale,
       x: parentRectX + tile.x,
@@ -513,7 +513,6 @@ modules["breakout/overview"] = class {
     this.layout.getTileHeight = (tile) => {
       let memberCount = (tile.members ?? []).length;
       return (this.layout.tileBaseHeight * Math.min(memberCount, 1))
-      //+ (this.layout.columnWidth * this.layout.tileHeightRatio)
       + this.layout.previewHeight
       + (this.layout.tileMemberHeight * memberCount)
       + Math.max(this.layout.tileMemberGap * (memberCount - 1), 0);
@@ -1092,6 +1091,8 @@ modules["breakout/overview"] = class {
     this.layout.updateColumns = () => {
       groupHolder.style.setProperty("--columnCount", this.layout.columnCount);
       groupHolder.style.setProperty("--columnWidth", this.layout.columnWidth + "px");
+      groupHolder.style.setProperty("--previewWidth", this.layout.previewWidth + "px");
+      groupHolder.style.setProperty("--previewHeight", this.layout.previewHeight + "px");
       groupHolder.style.setProperty("--previewHeightRatio", this.layout.tileHeightRatio);
       groupHolder.style.setProperty("--previewScale", this.layout.previewScale);
 
@@ -1149,15 +1150,16 @@ modules["breakout/overview"] = class {
         }
       }
 
-      //this.layout.tileHeightRatio = Math.min(Math.max(this.pageOffsetHeight / this.pageOffsetWidth, .6), 1.25);
       this.layout.tileHeightRatio = this.pageOffsetHeight / this.pageOffsetWidth;
-      this.layout.previewHeight = Math.min(Math.max(this.layout.columnWidth * this.layout.tileHeightRatio, 100), 300);
+
+      this.layout.previewWidth = this.layout.columnWidth;
+
+      this.layout.previewHeight = this.layout.columnWidth * this.layout.tileHeightRatio;
+      if (this.layout.previewHeight > 400) {
+        this.layout.previewHeight = 400;
+      }
 
       this.layout.previewScale = (this.layout.columnWidth * this.layout.tileHeightRatio) / this.containerHeight;
-      /*Math.min(
-        this.layout.columnWidth / this.containerWidth,
-        (this.layout.columnWidth * this.layout.tileHeightRatio) / this.containerHeight
-      );*/
       
       clearTimeout(this.layout.refreshTilesTimeout);
       if (force != true) {

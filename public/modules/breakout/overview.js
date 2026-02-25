@@ -85,9 +85,9 @@ modules["breakout/overview"] = class {
     ".broTileContent": `--shadow: var(--lightShadow); position: relative; width: 100%; height: 100%; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 16px; contain: strict; overflow: hidden; transition: .2s, transform .1s`,
     ".broTile:hover .broTileContent": `--shadow: var(--darkShadow) !important`,
     ".broTile:active .broTileContent": `transform: scale(.95)`,
-    ".broTilePreviewContainer": `position: relative; width: var(--previewWidth); height: var(--previewHeight); z-index: 1`,
+    ".broTilePreviewContainer": `position: relative; width: 100%; height: var(--previewHeight); z-index: 1`,
     ".broTilePreviewContainer:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px`,
-    ".broTilePreview": `position: absolute; width: calc(var(--columnWidth) * (1 / var(--previewScale))); height: calc(var(--columnWidth) * var(--previewHeightRatio) * (1 / var(--previewScale))); left: 50%; top: 50%; transform: translate(-50%, -50%) scale(var(--previewScale)); transform-origin: center; background: var(--pageColor); contain: strict; overflow: scroll; scrollbar-width: none; transition: opacity .4s`,
+    ".broTilePreview": `position: absolute; width: calc(var(--previewWidth) * (1 / var(--previewScale))); height: calc(var(--previewWidth) * var(--previewHeightRatio) * (1 / var(--previewScale))); left: 50%; top: 50%; transform: translate(-50%, -50%) scale(var(--previewScale)); transform-origin: center; background: var(--pageColor); contain: strict; overflow: scroll; scrollbar-width: none; transition: opacity .4s`,
     ".broTilePreview::-webkit-scrollbar": `display: none`,
     ".broTileHeader": `position: absolute; display: flex; gap: 8px; width: 100%; left: 0px; top: 0px; justify-content: space-between; z-index: 3; pointer-events: none`,
     ".broTileHeaderName": `display: flex; box-sizing: border-box; gap: 0; min-width: 0; padding: 6px; align-items: center; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 0 0 16px 0; overflow: hidden; pointer-events: all; transition: .2s`,
@@ -223,12 +223,12 @@ modules["breakout/overview"] = class {
 
   previewEditorPageSizeFunction = (tile) => {
     let invertedScale = 1 / this.layout.previewScale;
-    //let standardWidth = this.layout.columnWidth;
-    //let standardHeight = this.layout.columnWidth * this.layout.tileHeightRatio;
-    tile.editor.pageOffsetWidth = this.layout.previewWidth * invertedScale;
-    tile.editor.pageOffsetHeight = this.layout.previewHeight * invertedScale;
-    let parentRectX = this.groupHolderRect.x + ((this.containerWidth - this.layout.groupsWidth) / 2); // - ((standardWidth - this.layout.previewWidth) / 2);
-    let parentRectY = this.groupHolderRect.y + this.scrollOffset + (this.layout.tilePadding - 8) - this.layout.scrollTop - (((this.layout.columnWidth * this.layout.tileHeightRatio) - this.layout.previewHeight) / 2);
+    let standardWidth = this.layout.previewWidth;
+    let standardHeight = this.layout.previewWidth * this.layout.tileHeightRatio;
+    tile.editor.pageOffsetWidth = standardWidth * invertedScale;
+    tile.editor.pageOffsetHeight = standardHeight * invertedScale;
+    let parentRectX = this.groupHolderRect.x + ((this.containerWidth - this.layout.groupsWidth) / 2) - ((standardWidth - this.layout.columnWidth) / 2);
+    let parentRectY = this.groupHolderRect.y + this.scrollOffset + (this.layout.tilePadding - 8) - this.layout.scrollTop - ((standardHeight - this.layout.previewHeight) / 2);
     tile.editor.pageRect = {
       scale: invertedScale,
       x: parentRectX + tile.x,
@@ -1157,6 +1157,9 @@ modules["breakout/overview"] = class {
       this.layout.previewHeight = this.layout.columnWidth * this.layout.tileHeightRatio;
       if (this.layout.previewHeight > 400) {
         this.layout.previewHeight = 400;
+      } else if (this.layout.previewHeight < 200) {
+        this.layout.previewWidth *= 200 / this.layout.previewHeight;
+        this.layout.previewHeight = 200;
       }
 
       this.layout.previewScale = (this.layout.columnWidth * this.layout.tileHeightRatio) / this.containerHeight;

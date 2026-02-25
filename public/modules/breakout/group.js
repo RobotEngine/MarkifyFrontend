@@ -58,7 +58,7 @@ modules["breakout/group"] = class {
     ".brgContentHolder": `position: relative; width: 100%; height: 100%; background: var(--pageColor); contain: strict; overflow: scroll; z-index: 1; transition: .5s`,
     
     ".brgTopHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
-    ".brgTop": `position: absolute; display: flex; box-sizing: border-box; width: 100%; gap: 8px; padding-bottom: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,
+    ".brgTop": `position: absolute; display: flex; box-sizing: border-box; width: 100%; gap: 8px; padding-bottom: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; overflow-y: hidden; scrollbar-width: none`,
     ".brgTopHolder[scroll] .brgTop": `gap: 0px !important; padding: 0 6px !important; padding-bottom: 0px !important; background: var(--pageColor); box-shadow: var(--lightShadow); pointer-events: all`,
     ".brgTop::-webkit-scrollbar": `display: none`,
     ".brgTopSection[scroll]": `display: none`,
@@ -107,7 +107,7 @@ modules["breakout/group"] = class {
     ".brgToolbarHolder": `position: relative; display: block; flex: 1; visibility: visible`,
 
     ".brgBottomHolder": `position: relative; width: 100%; height: 50px; margin-bottom: 8px; visibility: visible`,
-    ".brgBottom": `position: absolute; display: flex; width: 100%; gap: 8px; padding-top: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; scrollbar-width: none`,
+    ".brgBottom": `position: absolute; display: flex; width: 100%; gap: 8px; padding-top: 8px; left: 0px; top: 0px; justify-content: space-between; overflow-x: auto; overflow-y: hidden; scrollbar-width: none`,
     ".brgBottom::-webkit-scrollbar": `display: none`,
     ".brgBottomSection": `display: none; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 12px 12px 0 0; pointer-events: all`,
     ".brgBottomSection[hidden]": `display: none`,

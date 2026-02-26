@@ -560,7 +560,7 @@ modules["breakout/overview"] = class {
           checkColumn.sections[tile.section] = { height: 0 };
           checkSection = checkColumn.sections[tile.section];
         }
-        if (checkSection.height < (minHeight ?? (checkSection.height + 1))) {
+        if (checkSection.height < minHeight || minHeight == null) {
           column = checkColumn;
           section = checkSection;
           minHeight = checkSection.height;

@@ -1468,7 +1468,7 @@ modules["breakout/overview"] = class {
       let tileNameHolder = target.closest(".broTileHeaderName");
       if (tileNameHolder != null) {
         if (event.keyCode == 13) {
-          let tileNameText = tileNameHolder.querySelector("div[holder] div");
+          let tileNameText = tileNameHolder.querySelector(".broTileHeaderNameHolderText");
           if (tileNameText != null) {
             event.preventDefault();
             tileNameText.blur();
@@ -1477,13 +1477,36 @@ modules["breakout/overview"] = class {
         }
       }
     });
-    groups.addEventListener("focusout", (event) => {
+    groups.addEventListener("focusout", async (event) => {
       let target = event.target;
       let tileNameHolder = target.closest(".broTileHeaderName");
       if (tileNameHolder != null) {
         let tileNameText = tileNameHolder.querySelector(".broTileHeaderNameHolderText");
         if (tileNameText != null) {
           tileNameText.scrollTo(0, 0);
+
+          let tile = this.layout.tiles[tileNameHolder.closest(".broTile").getAttribute("group")];
+          if (tile != null) {
+            let name = tileNameText.textContent.substring(0, 100).replace(/[^A-Za-z0-9.,_|/\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
+            if (name.replace(/ /g, "").length < 1) {
+              tileNameText.textContent = tile.render.name ?? "Untitled Group";
+              return;
+            }
+            if (tileNameText.textContent == tile.render.name) {
+              tileNameText.textContent = tile.render.name;
+              return;
+            }
+            let oldName = tile.render.name ?? "Untitled Group";
+            tile.render.name = name;
+            tileNameText.textContent = name;
+            tileNameText.title = name;
+            let [code] = await sendRequest("POST", "lessons/breakout/groups/name?group=" + tile.render._id, { name: name }, { session: this.parent.parent.session });
+            if (code != 200) {
+              tile.render.name = oldName;
+              tileNameText.textContent = oldName;
+              tileNameText.title = oldName;
+            }
+          }
         }
       }
     });

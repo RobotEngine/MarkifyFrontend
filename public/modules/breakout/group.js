@@ -298,6 +298,12 @@ modules["breakout/group"] = class {
     });
 
     this.updateInterface = async () => {
+      let config = this.parent.parent.lesson.breakout ?? {};
+      if ((config.options ?? {}).setTeamName == true || this.parent.parent.self.access > 3) {
+        groupName.setAttribute("contenteditable", "");
+      } else {
+        groupName.removeAttribute("contenteditable");
+      }
       let toolbarSetting = (account.settings ?? {}).toolbar ?? "left";
       if (toolbarHolder.hasAttribute(toolbarSetting) == false) {
         if (toolbarSetting != "right") {
@@ -400,18 +406,18 @@ modules["breakout/group"] = class {
 
       let name = groupName.textContent.substring(0, 100).replace(/[^A-Za-z0-9.,_|/\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
       if (name.replace(/ /g, "").length < 1) {
-        groupName.textContent = this.group.name;
+        groupName.textContent = this.group.name ?? "Untitled Group";
         return;
       }
       if (groupName.textContent == this.group.name) {
         groupName.textContent = this.group.name;
         return;
       }
-      let oldName = this.group.name;
+      let oldName = this.group.name ?? "Untitled Group";
       this.group.name = name;
       groupName.textContent = name;
       groupName.title = name;
-      let [code] = await sendRequest("POST", "lessons/breakout/group/name?group=" + this.group._id, { name: name }, { session: this.parent.parent.session });
+      let [code] = await sendRequest("POST", "lessons/breakout/groups/name?group=" + this.group._id, { name: name }, { session: this.parent.parent.session });
       if (code != 200) {
         this.group.name = oldName;
         groupName.textContent = oldName;
@@ -597,7 +603,7 @@ modules["breakout/group"] = class {
 
     this.pipeline.subscribe("groupSet", "set", (body) => {
       if (body.id != this.group._id) {
-        return;
+        return this.updateInterface();
       }
       objectUpdate(body, this.group);
       if (body.hasOwnProperty("name") == true && document.activeElement.closest(".brgGroupName") != groupName) {

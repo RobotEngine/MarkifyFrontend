@@ -58,9 +58,15 @@ modules["breakout/overview/setup"] = class {
     }
   }*/
   goBack = () => {
+    if (this.savePreferences != null) {
+      this.savePreferences();
+    }
     this.modal.open(this.steps[this.step - 1], null, this.modal.modal.modal.querySelector(".modalBack"), "Start a Breakout", null, { parent: this.parent });
   }
   goNext = () => {
+    if (this.savePreferences != null) {
+      this.savePreferences();
+    }
     this.modal.open(this.steps[this.step + 1], null, this.progressFooter.querySelector("button[next]"), "Start a Breakout", null, { parent: this.parent });
   }
   setupFooter = (extra) => {

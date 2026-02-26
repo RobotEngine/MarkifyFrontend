@@ -24,7 +24,11 @@ modules["lesson/breakout"] = class {
     let existingPage = this.frame.querySelector('.brPage[pageid="' + id + '"][path="' + path + '"]');
     if (existingPage != null) {
       existingPage.removeAttribute("hidden");
-      return this.pages[id];
+      let page = this.pages[id];
+      if (page.onOpen != null) {
+        page.onOpen();
+      }
+      return page;
     }
 
     this.closePage(id);
@@ -44,7 +48,11 @@ modules["lesson/breakout"] = class {
       },
       showLoading: false
     });
-    return this.pages[id];
+    let page = this.pages[id];
+    if (page.onOpen != null) {
+      page.onOpen();
+    }
+    return page;
   }
   closePage = (id) => {
     if (this.currentPage == id) {
@@ -52,6 +60,10 @@ modules["lesson/breakout"] = class {
     }
     if (this.currentPagePath == id) {
       this.currentPagePath;
+    }
+    let pageData = this.pages[id] ?? {};
+    if (pageData.onClose != null) {
+      pageData.onClose();
     }
     delete this.pages[id];
     let page = this.frame.querySelector('.brPage[pageid="' + id + '"]');

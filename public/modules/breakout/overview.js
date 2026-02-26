@@ -717,6 +717,15 @@ modules["breakout/overview"] = class {
 
       this.layout.runningEditorSetup = false;
     }
+    this.layout.updateTile = (tile) => {
+      let tileNameHeader = tile.element.querySelector(".broTileHeaderName");
+      if (tile.render.image != null) {
+        let tileNameImage = tileNameHeader.querySelector(".broTileHeaderNameImage");
+        tileNameImage.src = assetURL + tile.render.image;
+        tileNameImage.style.display = "block";
+      }
+      tileNameHeader.querySelector(".broTileHeaderNameHolderText").textContent = tile.render.name ?? "Untitled Group";
+    }
     this.layout.updateMemberTile = (collaborator = {}, memberTile) => {
       if (collaborator._id == null) {
         return;
@@ -911,13 +920,7 @@ modules["breakout/overview"] = class {
             </div>
             <div class="broTileMembers"></div>
           </div>`;
-          let tileNameHeader = tile.element.querySelector(".broTileHeaderName");
-          if (tile.render.image != null) {
-            let tileNameImage = tileNameHeader.querySelector(".broTileHeaderNameImage");
-            tileNameImage.src = assetURL + tile.render.image;
-            tileNameImage.style.display = "block";
-          }
-          tileNameHeader.querySelector(".broTileHeaderNameHolderText").textContent = tile.render.name ?? "Untitled Group";
+          this.layout.updateTile(tile);
           setSVG(tile.element.querySelector(".broTileHeaderOptions button"), "../images/editor/actions/more.svg");
           if (tile.loadedAnnotations != true) {
             tile.element.querySelector(".broTilePreview").setAttribute("disabled", "");
@@ -1048,6 +1051,7 @@ modules["breakout/overview"] = class {
       groupHolder.style.setProperty("--totalHeight", (this.layout.longestColumn - this.layout.tilePadding) + "px");
     }
     this.layout.refreshTileSpots = (offset = 0) => {
+      offset = Math.max(offset, 0);
       for (let i = offset; i < this.layout.tileLayout.length; i++) {
         let tileID = this.layout.tileLayout[i];
         let tileData = this.layout.tiles[tileID];
@@ -1256,6 +1260,7 @@ modules["breakout/overview"] = class {
             return;
           }
           objectUpdate(data.data, tile.render);
+          this.layout.updateTile(tile);
           if (tile.editor != null) {
             tile.editor.pipeline.publish("set", data.data);
           }
@@ -1275,6 +1280,14 @@ modules["breakout/overview"] = class {
     }
     this.pipeline.subscribe("tilesLoadMore", "bounds_change", checkLoadGroups);
     checkLoadGroups();
+
+    let pendingMemberAssignment = {};
+    this.pipeline.subscribe("createGroup", "creategroup", async (data) => {
+      let beforeTileLength = this.layout.tileLayout.length;
+      await this.layout.addTile(data, pendingMemberAssignment[data._id] ?? []);
+      delete pendingMemberAssignment[data._id];
+      await this.layout.refreshTileSpots(beforeTileLength);
+    });
 
     this.pipeline.subscribe("memberJoin", "join", (data) => {
       let session = this.layout.memberSessions[data.modify];
@@ -1299,7 +1312,16 @@ modules["breakout/overview"] = class {
           this.layout.removeMemberTile(data.modify);
         }
         this.layout.members[data.modify] = { ...(existingMember ?? {}), group: data.group, modify: data.modify };
-        let groupTile = this.layout.tiles[data.group] ?? {};
+        let groupTile = this.layout.tiles[data.group];
+        if (groupTile == null) {
+          let pending = pendingMemberAssignment[data.group];
+          if (pending == null) {
+            pendingMemberAssignment[data.group] = [];
+            pending = pendingMemberAssignment[data.group];
+          }
+          pending.push(data.modify);
+          groupTile = {};
+        }
         if (groupTile.members != null && groupTile.members.includes(data.modify) == false) {
           groupTile.members.push(data.modify);
           this.layout.addMemberTile(data.modify);
@@ -1329,7 +1351,16 @@ modules["breakout/overview"] = class {
           this.layout.removeMemberTile(member.modify);
         }
         if (data.group != null) {
-          let groupTile = this.layout.tiles[data.group] ?? {};
+          let groupTile = this.layout.tiles[data.group];
+          if (groupTile == null) {
+            let pending = pendingMemberAssignment[data.group];
+            if (pending == null) {
+              pendingMemberAssignment[data.group] = [];
+              pending = pendingMemberAssignment[data.group];
+            }
+            pending.push(data.modify);
+            groupTile = {};
+          }
           if (groupTile.members != null && groupTile.members.includes(member.modify) == false) {
             groupTile.members.push(member.modify);
             this.layout.addMemberTile(member.modify);
@@ -1383,6 +1414,21 @@ modules["breakout/overview"] = class {
       this.pipeline.publish("bounds_change", { type: "scroll", event: event });
     });
 
+    this.openGroup = (groupID) => {
+      let tileData = this.layout.tiles[groupID];
+      let editor;
+      if (tileData.editor != null && tileData.loadedAnnotations == true) {
+        editor = tileData.editor;
+      }
+      this.parent.openPage("secondary", "breakout/group", { group: tileData.render, editor });
+    }
+    
+    this.onOpen = () => {
+      if (this.parent.parent.self.group != null) {
+        sendRequest("DELETE", "lessons/breakout/groups/leave", null, { session: this.parent.parent.session });
+      }
+    }
+
     groups.addEventListener("click", (event) => {
       let target = event.target;
       let tile = target.closest(".broTile");
@@ -1392,12 +1438,7 @@ modules["breakout/overview"] = class {
       if (target.closest("button") != null || target.closest("div[contenteditable]") != null) {
         return;
       }
-      let tileData = this.layout.tiles[tile.getAttribute("group")];
-      let editor;
-      if (tileData.editor != null && tileData.loadedAnnotations == true) {
-        editor = tileData.editor;
-      }
-      this.parent.openPage("secondary", "breakout/group", { group: tileData.render, editor });
+      this.openGroup(tile.getAttribute("group"));
     });
 
     groups.addEventListener("contextmenu", (event) => {
@@ -1440,7 +1481,7 @@ modules["breakout/overview"] = class {
       let target = event.target;
       let tileNameHolder = target.closest(".broTileHeaderName");
       if (tileNameHolder != null) {
-        let tileNameText = tileNameHolder.querySelector("div[holder] div");
+        let tileNameText = tileNameHolder.querySelector(".broTileHeaderNameHolderText");
         if (tileNameText != null) {
           tileNameText.scrollTo(0, 0);
         }

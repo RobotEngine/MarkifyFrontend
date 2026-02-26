@@ -631,6 +631,9 @@ modules["breakout/group"] = class {
             this.memberCount--;
             this.updateMemberCount();
           }
+          if (this.editor.realtime.module != null) {
+            this.editor.realtime.module.removeRealtime(data._id);
+          }
         }
       }
     }, { sort: 1 });
@@ -670,8 +673,15 @@ modules["breakout/group"] = class {
     })();
 
     (async () => {
-      await (await this.newModule("editor/realtime")).js(this.editor);
       await (await this.newModule("editor/toolbar")).js(this.editor);
+      let realtime = (await this.newModule("editor/realtime"));
+      if (this.parent.parent.self.group != this.group._id) {
+        let [code] = await sendRequest("PUT", "lessons/breakout/groups/join?group=" + this.group._id, null, { session: this.parent.parent.session });
+        if (code != 200) {
+          return;
+        }
+      }
+      await realtime.js(this.editor);
 
       editorToolbar.removeAttribute("notransition");
     })();
@@ -1103,7 +1113,7 @@ modules["dropdowns/lesson/breakout/group/members"] = class {
     let memberFrameHolder;
     let dropdownButton;
 
-    editor.pipeline.subscribe("membersDropdownJoin", "join", (body) => {
+    let handleJoin = (body) => {
       if (body.group != parent.group._id) {
         return;
       }
@@ -1114,7 +1124,8 @@ modules["dropdowns/lesson/breakout/group/members"] = class {
       if (this.checkSpotlightUpdate != null) {
         this.checkSpotlightUpdate();
       }
-    }, { sort: 2 });
+    }
+    editor.pipeline.subscribe("membersDropdownJoin", "join", handleJoin, { sort: 2 });
     let handleLeave = (body) => {
       let removeTileContent = frame.querySelector('.brgMemberTile div[holder][member="' + body._id + '"]');
       if (removeTileContent != null) {
@@ -1138,7 +1149,9 @@ modules["dropdowns/lesson/breakout/group/members"] = class {
     editor.pipeline.subscribe("membersDropdownLeave", "leave", handleLeave, { sort: 2 });
     editor.pipeline.subscribe("membersDropdownUpdate", "update", (body) => {
       if (body.hasOwnProperty("group") == true) {
-        if (body.group != parent.group._id) {
+        if (body.group == parent.group._id) {
+          return handleJoin(body);
+        } else {
           return handleLeave(body);
         }
       }

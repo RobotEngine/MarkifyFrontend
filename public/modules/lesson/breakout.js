@@ -25,7 +25,7 @@ modules["lesson/breakout"] = class {
     if (existingPage != null) {
       existingPage.removeAttribute("hidden");
       let page = this.pages[id];
-      if (page.onOpen != null) {
+      if ((page ?? {}).onOpen != null) {
         page.onOpen();
       }
       return page;
@@ -49,7 +49,7 @@ modules["lesson/breakout"] = class {
       showLoading: false
     });
     let page = this.pages[id];
-    if (page.onOpen != null) {
+    if ((page ?? {}).onOpen != null) {
       page.onOpen();
     }
     return page;
@@ -226,7 +226,12 @@ modules["lesson/breakout"] = class {
         await this.openPage("primary", "breakout/waiting");
       }*/
     } else { // Open to Overview:
-      await this.openPage("primary", "breakout/overview");
+      let team = getParam("team") ?? "";
+      if (team == "") {
+        await this.openPage("primary", "breakout/overview");
+      } else {
+        await this.openPage("secondary", "breakout/group", { groupID: team });
+      }
     }
     
     /*let testBoard = await this.parent.setFrame("lesson/board", this.pageHolder, { construct: { pageID: this.pageID, pageType: this.pageType, pageHolder: this.pageHolder } });

@@ -129,14 +129,35 @@ modules["breakout/group"] = class {
     ".brgBottomSection[board] button svg": `width: 32px; height: 32px; transition: .2s`,
     ".brgBottomSection[board] button:hover svg": `transform: scale(.9)`
   };
+  
+  exit = () => {
+    if (this.parent.parent.self.access < 4) { // Open to Group View:
+      this.parent.openPage("secondary", "breakout/groups");
+    } else { // Open to Overview:
+      if ((this.extra ?? {}).editor != null) {
+        let state = this.editor.getState();
+        this.extra.editor.setState({ zoom: state.zoom, centerPosition: state.centerPosition });
+      }
+      this.parent.openPage("primary", "breakout/overview");
+      this.parent.closePage("secondary");
+      if (this.editor != null && this.editor.realtime.module != null) {
+        this.editor.realtime.module.closeShortSub();
+      }
+    }
+  }
+
   js = async (frame, extra = {}) => {
+    this.extra = extra;
     if (this.parent.parent.session == null) {
-      return;
+      return this.exit();
     }
     if (extra.group == null) {
-      let setGroupID = this.parent.parent.self.group;
-      if (setGroupID == null) {
-        return;
+      let setGroupID = extra.groupID;
+      if (extra.groupID == null) {
+        setGroupID = this.parent.parent.self.group;
+        if (setGroupID == null) {
+          return this.exit();
+        }
       }
       extra.group = { _id: setGroupID, fetch: true };
     }
@@ -204,7 +225,7 @@ modules["breakout/group"] = class {
       delete this.group.fetch;
       let [code, body] = await sendRequest("GET", "lessons/breakout/groups?group=" + this.group._id, null, { session: this.parent.parent.session });
       if (code != 200) {
-        return;
+        return this.exit();
       }
       this.group = body;
     }
@@ -376,19 +397,7 @@ modules["breakout/group"] = class {
 
     icon.addEventListener("click", (event) => {
       event.preventDefault();
-      if (this.parent.parent.self.access < 4) { // Open to Group View:
-        this.parent.openPage("secondary", "breakout/groups");
-      } else { // Open to Overview:
-        if (extra.editor != null) {
-          let state = this.editor.getState();
-          extra.editor.setState({ zoom: state.zoom, centerPosition: state.centerPosition });
-        }
-        this.parent.openPage("primary", "breakout/overview");
-        this.parent.closePage("secondary");
-        if (this.editor.realtime.module != null) {
-          this.editor.realtime.module.closeShortSub();
-        }
-      }
+      this.exit();
     });
     groupName.textContent = this.group.name ?? "Untitled Group";
     groupName.title = groupName.textContent;
@@ -692,18 +701,20 @@ modules["breakout/group"] = class {
       editorToolbar.removeAttribute("notransition");
     })();
 
+    modifyParams("team", this.group._id);
+
     this.updateInterface();
   }
 }
 
 modules["dropdowns/lesson/breakout/group/file"] = class {
   html = `
-  <button class="brgFileAction" option="groups" title="See all of the other groups." style="--themeColor: var(--secondary)"><div></div>Groups</button>
+  <button class="brgFileAction" option="groups" style="--themeColor: var(--secondary)"><div></div><span></span></button>
   <div class="brgFileLine"></div>
   <button class="brgFileAction" option="export" dropdowntitle="Export" title="Export the lesson as a PDF."><div></div>Export</button>
   <button class="brgFileAction" option="print" dropdowntitle="Print" title="Export the lesson and print."><div></div>Print</button>
   <div class="brgFileLine" option="timeline"></div>
-  <button class="brgFileAction" option="history" title="See the lesson's version history as a timeline."><div></div>Timeline History</button>
+  <button class="brgFileAction" option="history" title="See the groups's version history as a timeline."><div></div>Timeline History</button>
   <div class="brgFileLine" option="findjump"></div>
   <button class="brgFileAction" disabled option="find" title="Find text on the PDF." style="--themeColor: var(--secondary)"><div></div>Find</button>
   <button class="brgFileAction" option="jumptop" title="Jump to the first page." style="--themeColor: var(--secondary)"><div></div>Jump to Start</button>
@@ -730,12 +741,19 @@ modules["dropdowns/lesson/breakout/group/file"] = class {
     let editor = parent.editor;
 
     let overviewButton = frame.querySelector('.brgFileAction[option="groups"]');
+    let overviewButtonText = overviewButton.querySelector("span");
     overviewButton.addEventListener("click", async () => {
       editor.save.syncSave(true);
-      parent.parent.closePage("secondary");
-      parent.parent.openPage("primary", "breakout/groups");
+      parent.exit();
       dropdownModule.close();
     });
+    if (parent.parent.parent.self.access < 4) {
+      overviewButtonText.textContent = "Groups";
+      overviewButton.title = "See other groups and your past groups.";
+    } else {
+      overviewButtonText.textContent = "Overview";
+      overviewButton.title = "Return to seeing every group.";
+    }
     let exportButton = frame.querySelector('.brgFileAction[option="export"]');
     exportButton.addEventListener("click", () => {
       dropdownModule.open(exportButton, "dropdowns/lesson/file/export", { type: "download", editor: editor });

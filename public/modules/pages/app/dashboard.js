@@ -18,6 +18,7 @@ modules["pages/app/dashboard"] = class extends page {
       return false;
     }
     modifyParams("lesson");
+    modifyParams("team");
     modifyParams("folder");
     modifyParams("page");
     modifyParams("annotation");

@@ -6,6 +6,7 @@ modules["pages/dashboard"] = {
       return false;
     }
     modifyParams("lesson");
+    modifyParams("team");
     modifyParams("page");
     modifyParams("annotation");
     modifyParams("pin");

@@ -108,6 +108,7 @@ modules["pages/app/join"] = class extends page {
     let name = getParam("name");
 
     //modifyParams("lesson");
+    //modifyParams("team");
 
     let modal = page.querySelector(".jModal");
     let inputHolder = modal.querySelector(".jInputHolder");

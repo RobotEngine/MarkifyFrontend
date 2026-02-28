@@ -641,6 +641,7 @@ modules["pages/editor"] = class {
           if (userID == null || data.filled == true) {
             if (data.filled != true) {
               modifyParams("lesson");
+              modifyParams("team");
               modifyParams("page");
               modifyParams("pin");
             }

@@ -92,6 +92,7 @@ modules["pages/join"] = {
     let name = getParam("name");
 
     //modifyParams("lesson");
+    //modifyParams("team");
 
     let modal = page.querySelector(".jModal");
     let inputHolder = page.querySelector(".jInputHolder");

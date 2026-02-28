@@ -26,7 +26,28 @@ modules["breakout/overview"] = class {
         </div>
       </div>
     </div>
-    <div class="broOpenBoard" title="Open Markify Board"><button></button></div>
+    <div class="broBottomHolder">
+      <div class="broBottom">
+        <div class="broBottomSection broOpenBoard">
+          <button></button>
+        </div>
+        <div class="broBottomSection broWaitingRoom">
+          <div class="broWaitingRoomMenu">
+            <div class="broWaitingRoomButtonHolder">
+              <div class="broWaitingRoomButtonHolderShadow"></div>
+              <div class="broWaitingRoomButtonHolderScroll">
+                <button class="broWaitingRoomButton" open><span title="Number of unassigned members."></span>Members</button>
+                <button class="broWaitingRoomButton" close>Close</button>
+              </div>
+            </div>
+            <div class="broWaitingRoomContent">
+              <div class="broWaitingRoomHolder customScroll"></div>
+            </div>
+          </div>
+        </div>
+        <div class="broBottomButtonSpacer"></div>
+      </div>
+    </div>
   </div>
   <div class="broGroupHolder customScroll">
     <div class="broGroups"></div>
@@ -75,17 +96,44 @@ modules["breakout/overview"] = class {
     ".broAccount img": `width: 100%; height: 100%; object-fit: cover`,
     ".broLogin": `height: 32px; display: none; padding: 6px 10px; margin: 0 4px; background: var(--secondary); border-radius: 16px; color: #fff; font-size: 16px; font-weight: 600`,
   
-    ".broOpenBoard": `position: absolute; display: none; width: 50px; height: 50px; left: 0px; bottom: 0px; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--boardLightShadow); border-radius: 0 12px 0 0; pointer-events: all; visibility: visible`,
+    ".broBottomHolder": `position: relative; flex: 1; width: 100%; margin: auto 0 8px 0; visibility: visible`,
+    ".broBottom": `position: absolute; display: flex; width: 100%; height: 100%; padding-top: 8px; left: 0px; top: 0px; overflow-x: auto; overflow-y: hidden; justify-content: space-between; align-items: flex-end; scrollbar-width: none`,
+    ".broBottom::-webkit-scrollbar": `display: none`,
+    ".broBottomSection": `display: flex; box-sizing: border-box; height: 50px; padding: 6px; flex-shrink: 0; align-items: center; background: var(--pageColor); box-shadow: var(--lightShadow); border-radius: 12px 12px 0 0; pointer-events: all`,
+    ".broBottomSection[hidden]": `display: none`,
+    ".broBottomSection:first-child": `border-top-left-radius: 0`,
+    ".broBottomSection:last-child": `border-top-right-radius: 0`,
+    ".broWaitingRoom": `position: relative; display: flex !important; flex: 1; min-width: 150px; padding: 0; margin: 0 8px; justify-content: center; align-items: center; background: unset !important; box-shadow: unset !important; pointer-events: none; transition: .2s`,
+    ".broWaitingRoomMenu": `position: absolute; display: flex; flex-direction: column; width: 100%; left: 0px; top: 0px; align-items: center; transition: .4s`,
+    ".broWaitingRoom:not([hidden]) .broWaitingRoomMenu[open]": `transform: translateY(calc(50px - 100%))`,
+    ".broWaitingRoomButtonHolder": `position: relative; width: fit-content; max-width: calc(100% - 24px); background: var(--pageColor); border-radius: 12px 12px 0 0; z-index: 2; pointer-events: all`,
+    ".broWaitingRoomButtonHolderShadow": `position: absolute; width: 100%; height: 100%; left: -16px; top: -16px; padding: 16px 16px 0 16px; overflow: hidden; z-index: -1; border-radius: inherit; pointer-events: none`,
+    ".broWaitingRoomButtonHolderShadow:after": `content: ""; position: absolute; width: calc(100% - 32px); height: calc(100% - 16px); left: 16px; top: 16px; box-shadow: var(--lightShadow); border-radius: inherit`,
+    ".broWaitingRoomButtonHolderScroll": `box-sizing: border-box; display: flex; max-width: 100%; height: 50px; padding: 6px; align-items: center; overflow-x: auto; overflow-y: hidden; scrollbar-width: none`,
+    ".broWaitingRoomButtonHolderScroll::-webkit-scrollbar": `display: none`,
+    ".broWaitingRoomButton": `display: flex; height: 32px; padding: 6px 10px; margin: 4px; border-radius: 16px; align-items: center; font-size: 16px; font-weight: 600; white-space: nowrap`,
+    ".broWaitingRoomButton span": `--themeColorRGB: var(--themeRGB); color: rgb(var(--themeColorRGB)); display: none; min-width: 12px; height: 24px; padding: 0px 6px; margin-right: 5px; justify-content: center; align-items: center; background: var(--pageColor); border-radius: 12px; font-weight: 700`,
+    ".broWaitingRoomButton[open]": `background: var(--hover)`,
+    ".broWaitingRoomButton[close]": `display: none; background: var(--theme); color: #fff`,
+    ".broWaitingRoomMenu[open] .broWaitingRoomButton[close]": `display: flex !important`,
+    ".broWaitingRoomContent": `position: relative; width: 100%; background: var(--pageColor); border-radius: 12px 12px 0 0; overflow: hidden; z-index: 1; pointer-events: all; transition: .4s`,
+    ".broWaitingRoomMenu[open] .broWaitingRoomContent": `box-shadow: var(--lightShadow)`,
+    ".broWaitingRoomHolder": `box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 8px; width: 100%; max-height: 40vh; padding: 16px; overflow-y: auto; overflow-x: hidden; justify-content: center`,
+    ".broWaitingRoomHolder .broTileMember": `width: fit-content !important; margin: unset !important`,
+    ".broWaitingRoomHolder .broTileMemberContent": `padding: 6px 12px 6px 6px !important`,
+
+    ".broBottomButtonSpacer": `display: none; flex-shrink: 0; width: 50px`,
+    ".broOpenBoard": `display: none; box-shadow: var(--boardLightShadow)`,
     ".broOpenBoard button": `display: flex; width: 38px; height: 38px; padding: 0; border-radius: 6px; justify-content: center; align-items: center`,
     ".broOpenBoard button:hover": `background: var(--boardHover)`,
     ".broOpenBoard button svg": `width: 32px; height: 32px; transition: .2s`,
     ".broOpenBoard button:hover svg": `transform: scale(.9)`,
 
     ".broTile": `position: absolute; width: var(--columnWidth); height: fit-content; left: 0px; top: 0px; transition: .3s`, // will-change: transform;
-    ".broTileContent": `--shadow: var(--lightShadow); position: relative; width: 100%; height: 100%; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 16px; contain: strict; overflow: hidden; transition: .2s, transform .1s`,
+    ".broTileContent": `--shadow: var(--lightShadow); position: relative; display: flex; flex-direction: column; width: 100%; height: 100%; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 16px; contain: strict; overflow: hidden; transition: .2s, transform .1s`,
     ".broTile:hover .broTileContent": `--shadow: var(--darkShadow) !important`,
     ".broTile:active .broTileContent": `transform: scale(.95)`,
-    ".broTilePreviewContainer": `position: relative; width: 100%; height: var(--previewHeight); z-index: 1`,
+    ".broTilePreviewContainer": `position: relative; flex-shrink: 0; width: 100%; height: var(--previewHeight); z-index: 1`,
     ".broTilePreviewContainer:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px`,
     ".broTilePreview": `position: absolute; width: calc(var(--previewWidth) * (1 / var(--previewScale))); height: calc(var(--previewWidth) * var(--previewHeightRatio) * (1 / var(--previewScale))); left: 50%; top: 50%; transform: translate(-50%, -50%) scale(var(--previewScale)); transform-origin: center; background: var(--pageColor); contain: strict; overflow: scroll; scrollbar-width: none; transition: opacity .4s`,
     ".broTilePreview::-webkit-scrollbar": `display: none`,
@@ -103,7 +151,7 @@ modules["breakout/overview"] = class {
     ".broTileHeaderOptionsButton": `display: flex; width: 30px; height: 30px; margin: 4px; flex-shrink: 0; justify-content: center; align-items: center; border-radius: 16px`,
     ".broTileHeaderOptionsButton > svg": `flex-shrink: 0; width: 24px; height: 24px`,
     ".broTileHeaderOptionsButton:hover": `background: var(--hover)`,
-    ".broTileMembers": `position: relative; width: 100%; padding-bottom: 6px; background: var(--pageColor); z-index: 2`,
+    ".broTileMembers": `position: relative; flex: 1; width: 100%; padding-bottom: 6px; background: var(--pageColor); z-index: 2`,
     ".broTileMembers:has(> .broTileMember):before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: var(--shadow)`,
     ".broTileMember": `--shadow: var(--lightShadow); position: relative; width: calc(100% - 12px); padding: 0; margin: 6px 6px 0; background: var(--pageColor); border-radius: 10px; cursor: grab`,
     ".broTileMember:hover, .broTileMember:active, .broTileMember[dragging]": `--shadow: var(--darkShadow)`,
@@ -112,7 +160,7 @@ modules["breakout/overview"] = class {
     ".broTileMemberNameHolder": `display: flex; min-width: 0; align-items: center`,
     ".broTileMember:not([active]) .broTileMemberNameHolder > div:not(.broTileMemberNameDragHolder)": `opacity: .5 !important`,
     ".broTileMemberNameDragHolder": `--transformTranslate: translateX(calc(-6px - 100%)); width: 0px; height: 28px; margin-right: 0px; transition: .2s`,
-    ".broTileMember:hover .broTileMemberNameDragHolder, .broTileMember:active .broTileMemberNameDragHolder, .broTileMember[dragging] .broTileMemberNameDragHolder": `--transformTranslate: translateX(0px); width: 16px; margin-right: 6px`,
+    ".broTileMember:hover .broTileMemberNameDragHolder, .broTileMember:active .broTileMemberNameDragHolder, .broTileMember[dragging] .broTileMemberNameDragHolder, .broWaitingRoomHolder .broTileMemberNameDragHolder": `--transformTranslate: translateX(0px); width: 16px; margin-right: 6px`,
     ".broTileMemberNameDragHandle": `display: flex; flex-direction: column; box-sizing: border-box; width: 16px; height: 28px; padding: 4px 0; justify-content: space-between; align-items: center; transform: var(--transformTranslate); transition: .2s`,
     ".broTileMemberNameDragHandleDot": `width: 100%; height: 4px; border-radius: 2px; background: var(--gray)`,
     ".broTileMemberNameCursor": `flex-shrink: 0; position: relative; box-sizing: border-box; width: 28px; height: 28px; margin-right: 6px; background: var(--pageColor); border: solid 4px var(--themeColor); border-radius: 8px 14px 14px; transition: .2s`,
@@ -197,6 +245,8 @@ modules["breakout/overview"] = class {
 
   templateRoots = {};
 
+  unassignedMembers = 0;
+
   getTemplate = () => {
     if (this.template != null) {
       return this.template;
@@ -240,7 +290,6 @@ modules["breakout/overview"] = class {
       top: parentRectY + tile.y,
       bottom: parentRectY + tile.y + tile.height
     };
-    tile.editor.updateChunks();
   }
 
   js = async (frame) => {
@@ -273,8 +322,16 @@ modules["breakout/overview"] = class {
     let groups = groupHolder.querySelector(".broGroups");
     //let background = groupHolder.querySelector(".broBackground");
 
-    let openBoardHolder = frame.querySelector(".broOpenBoard");
+    let bottom = frame.querySelector(".broBottom");
+    let openBoardHolder = bottom.querySelector(".broOpenBoard");
     let openBoard = openBoardHolder.querySelector("button");
+    let waitingRoomHolder = bottom.querySelector(".broWaitingRoom");
+    let waitingRoom = bottom.querySelector(".broWaitingRoomMenu");
+    let waitingRoomOpenButton = waitingRoom.querySelector(".broWaitingRoomButton[open]");
+    let waitingRoomOpenButtonCount = waitingRoomOpenButton.querySelector("span");
+    let waitingRoomCloseButton = waitingRoom.querySelector(".broWaitingRoomButton[close]");
+    let waitingRoomMembersHolder = waitingRoom.querySelector(".broWaitingRoomHolder");
+    let bottomButtonSpacer = bottom.querySelector(".broBottomButtonSpacer");
 
     let updateTopBar = (ignoreAttr) => {
       if (ignoreAttr != true) {
@@ -752,9 +809,18 @@ modules["breakout/overview"] = class {
       }
     }
     this.layout.addMemberTile = (collaboratorID, refresh) => {
-      let tile = this.layout.tiles[(this.layout.members[collaboratorID] ?? {}).group] ?? {};
-      if (tile.element == null) {
-        return;
+      let member = this.layout.members[collaboratorID] ?? {};
+      let tile;
+      let element = waitingRoomMembersHolder;
+      if (member.group != null) {
+        tile = this.layout.tiles[member.group] ?? {};
+        if (tile.element == null) {
+          if (refresh != false) {
+            this.layout.refreshTileSpots(this.layout.tileLayout.indexOf(tile.render._id));
+          }
+          return;
+        }
+        element = tile.element.querySelector(".broTileMembers");
       }
       let collaborator = this.parent.parent.collaborators[collaboratorID];
       if (collaborator == null) {
@@ -774,16 +840,22 @@ modules["breakout/overview"] = class {
           <div class="broTileMemberNameCursor"></div>
           <div class="broTileMemberNameText"></div>
         </div>
-        <div class="broTileMemberPercent"><div class="broTileMemberPercentBarHolder"><div class="broTileMemberPercentBar"></div></div></div>
       </div>
       `;
+      if (member.group != null) {
+        memberTile.querySelector(".broTileMemberContent").insertAdjacentHTML("beforeend", `<div class="broTileMemberPercent">
+          <div class="broTileMemberPercentBarHolder">
+            <div class="broTileMemberPercentBar"></div>
+          </div>
+        </div>`);
+      }
       let groupMember = this.layout.members[collaboratorID];
       if (groupMember != null) {
         groupMember.tile = memberTile;
       }
       this.layout.updateMemberTile(collaborator, memberTile);
-      tile.element.querySelector(".broTileMembers").appendChild(memberTile);
-      if (refresh != false) {
+      element.appendChild(memberTile);
+      if (refresh != false && tile != null) {
         this.layout.refreshTileSpots(this.layout.tileLayout.indexOf(tile.render._id));
       }
     }
@@ -1008,7 +1080,11 @@ modules["breakout/overview"] = class {
             ...existingState
           }
         });
-        tile.editor.updatePageSize = () => { this.previewEditorPageSizeFunction(tile); }
+        tile.editor.updatePageSize = async () => {
+          this.previewEditorPageSizeFunction(tile);
+          //await tile.editor.render.setMarginSize();
+          //await tile.editor.updateChunks();
+        }
         this.layout.pendingEditors.push(tile);
       }
 
@@ -1156,15 +1232,16 @@ modules["breakout/overview"] = class {
 
       this.layout.tileHeightRatio = this.pageOffsetHeight / this.pageOffsetWidth;
 
-      this.layout.previewWidth = this.layout.columnWidth;
-
-      this.layout.previewHeight = this.layout.columnWidth * this.layout.tileHeightRatio;
-      if (this.layout.previewHeight > 400) {
-        this.layout.previewHeight = 400;
-      } else if (this.layout.previewHeight < 200) {
-        this.layout.previewWidth *= 200 / this.layout.previewHeight;
-        this.layout.previewHeight = 200;
+      let previewWidth = this.layout.columnWidth;
+      let previewHeight = this.layout.columnWidth * this.layout.tileHeightRatio;
+      if (previewHeight > 400) {
+        previewHeight = 400;
+      } else if (previewHeight < 200) {
+        previewWidth *= 200 / previewHeight;
+        previewHeight = 200;
       }
+      this.layout.previewWidth = Math.round(previewWidth);
+      this.layout.previewHeight = Math.round(previewHeight);
 
       this.layout.previewScale = (this.layout.columnWidth * this.layout.tileHeightRatio) / this.containerHeight;
       
@@ -1195,6 +1272,21 @@ modules["breakout/overview"] = class {
       // this.layout.refreshTileSpots(this.layout.tileLayout.length - 1);
     }
 
+    this.unassignedMembers = 0;
+    let updateUnassignedMemberCount = (change = 0) => {
+      this.unassignedMembers += change;
+      if (this.unassignedMembers > 0) {
+        waitingRoomOpenButtonCount.style.display = "flex";
+        waitingRoomOpenButtonCount.parentElement.style.padding = "4px 10px 4px 4px";
+        waitingRoomHolder.removeAttribute("hidden");
+      } else {
+        waitingRoomHolder.setAttribute("hidden", "");
+        waitingRoomOpenButtonCount.style.removeProperty("display");
+        waitingRoomOpenButtonCount.parentElement.style.removeProperty("padding");
+      }
+      waitingRoomOpenButtonCount.textContent = this.unassignedMembers;
+    }
+
     let memberKeys = Object.keys(this.parent.parent.members);
     for (let i = 0; i < memberKeys.length; i++) {
       let memberID = memberKeys[i];
@@ -1205,7 +1297,13 @@ modules["breakout/overview"] = class {
         session = this.layout.memberSessions[member.modify];
       }
       session.push(memberID);
+      this.layout.members[member.modify] = { ...(this.layout.members[member.modify] ?? {}), group: member.group, modify: member.modify };
+      if (member.group == null && member.access < 4) {
+        this.unassignedMembers++;
+        this.layout.updateMemberTile(this.parent.parent.collaborators[member.modify]);
+      }
     }
+    updateUnassignedMemberCount();
 
     let loadingGroups = false;
     let allGroupsLoaded = false;
@@ -1291,17 +1389,22 @@ modules["breakout/overview"] = class {
 
     this.pipeline.subscribe("memberJoin", "join", (data) => {
       let session = this.layout.memberSessions[data.modify];
+      let existingMember = this.layout.members[data.modify];
       if (session == null) {
         this.layout.memberSessions[data.modify] = [];
         session = this.layout.memberSessions[data.modify];
+        if (data.group == null && data.access < 4) {
+          updateUnassignedMemberCount(1);
+        }
+      } else if (existingMember != null && existingMember.group != null && data.group == null && data.access < 4) {
+        updateUnassignedMemberCount(-1);
       }
       if (session.includes(data._id) == false) {
         session.push(data._id);
       }
 
-      if (data.group != null) {
-        let existingMember = this.layout.members[data.modify];
-        if (existingMember != null && existingMember.group != data.group) {
+      if (existingMember != null && existingMember.group != data.group) {
+        if (existingMember.group != null) {
           let groupTile = this.layout.tiles[existingMember.group] ?? {};
           if (groupTile.members != null) {
             let index = groupTile.members.indexOf(data.modify);
@@ -1311,7 +1414,9 @@ modules["breakout/overview"] = class {
           }
           this.layout.removeMemberTile(data.modify);
         }
-        this.layout.members[data.modify] = { ...(existingMember ?? {}), group: data.group, modify: data.modify };
+      }
+      this.layout.members[data.modify] = { ...(existingMember ?? {}), group: data.group, modify: data.modify };
+      if (data.group != null) {
         let groupTile = this.layout.tiles[data.group];
         if (groupTile == null) {
           let pending = pendingMemberAssignment[data.group];
@@ -1319,15 +1424,17 @@ modules["breakout/overview"] = class {
             pendingMemberAssignment[data.group] = [];
             pending = pendingMemberAssignment[data.group];
           }
-          pending.push(data.modify);
-          groupTile = {};
-        }
-        if (groupTile.members != null && groupTile.members.includes(data.modify) == false) {
+          if (pending.includes(data.modify) == false) {
+            pending.push(data.modify);
+          }
+        } else if (groupTile.members != null && groupTile.members.includes(data.modify) == false) {
           groupTile.members.push(data.modify);
           this.layout.addMemberTile(data.modify);
         } else {
           this.layout.updateMemberTile(this.parent.parent.collaborators[data.modify]);
         }
+      } else {
+        this.layout.updateMemberTile(this.parent.parent.collaborators[data.modify]);
       }
     }, { sort: 1 });
     this.pipeline.subscribe("memberUpdate", "update", (data) => {
@@ -1339,7 +1446,7 @@ modules["breakout/overview"] = class {
       if (groupMember == null) {
         return;
       }
-      if (data.hasOwnProperty("group") && data.group != groupMember.group) {
+      if (data.hasOwnProperty("group") == true && data.group != groupMember.group) {
         if (groupMember.group != null) {
           let oldGroupTile = this.layout.tiles[groupMember.group] ?? {};
           if (oldGroupTile.members != null) {
@@ -1349,7 +1456,10 @@ modules["breakout/overview"] = class {
             }
           }
           this.layout.removeMemberTile(member.modify);
+        } else if (data.group != null && member.access < 4) {
+          updateUnassignedMemberCount(-1);
         }
+        groupMember.group = data.group;
         if (data.group != null) {
           let groupTile = this.layout.tiles[data.group];
           if (groupTile == null) {
@@ -1358,13 +1468,15 @@ modules["breakout/overview"] = class {
               pendingMemberAssignment[data.group] = [];
               pending = pendingMemberAssignment[data.group];
             }
-            pending.push(data.modify);
-            groupTile = {};
-          }
-          if (groupTile.members != null && groupTile.members.includes(member.modify) == false) {
+            if (pending.includes(data.modify) == false) {
+              pending.push(data.modify);
+            }
+          } else if (groupTile.members != null && groupTile.members.includes(member.modify) == false) {
             groupTile.members.push(member.modify);
             this.layout.addMemberTile(member.modify);
           }
+        } else if (member.access < 4) {
+          updateUnassignedMemberCount(1);
         }
       } else {
         this.layout.updateMemberTile(member);
@@ -1381,6 +1493,9 @@ modules["breakout/overview"] = class {
           if (session.length < 1) {
             delete this.layout.memberSessions[data.member.modify];
             this.layout.updateMemberTile(this.parent.parent.collaborators[data.member.modify]);
+            if (data.member.group == null && data.member.access < 4) {
+              updateUnassignedMemberCount(-1);
+            }
           }
         }
       }
@@ -1414,6 +1529,17 @@ modules["breakout/overview"] = class {
       this.pipeline.publish("bounds_change", { type: "scroll", event: event });
     });
 
+    waitingRoomOpenButton.addEventListener("click", () => {
+      if (waitingRoom.hasAttribute("open") == false) {
+        waitingRoom.setAttribute("open", "");
+      } else {
+        waitingRoom.removeAttribute("open");
+      }
+    });
+    waitingRoomCloseButton.addEventListener("click", () => {
+      waitingRoom.removeAttribute("open");
+    });
+
     this.openGroup = (groupID) => {
       let tileData = this.layout.tiles[groupID];
       let editor;
@@ -1427,6 +1553,7 @@ modules["breakout/overview"] = class {
       if (this.parent.parent.self.group != null) {
         sendRequest("DELETE", "lessons/breakout/groups/leave", null, { session: this.parent.parent.session });
       }
+      modifyParams("team");
     }
 
     groups.addEventListener("click", (event) => {
@@ -1538,12 +1665,15 @@ modules["breakout/overview"] = class {
 
       if (showBoardButton == true) {
         openBoardHolder.style.display = "flex";
+        bottomButtonSpacer.style.display = "flex";
       } else {
         openBoardHolder.style.removeProperty("display");
+        bottomButtonSpacer.style.removeProperty("display");
       }
     }
     openBoard.addEventListener("click", async () => {
       openBoardHolder.style.removeProperty("display");
+      bottomButtonSpacer.style.removeProperty("display");
 
       if (boardOpen == false) {
         await this.parent.parent.addPage("board", "board", { insertBefore: this.parent.pageHolder, percent: .5 });

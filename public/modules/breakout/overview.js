@@ -54,6 +54,8 @@ modules["breakout/overview"] = class {
     <!--<div class="broBackground"></div>-->
   </div>`;
   css = {
+    ".brPage[dragging] *": `user-select: none; webkit-user-select: none; cursor: grabbing !important`,
+
     ".broInterface": `position: absolute; display: flex; flex-direction: column; width: 100%; height: 100%; left: 0px; top: 0px; visibility: hidden; pointer-events: none; user-select: none; contain: strict; overflow-y: scroll; z-index: 2`,
     ".broGroupHolder": `--interfacePadding: 58px; --tilePadding: 16px; --totalWidth: calc((var(--columnWidth) * var(--columnCount)) + (var(--tilePadding) * (var(--columnCount) - 1))); position: relative; display: flex; box-sizing: border-box; width: 100%; height: 100%; padding-top: calc(var(--interfacePadding) + 8px); background: var(--pageColor); contain: strict; overflow-x: hidden; overflow-y: scroll; overflow-anchor: none; z-index: 1; justify-content: center; transition: .5s`,
     ".broGroups": `position: absolute; box-sizing: border-box; width: var(--totalWidth); height: calc(var(--totalHeight) + var(--interfacePadding) + 8px); z-index: 2; transition: width .3s`,
@@ -134,7 +136,7 @@ modules["breakout/overview"] = class {
     ".broTile:hover .broTileContent": `--shadow: var(--darkShadow) !important`,
     ".broTile:active .broTileContent": `transform: scale(.95)`,
     ".broTilePreviewContainer": `position: relative; flex-shrink: 0; width: 100%; height: var(--previewHeight); z-index: 1`,
-    ".broTilePreviewContainer:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px`,
+    ".broTilePreviewContainer:after": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; pointer-events: all !important`,
     ".broTilePreview": `position: absolute; width: calc(var(--previewWidth) * (1 / var(--previewScale))); height: calc(var(--previewWidth) * var(--previewHeightRatio) * (1 / var(--previewScale))); left: 50%; top: 50%; transform: translate(-50%, -50%) scale(var(--previewScale)); transform-origin: center; background: var(--pageColor); contain: strict; overflow: scroll; scrollbar-width: none; transition: opacity .4s`,
     ".broTilePreview::-webkit-scrollbar": `display: none`,
     ".broTileHeader": `position: absolute; display: flex; gap: 8px; width: 100%; left: 0px; top: 0px; justify-content: space-between; z-index: 3; pointer-events: none`,
@@ -296,6 +298,8 @@ modules["breakout/overview"] = class {
     frame.style.position = "relative";
     frame.style.width = "100%";
     frame.style.height = "100%";
+
+    let page = frame.closest(".brPage");
 
     let topHolder = frame.querySelector(".broTopHolder");
     let top = topHolder.querySelector(".broTop");
@@ -1272,17 +1276,22 @@ modules["breakout/overview"] = class {
       // this.layout.refreshTileSpots(this.layout.tileLayout.length - 1);
     }
 
+    let dragContext = {};
+
     this.unassignedMembers = 0;
     let updateUnassignedMemberCount = (change = 0) => {
       this.unassignedMembers += change;
       if (this.unassignedMembers > 0) {
         waitingRoomOpenButtonCount.style.display = "flex";
         waitingRoomOpenButtonCount.parentElement.style.padding = "4px 10px 4px 4px";
+      } else {
+        waitingRoomOpenButtonCount.style.removeProperty("display");
+        waitingRoomOpenButtonCount.parentElement.style.removeProperty("padding");
+      }
+      if (this.unassignedMembers > 0 || dragContext.enabled == true) {
         waitingRoomHolder.removeAttribute("hidden");
       } else {
         waitingRoomHolder.setAttribute("hidden", "");
-        waitingRoomOpenButtonCount.style.removeProperty("display");
-        waitingRoomOpenButtonCount.parentElement.style.removeProperty("padding");
       }
       waitingRoomOpenButtonCount.textContent = this.unassignedMembers;
     }
@@ -1291,6 +1300,9 @@ modules["breakout/overview"] = class {
     for (let i = 0; i < memberKeys.length; i++) {
       let memberID = memberKeys[i];
       let member = this.parent.parent.members[memberID];
+      if (member.access > 3) {
+        continue;
+      }
       let session = this.layout.memberSessions[member.modify];
       if (session == null) {
         this.layout.memberSessions[member.modify] = [];
@@ -1298,7 +1310,7 @@ modules["breakout/overview"] = class {
       }
       session.push(memberID);
       this.layout.members[member.modify] = { ...(this.layout.members[member.modify] ?? {}), group: member.group, modify: member.modify };
-      if (member.group == null && member.access < 4) {
+      if (member.group == null) {
         this.unassignedMembers++;
         this.layout.updateMemberTile(this.parent.parent.collaborators[member.modify]);
       }
@@ -1388,15 +1400,18 @@ modules["breakout/overview"] = class {
     });
 
     this.pipeline.subscribe("memberJoin", "join", (data) => {
+      if (data.access > 3) {
+        return;
+      }
       let session = this.layout.memberSessions[data.modify];
       let existingMember = this.layout.members[data.modify];
       if (session == null) {
         this.layout.memberSessions[data.modify] = [];
         session = this.layout.memberSessions[data.modify];
-        if (data.group == null && data.access < 4) {
+        if (data.group == null) {
           updateUnassignedMemberCount(1);
         }
-      } else if (existingMember != null && existingMember.group != null && data.group == null && data.access < 4) {
+      } else if (existingMember != null && existingMember.group != null && data.group == null) {
         updateUnassignedMemberCount(-1);
       }
       if (session.includes(data._id) == false) {
@@ -1439,7 +1454,7 @@ modules["breakout/overview"] = class {
     }, { sort: 1 });
     this.pipeline.subscribe("memberUpdate", "update", (data) => {
       let member = this.parent.parent.members[data._id];
-      if (member == null) {
+      if (member == null || member.access > 3) {
         return;
       }
       let groupMember = this.layout.members[member.modify];
@@ -1456,7 +1471,7 @@ modules["breakout/overview"] = class {
             }
           }
           this.layout.removeMemberTile(member.modify);
-        } else if (data.group != null && member.access < 4) {
+        } else if (data.group != null) {
           updateUnassignedMemberCount(-1);
         }
         groupMember.group = data.group;
@@ -1475,7 +1490,7 @@ modules["breakout/overview"] = class {
             groupTile.members.push(member.modify);
             this.layout.addMemberTile(member.modify);
           }
-        } else if (member.access < 4) {
+        } else {
           updateUnassignedMemberCount(1);
         }
       } else {
@@ -1484,6 +1499,9 @@ modules["breakout/overview"] = class {
     }, { sort: 1 });
     this.pipeline.subscribe("memberLeave", "leave", (data) => {
       if (data.member != null) {
+        if (data.member.access > 3) {
+          return;
+        }
         let session = this.layout.memberSessions[data.member.modify];
         if (session != null) {
           let index = session.indexOf(data.member._id);
@@ -1493,7 +1511,7 @@ modules["breakout/overview"] = class {
           if (session.length < 1) {
             delete this.layout.memberSessions[data.member.modify];
             this.layout.updateMemberTile(this.parent.parent.collaborators[data.member.modify]);
-            if (data.member.group == null && data.member.access < 4) {
+            if (data.member.group == null) {
               updateUnassignedMemberCount(-1);
             }
           }
@@ -1529,15 +1547,24 @@ modules["breakout/overview"] = class {
       this.pipeline.publish("bounds_change", { type: "scroll", event: event });
     });
 
+    let waitingRoomOpen = false;
+    let openWaitingRoom = () => {
+      waitingRoomOpen = true;
+      waitingRoom.setAttribute("open", "");
+    }
+    let closeWaitingRoom = () => {
+      waitingRoomOpen = false;
+      waitingRoom.removeAttribute("open");
+    }
     waitingRoomOpenButton.addEventListener("click", () => {
       if (waitingRoom.hasAttribute("open") == false) {
-        waitingRoom.setAttribute("open", "");
+        openWaitingRoom();
       } else {
-        waitingRoom.removeAttribute("open");
+        closeWaitingRoom();
       }
     });
     waitingRoomCloseButton.addEventListener("click", () => {
-      waitingRoom.removeAttribute("open");
+      closeWaitingRoom();
     });
 
     this.openGroup = (groupID) => {
@@ -1558,7 +1585,7 @@ modules["breakout/overview"] = class {
 
     groups.addEventListener("click", (event) => {
       let target = event.target;
-      let tile = target.closest(".broTile");
+      let tile = target.closest(".broTile:not([disabled])");
       if (tile == null) {
         return;
       }
@@ -1569,7 +1596,7 @@ modules["breakout/overview"] = class {
     });
 
     groups.addEventListener("contextmenu", (event) => {
-
+      
     });
 
     groups.addEventListener("pointerdown", (event) => {
@@ -1586,9 +1613,185 @@ modules["breakout/overview"] = class {
       }
     });
 
-    groups.addEventListener("pointermove", (event) => {
-      
-    });
+    let dragStart = (event) => {
+      dragContext = {};
+      let target = event.target;
+      let pageRect = frame.getBoundingClientRect();
+      let mouseX = (event.x ?? event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0) - pageRect.x;
+      let mouseY = (event.y ?? event.clientY ?? ((event.changedTouches ?? [])[0] ?? {}).clientY ?? 0) - pageRect.y;
+      let tile = target.closest(".broTileMember");
+      if (tile == null) {
+        return;
+      }
+      dragContext = {
+        tileData: this.layout.members[tile.getAttribute("collaborator")],
+        width: tile.clientWidth,
+        height: tile.clientHeight,
+        startX: mouseX,
+        startY: mouseY,
+        waitingRoomOpen
+      };
+      page.setAttribute("dragging", "");
+    }
+    frame.addEventListener("mousedown", dragStart);
+
+    let removeDrag = (moved) => {
+      if (dragContext.tileData != null) {
+        page.removeAttribute("dragging");
+      }
+      let removeElement = dragContext.element;
+      if (removeElement == null) {
+        return;
+      }
+      if (dragContext.tileData != null && dragContext.tileData.tile != null && frame.contains(dragContext.tileData.tile) == true) {
+        let button = dragContext.tileData.tile.closest(".broTile");
+        let pageRect = frame.getBoundingClientRect();
+        let originalRect = dragContext.tileData.tile.getBoundingClientRect();
+        if (moved != true) {
+          removeElement.style.transform = "translate(" + ((originalRect.x - pageRect.x) - (dragContext.lastX - dragContext.offsetX)) + "px, " + (originalRect.y - pageRect.y - dragContext.lastY + dragContext.offsetY) + "px) scale(.975)";
+        } else {
+          removeElement.style.transformOrigin = dragContext.offsetX + "px " + dragContext.offsetY + "px";
+          removeElement.style.transform = "translate(0px, 0px) scale(0)";
+        }
+        (async () => {
+          await sleep(100);
+          if (button != null) {
+            button.removeAttribute("disabled");
+          }
+        })();
+        dragContext.tileData.tile.removeAttribute("disabled");
+      } else {
+        removeElement.style.transformOrigin = "center";
+        removeElement.style.transform = "translate(0px, 0px) scale(0)";
+      }
+      removeElement.style.opacity = 0;
+      (async () => {
+        await sleep(200);
+        if (removeElement != null) {
+          removeElement.remove();
+        }
+      })();
+      if (dragContext.waitingRoomOpen == true) {
+        openWaitingRoom();
+      }
+      dragContext = {};
+      updateUnassignedMemberCount();
+    }
+    
+    let scrollOffset = 32;
+    let scrollY = 0;
+    let scrollIntervalRunning = false;
+    let scrollInterval = async () => {
+      if (scrollIntervalRunning == true) {
+        return;
+      }
+      scrollIntervalRunning = true;
+      while (scrollY != 0 && dragContext.enabled == true) {
+        groupHolder.scrollTo({ top: groupHolder.scrollTop + scrollY });
+        await sleep(10);
+      }
+      scrollIntervalRunning = false;
+    }
+    let dragMove = (event) => {
+      if (dragContext.tileData == null || dragContext.tileData.tile == null) {
+        return removeDrag();
+      }
+      if (mouseDown() == false) {
+        return removeDrag();
+      }
+      let pageRect = frame.getBoundingClientRect();
+      let mouseX = (event.x ?? event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0) - pageRect.x;
+      let mouseY = (event.y ?? event.clientY ?? ((event.changedTouches ?? [])[0] ?? {}).clientY ?? 0) - pageRect.y;
+      dragContext.lastX = mouseX;
+      dragContext.lastY = mouseY;
+      if (dragContext.enabled != true) {
+        if (Math.abs(mouseX - dragContext.startX) > 5 || Math.abs(mouseY - dragContext.startY) > 5) {
+          dragContext.enabled = true;
+          dragContext.element = dragContext.tileData.tile.cloneNode(true);
+          dragContext.element.style.position = "absolute";
+          dragContext.element.style.width = dragContext.width + "px";
+          dragContext.element.style.height = dragContext.height + "px";
+          dragContext.element.style.background = "var(--pageColor)";
+          dragContext.element.style.boxShadow = "var(--shadow)";
+          //dragContext.element.style.borderRadius = 8 + "px";
+          dragContext.element.style.zIndex = 10;
+          dragContext.element.style.pointerEvents = "none";
+          let originalRect = dragContext.tileData.tile.getBoundingClientRect();
+          dragContext.offsetX = dragContext.startX - (originalRect.x - pageRect.x);
+          dragContext.offsetY = dragContext.startY - (originalRect.y - pageRect.y);
+          dragContext.element.style.transform = "translate(" + Math.min(dragContext.startX + dragContext.startX - mouseX - mouseX, 0) + "px, " + Math.min(dragContext.startY + dragContext.startY - mouseY - mouseY, 0) + "px) scale(.975)";
+          dragContext.element.style.transformOrigin = "0 0";
+          dragContext.element.style.opacity = 0;
+          dragContext.element.style.transition = "transform .3s, opacity .2s";
+          dragContext.element.setAttribute("dragging", "");
+          dragContext.tileData.tile.setAttribute("disabled", "");
+          frame.appendChild(dragContext.element);
+          let mainTile = dragContext.tileData.tile.closest(".broTile");
+          if (mainTile != null) {
+            mainTile.setAttribute("disabled", "");
+          }
+          dragContext.element.offsetHeight;
+          dragContext.element.style.transform = "translate(0px, 0px) scale(.975)";
+          dragContext.element.style.opacity = 1;
+
+          if (dragContext.waitingRoomOpen == true) {
+            closeWaitingRoom();
+          }
+          updateUnassignedMemberCount();
+        } else {
+          return;
+        }
+      }
+      if (dragContext.element == null) {
+        return;
+      }
+      dragContext.element.style.left = (mouseX - (dragContext.offsetX ?? 0)) + "px";
+      dragContext.element.style.top = (mouseY - (dragContext.offsetY ?? 0)) + "px";
+
+      scrollY = 0;
+      let topPos = scrollOffset - mouseY;
+      if (topPos > 0) {
+        let percentage = 1 + ((topPos - scrollOffset) / scrollOffset);
+        scrollY = -Math.min(10 * percentage, 10);
+      }
+      let bottomPos = mouseY - page.offsetHeight + scrollOffset;
+      if (bottomPos > 0) {
+        let percentage = 1 + ((bottomPos - scrollOffset) / scrollOffset);
+        scrollY = Math.min(10 * percentage, 10);
+      }
+      if (dragContext.autoScrollActive == true) {
+        scrollInterval();
+      } else if (scrollY == 0) {
+        dragContext.autoScrollActive = true;
+      }
+    }
+    this.pipeline.subscribe("dragMemberMove", "click_move", (data) => { dragMove(data.event); });
+
+    let dragEnd = async (event) => {
+      if (dragContext.enabled != true || dragContext.tileData == null || dragContext.tileData.tile == null) {
+        return removeDrag();
+      }
+      let target = document.elementFromPoint(
+        event.x ?? event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0,
+        event.y ?? event.clientY ?? ((event.changedTouches ?? [])[0] ?? {}).clientY ?? 0
+      );
+      if (target == null) {
+        return removeDrag();
+      }
+      let groupTile = target.closest(".broTile[group], .broWaitingRoom");
+      if (groupTile != null) {
+        let groupID = groupTile.getAttribute("group");
+        if (dragContext.tileData.group == groupID) { // Same group:
+          return removeDrag();
+        }
+        removeDrag(true);
+        // Send request to change group
+        return;
+      }
+
+      removeDrag();
+    }
+    this.pipeline.subscribe("dragMemberEnd", "click_end", (data) => { dragEnd(data.event); });
 
     groups.addEventListener("keydown", (event) => {
       let target = event.target;

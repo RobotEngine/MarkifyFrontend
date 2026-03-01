@@ -2990,7 +2990,11 @@ modules["editor/toolbar"] = class {
       }
       this.selection.scrollIntervalRunning = true;
       while (this.selection.action != null && (this.selection.scrollIntervalX != 0 || this.selection.scrollIntervalY != 0)) {
-        contentHolder.scrollTo(contentHolder.scrollLeft + this.selection.scrollIntervalX, contentHolder.scrollTop + this.selection.scrollIntervalY);
+        contentHolder.scrollTo({
+          left: contentHolder.scrollLeft + this.selection.scrollIntervalX,
+          top: contentHolder.scrollTop + this.selection.scrollIntervalY,
+          behavior: "scroll"
+        });
         await this.selection.moveAction(this.selection.scrollLastEvent, null, null, true);
         await sleep(10);
       }

@@ -21,7 +21,7 @@ modules["lesson/breakout"] = class {
     this.currentPage = id;
     this.currentPagePath = path;
     
-    let existingPage = this.frame.querySelector('.brPage[pageid="' + id + '"][path="' + path + '"]:not([hidden])');
+    let existingPage = this.frame.querySelector('.brPage[pageid="' + id + '"][path="' + path + '"]:not([closing])');
     if (existingPage != null) {
       existingPage.removeAttribute("hidden");
       let page = this.pages[id];
@@ -70,6 +70,7 @@ modules["lesson/breakout"] = class {
     if (page == null) {
       return;
     }
+    page.setAttribute("closing", "");
     page.setAttribute("hidden", "");
     setTimeout(() => {
       if (page != null) {

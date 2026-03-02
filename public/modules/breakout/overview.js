@@ -869,6 +869,7 @@ modules["breakout/overview"] = class {
         return;
       }
       groupMember.tile.remove();
+      groupMember.tile = null;
       if (refresh != false) {
         this.layout.refreshTileSpots(this.layout.tileLayout.indexOf(groupMember.group));
       }
@@ -1409,6 +1410,7 @@ modules["breakout/overview"] = class {
         this.layout.memberSessions[data.modify] = [];
         session = this.layout.memberSessions[data.modify];
         if (data.group == null) {
+
           updateUnassignedMemberCount(1);
         }
       } else if (existingMember != null && existingMember.group != null && data.group == null) {
@@ -1452,12 +1454,8 @@ modules["breakout/overview"] = class {
         this.layout.updateMemberTile(this.parent.parent.collaborators[data.modify]);
       }
     }, { sort: 1 });
-    this.pipeline.subscribe("memberUpdate", "update", (data) => {
-      let member = this.parent.parent.members[data._id];
-      if (member == null || member.access > 3) {
-        return;
-      }
-      let groupMember = this.layout.members[member.modify];
+    let updateMember = (modify, data) => {
+      let groupMember = this.layout.members[modify];
       if (groupMember == null) {
         return;
       }
@@ -1465,15 +1463,15 @@ modules["breakout/overview"] = class {
         if (groupMember.group != null) {
           let oldGroupTile = this.layout.tiles[groupMember.group] ?? {};
           if (oldGroupTile.members != null) {
-            let index = oldGroupTile.members.indexOf(member.modify);
+            let index = oldGroupTile.members.indexOf(modify);
             if (index > -1) {
               oldGroupTile.members.splice(index, 1);
             }
           }
-          this.layout.removeMemberTile(member.modify);
         } else if (data.group != null) {
           updateUnassignedMemberCount(-1);
         }
+        this.layout.removeMemberTile(modify);
         groupMember.group = data.group;
         if (data.group != null) {
           let groupTile = this.layout.tiles[data.group];
@@ -1486,17 +1484,34 @@ modules["breakout/overview"] = class {
             if (pending.includes(data.modify) == false) {
               pending.push(data.modify);
             }
-          } else if (groupTile.members != null && groupTile.members.includes(member.modify) == false) {
-            groupTile.members.push(member.modify);
-            this.layout.addMemberTile(member.modify);
+          } else if (groupTile.members != null && groupTile.members.includes(modify) == false) {
+            groupTile.members.push(modify);
+            this.layout.addMemberTile(modify);
           }
-        } else {
+        } else if ((this.layout.memberSessions[modify] ?? []).length > 0) {
+          this.layout.addMemberTile(modify);
           updateUnassignedMemberCount(1);
         }
-      } else {
-        this.layout.updateMemberTile(member);
       }
+    }
+    this.pipeline.subscribe("memberUpdate", "update", (data) => {
+      let member = this.parent.parent.members[data._id];
+      if (member == null || member.access > 3) {
+        return;
+      }
+      updateMember(member.modify, data);
     }, { sort: 1 });
+    this.pipeline.subscribe("groupMemberMove", "move", (data) => {
+      let existingMember = this.layout.members[data.modify];
+      if (existingMember != null) {
+        existingMember = {
+          ...data,
+          group: existingMember.group,
+          tile: existingMember.tile
+        };
+        updateMember(data.modify, { group: data.group });
+      }
+    });
     this.pipeline.subscribe("memberLeave", "leave", (data) => {
       if (data.member != null) {
         if (data.member.access > 3) {
@@ -1510,8 +1525,10 @@ modules["breakout/overview"] = class {
           }
           if (session.length < 1) {
             delete this.layout.memberSessions[data.member.modify];
-            this.layout.updateMemberTile(this.parent.parent.collaborators[data.member.modify]);
-            if (data.member.group == null) {
+            if (data.member.group != null) {
+              this.layout.updateMemberTile(this.parent.parent.collaborators[data.member.modify]);
+            } else {
+              this.layout.removeMemberTile(data.member.modify);
               updateUnassignedMemberCount(-1);
             }
           }
@@ -1649,6 +1666,7 @@ modules["breakout/overview"] = class {
         let originalRect = dragContext.tileData.tile.getBoundingClientRect();
         if (moved != true) {
           removeElement.style.transform = "translate(" + ((originalRect.x - pageRect.x) - (dragContext.lastX - dragContext.offsetX)) + "px, " + (originalRect.y - pageRect.y - dragContext.lastY + dragContext.offsetY) + "px) scale(.975)";
+          dragContext.tileData.tile.removeAttribute("disabled");
         } else {
           removeElement.style.transformOrigin = dragContext.offsetX + "px " + dragContext.offsetY + "px";
           removeElement.style.transform = "translate(0px, 0px) scale(0)";
@@ -1659,7 +1677,6 @@ modules["breakout/overview"] = class {
             button.removeAttribute("disabled");
           }
         })();
-        dragContext.tileData.tile.removeAttribute("disabled");
       } else {
         removeElement.style.transformOrigin = "center";
         removeElement.style.transform = "translate(0px, 0px) scale(0)";
@@ -1784,11 +1801,20 @@ modules["breakout/overview"] = class {
         if (dragContext.tileData.group == groupID) { // Same group:
           return removeDrag();
         }
+        let path = "lessons/breakout/move?collaborator=" + dragContext.tileData.modify;
+        if (groupID != null) {
+          path += "&group=" + groupID;
+        }
+        let revertTile = dragContext.tileData.tile;
         removeDrag(true);
-        // Send request to change group
+        let [code] = await sendRequest("PUT", path, null, { session: this.parent.parent.session });
+        if (code != 200) {
+          if (revertTile != null) {
+            revertTile.removeAttribute("disabled");
+          }
+        }
         return;
       }
-
       removeDrag();
     }
     this.pipeline.subscribe("dragMemberEnd", "click_end", (data) => { dragEnd(data.event); });

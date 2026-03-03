@@ -106,6 +106,7 @@ modules["breakout/overview"] = class {
     ".broBottomSection:first-child": `border-top-left-radius: 0`,
     ".broBottomSection:last-child": `border-top-right-radius: 0`,
     ".broWaitingRoom": `position: relative; display: flex !important; flex: 1; min-width: 150px; padding: 0; margin: 0 8px; justify-content: center; align-items: center; background: unset !important; box-shadow: unset !important; pointer-events: none; transition: .2s`,
+    ".broWaitingRoom[hidden] *": `pointer-events: none !important`,
     ".broWaitingRoomMenu": `position: absolute; display: flex; flex-direction: column; width: 100%; left: 0px; top: 0px; align-items: center; transition: .4s`,
     ".broWaitingRoom:not([hidden]) .broWaitingRoomMenu[open]": `transform: translateY(calc(50px - 100%))`,
     ".broWaitingRoomButtonHolder": `position: relative; width: fit-content; max-width: calc(100% - 24px); background: var(--pageColor); border-radius: 12px 12px 0 0; z-index: 2; pointer-events: all`,

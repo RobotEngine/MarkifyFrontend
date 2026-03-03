@@ -510,6 +510,9 @@ modules["breakout/overview"] = class {
         if (body.breakout.hasOwnProperty("status") == true && this.setupModal != null) {
           this.setupModal.close();
         }
+        if (body.breakout.hasOwnProperty("version") == true) {
+          this.layout.addTile({ _id: "NEW_GROUP_CREATE", version: body.breakout.version }, null, true);
+        }
       }
       if (this.template != null && (body.id ?? body._id) == this.template._id) {
         objectUpdate(body, this.template);
@@ -956,8 +959,10 @@ modules["breakout/overview"] = class {
         }
 
         let tileID = this.layout.tileLayout[index];
+        if (tileID == null) {
+          continue;
+        }
         let tileData = this.layout.tiles[tileID];
-
         if (tileData == null) {
           continue;
         }
@@ -1384,7 +1389,7 @@ modules["breakout/overview"] = class {
         let collaborator = body.collaborators[i];
         this.parent.parent.collaborators[collaborator._id] = collaborator;
       }
-      let beforeTileLength = this.layout.tileLayout.length;
+      let beforeTileLength = this.layout.tileLayout.length - 1;
       let bodyItems = body.groups.length;
       if (bodyItems < 25) {
         allGroupsLoaded = true;

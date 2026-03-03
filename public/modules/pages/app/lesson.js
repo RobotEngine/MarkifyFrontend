@@ -811,7 +811,7 @@ modules["pages/app/lesson"] = class extends page {
         startDivider(event);
       }*/
     }, { passive: false });
-    this.addEventListener(window, "touchstart", (event) => {
+    this.addEventListener(window, "touchstart", () => {
       //startDivider(event);
     }, { passive: false });
 

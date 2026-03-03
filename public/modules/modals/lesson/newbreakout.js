@@ -533,10 +533,10 @@ modules["modals/lesson/newbreakout/setuptype"] = class extends modules["breakout
           <div info>Automatically distribute members into solo boards or teams of same size.</div>
         </div>
       </button>
-      <button class="brosOption" type="teamup">
+      <button class="brosOption" type="teamup" disabled>
         <div image style="--image: url('../images/editor/breakout/teamup.png')"></div>
         <div content>
-          <div title>Team Up</div>
+          <div title>Coming Soon</div><!--Team Up-->
           <div info>Allow members to create or join a team of their choosing.</div>
         </div>
       </button>
@@ -595,7 +595,7 @@ modules["modals/lesson/newbreakout/setuptype"] = class extends modules["breakout
     optionHolder.addEventListener("click", async (event) => {
       let option = event.target.closest(".brosOption");
       if (option == null) { // || option.hasAttribute("selected") == true) {
-        return this.goNext();
+        return; // this.goNext();
       }
       optionHolder.setAttribute("disabled", "");
       let type = option.getAttribute("type");
@@ -663,10 +663,10 @@ modules["modals/lesson/newbreakout/options"] = class extends modules["breakout/o
           </div>
         </button>-->
       </div>
-      <div class="brooSetting" section="pickteam">
+      <div class="brooSetting" section="pickteam" disabled>
         <button class="brooSettingButton" option="pickteam">
           <div class="brooSettingDetails">
-            <div title>Pick Team</div>
+            <div title>Coming Soon</div><!--Pick Team-->
             <div info>Let members choose their team.</div>
           </div>
           <div class="brooSettingToggleHolder">
@@ -701,9 +701,9 @@ modules["modals/lesson/newbreakout/options"] = class extends modules["breakout/o
         </div>
       </div>
       <div class="brooSetting">
-        <button class="brooSettingButton" option="gallerywalk">
+        <button class="brooSettingButton" option="gallerywalk" disabled>
           <div class="brooSettingDetails">
-            <div title>Gallery Walk</div>
+            <div title>Coming Soon</div><!--Gallery Walk-->
             <div info>Allow members to see other team's work for ideas and inspiration.</div>
           </div>
           <div class="brooSettingToggleHolder">

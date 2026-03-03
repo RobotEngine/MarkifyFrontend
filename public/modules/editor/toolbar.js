@@ -2992,8 +2992,7 @@ modules["editor/toolbar"] = class {
       while (this.selection.action != null && (this.selection.scrollIntervalX != 0 || this.selection.scrollIntervalY != 0)) {
         contentHolder.scrollTo({
           left: contentHolder.scrollLeft + this.selection.scrollIntervalX,
-          top: contentHolder.scrollTop + this.selection.scrollIntervalY,
-          behavior: "scroll"
+          top: contentHolder.scrollTop + this.selection.scrollIntervalY
         });
         await this.selection.moveAction(this.selection.scrollLastEvent, null, null, true);
         await sleep(10);
@@ -8941,7 +8940,7 @@ modules["editor/toolbar/collaborator"] = class {
     <div class="eSubToolCollaboratorBackdrop"><div></div></div>
     <div class="eSubToolCollaboratorContent">
       <div class="eSubToolCollaboratorCursor"></div>
-      <img class="eSubToolCollaboratorPicture">
+      <img class="eSubToolCollaboratorPicture" />
       <div class="eSubToolCollaboratorInfo">
         <div name></div>
         <div email></div>
@@ -8970,6 +8969,7 @@ modules["editor/toolbar/collaborator"] = class {
     let member;
     
     let holder = frame.querySelector(".eSubToolCollaboratorHolder");
+    let cursor = holder.querySelector(".eSubToolCollaboratorCursor");
     let image = holder.querySelector(".eSubToolCollaboratorPicture");
     let info = holder.querySelector(".eSubToolCollaboratorInfo");
     let name = info.querySelector("div[name]");
@@ -8986,7 +8986,7 @@ modules["editor/toolbar/collaborator"] = class {
 
       holder.style.setProperty("--themeColor", collaborator.color);
       if (collaborator.email == null) {
-        holder.querySelector(".eSubToolCollaboratorCursor").style.display = "unset";
+        cursor.style.display = "unset";
       } else {
         if (image.src != (collaborator.image ?? "../images/profiles/default.svg")) {
           image.src = (collaborator.image ?? "../images/profiles/default.svg");

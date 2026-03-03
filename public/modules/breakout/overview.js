@@ -1278,6 +1278,7 @@ modules["breakout/overview"] = class {
     }
 
     let dragContext = {};
+    let wasDragging = false;
 
     this.unassignedMembers = 0;
     let updateUnassignedMemberCount = (change = 0) => {
@@ -1410,7 +1411,6 @@ modules["breakout/overview"] = class {
         this.layout.memberSessions[data.modify] = [];
         session = this.layout.memberSessions[data.modify];
         if (data.group == null) {
-
           updateUnassignedMemberCount(1);
         }
       } else if (existingMember != null && existingMember.group != null && data.group == null) {
@@ -1537,7 +1537,10 @@ modules["breakout/overview"] = class {
     }, { sort: 1 });
 
     this.pipeline.subscribe("collaboratorUpdate", "collaborator_update", (data) => {
-      this.layout.updateMemberTile(data);
+      let groupMember = this.layout.members[data._id];
+      if (groupMember != null) {
+        this.layout.updateMemberTile(data);
+      }
     }, { sort: 1 });
 
     this.pipeline.subscribe("previewLongAnnotationUpdate", "long", async (event) => {
@@ -1600,13 +1603,24 @@ modules["breakout/overview"] = class {
       modifyParams("team");
     }
 
-    groups.addEventListener("click", (event) => {
-      let target = event.target;
-      let tile = target.closest(".broTile:not([disabled])");
-      if (tile == null) {
+    frame.addEventListener("click", (event) => {
+      if (dragContext.enabled == true || wasDragging == true) {
+        wasDragging = false;
         return;
       }
-      if (target.closest("button") != null || target.closest("div[contenteditable]") != null) {
+      let target = event.target;
+      if (target.closest("button") != null) {
+        let memberTile = target.closest(".broTileMember");
+        if (memberTile != null) {
+          return dropdownModule.open(memberTile, "dropdowns/lesson/breakout/overview/managemember", { parent: this, collaboratorID: memberTile.getAttribute("collaborator"), title: "Manage" });
+        }
+        return;
+      }
+      if (target.closest("div[contenteditable]") != null || target.closest(".broTileMembers") != null) {
+        return;
+      }
+      let tile = target.closest(".broTile:not([disabled])");
+      if (tile == null) {
         return;
       }
       this.openGroup(tile.getAttribute("group"));
@@ -1623,14 +1637,18 @@ modules["breakout/overview"] = class {
         return;
       }
       let tileContent = tile.querySelector(".broTileContent");
-      if (target.closest("button") == null && target.closest("div[contenteditable]") == null) {
+      if (target.closest("button") == null && target.closest("div[contenteditable]") == null && target.closest(".broTileMembers") == null) {
         tileContent.style.removeProperty("transform");
       } else {
-        return tileContent.style.transform = "scale(1)";
+        tileContent.style.transform = "scale(1)";
       }
     });
 
     let dragStart = (event) => {
+      if (dragContext.enabled == true && dragContext.forceMouseDown == true) {
+        wasDragging = true;
+        return dragEnd(event);
+      }
       dragContext = {};
       let target = event.target;
       let pageRect = frame.getBoundingClientRect();
@@ -1640,12 +1658,17 @@ modules["breakout/overview"] = class {
       if (tile == null) {
         return;
       }
+      let tileData = this.layout.members[tile.getAttribute("collaborator")];
+      if (dragContext.tileData != null) {
+        return;
+      }
       dragContext = {
-        tileData: this.layout.members[tile.getAttribute("collaborator")],
+        tileData,
         width: tile.clientWidth,
         height: tile.clientHeight,
         startX: mouseX,
         startY: mouseY,
+        startScrollY: groupHolder.scrollTop,
         waitingRoomOpen
       };
       page.setAttribute("dragging", "");
@@ -1710,19 +1733,32 @@ modules["breakout/overview"] = class {
       scrollIntervalRunning = false;
     }
     let dragMove = (event) => {
+      let mouseX = this.lastMouseX ?? 0;
+      let mouseY = this.lastMouseY ?? 0;
+      if (event != null) {
+        mouseX = event.x ?? event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0;
+        mouseY = event.y ?? event.clientY ?? ((event.changedTouches ?? [])[0] ?? {}).clientY ?? 0;
+        this.lastMouseX = mouseX;
+        this.lastMouseY = mouseY;
+      }
       if (dragContext.tileData == null || dragContext.tileData.tile == null) {
         return removeDrag();
       }
-      if (mouseDown() == false) {
+      if (mouseDown() == false && dragContext.forceMouseDown != true) {
         return removeDrag();
       }
       let pageRect = frame.getBoundingClientRect();
-      let mouseX = (event.x ?? event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0) - pageRect.x;
-      let mouseY = (event.y ?? event.clientY ?? ((event.changedTouches ?? [])[0] ?? {}).clientY ?? 0) - pageRect.y;
+      mouseX -= pageRect.x;
+      mouseY -= pageRect.y;
+      let startX = dragContext.startX ?? mouseX;
+      let startY = dragContext.startY ?? mouseY;
       dragContext.lastX = mouseX;
       dragContext.lastY = mouseY;
       if (dragContext.enabled != true) {
-        if (Math.abs(mouseX - dragContext.startX) > 5 || Math.abs(mouseY - dragContext.startY) > 5) {
+        if (Math.abs(mouseX - startX) > 5 || Math.abs(mouseY - startY) > 5 || dragContext.forceMouseDown == true) {
+          if (event != null && dragContext.forceMouseDown != true && (event.target.closest(".broTileMember") == null || frame.contains(dragContext.tileData.tile) == false)) {
+            return removeDrag();
+          }
           dragContext.enabled = true;
           dragContext.element = dragContext.tileData.tile.cloneNode(true);
           dragContext.element.style.position = "absolute";
@@ -1734,14 +1770,15 @@ modules["breakout/overview"] = class {
           dragContext.element.style.zIndex = 10;
           dragContext.element.style.pointerEvents = "none";
           let originalRect = dragContext.tileData.tile.getBoundingClientRect();
-          dragContext.offsetX = dragContext.startX - (originalRect.x - pageRect.x);
-          dragContext.offsetY = dragContext.startY - (originalRect.y - pageRect.y);
-          dragContext.element.style.transform = "translate(" + Math.min(dragContext.startX + dragContext.startX - mouseX - mouseX, 0) + "px, " + Math.min(dragContext.startY + dragContext.startY - mouseY - mouseY, 0) + "px) scale(.975)";
+          dragContext.offsetX = dragContext.offsetX ?? (startX - (originalRect.x - pageRect.x));
+          dragContext.offsetY = dragContext.offsetY ?? (startY - (originalRect.y - pageRect.y + (groupHolder.scrollTop - dragContext.startScrollY)));
+          dragContext.element.style.transform = "translate(" + Math.min(startX + startX - mouseX - mouseX, 0) + "px, " + Math.min(startY + startY - mouseY - mouseY, 0) + "px) scale(.975)";
           dragContext.element.style.transformOrigin = "0 0";
           dragContext.element.style.opacity = 0;
           dragContext.element.style.transition = "transform .3s, opacity .2s";
           dragContext.element.setAttribute("dragging", "");
           dragContext.tileData.tile.setAttribute("disabled", "");
+          dragContext.element.removeAttribute("activated");
           frame.appendChild(dragContext.element);
           let mainTile = dragContext.tileData.tile.closest(".broTile");
           if (mainTile != null) {
@@ -1807,17 +1844,33 @@ modules["breakout/overview"] = class {
         }
         let revertTile = dragContext.tileData.tile;
         removeDrag(true);
-        let [code] = await sendRequest("PUT", path, null, { session: this.parent.parent.session });
-        if (code != 200) {
-          if (revertTile != null) {
-            revertTile.removeAttribute("disabled");
-          }
+        await sendRequest("PUT", path, null, { session: this.parent.parent.session });
+        if (revertTile != null) {
+          revertTile.removeAttribute("disabled");
         }
         return;
       }
       removeDrag();
     }
     this.pipeline.subscribe("dragMemberEnd", "click_end", (data) => { dragEnd(data.event); });
+
+    this.forceDragStart = (modifyID) => {
+      let tileData = this.layout.members[modifyID] ?? {};
+      if (tileData.tile == null) {
+        return;
+      }
+      dragContext = {
+        tileData,
+        width: tileData.tile.clientWidth,
+        height: tileData.tile.clientHeight,
+        offsetX: -8,
+        offsetY: -8,
+        startScrollY: groupHolder.scrollTop,
+        waitingRoomOpen,
+        forceMouseDown: true
+      };
+      dragMove();
+    }
 
     groups.addEventListener("keydown", (event) => {
       let target = event.target;
@@ -1980,5 +2033,209 @@ modules["dropdowns/lesson/breakout/overview/file"] = class {
     setSVG(copyButton.querySelector("div"), "../images/editor/file/copy.svg");
     setSVG(fileButton.querySelector("div"), "../images/editor/file/moveto.svg");
     setSVG(deleteLessonButton.querySelector("div"), "../images/editor/file/delete.svg");
+  }
+}
+
+modules["dropdowns/lesson/breakout/overview/managemember"] = class {
+  html = `
+  <div class="broManageMemberCollaboratorHolder">
+    <div class="broManageMemberCollaboratorBackdrop"><div></div></div>
+    <div class="broManageMemberCollaboratorContent">
+      <div class="broManageMemberCollaboratorCursor"></div>
+      <img class="broManageMemberCollaboratorPicture" />
+      <div class="broManageMemberCollaboratorInfo">
+        <div name></div>
+        <div email></div>
+      </div>
+    </div>
+  </div>
+  <div class="broManageMemberLine" option="timeline"></div>
+  <button class="broManageMemberAction" option="timeline" title="View this member's timeline history."><div></div>Timeline</button>
+  <div class="broManageMemberLine" option="move"></div>
+  <button class="broManageMemberAction" option="move" title="Move this member to a team." style="--themeColor: var(--secondary)"><div></div>Move Member</button>
+  <button class="broManageMemberAction" option="remove" title="Remove this member from the team." style="--themeColor: var(--secondary)"><div></div>Remove</button>
+  <div class="broManageMemberLine" option="kick"></div>
+  <button class="broManageMemberAction" option="kick" title="Remove this member from the lesson." style="--themeColor: var(--error)"><div></div>Kick</button>
+  `;
+  css = {
+    ".broManageMemberCollaboratorHolder": `position: relative; display: flex; flex-direction: column; width: 100%; gap: 4px; align-items: center; border-radius: 12px`,
+    ".broManageMemberCollaboratorContent": `display: flex; flex-wrap: wrap; width: max-content; max-width: calc(100% - 16px); margin: 8px; gap: 4px; align-items: center; border-radius: inherit`,
+    ".broManageMemberCollaboratorBackdrop": `position: absolute; display: flex; width: 100%; height: 100%; left: 0px; top: 0px; justify-content: center; align-items: center; background: var(--themeColor); transition: .2s; z-index: -1; border-radius: inherit; overflow: hidden`,
+    ".broManageMemberCollaboratorBackdrop div": `width: 100%; height: 100%; flex-shrink: 0; opacity: .08; background-image: url(../images/editor/backdrop.svg); background-size: 24px; background-position: center`,
+    ".broManageMemberCollaboratorCursor": `display: none; width: 40px; height: 40px; flex-shrink: 0; margin: 2px; background: var(--themeColor); border: solid 6px var(--pageColor); border-radius: 16px 28px 28px`,
+    ".broManageMemberCollaboratorPicture": `display: none; width: 44px; height: 44px; flex-shrink: 0; margin: 2px; background: #fff; border: solid 4px var(--pageColor); object-fit: cover; border-radius: 28px`,
+    ".broManageMemberCollaboratorInfo": `max-width: calc(100% - 8px); margin: 4px; text-align: left`,
+    ".broManageMemberCollaboratorInfo div[name]": `max-width: 100%; font-size: 20px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
+    ".broManageMemberCollaboratorInfo div[email]": `display: none; max-width: 100%; font-size: 15px; font-weight: 500; margin-top: 3px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden`,
+    
+    ".broManageMemberAction": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
+    ".broManageMemberAction[hidden]": `display: none !important`,
+    ".broManageMemberAction:not(:first-child)": `margin-top: 4px`,
+    ".broManageMemberAction div": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: var(--pageColor); border-radius: 4px`,
+    ".broManageMemberAction div svg": `width: 100%; height: 100%`,
+    ".broManageMemberAction:hover": `background: var(--themeColor); color: #fff`,
+    ".broManageMemberLine": `width: 100%; height: 2px; margin-top: 4px; background: var(--gray); border-radius: 1px`
+  };
+  contrastCheck = (bgColor, check = .3) => {
+    if (bgColor == null) {
+      return;
+    }
+    if (bgColor.length < 4) {
+      bgColor = bgColor + bgColor;
+    }
+    let color = (bgColor.charAt(0) === '#') ? bgColor.substring(1, 7) : bgColor;
+    let r = parseInt(color.substring(0, 2), 16); // hexToR
+    let g = parseInt(color.substring(2, 4), 16); // hexToG
+    let b = parseInt(color.substring(4, 6), 16); // hexToB
+    let uicolors = [r / 255, g / 255, b / 255];
+    let c = uicolors.map((col) => {
+      if (col <= 0.03928) {
+        return col / 12.92;
+      }
+      return Math.pow((col + 0.055) / 1.055, 2.4);
+    });
+    let L = (0.2126 * c[0]) + (0.7152 * c[1]) + (0.0722 * c[2]);
+    return L > check;
+  }
+  textColorBackground = (bgColor) => {
+    return (this.contrastCheck(bgColor) > 0.3) ? "#000" : "#fff"; // 0.179
+  }
+  js = async function (frame, extra) {
+    let parent = extra.parent;
+    let modifyID = extra.collaboratorID;
+
+    let holder = frame.querySelector(".broManageMemberCollaboratorHolder");
+    let cursor = holder.querySelector(".broManageMemberCollaboratorCursor");
+    let image = holder.querySelector(".broManageMemberCollaboratorPicture");
+    let info = holder.querySelector(".broManageMemberCollaboratorInfo");
+    let name = info.querySelector("div[name]");
+    let email = info.querySelector("div[email]");
+
+    let updateCollaborator = () => {
+      let collaborator = parent.parent.parent.collaborators[modifyID];
+      if (collaborator == null || holder == null) {
+        return;
+      }
+      holder.style.setProperty("--themeColor", collaborator.color);
+      if (collaborator.email == null) {
+        cursor.style.display = "unset";
+      } else {
+        if (image.src != (collaborator.image ?? "../images/profiles/default.svg")) {
+          image.src = (collaborator.image ?? "../images/profiles/default.svg");
+        }
+        image.style.display = "unset";
+      }
+      info.style.color = this.textColorBackground(collaborator.color);
+      name.textContent = collaborator.name;
+      name.title = collaborator.name;
+      if (collaborator.email != null) {
+        email.textContent = collaborator.email;
+        email.title = collaborator.email;
+        email.style.display = "block";
+      }
+    }
+    parent.pipeline.subscribe("manageMemberCollaboratorUpdate", "collaborator_update_" + modifyID, updateCollaborator);
+    updateCollaborator();
+
+    let timelineDivider = frame.querySelector('.broManageMemberLine[option="timeline"]');
+    let timelineButton = frame.querySelector('.broManageMemberAction[option="timeline"]');
+    timelineButton.addEventListener("click", () => {
+      dropdownModule.close();
+
+      let groupMember = parent.layout.members[modifyID] ?? {};
+      if (groupMember.group == null) {
+        return;
+      }
+      let tileData = parent.layout.tiles[groupMember.group] ?? {};
+      if (tileData.editor == null || tileData.loadedAnnotations != true) {
+        return
+      }
+
+      let construct = {
+        close: () => {
+          parent.parent.closePage("timeline");
+          parent.parent.openPage("primary", "breakout/overview");
+        },
+
+        lesson: parent.parent.parent,
+        self: parent.parent.parent.self,
+        session: parent.parent.parent.session,
+        sessionID: parent.parent.parent.sessionID,
+        sources: parent.parent.parent.sources,
+        collaborators: parent.parent.parent.collaborators,
+        backgroundColor: tileData.editor.backgroundColor,
+        preferences: parent.parent.parent.preferences,
+        //reactions: tileData.editor.reactions,
+
+        annotations: tileData.editor.annotations,
+
+        id: groupMember.group,
+        parameters: [("group=" + groupMember.group)],
+
+        filterMembers: [modifyID]
+      };
+      parent.parent.openPage("timeline", "editor/timeline", { construct });
+    });
+
+    //let moveDivider = frame.querySelector('.broManageMemberLine[option="move"]');
+    let moveButton = frame.querySelector('.broManageMemberAction[option="move"]');
+    moveButton.addEventListener("click", async () => {
+      dropdownModule.close();
+      parent.forceDragStart(modifyID);
+    });
+    let removeButton = frame.querySelector('.broManageMemberAction[option="remove"]');
+    removeButton.addEventListener("click", async () => {
+      removeButton.setAttribute("disabled", "");
+      await sendRequest("PUT", "lessons/breakout/move?collaborator=" + modifyID, null, { session: parent.parent.session });
+      removeButton.removeAttribute("disabled");
+    });
+
+    let kickDivider = frame.querySelector('.broManageMemberLine[option="kick"]');
+    let kickButton = frame.querySelector('.broManageMemberAction[option="kick"]');
+    kickButton.addEventListener("click", async () => {
+      kickButton.setAttribute("disabled", "");
+      let [code] = await sendRequest("DELETE", "lessons/members/kick?collaborator=" + modifyID, null, { session: parent.parent.session });
+      if (code == 200) {
+        dropdownModule.close();
+      }
+      kickButton.removeAttribute("disabled");
+    });
+
+    let updateButtons = () => {
+      let groupMember = parent.layout.members[modifyID];
+      if (groupMember == null) {
+        return;
+      }
+      if (groupMember.group != null) {
+        timelineDivider.removeAttribute("hidden");
+        timelineButton.removeAttribute("hidden");
+        //moveDivider.removeAttribute("hidden");
+        //moveButton.removeAttribute("hidden");
+        removeButton.removeAttribute("hidden");
+      } else {
+        timelineDivider.setAttribute("hidden", "");
+        timelineButton.setAttribute("hidden", "");
+        //moveDivider.setAttribute("hidden", "");
+        //moveButton.setAttribute("hidden", "");
+        removeButton.setAttribute("hidden", "");
+      }
+
+      if ((parent.layout.memberSessions[modifyID] ?? []).length > 0) {
+        kickDivider.removeAttribute("hidden");
+        kickButton.removeAttribute("hidden");
+      } else {
+        kickDivider.setAttribute("hidden", "");
+        kickButton.setAttribute("hidden", "");
+      }
+    }
+    parent.pipeline.subscribe("manageMemberCollaboratorJoin", "join", updateButtons, { sort: 2 });
+    parent.pipeline.subscribe("manageMemberCollaboratorUpdate", "update", updateButtons, { sort: 2 });
+    parent.pipeline.subscribe("manageMemberCollaboratorLeave", "leave", updateButtons, { sort: 2 });
+    updateButtons();
+
+    setSVG(timelineButton.querySelector("div"), "../images/editor/file/history.svg");
+    setSVG(moveButton.querySelector("div"), "../images/tooltips/back.svg");
+    setSVG(removeButton.querySelector("div"), "../images/tooltips/back.svg");
+    setSVG(kickButton.querySelector("div"), "../images/editor/breakout/kick.svg");
   }
 }

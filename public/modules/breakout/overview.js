@@ -132,7 +132,7 @@ modules["breakout/overview"] = class {
     ".broOpenBoard button svg": `width: 32px; height: 32px; transition: .2s`,
     ".broOpenBoard button:hover svg": `transform: scale(.9)`,
 
-    ".broTile": `position: absolute; width: var(--columnWidth); height: fit-content; left: 0px; top: 0px; transition: .3s`, // will-change: transform;
+    ".broTile": `position: absolute; width: var(--columnWidth); height: fit-content; left: 0px; top: 0px; z-index: 1; transition: .3s`, // will-change: transform;
     ".broTileContent": `--shadow: var(--lightShadow); position: relative; display: flex; flex-direction: column; width: 100%; height: 100%; background: var(--pageColor); box-shadow: var(--shadow); border-radius: 16px; contain: strict; overflow: hidden; transition: .2s, transform .1s`,
     ".broTile:hover .broTileContent": `--shadow: var(--darkShadow) !important`,
     ".broTile:active .broTileContent": `transform: scale(.95)`,
@@ -172,7 +172,13 @@ modules["breakout/overview"] = class {
     ".broTileMemberPercent": `--percent: 0; --invert: 0; --themeColor: var(--theme); flex-shrink: 0; position: relative; width: 36px; height: 16px; margin: 4px; border: solid 2px var(--themeColor); border-radius: 12px; transition: .2s`,
     //".broTileMemberPercent:before": `content: ""; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; border-radius: inherit; contain: strict; box-shadow: inset 0px 0px 8px 0px rgba(var(--themeRGB), .3)`,
     ".broTileMemberPercentBarHolder": `position: absolute; width: calc(100% - 4px); height: calc(100% - 4px); left: 2px; top: 2px; border-radius: 8px; overflow: hidden`,
-    ".broTileMemberPercentBar": `--width: calc((var(--percent) * ((32px / 2) - 6px))); position: absolute; width: calc(12px + var(--width)); height: 100%; left: calc((100% / 2) - 6px); transform: translateX(calc(var(--invert) * var(--width) * -1)); background: var(--themeColor); border-radius: 6px; transition: .2s`
+    ".broTileMemberPercentBar": `--width: calc((var(--percent) * ((32px / 2) - 6px))); position: absolute; width: calc(12px + var(--width)); height: 100%; left: calc((100% / 2) - 6px); transform: translateX(calc(var(--invert) * var(--width) * -1)); background: var(--themeColor); border-radius: 6px; transition: .2s`,
+
+    ".broTileAddGroup": `z-index: 2 !important`,
+    ".broTileAddGroup .broTileContent": `--opacity: .3; --pageColor: rgba(var(--background), 0); box-sizing: border-box; padding: 12px; background: rgba(var(--themeRGB), var(--opacity)); justify-content: center; align-items: center`,
+    ".broTileAddGroup:hover .broTileContent": `--opacity: 1; --pageColor: rgba(var(--background), 1); transform: scale(1.05); border-radius: 20px`,
+    ".broTileAddGroup:active .broTileContent": `transform: scale(.98)`,
+    ".broTileAddGroup .broTileContent svg": `width: 100%; height: 100%`,
   };
 
   pipeline = { // PIPELINE : Distributes events across various modules and services:
@@ -567,6 +573,7 @@ modules["breakout/overview"] = class {
     this.layout.members = {};
     this.layout.memberSessions = {};
     this.layout.tileLayout = [];
+    this.layout.tileLayoutVersionIndex = 0;
     this.layout.loadedTiles = [];
     this.layout.pendingEditors = [];
     this.layout.loadingAnnotations = {};
@@ -968,7 +975,7 @@ modules["breakout/overview"] = class {
           continue;
         }
 
-        loadTiles[tileID] = tileID;
+        loadTiles[tileID] = true;
       }
 
       // Load New Tiles:
@@ -980,35 +987,43 @@ modules["breakout/overview"] = class {
         let tile = this.layout.tiles[tileID];
 
         if (tile.element == null) {
-          tile.element = document.createElement("a");
-          tile.element.className = "broTile";
-          tile.element.setAttribute("group", tileID);
-          tile.element.innerHTML = `<div class="broTileContent">
-            <div class="broTilePreviewContainer">
-              <div class="broTilePreview"></div>
-            </div>
-            <div class="broTileHeader">
-              <div class="broTileHeaderName">
-                <img class="broTileHeaderNameImage" />
-                <div class="broTileHeaderNameHolder border"><div class="broTileHeaderNameHolderText" contenteditable></div></div>
+          if (tileID != "NEW_GROUP_CREATE") {
+            tile.element = document.createElement("a");
+            tile.element.className = "broTile";
+            tile.element.setAttribute("group", tileID);
+            tile.element.innerHTML = `<div class="broTileContent">
+              <div class="broTilePreviewContainer">
+                <div class="broTilePreview"></div>
               </div>
-              <div class="broTileHeaderOptions">
-                <button class="broTileHeaderOptionsButton"></button>
+              <div class="broTileHeader">
+                <div class="broTileHeaderName">
+                  <img class="broTileHeaderNameImage" />
+                  <div class="broTileHeaderNameHolder border"><div class="broTileHeaderNameHolderText" contenteditable></div></div>
+                </div>
+                <div class="broTileHeaderOptions">
+                  <button class="broTileHeaderOptionsButton"></button>
+                </div>
               </div>
-            </div>
-            <div class="broTileMembers"></div>
-          </div>`;
-          this.layout.updateTile(tile);
-          setSVG(tile.element.querySelector(".broTileHeaderOptions button"), "../images/editor/actions/more.svg");
-          if (tile.loadedAnnotations != true) {
-            tile.element.querySelector(".broTilePreview").setAttribute("disabled", "");
+              <div class="broTileMembers"></div>
+            </div>`;
+            this.layout.updateTile(tile);
+            setSVG(tile.element.querySelector(".broTileHeaderOptions button"), "../images/editor/actions/more.svg");
+            if (tile.loadedAnnotations != true) {
+              tile.element.querySelector(".broTilePreview").setAttribute("disabled", "");
+            }
+            let members = tile.members ?? [];
+            for (let i = 0; i < members.length; i++) {
+              this.layout.addMemberTile(members[i], false);
+            }
+            newTilesPendingEditors.push(tile);
+            newTilesFragment.appendChild(tile.element);
+          } else {
+            tile.element = document.createElement("button");
+            tile.element.className = "broTile broTileAddGroup";
+            tile.element.innerHTML = `<div class="broTileContent"></div>`;
+            setSVG(tile.element.querySelector(".broTileContent"), "../images/editor/breakout/plus.svg");
+            newTilesFragment.appendChild(tile.element);
           }
-          let members = tile.members ?? [];
-          for (let i = 0; i < members.length; i++) {
-            this.layout.addMemberTile(members[i], false);
-          }
-          newTilesPendingEditors.push(tile);
-          newTilesFragment.appendChild(tile.element);
         }
 
         if (tile.cache == null) {
@@ -1264,9 +1279,26 @@ modules["breakout/overview"] = class {
     });
     this.pipeline.subscribe("tilesScroll", "scroll", this.layout.runUpdateCycle, { sort: 1 });
     this.layout.setupColumns(true);
-    this.layout.addTile = (data, members) => {
+    this.layout.removeTile = (tileID) => {
+      let tile = this.layout.tiles[tileID];
+      if (tile == null) {
+        return;
+      }
+      delete this.layout.tiles[tileID];
+      let index = this.layout.tileLayout.indexOf(tileID);
+      if (index > -1) {
+        if (tile.version == null || tile.version == (this.parent.parent.lesson.breakout ?? {}).version) {
+          this.layout.tileLayoutVersionIndex--;
+        }
+        this.layout.tileLayout.splice(index, 1);
+      }
+    }
+    this.layout.addTile = (data, members, refresh) => {
       if (data == null) {
         return;
+      }
+      if (this.layout.tiles[data._id] != null) {
+        this.layout.removeTile(data._id);
       }
       let tileInfo = {
         section: data.version,
@@ -1274,8 +1306,18 @@ modules["breakout/overview"] = class {
         members: members ?? []
       };
       this.layout.tiles[data._id] = tileInfo;
-      this.layout.tileLayout.push(data._id);
-      // this.layout.refreshTileSpots(this.layout.tileLayout.length - 1);
+      if ((data.version == null || data.version == (this.parent.parent.lesson.breakout ?? {}).version) && data._id != "NEW_GROUP_CREATE") {
+        this.layout.tileLayout.splice(this.layout.tileLayoutVersionIndex, 0, data._id);
+        this.layout.tileLayoutVersionIndex++;
+        if (refresh == true) {
+          this.layout.refreshTileSpots(this.layout.tileLayoutVersionIndex - 1);
+        }
+      } else {
+        this.layout.tileLayout.push(data._id);
+        if (refresh == true) {
+          this.layout.refreshTileSpots(this.layout.tileLayout.length - 1);
+        }
+      }
     }
 
     let dragContext = {};
@@ -1392,14 +1434,15 @@ modules["breakout/overview"] = class {
       }
     }
     this.pipeline.subscribe("tilesLoadMore", "bounds_change", checkLoadGroups);
-    checkLoadGroups();
+    (async () => {
+      await checkLoadGroups();
+      this.layout.addTile({ _id: "NEW_GROUP_CREATE", version: (this.parent.parent.lesson.breakout ?? {}).version });
+    })();
 
     let pendingMemberAssignment = {};
     this.pipeline.subscribe("createGroup", "creategroup", async (data) => {
-      let beforeTileLength = this.layout.tileLayout.length;
-      await this.layout.addTile(data, pendingMemberAssignment[data._id] ?? []);
+      await this.layout.addTile(data, pendingMemberAssignment[data._id] ?? [], true);
       delete pendingMemberAssignment[data._id];
-      await this.layout.refreshTileSpots(beforeTileLength);
     });
 
     this.pipeline.subscribe("memberJoin", "join", (data) => {
@@ -1604,23 +1647,31 @@ modules["breakout/overview"] = class {
       modifyParams("team");
     }
 
-    frame.addEventListener("click", (event) => {
+    frame.addEventListener("click", async (event) => {
       if (dragContext.enabled == true || wasDragging == true) {
         wasDragging = false;
         return;
       }
       let target = event.target;
+      let tile = target.closest(".broTile:not([disabled])");
       if (target.closest("button") != null) {
         let memberTile = target.closest(".broTileMember");
         if (memberTile != null) {
           return dropdownModule.open(memberTile, "dropdowns/lesson/breakout/overview/managemember", { parent: this, collaboratorID: memberTile.getAttribute("collaborator"), title: "Manage" });
+        }
+        if (tile != null && tile.classList.contains("broTileAddGroup") == true) {
+          tile.setAttribute("disabled", "");
+          await sendRequest("POST", "lessons/breakout/groups/new", null, { session: this.parent.parent.session });
+          if (tile != null) {
+            tile.removeAttribute("disabled");
+          }
+          return;
         }
         return;
       }
       if (target.closest("div[contenteditable]") != null || target.closest(".broTileMembers") != null) {
         return;
       }
-      let tile = target.closest(".broTile:not([disabled])");
       if (tile == null) {
         return;
       }
@@ -1640,7 +1691,7 @@ modules["breakout/overview"] = class {
       let tileContent = tile.querySelector(".broTileContent");
       if (target.closest("button") == null && target.closest("div[contenteditable]") == null && target.closest(".broTileMembers") == null) {
         tileContent.style.removeProperty("transform");
-      } else {
+      } else if (tile.classList.contains("broTileAddGroup") == false) {
         tileContent.style.transform = "scale(1)";
       }
     });

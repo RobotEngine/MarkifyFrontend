@@ -22,7 +22,7 @@ modules["pages/breakout"] = class extends page {
         <img class="waitLogo" src="./images/breakoutlogo.svg">
         <div class="waitHeader"><b>You're</b> on the <b>Waitlist</b></div>
         <div class="waitNumber">#<b>Loading...</b> on the list!</div>
-        <div class="waitText">Thank you for joining the waitlist, we'll send an email to <b>Loading...</b> when testing opens! 😊</div>
+        <div class="waitText">Thank you for joining the waitlist, we'll send an email to <b>Loading...</b> soon! 😊</div>
         <div class="waitText">Exit to the <a openpage="launch" href="/launch">Launch Page</a></div>
         <div class="waitSocials">
           <a href="https://x.com/markifytool" target="_blank"><img src="../images/launch/socials/twitter.svg"></a>

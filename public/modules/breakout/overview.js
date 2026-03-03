@@ -1020,6 +1020,7 @@ modules["breakout/overview"] = class {
           } else {
             tile.element = document.createElement("button");
             tile.element.className = "broTile broTileAddGroup";
+            tile.element.title = "Add a New Team";
             tile.element.innerHTML = `<div class="broTileContent"></div>`;
             setSVG(tile.element.querySelector(".broTileContent"), "../images/editor/breakout/plus.svg");
             newTilesFragment.appendChild(tile.element);

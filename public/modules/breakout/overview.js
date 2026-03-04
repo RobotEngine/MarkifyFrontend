@@ -174,7 +174,7 @@ modules["breakout/overview"] = class {
     ".broTileMemberPercentBarHolder": `position: absolute; width: calc(100% - 4px); height: calc(100% - 4px); left: 2px; top: 2px; border-radius: 8px; overflow: hidden`,
     ".broTileMemberPercentBar": `--width: calc((var(--percent) * ((32px / 2) - 6px))); position: absolute; width: calc(12px + var(--width)); height: 100%; left: calc((100% / 2) - 6px); transform: translateX(calc(var(--invert) * var(--width) * -1)); background: var(--themeColor); border-radius: 6px; transition: .2s`,
 
-    ".broTileAddGroup": `z-index: 2 !important`,
+    ".broTileAddGroup": `padding: 0; z-index: 2 !important`,
     ".broTileAddGroup .broTileContent": `--opacity: .3; --pageColor: rgba(var(--background), 0); box-sizing: border-box; padding: 12px; background: rgba(var(--themeRGB), var(--opacity)); justify-content: center; align-items: center`,
     ".broTileAddGroup:hover .broTileContent": `--opacity: 1; --pageColor: rgba(var(--background), 1); transform: scale(1.05); border-radius: 20px`,
     ".broTileAddGroup:active .broTileContent": `transform: scale(.98)`,
@@ -1293,7 +1293,7 @@ modules["breakout/overview"] = class {
       delete this.layout.tiles[tileID];
       let index = this.layout.tileLayout.indexOf(tileID);
       if (index > -1) {
-        if (tile.version == null || tile.version == (this.parent.parent.lesson.breakout ?? {}).version) {
+        if ((tile.version == null || tile.version == (this.parent.parent.lesson.breakout ?? {}).version) && tile._id != "NEW_GROUP_CREATE") {
           this.layout.tileLayoutVersionIndex--;
         }
         this.layout.tileLayout.splice(index, 1);

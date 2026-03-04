@@ -593,7 +593,17 @@ modules["pages/app/lesson"] = class extends page {
                   }
                 }
                 if (body.hasOwnProperty("tool") == true) {
-                  //await this.addPage(tool, tool, { });
+                  for (let i = 0 ; i < body.tool.length; i++) {
+                    let tool = body.tool[i];
+                    if (this.pages[tool] == null) {
+                      let nextPageID = body.tool[i + 1];
+                      let insertBefore;
+                      if (nextPageID != null) {
+                        insertBefore = pageHolder.querySelector('.lPage[pageid="' + nextPageID + '"]');
+                      }
+                      await this.addPage(tool, tool, { insertBefore, percent: .5 });
+                    }
+                  }
                 }
                 break;
               case "subset":

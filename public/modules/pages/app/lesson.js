@@ -592,7 +592,7 @@ modules["pages/app/lesson"] = class extends page {
                     setFrame("pages/app/join", null, { passParams: true });
                   }
                 }
-                if (body.includes("tool") == true) {
+                if (body.hasOwnProperty("tool") == true) {
                   //await this.addPage(tool, tool, { });
                 }
                 break;

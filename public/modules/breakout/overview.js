@@ -1445,7 +1445,7 @@ modules["breakout/overview"] = class {
     this.pipeline.subscribe("tilesLoadMore", "bounds_change", checkLoadGroups);
     (async () => {
       await checkLoadGroups();
-      this.layout.addTile({ _id: "NEW_GROUP_CREATE", version: (this.parent.parent.lesson.breakout ?? {}).version });
+      this.layout.addTile({ _id: "NEW_GROUP_CREATE", version: (this.parent.parent.lesson.breakout ?? {}).version }, null, true);
     })();
 
     let pendingMemberAssignment = {};

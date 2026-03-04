@@ -1296,7 +1296,7 @@ modules["dropdown"] = class {
       content.removeAttribute("new");
       window.dropdown.content = content;
       let frame = content.querySelector(".dropdownFrame");
-      setTitleHTML = setTitleHTML ?? data.title ?? button.getAttribute("dropdowntitle") ?? button.innerHTML;
+      setTitleHTML = setTitleHTML ?? (data ?? {}).title ?? button.getAttribute("dropdowntitle") ?? button.innerHTML;
       if (button.closest(".dropdownBack") == null) {
         if (button.innerHTML == button.textContent) {
           setTitleHTML = "<div>" + button.innerHTML + "</div>";
@@ -1400,7 +1400,7 @@ modules["dropdown"] = class {
       frame.style.minHeight = "200px";
     }
     let existingTitle = button.getAttribute("dropdowntitle");
-    setTitleHTML = setTitleHTML ?? data.title ?? existingTitle ?? button.innerHTML;
+    setTitleHTML = setTitleHTML ?? (data ?? {}).title ?? existingTitle ?? button.innerHTML;
     if (button.innerHTML == button.textContent && existingTitle == null) {
       setTitleHTML = "<div>" + button.innerHTML + "</div>";
     }

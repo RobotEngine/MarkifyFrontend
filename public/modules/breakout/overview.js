@@ -796,7 +796,10 @@ modules["breakout/overview"] = class {
         tileNameImage.src = assetURL + tile.render.image;
         tileNameImage.style.display = "block";
       }
-      tileNameHeader.querySelector(".broTileHeaderNameHolderText").textContent = tile.render.name ?? "Untitled Group";
+      let tileNameText = tileNameHeader.querySelector(".broTileHeaderNameHolderText");
+      let setName = tile.render.name ?? "Untitled Group";
+      tileNameText.textContent = setName
+      tileNameText.title = setName;
     }
     this.layout.updateMemberTile = (collaborator = {}, memberTile) => {
       if (collaborator._id == null) {

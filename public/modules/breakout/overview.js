@@ -9,14 +9,14 @@ modules["breakout/overview"] = class {
           <a class="broLogo" href="/app/dashboard" draggable="false"></a>
           <div class="broFileNameHolder border"><div class="broFileName" spellcheck="false" onpaste="clipBoardRead(event)" contenteditable></div></div>
           <button class="broFileDropdown">File</button>
-          <button class="broStart"></button>
+          <button class="broStart" disabled></button>
           <button class="broPause">Pause</button>
         </div>
         <div class="broTopSection" scroll>
           <div class="broTopDivider"></div>
         </div>
         <div class="broTopSection" right>
-          <button class="broManageDropdown">Manage</button>
+          <button class="broManageDropdown" disabled>Manage</button>
           <button class="broShare">Share</button>
           <button class="broMemberOptions" dropdowntitle="Member Options" title="Member Options | Configure various member settings."></button>
           <button class="broSharePin"></button>

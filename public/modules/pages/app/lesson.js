@@ -592,6 +592,9 @@ modules["pages/app/lesson"] = class extends page {
                     setFrame("pages/app/join", null, { passParams: true });
                   }
                 }
+                if (body.includes("tool") == true) {
+                  //await this.addPage(tool, tool, { });
+                }
                 break;
               case "subset":
                 objectUpdate(body.set, this.lesson);

@@ -8,13 +8,13 @@ modules["pages/app/join"] = class extends page {
   ];
   html = `<div class="jBackdrop">
     <div class="jBackground"></div>
-    <img class="jSplash" src="../images/join/splash.svg">
+    <img class="jSplash" src="../images/join/splash.svg" />
   </div>
   <div class="jModalHolder">
     <div class="jModalContainer">
-      <img class="jBack" src="../images/icon.svg">
+      <img class="jBack" src="../images/icon.svg" />
       <div class="jModal">
-        <a class="jLogo" href="/launch"><img src="../images/logo.svg"></a>
+        <a class="jLogo" href="/launch"><img src="../images/logo.svg" /></a>
         <div class="jTitle">Join the Lesson!</div>
         <div class="jTitleDesc">Enter a pin to join</div>
         <div class="jInputHolder">

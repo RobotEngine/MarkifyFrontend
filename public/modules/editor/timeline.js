@@ -871,7 +871,7 @@ modules["editor/timeline"] = class {
             totalSortedChanges += body.count;
             let loadChange = body.count - sortedChanges.length;
             currentSortedChange += loadChange;
-            this.updateTimeline();
+            await this.updateTimeline();
           }
           resolve();
         }),
@@ -882,7 +882,7 @@ modules["editor/timeline"] = class {
     
           currentSortedChange = Math.max(totalSortedChanges, sortedChanges.length);
           //lastRenderChange = lastRenderChange ?? sortedChanges[currentSortedChange - (totalSortedChanges - sortedChanges.length) - 1];
-          this.updateTimeline();
+          await this.updateTimeline();
     
           let isOffScreen = false;
           let centerTotalX = 0;
@@ -922,7 +922,10 @@ modules["editor/timeline"] = class {
       ]);
     }
 
-    this.updateFilter(this.filterMembers);
+    await this.updateFilter();
+    if (this.filter != null) {
+      await this.updateFilter(this.filter);
+    }
 
     skimBackButton.addEventListener("click", () => {
       if (currentSortedChange > 0) {

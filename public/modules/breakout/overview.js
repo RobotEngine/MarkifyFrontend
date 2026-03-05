@@ -2260,7 +2260,7 @@ modules["dropdowns/lesson/breakout/overview/managemember"] = class {
         id: groupMember.group,
         parameters: [("group=" + groupMember.group)],
 
-        filterMembers: [modifyID]
+        filter: [modifyID]
       };
       parent.parent.openPage("timeline", "editor/timeline", { construct });
     });

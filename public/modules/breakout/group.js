@@ -644,9 +644,11 @@ modules["breakout/group"] = class {
     this.pipeline.subscribe("pageMaximize", "maximize", updateSplitScreenButton);
     updateSplitScreenButton();
 
-    this.pipeline.subscribe("checkPageSwitch", "page_switch", (data) => {
-      this.editor.active = data.pageID == "breakout";
-    });
+    let updateActivePage = () => {
+      this.editor.active = this.parent.parent.activePageID == this.parent.pageID;
+    }
+    this.pipeline.subscribe("checkPageSwitch", "page_switch", updateActivePage, { sort: 1 });
+    updateActivePage();
 
     this.pipeline.subscribe("groupSet", "set", (body) => {
       if (body.id != this.group._id) {

@@ -528,6 +528,7 @@ modules["breakout/template"] = class {
     this.pipeline.subscribe("pageMaximize", "maximize", updateSplitScreenButton);
     updateSplitScreenButton();
 
+    let updateAct
     this.pipeline.subscribe("checkPageSwitch", "page_switch", (data) => {
       this.editor.active = data.pageID == "breakout";
     });

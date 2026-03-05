@@ -797,7 +797,7 @@ modules["breakout/overview"] = class {
         tileNameImage.style.display = "block";
       }
       let tileNameText = tileNameHeader.querySelector(".broTileHeaderNameHolderText");
-      let setName = tile.render.name ?? "Untitled Group";
+      let setName = tile.render.name ?? "Untitled Team";
       tileNameText.textContent = setName
       tileNameText.title = setName;
     }
@@ -1990,14 +1990,14 @@ modules["breakout/overview"] = class {
           if (tile != null) {
             let name = tileNameText.textContent.substring(0, 100).replace(/[^A-Za-z0-9.,_|/\-+!?@#$%^&*()\[\]{}'":;~` ]/g, "");
             if (name.replace(/ /g, "").length < 1) {
-              tileNameText.textContent = tile.render.name ?? "Untitled Group";
+              tileNameText.textContent = tile.render.name ?? "Untitled Team";
               return;
             }
             if (tileNameText.textContent == tile.render.name) {
               tileNameText.textContent = tile.render.name;
               return;
             }
-            let oldName = tile.render.name ?? "Untitled Group";
+            let oldName = tile.render.name ?? "Untitled Team";
             tile.render.name = name;
             tileNameText.textContent = name;
             tileNameText.title = name;

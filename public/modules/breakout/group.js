@@ -794,6 +794,11 @@ modules["breakout/group"] = class {
 
     modifyParams("team", this.group._id);
 
+    if (false) {
+      frame.insertAdjacentHTML("beforeend", `<div class="boCreateBreakoutHolder"></div>`);
+      this.welcomeModal = await modalModule.open("modals/lesson/breakout/group/welcome", frame.querySelector(".boCreateBreakoutHolder"), null, "Your Team", null, { parent: this });
+    }
+
     this.updateInterface();
   }
 }
@@ -1771,5 +1776,26 @@ modules["dropdowns/lesson/breakout/group/members"] = class {
 
       createMemberList(searchField.value);
     });
+  }
+}
+
+modules["modals/lesson/breakout/group/welcome"] = class {
+  maxHeight = 600;
+  html = `
+  <div class="brgWelcomeHeader">
+    <div class="brgWelcomeBackdrop"></div>
+    <div class="brgWelcomeHeaderText">You're in team...</div>
+    <div class="brgWelcomeGroupName">Supportive Surfers</div>
+  </div>
+  `;
+  css = {
+    ".brgWelcomeHeader": `position: relative; box-sizing: border-box; display: flex; flex-direction: column; width: fit-content; max-width: 100%; padding: 16px; margin: 8px 0; align-items: center`,
+    ".brgWelcomeBackdrop": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background-image: url(../images/breakoutcursorbackdrop.png); background-size: cover; background-position: center; opacity: .5; mask-image: linear-gradient(to bottom, transparent 0%, var(--pageColor) 18px, var(--pageColor) calc(100% - 18px), transparent 100%); z-index: 1`,
+    ".brgWelcomeHeaderText": `font-size: 20px; font-weight: 500; font-style: italic; z-index: 2`,
+    ".brgWelcomeGroupName": `--fontSize: clamp(24px, 8vw, 48px); box-sizing: border-box; padding: calc(var(--fontSize) / 2.5) calc(var(--fontSize) / 1.5); max-width: 100%; margin-top: 12px; background: rgba(var(--background), .6); backdrop-effect: blur(8px); box-shadow: var(--darkShadow); border-radius: max(100vw, 100vh); color: var(--theme); font-size: var(--fontSize); font-weight: 800; z-index: 2`,
+
+  };
+  js = async (frame, extra) => {
+    frame.closest(".modalContent").style.padding = "0px";
   }
 }

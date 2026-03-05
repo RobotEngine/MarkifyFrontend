@@ -2,7 +2,7 @@ modules["pages/breakout"] = class extends page {
   title = "Breakout Waitlist";
   theme = "light";
   html = `
-    <div class="waitBackdrop" style="background-image: url(./images/breakoutcusrsorbackdrop.png); background-size: cover; background-position: center"></div>
+    <div class="waitBackdrop" style="background-image: url(../images/breakoutcursorbackdrop.png); background-size: cover; background-position: center"></div>
     <div class="waitModalHolder">
       <div class="waitModal" before>
         <img class="waitLogo" src="./images/breakoutlogo.svg">

@@ -1,6 +1,6 @@
 modules["breakout/groups"] = class {
   html = `
-  <div class="brgsBackgorund"></div>
+  <div class="brgsBackground"></div>
   <div class="brgsModalHolder">
     <div class="brgsModalContainer">
       <div class="brgsModal">
@@ -13,7 +13,7 @@ modules["breakout/groups"] = class {
   </div>
   `;
   css = {
-    ".brgsBackgorund": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: linear-gradient(-45deg,var(--theme) 0%, var(--pageColor) 50%, var(--theme) 100%); opacity: .2`,
+    ".brgsBackground": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: linear-gradient(-45deg,var(--theme) 0%, var(--pageColor) 50%, var(--theme) 100%); opacity: .2`,
     ".brgsModalHolder": `display: flex; width: 100%; min-height: 100vh; left: 0px; top: 0px; justify-content: center; align-items: center; overflow: hidden`,
     ".brgsModalContainer": `position: relative`,
     ".brgsModal": `position: relative; display: flex; flex-direction: column; width: fit-content; max-width: 100%; height: fit-content; padding: 16px; margin: 8px; overflow: hidden; background: var(--pageColor); transform: scale(.9); opacity: 0; align-items: center; border-radius: 16px; box-shadow: var(--lightShadow); transition: .3s`,

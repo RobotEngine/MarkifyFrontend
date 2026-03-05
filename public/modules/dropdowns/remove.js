@@ -46,12 +46,16 @@ modules["dropdowns/remove"] = class {
       case "deletefolder":
         title.textContent = "Delete Folder?";
         desc.innerHTML = "Deleting the folder <b>will not</b> delete the lessons.";
+        break;
+      case "deletegroup":
+        title.textContent = "Delete Team?";
+        desc.innerHTML = "Are you sure you want to permanently delete this team? <b>This cannot be undone!</b>";
     }
     let deleteConfirm = frame.querySelector(".dDeleteConfirm");
     deleteConfirm.addEventListener("click", async () => {
       deleteConfirm.setAttribute("disabled", "");
       let deleteAlert = await alertModule.open("info", "<b>Deleting</b><div>Processing delete request...", { time: "never" });
-      let pathAdd = "";
+      let pathAdd = "lessons/delete";
       if (option == "deletelesson") {
         pathAdd += "?lesson=" + extra.lessonID;
       } else if (option == "deleteannotations") {
@@ -61,8 +65,10 @@ modules["dropdowns/remove"] = class {
         }
       } else if (option == "deletefolder") {
         pathAdd += "/folder?folder=" + extra.folderID;
+      } else if (option == "deletegroup") {
+        pathAdd = "lessons/breakout/groups/delete?group=" + extra.groupID;
       }
-      let [code] = await sendRequest("DELETE", "lessons/delete" + pathAdd, null, { session: extra.session });
+      let [code] = await sendRequest("DELETE", pathAdd, null, { session: extra.session });
       deleteConfirm.removeAttribute("disabled");
       alertModule.close(deleteAlert);
       if (code == 200) {

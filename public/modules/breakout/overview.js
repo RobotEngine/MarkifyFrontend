@@ -1288,26 +1288,38 @@ modules["breakout/overview"] = class {
     });
     this.pipeline.subscribe("tilesScroll", "scroll", this.layout.runUpdateCycle, { sort: 1 });
     this.layout.setupColumns(true);
-    this.layout.removeTile = (tileID) => {
+    this.layout.removeTile = (tileID, refresh) => {
       let tile = this.layout.tiles[tileID];
       if (tile == null) {
         return;
       }
-      delete this.layout.tiles[tileID];
+      if (tile.height != null) {
+        let column = this.layout.columns[tile.column] ?? {};
+        if (column.sections != null) {
+          let section = column.sections[tile.section] ?? {};
+          if (section.height != null) {
+            section.height -= (tile.height + this.layout.tilePadding);
+          }
+        }
+      }
       let index = this.layout.tileLayout.indexOf(tileID);
       if (index > -1) {
         if ((tile.version == null || tile.version == (this.parent.parent.lesson.breakout ?? {}).version) && tile._id != "NEW_GROUP_CREATE") {
           this.layout.tileLayoutVersionIndex--;
         }
         this.layout.tileLayout.splice(index, 1);
+        if (refresh == true) {
+          this.layout.refreshTileSpots(index);
+        }
       }
+      delete this.layout.tiles[tileID];
     }
     this.layout.addTile = (data, members, refresh) => {
       if (data == null) {
         return;
       }
       if (this.layout.tiles[data._id] != null) {
-        this.layout.removeTile(data._id);
+        this.layout.removeTile(data._id, refresh);
       }
       let tileInfo = {
         section: data.version,
@@ -1452,6 +1464,10 @@ modules["breakout/overview"] = class {
     this.pipeline.subscribe("createGroup", "creategroup", async (data) => {
       await this.layout.addTile(data, pendingMemberAssignment[data._id] ?? [], true);
       delete pendingMemberAssignment[data._id];
+    });
+
+    this.pipeline.subscribe("removeGroup", "removegroup", async (data) => {
+      this.layout.removeTile(data._id, true);
     });
 
     this.pipeline.subscribe("memberJoin", "join", (data) => {
@@ -1668,6 +1684,11 @@ modules["breakout/overview"] = class {
         if (memberTile != null) {
           return dropdownModule.open(memberTile, "dropdowns/lesson/breakout/overview/managemember", { parent: this, collaboratorID: memberTile.getAttribute("collaborator"), title: "Manage" });
         }
+        let tileOptionsButton = target.closest(".broTileHeaderOptionsButton");
+        if (tileOptionsButton != null && tile != null) {
+          return dropdownModule.open(tileOptionsButton, "dropdowns/lesson/breakout/overview/groupoptions", { parent: this, groupID: tile.getAttribute("group"), title: "Options" });
+        }
+        //broTileHeaderOptionsButton
         if (tile != null && tile.classList.contains("broTileAddGroup") == true) {
           tile.setAttribute("disabled", "");
           await sendRequest("POST", "lessons/breakout/groups/new", null, { session: this.parent.parent.session });
@@ -1688,7 +1709,13 @@ modules["breakout/overview"] = class {
     });
 
     groups.addEventListener("contextmenu", (event) => {
-      
+      let target = event.target;
+      let tile = target.closest(".broTile:not([disabled])");
+      if (tile == null) {
+        return;
+      }
+      event.preventDefault();
+      dropdownModule.open(tile.querySelector(".broTileHeaderOptionsButton"), "dropdowns/lesson/breakout/overview/groupoptions", { parent: this, groupID: tile.getAttribute("group"), title: "Options" });
     });
 
     groups.addEventListener("pointerdown", (event) => {
@@ -2298,5 +2325,82 @@ modules["dropdowns/lesson/breakout/overview/managemember"] = class {
     setSVG(moveButton.querySelector("div"), "../images/tooltips/back.svg");
     setSVG(removeButton.querySelector("div"), "../images/tooltips/back.svg");
     setSVG(kickButton.querySelector("div"), "../images/editor/breakout/kick.svg");
+  }
+}
+
+modules["dropdowns/lesson/breakout/overview/groupoptions"] = class {
+  html = `
+  <button class="broGroupOption" option="open" title="Open this team."><div></div>Open</button>
+  <button class="broGroupOption" option="opennewtab" title="Open this team in a new tab."><div></div>Open in New Tab</button>
+  <div class="broGroupOptionLine"></div>
+  <button class="broGroupOption" option="timeline" title="View this team's timeline history."><div></div>Timeline</button>
+  <div class="broGroupOptionLine"></div>
+  <button class="broGroupOption" option="deletegroup" title="Remove this group from the lesson." dropdowntitle="Delete Team" style="--themeColor: var(--error)"><div></div>Delete Team</button>
+  `;
+  css = {
+    ".broGroupOption": `--themeColor: var(--theme); display: flex; width: 100%; padding: 4px 8px 4px 4px; border-radius: 8px; align-items: center; font-size: 16px; font-weight: 600; text-align: left; transition: .15s`,
+    ".broGroupOption:not(:last-child)": `margin-bottom: 4px`,
+    ".broGroupOption div": `width: 24px; height: 24px; padding: 2px; margin-right: 8px; background: var(--pageColor); border-radius: 4px`,
+    ".broGroupOption div svg": `width: 100%; height: 100%`,
+    ".broGroupOption:hover": `background: var(--themeColor); color: #fff`,
+    ".broGroupOptionLine": `width: 100%; height: 2px; margin-bottom: 4px; background: var(--gray); border-radius: 1px`
+  };
+  js = async function (frame, extra) {
+    let parent = extra.parent;
+    let groupID = extra.groupID;
+
+    let openButton = frame.querySelector('.broGroupOption[option="open"]');
+    openButton.addEventListener("click", () => {
+      dropdownModule.close();
+      parent.openGroup(groupID);
+    });
+    let openNewTabButton = frame.querySelector('.broGroupOption[option="opennewtab"]');
+    openNewTabButton.addEventListener("click", () => {
+      dropdownModule.close();
+      window.open("/app/lesson?lesson=" + parent.parent.parent.id + "&team=" + groupID, "_blank").focus();
+    });
+
+    let timelineButton = frame.querySelector('.broGroupOption[option="timeline"]');
+    timelineButton.addEventListener("click", () => {
+      dropdownModule.close();
+
+      let tileData = parent.layout.tiles[groupID] ?? {};
+      if (tileData.editor == null || tileData.loadedAnnotations != true) {
+        return
+      }
+
+      let construct = {
+        close: () => {
+          parent.parent.closePage("timeline");
+          parent.parent.openPage("primary", "breakout/overview");
+        },
+
+        lesson: parent.parent.parent,
+        self: parent.parent.parent.self,
+        session: parent.parent.parent.session,
+        sessionID: parent.parent.parent.sessionID,
+        sources: parent.parent.parent.sources,
+        collaborators: parent.parent.parent.collaborators,
+        backgroundColor: tileData.editor.backgroundColor,
+        preferences: parent.parent.parent.preferences,
+        //reactions: tileData.editor.reactions,
+
+        annotations: tileData.editor.annotations,
+
+        id: groupID,
+        parameters: [("group=" + groupID)]
+      };
+      parent.parent.openPage("timeline", "editor/timeline", { construct });
+    });
+
+    let deleteGroupButton = frame.querySelector('.broGroupOption[option="deletegroup"]');
+    deleteGroupButton.addEventListener("click", () => {
+      dropdownModule.open(deleteGroupButton, "dropdowns/remove", { type: "deletegroup", session: parent.parent.parent.session, groupID });
+    });
+
+    setSVG(openButton.querySelector("div"), "../images/editor/breakout/open.svg");
+    setSVG(openNewTabButton.querySelector("div"), "../images/editor/breakout/open.svg");
+    setSVG(timelineButton.querySelector("div"), "../images/editor/file/history.svg");
+    setSVG(deleteGroupButton.querySelector("div"), "../images/editor/file/delete.svg");
   }
 }

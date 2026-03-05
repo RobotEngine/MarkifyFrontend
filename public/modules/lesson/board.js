@@ -1837,7 +1837,7 @@ modules["dropdowns/lesson/board/members"] = class {
           let memberid = frame.getAttribute("memberid");
           let url = "lessons/members/kick";
           if (memberid != null) {
-            url += "?member=" + lesson.members[memberid]._id;
+            url += "?collaborator=" + lesson.members[memberid].modify;
           } else {
             url += "?permaccess=" + frame.getAttribute("access");
           }

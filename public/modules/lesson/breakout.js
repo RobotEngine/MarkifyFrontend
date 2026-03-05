@@ -253,6 +253,7 @@ modules["lesson/breakout"] = class {
       if (team == "") {
         await this.openPage("primary", "breakout/overview");
       } else {
+        
         await this.openPage("secondary", "breakout/group", { groupID: team });
       }
     }

@@ -22,7 +22,7 @@ modules["breakout/group"] = class {
           <div class="brgTopDivider"></div>
         </div>
         <div class="brgTopSection" right>
-          <button class="brgSubmit">Submit</button>
+          <button class="brgSubmit" style="display: none">Submit</button>
           <button class="brgMembers"><span class="brgMemberCount" membercount title="Number of team members."></span>Team</button>
           <div class="brgTopDivider"></div>
           <button class="brgZoom">100%</button>
@@ -96,9 +96,9 @@ modules["breakout/group"] = class {
     "@keyframes brgStatusSpinAnimation": `from { transform: rotate(0deg) } to { transform: rotate(360deg) }`,
 
     ".brgSubmit": `display: flex; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--theme); border-radius: 16px; color: #fff; align-items: center; font-size: 16px; font-weight: 600`,
-    ".brgMembers": `display: none; height: 32px; padding: 4px 10px 4px 4px; margin: 0 4px; background: var(--hover); border-radius: 16px; align-items: center; font-size: 16px; font-weight: 600`,
+    ".brgMembers": `display: flex; height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--hover); border-radius: 16px; align-items: center; font-size: 16px; font-weight: 600`,
     ".brgMembers span": `--themeColorRGB: var(--themeRGB); color: rgb(var(--themeColorRGB)); display: none; min-width: 12px; height: 24px; padding: 0px 6px; margin-right: 5px; justify-content: center; align-items: center; background: var(--pageColor); border-radius: 12px; font-weight: 700`,
-    ".brgMemberCount": `--themeColorRGB: var(--themeRGB); color: rgb(var(--themeColorRGB)); display: flex !important`,
+    ".brgMemberCount": `--themeColorRGB: var(--themeRGB); color: rgb(var(--themeColorRGB))`,
     ".brgZoom": `height: 32px; padding: 6px 10px; margin: 0 4px; background: var(--lightGray); border-radius: 16px; font-size: 16px; font-weight: 600`,
     ".brgAccount": `padding: 0; width: 32px; height: 32px; margin: 0 4px; border-radius: 16px; overflow: hidden`,
     ".brgAccount img": `width: 100%; height: 100%; object-fit: cover`,
@@ -145,6 +145,10 @@ modules["breakout/group"] = class {
       }
     }
   }
+
+  members = {};
+  memberSessions = {};
+  memberCount = 0;
 
   js = async (frame, extra = {}) => {
     this.extra = extra;
@@ -216,34 +220,65 @@ modules["breakout/group"] = class {
 
     this.group = extra.group ?? {};
 
+    if (extra.members != null) {
+      for (let i = 0; i < extra.members.length; i++) {
+        this.members[extra.members[i]] = [];
+      }
+    }
+
     let fetchAnnotations;
     if (extra.editor == null) {
       fetchAnnotations = sendRequest("GET", "lessons/join/annotations?group=" + this.group._id, null, { session: this.parent.parent.session });
     }
     
-    if ((this.group ?? {}).fetch == true) {
+    if ((this.group ?? {}).fetch == true || this.members == null) {
       delete this.group.fetch;
       let [code, body] = await sendRequest("GET", "lessons/breakout/groups?group=" + this.group._id, null, { session: this.parent.parent.session });
       if (code != 200) {
         return this.exit();
       }
-      this.group = body;
+      this.group = body.group;
+      for (let i = 0; i < body.members.length; i++) {
+        let collaborator = body.members[i];
+        this.parent.parent.collaborators[collaborator._id] = collaborator;
+        if (this.members[collaborator._id] == null) {
+          this.members[collaborator._id] = [];
+        }
+      }
     }
 
-    if (extra.members == null) {
-      this.members = {};
-      this.memberCount = 0;
+    let memberSessions = {};
+    if (extra.memberSessions == null) {
       let memberKeys = Object.keys(this.parent.parent.members);
       for (let i = 0; i < memberKeys.length; i++) {
-        let member = this.parent.parent.members[memberKeys[i]] ?? {};
-        if (member.group == this.group._id || member._id == this.parent.parent.self._id) {
-          this.members[member._id] = member;
-          this.memberCount++;
+        let memberID = memberKeys[i];
+        let member = this.parent.parent.members[memberID];
+        let session = memberSessions[member.modify];
+        if (session == null) {
+          memberSessions[member.modify] = [];
+          session = memberSessions[member.modify];
+        }
+        session.push(memberID);
+        if (member.group == this.group._id && this.members[member.modify] == null) {
+          this.members[member.modify] = [];
         }
       }
     } else {
-      this.members = extra.members;
-      this.memberCount = Object.keys(this.members).length;
+      memberSessions = copyObject(extra.memberSessions);
+    }
+
+    // Figure out which member sessions are in this group:
+    let checkCollaborators = Object.keys(this.members);
+    for (let c = 0; c < checkCollaborators.length; c++) {
+      let modifyID = checkCollaborators[c];
+      let sessions = memberSessions[modifyID] ?? [];
+      for (let s = 0; s < sessions.length; s++) {
+        let member = this.parent.parent.members[sessions[s]];
+        if (member.group == this.group._id || member._id == this.parent.parent.self._id) {
+          this.members[modifyID].push(member._id);
+          this.memberCount++;
+        }
+      }
     }
 
     this.editor = await this.setFrame("editor/editor", contentHolder, {
@@ -386,9 +421,11 @@ modules["breakout/group"] = class {
 
       memberCountTx.textContent = this.memberCount;
       if (this.memberCount > 1) {
-        button.style.display = "flex";
+        memberCountTx.style.display = "flex";
+        memberCountTx.parentElement.style.padding = "4px 10px 4px 4px";
       } else {
-        button.style.removeProperty("display");
+        memberCountTx.style.removeProperty("display");
+        memberCountTx.parentElement.style.removeProperty("padding");
       }
 
       updateTopBar();
@@ -626,25 +663,55 @@ modules["breakout/group"] = class {
     });
 
     this.pipeline.subscribe("memberJoin", "join", (data) => {
+      let groupMember = this.members[data.modify];
       if (data.group == this.group._id) {
-        this.members[data._id] = this.parent.parent.members[data._id];
-        this.memberCount++;
-        this.updateMemberCount();
+        if (groupMember == null) {
+          this.members[data.modify] = [];
+          groupMember = this.members[data.modify];
+        }
+        if (groupMember.includes(data._id) == false) {
+          groupMember.push(data._id);
+          this.memberCount++;
+          this.updateMemberCount();
+        }
+      } else if (groupMember != null) {
+        let index = groupMember.indexOf(data._id);
+        if (index > -1) {
+          groupMember.splice(index, 1);
+          this.memberCount--;
+          this.updateMemberCount();
+        }
+        if (groupMember.length < 1 && data.access > 3) {
+          delete this.members[data.modify];
+        }
       }
     }, { sort: 1 });
     this.pipeline.subscribe("memberUpdate", "update", (data) => {
       if (data.hasOwnProperty("group") == true) {
+        let member = this.parent.parent.members[data._id];
+        if (member == null) {
+          return;
+        }
+        let groupMember = this.members[member.modify];
         if (data.group == this.group._id) {
-          if (this.members[data._id] == null) {
-            this.members[data._id] = this.parent.parent.members[data._id];
+          if (groupMember == null) {
+            this.members[member.modify] = [];
+            groupMember = this.members[member.modify];
+          }
+          if (groupMember.includes(data._id) == false) {
+            groupMember.push(data._id);
             this.memberCount++;
             this.updateMemberCount();
           }
-        } else {
-          if (this.members[data._id] != null) {
-            delete this.members[data._id];
+        } else if (groupMember != null) {
+          let index = groupMember.indexOf(data._id);
+          if (index > -1) {
+            groupMember.splice(index, 1);
             this.memberCount--;
             this.updateMemberCount();
+          }
+          if (groupMember.length < 1 && member.access > 3) {
+            delete this.members[member.modify];
           }
           if (this.editor.realtime.module != null) {
             this.editor.realtime.module.removeRealtime(data._id);
@@ -653,10 +720,34 @@ modules["breakout/group"] = class {
       }
     }, { sort: 1 });
     this.pipeline.subscribe("memberLeave", "leave", (data) => {
-      let member = this.members[data._id];
-      if (member != null) {
-        delete this.members[data._id];
-        this.memberCount--;
+      if (data.member != null) {
+        let groupMember = this.members[data.member.modify];
+        if (groupMember != null) {
+          let index = groupMember.indexOf(data.member._id);
+          if (index > -1) {
+            groupMember.splice(index, 1);
+            this.memberCount--;
+            this.updateMemberCount();
+          }
+        }
+      }
+    }, { sort: 1 });
+
+    this.pipeline.subscribe("memberAssign", "memberassign", (data) => {
+      this.parent.parent.collaborators[data.collaborator._id] = data.collaborator;
+      let groupMember = this.members[data.collaborator._id];
+      if (data.group == this.group._id) {
+        if (groupMember == null) {
+          this.members[data.collaborator._id] = [];
+        }
+      } else if (groupMember != null) {
+        if (this.editor.realtime.module != null) {
+          for (let i = 0; i < groupMember.length; i++) {
+            this.editor.realtime.module.removeRealtime(groupMember[i]);
+          }
+        }
+        this.memberCount -= groupMember.length;
+        delete this.members[data.collaborator._id];
         this.updateMemberCount();
       }
     }, { sort: 1 });
@@ -690,7 +781,7 @@ modules["breakout/group"] = class {
     (async () => {
       await (await this.newModule("editor/toolbar")).js(this.editor);
       let realtime = (await this.newModule("editor/realtime"));
-      if (this.parent.parent.self.group != this.group._id) {
+      if (this.parent.parent.self.group != this.group._id || this.parent.parent.self.access > 3) {
         let [code] = await sendRequest("PUT", "lessons/breakout/groups/join?group=" + this.group._id, null, { session: this.parent.parent.session });
         if (code != 200) {
           return;
@@ -919,6 +1010,7 @@ modules["dropdowns/lesson/breakout/group/members"] = class {
     ".brgMemberAccessHolder[selected] .brgMemberAccessTitle div[holder]": `background: var(--secondary); color: #fff`,
 
     ".brgMemberTile": `position: relative; display: flex; width: 100%; height: 34px; padding: 0px; justify-content: center; align-items: center; z-index: 1`, //; margin: 4px 0
+    ".brgMemberTile[placeholder]": `opacity: .5`,
     ".brgMemberTile div[holder]": `--opacity: 0; position: relative; display: flex; width: 100%; padding: 4px; overflow: hidden; align-items: center; transition: .1s`, //; margin: 4px 0
     ".brgMemberBackground": `position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background: var(--themeColor); opacity: var(--opacity); transition: .1s; z-index: -1`,
     ".brgMemberAccessHolder button:hover div[holder]": `--opacity: .35`,
@@ -987,6 +1079,25 @@ modules["dropdowns/lesson/breakout/group/members"] = class {
     let searchField = searchHolder.querySelector("input");
     let accessHolders = frame.querySelectorAll(".brgMemberAccessHolder");
 
+    // Transition group members to format for member list:
+    this.members = {};
+    let groupMemberModifyIDs = Object.keys(parent.members);
+    for (let i = 0; i < groupMemberModifyIDs.length; i++) {
+      let modifyID = groupMemberModifyIDs[i];
+      let memberIDs = parent.members[modifyID] ?? [];
+      if (memberIDs.length > 0) {
+        for (let m = 0; m < memberIDs.length; m++) {
+          let memberID = memberIDs[m];
+          this.members[memberID] = {
+            ...(parent.parent.parent.collaborators[modifyID] ?? {}),
+            ...(parent.parent.parent.members[memberID] ?? {})
+          }
+        }
+      } else {
+        this.members[modifyID] = { ...(parent.parent.parent.collaborators[modifyID] ?? {}), group: parent.group._id, access: 0, placeholder: true };
+      }
+    }
+
     // Load Images:
     setSVG(searchHolder.querySelector("div[image]"), "../images/editor/glass.svg", (svg) => { return svg.replace(/"#0084FF"/g, '"var(--secondary)"'); });
 
@@ -1005,7 +1116,7 @@ modules["dropdowns/lesson/breakout/group/members"] = class {
     let updateOrder = (section, updateTile, member) => {
       for (let i = 1; i < section.children.length; i++) { // 1 to skip title
         let child = section.children[i];
-        let prev = parent.members[child.querySelector("div[holder]").getAttribute("member")] ?? {};
+        let prev = this.members[child.querySelector("div[holder]").getAttribute("member")] ?? {};
         if (child != updateTile && member.name + "_" + member.joined < prev.name + "_" + prev.joined) {
           section.insertBefore(updateTile, child);
           break;
@@ -1047,6 +1158,9 @@ modules["dropdowns/lesson/breakout/group/members"] = class {
         if (member.observe == editor.sessionID) {
           eventsHolder.insertAdjacentHTML("afterbegin", `<div class="brgMemberEvent" observe title="This member is observing you on the document.">OBSERVE</div>`);
         }
+      }
+      if (member.placeholder == true) {
+        tile.parentElement.setAttribute("placeholder", "");
       }
       title.querySelector("div[count]").textContent = section.childElementCount - 1; // -1 for title
       section.style.display = "block";
@@ -1115,20 +1229,27 @@ modules["dropdowns/lesson/breakout/group/members"] = class {
           openDropdown(dropdownButton, true);
         }
       }
+
+      // Handle placeholder:
+      if (member.placeholder != true) {
+        tile.removeAttribute("placeholder");
+      } else {
+        tile.setAttribute("placeholder", "");
+      }
       
       return true;
     }
     let createMemberList = (search) => {
       search = (search ?? "").toLowerCase();
-      let keys = Object.keys(parent.members);
+      let keys = Object.keys(this.members);
       keys = keys.filter((value) => {
-        if (parent.members[value].name.toLowerCase().includes(search) == true) {
+        if (this.members[value].name.toLowerCase().includes(search) == true) {
           return -1;
         }
         return false;
       });
       for (let i = 0; i < keys.length; i++) {
-        addMemberTile(parent.members[keys[i]]);
+        addMemberTile(this.members[keys[i]]);
       }
     }
     createMemberList();
@@ -1137,20 +1258,8 @@ modules["dropdowns/lesson/breakout/group/members"] = class {
     let memberFrameHolder;
     let dropdownButton;
 
-    let handleJoin = (body) => {
-      if (body.group != parent.group._id) {
-        return;
-      }
-      if (updateMemberTile(parent.members[body._id]) == false) {
-        addMemberTile(parent.members[body._id]);
-      }
-      parent.updateMemberCount(dropdownTitle);
-      if (this.checkSpotlightUpdate != null) {
-        this.checkSpotlightUpdate();
-      }
-    }
-    editor.pipeline.subscribe("membersDropdownJoin", "join", handleJoin, { sort: 2 });
     let handleLeave = (body) => {
+      delete this.members[body._id];
       let removeTileContent = frame.querySelector('.brgMemberTile div[holder][member="' + body._id + '"]');
       if (removeTileContent != null) {
         let removeTile = removeTileContent.parentElement;
@@ -1169,20 +1278,56 @@ modules["dropdowns/lesson/breakout/group/members"] = class {
       if (this.checkSpotlightUpdate != null) {
         this.checkSpotlightUpdate();
       }
-    }
-    editor.pipeline.subscribe("membersDropdownLeave", "leave", handleLeave, { sort: 2 });
-    editor.pipeline.subscribe("membersDropdownUpdate", "update", (body) => {
-      if (body.hasOwnProperty("group") == true) {
-        if (body.group == parent.group._id) {
-          return handleJoin(body);
-        } else {
-          return handleLeave(body);
-        }
+      if (body.member != null && parent.members[body.member.modify] != null) {
+        this.members[body.member.modify] = { ...(parent.parent.parent.collaborators[body.member.modify] ?? {}), group: parent.group._id, access: 0, placeholder: true };
+        return handleJoin(this.members[body.member.modify]);
       }
-      updateMemberTile(parent.members[body._id]);
+    }
+    let handleJoin = (body) => {
+      if (body.group != parent.group._id) {
+        return;
+      }
+      this.members[body._id] = body;
+      if (this.members[body.modify] != null) {
+        handleLeave({ _id: body.modify });
+      }
+      if (updateMemberTile(this.members[body._id]) == false) {
+        addMemberTile(this.members[body._id]);
+      }
       parent.updateMemberCount(dropdownTitle);
       if (this.checkSpotlightUpdate != null) {
         this.checkSpotlightUpdate();
+      }
+    }
+    editor.pipeline.subscribe("membersDropdownJoin", "join", handleJoin, { sort: 2 });
+    editor.pipeline.subscribe("membersDropdownLeave", "leave", handleLeave, { sort: 2 });
+    editor.pipeline.subscribe("membersDropdownUpdate", "update", (body) => {
+      let member = this.members[body._id];
+      if (body.hasOwnProperty("group") == true) {
+        if (body.group == parent.group._id) {
+          this.members[body._id] = parent.parent.parent.members[body._id];
+          return handleJoin(this.members[body._id]);
+        } else {
+          delete this.members[body._id];
+          return handleLeave(body);
+        }
+      }
+      updateMemberTile(member);
+      parent.updateMemberCount(dropdownTitle);
+      if (this.checkSpotlightUpdate != null) {
+        this.checkSpotlightUpdate();
+      }
+    }, { sort: 2 });
+    editor.pipeline.subscribe("membersDropdownAssign", "memberassign", (body) => {
+      let member = parent.members[body.collaborator._id];
+      if (body.group == parent.group._id) {
+        if (member.length < 1) {
+          this.members[body.collaborator._id] = { ...body.collaborator, group: parent.group._id, access: 0, placeholder: true };
+          return handleJoin(this.members[body.collaborator._id]);
+        }
+      } else {
+        delete this.members[body.collaborator._id];
+        return handleLeave({ _id: body.collaborator._id });
       }
     }, { sort: 2 });
 
@@ -1263,13 +1408,13 @@ modules["dropdowns/lesson/breakout/group/members"] = class {
     let openDropdown = (tile, update) => {
       let member = {};
       if (tile.parentElement.className == "brgMemberTile") {
-        member = parent.members[tile.getAttribute("member")];
+        member = this.members[tile.getAttribute("member")];
         if (member == null) {
           tile.remove();
           return;
         }
       } else {
-        member = { title: true, name: tile.querySelector("div[title]").textContent, access: parseInt(tile.closest(".brgMemberAccessHolder").getAttribute("access")), color: "var(--secondary)" };
+        member = { title: true, name: tile.querySelector("div[title]").textContent, access: tile.closest(".brgMemberAccessHolder").getAttribute("access"), color: "var(--secondary)" };
       }
       if (dropdownButton != null) {
         if (dropdownButton == tile && update != true) {
@@ -1294,7 +1439,7 @@ modules["dropdowns/lesson/breakout/group/members"] = class {
       let observeButtonUpdate = () => {
         let memberFrame = memberFrameHolder.querySelector(".brgMemberFrame");
         let button = memberFrame.querySelector(".brgMemberSectionActions button[observe]");
-        let member = parent.members[memberFrame.getAttribute("memberid")];
+        let member = this.members[memberFrame.getAttribute("memberid")];
         if (member == null) {
           return;
         }
@@ -1321,7 +1466,7 @@ modules["dropdowns/lesson/breakout/group/members"] = class {
       editor.pipeline.subscribe("membersDropdownObserveExit", "observe_exit", observeButtonUpdate);
 
       this.checkSpotlightUpdate = (fromSelf) => {
-        let member = parent.members[memberFrame.getAttribute("memberid")] ?? {};
+        let member = this.members[memberFrame.getAttribute("memberid")] ?? {};
         let wasShown = spotlightButton.hasAttribute("shown");
         if (member._id == editor.sessionID && member.access > 3 && lesson.memberCount > 1) {
           spotlightButton.style.display = "flex";
@@ -1404,11 +1549,10 @@ modules["dropdowns/lesson/breakout/group/members"] = class {
         observeButton.addEventListener("click", async (event) => {
           let memberid = event.target.closest(".brgMemberFrame").getAttribute("memberid");
           if (editor.realtime.observing == memberid) {
-            console.log(editor.realtime.module)
             editor.realtime.module.exitObserve();
             return;
           }
-          let member = parent.members[memberid];
+          let member = this.members[memberid];
           if (member == null) {
             dropdownModule.close();
             return;
@@ -1452,7 +1596,7 @@ modules["dropdowns/lesson/breakout/group/members"] = class {
   
         spotlightButton.addEventListener("click", async (event) => {
           let memberid = event.target.closest(".brgMemberFrame").getAttribute("memberid");
-          let member = parent.members[memberid];
+          let member = this.members[memberid];
           if (member == null) {
             dropdownModule.close();
             return;
@@ -1476,7 +1620,7 @@ modules["dropdowns/lesson/breakout/group/members"] = class {
           let memberid = frame.getAttribute("memberid");
           let url = "lessons/members/kick";
           if (memberid != null) {
-            url += "?member=" + parent.members[memberid]._id;
+            url += "?collaborator=" + this.members[memberid].modify;
           } else {
             url += "?permaccess=" + frame.getAttribute("access");
           }
@@ -1566,12 +1710,12 @@ modules["dropdowns/lesson/breakout/group/members"] = class {
       observeButton.removeAttribute("disabled");
       kickButton.removeAttribute("disabled");
 
-      if (isSelf == false && editor.self.access > 3 && member.access < 4) {
+      if (isSelf == false && editor.self.access > 3 && member.access < 4 && member.placeholder != true) {
         kickButton.style.display = "flex";
       } else {
         kickButton.style.display = "none";
       }
-      if (isSelf == false && member.title == null && (member.access > 0 || lesson.lesson.settings.observeViewers != false || editor.self.access > 3)) {
+      if (isSelf == false && member.title == null && (member.access > 0 || lesson.lesson.settings.observeViewers != false || editor.self.access > 3) && member.placeholder != true) {
         observeButton.style.display = "flex";
       } else {
         observeButton.style.display = "none";

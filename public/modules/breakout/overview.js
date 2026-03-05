@@ -10,7 +10,7 @@ modules["breakout/overview"] = class {
           <div class="broFileNameHolder border"><div class="broFileName" spellcheck="false" onpaste="clipBoardRead(event)" contenteditable></div></div>
           <button class="broFileDropdown">File</button>
           <button class="broStart" disabled></button>
-          <button class="broPause">Pause</button>
+          <button class="broPause" disabled>Pause</button>
         </div>
         <div class="broTopSection" scroll>
           <div class="broTopDivider"></div>
@@ -444,7 +444,7 @@ modules["breakout/overview"] = class {
       startButton.style.removeProperty("display");
       pauseButton.style.removeProperty("display");
       manageButton.style.removeProperty("display");
-      switch (breakout.status ?? "ended") {
+      switch ("enabled") { //breakout.status ?? "ended"
         case "disabled":
           startButton.textContent = "Start";
           startButton.style.display = "unset";
@@ -1103,6 +1103,7 @@ modules["breakout/overview"] = class {
             sessionID: this.parent.parent.sessionID,
             sources: this.parent.parent.sources,
             pageRenderPipeline: this.parent.parent.pageRenderPipeline,
+            collaborators: this.parent.parent.collaborators,
             backgroundColor: tile.render.background ?? "FFFFFF",
             //scrollOffset: 50, //* (1 / this.layout.previewScale),
             //sideScrollOffset: 8, //* (1 / this.layout.previewScale),
@@ -1366,15 +1367,15 @@ modules["breakout/overview"] = class {
     for (let i = 0; i < memberKeys.length; i++) {
       let memberID = memberKeys[i];
       let member = this.parent.parent.members[memberID];
-      if (member.access > 3) {
-        continue;
-      }
       let session = this.layout.memberSessions[member.modify];
       if (session == null) {
         this.layout.memberSessions[member.modify] = [];
         session = this.layout.memberSessions[member.modify];
       }
       session.push(memberID);
+      if (member.access > 3) {
+        continue;
+      }
       this.layout.members[member.modify] = { ...(this.layout.members[member.modify] ?? {}), group: member.group, modify: member.modify };
       if (member.group == null) {
         this.unassignedMembers++;
@@ -1471,22 +1472,22 @@ modules["breakout/overview"] = class {
     });
 
     this.pipeline.subscribe("memberJoin", "join", (data) => {
-      if (data.access > 3) {
-        return;
-      }
       let session = this.layout.memberSessions[data.modify];
       let existingMember = this.layout.members[data.modify];
       if (session == null) {
         this.layout.memberSessions[data.modify] = [];
         session = this.layout.memberSessions[data.modify];
-        if (data.group == null) {
+        if (data.group == null && data.access < 4) {
           updateUnassignedMemberCount(1);
         }
-      } else if (existingMember != null && existingMember.group != null && data.group == null) {
+      } else if (existingMember != null && existingMember.group != null && data.group == null && data.access < 4) {
         updateUnassignedMemberCount(-1);
       }
       if (session.includes(data._id) == false) {
         session.push(data._id);
+      }
+      if (data.access > 3) {
+        return;
       }
 
       if (existingMember != null && existingMember.group != data.group) {
@@ -1583,9 +1584,6 @@ modules["breakout/overview"] = class {
     });
     this.pipeline.subscribe("memberLeave", "leave", (data) => {
       if (data.member != null) {
-        if (data.member.access > 3) {
-          return;
-        }
         let session = this.layout.memberSessions[data.member.modify];
         if (session != null) {
           let index = session.indexOf(data.member._id);
@@ -1594,11 +1592,13 @@ modules["breakout/overview"] = class {
           }
           if (session.length < 1) {
             delete this.layout.memberSessions[data.member.modify];
-            if (data.member.group != null) {
-              this.layout.updateMemberTile(this.parent.parent.collaborators[data.member.modify]);
-            } else {
-              this.layout.removeMemberTile(data.member.modify);
-              updateUnassignedMemberCount(-1);
+            if (data.member.access < 4) {
+              if (data.member.group != null) {
+                this.layout.updateMemberTile(this.parent.parent.collaborators[data.member.modify]);
+              } else {
+                this.layout.removeMemberTile(data.member.modify);
+                updateUnassignedMemberCount(-1);
+              }
             }
           }
         }
@@ -1662,7 +1662,7 @@ modules["breakout/overview"] = class {
       if (tileData.editor != null && tileData.loadedAnnotations == true) {
         editor = tileData.editor;
       }
-      this.parent.openPage("secondary", "breakout/group", { group: tileData.render, editor });
+      this.parent.openPage("secondary", "breakout/group", { group: tileData.render, members: tileData.members, memberSessions: this.layout.memberSessions, editor });
     }
     
     this.onOpen = () => {
@@ -1710,12 +1710,16 @@ modules["breakout/overview"] = class {
 
     groups.addEventListener("contextmenu", (event) => {
       let target = event.target;
-      let tile = target.closest(".broTile:not([disabled])");
-      if (tile == null) {
-        return;
+      let memberTile = target.closest(".broTileMember");
+      if (memberTile != null) {
+        event.preventDefault();
+        return dropdownModule.open(memberTile, "dropdowns/lesson/breakout/overview/managemember", { parent: this, collaboratorID: memberTile.getAttribute("collaborator"), title: "Manage" });
       }
-      event.preventDefault();
-      dropdownModule.open(tile.querySelector(".broTileHeaderOptionsButton"), "dropdowns/lesson/breakout/overview/groupoptions", { parent: this, groupID: tile.getAttribute("group"), title: "Options" });
+      let tile = target.closest(".broTile:not([disabled])");
+      if (tile != null) {
+        event.preventDefault();
+        return dropdownModule.open(tile.querySelector(".broTileHeaderOptionsButton"), "dropdowns/lesson/breakout/overview/groupoptions", { parent: this, groupID: tile.getAttribute("group"), title: "Options" });
+      }
     });
 
     groups.addEventListener("pointerdown", (event) => {

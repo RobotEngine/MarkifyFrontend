@@ -597,6 +597,7 @@ modules["dropdowns/lesson/share/options"] = class {
       <button class="eShareActionOption border" option="anonymousMode" title="Hide all member names and colors in cursors."><div label>Anonymous Mode</div><div class="eOptionToggle"><div></div></div></button>
       <button class="eShareActionOption border" option="allowExport" title="Allow members to export, print, or copy the lesson."><div label>Allow Exporting</div><div class="eOptionToggle"><div></div></div></button>
       <button class="eShareActionOption border" option="allowHistory" title="Allow members to view the timeline history."><div label>Allow Timeline History</div><div class="eOptionToggle"><div></div></div></button>
+      <button class="eShareActionOption border" option="allowReactions" title="Allow members to react on sticky notes."><div label>Allow Reactions</div><div class="eOptionToggle"><div></div></div></button>
       <button class="eShareActionOption border" option="observeViewers" title="Allow members to observe those who aren't editing."><div label>Observe Viewers</div><div class="eOptionToggle"><div></div></div></button>
       <button class="eShareSaveDefault border" title="Save as the default for new lessons.">Save as Default</button>
     </div>
@@ -787,6 +788,7 @@ modules["dropdowns/lesson/share/options"] = class {
     let editOthersWorkButton = frame.querySelector('.eShareActionOption[option="editOthersWork"]');
     let allowExportButton = frame.querySelector('.eShareActionOption[option="allowExport"]');
     let allowHistoryButton = frame.querySelector('.eShareActionOption[option="allowHistory"]');
+    let allowReactionsButton = frame.querySelector('.eShareActionOption[option="allowReactions"]');
     let observeViewersButton = frame.querySelector('.eShareActionOption[option="observeViewers"]');
     let anonymousModeButton = frame.querySelector('.eShareActionOption[option="anonymousMode"]');
     let toolToggle = frame.querySelector(".eShareToolToggle");
@@ -821,6 +823,13 @@ modules["dropdowns/lesson/share/options"] = class {
       } else {
         allowExportButton.setAttribute("off", "");
         allowExportButton.removeAttribute("on");
+      }
+      if (lesson.lesson.settings.allowReactions != false) {
+        allowReactionsButton.setAttribute("on", "");
+        allowReactionsButton.removeAttribute("off");
+      } else {
+        allowReactionsButton.setAttribute("off", "");
+        allowReactionsButton.removeAttribute("on");
       }
       if (lesson.lesson.settings.allowHistory != false) {
         allowHistoryButton.setAttribute("on", "");
@@ -895,6 +904,11 @@ modules["dropdowns/lesson/share/options"] = class {
       allowHistoryButton.setAttribute("disabled", "");
       await sendRequest("PUT", "lessons/setting", { set: "allowHistory", value: !allowHistoryButton.hasAttribute("on") }, { session: lesson.session });
       allowHistoryButton.removeAttribute("disabled");
+    });
+    allowReactionsButton.addEventListener("click", async () => {
+      allowReactionsButton.setAttribute("disabled", "");
+      await sendRequest("PUT", "lessons/setting", { set: "allowReactions", value: !allowReactionsButton.hasAttribute("on") }, { session: lesson.session });
+      allowReactionsButton.removeAttribute("disabled");
     });
     observeViewersButton.addEventListener("click", async () => {
       observeViewersButton.setAttribute("disabled", "");

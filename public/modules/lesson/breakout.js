@@ -223,20 +223,25 @@ modules["lesson/breakout"] = class {
         return;
       }
       if (this.parent.self.group != this.currentGroupID && this.parent.self.access < 4) {
-        this.currentGroupID = this.parent.self.group;
         this.closePage("primary");
         if (this.parent.self.group != null) {
           this.openPage("primary", "breakout/group");
-          alertModule.open("info", "<b>You've Been Moved</b>The lesson owner has moved you to a new team.");
+          if (this.currentGroupID != null) {
+            alertModule.open("info", "<b>You've Been Moved</b>The lesson owner has moved you to a new team.");
+          }
         } else {
           this.openPage("primary", "breakout/groups");
-          alertModule.open("info", "<b>You've Been Removed</b>The lesson owner has removed you from the team.");
+          if (this.currentGroupID != null) {
+            alertModule.open("info", "<b>You've Been Removed</b>The lesson owner has removed you from the team.");
+          }
         }
+        this.currentGroupID = this.parent.self.group;
       }
     }, { sort: 1 });
 
     // Initialize Breakout:
     if (this.parent.self.access < 4) { // Open to a Member View:
+      await sleep(500); // TEMP: REMOVE LATER!!!
       if (this.parent.self.group != null) { // Open to the Group:
         this.currentGroupID = this.parent.self.group;
         await this.openPage("primary", "breakout/group");

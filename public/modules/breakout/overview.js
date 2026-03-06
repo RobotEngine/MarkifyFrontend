@@ -890,6 +890,7 @@ modules["breakout/overview"] = class {
     }
     this.layout.runUpdateCycle = async () => {
       if (this.layout.runningUpdateCycle == true) {
+        this.layout.reRunUpdateCycle = true;
         return;
       }
       this.layout.runningUpdateCycle = true;
@@ -1152,6 +1153,10 @@ modules["breakout/overview"] = class {
       this.lastResizeWasSimulated = false;
 
       this.layout.runningUpdateCycle = false;
+      if (this.layout.reRunUpdateCycle == true) {
+        this.layout.reRunUpdateCycle = false;
+        this.layout.runUpdateCycle();
+      }
     }
     this.layout.refreshTotalColumnHeight = () => {
       this.layout.longestColumn = this.layout.getSectionTop();
@@ -1499,7 +1504,7 @@ modules["breakout/overview"] = class {
               groupTile.members.splice(index, 1);
             }
           }
-          this.layout.removeMemberTile(data.modify);
+          this.layout.removeMemberTile(data.modify, true);
         }
       }
       this.layout.members[data.modify] = { ...(existingMember ?? {}), group: data.group, modify: data.modify };
@@ -1541,7 +1546,7 @@ modules["breakout/overview"] = class {
         } else if (data.group != null) {
           updateUnassignedMemberCount(-1);
         }
-        this.layout.removeMemberTile(modify);
+        this.layout.removeMemberTile(modify, true);
         groupMember.group = data.group;
         if (data.group != null) {
           let groupTile = this.layout.tiles[data.group];
@@ -1556,10 +1561,10 @@ modules["breakout/overview"] = class {
             }
           } else if (groupTile.members != null && groupTile.members.includes(modify) == false) {
             groupTile.members.push(modify);
-            this.layout.addMemberTile(modify);
+            this.layout.addMemberTile(modify, true);
           }
         } else if ((this.layout.memberSessions[modify] ?? []).length > 0) {
-          this.layout.addMemberTile(modify);
+          this.layout.addMemberTile(modify, true);
           updateUnassignedMemberCount(1);
         }
       }
@@ -1596,7 +1601,7 @@ modules["breakout/overview"] = class {
               if (data.member.group != null) {
                 this.layout.updateMemberTile(this.parent.parent.collaborators[data.member.modify]);
               } else {
-                this.layout.removeMemberTile(data.member.modify);
+                this.layout.removeMemberTile(data.member.modify, true);
                 updateUnassignedMemberCount(-1);
               }
             }

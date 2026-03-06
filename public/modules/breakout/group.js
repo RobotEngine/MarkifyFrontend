@@ -736,6 +736,13 @@ modules["breakout/group"] = class {
       }
     }, { sort: 1 });
 
+    let promptWelcomeModal = async () => {
+      if (this.welcomeRead != true && this.parent.parent.self.access < 4 && Object.keys(this.members).length > 1) {
+        this.welcomeRead = true;
+        frame.insertAdjacentHTML("beforeend", `<div class="boCreateBreakoutHolder"></div>`);
+        this.welcomeModal = await modalModule.open("modals/lesson/breakout/group/welcome", frame.querySelector(".boCreateBreakoutHolder"), null, "Your Team", null, { parent: this });
+      }
+    }
     this.pipeline.subscribe("memberAssign", "memberassign", (data) => {
       this.parent.parent.collaborators[data.collaborator._id] = data.collaborator;
       let groupMember = this.members[data.collaborator._id];
@@ -743,6 +750,7 @@ modules["breakout/group"] = class {
         if (groupMember == null) {
           this.members[data.collaborator._id] = [];
         }
+        promptWelcomeModal();
       } else if (groupMember != null) {
         if (this.editor.realtime.module != null) {
           for (let i = 0; i < groupMember.length; i++) {
@@ -754,6 +762,7 @@ modules["breakout/group"] = class {
         this.updateMemberCount();
       }
     }, { sort: 1 });
+    promptWelcomeModal();
 
     // Fetch Annotations:
     let pageParam = getParam("page");
@@ -796,11 +805,6 @@ modules["breakout/group"] = class {
     })();
 
     modifyParams("team", this.group._id);
-
-    if (this.welcomeRead != true && this.parent.parent.self.access < 4) { // && Object.keys(this.members).length > 1
-      frame.insertAdjacentHTML("beforeend", `<div class="boCreateBreakoutHolder"></div>`);
-      this.welcomeModal = await modalModule.open("modals/lesson/breakout/group/welcome", frame.querySelector(".boCreateBreakoutHolder"), null, "Your Team", null, { parent: this });
-    }
 
     this.updateInterface();
   }

@@ -797,7 +797,7 @@ modules["breakout/group"] = class {
 
     modifyParams("team", this.group._id);
 
-    if (this.welcomeRead != true && this.parent.parent.self.access < 4 && Object.keys(this.members).length > 1) {
+    if (this.welcomeRead != true && this.parent.parent.self.access < 4) { // && Object.keys(this.members).length > 1
       frame.insertAdjacentHTML("beforeend", `<div class="boCreateBreakoutHolder"></div>`);
       this.welcomeModal = await modalModule.open("modals/lesson/breakout/group/welcome", frame.querySelector(".boCreateBreakoutHolder"), null, "Your Team", null, { parent: this });
     }

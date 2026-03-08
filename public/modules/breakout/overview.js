@@ -2343,6 +2343,7 @@ modules["dropdowns/lesson/breakout/overview/groupoptions"] = class {
   <button class="broGroupOption" option="opennewtab" title="Open this team in a new tab."><div></div>Open in New Tab</button>
   <div class="broGroupOptionLine"></div>
   <button class="broGroupOption" option="timeline" title="View this team's timeline history."><div></div>Timeline</button>
+  <button class="broGroupOption" option="rename" title="Rename this group."><div></div>Rename</button>
   <div class="broGroupOptionLine"></div>
   <button class="broGroupOption" option="deletegroup" title="Remove this group from the lesson." dropdowntitle="Delete Team" style="--themeColor: var(--error)"><div></div>Delete Team</button>
   `;
@@ -2402,6 +2403,29 @@ modules["dropdowns/lesson/breakout/overview/groupoptions"] = class {
       parent.parent.openPage("timeline", "editor/timeline", { construct });
     });
 
+    let renameGroupButton = frame.querySelector('.broGroupOption[option="rename"]');
+    renameGroupButton.addEventListener("click", () => {
+      dropdownModule.close();
+      let tileData = parent.layout.tiles[groupID] ?? {};
+      if (tileData.element == null) {
+        return
+      }
+      let titleText = tileData.element.querySelector(".broTileHeaderNameHolderText");
+      if (window.getSelection != null && document.createRange != null) {
+        let range = document.createRange();
+        range.selectNodeContents(titleText);
+        let sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      } else if (document.body.createTextRange != null) {
+        let range = document.body.createTextRange();
+        range.moveToElementText(titleText);
+        range.select();
+      } else {
+        titleText.focus();
+      }
+    });
+
     let deleteGroupButton = frame.querySelector('.broGroupOption[option="deletegroup"]');
     deleteGroupButton.addEventListener("click", () => {
       dropdownModule.open(deleteGroupButton, "dropdowns/remove", { type: "deletegroup", session: parent.parent.parent.session, groupID });
@@ -2410,6 +2434,7 @@ modules["dropdowns/lesson/breakout/overview/groupoptions"] = class {
     setSVG(openButton.querySelector("div"), "../images/editor/breakout/open.svg");
     setSVG(openNewTabButton.querySelector("div"), "../images/editor/breakout/open.svg");
     setSVG(timelineButton.querySelector("div"), "../images/editor/file/history.svg");
+    setSVG(renameGroupButton.querySelector("div"), "../images/editor/breakout/rename.svg");
     setSVG(deleteGroupButton.querySelector("div"), "../images/editor/file/delete.svg");
   }
 }

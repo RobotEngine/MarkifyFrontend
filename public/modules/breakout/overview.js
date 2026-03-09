@@ -641,149 +641,47 @@ modules["breakout/overview"] = class {
 
       return [column, section];
     }
-    this.layout.loadEditorAnnotations = async (tile = {}, body = {}, root = {}) => {
-      if (tile.editor == null) {
-        return;
+    this.layout.setupEditors = async (append) => {
+      if (append != null) {
+        this.layout.pendingEditors.push(append);
       }
-      if (this.layout.loadingAnnotations[tile.render._id] == null) {
-        return;
-      }
-      delete this.layout.loadingAnnotations[tile.render._id];
-      let skipPositioning = tile.editorState != null;
-      await tile.editor.loadAnnotations({
-        annotations: body.annotations ?? [],
-        rootAnnotations: root.annotations ?? [],
-        sources: [ ...(body.sources ?? []), ...(root.sources ?? []) ],
-        reactions: [ ...(body.reactions ?? []), ...(root.reactions ?? []) ],
-        reactedTo: [ ...(body.reactedTo ?? []), ...(root.reactedTo ?? []) ]
-      }, { skipPositioning });
-      if (skipPositioning != null) {
-        if (tile.editorState != null) {
-          await tile.editor.setState(tile.editorState);
-        }
-      }
-      if (tile.element != null) {
-        let previewHolder = tile.element.querySelector(".broTilePreview");
-        if (previewHolder != null) {
-          previewHolder.removeAttribute("disabled");
-        }
-      }
-    }
-    this.layout.setupEditors = async () => {
       if (this.layout.runningEditorSetup == true) {
         return;
       }
       this.layout.runningEditorSetup = true;
 
-      let getGroupAnnotations = [];
-      let getGroupRoots = [];
-      for (let i = 0; i < this.layout.pendingEditors.length; i++) {
-        let tile = this.layout.pendingEditors[i];
-        if (tile.loadedAnnotations != true && this.layout.loadingAnnotations[tile.render._id] == null) {
-          this.layout.loadingAnnotations[tile.render._id] = [];
-          getGroupAnnotations.push(tile.render._id);
-
-          this.layout.longSubscribedGroups.push(tile.render._id);
-          if (this.layout.longSubscribedGroups.length > this.layout.maxLongSubscribedGroups) {
-            let unloadTileID = this.layout.longSubscribedGroups.shift();
-            let unloadTile = this.layout.tiles[unloadTileID];
-            if (unloadTile != null) {
-              if (unloadTile.editor != null) {
-                unloadTile.editor.reset();
-              }
-              delete unloadTile.loadedAnnotations;
-              delete this.layout.loadingAnnotations[unloadTileID];
-            }
-          }
-        }
-        if (tile.render.template != null) {
-          let rootID = tile.render.version + "_" + tile.render.template;
-          if (this.templateRoots[rootID] == null && this.layout.loadingAnnotations[rootID] == null) {
-            this.layout.loadingAnnotations[rootID] = [];
-            getGroupRoots.push(rootID);
-          }
-        }
-      }
-
-      // Bulk Fetch Annotations for Groups:
-      if (getGroupAnnotations.length > 0) {
-        (async () => {
-          let buffer = "";
-          await sendRequest(
-            "POST",
-            "lessons/breakout/groups/bulkannotations",
-            {
-              groups: getGroupAnnotations,
-              roots: getGroupRoots
-            }, {
-              session: this.parent.session,
-              streaming: true,
-              onChunk: async (data) => {
-                buffer += data;
-                let lines = buffer.split("\n");
-                buffer = lines.pop();
-                for (let i = 0; i < lines.length; i++) {
-                  let line = lines[i];
-                  if (line.trim()) {
-                    try {
-                      let [type, id, body] = JSON.parse(line);
-                      switch (type) {
-                        case "group":
-                          let tile = this.layout.tiles[id];
-                          tile.loadedAnnotations = true;
-                          if (tile.render.template != null) {
-                            let rootID = tile.render.version + "_" + tile.render.template;
-                            let root = this.templateRoots[rootID];
-                            if (root != null) {
-                              await this.layout.loadEditorAnnotations(tile, body, root);
-                            } else {
-                              let rootLoad = this.layout.loadingAnnotations[rootID];
-                              if (rootLoad != null) {
-                                rootLoad.push([tile, body]);
-                              }
-                            }
-                          }
-                          break;
-                        case "root":
-                          this.templateRoots[id] = body;
-                          let rootLoad = this.layout.loadingAnnotations[id];
-                          if (rootLoad != null) {
-                            for (let r = 0; r < rootLoad.length; r++) {
-                              let [tile, groupBody] = rootLoad[r];
-                              await this.layout.loadEditorAnnotations(tile, groupBody, body);
-                            }
-                          }
-                      }
-                    } catch (error) {
-                      console.error("Error parsing line:", error);
-                    }
-                  }
-                }
-              }
-            }
-          );
-          for (let i = 0; i < getGroupAnnotations.length; i++) {
-            delete this.layout.loadingAnnotations[getGroupAnnotations[i]];
-          }
-          for (let i = 0; i < getGroupRoots.length; i++) {
-            delete this.layout.loadingAnnotations[getGroupRoots[i]];
-          }
-        })();
-      }
-
       while (this.layout.pendingEditors.length > 0 && this.layout.runningEditorSetup == true) {
-        let tile = this.layout.pendingEditors.shift();
+        let [tile, body, root] = this.layout.pendingEditors.shift();
         if (tile.editor == null || tile.element == null) {
           continue;
         }
         tile.editor.updatePageSize();
         
+        if (body != null) {
+          let skipPositioning = tile.editorState != null;
+          root = root ?? {};
+          await tile.editor.loadAnnotations({
+            annotations: body.annotations ?? [],
+            rootAnnotations: root.annotations ?? [],
+            sources: [ ...(body.sources ?? []), ...(root.sources ?? []) ],
+            reactions: [ ...(body.reactions ?? []), ...(root.reactions ?? []) ],
+            reactedTo: [ ...(body.reactedTo ?? []), ...(root.reactedTo ?? []) ]
+          }, { skipPositioning });
+          if (tile.element != null) {
+            let previewHolder = tile.element.querySelector(".broTilePreview");
+            if (previewHolder != null) {
+              previewHolder.removeAttribute("disabled");
+            }
+          }
+        }
+
         if (tile.editorState != null) {
           await tile.editor.setState(tile.editorState);
         } else {
           await tile.editor.updateChunks();
           await tile.editor.loadAnnotations();
         }
+        
         tile.editor.previewLoaded = true;
       }
 
@@ -1079,6 +977,8 @@ modules["breakout/overview"] = class {
       }
 
       // Load Editors:
+      let getGroupAnnotations = [];
+      let getGroupRoots = [];
       for (let i = 0; i < newTilesPendingEditors.length; i++) {
         let tile = newTilesPendingEditors[i];
         if (tile.element == null) {
@@ -1117,16 +1017,107 @@ modules["breakout/overview"] = class {
           //await tile.editor.render.setMarginSize();
           //await tile.editor.updateChunks();
         }
-        this.layout.pendingEditors.push(tile);
+        if (tile.loadedAnnotations != true && this.layout.loadingAnnotations[tile.render._id] == null) {
+          this.layout.loadingAnnotations[tile.render._id] = [];
+          getGroupAnnotations.push(tile.render._id);
+
+          this.layout.longSubscribedGroups.push(tile.render._id);
+          if (this.layout.longSubscribedGroups.length > this.layout.maxLongSubscribedGroups) {
+            let unloadTileID = this.layout.longSubscribedGroups.shift();
+            let unloadTile = this.layout.tiles[unloadTileID];
+            if (unloadTile != null) {
+              if (unloadTile.editor != null) {
+                unloadTile.editor.reset();
+              }
+              delete unloadTile.loadedAnnotations;
+              delete this.layout.loadingAnnotations[unloadTileID];
+            }
+          }
+        } else {
+          this.layout.pendingEditors.push([tile]);
+        }
+        if (tile.render.template != null) {
+          let rootID = tile.render.version + "_" + tile.render.template;
+          if (this.templateRoots[rootID] == null && this.layout.loadingAnnotations[rootID] == null) {
+            this.layout.loadingAnnotations[rootID] = [];
+            getGroupRoots.push(rootID);
+          }
+        }
       }
 
       // Bulk Apply Elements:
       groups.appendChild(newTilesFragment);
 
+      // Bulk Fetch Annotations for Unloaded Groups:
+      if (getGroupAnnotations.length > 0) {
+        (async () => {
+          let buffer = "";
+          await sendRequest(
+            "POST",
+            "lessons/breakout/groups/bulkannotations",
+            {
+              groups: getGroupAnnotations,
+              roots: getGroupRoots
+            }, {
+              session: this.parent.session,
+              streaming: true,
+              onChunk: async (data) => {
+                buffer += data;
+                let lines = buffer.split("\n");
+                buffer = lines.pop();
+                for (let i = 0; i < lines.length; i++) {
+                  let line = lines[i];
+                  if (line.trim()) {
+                    try {
+                      let [type, id, body] = JSON.parse(line);
+                      switch (type) {
+                        case "group":
+                          let tile = this.layout.tiles[id];
+                          tile.loadedAnnotations = true;
+                          if (tile.render.template != null) {
+                            let rootID = tile.render.version + "_" + tile.render.template;
+                            let root = this.templateRoots[rootID];
+                            if (root != null) {
+                              this.layout.setupEditors([tile, body, root]);
+                            } else {
+                              let rootLoad = this.layout.loadingAnnotations[rootID];
+                              if (rootLoad != null) {
+                                rootLoad.push([tile, body]);
+                              }
+                            }
+                          }
+                          break;
+                        case "root":
+                          this.templateRoots[id] = body;
+                          let rootLoad = this.layout.loadingAnnotations[id];
+                          if (rootLoad != null) {
+                            for (let r = 0; r < rootLoad.length; r++) {
+                              let [tile, groupBody] = rootLoad[r];
+                              this.layout.setupEditors([tile, groupBody, body]);
+                            }
+                          }
+                      }
+                    } catch (error) {
+                      console.error("Error parsing line:", error);
+                    }
+                  }
+                }
+              }
+            }
+          );
+          for (let i = 0; i < getGroupAnnotations.length; i++) {
+            delete this.layout.loadingAnnotations[getGroupAnnotations[i]];
+          }
+          for (let i = 0; i < getGroupRoots.length; i++) {
+            delete this.layout.loadingAnnotations[getGroupRoots[i]];
+          }
+        })();
+      }
+
       // Configure Editor Viewports:
       //this.layout.setupEditors();
       clearTimeout(this.layout.setupEditorsTimeout);
-      this.layout.setupEditorsTimeout = setTimeout(this.layout.setupEditors, 50);
+      this.layout.setupEditorsTimeout = setTimeout(() => { this.layout.setupEditors(); }, 50);
 
       // Unload Tiles:
       let unloadTileKeys = Object.keys(this.layout.loadedTiles);

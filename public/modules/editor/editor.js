@@ -3693,7 +3693,7 @@ modules["editor/editor"] = class {
         clearTimeout(recenterTimeoutFromSimulatedResize);
         recenterTimeoutFromSimulatedResize = setTimeout(() => {
           if (this.annotationPages.length > 0) {
-            this.utils.updateAnnotationScroll([this.annotationPages[0][0]]);
+            this.utils.updateAnnotationScroll(this.annotationPages[this.currentPage - 1]);
           } else {
             this.utils.centerWindowWithPage();
           }

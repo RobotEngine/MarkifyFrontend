@@ -645,6 +645,8 @@ modules["pages/app/lesson"] = class extends page {
     let startDivider = (event) => {
       divider = event.target.closest(".lPageDivider");
       if (divider != null) {
+        dividerStartX = event.x ?? event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0;
+        
         removeBeforePage = false;
         removeAfterPage = false;
 
@@ -673,8 +675,7 @@ modules["pages/app/lesson"] = class extends page {
       event.preventDefault();
 
       let mouseX = event.x ?? event.clientX ?? ((event.changedTouches ?? [])[0] ?? {}).clientX ?? 0;
-      dividerStartX = dividerStartX ?? mouseX;
-      let changeX = mouseX - dividerStartX;
+      let changeX = mouseX - (dividerStartX ?? mouseX);
 
       if (beforePageWidth + changeX < this.minPageSize) {
         let correct = this.minPageSize - (beforePageWidth + changeX);

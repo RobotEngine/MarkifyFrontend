@@ -562,7 +562,7 @@ modules["breakout/overview"] = class {
     this.layout.minTileWidth = 260;
     this.layout.maxTileWidth = 450;
     this.layout.tilePadding = 16;
-    this.layout.maxContainerWidth = (this.layout.minTileWidth * 6) + (this.layout.tilePadding * 5) - 1;
+    this.layout.maxContainerWidth = 2000; //(this.layout.minTileWidth * 6) + (this.layout.tilePadding * 5) - 1;
     this.layout.columnCount = 0;
     this.layout.columnWidth = 0;
     this.layout.previewScale = 1;
@@ -1214,28 +1214,71 @@ modules["breakout/overview"] = class {
       this.containerWidth = groupHolder.clientWidth;
       this.containerHeight = groupHolder.clientHeight;
 
-      // Determine the number and width of columns:
-      let groupsWidth = Math.min(this.containerWidth - (this.layout.tilePadding * 2), this.layout.maxContainerWidth);
-
-      let maxPossibleColumns = Math.floor(
-        (groupsWidth + this.layout.tilePadding) / (this.layout.minTileWidth + this.layout.tilePadding)
+      // Determine usable width:
+      let groupsWidth = Math.min(
+        this.containerWidth - (this.layout.tilePadding * 2),
+        this.layout.maxContainerWidth
       );
-      let newColumnCount = Math.max(1, maxPossibleColumns);
 
-      while (true) {
-        let totalInterPadding = this.layout.tilePadding * (newColumnCount - 1);
-        this.layout.columnWidth = (groupsWidth - totalInterPadding) / newColumnCount;
-        if (this.layout.columnWidth <= this.layout.maxTileWidth || newColumnCount < 2) break;
-        newColumnCount--;
+      // Max possible columns:
+      let maxPossibleColumns = Math.floor(
+        (groupsWidth + this.layout.tilePadding) /
+        (this.layout.minTileWidth + this.layout.tilePadding)
+      );
+
+      maxPossibleColumns = Math.max(1, maxPossibleColumns);
+
+      // SMART COLUMN SELECTION:
+
+      let bestColumns = 1;
+      let bestWidth = groupsWidth;
+      let bestScore;
+
+      let idealTileWidth = (this.layout.minTileWidth + this.layout.maxTileWidth) / 2;
+
+      for (let columns = 1; columns <= maxPossibleColumns; columns++) {
+
+        let totalPadding = this.layout.tilePadding * (columns - 1);
+        let tileWidth = (groupsWidth - totalPadding) / columns;
+
+        if (tileWidth <= 0) continue;
+
+        let score = 0;
+
+        // Prefer tile sizes near ideal width:
+        score -= Math.abs(tileWidth - idealTileWidth);
+
+        // Penalize tiles smaller than minimum:
+        if (tileWidth < this.layout.minTileWidth) {
+          score -= 1000;
+        }
+
+        // Penalize tiles bigger than max:
+        if (tileWidth > this.layout.maxTileWidth) {
+          score -= (tileWidth - this.layout.maxTileWidth) * 2;
+        }
+
+        // Slight preference for more columns (helps smaller screens):
+        score += columns * 10;
+
+        if (score > bestScore || bestScore == null) {
+          bestScore = score;
+          bestColumns = columns;
+          bestWidth = tileWidth;
+        }
       }
+
+      let newColumnCount = bestColumns;
 
       this.layout.columnWidth = Math.min(
         this.layout.maxTileWidth,
-        Math.max(this.layout.minTileWidth, this.layout.columnWidth),
+        Math.max(this.layout.minTileWidth, bestWidth),
         groupsWidth
       );
 
-      this.layout.groupsWidth = (this.layout.columnWidth * newColumnCount) + (this.layout.tilePadding * (newColumnCount - 1));
+      this.layout.groupsWidth =
+        (this.layout.columnWidth * newColumnCount) +
+        (this.layout.tilePadding * (newColumnCount - 1));
 
       // Reorganize tiles to new columns:
       while (this.layout.columnCount != newColumnCount) {

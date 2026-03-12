@@ -1119,7 +1119,7 @@ modules["breakout/overview"] = class {
       let unloadTileKeys = Object.keys(this.layout.loadedTiles);
       for (let i = 0; i < unloadTileKeys.length; i++) {
         let tileID = unloadTileKeys[i];
-        let tile = this.layout.tiles[tileID];
+        let tile = this.layout.tiles[tileID] ?? {};
         if (tile.editor != null) {
           if (tile.editor.previewLoaded == true) {
             if (this.layout.lastResizeWasSimulated != true) {
